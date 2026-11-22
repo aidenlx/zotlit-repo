@@ -38,8 +38,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { layout },
       );
     });
-    // The Fixture's Query File in two panes side by side: one wide, one
-    // narrow, as a user drags the divider.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }) => {
@@ -82,9 +80,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       properties: run.m.query_view_properties(),
       search: run.m.query_view_search(),
     };
-    /** Each toolbar button's tooltip text and whether its name shows beside its icon. */
-    // The sidebars fold with an animation; a width the same over three frames
-    // is the settled pane.
 
     const each = (nameShown: boolean) =>
       Object.fromEntries(
@@ -194,7 +189,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(wide.width).toBeGreaterThan(700);
     expect(wide).toMatchObject({ overflow: false, buttons: each(true) });
 
-    // A pointer over an icon-only button shows its name as a tooltip.
     const tooltip = await obRun(
       run.vaultId,
       async ({ page: pageHelpers }) => {
@@ -280,11 +274,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { isPopout: host === "popout" },
       );
-      // A box hung under the surface's root, past its bottom edge, where an
-      // expression editor's tooltip lands: the point under the box's middle
-      // shows the box, not the view behind the surface. Each surface opens
-      // with its toolbar button: `toolbar` names the hook of a toolbar
-      // popover, and the Properties chooser has a button of its own.
       const reachesPast = (selector: string, toolbar?: string) =>
         obRun(
           run.vaultId,
@@ -367,7 +356,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           { layout, path },
         );
       });
-      // A view of Items whose filter is one expression condition.
       await obRun(
         run.vaultId,
         async ({ app, page: pageHelpers }, { path, fileContent, isPopout }) => {
@@ -426,16 +414,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         shown: boolean;
         closed: boolean;
       }
-      /**
-       * Puts the caret of the expression field under `surface` at `caret`,
-       * after its text becomes `text` when one is given, then focuses the
-       * field as a Tab does, with no click to put the caret down, and reads
-       * where the caret stands and the hint
-       * once CodeMirror has placed it (it parks an unmeasured tooltip at a
-       * top of -10000px): its marked parameter and text, whether it stands
-       * in the surface's root, inside the window, and on top at each corner;
-       * then whether it closes with the caret at the end, outside the call.
-       */
 
       const expected = {
         marked: "end?: number",
@@ -537,7 +515,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
                 r.width > 0 &&
                 r.left >= 0 &&
                 r.top >= 0 &&
-                // CodeMirror leaves a move of a pixel or less undone.
                 r.right <= win!.innerWidth + 1 &&
                 r.bottom <= win!.innerHeight,
               shown: corners.every(([x, y]) => {
@@ -562,7 +539,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           cursorAnchor: "title.slice(0, ".length,
         },
       );
-      // The focus keeps the caret where it was, in the state and on screen.
       expect(inFilter).toMatchObject({
         ...expected,
         caret: "title.slice(0, ".length,
@@ -673,7 +649,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
                 r.width > 0 &&
                 r.left >= 0 &&
                 r.top >= 0 &&
-                // CodeMirror leaves a move of a pixel or less undone.
                 r.right <= win!.innerWidth + 1 &&
                 r.bottom <= win!.innerHeight,
               shown: corners.every(([x, y]) => {
@@ -761,8 +736,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const doc = content.ownerDocument;
           const view = content.cmTile.root.view;
           view.dispatch({ selection: { anchor: offsets[0]! } });
-          // Each frame from the first the hint shows in, as the editor takes
-          // the focus and then as the caret crosses the arguments.
           const frames: {
             same: boolean;
             place: string;
@@ -800,7 +773,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             marks.push(first.querySelector("mark")?.textContent ?? null);
           }
           sampling = false;
-          // The same signature at a bracket nearer the popover's edge.
           const near = first.getBoundingClientRect();
           view.dispatch({
             changes: { from: 0, to: view.state.doc.length, insert: nested },
@@ -855,23 +827,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     "offers Expression Completion in a Formula and a filter condition, above the chooser and the Filter popover, in the %s window",
     async (host) => {
       const path = "query-files/Expression completion.zotquery";
-      // A view whose own filter is an expression row, which the visual rows
-      // cannot show.
       const source = `views:\n  - type: table\n    name: Items\n    from: items\n    order:\n      - title\n    limit: 5\n    filters:\n      and:\n        - title.length > 0\n`;
-      // What one field of a surface offers as it is typed in: the list
-      // drawn in the surface's root, in Obsidian's suggestion skin with its
-      // signature and description cells, its middle on top past the
-      // surface's edge where it reaches past it.
 
-      // A new Formula: `mi` offers `min()`, which Enter writes with the
-      // caret between its parentheses. In it, `ti` offers `title`, which
-      // Tab writes, keeping focus in the field. Then `, ti` opens the list
-      // below the call's Signature Hint: Escape closes the list, then the hint,
-      // each keeping the page; Escape again steps back to the rows.
-      // Then the view's filter condition: `tit` in a call offers `title`,
-      // the list below the caret and the call's Signature Hint above it,
-      // apart. A click on the row writes it while the Filter popover stays
-      // open. The eval restores the vault and the layout before it answers.
       const { formula, filter } = await obRun(
         run.vaultId,
         async (
@@ -1180,10 +1137,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   it.each(["main", "popout"] as const)(
     "closes only a chooser page's menu on Escape, and then steps back from the page, in the %s window",
     async (host) => {
-      // The view menu's Configure view page of the Fixture's Query File:
-      // its "…" opens the page menu. Escape closes the menu and keeps the
-      // page; Escape again steps back to the rows, the popup still open.
-      // The eval restores the layout before it answers.
       const escapes = await obRun(
         run.vaultId,
         async ({ app, page: pageHelpers }, { isPopout }) => {
@@ -1288,7 +1241,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
 
   it("offers the members of a typed receiver, the names a list method binds and the vault keys in a filter condition", async () => {
     const path = "query-files/Member completion.zotquery";
-    // A Formula of text that the filter condition reads by name.
     const source = `formulas:\n  short: title.slice(0, 10)\nviews:\n  - type: table\n    name: Items\n    from: items\n    order:\n      - title\n    limit: 5\n    filters:\n      and:\n        - title.length > 0\n`;
     const texts = [
       "title.",
@@ -1301,9 +1253,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       "firstAuthor.",
       "vault[",
     ];
-    // What the list offers for each text typed over the expression row's
-    // text; the row is never left empty, which would remove it. The eval
-    // restores the vault and the layout before it answers.
     const offered = await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }, { path, source, texts }) => {
@@ -1389,7 +1338,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       "index",
       "acc",
     ]);
-    // Each name a Literature Note carries, quoted.
     expect(offered["vault["]!.length).toBeGreaterThan(0);
     for (const key of offered["vault["]!) expect(key).toMatch(/^".*"$/);
   }, 120000);
@@ -1398,8 +1346,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const path = "query-files/Paired symbols.zotquery";
     const source = `views:\n  - type: table\n    name: Items\n    from: items\n    order:\n      - title\n    limit: 5\n    filters:\n      and:\n        - title.length > 0\n`;
     const sequences = ['title.contains("a")', "title.contains(/don't"];
-    // The field's text after each sequence, with `|` at the cursor. The row is
-    // never left empty, which would remove it.
     const typed = await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }, { path, source, sequences }) => {
@@ -1445,8 +1391,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             const { head } = state.selection.main;
             return `${state.sliceDoc(0, head)}|${state.sliceDoc(head)}`;
           };
-          // Each key lands before the next, as the field reads the DOM late
-          // and takes keys that arrive together as one insertion.
           for (const key of keys) {
             const before = snapshot();
             el.doc.execCommand("insertText", false, key);
@@ -1515,9 +1459,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const own = report.rows!.map((row) => row.indexedKey);
     expect(own.length).toBeGreaterThan(1);
 
-    // Obsidian's own Export to PDF: its modal's export, with the file path
-    // the save dialog would give. The printed page is read as it is drawn,
-    // in the hidden window Obsidian prints from.
     const printed = JSON.parse(
       await obRun(
         run.vaultId,
@@ -1616,7 +1557,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         toolbar: boolean;
         readOnly: boolean;
         clipped: boolean;
-        /** Empty space below the cards, as a fixed height leaves. */
         blank: boolean;
       }[];
     };
@@ -1675,8 +1615,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         "",
       ].join("\n");
 
-      // Obsidian's own Export to PDF, as in the case above. A print that waits
-      // past the deadline for a view that draws no rows ends the case.
       const printed = JSON.parse(
         await obRun(
           run.vaultId,
@@ -1776,8 +1714,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   it.each(["preview", "source"] as const)(
     "moves the text under a short Query Block in %s at most once, and only down, as the note first opens",
     async (mode) => {
-      // A note of its own for each mode: the session remembers the height a
-      // view drew at, and this case is about a view the note never drew.
       const notePath = `query-files/Short block first open ${mode}.md`;
       const layout = await obRun(
         run.vaultId,
@@ -1812,11 +1748,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         "The end.",
         "",
       ].join("\n");
-      /**
-       * The place of the text under the block in the note, on each frame
-       * from the moment the note opens until its rows have drawn: `null`
-       * while the text is not on the page.
-       */
       const { tops, rows } = await obRun(
         run.vaultId,
         async ({ app }, { notePath, note, mode }) => {
@@ -1855,8 +1786,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           })();
           await leaf.openFile(file, { state: { mode } });
           app.workspace.setActiveLeaf(leaf, { focus: true });
-          // Until the rows have drawn and the view let its room go, then a
-          // little longer.
           const deadline = performance.now() + 20000;
           while (
             performance.now() < deadline &&
@@ -1879,11 +1808,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
       expect(rows).toBe(3);
       const placed = tops.filter((top): top is number => top !== null);
-      // The places the text stood at, in order, one entry per move.
       const moves = placed.filter(
         (top, i) => i === 0 || Math.abs(top - placed[i - 1]!) > 0.5,
       );
-      // At most one move, and down: each place lower than the one before.
       expect(moves.length, JSON.stringify(moves)).toBeLessThanOrEqual(2);
       expect(moves).toEqual(moves.toSorted((a, b) => a - b));
     },
@@ -1911,7 +1838,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { layout, path },
       );
     });
-    /** The rows ZotLit Query gives for a filter, through the CLI. */
     const queryKeys = async (filter: string) => {
       const report = JSON.parse(
         await cliCommand(run.vaultId, "zotlit:query", {
@@ -1925,11 +1851,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       text: string;
       cards: string[];
       filterError: boolean;
-      /** The row count the Results menu shows, or `null` while it shows none. */
       count: string | null;
-      /** The text of each row's diagnostic in the "This view" section. */
       rowIssues: (string | null)[];
-      /** The report of the diagnostic the view shows above the cards. */
       diagnostic: string | null;
     }
 
@@ -1988,7 +1911,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       if (!settled) throw new Error(`Filtered tab: ${JSON.stringify(tab)}`);
       return tab!;
     };
-    /** Run `body` against the open Filter popover of the active tab. */
 
     await obRun(
       run.vaultId,
@@ -2017,9 +1939,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       (tab) => JSON.stringify(tab.cards) === JSON.stringify(figures),
     );
 
-    // The popover opens with the two sections; the view's tag condition
-    // shows as a visual row, and the empty "All views" section shows one
-    // placeholder row.
     const sections = (await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }, { filterLabel }) => {
@@ -2056,7 +1975,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       tag: "figure",
     });
 
-    // A new tag value saves the view's filters and runs them.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }, { filterLabel }) => {
@@ -2085,7 +2003,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     const methodology = await queryKeys('tags.contains("methodology")');
     expect(methodology).not.toEqual(figures);
-    // The tab saves after a short delay, so the file text follows the cards.
     await tabWhen(
       (tab) =>
         JSON.stringify(tab.cards) === JSON.stringify(methodology) &&
@@ -2094,9 +2011,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ),
     );
 
-    // The placeholder row for all views becomes a colour condition, Yellow,
-    // and saves as the file's top-level filters; both sections hold. The
-    // empty section starts folded, so the reader unfolds it first.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }, { filterLabel }) => {
@@ -2137,8 +2051,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ) && JSON.stringify(tab.cards) === JSON.stringify(yellow),
     );
 
-    // A wrong expression marks its row with the query's diagnostic; the
-    // cards stay, and the view says the filter has an error.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }, { editButtonLabel }) => {
@@ -2187,14 +2099,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         tab.text.includes("        - nosuchfield == 1\n"),
     );
     expect(broken.cards).toEqual(yellow);
-    // The count of the kept cards stays in the Results menu.
     expect(broken.count).toBe(String(yellow.length));
     expect(broken.rowIssues[0]).toContain("nosuchfield");
-    /**
-     * The text the expression rows of the view's own filters underline,
-     * once it is `expected` or the wait ends: the editor draws its marks
-     * after the frame that shows the row.
-     */
     const underlines = async (expected: string[]) =>
       JSON.parse(
         await obRun(
@@ -2227,10 +2133,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           { expectedJson: JSON.stringify(expected) },
         ),
       ) as string[];
-    // The row underlines the name the query found wrong.
     expect(await underlines(["nosuchfield"])).toEqual(["nosuchfield"]);
-    // The condition shows no tooltip over the underline, not even an empty
-    // one, well past CodeMirror's hover delay.
     const hovered = await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }) => {
@@ -2265,8 +2168,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(hovered).toEqual([]);
 
-    // The expression field colors each kind of token with Obsidian's code
-    // color for it, in the light and in the dark theme.
     const tokens = {
       property: "title",
       function: "lower",
@@ -2348,12 +2249,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     for (const scheme of ["light", "dark"] as const)
       for (const [kind, { token, code }] of Object.entries(colors[scheme]))
         expect({ scheme, kind, token }).toEqual({ scheme, kind, token: code });
-    // The two themes give the code colors different values.
     expect(colors.light.property.code).not.toBe(colors.dark.property.code);
 
-    // One line of expression reads as a native text input: the field fills
-    // the row's input-high box, and its text and caret sit at the centre of
-    // it. Wrapped text grows the box, as a textarea does.
     const aligned = await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }) => {
@@ -2426,14 +2323,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(Math.abs(aligned.one.field)).toBeLessThanOrEqual(1);
     expect(Math.abs(aligned.one.text)).toBeLessThanOrEqual(1);
     expect(Math.abs(aligned.one.caret)).toBeLessThanOrEqual(1);
-    // The text reads at the field's own line height, not CodeMirror's.
     expect(Math.abs(aligned.one.line)).toBeLessThanOrEqual(0.5);
     expect(aligned.wrapped.box).toBeGreaterThan(aligned.input + 10);
     expect(Math.abs(aligned.wrapped.field)).toBeLessThanOrEqual(1);
 
-    // A syntax error names the tokens the filter lacks once, with the place
-    // in the filter: the hint that lists them again stays out. The fault sits
-    // at the ")" after the condition, so the view shows it above the cards.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }) => {
@@ -2462,7 +2355,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // The dangling operator is underlined as it is typed.
     expect(await underlines(["!="])).toEqual(["!="]);
     const unfinished = await tabWhen(
       (tab) =>
@@ -2474,7 +2366,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(excerpt).toContain("(place !=)");
     expect(caret!.trim()).toBe("^");
 
-    // "Edit visually" goes back once the expression fits a row.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }, { editButtonLabel, reasonLabel }) => {
@@ -2500,7 +2391,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const row = section("view").querySelector<HTMLElement>(
           "[data-condition-row]",
         )!;
-        // An expression no row reads keeps the button, whose tooltip says why.
         write(row, "title.length > 3");
         const blocked = await until("Edit visually blocked", () =>
           row.querySelector<HTMLElement>(`button[aria-label="${reasonLabel}"]`),
@@ -2576,8 +2466,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe("figure");
 
-    // A condition dragged by its grip above another takes the first place,
-    // and the file keeps the new order.
     const figureLine = '        - tags.contains("figure")';
     const nextLine = (text: string) => {
       const lines = text.split("\n");
@@ -2616,7 +2504,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         filterLabel: run.m.workbench_filter_value(),
       },
     );
-    // The focus goes to the new row's condition type.
     expect(
       await obRun(
         run.vaultId,
@@ -2673,9 +2560,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       (await tabWhen((tab) => nextLine(tab.text).startsWith("        - ")))
         .text,
     );
-    // `drag(from, over, y)` drags the grip at path `from` over `over` at the
-    // height `y` answers from its box, drops it, and tells whether `over`
-    // took the drop.
 
     const viewFilters = (...lines: string[]) =>
       `    filters:\n      and:\n${lines.join("\n")}\n`;
@@ -2729,9 +2613,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
     );
     await tabWhen((tab) => tab.text.includes(viewFilters(added, figureLine)));
-
-    // Alt+ArrowDown and Alt+ArrowUp move the focused condition one place,
-    // and the focus stays on its grip.
 
     await obRun(
       run.vaultId,
@@ -2812,9 +2693,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toBe("0");
     await tabWhen((tab) => tab.text.includes(viewFilters(added, figureLine)));
 
-    // A condition dropped on a nested group's body goes to the end of that
-    // group; a group takes no drop inside itself; a nested condition dragged
-    // above the first row leaves its group.
     const nested = (line: string) => `    ${line}`;
     await obRun(
       run.vaultId,
@@ -3022,7 +2900,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     );
 
-    // A None group stores as `not`, and its rows after the first read "or".
     const blue = '            - colorName == "blue"';
 
     await obRun(
@@ -3136,9 +3013,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       run.m.workbench_match_conjunction_where(),
       run.m.workbench_match_conjunction_or(),
     ]);
-
-    // Removing the last row of a nested group removes the group, and
-    // removing the last row of the view's filter removes its filter.
 
     await obRun(
       run.vaultId,
@@ -3396,9 +3270,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   }, 120000);
 
-  // A crowded condition row once squeezed its property select to its
-  // icon, and broke its chips mid-word. The select keeps its whole name at
-  // any depth, and each chip keeps its value on one line.
   it("keeps each condition's property name and chips whole in the Filter popover, in a nested group and with a chip list", async () => {
     const layout = await obRun(
       run.vaultId,
@@ -3459,11 +3330,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       clipped: boolean;
       chips: Record<string, number>;
     }
-    /**
-     * The condition rows of a view's own filter: each property select's
-     * label width and whether its text is cut, and the lines each chip's
-     * value takes.
-     */
     const rowsOf = async (path: string, view: string) =>
       (await obRun(
         run.vaultId,
@@ -3543,8 +3409,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ),
       }));
 
-    // The Fixture's view: "Tag contains any of" beside "Item type is Book",
-    // in a group of "Any of the following".
     const advanced = await rowsOf(
       "query-files/Formula lab.zotquery",
       "Advanced filters",
@@ -3557,8 +3421,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     for (const { label } of advanced) expect(label).toBeGreaterThan(0);
 
-    // Five groups deep, a row with a plain value keeps its property's name
-    // as well.
     const nested = await rowsOf(deep, "Nested");
     expect(nested.map(({ kind }) => kind)).toEqual([
       "year",
@@ -3572,9 +3434,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     for (const { label } of nested) expect(label).toBeGreaterThan(0);
   }, 120000);
 
-  // The Fixture's Literature Note of SAKIMA22 ends with a Query Block of
-  // `item == this.item`. A change in the view rewrites the block text only,
-  // and the Live Preview widget stays on the page.
   it("shows a Query Block of its note's Item and saves a sort change into the block", async () => {
     const notePath = "literatures/SAKIMA22.md";
     const layout = await obRun(
@@ -3607,8 +3466,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { layout, notePath, original, scratchFiles },
       );
     });
-
-    /** What `view` shows, once its query settled. */
 
     interface Shown {
       file: string;
@@ -3652,9 +3509,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           tries: 120,
         },
       );
-    /** Runs `script` with `el`, the element that holds `view`. */
 
-    /** The Annotation keys ZotLit Query gives for an Item, through the CLI. */
     const itemAnnotations = async (item: string, sort?: string) => {
       const report = JSON.parse(
         await cliCommand(run.vaultId, "zotlit:query", {
@@ -3692,7 +3547,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       return revealQueryView(run.vaultId, path, target);
     };
 
-    // In Live Preview, `this` is the Item of the note's `zotero-key`.
     const own = await itemAnnotations("SAKIMA22");
     expect(own.length).toBeGreaterThan(1);
     const liveView = await open(notePath, "live");
@@ -3705,8 +3559,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       readOnly: null,
     });
 
-    // A sort change in the toolbar rewrites the block text, and nothing else
-    // in the note. Each step of the Sort control saves.
     await obRun(
       run.vaultId,
       async ({ page: pageHelpers }, { liveView }) => {
@@ -3784,11 +3636,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       liveView,
       (shown) => JSON.stringify(shown.cards) === JSON.stringify(sorted),
     );
-    // The Live Preview widget that showed the view is the one that shows it now.
     expect(resorted.mark).toBe("kept");
 
-    // Reading view shows the saved sort, and `this` follows the note's
-    // `zotero-key` when the frontmatter changes.
     const readingView = await open(notePath, "reading");
     await shownWhen(
       readingView,
@@ -3813,8 +3662,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       (shown) => JSON.stringify(shown.cards) === JSON.stringify(other),
     );
 
-    // A section embed shows the block, and a sort change there saves to the
-    // note that holds it.
     const embedPath = "Query block embed.md";
     scratchFiles.push(embedPath);
     await obRun(
@@ -3882,7 +3729,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(JSON.stringify("![[SAKIMA22#Sakima’s song]]\n"));
 
-    // In a note without a `zotero-key`, the view names `this`.
     const plainPath = "Query block without key.md";
     scratchFiles.push(plainPath);
     await obRun(
@@ -3988,8 +3834,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { hookNames: block },
         { ready: (counted) => counted, what: "Query Block count", tries: 120 },
       );
-      // The limit, then the note goes at once, well inside the save delay. The
-      // block is the one the mode shows; the other mode's copy stays hidden.
       await obRun(
         run.vaultId,
         async (
@@ -4053,8 +3897,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path },
     );
     await using cleanup = new AsyncDisposableStack();
-    // The tab closes before the text goes back, so no pending save of the
-    // tab writes over it.
     cleanup.defer(async () => {
       await obRun(
         run.vaultId,
@@ -4068,7 +3910,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
 
-    /** The view on screen, its cards, and the page labels the cards show. */
     const shown = (view: string) =>
       obRunUntil(
         run.vaultId,
@@ -4092,8 +3933,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
       );
 
-    /** The view rows the open view menu shows. */
-
     await obRun(
       run.vaultId,
       async ({ app }, { path }) => {
@@ -4106,7 +3945,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path },
     );
     await shown("All annotations");
-    // A page number takes "p."; a named page label reads as it is.
     const shownPages: string[] = await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -4124,7 +3962,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(shownPages).toContain("p. 1");
     expect(shownPages).toContain("Chapter 1");
 
-    // The view menu narrows its views as the researcher types.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }) => {
@@ -4203,8 +4040,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { inputText: "" },
     );
 
-    // "Add view" adds a view, shows it, and opens Configure view on its
-    // name as a page of the menu; the name typed there renames it.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }) => {
@@ -4231,7 +4066,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
       { what: "the view name input in the Query File view chooser to open" },
     );
-    // Configure view offers only the layouts built for the view's dataset.
     expect(
       await obRun(
         run.vaultId,
@@ -4269,7 +4103,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await shown("Methods");
 
-    // "Show page" off takes the page labels off the cards at once.
     expect(
       await obRun(
         run.vaultId,
@@ -4325,8 +4158,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // A right-click on the view's row opens its Configure view, whose
-    // "Default view" moves it to the top of the list.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }) => {
@@ -4402,7 +4233,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
     );
 
-    // Each change saved to the file.
     await obRunUntil(
       run.vaultId,
       async ({ app }, { path }) => {
@@ -4421,7 +4251,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // A plain open of the file shows the first view, as the file holds it.
     await obRun(
       run.vaultId,
       async ({ app }, { path }) => {
@@ -4486,8 +4315,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // The chevron on a view's row opens Configure view on that view and
-    // leaves the view on screen as it is.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }) => {
@@ -4550,10 +4377,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path },
     );
     await using cleanup = new AsyncDisposableStack();
-    // The tab closes before the text goes back, so no pending save of the
-    // tab writes over it.
     cleanup.defer(async () => {
-      // Teardown closes a popover a failed step left open; not a reader's press.
       await obRun(
         run.vaultId,
         async ({ app, page: pageHelpers }, { path, original, layout }) => {
@@ -4575,7 +4399,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { path },
     );
-    /** The rows the tab shows, by the Layout that draws them. */
 
     interface Tab {
       layout: string;
@@ -4629,7 +4452,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       if (!settled) throw new Error(`Query File tab: ${JSON.stringify(tab)}`);
       return tab!;
     };
-    /** Open Configure view on the view on screen, and pick a Layout there. */
     const pickLayout = (type: string) =>
       obRun(
         run.vaultId,
@@ -4670,7 +4492,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(annotations.layout).toBe("annotations");
     expect(annotations.headings.length).toBeGreaterThan(1);
 
-    // List: the same rows in the same order, under the same Item headings.
     await pickLayout("list");
     const list = await tabWhen((tab) => tab.layout === "list");
     expect(list).toMatchObject({
@@ -4680,7 +4501,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       markers: "bullet",
     });
 
-    // A List option in Configure view draws at once and saves to the file.
     await obRun(
       run.vaultId,
       async (_context) => {
@@ -4697,8 +4517,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(numbered.rows).toEqual(annotations.cards);
 
-    // Cards: the same rows again; the switch keeps the grouping and the
-    // limit of the view, and changes only its Layout.
     await pickLayout("cards");
     const cards = await tabWhen(
       (tab) => tab.layout === "cards" && tab.text.includes("type: cards"),
@@ -4725,7 +4543,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
-      // Teardown closes a popover a failed step left open; not a reader's press.
       await obRun(
         run.vaultId,
         async ({ app, page: pageHelpers }, { path, layout }) => {
@@ -4753,11 +4570,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           "views:\n  - type: table\n    name: Items\n    from: items\n    order:\n      - title\n      - itemType\n      - date\n      - publicationTitle\n    limit: 100\n",
       },
     );
-    /**
-     * The Items the tab shows, each with the text of its cells, and the
-     * names of the properties: the Table's column headers, or the labels of
-     * the first card.
-     */
 
     interface Tab {
       layout: string;
@@ -4832,7 +4644,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       if (!settled) throw new Error(`Query File tab: ${JSON.stringify(tab)}`);
       return tab!;
     };
-    /** Pick a Layout in Configure view, then close it. */
     const pickLayout = (type: string) =>
       obRun(
         run.vaultId,
@@ -4873,7 +4684,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { type },
       );
-    /** Type into the toolbar search, which opens on its first use. */
     const search = (text: string) =>
       obRun(
         run.vaultId,
@@ -4909,8 +4719,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       (tab) => tab.layout === "table" && tab.rows.length > 0,
     );
     const total = table.rows.length;
-    // Each layout finds the Items by the Item Type the Table shows, not by
-    // the name Zotero stores.
     const found: Record<string, string[]> = {};
     for (const type of ["table", "list", "cards"]) {
       if (type !== "table") {
@@ -4932,8 +4740,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(found.list).toEqual(found.table);
     expect(found.cards).toEqual(found.table);
 
-    // A card names each property under the title by the Table's column
-    // header, and shows each value as the Table's cell does.
     await search("");
     const cards = await tabWhen(
       (tab) => tab.layout === "cards" && tab.rows.length === total,
@@ -4944,9 +4750,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     for (const card of cards.rows)
       expect(card.cells).toEqual(cells.get(card.key)!.slice(0, 4));
 
-    // "Hide all" leaves no property ticked and none shown, as in Bases, the
-    // Literature Note Property with them: the Table keeps a row for each Item,
-    // and a card stays for each Item with nothing in it.
     await pickLayout("table");
     await tabWhen((tab) => tab.layout === "table" && tab.rows.length === total);
     const hidden = await obRun(
@@ -5060,8 +4863,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path },
     );
 
-    /** The group headings and the Manual order rows of the active tab, once settled. */
-
     interface Tab {
       count: string | null;
       headings: string[];
@@ -5108,7 +4909,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       if (!settled) throw new Error(`Query File tab: ${JSON.stringify(tab)}`);
       return tab!;
     };
-    /** Choose an option of a select in the Group popover, opening it first. */
     const choose = (selector: string, value: string) =>
       obRun(
         run.vaultId,
@@ -5132,7 +4932,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
 
     await tabWhen((tab) => tab.count !== null);
-    // The colours of the rows.
     const report = JSON.parse(
       await cliCommand(run.vaultId, "zotlit:query", {
         args: { from: "annotations", fields: "colorName", limit: "100" },
@@ -5148,7 +4947,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const grouped = await tabWhen(
       (tab) => tab.headings.length === colours.length,
     );
-    // Ascending groups go from A to Z by the colour's name, as in Bases.
     expect(grouped.headings).toEqual(
       grouped.headings.toSorted((a, b) => a.localeCompare(b, "en")),
     );
@@ -5159,7 +4957,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(manual.order.every(([, ticked]) => ticked)).toBe(true);
 
-    // A tick hides the first colour.
     const [hidden, ...shown] = manual.order.map(([colour]) => colour);
     await obRun(
       run.vaultId,
@@ -5185,7 +4982,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).length;
     expect(after.count).toBe(String(expectedCount));
 
-    // The file holds the grouping; a reopened tab shows the same groups.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -5249,8 +5045,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { layout, filePaths: [colourPath, tagPath] },
       );
     });
-
-    /** The cards on screen in DOM order, each at its place, and the headings. */
 
     interface Shown {
       cards: { key: string; place: string }[];
@@ -5321,10 +5115,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       if (!settled) throw new Error(`Query File tab: ${JSON.stringify(shown)}`);
       return shown!;
     };
-    /**
-     * The Card Selection, the place its focus holds, and what the screen
-     * shows of it: the card at that place, and the card that has the focus.
-     */
 
     interface Selection {
       focus: string | null;
@@ -5359,7 +5149,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         undefined,
       )) as Selection;
-    /** Click the card at one place, as a pointer does. */
     const clickAt = (place: string) =>
       obRun(
         run.vaultId,
@@ -5377,11 +5166,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { place },
       );
-    /**
-     * One key as Obsidian delivers it: through the view's own Scope, with the
-     * focused card as the event's target.
-     * @returns whether the view handled it.
-     */
     const press = async (key: "ArrowDown" | "ArrowUp" | "Delete") =>
       (await obRun(
         run.vaultId,
@@ -5417,7 +5201,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { entryKey: key },
       )) === "true";
-    /** The card at a place, selected alone, drawn, and holding the focus. */
     const on = (place: string, key: string): Selection => ({
       focus: place,
       selected: [key],
@@ -5425,9 +5208,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       active: place,
     });
 
-    // Grouped by colour, with the second group collapsed, ↓ from the last
-    // card of the first group lands on the first card of the third: the
-    // cards of a collapsed group are not drawn, so the keys pass them.
     const colours = await open(
       colourPath,
       "views:\n  - type: annotations\n    name: Colours\n    from: annotations\n    limit: 100\n    groupBy:\n      property: colorName\n      direction: ASC\n",
@@ -5466,9 +5246,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(await selection()).toEqual(on(firstOfThird.place, firstOfThird.key));
     expect(await press("ArrowUp")).toBe(true);
     expect(await selection()).toEqual(on(lastOfFirst.place, lastOfFirst.key));
-
-    // A collapse that folds the Selected Card away drops it, so a Delete
-    // that follows acts on no hidden Annotation.
 
     await obRun(
       run.vaultId,
@@ -5516,8 +5293,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect((await selection()).selected).toEqual([]);
     expect(await press("Delete")).toBe(false);
 
-    // Grouped by tag, a card with two tags shows under both headings. ↓ and
-    // ↑ reach it at each place and step on from the place it holds.
     const tags = await open(
       tagPath,
       "views:\n  - type: annotations\n    name: Tags\n    from: annotations\n    limit: 100\n    groupBy:\n      property: tags[]\n      direction: ASC\n",
@@ -5543,7 +5318,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(await press("ArrowUp")).toBe(true);
     expect(await selection()).toEqual(on(before!.place, before!.key));
 
-    // From the first card, ↓ walks every card in the order drawn.
     await clickAt(tags.cards[0]!.place);
     const walk = [tags.cards[0]!.place];
     while (await press("ArrowDown")) walk.push((await selection()).focus!);
@@ -5580,8 +5354,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
 
-    // The Literature Note in Reading view, the overview in Live Preview, and the
-    // Query File in its own tab, each in a pane of its own so all render.
     await obRun(
       run.vaultId,
       async ({ app }, { labNote, overview, queryPath }) => {
@@ -5609,8 +5381,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const overviewEmbed = await revealQueryView(run.vaultId, overview, {
       embed: "Lab annotations.zotquery",
     });
-
-    /** What each pane shows of the Query File, once every query settled. */
 
     interface Pane {
       view: string | null;
@@ -5672,7 +5442,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           tries: 120,
         },
       );
-    /** The Annotation rows ZotLit Query gives, through the CLI. */
     const queryRows = async (filter: string | null, thisItem?: string) => {
       const report = JSON.parse(
         await cliCommand(run.vaultId, "zotlit:query", {
@@ -5691,8 +5460,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const queryKeys = async (filter: string | null, thisItem?: string) =>
       (await queryRows(filter, thisItem)).map((row) => row.indexedKey);
 
-    // `![[file#View]]` shows that view, with `this.item` the note's Item;
-    // `![[file]]` shows the first view, grouped by Item.
     const mine = await queryKeys("item == this.item", annotationItem.key);
     const all = byItem(await queryRows(null)).cards;
     expect(mine.length).toBeGreaterThan(0);
@@ -5720,8 +5487,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     ]);
 
-    // A filter for all views, set in the Literature Note's embed, saves to the file;
-    // the overview's embed and the open tab show it.
     const figure = 'tags.contains("figure")';
     await obRun(
       run.vaultId,
@@ -5761,7 +5526,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         );
         set(
           await until("tag value field", () =>
-            // Named by a hidden element, so the field shows no tooltip.
             [...all().querySelectorAll<HTMLInputElement>("input")].find(
               (input) =>
                 input.ownerDocument.getElementById(
@@ -5804,7 +5568,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(after.tab!.cards).toEqual(figures);
     expect(after[labNote]![0]!.cards).toEqual(myFigures);
 
-    // The count in each pane opens that pane's own Results menu.
     const results = await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }, { labEmbed, overviewEmbed }) => {
@@ -5841,9 +5604,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(results).toEqual([true, true, true]);
 
-    // A click in the Live Preview embed leaves the editor's selection alone.
-    // The 400 ms after the click is the window an absent selection change is
-    // checked over; no event marks "nothing happened".
     const selection = await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }, { overview, overviewEmbed }) => {
@@ -5880,7 +5640,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(selection).toEqual({ from: 0, to: 0 });
 
-    // A hover popover over a link to the file shows the embed's first view.
     const popover = JSON.parse(
       await obRun(
         run.vaultId,
@@ -5960,7 +5719,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       count: String(figures.length),
     });
 
-    // The link button opens the Query File at the view the embed shows.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }, { labNote, labEmbed }) => {
@@ -6003,8 +5761,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toBe(true);
   }, 180000);
 
-  // Each Query View is a Preact root of its own; the ids its labels point
-  // to must still be unique in the window.
   it("focuses the limit field of the second of two embeds of one Query File when its label is selected", async () => {
     const queryPath = "query-files/Lab annotations.zotquery";
     const notePath = "query-files/Two embeds.md";
@@ -6041,7 +5797,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { notePath, fileContent: `![[${queryPath}]]\n\n![[${queryPath}]]\n` },
     );
-    /** The embeds of the Query File in the note, once each query settled. */
     const first = await revealQueryView(run.vaultId, notePath, {
       embed: queryPath,
     });
@@ -6068,8 +5823,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { ready: (counted) => counted, what: "both embeds' counts", tries: 120 },
     );
 
-    // The second embed's Results menu opens with its limit field focused;
-    // focus leaves it, and its label brings it back.
     const focus = (await obRun(
       run.vaultId,
       async ({ page: pageHelpers }, { first, second }) => {

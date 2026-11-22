@@ -1,11 +1,3 @@
-// What one render failure names. A template that fails inside another
-// template is reported where it failed and repaired where it was called, so
-// three answers are read apart and each is given only on its own evidence: the
-// engine's own reported location, the document whose call reached it, and the
-// call itself. A name the source never spells earns no repair location, and a
-// line the engine embeds is a line of the template it named — never of the
-// document the reader has open.
-
 import type { TemplateLanguage } from "@zotlit/templates/constants";
 import {
   CitationInputError,
@@ -22,20 +14,12 @@ import type {
 } from "./render-diagnostic.ts";
 import { errorChain } from "./render-report.ts";
 
-/** The source one render read, which a repair location is an offset into. */
 export interface RenderCallerSource {
   readonly source: string;
   readonly language: TemplateLanguage;
-  /** The Profile whose section templates this source owns. */
   readonly profileId?: string;
 }
 
-/**
- * Every call in `caller` naming `template`, in source order. Empty for a name
- * the source never spells, so an unnamed location stays unnamed. The Template
- * Workbench reads the calls off the source; a caller with no source to read
- * names none.
- */
 export type TemplateCallSites = (
   caller: RenderCallerSource,
   template: string | undefined,
@@ -43,19 +27,6 @@ export type TemplateCallSites = (
 
 const noCallSites: TemplateCallSites = () => [];
 
-/**
- * The diagnostic one thrown render failure reads as, attributed against the
- * source that render read.
- *
- * A call to a Shared Partial the vault holds no document for is the engine's
- * own missing-partial report, which the Partial Placeholder, the Problems
- * area, and a refused Literature Note all read by code. Citation input mismatch
- * requires runtime provenance of a direct read from the entry root and a
- * verified caller. Every other failure carries the engine's own words.
- *
- * @see docs/adr/0055-the-citation-template-is-one-document-and-partials-are-files.md
- * @see docs/adr/0056-template-diagnosis-belongs-to-the-editor.md
- */
 export function renderFailureDiagnostic(
   error: unknown,
   caller: RenderCallerSource,
@@ -70,8 +41,6 @@ export function renderFailureDiagnostic(
     (link): link is MissingTemplateError =>
       link instanceof MissingTemplateError,
   );
-  // The partial the engine could not resolve is the one to repair the call to;
-  // every other failure is repaired where the template it names was called.
   const site = named
     ? callSites(caller, named.templateName)[0]
     : verifiedCallSite(callSites, caller, engine?.template);
@@ -119,12 +88,6 @@ export function renderFailureDiagnostic(
   };
 }
 
-/**
- * The span of template text the engine tokenized when it failed, as offsets
- * into that text itself. A pane showing exactly that text marks the place
- * without reading the document around it, which keeps the mark clear of
- * whatever quoting the manifest wrote the value under.
- */
 export function renderFailureSpan(error: unknown): SliceSite | undefined {
   for (const link of errorChain(error)) {
     const token = (link as { token?: unknown }).token;
@@ -142,7 +105,6 @@ export function renderFailureSpan(error: unknown): SliceSite | undefined {
   return undefined;
 }
 
-/** Map an unchanged section's token to the unique source the Profile owns. */
 function errorSourceSite(
   error: Error,
   caller: RenderCallerSource,
@@ -170,14 +132,6 @@ function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/**
- * What the engine itself said one thrown failure was, as the fact two attempts
- * are told apart by. A render path that tries one part of a document after
- * another reads this to report one fault once: the template the engine could
- * not resolve, or the place it stopped inside the template it named. Undefined
- * where the engine named neither, which leaves two such failures separate —
- * equal wording is not equal cause, so nothing here reads a message.
- */
 export function renderFailureCause(
   error: unknown,
 ): RenderFailureCause | undefined {
@@ -191,23 +145,11 @@ export function renderFailureCause(
   return at ? { at } : undefined;
 }
 
-/** @see renderFailureCause */
 export interface RenderFailureCause {
-  /** The template the engine could not resolve at all. */
   readonly missing?: string;
-  /** Where it stopped in the template it named. */
   readonly at?: RenderEngineLocation;
 }
 
-/**
- * Where the engine said it happened. liquidjs carries the token it raised on,
- * whose file is the registered name the source was parsed under; the facade's
- * own {@link TemplateError} carries that name for a failure inside a named
- * template. A template the engine could not resolve at all is named as the
- * object rather than as a location, because nothing was read there. Eta writes
- * its location into the message alone, which stays evidence rather than
- * becoming a location.
- */
 function engineLocation(
   chain: readonly Error[],
 ): RenderEngineLocation | undefined {
@@ -228,12 +170,6 @@ function engineLocation(
   return undefined;
 }
 
-/**
- * The document a failure named as holding the call, when it named one. A draft
- * compiled from source rather than from a file carries a placeholder reference
- * instead of a vault path, so only a document path is read as one — a name
- * that locates no document says nothing about where to look.
- */
 function callerOf(chain: readonly Error[]): RenderCaller | undefined {
   for (const link of chain) {
     const path = (link as { documentPath?: unknown }).documentPath;
@@ -243,7 +179,6 @@ function callerOf(chain: readonly Error[]): RenderCaller | undefined {
   return undefined;
 }
 
-/** The token liquidjs raised on, when `error` is one of its render errors. */
 function liquidToken(
   error: Error,
 ): { file: string; input: string; begin: number; end: number } | undefined {
@@ -258,14 +193,6 @@ function liquidToken(
     : undefined;
 }
 
-/**
- * Where a failure the engine reported inside `template` is repaired: the one
- * call that reached it. A source spelling that name twice reached it from one
- * of them and nothing here says which, so the repair location stays absent
- * rather than sending the reader to whichever call comes first — which may be
- * one this render never took. Missing templates use the first call instead:
- * every call naming the missing document needs the same repair.
- */
 function verifiedCallSite(
   callSites: TemplateCallSites,
   caller: RenderCallerSource,

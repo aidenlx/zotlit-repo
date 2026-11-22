@@ -36,7 +36,6 @@ it("probes lazily on the first demand and names the server the probe answered", 
   await using stack = new AsyncDisposableStack();
   const { requests, service, bridge } = await setup(stack);
 
-  // Nothing has asked yet, so nothing has been sent.
   expect(requests).toHaveLength(0);
   const beforeProbe = bridge.runSync(service.demandSource);
   await nextChange(service, bridge);
@@ -62,15 +61,12 @@ it("carries the allowed-request and API version headers, and asks no cache", asy
 
   expect(requests).toHaveLength(2);
   for (const { headers } of requests) {
-    // Read lower case, as every transport presents them.
     expect(headers.get("zotero-allowed-request")).toBe("1");
     expect(headers.get("zotero-api-version")).toBe("3");
     expect(headers.get("cache-control")).toBe("no-cache");
   }
-  // A read needs no key, and sends none.
   expect(requests[1]?.headers.get("zotero-api-key")).toBeNull();
   expect(requests[1]?.headers.get("zotero-server-id")).toBe(SERVER_ID);
-  // The probe is what learns the server id, so it sends none.
   expect(requests[0]?.headers.get("zotero-server-id")).toBeNull();
 });
 
@@ -85,8 +81,6 @@ it("reads every Annotation of one Attachment in Zotero's reading order", async (
     service.listAnnotations(ATTACHMENT_KEY),
   );
 
-  // The Fixture's own Sort Indexes give this order; the answer arrives in the
-  // date order the list route sorts by.
   expect(read(result).map(({ key }) => key)).toEqual([
     "TYY6Z6ZF",
     "4PE492KU",
@@ -113,8 +107,6 @@ it("reads every Annotation of one Attachment in Zotero's reading order", async (
     sortIndex: "00000|000191|00088",
     parentKey: ATTACHMENT_KEY,
     pageLabel: "1",
-    // Never moves after the create, which is what makes it the window an
-    // Uncertain Create is reconciled inside.
     dateAdded: "2026-08-23T16:18:18Z",
     dateModified: null,
     authorName: null,
@@ -225,7 +217,6 @@ it("carries a page label and tags, in the order Zotero answered them", async () 
 it("answers an empty tags list for an annotation with no tags key", async () => {
   await using stack = new AsyncDisposableStack();
   const { service, bridge } = await setup(stack, {
-    // ROUGIER_ANNOTATIONS[0] sets no `tags`, so the wire item carries none.
     children: () => annotationPage([ROUGIER_ANNOTATIONS[0]!]),
   });
   await bridge.runPromise(service.probe);
@@ -290,8 +281,6 @@ it("follows the list route to its end, so an Attachment past one page is whole",
   expect(
     requests.slice(1).map(({ url }) => url.searchParams.get("start")),
   ).toEqual(["0", "100"]);
-  // A page boundary holds still only while the order it slices does: Zotero's
-  // default sort is dateModified, which an edit between the two pages reorders.
   for (const { url } of requests.slice(1)) {
     expect(url.searchParams.get("limit")).toBe("100");
     expect(url.searchParams.get("sort")).toBe("dateAdded");
@@ -351,7 +340,6 @@ it("reads a group library through its own route", async () => {
 });
 
 it("refuses a record whose key is not a Zotero key", async () => {
-  // Zotero's alphabet excludes `O`, so this key can never be a real one.
   const failure = await failedRead({ key: "POOR5FG5" });
 
   expect(failure).toEqual({
@@ -420,7 +408,6 @@ it("refuses a probe that answers no Zotero server id", async () => {
 
 it("reads a Zotero that sends no server id as too old to edit", async () => {
   await using stack = new AsyncDisposableStack();
-  // Zotero 9 answers API version 3 on a read-only Local API with no server id.
   const { service, bridge } = await setup(stack, {
     root: () => {
       const reply = rootOk();
@@ -463,7 +450,6 @@ it.each([
 
 it("reads a Zotero that speaks another API version off the root route's own header", async () => {
   await using stack = new AsyncDisposableStack();
-  // The root route serves every version, so its header is the whole gate.
   const { service, bridge } = await setup(stack, {
     root: () => rootOk({ "Zotero-API-Version": "4" }),
   });
@@ -478,7 +464,6 @@ it("reads a Zotero that speaks another API version off the root route's own head
 
 it("stands the source down when its own deadline ends the probe", async () => {
   await using stack = new AsyncDisposableStack();
-  // A Zotero that never answers: only the deadline ends the probe.
   const { requests, runtime, service, bridge } = await setup(stack, {
     root: () => new Promise<Response>(() => undefined),
   });
@@ -488,8 +473,6 @@ it("stands the source down when its own deadline ends the probe", async () => {
   await runtime.runPromise(TestClock.adjust("5 seconds"));
   await probing;
 
-  // A Zotero that has not answered inside the deadline is not answering, which
-  // is what a refused connection says too.
   expect(requests).toHaveLength(1);
   expect(bridge.runSync(service.state)).toEqual({
     kind: "unavailable",
@@ -499,7 +482,6 @@ it("stands the source down when its own deadline ends the probe", async () => {
 
 it("carries Zotero's own cooldown out of a rate-limited answer", async () => {
   await using stack = new AsyncDisposableStack();
-  // 97 is not Zotero's 60-second window, so only a parsed header answers it.
   const { service, bridge } = await setup(stack, {
     children: () => rateLimited({ retryAfter: 97 }),
   });
@@ -572,7 +554,6 @@ it("takes a Zotero database swapped under the port as a changed server", async (
   );
 
   expect(result).toEqual({ failure: { kind: "server-changed" } });
-  // The session is quarantined rather than swapped under the read in flight.
   expect(bridge.runSync(service.demandSource)).toBeNull();
   expect(bridge.runSync(service.state)).toEqual({
     kind: "unavailable",
@@ -581,8 +562,6 @@ it("takes a Zotero database swapped under the port as a changed server", async (
 
   await bridge.runPromise(service.probe);
 
-  // The next probe adopts the database answering now: a fresh cache partition,
-  // not a renamed object.
   expect(bridge.runSync(service.demandSource)).toEqual({
     kind: "zotero-local-api",
     serverID: "Zzzz11119999",
@@ -673,8 +652,6 @@ it("announces a Freshness Signal that arrived while a probe was running", async 
   const announced = nextChange(service, bridge);
   const probing = bridge.runPromise(service.probe);
   await reached.promise;
-  // The signal lands mid-probe: coalesced into the probe in flight, never
-  // dropped, because it is what invalidates the partition.
   freshnessSignal(serverEvents);
   held.resolve(rootOk());
   await probing;
@@ -682,9 +659,6 @@ it("announces a Freshness Signal that arrived while a probe was running", async 
   await expect(announced).resolves.toBeUndefined();
 });
 
-// Linking a vault to a Zotero profile moves the port while a probe that
-// started on the old one is still out. Its answer is about a Zotero this
-// session no longer talks to, so no surface may see it.
 it("probes the new port when the resolved paths move while a probe is running, and shows no surface the old port's answer", async () => {
   await using stack = new AsyncDisposableStack();
   const held = Promise.withResolvers<Response>();
@@ -722,9 +696,6 @@ it("probes the new port when the resolved paths move while a probe is running, a
   expect(requests.map(({ url }) => Number(url.port))).toEqual([PORT, PORT + 1]);
 });
 
-// A move that lands after a probe committed its answer, from a surface
-// redrawing on that answer, still reaches the new port before the probe
-// settles for its waiters.
 it("probes the new port when the resolved paths move after a probe commits its answer", async () => {
   await using stack = new AsyncDisposableStack();
   let probes = 0;
@@ -767,9 +738,6 @@ it("holds the source it has while a second probe runs, and joins one in flight",
   expect(requests).toHaveLength(2);
 });
 
-// A focus inside the PDF reader probes again, and the reader's toolbar redraws
-// on every announcement — so an announcement that changed nothing replaced the
-// button under a press and the press never clicked.
 it("announces a capability change only when a probe changes what it learned", async () => {
   await using stack = new AsyncDisposableStack();
   let enabled = true;
@@ -797,7 +765,6 @@ function read(result: LocalApiResult<readonly LocalApiAnnotation[]>) {
   return result.value;
 }
 
-/** The failure one broken record makes of the whole read. */
 async function failedRead(patch: Partial<WireAnnotation>) {
   await using stack = new AsyncDisposableStack();
   const { service, bridge } = await setup(stack, {
@@ -819,7 +786,6 @@ function manyAnnotations(start: number, count: number): WireAnnotation[] {
   }));
 }
 
-/** Eight characters of Zotero's own alphabet, which carries no `0`, `1` or `O`. */
 function pageKey(index: number): string {
   const alphabet = "23456789";
   const tail = [0, 1, 2, 3]

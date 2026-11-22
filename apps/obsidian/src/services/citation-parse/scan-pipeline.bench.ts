@@ -1,27 +1,4 @@
 import assert from "node:assert/strict";
-// ADR 0080 performance gate, run from the workspace root:
-// mise exec -- pnpm --filter @zotlit/obsidian bench src/services/citation-parse/scan-pipeline.bench.ts
-//
-// Run on an idle host. Three warm-ups precede 15 measured samples per case;
-// gates use medians and the JSON retains every sample, CPU and Node version.
-// A 10x size increase permits at most 15x parse time (50% timing tolerance).
-// The other budgets are 100 ms worker parse and a Fixture
-// backfill worker/legacy ratio no greater than 1.0, evaluated as the median of
-// three in-process trials. Each trial repeats the warm-ups and measured samples;
-// its ratio is the worker median divided by the legacy median. A failure exits nonzero
-// after writing .scratch/scan-pipeline-bench/results.json.
-//
-// Dense/sparse paragraphs contain 2/30 repetitions of the same prose sentence,
-// one citation each, a callout every fifth paragraph, and a fence every 25th.
-// Notes are truncated to exactly 10k, 100k and 1M UTF-16 characters.
-// Worker parse excludes message cloning; roundTripMs records it separately.
-// Post + apply uses the real index and its memory store: request encoding and
-// Node posting, then reply receipt to getFileScan completion. It excludes IPC wait and
-// receive deserialization, browser scheduling and IndexedDB transaction latency.
-// Backfill uses the generated Fixture, an OS-warm filesystem read adapter, and
-// memory persistence on both paths. The legacy loop follows 14d461b93^; this
-// host comparison is separate from the desktop renderer gate in
-// packages/e2e/src/citation-scan.e2e.ts. Host post + apply is diagnostic only.
 import { execFileSync } from "node:child_process";
 import { readdir, readFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { cpus, platform, arch, loadavg } from "node:os";
@@ -135,7 +112,6 @@ it("meets the host scanner and worker budgets", async () => {
             { parseClient: effectWorker, notes: false },
           );
           for (let run = -3; run < RUNS; run++) {
-            // Change membership on every edit, so equality cannot skip reverse-map updates.
             const citekey = `r${String(run + 4).padStart(4, "0")}`;
             const body = text.replace("[@work1]", `[@${citekey}]`);
             harness.metadataCache.change(harness.draft, body);
@@ -165,7 +141,6 @@ it("meets the host scanner and worker budgets", async () => {
     trials: [] as { legacyMs: number[]; workerMs: number[]; ratio: number }[],
   };
   try {
-    // The Fixture uses Node-only .ts imports, outside the plugin's tsconfig.
     const vaultDir = execFileSync(
       process.execPath,
       [
@@ -191,7 +166,6 @@ it("meets the host scanner and worker budgets", async () => {
     for (let comparison = 0; comparison < 3; comparison++) {
       const trial = { legacyMs: [] as number[], workerMs: [] as number[] };
       for (let run = -3; run < RUNS; run++) {
-        // Alternate order to avoid consistently giving either path the warmer host.
         const modes =
           run % 2 === 0 ? ["legacy", "worker"] : ["worker", "legacy"];
         for (const mode of modes) {
@@ -199,15 +173,10 @@ it("meets the host scanner and worker budgets", async () => {
             parseClient: effectWorker,
             notes: false,
           });
-          // Both paths read the same files through the same host adapter. Setup and
-          // filesystem cache warming above are outside both measurements.
           harness.vault.cachedRead = (file) =>
             readFile(join(vaultDir, file.path), "utf8");
           const start = performance.now();
           if (mode === "legacy") {
-            // 14d461b93^: sequential cachedRead + scan + store, yielding every 20
-            // files. Wikilinks were read from metadata only when querying, and the
-            // old backfill had no reverse maps or Annotation records to build.
             const scans = new Map();
             const persisted = new Map();
             let count = 0;

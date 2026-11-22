@@ -43,8 +43,6 @@ describe("the Shared Partial name rule", () => {
   });
 
   it("reads a hand-made uppercase file as the same name", () => {
-    // `zotlit-partial.Authors.md` registers as `Authors`, and a
-    // case-insensitive filesystem holds one file for both spellings.
     expect(partialNameRefusal("authors", ["Authors"])).toBe("duplicate");
     expect(partialNameRefusal("Authors", ["authors"])).toBe("duplicate");
   });

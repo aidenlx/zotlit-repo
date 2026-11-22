@@ -1,6 +1,3 @@
-// The citekey editor treatment in Live Preview: the CodeMirror extension the
-// settings switch on, the annotation link hover beside it, and the hover link
-// source every citekey surface shares.
 import type { Extension } from "@codemirror/state";
 import { Effect, Layer, Stream } from "effect";
 
@@ -34,16 +31,6 @@ import {
   hoverPreferences,
 } from "#obsidian/citekey-navigation/index.ts";
 
-/**
- * Marks literal Pandoc `@citekey` text in the editor while the settings ask
- * for the treatment.
- *
- * The CodeMirror extension is registered once as a mutable array, so the
- * setting toggles it by rewriting that array and asking Obsidian to
- * reconfigure — the mechanism `registerEditorExtension` documents. The hover
- * link source, the annotation link hover and that array register in this
- * order, once, for the plugin's lifetime.
- */
 export const layerCitekeyEditorExtension = Layer.effectDiscard(
   Effect.gen(function* () {
     const host = yield* PluginHost;
@@ -57,7 +44,6 @@ export const layerCitekeyEditorExtension = Layer.effectDiscard(
     const bridge = yield* scopedBridge;
     const run = Effect.runSyncWith(yield* Effect.context<never>());
 
-    /** What the extension reads per decoration build and per hover. */
     let treatment: CitekeyTreatment = {
       navigationEnabled: false,
       showFormatted: false,
@@ -65,11 +51,9 @@ export const layerCitekeyEditorExtension = Layer.effectDiscard(
       annotationCitations: false,
       hover: hoverPreferences(citationSettings.defaults),
     };
-    /** Registered once; its contents are the on/off switch. */
     const extensions: Extension[] = [];
     const extension = citekeyEditorExtension({
       workspace: workspaceTrigger(workspace, run),
-      // Unload interrupts a pending open or popover.
       open: (citekey, pane) =>
         bridge.runAndForget(editor.openCitekey(citekey, pane)),
       showPopover: (request) => run(citationPopover.show(request)),
@@ -81,24 +65,15 @@ export const layerCitekeyEditorExtension = Layer.effectDiscard(
       showFormatted: () => treatment.showFormatted,
       citationText: (path) => run(citationText.peek(path)),
     });
-    // A Durable Annotation Link shows its Annotation on every hover.
     const annotationLinkHover = annotationLinkHoverExtension({
       showAnnotation: (request) =>
         bridge.runAndForget(annotationPopover.show(request)),
       showCitations: () => treatment.annotationCitations,
       citationText: (path) => run(citationText.peek(path)),
-      // Unload interrupts a pending open.
       openItem: (indexedKey, pane) =>
         bridge.runAndForget(editor.openIndexedKey(indexedKey, pane)),
     });
 
-    /**
-     * Asks the open Markdown editors to build their decorations again. The
-     * decoration layer owns what changed; this only names the reason, since
-     * the data behind a mark or a widget lives outside the document.
-     *
-     * @param path the one document to reach, or nothing for every editor.
-     */
     const decorateAgain = (path?: string) =>
       Effect.gen(function* () {
         if (!treatment.active && !treatment.annotationCitations) return;
@@ -114,8 +89,6 @@ export const layerCitekeyEditorExtension = Layer.effectDiscard(
 
     const apply = (next: CitekeyTreatment) =>
       Effect.gen(function* () {
-        // Read straight through: hover answers from the newest snapshot, and
-        // nothing drawn depends on it.
         const previous = treatment;
         treatment = next;
         const activeChanged = next.active !== previous.active;
@@ -148,10 +121,6 @@ export const layerCitekeyEditorExtension = Layer.effectDiscard(
         }
       });
 
-    // Registered once and for the plugin's lifetime, so the row in Obsidian's
-    // Page preview settings stays put while the Hover Action changes. Mod is
-    // the platform convention for a citation, and Obsidian's own row owns that
-    // gate wherever ZotLit hands hover to the page preview.
     host.registerHoverLinkSource(CITEKEY_HOVER_SOURCE, {
       display: m.hover_source_citekey(),
       defaultMod: true,
@@ -168,9 +137,6 @@ export const layerCitekeyEditorExtension = Layer.effectDiscard(
       Stream.map(settings.changes, (next) => citekeyTreatment(next)),
       apply,
     );
-    // A widget's text is read asynchronously and shared with every other
-    // surface, so the editors showing that document draw again when it lands
-    // or goes stale — until then they keep the raw marked source.
     yield* forkEach(citationText.events, (event) =>
       event.type === "changed"
         ? decorateAgain(event.path)

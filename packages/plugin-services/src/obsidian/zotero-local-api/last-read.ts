@@ -13,10 +13,6 @@ const skipped = (attachmentKey: string, reason: string) =>
     Effect.annotateLogs({ attachmentKey, reason }),
   );
 
-/**
- * Send only this live read, against the database that resolved its
- * Attachment. A failed write-back is logged and leaves no failure.
- */
 export const writeReadUse = Effect.fn("writeReadUse")(function* ({
   attachmentKey,
   instant,

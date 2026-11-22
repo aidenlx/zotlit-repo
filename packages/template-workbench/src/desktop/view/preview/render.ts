@@ -6,7 +6,6 @@ import type {
   RenderRequest,
   RenderDiagnostic,
 } from "#core/render/index.ts";
-// Read-only rendering of a draft Profile against the installed template pipeline.
 import { Cause, DateTime, Effect, Exit } from "effect";
 import { stringifyYaml } from "obsidian";
 import type { App } from "obsidian";
@@ -103,7 +102,6 @@ interface RenderEnvironment {
   dataSettings?: Readonly<Settings>;
 }
 
-// Compiled documents and lazy data getters call synchronously on the command context.
 const renderEnvironment = Effect.gen(function* () {
   const template = yield* Template;
   const run = Effect.runSyncWith(yield* Effect.context<never>());
@@ -137,13 +135,11 @@ const loadTemplateData = (
 
 export interface PreviewRenderResult extends TemplateRenderResult {
   readonly sourcePath: string;
-  /** A retained Annotation can come from a different note path than the body. */
   readonly annotationSourcePath?: string;
   readonly citations: readonly PreviewCitation[];
   readonly annotationCitations: readonly PreviewCitation[];
 }
 
-/** Retain each preview's paths and citation spans with its rendered output. */
 export function retainPreviewOutputs(
   kept: PreviewRenderResult,
   result: PreviewRenderResult,
@@ -164,20 +160,12 @@ export function retainPreviewOutputs(
   };
 }
 
-/** A result composed outside this renderer, in the shape the preview reads. */
 export function previewResult(
   result: TemplateRenderResult,
 ): PreviewRenderResult {
   return { sourcePath: "", citations: [], annotationCitations: [], ...result };
 }
 
-/**
- * Render whichever Template Document the request names: a Shared Partial when
- * the request carries a partial selection, a Citation Template when it carries
- * a Citation selection, a Profile otherwise. One entry, so a preview that
- * follows the active editor across document kinds keeps the one render
- * function it was built with.
- */
 const renderPreviewTemplateEffect = Effect.fn("NotePreview.render")(function* (
   deps: PreviewRenderDeps,
   request: RenderRequest,
@@ -193,10 +181,6 @@ const renderPreviewTemplateEffect = Effect.fn("NotePreview.render")(function* (
     : renderPreviewProfileEffect(environment, request);
 });
 
-/**
- * The Preview render and the registered-partial render over `deps`, as
- * Effects for a view's runner to fork: interrupting a fiber stops its render.
- */
 export function makePreviewRenderer(deps: PreviewRenderDeps) {
   return {
     render: (
@@ -221,13 +205,6 @@ export function makePreviewRenderer(deps: PreviewRenderDeps) {
   };
 }
 
-/**
- * The text the draft Shared Partial produces for the caller the reader chose
- * to see it as called from: the note root of the selected Item, the Annotation
- * root of the selected annotation, or the selected Citation set. The data is
- * built under the chosen Profile's bindings, so folder, citation style, and the
- * import settings a partial reads are a real Profile's.
- */
 const renderPreviewPartial = Effect.fn("NotePreview.renderPreviewPartial")(
   function* (
     deps: RenderEnvironment,
@@ -272,15 +249,6 @@ const renderPreviewPartial = Effect.fn("NotePreview.renderPreviewPartial")(
   },
 );
 
-/**
- * The text the Shared Partial `selection` names produces for the caller it
- * names, rendered from the document the vault registered rather than from the
- * draft in the editor. This is what one Partial Placeholder's preview shows,
- * so the reader sees the partial their call actually renders.
- *
- * @throws whatever the render raises, a `MissingTemplateError` for a partial
- *   the vault holds no document for included.
- */
 const renderRegisteredPartialEffect = Effect.fn(
   "NotePreview.renderRegisteredPartial",
 )(function* (
@@ -293,11 +261,6 @@ const renderRegisteredPartialEffect = Effect.fn(
   return deps.templates.render(selection.name, data.data);
 });
 
-/**
- * The root data one Shared Partial preview reads, built under the bindings of
- * the Profile the call renders under, so folder, citation style, and the
- * import settings a partial reads are a real Profile's.
- */
 const partialRootData = Effect.fn("NotePreview.partialRootData")(function* (
   deps: RenderEnvironment,
   request: RenderRequest,
@@ -314,10 +277,6 @@ const partialRootData = Effect.fn("NotePreview.partialRootData")(function* (
       : yield* profileCall(
           (yield* Profile).resolveProfile(selection.profile as ProfileId),
         );
-  // A partial's own pane names the Profile the reader chose. A Partial
-  // Placeholder inside a Profile document names none, and binds that
-  // document's own draft instead — the box reads the data of the slice it
-  // sits in, which is what the preview around it reads.
   const draft = chosen ? null : draftProfileManifest(deps, request.source);
   const profile =
     chosen ??
@@ -331,10 +290,6 @@ const partialRootData = Effect.fn("NotePreview.partialRootData")(function* (
   );
 });
 
-/**
- * The manifest of `source` when it is a Profile document naming its own
- * Profile; null for every other Template Document, whose source names none.
- */
 function draftProfileManifest(
   deps: RenderEnvironment,
   source: string,
@@ -348,12 +303,6 @@ function draftProfileManifest(
   }
 }
 
-/**
- * The root data one Shared Partial reads under `context`: the Citation set the
- * preview holds, the Annotation root of the selected annotation, or the note
- * root of the selected Item. A Sample Item answers from its own snapshot; a
- * real one is loaded exactly as a Profile preview loads it.
- */
 const partialContextData = Effect.fn("NotePreview.partialContextData")(
   function* (
     deps: RenderEnvironment,
@@ -417,12 +366,6 @@ const partialContextData = Effect.fn("NotePreview.partialContextData")(
   },
 );
 
-/**
- * The in-text Citation the draft Citation Template produces for the selected
- * example set — or for the chosen Item's own one-item set — under the selected
- * Citation Variant. Nothing else of a note is rendered here: a Citation
- * Template answers one gesture with one line.
- */
 const renderPreviewCitation = Effect.fn("NotePreview.renderPreviewCitation")(
   function* (
     deps: RenderEnvironment,
@@ -459,12 +402,6 @@ const renderPreviewCitation = Effect.fn("NotePreview.renderPreviewCitation")(
   },
 );
 
-/**
- * The `citation` root this preview renders against: the selected example set
- * when the reader picked one, a Sample Item's own snapshot, and a real Item
- * read from the live database — which is the same read the Data Explorer's
- * citation root makes, so the two panes show one Item's one Citation.
- */
 const citationRootData = Effect.fn("NotePreview.citationRootData")(function* (
   deps: RenderEnvironment,
   request: RenderRequest,
@@ -503,9 +440,6 @@ const renderPreviewProfileEffect = Effect.fn(
 ): Effect.fn.Return<PreviewRenderResult, unknown, ViewServices> {
   const identity = renderIdentity(request);
   let sourcePath = "";
-  // The note name is produced apart from everything else, so a mistake in the
-  // Filename Template leaves the rest of this preview on screen and a mistake
-  // anywhere else leaves the name this attempt produced.
   let noteName: string | null = null;
   let noteNameFailure: RenderDiagnostic | null = null;
   return yield* Effect.gen(function* (): Effect.fn.Return<
@@ -541,7 +475,6 @@ const renderPreviewProfileEffect = Effect.fn(
     const context = note.data as NoteTemplateContext;
     const composeDeps = { template: deps.templates };
     const diagnostics: RenderDiagnostic[] = [];
-    // A preview assumes a free filename; the vault resolves collisions on save.
     const filenameResult = yield* Effect.exit(
       Effect.sync(() =>
         replaceSuffixMarkers(document.renderFilename(filename.data), () => ""),
@@ -562,9 +495,6 @@ const renderPreviewProfileEffect = Effect.fn(
         position: detail.position,
         params: { key },
       });
-    // Update mode keeps the real note's own Properties, so it stops at the
-    // preparation and the body; only create mode composes a Properties block.
-    // The preview reads the plugin runtime's clock, as a write does.
     const now = toInstant(yield* DateTime.now);
     const composed =
       request.mode === "update"
@@ -577,16 +507,12 @@ const renderPreviewProfileEffect = Effect.fn(
             onConflict,
             now,
           });
-    // A write refuses on a failing field; the preview keeps going and shows
-    // the field with its position, reading the view the refusal carries.
     const { prepared } = composed;
     const properties: TemplateRenderResult["properties"][number][] = [];
     if (prepared.kind === "document")
       properties.push(...previewPropertyRows(prepared.fields));
     if (composed.outcome === "refused")
       for (const error of composed.evaluation.errors)
-        // The same answer the core renderer reads, so a row underlines the
-        // text that failed and reads the engine's own words.
         diagnostics.push(
           propertyErrorDiagnostic(
             error,
@@ -602,8 +528,6 @@ const renderPreviewProfileEffect = Effect.fn(
           position: index + 1,
         });
     });
-    // Both the composition and the preparation carry the body they rendered,
-    // so only a refusal — which rendered none — renders one here.
     const created =
       composed.outcome === "refused"
         ? document.renderForCreate(context)
@@ -629,8 +553,6 @@ const renderPreviewProfileEffect = Effect.fn(
     if (composed.outcome === "composed") {
       ({ frontmatter, body, frontmatterBlock } = composed);
     } else {
-      // Update refreshes the real note's own Properties through the stamping
-      // step and refills its Managed Region, entirely in memory.
       ({ frontmatter, body } = previewBaseline(
         original,
         created,
@@ -804,20 +726,11 @@ const renderPreviewProfileEffect = Effect.fn(
   );
 });
 
-/**
- * The diagnostic one render failure reads as, attributed against the draft the
- * render read: what the engine reported, whose call reached it, and the one
- * call a reader repairs it at.
- * @see packages/template-workbench/src/core/render/call-attribution.ts renderFailureDiagnosticWithCallSite
- */
 function renderFault(
   error: unknown,
   part: RenderDiagnostic["part"],
   caller: RenderCallerSource,
 ): RenderDiagnostic {
-  // The engine's own account is taken here, where the error is still whole:
-  // below this line the failure is a code and a message, and a reader who
-  // copies the report would otherwise get neither the stack nor the excerpt.
   const evidence = engineEvidence(error);
   const diagnostic = renderFailureDiagnosticWithCallSite(error, caller);
   return {
@@ -827,12 +740,6 @@ function renderFault(
   };
 }
 
-/**
- * The draft one render read, in the form a repair location is an offset into.
- * The language decides the call form the scan reads; Liquid stands in for a
- * draft no parser could read, which is the language every default document is
- * written in.
- */
 function callerSource(
   deps: RenderEnvironment,
   source: string,

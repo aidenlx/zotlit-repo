@@ -92,10 +92,6 @@ function profileLabel(profile: ResolvedProfile): string {
   return profile.label ?? m.settings_profile_default_name();
 }
 
-/**
- * The services a note update reads through their tags, the Profile dialogs
- * its Profile choice opens included.
- */
 export type BatchUpdateServices =
   | LibraryScope
   | MetadataCache
@@ -109,29 +105,18 @@ export type BatchUpdateServices =
   | ZoteroPref
   | ZoteroReads;
 
-/**
- * The legacy values a note update calls: the UI port for the batch modal and
- * the Profile picker, the notices the caller builds, and the bridge the
- * modal's callbacks enter Effect through.
- */
 export interface BatchUpdatePorts {
   readonly notices: BatchUpdateNotices;
   readonly bridge: Pick<EffectBridge, "runPromiseExit">;
   readonly view: Pick<NoteImportView, "openBatchModal" | "chooseProfile">;
 }
 
-/**
- * Selection origin keeps the unresolved fallback and explicit recovery scoped
- * to their original rows when the user changes a destination.
- */
 type CreationOrigin = "selected" | "unresolved" | "affected";
 
 type CreateAction = {
   kind: "create";
-  /** This row's own result from the shared selection boundary. */
   selection?: CreationProfileSelection;
   origin?: CreationOrigin;
-  /** Frozen for the run: the destination shown is the destination written. */
   prepared?: PlannedCreationProfile;
 };
 
@@ -149,23 +134,14 @@ interface NotFoundEntry {
   label: string;
 }
 
-/** Snapshot-scoped state shared across a run's per-action item loads. */
 interface RunContext {
   reportExcerpts: (summary: ExcerptSummary) => void;
-  /**
-   * Bound to the run's Snapshot; each item loads, renders, and flushes
-   * through it.
-   */
   reads: ZoteroReadsApi;
   settings: Readonly<Settings>;
-  /** The one retention every note this batch writes reuses outcomes from. */
   outcomes: ExcerptOutcomeScope;
-  /** How much of each existing note an update refreshes. */
   scope: UpdateScope;
   profile?: ProfileSelector;
-  /** Checks that a frozen creation Profile still exists. */
   profiles: Profile["Service"];
-  /** Writes each row's note. */
   noteFeature: NoteFeature["Service"];
 }
 
@@ -177,40 +153,23 @@ export type BatchUpdateResult =
   | { outcome: "collection-not-found" }
   | { outcome: "not-found" }
   | { outcome: "single-update" }
-  /** A single update found no note and was not asked to create one. */
   | { outcome: "metadata-no-note" }
   | { outcome: "batch-modal" };
 
 export interface BatchUpdateOptions {
-  /** How much of each existing note an update refreshes. */
   scope?: UpdateScope;
-  /**
-   * Whether an item with no note gets one. The `metadata` scope leaves the body
-   * alone, so it never creates one.
-   *
-   * @default true
-   */
   create?: boolean;
-  /** Confirm a run over one item too. Selections of one item skip the dialog. */
   confirmOne?: boolean;
-  /**
-   * Selected Libraries this database holds no Library for. Stated in the
-   * confirmation introduction so a partial run is visible before it writes.
-   */
   unavailableLibraries?: number;
-  /** Companion Profile for new notes; conflicting existing stamps are kept as is. */
   profile?: ProfileSelector;
 }
 
-/** `value` as a {@link BatchUpdateResult}, so each branch returns one type. */
 const updateResult = (value: BatchUpdateResult): BatchUpdateResult => value;
 
-/** Whether the database answers reads, once its first open settled. */
 const databaseReady = Effect.flatMap(ZoteroReads, (zoteroReads) =>
   sharedDatabaseReady(zoteroReads, "batch-update"),
 );
 
-/** The first of `notes`, after a notice when the Item has more than one. */
 const literatureNoteWithWarning = Effect.fnUntraced(function* (
   notes: readonly TFile[],
 ) {
@@ -220,21 +179,6 @@ const literatureNoteWithWarning = Effect.fnUntraced(function* (
   return first;
 });
 
-/**
- * Batch-update or create literature notes for `itemIDs`. Owns the
- * database-ready gate, then branches on how many ids the caller asked for:
- *
- * - `0` — nothing to do.
- * - `1` with only Default — route to {@link updateNote} (toast + open).
- * - Otherwise — open the batch modal; classification runs inside it as a
- *   chunked loading phase (see {@link classifyActions}), then confirm → run.
- *
- * The count is the flattened total, so a Library Scope expansion reaching one
- * item uses the same Profile-aware rule as an explicit single id.
- *
- * Returns a discriminated result so the caller can map outcomes to UI feedback
- * (notice / toast) without coupling the logic to presentation.
- */
 export const batchUpdateItems = Effect.fn("batchUpdateItems")(function* (
   ports: BatchUpdatePorts,
   itemIDs: readonly number[],
@@ -264,8 +208,6 @@ export const batchUpdateItems = Effect.fn("batchUpdateItems")(function* (
   }
   const profilesEnabled = (yield* profiles.profiles).length > 0;
   if (restIDs.length === 0 && !profilesEnabled && !opts.confirmOne) {
-    // Single id: hand the lightweight ref to updateNote, which owns the full
-    // item load on the create path — no need to hydrate it here.
     const ref = yield* displayRef(firstID);
     if (!ref) {
       return updateResult({ outcome: "not-found" });
@@ -283,7 +225,6 @@ export const batchUpdateItems = Effect.fn("batchUpdateItems")(function* (
   return updateResult({ outcome: "batch-modal" });
 });
 
-/** The notice {@link runBatchUpdate} shows for `result`, or none. */
 export function batchUpdateResultNotice(
   result: BatchUpdateResult,
 ): string | undefined {
@@ -292,10 +233,6 @@ export function batchUpdateResultNotice(
     : undefined;
 }
 
-/**
- * {@link batchUpdateItems}, and a notice for a single update that found no note
- * and created none. The caller renders the other outcomes.
- */
 export const runBatchUpdate = Effect.fn("runBatchUpdate")(function* (
   ports: BatchUpdatePorts,
   itemIDs: readonly number[],
@@ -307,15 +244,6 @@ export const runBatchUpdate = Effect.fn("runBatchUpdate")(function* (
   return result;
 });
 
-/**
- * Update the existing literature note, or create + open one if none exists.
- * `scope` controls how much an existing note is refreshed (see {@link UpdateScope}).
- *
- * A run with `create` off leaves a missing note missing and answers
- * `metadata-no-note`. A `metadata` scope always runs that way: the point of the
- * narrowing is to leave the body alone, and `createNote` would write a full
- * templated one.
- */
 const updateNote = Effect.fnUntraced(function* (
   ports: BatchUpdatePorts,
   ref: ItemRef,
@@ -348,7 +276,6 @@ const updateNote = Effect.fnUntraced(function* (
   return updateResult({ outcome: "single-update" });
 });
 
-/** Lazily resolve the full Item and create + open a new literature note. */
 const createAndOpen = Effect.fnUntraced(function* (
   ports: BatchUpdatePorts,
   ref: ItemRef,
@@ -361,7 +288,6 @@ const createAndOpen = Effect.fnUntraced(function* (
   const item = items.get(ref.indexedKey);
   if (!item) return;
 
-  // The notice tells the user how a create failed or why it wrote nothing.
   const created = yield* withProgress(
     (yield* NoteFeature).createNote(item, { profile }),
     ports.notices.createToast,
@@ -373,12 +299,6 @@ const createAndOpen = Effect.fnUntraced(function* (
   });
 });
 
-/**
- * The batch modal: classification runs inside its loading phase, where the
- * bar advances per streamed slice and Cancel interrupts the stream; the
- * classified actions are held here for the run callback. The modal's
- * callbacks run their Effects on the services this Effect runs with.
- */
 const openBatchUpdateModal = Effect.fnUntraced(function* (
   ports: BatchUpdatePorts,
   itemIDs: readonly number[],
@@ -409,7 +329,6 @@ const openBatchUpdateModal = Effect.fnUntraced(function* (
       (action): action is BatchAction & CreateAction =>
         action.kind === "create",
     );
-  /** Bind one row to its selection: resolved Profile and frozen path. */
   const assign = Effect.fnUntraced(function* (
     action: BatchAction & CreateAction,
     selection: CreationProfileSelection,
@@ -424,7 +343,6 @@ const openBatchUpdateModal = Effect.fnUntraced(function* (
         .get(action.indexedKey)
         ?.previews.find((entry) => entry.selector === selection.selector);
   });
-  /** A Profile created after classification has no prepared path yet. */
   const ensurePlans = Effect.fnUntraced(function* (
     indexedKey: string,
     selectors: readonly ProfileSelector[],
@@ -508,8 +426,6 @@ const openBatchUpdateModal = Effect.fnUntraced(function* (
     notFoundCount = classified.notFound.length;
     let profileChoices: BatchProfileChoice[] | undefined;
     if (profilesEnabled && creations().length > 0) {
-      // Each Item keeps its own result and prepared destination. Overlap
-      // rows need a choice; the fallback also covers unmatched Items.
       plans = yield* noteFeature.planCreations(
         creations().map((action) => action.indexedKey),
         { headless: profile },
@@ -547,9 +463,6 @@ const openBatchUpdateModal = Effect.fnUntraced(function* (
           header: m.batch_update_group_create,
         },
       ]),
-      // Non-actionable, so it rides the static informational slot rather than
-      // a task group — this keeps them out of the actionable count driving
-      // the confirm intro.
       upToDate: classified.skipped,
       upToDateHeader: m.batch_update_group_no_note,
       kept: classified.kept,
@@ -587,7 +500,6 @@ const openBatchUpdateModal = Effect.fnUntraced(function* (
                 : m.batch_update_summary(result),
       },
       total: itemIDs.length,
-      // The modal's cancel interrupts the classification.
       onClassify: (controls) => run(classify(controls), controls.signal),
       onRun: (controls) =>
         run(
@@ -606,7 +518,6 @@ const openBatchUpdateModal = Effect.fnUntraced(function* (
   );
 });
 
-/** The Profile every row shares, or `undefined` while they differ or wait. */
 function sharedProfile(
   rows: readonly (BatchAction & CreateAction)[],
 ): ResolvedProfile | undefined {
@@ -617,7 +528,6 @@ function sharedProfile(
     : undefined;
 }
 
-/** Aggregate every overlap so a shared fallback exposes all candidate identities. */
 function fallbackSelection(
   rows: readonly CreateAction[],
 ): CreationProfileSelection {
@@ -642,11 +552,6 @@ function fallbackSelection(
   );
 }
 
-/**
- * One action's confirmation row. A new row reads its chip, frozen
- * destination, and the reason behind them from the action, so a Profile
- * change shows on the next render.
- */
 function batchTask(action: BatchAction, profilesEnabled: boolean): FlatTask {
   const task = {
     id: action.itemID,
@@ -680,7 +585,6 @@ function batchTask(action: BatchAction, profilesEnabled: boolean): FlatTask {
   };
 }
 
-/** Why a new row goes where it goes: its problem, its match, or its source. */
 function creationReason(selection: CreationProfileSelection): string {
   if (selection.problem) return describeSelectionProblem(selection.problem);
   if (selection.source === "match") return selection.reason;
@@ -689,7 +593,6 @@ function creationReason(selection: CreationProfileSelection): string {
   );
 }
 
-/** The lightweight ref of one item; `null` when no live item has that id. */
 const displayRef = Effect.fnUntraced(function* (itemID: number) {
   return yield* Effect.scoped(
     Effect.gen(function* () {
@@ -699,15 +602,6 @@ const displayRef = Effect.fnUntraced(function* (itemID: number) {
   );
 });
 
-/**
- * Resolve `itemIDs` into update / create / skipped / not-found from the
- * `DisplayRefs` stream (indexed key + title only, no heavy relational load —
- * that is deferred to each item's write task), matched against the Note Index
- * once the stream ends. Each streamed slice advances the loading bar; an
- * interrupt stops the stream.
- *
- * With `createMissing` off, note-less items classify as skipped rather than create.
- */
 const classifyActions = Effect.fnUntraced(function* (
   itemIDs: readonly number[],
   {
@@ -724,7 +618,6 @@ const classifyActions = Effect.fnUntraced(function* (
 ) {
   const noteIndex = yield* NoteIndex;
   const profiles = yield* Profile;
-  // One Snapshot for the refs and the Libraries they are grouped by.
   return yield* Effect.scoped(
     Effect.gen(function* () {
       const reads = yield* (yield* ZoteroReads).snapshot;
@@ -818,11 +711,6 @@ const classifyActions = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * Execute the classified actions, reporting per-item settle events for the
- * modal's progress bar. The run's item loads and updates read one Snapshot,
- * held until the run settles.
- */
 const executeBatchActions = Effect.fnUntraced(function* (
   ports: BatchUpdatePorts,
   plan: {
@@ -842,9 +730,6 @@ const executeBatchActions = Effect.fnUntraced(function* (
     Effect.gen(function* () {
       const excerptReports = yield* collectExcerptReports;
       const settings = yield* (yield* PluginSettings).current;
-      // The whole run is one initiating batch, so every row's notes —
-      // including the Child Notes they import — reuse one retention; it is
-      // released as soon as the run's last admitted consumer settles.
       const outcomes = yield* Effect.acquireDisposable(
         Effect.sync(() => new ExcerptOutcomeScope()),
       );
@@ -884,7 +769,6 @@ const executeBatchActions = Effect.fnUntraced(function* (
         onTaskFailed: (task, error) => {
           failures.push({ itemID: task.itemID, error });
         },
-        // A template that cannot render fails the write with its refusal.
         haltOn: isInertTemplateError,
       });
     }),
@@ -902,15 +786,6 @@ const executeBatchActions = Effect.fnUntraced(function* (
   return result;
 });
 
-/**
- * Load the action's full item (deferred from classification) and write it: an
- * existing-note update reuses `writeNoteUpdate` under the batch's Snapshot; a
- * create routes through the self-contained `createNote` (resolves tags + path,
- * then writes — a filename collision surfaces as this item's own
- * `vault.create` failure). An item deleted in Zotero between classification
- * and its write fails here, surfacing as this item's failure (not aborting the
- * run).
- */
 const runAction = Effect.fnUntraced(function* (
   ports: BatchUpdatePorts,
   action: BatchAction,
@@ -942,15 +817,12 @@ const runAction = Effect.fnUntraced(function* (
     const outcome: RunOutcome = "updated";
     return outcome;
   }
-  // A stopped selection the user never resolved writes nothing: no fallback
-  // Profile stands in for the choice the row asked for.
   if (action.selection?.problem)
     return yield* new BatchRowRefused({
       message: describeSelectionProblem(action.selection.problem),
     });
   const prepared = action.prepared;
   if (prepared) {
-    // The selection stays frozen; only its availability is checked again.
     if (!(yield* run.profiles.resolveProfile(prepared.selector)))
       return yield* new BatchUpdateRefusedError({
         diagnostic: unknownProfileDiagnostic(prepared.selector),
@@ -973,21 +845,15 @@ const runAction = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * A row the run writes nothing for: its Item left Zotero after
- * classification, or its Profile selection stopped and the user never chose.
- */
 class BatchRowRefused extends Schema.TaggedError<
   BatchRowRefused,
   { readonly brand: unique symbol }
 >()("BatchRowRefused", { message: Schema.String }) {}
 
-/** Note Feature refused a note update; the diagnostic says why. */
 export class BatchUpdateRefusedError extends Schema.TaggedError<
   BatchUpdateRefusedError,
   { readonly brand: unique symbol }
 >()("BatchUpdateRefusedError", {
-  /** Why the update wrote nothing, and what the user can do. */
   diagnostic: Schema.declare(
     (input: unknown): input is NoteOperationDiagnostic =>
       Predicate.isObject(input),
@@ -998,12 +864,10 @@ export class BatchUpdateRefusedError extends Schema.TaggedError<
   }
 }
 
-/** Note Feature refused a note create; the diagnostic says why. */
 export class BatchCreateRefusedError extends Schema.TaggedError<
   BatchCreateRefusedError,
   { readonly brand: unique symbol }
 >()("BatchCreateRefusedError", {
-  /** Why the create wrote nothing, and what the user can do. */
   diagnostic: Schema.declare((input: unknown): input is CreateNoteDiagnostic =>
     Predicate.isObject(input),
   ),
@@ -1016,7 +880,6 @@ export class BatchCreateRefusedError extends Schema.TaggedError<
   }
 }
 
-/** A create's row outcome: `created`, or its refusal as the row's failure. */
 export function batchCreateOutcome(
   result: CreateNoteResult,
 ): Effect.Effect<"created", BatchCreateRefusedError> {
@@ -1027,23 +890,6 @@ export function batchCreateOutcome(
     : Effect.succeed("created");
 }
 
-/**
- * Fetch every regular item a target covers and run a batch update. An exact
- * `target` names one Library, optionally narrowed to one collection; no target
- * expands every available Library of the current Library Scope, in canonical
- * order, under this one planning Snapshot. The modal's loading phase shows
- * progress while items are classified, and the user can cancel before the run
- * starts.
- *
- * @param options.groupID names the exact Library the run covers — `0` for
- *   My Library, a positive integer for a group. A group this database doesn't
- *   hold returns `unavailable-target` without scanning.
- * @param options.collectionKey narrows the run to that collection of the named
- *   Library and every collection nested under it. A key that Library doesn't
- *   hold returns `collection-not-found`.
- * @param options.create whether items with no note get one. Off, the run
- *   updates the notes that exist.
- */
 export const runBatchUpdateAll = Effect.fn("runBatchUpdateAll")(function* (
   ports: BatchUpdatePorts,
   options: BatchTarget & Pick<BatchUpdateOptions, "create"> = {},

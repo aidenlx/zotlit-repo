@@ -9,8 +9,6 @@ import type { GitRepos } from "./__fixtures__/git-repos.ts";
 import { acquireDesktopSlot } from "./desktop-slot.ts";
 import { landAdmission, LAND_TURN_ENV } from "./land-queue.ts";
 
-// Each case pushes from a real clone whose pre-push hook runs pre-push.ts, as
-// Lefthook runs it, to a bare origin in a temporary folder.
 const SLOW = 20_000;
 const HOOK = new URL("../scripts/pre-push.ts", import.meta.url).pathname;
 const AGENT_ENV = [
@@ -42,7 +40,6 @@ afterEach(async () => {
   await repos.dispose();
 });
 
-/** Push `refspec` from the clone with the extra environment `env`. */
 async function push(
   refspec: string,
   env: Record<string, string> = {},
@@ -150,7 +147,6 @@ describe("the pre-push hook", () => {
       } finally {
         turn.release();
       }
-      // The same token, once the turn is over, is refused.
       await repos.commit(cwd, "b.txt", { text: "b\n" });
       const late = await push("HEAD:refs/heads/main", {
         [LAND_TURN_ENV]: token,

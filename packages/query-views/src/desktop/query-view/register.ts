@@ -1,6 +1,3 @@
-// The Query File as an Obsidian file type: its tab, its embed in a note, and
-// "New query file" in the command palette and the file explorer's menus, and
-// "New Zotero query table" on the empty tab.
 import { Keymap, normalizePath } from "obsidian";
 import type { App, Menu, Plugin, TFile, TFolder } from "obsidian";
 
@@ -57,8 +54,6 @@ export function registerQueryFileView(
     name: m.command_new_query_file_name(),
     callback: () => newQueryFile(),
   });
-  // The empty tab is patched once the layout holds leaves to reach it from;
-  // a plugin unloaded before then installs nothing.
   const emptyTab = new DisposableStack();
   plugin.register(() => emptyTab.dispose());
   app.workspace.onLayoutReady(() => {
@@ -69,7 +64,6 @@ export function registerQueryFileView(
   });
 }
 
-/** The first `Untitled.zotquery`, `Untitled 1.zotquery`, … free in `folder`. */
 function freePath(app: App, folder: TFolder): string {
   const path = (name: string) =>
     normalizePath(
@@ -83,12 +77,6 @@ function freePath(app: App, folder: TFolder): string {
   );
 }
 
-/**
- * Create a Query File in `folder` that opens on a Table of the library's
- * Items, with its Annotations as a second view, and open it with its title
- * ready to rename, as Obsidian opens a new note. A Cmd/Ctrl press opens it in
- * a new tab.
- */
 export async function createQueryFile(
   app: App,
   folder: TFolder,
@@ -116,7 +104,6 @@ function addNewQueryFile(menu: Menu, app: App, folder: TFolder): void {
   );
 }
 
-/** "New query file" on a folder in the file explorer. */
 export function queryFileFolderMenu(app: App): FolderMenuSegment {
   return (menu, { folder, source }) => {
     if (source !== "file-explorer-context-menu") return;
@@ -124,7 +111,6 @@ export function queryFileFolderMenu(app: App): FolderMenuSegment {
   };
 }
 
-/** "New query file" on a file in the file explorer, in the folder that holds it. */
 export function queryFileFileMenu(app: App): FileMenuSegment {
   return (menu, { file, source }) => {
     if (source !== "file-explorer-context-menu" || !file.parent) return;

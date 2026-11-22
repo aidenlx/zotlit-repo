@@ -1,6 +1,3 @@
-// The CodeMirror side of the Obsidian look: code panes carry a class the
-// stylesheet keys monospace typography on, and expression editors draw their
-// tooltips in the top-layer surface they sit in.
 import { Compartment } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, tooltips } from "@codemirror/view";
@@ -10,7 +7,6 @@ import { PINNED_POPOVER_BODY } from "@zotlit/obsidian-kit/components/pinned-popo
 
 import { onEditorWindowMigrated } from "#core/editor/editor-migration.ts";
 
-/** The class the stylesheet keys monospace typography on. */
 export const CODE_PANE_CLASS = "zt-template-workbench-code";
 
 const popoutCopy = EditorView.domEventHandlers({
@@ -23,11 +19,6 @@ const popoutCopy = EditorView.domEventHandlers({
   },
 });
 
-/**
- * What every Obsidian-hosted editor of the plugin's views needs: lint marks in
- * Obsidian's error color, and copy and styles that survive a move to a popout
- * window. A code pane adds the code font on top.
- */
 export const hostedEditor: Extension = [
   EditorView.theme({
     ".cm-problem-button": { color: "var(--text-error)" },
@@ -51,8 +42,6 @@ export const hostedEditor: Extension = [
       return { destroy: dispose };
     },
     {
-      // An editor that moved unheard also takes the window it stands in when
-      // it takes focus, before CodeMirror reads its focus and caret there.
       eventHandlers: {
         focus(_event, view) {
           follow(view, view.dom.ownerDocument);
@@ -62,7 +51,6 @@ export const hostedEditor: Extension = [
   ),
 ];
 
-/** Moves the editor's root and styles to `doc` when it is a new document. */
 function follow(view: EditorView, doc: Document) {
   if (view.root === doc) return;
   view.setRoot(doc);
@@ -71,22 +59,6 @@ function follow(view: EditorView, doc: Document) {
 
 const tooltipPlacement = new Compartment();
 
-/**
- * Draws an expression editor's tooltips in the popover it sits in, such as
- * the Filter popover or the chooser page of a Formula, and in the page's body
- * outside one. A popover stands over the body's tooltips, and a click on a
- * tooltip outside it would shut it. The popover's surface does not clip — its
- * contents scroll in an inner box — so a tooltip drawn there reaches past the
- * popover's edge.
- *
- * The place is chosen once the editor stands in the page, which it does not
- * while its plugins are made, and again when the view moves to a popout
- * window, whose body then holds the tooltips of an editor outside a popover.
- * Both come before the user types, and neither waits for focus: a dispatch
- * as the editor takes focus drops CodeMirror's notice of the focus when the
- * caret a click puts down comes first, and ends the moment in which
- * CodeMirror puts back the caret that a Tab focus moves to the start.
- */
 export const popoverTooltips: Extension = ViewPlugin.fromClass(
   class {
     #parent: HTMLElement | null = null;
@@ -97,15 +69,12 @@ export const popoverTooltips: Extension = ViewPlugin.fromClass(
     constructor(view: EditorView) {
       this.view = view;
 
-      // A plugin cannot dispatch while the view makes it or updates.
       queueMicrotask(() => this.place());
       this.#released = onEditorWindowMigrated(view, () =>
         queueMicrotask(() => this.place()),
       );
     }
     update(update: ViewUpdate) {
-      // An editor that was not in the page yet is placed once it is, and one
-      // that moved unheard once it updates there.
       const { dom } = update.view;
       if (dom.isConnected && this.#parent?.ownerDocument !== dom.ownerDocument)
         queueMicrotask(() => this.place());

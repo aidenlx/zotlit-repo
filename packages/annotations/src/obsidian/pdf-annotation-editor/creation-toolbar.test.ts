@@ -27,7 +27,6 @@ const COLORS = {
   ink: "#a28ae5",
 } as const;
 
-/** Both halves of one tool, in the order the toolbar draws them. */
 function halves(tool: MarkTool): CreationToolbarControlId[] {
   return [tool, `${tool}-color`];
 }
@@ -48,7 +47,6 @@ function model(
   });
 }
 
-/** Obsidian's own right toolbar slot, as a bare element. */
 function toolbarSlot(): HTMLElement {
   return document.createElement("div");
 }
@@ -62,7 +60,6 @@ function draw(
   return { activate };
 }
 
-/** What a reader sees on each control: its id, state, and accessible name. */
 function shownIn(slot: HTMLElement) {
   return [...slot.querySelectorAll<HTMLElement>("[data-zt-tool]")].map(
     (node) => ({
@@ -82,7 +79,6 @@ it("shows each tool's own colour on its toggle, so underline is a peer of highli
   expect(byId.get("highlight")?.color).toBe(COLORS.highlight);
   expect(byId.get("underline")?.color).toBe(COLORS.underline);
   expect(byId.get("image")?.color).toBe(COLORS.image);
-  // The chevron says a menu opens; the toggle beside it shows the colour.
   expect(byId.get("highlight-color")?.color).toBeNull();
   expect(byId.get("underline-color")?.color).toBeNull();
 });
@@ -97,7 +93,6 @@ it("offers each tool's colours from its own chevron, armed or not", () => {
     expect(control.disabled).toBe(false);
     expect(control.pressed).toBeNull();
   }
-  // Each chevron names the tool it colours, so the two never read alike.
   expect(byId(null).get("highlight-color")?.tooltip).not.toBe(
     byId(null).get("underline-color")?.tooltip,
   );

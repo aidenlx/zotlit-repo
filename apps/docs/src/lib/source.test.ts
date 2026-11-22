@@ -1,6 +1,3 @@
-// Discovery seam for the content pipeline: the three collections compile
-// through `fumadocs-mdx/vite` and reach the fumadocs loaders.
-
 import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { rcompare } from "semver";
@@ -19,16 +16,11 @@ describe("docs collection", () => {
   it("loads every page but the `_` partials", () => {
     const pages = source.getPages();
     expect(pages.length).toBeGreaterThan(0);
-    // `_`-prefixed partials reach a page through `<include>` instead of
-    // standing on their own, so they stay out of the collection.
     expect(pages.map((page) => page.url)).not.toContainEqual(
       expect.stringContaining("/_"),
     );
   });
 
-  // A search result shows about 60 characters of title and 160 of
-  // description; two pages with one title compete for the same query, and a
-  // lesson competes with the docs page on its task.
   it("titles each page and lesson once, within search-result limits", () => {
     const pages = [
       ...source.getPages("en").map((page) => ({
@@ -52,8 +44,6 @@ describe("docs collection", () => {
     );
   });
 
-  // A CJK glyph takes about two Latin glyphs of a search result's width, so
-  // the Chinese editions meet the same limits counted by width.
   it("titles each Chinese edition once, within search-result width", () => {
     const pages = [
       ...source.getPages("zh-CN").map((page) => ({
@@ -77,9 +67,6 @@ describe("docs collection", () => {
     );
   });
 
-  // FAQPage JSON-LD must carry the questions and answers the reader sees, so
-  // the `faq` frontmatter is checked against the page's `## Questions`
-  // section: each `###` heading, then the plain text of the paragraph under it.
   it("publishes a `faq` list that matches the page's Questions section", () => {
     const pages = source.getPages().filter((page) => page.data.faq);
     expect(pages.length).toBeGreaterThan(0);
@@ -95,7 +82,6 @@ describe("docs collection", () => {
 
 const docsDirectory = resolve(import.meta.dirname, "../../content/docs");
 
-/** Markdown inline text as a reader sees it: link text, no code or bold marks. */
 function plainText(markdown: string): string {
   return markdown
     .replaceAll(/\[([^\]]*)\]\([^)]*\)/g, "$1")
@@ -107,7 +93,6 @@ function plainText(markdown: string): string {
 }
 
 function questionsSection(body: string) {
-  // The heading is `## Questions` in English and keeps its `[#questions]` anchor in a translation.
   const [, section = ""] = body.split(
     /^## (?:Questions\b.*|.*\[#questions\]\s*)$/m,
   );

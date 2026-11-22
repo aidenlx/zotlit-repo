@@ -26,7 +26,6 @@ declare module "./page-helpers.ts" {
 export type PagePdfReaderView =
   import("@zotlit/pdf-reader/obsidian").PdfReaderView;
 
-/** Electron BrowserWindow methods used to show a background vault. */
 export interface BackgroundWindow {
   showInactive(): void;
   isMinimized(): boolean;

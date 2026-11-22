@@ -1,5 +1,3 @@
-// Writes immutable excerpt assets and verifies their bytes before exposing a link.
-
 import type { ExcerptRequest } from "#obsidian/excerpt-image/contract.ts";
 import type { ExcerptOutcome } from "#obsidian/excerpt-image/service.ts";
 import {
@@ -40,19 +38,6 @@ const logged = withLogCategory("excerpt-materialize");
 const MAX_PREVIOUS_BYTES = 32 * 1024 * 1024;
 const SHA256_HEX_LENGTH = 64;
 
-/**
- * Whether bytes read back from outside this process still decode as the
- * container they claim.
- *
- * `format.ts` owns the payload check every reader shares; this is where the two
- * readers holding bytes that came from outside this process deepen it — the
- * vault read in {@link retainExcerpt}, and the publication of an outcome this
- * process did not encode. PNG must also inflate to the scanlines its header
- * declares (`png.ts`), and WebP must also decode to the pixels its container
- * declares (`webp-pixels.ts`). That depth stays here rather than in `format.ts`,
- * which the cache read bundles without a decoder for a check that runs before
- * every hit.
- */
 const usableExternalAsset = (bytes: Uint8Array) =>
   Effect.promise(async () => {
     const format = detectExcerptImageFormat(bytes);
@@ -63,17 +48,11 @@ const usableExternalAsset = (bytes: Uint8Array) =>
     );
   });
 
-/**
- * An excerpt asset this process refuses to read or publish: too large, grown
- * while read, not the bytes its name claims, not registered, or for a target
- * that is no longer current. The caller logs it and keeps no link.
- */
 export class ExcerptAssetRefused extends Schema.TaggedError<
   ExcerptAssetRefused,
   { readonly brand: unique symbol }
 >()("ExcerptAssetRefused", { message: Schema.String }) {}
 
-/** The file at `path`, refused past {@link MAX_PREVIOUS_BYTES} or when it grows while read. */
 const readPreviousImage = (path: string) =>
   Effect.scoped(
     Effect.gen(function* () {
@@ -100,22 +79,15 @@ const readPreviousImage = (path: string) =>
     }),
   );
 
-/** Remove the file at `path`; a file that is already gone is no failure. */
 const removeIgnoringAbsent = (path: string) =>
   Effect.flatMap(FileSystem.FileSystem, (fs) => fs.remove(path)).pipe(
     Effect.catchReason("PlatformError", "NotFound", () => Effect.void),
   );
 
-/**
- * Admits one publication per destination at a time, across every preparation
- * that shares it, and holds it until cancellation cleanup or a successful
- * handoff.
- */
 export type PublicationGate = (
   destination: string,
 ) => <A, E, R>(effect: Effect.Effect<A, E, R>) => Effect.Effect<A, E, R>;
 
-/** A {@link PublicationGate} for the life of the Scope. */
 export const makePublicationGate = Effect.gen(function* () {
   const locks = yield* RcMap.make({
     lookup: (_destination: string) => Semaphore.make(1),
@@ -138,7 +110,6 @@ export type MaterializedExcerpt =
   | { kind: "retained"; path: string }
   | { kind: "unavailable"; reason: "disabled" | "source" | "write" };
 
-/** Only referenced, vault-contained images with proven ownership can survive a failed refresh. */
 export const retainExcerpt = Effect.fnUntraced(function* (options: {
   request: ExcerptRequest;
   paths: readonly string[];
@@ -174,7 +145,6 @@ export const retainExcerpt = Effect.fnUntraced(function* (options: {
         return false;
       const bytes = yield* readPreviousImage(actualPath);
       if (!(yield* usableExternalAsset(bytes))) return false;
-      // Legacy names carry no source identity. The current source's bytes must prove ownership.
       const { zoteroPngPath } = options.request;
       if (
         !owned &&
@@ -197,12 +167,6 @@ export const retainExcerpt = Effect.fnUntraced(function* (options: {
   }
 });
 
-/**
- * Every identity form this request's existing assets may carry, the current
- * form first, which is the one that names a new asset. A vault written before
- * the shared source identity holds each asset and link under the previous form,
- * so an ownership check has to accept both.
- */
 export function excerptAssetIdentities(
   request: Pick<
     ExcerptRequest,
@@ -241,20 +205,12 @@ export function isOwnedExcerptAssetPath(
   });
 }
 
-/**
- * Publish an available outcome as the vault asset its content names, and add
- * it to the vault. Gives `unavailable` when attachment import is off, the
- * bytes are not the image they claim, or the write fails, also when `valid`
- * answers false between two steps. An interrupt passes through. An
- * interrupted or stale insertion takes back the bytes this call published.
- */
 export const materializeExcerpt = Effect.fnUntraced(function* (options: {
   gate: PublicationGate;
   notePath: string;
   settings: Readonly<Settings>;
   request: ExcerptRequest;
   outcome: ExcerptOutcome;
-  /** Whether the insertion target is still current. */
   valid?: Effect.Effect<boolean>;
 }): Effect.fn.Return<
   MaterializedExcerpt,
@@ -266,8 +222,6 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
     return { kind: "unavailable", reason: "disabled" };
   if (outcome.kind === "unavailable")
     return { kind: "unavailable", reason: "source" };
-  // Bytes that disagree with their format must not become a vault asset whose
-  // name and link claim the declared extension.
   if (!isExcerptImage(outcome)) {
     yield* Effect.logDebug("Excerpt payload does not match its format").pipe(
       Effect.annotateLogs({
@@ -278,10 +232,6 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
     );
     return { kind: "unavailable", reason: "source" };
   }
-  // A rendered outcome's bytes are this process's own encoder output; every
-  // other outcome read them from outside it, where a persistent record can hold
-  // a container whose image data is damaged. Those must decode before they
-  // become an asset whose name and link claim that image.
   if (
     outcome.provenance !== "rendered" &&
     !(yield* usableExternalAsset(outcome.bytes))
@@ -331,19 +281,14 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
       return yield* new ExcerptAssetRefused({
         message: "Excerpt import requires a filesystem vault",
       });
-    // Set once this call creates the destination rather than adopting an
-    // existing one, so a cancelled insertion can take back only its own bytes.
     let created = false;
     const write = Effect.gen(function* () {
       yield* assertCurrent;
       yield* fs.makeDirectory(dirname(destination), { recursive: true });
-      // A dot-file name keeps the temporary out of the vault index: the vault
-      // drops an indexed file only on a watcher event, which can be lost.
       const temporary = join(
         dirname(destination),
         `.${basename(destination)}.${randomUUID()}.tmp`,
       );
-      // Publish only complete bytes, using an exclusive hard link to preserve every existing version.
       yield* Effect.gen(function* () {
         yield* Effect.addFinalizer(() =>
           removeIgnoringAbsent(temporary).pipe(
@@ -358,8 +303,6 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
           }),
         );
         yield* assertCurrent;
-        // The link and its flag are one step: an interrupt between them would
-        // keep bytes that no rollback knows this call created.
         yield* Effect.uninterruptible(
           fs.link(temporary, destination).pipe(
             Effect.andThen(
@@ -381,9 +324,6 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
           });
         yield* assertCurrent;
       }).pipe(Effect.scoped);
-      // The atomic filesystem publish precedes the vault's asynchronous watcher.
-      // Register it now so the first rendered embed can resolve its TFile. A
-      // failure keeps the content-addressed asset for another caller.
       yield* assertCurrent;
       yield* vault.reconcileFile(path);
       yield* assertCurrent;
@@ -394,14 +334,9 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
       const saved: MaterializedExcerpt = { kind: "saved", path, outcome };
       return saved;
     });
-    // A cancelled insertion keeps no excerpt, so the bytes this call
-    // published are taken back with it. A destination this call adopted
-    // instead, and a failure its caller survived, both keep their bytes.
     const takeBack = (exit: Exit.Exit<unknown, unknown>) =>
       Effect.gen(function* () {
         if (!created || !Exit.isFailure(exit)) return;
-        // A rollback, not a failure boundary: any interrupt means the insert
-        // did not happen, also when a failure came with it.
         // oxlint-disable-next-line zotlit-services/interrupt-predicate
         if (!Cause.hasInterrupts(exit.cause) && (yield* valid)) return;
         yield* removeIgnoringAbsent(destination).pipe(

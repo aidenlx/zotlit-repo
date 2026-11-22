@@ -62,8 +62,6 @@ describe("Paired Run state", () => {
   it("reads back a Zotero started without a debugger", async () => {
     const layout = await fixtureRoot();
 
-    // `pnpm fixture zotero` enables no debugging port, and that instance still
-    // holds the database open, so it still has to be reported.
     await writePairedRunState(layout, { pid: 4321 });
 
     await expect(readPairedRunState(layout)).resolves.toEqual({ pid: 4321 });
@@ -108,8 +106,6 @@ describe("the Paired Zotero holding the Fixture", () => {
     const layout = await fixtureRoot();
     await writePairedRunState(layout, { pid: 4321, debuggerPort: 57241 });
 
-    // A Zotero that exits on its own leaves the file behind; believing it
-    // would stop a developer's suite from testing anything.
     await expect(
       livePairedZotero(layout, { isAlive: () => false }),
     ).resolves.toBeNull();
@@ -130,8 +126,6 @@ describe("the Paired Zotero holding the Fixture", () => {
     await clearPairedRunState(layout);
 
     await expect(readPairedRunState(layout)).resolves.toBeNull();
-    // Clearing what was never there is not an error: a Paired Run that never
-    // started still has to be able to tidy up after itself.
     await expect(clearPairedRunState(layout)).resolves.toBeUndefined();
   });
 });

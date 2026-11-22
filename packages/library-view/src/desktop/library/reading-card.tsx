@@ -1,13 +1,3 @@
-// The Reading Card: the pane on the right of the Library View that shows the
-// selected Item, laid out like the title page of a paper. Its header reads
-// the paths the Papers row reads, its Annotations preview reads the first two
-// Annotations alone, and "See all" opens the Annotation Cards of a second
-// Query View whose Query Context is the Item, so editing, locks and the
-// Editing Capability are the sidebar's. Its buttons run the operations of
-// the row menu.
-//
-// @see apps/obsidian/docs/adr/0069-the-annotation-view-is-the-annotations-layout-of-the-query-view.md
-// @see apps/obsidian/docs/adr/0074-library-view-rows-act-as-quick-switcher-results.md
 import { useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -75,7 +65,6 @@ import type { TreeModel } from "./tree-model.ts";
 import { FILTER_CHIP_LINE_CLASS, TAG_CHIP_CLASS } from "#core/library/chip.ts";
 import { waitForRead } from "#obsidian/library/model.ts";
 
-/** The Query File of the card: every Annotation of the Item `this` names. */
 function readingCardQueryText(): string {
   return serializeQueryFile({
     filters: "item == this.item",
@@ -99,19 +88,12 @@ export interface ReadingCardDeps extends QueryViewDeps {
 }
 
 export interface ReadingCardHost {
-  /** The row menu of the Item, under the button that asks for it. */
   menu: (item: MenuItem, button: HTMLElement) => void;
-  /** Show the Item's Annotations in the sidebar Annotation View. */
   openInSidebar: (indexedKey: string) => void;
-  /** Close the card, at any pane width, until a row asks for it again. */
   close: () => void;
-  /** Keep a disclosure open or closed for the Library View. */
   keepDisclosure: (name: keyof ReadingCardDisclosures, open: boolean) => void;
-  /** Select the tag `name` in the Tag Selector, beside any selected already. */
   selectTag: (name: string) => void;
-  /** The values of the list's row of the Item `key`, where the list shows it. */
   row: (key: string) => Values | null;
-  /** The counts of the tree node's papers, which the card shows with none selected. */
   stats: () => TreeModel["stats"];
   onEscape: NonNullable<QueryViewHost["layout"]>["onEscape"];
 }
@@ -143,9 +125,7 @@ export class ReadingCard extends Component {
         const { key } = this.state;
         return key === null ? undefined : { item: key };
       },
-      // The Item's own Library, which may lie outside the Library Scope.
       libraries: () => cardLibraries(this.state.key),
-      // The card's query is fixed: nothing in it changes the text.
       save: () => {},
       layout: { onEscape: host.onEscape },
     });
@@ -158,7 +138,6 @@ export class ReadingCard extends Component {
     this.registry.update(this.model.session, patchCard(patch));
   }
 
-  /** Settles once the card and its open Annotations have landed. */
   get settled(): Promise<void> {
     return waitForRead(this.registry, this.model.loaded, this.#waiting).then(
       () => this.query.settled,
@@ -215,7 +194,6 @@ export class ReadingCard extends Component {
     this.#host.keepDisclosure(name, open);
   }
 
-  /** Read the shown Item's Annotations, once for each Item. */
   #readAnnotations(): void {
     const { key } = this.state;
     if (key === null || this.#annotationsOf === key) return;
@@ -237,7 +215,6 @@ export class ReadingCard extends Component {
   }
 }
 
-/** The icon of a file, by its kind. */
 const FILE_ICONS: Readonly<Record<string, string>> = {
   pdf: "file-text",
   epub: "book-open",
@@ -245,11 +222,9 @@ const FILE_ICONS: Readonly<Record<string, string>> = {
   image: "image",
 };
 
-/** A small label over a part of the card. */
 const LABEL =
   "zt:m-0 zt:text-xs zt:font-(--font-medium) zt:text-muted-foreground";
 
-/** A part of the card under its small label, which names it. */
 function Part({
   name,
   label,
@@ -266,7 +241,6 @@ function Part({
       data-library-card-part={name}
       className="zt:flex zt:flex-col zt:gap-(--size-2-2)"
     >
-      {/* Obsidian's unlayered `h3` rule would outrank the label's size. */}
       <div role="heading" aria-level={3} id={id} className={LABEL}>
         {label}
       </div>
@@ -275,7 +249,6 @@ function Part({
   );
 }
 
-/** A list of fields: each label over its value. */
 function Fields({ fields, id }: { fields: readonly CardField[]; id?: string }) {
   return (
     <dl id={id} className="zt:m-0 zt:grid zt:grid-cols-1 zt:gap-y-(--size-4-2)">
@@ -302,11 +275,6 @@ function Fields({ fields, id }: { fields: readonly CardField[]; id?: string }) {
   );
 }
 
-/**
- * A native button, drawn as a link, that opens and closes the body `controls`
- * names. Its chevron points to the side while the body is shut and down while
- * it is open, as the tree's do. `className` sets its size and its place.
- */
 function Disclosure({
   name,
   open,
@@ -341,7 +309,6 @@ function Disclosure({
   );
 }
 
-/** The abstract, cut to about four lines until the researcher asks for the rest. */
 function Abstract({ abstract }: { abstract: string }) {
   const [open, setOpen] = useState(false);
   const [long, setLong] = useState(false);
@@ -352,8 +319,6 @@ function Abstract({ abstract }: { abstract: string }) {
     const el = ref.current;
     if (!el) return;
     const measure = () => {
-      // Hidden, or with no layout: judge by length, about four lines of
-      // the card's width.
       setLong(
         el.clientHeight === 0
           ? abstract.length > ABSTRACT_LINES_LENGTH
@@ -395,21 +360,14 @@ function Abstract({ abstract }: { abstract: string }) {
   );
 }
 
-/** About four lines of the card's width, for an abstract with no layout to measure. */
 const ABSTRACT_LINES_LENGTH = 180;
 
-/** A quiet chip: a tag, the DOI, the citation key. */
 const CHIP =
   "zt:inline-flex zt:max-w-full zt:min-w-0 zt:items-center zt:gap-1 zt:rounded-(--radius-l) zt:bg-(--background-modifier-hover) zt:px-(--size-4-2) zt:py-0.5 zt:text-xs zt:text-(--text-normal)";
 
-/** The focus ring of a control drawn on an element of its own. */
 const FOCUS_RING =
   "zt:outline-hidden zt:focus-visible:shadow-[0_0_0_var(--input-border-width-focus)_var(--background-modifier-border-focus)]";
 
-/**
- * One line of the card's info: a small icon, then what it holds, named for a
- * screen reader by a heading only it reads.
- */
 function InfoLine({
   name,
   label,
@@ -420,7 +378,6 @@ function InfoLine({
   name: string;
   label: string;
   icon: IconName;
-  /** The line holds chips, so its icon centres on a chip's height. */
   chips?: boolean;
   children: ReactNode;
 }) {
@@ -442,7 +399,6 @@ function InfoLine({
           className="zt:shrink-0 zt:text-muted-foreground"
         />
       </FirstLine>
-      {/* Obsidian's unlayered `h3` rule would outrank the heading's size. */}
       <div role="heading" aria-level={3} id={id} className="zt:sr-only">
         {label}
       </div>
@@ -461,8 +417,6 @@ function CardBody({ card }: { card: ReadingCard }) {
   const disclosures = useCardState((s) => s.disclosures);
   const titleId = useUniqueId();
   const fieldsId = useUniqueId();
-  // The height of what the last Item showed under its buttons, which the
-  // next one keeps while its fields are read.
   const bodyRef = useRef<HTMLDivElement>(null);
   const abstractRef = useRef<HTMLDivElement>(null);
   const bodyHeight = useRef(0);
@@ -471,10 +425,6 @@ function CardBody({ card }: { card: ReadingCard }) {
       bodyHeight.current =
         bodyRef.current.offsetHeight + (abstractRef.current?.offsetHeight ?? 0);
   });
-  // The details turn off here at every pane width, as the Details button
-  // turns them off, and the list takes their room until the researcher
-  // turns them on again. The button sits in the card's corner, outside
-  // what scrolls, so it stays in reach down a long paper.
   const close = (
     <span className="zt:absolute zt:end-(--size-4-4) zt:top-(--size-4-4) zt:z-(--layer-cover) zt:flex zt:rounded-(--radius-s) zt:bg-(--background-primary)">
       <IconButton
@@ -485,9 +435,6 @@ function CardBody({ card }: { card: ReadingCard }) {
       />
     </span>
   );
-  // With no row selected the details keep their room, count the papers of
-  // the tree node and say what fills it, so the first click on a row moves
-  // nothing.
   if (key === null)
     return (
       <>
@@ -504,12 +451,6 @@ function CardBody({ card }: { card: ReadingCard }) {
       item.notes.length > 0 ||
       item.added !== null ||
       item.fields.length > 0);
-  // The card's 16 px inline padding keeps what ends a line, the close
-  // button and the colour counts, clear of an overlay scrollbar, so the card
-  // takes no `scroll-gutter`: on macOS that would cut its end padding to
-  // Obsidian's 12 px scrollbar width. A card 42rem wide or more, under a
-  // narrow list or dragged wide, sets the paper's title page beside its
-  // info and Annotations, so it reads in two short columns, not one long.
   return (
     <>
       {close}
@@ -525,7 +466,6 @@ function CardBody({ card }: { card: ReadingCard }) {
                 className="zt:flex zt:min-w-0 zt:flex-1 zt:items-center zt:gap-1.5 zt:text-xs zt:font-(--font-medium) zt:tracking-[0.06em] zt:text-muted-foreground zt:uppercase"
                 data-library-card-part="type"
               >
-                {/* The icon of the Item type, from the map the Papers rows use. */}
                 <Icon
                   name={itemTypeIcon(item.itemType)}
                   size="xs"
@@ -605,8 +545,6 @@ function CardBody({ card }: { card: ReadingCard }) {
             </div>
           )}
           <div className="zt:mt-(--size-4-4) zt:flex zt:flex-wrap zt:items-center zt:gap-(--size-2-2)">
-            {/* Open PDF leads where there is a PDF; without one, the
-              Literature Note is the primary action. */}
             {item?.pdf && (
               <Button
                 variant="cta"
@@ -638,8 +576,6 @@ function CardBody({ card }: { card: ReadingCard }) {
                 )
               }
             />
-            {/* The annotation view's own icon, so the button names where it
-              leads. */}
             <IconButton
               icon="highlighter"
               data-library-card-action="sidebar"
@@ -669,9 +605,6 @@ function CardBody({ card }: { card: ReadingCard }) {
             <span className={LOADING_TEXT}>{m.query_view_table_loading()}</span>
           </div>
         ) : (
-          // Sections parted by thin rules: the info and the Annotations; a
-          // part with nothing in it is left out with its rule. Beside the
-          // title page they start below the close button.
           <div
             ref={bodyRef}
             className="zt:mt-(--size-4-4) zt:flex zt:min-w-0 zt:flex-col zt:divide-y-(length:--border-width) zt:divide-(--background-modifier-border) zt:border-t-(length:--border-width) zt:border-(--background-modifier-border) zt:empty:hidden zt:@2xl/card:mt-0 zt:@2xl/card:border-t-0 zt:@2xl/card:pt-(--size-4-4) zt:[&>*]:py-(--size-4-4) zt:[&>*:last-child]:pb-0"
@@ -721,11 +654,6 @@ function CardBody({ card }: { card: ReadingCard }) {
                     chips
                   >
                     <ul className="zt:m-0 zt:flex zt:list-none zt:flex-wrap zt:gap-(--size-2-2) zt:p-0">
-                      {/* A tag selects itself in the Tag Selector, which narrows
-                      the list to the papers that carry it, and is drawn as
-                      the Tag Selector draws it. Obsidian's unlayered
-                      `button` rules outrank the chip's utilities, so the
-                      chip is a `role="button"` of its own. */}
                       {item.tags.map((tag) => (
                         <li key={tag} className="zt:flex zt:max-w-full">
                           <span
@@ -846,13 +774,6 @@ function CardBody({ card }: { card: ReadingCard }) {
   );
 }
 
-/**
- * The item details with no paper selected: the line that asks for a paper,
- * over one quiet line of the tree node's papers that pass each Reading
- * State facet, as the tree's filters name them. The heading counts every
- * paper already, and a facet no paper passes is left out. The counts wait
- * out their read unseen.
- */
 function NoPaper({ stats: atom }: { stats: TreeModel["stats"] }) {
   const result = useAtomValue(atom);
   const stats = Option.getOrNull(AsyncResult.value(result));
@@ -886,10 +807,6 @@ function NoPaper({ stats: atom }: { stats: TreeModel["stats"] }) {
   );
 }
 
-/**
- * "Your annotations": the count of each colour, the first two Annotations
- * as quotes, and "See all", which mounts the Annotation Cards.
- */
 function Annotations({
   card,
   item,
@@ -960,8 +877,6 @@ function Annotations({
               className="zt:border-s-[3px] zt:border-(--zt-annot-color) zt:ps-(--size-4-2) zt:text-(length:--font-ui-small)"
             >
               {quote.kind === "image" ? (
-                // An area or a drawing has no text: its kind and its page
-                // share one line.
                 <p className="zt:m-0 zt:text-muted-foreground">
                   {[
                     quote.text,
@@ -1012,7 +927,6 @@ function Annotations({
           : m.library_view_card_see_all({ count: item.annotations })}
       </Disclosure>
       <div id={cardsId} hidden={!open} className="zt:-mx-(--size-2-2)">
-        {/* The Annotation Cards mount once "See all" opens them. */}
         {open &&
           (failed ? (
             <div

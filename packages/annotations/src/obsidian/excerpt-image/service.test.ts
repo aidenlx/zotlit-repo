@@ -38,7 +38,6 @@ import {
 } from "#desktop/excerpt-image/layer.ts";
 import { layerReaderConnection } from "#obsidian/reader-connection/service.ts";
 
-/** Debug records the excerpt-image logger emits; read by the admission tests. */
 let logs: CapturedLogs;
 
 beforeAll(() => {
@@ -131,10 +130,6 @@ const fixture = Effect.fnUntraced(function* () {
   };
 });
 
-/**
- * One stored excerpt, then `count` distinct requests held open on a blocked
- * render, which fills the queue's admission bound.
- */
 const storedExcerptWithBlockedRenders = Effect.fnUntraced(function* (
   count: number,
 ) {
@@ -200,8 +195,6 @@ describe("Excerpt Image resolution", () => {
               .pipe(Effect.forkChild({ startImmediately: true })),
         );
         yield* Effect.promise(() => started.promise);
-        // One render holds the PDF slot, and the queue keeps every other admitted
-        // job behind it rather than refusing them.
         expect(render).toHaveBeenCalledTimes(1);
         gate.resolve(rendered);
         const outcomes = yield* Effect.forEach(pending, (fiber) =>
@@ -250,7 +243,6 @@ describe("Excerpt Image resolution", () => {
         );
         yield* Fiber.interrupt(waiting);
         yield* assertRejected(waiting, { name: "AbortError" });
-        // The cancelled producer left no slot and no wait behind it.
         expect(service.queueDiagnostics).toMatchObject({
           admitted: 128,
           awaiting: 0,
@@ -288,8 +280,6 @@ describe("Excerpt Image resolution", () => {
       );
       try {
         yield* Effect.promise(() => started.promise);
-        // Freshness and cache checks run before admission: a cache hit resolves
-        // even though the admitted bound is full and a render is in flight.
         expect(yield* service.resolve(request)).toMatchObject({
           provenance: "cache",
           bytes: generated,
@@ -334,8 +324,6 @@ describe("Excerpt Image resolution", () => {
           yield* rejection;
         }
 
-        // Cancelled demand released its slots: the same image can be requested
-        // again once the cancelled job's bounded teardown frees the render slot.
         release.resolve();
         expect(yield* service.resolve(request)).toMatchObject({
           provenance: "rendered",
@@ -771,7 +759,6 @@ describe("Excerpt Image resolution", () => {
         expect(yield* service.resolve(request)).toMatchObject({
           provenance: "cache",
         });
-        // Replacing content with the same metadata is deliberately indistinguishable.
         expect(yield* service.resolve(request)).toMatchObject({
           provenance: "cache",
         });
@@ -795,8 +782,6 @@ describe("Excerpt Image resolution", () => {
         const probed = Promise.withResolvers<void>();
         let renders = 0;
         const render = vi.fn(async () => {
-          // The revision this call reads, which for the queued job below is the one
-          // that replaced the PDF while it waited for the render slot.
           const revision = pdf;
           renders += 1;
           if (renders === 1) {
@@ -826,12 +811,10 @@ describe("Excerpt Image resolution", () => {
           pdfPath: "/late.pdf",
           annotation: { ...request.annotation, key: "ANNOT002" },
         };
-        // The first job holds the render slot, rendering the stored revision.
         const first = yield* service
           .resolve(request)
           .pipe(Effect.forkChild({ startImmediately: true }));
         yield* Effect.promise(() => started.promise);
-        // The second job's own probe reads that revision, and then waits.
         const late = yield* service
           .resolve(lateRequest)
           .pipe(Effect.forkChild({ startImmediately: true }));
@@ -842,8 +825,6 @@ describe("Excerpt Image resolution", () => {
           provenance: "rendered",
           identity: { pdf: { size: 100, mtimeMs: 10 } },
         });
-        // The bytes it renders are the replacement revision, and so is the stamp
-        // published beside them and stored under the excerpt's key.
         expect(yield* Fiber.join(late)).toMatchObject({
           provenance: "rendered",
           bytes: replacement,
@@ -855,7 +836,6 @@ describe("Excerpt Image resolution", () => {
           size: 101,
           mtimeMs: 11,
         });
-        // An unchanged request reuses those bytes instead of rendering again.
         expect(yield* service.resolve(lateRequest)).toMatchObject({
           provenance: "cache",
           bytes: replacement,
@@ -902,8 +882,6 @@ describe("Excerpt Image resolution", () => {
       ...request,
       source: { kind: "zotero-db", database, libraryID: 1, libraryRevision: 0 },
     });
-    // A database that names no Server ID keeps a local identity, which never
-    // stands in for another user's database.
     expect(
       excerptKey(
         standalone({ userID: 1, localUserKey: "LOCAL-A", serverID: null }),
@@ -927,7 +905,6 @@ describe("Excerpt Image resolution", () => {
         fakeReaderEngine,
       ),
     ).not.toBe(excerptKey(api, fakeReaderEngine));
-    // One database reached through either representation shares one identity.
     expect(
       excerptKey(
         standalone({ userID: 1, localUserKey: "LOCAL-A", serverID: "SAME" }),
@@ -983,7 +960,6 @@ describe("Excerpt Image resolution", () => {
           })
           .pipe(Effect.forkChild({ startImmediately: true }));
         yield* Effect.promise(() => started.promise);
-        // A cache hit resolves without waiting for the blocked render.
         expect(yield* service.resolve(request)).toMatchObject({
           provenance: "cache",
           bytes: generated,
@@ -1003,8 +979,6 @@ describe("Excerpt Image resolution", () => {
         const f = yield* storedExcerptWithBlockedRenders(128);
         const service = f.service;
         try {
-          // Every slot is held by a blocked render, and the stored bytes still
-          // resolve without one.
           expect(yield* service.resolve(request)).toMatchObject({
             provenance: "cache",
             bytes: generated,
@@ -1074,9 +1048,6 @@ describe("Excerpt Image resolution", () => {
             record.properties.key ===
             excerptKey(secondRequest, fakeReaderEngine),
         )!;
-        // Both records name the excerpt and the full bound; the second also counts
-        // the producer already waiting for a slot, which is the saturation a
-        // diagnosis log would otherwise have to infer from a stalled progress bar.
         expect(firstRecord.properties).toMatchObject({
           admitted: 128,
           awaiting: 0,
@@ -1128,7 +1099,6 @@ describe("Excerpt Image resolution", () => {
         yield* Effect.promise(() => started.promise);
         yield* Fiber.interrupt(database);
         yield* rejection;
-        // The remaining representation still receives the single shared render.
         gate.resolve(rendered);
         expect(yield* Fiber.join(api)).toMatchObject({
           provenance: "rendered",
@@ -1179,7 +1149,6 @@ describe("Excerpt Image resolution", () => {
       yield* Fiber.interrupt(first);
       yield* rejections[0]!;
       expect(aborted).toBe(false);
-      // Only the last caller's cancellation releases the shared render.
       yield* Fiber.interrupt(second);
       yield* rejections[1]!;
       yield* Effect.promise(() => released.promise);
@@ -1402,9 +1371,7 @@ describe("Excerpt Image resolution", () => {
 });
 
 describe("Excerpt latest references", () => {
-  /** The record one Annotation's latest image lives under, as the store keys it. */
   const record = excerptAnnotationRecord(inkRequest);
-  /** The ink pixels one colour asks for: another colour is another saved edit. */
   const recolor = (
     color: string,
     version: number | null = null,
@@ -1427,8 +1394,6 @@ describe("Excerpt latest references", () => {
           pdf: { size: 100, mtimeMs: 10 },
         });
 
-        // A replacement that renders nothing keeps the reference the device has:
-        // the answer is Zotero's own image, which the store holds no bytes for.
         const saved = recolor("#00ff00");
         f.render.mockRejectedValueOnce(new Error("PDF unavailable"));
         yield* Effect.gen(function* () {
@@ -1480,9 +1445,6 @@ describe("Excerpt latest references", () => {
           },
         });
 
-        // A is in flight, a saved edit to B is admitted behind it, and the user
-        // saves A again: that third request joins the first one's job instead of
-        // admitting anything of its own.
         const first = recolor("#ff0000", 1);
         const second = recolor("#00ff00", 2);
         const latest = recolor("#ff0000", 3);
@@ -1499,8 +1461,6 @@ describe("Excerpt latest references", () => {
         gate.resolve(rendered);
         yield* Effect.forEach([a, b, joined], (fiber) => Fiber.join(fiber));
 
-        // The joining caller carries the newest saved pixels, so A's answer is the
-        // one that becomes the reference and B's older one cannot move it back.
         expect(references.get(record)).toMatchObject({
           key: excerptKey(latest, fakeReaderEngine),
           fingerprint: excerptFingerprint(latest.annotation),
@@ -1526,7 +1486,6 @@ describe("Excerpt latest references", () => {
           read: async () => fallback,
           cache: {
             get: async (key) => {
-              // The stale request's preflight stalls; every other read answers.
               if (stale && key === excerptKey(inkRequest, fakeReaderEngine))
                 await gate.promise;
               return entries.get(key);
@@ -1546,8 +1505,6 @@ describe("Excerpt latest references", () => {
           excerptFingerprint(inkRequest.annotation),
         );
 
-        // A request for the pixels the device already holds — a logs.records note, a
-        // read that started before the edit — is admitted first and answers late.
         stale = true;
         const late = yield* service
           .resolve(inkRequest)
@@ -1601,8 +1558,6 @@ describe("Excerpt latest references", () => {
           },
         });
 
-        // The saved edit is the display's own request, and it is admitted and
-        // resolved first: it is the Annotation's newest saved pixels.
         const saved = recolor("#00ff00", 2);
         yield* Effect.gen(function* () {
           expect(yield* service.resolve(saved)).toMatchObject({
@@ -1613,9 +1568,6 @@ describe("Excerpt latest references", () => {
           excerptFingerprint(saved.annotation),
         );
 
-        // A note or batch resolution holds the record as it was before that edit,
-        // and is admitted after the edit has settled. Its pixels are older, so its
-        // answer cannot become the latest reference.
         const stale = recolor("#ff0000", 1);
         yield* Effect.gen(function* () {
           expect(yield* service.resolve(stale)).toMatchObject({
@@ -1711,14 +1663,10 @@ describe("Excerpt latest references", () => {
           },
         });
 
-        // An Annotation whose pixels moved still reads back the image the device
-        // holds: that is what a display paints while the new pixels resolve.
         expect(
           (yield* service.stored(recolor("#00ff00")))?.identity.fingerprint,
         ).toBe(excerptFingerprint(inkRequest.annotation));
 
-        // Evicted bytes read as nothing, even though the reference stands, and a
-        // cache that keeps no references reads as nothing either.
         f.entries.clear();
         expect(yield* service.stored(inkRequest)).toBeNull();
         const bare = yield* excerptImageFixture({
@@ -1733,7 +1681,6 @@ describe("Excerpt latest references", () => {
   );
 });
 
-// Deadlines and finalizers run on the layer's Effect clock.
 it.effect(
   "stops new renders after a timed-out host cannot finish cleanup",
   () =>
@@ -1840,7 +1787,6 @@ const assertRejected = Effect.fnUntraced(function* <A, E>(
   }
 });
 
-// A started cache mutation holds its barrier through interruption.
 it.effect(
   "an interrupted clear holds later resolutions until the store finishes",
   () =>

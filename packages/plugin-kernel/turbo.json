@@ -2,7 +2,6 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
-    // The source reads the plugin's generated Message facade.
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
@@ -20,7 +19,6 @@
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs"
       ],
-      // The brand test reads the canonical logo SVGs.
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/assets/logo/**"]
     }
   }

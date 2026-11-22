@@ -1,10 +1,3 @@
-// The one Query File parser and serializer, shared by the Query File tab, the
-// Query File embed, the Query Block and the sidebar. A Query File is YAML in
-// the shape of an Obsidian `.base` file; the parser keeps every key it does
-// not read (`summaries`, and keys it does not know) in its place, so a save
-// writes them back.
-//
-// @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
 import * as v from "valibot";
 import { parse, stringify } from "yaml";
 
@@ -15,10 +8,8 @@ import type { NameDictionary } from "@zotlit/item-query";
 import { VAULT_SEGMENT } from "@zotlit/template-workbench/core/language/index.ts";
 import type { PlacedFault } from "@zotlit/template-workbench/core/language/index.ts";
 
-/** The file extension of a Query File, and the language of a Query Block. */
 export const QUERY_FILE_EXTENSION = "zotquery";
 
-/** The first `base`, `base 1`, `base 2`, … name that `taken` does not hold. */
 export function untitledName(
   base: string,
   taken: (name: string) => boolean,
@@ -29,16 +20,10 @@ export function untitledName(
   }
 }
 
-/**
- * The path of the Literature Note Property. The vault's Note Index answers
- * it, not ZotLit Query, so no query reads it, and only the Table shows it.
- */
 export const LITERATURE_NOTE = "vault.literatureNote";
 
-/** The most rows a new Query File's view shows. */
 export const NEW_QUERY_FILE_LIMIT = 100;
 
-/** The Query Datasets a view can read. */
 export const QUERY_FILE_DATASETS = [
   "annotations",
   "attachments",
@@ -48,7 +33,6 @@ export type QueryFileDataset = (typeof QUERY_FILE_DATASETS)[number];
 
 export type QueryFileDirection = "ASC" | "DESC";
 
-/** The value of one group in a Manual group order. */
 export type QueryFileGroupValue = string | null;
 
 export interface QueryFileSort {
@@ -56,7 +40,6 @@ export interface QueryFileSort {
   readonly direction: QueryFileDirection;
 }
 
-/** Whether `a` and `b` sort by the same properties, in the same directions. */
 export function sameSort(
   a: readonly QueryFileSort[],
   b: readonly QueryFileSort[],
@@ -70,10 +53,6 @@ export function sameSort(
   );
 }
 
-/**
- * Something in the file that the parser could not read. The file still opens;
- * the view says what is wrong.
- */
 export type QueryFileProblem =
   | { readonly code: "invalid-yaml"; readonly message: string }
   | { readonly code: "not-a-map" }
@@ -84,70 +63,31 @@ export type QueryFileProblem =
       readonly key: string;
       readonly value: unknown;
     }
-  /** Two views have one name, which a link to a view or a view choice cannot tell apart. */
   | { readonly code: "duplicate-view-name"; readonly name: string };
 
-/** The width in pixels of each resized column of a view, by property path. */
 export type ColumnSizes = Readonly<Record<string, number>>;
 
 export interface QueryFileView {
-  /** The Layout. */
   readonly type: string;
   readonly name: string;
-  /** The Query Dataset the view reads; `undefined` where the file names none it knows. */
   readonly from: QueryFileDataset | undefined;
   readonly filters?: FilterTree;
   readonly sort?: readonly QueryFileSort[];
-  /**
-   * The group path. Groups follow the query order of their first rows; `DESC`
-   * reverses them.
-   */
   readonly groupBy?: QueryFileSort;
-  /**
-   * The Manual group order: the values of the groups shown, in the order they
-   * show; a group whose value is not listed is hidden. `null` is the group of
-   * the rows that have no value. `undefined` while the groups follow
-   * `groupBy.direction`.
-   */
   readonly groupOrder?: readonly QueryFileGroupValue[];
   readonly limit?: number;
-  /**
-   * The visible properties, as Projection Paths, `formula.<name>` or
-   * `vault.literatureNote`, in the order the view shows them. Copy and CSV
-   * export write these columns but the Literature Note Property; the Table, List and
-   * Cards layouts show them in this order.
-   */
   readonly order?: readonly string[];
-  /**
-   * The width in pixels of each column the researcher resized, by property
-   * path, as Bases keeps it. A column without an entry takes its auto width.
-   */
   readonly columnSize?: ColumnSizes;
   readonly problems: readonly QueryFileProblem[];
-  /** The view's map as the file holds it, with every key the parser does not read. */
   readonly source: Readonly<Record<string, unknown>>;
 }
 
 export interface QueryFile {
-  /** The filters for all views of the same dataset. */
   readonly filters?: FilterTree;
-  /**
-   * The Formulas: each name with its Filter Expression text. A view shows a
-   * Formula as the property `formula.<name>`.
-   */
   readonly formulas?: NameDictionary<string>;
-  /**
-   * The settings of each property, by the text of its `order` entry: a bare
-   * Projection Path for a field, `formula.<name>` for a Formula,
-   * `vault.literatureNote` for the Literature Note Property. Its
-   * `displayName` is the property's Display Name; the parser keeps the other
-   * keys as the file holds them.
-   */
   readonly properties?: NameDictionary<unknown>;
-  /** The views, the default view first. */
   readonly views: readonly QueryFileView[];
   readonly problems: readonly QueryFileProblem[];
-  /** The file's map as it holds it, with every key the parser does not read. */
   readonly source: Readonly<Record<string, unknown>>;
 }
 
@@ -170,14 +110,8 @@ function readSort(value: unknown): QueryFileSort | null {
   return direction ? { property: value.property, direction } : null;
 }
 
-/** One column width: a whole number of pixels above zero. */
 const ColumnWidth = v.pipe(v.number(), v.integer(), v.minValue(1));
 
-/**
- * The column widths of a view. A width only changes how the Table looks, so
- * an entry that is not a width is dropped and a value that is not a map is
- * left unread, with no problem: the view still runs.
- */
 function readColumnSize(value: unknown): ColumnSizes | undefined {
   if (!isMap(value)) return undefined;
   const sizes = Object.entries(value).filter(
@@ -262,7 +196,6 @@ function readView(value: unknown): QueryFileView {
   return view;
 }
 
-/** Reads a Query File's text. It never throws: what it cannot read is a problem. */
 export function parseQueryFile(text: string): QueryFile {
   let value: unknown;
   try {
@@ -340,10 +273,6 @@ export function parseQueryFile(text: string): QueryFile {
   return file;
 }
 
-/**
- * Writes `entries` over `source`: a key `source` holds keeps its place, a new
- * one goes after them, and an `undefined` one is dropped.
- */
 function merged(source: Readonly<Entries>, entries: Entries): Entries {
   const out: Entries = {};
   for (const key of Object.keys(source)) {
@@ -372,7 +301,6 @@ function writeView(view: QueryFileView): Entries {
   });
 }
 
-/** What a toolbar control changes in one view. A key set to `undefined` is removed. */
 export type QueryFileViewEdit = Partial<
   Pick<
     QueryFileView,
@@ -380,11 +308,6 @@ export type QueryFileViewEdit = Partial<
   >
 >;
 
-/**
- * The file with one view changed. A grouping that takes another property
- * drops the Manual group order, since its values name the old groups. A key
- * the edit sets is no longer a problem of the view.
- */
 export function editView(
   file: QueryFile,
   view: QueryFileView,
@@ -416,10 +339,7 @@ export function editView(
   };
 }
 
-/** Writes a Query File's text. A key the parser kept stays where it was. */
 export function serializeQueryFile(file: QueryFile): string {
-  // New filters for all views go first, and new Formulas and properties
-  // before the views, where a `.base` file has them.
   let source: Entries = Object.hasOwn(file.source, "filters")
     ? file.source
     : { filters: undefined, ...file.source };
@@ -445,47 +365,32 @@ export function serializeQueryFile(file: QueryFile): string {
 
 const FORMULA_PREFIX = `${FORMULA_SEGMENT}.`;
 
-/** The Projection Path a view shows a Formula as. */
 export function formulaProperty(name: string): string {
   return `${FORMULA_PREFIX}${name}`;
 }
 
-/** The name of the Formula that `property` shows; `null` for a field. */
 export function formulaName(property: string): string | null {
   return property.startsWith(FORMULA_PREFIX)
     ? property.slice(FORMULA_PREFIX.length)
     : null;
 }
 
-/** The namespace of the vault properties: `vault.<name>`. */
 const VAULT_PREFIX = `${VAULT_SEGMENT}.`;
 
-/**
- * The name after `vault.` of a vault property, as it is, which is the
- * frontmatter key it reads; `null` for a path of another kind.
- *
- * @see apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md
- */
 export function vaultName(property: string): string | null {
   return property.startsWith(VAULT_PREFIX)
     ? property.slice(VAULT_PREFIX.length)
     : null;
 }
 
-/** The path of the vault property that reads the frontmatter key `name`. */
 export function vaultProperty(name: string): string {
   return `${VAULT_PREFIX}${name}`;
 }
 
-/** Whether `property` is a vault property, which ZotLit Query never reads. */
 export function isVaultProperty(property: string): boolean {
   return vaultName(property) !== null;
 }
 
-/**
- * The file with the Formula `name` set to `text`: an existing one changes in
- * place, a new one goes after the others.
- */
 export function withFormula(
   file: QueryFile,
   name: string,
@@ -501,7 +406,6 @@ export function withFormula(
   };
 }
 
-/** `problems` without the one that names `key` as an invalid value. */
 function validKey(
   problems: readonly QueryFileProblem[],
   key: "formulas" | "properties",
@@ -511,7 +415,6 @@ function validKey(
   );
 }
 
-/** `dictionary` without the entry `name`. */
 function without<V>(
   dictionary: NameDictionary<V> | undefined,
   name: string,
@@ -521,7 +424,6 @@ function without<V>(
   );
 }
 
-/** The file without its top-level `key`. */
 function withoutKey(
   file: QueryFile,
   key: "formulas" | "properties",
@@ -531,7 +433,6 @@ function withoutKey(
   return { ...rest, source };
 }
 
-/** The file with `properties` as its property settings; an empty map leaves the file without the key. */
 function withProperties(
   file: QueryFile,
   properties: NameDictionary<unknown>,
@@ -545,11 +446,6 @@ function withProperties(
   };
 }
 
-/**
- * The file without the Formula `name`, which also leaves the visible
- * properties of every view and the file's property settings. The `formulas`
- * key goes with the last Formula.
- */
 export function removeFormula(file: QueryFile, name: string): QueryFile {
   const formulas = without(file.formulas, name);
   const property = formulaProperty(name);
@@ -565,10 +461,6 @@ export function removeFormula(file: QueryFile, name: string): QueryFile {
   return withoutKey(next, "formulas");
 }
 
-/**
- * The Display Name of `property`, as its `order` entry names it; `undefined`
- * where the file gives it none.
- */
 export function displayName(
   file: QueryFile,
   property: string,
@@ -580,11 +472,6 @@ export function displayName(
   return typeof name === "string" && name !== "" ? name : undefined;
 }
 
-/**
- * The file with the Display Name of `property` set to `name`; `undefined`
- * removes it. The property's other settings stay; a property left with none
- * leaves `properties`, and the key goes with the last one.
- */
 export function withDisplayName(
   file: QueryFile,
   property: string,
@@ -596,7 +483,6 @@ export function withDisplayName(
   const entry = properties.get(property);
   const current: Entries = isMap(entry) ? entry : {};
   const { displayName: _old, ...settings } = current;
-  // A name that changes keeps its place among the property's settings.
   if (name !== undefined)
     properties.set(property, { ...current, displayName: name });
   else if (Object.keys(settings).length > 0) properties.set(property, settings);
@@ -604,18 +490,11 @@ export function withDisplayName(
   return withProperties(file, nameDictionary(properties));
 }
 
-/** The view names a new Query File writes, in the researcher's language. */
 export interface NewQueryFileNames {
   readonly items: string;
   readonly annotations: string;
 }
 
-/**
- * The text of a new Query File. Its default view is a Table of the Items of
- * the whole library, newest first, so a library without highlights still
- * shows something; the Annotations of the whole library, grouped by Item,
- * follow as the second view.
- */
 export function newQueryFileText(names: NewQueryFileNames): string {
   return serializeQueryFile({
     views: [
@@ -623,8 +502,6 @@ export function newQueryFileText(names: NewQueryFileNames): string {
         type: "table",
         name: names.items,
         from: "items",
-        // The Library View's Recent sort, which falls back to dateModified
-        // until last activity is an Item field.
         sort: [{ property: "dateModified", direction: "DESC" }],
         order: ["title", "creators", "date.year", LITERATURE_NOTE],
         limit: NEW_QUERY_FILE_LIMIT,
@@ -646,36 +523,22 @@ export function newQueryFileText(names: NewQueryFileNames): string {
   });
 }
 
-/**
- * The Query Dataset the filters for all views are written for: the dataset of
- * the first view. They apply to the views of that dataset alone, since each
- * dataset names its fields in its own way.
- */
 export function allViewsDataset(file: QueryFile): QueryFileDataset {
   return file.views[0]?.from ?? "annotations";
 }
 
-/** Which filters a condition belongs to: the file's, or the view's own. */
 export type FilterSection = "all" | "view";
 
-/** One condition of the filters, where the Match editor shows it. */
 export interface FilterLocation {
   readonly section: FilterSection;
-  /** The condition's position as the Match editor counts it. */
   readonly path: readonly number[];
 }
 
-/** A condition of the filters, with the message the Match editor marks it with. */
 export interface ConditionIssue extends FilterLocation {
   readonly message: string;
-  /** Where in the condition's text the fault is, where it has a place there. */
   readonly fault?: PlacedFault;
 }
 
-/**
- * The file with new filters: for all views when `index` is `null`, else for
- * the view at that place. `undefined` removes the filters.
- */
 export function withFilters(
   file: QueryFile,
   index: number | null,

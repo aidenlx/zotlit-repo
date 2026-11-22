@@ -55,8 +55,6 @@ describe("TemplateEngine", () => {
 
   describe("includeDataPlugin", () => {
     it("passes include data through directly so arrays survive", () => {
-      // Native eta spreads the data arg into the parent object, turning an
-      // array into `{0:…,1:…}`; the plugin restores direct passthrough.
       const engine = new TemplateEngine();
       engine.define("child", "<%= Array.isArray(zt) %>:<%= zt.length %>");
       engine.define("parent", '<%~ include("child", [1, 2, 3]) %>');

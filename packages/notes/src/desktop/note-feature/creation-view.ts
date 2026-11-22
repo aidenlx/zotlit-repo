@@ -6,7 +6,6 @@ import type {
   LiteratureNoteProfileChoice,
   ProfilePick,
 } from "#desktop/profile/profile-picker.ts";
-// Shared creation prompt for Quick Switch, citation navigation, and Companion links.
 import { Effect } from "effect";
 import type { App, TFile } from "obsidian";
 
@@ -33,11 +32,6 @@ import { openLiteratureNoteProfile } from "#desktop/profile/profile-picker.ts";
 
 const logged = withLogCategory("note-feature");
 
-/**
- * The values the interactive creation opens: the Profile dialogs of the
- * setting tab, which run in the caller's fiber, and the App the picker and
- * the notices' recovery actions open in.
- */
 export interface InteractiveCreationPorts {
   readonly app: App;
   readonly createProfile: CreateProfileDialog;
@@ -45,18 +39,9 @@ export interface InteractiveCreationPorts {
 }
 
 export interface InteractiveCreationOptions extends CreationProfileSources {
-  /**
-   * Create at once after a manual choice or explicit input. Citation and
-   * Companion links set it; unique matches create at once on every surface.
-   */
   direct?: boolean;
 }
 
-/**
- * The CSL styles installed in the Zotero data folder, for the Profile picker's
- * previews; none without a data folder or when its styles folder refuses to be
- * read, so the picker still opens.
- */
 export const installedStyles = Effect.gen(function* () {
   const { dataDir } = yield* (yield* ZoteroPref).current;
   if (!dataDir) return [];
@@ -72,13 +57,6 @@ export const installedStyles = Effect.gen(function* () {
   );
 });
 
-/**
- * What a Profile picker's answer settles to: the Profile the user chose, or
- * the one the New profile dialog made, whose answer `created` holds. An
- * import, a closed picker and a closed dialog settle to no choice. The dialog
- * runs in this fiber, so an interrupt closes it. A New profile dialog that
- * fails is logged and settles to no choice with `failed` set.
- */
 export const resolveProfilePick = Effect.fnUntraced(function* (
   ports: Pick<InteractiveCreationPorts, "createProfile" | "importProfile">,
   pick: ProfilePick | undefined,
@@ -104,17 +82,12 @@ export const resolveProfilePick = Effect.fnUntraced(function* (
   return { choice, created: created.created, failed: created.failed } as const;
 });
 
-/** The notice a settled Profile pick shows: a New profile dialog that failed. */
 export function profilePickNotice(settled: {
   failed: boolean;
 }): string | undefined {
   return settled.failed ? m.notice_profile_action_failed() : undefined;
 }
 
-/**
- * {@link resolveProfilePick}, and a notice when the New profile dialog
- * failed.
- */
 export const settleProfilePick = Effect.fnUntraced(function* (
   ports: Pick<InteractiveCreationPorts, "createProfile" | "importProfile">,
   pick: ProfilePick | undefined,
@@ -126,31 +99,16 @@ export const settleProfilePick = Effect.fnUntraced(function* (
   return settled;
 });
 
-/**
- * The Profile a prepared create's notice names: the Match `reason` that chose
- * it, or its `label`; no label names Default.
- */
 export interface CreatedUnder {
   readonly label?: string;
   readonly reason?: string;
 }
 
-/**
- * A note the interactive creation wrote. `under` is the Profile its notice
- * names; the bound Profile's create has none and shows the plain notice.
- */
 export interface InteractiveCreation {
   readonly file: TFile;
   readonly under?: CreatedUnder;
 }
 
-/**
- * Create `item`'s Literature Note through the Profile selection, asking for a
- * Profile where the selection says to. Returns the created note and the
- * Profile its notice names, or `null` when the user cancels or the create
- * wrote nothing or failed: the create notice told the user. A failed plan
- * fails the Effect. An interrupt closes the picker.
- */
 export const createThroughSelection = Effect.fn("createThroughSelection")(
   function* (
     ports: InteractiveCreationPorts,
@@ -172,8 +130,6 @@ export const createThroughSelection = Effect.fn("createThroughSelection")(
       return created;
     }
 
-    // The selection is fixed for this operation; a Profile that became
-    // unavailable since asks for another choice instead of a different target.
     let problem = selection.problem;
     if (
       (!selection.shouldAsk || direct) &&
@@ -237,8 +193,6 @@ export const createThroughSelection = Effect.fn("createThroughSelection")(
     );
     if (created) {
       const { preview, profile } = created;
-      // The New profile dialog prepared this write: it writes the path the
-      // dialog showed, and an interrupt stops it.
       return yield* createPrepared(
         preview.create,
         { label: profile.label },
@@ -254,10 +208,6 @@ export const createThroughSelection = Effect.fn("createThroughSelection")(
   },
 );
 
-/**
- * {@link createThroughSelection}, answering the created file, or `null`
- * when it created none.
- */
 export const createNoteInteractively = Effect.fn("createNoteInteractively")(
   function* (
     ports: InteractiveCreationPorts,
@@ -269,7 +219,6 @@ export const createNoteInteractively = Effect.fn("createNoteInteractively")(
   },
 );
 
-/** Write through the prepared preview and report its Profile and path. */
 const createPrepared = Effect.fnUntraced(function* <E, R>(
   create: Effect.Effect<CreateNoteResult, E, R>,
   under: CreatedUnder,
@@ -283,10 +232,6 @@ const createPrepared = Effect.fnUntraced(function* <E, R>(
   return created;
 });
 
-/**
- * The words for a note created through a prepared Profile: the Match that
- * chose it, or the Profile it was made under, and the new note's path.
- */
 export function createdNoteNotice(
   file: Pick<TFile, "path">,
   { label, reason }: CreatedUnder,
@@ -299,7 +244,6 @@ export function createdNoteNotice(
       });
 }
 
-/** The resolved Profile lost its preview: the same problem its source reports. */
 function unavailableSelection(
   selection: Exclude<CreationProfileSelection, { source: "bound" }>,
 ): CreationSelectionProblem {

@@ -1,4 +1,3 @@
-// Contract 4 selectors, diagnostics and output over the real Citation Index.
 import type { CitationIndexHarnessOptions } from "#__fixtures__/citation-index/test-harness.ts";
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
@@ -18,7 +17,6 @@ import {
 } from "#__fixtures__/citation-index/annotations.ts";
 import { createCitationIndexHarness } from "#__fixtures__/citation-index/test-harness.ts";
 
-/** The App the commands read the vault's name from. */
 function cliApp(): App {
   return stubService<App>("App", {
     vault: stubService<Vault>("Vault", { getName: () => "Test Vault" }),

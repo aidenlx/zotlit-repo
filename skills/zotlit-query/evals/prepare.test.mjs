@@ -43,7 +43,6 @@ await test("a generated Fixture stays unchanged and gives byte-identical seeded 
       execFileSync(process.execPath, [prepare, source, destination], {
         cwd: repo,
       });
-      // SQLite timestamp defaults must not make the corpus depend on seed time.
       if (destination === first) await delay(1100);
     }
     assert.equal(await digest(database(source)), original);
@@ -98,7 +97,6 @@ await test("a generated Fixture stays unchanged and gives byte-identical seeded 
       const group = edge.indexedKey.endsWith("g118");
       const key = group ? edge.indexedKey.slice(0, -4) : edge.indexedKey;
       const people = creators.all(key, group ? 3 : 1);
-      // The first Primary Creator: an author, else an editor (ADR 0074).
       const firstAuthor =
         people.find((person) => person.role === "author") ??
         people.find((person) => person.role === "editor");

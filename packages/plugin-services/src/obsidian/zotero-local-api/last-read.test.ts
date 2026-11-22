@@ -20,14 +20,9 @@ import {
   writeAccepted,
   serverChanged,
 } from "./__fixtures__.ts";
-// Failure modes: wrong source or group; revoked authorization; stale object;
-// out-of-order reads; closed Zotero; rejected writes; notices from a reprobe.
 import { writeReadUse } from "./last-read.ts";
 import { ZoteroLocalApi } from "./service.ts";
 
-// RECORDED shape: Paired Zotero on 2026-10-19 omitted lastRead before the
-// first read, then returned numeric Unix seconds. Object version is set to 7
-// here to keep it distinct from the response's library version.
 function attachment(lastRead?: number) {
   return new Response(
     JSON.stringify({
@@ -340,10 +335,6 @@ const AVAILABLE = {
   authorized: true,
 } as const;
 
-/**
- * Runs a read write-back over the two services it reads, with the calls it
- * makes counted.
- */
 function readUseServices({
   state = AVAILABLE,
   databaseServerID = SERVER_ID,
@@ -362,8 +353,6 @@ function readUseServices({
       snapshot ??
       Effect.sync(() => {
         snapshots();
-        // The RPC client's members are generic over queue options; the
-        // read answers the one call the code makes.
         return Object.assign(
           stubService<Effect.Success<ZoteroReads["Service"]["snapshot"]>>(
             "ZoteroReadsSnapshot",

@@ -1,7 +1,3 @@
-// The calls of list methods that bind names in their first argument, such as
-// `value` and `index` in `tags.filter(…)` and `acc` in `reduce`, and the
-// entries Expression Completion offers for those names. The names come from
-// the method registry of `@zotlit/item-query`, as the planner binds them.
 import type { SyntaxNode } from "@lezer/common";
 
 import { METHOD_ENTRIES } from "@zotlit/item-query";
@@ -16,7 +12,6 @@ const BINDS: ReadonlyMap<string, readonly string[]> = new Map(
 
 export const bindsNames = (method: string): boolean => BINDS.has(method);
 
-/** @returns The binding method `call` calls, or null. */
 export function bindingMethod(call: SyntaxNode, source: string): string | null {
   if (call.name !== "Call") return null;
   const callee = call.firstChild;
@@ -38,10 +33,6 @@ export function inFirstArgument(call: SyntaxNode, pos: number): boolean {
   );
 }
 
-/**
- * The names bound at `pos` as entries, innermost call first, each once: the
- * names of each list method whose element expression holds `pos`.
- */
 export function boundNameOptions({
   inner,
   pos,

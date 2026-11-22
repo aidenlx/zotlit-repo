@@ -1,38 +1,3 @@
-// A popover that stands until the user leaves it, on Obsidian's own popover.
-// It is the one surface for a control a `Menu` cannot hold, such as a search
-// field, rows with dropdowns, or a form. It lives on the document's body with
-// Obsidian's other floating surfaces, so tooltips, notices and menus stack
-// with it by their layers, and Obsidian places it in its anchor's window.
-//
-// Callers give an anchor and render the contents; the module owns the rest:
-// - Placement beside the anchor, and placing again as the contents resize.
-//   With `inset`, it stands inside that element's box at its right edge
-//   instead, as tall as the box, and places again as the box resizes. With
-//   `beside`, it stands outside that element's box on the side with more
-//   room, level with the anchor, and places again as the page scrolls;
-//   `within` names the box that room is counted in, and that it stays in.
-// - Escape, on a Scope. A layer with keys of its own pushes a Scope over this
-//   one, and answers Escape itself when it wants the popover shut. With
-//   `onEscape`, the contents take Escape first when they have a use for it.
-//   `pageKeys` are keys the contents answer themselves: the Scope keeps them
-//   from Obsidian's hotkeys, and the page hears them.
-// - A press outside. A popover rendered inside another one counts as inside
-//   it, so a press in the outer one shuts the inner one alone. A press on the
-//   anchor stays the anchor's, which toggles the popover.
-// - Focus: the shell takes it on opening, so Tab reaches the contents, unless
-//   `initialFocus` is off. A caller may move it further. Focus held at
-//   closing goes back to the anchor; on a press outside, unless the press
-//   gave focus to the place it pressed.
-//
-// The element with `className` is the surface, and the caller draws it with
-// utilities. The element around it is only a shell for Obsidian to place.
-//
-// The surface stands in a box that outlasts each opening. The contents mount
-// at the first opening, so they start in the document that shows them, and
-// stay mounted between openings. They mount anew when the anchor has moved to
-// another window, because an editor among them belongs to one document.
-//
-// @see apps/obsidian/docs/adr/0044-menus-and-popovers-are-obsidians-own-primitives.md
 import { PopoverState, Scope } from "obsidian";
 import type { App, HoverParent, Modifier } from "obsidian";
 import {
@@ -59,11 +24,9 @@ export interface PinnedPopoverHandle {
   show(): void;
   hide(): void;
   toggle(): void;
-  /** Whether a node stands in the popover or in a popover inside it. */
   contains(node: Node): boolean;
 }
 
-/** One key the contents of a popover answer themselves. */
 export interface PageKey {
   readonly modifiers: Modifier[];
   readonly key: string;
@@ -73,51 +36,20 @@ export interface PinnedPopoverProps extends Omit<
   HTMLAttributes<HTMLDivElement>,
   "popover"
 > {
-  /** The element the popover opens beside, and hands focus back to. */
   anchor: RefObject<HTMLElement | null>;
   handle?: Ref<PinnedPopoverHandle>;
-  /**
-   * In place of a place beside the anchor: the popover stands in this
-   * element's box at its right edge, as tall as the box, with Obsidian's
-   * `--size-4-2` between it and the box's top, right and bottom edges. It
-   * follows the box as it resizes. The surface fills the height it is given.
-   */
   inset?: RefObject<HTMLElement | null>;
-  /**
-   * In place of a place under the anchor: the popover stands outside this
-   * element's box, on the side of it with more room in `within`, with
-   * `--size-4-2` between them. Its top is level with the anchor's, held
-   * inside the box's height, and it is no taller than the box.
-   */
   beside?: RefObject<HTMLElement | null>;
-  /**
-   * The box a popover `beside` another stands in, such as the view it
-   * serves, so it never covers a neighbouring leaf; the window by default.
-   * Where neither side has room, it overlaps the box it stands beside.
-   */
   within?: RefObject<HTMLElement | null>;
-  /**
-   * Escape reached the popover; `true` when the contents took it, and the
-   * popover stays open.
-   */
   onEscape?: () => boolean;
-  /** Whether the popover takes focus as it opens; on by default. */
   initialFocus?: boolean;
-  /**
-   * Keys the contents answer in their own handlers, such as Mod+Enter in a
-   * search field. No hotkey of Obsidian's takes them while the popover
-   * stands, and the page hears them.
-   */
   pageKeys?: readonly PageKey[];
-  /** Called as the popover opens, and once it has closed. */
   onOpenChange?: (open: boolean) => void;
   ref?: Ref<HTMLDivElement>;
 }
 
-/** The box that holds a popover's surface across its openings. */
 export const PINNED_POPOVER_BODY = "zt-pinned-popover-body";
 
-/** Floating surfaces of Obsidian's own, which a press may reach from inside. */
 const OBSIDIAN_FLOATING =
   ".menu, .suggestion-container, .popover:not(.zt-pinned-popover)";
 
@@ -126,17 +58,12 @@ interface PinnedHoverPopoverOptions {
   parent: HoverParent;
   anchor: HTMLElement;
   body: HTMLElement;
-  /** The box the popover stands inset in, in place of beside the anchor. */
   inset: HTMLElement | null;
-  /** The box the popover stands beside, level with the anchor. */
   beside: HTMLElement | null;
-  /** The box a popover beside another stays in; the window when null. */
   within: HTMLElement | null;
-  /** Whether the contents take an Escape: `true` keeps the popover open. */
   onEscape: () => boolean;
   initialFocus: boolean;
   pageKeys: readonly PageKey[];
-  /** Whether a press on this element leaves the popover open. */
   holds: (element: Element) => boolean;
   onHidden: () => void;
 }
@@ -158,19 +85,14 @@ class PinnedHoverPopover extends HoverPopover {
   override onload(): void {
     const { app, anchor, holds, body } = this.#options;
     this.#scope.register([], "Escape", (event) => {
-      // Escape that drops an input method's candidate is the method's.
       if (composing(event)) return;
       if (!this.#options.onEscape()) this.hide();
       return false;
     });
-    // A keyed registration ends the search, so no hotkey behind it runs; an
-    // answer other than `false` leaves the key to the page.
     for (const { modifiers, key } of this.#options.pageKeys)
       this.#scope.register(modifiers, key, () => true);
     app.keymap.pushScope(this.#scope);
     this.register(() => app.keymap.popScope(this.#scope));
-    // Obsidian's `watchResize` stops after ten changes; a list filtered by
-    // typing goes past that.
     const { inset, beside } = this.#options;
     const resize = observeResize(
       anchor,
@@ -178,7 +100,6 @@ class PinnedHoverPopover extends HoverPopover {
       () => this.position(),
     );
     if (beside) {
-      // The anchor moves with the list it scrolls in.
       this.registerDomEvent(this.hoverEl.doc, "scroll", () => this.position(), {
         capture: true,
       });
@@ -195,9 +116,6 @@ class PinnedHoverPopover extends HoverPopover {
         const held = this.hoverEl.contains(this.hoverEl.doc.activeElement);
         this.hide();
         if (!held) return;
-        // The press's mousedown moves focus after this handler: to the place
-        // pressed, or to nothing where that place takes no focus. Focus left
-        // with nothing goes back to the anchor once the press is through.
         const { doc, win } = this.hoverEl;
         win.setTimeout(() => {
           const active = doc.activeElement;
@@ -227,10 +145,6 @@ class PinnedHoverPopover extends HoverPopover {
     style.left = `${rect.right - gap - this.hoverEl.offsetWidth}px`;
   }
 
-  /**
-   * Outside `box` on its roomier side within the bounds, level with the
-   * anchor and within the box's height; held inside the bounds.
-   */
   #placeBeside(box: HTMLElement): void {
     const rect = box.getBoundingClientRect();
     const row = this.#options.anchor.getBoundingClientRect();
@@ -240,7 +154,6 @@ class PinnedHoverPopover extends HoverPopover {
     };
     const gap = gapOf(box);
     const { style } = this.hoverEl;
-    // The surface reads it to scroll inside that height.
     style.setProperty("--zt-pinned-max-height", `${rect.height}px`);
     const width = this.hoverEl.offsetWidth;
     const height = Math.min(this.hoverEl.offsetHeight, rect.height);
@@ -262,14 +175,12 @@ class PinnedHoverPopover extends HoverPopover {
   }
 }
 
-/** Obsidian's `--size-4-2`, the gap a popover keeps to the box it stands in or beside. */
 function gapOf(box: HTMLElement): number {
   return Number.parseFloat(
     box.win.getComputedStyle(box).getPropertyValue("--size-4-2"),
   );
 }
 
-/** One open or closed popover in the tree of popovers inside one another. */
 class PopoverNode {
   readonly children = new Set<PopoverNode>();
   live: PinnedHoverPopover | null = null;
@@ -306,7 +217,6 @@ export function PinnedPopover({
   const [parent] = useState<HoverParent>(() => ({ hoverPopover: null }));
   const [body] = useState(() => {
     const box = document.createElement("div");
-    // Inset in a box, the popover takes the box's height: the surface fills it.
     box.className = inset
       ? `${PINNED_POPOVER_BODY} zt:h-full`
       : PINNED_POPOVER_BODY;
@@ -321,9 +231,6 @@ export function PinnedPopover({
   const escape = useRef(onEscape);
   escape.current = onEscape;
 
-  // A layout effect, so its cleanup is in place before the page paints: a
-  // popover shown as it mounts (a field's details) and unmounted in the same
-  // frame, before passive effects run, still hides with its tree.
   useLayoutEffect(() => {
     enclosing?.children.add(node);
     return () => {

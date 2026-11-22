@@ -1,8 +1,3 @@
-// Executable specification for the ZotLit Filter Expression language.
-//
-// The raw `parser` is the seam for accepted syntax, node structure, delimiter
-// layout, and source ranges. `parseExpression()` is the seam for the consumer
-// result contract: a tree plus the first Syntax Fault.
 import type { SyntaxNode, Tree } from "@lezer/common";
 import { describe, expect, it } from "vitest";
 
@@ -10,25 +5,21 @@ import { parseExpression, parser } from "./index.ts";
 
 const ERROR = "⚠";
 
-/** The first node under `program`. */
 function expressionNode(input: string): SyntaxNode {
   const node = parser.parse(input).topNode.firstChild;
   if (!node) throw new Error(`no expression node in ${JSON.stringify(input)}`);
   return node;
 }
 
-/** Name of the parsed expression node. */
 function topName(input: string): string {
   return expressionNode(input).name;
 }
 
-/** Source range of the parsed expression node, in UTF-16 offsets. */
 function topRange(input: string): { from: number; to: number } {
   const { from, to } = expressionNode(input);
   return { from, to };
 }
 
-/** Symbolic operator and delimiter tokens, which `shape()` leaves out. */
 const PUNCTUATION = new Set([
   "||",
   "&&",
@@ -46,11 +37,6 @@ const PUNCTUATION = new Set([
   ".",
 ]);
 
-/**
- * Nested structure of the parsed expression, written as `Name(child, child)`.
- * Symbolic operator and delimiter tokens are left out so that grouping stays
- * readable; the named `Equality` and `Relation` operator tokens stay in.
- */
 function shape(input: string): string {
   return render(expressionNode(input));
 }
@@ -60,7 +46,6 @@ function render(node: SyntaxNode): string {
   return parts.length > 0 ? `${node.name}(${parts.join(", ")})` : node.name;
 }
 
-/** Direct child names of the parsed expression node, delimiters included. */
 function layout(input: string): string[] {
   return childNodes(expressionNode(input)).map((node) => node.name);
 }
@@ -77,7 +62,6 @@ function isStructural(node: SyntaxNode): boolean {
   return !PUNCTUATION.has(node.name);
 }
 
-/** Every node name in a tree, in document order. */
 function nodeNames(tree: Tree): string[] {
   const names: string[] = [];
   tree.iterate({
@@ -88,7 +72,6 @@ function nodeNames(tree: Tree): string[] {
   return names;
 }
 
-/** First syntax-error range, or `null` for a clean parse. */
 function errorOf(input: string) {
   return parseExpression(input).error;
 }
@@ -249,7 +232,6 @@ describe("strings", () => {
   });
 
   it("leaves escape meaning to the consumer", () => {
-    // The grammar spans backslash plus one code point; it does not decode.
     expect(errorOf('"\\u00e9"')).toBeNull();
     expect(shape('"\\u00e9"')).toBe("String(Escape)");
     expect(expressionNode('"\\u00e9"').firstChild).toMatchObject({
@@ -259,7 +241,6 @@ describe("strings", () => {
   });
 
   it("spans a whole astral code point in an escape", () => {
-    // Two UTF-16 units for the emoji, one for the backslash.
     expect(errorOf('"\\😀"')).toBeNull();
     expect(expressionNode('"\\😀"').firstChild).toMatchObject({
       from: 1,
@@ -420,7 +401,6 @@ describe("calls", () => {
     { input: "[1]()", callee: "Array" },
     { input: "null()", callee: "NullLiteral" },
   ])("accepts $callee as a callee in $input", ({ input, callee }) => {
-    // The grammar allows any expression callee; meaning is a consumer concern.
     expect(topName(input)).toBe("Call");
     expect(expressionNode(input).firstChild?.name).toBe(callee);
     expect(errorOf(input)).toBeNull();
@@ -494,7 +474,6 @@ describe("object and array access", () => {
   });
 
   it("requires an index between the brackets", () => {
-    // Empty brackets are a valid array literal, but never a valid access.
     expect(errorOf("a[]")).toMatchObject({ from: 2, to: 3 });
   });
 });
@@ -708,7 +687,6 @@ describe("source ranges", () => {
   });
 
   it("counts an astral code point as two UTF-16 units", () => {
-    // "😀" occupies offsets 5..9 because the emoji is a surrogate pair.
     expect(errorOf('a == "😀"')).toBeNull();
     const equality = expressionNode('a == "😀"');
     expect({ from: equality.from, to: equality.to }).toEqual({
@@ -728,7 +706,6 @@ describe("source ranges", () => {
 });
 
 describe("highlighting vocabulary", () => {
-  // Every name an editor can select on. Changing this list changes a public contract.
   const VOCABULARY = [
     ERROR,
     "program",
@@ -770,7 +747,6 @@ describe("highlighting vocabulary", () => {
   ];
 
   it("exposes exactly the named nodes and tokens above", () => {
-    // Declaration order is a generator detail; the set of selectable names is not.
     const exposed = parser.nodeSet.types
       .map((type) => type.name)
       .filter((name) => name.length > 0);
@@ -827,7 +803,6 @@ describe("parseExpression", () => {
   });
 
   it("reports empty input as an error at the grammar boundary", () => {
-    // Blank-input meaning is a consumer policy, not a grammar rule.
     expect(parseExpression("").error).toMatchObject({ from: 0, to: 0 });
   });
 
@@ -883,16 +858,12 @@ describe("parseExpression", () => {
   });
 
   it("still returns a recovery tree for malformed input", () => {
-    // Availability only: an editor gets a walkable tree with content in it. The
-    // recovery shape stays an implementation detail and is left unasserted.
     const { tree, error } = parseExpression("title.contains(");
     expect(error).not.toBeNull();
     expect(nodeNames(tree).length).toBeGreaterThan(1);
   });
 });
 
-// The span an editor underlines: a fault at the end of the text names no
-// character, so it takes what was left open or the token before it.
 it.each([
   { input: "a AND b", underlined: "AND" },
   { input: "title == )", underlined: ")" },
@@ -914,7 +885,6 @@ it.each(["", " "])(
   },
 );
 
-// Fault seams: token extent, live expectations, EOF acceptance, recovered openers.
 it("reports the whole unexpected word and the grammar's continuations", () => {
   const { span: _, ...facts } = parseExpression("a AND b").error!;
   expect(facts).toEqual({
@@ -1102,7 +1072,6 @@ const INDEX = [
   "||",
 ];
 
-// Each rejected language vector also specifies its full Syntax Fault contract.
 it.each(
   (
     [

@@ -1,21 +1,13 @@
-// Live Items for Indexed Keys: the read `ItemsByIndexedKeys`, `WorkLabels`, and Item Index hydration share.
 import { getItemsByKey, resolveIndexedKeyLibrary } from "@zotlit/db";
 import type { GroupIDMemo, Item, ZoteroDatabase } from "@zotlit/db";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
-/**
- * Live items for Indexed Keys, keyed by Indexed Key in request order. Each
- * Library the keys span resolves once and reads its items through
- * `getItemsByKey`: one cached keyed read per Library.
- */
 export function itemsByIndexedKeys(
   client: ZoteroDatabase,
   indexedKeys: readonly string[],
 ): Map<string, Item> {
   const libraryByGroupID = new Map<number | null, number | null>();
-  // The group of each resolved Library, so hydration skips the group read.
   const groupIDMemo: GroupIDMemo = new Map();
-  // Each requested spelling (`g7` or `g007`) with the Library and item key it resolves to.
   const requested: { indexedKey: string; libraryID: number; key: string }[] =
     [];
   const keysByLibrary = new Map<number, string[]>();

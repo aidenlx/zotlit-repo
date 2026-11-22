@@ -18,16 +18,11 @@ import type {
   RenderRequest,
 } from "./engine.ts";
 
-/**
- * The binary the plugin pins, read straight out of `pandoc-wasm`. The package
- * resolves through its `node` condition, so its entry sits beside `pandoc.wasm`.
- */
 const WASM_PATH = join(
   dirname(createRequire(import.meta.url).resolve("pandoc-wasm")),
   "pandoc.wasm",
 );
 
-/** Instantiating the Haskell runtime dominates every timing here. */
 const TIMEOUT = 60_000;
 
 const ZETA: CslItemData = {
@@ -45,10 +40,8 @@ const ADAMS: CslItemData = {
   issued: { "date-parts": [[2018]] },
 };
 
-/** The id shape `itemToCsl` builds for a personal-library item. */
 const ZOTERO_URI_ID = "http://zotero.org/users/12345/items/ZETA1234";
 
-/** A numbered style, so a rendered entry is unmistakably this style's work. */
 const NUMERIC_STYLE = `<?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0">
   <info>
@@ -66,11 +59,6 @@ const NUMERIC_STYLE = `<?xml version="1.0" encoding="utf-8"?>
   </bibliography>
 </style>`;
 
-/**
- * Stand-in for the sandbox variant of `zotlit-cite.lua`: reads the pre-written
- * resolve map and turns every mapped link into a citation. Pandoc percent-encodes
- * wikilink targets, so the linkpath is decoded before the lookup.
- */
 const RESOLVE_FILTER = `
 local citations = nil
 
@@ -92,11 +80,6 @@ function Link(link)
 end
 `;
 
-/**
- * A style that lays an entry out as several blocks: `display="block"` and
- * `display="indent"` are what put a `csl-block` and a `csl-indent` span around
- * a part of an entry, which the renderer lays out as it sees fit.
- */
 const BLOCK_STYLE = `<?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0">
   <info>
@@ -113,10 +96,6 @@ const BLOCK_STYLE = `<?xml version="1.0" encoding="utf-8"?>
   </bibliography>
 </style>`;
 
-/**
- * A note-class style, whose citations citeproc renders as footnotes — the case
- * no inline surface can show, and the reason the typed AST carries `Note`.
- */
 const NOTE_STYLE = `<?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="note" version="1.0">
   <info>
@@ -138,10 +117,6 @@ const NOTE_STYLE = `<?xml version="1.0" encoding="utf-8"?>
   </bibliography>
 </style>`;
 
-/**
- * A position-dependent in-text style: a work cited again reads as the
- * subsequent form, so two occurrences of one source render differently.
- */
 const POSITION_STYLE = `<?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0">
   <info>
@@ -166,10 +141,6 @@ const POSITION_STYLE = `<?xml version="1.0" encoding="utf-8"?>
   </bibliography>
 </style>`;
 
-/**
- * Renders one localized term and nothing else, so a rendered entry says which
- * Citation Locale citeproc formatted it in.
- */
 const LOCALE_STYLE = `<?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0">
   <info>
@@ -188,7 +159,6 @@ async function openEngine(): Promise<CitationEngine> {
   return createCitationEngine(new Blob([await readFile(WASM_PATH)]));
 }
 
-/** What an inline flow reads as, which is the text a surface would show. */
 function plainText(inlines: Inlines): string {
   return inlines
     .map((inline) => {
@@ -226,7 +196,6 @@ function plainText(inlines: Inlines): string {
     .join("");
 }
 
-/** What a citation renders inside the `Cite` wrapper citeproc leaves around it. */
 function citeInlines(content: Inlines): Inlines {
   const cite = content.find((inline) => inline.t === "Cite");
   return cite?.t === "Cite" ? cite.c[1] : [];
@@ -240,7 +209,6 @@ describe("createCitationEngine", { timeout: TIMEOUT }, () => {
     return () => engine[Symbol.asyncDispose]();
   });
 
-  /** The two conversions one exported document takes, as the export makes them. */
   async function renderDocument({
     markdown,
     luaFilters,
@@ -255,7 +223,6 @@ describe("createCitationEngine", { timeout: TIMEOUT }, () => {
     return await engine.renderPrepared({ ...render, document });
   }
 
-  /** The cited document as standalone HTML, formatted in {@link LOCALE_STYLE}. */
   async function citedHtml({
     markdown = DOCUMENT,
     locale,
@@ -328,7 +295,6 @@ describe("createCitationEngine", { timeout: TIMEOUT }, () => {
   it("keeps the markup a style formats an entry's text with", async () => {
     const [first] = await engine.renderBibliography({ items: [ZETA] });
 
-    // The embedded style italicizes a book title.
     expect(
       first?.content.flatMap((inline) =>
         inline.t === "Emph" ? [plainText(inline.c)] : [],
@@ -436,7 +402,6 @@ describe("createCitationEngine", { timeout: TIMEOUT }, () => {
     expect(plainText(plain?.content ?? [])).toBe(
       "Ann Zeta, A study of nothing.",
     );
-    // The author stays in the running text, with the note beside it.
     expect(
       citeInlines(authorInText?.content ?? []).map((inline) => inline.t),
     ).toEqual(["Str", "Space", "Str", "Note"]);
@@ -464,8 +429,6 @@ describe("createCitationEngine", { timeout: TIMEOUT }, () => {
         '---\nnocite: "[@uncited2019]"\n---\n\nCited [@zeta2020] and [@adams2018].\n',
     });
 
-    // A `nocite` key is a citation of the document, so it reaches the
-    // bibliography; it takes no number the prose should have.
     expect(document.citedIds).toEqual(["zeta2020", "adams2018", "uncited2019"]);
   });
 
@@ -485,7 +448,6 @@ describe("createCitationEngine", { timeout: TIMEOUT }, () => {
 
     const renamed = document.withCitedIds(new Map([["zeta2020", ZETA.id]]));
     expect(renamed.citedIds).toEqual([ZETA.id, "adams2018"]);
-    // The prepared document is a value: renaming leaves it as it was read.
     expect(document.citedIds).toEqual(["zeta2020", "adams2018"]);
   });
 
@@ -498,7 +460,6 @@ describe("createCitationEngine", { timeout: TIMEOUT }, () => {
       files: { "resolve-map.json": RESOLVE_MAP },
     });
 
-    // docx is a zip container; its local file header starts every archive.
     expect(docx.slice(0, 4)).toEqual(new Uint8Array([0x50, 0x4b, 0x03, 0x04]));
   });
 
@@ -520,8 +481,6 @@ describe("createCitationEngine", { timeout: TIMEOUT }, () => {
   it("converts a document in the Citation Locale a request names", async () => {
     const html = await citedHtml({ locale: "de-DE" });
 
-    // The locale reaches citation processing, and the converted document
-    // acquires no language of its own from it.
     expect(html).toContain("Herausgeber");
     expect(/<html[^>]*lang=/.test(html)).toBe(false);
   });
@@ -601,7 +560,6 @@ describe("createCitationEngine", { timeout: TIMEOUT }, () => {
       items: [ZETA],
       supersedes: "sidebar",
     });
-    // The conversion runs synchronously, so a macrotask yield lands after it.
     await yieldToMain();
     const newest = engine.renderBibliography({
       items: [ADAMS],

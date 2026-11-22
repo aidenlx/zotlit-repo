@@ -12,8 +12,6 @@ import type { ReactNode, RefObject } from "react";
 import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
-// The Fields Panel, the chosen Item's fields in the host's non-modal Fields
-// popover, or docked beside the editor while the reader has it pinned.
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { useUniqueId } from "@zotlit/ui";
 import { composing } from "@zotlit/ui";
@@ -28,34 +26,19 @@ const fieldsPanelPanel = cn(
   "zt:data-[state=popover]:w-80 zt:data-[state=popover]:max-w-full zt:data-[state=popover]:rounded-(--radius-m) zt:data-[state=popover]:border zt:data-[state=popover]:border-border zt:data-[state=popover]:bg-(--background-secondary) zt:data-[state=popover]:shadow-(--shadow-l) zt:data-[state=popover]:[--zt-pane-ground:var(--background-secondary)]",
   "zt:data-[state=popover]:transition-[translate,opacity] zt:data-[state=popover]:duration-150 zt:data-[state=popover]:ease-out zt:motion-reduce:transition-none zt:data-[state=popover]:starting:translate-x-2 zt:data-[state=popover]:starting:opacity-0",
 );
-// Pinned, the pin wears Obsidian's active icon (`theme.css`); with no
-// room to dock, it steps back and keeps its focus and its tooltip.
 const fieldsPanelPin = iconButton({
   className:
     "zt:shrink-0 zt:aria-disabled:cursor-not-allowed zt:aria-disabled:opacity-50",
 });
 
-/** What the Fields Panel holds, and what names it. */
 interface FieldsPanelContent {
-  /** The panel's title, which also names it to a screen reader. */
   readonly label: string;
-  /** The fields: the host's field tree and its search. */
   readonly content: ReactNode;
-  /**
-   * The host's own pane actions, such as a More options menu, drawn in the
-   * header before the pin; a host without any leaves it out.
-   */
   readonly actions?: ReactNode;
 }
 
-/** The id of the docked Fields Panel, beside the Fields popover's `popoverId`. */
 export const fieldsDockId = (popoverId: string) => `${popoverId}-docked`;
 
-/**
- * The Fields action's ARIA state: a disclosure of the Fields popover
- * `popoverId` names, or of the docked panel, which it controls while either
- * stands.
- */
 export function fieldsActionAttributes(
   placement: FieldsPlacement,
   popoverId: string,
@@ -76,33 +59,18 @@ export function fieldsActionAttributes(
   };
 }
 
-/**
- * What the field rows share with the Fields Panel they stand in: the step
- * Escape takes inside the panel before the Fields popover closes, which
- * answers `true` when it took the key.
- */
 export interface FieldsPanelRows {
   readonly escape: RefObject<() => boolean>;
-  /** The panel, which a field's details popover stands beside. */
   readonly panel: RefObject<HTMLElement | null>;
-  /**
-   * The place in the panel's header for the rows' own actions, such as
-   * collapsing every section, once the header is drawn.
-   */
   readonly actions: HTMLElement | null;
 }
 
 const FieldsPanelRowsContext = createContext<FieldsPanelRows | null>(null);
 
-/**
- * The Fields Panel the field rows stand in, or `null` outside one, as in the
- * standalone Template Data Explorer, whose rows keep no details.
- */
 export function useFieldsPanelRows(): FieldsPanelRows | null {
   return useContext(FieldsPanelRowsContext);
 }
 
-/** The Fields Panel in the host's Fields popover. */
 export function FieldsPopoverPanel(props: FieldsPanelContent) {
   const model = useWorkbenchModel();
   const host = useWorkbenchHost();
@@ -130,11 +98,6 @@ export function FieldsPopoverPanel(props: FieldsPanelContent) {
   );
 }
 
-/**
- * The Fields Panel docked beside the editor, whose title `titleId` names its
- * region. It takes focus in its search as it draws only after the reader
- * pinned or showed it.
- */
 export function DockedFieldsPanel(
   props: FieldsPanelContent & { readonly titleId: string },
 ) {
@@ -142,11 +105,6 @@ export function DockedFieldsPanel(
   return <FieldsPanelBody {...props} placement="docked" escape={escape} />;
 }
 
-/**
- * The panel's header and fields. The popover mounts it as it opens, and it
- * moves focus into its search field as it mounts; the docked panel does so
- * only where the reader asked for it.
- */
 function FieldsPanelBody({
   label,
   content,
@@ -181,17 +139,12 @@ function FieldsPanelBody({
       if (!registry.get(model.fieldsFocus)) return;
       registry.set(model.fieldsFocus, false);
     }
-    // A panel with no search yet, as before an item is chosen, takes focus
-    // on its pin, so the focus the popover held does not fall to the page.
     (
       panel.current?.querySelector<HTMLElement>("[data-part=body] input") ??
       panel.current?.querySelector<HTMLElement>("[data-part=pin]")
     )?.focus({ preventScroll: true });
   }, [placement, registry, model]);
   return (
-    // Escape closes a field's details, then clears the search, before the
-    // host closes the panel. A host that takes the key first asks the same
-    // step through `onEscape`, and a key it took arrives here handled.
     <div
       ref={panel}
       data-part="panel"
@@ -199,7 +152,6 @@ function FieldsPanelBody({
       className={fieldsPanelPanel}
       onKeyDown={(event) => {
         if (event.key !== "Escape" || event.defaultPrevented) return;
-        // Escape that drops an input method's candidate is the method's.
         if (composing(event)) return;
         if (!escape.current()) return;
         event.preventDefault();
@@ -217,8 +169,6 @@ function FieldsPanelBody({
         >
           <Icon name="braces" />
         </span>
-        {/* A title, not a heading: the popover takes its name from it, and
-            a host's heading style would outweigh the theme's part. */}
         <span
           id={titleId}
           data-part="title"
@@ -228,8 +178,6 @@ function FieldsPanelBody({
         </span>
         <span ref={setActions} data-part="actions" className="zt:contents" />
         {hostActions}
-        {/* Disabled by aria-disabled, so the pin keeps its focus and its
-            tooltip says why it does not work. */}
         <button
           type="button"
           aria-disabled={canPin ? undefined : true}

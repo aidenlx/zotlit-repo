@@ -1,14 +1,11 @@
-// Runtime provenance for direct Citation Item reads in Liquid Citation text.
 import { evalQuotedToken, toValueSync, TypeGuards, Value } from "liquidjs";
 import type { Context, Liquid, Template } from "liquidjs";
 
 import { PandocCitationError } from "./pandoc-citation.ts";
 import { TexCitationError } from "./tex-citation.ts";
 
-/** The citation source filters that read `zt.citations` as their whole input. */
 const CITATION_SOURCE_FILTERS: readonly string[] = ["pandoc_cite", "tex_cite"];
 
-/** A citation source module rejected the Citation Item array it was handed. */
 type CitationSourceError = PandocCitationError | TexCitationError;
 
 function isCitationSourceError(error: unknown): error is CitationSourceError {
@@ -17,7 +14,6 @@ function isCitationSourceError(error: unknown): error is CitationSourceError {
   );
 }
 
-/** The formatter rejected a direct Citation Item read from the template's entry root. */
 export class CitationInputError extends Error {
   constructor(cause: CitationSourceError) {
     super(cause.message, { cause });
@@ -25,11 +21,6 @@ export class CitationInputError extends Error {
   }
 }
 
-/**
- * Track the entry root separately from later Liquid assignments. Only the
- * executed first filter on a direct `zt.citations` read can name that root as
- * its input; literals, other reads, and preceding filters carry no such proof.
- */
 export function withCitationInputProvenance(
   templates: Template[],
   liquid: Liquid,

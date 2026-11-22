@@ -18,3 +18,5 @@ A create through the Zotero Local API is a multi-object `POST` whose response ca
 - The repository keeps the write token and the request start instant for every create until the outcome is known.
 - An Uncertain Create lives in memory only, as a badged card in the Annotation View under its Attachment; it is dropped on plugin reload, on a switch to the Zotero DB source, and on a Zotero Server ID change. After a reload the re-read shows the Annotation if it landed, so only the retry offer is lost.
 - Any `412` is classified by body: a Server ID mismatch is a changed server, `Write token already used` confirms a landed create, and everything else is a Write Conflict.
+
+Create sends its own fresh write token. The repository accepts a token provider so a test can control the value. [Repository model](../../../../packages/annotations/src/obsidian/annotation-repository/core/model.ts)

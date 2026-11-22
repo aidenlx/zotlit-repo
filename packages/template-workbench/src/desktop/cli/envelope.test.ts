@@ -20,7 +20,6 @@ describe("DIAGNOSTIC_HINTS", () => {
   );
 });
 
-// Golden Diagnostic Reports, rendered from fixed fault values with no engine.
 describe("Diagnostic Report", () => {
   const noCompileErrors = new Map();
 

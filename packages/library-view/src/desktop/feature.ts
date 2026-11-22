@@ -1,7 +1,3 @@
-// The Library View on the desktop: the Obsidian feature
-// (`#obsidian/feature.ts`) with the Library View and the Welcome View, the
-// Release check, the quick switcher, the settings' resources strip, and the
-// ports of the Obsidian kit and the notes they fill.
 import { Effect, Layer } from "effect";
 
 import { TargetOpener } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
@@ -43,7 +39,6 @@ import { layerRelease, Release } from "#obsidian/release/service.ts";
 
 export const libraryView = extendFeature(obsidianLibraryView, {
   services: [
-    // Views, the popovers and commands open the Library View on an Item.
     serviceGroup(
       "ShowInLibrary",
       { provides: [ShowInLibrary] },
@@ -56,8 +51,6 @@ export const libraryView = extendFeature(obsidianLibraryView, {
         Effect.map(PluginHost, (host) =>
           layerRelease({
             version: host.manifest.version,
-            // A first install or an update opens the Library View, in place of
-            // the empty tab or beside the open note.
             openFirstScreen: async () => {
               await openLibraryView(host.app, { pane: "first-screen" });
             },
@@ -65,8 +58,6 @@ export const libraryView = extendFeature(obsidianLibraryView, {
         ),
       ),
     ),
-    // The template conversion prompts on the Welcome View, once the plugin
-    // has started and the view is registered.
     serviceGroup(
       "TemplateMigrationPrompt",
       { provides: [TemplateMigrationPrompt] },
@@ -86,9 +77,6 @@ export const libraryView = extendFeature(obsidianLibraryView, {
   ],
   settingTab: {
     entries: {
-      // Migration reminder (while pending) and the resources strip, one
-      // headerless group — see resourcesGroup for why the reminder is
-      // included structurally rather than via `visible`.
       resources: (ctx) => [resourcesGroup(ctx)],
     },
   },

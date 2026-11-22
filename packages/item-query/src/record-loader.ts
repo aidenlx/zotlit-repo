@@ -1,4 +1,3 @@
-// Record Loader: one load plan and one bounded traversal for every Query Dataset.
 import { Effect } from "effect";
 
 import type {
@@ -16,9 +15,7 @@ import type { ItemQueryPlan, TargetLibrary } from "./request.ts";
 
 export type Read<A> = Effect.Effect<A, ItemQueryReaderError, ItemQueryDatabase>;
 
-/** A pass gives records in chunk order and owns no records between chunks. */
 export interface Loader<Row extends ScanRow, Value> {
-  /** A pass that hydrates uses the hydrate chunk bound instead of the scan page bound. */
   readonly hydrates: boolean;
   readonly load: (
     chunk: readonly Row[],
@@ -43,10 +40,6 @@ export type LoadRequest<Needs> = Pick<ItemQueryPlan, "dataset" | "query"> & {
     readonly customField: string | null;
   }[];
   readonly sorts: readonly { readonly needs: Needs }[];
-  /**
-   * Every Formula the request reads, each planned once. The needs of a
-   * Formula include the needs of the Formulas it reads.
-   */
   readonly formulas?: readonly {
     readonly name: string;
     readonly text: string;
@@ -55,7 +48,6 @@ export type LoadRequest<Needs> = Pick<ItemQueryPlan, "dataset" | "query"> & {
       readonly customFields: FilterPlan["customFields"];
     };
   }[];
-  /** The values of each Query Row: the projection pass loads its Formulas. */
   readonly columns?: readonly (
     | { readonly kind: "path" }
     | {
@@ -73,7 +65,6 @@ export interface LoadContext {
   readonly libraries: readonly TargetLibrary[];
 }
 
-/** Own fields, Parent Records, and Relation Lists are facts of a Query Dataset. */
 export interface LoadingDescriptor<
   Needs,
   Row extends ScanRow,
@@ -114,7 +105,6 @@ interface RecordRelation<Needs, Row extends ScanRow, Value> {
   ) => Read<RelationLoader<Row, Value> | null>;
 }
 
-/** Flatten filter, sort, Query Group, and projection needs once at the root. */
 export const openRecordLoader = Effect.fnUntraced(function* <
   Needs,
   Row extends ScanRow,
@@ -209,7 +199,6 @@ const openPass = Effect.fnUntraced(function* <
   };
 });
 
-/** A Parent Record is deduplicated by source ID within the current chunk. */
 export function parentRecord<
   Needs,
   Row extends ScanRow,
@@ -228,7 +217,6 @@ export function parentRecord<
     Value
   >;
   readonly row: (row: Row) => ParentRow;
-  /** Identity fields need the Parent Record even when its fields need no hydration. */
   readonly required?: boolean;
 }): RecordRelation<Needs, Row, Value> {
   return {
@@ -272,7 +260,6 @@ export function parentRecord<
   };
 }
 
-/** Relation Lists reuse their raw rows and loaded records within a root chunk. */
 export function relationList<
   Needs,
   Row extends ScanRow,

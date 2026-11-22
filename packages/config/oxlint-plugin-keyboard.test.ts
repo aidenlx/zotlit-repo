@@ -18,16 +18,13 @@ const layerCheck = [{ messageId: "layerCheck" }];
 
 tester.run("no-layer-check", noLayerCheck, {
   valid: [
-    // The target's own control, not another layer.
     '<div onKeyDown={(e) => { if (e.target.closest("input, textarea, [contenteditable], .cm-editor")) return; }} />',
     '<div onKeyDown={(e) => { if (e.target.closest(\'[role="listbox"], [role="combobox"]\')) return; }} />',
     "<div onKeyDown={(e) => { if (inTextEntry(e.target)) return; }} />",
-    // Outside a key handler.
     'const parent = dom.closest("[popover]") ?? dom.ownerDocument.body;',
     '<div onClick={(e) => e.target.closest(".menu")} />',
     'el.addEventListener("focusout", (e) => e.relatedTarget?.closest(".modal-container"));',
     "this.register(() => el.querySelector('.menu')?.remove());",
-    // A selector the rule cannot read.
     "<div onKeyDown={(e) => e.target.closest(selectorFor(e))} />",
   ],
   invalid: [

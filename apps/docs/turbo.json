@@ -8,21 +8,13 @@
         "generate:messages",
         "generate:query-functions"
       ],
-      // The agent-skill archives are read from the repo-root `skills/` tree at
-      // build time (src/lib/agent-skills.ts), so those files are build inputs.
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/skills/**",
         "$TURBO_ROOT$/project.inlang/settings.json",
         "$TURBO_ROOT$/messages/**"
       ],
-      // `wrangler deploy` finds the built Worker through .wrangler/deploy, so a
-      // cache hit must restore that pointer along with dist.
       "outputs": ["dist/**", ".tanstack/**", ".wrangler/deploy/**"],
-      // The Cloudflare Web Analytics token is read at build time, so builds
-      // with different values are distinct; `CLOUDFLARE_ENV` likewise
-      // separates beta and production outputs, and `VITE_MEDIA_ORIGIN` a
-      // build that plays its videos from the media store.
       "env": [
         "VITE_CF_BEACON_TOKEN",
         "VITE_MEDIA_ORIGIN",
@@ -41,7 +33,6 @@
       "outputs": ["src/paraglide/**"],
       "outputLogs": "errors-only"
     },
-    // generate-query-functions.ts imports the Query Schema file.
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
@@ -57,8 +48,6 @@
       "inputs": ["wrangler.jsonc", "worker-configuration.d.ts"],
       "outputLogs": "errors-only"
     },
-    // Regenerated on every build, so a registry entry without a description
-    // fails the docs build.
     "generate:query-functions": {
       "dependsOn": ["transit", "@zotlit/item-query#generate:schema"],
       "inputs": [
@@ -70,7 +59,6 @@
       "outputs": ["content/docs/reference/functions-and-methods.mdx"],
       "outputLogs": "errors-only"
     },
-    // Reads the Template Contract IR that @zotlit/db generates.
     "generate:template-data": {
       "dependsOn": ["transit", "@zotlit/db#generate:contract"],
       "inputs": ["$TURBO_DEFAULT$", "!content/**"],

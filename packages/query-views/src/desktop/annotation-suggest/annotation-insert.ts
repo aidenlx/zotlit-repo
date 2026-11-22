@@ -1,4 +1,3 @@
-// The editor captures the suggestion destination before entering the shared Effect flow.
 import type { App, MarkdownFileInfo } from "obsidian";
 
 import { captureInsertion } from "@zotlit/annotations/obsidian/annot-view/async-insert.ts";
@@ -15,18 +14,10 @@ import type { AnnotationHit } from "./annotation-search.ts";
 export interface AnnotationInsertDeps {
   app: App;
   workspace: Pick<App["workspace"], "on" | "offref">;
-  /** Forks each insert on the plugin's lifetime: unload interrupts it. */
   runner: InsertRunner<never>;
   notify: (message: string | DocumentFragment) => void;
 }
 
-/**
- * Starts the insert of `hit` into the editor of `info` and shows its outcome.
- * Cancelling the destination or unloading the plugin interrupts the insert,
- * which shows nothing.
- *
- * @returns the insert in flight, or `undefined` where `info` holds no note.
- */
 export function insertAnnotation(
   deps: AnnotationInsertDeps,
   {

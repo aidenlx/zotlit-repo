@@ -1,5 +1,3 @@
-// The main page's Citation and references style row: the default Profile's
-// style, picked from the CSL styles installed in the Zotero data directory.
 import { Effect, Queue, Stream } from "effect";
 import type {
   DropdownComponent,
@@ -33,7 +31,6 @@ import { updateDefaultLiteratureNoteProfileBindings } from "#obsidian/profile/se
 
 const currentSettings = PluginSettings.use((settings) => settings.current);
 
-/** The default Profile's Citation and References Style control. */
 export function referencesStyleDefinition(
   ctx: SettingTabContext,
 ): SettingDefinitionItem<SettingsKey> {
@@ -45,12 +42,6 @@ export function referencesStyleDefinition(
   };
 }
 
-/**
- * Citation and References Style picker, listing the styles installed in the Zotero data
- * directory. Zotero owns style installation, so the list is read-only, and the
- * row follows both the Zotero data directory and the stored setting, which
- * vault sync can rewrite while the tab is open.
- */
 function renderReferencesStyleRow(
   setting: Setting,
   ctx: SettingTabContext,
@@ -80,8 +71,6 @@ function renderReferencesStyleRow(
     dropdown.setValue(current);
   };
 
-  // Zotero installs styles while this tab stays open, so the list re-reads the
-  // data directory on demand instead of only on mount.
   let refresh: ExtraButtonComponent | undefined;
   setting.addExtraButton((button) => {
     refresh = button
@@ -117,13 +106,10 @@ function renderReferencesStyleRow(
             repopulate(current);
         }),
       );
-      // The list reads the data directory on mount, on Refresh, and when the
-      // directory moves; a newer read drops the one still in flight.
       yield* Stream.merge(
         Stream.make(undefined),
         Stream.merge(resolvedChanged(pref), Stream.fromQueue(reloads)),
       ).pipe(
-        // A failed read keeps the last list, so the row stays live.
         Stream.switchMap(() =>
           Stream.fromEffect(
             installedStyles.pipe(
@@ -150,7 +136,6 @@ function renderReferencesStyleRow(
   );
 }
 
-/** The CSL styles installed in the current Zotero data directory. */
 const installedStyles = Effect.flatMap(zoteroDataDir, (dataDir) =>
   listInstalledStyles(dataDir),
 );

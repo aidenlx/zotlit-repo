@@ -13,10 +13,6 @@ import { layerTemplate, Template } from "#obsidian/template/service.ts";
 import { profileRevision } from "@zotlit/obsidian-desktop/profile-revision.ts";
 import { layerProfile, Profile } from "#obsidian/profile/service.ts";
 
-/**
- * The real Profile dependency graph over the fake Obsidian host, with the
- * capability tags it reads.
- */
 export function profileOver(host: ReturnType<typeof createTemplateHost>) {
   return layerProfile(profileRevision).pipe(
     Layer.provideMerge(Layer.mergeAll(layerTemplate, layerNoteIndex)),

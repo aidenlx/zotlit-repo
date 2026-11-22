@@ -5,8 +5,6 @@ import type { SQL } from "drizzle-orm";
 import { CHILD_ITEM_TYPES, defineQuery } from "./_shared.ts";
 import type { ParamsPlaceholder } from "./_shared.ts";
 
-// Item-id scope resolution for the batch actions: every item a run covers,
-// either across a whole library or across one collection and its descendants.
 import {
   collectionItems,
   collections,
@@ -17,24 +15,11 @@ import {
   itemTypes,
 } from "#drizzle/schema.ts";
 
-/** Placeholders every collection-scoped query in this module declares. */
 interface CollectionScope {
   libraryID: number;
   collectionKey: string;
 }
 
-/**
- * Live item ids filed anywhere under the named collection, as a scalar
- * subquery. A recursive CTE walks `parentCollectionID` down from the collection
- * the key names, skipping trashed collections at every level — Zotero hides
- * those from the collection tree, so their contents are out of scope even when
- * a live subcollection was reparented under one. Trashed items are dropped here
- * rather than at each call site, so `parentItemID` lookups against this set also
- * exclude the children of a trashed item.
- *
- * Only top-level items appear in `collectionItems`; Zotero cannot file a child
- * item in a collection.
- */
 function collectionScopeItemIDs(
   placeholder: ParamsPlaceholder<CollectionScope>,
 ): SQL {
@@ -68,10 +53,6 @@ const collectionIDByKeyQuery = defineQuery<CollectionScope>()(
     }),
 );
 
-/**
- * Resolve a collection key against one library, so a caller can tell a stale
- * link apart from an empty collection. A trashed collection reads as absent.
- */
 export function getCollectionIDByKey(
   db: ZoteroDatabase,
   scope: CollectionScope,
@@ -94,11 +75,6 @@ const indexedItemIDsByCollectionQuery = defineQuery<CollectionScope>()(
       .orderBy(desc(items.dateModified)),
 );
 
-/**
- * The collection-scoped counterpart of {@link getIndexedItemIDsByLibrary}:
- * ordered (dateModified desc) ids of the regular items filed under a collection
- * and its descendants. An unknown key yields an empty list.
- */
 export function getIndexedItemIDsByCollection(
   db: ZoteroDatabase,
   scope: CollectionScope,
@@ -118,19 +94,12 @@ const noteItemIDsByCollectionQuery = defineQuery<CollectionScope>()(
       .where(
         and(
           isNull(deletedItems.itemID),
-          // A standalone note is filed in the collection itself; a child note
-          // rides along with its parent item.
           sql`coalesce(${itemNotes.parentItemID}, ${itemNotes.itemID}) in ${collectionScopeItemIDs(placeholder)}`,
         ),
       )
       .orderBy(asc(itemNotes.itemID)),
 );
 
-/**
- * Ids of every live note under a collection and its descendants — standalone
- * notes filed there plus the child notes of the regular items filed there. An
- * unknown key yields an empty list.
- */
 export function getNoteItemIDsByCollection(
   db: ZoteroDatabase,
   scope: CollectionScope,
@@ -158,11 +127,6 @@ const noteItemIDsByLibraryQuery = defineQuery<{ libraryID: number }>()(
       .orderBy(asc(itemNotes.itemID)),
 );
 
-/**
- * Ids of every live note in a library, whether standalone or hanging off an
- * item, and whether or not it is filed in a collection. A note whose parent
- * item sits in the trash is excluded along with it.
- */
 export function getNoteItemIDsByLibrary(
   db: ZoteroDatabase,
   libraryID: number,

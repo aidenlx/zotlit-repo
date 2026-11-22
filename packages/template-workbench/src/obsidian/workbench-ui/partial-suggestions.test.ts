@@ -8,7 +8,6 @@ import { partialSuggestions } from "./partial-suggestions.ts";
 
 describe("partialSuggestions", () => {
   it("takes the vault's registered names over the draft's own scan", () => {
-    // The draft calls "cite" and nothing else; the vault holds two partials.
     const config = partialSuggestions(["cite"], {
       partials: {
         names: () => ["authors", "venue-line"],

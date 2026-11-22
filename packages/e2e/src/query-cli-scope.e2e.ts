@@ -30,8 +30,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       "data.json",
     );
 
-    // Settle any pending settings write before editing its disk file; plugin
-    // unload also flushes pending settings.
     await obRun(
       run.vaultId,
       async ({ zotlit }) => {
@@ -42,16 +40,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
     );
 
-    // Rewrite the e2e vault's own copy — the shared Fixture layout's vault
-    // copy was already copied into the e2e vault during `create`; editing
-    // that shared source afterward would have no further effect.
     const raw = await readFile(dataPath, "utf-8");
     const data = JSON.parse(raw) as Record<string, unknown>;
     data[LIBRARY_SCOPE_SETTING_KEY] = availableCase.scope;
     await writeFile(dataPath, JSON.stringify(data, null, 2));
 
-    // The plugin toggle is also the Zotero database worker's whole life:
-    // record every worker spawned and every worker ended across it.
     await obRun(
       run.vaultId,
       async ({ page: pageHelpers }) => {
@@ -117,8 +110,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       );
     });
-    // An ordinary user action (the Community Plugins toggle), not a bypass —
-    // it makes the plugin re-read data.json from disk.
     await obRunUntil(
       run.vaultId,
       async ({ app }) => {
@@ -147,9 +138,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { what: "the zotlit plugin to be loaded into the plugin registry" },
     );
 
-    // Dispatched as a registered CLI command, not `eval` — the way a real
-    // caller would invoke it. Retried a few times: a window fresh off a
-    // reload can still answer stray noise ahead of a well-formed reply.
     let scope: LibraryScopeReport | undefined;
     await waitFor(async () => {
       try {
@@ -180,7 +168,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(gotLibraryIDs).toEqual(expectedLibraryIDs(availableScope.libraries));
 
     {
-      // The load spawned one database worker, and it serves.
       expect(
         await obRun(
           run.vaultId,
@@ -225,7 +212,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           what: "the target item citation key to resolve from the citation lookup",
         },
       );
-      // Termination emits no browser error event: liveness must detect it.
       await obRun(
         run.vaultId,
         async ({ page: pageHelpers }) => {
@@ -279,7 +265,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           what: "the zoteroReads status to read ready again",
         },
       );
-      // SearchItems hydrates its hits from SQLite in the interactive worker.
       const hits = JSON.parse(
         await obRun(
           run.vaultId,
@@ -335,7 +320,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           what: "the target item citation key to resolve after the citation lookup settles",
         },
       );
-      // Hold the lookup request so unload must cancel the pending worker read.
       await obRun(
         run.vaultId,
         async ({ zotlit, page: pageHelpers }) => {
@@ -377,7 +361,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
         { what: "the held worker snapshot to be recorded in the page scratch" },
       );
-      // Unload ends the recovered worker and its pending citation read.
       await obRun(
         run.vaultId,
         async ({ app }) => {

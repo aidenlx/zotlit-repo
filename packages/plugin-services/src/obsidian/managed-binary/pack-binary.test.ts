@@ -12,7 +12,6 @@ import { packDevice, packFile } from "./test-utils.ts";
 
 const BINARY = new Uint8Array(new TextEncoder().encode("jieba wasm bytes"));
 
-/** An engine that holds the bytes it started from. */
 interface Started extends Disposable {
   readonly bytes: Uint8Array;
 }
@@ -30,16 +29,11 @@ const NO_START: PackBinary<Started> = {
   createEngine: () => Promise.reject(new Error("Not a wasm module")),
 };
 
-/** The file of a pack that holds `entries`, at the compatibility integer `compat`. */
 const pack = (
   entries: Readonly<Record<string, Uint8Array<ArrayBuffer>>>,
   compat?: number,
 ) => Effect.promise(() => packFile(entries, compat));
 
-/**
- * The status of `binary` on a device with `file` installed, and what a borrow
- * of its engine gives: the bytes it started from, or the failure's message.
- */
 const read = Effect.fnUntraced(function* (
   file: Uint8Array | null,
   binary: PackBinary<Started> = SEGMENTER,
@@ -53,7 +47,6 @@ const read = Effect.fnUntraced(function* (
   return { status, engine };
 }, Effect.scoped);
 
-/** The first status of `kind` (and `version`) that `service` states. */
 const nextStatus = (
   service: Pick<PackBinaryApi<Started>, "changes">,
   kind: PackBinaryStatus["kind"],
@@ -134,7 +127,6 @@ describe("a Managed Binary of the Resource Pack", () => {
   it.effect("reports a pack with a changed entry byte as pack-damaged", () =>
     Effect.gen(function* () {
       const file = yield* pack({ "chinese-segmenter": BINARY });
-      // The entry line is the last line of the file, before `*/`.
       const at = file.length - 8;
       file[at] = file[at] === 0x41 ? 0x42 : 0x41;
 
@@ -205,7 +197,6 @@ describe("a Managed Binary of the Resource Pack", () => {
         const failed = { kind: "failed", detail: "Not a wasm module" };
 
         yield* Effect.flip(service.getEngine);
-        // The settings row reads the status: the verified bytes still do not start.
         expect(yield* service.check).toEqual(failed);
         expect(yield* service.current).toEqual(failed);
 
@@ -231,7 +222,6 @@ describe("a Managed Binary of the Resource Pack", () => {
           open: (url) => {
             const range = device.open(url);
             return (offset, length) => {
-              // One read of an entry reads the index first.
               if (offset === 0) reads += 1;
               return range(offset, length);
             };
@@ -250,7 +240,6 @@ describe("a Managed Binary of the Resource Pack", () => {
           })),
         );
         expect(reads).toBe(1);
-        // A status read after those ended reads the pack again.
         yield* service.check;
         expect(reads).toBe(2);
       }).pipe(Effect.scoped),
@@ -270,12 +259,10 @@ describe("a Managed Binary of the Resource Pack", () => {
           },
         });
 
-        // No pack: the installed plugins say so, and each watcher hears it.
         expect(yield* service.current).toEqual({ kind: "pack-absent" });
         expect(yield* Stream.runHead(service.changes)).toMatchObject({
           value: { kind: "pack-absent" },
         });
-        // A pack installed since then is unread.
         device.install(yield* pack({ "chinese-segmenter": BINARY }), "1.3.0");
         expect(yield* service.current).toBeNull();
         expect(reads).toBe(0);
@@ -468,7 +455,6 @@ describe("a Managed Binary of the Resource Pack", () => {
       ).toEqual(
         (
           [
-            // No pack is the state before its install, not a degraded one.
             ["debug", "pack-absent"],
             ["warning", "pack-outdated"],
             ["warning", "plugin-outdated"],

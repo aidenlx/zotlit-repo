@@ -1,4 +1,3 @@
-// Query Sources owns the lazy source reads shared by every loader of a query.
 import { Effect } from "effect";
 
 import {
@@ -17,7 +16,6 @@ import type { FormulaSourceCheck, FormulaSourceFault } from "./formulas.ts";
 import type { LoadRequest } from "./record-loader.ts";
 import type { ItemQueryRequest, TargetLibrary } from "./request.ts";
 
-/** Each query runs sequentially in one fiber. Cache only completed reads. */
 export const openQuerySources = Effect.sync(() => {
   let fields: FieldVocabulary | undefined;
   const paths = new Map<number, CollectionPaths>();
@@ -45,7 +43,6 @@ export const openQuerySources = Effect.sync(() => {
       return;
     const vocabulary = yield* readVocabulary();
     const known = new Set(vocabulary.customFieldNames);
-    /** The custom fields of a Filter Expression: the filter or a Formula. */
     const expressionUses = (
       uses: NonNullable<typeof filter>["customFields"],
       at: Pick<ItemQueryErrorLocation, "argument" | "path">,
@@ -55,7 +52,6 @@ export const openQuerySources = Effect.sync(() => {
         const { at: span, ...read } = expressionUse(use, known);
         return { ...read, location: { ...at, span }, argumentText };
       });
-    // The filter first, then the Projection Paths and the Formulas.
     const customFields: CustomFieldUse[] = [
       ...expressionUses(
         filter?.customFields ?? [],
@@ -108,13 +104,6 @@ export const openQuerySources = Effect.sync(() => {
       );
     }
   });
-  /**
-   * The check of a request that leaves out a Formula with a mistake, for
-   * the Formula planner: the first custom field that the text of a Formula
-   * names and the source lacks. Undefined under `"fail"`, where the
-   * custom-field check fails the request, and for a request without
-   * Formulas. It reads the field vocabulary only for a request it checks.
-   */
   const formulaSourceCheck = Effect.fnUntraced(function* (
     request: Pick<ItemQueryRequest, "formulas" | "onFormulaFault">,
   ) {
@@ -133,7 +122,6 @@ export const openQuerySources = Effect.sync(() => {
     collectionPaths,
     checkCustomFields,
     formulaSourceCheck,
-    /** The sources already demanded by the request, for synchronous leaf lowering. */
     candidateContext: (library: TargetLibrary): CandidateSources => ({
       library,
       vocabulary: fields ?? null,
@@ -144,28 +132,19 @@ export const openQuerySources = Effect.sync(() => {
 });
 export type QuerySources = Effect.Success<typeof openQuerySources>;
 
-/** A custom field that an expression names, as the source reads it. */
 interface ExpressionUse {
   readonly name: string;
-  /** The filter names it with its bare form. */
   readonly bare: boolean;
   readonly deferred?: Extract<ItemQueryFault, { kind: "unknown" }>;
   readonly dotted?: boolean;
-  /** Where the expression text names it. */
   readonly at: Span;
 }
 
-/** A custom field that the request names, and where it names it. */
 interface CustomFieldUse extends Omit<ExpressionUse, "at"> {
   readonly location: ItemQueryErrorLocation;
   readonly argumentText?: string;
 }
 
-/**
- * A custom field use of a Filter Expression against the custom fields `known`
- * of the source: a property chain whose prefix the source defines is a use of
- * that prefix.
- */
 function expressionUse(
   {
     name,
@@ -187,7 +166,6 @@ function expressionUse(
     : { name, bare, deferred, at: { from, to } };
 }
 
-/** Whether the source lacks the custom field of `use`. */
 function isMissing(
   { name, deferred, dotted }: Omit<ExpressionUse, "at">,
   known: ReadonlySet<string>,
@@ -195,10 +173,6 @@ function isMissing(
   return Boolean(dotted || deferred || !known.has(name));
 }
 
-/**
- * The Fault of a custom field use that the source lacks. A bare name outside
- * the built-in names is a custom field of the source or an unknown field.
- */
 function missingFault(
   names: readonly string[],
   { name, bare, deferred, dotted }: Omit<ExpressionUse, "at">,
@@ -216,11 +190,6 @@ function missingFault(
       };
 }
 
-/**
- * The first custom field that the Filter Expression of `plan` names and the
- * source, with the custom fields `names`, lacks, as a Fault at its text; null
- * when the source has each.
- */
 export function missingCustomField(
   plan: Pick<FilterPlan, "customFields">,
   names: readonly string[],
@@ -234,7 +203,6 @@ export function missingCustomField(
   return null;
 }
 
-/** A custom field that the source does not define fails the query. */
 function unknownCustomField(
   dataset: QueryDataset<any>,
   names: readonly string[],

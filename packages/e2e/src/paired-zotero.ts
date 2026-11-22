@@ -1,40 +1,17 @@
-// Everything the Paired Run scenario needs from the Zotero half of a Paired
-// Run: a Zotero Local API client, the RDP levers its authorization tiers pull,
-// and the RDP reads and erases of Annotations the reader tests take. One
-// module, because every part of it describes the same running Zotero.
-//
-// The wire facts this drives — the browser-traffic refusal, the authorize
-// endpoint's outcomes, the rate limit — are the ones docs/fixture.md § "Trial
-// the Zotero Local API" documents.
-
 import { expect } from "vitest";
 
 import { openRdpSession } from "@zotlit/scripts/zotero-rdp";
 
 import { waitFor } from "./obsidian-cli.ts";
 
-/**
- * Zotero's own header for "this is not browser traffic". Without it Zotero
- * closes the connection on any request carrying an `Origin` or a `Mozilla/`
- * user agent, and the caller sees a network failure with no status.
- */
 const ALLOWED_REQUEST = { "Zotero-Allowed-Request": "1" } as const;
 
 export interface ZoteroRequest {
   method?: string;
-  /** Sent beside `Zotero-Allowed-Request`, which this always sends. */
   headers?: Record<string, string>;
   body?: string;
 }
 
-/**
- * One request to the Zotero Local API.
- *
- * Node's global `fetch` reads no proxy environment variable unless the process
- * opts in, so a loopback request reaches Zotero directly. That matters on a
- * machine running a local proxy: routed through one, Zotero's connection-close
- * refusal of browser traffic arrives as the proxy's own 503 page instead.
- */
 export function zoteroFetch(
   baseUrl: string,
   path: string,
@@ -47,14 +24,6 @@ export function zoteroFetch(
   });
 }
 
-/**
- * Settles once Better BibTeX answers its JSON-RPC `api.ready`. Zotero opens
- * its HTTP server before Better BibTeX registers that endpoint, which answers
- * 404 until then; a researcher exports from a Zotero that has finished
- * starting, and a Paired Run is ready at the same point.
- *
- * @throws when Better BibTeX does not answer within `timeoutMs`.
- */
 export async function waitForBetterBibtex(
   baseUrl: string,
   timeoutMs = 60_000,
@@ -84,11 +53,6 @@ export async function waitForBetterBibtex(
   );
 }
 
-/**
- * Zotero's 12-character id for the database it is serving. Generated once per
- * database and kept in its `settings` table, so it is read at runtime and never
- * asserted as a literal.
- */
 export async function readServerID(baseUrl: string): Promise<string> {
   const reply = await zoteroFetch(baseUrl, "");
   const id = reply.headers.get("Zotero-Server-ID");
@@ -98,14 +62,9 @@ export async function readServerID(baseUrl: string): Promise<string> {
 
 export interface AuthorizeReply {
   status: number;
-  /** The parsed JSON body, or the raw text where the body is not JSON. */
   body: unknown;
 }
 
-/**
- * `POST /api/local/authorize`. Reaches Zotero's prompt, so it is rate limited
- * to five a minute and the caller resets that between cases.
- */
 export async function authorize(
   baseUrl: string,
   options: { serverID: string; appName: string },
@@ -128,7 +87,6 @@ export async function authorize(
   return { status: reply.status, body };
 }
 
-/** A grant, as the authorize endpoint reports it. */
 export interface Grant {
   key: string;
   remember: boolean;
@@ -140,16 +98,7 @@ export function isGrant(body: unknown): body is Grant {
   return typeof key === "string" && typeof remember === "boolean";
 }
 
-/**
- * A live connection to Zotero's parent process. `json` is the only member the
- * scenario uses: every lever below goes through it.
- */
 export interface ZoteroRdp extends Disposable {
-  /**
-   * Evaluate `body` as an `async` expression and parse its JSON result. The
-   * expression must produce a value — an expression answering `undefined` has
-   * no JSON form, and the underlying poll would wait for one that never comes.
-   */
   json<T>(body: string): Promise<T>;
 }
 
@@ -177,11 +126,6 @@ export async function openZoteroRdp(port: number): Promise<ZoteroRdp> {
   };
 }
 
-/**
- * Clear every stored authorization and the rate-limit window. This is the
- * per-case reset for the authorization tiers: it empties Zotero's cached key
- * store and deletes `localAPIKeys.json`.
- */
 export async function resetAuthorizations(rdp: ZoteroRdp): Promise<void> {
   await rdp.json(`(async () => {
     Zotero.Server.LocalAPI._resetAuthorizeRateLimit();
@@ -190,27 +134,10 @@ export async function resetAuthorizations(rdp: ZoteroRdp): Promise<void> {
   })()`);
 }
 
-/** How many **remembered** keys Zotero holds; single-use keys are not counted. */
 export function authorizationCount(rdp: ZoteroRdp): Promise<number> {
   return rdp.json<number>("Zotero.Server.LocalAPI.getAuthorizationCount()");
 }
 
-/**
- * Put one remembered Write Authorization in place on a **running** Zotero, so
- * the tier that is not about authorization never raises a dialog.
- *
- * Writing `localAPIKeys.json` by hand does not work here, and that was
- * measured rather than assumed: Zotero caches its key store on the first
- * lookup and treats an empty array as a cache hit, `clearAuthorizations()`
- * leaves that empty array behind rather than dropping the cache, and
- * `Zotero.Server.LocalAPI` exposes no other cache lever. A key seeded into the
- * file after a clear answers `401 Invalid or expired API key`.
- *
- * So the key is taken from Zotero itself — one real `POST /api/local/authorize`
- * with the prompt scripted to Always Allow. Zotero's cache and its file stay
- * consistent, nothing is written behind its back, and the returned count is the
- * proof the authorization is held rather than assumed.
- */
 export async function grantRememberedKey(
   baseUrl: string,
   rdp: ZoteroRdp,
@@ -235,20 +162,11 @@ export async function grantRememberedKey(
   }
 }
 
-/** What Zotero's prompt should answer while the stub stands. */
 export interface PromptOutcome {
   allow: boolean;
   remember: boolean;
 }
 
-/**
- * Replace `Zotero.Server.LocalAPI._promptForAuthorization` with a scripted
- * answer. The endpoint looks the function up on the object at call time, which
- * is what makes this replaceable — the pattern Zotero's own suite uses.
- *
- * Assertions belong on the HTTP response and on `getAuthorizationCount()`: the
- * stub picks the branch, the endpoint is the oracle.
- */
 export async function stubPrompt(
   rdp: ZoteroRdp,
   outcome: PromptOutcome,
@@ -264,13 +182,6 @@ export async function stubPrompt(
   })()`);
 }
 
-/**
- * Put Zotero's own prompt back.
- *
- * @returns whether the original function stands again, and any leftover
- *   property the stub added — both asserted by the caller, so a restore that
- *   silently did nothing cannot pass.
- */
 export function restorePrompt(
   rdp: ZoteroRdp,
 ): Promise<{ original: boolean; leftovers: string[] }> {
@@ -288,12 +199,6 @@ export function restorePrompt(
   })()`);
 }
 
-/**
- * Zotero's Write Authorization dialog is a plain Gecko common dialog, and RDP
- * keeps answering while its nested modal event loop spins. Slots, never labels:
- * the Fixture Zotero runs in the host OS locale, so the button text and the
- * window title are both translated.
- */
 export type DialogButton = "accept" | "cancel" | "extra1";
 
 const DIALOG_URL = "chrome://global/content/commonDialog.xhtml";
@@ -312,11 +217,6 @@ const FIND_DIALOG = `(() => {
   return null;
 })()`;
 
-/**
- * Poll until Zotero's authorization dialog exists. Its existence is itself the
- * "we really reached Zotero's own dialog" assertion, so this answers false
- * rather than throwing and lets the caller assert.
- */
 export function waitForAuthorizationDialog(
   rdp: ZoteroRdp,
   tries = 60,
@@ -324,10 +224,6 @@ export function waitForAuthorizationDialog(
   return waitFor(() => rdp.json<boolean>(`Boolean(${FIND_DIALOG})`), tries);
 }
 
-/**
- * Press one of the dialog's three buttons by slot: `accept` is Allow,
- * `cancel` is Always Allow, `extra1` is Deny.
- */
 export async function clickAuthorizationDialog(
   rdp: ZoteroRdp,
   button: DialogButton,
@@ -342,10 +238,6 @@ export async function clickAuthorizationDialog(
   if (!clicked) throw new Error("No authorization dialog was open to click");
 }
 
-/**
- * Close the dialog without pressing anything. Dismissal is not a refusal:
- * Gecko records it as the second button, which is Always Allow.
- */
 export async function dismissAuthorizationDialog(
   rdp: ZoteroRdp,
 ): Promise<void> {
@@ -358,12 +250,6 @@ export async function dismissAuthorizationDialog(
   if (!closed) throw new Error("No authorization dialog was open to dismiss");
 }
 
-/**
- * Press Deny on any authorization dialog still standing, and say nothing when
- * none is. For teardown: a case that failed between raising the dialog and
- * answering it leaves the modal blocking every later request. Deny rather than
- * dismissal, because dismissal grants Always Allow.
- */
 export async function denyAnyAuthorizationDialog(
   rdp: ZoteroRdp,
 ): Promise<boolean> {
@@ -376,15 +262,12 @@ export async function denyAnyAuthorizationDialog(
   })()`);
 }
 
-/** One Annotation on an Attachment Zotero's Reader has open. */
 export interface ReaderAnnotation {
   rdp: ZoteroRdp;
-  /** The Attachment's key in the user library. */
   attachmentKey: string;
   annotationKey: string;
 }
 
-/** The Reader open on an Attachment, as an RDP expression; `undefined` for none. */
 function openReader(attachmentKey: string): string {
   return `(() => {
     const attachment = Zotero.Items.getByLibraryAndKey(
@@ -397,11 +280,6 @@ function openReader(attachmentKey: string): string {
   })()`;
 }
 
-/**
- * The position and quoted text of one Annotation as Zotero's open Reader holds
- * it — the serialized Annotation its own item hands the view it draws — or
- * `null` where no Reader shows it.
- */
 export function readerAnnotation({
   rdp,
   attachmentKey,
@@ -423,37 +301,12 @@ export function readerAnnotation({
   })()`);
 }
 
-/**
- * Waits until Zotero is done with the last position write on one Annotation.
- * The write drops the cached Excerpt Image of an image or ink in a commit
- * callback nothing awaits; Zotero's open Reader then renders a fresh image and
- * saves it. A write sent before that is done can meet a newer version and be
- * refused with 412, so this waits for the Reader's own state:
- *
- * - it holds the stored position at the stored modification time, with
- *   nothing left unsaved and no save in flight;
- * - for an image or ink, it holds an image, its renderer last rendered this
- *   modification (or never rendered this Annotation, whose image came from
- *   the cache), and the cache image is back;
- * - two Local API reads, one poll apart, agree on the version, with the
- *   Reader state holding at both.
- *
- * For an image or ink, it then waits out the second of the last write.
- * Zotero stamps a modification to the second, and the Reader renders an
- * Annotation again only for a later stamp than its last render, so a next write
- * in that second would leave the Reader with no image forever.
- *
- * @param options.image whether the Annotation carries an Excerpt Image the
- *   Reader renders; a highlight or underline has none to wait for.
- * @throws when the Reader does not settle within the poll's bound.
- */
 export async function readerSettled(
   annotation: ReaderAnnotation,
   { api, serverID, image }: { api: string; serverID: string; image: boolean },
 ): Promise<void> {
   const { rdp, attachmentKey, annotationKey } = annotation;
   const key = JSON.stringify(annotationKey);
-  /** What the Reader has yet to finish, by name; empty once it is done. */
   const readerPending = () =>
     rdp.json<string[]>(`(async () => {
       const reader = ${openReader(attachmentKey)};
@@ -514,8 +367,6 @@ export async function readerSettled(
     return still;
   }, 120);
   if (!settled) {
-    // Where Zotero's windows and tabs stood, for a failure that only a full
-    // run reproduces.
     const scene = await rdp
       .json<unknown>(
         `(async () => {
@@ -552,11 +403,6 @@ export async function readerSettled(
   }
 }
 
-/**
- * The Annotations Zotero holds on an item, by key, read over RDP.
- *
- * @param item the Zotero item as an RDP expression.
- */
 export function heldAnnotationKeys(
   rdp: ZoteroRdp,
   item: string,
@@ -564,11 +410,6 @@ export function heldAnnotationKeys(
   return rdp.json<string[]>(`${item}.getAnnotations().map(({ key }) => key)`);
 }
 
-/**
- * The one Annotation Zotero holds on `item` beyond `before`, once it does.
- * Every fresh key is handed to `created`, where given, before the count is
- * asserted, so a test that made more than one still erases them all.
- */
 export async function freshAnnotationKey(
   rdp: ZoteroRdp,
   {
@@ -595,7 +436,6 @@ export async function freshAnnotationKey(
   return fresh[0]!;
 }
 
-/** The fields of one Annotation a create test reads from the Local API. */
 export interface StoredAnnotation {
   annotationType: string;
   annotationColor: string;
@@ -605,7 +445,6 @@ export interface StoredAnnotation {
   annotationSortIndex: string;
 }
 
-/** One Annotation's fields, as the Local API answers them. */
 export async function storedAnnotation(
   baseUrl: string,
   serverID: string,
@@ -617,7 +456,6 @@ export async function storedAnnotation(
   return ((await reply.json()) as { data: StoredAnnotation }).data;
 }
 
-/** Erases Annotations from Zotero by key, over RDP; a key already gone is skipped. */
 export async function eraseAnnotations(
   rdp: ZoteroRdp,
   keys: readonly string[],

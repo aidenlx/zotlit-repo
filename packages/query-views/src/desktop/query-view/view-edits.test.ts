@@ -37,7 +37,6 @@ const FILE = `views:
     from: annotations
 `;
 
-/** The file as a save writes it and the next open reads it. */
 function saved(file: QueryFile): QueryFile {
   return parseQueryFile(serializeQueryFile(file));
 }
@@ -169,14 +168,11 @@ describe("view edits", () => {
       order: ["comment", "dateAdded"],
       limit: 100,
     });
-    // Items have no page, no grouping by Item and no comment: the view does
-    // not use them while it shows Items.
     expect(unusedSettings(view)).toEqual({
       sort: ["pageIndex"],
       groupBy: "item.indexedKey",
       order: ["comment"],
     });
-    // Back on Annotations, the view uses each of them again.
     const back = saved(setViewDataset(file, 0, "annotations")).views[0]!;
     expect(back.type).toBe("annotations");
     expect(unusedSettings(back)).toEqual({

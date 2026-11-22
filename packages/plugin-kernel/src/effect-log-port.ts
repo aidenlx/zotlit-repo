@@ -23,7 +23,6 @@ import {
   withLogCategory,
 } from "#effect-log-category.ts";
 
-/** The lowest worker log level a [`ReadsConfig`] can select. */
 export type PortLogLevel =
   | "trace"
   | "debug"
@@ -32,7 +31,6 @@ export type PortLogLevel =
   | "error"
   | "fatal";
 
-/** A worker log record that survives the structured clone in a `MessagePort`. */
 export const LogPortRecordSchema = Schema.Struct({
   level: Schema.Literals(["Fatal", "Error", "Warn", "Info", "Debug", "Trace"]),
   category: Schema.Array(Schema.String),
@@ -51,7 +49,6 @@ export const LogPortRecordSchema = Schema.Struct({
 
 export type LogPortRecord = typeof LogPortRecordSchema.Type;
 
-/** The part of a `MessagePort` the logger bridge uses. */
 export interface LogMessagePort {
   onmessage: ((event: MessageEvent) => void) | null;
   postMessage(message: unknown): void;
@@ -97,17 +94,10 @@ const rejectedText = (value: unknown): string => {
   }
 };
 
-/**
- * Keep every annotation or detail value that can cross a `MessagePort`.
- *
- * Nested objects are checked as a whole first. If one member is rejected,
- * each member is checked separately so the rest of the value survives.
- */
 const cloneSafe = (
   value: unknown,
   seen: WeakSet<object> = new WeakSet(),
 ): unknown => {
-  // boundary: structuredClone is the API that decides MessagePort safety.
   try {
     structuredClone(value);
     return value;
@@ -151,7 +141,6 @@ const errorFromCause = (cause: Cause.Cause<unknown>) => {
   };
 };
 
-/** Convert an Effect log event to a record the worker port can post. */
 export const makeLogPortRecord = (
   options: Logger.Options<unknown>,
 ): LogPortRecord => {
@@ -173,12 +162,6 @@ export const makeLogPortRecord = (
   };
 };
 
-/**
- * An Effect logger that sends records through `port`.
- *
- * The level lives in `level`, so a later `Configure` changes the next record
- * without rebuilding an Effect runtime.
- */
 export const makePortLogger = (
   port: Pick<LogMessagePort, "postMessage">,
   level: Ref.Ref<PortLogLevel | null>,
@@ -195,7 +178,6 @@ export const makePortLogger = (
       return;
 
     const record = makeLogPortRecord(options);
-    // boundary: the logger cannot report its own post failure through itself.
     try {
       port.postMessage(record);
     } catch (error) {
@@ -211,7 +193,6 @@ export const makePortLogger = (
   });
 };
 
-/** Re-emit records from app-agnostic libraries through the worker's logger. */
 export const layerLibraryLogPort: Layer.Layer<never> = Layer.effectDiscard(
   Effect.gen(function* () {
     const records = yield* Queue.unbounded<LibraryLogRecord, Cause.Done>();
@@ -255,12 +236,6 @@ const emitLogPortRecord = (record: LogPortRecord) => {
   );
 };
 
-/**
- * Receive records from a worker's log port until the layer's Scope closes.
- *
- * The DOM callback is the only boundary. It queues the record, and a scoped
- * fiber re-emits it through the current renderer Effect logger.
- */
 export const layerHostLogPort = (
   port: LogMessagePort,
   {
@@ -274,7 +249,6 @@ export const layerHostLogPort = (
   Layer.effectDiscard(
     Effect.gen(function* () {
       const records = yield* Queue.unbounded<LogPortRecord, Cause.Done>();
-      // boundary: MessagePort delivers records through a DOM callback.
       const receive = ({ data }: MessageEvent) => {
         Queue.offerUnsafe(records, data);
       };

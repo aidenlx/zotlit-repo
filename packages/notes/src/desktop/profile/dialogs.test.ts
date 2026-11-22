@@ -42,11 +42,9 @@ const BOOKS: LiteratureNoteProfile = {
   match: { state: "absent", summary: m.profile_match_absent() },
 };
 
-/** A spy that the case's Scope restores. */
 const spy = <A extends Disposable>(acquire: () => A) =>
   Effect.acquireDisposable(Effect.sync(acquire));
 
-/** The footer button labelled `label`. */
 function footerButton(modal: Modal, label: string): ButtonComponent {
   const footer = modal.modalEl.querySelector<HTMLElement>(
     ".modal-button-container",
@@ -66,7 +64,6 @@ it.effect(
       const opened = yield* spy(() => vi.spyOn(Modal.prototype, "open"));
       const gate = yield* Deferred.make<void>();
       let written = false;
-      // The Profile service owns the write: it runs on, and the dialog joins it.
       const write = yield* Effect.forkChild(
         Deferred.await(gate).pipe(
           Effect.andThen(
@@ -150,10 +147,6 @@ it.effect("keeps Share open until it closes, and an interrupt closes it", () =>
   }),
 );
 
-/**
- * Add profile with its save started and never done, and the reason the
- * dialog's save rejects with, as the modal tests it.
- */
 const savingDestination = Effect.gen(function* () {
   const opened = yield* spy(() => vi.spyOn(Modal.prototype, "open"));
   const tested = yield* spy(() => vi.spyOn(AbortError, "test"));
@@ -202,7 +195,6 @@ const savingDestination = Effect.gen(function* () {
   return {
     pending,
     modal,
-    /** What the save's rejection was, once the modal's catch tests it. */
     reason: Effect.gen(function* () {
       yield* until(() => tested.mock.calls.length > 0);
       return tested.mock.calls[0]![0];
@@ -210,7 +202,6 @@ const savingDestination = Effect.gen(function* () {
   };
 });
 
-// The user's close stops the work it started with a typed reason.
 it.effect(
   "stops the save with UserCancelled when the user closes Add profile",
   () =>

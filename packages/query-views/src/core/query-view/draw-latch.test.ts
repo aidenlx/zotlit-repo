@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { DrawLatch } from "./draw-latch.ts";
 
-/** Whether `promise` has settled once the queued microtasks ran. */
 async function settled(promise: Promise<void>): Promise<boolean> {
   let done = false;
   void promise.then(() => {

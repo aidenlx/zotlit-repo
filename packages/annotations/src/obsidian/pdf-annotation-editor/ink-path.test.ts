@@ -16,12 +16,6 @@ import {
   writePosition,
 } from "#obsidian/annotation-repository/write.ts";
 
-/**
- * Expected vectors are the output of Zotero's own `smoothPath` for each input,
- * computed once by running the file under Node and inlined here.
- *
- * @see https://github.com/zotero/reader/blob/df215c60334d2d0c7b1fbc9f3959b66afc1ced83/src/pdf/lib/path.js#L1-L49
- */
 describe("smoothPath", () => {
   it("keeps a single point as it is, which Zotero draws as a dot", () => {
     expect(smoothPath([5, 5])).toEqual([5, 5]);
@@ -32,8 +26,6 @@ describe("smoothPath", () => {
   });
 
   it("drops the last point when it lands under one point from the last kept one", () => {
-    // Zotero's close-point filter runs over the last point too, so the end of
-    // a straight stroke is lost: (8, 0) is 0.5 past (7.5, 0).
     expect(smoothPath([0, 0, 8, 0])).toEqual([
       0, 0, 1.5, 0, 3, 0, 5, 0, 6.5, 0, 7.5, 0,
     ]);
@@ -83,7 +75,6 @@ describe("clampToViewBox", () => {
 });
 
 describe("nearStroke", () => {
-  /** One segment from (0, 0) to (10, 0), taken within a reach of 5. */
   const near = (point: readonly [number, number]) =>
     nearStroke(
       point,
@@ -103,7 +94,6 @@ describe("nearStroke", () => {
   });
 
   it("measures a point beyond an end to that end", () => {
-    // (13, 3.9) is 4.93 from (10, 0); (13, 4) is exactly 5.
     expect(near([13, 3.9])).toBe(true);
     expect(near([13, 4])).toBe(false);
     expect(near([-3, -4])).toBe(false);
@@ -148,11 +138,6 @@ describe("inkReach", () => {
 describe("StrokeSamples", () => {
   const FRAME = { pageIndex: 3, width: 2 };
 
-  /**
-   * A zig-zag scribble down a letter page, row after row: every sample three
-   * points from the last, so each is kept, and the corners keep Zotero's
-   * smoothing from folding the points together.
-   */
   const scribble = (count: number) =>
     Array.from({ length: count }, (_, index): [number, number] => {
       const row = Math.floor(index / 150);
@@ -163,7 +148,6 @@ describe("StrokeSamples", () => {
       ];
     });
 
-  /** Whether these samples, sent to Zotero as one stroke, fit the ceiling. */
   const fits = (samples: readonly [number, number][]) =>
     writePosition({ ...FRAME, paths: [smoothPath(samples.flat())] }).length <=
     MAX_POSITION_LENGTH;
@@ -177,18 +161,13 @@ describe("StrokeSamples", () => {
       return finished ? [{ index, finished }] : [];
     });
 
-    // About two thousand of these samples fill one Annotation.
     expect(parts).toHaveLength(1);
     const { index, finished } = parts[0]!;
-    // The finished part is every sample before this one, and it fits…
     expect(finished).toEqual(
       smoothPath(samples.slice(0, index).flat()).map(roundCoordinate),
     );
     expect(fits(samples.slice(0, index))).toBe(true);
-    // …where this sample would not have.
     expect(fits(samples.slice(0, index + 1))).toBe(false);
-    // The next part begins where the finished part ends, so the two meet,
-    // and goes on from this sample.
     const seam = finished.slice(-2) as [number, number];
     const next = stroke.finish();
     expect(next.slice(0, 2)).toEqual(seam);
@@ -198,8 +177,6 @@ describe("StrokeSamples", () => {
   });
 
   it("adds at most MAX_POINTS_PER_SAMPLE smoothed points for one more sample", () => {
-    // A fixed linear congruential sequence: steps from under one point to
-    // twenty, in every direction, so the filter both keeps and drops.
     let seed = 1_234_567;
     const random = () => {
       seed = (seed * 1_103_515_245 + 12_345) % 2_147_483_648;

@@ -41,7 +41,6 @@ interface Match<S> {
 
 type Read<A> = Effect.Effect<A, ItemQueryReaderError, ItemQueryDatabase>;
 
-/** What the descriptor of a Query Dataset opens for one run. */
 export interface DatasetRun<I extends { scan: ScanRow }> {
   readonly scan: Loader<I["scan"], I>;
   readonly projection: Loader<I["scan"], I>;
@@ -53,7 +52,6 @@ export interface DatasetRun<I extends { scan: ScanRow }> {
   ) => QueryRow;
 }
 
-/** Dataset hooks; this engine owns bounded retention, paging and delivery. */
 export interface QueryRun<I extends { scan: ScanRow }> extends DatasetRun<I> {
   readonly dataset: CandidateDataset;
   readonly sources: QuerySources;
@@ -73,7 +71,6 @@ export interface QueryRun<I extends { scan: ScanRow }> extends DatasetRun<I> {
     itemIDs: readonly number[];
   }) => Read<readonly I["scan"][]>;
   readonly keys: (item: I) => readonly SortKey[];
-  /** Grouped query: the distinct group values of a matched record. */
   readonly groupValues: ((item: I) => readonly GroupValue[]) | null;
 }
 
@@ -90,21 +87,14 @@ export function consumeDataset<I extends { scan: ScanRow }, A, E, R>(
       tuning.hydrateChunkSize,
       HYDRATE_CHUNK_SIZE,
     );
-    // The scan pass: every Item is hydrated with filter, sort, and group fields
-    // only, and the query keeps the scan row and the sort keys of a match.
     const compare = byKeysThenKey<I["scan"]>(run.sort, libraries);
     const retain = () =>
       limit === null
         ? allMatches(compare, sizeWithin(tuning.mergeStepSize, Infinity))
         : firstMatches(limit + 1, compare);
     const matches = retain();
-    // A grouped query retains limit + 1 compact matches PER GROUP, plus the
-    // current page and hydrate chunk. With limit=all it retains every match.
     const groups = new Map<GroupValue, GroupMatches<I["scan"]>>();
     let totalCount = 0;
-    // Each page and each chunk lives in the Effect that reads it, so the query
-    // holds no row of a page it has finished.
-    /** Hydrate one chunk of a page and keep its matches. */
     const takeChunk = (library: number, chunk: readonly I["scan"][]) =>
       Effect.gen(function* () {
         const items = yield* run.scan.load(chunk, () => libraries[library]!);
@@ -116,7 +106,6 @@ export function consumeDataset<I extends { scan: ScanRow }, A, E, R>(
             const keys = run.keys(item);
             totalCount++;
             if (run.groupValues) {
-              // A record joins one group for each of its distinct values.
               for (const value of run.groupValues(item)) {
                 let group = groups.get(value);
                 if (!group) {
@@ -143,16 +132,13 @@ export function consumeDataset<I extends { scan: ScanRow }, A, E, R>(
               groups.get(value)!.matches.add(chunk);
         });
       });
-    /** Hydrate one page of the query universe and keep its matches. */
     const takePage = (library: number, page: readonly I["scan"][]) =>
       Effect.gen(function* () {
-        // A pass without hydration runs no statement: it takes a page at once.
         const chunkSize = run.scan.hydrates ? hydrateChunkSize : scanPageSize;
         for (let start = 0; start < page.length; start += chunkSize) {
           yield* takeChunk(library, page.slice(start, start + chunkSize));
         }
       });
-    /** Read and take the scan page after `afterItemID`. Null: the last page. */
     const takeScanPage = (library: number, afterItemID: number) =>
       Effect.gen(function* () {
         const page = yield* run.readScanPage({
@@ -164,11 +150,6 @@ export function consumeDataset<I extends { scan: ScanRow }, A, E, R>(
         return page.length < scanPageSize ? null : page.at(-1)!.itemID;
       });
 
-    // Each Library has its own plan. The candidate pass reads the Items that
-    // the lowered leaves of the filter name in the Library, against the cap of
-    // that Library; the Library scan reads every Item. The evaluator decides
-    // the match on both paths, and the matches of every Library go to the one
-    // result order.
     for (const [index, library] of libraries.entries()) {
       const { libraryID } = library;
       const candidates = yield* runCandidatePass({
@@ -197,8 +178,6 @@ export function consumeDataset<I extends { scan: ScanRow }, A, E, R>(
     }
 
     const groupOrder = allMatches<GroupMatches<I["scan"]>>(
-      // Distinct strings can collate as equal. Code units break that tie, so
-      // read order never decides the order of groups.
       (a, b) =>
         compareScalars(a.value, b.value) ||
         (String(a.value) < String(b.value) ? -1 : 1),
@@ -231,7 +210,6 @@ export function consumeDataset<I extends { scan: ScanRow }, A, E, R>(
     const truncated = limit !== null && ordered.length > limit;
     const returned = truncated ? ordered.slice(0, limit) : ordered;
 
-    // The projection pass: only the returned rows are hydrated.
     const consumer = yield* begin({
       query,
       warnings: run.warnings,
@@ -282,17 +260,10 @@ export function consumeDataset<I extends { scan: ScanRow }, A, E, R>(
   });
 }
 
-/** A tuned size as a whole number from one to the upper limit of its reader. */
 function sizeWithin(size: number, limit: number): number {
   return Math.max(1, Math.min(Math.floor(size), limit));
 }
 
-/**
- * The result order: each Sortable Field in turn, a missing value last in both
- * directions, and the Indexed Key as the final tie-breaker. Every Zotero Key
- * has one length, so the order of the Zotero Keys is the order of the Indexed
- * Keys; the same Zotero Key in two Libraries compares by the Indexed Key.
- */
 function byKeysThenKey<S extends ScanRow>(
   sorts: readonly SortSpec[],
   libraries: readonly TargetLibrary[],

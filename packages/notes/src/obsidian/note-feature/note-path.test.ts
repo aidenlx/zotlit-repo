@@ -14,7 +14,6 @@ import { EmptyFilenameError } from "#core/note-feature/filename.ts";
 
 const FILE = stubService<TAbstractFile>("TAbstractFile", {});
 
-/** A vault that holds the files at `paths`. */
 const holding = (paths: Iterable<string>) => {
   const taken = new Set(paths);
   return MemoryVault.with({
@@ -96,9 +95,9 @@ describe("resolveRenderedNotePath", () => {
     Effect.gen(function* () {
       const lookup = vi
         .fn<(path: string) => TAbstractFile | null>()
-        .mockReturnValueOnce(FILE) // base collides
-        .mockReturnValueOnce(FILE) // first suffix collides
-        .mockReturnValue(null); // second suffix is free
+        .mockReturnValueOnce(FILE)
+        .mockReturnValueOnce(FILE)
+        .mockReturnValue(null);
       const { path } = yield* resolveIn(
         MemoryVault.with({ getAbstractFileByPath: lookup }),
         `smith2020${filenameSuffix(6)}`,

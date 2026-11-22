@@ -1,12 +1,4 @@
 #!/usr/bin/env node
-// Print the Obsidian version recorded in an `.asar` archive's internal package.json.
-//
-//   node .agents/skills/obsidian-asar-extract/probe-version.mjs --asar <path>
-//
-// Read-only and side-effect free: uses @electron/asar's `extractFile`, which
-// returns a Buffer in memory. Do NOT use the `asar extract-file` CLI for this —
-// it writes the extracted file into the current working directory and will
-// clobber a same-named file (e.g. your repo's package.json).
 
 import { extractFile } from "@electron/asar";
 import { existsSync } from "node:fs";

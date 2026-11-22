@@ -1,6 +1,5 @@
 import { Effect, Layer, Scope, Stream } from "effect";
 import type * as Atom from "effect/reactivity/Atom";
-// A view registry over controlled repository and Zotero services for annotation tests.
 import { onTestFinished } from "vitest";
 
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
@@ -56,7 +55,6 @@ export type AnnotHostOptions<R = never> = {
   services?: Layer.Layer<R>;
 };
 
-/** Annotation services shared by the card-only and Query View test hosts. */
 export function layerAnnotServices<R = never>(
   options: AnnotHostOptions<R> = {},
 ) {
@@ -138,11 +136,6 @@ export function layerAnnotServices<R = never>(
   );
 }
 
-/**
- * The view services a test registry holds beside the Obsidian host and
- * {@link layerAnnotServices}. A test passes them as `unread`: the host's
- * program registers more view services than this package does.
- */
 export type UnreadViewServices = Exclude<
   ViewServices,
   | Layer.Success<ReturnType<typeof layerHost>>
@@ -181,7 +174,6 @@ export function makeAnnotHost<R = never>(
   };
 }
 
-/** Consumer fixtures close their view before the test releases its services. */
 export function testAnnotHost<R = never>(
   unread: Layer.Layer<UnreadViewServices>,
   options: AnnotHostOptions<R> = {},

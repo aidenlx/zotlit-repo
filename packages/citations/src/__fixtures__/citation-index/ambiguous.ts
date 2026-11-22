@@ -6,9 +6,7 @@ import {
   personalLibrary,
   groupLibrary,
 } from "./test-harness.ts";
-/** An Indexed Key of the group Library the multi-Library fixtures use. */
 export const GROUP_KEY = "GRP12345g7";
-/** An Indexed Key of My Library, for a second Item there. */
 export const TWIN_KEY = "RVW23456";
 
 export const myLibraryRow = {
@@ -18,7 +16,6 @@ export const myLibraryRow = {
   indexedKey: KEY_A,
   citekey: "doe2024",
 };
-/** A second Item of My Library answering to the same citekey. */
 export const sameLibraryTwin = {
   itemID: 2,
   libraryID: MY_LIBRARY_ID,
@@ -26,8 +23,6 @@ export const sameLibraryTwin = {
   indexedKey: TWIN_KEY,
   citekey: "doe2024",
 };
-/** An Item of the group Library answering to the same citekey. A lower
- *  `itemID` than its My Library twin, so Library order alone can order them. */
 export const groupTwin = {
   itemID: 1,
   libraryID: GROUP_LIBRARY_ID,

@@ -1,4 +1,3 @@
-// One annotation insertion: render, commit, and return its operation outcome.
 import { Effect } from "effect";
 
 import type {
@@ -29,7 +28,6 @@ function fallbackText(annotation: AnnotationRecord): string {
   );
 }
 
-/** The captured destination cancels the read and render before any text is committed. */
 export const commitAnnotation = Effect.fn("AnnotationNoteActions.insert")(
   function* (options: AnnotationInsertRequest) {
     const { target, notePath, placement } = options;

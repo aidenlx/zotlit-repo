@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { latestStableVersion, offTrunkRelease } from "./source.ts";
 
-// The source repository carries the release tags of both products, the
-// Resource Releases' tags and old tags of other shapes.
 const tags = [
   "2.2.3",
   "2.2.4",

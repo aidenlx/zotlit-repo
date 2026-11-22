@@ -8,7 +8,6 @@ import { processLiveText } from "./effect-live-text.ts";
 
 const PATH = "Notes/Paper.md";
 
-/** The Vault and Workspace tags over `host`'s vault and views. */
 function tagsOver(host: ReturnType<typeof createObsidianHost>) {
   return layerHost({
     vault: host.vault,

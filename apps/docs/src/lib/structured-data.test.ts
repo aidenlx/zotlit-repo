@@ -18,11 +18,6 @@ const publisher = {
   ],
 };
 
-// schema.org: TechArticle is an Article; headline, description,
-// datePublished, dateModified, author and image are CreativeWork properties,
-// and the dates take an ISO Date. Google reads `mainEntityOfPage` to tie the
-// article to its page, and lists datePublished, author and image among an
-// Article's recommended properties.
 describe("docsArticleSchema", () => {
   it("names the page's canonical URL, headline, description, card, author and its first and last commit days", () => {
     expect(
@@ -115,8 +110,6 @@ describe("changelogArticleSchema", () => {
   });
 });
 
-// schema.org: FAQPage.mainEntity holds Questions; each Question's `name` is
-// the question and its `acceptedAnswer` an Answer whose `text` is the answer.
 describe("faqPageSchema", () => {
   it("publishes each question with its accepted answer, in page order", () => {
     expect(

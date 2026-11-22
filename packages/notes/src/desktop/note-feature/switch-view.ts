@@ -1,6 +1,5 @@
 import type { ProfilePick } from "#desktop/profile/profile-picker.ts";
 import { Cause, Effect } from "effect";
-// The single consent surface for changing a Literature Note's Profile.
 import { dirname } from "node:path/posix";
 import { ConfirmationModal } from "obsidian";
 import type { App, TFile } from "obsidian";
@@ -32,12 +31,6 @@ export interface ProfileSwitchConsent {
   importedNotes: boolean;
 }
 
-/**
- * Change `file`'s Profile after the user picks one and consents to what the
- * change does. The switch reports its outcome on a progress notice; a failure
- * before it is logged and shows the failure notice. An interrupt closes the
- * open dialog.
- */
 export const switchNoteProfileInteractively = Effect.fn(
   "switchNoteProfileInteractively",
 )(function* (ports: InteractiveCreationPorts, file: TFile) {
@@ -76,7 +69,6 @@ export const switchNoteProfileInteractively = Effect.fn(
       );
       return;
     }
-    // A Profile made in the picker joins the plan's targets.
     if (created) plan = yield* noteFeature.prepareProfileSwitch(file);
     const target = plan.profiles.find(
       ({ selector }) => selector === choice.id,
@@ -100,7 +92,6 @@ export const switchNoteProfileInteractively = Effect.fn(
       );
       return;
     }
-    // The notice tells the user how the switch went.
     yield* withProgress(
       noteFeature.switchNoteProfile(file, {
         profile: choice.id,
@@ -130,11 +121,6 @@ export const switchNoteProfileInteractively = Effect.fn(
   );
 });
 
-/**
- * All consequences and opt-ins are visible before any note is changed.
- *
- * @returns The user's consent; an interrupt closes the dialog.
- */
 export function awaitProfileSwitchConsent(
   app: App,
   options: {

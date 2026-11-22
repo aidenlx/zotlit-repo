@@ -1,11 +1,5 @@
 import type { RangeFetch } from "#fetch-range.ts";
 import type { ReadRange } from "#reader.ts";
-// The Pack container cases. Each case builds a pack from small fixture entries
-// with the writer, reads it back with the reader, and returns a plain outcome
-// beside the outcome it must give. The Node suite (`container.test.ts`) and the
-// Electron renderer suite (`apps/resources`) run the same cases, so the reader
-// is proven on Node's web APIs and on a browser's real `fetch`, `crypto.subtle`
-// and `DecompressionStream`.
 import { regex } from "arkregex";
 
 import { fetchRange } from "#fetch-range.ts";
@@ -15,10 +9,8 @@ import { bytesRange, readPackEntry } from "#reader.ts";
 import { sha256Hex } from "#sha256.ts";
 import { writePack } from "#writer.ts";
 
-/** A `Range` header as the capability writes it. */
 const RANGE = regex("^bytes=(?<start>\\d+)-(?<end>\\d+)$");
 
-/** Deterministic bytes that gzip poorly, so an entry spans several stream chunks. */
 function noise(length: number, seed: number): Uint8Array<ArrayBuffer> {
   const bytes = new Uint8Array(length);
   let state = seed;
@@ -54,7 +46,6 @@ function same(left: Uint8Array, right: Uint8Array): boolean {
   );
 }
 
-/** What a read gave: `same` for the source bytes, else the failure kind. */
 async function outcome(
   read: ReadRange,
   name: string,
@@ -74,17 +65,12 @@ async function both(read: ReadRange) {
 
 type Fetch = RangeFetch;
 
-/** The first and the last byte a `Range` header asks for. */
 function rangeOf(init: Parameters<Fetch>[1]): { start: number; end: number } {
   const match = RANGE.exec(init.headers.Range);
   if (!match) throw new Error(`Unexpected Range header ${init.headers.Range}`);
   return { start: Number(match.groups.start), end: Number(match.groups.end) };
 }
 
-/**
- * Android's answer: 206 from the start of the range, and a body that runs to
- * the end of the file.
- */
 function toEndOfFile(pack: Uint8Array<ArrayBuffer>): Fetch {
   return async (_url, init) => {
     const { start } = rangeOf(init);
@@ -97,10 +83,6 @@ function toEndOfFile(pack: Uint8Array<ArrayBuffer>): Fetch {
   };
 }
 
-/**
- * Desktop Obsidian's answer: 200 with the bytes of the range as the body, and
- * no `Content-Range`.
- */
 function rangeAs200(pack: Uint8Array<ArrayBuffer>): Fetch {
   return async (_url, init) => {
     const { start, end } = rangeOf(init);
@@ -110,7 +92,6 @@ function rangeAs200(pack: Uint8Array<ArrayBuffer>): Fetch {
   };
 }
 
-/** iOS's answer: 200 with the full file, the header ignored. */
 function fullFile(pack: Uint8Array<ArrayBuffer>): Fetch {
   return async () => new Response(new Blob([pack]).stream(), { status: 200 });
 }
@@ -312,7 +293,6 @@ export const cases: readonly ContainerCase[] = [
   },
 ];
 
-/** The Electron renderer entry: every case's outcome, by name. */
 export async function run(): Promise<Record<string, unknown>> {
   const outcomes: Record<string, unknown> = {};
   for (const { name, run: runCase } of cases) outcomes[name] = await runCase();

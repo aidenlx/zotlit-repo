@@ -47,11 +47,6 @@ import { Instant } from "#contract/instant-codec.ts";
 import { DbUnavailable, SnapshotExpired, SnapshotId } from "#contract/rpc.ts";
 import { nodeClient } from "#desktop/node-client.ts";
 
-/**
- * Rows every contract test reads: a user library (1) and a group library (2,
- * group 900). MAIN2345 has an attachment with two annotations, a child note,
- * two related items, tags, and a collection; GRPITEMS lives in the group.
- */
 const SEED = `
   insert into version (schema, version) values ('userdata', 129);
   insert into libraries (libraryID, type, version, clientVersion)
@@ -125,16 +120,6 @@ const SEED = `
   insert into collectionItems (collectionID, itemID) values (500, 1), (500, 2);
 `;
 
-/**
- * An opener over fresh `:memory:` databases. Each open gets the next number;
- * the log records opens and closes, so a test can watch a connection's
- * lifetime, and `closed(n)` completes when connection #n closes. Open #N
- * reports library 1 at `version: N`, so a read shows which connection
- * answered. `statements()` counts the statements run on every connection,
- * and `compiles()` the statements prepared on every connection;
- * `ran(sql, open?)` counts the runs of one statement, on connection #open
- * or on any. `extra` adds SQL per open, or `null` to fail the open.
- */
 function fixtureOpener(extra: (open: number) => string | null = () => "") {
   const log: string[] = [];
   const configs: (ReadsConfig | null)[] = [];
@@ -205,7 +190,6 @@ function fixtureOpener(extra: (open: number) => string | null = () => "") {
   };
 }
 
-/** Run `body` against an in-process client over `opener`. */
 function withReads<A, E>(
   opener: ConnectionOpener,
   body: (
@@ -222,14 +206,12 @@ function withReads<A, E>(
   );
 }
 
-/** The library-1 version a read saw: which connection answered. */
 const connectionSeen = (reads: ZoteroReadsClient, snapshot?: SnapshotId) =>
   Effect.map(
     reads.Libraries(snapshot === undefined ? {} : { snapshot }),
     (libraries) => libraries.find((l) => l.libraryID === 1)!.version,
   );
 
-/** Pull from `pull` until `n` elements arrived, whatever the chunking. */
 const take = <A, E>(
   pull: Effect.Effect<readonly A[], E | import("effect").Cause.Done>,
   n: number,
@@ -869,8 +851,6 @@ describe("ZoteroReads operations", () => {
     "ScopeItemIDs lists a whole Library newest first across scan spans, by key on a tie",
     () =>
       Effect.gen(function* () {
-        // 600 and 700 sit in a later Item ID span than 1 to 3; AAAA2345 ties
-        // RELB2345 (item 2) on dateModified.
         const { open } = fixtureOpener(
           () => `
         insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
@@ -952,9 +932,7 @@ describe("ZoteroReads operations", () => {
       }),
   );
 
-  /** Ids for one row, and for many: notes live and trashed, items with and without notes, a miss. */
   const sliceIDs = { one: [200], many: [1, 2, 3, 10, 200, 201, 999] };
-  /** One operation, read for one row or for many. */
   type SliceRead = [
     string,
     (
@@ -962,7 +940,6 @@ describe("ZoteroReads operations", () => {
       size: "one" | "many",
     ) => Effect.Effect<unknown, unknown>,
   ];
-  /** Live and trashed notes and attachments beyond the base seed. */
   const sliceOpener = () =>
     fixtureOpener(
       () => `
@@ -997,7 +974,6 @@ describe("ZoteroReads operations", () => {
       (reads, size) =>
         Stream.runDrain(reads.ChildNoteRefs({ itemIDs: sliceIDs[size] })),
     ],
-    // Live notes, a trashed note, a miss, and a repeat.
     [
       "NoteBodies",
       (reads, size) =>
@@ -1009,7 +985,6 @@ describe("ZoteroReads operations", () => {
               : ["NTE22345", "NTE32345", "TRSH2345", "MISS2345", "NTE22345"],
         }),
     ],
-    // Live items, an attachment, a miss, and a repeat.
     [
       "ItemsByIndexedKeys",
       (reads, size) =>
@@ -1020,7 +995,6 @@ describe("ZoteroReads operations", () => {
               : ["MAIN2345", "RELB2345", "RELA2345", "ATCH2345", "MISS2345"],
         }),
     ],
-    // Parents with one and two attachments, one with none, and a miss.
     [
       "AttachmentsOf",
       (reads, size) =>
@@ -1028,7 +1002,6 @@ describe("ZoteroReads operations", () => {
           itemIDs: size === "one" ? [2] : [1, 2, 3, 999, 1],
         }),
     ],
-    // An annotation, a miss, and a repeat.
     [
       "AnnotationSources",
       (reads, size) =>
@@ -1040,7 +1013,6 @@ describe("ZoteroReads operations", () => {
               : ["ANNT2345", "MISS2345", "ANNT2345"],
         }),
     ],
-    // Live attachments, a trashed one, a miss, and a repeat.
     [
       "AttachmentsByKeys",
       (reads, size) =>
@@ -1063,7 +1035,6 @@ describe("ZoteroReads operations", () => {
         }),
     ],
   ];
-  /** Reads whose batched query builds its SQL per call, so it is not cached. */
   const uncachedReads = new Set(["DisplayRefs", "NoteRefs", "ChildNoteRefs"]);
   it.effect.each(sliceReads)(
     "%s runs the same statements for one row as for many",
@@ -1080,7 +1051,6 @@ describe("ZoteroReads operations", () => {
               });
             yield* cost("one");
             yield* cost("many");
-            // Each read finds rows in one library, so each resolves one group.
             return { one: yield* cost("one"), many: yield* cost("many") };
           }),
         );
@@ -1111,7 +1081,6 @@ describe("ZoteroReads operations", () => {
       }),
   );
 
-  /** Fifty Indexed Keys of one Library: its live items, misses, and a repeat. */
   const fiftyKeys = (live: string[], suffix: string) => {
     const alphabet = "23456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
     const misses = Array.from(
@@ -1123,7 +1092,6 @@ describe("ZoteroReads operations", () => {
   const userFifty = fiftyKeys(["MAIN2345", "RELA2345", "RELB2345"], "");
   const groupFifty = fiftyKeys(["GRPITEMS"], "g900");
 
-  /** Statements each `ItemsByIndexedKeys` request runs or compiles, read warm. */
   const keyReadCosts = (
     requests: (readonly string[])[],
     counter: "statements" | "compiles" = "statements",
@@ -1171,7 +1139,6 @@ describe("ZoteroReads operations", () => {
           [...userFifty, ...groupFifty],
         ]);
         expect(both).toBe(user! + group!);
-        // The user Library needs no resolution: its hydration is the one statement.
         expect(user).toBe(1);
       }),
   );
@@ -1244,7 +1211,6 @@ describe("ZoteroReads connection lifetime", () => {
             const changes = yield* Stream.toPull(reads.Changes());
             const seed = yield* take(changes, 1);
             yield* Effect.flip(reads.Libraries({}));
-            // A second failed open reports nothing new.
             yield* Effect.flip(reads.Libraries({}));
             return [...seed, ...(yield* take(changes, 1))];
           }).pipe(Effect.scoped),
@@ -1357,7 +1323,6 @@ describe("ZoteroReads connection lifetime", () => {
             return { unbound, pinned };
           }),
         );
-        // The second read of each pair runs warm; only the Snapshot's reuses lookups.
         expect(counts.pinned[1]).toBeLessThan(counts.unbound[1]!);
       }),
   );
@@ -1366,7 +1331,6 @@ describe("ZoteroReads connection lifetime", () => {
     "a Snapshot-bound stream keeps reading its connection after a swap and holds it until the stream ends",
     () =>
       Effect.gen(function* () {
-        // Open #2 drops RELA2345 (item 3); the pinned connection still holds it.
         const { open, log, closed } = fixtureOpener((id) =>
           id === 2 ? "delete from items where itemID = 3;" : "",
         );
@@ -1382,8 +1346,6 @@ describe("ZoteroReads connection lifetime", () => {
 
               const streamed = yield* Effect.scoped(
                 Effect.gen(function* () {
-                  // Started before the swap. A one-slot buffer keeps the server
-                  // from reading ahead, so the last slice is read after the swap.
                   const slices = yield* Stream.toPull(
                     reads.DisplayRefs(
                       { itemIDs: [1, 1, 1, 1, 3], snapshot: id },
@@ -1392,14 +1354,11 @@ describe("ZoteroReads connection lifetime", () => {
                   );
                   const first = yield* take(slices, 1);
                   yield* reads.Refresh();
-                  // Started after the swap, naming the Snapshot.
                   const indexed = yield* reads.ItemsByIndexedKeys({
                     indexedKeys: ["MAIN2345", "RELA2345", "RELB2345"],
                     snapshot: id,
                   });
 
-                  // End the Snapshot; its id stops answering once the server has
-                  // ended it, while the stream still holds the connection.
                   yield* Scope.close(snapshotScope, Exit.void);
                   yield* reads
                     .Libraries({ snapshot: id })
@@ -1486,7 +1445,6 @@ describe("ZoteroReads connection lifetime", () => {
         (reads) =>
           Effect.gen(function* () {
             const order: string[] = [];
-            // A one-slot buffer holds the server mid-stream until the client pulls.
             const slices = yield* Stream.toPull(
               reads.DisplayRefs(
                 { itemIDs: Array.from({ length: 10 }, () => 1) },
@@ -1518,8 +1476,6 @@ describe("ZoteroReads connection lifetime", () => {
             Effect.gen(function* () {
               yield* reads.Libraries({});
               const before = statements();
-              // Fifty one-item slices behind a one-slot buffer: the server is
-              // still mid-stream, waiting on the client, when the take ends it.
               const first = yield* Stream.runCollect(
                 Stream.take(
                   reads.DisplayRefs(
@@ -1529,7 +1485,6 @@ describe("ZoteroReads connection lifetime", () => {
                   1,
                 ),
               );
-              // The swap closes #1 only once the interrupted stream let go of it.
               yield* reads.Refresh();
               yield* closed(1);
               return { first, ran: statements() - before };
@@ -1537,8 +1492,6 @@ describe("ZoteroReads connection lifetime", () => {
           { sliceSize: 1 },
         );
         expect(result.first).toHaveLength(1);
-        // One statement per slice read, plus the refresh's validation: far from
-        // the fifty slices an uninterrupted stream would read.
         expect(result.ran).toBeLessThan(10);
       }),
   );
@@ -1568,8 +1521,6 @@ describe("ZoteroReads connection lifetime", () => {
           const oneSlice = yield* cost(
             Stream.runDrain(reads.DisplayRefs({ itemIDs: [1] })),
           );
-          // The consumer holds the first slice while other requests complete;
-          // each round trip gives a server that reads ahead the chance to.
           const roundTrips = Effect.gen(function* () {
             for (let i = 0; i < 20; i++) yield* reads.Libraries({});
           });
@@ -1585,8 +1536,6 @@ describe("ZoteroReads connection lifetime", () => {
           );
           return { oneSlice, held: held - alone };
         }).pipe(Effect.scoped);
-        // The pulled slice, and at most the one the server read before it
-        // waits for the next pull.
         expect(held).toBeLessThanOrEqual(2 * oneSlice);
       }),
   );
@@ -1632,7 +1581,6 @@ describe("ZoteroReads connection lifetime", () => {
 });
 
 describe("Connection databaseGeneration", () => {
-  /** The generation of the client a borrow gets now. */
   const generationNow = Effect.scoped(
     Effect.gen(function* () {
       const connection = yield* Connection;
@@ -1695,7 +1643,6 @@ describe("Connection databaseGeneration", () => {
     "another database at the same path gives the next client a higher generation",
     () =>
       Effect.gen(function* () {
-        // Open #2 holds another local user key, open #3 another account.
         const { open } = fixtureOpener((id) =>
           id === 2
             ? "insert into settings (setting, key, value) values ('account', 'localUserKey', 'OTHERDB2');"
@@ -1852,7 +1799,6 @@ describe("ZoteroReads Profile Match operations", () => {
 });
 
 describe("ZoteroReads SearchItems", () => {
-  /** `effect`'s value and the statements it ran on every connection. */
   const costOf =
     (statements: () => number) =>
     <A, E, R>(effect: Effect.Effect<A, E, R>) =>
@@ -1871,13 +1817,8 @@ describe("ZoteroReads SearchItems", () => {
   const keysOf = (hits: readonly { item: { indexedKey: string } }[]) =>
     hits.map((hit) => hit.item.indexedKey);
 
-  /**
-   * Open the connection. Its first open publishes `changed`; opened first,
-   * that event precedes every search, so a test counts only its own changes.
-   */
   const connect = (reads: ZoteroReadsClient) => reads.Libraries({});
 
-  /** The SQL `query` runs, read from a scratch fixture database. */
   function sqlOf(query: (client: NodeDatabaseClient) => unknown): string {
     const client = createClient(":memory:");
     const sqlite = client.$client;
@@ -1895,20 +1836,13 @@ describe("ZoteroReads SearchItems", () => {
       sqlite.close();
     }
   }
-  /** Each small fixture Library fits one build window; nothing else runs this. */
   const ID_READ = sqlOf((client) =>
     getIndexedItemRowsRange(client, 1, { from: 0, to: 500 }),
   );
-  // The Item Index reads the signature one Item ID range at a time.
   const SIGNATURE_READ = sqlOf((client) =>
     getIndexSignatureRange(client, 1, { from: 0, to: 1 }),
   );
 
-  /**
-   * Run `effect` until `accept` holds for its value, at most 500 times a
-   * millisecond apart, and answer that value; fail the test when it never
-   * holds.
-   */
   const eventually = <A, E, R>(
     effect: Effect.Effect<A, E, R>,
     accept: (value: A) => boolean,
@@ -1922,12 +1856,6 @@ describe("ZoteroReads SearchItems", () => {
       return yield* Effect.die(new Error("condition never held"));
     });
 
-  /**
-   * {@link layerRcRef} over `opener`, with controls: `degrade` makes later
-   * borrows fail and reports `degraded`, as when no client can serve;
-   * `holdBorrows` holds every later borrow until `releaseBorrows`, and
-   * `borrowHeld` waits until a borrow waits there.
-   */
   const controlledConnection = (opener: ConnectionOpener) => {
     let failure: DbUnavailable | null = null;
     let publish: (event: ChangeEvent) => Effect.Effect<void> = () =>
@@ -1964,7 +1892,6 @@ describe("ZoteroReads SearchItems", () => {
     };
   };
 
-  /** Run `body` against an in-process client over the `connection` layer. */
   const withConnection = <A, E>(
     connection: Layer.Layer<Connection>,
     body: (reads: ZoteroReadsClient) => Effect.Effect<A, E, Scope.Scope>,
@@ -2005,7 +1932,6 @@ describe("ZoteroReads SearchItems", () => {
           true,
         );
         expect(result.second.value).toEqual(result.first.value);
-        // The build reads ids and rows; a later search only hydrates.
         expect(result.first.cost).toBeGreaterThan(result.second.cost);
         expect(result.third.cost).toBe(result.second.cost);
         expect(result.used.value.map((hit) => hit.item.indexedKey)).toEqual([
@@ -2026,7 +1952,6 @@ describe("ZoteroReads SearchItems", () => {
       );
       expect(keysOf(b)).toEqual(keysOf(a));
       expect(a).toHaveLength(4);
-      // One ID window per fixture Library of one build.
       expect(ran(ID_READ)).toBe(2);
     }),
   );
@@ -2035,7 +1960,6 @@ describe("ZoteroReads SearchItems", () => {
     "a refresh of the same database with equal signatures keeps the index",
     () =>
       Effect.gen(function* () {
-        // The rename leaves `dateModified`, so the signatures stay equal.
         const { open, ran, closed } = fixtureOpener((id) =>
           id === 1
             ? ""
@@ -2045,9 +1969,6 @@ describe("ZoteroReads SearchItems", () => {
           Effect.gen(function* () {
             yield* connect(reads);
             yield* reads.SearchItems(everything);
-            // The `changed` of #2 re-checks the index on #2, and the index then
-            // holds #2; the re-check on #3 takes over, and #2 closes. The search
-            // between keeps the list from eviction at the second change.
             yield* reads.Refresh();
             yield* reads.SearchItems(everything);
             yield* reads.Refresh();
@@ -2072,7 +1993,6 @@ describe("ZoteroReads SearchItems", () => {
     "a refresh to another database file whose Libraries have equal local ids rebuilds",
     () =>
       Effect.gen(function* () {
-        // Same ids and signatures; another local user key marks another database.
         const { open } = fixtureOpener((id) =>
           id === 1
             ? ""
@@ -2101,7 +2021,6 @@ describe("ZoteroReads SearchItems", () => {
     "a Configure that points to another database file rebuilds, also with equal ids and signatures",
     () =>
       Effect.gen(function* () {
-        // Every open holds the same database; only the configured path differs.
         const { open } = fixtureOpener((id) =>
           id === 1
             ? ""
@@ -2139,7 +2058,6 @@ describe("ZoteroReads SearchItems", () => {
         (reads) =>
           Effect.gen(function* () {
             const before = yield* reads.SearchItems(inLibrary(1));
-            // No change event: the index still holds the Item.
             client.$client.exec(
               "delete from itemData where itemID = 3; delete from items where itemID = 3;",
             );
@@ -2164,7 +2082,6 @@ describe("ZoteroReads SearchItems", () => {
         Effect.gen(function* () {
           const before = yield* reads.SearchItems(everything);
           yield* degrade;
-          // The re-check the event starts finds no client and drops the index.
           const exit = yield* eventually(
             Effect.exit(reads.SearchItems(everything)),
             Exit.isFailure,
@@ -2194,7 +2111,6 @@ describe("ZoteroReads SearchItems", () => {
   it.effect("a locale change through Configure rebuilds the held index", () =>
     Effect.gen(function* () {
       const { open, ran } = fixtureOpener();
-      // A source that rebinds without a new client, as for a locale-only change.
       const quiet = Layer.effect(Connection)(
         Effect.map(Effect.service(Connection), (base) =>
           Connection.of({ ...base, configure: () => Effect.void }),
@@ -2218,7 +2134,6 @@ describe("ZoteroReads SearchItems", () => {
           );
         }),
       );
-      // Two ids reads per build: the first build and the rebuild.
       expect(builds).toBe(4);
     }),
   );
@@ -2234,7 +2149,6 @@ describe("ZoteroReads SearchItems", () => {
           Effect.gen(function* () {
             yield* connect(reads);
             const order: string[] = [];
-            // The build waits at its borrow until the release below.
             yield* holdBorrows;
             const search = yield* Effect.forkChild(
               reads
@@ -2258,8 +2172,6 @@ describe("ZoteroReads SearchItems", () => {
   );
 
   describe("with the Chinese Segmenter", () => {
-    // `Intl.Segmenter` keeps `长江流域` whole; jieba's `cut_for_search` adds
-    // `长江`, `江流`, `流域`. So `流域` hits only through jieba.
     const CHINESE_TITLE =
       "update itemDataValues set value = '长江流域的城市化研究' where valueID = 3;";
     const JIEBA_ONLY = inLibrary(1, "流域");
@@ -2268,7 +2180,6 @@ describe("ZoteroReads SearchItems", () => {
       entry: "chinese-segmenter",
       version: "1.0.0",
     };
-    /** The web-target binary the Resource Pack holds, from the dev dependency. */
     const jiebaBytes = () =>
       readFile(
         fileURLToPath(
@@ -2287,10 +2198,6 @@ describe("ZoteroReads SearchItems", () => {
       logLevel: null,
     });
 
-    /**
-     * Run `body` against an in-process client over a connection that rebinds
-     * without a new client on `Configure`, so only the Segmenter changes.
-     */
     const withSegmenter = <A, E>(
       options: HandlersOptions,
       body: (
@@ -2389,7 +2296,6 @@ describe("ZoteroReads SearchItems", () => {
                 yield* reads.SearchItems(JIEBA_ONLY);
                 yield* reads.SearchItems(everything);
                 yield* reads.Configure({ ...config(INSTALLED), locale: "zh" });
-                // A jieba hit shows only after a build with both settings.
                 for (const list of [
                   JIEBA_ONLY,
                   { ...everything, query: "流域" },
@@ -2402,7 +2308,6 @@ describe("ZoteroReads SearchItems", () => {
                 return ran(ID_READ);
               }),
           );
-          // One ids read per Library per build: [1] and [1, 2], each built twice.
           expect(result).toBe(6);
         }),
     );

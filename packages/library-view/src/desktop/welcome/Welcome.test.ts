@@ -1,7 +1,4 @@
 // @vitest-environment happy-dom
-// The Welcome View banner as it draws from its store: its header, its checklist
-// of setup steps, its Help Links, and the template conversion and migration
-// sections.
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 import { act } from "preact/test-utils";
@@ -59,8 +56,6 @@ it("offers the user-controlled template conversion in upgraded onboarding", asyn
   expect(container.textContent).toContain(
     m.welcome_template_conversion_title(),
   );
-  // One lead sentence beside the action; the full explanation is folded
-  // behind "How it works".
   expect(container.textContent).toContain(m.welcome_template_conversion_lead());
   const details = container.querySelector("details");
   expect(details?.open).toBe(false);
@@ -123,7 +118,6 @@ describe("Welcome setup checklist", () => {
     [...container.querySelectorAll('[role="heading"]')].map(
       (el) => el.textContent,
     );
-  /** The checklist row of the step titled `title`. */
   function step(container: HTMLElement, title: string): HTMLElement {
     const heading = [...container.querySelectorAll('[role="heading"]')].find(
       (el) => el.textContent === title,
@@ -156,7 +150,6 @@ describe("Welcome setup checklist", () => {
     );
     await act(() => button(folder, m.welcome_action_pick_folder())?.click());
     expect(actions.pickFolder).toHaveBeenCalledOnce();
-    // The library step is done, so its text stays folded away.
     expect(container.textContent).not.toContain(m.welcome_step_library_body());
   });
 
@@ -201,7 +194,6 @@ describe("Welcome setup checklist", () => {
       [...container.querySelectorAll("[data-welcome-step]")].map((el) =>
         el.getAttribute("data-welcome-step"),
       ),
-      // ZotLit Companion is optional: it does not keep setup from being done.
     ).toEqual(["done", "done", "done", "todo", "done"]);
   });
 
@@ -328,14 +320,12 @@ describe("Welcome setup checklist", () => {
 });
 
 describe("Help Links", () => {
-  /** The accessible name of a link: the element its `aria-labelledby` names, else its text. */
   function name(a: Element): string | null {
     const labelledBy = a.getAttribute("aria-labelledby");
     return labelledBy
       ? (a.ownerDocument.getElementById(labelledBy)?.textContent ?? null)
       : a.textContent;
   }
-  /** Each link on the banner: its name, the page it names, and the page a click opens. */
   function links({
     actions,
     container,
@@ -353,7 +343,6 @@ describe("Help Links", () => {
       ];
     });
   }
-  // The docs site of the test build is https://zotlit.aidenlx.site.
   const page = (label: string, url: string) => [label, url, [[url]]];
   const HELP_LINKS = [
     page("Getting started", "https://zotlit.aidenlx.site/learn"),
@@ -520,7 +509,6 @@ it("keeps a refusal readable in the banner after the notice is gone", async () =
       files: "templates/zotlit-note.liquid.md",
     }),
   );
-  // The button stays available for the retry after the file is edited.
   expect(button?.disabled).toBe(false);
 });
 
@@ -582,7 +570,6 @@ async function render(
     AsyncResult.initial(),
   );
   cleanup.defer(registry.mount(conversion));
-  // The banner runs the conversion command; here each gesture answers at once.
   const converted = (run: ConversionRun) =>
     registry.set(conversion, AsyncResult.success(run));
   const model = {
@@ -615,7 +602,6 @@ async function render(
     openSettings: vi.fn(),
     pickFolder: vi.fn(),
     searchLibrary: vi.fn(),
-    // The banner saves it in plugin data, which seeds the store.
     showSteps: vi.fn((shown: boolean) => store.setState({ stepsShown: shown })),
   };
   const container = document.createElement("div");

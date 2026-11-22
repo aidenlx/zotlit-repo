@@ -10,14 +10,10 @@ import { obsidianMock, obsidianSetupFile } from "./vitest.preset.ts";
 export default defineConfig({
   resolve: {
     alias: {
-      // The published `obsidian` package is types-only; runtime imports of it
-      // load the stand-in.
       obsidian: obsidianMock,
     },
     tsconfigPaths: true,
   },
-  // The build constants the kernel reads, as the plugin's own test config
-  // defines them.
   define: {
     __PLUGIN_ID__: JSON.stringify("zotlit"),
     __ANNOTATION_SUGGESTER_ENABLED__: JSON.stringify(true),
@@ -37,8 +33,6 @@ export default defineConfig({
     clearMocks: true,
     server: {
       deps: {
-        // Run through Vite so its `react` import lands on the Preact alias
-        // like our own sources; externalized, it would load real React.
         inline: ["@effect/atom-react"],
       },
     },

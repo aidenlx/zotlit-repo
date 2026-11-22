@@ -76,7 +76,6 @@ import type {
 
 import { features } from "./features.ts";
 
-/** The legacy values the links of every feature hold, as one case sets them. */
 type LinkDeps = NoteLinkPorts & AttachmentLinkPorts;
 
 vi.mock(
@@ -153,7 +152,6 @@ const SOURCE_ID = "abc12345";
 type ItemDisplayRef = NonNullable<ReturnType<typeof getItemDisplayRefByID>>;
 type DisplayRefSlice = { itemID: number; ref: ItemDisplayRef | null }[];
 
-/** The ZoteroReads operations the handlers call, answering what a test sets. */
 const reads = {
   DisplayRefs: vi.fn((_input: Parameters<ZoteroReadsApi["DisplayRefs"]>[0]) =>
     Stream.make<DisplayRefSlice[]>([]),
@@ -162,7 +160,6 @@ const reads = {
     (_input: Parameters<ZoteroReadsApi["AttachmentsAt"]>[0]) =>
       Effect.succeed<readonly Attachment[]>([]),
   ),
-  /** My Library and the group "Reading group" (group 7, local id 12). */
   Libraries: vi.fn((_input: Parameters<ZoteroReadsApi["Libraries"]>[0]) =>
     Effect.succeed<Library[]>([
       {
@@ -183,7 +180,6 @@ const reads = {
       },
     ]),
   ),
-  /** Two notes in every Library and collection a plan asks for. */
   ScopeItemIDs: vi.fn((_input: Parameters<ZoteroReadsApi["ScopeItemIDs"]>[0]) =>
     Effect.succeed<number[] | null>([5, 6]),
   ),
@@ -195,24 +191,20 @@ const readsApi = readsAnswering({
   ScopeItemIDs: (input) => reads.ScopeItemIDs(input),
 });
 
-/** Item `itemID` reads as `ref`. */
 function refOf(ref: ItemDisplayRef): void {
   reads.DisplayRefs.mockReturnValue(
     Stream.make<DisplayRefSlice[]>([{ itemID: ref.itemID, ref }]),
   );
 }
 
-/** The id reads as these Attachments. */
 function attachmentsAt(attachments: readonly Attachment[]): void {
   reads.AttachmentsAt.mockReturnValue(Effect.succeed(attachments));
 }
 
-/** An Attachment row with only the id a handler reads. */
 function attachmentOf(itemID: number): Attachment {
   return stubService<Attachment>("Attachment", { itemID });
 }
 
-/** An Obsidian-Openable Attachment with the fields the reader reads. */
 function openableAttachment(indexedKey: string): ObsidianOpenableAttachment {
   return {
     indexedKey,
@@ -222,7 +214,6 @@ function openableAttachment(indexedKey: string): ObsidianOpenableAttachment {
   };
 }
 
-/** An Item ref as the database reads it. */
 const REF: ItemDisplayRef = {
   itemID: 1,
   libraryID: 1,
@@ -231,17 +222,13 @@ const REF: ItemDisplayRef = {
   indexedKey: "ABCD2345",
   title: "Alpha",
 };
-/** {@link REF} as a handler passes it on: the ref without the title. */
 const { title: _title, ...ITEM_REF } = REF;
 
-/** Opens the note import's batch modal; records what a link import opened. */
 const openBatchModal = vi.fn<NoteImportView["openBatchModal"]>();
-/** The note import's modals, which a link-started import receives. */
 const noteImportView = stubService<NoteImportView>("NoteImportView", {
   openBatchModal: (options) => openBatchModal(options),
 });
 
-/** Protocol handlers registered by the plugin, keyed by their action id. */
 const handlers = new Map<string, (data: ObsidianProtocolData) => unknown>();
 
 function protocolData(
@@ -253,7 +240,6 @@ function protocolData(
 
 function appStub(members: Partial<App> = {}): App {
   const app = stubService<App>("App", members);
-  // Vitest's pretty-printer probes this React marker after a failed match.
   Object.defineProperty(app, "$$typeof", { value: undefined });
   Object.defineProperty(app, "nodeType", { value: undefined });
   Object.defineProperty(app, "tagName", { value: undefined });
@@ -261,31 +247,22 @@ function appStub(members: Partial<App> = {}): App {
   return app;
 }
 
-/** What one case sets on the services and legacy values the handlers read. */
 interface Setup {
   readonly deps?: Partial<LinkDeps>;
-  /** The Attachment opener the `open-attachment` handler reads. */
   readonly opener?: Pick<TargetOpener["Service"], "open">;
-  /** The database state; `ready` by default. */
   readonly state?: ZoteroReadsState["state"];
   readonly updateManyRequests?: Stream.Stream<UpdateManyRequest>;
   readonly importNotesRequests?: Stream.Stream<ImportNotesRequest>;
-  /** The vault's files, by path. */
   readonly files?: ReadonlyMap<string, TFile>;
   readonly workspace?: MemoryWorkspace;
-  /** Finds a vault file by path; `files` by default. */
   readonly getFileByPath?: (path: string) => Effect.Effect<TFile | null>;
-  /** Waits for the Note Index; done at once by default. */
   readonly whenIndexed?: Effect.Effect<void>;
 }
 
-/** Each Indexed Key a link showed in the Library View, in order. */
 const shownInLibrary: string[] = [];
 
-/** The services the handlers read, over the case's fakes. */
 function servicesFor(setup: Setup = {}) {
   return Layer.mergeAll(
-    // The import dialog's own services: every case fakes the dialog.
     Layer.mock(Template, {}),
     Layer.mock(FileManager, {}),
     Layer.succeed(
@@ -326,7 +303,6 @@ function servicesFor(setup: Setup = {}) {
           shownInLibrary.push(indexedKey);
         }),
     }),
-    // A link import reads only these members before it opens its modal.
     Layer.mock(NoteIndex, { whenIndexed: setup.whenIndexed ?? Effect.void }),
     Layer.mock(LibraryScope, {}),
     Layer.mock(MetadataCache, {}),
@@ -346,7 +322,6 @@ function servicesFor(setup: Setup = {}) {
   );
 }
 
-/** The links of every feature, over the case's legacy values. */
 function linksOf(deps: LinkDeps) {
   const ports = Effect.succeed(deps);
   return [
@@ -357,18 +332,15 @@ function linksOf(deps: LinkDeps) {
   ];
 }
 
-/** The case's legacy values: stubs, unless the case sets them. */
 function depsOf(setup: Setup): LinkDeps {
   return stubService<LinkDeps>("LinkDeps", {
     noteImportView,
-    // A link import's modal callbacks would run here; no case drives them.
     bridge: stubService<LinkDeps["bridge"]>("EffectBridge", {}),
     app: appStub(),
     ...setup.deps,
   });
 }
 
-/** The plugin host the shell registers the links on; it records each handler. */
 const recordingHost = () =>
   testPluginHost({
     registerObsidianProtocolHandler: (action, handler) => {
@@ -376,10 +348,6 @@ const recordingHost = () =>
     },
   });
 
-/**
- * Register the links over the case's fakes, as the shell registers them, and
- * run the Local Server's pushed requests; the case's Scope stops both.
- */
 const register = Effect.fn("register")(function* (setup: Setup = {}) {
   const deps = depsOf(setup);
   const context = yield* Layer.build(
@@ -393,7 +361,6 @@ const register = Effect.fn("register")(function* (setup: Setup = {}) {
   );
 });
 
-/** Drive one registered handler with the source id and wait for its run to end. */
 const dispatch = Effect.fn("dispatch")(function* (
   action: string,
   query: Record<string, string> = {},
@@ -502,12 +469,10 @@ describe("open-attachment protocol link", () => {
   };
   beforeEach(() => opener.open.mockClear());
 
-  /** Register with the Attachment opener and the App the reader gets. */
   const registerOpener = (state?: ZoteroReadsState["state"]) =>
     register({
       deps: {
         app,
-        // The picker's opens run here; each case reads the open it asked for.
         bridge: stubService<LinkDeps["bridge"]>("EffectBridge", {
           runAndForget: () => {},
         }),
@@ -663,7 +628,6 @@ describe("layerProtocolHandlers", () => {
       Effect.gen(function* () {
         yield* Layer.build(
           layerProtocolHandlers(
-            // The note import modal's callbacks run on the layer's Scope.
             noteLinks(
               Effect.map(scopedBridge, (bridge) =>
                 stubService<NoteLinkPorts>("NoteLinkPorts", {

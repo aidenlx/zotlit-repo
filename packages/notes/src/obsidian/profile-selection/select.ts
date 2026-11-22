@@ -1,8 +1,5 @@
 import type { MatchItem } from "#core/profile-selection/item-matches.ts";
 import type { LiteratureNoteProfile } from "#obsidian/profile/service.ts";
-// The one Profile whose Match holds for each Item. One Items query of ZotLit
-// Query reads every Item of a batch and tests each Profile's Match as a
-// Formula; the query engine slices that work in the worker.
 import { Effect } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
@@ -20,14 +17,8 @@ export type MatchSelection =
     }
   | { outcome: "overlap"; candidates: readonly LiteratureNoteProfile[] }
   | { outcome: "unmatched" }
-  /** ZotLit Query could not read the Item, so no Match is known. */
   | { outcome: "failed" };
 
-/**
- * The Profiles whose Match holds for each of `items`, in their order. A
- * Match the query cannot evaluate for an Item, such as one that reads a custom
- * field the database lacks, does not hold.
- */
 export const selectProfilesByMatch = Effect.fnUntraced(function* (
   profiles: readonly LiteratureNoteProfile[],
   items: readonly MatchItem[],

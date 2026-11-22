@@ -576,7 +576,6 @@ async function exercise(
                   tags: ["figure"],
                   itemTitle: expected.itemTitle,
                   attachmentPath: null,
-                  // Reproduce the live answer: the old shared schema forced this unrequested value.
                   attachmentExists: true,
                   hasExcerptImage: true,
                   position: null,

@@ -113,7 +113,6 @@ describe("readCollectionPaths", () => {
     );
     const groupPaths = runOk(scenario, readCollectionPaths({ libraryID: 2 }));
 
-    // Archive is trashed; Archive/Old is live below it.
     expect([...personalPaths.values()]).toHaveLength(4);
     expect([...personalPaths.values()]).toEqual(
       expect.arrayContaining([
@@ -168,8 +167,6 @@ describe("readHydrateChunk", () => {
       ),
     );
 
-    // The chapter also stores `bookTitle`, a type-specific field of another
-    // base field.
     expect(rows).toEqual([
       expect.objectContaining({ itemID: id, value: "A Chapter on Sampling" }),
     ]);
@@ -302,11 +299,9 @@ describe("readHydrateChunk", () => {
       ["collections"],
     );
 
-    // ART2FULL is also in Archive/Old, below the trashed Archive.
     expect(items.get("fullDateArticle")?.collections).toEqual([
       ["Thesis", "Methods"],
     ]);
-    // BK2MNTH2 is also in the trashed Archive.
     expect(items.get("yearMonthBook")?.collections).toEqual([
       ["Teaching", "Methods"],
     ]);
@@ -330,7 +325,6 @@ describe("readHydrateChunk", () => {
   });
 
   it("ignores a trashed Attachment", () => {
-    // ART2FULL keeps only its trashed Attachment.
     using scenario = openScenarioDatabase(connectClient);
     scenario.sqlite
       .prepare(

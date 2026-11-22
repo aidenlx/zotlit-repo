@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { ItemQueryScheduler, ItemQuerySliceObserver } from "./scheduler.ts";
 
-/** `steps` operations that each take `stepMs` of the fake time `clock`. */
 function work(steps: number, stepMs: number, clock: { now: number }) {
   return Effect.gen(function* () {
     for (let i = 0; i < steps; i++) {
@@ -33,12 +32,9 @@ describe("ItemQueryScheduler", () => {
       },
     });
 
-    // 40 operations of 3 ms: Effect's default scheduler runs them as one slice.
     const result = await Effect.runPromise(work(40, 3, clock), { scheduler });
 
     expect(result).toBe(40);
-    // The third operation of a slice reaches 9 ms >= 8 ms: 40 operations make
-    // 13 full slices and a last one of 3 ms that ends without a pause.
     expect(slices).toEqual(Array.from({ length: 13 }, () => 9));
   });
 
@@ -65,8 +61,6 @@ describe("ItemQueryScheduler", () => {
     const result = await Effect.runPromise(work(40, 3, clock), { scheduler });
 
     expect(result).toBe(40);
-    // The second operation of a slice reaches 6 ms >= SLICE_BUDGET_MS: one
-    // pause for every 2 of the 40 operations, the last one included.
     expect(post).toHaveBeenCalledTimes(20);
     expect(immediate).not.toHaveBeenCalled();
     expect(timeout).not.toHaveBeenCalled();
@@ -80,7 +74,6 @@ describe("ItemQueryScheduler", () => {
       now: () => clock.now,
       pause: (resume) => {
         const timer = setImmediate(() => {
-          // The host takes 5 ms between two slices.
           clock.now += 5;
           resume();
         });
@@ -88,7 +81,6 @@ describe("ItemQueryScheduler", () => {
       },
     });
 
-    // 6 operations of 3 ms: the budget ends after the third and the sixth.
     await Effect.runPromise(
       Effect.provideService(work(6, 3, clock), ItemQuerySliceObserver, {
         paused: (at) => events.push(["paused", at]),
@@ -124,8 +116,6 @@ describe("ItemQueryScheduler", () => {
 
     await Effect.runPromise(work(40, 3, clock), { scheduler });
 
-    // One fiber waits at each of the 20 pauses, so each pause opens a channel
-    // and its message closes it.
     expect(opened).toBe(20);
     expect(close).toHaveBeenCalledTimes(20);
   });

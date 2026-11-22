@@ -1,7 +1,6 @@
 import { Fragment } from "react";
 import type { ReactNode } from "react";
 
-/** Keeps translated text and its named React slots in the translator's order. */
 export function Message({
   text,
   slots,

@@ -28,3 +28,45 @@ Capture claims a click only when `AttachmentResolver` resolves the path to an Ob
 - Capture warms the resolver's index as it installs. The index is built on the first lookup, and until it lands every lookup answers `pending`, which passes the click. A note's links are clicked before any PDF asks for the index, so without the warm-up the first click of a session would leave Obsidian.
 - `reader.open-file-links` turns Capture off. The patch is still installed and still hands every call to the original, rather than being installed and removed as the setting moves — one fewer moving part, at the price of one property read per external link click.
 - `reader.open-annotation-links` hands Durable Annotation Links alone back to Zotero. The opener's `follow` reads it per link, inside the branch that has already parsed one, and declines while it is off, so a `file:` link and every other `zotero:` link keep their path. Annotation hover stays enabled. The opener's keyed `open`, which the page chip (on Annotation View, query block and Reading Card cards), the Query View's annotation rows and the other ZotLit gestures use, reads the same rule for an Annotation target: while either setting is off it hands the Annotation's Durable Annotation Link to Zotero without the index lookup. A page chip shows that link as its `href`, so users read it as an annotation link, and the setting promises that annotation links open in Zotero ([#1980](https://github.com/aidenlx/zotlit/issues/1980)). An Attachment target opens as before, since the open-PDF gestures name Obsidian's reader in their own label.
+
+## Capture and gesture lifetime
+
+Decide whether to claim the link synchronously before returning from the patched `window.open`. Pass through a named tab, split, or window pane. The empty target from Reading view, absent target from Live Preview, and `_blank` from Properties all select the current pane. Execute a claimed open on the plugin's scoped runner. In the capture tests, send the fallback through the current patched window member to prove that it passes through once. Read that same member after disposal to exercise restoration. [Capture](../../../../packages/annotations/src/desktop/attachment-open/capture.ts) · [Capture tests](../../../../packages/annotations/src/desktop/attachment-open/capture.test.ts)
+
+Send picker rows through the Target Opener by Indexed Key. A gesture starts the open without waiting, and unload can end it while it waits for the Attachment index. A view sends the open through the plugin's view registry so replacing the initiating tab leaves the open running until plugin unload. [Open command](../../../../packages/annotations/src/desktop/attachment-open/actions.ts) · [View opener](../../../../packages/annotations/src/desktop/attachment-open/view-opener.ts)
+
+A keyed open waits up to five seconds for the first Attachment index. This gives a click during startup a chance to use the local PDF. A failed build leaves the first index pending. The resolver can retry it on a later lookup. If the index is still pending after the wait, the opener sends the target to Zotero. Link Capture uses the index it has when the click arrives because the decision must finish before it returns. [Target Opener](../../../../packages/annotations/src/desktop/attachment-open/open-target.ts) · [Attachment Resolver](../../../../packages/plugin-services/src/obsidian/attachment-resolver/service.ts)
+
+The host supplies the PDF reader and can bring its Annotation View forward with the file. The opener reports which destination accepted the target. It shows a missing-file notice for a captured Attachment File Link because the link provides no Zotero identity for fallback. Reader and system errors produce a failure notice. Interrupting the pending open ends it without opening a destination or showing a notice. [Target Opener tests](../../../../packages/annotations/src/desktop/attachment-open/open-target.test.ts)
+
+The ephemeral fragment has no separate library segment. The Attachment and Annotation keys therefore carry the library in their Indexed Key. A keyed Annotation gesture converts its zero-based page index to the fragment's one-based page. A Durable Annotation Link can supply a numeric page label for that fallback. When the reader finds the Annotation, it uses the Annotation's actual page. [Target Opener](../../../../packages/annotations/src/desktop/attachment-open/open-target.ts) · [ADR 0046](./0046-landing-on-a-mark-is-an-ephemeral-state-contract-read-at-the-leaf.md)
+
+The opener tests seed a Zotero database and use the real Attachment Resolver. The test ports record reader opens, system opens, and notices. The shared-path rows exercise the distinction between the named Attachment and the path index's preferred Attachment. The fixture propagates the test's clock into the runtime so tests can advance the index wait and dispose the opener while a gesture is pending. [Opener fixture](../../../../packages/annotations/src/__fixtures__/attachment-open.ts)
+
+The page chip builds an Open Target from the Attachment and Annotation Indexed Keys. Its Backlink extracts the bare Zotero keys and group ID from those identities when it builds the Zotero URI. [Card actions](../../../../packages/annotations/src/desktop/annot-view/actions.tsx)
+
+The desktop feature mounts the shared Open Target command on the plugin's view registry. A reader open can replace the initiating tab, so that lifetime allows the open to finish after the tab closes. File Link Capture uses the same Target Opener. [Desktop feature](../../../../packages/annotations/src/desktop/feature.ts)
+
+The card's page chip identifies the type, page and colour. It can use the full card as the drag image, offset to the grab point. When the chip has a Backlink, its press uses the shared Open Target action and takes the pane choice from the modifier key. This gives a local PDF the normal reader path. With no Backlink, the chip leaves a click to the card's selection gesture. [Page chip](../../../../packages/annotations/src/desktop/annot-view/Annotation.tsx)
+
+File Link Capture controls the destination of a clicked Attachment File Link. The Durable Annotation Link setting separately chooses whether the PDF Reader opens with its Annotation selected or Zotero handles the link.
+
+### Durable Annotation Link proof
+
+Exercise click routes from note surfaces, Annotation View chips,
+embedded Annotation cards, and Obsidian's open-in-default-app action.
+The chips use the same Durable Annotation Link and follow its Reader
+setting. A link can still land on the Attachment and page when the
+Annotation has gone. If the PDF file is missing, forward the link to
+Zotero without also showing a missing-file notice. Keep the legacy
+device-local route working.
+
+Run each link gesture and its cleanup together. Record URLs handed off
+to Zotero without launching the local app. Reload ZotLit over an
+installed recorder so its startup patch wraps the recorder. Suppress
+native anchor navigation separately without recording it, so a chip
+that misses the intended route fails the proof. Verify that Capture
+warms the Attachment index before any PDF opens. Poll readiness without
+performing a lookup because a lookup can itself start the build.
+
+[Link cases](../../../../packages/e2e/src/annotation-links.e2e.ts)

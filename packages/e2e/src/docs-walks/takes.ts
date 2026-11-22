@@ -1,9 +1,3 @@
-// The take record of the docs-walk clips: how each clip was recorded, kept
-// in the private `video/` clone, while the footage stays out of git.
-// A take holds what a new encode or a longer edit needs: the logged actions,
-// the camera track the clip was cut with, the recorder's commit, the app
-// versions, the command, and the clip's length and output sizes.
-
 import { regex } from "arkregex";
 import { execFile } from "node:child_process";
 import { access, mkdir, readFile, stat, writeFile } from "node:fs/promises";
@@ -16,7 +10,6 @@ import type { ClipSettings } from "./clip-settings.ts";
 
 const execFileAsync = promisify(execFile);
 
-/** The files whose code records and cuts a clip. */
 const RECORDER = [
   "packages/e2e/src/docs-walks/docs-walk.ts",
   "packages/e2e/src/docs-walks/camera.ts",
@@ -26,46 +19,27 @@ const RECORDER = [
   "packages/e2e/src/docs-walks/pointer-look.ts",
 ];
 
-/** One recorded clip. */
 export interface Take {
   recordedAt: string;
-  /** The walk's step (its test name) that records the clip. */
   step: string;
-  /**
-   * How to make the clip again: `build`, then `record` records this clip
-   * alone (the walk runs every step, as the steps build on each other), and
-   * `recut` cuts it again from the saved frames, while they last.
-   */
   recipe: { build: string; record: string; recut?: string };
-  /** The switches the run had, `DOCS_WALK_*` and nothing else. */
   env: Record<string, string>;
-  /** The End-to-end Run version pin did not match the running Obsidian. */
   versionGateBypass: boolean;
-  /** The last commit of the recorder's files, and whether they had edits. */
   recorder: { commit: string; edited: boolean };
   apps: { obsidian: string; obsidianPin: string; zotero: string };
   vaultCase: string;
   window: { width: number; height: number };
-  /**
-   * A CDP screencast of Obsidian, a macOS capture of a Zotero window, or a
-   * sequence of shots from several apps cut into one clip.
-   */
   source: "obsidian-screencast" | "zotero-window" | "sequence";
-  /** Where the raw frames or movie were saved, out of git. */
   frames: string;
-  /** The clip settings it was recorded and cut with. */
   settings: ClipSettings;
-  /** The clip's length in seconds, and each output's size in bytes. */
   duration: number;
   outputs: Record<string, number>;
   camera?: {
-    /** Where the track came from: the planner, a hand override, or none. */
     track: "planned" | "override" | "whole";
     viewport: { width: number; height: number };
     events: CameraEvent[];
     keyframes: CameraTrack["keyframes"];
   };
-  /** A sequence's shots, in order: each one's folder, action log and track. */
   shots?: {
     dir: string;
     viewport: { width: number; height: number };
@@ -74,17 +48,11 @@ export interface Take {
   }[];
 }
 
-/** What a take shares with every other take of the run. */
 export type TakeRun = Pick<
   Take,
   "env" | "versionGateBypass" | "recorder" | "apps" | "vaultCase" | "window"
 >;
 
-/**
- * The facts of this run that every take repeats. `running` is the Obsidian
- * version the app reports; the pin is read from the committed
- * `vault-script.ts`, so a local edit of the pin shows as a bypass.
- */
 export async function takeRun(
   root: string,
   options: {
@@ -125,10 +93,6 @@ export async function takeRun(
   };
 }
 
-/**
- * The commands that make the clip `name` of the walk `slug` again, run from
- * the workspace root. `frames` is the frames folder of a screencast clip.
- */
 export function takeRecipe(
   root: string,
   options: {
@@ -136,7 +100,6 @@ export function takeRecipe(
     name: string;
     out: string;
     frames?: string;
-    /** The walk's own settings; its cut settings go into `recut`. */
     clip?: Partial<ClipSettings>;
   },
 ): Take["recipe"] {
@@ -149,7 +112,6 @@ export function takeRecipe(
   return {
     build:
       "pnpm exec turbo run build:dev --filter=@zotlit/obsidian --filter=@zotlit/zotero",
-    // A clip with real desktop input records only under DOCS_WALK_NATIVE=1.
     record: `${process.env.DOCS_WALK_NATIVE === "1" ? "DOCS_WALK_NATIVE=1 " : ""}DOCS_WALK_RECORD=1 DOCS_WALK_ONLY=${name} pnpm --filter @zotlit/e2e docs-walk src/docs-walks/${slug}.walk.ts`,
     ...(frames && {
       recut: `${recutEnv}node packages/e2e/src/docs-walks/clip-encode.ts ${relative(root, frames)} ${relative(root, out)}`,
@@ -157,7 +119,6 @@ export function takeRecipe(
   };
 }
 
-/** The size in bytes of each output of the clip `out` that exists. */
 export async function outputSizes(
   root: string,
   out: string,
@@ -174,7 +135,6 @@ export async function outputSizes(
   return sizes;
 }
 
-/** The length in seconds of the video `file`. */
 export async function videoLength(file: string): Promise<number> {
   const { stdout } = await execFileAsync("ffprobe", [
     "-v",
@@ -188,7 +148,6 @@ export async function videoLength(file: string): Promise<number> {
   return Math.round(Number(stdout.trim()) * 1000) / 1000;
 }
 
-/** The take record of `slug`: in `video/` when checked out, else in `.scratch/`. */
 export async function takeRecordFile(
   root: string,
   slug: string,
@@ -200,7 +159,6 @@ export async function takeRecordFile(
   );
 }
 
-/** Write `take` as the clip `name` into the take record `file`. */
 export async function writeTake(
   file: string,
   name: string,

@@ -1,6 +1,3 @@
-// The tab service over the host's services, for the rows the host keeps and
-// the tab class.
-
 import { Context, Effect, FileSystem, Layer } from "effect";
 
 import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
@@ -35,11 +32,6 @@ import { Customize } from "@zotlit/template-workbench/desktop/view/customize.ts"
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 
-/**
- * Every service the tab reads, with no member implemented: a test's own
- * services replace these, and a member no test gave fails that Effect with an
- * unimplemented defect.
- */
 export const unimplementedTabServices = Layer.mergeAll(
   Layer.mock(PluginSettings)({}),
   Layer.mock(Profile)({}),
@@ -62,7 +54,6 @@ export const unimplementedTabServices = Layer.mergeAll(
   Layer.mock(AttachmentImport)({}),
   Layer.mock(Customize)({}),
   Layer.mock(TemplateWorkbenchLauncher)({}),
-  // Services with plain members: a read of a member no test gave throws.
   Layer.succeed(
     LanguagePack,
     stubService<LanguagePack["Service"]>("LanguagePack", {}),
@@ -93,11 +84,6 @@ export const unimplementedTabServices = Layer.mergeAll(
 export const { scopedSettingTab, rebuildingSettingTab, testSettingTab } =
   settingTabHarness(unimplementedTabServices);
 
-/**
- * The Profile, Template and Vault reads of the Profile and Template rows:
- * a loaded registry with no Profile, no excluded document, no partial and no
- * saved Default document, unless a test overrides a member.
- */
 export function profileRowServices(
   overrides: {
     profile?: Partial<Profile["Service"]>;

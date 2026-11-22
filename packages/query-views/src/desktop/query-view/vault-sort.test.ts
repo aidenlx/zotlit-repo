@@ -15,7 +15,6 @@ function item(
   return { indexedKey: key, values };
 }
 
-/** The vault of these tests: each Item's frontmatter, or no note. */
 function reader(vault: Record<string, Record<string, unknown> | null>) {
   return (row: QueryViewRow, name: string): VaultValue => {
     const frontmatter = vault[row.indexedKey];
@@ -50,8 +49,6 @@ describe("sortByVault", () => {
         reader(VAULT),
       );
       expect(keys(sorted).slice(0, 3)).toEqual(valued);
-      // A null, an empty string and no note are all empty, and keep the
-      // engine's order among themselves.
       expect(keys(sorted).slice(3)).toEqual([
         "ITEMCCCC",
         "ITEMDDDD",
@@ -84,8 +81,6 @@ describe("sortByVault", () => {
     ]);
   });
 
-  // The rows come in the engine's order of its sort keys; a date sorts by
-  // its first day there, not by the value a row shows.
   const year = (y: number) => ({ kind: "year", year: y }) as QueryViewValue;
   const ENGINE_ROWS = [
     item("ITEMAAAA", { date: year(2001) }),
@@ -117,7 +112,6 @@ describe("sortByVault", () => {
   });
 
   it("breaks a tie of the engine's sort key with the vault property, where the dates show differently", () => {
-    // `2024` sorts as its 1 January in the engine, so it ties `2024-01-01`.
     const date = (raw: string, month: number | null, day: number | null) =>
       ({
         kind: day === null ? "year" : "day",
@@ -155,7 +149,6 @@ describe("sortByVault", () => {
       { property: "vault.status", direction: "DESC" },
       { property: "date", direction: "DESC" },
     ];
-    // The engine ran the date DESC, so its rows come newest first.
     const engine = [
       ENGINE_ROWS[2]!,
       ENGINE_ROWS[3]!,

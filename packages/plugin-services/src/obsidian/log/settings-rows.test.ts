@@ -9,7 +9,6 @@ import { saveLogArchive } from "./settings-rows.ts";
 
 const LOG = ".obsidian/plugins/zotlit/zotlit.log";
 
-/** The failure `effect` ends with over `vault`. */
 const failureOf = <E>(
   effect: Effect.Effect<void, E, Vault>,
   vault: Partial<Vault["Service"]>,

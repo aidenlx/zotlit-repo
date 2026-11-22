@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-// Refreshes a vendored upstream tree from GitHub at one commit, and records
-// that commit in the `provenance.json` next to the files.
-//
-//   node packages/scripts/scripts/vendor-upstream.ts <source> [ref]
-//
-// `<source>` names an entry of `SOURCES`. `[ref]` is a commit, branch or tag of
-// the upstream repository; it defaults to the upstream default branch. The
-// script replaces each vendored path with the upstream copy, so a review of the
-// git diff shows every upstream change.
 import { execFileSync } from "node:child_process";
 import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -16,13 +7,9 @@ import { join } from "node:path";
 import { getWorkspaceRoot } from "#package-roots";
 
 interface VendoredSource {
-  /** GitHub repository, as `owner/name`. */
   readonly repository: string;
-  /** Folder that holds the copy and its `provenance.json`, from the workspace root. */
   readonly dest: string;
-  /** Upstream paths to copy, the same relative path in `dest`. */
   readonly paths: readonly string[];
-  /** What to run after a refresh, so the copy's consumers follow it. */
   readonly next: string;
 }
 
@@ -89,7 +76,6 @@ try {
 console.log(`${source.dest}: ${source.repository} at ${commit}.`);
 console.log(source.next);
 
-/** The full commit SHA that `ref` names in `repository`. */
 async function resolveCommit(repository: string, ref: string): Promise<string> {
   const url = `https://api.github.com/repos/${repository}/commits/${encodeURIComponent(ref)}`;
   const response = await fetch(url, {

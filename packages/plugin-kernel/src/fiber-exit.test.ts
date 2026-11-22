@@ -12,8 +12,6 @@ describe("joinForked", () => {
         const scope = yield* Scope.make();
         let caller: FiberType.Fiber<unknown, unknown> | undefined;
         let stopped = false;
-        // The forked Effect interrupts its caller on its first step, while the
-        // caller is still between the fork and the join.
         const child = Effect.sync(() => caller?.interruptUnsafe()).pipe(
           Effect.andThen(Effect.never),
           Effect.onInterrupt(() =>

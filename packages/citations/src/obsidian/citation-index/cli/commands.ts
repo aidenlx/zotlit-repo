@@ -1,4 +1,3 @@
-// Decodes citation questions and presents complete index answers as contract 4 JSON.
 import type {
   CitationIndex,
   DocumentCitationSet,

@@ -1,15 +1,3 @@
-// The measurement command of ZotLit Query, registered in a dev build only. The
-// release-time measurement script (packages/e2e/src/query-measure.ts) calls
-// them to read what `zotlit:query` cannot report: the slices of the
-// engine, its statements, the heap, and the time from a cancel request to
-// settlement. Each run goes through the handler of `zotlit:query` itself,
-// with the two observer references of the engine provided. A run with `id` is
-// a named query: the production `zotlit:query-cancel` stops it.
-//
-// Command, flag, and diagnostic text is all hardcoded English: an
-// agent-facing contract surface, not localized UI. See
-// apps/obsidian/policies/cli-text.md.
-
 import { Cause, Clock, Effect, Exit, Fiber, Layer, Schema } from "effect";
 import type { CliData, CliFlags } from "obsidian";
 
@@ -48,44 +36,31 @@ const queryMeasureFlags: CliFlags = {
   },
 };
 
-/** One slice: engine work between two pauses, with the statements it ran. */
 interface SliceRecord {
   ms: number;
   index: number;
   statements: { reader: ItemQueryReader; rows: number }[];
 }
 
-/** The report of one measured run. Times are milliseconds from the run start. */
 export interface QueryMeasureReport {
-  /** `answered`: the handler returned an envelope. `cancelled`: it rejected after an abort. */
   outcome: "answered" | "cancelled" | "failed";
   error?: string;
-  /** `ok` of the envelope, and its counts or its diagnostic code. */
   ok?: boolean;
   diagnosticCode?: string;
   returnedCount?: number;
   truncated?: boolean;
-  /** The handler, from its call to its answer or rejection. */
   totalMs: number;
-  /** Time outside the worker: the source lease, queue, transfer, and publication. */
   adapterMs?: number;
-  /** The Effect run: Library resolution, query execution, encoding, and file writes. */
   engineMs?: number;
-  /** Cumulative synchronous encoding time, included in engineMs. */
   answerMs?: number;
   channels?: { created: number; closed: number; open: number };
   answerBytes?: number;
-  /** The duration of each step in which the handler built the answer. */
   answerSteps: number[];
-  /** The duration of each slice, in run order. */
   slices: number[];
-  /** Renderer timer gaps across the complete worker call, including result transfer. */
   uiGaps: number[];
   worstSlice?: SliceRecord;
   pauses: number;
-  /** The longest time the worker kept the fiber paused. */
   longestPauseMs: number;
-  /** By reader: its statements, their rows, and the longest slice that ran one. */
   statements: Partial<
     Record<
       ItemQueryReader,
@@ -94,16 +69,12 @@ export interface QueryMeasureReport {
   >;
   heap?: {
     beforeBytes: number;
-    /** The highest sample while the engine ran. */
     peakBytes: number;
-    /** After the handler built its answer. */
     afterAnswerBytes: number;
     samples: number;
   };
   cancel?: {
-    /** When the timer was due, for a timer-delivered request. */
     intendedAtMs?: number;
-    /** When the abort signal fired. */
     firedAtMs: number;
     settledAtMs: number;
     firedAtEpochMs: number;
@@ -112,7 +83,6 @@ export interface QueryMeasureReport {
   window: {
     visibleAtStart: boolean;
     visibleAtEnd: boolean;
-    /** The window was hidden at some time in the run. */
     hiddenDuringRun: boolean;
     focused: boolean;
   };
@@ -124,10 +94,6 @@ const errorText = (error: unknown): string =>
   Error.isError(error) ? error.message : String(error);
 const round = (ms: number): number => Math.round(ms * 100) / 100;
 
-/**
- * The parameters of a measured run; the rest are the query's own, which
- * `zotlit:query` decodes.
- */
 const measureParams = cliParams({
   cancelAfterMs: Schema.optionalKey(
     Schema.String.check(
@@ -143,7 +109,6 @@ const measureParams = cliParams({
   heap: cliSwitch("heap is a switch: name it alone, as heap."),
 });
 
-/** The `zotlit:query-measure` command, over the plugin's ZotLit Query. */
 export const layerQueryMeasureCli: Layer.Layer<
   never,
   never,
@@ -159,9 +124,6 @@ export function registerQueryMeasureCli(
   queryService: Pick<QueryService["Service"], "measure">,
 ): void {
   const measure = Effect.fn("QueryCli.measure")(function* (params: CliData) {
-    // A parameter of the run, also as a `--` token, is the run's own; the rest
-    // are the query's. The run has no envelope for an invalid argument, so the
-    // command rejects before it starts.
     const runParams: CliData = {};
     const query: CliData = {};
     for (const [key, value] of Object.entries(params)) {
@@ -188,11 +150,6 @@ export function registerQueryMeasureCli(
   });
 }
 
-/**
- * One measured run of `query`, until it answers or fails. A cancel, from the
- * `cancelAfterMs` timer or `zotlit:query-cancel`, ends it with a report;
- * interrupting it, as an unload does, aborts the run with no report.
- */
 const measureRun = Effect.fn("QueryCli.measureRun")(function* ({
   queryService,
   query,
@@ -219,12 +176,9 @@ const measureRun = Effect.fn("QueryCli.measureRun")(function* ({
 
   const startedAt = now();
   const startedAtEpochMs = yield* Clock.currentTimeMillis;
-  // The service reports the request from any source: the timer, an unload,
-  // or `zotlit:query-cancel` for a run with `id`.
   let firedAt: number | undefined;
 
   const settled = yield* Effect.gen(function* () {
-    // Renderer timer gaps: a real interval, sampled once more as the run ends.
     yield* Effect.acquireRelease(
       Effect.sync(() => window.setInterval(sampleUi, 4)),
       (uiTimer) =>
@@ -254,8 +208,6 @@ const measureRun = Effect.fn("QueryCli.measureRun")(function* ({
         heap: measured.heap === true,
       }),
     );
-    // The timer cancels the run by interrupting it; the run still settles,
-    // so the report holds the cancel times.
     if (measured.cancelAfterMs !== undefined)
       yield* Effect.forkScoped(
         Effect.sleep(measured.cancelAfterMs).pipe(
@@ -267,7 +219,6 @@ const measureRun = Effect.fn("QueryCli.measureRun")(function* ({
   const settledAt = now();
 
   const answer = Exit.isSuccess(settled) ? settled.value : undefined;
-  // The service reports each cancel request, also one that names the run.
   const outcome: QueryMeasureReport["outcome"] = Exit.isSuccess(settled)
     ? "answered"
     : firedAt === undefined

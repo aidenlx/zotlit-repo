@@ -7,7 +7,6 @@ export interface FormatVersion {
   constant: string;
 }
 
-/** Persisted formats owned by ZotLit; register a new format at version 1. */
 export const formatVersions: readonly FormatVersion[] = [
   {
     name: "Citation store",
@@ -56,11 +55,6 @@ export const formatVersions: readonly FormatVersion[] = [
   },
 ];
 
-// MIN_SCHEMA_VERSION in note-marks.ts is a minimum-compatible Zotero version,
-// not a format ZotLit writes. Upstream Zotero schema pins and Fixture settings
-// copies likewise follow their owners. CLI, bridge and wire protocol versions
-// describe exchanges rather than persisted formats.
-
 export function latestReleaseTag(tags: readonly string[]): string {
   const tag = tags.filter((tag) => valid(tag) !== null).sort(rcompare)[0];
   if (!tag)
@@ -70,7 +64,6 @@ export function latestReleaseTag(tags: readonly string[]): string {
   return tag;
 }
 
-/** Registered constants use a top-level decimal integer literal. */
 export function readFormatVersion(
   source: string,
   constant: string,

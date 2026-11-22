@@ -83,7 +83,6 @@ describe("fetchNoteContext", () => {
 
     expect(ctx.tags.map((t) => t.name)).toEqual(["zt"]);
     expect(ctx.collections.map((c) => c.name)).toEqual(["Reading"]);
-    // MAIN0001 is a personal-library item
     expect(ctx.weblink).toBe("https://www.zotero.org/aidenlx/items/MAIN0001");
 
     expect(ctx.attachments).toHaveLength(1);
@@ -115,13 +114,9 @@ describe("fetchNoteContext", () => {
 
     const tagMemo: TagMemo = new Map();
     const collectionCache = new CollectionCache();
-    // Pre-populate both caches for the main item, as an earlier filename-
-    // resolution call would (see note-feature's resolveNotePath).
     resolveItemTagsByIDs(db, [main!.itemID], tagMemo);
     collectionCache.byItemIDs(db, USER_LIBRARY_ID, [main!.itemID]);
 
-    // Mutate the underlying rows directly: if fetchNoteContext re-queried
-    // instead of reusing the cache, the result would reflect this change.
     sqlite.exec("delete from itemTags where itemID = 1");
     sqlite.exec("delete from collectionItems where itemID = 1");
 
@@ -302,15 +297,13 @@ describe("fetchAnnotationsTemplateData", () => {
       resolvers: annotationResolvers,
     });
 
-    // Attachment 10's parent is item MAIN0001; the annotation path must apply
-    // the author resolvers the note path already does.
     const [first] = [...result.values()];
     expect(first!.parentItem!.authorsShort).toBe("short:MAIN0001");
     expect(Array.isArray(first!.parentItem!.authors)).toBe(true);
     expect(first!.parentItem!.backlink).toBe(
       "zotero://select/library/items/MAIN0001",
     );
-    expect(first!.parentItem!.weblink).toBeNull(); // personal library, no username in fixture
+    expect(first!.parentItem!.weblink).toBeNull();
   });
 
   it("omits an annotation whose parent attachment can't be resolved", () => {
@@ -357,7 +350,6 @@ describe("fetchAnnotationsTemplateData", () => {
   });
 });
 
-/** Own-property paths (enumerable or not) that hold a function. */
 function functionPaths(value: unknown, path = "$"): string[] {
   if (typeof value === "function") return [path];
   if (value === null || typeof value !== "object") return [];
@@ -374,11 +366,6 @@ function functionPaths(value: unknown, path = "$"): string[] {
 
 const INSTANT = "$instant";
 
-/**
- * Simulate a worker hop: each `Temporal.Instant` travels as its ISO string (the
- * Schema codec's encoding), everything else through structured clone, which
- * keeps only enumerable properties.
- */
 function overTheWire<T>(value: T): T {
   const encode = (v: unknown): unknown => {
     if (v instanceof Temporal.Instant) return { [INSTANT]: v.toString() };

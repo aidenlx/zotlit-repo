@@ -1,27 +1,13 @@
-// Build-time split of the one zotlit-cite.lua source into its two shipped variants.
-
 import { readFile } from "node:fs/promises";
 import type { Plugin } from "vite";
 
-/**
- * How a built filter obtains its resolution map: `cli` shells out to a live
- * Obsidian process, `sandbox` reads a pre-written resolve map.
- */
 export type PandocFilterVariant = "cli" | "sandbox";
 
 const VARIANTS: readonly PandocFilterVariant[] = ["cli", "sandbox"];
 
-/** `--@variant <name>` opens a region, `--@end` closes it. */
 const OPEN = "--@variant ";
 const CLOSE = "--@end";
 
-/**
- * Keeps the requested variant's regions and drops the other's, so a built filter
- * never carries the resolution path it does not use.
- *
- * @throws when a region is unknown, nested, unclosed, unopened, or when the
- *   requested variant has no region at all.
- */
 export function buildFilterVariant(
   source: string,
   variant: PandocFilterVariant,
@@ -58,7 +44,6 @@ export function buildFilterVariant(
 
 const SUFFIX = "?variant=";
 
-/** Splits `<path>.lua?variant=<name>` apart; `null` for any other module id. */
 function parseVariantId(
   id: string,
 ): { path: string; variant: PandocFilterVariant } | null {
@@ -69,10 +54,6 @@ function parseVariantId(
   return { path, variant: id.slice(at + SUFFIX.length) as PandocFilterVariant };
 }
 
-/**
- * Serves `./zotlit-cite.lua?variant=cli` and `?variant=sandbox` as string modules,
- * so the plugin bundle carries the two split variants rather than the source.
- */
 export function pandocFilterVariants(): Plugin {
   return {
     name: "pandoc-filter-variants",

@@ -1,4 +1,3 @@
-// The Note Feature: Literature Note writes, creation planning and Profile switches, as one service.
 import {
   Cause,
   Context,
@@ -73,17 +72,14 @@ import type {
   WriteNoteUpdateError,
 } from "./write-pipeline.ts";
 
-/** Notes created that the Note Index has not seen yet, kept per Indexed Key. */
 const MAX_UNINDEXED_CREATES = 256;
 
-/** The services the Note Feature reads through their tags. */
 export type NoteFeatureServices = NoteWriteServices | CreationPlanningServices;
 
 type Failure<
   F extends (...args: never[]) => Effect.Effect<unknown, unknown, unknown>,
 > = Effect.Error<ReturnType<F>>;
 
-/** {@link PreparedProfileNote} whose create runs on the Note Feature's services. */
 export type ProfileNoteDraft = Omit<PreparedProfileNote, "create"> & {
   readonly create: Effect.Effect<
     CreateNoteResult,
@@ -91,34 +87,19 @@ export type ProfileNoteDraft = Omit<PreparedProfileNote, "create"> & {
   >;
 };
 
-/**
- * The Note Feature: it creates, updates, overwrites and re-stamps Literature
- * Notes, plans their creation, and reports what a write noticed on `changes`.
- * Creates run one at a time per Indexed Key, and a note created before the
- * Note Index saw it refuses a second create.
- */
 export class NoteFeature extends Context.Service<
   NoteFeature,
   {
-    /**
-     * What the writes report, as they happen: the excerpt outcomes of a note
-     * with no batch above it, and a legacy frontmatter expression that failed.
-     * Ends when the plugin unloads.
-     */
     readonly changes: Stream.Stream<NoteFeatureEvent>;
-    /** Report a batch's excerpt outcomes on {@link changes}. */
     reportExcerptImages(summary: ExcerptSummary): Effect.Effect<void>;
-    /** @see createNote */
     createNote(
       item: Item,
       options?: CreateNoteOptions,
     ): Effect.Effect<CreateNoteResult, CreateNoteError>;
-    /** @see updateNote */
     updateNote(
       file: TFile,
       options: UpdateNoteOptions,
     ): Effect.Effect<UpdateResult, UpdateNoteError>;
-    /** Re-stamp after consent; the next update renders with the target Profile. */
     switchNoteProfile(
       file: TFile,
       options: {
@@ -127,38 +108,26 @@ export class NoteFeature extends Context.Service<
         move?: boolean;
       },
     ): Effect.Effect<UpdateResult, SwitchNoteProfileError>;
-    /** @see replacedKeys */
     replacedKeys(file: TFile): Effect.Effect<ReadonlySet<string>>;
-    /** @see overwriteNote */
     overwriteNote(
       file: TFile,
       indexedKey: string,
       options?: Omit<Parameters<typeof overwriteNote>[2], "indexedKey">,
     ): Effect.Effect<UpdateResult, OverwriteNoteError>;
-    /**
-     * Update a note from an Item the caller read. The caller has settled the
-     * Note Index and holds the batch's Snapshot.
-     */
     writeNoteUpdate(
       file: TFile,
       options: WriteNoteUpdateOptions,
     ): Effect.Effect<UpdateResult, WriteNoteUpdateError>;
-    /** @see resolveCompanionNote */
     resolveCompanionNote(
       indexedKey: string,
       options?: { profile?: ProfileSelector },
     ): Effect.Effect<CompanionNoteTarget, Failure<typeof resolveCompanionNote>>;
-    /** The creation Profile when no Item decides: the given or the Default. */
     resolveCreationProfile(
       sources?: CreationProfileSources,
     ): Effect.Effect<
       CreationProfileSelection,
       Failure<typeof resolveCreationProfile>
     >;
-    /**
-     * How each Indexed Key's note would be created, by key. Each preview's
-     * create enters this feature's create gate.
-     */
     planCreations(
       indexedKeys: readonly string[],
       sources?: CreationProfileSources,
@@ -166,28 +135,21 @@ export class NoteFeature extends Context.Service<
       ReadonlyMap<string, PlannedCreation>,
       Failure<typeof planCreations>
     >;
-    /** @see prepareProfileNote */
     prepareProfileNote(
       options: ProfileNotePreviewOptions,
     ): Effect.Effect<ProfileNoteDraft, Failure<typeof prepareProfileNote>>;
-    /** @see prepareProfileSwitch */
     prepareProfileSwitch(
       file: TFile,
     ): Effect.Effect<
       PreparedProfileSwitch,
       Failure<typeof prepareProfileSwitch>
     >;
-    /** Imported Notes currently materialized for one Zotero item. */
     getImportedNotesForItem(
       indexedKey: string,
     ): Effect.Effect<TFile[], Failure<typeof getImportedNotesForItem>>;
   }
 >()("zotlit/obsidian/NoteFeature") {}
 
-/**
- * The Note Feature over the graph's tags. Closing the layer ends
- * {@link NoteFeature.changes}.
- */
 export const layerNoteFeature = Layer.effect(
   NoteFeature,
   Effect.gen(function* () {
@@ -270,10 +232,6 @@ export const layerNoteFeature = Layer.effect(
   }),
 );
 
-/**
- * The payloads of `event` on `changes`, each in its `NoteFeaturePayloads`
- * shape.
- */
 export const eventPayloads = <K extends keyof NoteFeaturePayloads>(
   changes: Stream.Stream<NoteFeatureEvent>,
   event: K,
@@ -286,10 +244,6 @@ export const eventPayloads = <K extends keyof NoteFeaturePayloads>(
     Stream.map((change) => change.payload),
   );
 
-/**
- * Collect one operation's excerpt outcomes. When the scope closes, their
- * total reports on {@link NoteFeature.changes}.
- */
 export const collectExcerptReports = Effect.gen(function* () {
   const feature = yield* NoteFeature;
   const collector = yield* Effect.acquireRelease(
@@ -303,13 +257,6 @@ export const collectExcerptReports = Effect.gen(function* () {
   return { add: collector.add };
 });
 
-/**
- * The create gate: one create per Indexed Key at a time, and a refusal for a
- * note created before the Note Index saw it. A create that arrives while one
- * runs for the same key waits for it, and is refused when it created a note;
- * when the running create was interrupted, the waiting one enters the gate
- * again. The last {@link MAX_UNINDEXED_CREATES} created notes are remembered.
- */
 export const makeCreateGate = Effect.fnUntraced(function* (
   write: (
     item: Item,
@@ -341,7 +288,6 @@ export const makeCreateGate = Effect.fnUntraced(function* (
       return next;
     });
 
-  /** The refusal a note created before the Note Index saw it gives. */
   const recentRefusal = Effect.fnUntraced(function* (indexedKey: string) {
     const recent = (yield* Ref.get(createdBeforeIndex)).get(indexedKey);
     if (!recent) return undefined;
@@ -388,8 +334,6 @@ export const makeCreateGate = Effect.fnUntraced(function* (
           new Map(creates).set(indexedKey, started),
         ] as const;
       });
-    // The entry cannot be interrupted, so a started run always reaches its
-    // release, which completes its Deferred and frees the key.
     return Effect.acquireUseRelease(
       SynchronizedRef.modifyEffect(pending, enter),
       (step) => {
@@ -427,15 +371,10 @@ export const makeCreateGate = Effect.fnUntraced(function* (
   return gate;
 });
 
-/**
- * One create running at the gate, completed with how it ended; a create for
- * the same key waits on it.
- */
 type CreateRun = Deferred.Deferred<
   Exit.Exit<CreateNoteResult, CreateNoteError>
 >;
 
-/** What a create finds at the gate: a run to wait on, a refusal, or its turn. */
 type GateStep =
   | { readonly wait: CreateRun }
   | { readonly refused: CreateNoteResult }

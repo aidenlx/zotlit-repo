@@ -104,7 +104,6 @@ const OTHER_NOTE = {
   citationKey: "other",
 };
 
-/** One Citation the hovered document holds formatted text for. */
 function heldText(
   source: string,
   works: string[],
@@ -118,13 +117,10 @@ function heldText(
 
 function harness(doc: string, overrides: Partial<Settings> = {}) {
   const requests: CitationHoverRequest[] = [];
-  /** Every gesture Obsidian's own delegated listeners would have answered. */
   const native: MouseEvent[] = [];
-  /** Every note a gesture on the rendered Citation asked to open. */
   const opened: [citekey: string, pane: unknown][] = [];
   let settings: Readonly<Settings> = { ...defaults, ...overrides };
   let hover: HoverPreferences = hoverPreferences(settings);
-  // Rebuilt on demand, the way a fresh read replaces the held document value.
   const hold = (value: DocumentCitations): Held<DocumentCitations> => ({
     value,
     status: "fresh",
@@ -209,13 +205,9 @@ function harness(doc: string, overrides: Partial<Settings> = {}) {
       ],
     }),
   });
-  // The delegated `mouseover` and `click` Obsidian hangs above the editor
-  // element, which a gesture the popover answers never reaches.
   view.dom.addEventListener("mouseover", (event) => native.push(event));
   view.dom.addEventListener("click", (event) => native.push(event));
 
-  // happy-dom lays nothing out, so the coordinate lookup the caret is placed
-  // from is the one thing stood in for.
   vi.spyOn(view, "posAtCoords").mockReturnValue(2);
 
   return {
@@ -224,13 +216,11 @@ function harness(doc: string, overrides: Partial<Settings> = {}) {
     opened,
     selection: () => view.state.selection.main,
     citation: () => view.dom.querySelector<HTMLElement>(".zt-citation"),
-    /** Hovers the rendered Citation, as the pointer entering it does. */
     hover: () => {
       view.dom
         .querySelector(".zt-citation")
         ?.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
     },
-    /** Clicks the rendered Citation, and answers with the event it sent. */
     click: (init: MouseEventInit = {}) => {
       const event = new MouseEvent("click", {
         bubbles: true,
@@ -240,13 +230,11 @@ function harness(doc: string, overrides: Partial<Settings> = {}) {
       view.dom.querySelector(".zt-citation")?.dispatchEvent(event);
       return event;
     },
-    /** Answers the way the named settings do, from now on. */
     setSettings: (next: Partial<Settings>) => {
       settings = { ...defaults, ...next };
       hover = hoverPreferences(settings);
       view.dispatch({});
     },
-    /** Moves and refreshes the Citation from a fresh read. */
     redraw: () => {
       held = hold(citations(7));
       view.dispatch({ changes: { from: 0, insert: "Before " } });
@@ -321,8 +309,6 @@ describe("wikilinkEditorExtension hover under the Citation Popover", () => {
   });
 
   it("keeps Obsidian's own hover out while Require Mod holds the popover back", () => {
-    // Popover mode owns the gesture whole, so a bare hover it answers with
-    // nothing shows nothing — never the page preview instead.
     using editor = harness("[[literatures/example#cite:locator=7]]", {
       "citation.hover-require-mod-live-preview": true,
     });
@@ -379,8 +365,6 @@ describe("wikilinkEditorExtension click while Citations stay closed as links", (
 
     const event = editor.click();
 
-    // The selection overlapping the link is what writes its source back, once
-    // the view has the focus this environment cannot give it.
     expect(editor.selection()).toMatchObject({ anchor: 2, head: 2 });
     expect(editor.requests).toEqual([]);
     expect(event.defaultPrevented).toBe(true);

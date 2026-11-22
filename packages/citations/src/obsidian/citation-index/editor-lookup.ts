@@ -2,7 +2,6 @@ import type { CitationLookupRequest } from "@zotlit/zotero-reads/contract/citati
 
 import type { CitationLookupObservation } from "./lookup-service.ts";
 
-/** Own one editor's observation; change its request after CodeMirror's update. */
 export class EditorLookup implements Disposable {
   readonly #observation;
   #generation = 0;

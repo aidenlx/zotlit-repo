@@ -7,10 +7,8 @@ import {
 } from "./card-selection.ts";
 import type { CardPlace, CardSelection } from "./card-selection.ts";
 
-/** The place of a card in a list with no groups. */
 const p = (key: string) => cardPlace(key, null);
 
-/** Five cards, in the order the list shows them. */
 const KEYS = ["AAAA1111", "BBBB2222", "CCCC3333", "DDDD4444", "EEEE5555"];
 const LIST = KEYS.map(p);
 
@@ -153,7 +151,6 @@ describe("replace", () => {
 
 describe("replace, of the cards already selected", () => {
   it("puts the anchor on the first pushed card in list order", () => {
-    // A Zotero push of the group the view already holds, in another order.
     expect(
       nextCardSelection(group, LIST, {
         kind: "replace",
@@ -230,7 +227,6 @@ describe("move", () => {
   });
 
   it("steps from the first Selected Card where a filter hides the anchor", () => {
-    // A prune keeps the anchor on a card the list no longer shows.
     const pruned: CardSelection = {
       selected: ["DDDD4444"],
       anchor: p("BBBB2222"),
@@ -337,7 +333,6 @@ describe("range", () => {
       anchor: p("BBBB2222"),
       focus: p("BBBB2222"),
     });
-    // The range reaches no card between the hidden anchor and the click.
     expect(
       nextCardSelection(
         pruned,
@@ -460,7 +455,6 @@ describe("extend", () => {
 });
 
 describe("a card shown under two group headings", () => {
-  // AAAA1111 has two tags, so it shows under both: one record at two places.
   const A1 = cardPlace("AAAA1111", "figure");
   const B = cardPlace("BBBB2222", "figure");
   const A2 = cardPlace("AAAA1111", "method");

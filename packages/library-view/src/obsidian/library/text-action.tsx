@@ -1,16 +1,7 @@
-// A text action of the Library View: an action that reads as words beside
-// other text, such as "Search all libraries", "Clear all" or "Show all
-// libraries". It takes the accent, as a link does, so it reads as a control
-// wherever it stands, and every one of them looks the same.
 import type { KeyboardEvent, ReactNode } from "react";
 
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 
-/**
- * Obsidian's unlayered `button` rules outrank utilities and draw a filled
- * button, so a text action is drawn on an element of its own with
- * `role="button"`.
- */
 export const TEXT_ACTION_CLASS =
   "zt:inline-flex zt:cursor-(--cursor) zt:items-center zt:gap-(--size-2-2) zt:rounded-(--radius-s) zt:text-(--text-accent) zt:outline-hidden zt:hover:text-(--text-accent-hover) zt:hover:underline zt:focus-visible:shadow-[0_0_0_var(--input-border-width-focus)_var(--background-modifier-border-focus)]";
 

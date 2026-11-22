@@ -1,7 +1,3 @@
-// Annotation-specific text in the ZotLit Query guide. Query commands and
-// Filter Expressions shown here are collected so tests run them against a
-// real source.
-
 import {
   QUERY_COMMAND,
   QUERY_CANCEL_COMMAND,
@@ -11,16 +7,13 @@ import {
 
 const ANNOTATION_IMAGE_COMMAND = "zotlit:annotation-image";
 
-/** One Annotation Query example from the guide, as flat CLI arguments. */
 export type AnnotationGuideExample = Readonly<Record<string, string>>;
 
 const examples: AnnotationGuideExample[] = [];
 const filters: string[] = [];
 
-/** Every Annotation Query example that the guide shows. */
 export const ANNOTATION_GUIDE_EXAMPLES: readonly AnnotationGuideExample[] =
   examples;
-/** Every Annotation Filter Expression the guide shows outside a command. */
 export const ANNOTATION_GUIDE_FILTERS: readonly string[] = filters;
 
 function example(args: AnnotationGuideExample): string {
@@ -130,7 +123,6 @@ const CANCEL_SECTION = `ANNOTATION CANCEL EXAMPLE
   query prints: Error: ${queryCancelledText("annotations-1")}
   A completed or unknown id returns cancelRequested false.`;
 
-/** Annotation material folded into the shared guide's topics. */
 export const ANNOTATION_GUIDE_SECTIONS = {
   filter: `${FILTER_SECTION}\n\n${KEYS_SECTION}`,
   fields: `${FIELDS_SECTION}\n\n${IMAGES_SECTION}`,

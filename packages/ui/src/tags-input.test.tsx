@@ -138,7 +138,6 @@ it("skips its key and blur rules when a consumer handler prevents the default", 
   type("Later", "Enter");
   type("", "Backspace");
   type("Later");
-  // Both runtimes hear focusout, which is not cancelable, as in a browser.
   fireEvent.focusOut(input());
   expect(names()).toEqual(["Read"]);
   expect(input().value).toBe("Later");

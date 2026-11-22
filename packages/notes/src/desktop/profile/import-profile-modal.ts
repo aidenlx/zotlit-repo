@@ -6,7 +6,6 @@ import type {
   ProfileImportOptions,
 } from "#obsidian/profile/service.ts";
 import { Effect } from "effect";
-// Source selection opens one consent sheet for a fresh or held Profile ID.
 import {
   DropdownComponent,
   Modal,
@@ -41,29 +40,19 @@ import { describeMatch } from "#obsidian/profile-selection/index.ts";
 
 export type ImportSource = "clipboard" | "file";
 
-/** What the import dialog reads and runs while it is open. */
 export interface ImportProfileDeps {
   app: App;
-  /** The default Profile, whose values the fields fall back to. */
   base: ResolvedProfile;
   prepareImport(
     source: string,
     options: ProfileImportOptions,
   ): Promise<PreparedProfileImport>;
-  /**
-   * The note `profile` would create from the document `source`; absent when
-   * no item supplies preview data.
-   */
   previewNote?(
     profile: ResolvedProfile,
     source: string,
   ): Promise<ProfileNoteDraft>;
 }
 
-/**
- * The source picker: it answers the source the user picks, or `undefined`
- * when the user dismisses it.
- */
 export class ImportSourceModal extends SuggestModal<ImportSource> {
   readonly #decision = Promise.withResolvers<ImportSource | undefined>();
   readonly result = this.#decision.promise;
@@ -91,7 +80,6 @@ export class ImportSourceModal extends SuggestModal<ImportSource> {
     this.#decision.resolve(source);
   }
   override onClose(): void {
-    // Native selection closes the suggester before it calls onChooseSuggestion.
     queueMicrotask(() => this.#decision.resolve(undefined));
   }
   #label(source: ImportSource): string {
@@ -111,7 +99,6 @@ export class ImportProfileModal extends Modal {
   >();
   readonly result = this.#decision.promise;
   readonly #options: ProfileImportOptions = { includeMatch: true };
-  /** The conflicting partials the reader chose to replace; the rest stay. */
   readonly #replacePartials = new Set<string>();
   #closed = false;
   #saving = false;
@@ -320,19 +307,10 @@ export class ImportProfileModal extends Modal {
         onChange?.();
       });
   }
-  /**
-   * What the bundled partials do to the template folder, and the one choice
-   * they can raise: a document already holding other text under the same name
-   * is kept unless the reader says to replace it, so no file of theirs goes
-   * without their word.
-   */
   #partials(container: HTMLElement, onChange?: () => void): void {
     const plan = this.#plan.partials;
     if (plan.length === 0) return;
     const group = container.createDiv({ cls: "zt:flex zt:flex-col zt:gap-2" });
-    // A name a document of this vault's own already answers — identical text,
-    // or a reserved name another Template carries — reaches no file and needs
-    // no word here: nothing in the template folder changes for it.
     const unpacked = plan
       .filter(({ verdict }) => verdict === "write")
       .map(({ name }) => name);
@@ -341,8 +319,6 @@ export class ImportProfileModal extends Modal {
         cls: NOTE_CLASS,
         text: m.profile_import_partials({ names: unpacked.join(", ") }),
       });
-    // A name the Shared Partial name rule refuses reaches no file either, and
-    // it does need a word: the profile keeps carrying its copy.
     const refused = plan
       .filter(({ verdict }) => verdict === "refused")
       .map(({ name }) => name);
@@ -351,9 +327,6 @@ export class ImportProfileModal extends Modal {
         cls: NOTE_CLASS,
         text: m.profile_import_partials_refused({ names: refused.join(", ") }),
       });
-    // A well-formed name the folder already answers in another case reaches no
-    // file of its own: one file answers both spellings, so the profile keeps
-    // carrying this copy too — for a reason of its own.
     const otherCase = plan
       .filter(({ verdict }) => verdict === "other-case")
       .map(({ name }) => name);

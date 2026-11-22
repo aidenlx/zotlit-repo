@@ -1,4 +1,3 @@
-// Template context for input, using each language’s delimiter rules.
 import { etaRange } from "./eta-syntax.ts";
 import { liquidCodeRange, liquidRanges } from "./liquid-ranges.ts";
 import type { SuggestionConfig } from "./suggestions.ts";
@@ -54,7 +53,6 @@ export function pairingContext(
       return quoted(source.slice(code.from, position)) ? "literal" : "code";
     }
   }
-  // An unfinished output/tag includes the cursor at its end.
   const last = ranges.at(-1);
   if (last && !last.closed && position === last.to) {
     const code = liquidCodeRange(source, position);

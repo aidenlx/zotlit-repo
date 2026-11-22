@@ -114,28 +114,17 @@ import { profileReader } from "#__fixtures__/profile/reader.ts";
 import { defaults as settingsDefaults } from "#__fixtures__/settings.ts";
 import { InertTemplateError } from "#core/template/errors.ts";
 import { plainNoteError } from "#obsidian/note-feature/errors.ts";
-/**
- * The note feature's deps, with the fixture database its reads serve. The
- * host's file manager also renames: the FileManager tag runs over it.
- */
 type TestDeps = Omit<NoteFeatureSources, "profile" | "zoteroReads"> & {
-  /** Runs a test's own reads of the settings. */
   bridge?: {
     runSync: typeof Effect.runSync;
     runPromise: typeof Effect.runPromise;
     runPromiseExit: typeof Effect.runPromiseExit;
   };
   citations?: NoteCitations;
-  /** Creation planning reads the registry through the Profile tag. */
   profile?: PlanningSources["profile"];
   db: { client: NodeDatabaseClient };
-  /** The write pipeline and creation planning read Snapshots through the ZoteroReads tag. */
   zoteroReads: PlanningSources["zoteroReads"];
 };
-/**
- * The Note Feature over `deps`, through its edge handle: the layer runs on a
- * runtime this case closes.
- */
 function createNoteFeature(deps: TestDeps) {
   const profile =
     deps.profile ??
@@ -146,7 +135,6 @@ function createNoteFeature(deps: TestDeps) {
   const { handle, runtime, service } = noteFeatureHandle(
     {
       ...deps,
-      // These Profiles name no Match, so creation runs no query.
       profile,
       get template() {
         return deps.template;
@@ -171,16 +159,12 @@ function createNoteFeature(deps: TestDeps) {
       },
     },
     caseFixtures,
-    // The citation members run no note operation; citation.test.ts covers them.
     { citations: deps.citations },
   );
-  // The caller hands over an Item it read from Zotero, so the database holds it.
   const know = (item: Item) => seedItem(deps.db.client, item);
   return {
     ...handle,
-    /** The Note Feature service, for the operations no edge handle serves. */
     service,
-    /** Call `cb` with each `event` payload on the service's changes. */
     on: <K extends keyof NoteFeaturePayloads>(
       event: K,
       cb: (payload: NoteFeaturePayloads[K]) => void,
@@ -189,14 +173,12 @@ function createNoteFeature(deps: TestDeps) {
       know(args[0]);
       return handle.createNote(...args);
     },
-    /** Run a create on the runtime as a fiber, which a case can interrupt. */
     forkCreateNote: (item: Item) => {
       know(item);
       return runtime.runFork(
         Effect.flatMap(NoteFeature, (service) => service.createNote(item)),
       );
     },
-    /** Create on the runtime under a TestClock set to `millis`. */
     createNoteAt: (
       item: Item,
       options: Parameters<NoteFeatureHandle["createNote"]>[1],
@@ -214,10 +196,8 @@ function createNoteFeature(deps: TestDeps) {
         ),
       );
     },
-    /** Interrupt `fiber`, and settle once it has ended. */
     interrupt: (fiber: Fiber.Fiber<unknown, unknown>) =>
       runtime.runPromise(Fiber.interrupt(fiber)),
-    // The batch runners' members, which no Promise caller holds.
     reportExcerptImages: (summary: ExcerptSummary) =>
       runtime.runSync(
         Effect.flatMap(NoteFeature, (service) =>
@@ -230,7 +210,6 @@ function createNoteFeature(deps: TestDeps) {
           service.writeNoteUpdate(file, options),
         ).pipe(Effect.mapError((error) => plainNoteError(error))),
       ),
-    /** {@link writeNoteUpdate}'s Exit, its typed error kept. */
     writeNoteUpdateExit: (file: TFile, options: WriteNoteUpdateOptions) =>
       runtime.runPromiseExit(
         Effect.flatMap(NoteFeature, (service) =>
@@ -240,7 +219,6 @@ function createNoteFeature(deps: TestDeps) {
   };
 }
 
-/** Stand-in decision port: every source blocks, so no test copies a file. */
 const blockedDecide = (
   path: string,
   origin: SourceOrigin,
@@ -251,7 +229,6 @@ const blockedDecide = (
   reason: "no-trusted-root",
 });
 
-/** The `attachmentImport` port every note-feature test runs against. */
 const blockedAttachmentImport: NoteFeatureSources["attachmentImport"] = {
   prepare: () =>
     Effect.succeed({
@@ -268,31 +245,16 @@ const blockedAttachmentImport: NoteFeatureSources["attachmentImport"] = {
     }),
 };
 
-// Every read runs in the in-process handlers over seeded fixture rows. Only
-// the pure build stays a stub: `buildNoteContextFromSource` runs in the
-// consumer, after the read, and each test stubs it to apply the caller's
-// resolvers to a small fixture context, so resolver wiring (notePath /
-// noteLink resolution) is exercised apart from the template data the
-// @zotlit/db suites cover.
 vi.mock("@zotlit/db", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@zotlit/db")>();
   return { ...actual, buildNoteContextFromSource: vi.fn() };
 });
 
-/**
- * Minimal `NoteTemplateContext` stand-in: applies `resolvers.item` to `item`
- * and `relatedItems` the way the real (db-package-tested) `buildNoteContextFromSource`
- * would, so a test can assert on resolver wiring — byItemKey / byCitekey /
- * synthetic-fallback note-path resolution — without a real DB.
- */
 function stubNoteContext(
   item: Item,
   relatedItems: readonly Item[],
   resolvers: NoteResolvers,
 ): NoteTemplateContext {
-  // Mirrors @zotlit/db's real wiring (see TemplateItemResolvers in
-  // zt-template-item.ts): resolvers get an inert twin with empty
-  // notePath/noteLink stubs while the outer item exposes the live members.
   const toTemplateItem = (it: Item): TemplateItemData => {
     const fields = it.fields as unknown as Record<string, string | null>;
     const twin = {
@@ -450,8 +412,6 @@ describe("Profile source selection", () => {
   );
 
   describe("with inert global Managed Frontmatter fields", () => {
-    // The global field set has a JavaScript field while JavaScript Templates
-    // are off: the engine's getter throws, as `TemplateService` does.
     const inert = new InertTemplateError("Inert global fields");
     const previewWith = (
       frontmatter: CompiledManagedFrontmatter | undefined,
@@ -662,8 +622,6 @@ describe("Profile source selection", () => {
           outcome: "refused",
           diagnostic: { code: "literature-note-exists" },
         });
-        // The next operation starts from Default again: the Books choice above
-        // belonged to its own operation only.
         expect(yield* feature.service.resolveCreationProfile()).toEqual({
           selector: "default",
           source: "bound",
@@ -701,10 +659,6 @@ describe("createNote", () => {
   ] as const;
   type ExcerptMode = (typeof excerptModes)[number];
 
-  /**
-   * Creates "Paper" (RTKEY234), whose PDF holds an image and an ink
-   * annotation, with excerpt resolution and settings driven by `mode`.
-   */
   async function createExcerptNote(
     mode: ExcerptMode,
     cleanup: AsyncDisposableStack,
@@ -738,8 +692,6 @@ describe("createNote", () => {
         ),
       ),
     };
-    // The create seeds the Item "Paper" (RTKEY234) itself; its PDF holds an
-    // image and an ink annotation.
     client.$client.exec(`
       insert into itemTypes (itemTypeID, typeName) values (4, 'annotation');
       insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key) values
@@ -754,7 +706,6 @@ describe("createNote", () => {
     `);
     const actual =
       await vi.importActual<typeof import("@zotlit/db")>("@zotlit/db");
-    // This case builds its template data from the seeded rows for real.
     vi.mocked(buildNoteContextFromSource).mockImplementation(
       actual.buildNoteContextFromSource,
     );
@@ -774,7 +725,6 @@ describe("createNote", () => {
     Object.assign(app.vault, {
       adapter: Object.assign(Object.create(FileSystemAdapter.prototype), {
         getFullPath: (path: string) => `${root}/${path}`,
-        // Obsidian registers a published excerpt as a vault file.
         reconcileInternalFile: async (path: string) => {
           if (!app.vault.getFileByPath(path)) app.vault.addFile(path, "");
         },
@@ -876,10 +826,6 @@ describe("createNote", () => {
     };
   }
 
-  /**
-   * Creates the note, surrounds its Managed Block with user text, then
-   * refreshes (or overwrites) it with excerpt resolution driven by `mode`.
-   */
   async function refreshExcerptNote(
     mode: Exclude<
       ExcerptMode,
@@ -951,8 +897,6 @@ describe("createNote", () => {
       }
     } else retainedAssets.push(...priorAssets);
     app.vault.modifyFile(file.path, current);
-    // The host's metadata cache has no link resolution: each link
-    // resolves to a file at its own path.
     Object.assign(app.metadataCache, {
       getFirstLinkpathDest: (path: string) => makeFile(path),
     });
@@ -1020,7 +964,6 @@ describe("createNote", () => {
     };
   }
 
-  /** What the created note and its vault show of the two excerpts. */
   async function observeExcerpts(root: string, markdown: string) {
     const images = await readdir(`${root}/Images`).catch(() => null);
     return {
@@ -1036,7 +979,6 @@ describe("createNote", () => {
       embed: markdown.includes("!["),
       disabledMessage: markdown.includes(m.excerpt_image_import_disabled()),
       unavailableMessage: markdown.includes(m.excerpt_image_unavailable()),
-      // The placeholder names its Annotation by the Durable Annotation Link.
       sourceLink: markdown.includes(
         "[Zotero](zotero://open/library/items/RGRPDF24?annotation=",
       ),
@@ -1294,9 +1236,6 @@ describe("createNote", () => {
       citationKey: "relfallback2024",
     });
 
-    // Related items pre-sorted by title (A, B, C) — this test asserts on
-    // notePath/noteLink resolver wiring, not title sorting (already covered
-    // by @zotlit/db's zt-template-note.test.ts).
     vi.mocked(buildNoteContextFromSource).mockImplementation(
       ({ item }, resolvers) =>
         stubNoteContext(item, [fallback, byItemKey, byCitekey], resolvers),
@@ -1356,10 +1295,6 @@ describe("createNote", () => {
     ]);
   });
 
-  // Pins the parity contract: both `resolveNotePath` (creation) and
-  // `resolveNoteTarget` (synthetic fallback) feed the filename template the
-  // item-own shape with inert `notePath`/`noteLink` stubs; before the fix the
-  // fallback fed the live item and `notePath`/`noteLink` rendered as `null`.
   it("feeds the filename template the same item-own shape in creation and synthetic fallback", async () => {
     const root = makeItem({
       itemID: 1,
@@ -1368,8 +1303,6 @@ describe("createNote", () => {
       title: "Root",
       citationKey: null,
     });
-    // No note in the index for this item, so both `byItemKey` and `byCitekey`
-    // miss and resolution falls through to the synthetic fallback.
     const related = makeItem({
       itemID: 2,
       key: "RELFALL2",
@@ -1420,20 +1353,12 @@ describe("createNote", () => {
 
     const file = createdFile(await createNoteFeature(deps).createNote(root));
 
-    // Creation path: buildFilenameContext's inert notePath/noteLink stubs
-    // render as empty strings.
     expect(file.path).toBe("Literature/Root-.md");
 
-    // Synthetic-fallback path: the related item's filename must render with
-    // the same inert-stub shape, so its link target resolves to the same
-    // empty-render pattern instead of a `nullnull`-suffixed name.
     expect(app.fileManager.links).toContainEqual(
       expect.objectContaining({ path: "Literature/Related-.md" }),
     );
 
-    // The root's own note link, rendered in the body before the file exists,
-    // also goes through the synthetic fallback (the note index is empty) —
-    // it must resolve to the same target the creation path produced.
     expect(app.fileManager.links).toContainEqual(
       expect.objectContaining({ path: "Literature/Root-.md" }),
     );
@@ -1449,13 +1374,10 @@ describe("createNote", () => {
       citationKey: null,
     });
 
-    // `render` below ignores its context entirely, so the stub just needs to
-    // avoid throwing.
     vi.mocked(buildNoteContextFromSource).mockReturnValue({
       relatedItems: [],
     } as unknown as NoteTemplateContext);
 
-    // A sibling already holds the base path in the vault cache.
     const app = makeApp({ "Literature/Root.md": "" });
     const create = app.vault.create;
     const document = makeDocumentTemplate({
@@ -1499,11 +1421,6 @@ describe("createNote", () => {
   });
 
   it("awaits noteIndex.whenIndexed (not just ready) before writing the note", async () => {
-    // Regression: `ready` settles once listeners are registered, before the
-    // first metadataCache scan populates the index. Gating on `ready` alone
-    // let a cold-start create proceed against an empty index and mint a
-    // duplicate note for an item that already has one; `whenIndexed` is the
-    // stronger gate that actually waits for the scan.
     const item = makeItem({
       itemID: 1,
       key: "RTKEY234",
@@ -1734,8 +1651,6 @@ describe("createNote", () => {
     });
 
     const first = await feature.createNote(item);
-    // The user removes the note's Properties, and its Zotero key with them,
-    // and the cache parses the note.
     app.vault.modifyFile(createdFile(first).path, "Body");
     app.metadataCache.settle();
     const second = await feature.createNote(item);
@@ -1832,7 +1747,6 @@ describe("createNote", () => {
     held.resolve();
     await interrupted;
 
-    // The note is written, so its copies are too.
     expect(app.vault.create).toHaveBeenCalledOnce();
     expect(flush).toHaveBeenCalledOnce();
   });
@@ -2094,9 +2008,6 @@ describe("createNote", () => {
     const item = makeCreateGateItem();
     vi.mocked(buildNoteContextFromSource).mockReturnValue(createGateContext());
     const app = makeApp();
-    // The error a Profile document render raises for a call to a partial the
-    // folder holds no document for; `template/service.test.ts` proves the real
-    // TemplateService surfaces exactly this out of `renderForCreate`.
     const document = makeDocumentTemplate();
     document.renderForCreate.mockImplementation(() => {
       throw new MissingTemplateError("venue-line");
@@ -2375,8 +2286,6 @@ describe("overwriteNote", () => {
   });
 
   it("keeps a CRLF note's Properties block when it overwrites the body", async () => {
-    // Like `processFrontMatter`, the rewrite keeps the note's `---` delimiter
-    // bytes and writes the Properties between them with `stringifyYaml`.
     const item = makeItem({
       itemID: 1,
       key: "RTKEY234",
@@ -2406,25 +2315,13 @@ describe("overwriteNote", () => {
   });
 });
 
-/**
- * A note-update harness over an in-memory host. `file` places the note — a
- * Properties block stamped with its Zotero key, then `options.content` — so a
- * test can assert on the rewritten body and frontmatter after an update.
- */
 interface UpdateHarness {
   deps: TestDeps;
   host: ObsidianHost;
-  /**
-   * The note at `path`, placed on first use. The first path placed is the note
-   * `content` and `frontmatter` read.
-   */
   file: (path: string) => TFile;
-  /** Note body after the update (byte-identical to what was written). */
   content: () => string;
   frontmatter: () => Record<string, unknown>;
-  /** The `content`-template render stub; assert it stays unqueued when no region exists. */
   renderContent: ReturnType<typeof vi.fn>;
-  /** The vault's `process`; a write through an open view leaves it uncalled. */
   processMock: ReturnType<
     typeof vi.fn<
       (file: TFile, update: (content: string) => string) => Promise<string>
@@ -2435,14 +2332,10 @@ interface UpdateHarness {
 function makeUpdateHarness(options: {
   content: string;
   frontmatter?: Record<string, unknown>;
-  /** What `render("content", …)` returns — already region-wrapped, as the real
-   *  engine's transformRender emits. @default a fresh `NEW BODY` region */
   renderedRegion?: string;
   frontmatterFields?: readonly CompiledFrontmatterField[];
   settings?: Partial<Settings> & Partial<ResolvedLiteratureNoteProfileBindings>;
 }): UpdateHarness {
-  // The note file as the vault holds it: a Properties block, stamped with its
-  // Zotero key like any Literature Note, then `options.content` as the body.
   const properties = {
     [FIELD_ZOTERO_KEY]: "ABC23456",
     ...options.frontmatter,
@@ -2494,7 +2387,6 @@ function makeUpdateHarness(options: {
     attachmentImport: blockedAttachmentImport,
   };
 
-  // Zotero holds the Item the note is stamped with: "A Study" (smith2024).
   const stamped = properties[FIELD_ZOTERO_KEY];
   if (typeof stamped === "string")
     seedItem(
@@ -2524,7 +2416,6 @@ function makeUpdateHarness(options: {
   };
 }
 
-/** Context the (mocked) `buildNoteContextFromSource` hands back for an update. */
 function updateContext(
   overrides: Partial<NoteTemplateContext> = {},
 ): NoteTemplateContext {
@@ -2537,7 +2428,6 @@ function updateContext(
   } as unknown as NoteTemplateContext;
 }
 
-/** Build `context` from the Item a note update reads. */
 function stubIndexedKeyUpdate(context: NoteTemplateContext): void {
   vi.mocked(buildNoteContextFromSource).mockReturnValue(context);
 }
@@ -2766,7 +2656,6 @@ describe("updateNote", () => {
     );
 
     expect(result.diagnostic).toBeUndefined();
-    // The renamed Profile still owns the note, and the note now names it.
     expect(harness.frontmatter()).toMatchObject({
       [FIELD_LITERATURE_NOTE_PROFILE]: "Books (Bk3Qn7XvT2Lp)",
       [FIELD_CITATION_STYLE]: "apa",
@@ -2774,8 +2663,6 @@ describe("updateNote", () => {
   });
 
   it("takes the last parenthesised id when the label ends in one too", async () => {
-    // The worst label a user can write: one that itself ends in something
-    // shaped exactly like a Profile stamp, naming the other Profile.
     const profileId = "Bk3Qn7XvT2Lp" as ProfileId;
     const otherId = "Rz9Wm4YfH6Kd" as ProfileId;
     stubIndexedKeyUpdate(updateContext());
@@ -3062,8 +2949,6 @@ describe("updateNote", () => {
         templateName: "venue-line",
       });
 
-      // The refusal notice says nothing was written, so neither the Properties
-      // block nor the body may carry a render that never finished.
       expect(harness.content()).toBe(original);
       expect(harness.frontmatter()).toEqual({
         [FIELD_ZOTERO_KEY]: "ABC23456",
@@ -3682,7 +3567,6 @@ describe("updateNote", () => {
         held.resolve();
         yield* Fiber.join(interrupting);
 
-        // The note is moved, so it carries the target Profile's stamp too.
         expect(file.path).toBe("Research/Papers/My chosen name.md");
         expect(harness.frontmatter()).toMatchObject({
           [FIELD_LITERATURE_NOTE_PROFILE]: `Papers (${target})`,
@@ -3991,7 +3875,6 @@ describe("updateNote", () => {
         const { vault } = harness.host;
         const properties = (file: TFile) =>
           parseFrontMatter(vault.contents.get(file.path)!);
-        // The first write to the second Imported Note lands, then fails.
         const write = vault.modifyFile.bind(vault);
         let failed = false;
         vi.spyOn(vault, "modifyFile").mockImplementation((path, content) => {
@@ -4219,7 +4102,6 @@ describe("updateNote", () => {
     const books = "Bk3Qn7XvT2Lp" as ProfileId;
     const papers = "Rz9Wm4YfH6Kd" as ProfileId;
 
-    /** A note stamped with Books, and a Profile reader over the host's cache. */
     function stampedHarness() {
       const harness = makeUpdateHarness({
         content: formatManagedRegion("OLD"),
@@ -4472,8 +4354,6 @@ describe("updateNote", () => {
   });
 });
 
-// The batch's reads for `writeNoteUpdate`: an unbound interface over its own
-// fixture database, which holds the Item the batch hands over.
 const writeFixtures = new AsyncDisposableStack();
 afterAll(() => writeFixtures.disposeAsync());
 const writeFixture = openDbDeps(writeFixtures);
@@ -4490,7 +4370,6 @@ const { reads } = await writeFixture.zoteroReads.ready;
 
 describe("replacedKeys", () => {
   const books = "Bk3Qn7XvT2Lp" as ProfileId;
-  /** A note under the Books Profile, whose document manages `entries`. */
   function booksNote(
     entries: Parameters<typeof compileDocumentFrontmatter>[0],
     frontmatter: Record<string, unknown> = {
@@ -4638,7 +4517,6 @@ describe("writeNoteUpdate", () => {
     );
 
     expect(excerptScopes).toEqual([outcomes]);
-    // The caller's scope outlives the update: it still answers a repeat.
     await probe.resolve(outcomes);
     expect(probe.renders()).toBe(1);
   });
@@ -4786,9 +4664,6 @@ describe("writeNoteUpdate", () => {
   });
 });
 
-// `render` / `renderFilename` are generic (`<T extends object>`) on the real
-// service, so the mocks mirror that signature and narrow the erased payload to
-// the fixture shape they assert on — the only casts the stub needs.
 type RenderNoteData = {
   title: string | null;
   relatedItems: readonly {
@@ -4874,7 +4749,6 @@ function compileDocumentFrontmatter(
   });
 }
 
-/** The fixture databases and services the current case opened. */
 let caseFixtures = new AsyncDisposableStack();
 afterEach(async () => {
   const opened = caseFixtures;
@@ -4882,10 +4756,6 @@ afterEach(async () => {
   await opened.disposeAsync();
 });
 
-/**
- * A fixture database and the ZoteroReads service over the same client, both
- * held by `stack`: the service closes before the database.
- */
 function openDbDeps(stack: AsyncDisposableStack) {
   const db = stack.adopt(makeDb(), ({ client }) => client.$client.close());
   const zoteroReads = stack.use(
@@ -4894,15 +4764,10 @@ function openDbDeps(stack: AsyncDisposableStack) {
   return { db, zoteroReads };
 }
 
-/** {@link openDbDeps} for one case: both close after it. */
 function makeDbDeps() {
   return openDbDeps(caseFixtures);
 }
 
-/**
- * A fixture database holding My Library (1) and the group library 2 of group
- * 118, with no Items and no memberships.
- */
 function makeDb(): TestDeps["db"] {
   const client = createClient(":memory:");
   createFixtureSchema(client.$client);
@@ -4914,11 +4779,6 @@ function makeDb(): TestDeps["db"] {
   return { client };
 }
 
-/**
- * Write `item` into the fixture database as a regular Item with its title and
- * citation key. It replaces any Item that holds the same id, or the same key
- * in the same library.
- */
 function seedItem(client: NodeDatabaseClient, item: Item): void {
   const fields = item.fields as unknown as Record<string, string | null>;
   const held = `select itemID from items where itemID = ${item.itemID} or (libraryID = ${item.libraryID} and key = '${item.key}')`;
@@ -4938,14 +4798,12 @@ function seedItem(client: NodeDatabaseClient, item: Item): void {
   `);
 }
 
-/** Remove the Item `key` of My Library from the fixture database. */
 function forgetItem(client: NodeDatabaseClient, key: string): void {
   client.$client.exec(
     `delete from items where libraryID = 1 and key = '${key}';`,
   );
 }
 
-/** Child Notes of Item `parentItemID`, one per key, in key order. */
 function seedChildNotes(
   client: NodeDatabaseClient,
   parentItemID: number,
@@ -5018,10 +4876,6 @@ function makeSettings(
   };
 }
 
-/**
- * Plants the retired `note.last-used-profile` value an earlier ZotLit version
- * persisted; the feature must neither read it nor write it back.
- */
 function seedRememberedProfile(
   settings: TestDeps["settings"],
   selector: ProfileId,
@@ -5031,11 +4885,6 @@ function seedRememberedProfile(
   });
 }
 
-/**
- * The note feature's app over an in-memory host holding `files` (path to
- * text): `vault.create` is a mock, and the file manager records each link it
- * generates.
- */
 function makeApp(files: Record<string, string> = {}) {
   const host = createObsidianHost(files);
   const vault = Object.assign(host.vault, {

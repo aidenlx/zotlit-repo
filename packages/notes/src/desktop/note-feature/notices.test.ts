@@ -1,4 +1,3 @@
-// The Note Feature's change notices: one notice for each reported change.
 import { it } from "@effect/vitest";
 import { Effect, Exit, Layer, PubSub, Queue, Scope, Stream } from "effect";
 import { expect } from "vitest";
@@ -13,10 +12,6 @@ import { layerNoteFeatureNotices } from "./notices.ts";
 import { NoteFeature } from "./service.ts";
 import type { NoteFeatureEvent } from "./types.ts";
 
-/**
- * The notice layer over a change stream the case publishes to, built in
- * `scope`. `shown` takes one element for each notice shown.
- */
 const register = Effect.fn("test.register")(function* (scope: Scope.Scope) {
   const changes = yield* PubSub.unbounded<NoteFeatureEvent>();
   const shown = yield* Queue.unbounded<void>();
@@ -75,7 +70,6 @@ it.effect("shows nothing for a change published after the Scope closes", () =>
     const scope = yield* Scope.make();
     const { changes, notices } = yield* register(scope);
 
-    // Closing the Scope ends the subscriptions, so the change reaches no one.
     yield* Scope.close(scope, Exit.void);
     yield* PubSub.publish(changes, {
       _tag: "frontmatter-eval-failed",

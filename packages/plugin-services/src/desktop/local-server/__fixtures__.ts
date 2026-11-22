@@ -1,5 +1,3 @@
-// A Local Server built from its layer over empty settings and dependency stubs.
-
 import type { Settings, SettingsDefinition } from "#core/settings/schema.ts";
 import type { ZoteroPrefSnapshot } from "#core/zotero-pref/service.ts";
 import { Effect, Layer } from "effect";
@@ -18,14 +16,11 @@ import {
   PluginSettings,
 } from "#obsidian/settings/service.ts";
 
-/** Settings of a host's `definition`, seeded with `overrides`. */
 interface SeededSettings {
-  /** The host's own; this package's tests pass its platform slices. */
   readonly definition: SettingsDefinition;
   readonly overrides: Partial<Settings>;
 }
 
-/** The real Local Server over empty settings seeded with `settings`. */
 export async function buildLocalServer(
   { definition, overrides }: SeededSettings,
   stack: AsyncDisposableStack,
@@ -43,7 +38,6 @@ export async function buildLocalServer(
   const prefLayer = Layer.succeed(
     ZoteroPref,
     stubService<ZoteroPref["Service"]>("ZoteroPref", {
-      // The Local Server reads only the source id from this snapshot.
       current: Effect.succeed({
         sourceId: "a1b2c3d4",
       } as ZoteroPrefSnapshot),

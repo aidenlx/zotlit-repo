@@ -7,11 +7,6 @@ export const Route = createFileRoute("/learn")({
   component: LearnShell,
 });
 
-/**
- * The course's own chrome, outside the docs and home layouts: a minimal top
- * bar over one narrow column, so the page reads at half a screen beside
- * Obsidian. A v1 permalink can land here, so the redirect notice rides along.
- */
 function LearnShell() {
   return (
     <>

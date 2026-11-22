@@ -1,6 +1,4 @@
 import type { NoteImportView } from "#desktop/note-import/view.ts";
-// The edge handle is a Promise API on purpose: these cases call it as the
-// note commands and the file menu do.
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { TFile } from "obsidian";
 import type { App } from "obsidian";
@@ -31,7 +29,6 @@ import { Profile } from "#obsidian/profile/service.ts";
 const UPDATED: UpdateResult = { bodyUpdated: true, duplicateRegionCount: 0 };
 const OPTIONS = { itemKey: "ABCD2345", scope: "full" } as const;
 
-/** The note actions over `updateNote`, bound as `plugin-runtime.ts` binds them. */
 function actionsOver(updateNote: NoteFeature["Service"]["updateNote"]) {
   const runtime = ManagedRuntime.make(
     Layer.mergeAll(
@@ -85,8 +82,6 @@ it("resolves when the action ends, after it updated the note", async () => {
   await runtime.dispose();
 });
 
-// The bridge starts the run and the closed runtime interrupts it, so the
-// action stops at its first wait.
 it("resolves an action called after unload and stops it at its first wait", async () => {
   let finished = false;
   const { runtime, actions } = actionsOver(() =>

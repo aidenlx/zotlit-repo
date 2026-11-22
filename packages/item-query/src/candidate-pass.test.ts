@@ -265,7 +265,6 @@ it.each([
 );
 
 it("uses a Relation List candidate through the fake descriptor's reader", async () => {
-  // Elements 1 and 2 share the parent 7; element 3 has the parent 9.
   const { dataset, reads } = fake(12, [1, 2, 3]);
   const parentReads: (readonly number[])[] = [];
   const root: CandidateDataset = {
@@ -296,8 +295,6 @@ it("uses a Relation List candidate through the fake descriptor's reader", async 
   });
 });
 
-// Failure modes: a Relation List never reaches the parent cap, a partial
-// candidate set loses matches, or a budget outcome is logged as the cap.
 it("scans when a Relation List exhausts its element page budget", async () => {
   const { dataset, reads } = fake(
     12,
@@ -326,8 +323,6 @@ it("scans when a Relation List exhausts its element page budget", async () => {
   });
 });
 
-// One look-ahead row proves completeness at an exact page boundary. The cap
-// wins when that same page supplies too many distinct parents.
 it.each([
   { elements: 499, parents: [7], budget: 1, expected: [7], reason: null },
   {
@@ -492,11 +487,8 @@ it.each([false, true])(
       }),
       { logs },
     );
-    // An exhausted budget scans; otherwise the children are the candidates.
     if (!Exit.isSuccess(run.exit)) throw new Error(String(run.exit.cause));
     expect(run.exit.value === null).toBe(exhausted);
-    // Budget: 8 pages of 500 Items. Limit: the cap of 40,000 rows at 0.25,
-    // plus one.
     expect(reads).toEqual([{ budget: 4000, limit: 10_001 }]);
     expect(logs[0]?.properties).toMatchObject({
       reason: exhausted ? "parent-page-budget-exhausted" : null,

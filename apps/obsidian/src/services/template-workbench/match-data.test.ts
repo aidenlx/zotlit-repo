@@ -1,6 +1,4 @@
 import { expect, it } from "@effect/vitest";
-// Vault-wide suggestions and the Match test of a real Item read one database,
-// through the host's ZotLit Query service.
 import { Effect, Layer } from "effect";
 import { vi } from "vitest";
 
@@ -23,7 +21,6 @@ import {
 
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 
-/** The Item Match port over the host's query service, as the plugin fills it. */
 function itemMatchesOf(
   service: QueryService["Service"],
 ): NonNullable<WorkbenchHostDeps["query"]> {
@@ -46,7 +43,6 @@ function itemMatchesOf(
   };
 }
 
-/** Match data over one fixture database, with the lease releases counted. */
 async function openMatchData(stack: AsyncDisposableStack) {
   const client = createClient(":memory:");
   stack.defer(() => client.$client.close());
@@ -122,7 +118,6 @@ it.effect(
         openMatchData(stack),
       );
       expect(yield* data.tags).toEqual(["Automatic", "Manual", "Other paper"]);
-      // ADR 0040 accepts slash ambiguity in expressions; provider facts retain real segments.
       expect(yield* data.collections).toEqual([
         ["A/B"],
         ["Project"],
@@ -133,7 +128,6 @@ it.effect(
         { id: "personal" },
         { id: "group:118", name: "Team" },
       ]);
-      // Automatic Tags and direct Collection paths count, as in selection.
       for (const [filter, matched] of [
         ['itemType == "book" && library == "personal"', true],
         ['tags.containsAll("Automatic", "Manual")', true],
@@ -146,7 +140,6 @@ it.effect(
           kind: "result",
           matched,
         });
-      // The Workbench shows the Match pane twice; overlapping tests both answer.
       expect(
         yield* Effect.all(
           [data.matches("BKKKK222", "true"), data.matches("BKKKK222", "false")],

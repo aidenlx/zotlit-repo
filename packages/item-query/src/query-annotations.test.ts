@@ -23,7 +23,6 @@ import { ItemQueryScheduler } from "./scheduler.ts";
 import type { RunOptions } from "./test-helpers.ts";
 import { runEffect } from "./test-helpers.ts";
 
-// Read-only tests share one scenario; a test that writes opens its own.
 let scenario: ScenarioDatabase<NodeDatabaseClient>;
 beforeAll(() => {
   scenario = openScenarioDatabase(connectClient, { annotations: true });
@@ -151,7 +150,6 @@ it("filters and projects the Library selector of Annotations with the same bare 
     rows.find((row) => row.indexedKey === "ANN2HGHTg4815")?.values,
   ).toEqual({ library: "group:4815", "item.library": "group:4815" });
   const personalRows = await query('library == "personal"');
-  // The twelve Annotations of My Library; the group holds one.
   expect(rows).toHaveLength(13);
   expect(personalRows).toHaveLength(12);
   expect(new Set(personalRows.map((row) => row.values.library))).toEqual(
@@ -259,9 +257,6 @@ it("combines Annotation fields with parent dates, Tags, and projections", async 
   expect(exit.value.rows![0]?.values["item.date.year"]).toBe(2020);
 });
 
-// The three files with marks: PDF2LIVE ("Full Text PDF", added 2020-03-16),
-// PDF2LINK ("linkedAttachment") and PDF2GRUPg4815 ("groupAttachment"), both
-// added 2021-01-01. All three are PDFs; the Indexed Key breaks each tie.
 it.each([
   {
     name: "title",
@@ -422,8 +417,6 @@ it("caps after parent expansion and uses a bounded Annotation candidate when ava
       event.type === "statement" &&
       event.statement.reader === "parent-child-candidate-set",
   );
-  // The cap is a quarter of the twelve Annotations of My Library, 3: the read
-  // stops at the fourth of ART2FULL's twelve, and the scan answers.
   expect(candidateReads).toHaveLength(1);
   expect(candidateReads[0]).toMatchObject({
     statement: { rows: { length: 4 } },
@@ -551,7 +544,6 @@ it("warns on definite cross-type inequality while preserving every evaluated mat
   ]);
 });
 
-/** The readers of the scan pass and of the projection pass, in order. */
 async function passReaders(
   request: Omit<ItemQueryRequest, "libraries">,
   resolve: (indexedKey: string) => void = () => {},
@@ -602,8 +594,6 @@ describe("the statements of each pass", () => {
       filter: 'tags.contains("method")',
       fields: [],
     });
-    // Seven of the twelve Annotations of My Library carry the Tag, above the
-    // cap of a quarter (3): the plan reads the candidate set, then scans.
     const planning = (reader: string) =>
       reader === "annotation-row-count" || reader.endsWith("candidate-set");
     expect(scan).toContain("annotation-candidate-set");
@@ -649,8 +639,6 @@ describe("the statements of each pass", () => {
   });
 });
 
-// Failure modes: selecting the wrong parent, crossing Library scope, or dropping
-// a warning when another branch matches. Each request also runs as a forced scan.
 it.each([
   ['indexedKey == "ANN2HGHT"', ["ANN2HGHT"]],
   ['indexedKey == "ANN2GRUPg4815"', ["ANN2GRUPg4815"]],
@@ -720,7 +708,6 @@ it.each(["indexedKey", "item.indexedKey", "attachment.indexedKey"])(
   },
 );
 
-// A bare Indexed Key names My Library even when only the group is read.
 it.each(["indexedKey", "item.indexedKey", "attachment.indexedKey"])(
   "warns for a bare %s in a group-only list selection",
   async (field) => {
@@ -784,9 +771,6 @@ it("groups marks by a parent scalar with exact counts and the three most recent 
   expect(exit.value).not.toHaveProperty("rows");
 });
 
-// Twelve Annotations sit on ART2FULL (2020, review status "done") and one on
-// its group copy (2020, no review status). Nine marks are #ffd400 (yellow);
-// the four ANL2 marks are #123456, which has no color name.
 it.each([
   { group: "item.citationKey", groups: [[null, 13]] },
   { group: "item.date.year", groups: [[2020, 13]] },
@@ -860,7 +844,6 @@ it.each(["tags", "item.tags[]", "item.tags", "attachment"])(
   },
 );
 
-/** The six Annotations on PDF2LINK. */
 const LINKED_MARKS = [
   "ANL2IMAG",
   "ANL2INK2",
@@ -869,7 +852,6 @@ const LINKED_MARKS = [
   "ANN2BAD2",
   "ANN2LINK",
 ];
-/** Every Annotation of My Library: PDF2LINK's six and PDF2LIVE's six. */
 const PERSONAL_MARKS = [
   ...LINKED_MARKS,
   "ANN2HGHT",
@@ -880,8 +862,6 @@ const PERSONAL_MARKS = [
   "ANN2UNDR",
 ].toSorted();
 
-// The write below turns PDF2LINK into an embedded image, which Attachment
-// Query leaves out; its marks still reach it as their Parent Record.
 it.each([
   ['attachment.item.collections.within("Thesis")', PERSONAL_MARKS],
   ['attachment.linkMode == "embedded_image"', LINKED_MARKS],

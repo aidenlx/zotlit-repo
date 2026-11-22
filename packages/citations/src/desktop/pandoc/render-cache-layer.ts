@@ -1,5 +1,3 @@
-// The layer of the bibliography render cache: renders through the Pandoc
-// Engine with the CSL styles read from the Zotero data folder.
 import type {
   CslStyleRequest,
   ResolvedCslStyle,
@@ -64,7 +62,6 @@ const renderError = (cause: unknown) =>
   });
 const CITATION_RENDER = "citation-render";
 
-/** A Resolved CSL Style a render can actually run with. */
 type RenderStyle = Exclude<ResolvedCslStyle, { kind: "failed" }>;
 
 export const layerBibliographyRender = Layer.effect(
@@ -81,13 +78,8 @@ export const layerBibliographyRender = Layer.effect(
     const noticeServices = yield* Effect.context<
       DeviceStorage | Notifier | PluginHost
     >();
-    /**
-     * A render that gets no engine tells the researcher once which plugin
-     * gives it; the render itself answers without the notice.
-     */
     const noticeRefusal = (status: PackBinaryRefusal) =>
       packNotice(status).pipe(Effect.provide(noticeServices));
-    /** The engine for one render; a refused borrow shows the notice. */
     const borrowEngine = Effect.suspend(() => engine.getEngine).pipe(
       Effect.tapError((error) => noticeRefusal(error.status)),
     );
@@ -124,7 +116,6 @@ export const layerBibliographyRender = Layer.effect(
       Stream.runForEach(stream, (value) => recover(handle(value))).pipe(
         Effect.forkScoped({ startImmediately: true }),
       );
-    // Each state subscription skips its acquisition snapshot, just as on("changed") did.
     const initialProfile = yield* profile.state;
     yield* listen(
       Stream.dropWhile(profile.changes, (next) => next === initialProfile),
@@ -133,8 +124,6 @@ export const layerBibliographyRender = Layer.effect(
     yield* listen(reads.events, (event) =>
       event._tag === "changed" ? invalidate() : Effect.void,
     );
-    // A render stands until the engine comes or goes: the first read of an
-    // installed pack only confirms the engine the renders already asked for.
     const initialUsable = engineUsable(yield* engine.current);
     yield* listen(
       engine.changes.pipe(
@@ -294,8 +283,6 @@ export const layerBibliographyRender = Layer.effect(
         ),
       ),
     );
-    // Start the shared refresh before peeking. A stale value answers immediately;
-    // the layer owns the refresh even when this caller stops waiting.
     const askThenPeek = Effect.fn("BibliographyRender.askThenPeek")(function* <
       T,
     >(key: readonly string[], render: QueryFunction<T>) {
@@ -376,11 +363,6 @@ export const layerBibliographyRender = Layer.effect(
   }).pipe(withLogCategory("pandoc", "render-cache")),
 );
 
-/**
- * What the engine formats one Resolved CSL Style with: an installed style hands
- * over its content, and the embedded default style takes the Citation Locale as
- * the locale to render in.
- */
 function enginePresentation(style: RenderStyle): {
   styleXml?: string;
   locale?: string;
@@ -390,11 +372,6 @@ function enginePresentation(style: RenderStyle): {
     : { locale: style.locale };
 }
 
-/**
- * Full style and item content separate a cancelled render's captured inputs
- * from updated data under the same IDs. Query Core's stable JSON serialization
- * ignores object property order while preserving item and citation order.
- */
 function renderKey({
   request,
   style,
@@ -416,7 +393,6 @@ function renderKey({
   ]);
 }
 
-/** The {@link renderKey} a held render's query key carries. */
 function renderKeyOf(key: readonly unknown[]): string {
   return String(key[1]);
 }

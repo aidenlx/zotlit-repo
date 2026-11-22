@@ -8,7 +8,6 @@ import citationLiquid from "#defaults/citation.liquid?raw";
 
 type CitationVariant = "main" | "alt";
 
-/** A Citation Item at default props, optionally overriding citation-scoped props. */
 function citation(
   citationKey: string | null,
   props: Partial<{
@@ -32,13 +31,11 @@ function citation(
   };
 }
 
-/** The citation-template contract for one Citation Variant, from citekeys. */
 function data(variant: CitationVariant, ...citationKeys: (string | null)[]) {
   const citations = citationKeys.map((key) => citation(key));
   return { variant, items: citations.map((c) => c.item), citations };
 }
 
-/** The same contract from fully-built Citation Items. */
 function dataFrom(
   variant: CitationVariant,
   ...citations: ReturnType<typeof citation>[]
@@ -46,10 +43,6 @@ function dataFrom(
   return { variant, items: citations.map((c) => c.item), citations };
 }
 
-/**
- * Render the built-in Citation Template the way ZotLit inserts it: the
- * template's own line structure collapses through {@link inlineCitation}.
- */
 function renderCitation(source: string, language: "liquid" | "eta") {
   const facade = new TemplateFacade();
   facade.define("citation", source, language);
@@ -180,11 +173,6 @@ describe("built-in Citation Template", () => {
   });
 });
 
-/**
- * The semantic cases above pin the expected source. This matrix checks that
- * the Liquid and the Eta edition render those behaviors byte-for-byte,
- * including the whitespace each embedded default owns.
- */
 describe("the Liquid Citation Template default matches the Eta default byte-for-byte", () => {
   const matrix: [string, ReturnType<typeof dataFrom>][] = (
     ["main", "alt"] as const

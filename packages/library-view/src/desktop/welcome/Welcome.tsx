@@ -1,4 +1,3 @@
-// Welcome onboarding banner: the header, the update of ZotLit, the checklist of setup steps, the template conversion, the v1 Migration Prompt and the Zotero 10 Companion guidance, each as a section the model decides, and the Help Links whatever it shows.
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { join } from "node:path/posix";
 import type { IconName } from "obsidian";
@@ -38,11 +37,6 @@ import {
 } from "#obsidian/welcome/links.ts";
 import { ZotLitLockup } from "#obsidian/welcome/lockup.tsx";
 
-/**
- * Where a setup step stands. Its icon and its words carry it: a check and
- * "Done", a spinner and "Looking for Zotero…", an alert and "We couldn't
- * find…"; the colour only repeats them.
- */
 type StepState = "done" | "checking" | "warn" | "todo";
 
 function markClass(state: StepState, open: boolean): string {
@@ -84,32 +78,20 @@ const BADGE_TEXT = {
   "get-started": m.welcome_badge,
 } satisfies Record<ReturnType<typeof bannerBadge>, () => string>;
 
-/**
- * The centered column of a wide banner: the header and the sections share it,
- * so they share its start edge. Stacked, it takes the full width.
- */
 const COLUMN =
   "zt:col-start-1 zt:w-full zt:min-w-0 zt:@min-[760px]:mx-auto zt:@min-[760px]:max-w-[40rem]";
 
-/**
- * A tinted or bordered surface whose content keeps the column's start edge:
- * it hangs outside the column by its inline padding and border.
- */
 const HANGING = "zt:-mx-[calc(--spacing(3)+1px)] zt:border zt:px-3";
 
 function Header({ titleId }: { titleId: string }) {
   const badge = BADGE_TEXT[useWelcomeState(bannerBadge)]();
   return (
-    // Stacked, the header shares its line with the dismiss button, so it
-    // leaves the button's width free at the end.
     <header
       className={cn(
         COLUMN,
         "zt:row-start-1 zt:flex zt:flex-wrap zt:content-start zt:items-center zt:gap-x-2.5 zt:gap-y-1 zt:@max-[760px]:pe-[calc(var(--icon-size)+var(--size-2-3)+var(--size-4-2))]",
       )}
     >
-      {/* The lockup draws the name and the hidden text says it. The title's
-          line is as tall as the dismiss button, so the two share a center. */}
       <span
         id={titleId}
         role="heading"
@@ -119,15 +101,12 @@ function Header({ titleId }: { titleId: string }) {
         <span className="zt:sr-only">ZotLit</span>
         <ZotLitLockup />
       </span>
-      {/* Text on the accent fill reads below 4.5:1 in either theme, so
-          the accent keeps to the border. */}
       <span
         data-welcome-badge=""
         className="zt:rounded-full zt:border zt:border-primary zt:bg-muted zt:px-2 zt:py-0.5 zt:text-xs zt:text-foreground"
       >
         {badge}
       </span>
-      {/* The tagline joins the title's line where the column is wide enough. */}
       <p className="zt:m-0 zt:text-sm zt:text-muted-foreground">
         {m.welcome_tagline()}
       </p>
@@ -135,12 +114,6 @@ function Header({ titleId }: { titleId: string }) {
   );
 }
 
-/**
- * The dismiss button, on the header's line at the banner's top-end corner
- * whatever the width: where a dismissable bar's close button sits. Its glyph
- * ends on the banner's content end, the Help Links' end edge. It follows the
- * header in the focus order.
- */
 function Dismiss() {
   const actions = useWelcomeActions();
   return (
@@ -158,9 +131,7 @@ interface Step {
   id: string;
   state: StepState;
   title: string;
-  /** What a done step settled on, after its title on the same line. */
   summary?: ReactNode;
-  /** The text the step says while it is the next one. */
   body: ReactNode;
   action?: ReactNode;
 }
@@ -171,20 +142,11 @@ const MARK_ICON: Record<Exclude<StepState, "todo">, IconName> = {
   checking: "loader",
 };
 
-/**
- * The accent surface of the next setup step and of a callout that asks for an
- * action: one tint, so the banner's calls to act read as one family.
- */
 const ACCENT_SURFACE = {
   background: "hsla(var(--interactive-accent-hsl), 0.07)",
   borderColor: "hsla(var(--interactive-accent-hsl), 0.35)",
 };
 
-/**
- * One row of the checklist: its mark, its title and its action at the end of
- * the line, so a done step can still be changed. A step that isn't done shows
- * its number; the next one wears the accent and adds its text under the title.
- */
 function StepRow({
   step,
   number,
@@ -198,9 +160,6 @@ function StepRow({
     <li
       data-welcome-step={step.state}
       data-open={open ? "" : undefined}
-      // A flex box, not a list item: Obsidian's unlayered `ol` rule sets a
-      // decimal marker that `zt:list-none` cannot reach, and the mark already
-      // carries the number.
       className={cn(
         HANGING,
         "zt:flex zt:flex-col zt:gap-0.5 zt:rounded-lg zt:border-transparent zt:py-1.5",
@@ -229,9 +188,6 @@ function StepRow({
             />
           )}
         </span>
-        {/* One line however narrow the pane: the title keeps its width and
-            the summary takes what is left, so it gives way first; the step's
-            action reaches the full value. */}
         <div className="zt:flex zt:min-w-0 zt:flex-1 zt:items-baseline zt:gap-x-2 zt:overflow-hidden zt:whitespace-nowrap">
           <StepHeading className="zt:max-w-full zt:shrink-0 zt:truncate">
             {step.title}
@@ -256,14 +212,6 @@ function StepRow({
   );
 }
 
-/**
- * The setup steps as a checklist: Connect to Zotero (left out while the
- * Library View shows its not-found card, which says the same), the
- * literature-notes folder, the library, which lists below the banner once
- * ZotLit reads Zotero's database, and ZotLit Companion and ZotLit Reader,
- * which are optional.
- * Only the first step that isn't done opens.
- */
 function Checklist({ connect }: { connect: boolean }) {
   const connection = useWelcomeState((s) => s.connection);
   const literatureFolder = useWelcomeState((s) => s.literatureFolder);
@@ -292,8 +240,6 @@ function Checklist({ connect }: { connect: boolean }) {
               {connection.path}
             </code>
             <span aria-hidden="true">·</span>
-            {/* The count is short and says more than the path, so the path
-                gives way first and the count keeps every character. */}
             <span className="zt:shrink-0">
               {m.welcome_step_connect_connected({
                 count: connection.itemCount,
@@ -345,15 +291,12 @@ function Checklist({ connect }: { connect: boolean }) {
       <span className="zt:truncate">{m.welcome_step_library_done()}</span>
     ) : undefined,
     body: <p className="zt:m-0">{m.welcome_step_library_body()}</p>,
-    // The search is the Library View's own search box, which the not-found
-    // state takes away.
     action: notFound ? undefined : (
       <Button icon="search" onClick={actions.searchLibrary}>
         {m.welcome_action_search()}
       </Button>
     ),
   });
-  // Optional but recommended: last, so it opens only once the rest is done.
   steps.push({
     id: "companion",
     state: companionInstalled ? "done" : "todo",
@@ -415,11 +358,6 @@ function Checklist({ connect }: { connect: boolean }) {
   );
 }
 
-/**
- * The setup steps once every one is done, beside a notice: one "Setup done"
- * line naming the Zotero data folder and the literature-notes folder, whose
- * "Show steps" opens the checklist under it.
- */
 function FoldedChecklist({ connect }: { connect: boolean }) {
   const connection = useWelcomeState((s) => s.connection);
   const literatureFolder = useWelcomeState((s) => s.literatureFolder);
@@ -479,10 +417,6 @@ function FoldedChecklist({ connect }: { connect: boolean }) {
   );
 }
 
-/**
- * Obsidian's unlayered `a` rule colours and underlines every link above any
- * utility, so the colour stays inline; the rest is utilities.
- */
 const LINK_COLOR = { color: "var(--text-normal)" };
 
 function useOpenExternal(url: string) {
@@ -496,12 +430,6 @@ function useOpenExternal(url: string) {
 const FOCUS_RING =
   "zt:focus-visible:ring-2 zt:focus-visible:ring-(--interactive-accent)";
 
-/**
- * A Help Link tile: its icon in an accent square, its title, which names the
- * link, and a subtitle that describes it. The large tile holds both lines
- * beside its icon; a small one puts the subtitle under the icon and the title,
- * so it keeps to one line in the narrow column.
- */
 function HelpTile({
   icon,
   url,
@@ -530,8 +458,7 @@ function HelpTile({
         FOCUS_RING,
         primary
           ? "zt:col-span-2 zt:gap-x-2.5 zt:border-primary zt:hover:border-primary"
-          : // A tile in a row with a taller one keeps its title at the top.
-            "zt:content-start zt:border-border",
+          : "zt:content-start zt:border-border",
       )}
     >
       <span
@@ -545,12 +472,10 @@ function HelpTile({
       <span id={titleId} className="zt:truncate zt:text-sm zt:font-semibold">
         {title}
       </span>
-      {/* A small tile gives its subtitle the full width under the icon. */}
       <span
         id={subtitleId}
         className={cn(
           "zt:text-xs zt:text-muted-foreground",
-          // Under 760px the small tiles keep their icon and title only.
           !primary && "zt:col-span-2 zt:@max-[760px]:hidden",
         )}
       >
@@ -576,12 +501,6 @@ function TextLink({ url, children }: { url: string; children: ReactNode }) {
   );
 }
 
-/**
- * The Help Links: the documentation and community tiles, then the news and
- * sponsor text links and, in the fresh state, the migration guide, whose
- * Migration Prompt says it in the upgraded state. They show whatever the
- * banner shows.
- */
 function HelpLinks() {
   const migrationPending = useWelcomeState((s) => s.migrationPending);
   const nameId = useUniqueId();
@@ -647,14 +566,6 @@ function HelpLinks() {
   );
 }
 
-/**
- * A titled callout, in the shape of the open setup step: its title and its
- * action on one line, the action at the end, and its text underneath at the
- * full width of the card, so no column stands empty beside a short body. Where
- * the title and the action don't fit on one line, the action wraps under the
- * title. One that asks for an action wears the accent; one that informs sits on
- * the surface of the Help Links.
- */
 function Callout({
   tone,
   title,
@@ -687,10 +598,6 @@ function Callout({
   );
 }
 
-/**
- * The longer explanation of a notice, folded behind "How it works" so the
- * notice reads as one sentence and its action.
- */
 function HowItWorks({ children }: { children: ReactNode }) {
   return (
     <details className="zt:group/how zt:mt-1">
@@ -707,7 +614,6 @@ function HowItWorks({ children }: { children: ReactNode }) {
   );
 }
 
-/** The update of ZotLit: its version, and the Release Note that says what changed. */
 function UpdateCallout() {
   const actions = useWelcomeActions();
   const version = useWelcomeState((s) => s.version);
@@ -731,8 +637,6 @@ function ConversionOffer() {
   const templateFolder = useWelcomeState((state) => state.templateFolder);
   const run = useConversion();
   const converting = run.waiting;
-  // The notice that names a refusal is transient; the banner keeps the same
-  // sentence beside the button until the next attempt.
   const last = AsyncResult.isSuccess(run) && !run.waiting ? run.value : null;
   const refusal =
     last && !last.retry && last.result.outcome === "refused"
@@ -839,7 +743,6 @@ function MigrationGuide() {
   );
 }
 
-/** What a v1 upgrader on Zotero 10 needs: ZotLit Companion reads its recent changes. */
 function CompanionGuidance() {
   const actions = useWelcomeActions();
   return (
@@ -860,12 +763,6 @@ function CompanionGuidance() {
   );
 }
 
-/**
- * The Welcome View as a banner above the Library View: exactly the sections
- * {@link bannerSections} names, and nothing while it names none.
- *
- * @see apps/obsidian/docs/adr/0077-the-library-view-is-the-first-screen.md
- */
 export function Welcome() {
   const shown = useWelcomeState((s) => bannerSections(s) !== null);
   const steps = useWelcomeState((s) => bannerSections(s)?.steps ?? false);
@@ -882,7 +779,6 @@ export function Welcome() {
   );
   const update = useWelcomeState((s) => bannerSections(s)?.update ?? false);
   const titleId = useUniqueId();
-  // A request for the banner moves focus to it, once it shows.
   const requests = useWelcomeState((s) => s.requests);
   const sectionRef = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -890,27 +786,16 @@ export function Welcome() {
   }, [requests]);
   if (!shown) return null;
   return (
-    // Obsidian shows a tooltip for each `aria-label`, so the banner takes its
-    // name from the title on screen.
     <section
       ref={sectionRef}
       aria-labelledby={titleId}
       data-welcome-banner=""
       tabIndex={-1}
-      // The bar spans the tab with one inline margin at both of its ends.
-      // The title's line is the dismiss button's height.
       className="zt:@container zt:border-b-(length:--border-width) zt:border-(--divider-color) zt:bg-(--background-secondary) zt:px-(--size-4-6) zt:py-(--size-4-4) zt:outline-none zt:[--zt-banner-line:calc(var(--icon-size)+var(--size-2-2)*2)]"
     >
-      {/* On a wide pane the Help Links take a 22rem column at the end, wide
-          enough for each small tile's subtitle to keep to one line, and what
-          to do sits centered in the rest, in a column at most 40rem wide;
-          the header takes the first row, so the first section and the Help
-          Links start on one line under it. Under 760px it stacks, with the
-          Help Links last. */}
       <div className="zt:grid zt:grid-cols-1 zt:gap-y-3 zt:@min-[760px]:grid-cols-[minmax(0,1fr)_22rem] zt:@min-[760px]:gap-x-8">
         <Header titleId={titleId} />
         <Dismiss />
-        {/* What to do comes first. */}
         <div
           data-welcome-column=""
           className={cn(

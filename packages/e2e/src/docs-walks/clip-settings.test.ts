@@ -6,7 +6,6 @@ import {
   recutSettings,
 } from "./clip-settings.ts";
 
-/** Set `DOCS_WALK_CLIP` to `value` until disposal, which restores the old value. */
 function withClipEnv(value: string): Disposable {
   const old = process.env.DOCS_WALK_CLIP;
   process.env.DOCS_WALK_CLIP = value;
@@ -34,7 +33,6 @@ describe("clipSettings", () => {
   });
 
   describe("recutSettings", () => {
-    /** The settings of a clip recorded with another camera and pads. */
     const recorded = {
       zoom: 2,
       endPad: 0.2,

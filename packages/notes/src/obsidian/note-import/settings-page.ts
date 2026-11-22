@@ -1,6 +1,4 @@
 import type { ProfileControlKey } from "#obsidian/profile/setting-controls.ts";
-// The Imported notes page: how imported notes render, and the shared highlight
-// output mappings every Profile uses.
 import { Effect } from "effect";
 import type { SettingDefinitionItem } from "obsidian";
 
@@ -33,10 +31,6 @@ const colorLabels = {
   plum: m.annot_view_color_plum,
 } satisfies Record<AnnotationColorName, () => string>;
 
-/**
- * The Imported notes page: the default Profile's rendering bindings, with the
- * shared mappings one page deeper.
- */
 export function noteImportPageItems(
   ctx: SettingTabContext,
 ): SettingDefinitionItem<SettingsKey | ProfileControlKey>[] {
@@ -137,7 +131,6 @@ export function highlightMappingItems(
   );
 }
 
-/** Save `patch` over the mapping of `color`. */
 function updateMapping(
   color: AnnotationColorName,
   patch: Partial<HighlightMapping>,

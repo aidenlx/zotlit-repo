@@ -1,6 +1,3 @@
-// View atoms the Cited By Sidebar alone reads: previews of the citing notes,
-// their vault facts for sorting, and the commands that open them. Shared by
-// every Cited By leaf through the plugin's view registry.
 import type {
   CitationOccurrence,
   CitedByGroup,
@@ -24,11 +21,6 @@ import { activeCitedByAtom } from "#obsidian/citation-index/atoms.ts";
 import { flashOccurrence } from "#obsidian/citation-index/reveal-occurrence.ts";
 import { CitationIndex } from "#obsidian/citation-index/service.ts";
 
-/**
- * How often each note changed this session: its metadata was indexed again,
- * it moved (old and new path), or it was deleted. One listener serves every
- * preview; a note no event named reads 0.
- */
 export const revisionsAtom: Atom.Atom<Readonly<Record<string, number>>> = held(
   Stream.unwrap(
     Effect.gen(function* () {
@@ -59,7 +51,6 @@ export const revisionsAtom: Atom.Atom<Readonly<Record<string, number>>> = held(
   {},
 );
 
-/** One note's revision; an unchanged note stops here. */
 const revisionAtom = Atom.family((path: string) =>
   Atom.map(revisionsAtom, (revisions) => revisions[path] ?? 0),
 );
@@ -67,7 +58,6 @@ const revisionAtom = Atom.family((path: string) =>
 const LOADING: CitedByPreview = { status: "loading" };
 const UNAVAILABLE: CitedByPreview = { status: "unavailable" };
 
-/** One parse at a time across every preview, so a long list never floods the host. */
 const reads = Semaphore.makeUnsafe(1);
 
 const readPreview = (path: string) =>
@@ -77,7 +67,6 @@ const readPreview = (path: string) =>
     if (!file) return UNAVAILABLE;
     const index = yield* CitationIndex;
     const facts = yield* reads.withPermits(1)(index.getParsedNote(file));
-    // Read after the parse, so the cache is at least as new as the source.
     const cache = yield* (yield* MetadataCache).fileCache(file);
     return {
       status: "ready",
@@ -88,12 +77,6 @@ const readPreview = (path: string) =>
     } satisfies CitedByPreview;
   });
 
-/**
- * The preview of one citing note: loading, then its source and parse. A new
- * revision of the note reads it again and interrupts a read in progress; the
- * last preview shows until the new one lands, and a failed read shows the note
- * as unavailable.
- */
 export const previewAtom = Atom.family(
   (path: string): Atom.Atom<CitedByPreview> =>
     Atom.map(
@@ -108,10 +91,6 @@ export const previewAtom = Atom.family(
     ),
 );
 
-/**
- * The preview of every group in the followed note's Cited By, collapsed groups
- * included: the search filter reads their text too.
- */
 export const activePreviewsAtom: Atom.Atom<
   Readonly<Record<string, CitedByPreview>>
 > = Atom.make((get) =>
@@ -123,7 +102,6 @@ export const activePreviewsAtom: Atom.Atom<
   ),
 );
 
-/** The vault facts the sort modes read from one citing note; `null` once it left the vault. */
 const sourceFactsAtom = Atom.family(
   (path: string): Atom.Atom<SourceFileFacts | null> =>
     Atom.map(
@@ -140,7 +118,6 @@ const sourceFactsAtom = Atom.family(
     ),
 );
 
-/** The sort facts of every group in the followed note's Cited By. */
 export const activeSourceFactsAtom: Atom.Atom<
   Readonly<Record<string, SourceFileFacts | null>>
 > = Atom.make((get) =>
@@ -152,7 +129,6 @@ export const activeSourceFactsAtom: Atom.Atom<
   ),
 );
 
-/** Opens a citing note in the pane `newLeaf` names. */
 export const openSourceCommand = viewRuntime.fn(
   (options: { readonly path: string; readonly newLeaf: PaneType | boolean }) =>
     Effect.gen(function* () {
@@ -167,11 +143,6 @@ export const openSourceCommand = viewRuntime.fn(
     ),
 );
 
-/**
- * Opens a citing note and reveals one occurrence where the note's current
- * source still holds it. A stale occurrence, or a note that cannot be read,
- * opens the note alone.
- */
 export const openOccurrenceCommand = viewRuntime.fn(
   (options: {
     readonly group: CitedByGroup;
@@ -186,7 +157,6 @@ export const openOccurrenceCommand = viewRuntime.fn(
       const current = file
         ? yield* index.getParsedNote(file).pipe(
             Effect.map((facts) => facts.currentOccurrence(occurrence)),
-            // Opening the note stays useful when its source cannot be read.
             Effect.orElseSucceed(() => null),
           )
         : null;

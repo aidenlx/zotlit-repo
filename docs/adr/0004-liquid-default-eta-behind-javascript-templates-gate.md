@@ -20,3 +20,19 @@ Templates are shareable vault content, and under Eta every template is a full-pr
 - **Handlebars / Nunjucks**: rejected — both compile templates through `Function` at runtime, so for vault-loaded user templates (precompilation impossible) they deliver zero eval-safety over Eta, while costing more helpers to express the same defaults.
 - **Liquid-only, remove Eta**: rejected — burns the v1 power-user migration path and forecloses Templater-style customization; the ceiling would be re-litigated under pressure.
 - **Sandboxing Eta (SES / ShadowRealm / wasm engine)**: deferred, not rejected — heavy machinery, easy to get subtly wrong, and the Obsidian team has signaled a possible official sandboxed-eval API. The gate leaves a seam: a future sandbox slots in behind the same toggle as a hardening upgrade without touching Liquid users.
+
+## Rendering adapters
+
+Liquid and Eta share output coercion and blockquote formatting. Missing values render as empty text, JavaScript Dates render in ISO form, and a Temporal Instant renders as a local calendar date. Other values can supply their own string conversion, as ItemDate and creator values do. In Liquid, this output adapter applies to interpolation but is bypassed by the echo tag. The engine reports unknown filters and uses line-sensitive whitespace trimming so a trim marker can preserve an adjacent blank line.
+
+The Liquid date filter converts supported Temporal and multipart date values before delegating to LiquidJS. Calendar-only values use local calendar components so time-zone conversion does not move the date. Text-only ItemDate values keep their original text. Structural typing lets the adapter accept the database value without importing the database package. [Early year follow-up](https://github.com/aidenlx/zotlit-repo/issues/82)
+
+Pass an in-memory filesystem when a facade owns partial resolution. Omit the filesystem option entirely when using LiquidJS's default, because an explicit undefined value displaces that default. Link filters accept nullable helpers. The embed wrapper omits a missing link and lets a prepared excerpt supply its own unavailable text. Related note links retain the legacy per-item error marker when the item has no note link. Tag conversion reads the tag object's name, preserves characters outside Obsidian's tokenizer exclusions, collapses repeated separators, and prefixes an all-digit tag with an underscore. The array replace filter refuses an empty search so the replacement cannot be inserted between every character.
+
+Legacy Eta includes pass their data directly, including arrays. Eta spreads the data in generated helpers before its render override can see it, so the adapter rewrites the exact synchronous and asynchronous helper strings. A missing match fails compilation so an Eta upgrade cannot silently restore spreading. Named renders and includes share the output transform. Compiled-function calls carry no registry name. The facade enables Eta's runtime diagnostics to keep a name, line, and source excerpt. For each side of an Eta tag, `nl` trims one line break, `slurp` trims all whitespace, and false keeps it.
+
+Name the inert artifact when a render is refused. A refusal to use the whole managed-frontmatter field set carries no template name because the fields are not a named Template.
+
+Show the JavaScript Templates toggle as a service-backed control because its value is per device. Apply permission changes through the template rebuild so views see the compiled state that matches the control. Confirm before turning it on and apply turning it off immediately.
+
+Report an Eta edition shadowed by Liquid as shadowed regardless of consent. When Eta would win and consent is off, leave that name without a compiled template. Rendering it raises the typed inert-template error instead of rendering the bundled default.

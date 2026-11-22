@@ -1,12 +1,3 @@
-// The caller and Profile each Shared Partial was last previewed under, held
-// per file on this device. The workspace carries the choice back with a leaf
-// it restores; this carries it back when the reader closes the partial and
-// opens it again, which is the same file and the same choice.
-//
-// The key is the vault path, so a renamed partial opens on the default caller
-// again — ZotLit rewrites nothing on a rename, and a preview choice is not
-// worth following one.
-
 import type { PartialChoice } from "#core/render/index.ts";
 import { Effect } from "effect";
 import type { App } from "obsidian";
@@ -21,7 +12,6 @@ import {
   isPartialContext,
 } from "#core/render/index.ts";
 
-/** Device-local, so a vault synced between machines carries no preview choice. */
 const STORAGE_KEY = "zotlit-partial-choice";
 
 export type PartialChoiceStore = Pick<
@@ -29,17 +19,11 @@ export type PartialChoiceStore = Pick<
   "loadLocalStorage" | "saveLocalStorage"
 >;
 
-/** The choice a partial opens on when this device remembers none for it. */
 export const DEFAULT_PARTIAL_CHOICE: PartialChoice = {
   context: DEFAULT_PARTIAL_CONTEXT,
   profile: null,
 };
 
-/**
- * What this device last remembered for the Shared Partial at `path`, or
- * {@link DEFAULT_PARTIAL_CHOICE} when it holds none — an unsaved document
- * among them, which has no path to key on.
- */
 export function readPartialChoice(
   store: PartialChoiceStore,
   path: string | null,
@@ -55,11 +39,6 @@ export function readPartialChoice(
   };
 }
 
-/**
- * Remember `choice` for the Shared Partial at `path`. A choice that is the
- * default again is forgotten rather than stored, so the store holds only the
- * partials the reader actually moved off Note.
- */
 export function writePartialChoice(
   store: PartialChoiceStore,
   path: string | null,
@@ -81,7 +60,6 @@ export function writePartialChoice(
 
 type HeldChoice = { context?: unknown; profile?: unknown };
 
-/** The stored map, as a fresh object a caller may edit; `{}` on anything else. */
 function heldChoices(store: PartialChoiceStore): Record<string, HeldChoice> {
   const held: unknown = store.loadLocalStorage(STORAGE_KEY);
   if (held === null || typeof held !== "object" || Array.isArray(held)) {

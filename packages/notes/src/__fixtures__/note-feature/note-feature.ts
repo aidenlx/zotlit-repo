@@ -1,6 +1,5 @@
 import { effectImageResolver } from "@zotlit/annotations/__fixtures__/excerpt-image/service.ts";
 import type { ExcerptImageFixture } from "@zotlit/annotations/__fixtures__/excerpt-image/service.ts";
-// The Note Feature's layer over a test's plain deps, and the edge handle a test drives.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Layer } from "effect";
 import type { ManagedRuntime } from "effect";
@@ -49,7 +48,6 @@ import type { NoteFeatureServices } from "#desktop/note-feature/service.ts";
 import { planningContext } from "./planning-context.ts";
 import type { PlanningSources } from "./planning-context.ts";
 
-/** The vault, file manager, metadata cache and workspace the note writes touch. */
 export interface NoteFeatureApp {
   vault: VaultSource;
   fileManager: FileManagerSource;
@@ -57,7 +55,6 @@ export interface NoteFeatureApp {
   workspace: WorkspaceSource;
 }
 
-/** The plain deps the Note Feature's services read, as a Note Feature test holds them. */
 export interface NoteFeatureSources extends Omit<
   PlanningSources,
   "template" | "app"
@@ -68,27 +65,16 @@ export interface NoteFeatureSources extends Omit<
   settings: Pick<PluginSettings["Service"], "current" | "update">;
   zoteroPref: { dataDir: string; baseAttachmentPath: string | null };
   attachmentImport: Pick<AttachmentImport["Service"], "prepare">;
-  /** A fake excerpt preparation for each note write. */
   excerptImages?: (options: NoteExcerptOptions) => PreparedExcerpts;
-  /**
-   * The Excerpt Image resolver of the real preparation, which writes into
-   * `app`'s vault on disk. Without it or `excerptImages`, a note write
-   * prepares no excerpt and its image helpers give `null`.
-   */
   excerptResolver?: Pick<ExcerptImageFixture, "operation" | "resolve">;
 }
 
-/** A note write's excerpts when the test gives no preparation: none. */
 const noExcerpts = (): PreparedExcerpts => ({
   annotationImageLink: () => null,
   prepare: Effect.void,
   summary: () => ({ zotero: 0, unchecked: 0, unavailable: 0 }),
 });
 
-/**
- * The preparation `sources` give when a write runs: their fake, the real
- * preparation over their resolver and `host`, or none.
- */
 function layerExcerptPreparationOver(
   sources: NoteFeatureSources,
   host: Layer.Layer<
@@ -121,7 +107,6 @@ function layerExcerptPreparationOver(
     ExcerptPreparation,
     Effect.gen(function* () {
       const preparation = yield* ExcerptPreparation;
-      // A stubbed `sources` may leave the optional members out.
       const given = <K extends "excerptImages" | "excerptResolver">(key: K) =>
         key in sources ? sources[key] : undefined;
       return ExcerptPreparation.of({
@@ -138,12 +123,6 @@ function layerExcerptPreparationOver(
   ).pipe(Layer.provide(real));
 }
 
-/**
- * The Note Feature's services over `sources`. The Profile, Note Index,
- * Zotero reads, Template, settings, Zotero location and Attachment Import
- * read `sources` when they run, so a test may replace one after it builds
- * the layer. The capability tags run over `sources.app` as it is now.
- */
 export function noteFeatureServices(
   sources: NoteFeatureSources,
   itemMatches?: ItemMatchQuery["Service"],
@@ -202,13 +181,6 @@ export function noteFeatureServices(
   );
 }
 
-/**
- * The Note Feature's edge handle over its layer, built on `sources` and held
- * by `stack`, the runtime the layer runs on, and the service itself for the
- * operations no edge handle serves. Its note writes read
- * `sources.excerptImages` as it is when they run. The citation members fail
- * the test unless `citations` gives them.
- */
 export function noteFeatureHandle(
   sources: NoteFeatureSources,
   stack: AsyncDisposableStack,

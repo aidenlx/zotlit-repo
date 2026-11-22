@@ -1,10 +1,3 @@
-// The lint rules of the ZotLit Obsidian plugin's code: the app
-// (apps/obsidian) and the plugin packages it bundles (plugin-kernel,
-// obsidian-kit, obsidian-desktop, zotero-reads, plugin-services, annotations,
-// citations, notes, template-workbench, query-views, library-view), and
-// ZotLit Reader (apps/reader, reader-feature).
-// Each of those lint configs spreads these and adds the overrides that name its
-// own files.
 import { join } from "node:path";
 import type { DummyRuleMap, OxlintOverride } from "oxlint";
 
@@ -17,7 +10,6 @@ import {
 
 const plugin = (name: string) => join(import.meta.dirname, name);
 
-/** The custom plugins plugin code loads. */
 export const pluginCodeJsPlugins: string[] = [
   plugin("oxlint-plugin-design.ts"),
   plugin("oxlint-plugin-popout-windows.ts"),
@@ -69,9 +61,6 @@ export const obsidianImportPaths: ImportPath[] = [
   ...uniqueIdPaths,
 ];
 
-// The wrappers are applied by the effectEntry Vite plugin
-// (packages/plugin-kernel/scripts/effect-entry.ts); code imports the package
-// names.
 export const effectWrapperPaths: ImportPath[] = [
   ...["@zotlit/plugin-kernel/effect.ts", "#effect.ts"].map((name) => ({
     name,
@@ -87,7 +76,6 @@ export const effectWrapperPaths: ImportPath[] = [
   ),
 ];
 
-/** The CLI-guarded citation scan, which plugin code reads through the worker. */
 const scanPattern: ImportPattern = {
   group: ["**/citation-index/scan.ts", "./scan.ts"],
   importNames: [
@@ -137,7 +125,6 @@ export const runtimeImports: RestrictedImports = {
   ],
 };
 
-/** Adds patterns (a package's layer boundary) to every restatement of the rule. */
 export function withPatterns(
   options: RestrictedImports,
   patterns: ImportPattern[],
@@ -195,7 +182,6 @@ export const readerImports: RestrictedImports = withPatterns(runtimeImports, [
   },
 ]);
 
-/** The top-level rules of plugin code; `imports` is its `no-restricted-imports`. */
 export function pluginCodeRules(imports: RestrictedImports): DummyRuleMap {
   return {
     "effecttsgo/global-console": "error",
@@ -208,7 +194,6 @@ export function pluginCodeRules(imports: RestrictedImports): DummyRuleMap {
     "zotlit-services/no-plain-service-adapters": "error",
     "zotlit-services/cli-command-registration": "error",
     "zotlit-effect-style/no-tacit": "error",
-    // Repeats the base pattern: a rule set here replaces the base entry.
     "no-restricted-imports": ["error", imports],
   };
 }
@@ -221,13 +206,6 @@ const TESTS = [
   "**/__fixtures__.ts",
 ];
 
-/**
- * The overrides every plugin code config shares, with globs relative to its
- * directory (`src/**`). `imports` is the config's `no-restricted-imports`;
- * the test override relaxes it to `testImports`. `services` names the files
- * that hold Effect services: the app's `src/services/**`, or the whole
- * source of a package of services.
- */
 export function pluginCodeOverrides({
   testImports,
   services = ["src/services/**"],
@@ -237,8 +215,6 @@ export function pluginCodeOverrides({
 }): OxlintOverride[] {
   return [
     {
-      // Obsidian's guideline rules, on the code that ships. `pnpm review` runs
-      // the type-aware rest.
       files: ["src/**"],
       excludeFiles: [
         "src/**/*.test.{ts,tsx}",
@@ -353,8 +329,6 @@ export function pluginCodeOverrides({
       ],
       rules: { "zotlit-services/obsidian-capabilities": "error" },
     },
-    // A test double needs no span: service methods are Effect.fn in the plugin
-    // code only.
     {
       files: TESTS,
       rules: { "effecttsgo/effect-fn-opportunity": "off" },
@@ -372,7 +346,6 @@ export function pluginCodeOverrides({
         "**/__fixtures__/**",
         "**/__fixtures__.ts",
         "**/__mocks__/**",
-        // Test support and benchmarks, not plugin code: no plugin runtime exists there.
         "**/test-harness.ts",
         "**/test-host.tsx",
         "**/*.bench.ts",
@@ -399,7 +372,6 @@ export function pluginCodeOverrides({
         "**/__fixtures__/**",
         "**/__fixtures__.ts",
         "**/__mocks__/**",
-        // Benchmarks measure wall time on purpose.
         "**/*.bench.ts",
       ],
       rules: { "zotlit-services/clock-time": "error" },
@@ -409,13 +381,10 @@ export function pluginCodeOverrides({
       rules: { "zotlit-services/temporal-in-effect": "error" },
     },
     {
-      // UI code runs in the window it stands in, a pop-out included.
       files: ["src/views/**", "src/components/**", "src/**/*.tsx"],
       rules: { "zotlit-obsidian/no-global-timer": "error" },
     },
     {
-      // So does UI that services draw, such as a picker; tests keep the
-      // timers their fakes replace.
       files: ["src/**"],
       excludeFiles: [
         "**/*.test.{ts,tsx}",
@@ -427,7 +396,6 @@ export function pluginCodeOverrides({
       rules: { "zotlit-obsidian/no-global-timer": "error" },
     },
     {
-      // React draws its controls from JSX; imperative DOM builds on Obsidian's.
       files: ["src/**/*.tsx"],
       rules: {
         "zotlit-css/no-obsidian-class": "error",
@@ -435,7 +403,6 @@ export function pluginCodeOverrides({
       },
     },
     {
-      // Tests can inspect the schema; the plugin's other import rules remain.
       files: [
         "src/**/*.{test,spec}.{ts,tsx,js,jsx}",
         "*.{config,setup}.{ts,js,mjs,cjs}",
@@ -445,7 +412,6 @@ export function pluginCodeOverrides({
   ];
 }
 
-/** The test override's `no-restricted-imports`: the wrappers and the Obsidian paths. */
 export const pluginTestImports: RestrictedImports = {
   patterns: [parentImportPattern, datePattern],
   paths: [...effectWrapperPaths, ...obsidianImportPaths],

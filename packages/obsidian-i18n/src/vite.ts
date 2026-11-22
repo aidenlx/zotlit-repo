@@ -1,5 +1,3 @@
-// Vite plugin that compiles Language Packs on build and optionally serves them over loopback.
-
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { join } from "node:path";
@@ -55,10 +53,6 @@ export function obsidianI18n(options: ObsidianI18nViteOptions = {}): Plugin {
       }
       if (result.warnings.length > 0) this.warn(result.warnings.join("\n"));
     },
-    /**
-     * Only `closeWatcher` tears the pack server down: watch builds close the
-     * bundle after every rebuild, and the plugin fetches its pack between them.
-     */
     async closeWatcher() {
       await packServer?.disposeAsync();
       packServer = undefined;

@@ -1,4 +1,3 @@
-// The local image command reads one database Snapshot and renders in the renderer.
 import { Effect, FileSystem, Layer } from "effect";
 
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
@@ -17,7 +16,6 @@ import {
 } from "#obsidian/excerpt-image/request.ts";
 import { ExcerptImageService } from "#obsidian/excerpt-image/service.ts";
 
-/** The `zotlit:annotation-image` command. */
 export const layerAnnotationImageCli: Layer.Layer<
   never,
   never,
@@ -33,10 +31,6 @@ export const layerAnnotationImageCli: Layer.Layer<
     const pref = yield* ZoteroPref;
     const excerptImage = yield* ExcerptImageService;
     const fs = yield* FileSystem.FileSystem;
-    /**
-     * The excerpt request of the Annotation `key` names, read from one
-     * Snapshot under the paths of the active source.
-     */
     const read = (key: string) =>
       Effect.gen(function* () {
         const { dataDir, baseAttachmentPath } = yield* pref.current;
@@ -69,7 +63,6 @@ export const layerAnnotationImageCli: Layer.Layer<
             publishExcerptPng(fingerprint, bytes).pipe(
               Effect.provideService(FileSystem.FileSystem, fs),
             ),
-          // A path that cannot be read counts as no file, as an absent one does.
           exists: (path) =>
             fs.stat(path).pipe(
               Effect.map(({ type }) => type === "File"),

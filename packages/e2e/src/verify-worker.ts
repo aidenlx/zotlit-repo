@@ -1,4 +1,3 @@
-// Required desktop gate for changes that can block the database worker.
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { $ } from "zx";
@@ -18,14 +17,11 @@ if (!(await isObsidianReachable(root))) {
     "Worker responsiveness requires a running desktop Obsidian with its CLI enabled. Open a host vault, then run pnpm e2e:worker again.",
   );
 }
-// The nested `pnpm e2e` reuses this hold through the environment, and its
-// test cases renew the Lease.
 using slot = await acquireDesktopSlotOrExit({
   cwd: root,
   command: "pnpm e2e:worker",
   silenceMs: SILENCE_LIMIT_MS.e2e,
 });
-// The nested run writes its results to the folder chosen here.
 const results = newE2eResultsDir();
 const report = join(results, "results.json");
 slot.progress("pnpm e2e citation-index starts");

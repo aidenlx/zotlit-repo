@@ -14,11 +14,6 @@ import {
 import type { CitationEngine, PreparedDocument } from "./engine.ts";
 import { PANDOC_ENGINE } from "./service.ts";
 
-/**
- * The binary the Resource Pack holds, read from the `pandoc-wasm` dev
- * dependency. The package resolves through its `node` condition, so its entry
- * sits beside `pandoc.wasm`.
- */
 const WASM_PATH = join(
   dirname(createRequire(import.meta.url).resolve("pandoc-wasm")),
   "pandoc.wasm",
@@ -26,7 +21,6 @@ const WASM_PATH = join(
 
 const NOT_WASM = new Uint8Array(new TextEncoder().encode("not wasm"));
 
-/** A device whose installed pack holds `binary` as the Pandoc Engine's entry. */
 const device = Effect.fnUntraced(function* (binary: Uint8Array<ArrayBuffer>) {
   return packDevice(
     yield* Effect.promise(() => packFile({ [PANDOC_ENGINE.id]: binary })),
@@ -34,7 +28,6 @@ const device = Effect.fnUntraced(function* (binary: Uint8Array<ArrayBuffer>) {
   );
 });
 
-/** A prepared document that cites nothing, which no test here renders. */
 const fakeDocument: PreparedDocument = {
   citedIds: [],
   withCitedIds: () => fakeDocument,

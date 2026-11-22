@@ -1,6 +1,3 @@
-// The Query File document owns a Query View's text, the view on screen, every
-// edit and the save timing. These tests drive it as the Query View does: text
-// and edits in, the file, the view on screen and the saved text out.
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { QueryFileDocument, SAVE_DELAY_MS } from "./query-file-document.ts";
@@ -18,7 +15,6 @@ const FILE = `views:
     from: annotations
 `;
 
-/** Three views without a name, each told apart by its limit. */
 const UNNAMED = `views:
   - type: annotations
     from: annotations
@@ -62,12 +58,9 @@ function open(
     saved,
     selected,
     failed,
-    /** How many times the document said the file or the view on screen changed. */
     shows: () => shows,
-    /** The name of the view on screen. */
     shown: () => document.view?.name ?? null,
     names: () => document.file?.views.map((view) => view.name) ?? [],
-    /** The limits of the views, which tell unnamed views apart. */
     limits: () => document.file?.views.map((view) => view.limit) ?? [],
   };
 }
@@ -108,9 +101,7 @@ describe("the view on screen", () => {
     expect(other.shown()).toBe("Blue");
     other.document.selectView("Everything");
     other.document.deleteView(0);
-    // The first view's neighbour is the view after it.
     expect(other.shown()).toBe("Blue");
-    // The last view stays.
     other.document.deleteView(0);
     expect(other.names()).toEqual(["Blue"]);
   });
@@ -270,7 +261,6 @@ describe("saving an edit", () => {
     expect(saved[0]).toContain("    limit: 50\n");
     await document.flush();
 
-    // A menu choice saves at once, with the typed text that still waits.
     document.editView({ limit: 7 }, { typed: true });
     document.editView({ order: ["comment"] });
     expect(saved).toHaveLength(2);
@@ -334,8 +324,6 @@ describe("saving an edit", () => {
     const hidden = open(items("    order: []\n"));
     hidden.document.saveFormula("month", "date.month");
     expect(hidden.document.view?.order).toEqual(["formula.month"]);
-    // An order of another dataset shows the defaults; they stay, and so
-    // does that order.
     const stale = open(items("    order:\n      - comment\n"));
     stale.document.saveFormula("month", "date.month");
     expect(stale.document.view?.order).toEqual([
@@ -395,7 +383,6 @@ describe("saving an edit", () => {
       writes.map(({ text }) => text.match(/limit: (\d+)/)?.[1]);
     document.editView({ limit: 5 });
     document.editView({ limit: 6 });
-    // The second save waits until the host wrote the first.
     expect(limits()).toEqual(["5"]);
     const flushed = document.flush();
     writes[0]!.settle(false);

@@ -51,7 +51,6 @@ const popovers = vi.hoisted(
     }[],
 );
 
-/** A failure the next draw of entries throws, as a broken render would. */
 const draw = vi.hoisted(() => ({ fails: null as Error | null }));
 
 vi.mock("./popover.ts", () => ({
@@ -76,17 +75,11 @@ vi.mock("./popover.ts", () => ({
   },
 }));
 
-/** Every reads stand-in a test opened, disposed after it. */
 const opened: AsyncDisposable[] = [];
 afterEach(async () => {
   for (const reads of opened.splice(0)) await reads[Symbol.asyncDispose]();
 });
 
-/**
- * ZoteroReads on the in-process adapter over a `:memory:` database holding
- * `works`. The test sets `state`; `holds` replaces the works the database
- * holds, and `lock`/`unlock` make the item table unreadable and readable.
- */
 function reads(works: readonly SeededWork[] = []) {
   const client = createClient(":memory:");
   createFixtureSchema(client.$client);
@@ -296,7 +289,6 @@ describe("Citation Popover citation text", () => {
 });
 
 describe("Citation Popover lead", () => {
-  /** What the popover drew last: the lead, then the entries below it. */
   function lastDrawn(): [ReactNode, ReactNode] {
     const drawn = popovers[0]!.render.mock.calls.at(-1)![0] as ReactElement<{
       children: [ReactNode, ReactNode];
@@ -346,7 +338,6 @@ describe("Citation Popover lead", () => {
   });
 });
 
-/** One document's citation text, whose hovered occurrence carries a note. */
 function noteText(note: string): DocumentCitations {
   return {
     ...emptyText(),
@@ -435,7 +426,6 @@ describe("source-less Citation Popover", () => {
   });
 });
 
-/** A Logger layer that records the Effect warnings the popover writes. */
 function captureWarnings() {
   const warnings: {
     message: unknown;
@@ -522,10 +512,6 @@ function workHarness(options: { logs?: Layer.Layer<never> } = {}) {
         ),
       ).catch(() => {});
     },
-    /**
-     * Hovers `work` under one parent the harness keeps, on a target of its
-     * own; settles once that hover's first read drew or was dropped.
-     */
     showUnder(work: WorkHoverRequest["work"]): Promise<void> {
       return runtime.runPromise(
         service.showWork({
@@ -696,12 +682,10 @@ describe("source-less Item actions", () => {
         `[aria-label="${m.references_open_note()}"]`,
       )!
       .click();
-    // The action reads the Item again first, so it lands once that read does.
     await vi.waitFor(() =>
       expect(run.open).toHaveBeenCalledExactlyOnceWith("ABCD2345", false),
     );
 
-    // The open hid that card; the next hover shows the Item again.
     run.open.mockClear();
     run.show();
     const again = await run.shown();
@@ -861,7 +845,6 @@ describe("source-less presentation updates", () => {
       indexedKey: "EFGH2345",
     });
 
-    // The first read fails because the second hover aborted it.
     first.reject(new DOMException("Aborted", "AbortError"));
     second.resolve(null);
     await Promise.all([firstHover, secondHover]);
@@ -887,7 +870,6 @@ describe("source-less presentation updates", () => {
 
   it("recovers from a database read failure without changing exact identity", async () => {
     await using run = workHarness();
-    // The connection validates the copy first; the read fails after it.
     await (await run.db.acquireRead())[Symbol.asyncDispose]();
     run.db.lock();
     run.show();

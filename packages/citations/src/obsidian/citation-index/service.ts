@@ -1,5 +1,3 @@
-// The renderer owns persisted note scans and citation membership; the parse client owns Markdown.
-
 import type {
   ParseFailed,
   ParseWorkerDied,
@@ -119,7 +117,6 @@ export interface AnnotationUse {
   readonly occurrence: AnnotationOccurrence;
 }
 
-/** The Citation Occurrences in one citing Markdown note. */
 export interface CitedByGroup {
   readonly path: string;
   readonly occurrences: readonly CitationOccurrence[];
@@ -131,18 +128,14 @@ export type CitationKeyResolution = Exclude<
   "pending"
 > | null;
 
-/** Whether a Citation Syntax's occurrences reach a citation-command answer. */
 export type CitationSyntaxAdmission = "included" | "excluded";
 
-/** The admission of each Citation Syntax, as a citation command reports it. */
 export type CitationSyntaxes = Readonly<
   Record<CitationSyntax, CitationSyntaxAdmission>
 >;
 
-/** Outcome of {@link CitationIndex.waitUntilSettled}. */
 export type CitationSettleOutcome = "settled" | "timeout";
 
-/** The reverse observation for one Literature Note's Item. */
 export interface CitedBySnapshot {
   groups: readonly CitedByGroup[];
   coverage: CitationCoverage;
@@ -169,29 +162,22 @@ export function citedBySnapshotsEqual(
   });
 }
 
-/** One document's active Citation Occurrences and its distinct cited works. */
 export interface DocumentCitationSet extends ReferenceSourceJoin {
   syntaxes: CitationSyntaxes;
   omittedSyntaxes: CitationSyntax[];
   coverage: CitationCoverage;
-  /** Eligible occurrences in document order, including repeated works. */
   occurrences: CitationOccurrence[];
-  /** The same occurrences grouped for reference-list consumers. */
   citations: Citation[];
-  /** Invalid explicit citation intent, excluded from CSL membership. */
   errors: DocumentCitationError[];
-  /** The citation lookup used to compose this document, at one revision. */
   lookup: CitationLookupAnswer;
 }
 
-/** One citation source error a document-aware surface can help correct. */
 export interface DocumentCitationError {
   outcome?: CitationOutcome;
   kind: "malformed-wikilink" | "malformed-annotation";
   occurrence: CitationOccurrence;
 }
 
-/** Structural equality for document citation errors and their exact ranges. */
 export function documentCitationErrorsEqual(
   prev: readonly DocumentCitationError[],
   next: readonly DocumentCitationError[],
@@ -336,7 +322,6 @@ function makeCitationIndex(
         syntaxes: syntaxes(),
       });
     }
-    // Runs per scanned file on the metadata intake and backfill hot path.
     const emit = Effect.fnUntraced(function* (
       type: CitationIndexEvent["type"] | "backfilled",
       path?: string,
@@ -348,7 +333,6 @@ function makeCitationIndex(
         type === "changed" ? { type, path: path! } : { type },
       );
     });
-    /** Wait for the file's pending parse; stale retained scans cannot validate navigation. */
     const getFileScan = Effect.fn("CitationIndex.getFileScan")(function* (
       file: TFile,
     ) {
@@ -360,12 +344,6 @@ function makeCitationIndex(
         : null;
     });
 
-    /**
-     * The active document's shared citation membership and source order.
-     *
-     * A document the backfill has not reached is scanned on demand, so the
-     * active document is answered without waiting for the vault-wide pass.
-     */
     const getDocumentCitationSet = Effect.fn(
       "CitationIndex.getDocumentCitationSet",
     )(function* (
@@ -548,12 +526,6 @@ function makeCitationIndex(
       changes.pipe(Stream.filter((value) => value.backfilled || value.stopped)),
     ).pipe(Effect.asVoid, Effect.withSpan("CitationIndex.whenIndexed"));
 
-    /**
-     * Observe the citations in the vault that resolve to an Item, under the same
-     * source choices as the Document Citation Set.
-     * The first snapshot waits for listener registration; later snapshots follow
-     * progressive scans, citation-key resolution changes, and source choices.
-     */
     const observeCitedBy = Effect.fn("CitationIndex.observeCitedBy")(function* (
       indexedKey: string,
       callback: (snapshot: CitedBySnapshot) => void,
@@ -637,12 +609,6 @@ function makeCitationIndex(
       };
     });
 
-    /**
-     * The reverse observation as one read, for a caller that answers a single
-     * question instead of following the index — the agent-facing CLI. It reports
-     * whatever the index holds now, so {@link waitUntilSettled} is what a caller
-     * that wants a complete answer runs first.
-     */
     const getCitedBy = Effect.fn("CitationIndex.getCitedBy")(function* (
       indexedKey: string,
       answer?: CitationLookupAnswer,
@@ -675,14 +641,6 @@ function makeCitationIndex(
         },
       );
     });
-
-    /**
-     * Wait until coverage and citation-key resolution both have settled once. A
-     * failed resolution read counts as settled data rather than a stage that
-     * resolves on its own.
-     *
-     * @returns `"timeout"` when the bounded wait expires, `"settled"` otherwise.
-     */
 
     const settle = Effect.fn("CitationIndex.settle")(
       function* (timeoutMs: number) {
@@ -867,12 +825,6 @@ function makeCitationIndex(
       } as const;
     });
 
-    /**
-     * Which Citation Syntaxes admit their occurrences into an answer, for a
-     * caller that declares the constraint beside its facts — the agent-facing
-     * CLI. Follows the same source choices {@link admitted} applies to the
-     * document set and Cited By.
-     */
     function syntaxes(): CitationSyntaxes {
       return {
         citekey: includePandocCitations ? "included" : "excluded",
@@ -881,19 +833,6 @@ function makeCitationIndex(
       };
     }
 
-    /**
-     * The excluded Citation Syntaxes that hold an occurrence in `file` — the
-     * fact every `references` answer carries, so a short entry list still
-     * names what a setting left out.
-     *
-     * An occurrence counts only if admitting its syntax would have put it in
-     * the Document Citation Set: a citekey scan need only be non-empty, since
-     * {@link groupCitations} keeps an unresolvable citekey as an `unresolved`
-     * entry; a wikilink must resolve to an Item, and a malformed one counts
-     * too when it resolves, because it would produce a `malformed` entry.
-     *
-     * @see referenceEntries in `cli/commands.ts`
-     */
     const documentOmittedSyntaxes = Effect.fn(
       "CitationIndex.documentOmittedSyntaxes",
     )(function* (file: TFile) {
@@ -940,20 +879,6 @@ function makeCitationIndex(
       },
     );
 
-    /**
-     * The admitted Citation Occurrences of every covered document, by path —
-     * the Document Citation Set membership {@link admitted} gates, read
-     * synchronously for a caller that redraws the whole vault in one pass: the
-     * Graph Citations render facade.
-     *
-     * Reads what the backfill and the metadata events have covered so far, so
-     * a document the backfill has not reached is absent until it is; the
-     * `backfilled` event marks the pass complete. Occurrences are raw: what
-     * each cites is the caller's question.
-     *
-     * @param syntaxes the Citation Syntaxes to answer with.
-     * @returns paths holding at least one admitted occurrence, in vault order.
-     */
     const citationsByPath = Effect.fn("CitationIndex.citationsByPath")(
       function* (
         syntaxes: readonly CitationSyntax[],
@@ -976,12 +901,6 @@ function makeCitationIndex(
       },
     );
 
-    /**
-     * Discards every stored scan and rebuilds from the vault — the recovery hatch
-     * for an index that disagrees with the vault, over data the vault can always
-     * produce again. Returns once the store is empty; the rebuild runs on from
-     * there, and {@link whenIndexed} is what waits for it.
-     */
     const reset = Effect.fn("CitationIndex.reset")(function* () {
       if (stopped) return;
       activeBuildNumber += 1;
@@ -1009,7 +928,6 @@ function makeCitationIndex(
       yield* startBackfill();
     });
 
-    /** Readiness settles even on a failed pass, so no consumer waits forever. */
     const runBackfill = Effect.fn("CitationIndex.runBackfill")(function* () {
       const activeBuild = activeBuildNumber;
       if (backfillBuild === activeBuild) return;
@@ -1066,12 +984,10 @@ function makeCitationIndex(
       }
     });
 
-    /** Whether a build other than `build` has taken over. */
     function stale(build: number): boolean {
       return stopped || build !== activeBuildNumber;
     }
 
-    // Runs per scanned file on the metadata intake and backfill hot path.
     const scan = Effect.fnUntraced(function* (file: TFile, body: string) {
       const { path } = file;
       const { mtime, size } = file.stat;
@@ -1168,7 +1084,6 @@ function makeCitationIndex(
       return backfillFailed || failedPaths.size > 0 ? "degraded" : "complete";
     }
 
-    // Runs per scanned file on the metadata intake and backfill hot path.
     const setFailed = Effect.fnUntraced(function* (
       path: string,
       failed: boolean,
@@ -1190,7 +1105,6 @@ function makeCitationIndex(
         : null;
     }
 
-    // Runs per scanned file on the metadata intake and backfill hot path.
     const coverFile = Effect.fnUntraced(function* (
       file: TFile,
       fresh = false,
@@ -1202,7 +1116,6 @@ function makeCitationIndex(
       while (!stale(build)) {
         if (!(yield* vault.getFileByPath(file.path))) return null;
         const known = covered(file);
-        // A grammar update keeps the last scan available while its replacement runs.
         if (!fresh && known && known.scannerRevision !== SCANNER_REVISION)
           return known;
         const pending = pendingScans.get(file.path);
@@ -1277,11 +1190,6 @@ function makeCitationIndex(
       if (!scanContentEqual(undefined, scan)) yield* emit("changed", path);
     });
 
-    /**
-     * Writes are per file and never awaited: the store is derived data, so a
-     * failed write costs one rescan on the next launch. Every caller runs on the
-     * current build, which is what keeps a superseded one out of the store.
-     */
     const persist = Effect.fnUntraced(function* (record: CitekeyRecord) {
       if (stopped || !store) return;
       const target = store;
@@ -1341,7 +1249,6 @@ function makeCitationIndex(
       );
     }
 
-    /** Synchronous stored facts, in path order and then document order. */
     function getAnnotationUses(indexedKey: string): readonly AnnotationUse[] {
       const paths = annotationsByKey.get(indexedKey);
       if (!paths) return [];
@@ -1433,18 +1340,6 @@ function makeCitationIndex(
       };
     });
 
-    /**
-     * The excluded Citation Syntaxes that hold an occurrence of `indexedKey`,
-     * for a caller that answers one question and reports the fact beside it —
-     * the agent-facing CLI. `observeCitedBy`'s snapshot carries no such field:
-     * every publish would otherwise pay this walk, for a fact only the CLI
-     * reads.
-     *
-     * Wikilink occurrences count only when eligible: `getCitedBy` puts only
-     * eligible occurrences in groups, so a malformed one — unlike
-     * {@link documentOmittedSyntaxes}'s references answer — never would have
-     * joined this answer either.
-     */
     const citedByOmittedSyntaxes = Effect.fn(
       "CitationIndex.citedByOmittedSyntaxes",
     )(function* (indexedKey: string, answer?: CitationLookupAnswer) {
@@ -1483,15 +1378,6 @@ function makeCitationIndex(
       return omitted;
     });
 
-    /**
-     * Whether a literal-citekey Citation Occurrence cites `indexedKey`.
-     *
-     * An Ambiguous Citation Key names every one of its candidates here, so one
-     * occurrence answers for each of them: the reverse observation reports a
-     * possible citation relationship rather than omitting it. The forward
-     * direction stays untouched — the occurrence is still one Citation of the
-     * key itself, so no candidate gains a Citation record of its own.
-     */
     function citekeyOccurrenceCites(
       resolved: CitekeyResolution | null,
       indexedKey: string,
@@ -1524,9 +1410,6 @@ function makeCitationIndex(
         const [note] = yield* noteIndex.getNotesByItemKey(parent.indexedKey);
         return { indexedKey: parent.indexedKey, linkpath: note?.path ?? null };
       }
-      // An Ambiguous Citation Key keeps its own identity here: it adopts no
-      // candidate's Indexed Key, so it stays a Citation of the key itself and
-      // contributes no CSL work.
       const resolved = lookup!.resolve(occurrence.raw);
       const item = resolved.kind === "unique" ? resolved.item : null;
       if (!item) return null;
@@ -1534,7 +1417,6 @@ function makeCitationIndex(
       return { indexedKey: item.indexedKey, linkpath: note?.path ?? null };
     });
 
-    /** Apply citation settings without stopping the internal scan or resolution. */
     const applySettings = Effect.fn("CitationIndex.applySettings")(function* (
       settings: Readonly<Settings>,
     ) {
@@ -1564,7 +1446,6 @@ function makeCitationIndex(
           Effect.forkIn(scope, { startImmediately: true }),
         );
     });
-    // Stop before the child scope closes its store, listeners, and scan fibers.
     yield* Effect.addFinalizer(() =>
       Effect.gen(function* () {
         stopped = true;
@@ -1607,8 +1488,6 @@ function makeCitationIndex(
         }),
       )
       .pipe(Effect.forkIn(scope, { startImmediately: true }));
-    // The metadata cache's events join the vault's in one ordered intake:
-    // forkEach hands each over inside Obsidian's callback.
     yield* forkEach(metadata.changes, intake.callback("metadata")).pipe(
       Scope.provide(scope),
     );
@@ -1617,9 +1496,6 @@ function makeCitationIndex(
       intake.callback("rename"),
     ).pipe(Scope.provide(scope));
     yield* forkEach(settings.changes, applySettings).pipe(Scope.provide(scope));
-    // IndexedDB can stall; startup waits the shared bound and the open goes on.
-    // Scans and drops made before a late open never reached the store, so the
-    // restore writes them through.
     const restore = Effect.gen(function* () {
       const opened = yield* Effect.acquireRelease(
         Effect.tryPromise(() => openStore(appId)),
@@ -1663,10 +1539,6 @@ function makeCitationIndex(
       changes,
       events,
       observeCitedBy,
-      /**
-       * The Cited By of the Item `indexedKey` as `observeCitedBy` publishes
-       * it; interrupting the Stream stops the observer.
-       */
       citedBy: (indexedKey: string): Stream.Stream<CitedBySnapshot> =>
         Stream.callback<CitedBySnapshot>((queue) =>
           Effect.gen(function* () {
@@ -1709,7 +1581,6 @@ function makeCitationIndex(
       getCitedBy,
       documentOmittedSyntaxes,
       citedByOmittedSyntaxes,
-      // The caller can leave; the layer waits for the reset transaction to finish.
       reset: Effect.gen(function* () {
         const write = yield* reset().pipe(
           Effect.uninterruptible,

@@ -119,9 +119,6 @@ describe("getAnnotationsByParent creator", () => {
     };
     expect(creators(db)).toEqual(expected);
 
-    // A database without local client revisions reads the same creators. A
-    // client reads the layout of its copy once, so the changed copy gets a
-    // new client.
     sqlite.exec(`
       update version set version = 125 where schema = 'userdata';
       alter table items drop column clientVersion;

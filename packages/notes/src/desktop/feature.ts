@@ -11,10 +11,6 @@ import { profileRevision } from "@zotlit/obsidian-desktop/profile-revision.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-// The notes on the desktop: the Obsidian feature (`#obsidian/feature.ts`)
-// with the Profiles, Literature Notes and the Note Feature, the note import,
-// the template conversion, the ports of the annotations and the citations
-// they fill, the note links, and what they register.
 import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import { bindItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
@@ -80,10 +76,6 @@ import { literatureNoteSlots } from "#obsidian/profile/main-page-rows.ts";
 import { layerProfile, Profile } from "#obsidian/profile/service.ts";
 import { Template } from "#obsidian/template/service.ts";
 
-/**
- * The Note Feature's handle over the built graph, which the protocol
- * handlers, the Library View's item actions and the Citation Suggester call.
- */
 export function noteFeatureHandle({
   app,
   bridge,
@@ -99,7 +91,6 @@ export function noteFeatureHandle({
   });
 }
 
-/** The note actions and the child-note import, as the commands and the file menu call them. */
 function noteActionDeps(ctx: FeatureContext) {
   const { app, bridge, read } = ctx;
   const creation = interactiveCreation(app);
@@ -109,7 +100,6 @@ function noteActionDeps(ctx: FeatureContext) {
     read(Effect.context<NoteActionServices>()),
     { creation, view: noteImportView, notices: batchUpdateNotices(app) },
   );
-  // Import child notes on the file menu, as the command runs it.
   const startImport = importStarter(
     bridge,
     read(Effect.context<BatchImportServices | Notifier>()),
@@ -133,7 +123,6 @@ export const notes = extendFeature(obsidianNotes, {
       { provides: [Profile], requires: [NoteIndex, Template] },
       layerProfile(profileRevision),
     ),
-    // The migration verifies a conversion against a real in-scope item.
     serviceGroup(
       "TemplateMigration",
       {
@@ -172,8 +161,6 @@ export const notes = extendFeature(obsidianNotes, {
       },
       layerNoteImporter,
     ),
-    // The Note Feature plans creations through ZotLit Query, so it builds
-    // above the services that query reads.
     serviceGroup(
       "NoteFeature",
       {
@@ -199,7 +186,6 @@ export const notes = extendFeature(obsidianNotes, {
       },
       layerTemplateDataReads,
     ),
-    // The citekey editor creates notes through this port.
     serviceGroup(
       "CitekeyNoteActions",
       {
@@ -221,8 +207,6 @@ export const notes = extendFeature(obsidianNotes, {
         ),
       ),
     ),
-    // An Annotation inserts into a note through this port, from the
-    // Annotation View and from the PDF reader alike.
     serviceGroup(
       "AnnotationNoteActions",
       {
@@ -289,8 +273,6 @@ export const notes = extendFeature(obsidianNotes, {
     const { plugin, app, bridge, read } = ctx;
     const deps = noteActionDeps(ctx);
     addNoteFeatureActions(plugin, deps);
-    // The Citation Suggester inserts with the notes feature's Citation
-    // Template, so the feature that fills that template registers it.
     registerCitationSuggest(plugin, {
       app,
       lookup: bindItemLookup(bridge, read(ItemLookup)),

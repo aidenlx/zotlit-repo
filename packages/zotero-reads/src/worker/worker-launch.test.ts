@@ -9,11 +9,6 @@ import { WORKER_CLOSED } from "#contract/worker-signal.ts";
 
 const Group = RpcGroup.make(Rpc.make("Ping"));
 
-/**
- * A dedicated worker's global scope: the renderer's messages arrive as
- * `message` events. It records what the worker posts and when it closes,
- * since a closed worker scope runs no task queued after it.
- */
 function fakeScope() {
   const target = new EventTarget();
   const events: unknown[] = [];
@@ -40,7 +35,6 @@ it("answers the renderer's close message once its cleanup ran, and closes its sc
       Layer.provide(cleanup),
     ),
   );
-  // The runner announces itself with `[0]` once it listens.
   await vi.waitFor(() => expect(events).toContainEqual([0]));
 
   send([1]);

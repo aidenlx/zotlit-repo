@@ -25,14 +25,12 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-/** The Pandoc engine row, shown on a device with `file` installed as the pack. */
 const engineRow = Effect.fnUntraced(function* (file: Uint8Array | null) {
   const services = yield* Layer.build(
     Layer.merge(
       layerPandocEngine.pipe(
         Layer.provide(layerPackDevice(packDevice(file, "1.2.0"))),
       ),
-      // The plugin that reads the pack: the row opens its page by this id.
       testPluginHost({ manifest: { id: "zotlit" } }).layer,
     ),
   );

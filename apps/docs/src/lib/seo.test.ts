@@ -5,7 +5,6 @@ import { paraglideMiddleware } from "@/paraglide/server.js";
 import { pageHead } from "./seo.ts";
 import { docsArticleSchema, faqPageSchema } from "./structured-data.ts";
 
-/** `pageHead` for an English page, as a request for it would build it. */
 async function headFor(
   seo: Omit<Parameters<typeof pageHead>[0], "path" | "card">,
 ) {

@@ -3,7 +3,6 @@ import type {
   QueryViewRequest,
   QueryViewResult,
 } from "#desktop/item-query/query-view.ts";
-// Query View reads and commands, run in the plugin's view registry.
 import { Cause, Effect } from "effect";
 
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -125,17 +124,12 @@ export const readFilterValues = Effect.gen(function* () {
   };
 }).pipe(Effect.scoped);
 
-/** The values a filter condition offers where they cannot be read. */
 const NO_FILTER_VALUES: FilterValues = {
   tags: [],
   collections: [],
   libraries: [],
 };
 
-/**
- * The values a filter condition offers, from the Libraries the plugin reads.
- * A Filter popover reads it while it is open; the read stops once none does.
- */
 export const filterValuesAtom = viewRuntime.atom(
   readFilterValues.pipe(
     recover(
@@ -147,11 +141,6 @@ export const filterValuesAtom = viewRuntime.atom(
   ),
 );
 
-/**
- * The custom fields of the Zotero source, which `custom[...]` offers. An
- * expression editor reads it while it reads custom fields; the read stops
- * once none does.
- */
 export const customFieldNamesAtom = viewRuntime.atom(
   Effect.flatMap(QueryService, (query) => query.customFieldNames).pipe(
     recover(

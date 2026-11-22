@@ -7,7 +7,6 @@ import type { CopiedBibliographyEntry } from "./copied-bibliography.ts";
 
 const NO_ATTR: Attr = ["", [], []];
 
-/** One run of text as the flow a style writes it in: words, spaces apart. */
 function words(text: string): Inlines {
   const flow: Inline[] = [];
   for (const [index, word] of text.split(" ").entries()) {
@@ -145,10 +144,6 @@ describe("toCopiedBibliography", () => {
   });
 });
 
-/**
- * Read the rich representation back as the destination parses it, so a test
- * states what the markup means rather than how it was serialized.
- */
 function paragraphs(html: string): HTMLElement[] {
   const holder = document.createElement("div");
   holder.innerHTML = html;

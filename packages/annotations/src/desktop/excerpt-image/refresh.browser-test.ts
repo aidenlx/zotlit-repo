@@ -16,18 +16,6 @@ import { settledDisplay } from "#__fixtures__/excerpt-image/display-state.ts";
 import { ExcerptDisplayFixture } from "#__fixtures__/excerpt-image/display.ts";
 import { encodeExcerptImage } from "#__fixtures__/excerpt-image/encode.ts";
 import { renderGate } from "#__fixtures__/excerpt-image/render-gate.ts";
-// Runs the production Excerpt Display and Excerpt Image service over Chromium's
-// own IndexedDB, so a saved edit's replacement, a restart, an eviction, and a
-// manual clear are the plugin's own code and the plugin's own store.
-//
-// The host seams the same module tree reaches — the filesystem, Node's hashing
-// and zlib, the Zotero database — are aliased to
-// `src/__fixtures__/excerpt-image/renderer-host.ts` and `renderer-hash.ts`, and
-// the PDF engine is a stub that throws on use: nothing
-// here opens a PDF, reads a file, or hashes for real, and every crop is a real
-// Chromium canvas encoded as lossless WebP. Note-asset and Zotero-cache
-// survival need a vault and a Zotero data directory, so they are covered where
-// those exist — see `service.test.ts`.
 import { ExcerptImageFixture as ExcerptImageService } from "#__fixtures__/excerpt-image/service.ts";
 import { fakeReaderEngine } from "#__fixtures__/pdf-engine.ts";
 import { EXCERPT_JOB_LIMIT } from "#core/excerpt-image/pdf-queue.ts";
@@ -36,26 +24,16 @@ import { openExcerptStore } from "#obsidian/excerpt-image/store.ts";
 
 export interface RefreshReport {
   passed: string[];
-  /** The store budget the eviction walk opened with, and one crop's size in it. */
   bytes: {
     budget: number;
     crop: number;
-    /** Bytes the store still answered for the walk's own images once it ended. */
     retained: number;
   };
-  /** The shared queue's counts after the replacements settled, and its bound. */
   queue: { admitted: number; awaiting: number; limit: number };
-  /** References still standing after the eviction walk. */
   references: number;
-  /** Crops this trial drew on a real canvas and encoded with the real encoder. */
   crops: number;
 }
 
-/**
- * Await one step, and fail with its name where the signal never comes: a trial
- * that stalls reports what it was waiting for, with the state that explains it,
- * instead of timing out anonymously.
- */
 async function bounded<T>(
   label: string,
   work: Promise<T>,
@@ -87,7 +65,6 @@ const SOURCE = {
 
 const PDF = { size: 100, mtimeMs: 10 };
 
-/** One ink Annotation of the trial's own fixture, with the pixels `color` asks for. */
 function request(color: string, key = "INK1"): ExcerptRequest {
   return {
     annotation: {
@@ -113,10 +90,8 @@ function request(color: string, key = "INK1"): ExcerptRequest {
   };
 }
 
-/** The crops this trial has drawn and encoded, which its report carries. */
 let crops = 0;
 
-/** One crop, drawn and encoded in this renderer, whose content `seed` decides. */
 async function crop(seed: number): Promise<ExcerptImage> {
   const canvas = document.createElement("canvas");
   canvas.width = 320;
@@ -135,25 +110,19 @@ async function crop(seed: number): Promise<ExcerptImage> {
   return image;
 }
 
-/** What one live composition hands a scenario. */
 interface Live {
   readonly store: ExcerptStore;
   readonly service: ExcerptImageService;
   readonly display: ExcerptDisplayFixture;
   readonly queries: ReturnType<typeof queryClientsFixture>;
   readonly renders: GatedRender[];
-  /** One render, once the service reached it. */
   started(index: number): Promise<GatedRender>;
-  /** The `index`-th read of a device-local image, once it settled. */
   storedRead(index: number): Promise<void>;
-  /** Answer one crop with real Chromium pixels. */
   answer(index: number, seed: number): Promise<void>;
-  /** Fail one crop, which leaves the resolution to the Zotero fallback. */
   fail(index: number): Promise<void>;
   close(): Promise<void>;
 }
 
-/** A real service and display over one store, with every crop gated. */
 async function live(options: {
   appId: string;
   label: string;
@@ -226,10 +195,6 @@ async function live(options: {
   return app;
 }
 
-/**
- * The next display state that answers `matches`, as one resolution's signal,
- * which names the Annotation it was waiting on where the signal never comes.
- */
 function settled(
   label: string,
   card: ExcerptDisplayDemand,
@@ -240,11 +205,9 @@ function settled(
   );
 }
 
-/** Whether the display paints the pixels the card demands. */
 const shows = (display: ExcerptImageDisplay): boolean =>
   display.image !== null && display.current;
 
-/** The image one Annotation's latest reference locates, as a display paints it. */
 async function held(
   app: Live,
   reference: ExcerptRequest,
@@ -259,8 +222,6 @@ export async function run(): Promise<RefreshReport> {
   let queue = { admitted: 0, awaiting: 0, limit: EXCERPT_JOB_LIMIT };
   let references = 0;
 
-  // 1. One resolution over the real store renders a crop, stores it, and
-  //    remembers which image the Annotation has.
   {
     const app = await live({ appId: "refresh-baseline", label: "baseline" });
     try {
@@ -291,8 +252,6 @@ export async function run(): Promise<RefreshReport> {
     }
   }
 
-  // 2. A saved edit replaces an Annotation nothing displays, because the device
-  //    still holds an image for it, and leaves one it never displayed alone.
   {
     const app = await live({ appId: "refresh", label: "inactive" });
     try {
@@ -334,7 +293,6 @@ export async function run(): Promise<RefreshReport> {
       );
       check(queue.awaiting === 0, "A settled queue is still waiting on slots");
 
-      // An Annotation this device never displayed has nothing to replace.
       const untouched = request("#ff0000", "INK2");
       app.display.revalidate(untouched);
       await app.storedRead(2);
@@ -353,8 +311,6 @@ export async function run(): Promise<RefreshReport> {
     }
   }
 
-  // 3. The next launch paints the image the device stored while the pixels that
-  //    are saved now resolve, so a reopened view is not blank.
   {
     const app = await live({ appId: "refresh", label: "restart" });
     try {
@@ -376,10 +332,6 @@ export async function run(): Promise<RefreshReport> {
         seeded.current === false,
         "A restarted display claimed the stored pixels were the saved ones",
       );
-      // The bytes themselves, not their length: a crop of the saved pixels
-      // rendered afresh is the same size as the stored one and a different
-      // image, so only an exact comparison catches the stored image not being
-      // the one the card paints.
       const painted = seeded.image?.bytes;
       check(
         painted !== undefined &&
@@ -403,8 +355,6 @@ export async function run(): Promise<RefreshReport> {
     }
   }
 
-  // 4. Eviction takes the reference with the bytes it locates, and references
-  //    themselves never charge the image budget.
   {
     const measured = await crop(4);
     bytes.crop = measured.bytes.byteLength;
@@ -434,8 +384,6 @@ export async function run(): Promise<RefreshReport> {
         "A reference did not survive its own write",
       );
 
-      // A reference costs no image bytes: the budget still takes a full crop,
-      // however many Annotations remember an image.
       for (const [index, key] of Array.from(
         { length: 40 },
         (_, index) => `INK${index}`,
@@ -457,7 +405,6 @@ export async function run(): Promise<RefreshReport> {
         "References charged the image budget",
       );
 
-      // The next crop pushes the oldest image out, and its reference with it.
       await Effect.runPromise(
         app.store.put("newest", {
           bytes: measured.bytes,
@@ -476,8 +423,6 @@ export async function run(): Promise<RefreshReport> {
         (await app.store.get("newest")) !== undefined,
         "Eviction took the newest image",
       );
-      // What the walk left behind, measured back from the store: the budget it
-      // opened with is a bound on these bytes, not a restatement of itself.
       const kept = await Promise.all(
         [excerptKey(oldest, fakeReaderEngine), "replacement", "newest"].map(
           (key) => app.store.get(key),
@@ -505,8 +450,6 @@ export async function run(): Promise<RefreshReport> {
     }
   }
 
-  // 5. A manual clear removes the Held Read, the images, and the references
-  //    together, and the crop work it overtook restores none of them.
   {
     const app = await live({ appId: "refresh-clear", label: "clear" });
     try {
@@ -515,7 +458,6 @@ export async function run(): Promise<RefreshReport> {
       await app.answer(0, 5);
       await settled("the cleared card", card, shows);
 
-      // One crop is running and one is queued when the user clears.
       const running = app.service.resolve(request("#00ff00"));
       await app.started(1);
       const queued = app.service.resolve(request("#0000ff"));
@@ -550,8 +492,6 @@ export async function run(): Promise<RefreshReport> {
         );
       }
 
-      // The next demand paints nothing until its own crop lands: nothing the
-      // clear removed comes back to the display.
       const after = app.display.open();
       after.demand(request("#ff0000"));
       await app.storedRead(1);

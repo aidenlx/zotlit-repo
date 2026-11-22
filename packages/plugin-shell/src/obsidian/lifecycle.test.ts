@@ -22,7 +22,6 @@ function loadedPlugin(): UnloadAwarePlugin {
   return plugin;
 }
 
-/** An instance whose start-up takes its turn after the instance before it. */
 class TurnTakingPlugin extends UnloadAwarePlugin {
   start(stack: AsyncDisposableStack): Promise<boolean> {
     return this.waitForPreviousAndHoldRelease(stack);
@@ -45,8 +44,6 @@ describe("UnloadAwarePlugin", () => {
     expect(cleanup).toHaveBeenCalledOnce();
   });
 
-  // An onload that a disable interrupts registers after the unload; Obsidian
-  // never runs those cleanups, and the next enable finds the names taken.
   it("runs the cleanup of a registration after the unload at once", () => {
     const plugin = loadedPlugin();
     plugin.unload();
@@ -56,9 +53,6 @@ describe("UnloadAwarePlugin", () => {
   });
 });
 
-// A user who turns ZotLit off and on again while the old instance still
-// builds or closes its runtime: the new instance's commands, zotlit:* names
-// and Live Updates port must not meet the old instance's.
 describe("UnloadAwarePlugin.waitForPreviousAndHoldRelease", () => {
   it("starts at once when no instance came before", async () => {
     const stack = new AsyncDisposableStack();
@@ -79,7 +73,6 @@ describe("UnloadAwarePlugin.waitForPreviousAndHoldRelease", () => {
     });
     oldInstance.unload();
 
-    // Obsidian makes the new instance as soon as it has unloaded the old one.
     const starting = instanceOn(app)
       .start(new AsyncDisposableStack())
       .then(() => steps.push("new start-up"));
@@ -106,7 +99,6 @@ describe("UnloadAwarePlugin.waitForPreviousAndHoldRelease", () => {
       steps.push("second released");
     });
     second.unload();
-    // The second's onload sees the unload once its wait ends, and leaves.
     const secondLeaves = (async () => {
       await secondWaits;
       await secondStack.disposeAsync();
@@ -124,8 +116,6 @@ describe("UnloadAwarePlugin.waitForPreviousAndHoldRelease", () => {
   });
 });
 
-// A previous instance whose runtime never finishes closing must not keep
-// ZotLit from starting until the window reloads.
 describe("UnloadAwarePlugin.waitForPreviousAndHoldRelease bound", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -173,8 +163,6 @@ describe("UnloadAwarePlugin.waitForPreviousAndHoldRelease bound", () => {
   });
 });
 
-// The warning is written once the logger has its sinks: in a production build
-// that is after the runtime's logging layer builds.
 describe("logLateRelease", () => {
   it("writes one warning under plugin-lifecycle with the plugin id and the elapsed time", () => {
     using logs = captureLogRecords();

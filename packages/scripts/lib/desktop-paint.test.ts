@@ -12,11 +12,6 @@ import {
   MEMORY_GATE_ENV,
 } from "@zotlit/config/memory-gate";
 
-// A desktop run that needs a painted window does not start while the desktop
-// cannot paint, and says why. The macOS commands are the OS boundary: the
-// child processes load `__fixtures__/desktop-paint-os.ts`, which answers them
-// from a named desktop state, so no case reads the real display of the
-// machine that runs it.
 import type { DesktopState } from "./__fixtures__/desktop-states.ts";
 import { DESKTOP_STATES } from "./__fixtures__/desktop-states.ts";
 import {
@@ -28,8 +23,6 @@ import {
 } from "./desktop-paint.ts";
 import { DESKTOP_SLOT_ENV, DESKTOP_SLOTS_ENV } from "./desktop-slot.ts";
 
-// Admission runs in real child processes, as in desktop-slot.test.ts; the
-// hosted runner has no desktop, so those cases run on development machines.
 const desktopOnly = describe.skipIf(process.env.GITHUB_ACTIONS === "true");
 
 const UID = 501;
@@ -94,7 +87,6 @@ beforeEach(async () => {
   await writeFile(caffeinate, "");
 });
 afterEach(async () => {
-  // The stand-in caffeinate runs until it is killed.
   for (const pid of await assertions()) {
     try {
       process.kill(pid, "SIGKILL");
@@ -109,7 +101,6 @@ async function setDesktop(state: DesktopState): Promise<void> {
   await writeFile(desktop, state);
 }
 
-/** The pids of the display assertions the children started. */
 async function assertions(): Promise<number[]> {
   const text = await readFile(caffeinate, "utf8").catch(() => "");
   return text
@@ -118,7 +109,6 @@ async function assertions(): Promise<number[]> {
     .map((line) => Number(line.split(" ")[0]));
 }
 
-/** Run a Node child under the fixture; resolve with its exit and output. */
 async function node(
   args: string[],
   { onLine }: { onLine?: (line: string) => void } = {},
@@ -150,7 +140,6 @@ async function node(
   return { code, stdout, stderr };
 }
 
-/** Run `body` in a child with `slot` and `paint` bound to the modules. */
 const script = (body: string) => [
   "--input-type=module",
   "-e",
@@ -190,7 +179,6 @@ held.release();`),
     const lines = (await readFile(caffeinate, "utf8")).trim().split("\n");
     expect(lines).toHaveLength(1);
     expect(lines[0]).toMatch(new RegExp(`^\\d+ -d -i -w ${pid}$`));
-    // Release ended the assertion.
     const [assertion] = await assertions();
     await expect.poll(() => isAlive(assertion!)).toBe(false);
   });
@@ -235,7 +223,6 @@ console.log(String(await paint.paintAfterFailure()));
 held.release();`),
       {
         onLine: (line) => {
-          // The lid closes in the middle of the run.
           if (line === "admitted") void setDesktop("lid closed");
         },
       },

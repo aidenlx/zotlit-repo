@@ -1,4 +1,3 @@
-// A scoped RPC client on a browser Worker or MessagePort.
 import * as BrowserWorker from "@effect/platform-browser/BrowserWorker";
 import { Cause, Context, Effect, Layer, Schema } from "effect";
 import { RpcClient, RpcClientError } from "effect/rpc";
@@ -7,9 +6,6 @@ import { Worker } from "effect/workers";
 
 import { CitationParseRpc } from "./rpc.ts";
 
-// This connection owns one stateless worker. The recovery layer replaces the
-// entire connection on death, so requests need neither a pool lease nor a
-// second retry loop. RPC still owns request IDs, replies and interruption.
 const singleWorkerProtocol = RpcClient.Protocol.make(
   Effect.fnUntraced(function* (writeResponse, clientIds) {
     const platform = yield* Worker.WorkerPlatform;
@@ -17,7 +13,6 @@ const singleWorkerProtocol = RpcClient.Protocol.make(
       RpcMessage.FromServerEncoded,
       RpcMessage.FromClientEncoded
     >(0);
-    // This protocol is private to the one RpcClient constructed below.
     const receive = (response: RpcMessage.FromServerEncoded) => {
       const id = clientIds.values().next().value;
       return id === undefined ? Effect.void : writeResponse(id, response);
@@ -49,7 +44,6 @@ const singleWorkerProtocol = RpcClient.Protocol.make(
             ),
           ),
       supportsAck: true,
-      // Parse carries strings and numbers; no request transfers an owned object.
       supportsTransferables: false,
       codecFor: Schema.toCodecJson,
     };
@@ -66,8 +60,6 @@ export const makeParseWorkerClient = Effect.fnUntraced(function* (
     ),
   );
   const transport = Context.get(protocol, RpcClient.Protocol);
-  // The benchmark times codec work where the send fiber actually runs it.
-  // Production uses the original codec without an observer or timing overhead.
   const measured = measureEncoding
     ? {
         ...transport,
@@ -82,7 +74,6 @@ export const makeParseWorkerClient = Effect.fnUntraced(function* (
           ),
       }
     : transport;
-  // The service call carries the trace; per-note transport spans add backfill cost.
   return yield* RpcClient.make(CitationParseRpc, { disableTracing: true }).pipe(
     Effect.provideService(RpcClient.Protocol, measured),
   );

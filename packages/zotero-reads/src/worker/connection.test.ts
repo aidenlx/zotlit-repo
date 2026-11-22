@@ -18,7 +18,6 @@ interface Copy {
   readonly name: string;
   readonly options?: ScenarioDatabaseOptions;
   readonly alter?: (sqlite: DatabaseSync) => void;
-  /** The schema of a plain SQLite database, in place of the scenario copy. */
   readonly ddl?: string;
 }
 
@@ -30,7 +29,6 @@ function stampUserdata(version: number) {
   };
 }
 
-/** Copies that both ZoteroReads and Item Query read. */
 const READABLE: readonly Copy[] = [
   { name: "the Zotero 10 layout" },
   { name: "the lowest layout", options: { layout: "lowest" } },
@@ -51,7 +49,6 @@ const READABLE: readonly Copy[] = [
   },
 ];
 
-/** Copies that neither ZoteroReads nor Item Query reads. */
 const UNREADABLE: readonly Copy[] = [
   {
     name: "a copy without fieldsCombined.custom",
@@ -68,7 +65,6 @@ const UNREADABLE: readonly Copy[] = [
   },
 ];
 
-/** Files that are no Zotero database: both refuse them. */
 const NOT_ZOTERO: readonly Copy[] = [
   { name: "an empty database", ddl: "" },
   { name: "a database with only a foo table", ddl: "create table foo (id)" },
@@ -88,7 +84,6 @@ function open({ options, alter, ddl }: Copy) {
   return copy;
 }
 
-/** Whether ZoteroReads validates a fresh client of `copy`. */
 function zoteroReadsValidates(copy: Copy): boolean {
   using scenario = open(copy);
   return Exit.isSuccess(
@@ -96,7 +91,6 @@ function zoteroReadsValidates(copy: Copy): boolean {
   );
 }
 
-/** Whether Item Query reads every Library of a fresh client of `copy`. */
 async function itemQueryReads(copy: Copy): Promise<boolean> {
   using scenario = open(copy);
   const exit = await Effect.runPromiseExit(
@@ -170,7 +164,6 @@ describe("validateClient and Item Query", () => {
       }),
     );
 
-    // Two layout statements, then one Library statement for each reader.
     expect(validated).toBe(2);
     expect(statements()).toBe(validated + 2);
   });

@@ -1,9 +1,4 @@
 import type { ListMetrics, RowText } from "#core/query-view/list-heights.ts";
-// One List row: the lines it draws, the text of those lines, and its height
-// before it is drawn. The markup and the text follow one split of the row's
-// cells into lines, and the font and width a height follows are read from
-// the elements drawn here, so a change to a row's lines reaches its height.
-// `list-heights.ts` lays the text out at those metrics.
 import { Fragment, useMemo, useState } from "react";
 
 import type { DrawnEntry } from "./items-window.tsx";
@@ -14,34 +9,20 @@ import type { PropertyEntry } from "./view-properties.ts";
 
 import { sameMetrics, useRowHeights } from "#core/query-view/list-heights.ts";
 
-/** The attribute of a List row, which holds its Indexed Key. */
 const ROW = "data-query-row";
-/** The attribute of an indented row's property lines. */
 const LINES = "data-query-row-lines";
 
-/** What each row of one List draws by. */
 export interface ListRows {
-  /** The view's properties, which a row's cells show by their place. */
   readonly properties: readonly PropertyEntry[];
   readonly options: ListLayoutOptions;
 }
 
-/**
- * The cells a row shows, by their place: an empty property takes no place
- * on the line, but an Item with no note to read a vault property from shows
- * that it has none.
- */
 function shownCells({ cells, vault }: RecordCells): number[] {
   return cells.flatMap((text, cell) =>
     text === "" && vault[cell]?.note !== false ? [] : [cell],
   );
 }
 
-/**
- * The cells of a row's first line, the separator between each two, and of
- * each property line below it, where the properties after the first stand
- * on lines of their own.
- */
 function rowLines(
   record: RecordCells,
   indentProperties: boolean,
@@ -52,11 +33,6 @@ function rowLines(
     : { first: cells, rest: [] };
 }
 
-/**
- * The text of each line a row shows, for its height before it is drawn;
- * `null` where a cell shows more than its text: a vault property, or an
- * Error Value's icon.
- */
 export function listRowText(
   record: RecordCells,
   { properties, options: { indentProperties, separator } }: ListRows,
@@ -72,7 +48,6 @@ export function listRowText(
   return { first: first.map(text).join(separator), rest: rest.map(text) };
 }
 
-/** One List row at its place `at` in its group, as the Items Window draws it. */
 export function drawListRow(
   record: RecordCells,
   at: number,
@@ -123,10 +98,6 @@ export function drawListRow(
   };
 }
 
-/**
- * The metrics of the rows of `box`, read from a drawn row; `null` while it
- * draws none, or its line height is not a length.
- */
 function readListMetrics(box: HTMLElement): ListMetrics | null {
   const row = box.querySelector<HTMLElement>(`li[${ROW}]`);
   if (!row) return null;
@@ -151,13 +122,6 @@ function readListMetrics(box: HTMLElement): ListMetrics | null {
   };
 }
 
-/**
- * The height of each List entry before it is drawn, from its text, at the
- * font and width the rows drawn in `box` show: `null` for a heading or a row
- * that shows more than text, and for all of them until the texts are
- * prepared. `read` reads the drawn rows; run it after each draw of the
- * window, as a scroll or a resize draws it. `metrics` are the ones last read.
- */
 export function useListRowHeights(
   box: HTMLElement | null,
   entries: readonly GroupEntry[],

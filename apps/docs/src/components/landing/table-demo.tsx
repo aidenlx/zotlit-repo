@@ -1,20 +1,3 @@
-// "Compare your papers side by side.": the collection-to-table demo. In the
-// Library View, the Reproducibility collection is saved as a query file; it
-// opens as a table whose column tracks are reserved from the first frame and
-// fill in place, left to right; the rows sort by year; then the reader's
-// rating is typed for the two papers that have a literature note, while the
-// two without one show "No note" and offer Create. The window is drawn in
-// ./table-window.
-//
-// The page prerenders the finished frame, which is also what reduced motion
-// shows. After mount, with motion on, the demo rewinds to the collection and
-// plays while at least half of it is on screen, one cycle after another; it
-// rewinds again once it has left the screen. One loop plays at a time
-// (`recording-turn`), and a button beside the caption trail pauses it on the
-// finished frame. The 768px split (the tree, the tool labels, the three
-// columns phones leave out) is CSS, so the server and the client agree.
-// @see apps/docs/DESIGN.md → Landing (Compare your papers)
-
 import {
   useEffect,
   useEffectEvent,
@@ -35,7 +18,6 @@ import { m } from "@/paraglide/messages.js";
 import { LessonLink, LoopToggle } from "./parts.tsx";
 import { DemoWindow, FINAL, Trail, makeFlip } from "./table-window.tsx";
 
-/** The beats: [ms from the cycle start, step]. */
 const TIMELINE: readonly (readonly [number, number])[] = [
   [2000, 1],
   [2650, 2],
@@ -55,7 +37,6 @@ const TIMELINE: readonly (readonly [number, number])[] = [
   [14300, 16],
   [14950, FINAL],
 ];
-/** The cycle's length; the stage fades out over its last 650 ms. */
 const END = 19800;
 
 function Demo() {
@@ -66,21 +47,15 @@ function Demo() {
   const [paused, setPaused] = useState(false);
   const figure = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
-  /** At least half the demo is on screen. */
   const inView = useRef(false);
   const [flip] = useState(makeFlip);
   const [me] = useState(() => Symbol("table demo"));
 
-  /** Rests on the finished frame: paused, or another loop took the turn. */
   const rest = () => {
     setActive(false);
     setStep(FINAL);
     setFading(false);
   };
-  /**
-   * Starts a cycle from the collection: at once on the reader's press, and on
-   * its own unless a recording the reader paused holds the turn.
-   */
   const play = (byReader = false) => {
     if (byReader) takeTurn(me, rest);
     else if (!askTurn(me, rest)) {
@@ -105,8 +80,6 @@ function Demo() {
     }
   };
 
-  // Plays while at least half the demo is on screen; off screen it waits at
-  // the collection. A paused demo stays on the finished frame.
   const onView = useEffectEvent((entry: IntersectionObserverEntry) => {
     if (entry.intersectionRatio >= 0.5) {
       if (inView.current) return;

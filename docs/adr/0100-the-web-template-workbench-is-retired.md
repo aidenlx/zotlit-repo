@@ -37,3 +37,29 @@ The flag was off in every release ([ADR 0046](0046-customize-is-a-chooser-betwee
 - A future web surface starts from a new decision, not from this code.
 - The Template Workbench is one package, and the core follows the plugin code's lint rules with no backlog. Two settings make room for it: the package's Effect language service allows `effect/reactivity` and `@effect/atom-react`, on which the Workbench's atoms, Render Scheduler and hooks are built, and the engine host pattern (`hostModulePattern` in `packages/config/oxlint.base.ts`) lets through a host-free entry named `obsidian` of a workspace package (`!@zotlit/*/obsidian`), such as `@zotlit/templates/obsidian`.
 - `pnpm --filter @zotlit/template-workbench generate:eta` generates the core's Eta parser. The Workbench messages compile with the plugin's other messages.
+
+### Shared Workbench controls
+
+Reuse the Workbench's native control classes for buttons, previews, and item selection. Draw sticky headings on the pane's own background so they cover the content beneath. Use Obsidian's input variables for the pane box and let a host-provided wrapper own them when one exists. Put in-editor chrome in the interface font. A full-width child controls alignment and wrapping inside Obsidian's unlayered button box. Overlay changing labels in one grid cell to hold button width. Use a native button for the empty state's library action so it remains visible against the pane. Keep the selected Item control in the body where Obsidian hides the native view header.
+
+### Host data and native overlays
+
+Keep the host adapter for data and leaf-specific capabilities. It supplies the Render Scheduler, preference ports, public links, and any leaf-scoped Fields action. Use registered Shared Partials where the vault supplies them and scan the draft otherwise. The Preview can reveal the engine setting when its host provides that action. Anchor completion and hover to the editor window. When a Query View popover covers native suggestions, render choices inside its field. Use a separate hidden name for a labelled container.
+
+Show context menus at the pointer and control menus below the anchor, which also gives keyboard activation a position. Omit the icon column when the menu names no icons. Open a native chooser in the anchor's window even if another window last held focus. Return focus to the anchor when the chooser closes. View-owned fibers control ranked search and an interrupt closes the chooser. Merge ranked results with the fixed groups without duplicating IDs. Resolve outdated searches through the latest answer. Enter during a pending search selects the first result of the typed query when it arrives, and a click on outdated rows cannot select from them.
+
+The shared test host uses memory preferences and test-controlled render and data ports. Choosers and notices still go through the Obsidian mock. Test scopes dispose the chooser observation, editor, and registry, and a test starts with a fresh notice and menu history.
+
+Each editor has one Workbench model. The document controller remains the authority for template text. The model owns the view state, preview selections, panel state, and one Render Scheduler. Retain a visited tab or row only while its identity still occupies the same key, so replacing an entry cannot inherit its editor state.
+
+Share one CodeMirror decoration and portal implementation for Annotation and Shared Partial call boxes. Reset the portal nodes when the document or slice changes. Keep missing-call status on the box because an unlayered Obsidian button can override its own text color. Use reader-facing labels for note actions and offer guide links beside the available editing controls. Resolve help paths against the selected docs site and use the host's community link for the Problems action.
+
+### Desktop launch routing
+
+All desktop launch surfaces call the same Workbench open operation. Reuse the Workbench window that holds the document. When opening from that window, use the requested replacement, tab, or split. Move an existing matching main-window Workbench leaf into a Workbench window, or create a new window. Serialize launches because Obsidian can skip a leaf state change while its previous change is still applying. Set the leaf's own view state through the leaf. Keep the launch as the Notes feature's port so tests can exercise the shared routing.
+
+A Template Document opens itself. A Literature Note opens its Profile with its Item selected and separately supplies the note to Update. Customize defaults to the active Literature Note's Item and uses a Sample Item when no such note is active. Resolve a saved Profile through the registry and vault. The built-in Default can open before its file exists, and Customize materializes a document before editing. The desktop file menu provides the same launch route outside the Workbench. Its entries are redundant inside the Workbench's own pane menu. A note embed in Preview shows a placeholder.
+
+Treat the leaf as the owner of asynchronous actions and log scheduler transitions under that leaf. Read Citation Styles on visit and join an in-flight read. Reuse an open Item or Annotation chooser, cancel it on close, and discard a late read for an earlier selection. The pane menu exposes frequently used view actions even if the header is hidden and groups infrequent actions separately. Obsidian prepends header actions, so register Help, Preview, and Fields in that order. Offer Basic and Source only for a Profile.
+
+Desktop view tests use a shared device preference store and native leaf edges. Substitute only the independently tested creation and renderer ports to show what the view passed to each. A later Item selection interrupts the earlier data read. Closing the leaf cancels pending reads, prompts, and selection commands even when another component launched them.

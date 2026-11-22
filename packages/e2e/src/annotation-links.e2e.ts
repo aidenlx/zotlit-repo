@@ -3,11 +3,6 @@ import type { WorkspaceLeaf, FileSystemAdapter } from "obsidian";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { AnnotationView } from "@zotlit/query-views/desktop/annot-view/view.tsx";
-// Annotation links in a note: a Durable Annotation Link clicked in any
-// Obsidian surface lands on its Annotation in Obsidian's reader, or reaches
-// Zotero when this computer cannot open the PDF; a hovered one shows the
-// Annotation it names. The Annotation Suggester writes the same link from a
-// search at the cursor.
 import { ATTACHMENTS } from "@zotlit/scripts/fixture";
 
 import {
@@ -37,28 +32,20 @@ import {
 const PDF_PATH = annotationAttachment.path!;
 const NOTE = "Annotation links.md";
 
-/** The Fixture's image Annotation on page two of the Rougier PDF. */
 const SECOND_PAGE = attachmentAnnotations.find(
   ({ key }) => key === "FDRFQ7C2",
 )!;
-/** Two Annotations on page one, so each surface lands on a Mark of its own. */
 const FIRST_PAGE = attachmentAnnotations.find(({ key }) => key === "PUPR5FG5")!;
 const ALSO_FIRST_PAGE = attachmentAnnotations.find(
   ({ key }) => key === "Q8ZR4TDH",
 )!;
-/** The Fixture's note Annotation, which carries a comment and no text. */
 const COMMENTED = attachmentAnnotations.find(({ key }) => key === "HRK7BG32")!;
-/** The Fixture's ink Annotation. */
 const INK = attachmentAnnotations.find(({ key }) => key === "TYY6Z6ZF")!;
-/** An underline whose text a case rewrites with rich text. */
 const RICH = attachmentAnnotations.find(({ key }) => key === "K3JRFLFQ")!;
-/** A PDF the Fixture's Zotero holds a row for, and never a file. */
 const MISSING_PDF = ATTACHMENTS.find(({ key }) => key === "MISSNG22")!;
 
-/** Stands in a note for the Rougier PDF's own `file://` URL on this computer. */
 const FILE_URL = "%FILE_URL%";
 
-/** The link Zotero writes into a child note for one Annotation. */
 function durableLink(
   annotationKey: string,
   pageLabel: string,
@@ -69,50 +56,30 @@ function durableLink(
 
 const LINK_TEXT = "the quoted passage";
 
-/**
- * The citation the default annotation template writes after a quote of the
- * Rougier Item: its citation key, with the Annotation's page as a braced Pandoc locator.
- */
 function citationOf(annotation: { pageLabel: string }): string {
   return `[@${annotationItem.citationKey}, {p. ${annotation.pageLabel}}]`;
 }
 
-/** A note quoting one passage, ending on an empty line that holds no link. */
 function noteWith(url: string, properties = ""): string {
   return `${properties}# Draft\n\nAs Rougier argues, [${LINK_TEXT}](${url}).\n`;
 }
 
-/** What the Rougier PDF shows: its page, and the Marks it selects. */
 interface ReaderState {
   page: number | null;
   selected: string[];
 }
 
-/** What one scenario left behind, read before its own cleanup ran. */
 interface Outcome {
-  /** Whether the Rougier PDF's view draws any Annotation Mark. */
   drawn: boolean;
-  /** The Rougier PDF's view, or `null` when no tab shows it. */
   reader: ReaderState | null;
-  /** Every `zotero:` URL the system handler was asked to open. */
   passed: { url: string; target: string | null }[];
-  /** The text of every notice on screen. */
   notices: string[];
-  /**
-   * The Attachment the Rougier PDF's reader held each time the follow
-   * recorded a read of the paper, in order; only for a scenario that asks.
-   */
   reads?: (string | null)[];
 }
 
-/**
- * A one-line annotation template: the quote, its citation, and the durable
- * link, the shape a researcher writes to quote inside a sentence.
- */
 const INLINE_ANNOTATION =
   "{{ zt.text }} {{ zt.citation }} [Zotero]({{ zt.backlink }})";
 
-/** What {@link INLINE_ANNOTATION} renders for `annotation`. */
 function inlineOf(annotation: {
   key: string;
   text?: string | null;
@@ -121,11 +88,6 @@ function inlineOf(annotation: {
   return `${annotation.text} ${citationOf(annotation)} [Zotero](${durableLink(annotation.key, annotation.pageLabel)})`;
 }
 
-/**
- * Where an insert lands and what follows it: the draft's last line reads
- * `line` with the cursor at `ch`; `inline` renders through
- * {@link INLINE_ANNOTATION}; `typeOn` is typed once the insert lands.
- */
 interface InsertAt {
   line?: string;
   ch?: number;
@@ -133,12 +95,6 @@ interface InsertAt {
   typeOn?: string;
 }
 
-/**
- * Inserts the Annotation `annotationKey` of the Rougier Item into an empty
- * draft the way a reader does: its card's "More options" menu in the
- * Annotation View, then "Insert into note". Answers the draft's text once the
- * insertion lands, from a vault already restored.
- */
 async function insertFromCard(
   annotationKey: string,
   { line = "", ch = 0, inline = false, typeOn }: InsertAt = {},
@@ -234,25 +190,14 @@ async function insertFromCard(
   return reply;
 }
 
-/** What typing a search into a draft left: its text, and which suggesters opened. */
 interface SearchOutcome {
   text: string;
-  /** The rows the Annotation Suggester showed for the query, by their text. */
   rows: string[];
-  /** The superscript the chosen row drew from the quote's rich text, if any. */
   sup: string | null;
-  /** Whether the Citation Suggester opened on the typed text. */
   citationOpen: boolean;
-  /** The Use the insert recorded for the Rougier Item, or null for none. */
   use: string | null;
 }
 
-/**
- * Types `typed` at the end of an empty draft as one input, waits for the
- * Annotation Suggester to answer that query, and chooses the row whose text
- * holds `choose`. Answers the draft's text once the insert lands, from a
- * vault already restored.
- */
 async function searchAndInsert(
   typed: string,
   choose: string,
@@ -349,8 +294,6 @@ async function searchAndInsert(
             userEvent: "input.type",
           });
         const text = editor.getValue();
-        // The Use lands with the text, so a Use the insert made is newer than
-        // the one held before the search.
         const after = ledger();
         const use =
           after && after.instant.epochMilliseconds !== before
@@ -380,37 +323,16 @@ async function searchAndInsert(
 }
 
 interface Scenario {
-  /** The note's Markdown; {@link FILE_URL} becomes the PDF's own `file://` URL. */
   note: string;
-  /** The link the gesture follows; {@link FILE_URL} is replaced as in `note`. */
   url: string;
-  /**
-   * Where the link is clicked, `external` for Obsidian's open-in-default-app
-   * target, `chip` for the page chip of the Annotation's card in the
-   * Annotation View, which carries the link as its backlink, or `block-chip`
-   * for that chip on the card of a ` ```zotquery ` annotations block the note
-   * holds, read in Reading view.
-   */
   gesture: LinkGesture | "external" | "chip" | "block-chip";
-  /** Turn `reader.open-file-links` off for this scenario. */
   captureOff?: boolean;
-  /** The annotation link settings to change for this scenario. */
   linkSettings?: LinkSettings;
-  /** The reader state that ends the wait early, when a landing is expected. */
   lands?: ReaderState;
-  /** The Attachment the reader must name for a landing; the Rougier PDF's own by default. */
   bound?: string;
-  /** Report the reads the follow recorded, as {@link Outcome.reads}. */
   reads?: boolean;
 }
 
-/**
- * One scenario in one evaluation: write the note, show it, follow its link,
- * wait for the reader to land or the link to pass, and read the outcome. Every
- * change is undone on the evaluation's own stack, registered before the step
- * that can fail, so the outcome comes back from a vault already restored. The
- * click lands on the rendered link's point.
- */
 async function follow({
   note,
   url,
@@ -527,8 +449,6 @@ async function follow({
                       : gesture,
               });
         const view = shown?.view;
-        // The ledger records a read as the reader names its Attachment, so
-        // the reader is asked which one it holds as each read lands.
         const reads: (string | null)[] = [];
         let replayed = false;
         cleanup.defer(
@@ -622,16 +542,11 @@ async function follow({
         }
         const lands = expectedLanding;
         if (lands === null) {
-          // A passed link is recorded as the open hands it on, which is the
-          // whole of the gesture's work.
           await until(
             () => page.scratch.links!.passed.length > 0,
             () => "No link reached the system handler",
           );
         } else {
-          // The reader's binding decides the Landing as it draws the read it
-          // starts once it names the Attachment; a later read replaces the
-          // promise, so the wait runs until the one awaited is the last.
           const binding = await until(
             () =>
               s.bridge
@@ -653,11 +568,6 @@ async function follow({
             await within(read, end, "The reader never drew its last read");
             if (read === binding.refreshed) break;
           }
-          // Obsidian's own page jump and the Landing's scroll frame follow,
-          // and so do the Marks: the read settles on data, but PDF.js clears a
-          // page as it renders and the binding paints it again on the page's
-          // render event. A Landing on the page alone selects nothing, so the
-          // wait asks for the Marks as well as the page.
           await until(
             () => {
               const now = observe();
@@ -695,32 +605,14 @@ async function follow({
   return reply;
 }
 
-/** What two tabs on the Rougier PDF's one file showed, as {@link sharedTabs} read it. */
 interface SharedTabsOutcome {
-  /**
-   * The Attachment the tab ZotLit found open held each time an open recorded
-   * a read of the paper, from the open that named {@link SHARED}'s Attachment.
-   */
   reads: (string | null)[];
-  /** The Attachment that tab is bound to once that open lands. */
   restored: string | null;
-  /** The Annotation View's cards beside that tab, by key. */
   besideRestored: string[];
-  /** The Annotation View's cards beside a second tab on the file, by key. */
   besideSecond: string[];
-  /** Every `zotero:` URL the system handler was asked to open. */
   passed: string[];
 }
 
-/**
- * With {@link SHARED} in the Fixture: a tab on the Rougier PDF that ZotLit
- * found open as it loaded, the way it finds a tab Obsidian restored at
- * startup, takes an open of {@link SHARED}'s Annotation through the opener
- * every ZotLit gesture shares. A second tab then opens the same file plainly,
- * and the sidebar Annotation View, following the active tab, is read beside
- * each tab. Every change is undone on the evaluation's own stack, the Use
- * Ledger included.
- */
 async function sharedTabs(): Promise<SharedTabsOutcome> {
   const cardsOf = (keys: readonly string[]) => JSON.stringify([...keys].sort());
   const reply = await obRun(
@@ -774,7 +666,6 @@ async function sharedTabs(): Promise<SharedTabsOutcome> {
           active: true,
         });
         await boundTo(restored, initialKey, "The first tab");
-        // ZotLit loads with the tab already open, as at startup.
         await app.plugins.disablePlugin("zotlit");
         await app.plugins.enablePlugin("zotlit");
         await within(
@@ -783,8 +674,6 @@ async function sharedTabs(): Promise<SharedTabsOutcome> {
           "The Attachment index was not built again",
         );
         await boundTo(restored, reloadedKey, "The tab ZotLit found open");
-        // A read is recorded once its binding names the Attachment, before
-        // the tab's session does, so each is credited to the binding's.
         const reads: (string | null)[] = [];
         const ledger = services().useLedger;
         let replayed = false;
@@ -856,8 +745,6 @@ async function sharedTabs(): Promise<SharedTabsOutcome> {
               ].map((el) => el.dataset.zoteroAnnotationKey!),
             ),
           ].sort();
-        // Each wait ends on the cards of the Attachment its tab holds; a
-        // sidebar stuck on other cards fails with the cards it last showed.
         const beside = (leaf: WorkspaceLeaf, expected: string) => {
           app.workspace.setActiveLeaf(leaf, { focus: true });
           return until(
@@ -895,11 +782,6 @@ async function sharedTabs(): Promise<SharedTabsOutcome> {
   return reply;
 }
 
-/**
- * Sets the stored text of the Fixture's Annotation `annotationKey` to `text`
- * in its Zotero database, as Zotero stores rich text: its own HTML subset.
- * Disposing writes the Fixture's text back.
- */
 function rewriteAnnotationText(
   databasePath: string,
   annotationKey: string,
@@ -920,10 +802,6 @@ function rewriteAnnotationText(
   return { [Symbol.dispose]: () => write(original ?? null) };
 }
 
-/**
- * Has ZotLit read the database again and waits, bounded, until its Annotation
- * repository holds `text` for the Rougier PDF's Annotation `annotationKey`.
- */
 async function reread(annotationKey: string, text: string): Promise<void> {
   await obRun(
     run.vaultId,
@@ -957,75 +835,34 @@ async function reread(annotationKey: string, text: string): Promise<void> {
   );
 }
 
-/** What a hover over one link left on screen, read before its cleanup ran. */
 interface HoverOutcome {
-  /** Whether the hover hung a popover off the note's view. */
   popover: boolean;
-  /** The popover's text once filled, or null with no popover. */
   text: string | null;
-  /** The Annotation colour the popover carries, or null with none. */
   color: string | null;
-  /** Whether the popover painted a decoded Excerpt Image. */
   image: boolean;
-  /** The superscript the popover drew from the quote's rich text, if any. */
   sup: string | null;
-  /**
-   * The open popover once the pointer crossed from the link's text onto its
-   * URL; only for a scenario that asks.
-   */
   crossed?: {
-    /** Whether the view still shows the popover the text opened. */
     same: boolean;
-    /** Whether the popover moved. */
     moved: boolean;
-    /** The popover's text after the crossing. */
     text: string | null;
   };
 }
 
-/** The link a hover that shows nothing is read against: one that shows a popover. */
 const CONTROL_URL = durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel);
 
 interface HoverScenario {
-  /** The link the note quotes, and the pointer hovers. */
   url: string;
   gesture: "live-preview" | "reading" | "source";
-  /** The Hover Action for this scenario; the vault's own when omitted. */
   hoverAction?: "off" | "popover" | "page-preview";
-  /**
-   * Whether ZotLit's row in Obsidian's Page preview settings asks for Mod;
-   * the vault's own when omitted.
-   */
   pagePreviewMod?: boolean;
-  /** Turn `citation.pandoc-citations` off for this scenario. */
   pandocOff?: boolean;
-  /** The annotation link settings to change for this scenario. */
   linkSettings?: LinkSettings;
-  /** Wait for a decoded Excerpt Image as well as the text. */
   image?: boolean;
-  /** Hold Ctrl or Command through the hover. */
   mod?: boolean;
-  /** The hover is expected to show nothing; read against a control hover. */
   absent?: boolean;
-  /**
-   * Once the popover has filled, move the pointer from the link's text onto
-   * its URL, which Source mode draws as a span of its own, as
-   * {@link HoverOutcome.crossed}.
-   */
   crossToUrl?: boolean;
 }
 
-/**
- * One hover in one evaluation: write the note, show it, move the pointer onto
- * its link, and read what the popover the hover hung off the view shows. As in
- * {@link follow}, every change is undone on the evaluation's own stack before
- * the outcome comes back.
- *
- * The hover is a synthetic `mouseover` at the rendered link's point. Obsidian
- * hangs a hover popover off the view once its opening delay has run, so a
- * hover that shows nothing is read against a later hover over
- * {@link CONTROL_URL} that does.
- */
 async function hover({
   url,
   gesture,
@@ -1038,8 +875,6 @@ async function hover({
   absent = false,
   crossToUrl = false,
 }: HoverScenario): Promise<HoverOutcome> {
-  // The control link has a line of its own; the cursor stays on the empty
-  // last line, which holds no link.
   const note =
     absent && url !== CONTROL_URL
       ? `${noteWith(url)}\nSee also [the control](${CONTROL_URL}).\n`
@@ -1150,12 +985,6 @@ async function hover({
         const opened = (view: LinkMarkdownView) =>
           view.hoverPopover?.hoverEl.isConnected ? view.hoverPopover : null;
         if (expectAbsent) {
-          // Absence is read off a control: a link that shows a popover,
-          // hovered later in a split under the Citation Popover. Every hover
-          // popover waits the same opening delay, so once the control's has
-          // opened, one the first hover had started would have opened too.
-          // The Hover Action goes back on before that delay ends; the first
-          // link's mouseover has already decided whether it opens a popover.
           s.bridge.runSync(
             s.settings.update({ "citation.hover-action": "popover" }),
           );
@@ -1206,9 +1035,6 @@ async function hover({
             popover.hoverEl.isConnected
               ? popover.hoverEl.querySelector(".zt-citation-popover-content")
               : null;
-          // The Annotation draws above the reference from its own read, so
-          // the popover can show the reference first; the wait asks for the
-          // Annotation, or for its unavailable state.
           await until(
             () =>
               content()?.querySelector("[data-annotation-key]") ||
@@ -1242,8 +1068,6 @@ async function hover({
             sup: content()!.querySelector("sup")?.textContent ?? null,
           };
           if (crossUrl) {
-            // Past the opening delay, so a popover the crossing moved or
-            // emptied has settled by the time it is read.
             const before = popover.hoverEl.getBoundingClientRect();
             const urlEl = [
               ...link.closest(".cm-line")!.querySelectorAll(".cm-url"),
@@ -1302,17 +1126,6 @@ async function hover({
 describe.skipIf(!reachable)("Annotation links", () => {
   registerEndToEndRunHooks();
 
-  // The system handler would hand a passed link to the real Zotero on this
-  // computer. ZotLit patches `window.open` once, as it loads, so it is
-  // reloaded over a recorder that keeps every `zotero:` URL instead. A
-  // `zotero:` anchor in the Annotation View would navigate on its own, past
-  // `window.open`: a capture-phase listener stops that navigation and records
-  // nothing, so a chip that skips `window.open` fails its case in silence.
-  //
-  // Capture warms the Attachment index as it installs, so it answers before
-  // any PDF is open; a lookup that still answered `pending` would hand every
-  // click to Zotero. `indexed` only waits — a lookup would start the build
-  // itself and hide a missing warm-up.
   beforeAll(async () => {
     expect(
       await obRun(
@@ -1423,8 +1236,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     expect(outcome).toMatchObject({ reader: lands, passed: [] });
   }, 120000);
 
-  // An Annotation Zotero no longer has still names its Attachment and page,
-  // so the click reaches the neighbourhood of the passage, in silence.
   it("lands on the page alone for an Annotation Zotero no longer has", async () => {
     const url = durableLink("ZZZZZZZ2", SECOND_PAGE.pageLabel);
     const lands = { page: 2, selected: [] };
@@ -1436,7 +1247,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       lands,
     });
 
-    // `drawn` says the read the Landing was decided against reached the page.
     expect(outcome).toEqual({
       drawn: true,
       reader: lands,
@@ -1445,8 +1255,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     });
   }, 120000);
 
-  // What ZotLit writes is the durable link itself: the inserted passage
-  // carries it, not this computer's file path, and following it lands.
   it("inserts an Annotation with its durable link, which lands when clicked", async () => {
     const url = durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel);
     const lands = { page: 1, selected: [FIRST_PAGE.key] };
@@ -1468,10 +1276,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     expect(outcome).toMatchObject({ reader: lands, passed: [] });
   }, 120000);
 
-  // The Annotation Suggester searches the Zotero database with Zotero closed:
-  // the trigger, a word of the quote, and a narrowing token in the Library
-  // View's grammar find the passage; choosing it writes the quote through
-  // the annotation template, durable link and all, in place of the search.
   it.skipIf(!annotationSuggesterEnabled)(
     "searches annotations from the cursor and inserts the chosen one",
     async () => {
@@ -1483,8 +1287,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       );
 
       expect(outcome.citationOpen).toBe(false);
-      // A row names the passage, its page as the Annotation View does, and
-      // the paper.
       expect(outcome.rows).toEqual([
         expect.stringContaining(
           `${run.m.annot_view_page({ page: FIRST_PAGE.pageLabel })} · ${annotationItem.title}`,
@@ -1502,7 +1304,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     120000,
   );
 
-  // A note Annotation quotes nothing: its row shows its comment.
   it.skipIf(!annotationSuggesterEnabled)(
     "finds an Annotation by its comment, and its row shows the comment",
     async () => {
@@ -1518,12 +1319,9 @@ describe.skipIf(!reachable)("Annotation links", () => {
     120000,
   );
 
-  // Zotero stores an Annotation's text as its own HTML subset: both the
-  // popover and the Annotation Suggester's row draw it, never show it.
   it("draws an Annotation's rich text in its popover", async () => {
     const text = `${RICH.text} E = mc<sup>2</sup>`;
     await using cleanup = new AsyncDisposableStack();
-    // Disposed in reverse: the Fixture's text is written back, then read.
     cleanup.defer(() => reread(RICH.key, RICH.text!));
     cleanup.use(rewriteAnnotationText(e2eFixture.databasePath, RICH.key, text));
     await reread(RICH.key, text);
@@ -1542,15 +1340,12 @@ describe.skipIf(!reachable)("Annotation links", () => {
     async () => {
       const text = `${RICH.text} E = mc<sup>2</sup>`;
       await using cleanup = new AsyncDisposableStack();
-      // Disposed in reverse: the Fixture's text is written back, then read.
       cleanup.defer(() => reread(RICH.key, RICH.text!));
       cleanup.use(
         rewriteAnnotationText(e2eFixture.databasePath, RICH.key, text),
       );
       await reread(RICH.key, text);
 
-      // Chosen by the rewritten text as drawn, so a row from an index that
-      // still holds the Fixture's text is never chosen.
       const searched = await searchAndInsert(
         "[>classically defined",
         "E = mc2",
@@ -1562,10 +1357,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     180000,
   );
 
-  // A one-line template quotes inside a sentence; where the insert lands
-  // around the words beside it is the insertion's own rule, tested with it.
-  // A trigger typed straight after a word is where the researcher wanted it,
-  // so the Annotation Suggester adds no space before it.
   it("places a one-line Annotation from its card right after a word, typing on", async () => {
     const text = await insertFromCard(FIRST_PAGE.key, {
       line: "As argued",
@@ -1593,9 +1384,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     120000,
   );
 
-  // The page chip of an Annotation View card opens the Annotation its
-  // backlink names the way a followed link does, so it opens Obsidian's
-  // reader where this computer holds the PDF.
   it("opens the reader on the Annotation from its card's page chip", async () => {
     const url = durableLink(SECOND_PAGE.key, SECOND_PAGE.pageLabel);
     const lands = { page: 2, selected: [SECOND_PAGE.key] };
@@ -1605,8 +1393,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     expect(outcome).toMatchObject({ reader: lands, passed: [] });
   }, 120000);
 
-  // The chip shows its Durable Annotation Link, so the Reader settings that
-  // send a note's annotation links to Zotero send the chip's there too.
   it("hands a card's page chip to Zotero while the reader's open-file-links setting is off", async () => {
     const url = durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel);
 
@@ -1639,8 +1425,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     });
   }, 120000);
 
-  // A literature note's ` ```zotquery ` annotations block draws the same
-  // cards, so its page chip follows the same settings.
   it("hands a query block card's page chip to Zotero while annotation links are set to open in Zotero", async () => {
     const url = durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel);
 
@@ -1666,10 +1450,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     });
   }, 120000);
 
-  // Two Attachments can keep one file, and its path names only one of them.
-  // A link to the other one opens Obsidian's reader all the same, bound to
-  // that Attachment and selecting its own Annotation, rather than going to
-  // Zotero.
   it("opens the reader on the Annotation of the second Attachment of a shared PDF", async () => {
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
@@ -1678,8 +1458,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     cleanup.use(
       addSharedFileAttachment(e2eFixture.databasePath, FIRST_PAGE.key),
     );
-    // The path still names the Fixture's own Attachment, so the link names
-    // the one the path does not choose.
     expect(await reindexed("resolved")).toBe(annotationAttachment.key);
     const url = durableLink(SHARED.annotationKey, FIRST_PAGE.pageLabel, {
       attachmentKey: SHARED.attachmentKey,
@@ -1696,16 +1474,9 @@ describe.skipIf(!reachable)("Annotation links", () => {
     });
 
     expect(outcome).toMatchObject({ reader: lands, passed: [] });
-    // The reader held the named Attachment from its first read: the path's
-    // own Attachment was never bound, nor read.
     expect(outcome.reads).toEqual([SHARED.attachmentKey]);
   }, 180000);
 
-  // A tab ZotLit found open records no open of its own, but an open that
-  // names the file's other Attachment in it is the researcher's own: the
-  // tab's read of the path's Attachment ends, and a read of the named one
-  // begins. Two tabs on the one file are then two Attachments, and the
-  // Annotation View beside each shows that tab's own.
   it("rebinds a tab ZotLit found open to the other Attachment an open names, and the Annotation View follows each of two tabs on the shared PDF", async () => {
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
@@ -1718,8 +1489,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
 
     const outcome = await sharedTabs();
 
-    // The tab's read of the path's Attachment ends first; the last read
-    // recorded is of the Attachment the open named.
     expect(outcome.reads.at(0)).toBe(annotationAttachment.key);
     expect(outcome.reads.at(-1)).toBe(SHARED.attachmentKey);
     expect(outcome).toMatchObject({
@@ -1730,8 +1499,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
     });
   }, 180000);
 
-  // The regression guard: the device-local link ZotLit wrote before keeps
-  // landing exactly as it did.
   it("still lands an Attachment File Link that carries an Annotation Anchor", async () => {
     const url = `${FILE_URL}#page=2&zt-annotation=${SECOND_PAGE.key}`;
     const lands = { page: 2, selected: [SECOND_PAGE.key] };
@@ -1747,8 +1514,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
   }, 120000);
 
   describe("hands the click to Zotero", () => {
-    // The missing PDF is located and claimed; the reader finds no file as it
-    // opens and hands the link on, with no missing-file notice of its own.
     it.each([
       ["a PDF this computer does not hold", MISSING_PDF.key, "ZZZZZZZ2"],
       ["an Attachment Zotero does not know", "ZZZZZZZ3", FIRST_PAGE.key],
@@ -1805,8 +1570,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       });
     }, 120000);
 
-    // Obsidian's own "Open in default browser" item calls `window.open` with
-    // this target, which is the whole of that gesture as Capture sees it.
     it("for Obsidian's explicit external target", async () => {
       const url = durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel);
 
@@ -1854,8 +1617,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       expect(outcome.text).toContain(COMMENTED.comment);
     }, 120000);
 
-    // Rendered from the PDF by ZotLit with no reader open: the scenario opens
-    // the note alone.
     it.each([
       ["an image", "live-preview", SECOND_PAGE],
       ["an ink", "reading", INK],
@@ -1873,8 +1634,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       120000,
     );
 
-    // Page Preview gates the hover as it gates a citation's preview: ZotLit's
-    // row in Obsidian's Page preview settings asks for Mod by default.
     it("as the popover under Page Preview, with Mod held", async () => {
       const outcome = await hover({
         url: durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel),
@@ -1896,8 +1655,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       expect(outcome.text).toContain(FIRST_PAGE.text);
     }, 120000);
 
-    // ZotLit's row in Obsidian's Page preview settings, once the researcher
-    // turns its Mod off, lets the hover through without it.
     it("under Page Preview without Mod once ZotLit's Page preview row asks for none", async () => {
       const outcome = await hover({
         url: durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel),
@@ -1909,8 +1666,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       expect(outcome.text).toContain(FIRST_PAGE.text);
     }, 120000);
 
-    // Source mode shows the link's Markdown, and the Annotation stays
-    // available there.
     it("in Source mode with Mod held", async () => {
       const outcome = await hover({
         url: durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel),
@@ -1921,8 +1676,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       expect(outcome.text).toContain(FIRST_PAGE.text);
     }, 120000);
 
-    // Source mode draws the link's text and its URL as spans of their own; the
-    // popover anchors on the whole link, so crossing between them keeps it.
     it("in one place in Source mode while the pointer crosses from the text to the URL", async () => {
       const outcome = await hover({
         url: durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel),
@@ -1948,8 +1701,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       expect(outcome.text).toContain(FIRST_PAGE.text);
     }, 120000);
 
-    // A Durable Annotation Link is no Pandoc citation: its hover stays when
-    // the citation treatment is off.
     it("while Pandoc citations are off", async () => {
       const outcome = await hover({
         url: durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel),
@@ -1960,8 +1711,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       expect(outcome.text).toContain(FIRST_PAGE.text);
     }, 120000);
 
-    // Opening is a click's setting alone: the hover stays while a click goes
-    // to Zotero.
     it("while annotation links are set to open in Zotero", async () => {
       const outcome = await hover({
         url: durableLink(FIRST_PAGE.key, FIRST_PAGE.pageLabel),
@@ -1996,8 +1745,6 @@ describe.skipIf(!reachable)("Annotation links", () => {
       expect(outcome.popover).toBe(false);
     }, 120000);
 
-    // Zotero answers no list for an Attachment it does not know, and an
-    // Attachment's list without the Annotation: both say the link is stale.
     it.each([
       ["an Annotation Zotero no longer has", durableLink("ZZZZZZZ2", "1")],
       [

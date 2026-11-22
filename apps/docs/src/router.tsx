@@ -10,8 +10,6 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
-    // Locale URLs keep the typed route tree. Resolve the locale before Markdown
-    // suffixes, and localize outgoing links for the current reader.
     rewrite: {
       input: ({ url }) => rewriteMarkdownSuffix(deLocalizeUrl(url)),
       output: ({ url }) => localizeUrl(url),

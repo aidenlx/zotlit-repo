@@ -23,7 +23,6 @@ import { layerSettings, layerSettingsOf } from "@/services/settings/layer.ts";
 
 import { settingsOf, settingsRuntimeOf } from "./__fixtures__.ts";
 
-// A pending edit must reach disk before the settings scope finishes closing.
 it.effect("scope close flushes a pending edit and waits for its write", () =>
   Effect.gen(function* () {
     const write = Promise.withResolvers<void>();
@@ -150,8 +149,6 @@ it.effect(
       expect(bridge.runSync(settings.current)?.["server.hostname"]).toBe(
         "/edited",
       );
-      // `loaded` takes its snapshot when it runs, so a run after the edit
-      // answers the edited value.
       expect(
         (yield* Effect.promise(() => bridge.runPromise(settings.loaded)))[
           "server.hostname"

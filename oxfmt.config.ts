@@ -1,5 +1,3 @@
-// Root config — governs everything not covered by a closer oxfmt.config.ts.
-// App-level configs (apps/*, packages/*) shadow this file for their subtrees.
 import { defineConfig } from "oxfmt";
 
 import baseConfig from "./packages/config/oxfmt.base.ts";
@@ -11,7 +9,6 @@ export default defineConfig({
     ".scratch/**",
     "tests/fixture-vault-*/**",
     "packages/scripts/lib/fixture/vault-plugins/**",
-    // Fixture Vault notes are test input that e2e cases read as written.
     "packages/scripts/lib/fixture/vault-pages/**",
     "packages/scripts/lib/fixture/graph-pages/**",
     "packages/pdfjs-dist/**",

@@ -3,27 +3,18 @@ import { parse as parseIni } from "@std/ini/parse";
 import { regex } from "arkregex";
 import { join } from "node:path";
 
-/** Branch every Zotero pref is stored under in `prefs.js`. */
 export const PREF_BRANCH = "extensions.zotero.";
 
-/** Built-in fallback when the active profile has no valid positive port. */
 export const DEFAULT_ZOTERO_HTTP_PORT = 23119;
 
 export const ZOTERO_HTTP_PORT_PREF = "httpServer.port";
 
-/** File Gecko persists user prefs to, inside the profile directory. */
 export const PREFS_FILENAME = "prefs.js";
 
-/** File that lists profiles in the platform's Zotero profiles root. */
 export const PROFILES_INI_FILENAME = "profiles.ini";
 
-/** File Gecko lists the profile's installed add-ons in, with their state. */
 export const EXTENSIONS_FILENAME = "extensions.json";
 
-/**
- * @returns the configured positive port, Zotero's built-in default, or `null`
- *   for automatic selection whose effective runtime port is not persisted.
- */
 export function resolveZoteroHttpPort(
   value: PrefValue | undefined,
 ): number | null {
@@ -36,27 +27,13 @@ export function resolveZoteroHttpPort(
     : DEFAULT_ZOTERO_HTTP_PORT;
 }
 
-/** A `[ProfileN]` entry from `profiles.ini`. */
 export interface ZoteroProfile {
-  /** `Name` field — the human-readable label for a picker, or `null` when absent. */
   name: string | null;
-  /**
-   * `Path` from the section; relative to the profiles root when
-   * {@link isRelative}, otherwise absolute.
-   */
   path: string;
   isRelative: boolean;
-  /** Whether the section carried `Default=1`. */
   isDefault: boolean;
 }
 
-/**
- * Parse every profile declared in a `profiles.ini`, in file order. A section
- * is a profile when it declares a `Path`; non-profile sections (`[General]`)
- * are skipped. Values stay strings, matching Gecko's INI format.
- *
- * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/profile.js#L45-L70
- */
 export function parseZoteroProfiles(content: string): ZoteroProfile[] {
   const ini = parseIni(content);
   const profiles: ZoteroProfile[] = [];
@@ -77,25 +54,12 @@ export function parseZoteroProfiles(content: string): ZoteroProfile[] {
   return profiles;
 }
 
-/**
- * Pick the default profile. The `Default=1` flag wins; otherwise the last
- * profile declared — Zotero writes `[General]` (no `Path`) last, so the last
- * *profile* is the right fallback for a single-profile ini without an explicit
- * default.
- *
- * @returns the default profile, or `undefined` when no profile has a `Path`.
- * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/profile.js#L59-L70
- */
 export function selectDefaultProfile(
   profiles: readonly ZoteroProfile[],
 ): ZoteroProfile | undefined {
   return profiles.find((p) => p.isDefault) ?? profiles.at(-1);
 }
 
-/**
- * Resolve a profile's `Path`/`IsRelative` to an absolute directory against the
- * given profiles root.
- */
 export function resolveProfileDir(
   root: string,
   profile: Pick<ZoteroProfile, "path" | "isRelative">,
@@ -109,12 +73,6 @@ const USER_PREF = regex(
   '^user_pref\\(\\s*(?<key>"(?:[^"\\\\]|\\\\.)*")\\s*,\\s*(?<value>.+)\\)\\s*;\\s*$',
 );
 
-/**
- * Parse the `user_pref("name", value);` lines Gecko persists to `prefs.js`
- * into a `fullName → value` map. Lines that aren't a well-formed `user_pref`
- * (comments, the default-pref header, blanks) are skipped, as are values that
- * don't parse as a JSON primitive.
- */
 export function parsePrefsJs(content: string): Map<string, PrefValue> {
   const prefs = new Map<string, PrefValue>();
   for (const line of content.split(/\r?\n|\r/)) {
@@ -133,11 +91,6 @@ export function parsePrefsJs(content: string): Map<string, PrefValue> {
   return prefs;
 }
 
-/**
- * Whether the profile's add-on list (`extensions.json`) names the add-on `id`
- * as active: installed and enabled when Zotero last wrote the list. A list
- * that does not parse names nothing.
- */
 export function isAddonActive(content: string, id: string): boolean {
   let list: unknown;
   try {

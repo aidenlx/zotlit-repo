@@ -1,10 +1,5 @@
 import type { WorkbenchOpened } from "#desktop/editor/actions.ts";
 import type { WorkbenchOpenError } from "#desktop/view/open.ts";
-// The Customize flow every entry action shares: which Profile and paper an
-// open carries, and the open of that Profile in the Template Workbench View.
-//
-// The open itself is a port (`openView`), so the decision this module makes
-// is testable apart from the view it opens.
 import { Context, Effect, Layer } from "effect";
 import type { CachedMetadata, TFile } from "obsidian";
 
@@ -19,43 +14,24 @@ import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-in
 
 import { explainWorkbenchOpen } from "#desktop/editor/actions.ts";
 
-/** The paper Customize shows: its Item key, and its name when known. */
 export interface CustomizeItem {
   readonly key: string;
   readonly title: string | null;
 }
 
-/** What an entry action asks Customize to open. */
 export interface CustomizeRequest {
   readonly profileId: ProfileSelector;
-  /** The note explicitly launching this session; preview selection is independent. */
   readonly originatingNote?: TFile;
-  /**
-   * The paper to show. Leave it out and the flow takes the active Literature
-   * Note's paper, or a Sample Item when no Literature Note is active.
-   */
   readonly item?: CustomizeItem | null;
 }
 
-/**
- * The document the Template Workbench View opens: a Profile's own file, or
- * the Default Profile, whose document may not exist yet. The view reads the
- * Default Profile's text from the `Profile` service when the document is
- * missing.
- */
 export type ProfileTarget = TFile | DefaultProfileTarget;
 
-/** The Default Profile's document path. */
 export interface DefaultProfileTarget {
   readonly defaultDocumentPath: string;
 }
 
-/** What the flow reaches outside the services: the open of the view. */
 export interface CustomizePorts {
-  /**
-   * Open `target` in the Template Workbench View, answering what the open
-   * asks the reader to know.
-   */
   readonly openView: (
     request: CustomizeRequest,
     target: ProfileTarget,
@@ -66,7 +42,6 @@ export interface CustomizePorts {
   >;
 }
 
-/** The services the flow reads. */
 export type CustomizeServices =
   | Profile
   | Notifier
@@ -74,18 +49,15 @@ export type CustomizeServices =
   | MetadataCache
   | Vault;
 
-/** The one Customize flow every entry action shares, the setting tab included. */
 export class Customize extends Context.Service<
   Customize,
   {
-    /** @see customize */
     open(
       request: CustomizeRequest,
     ): Effect.Effect<void, Effect.Error<ReturnType<typeof customize>>>;
   }
 >()("zotlit/template-workbench/Customize") {}
 
-/** The Customize flow over `ports` and the services of the graph. */
 export const layerCustomize = (ports: CustomizePorts) =>
   Layer.effect(
     Customize,
@@ -99,7 +71,6 @@ export const layerCustomize = (ports: CustomizePorts) =>
     }),
   );
 
-/** Open the Profile `request` names in the Template Workbench View. */
 export const customize = Effect.fn("TemplateWorkbench.customize")(function* (
   request: CustomizeRequest,
   ports: CustomizePorts,
@@ -113,11 +84,6 @@ export const customize = Effect.fn("TemplateWorkbench.customize")(function* (
     );
 });
 
-/**
- * What the view opens for `profileId`: the Default Profile, or the file of a
- * Profile the registry holds; `null` for a Profile it does not hold or whose
- * file is gone.
- */
 const profileTarget = Effect.fn("TemplateWorkbench.profileTarget")(function* (
   profileId: ProfileSelector,
 ) {
@@ -132,14 +98,12 @@ const profileTarget = Effect.fn("TemplateWorkbench.profileTarget")(function* (
   return entry ? yield* (yield* Vault).getFileByPath(entry.path) : null;
 });
 
-/** The paper the active Literature Note is about, or `null` for a Sample Item. */
 const activeNoteItem = Effect.gen(function* () {
   const file = yield* (yield* Workspace).getActiveFile;
   if (!file) return null;
   return noteItem(file, yield* (yield* MetadataCache).fileCache(file));
 });
 
-/** The paper a Literature Note is about, from its cache; `null` for any other note. */
 export function noteItem(
   file: TFile,
   cache: CachedMetadata | null,

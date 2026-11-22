@@ -9,7 +9,6 @@ import { LinkOutcome } from "@zotlit/plugin-services/obsidian/protocol/outcome.t
 
 import { showWorkbenchLinkOutcome } from "./notices.ts";
 
-/** The notices `outcome` shows: each one's text and duration. */
 const noticesOf = Effect.fn("noticesOf")(function* (outcome: LinkOutcome) {
   const notifier = testNotifier();
   yield* showWorkbenchLinkOutcome(outcome).pipe(

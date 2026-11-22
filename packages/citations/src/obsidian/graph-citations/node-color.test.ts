@@ -29,7 +29,6 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-/** The additions of a render of a vault with one Literature Note, drawn beside one Cited Work Node. */
 function additions(): GraphCitationAdditions {
   return {
     ...NO_ADDITIONS,
@@ -80,11 +79,6 @@ describe("readNodeColors", () => {
     expect(document.body.children).toHaveLength(0);
   });
 
-  /**
-   * No suite here loads ZotLit's stylesheet, which is the state a graph that
-   * was open before ZotLit loaded is drawn in: Obsidian inserts a plugin's
-   * stylesheet after the plugin's `onload`.
-   */
   it("uses the native faint virtual-node color by default", () => {
     document.body.style.setProperty("--color-purple", "rgb(120, 82, 238)");
     document.body.style.setProperty("--text-faint", "rgb(171, 171, 171)");
@@ -140,11 +134,6 @@ describe("parseGraphColor", () => {
 });
 
 describe("parseGraphColor through the browser's own reader", () => {
-  /**
-   * Stands in for a browser's canvas: it paints the values in `paints`, and
-   * refuses every other value the way a browser does — by ignoring the
-   * assignment, so `fillStyle` keeps what it held.
-   */
   function stubPainter(paints: Record<string, number[]>): void {
     const table: Record<string, number[]> = { "#010203": [1, 2, 3, 255] };
     Object.assign(table, paints);
@@ -229,7 +218,6 @@ describe("stampNodeColors", () => {
       data,
       {
         ...additions(),
-        // Only Doe's note is cited; Poe's note is drawn on its own.
         resolvedLinks: { "Draft.md": { "Literature/Doe 2024.md": 1 } },
         literatureNotes: new Set([
           "Literature/Doe 2024.md",

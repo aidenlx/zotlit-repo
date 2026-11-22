@@ -1,8 +1,3 @@
-// The platform services as a feature every ZotLit host composes: the
-// Zotero-free `platformBase`, and what of `@zotlit/plugin-services` loads on
-// every Obsidian over Zotero, with the ports it reads that a host's platform
-// fills (the Zotero preferences, the Local Server, the Zotero HTTP client,
-// ZoteroReads).
 import { Effect, Layer } from "effect";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
@@ -84,7 +79,6 @@ export const platform = extendFeature(platformBase, {
   ],
   services: [
     serviceGroup("UseLedger", { provides: [UseLedger] }, layerUseLedger),
-    // One watch of the installed Resource Pack, for every Managed Binary.
     serviceGroup(
       "ResourcePackPlatform",
       { provides: [ResourcePackPlatform] },
@@ -115,8 +109,6 @@ export const platform = extendFeature(platformBase, {
         provides: [ZoteroLocalApi],
         requires: [ZoteroPref, LocalServer, ZoteroHttp],
       },
-      // The Remembered Write Authorization lives in Obsidian's Keychain,
-      // where the user can see and delete it — never in synced settings.
       Layer.unwrap(
         Effect.gen(function* () {
           const app = yield* ObsidianApp;
@@ -169,10 +161,7 @@ export const platform = extendFeature(platformBase, {
         },
       ],
     },
-    rebuild: [
-      // A database refresh, a group rename, or a repair moves the scope.
-      Effect.map(LibraryScope, (scope) => scopeChanges(scope.changes)),
-    ],
+    rebuild: [Effect.map(LibraryScope, (scope) => scopeChanges(scope.changes))],
   },
   handles: ({ bridge, read }) => {
     const zoteroReads = read(ZoteroReads);

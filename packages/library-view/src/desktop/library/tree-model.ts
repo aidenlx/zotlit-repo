@@ -1,4 +1,3 @@
-// Per-leaf Library Tree controls and interruptible reads over the view services.
 import { useAtomValue } from "@effect/atom-react";
 import { Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -44,7 +43,6 @@ export interface TreeSession {
   readonly all: boolean;
   readonly expanded: ReadonlySet<string>;
   readonly open: boolean;
-  /** Whether the researcher collapsed the tree beside a wide list. */
   readonly collapsed: boolean;
   readonly facets: readonly ReadingStateFacet[];
   readonly tags: readonly string[];
@@ -156,7 +154,6 @@ export function makeTreeModel() {
         )
       : Effect.succeed(null);
   });
-  // Read only while the item details show no paper and subscribe to it.
   const stats = viewRuntime.atom((get) => {
     get(revision);
     get(zoteroRevisionAtom);
@@ -171,7 +168,6 @@ export function makeTreeModel() {
       find: (key: string) =>
         noted.has(key) ? { path: key, basename: key } : null,
     };
-    // Has note is a vault condition over the same rows as every paper.
     const hasNote = nodeCount(node, ["has-note"], { scope, notes });
     return Effect.gen(function* () {
       const query = yield* QueryService;
@@ -252,10 +248,6 @@ export function makeTreeModel() {
 }
 export type TreeModel = ReturnType<typeof makeTreeModel>;
 
-/**
- * What the item details count while no paper is selected: the papers of
- * the tree node that pass each Reading State facet.
- */
 export type LibraryStats = Readonly<Record<ReadingStateFacet, number>>;
 
 const readTree = (shown: readonly AvailableLibrary[]) =>

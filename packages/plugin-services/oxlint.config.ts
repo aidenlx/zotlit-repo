@@ -14,14 +14,6 @@ import {
   withPatterns,
 } from "@zotlit/config/oxlint-plugin-code";
 
-// Each layer of the platform services has one home and one boundary, by what
-// a file needs from its host. `core/` is host-free: no Node built-in,
-// `obsidian` or `electron`, so a Web Worker or any host loads it.
-// `obsidian/` loads on Obsidian Mobile: the Obsidian API and kit, and no Node
-// or Electron. `desktop/` alone reads Node and Electron. A layer imports the
-// layers below it only: core <- obsidian <- desktop.
-
-/** The plugin layers above the host-free base. */
 const pluginLayers = {
   group: [
     "@zotlit/obsidian-kit",
@@ -99,7 +91,6 @@ export default defineConfig({
       rules: { "no-restricted-imports": ["error", obsidianImports] },
     },
     {
-      // The desktop host: Node and Electron.
       files: ["src/desktop/**"],
       rules: { "import/no-nodejs-modules": "off" },
     },
@@ -113,8 +104,6 @@ export default defineConfig({
       "src/**/test-utils.ts",
     ]),
     {
-      // Capability backlog: no tag member yet for `vault.adapter`. The file
-      // moves off the list when it takes Obsidian from the capability tags.
       files: [
         "src/obsidian/log/service.ts",
         "src/obsidian/managed-binary/pack-platform.ts",
@@ -122,7 +111,6 @@ export default defineConfig({
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
-      // Date adapter: Obsidian's YAML frontmatter can hand in a Date.
       files: [
         "src/core/note-index/frontmatter-date.ts",
         "src/core/note-index/frontmatter-date.test.ts",
@@ -133,8 +121,6 @@ export default defineConfig({
       },
     },
     {
-      // The setting tab's runner forks each fiber into the tab layer's Scope
-      // through `onFiberStart`, so closing the layer ends its runs.
       files: ["src/obsidian/setting-tab/effect-tab.ts"],
       rules: { "zotlit-services/scoped-runner": "off" },
     },

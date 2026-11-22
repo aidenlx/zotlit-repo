@@ -6,10 +6,6 @@ import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
-// The Template Workbench on the desktop: the Obsidian feature
-// (`#obsidian/feature.ts`) with Customize, the notes' launch port it fills,
-// the Template Workbench View, the Template Data Explorer, the Profiles page
-// and the workbench links.
 import { bindItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/handle.ts";
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
@@ -43,7 +39,6 @@ import {
 
 import { templateWorkbench as obsidianTemplateWorkbench } from "#obsidian/feature.ts";
 
-/** What the Template Workbench's actions read: the bridge and the graph's services. */
 export const workbenchActionsOf = ({
   bridge,
   read,
@@ -54,14 +49,11 @@ export const workbenchActionsOf = ({
 
 export const templateWorkbench = extendFeature(obsidianTemplateWorkbench, {
   services: [
-    // The Citation Template's actions and the Profile dialogs open a
-    // document in the Template Workbench View through this port.
     serviceGroup(
       "TemplateWorkbenchLauncher",
       { provides: [TemplateWorkbenchLauncher], requires: [Profile] },
       layerTemplateWorkbenchLauncher,
     ),
-    // Customize opens a Profile in the Template Workbench View.
     serviceGroup(
       "Customize",
       { provides: [Customize], requires: [Profile] },

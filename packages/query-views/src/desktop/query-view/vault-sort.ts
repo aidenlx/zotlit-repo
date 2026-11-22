@@ -1,12 +1,3 @@
-// A sort of an Items view by a vault property, `vault.<name>`, alone or mixed
-// with Zotero fields. ZotLit Query cannot read a vault property, and it
-// applies `limit` before it returns rows, so a view that sorts by one asks it
-// for every match up to a cap, ordered by the view's Zotero fields, then
-// sorts the rows here and keeps the view's `limit` of them, in each group of
-// a grouped view, so `limit` still counts the rows the researcher sees.
-//
-// @see apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md
-
 import type {
   QueryFileDataset,
   QueryFileSort,
@@ -38,17 +29,8 @@ import {
   vaultProperty,
 } from "#core/query-view/query-file.ts";
 
-/**
- * The most rows ZotLit Query returns to a view sorted by a vault property.
- * Past it the view sorts the first rows only, and shows that more matched.
- */
 export const VAULT_SORT_CAP = 5000;
 
-/**
- * What ZotLit Query runs for a view sorted by a vault property: every match
- * up to the cap, with the value of each Zotero field the view sorts by, which
- * the sort here compares.
- */
 export function vaultSortRequest(request: QueryViewRequest): QueryViewRequest {
   const sortFields = (request.sort ?? []).map(({ field }) => field);
   return {
@@ -58,7 +40,6 @@ export function vaultSortRequest(request: QueryViewRequest): QueryViewRequest {
   };
 }
 
-/** A vault value as it sorts: `null` for an empty one, which sorts last. */
 function sortValue(value: VaultValue): string | number | boolean | null {
   if (!value.note || value.value === null || value.value === undefined)
     return null;
@@ -68,25 +49,12 @@ function sortValue(value: VaultValue): string | number | boolean | null {
   return text === "" ? null : text;
 }
 
-/**
- * `rows`, which come in ZotLit Query's order of the view's Zotero sort
- * fields, in the order of the view's whole `sort`. A vault property
- * compares in ZotLit Query's string order, an empty value last in both
- * directions. A Zotero field keeps ZotLit Query's own order of it, by the
- * key ZotLit Query sorts it by, which may be another value than the one a
- * row shows, such as the first day of a date: of two rows that tie on the
- * sort keys before it, the one whose keys of the Zotero fields so far came
- * first in ZotLit Query's rows comes first. Rows that tie on every key keep
- * ZotLit Query's order.
- */
 export function sortByVault<R extends QueryViewRow>(
   rows: readonly R[],
   sort: readonly QueryFileSort[],
   read: (row: R, name: string) => VaultValue,
 ): R[] {
   const fields = sort.filter(({ property }) => !isVaultProperty(property));
-  // The rank of each row on each Zotero field: where the run of rows that
-  // share its sort keys of that field and the fields before it begins.
   const ranks = new Map<R, number[]>();
   const firsts = fields.map(() => new Map<string, number>());
   rows.forEach((row, index) => {
@@ -130,10 +98,6 @@ export function sortByVault<R extends QueryViewRow>(
   });
 }
 
-/**
- * The first `limit` rows the layout shows, in each group of a grouped view;
- * `dropped` says whether it left any out.
- */
 export function limitRows<R extends Pick<LayoutRow, "group">>(
   rows: readonly R[],
   limit: number | null,
@@ -149,11 +113,6 @@ export function limitRows<R extends Pick<LayoutRow, "group">>(
   return { rows: kept, dropped: kept.length < rows.length };
 }
 
-/**
- * The vault properties the Sort control offers an Items view, after the
- * Zotero fields: each name the Literature Notes give a property, ordered as
- * its type orders.
- */
 export function vaultSortOptions(
   dataset: QueryFileDataset | undefined,
   names: readonly string[],
@@ -178,11 +137,6 @@ export function vaultSortOptions(
   });
 }
 
-/**
- * Every property a view of `dataset` sorts by: the Zotero fields ZotLit
- * Query sorts by, then the vault properties of `names`. The Sort control
- * offers these, and a Table column's menu sorts by no other.
- */
 export function viewSortOptions(
   dataset: QueryFileDataset | undefined,
   names: readonly string[],
@@ -197,12 +151,6 @@ export function viewSortOptions(
   ];
 }
 
-/**
- * What the layout shows of a view sorted by a vault property: `rows` sorted
- * by the view's whole `sort`, gathered as the view groups them, and the
- * first `limit` of them in each group. `dropped` says whether the limit left
- * any out. A group's `count` is the rows it holds before the limit.
- */
 export function vaultSortedLayout<R extends QueryViewRow>(
   rows: readonly R[],
   view: Pick<QueryFileView, "from" | "groupBy" | "groupOrder" | "limit">,

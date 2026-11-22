@@ -1,5 +1,3 @@
-// Creation preparation and registry behavior over Profile documents and relational Item rows.
-
 import { it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Layer, Stream } from "effect";
 import { TFolder } from "obsidian";
@@ -45,7 +43,6 @@ vi.mock("@zotlit/db", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@zotlit/db")>();
   return {
     ...actual,
-    // Rendering context is independent of match facts; all relational matching reads are real.
     buildNoteContextFromSource: vi.fn(
       ({ item }: { item: Item }): NoteTemplateContext =>
         ({
@@ -60,7 +57,6 @@ vi.mock("@zotlit/db", async (importOriginal) => {
   };
 });
 
-// `setImmediate` stays real: the in-process ZoteroReads runtime schedules on it.
 beforeEach(() =>
   vi.useFakeTimers({
     toFake: [
@@ -77,19 +73,6 @@ const books = "Bk3Qn7XvT2Lp" as ProfileId;
 const papers = "Rz9Wm4YfH6Kd" as ProfileId;
 const manual = "Mn4Vb8GhJ2Rt" as ProfileId;
 
-/**
- * My Library (1) and the "Lab Archive" group (2, groupID 118).
- *
- * Collections: My Library holds Project (PROJ0001) > Drafts (DRFT0001) and
- * Other (OTHR0001); the group holds its own Project with the same key
- * PROJ0001.
- *
- * Items: the book BKPA2222 titled BOOK0001 (1) is filed in Drafts and Other, tagged "Read"
- * (manual) and "READ" (automatic); the group book BKGR2222
- * titled BOOK0002 (2) is filed in
- * the group's Project; the article ARTC2222 titled ARTC0001 (3) is filed directly in My
- * Library's Project, tagged "auto-tag" (automatic).
- */
 function seed(client: NodeDatabaseClient): void {
   createFixtureSchema(client.$client);
   client.$client.exec(`
@@ -117,7 +100,6 @@ function seed(client: NodeDatabaseClient): void {
     seedTitle(client, itemID, titles[itemID]!);
 }
 
-/** Gives a seeded Item its title, which its note filename renders from. */
 function seedTitle(client: NodeDatabaseClient, itemID: number, title: string) {
   client.$client.exec(`
     insert into itemDataValues (valueID, value) values (${itemID}, '${title}');
@@ -125,7 +107,6 @@ function seedTitle(client: NodeDatabaseClient, itemID: number, title: string) {
   `);
 }
 
-/** Each seeded Item's title, by itemID; a note filename renders from it. */
 const titles: Record<number, string> = {
   1: "BOOK0001",
   2: "BOOK0002",
@@ -196,7 +177,6 @@ ${stringifyYaml({
   name: label,
   version: "1.0.0",
   contract: 2,
-  // A colliding name takes a suffix; a free one renders as the title.
   filename: "{{ zt.title }}{% suffix %}",
   ...(id === "default" ? {} : { folder: id === books ? "Reading" : label }),
   ...(match === undefined ? {} : { match }),
@@ -218,7 +198,6 @@ async function harness(
   stack.defer(() => client.$client.close());
   seed(client);
   const zoteroEvents = testEvents<ZoteroReadsEvents>(["changed", "degraded"]);
-  // Library Scope reads the Libraries through ZoteroReads, over the same client.
   const readsEvents = {
     reads: readsAnswering({
       Libraries: () =>
@@ -253,7 +232,6 @@ async function harness(
     ),
   );
   const { app, vault, profile, settings, runtime } = fixture;
-  // The Template members the Note Feature reads, on the fixture's service.
   const templateService = runtime.runSync(Template);
   const template: NoteFeatureSources["template"] = {
     render: (name, data) => runtime.runSync(templateService.render(name, data)),
@@ -292,7 +270,6 @@ async function harness(
   const zoteroReads = inProcessReadsService(sharedClientOpener(client), {
     handlers: { sliceSize, queryJobs: queryJobRunner },
   });
-  // ZotLit Query tests the Profile Matches over the same database.
   const { service: query } = await buildQueryService(
     {
       reads: zoteroReads.reads,
@@ -369,14 +346,11 @@ async function harness(
     client,
     deps,
     query,
-    /** The Note Feature service. */
     feature: service,
-    /** The creation Profile `planCreations` selects for `item`. */
     select: (item: Item, sources?: CreationPlanOptions) =>
       service
         .planCreations([item.indexedKey], sources)
         .pipe(Effect.map((plans) => plans.get(item.indexedKey)!.selection)),
-    /** Each selectable Profile's creation preview for `item`. */
     previews: (item: Item) =>
       service
         .planCreations([item.indexedKey])
@@ -417,7 +391,6 @@ async function harness(
   };
 }
 
-/** The harness `open` makes, disposed when the case's Scope closes. */
 const acquire = <H extends AsyncDisposable>(open: () => Promise<H>) =>
   Effect.acquireDisposable(Effect.promise(() => open()));
 
@@ -524,9 +497,7 @@ describe("Profile document matches at creation preparation", () => {
       }),
   );
 
-  // A batch reads its Items, facets, and Matches together, not per Item.
   describe("plans a batch of creations", () => {
-    /** Twelve My Library books titled "Shared"; every third is tagged "Read". */
     const shared = Array.from({ length: 12 }, (_, index) =>
       item({
         itemID: 1000 + index,
@@ -545,7 +516,6 @@ describe("Profile document matches at creation preparation", () => {
     ];
 
     async function batchHarness() {
-      // Four Items a slice, so the facets of the batch arrive in several.
       const f = await harness(
         {
           [books]: 'tags.contains("Read")',
@@ -591,7 +561,6 @@ describe("Profile document matches at creation preparation", () => {
                 }
               : { selector: "default", source: "bound", shouldAsk: true },
           );
-        // A key the database lacks has no Item to match or preview.
         expect(plans.get(unknownKey)).toEqual({
           item: undefined,
           selection: { selector: "default", source: "bound", shouldAsk: true },
@@ -765,7 +734,6 @@ describe("Profile document matches at creation preparation", () => {
           [papers]: 'itemType == "book"',
         }),
       );
-      // With the query, Books and Papers both match the book.
       expect(yield* f.select(personalBook)).toMatchObject({
         shouldAsk: true,
         problem: { kind: "overlap" },
@@ -773,7 +741,6 @@ describe("Profile document matches at creation preparation", () => {
       vi.spyOn(f.query, "run").mockReturnValue(
         Effect.succeed({ kind: "cancelled" }),
       );
-      // Without it, the catch-all Books does not take the Item alone.
       expect(yield* f.select(personalBook)).toEqual({
         selector: "default",
         source: "bound",

@@ -40,7 +40,6 @@ describe("liquidTemplate grammar", () => {
     const names = nodeNames(source);
     expect(names.slice(0, 3)).toEqual(["Template", "ForDirective", "Tag"]);
     expect(names).toContain("EndTag");
-    // The shortcut is a plain tag: its name is a TagName, its argument a VariableName.
     const shortcut = nodeNames(source, 29, 54);
     expect(shortcut).toEqual(["Tag", "{%", "TagName", "VariableName", "%}"]);
   });
@@ -80,8 +79,6 @@ describe("liquidTemplate grammar", () => {
 
 describe("liquidRanges", () => {
   it("bounds outputs, tags, structural tags, and comments", () => {
-    //              0         1         2         3         4         5
-    //              012345678901234567890123456789012345678901234567890123
     const source = "{{ a }}{% if x %}{% managed %}{% # note %}{% endmanaged %}";
     expect(liquidRanges(source)).toEqual([
       { from: 0, to: 7, kind: "output", name: "", closed: true },

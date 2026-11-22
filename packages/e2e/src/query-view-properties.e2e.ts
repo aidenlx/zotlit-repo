@@ -53,7 +53,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         noteContent: `views:\n  - type: annotations\n    name: Shared figures\n    from: annotations\n    filters: ${filter}\n    limit: 100\n`,
       },
     );
-    /** What the tab shows once its query settled, and the file's saved text. */
 
     interface Tab {
       count: string | null;
@@ -122,11 +121,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(figures.length).toBeGreaterThan(2);
     await tabWhen((tab) => tab.count === String(figures.length));
 
-    // The view has no order: the Properties popover ticks the default
-    // properties the cards show, at the top of the list. "Hide all" clears
-    // them; tick "pageLabel", then "colorName": the order of the ticks is the
-    // order of the columns, and it saves.
-    /** The default fields of the annotations dataset that give one cell each. */
     const defaultProperties = [
       "type",
       "text",
@@ -220,8 +214,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     };
     expect(ticked.defaults).toEqual(defaultProperties);
     expect(ticked.leading).toEqual(defaultProperties);
-    // A tick leaves every row in place, as in Bases; the popover sorts the
-    // visible properties first when it opens again.
     expect(ticked.kept).toEqual(ticked.untouched);
     expect(ticked.shown.slice(0, 2)).toEqual([
       ["pageLabel", "true"],
@@ -233,8 +225,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(ordered.count).toBe(String(figures.length));
 
-    // A limit of 2 from the Results menu saves to the file; the count still
-    // names every match.
     await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }) => {
@@ -262,8 +252,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       countText: `2 of ${figures.length} results`,
     });
 
-    // "Export CSV…" writes the rows on screen with the two columns in the
-    // order they were ticked.
     const exported = (await obRun(
       run.vaultId,
       async ({ page: pageHelpers }) => {
@@ -314,11 +302,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(exported).toEqual({
       name: "Shared figures.csv",
       type: "text/csv",
-      // A byte order mark first, so a spreadsheet reads UTF-8; CRLF after each line.
       text:
         BYTE_ORDER_MARK +
         [
-          // The header names a property by its label where it has one.
           `pageLabel,${run.m.query_view_property_color()}`,
           ...rows.map(
             (row) =>
@@ -331,12 +317,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(rows.every((row) => row.values.colorName)).toBe(true);
   }, 180000);
 
-  /** The open popover of the Query View toolbar that `selector` names. */
-
-  /**
-   * Opens a toolbar popover of the view that `tab` names, and waits until it
-   * shows the element that `ready` names.
-   */
   async function openToolbarPopup({
     button,
     popup,
@@ -365,21 +345,14 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { what: "Query View toolbar popover" },
     );
   }
-  /** The open Properties popover. */
 
-  /** Opens the Properties popover and waits for its property rows. */
   const openProperties = () =>
     openToolbarPopup({
       button: "[data-query-properties]",
       popup: "[data-query-properties-popup]",
       ready: "[data-query-property]",
     });
-  /** The page open in the Properties popover. */
 
-  /**
-   * Opens the page of a property's row in the open Properties popover: its
-   * chevron opens it, as a reader presses it.
-   */
   const openPropertyPage = (property: string) =>
     obRun(
       run.vaultId,
@@ -404,7 +377,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         property,
       },
     );
-  /** Runs an item of the "…" menu of the open property page. */
   const runPageMenuItem = (hook: string) =>
     obRun(
       run.vaultId,
@@ -430,7 +402,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         hook,
       },
     );
-  /** Closes the open Properties popover from its page's close button. */
   const closePropertyPage = () =>
     obRun(
       run.vaultId,
@@ -447,7 +418,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { popupSelector: `${"[data-query-properties-popup]"}` },
     );
-  /** Opens the results popover and waits for its "Export CSV…" action. */
   const openResults = () =>
     openToolbarPopup({
       button: "[data-query-results]",
@@ -467,7 +437,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
-      // Teardown closes a popover a failed step left open; not a reader's press.
       await obRun(
         run.vaultId,
         async ({ app, page: pageHelpers }, { layout, notePaths }) => {
@@ -493,12 +462,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path, source },
     );
 
-    /** What the tab shows once its query settled, and the file's saved text. */
-
     interface Tab {
       columns: (string | null)[];
       headerIssue: string | null;
-      /** Each Item row: its key, then the text of each cell. */
       rows: string[][];
       list: [string, string][];
       text: string;
@@ -565,7 +531,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       if (!settled) throw new Error(`Query File tab: ${JSON.stringify(tab)}`);
       return tab!;
     };
-    /** The value of each row's Formula, as ZotLit Query gives it. */
     const formulaValues = async (expression: string) => {
       const report = JSON.parse(
         await cliCommand(run.vaultId, "zotlit:query", {
@@ -585,16 +550,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           : String(row.values["formula.year"] as string | number),
       ]);
     };
-    /** The key and the cell of one column of each Table row. */
     const column = (shown: Tab, property: string) => {
-      // The first cell is the expander.
       const at = shown.columns.indexOf(property);
       return shown.rows.map((row) => [row[0], row[at + 1]]);
     };
     const shown = await tabWhen((tab) => tab.rows.length > 0);
     expect(shown.columns).toEqual([null, "title"]);
 
-    // "Add formula" in the Properties popover opens its page.
     await openProperties();
     await obRun(
       run.vaultId,
@@ -614,12 +576,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         menuItemLabel: run.m.query_view_formula_add(),
       },
     );
-    /**
-     * Types into the formula's page, and reads what it says about the text.
-     * The page draws the text in a microtask after the input event, so the
-     * read in the next call sees it. A Formula's own page saves as it goes:
-     * it has no Save button, and reads `save: null`.
-     */
     const typeFormula = async (fields: {
       name?: string;
       expression: string;
@@ -686,11 +642,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { popupSelector: `${"[data-query-properties-popup]"}` },
       )) as { syntax: string; save: boolean | null };
     };
-    /**
-     * Saves the formula's page: "Add formula" by its Save button, which
-     * turns the page into the Formula's own; then the close button, which
-     * saves the text of a Formula's own page as the popover closes.
-     */
     const saveFormula = () =>
       obRun(
         run.vaultId,
@@ -715,15 +666,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { popupSelector: `${"[data-query-properties-popup]"}` },
       );
-    /**
-     * The text the Formula field underlines, once the field shows
-     * `expected`, and how: the line style of each underline, and whether
-     * the field draws a gutter. The editor sets its underlines a frame
-     * after the page draws the text, and then, from the same draw, its
-     * `aria-invalid`; so where `expected` is empty, the field that was
-     * invalid is settled once `aria-invalid` reads false, and no underline
-     * of the text can come after that.
-     */
     const formulaUnderlines = async (expected: string[]) =>
       await obRun(
         run.vaultId,
@@ -770,9 +712,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { popupSelector: `${"[data-query-properties-popup]"}` },
       { what: "the property chooser page to open in the Properties popover" },
     );
-    // The Formula field looks and focuses as the text input above it: the
-    // same border, radius, fill and focus ring, its text at the same inset,
-    // and no focus outline of the editor's own.
     const fieldLook = await obRun(
       run.vaultId,
       async ({ page: pageHelpers }, { popupSelector }) => {
@@ -788,7 +727,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         )!;
         const editor = field.querySelector<HTMLElement>(".cm-editor")!;
         const line = field.querySelector<HTMLElement>(".cm-line")!;
-        // The box and focus ring that show: the shadows that have a spread.
         const ringOf = (shadow: string) =>
           shadow
             .split(/,\s*(?![^(]*\))/)
@@ -815,7 +753,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             Number.parseFloat(getComputedStyle(line).paddingLeft) -
             field.getBoundingClientRect().left,
         };
-        // The page focuses the Name input when it opens; rest is the look with no focus.
         (activeDocument.activeElement as HTMLElement | null)?.blur();
         await until(
           "no focus on the page",
@@ -850,16 +787,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(fieldLook.focused.field).toEqual(fieldLook.focused.input);
     expect(fieldLook.inset.field).toBeCloseTo(fieldLook.inset.input);
     expect(fieldLook.editor).toEqual({ focused: true, outline: "none" });
-    // The parse-only check marks a text that does not parse, and keeps it
-    // from being saved.
     expect(
       await typeFormula({ name: "year", expression: "date.year +" }),
     ).toEqual({
       syntax: "invalid",
       save: false,
     });
-    // The Syntax Fault is underlined as it is typed, in a wavy line and with
-    // no gutter beside the text.
     expect(await formulaUnderlines(["+"])).toEqual({
       marks: ["+"],
       styles: ["wavy"],
@@ -872,8 +805,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect((await formulaUnderlines([])).marks).toEqual([]);
     await saveFormula();
 
-    // The Formula saves under formulas, shows after the view's properties,
-    // and each row shows the value ZotLit Query gives.
     const years = await formulaValues("date.year");
     expect(years.some(([, year]) => year !== "")).toBe(true);
     const added = await tabWhen((tab) => tab.columns.includes("formula.year"));
@@ -883,7 +814,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(column(added, "formula.year")).toEqual(years);
 
-    // An embed and a Query Block of the same text show the same column.
     await obRun(
       run.vaultId,
       async ({ app }, { notePath, contentPrefix, addedText }) => {
@@ -953,7 +883,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { notePath: path },
     );
 
-    // The List shows the same values.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -980,7 +909,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await tabWhen((tab) => tab.columns.includes("formula.year"));
 
-    // The Formula row's chevron opens its page for editing.
     const editFormula = async () => {
       await openProperties();
       await openPropertyPage("formula.year");
@@ -995,8 +923,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(column(await tabWhen(() => true), "formula.year")).toEqual(next);
     expect(edited.columns).toContain("title");
 
-    // A Formula ZotLit Query names as wrong shows its message at its row and
-    // its column; the other columns still show their values.
     await editFormula();
     expect(await typeFormula({ expression: "title.nope()" })).toEqual({
       syntax: "valid",
@@ -1027,9 +953,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(rowIssue).toBe(wrong.headerIssue);
 
-    // The Formula's page underlines the name the run found wrong, and shows
-    // no tooltip over it, not even an empty one, well past CodeMirror's
-    // hover delay.
     await editFormula();
     expect((await formulaUnderlines(["nope"])).marks).toEqual(["nope"]);
     const hovered = await obRun(
@@ -1058,14 +981,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { popupSelector: `${"[data-query-properties-popup]"}` },
     );
     expect(hovered).toEqual([]);
-    // A text other than the saved one shows no underline of the run's Fault.
     await typeFormula({ expression: "title.nope( )" });
     expect((await formulaUnderlines([])).marks).toEqual([]);
     await saveFormula();
     await tabWhen((tab) => tab.text.includes("  year: title.nope( )\n"));
 
-    // Remove, in the page's menu, leaves the file without the Formula and
-    // its property, and steps back to the rows.
     await editFormula();
     await runPageMenuItem("remove-formula");
     await obRunUntil(
@@ -1124,7 +1044,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       next: "formula.year + 1",
       recent: "date.year >= 2020",
     };
-    // A Formula that only another view of the file reads.
     const shared = "title";
     const source = (
       edits: { year?: string; filter?: string } = {},
@@ -1156,13 +1075,11 @@ views:
     );
 
     interface Tab {
-      /** The Query View runs of ZotLit Query since the plugin loaded. */
       runs: number;
       warnings: string[];
       text: string;
       columns: (string | null)[];
       headerIssues: Record<string, string | null>;
-      /** Each Item row: its key, then the text of each cell. */
       rows: string[][];
       diagnostic: string | null;
     }
@@ -1228,7 +1145,6 @@ views:
       if (!settled) throw new Error(`Query File tab: ${JSON.stringify(shown)}`);
       return shown!;
     };
-    /** Edits the file as text in its tab. */
     const write = (text: string) =>
       obRun(
         run.vaultId,
@@ -1244,7 +1160,6 @@ views:
         },
         { text },
       );
-    /** The Query View runs of ZotLit Query so far, as the dev build counts them. */
     const countRuns = async () =>
       await obRun(
         run.vaultId,
@@ -1253,13 +1168,10 @@ views:
         },
         undefined,
       );
-    /** The key and the cell of one column of each Table row. */
     const column = (shown: Tab, property: string) => {
-      // The first cell is the expander.
       const at = shown.columns.indexOf(property);
       return shown.rows.map((row) => [row[0], row[at + 1]]);
     };
-    /** The issue at each Formula's row in the Properties popover. */
     const rowIssues = async () => {
       await openProperties();
       return (await obRun(
@@ -1283,7 +1195,6 @@ views:
         { popupSelector: `${"[data-query-properties-popup]"}` },
       )) as Record<string, string | null>;
     };
-    /** The issue at each condition of the view's filters, in the Filter popover. */
     const conditionIssues = async () => {
       return await obRun(
         run.vaultId,
@@ -1317,8 +1228,6 @@ views:
       );
     };
 
-    // The view shows the rows ZotLit Query gives for the same filter, and a
-    // Formula that reads another shows its value.
     const report = JSON.parse(
       await cliCommand(run.vaultId, "zotlit:query", {
         args: {
@@ -1350,9 +1259,6 @@ views:
     expect(column(shown, "formula.next")).toEqual(expected);
     expect(shown.warnings).toEqual([]);
 
-    // A wrong Formula marks itself and the Formula that reads it, each with
-    // its own reason, from one run; the view still shows its rows and its
-    // other columns.
     const reads = "formula.next reads formula.year, which has a mistake.";
     let runs = await countRuns();
     await write(source({ year: "dat.year" }));
@@ -1375,8 +1281,6 @@ views:
       recent: null,
     });
 
-    // A condition that reads the wrong Formula says so, and the view shows
-    // no rows until the Formula is fixed.
     runs = await countRuns();
     await write(source({ year: "dat.year", filter: "formula.next > 2020" }));
     const filtered = await tabWhen(
@@ -1400,8 +1304,6 @@ views:
     ).toBe(true);
     expect(await conditionIssues()).toEqual([null]);
 
-    // Removing a Formula that the filters still name leaves the condition,
-    // and ZotLit Query's message shows at it.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -1446,8 +1348,6 @@ views:
         { layout, path },
       );
     });
-    // The Formula cannot read the title of one Item as a number; the other
-    // Item gives its year.
     const formula = `if(indexedKey == "${annotationItem.key}", number(title), date.year)`;
     const filter = `indexedKey == "${annotationItem.key}" || indexedKey == "${positionDocumentItem.key}"`;
     const view = (type: string, name: string) =>
@@ -1494,8 +1394,6 @@ views:
       );
     const message = (failed[0]!.values["formula.n"] as { message: string })
       .message;
-
-    // Each row's key, the text of each cell, and the Error Value marks.
 
     interface Shown {
       key: string;
@@ -1549,8 +1447,6 @@ views:
       if (!settled) throw new Error(`${name} view: ${JSON.stringify(shown)}`);
       return shown!;
     };
-    // The Annotation's row carries the mark and no "Error" text; every
-    // other row shows its year and no mark.
     const marked = {
       errors: [["unparseable-text", message, true]],
       text: expect.not.stringContaining("Error"),
@@ -1575,9 +1471,6 @@ views:
       await showView("Cards", '[data-query-layout="cards"] [data-query-row]'),
     );
 
-    // "Copy to clipboard" and "Export CSV…" write the Formula column after
-    // the title, as the view's order has it, and the Error Value as its
-    // message.
     const cell = (value: unknown) => {
       const text =
         value === null || value === undefined
@@ -1589,7 +1482,6 @@ views:
     };
     const lines = (separator: string, newline: string) =>
       [
-        // The header names a field by its label, a Formula by its path.
         ["Title", "formula.n"].join(separator),
         ...rows.map((row) =>
           [cell(row.values.title), cell(row.values["formula.n"])].join(
@@ -1601,9 +1493,6 @@ views:
         .join("");
 
     await openResults();
-    // The clipboard write has no time the test can name: poll for it, and
-    // fail when it does not come.
-    // JSON keeps the final newline, which the CLI reply would trim.
     const copied = (await obRun(
       run.vaultId,
       async ({ page: pageHelpers }, { resultsPopupSelector }) => {
@@ -1687,8 +1576,6 @@ views:
       text: string | null;
     };
     expect(written).toEqual({
-      // TSV on the clipboard puts LF between lines, none after the last; the
-      // CSV file starts with a byte order mark and ends each line with CRLF.
       copied: lines("\t", "\n").slice(0, -1),
       name: "Cards.csv",
       type: "text/csv",
@@ -1708,7 +1595,6 @@ views:
     );
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
-      // Teardown closes a popover a failed step left open; not a reader's press.
       await obRun(
         run.vaultId,
         async ({ app, page: pageHelpers }, { layout, path }) => {
@@ -1731,8 +1617,6 @@ views:
       },
       { path, source },
     );
-
-    /** The Table header, each popover row's Display Name, and the file's saved text. */
 
     interface Tab {
       header: [string, string][];
@@ -1813,8 +1697,6 @@ views:
       return tab!;
     };
     const shown = await tabWhen((tab) => tab.rows > 0 && tab.header.length > 0);
-    // Without a Display Name, a field shows its label and a Formula its path,
-    // in the Table header and in the Properties popover.
     expect(shown.header).toEqual([
       ["title", "Title"],
       ["formula.year", "formula.year"],
@@ -1824,8 +1706,6 @@ views:
       ["formula.year", "formula.year"],
     ]);
 
-    // The title row's chevron opens its page. Escape there steps back to the
-    // rows, with focus in the search field, and saves the name typed.
     await openProperties();
     await openPropertyPage("title");
     await obRun(
@@ -1877,8 +1757,6 @@ views:
       ),
     );
 
-    // The Formula's page holds the Formula's Display Name.
-    /** Opens the page of `formula.year`. */
     const editYear = async () => {
       await openProperties();
       await openPropertyPage("formula.year");
@@ -1913,7 +1791,6 @@ views:
       ["formula.year", "Year of source"],
     ]);
 
-    // The popover search finds a property by its Display Name.
     await openProperties();
     await obRun(
       run.vaultId,
@@ -1940,8 +1817,6 @@ views:
     )) as string[];
     expect(found).toContain("formula.year");
     expect(found).not.toContain("title");
-    // The popover opens again with an empty search and every property, so
-    // the next typed text replaces the last search instead of adding to it.
     await openProperties();
     await obRunUntil(
       run.vaultId,
@@ -1973,7 +1848,6 @@ views:
       undefined,
     );
 
-    // "Export CSV…" names the columns by their Display Names.
     await openResults();
     const exported = await obRun(
       run.vaultId,
@@ -2016,7 +1890,6 @@ views:
       `${BYTE_ORDER_MARK}Work,Year of source`,
     );
 
-    // Removing the Formula also removes its Display Name; the field keeps its own.
     await editYear();
     await runPageMenuItem("remove-formula");
     await obRunUntil(
@@ -2084,20 +1957,12 @@ views:
       },
       { path, source },
     );
-    /**
-     * Runs `steps` against the open Query File tab once its Table shows, with
-     * `th(path)`, `edge(path)`, `fire(target, type, x)`, a drag event at
-     * the client x `x`, and `pointer(target, type, x)`, a pointer event there;
-     * then saves and reads the header and the file text.
-     */
 
     interface Read {
       columns: string[];
       text: string;
     }
 
-    // A header dragged over a column after it drops after that column, and
-    // the drop line stands at that column's end edge while the drag is on.
     const moved = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -2201,16 +2066,12 @@ views:
       }
     >();
     expect(moved.line).toBe(moved.edge);
-    // The line stands over the sticky header, not under it.
     expect(moved.layer).toBe(moved.header);
     expect(moved.columns).toEqual(["firstAuthor", "date", "title"]);
     expect(moved.text).toContain(
       "    order:\n      - firstAuthor\n      - date\n      - title\n",
     );
 
-    // A drag on a column's edge sets its width as it goes, with the resize
-    // cursor over the whole page, and saves it when the pointer lets go; the
-    // header does not move and its menu does not open.
     const resized = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -2334,7 +2195,6 @@ views:
       `    columnSize:\n      date: ${resized.before + 80}\n`,
     );
 
-    // Escape ends a drag on an edge: the width goes back and nothing saves.
     const cancelled = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -2443,8 +2303,6 @@ views:
     expect(cancelled.after).toBe(cancelled.before);
     expect(cancelled.text).toBe(resized.text);
 
-    // A double click on the edge sets the column back to its auto width and
-    // removes the key with its last width.
     const reset = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -2525,9 +2383,6 @@ views:
     expect(reset.text).not.toContain("columnSize");
     expect(reset.columns).toEqual(["firstAuthor", "date", "title"]);
 
-    // A column can be narrower than its longest word: it stops at the
-    // narrowest Bases width, and its cells clip what does not fit — the
-    // cell itself, or the line inside it that truncates its text.
     const narrowed = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -2654,9 +2509,6 @@ views:
       `    columnSize:\n      firstAuthor: ${narrowed.min}\n`,
     );
 
-    // A right click on a header opens its menu whatever the column's
-    // state: an entry with nothing to do shows disabled, and Reset column
-    // width on a resized column sets it back to its auto width.
     const menuReset = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -2778,7 +2630,6 @@ views:
         after: number;
       }
     >();
-    // The Bases column menu, with the moves a drag makes spelled out.
     expect(menuReset.auto).toEqual([
       "Hide column",
       "Move left",
@@ -2800,8 +2651,6 @@ views:
     expect(menuReset.after).toBe(narrowed.auto);
     expect(menuReset.text).not.toContain("columnSize");
 
-    // A pointer the system takes away ends a drag on an edge: the live width
-    // goes back, the resize cursor goes, and nothing saves.
     const ended = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -2912,8 +2761,6 @@ views:
     expect(ended.resizing).toBe(false);
     expect(ended.text).toBe(menuReset.text);
 
-    // A header dropped outside the table moves nothing, and the drag leaves
-    // no drop line and no grabbing cursor.
     const outside = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -3012,9 +2859,6 @@ views:
     expect(outside.columns).toEqual(["firstAuthor", "date", "title"]);
     expect(outside.text).toBe(menuReset.text);
 
-    // A move reads the order the view holds at the drop: here a save during
-    // the drag puts the dragged column last, and the drop over the first
-    // column still puts it first.
     const stale = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -3130,8 +2974,6 @@ views:
       "    order:\n      - firstAuthor\n      - date\n      - title\n",
     );
 
-    // A tab that closes mid-drag ends the drag: no drop line, no grabbing
-    // cursor, the width as it was, and a later drop saves nothing.
     const closed = await obRun(
       run.vaultId,
       async ({ app, page: pageHelpers }) => {
@@ -3239,21 +3081,12 @@ views:
       },
       { path, source },
     );
-    /**
-     * Runs `steps` against the open Query File tab once its Table shows, with
-     * `th(path)`, `edge(path)`, `fire(target, type, x)`, a drag event at the
-     * client x `x`, `pointer(target, type, x)`, a pointer event there, and
-     * `popup()`, the open Properties popover; then saves and reads the
-     * header and the file.
-     */
 
     interface Read {
       columns: string[];
       text: string;
     }
 
-    // The column's header drags as any other: dropped on the first column,
-    // it goes first, and each Item row shows its note link or Create there.
     const moved = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -3360,7 +3193,6 @@ views:
       `    order:\n      - ${note}\n      - title\n      - date\n`,
     );
 
-    // Its edge sets its width, saved by its path.
     const resized = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -3463,8 +3295,6 @@ views:
       `    columnSize:\n      ${note}: ${resized.before + 80}\n`,
     );
 
-    // The Properties popover ticks it; an untick hides the column and keeps
-    // its row, unticked, so a tick shows it again, last.
     const toggled = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -3570,8 +3400,6 @@ views:
     expect(toggled.kept).toBe(true);
     expect(toggled.columns).toEqual(["title", "date", note]);
 
-    // Cards do not show it and name it no unused setting, and the Table
-    // shows it again after the switch back.
     const switched = await (async <T>(): Promise<T> => {
       let out: T | null = null;
       const settled = await waitFor(async () => {
@@ -3684,7 +3512,6 @@ views:
         cleanup.defer(() => {
           pageHelpers.closePopovers(document);
         });
-        // A tooltip outlives the button it hovers until a pointer comes up.
         cleanup.defer(() => {
           document.body.dispatchEvent(new PointerEvent("pointerup"));
         });
@@ -3706,8 +3533,6 @@ views:
         const edit = await until("Edit property button", () =>
           popup.querySelector<HTMLElement>("[data-query-property-more]"),
         );
-        // Obsidian shows a tooltip for a mouse that has moved: two moves
-        // count as one, and the hover itself is what its listener reads.
         const hover = { bubbles: true, pointerType: "mouse", view: el.win };
         edit.dispatchEvent(new PointerEvent("pointermove", hover));
         edit.dispatchEvent(new PointerEvent("pointermove", hover));
@@ -3718,8 +3543,6 @@ views:
         const box = tooltip.getBoundingClientRect();
         const button = edit.getBoundingClientRect();
         const shell = popup.getBoundingClientRect();
-        // A tooltip takes no pointer; for this one reading it takes the
-        // point, so the hit test reports what paints there.
         const x =
           (Math.max(box.left, shell.left) + Math.min(box.right, shell.right)) /
           2;

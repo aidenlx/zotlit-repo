@@ -1,6 +1,4 @@
 import type { ProfileDeletionPlan } from "#obsidian/profile/service.ts";
-// Profile deletion gathers target and file-move consent in the same dialog,
-// and names the Profile Selection Rules the user must repair afterwards.
 import { ConfirmationModal } from "obsidian";
 import type { App } from "obsidian";
 
@@ -17,10 +15,6 @@ export interface ProfileDeletionConsent {
   move: boolean;
 }
 
-/**
- * Open the deletion dialog for `plan`. `resolve` gets the user's consent, or
- * `undefined` when the dialog closes.
- */
 export function openProfileDeletion(
   app: App,
   options: { plan: ProfileDeletionPlan; styles?: readonly InstalledCslStyle[] },
@@ -105,8 +99,6 @@ export function openProfileDeletion(
         row.content.empty();
         renderProfileChoice(row.choice, row.content);
       }
-      // Name the target Profile's folders, one per note kind that moves;
-      // subfolders stay visible in each Profile's path preview above.
       const moving = new Set(
         target?.files
           .filter(({ file, path }) => path !== file.path)
@@ -163,7 +155,6 @@ export function openProfileDeletion(
   return modal;
 }
 
-/** Body text as separate paragraphs; a plain string would run them together. */
 function paragraphs(texts: string[]): DocumentFragment {
   const fragment = createFragment();
   const stack = fragment.createDiv({ cls: "zt:flex zt:flex-col zt:gap-2" });

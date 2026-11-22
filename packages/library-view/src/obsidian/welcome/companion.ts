@@ -1,19 +1,11 @@
-// Whether Zotero lists ZotLit Companion as installed, re-read when the researcher may have installed it.
 import { Effect, Stream } from "effect";
 
 import { held } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-/** Zotero may write its add-on list after Obsidian starts: retry briefly. */
 const RETRY_SECONDS = [0, 1, 2, 4, 8];
 
-/**
- * Each trigger reads the add-on list, then retries until it lists the
- * Companion; a later trigger replaces an earlier retry. The triggers are the
- * reader returning to Obsidian from Zotero and a change of the Zotero
- * profile or of its database.
- */
 export const companionInstalledAtom = held(
   Stream.unwrap(
     Effect.gen(function* () {

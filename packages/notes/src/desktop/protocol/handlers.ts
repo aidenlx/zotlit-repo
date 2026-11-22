@@ -10,10 +10,6 @@ import type {
 } from "#desktop/note-import/batch-import.ts";
 import type { NoteImportView } from "#desktop/note-import/view.ts";
 import type { ProfileDialogServices } from "#desktop/profile/dialogs.ts";
-// The note links: `obsidian://zotlit/{open,update}`, the batch `update-many`,
-// the `import-note(s)` links and the library-wide `update-all` and
-// `import-all-notes` links, and the batch updates and imports the Local Server
-// pushes when their ids do not fit in a URL.
 import {
   Cause,
   Effect,
@@ -85,7 +81,6 @@ import {
 import { createNoteImportView } from "#desktop/note-import/view.ts";
 import { interactiveCreation } from "#desktop/profile/dialogs.ts";
 
-/** The services a note link reads through their tags. */
 export type NoteLinkServices =
   | BatchImportServices
   | BatchUpdateServices
@@ -99,21 +94,11 @@ export type NoteLinkServices =
   | ZoteroPref
   | ZoteroReads;
 
-/**
- * The legacy values a note link still holds. The Profile dialogs run in the
- * link's fiber; the note import view converts in a later slice.
- */
 export interface NoteLinkPorts extends InteractiveCreationPorts {
-  /** The note import's classify, confirm and Profile modals. */
   noteImportView: NoteImportView;
-  /** Runs the note import modal's callbacks, which unload interrupts. */
   bridge: Pick<EffectBridge, "runSync" | "runPromiseExit" | "runAndForget">;
 }
 
-/**
- * The ports over the App, with a bridge over the plugin's Scope: the note
- * import modal's callbacks run on it, so unload interrupts them.
- */
 export const noteLinkPorts: Effect.Effect<
   NoteLinkPorts,
   never,
@@ -128,15 +113,6 @@ export const noteLinkPorts: Effect.Effect<
   };
 });
 
-/**
- * The note links. Each link carries a `source-id` hash the handler validates
- * before delegating to the note-feature service, and runs with the ports
- * `ports` makes.
- *
- * `update-many` is a link of its own, beside the per-item links, because it
- * decodes a different query shape (an item-id list) and routes to the batch
- * runner.
- */
 export function noteLinks(
   ports: Effect.Effect<
     NoteLinkPorts,
@@ -173,28 +149,11 @@ export function noteLinks(
   ];
 }
 
-/** The pushed requests, while their Scope holds them. */
 export interface NoteLinkRequests {
-  /**
-   * Completes once both pushed request streams have ended (or the Scope has
-   * closed) and no pushed request run is going.
-   */
   readonly idle: Effect.Effect<void>;
-  /**
-   * The outcome of each pushed request, once its notice shows. A run that
-   * fails or is interrupted gives none.
-   */
   readonly outcomes: Stream.Stream<NoteLinkOutcome>;
 }
 
-/**
- * Run each batch update and import the Local Server pushes: a batch update
- * pushed over HTTP (the companion could not fit the ids in a URL) runs the
- * same interactive flow as the `update-many` link, and a batch import the
- * same flow as the `import-notes` link. Each run is a fiber of the current
- * Scope, so a long batch does not hold back the next request, and closing
- * the Scope stops the pushed requests and interrupts the runs still going.
- */
 export const registerNoteLinkRequests = Effect.fn("registerNoteLinkRequests")(
   function* (
     ports: Effect.Effect<
@@ -237,15 +196,10 @@ export const registerNoteLinkRequests = Effect.fn("registerNoteLinkRequests")(
   },
 );
 
-/**
- * {@link registerNoteLinkRequests} as a registration of the plugin graph: the
- * runs go on the layer's Scope, which unload closes.
- */
 export const layerNoteLinkRequests = Layer.effectDiscard(
   registerNoteLinkRequests(),
 );
 
-/** The ports a batch import takes, from the links' legacy values. */
 function importPorts(deps: NoteLinkPorts): BatchImportPorts {
   return {
     view: deps.noteImportView,
@@ -253,7 +207,6 @@ function importPorts(deps: NoteLinkPorts): BatchImportPorts {
   };
 }
 
-/** The ports a note update takes, from the links' legacy values. */
 function updatePorts(deps: NoteLinkPorts): BatchUpdatePorts {
   return {
     notices: batchUpdateNotices(deps.app),
@@ -280,10 +233,6 @@ const importNotesRequested = Effect.fn("protocol.importNotesRequested")(
   logAndContinue("Pushed batch import failed", "protocol"),
 );
 
-/**
- * The Exit of `task`, for the outcome that carries it. An interrupt (unload)
- * passes on and leaves no outcome.
- */
 const settle = <A, E, R>(
   task: Effect.Effect<A, E, R>,
 ): Effect.Effect<Exit.Exit<A, E>, never, R> =>
@@ -294,7 +243,6 @@ const settle = <A, E, R>(
     ),
   );
 
-/** Run the batch update of an `update-many` link or a pushed update. */
 const updateMany = Effect.fn("protocol.updateMany")(function* (
   deps: NoteLinkPorts,
   items: readonly number[],
@@ -314,7 +262,6 @@ const updateMany = Effect.fn("protocol.updateMany")(function* (
   return NoteLinkOutcome.UpdateMany({ exit });
 });
 
-/** Run the import of an `import-note(s)` link or a pushed import. */
 const importNotes = Effect.fn("protocol.importNotes")(function* (
   deps: NoteLinkPorts,
   mode: ImportMode,
@@ -352,11 +299,6 @@ const handleProtocol = Effect.fn("protocol.handleProtocol")(function* (
   return NoteLinkOutcome.Opened();
 });
 
-/**
- * A `profileId` param resolved into a selector, or the UnknownProfile outcome
- * when the text names neither `default` nor a Profile ID: the caller stops
- * there rather than fall back to the default.
- */
 function resolveRequestedProfile(
   text: string | undefined,
 ): Result.Result<ProfileSelector | undefined, NoteLinkOutcome> {
@@ -367,12 +309,6 @@ function resolveRequestedProfile(
   return Result.succeed(selector);
 }
 
-/**
- * Handle `obsidian://zotlit/update-many`. Validates the source id at this
- * transport edge, then hands the raw item-id list to {@link runBatchUpdate},
- * which owns the database-ready gate, classification, and the confirm/progress
- * modal.
- */
 const handleBatchProtocol = Effect.fn("protocol.handleBatchProtocol")(
   function* (data: ObsidianProtocolData, deps: NoteLinkPorts) {
     const action = "update-many";
@@ -385,7 +321,6 @@ const handleBatchProtocol = Effect.fn("protocol.handleBatchProtocol")(
   },
 );
 
-/** Handle `obsidian://zotlit/import-note`. */
 const handleImportProtocol = Effect.fn("protocol.handleImportProtocol")(
   function* (data: ObsidianProtocolData, deps: NoteLinkPorts) {
     const action = "import-note";
@@ -398,7 +333,6 @@ const handleImportProtocol = Effect.fn("protocol.handleImportProtocol")(
   },
 );
 
-/** Handle `obsidian://zotlit/import-notes`. */
 const handleImportManyProtocol = Effect.fn("protocol.handleImportManyProtocol")(
   function* (data: ObsidianProtocolData, deps: NoteLinkPorts) {
     const action = "import-notes";
@@ -429,7 +363,6 @@ const handleUpdateAllProtocol = Effect.fn("protocol.handleUpdateAllProtocol")(
   },
 );
 
-/** Handle `obsidian://zotlit/import-all-notes`. */
 const handleImportAllNotesProtocol = Effect.fn(
   "protocol.handleImportAllNotesProtocol",
 )(function* (data: ObsidianProtocolData, deps: NoteLinkPorts) {

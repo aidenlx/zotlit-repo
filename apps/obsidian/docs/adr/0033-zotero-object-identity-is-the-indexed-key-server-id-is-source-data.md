@@ -13,3 +13,16 @@ The annotation research proposed carrying a `{ serverID, library, attachmentKey 
 - The Annotation View re-keys its cards by Indexed Key; `itemID` stops being a prop.
 - A server change invalidates the Zotero Local API cache partition without renaming any object.
 - Two Zotero databases holding the same key for different objects are indistinguishable at the identity level; the source discriminant, not the key, is what detects that case.
+
+Use Indexed Keys on the normalized Annotation and Attachment records. Numeric SQLite item IDs and the parent's content type stay within the database read path. Add the server identity when a draft or write needs to distinguish the same key across databases. [Repository model](../../../../packages/annotations/src/obsidian/annotation-repository/core/model.ts)
+
+### Attachment child read proof
+
+Ask explicitly for Annotation children and use date-added
+order when paging so an edit cannot move a record between
+pages. Validate the Zotero key alphabet before calling the
+Local API. The Paired Run records that malformed keys can
+lose the parent constraint and return unrelated Annotations.
+A valid but absent key returns an empty result.
+
+[Local API read contract](../../../../packages/e2e/src/paired-run.e2e.ts)

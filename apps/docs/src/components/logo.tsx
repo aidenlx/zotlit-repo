@@ -1,10 +1,3 @@
-// ZotLit brand lockup (mark + wordmark); see docs/brand.md for the full spec.
-// The mark is inlined as <svg> rather than an <img>/CSS background, since
-// Chrome's raster cache can pixelate the diagonal on hidpi. Its two fills read
-// the `--zotlit-ink` / `--zotlit-accent` tokens, which already carry the light
-// and dark values the two exported SVGs hold — one geometry serves both
-// themes. `small` swaps in the 16px optical grid the nav renders at.
-
 import { cn } from "@/lib/cn.ts";
 
 export function LogoMark({

@@ -1,4 +1,3 @@
-// Node tests use the production platform filesystem.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import type { Layer } from "effect";
 

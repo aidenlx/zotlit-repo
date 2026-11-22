@@ -1,22 +1,11 @@
-// Shared Citation Fragment vectors: the one corpus both the TypeScript parser
-// and the Lua filter's checks run, so the grammar's two implementations cannot
-// drift. `plain` is the Lua check's citeproc rendering for `[[Doe 2020#cite:<fragment>]]`;
-// `display` is the Pandoc citation source that the TypeScript derivation builds
-// for citation key `doe2020` / note `Doe 2020.md`.
-
 import type { CitationFragment } from "#citation-fragment.ts";
 
 export interface CitationFragmentFixture {
   name: string;
-  /** The raw text after `#cite:`; `null` means the link has no Citation Fragment. */
   fragment: string | null;
-  /** The exporter-accepted details, present iff the fragment parses. */
   details?: CitationFragment;
-  /** The exporter's fatal-error message, present iff the fragment is rejected. */
   error?: string;
-  /** Expected citeproc plain rendering, used only by the Lua filter check. */
   plain?: string;
-  /** Expected Pandoc citation source, used only by the TypeScript tests. */
   display?: string;
 }
 

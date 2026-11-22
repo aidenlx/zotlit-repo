@@ -1,6 +1,3 @@
-// Decodes the CliData of a zotlit:* command through its Effect Schema; its
-// hardcoded English text follows apps/obsidian/policies/cli-text.md.
-
 import {
   Data,
   Effect,
@@ -16,23 +13,14 @@ import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 declare module "effect/Schema" {
   namespace Annotations {
     interface Annotations {
-      /** {@link cliSwitch}: a parameter named alone. */
       readonly cliSwitch?: true | undefined;
-      /** {@link cliMaybeEmpty}: a parameter whose value may be empty. */
       readonly cliMaybeEmpty?: true | undefined;
-      /** {@link cliNotApplicable}: a parameter of another variant. */
       readonly cliNotApplicable?: true | undefined;
-      /** {@link cliLiterals}: the closed values a parameter takes. */
       readonly cliAllowed?: readonly string[] | undefined;
     }
   }
 }
 
-/**
- * The parameters of one command, or of one variant of it: a {@link cliParams}
- * struct, checked by any rule between its parameters and reshaped into the
- * request with {@link cliMap}.
- */
 export type CliParamsSchema = Schema.Top & {
   readonly Encoded: object;
   readonly DecodingServices: never;
@@ -40,7 +28,6 @@ export type CliParamsSchema = Schema.Top & {
 
 type Variants = Readonly<Record<string, CliParamsSchema>>;
 
-/** The parameters of a command whose variants take different parameters. */
 export interface CliVariantsSchema<TVariants extends Variants> {
   readonly variants: TVariants;
   readonly kindOf: (params: CliData) => keyof TVariants;
@@ -49,7 +36,6 @@ export interface CliVariantsSchema<TVariants extends Variants> {
 // oxlint-disable-next-line typescript/no-explicit-any -- any variant set.
 type CliSchema = CliParamsSchema | CliVariantsSchema<any>;
 
-/** What a command's parameters decode to. */
 export type CliOutput<TSchema extends CliSchema> =
   TSchema extends CliVariantsSchema<infer TVariants>
     ? TVariants[keyof TVariants]["Type"]
@@ -59,10 +45,6 @@ export type CliOutput<TSchema extends CliSchema> =
 
 type KeysOf<T> = T extends unknown ? keyof T : never;
 
-/**
- * The parameter names a schema accepts in any variant, to type the command's
- * `CliFlags`.
- */
 export type CliParamName<TSchema extends CliSchema> = KeysOf<
   TSchema extends CliVariantsSchema<infer TVariants>
     ? TVariants[keyof TVariants]["Encoded"]
@@ -72,7 +54,6 @@ export type CliParamName<TSchema extends CliSchema> = KeysOf<
 > &
   string;
 
-/** The first validation issue, at its path inside the CLI parameters. */
 interface CliIssue {
   readonly path: string;
   readonly span?: { readonly from: number; readonly to: number };
@@ -83,7 +64,6 @@ interface CliIssue {
   readonly allowed?: readonly string[];
 }
 
-/** The one parameter that made a request invalid. */
 export class CliRejection extends Data.TaggedError("CliRejection")<{
   readonly parameter: string;
   readonly message: string;
@@ -91,15 +71,9 @@ export class CliRejection extends Data.TaggedError("CliRejection")<{
   readonly received?: readonly (readonly [string, string])[];
   readonly shellSplit?: boolean;
   readonly accepted?: readonly string[];
-  /** The recovery action, when it differs from the code's own hint. */
   readonly hint?: string;
 }> {}
 
-/**
- * Answer a rejected request with the text `answer` renders for it. The error
- * channel is generic here, where `Effect.catchTag` needs its tags known, so
- * the rejection is told apart by class.
- */
 export function catchRejection(answer: (rejection: CliRejection) => string) {
   return <A, E, R>(
     effect: Effect.Effect<A, E, R>,
@@ -115,7 +89,6 @@ export function catchRejection(answer: (rejection: CliRejection) => string) {
 
 type RejectionFields = ConstructorParameters<typeof CliRejection>[0];
 
-/** `rejection` with `patch` over its fields, such as a recovery `hint`. */
 export function amendRejection(
   rejection: CliRejection,
   patch: Partial<RejectionFields>,
@@ -132,13 +105,6 @@ export function amendRejection(
   });
 }
 
-/**
- * The struct of a command's parameters, checked in the order of its fields.
- * A field outside `Schema.optionalKey` is required.
- *
- * @param missing the message for each required parameter the caller omits
- * @default missing `<name> is required.`
- */
 export function cliParams<const TFields extends Schema.Struct.Fields>(
   fields: TFields,
   missing: Partial<Record<keyof TFields, string>> = {},
@@ -154,17 +120,12 @@ export function cliParams<const TFields extends Schema.Struct.Fields>(
   return Schema.Struct(keyed as unknown as TFields);
 }
 
-/**
- * Reshape decoded parameters into the request. CLI parameters only decode,
- * so the reshape has no inverse.
- */
 export function cliMap<TFrom extends Schema.Top, TTo>(
   f: (value: TFrom["Type"]) => TTo,
 ) {
   return cliMapEffect<TFrom, TTo>((value) => Effect.succeed(f(value)));
 }
 
-/** {@link cliMap} whose step can raise an issue of its own. */
 export function cliMapEffect<TFrom extends Schema.Top, TTo>(
   f: (
     value: TFrom["Type"],
@@ -188,12 +149,6 @@ export function cliMapEffect<TFrom extends Schema.Top, TTo>(
     );
 }
 
-/**
- * A rule between parameters, reported at `parameter`: the one the caller
- * changes to satisfy it.
- *
- * @param message the diagnostic, or a function of the parameters
- */
 export function cliRule<T>(
   parameter: string,
   holds: (input: T) => boolean,
@@ -209,11 +164,6 @@ export function cliRule<T>(
   );
 }
 
-/**
- * An Indexed Key: an item key, and a group ID above zero when it has one.
- *
- * @param message the diagnostic for text that is not one
- */
 export function cliIndexedKey(message: string | ((text: string) => string)) {
   return Schema.makeFilter((text: string) => {
     const parsed = parseIndexedKey(text);
@@ -224,27 +174,12 @@ export function cliIndexedKey(message: string | ((text: string) => string)) {
   });
 }
 
-/**
- * A parameter that another variant of the command takes and this one does
- * not. Declare it after the parameters its message depends on, and before
- * the ones it should be reported ahead of.
- *
- * @param message what the parameter applies to, and what to give instead
- */
 export function cliNotApplicable(message: string) {
   return Schema.optionalKey(
     Schema.Never.annotate({ message, cliNotApplicable: true }),
   );
 }
 
-/**
- * The parameters of a command whose accepted parameters depend on the
- * others, as one variant for each case: the selector given, the kind of
- * Template named. Each variant lists the parameters that apply to it and
- * reshapes them into its branch of the request.
- *
- * @param kindOf names the variant from the caller's raw parameters
- */
 export function cliVariants<const TVariants extends Variants>(
   kindOf: (params: CliData) => keyof TVariants,
   variants: TVariants,
@@ -252,14 +187,6 @@ export function cliVariants<const TVariants extends Variants>(
   return { kindOf, variants };
 }
 
-/**
- * The rule that the caller gives at most one of `names`. The issue names the
- * second one given, which the caller removes.
- *
- * @param messages.many the message when the caller gives more than one
- * @param messages.none the message, on the first name, when the caller must
- *   give one and gives none
- */
 export function cliOneOf<TInput extends Readonly<Record<string, unknown>>>(
   names: readonly (keyof TInput & string)[],
   messages: { many: string; none?: string },
@@ -273,15 +200,8 @@ export function cliOneOf<TInput extends Readonly<Record<string, unknown>>>(
   });
 }
 
-/** The parameters of a command that takes none. */
 export const noCliParams = cliParams({});
 
-/**
- * A parameter named alone, as `full`. Obsidian passes it as "true"; `full=`
- * counts too.
- *
- * @param message the diagnostic for any other value
- */
 export function cliSwitch(message: string) {
   return Schema.optionalKey(
     Schema.String.check(
@@ -300,15 +220,10 @@ export function cliSwitch(message: string) {
   );
 }
 
-/** An optional parameter whose value may be empty, as `existing=` for an empty baseline. */
 export function cliMaybeEmpty() {
   return Schema.optionalKey(Schema.String.annotate({ cliMaybeEmpty: true }));
 }
 
-/**
- * An optional parameter, `encoded` when the caller omits it: the default
- * decodes as a given value would.
- */
 export function cliDefault<TSchema extends Schema.Top>(
   schema: TSchema,
   encoded: TSchema["Encoded"],
@@ -316,17 +231,12 @@ export function cliDefault<TSchema extends Schema.Top>(
   return schema.pipe(Schema.withDecodingDefaultKey(Effect.succeed(encoded)));
 }
 
-/** Text with something beside whitespace. */
 export function cliText(message: string) {
   return Schema.String.check(
     Schema.makeFilter((text: string) => text.trim() !== "" || message),
   );
 }
 
-/**
- * A parameter that takes a value which is never the word "true": a bare
- * `key`, which Obsidian passes as "true", answers `<key> requires a value.`
- */
 export function cliValue(parameter: string) {
   return Schema.String.check(
     Schema.makeFilter(
@@ -335,12 +245,6 @@ export function cliValue(parameter: string) {
   );
 }
 
-/**
- * A parameter of closed values.
- *
- * @param message the diagnostic for any other value, or a function of it
- * @default message `Invalid type: Expected ("a" | "b") but received "c"`
- */
 export function cliLiterals<const TValues extends readonly string[]>(
   values: TValues,
   message: string | ((input: string) => string) = (input) =>
@@ -356,11 +260,6 @@ export function cliLiterals<const TValues extends readonly string[]>(
   ).pipe(cliMap((input) => input as TValues[number]));
 }
 
-/**
- * A parameter that carries JSON, decoded by `schema`. Text that is no JSON
- * answers `message`; valid JSON keeps the first issue `schema` raises.
- * `Schema.fromJsonString` reports its own parse error, so the parse is here.
- */
 export function cliJson<TSchema extends Schema.Top>(
   message: string,
   schema: TSchema,
@@ -383,32 +282,13 @@ export function cliJson<TSchema extends Schema.Top>(
   );
 }
 
-/** The Zotero source a call asserts; the handler compares it after decoding. */
 export const expectSourceParam = Schema.optionalKey(cliValue("expect-source"));
 
 export interface CliCommand {
-  /** The command name the messages use. */
   command: string;
-  /** The message for an undeclared parameter that belongs to another command. */
   misplaced?: Readonly<Record<string, string>>;
 }
 
-/**
- * Decode `params` with `schema`, or fail with the first invalid parameter: an
- * undeclared key, a `--` token, a `vault` after the command name, an empty
- * value, then the first issue of the schema in field order.
- *
- * Obsidian builds `params` from the caller's tokens: `key=value` gives the
- * text after the first `=`, a bare `key` gives "true", `key=` gives "". A
- * `vault=` after the command name and every `--` token but Obsidian's own
- * `--copy` reach the handler. Obsidian checks a token against the declared
- * flags only for a `required` flag, which ZotLitPlugin.registerCliHandler
- * registers as optional, and for a `format` flag whose value is a bare
- * `a|b` list, which turns an `a` or `--a` token into `format=a`.
- *
- * Dies when a schema issue names no parameter: a rule between parameters
- * reports at the parameter the caller changes, through {@link cliRule}.
- */
 export function decodeCliParams<TSchema extends CliSchema>(
   params: CliData,
   schema: TSchema,
@@ -473,8 +353,6 @@ export function decodeCliParams<TSchema extends CliSchema>(
         );
       }),
       Effect.tap(() => {
-        // A struct drops a key it does not declare: one that only another
-        // variant takes is rejected here, once the variant's own are valid.
         const own = Object.keys(structFields(variant));
         const stray = Object.keys(params).find((key) => !own.includes(key));
         return stray === undefined
@@ -502,7 +380,6 @@ function isVariants(schema: CliSchema): schema is CliVariantsSchema<Variants> {
   return "variants" in schema && "kindOf" in schema;
 }
 
-/** The first leaf of an issue tree: where it is, and what it says. */
 interface Fault {
   readonly path: readonly PropertyKey[];
   readonly message: string;
@@ -553,12 +430,6 @@ function firstFault(
   };
 }
 
-/**
- * What a leaf issue says where the schema gives no message of its own:
- * "Invalid type: Expected … but received …" and "Invalid key: …", the words
- * the Diagnostic Report has always used. Its text is the CLI's contract
- * (`apps/obsidian/policies/cli-text.md`).
- */
 function leafFault(
   issue: SchemaIssue.Issue,
   path: readonly PropertyKey[],
@@ -614,7 +485,6 @@ function messageOf(
   return typeof message === "string" ? message : undefined;
 }
 
-/** The form a schema expects, as the Diagnostic Report names it. */
 function expectedOf(ast: SchemaAST.AST): string {
   switch (ast._tag) {
     case "Literal":
@@ -630,14 +500,12 @@ function expectedOf(ast: SchemaAST.AST): string {
   }
 }
 
-/** A value as the Diagnostic Report quotes it. */
 function receivedText(input: unknown): string {
   if (typeof input === "string") return JSON.stringify(input);
   if (input === null || typeof input !== "object") return String(input);
   return Array.isArray(input) ? "Array" : "Object";
 }
 
-/** An issue path in the form callers use to address the invalid value. */
 function issuePath(path: readonly PropertyKey[]): string {
   let formatted = "";
   for (const key of path) {
@@ -653,10 +521,6 @@ function issuePath(path: readonly PropertyKey[]): string {
 
 type Field = Schema.Top;
 
-/**
- * Every parameter a schema takes in any variant, by name: the field of a
- * variant it applies to, which carries its form.
- */
 function fieldsOf(schema: CliSchema): Readonly<Record<string, Field>> {
   const structs = isVariants(schema)
     ? Object.values(schema.variants)
@@ -670,7 +534,6 @@ function fieldsOf(schema: CliSchema): Readonly<Record<string, Field>> {
   return fields;
 }
 
-/** The fields of the struct a {@link CliParamsSchema} decodes from. */
 function structFields(schema: unknown): Readonly<Record<string, Field>> {
   let node = schema as { fields?: Schema.Struct.Fields; from?: unknown };
   while (node.fields === undefined) {
@@ -697,7 +560,6 @@ function takesEmpty(field: Field | undefined): boolean {
   return isSwitch(field) || annotationsOf(field)?.cliMaybeEmpty === true;
 }
 
-/** The rejection as one text, for a transport with no field for a hint. */
 export function rejectionText(rejection: CliRejection): string {
   return rejection.hint === undefined
     ? rejection.message

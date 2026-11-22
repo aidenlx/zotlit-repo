@@ -24,14 +24,8 @@ import type { QueryJob } from "./worker-protocol.ts";
 import { workerQuery } from "#__fixtures__/item-query/worker-query.ts";
 import { makeAttachmentFileResolver } from "#core/item-query/attachment-files.ts";
 
-/** The next close of a file that `open` gives fails with this error. */
 let closeFailure: PlatformError.PlatformError | undefined;
 
-/**
- * The Node file system, where the close of an opened file fails as
- * `closeFailure` says: `FileSystem` makes a failed close a defect of the
- * scope that opened the file.
- */
 const testFileSystem = layerNodeFileSystemWith((fs) => ({
   open: (path, options) =>
     fs.open(path, options).pipe(
@@ -84,16 +78,13 @@ const run = (scenario: ScenarioDatabase<NodeDatabaseClient>, job: QueryJob) =>
     });
   }).pipe(Effect.provide(testFileSystem));
 
-/** The scenario database, held for the case's scope. */
 const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
   Effect.acquireDisposable(
     Effect.sync(() => openScenarioDatabase(connectClient, options)),
   );
 
-/** The text of the file at `path`. */
 const textOf = (path: string) => Effect.promise(() => readFile(path, "utf8"));
 
-/** The paths of an export from a scenario in a temporary directory. */
 function exportPaths(scenario: ScenarioDatabase<NodeDatabaseClient>) {
   const directory = dirname(scenario.path);
   return {
@@ -150,7 +141,6 @@ describe("Query Job", () => {
         });
         expect(JSON.parse(answer.answer)).not.toHaveProperty("rows");
         expect(yield* textOf(stagePath)).toBe(inline.answer);
-        // The renderer publishes the staging file.
         expect(
           yield* Effect.promise(() => readdir(dirname(output))),
         ).not.toContain("items.json");
@@ -209,7 +199,6 @@ describe("Query Job", () => {
           },
         });
         expect(JSON.parse(answer.answer)).not.toHaveProperty("warnings");
-        // The staging file is not a complete export: no receipt publishes it.
         expect(yield* textOf(stagePath)).not.toBe("");
       }),
   );
@@ -233,7 +222,6 @@ describe("Query Job", () => {
       }),
   );
 
-  // Live: the subject is a real timer task racing the job's scheduler pause.
   it.live(
     "gives another effect a turn at a pause of a bulk query on the job fiber",
     () =>
@@ -262,16 +250,11 @@ describe("Query Job", () => {
             }),
           ),
         );
-        // A stand-in for a ZoteroReads request on the default scheduler,
-        // such as Ping: a timer task, set once the job is mid-query so it
-        // lands at a later pause rather than before the first slice.
         yield* Deferred.await(firstPause);
         yield* Effect.sleep("1 millis");
         events.push("other");
         const answer = yield* Fiber.join(job);
 
-        // The time-budget scheduler of the job ended a slice, and the other
-        // effect ran before the job resumed.
         const other = events.indexOf("other");
         expect(events[other - 1]).toBe("pause");
         expect(events.slice(other)).toContain("resume");

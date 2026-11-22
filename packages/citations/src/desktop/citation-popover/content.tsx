@@ -1,5 +1,3 @@
-// The Citation Popover's body: the note text a note-class style wrote the hovered citation as, or one block per cited work with its own action row.
-
 import type { Inlines } from "#core/pandoc/ast.ts";
 import type {
   AmbiguousCitationBlock,
@@ -23,31 +21,14 @@ import { AmbiguousCandidates } from "#obsidian/citation-index/ambiguous-candidat
 import { InlineContent } from "#obsidian/pandoc/inline-content.tsx";
 
 export interface CitationPopoverContentProps {
-  /** One block per work the hovered citation names, in the order it names them. */
   blocks: readonly CitationPopoverBlock[];
-  /**
-   * The note text a note-class style wrote the hovered citation as, which the
-   * popover shows in place of the entries; empty for a citation the style wrote
-   * inline, which shows its entries instead.
-   */
   note?: Inlines;
-  /** The Imported Note Profile diagnostic this popover shows above its works. */
   profileFailure?: ProfilePresentationFailure;
   actions: CitationPopoverActions;
-  /**
-   * The citekey resolution snapshot could not answer at read time — it is
-   * still resolving or a rebuild is healing it — so an unresolved block means
-   * "not answered yet", never "matches no item".
-   */
   pending?: boolean;
   unavailable?: "database" | "item";
 }
 
-/**
- * What one hovered citation shows: the note text the style wrote it as, or —
- * where the style wrote it inline — every work's entry in full, in citation
- * order, each with the actions that reach that work.
- */
 export function CitationPopoverContent({
   blocks,
   note,
@@ -113,14 +94,6 @@ function ProfileFailure({
   );
 }
 
-/**
- * The stack of the works a citation names: every work's entry in full, in
- * citation order.
- *
- * A block puts its action row after its entry, and the placement class the
- * popover stamps turns that around, so the row always sits on the side of its
- * own entry the pointer came from.
- */
 function EntryStack({
   blocks,
   actions,
@@ -134,9 +107,6 @@ function EntryStack({
     <>
       {blocks.map((block, index) => (
         <div
-          // Two occurrences of one citekey are one work, so the stack has no
-          // two blocks of the same key; the index keeps a fallback identity for
-          // a citation that writes one twice all the same.
           key={`${block.citekey}-${index}`}
           className={blockClass}
           data-citation-popover-block={block.citekey ?? ""}
@@ -155,17 +125,6 @@ function EntryStack({
   );
 }
 
-/**
- * What a note-class style wrote the hovered citation as: the note text itself —
- * subsequent forms and note-level locators included — and one action row per
- * work the citation names, labeled with the Entry Serial that work's slot of the
- * hovered inline run showed.
- *
- * The entries stay out: the note text is what the style has to say about these
- * works here, and the References Sidebar holds their entries in full. The rows
- * follow the note text as one block, so the placement flip puts them on the side
- * the pointer came from, and they keep citation order whichever side that is.
- */
 function NoteCitation({
   note,
   blocks,
@@ -189,10 +148,6 @@ function NoteCitation({
             className="zt:grid zt:grid-cols-[max-content_minmax(0,1fr)] zt:items-center zt:gap-x-2"
             data-citation-popover-block={block.citekey ?? ""}
           >
-            {/* The serial this work's slot of the inline run showed, carrying
-                the same public class, so a theme styles the label and the run
-                it mirrors as one. A work the bibliography rendered no entry
-                for reads ⚠ in both places. */}
             <span className={cn(gutterClass, themeHook.entrySerial)}>
               {serialLabel(block, pending)}
             </span>
@@ -208,15 +163,6 @@ function NoteCitation({
   );
 }
 
-/**
- * A citekey no entry stands for, explained in that work's place: one reaching
- * no Zotero Item at all, or an Ambiguous Citation Key, which names the Items it
- * matches so the reader can tell them apart in Zotero.
- *
- * While the resolution snapshot is `pending`, an unresolved citekey has not
- * been answered yet, so the block reads as a lookup in progress rather than a
- * verdict. An ambiguous block always carries snapshot data, so it stands as-is.
- */
 function Broken({
   block,
   pending,
@@ -251,10 +197,8 @@ function Broken({
   );
 }
 
-/** The digit standing for this work in the run the hovered citation shows. */
 function serialLabel(block: CitationPopoverBlock, pending: boolean): ReactNode {
   const serial = block.kind === "entry" ? block.serial : undefined;
-  // A lookup still in progress has no verdict to warn about.
   return (
     serial ?? (pending && block.kind === "unresolved" ? PENDING : NO_ENTRY)
   );
@@ -266,21 +210,13 @@ const blockClass =
 const entryTextClass =
   "zt:font-content zt:text-sm zt:leading-snug zt:break-words";
 
-/** The References Sidebar's own gutter column, which every marker stands in. */
 const gutterClass =
   "zt:min-w-5 zt:text-right zt:text-xs zt:text-muted-foreground zt:tabular-nums";
 
-/** The slot of a cited work the bibliography rendered no entry for. */
 const NO_ENTRY = "⚠";
 
-/** The slot of a work whose citekey lookup has not answered yet. */
 const PENDING = "…";
 
-/**
- * The References Sidebar's entry presentation: the gutter beside the entry
- * text, both rendered by the shared renderer, and the text selectable so a
- * formatted entry can be copied straight out of the popover.
- */
 function Entry({ block }: { block: CitationEntryBlock }) {
   const gutter = entryGutter(block);
   return (
@@ -304,19 +240,11 @@ function Entry({ block }: { block: CitationEntryBlock }) {
   );
 }
 
-/**
- * The Entry Marker the style wrote, or the Entry Serial standing for it where
- * the document's citations show serials in place of the notes the style writes.
- */
 function entryGutter(block: CitationEntryBlock): ReactNode {
   if (block.marker) return <InlineContent nodes={block.marker} />;
   return block.serial ?? null;
 }
 
-/**
- * Always visible, unlike the sidebar's own hover-revealed row: a popover the
- * pointer is already inside has nothing left to reveal on.
- */
 function EntryActions({
   block,
   actions,
@@ -353,8 +281,6 @@ function EntryActions({
           actions.onDone();
         }}
       />
-      {/* Dropped outright when the Item stores nothing to open, so no action
-          in the row can ever be a dead one. */}
       {block.attachments.length > 0 && (
         <EntryAction
           icon="paperclip"
@@ -369,11 +295,6 @@ function EntryActions({
   );
 }
 
-/**
- * A clickable-icon defaults to ribbon proportions, which dwarfs the entry text
- * it sits under; the sidebar's own trim of the glyph and the box keeps an
- * action reading as a footnote to that text.
- */
 const compactIconButton = "zt:p-1 zt:[--icon-size:var(--icon-xs)]";
 
 function EntryAction({
@@ -389,8 +310,6 @@ function EntryAction({
     <IconButton
       icon={icon}
       onClick={onClick}
-      // Obsidian reads middle-click off the auxiliary click; a plain click
-      // never fires for it, and it is how a new pane is asked for.
       onAuxClick={(event) => {
         if (event.button === 1) onClick(event);
       }}

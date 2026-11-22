@@ -1,4 +1,3 @@
-// YAML range edits that preserve the surrounding Profile document bytes.
 import { isMap, isNode, isScalar, parseDocument } from "yaml";
 
 import {
@@ -6,7 +5,6 @@ import {
   parseLiteratureNoteTemplate,
 } from "./literature-note-template.ts";
 
-/** @throws When either document is invalid, including orphaned aliases. */
 export function updateLiteratureNoteTemplateManifestKey(
   source: string,
   key: string,
@@ -15,7 +13,6 @@ export function updateLiteratureNoteTemplateManifestKey(
   return updateLiteratureNoteTemplateManifestKeys(source, { [key]: value });
 }
 
-/** Validate related key edits together, after aliases in removed fields are gone. */
 export function updateLiteratureNoteTemplateManifestKeys(
   source: string,
   changes: Readonly<Record<string, unknown>>,

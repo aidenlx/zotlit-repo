@@ -1,7 +1,3 @@
-// The requests the ZoteroReads worker answers for the Query commands, as the
-// codecs they cross the worker seam through (`zotero-reads/rpc.ts`). The
-// renderer decodes them from the CLI in `decode.ts`.
-
 import { Predicate, Schema, SchemaGetter } from "effect";
 
 import { nameDictionary } from "@zotlit/item-query";
@@ -12,19 +8,12 @@ import { libraryScopeWire } from "./library-scope.ts";
 
 export const QUERY_DATASETS = ["items", "attachments", "annotations"] as const;
 
-/** The Libraries the caller names, as a scope that needs each of them. */
 const NamedLibraries = Schema.Struct({
   scope: libraryScopeWire,
-  /** The argument that names them. */
   parameter: Schema.Literal("library"),
 });
 export type NamedLibraries = typeof NamedLibraries.Type;
 
-/**
- * Formula names come from the caller's text: they cross as a plain record and
- * arrive as a dictionary without a prototype, so a Formula named __proto__
- * stays a Formula.
- */
 const Formulas = Schema.declare(
   (input: unknown): input is Readonly<Record<string, string>> =>
     Predicate.isObject(input) &&
@@ -43,12 +32,6 @@ const Formulas = Schema.declare(
   ),
 );
 
-/**
- * The arguments of one query after decoding: the codec it crosses the
- * ZoteroReads worker seam through (`zotero-reads/rpc.ts`). An absent key is
- * an argument the caller omitted; `libraries: null` leaves the Libraries to
- * the Library Scope in force.
- */
 export const DecodedQuery = Schema.Struct({
   from: Schema.Literals(QUERY_DATASETS),
   libraries: Schema.NullOr(NamedLibraries),
@@ -66,11 +49,8 @@ export const DecodedQuery = Schema.Struct({
     ),
   ),
   output: Schema.optionalKey(Schema.String),
-  // Only a file holds CSV or TSV: the answer itself is always JSON.
   format: Schema.optionalKey(Schema.Literals(DELIMITED_FORMATS)),
-  // The id that `zotlit:query-cancel` names the query by.
   id: Schema.optionalKey(Schema.String),
-  // The Query Context: the records a filter reads as this.item and this.attachment.
   context: Schema.optionalKey(
     Schema.Struct({
       item: Schema.optionalKey(Schema.String),
@@ -80,7 +60,6 @@ export const DecodedQuery = Schema.Struct({
 });
 export type DecodedQuery = typeof DecodedQuery.Type;
 
-/** The arguments of one values listing, as {@link DecodedQuery} crosses. */
 export const DecodedValues = Schema.Struct({
   kind: Schema.Literals(["collections", "tags"]),
   match: Schema.optionalKey(Schema.String),

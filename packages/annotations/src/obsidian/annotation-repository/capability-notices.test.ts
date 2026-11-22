@@ -23,7 +23,6 @@ const WRITABLE = { kind: "writable" } as const;
 const CLOSED = { kind: "read-only", reason: "zotero-unavailable" } as const;
 const NEEDS_AUTH = { kind: "authorization-required" } as const;
 
-/** A clock the test moves by hand, so nothing waits on real time. */
 function clock(start = "2026-09-17T10:00:00Z") {
   let now = DateTime.makeUnsafe(start);
   return {
@@ -37,13 +36,11 @@ function clock(start = "2026-09-17T10:00:00Z") {
   };
 }
 
-/** What the copy table says for a capability, as the notice should read it. */
 function copyOf(capability: EditingCapability, now: DateTime.Utc) {
   const { label, detail } = editingCapabilityCopy(capability, now);
   return { label, detail };
 }
 
-/** The lines a rollback notice carries: the state, then what to do about it. */
 function readOnlyLines(
   reason: Extract<EditingCapability, { kind: "read-only" }>["reason"],
   now: DateTime.Utc,
@@ -52,7 +49,6 @@ function readOnlyLines(
   return detail === null ? [label] : [label, detail];
 }
 
-/** Answers `capability` for every Attachment the ledger re-reads. */
 function everyAttachmentIs(
   ledger: CapabilityNoticeLedger,
   capability: EditingCapability,
@@ -95,16 +91,12 @@ describe("a blocked keyboard gesture", () => {
       action: expect.any(String),
     });
 
-    // The same reason, however long the key is held and however far the clock
-    // has moved, is the same episode and says nothing more.
     time.advance(600);
     expect(ledger.blockedGesture(ATTACHMENT, CLOSED)).toBeNull();
     expect(ledger.blockedGesture(ATTACHMENT, CLOSED)).toBeNull();
 
-    // Another Attachment is another episode.
     expect(ledger.blockedGesture(OTHER_ATTACHMENT, CLOSED)).not.toBeNull();
 
-    // Another reason inside the same episode is worth saying, once.
     const needsAuth = copyOf(NEEDS_AUTH, time.instant);
     expect(ledger.blockedGesture(ATTACHMENT, NEEDS_AUTH)).toMatchObject({
       title: needsAuth.label,
@@ -120,12 +112,9 @@ describe("a blocked keyboard gesture", () => {
     expect(ledger.blockedGesture(ATTACHMENT, CLOSED)).not.toBeNull();
     expect(ledger.blockedGesture(ATTACHMENT, CLOSED)).toBeNull();
 
-    // A probe that made the Attachment writable ends the episode, whether the
-    // gesture finds out or a capability change announces it.
     ledger.refresh(everyAttachmentIs(ledger, WRITABLE));
     expect(ledger.blockedGesture(ATTACHMENT, CLOSED)).not.toBeNull();
 
-    // A gesture that meets a writable Attachment ends it too, and says nothing.
     expect(ledger.blockedGesture(ATTACHMENT, WRITABLE)).toBeNull();
     expect(ledger.blockedGesture(ATTACHMENT, CLOSED)).not.toBeNull();
   });
@@ -141,7 +130,6 @@ describe("a blocked keyboard gesture", () => {
     const notice = ledger.blockedGesture(ATTACHMENT, cooling(60));
     expect(notice?.lines[0]).toContain("60");
 
-    // The countdown moves every second; the notice does not repeat with it.
     time.advance(1);
     expect(ledger.blockedGesture(ATTACHMENT, cooling(59))).toBeNull();
     time.advance(30);
@@ -154,8 +142,6 @@ describe("a write Zotero refused", () => {
     const time = clock();
     const ledger = new CapabilityNoticeLedger(time.read);
 
-    // `400` and `428` both classify as `invalid-response`; `501` as
-    // `incompatible-zotero`.
     const invalid = ledger.writeRefused(
       { kind: "invalid-response", issue: "400 Invalid JSON" },
       LIBRARY,
@@ -175,7 +161,6 @@ describe("a write Zotero refused", () => {
     expect(unsupported?.lines).toEqual(
       readOnlyLines("incompatible-zotero", time.instant),
     );
-    // Both titles name the rollback rather than the state.
     expect(invalid?.title).toBe(unsupported?.title);
   });
 
@@ -185,14 +170,9 @@ describe("a write Zotero refused", () => {
 
     expect(ledger.writeRefused(refusal, LIBRARY)).not.toBeNull();
     expect(ledger.writeRefused(refusal, LIBRARY)).toBeNull();
-    // Another library is another refusal, and worth saying.
     expect(ledger.writeRefused(refusal, "groups/4711")).not.toBeNull();
     expect(ledger.writeRefused(refusal, "groups/4711")).toBeNull();
 
-    // A probe retires the marks that disabled those libraries' controls, so the
-    // controls come back and the next refusal is news again. The two lifetimes
-    // have to match: controls the user can press must be able to explain
-    // themselves (ADR 0038).
     ledger.writeRefusalsRetired();
     expect(ledger.writeRefused(refusal, LIBRARY)).not.toBeNull();
     expect(ledger.writeRefused(refusal, "groups/4711")).not.toBeNull();
@@ -208,8 +188,6 @@ describe("a write Zotero refused", () => {
       { kind: "unreachable" },
       { kind: "local-api-disabled" },
       { kind: "unknown-outcome" },
-      // A write's `412` sends a probe looking; the probe settles the change and
-      // is what speaks, so the refusal itself says nothing here.
       { kind: "server-changed" },
       cooldownFailureOf(60),
     ] as const;
@@ -229,19 +207,14 @@ describe("a Zotero database swapped under the port", () => {
     expect(first?.lines).toEqual(readOnlyLines("server-changed", time.instant));
     expect(first).toMatchObject({ sticky: false });
 
-    // Every later request that meets the same database is the same change.
     expect(ledger.serverChanged("A1B2C3D4E5F6")).toBeNull();
     expect(ledger.serverChanged("A1B2C3D4E5F6")).toBeNull();
 
-    // An unrelated capability change does not re-arm it, which is what a
-    // session-state test of this would have got wrong.
     ledger.refresh(everyAttachmentIs(ledger, WRITABLE));
     expect(ledger.serverChanged("A1B2C3D4E5F6")).toBeNull();
 
-    // Another database is another change.
     expect(ledger.serverChanged("F6E5D4C3B2A1")).not.toBeNull();
     expect(ledger.serverChanged("F6E5D4C3B2A1")).toBeNull();
-    // And returning to the first one is a change again.
     expect(ledger.serverChanged("A1B2C3D4E5F6")).not.toBeNull();
   });
 });
@@ -259,7 +232,6 @@ describe("a Write Conflict the user cannot see", () => {
       sticky: false,
       action: m.notice_write_conflict_show(),
     });
-    // The same conflict, met again by a second gesture, is not news.
     expect(ledger.conflictOffScreen("PUPR5FG5")).toBeNull();
   });
 

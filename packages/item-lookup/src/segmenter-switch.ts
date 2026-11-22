@@ -1,4 +1,3 @@
-// The Item Index's Chinese Segmenter switch: the binary of the Resource Pack it cuts CJK text with, or `Intl.Segmenter`.
 import { Context, Effect } from "effect";
 import type { Layer } from "effect";
 
@@ -14,17 +13,10 @@ import {
   Segmenter,
 } from "./segmenter.ts";
 
-/** The Chinese Segmenter binary of an installed Resource Pack: one Pack Entry of the pack file. */
 export type SegmenterBinary = PackEntryLocation;
 
-/**
- * Where the Chinese Segmenter stands in the realm that cuts with it: `ready`
- * while the Item Index cuts CJK text with the binary, and each other arm
- * while it cuts with `Intl.Segmenter`.
- */
 export type SegmenterStatus = PackBinaryStatus;
 
-/** Whether `a` and `b` name the same binary, or both name none. */
 export const sameSegmenterBinary = (
   a: SegmenterBinary | null,
   b: SegmenterBinary | null,
@@ -36,10 +28,6 @@ export const sameSegmenterBinary = (
     a.entry === b.entry &&
     a.version === b.version);
 
-/**
- * Port: reads and verifies the bytes of an installed Chinese Segmenter
- * binary. A pack that gives no binary fails with the reason.
- */
 export class SegmenterBinaryReader extends Context.Service<
   SegmenterBinaryReader,
   {
@@ -64,22 +52,6 @@ const log = (
 
 type SegmenterService = (typeof Segmenter)["Service"];
 
-/**
- * The Item Index's Segmenter, driven by the installed binary the settings
- * name. `resolve` answers the Segmenter to switch to, and `undefined` when the
- * index keeps its own, so a change of another setting rebuilds no index. A
- * binary that cannot be read or does not start logs a warning and leaves the
- * index on `Intl.Segmenter`; search keeps answering, and the next `resolve`
- * with that binary tries it again. `reread` reads the binary again whatever
- * `resolve` saw last. The caller applies each answer before the next
- * `resolve`. `status` states where the Segmenter stands after the last
- * `resolve`.
- *
- * `jieba-wasm` holds one instance per realm: a removed pack stops its use but
- * keeps its memory, and the binary of a later pack runs on the bytes that
- * loaded first until the realm restarts. `ready` names the version of the
- * pack those bytes came from.
- */
 export function makeSegmenterSwitch(
   reader: (typeof SegmenterBinaryReader)["Service"],
 ): {
@@ -89,11 +61,8 @@ export function makeSegmenterSwitch(
   ) => Effect.Effect<SegmenterService | undefined>;
   readonly status: Effect.Effect<SegmenterStatus>;
 } {
-  /** The binary the settings named last. */
   let requested: SegmenterBinary | null = null;
-  /** Whether the index cuts with jieba now. */
   let jieba = false;
-  /** The pack version of the binary jieba loaded from in this realm. */
   let loaded: string | null = null;
   let status: SegmenterStatus = { kind: "pack-absent" };
 
@@ -103,14 +72,12 @@ export function makeSegmenterSwitch(
     return segmenterOf(layerSegmenterNone);
   });
 
-  /** The index cuts with `Intl.Segmenter`, for the reason `next` states. */
   const refused = (
     binary: SegmenterBinary,
     next: SegmenterStatus,
     fields: Readonly<Record<string, unknown>>,
   ) =>
     Effect.suspend(() => {
-      // The next `resolve` with the same binary tries it again.
       requested = null;
       status = next;
       return Effect.andThen(
@@ -137,12 +104,10 @@ export function makeSegmenterSwitch(
                 { loaded, requested: binary.version },
               );
             }
-            // The index cuts with the one instance of this realm already.
             const segmenter = jieba
               ? undefined
               : yield* segmenterOf(layerSegmenterJieba(bytes));
             loaded ??= binary.version;
-            // The version of the pack whose bytes run, not of the pack read.
             status = { kind: "ready", version: loaded };
             if (!segmenter) return undefined;
             jieba = true;
@@ -167,8 +132,6 @@ export function makeSegmenterSwitch(
     options?: { readonly reread?: boolean },
   ): Effect.Effect<SegmenterService | undefined> =>
     Effect.suspend(() => {
-      // A binary that did not load left `requested` empty, so the same
-      // location is tried again.
       if (!options?.reread && sameSegmenterBinary(requested, next))
         return Effect.undefined;
       requested = next;

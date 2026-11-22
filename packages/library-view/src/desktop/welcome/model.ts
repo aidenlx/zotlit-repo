@@ -1,4 +1,3 @@
-// Per-leaf Welcome session state and the service facts its banner renders.
 import { useAtomValue } from "@effect/atom-react";
 import { Effect, Option, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -45,7 +44,6 @@ const vaultRevisionAtom = held(
   0,
 );
 
-// Only these settings change the vault evidence the banner reads.
 const literatureFolderAtom = Atom.map(
   welcomeSettingsAtom,
   (s) => s["note.default-profile"].bindings["note.literature-folder"],
@@ -127,10 +125,6 @@ export const setConverted =
   (state: WelcomeSession): WelcomeSession =>
     state.converted === converted ? state : { ...state, converted };
 
-/**
- * What the banner's tree reads: its state and its conversion's last run. The
- * tree only reads them, so it takes any atom of the model's value types.
- */
 type WelcomeModelView = {
   readonly [K in "state" | "conversion"]: Atom.Atom<Atom.Type<WelcomeModel[K]>>;
 };
@@ -149,7 +143,6 @@ export function useWelcomeState<A>(select: (state: WelcomeState) => A): A {
   return useAtomValue(useWelcomeModel().state, select);
 }
 
-/** The last run of the banner's template conversion, while it runs and after. */
 export function useConversion() {
   return useAtomValue(useWelcomeModel().conversion);
 }

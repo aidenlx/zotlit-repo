@@ -1,5 +1,3 @@
-// The Language Pack Lifecycle of a plugin: locale resolution, consent, device
-// cache, and download of the pack compiled from this release's Messages.
 import {
   Context,
   Effect,
@@ -62,13 +60,11 @@ const packCacheKey = (
 const consentKey = (namespace: string, locale: string): string =>
   `${namespace}:i18n:consent:${locale}`;
 
-/** No pack ships for the resolved locale, so there is nothing to install. */
 export class NoLanguagePack extends Schema.TaggedError<
   NoLanguagePack,
   { readonly brand: unique symbol }
 >()("NoLanguagePack", { message: Schema.String }) {}
 
-/** The device storage under Obsidian's `loadLocalStorage` threw. */
 export class LanguagePackStorageFailed extends Schema.TaggedError<
   LanguagePackStorageFailed,
   { readonly brand: unique symbol }
@@ -77,16 +73,11 @@ export class LanguagePackStorageFailed extends Schema.TaggedError<
   cause: Schema.Defect(),
 }) {}
 
-/**
- * The download failed: no connection, a status outside 2xx, or a body that is
- * not a valid pack for the locale.
- */
 export class LanguagePackDownloadFailed extends Schema.TaggedError<
   LanguagePackDownloadFailed,
   { readonly brand: unique symbol }
 >()("LanguagePackDownloadFailed", {
   message: Schema.String,
-  /** The pack comes from a newer lineage than this build reads: update the plugin. */
   updateNeeded: Schema.Boolean,
   cause: Schema.optional(Schema.Defect()),
 }) {}
@@ -96,44 +87,20 @@ export type LanguagePackInstallError =
   | LanguagePackStorageFailed
   | LanguagePackDownloadFailed;
 
-/** The Language Pack Lifecycle for the language Obsidian runs in. */
 export class LanguagePack extends Context.Service<
   LanguagePack,
   {
     readonly locale: string;
     readonly plugin: string;
-    /**
-     * The resolved language's Endonym, for copy that names the Language
-     * Pack's language. Falls back to {@link locale} for a language outside
-     * Obsidian's display set.
-     */
     readonly endonym: string;
     readonly situation: Effect.Effect<LanguagePackSituation>;
-    /** The current situation, then each one after it. */
     readonly changes: Stream.Stream<LanguagePackSituation>;
-    /**
-     * The one door onto a download: records accepted consent, downloads, and
-     * caches. A call while a download is in flight joins it. A reset
-     * interrupts the download, and so every install joined to it.
-     */
     readonly install: Effect.Effect<
       LanguagePackRestartNotice,
       LanguagePackInstallError
     >;
-    /** Records declined consent, moving `offered` to `installable`. Does nothing without a remote pack. */
     readonly decline: Effect.Effect<void, LanguagePackStorageFailed>;
-    /**
-     * Drops every locale's device cache and consent record for this build, so
-     * the next start offers a fresh install. A pack applied at startup keeps
-     * running until the app restarts; an in-flight download is interrupted
-     * before it is cached.
-     */
     readonly reset: Effect.Effect<void, LanguagePackStorageFailed>;
-    /**
-     * The outcome of the consented refresh that startup began, awaited
-     * whenever it is read, also after the refresh ended. None when startup
-     * began no refresh.
-     */
     readonly refresh: Option.Option<
       Effect.Effect<
         Exit.Exit<LanguagePackRestartNotice, LanguagePackInstallError>
@@ -142,33 +109,19 @@ export class LanguagePack extends Context.Service<
   }
 >()("zotlit/language-pack/LanguagePack") {}
 
-/** What startup found on the device, before the plugin's services build. */
 export interface LanguagePackStartup {
   readonly identity: LanguagePackIdentity;
   readonly pluginVersion: string;
   readonly plugin: string;
   readonly locale: string;
   readonly endonym: string;
-  /** Absent when no pack ships for the locale. */
   readonly remote?: {
     readonly pack: RemotePackInfo;
     readonly url: string;
-    /**
-     * `installed`: the cached pack is running. `refresh`: consent stands but
-     * this release's pack is not cached yet. `declined` and `offered` follow
-     * the consent record.
-     */
     readonly found: "installed" | "refresh" | "declined" | "offered";
   };
 }
 
-/**
- * The release policy: Language Packs are assets of the plugin's Resource
- * Release pinned to the running plugin version, so a build downloads the pack
- * compiled from its own message set.
- *
- * @see docs/adr/0019-runtime-assets-ship-on-a-parallel-resource-release.md
- */
 const packSource = (repository: string, pluginVersion: string): PackSource =>
   typeof __LANGUAGE_PACK_DEV_SERVER__ === "string"
     ? {
@@ -180,7 +133,6 @@ const packSource = (repository: string, pluginVersion: string): PackSource =>
         origin: releaseOrigin(repository),
       };
 
-/** The device storage, failing as the Language Pack where Obsidian throws. */
 const deviceStorage = (storage: DeviceStorage["Service"]) => ({
   load: (key: string) =>
     Effect.mapError(storage.load(key), ({ cause }) => storageFailed(cause)),
@@ -196,12 +148,6 @@ const storageFailed = (cause: unknown) =>
     cause,
   });
 
-/**
- * Point the message runtime at Obsidian's language and apply the pack cached
- * for it, before any copy shows. Runs ahead of the service graph, since the
- * plugin's first notices (an old installer, a service that failed to start)
- * already read `m.*`. A storage read that throws fails startup.
- */
 export const startLanguagePack = Effect.fn("LanguagePack.start")(function* (
   identity: LanguagePackIdentity,
   pluginVersion: string,
@@ -211,14 +157,10 @@ export const startLanguagePack = Effect.fn("LanguagePack.start")(function* (
   const storage = deviceStorage(yield* DeviceStorage);
   const { language } = yield* ObsidianEnv;
   runtime.reset();
-  // The message runtime is synchronous: its diagnostics log through this
-  // context's loggers.
   runtime.setLogger(
     bridgeLog({ runSync: Effect.runSyncWith(yield* Effect.context()) }, "i18n"),
   );
   const locale = resolvePluginLocale(language, catalog);
-  // Applied before any situation is observable, so the consent copy a
-  // first-run user reads is already in their language with no pack installed.
   runtime.setTargetLocale(locale);
   const endonym = languageEndonym(language) ?? locale;
   const remote =
@@ -309,7 +251,6 @@ export const startLanguagePack = Effect.fn("LanguagePack.start")(function* (
   return started("offered");
 }, withLogCategory("i18n"));
 
-/** Storage behind a remote pack; {@link situationOf} projects it into the public union. */
 interface PackRecord {
   readonly state: "installed" | "cached" | "none";
   readonly downloading: boolean;
@@ -328,11 +269,6 @@ const situationOf =
 
 const UNAVAILABLE: LanguagePackSituation = { kind: "unavailable" };
 
-/**
- * The lifecycle from where {@link startLanguagePack} left it: a consented
- * refresh downloads in the background on the layer's Scope, which interrupts
- * a download still running at unload.
- */
 export function layerLanguagePack(
   startup: LanguagePackStartup,
 ): Layer.Layer<LanguagePack, never, DeviceStorage | HttpClient.HttpClient> {
@@ -345,13 +281,6 @@ export function layerLanguagePack(
         startup;
       const { catalog, namespace } = identity;
 
-      /**
-       * Clears the device cache and consent of every locale the catalog
-       * ships, not just the resolved one: a device that changed Obsidian
-       * language still holds the packs it consented to before. Cache keys
-       * are version-scoped, so this reaches the running build's packs; other
-       * releases' caches are already unreachable.
-       */
       const clearStoredPacks = Effect.gen(function* () {
         const locales = Object.keys(catalog.packs);
         for (const packLocale of locales) {
@@ -386,8 +315,6 @@ export function layerLanguagePack(
             }),
           ),
           decline: Effect.void,
-          // The bundled base pack is always live, so only other locales'
-          // leftovers are there to clear.
           reset: asReset(clearStoredPacks),
           refresh: Option.none(),
         });
@@ -402,7 +329,6 @@ export function layerLanguagePack(
       });
       yield* Effect.addFinalizer(() => PubSub.shutdown(record.pubsub));
       const layerScope = yield* Scope.Scope;
-      // One download at a time: starting, joining, and resetting take turns.
       const turn = yield* Semaphore.make(1);
       const inFlight = yield* Ref.make(
         Option.none<
@@ -424,7 +350,6 @@ export function layerLanguagePack(
 
       const fetchPack = http.get(url).pipe(
         Effect.mapError((error) =>
-          // The transport's own error names the failure, as `requestUrl` did.
           downloadFailed(
             HttpClientError.isHttpClientError(error) &&
               Error.isError(error.reason.cause)
@@ -467,8 +392,6 @@ export function layerLanguagePack(
           try: () => validateLanguagePack(text, { expectedLocale: locale }),
           catch: (error) => downloadFailed(error),
         });
-        // A reset interrupts the download before this point or after it,
-        // never between the write and the state it implies.
         yield* Effect.uninterruptible(
           storage.save(cacheKey, text).pipe(
             Effect.andThen(
@@ -510,7 +433,6 @@ export function layerLanguagePack(
         withLogCategory("i18n"),
       );
 
-      /** The download in flight, started when there is none. */
       const startDownload = turn.withPermits(1)(
         Effect.gen(function* () {
           const running = yield* Ref.get(inFlight);
@@ -559,10 +481,6 @@ export function layerLanguagePack(
             const running = yield* Ref.get(inFlight);
             if (Option.isSome(running)) yield* Fiber.interrupt(running.value);
             yield* clearStoredPacks;
-            // A pack downloaded this session was never applied, so clearing
-            // its cache returns the lifecycle to "none"; one applied at
-            // startup stays "installed" because it keeps running until the
-            // app restarts.
             yield* SubscriptionRef.update(record, (current) => ({
               ...current,
               state: current.state === "cached" ? "none" : current.state,

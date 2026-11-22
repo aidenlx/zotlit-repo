@@ -1,6 +1,3 @@
-// Items for the "Attachments" sub-page: whether an attachment is imported,
-// where in the vault it lands, and which external source folders are approved.
-
 import type {
   SettingsKey,
   SettingTabContext,
@@ -31,7 +28,6 @@ export function attachmentPageItems(
         ctx.tab.sync(PluginSettings.use((settings) => settings.current))[
           "attachment.import"
         ],
-      // Empty value falls back to Obsidian's default attachment folder.
       control: {
         type: "folder",
         key: "attachment.folder-path",

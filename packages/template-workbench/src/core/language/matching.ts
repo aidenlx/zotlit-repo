@@ -1,11 +1,5 @@
-// Shared ranking for template field and language suggestions.
 import type { Suggestion, SuggestionConfig } from "./suggestions.ts";
 
-/**
- * Rank once in the core so host widgets display the same order. A pinned
- * option — one that acts rather than naming something the query could match —
- * closes the list whatever the reader has typed.
- */
 export function rankSuggestions(
   options: Suggestion[],
   query: string,
@@ -37,10 +31,6 @@ export function rankSuggestions(
     .concat(pinned);
 }
 
-/**
- * How well `value` matches `search`, case-insensitively: 0 when equal, 1 for
- * a prefix, 2 for the letters in order, `Infinity` for no match.
- */
 export function matchScore(value: string, search: string): number {
   const text = value.toLowerCase();
   const query = search.toLowerCase();

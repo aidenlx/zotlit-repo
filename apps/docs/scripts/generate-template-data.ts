@@ -1,10 +1,3 @@
-// Emits the template-data reference page from the committed Template Contract IR.
-//
-// Prose comes from the contract's doc comments; the page template around it
-// lives in `src/lib/template-contract/sections.ts`.
-//
-// @see docs/adr/0015-template-contract-artifacts-generate-from-ts-types.md
-
 import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -68,7 +61,6 @@ function renderSection(section: PageSection): string {
   return blocks.filter((block) => block !== undefined).join("\n\n");
 }
 
-/** A union of string literals has no properties, so it renders as its options. */
 function renderValues(values: readonly SectionValue[]): string {
   return values
     .map(({ value, description }) => {
@@ -82,10 +74,6 @@ function assertPlainText(text: string): string {
   return plainMdxText(text, "Doc comment prose");
 }
 
-/**
- * A link tag reaching the page means the resolver missed it — the reader would
- * see raw JSDoc syntax, so fail instead of emitting it.
- */
 function assertNoUnresolvedLinks(page: string): void {
   if (page.includes("{@link")) {
     throw new Error("Emitted page carries an unresolved {@link} tag");

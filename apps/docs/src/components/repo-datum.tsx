@@ -1,6 +1,3 @@
-// The whole counters surface in one module: the server fn a route's loader
-// bakes with, and the repository link that shows and refreshes the counters.
-
 import { createServerFn } from "@tanstack/react-start";
 import { Download, Star } from "lucide-react";
 import { Fragment } from "react";
@@ -13,23 +10,16 @@ import { gitConfig, repoUrl } from "@/lib/shared.ts";
 import { useBakedThenFresh } from "@/lib/use-baked-then-fresh.ts";
 import * as m from "@/paraglide/messages.js";
 
-/** The counters the build bakes into the prerendered page; `<RepoDatum>` refreshes them. */
 export const loadRepoStats = createServerFn({ method: "GET" }).handler(() =>
   getRepoStats(),
 );
 
-/** Humanizes a count: under a thousand verbatim, else `N.MK` with a trailing `.0` stripped. */
 function humanize(count: number): string {
   return count < 1000
     ? String(count)
     : `${(count / 1000).toFixed(1).replace(/\.0$/, "")}K`;
 }
 
-/**
- * The repository link with its live counters. Stars and downloads are dropped
- * one at a time when their lookup is unavailable; the link itself always
- * renders, since the repo has to stay reachable from the page.
- */
 export function RepoDatum({
   stats: baked,
   className,

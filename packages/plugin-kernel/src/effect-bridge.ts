@@ -1,4 +1,3 @@
-// Runners for entering Effect services from legacy classes and Promise code.
 import { Cause, Context, Effect, Exit, Fiber, Scope } from "effect";
 import type { ManagedRuntime, Stream } from "effect";
 
@@ -6,18 +5,6 @@ import { AbortError } from "./abort-error.ts";
 import { isScopeClosed } from "./effect-scope.ts";
 import { subscribe } from "./effect-stream.ts";
 
-/**
- * The one way legacy classes and Promise code run Effects on the plugin's
- * services.
- *
- * The runners are captured from the runtime context at build time: a disposed
- * runtime clears its context, while the captured context still answers with
- * the services' released values. `runPromise` and `runPromiseExit` run their
- * fibers in the runtime's scope, so unload interrupts every pending run.
- * `runPromiseExit` then resolves with an interrupt-only Exit: use it where a
- * closed runtime has its own answer. `runPromise` rejects with an
- * `AbortError`, which the toast and notifier helpers pass over.
- */
 export interface EffectBridge {
   readonly runSync: <A, E>(effect: Effect.Effect<A, E>) => A;
   readonly runPromise: <A, E>(
@@ -28,11 +15,6 @@ export interface EffectBridge {
     effect: Effect.Effect<A, E>,
     options?: { readonly signal?: AbortSignal },
   ) => Promise<Exit.Exit<A, E>>;
-  /**
-   * Starts `effect` from a callback that ignores its answer, such as a DOM or
-   * editor handler. Unload interrupts the run, as `runPromiseExit` does; any
-   * other failure surfaces as an unhandled rejection.
-   */
   readonly runAndForget: <A, E>(effect: Effect.Effect<A, E>) => void;
   readonly subscribe: <A>(
     stream: Stream.Stream<A>,
@@ -41,23 +23,12 @@ export interface EffectBridge {
   readonly closed: () => boolean;
 }
 
-/**
- * What a run settled to, for code that has no Effect to return it in: the
- * value of a success, `released` where only interrupts ended the run (the
- * runtime closed under it), and the failure thrown otherwise.
- */
 export function valueOr<A, E>(exit: Exit.Exit<A, E>, released: A): A {
   if (Exit.isSuccess(exit)) return exit.value;
   if (Cause.hasInterruptsOnly(exit.cause)) return released;
   throw Cause.squash(exit.cause);
 }
 
-/**
- * The Exit runner an edge handle runs its Effects through: `bridge`'s
- * `runPromiseExit` over `context`. The handle maps the Exit to its caller's
- * answer, with {@link valueOr} or, where a signal cancels the run,
- * `settleAtEdge`.
- */
 export function exitOver<R>(
   bridge: Pick<EffectBridge, "runPromiseExit">,
   context: Context.Context<R>,
@@ -69,7 +40,6 @@ export function exitOver<R>(
     bridge.runPromiseExit(Effect.provideContext(effect, context), options);
 }
 
-/** The runners over `context`, with pending runs and subscriptions kept in `scope`. */
 function bridgeOver(
   context: Context.Context<never>,
   scope: Scope.Scope,
@@ -107,7 +77,6 @@ export function effectBridge<R>(
     "runSync" | "runFork" | "scope"
   >,
 ): EffectBridge {
-  // Pending runs stay in the runtime's scope, so unload interrupts them.
   return bridgeOver(
     runtime.runSync(Effect.context<R>()),
     runtime.scope,
@@ -115,11 +84,6 @@ export function effectBridge<R>(
   );
 }
 
-/**
- * The bridge a layer hands to the plain code it owns, such as a state machine
- * kept as a class: the layer's own services, with pending runs and
- * subscriptions ended when the layer's Scope closes.
- */
 export const scopedBridge: Effect.Effect<EffectBridge, never, Scope.Scope> =
   Effect.gen(function* () {
     const context = yield* Effect.context<Scope.Scope>();

@@ -29,11 +29,9 @@ const readLesson = (file: string) => {
   return { file, data: v.parse(learnSchema, data), body: content };
 };
 const lessonFiles = globSync("*.mdx", { cwd: learnDir });
-/** The course itself: the English lessons. */
 const lessons = lessonFiles
   .filter((file) => !chineseFile.test(file))
   .map(readLesson);
-/** Each Chinese edition beside the English lesson it translates. */
 const chineseLessons = lessonFiles
   .filter((file) => chineseFile.test(file))
   .map((file) => ({
@@ -46,10 +44,8 @@ const STEP_BLOCK = regex(
   "g",
 );
 
-/** The body between `<Step n={k}>` and its `</Step>`, for each step in order. */
 function stepBlocks(body: string) {
   const blocks: { n: number; inner: string }[] = [];
-  // `exec` carries the typed groups; the global pattern walks the body and resets at its end.
   for (let match = STEP_BLOCK.exec(body); match; match = STEP_BLOCK.exec(body))
     blocks.push({ n: Number(match.groups.n), inner: match.groups.inner });
   return blocks;
@@ -77,7 +73,6 @@ describe("the lessons", () => {
     }
   });
 
-  // A moved docs page shows up here rather than as a failed build.
   it.each(lessons)(
     "$file names a docs page in each Go further slug",
     ({ data }) => {
@@ -93,8 +88,6 @@ describe("the lessons", () => {
   });
 });
 
-// A Chinese edition is the same lesson: same place in the course, same
-// recordings, the same steps with one check line each.
 describe.skipIf(chineseLessons.length === 0)("the Chinese lessons", () => {
   it.each(chineseLessons)(
     "$file keeps its English lesson's number, length, media and Go further slugs",
@@ -129,9 +122,6 @@ describe.skipIf(chineseLessons.length === 0)("the Chinese lessons", () => {
   );
 });
 
-// A guide a lesson sends its reader on to sends a new reader back to that
-// lesson, above its first section, with the lesson's length. The answer pages
-// a lesson lists are for readers of other plugins, so only guides pair up.
 const guideReturns = lessons.flatMap(({ file, data }) =>
   data.further
     .filter(({ slug }) => slug.startsWith("how-to/"))
@@ -176,8 +166,6 @@ describe("the media scan", () => {
   });
 
   it("reads the video track's size from an MP4 track header", () => {
-    // A version 0 `tkhd` box: 4 bytes of version and flags, 72 bytes of
-    // times, ids, volume and matrix, then width and height in 16.16.
     const box = new Uint8Array(8 + 4 + 76 + 8);
     box.set(ascii("tkhd"), 4);
     const view = new DataView(box.buffer);
@@ -187,7 +175,6 @@ describe("the media scan", () => {
   });
 
   describe("of a folder", () => {
-    /** A lossy WebP header of the given size. */
     const webp = (width: number, height: number) => {
       const header = new Uint8Array(30);
       header.set(ascii("RIFF"), 0);
@@ -197,7 +184,6 @@ describe("the media scan", () => {
       view.setUint16(28, height, true);
       return header;
     };
-    /** A package root whose one lesson folder holds step 1's still; removed when the test's scope ends. */
     const packageWithStill = () => {
       using stack = new DisposableStack();
       const root = stack.use(

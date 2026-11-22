@@ -1,5 +1,3 @@
-// Liquid syntax shared by hover and completion; hosts supply localized descriptions.
-
 const TAG_HELP = {
   assign: {
     syntax: "{% assign name = value %}",
@@ -175,7 +173,6 @@ const TAG_HELP = {
 export type LiquidTagName = keyof typeof TAG_HELP;
 export const DOCUMENTED_TAG_NAMES: readonly string[] = Object.keys(TAG_HELP);
 
-/** Syntax and an example for a supported Liquid tag. */
 export function tagHelp(
   name: string,
   description?: (name: LiquidTagName) => string,

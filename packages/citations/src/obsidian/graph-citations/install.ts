@@ -1,5 +1,3 @@
-// Locate and validate the internal members used by each graph installation.
-
 import { Effect } from "effect";
 import type {
   App,
@@ -18,13 +16,10 @@ import {
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 
-/** The core plugin behind both graph views, as `app.internalPlugins` names it. */
 export const GRAPH_CORE_PLUGIN_ID = "graph";
 
-/** The two view types Graph Citations install on. */
 export const GRAPH_VIEW_TYPES = ["graph", "localgraph"] as const;
 
-/** The internal members one installation wraps, each verified present. */
 export interface GraphLeafMembers {
   viewType: string;
   engine: GraphEngine & HoverParent & { app: App; render: () => unknown };
@@ -42,15 +37,6 @@ export interface GraphLeafMembers {
   };
 }
 
-/**
- * The engine a graph leaf draws through: the global view names it
- * `dataEngine`, the local one `engine`.
- *
- * @param viewType the leaf's view type, where the caller already read it.
- * @returns `undefined` for a leaf that is not a graph leaf, for a deferred
- *   leaf whose placeholder view holds no engine, and for a build that moved
- *   the member — all of which the caller reports as it sees fit.
- */
 export function graphEngineOf(
   leaf: Pick<WorkspaceLeaf, "view">,
   viewType: string = leaf.view.getViewType(),
@@ -62,16 +48,6 @@ export function graphEngineOf(
       : undefined;
 }
 
-/**
- * Reads the engine and renderer off a `graph` or `localgraph` leaf. A leaf
- * missing any member — an Obsidian build that moved one — is reported at
- * `warn` and skipped, so the graph keeps its native behaviour; the service
- * asks once per view, so the report is once per view.
- *
- * @param leaf a loaded graph leaf. A deferred leaf holds a placeholder view
- *   with no members by design, and is the caller's to skip.
- * @returns `null` when the leaf is not a graph leaf or a member is missing.
- */
 export function graphMembersOf(
   leaf: Pick<WorkspaceLeaf, "view">,
 ): GraphLeafMembers | null {
@@ -84,7 +60,6 @@ export function graphMembersOf(
       engine: Boolean(engine),
       "engine.app": Boolean(engine?.app),
       "engine.render": typeof engine?.render === "function",
-      // Null until a popover of its own opens, so presence is the check.
       "engine.hoverPopover": engine ? "hoverPopover" in engine : false,
       renderer: Boolean(renderer),
       "renderer.onNodeClick": typeof renderer?.onNodeClick === "function",
@@ -94,8 +69,6 @@ export function graphMembersOf(
       "renderer.onNodeHover": typeof renderer?.onNodeHover === "function",
       "renderer.onNodeUnhover": typeof renderer?.onNodeUnhover === "function",
       "renderer.containerEl": Boolean(renderer?.containerEl),
-      // The renderer's constructor seeds all four, so an install-time check is
-      // the whole check: a node's place needs no guard of its own afterwards.
       "renderer.nodeLookup": Boolean(renderer?.nodeLookup),
       "renderer.scale": typeof renderer?.scale === "number",
       "renderer.panX": typeof renderer?.panX === "number",
@@ -106,17 +79,6 @@ export function graphMembersOf(
   return present ? ({ viewType, engine, renderer } as GraphLeafMembers) : null;
 }
 
-/**
- * The one report an installation makes when an Obsidian build moved an
- * internal member, so the caller can leave that surface native instead of
- * crashing on it.
- *
- * @param present each member this code reads, by name, against whether the
- *   build still has it.
- * @param context what the report names beside the missing members.
- * @returns `true` when every member is there; `false` after one `warn`
- *   naming those that are not.
- */
 export function membersPresent(
   message: string,
   present: Record<string, boolean>,
@@ -133,33 +95,16 @@ export function membersPresent(
   return false;
 }
 
-/** One reading of a graph engine's internals: what it reads, and what it builds. */
 export interface MemberProbe<T> {
-  /** Tells one probe's report from another's, so each surface is read on its own. */
   key: string;
-  /** The one `warn` a build that moved a member gets. */
   message: string;
-  /** Each member this probe reads, by name, against whether the build has it. */
   present: Record<string, boolean>;
-  /** What the report names beside the missing members. */
   context: Record<string, unknown>;
-  /** What the probe answers; read only once every member is there. */
   build: () => T;
 }
 
-/** The probes each engine failed, by key, so each report is made once. */
 const failures = new WeakMap<GraphEngine, Set<string>>();
 
-/**
- * Reads one surface of a graph engine, and reports a build that moved a member
- * once per engine per probe — an engine lives as long as the view that owns it
- * and is collected with it, so the report is once per graph however many times
- * the surface is read. Each probe keeps a failure of its own, so a build that
- * moved one section leaves every other section readable.
- *
- * @returns what the probe builds, or `null` where a member is missing — and
- *   `null` on every later reading, so the caller leaves that surface native.
- */
 export function targetOnce<T>(
   engine: GraphEngine,
   probe: MemberProbe<T>,

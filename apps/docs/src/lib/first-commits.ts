@@ -1,20 +1,6 @@
-// The day each content file was first committed, carried through renames: a
-// page's publication day for its JSON-LD. Fumadocs' `lastModified` gives the
-// last commit only, so this scan runs once in Node and reaches the app as the
-// `__FIRST_COMMIT_DAYS__` define (`vitest.config.ts` does the same for tests).
-
 import { execFileSync } from "node:child_process";
 import type { Plugin } from "vite";
 
-/**
- * Reads `git log` oldest first over `content/`, following each rename, so a
- * page that moved keeps the day it first appeared.
- * @returns ISO days keyed by path under `content/` (`docs/how-to/x.mdx`).
- * @throws outside a git checkout, or in a shallow one: the build needs the
- * whole history (the deploy checks out with `fetch-depth: 0`) to date its
- * pages. A shallow history ends early, so its oldest commit would stand in as
- * every older page's publication day.
- */
 export function scanFirstCommitDays(
   packageRoot: string,
 ): Record<string, string> {
@@ -44,7 +30,6 @@ export function scanFirstCommitDays(
         cwd: packageRoot,
         encoding: "utf8",
         maxBuffer: 64 * 1024 * 1024,
-        // `format-local` prints the author day in UTC.
         env: { ...process.env, TZ: "UTC" },
       },
     );

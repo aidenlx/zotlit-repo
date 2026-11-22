@@ -2,20 +2,13 @@ import * as v from "valibot";
 
 export type TemplateLanguage = "liquid" | "eta";
 
-/** The standalone line that opens a Profile document's final Annotation Section. */
 export const ANNOTATION_HEADER = "--- zotlit:annotation ---";
 
-/** Managed Block boundary tag names; the Literature Note Template owns their meaning. */
 export const MANAGED_BLOCK_TAG_NAMES: readonly [string, string] = [
   "managed",
   "endmanaged",
 ];
 
-/**
- * Eta `autoTrim` mode for one side of a template tag. `"nl"` strips a single
- * newline, `"slurp"` strips all whitespace, `false` keeps it. Single source of
- * truth for both the runtime validator and the {@link AutoTrim} type.
- */
 export const autoTrimSchema = v.union([
   v.literal(false),
   v.literal("nl"),
@@ -40,7 +33,6 @@ export type FrontmatterMergeStrategy = v.InferOutput<
   typeof frontmatterMergeStrategySchema
 >;
 
-/** System-owned note keys reserved for ZotLit and Zotero metadata. */
 export const RESERVED_FRONTMATTER_KEYS: ReadonlySet<string> = new Set([
   "zotero-key",
   "zotlit-profile",
@@ -49,11 +41,6 @@ export const RESERVED_FRONTMATTER_KEYS: ReadonlySet<string> = new Set([
   "zotlit-csl",
 ]);
 
-/**
- * An expression always evaluates in its declared language — the JavaScript
- * Templates gate never reinterprets an expression, it only decides whether
- * `"javascript"` fields run.
- */
 export const frontmatterLanguageSchema = v.picklist(["liquid", "javascript"]);
 export type FrontmatterLanguage = v.InferOutput<
   typeof frontmatterLanguageSchema

@@ -551,8 +551,6 @@ describe("Citation Lookup held reads", () => {
           ).citekeyOf("GRP23456g7"),
         ).toBeNull();
 
-        // Library Scope settles its read after the database change, and a Library
-        // outside the saved scope reaches the index through `libraries-changed`.
         libraryScope.holdLibraries([personalLibrary(), groupLibrary()]);
         await lookup.bridge.runPromise(lookup.whenResolved);
 
@@ -845,7 +843,6 @@ it.effect(
     }),
 );
 
-// Query Core owns the retention timer outside Effect. Exercise that boundary with its fake timer.
 it.live(
   "pins an open view and collects its query after disposal and the finite retention time",
   () =>

@@ -16,7 +16,6 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 
 import { makePluginHost } from "./plugin-host.ts";
 
-/** The command registry a plugin writes to, shaped as Obsidian 1.15.0 keeps it. */
 function fakeObsidian(viewRegistry?: App["viewRegistry"]) {
   const commands = new Map<string, Command>();
   const plugin = stubService<Plugin & CliHost>("Plugin", {

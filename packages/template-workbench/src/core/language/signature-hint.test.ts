@@ -5,7 +5,6 @@ import { ITEMS } from "@zotlit/item-query";
 import { datasetVocabulary } from "./expression-vocabulary.ts";
 import { signatureAt } from "./signature-hint.ts";
 
-/** The hint at the `|` in `text`. */
 function hintAt(
   text: string,
   options?: Parameters<typeof signatureAt>[2],
@@ -48,7 +47,6 @@ it("names the string slice with its second parameter marked inside title.slice(1
   });
 });
 
-/** The callee and the marked parameter of each definition at the `|`. */
 function marked(text: string, options?: Parameters<typeof signatureAt>[2]) {
   const hint = hintAt(text, options);
   return (
@@ -162,7 +160,6 @@ it("types a Formula and a bound name as the dataset's planner reads them", () =>
     callee: "slice",
     marked: ["string:end"],
   });
-  // `value` is an element of `tags` there, whose type is known per Item.
   expect(marked("tags.filter(value.slice(1, |", { receiver })).toEqual({
     callee: "slice",
     marked: ["string:end", "list:end"],

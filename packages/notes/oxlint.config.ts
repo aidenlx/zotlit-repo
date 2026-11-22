@@ -14,17 +14,6 @@ import {
   withPatterns,
 } from "@zotlit/config/oxlint-plugin-code";
 
-// Each layer of the notes has one home and one boundary, by what a file needs
-// from its host. `core/` is host-free: no Node built-in, `obsidian` or
-// `electron`, so any host loads it. `obsidian/` loads on Obsidian Mobile: the
-// Obsidian API and kit, and no Node or Electron; the Profiles, Profile
-// selection and the Template service live here. `desktop/` alone reads Node
-// and Electron: note creation and import, which read Excerpt Images and
-// Attachment Import, and the Profile dialogs, which read the system file
-// dialog. A layer imports the layers below it only: core <- obsidian <-
-// desktop.
-
-/** The plugin layers above the host-free base. */
 const pluginLayers = {
   group: [
     "@zotlit/obsidian-kit",
@@ -94,7 +83,6 @@ const NOT_TESTS = [
   "src/**/__fixtures__/**",
 ];
 
-/** The folders that hold Effect services; the others hold views. */
 const SERVICES = [
   "src/*/note-feature/**",
   "src/*/note-import/**",
@@ -123,7 +111,6 @@ export default defineConfig({
       rules: { "no-restricted-imports": ["error", obsidianImports] },
     },
     {
-      // The desktop host: Node and Electron.
       files: ["src/desktop/**"],
       excludeFiles: NOT_TESTS,
       rules: {
@@ -136,12 +123,7 @@ export default defineConfig({
       services: SERVICES,
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
-    // Capability backlog: files that import Effect and still reach the App.
-    // A file moves off its list when it takes Obsidian from the capability
-    // tags.
     {
-      // Legacy classes that hold the App (`app`, `#app`, `#deps.app`). A file
-      // moves off the list when its service converts to Effect.
       files: [
         "src/obsidian/profile/service.ts",
         "src/desktop/template/migration.ts",
@@ -150,7 +132,6 @@ export default defineConfig({
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
-      // Default-runtime backlog: run the Effect through the bridge, a layer context runner or a runtime, then remove the file from the list.
       files: [
         "src/obsidian/batch/batch-run.ts",
         "src/obsidian/profile/service.ts",
@@ -158,8 +139,6 @@ export default defineConfig({
       rules: { "zotlit-services/no-default-runtime": "off" },
     },
     {
-      // Tests written before the rule that assert zt: classes; a file moves off
-      // this list when its assertions move to behavior.
       files: [
         "src/desktop/profile/create-profile-modal.test.ts",
         "src/obsidian/profile/profile-destination-modal.test.ts",

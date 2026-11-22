@@ -1,4 +1,3 @@
-// Shared invalidation of Item queries when device Uses change.
 import { Effect, Stream } from "effect";
 
 import { held } from "@zotlit/obsidian-kit/view-atoms.ts";

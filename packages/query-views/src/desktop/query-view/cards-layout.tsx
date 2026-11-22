@@ -1,8 +1,4 @@
 import type { QueryFileView } from "#core/query-view/query-file.ts";
-// The Cards layout: one card for each row of any Query Dataset, as the Cards
-// layout of Bases draws a note. The first visible property is the card's
-// title; each other one shows under its name. Its option is `cardSize`, the
-// narrowest a card is drawn, as in Bases 1.14.4.
 import type { CSSProperties } from "react";
 
 import { Chooser } from "@zotlit/obsidian-kit/components/chooser.tsx";
@@ -26,14 +22,12 @@ export const CARDS_LAYOUT: QueryLayout = {
   icon: "layout-grid",
 };
 
-/** The card size of Bases: the narrowest a card is drawn, in pixels. */
 export const CARD_SIZE = { min: 50, max: 800, step: 10, default: 200 };
 
 export interface CardsLayoutOptions {
   readonly cardSize: number;
 }
 
-/** The Cards layout's options a view holds; a key it lacks or cannot hold takes its default. */
 export function cardsLayoutOptions(
   view: QueryFileView | null,
 ): CardsLayoutOptions {
@@ -46,7 +40,6 @@ export function cardsLayoutOptions(
   };
 }
 
-/** The Cards layout's options in "Configure view". */
 export function CardsLayoutFields({
   options,
   set,
@@ -70,14 +63,9 @@ export function CardsLayoutFields({
   );
 }
 
-/**
- * One line of a card: the line height of a Bases card, and a dash where the
- * row has no value, so a blank property still holds its place.
- */
 const CARD_LINE =
   "zt:truncate zt:leading-6 zt:empty:before:text-faint zt:empty:before:content-['—']";
 
-/** The rows of the shown view, one card each, under their group headings. */
 export function CardsLayout({ view }: { view: QueryView }) {
   const { properties, groups } = useRecordGroups(view);
   const options = cardsLayoutOptions(useQueryViewState(view, (s) => s.view));
@@ -116,8 +104,6 @@ export function CardsLayout({ view }: { view: QueryView }) {
                     className="zt:flex zt:min-w-0 zt:flex-col zt:gap-2 zt:rounded-md zt:bg-background zt:px-2 zt:pt-2 zt:pb-0.5 zt:shadow-[0_0_0_1px_var(--background-modifier-border)]"
                     data-query-row={row.indexedKey}
                   >
-                    {/* A view that shows no property leaves the card
-                        empty, as a Bases card is. */}
                     {properties.length > 0 && (
                       <div
                         className={cn(
@@ -140,9 +126,6 @@ export function CardsLayout({ view }: { view: QueryView }) {
                         <div className="zt:truncate zt:text-xs zt:text-muted-foreground">
                           {properties[at + 1]!.label}
                         </div>
-                        {/* A value takes a Bases value's size, relative to
-                            the host's text, so it stays below the title in
-                            a note too. */}
                         <div
                           className={cn(
                             "zt:text-(length:--font-smaller)",

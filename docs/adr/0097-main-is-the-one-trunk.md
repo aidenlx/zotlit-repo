@@ -54,3 +54,97 @@ So `main` beside `next` only duplicated that state, and it cost a graduation ste
 - The version commit of a hotfix is not on `main`. The next stable release on `main` must have a greater version than the hotfix.
 - The first production docs deploy under this rule happens at the next stable release. Until then the production site keeps what the old `main` deployed.
 - The Land Queue state is in one `queue/` directory, and land logs no longer carry a branch name.
+
+## Docs deployment inputs and gate
+
+`docs-deploy.yml` deploys the pre-release site from an affected push to
+main, using the Wrangler `beta` environment for the build and deploy.
+The release workflow calls it for production after a stable publish.
+A manual production deploy without a ref uses the latest stable tag.
+Each site serializes its deployments and cancels superseded runs so an
+older run cannot overwrite newer pages.
+
+The push gate compares the whole dependency closure of the docs against
+the push base. It needs full history and the pinned tools but can skip
+workspace installation before it decides. It deploys when the base is
+unavailable, history was rewritten, the deploy setup changed, or the
+Turbo dry run fails. The root message catalogs and their Inlang project
+also trigger deploys because they live outside the package closure.
+Calls and dispatches always deploy.
+
+The build checks out history for page dates and LFS objects for media.
+It installs just the docs dependency closure. Cloudflare bindings and
+the optional Web Analytics beacon token are build inputs selected per
+site. The beta build must omit analytics when its own token is empty.
+[Analytics token follow-up](https://github.com/aidenlx/zotlit-repo/issues/64)
+
+The two sites share one R2 media bucket. The site build refers to each
+recording by a content-hashed key and omits those videos from Worker
+assets. A deploy uploads missing keys before it publishes the pages
+that refer to them. The upload credentials are scoped to the bucket.
+
+### Land Turn execution
+
+Check that the task worktree is clean and on a branch before
+joining the queue. Fetch, rebase, gate, and fast-forward push
+within the Land Turn. Run the release gate for a version commit.
+If the remote advances during the gate, fetch and repeat the
+rebase and gate within the same turn. On a rebase conflict,
+abort so the original task tree is available. Git can also refuse
+before replay when an untracked file would be overwritten. A
+failed gate or push leaves the rebased task tree available to fix.
+
+The Land Queue uses the admission machinery without driving the
+desktop or taking the Memory Gate. A dead holder can be replaced.
+The pre-push hook checks the Land Turn token. Append wait
+and outcome records and keep full command output in the land
+log. Each gate command has its own process group so the end of
+the Lease stops its workers too. Throttle progress writes while
+leaving sufficient signals inside the silence limit. After a
+successful push, update the local trunk when its worktree is
+clean and retire the remote task branch. A dirty trunk worktree
+does not change whether the push succeeded.
+
+Prove the workflow with real Git against a temporary bare remote
+and an injected gate. Drive a competing upstream push from
+the gate to exercise the fetch and repeat path. A loaded machine
+can expire a short test Lease before the gate's first line.
+Assert the Lease outcome without requiring that first line.
+
+[Land implementation](../../packages/scripts/lib/land.ts) ·
+[Land Queue](../../packages/scripts/lib/land-queue.ts)
+
+### End-to-end Run after land
+
+Write the newest request and start a detached runner outside
+the task worktree so its deletion does not end the run. At the
+End-to-end Turn, read the newest request and coalesce intervening
+tips. Check out the selected tip in the runner's own checkout
+and use the worktree bootstrap before running under a Desktop
+Slot. Keep request, last run and last passing tip, JSONL run
+records, and logs in shared state.
+
+If the desktop cannot paint before a run, record it as not run.
+After a blocked or failed run, check again and use the same
+outcome if the desktop cannot paint. The next land can cover
+that range. Open one issue for a real failure, with commits
+since the last passing tip and the log. Do not revert the land.
+Renew the End-to-end Turn with command output and end the
+command's process group on Lease expiry. A runner that survives
+the grace period is subject to takeover. Test the runner with
+process, report, and paint boundaries replaced.
+
+[Detached runner](../../packages/scripts/lib/land-e2e.ts) ·
+[Runner entry point](../../packages/scripts/scripts/land-e2e.ts)
+
+### Gate scope
+
+The affected base is the merge base with `origin/main`. A stable hotfix therefore checks the changes on its local branch even when the hotfix starts from an older release tag. The format-only path applies to a branch that changes only agent documentation. Build inputs such as snapshots, fixture pages, and documentation site content use the regular gate.
+
+### Release planning and version selection
+
+Run release planning before installing dependencies. Keep the entry point and its two release modules independent of installed packages. Read version metadata from the checkout and source tags from the remote. Send decisions and the stable documentation tag to the workflow output and reasons to stderr. All products of a push tag its source commit, so any newly published stable product tag identifies the production documentation revision.
+
+Preserve the prerelease identifier when proposing bumps and use `beta` for the first prerelease. Normalize valid explicit SemVer input. The version picker offers only eligible bumps and lets the maintainer enter an explicit version. When ZotLit and the Resource Pack release together, select ZotLit first so the interactive picker can constrain the pack to that line. Reject mixed lines for the combined release. Command-line version selections use the same checks and bypass the prompts.
+
+Refresh the default Obsidian manifest and the compatibility maps only for stable releases. Shell generation consumes those stable files. After a successful Land Turn, return to the original branch and fast-forward it to the published tip. If the Land Turn fails, keep its diagnostic log and discard the local release branch. Require the local trunk and remote trunk tips to agree before selecting versions, so the release neither bumps stale versions nor carries unrelated local commits.

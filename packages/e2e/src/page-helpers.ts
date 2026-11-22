@@ -24,7 +24,6 @@ import type {
 } from "./page-walkthrough-types.ts";
 import type { createReaderHandle } from "./reader-handle.ts";
 
-/** JSON handle for a Query View embedded in a Markdown note. */
 export interface NoteQueryView {
   path: string;
   kind: {
@@ -40,16 +39,11 @@ export interface NoteQueryView {
 export type QueryViewElement = HTMLElement & {
   zotlitQueryView?: QueryView;
 };
-/** Page state between calls. Migration batches augment this interface with their slots. */
 export interface PageScratch {
   windowBeforeReload?: boolean;
   listenersBeforeReload?: Set<RenameListener>;
 }
 
-/**
- * Self-contained: serialized into each receiving window. Keep all runtime
- * dependencies inside this function; type-only imports are erased.
- */
 export function createPageHelpers(
   app: PageApp,
   createReader: typeof createReaderHandle,
@@ -81,7 +75,6 @@ export function createPageHelpers(
     el.click();
     return el;
   }
-  /** The row named `name` of the open settings, as the reader finds it. */
   function settingRow(name: string): HTMLElement | undefined {
     return Array.from(
       app.setting.containerEl.querySelectorAll<HTMLElement>(".setting-item"),
@@ -141,11 +134,6 @@ export function createPageHelpers(
         : el.value
       : undefined;
   }
-  /**
-   * The input in `root` whose accessible name is `name`. A Workbench text
-   * field is named by a hidden element it points `aria-labelledby` at, so it
-   * shows no hover tooltip in Obsidian.
-   */
   function labelledInput(root: ParentNode | null | undefined, name: string) {
     return (
       [...(root?.querySelectorAll<HTMLInputElement>("input") ?? [])].find(
@@ -241,10 +229,6 @@ export function createPageHelpers(
         contents.sendInputEvent({ type: "keyUp", keyCode, modifiers });
         await up;
       },
-      /**
-       * Clicks the centre of `el`, or the point `offset` from its top-left
-       * corner, in CSS px.
-       */
       click: async (el: Element, offset?: { x: number; y: number }) => {
         const b = el.getBoundingClientRect();
         const at = {
@@ -260,11 +244,6 @@ export function createPageHelpers(
       },
     };
   }
-  /**
-   * Opens a Query View toolbar popover and returns it. The popover exists in
-   * the view's document body only while open, so a closed one is opened with
-   * its toolbar button and an open one is left as found.
-   */
   async function openToolbarPopover(contentEl: HTMLElement, hook: string) {
     const selector = `[data-query-popover="${hook}"]`;
     if (!contentEl.doc.querySelector(selector))
@@ -280,7 +259,6 @@ export function createPageHelpers(
       contentEl.doc.querySelector<HTMLElement>(selector),
     );
   }
-  /** Closes an open Query View toolbar popover with its toolbar button. */
   async function closeToolbarPopover(contentEl: HTMLElement, hook: string) {
     const selector = `[data-query-popover="${hook}"]`;
     if (!contentEl.doc.querySelector(selector)) return;
@@ -293,9 +271,6 @@ export function createPageHelpers(
       () => !contentEl.doc.querySelector(selector),
     );
   }
-  /**
-   * Shuts every open pinned popover of a document, as a press outside does.
-   */
   function closePopovers(doc: Document) {
     doc.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
   }
@@ -311,7 +286,6 @@ export function createPageHelpers(
     });
     return [...docs];
   }
-  /** The Template Workbench leaves and their panels, the standalone explorers, and the focus they sit under. */
   function workbenchSurfaces() {
     const surfaces = (type: keyof WalkthroughViews) =>
       leavesOfType(type).map((leaf) => {
@@ -415,7 +389,6 @@ export function createPageHelpers(
       timeStamp: nativeEvent.timeStamp,
       type: "click",
       detail: 0,
-      // The menu action uses currentTarget; the remaining fields satisfy its synthetic event interface.
       view: {
         document,
         styleMedia: {
@@ -476,8 +449,6 @@ export function createPageHelpers(
   ): WalkthroughLeaf<K>[] {
     return app.workspace.getLeavesOfType(type) as WalkthroughLeaf<K>[];
   }
-  // Walkthrough waits use native layout completion where available; waitFor
-  // compares arrivals at the existing 25 ms polling interval.
   function measure(
     cm: import("obsidian").MarkdownView["editor"]["cm"],
   ): Promise<void> {
@@ -583,10 +554,6 @@ export function createPageHelpers(
       ? (app.workspace.activeLeaf.view as TemplateWorkbenchView)
       : undefined;
   }
-  /**
-   * The Fields popover `view` shows, or null while it is closed. It stands on
-   * the document's body; the view's Fields action names it while it is open.
-   */
   function fieldsPopover(view: TemplateWorkbenchView | undefined) {
     const id = view?.containerEl
       .querySelector(
@@ -595,32 +562,24 @@ export function createPageHelpers(
       ?.getAttribute("aria-controls");
     return (id && view?.contentEl.doc.getElementById(id)) || null;
   }
-  /** The Fields Panel docked in `view`, or null while it is not docked. */
   function fieldsDock(view: TemplateWorkbenchView | undefined) {
     return (
       view?.contentEl.querySelector<HTMLElement>('[data-panel="fields"]') ??
       null
     );
   }
-  /** The Preview panel `view` shows, or null while it hides the panel. */
   function previewPanel(view: TemplateWorkbenchView | undefined) {
     return (
       view?.contentEl.querySelector<HTMLElement>('[data-panel="preview"]') ??
       null
     );
   }
-  /** The one row above `view`'s panels that names the item they all read. */
   function itemRow(view: TemplateWorkbenchView | undefined) {
     return (
       view?.contentEl.querySelector<HTMLElement>("[data-workbench-item-row]") ??
       null
     );
   }
-  /**
-   * The room, in pixels, between `view`'s item row and its first editor tab
-   * (`above`), and between that tab and the rule under the tab strip
-   * (`below`), with the tabs on one line.
-   */
   function tabStripInsets(view: TemplateWorkbenchView | undefined) {
     const row = itemRow(view);
     const strip = view?.contentEl.querySelector<HTMLElement>("[role=tablist]");
@@ -671,15 +630,6 @@ export function createPageHelpers(
   function pageContainer(view: PagePdfReaderView) {
     return view.reader!.container;
   }
-  /**
-   * Shows the Electron window and leaves the OS focus
-   * and the developer's windows alone. `showInactive` keeps the focus but puts the
-   * window in front of every other app's windows on macOS; `blur` there orders it
-   * behind them. A minimized window comes back from the Dock in front for the
-   * length of the animation, so it stays transparent until it is restored and
-   * ordered back. Restore a minimized window with this, not `restore()`.
-   * The run preparation keeps a covered window rendering.
-   */
   function showBehind(win: BackgroundWindow) {
     if (process.platform !== "darwin") {
       win.showInactive();

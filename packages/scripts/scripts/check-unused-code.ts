@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 
-// Lint: fails when an export, type or enum member has no reader. knip finds
-// them from the entry files in knip.config.ts. The findings that predate this
-// check sit in `unused-code.json`; that list only shrinks.
 import { readFileSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { $ } from "zx";
@@ -18,7 +15,6 @@ type Finding = { name: string; namespace?: string; line?: number };
 type Row = { file: string } & Partial<Record<IssueType, Finding[]>>;
 type Baseline = Record<IssueType, string[]>;
 
-// Vite configs that knip loads print to stdout before the report.
 const stdout = (
   await $({
     cwd: root,

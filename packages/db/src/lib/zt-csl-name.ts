@@ -1,7 +1,5 @@
-// Normalize structured Zotero creator names for CSL processors.
 import { regex } from "arkregex";
 
-/** A structured personal-name entry in CSL-JSON. */
 export interface CslPersonName {
   family: string;
   given: string;
@@ -16,11 +14,6 @@ const PARTICLE_GIVEN_RE = regex("^([^ ]+(?:\u02bb |\u2019 | |' ) *)(.+)$");
 const PARTICLE_FAMILY_RE = regex("^([^ ]+(?:-|\u02bb|\u2019| |' ) *)(.+)$");
 const SUFFIX_SEPARATOR_RE = regex("(\\s*,!*\\s*)");
 
-/**
- * Normalize a structured personal name with CSL particles and suffixes.
- *
- * @see https://github.com/zotero/utilities/blob/1dd38e27edf81e9d9c4161c957b7efb7f5681ac3/utilities_item.js#L500
- */
 export function parseNameParticles(name: CslPersonName): void {
   if (isQuoted(name.family)) {
     name.family = name.family.slice(1, -1);

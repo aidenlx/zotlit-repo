@@ -1,81 +1,34 @@
 import * as v from "valibot";
 
-/**
- * Parse Zotero note-editor citation / annotation mark payloads — the
- * URL-encoded JSON a note stores in its `data-citation` / `data-annotation`
- * attributes — into the identifiers a DB query looks items and annotations up
- * by (library + key). DOM-free: the caller pulls the encoded string off the
- * element and passes it here.
- *
- * Shapes mirror Zotero's annotation→note serializer: a citation holds
- * `{ citationItems: [{ uris, locator }], properties }`; an annotation holds
- * `{ attachmentURI, annotationKey, color, pageLabel, position, citationItem }`.
- * Keys the parser does not consume (`properties`, `position`) are dropped by the
- * `v.object` schemas rather than declared.
- *
- * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/editorInstance.js#L1614-L1652
- * @see https://github.com/zotero/note-editor/blob/107ab75c3247c6584bda2303ecbddf4b317fdd2d/src/core/schema/nodes.js#L369-L455
- */
-
-/** A Zotero object URI resolved to the identifiers a DB query needs. */
 export interface ZoteroRef {
-  /** `"user"` for personal libraries (synced or local), `"group"` for groups. */
   libraryType: "user" | "group";
-  /** Group ID when {@link libraryType} is `"group"`, else `null`. */
   groupID: number | null;
-  /** The Zotero object key (last URI path segment). */
   key: string;
 }
 
-/** A single cited item parsed from a `data-citation` payload. */
 export interface CitationItem {
-  /** Raw Zotero object URIs identifying the cited regular item. */
   uris: string[];
-  /** First {@link uris} entry resolved to a {@link ZoteroRef}, else `null`. */
   ref: ZoteroRef | null;
-  /** Locator (page/section) the citation pins, when present. */
   locator?: string;
-  /** Raw CSL locator label (e.g. `"page"`, `"chapter"`), when present. */
   label?: string;
-  /** Whether the author is suppressed (word-processor-style `-@key`). */
   suppressAuthor?: boolean;
-  /** Text rendered before the citation, when present. */
   prefix?: string;
-  /** Text rendered after the citation, when present. */
   suffix?: string;
 }
 
-/** Parsed `data-citation` payload (one Zotero citation mark). */
 export interface CitationInfo {
   citationItems: CitationItem[];
 }
 
-/** Parsed `data-annotation` payload (highlight / underline / image excerpt). */
 export interface AnnotationInfo {
-  /** The annotation item's own Zotero key. */
   annotationKey: string;
-  /** URI of the attachment the annotation belongs to. */
   attachmentURI: string;
-  /**
-   * Attachment URI resolved to a {@link ZoteroRef}. The annotation shares the
-   * attachment's library, so this also carries the library for its own lookup.
-   */
   attachment: ZoteroRef | null;
   color?: string;
   pageLabel?: string;
-  /** The cited regular item (attachment's parent) the excerpt points at. */
   citationItem?: CitationItem;
 }
 
-/**
- * Matches a Zotero item URI — the internal `http://zotero.org/` identifier
- * stored in note payloads (not the `https://www.zotero.org` web URL).
- *
- * @example http://zotero.org/users/local/aB3/items/KEY
- * @example http://zotero.org/users/12345/items/KEY (synced user library)
- * @example http://zotero.org/groups/9/items/KEY
- * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/uri.js#L39-L43
- */
 const ITEM_URI = new URLPattern({
   protocol: "http",
   hostname: "zotero.org",
@@ -115,12 +68,6 @@ const AnnotationSchema = v.object({
   citationItem: v.optional(CitationItemSchema),
 });
 
-/**
- * Decode the URL-encoded JSON Zotero stores in a mark's data attribute and
- * validate it against `schema`. Returns `null` when the value is absent, not
- * valid encoded JSON, or fails validation, so one malformed mark can't abort a
- * note import.
- */
 function parseDataAttribute<TSchema extends v.GenericSchema>(
   schema: TSchema,
   encoded: string | null,
@@ -157,20 +104,12 @@ function toCitationItem(
   };
 }
 
-/** Parse a `data-citation` payload, or `null` when absent or malformed. */
 export function parseCitationData(encoded: string | null): CitationInfo | null {
   const data = parseDataAttribute(CitationSchema, encoded);
   if (!data) return null;
   return { citationItems: data.citationItems.map(toCitationItem) };
 }
 
-/**
- * One entry of a note container's `data-citation-items`: a cited item's
- * identifying {@link uris} plus its CSL-JSON `itemData`. `itemData` is a
- * `v.looseObject` so every CSL variable survives, not just `citation-key` —
- * {@link parseEmbeddedCitationSnapshot} exposes the full snapshot for legs
- * (e.g. cross-library or degraded-DB cites) that need item data beyond the key.
- */
 const EmbeddedCitationItemSchema = v.object({
   uris: v.array(v.string()),
   itemData: v.optional(
@@ -178,15 +117,6 @@ const EmbeddedCitationItemSchema = v.object({
   ),
 });
 
-/**
- * Decode a note container's `data-citation-items` attribute into a
- * `Map<uri, citationKey>`. Zotero hoists each cited item's CSL-JSON onto the
- * container; every URI of an entry maps to that entry's citation key, so a
- * citation mark resolves by any of its `uris`. This is the snapshot citekey
- * source for cites the live DB can't resolve (e.g. cross-library). Returns an
- * empty map when the attribute is absent or malformed, so one bad payload can't
- * abort a note import.
- */
 export function parseEmbeddedCitationItems(
   encoded: string | null,
 ): Map<string, string> {
@@ -203,15 +133,6 @@ export function parseEmbeddedCitationItems(
   return map;
 }
 
-/**
- * Decode a note container's `data-citation-items` attribute into a
- * `Map<uri, itemData>` of each cited item's full embedded CSL-JSON snapshot.
- * Companion to {@link parseEmbeddedCitationItems}: the note-import cite leg
- * reads item data (title, date, container title, …) from this snapshot when
- * the live DB can't resolve the ref (cross-library cite, degraded DB).
- * Entries without `itemData` are omitted; returns an empty map when the
- * attribute is absent or malformed.
- */
 export function parseEmbeddedCitationSnapshot(
   encoded: string | null,
 ): Map<string, Record<string, unknown>> {
@@ -227,7 +148,6 @@ export function parseEmbeddedCitationSnapshot(
   return map;
 }
 
-/** Parse a `data-annotation` payload, or `null` when absent or malformed. */
 export function parseAnnotationData(
   encoded: string | null,
 ): AnnotationInfo | null {

@@ -1,4 +1,3 @@
-// Keeps one source generation with its parsed syntax, rendering input and valid occurrences.
 import type { NoteScanRecord } from "#core/citation-index/scan-note.ts";
 import type { FileScan } from "#core/citation-index/store.ts";
 import { Effect } from "effect";
@@ -79,10 +78,6 @@ export class ParsedNote {
   }
 }
 
-/**
- * The note's current source with its parse. A note saved during the parse is
- * read again, so the source and the record are of one generation.
- */
 export const readParsedNote = Effect.fn("readParsedNote")(function* (
   file: TFile,
 ) {

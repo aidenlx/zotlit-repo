@@ -29,10 +29,6 @@ import { layerAnnotationImageCli } from "./register-cli.ts";
 import { ANNOTATION_IMAGE_COMMAND } from "#obsidian/excerpt-image/cli-image.ts";
 import { ExcerptImageService } from "#obsidian/excerpt-image/service.ts";
 
-/**
- * The command the layer registers, over `reads`, a data directory at
- * `dataDir`, and an Excerpt Image service that resolves nothing.
- */
 const registered = (
   reads: Layer.Layer<ZoteroReads>,
   dataDir: string,
@@ -74,7 +70,6 @@ const registered = (
     return command;
   });
 
-/** The real ZoteroReads over the annotations scenario database. */
 const scenarioReads = Effect.acquireDisposable(
   Effect.sync(() => openScenarioDatabase(connectClient, { annotations: true })),
 ).pipe(

@@ -1,8 +1,3 @@
-// The golden parity test. Zotero's pinned modules, run from a local checkout,
-// are the oracle for the Structured Characters and Page Labels the port
-// produces; the Sort Index strings Zotero itself wrote into the Fixture are the
-// oracle for the Sort Index.
-
 import type { Rect, StructuredPage, ZoteroChar } from "#chars.ts";
 import type { PdfPosition } from "#sort-index.ts";
 import type { RangeEnd, RangeStep } from "#text-selection.ts";
@@ -32,11 +27,6 @@ const run = promisify(execFile);
 
 const packageRoot = getPackageRoot(import.meta.filename);
 
-/**
- * Parity means parity with one fork, so every commit of the checkout the port
- * came from is pinned: a checkout at another revision, or with edits on top,
- * would quietly compare the port against different upstream code and pass.
- */
 const PINNED_COMMITS = {
   ".": "22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c",
   reader: "132bb787937a540a09513415fd507654eb0e88f9",
@@ -48,11 +38,6 @@ const git = (repository: string, ...args: string[]) =>
     .then(({ stdout }) => stdout.trim())
     .catch(() => null);
 
-/**
- * The checkout sits beside the repository unless the environment names it.
- * Beside the *repository*, not beside the workspace root, so the default still
- * resolves from a worktree.
- */
 async function defaultCheckout(): Promise<string> {
   const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
   const commonDir = await git(
@@ -90,10 +75,6 @@ const checkoutProblem = await findCheckoutProblem();
 
 const skip = checkoutProblem !== null;
 
-/**
- * Always runs, so a machine without the checkout reads the reason in the
- * report instead of seeing the whole suite quietly disappear.
- */
 describe("the golden oracle", () => {
   it("is a Zotero checkout pinned to the commits the port came from", (context) => {
     if (checkoutProblem) {
@@ -152,7 +133,6 @@ function zoteroChars(items: readonly OracleItem[]): ZoteroChar[] {
     .map((char) => ({ ...char, rect: [...char.rect] }));
 }
 
-/** Every Fixture PDF, so the parity claim covers every layout the Fixture has. */
 const PDFS = [
   "rougier-2014/rougier-2014.pdf",
   "ioannidis-2005/ioannidis-2005.pdf",
@@ -180,12 +160,6 @@ describe.skipIf(skip)("Structured Characters and Page Labels", () => {
   );
 });
 
-/**
- * The Fixture carries every PDF Annotation type on `RGRPDF24` with the Sort
- * Index Zotero's own reader wrote for it, so those strings are an oracle no
- * part of this package took part in producing. The Annotations on the other
- * Attachments carry reviewed anchors rather than captured Zotero output.
- */
 describe.skipIf(skip)("the Sort Index", () => {
   it("reproduces every Sort Index Zotero wrote into the Fixture", async () => {
     const attachment = ATTACHMENTS.find(({ key }) => key === "RGRPDF24")!;
@@ -216,12 +190,6 @@ describe.skipIf(skip)("the Sort Index", () => {
   }, 180_000);
 });
 
-/**
- * The Fixture's two hand-built PDFs exist to drive the line grouping down
- * branches the published papers never reach. The Spec declares which branch
- * each one is for; this checks the bytes still deliver it, so a regenerated
- * PDF that lost its rotated block cannot quietly weaken the parity claim.
- */
 describe.skipIf(skip)("the parity PDFs the Fixture declares", () => {
   it.each(PARITY_PDFS)(
     "exercise the branches $branches",
@@ -240,8 +208,6 @@ describe.skipIf(skip)("the parity PDFs the Fixture declares", () => {
       if (chars.some(({ c, u }) => c.length > 1 && u.length === 1)) {
         branches.add("ligature");
       }
-      // The generator sets the left column at x = 60 and the right at x = 330,
-      // so the midpoint between them separates the two runs.
       const columnSplitX = 195;
       const columns = new Set(
         chars
@@ -258,7 +224,6 @@ describe.skipIf(skip)("the parity PDFs the Fixture declares", () => {
   );
 });
 
-/** The Fixture PDFs that carry a text layer. */
 const withTextLayer = () =>
   PDFS.filter(
     (asset) =>
@@ -267,7 +232,6 @@ const withTextLayer = () =>
       ),
   );
 
-/** The reader's own selection module, which the text-selection port copies. */
 interface ZoteroSelection {
   extractRange(options: {
     chars: readonly unknown[];
@@ -292,7 +256,6 @@ interface ZoteroSelection {
   ): ZoteroRange[];
 }
 
-/** One page's part of a selection, as Zotero's reader holds it. */
 interface ZoteroRange {
   anchorOffset: number;
   headOffset: number;
@@ -303,13 +266,7 @@ interface ZoteroRange {
   text: string;
 }
 
-/**
- * The text-selection port against Zotero's own `selection.js`, over the same
- * Structured Characters: the characters themselves are already proved above,
- * so this isolates the range, rectangle and text rules.
- */
 describe.skipIf(skip)("text ranges", () => {
-  /** Anchor and head pairs spread over the page, both directions included. */
   const pairs = (charCount: number) =>
     Array.from({ length: 40 }, (_, i) => [
       (i * 37) % (charCount + 1),
@@ -369,14 +326,6 @@ describe.skipIf(skip)("text ranges", () => {
   );
 });
 
-/**
- * A highlight's end dragged to a point, against the reader's own pointer path:
- * the ranges read off the stored rects, turned round for the start, and moved
- * to a point, then kept to two pages with their text joined by one space. The
- * drags where the port keeps the stored shape instead — past the anchor, or
- * off the Annotation's page — are compared as `null`s the port answers
- * elsewhere, so only the drags both sides place are compared.
- */
 describe.skipIf(skip)("dragged range ends", () => {
   it.each(withTextLayer())(
     "match Zotero's pointer path on %s",
@@ -440,8 +389,6 @@ describe.skipIf(skip)("dragged range ends", () => {
                   { position, end, point: { pageIndex: on, x, y } },
                   byIndex,
                 );
-                // A drag back onto the stored characters keeps the stored
-                // rects by design, so only its text is compared.
                 const kept =
                   adjusted !== null &&
                   round(adjusted.rects) === round(position.rects);
@@ -466,14 +413,6 @@ describe.skipIf(skip)("dragged range ends", () => {
   );
 });
 
-/**
- * A highlight's end stepped from the keyboard, against the reader's own key
- * path: the ranges read off the stored rects, turned round for the start, and
- * moved one character or one line. A step Zotero refuses — one that would
- * collapse or turn the range round — or one that carries the range off the
- * Annotation's page, the port answers `null`; these, and a step that leaves
- * the range as it was, are all compared as "unchanged".
- */
 describe.skipIf(skip)("stepped range ends", () => {
   it.each(withTextLayer())(
     "match Zotero's key path on %s",
@@ -493,8 +432,6 @@ describe.skipIf(skip)("stepped range ends", () => {
 
       for (const { pageIndex, chars } of pages) {
         if (chars.length < 2) continue;
-        // A range at each end of the page as well as inside it, so a step
-        // crosses onto the next page and off the first.
         const spans = [
           [0, Math.min(chars.length, 7)],
           [Math.max(0, chars.length - 5), chars.length],
@@ -510,8 +447,6 @@ describe.skipIf(skip)("stepped range ends", () => {
           };
           for (const end of ["start", "end"] as RangeEnd[]) {
             for (const step of ["left", "right", "up", "down"] as const) {
-              // The page before is there so a step off the first page is seen
-              // to leave it.
               const expected = zoteroDrag(zotero, {
                 pages: Object.fromEntries(
                   [pageIndex - 1, pageIndex, pageIndex + 1].flatMap((index) => {
@@ -524,17 +459,10 @@ describe.skipIf(skip)("stepped range ends", () => {
                 head: step,
               });
               const adjusted = adjustRange({ position, end, step }, byIndex);
-              // Zotero reads the range off the rects again, which on
-              // overlapping glyphs can take a character the stored rects
-              // were not built from; its own step that goes nowhere answers
-              // that read.
               const [reread] = zotero.getSelectionRangesByPosition(
                 Object.fromEntries([[pageIndex, byIndex.get(pageIndex)!]]),
                 position,
               );
-              // A step that moves nothing writes nothing, whether it answers
-              // the range unchanged, as Zotero does where no page lies
-              // before, or `null`.
               const said = (
                 answer: {
                   rects: readonly Rect[];
@@ -564,14 +492,6 @@ describe.skipIf(skip)("stepped range ends", () => {
   );
 });
 
-/**
- * Zotero's reader dragging one end of a stored highlight to a point, or
- * stepping it from the keyboard; `null` for a move the port answers
- * differently by design: one that turns the range round, collapses it, or
- * leaves the Annotation's page.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/pdf-view.js — `_handlePointerMove`, `updateAnnotationRange`; `_getAnnotationFromSelectionRanges`
- */
 function zoteroDrag(
   zotero: ZoteroSelection,
   {
@@ -600,7 +520,6 @@ function zoteroDrag(
     first.position.pageIndex !== position.pageIndex
   )
     return null;
-  // A range turned round runs its head before its anchor on the anchor's page.
   const anchorRange = moved.find((range) => range.anchor);
   const headRange = moved.find((range) => range.head);
   if (

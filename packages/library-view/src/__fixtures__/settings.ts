@@ -1,9 +1,3 @@
-// The settings the Library View reads, for its tests: the platform slices,
-// the reader and citation slices, the notes' Profile, template and note import
-// slices, and the Library View's own library, Welcome View and release slices. A host's program registers more keys, which these tests never
-// read, so this definition stands in for its whole map. It carries no
-// migration of a host's `data.json` history: a test names the migrations it
-// runs.
 import type { Layer } from "effect";
 import type { Plugin } from "obsidian";
 import * as v from "valibot";
@@ -55,8 +49,6 @@ export const defaults = Object.freeze({
   ...releaseSettings.defaults,
 }) as Readonly<Settings>;
 
-// A host's program registers more keys than these slices hold, so the schema
-// stands in for the whole registry, as `defaults` does.
 const schema = v.object({
   ...logSettings.entries,
   ...citationSettings.entries,
@@ -76,7 +68,6 @@ const schema = v.object({
 
 export const settingsDefinition: SettingsDefinition = { schema, defaults };
 
-/** The settings store under this package's definition. */
 export function layerSettings(
   plugin: Pick<Plugin, "loadData" | "saveData">,
   options: Partial<PluginSettingsOptions> = {},
@@ -87,7 +78,6 @@ export function layerSettings(
   });
 }
 
-/** The real store over `options.plugin`, under this package's definition. */
 export const buildSettings = (
   options: Omit<DefinedSettingsOptions, "definition">,
 ) => buildDefinedSettings({ definition: settingsDefinition, ...options });

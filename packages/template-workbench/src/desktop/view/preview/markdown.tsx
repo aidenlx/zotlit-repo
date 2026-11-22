@@ -2,7 +2,6 @@ import type { RenderedProperty, RenderedRange } from "#core/render/index.ts";
 import type { PreviewCitation } from "#obsidian/view/preview/citations.ts";
 import type { WorkbenchMarkdownProps } from "#obsidian/workbench-ui/index.tsx";
 import { Effect } from "effect";
-// Obsidian owns Markdown rendering; each output owns and unloads its render children.
 import { Component, MarkdownRenderer } from "obsidian";
 import type { App } from "obsidian";
 import { useEffect, useRef, useState } from "react";
@@ -40,13 +39,10 @@ export function PreviewMarkdown({
   markdown: string;
   surface?: WorkbenchMarkdownProps["surface"];
   result: PreviewRenderResult | null;
-  /** Source provenance from the shared result; native Markdown keeps its reading-view styling. */
   marks?: readonly RenderedRange[];
   properties?: readonly RenderedProperty[];
-  /** The note's YAML block as the render wrote it; the Markdown view prints it above the body. */
   frontmatterBlock?: string | null;
   showMarkdown?: boolean;
-  /** Opens the Properties block when it turns true; the reader's toggle rules after that. */
   expandProperties?: boolean;
   onRendered?: () => void;
 }) {
@@ -55,20 +51,15 @@ export function PreviewMarkdown({
   useEffect(() => {
     if (expandProperties) setCollapsed(false);
   }, [expandProperties]);
-  // Source that renders to nothing, such as an empty Managed Region between
-  // its markers, is known only once the app has rendered it.
   const [renderedEmpty, setRenderedEmpty] = useState(false);
   const toggleCollapsed = () => setCollapsed((value) => !value);
   useEffect(() => {
     const element = container.current;
     if (!element || showMarkdown) return;
     element.dataset["zotlitPreviewPending"] = "";
-    // The pusher stands where the app's does, so its first-block rule applies.
     const pusher = element.createDiv({ cls: "markdown-preview-pusher" });
     const target = element.createDiv();
     target.dataset["zotlitDraft"] = "";
-    // Keep the target away from Obsidian's last-section rule, as the native
-    // Reading view does with its footer after the rendered blocks.
     const footer = element.createDiv({ cls: "mod-footer mod-ui" });
     const lifecycle = new Component();
     let disposed = false;
@@ -147,10 +138,6 @@ export function PreviewMarkdown({
     );
   }
   if (blank && present.length === 0) return <EmptyNote />;
-  // The sheet is a reading view: the app's own classes lay out the file margins,
-  // the readable line width, the Properties block, and the body spacing. The
-  // Properties always show here, whatever the vault's own document setting,
-  // under the app's own heading, which folds them the way the editor does.
   return (
     <div
       className={cn(
@@ -216,7 +203,6 @@ export function PreviewMarkdown({
     </div>
   );
 }
-/** Stands where the note would, so a blank result reads as one rather than as a gap. */
 function EmptyNote() {
   return (
     <p className="zt:my-6 zt:text-center zt:text-sm zt:text-muted-foreground">
@@ -224,7 +210,6 @@ function EmptyNote() {
     </p>
   );
 }
-/** Whitespace carries layout, while these offsets locate the rendered characters. */
 function compact(value: string): string {
   let text = "";
   for (const character of value) if (character.trim() !== "") text += character;
@@ -233,7 +218,6 @@ function compact(value: string): string {
 function visibleText(element: HTMLElement): string {
   return compact(element.textContent ?? "");
 }
-/** Use the same replacements as saved notes, with this draft's formatted occurrences. */
 export function presentCitations(
   target: HTMLElement,
   formatted: readonly PreviewCitation[],

@@ -1,9 +1,3 @@
-// Turns the Template Contract IR into the page model behind the generated
-// reference page: sections, tables, rows, normalized prose, and resolved links.
-//
-// Pure and framework-free — the emitter renders it to MDX, the table component
-// renders it to React, and both restate the contract identically.
-
 import { regex } from "arkregex";
 
 import type {
@@ -19,18 +13,15 @@ import type {
 import { SECTIONS } from "./sections.ts";
 import type { SectionSpec } from "./sections.ts";
 
-/** One run of a description: plain prose, inline code, or a resolved link. */
 export type InlineNode =
   | { kind: "text"; value: string }
   | { kind: "code"; value: string }
   | { kind: "link"; href: string; text: string; code: boolean };
 
-/** A normalized doc comment: paragraphs of inline runs. */
 export type Doc = readonly (readonly InlineNode[])[];
 
 export interface PageModel {
   sections: readonly PageSection[];
-  /** Members and types the contract leaves undocumented. */
   warnings: readonly string[];
 }
 
@@ -38,32 +29,23 @@ export interface PageSection {
   id: string;
   title: string;
   level: 2 | 3;
-  /** Fixed page-template prose, emitted as MDX verbatim. */
   lead?: string;
-  /** Hand-written partial inlined under this heading. */
   include?: string;
-  /** The contract's own description of the sole type documented here. */
   description: Doc;
   tables: readonly TableModel[];
-  /** Options of a section documenting a union of string literals. */
   values: readonly SectionValue[];
-  /** Rows of the item-type → `zt` field map. */
   itemTypes: readonly ItemTypeRow[];
 }
 
-/** One option of a documented union of string literals. */
 export interface SectionValue {
   value: string;
   description: Doc;
 }
 
 export interface TableModel {
-  /** Element id the row anchors extend, e.g. `#creators-family`. */
   id: string;
   caption?: string;
-  /** The contract's own description of this table's type; empty unless the section documents several. */
   description: Doc;
-  /** Rendered before every row name, e.g. `zt.`. */
   prefix?: string;
   rows: readonly RowModel[];
 }
@@ -71,25 +53,18 @@ export interface TableModel {
 export interface RowModel {
   name: string;
   optional: boolean;
-  /** Compact type for the collapsed row. */
   shortType: string;
-  /** Complete type for the expanded row. */
   fullType: string;
-  /** Anchor of the section documenting this member's type. */
   typeHref?: string;
   description: Doc;
   examples: readonly ContractExample[];
   helper?: HelperPresentation;
 }
 
-/** How a function-valued member is written in each engine. */
 export interface HelperPresentation {
   signature: string;
-  /** Plain access in Liquid, e.g. `{{ zt.noteLink }}`. */
   liquid: string;
-  /** The call in Eta, e.g. `<%= zt.noteLink(alias, subpath) %>`. */
   eta: string;
-  /** Liquid filter overriding the arguments, e.g. `{{ zt | note_link: alias, subpath }}`. */
   filter?: string;
 }
 
@@ -98,14 +73,11 @@ export interface ItemTypeRow {
   fields: readonly string[];
 }
 
-/** A member serialized as a path back to an object the root already emitted. */
 interface ReferenceTarget {
   path: string;
-  /** Anchor of the root section the path is rooted at. */
   href: string;
 }
 
-/** `specs` is the page template; tests pass a fixture one. */
 export function buildPageModel(
   ir: ContractIR,
   specs: readonly SectionSpec[] = SECTIONS,
@@ -124,7 +96,6 @@ export function buildPageModel(
   };
 }
 
-/** The section `id` documents; both renderers resolve a section id through here, so they fail alike. */
 export function sectionOf(model: PageModel, id: string): PageSection {
   const section = model.sections.find((entry) => entry.id === id);
   if (!section) throw new Error(`No contract section ${id}`);
@@ -138,7 +109,6 @@ interface BuildContext {
   warnings: string[];
 }
 
-/** The section documenting `type`, or `undefined` when the page template places none. */
 function sectionForType(
   specs: readonly SectionSpec[],
   type: string,
@@ -163,7 +133,6 @@ function collectReferences(
   return references;
 }
 
-/** Every named type the contract reaches needs a section, so none lands undocumented. */
 function assertEveryTypeIsPlaced(
   ir: ContractIR,
   specs: readonly SectionSpec[],
@@ -223,11 +192,6 @@ function namedType(ir: ContractIR, name: string): ContractNamedType {
   return type;
 }
 
-/**
- * The tables a section holds, in order: one per object type it documents, plus
- * one per object variant of a union it documents. The emitter and the link
- * resolver both number rows off these ids, so they agree by construction.
- */
 function sectionTables(spec: SectionSpec, ir: ContractIR): TableSlot[] {
   const objects = (spec.types ?? []).flatMap((name) =>
     variantsOf(name, namedType(ir, name)),
@@ -240,7 +204,6 @@ function sectionTables(spec: SectionSpec, ir: ContractIR): TableSlot[] {
   }));
 }
 
-/** A union of objects documents one table per variant; every other type documents one. */
 function variantsOf(
   name: string,
   type: ContractNamedType,
@@ -280,7 +243,6 @@ function itemTypeRows(ir: ContractIR): ItemTypeRow[] {
   }));
 }
 
-/** One table's place in its section: which type, which variant, under which id. */
 interface TableSlot {
   owner: string;
   object: ContractObject;
@@ -346,12 +308,6 @@ function buildRow(
   };
 }
 
-/**
- * A doc comment writes its `@example` against the `zt` root, but the IR flattens
- * an inherited member into every shape that carries it. Point the member's own
- * accessor at this section's sample so a nested shape's example reads the
- * property the row documents; everything else in the sample stays verbatim.
- */
 function retarget(
   examples: readonly ContractExample[],
   name: string,
@@ -365,7 +321,6 @@ function retarget(
   }));
 }
 
-/** A link helper reaches the page either bare or as one option of `helper | null`. */
 function findHelper(type: ContractType): ContractHelper | undefined {
   switch (type.kind) {
     case "helper":
@@ -395,7 +350,6 @@ function presentHelper(
   };
 }
 
-/** Parameter names of a rendered signature, e.g. `alias`, `subpath`. */
 function parameterNames(signature: string): string[] {
   const parameters = signature.slice(1, signature.indexOf(")"));
   return parameters
@@ -404,7 +358,6 @@ function parameterNames(signature: string): string[] {
     .filter((parameter) => parameter.length > 0);
 }
 
-/** Section anchor for the type a member exposes, seen through arrays and `| null`. */
 function typeHrefFor(
   type: ContractType,
   specs: readonly SectionSpec[],
@@ -435,7 +388,6 @@ function unwrapRef(type: ContractType): string | undefined {
   }
 }
 
-/** Options past this many collapse to an ellipsis in a collapsed row. */
 const SHORT_UNION_OPTIONS = 3;
 
 function renderType(type: ContractType, short: boolean): string {
@@ -470,7 +422,6 @@ function renderType(type: ContractType, short: boolean): string {
     case "union": {
       const options = type.options.map((option) => {
         const rendered = renderType(option, short);
-        // A signature inside a union needs parentheses to keep its return type.
         return rendered.includes("=>") ? `(${rendered})` : rendered;
       });
       if (short && options.length > SHORT_UNION_OPTIONS) {
@@ -481,19 +432,8 @@ function renderType(type: ContractType, short: boolean): string {
   }
 }
 
-/**
- * A doc comment writes code as a Markdown span and links as the plain
- * `{@link Target}` form.
- */
 const INLINE = regex("`(?<span>[^`]+)`|\\{@link\\s+(?<target>[^}\\s]+)}", "g");
 
-/**
- * JSDoc wraps at the source's column limit and links its own symbols. Rejoin
- * each paragraph so the description reads as prose, keep the paragraph breaks,
- * and split it into the runs both renderers need — a code span stays code in
- * Markdown and in React, and every link tag resolves against the page. `owner`
- * is the type whose doc this is, so a bare member link resolves within it.
- */
 export function normalizeDoc(
   text: string | undefined,
   owner: string | undefined,
@@ -530,11 +470,6 @@ function splitInline(
   return nodes;
 }
 
-/**
- * A type target links to the section documenting it, a qualified or bare member
- * target to the member's row. Both keep the contract's own name as the link
- * text. A target the IR does not carry degrades to plain code text.
- */
 function resolveLink(
   target: string,
   owner: string | undefined,

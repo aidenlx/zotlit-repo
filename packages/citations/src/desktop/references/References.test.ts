@@ -288,7 +288,6 @@ describe("References", () => {
 
     const row = container.querySelector("li")!;
     expect(row.querySelector("em")?.textContent).toBe("Field notes");
-    // A bare anchor, which Obsidian itself opens in the system browser.
     const link = row.querySelector("a")!;
     expect(link.getAttribute("href")).toBe("https://doi.org/10.1000/182");
     expect(link.getAttributeNames()).toStrictEqual(["href"]);
@@ -315,8 +314,6 @@ describe("References", () => {
     expect(container.querySelector("li")!.children[0]!.textContent).toBe("⚠");
   });
 
-  // A note-class style writes no Entry Marker, so the gutter carries the Entry
-  // Serials the document's own citations show.
   it("shows Entry Serials in the gutter of a document that shows them", async () => {
     const container = await render(
       [
@@ -459,8 +456,6 @@ describe("References", () => {
     expect(row.textContent).toContain(
       "@doe2024 matches multiple items in your Zotero library.",
     );
-    // Item summary, Library name, and bare Zotero key: the three facts that
-    // tell two candidates of one Library apart.
     const rows = [...row.querySelectorAll("li")];
     expect(rows.map((el) => el.textContent)).toStrictEqual([
       "Doe (2024): A study of citationsMy LibraryDOE2024A",
@@ -469,7 +464,6 @@ describe("References", () => {
     expect(
       row.querySelector('[data-icon="file-text"]')?.hasAttribute("disabled"),
     ).toBe(true);
-    // The citations are still in the document, so jumping to them stands.
     expect(
       row
         .querySelector('[data-icon="chevron-right"]')
@@ -511,10 +505,6 @@ describe("References banners", () => {
     linkpath: "notes/BOOK0001",
   };
 
-  /**
-   * Inside the scrolling region, so a banner travels with the list it
-   * describes and the toolbar above keeps its own place.
-   */
   it.each([
     [
       "the hint that offers the Resource Pack",
@@ -646,11 +636,6 @@ describe("References toolbar", () => {
     )!;
   }
 
-  /**
-   * The action counts as live when activating it still reaches the reveal:
-   * a disabled icon button swallows its own click, so the reveal stays
-   * uncalled.
-   */
   async function activateStyleAction(container: HTMLElement): Promise<void> {
     await act(() => styleAction(container).click());
   }

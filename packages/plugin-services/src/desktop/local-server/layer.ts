@@ -21,15 +21,10 @@ import { createLiveUpdateApp } from "#obsidian/local-server/live-update-app.ts";
 import { NoteIndex } from "#obsidian/note-index/service.ts";
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
-/**
- * How many consecutive ports the listener tries, starting at the configured
- * one. A second vault on the same port setting takes the next free port.
- */
 const PORT_RANGE = 10;
 
 const MAX_PORT = 65535;
 
-/** Outcome of one bind attempt: the listener, a busy port, or a dead end. */
 type BindResult = { server: ServerType; port: number } | "in-use" | "failed";
 
 export const layerLocalServer: Layer.Layer<
@@ -43,7 +38,6 @@ export const layerLocalServer: Layer.Layer<
     const zoteroPref = yield* ZoteroPref;
     const noteIndex = yield* NoteIndex;
 
-    // Node callbacks and Hono handlers run outside Effect.
     const { runSync: run, runPromiseExit } = yield* scopedBridge;
 
     const available = yield* SubscriptionRef.make(false);
@@ -63,7 +57,6 @@ export const layerLocalServer: Layer.Layer<
     let stoppedFlag = false;
     const app = new Hono();
 
-    /** Recompute availability from the toggles and the bind. */
     const refreshAvailability = Effect.fn("LocalServer.refreshAvailability")(
       function* () {
         const next =
@@ -88,7 +81,6 @@ export const layerLocalServer: Layer.Layer<
       );
     });
 
-    /** Fan a parsed notify event out to its typed channel. */
     function dispatch(event: NotifyEvent): void {
       switch (event.event) {
         case "db/updated":
@@ -111,11 +103,6 @@ export const layerLocalServer: Layer.Layer<
       }
     }
 
-    /**
-     * One bind attempt. Resolves the listening server, `"in-use"` when the port
-     * is taken so the caller tries the next one, or `"failed"` when the bind is
-     * hopeless — a bad hostname, say, which every port in the range repeats.
-     */
     const listen = (port: number): Effect.Effect<BindResult> =>
       Effect.callback<BindResult>((resume) => {
         let bound = false;
@@ -125,12 +112,6 @@ export const layerLocalServer: Layer.Layer<
               fetch: app.fetch,
               port,
               hostname,
-              // The listener swaps its own `Request`/`Response` classes into
-              // the globals unless told otherwise, and those globals belong to
-              // the whole Obsidian window. WebAssembly streaming brand-checks
-              // the native `Response`, so a swapped-in class stops the Pandoc
-              // engine from instantiating. The listener keeps the native
-              // classes instead.
               overrideGlobalObjects: false,
             },
             (info) => {
@@ -166,7 +147,6 @@ export const layerLocalServer: Layer.Layer<
               }
               return;
             }
-            // A failure past the bind: the listener is gone, so report it down.
             if (server !== listener) return;
             run(
               Effect.gen(function* () {
@@ -179,8 +159,6 @@ export const layerLocalServer: Layer.Layer<
             );
           });
         } catch (error) {
-          // `serve` throws synchronously on an unusable listen option; without
-          // this the promise never settles and disposal waits on it forever.
           run(
             Effect.logError("Failed to start server").pipe(
               Effect.annotateLogs({ port, error }),
@@ -190,17 +168,11 @@ export const layerLocalServer: Layer.Layer<
         }
       });
 
-    /**
-     * Binds the first free port in the range that starts at the configured one,
-     * so a second vault sharing the setting still gets a listener.
-     */
     const startServer = Effect.fn("LocalServer.startServer")(function* () {
       for (let offset = 0; offset < PORT_RANGE; offset++) {
         const candidate = port + offset;
         if (candidate > MAX_PORT) break;
         const result = yield* listen(candidate);
-        // A port held by someone else is the case the range exists for; any
-        // other bind failure repeats on every port, so stop after the first.
         if (result === "in-use") continue;
         if (result === "failed") return;
         server = result.server;
@@ -263,8 +235,6 @@ export const layerLocalServer: Layer.Layer<
       }),
     );
 
-    // This runs after the settings consumer stops: its finalizer registers
-    // later, and Scope finalizers run in reverse order.
     yield* Effect.addFinalizer(() =>
       Effect.gen(function* () {
         stoppedFlag = true;
@@ -298,16 +268,11 @@ export const layerLocalServer: Layer.Layer<
         liveUpdateEnabled = nextLiveUpdate;
         port = nextPort;
         hostname = nextHostname;
-        // Live Update's toggle gates its own routes, so flipping it alone
-        // leaves the listener where it is.
         if (rebind) yield* reconcile;
         else yield* refreshAvailability();
       },
     );
 
-    // Settings replay the current snapshot first. The sentinel port makes that
-    // first event rebind, and `forkEach` handles one event at a time so binds
-    // never overlap.
     yield* forkEach(settings.changes, (value) => onSettingsChanged(value));
 
     return LocalServer.of({

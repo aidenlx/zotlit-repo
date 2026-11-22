@@ -16,20 +16,6 @@ export interface DropdownProps extends Omit<
   ref?: Ref<HTMLSelectElement>;
 }
 
-/**
- * @see {@link tooltipAttrs} for opting into Obsidian's hover tooltip.
- *
- * @example
- * ```tsx
- * <Dropdown value={mode} onChange={setMode}>
- *   <DropdownItem value="light">Light</DropdownItem>
- *   <DropdownItem value="dark">Dark</DropdownItem>
- *   <DropdownGroup label="Auto">
- *     <DropdownItem value="system">Match system</DropdownItem>
- *   </DropdownGroup>
- * </Dropdown>
- * ```
- */
 export function Dropdown({
   value,
   onChange,

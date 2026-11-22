@@ -1,4 +1,3 @@
-// Bounded enumeration shared by Item Index builds and whole-Library batch selection.
 import { Effect, Stream } from "effect";
 // oxlint-disable-next-line no-restricted-imports -- ItemQueryScheduler preserves MessageChannel scheduling and bounds the batch merge's work per turn.
 import { Scheduler } from "effect";
@@ -10,13 +9,10 @@ import { makeSortedRuns } from "@zotlit/shared/sorted-runs";
 
 import { read } from "./connection.ts";
 
-/** Item IDs one scan read spans; a sparse range reads fewer rows. */
 const SCAN_ID_SPAN = 500;
 
-/** Rows one merge step of the newest-first sort orders. */
 const MERGE_STEP_ROWS = 500;
 
-/** The caller keeps `client` borrowed until the stream finishes or is interrupted. */
 export const scanIndexedItems = (client: ZoteroDatabase, libraryID: number) =>
   Stream.unwrap(
     Effect.map(
@@ -26,7 +22,6 @@ export const scanIndexedItems = (client: ZoteroDatabase, libraryID: number) =>
           ? Stream.empty
           : Stream.unfold(
               bounds.min,
-              // Untraced: runs once per Item ID span of the scan.
               Effect.fnUntraced(function* (from: number) {
                 if (from > bounds.max) return undefined;
                 yield* Effect.yieldNow;
@@ -40,7 +35,6 @@ export const scanIndexedItems = (client: ZoteroDatabase, libraryID: number) =>
     ),
   );
 
-/** Preserve newest-first batch order while the scan and merge share the worker. */
 export const readIndexedItemIDs = Effect.fn("readIndexedItemIDs")(
   function* (client: ZoteroDatabase, libraryID: number) {
     const sorted = makeSortedRuns<IndexedItemScanRow>(

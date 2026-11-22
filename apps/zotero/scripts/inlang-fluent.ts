@@ -1,6 +1,3 @@
-// Maps the Obsidian compiler's message data to Fluent: one Derived Fluent
-// File per locale, the emitted IDs, and the typed message-ID map.
-
 import * as AST from "@fluent/syntax";
 
 import type {
@@ -15,29 +12,21 @@ import type {
 } from "@zotlit/obsidian-i18n/compiler";
 
 export interface FluentEmitOptions {
-  /** Bundle-ID namespace the Companion selects, e.g. `"zotero."`. */
   namespace: string;
-  /** Fluent ID prefix, e.g. `"zotlit"` — emitted as `zotlit-…`. */
   prefix: string;
-  /** Project locale to Zotero locale directory, e.g. `{ en: "en-US" }`. */
   localeAliases: Readonly<Record<string, string>>;
 }
 
 export interface FluentEmitResult {
-  /** Fluent text keyed by the Zotero locale directory name. */
   files: Map<string, string>;
-  /** Every Fluent message ID the base locale defines. */
   ids: Set<string>;
-  /** Source of `src/types/fluent.ts`. */
   types: string;
 }
 
-/** The "value" leaf: under a message object, the message value rather than an attribute. */
 const VALUE_LEAF = "value";
 const CATCHALL = Symbol("catchall");
 const FLUENT_IDENTIFIER = /^[a-zA-Z][a-zA-Z0-9_-]*$/;
 
-/** Fluent's DATETIME takes an epoch timestamp through `L10nArgs`, so the compiler's date type narrows to a number. */
 const DATETIME_INPUT_TYPE = "DatetimeInput";
 
 type FluentTarget = { id: string; attribute: string | undefined };
@@ -46,7 +35,6 @@ type FluentMessageDraft = {
   value: AST.Pattern | null;
   attributes: AST.Attribute[];
   inputs: Map<string, string>;
-  /** Whether the locale lacks a part (value or attribute) the base locale defines. */
   partial: boolean;
 };
 
@@ -127,19 +115,12 @@ function draftLocale(
       );
     }
   }
-  // Fluent falls back per message ID, never per attribute, so a message the
-  // locale translates only in part is omitted whole and renders in the base
-  // locale rather than with a blank attribute.
   for (const [id, draft] of drafts) {
     if (locale !== baseLocale && draft.partial) drafts.delete(id);
   }
   return drafts;
 }
 
-/**
- * `zotero.menu_item_open.label` → `zotlit-menu-item-open` with attribute
- * `label`; a trailing `value` leaf or no leaf at all names the value.
- */
 function fluentTarget(
   bundleId: string,
   namespace: string,
@@ -182,7 +163,6 @@ function toPattern(message: Message, bundleId: string): AST.Pattern {
   return scope.select(message.variants, selectors, 0);
 }
 
-/** One message's declarations, resolving locals inline since Fluent has none. */
 class Scope {
   readonly #locals = new Map<string, Expression>();
   readonly #bundleId: string;
@@ -226,7 +206,6 @@ class Scope {
     expression: Extract<Expression, { type: "formatter" }>,
   ): AST.InlineExpression {
     const argument = this.inline(expression.argument);
-    // Fluent selects CLDR plural categories from a bare number on its own.
     if (expression.name === "plural") return argument;
     const named = Object.entries(expression.options).map(([name, value]) => {
       if (value.type !== "literal") {
@@ -274,8 +253,6 @@ class Scope {
         `Missing catch-all for selector "${selector}"`,
       );
     }
-    // A table with only the catch-all row is a plain pattern; a `local`
-    // declared for formatting alone arrives in this shape.
     if (groups.size === 1) {
       return this.select(groups.get(CATCHALL)!, selectors, depth + 1);
     }

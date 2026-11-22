@@ -33,34 +33,23 @@ export interface Use {
   readonly kind: UseKind;
 }
 
-/** The newest Use of each Item, keyed by Item key. */
 export type Ledger = Readonly<Record<string, Use>>;
 
 const STORAGE_KEY = "zotlit-use-ledger";
 const CAPACITY = 300;
 
-/** The last Use of each Item on this device, persisted per vault. */
 export class UseLedger extends Context.Service<
   UseLedger,
   {
     readonly current: Effect.Effect<Ledger>;
-    /** The ledger now, then each ledger a recorded Use replaces it with. */
     readonly changes: Stream.Stream<Ledger>;
     get(itemKey: string): Effect.Effect<Use | undefined>;
-    /** A snapshot for the query worker and the empty Item search. */
     readonly uses: Effect.Effect<Readonly<Record<string, number>>>;
-    /**
-     * Keeps the newest Use and returns this action for live read write-back.
-     * Without `instant`, the Use happens now, by the Effect Clock. A save
-     * that throws fails with its {@link DeviceStorageError} and keeps the
-     * ledger as it was.
-     */
     record(
       itemKey: string,
       kind: UseKind,
       instant?: DateTime.Utc,
     ): Effect.Effect<Use, DeviceStorageError>;
-    /** Keep a Companion update's own navigation outside the Use timeline. */
     withoutNoteUse<A, E, R>(
       file: TFile,
       open: Effect.Effect<A, E, R>,
@@ -74,10 +63,6 @@ declare module "@zotlit/obsidian-kit/view-atoms.ts" {
   }
 }
 
-/**
- * The ledger loaded from local storage, recording Item notes as they open.
- * Closing the scope stops recording.
- */
 const makeUseLedger = Effect.gen(function* () {
   const storage = yield* DeviceStorage;
   const metadata = yield* MetadataCache;
@@ -106,7 +91,6 @@ const makeUseLedger = Effect.gen(function* () {
       Object.fromEntries(
         Object.entries(next).map(([key, entry]) => [
           key,
-          // Temporal's ISO form, the bytes the ledger has always saved.
           { instant: toInstant(entry.instant).toString(), kind: entry.kind },
         ]),
       ),
@@ -125,10 +109,6 @@ const makeUseLedger = Effect.gen(function* () {
     ),
     Effect.forkScoped({ startImmediately: true }),
   );
-  // Each `file-open` counts, from `changes`, which does not replay: the file
-  // active when the ledger builds is not an open. forkEach hands each over
-  // inside Obsidian's callback, so an open the flush below delivers lands
-  // inside or outside an operation's scope as it happened.
   yield* forkEach(
     filterTag(workspace.changes, "file-open"),
     Effect.fnUntraced(function* ({ file }) {
@@ -153,15 +133,12 @@ const makeUseLedger = Effect.gen(function* () {
       if (key) yield* record(key, "opened", instant);
     }),
   );
-  // Runs first on close: a Use recorded during teardown is not kept.
   yield* Effect.addFinalizer(() =>
     Effect.sync(() => {
       closed = true;
     }).pipe(Effect.andThen(PubSub.shutdown(ledger.pubsub))),
   );
 
-  // Obsidian defers file-open: deliver a pending open, so it lands inside or
-  // outside an operation's scope as it happened.
   const flush = workspace.requestActiveLeafEvents;
 
   return UseLedger.of({
@@ -210,10 +187,6 @@ export const layerUseLedger: Layer.Layer<
   DeviceStorage | MetadataCache | Workspace
 > = Layer.effect(UseLedger, makeUseLedger);
 
-/**
- * The Uses saved for this vault, or none when they cannot be read: the ledger
- * builds during plugin load, so a failed read must not stop the plugin.
- */
 function readSaved(
   storage: DeviceStorageShape,
 ): Effect.Effect<Record<string, Use>> {
@@ -235,7 +208,6 @@ const decodeEntry = Schema.decodeUnknownOption(
   Schema.Struct({ instant: Schema.String, kind: UseKind }),
 );
 
-/** The Uses saved in local storage; an unreadable entry carries no Use. */
 function loadUses(raw: unknown): Record<string, Use> {
   const loaded: Record<string, Use> = {};
   const saved = Option.getOrElse(decodeSaved(raw), () => ({}));

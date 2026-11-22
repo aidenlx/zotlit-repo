@@ -1,4 +1,3 @@
-// A PluginHost for tests: it keeps what a layer registers until the layer closes.
 import type { App, Command, PluginManifest } from "obsidian";
 
 import { Effect, Layer } from "effect";
@@ -7,11 +6,6 @@ import type { PluginHostShape } from "#plugin-host.ts";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-/**
- * A host whose commands land in `commands` by the id the layer gave, and
- * leave it when the registering Scope closes. Any other member a test needs
- * comes in `members`; reading one it lacks throws.
- */
 export function testPluginHost(
   members: Partial<Omit<PluginHostShape, "app" | "manifest">> & {
     app?: App;

@@ -61,11 +61,6 @@ export interface TemplateNoteLink {
   noteLink: TemplateLink;
 }
 
-/**
- * A Markdown link that opens `note` in Zotero, labelled `alias` or else the
- * note's title (its key when untitled): what `noteLink` renders for a child
- * note with no imported note.
- */
 export function zoteroNoteLink(
   note: Pick<ChildNote, "key" | "groupID" | "title">,
   alias?: string,
@@ -111,82 +106,30 @@ export interface NoteTemplateContext
   notes: TemplateNoteLink[];
 }
 
-/**
- * Resolvers for attachment file paths and annotation rendering (comment
- * conversion, excerpt images). Shared by {@link buildNoteContext}'s
- * {@link NoteContextInput} and `fetchAnnotationsTemplateData` (`./note-context`),
- * so both render annotations identically.
- */
 export interface AnnotationResolvers {
-  /** Resolve an attachment to its absolute on-disk path; `null` when unresolvable. */
   filePath: (attachment: Attachment) => string | null;
-  /**
-   * Build an attachment's file-link helper. Pass the Annotation's page and
-   * Indexed Key to default the helper's subpath to `#page=N&zt-annotation=KEY`
-   * — the page Obsidian jumps to, and the Annotation Anchor ZotLit lands a Mark
-   * on; the helper returns `null` when the file is unresolvable.
-   */
   fileLink: (
     attachment: Attachment,
     anchor?: AnnotationFileLinkAnchor,
   ) => FallibleTemplateLink;
-  /**
-   * Build an annotation's excerpt-image link helper, or `null` when the
-   * annotation type has no cached image. Prefix `!` to the rendered link for an
-   * embed.
-   */
   annotationImageLink: (annotation: Annotation) => TemplateLink | null;
-  /**
-   * Convert an annotation's raw comment HTML to Markdown. Called lazily, only
-   * when a template reads `zt.comment`, so the conversion is skipped otherwise.
-   */
   commentToMarkdown: (html: string) => string;
-  /** Short author summary (e.g. `"Smith et al."`) for the annotation's parent item. */
   authorsShort: (item: Item) => string;
 }
 
 export type NoteContextInput = AnnotationResolvers &
   TemplateItemResolvers & {
     item: Item;
-    /** The signed-in account username, resolved once per batch; `null` when unknown/never-synced. */
     username: string | null;
-    /** The item's attachments, in display order. */
     attachments: readonly Attachment[];
-    /** Annotations keyed by their parent attachment's `itemID`. */
     annotationsByAttachment: ReadonlyMap<number, readonly Annotation[]>;
-    /** Tag applications keyed by Zotero itemID. */
     tagsByItemID: ReadonlyMap<number, readonly ItemTag[]>;
-    /**
-     * Resolved collections keyed by Zotero itemID, for the main item and related
-     * items only — annotations are never collection members, so they are absent.
-     */
     collectionsByItemID: ReadonlyMap<number, readonly TemplateCollection[]>;
-    /**
-     * Items related to {@link item} via Zotero's "Related" panel, already
-     * resolved (trashed / unresolvable relations omitted). Each is mapped to a
-     * {@link TemplateRelatedItem} and title-sorted.
-     */
     relatedItems: readonly Item[];
-    /**
-     * Item's child notes, eagerly listed by the caller. Each is mapped through
-     * {@link resolveChildNote} into {@link NoteTemplateContext.notes}; omitting
-     * either (the annotation/filename paths) leaves `notes` empty.
-     */
     childNotes?: readonly ChildNote[];
-    /** Map a child note to its link-only template shape. */
     resolveChildNote?: (note: ChildNote) => TemplateNoteLink;
   };
 
-/**
- * The minimal `zt` root for the **note-filename** template: an item's own
- * {@link TemplateFilenameItemData} and nothing else. Unlike {@link buildNoteContext}
- * this resolves no attachments, annotations, related items, or app-layer
- * resolvers, so a filename query stays a single-item read. `notePath` /
- * `noteLink` are empty stubs (a name is resolved before the note exists) —
- * present so a filename template referencing them renders `""` instead of
- * throwing. Pure: the caller passes the item's tags, collections, and
- * localized Author Summary formatter in.
- */
 export function buildFilenameContext(input: {
   item: Item;
   tags: readonly ItemTag[];
@@ -200,7 +143,6 @@ export function buildFilenameContext(input: {
   );
 }
 
-/** Stub `notePath`/`noteLink` as inert empty values; see {@link TemplateFilenameItemData}. */
 function toFilenameItemData(
   baseData: TemplateItemBaseData,
   collections: readonly TemplateCollection[],
@@ -216,11 +158,6 @@ function toFilenameItemData(
   };
 }
 
-/**
- * Assemble the {@link NoteTemplateContext} from raw DB rows plus the runtime
- * resolvers the query layer deliberately omits. Pure: all I/O (DB fetch, path
- * resolution) is done by the caller and passed in.
- */
 export function buildNoteContext(input: NoteContextInput): NoteTemplateContext {
   const { item } = input;
   const itemResolvers: TemplateItemResolvers = {
@@ -238,8 +175,6 @@ export function buildNoteContext(input: NoteContextInput): NoteTemplateContext {
   );
 
   const annotations: TemplateAnnotation[] = [];
-  // `result` is referenced inside annotation objects (`parentItem`); it is
-  // only read after this function returns.
   let result: NoteTemplateContext;
 
   input.attachments.forEach((attachment, i) => {
@@ -276,7 +211,6 @@ export function buildNoteContext(input: NoteContextInput): NoteTemplateContext {
     : [];
 
   const collections = input.collectionsByItemID.get(item.itemID) ?? [];
-  // The inert item-own twin the resolvers receive; see TemplateItemResolvers.
   const filenameData = toFilenameItemData(
     baseData,
     collections,
@@ -343,11 +277,6 @@ function buildRelatedItem({
   });
 }
 
-/**
- * Locale-aware title sort approximating Zotero's Related panel ordering;
- * untitled items sort last. Diverges from Zotero intentionally: no
- * article-stripping or display-title fallback (`getSortTitle`).
- */
 function byTitle(a: TemplateRelatedItem, b: TemplateRelatedItem): number {
   const at = a.title ?? "";
   const bt = b.title ?? "";

@@ -1,12 +1,9 @@
-// A full Item for the tests of @zotlit/db and its consumers, built through the
-// same base-field and Venue rules as a query result.
 import type { ItemFields } from "@zotlit/zotero-types";
 
 import { USER_LIBRARY_ID } from "./lib/constants.ts";
 import { itemBaseFields, resolveVenue } from "./lib/zt-venue.ts";
 import type { BaseItem, Item } from "./queries/items.ts";
 
-/** A minimal full DB item fixture (Hensher2011-shaped defaults), overridable via `fields`/`base`. */
 export function makeItem(
   fields: { itemType: string } & Record<string, string | null>,
   base?: Partial<BaseItem>,

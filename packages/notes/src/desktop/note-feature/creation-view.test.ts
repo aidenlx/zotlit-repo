@@ -41,7 +41,6 @@ vi.mock("#desktop/profile/profile-picker.ts", () => ({
 
 type PickerOptions = Parameters<typeof openLiteratureNoteProfile>[1];
 
-/** The picker answers what `answer` gives for its options, as the user would. */
 function pickerAnswers(
   answer: (options: PickerOptions) => Promise<ProfilePick | undefined>,
 ) {
@@ -85,10 +84,6 @@ function booksPreview(
   };
 }
 
-/**
- * The interactive creation's ports and services over one fixed selection and
- * its previews.
- */
 function creation(
   selection: CreationProfileSelection,
   previews: readonly PlannedCreationProfile[],
@@ -127,11 +122,6 @@ function creation(
   };
 }
 
-/**
- * Run the creation of `item` on `harness`'s services, built on the case's
- * Scope. Its notices keep showing after it returns, as they do in the
- * plugin, until the case ends.
- */
 const run = Effect.fnUntraced(function* (
   harness: ReturnType<typeof creation>,
   options?: InteractiveCreationOptions,
@@ -146,7 +136,6 @@ const run = Effect.fnUntraced(function* (
   return created;
 });
 
-/** Start {@link run} on a detached fiber, for {@link interruptedWithin}. */
 const start = (harness: ReturnType<typeof creation>) =>
   run(harness).pipe(Effect.forkDetach({ startImmediately: true }));
 
@@ -191,7 +180,6 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const file = noteAt("Reading/Paper-7cx.md");
-      // The write waits once it starts; an interrupt that reaches it stops it.
       const entered = yield* Deferred.make<void>();
       let stopped = false;
       const create = Deferred.succeed(entered, undefined).pipe(
@@ -307,7 +295,6 @@ it.effect("creates directly under an explicit Profile, Default included", () =>
       { selector: "default", source: "headless", shouldAsk: true },
       [preview, booksPreview()],
     );
-    // No label: the notice names Default.
     expect(yield* run(harness, { headless: "default", direct: true })).toEqual({
       file: expect.objectContaining({ path: "Literature/Paper.md" }),
       under: { label: undefined, reason: undefined },
@@ -331,7 +318,6 @@ it.effect("creates under the bound Profile with no question", () =>
     harness.feature.createNote.mockReturnValue(
       Effect.succeed({ outcome: "created", file }),
     );
-    // No `under`: the bound create shows the plain notice.
     expect(yield* run(harness)).toStrictEqual({ file });
     expect(harness.feature.createNote).toHaveBeenCalledExactlyOnceWith(ITEM, {
       profile: "default",
@@ -489,7 +475,6 @@ it.effect.each(["new", "import"] as const)(
     Effect.gen(function* () {
       const opened = yield* Deferred.make<void>();
       const close = vi.fn();
-      // The dialog stays open until something closes it.
       const dialog = awaitModal<undefined>(() => {
         Deferred.doneUnsafe(opened, Effect.void);
         return { close };

@@ -1,10 +1,3 @@
-// Expression Completion for the Filter Expression language: what a Formula, a
-// Query View filter condition or a Match condition offers at the caret. The
-// fields, the namespaces and the functions come from the vocabulary the host
-// passes and from the function registry of `@zotlit/item-query`, so the list
-// cannot disagree with evaluation. Members after a `.` are in
-// `expression-members.ts`, quoted keys in `expression-keys.ts`, and the names
-// a list method binds in `list-scope.ts`.
 import { startCompletion } from "@codemirror/autocomplete";
 import type { Completion, CompletionContext } from "@codemirror/autocomplete";
 import type { Extension } from "@codemirror/state";
@@ -50,7 +43,6 @@ export type {
   ExpressionVocabulary,
 } from "./expression-options.ts";
 
-/** Tokens whose text a completion must not interrupt. */
 const LITERALS = new Set(["String", "RegExp", "RealNumber", "Escape"]);
 
 const FUNCTIONS: readonly ExpressionOption[] = [
@@ -72,14 +64,12 @@ function namespaced(
   const path = `${namespace}.${name}`;
   return {
     label: path,
-    // A name the dot cannot reach takes bracket access.
     insert: isMemberName(name) ? path : `${namespace}[${JSON.stringify(name)}]`,
     kind: "namespace",
     ...noteOf(path, label),
   };
 }
 
-/** Every entry of the vocabulary, in the order the list shows ties. */
 function entries(vocabulary: ExpressionVocabulary): ExpressionOption[] {
   return [
     ...vocabulary.fields.map(fieldOption),
@@ -90,14 +80,6 @@ function entries(vocabulary: ExpressionVocabulary): ExpressionOption[] {
   ];
 }
 
-/**
- * What the list offers with the caret at `pos` of `source`: quoted keys in
- * `vault[...]` and `custom[...]`; after the `.` of a value, its members;
- * elsewhere the names a list method binds there, fields, namespaces and
- * functions, matched by the name or the label against the typed word or
- * namespace path. `null` where the caret stands in a literal, or on no typed
- * word unless `explicit`, after a `.` or in an element expression.
- */
 export function expressionCompletions(
   source: string,
   pos: number,
@@ -129,7 +111,6 @@ export function expressionCompletions(
       ? null
       : { from: path.from, to: path.to, options };
   }
-  // The word typed is the identifier the caret is in or at the end of.
   const word =
     inner.name === "Identifier" && inner.from < pos ? inner : undefined;
   const from = word?.from ?? pos;
@@ -141,10 +122,6 @@ export function expressionCompletions(
   return options.length === 0 ? null : { from, to, options };
 }
 
-/**
- * The fields of `dataset` a Filter Expression reads by name, each with the
- * type its planner gives it and the label `label` gives its path.
- */
 export function datasetExpressionFields(
   dataset: Pick<QueryDataset, "id" | "names" | "planFilter">,
   label: (path: string) => string | undefined = () => undefined,
@@ -173,12 +150,10 @@ export function datasetExpressionFields(
   });
 }
 
-/** The planned fields of each dataset, which a descriptor never changes. */
 const typedFields = new WeakMap<object, ExpressionField[]>();
 
 const optionOf = new WeakMap<Completion, ExpressionOption>();
 
-/** The entry a completion was made from, for a host that draws its own cells. */
 export function expressionOption(
   completion: Completion,
 ): ExpressionOption | undefined {
@@ -210,7 +185,6 @@ function completionAt(
       const completion: Completion = {
         label: option.label,
         type: option.kind,
-        // CodeMirror hands the range it mapped through any edit since.
         apply: (...[view, , from, to]: Parameters<ApplyCompletion>) => {
           view.dispatch({
             changes: { from, to, insert: option.insert },
@@ -219,7 +193,6 @@ function completionAt(
             },
             userEvent: "input.complete",
           });
-          // The caret now stands where the method binds its names.
           if (option.kind === "method" && bindsNames(option.label))
             startCompletion(view);
         },
@@ -230,11 +203,6 @@ function completionAt(
   };
 }
 
-/**
- * Expression Completion over the vocabulary `read` gives, read per keystroke
- * so a Formula added since the editor opened is offered; a `null` vocabulary
- * offers nothing. The list opens on typing, `.` included.
- */
 export function filterExpressionCompletion(
   read: () => ExpressionVocabulary | null | undefined,
   presentation: CompletionPresentation = {},

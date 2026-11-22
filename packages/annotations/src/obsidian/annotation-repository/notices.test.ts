@@ -34,7 +34,6 @@ const CONFLICT: MutationState = {
   conflict: {} as WriteConflict,
 };
 
-/** The one action button of a recorded notice, or null where it has none. */
 function actionOf(notice: RecordedNotice): ButtonComponent | null {
   const actions = (
     notice.messages[0] as DocumentFragment
@@ -44,7 +43,6 @@ function actionOf(notice: RecordedNotice): ButtonComponent | null {
   return button instanceof ButtonComponent ? button : null;
 }
 
-/** One recorded notice as the screen shows it. */
 function drawn(notice: RecordedNotice) {
   const fragment = notice.messages[0] as DocumentFragment;
   return {
@@ -54,15 +52,10 @@ function drawn(notice: RecordedNotice) {
   };
 }
 
-/** Presses the one action of a recorded notice. */
 function press(notice: RecordedNotice): void {
   actionOf(notice)!.click();
 }
 
-/**
- * The notices layer over fakes of the repository and the Local API, with every
- * notice caught where the screen would show it and each event sent by hand.
- */
 function seam(
   options: {
     authorize?: Effect.Effect<LocalApiResult<void>>;
@@ -145,8 +138,6 @@ it.effect("re-checks Zotero before it opens the editing settings row", () =>
     const gesture = yield* Effect.forkChild(notices.showEditingCapability, {
       startImmediately: true,
     });
-    // The row waits for the probe: it renders the capability, and a stale one
-    // would name a state Zotero has already left.
     expect(ran).toEqual(["probe"]);
     expect(opened).toEqual([]);
 
@@ -156,7 +147,6 @@ it.effect("re-checks Zotero before it opens the editing settings row", () =>
   }).pipe(Effect.scoped),
 );
 
-/** Allow editing against a Zotero that gives these answers in turn. */
 function answering(...answers: LocalApiResult<void>[]) {
   const asked = { count: 0 };
   return Effect.map(
@@ -203,7 +193,6 @@ it.effect(
           duration: 10000,
         },
       ]);
-      // No second request leaves until the user presses the button (ADR 0038).
       expect(asked.count).toBe(1);
 
       press(notifier.notices[0]!);
@@ -258,7 +247,6 @@ it.effect(
       press(notifier.notices[0]!);
       expect(built.ran).toEqual(["open"]);
 
-      // Editing works again, which closes the episode: the next block speaks.
       built.setCapability({ kind: "writable" });
       built.events.capabilityChanges.emit();
       built.setCapability(CLOSED);
@@ -283,7 +271,6 @@ it.effect(
       press(built.notifier.notices[0]!);
       expect(built.ran).toEqual([`reveal ${ANNOTATION}`]);
 
-      // The card settled, so the next conflict on it is news.
       built.setMutation(IDLE);
       built.events.annotationChanged.emit(ANNOTATION);
       built.events.writeConflicts.emit(conflict);

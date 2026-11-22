@@ -13,17 +13,11 @@ import { registerTemplateWorkbench } from "./register.ts";
 
 import { workbenchContext } from "#__fixtures__/cli.ts";
 
-/** The host version the check command reports. */
 const env = Context.make(
   ObsidianEnv,
   stubService<ObsidianEnv["Service"]>("ObsidianEnv", { apiVersion: "1.0.0" }),
 );
 
-/**
- * The flags each command declares. Obsidian checks its own `required` list
- * before it calls the handler, so a parser test cannot see what a real call
- * would be rejected for; this reads the registration itself.
- */
 function declaredFlags(): Map<string, CliFlags | null> {
   const { host, commands } = fakeCliHost();
   registerTemplateWorkbench(

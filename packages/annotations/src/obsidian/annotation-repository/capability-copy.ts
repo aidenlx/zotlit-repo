@@ -1,58 +1,21 @@
-// What each Editing Capability says to the user, in one table every surface
-// reads: the settings row, the reader's Creation Toolbar, and the Annotation
-// View toolbar all name one state the same way.
-
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { EditingCapability } from "./capability.ts";
 
-/**
- * An instant as the copy reads it: milliseconds since the epoch. Plain code
- * passes a `Temporal.Instant` and Effect code a `DateTime.Utc`; both carry it.
- */
 export interface CopyInstant {
   readonly epochMilliseconds: number;
 }
 
-/**
- * How a surface should present the state, so a renderer picks its colour and
- * its accessible role without re-deriving them from the enum.
- */
-export type CapabilityTone =
-  /** Editing is on; nothing is wrong and nothing is pending. */
-  | "ready"
-  /** The user can fix it, and the gesture that does is the obvious one. */
-  | "action"
-  /** ZotLit or Zotero is working, or waiting; nothing to do but wait. */
-  | "busy"
-  /** Editing is off for a reason the user should read. */
-  | "warning";
+export type CapabilityTone = "ready" | "action" | "busy" | "warning";
 
-/** One Editing Capability as a surface renders it. */
 export interface CapabilityCopy {
-  /** The Obsidian icon the always-present affordance shows. */
   icon: string;
   tone: CapabilityTone;
-  /** One line naming the state. */
   label: string;
-  /** What to do about it, or null where the label is the whole of it. */
   detail: string | null;
-  /**
-   * Whether the icon turns, because ZotLit or Zotero is working. Decided here
-   * rather than re-derived from the enum, so the table stays the one dispatch.
-   */
   spinning: boolean;
 }
 
-/**
- * The copy and icon for one Editing Capability.
- *
- * A cooldown counts down, so the caller supplies the instant it is read at and
- * re-reads this while the clock runs; every other state is a pure lookup.
- *
- * @param capability the state to render.
- * @param now the instant a cooldown's remaining seconds are measured from.
- */
 export function editingCapabilityCopy(
   capability: EditingCapability,
   now: CopyInstant,
@@ -67,8 +30,6 @@ export function editingCapabilityCopy(
         spinning: false,
       };
     case "authorization-required":
-      // The same icon as writable: the card verbs stay blocked until one Allow
-      // editing, which is what opens Zotero's dialog.
       return {
         icon: "pencil",
         tone: "action",
@@ -99,40 +60,16 @@ export function editingCapabilityCopy(
   }
 }
 
-/**
- * The enable-editing affordance, as the reader's vanilla render function draws
- * it. A writable capability returns `null`, because the ordinary editing
- * controls take its place. The Annotation View reads {@link
- * editingCapabilityCopy} straight, in a row of its header menu.
- *
- * @see apps/obsidian/docs/adr/0042-the-surfaces-inside-the-pdf-reader-are-vanilla-dom-on-obsidians-popover.md
- */
 export interface CapabilityAffordance {
   disabled: boolean;
-  /** The Obsidian icon, from the one icon map. */
   icon: string;
   tone: CapabilityTone;
-  /** The accessible name, which Obsidian also renders as the hover tooltip. */
   tooltip: string;
-  /** The action label shown beside the icon. */
   label: string;
-  /** Whether the icon turns, because ZotLit or Zotero is working. */
   spinning: boolean;
-  /** Whole seconds left of a cooldown, or null while nothing counts down. */
   countdown: number | null;
 }
 
-/**
- * What the affordance shows while one Editing Capability is unavailable.
- *
- * The tooltip carries the whole of the copy table's answer, because the
- * affordance is one icon with nowhere else to put the detail; a surface that
- * counts down re-reads this once a second while {@link
- * CapabilityAffordance.countdown} is not null.
- *
- * @param capability the state to show.
- * @param now the instant a cooldown's remaining seconds are measured from.
- */
 export function editingCapabilityAffordance(
   capability: EditingCapability,
   now: CopyInstant,
@@ -163,10 +100,6 @@ export function editingCapabilityAffordance(
   };
 }
 
-/**
- * Whole seconds left of a cooldown, never negative: a deadline already past
- * reads as zero rather than counting up.
- */
 export function secondsUntil(deadline: CopyInstant, now: CopyInstant): number {
   const left = (deadline.epochMilliseconds - now.epochMilliseconds) / 1000;
   return left <= 0 ? 0 : Math.ceil(left);
@@ -177,7 +110,6 @@ function readOnlyCopy(
 ): CapabilityCopy {
   switch (reason) {
     case "probing":
-      // Checking is not a fault, so it reads as busy rather than as a warning.
       return {
         icon: "loader",
         tone: "busy",

@@ -1,4 +1,3 @@
-// A References test host over controlled service reads and in-memory Obsidian sources.
 import { Effect, Layer, Stream } from "effect";
 import type { TFile } from "obsidian";
 

@@ -1,4 +1,3 @@
-// Engine status and render revisions shared by bibliography reading surfaces.
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
@@ -8,10 +7,6 @@ import { BibliographyRender } from "./render-cache.ts";
 import { PandocEngine } from "./service.ts";
 import type { PandocEngineStatus } from "./service.ts";
 
-/**
- * Where the engine stands. Its first value needs no read of the pack file, so
- * a vault with no pack shows that at once.
- */
 export const pandocEngineAtom = held<PandocEngineStatus>(
   Stream.unwrap(
     Effect.map(PandocEngine, (engine) =>
@@ -37,7 +32,6 @@ export const bibliographyRevisionsAtom = held(
   {},
 );
 
-/** Global bibliography invalidation, shared by Template Document previews. */
 export const bibliographyRevisionAtom = Atom.map(
   bibliographyRevisionsAtom,
   (revisions) => revisions["*"] ?? 0,

@@ -1,11 +1,3 @@
-// The one Mark Popup of a PDF view, opened, moved and closed from the floating
-// surface of the Reader Surface State alone.
-//
-// Each variant's owner keeps its row and its anchor geometry; the host only
-// asks them, so the rule that one floating surface stands at a time is the
-// union's, not the order in which two classes hand gestures to each other.
-//
-// @see apps/obsidian/docs/adr/0056-reader-surface-state-is-one-vanilla-store-per-pdf-view.md
 import { Effect } from "effect";
 import type { HoverParent } from "obsidian";
 import { createElement, Fragment } from "react";
@@ -25,58 +17,23 @@ import type { ReaderSurface } from "./reader-surface-model.ts";
 import { drawsNoPopup, selectFloatingHead } from "./reader-surface-state.ts";
 import type { Floating, PopuplessFloating } from "./reader-surface-state.ts";
 
-/** One floating variant, as its owner hands it to the host. */
 export interface MarkPopupVariant {
-  /**
-   * Where the popup hangs, read from the page as it stands now, in client
-   * coordinates. `null` while the target is off screen, which hides the popup
-   * and keeps what floats.
-   */
   anchor: () => Point | null;
-  /**
-   * What the popup shows, as a Preact element; `undefined` leaves what it
-   * shows as it stands.
-   *
-   * @param content the popup's content element, which focus may move within.
-   */
   render: (content: HTMLElement) => ReactNode | undefined;
-  /**
-   * Runs once the anchor reads `null` and the popup has hidden, for a variant
-   * that cannot outlive its place on screen.
-   */
   unanchored?: () => void;
 }
 
 export interface MarkPopupHostDeps {
-  /** The hover parent, which is the binding rather than the PDF view. */
   parent: HoverParent;
-  /** The document of the PDF view, which the popup stands in. */
   doc: () => Document;
   surface: ReaderSurface;
-  /**
-   * Whether the PDF view shows: another tab can cover it. A covered view
-   * hides its popup but keeps it mounted, with what floats and a comment
-   * typed in it, for when the view shows again.
-   */
   shown: () => boolean;
-  /**
-   * What each floating kind draws, and where it hangs. An image capture, a
-   * Text Draft and a group have no popup.
-   */
   variants: Record<
     Exclude<Floating["kind"], PopuplessFloating["kind"]>,
     MarkPopupVariant
   >;
 }
 
-/**
- * Opens the popup for a floating variant with an anchor, and hides it for
- * none, an image capture, a Text Draft, a group, a quiet selection, a selection whose grip is held
- * and not yet saving, an anchor of `null`, or a PDF view another tab covers. Any change to what floats or to
- * its row renders the popup again; a change of variant kind or of selected key
- * mounts its content anew, and any other change is a diff in place, which is
- * what keeps an editor alive.
- */
 export class MarkPopupHost implements Disposable {
   readonly #deps;
   readonly #unsubscribe;
@@ -93,18 +50,12 @@ export class MarkPopupHost implements Disposable {
     this.#place({ refresh: false });
   }
 
-  /**
-   * Whether a press on a node belongs to the popup: one inside it, or any press
-   * while a menu opened from inside it stands. That press picks a menu item or
-   * closes the menu, so it does not leave the popup.
-   */
   contains(node: Node | null): boolean {
     const hoverEl = this.#popup?.hoverEl;
     if (!hoverEl) return false;
     return hoverEl.contains(node) || hasActiveMenu(hoverEl);
   }
 
-  /** The pages moved: the popup re-hangs from its anchor, or hides. */
   sync(): void {
     this.#place({ refresh: false });
   }
@@ -115,9 +66,6 @@ export class MarkPopupHost implements Disposable {
   }
 
   #place(options: { refresh: boolean }): void {
-    // A covered view keeps its popup, hidden, so an editor in it lives on.
-    // A change that floats while it is covered draws the row again on the
-    // first place after the cover lifts.
     const covered = !this.#deps.shown();
     this.#popup?.hoverEl.toggleAttribute("data-zt-covered", covered);
     if (covered) {
@@ -128,8 +76,6 @@ export class MarkPopupHost implements Disposable {
     this.#changedWhileCovered = false;
     const state = current(this.#deps.surface);
     const { floating } = state;
-    // A press on a grip hides the popup, so it never covers the edge being
-    // placed; the release hangs it again from the mark as it then stands.
     const variant =
       drawsNoPopup(floating) ||
       (floating.kind === "selected" &&
@@ -166,7 +112,6 @@ export class MarkPopupHost implements Disposable {
       return;
     }
     if (this.#popup) {
-      // Redraw first: the popup centres on its anchor by the row's width.
       if (refresh) this.#popup.refresh();
       this.#popup.retarget(anchor);
       return;
@@ -184,7 +129,6 @@ export class MarkPopupHost implements Disposable {
     popup.open();
   }
 
-  /** The variant's content, keyed by what it floats for. */
   #render(content: HTMLElement): ReactNode | undefined {
     const state = current(this.#deps.surface);
     const { floating } = state;
@@ -195,11 +139,6 @@ export class MarkPopupHost implements Disposable {
     return createElement(Fragment, { key: `${kind}:${key}` }, view);
   }
 
-  /**
-   * The field is cleared before the popup hides: unmounting its content can
-   * end an editor's session, and the state change that follows must find no
-   * popup to refresh.
-   */
   #hide(): void {
     const popup = this.#popup;
     this.#popup = null;

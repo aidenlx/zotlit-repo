@@ -1,7 +1,3 @@
-// The platform services the tab rows read, with no member implemented: a
-// test's own services replace these, and a member no test gave fails that
-// Effect with an unimplemented defect. A package whose rows read more merges
-// its own stand-ins over these.
 import { FileSystem, Layer } from "effect";
 
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
@@ -31,7 +27,6 @@ export const unimplementedPlatformTabServices = Layer.mergeAll(
   Layer.mock(LocalServer)({}),
   Layer.mock(ChineseSegmenter)({}),
   Layer.mock(AttachmentImport)({}),
-  // Services with plain members: a read of a member no test gave throws.
   Layer.succeed(
     LanguagePack,
     stubService<LanguagePack["Service"]>("LanguagePack", {}),

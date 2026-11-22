@@ -15,3 +15,9 @@ Resolution reads the base-field mapping rows of the connected database, not a ta
 - Deriving Venue from the Zotero-to-CSL mapping was rejected. That mapping carries citation-rendering-specific behavior a suggester subtitle should not inherit.
 - Venue is display-only. The search index is unchanged: it canonicalizes the container role and indexes nothing from the publisher role, so typing a repository name does not find Preprints. Making Venue searchable would move ranking for every existing query and belongs to its own decision.
 - `Item.fields` stays raw, per-type. The base-field view sits beside it as `Item.baseFields`, so the template data contract is untouched and no user's templates change output.
+
+Read the base-field mapping from the connected database so custom Item Types and fields use the same resolution as stock ones. Cache the mapping by client and requested base-field names, and share it across search and query hydration. The relational query builder's child filter cannot reference the parent Item Type for the required join. Fetch canonical field IDs and type-specific aliases separately, then resolve them in memory using the Item Type and stored field ID.
+
+Use Zotero's field metadata to route custom values to `customFields` and built-in values to `fields`, including built-ins newer than the generated types. Keep the per-type field names available to templates. Resolve canonical base fields alongside them, and skip a null value when filling a base field so it cannot replace a populated value.
+
+Fixtures with only a raw field object use the upstream name mapping. Production queries use live mapping rows by field ID, because only the connected database can resolve the custom fields and Item Types it holds.

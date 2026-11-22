@@ -30,8 +30,6 @@ function profileEnvironment(platform: NodeJS.Platform, appData: string) {
   return { home, [Symbol.dispose]: () => resources.dispose() };
 }
 
-// Failure modes: XDG profiles are missed, legacy profiles lose precedence,
-// or filesystem I/O blocks the renderer instead of suspending the Effect.
 describe("zoteroProfilesRoot", () => {
   for (const { platform, appData, suffix } of [
     { platform: "linux", appData: "/home/me/.config", suffix: "zotero/zotero" },

@@ -5,10 +5,6 @@ import type {
   TemplateRoot,
   WorkbenchItemChoice,
 } from "#obsidian/workbench-ui/index.tsx";
-// Per-leaf state for one Template Data Explorer, as atoms in the plugin's view
-// registry: its target and reading state, the pure transitions that change
-// them, and its data load. A new target reads its data again and interrupts a
-// read in progress.
 import { Cause, Effect, Option, Schema, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -46,7 +42,6 @@ import {
 
 type AnnotationChoices = readonly Pick<AnnotationExample, "id" | "root">[];
 
-/** What the Explorer shows and where its reader is in it. */
 export interface ExplorerSession {
   readonly presentation: ExplorerPresentation;
   readonly restore: ExplorerPresentation | null;
@@ -54,15 +49,11 @@ export interface ExplorerSession {
   readonly root: TemplateRoot;
   readonly annotationId: string | null;
   readonly navigation: TreeState;
-  /** Section ids the reader closed; saved with the workspace. */
   readonly collapsedSections: ReadonlySet<string>;
-  /** Raised by each change that reads the data again. */
   readonly revision: number;
 }
 
-/** The data one target read. */
 export interface ExplorerLoad {
-  /** The Item the read was for; its annotation choices stay while it does. */
   readonly itemId: string | null;
   readonly annotations: AnnotationChoices | null;
   readonly data: Record<string, unknown> | null;
@@ -70,7 +61,6 @@ export interface ExplorerLoad {
   readonly error: string | null;
 }
 
-/** What the Explorer renders: its session and the data its target read. */
 export type ExplorerState = Omit<ExplorerSession, "revision"> &
   Omit<ExplorerLoad, "itemId"> & {
     readonly engines: readonly ("liquid" | "eta")[];
@@ -78,12 +68,10 @@ export type ExplorerState = Omit<ExplorerSession, "revision"> &
 
 export interface ExplorerModel {
   readonly session: Atom.Writable<ExplorerSession>;
-  /** The target's data load: `waiting` until its last read lands. */
   readonly loaded: Atom.Atom<AsyncResult.AsyncResult<ExplorerLoad, unknown>>;
   readonly state: Atom.Atom<ExplorerState>;
 }
 
-/** What the Explorer's tree reads and writes: a standalone Explorer's model, or a panel's. */
 export type ExplorerSurface = Pick<ExplorerModel, "session" | "state">;
 
 export const NO_PRESENTATION: ExplorerPresentation = {
@@ -136,8 +124,6 @@ export function makeExplorerModel(): ExplorerModel {
         error: errorMessage(Cause.squash(result.cause)),
       };
     }
-    // Each load emits its first state at once, so the latest value is this
-    // target's.
     const { itemId: _item, ...load } = Option.getOrElse(
       AsyncResult.value(result),
       (): ExplorerLoad => ({
@@ -153,11 +139,6 @@ export function makeExplorerModel(): ExplorerModel {
   return { session, loaded, state };
 }
 
-/**
- * Holds every atom of `model` in `registry` until the returned release runs.
- * A leaf holds its model from construction to close: Obsidian sets its state
- * before it opens.
- */
 export function holdExplorerModel(
   registry: AtomRegistry.AtomRegistry,
   model: ExplorerModel,
@@ -181,19 +162,11 @@ const sameItemAnnotations = (
 const errorMessage = (cause: unknown): string =>
   cause instanceof Error ? cause.message : String(cause);
 
-// Transitions: each takes the session it changes and returns the next one.
-
-/** Read the target's data again. */
 export const refresh = (session: ExplorerSession): ExplorerSession => ({
   ...session,
   revision: session.revision + 1,
 });
 
-/**
- * Show `root` of `item`, anchored at `annotationId`. A new Item starts its
- * navigation over; a new root or annotation moves its anchor. Either resets
- * the scroll position.
- */
 export const setTarget =
   (
     item: WorkbenchItemChoice | null,
@@ -244,17 +217,12 @@ export const setCollapsedSections =
     collapsedSections,
   });
 
-/** Whether every section the reader can see, `shown`, is closed. */
 export const allSectionsCollapsed = (
   shown: readonly string[],
   collapsedSections: ReadonlySet<string>,
 ): boolean =>
   shown.length > 0 && shown.every((id) => collapsedSections.has(id));
 
-/**
- * Closes every section, or opens every section once all the reader can see,
- * `shown`, are closed.
- */
 export const toggleSections =
   (shown: readonly string[]) =>
   (session: ExplorerSession): ExplorerSession =>
@@ -264,10 +232,6 @@ export const toggleSections =
         : new Set<string>(explorerSectionIds(session.root)),
     )(session);
 
-/**
- * Whether `node` stands in the note root's `annotations`: the list's own row
- * at `depth` 1, or one annotation's row at `depth` 2.
- */
 export function inNoteAnnotations(
   root: TemplateRoot,
   node: DisplayNode,
@@ -281,10 +245,6 @@ export function inNoteAnnotations(
   );
 }
 
-/**
- * The annotation key a row of the note root's `annotations` list names, or
- * null for any other row.
- */
 export function annotationKeyOfNode(
   root: TemplateRoot,
   node: DisplayNode,
@@ -311,8 +271,6 @@ export const clearRestore = (session: ExplorerSession): ExplorerSession => ({
   restore: null,
 });
 
-// Saved state: each field decoded on its own, so one bad field leaves the others.
-
 const decode =
   <A>(schema: Schema.Codec<A>) =>
   (value: unknown): A | null =>
@@ -328,7 +286,6 @@ const strings = (value: unknown): ReadonlySet<string> =>
       : [],
   );
 
-/** What the workspace layout holds for one Explorer. */
 export interface SavedExplorer {
   readonly itemIndexedKey: string | null;
   readonly anchorAnnotationKey: string | null;
@@ -336,7 +293,6 @@ export interface SavedExplorer {
   readonly collapsedSections: ReadonlySet<string>;
 }
 
-/** The saved Explorer in `state`; `null` when it names no target at all. */
 export function readSavedExplorer(state: unknown): SavedExplorer | null {
   if (!state || typeof state !== "object") return null;
   const value = state as Record<string, unknown>;
@@ -351,15 +307,12 @@ export function readSavedExplorer(state: unknown): SavedExplorer | null {
   };
 }
 
-/** What a workspace history entry holds for one Explorer: where its reader was. */
 export interface EphemeralExplorer {
-  /** The target the entry was taken on; another target ignores it. */
   readonly context: string;
   readonly navigation: TreeState;
   readonly presentation: ExplorerPresentation;
 }
 
-/** The Explorer's part of an ephemeral state; `null` when it holds none. */
 export function readEphemeralExplorer(
   input: unknown,
 ): EphemeralExplorer | null {
@@ -399,9 +352,6 @@ export function readEphemeralExplorer(
   };
 }
 
-// The data load.
-
-/** The annotation choices a note root's data lists. */
 const annotationChoices = (
   itemId: string,
   data: unknown,
@@ -422,11 +372,6 @@ const annotationChoices = (
     : [];
 };
 
-/**
- * The data of `session`'s target, with the annotation choices it lists: what
- * shows at once — the loading state, or a sample's own data — then what the
- * reads give. A failed read gives the `error` status; it never fails.
- */
 const loadExplorerData = (
   session: ExplorerSession,
   previousAnnotations: AnnotationChoices | null,
@@ -450,8 +395,6 @@ const loadExplorerData = (
         ? SAMPLE_ANNOTATIONS.find(({ id }) => id === annotationId)
         : undefined;
     const snapshot = item ? getSampleItem(item.id) : null;
-    // A chosen Item supplies the Citation set; the built-in default stands
-    // in for none.
     const citation =
       root === "citation"
         ? {
@@ -460,8 +403,6 @@ const loadExplorerData = (
           }
         : null;
     const variant = citation?.variant ?? DEFAULT_CITATION_VARIANT;
-    // A built-in example set carries its own citations, so it needs no Item —
-    // and it outranks the one chosen, exactly as the preview reads it.
     if (citation?.example) {
       return Stream.make(
         load("ready", {
@@ -469,8 +410,6 @@ const loadExplorerData = (
         }),
       );
     }
-    // A sample annotation shows its own data at once; a real Item's choices
-    // arrive beside it.
     const shown = sample
       ? load("ready", {
           data: restoreTemplateData(sample.root, sample.descriptors),
@@ -531,8 +470,6 @@ const loadExplorerData = (
             indexedKey: itemId,
             root,
           }),
-          // A sample annotation already shows its data; a failed read of the
-          // Item's choices leaves it in place.
           shown
             ? { ...shown, annotations }
             : load("error", { annotations, error: errorMessage(cause) }),
@@ -574,7 +511,6 @@ const loadExplorerData = (
     return Stream.concat(Stream.make(first), Stream.fromEffect(read));
   });
 
-/** Restored anchors use bare keys; copied authoring selections carry Indexed Keys. */
 export function annotationIndexedKey(
   itemId: string,
   selectionId: string | null,

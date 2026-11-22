@@ -47,22 +47,13 @@ import { citationKey } from "#obsidian/citation-text/present.ts";
 import { CitationText } from "#obsidian/citation-text/service.ts";
 import { CitekeyEditor } from "#obsidian/citekey-editor/service.ts";
 
-/** The one Literature Note the metadata cache knows. */
 const WANG = "literatures/wangMutationalClinicalSpectrum2020a";
-/** The Indexed Key that note carries, which the shared text holds its Citations under. */
 const WANG_KEY = "ABCD2345";
 
-/** One Citation as the shared text holds it: its Pandoc source, and the works it names. */
 function held(source: string, works: string[] = [WANG_KEY]): string {
   return citationKey({ source, works });
 }
 
-/**
- * The Wikilink Reading Rendering over settings seeded with `overrides`, a
- * vault whose one Literature Note is {@link WANG}, and one reading view that
- * every rendered section sits in. `unload` closes the layer, which is the
- * plugin's unload.
- */
 const harness = Effect.fnUntraced(function* ({
   formatted,
   citekeys,
@@ -70,13 +61,9 @@ const harness = Effect.fnUntraced(function* ({
   presentationFailure,
   ...overrides
 }: Partial<Settings> & {
-  /** The formatted citation the shared text holds, by its {@link held} identity. */
   formatted?: Record<string, string>;
-  /** Keep the citation-text read pending. */
   pending?: boolean;
-  /** An unavailable Imported Note Profile held with the document text. */
   presentationFailure?: ProfilePresentationFailure;
-  /** The citekey resolution snapshot's answer for each Indexed Key. */
   citekeys?: Record<string, string>;
 } = {}) {
   const settings = settingsFeed(overrides);
@@ -105,8 +92,6 @@ const harness = Effect.fnUntraced(function* ({
   metadata.setCache(wangFile.path, {
     frontmatter: { "zotero-key": WANG_KEY },
   });
-  // The reading view a rendered section sits in, which Obsidian hangs both the
-  // popover and its own delegated hover and click off.
   const containerEl = document.createElement("div");
   containerEl.addEventListener("mouseover", (event) => native.push(event));
   containerEl.addEventListener("click", (event) => native.push(event));
@@ -128,8 +113,6 @@ const harness = Effect.fnUntraced(function* ({
   workspace.on("zotlit:switch-profile", (request) => {
     switchRequests.push((request as { path: string }).path);
   });
-  // Obsidian places a section of this stubbed document nowhere, which is the
-  // degraded tier: every Citation shows its source's first-occurrence text.
   const ctx = stubService<MarkdownPostProcessorContext>(
     "MarkdownPostProcessorContext",
     {
@@ -179,14 +162,12 @@ const harness = Effect.fnUntraced(function* ({
     ),
     scope,
   );
-  /** Runs the registered post-processor over one rendered section. */
   const processHtml = (html: string) => {
     const root = containerEl.appendChild(section(html));
     return { root, result: process!(root, ctx) };
   };
   return {
     settings,
-    /** Gives the vault's one Literature Note another Item key, and reports the change. */
     writeNote: (itemKey: string) => {
       metadata.setCache(wangFile.path, {
         frontmatter: { "zotero-key": itemKey },
@@ -195,25 +176,17 @@ const harness = Effect.fnUntraced(function* ({
     },
     citationText,
     citationIndex,
-    /** Every Citation Popover the surface asked for. */
     requests,
     switchRequests,
-    /** Every Literature Note the popover's own open action reached for. */
     opened,
-    /** Every gesture Obsidian's own delegated listeners would have answered. */
     native,
-    /** Runs the registered post-processor over one link and reads its display. */
     render: (linktext: string) =>
       processHtml(`<p>${internalLink(linktext)}</p>`).root.textContent ?? "",
-    /** Runs the registered post-processor and returns the rendered section. */
     renderSection: (linktext: string, alias?: string) =>
       processHtml(`<p>${internalLink(linktext, alias)}</p>`).root,
-    /** Runs the registered post-processor over an arbitrary rendered section. */
     renderHtml: (html: string) => processHtml(html).root,
-    /** Runs the registered post-processor, and answers with what it returned. */
     processHtml,
     rerenders: () => rerenders,
-    /** Tears every rendered section down, the way Obsidian does on a re-render. */
     unloadSections: () => {
       for (const child of children.splice(0)) child.unload();
     },
@@ -343,7 +316,6 @@ describe("WikilinkReading rendering", () => {
           `<p>${internalLink(`${WANG}#cite:locator=7`)}</p>`,
         );
 
-        // The post-processor returns without waiting for the text.
         expect(result).toBeUndefined();
         expect(root.textContent).toBe(`${WANG} > cite:locator=7`);
         expect(root.querySelector(".zt-literature-note-link")).toBeNull();
@@ -373,7 +345,6 @@ describe("WikilinkReading rendering", () => {
 });
 
 describe("WikilinkReading hover", () => {
-  /** One rendered Citation of a document whose text the style formatted. */
   const rendering = (overrides: Parameters<typeof harness>[0] = {}) =>
     harness({
       "citation.wikilink-citations": true,
@@ -383,7 +354,6 @@ describe("WikilinkReading hover", () => {
       ...overrides,
     });
 
-  /** Hovers the rendered Citation, as the pointer entering it does. */
   const hover = (root: HTMLElement) => {
     root
       .querySelector("a")
@@ -464,8 +434,6 @@ describe("WikilinkReading hover", () => {
     "keeps Obsidian's own hover out while Require Mod holds the popover back",
     () =>
       Effect.gen(function* () {
-        // Popover mode owns the gesture whole, so a bare hover it answers with
-        // nothing shows nothing — never the page preview instead.
         const h = yield* rendering({
           "citation.hover-require-mod-reading": true,
         });
@@ -494,7 +462,6 @@ describe("WikilinkReading hover", () => {
 });
 
 describe("WikilinkReading click", () => {
-  /** One rendered Citation of a document whose text the style formatted. */
   const rendering = (overrides: Parameters<typeof harness>[0] = {}) =>
     harness({
       "citation.wikilink-citations": true,
@@ -504,7 +471,6 @@ describe("WikilinkReading click", () => {
       ...overrides,
     });
 
-  /** Clicks the rendered Citation, and answers with the event it sent. */
   const click = (root: HTMLElement, init: MouseEventInit = {}) => {
     const event = new MouseEvent("click", {
       bubbles: true,
@@ -526,8 +492,6 @@ describe("WikilinkReading click", () => {
       expect(h.opened).toEqual([]);
       expect(event.defaultPrevented).toBe(true);
       expect(h.native).toEqual([]);
-      // The anchor says as much, which is what neutralizes Obsidian's own link
-      // cursor and hover colour on it.
       expect(root.querySelector("a")?.dataset.ztClick).toBe("none");
     }),
   );
@@ -583,7 +547,6 @@ describe("WikilinkReading click", () => {
         expect(h.requests).toEqual([]);
         expect(event.defaultPrevented).toBe(false);
         expect(h.native).toHaveLength(1);
-        // Obsidian's own link styling stands untouched.
         expect(root.querySelector("a")?.dataset.ztClick).toBeUndefined();
       }),
   );
@@ -640,8 +603,6 @@ describe("WikilinkReading rerender", () => {
       h.settings.update({ "citation.open-as-links": false });
       expect(h.rerenders()).toBe(3);
 
-      // Which mode holds a hover back for a modifier is read at hover time, so
-      // nothing rendered depends on it.
       h.settings.update({ "citation.hover-require-mod-reading": true });
       expect(h.rerenders()).toBe(3);
     }),
@@ -704,7 +665,6 @@ describe("WikilinkReading refresh", () => {
         h.citationText.emit("changed", "note.md");
 
         expect(root.textContent).toBe("(Wang 2020, 7)");
-        // The anchor stays the one Obsidian rendered, target and all.
         expect(root.querySelector("a")).toBe(anchor);
         expect(anchor?.dataset["href"]).toBe(CITE);
         expect(h.rerenders()).toBe(0);
@@ -902,7 +862,6 @@ describe("WikilinkReading refresh", () => {
   );
 });
 
-/** What the stub holds for one document, as a surface reads it. */
 interface HeldText {
   formatted: Map<string, FormattedOccurrence[]>;
   entrySerials: boolean;
@@ -941,7 +900,6 @@ class CitationTextStub {
     this.emit();
   }
 
-  /** Replaces what the stub holds, the way a settled replacement read does. */
   hold(formatted: Record<string, string>): void {
     this.#formatted = formatted;
     this.#pending = false;
@@ -992,7 +950,6 @@ class CitationIndexStub {
     this.#citekeys = citekeys;
   }
 
-  /** Replaces the snapshot's answers, the way a rebuild does. */
   resolve(citekeys: Record<string, string>): void {
     this.#citekeys = citekeys;
   }

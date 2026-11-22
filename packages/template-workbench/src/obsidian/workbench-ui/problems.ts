@@ -1,7 +1,3 @@
-// The reader's wording for what the core reports. The core names a problem by
-// code and hands over the values that fill it; every code is written here, so
-// a reader outside English reads their own language.
-
 import type {
   WorkbenchProblem,
   WorkbenchSliceId,
@@ -13,10 +9,8 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { entryPosition } from "#core/document/controller.ts";
 
-/** What the Problems strip reads for one problem. */
 export interface ProblemText {
   readonly message: string;
-  /** What to do about it, absent when the message is the whole answer. */
   readonly recovery?: string;
 }
 
@@ -29,8 +23,6 @@ export function problemText(problem: WorkbenchProblem): ProblemText {
       };
     case "invalid-manifest":
       return {
-        // The field the parser named, when it could name one; a YAML syntax
-        // failure names no field, and the reveal points at the text instead.
         message:
           problem.params?.field === undefined
             ? m.workbench_problem_invalid_manifest()
@@ -79,7 +71,6 @@ export function problemText(problem: WorkbenchProblem): ProblemText {
   }
 }
 
-/** The one line a render diagnostic reads as. */
 export function diagnosticText(diagnostic: RenderDiagnostic): string {
   const params = diagnostic.params ?? {};
   switch (diagnostic.code) {
@@ -89,8 +80,6 @@ export function diagnosticText(diagnostic: RenderDiagnostic): string {
         expected: String(params.expected),
       });
     case "property-error":
-      // The engine's own last word, which the renderer separated from the
-      // wrapper naming the entry: the line already names the property once.
       return m.workbench_diagnostic_property_error({
         key: String(params.key),
         message: String(params.detail ?? diagnostic.message ?? ""),
@@ -104,21 +93,15 @@ export function diagnosticText(diagnostic: RenderDiagnostic): string {
             key: String(params.key),
           });
     case "missing-partial":
-      // The engine's own render failure, which names the partial it could not
-      // resolve; ADR 0055 rules out reading a missing partial off a scan.
       return m.workbench_diagnostic_missing_partial({
         name: String(params.name),
       });
     case "citation-data-mismatch":
-      // The engine refused the Citation Template's own input, and the source
-      // holds the call that handed it over: the caller's data, not the called
-      // template, is what went wrong.
       return m.workbench_diagnostic_citation_data_mismatch();
     case "property-append-conflict": {
       const conflict = m.workbench_diagnostic_property_append_conflict({
         key: String(params.key),
       });
-      // The merge's own recovery line, when it wrote one.
       return diagnostic.message
         ? `${conflict} ${diagnostic.message}`
         : conflict;
@@ -126,22 +109,12 @@ export function diagnosticText(diagnostic: RenderDiagnostic): string {
     case "liquid-syntax-error":
       return m.workbench_diagnostic_liquid_syntax_error();
     case "render-error":
-      // The engine refused and named nothing this package classifies. Its own
-      // words are evidence, which the explanation keeps under Technical
-      // details; the reader gets a plain sentence here instead.
       return m.workbench_diagnostic_render_error();
     default:
-      // A refusal this package does name — an unreadable Profile document, a
-      // citation the host could not format — carries the wording the renderer
-      // or the host wrote for it.
       return diagnostic.message ?? diagnostic.code;
   }
 }
 
-/**
- * Where a problem is repaired, named for the reader. Every other slice is one
- * Managed Frontmatter row, which reads as the entry it is.
- */
 const PROBLEM_WHERE: Partial<Record<WorkbenchSliceId, () => string>> = {
   advanced: m.workbench_problems_where_advanced,
   note: m.workbench_problems_where_note,
@@ -150,7 +123,6 @@ const PROBLEM_WHERE: Partial<Record<WorkbenchSliceId, () => string>> = {
   annotation: m.workbench_annotation_label,
 };
 
-/** What the Problems area's button reads: the pane `problem` is repaired in. */
 export function problemWhere(problem: WorkbenchProblem): string {
   if (problem.code === "missing-annotation-section") {
     return m.workbench_annotation_label();
@@ -163,43 +135,29 @@ export function problemWhere(problem: WorkbenchProblem): string {
   )();
 }
 
-/**
- * One problem the reader selects and reads in full. The two vocabularies the
- * Workbench reports in — the parser's own problems and the renderer's
- * diagnostics — reach the Problems area as one kind of thing, so a source
- * marker and the preview's Show problem name the same record.
- */
 export type WorkbenchDiagnosis =
   | {
       readonly id: string;
       readonly kind: "document";
       readonly problem: WorkbenchProblem;
-      /** Every occurrence grouped under this one problem, the first included. */
       readonly occurrences: readonly WorkbenchProblem[];
     }
   | {
       readonly id: string;
       readonly kind: "render";
       readonly diagnostic: RenderDiagnostic;
-      /** Each raw occurrence keeps its own captured preview report. */
       readonly occurrences: readonly RenderDiagnostic[];
     };
 
 const unattributedOccurrenceIds = new WeakMap<RenderDiagnostic, string>();
 let nextUnattributedId = 0;
 
-/**
- * The object a render diagnostic names, which is what makes two occurrences of
- * one code the same problem rather than two.
- */
 function diagnosticSubject(diagnostic: RenderDiagnostic): string {
   const params = diagnostic.params ?? {};
   return String(
     params.name ??
       params.key ??
       params.styleId ??
-      // A failure the engine attributed to a template names that template,
-      // which is the only object an unclassified one carries.
       diagnostic.engine?.template ??
       "",
   );
@@ -247,11 +205,6 @@ function unattributedOccurrenceIdentity(diagnostic: RenderDiagnostic): string {
   return id;
 }
 
-/**
- * A diagnosis's identity: its code, the object it names, and where it is
- * repaired. Engine failures also require captured evidence at a reported
- * source location; matching message text alone establishes no cause.
- */
 export function documentDiagnosis(
   problem: WorkbenchProblem,
 ): WorkbenchDiagnosis {
@@ -269,9 +222,6 @@ export function renderDiagnosis(
   const { code, part, position, engine, evidence } = diagnostic;
   const subject = diagnosticSubject(diagnostic);
   const target = repairTarget(diagnostic);
-  // A named template alone establishes no cause. For engine failures, match
-  // the reported source location and captured cause as well as the repair
-  // target. Failures with incomplete evidence keep their own occurrence.
   const cause =
     code === "render-error" || code === "liquid-syntax-error"
       ? engine?.line !== undefined && evidence !== undefined
@@ -297,15 +247,6 @@ export function renderDiagnosis(
   };
 }
 
-/**
- * Every problem one Workbench has found, parser problems first: the document
- * has to parse before a render can say anything about it.
- *
- * Occurrences that share an identity are one problem with several places, so a
- * partial missing from two checks is read once rather than as two competing
- * explanations. Different objects, source locations, or engine causes stay
- * separate, and failures with incomplete evidence keep their own occurrence.
- */
 export function workbenchDiagnoses(
   problems: readonly WorkbenchProblem[],
   diagnostics: readonly RenderDiagnostic[],
@@ -325,7 +266,6 @@ export function workbenchDiagnoses(
   );
 }
 
-/** Select one grouped render occurrence while retaining the problem identity. */
 export function diagnosisForOccurrence(
   diagnosis: WorkbenchDiagnosis,
   occurrence: RenderDiagnostic,
@@ -338,19 +278,13 @@ export function diagnosisForOccurrence(
   return { ...diagnosis, diagnostic: occurrence };
 }
 
-/** One problem as the Problems area reads it, top to bottom. */
 export interface DiagnosisExplanation {
-  /** The affected object, which the explanation leads with. */
   readonly object: string;
-  /** What went wrong, in plain words. */
   readonly condition: string;
-  /** What to check or change. Text only: the reader makes the repair. */
   readonly suggestion: string;
-  /** The engine's own wording, kept under Technical details. */
   readonly evidence?: string;
 }
 
-/** The object a document problem is about, named as its own pane is. */
 function problemObject(problem: WorkbenchProblem): string {
   if (problem.code === "missing-annotation-section") {
     return m.workbench_annotation_label();
@@ -371,7 +305,6 @@ function problemObject(problem: WorkbenchProblem): string {
   }
 }
 
-/** The object a render diagnostic is about, named by what the render read. */
 function diagnosticObject(diagnostic: RenderDiagnostic): string {
   const params = diagnostic.params ?? {};
   switch (diagnostic.code) {
@@ -387,7 +320,6 @@ function diagnosticObject(diagnostic: RenderDiagnostic): string {
         ? m.workbench_tab_properties()
         : m.workbench_problems_object_property({ key: String(params.key) });
     case "citation-style-error":
-      // A host's own sentence can stand without naming a style.
       return params.styleId === undefined
         ? m.workbench_problems_object_citation()
         : m.workbench_problems_object_style({
@@ -397,9 +329,6 @@ function diagnosticObject(diagnostic: RenderDiagnostic): string {
     case "invalid-profile":
       return m.workbench_problems_object_profile();
     default: {
-      // The part is what the renderer itself saw fail, so it outranks the
-      // rendering root below, which records only which data the reader had
-      // open when the failure arrived.
       if (diagnostic.part === "annotation")
         return m.workbench_annotation_label();
       if (diagnostic.part === "filename")
@@ -421,7 +350,6 @@ function diagnosticObject(diagnostic: RenderDiagnostic): string {
   }
 }
 
-/** What to check or change for a render diagnostic; never a repair the app performs. */
 function diagnosticSuggestion(diagnostic: RenderDiagnostic): string {
   switch (diagnostic.code) {
     case "liquid-syntax-error":
@@ -445,13 +373,10 @@ function diagnosticSuggestion(diagnostic: RenderDiagnostic): string {
     case "invalid-profile":
       return m.workbench_diagnostic_invalid_profile_suggestion();
     default:
-      // An engine failure this package has not classified: the reader gets an
-      // honest next step rather than a guessed repair.
       return m.workbench_diagnostic_render_error_suggestion();
   }
 }
 
-/** The whole explanation one diagnosis reads as. */
 export function diagnosisExplanation(
   diagnosis: WorkbenchDiagnosis,
 ): DiagnosisExplanation {
@@ -467,8 +392,6 @@ export function diagnosisExplanation(
   const { diagnostic } = diagnosis;
   return {
     object: diagnosticObject(diagnostic),
-    // An unclassified failure still has evidence. Keep its first message line
-    // visible; stack traces and source excerpts stay in the complete report.
     condition:
       (diagnostic.code === "render-error"
         ? (
@@ -487,13 +410,10 @@ export function diagnosisExplanation(
   };
 }
 
-/** The pane a diagnosis is repaired in, which its one navigation control opens. */
 export function diagnosisWhere(diagnosis: WorkbenchDiagnosis): string {
   if (diagnosis.kind === "document") return problemWhere(diagnosis.problem);
   const { part, position, callSite, sourceSite } = diagnosis.diagnostic;
   if (sourceSite) return m.workbench_problems_highlight_error();
-  // A verified call is where the reader repairs it, whichever template the
-  // engine reported the failure inside.
   if (callSite) return m.workbench_problems_where_call();
   if (position !== undefined) return m.workbench_problems_where_entry();
   if (part === "annotation") return m.workbench_annotation_edit_format();
@@ -501,13 +421,6 @@ export function diagnosisWhere(diagnosis: WorkbenchDiagnosis): string {
   return m.workbench_problems_where_advanced();
 }
 
-/**
- * What the engine itself reported, as its own sentences — one for each place
- * the grouped occurrences were reported from, in the order the checks found
- * them. Each names the template the engine failed inside, which a call may
- * have reached from elsewhere, so they are read apart from the suggestion and
- * from the navigation control. Empty when no occurrence named a template.
- */
 export function diagnosisEngineSources(
   diagnosis: WorkbenchDiagnosis,
 ): string[] {
@@ -527,19 +440,10 @@ export function diagnosisEngineSources(
   return [...said];
 }
 
-/**
- * How one problem reads in the selector: the object it is about, which is what
- * the explanation itself leads with.
- */
 export function diagnosisLabel(diagnosis: WorkbenchDiagnosis): string {
   return diagnosisExplanation(diagnosis).object;
 }
 
-/**
- * The failed attempt behind a render diagnosis, as the scheduler captured it
- * with the result. A document problem is re-read from the current source on
- * every check, so the Problems area captures its report instead.
- */
 export function diagnosisReport(
   diagnosis: WorkbenchDiagnosis,
 ): RenderReport | null {
@@ -548,11 +452,6 @@ export function diagnosisReport(
     : null;
 }
 
-/**
- * Whether the source text behind a diagnosis is named. A reported engine line
- * is not automatically a line in the open document, so an unnamed location is
- * said to be unnamed rather than guessed at.
- */
 export function diagnosisLocated(diagnosis: WorkbenchDiagnosis): boolean {
   return diagnosis.kind === "document"
     ? diagnosis.problem.range !== undefined

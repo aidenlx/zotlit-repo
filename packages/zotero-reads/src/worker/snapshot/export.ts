@@ -1,5 +1,3 @@
-// Node-only export of redacted, renderable Item Snapshots from Zotero data.
-
 import type {
   ExportItemSnapshotOptions,
   ItemSnapshot,
@@ -40,10 +38,6 @@ import { collectUnavailable } from "./unavailable.ts";
 import { collectRootDescriptors } from "#contract/snapshot/descriptors.ts";
 import { SnapshotSelectionError } from "#contract/snapshot/types.ts";
 
-/**
- * @throws SnapshotSelectionError when the selected Library or Item is absent,
- * or when provenance or a vault target contains a disallowed path.
- */
 export function exportItemSnapshot(
   client: ZoteroDatabase,
   selection: SnapshotSelection,
@@ -61,10 +55,6 @@ export function exportItemSnapshot(
   const targets = normalizeTargets(options.vaultTargets);
   const resolvers = snapshotResolvers(targets);
   const collectionCache = new CollectionCache();
-  // A personal-library web link spells out the Zotero account name, so the
-  // export runs with no account: `weblink` reads null and is reported as
-  // unavailable, while a group Library's public form is built from its group ID
-  // alone and survives.
   const note = fetchNoteContext(client, item, {
     resolvers,
     collectionCache,
@@ -162,11 +152,6 @@ function resolveLibraryID(
   return library.libraryID;
 }
 
-/**
- * Custom field names the Items reaching the snapshot declare. Related Items
- * spread their own fields into the note root, so their declarations count too;
- * an annotation's parent Item is the selected Item itself.
- */
 function collectCustomFieldNames(
   client: ZoteroDatabase,
   item: Item,

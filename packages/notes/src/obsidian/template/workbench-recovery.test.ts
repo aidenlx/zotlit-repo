@@ -14,8 +14,6 @@ import { missingPartialNotice } from "./workbench-recovery.ts";
 
 import { MissingPartialError } from "#core/template/errors.ts";
 
-/** The workspace seam `requestTemplateWorkbench` triggers, with the call
- *  recorded so a test can assert the action button reaches it. */
 function makeApp(): { app: App; trigger: ReturnType<typeof vi.fn> } {
   const trigger = vi.fn();
   return {
@@ -54,8 +52,6 @@ describe("missingPartialNotice", () => {
     );
 
     (button as ButtonComponent).click();
-    // The route carries the refusal itself, so the Workbench explains this
-    // failure rather than whichever problem its own check happens to select.
     expect(trigger).toHaveBeenCalledExactlyOnceWith(
       "zotlit:open-template-workbench",
       expect.objectContaining({

@@ -1,6 +1,3 @@
-// Attachment Import over a real file system and in-memory Obsidian tags, for the
-// attachment-import suites and the suites of its consumers.
-
 import type { ZoteroPrefSnapshot } from "#core/zotero-pref/service.ts";
 import type { Settings } from "#obsidian/settings/service.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
@@ -19,17 +16,14 @@ import { AttachmentImport, layerAttachmentImport } from "./service.ts";
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
-/** Where Zotero keeps its files, as the Zotero Pref snapshot names them. */
 export interface ZoteroLocation {
   readonly dataDir: string;
   readonly baseAttachmentPath: string | null;
 }
 
-/** A Zotero Pref snapshot of `location`, with a new prefs map. */
 export function snapshotAt(location: ZoteroLocation): ZoteroPrefSnapshot {
   return {
     state: "ready",
-    // A new map per snapshot: a moved location is a re-read of the prefs.
     prefs: new Map(),
     resolvedProfileDir: null,
     profileDirOverride: null,
@@ -42,13 +36,7 @@ export function snapshotAt(location: ZoteroLocation): ZoteroPrefSnapshot {
   };
 }
 
-/**
- * The real Attachment Import layer over the test's settings, Zotero Pref and
- * Obsidian sources, with the vault on disk at `basePath` and the Node file
- * system.
- */
 export function layerAttachmentImportOver(options: {
-  /** The host's settings defaults; this package's tests pass its platform slices. */
   readonly defaults: Readonly<Settings>;
   readonly settings: Pick<
     Settings,
@@ -75,25 +63,13 @@ export function layerAttachmentImportOver(options: {
 }
 
 export interface AttachmentImportFixtureOptions extends ZoteroLocation {
-  /** The host's settings defaults; this package's tests pass its platform slices. */
   readonly defaults: Readonly<Settings>;
   readonly importEnabled?: boolean;
   readonly folderPath?: string | null;
-  /** The vault folder on disk; `/vault` by default. */
   readonly basePath?: string;
-  /**
-   * Obsidian's vault-scoped localStorage. One store stands for one vault on
-   * one device: hand the same store to a second fixture to model a restart, a
-   * fresh one to model another vault.
-   */
   readonly storage?: MemoryDeviceStorage;
 }
 
-/**
- * Attachment Import built in the test's Scope. The vault holds an
- * `Attachments` folder; `moveZotero` changes Zotero's resolved location as a
- * profile re-read does.
- */
 export const attachmentImportFixture = Effect.fn("attachmentImportFixture")(
   function* (options: AttachmentImportFixtureOptions) {
     const pref = yield* SubscriptionRef.make(snapshotAt(options));
@@ -126,10 +102,6 @@ export const attachmentImportFixture = Effect.fn("attachmentImportFixture")(
       service: Context.get(context, AttachmentImport),
       vault,
       storage,
-      /**
-       * Zotero's resolved location moves to `location`. With `announce` off the
-       * prefs stay the same object, so no resolved-location change is emitted.
-       */
       moveZotero: (location: ZoteroLocation, { announce = true } = {}) =>
         SubscriptionRef.update(pref, (before) => ({
           ...snapshotAt(location),

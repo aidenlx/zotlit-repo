@@ -1,12 +1,3 @@
-// The walk of /learn Lesson 1, "Connect Zotero to Obsidian and write your
-// first literature note": a researcher who has never used ZotLit installs it
-// from Obsidian's community plugins, sees it connect to their Zotero library,
-// installs ZotLit Companion in Zotero, finds Sandve et al. 2013, reads its
-// PDF in Obsidian, writes a first literature note, and adds a thought of
-// their own. Each `it` is one step of the lesson, in the lesson's order,
-// named after it, and asserts what the lesson says the reader sees. Run it
-// with `pnpm --filter @zotlit/e2e docs-walk`; see AGENTS.md.
-
 import { cli, obRun, obRunUntil } from "@e2e/obsidian-cli.ts";
 import type { PagePdfReaderView } from "@e2e/page-notes-types.ts";
 import { isObsidianReachable } from "@e2e/vault-script.ts";
@@ -47,7 +38,6 @@ import {
 
 declare module "../page-helpers.ts" {
   interface PageScratch {
-    /** Keeps the Zotero data folder of the setup steps at the reader's default. */
     docsWalkReaderPath?: MutationObserver;
   }
 }
@@ -58,7 +48,6 @@ const reachable = await isObsidianReachable(root);
 const m = await import("@zotlit/plugin-messages/messages.ts");
 
 const SLUG = "connect-zotero-to-obsidian";
-/** Sandve et al. 2013 in the docs Vault Case: a PDF in Zotero storage, five annotations. */
 const PAPER = {
   key: "DCSNDART",
   title: "Ten Simple Rules for Reproducible Computational Research",
@@ -67,48 +56,19 @@ const PAPER = {
   venue: "PLOS Computational Biology",
   annotations: 5,
 };
-/** Every top-level Item in the docs Vault Case's library. */
 const LIBRARY_ITEMS = 5;
-/** A few words of the title, as the reader types them. */
 const SEARCH = "reproducible computational";
 const NOTE = `literatures/${PAPER.citekey}.md`;
 const HEADING = "## My thoughts";
 const THOUGHTS =
   "Rule 1 is the habit my methods chapter lacks: each figure needs a record of the script and data that made it.";
-/**
- * The folder a reader's Zotero data sits in by default. The walk's Fixture
- * lives in the worktree, so the images show this path in its place.
- */
 const READER_DATA_DIR = "~/Zotero";
-/** ZotLit in Obsidian's community directory. */
 const DIRECTORY = { name: "ZotLit", author: "By Aiden Liu" };
-/** ZotLit Companion's add-on id in Zotero. */
 const COMPANION_ID = "zotlit@aidenlx.site";
-/**
- * The docs site the clean browser opens the installation guide on, at the
- * path of the guide's link in the setup steps: the local docs server unless
- * `DOCS_WALK_DOCS_URL` names another.
- */
 const DOCS_URL = process.env.DOCS_WALK_DOCS_URL ?? "http://localhost:4833";
-/**
- * The Companion route's two macOS shots, Tools › Plugins in the menu bar and
- * the file dialog, take real pointer and key input: `DOCS_WALK_NATIVE=1`
- * records them, in an unattended window with the other apps hidden. Without
- * it, the Zotero shot opens on the Plugins Manager and installs the file the
- * browser downloaded without the dialog.
- */
 const NATIVE = process.env.DOCS_WALK_NATIVE === "1";
-/**
- * The private parts of those macOS shots, blurred in the encode, in screen
- * points: the menu bar right of `menuBarFrom` (other apps' status items, the
- * clock), and the file dialog's sidebar and toolbar (the computer's
- * folders, the user name, the folder menu), measured from its top-left.
- * The camera keeps them out of view as well.
- */
 const PRIVATE = { menuBarFrom: 600, dialogSidebar: 170, dialogToolbar: 64 };
-/** The scratch folder the clean browser downloads into, named as a reader's. */
 const DOWNLOADS = join(root, ".scratch", "docs-walks", SLUG, "Downloads");
-/** Where step 1 keeps the Fixture's plugin folders while the reader installs ZotLit. */
 const FIXTURE_PLUGINS = join(
   root,
   ".scratch",
@@ -119,7 +79,6 @@ const FIXTURE_PLUGINS = join(
 
 type LibraryLeaf = WorkspaceLeaf & { view: LibraryView };
 type NoteLeaf = WorkspaceLeaf & { view: MarkdownView };
-/** Obsidian's plugin manager, with the calls a walk of the install needs. */
 interface ReaderPlugins {
   disablePluginAndSave(id: string): Promise<void>;
   enablePluginAndSave(id: string): Promise<void>;
@@ -130,7 +89,6 @@ interface ReaderPlugins {
   isEnabled(): boolean;
   plugins: Record<string, unknown>;
 }
-/** Obsidian's settings modal, with the parts a walk of the install reads. */
 interface ReaderSettings {
   open(): void;
   close(): void;
@@ -141,14 +99,12 @@ interface ReaderSettings {
   openTab(tab: { id: string }): void;
 }
 
-/** One step's calls into the apps can wait on Zotero: up to a minute. */
 const STEP = { timeoutMs: 60000 };
 
 describe.skipIf(!reachable)(
   "Lesson 1: Connect Zotero to Obsidian and write your first literature note",
   () => {
     let walk: DocsWalk;
-    /** The Paired Run's Companion build, for a run that does not record step 3. */
     let companionDir = "";
 
     beforeAll(async () => {
@@ -157,14 +113,10 @@ describe.skipIf(!reachable)(
         collection: `learn/${SLUG}`,
         vaultCase: "docs",
       });
-      // The PDF tab's path runs through the Fixture's folders; the images
-      // show the file name alone.
       await obRun(walk.vaultId, ({ page }) => {
         const style = document.head.createEl("style");
         style.textContent = `.workspace-leaf-content[data-type="${page.reader.viewType}"] .view-header-title-parent{display:none}`;
       });
-      // The reader installs ZotLit Companion in step 3: the walk takes the
-      // Paired Run's Companion out of the Fixture's Zotero profile first.
       const profile = await walk.zotero.json<{ dir: string; profile: string }>(
         `(async () => {
           const { AddonManager } = ChromeUtils.importESModule("resource://gre/modules/AddonManager.sys.mjs");
@@ -179,7 +131,6 @@ describe.skipIf(!reachable)(
         })()`,
       );
       console.log("[walk] Companion removed", JSON.stringify(profile));
-      // Only the Fixture's own Zotero profile is touched.
       expect(profile.profile).toContain(
         join(".scratch", "e2e-docs-walk-fixture"),
       );
@@ -193,11 +144,6 @@ describe.skipIf(!reachable)(
     it.runIf(recordRequested("step-1"))(
       "step 1, as the reader installs it: Settings, Community plugins, Exit Restricted mode, Browse, search ZotLit, Install, Enable; a tab named Zotero library opens",
       async () => {
-        // The reader's install: Settings, Community plugins, Browse, search,
-        // the ZotLit card, Install, Enable, from a vault without ZotLit in
-        // Restricted mode. It downloads the release build from the
-        // community directory, so it runs only when the clip records. The
-        // Fixture's builds wait in the scratch folder and come back after.
         const popout = await obRun(
           walk.vaultId,
           async ({ app, page }, { backup, dir }) => {
@@ -224,16 +170,9 @@ describe.skipIf(!reachable)(
             await plugins.saveConfig();
             await plugins.loadManifests();
             await plugins.setEnable(false);
-            // Obsidian 1.15 opens Settings in a window of its own; the
-            // screencast records the vault's window, so Settings opens as a
-            // modal in it, as in Obsidian 1.14.
             const before = app.vault.getConfig("settingsPopoutWindow");
             app.vault.setConfig("settingsPopoutWindow", false);
-            // Settings opens on its last tab, General by default, which shows
-            // the Obsidian account; the clip opens it on Editor.
             (app.setting as unknown as ReaderSettings).lastTabId = "editor";
-            // The Zotero data folder in the setup steps shows the reader's
-            // default from its first frame.
             const observer = new MutationObserver(() => {
               for (const code of document.querySelectorAll(
                 "[data-welcome-step] code",
@@ -260,7 +199,6 @@ describe.skipIf(!reachable)(
                 new Promise((r) => setTimeout(r, ms));
               const plugins = app.plugins as unknown as ReaderPlugins;
               const setting = app.setting as unknown as ReaderSettings;
-              // Every Settings tab the clip opens, to prove General never shows.
               const tabs: string[] = [];
               const openTab = setting.openTab.bind(setting);
               setting.openTab = (tab) => {
@@ -313,7 +251,6 @@ describe.skipIf(!reachable)(
                 const exitLabel = exit.textContent;
                 await pointer?.point(exit);
                 page.press(exit, exitLabel);
-                // The tab draws itself again as Restricted mode ends.
                 const browseButton = () =>
                   plugins.isEnabled() &&
                   setting.activeTab &&
@@ -380,7 +317,6 @@ describe.skipIf(!reachable)(
                 if (pointer) {
                   const d = details.getBoundingClientRect();
                   const b = install.getBoundingClientRect();
-                  // The plugin's name, version and author above its buttons.
                   await pointer.look({
                     left: d.left + 40,
                     top: d.top + 40,
@@ -410,8 +346,6 @@ describe.skipIf(!reachable)(
                   30000,
                 );
                 await wait(600);
-                // The reader closes the plugin directory, then Settings, when
-                // it is still open: closing the directory can close both.
                 const closed: string[] = [];
                 for (const [scope, what] of [
                   [store, "community plugins"],
@@ -445,8 +379,6 @@ describe.skipIf(!reachable)(
                 const banner =
                   el.querySelector<HTMLElement>("[data-welcome-banner]") ?? el;
                 if (pointer) {
-                  // The pointer rests at the end of the setup section's last
-                  // line, clear of its text and inside the view.
                   const b = banner.getBoundingClientRect();
                   await pointer.park(b.right - 60, b.bottom - 24);
                   await pointer.look(banner);
@@ -484,7 +416,6 @@ describe.skipIf(!reachable)(
         expect(installed.badge).toBe(m.welcome_badge());
         expect(installed.states).toEqual(["done", "todo", "done", "todo"]);
         expect(installed.dataDir).toBe(READER_DATA_DIR);
-        // The Fixture's builds come back, and the steps below run on them.
         await obRun(
           walk.vaultId,
           async ({ app, page }, { backup, popout }) => {
@@ -512,9 +443,6 @@ describe.skipIf(!reachable)(
     );
 
     it("step 1: install and enable ZotLit; a tab named Zotero library opens", async () => {
-      // A first launch of the Fixture's build: the Paired Run loaded ZotLit
-      // once to point it at the Fixture, which saved its settings, so the
-      // walk clears them and turns ZotLit on again, as Enable does.
       await obRun(
         walk.vaultId,
         async ({ app }) => {
@@ -551,7 +479,6 @@ describe.skipIf(!reachable)(
             30000,
           );
           const early = rows().map((s) => s.dataset.welcomeStep!);
-          // ZotLit re-reads Zotero's add-on list for 15 seconds after start.
           await new Promise((r) => setTimeout(r, 16000));
           return {
             tab: leaf.getDisplayText(),
@@ -569,22 +496,17 @@ describe.skipIf(!reachable)(
         { timeoutMs: 90000 },
       );
       console.log("[walk] first launch", JSON.stringify(first));
-      // The steps below run on the Fixture's build: it answers its dev-only
-      // CLI command, which a release build lacks.
       expect(
         await cli([`vault=${walk.vaultId}`, "zotlit:library-scope"]),
       ).toContain("contractVersion");
       expect(first.tab).toBe(m.library_view_name());
       expect(first.tabActive).toBe(true);
       expect(first.badge).toBe(m.welcome_badge());
-      // Fact a: the order and the text of the checklist on a first launch.
       expect(first.steps).toHaveLength(4);
       expect(first.steps[0]!.text).toContain(m.welcome_step_connect_title());
       expect(first.steps[1]!.text).toContain(m.welcome_step_folder_title());
       expect(first.steps[2]!.text).toContain(m.welcome_step_library_title());
       expect(first.steps[3]!.text).toContain(m.welcome_step_companion_title());
-      // Connect and Open your library are done; the notes folder waits, and
-      // the Companion, which the reader installs in step 3.
       expect(first.steps.map((s) => s.state)).toEqual([
         "done",
         "todo",
@@ -619,8 +541,6 @@ describe.skipIf(!reachable)(
           const row = el.querySelector<HTMLElement>("[data-welcome-step]")!;
           const mark = row.querySelector<HTMLElement>("[data-welcome-mark]")!;
           if (pointer) {
-            // The reader reads the first line: its check, its name, the data
-            // folder and the item count, the pointer just after them.
             const words = document.createRange();
             words.selectNodeContents(mark.nextElementSibling!);
             const t = words.getBoundingClientRect();
@@ -657,8 +577,6 @@ describe.skipIf(!reachable)(
       );
       expect(line.icon).toBe(true);
       expect(line.markColor).toBe(line.green);
-      // The setup section stays open for step 3; its × at the top-right
-      // corner is named Dismiss.
       expect(line.open).toBe(true);
       expect(line.close.label).toBe(m.welcome_dismiss());
       expect(line.close.icon).toBe(true);
@@ -667,7 +585,6 @@ describe.skipIf(!reachable)(
     });
 
     it("step 3: install ZotLit Companion from its installation guide, then close the setup section with its × button; Install ZotLit Companion reads Installed, and then your papers fill the tab", async () => {
-      /** The Companion row's guide button, and the address it opens. */
       const openGuide = () =>
         obRun(
           walk.vaultId,
@@ -682,8 +599,6 @@ describe.skipIf(!reachable)(
             const button = [
               ...row.querySelectorAll<HTMLElement>("button"),
             ].find((b) => b.innerText.trim() === label)!;
-            // The guide opens in the reader's browser; the walk keeps the
-            // address and opens it in the clean browser.
             let opened = "";
             const open = window.open;
             window.open = (url) => {
@@ -708,7 +623,6 @@ describe.skipIf(!reachable)(
           },
           STEP,
         );
-      /** The reader comes back to Obsidian, then closes the setup section. */
       const backInObsidian = () =>
         obRun(
           walk.vaultId,
@@ -721,7 +635,6 @@ describe.skipIf(!reachable)(
               [...el.querySelectorAll<HTMLElement>("[data-welcome-step]")].find(
                 (r) => r.innerText.includes(title),
               );
-            // Obsidian comes to the front: ZotLit reads Zotero's add-on list.
             window.dispatchEvent(new Event("focus"));
             await page.until(
               "the Companion step done",
@@ -742,7 +655,6 @@ describe.skipIf(!reachable)(
               10000,
             );
             await new Promise((r) => setTimeout(r, 300));
-            // The step ends on the papers that now fill the tab.
             await pointer?.look([
               ...el.querySelectorAll("[data-query-item-row]"),
             ]);
@@ -760,7 +672,6 @@ describe.skipIf(!reachable)(
           { title: m.welcome_step_companion_title() },
           STEP,
         );
-      /** The Companion Zotero lists, and where it sits. */
       const companion = () =>
         walk.zotero.json<{
           name: string;
@@ -788,7 +699,6 @@ describe.skipIf(!reachable)(
           height: 860,
           downloads: DOWNLOADS,
         });
-        // The guide's heading, its download section and its link show.
         await browser.open(
           `${DOCS_URL}/docs/install-companion`,
           `document.querySelector("h1") && document.getElementById("download-the-xpi-file") && [...document.querySelectorAll('a[href$=".xpi"]')].some((l) => l.checkVisibility())`,
@@ -796,13 +706,11 @@ describe.skipIf(!reachable)(
         const pid = await walk.zotero.json<number>(
           "Services.appinfo.processID",
         );
-        // Zotero's main window fills the recorded region under the menu bar.
         const tools = await bringToFront(pid).then(() =>
           menuPoint(pid, "Tools"),
         );
         const bar = Math.round(tools.y * 2);
         const region: Rect = { x: 0, y: 0, w: 1456, h: 870 };
-        // The menu bar right of Zotero's menus: its status items and clock.
         const menuBarStatus: Rect = {
           x: PRIVATE.menuBarFrom,
           y: 0,
@@ -824,20 +732,13 @@ describe.skipIf(!reachable)(
             return true;
           })()`,
         );
-        // The calm camera of the screencast clips: views at most `zoom`×, and
-        // each move held `hold` after its `ease` before the next one.
         const calm = clipSettings();
         const settle = (calm.ease + calm.hold) * 1000;
         const movedAt = () => Temporal.Now.instant().epochMilliseconds;
-        /**
-         * Waits until `settle` has passed since a move.
-         * @param since the time of the move, from `movedAt`, in epoch ms.
-         */
         const holdSince = (
           shot: { wait(ms: number): Promise<void> },
           since: number,
         ) => shot.wait(Math.max(0, since + settle - movedAt()));
-        /** A view of the region's ratio about `r`, inside `within`, `zoom`× at most. */
         const view = (r: Rect, within: Rect, zoom = calm.zoom): Rect => {
           const ratio = region.w / region.h;
           const w = Math.min(
@@ -855,7 +756,6 @@ describe.skipIf(!reachable)(
           );
           return { x, y, w, h };
         };
-        /** The Plugins Manager window, and its parts in screen points. */
         const manager = () =>
           walk.zotero.json<{
             window: Rect;
@@ -899,10 +799,6 @@ describe.skipIf(!reachable)(
           }
         };
         const centre = (r: Rect) => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
-        /**
-         * Back to the start of the Zotero part: no dialog or menu, no Plugins
-         * Manager, no Companion.
-         */
         const resetZotero = async () => {
           await bringToFront(pid);
           await typeKeys(pid, [
@@ -931,9 +827,7 @@ describe.skipIf(!reachable)(
 
         try {
           result = await walk.recordClip("step-3", async (shots) => {
-            // Obsidian: the Companion row and its Open installation guide.
             const guide = await shots.obsidian(openGuide);
-            // The guide in the clean browser: its download link.
             const file = await shots.browser(browser, async (page) => {
               const download = await browser.download((name) =>
                 name.endsWith(".xpi"),
@@ -952,19 +846,12 @@ describe.skipIf(!reachable)(
               })()`);
               return download.done;
             });
-            // The Downloads folder holds the file alone, as the dialog shows
-            // it: files Chrome fetched for itself go.
             for (const other of await readdir(DOWNLOADS))
               if (other !== file)
                 await rm(join(DOWNLOADS, other), { force: true });
             if ((await readdir(DOWNLOADS)).join() !== file)
               throw new Error(`the guide downloaded ${file}`);
-            // Zotero: Tools › Plugins, the gear, Install Plugin From File….
-            // Obsidian, with the computer's other vaults, is hidden behind
-            // Zotero meanwhile, so no window of it can come between.
             await setAppVisible("Obsidian", false);
-            // The Zotero part is taken again from its start, up to three times,
-            // when another app comes to the front during one of its shots.
             for (let attempt = 1; ; attempt++) {
               const mark = shots.mark();
               try {
@@ -973,9 +860,6 @@ describe.skipIf(!reachable)(
                   await shots.desktop(
                     { pid, region, start: below, blur: [menuBarStatus] },
                     async (shot) => {
-                      // The whole window holds, then one move in to the menu
-                      // bar's left end. The status items right of Zotero's
-                      // menus are blurred.
                       const menu: Rect = {
                         x: 0,
                         y: 0,
@@ -1014,13 +898,10 @@ describe.skipIf(!reachable)(
                         "Install Plugin From File…",
                         async () => (await manager())?.fromFile,
                       );
-                      // The gear's view holds before the cut to the dialog.
                       await shot.wait(400);
                       await holdSince(shot, moved);
                       const at = centre(fromFile);
                       await shot.click(at.x, at.y);
-                      // The dialog opens in the folder it last showed: the shot ends
-                      // on the click, before it.
                       shot.end();
                     },
                   );
@@ -1028,7 +909,6 @@ describe.skipIf(!reachable)(
                   await shots.desktop(
                     { pid, region, start: below, blur: [menuBarStatus] },
                     async (shot) => {
-                      // Tools › Plugins, by its command.
                       await walk.zotero.json<boolean>(
                         `(() => { Services.wm.getMostRecentWindow("navigator:browser").document.getElementById("menu_addons").doCommand(); return true; })()`,
                       );
@@ -1043,8 +923,6 @@ describe.skipIf(!reachable)(
                       await shot.wait(1200);
                     },
                   );
-                // Off the clip: the file dialog goes to the Downloads folder and
-                // shows its files as icons, so only that folder shows.
                 if (NATIVE) {
                   await typeKeys(pid, [
                     { key: "g", modifiers: ["command", "shift"] },
@@ -1053,8 +931,6 @@ describe.skipIf(!reachable)(
                     { delay: 0.8 },
                     { keyCode: 36 },
                     { delay: 0.8 },
-                    // The path field can take a second Return; with no file
-                    // selected, Open is off, so a spare Return does nothing.
                     { keyCode: 36 },
                     { delay: 0.8 },
                   ]);
@@ -1067,9 +943,6 @@ describe.skipIf(!reachable)(
                     { key: "1", modifiers: ["command"] },
                     { delay: 0.8 },
                   ]);
-                  // The file list and the buttons under it. The sidebar (the
-                  // computer's folders and user name) and the toolbar (the folder
-                  // menu) are blurred in every frame.
                   const d = dialog.bounds;
                   const sidebar: Rect = {
                     x: d.x,
@@ -1083,9 +956,6 @@ describe.skipIf(!reachable)(
                     w: d.w,
                     h: PRIVATE.dialogToolbar,
                   };
-                  // About the file list and the buttons under it, `zoom`× at
-                  // most: the parts of the sidebar and the toolbar that come
-                  // into the view stay blurred.
                   const list = view(
                     {
                       x: d.x + PRIVATE.dialogSidebar,
@@ -1095,8 +965,6 @@ describe.skipIf(!reachable)(
                     },
                     below,
                   );
-                  // The dialog's shot ends on the click on Open, and blurs the
-                  // sidebar and the toolbar in all of its frames.
                   await shots.desktop(
                     {
                       pid,
@@ -1123,7 +991,6 @@ describe.skipIf(!reachable)(
                     "ZotLit Companion listed",
                     async () => (await manager())?.card,
                   );
-                  // macOS fades the dialog out.
                   await new Promise((r) => setTimeout(r, 400));
                   const opened = (await manager())!;
                   await shots.desktop(
@@ -1193,19 +1060,15 @@ describe.skipIf(!reachable)(
                 await resetZotero();
               }
             }
-            // Back in Obsidian.
             await setAppVisible("Obsidian", true);
             await new Promise((r) => setTimeout(r, 800));
             const back = await shots.obsidian(backInObsidian);
             return { guide, file, back };
           });
         } finally {
-          // Obsidian comes back even when a shot fails.
           await setAppVisible("Obsidian", true);
         }
         if (NATIVE) {
-          // The clip put the file dialog in icon view; it goes back to the
-          // column view it had, a setting Zotero keeps on this computer.
           await bringToFront(pid);
           await walk.zotero.json<boolean>(
             `(() => {
@@ -1230,15 +1093,11 @@ describe.skipIf(!reachable)(
         }
         const downloaded = await readdir(DOWNLOADS);
         console.log("[walk] downloaded", JSON.stringify(downloaded));
-        // The browser saved the release file the guide links to.
         if (!result.file || !downloaded.includes(result.file))
           throw new Error(`the guide downloaded ${String(result.file)}`);
       } else {
-        // Without the clip: the guide button, then the Paired Run's own
-        // Companion build installed from a file, offline.
         const guide = await openGuide();
         const xpi = join(root, ".scratch", "docs-walks", SLUG, "companion.xpi");
-        // A new worktree has no folder for the walk yet.
         await mkdir(dirname(xpi), { recursive: true });
         await rm(xpi, { force: true });
         await execFileAsync("zip", ["-qr", "-X", xpi, "."], {
@@ -1260,19 +1119,15 @@ describe.skipIf(!reachable)(
       const listed = await companion();
       console.log("[walk] Zotero lists", JSON.stringify(listed));
       expect(listed?.active).toBe(true);
-      // The add-on is installed into the Fixture's Zotero profile.
       expect(listed?.file).toContain(join(".scratch", "e2e-docs-walk-fixture"));
       expect(result.back.companion).toContain(
         m.welcome_step_companion_installed(),
       );
       expect(result.back.banner).toBe(false);
-      // The tree, the list and the empty card fill the whole tab.
       expect(result.back.shell).toBeGreaterThanOrEqual(result.back.tab - 2);
       expect(result.back.rows).toBe(LIBRARY_ITEMS);
       await walk.capture("step-3");
       await walk.compose("step-3");
-      // The section stays closed: the setting survives a window reload, and
-      // Welcome & help (?) in the tab's header brings it back and closes it.
       const after = await obRun(
         walk.vaultId,
         ({ zotlit }) =>
@@ -1404,7 +1259,6 @@ describe.skipIf(!reachable)(
             const list = el
               .querySelector("[data-query-item-row]")!
               .getBoundingClientRect();
-            // The step ends on the card.
             await pointer?.look(card);
             return {
               placeholder,
@@ -1425,7 +1279,6 @@ describe.skipIf(!reachable)(
                 label: b.getAttribute("aria-label"),
                 inView: shown(b),
               })),
-              // Where the card sits by the list, at the walk's window size.
               layout: {
                 window: { w: window.innerWidth, h: window.innerHeight },
                 pane: rect(el),
@@ -1448,23 +1301,16 @@ describe.skipIf(!reachable)(
       expect(found.creators).toContain(PAPER.creators);
       expect(found.venue).toContain(PAPER.venue);
       expect(found.layout.under).toBe(true);
-      // The two labelled buttons, then two icon buttons: More actions and
-      // Open in the annotation view.
       expect(found.buttons.filter((b) => b.text).map((b) => b.text)).toEqual([
         m.library_view_menu_open_pdf(),
         m.library_view_menu_write_note(),
       ]);
-      // They show without a scroll.
       expect(found.buttons.every((b) => b.inView)).toBe(true);
       await walk.capture("step-4");
       await walk.compose("step-4");
     });
 
     it("step 5: select Open PDF; the PDF in a new tab, with your highlights in their original colours", async () => {
-      // Obsidian's PDF view opens a PDF at the page in its own view history
-      // (`pdfjs.history` in localStorage, keyed by the PDF's fingerprint and
-      // shared by every vault). The walk removes this PDF's entry, so the PDF
-      // opens at page 1, as on a reader's first open.
       const pdfPath = await walk.zotero.json<string>(
         `Zotero.Items.getByLibraryAndKey(1,"DCSNDPDF").getFilePath()`,
       );
@@ -1481,8 +1327,6 @@ describe.skipIf(!reachable)(
             };
           };
           const host = window as unknown as { pdfjsLib?: PdfJs };
-          // Obsidian's own pdf.js, loaded as its PDF view loads it: a module
-          // script that sets `window.pdfjsLib`.
           if (!host.pdfjsLib) {
             const script = document.head.createEl("script", {
               attr: { type: "module", src: libUrl },
@@ -1558,7 +1402,6 @@ describe.skipIf(!reachable)(
               marks: new Set(marks.map((n) => n.dataset.zoteroAnnotationKey))
                 .size,
               colours: new Set(
-                // Each mark draws in its Zotero colour, as an SVG fill or stroke.
                 marks.map((n) => {
                   const painted = n.matches("[fill],[stroke]")
                     ? n
@@ -1579,7 +1422,6 @@ describe.skipIf(!reachable)(
               value !== null && value.active && value.marks >= 2,
           },
         );
-        // The step ends on the highlights and the sidebar that lists them.
         await obRun(walk.vaultId, async ({ app, page }) => {
           const pdf = app.workspace.getLeavesOfType(page.reader.viewType)[0]!;
           await page.scratch.docsWalkPointer?.look([
@@ -1639,7 +1481,6 @@ describe.skipIf(!reachable)(
                 20000,
               );
               const noteLeaf = app.workspace.getMostRecentLeaf()!;
-              // The annotation sidebar lists the note's highlights.
               await page.until(
                 "the highlights in the annotation sidebar",
                 () =>
@@ -1653,8 +1494,6 @@ describe.skipIf(!reachable)(
                 10000,
               );
               if (pointer) {
-                // The step ends on the notice and the new note: its title,
-                // its links, and its Annotations heading.
                 const content = noteLeaf.view.containerEl;
                 await pointer.look(
                   [
@@ -1669,7 +1508,6 @@ describe.skipIf(!reachable)(
               return {
                 label,
                 active: app.workspace.getActiveFile()?.path ?? null,
-                // The note opens in a split beside the PDF, which stays on screen.
                 besidePdf:
                   noteLeaf.parent !== pdf.parent &&
                   pdf.view.containerEl.isShown(),
@@ -1723,8 +1561,6 @@ describe.skipIf(!reachable)(
           ready: (value) => value !== null && value.cards === PAPER.annotations,
         },
       );
-      // The body under the Properties: the title, one line with the two
-      // links (the paper in Zotero, its PDF), then the Annotations section.
       const body = note!.body.replace(/^---\n[\s\S]*?\n---\n/, "");
       const [links = "", annotations = ""] = body.split("## Annotations");
       expect(annotations).toContain("```zotquery");
@@ -1748,12 +1584,10 @@ describe.skipIf(!reachable)(
             app.workspace.setActiveLeaf(leaf, { focus: true });
             const cm = leaf.view.editor.cm;
             const doc = cm.state.doc.toString();
-            // The reader puts the cursor at the end of the links line.
             const at = doc.indexOf(last) + last.length;
             const box = cm.coordsAtPos(at);
             if (pointer && box) {
               await pointer.pointAt(box.right + 6, (box.top + box.bottom) / 2);
-              // Then it steps right, off the lines the typing adds below.
               await pointer.park(box.right + 40, (box.top + box.bottom) / 2);
             }
             cm.dispatch({ selection: { anchor: at } });
@@ -1761,8 +1595,6 @@ describe.skipIf(!reachable)(
               cm.dispatch(cm.state.replaceSelection(text), {
                 userEvent: "input.type",
               });
-            // The long thought types at five times a typist's pace, so the
-            // clip stays short.
             for (const [text, speed] of [
               [`\n\n${heading}\n\n`, 1],
               [thoughts, 5],
@@ -1772,7 +1604,6 @@ describe.skipIf(!reachable)(
             }
             await leaf.view.save();
             if (pointer) {
-              // The step ends on the new text above the Annotations heading.
               const text = cm.state.doc.toString();
               const from = cm.coordsAtPos(text.indexOf(heading));
               const to = cm.coordsAtPos(text.indexOf("## Annotations"));

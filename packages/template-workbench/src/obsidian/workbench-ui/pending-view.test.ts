@@ -21,7 +21,6 @@ const result = (filename: string | null): TemplateRenderResult => ({
 
 const LATEST = result("Latest");
 const LAST_GOOD = result("Last good");
-/** A surface that read the note name, and one whose last output lacked it. */
 const SURFACES = {
   produced: (r: TemplateRenderResult) => r.filename !== null,
   "not produced": () => false,

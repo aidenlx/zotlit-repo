@@ -1,6 +1,3 @@
-// The suite's calls to `packages/scripts/scripts/obsidian-vault.ts`, and the
-// vault folders they register.
-
 import { execFile } from "node:child_process";
 import { cp, mkdir, rm } from "node:fs/promises";
 import { join, sep } from "node:path";
@@ -19,7 +16,6 @@ function scriptPath(workspaceRoot: string): string {
   return join(workspaceRoot, "packages/scripts/scripts/obsidian-vault.ts");
 }
 
-/** Whether the pinned desktop Obsidian answers with a live host vault. */
 export async function isObsidianReachable(
   workspaceRoot: string,
 ): Promise<boolean> {
@@ -33,9 +29,6 @@ export async function isObsidianReachable(
     return undefined;
   });
   if (!result?.stdout.trim().startsWith("ready ")) {
-    // A running app with `ZT_HOST_VAULT` naming a closed vault is a setup
-    // mistake, not a missing Obsidian: fail the run instead of skipping it.
-    // The phrase comes from packages/scripts/lib/obsidian-host-readiness.ts.
     if (failure.includes("names a vault that is not open")) {
       throw new Error(
         `End-to-end Run cannot select its host vault.\n${failure}`,
@@ -57,15 +50,8 @@ export async function isObsidianReachable(
   return true;
 }
 
-/** Runs one `obsidian-vault.ts` command. */
 export type VaultScript = (args: string[]) => Promise<{ stdout: string }>;
 
-/**
- * An open vault outside every run's `.scratch/e2e-*` vaults, to host the
- * suite's vault calls. `obsidian-vault.ts` otherwise hosts them in the focused
- * window, which is often a vault a run just opened, in this worktree or
- * another, and that run removes it when it ends.
- */
 export async function stableHost(): Promise<string | undefined> {
   const output = await cli([
     "eval",
@@ -83,11 +69,6 @@ export async function stableHost(): Promise<string | undefined> {
   )?.[0];
 }
 
-/**
- * `obsidian-vault.ts`, pinned to the Fixture at `fixtureRoot` and to a host
- * vault that outlives every End-to-end Run. It opens vault windows with
- * `--inactive`, so they leave the OS focus alone (policies/os-focus.md).
- */
 export function vaultScript(
   workspaceRoot: string,
   fixtureRoot: string,
@@ -104,18 +85,12 @@ export function vaultScript(
       ],
       {
         windowsHide: true,
-        // `OBSIDIAN_HOST_VAULT_ENV` in packages/scripts/lib/obsidian-host-readiness.ts.
         env: host ? { ...process.env, ZT_HOST_VAULT: host } : process.env,
       },
     );
   };
 }
 
-/**
- * The folder of one suite vault. Obsidian refuses a vault whose folder name a
- * registered vault already has, so the name carries the worktree, as a
- * Development Vault's does.
- */
 export function e2eVaultDir(workspaceRoot: string, name: string): string {
   return join(
     workspaceRoot,
@@ -124,10 +99,6 @@ export function e2eVaultDir(workspaceRoot: string, name: string): string {
   );
 }
 
-/**
- * Unregisters the vault at `path`, with its vault-scoped local storage and
- * IndexedDB, and deletes its folder. A path that no vault holds passes.
- */
 export async function clearVault(
   run: VaultScript,
   path: string,
@@ -136,7 +107,6 @@ export async function clearVault(
   await rm(path, { recursive: true, force: true });
 }
 
-/** Copies the fresh dev bundle of each plugin in `list` into the vault, and answers their ids. */
 async function copyDevBundles(
   workspaceRoot: string,
   vaultPath: string,
@@ -152,7 +122,6 @@ async function copyDevBundles(
   return plugins.map(({ id }) => id).join(",");
 }
 
-/** Installs the plugins the vault enables; answers the vault script argument that names them. */
 export async function installPlugins(
   workspaceRoot: string,
   vaultPath: string,
@@ -161,7 +130,6 @@ export async function installPlugins(
   return `--plugins=${await copyDevBundles(workspaceRoot, vaultPath, list)}`;
 }
 
-/** Installs plugins that stay not enabled; answers the vault script argument that names them. */
 export async function installWithoutEnabling(
   workspaceRoot: string,
   vaultPath: string,

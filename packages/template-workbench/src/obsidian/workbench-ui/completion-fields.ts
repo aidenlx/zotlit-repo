@@ -3,15 +3,10 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { TemplateRoot } from "./model.ts";
 
 export interface CommonField {
-  /** Top-level key on the root object, which is also its display-node key. */
   readonly key: string;
-  /** The name the reader recognizes, in place of the raw key. */
   readonly label: () => string;
 }
 
-/**
- * Familiar labels and preferred order for common fields in each root.
- */
 export const COMMON_FIELDS: Record<TemplateRoot, readonly CommonField[]> = {
   note: [
     { key: "title", label: m.workbench_field_title },
@@ -50,7 +45,6 @@ export const COMMON_FIELDS: Record<TemplateRoot, readonly CommonField[]> = {
   ],
 };
 
-/** Human labels and common-field order shared by discovery and typing completion. */
 export function completionFields(root: TemplateRoot) {
   return COMMON_FIELDS[root].map((field) => ({
     path: `zt.${field.key}`,

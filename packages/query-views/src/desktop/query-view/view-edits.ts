@@ -4,26 +4,17 @@ import type {
   QueryFileView,
 } from "#core/query-view/query-file.ts";
 
-// The edits the view menu and "Configure view" make to a Query File's views,
-// as plain functions from one file to the next. Each one leaves every key it
-// does not touch where it was, so a save writes them back.
 import { layoutsFor } from "./layouts.ts";
 
 import { NEW_QUERY_FILE_LIMIT } from "#core/query-view/query-file.ts";
 
-/** A file after an edit, and the view to show in it. */
 export interface ViewEdit {
   readonly file: QueryFile;
   readonly name: string;
 }
 
-/**
- * The characters a view name cannot hold: `#` and `|` would break an embed
- * link such as `![[Figures.zotquery#Yellow highlights]]`.
- */
 export const VIEW_NAME_RESERVED = ["#", "|"] as const;
 
-/** Why a name cannot stand for the view at `index` (`null` for a new view). */
 export type ViewNameIssue = "empty" | "taken" | "invalid";
 
 export function viewNameIssue(
@@ -40,7 +31,6 @@ export function viewNameIssue(
   return null;
 }
 
-/** `base`, or `base 2`, `base 3`, … where the file already has a view of that name. */
 export function freeViewName(file: QueryFile, base: string): string {
   const taken = new Set(file.views.map((view) => view.name));
   let name = base;
@@ -66,10 +56,6 @@ function replaced(
   );
 }
 
-/**
- * A new view of `dataset` at the end of the list, drawn by the first layout
- * of that dataset, with the new-file limit.
- */
 export function addView(
   file: QueryFile,
   base: string,
@@ -95,7 +81,6 @@ export function renameView(
   return replaced(file, index, { ...file.views[index]!, name: name.trim() });
 }
 
-/** A copy of the view right after it, under a free name. */
 export function duplicateView(file: QueryFile, index: number): ViewEdit {
   const view = file.views[index]!;
   const name = freeViewName(file, view.name);
@@ -109,14 +94,12 @@ export function duplicateView(file: QueryFile, index: number): ViewEdit {
   return { file: withViews(file, views), name };
 }
 
-/** The file without the view, and the view before it to show next. */
 export function deleteView(file: QueryFile, index: number): ViewEdit {
   const views = file.views.filter((_, at) => at !== index);
   const next = views[Math.max(0, index - 1)];
   return { file: withViews(file, views), name: next?.name ?? "" };
 }
 
-/** The view moved to `to`; a move to `0` makes it the default view. */
 export function moveView(file: QueryFile, from: number, to: number): QueryFile {
   const views = [...file.views];
   const [view] = views.splice(from, 1);
@@ -124,7 +107,6 @@ export function moveView(file: QueryFile, from: number, to: number): QueryFile {
   return withViews(file, views);
 }
 
-/** A layout key of the view set to `value`, or removed for `undefined`. */
 export function setViewOption(
   file: QueryFile,
   index: number,
@@ -145,13 +127,6 @@ export function setViewLayout(
   return replaced(file, index, { ...file.views[index]!, type });
 }
 
-/**
- * The view set to read `dataset`. A layout that cannot show the dataset
- * gives way to the dataset's first layout. The filters, the sort, the
- * grouping and the visible properties stay as they are: a condition the new
- * dataset cannot read shows the filter's diagnostic, and what else the
- * dataset lacks the view does not use (see `unusedSettings` in view-properties).
- */
 export function setViewDataset(
   file: QueryFile,
   index: number,

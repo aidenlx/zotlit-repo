@@ -43,11 +43,9 @@ export interface ExcerptEngine {
   load(source: DocumentSource, options?: LoadOptions): Promise<ExcerptDocument>;
 }
 
-/** A page of a document this renderer loaded itself, which it also cleans up. */
 interface PdfPage extends ExcerptCropPage {
   cleanup(): boolean;
 }
-/** Only the exact task created by this renderer may change scheduling. */
 export function usePromiseScheduling(
   page: unknown,
   task: ExcerptRenderTask,
@@ -80,23 +78,10 @@ export type ExcerptRendererPhase =
   | "document-loading"
   | "page-rendering";
 
-/**
- * How many crops this renderer drew, and where each one's document came from.
- *
- * The live flags above say what stands right now; these counts say what a
- * resolution did, so a caller can tell a crop that reused an open reader's
- * document from one that loaded the file itself. A crop is counted once it has
- * produced an image: a borrowed page the reader withdrew falls back to the
- * file, and only that fallback's crop is counted.
- */
 export interface ExcerptRendererLoads {
-  /** Crops drawn from a document an open reader already held. */
   borrowed: number;
-  /** Crops drawn from a document this renderer loaded itself. */
   detached: number;
-  /** PDF files this renderer opened for reading. */
   fileOpens: number;
-  /** PDF documents this renderer loaded. */
   documentLoads: number;
 }
 
@@ -119,7 +104,6 @@ interface DiagnosticGate {
 
 const logged = withLogCategory("excerpt-image", "renderer");
 
-/** Internal acceptance diagnostics. It does not alter work unless a test installs a gate. */
 export class ExcerptRendererDiagnostics {
   #phase: ExcerptRendererPhase | "idle" = "idle";
   #jobActive = false;
@@ -189,22 +173,18 @@ export class ExcerptRendererDiagnostics {
     this.#fileOpen = open;
   }
 
-  /** One crop drew from an open reader's document. */
   borrowed(): void {
     this.#loads.borrowed++;
   }
 
-  /** One crop drew from a document this renderer loaded itself. */
   detached(): void {
     this.#loads.detached++;
   }
 
-  /** One PDF file handle was opened for reading. */
   openedFile(): void {
     this.#loads.fileOpens++;
   }
 
-  /** One PDF document was loaded. */
   loadedDocument(engine: string): void {
     this.#loads.documentLoads++;
     this.#engine = engine;
@@ -244,7 +224,6 @@ export class ExcerptRendererDiagnostics {
   }
 }
 
-/** One resident document serves the serial queue; each render owns a Scope. */
 export class ExcerptRenderer {
   readonly diagnostics = new ExcerptRendererDiagnostics();
   readonly #host;
@@ -499,7 +478,6 @@ export class ExcerptRenderer {
     box = bounds(scale);
     const canvas = yield* Effect.acquireRelease(
       Effect.sync(() =>
-        // Renders offscreen, outside any Obsidian window.
         (this.#host.canvas ?? (() => document.createElement("canvas")))(),
       ),
       (canvas) =>

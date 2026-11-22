@@ -1,5 +1,3 @@
-// Test support: fake devices for the Managed Binary services: an installed
-// Resource Pack, and the origin's private file system.
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { bytesRange } from "@zotlit/resource-pack/reader.ts";
 import { sha256Hex } from "@zotlit/resource-pack/sha256.ts";
@@ -8,7 +6,6 @@ import { writePack } from "@zotlit/resource-pack/writer.ts";
 import type { OldStoreDirectory } from "./old-store-cleanup.ts";
 import type { ResourcePackHostPorts } from "./pack-platform.ts";
 
-/** The file of a Resource Pack that holds `entries`, by entry name. */
 export async function packFile(
   entries: Readonly<Record<string, Uint8Array<ArrayBuffer>>>,
   compat?: number,
@@ -25,12 +22,6 @@ export async function packFile(
   });
 }
 
-/**
- * A device whose installed plugins hold the Resource Pack `file` at
- * `version`, or no pack for `null`. `install` puts another pack in its place
- * as a file copy does, with no word from Obsidian; `announce` is Obsidian's
- * report of an installed, updated or removed pack.
- */
 export function packDevice(
   file: Uint8Array | null,
   version = "1.0.0",
@@ -60,7 +51,6 @@ export function packDevice(
   };
 }
 
-/** A folder of {@link originFiles}: its entries by name; `null` is a file. */
 export interface OriginFolder {
   [name: string]: OriginFolder | null;
 }
@@ -69,11 +59,6 @@ function notFound(name: string): DOMException {
   return new DOMException(`No entry named ${name}`, "NotFoundError");
 }
 
-/**
- * The origin's private file system that holds `tree`, as the browser gives
- * it. `paths` lists what it holds now, `opens` counts the reads of its root,
- * and `refuse` makes the next removal fail as a locked file does.
- */
 export function originFiles(tree: OriginFolder) {
   let refused = false;
   const directory = (folder: OriginFolder): OldStoreDirectory => ({
@@ -92,7 +77,6 @@ export function originFiles(tree: OriginFolder) {
       }
       if (!(name in folder)) return Promise.reject(notFound(name));
       const entry = folder[name];
-      // As the browser: a folder that holds an entry goes only with `recursive`.
       if (entry && Object.keys(entry).length > 0 && !options?.recursive)
         return Promise.reject(
           new DOMException(

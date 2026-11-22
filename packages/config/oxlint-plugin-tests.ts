@@ -1,7 +1,3 @@
-// zotlit-tests: tests that assert behavior, not implementation
-// (policies/testing-strategy.md, policies/tautological-tests.md). Rejects
-// class and markup assertions, reading source as text, and mocking repository
-// modules. Rule tests: oxlint-plugin-tests.test.ts.
 import type { RuleTester } from "oxlint/plugins-dev";
 
 type Rule = Parameters<RuleTester["run"]>[1];
@@ -11,18 +7,11 @@ type Node =
   | Parameters<NonNullable<Visitor["Literal"]>>[0]
   | Parameters<NonNullable<Visitor["TemplateElement"]>>[0];
 
-/** A `zt:` utility class, escaped (`zt\:`) as a CSS selector writes it. */
 const ztClass = /(?<![\w-])zt\\*:(?=\S)/;
 
-/**
- * Code held in a string, such as a script the End-to-end Run evaluates in
- * Obsidian, that reads a `zt:` class: `classList.contains('zt:…')`, a
- * `.zt\:` selector, or a `[class~="zt:…"]` selector.
- */
 const classQuery =
   /classList\.contains\(\s*["'`]zt:|\.zt\\+:|\[class[~*^$|]?=\s*["'`]?zt\\*:/;
 
-/** Whether a callee is `expect` or a matcher chained off `expect(…)`. */
 function isExpectChain(callee: CallNode["callee"]): boolean {
   let at: CallNode["callee"] = callee;
   for (;;) {
@@ -33,14 +22,12 @@ function isExpectChain(callee: CallNode["callee"]): boolean {
   }
 }
 
-/** Whether the node stands in the subject or a matcher of an assertion. */
 function inAssertion(node: Node): boolean {
   for (let at: Node["parent"] | null = node.parent; at; at = at.parent)
     if (at.type === "CallExpression" && isExpectChain(at.callee)) return true;
   return false;
 }
 
-/** Whether the node is the class a `classList.contains(…)` call reads. */
 function inClassListContains(node: Node): boolean {
   const call = node.parent;
   if (call?.type !== "CallExpression" || call.arguments[0] !== node)
@@ -56,11 +43,6 @@ function inClassListContains(node: Node): boolean {
   );
 }
 
-/**
- * A `zt:` class is how a control is drawn, not what it does: a restyle that
- * keeps the behavior breaks a test that reads it (policies/ui-testing.md,
- * "Change detectors" in policies/tautological-tests.md).
- */
 export const noClassAssertion: Rule = {
   meta: {
     type: "suggestion",
@@ -95,7 +77,6 @@ export const noClassAssertion: Rule = {
 
 type AnyNode = NonNullable<CallNode["parent"]>;
 
-/** Whether the callee is `Array.from`, which keeps the elements it copies. */
 function isArrayFrom(callee: CallNode["callee"]): boolean {
   return (
     callee.type === "MemberExpression" &&
@@ -105,7 +86,6 @@ function isArrayFrom(callee: CallNode["callee"]): boolean {
   );
 }
 
-/** Whether the call is `….getAttribute("class")`. */
 function isClassAttribute(node: CallNode): boolean {
   const [name] = node.arguments;
   return (
@@ -123,7 +103,6 @@ const selectorMethods = new Set([
   "matches",
 ]);
 
-/** A selector's static text, with `x` standing in for each expression. */
 function selectorText(node: AnyNode | undefined): string {
   if (node?.type === "Literal")
     return typeof node.value === "string" ? node.value : "x";
@@ -136,15 +115,12 @@ function selectorText(node: AnyNode | undefined): string {
   return "x";
 }
 
-/** Whether the selector matches on a class: `.name` or `[class…]`. */
 function isClassSelector(text: string): boolean {
   if (/\[\s*class\s*[\]~*^$|=]/.test(text)) return true;
-  // Quoted values and attribute selectors may hold dots of their own.
   const bare = text.replaceAll(/"[^"]*"|'[^']*'|\[[^\]]*\]/g, "");
   return /\.[\w\\-]/.test(bare);
 }
 
-/** Whether the call selects elements, or tests one, by class. */
 function isClassQuery(node: CallNode): boolean {
   return (
     node.callee.type === "MemberExpression" &&
@@ -153,10 +129,6 @@ function isClassQuery(node: CallNode): boolean {
   );
 }
 
-/**
- * Markup is how the host draws an element, and a unit test runs in happy-dom,
- * not the host: assert it in the End-to-end Run (policies/testing-strategy.md).
- */
 export const noMarkupAssertion: Rule = {
   meta: {
     type: "suggestion",
@@ -170,15 +142,7 @@ export const noMarkupAssertion: Rule = {
     schema: [],
   },
   create(context) {
-    /**
-     * Whether the value reaches an assertion, directly or through the
-     * variables it initializes. Acting on an element (`click`, `fireEvent`,
-     * typing) leaves it outside `expect`, and handing it to a helper
-     * (`EditorView.findFromDOM(el)`) turns it into something else: both stay
-     * legal.
-     */
     const asserted = (node: AnyNode, seen = new Set<AnyNode>()): boolean => {
-      // Until the walk leaves a callback, the value itself is in hand.
       let direct = true;
       for (let from = node, at = node.parent; at; from = at, at = at.parent) {
         if (at.type === "CallExpression") {
@@ -229,7 +193,6 @@ export const noMarkupAssertion: Rule = {
   },
 };
 
-/** Static fragments of a path, including join/resolve and URL expressions. */
 function pathFragments(
   node: NonNullable<CallNode["parent"]> | undefined,
 ): string[] {
@@ -292,13 +255,6 @@ function isSourceFile(path: string): boolean {
   );
 }
 
-/**
- * A test that reads source text (`readFile` of a `.ts`, `.css`, config or doc
- * file, or a `?raw` import) asserts how code is written, not what it does: a
- * behavior-preserving edit breaks it (policies/testing-strategy.md). Static
- * rules belong in lint or types. Files under a fixtures directory are test
- * data and stay allowed.
- */
 export const noSourceText: Rule = {
   meta: {
     type: "problem",
@@ -344,7 +300,6 @@ export const noSourceText: Rule = {
   },
 };
 
-/** The static property name, including a quoted bracket key. */
 function staticName(
   node: Extract<CallNode["callee"], { type: "MemberExpression" }>,
 ): string | undefined {
@@ -359,12 +314,6 @@ function staticName(
   return undefined;
 }
 
-/**
- * `vi.mock` of a repository module (relative, `#`, `@/` or `@zotlit/`) tests
- * the mock instead of the code, and passes while the real wiring breaks
- * (policies/testing-strategy.md). Mock only process, network and OS
- * boundaries; third-party specifiers stay allowed.
- */
 export const noInternalMock: Rule = {
   meta: {
     type: "problem",
@@ -415,12 +364,6 @@ export const noInternalMock: Rule = {
   },
 };
 
-/**
- * Reject host captures, method-shorthand callbacks, and callback-owned `this`.
- * An arrow or function expression taking context and args can execute as source
- * in another window without the test module's bindings or receiver.
- * @see policies/testing-strategy.md — static authoring constraints use lint.
- */
 export const noEvalCapture: Rule = {
   meta: {
     type: "problem",
@@ -491,8 +434,6 @@ export const noEvalCapture: Rule = {
         for (const callback of callbacks) {
           const scope = context.sourceCode.getScope(callback);
           for (const reference of scope.through) {
-            // Oxlint exposes the TS scope manager's runtime flag; its public
-            // Reference interface has not yet declared the TS-only members.
             if ("isValueReference" in reference && !reference.isValueReference)
               continue;
             if (!reference.resolved || reference.resolved.defs.length === 0)
@@ -515,8 +456,6 @@ export const noEvalCapture: Rule = {
                 context.report({ node, messageId: "thisValue" });
                 break;
               }
-              // A nested normal function or class method owns its receiver.
-              // An arrow inherits this from the serialized callback.
               if (
                 at.type === "FunctionExpression" ||
                 at.type === "FunctionDeclaration"
@@ -532,7 +471,6 @@ export const noEvalCapture: Rule = {
 
 const pollCalls = new Set(["obRunUntil", "readQueryViewUntil"]);
 
-/** The called name of `name(…)` or `receiver.name(…)`. */
 function calledName(node: CallNode): string | undefined {
   const { callee } = node;
   if (callee.type === "Identifier") return callee.name;
@@ -540,7 +478,6 @@ function calledName(node: CallNode): string | undefined {
   return undefined;
 }
 
-/** Whether the node is a function taking no parameters that returns this literal. */
 function returnsLiteral(node: AnyNode | undefined, value: boolean): boolean {
   return (
     node?.type === "ArrowFunctionExpression" &&
@@ -550,11 +487,6 @@ function returnsLiteral(node: AnyNode | undefined, value: boolean): boolean {
   );
 }
 
-/**
- * The migrated suite carried `__typedArgN` placeholders through the callback
- * and its JSON args. A role name reads at the call and in the callback alike.
- * @see packages/e2e/AGENTS.md — Page callbacks.
- */
 export const noTypedArgName: Rule = {
   meta: {
     type: "problem",
@@ -581,11 +513,6 @@ export const noTypedArgName: Rule = {
   },
 };
 
-/**
- * `obRunUntil` already rejects with its `what` and the last value. Turning
- * that rejection into `false` hides the diagnostics; assert on the value, or
- * await the poll and let a timeout fail the test.
- */
 export const noPollAdapter: Rule = {
   meta: {
     type: "problem",
@@ -615,10 +542,6 @@ export const noPollAdapter: Rule = {
   },
 };
 
-/**
- * A poll reads as `await obRunUntil(vault, callback, args, { what })`. A
- * function invoked in place around it only forwards options.
- */
 export const noPollWrapper: Rule = {
   meta: {
     type: "problem",
@@ -632,7 +555,6 @@ export const noPollWrapper: Rule = {
     },
   },
   create(context) {
-    /** The poll call a wrapper body returns, through `.then` and `await`. */
     function polled(node: AnyNode | undefined): CallNode | undefined {
       let at = node;
       while (at) {
@@ -668,7 +590,6 @@ export const noPollWrapper: Rule = {
   },
 };
 
-/** A `file.ts:123` label points at a line that moves; say what the poll awaits. */
 export const noGeneratedPollLabel: Rule = {
   meta: {
     type: "problem",
@@ -700,7 +621,6 @@ export const noGeneratedPollLabel: Rule = {
   },
 };
 
-/** Whether the callback returns the text "true" or "false", or builds text with `String`. */
 function stringifies(node: AnyNode | undefined): boolean {
   if (!node || typeof node !== "object") return false;
   if (
@@ -727,11 +647,6 @@ function stringifies(node: AnyNode | undefined): boolean {
   return false;
 }
 
-/**
- * The string eval transport turned booleans into `"true"` and numbers into
- * text. The typed transport returns the value itself, so a poll compares it
- * as it is.
- */
 export const noStringTransport: Rule = {
   meta: {
     type: "problem",
@@ -760,9 +675,6 @@ export const noStringTransport: Rule = {
         if (!pollCalls.has(calledName(node) ?? "")) return;
         const options = node.arguments[3];
         if (options?.type !== "ObjectExpression") return;
-        // A callback that reads a "true"/"false" DOM attribute compares text on
-        // purpose; only a callback that turns its own result into text moves
-        // the boolean through a string.
         if (!stringifies(node.arguments[1])) return;
         for (const option of options.properties) {
           if (

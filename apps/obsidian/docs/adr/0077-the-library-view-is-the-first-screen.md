@@ -27,3 +27,62 @@ Proposed on 2026-10-17 with [#1554](https://github.com/aidenlx/zotlit/issues/155
 - The banner is laid out like an article, the same in every case (amended after the banner layout review). The banner's background spans the tab as a bar; on a wide pane it holds two areas inside the banner's inline margins (amended after the banner alignment review, replacing one column at most 64rem wide from the Library Tree's left edge): the Help Links in a column of fixed width at the end of the pane, and the rest of the width for what to do, whose header and sections sit centered there in a column at most 40rem wide, so the eye lands on the steps rather than on the links, and a wide pane adds space around the steps rather than stretching them. Its dismiss button stays at the banner's top-right corner whatever the width, where a dismissable bar's close button sits, rather than following the content (amended after the footage review). In that column, what to do comes first — the update, the Migration Prompt, the template conversion, the Companion guidance, then the setup steps — and the Help Links sit in their 22rem column at the end, two tiles to a row; under 760px the column stacks, with the Help Links last and the small tiles keeping their icon and title only. When every step is done and the banner also shows a notice, the checklist folds into one "Setup done" line with a "Show steps" control; the checklist the "Open welcome view" command asks for stays open. A notice shows one lead sentence and its action, and puts any longer explanation behind "How it works", so the banner fits without scrolling. The header names ZotLit with its brand lockup, the two-ink mark and the wordmark of docs/brand.md in the theme's inks, rather than the name in the interface font. Within the centered column everything shares one start edge: the lockup, the step marks and the notices' text, with the tinted surface of the open step and of a callout hanging outside it; the header line holds the centered header and, at the end, the dismiss button, and under it the first section and the Help Links start on one top line, and the banner keeps the same inline margin to the pane's start and end edges (amended after the banner alignment review).
 - The researcher can dismiss the banner in every case, and it stays away until a new event brings it back: a later update of ZotLit, or a new Migration Prompt (amended after the banner layout review). The "Open welcome view" command shows it again with its setup steps and moves focus to it. The Library View's "Welcome & help" view action in the tab header toggles it: while the banner is hidden it shows it as the command does, and while it shows it dismisses it as the dismiss button does; the action reads as pressed while the banner shows (amended after the footage review, which moved it from the foot of the Library Tree).
 - Whether the banner shows is one saved state, not a session request (amended after the persistence review). The dismiss button, "Welcome & help", the "Open welcome view" command, the settings button "Review conversion", setup completing and an update all write it in plugin data, so the banner a researcher sees before a reload is the one they see after it, and the pressed state of "Welcome & help" follows it. "Show steps" on the folded "Setup done" line is saved the same way, until the banner is dismissed.
+
+Show at most one missing-data-folder notice. Remove it when the database reads again or a Library View opens, because that view supplies its own card and folder action. Persist an explicit Welcome request until dismissal. When a new version is pending, keep the update banner visible until the researcher opens What's new or dismisses it.
+
+## Banner state and lifecycle
+
+Offer ZotLit Companion and ZotLit Reader as optional steps after the core setup, with the first unfinished step open. The required steps are the connection and the literature-notes folder. Wait until connection status is known before opening an incomplete checklist. Keep a pending conversion offer visible. A conversion result remains visible during setup, after a conversion in the current banner, or while cleanup is pending. Reuse the same refusal message in the transient notice and banner so it remains available for retry. Keep the conversion scoped to its leaf. Closing the banner interrupts that leaf's command immediately, while its protected writes finish. Flush saved banner gestures so an immediate reload preserves them.
+
+Share the connection count and its refresh across the Library leaves. Use a cached count before first paint, invalidate it before publishing a reader revision, and hold an earlier answer briefly while a refresh runs. If the refresh still has no cached result after 200 ms, show the checking state. Interruption cancels the cached read when its shared owner goes away. Check Zotero's add-on list again when the researcher returns to Obsidian or the profile or database changes. Retry briefly because Zotero can write the list after Obsidian starts. A new trigger replaces the previous retry.
+
+## Launch decisions
+
+Treat a strict semantic version increase as an update. Preserve a pending update on a same-version relaunch until acknowledgment. A downgrade or unknown prior version clears the pending update. A new version with notices disabled also clears it. Crossing the Zotero 10 Companion release threshold shows the Companion notice in place of the banner update. The Release Note opens from a user action, in Obsidian's Web Viewer when enabled or the system browser otherwise. Resolve localized documentation URLs when the link is used.
+
+Detect an upgrade from Legacy Data or from ejected `zt-*.eta.md` templates in v1's default folder when settings are absent. Restore that folder for a templates-only upgrade. During later launches, clear a pending Migration Prompt when its configured folder no longer holds ejected v1 templates. A pending flag alone does not open a new tab. Run the launch check after settings and the workspace are ready. Gate the one-shot layout callback on disposal because the host provides no unregister operation for it.
+
+## Banner presentation
+
+Use text and an icon to identify step status. Use the accent as a border where text on an accent fill would miss the contrast target. Keep the dismiss button at the end of the header, following the title in focus order. Give the banner its name with `aria-labelledby` so Obsidian does not attach an extra tooltip. Move focus to the banner after an explicit request. Use a flex checklist row with its own number because Obsidian's unlayered list rules draw a second marker on list items. Set the Help Link color inline so Obsidian's unlayered link rules do not replace it. Keep each step title visible and truncate its summary first.
+
+Build the lockup from the canonical two-ink mark and the glyph group of the wordmark. Align the 16-unit mark to whole pixels. Scale the Archivo SemiBold outlines to a 12px cap height on a baseline at y=14, with a 4px gap before the Z. The SVG starts at the mark's ink edge. Use the theme's brand inks.
+
+Include the migration reminder in the Settings group only while it is pending. A hidden first row stays in the host's DOM and takes the first-child position, causing a stray divider above the next visible row. The settings focus follow-up is tracked in [issue 147](https://github.com/aidenlx/zotlit-repo/issues/147).
+
+On a failed refresh with a readable database, keep the existing rows and show a short refresh notice. Give the missing-data-folder card its name from the visible title, which avoids the host tooltip generated for `aria-label`.
+
+An explicit Library View open activates an existing tab and can focus its search. A restored tab does not take focus. Wait for the Welcome connection read before deciding whether to focus the search on arrival. Keep the current focus if the banner is present or the researcher already moved focus. The Welcome action can focus search explicitly. A missing-file state survives initial database load so a later view registration still offers the folder action. Retry the stored search when the database becomes readable.
+
+### Welcome View proof
+
+Use a vault with no plugin data to check the first launch. The
+release check opens Library View once and records it. With setup
+incomplete, the banner lists the open step and Help Links without
+requiring the Companion. Search your library focuses the search
+field, while the banner's initial render leaves it unfocused.
+The Welcome command and the tab's Welcome & help action reopen the
+banner. The tab action moves focus to it and toggles it closed.
+Clear a notice that would obscure its dismiss control.
+
+If Zotero's database is unavailable, offer Locate data folder in
+place of rows. On a narrow pane, the list supplies the action
+while the tree is hidden. Set the dialog's chosen path through
+the same setting during the case and verify the rows return.
+
+For an update, keep the active note and open Library View in a
+separate tab. Show the update in the banner and acknowledge it
+through What's new. Acknowledgment or dismissal survives reload.
+With template conversion as well, keep the Updated badge, fold
+completed steps, and defer the longer explanation to How it works.
+Arm the offer after plugin load because detecting converted
+templates can clear the saved offer.
+
+In the layout proof, wait for the connection readout and expected
+sections. Use equal edge margins and a shared left alignment for
+the lockup, steps, and status text. Keep tinted surfaces clear of
+Help Links and the dismiss action clear of all tiles. Stack the
+column in a narrow pane and place it beside the Help Links in a
+wide pane.
+
+[Welcome View cases](../../../../packages/e2e/src/library-view-navigation.e2e.ts)

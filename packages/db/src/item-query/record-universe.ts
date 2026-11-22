@@ -2,7 +2,6 @@ import type { ZoteroDatabase } from "#client/database.ts";
 import type { AnyColumn } from "drizzle-orm";
 import { eq, inArray, notExists, notInArray } from "drizzle-orm";
 
-// Shared universe predicates for Attachments, Annotations, and their relations.
 import {
   deletedItems,
   itemAttachments,

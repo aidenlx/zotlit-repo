@@ -15,22 +15,11 @@ export interface IconProps extends Omit<
   SVGAttributes<SVGSVGElement>,
   "children"
 > {
-  /** @see https://lucide.dev for the bundled icon catalog. */
   name: IconName;
-  /**
-   * One of Obsidian's icon sizes, which brings the stroke width Obsidian
-   * pairs with it; or a CSS length, or a number treated as px, which keeps
-   * the stroke of the context.
-   */
   size?: IconSize | number | (string & Record<never, never>);
   strokeWidth?: number | string;
 }
 
-/**
- * Obsidian's icon sizes, each `--icon-<size>` with its
- * `--icon-<size>-stroke-width`, so an icon's stroke follows its size as
- * Obsidian's own icons do.
- */
 export type IconSize = "xs" | "s" | "m" | "l";
 
 const ICON_SIZES: ReadonlySet<string> = new Set<IconSize>([
@@ -40,10 +29,6 @@ const ICON_SIZES: ReadonlySet<string> = new Set<IconSize>([
   "l",
 ]);
 
-/**
- * `getIcon` returns a cloned SVG node; we graft its children and
- * attributes onto a React-managed `<svg>` so the icon stays reactive.
- */
 export function Icon({
   name,
   size,
@@ -59,8 +44,6 @@ export function Icon({
     const svg = ref.current;
     if (!svg) return;
 
-    // Drop any attributes carried over from a previously-rendered icon
-    // (custom icons may declare a different attribute set than Lucide).
     for (const attr of ownedAttrs.current) svg.removeAttribute(attr);
     ownedAttrs.current.clear();
 
@@ -78,7 +61,6 @@ export function Icon({
 
     svg.replaceChildren(...proto.childNodes);
 
-    // Copy prototype attributes but leave `class` React-owned.
     for (const attr of proto.attributes) {
       if (attr.name === "class") continue;
       svg.setAttribute(attr.name, attr.value);
@@ -86,15 +68,6 @@ export function Icon({
     }
   }, [name]);
 
-  /**
-   * The class Obsidian itself stamps on the icon — `svg-icon lucide-paperclip`
-   * for a Lucide one. Take it verbatim rather than composing `svg-icon` with
-   * the bare `name`: an unprefixed name lands in the class list as its own
-   * selector, and several collide with Obsidian's global classes
-   * (`.external-link` paints a background glyph and adds inline-end padding).
-   * A fresh `getIcon` call, because the effect above moves its clone's
-   * children out and must keep getting an untouched one.
-   */
   const iconClass = useMemo(
     () => getIcon(name)?.getAttribute("class") ?? "svg-icon",
     [name],
@@ -125,12 +98,6 @@ export function Icon({
   );
 }
 
-/**
- * A box one line of its text tall, which centres what it holds on that line:
- * an icon, or an icon button, that leads a block of more than one line sits
- * on the block's first line, wherever the line box puts the text. Give it the
- * class that sets the first line's font size and line height.
- */
 export function FirstLine({
   className,
   children,

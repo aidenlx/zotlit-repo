@@ -655,7 +655,6 @@ custom: kept
     expect(file.problems).toEqual([]);
     expect(displayName(file, "title")).toBe("Work");
     expect(displayName(file, "formula.year")).toBe("Year of source");
-    // A Bases-style note. prefix is not a Projection Path: it names no field.
     expect(displayName(file, "date")).toBeUndefined();
     expect(displayName(file, "item.title")).toBeUndefined();
   });

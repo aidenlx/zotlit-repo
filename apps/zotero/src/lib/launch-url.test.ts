@@ -6,7 +6,6 @@ const LINK = "obsidian://zotlit/open?item=859&source-id=4c7df3cb";
 const SYSTEM_PRINCIPAL = "system-principal";
 const NS_ERROR_ILLEGAL_VALUE = 0x80070057;
 
-/** The failure Zotero 10.0.2 raises for a null triggering principal. */
 function missingPrincipalFailure(): Error {
   const error = new Error(
     "Component returned failure code: 0x80070057 (NS_ERROR_ILLEGAL_VALUE) [nsIExternalProtocolService.loadURI]",
@@ -20,10 +19,6 @@ interface Recorders {
   loaded: Array<{ spec: string; principal: unknown }>;
 }
 
-/**
- * Install the globals the plugin reads: Zotero, Components, Cc, Ci, Services.
- * `behavior` stands in for the Zotero build under test.
- */
 function installGlobals(behavior: (url: string) => void): Recorders {
   const recorders: Recorders = { launched: [], loaded: [] };
   const protocolService = {

@@ -1,20 +1,11 @@
-// The date and duration values of a Filter Expression. The Query Clock gives
-// every date function and every calendar-day comparison its instant and its
-// time zone.
 import { regex } from "arkregex";
 
 import type { ItemDate } from "@zotlit/db";
 
 import type { QueryClock } from "./query-clock.ts";
 
-/** The part of the calendar that a calendar date names. */
 export type DatePrecision = "year" | "month" | "day";
 
-/**
- * A date of a Filter Expression: a timestamp (an exact instant, such as
- * `dateAdded` or `now()`) or a calendar date. A calendar date is the closed
- * interval of days its precision covers: a year, a month, or one day.
- */
 export type DateValue =
   | {
       readonly type: "date";
@@ -24,16 +15,11 @@ export type DateValue =
   | {
       readonly type: "date";
       readonly precision: DatePrecision;
-      /**
-       * A day of the interval: its first day, or after date arithmetic a
-       * later day of the same year or month.
-       */
       readonly first: Temporal.PlainDate;
     };
 
 export type CalendarDate = Extract<DateValue, { first: Temporal.PlainDate }>;
 
-/** A length of time. Weeks are folded into days, seven each. */
 export interface DurationValue {
   readonly type: "duration";
   readonly duration: Temporal.Duration;
@@ -50,12 +36,10 @@ export function calendarDate(
   return { type: "date", precision, first };
 }
 
-/** The current calendar day of the Query Clock. */
 export function today(clock: QueryClock): CalendarDate {
   return calendarDate(dayOf(clock.now, clock), "day");
 }
 
-/** The calendar day of a date in the query time zone. */
 export function dateOnly(date: DateValue, clock: QueryClock): CalendarDate {
   return date.precision === "instant"
     ? calendarDate(dayOf(date.instant, clock), "day")
@@ -66,10 +50,6 @@ function dayOf(instant: Temporal.Instant, clock: QueryClock) {
   return instant.toZonedDateTimeISO(clock.timeZone).toPlainDate();
 }
 
-/**
- * A Zotero multipart date as a calendar date. A text date takes the year that
- * the date parser found in it; a text date without a year is null.
- */
 export function fromItemDate(date: ItemDate | null): CalendarDate | null {
   if (!date) return null;
   switch (date.kind) {
@@ -94,10 +74,6 @@ function yearDate(year: number): CalendarDate {
 const SQL_DATE_TIME = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:[0-5]\d$/;
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
-/**
- * Zotero's `accessDate`: a UTC timestamp as `YYYY-MM-DD HH:MM:SS`, or a
- * calendar day as `YYYY-MM-DD`. Another value is null.
- */
 export function fromAccessDate(raw: string | null): DateValue | null {
   if (raw === null) return null;
   try {
@@ -122,12 +98,6 @@ const COMPACT_DAY = regex(
   "^(?<year>\\d{4})(?<month>\\d{2})(?<day>\\d{2})(?:(?<hour>\\d{2})(?<minute>\\d{2}))?$",
 );
 
-/**
- * The value of `date(text)`. A text with a time of day is a timestamp: an
- * explicit offset or `Z` fixes the instant, and a time without an offset is a
- * wall-clock time in the query time zone. `YYYY-MM-DD`, `YYYYMMDD`, `YYYY-MM`,
- * and `YYYY` are calendar dates. Another text, or an impossible date, is null.
- */
 export function parseDate(text: string, clock: QueryClock): DateValue | null {
   try {
     const dateTime = DATE_TIME.exec(text);
@@ -184,11 +154,6 @@ const DURATION_SHORTHAND = regex(
   "^(?<count>-?\\d+) ?(?<unit>[smhdwMy]|(?:second|minute|hour|day|week|month|year)s?)$",
 );
 
-/**
- * The value of `duration(text)`: a count and a unit (`"7 days"`, `"-2w"`,
- * `"1M"` for a month, `"90m"` for minutes) or an ISO 8601 duration (`"P1Y2M"`,
- * `"PT1H30M"`). Another text is null.
- */
 export function parseDuration(text: string): DurationValue | null {
   const match = DURATION_SHORTHAND.exec(text);
   try {
@@ -228,14 +193,11 @@ function foldWeeks(duration: Temporal.Duration): Temporal.Duration {
   return duration.with({ weeks: 0, days: duration.days + duration.weeks * 7 });
 }
 
-/** The days of a date as `yyyymmdd` numbers: the first and the last day. */
 function dayInterval(
   date: DateValue,
   clock: QueryClock,
 ): readonly [number, number] {
   const { first, precision } = dateOnly(date, clock);
-  // The year or the month that holds `first`: arithmetic on a partial date
-  // can move `first` off the first day of its precision.
   switch (precision) {
     case "year":
       return [
@@ -252,7 +214,6 @@ function dayInterval(
   }
 }
 
-/** A calendar day as the number `yyyymmdd`, which orders days. */
 export function dayKey(day: {
   readonly year: number;
   readonly month: number;
@@ -263,14 +224,6 @@ export function dayKey(day: {
 
 export type DateComparison = "==" | "!=" | "<" | "<=" | ">" | ">=";
 
-/**
- * Compare two dates. Two timestamps compare as instants. Otherwise both are
- * intervals of calendar days, a timestamp being its day in the query time
- * zone: `a > b` when `a` starts after `b` ends, `a >= b` when some part of `a`
- * is on or after the start of `b`, `a < b` when `a` ends before `b` starts,
- * `a <= b` when some part of `a` is on or before the end of `b`, and `a == b`
- * when the intervals overlap.
- */
 export function compareDates(
   operator: DateComparison,
   [a, b]: readonly [DateValue, DateValue],
@@ -312,7 +265,6 @@ export function compareDates(
   }
 }
 
-/** The order of two dates by their start, at the full precision of an instant. */
 export function compareStarts(
   a: DateValue,
   b: DateValue,
@@ -324,17 +276,10 @@ export function compareStarts(
   );
 }
 
-/** Two durations are equal when every unit holds the same count. */
 export function durationsEqual(a: DurationValue, b: DurationValue): boolean {
   return a.duration.toString() === b.duration.toString();
 }
 
-/**
- * `date + duration` and `date - duration`, by the calendar of the query time
- * zone. A calendar date keeps its precision while the duration has only
- * years, months, and days; a time of day in the duration gives a timestamp
- * from the start of the first day.
- */
 export function addDuration(
   date: DateValue,
   duration: Temporal.Duration,
@@ -346,7 +291,6 @@ export function addDuration(
     }
     return timestamp(startOf(date, clock).add(duration).toInstant());
   } catch {
-    // A result outside the range of dates.
     return null;
   }
 }
@@ -362,18 +306,12 @@ function hasTimeOfDay(duration: Temporal.Duration): boolean {
   );
 }
 
-/** The start of a date: the instant itself, or its first day in the zone. */
 function startOf(date: DateValue, clock: QueryClock): Temporal.ZonedDateTime {
   return date.precision === "instant"
     ? date.instant.toZonedDateTimeISO(clock.timeZone)
     : date.first.toZonedDateTime(clock.timeZone);
 }
 
-/**
- * A part of a date, read as a property. A calendar date has no month below
- * year precision and no day below day precision, and its time of day is zero.
- * A timestamp gives its parts in the query time zone.
- */
 export function datePart(
   date: DateValue,
   part:
@@ -403,7 +341,6 @@ export function datePart(
   return startOf(date, clock)[part];
 }
 
-/** The time of day of a date as `HH:MM:SS`, in the query time zone. */
 export function timeOfDay(date: DateValue, clock: QueryClock): string {
   return startOf(date, clock)
     .toPlainTime()
@@ -412,10 +349,6 @@ export function timeOfDay(date: DateValue, clock: QueryClock): string {
 
 const FORMAT_TOKENS = /YYYY|MM|DD|HH|mm|ss/g;
 
-/**
- * `date.format(pattern)`: the tokens `YYYY`, `MM`, `DD`, `HH`, `mm`, and `ss`
- * become the parts of the date in the query time zone; other text stays.
- */
 export function formatDate(
   date: DateValue,
   pattern: string,
@@ -450,11 +383,6 @@ const INSTANT_UNITS = [
   ["minute", 60_000],
 ] as const;
 
-/**
- * `date.relative()`: the distance from the Query Clock in words, such as
- * "3 days ago" or "in 2 hours". A calendar date counts calendar days from
- * today in the query time zone. The wording is presentation.
- */
 export function relativeDate(date: DateValue, clock: QueryClock): string {
   if (date.precision !== "instant") {
     const days = today(clock).first.until(date.first, {
@@ -486,10 +414,6 @@ function words(unit: string, count: number, past: boolean): string {
   return past ? `${label} ago` : `in ${label}`;
 }
 
-/**
- * The text of a date: `YYYY`, `YYYY-MM`, or `YYYY-MM-DD` at its precision, and
- * a timestamp in ISO 8601 UTC.
- */
 export function dateText(date: DateValue): string {
   switch (date.precision) {
     case "instant":

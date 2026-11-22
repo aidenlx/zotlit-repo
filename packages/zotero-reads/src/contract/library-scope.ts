@@ -1,27 +1,3 @@
-/**
- * Library Scope — which Zotero Libraries ZotLit discovers Items from.
- *
- * The persisted value is either All Libraries or a non-empty set of Selected
- * Libraries. Selected Libraries holds **stable selectors** — the personal
- * selector for My Library, a Zotero `groupID` for a group — never a local
- * `libraryID` and never a Library name, because Zotero reassigns local
- * `libraryID`s and renames groups freely.
- *
- * This module is the pure core: plain data in, plain data out, no service, no
- * database, no i18n. {@link resolveLibraryScope} maps a saved scope onto the
- * Libraries of one database snapshot; {@link sameResolution} answers whether
- * two resolutions are equivalent, which is how the service suppresses
- * redundant change events.
- *
- * ## Validity
- *
- * A valid Selected Libraries value is non-empty, free of duplicates, and in
- * canonical order: My Library first, then groups by ascending `groupID`.
- * {@link libraryScopeSchema} rejects anything else instead of normalizing it,
- * so a broken saved value stays broken (and stays persisted) until the user
- * repairs it. A broken value reaches this module as `null`, which resolves to
- * {@link MY_LIBRARY_SCOPE} with `invalid: true`.
- */
 import { regex } from "arkregex";
 import { Effect, Schema, SchemaGetter, SchemaIssue } from "effect";
 import * as v from "valibot";
@@ -30,7 +6,6 @@ import type { Library } from "@zotlit/db";
 
 const groupID = v.pipe(v.number(), v.safeInteger(), v.minValue(1));
 
-/** A stable reference to one Library, independent of its local `libraryID`. */
 export const librarySelectorSchema = v.variant("type", [
   v.object({ type: v.literal("personal") }),
   v.object({ type: v.literal("group"), groupID }),
@@ -63,11 +38,6 @@ const librarySelectorWire = Schema.Union([
   }),
 ]);
 
-/**
- * A Library Scope where it crosses a seam as Effect Schema: the CLI's decoded
- * requests and the ZoteroReads worker. It checks the form alone; validity of
- * a saved value is {@link libraryScopeSchema}'s.
- */
 export const libraryScopeWire = Schema.Union([
   Schema.Struct({ mode: Schema.Literal("all") }),
   Schema.Struct({
@@ -76,50 +46,33 @@ export const libraryScopeWire = Schema.Union([
   }),
 ]);
 
-/** Fresh installations discover every local Library. */
 export const DEFAULT_LIBRARY_SCOPE: LibraryScope = Object.freeze({
   mode: "all",
 });
 
-/**
- * Selected Libraries at its minimum — My Library alone. Two roles: the runtime
- * stand-in while a broken saved value waits to be repaired, and where a switch
- * from All Libraries to Selected Libraries starts.
- */
 export const MY_LIBRARY_SCOPE: LibraryScope = Object.freeze({
   mode: "selected",
   libraries: Object.freeze([Object.freeze({ type: "personal" as const })]),
 });
 
-/** What a scope reads of a Library row; any reader of the rows can give it. */
 export type ScopeLibrary = Pick<
   Library,
   "libraryID" | "type" | "groupID" | "name"
 >;
 
-/** One Library of the active database that the saved scope resolved onto. */
 export interface AvailableLibrary {
   selector: LibrarySelector;
-  /** Local id of this Library in the active database — never persisted. */
   libraryID: number;
-  /** Zotero's group name, or `null` for My Library and unnamed groups. */
   name: string | null;
 }
 
 export interface ResolvedLibraryScope {
   mode: LibraryScope["mode"];
-  /**
-   * The saved value failed validation. `mode`, `available`, and `unavailable`
-   * describe {@link MY_LIBRARY_SCOPE}, not what is on disk.
-   */
   invalid: boolean;
-  /** Libraries in scope that this database holds, in canonical order. */
   available: readonly AvailableLibrary[];
-  /** Selected selectors this database has no Library for, in canonical order. */
   unavailable: readonly LibrarySelector[];
 }
 
-/** Stable identity of a selector, for set membership and equality. */
 export function selectorKey(selector: LibrarySelector): string {
   return selector.type === "personal"
     ? "personal"
@@ -128,11 +81,6 @@ export function selectorKey(selector: LibrarySelector): string {
 
 const GROUP_SELECTOR_KEY = regex("^group:([1-9]\\d*)$");
 
-/**
- * A {@link selectorKey} text, decoded to the selector it names.
- *
- * @param message the diagnostic for text that names no Library
- */
 export function selectorKeySchema(message: (text: string) => string) {
   return Schema.String.pipe(
     Schema.decodeTo(librarySelectorWire, {
@@ -161,7 +109,6 @@ function parseSelectorKey(text: string): LibrarySelector | null {
   return Number.isSafeInteger(groupID) ? { type: "group", groupID } : null;
 }
 
-/** Canonical order: My Library first, then groups by ascending group id. */
 export function compareSelectors(
   a: LibrarySelector,
   b: LibrarySelector,
@@ -171,7 +118,6 @@ export function compareSelectors(
   return a.groupID - b.groupID;
 }
 
-/** Strictly ascending canonical order, which also rules out duplicates. */
 function isCanonicalOrder(selectors: LibrarySelector[]): boolean {
   return selectors.every(
     (selector, index) =>
@@ -179,7 +125,6 @@ function isCanonicalOrder(selectors: LibrarySelector[]): boolean {
   );
 }
 
-/** The selector naming `library`, whatever local `libraryID` it currently has. */
 export function selectorOf(library: ScopeLibrary): LibrarySelector | null {
   if (library.type === "user") return { type: "personal" };
   return library.groupID === null
@@ -187,14 +132,6 @@ export function selectorOf(library: ScopeLibrary): LibrarySelector | null {
     : { type: "group", groupID: library.groupID };
 }
 
-/**
- * Map a saved scope onto the Libraries of one database snapshot.
- *
- * @param libraries every Library the active database holds.
- * @param scope the validated saved scope, or `null` when the saved value is
- * broken — which resolves {@link MY_LIBRARY_SCOPE} and reports
- * `invalid: true`.
- */
 export function resolveLibraryScope(
   libraries: readonly ScopeLibrary[],
   scope: LibraryScope | null,
@@ -242,11 +179,6 @@ function matchesSelector(
     : library.type === "group" && library.groupID === selector.groupID;
 }
 
-/**
- * Whether two resolutions mean the same thing to every consumer. Names take
- * part, so a group rename reaches mounted Library labels; local `libraryID`s
- * take part, so a returning group with a new local id rebuilds what it must.
- */
 export function sameResolution(
   a: ResolvedLibraryScope | null,
   b: ResolvedLibraryScope | null,

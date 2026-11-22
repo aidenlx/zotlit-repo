@@ -1,7 +1,3 @@
-// The Library View Document: how plugin data reads back, how each change
-// takes it, and the Query View's text it becomes. The derivation tests read
-// the text back as the Query View does, and ask the engine what its filter
-// selects.
 import { describe, expect, it } from "vitest";
 
 import {
@@ -53,11 +49,9 @@ import {
 } from "./document.ts";
 import type { LibraryNode, LibraryViewDocument } from "./document.ts";
 
-/** The filter ZotLit Query runs for a view that holds no vault condition. */
 const viewFilter = (file: QueryFile, view: QueryFileView) =>
   splitFilters(file, view).engine(null)?.text;
 
-/** A document with a value other than the default in every field. */
 const CHAPTER: LibraryViewDocument = {
   node: {
     kind: "collection",
@@ -133,9 +127,7 @@ describe("parseLibraryViewDocument and serializeLibraryViewDocument", () => {
       tags: [],
       search: "",
       sort: [{ property: "lastActivity", direction: "DESC" }],
-      // The Reading Card opens with All fields and Annotations closed.
       card: { allFields: false, annotations: false },
-      // No Collection open.
       expanded: [],
     });
   });
@@ -172,7 +164,6 @@ describe("parseLibraryViewDocument and serializeLibraryViewDocument", () => {
     expect(parseLibraryViewDocument({ ...stored, expanded: "Thesis" })).toEqual(
       {
         ...CHAPTER,
-        // The Collection above the selected one still opens.
         expanded: [JSON.stringify(["group:4200309", "Thesis"])],
       },
     );
@@ -387,7 +378,6 @@ describe("the Reading Card's width", () => {
     expect(clampCardWidth(2000, 1200)).toBe(880);
     expect(clampCardWidth(100, 1200)).toBe(288);
     expect(clampCardWidth(500, 1200)).toBe(500);
-    // Below 608px of pane there is no room for both: the card keeps 18rem.
     expect(cardWidthBounds(500)).toEqual({ min: 288, max: 288 });
     expect(clampCardWidth(400, 500)).toBe(288);
     expect(clampCardWidth(5000)).toBe(5000);
@@ -492,7 +482,6 @@ describe("the Library Tree's width and collapse", () => {
 const LABELS = {
   papers: "Papers",
 };
-/** The Library Scope in force: My Library and one group. */
 const SCOPE = {
   mode: "selected",
   libraries: [{ type: "personal" }, { type: "group", groupID: 118 }],
@@ -502,7 +491,6 @@ const MY_LIBRARY = {
   library: { type: "personal" },
 } as const;
 
-/** An Item of My Library, in the Collections at `paths`, with the tags `tags`. */
 function seed(
   key: string,
   paths: string[][] = [],
@@ -548,7 +536,6 @@ function derive(
   return { query, file, view, filter: viewFilter(file, view) };
 }
 
-/** Whether the filter selects the Item of `item`, as a query would. */
 function selects(filter: string | undefined, item: QueryItemSeed): boolean {
   if (filter === undefined) return true;
   const answer = testItemSeed(filter, item);
@@ -556,7 +543,6 @@ function selects(filter: string | undefined, item: QueryItemSeed): boolean {
   return answer.matched;
 }
 
-/** Whether the filter plans for the Items dataset without a mistake. */
 function plans(filter: string | undefined): boolean {
   return filter !== undefined && "matches" in planItemFilter(filter);
 }
@@ -574,7 +560,6 @@ describe("libraryViewQuery — the tree node", () => {
     ] as const;
     expect(derive({ node: thesis }).query.node).toEqual(thesis);
     expect(derive({ node: thesis }, ["ABCD2345"], all).query.node).toBeNull();
-    // Recent reads every Library of the Library Scope already.
     expect(
       derive({ node: { kind: "recent" } }, ["ABCD2345"], all).query.node,
     ).toEqual({ kind: "recent" });
@@ -744,7 +729,6 @@ describe("tagListRequest and tagNames — the Tag Selector", () => {
       libraries: { mode: "selected", libraries: [{ type: "personal" }] },
     });
     expect(request.filter).toBe('collections.within("Thesis")');
-    // The engine groups by one value of each tag: its name, a string.
     expect(planPath(request.group!, ITEMS.resolvePath)).toMatchObject({
       each: 1,
       shape: { kind: "scalar", type: "string" },
@@ -992,7 +976,6 @@ describe("withText", () => {
 });
 
 describe("libraryViewQueryFileText — Save as query file", () => {
-  /** The saved file, read back as a Query File tab reads it. */
   function saved(doc: Partial<LibraryViewDocument>) {
     const file = parseQueryFile(
       libraryViewQueryFileText(

@@ -67,8 +67,6 @@ describe("open", () => {
     }),
   );
 
-  // Two Attachments keep one file. The open names the one it was asked for,
-  // not the one the path chooses, and the reader binds that one.
   it.effect(
     "opens the Attachment it was asked for where another keeps the same file",
     () =>
@@ -141,8 +139,6 @@ describe("open", () => {
       }),
   );
 
-  // A synced library on a second computer names a file that never arrived;
-  // that computer reaches the Attachment through Zotero instead.
   it.effect(
     "hands the target to Zotero when the reader finds no file at the open",
     () =>
@@ -184,8 +180,6 @@ describe("open", () => {
     }),
   );
 
-  // A card clicked while the index is still building waits for it, rather
-  // than sending a PDF this computer holds to Zotero.
   it.effect("waits for the first index before it decides", () =>
     Effect.gen(function* () {
       const { opener, opened, handed, service } = yield* openerFixture({
@@ -204,9 +198,6 @@ describe("open", () => {
     }),
   );
 
-  // An index that never comes must not swallow the click: past the wait, the
-  // target opens in Zotero, as it did while the index was pending. A database
-  // read that fails leaves the index unbuilt the same way.
   it.effect("opens in Zotero once the first index outlasts the wait", () =>
     Effect.gen(function* () {
       const { opener, opened, handed, failReads } = yield* openerFixture({
@@ -230,8 +221,6 @@ describe("open", () => {
     }),
   );
 
-  // A gesture's open ends with the plugin or the view that ran it: an open
-  // still waiting for the index then reaches neither the reader nor Zotero.
   it.effect("opens nothing and reports nothing once interrupted", () =>
     Effect.gen(function* () {
       const { opener, opened, handed, notices, failReads } =
@@ -306,9 +295,6 @@ describe("open", () => {
     }),
   );
 
-  // The page chip and the Query View's annotation rows open an Annotation
-  // through `open`, so they follow the Reader settings as a link in a note
-  // does.
   it.effect.each([
     "reader.open-annotation-links",
     "reader.open-file-links",
@@ -360,7 +346,6 @@ const STORED_LINK =
 const DURABLE =
   "zotero://open/library/items/RGRPDF24?annotation=FDRFQ7C2&page=2";
 
-/** Follows `url` and runs the open it answers; fails a case left to the caller. */
 const followed = Effect.fnUntraced(function* (
   opener: Effect.Success<ReturnType<typeof openerFixture>>["opener"],
   url: string,
@@ -403,7 +388,6 @@ describe("follow", () => {
     }),
   );
 
-  // Until the index lands ZotLit cannot name the file, and does not claim it.
   it.effect("leaves every link to the caller while the index is building", () =>
     Effect.gen(function* () {
       const { opener } = yield* openerFixture({ prime: false });
@@ -413,8 +397,6 @@ describe("follow", () => {
     }),
   );
 
-  // A click handler claims the click before it returns, so the decision
-  // reads only the index held now and opens nothing yet.
   it.effect("decides at once, and opens only when its open runs", () =>
     Effect.gen(function* () {
       const { opener, opened, bridge } = yield* openerFixture();
@@ -466,8 +448,6 @@ describe("follow", () => {
       }),
   );
 
-  // An Attachment File Link names nothing Zotero can open in its stead, so
-  // the opener says the file is missing.
   it.effect(
     "reports a missing file behind an Attachment File Link, and hands nothing to Zotero",
     () =>
@@ -545,8 +525,6 @@ describe("follow", () => {
       }),
   );
 
-  // The fragment carries no library segment of its own, so both keys travel
-  // as Indexed Keys — the form an Annotation Record's key already takes.
   it.effect("names a group-library Annotation by its Indexed Key", () =>
     Effect.gen(function* () {
       const { opener, opened } = yield* openerFixture();
@@ -565,8 +543,6 @@ describe("follow", () => {
     }),
   );
 
-  // `page` is a printed label. Only a label that reads as a page number can
-  // stand in for Obsidian's own jump; the Annotation's own page wins anyway.
   it.effect("leaves out a page label that is no page number", () =>
     Effect.gen(function* () {
       const { opener, opened } = yield* openerFixture();

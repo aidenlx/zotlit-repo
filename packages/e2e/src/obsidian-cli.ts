@@ -1,10 +1,3 @@
-// Minimal Obsidian CLI client for the e2e suite. Mirrors the `=> `-prefixed
-// output convention and bounded polling documented for `obEval` in
-// packages/scripts/scripts/obsidian-vault.ts, whose own header carries the
-// routing and transport background. The call itself comes from
-// `@zotlit/scripts/obsidian-cli`, the same bounded client the scripts use, so
-// one unanswered call cannot strand a run.
-
 import { setTimeout as delay } from "node:timers/promises";
 
 import { createObsidianCall } from "@zotlit/scripts/obsidian-cli";
@@ -17,10 +10,6 @@ const CLI_TIMEOUT_MS = 15_000;
 
 const boundedCall = createObsidianCall({ timeoutMs: CLI_TIMEOUT_MS });
 
-/**
- * A call refused at once because the run vault stopped answering earlier in
- * the same file. Its message names the first failed case.
- */
 export class RunVaultStoppedError extends Error {
   override name = "RunVaultStoppedError";
 }
@@ -28,25 +17,10 @@ export class RunVaultStoppedError extends Error {
 let refusal: (vaultId: string) => RunVaultStoppedError | undefined = () =>
   undefined;
 
-/**
- * Set the check that {@link cli} runs before each call to a vault. The
- * run-vault guard sets it; scripts outside Vitest keep the default, which
- * refuses nothing.
- */
 export function refuseRunVaultCalls(check: typeof refusal): void {
   refusal = check;
 }
 
-/**
- * Obsidian reports failures only as output text.
- *
- * A call that gets no reply — a window that reloads mid-call, or one whose
- * renderer is gone — would otherwise stall a test until Vitest's own timeout.
- * The bounded call turns it into a named failure in {@link CLI_TIMEOUT_MS}.
- *
- * `timeoutMs` raises that deadline for one call; the bound itself stays, so a
- * longer measurement is still answered or reported unreachable.
- */
 export function cli(args: string[], timeoutMs?: number): Promise<string> {
   const vault = args.find((arg) => arg.startsWith("vault="));
   const refused = vault && refusal(vault.slice("vault=".length));
@@ -56,21 +30,12 @@ export function cli(args: string[], timeoutMs?: number): Promise<string> {
   return call(args);
 }
 
-/** Starts the reply of wrapped code that threw; JSON follows on the same line. */
 const THROWN = "__zotlitEvalError__";
 
-/**
- * `code`, run as Obsidian's `eval` runs it — a global eval whose completion
- * value is awaited — but with a thrown error answered as a {@link THROWN}
- * reply that carries its `stack`. Obsidian itself prints only
- * `Error: <message>`, so an error raised inside Obsidian's code would read as
- * if the test's code raised it.
- */
 function wrapEvalCode(code: string): string {
   return `(async()=>{try{return await (0,eval)(${JSON.stringify(code)});}catch(error){return ${JSON.stringify(THROWN)}+JSON.stringify({message:error instanceof Error?error.message:String(error),stack:error instanceof Error?error.stack:undefined});}})()`;
 }
 
-/** The error a {@link THROWN} reply stands for: the message, then the app's frames. */
 function thrownError(json: string): Error {
   const { message, stack } = JSON.parse(json) as {
     message: string;
@@ -83,13 +48,6 @@ function thrownError(json: string): Error {
   return new Error(frames ? `${message}\n${frames}` : message);
 }
 
-/**
- * Pull the `=> `-prefixed reply out of raw CLI output. Evaluated code that
- * logs to the console (the plugin does, on a reload) shares the same
- * response stream, so the reply is the *last* `=> `-prefixed line rather than
- * necessarily the first character of the output. A reply of code wrapped by
- * {@link wrapEvalCode} that threw becomes that error.
- */
 function parseEvalReply(text: string): string {
   const marker = "\n=> ";
   const lastIndex = text.lastIndexOf(marker);
@@ -101,15 +59,6 @@ function parseEvalReply(text: string): string {
   return reply;
 }
 
-/**
- * Run JavaScript in `vaultId`'s window. `vault=<id>` must be the first argv
- * token. The process timeout bounds a missing reply; callers use
- * {@link waitFor} when they need to poll application state.
- *
- * `timeoutMs` is for a call that is one measurement rather than one question —
- * a batch the app answers when it has done the work — where the default
- * deadline would report a loaded machine as a failed measurement.
- */
 async function obEval(
   vaultId: string,
   code: string,
@@ -123,10 +72,6 @@ async function obEval(
   return parseEvalReply(text);
 }
 
-/**
- * Takes every notice off screen in every window, so the next one is the
- * caller's own.
- */
 export async function clearNotices(vaultId: string): Promise<void> {
   await obRun(vaultId, ({ page }) => {
     for (const doc of page.windowDocuments())
@@ -134,21 +79,11 @@ export async function clearNotices(vaultId: string): Promise<void> {
   });
 }
 
-/**
- * Dispatch a registered CLI command (not `eval`). Unlike `eval`'s JS return
- * value, a plugin's `registerCliHandler` reply prints as its own text with no
- * `=> ` prefix, so this returns it as-is — the caller's own parsing (e.g.
- * `JSON.parse`) is what tells a reply from an error sentence.
- *
- * Each entry of `options.args` goes after the command as one `name=value`
- * token.
- */
 export async function cliCommand(
   vaultId: string,
   command: string,
   options: {
     args?: Readonly<Record<string, string>>;
-    /** @default the bounded call of {@link cli} */
     timeoutMs?: number;
   } = {},
 ): Promise<string> {
@@ -164,7 +99,6 @@ export async function cliCommand(
   );
 }
 
-/** Bounded polling — mirrors `waitFor` in obsidian-vault.ts. */
 export async function waitFor(
   check: () => Promise<boolean>,
   tries = 40,
@@ -176,11 +110,6 @@ export async function waitFor(
   return false;
 }
 
-/**
- * Poll `read` until `ready` accepts its answer, and return that answer. A
- * `null` answer is "not drawn yet" and never passes. Throws naming `what` and
- * the last answer once `tries` run out.
- */
 export async function readUntil<T>(
   read: () => Promise<T | null>,
   ready: (value: T) => boolean,
@@ -195,10 +124,6 @@ export async function readUntil<T>(
   return value!;
 }
 
-/**
- * The JSON callback boundary; all imports used by its code must be type-only.
- * Service reads follow the current plugin when a callback restarts it.
- */
 // oxlint-disable-next-line max-params -- The approved callback API keeps options fourth.
 export async function obRun<A = undefined, R = void>(
   vaultId: string,
@@ -222,13 +147,6 @@ export async function obRun<A = undefined, R = void>(
   return (JSON.parse(reply) as { value: Awaited<R> }).value;
 }
 
-/**
- * Poll a typed page callback; reloads and missing replies count as not ready.
- * A new or reloaded window can answer a stray console line before its command
- * registry settles, so a failed parse is retried too. An unanswered call is a
- * per-call stall: a traced navigateToSearchResult never answered while the next
- * identical call answered in 12 ms. Its deadline ends that call; polling goes on.
- */
 // oxlint-disable-next-line max-params -- The approved callback API keeps options fourth.
 export async function obRunUntil<A = undefined, R = boolean>(
   vaultId: string,

@@ -1,6 +1,3 @@
-// The bundle check of a Resource Pack: its `main.js` is valid JavaScript, and
-// each Pack Entry reads back as its pinned binary after the text changes
-// Obsidian makes on install.
 import { Script } from "node:vm";
 
 import { PACK_INDEX_BYTES, parseIndex } from "@zotlit/resource-pack/format.ts";
@@ -21,7 +18,6 @@ export async function checkPack(
   const lines: string[] = [];
   const failures: string[] = [];
   try {
-    // Compiles the script and does not run it.
     new Script(mainJs);
   } catch (error) {
     failures.push(

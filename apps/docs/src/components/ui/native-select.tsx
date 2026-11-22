@@ -1,5 +1,3 @@
-// shadcn Native Select, with the site's control sizes and semantic colors.
-// @see https://ui.shadcn.com/docs/components/base/native-select
 import { ChevronDown } from "lucide-react";
 import type { ComponentProps } from "react";
 

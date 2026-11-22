@@ -1,5 +1,3 @@
-// Export rebuilds the selected contract root through the native loader so its
-// request remains reproducible and device image handling stays with that loader.
 import type { TemplateRoot } from "#obsidian/workbench-ui/index.tsx";
 import { Effect } from "effect";
 
@@ -20,12 +18,6 @@ export interface TemplateDataExportTarget {
   root: TemplateRoot;
 }
 
-/**
- * What an export of `root` saves: the chosen Item's root, or on the
- * Annotation root the shown annotation, `annotation`, with the paper's own
- * data standing in when no library annotation is shown. A Sample Item has
- * nothing to export.
- */
 export function exportTarget(
   item: { readonly id: string } | null,
   root: TemplateRoot,
@@ -38,7 +30,6 @@ export function exportTarget(
     : { indexedKey: item.id, root: "note" };
 }
 
-/** Saves the export of one loaded root; a root with no data shows a notice. */
 export function saveTemplateDataExport(
   result: TemplateDataLoadResult,
   {
@@ -79,7 +70,6 @@ export function saveTemplateDataExport(
   );
 }
 
-/** Reports an export that failed with `error`. */
 export function failTemplateDataExport(
   { indexedKey, root }: TemplateDataExportTarget,
   error: unknown,

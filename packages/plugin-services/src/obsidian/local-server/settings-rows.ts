@@ -2,9 +2,6 @@ import type {
   SettingsKey,
   SettingTabContext,
 } from "#obsidian/setting-tab/context.ts";
-// The Advanced page's Local server group: the one loopback listener and the
-// port it actually bound. The live update switch sits on the Zotero page
-// beside the Companion it answers.
 import { Effect, Stream } from "effect";
 import type { SettingGroupItem } from "obsidian";
 
@@ -19,10 +16,6 @@ import { PluginSettings } from "#obsidian/settings/service.ts";
 
 const currentSettings = PluginSettings.use((settings) => settings.current);
 
-/**
- * The Local server rows: the listener toggle, the configured address, and the
- * port in use.
- */
 export function localServerItems(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey>[] {
@@ -73,12 +66,6 @@ export function localServerItems(
   ];
 }
 
-/**
- * The Zotero page's Companion rows: the switch that answers the Companion, and
- * the local server it rides on. The server hosts more than live updates, so
- * its controls stay on the Advanced page; this row reports its state and links
- * there. Turning the server off keeps the live update choice as it is.
- */
 export function liveUpdatesItems(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey>[] {
@@ -104,9 +91,6 @@ export function liveUpdatesItems(
               ),
             ),
         );
-        // The server also turns on from the annotation view, and
-        // a bind can fail while it stays on, so the state line follows both
-        // the setting and the listener while the row is on screen.
         return ctx.tab.mount(
           Effect.gen(function* () {
             const server = yield* LocalServer;

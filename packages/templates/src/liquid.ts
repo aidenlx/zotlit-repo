@@ -1,5 +1,3 @@
-// Liquid engine core: fixed engine config plus the ZotLit tag/filter vocabulary.
-
 import { evalToken, filters, Liquid, Tag, tags, toValue } from "liquidjs";
 import type {
   Context,
@@ -48,7 +46,6 @@ export const ZOTLIT_FILTER_NAMES: readonly string[] = Object.freeze([
   "tex_cite",
 ]);
 
-/** Tags this engine registers beyond LiquidJS builtins; `bq` is the only block tag. */
 export const ZOTLIT_TAG_NAMES: readonly string[] = Object.freeze([
   "bq",
   "endbq",
@@ -56,13 +53,6 @@ export const ZOTLIT_TAG_NAMES: readonly string[] = Object.freeze([
   "suffix",
 ]);
 
-/**
- * Registers a link-override filter for a camelCase link-helper method (e.g.
- * `fileLink`) under a snake_case filter name (e.g. `file_link`). The method
- * may be absent — a real "no link" data state, not a defensive check — in
- * which case the filter returns `null` so `embed`/{@link coerceOutput}
- * collapse it to `""`.
- */
 function registerLinkFilter(
   engine: Liquid,
   filterName: string,
@@ -85,13 +75,6 @@ function registerLinkFilter(
   );
 }
 
-/**
- * Reads the text to normalize from one `obsidian_tag` input. A Zotero tag
- * arrives as `{ name }`, so reading it here lets a template pipe `zt.tags`
- * straight in without `map: "name"` first. An object with no string `name`
- * yields `""`, which the filter then drops — `[object Object]` is never a tag
- * the author meant.
- */
 function tagName(item: unknown): string {
   if (typeof item === "string") return item;
   if (typeof item === "number") return String(item);
@@ -99,11 +82,6 @@ function tagName(item: unknown): string {
   return typeof name === "string" ? name : "";
 }
 
-/**
- * Resolves one related item to its note link, falling back to
- * `zt-error:<indexedKey>` when `noteLink()` is absent or returns `null` —
- * reproduces the old JS frontmatter default's per-item error fallback.
- */
 function noteLinkOrError(item: unknown): unknown {
   const record = item as Record<string, unknown> | null | undefined;
   const noteLink = record?.noteLink;
@@ -114,7 +92,6 @@ function noteLinkOrError(item: unknown): unknown {
   return link ?? `zt-error:${String(record?.indexedKey)}`;
 }
 
-/** `{% bq %}…{% endbq %}` block tag wrapping {@link formatBlockquote}. */
 class BqTag extends Tag {
   readonly #tpls: Template[] = [];
 
@@ -145,7 +122,6 @@ class BqTag extends Tag {
   }
 }
 
-/** Inline `{% suffix length, prepend, append %}` tag wrapping {@link filenameSuffix}; all args optional. */
 class SuffixTag extends Tag {
   readonly #args: ValueToken[] = [];
 
@@ -228,36 +204,13 @@ class RenderAnnotationTag extends Tag {
 }
 
 export interface CreateLiquidEngineOptions {
-  /**
-   * Overrides the file-system module backing `{% render %}`/`{% include %}`
-   * partial resolution.
-   *
-   * @see `TemplateFacade` in `./facade`, which passes an in-memory `fs` so
-   *   named partials resolve against its own registry instead of disk.
-   */
   fs?: FS;
 }
 
-/**
- * Builds a Liquid engine with fixed, non-configurable options and the
- * ZotLit tag/filter vocabulary. Rendering is synchronous —
- * `engine.parseAndRenderSync(template, data)`.
- *
- * Coercion via `outputEscape` applies only to `{{ }}` outputs: `{% echo %}`
- * inside a `{% liquid %}` block bypasses it entirely. Whitespace trimming is
- * off by default (`greedy: false`); a trailing `-%}` eats inline blanks plus
- * exactly one following newline (a blank line after it survives), while a
- * leading `{%-` eats only same-line indentation and never a bare newline.
- * `strictFilters: true` turns an unknown filter into a render error instead
- * of a silent pass-through.
- */
 export function createLiquidEngine({
   fs,
 }: CreateLiquidEngineOptions = {}): Liquid {
   const engine = new Liquid({
-    // `fs` key must be absent, not present-with-`undefined`: liquidjs's
-    // options normalize() treats an explicit `fs: undefined` as a provided
-    // fs module and crashes reading `.dirname` off it.
     ...(fs ? { fs } : {}),
     greedy: false,
     relativeReference: false,
@@ -306,7 +259,6 @@ export function createLiquidEngine({
     (items: unknown, search?: string, replacement?: string) => {
       if (!Array.isArray(items))
         throw new TypeError("arr_replace requires an array");
-      // An empty search would insert the replacement between every character.
       if (!search) throw new TypeError("arr_replace requires a search string");
       return items.map((item) =>
         String(item).replaceAll(search, replacement ?? ""),
@@ -339,8 +291,6 @@ export function createLiquidEngine({
   engine.registerFilter(
     "date",
     function (this: unknown, v: unknown, ...args: unknown[]) {
-      // ItemDate "text" carries no parseable date — strftime is meaningless, so
-      // render its raw user text and skip the builtin entirely.
       if (isItemDateLike(v) && v.kind === "text") return String(v);
       return builtinDate.call(this, toLiquidDate(v), ...args);
     },

@@ -35,7 +35,6 @@ function query(
   };
 }
 
-/** A complete part over two Libraries with no query: it adds no check. */
 function twoLibraryPart(
   overrides: Partial<TwoLibraryMeasurement> = {},
 ): TwoLibraryMeasurement {
@@ -149,7 +148,6 @@ describe("threshold evaluation", () => {
       statuses(
         tier({
           queries: [
-            // One slow run of five leaves the median inside the budget.
             query({
               id: "tag",
               class: "selective",
@@ -215,7 +213,6 @@ describe("threshold evaluation", () => {
   });
 
   it("fails the slices of a query when the 99th percentile is above 16 ms", () => {
-    // 3 of 100 slices at 20 ms: no slice breaks 32 ms, the percentile does.
     const slices = [...Array.from({ length: 97 }, () => 8), 20, 20, 20];
     expect(
       statuses(
@@ -278,7 +275,6 @@ describe("threshold evaluation", () => {
     ];
     const measured = tier({
       queries: [
-        // The engine holds its limits; one step of the answer is long.
         query({ id: "export", class: "all", runs: run([8], [4, 90]) }),
         query({ id: "scan", runs: run([8, 40], [1]) }),
         query({ id: "key", runs: run([8, 40], [1]) }),
@@ -353,7 +349,6 @@ describe("queries over two Libraries", () => {
     const measured = tier({
       twoLibraries: twoLibraryPart({
         queries: [
-          // Above the 150 ms budget of a limited query of one Library.
           query({ id: "two-scan", runs: run(9000, [8, 16]) }),
           query({ id: "two-all", class: "all", runs: run(9000, [8, 32.5]) }),
         ],
@@ -625,8 +620,6 @@ it("holds relation filters and dataset defaults to the existing budgets at each 
   }
 });
 
-// The dominant Parent Record case reads the heavy book's marks and reaches the
-// parent-leaf budget in the 100,000-Item Stress Build.
 it("holds the Annotation Parent Record release case to the slice budget", () => {
   const spec = DATASET_QUERY_SPECS.find(
     (spec) => spec.id === "relation-parent-dominant",

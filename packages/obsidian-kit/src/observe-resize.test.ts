@@ -5,7 +5,6 @@ import { observeResize } from "./observe-resize.ts";
 
 import { windowMigration } from "#__fixtures__/window-migration.ts";
 
-/** A window whose `ResizeObserver` records what each observer watches. */
 function windowWithObservers() {
   const observed: Element[][] = [];
   const disconnected = vi.fn();

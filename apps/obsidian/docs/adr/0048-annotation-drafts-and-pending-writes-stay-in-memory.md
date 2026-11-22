@@ -37,3 +37,123 @@ A comment write in flight is not drawn. The editor already shows the draft's tex
 ## Amendment: one Annotation Draft per field
 
 An Annotation Draft belongs to one Annotation and one field: the comment, the tags, or the Quoted Text. Each field has its own draft, and the repository keys drafts, autosave timers, held drafts, and conflict reads by Annotation and field. A comment draft and a tag draft on the same Annotation save, are held, and are discarded independently, and a comment draft's Write Conflict leaves the tag draft as it is. The comment rules above apply to every editable text field: the idle and burst autosave timers, immediate submission on blur, Escape, and view close, the held draft after a failed or unconfirmed save, preservation across refresh, the fresh-value read after a refused write, and Write Conflict resolution. A Write Conflict compares only the field of its draft, so a Zotero-side change to another field refreshes normally. The tag field keeps the rules of [ADR 0063](0063-annotation-tags-save-once-per-editing-session-and-merge-by-name.md). Writes on one Annotation still run one at a time, whatever their field. Accepted with [#1236](https://github.com/aidenlx/zotlit/issues/1236) for [Spec #1235](https://github.com/aidenlx/zotlit/issues/1235).
+
+Keep draft identity by field, database and Annotation. An Indexed Key can identify its held draft when no Local API source is active. Bound a continuous run of typing with the burst autosave timer as well as restarting the idle timer on each edit. Remove a due timer from the draft's timer map. [Draft state](../../../../packages/annotations/src/obsidian/annotation-repository/core/state.ts)
+
+Each Annotation can hold one independent draft per field. A text draft keeps its confirmed starting value and current input. A failed or unconfirmed write, or loss of editing while it is open, can make it require an explicit save. Zotero represents cleared text as absent. Hide a draft from a different database and close its editor without submitting it against the newly visible record. Clear record state when a complete read confirms its removal. [Draft model](../../../../packages/annotations/src/obsidian/annotation-repository/core/model.ts)
+
+## Local API request contracts
+
+Create uses a one-object batch POST with a fresh 32-character hexadecimal write token. Zotero 10 generates the key, so the request omits the key and version. Send `annotationType` first because Zotero applies the setters in object order and the other annotation setters require the type. Patch uses the bare item key within its library route and puts the object's exact version in the body. Delete sends `If-Unmodified-Since-Version` because the delete endpoint requires it. Patch and delete send no write token. A precondition refusal on either uses the changed-copy conflict path. Refusals caught in the repository preflight send no write.
+
+Comment and Quoted Text share the per-field draft and save rules. Send an empty string to clear either field. A Quoted Text edit alone preserves the position and Sort Index. A draft that cannot continue its save stays available for explicit submission. [Request builders](../../../../packages/annotations/src/obsidian/annotation-repository/write.ts) · [Wire tests](../../../../packages/annotations/src/obsidian/annotation-repository/write.test.ts)
+
+- [Zotero server_localAPI.js L1889-L1906](https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server/server_localAPI.js#L1889-L1906)
+- [Zotero item.js L5677](https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/data/item.js#L5677)
+- [Zotero server_localAPI.js L2315-L2330](https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server/server_localAPI.js#L2315-L2330)
+- [Zotero server_localAPI.js L2160-L2191](https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server/server_localAPI.js#L2160-L2191)
+- [Zotero item.js L4512-L4518](https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/data/item.js#L4512-L4518)
+
+Run create and command sends on the layer Scope. If the Scope closes before Zotero answers, the outcome is unknown. Preserve a known acceptance, refusal, or server-generated key when closure interrupts only the operation that follows the reply. A patch acknowledgement carries a library version. Read the individual Annotation back for the new object version. Invalidate the collection when that read fails. A delete needs only its acknowledgement. Validate create results per object, publish the returned record, and refresh the Attachment list for Zotero's order. [Write execution](../../../../packages/annotations/src/obsidian/annotation-repository/core/writes.ts)
+
+Reconcile drafts only against complete results accepted for publication from their own database. A saved value equal to the draft ends it. An untouched draft follows the new value. A changed value under typed text creates a Write Conflict. End an unchanged draft before checking save eligibility so it cannot produce a held panel. Keep the last failure visible until the researcher changes the text or explicitly saves again. A successful explicit save clears the hold and lets newer queued text save. A submit of identical text joins the save already in progress.
+
+Each due autosave starts a separate save fiber in the repository Scope with the initiating edit's loggers. This lets the save continue after its timer ends and makes failures visible when no caller is waiting. Discarding a draft cancels its timers. [Draft handlers](../../../../packages/annotations/src/obsidian/annotation-repository/core/drafts.ts) · [Draft store](../../../../packages/annotations/src/obsidian/annotation-repository/core/draft-store.ts)
+
+Acquire the Reader Surface Model registry before its write runner so scope closure waits for writes before it disposes state. Withdraw surfaces while the write scope is still open. This allows a Text Draft to commit during close. Keep the Attachment list held through creation because a closing view releases its own hold before that draft settles.
+
+Cancellation can stop placement or Sort Index work before a request is sent. Once a create or Geometry Edit starts sending, the view waits for the write and its outcome handling. A Text Draft committed by closing also completes placement. Log a failure in post-create handling and preserve the new key. A queued operation waits interruptibly and builds from current state when its turn arrives. Log read failures with the open path and let interruption pass silently. [Reader operations](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/operations.ts)
+
+In tests that exercise actual repository writes, seed a writable Attachment and assert against the fake Zotero's stored record. Advance the repository TestClock for autosave because the timer belongs to Effect rather than Vitest. Simulate a database identity switch to exercise draft hiding. [Reader surface fixture](../../../../packages/annotations/src/__fixtures__/pdf-annotation-editor.ts)
+
+A Geometry Edit can still be cancelled during document placement. Once Zotero has the request, wait for settlement and report its refusal even if the view is closing. A database switch can hide a draft, and editor closure must not start a new draft for the retired database.
+
+The creation harness uses real time for repository reads and manually advances Reader timers. Closing a view during ordinary placement sends no create. Closing during a send waits for its result. A lost reply reports an unknown outcome, and an accepted create keeps its key without showing a failure notice.
+
+The Reader Surface State tests cover a pending write whose repository closes before its reply.
+
+After a foreground create, await the latest refresh before selecting the returned mark. Reader completion promises also let a caller wait for placement or for the displayed marks to catch up to the current read.
+
+The scoped write test begins view closure before the create replies and verifies that the reply can still update the registry before it is disposed.
+
+The test Zotero keeps its own record of accepted writes and generates create keys, including for group Library routes. Assert against that record. Advance the harness runtime's TestClock because the service owns that clock, and wait for the fake transport separately when a timer starts a write.
+
+### Paired write and concurrency proof
+
+Pause one native operation at a controlled boundary, drive
+the competing operation, then release the first. Check the
+stored result even when both operations report success. In
+the observed Zotero version, the API value can replace the
+accepted Reader value without a conflict response.
+
+Register restoration before writing the seeded Annotation.
+Wait for Zotero's Reader to settle and write the seed back
+using the current version. Remove unexpected Annotations that
+a previous interrupted create left where the next tool
+press must land. Require a real PDF digest before comparing
+its final digest.
+
+[Paired write cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+
+### Paired Geometry Edit proof
+
+Measure the handle in a separate callback and wait for scrolling
+to settle. The handle takes the gesture when it is the hit-test
+target at its center. Hide the popup during the drag and check
+that no write lands while the pointer remains down. With editing
+disabled the old handle position takes an ordinary page gesture.
+The mark stays unchanged. After the release, require both the
+expected record and a new version because the Local API can
+read pending memory state at the old version. Check the Reader,
+overlay, and pixel-change publication separately.
+
+For a conflict, change Zotero's stored geometry during the drag
+and release before ZotLit reads it. Read evidence after release
+so the probe does not change that sequence. The card offers its
+conflict action while Zotero retains the competing rectangle.
+End any conflict before restoring the seed. Restore against
+the current version after the Reader finishes its image work.
+
+[Geometry and conflict cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+
+After changing position, Zotero's Reader can save a new image
+at a newer version. Wait for it before pressing Apply again.
+Observe settlement as the attempted geometry at a newer
+version or a fresh refusal and conflict choice.
+
+[Apply again case](../../../../packages/e2e/src/paired-run.e2e.ts)
+
+Hold a quoted-text save while changing the record in Zotero.
+Release the save after the competing write so it meets the
+newer version. The conflict panel stays on the original card
+after another card takes selection. Always release the held
+write and clear the draft or conflict before restoring the
+seed.
+
+[Paused quoted-text write](../../../../packages/e2e/src/paired-run.e2e.ts)
+
+### Paired refresh and unload proof
+
+Read the committed value independently through the Local API.
+A failed refresh leaves both rendered consumers on the last
+confirmed value. Restart reads Zotero and does not replay
+the session attempt. To test an unsent draft, start plugin
+unload in the same renderer turn before autosave can fire.
+Use the repository registry to observe disposal because the
+plugin callback starts it asynchronously.
+
+For an in-flight edit, hold the response after Zotero
+commits it. Release it after the replacement repository has
+read Zotero. The old operation ends with its unload abort
+and cannot reappear or send again. Restore the Local API
+preference even when the test fails. Check the Fixture PDF's
+digest after all writes because Annotation edits must leave
+the PDF unchanged.
+
+To control native races, pause the actual Reader save before
+its transaction or pause the native delete at its boundary.
+Release the gate and restore the patched method on failure.
+Use an independent Local API read as the final oracle.
+Restore seeded comments at Zotero's current version.
+
+[Paired lifecycle and race cases](../../../../packages/e2e/src/paired-run.e2e.ts)

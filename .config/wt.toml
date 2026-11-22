@@ -1,21 +1,3 @@
-# Bootstrap a freshly created worktree the same way `mise run init` bootstraps
-# a clone: trust mise config, install deps, copy .env* files
-# from the primary worktree, generate the message types the editor reads.
-#
-# Runs blocking (pre-start, not post-start) so the agent that triggered
-# `wt switch --create` — including the Claude Code worktrunk plugin's
-# WorktreeCreate hook — sees a fully-initialized worktree before its first
-# command. post-start is unconditionally background per worktrunk's hook
-# model (https://worktrunk.dev/hook/), so it cannot be used here.
 pre-start = "mise trust && mise run init {{ primary_worktree_path }}"
 
-# First close the Paired Zotero that holds this worktree's Fixture, so no Zotero
-# outlives the folder it runs on. Like the vault removal below, the stop is
-# non-fatal. When fixture.ts fails, the hook prints a warning with the command
-# that finds the Zotero it left running.
-#
-# Then unregister this worktree's Obsidian debug vault, so the vault list keeps
-# no dead entry once the folder goes. The script drives the running app when one
-# answers and edits obsidian.json directly when none does, so it never wakes a
-# shut Obsidian. A failing pre-remove aborts the removal, so it stays non-fatal.
 pre-remove = "{ node packages/scripts/scripts/fixture.ts stop || echo \"warning: could not stop the Paired Zotero of this worktree. Find it with: pgrep -fl '$PWD/.scratch/'\" >&2; } && { node packages/scripts/scripts/obsidian-vault.ts remove --purge || true; }"

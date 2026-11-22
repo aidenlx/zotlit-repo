@@ -1,4 +1,3 @@
-// The Library View's Collection lookup, read from the plugin's Effect services.
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
@@ -12,11 +11,6 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { LibraryNode } from "./document.ts";
 import { libraryOf, sameLibrary } from "./tree.ts";
 
-/**
- * The node of an Item's first Collection, or of its Library, by the Item's
- * Indexed Key; `null` where its Library is not read. A leaf that reveals the
- * Item holds the member while it waits; the read stops once no leaf holds it.
- */
 export const itemNodeAtom = Atom.family((indexedKey: string) =>
   viewRuntime.atom(
     Effect.gen(function* () {
@@ -34,7 +28,6 @@ export const itemNodeAtom = Atom.family((indexedKey: string) =>
         limit: 1,
         libraries: { mode: "selected", libraries: [library] },
       });
-      // The Library holds no such Item: it was deleted, or the key is wrong.
       if (outcome.kind === "result" && outcome.result.rows?.length === 0)
         return null;
       const filed =

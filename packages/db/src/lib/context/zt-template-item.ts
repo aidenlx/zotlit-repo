@@ -35,13 +35,6 @@ export interface TemplateCreator {
   fullName: string;
 }
 
-/**
- * Core item data in the v2 template vocabulary, without app-layer resolvers.
- *
- * All Zotero fields are direct properties — `zt.title`, `zt.DOI`,
- * `zt.numPages`, etc. An empty-string field value is normalized away
- * (absent / `null`).
- */
 export interface TemplateItemBaseData {
   /** Zotero item key, e.g. `"ABC12345"`; unique within its library. */
   key: string;
@@ -146,7 +139,6 @@ export interface TemplateItemBaseData {
   [field: string]: unknown;
 }
 
-/** {@link TemplateItemBaseData} plus the app-layer resolvers. Exposed as `zt` in templates. */
 export interface TemplateItemData extends TemplateItemBaseData {
   /** Full vault-relative literature note path, including `.md`. `null` when unresolvable. */
   get notePath(): string | null;
@@ -202,29 +194,13 @@ export interface TemplateFilenameItemData
   collections: readonly TemplateCollection[];
 }
 
-/**
- * A lazy Markdown-link helper exposed on the template context. Called with no
- * args it renders the default link with its display text already filled in (so
- * Markdown links are never blank); pass `alias` to override the display text and
- * `subpath` to append a `#`-fragment (heading / block / `page=N`).
- */
 export type TemplateLink = (alias?: string, subpath?: string) => string;
 
-/**
- * Like {@link TemplateLink} but `null` when the target is unresolvable
- * (path collision, recursive resolution, template error).
- */
 export type FallibleTemplateLink = (
   alias?: string,
   subpath?: string,
 ) => string | null;
 
-/**
- * Resolvers receive the item-own {@link TemplateFilenameItemData} twin — not the
- * live {@link TemplateItemData} — so a filename template rendered during
- * note-path resolution reads inert `notePath`/`noteLink` stubs and cannot
- * re-enter resolution.
- */
 export interface TemplateItemResolvers {
   notePath: (item: TemplateFilenameItemData) => string | null;
   noteLink: (
@@ -232,7 +208,6 @@ export interface TemplateItemResolvers {
     alias?: string,
     subpath?: string,
   ) => string | null;
-  /** Short author summary (e.g. `"Smith et al."`) for any item. */
   authorsShort: (item: Item) => string;
 }
 
@@ -250,7 +225,6 @@ export function itemToTemplateBaseData({
     const canonical = FIELD_ALIASES[key] ?? key;
     allFields[canonical] = val;
   }
-  // Built-in fields win over a custom field of the same name.
   for (const [key, val] of item.customFields) {
     if (val != null && val !== "" && !(key in allFields)) allFields[key] = val;
   }
@@ -271,8 +245,6 @@ export function itemToTemplateBaseData({
     tags: tags.map(toTemplateTag),
 
     title: allFields.title ?? null,
-    // CSL-inspired aliases: the canonical source field stays accessible via the
-    // `...allFields` spread, and these expose the CSL name alongside it.
     abstract: allFields[ZT_FIELD_ALIASES.abstract] ?? null,
     containerTitle: allFields[ZT_FIELD_ALIASES.containerTitle] ?? null,
     citationKey: allFields.citationKey ?? null,
@@ -294,10 +266,6 @@ export function itemToTemplateBaseData({
   };
 }
 
-/**
- * Apply after resolver getters are attached because a spread drops the
- * non-enumerable string form.
- */
 export function withItemPreview<T extends TemplateItemBaseData>(item: T): T {
   return defineToString(item, function () {
     return this.title ?? this.key;
@@ -336,9 +304,6 @@ function toTemplateCreator(c: Creator): TemplateCreator {
   );
 }
 
-/**
- * The creator roles Zotero uses for its creator display, in fallback order.
- */
 export function creatorTypePriority(
   primaryCreatorType: string | null,
 ): string[] {
@@ -347,7 +312,6 @@ export function creatorTypePriority(
   ].filter((role): role is string => role !== null);
 }
 
-/** Primary Creators: the first populated priority role on an item. */
 export function resolvePrimaryCreators(
   data: TemplateItemBaseData,
 ): TemplateCreator[] {
@@ -365,10 +329,6 @@ export interface TemplateAuthorData {
   authorsShort: string;
 }
 
-/**
- * App-layer conveniences every resolved item shape shares: navigation links,
- * Primary Creators, and an Author Summary.
- */
 export interface ResolvedItemCore extends TemplateAuthorData {
   /** Zotero desktop deep link (`zotero://select/...`). */
   backlink: string;
@@ -378,8 +338,6 @@ export interface ResolvedItemCore extends TemplateAuthorData {
   librarylink: string;
 }
 
-/** Compute the {@link ResolvedItemCore} conveniences for an item. The single
- *  seam all three item-assembly sites call, so these fields never diverge. */
 export function resolveItemCore(input: {
   item: Item;
   baseData: TemplateItemBaseData;

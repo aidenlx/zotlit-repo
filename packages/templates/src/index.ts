@@ -13,27 +13,8 @@ import { replaceHelper } from "./replace-helper.ts";
 import { formatTemplateTexCitation } from "./tex-citation-adapter.ts";
 
 export interface TemplateEngineOptions {
-  /** @default [false, false] */
   autoTrim?: readonly [AutoTrim, AutoTrim];
-  /**
-   * Wraps runtime errors as `EtaRuntimeError` (name + line + source excerpt)
-   * instead of letting the raw JS error propagate.
-   *
-   * @default false
-   * @see `TemplateFacade` in `./facade`, which enables this to label errors
-   *   with the template name.
-   */
   debug?: boolean;
-  /**
-   * Post-process a named render's output, keyed by the template name passed to
-   * `render()`/`include()`. Runs for both direct `render()` and includes (which
-   * eta compiles to `this.render`), so a given name renders identically by
-   * either path.
-   *
-   * @default identity — when omitted, output passes through unchanged
-   * @see `managedRegionTransform` in `@zotlit/templates/obsidian`, which the
-   *   Obsidian host injects to wrap its content template in managed-region markers
-   */
   transformRender?: (name: string, output: string) => string;
 }
 
@@ -72,8 +53,6 @@ export class TemplateEngine extends Eta {
       return compileBase.call(this, template, options);
     };
 
-    // `template` is a name string for render()/include(), a compiled function
-    // for renderString() — only named renders carry a name to transform.
     if (transformRender) {
       const renderBase = this.render;
       this.render = (template, data, meta) => {
@@ -108,7 +87,6 @@ export class TemplateEngine extends Eta {
     this.templatesAsync.remove(name);
   }
 
-  /** Drop every defined template and clear compiled caches. */
   reset(): void {
     this.#sources.clear();
     this.templatesSync.reset();
@@ -125,10 +103,6 @@ export class TemplateEngine extends Eta {
     }
   }
 
-  /**
-   * @throws EtaParseError when an interpolation/raw expression contains invalid
-   *   JavaScript.
-   */
   #assertExpressionSyntax(template: string): void {
     let searchFrom = 0;
     for (const node of this.parse(template)) {
@@ -186,25 +160,6 @@ function pointToSyntaxError(
   return `${message} at line ${line} col ${col}:\n\n  ${sourceLine}\n  ${" ".repeat(col - 1)}^`;
 }
 
-/**
- * eta-4 spreads `include()` data into the parent object; v1 templates pass
- * arrays through `include()`, so restore direct passthrough of the data arg.
- * Host-agnostic — the Obsidian managed-region wrap is the engine's
- * `transformRender` render override, not a plugin.
- *
- * Both `include` and `includeAsync` are rewritten: eta emits both helpers into
- * every compiled template regardless of render path, so leaving the async one
- * raw would silently reintroduce the spread bug on any `renderAsync` path.
- *
- * This is the engine's only `processFnString`, and the one irreducible
- * coupling to eta: the data spread happens inside the generated `include`
- * arrow before `render` runs, so it cannot be fixed by the render override —
- * only by rewriting the generated source. The patterns match eta's own
- * codegen (not another plugin's output) and are pinned to a specific eta
- * version. `replaceHelper` throws when a target is absent, so an eta-upgrade
- * codegen change fails loud at compile time instead of silently no-op'ing.
- * @see eta@4.6.0 `src/compile-string.ts` (the `compileToString` helper block)
- */
 const includeDataPlugin: EtaConfig["plugins"][number] = {
   processFnString(fnString, config) {
     const varName = config?.varName ?? "it";

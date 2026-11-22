@@ -1,11 +1,8 @@
 import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 
-// Canonical native selections for the Workbench's built-in Item snapshots.
 import { SAMPLE_ITEMS } from "#core/render/index.ts";
 
-/** The Item the editor is shown against, as the host names it. */
 export interface WorkbenchItemChoice {
-  /** A Sample Item's id, or the host's Item key. */
   readonly id: string;
   readonly title: string | null;
 }

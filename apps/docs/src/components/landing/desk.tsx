@@ -1,15 +1,3 @@
-// The research desk around the hero's headline: six objects, each built in
-// HTML on the docs Fixture's data and named by a strip of washi tape. The
-// Library View sheet and the Reproducibility.zotquery table lead; the PDF
-// page, the literature-note card, the draft with its citation picker and the
-// Word reference page lie around them.
-//
-// From 1280px the desk lies on a 1440 × 832 stage that scales in steps with
-// the window. Below 1280px, the library sheet, the table and the PDF sit in a
-// short fanned stack under the text. The whole desk is decorative
-// (`aria-hidden`): the headline and the sections below say what it shows.
-// @see apps/docs/DESIGN.md → Landing (Hero)
-
 import {
   ArrowUpDown,
   ChevronDown,
@@ -32,10 +20,8 @@ import { getLocale } from "@/paraglide/runtime.js";
 
 import { BY_YEAR, COLLECTION, QUERY_FOLDER, TAGS } from "./papers.ts";
 
-/** A raised sheet of paper on the desk. */
 const PAPER = "[box-shadow:var(--desk-shadow)]";
 
-/** Greeked text: a run of the paper's other lines, shown as bars. */
 function Bars({ rows }: { rows: readonly string[] }) {
   return rows.map((w, i) => (
     <span
@@ -46,7 +32,6 @@ function Bars({ rows }: { rows: readonly string[] }) {
   ));
 }
 
-/** The washi tape that names what the object lets you do. */
 function Tape({
   children,
   side = "left",
@@ -72,11 +57,6 @@ function Tape({
   );
 }
 
-/**
- * One object on the desk. The outer layer takes its place and, from 1280px,
- * the pointer parallax (`data-depth`); the inner one takes its angle and its
- * drop onto the desk.
- */
 function Piece({
   x,
   y,
@@ -87,15 +67,11 @@ function Piece({
   tape,
   children,
 }: {
-  /** Left edge, in px from the stage's centre line. */
   x: number;
   y: number;
   w: number;
-  /** Angle, in degrees. */
   r: number;
-  /** Drop delay, in ms. */
   d: number;
-  /** How far the object drifts with the pointer; none when absent. */
   depth?: number;
   tape?: ReactNode;
   children: ReactNode;
@@ -119,7 +95,6 @@ function Piece({
   );
 }
 
-/** The top strip of an Obsidian tab: one open tab with its title. */
 function TabStrip({
   icon: Icon,
   children,
@@ -155,10 +130,7 @@ const FACETS = [
   m.library_view_facet_pdf,
 ];
 
-/** The Library View: the tree with Recent first, then the papers you last touched and why. */
 function LibrarySheet({ compact = false }: { compact?: boolean }) {
-  // Worded as the plugin words a Last Activity, in the page's locale.
-  // @see packages/library-view/src/desktop/library/reason.ts
   const ago = new Intl.RelativeTimeFormat(getLocale(), { numeric: "always" });
   const recent = [
     {
@@ -284,9 +256,7 @@ function LibrarySheet({ compact = false }: { compact?: boolean }) {
   );
 }
 
-/** The query file as a table: the rating column is the reader's own, filled in as they read. */
 function TableSheet({ compact = false }: { compact?: boolean }) {
-  // The Chinese rating header ("rating（笔记）") needs a little more room.
   const chinese = getLocale() === "zh-CN";
   const cols = compact
     ? `minmax(0,1fr) 48px ${chinese ? 92 : 84}px`
@@ -408,7 +378,6 @@ function TableSheet({ compact = false }: { compact?: boolean }) {
 const MARK =
   "rounded-[2px] px-px [box-decoration-break:clone] [-webkit-box-decoration-break:clone]";
 
-/** A page of the PDF, with the reader's marks in their Zotero colours. */
 function PdfPage({ compact = false }: { compact?: boolean }) {
   return (
     <div
@@ -466,7 +435,6 @@ function PdfPage({ compact = false }: { compact?: boolean }) {
   );
 }
 
-/** The literature note, as a ruled index card. */
 function NoteCard() {
   return (
     <div
@@ -507,11 +475,6 @@ function NoteCard() {
 const CITATION =
   "text-fd-primary underline decoration-fd-primary/40 decoration-dotted underline-offset-[3px]";
 
-/**
- * The chapter draft: one citation in place, and a second one cited in a
- * slow loop: the key is typed, picked from the suggestion list, and the
- * citation lands marked. Without motion, both citations are in place.
- */
 function DraftSheet() {
   return (
     <div
@@ -527,7 +490,6 @@ function DraftSheet() {
         {m.docs_home_desk_draft_heading()}
       </p>
       <div className="relative mt-1.5 text-[13px] leading-[1.65] text-fd-foreground">
-        {/* The draft is in the reader's language; the citations stay as the references give them. */}
         <p>
           <Message
             text={m.docs_home_desk_draft_body({
@@ -536,7 +498,6 @@ function DraftSheet() {
             })}
             slots={{
               sandve: <span className={CITATION}>(Sandve et al., 2013)</span>,
-              // The typed key and the citation that replaces it share one cell.
               rougier: (
                 <span className="inline-grid">
                   <span className="opacity-0 [grid-area:1/1] motion-safe:animate-desk-typed">
@@ -572,7 +533,6 @@ function DraftSheet() {
           </div>
         </div>
       </div>
-      {/* The reference list takes the new entry as the citation lands. */}
       <div className="mt-3 border-t border-fd-border pt-2">
         <p className="font-mono text-[10px] tracking-[0.12em] text-fd-muted-foreground uppercase zh:font-sans zh:text-[11px] zh:tracking-normal">
           {m.docs_home_desk_draft_references()}
@@ -594,7 +554,6 @@ function DraftSheet() {
   );
 }
 
-/** The corner of the exported Word page, with its reference list. */
 function WordPage() {
   const corner = "absolute size-3 border-fd-muted-foreground/50";
   return (
@@ -629,7 +588,6 @@ function WordPage() {
   );
 }
 
-/** The full desk, from 1280px: the objects lie around the headline. */
 export function Desk() {
   return (
     <div
@@ -637,10 +595,6 @@ export function Desk() {
       className="pointer-events-none absolute inset-0 hidden select-none xl:block"
     >
       <div className="absolute top-0 left-1/2 h-[832px] w-[1440px] origin-top -translate-x-1/2 scale-(--desk-s)">
-        {/* Each side group is drawn at 0.84 towards its own outer edge, so
-            the objects keep at least 72px clear of the text (which keeps its
-            size) and the table's last column stays on screen. */}
-        {/* Left of the text: the library sheet over a blank sheet, and the PDF. */}
         <div className="absolute inset-0 origin-[0_40%] scale-[0.84]">
           <Piece x={-712} y={56} w={380} r={-6} d={0} depth={0.3}>
             <div
@@ -677,7 +631,6 @@ export function Desk() {
             <PdfPage />
           </Piece>
         </div>
-        {/* Right of the text: the table over a blank sheet, and the draft. */}
         <div className="absolute inset-0 origin-[100%_40%] scale-[0.84]">
           <Piece x={326} y={48} w={380} r={4.5} d={200} depth={0.35}>
             <div
@@ -718,12 +671,8 @@ export function Desk() {
             <DraftSheet />
           </Piece>
         </div>
-        {/* A clearing on the desk, so nothing crowds the headline. */}
         <div className="absolute top-[43%] left-1/2 h-[460px] w-[760px] -translate-1/2 bg-[radial-gradient(closest-side,var(--color-fd-background)_60%,transparent)]" />
       </div>
-      {/* Below the text: the note card and the Word page, at full size. They
-          hang from the hero's middle, so they follow the text as the hero's
-          height changes, and they lie above the clearing. */}
       <div className="absolute top-1/2 left-1/2 w-[1440px] origin-top -translate-x-1/2 scale-(--desk-s)">
         <Piece
           x={-364}
@@ -752,10 +701,6 @@ export function Desk() {
   );
 }
 
-/** From 1024px to 1280px: a tidy two-column spread under the text. The
- * cards share one width and one gutter and turn only slightly, the left
- * column one way and the right the other: the library sheet over the draft,
- * the table over the PDF. */
 export function DeskSpread() {
   return (
     <div
@@ -814,7 +759,6 @@ export function DeskSpread() {
   );
 }
 
-/** Below 1024px: the library sheet, the table and the PDF in a short fanned stack. */
 export function DeskStack() {
   return (
     <div

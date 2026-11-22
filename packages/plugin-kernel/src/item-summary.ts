@@ -80,8 +80,6 @@ function summarizeCreators(creators: readonly Creator[]): string {
   if (!first) return "";
 
   const second = creators[1]?.lastName ?? "";
-  // A pair joins by the list pattern of the locale the messages render in, so
-  // it reads natively and carries no bidi isolate characters.
   if (creators.length === 2 && second)
     return new Intl.ListFormat(runtime.getLocale()).format([first, second]);
   return m.creator_summary({ count: creators.length, first });

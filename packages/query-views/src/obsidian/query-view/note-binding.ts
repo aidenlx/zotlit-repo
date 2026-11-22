@@ -1,4 +1,3 @@
-// The Item bound to a note host, refreshed when that note's metadata changes.
 import { Effect, Stream } from "effect";
 
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";

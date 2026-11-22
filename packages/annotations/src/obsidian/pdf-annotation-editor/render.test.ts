@@ -22,10 +22,8 @@ import type { MeasuredFont, OverlayPageView } from "./render.ts";
 
 import { annotation, viewport } from "#__fixtures__/pdf-annotation-editor.ts";
 
-/** The same page, described from a non-zero origin, as a PDF may do. */
 const OFFSET_BOX = [10, 20, 622, 812] as const;
 
-/** The colour the Fixture gives each of its Annotations on `rougier-2014.pdf`. */
 const FIXTURE_COLORS: Record<string, string> = {
   PUPR5FG5: "#2ea8e5",
   K3JRFLFQ: "#ff6666",
@@ -35,32 +33,13 @@ const FIXTURE_COLORS: Record<string, string> = {
   HRK7BG32: "#a28ae5",
 };
 
-/**
- * A fixed-width font: every character is 0.4 font sizes wide, 5.6 points at
- * 14, so the Fixture's 25-character comment is 140 points and fits its
- * 162-point box on one line.
- */
 const MONO: MeasuredFont = {
   family: "monospace",
   measure: (text, fontSize) => text.length * fontSize * 0.4,
 };
 
-/** One rectangle near the top of the page, in PDF points. */
 const RECT = [100, 700, 200, 720] as const;
 
-/**
- * Where `RECT` lands in page units, worked out by hand from PDF.js's
- * `PageViewport` matrix expanded per rotation, as `[x, y, width, height]`
- * beside the overlay `viewBox` the same rotation gives.
- *
- * At rotation 0 `vx = x - vb[0]` and `vy = vb[3] - y`, so the rectangle's
- * corners `(100, 700)` and `(200, 720)` land at `(100, 92)` and `(200, 72)`,
- * which re-normalise to a box 100 wide and 20 high with its top at 72.
- *
- * @see https://github.com/mozilla/pdf.js/blob/v5.3.31/src/display/display_utils.js
- *   `PageViewport` — the nearest tagged release below the 5.3.34 build Obsidian
- *   bundles, whose constructor is unchanged between the two.
- */
 const ROTATIONS = [
   { rotation: 0, box: "612 792", mark: ["100", "72", "100", "20"] },
   { rotation: 90, box: "792 612", mark: ["700", "100", "20", "100"] },
@@ -85,8 +64,6 @@ it.each(ROTATIONS)(
 );
 
 it("carries the page's own `/UserUnit` into the page-unit box", () => {
-  // Half-size user units halve every page coordinate: the 612 x 792 box becomes
-  // 306 x 396 and the rectangle's top edge, 72 at rotation 0, becomes 36.
   const page = pageView(viewport({ userUnit: 0.5 }));
 
   renderAnnotationOverlay(page, {
@@ -99,8 +76,6 @@ it("carries the page's own `/UserUnit` into the page-unit box", () => {
 });
 
 it("measures from the page box's own origin rather than from zero", () => {
-  // A box starting at (10, 20) shifts the same rectangle left by 10, and its
-  // top edge is measured from 812 rather than 792.
   const page = pageView(viewport({ box: OFFSET_BOX }));
 
   renderAnnotationOverlay(page, {
@@ -131,8 +106,6 @@ it("builds the same overlay at every zoom step", () => {
 });
 
 it("divides the built viewport out when the seam offers no rebuild", () => {
-  // A viewport with no `clone` is the documented fallback: the same page units,
-  // reached by dividing out `scale * userUnit`.
   const built = viewport({ scale: 2 });
   const page = pageView({ ...built, clone: undefined });
 
@@ -165,7 +138,6 @@ it("draws a spilled-over mark on the next page from that page's own rectangles",
   });
 
   expect(rectOf(first, "PUPR5FG5")).toEqual(["100", "72", "100", "20"]);
-  // 792 - 100 = 692 down the second page, where the quote continues.
   expect(rectOf(second, "PUPR5FG5")).toEqual(["100", "692", "100", "20"]);
 });
 
@@ -178,8 +150,6 @@ it("casts a selected ink stroke's own path under it, wider, rather than framing 
       record("TYY6Z6ZF", "ink", {
         pageIndex: 0,
         width: 2,
-        // An L-shaped stroke: the box round it swallows the empty corner it
-        // turns, so a box outline would trace that corner and this does not.
         paths: [[60, 700, 60, 660, 100, 660]],
       }),
     ]),
@@ -192,11 +162,7 @@ it("casts a selected ink stroke's own path under it, wider, rather than framing 
   )!;
   const stroke = markIn(page, "TYY6Z6ZF");
 
-  // The casing draws exactly what the pen draws, so it follows every turn the
-  // stroke takes and reaches nowhere the stroke does not.
   expect(casing.getAttribute("d")).toBe(stroke.getAttribute("d"));
-  // Wider by the padding either side, and painted first so the pen covers its
-  // middle and leaves the accent showing as a band.
   expect(casing.style.strokeWidth).toBe("5");
   expect(stroke.getAttribute("stroke-width")).toBe("2");
   expect(overlay.firstElementChild).toBe(casing);
@@ -219,8 +185,6 @@ it("draws a single-point ink stroke as a round dot, in the page's colour when no
     ]),
   });
 
-  // A move-to alone draws nothing; the line-to to the same point is what the
-  // round cap turns into a dot.
   expect(attributesOf(page, "DOT23456")).toMatchObject({
     d: "M 100 92 L 100 92",
     stroke: "currentColor",
@@ -234,7 +198,6 @@ it("draws nothing for a type whose stored position is not the shape it pairs wit
 
   renderAnnotationOverlay(page, {
     font: MONO,
-    // An ink position under a highlight: a pairing Zotero never writes.
     annotations: pageAnnotations([
       record("PUPR5FG5", "highlight", {
         pageIndex: 0,
@@ -312,14 +275,8 @@ it("drops an annotation whose position is not a PDF position", () => {
 });
 
 describe("the ink hit test", () => {
-  /**
-   * A square loop 100 points on a side, in PDF points: in page units its
-   * strokes run along x = 100 and 200 and y = 92 and 192, round an empty
-   * middle.
-   */
   const LOOP = [[100, 600, 200, 600, 200, 700, 100, 700, 100, 600]];
 
-  /** The page laid out at 100 % from the origin: client pixels are page units. */
   const PAGE_BOX: PageBox = {
     left: 0,
     top: 0,
@@ -329,7 +286,6 @@ describe("the ink hit test", () => {
     unitHeight: 792,
   };
 
-  /** The marks a click takes on `PAGE_BOX`. */
   function clickedAt(
     records: readonly AnnotationRecord[],
     x: number,
@@ -344,12 +300,10 @@ describe("the ink hit test", () => {
 
   it("takes no click in the empty middle of a loop", () => {
     expect(clickedAt([ink(2, LOOP)], 150, 142)).toEqual([]);
-    // Ten units inside the bottom stroke is past the seven-point reach.
     expect(clickedAt([ink(2, LOOP)], 150, 182)).toEqual([]);
   });
 
   it("takes a click closer than seven points to a thin stroke", () => {
-    // Zotero's test is strict: exactly the reach away is a miss.
     expect(clickedAt([ink(2, LOOP)], 150, 192)).toEqual(["4PE492KU"]);
     expect(clickedAt([ink(2, LOOP)], 150, 198.5)).toEqual(["4PE492KU"]);
     expect(clickedAt([ink(2, LOOP)], 150, 199)).toEqual([]);
@@ -361,7 +315,6 @@ describe("the ink hit test", () => {
   });
 
   it("measures to the segments, so sparse points still take a click between them", () => {
-    // A 90-degree turn with no vertex along its 100-point arms.
     const turn = [[100, 600, 200, 600, 200, 700]];
     expect(clickedAt([ink(2, turn)], 150, 192)).toEqual(["4PE492KU"]);
   });
@@ -379,7 +332,6 @@ describe("the ink hit test", () => {
       pageView(),
       pageAnnotations([ink(4, [[100, 600]])]),
     );
-    // The pen's half-width of 2 below y = 192.
     expect(markAnchor(target?.rects ?? [], PAGE_BOX)).toEqual({
       x: 100,
       y: 194,
@@ -387,12 +339,10 @@ describe("the ink hit test", () => {
   });
 });
 
-/** An image region on page zero, `[x1, y1, x2, y2]` in PDF points. */
 function figure(rect = [100, 300, 300, 500]): AnnotationRecord {
   return record("FDRFQ7C2", "image", { pageIndex: 0, rects: [rect] });
 }
 
-/** Each handle's `[x, y, width, height]`, by the grip it names. */
 function handlesIn(page: OverlayPageView): Record<string, number[]> {
   return Object.fromEntries(
     [
@@ -409,10 +359,6 @@ function handlesIn(page: OverlayPageView): Record<string, number[]> {
 }
 
 it("draws each Mark Handle where a press on it is measured, on a page turned a quarter turn", () => {
-  // A quarter turn lays PDF (x, y) at page units (y, x), and at scale 1.5 a
-  // unit is one and a half pixels, so a ten-pixel handle is 20/3 units wide.
-  // The bottom-right corner (300, 300) stands at (300, 300); the top-left
-  // corner (100, 500) at (500, 100). selection.test.ts presses there.
   const page = pageView(viewport({ rotation: 90, scale: 1.5 }));
 
   renderAnnotationOverlay(page, {
@@ -458,8 +404,6 @@ it("draws no Mark Handle while editing is not live, or off the selection", () =>
 });
 
 it("draws a selected highlight's two end strips, three pixels either side of its edges", () => {
-  // At scale 2 one page unit is two pixels, so a strip six pixels wide is
-  // three units wide. `RECT` spans x 100–200 and lands at y 72–92.
   const page = pageView(viewport({ scale: 2 }));
 
   renderAnnotationOverlay(page, {
@@ -475,15 +419,10 @@ it("draws a selected highlight's two end strips, three pixels either side of its
   });
   const end = page.div.querySelector<SVGElement>('[data-zt-grip="end"]')!;
   expect(end.dataset.ztCursor).toBe("ew-resize");
-  // The body stays the text selection's.
   expect(markIn(page, "PUPR5FG5").dataset.ztGrip).toBeUndefined();
 });
 
 it("turns a selected range's strips, and their cursor, with the text under them", () => {
-  // `RECT` spans x 100–200 and y 700–720; text turned a quarter turn reads up
-  // the page, so at scale 2 the start's strip is three units high across the
-  // rect's foot, y 792 - 700 = 92 in page units, and the end's across its
-  // head, at 72.
   const page = pageView(viewport({ scale: 2 }));
 
   renderAnnotationOverlay(page, {
@@ -546,7 +485,6 @@ it("patches the selected mark, its outline, and its handles in place", () => {
   );
 
   expect(patched).toBe(true);
-  // The same nodes, carrying the new geometry.
   expect(overlayIn(page)).toBe(overlay);
   expect([...overlay.children]).toEqual(children);
   expect(markIn(page, "FDRFQ7C2")).toBe(mark);
@@ -557,7 +495,6 @@ it("patches the selected mark, its outline, and its handles in place", () => {
       .getAttribute("d"),
   ).toBe("M 98.5 290.5 L 341.5 290.5 L 341.5 513.5 L 98.5 513.5 Z");
   expect(handlesIn(page).br).toEqual([335, 507, 10, 10]);
-  // The neighbour is left as it stood.
   expect(rectOf(page, "PUPR5FG5")).toEqual(["100", "72", "100", "20"]);
 });
 
@@ -573,11 +510,9 @@ it("patches a scaled ink stroke, the width of its casing, and its four handles i
   });
   const overlay = overlayIn(page);
   const children = [...overlay.children];
-  // The body of the ink moves it, and only its four corners scale it.
   expect(markIn(page, "4PE492KU").dataset.ztGrip).toBe("body");
   expect(Object.keys(handlesIn(page)).sort()).toEqual(["bl", "br", "tl", "tr"]);
 
-  // Doubled from the top-left corner: twice the size, twice the pen.
   const patched = patchSelectedMark(
     page,
     pageAnnotations([stroke([[100, 200, 300, 400]], 4)])[0]!,
@@ -589,13 +524,11 @@ it("patches a scaled ink stroke, the width of its casing, and its four handles i
   const mark = markIn(page, "4PE492KU");
   expect(mark.getAttribute("d")).toBe("M 100 592 L 100 592 L 300 392");
   expect(mark.getAttribute("stroke-width")).toBe("4");
-  // The casing rides the pen's new width, padded 1.5 units either side.
   const casing = overlay.querySelector<SVGElement>(
     `.${themeHook.pdfAnnotationSelectionOutline}`,
   )!;
   expect(casing.getAttribute("d")).toBe("M 100 592 L 100 592 L 300 392");
   expect(casing.style.strokeWidth).toBe("7");
-  // The bottom-right handle stands five units out from (300, 200).
   expect(handlesIn(page).br).toEqual([300, 592, 10, 10]);
 });
 
@@ -631,7 +564,6 @@ it("patches nothing on a page whose overlay holds no such mark", () => {
   ).toBe(false);
 });
 
-/** The highlight the geometry cases place, on `RECT`. */
 function highlight(): AnnotationRecord {
   return record("PUPR5FG5", "highlight", {
     pageIndex: 0,
@@ -639,7 +571,6 @@ function highlight(): AnnotationRecord {
   });
 }
 
-/** The shared builder, dressed in the colour and comment the Fixture gives it. */
 function record(
   key: string,
   type: AnnotationRecord["type"],
@@ -652,7 +583,6 @@ function record(
   };
 }
 
-/** Everything the records place on page zero. */
 function pageAnnotations(records: readonly AnnotationRecord[]) {
   return groupAnnotationsByPage(records).get(0) ?? [];
 }
@@ -675,13 +605,11 @@ function markIn(page: OverlayPageView, key: string): SVGElement {
   )!;
 }
 
-/** The mark's `[x, y, width, height]`, as the overlay wrote them. */
 function rectOf(page: OverlayPageView, key: string): (string | null)[] {
   const mark = markIn(page, key);
   return ["x", "y", "width", "height"].map((name) => mark.getAttribute(name));
 }
 
-/** PDF points carry three decimals; the rest is the float noise of the sum. */
 function round(value: string | null): number {
   return Math.round(Number(value) * 1000) / 1000;
 }

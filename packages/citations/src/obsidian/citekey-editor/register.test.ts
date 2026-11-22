@@ -22,10 +22,6 @@ import { CitationPopover } from "#obsidian/citation-popover/service.ts";
 import { CitationText } from "#obsidian/citation-text/service.ts";
 import { CITEKEY_HOVER_SOURCE } from "#obsidian/citekey-navigation/index.ts";
 
-/**
- * The extension registration over settings seeded with `overrides`, and a
- * workspace with editors open on `note.md` and `other.md`. `unload` closes it.
- */
 const openExtension = Effect.fnUntraced(function* (
   overrides: Partial<Settings> = {},
 ) {
@@ -68,7 +64,6 @@ const openExtension = Effect.fnUntraced(function* (
   );
   return {
     settings,
-    /** The switchable extension array: the last registration. */
     registered: () => extensions.at(-1)!,
     sources,
     workspace,
@@ -135,8 +130,6 @@ describe("CitekeyEditor hover source", () => {
         const { sources } = yield* openExtension();
 
         expect(Object.keys(sources)).toEqual([CITEKEY_HOVER_SOURCE]);
-        // Mod is the platform convention, and this row is the Page preview
-        // plugin's own gate on the Page preview Hover action.
         expect(sources[CITEKEY_HOVER_SOURCE]?.defaultMod).toBe(true);
         expect(sources[CITEKEY_HOVER_SOURCE]?.display).toBeTruthy();
       }),

@@ -2,12 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { noteRegions, partialCalls, templateCalls } from "./regions.ts";
 
-/** The whole body is the note, which is what a Profile without a manifest is. */
 function regions(body: string) {
   return noteRegions(body, { from: 0, to: body.length });
 }
 
-/** The text every call site covers, so an offset pair reads as its own source. */
 function callText(body: string) {
   return regions(body).annotationCalls.map(({ call }) =>
     body.slice(call.from, call.to),
@@ -70,7 +68,6 @@ Write \`{% render_annotation annotation %}\` in the note.
     ].join("\r\n");
     const { annotationCalls, managedBlock } = regions(body);
 
-    // The line break stays outside the line each box owns.
     expect(
       body.slice(annotationCalls[0]!.line!.from, annotationCalls[0]!.line!.to),
     ).toBe("{% render_annotation annotation %}");
@@ -118,7 +115,6 @@ Notes.
 });
 
 describe("partialCalls", () => {
-  /** The whole text is one region, which is what a pane over its own slice reads. */
   const calls = (body: string) =>
     partialCalls(body, { from: 0, to: body.length });
 
@@ -139,8 +135,6 @@ describe("partialCalls", () => {
   });
 
   it("draws no box over a name a Shared Partial cannot be given", () => {
-    // All five names the host refuses: a box over one would offer Edit partial
-    // for a document that cannot exist.
     const body = ["filename", "note", "annotation", "content", "citation"]
       .map((name) => `{% render "${name}" %}`)
       .join("\n");
@@ -194,8 +188,6 @@ Write \`{% render "authors" %}\` in the note.
   });
 
   it("marks the name alone, even when the keyword spells it too", () => {
-    // "end" and "de" both read inside `render`, which is where a search of the
-    // call text would land instead of on the name.
     const body = ['{% render "end" %}', "{%- include  'de' , x: 1 -%}"].join(
       "\n",
     );

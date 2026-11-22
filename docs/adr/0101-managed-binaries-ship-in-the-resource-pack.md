@@ -97,3 +97,134 @@ With the pack, ZotLit's own `main.js` is 4,959,834 B (budget 5,000,000 B), and i
 Steps of the Pandoc Engine read on the main thread, iPhone / emulator: read 44 / 153 ms, hash 22 / 16 ms, base64 203 / 189 ms, gunzip 116 / 149 ms. In the emulator's Worker the base64 step takes 399 ms. Each entry gave the hash of its pin on both devices and both threads. Both hosts answer with `Cache-Control: no-cache`: after the pack file was replaced three times under one URL, each read gave the bytes on disk, so the read needs no `cache: "no-store"` and no query string. `Uint8Array.fromBase64` is native on iOS 18.6; on WebView 124 it is a polyfill on the main thread and absent in a Worker.
 
 <!-- ===================================================================== -->
+
+The source release workflow plans and verifies the Resource Pack with the other products. It publishes to `aidenlx/zotlit-resources`, copies the generated container's `main.js` byte for byte, then records the source tag as `resources-<version>`.
+
+### Container implementation and checks
+
+Build the Pack Entry pins from the app manifest and use the same pins for the package build and bundle check. Read the Chinese Segmenter from the web build of `jieba-wasm` because the runtime uses that package's web glue. Read the Pandoc version from the installed `pandoc-wasm` metadata. Include the upstream license and source link for both binaries, including the pinned Pandoc COPYING file. The production build writes a bundle package and identical `main.js` bytes in `dist/`. The development build installs into the selected Development Vault. The production build spends extra time on maximum gzip compression because every installation downloads those bytes.
+
+Use the index's final byte for the line feed. The parser reads the JSON up to the closing delimiter so a CRLF conversion still allows index parsing. The offset and entry hash detect the resulting shifted bytes. Keep the index offsets absolute and keep the index, entry and notice comment text intact in every generated copy. Encode Base64 in chunks that are multiples of three bytes so the concatenation contains padding only at the end. The host-free writer accepts an injected gzip implementation, so the app can use Node zlib and browser tests can use `CompressionStream`.
+
+A range reader accepts a short result at end of file and reports an absent pack separately from other read failures. For HTTP 206, read enough of the response to cover the requested length and cancel the rest. For HTTP 200, a body no longer than the request is the desktop range reply. A longer body is the full file, so discard the prefix up to the requested offset. Send a Pack Entry location to the Worker with the pack manifest version and the last verified entry-text hash. Use a null hash before a successful read and after a failed read.
+
+Run the same round-trip cases in Node and the Electron renderer. Generate an incompressible entry large enough to exercise multiple reads. Cover the Android, iOS, and desktop range responses, the Obsidian install transform, and the CommonJS plugin export. Use the real WebAssembly compression fixture to check that the selected gzip level reduces download size.
+
+The bundle gate compiles the Resource Pack script without executing it, then applies Obsidian's install transform and reads each pinned entry back.
+
+The source and publish builds call the same copy operation on the Resource Pack bundle. The test exercises comments, CRLF bytes, an inline source-map line, and the absence of a trailing line feed. All bytes have to survive the shell copy because the index counts byte offsets.
+
+The bundle gate reads declared Pack Entry pins and measures only main.js
+for a Resource Pack. In the Fixture, keep the pack installed and absent
+from the enabled plugin list.
+
+Keep the pack installed and disabled in the End-to-end Run, as the
+community browser leaves it. Save its manifest and preserve its
+original file when a case replaces it. Restore it through the same
+manifest reload and change notification as a plugin install. Clear
+recorded notices and wait for the Chinese Segmenter to read the
+restored pack. The migration case seeds the previously downloaded
+files and dismissed offers, restarts with no record of cleanup or
+pack notices, and checks the surviving state. Fixture teardown
+removes the seeded files and records completed cleanup.
+[Resource Pack cases](../../packages/e2e/src/resource-pack.ts)
+
+The desktop cases distinguish pack state by changing the installed
+manifest and publishing an install event. Test an unreadable compatibility
+version by changing the first-line index. Test damaged data by changing
+a valid base64 character in the Segmenter entry. The two Managed
+Binaries share this pack. An inner word of the Fixture's Chinese title
+matches only with the pack segmenter, while the fallback can match the
+whole word. Verify one notice per state even across repeated demands,
+the action for the plugin the reader must install or update, and a
+retry when the same version is repaired. A ready pack shows no notice.
+After upgrade from downloaded binaries, wait for the new search to
+observe the first missing-pack notice. Later starts leave the device
+alone after recorded cleanup. In Preview, installation during a session
+makes the engine available on the next read.
+
+### Managed Binary status, ownership, and presentation
+
+Use a descriptor per binary and give each its own Effect service and Scope.
+The Pack Entry uses the descriptor's ID. Report read refusals as values.
+An absent pack describes the preinstall state. An older pack or missing
+entry requires a pack update, a newer pack requires a plugin update, and
+damaged data requires a reinstall. Preserve the initiating failure cause
+and its message when start or release fails. An optional start probe
+reports invalid runtime bytes before the first borrow.
+
+A status read checks disk again. Concurrent callers join one read owned
+by the layer, so canceling a reader leaves the other callers served.
+Keep a failed start associated with the entry's SHA-256. Leave it failed
+until the bytes change or an explicit start succeeds. A cached status
+does not read the file, and an unread installed pack has no status yet.
+Publish missing-pack observations and emit distinct changes. On a new
+installation, update, or removal, retire the old shared engine and read
+again for watchers. The first borrower starts the engine and gives the
+caller a scoped lease. A lease survives a pack change. The shared
+engine remains after its last borrower until retired or the layer
+closes. Let the common start finish before handling borrower cancellation.
+
+The renderer tests that the Chinese Segmenter compiles without keeping
+an instance. The Worker verifies and instantiates the entry independently
+through the same origin URL. Publish the entry digest with a verified
+location so changes and repairs give the Worker a new identity. Strip
+the time component Obsidian appends to out-of-index resource URLs.
+Only a different installed manifest triggers reread, since enable and
+disable also raise plugin change reports. Treat an installed but disabled
+pack as available.
+
+Each settings row reads on mount and observes later status. Show the
+license and source with the binary's description, and explain fallback
+when the binary is unavailable. Route the recovery button to the plugin
+that can resolve the status. Features can continue while recording and
+displaying a notice. Deduplicate by pack state per vault across binaries.
+A Chinese search can request the Segmenter asynchronously and continue
+with platform word segmentation.
+
+Old-store keys live in host-free code so the desktop tests use the same
+names. Remove downloaded directories from origin-private storage and
+remove each vault's old offer records. An absent entry succeeds. Remove
+the parent only when empty. Record completion per vault, even when
+another vault already removed shared files. Log failures and try again
+next start. Startup does not wait for this cleanup.
+
+Test file replacement separately from Obsidian's change announcement.
+An entry verification reads the index before the entry. Exercise a
+damaged pack, a same-version repair, and re-damage. Simulate a locked
+file and require recursive removal for nonempty directories. Use a
+minimal valid WebAssembly module for platform tests and the shipped web
+binary when testing the real Segmenter.
+[Managed Binary service](../../packages/plugin-services/src/obsidian/managed-binary/pack-binary.ts) ·
+[Pack platform](../../packages/plugin-services/src/obsidian/managed-binary/pack-platform.ts)
+
+Pandoc formatting and export request the unread engine on first use.
+A known missing pack needs no read. The render can answer without
+formatting and show a deduplicated recovery notice. Hold the render
+until the engine comes or goes. The first read of already-requested
+bytes only confirms availability. The tests load the actual binary
+beside the Node entry point of the Pandoc WASM dev dependency.
+
+The web glue's default loader would inline the Segmenter WASM into
+the plugin library build. Mark that asset URL so Vite leaves it
+alone. The actual startup uses initSync with verified Pack Entry bytes.
+The renderer passes the installed location to ZoteroReads without
+reading it during worker startup. The Worker verifies the entry
+and reports the digest, including after a same-version reinstall.
+An installed but unread Pandoc pack has no status. The first borrow
+can report damage and a subsequent status wakes render subscribers.
+
+The host's plugin change event also covers enable and disable. An install
+or update replaces the manifest object, so the observer can distinguish
+these cases by identity.
+
+ZoteroReads configuration sends the installed Segmenter location and
+the verified hash when known. The Worker reads the entry independently.
+An absent binary reader treats an entry as unavailable. Tests inject
+the web-target binary through that reader port.
+
+## Status ownership and tests
+
+The worker reads the installed Segmenter entry and reports the binary that actually cuts text. The renderer locates the pack and reads the worker's status again after ZoteroReads recovers, including when no pack is installed. A refused location can be tried again. After a successful `jieba-wasm` start, the JavaScript realm keeps that instance through pack replacement and removal until it restarts. Status names the version whose bytes are active. The fallback segments with `Intl.Segmenter`; the service tests distinguish it using the compound `长江流域` and the substring `流域`.
+
+A status check joins a read already in progress. The read belongs to the service Scope, so cancellation of a waiter leaves the remaining waiters served. An installed pack is unread until the check completes. A verified binary that failed to start stays failed until bytes change or an engine start succeeds. The first borrower starts the shared engine, the borrowing Scope controls its lease, and a refusal includes the status from that read so callers need no second lookup. Release failures go to logs. A missing Pack Entry in a compatible file is reported as older pack content. The ZoteroReads contract owns the wire Schema for the status types.

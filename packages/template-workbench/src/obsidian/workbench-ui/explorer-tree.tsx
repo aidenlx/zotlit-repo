@@ -1,5 +1,3 @@
-// Presentational tree renderer for display-tree nodes; raises intent via callbacks only.
-
 import type {
   DisplayNode,
   HelperNode,
@@ -25,37 +23,19 @@ import { paneCover } from "./look.ts";
 
 import { formatPath } from "#core/data-tree/index.ts";
 
-/** Stays at the top while its section scrolls past, on the ground of the panel it stands in. */
 const explorerTreeSectionHeading = cn("zt:sticky zt:top-0 zt:z-10", paneCover);
 const explorerTreeChevronIcon =
   "zt:flex zt:size-(--icon-size) zt:items-center zt:justify-center zt:in-data-[expanded]:rotate-90";
-/**
- * The row whose details stand open keeps its own ground. The row ↑/↓
- * selected also wears the ring Obsidian draws on the file explorer's
- * keyboard row (`.tree-item-self.has-focus`), which hover never shows.
- */
 const explorerTreeRow =
   "zt:group/row zt:rounded-sm zt:flex zt:min-w-0 zt:items-start zt:gap-x-1 zt:px-1 zt:py-1 zt:data-line:h-7 zt:data-line:items-center zt:data-line:py-0 zt:hover:bg-muted zt:focus-within:bg-muted zt:data-[state=matched]:bg-(--text-highlight-bg) zt:data-selected:bg-muted zt:data-selected:shadow-[inset_0_0_0_2px_var(--background-modifier-border-focus)] zt:data-open:bg-accent";
-/**
- * Key and value share one line while both fit; a longer value drops to
- * its own line beneath the key. A Fields Panel row (`line`) keeps both
- * on one line, the value cut with an ellipsis, and a click on it shows
- * its details.
- */
 const explorerTreeContents =
   "zt:flex zt:min-w-0 zt:flex-1 zt:flex-wrap zt:gap-x-1.5 zt:select-text zt:[overflow-wrap:anywhere] zt:data-[state=line]:cursor-pointer zt:data-[state=line]:items-center zt:data-[state=line]:self-stretch zt:data-[state=line]:flex-nowrap zt:data-[state=line]:overflow-hidden zt:data-[state=line]:whitespace-nowrap zt:data-[state=line]:*:data-[part=value]:truncate";
 const explorerTreeGroup =
   "zt:ms-2.5 zt:border-s zt:border-(--nav-indentation-guide-color) zt:ps-2 zt:data-[state=line]:ms-0 zt:data-[state=line]:border-0 zt:data-[state=line]:ps-0 zt:data-[state=line]:in-data-[part=group]:ps-3";
-/** Revealed by hover or focus; a touch device has neither, so it keeps them visible. */
 const explorerTreeActions =
   "zt:flex zt:shrink-0 zt:items-center zt:gap-0.5 zt:opacity-0 zt:group-hover/row:opacity-100 zt:group-focus-within/row:opacity-100 zt:group-data-selected/row:opacity-100 zt:group-data-open/row:opacity-100 zt:[.is-mobile_&]:opacity-100";
 const explorerTreeKey =
   "zt:font-mono zt:text-foreground zt:data-[state=labeled]:font-sans zt:data-[state=labeled]:font-medium";
-/**
- * A Fields Panel row's label, from the section icon's edge, with the
- * chevron of a field that opens after it. A nested field's label
- * stands a little in, behind the guide line its siblings continue.
- */
 const explorerTreeFieldLabel =
   "zt:flex zt:w-2/5 zt:min-w-0 zt:shrink-0 zt:items-center zt:gap-0.5 zt:self-stretch zt:*:data-[part=key]:truncate zt:data-[state=nested]:ms-1 zt:data-[state=nested]:border-s zt:data-[state=nested]:border-(--nav-indentation-guide-color) zt:data-[state=nested]:ps-2";
 const explorerTreeValue = "zt:min-w-0";
@@ -66,7 +46,6 @@ const explorerTreeString = "zt:text-green";
 const explorerTreeLongToggle =
   "zt:rounded-xs zt:ms-0.5 zt:cursor-pointer zt:px-1 zt:text-muted-foreground zt:underline zt:decoration-dotted zt:underline-offset-2 zt:select-none zt:hover:bg-muted zt:hover:text-foreground zt:focus-visible:shadow-(--input-box-shadow-focus)";
 
-/** Shared Enter/Space activation for `role="button"` spans, so keyboard users get the same click behavior as a mouse. */
 function activateOnEnterOrSpace<E extends React.KeyboardEvent>(
   action: (e: E) => void,
 ): (e: E) => void {
@@ -78,24 +57,17 @@ function activateOnEnterOrSpace<E extends React.KeyboardEvent>(
   };
 }
 
-/** One section of the tree: its heading, its top-level nodes, and the names those nodes show. */
 export interface DisplaySection {
   readonly id: ExplorerSectionId;
   readonly label: string;
   readonly collapsed: boolean;
   readonly nodes: readonly DisplayNode[];
-  /** Reader-facing names by node key, nested nodes included; a node without one shows its raw key. */
   readonly labels: ReadonlyMap<string, string>;
 }
 
-/**
- * The rows of the Fields Panel: one line each, with the selected row and the
- * row whose details stand open. A click on a row shows or hides its details.
- */
 export interface FieldRowState {
   readonly selected: string | null;
   readonly open: string | null;
-  /** The id of the row for `key`, which the search names as active. */
   readonly idOf: (key: string) => string;
   readonly onRowClick: (node: DisplayNode) => void;
 }
@@ -104,21 +76,12 @@ const FieldRowsContext = createContext<FieldRowState | null>(null);
 
 export interface DisplayTreeProps {
   sections: readonly DisplaySection[];
-  /** Keys of nodes directly matched by the filter; null when no filter is active. */
   matchedKeys: ReadonlySet<string> | null;
   onToggle: (key: string) => void;
-  /** Absent while a filter holds every matching section open. */
   onToggleSection?: (id: string) => void;
-  /**
-   * Inserts the node's field; `keepOpen` when the reader held Shift, so the
-   * Fields Panel stays open for the next field.
-   */
   onInsert?: (node: DisplayNode, keepOpen: boolean) => void;
-  /** The row's Menu, opened from its own control; anchored under that control. */
   onTemplateMenu: (node: DisplayNode, event: React.MouseEvent) => void;
-  /** The same Menu, opened by a right-click on the row; anchored at the pointer. */
   onFieldContextMenu: (node: DisplayNode, event: React.MouseEvent) => void;
-  /** Present in the Fields Panel, whose rows are one line and keep details. */
   rows?: FieldRowState;
 }
 
@@ -177,18 +140,12 @@ export function DisplayTree({
   );
 }
 
-/**
- * The section's icon, name and count of its own fields, with the chevron at
- * its end; its visible text is its accessible name. The host keeps it in
- * view while its section scrolls past.
- */
 function SectionHeader({
   section,
   labelId,
   onToggle,
 }: {
   section: DisplaySection;
-  /** The id the tree beneath points at for its name. */
   labelId: string;
   onToggle?: () => void;
 }) {
@@ -241,9 +198,7 @@ function SectionHeader({
 
 interface TreeNodeProps {
   node: DisplayNode;
-  /** Reader-facing names by node key; a node without one shows its key as written. */
   labels: ReadonlyMap<string, string>;
-  /** A field inside another field, whose label stands behind a guide line in the Fields Panel. */
   nested?: boolean;
   matchedKeys: ReadonlySet<string> | null;
   onToggle: (key: string) => void;
@@ -252,20 +207,13 @@ interface TreeNodeProps {
   onFieldContextMenu: (node: DisplayNode, event: React.MouseEvent) => void;
 }
 
-/**
- * The label cell of a Fields Panel row: whether its field is nested, and the
- * chevron that follows the label of a field that opens.
- */
 interface FieldLabelCell {
   readonly nested: boolean;
   readonly chevron: ReactNode;
-  /** The id of the label text, which names the row. */
   readonly labelId: string;
-  /** The id of the value, which describes the row. */
   readonly valueId: string;
 }
 
-/** What a row draws: its node, the name it shows, and its label cell in a Fields Panel. */
 interface RowProps<N extends DisplayNode = DisplayNode> {
   node: N;
   label?: string;
@@ -293,8 +241,6 @@ function TreeNode({
     <Chevron expanded={isExpanded} onClick={() => onToggle(node.key)} />
   ) : null;
   const rowId = rows?.idOf(node.key);
-  // A Fields Panel row reads as its visible label, its value as its
-  // description, without its controls or its nested rows.
   const cell = rowId
     ? {
         nested,
@@ -320,8 +266,6 @@ function TreeNode({
         data-part="row"
         data-state={isMatched ? "matched" : undefined}
         className={explorerTreeRow}
-        // "true" when selected; Obsidian's variant reads the attribute's
-        // presence.
         data-selected={selected ? "true" : undefined}
         data-open={open ? "" : undefined}
         data-line={rows ? "" : undefined}
@@ -329,8 +273,6 @@ function TreeNode({
           event.preventDefault();
           onFieldContextMenu(node, event);
         }}
-        // A click on the row, not on one of its controls or links, shows or
-        // hides its details.
         onClick={
           rows
             ? (event) => {
@@ -345,7 +287,6 @@ function TreeNode({
           (chevron ?? (
             <span data-part="spacer" className="zt:w-6 zt:shrink-0" />
           ))}
-        {/* The host lays the key and the value out as a wrapping row: one line while both fit, the value on its own line beneath the key when it does not. The space between them survives in text content only. A Fields Panel row keeps one line, its label in a cell of its own with its chevron after it. */}
         <div
           data-part="contents"
           data-state={rows ? "line" : undefined}
@@ -413,7 +354,6 @@ function Chevron({
   );
 }
 
-/** The row's two actions: insert, and the menu that holds everything else. The host reveals them on hover or focus. */
 function ActionCluster({
   node,
   onInsert,
@@ -456,7 +396,6 @@ function ClusterButton({
       tabIndex={0}
       {...tooltipAttrs(label)}
       onClick={onClick}
-      // Enter and Space press it as a click does, Shift included.
       onKeyDown={activateOnEnterOrSpace((e) => {
         const view = e.currentTarget.ownerDocument.defaultView!;
         e.currentTarget.dispatchEvent(
@@ -490,14 +429,8 @@ function NodeRow({ node, label, cell }: RowProps) {
   }
 }
 
-/**
- * The property name, or the array index, or the reader-facing name of a
- * top-level field. A named key keeps its raw path in the tooltip.
- */
 function KeyLabel({ node, label, cell }: RowProps) {
   const tooltip = tooltipAttrs(formatPath(node.path, "zt"));
-  // The row's name is the label text alone, apart from the tooltip a host
-  // may draw as an aria-label.
   const text = cell ? (
     <span id={cell.labelId}>{label ?? node.label}</span>
   ) : (
@@ -542,10 +475,6 @@ function ValueRow({ node, label, cell }: RowProps<ValueNode>) {
   );
 }
 
-/**
- * A named field counts a list in prose parentheses and lets an object speak
- * through its preview alone; a raw key keeps the structural `[n]` / `{n}` hint.
- */
 function ValueContent({
   node,
   labeled = false,
@@ -569,7 +498,6 @@ function ValueContent({
             {hint}
           </span>
         )}
-        {/* A Fields Panel row keeps its items in view while it stands open. */}
         {(node.children === undefined || line) &&
           node.preview !== undefined && (
             <>
@@ -588,7 +516,6 @@ function ValueContent({
         …
       </span>
     );
-  // A Fields Panel row marks a field this item has no value for.
   if (
     line &&
     (node.valueType === "null" ||
@@ -681,7 +608,6 @@ function PlaceholderRow({ node, label, cell }: RowProps<PlaceholderNode>) {
   );
 }
 
-/** A property every item of a list has, with the values of all items in one line. */
 function ListPropertyRow({ node, label, cell }: RowProps<ListPropertyNode>) {
   return (
     <>
@@ -695,15 +621,12 @@ function ListPropertyRow({ node, label, cell }: RowProps<ListPropertyNode>) {
   );
 }
 
-/** `[text](url)` — captures read below, so it keeps the typed `regex(...)` form. */
 const MARKDOWN_LINK_RE = regex(
   "^\\s*\\[(?<text>[^\\]]*)\\]\\((?<url>[^)]+)\\)\\s*$",
 );
-/** A bare protocol URL; or a `#rgb`/`#rrggbb`(`aa`) color code — both `.test()`-only, so plain literals. */
 const LINKABLE_URL_RE = /^(?:https?|file|zotero|obsidian):\S*$/i;
 const HEX_COLOR_RE = /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 
-/** Longer values collapse to their first line until expanded, so one field can't push its siblings off-screen. */
 const STRING_PREVIEW_LIMIT = 140;
 
 function StringValue({ value }: { value: string }) {
@@ -760,7 +683,6 @@ function LinkValue({ href, label }: { href: string; label: string }) {
 function LongText({ value }: { value: string }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = value.length > STRING_PREVIEW_LIMIT || value.includes("\n");
-  // A Fields Panel row is one line; its details show the whole value.
   const line = useContext(FieldRowsContext) !== null;
 
   if (line) {

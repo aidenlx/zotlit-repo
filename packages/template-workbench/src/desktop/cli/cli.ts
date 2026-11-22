@@ -1,4 +1,3 @@
-// The Template Workbench commands and their response boundaries.
 import { Effect, Result } from "effect";
 import type { CliData } from "obsidian";
 
@@ -98,7 +97,6 @@ export const FRONTMATTER_REORDER_COMMAND =
 const DEFAULT_SETTLE_TIMEOUT_MS = 5_000;
 
 interface TemplateWorkbenchDeps {
-  /** The installed ZotLit version, reported by the status command. */
   pluginVersion: string;
   getIdentity: Effect.Effect<WorkbenchIdentity>;
   selectNote: (
@@ -109,7 +107,6 @@ interface TemplateWorkbenchDeps {
     root: ContractRoot,
     options?: { note?: string },
   ) => Effect.Effect<TemplateDataLoadResult, TemplateDataError>;
-  /** Citation Template data for one example set or one chosen Item. */
   loadCitation: (
     selector: CitationSelector,
     variant: CitationVariant,
@@ -145,7 +142,6 @@ interface TemplateWorkbenchDeps {
       readonly LiteratureNoteTemplateStatus[],
       TemplateFailure
     >;
-    /** The installed document `reference` names; fails with what it threw. */
     getDocument: (
       reference: string,
     ) => Effect.Effect<
@@ -156,7 +152,6 @@ interface TemplateWorkbenchDeps {
       | undefined,
       unknown
     >;
-    /** The document `source` rendered over `data`; fails with what it threw. */
     renderSource: (
       source: string,
       data: object,
@@ -188,13 +183,6 @@ export function createTemplateWorkbenchHandlers(
   const waitUntilSettled = () =>
     deps.templates.waitUntilSettled(settleTimeoutMs);
 
-  /**
-   * The preamble both item-backed commands share: parse the selector, resolve
-   * the connected identity, assert the caller's target, and wait for observed
-   * Template edits to compile. `run` sees a valid request and a confirmed
-   * target, and owns the rest of its command's envelopes. `span` names the
-   * command's trace span.
-   */
   const gated = <T extends object>(
     { command, span }: { command: WorkbenchCommand; span: string },
     parse: (params: CliData) => Effect.Effect<T, CliRejection>,
@@ -336,9 +324,6 @@ export function createTemplateWorkbenchHandlers(
           );
           if (Result.isFailure(read)) {
             const error = read.failure.cause;
-            // A missing contract entry means the committed IR no longer matches
-            // the data shapes this build shipped — a plugin defect, not a fault
-            // the caller can correct from a diagnostic.
             if (error instanceof ContractMetadataError) {
               yield* Effect.logError(
                 "Template data contract metadata is missing",
@@ -499,14 +484,9 @@ export function createTemplateWorkbenchHandlers(
   };
 }
 
-/**
- * A load that failed fails the command with what failed, which Obsidian
- * prints as the command's error.
- */
 const loadFailure = <A>(load: Effect.Effect<A, TemplateDataError>) =>
   Effect.mapError(load, ({ cause }) => cause);
 
-/** A rejected request answers its diagnostic envelope. */
 const answerRejection = (command: WorkbenchCommand) =>
   catchRejection((rejected) =>
     envelope(command, { ok: false, diagnostic: rejectionDiagnostic(rejected) }),
@@ -585,7 +565,6 @@ const literatureNoteAuthoringState = Effect.fnUntraced(function* (
   };
 });
 
-/** Parse a `--profile` argument's text, then resolve its document reference. */
 const profileDocumentReference = Effect.fnUntraced(function* (
   literatureNotes: NonNullable<TemplateWorkbenchDeps["literatureNotes"]>,
   text: string,
@@ -620,11 +599,6 @@ function documentNotFoundDiagnostic(reference: string): Diagnostic {
   );
 }
 
-/**
- * A Template Document fault. `document` names the document and, when the
- * caller holds it, its source, so the report excerpts the place the parser
- * found the fault.
- */
 function literatureNoteDocumentDiagnostic(
   error: unknown,
   document?: { name: string; source?: string },
@@ -674,13 +648,11 @@ function literatureNoteDocumentDiagnosticCode(
       ? { at: { source, span, name: document!.name } }
       : {}),
   });
-  // Without the source there is no excerpt, but the offset still locates it.
   return span === undefined || source !== undefined
     ? value
     : { ...value, location: { ...value.location, span } };
 }
 
-/** A manifest node path in accessor form, such as `frontmatter[2].key`. */
 function manifestPathText(path: readonly (string | number)[]): string {
   return path
     .map((key, index) =>
@@ -689,12 +661,6 @@ function manifestPathText(path: readonly (string | number)[]): string {
     .join("");
 }
 
-/**
- * What a request selected, as a message names it: the Indexed Key, or the
- * example set standing in for one. A Legacy Template File slot takes no
- * example set, and a built-in example set is synthesized rather than looked
- * up, so only the key half ever reaches a load failure.
- */
 function selectedObject(
   request: { key: string } | { example: string },
 ): string {

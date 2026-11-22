@@ -1,4 +1,3 @@
-// The scanner's public entry runs in the same guarded bundle as production workers.
 import { Worker } from "node:worker_threads";
 import { expect, it, vi } from "vitest";
 
@@ -11,7 +10,6 @@ it("runs the production parse worker without Obsidian", async () => {
     record: unknown;
   }>();
   const signal = new AbortController().signal;
-  // A malformed request fails through the RPC codec, then a valid one works.
   await expect(
     worker.parse({ path: "throwing.md", generation: 11, text: null! }, signal),
   ).rejects.toThrow();
@@ -57,7 +55,6 @@ it("runs the production parse worker without Obsidian", async () => {
 
 it("includes codec and postMessage time in the measured posting cost", async () => {
   await using worker = await scanBenchmarkWorker();
-  // Warm the worker so this call does not include readiness buffering.
   const request = { path: "draft.md", generation: 1, text: "" };
   const signal = new AbortController().signal;
   await worker.parse(request, signal);
@@ -74,6 +71,5 @@ it("includes codec and postMessage time in the measured posting cost", async () 
   });
   stack.defer(() => posting.mockRestore());
   await worker.parse(request, signal);
-  // One clock tick in encoding, plus 101 ticks around the actual post.
   expect(worker.postMs).toBeGreaterThanOrEqual(102);
 });

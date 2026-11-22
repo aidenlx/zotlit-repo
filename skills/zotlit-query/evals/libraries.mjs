@@ -1,4 +1,3 @@
-// The eval corpus names these Libraries; selectors identify the same Libraries.
 export function librarySelector(value) {
   return (
     { "My Library": "personal", "Lab Archive": "group:118" }[value] ?? value

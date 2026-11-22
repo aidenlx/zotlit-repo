@@ -1,4 +1,3 @@
-// Per-color highlight output choices shared by settings and Note Import.
 import * as v from "valibot";
 
 import type { AnnotationColorName } from "@zotlit/db";
@@ -24,7 +23,6 @@ const highlightColor = v.picklist(HIGHLIGHT_COLORS);
 
 const highlightMapping = v.object({
   output: v.picklist(["mark", ...HIGHLIGHT_EMOJI, "custom"]),
-  // Keep draft input so incomplete custom mappings use HTML until corrected.
   customEmoji: v.string(),
 });
 export type HighlightMapping = v.InferOutput<typeof highlightMapping>;

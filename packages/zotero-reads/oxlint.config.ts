@@ -14,14 +14,6 @@ import {
   withPatterns,
 } from "@zotlit/config/oxlint-plugin-code";
 
-// Each layer of ZoteroReads has one home and one boundary. The contract and
-// the Worker's handlers are host-free: no Node built-in, `obsidian` or
-// `electron`, as in an engine package. The client loads on Obsidian Mobile:
-// the Obsidian kit, and no Node or Electron. The desktop host alone reads
-// Node and the desktop layer. A layer imports the layers below it only:
-// contract <- worker, client <- desktop.
-
-/** The plugin layers above the host-free base. */
 const pluginLayers = {
   group: [
     "@zotlit/obsidian-kit",
@@ -103,7 +95,6 @@ export default defineConfig({
       rules: { "no-restricted-imports": ["error", clientImports] },
     },
     {
-      // The desktop host: Node, Electron and the desktop layer.
       files: ["src/desktop/**"],
       rules: {
         "no-restricted-imports": ["error", runtimeImports],
@@ -111,15 +102,12 @@ export default defineConfig({
       },
     },
     {
-      // Test support serves the tests of every layer, over Node SQLite.
       files: ["src/__fixtures__/**"],
       rules: { "no-restricted-imports": ["error", pluginTestImports] },
     },
     ...pluginCodeOverrides({ testImports: pluginTestImports }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
     {
-      // These adapters own effect/rpc worker creation, shutdown and log
-      // transport.
       files: [
         "src/worker/serve.ts",
         "src/worker/worker-launch.ts",
@@ -128,10 +116,6 @@ export default defineConfig({
       rules: { "zotlit-services/worker-rpc": "off" },
     },
     {
-      // The Item Snapshot export, moved here from the Workbench core as it
-      // stood: the Worker answers the ItemSnapshot RPC on the desktop alone,
-      // where Node runs, and the snapshot revision is a Node SHA-256 digest;
-      // the Item Query seed read runs synchronously inside that answer.
       files: ["src/worker/snapshot/export.ts"],
       rules: {
         "import/no-nodejs-modules": "off",
@@ -139,25 +123,18 @@ export default defineConfig({
       },
     },
     {
-      // Worker migration backlog: move snapshot integrity checks to effect/rpc,
-      // then remove this file from the list.
       files: ["src/desktop/snapshot-integrity.ts"],
       rules: { "zotlit-services/worker-rpc": "off" },
     },
     {
-      // @zotlit/db rows carry Temporal.Instant, the date type of the template
-      // contract, and instant-codec.ts codes it for the ZoteroReads wire.
       files: ["src/contract/instant-codec.ts"],
       rules: { "zotlit-services/temporal-in-effect": "off" },
     },
     {
-      // Clock backlog: read time through Clock (`Clock.currentTimeMillis` or `DateTime.now` in Effect code; `instantClock(yield* Clock.Clock)` from `@zotlit/plugin-kernel/effect-clock.ts` for a non-Effect core), then remove the file from the list.
       files: ["src/worker/citekey-snapshot.ts"],
       rules: { "zotlit-services/clock-time": "off" },
     },
     {
-      // Effect tests written before the rule, in plain Vitest. A file moves
-      // off this list when its cases move to it.effect.
       files: [
         "src/worker/citation-lookup.test.ts",
         "src/worker/connection.test.ts",

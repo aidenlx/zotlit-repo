@@ -82,7 +82,6 @@ describe("citationHoverIntent under the Citation Popover", () => {
         "doe2024",
       ]),
     ).toEqual({ kind: "nothing", reason: "not-a-mouse" });
-    // A desktop mouse event carries no pointer type at all, and hovers.
     expect(
       citationHoverIntent(gesture({ pointerType: undefined }), hover(), [
         "doe2024",
@@ -115,7 +114,6 @@ describe("citationHoverIntent under Page preview", () => {
   });
 
   it("leaves the Mod gate to the Page preview plugin's own settings", () => {
-    // Source mode's Require Mod is on, and the preview branch never reads it.
     expect(
       citationHoverIntent(gesture({ mode: "source" }), preview, ["doe2024"]),
     ).toEqual({ kind: "page-preview", citekey: "doe2024" });

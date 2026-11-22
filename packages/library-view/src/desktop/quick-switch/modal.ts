@@ -7,17 +7,14 @@ import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/ser
 import type { QuickSwitchDeps } from "./register.ts";
 import { openItemPdf, openOrCreateNote } from "./result-actions.ts";
 
-/** Glyph for the `Mod` modifier, matching how Obsidian labels its own hotkeys. */
 function modGlyph(): string {
   return Platform.isMacOS ? "⌘" : "Ctrl";
 }
 
-/** Glyph for the `Shift` modifier, matching how Obsidian labels its own hotkeys. */
 function shiftGlyph(): string {
   return Platform.isMacOS ? "⇧" : "Shift";
 }
 
-/** Glyph for the `Alt` modifier, matching how Obsidian labels its own hotkeys. */
 function altGlyph(): string {
   return Platform.isMacOS ? "⌥" : "Alt";
 }
@@ -40,9 +37,6 @@ export class QuickSwitchModal extends ItemSearchModal {
       },
       { command: "esc", purpose: m.instruction_dismiss() },
     ]);
-    // The suggestion popup registers `Enter` with no modifiers and matches
-    // them exactly, so Mod+Enter, Shift+Enter, and Mod+Shift+Enter each reach
-    // no handler unless the modal claims the chord itself.
     this.scope.register(["Mod"], "Enter", (evt) => {
       this.selectActiveSuggestion(evt);
       return false;

@@ -1,6 +1,3 @@
-// An Item as plain JSON, and the Item a filter reads from it: a record that
-// a caller holds outside the database, such as a sample Item, keeps the
-// values the Items dataset filters on.
 import { Effect } from "effect";
 import * as v from "valibot";
 
@@ -21,12 +18,6 @@ import type { QueryItem } from "./fields.ts";
 const readonlyArray = <TItem extends v.GenericSchema>(item: TItem) =>
   v.pipe(v.array(item), v.readonly());
 
-/**
- * The values of one top-level Item, as JSON. The Item itself alone: a filter
- * that reads its Attachments, Annotations, or Notes finds none. The schema is
- * the one definition of the seed; a host that stores or receives a seed
- * validates it with this schema.
- */
 export const queryItemSeedSchema = v.pipe(
   v.object({
     scan: v.pipe(
@@ -39,13 +30,9 @@ export const queryItemSeedSchema = v.pipe(
       }),
       v.readonly(),
     ),
-    /** `null` for the personal Library. */
     groupID: v.nullable(v.number()),
-    /** Each built-in field with a value, by name. */
     fields: v.pipe(v.record(v.string(), v.string()), v.readonly()),
-    /** Each custom field with a value, by its source name. */
     custom: v.pipe(v.record(v.string(), v.string()), v.readonly()),
-    /** Every custom field of the source, with a value or not. */
     customFieldNames: readonlyArray(v.string()),
     creators: readonlyArray(
       v.pipe(
@@ -65,7 +52,6 @@ export const queryItemSeedSchema = v.pipe(
         v.readonly(),
       ),
     ),
-    /** The root-first name path of each Collection the Item is in. */
     collections: readonlyArray(readonlyArray(v.string())),
   }),
   v.readonly(),
@@ -73,7 +59,6 @@ export const queryItemSeedSchema = v.pipe(
 
 export type QueryItemSeed = v.InferOutput<typeof queryItemSeedSchema>;
 
-/** The Item that a filter reads from `seed`. */
 export function queryItemFrom(seed: QueryItemSeed): QueryItem {
   return {
     scan: seed.scan,
@@ -92,10 +77,6 @@ export function queryItemFrom(seed: QueryItemSeed): QueryItem {
   };
 }
 
-/**
- * Read the seed of one top-level Item with every value the Items filter
- * reads; `null` when the Item is not a live top-level Item of the Library.
- */
 export function readQueryItemSeed(item: {
   readonly itemID: number;
   readonly libraryID: number;

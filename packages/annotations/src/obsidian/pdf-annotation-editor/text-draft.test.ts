@@ -11,7 +11,6 @@ afterEach(() => {
   document.body.empty();
 });
 
-/** A page as PDF.js builds it: a text layer it makes focusable, and a textarea over it. */
 function draftPage() {
   const page = document.body.createDiv({ cls: "page" });
   const textLayer = page.createDiv({ cls: "textLayer" });
@@ -51,12 +50,10 @@ it("finishes on Escape through a Scope of its own while it holds focus, and give
 
   area.focus();
   expect(app.scopes).toHaveLength(1);
-  // The PDF view's own Scope, beneath, never hears the key.
   const escape = dispatchKey(app.scopes[0]!, { key: "Escape" }, area);
   expect(escape.defaultPrevented).toBe(true);
   expect(finish).toHaveBeenCalledOnce();
 
-  // A key typed into a composition stays the input method's.
   dispatchKey(app.scopes[0]!, { key: "Escape", isComposing: true }, area);
   expect(finish).toHaveBeenCalledOnce();
 

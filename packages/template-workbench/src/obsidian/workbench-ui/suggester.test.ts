@@ -10,7 +10,6 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { chooseWorkbenchOption } from "./suggester.ts";
 import type { WorkbenchSuggesterRequest } from "./suggester.ts";
 
-/** How `fiber` ended: its value, or its failure as a rejection. */
 function settled<A, E>(fiber: Fiber.Fiber<A, E>): Promise<A> {
   return new Promise((resolve, reject) =>
     fiber.addObserver((exit) => {
@@ -25,7 +24,6 @@ function settled<A, E>(fiber: Fiber.Fiber<A, E>): Promise<A> {
   );
 }
 
-/** A pop-out window the leaf sits in, apart from the window that has focus. */
 const popout = {
   document: document.implementation.createHTMLDocument("Pop-out"),
 } as unknown as Window;
@@ -61,8 +59,6 @@ describe("Workbench chooser", () => {
     modal.close();
   });
 
-  // The chooser kept an earlier query's rows on screen until the typed
-  // query's answer arrived, and Enter or a click chose from them.
   it("chooses the first item of the typed query's answer when Enter comes before it", async () => {
     using open = vi.spyOn(SuggestModal.prototype, "open");
     const figures = { id: "DMRGRART", label: "Ten simple rules" };
@@ -105,7 +101,6 @@ describe("Workbench chooser", () => {
     const modal = open.mock.contexts.at(-1)! as SuggestModal<unknown>;
     void modal.getSuggestions("ten simple rules");
 
-    // Enter through the modal's own key scope, as Obsidian's keymap sends it.
     const { handlers } = modal.scope as unknown as {
       handlers: {
         modifiers: string[] | null;
@@ -145,8 +140,6 @@ describe("Workbench chooser", () => {
     anchor.remove();
   });
 
-  // Obsidian opens a modal in the window that last took focus, which can be
-  // the main window while the reader works in a pop-out.
   it("opens in the window of the control that asked, or of the view that asked", () => {
     using suggest = vi.spyOn(SuggestModal.prototype, "open");
     const focused = { activeWindow, activeDocument };

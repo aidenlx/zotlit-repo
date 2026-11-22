@@ -1,12 +1,9 @@
-// Fumadocs' native UI strings, read from the root message catalogs.
-
 import type { Translations } from "fumadocs-ui/i18n";
 
 import { m } from "@/paraglide/messages.js";
 
 import type { SiteLocale } from "./i18n.ts";
 
-/** Adapt the root catalogs to the installed native Fumadocs registry. */
 export function fumadocsTranslations(locale: SiteLocale): Translations {
   return {
     "Ask AI(AI chat button)": m.docs_fumadocs_ask_ai({}, { locale }),
@@ -146,7 +143,6 @@ export function fumadocsTranslations(locale: SiteLocale): Translations {
     ),
     "Previous Page(pagination)": m.docs_fumadocs_previous_page({}, { locale }),
     "Prop(type table)": m.docs_fumadocs_prop({}, { locale }),
-    // Fumadocs interpolates its URL after the message reaches its provider.
     "Read {url}, I want to ask questions about it.(page actions)":
       m.docs_fumadocs_read_url_prompt({ url: "{url}" }, { locale }),
     "Returns(type table)": m.docs_fumadocs_returns({}, { locale }),
@@ -156,7 +152,6 @@ export function fumadocsTranslations(locale: SiteLocale): Translations {
       {},
       { locale },
     ),
-    // Fumadocs interpolates the query after the message reaches its provider.
     "Search failed, showing results for {query}(search dialog)":
       m.docs_fumadocs_search_failed_fallback({ query: "{query}" }, { locale }),
     "Show Sidebar(sidebar)": m.docs_fumadocs_show_sidebar({}, { locale }),

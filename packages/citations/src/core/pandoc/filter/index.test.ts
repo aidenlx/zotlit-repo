@@ -21,8 +21,6 @@ describe("bundled Pandoc integration files", () => {
     expect(pandocCliFilter).toContain('"zotlit:csl"');
     expect(pandocCliFilter).toContain('meta["zotlit-csl"]');
 
-    // The sandbox host hands its engine the style it renders with, so that
-    // variant reads no style property of its own.
     expect(pandocSandboxFilter).not.toContain('"zotlit:csl"');
     expect(pandocSandboxFilter).not.toContain('meta["zotlit-csl"]');
   });

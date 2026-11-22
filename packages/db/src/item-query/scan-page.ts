@@ -22,30 +22,20 @@ import type {
 import { deletedItems, items, itemTypesCombined } from "#drizzle/schema.ts";
 import { CHILD_ITEM_TYPES } from "#lib/item-types.ts";
 
-/** The Items one scan statement reads at most. */
 export const SCAN_PAGE_SIZE = 500;
 
-/** One Item of the query universe, as the Library scan reads it. */
 export interface ScanRow {
   itemID: number;
   key: string;
   itemType: string;
-  /**
-   * The Unix time in milliseconds. A scan reads every Item of the Library, so
-   * a row holds a number: a `Temporal.Instant` for each row fills the young
-   * heap, and its collections are long pauses in the Obsidian window. Null
-   * for a stored value that SQLite cannot parse as a time.
-   */
   dateAdded: number | null;
   dateModified: number | null;
 }
 
-/** A timestamp column of `items` as its Unix time in milliseconds. */
 function epochMilliseconds(column: AnyColumn): SQL<number | null> {
   return sql<number | null>`unixepoch(${column}) * 1000`;
 }
 
-/** The scan rows of `items`, before a statement restricts them. */
 function selectScanRows(db: ZoteroDatabase) {
   return db
     .select({
@@ -62,7 +52,6 @@ function selectScanRows(db: ZoteroDatabase) {
     );
 }
 
-/** The terms of the query universe: a top-level Item outside the trash. */
 function universeTerms(db: ZoteroDatabase): SQL[] {
   return [
     notInArray(itemTypesCombined.typeName, [...CHILD_ITEM_TYPES]),
@@ -92,20 +81,9 @@ const scanPageStatement = defineStatement<{
     .limit(placeholder("limit")),
 );
 
-/**
- * Read one keyset page of the query universe: the top-level, non-trashed Items
- * of one Library, in Item ID order, after `afterItemID` (0 for the first page).
- * A page holds at most {@link SCAN_PAGE_SIZE} Items; a shorter page than the
- * requested size is the last one.
- */
 export function readScanPage(page: {
   libraryID: number;
   afterItemID?: number;
-  /**
-   * At most {@link SCAN_PAGE_SIZE}.
-   *
-   * @default SCAN_PAGE_SIZE
-   */
   size?: number;
 }): Effect.Effect<ScanRow[], ItemQueryReaderError, ItemQueryDatabase> {
   return scanPageStatement.all({
@@ -134,12 +112,6 @@ const universeRowsStatement = defineStatement<
     .orderBy(asc(items.itemID)),
 );
 
-/**
- * Restrict a chunk of Item IDs to the query universe: the row of each ID that
- * is a top-level, non-trashed Item of the one Library, in Item ID order and in
- * the form of {@link readScanPage}. A chunk holds at most
- * {@link SCAN_PAGE_SIZE} IDs.
- */
 export function readUniverseRows(chunk: {
   libraryID: number;
   itemIDs: readonly number[];

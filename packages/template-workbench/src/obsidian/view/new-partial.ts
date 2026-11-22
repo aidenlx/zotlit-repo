@@ -1,8 +1,3 @@
-// The one create flow every Shared Partial entry point runs: the completion's
-// "New partial…", the Partials submenu, the Add partial settings row, and the
-// placeholder's Create action. It asks a name under the shared rule, writes
-// `zotlit-partial.<name>.md`, and opens the document in the Template Workbench
-// View.
 import { Modal, TextComponent } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";
 
@@ -23,38 +18,19 @@ import {
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 
-/** The template surface every Shared Partial entry point reads. */
 export type SharedPartialActions = Pick<
   TemplateOperations,
   "getPartialNames" | "createPartial"
 >;
 
 export interface CreateSharedPartialOptions {
-  /** Seeds the name field with what the reader typed at the call site. */
   name?: string;
-  /** The source the new document starts from. @default "" */
   source?: string;
-  /** Writes a manifest naming the language; a Liquid document needs none. */
   language?: TemplateLanguage;
-  /**
-   * Where the created document opens. `"split"` puts it beside the caller, so
-   * an editor keeps its place; `false` leaves the workspace alone.
-   *
-   * @default "split"
-   */
   open?: "split" | "tab" | false;
-  /**
-   * The Workbench leaf the create starts from: the document opens beside it
-   * in its window. Without one it opens in a Workbench window of its own.
-   */
   from?: WorkspaceLeaf;
 }
 
-/**
- * Open the name prompt: `taken` are the names the rule refuses, and `seed`
- * fills the field. `settle` gets the accepted name, or `null` when the prompt
- * closes.
- */
 export function openNewPartialPrompt(
   app: App,
   prompt: {
@@ -69,7 +45,6 @@ export function openNewPartialPrompt(
   return modal;
 }
 
-/** The refusal as the prompt words it, under the name field. */
 function refusalText(refusal: PartialNameRefusal, name: string): string {
   switch (refusal) {
     case "empty":
@@ -83,10 +58,6 @@ function refusalText(refusal: PartialNameRefusal, name: string): string {
   }
 }
 
-/**
- * The name prompt: one field, the resulting filename under it, and a Create
- * button that stays disabled until the rule accepts what is typed.
- */
 export class NewPartialModal extends Modal {
   readonly #taken: readonly string[];
   readonly #seed: string;

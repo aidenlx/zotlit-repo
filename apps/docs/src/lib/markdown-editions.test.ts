@@ -1,6 +1,3 @@
-// A page's `searchTitle` reaches its Markdown edition and its `llms.txt`
-// entry; the sidebar label in `title` and every folder label stay as they are.
-
 import { llms } from "fumadocs-core/source";
 import { describe, expect, it } from "vitest";
 
@@ -18,7 +15,6 @@ describe("docs page titles in the Markdown surface", () => {
   });
 
   it("lists a page in llms.txt under its own title, and nothing else in the docs tree changes", () => {
-    // The lessons follow the docs tree, so only the head of the index is pinned.
     const expected = retitled
       .reduce(
         (index, page) =>
@@ -43,7 +39,6 @@ describe("docs page titles in the Markdown surface", () => {
         { locale },
       );
       const further = edition?.split(/^## .+$/m).at(-1);
-      // The guide's own title in this locale: its Chinese edition's, where it has one.
       const guide = source.getPage(["how-to", "insert-citations"], locale)!;
       expect(further).toContain(
         `- [${docsPageTitle(guide.data)}](${prefix}/docs/how-to/insert-citations.md): `,
@@ -66,7 +61,6 @@ describe("docs page titles in the Markdown surface", () => {
   });
 });
 
-// An old anchor's empty span serves the HTML page alone.
 describe("old anchors in the Markdown surface", () => {
   it("leaves them out, and the step they stood before reads on", async () => {
     const edition = await getMarkdownEdition({

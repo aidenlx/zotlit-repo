@@ -1,6 +1,3 @@
-// The settings of this package's own slices, for its tests: a host's full
-// definition composes its feature slices too. Only this package's tests read
-// this file; a host's program registers more keys than it holds.
 import * as v from "valibot";
 
 import { attachmentSettings } from "#core/attachment-import/settings.ts";

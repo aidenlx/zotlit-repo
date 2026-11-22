@@ -18,7 +18,6 @@ it("names a text field's two verbs for that field", () => {
     ["apply-again", m.annot_view_conflict_use_text()],
     ["discard", m.annot_view_conflict_keep_zotero_text()],
   ]);
-  // A write with no text of its own keeps the generic verbs.
   expect(labels("color")).toEqual([
     ["apply-again", m.annot_view_conflict_apply_again()],
     ["discard", m.annot_view_conflict_discard()],

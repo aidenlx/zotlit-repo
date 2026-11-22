@@ -1,4 +1,3 @@
-// The Welcome banner mounts one leaf's model and commands in the view registry.
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { Component } from "obsidian";
 import { createRoot } from "react-dom/client";

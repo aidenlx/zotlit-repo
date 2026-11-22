@@ -1,4 +1,3 @@
-// The real editor Layer behind the public Promise/DOM binding test seam.
 import { Clock, DateTime, Effect, Layer } from "effect";
 import type { App, FileSystemAdapter, TFile, View } from "obsidian";
 
@@ -49,7 +48,6 @@ interface EditorFixtureOptions {
   settings: Pick<PluginSettings["Service"], "current" | "update">;
   now?: () => DateTime.Utc;
   recordUse?: (itemKey: string) => void;
-  /** Where the editor's notices go; a fresh recording one unless given. */
   notifier?: ReturnType<typeof testNotifier>;
   reader?: Layer.Layer<ReaderConnection>;
 }
@@ -59,7 +57,6 @@ const layerNoReader = layerReaderConnection((handlers) => {
   return () => {};
 });
 
-/** The actual layer; only its external services have typed test substitutes. */
 export function editorFixtureLayer(options: EditorFixtureOptions) {
   const deps = Layer.mergeAll(
     layerWorkspaceFrom(options.workspace ?? options.app.workspace),
@@ -87,7 +84,6 @@ export function editorFixtureLayer(options: EditorFixtureOptions) {
     Layer.mock(ZoteroLocalApi, {
       state: Effect.succeed({ kind: "probing" } as const),
     }),
-    // A mark dragged out inserts nothing through these seams.
     Layer.mock(AnnotationNoteActions, {}),
     Layer.mock(ZoteroPref, {
       current: Effect.succeed(

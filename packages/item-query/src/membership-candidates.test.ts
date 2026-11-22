@@ -10,8 +10,6 @@ import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
 import { ItemQueryScheduler } from "./scheduler.ts";
 import { runEffect } from "./test-helpers.ts";
 
-// Failure modes: membership scans despite literal arguments, or a candidate
-// plan drops matches that the evaluator would keep.
 it.each([
   {
     filter: 'tags.containsAny("tie", "methods")',
@@ -75,10 +73,6 @@ it.each([
   expect(readers).not.toContain("scan-page");
 });
 
-// Failure mode: a nested plan overflows the stack on a long argument list.
-// It runs on the production scheduler: the list makes 10,000 statements, and a
-// pause after every operation makes them 200,000 tasks that a busy machine
-// runs slowly.
 it.each(["containsAny", "containsAll"])(
   "plans tags.%s with 10,000 values",
   async (method) => {
@@ -132,8 +126,6 @@ it('scans text title.containsAny("a")', async () => {
   expect(readers).not.toContain("candidate-set");
 });
 
-// A Parent Record or Relation List must use the element Dataset's lowering.
-// Intersections of parent supersets still need the complete evaluator.
 it.each(
   [
     {
@@ -246,7 +238,6 @@ it.each(
   },
 );
 
-// Empty inputs and computed or non-string values retain evaluator semantics.
 it.each([
   { filter: "tags.containsAny(title)", returnedCount: 0 },
   { filter: 'tags.containsAny(["methods", title])', returnedCount: 2 },

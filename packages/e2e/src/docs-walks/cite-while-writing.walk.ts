@@ -1,11 +1,3 @@
-// The walk of /learn Lesson 3, "Cite while you write": a researcher drafting
-// `Chapter 3 - Presenting the results` installs the Pandoc engine, cites
-// Sandve et al. 2013 with its page, checks the citation names the right
-// paper, and quotes one of its highlights with the citation and page. Each
-// `it` is one step of the lesson, in the lesson's order, named after it, and
-// asserts what the lesson says the reader sees. Run it with
-// `pnpm --filter @zotlit/e2e docs-walk`; see AGENTS.md.
-
 import { obRun, obRunUntil } from "@e2e/obsidian-cli.ts";
 import { isObsidianReachable } from "@e2e/vault-script.ts";
 import type {
@@ -28,20 +20,17 @@ const m = await import("@zotlit/plugin-messages/messages.ts");
 
 const SLUG = "cite-while-writing";
 
-/** Sandve et al. 2013 in the docs Vault Case: a PDF in Zotero storage, five annotations. */
 const PAPER = {
   key: "DCSNDART",
   attachmentKey: "DCSNDPDF",
   citekey: "sandve2013",
   title: "Ten Simple Rules for Reproducible Computational Research",
-  /** The blue highlight on page 2 the reader quotes. */
   passage: "SV6RZB2J",
   quote:
     "you should ensure that every detail that may influence the execution of the step is recorded.",
   comment: "Keep a run log beside each figure script.",
 };
 const DRAFT = "Thesis/Chapter 3 - Presenting the results.md";
-/** The heading the reader writes the new section above. */
 const BEFORE = "## Notes to self";
 const SECTION = "## 3.3 Keeping each figure reproducible";
 const SENTENCE =
@@ -56,7 +45,6 @@ type DraftLeaf = WorkspaceLeaf & {
 type ItemLeaf = WorkspaceLeaf & { view: ItemView };
 type PdfLeaf = WorkspaceLeaf & { view: FileView };
 
-/** A reader's step in Obsidian can wait on several views: one call may take a minute. */
 const STEP = { timeoutMs: 60000 };
 
 const flat = (text: string) => text.replaceAll(/\s+/g, " ").trim();
@@ -71,13 +59,11 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
       vaultCase: "docs",
     });
     await watchNotices(walk.vaultId);
-    // The reader closed the setup section in Lesson 1.
     await closeWelcome(walk.vaultId);
     await obRun(
       walk.vaultId,
       async ({ app, page }, { draftPath }) => {
         app.workspace.leftSplit.collapse();
-        // The PDF tab's path runs through the Fixture's folders; the images show the file name alone.
         const style = document.head.createEl("style");
         style.textContent = `.workspace-leaf-content[data-type="${page.reader.viewType}"] .view-header-title-parent{display:none}`;
         const leaf = app.workspace.getLeaf("tab");
@@ -86,7 +72,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
           if (l !== leaf) l.detach();
         });
         app.workspace.setActiveLeaf(leaf, { focus: true });
-        // The draft alone fills the window while the reader writes.
         app.workspace.rightSplit.collapse();
       },
       { draftPath: DRAFT },
@@ -99,9 +84,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
   });
 
   it("step 1: in Settings, ZotLit, Citations, the Pandoc engine is ready from the Resource Pack", async () => {
-    // The lesson installs the ZotLit Resource Pack plugin from Obsidian's
-    // plugin browser. The walk's vault holds it installed, so the step shows
-    // the row with the pack's status.
     const row = await walk.record("step-1", () =>
       obRun(
         walk.vaultId,
@@ -124,7 +106,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
             () => named(citationsName),
             5000,
           );
-          // The page list sits below the window's fold; the reader scrolls to it.
           citations.scrollIntoView({
             block: "center",
             behavior: pointer ? "smooth" : "instant",
@@ -140,13 +121,11 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
           );
           row.scrollIntoView({ block: "center", behavior: "instant" });
           await page.stands(row, "engine row");
-          // The pointer rests under the row's button, off its text.
           const rest = async () => {
             const b = row.getBoundingClientRect();
             await pointer?.park(b.right - 40, b.bottom + 30);
           };
           await rest();
-          // The step ends on the row, where the status appears.
           await pointer?.look(named(engineName) ?? row);
           return {
             buttons: [...row.querySelectorAll("button")].map(
@@ -206,7 +185,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
   }, 600000);
 
   it("step 2: in your draft, type [@sandve; a list of matching papers under the cursor", async () => {
-    // The reader has written a new section, up to where the citation goes.
     await obRun(
       walk.vaultId,
       ({ app }, { draftPath, before, typed, sentence }) => {
@@ -246,7 +224,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
             ) as DraftLeaf;
           const cm = draft.view.editor.cm;
           if (pointer) {
-            // The pointer rests above the line, off the text and the list.
             const at = cm.coordsAtPos(cm.state.selection.main.head)!;
             await pointer.park(at.right + 160, at.top - 40);
           }
@@ -280,7 +257,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
           await new Promise((r) => setTimeout(r, 500));
           const caret = cm.coordsAtPos(cm.state.selection.main.head)!;
           const box = popup.getBoundingClientRect();
-          // The step ends on the typed text and the list under it.
           await pointer?.look([popup, caret]);
           return {
             rows: [
@@ -319,7 +295,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
               (l) => (l.view as MarkdownView).file?.path === draftPath,
             ) as DraftLeaf;
           const editor = draft.view.editor;
-          // The clip opens on the list, then the reader presses Enter.
           if (page.scratch.docsWalkPointer)
             await new Promise((r) => setTimeout(r, 1000));
           await page.trusted(window).key("Enter");
@@ -330,7 +305,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
           );
           const pointer = page.scratch.docsWalkPointer;
           if (pointer) {
-            // The step ends on the citation in the draft.
             const at = editor.getValue().indexOf(`[@${citekey}]`);
             const from = editor.cm.coordsAtPos(at);
             const to = editor.cm.coordsAtPos(at + `[@${citekey}]`.length);
@@ -368,7 +342,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
               (l) => (l.view as MarkdownView).file?.path === draftPath,
             ) as DraftLeaf;
           const editor = draft.view.editor;
-          // The reader puts the cursor before the closing bracket and types the page.
           const at =
             editor.getValue().indexOf(`[@${citekey}]`) + `[@${citekey}`.length;
           const cm = editor.cm;
@@ -388,7 +361,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
               put(ch);
               await new Promise((r) => setTimeout(r, 40));
             }
-          // Then moves the cursor away, to the top of the draft.
           const top = cm.coordsAtPos(0);
           if (pointer && top) {
             await pointer.pointAt(top.left + 4, (top.top + top.bottom) / 2);
@@ -420,7 +392,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
           });
           if (pointer) {
             await new Promise((r) => setTimeout(r, 700));
-            // The step ends on the formatted citation.
             await pointer.look(cite);
           }
           return { line, cites };
@@ -457,8 +428,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
           );
           cite.scrollIntoView({ block: "center" });
           const b = cite.getClientRects()[0]!;
-          // The pointer comes to rest at the citation's lower right corner,
-          // off its words.
           const end = [...cite.getClientRects()].at(-1)!;
           await pointer?.park(end.right - 3, end.bottom - 3);
           cite.dispatchEvent(
@@ -481,7 +450,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
             },
             10000,
           );
-          // The step ends on the citation and its reference.
           await pointer?.look([cite, pop.hoverEl]);
           await new Promise((r) => setTimeout(r, 800));
           return pop.hoverEl.innerText;
@@ -555,7 +523,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
               ),
             20000,
           );
-          // The reader puts the draft beside the PDF.
           for (const l of app.workspace.getLeavesOfType("zotlit-library"))
             l.detach();
           draft.detach();
@@ -598,7 +565,6 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
           const rect = editor.cm.coordsAtPos(
             editor.posToOffset({ line: line - 1, ch: 0 }),
           )!;
-          // The reader drags the page label across to the draft.
           await pointer?.drag(chip, {
             x: rect.left + 1,
             y: (rect.top + rect.bottom) / 2,
@@ -624,14 +590,11 @@ describe.skipIf(!reachable)("Lesson 3: Cite while you write", () => {
             ...beside.view.contentEl.querySelectorAll<HTMLElement>(".callout"),
           ].find((c) => c.innerText.includes(comment));
           box?.scrollIntoView({ block: "center" });
-          // The reader selects the PDF again, and its highlights fill the sidebar.
           app.workspace.setActiveLeaf(pdf, { focus: true });
           await page.until("cards", () => side?.querySelector(card), 10000);
           side!.querySelector(card)!.scrollIntoView({ block: "center" });
           await new Promise((r) => setTimeout(r, 1200));
           if (pointer) {
-            // The pointer steps left of the drop, off the quote, and the step
-            // ends on the quote block.
             await pointer.park(rect.left - 35, (rect.top + rect.bottom) / 2);
             if (box) await pointer.look(box);
           }

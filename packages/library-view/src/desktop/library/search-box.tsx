@@ -1,10 +1,3 @@
-// The search box of the Library View, its front door: the words go to the
-// worker search, ranked as the quick switcher ranks, over the Library of the
-// tree node or over every Library in the Library Scope; the host lists the
-// Indexed Keys it found in that order. Escape clears the search, and the
-// view lists the tree node again.
-//
-// @see apps/obsidian/docs/adr/0073-search-enters-the-library-view-as-an-ordered-key-set.md
 import { Component } from "obsidian";
 import { useSyncExternalStore } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
@@ -41,24 +34,16 @@ export interface LibrarySearchDeps {
   registry: ViewRegistryHandle;
 }
 
-/** What a search found, as the derivation reads it. */
 export interface SearchFound {
-  /** The text searched for. */
   readonly text: string;
-  /** The ranked Indexed Keys of the words; absent while there are none. */
   readonly keys?: readonly string[];
-  /** The Libraries a search of all libraries reads; absent while it keeps to the node. */
   readonly everywhere?: readonly LibrarySelector[];
 }
 
 export interface LibrarySearchHost {
-  /** The tree node the search keeps to. */
   node: () => LibraryNode;
-  /** The Library Scope in force, which Recent reads. */
   scope: () => LibraryScope;
-  /** List what the search found. */
   found: (found: SearchFound) => void;
-  /** The researcher changed the text: keep it. */
   keep: (text: string) => void;
 }
 
@@ -86,7 +71,6 @@ export class LibrarySearch extends Component {
     this.registry.update(this.model.session, patchSearch(patch));
   }
 
-  /** Settles once the newest search listed its hits. Never rejects. */
   get settled(): Promise<void> {
     return this.#active
       ? waitForRead(this.registry, this.model.loaded, this.#waiting).then(
@@ -126,51 +110,42 @@ export class LibrarySearch extends Component {
     this.#roots = [];
   }
 
-  /** Show `text` as the search, and list what it finds. */
   open(text: string): Promise<void> {
     this.#patch({ text });
     return this.run();
   }
 
-  /** The researcher typed `text`. */
   type(text: string): void {
     this.#patch({ text, everywhere: this.#everywhere(text) });
     this.#host.keep(text);
     void this.run();
   }
 
-  /** Clear the search, and list the tree node again. */
   clear(): void {
     this.type("");
   }
 
-  /** Search every Library in the Library Scope, past the tree node. */
   widen(): void {
     this.#patch({ everywhere: true });
     void this.run();
   }
 
-  /** Keep the search to the tree node again, as after a tree selection. */
   narrow(): void {
     this.#patch({ everywhere: false });
   }
 
-  /** Put the cursor in the search box. */
   focus(): void {
     this.#input?.focus();
   }
 
-  /** Whether the tree node is Recent, which reads the Library Scope already. */
   get onRecent(): boolean {
     return this.#host.node().kind === "recent";
   }
 
-  /** Whether the search reads every Library; an empty search reads none. */
   #everywhere(text: string): boolean {
     return text.trim() !== "" && this.state.everywhere;
   }
 
-  /** Search again, and list the hits once no newer search started. */
   run(): Promise<void> {
     this.#patch({
       request: { node: this.#host.node(), scope: this.#host.scope() },
@@ -178,7 +153,6 @@ export class LibrarySearch extends Component {
     return this.settled;
   }
 
-  /** Draw the search box into `el`. */
   render(el: HTMLElement): void {
     const root = createRoot(el);
     root.render(
@@ -191,10 +165,6 @@ export class LibrarySearch extends Component {
     this.#roots.push(root);
   }
 
-  /**
-   * What the search puts in the heading: its title and its status, where it
-   * searches, and the offer to search all libraries while some match.
-   */
   header(query: QueryView["state"]): HeaderSearch {
     const subscribe = (listener: () => void) => {
       const offText = this.registry.subscribe(this.model.session, listener);
@@ -249,10 +219,6 @@ export class LibrarySearch extends Component {
     return header;
   }
 
-  /**
-   * The search on screen and the count it matched, `null` while unknown;
-   * `null` itself while the box is empty.
-   */
   #shown(
     query: QueryView["state"],
   ): { everywhere: boolean; matched: number | null } | null {
@@ -264,12 +230,6 @@ export class LibrarySearch extends Component {
     };
   }
 
-  /**
-   * What an empty list says left it empty: the search, with the offer to
-   * search all libraries or to clear it, else the facets that are on or the
-   * tags selected, else
-   * `fallback`, the Query View's own sentence.
-   */
   empty(tree: TreeModel, fallback: string): ReactNode {
     return (
       <ViewRegistryProvider registry={this.registry}>
@@ -300,8 +260,6 @@ function SearchBox({ search }: { search: LibrarySearch }) {
         ref={(input) => {
           search.input = input;
         }}
-        // Escape clears the box here, not the browser's own clear, so the
-        // view lists the tree node again at once.
         type="text"
         aria-labelledby={label}
         className="zt:w-full"
@@ -338,10 +296,7 @@ function EmptyList({
         {m.library_view_empty_facets()}
       </p>
     );
-  // Recent reads every Library of the Library Scope already.
   const widen = !everywhere && !search.onRecent;
-  // The heading says nothing matched; the list says how to recover. Muted,
-  // not the faint of an empty pane, so the hint reads at 4.5:1.
   return (
     <div className="zt:flex zt:flex-col zt:items-center zt:gap-(--size-4-2) zt:text-muted-foreground">
       <p className="zt:m-0 zt:text-balance" data-library-empty="">
@@ -361,12 +316,6 @@ function EmptyList({
   );
 }
 
-/**
- * The offer to search all libraries, beside the header, while a search
- * keeps to a Library or a Collection and finds something there: an empty
- * list makes the same offer itself. Recent reads every Library of the
- * Library Scope already.
- */
 function SearchAllButton({
   search,
   subscribe,
@@ -374,7 +323,6 @@ function SearchAllButton({
 }: {
   search: LibrarySearch;
   subscribe: HeaderSearch["subscribe"];
-  /** Whether the search on screen keeps to the node and finds something there. */
   offered: () => boolean;
 }) {
   if (!useSyncExternalStore(subscribe, offered)) return null;

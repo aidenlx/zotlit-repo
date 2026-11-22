@@ -39,14 +39,10 @@ import { defaults } from "#__fixtures__/settings.ts";
 import { renderAnnotationSources } from "#desktop/template/annotation-render.ts";
 import { childNoteLink } from "#obsidian/note-import/child-note-link.ts";
 
-// The service owns the annotation renderer now; stub the leaf so the test asserts
-// the wiring (resolveLink binding, library scoping) without the template pipeline.
 vi.mock("#desktop/template/annotation-render.ts", () => ({
   renderAnnotationSources: vi.fn(() => new Map<string, string>()),
 }));
 
-// `parseNote` is stubbed to echo its HTML and any annotation-callout output, so
-// the service-built `renderAnnotationParagraph` is exercised through the write.
 vi.mock("./note-parser.ts", () => ({
   noteAnnotationKeys: vi.fn(() => []),
   noteReferences: vi.fn(() => ({ citedIndexedKeys: [], attachmentKeys: [] })),
@@ -70,17 +66,10 @@ vi.mock("./note-parser.ts", () => ({
   ),
 }));
 
-// `prepare` builds the shared parser from the Obsidian `TurndownService` global;
-// stub it so the bare reference resolves.
 vi.stubGlobal("TurndownService", class {});
 
 const NOTE_BODY = "<h1>Methods</h1><p>body</p>";
 
-/**
- * The Zotero rows every import reads: a parent item (1) with the child notes
- * the tests import — NOTE1234 in the personal library and in group 42, plus
- * NOTE0001/NOTE0002 — and an annotation ANNOT1 in each library.
- */
 const SEED = `
   insert into libraries (libraryID, type) values (1, 'user'), (2, 'group');
   insert into groups (groupID, libraryID, name) values (42, 2, 'Team');
@@ -117,7 +106,6 @@ const SEED = `
        '{"pageIndex":0,"rects":[[0,0,1,1]]}', 0);
 `;
 
-/** The reads every write in this suite runs on: the in-process adapter over {@link SEED}. */
 const suiteReads = inProcessReadsService(memoryOpener(() => SEED).open);
 afterAll(() => suiteReads[Symbol.asyncDispose]());
 const { reads } = await suiteReads.ready;
@@ -147,7 +135,6 @@ function baseNote(overrides?: { key?: string; groupID?: number | null }) {
   };
 }
 
-/** A host holding a note at each path, carrying the given Properties. */
 function makeApp(
   propertiesByPath: Readonly<Record<string, Record<string, unknown>>> = {},
 ) {
@@ -162,7 +149,6 @@ function makeApp(
   const app = {
     ...host.app,
     fileManager: {
-      // Mirrors Obsidian's (file, sourcePath, subpath, alias) signature.
       generateMarkdownLink: (...args: unknown[]) => {
         const file = args[0] as TFile;
         const alias = args[3] as string | undefined;
@@ -179,14 +165,12 @@ function makeApp(
   };
 }
 
-/** A note carrying `properties` over an empty body. */
 function noteText(properties: Record<string, unknown>): string {
   return Object.keys(properties).length === 0
     ? ""
     : `---\n${stringifyYaml(properties)}---\n`;
 }
 
-/** Per-note attachment batch stub; `flush` records whether copies were committed. */
 function makeAttachmentImport() {
   const flush = vi.fn(() => ({
     copied: 0,
@@ -217,11 +201,6 @@ function makeAttachmentImport() {
   return { prepare, flush, decide, resolveLink, batch };
 }
 
-/**
- * The real decision service over a Zotero data directory that does not resolve
- * and no approved folder, so every source it judges blocks. Lets a test observe
- * the `file://` fallback the production seam renders, rather than a stub's.
- */
 const makeBlockingAttachmentImport = () =>
   attachmentImportFixture({
     defaults,
@@ -229,11 +208,6 @@ const makeBlockingAttachmentImport = () =>
     baseAttachmentPath: null,
   }).pipe(Effect.map(({ service }) => service));
 
-/**
- * The real importer over `app`'s host, with the note index answering
- * `existing` and `literatureNotes`. Each call's settings feed the Profile
- * reader, as the plugin's settings would.
- */
 const makeService = Effect.fnUntraced(function* (
   app: ReturnType<typeof makeApp>["app"],
   options: {
@@ -290,7 +264,6 @@ const makeService = Effect.fnUntraced(function* (
   };
 });
 
-/** Settings whose default Profile imports into `Imported`, with `bindings` over it. */
 function importSettings(
   bindings: Partial<ResolvedLiteratureNoteProfileBindings> = {},
 ): Settings {
@@ -554,7 +527,6 @@ describe("NoteImporter", () => {
           /\ndate: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}\n/,
         );
         expect(content).toContain("md(<h1>Methods</h1><p>body</p>)");
-        // A written note commits its queued image copies.
         expect(attachmentImport.flush).toHaveBeenCalledOnce();
       }),
   );
@@ -584,7 +556,6 @@ describe("NoteImporter", () => {
         held.resolve();
         yield* Fiber.join(interrupted);
 
-        // The note is written, so its copies are too.
         expect(host.text(create.mock.calls[0]![0])).toContain(
           "zotero-note-key: NOTE1234",
         );
@@ -604,7 +575,6 @@ describe("NoteImporter", () => {
         });
 
         expect(create.mock.calls[0]![0]).toMatch(/^Methods_[\w-]{6}\.md$/);
-        // Root needs no folder creation.
         expect(createFolder).not.toHaveBeenCalled();
       }),
   );
@@ -632,8 +602,6 @@ describe("NoteImporter", () => {
     () =>
       Effect.gen(function* () {
         const { app, host } = makeApp({ "occupied.md": {} });
-        // Any note path the mint checks reports as occupied, forcing the hard
-        // collision; the import folder itself is still free.
         const occupied = host.file("occupied.md");
         vi.spyOn(host.vault, "getAbstractFileByPath").mockImplementation(
           (path) => (path.endsWith(".md") ? occupied : null),
@@ -691,7 +659,6 @@ describe("NoteImporter", () => {
           },
         );
 
-        // The service scopes the annotation lookup to the note's library.
         const [sources] = vi.mocked(renderAnnotationSources).mock.calls[0]!;
         expect(
           sources.annotations.map(({ key, libraryID, text }) => ({
@@ -702,10 +669,8 @@ describe("NoteImporter", () => {
         ).toEqual([
           { key: "ANNOT1", libraryID: USER_LIBRARY_ID, text: "personal" },
         ]);
-        // The template-rendered callout lands in the written file.
         expect(create.mock.calls[0]![1]).toContain("> [!note]\n>\n> callout");
 
-        // The attachment-import port handed to the renderer is the note's batch.
         const opts = vi.mocked(renderAnnotationSources).mock.calls[0]![1];
         const source = opts.attachmentImport.decide(
           "/a.png",
@@ -825,8 +790,6 @@ describe("NoteImporter", () => {
       Effect.gen(function* () {
         const { app, create } = makeApp();
         const attachmentImport = yield* makeBlockingAttachmentImport();
-        // Stand in for the parser's embedded-image rule: decide each image, then
-        // embed whatever link resolution hands back.
         vi.mocked(parseNote).mockImplementationOnce((_td, _html, deps) =>
           ["/elsewhere/one.png", "/elsewhere/two.png"]
             .map((path) => {
@@ -856,7 +819,6 @@ describe("NoteImporter", () => {
         const content = create.mock.calls[0]![1];
         expect(content).toContain("![image.png](file:///elsewhere/one.png)");
         expect(content).toContain("![image.png](file:///elsewhere/two.png)");
-        // No embed claims a vault file that was never written.
         expect(content).not.toContain("[[");
       }),
   );
@@ -865,7 +827,6 @@ describe("NoteImporter", () => {
     "overwrites an existing note without creating the import folder",
     () =>
       Effect.gen(function* () {
-        // Outside the import folder, so ensuring that folder would create it.
         const { app, host, create, createFolder, process } = makeApp({
           "Notes/Existing.md": {},
         });
@@ -881,7 +842,6 @@ describe("NoteImporter", () => {
         expect(outcome).toBe("overwritten");
         expect(process).toHaveBeenCalledOnce();
         expect(create).not.toHaveBeenCalled();
-        // The deliberate fix: an overwrite never mints or ensures the import folder.
         expect(createFolder).not.toHaveBeenCalled();
       }),
   );
@@ -1123,7 +1083,6 @@ describe("NoteImporter", () => {
     );
 
     expect(link.indexedKey).toBe("NOTE1234");
-    // The file is never renamed; only the alias reflects the new title.
     expect(link.noteLink()).toBe("[[Imported/Old name_abc123.md|Renamed]]");
     expect(link.noteLink("Summary")).toBe(
       "[[Imported/Old name_abc123.md|Summary]]",
@@ -1216,7 +1175,6 @@ describe("NoteImporter", () => {
       );
 
       yield* Effect.promise(() => full.promise);
-      // The seventeenth write waits for a permit while sixteen hold theirs.
       expect(started).toBe(16);
       gate.resolve();
       for (const write of writes)

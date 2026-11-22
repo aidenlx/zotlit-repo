@@ -1,5 +1,4 @@
 import { styleTags, tags } from "@lezer/highlight";
-// Eta parsing and range resolution without editor state or DOM dependencies.
 
 import { parser } from "./eta-parser.ts";
 
@@ -16,15 +15,9 @@ export interface EtaRange {
   to: number;
   kind: "output" | "tag" | "comment";
   closed: boolean;
-  /** The position sits inside an Eta quoted string. */
   inLiteral: boolean;
 }
 
-/**
- * The Eta tag whose body holds `position`, or `null` on host text or on the
- * delimiters themselves. An unfinished tag still counts, so suggestions open
- * while the author types.
- */
 export function etaRange(source: string, position: number): EtaRange | null {
   const tree = etaParser.parse(source);
   let tag = tree.resolve(position, -1);

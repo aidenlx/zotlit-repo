@@ -113,7 +113,6 @@ describe("QueryClients", () => {
           queries.bridge.runSync(queries.invalidate(KEY));
           first.resolve("old");
 
-          // The ask the cancellation arms reads what the invalidation asked for.
           expect(await superseded).toBe("new");
           expect(read).toHaveBeenCalledTimes(2);
           expect(queries.bridge.runSync(queries.peek(KEY))).toMatchObject({
@@ -140,7 +139,6 @@ describe("QueryClients", () => {
           queries.bridge.runSync(queries.invalidate(KEY));
           first.resolve("old");
 
-          // A cancellation is no answer: it never reaches the asker as a failure.
           expect(await superseded).toBe("new");
           expect(read).toHaveBeenCalledTimes(2);
         });
@@ -167,8 +165,6 @@ describe("QueryClients", () => {
           queries.bridge.runSync(queries.invalidate(KEY));
           superseded.resolve("v2");
 
-          // The reader that started the cancelled read is answered like any joiner:
-          // never with the value the invalidation reverted to.
           expect(await asking).toBe("v3");
           expect(read).toHaveBeenCalledTimes(2);
           expect(queries.bridge.runSync(queries.peek(KEY))).toMatchObject({
@@ -192,7 +188,6 @@ describe("QueryClients", () => {
 
           queries.bridge.runSync(queries.invalidate(KEY));
 
-          // Inside the cooldown window, but the drop is what rearms the key.
           expect(
             await queries.bridge.runPromise(
               queries.ask(KEY, () => Promise.resolve("new")),
@@ -219,7 +214,6 @@ describe("QueryClients", () => {
           await queries[Symbol.asyncDispose]();
           gate.resolve("released");
 
-          // Disposal cancels the read silently: nothing asks the released client again.
           expect(await reading).toBeNull();
           expect(read).toHaveBeenCalledOnce();
         });
@@ -245,12 +239,10 @@ describe("QueryClients", () => {
             value: "old",
             status: "failed",
           });
-          // A read answers the caller with what the key still holds.
           expect(
             await queries.bridge.runPromise(queries.read(KEY, failing)),
           ).toBe("old");
 
-          // Inside the cooldown the held value answers and nothing is read again.
           expect(
             await queries.bridge.runPromise(queries.ask(KEY, failing)),
           ).toBe("old");

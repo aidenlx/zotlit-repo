@@ -1,11 +1,5 @@
 #!/usr/bin/env node
 
-// The detached runner of the End-to-end Run after a land (lib/land-e2e.ts).
-// `pnpm land` starts it; it waits for the End-to-end Turn, then runs the
-// newest tip of `main` in its own checkout, so later work in any worktree
-// leaves that run alone. It runs from the shared state directory, since the
-// worktree that landed may be removed before the run ends.
-
 import type {
   LandE2eDeps,
   LandE2eIssue,
@@ -21,14 +15,8 @@ import { readDesktopPaint } from "#desktop-paint";
 import { EXIT_ADMISSION_BLOCKED, EXIT_LEASE_ENDED } from "#desktop-slot";
 import { landE2eDir, readLandE2eEvidence, runLandE2e } from "#land-e2e";
 
-/** How long `pnpm e2e` waits for its Desktop Slot. */
 const DESKTOP_WAIT = "1h";
 
-/**
- * Run one command with its output in the log. Each output is a sign of
- * progress of the End-to-end Turn. The command leads its own process group,
- * which the end of the turn's Lease ends.
- */
 function command(
   log: NodeJS.WritableStream,
   {
@@ -132,7 +120,6 @@ async function run({
     if (leaseEnded.aborted) return stopped("checkout");
     if (!checkedOut) return { outcome: "failed", stage: "checkout" };
 
-    // The same bootstrap as a new worktree (.config/wt.toml pre-start).
     if (
       (await at(checkout, "mise", "trust")).code !== 0 ||
       (await at(checkout, "mise", "run", "init", request.repository)).code !== 0
@@ -186,7 +173,6 @@ async function run({
   }
 }
 
-/** Run `gh` in the state directory; its output goes to the runner's log. */
 async function gh(...args: [string, ...string[]]): Promise<string> {
   const { code, stdout } = await command(process.stderr, {
     cwd: landE2eDir(),
@@ -198,7 +184,6 @@ async function gh(...args: [string, ...string[]]): Promise<string> {
   return stdout;
 }
 
-/** Write an issue body to a file for `gh --body-file`. */
 async function bodyFile(body: string): Promise<string> {
   const path = join(landE2eDir(), "issue-body.md");
   await writeFile(path, body);

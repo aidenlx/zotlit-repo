@@ -51,10 +51,8 @@ import { Profile } from "#obsidian/profile/service.ts";
 import { Template } from "#obsidian/template/service.ts";
 
 const id = "Ry4Ua8Nv2Mx6" as ProfileId;
-/** The keep-or-replace toggle of one partial, read off the row that names it. */
 function replaceToggle(container: HTMLElement, name: string) {
   const label = m.profile_import_partial_replace({ name });
-  // The row is the one element that both names this partial and holds a toggle.
   const row = [...container.querySelectorAll<HTMLElement>("*")].find(
     (element) =>
       element.textContent === label &&
@@ -94,7 +92,6 @@ function observeButtons() {
     [Symbol.dispose]: () => cleanup.dispose(),
   };
 }
-/** A previewed note; the import tests never write it. */
 function draft(note: Partial<ProfileNoteDraft> = {}): ProfileNoteDraft {
   return {
     path: "Reading/Paper.md",
@@ -200,9 +197,6 @@ it("opens fresh consent with metadata, recipient preview, editable bindings and 
   );
   expect(f.modal.contentEl.textContent).toContain("Research group");
   expect(f.modal.contentEl.textContent).toContain("Shared (Ry4Ua8Nv2Mx6)");
-  // Only the partials that reach a new file are announced; the one whose name
-  // the vault already holds waits for the reader's word, and the one whose
-  // text this vault already holds changes nothing and is passed over.
   expect(f.modal.contentEl.textContent).toContain(
     m.profile_import_partials({ names: "summary" }),
   );
@@ -228,7 +222,6 @@ it("opens fresh consent with metadata, recipient preview, editable bindings and 
     }),
   );
   expect(f.save).not.toHaveBeenCalled();
-  // The preview renders after the plan, so Import waits for both.
   await vi.waitFor(() =>
     expect(buttons.disabled(m.profile_import_confirm())).toBe(false),
   );
@@ -246,8 +239,6 @@ it("names each reason a partial stays in the profile", () => {
     { name: "Authors", verdict: "other-case", document: "Theirs" },
   ]);
   f.modal.onOpen();
-  // The name rule speaks for the escaping name alone: `Authors` is a
-  // well-formed name, kept because one file already answers it in another case.
   expect(f.modal.contentEl.textContent).toContain(
     m.profile_import_partials_refused({ names: "../../../escape" }),
   );
@@ -327,18 +318,12 @@ it("shows only Replace and Cancel for a held ID, naming version and separate not
   expect(f.save).toHaveBeenCalledOnce();
 });
 
-/** My Library, which holds no item: the preview reads none. */
 const SEED = `
   insert into version (schema, version) values ('userdata', 129);
   insert into libraries (libraryID, type, version, clientVersion)
     values (1, 'user', 1, 1);
 `;
 
-/**
- * The import dialog over fakes of its services, with a clipboard and a file
- * that hold a Profile document. `resolveLibraries` records each preview read.
- * The modals open in place of drawing.
- */
 const importerFixture = Effect.fnUntraced(function* (
   kind: "fresh" | "replace" = "fresh",
 ) {
@@ -429,7 +414,6 @@ const importerFixture = Effect.fnUntraced(function* (
     ),
     yield* Layer.build(notifier.layer),
   );
-  /** Start the dialog as the user would, from the command or a menu. */
   const run = (options?: Parameters<typeof importProfileDialog>[1]) =>
     importProfileDialog(f.deps.app, options).pipe(
       Effect.provideContext(services),
@@ -531,7 +515,6 @@ it.effect(
       yield* until(() => f.opened.mock.calls.length === 1);
       const modal = f.opened.mock.instances[0] as ImportProfileModal;
       modal.onOpen();
-      // The save handler's own Promise ends once its catch has run.
       const saved: unknown = buttons.click(m.profile_import_replace());
       yield* until(() => f.save.mock.calls.length === 1);
       yield* Fiber.interrupt(pending);
@@ -628,8 +611,6 @@ async function realImportFixture(held: boolean, source = incoming) {
       held ? { [importedPath]: incoming.replace("2.0.0", "1.0.0") } : {},
     ),
   );
-  // The modal's Promise members over the Profile service, as the import
-  // dialog builds them.
   const importOn = (plan: ProfileImport): PreparedProfileImport => ({
     ...plan,
     previewSource: (preview) => f.bridge.runSync(plan.previewSource(preview)),
@@ -655,7 +636,6 @@ async function realImportFixture(held: boolean, source = incoming) {
   return { ...f, modal, [Symbol.asyncDispose]: () => cleanup.disposeAsync() };
 }
 
-// A fresh import previews the note it renders; a replacement reports the overwrite instead.
 const fresh = {
   held: false,
   consent: "Preview",

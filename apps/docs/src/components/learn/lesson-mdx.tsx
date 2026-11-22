@@ -1,20 +1,3 @@
-// The parts a lesson body is written in: `<Step n>` with its caption, one
-// `<Check>`, an optional `<Figure>` and any `<Fix title>`.
-//
-//   <Step n={1}>
-//   In Obsidian, open **Settings** … select <UiLabel name={m.…()} />.
-//
-//   <Check>A tab named <UiLabel name={m.library_view_name()} /> opens.</Check>
-//
-//   <Fix title="No tab opened">Select the ZotLit icon in the ribbon …</Fix>
-//   </Step>
-//
-// A step's title and picture text come from the lesson's frontmatter by `n`.
-// The page renders every step as one row of the checklist, each with its
-// whole text, so the prerendered HTML reads as one whole lesson; once the page
-// runs, `LessonView` keeps one row open at a time. The Markdown edition binds
-// the same parts to the lesson through `lessonMarkdownComponents`.
-
 import { asMarkdown, md } from "fumadocs-core/server";
 import {
   ArrowDown,
@@ -34,58 +17,32 @@ import { LessonContext, nextOpenStep } from "./lesson-state.ts";
 import type { LessonState, LessonStepMeta } from "./lesson-state.ts";
 import { stepMedia, StepPicture } from "./step-picture.tsx";
 
-/**
- * Before the page runs, CSS alone opens one row: the one the hash targets. A
- * reader without JavaScript has no `data-lesson-js` on the root element and
- * reads every row open, in order.
- */
 export const preHydration = {
-  /** A row's body: hidden unless the hash targets its row. */
   body: "[html[data-lesson-js]_[data-lesson]:not([data-ready])_&]:hidden [html[data-lesson-js]_[data-lesson]:not([data-ready])_:target>&]:grid",
-  /** The row the hash targets, drawn as the open row. */
   target:
     "[html[data-lesson-js]_[data-lesson]:not([data-ready])_&:target]:my-3 [html[data-lesson-js]_[data-lesson]:not([data-ready])_&:target]:rounded-[14px] [html[data-lesson-js]_[data-lesson]:not([data-ready])_&:target]:border-transparent [html[data-lesson-js]_[data-lesson]:not([data-ready])_&:target]:bg-fd-card [html[data-lesson-js]_[data-lesson]:not([data-ready])_&:target]:p-4 [html[data-lesson-js]_[data-lesson]:not([data-ready])_&:target]:shadow-ring",
-  /** Controls that only work with JavaScript. */
   scripted:
     "[html:not([data-lesson-js])_[data-lesson]:not([data-ready])_&]:hidden",
-  /** Shown to a reader without JavaScript, hidden while the page starts. */
   unscripted: "[html[data-lesson-js]_[data-lesson]:not([data-ready])_&]:hidden",
 };
 
-// The `/learn` type scale, in rem. A lesson page sets five sizes — label,
-// meta, body, title and display — and the course page adds the section size.
-// See DESIGN.md → Learn (Type).
-
-/** 11px mono uppercase: a section label, where position and grouping cannot say it. */
 export const labelClass =
   "font-mono text-[0.6875rem] leading-[1.25] font-medium tracking-[0.08em] text-fd-muted-foreground uppercase";
 
-// 15px, `metaClass`, lives in ./action-classes with the secondary action.
 export { metaClass } from "./action-classes.ts";
 
-/** 17px: every step text — action, check, fix and figure — and the lede. */
 export const bodyClass = "text-[1.0625rem] leading-[1.55]";
 
-/** 20px: step titles, the panel title and card titles. */
 export const titleClass = "text-[1.25rem] leading-[1.25]";
 
-/** 28px: a section heading on the course page. */
 export const sectionClass = "text-[1.75rem] leading-[1.2] tracking-[-0.01em]";
 
-/** 38px, 34px in a narrow window: the page's H1. */
 export const displayClass =
   "text-[2.125rem] leading-[1.12] tracking-[-0.01em] text-balance min-[561px]:text-[2.375rem] zh:leading-[1.3] zh:tracking-normal zh:break-keep zh:wrap-anywhere";
 
-/** Marks inside step text: bold UI labels at the text's size, inline code at 15px. */
 const marksClass =
   "[&_code]:rounded-sm [&_code]:bg-fd-muted [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.9375rem] [&_strong]:font-semibold";
 
-/**
- * Action text: links in the accent text tone. A shared device inside it (each
- * `not-prose`) keeps the scale: an `ActionLink` takes the meta size, an inline
- * `Command` the text's size, a block `Command`'s name the title size and its
- * copy affordance the label size.
- */
 const captionClass = cn(
   bodyClass,
   marksClass,
@@ -101,27 +58,18 @@ export const buttonClass = cn(
 export const focusClass =
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-ring";
 
-/**
- * A bold lead-in and its text as one Markdown paragraph. MDX wraps a part's
- * text in a paragraph when it spans lines, so the text is folded back first.
- */
 async function leadIn(lead: ReactNode, children: ReactNode) {
   const [label, text] = await Promise.all([md`${lead}`, md`${children}`]);
-  // The edition slices prose from the authored source, so a formatter's
-  // `{" "}` between two inline elements arrives as text; it stands for a space.
   const line = (value: string) =>
     value
       .replaceAll('{" "}', " ")
       .replaceAll(/\s*\n\s*/g, " ")
       .trim();
-  // A label inside the bold lead-in would close the bold early.
   return `\n**${line(label).replaceAll("**", "")}:** ${line(text)}\n\n`;
 }
 
-/** What the reader sees when the step worked. */
 export function Check({ children }: { children: ReactNode }) {
   if (asMarkdown()) return leadIn(m.docs_learn_md_check(), children);
-  // The green band says what it is; a screen reader hears its name first.
   return (
     <div
       className={cn(
@@ -136,14 +84,8 @@ export function Check({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * A check or fix is one sentence or two. When a formatter wraps it, MDX splits
- * it into paragraphs at a label on a line of its own, so the paragraphs run on
- * as one line of text.
- */
 const oneLine = "[&>p]:inline [&>p+p]:before:content-['_']";
 
-/** One likely failure: what the reader sees, then what to do. */
 export function Fix({
   title,
   children,
@@ -160,7 +102,6 @@ export function Fix({
   );
 }
 
-/** A view beside the step's picture, such as a small table. */
 export function Figure({ children }: { children: ReactNode }) {
   if (asMarkdown()) return md`${children}`;
   return (
@@ -202,7 +143,6 @@ export function Step({ n, children }: { n: number; children: ReactNode }) {
   const ticked = live?.ticks.has(n) ?? false;
   const bodyId = `step-${n}-body`;
 
-  // The number shows the order; a screen reader hears "Step 2 of 6" instead.
   const heading = (
     <span
       className={cn(
@@ -305,7 +245,6 @@ export function Step({ n, children }: { n: number; children: ReactNode }) {
         )}
       >
         <div className={captionClass}>{caption}</div>
-        {/* From `xl` the media panel beside the checklist shows this picture instead. */}
         <div className="empty:hidden [html[data-lesson-js]_&]:xl:hidden">
           <StepPicture
             media={lesson.media}
@@ -330,7 +269,6 @@ export function Step({ n, children }: { n: number; children: ReactNode }) {
   );
 }
 
-/** Moves focus to row `n`'s title, or to the end, once the row it left has closed. */
 export function focusPart(n: number, total: number) {
   requestAnimationFrame(() => {
     const id = n > total ? "done" : `step-${n}-toggle`;
@@ -338,7 +276,6 @@ export function focusPart(n: number, total: number) {
   });
 }
 
-/** The open row's tick in place: "Tick step N", or "Ticked" and the way on once it is ticked. */
 function TickAction({
   n,
   total,
@@ -366,10 +303,6 @@ function TickAction({
   );
 }
 
-/**
- * Row `n`'s leading action, which the row and its ended recording share:
- * "Tick step N", or the way on once the row is ticked.
- */
 export function TickButton({
   n,
   total,
@@ -409,7 +342,6 @@ export function TickButton({
   );
 }
 
-/** "Not what you see?": a disclosure that holds the step's fixes, after the row's tick in place. */
 function StepFixes({
   ready,
   action,
@@ -461,8 +393,6 @@ function StepFixes({
           preHydration.unscripted,
         )}
       >
-        {/* The button names the panel on a running page; without JavaScript
-            the panel is always open and this heading names it. */}
         <h3 className={cn(labelClass, ready && "sr-only")}>
           {m.docs_learn_fix_heading()}
         </h3>
@@ -482,7 +412,6 @@ function StepFixes({
   );
 }
 
-/** The lesson's parts for its Markdown edition, each step bound to its frontmatter entry. */
 export function lessonMarkdownComponents(lesson: {
   media: string;
   steps: LessonStepMeta[];

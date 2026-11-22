@@ -1,4 +1,3 @@
-// Template data for callers outside Effect: the views.
 import { Effect } from "effect";
 import type { Context } from "effect";
 
@@ -7,11 +6,6 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { readCitationData, readTemplateData, withSettings } from "./data.ts";
 import type { TemplateDataLoader, TemplateDataServices } from "./data.ts";
 
-/**
- * The Template data reads over `context`, run through `bridge`. A load
- * resolves with its result and rejects with what failed, as a read or a
- * Template does.
- */
 export function bindTemplateData(
   bridge: Pick<EffectBridge, "runPromise">,
   context: Context.Context<TemplateDataServices>,

@@ -1,6 +1,3 @@
-// Materializes the Resolved CSL Style a native Pandoc run cites with, the whole
-// `zotlit:csl` contract.
-
 import type {
   CslStyleFailure,
   ResolvedCslStyle,
@@ -18,49 +15,33 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 
 import { CONTRACT_VERSION } from "#core/pandoc/contract.ts";
 
-/** The command every answer of this module names itself with. */
 export const CSL_COMMAND = "zotlit:csl";
 
-/** The device-wide store every materialized Resolved CSL Style stands in. */
 const STORE_DIR = "zotlit-pandoc-csl";
 
 const CSL_EXT = ".csl";
 
-/** Extension of a style still being written, under a private name. */
 export const CSL_STAGING_EXT = ".part";
 
 export type CslErrorCode =
-  /** Zotero has no installed style carrying the requested CSL ID. */
   | "style-missing"
-  /** The requested style is dependent, and its independent parent is not installed. */
   | "parent-missing"
-  /** A CSL file the requested style is read from refuses to be read. */
   | "style-unreadable"
-  /** The content behind the requested style is not a standalone CSL style. */
   | "style-invalid"
-  /** The Resolved CSL Style could not be written to the materialization store. */
   | "csl-write-failed"
-  /** The command was given a parameter it does not take, or neither `style` nor `file`, or both. */
   | "flags-invalid"
-  /** No vault note stands at the `file` path. */
   | "file-not-found"
-  /** The note's `zotlit-csl` property holds no style ID. */
   | "style-property-invalid"
-  /** The note's `lang` property holds no language tag. */
   | "language-property-invalid"
-  /** The Imported Note's Profile is unavailable, so it selects no style. */
   | "profile-unavailable";
 
 export interface CslError {
   code: CslErrorCode;
-  /** The CSL ID the command resolved, absent where no style was selected. */
   styleId?: string;
-  /** CSL ID of the independent parent, when the requested style names one. */
   parentId?: string;
   message: string;
 }
 
-/** A failed materialization, carried to the CLI boundary with its style identity. */
 export class CslWriteError extends Schema.TaggedError<CslWriteError>()(
   "CslWriteError",
   {
@@ -70,7 +51,6 @@ export class CslWriteError extends Schema.TaggedError<CslWriteError>()(
   },
 ) {}
 
-/** The JSON diagnostic the CLI emits for a typed write failure. */
 export function cslWriteFailedResponse({
   styleId,
   parentId,
@@ -86,51 +66,33 @@ export function cslWriteFailedResponse({
   ]);
 }
 
-/**
- * Either the Resolved CSL Style of the requested CSL ID as a file citeproc
- * opens, or every failure that stopped it. The two never appear together.
- */
 export type CslResponse = {
   contractVersion: number;
-  /** The namespace `contractVersion` belongs to (ADR 0026). */
   command: typeof CSL_COMMAND;
 } & (
   | {
-      /** The CSL ID that was requested, whichever file the content came from. */
       styleId: string;
-      /** CSL ID of the independent parent, when the requested style is dependent. */
       parentId?: string;
-      /** Absolute path of the materialized Resolved CSL Style. */
       path: string;
-      /** The style's title, as Zotero lists it. */
       title: string;
-      /** Where a `file` request found the style; absent for a `style` request. */
       source?: StyleSource;
     }
   | {
-      /** A `file` request whose note selects the Pandoc default style. */
       styleId: null;
       source: StyleSource;
     }
   | { errors: CslError[] }
 );
 
-/** What one note selects, or the reason it selects nothing. */
 export type DocumentStyleRead =
   | { kind: "read"; styleId: string | null; source: StyleSource }
   | { kind: "file-not-found" }
   | DocumentPresentationFailure;
 
 export interface CslPorts {
-  /** The Resolved CSL Style of one installed CSL ID, from the shared resolver. */
   resolve: (
     styleId: string,
   ) => Effect.Effect<ResolvedCslStyle, never, FileSystem.FileSystem>;
-  /**
-   * Where the effective CSL content stands, as an absolute path.
-   *
-   * @default materializeCslStyle
-   */
   materialize?: (
     xml: string,
   ) => Effect.Effect<
@@ -141,16 +103,9 @@ export interface CslPorts {
 }
 
 export interface DocumentCslPorts extends CslPorts {
-  /** The style the note at an absolute path selects, as the app reads it. */
   readStyle: (absolutePath: string) => DocumentStyleRead;
 }
 
-/**
- * Resolve the style the note at `absolutePath` renders with in Obsidian — its
- * own `zotlit-csl`, its Profile's style, or the vault style — to the CSL file
- * citeproc opens. The answer names where the style came from, so the filter can
- * tell the reader which style the run uses.
- */
 export const resolveDocumentCslStyle = Effect.fn("Csl.resolveDocument")(
   function* (
     absolutePath: string,
@@ -220,7 +175,6 @@ function errorResponse(errors: CslError[]): CslResponse {
   return { contractVersion: CONTRACT_VERSION, command: CSL_COMMAND, errors };
 }
 
-/** The answer to a request that names neither flag, or both. */
 export const CSL_SELECTOR_MESSAGE =
   'Pass exactly one of style="<csl-id>" or file="<absolute-path>".';
 
@@ -228,11 +182,6 @@ export function flagsInvalidResponse(message: string): CslResponse {
   return errorResponse([{ code: "flags-invalid", message }]);
 }
 
-/**
- * Resolve `styleId` to the absolute CSL file path citeproc opens, the whole
- * `zotlit:csl` contract. A native run carries no vault Citation Locale, so the
- * installed style keeps its own locale behavior.
- */
 export const resolveCslStyle = Effect.fn("Csl.resolve")(
   function* (
     styleId: string,
@@ -276,14 +225,6 @@ export const resolveCslStyle = Effect.fn("Csl.resolve")(
   withLogCategory("pandoc", "csl"),
 );
 
-/**
- * The absolute path the CSL content stands at, addressed by its own SHA-256:
- * identical content answers one path, and changed content answers another.
- *
- * The content is written under a private name and linked into place, so a run
- * reading the path never opens a half-written style, and content already
- * materialized is left exactly as it stands.
- */
 export const materializeCslStyle = Effect.fn("Csl.materialize")(
   function* (xml: string, directory = cslStoreDirectory()) {
     const fs = yield* FileSystem.FileSystem;
@@ -309,7 +250,6 @@ export const materializeCslStyle = Effect.fn("Csl.materialize")(
           ),
         );
         yield* fs.writeFileString(staging, xml, { flag: "wx" });
-        // An existing content address already holds the complete style.
         yield* fs
           .link(staging, path)
           .pipe(
@@ -324,14 +264,6 @@ export const materializeCslStyle = Effect.fn("Csl.materialize")(
   withLogCategory("pandoc", "csl"),
 );
 
-/**
- * Move the entry's timestamp to now, so the store reaper ages a style from its
- * last use rather than from its first materialization — a style still in use is
- * then never evicted out from under the Pandoc run about to open it.
- *
- * A failed restamp only costs an early eviction, and an early eviction only
- * costs one rewrite, so it never fails the resolve.
- */
 const restamp = Effect.fnUntraced(function* (path: string) {
   const fs = yield* FileSystem.FileSystem;
   const now = (yield* Clock.currentTimeMillis) / 1000;
@@ -347,17 +279,10 @@ const restamp = Effect.fnUntraced(function* (path: string) {
   );
 });
 
-/**
- * The store both {@link materializeCslStyle} and the store reaper address, so
- * the layout rule stands in one place.
- *
- * @see reapCslStore
- */
 export function cslStoreDirectory(parent = tmpdir()): string {
   return join(parent, STORE_DIR);
 }
 
-/** The place a reader corrects to select another style. */
 function styleRepair(source: StyleSource): string {
   switch (source.kind) {
     case "note":
@@ -383,7 +308,6 @@ const MESSAGES: Record<
     `The content behind the CSL style "${styleId}" is no standalone CSL style. Reinstall that style in Zotero.`,
 };
 
-/** The CLI code of one resolver failure, which names the repair it asks for. */
 const CODES = {
   "style-missing": "style-missing",
   "parent-missing": "parent-missing",

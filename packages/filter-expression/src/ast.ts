@@ -1,7 +1,3 @@
-// Typed syntax tree over a parsed Filter Expression. Consumers that validate
-// a vocabulary (which identifiers and calls they accept) walk this tree
-// instead of the raw Lezer nodes, so the node names and token layout of the
-// grammar stay private to this package.
 import type { SyntaxNode, Tree } from "@lezer/common";
 
 import { parseExpression, parser } from "./index.ts";
@@ -67,37 +63,20 @@ export type ParseExpressionAstResult =
   | { ast: ExpressionNode; error: null }
   | { ast: null; error: ExpressionSyntaxError };
 
-/**
- * Parse a Filter Expression into a typed tree. A syntax error yields no tree:
- * consumers validate a vocabulary only over well-formed input.
- */
 export function parseExpressionAst(input: string): ParseExpressionAstResult {
   const { tree, error } = parseExpression(input);
   if (error) return { ast: null, error };
   return { ast: toAst(tree, input), error: null };
 }
 
-/** Convert a clean parse into its typed tree. */
 export function toAst(tree: Tree, input: string): ExpressionNode {
   const expression = tree.topNode.firstChild;
   if (!expression) throw new Error("Empty expression");
   return convert(expression, input, false);
 }
 
-/** A parse whose mistakes the partial tree cannot stand over. */
 class Incomplete extends Error {}
 
-/**
- * The typed tree of an expression as it is being typed, each node at its
- * range in `input`: an unfinished member access (`index.`) stands for its
- * object, and a call or bracket left open ends where the text ends. An editor
- * types the subexpressions of it.
- * @param options.typing The range of a value whose member is being typed:
- *   the access of a member off it, not called, stands for the value, so a
- *   member name not finished yet does not hide it.
- * @returns Null where the text misses an operand or holds text the parser
- *   skipped.
- */
 export function parsePartialExpressionAst(
   input: string,
   { typing }: { typing?: Positioned } = {},
@@ -111,13 +90,11 @@ export function parsePartialExpressionAst(
   }
 }
 
-/** `partial` is true, or the range whose member is being typed, in a partial parse. */
 function convert(
   node: SyntaxNode | undefined,
   input: string,
   partial: boolean | Positioned,
 ): ExpressionNode {
-  // Only a partial parse lacks a node the grammar requires.
   if (!node) throw new Incomplete();
   const { from, to } = node;
   const children = (parent: SyntaxNode) =>
@@ -173,8 +150,6 @@ function convert(
     }
     case "ObjectAccess": {
       const [object, , property] = children(node);
-      // The member being typed after the dot is not there yet, or not
-      // finished.
       if (
         !property ||
         (typeof partial === "object" && typingOff(node, object!, partial))
@@ -232,7 +207,6 @@ function convert(
   }
 }
 
-/** Whether `access` reads a member off the range being typed, and calls none. */
 function typingOff(
   access: SyntaxNode,
   object: SyntaxNode,
@@ -243,10 +217,6 @@ function typingOff(
   return !(call?.name === "Call" && call.firstChild?.from === access.from);
 }
 
-/**
- * The children of `node`; in a partial parse, without the empty error marks
- * of a token not typed yet. Text the parser skipped leaves no tree.
- */
 function childrenOf(node: SyntaxNode, partial: boolean): SyntaxNode[] {
   const result: SyntaxNode[] = [];
   for (let child = node.firstChild; child; child = child.nextSibling) {
@@ -267,7 +237,6 @@ function isExpression(node: SyntaxNode): boolean {
 
 const ESCAPES: Record<string, string> = { n: "\n", t: "\t", r: "\r" };
 
-/** Strip the quotes of a string literal and resolve its `\` escapes. */
 function unquote(literal: string): string {
   const body = literal.slice(1, -1);
   let result = "";
@@ -283,16 +252,11 @@ function unquote(literal: string): string {
   return result;
 }
 
-/** Whether `name` alone reads as one identifier, as a field read by its name. */
 export function isIdentifierName(name: string): boolean {
   const { ast } = parseExpressionAst(name);
   return ast?.type === "identifier" && ast.name === name;
 }
 
-/**
- * Whether `<value>.<name>` reads the member `name`, so the dot reaches it; a
- * name it does not, a keyword literal among them, takes bracket access.
- */
 export function isMemberName(name: string): boolean {
   const { ast } = parseExpressionAst(`x.${name}`);
   return ast?.type === "object-access" && ast.property === name;

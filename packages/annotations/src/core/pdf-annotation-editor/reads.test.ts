@@ -2,9 +2,6 @@ import { expect, it } from "vitest";
 
 import { PdfReads } from "./reads.ts";
 
-// Failure modes: page turns bypass the five-minute boundary across views;
-// open/close get throttled; another Attachment shares the throttle; standalone
-// Attachments record Uses; delayed resolution changes an open's own instant.
 it("records opens and closes, and limits page reads per Attachment to five minutes", () => {
   let now = Temporal.Instant.from("2026-10-19T00:00:00Z");
   const recorded: {

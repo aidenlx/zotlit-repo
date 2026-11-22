@@ -15,7 +15,6 @@ import {
   deletedItems,
 } from "#drizzle/schema.ts";
 
-/** Zotero's native citation-key field name in Zotero's `fieldsCombined`. */
 const CITEKEY_FIELD = "citationKey";
 
 const itemIDByCitekeyQuery = defineQuery<{
@@ -36,10 +35,6 @@ const itemIDByCitekeyQuery = defineQuery<{
   }),
 );
 
-/**
- * Resolve the Zotero `itemID` whose native citation key equals `citekey`
- * within `libraryID`, or `null` when no live item matches.
- */
 export function getItemIDByCitekey(
   db: ZoteroDatabase,
   libraryID: number,
@@ -70,11 +65,6 @@ const citekeyByItemKeyQuery = defineQuery<{
   }),
 );
 
-/**
- * Resolve the native citation key of the live item with `key` within
- * `libraryID`, or `null` when no live item matches or it has no citation key.
- * The forward mirror of {@link getItemIDByCitekey}.
- */
 export function getCitekeyByItemKey(
   db: ZoteroDatabase,
   libraryID: number,
@@ -86,16 +76,11 @@ export function getCitekeyByItemKey(
   );
 }
 
-/** One live item of the citation library that carries a native citation key. */
 export interface LibraryCitekey {
   itemID: number;
-  /** Local id of the library holding the item, which names that library. */
   libraryID: number;
-  /** Bare Zotero item key. */
   key: string;
-  /** `key`, or `key` + `g` + groupID for a group library. */
   indexedKey: string;
-  /** Its native Zotero citation key. */
   citekey: string;
 }
 
@@ -114,9 +99,6 @@ const citekeysByLibraryQuery = defineQuery<{ libraryID: number }>()(
         item: { columns: { key: true } },
         itemDataValue: { columns: { value: true } },
       },
-      // Deterministic row order, so "first row wins" for a duplicated
-      // citekey does not depend on SQLite's plan and cannot flip between
-      // rebuilds.
       orderBy: { itemID: "asc" },
     }),
 );
@@ -135,7 +117,6 @@ const citekeyWindowQuery = defineQuery<{
     .from(itemData)
     .innerJoin(items, eq(items.itemID, itemData.itemID))
     .innerJoin(itemDataValues, eq(itemDataValues.valueID, itemData.valueID))
-    // Unary + keeps SQLite on the itemID range index and avoids a page sort.
     .where(sql`
       ${itemData.itemID} > ${placeholder("afterItemID")}
       and ${itemData.itemID} <= ${placeholder("throughItemID")}
@@ -148,7 +129,6 @@ const citekeyWindowQuery = defineQuery<{
 
 export type CitekeyRow = QueryRow<typeof citekeyWindowQuery>;
 
-/** Every live Item with a native citation key, `afterItemID < itemID <= throughItemID`, in itemID order. */
 export function getCitekeyWindow(
   db: ZoteroDatabase,
   window: { afterItemID: number; throughItemID: number },
@@ -156,10 +136,6 @@ export function getCitekeyWindow(
   return citekeyWindowQuery.prepared(db).all(window);
 }
 
-/**
- * Bulk-read every live item of `libraryID` that carries a native citation
- * key — the one read the Citation Index's resolution snapshot rebuilds from.
- */
 export function getCitekeysByLibrary(
   db: ZoteroDatabase,
   libraryID: number,
@@ -200,7 +176,6 @@ const lastItemIDQuery = defineQuery<void>()((db) =>
     .from(items),
 );
 
-/** The largest itemID in the database, or 0 when it has no Items. */
 export function getLastItemID(db: ZoteroDatabase): number {
   return lastItemIDQuery.prepared(db).all()[0]!.itemID;
 }

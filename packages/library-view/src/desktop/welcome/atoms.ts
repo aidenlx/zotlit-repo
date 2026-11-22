@@ -1,4 +1,3 @@
-// Welcome gestures run on the plugin's view registry; conversions belong to one banner.
 import { Cause, Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
@@ -18,7 +17,6 @@ import { templateMigrationNotice } from "./migration-notice.ts";
 
 import { Release } from "#obsidian/release/service.ts";
 
-/** A settings write also flushes, so an immediate reload keeps the gesture. */
 export const keepWelcomeCommand = viewRuntime.fn(
   (patch: SettingsPatch) =>
     Effect.gen(function* () {
@@ -90,11 +88,6 @@ export const openReleaseNoteCommand = viewRuntime.fn(() =>
   }),
 );
 
-/**
- * One banner's template conversion. Its result is the atom's value, which
- * the banner reads; closing the banner interrupts the conversion before its
- * notice.
- */
 export const makeConversionCommand = () =>
   Atom.setIdleTTL(
     viewRuntime.fn((request: { readonly retry: boolean }) =>
@@ -119,12 +112,9 @@ export const makeConversionCommand = () =>
         withLogCategory("welcome", "banner"),
       ),
     ),
-    // A closed banner stops the conversion at once, not after the registry's
-    // idle delay; the conversion's own writes still finish.
     0,
   );
 
-/** What one run of the conversion command answered. */
 export interface ConversionRun {
   readonly retry: boolean;
   readonly result: LiteratureNoteTemplateMigrationResult;

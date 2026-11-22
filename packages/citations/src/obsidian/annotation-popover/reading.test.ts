@@ -1,9 +1,4 @@
 // @vitest-environment happy-dom
-// What a hovered link in reading view shows is proven in the running app
-// (`packages/e2e/src/annotation-links.e2e.ts`). These cases cover the hover
-// listener's lifecycle, which the End-to-end Run cannot reach: the pointer
-// moving within one link, a section Obsidian unloads, and a service that is
-// gone while its sections stay rendered.
 import type { DocumentCitations } from "#obsidian/citation-text/present.ts";
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Layer, Scope, Stream } from "effect";
@@ -39,11 +34,6 @@ import { CitekeyEditor } from "#obsidian/citekey-editor/service.ts";
 
 const HREF = "zotero://open/library/items/RGRPDF24?annotation=PUPR5FG5&page=1";
 
-/**
- * One rendered reading-view section holding a Durable Annotation Link, inside
- * a Markdown view, with the hovers it sends recorded. Obsidian's post-processor registry and its workspace stand outside the
- * test; the section is a real component Obsidian would unload.
- */
 async function harness(
   stack: AsyncDisposableStack,
   {
@@ -55,7 +45,6 @@ async function harness(
     html?: string;
     citations?: AnnotationLinkReadingDeps["citations"];
     show?: AnnotationLinkReadingDeps["show"];
-    /** Where Obsidian places the section in its note. */
     section?: MarkdownSectionInformation | null;
   } = {},
 ) {
@@ -107,7 +96,6 @@ async function harness(
     el,
     service,
     section,
-    /** Whether a hover reached the popover. */
     opened: () => hovers.length > 0,
   };
 }
@@ -227,10 +215,8 @@ describe("AnnotationLinkReading", () => {
   );
 });
 
-/** An Annotation Citation: the same link with no text of its own. */
 const CITATION = `[](${HREF})`;
 
-/** The note's citations, formatting {@link CITATION} at each of `starts`. */
 function citationsOf(starts: readonly number[]): DocumentCitations {
   const text = presented("(Rougier 2014, 1)");
   return {
@@ -286,7 +272,6 @@ describe("Annotation Citations in reading view", () => {
     const second = "(Rougier 2014, 1) again";
     const run = await harness(stack, {
       html: `<p><a class="external-link" href="${HREF}"></a></p>`,
-      // The note writes the link twice; this section is its second line.
       section: { text: `${CITATION}\n${CITATION}`, lineStart: 1, lineEnd: 1 },
       citations: () => {
         const citations = citationsOf([0, CITATION.length + 1]);

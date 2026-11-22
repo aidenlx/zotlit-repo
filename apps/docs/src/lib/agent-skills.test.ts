@@ -30,7 +30,6 @@ describe("agentSkillAssets", () => {
       `sha256:${createHash("sha256").update(archiveBytes).digest("hex")}`,
     );
     const archive = unzipSync(archiveBytes);
-    // Publish the installable skill; keep the evaluation runtime in the repo.
     expect(Object.keys(archive).sort()).toEqual([
       "SKILL.md",
       "agents/openai.yaml",

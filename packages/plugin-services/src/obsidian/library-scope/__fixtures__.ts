@@ -1,5 +1,3 @@
-/** Library Scope's real dependency graph over a test's RPC client and saved settings. */
-
 import type { SettingsDefinition } from "#core/settings/schema.ts";
 import { Context, Effect, Layer } from "effect";
 import type { Scope } from "effect";
@@ -79,7 +77,6 @@ export async function openLibraryScope(
   };
 }
 
-/** Existing consumer fixtures already own these dependencies' runtimes. */
 export async function buildLibraryScope(
   deps: {
     reads: Pick<ZoteroReads["Service"], "reads" | "events">;

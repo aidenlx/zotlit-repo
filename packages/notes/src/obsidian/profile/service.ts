@@ -4,7 +4,6 @@ import type {
   TemplateFailure,
   TemplateStatus,
 } from "#obsidian/template/service.ts";
-// Registry and file operations for Literature Note Profiles.
 import {
   Cause,
   Context,
@@ -147,24 +146,13 @@ export interface ProfileShareOptions {
   description: string;
   includeFolders?: boolean;
   includeMatch?: boolean;
-  /** The partials the reader checked; the bundle carries exactly these. */
   partials?: readonly string[];
 }
 
 export interface PreparedProfileShare {
   readonly manifest: LiteratureNoteTemplateManifest;
-  /** Every partial the bundle can carry, sorted by name. */
   readonly partials: readonly string[];
-  /**
-   * The partials the textual dependency scan reaches from this Profile, which
-   * the checklist opens with. The scan reads a quoted name wherever it stands,
-   * a prose mention included, so it recommends and the reader decides.
-   */
   readonly reachable: readonly string[];
-  /**
-   * Names the Profile calls that no document in the vault answers, so the
-   * sheet says which calls travel unresolved rather than refusing to open.
-   */
   readonly missing: readonly string[];
   readonly filename: string;
   render(options: ProfileShareOptions): string;
@@ -175,21 +163,10 @@ export type PreparedProfileImport = {
   profile: ResolvedProfile;
   source: string;
   path: string;
-  /**
-   * What every partial the manifest carries does to the template folder: a new
-   * file, identical text left alone, or a document holding other text, which
-   * the reader answers by naming it in `import`'s `replacePartials`.
-   */
   partials: readonly LiteratureNotePartialUnpack[];
-  /** Render the Profile with the same partial choice the import will apply. */
-  previewSource(options?: {
-    /** The conflicting partials the reader chose to replace. */
-    replacePartials?: readonly string[];
-  }): string;
-  /** The match choice can change while the target snapshot stays fixed. */
+  previewSource(options?: { replacePartials?: readonly string[] }): string;
   import(options?: {
     includeMatch?: ProfileImportOptions["includeMatch"];
-    /** The conflicting partials the reader chose to replace. */
     replacePartials?: readonly string[];
   }): Promise<LiteratureNoteProfile>;
 } & (
@@ -213,22 +190,18 @@ export interface ProfileDiagnostic {
   readonly reason?: "invalid-profile-id";
 }
 
-/** The document a write expects to find: none at all, or one exact revision. */
 export type ProfileDocumentExpectation =
   | { readonly state: "absent" }
   | { readonly state: "revision"; readonly revision: string };
 
-/** What a write did: the new revision, or the reason the file was left alone. */
 export type ProfileDocumentWrite =
   | { readonly state: "saved"; readonly revision: string }
   | {
       readonly state: "refused";
       readonly reason: "revision-conflict" | "document-exists";
-      /** The revision the vault holds now; absent when it holds no document. */
       readonly currentRevision?: string;
     };
 
-/** Carries the source a write found where it expected the one it loaded. */
 class ProfileDocumentConflict extends Error {
   readonly current: string;
 
@@ -257,7 +230,6 @@ export interface ProfileDeletionResult {
   movedFiles: number;
 }
 
-/** The Profile registry read synchronously, as a plain caller holds it. */
 export interface ProfileReader {
   readonly loaded: boolean;
   readonly profiles: readonly LiteratureNoteProfile[];
@@ -464,7 +436,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
   > {
     return yield* (yield* prepareCreate(options)).create();
   });
-  /** Read the effective look without ejecting the built-in Default document. */
   const getSource = Effect.fn("Profile.getSource")(function* (
     selector: ProfileSelector,
   ): Effect.fn.Return<string, ProfileOperationError | VaultError> {
@@ -485,18 +456,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
     }
     return yield* getBuiltInSource();
   });
-  /**
-   * Write `source` as this Profile's document, byte for byte, when its live
-   * text still has the revision the caller read. A built-in Default whose
-   * document is still absent is created here — the eject — and the scan that
-   * follows the write is awaited, so a caller that gets `saved` sees the
-   * registry that carries it. The one exception is an editor of the document
-   * whose own save is in progress: it writes `source` right after that save,
-   * and the registry follows once that write is scanned.
-   *
-   * @param expected The document the caller edited: `absent` for a Default that
-   *   had none, otherwise the revision it loaded.
-   */
   const saveSource = Effect.fn("Profile.saveSource")(function* (
     selector: ProfileSelector,
     source: string,
@@ -534,7 +493,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       }),
     );
   });
-  /** The vault path a Profile's document has, or would have once ejected. */
   const documentPath = Effect.fn("Profile.documentPath")(function* (
     profile: ResolvedProfile,
   ): Effect.fn.Return<string, never> {
@@ -542,11 +500,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       ? join((yield* settings.current)["template.folder"], profile.document)
       : yield* defaultDocumentPath();
   });
-  /**
-   * The compare-and-write itself. The comparison runs inside the vault's own
-   * read-modify-write, so a document that changed between the two is refused
-   * rather than replaced, and every refusal leaves the file untouched.
-   */
   const writeDocument = Effect.fn("Profile.writeDocument")(function* (
     path: string,
     source: string,
@@ -557,8 +510,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
   > {
     const file = yield* vault.getFileByPath(path);
     if (!file) {
-      // The document the caller edited is gone; only a Default that never had
-      // one is created here.
       if (expected.state === "revision")
         return { state: "refused", reason: "revision-conflict" };
       yield* ensureParent(path);
@@ -587,7 +538,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       };
     return { state: "saved", revision: profileRevision(source) };
   });
-  /** Create `path` with `data`, or answer the path the vault already holds it at. */
   const createDocument = Effect.fn("Profile.createDocument")(function* (
     path: string,
     data: string,
@@ -597,7 +547,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       Effect.catchTag("FileExists", (error) => Effect.succeed(error.path)),
     );
   });
-  /** The refusal a document standing where the caller expected none earns. */
   const documentExists = Effect.fn("Profile.documentExists")(function* (
     path: string,
   ): Effect.fn.Return<ProfileDocumentWrite, VaultError> {
@@ -651,11 +600,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       }),
     );
   });
-  /**
-   * The built-in Default look as a Profile document: the embedded templates
-   * with the Managed Frontmatter the settings tab configured, so an eject or a
-   * duplicate carries the user's properties instead of the shipped defaults.
-   */
   const getBuiltInSource = Effect.fn("Profile.getBuiltInSource")(
     function* (): Effect.fn.Return<string, ProfileOperationError> {
       const fields = (yield* settings.current)["note.frontmatter-fields"];
@@ -680,7 +624,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       );
     },
   );
-  /** Copy a Profile's document under `label`, or under "<source> copy". */
   const duplicate = Effect.fn("Profile.duplicate")(function* (
     selector: ProfileSelector,
     options: {
@@ -722,7 +665,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       }),
     );
   });
-  /** Freeze one export identity, effective bindings and partials for a Share sheet. */
   const prepareShare = Effect.fn("Profile.prepareShare")(function* (
     selector: ProfileSelector,
   ): Effect.fn.Return<
@@ -744,9 +686,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
         profile.bindings[binding],
       ]),
     ) as ProfileBindings;
-    // A call the vault answers with no document is what story 43 leaves behind
-    // after a rename, and what a quoted name in prose looks like. Neither can
-    // block the sheet: the name simply is not among the ones offered.
     const missingPartials = new Set<string>();
     const effectiveSource = yield* getSource(selector);
     const source = yield* template.exportLiteratureNotePackSource(
@@ -767,18 +706,11 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       facade.parseLiteratureNoteTemplate(source),
     );
     const bundled = manifest.partials ?? [];
-    // The document's own copy of a name stands ahead of the vault's, the way
-    // the export itself resolves the two.
     const entries = new Map(
       [...(yield* template.getPartialEntries), ...bundled].map(
         (partial) => [partial.name, partial] as const,
       ),
     );
-    // A reserved name travels for a host that has no template folder to read:
-    // such a host renders an annotation's citation through the bundled
-    // `citation` (ADR 0055). It belongs to that document rather than to the
-    // partials the reader picks among, and an import drops it again — the
-    // recipient's own Citation Template answers that name.
     const offered = (names: Iterable<string>) =>
       [...names]
         .filter((name) => !RESERVED_PARTIAL_NAMES.has(name))
@@ -970,8 +902,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
         },
       };
     }
-    // The manifest's partials are a transport: import unpacks each into the
-    // Shared Partial file it belongs in, then drops the entry it came from.
     const partials = yield* template.planPartialUnpack(manifest.partials ?? []);
     yield* log("Prepared Profile import", {
       id,
@@ -1104,7 +1034,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
       return (yield* materializeDefault()).file;
     },
   );
-  /** Atomically create Default or open the current document without changing it. */
   const materializeDefault = Effect.fn("Profile.materializeDefault")(
     function* (): Effect.fn.Return<
       {
@@ -1126,7 +1055,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
           Effect.catchTag(
             "FileExists",
             Effect.fnUntraced(function* (error) {
-              // A folder at the path is no document to open.
               const existing = yield* vault.getFileByPath(error.path);
               return existing
                 ? { file: existing, created: false }
@@ -1280,8 +1208,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
     TemplateFailure
   > {
     const templateStatus = yield* template.status;
-    // Template publishes a new snapshot when its inputs change, including
-    // template bodies and partials that the Profile manifest does not carry.
     if (templateStatus === (yield* Ref.get(registry)).scannedTemplateStatus)
       return;
     const profiles: LiteratureNoteProfile[] = [];
@@ -1409,13 +1335,6 @@ const makeProfileEngine = Effect.fnUntraced(function* (
     ),
   };
 });
-/**
- * Resolve a draft from its manifest and current Default settings, without
- * installing it. `selector` is the draft's identity after it passed the Profile
- * ID rule, so a caller that refuses an invalid identity states the rule itself.
- * The seeded entry carries that same identity, so the Profile a draft is bound
- * as and the Profile it resolves against are one value.
- */
 export function bindDraftProfile(
   settings: Readonly<Settings>,
   selector: ProfileSelector,
@@ -1432,14 +1351,6 @@ export function bindDraftProfile(
       });
 }
 
-/**
- * Bind a draft on the identity its manifest carries, whatever that text is. The
- * Note Preview reads a Profile document the author is still editing, where an
- * identity that fails the Profile ID rule is diagnosed in place and blocks
- * nothing, so the preview still renders with the draft's own bindings.
- *
- * @see docs/adr/0058-the-workbench-check-refuses-an-invalid-document-identity.md
- */
 export function bindUnvalidatedDraftProfile(
   settings: Readonly<Settings>,
   manifest: LiteratureNoteTemplateManifest,
@@ -1447,13 +1358,6 @@ export function bindUnvalidatedDraftProfile(
   return bindDraftProfile(settings, manifest.id as ProfileSelector, manifest);
 }
 
-/**
- * The entry derives only from the manifest, so the same manifest always yields
- * the same entry — whether it comes from a saved Profile document or from a
- * draft the user is still editing.
- *
- * @see docs/adr/0031-a-literature-note-profile-is-its-document.md
- */
 export function seedProfileEntry(
   manifest: LiteratureNoteTemplateManifest,
   options: {
@@ -1535,13 +1439,6 @@ function profileSource(
   return content;
 }
 
-/**
- * The document without the transport entries `dropped` names: each of those
- * partials answers from a document of its own now — the one unpacked from the
- * bundle, or the reader's own that the unpack left standing — so the manifest
- * copy has no reader left. An entry no Shared Partial file can carry stays,
- * and the Template Workbench reports it as a bundled partial.
- */
 function withoutBundledPartials(
   source: string,
   dropped: readonly string[],
@@ -1573,10 +1470,6 @@ function updateProfilePackMetadata(
   }
 }
 
-/**
- * The import target changed after the plan was made: another file took its
- * path. `message` is the notice text; `cause` holds the vault's refusal.
- */
 export class ProfileImportChanged extends Schema.TaggedError<
   ProfileImportChanged,
   { readonly brand: unique symbol }
@@ -1593,7 +1486,6 @@ export class ProfileOperationError extends Schema.TaggedError<
   cause: Schema.Defect(),
 }) {}
 
-/** The selected Profile no longer has a document in this vault. */
 export class ProfileDocumentMissingError extends Schema.TaggedError<
   ProfileDocumentMissingError,
   { readonly brand: unique symbol }
@@ -1790,11 +1682,6 @@ const operationError = (cause: unknown) =>
       });
 const attempt = <A>(read: () => A) =>
   Effect.try({ try: read, catch: operationError });
-/**
- * The revision a Profile document is compared by on both sides of a save: a
- * hash of its exact source. The host passes it in, so the Profiles load where
- * no Node hash is.
- */
 export type ProfileRevision = (source: string) => string;
 
 export const layerProfile = (profileRevision: ProfileRevision) =>

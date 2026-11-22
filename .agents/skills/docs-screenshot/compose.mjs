@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// Compose app captures into one docs screenshot: each capture is a layer, optionally
-// framed as a macOS window, placed over a wallpaper.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -35,8 +33,6 @@ A layout.json composes any number of layers:
 out.webp is encoded with cwebp at the highest quality under ${524288} bytes;
 out.png is lossless.`;
 
-// @fumari/image-size reads at most this many bytes, and a WebP must fit whole
-// or the docs build fails with "Failed obtain image size".
 const MAX_WEBP_BYTES = 524288;
 const SHADOW_PAD = 120;
 
@@ -101,7 +97,6 @@ if (extname(out) === ".webp") {
   console.log(`${out}: ${canvas.width}x${canvas.height}`);
 }
 
-/** Crop, frame, and scale one capture; returns its image, shadow, and placement. */
 async function renderLayer({
   src,
   x = 0,
@@ -150,7 +145,6 @@ async function renderLayer({
   };
 }
 
-/** Traffic lights and the hairline window border, in source px. */
 function chrome(W, H, { radius, lights, border }) {
   return svg(
     W,

@@ -10,7 +10,6 @@ import { captureInsertion } from "./async-insert.ts";
 
 import { stateEditor } from "#__fixtures__/annot-view/editor.ts";
 
-/** The workspace events a held insertion listens to, triggered by hand. */
 function fakeWorkspace() {
   const listeners = new Map<string, Set<() => void>>();
   const refs = new Map<EventRef, { name: string; callback: () => void }>();
@@ -83,7 +82,6 @@ function fixture() {
   };
 }
 
-/** An insertion held over `from`–`to` (`from` alone when absent) of a note reading `doc`. */
 function holdAt(
   doc: string,
   { from, to = from }: { from: number; to?: number },
@@ -106,7 +104,6 @@ function holdAt(
   return {
     cm,
     target,
-    /** The note, with `|` where the cursor rests. */
     withCursor: () => {
       const { doc: text, selection } = cm.state;
       const head = selection.main.head;
@@ -270,7 +267,6 @@ describe("a multi-line insertion", () => {
 
 describe("a one-line insertion", () => {
   const QUOTE = "“a quote” [Zotero](zotero://open)";
-  /** The note after `text` lands at `at`, with `|` where the cursor rests. */
   const insertAt = (
     doc: string,
     { at, text = QUOTE }: { at: number; text?: string },
@@ -345,7 +341,6 @@ describe("a one-line insertion", () => {
     );
   });
 
-  // A one-line template renders with the line break that ends its source.
   it("drops the rendered text's own edge line breaks", () => {
     expect(insertAt("As shown here", { at: 9, text: `${QUOTE}\n` })).toBe(
       `As shown ${QUOTE} |here`,
@@ -354,7 +349,6 @@ describe("a one-line insertion", () => {
 
   it("reads the text after it as the insert lands, not as it starts", () => {
     using held = holdAt("As shown [>q] here", { from: 9, to: 13 });
-    // The space after the range goes while the text is prepared.
     held.cm.dispatch({ changes: { from: 13, to: 14 } });
     held.target.commit(QUOTE);
     expect(held.withCursor()).toBe(`As shown ${QUOTE} |here`);
@@ -362,7 +356,6 @@ describe("a one-line insertion", () => {
 });
 
 describe("a citation insertion", () => {
-  /** The note after `citation` lands over `from`–`to`, with `|` at the cursor. */
   const cite = (
     citation: string,
     {

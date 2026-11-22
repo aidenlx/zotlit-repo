@@ -51,11 +51,6 @@ export type PrepareManagedFrontmatterResult =
         ManagedFrontmatterPreparationFailure,
         ...ManagedFrontmatterPreparationFailure[],
       ];
-      /**
-       * The pass the refusal already computed: every evaluated field with its
-       * position, and the per-field errors. A reader that keeps going after a
-       * refusal reads it instead of evaluating the entries a second time.
-       */
       readonly evaluation: ManagedFrontmatterEvaluation;
     };
 

@@ -1,10 +1,3 @@
-// Built-in export resolves the worker-selected citations, then formats them with Pandoc.
-// Export retains its own Literature Note link membership and bibliography contract.
-//
-// All-or-nothing: after the worker's parse selects the source, an unresolved
-// Citation or an incomplete bibliography stops export before citeproc runs,
-// so an exported document never carries a silently incomplete bibliography.
-
 import type {
   ParseFailed,
   ParseWorkerDied,
@@ -34,100 +27,47 @@ import { ParsedNote } from "#obsidian/citation-index/parsed-note.ts";
 import { CitationParse } from "#obsidian/citation-parse/service.ts";
 import { collectCitationLinks } from "#obsidian/pandoc/resolve.ts";
 
-/** Named by {@link ExportFailure}, so one import covers a failure's whole shape. */
 export { type BibliographySource } from "./bibliography.ts";
 
 export interface ExportRequest {
-  /** The source path resolves links; the worker reads membership from markdown. */
   document: ResolveDocument;
-  /** The original Markdown source read from the vault. */
   markdown: string;
   format: DocumentFormat;
-  /** CSL style XML; the engine's embedded default style when omitted. */
   styleXml?: string;
-  /**
-   * Citation Locale to render in, which overrides the locale the style names.
-   * Omitted leaves the style's own locale in charge.
-   */
   locale?: string;
 }
 
 export interface ExportPorts {
-  /**
-   * Indexed Key of the Literature Note `linkpath` names, resolved from
-   * `sourcePath`; `null` for a missing target or an ordinary note.
-   */
   resolveIndexedKey: (linkpath: string, sourcePath: string) => string | null;
-  /**
-   * What a literal `@citation-key` names in the current Library Scope, read
-   * through the same resolution snapshot every in-app surface reads, so an
-   * export cites what Live Preview shows. An unavailable read fails.
-   */
   readLookup: (request: {
     citekeys: readonly string[];
   }) => ReturnType<CitationLookup["Service"]["read"]>;
-  /**
-   * Zotero library addresses of the cited Indexed Keys, read under one lease.
-   * A key the database cannot place is absent; `null` means no read lease.
-   */
   readItemRefs: (
     indexedKeys: readonly string[],
   ) => Effect.Effect<ReadonlyMap<string, BibliographyItemRef> | null>;
-  /** Zotero data directory, named in the database failure. */
   dataDir: () => string;
-  /** The bibliography source chain over the cited Items. */
   fetchBibliography: (
     refs: readonly BibliographyItemRef[],
   ) => Effect.Effect<BibliographyResult>;
   engine: Pick<CitationEngine, "prepareDocument" | "renderPrepared">;
 }
 
-/**
- * Why an export stopped, in the terms the user acts on: a note they wrote, a
- * setting they can turn on, an application they can start. Every arm names one
- * situation and one fix, so the UI seam renders one message per arm.
- */
 export type ExportFailure =
-  /** Links whose `#cite:` fragment names no Literature Note. */
   | { kind: "citation-intent"; linkpaths: string[] }
-  /** The Zotero database could not be read. */
   | { kind: "database-unavailable"; dataDir: string }
-  /** Citations no Zotero Item answers for, as the document writes them. */
   | { kind: "items-missing"; sources: string[] }
-  /** Citations Better BibTeX holds no citation key for, as the document writes them. */
   | { kind: "citation-keys-missing"; sources: string[] }
-  /** Literal citation keys naming no live Zotero Item in the Library Scope. */
   | { kind: "citation-keys-unknown"; citekeys: string[] }
-  /** Literal citation keys several Zotero Items answer to. */
   | { kind: "citation-keys-ambiguous"; citekeys: string[] }
-  /** Zotero's profile requests an undiscoverable automatic HTTP port. */
   | { kind: "zotero-port-automatic"; pref: string }
-  /** Nothing answered on the active profile's Zotero HTTP port. */
   | { kind: "zotero-unreachable"; port: number }
-  /** Zotero gave the bibliography no answer in time. */
   | { kind: "zotero-timeout"; seconds: number }
-  /** Zotero runs with its local API pref off. */
   | { kind: "local-api-disabled"; pref: string }
-  /** The bibliography source answered, and refused. */
   | { kind: "source-failed"; source: BibliographySource; detail: string }
-  /** Pandoc refused the conversion. */
   | { kind: "engine"; detail: string };
 
 export type ExportResult = { output: Uint8Array } | { error: ExportFailure };
 
-/**
- * Render one Obsidian document as a cited `docx` or `html` file.
- *
- * Pandoc reads the whole document with the worker's syntax exclusions applied,
- * naming each linked Item by an Injected Id that no literal
- * citation key can spell. Every cited Item is resolved before citeproc runs.
- *
- * Each cited Item then takes one canonical CSL id: the citation key the author
- * wrote, where a literal Citation named it, and otherwise the id its
- * bibliography source gave it. The document's ids are rewritten onto it, so an
- * Item cited both ways collects one bibliography entry rather than two, and no
- * Citation depends on which source answered for its data.
- */
 export const exportCitedDocument = Effect.fn("exportCitedDocument")(function* (
   request: ExportRequest,
   ports: ExportPorts,
@@ -162,13 +102,11 @@ export const exportCitedDocument = Effect.fn("exportCitedDocument")(function* (
     return {
       error: {
         kind: "citation-intent",
-        // The only error this collection reports names its own link.
         linkpaths: errors.map((error) => error.linkpath!),
       },
     };
   }
 
-  /** The Injected Id the filter cites each Literature Note wikilink by. */
   const wikilinked = new Map(
     links.map(({ linkpath, indexedKey }) => [linkpath, injectedId(indexedKey)]),
   );
@@ -204,10 +142,6 @@ export const exportCitedDocument = Effect.fn("exportCitedDocument")(function* (
   }));
   const document = prepared.withCitedIds(canonical.bySpelling);
 
-  // Every Citation of the rendered document has bibliography data, checked
-  // against the document itself rather than against what selected the data.
-  // Nothing above can leave a Citation uncovered, which is what makes this an
-  // invariant rather than a path: it fails only if that stops being true.
   const covered = new Set(bibliography.map((item) => item.id));
   const uncovered = document.citedIds.filter((id) => !covered.has(id));
   if (uncovered.length > 0) {
@@ -233,7 +167,6 @@ export const exportCitedDocument = Effect.fn("exportCitedDocument")(function* (
     : { output: rendering.success };
 });
 
-/** One engine call; a refusal is the `engine` failure arm. */
 function engineCall<A>(
   call: () => Promise<A>,
 ): Effect.Effect<Result.Result<A, ExportFailure>> {
@@ -246,52 +179,28 @@ function engineCall<A>(
   }).pipe(Effect.result);
 }
 
-/** One document's Citations, each placed on the Zotero Item it names. */
 interface SpelledCitations {
-  /** Every cited Item, as Indexed Keys. */
   itemsByKey: () => string[];
-  /** One Item as the document writes it, for a failure that must name it. */
   describe: (indexedKey: string) => string;
-  /** The canonical CSL id of each cited Item, and of each id the source spells. */
   canonicalIds: (items: ReadonlyMap<string, CslItemData>) => {
     byIndexedKey: ReadonlyMap<string, string>;
     bySpelling: ReadonlyMap<string, string>;
   };
 }
 
-/**
- * What the sandbox filter cites a wikilinked Item by.
- *
- * A Pandoc citation key starts with a letter, a digit, or an underscore, so
- * this prefix puts every Injected Id outside the space a literal
- * `@citation-key` can reach. One Item's Indexed Key can therefore never be read
- * as another Item's citation key, whatever either of them spells.
- */
 function injectedId(indexedKey: string): string {
   return `#${indexedKey}`;
 }
 
-/**
- * Place every id the prepared document spells on a Zotero Item: an Injected Id
- * names its Item already, and anything else is a literal citation key for the
- * resolution snapshot to answer.
- *
- * A citation key the snapshot cannot place stops the export. The alternative
- * is Pandoc's own undefined-citation output — a bold key and a missing entry —
- * inside a document the user is about to send somewhere.
- */
 const readCitations = Effect.fn("readCitations")(function* (
   citedIds: readonly string[],
   wikilinked: ReadonlyMap<string, string>,
   ports: ExportPorts,
 ): Effect.fn.Return<SpelledCitations | { error: ExportFailure }> {
-  /** Injected Id → the Indexed Key it names. */
   const injected = new Map(
     [...wikilinked.values()].map((id) => [id, id.slice(1)]),
   );
-  /** Literal citation key → the Indexed Key it names. */
   const literal = new Map<string, string>();
-  /** Cited Indexed Keys, first appearance first. */
   const cited = new Set<string>();
   const unknown: string[] = [];
   const ambiguous: string[] = [];
@@ -333,7 +242,6 @@ const readCitations = Effect.fn("readCitations")(function* (
     return { error: { kind: "citation-keys-ambiguous", citekeys: ambiguous } };
   }
 
-  /** The first citation key each Item is literally cited by, where one is. */
   const citekeyOf = new Map<string, string>();
   for (const [citekey, indexedKey] of literal) {
     if (!citekeyOf.has(indexedKey)) citekeyOf.set(indexedKey, citekey);
@@ -371,11 +279,6 @@ const readCitations = Effect.fn("readCitations")(function* (
   };
 });
 
-/**
- * The cited Items as CSL-JSON, keyed by Indexed Key. The database places each
- * Indexed Key in its Zotero library, which is the address Better BibTeX reads;
- * Zotero itself supplies the data.
- */
 const citeItems = Effect.fn("citeItems")(function* (
   indexedKeys: readonly string[],
   describe: (indexedKey: string) => string,
@@ -409,7 +312,6 @@ const citeItems = Effect.fn("citeItems")(function* (
     : { items: bibliography.items };
 });
 
-/** Restates a source-chain failure in the export's own terms. */
 function toExportFailure(
   failure: BibliographyFailure,
   describe: (indexedKey: string) => string,
@@ -442,7 +344,6 @@ function toExportFailure(
   }
 }
 
-/** The `detail` every failure arm carries, from whatever was thrown. */
 export function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }

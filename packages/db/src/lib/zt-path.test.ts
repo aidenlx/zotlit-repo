@@ -154,7 +154,6 @@ describe("attachmentAbsPath", () => {
 });
 
 describe("normalizeAbsolutePath", () => {
-  // Worked examples: the un-folded rule attachmentPathKey folds afterward.
   it.each([
     [
       "collapses a doubled separator",
@@ -185,8 +184,6 @@ describe("normalizeAbsolutePath", () => {
 });
 
 describe("attachmentPathKey", () => {
-  // Worked examples: each input is a form one side of a lookup arrives in,
-  // beside the single key both sides must fold onto.
   it.each([
     [
       "collapses a doubled separator",
@@ -243,8 +240,6 @@ describe("attachmentPathKey", () => {
   });
 
   it("meets a backslash-stored Zotero row and a forward-slash Obsidian path", () => {
-    // Zotero writes a plain `linked_file` path with the platform's separators;
-    // Obsidian collapses every separator run to `/` before it resolves one.
     expect(
       attachmentPathKey(
         "C:\\Users\\me\\Vault\\attachments\\rougier-2014.pdf",

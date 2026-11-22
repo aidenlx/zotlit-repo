@@ -10,7 +10,6 @@ const CATALOG = {
 } as const;
 const ALIASES = { zh: "zh-CN" } as const;
 
-/** Never called — exists only so the `aliases` generic is type-checked. */
 function assertAliasesRejectUnknownTargets(): void {
   resolveLocale("zh", CATALOG, {
     // @ts-expect-error Locale Alias targets must exist in this catalog.

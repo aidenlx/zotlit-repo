@@ -16,13 +16,6 @@ import type {
 import type { ViewPlan } from "#desktop/query-view/view-plan/view-plan.ts";
 import type { QueryCardFocus } from "#obsidian/query-view/card-focus.ts";
 import type { ContextSource } from "#obsidian/query-view/context-hint.ts";
-// The one Query View: a Query File's text, one of its views, and the rows
-// ZotLit Query gives for it, drawn by the view's Layout. It is host-neutral:
-// the Query File tab mounts it today, and the embed, the Query Block and the
-// sidebar mount the same part, each with its own Query Context.
-//
-// @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
-// @see apps/obsidian/docs/adr/0069-the-annotation-view-is-the-annotations-layout-of-the-query-view.md
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import { Component } from "obsidian";
@@ -128,220 +121,62 @@ import { contextHint } from "#obsidian/query-view/context-hint.ts";
 import { ToolbarButton } from "#obsidian/query-view/toolbar-button.tsx";
 import { ToolbarPopover } from "#obsidian/query-view/toolbar-popover.tsx";
 
-/** The services a Query View reads through. */
 export interface QueryViewDeps extends AnnotationsLayoutDeps {
   registry: ViewRegistryHandle;
   runtime: SubscriptionRuntime;
-  /** The keyboard of a view that a note holds, which the embed and the block share. */
   cardFocus: Pick<QueryCardFocus, "hold">;
-  /**
-   * Call `near` once `el`, a view that a note holds, comes near the screen;
-   * returns what ends the watch. The view runs then (see `note-host.ts`).
-   */
   nearScreen: (el: HTMLElement, near: () => void) => () => void;
-  /** What the Table's Literature Note Property reads and does. */
   literatureNotes: LiteratureNotes;
 }
 
-/** What the host gives the Query View, beside the services. */
 export interface QueryViewHost {
-  /** The Scope the card keys go on, as for the Annotations Layout. */
   scope: Scope;
-  /** The note that links in a card's comment resolve against. */
   sourcePath: () => string;
-  /**
-   * The Query Context: the Item and Attachment `this` reads. `undefined` in a
-   * Query File's own tab, where `this` has no value.
-   */
   context: () => QueryContext | undefined;
-  /**
-   * The surface the host is, by what it binds to `this`; a filter that reads
-   * a record with none bound shows where to get one. Absent in a Query
-   * File's own tab, which binds nothing.
-   */
   contextSource?: ContextSource;
-  /**
-   * Whether the rows of the last binding stay on screen while a run for a
-   * new one reads, until its rows land. Only a host that names the Item
-   * the rows belong to, and changes that name in the same render as the
-   * rows, keeps them (ADR 0071): rows never show under another Item.
-   * Otherwise the view clears its rows as the binding changes.
-   */
   keepsRowsOnRebind?: boolean;
-  /** The user chose another view of the file; the host may remember it. */
   onSelectView?: (name: string) => void;
-  /**
-   * Write the file's new text after a toolbar change, at once. It rejects
-   * where the text was not saved; the change then stays on screen and the
-   * toolbar says that it is not saved. The text comes back through
-   * {@link QueryView.setText} as the host reads it again. A host without a
-   * file, such as the Library View, keeps its state in plugin data.
-   */
   save: (text: string) => void | Promise<void>;
-  /**
-   * Whether a change in the view can stay. Where it is `false`, the view
-   * saves nothing, and the toolbar says that a change is not saved.
-   */
   canSave?: () => boolean;
-  /** Open the Query File; the toolbar shows a link button when the host gives it. */
   openFile?: (event: MouseEvent) => void;
-  /**
-   * What the view waits for before it runs, as a note's view waits to come
-   * near the screen. Until it settles the view's phase is `waiting`: a run
-   * asked for meanwhile waits, and the last one starts as it settles;
-   * {@link QueryView.settled} waits for that run. Absent: the view runs as
-   * asked.
-   */
   start?: Promise<void>;
-  /**
-   * What the host gives the Annotations Layout beside the Scope and the
-   * source path: the sidebar's own gestures and its list frame.
-   */
   layout?: Pick<
     AnnotationsLayoutHost,
     "gestures" | "onList" | "onEscape" | "showNewRecords" | "publishing"
   >;
-  /**
-   * The Attachments whose live lists the cards read beside those the rows
-   * name: the sidebar's own, so its first new Annotation shows at once.
-   */
   attachments?: () => readonly string[];
-  /**
-   * The Libraries the query reads: the Library View's selected Library.
-   * Absent: the Library Scope in force. A change runs again through
-   * {@link QueryView.contextChanged}.
-   *
-   * @see apps/obsidian/docs/adr/0072-the-library-tree-writes-filters.md
-   */
   libraries?: () => LibraryScope;
-  /**
-   * Whether the host keeps only the shown view's sort, as the Library View
-   * Document does. The view then offers no other change: no other view,
-   * grouping, filter, limit, Visible Property, column width, Display Name or
-   * Formula, which would show and then be gone on reopen, and no toolbar
-   * search beside its own (ADR 0073). A host that offers one Layout shows no
-   * view menu at all (ADR 0075).
-   *
-   * @see apps/obsidian/docs/adr/0071-the-library-view-is-a-fileless-query-view-host-that-saves-to-plugin-data.md
-   */
   displayOnly?: boolean;
-  /**
-   * The Layout types the host offers, in the order its view menu lists them.
-   * Absent: every Layout of the view's dataset.
-   *
-   * @see apps/obsidian/docs/adr/0075-the-papers-layout-is-a-query-view-layout-the-library-view-offers-with-the-table.md
-   */
   layouts?: readonly string[];
-  /**
-   * The sort and the row limit the host writes into the shown view itself,
-   * as the Library View writes its row limit and Recent its sort. The
-   * toolbar marks a sort or a limit as set only where the view's differs.
-   * Absent: the host writes neither.
-   *
-   * @see apps/obsidian/docs/adr/0076-recent-is-a-library-tree-node-that-writes-a-sort.md
-   */
   defaults?: () => QueryViewDefaults;
-  /**
-   * What a click, a double click, the context menu and a drag do on an Item
-   * row of the Papers and Table Layouts. Absent: the rows take no gesture.
-   *
-   * @see apps/obsidian/docs/adr/0074-library-view-rows-act-as-quick-switcher-results.md
-   */
   rows?: ItemRowGestures;
-  /**
-   * Why `row` is in the list; the second line of a Papers row ends with it.
-   * The Library View's Recent gives one, such as "read 2 h ago in Obsidian".
-   * `null`: no reason. Absent:
-   * no row gives one.
-   *
-   * @see apps/obsidian/docs/adr/0076-recent-is-a-library-tree-node-that-writes-a-sort.md
-   */
   reason?: (row: QueryViewRow) => string | null;
-  /** Extra projection paths the host reads for the shown layout. */
   fields?: (view: QueryFileView) => readonly string[];
-  /**
-   * The whole empty state, in place of the view's own sentence and its hint
-   * to change a filter: the host's derived text holds filters the researcher
-   * never wrote, so only the host knows what left the list empty. `fallback`
-   * is the view's own sentence, for an empty list the host has nothing to
-   * say about. Absent: the view's own sentence and hint.
-   */
   empty?: ComponentType<{ fallback: string }>;
-  /**
-   * Writes what the view shows as a new Query File. Present: the toolbar
-   * shows a "Save as query file" button, the way to the full Query View for
-   * a host that keeps only the sort (`displayOnly`, ADR 0075).
-   */
   saveAs?: () => void;
-  /**
-   * Where the toolbar's controls go. `"host"`: the view draws no toolbar
-   * row, and the host places {@link SortButton} and {@link SaveAsButton} in
-   * a heading of its own, as the Library View's title block does (ADR
-   * 0072). Absent: the view draws its toolbar row.
-   */
   toolbar?: "host";
-  /**
-   * The Indexed Keys in the order the rows show in, in place of the sort: the
-   * Library View's ranked search. `null` or absent: the order of the query.
-   *
-   * @see apps/obsidian/docs/adr/0073-search-enters-the-library-view-as-an-ordered-key-set.md
-   */
   rank?: () => readonly string[] | null;
-  /**
-   * A condition on each row that the host answers and the query cannot, such
-   * as the Library View's Has note facet; `null` for none. The query then
-   * reads the Indexed Key of every match, the view's limit cuts the keys the
-   * condition keeps, so the count is theirs, and only those rows are read
-   * with their fields. A condition with another `key` runs again through
-   * {@link QueryView.contextChanged}.
-   *
-   * @see apps/obsidian/docs/adr/0072-the-library-tree-writes-filters.md
-   */
   rowPass?: () => QueryRowPass | null;
 }
 
-/** The sort and the row limit a host writes into the shown view itself. */
 export interface QueryViewDefaults {
   readonly sort?: readonly QueryFileSort[];
   readonly limit?: number;
 }
 
-/** A condition on each row that the host applies after the query. */
 export interface QueryRowPass {
-  /** Tells one condition from another, as part of the run key. */
   readonly key: string;
-  /** Whether the row of the Item with `indexedKey` stays. */
   keeps(indexedKey: string): boolean;
 }
 
-/**
- * The changes the toolbar offers. A host that keeps only the shown view's
- * sort (`displayOnly`) takes away every other one, so no control shows a
- * change that would be gone on reopen. Each control reads its own flag here.
- *
- * @see apps/obsidian/docs/adr/0071-the-library-view-is-a-fileless-query-view-host-that-saves-to-plugin-data.md
- */
 export interface QueryViewCapabilities {
-  /**
-   * Add, configure, reorder and switch the file's views. Without it the view
-   * menu switches only the Layout of the view on screen, and shows only
-   * where the host offers more than one (ADR 0075).
-   */
   readonly views: boolean;
   readonly group: boolean;
   readonly filter: boolean;
-  /** Set and clear the row limit. */
   readonly limit: boolean;
-  /** Choose and order the Visible Properties: the Properties menu. */
   readonly properties: boolean;
-  /** Resize a Table column and reset its width. */
   readonly columnWidth: boolean;
-  /** Open a property's page: its Display Name, its Formula, "Add formula". */
   readonly propertyPages: boolean;
-  /**
-   * Find text in the rows on screen. A host with a search of its own, as
-   * the Library View's search box, takes it away (ADR 0073).
-   */
   readonly search: boolean;
 }
 
@@ -367,34 +202,17 @@ const DISPLAY_CHANGES: QueryViewCapabilities = Object.freeze({
   search: false,
 });
 
-/** What the view shows now, as the toolbar and the host read it. */
 export interface QueryViewState {
   file: QueryFile | null;
-  /** The view shown; `null` while the file has none. */
   view: QueryFileView | null;
-  /** What keeps the view from running, for the file and for the view. */
   problems: readonly string[];
-  /** `waiting`: the view waits for its host's {@link QueryViewHost.start}. */
   phase: "waiting" | "idle" | "loading" | "ready" | "failed";
-  /**
-   * The rows of the last run that gave rows, with what that run says about
-   * them; `null` while no rows are on screen. A failed run keeps them whole
-   * or clears them.
-   */
   results: ResultSnapshot | null;
-  /** Why the last run gave no rows; `null` once a run gives rows. */
   failure: QueryViewFailure | null;
-  /** Whether the host could not save the last toolbar change. */
   saveFailed: boolean;
-  /**
-   * The sort and the row limit the host writes itself, as it said at the
-   * last {@link QueryView.contextChanged}; the toolbar marks only a sort or
-   * a limit that differs.
-   */
   defaults: QueryViewDefaults;
 }
 
-/** The text of a warning: the researcher's words where ZotLit has them. */
 function warningText(warning: QueryViewWarning): string {
   return warning.code === "key-outside-target-libraries"
     ? m.query_view_warning_outside_library_scope()
@@ -424,11 +242,8 @@ export function problemText(problem: QueryFileProblem): string {
   }
 }
 
-/** What keeps the view's Layout from showing it, beside the parser's own problems. */
 function layoutProblems(view: QueryFileView): string[] {
   const problems: string[] = [];
-  // The Layout gathers the rows into groups itself, by the groupings of the
-  // view's dataset; a grouping of no dataset, such as a Formula, it cannot do.
   const group = usedGroupBy(view)?.property;
   if (group !== undefined && grouping(view.from, group) === undefined)
     problems.push(m.query_view_problem_group({ property: group }));
@@ -446,37 +261,20 @@ function layoutProblems(view: QueryFileView): string[] {
   return problems;
 }
 
-/**
- * How long the view waits after an Attachment it shows gains or loses an
- * Annotation before it runs again, so a burst of changes runs it once.
- */
 export const RERUN_DELAY_MS = 300;
 
-/** One run of a view: its key, the view it ran for, and its plan. */
 interface ViewRun {
   view: QueryFileView;
   plan: ViewPlan;
-  /**
-   * What tells this run from another: the plan's key and the host's row
-   * pass, as {@link QueryView} keys a run.
-   */
   key: string;
-  /** The Query Context and the Libraries the run read, as {@link QueryView} keys them. */
   binding: string;
 }
 
-/** The faults of a filter that reads a Formula it cannot have. */
 const FORMULA_READ_FAULTS: ReadonlySet<string> = new Set([
   "reads-faulted-formula",
   "unknown-formula",
 ]);
 
-/**
- * @param formulas The Formulas the run planned, by name.
- * @returns each Formula that the run left out, by name, with its reason and
- * where its Fault is in the text the run planned, where it names a place
- * there.
- */
 function formulaIssues(
   outcome: QueryViewOutcome,
   formulas: QueryViewRequest["formulas"],
@@ -517,55 +315,30 @@ export class QueryView extends Component implements HistorySurface {
   readonly #host: QueryViewHost;
   readonly #layout: AnnotationsLayout;
   readonly #planner: ViewPlanner;
-  /** The file's text, the view on screen, the edits and their saves. */
   readonly #document: QueryFileDocument;
   readonly #runCommand = makeRunQueryCommand();
-  /** Runs the table's actions and reads; the view's unload interrupts them. */
   readonly #tasks: ViewRunner;
-  /** Whether the rows on screen are drawn as Annotation Cards. */
   #cardsShown = false;
-  /**
-   * The request whose rows are on screen, which a failed refresh keeps. An
-   * edit that leaves the request as it is, such as a new view name or a card
-   * option, keeps the rows and runs nothing.
-   */
   #shownRequest: string | null = null;
-  /** The request of the last run the view started. */
   #runRequest: string | null = null;
-  /** The name of the view whose rows are on screen. */
   #shownViewName: string | null = null;
-  /** The dataset of the rows on screen. */
   #shownDataset: QueryFileDataset | null = null;
-  /**
-   * The Query Context and the Libraries of the rows on screen. Rows of
-   * another Item or other Libraries are another list: a run for a new one
-   * shows none of them while it loads, nor after it fails.
-   */
   #shownBinding: string | null = null;
   #settled: Promise<void> = Promise.resolve();
-  /**
-   * The wait for the host's {@link QueryViewHost.start}: whether it settled,
-   * whether a run waits for it, and what {@link settled} gives until the
-   * first run after it; `null` once that run starts.
-   */
   #waiting: {
     open: boolean;
     asked: boolean;
     first: PromiseWithResolvers<void>;
   } | null = null;
   #subscriptions: DisposableStack | null = null;
-  /** Whether the view draws into an element; until then no card waits to show. */
   #rendered = false;
-  /** A print's wait for the list to draw the cards the store holds now. */
   readonly #cards = new DrawLatch(
     () => this.#layout.store.getState().annotations,
   );
-  /** A print's wait for an Items layout to draw the records of the last run. */
   readonly #records = new DrawLatch(
     () => (this.state.getState().results ?? NO_RESULTS).records,
   );
   #rerunTimer: { id: number; win: Window } | null = null;
-  /** The element the view draws into, once it draws. */
   #el: HTMLElement | null = null;
   constructor(deps: QueryViewDeps, host: QueryViewHost) {
     super();
@@ -599,39 +372,24 @@ export class QueryView extends Component implements HistorySurface {
     if (host.start) this.#wait(host.start);
   }
 
-  /**
-   * The Query File on screen: its text, the view on screen, and every edit,
-   * which saves through the host.
-   */
   get document(): QueryFileDocument {
     return this.#document;
   }
 
-  /** The cards, their store and their actions. */
   get layout(): AnnotationsLayout {
     return this.#layout;
   }
 
-  /**
-   * The Attachment whose Annotation History the palette steps: the one of the
-   * card the Card Selection is on, as for the card's own undo key.
-   */
   get historyAttachment(): string | null {
     return this.#layout.historyAttachment;
   }
 
-  /** Step one confirmed edit of the Annotation History, from the palette. */
   stepHistory(direction: HistoryDirection): void {
     const attachmentKey = this.historyAttachment;
     if (attachmentKey !== null)
       this.#layout.stepHistory(direction, attachmentKey);
   }
 
-  /**
-   * What the Table and Papers read beside the rows: the queries of their
-   * child rows, which read the Libraries the view reads, as a child lives in
-   * its parent's Library; their notes; and the readers their links open.
-   */
   get tableDeps(): {
     query: ChildQuery & Pick<QueryHandle, "on">;
     literatureNotes: LiteratureNotes;
@@ -654,65 +412,35 @@ export class QueryView extends Component implements HistorySurface {
     };
   }
 
-  /**
-   * The note that holds the view and the Item its `zotero-key` names, where a
-   * note holds it: a row of that Item reads that note's vault properties,
-   * whichever note the Note Index ranks first. `null` elsewhere.
-   */
   vaultHost(): VaultHost | null {
     if (this.#host.contextSource !== "note") return null;
     const itemKey = this.#host.context()?.item;
     return itemKey ? { path: this.#host.sourcePath(), itemKey } : null;
   }
 
-  /** Settles once the cards show the last run the view started. Never rejects. */
   get settled(): Promise<void> {
     return this.#settled
       .then(() => this.#layout.read)
       .then(() => this.#tasks.settled());
   }
 
-  /**
-   * Settles once the cards of the last run are drawn on the page in `el`, as
-   * Export to PDF needs before it prints: a print renders under `.print`.
-   * Elsewhere it settles as {@link settled}. Never rejects.
-   */
   async shownIn(el: HTMLElement): Promise<void> {
-    // A view that does not draw has nothing to wait for.
     if (el.closest(".print") === null || !this.#rendered) return this.settled;
     return this.drawn();
   }
 
-  /**
-   * Settles once the Layout has drawn the rows of the last run the view
-   * started, which can be a paint after the state that holds them. Never
-   * rejects.
-   */
   async drawn(): Promise<void> {
     await this.settled;
-    // A view that unloaded meanwhile draws nothing more.
     if (!this.#rendered) return;
     if (this.#cardsShown) return this.#cards.drawn();
-    // Only a run that gave rows has records for a Layout to draw: a view
-    // the file lacks, a problem or a failed run draws a message.
     const { phase, results } = this.state.getState();
     if (phase === "ready" && results !== null) await this.#records.drawn();
   }
 
-  /**
-   * An Items layout (Papers, Table, List, Cards) drew these records. As for
-   * the cards, a hidden print window can draw them later than the run that
-   * read them.
-   */
   drewRecords(records: ResultSnapshot["records"]): void {
     this.#records.drew(records);
   }
 
-  /**
-   * The list drew these cards. Preact subscribes a list to its store only
-   * after a paint, so a hidden print window can draw a store change later
-   * than the read that made it.
-   */
   drewCards(cards: AnnotState["annotations"]): void {
     this.#cards.drew(cards);
   }
@@ -738,8 +466,6 @@ export class QueryView extends Component implements HistorySurface {
       subscriptions.defer(this.registry.mount(atom));
       subscriptions.defer(this.registry.subscribe(atom, rerun));
     }
-    // A Literature Note's frontmatter changes which Items a vault condition
-    // keeps; the view runs again where that changes its request.
     const replan = () => {
       this.#planner.notesChanged();
       this.contextChanged();
@@ -750,7 +476,6 @@ export class QueryView extends Component implements HistorySurface {
     subscriptions.defer(() => this.#cancelRerun());
   }
 
-  /** Run again, after a short wait, once a shown Attachment gains or loses an Annotation. */
   #listChanged(): void {
     this.#cancelRerun();
     const win = this.#win();
@@ -766,10 +491,6 @@ export class QueryView extends Component implements HistorySurface {
     this.#rerunTimer = null;
   }
 
-  /**
-   * The window the view draws in, whose timers its waits use. A view that
-   * has not drawn stands in no window of its own, and waits on the main one.
-   */
   #win(): Window {
     return this.#el?.win ?? window;
   }
@@ -794,12 +515,10 @@ export class QueryView extends Component implements HistorySurface {
     this.#records.release();
   }
 
-  /** Whether the view draws for Export to PDF, which prints every row. */
   get printing(): boolean {
     return this.#el?.closest(".print") != null;
   }
 
-  /** Draw the toolbar and the cards into `el`. Call it once the view has loaded. */
   render(el: HTMLElement): void {
     el.addClass("zt-query-view");
     this.#el = el;
@@ -814,40 +533,22 @@ export class QueryView extends Component implements HistorySurface {
     );
   }
 
-  /**
-   * Read a Query File's text, and show the view the host asked for. The text
-   * the file on screen was read from changes nothing, so the host gives the
-   * view's own save back as it reads it. A new Query Context comes through
-   * {@link contextChanged}.
-   */
   setText(text: string): void {
     this.#document.setText(text);
   }
 
-  /**
-   * What the host derives may have changed: take its
-   * {@link QueryViewHost.defaults} again, run again where the view's query
-   * reads another Query Context or other Libraries, and otherwise draw the
-   * rows again, since a hook such as {@link QueryViewHost.reason} may say
-   * something else of them.
-   */
   contextChanged(): void {
     this.state.setState({ defaults: this.#host.defaults?.() ?? {} });
     const { file, view, problems } = this.state.getState();
     if (!file || !view || problems.length > 0) return;
     if (this.#runKey(this.#planner.plan(file, view)) !== this.#runRequest)
       this.refresh();
-    // The Layouts draw from the records, so a new list of them redraws.
     else
       this.state.setState(({ results }) => ({
         results: results && { ...results, records: [...results.records] },
       }));
   }
 
-  /**
-   * Show nothing and run nothing until the next {@link setText}: the host has
-   * no Query Context to run the file with.
-   */
   clear(): void {
     this.#document.clear();
     this.state.setState({ file: null });
@@ -855,22 +556,14 @@ export class QueryView extends Component implements HistorySurface {
     this.refresh();
   }
 
-  /** Whether a change in the view can stay. */
   get canSave(): boolean {
     return this.#document.canSave;
   }
 
-  /** Save typed text that waits for its delay now. Settles once the host wrote it. Never rejects. */
   flush(): Promise<void> {
     return this.#document.flush();
   }
 
-  /**
-   * Run a table action or read on the leaf, beside the others; the leaf's
-   * close interrupts it. A failure shows the notice `failed` gives, if any,
-   * and is logged. Returns what stops it sooner, as a collapsed row stops the
-   * read of the rows under it.
-   */
   runTask(
     task: Effect.Effect<void, unknown, ViewServices>,
     failed: () => NoticeMessage | undefined = () => undefined,
@@ -883,25 +576,18 @@ export class QueryView extends Component implements HistorySurface {
     return () => fiber.interruptUnsafe();
   }
 
-  /** Forks on the view services until the view unloads, for a host member. */
   get run(): ViewRunner["run"] {
     return this.#tasks.run;
   }
 
-  /** The surface the host is, by what it binds to `this`. */
   get contextSource(): ContextSource | undefined {
     return this.#host.contextSource;
   }
 
-  /** The changes the toolbar offers, as the host keeps them. */
   get can(): QueryViewCapabilities {
     return this.#host.displayOnly === true ? DISPLAY_CHANGES : EVERY_CHANGE;
   }
 
-  /**
-   * The sort and the row limit of `view` that the researcher set: a sort or
-   * a limit equal to the one the host writes itself is the host's.
-   */
   setByResearcher(view: QueryFileView): {
     sort: readonly QueryFileSort[];
     limit: number | undefined;
@@ -914,58 +600,47 @@ export class QueryView extends Component implements HistorySurface {
     };
   }
 
-  /** The Layout types the host offers; `undefined` for every one. */
   get layouts(): readonly string[] | undefined {
     return this.#host.layouts;
   }
 
-  /** What the host does on the gestures over an Item row. */
   get rows(): ItemRowGestures | undefined {
     return this.#host.rows;
   }
 
-  /** Why `row` is in the list, as the host says; `null` for no reason. */
   reason(row: QueryViewRow): string | null {
     return this.#host.reason?.(row) ?? null;
   }
 
-  /** What the host says left the list empty, if it says. */
   get empty(): ComponentType<{ fallback: string }> | undefined {
     return this.#host.empty;
   }
 
-  /** The host's "Save as query file", for the toolbar. */
   get saveAs(): QueryViewHost["saveAs"] {
     return this.#host.saveAs;
   }
 
-  /** Whether the host places the toolbar's controls itself. */
   get hostsToolbar(): boolean {
     return this.#host.toolbar === "host";
   }
 
-  /** The host's link to the Query File, for the toolbar. */
   get openFile(): QueryViewHost["openFile"] {
     return this.#host.openFile;
   }
 
-  /** Show the view named `name`, or the file's first view for `null`. */
   selectView(name: string | null): void {
     this.registry.set(this.model.wanted, name);
     this.#document.selectView(name);
   }
 
-  /** The name of the view shown, as the host remembers it. */
   get viewName(): string | null {
     return this.registry.get(this.model.wanted);
   }
 
-  /** The user picked a view from the view menu. */
   pickView(name: string): void {
     this.#document.pickView(name);
   }
 
-  /** The document shows another file or view: say what keeps it from running, and run it. */
   #choose(): void {
     const { file, view, wanted } = this.#document;
     this.registry.set(this.model.wanted, this.#document.viewName);
@@ -982,14 +657,12 @@ export class QueryView extends Component implements HistorySurface {
       problems.length === 0 &&
       this.#runKey(this.#planner.plan(file, view)) === this.#runRequest
     ) {
-      // Another Layout of the same query draws the rows on screen as they are.
       if (this.#shownRequest === this.#runRequest) this.#redraw(view);
       return;
     }
     this.refresh();
   }
 
-  /** Draw the rows on screen as Annotation Cards, or let the cards go, as the view's Layout asks. */
   #redraw(view: QueryFileView): void {
     const cards = drawsCards(view);
     if (cards === this.#cardsShown) return;
@@ -1002,13 +675,6 @@ export class QueryView extends Component implements HistorySurface {
     this.#settled = this.#show(this.#shownRequest, cards ? rows : null);
   }
 
-  /**
-   * The rows on screen as a table, one column for each visible property in
-   * the view's order: what "Copy to clipboard" and "Export CSV…" write. A
-   * vault property writes the value its Literature Note holds, and no text
-   * where the Item has no note. The Literature Note Property is a link, not
-   * a value, so it writes no column.
-   */
   table(): ResultTable {
     const { file, view } = this.state.getState();
     const notes = this.#deps.literatureNotes;
@@ -1029,7 +695,6 @@ export class QueryView extends Component implements HistorySurface {
     );
   }
 
-  /** The Query Context and the Libraries the host binds now, as one key. */
   #binding(): string {
     return JSON.stringify([
       this.#host.context() ?? null,
@@ -1037,24 +702,14 @@ export class QueryView extends Component implements HistorySurface {
     ]);
   }
 
-  /**
-   * What tells one run from another: the plan, whose key holds the request
-   * and what the vault answers apart from it, and the host's row pass.
-   */
   #runKey(plan: ViewPlan): string {
     return JSON.stringify([plan.key, this.#host.rowPass?.()?.key ?? null]);
   }
 
-  /** Run the view's query again, and show its rows. */
   refresh(): void {
     this.#refresh(false);
   }
 
-  /**
-   * Run nothing until `start` settles (see {@link QueryViewHost.start}); the
-   * last run asked for meanwhile starts then. {@link settled} waits for the
-   * first run after it, also where the host gives the view its text later.
-   */
   #wait(start: Promise<void>): void {
     const waiting = {
       open: false,
@@ -1071,7 +726,6 @@ export class QueryView extends Component implements HistorySurface {
     });
   }
 
-  /** @param fromList whether a list change asked for the run. */
   #refresh(fromList: boolean): void {
     const waiting = this.#waiting;
     if (waiting && !waiting.open) {
@@ -1082,7 +736,6 @@ export class QueryView extends Component implements HistorySurface {
     try {
       this.#run(fromList);
     } finally {
-      // The first run after the start settles what `settled` gave meanwhile.
       if (waiting) {
         const { first } = waiting;
         if (this.#settled === first.promise) this.#settled = Promise.resolve();
@@ -1112,8 +765,6 @@ export class QueryView extends Component implements HistorySurface {
     this.#runRequest = key;
     const run: ViewRun = { view, plan, key, binding };
     if (plan.fault) {
-      // A vault condition the vault cannot answer apart from ZotLit Query
-      // keeps the view from running.
       this.#fail(run, plan.fault.diagnostic, NO_RESULTS.formulaIssues);
       return;
     }
@@ -1126,8 +777,6 @@ export class QueryView extends Component implements HistorySurface {
       this.state.setState({ results: null });
     }
     if (this.#shownRequest !== key) this.state.setState({ phase: "loading" });
-    // A Formula with a mistake, and each Formula that reads it, is left out
-    // of the rows; the outcome gives the reason for each.
     const completion = Promise.withResolvers<void>();
     this.#settled = completion.promise;
     this.#finishRun = () => completion.resolve();
@@ -1167,9 +816,6 @@ export class QueryView extends Component implements HistorySurface {
         return;
       case "result": {
         const result = outcome.result;
-        // The query reads Zotero's database, which can take a new Annotation
-        // after the repository's list does. Such a run keeps the cards on
-        // screen, and the database change that follows runs the view again.
         const named = (result.rows ?? []).map((row) => row.indexedKey);
         const cause = fromList
           ? "list-change"
@@ -1179,7 +825,6 @@ export class QueryView extends Component implements HistorySurface {
         if (this.#layout.keepsBack(named, cause)) return;
         const rank = this.#host.rank?.() ?? null;
         const rows = ranked(result.rows ?? [], rank);
-        // Rows in the host's rank keep it over the sort, a vault sort too.
         const shown =
           rank === null ? plan.layout(rows) : rankedLayout(rows, view);
         const byKey = new Map(rows.map((row) => [row.indexedKey, row]));
@@ -1210,7 +855,6 @@ export class QueryView extends Component implements HistorySurface {
           },
           failure: null,
         });
-        // The Layout may have changed while the query ran.
         const current = this.state.getState().view ?? view;
         await this.#show(key, drawsCards(current) ? shown.rows : null);
         this.#shownViewName = view.name;
@@ -1223,15 +867,6 @@ export class QueryView extends Component implements HistorySurface {
     }
   }
 
-  /**
-   * A run that gives no rows says why. A refresh of the rows on screen, or a
-   * new filter of the view they belong to, keeps them under the message;
-   * another view shows none. A fault in one condition of the filters is
-   * marked at that condition. The filters cannot hold without a Formula they
-   * read: a condition that reads a Formula with a mistake, or one that the
-   * file does not define, shows no rows. Kept rows keep the Formula marks of
-   * the run that gave them; `issues` mark the Formulas otherwise.
-   */
   #fail(
     { view, plan, key, binding }: ViewRun,
     diagnostic: Diagnostic | QueryViewFailure["diagnostic"],
@@ -1264,11 +899,6 @@ export class QueryView extends Component implements HistorySurface {
     }));
   }
 
-  /**
-   * Put these rows on screen, from the lists the layout holds for them.
-   * `null` rows stand for a Layout that draws no Annotation Cards: it shows
-   * the rows from the state, and holds no list.
-   */
   async #show(
     key: string | null,
     rows: Parameters<AnnotationsLayout["showRows"]>[0] | null = [],
@@ -1295,8 +925,6 @@ function Problems({ view }: { view: QueryView }) {
     view,
     (s) => (s.failure?.filterIssue ?? null) !== null && s.results !== null,
   );
-  // A fault in one condition, under the last good rows, is marked at its row
-  // in the Filter popover; the view says only that the filter has an error.
   const unresolved = useAnnotStore((s) => s.unresolved);
   const hint =
     phase === "failed" && diagnostic
@@ -1359,11 +987,6 @@ function Problems({ view }: { view: QueryView }) {
   );
 }
 
-/**
- * What the run's diagnostic says, and where the filter holds the fault: its
- * line, with a caret under the fault. The corrections ZotLit Query gives
- * follow.
- */
 function DiagnosticText({
   diagnostic,
 }: {
@@ -1391,20 +1014,11 @@ function DiagnosticText({
   );
 }
 
-/**
- * The parent record a grouping by Item or by Attachment reads, by the name
- * the notice gives it: a view of Items has no parent item to group by.
- */
 const PARENTS: Partial<Record<string, () => string>> = {
   "item.indexedKey": m.query_view_property_parent_item,
   "attachment.indexedKey": m.query_view_property_source_attachment,
 };
 
-/**
- * What the view keeps in its file but does not use: what its dataset lacks,
- * the properties of the dataset that no cell shows, and those it cannot
- * sort by. Each property shows by its label, as a column header does.
- */
 function UnusedNote({ view }: { view: QueryView }) {
   const current = useQueryViewState(view, (s) => s.view);
   const entries = useViewProperties(view);
@@ -1412,8 +1026,6 @@ function UnusedNote({ view }: { view: QueryView }) {
   const { unused } = entries;
   const { engine, name } = datasetSpec(current.from);
   const known = (property: string) => engine.definition(property) !== undefined;
-  // A property the dataset has that no cell shows, such as the tags of
-  // Items, and one it has that ZotLit Query cannot sort by.
   const unshown = unused.order.filter(known);
   const unsorted = unused.sort.filter(known);
   const properties = [
@@ -1452,7 +1064,6 @@ function UnusedNote({ view }: { view: QueryView }) {
 }
 
 function Warnings({ view }: { view: QueryView }) {
-  // The warnings belong to the rows on screen, which a failed run can keep.
   const warnings = useQueryViewState(
     view,
     (s) => (s.results ?? NO_RESULTS).warnings,
@@ -1473,12 +1084,6 @@ function Warnings({ view }: { view: QueryView }) {
   );
 }
 
-/**
- * What the body shows under the toolbar: the rows' layout, or a state in the
- * shared frame that takes the layout's place, an empty list or a run that
- * failed, or could not start, with no rows to show. A failed run that keeps
- * the last good rows shows them, under its note.
- */
 function bodyShows(s: QueryViewState): "rows" | "empty" | "problem" {
   const count = s.results?.count ?? 0;
   if (s.phase === "ready") return count > 0 ? "rows" : "empty";
@@ -1489,7 +1094,6 @@ function bodyShows(s: QueryViewState): "rows" | "empty" | "problem" {
 
 function NoResults({ view }: { view: QueryView }) {
   const dataset = useQueryViewState(view, (s) => s.view?.from);
-  // A filter of this view or of all views can be what leaves it empty.
   const filtered = useQueryViewState(
     view,
     (s) => s.file?.filters !== undefined || s.view?.filters !== undefined,
@@ -1515,8 +1119,6 @@ function NoResults({ view }: { view: QueryView }) {
 }
 
 function ReadOnlyNote({ view }: { view: QueryView }) {
-  // A host can tell where it stands only once it is on the page, which is
-  // before a run lands; each run asks again.
   useQueryViewState(view, (s) => s.phase);
   const saveFailed = useQueryViewState(view, (s) => s.saveFailed);
   if (view.canSave && !saveFailed) return null;
@@ -1530,12 +1132,10 @@ function ReadOnlyNote({ view }: { view: QueryView }) {
   );
 }
 
-/** Whether the view's Layout draws live Annotation Cards. */
 function drawsCards(view: QueryFileView): boolean {
   return layoutOf(view)?.type === "annotations";
 }
 
-/** `rows` in the order of `rank`, where the host gives one. */
 function ranked<Row extends { indexedKey: string }>(
   rows: readonly Row[],
   rank: readonly string[] | null,
@@ -1549,11 +1149,6 @@ function ranked<Row extends { indexedKey: string }>(
   );
 }
 
-/**
- * The rows in the host's rank, as the layout shows them: in that order, cut
- * to the view's limit, which a capped run for a vault sort leaves to the
- * view.
- */
 function rankedLayout(
   rows: readonly QueryViewRow[],
   view: QueryFileView,
@@ -1565,14 +1160,11 @@ function rankedLayout(
   return { ...layoutRows(kept, view), dropped: kept.length < rows.length };
 }
 
-/** The rows, drawn by the shown view's Layout. */
 function LayoutBody({ view }: { view: QueryView }) {
   const type = useQueryViewState(view, (s) =>
     s.view ? layoutOf(s.view)?.type : null,
   );
   switch (type) {
-    // No view to draw, as before the host gives the view its text: the
-    // body takes no room that the rows then give back.
     case null:
       return null;
     case "list":
@@ -1588,7 +1180,6 @@ function LayoutBody({ view }: { view: QueryView }) {
   }
 }
 
-/** The cards, drawn with the shown view's Annotations layout options. */
 function AnnotationsCards({ view }: { view: QueryView }) {
   const shown = useQueryViewState(view, (s) => s.view);
   const cards = useAnnotStore((s) => s.annotations);
@@ -1623,10 +1214,6 @@ function OpenFileButton({ view }: { view: QueryView }) {
   );
 }
 
-/**
- * "Save as query file", for a host that writes what it shows as a new Query
- * File: the way to the full Query View. Its name shows on a wide toolbar.
- */
 export function SaveAsButton({ view }: { view: QueryView }) {
   const { saveAs } = view;
   if (!saveAs) return null;
@@ -1645,10 +1232,7 @@ export function SortButton({ view }: { view: QueryView }) {
   const { literatureNotes } = view.tableDeps;
   const names = useVaultPropertyNames(literatureNotes);
   const properties = useViewProperties(view, names);
-  // Rows in the host's rank do not follow the sort: Sort stays in place,
-  // off, so the toolbar never shifts as a search starts or ends.
   const ranked = useQueryViewState(view, (s) => s.results?.ranked ?? false);
-  // A sort the host writes itself, as Recent does, shows as not set.
   useQueryViewState(view, (s) => s.defaults);
   if (!current || !properties) return null;
   const sort = current.sort ?? [];
@@ -1719,22 +1303,11 @@ function QueryViewBody({ view }: { view: QueryView }) {
   const shows = useQueryViewState(view, bodyShows);
   const toolbarName = useUniqueId();
   return (
-    // A host's column can give the body its height, `grow` where the host
-    // is a flex column, as the Library View's list is. In a note the body
-    // stands no taller than `--zt-query-note-max-height`, the height
-    // Obsidian gives a Kanban Base, and the rows scroll in the layout: a
-    // long list neither stretches the note nor draws as the note scrolls.
-    // Export to PDF prints every row.
     <div className="zt:flex zt:h-full zt:min-h-0 zt:grow zt:flex-col zt:in-[.print]:h-auto zt:not-in-[.print]:in-[.zt-query-note]:max-h-[var(--zt-query-note-max-height,500px)]">
-      {/* The toolbar is a size container: on a narrow pane its buttons show
-          icons only, and it stays one row. In a Query File tab it runs to
-          the pane's edges, as the Bases header does (see file-view.css).
-          Export to PDF prints the rows without it. */}
       {!view.hostsToolbar && (
         <div
           className="zt:@container zt:flex zt:min-h-(--size-4-10) zt:shrink-0 zt:flex-nowrap zt:items-center zt:gap-(--size-2-2) zt:overflow-hidden zt:border-b-(length:--border-width) zt:border-(--table-border-color) zt:ps-[var(--zt-query-toolbar-inset-start,var(--size-2-1))] zt:pe-[var(--zt-query-toolbar-inset-end,var(--size-2-1))] zt:in-[.is-mobile]:min-h-(--touch-size-l) zt:in-[.print]:hidden"
           role="toolbar"
-          // Named by a hidden element: an `aria-label` would show a tooltip.
           aria-labelledby={toolbarName}
         >
           <span id={toolbarName} className="zt:sr-only">
@@ -1769,8 +1342,6 @@ function QueryViewBody({ view }: { view: QueryView }) {
           <NoResults view={view} />
         </PaneState>
       )}
-      {/* Out of the flow while a state takes its place, so the frame has the
-          space; it stays mounted, and keeps its scroll and its widths. */}
       <div className="zt:[&:not([hidden])]:contents" hidden={shows !== "rows"}>
         <LayoutBody view={view} />
       </div>

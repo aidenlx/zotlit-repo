@@ -27,22 +27,16 @@ export default defineConfig({
       },
     },
     {
-      // The rule tests reach the package-local Oxlint modules in scripts/.
       files: ["src/lint/*.test.ts"],
       rules: {
         "no-restricted-imports": ["error", { patterns: [datePattern] }],
       },
     },
     {
-      // Effect tests written before the rule, in plain Vitest. A file moves
-      // off this list when its cases move to it.effect.
       files: ["src/services/zotero-reads/item-query.test.ts"],
       rules: { "zotlit-effect-tests/no-effect-run-in-test": "off" },
     },
     {
-      // Node runs these straight from source, where the `@/` alias does not
-      // resolve; and they stay independent of plugin code, which
-      // tsconfig.node.json cannot type-check.
       files: ["scripts/**"],
       rules: {
         "no-restricted-imports": [

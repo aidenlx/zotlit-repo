@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 
-// Git hook entry for the AI-attribution rules in `#ai-attribution`.
-//   message <file>   commit-msg: fail when the message credits an agent.
-// The pre-push hook checks the pushed commits and refs (scripts/pre-push.ts).
 import { readFile } from "node:fs/promises";
 
 import { attributionLines } from "#ai-attribution";

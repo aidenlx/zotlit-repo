@@ -1,5 +1,3 @@
-// Adapts Obsidian services to the shared side-effect-free resolver core.
-
 import type { ExcerptImageContext } from "#core/template/inert-resolvers.ts";
 import { normalizePath } from "obsidian";
 import type { FileManager, TFile, Vault } from "obsidian";

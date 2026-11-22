@@ -1,5 +1,3 @@
-// The body of desktop ZotLit: the shell over this host's composition. The
-// entry (`zt-main.ts`) loads it through a dynamic `import()`.
 import semverGte from "semver/functions/gte";
 
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
@@ -41,13 +39,6 @@ export function showInstallerUpdateNotice(): BaseNotice {
   );
 }
 
-/**
- * Block startup on Obsidian installers whose bundled Electron predates the
- * `minElectronVersion` declared in package.json (injected at build time as
- * `__MIN_ELECTRON_VERSION__`), pointing the user at the installer-update docs.
- *
- * @throws when the running Electron is too old, aborting plugin load.
- */
 function assertElectronVersion(): void {
   const version = process.versions.electron;
   if (!version) return;
@@ -59,7 +50,6 @@ function assertElectronVersion(): void {
   );
 }
 
-/** Desktop ZotLit's start: block load on too-old Obsidian installers before allocating any resources. */
 export const start = shellStart(host, {
   preflight: assertElectronVersion,
   linkActions,

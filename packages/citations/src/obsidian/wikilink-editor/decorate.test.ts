@@ -6,7 +6,6 @@ import { wikilinkDecorations } from "./decorate.ts";
 import type { WikilinkDisplayContext } from "./decorate.ts";
 import type { WikilinkSpan } from "./scan.ts";
 
-/** A scanned link at fixed offsets: `[[` at 0, the interior from 2. */
 function span(
   linktext: string,
   overrides: Partial<WikilinkSpan> = {},
@@ -25,10 +24,6 @@ function span(
   };
 }
 
-/**
- * The scanned links of one line, laid out as the document writes them: each
- * `[[…]]` follows the last with `separator` between them.
- */
 function line(
   linktexts: readonly string[],
   separator = "; ",
@@ -87,8 +82,6 @@ describe("wikilinkDecorations", () => {
           keys: [{ citekey: "wang2020", start: 1, end: 10 }],
           works: [WANG.indexedKey],
         },
-        // The `[[` the document writes the Citation at, which the shared text
-        // keys its occurrence by.
         start: 0,
         tokenClasses: ["hmd-internal-link"],
       },
@@ -153,8 +146,6 @@ describe("wikilinkDecorations", () => {
   });
 
   it("reveals a link its group covers but its own range does not", () => {
-    // Two links written back to back share one group, so a caret between them
-    // reveals both — the grouping Obsidian's own conceal pass applies.
     const link = span(`${WANG_LINK}#cite:locator=7`, {
       group: { from: 0, to: 80 },
     });

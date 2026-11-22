@@ -1,4 +1,3 @@
-/** The native service and lease edge over a test's scoped RPC transport. */
 import { Context, Effect, Layer, Stream } from "effect";
 import type { ManagedRuntime, Scope } from "effect";
 import { RpcSchema } from "effect/rpc";
@@ -48,7 +47,6 @@ async function openReads(
   return { runtime, service, close: () => owned.disposeAsync() };
 }
 
-/** Legacy consumer fixtures can construct synchronously; only the test owner awaits ready. */
 export type TestReads = ZoteroReads["Service"] &
   AsyncDisposable & {
     runtime: ManagedRuntime.ManagedRuntime<ZoteroReads, never>;
@@ -69,7 +67,6 @@ export function testReads(
     return (native = runtime.runSync(ZoteroReads));
   });
   const service = Effect.promise(() => loaded);
-  // Calls made by a consumer during fixture startup wait for the real layer.
   const reads: Record<string, unknown> = {};
   for (const [tag, rpc] of ZoteroReadsRpc.requests) {
     if (
@@ -138,21 +135,13 @@ export function testReads(
   };
 }
 
-/** One answer per read a test calls: the read's input in, its result out. */
 export type ReadsAnswers = {
   readonly [K in keyof ZoteroReadsApi]?: (
     input: Parameters<ZoteroReadsApi[K]>[0],
   ) => ReturnType<ZoteroReadsApi[K]>;
 };
 
-/**
- * A {@link ZoteroReadsApi} that answers the reads in `answers`; any other read
- * throws.
- */
 export function readsAnswering(answers: ReadsAnswers): ZoteroReadsApi {
-  // The one cast: the RPC client's methods are generic over their call
-  // options, which a plain function cannot state. ReadsAnswers checks each
-  // answer against its read's input and result.
   return stubService<ZoteroReadsApi>(
     "ZoteroReadsApi",
     answers as Partial<ZoteroReadsApi>,

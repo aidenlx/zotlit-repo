@@ -4,7 +4,6 @@ import { savedQueryFileText } from "./sidebar-query.ts";
 
 import { parseQueryFile } from "#core/query-view/query-file.ts";
 
-/** A sidebar that sorts by date added, groups by colour, and has one full filter. */
 const SIDEBAR = `filters: attachment == this.attachment
 views:
   - type: annotations
@@ -91,7 +90,6 @@ views:
     expect(saved({ filter: { ...NO_FILTER, colors: ["#FFD400"] } })).toContain(
       `        - colorName == "yellow"\n`,
     );
-    // Two hex codes are orange, and this one has no name at all.
     expect(saved({ filter: { ...NO_FILTER, colors: ["#F19837"] } })).toContain(
       `        - color.lower() == "#f19837"\n`,
     );

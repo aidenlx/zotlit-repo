@@ -1,14 +1,5 @@
-// What the pre-push hook lets through. `main`, the trunk, takes pushes only
-// from `pnpm land`, which pushes during its Land Turn; an agent session pushes
-// nothing of its own, since `land` pushes for it. A person pushes any other
-// branch freely: the quality gate runs in `land`, on the rebased result.
-
 import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
-/**
- * One ref line that Git hands a pre-push hook on stdin:
- * `<local ref> <local sha> <remote ref> <remote sha>`.
- */
 export interface PushRef {
   localRef: string;
   localSha: string;
@@ -27,14 +18,8 @@ export function parsePushRefs(input: string): PushRef[] {
     });
 }
 
-/** The branch that only `land` pushes. */
 const LANDED_REF = `refs/heads/${SOURCE_BRANCH}`;
 
-/**
- * Why the push may not go ahead; empty when it may.
- * @param context.agent the push runs in an agent session.
- * @param context.land the push comes from a land that holds its Land Turn.
- */
 export function pushProblems(
   refs: readonly PushRef[],
   context: { agent: boolean; land: boolean },

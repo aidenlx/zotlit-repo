@@ -39,7 +39,6 @@ interface ScopeState {
   libraries?: readonly AvailableLibrary[];
 }
 
-/** The Library scope rows over the scope the test names. */
 const setup = Effect.fn("setup")(function* (
   state: ScopeState,
   failure?: SettingsMutationError,
@@ -100,7 +99,6 @@ it.effect(
       const list = selectedLibrariesList(ctx);
       expect(list.addItem).toBeUndefined();
       expect(list.onDelete).toBeUndefined();
-      // An unreadable database knows of no missing Library, only of none.
       expect(list.items!.map((item) => item.desc)).toEqual([undefined]);
     }),
 );

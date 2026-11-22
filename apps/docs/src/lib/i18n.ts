@@ -1,8 +1,5 @@
-// The site's locales and the `/zh-CN` prefix that marks Chinese URLs.
-
 import { defineI18n } from "fumadocs-core/i18n";
 
-/** V1-compatible URLs; unmarked files are English and remain the fallback. */
 export const i18n = defineI18n({
   languages: ["en", "zh-CN"],
   defaultLanguage: "en",
@@ -16,12 +13,6 @@ export function isSiteLocale(value: string): value is SiteLocale {
   return i18n.languages.some((locale) => locale === value);
 }
 
-/**
- * Pages drawn wholly from the locale catalogs, whose Chinese strings are in
- * place: the landing, community and policy pages, the course listing, the changelog
- * listing over its Chinese entries, and the blog listing over its Chinese
- * posts. Each has a native `/zh-CN` edition.
- */
 export const chineseCatalogPages = [
   "/",
   "/community",
@@ -32,7 +23,6 @@ export const chineseCatalogPages = [
   "/blog",
 ] as const;
 
-/** The URL prefix of every Chinese page; English URLs carry none. */
 export const chinesePrefix = "/zh-CN";
 
 export function validateSiteLocale(locale: unknown): SiteLocale {
@@ -42,7 +32,6 @@ export function validateSiteLocale(locale: unknown): SiteLocale {
   return locale;
 }
 
-/** A server-function validator for input that carries the requested locale. */
 export function localeInput<T extends object>() {
   return (input: T & { locale: SiteLocale }) => {
     validateSiteLocale(input.locale);

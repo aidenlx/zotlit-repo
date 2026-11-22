@@ -32,7 +32,6 @@ const FILTER: ExpressionVocabulary = {
   custom: { path: "custom", names: ["Reading status", "Shelf"] },
 };
 
-/** The labels offered with the caret at the `|` of `marked`. */
 function offered(
   marked: string,
   vocabulary: ExpressionVocabulary = FILTER,
@@ -63,13 +62,11 @@ describe("Search Terms", () => {
   });
 
   it("ranks a visible name that starts with the typed text above a hidden word", () => {
-    // `misc` is a word for `extra`.
     expect(labels("mi|", items)[0]).toBe("min");
     expect(labels("mi|", items)).toContain("extra");
   });
 
   it("ranks an exact name above an exact word for another field", () => {
-    // `format` is also a word for `medium`.
     expect(labels("format|", items)[0]).toBe("format");
   });
 
@@ -152,7 +149,6 @@ describe("namespaces", () => {
         kind: "namespace",
         note: "Reading score",
       },
-      // A label that only repeats the name shows no note.
       { label: "formula.late", insert: "formula.late", kind: "namespace" },
     ]);
     const result = offered("formula.s|")!;
@@ -199,7 +195,6 @@ describe("namespaces", () => {
   });
 });
 
-/** A vocabulary whose receivers are typed by their text, as `types` names them. */
 function typing(
   types: Record<
     string,
@@ -260,7 +255,6 @@ describe("members", () => {
     expect(names).toEqual(
       expect.arrayContaining(["lower", "year", "format", "filter", "length"]),
     );
-    // A name with a definition on several types is one entry.
     expect(names.filter((name) => name === "slice")).toHaveLength(1);
     expect(
       offered("(title +.|", typed)!.options.find((o) => o.label === "slice"),
@@ -299,7 +293,6 @@ describe("bracket keys", () => {
   });
 
   it("offers custom keys only at the path the dataset reads custom fields by", () => {
-    // An Annotation reads its Item's custom fields.
     const annotations = {
       ...FILTER,
       custom: { path: "item.custom", names: ["Shelf"] },
@@ -311,7 +304,6 @@ describe("bracket keys", () => {
 
   it("offers vault names quoted inside vault[, in filter conditions only", () => {
     expect(labels("vault[|", FILTER)).toEqual(['"status"', '"reading-status"']);
-    // A vault key keeps the label its `vault.<name>` entry shows, and matches by it.
     expect(offered("vault[|", FILTER)!.options[0]).toMatchObject({
       label: '"status"',
       note: "status (note)",
@@ -400,7 +392,6 @@ describe("in the editor", () => {
       }),
       parent: document.body,
     });
-    /** The row of `label` once the list shows it. */
     const row = (label: string) =>
       vi.waitFor(() => {
         const found = [
@@ -439,7 +430,6 @@ describe("in the editor", () => {
     await field.accept("filter");
     expect(field.view.state.doc.toString()).toBe("tags.filter()");
     expect(field.view.state.selection.main.head).toBe(12);
-    // The list opens by itself on the names `filter` binds.
     await field.accept("value", { open: false });
     expect(field.view.state.doc.toString()).toBe("tags.filter(value)");
   });
@@ -452,7 +442,6 @@ describe("in the editor", () => {
 });
 
 describe("the members a Query Dataset's planner reads", () => {
-  /** The vocabulary of `dataset`, its receivers typed by its planner. */
   const planned = (
     dataset: typeof ITEMS,
     options?: Partial<Parameters<typeof datasetVocabulary>[1]>,
@@ -479,7 +468,6 @@ describe("the members a Query Dataset's planner reads", () => {
     expect(labels('attachments.reduce(value.|, "")', items)).toContain(
       "fileType",
     );
-    // A bound name types where it stands, inside any call of the element expression.
     for (const text of [
       "tags.filter(if(index.|, true, false))",
       'tags.filter(title.replace(index.|, "x"))',
@@ -488,7 +476,6 @@ describe("the members a Query Dataset's planner reads", () => {
       for (const other of ["year", "lower", "contains"])
         expect(labels(text, items), text).not.toContain(other);
     }
-    // A call left unfinished in the element expression still types its receiver.
     expect(labels("attachments.filter(value.title.|)", items)).toContain(
       "lower",
     );
@@ -505,7 +492,6 @@ describe("the members a Query Dataset's planner reads", () => {
       searchTerms: expect.any(Array),
     });
     expect(fields.map((field) => field.label)).toContain("creators");
-    // An Annotation's own field and the custom fields are no members of its Item.
     expect(fields.map((field) => field.label)).not.toContain("comment");
     expect(fields.map((field) => field.label)).not.toContain("custom");
     for (const { label } of fields)
@@ -529,7 +515,6 @@ describe("the members a Query Dataset's planner reads", () => {
 
   it("types a bound name where the list method binds it, not as a custom field", () => {
     const items = planned(ITEMS);
-    // `value` alone is a custom field of text; in `tags.filter` it is an element.
     expect(labels("tags.filter(value.|", items)).toContain("year");
     expect(labels("tags.filter(index.|", items)).toContain("toFixed");
     expect(labels("tags.filter(index.|", items)).not.toContain("lower");

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { isClonefileUnsupported } from "./reflink.ts";
 
-/** A rejection shaped like the one `promisify(execFile)` raises. */
 function execFailure(stderr: string): Error {
   return Object.assign(new Error("Command failed: cp -c -n src dest"), {
     code: 1,

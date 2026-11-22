@@ -1,4 +1,3 @@
-// An in-memory ItemSource with the controls an Item Index test drives.
 import { Effect, Layer, PubSub, Stream } from "effect";
 
 import type { IndexedItem, IndexSignature, Item } from "@zotlit/db";
@@ -7,83 +6,43 @@ import { ItemSource, SourceUnavailable } from "./item-index.ts";
 import type { PinnedItemSource } from "./item-index.ts";
 import { makeGate } from "./make-gate.ts";
 
-/** How often the Item Index read each part of an {@link ItemSource}. */
 export interface MemoryItemSourceReads {
   pinned: number;
-  /** `items` streams opened: one per Library a build reads. */
   scans: number;
-  /** `items` batches read. */
   items: number;
   signature: number;
   itemsByIndexedKey: number;
-  /** `items` reads interrupted while held at the gate. */
   interrupted: number;
-  /**
-   * Pinned sources whose scope closed. A held index keeps the source it was
-   * built on, so a finished build or re-check releases the source it
-   * replaces; an interrupted or failed one releases its own.
-   */
   released: number;
 }
 
-/** One Item of a {@link MemoryItemSource}: the row a build reads and the Item hydration reads. */
 export interface MemoryItemRow {
   readonly indexed: IndexedItem;
   readonly item: Item;
 }
 
-/**
- * An {@link ItemSource} over a Map of rows per Library, with controls for a
- * test: replace rows, swap the source, emit a generation, fail the source, and
- * hold `items` at a gate mid-build.
- */
 export interface MemoryItemSource {
   readonly layer: Layer.Layer<ItemSource>;
-  /** Read counts since the source was made. */
   readonly reads: Readonly<MemoryItemSourceReads>;
-  /** The generation the next pinned source reports. */
   readonly generation: number;
-  /** Replace the rows of one Library. No generation is emitted. */
   readonly setItems: (
     libraryID: number,
     items: readonly MemoryItemRow[],
   ) => Effect.Effect<void>;
-  /**
-   * Make the Item of `indexedKey` vanish from every pinned source's
-   * `itemsByIndexedKey`, as a delete with no change event does. No generation
-   * is emitted and builds still read its row.
-   */
   readonly vanish: (indexedKey: string) => Effect.Effect<void>;
-  /** Emit a change on an unswapped source. */
   readonly notify: Effect.Effect<void>;
-  /** Raise the generation and emit a change, as a swap of the source does. */
   readonly swap: Effect.Effect<void>;
-  /** Make every later read fail with {@link SourceUnavailable}, or recover. */
   readonly setUnavailable: (unavailable: boolean) => Effect.Effect<void>;
-  /** Hold every later `items` read until {@link MemoryItemSource.openGate}. */
   readonly closeGate: Effect.Effect<void>;
   readonly openGate: Effect.Effect<void>;
-  /** Wait until an `items` read is held at the closed gate. */
   readonly held: Effect.Effect<void>;
-  /** `items` reads held at the gate now. */
   readonly waiting: number;
-  /**
-   * Hold the next `itemsByIndexedKey` read until
-   * {@link MemoryItemSource.openHydrationGate}; later reads pass.
-   */
   readonly closeHydrationGate: Effect.Effect<void>;
   readonly openHydrationGate: Effect.Effect<void>;
-  /** Wait until an `itemsByIndexedKey` read is held at the closed gate. */
   readonly hydrationHeld: Effect.Effect<void>;
-  /**
-   * Run `run` once, in the closing fiber, when the next pinned source closes.
-   * A finished build closes the source of the index it replaces, so `run`
-   * lands at the end of that build.
-   */
   readonly onNextRelease: (run: Effect.Effect<void>) => Effect.Effect<void>;
 }
 
-/** `rows` holds the Items of each Library in source order. */
 export const makeMemoryItemSource = (
   rows: ReadonlyMap<number, readonly MemoryItemRow[]>,
 ): Effect.Effect<MemoryItemSource> =>
@@ -244,7 +203,6 @@ export const makeMemoryItemSource = (
     } satisfies MemoryItemSource;
   });
 
-/** The same `(count, checksum)` shape the database signature query reads. */
 function signatureOf(rows: readonly MemoryItemRow[]): IndexSignature {
   return {
     count: rows.length,

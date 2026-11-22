@@ -1,7 +1,6 @@
 import type { ProfileDialogServices } from "#desktop/profile/dialogs.ts";
 import type { ProfileOperationError } from "#obsidian/profile/service.ts";
 import type { TemplateFailure } from "#obsidian/template/service.ts";
-// Shared Literature Note navigation for Quick Switch, Library rows and Companion links.
 import { Effect } from "effect";
 import type { Cause } from "effect";
 import type { RpcClientError } from "effect/rpc";
@@ -30,24 +29,13 @@ import {
   updateNoteToast,
 } from "./update-single.ts";
 
-/** How opening or creating a Literature Note ended. */
 export type LiteratureNoteOutcome =
-  /** The note resolution refused the link; nothing opened. */
   | { readonly outcome: "refused"; readonly target: CompanionNoteTarget }
-  /**
-   * An existing note opened and stayed as it was: its Profile stamp was kept
-   * or carries a diagnostic.
-   */
   | { readonly outcome: "opened-as-is"; readonly target: CompanionNoteTarget }
-  /** An existing note opened, and updated when the link asked for it. */
   | { readonly outcome: "opened"; readonly file: TFile }
-  /** A metadata-only update found no note, so it created none. */
   | { readonly outcome: "metadata-no-note" }
-  /** No Item is available for creation. */
   | { readonly outcome: "item-not-found" }
-  /** A note was created and opened. */
   | { readonly outcome: "created"; readonly file: TFile }
-  /** The creation wrote no note: the user cancelled, or the create failed. */
   | { readonly outcome: "not-created" };
 
 type LiteratureNoteOptions =
@@ -60,14 +48,9 @@ type LiteratureNoteOptions =
   | {
       readonly source: "interactive";
       readonly item?: Item;
-      /**
-       * Open the note in a split beside this leaf, unless a tab already shows
-       * it, which comes forward.
-       */
       readonly beside: WorkspaceLeaf;
     };
 
-/** Open an existing Literature Note or create one through Profile selection. */
 export const openLiteratureNote = Effect.fn("LiteratureNoteNavigation.open")(
   function* (
     deps: InteractiveCreationPorts,
@@ -97,8 +80,6 @@ export const openLiteratureNote = Effect.fn("LiteratureNoteNavigation.open")(
           "paneType" in options &&
           !options.paneType)
       ) {
-        // A tab restored but not yet shown holds a deferred view, which
-        // names its file only in its view state.
         const existing = (yield* workspace.leavesOfType("markdown")).find(
           (leaf) => leaf.getViewState().state?.file === file.path,
         );
@@ -108,8 +89,6 @@ export const openLiteratureNote = Effect.fn("LiteratureNoteNavigation.open")(
           return;
         }
       }
-      // A split divides the active leaf; the leaf to open beside is the one
-      // to divide, whatever took the focus while the note was written.
       if (beside) yield* workspace.setActiveLeaf(beside, { focus: false });
       const navigate = workspace.openLinkText(file.path, "", {
         newLeaf: beside

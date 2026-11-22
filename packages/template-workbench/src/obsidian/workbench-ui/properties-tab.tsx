@@ -1,7 +1,3 @@
-// The Properties tab: one row per Managed Frontmatter entry, each editing its
-// own expression through a slice of the master document, summarised by what
-// the row produced; the note preview's own Properties block shows the fold.
-
 import type {
   ManagedEntrySource,
   WorkbenchDocumentController,
@@ -86,17 +82,11 @@ const MERGE_LABEL: Record<string, () => string> = {
   keep: m.workbench_properties_merge_keep,
 };
 
-/** A problem one row carries: the text to show, and the entry it names. */
 export interface EntryDiagnostic {
-  /** 1-based position of the Managed Frontmatter entry it belongs to. */
   readonly position: number;
   readonly message: string;
 }
 
-/**
- * The problems the rows carry: the renderer's own that name an entry, and
- * the manifest errors the parser pinned to one entry.
- */
 export function entryDiagnostics(
   diagnostics: readonly RenderDiagnostic[],
   problems: readonly WorkbenchProblem[],
@@ -123,20 +113,13 @@ export function entryDiagnostics(
 
 export interface PropertiesPaneProps {
   controller: WorkbenchDocumentController;
-  /** The rows, in list order. */
   entries: readonly ManagedEntrySource[];
-  /** What each entry produced on its own, from the current render. */
   properties: readonly RenderedProperty[];
-  /** The frontmatter the note gets, which orders a spread's produced names. */
   fold: readonly RenderedProperty[];
-  /** Every problem that names a row, from the render and from the parser. */
   diagnostics: readonly EntryDiagnostic[];
-  /** The open row's position, or null while every row is folded. */
   selected: number | null;
   onSelect: (position: number | null) => void;
-  /** A native host can edit JavaScript in its whole-document editor. */
   onOpenSource?: (range: WorkbenchSliceRange) => void;
-  /** Opens Problems at one problem, by its diagnosis id. */
   onShowProblem?: (id: string) => void;
   onChooseItem?: () => void;
   onRetry?: () => void;
@@ -145,14 +128,12 @@ export interface PropertiesPaneProps {
   suggest?: SuggestionSource;
 }
 
-/** Produced fields under the entry that produced them, for either column. */
 function byEntry(
   properties: readonly RenderedProperty[],
 ): Map<number, readonly RenderedProperty[]> {
   return Map.groupBy(properties, (property) => property.position);
 }
 
-/** A static entry shows its own value; a spread shows what it produced. */
 function summarize({
   entry,
   produced,
@@ -177,11 +158,6 @@ function summarize({
       });
 }
 
-/**
- * A spread's produced names the way the fold placed them, so the row reads in
- * the order the note gets. A name the fold dropped keeps the entry's own order,
- * at the end.
- */
 function foldOrder(
   produced: readonly RenderedProperty[],
   fold: readonly RenderedProperty[],
@@ -213,8 +189,6 @@ export function PropertiesPane({
 }: PropertiesPaneProps) {
   const example = useExampleState("properties");
   const exampleMessage = example.message;
-  // The output the rows read: this attempt's own, or the output that stands
-  // beside the example's condition. Without either, each row shows its rule.
   const standing =
     exampleMessage === null
       ? { properties, fold }
@@ -231,10 +205,6 @@ export function PropertiesPane({
     (diagnostic) => diagnostic.position,
   );
   const [newRow, setNewRow] = useState<number | null>(null);
-  // A row the reader has opened stays in the page, hidden, after it closes, so
-  // its editor keeps its view rather than rebuilding on every expand. The row
-  // is memory of the entry that was there; a list change that puts another
-  // entry at the position drops it.
   const entriesByIdentity = useMemo(
     () =>
       new Map(
@@ -252,10 +222,8 @@ export function PropertiesPane({
   useEffect(() => {
     if (openRow !== null) openRetained(openRow);
   }, [openRow, openRetained]);
-  // A held list stays on screen for repair, but no list change can patch it.
   const locked = controller.readOnly || controller.managedEntriesHeld;
 
-  // The list counts rows from 0; an entry's position counts from 1.
   const reorder = useListReorder({
     disabled: locked,
     onMove: (from, to) => {
@@ -341,10 +309,6 @@ export function PropertiesPane({
           const fields = produced.get(entry.position) ?? [];
           const raised = problems.get(entry.position) ?? [];
           const open = selected === entry.position;
-          // A folded row reads what went wrong instead of the value it failed
-          // to produce, which is the one place that says so while it is shut.
-          // The open row shows it beside the expression it belongs to instead,
-          // so the reader is told once either way.
           const failure =
             !open && raised.length > 0 ? raised[0]!.message : null;
           const summary =
@@ -529,11 +493,9 @@ interface EntryFormProps {
   reveal?: WorkbenchSliceRange | null;
   onSelection?: (selection: WorkbenchSliceRange) => void;
   suggest?: SuggestionSource;
-  /** Whether this form is folded away while the pane keeps its editor alive. */
   hidden?: boolean;
 }
 
-/** Edit the name, value, and update behavior of a property. */
 function EntryForm({
   instanceId,
   controller,
@@ -548,7 +510,6 @@ function EntryForm({
   suggest,
   hidden = false,
 }: EntryFormProps) {
-  // Named as the expression editor is, by a hidden element: no tooltip.
   const textName = useContainerName(m.workbench_properties_expression());
   const [pendingLanguage, setPendingLanguage] = useState<
     "text" | "expr" | "value" | null

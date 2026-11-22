@@ -1,41 +1,20 @@
-// The driver conformance suite: what the read engine of @zotlit/db needs from
-// a synchronous SQLite driver behind its Drizzle client. An adapter test calls
-// `describeDriverConformance` with a factory for its own clients. The file
-// loads no Node module, so a test in a Web Worker can run it on SQLite-WASM.
 import { eq, sql } from "drizzle-orm";
 import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import type { SQLiteAsyncDatabase } from "drizzle-orm/sqlite-core";
 import { describe, expect, it } from "vitest";
 
-/**
- * The part of the engine's client that the suite calls: a Drizzle SQLite
- * database in the synchronous result mode. `ZoteroDatabase` of `@zotlit/db`
- * gives it.
- */
 export type ConformanceClient = Pick<
   SQLiteAsyncDatabase<"sync", unknown, any>,
   "all" | "get" | "run" | "select"
 >;
 
-/** A client of the driver under test, with the resources it holds. */
 export interface ConformanceConnection extends Disposable {
   readonly db: ConformanceClient;
 }
 
-/**
- * Makes the clients of the driver under test. Each database is new and holds
- * the tables and rows that `setup`, a script of SQL statements, makes.
- */
 export interface ConformanceDriver {
-  /** A writable client on a new database. */
   open(setup: string): ConformanceConnection;
-  /** A read-only client on a new database: the way a host reads Zotero's file. */
   openReadOnly(setup: string): ConformanceConnection;
-  /**
-   * Two clients on one new database file, each with its own connection and no
-   * busy timeout. Leave it out for a driver that opens one connection for
-   * each file; the busy case then does not run.
-   */
   openShared?(setup: string): [ConformanceConnection, ConformanceConnection];
 }
 
@@ -53,10 +32,6 @@ const SETUP = `
     (9007199254740991, null, -2.25);
 `;
 
-/**
- * The value a driver threw, through the `cause` chain that Drizzle adds:
- * the SQLite error that names the problem. ZoteroReads reports this message.
- */
 function innermost(error: unknown): unknown {
   let current = error;
   while (current instanceof Error && current.cause instanceof Error) {
@@ -74,7 +49,6 @@ function thrownBy(run: () => unknown): unknown {
   throw new Error("the statement ran without an error");
 }
 
-/** Register the conformance cases for one driver. */
 export function describeDriverConformance(
   name: string,
   driver: ConformanceDriver,

@@ -1,5 +1,3 @@
-// Engine facade: per-name language dispatch and cross-language includes over Liquid and Eta.
-
 import { evalToken, Tag } from "liquidjs";
 import type {
   Context,
@@ -105,28 +103,20 @@ export interface ConvertedLegacyLiteratureNoteTemplate {
   readonly document: LiteratureNoteTemplateDocument;
   readonly rendered: {
     readonly create: string;
-    /** `null` when the converted document has no Managed Block. */
     readonly update: string | null;
     readonly filename: string;
     readonly annotation: string | null;
   };
   readonly frontmatterPatch: Readonly<Record<string, unknown>>;
-  /** Fields that failed against the verification item, kept in the document. */
   readonly frontmatterFailures: readonly string[];
 }
 
 export interface ConvertedLegacyCitationTemplate {
-  /** The Citation Template source both gestures now render through. */
   readonly source: string;
-  /** The verified citation each Citation Variant renders, in inline form. */
   readonly rendered: { readonly main: string; readonly alt: string };
 }
 
 export interface ConvertLegacyCitationTemplateOptions {
-  /** The names the conversion unregisters along with the files it trashes.
-   *  The folded source is verified with these absent — the registry the vault
-   *  has after the pass — so a branch that renders one of them is refused
-   *  instead of converting into a citation that fails on the next insert. */
   readonly removedNames?: readonly string[];
 }
 
@@ -134,21 +124,12 @@ export interface ConvertLegacyLiteratureNoteTemplateOptions {
   readonly frontmatter?: readonly FrontmatterField[];
   readonly javascript?: boolean;
   readonly operationTimestamp?: Temporal.Instant;
-  /**
-   * Whether the legacy `content` slot renders as a Managed Region, so the
-   * converted document carries a Managed Block.
-   * @default true
-   */
   readonly managed?: boolean;
 }
 
-/** One root-variable read found by static analysis of a registered Liquid template. */
 export interface RootVariableUse {
-  /** Root segment of the variable path, e.g. `"title"` for `{{ title.x }}`. */
   name: string;
-  /** Full dotted path as read, e.g. `"title.x"`. */
   path: string;
-  /** 1-based source position of the read: `row` is the line, `col` the column. */
   row: number;
   col: number;
 }
@@ -159,18 +140,10 @@ export interface TemplateSourceOverride {
 }
 
 export interface TemplateFacadeOptions {
-  /** Eta-only; same semantics as `TemplateEngine`. @default [false, false] */
   autoTrim?: readonly [AutoTrim, AutoTrim];
-  /**
-   * Post-process a named render's output, applied uniformly to both
-   * languages, by direct render and by include.
-   *
-   * @default identity — when omitted, output passes through unchanged
-   */
   transformRender?: (name: string, output: string) => string;
 }
 
-/** Facade-origin errors: a missing template, or an eta compile error labeled with its name. */
 export class TemplateError extends Error {
   readonly _tag = "TemplateError";
   readonly templateName: string;
@@ -182,12 +155,6 @@ export class TemplateError extends Error {
   }
 }
 
-/**
- * The render reached a name nothing is registered under — a call to a Shared
- * Partial the vault holds no document for. It is its own type so a caller
- * tells this failure from every other named one by structure rather than by
- * the message text.
- */
 export class MissingTemplateError extends TemplateError {
   constructor(templateName: string, options?: ErrorOptions) {
     super(`Template "${templateName}" not found`, templateName, options);
@@ -195,7 +162,6 @@ export class MissingTemplateError extends TemplateError {
   }
 }
 
-/** A registered template's source, keyed by language; liquid wins when both are present. */
 interface TemplateSlot {
   liquid?: Template[];
   eta?: true;
@@ -203,26 +169,12 @@ interface TemplateSlot {
 
 const BRIDGE_TAG_NAME = "ztinclude";
 
-/** Synthetic liquid source every registered name resolves to via the facade's in-memory `fs`. */
 function bridgeSource(name: string): string {
   return `{% ${BRIDGE_TAG_NAME} "${name}" %}`;
 }
 
-/**
- * Renders named templates across Liquid and Eta from one registry, dispatching
- * per name to whichever language defined it. When both languages define the
- * same name, Liquid wins (see {@link TemplateSlot}). Every include — Liquid via
- * the in-memory `fs` bridge, Eta via the `render` override — routes back through
- * a single dispatch point, so mixed-language template sets compose, and
- * `transformRender` applies uniformly to direct and include renders alike.
- *
- * The public surface is sync-only (`render`); Eta's `renderAsync`/`includeAsync`
- * are deliberately not intercepted, since no async entry point can reach them.
- */
 export class TemplateFacade {
   readonly #registry = new Map<string, TemplateSlot>();
-  /** Names {@link #withRegistryWithout} hides for the duration of one render,
-   *  so a conversion verifies against the registry the vault ends up with. */
   #hiddenNames: ReadonlySet<string> | undefined;
   readonly #transform: (name: string, output: string) => string;
   readonly #eta: TemplateEngine;
@@ -237,14 +189,6 @@ export class TemplateFacade {
 
     this.#etaBaseRender = this.#eta.render.bind(this.#eta);
 
-    // eta's generated `include()` dispatches through `this.render` on the eta
-    // instance (a dynamic lookup, not a captured closure) — overriding it
-    // here routes every eta-side include back through the facade's dispatch.
-    // A `TemplateFunction` arg (renderString-style calls) is not a named
-    // render, so it bypasses the facade and falls through to the base method
-    // untouched. `renderAsync`/`includeAsync` are deliberately not
-    // intercepted: the facade's public surface is sync-only `render()`, so
-    // there's no async entry point that could reach them.
     this.#eta.render = (template, data, meta) =>
       typeof template === "string"
         ? this.#renderByName(template, data)
@@ -264,8 +208,6 @@ export class TemplateFacade {
       }
       this.#registry.set(name, { ...this.#registry.get(name), eta: true });
     } else {
-      // Parsed with `name` as the filepath, so every later parse/render
-      // error liquidjs throws for this template is labeled `file:<name>`.
       const parsed = this.#liquid.parse(source, name);
       const tpls =
         name === "citation"
@@ -289,7 +231,6 @@ export class TemplateFacade {
     }
   }
 
-  /** Drop every defined template and clear compiled caches. */
   reset(): void {
     this.#registry.clear();
     this.#eta.reset();
@@ -315,25 +256,6 @@ export class TemplateFacade {
     return parseLiteratureNoteTemplateImpl(source);
   }
 
-  /**
-   * Fold the 2.1.x `cite` and `cite2` sources into one Citation Template and
-   * verify it: each Citation Variant must render exactly the bytes the legacy
-   * file it replaces rendered, in the inline form a citation is inserted as.
-   * Nothing is registered and nothing is written — the caller persists the
-   * returned source only once both variants matched.
-   *
-   * The legacy branches render against the registry as it stands now, and the
-   * folded source against the registry the pass leaves behind — the names in
-   * `options.removedNames` already gone. A branch that renders one of them
-   * therefore fails here, before the write, instead of on the first insert
-   * after the legacy files reach the trash.
-   *
-   * @param data the citation-template data root per variant, each already
-   *   carrying its own `variant`.
-   * @throws {@link LegacyTemplateConversionError} `legacy-render-mismatch` on
-   *   the first variant whose output differs, or `unsupported-legacy-template`
-   *   when either side fails to render at all.
-   */
   convertLegacyCitationTemplates(
     legacy: LegacyCitationSources,
     data: { readonly main: object; readonly alt: object },
@@ -370,11 +292,6 @@ export class TemplateFacade {
     return { source, rendered };
   }
 
-  /**
-   * Synthesize and verify the default Profile document without mutating the
-   * facade. Every supplied legacy output must match byte-for-byte before the
-   * caller may persist the returned source.
-   */
   convertLegacyLiteratureNoteTemplates(
     legacy: LegacyLiteratureNoteTemplates,
     data: {
@@ -391,8 +308,6 @@ export class TemplateFacade {
     });
     const document = this.parseLiteratureNoteTemplate(source);
     const legacyRendered = {
-      // The legacy path predates the trailing-line-break rule; normalize its
-      // baseline so parity compares the bytes both paths would now write.
       create: withOneTrailingLineBreak(this.render("note", data.note)),
       update: this.render("content", data.note),
       filename: this.render("filename", data.filename),
@@ -483,14 +398,6 @@ export class TemplateFacade {
     };
   }
 
-  /**
-   * Compiles every source this document renders — the body outside its Managed
-   * Block, the block itself, the Annotation Section, and the note name —
-   * without evaluating any of them and without leaving anything defined, so a
-   * caller can refuse a document whose text the engine cannot parse before it
-   * is written anywhere. Throws the engine's own failure for the first source
-   * that fails.
-   */
   compileLiteratureNoteTemplate(
     document: LiteratureNoteTemplateDocument,
   ): void {
@@ -505,8 +412,6 @@ export class TemplateFacade {
       document.manifest.filename,
     ];
     sources.forEach((source, index) => {
-      // Named apart from every partial, so a compile leaves the registry as it
-      // found it whatever the document calls its own templates.
       const name = `${document.manifest.id}:compile:${index}`;
       this.define(name, source, language);
       this.remove(name, language);
@@ -596,16 +501,10 @@ export class TemplateFacade {
     });
   }
 
-  /** Eta engine only — same semantics as `TemplateEngine#setAutoTrim`. */
   setAutoTrim(autoTrim: readonly [AutoTrim, AutoTrim]): void {
     this.#eta.setAutoTrim(autoTrim);
   }
 
-  /**
-   * Compiles Managed Frontmatter fields against the facade's shared Liquid
-   * engine, so `"liquid"`-language fields see the same tag/filter vocabulary
-   * as the templates (e.g. `note_links`, `collection_paths`).
-   */
   compileFrontmatterFields(
     fields: readonly FrontmatterField[],
     options: { javascript: boolean },
@@ -633,17 +532,6 @@ export class TemplateFacade {
     return validateFrontmatterExprImpl(expr, language, this.#liquid);
   }
 
-  /**
-   * Statically analyzes a registered Liquid template's own source and
-   * reports every root-level variable read (including `zt` — callers
-   * filter). Analysis does not traverse `{% render %}`/`{% include %}`
-   * partials: the facade's in-memory `fs` returns synthetic bridge sources
-   * for those, not the partial's real content; an included template's own
-   * reads are found by calling this method with that template's name.
-   *
-   * @returns `null` when `name` is unregistered, or registered as Eta only;
-   *   otherwise every root-variable read found in the template's own source.
-   */
   analyzeRootVariables(name: string): RootVariableUse[] | null {
     const slot = this.#registry.get(name);
     if (!slot?.liquid) return null;
@@ -654,9 +542,6 @@ export class TemplateFacade {
     const uses: RootVariableUse[] = [];
     for (const entries of Object.values(globals)) {
       for (const entry of entries) {
-        // Segments are strings/numbers for a plain dotted path, or a nested
-        // `Variable` for a computed subscript (e.g. `x[y]`); `String(...)`
-        // stringifies a nested `Variable` through its own `toString`.
         const segments = entry.segments;
         uses.push({
           name: String(segments[0]),
@@ -674,14 +559,11 @@ export class TemplateFacade {
     else this.#registry.delete(name);
   }
 
-  /** The one registry lookup every name resolution goes through, so hiding a
-   *  name hides it from a direct render and from every include alike. */
   #slot(name: string): TemplateSlot | undefined {
     if (this.#hiddenNames?.has(name)) return undefined;
     return this.#registry.get(name);
   }
 
-  /** Run `render` against the registry `names` have already left. */
   #withRegistryWithout<T>(names: readonly string[], render: () => T): T {
     const previous = this.#hiddenNames;
     this.#hiddenNames = new Set(names);
@@ -692,15 +574,6 @@ export class TemplateFacade {
     }
   }
 
-  /**
-   * Single dispatch point for every named render: direct `render()`, an eta
-   * include (via the overridden `this.#eta.render`), and a bridge-tag include
-   * whose target resolves to eta. Liquid-target includes render via the
-   * bridge tag's own `renderTemplates` call instead (see
-   * {@link TemplateFacade.#createBridgeTag}), reusing the childCtx the native
-   * `{% render %}` tag already built rather than starting a fresh top-level
-   * `renderSync`; both paths apply `transformRender` identically.
-   */
   #renderByName(name: string, data: object): string {
     if (name === "annotation" && this.#annotationSource) {
       return this.#renderSource(name, data, this.#annotationSource);
@@ -767,21 +640,7 @@ export class TemplateFacade {
     }
   }
 
-  /**
-   * In-memory `fs` every liquid `{% render %}` / `{% include %}` resolves
-   * through. `readSource` is the single existence authority: `existsSync` and
-   * `exists` answer `true` for every name, so `Loader.lookup` always reaches
-   * `readFileSync`, and an unregistered target fails with a named
-   * {@link TemplateError} instead of liquidjs's own unstructured
-   * `ENOENT: Failed to lookup "<name>" in "<roots>"` message.
-   *
-   * @see liquidjs 10.27.1 `Loader.lookup` — returns the first candidate its
-   *   `exists` check accepts, then the parser reads it through `readFileSync`.
-   */
   #makeFs(): FS {
-    // Shared by readFileSync/readFile (liquidjs's `FS.exists`/`readFile` are
-    // required, not optional — see fs.d.ts — so both sync and async paths
-    // must be implemented, not just the sync one).
     const readSource = (name: string): string => {
       if (
         !this.#slot(name) &&
@@ -800,13 +659,6 @@ export class TemplateFacade {
     };
   }
 
-  /**
-   * `{% ztinclude "<name>" %}` — the sole tag inside every synthetic partial
-   * `readFileSync`/`readFile` return. Runs inside the childCtx the native
-   * `{% render %}` tag already built for that partial, so `with … as`,
-   * named args, and scope isolation are all native liquid behavior; this tag
-   * only decides, at render time, which engine `name` now resolves to.
-   */
   #createBridgeTag() {
     // oxlint-disable-next-line typescript/no-this-alias
     const self = this;
@@ -857,11 +709,6 @@ export class TemplateFacade {
   }
 }
 
-/**
- * Carry a render that throws out as a refusal the prompt can report, so a
- * legacy pair the pass cannot render leaves the vault unchanged instead of
- * failing the conversion with an unhandled error.
- */
 function refuseUnrenderable<T>(render: () => T): T {
   try {
     return render();
@@ -902,9 +749,6 @@ function assertSameRender(
 
 let nextManagedBlockPlaceholder = 0;
 
-/**
- * Keep the established rendered-output convention separate from source splitting.
- */
 function withOneTrailingLineBreak(body: string): string {
   const trimmed = body.trimEnd();
   const trailing = body.slice(trimmed.length).includes("\r\n") ? "\r\n" : "\n";

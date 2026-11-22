@@ -1,4 +1,3 @@
-// A Citation Popover built from its real layer over test-owned service reads.
 import { Effect, Layer, Stream } from "effect";
 import type { ManagedRuntime } from "effect";
 import type { TFile } from "obsidian";
@@ -38,7 +37,6 @@ import { CitationPopover } from "#obsidian/citation-popover/service.ts";
 import { layerCitationPopover } from "#desktop/citation-popover/layer.tsx";
 
 export interface CitationPopoverFixtureDeps {
-  /** The Obsidian objects the capability tags read; a missing one is empty. */
   host: HostSources;
   db: {
     current: ZoteroReads["Service"]["current"];
@@ -70,7 +68,6 @@ export interface CitationPopoverFixtureDeps {
     ): Promise<unknown>;
   };
   libraryScope: { current: unknown };
-  /** Receives each Show in Library of the popover. */
   showInLibrary?: (indexedKey: string) => void;
   citationText?: {
     read(
@@ -101,12 +98,6 @@ export interface CitationPopoverFixture extends AsyncDisposable {
   runtime: ManagedRuntime.ManagedRuntime<CitationPopover, never>;
 }
 
-/**
- * The popover layer over the reads each test scenario supplies.
- *
- * @param options.logs a Logger layer that takes the layer's Effect logs in
- *   place of the plugin's loggers.
- */
 export function citationPopoverFixture(
   deps: CitationPopoverFixtureDeps,
   options: { logs?: Layer.Layer<never> } = {},

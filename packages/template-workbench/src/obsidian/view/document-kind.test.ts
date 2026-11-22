@@ -19,8 +19,6 @@ describe("templateDocumentKind", () => {
   });
 
   it("opens the same filename outside the folder with the Profile tabs", () => {
-    // Nothing registers it, so a Partial editor would preview a template no
-    // render can reach and offer a caller choice for calls that cannot exist.
     expect(
       templateDocumentKind(
         file("Notes/zotlit-partial.authors.md"),

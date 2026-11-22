@@ -21,13 +21,7 @@ import type { DetailNode, TypeNode } from "./type-table.tsx";
 
 const model = buildPageModel(CONTRACT_IR);
 
-/**
- * The type tables of one generated section. Reads the committed contract IR
- * through the shared page model, so the tables and the emitted prose around them
- * restate the same contract.
- */
 export function ContractTable({ section }: { section: string }) {
-  // Markdown has no row expander, so the edition gets every detail as GFM.
   if (asMarkdown()) return renderContractTableMarkdown(model, section);
   const page = sectionOf(model, section);
   if (page.itemTypes.length > 0) {

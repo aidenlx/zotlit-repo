@@ -1,6 +1,4 @@
 // @vitest-environment happy-dom
-// What the Note Preview shows against what the real create path writes: one
-// fixture Item, one Profile source, the write captured through an in-memory vault.
 import { Effect } from "effect";
 import type { App } from "obsidian";
 import { describe, expect, it } from "vitest";
@@ -27,12 +25,6 @@ import {
 
 const LITERATURE_FOLDER = "notes";
 
-/**
- * The Properties block the fixture Profile and Item must produce, read off the
- * Profile source by hand: `title` from `zt.title`, the appended `tags` value,
- * the `zotero-key` every document preparation stamps, then the Profile stamp
- * (`name (id)`) and the manifest's citation style — in that declared order.
- */
 const EXPECTED_BLOCK = `title: Better figures
 tags:
   - review
@@ -41,12 +33,6 @@ zotlit-profile: Paper (paper)
 zotlit-csl: numeric
 `;
 
-/**
- * The real create path over the preview fixture's database and templates, with
- * an in-memory vault holding the bytes a real vault would receive. The Profile
- * entry is seeded from the same manifest the preview renders, exactly as the
- * registry seeds a saved Profile document.
- */
 async function realCreate(
   fixture: Awaited<ReturnType<typeof createRenderFixture>>,
   source: string = PROFILE_SOURCE,
@@ -146,7 +132,6 @@ async function realCreate(
   };
 }
 
-/** Split written note bytes the way a reader of the file would. */
 function splitNote(content: string): { block: string; body: string } {
   const end = content.indexOf("\n---\n", 4);
   return { block: content.slice(4, end + 1), body: content.slice(end + 5) };
@@ -212,8 +197,6 @@ describe("Note Preview fidelity against the real create path", () => {
         code: "property-error",
         part: "properties",
         position: 1,
-        // The row names the property; the detail is the engine's own words,
-        // which is what the row reads beside the expression that failed.
         params: {
           key: "title",
           detail: "Cannot read properties of undefined (reading 'deep')",
@@ -232,10 +215,6 @@ describe("Note Preview fidelity against the real create path", () => {
     });
   });
 
-  // The fixture manifest ID `paper` fails the Profile ID rule on purpose: this
-  // is the one test proving the Note Preview still renders a draft the check
-  // refuses, with that draft's own bindings. A realistic 12-character ID here
-  // would retire the guard silently.
   it("carries a draft manifest's label and citation style into the preview through the shared resolver", async () => {
     await using fixture = await createRenderFixture({
       defaultStyle: "numeric",

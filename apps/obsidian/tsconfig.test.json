@@ -5,19 +5,12 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "noEmit": true,
-    // The rule tests in src/lint reach the Oxlint plugins, which Node loads
-    // by their .ts paths.
     "allowImportingTsExtensions": true,
     "isolatedDeclarations": false,
-    // Read by the effecttsgo lint rules. Keep tsconfig.app.json and
-    // tsconfig.test.json the same: each file takes the options of its tsconfig.
     "plugins": [
       {
         "name": "@effect/language-service",
-        // effect-fn-opportunity names its fix Effect.fn("<Tag>.<method>").
         "effectFn": ["inferred-span"],
-        // The worker RPC, the HTTP clients, the temp sweeps and the tests use
-        // these on purpose.
         "allowedUnstableApis": [
           "@effect/platform-browser",
           "@effect/platform-node",
@@ -43,14 +36,12 @@
     "./src/**/*.ts",
     "./src/**/*.test.tsx",
     "./__mocks__/**/*.ts",
-    // The private Obsidian API the kit declares, which app code reads too.
     "../../packages/obsidian-kit/src/typings/*.d.ts"
   ],
   "exclude": [
     "./node_modules",
     "./dist",
     "./dist-dev",
-    // Type-checked alone by tsconfig.mobile.json, without the desktop files.
     "./src/__fixtures__/mobile-host/host.check.ts"
   ]
 }

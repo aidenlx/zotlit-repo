@@ -1,7 +1,6 @@
 import type { DisplayNode } from "#core/data-tree/index.ts";
 
 import { COMMON_FIELDS } from "./completion-fields.ts";
-// Common field labels and values shared by the Explorer and its hosts.
 import type { TemplateRoot } from "./model.ts";
 
 import { outputText } from "#core/data-tree/index.ts";
@@ -12,11 +11,6 @@ export interface FieldRow {
   readonly value: string;
 }
 
-/**
- * The common rows for `root` in their fixed order, over display nodes built
- * from that root. A row the paper has no key for is dropped rather than shown
- * empty.
- */
 export function commonRows(
   root: TemplateRoot,
   nodes: readonly DisplayNode[],
@@ -30,7 +24,6 @@ export function commonRows(
   });
 }
 
-/** This paper's value for one row, as the single line a row shows. */
 export function fieldValueText(node: DisplayNode): string {
   if (node.kind === "list-property") return node.preview;
   if (

@@ -37,6 +37,10 @@ from the selected Item Snapshot, grouped under Examples and From this item.
 The format result, the expanded Note preview, and annotation field values
 use the same selected example.
 
+Changing the Item keeps the selected annotation ID. If it is unavailable for
+that Item, use its first annotation, then the first bundled example if the
+Item has none.
+
 The literature Item Snapshot and annotation example are independent selections.
 Choosing a built-in annotation changes the annotation preview and field values
 while the note result continues to use its selected Item Snapshot. Each example
@@ -85,3 +89,11 @@ Section and its rendering scope remain as defined in
 [ADR 0035](0035-profile-annotation-section.md). This amends the inline editor
 and annotation preview placement from
 [ADR 0037](0037-annotation-box-opens-on-the-annotation-it-produces.md).
+
+Resolve live examples by source and Indexed Key so a refresh or
+reorder keeps the choice. Wait for the selected Item's Annotation
+data before offering its examples. A built-in Annotation can use
+its Sample Item when no Item is chosen. In Advanced, use the parser
+finding to choose the section or missing-section action because a
+broken draft can retain old section ranges.
+[Annotation selection](../../packages/workbench/src/ui/annotation-samples.ts) · [Annotation pane](../../packages/workbench/src/ui/annotation.tsx)

@@ -117,7 +117,6 @@ describe("bounded Obsidian CLI call", () => {
 });
 
 describe("Obsidian CLI socket call", () => {
-  /** A stand-in for Obsidian's CLI server; `reply` answers each request line. */
   async function fakeObsidian(
     reply: (request: string, socket: Socket) => void,
   ) {
@@ -159,7 +158,6 @@ describe("Obsidian CLI socket call", () => {
     ).resolves.toBe("Received CLI command\n=> 中文");
 
     const [request] = obsidian.requests;
-    // ASCII only: Obsidian decodes each chunk on its own.
     expect(request).toMatch(/^[ -~]*\n$/);
     expect(JSON.parse(request!)).toMatchObject({
       argv: ["vault=research-id", "eval", "code='中文'"],
@@ -167,8 +165,6 @@ describe("Obsidian CLI socket call", () => {
     });
   });
 
-  // A window that never finishes its reply must neither hold the caller nor
-  // leave the connection open once the deadline has passed.
   it("names the vault unreachable and closes a connection that never ends", async () => {
     await using obsidian = await fakeObsidian((_request, socket) => {
       socket.write("=> partial");

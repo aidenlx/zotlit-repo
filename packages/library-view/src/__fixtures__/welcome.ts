@@ -1,4 +1,3 @@
-// A Welcome test host over in-memory Obsidian sources and controllable Effect services.
 import { Effect, Layer, Stream } from "effect";
 
 import { TemplateMigration } from "@zotlit/notes/desktop/template/migration.ts";
@@ -43,7 +42,6 @@ export interface WelcomeHostOptions<R = never> {
   readonly services?: Layer.Layer<R>;
   readonly dataDir?: string;
   readonly count?: (signal: AbortSignal) => Promise<{ itemCount: number }>;
-  /** What the Zotero add-on list says each time it is read. */
   readonly companionInstalled?: () => boolean;
 }
 
@@ -128,7 +126,6 @@ export async function makeWelcomeHost<R = never>(
   const context = await runtime.context();
   const registry = makeViewRegistry(context, { idleTTL: 0 });
   stack.defer(() => registry.dispose());
-  // The plugin holds invalidation even while every Library leaf is closed.
   stack.defer(registry.mount(connectionLifecycleAtom));
   const lifetime = stack.move();
   return {

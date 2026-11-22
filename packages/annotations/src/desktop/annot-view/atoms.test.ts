@@ -27,7 +27,6 @@ import { observeRead } from "#obsidian/annot-view/model.ts";
 import { resolveLoadTarget } from "#obsidian/annot-view/resolve-target.ts";
 import { CapabilityNotices } from "#obsidian/annotation-repository/notices.ts";
 
-/** Retries `assertion` across macrotasks until it holds. */
 async function waitFor(assertion: () => void): Promise<void> {
   for (let attempt = 0; ; attempt += 1) {
     try {
@@ -320,7 +319,6 @@ it.effect("finishes a submitted card write after the last leaf closes", () =>
   }),
 );
 
-// Another history key must leave the repository's pending step intact.
 it.effect(
   "ignores a second history press without losing the first undo's redo",
   () =>

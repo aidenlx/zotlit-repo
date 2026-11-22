@@ -6,8 +6,6 @@ import type {
   WorkbenchItemChoice,
 } from "#obsidian/workbench-ui/index.tsx";
 import type { ChooserScope } from "#obsidian/workbench-ui/suggester.ts";
-// A standalone Explorer owns its Item, its annotation, its data and its
-// navigation; it follows no editor.
 import { Effect } from "effect";
 import type { Cause } from "effect";
 import { ItemView, setIcon } from "obsidian";
@@ -92,7 +90,6 @@ import {
 
 export const EXPLORER_VIEW_TYPE = "zotlit-template-data-explorer";
 export interface ExplorerViewDeps {
-  /** The plugin's view registry: this Explorer's model and its data load. */
   registry: ViewRegistryHandle;
   itemLookup: Pick<ItemLookupHandle, "search" | "openSession">;
   settings: Pick<PluginSettings["Service"], "current" | "changes">;
@@ -107,21 +104,16 @@ export class TemplateDataExplorerView extends ItemView {
   #root: Root | null = null;
   #cleanup: DisposableStack | null = null;
   #host: ReturnType<typeof createTemplateWorkbenchHost> | null = null;
-  /** Forks on this leaf's view services; the close interrupts it. */
   readonly #runner: ViewRunner;
-  /** The Item chooser; a second request while it is open joins it. */
   readonly #choosingItem: InFlightSlot<void, never>;
-  /** The annotation chooser; a second request while it is open joins it. */
   readonly #choosingAnnotation: InFlightSlot<void, never>;
   #actions: ExplorerActions | null = null;
   #closed = false;
-  /** The Item and annotation choices; a newer one stops the one before. */
   readonly #choices: LatestSlot<ViewServices>;
   constructor(leaf: WorkspaceLeaf, deps: ExplorerViewDeps) {
     super(leaf);
     this.contentEl.addClass("zt-root");
     this.#deps = deps;
-    // Obsidian sets the layout state before the view opens.
     this.#release = holdExplorerModel(deps.registry, this.#model);
     this.#runner = makeViewRunner(deps.registry);
     this.#choices = latestSlot(this.#runner.run);
@@ -219,7 +211,6 @@ export class TemplateDataExplorerView extends ItemView {
       collapsedSections: [...collapsedSections],
     };
   }
-  /** Judged on the sections the reader can see, so the action's label matches the pane. */
   #allSectionsCollapsed(): boolean {
     if (!this.#host) return false;
     return allSectionsCollapsed(
@@ -227,7 +218,6 @@ export class TemplateDataExplorerView extends ItemView {
       this.#state().collapsedSections,
     );
   }
-  /** The sections the reader can see. */
   #shownSections(): readonly string[] {
     const { root, data } = this.#state();
     return visibleSectionIds(data, {
@@ -235,7 +225,6 @@ export class TemplateDataExplorerView extends ItemView {
       locale: runtime.getLocale(),
     });
   }
-  /** Closes every section, or opens every section once all are closed. */
   #toggleSections(): void {
     if (this.#host) this.#update(toggleSections(this.#shownSections()));
   }
@@ -268,8 +257,6 @@ export class TemplateDataExplorerView extends ItemView {
     const item = saved.itemIndexedKey
       ? { id: saved.itemIndexedKey, title: saved.itemIndexedKey }
       : null;
-    // A leaf saved as an editor's Fields pane restores as this standalone
-    // Explorer: the file it named and its leaf group have no effect.
     this.#update((session) =>
       setTarget(
         item,
@@ -318,10 +305,7 @@ export class TemplateDataExplorerView extends ItemView {
     using cleanup = new DisposableStack();
     const { registry } = this.#deps;
     this.#release ??= holdExplorerModel(registry, this.#model);
-    // A command runs while its atom is held; the view holds the export's.
     cleanup.defer(registry.mount(this.#exportCommand));
-    // Swaps icon and label like the file explorer's collapse action: each
-    // names what the next press does.
     const sectionsAction = this.addAction(
       "chevrons-down-up",
       m.workbench_explorer_collapse_all(),
@@ -375,7 +359,6 @@ export class TemplateDataExplorerView extends ItemView {
           this.app.workspace.requestSaveLayout();
       }),
     );
-    // Closing the leaf interrupts every host Effect the Explorer still runs.
     const runner = this.#runner;
     this.#host = cleanup.use(
       createTemplateWorkbenchHost(this.app, {
@@ -384,7 +367,6 @@ export class TemplateDataExplorerView extends ItemView {
           Effect.succeed(
             failedRender(renderIdentity(request), { code: "render-error" }),
           ),
-        // This view shows no Match.
         matchData: NO_MATCH_DATA,
         insertTarget: () => null,
       }),
@@ -428,7 +410,6 @@ export class TemplateDataExplorerView extends ItemView {
       if (key) this.#setTarget({ id: key, title: key }, "note");
     } else this.#update(refresh);
   }
-  /** Where this leaf's choosers open and which runner interrupts their searches. */
   #chooserScope(host: { readonly run: WorkbenchRunner }): ChooserScope {
     return { app: this.app, window: this.contentEl.win, run: host.run };
   }
@@ -481,7 +462,6 @@ export class TemplateDataExplorerView extends ItemView {
       !annotationId || SAMPLE_ANNOTATIONS.some(({ id }) => id === annotationId);
     const annotation =
       item && !sample ? annotationIndexedKey(item.id, annotationId) : null;
-    // A library annotation whose key does not parse has nothing to export.
     if (root === "annotation" && !sample && !annotation) return null;
     return exportTarget(item, root, annotation);
   }
@@ -507,7 +487,6 @@ export class TemplateDataExplorerView extends ItemView {
       );
     });
   }
-  /** Search the Zotero library for an Item, past the chooser's short list. */
   #searchItem(): Effect.Effect<void, never, ViewServices> {
     return this.#pickItem(workbenchItemSearch(this.#searchDeps()));
   }
@@ -519,7 +498,6 @@ export class TemplateDataExplorerView extends ItemView {
       bridge: this.#deps.bridge,
     };
   }
-  /** Select the Item `choice` answers, unless a selection came first. */
   #pickItem<R>(
     choice: Effect.Effect<WorkbenchItemChoice | null, never, R>,
   ): Effect.Effect<void, never, R> {
@@ -565,7 +543,6 @@ export class TemplateDataExplorerView extends ItemView {
     this.#actions = null;
     this.#release?.();
     this.#release = null;
-    // Interrupts what the Explorer still runs, such as a chooser.
     await this.#runner[Symbol.asyncDispose]();
   }
 }

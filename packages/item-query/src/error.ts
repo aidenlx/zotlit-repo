@@ -6,7 +6,6 @@ import type { Diagnostic } from "./diagnose.ts";
 import type { ItemQueryFault, Span } from "./fault.ts";
 import type { FormulaDiagnostics, QueryContext } from "./request.ts";
 
-/** Stable codes of an invalid Item Query request. */
 export type ItemQueryErrorCode =
   | "duplicate-library"
   | "invalid-group"
@@ -30,7 +29,6 @@ export type ItemQueryErrorCode =
   | "formula-cycle"
   | "reads-faulted-formula";
 
-/** The part of the request an {@link ItemQueryError} points at. */
 export interface ItemQueryErrorLocation {
   readonly argument:
     | "libraries"
@@ -41,30 +39,17 @@ export interface ItemQueryErrorLocation {
     | "group"
     | "context"
     | "formulas";
-  /** The position of the entry in a list argument. */
   readonly index?: number;
   readonly path?: string;
-  /** The part of the filter text, in UTF-16 offsets; `to` is exclusive. */
   readonly span?: Span;
 }
 
-/**
- * The request is not a valid query of its Query Dataset. The query fails as a
- * whole, before it reads the database.
- */
 export class ItemQueryError extends Data.TaggedError("ItemQueryError")<{
   readonly fault: ItemQueryFault;
-  /** The Query Dataset of the request, set where the fault is raised. */
   readonly dataset: QueryDataset<any>;
-  /** The text of the argument that the location points into. */
   readonly argumentText?: string;
   readonly location: ItemQueryErrorLocation;
-  /** The Query Context of the request, for the corrections of the diagnostic. */
   readonly context?: QueryContext | undefined;
-  /**
-   * The Formulas that the request reads and that have a mistake, each with
-   * its Diagnostic, when the request leaves out such Formulas.
-   */
   readonly formulaDiagnostics?: FormulaDiagnostics | undefined;
 }> {
   #diagnostic: Diagnostic<ItemQueryErrorCode> | undefined;
@@ -79,7 +64,6 @@ export class ItemQueryError extends Data.TaggedError("ItemQueryError")<{
     return this.diagnostic.hint;
   }
 
-  /** The rendered Diagnostic Report of the fault. */
   get diagnostic(): Diagnostic<ItemQueryErrorCode> {
     this.#diagnostic ??= diagnose(this.fault, this.argumentText ?? "", {
       ...this.location,

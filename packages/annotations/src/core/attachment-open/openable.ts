@@ -1,24 +1,15 @@
-// Narrows Attachments read from the database to the Obsidian-Openable ones, under the active source's paths.
-
 import type { Attachment } from "@zotlit/db";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import type { ObsidianOpenableAttachment } from "./resolve.ts";
 import { toObsidianOpenableAttachments } from "./resolve.ts";
 
-/**
- * Attachments already fetched from the database, narrowed to the
- * Obsidian-Openable ones — the path-context setup
- * `literatureNoteAttachments` and the `open-attachment` protocol
- * handler both need, written once here.
- */
 export function toObsidianOpenable(
   attachments: readonly Attachment[],
   {
     vaultBasePath,
     zoteroPref,
   }: {
-    /** The vault's folder on disk. */
     vaultBasePath: string;
     zoteroPref: Pick<ZoteroPrefSnapshot, "dataDir" | "baseAttachmentPath">;
   },

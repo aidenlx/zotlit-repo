@@ -1,33 +1,13 @@
-// Writes the deterministic, classic-xref, uncompressed PDFs that the Fixture
-// asset generators commit.
-
-/** One PDF object body, without the `N 0 obj` / `endobj` wrapper. */
 export type PdfObject = string;
 
-/**
- * A stream object. `entries` is written verbatim between `<< ` and
- * `/Length`, so it carries its own trailing space.
- */
 export function contentStream(content: string, entries = ""): PdfObject {
   const length = Buffer.byteLength(content, "latin1");
   return `<< ${entries}/Length ${length} >>\nstream\n${content}\nendstream`;
 }
 
 export interface BuildPdfOptions {
-  /**
-   * Bytes before the first object.
-   * @default "%PDF-1.4\n"
-   */
   readonly header?: string;
-  /**
-   * Written verbatim between `/Root 1 0 R` and ` >>` in the trailer, so it
-   * carries its own leading space.
-   */
   readonly trailerEntries?: string;
-  /**
-   * Ends the file with a newline after `%%EOF`.
-   * @default false
-   */
   readonly finalNewline?: boolean;
 }
 

@@ -1,4 +1,3 @@
-// The Library's document atom and its coalesced settings commands.
 import { Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -37,12 +36,6 @@ const updateDocumentCommand = viewRuntime.fn(
   { concurrent: true },
 );
 
-/**
- * Writes plugin data to disk. It waits one turn first, so the changes of one
- * task reach disk in one write; a close in that turn skips the write. Once
- * the write starts it finishes, even when the view closes:
- * `PluginSettings.flush` runs uninterruptible.
- */
 const flushDocument = Effect.andThen(
   Effect.yieldNow,
   PluginSettings.use((settings) => settings.flush),
@@ -56,14 +49,8 @@ export class LibraryViewStorage {
   readonly #registry;
   readonly #toolbar;
   #release: (() => void) | null;
-  /**
-   * Runs the writes. Its fibers stand apart from the registry's nodes, so a
-   * write's wait ends with the write even when the plugin disposes the
-   * registry first, as it does while a reload closes the view.
-   */
   #runner: ViewRunner | null = null;
   #taken: string | null = null;
-  /** What waits for a write; a close ends each wait. */
   readonly #waiting = new Set<() => void>();
 
   constructor(registry: ViewRegistryHandle, toolbar: () => string | null) {
@@ -118,10 +105,6 @@ export class LibraryViewStorage {
     this.#registry.set(this.model.document, change(this.document()));
   }
 
-  /**
-   * Write the document to disk. Settles once the writes asked for so far
-   * end, or the storage closes; rejects where a write failed.
-   */
   async save(): Promise<void> {
     this.#registry.set(this.model.save, { document: this.document() });
     if (!this.#runner) return;

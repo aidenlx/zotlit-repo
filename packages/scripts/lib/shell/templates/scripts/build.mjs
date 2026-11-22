@@ -1,21 +1,9 @@
-// Builds the two files Obsidian loads, `main.js` and `styles.css`, at the
-// root of this repository.
-//
-// The plugin's code comes from its bundle package, the one entry of
-// `dependencies` in package.json. That package holds the plugin as one ES
-// module, with ZotLit's own code and its third-party code already bundled, and
-// the finished stylesheet. This build turns the module into the CommonJS file
-// Obsidian requires and minifies it; it reads no environment variable.
-//
-// ZotLit's source repository (README.md links it) runs this same file for its
-// own release build, so the two `main.js` files match byte for byte.
 import { copyFile, readFile, writeFile } from "node:fs/promises";
 import { builtinModules, createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build, parseAst } from "vite";
 
-/** The modules Obsidian provides at runtime. The plugin requires them, so the build leaves them out. */
 export const HOST_MODULES = [
   "obsidian",
   "electron",
@@ -56,7 +44,6 @@ export async function buildPlugin({ entry, styles, outDir, alias = {} }) {
     resolve: { alias },
     plugins: [lazyBuiltins()],
     build: {
-      // The build hands back main.js, which is written below.
       write: false,
       copyPublicDir: false,
       reportCompressedSize: false,
@@ -66,8 +53,6 @@ export async function buildPlugin({ entry, styles, outDir, alias = {} }) {
       lib: { entry, formats: ["cjs"], fileName: () => "main.js" },
       rolldownOptions: {
         external: HOST_MODULES,
-        // The bundle package already runs every module in source order;
-        // the option keeps that order when the module becomes CommonJS.
         output: { strictExecutionOrder: true, codeSplitting: false },
       },
     },
@@ -83,10 +68,6 @@ export async function buildPlugin({ entry, styles, outDir, alias = {} }) {
   await copyFile(styles, join(outDir, "styles.css"));
 }
 
-/**
- * The `require("node:…")` lines at the top of the CommonJS chunk: a binding,
- * with the interop line that may follow it, or a bare require.
- */
 const BUILTIN_REQUIRE =
   /^let ([\w$]+) = require\("(node:[\w/]+)"\);\n(?:\1 = (__toESM[\w$]*)\(\1(, 1)?\);\n)?|^require\("node:[\w/]+"\);\n/gm;
 

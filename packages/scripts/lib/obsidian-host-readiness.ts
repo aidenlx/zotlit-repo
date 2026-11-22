@@ -1,19 +1,12 @@
-// Bounded Obsidian vault-host discovery and registry-based recovery diagnostics.
-
 import { basename, resolve } from "node:path";
 
 export const OBSIDIAN_HOST_TIMEOUT_MS = 5_000;
-/** Opening a closed vault loads a new window, so its probe waits longer. */
 export const OBSIDIAN_VAULT_OPEN_TIMEOUT_MS = 30_000;
 export const OBSIDIAN_HOST_VAULT_ENV = "ZT_HOST_VAULT";
 
 const CHECK_COMMAND = "packages/scripts/scripts/obsidian-vault.ts check";
 const HOST_PROBE =
   "JSON.stringify({id:app.appId,path:app.vault.adapter.basePath})";
-/**
- * Obsidian's reply to a call without `vault=` when no vault window is open and
- * the working directory is outside every registered vault.
- */
 const NO_VAULT_WINDOW = "Vault not found.";
 const LIVE_VAULTS_PROBE =
   "JSON.stringify(require('electron').ipcRenderer.sendSync('vault-list'))";
@@ -37,14 +30,12 @@ export interface ObsidianHost {
 
 interface HostReadinessConfig {
   environment?: Record<string, string | undefined>;
-  /** Obsidian's sandbox vault folder, the preferred host to open when no vault window is open. */
   sandboxVaultPath?: string;
   timeoutMs?: number;
   vaultOpenTimeoutMs?: number;
 }
 
 interface HostCheckOptions {
-  /** A vault folder the check must not open as the host. */
   avoidPath?: string;
 }
 
@@ -141,7 +132,6 @@ function parseLiveVaults(
   return vaults;
 }
 
-/** The value of an `eval` reply: Obsidian prefixes it with `=> `. */
 function evalValue(output: string): string | undefined {
   return output.startsWith("=> ") ? output.slice(3) : undefined;
 }
@@ -150,10 +140,6 @@ function samePath(a: string, b: string): boolean {
   return resolve(a) === resolve(b);
 }
 
-/**
- * Registered vaults to open as the host when no vault window is open: the
- * sandbox vault first, then the most recently opened, never `avoidPath`.
- */
 function hostCandidates(
   registry: Record<string, RegistryVaultEntry>,
   {
@@ -175,7 +161,6 @@ function hostCandidates(
     );
 }
 
-/** The one vault `selected` names, by ID or else by folder name, open or not. */
 function selectNamed<T extends ObsidianHost>(
   vaults: T[],
   selected: string,
@@ -234,9 +219,6 @@ export function createObsidianHostReadiness(
     };
     const evaluate = async (code: string, target?: string): Promise<string> =>
       evalValue(await reply(code, target)) ?? fail(noLiveHost);
-    // A call with `vault=<id>` would open the closed vault, so the open vaults
-    // come from whichever window answers a call without one. With no answer,
-    // the caller keeps its own failure.
     const failClosed = async (selected: string): Promise<void> => {
       let output: string;
       try {
@@ -270,9 +252,6 @@ export function createObsidianHostReadiness(
         return fail(message);
       }
     };
-    // A call with `vault=<id>` makes Obsidian open that registered vault's
-    // window and holds the call until the window has loaded, so a running
-    // Obsidian with no vault window can still host calls.
     const openRegisteredVault = async (): Promise<string> => {
       const noVaultWindow = "Obsidian is running, but no vault window is open.";
       const registry = await readRegistryOr(
@@ -343,7 +322,6 @@ export function createObsidianHostReadiness(
         `${OBSIDIAN_HOST_VAULT_ENV} does not identify one open vault: ${selected}`,
       );
     }
-    // Obsidian resolves IDs and case-insensitive folder names in one pass.
     const collision = registeredVaults.find(
       (vault) =>
         vault.id !== host.id &&

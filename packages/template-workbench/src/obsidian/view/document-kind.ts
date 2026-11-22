@@ -1,6 +1,3 @@
-// Which Template Document the view holds, read from the filename — and only
-// inside the template folder, which is where the scan reads one.
-
 import type { WorkbenchDocumentKind } from "#core/document/index.ts";
 import type { TFile } from "obsidian";
 
@@ -9,17 +6,6 @@ import {
   inTemplateFolder,
 } from "@zotlit/notes/core/template/defaults.ts";
 
-/**
- * The kind the Template Workbench View opens `file` as. Every kind the
- * classifier names neither the Citation Template nor a Shared Partial — a
- * Profile document, a file the reader opened from outside the template folder,
- * and the built-in Default Profile draft, which carries no file at all — opens
- * with the Profile tabs.
- *
- * The same `zotlit-partial.<name>.md` filename elsewhere in the vault is a
- * note ZotLit registers nothing for, so it opens with the Profile tabs rather
- * than as a partial whose own editor would preview a template nothing calls.
- */
 export function templateDocumentKind(
   file: TFile | null,
   folder: string,
@@ -30,12 +16,6 @@ export function templateDocumentKind(
   return kind === "citation" || kind === "partial" ? kind : "profile";
 }
 
-/**
- * The name the Shared Partial at `path` answers to, which the tab title carries
- * and every render fault is reported against.
- *
- * @returns null when `path` names no Shared Partial of `folder`.
- */
 export function templatePartialName(
   path: string,
   folder: string,

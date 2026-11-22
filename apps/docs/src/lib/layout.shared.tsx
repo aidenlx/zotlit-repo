@@ -13,7 +13,6 @@ import { localizeHref } from "@/paraglide/runtime.js";
 
 import { repoUrl } from "./shared.ts";
 
-/** Nav title and links shared by the home and docs layouts. */
 export function baseOptions({
   includeDocsLink = true,
 }: { includeDocsLink?: boolean } = {}): BaseLayoutProps {

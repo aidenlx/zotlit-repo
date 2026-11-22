@@ -1,5 +1,3 @@
-// The template keys of the plugin settings: the template folder, its trim
-// rules, the frontmatter fields, and the state of the template conversion.
 import * as v from "valibot";
 
 import { settingsSlice } from "@zotlit/plugin-services/core/settings/slice.ts";
@@ -27,11 +25,8 @@ export const templateSettings = settingsSlice(
     "note.template-conversion-pending": v.boolean(),
     "note.template-conversion-result": v.nullable(
       v.object({
-        /** `null` when the vault held no Literature Note slots to fold. */
         document: v.nullable(v.pipe(v.string(), v.nonEmpty())),
         trashed: v.pipe(v.number(), v.safeInteger(), v.minValue(0)),
-        /** Legacy files a failed trash left behind; retried from the Welcome view.
-         *  Absent in results saved before cleanup retry existed. */
         pendingCleanup: v.optional(v.array(v.string()), []),
       }),
     ),

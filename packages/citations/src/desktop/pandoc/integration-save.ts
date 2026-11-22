@@ -1,5 +1,3 @@
-// Transactional save for one user-chosen Pandoc Integration Pair folder.
-
 import { Effect, FileSystem } from "effect";
 import type { Scope } from "effect";
 import { join } from "node:path";
@@ -24,10 +22,6 @@ interface PairEntry {
   previous: string | null;
 }
 
-/**
- * Save both integration files as one transaction. A failed install removes
- * newly installed files and restores every target moved to backup.
- */
 export const savePandocIntegrationFiles = Effect.fn("PandocIntegration.save")(
   function* ({
     folder,
@@ -62,7 +56,6 @@ export const savePandocIntegrationFiles = Effect.fn("PandocIntegration.save")(
         if (existing.length > 0 && !(yield* confirmReplacement(existing)))
           return { kind: "cancelled" };
 
-        // Staging cleanup cannot change the result of a completed transaction.
         const temp = yield* Effect.acquireRelease(
           fs.makeTempDirectory({
             directory: folder,
@@ -83,7 +76,6 @@ export const savePandocIntegrationFiles = Effect.fn("PandocIntegration.save")(
 
         const backedUp: PairEntry[] = [];
         const installed: PairEntry[] = [];
-        // Once a target moves, finish the transaction or restore it before interruption.
         return yield* Effect.uninterruptible(
           Effect.gen(function* () {
             const install = yield* Effect.gen(function* () {

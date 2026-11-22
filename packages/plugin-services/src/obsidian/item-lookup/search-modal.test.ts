@@ -1,6 +1,3 @@
-// Regression tests: Enter in an Item picker chose a row of an
-// earlier query's answer while the typed query's answer was pending.
-
 import type { PluginSettings } from "#obsidian/settings/service.ts";
 import { Effect } from "effect";
 import { SuggestModal } from "obsidian";
@@ -16,7 +13,6 @@ import type { SearchHit } from "./service.ts";
 
 import { platformDefaults as defaultSettings } from "#__fixtures__/platform-settings.ts";
 
-/** Two Items with one title: their rows read the same. */
 const figures = hit("DMRGRART");
 const rules = hit("RUGIER24");
 
@@ -39,7 +35,6 @@ class TestModal extends ItemSearchModal {
   }
 }
 
-/** Searches that answer when the test resolves them. */
 function searches() {
   const answers = new Map<string, PromiseWithResolvers<SearchHit[]>>();
   const session: SearchSession = {
@@ -65,23 +60,19 @@ function searches() {
   return { answers, deps };
 }
 
-/** Drives an open modal as Obsidian does. */
 function driver(
   modal: ItemSearchModal,
   answers: Map<string, PromiseWithResolvers<SearchHit[]>>,
 ) {
   const shown = new Map<string, Promise<SearchHit[]>>();
   return {
-    /** Types `query`; Obsidian shows the rows once its answer settles. */
     type: (query: string) => {
       shown.set(query, Promise.resolve(modal.getSuggestions(query)));
     },
-    /** Answers `query` and waits until its rows show. */
     answer: async (query: string, hits: SearchHit[]) => {
       answers.get(query)!.resolve(hits);
       await shown.get(query);
     },
-    /** Presses Enter through the modal's key scope. */
     enter: () => {
       const { handlers } = modal.scope as unknown as {
         handlers: {
@@ -122,7 +113,6 @@ describe("ItemSearchModal", () => {
     await answer("", [figures, rules]);
     type("ten simple");
 
-    // The empty query's rows are still on screen, DMRGRART first.
     enter();
     expect(modal.chosen).toEqual([]);
 
@@ -197,7 +187,6 @@ describe("pickItem", () => {
     vi.restoreAllMocks();
   });
 
-  /** Opens the picker and hands back the modal it opened. */
   function openPicker() {
     const { answers, deps } = searches();
     let opened: ItemSearchModal | undefined;

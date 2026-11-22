@@ -1,7 +1,3 @@
-// The menu path to every panel size, for a reader who cannot drag a handle
-// (WCAG 2.5.7): one menu per handle the view draws, each with entries to grow,
-// shrink and reset its panel. The host draws them in the view's pane menu.
-
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -23,27 +19,22 @@ import type {
 } from "./panel-layout.ts";
 
 export interface PanelSizeItem {
-  /** The handle whose panel the entry sizes. */
   readonly handle: PanelHandle;
   readonly resize: PanelResize;
   readonly label: string;
-  /** The entry would change nothing: the panel is at its limit or default. */
   readonly disabled: boolean;
   readonly apply: (panels: WorkbenchPanels) => WorkbenchPanels;
 }
 
 export interface PanelSizeMenu {
   readonly handle: PanelHandle;
-  /** The way the handle moves: a column edge sideways, the split up and down. */
   readonly axis: HandleSizing["axis"];
-  /** The handle's own name, so the menu reads as the handle does. */
   readonly label: string;
   readonly items: readonly PanelSizeItem[];
 }
 
 const RESIZES: readonly PanelResize[] = ["grow", "shrink", "reset"];
 
-/** The size menus for the handles the view draws for `panels`. */
 export function panelSizeMenus(
   panels: WorkbenchPanels,
   bounds: PanelBounds,
@@ -77,10 +68,6 @@ export function panelSizeMenus(
   });
 }
 
-/**
- * Applies a size menu entry, and has the panels announce the size it gives,
- * as the handle's own value is read while the reader moves it.
- */
 export function pickPanelSize(
   registry: AtomRegistry.AtomRegistry,
   model: Pick<WorkbenchModel, "panels" | "sizedFromMenu">,

@@ -1,8 +1,3 @@
-// Fails codegen on a declared `ContractReference` the emitted schemas would
-// otherwise substitute without proof: an unresolvable path, a resolved type
-// that doesn't structurally cover the member it replaces, or an owner
-// reachable from more than its own declaring root.
-
 import type {
   ContractIR,
   ContractReference,
@@ -12,12 +7,6 @@ import type {
 import type { ContractRoot } from "../../src/contract/roots.ts";
 import { reachableTypes } from "./json-schema.ts";
 
-/**
- * Fail codegen on a declared {@link ContractReference} that would substitute a
- * lie: a path that doesn't resolve, a resolved type that doesn't structurally
- * cover the member it replaces, or an owner reachable from more than its own
- * declaring root.
- */
 export function validateReferences(ir: ContractIR): void {
   const entries = Object.entries(ir.roots) as [ContractRoot, ContractRootIR][];
   const reachableByRoot = new Map(
@@ -59,7 +48,6 @@ export function validateReferences(ir: ContractIR): void {
   }
 }
 
-/** Resolve a reference's `path` (`"zt"` or `"zt.a.b"`) to a {@link ContractIR.types} key. */
 function resolvePath(ir: ContractIR, rootType: string, path: string): string {
   const [head, ...segments] = path.split(".");
   if (head !== "zt") {
@@ -89,7 +77,6 @@ function resolvePath(ir: ContractIR, rootType: string, path: string): string {
   return current;
 }
 
-/** The `$defs` name of the ref arm a reference's `owner.member` substitutes. */
 function refArmOf(ir: ContractIR, reference: ContractReference): string {
   const owner = ir.types[reference.owner];
   if (!owner || owner.kind !== "object") {
@@ -116,10 +103,6 @@ function refArmOf(ir: ContractIR, reference: ContractReference): string {
   );
 }
 
-/**
- * Every member of `refArmName` exists on `resolvedName` with a deep-equal
- * type and equal optionality, and both share an equal `additional` clause.
- */
 function assertCovers(options: {
   ir: ContractIR;
   resolvedName: string;
@@ -164,11 +147,6 @@ function assertCovers(options: {
   }
 }
 
-/**
- * Structural equality for IR fragments. A key holding `undefined` (e.g. a
- * helper's absent `filter`) is treated the same as an omitted key, since
- * `JSON.stringify` already erases that distinction in the committed artifacts.
- */
 function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
   if (typeof a !== "object" || typeof b !== "object" || !a || !b) return false;

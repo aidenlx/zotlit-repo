@@ -1,5 +1,3 @@
-// The minimal structured-logging port consumers adapt their own logger to.
-
 export type LogProperties = Readonly<Record<string, unknown>>;
 
 export type StructuredLogger = {

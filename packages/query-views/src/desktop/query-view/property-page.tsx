@@ -1,12 +1,3 @@
-// The pages of the Properties popover, as a Bases Properties menu steps from a
-// row to its page: "Edit property", which sets a property's Display Name and,
-// for a Formula, its Filter Expression; and "Add formula", which names a new
-// Formula. A field saves when it loses focus, as Enter makes it; a Formula's
-// text also saves a moment after the user stops typing, while it parses, so
-// the view shows its values as the formula takes shape. The expression field
-// is the Match editor's expression input, with a parse-only check: the engine
-// plans the Formula when the view runs, and marks a mistake it finds at the
-// Formula's row.
 import { useMemo, useRef, useState } from "react";
 
 import { parseExpression } from "@zotlit/filter-expression";
@@ -39,10 +30,8 @@ import type { QueryView } from "./view.tsx";
 import { displayName, formulaProperty } from "#core/query-view/query-file.ts";
 import { boundRecords } from "#obsidian/query-view/context-hint.ts";
 
-/** How long a Formula's text rests before it saves while the user types. */
 const FORMULA_SAVE_DELAY = 250;
 
-/** Why a Formula name cannot be saved, or `null` when it can. */
 export function formulaNameIssue(
   name: string,
   taken: Readonly<Record<string, string>>,
@@ -53,27 +42,16 @@ export function formulaNameIssue(
   return null;
 }
 
-/** What the last run found in a Formula. */
 export interface FormulaRunFault extends FormulaIssue {
-  /** The Formula's saved text. */
   readonly saved: string;
 }
 
-/** What the Formula field reports, and the run's Fault it underlines. */
 export interface FormulaCheck {
-  /** What is wrong with the text, or `null` when nothing is. */
   readonly issue: string | null;
-  /** Whether the text parses, apart from what the run found. */
   readonly syntax: "valid" | "invalid";
-  /** Where the run found its Fault, while the text is the saved text. */
   readonly fault?: PlacedFault;
 }
 
-/**
- * @param run What the last run found in the Formula, or `null`.
- * @returns the text's Syntax Fault, else the run's Fault while the text is
- * the saved text. The field underlines both itself.
- */
 export function formulaCheck(
   text: string,
   run: FormulaRunFault | null,
@@ -101,12 +79,10 @@ export function formulaCheck(
   };
 }
 
-/** The Syntax Fault of a Formula's text, or `null` when it parses. */
 export function formulaSyntaxIssue(text: string): string | null {
   return formulaCheck(text, null).issue;
 }
 
-/** The header every page of the Properties popover wears. */
 function PageHeader({
   title,
   menu,
@@ -128,14 +104,12 @@ function PageHeader({
   );
 }
 
-/** The Display Name field, as the property's page and "Add formula" show it. */
 function DisplayNameField({
   property,
   value,
   onChange,
   onBlur,
 }: {
-  /** The property the name is for; its column header shows while the name is empty. */
   property: string;
   value: string;
   onChange: (value: string) => void;
@@ -160,11 +134,6 @@ function DisplayNameField({
   );
 }
 
-/**
- * The Formula field and the validity line under it, as the formula editor of
- * Bases shows them: an icon and the verdict, in the success or the error
- * colour. An empty field shows what to type instead.
- */
 function ExpressionField({
   view,
   formula,
@@ -173,22 +142,17 @@ function ExpressionField({
   onBlur,
   check: { issue, syntax, fault },
 }: {
-  /** The view whose Query Dataset the Formula reads. */
   view: QueryView;
-  /** The Formula the text defines, which its completion leaves out; `null` for a new one. */
   formula: string | null;
   value: string;
-  /** Called with the typed text and the window the field stands in. */
   onChange: (value: string, win: Window) => void;
   onBlur?: () => void;
-  /** What the validity line reports and the field underlines. */
   check: FormulaCheck;
 }) {
   const properties = useViewProperties(view);
   const dataset = useQueryViewState(view, (s) => s.view?.from);
   const formulas = useQueryViewState(view, (s) => s.file?.formulas);
   const custom = useViewCustomFields();
-  // A Formula reads no vault property, and naming itself is a cycle.
   const vocabulary = useMemo(
     () =>
       expressionVocabulary({
@@ -218,7 +182,6 @@ function ExpressionField({
               )}
               data-query-formula-syntax={syntax}
             >
-              {/* The icon keeps to the first line of a long message. */}
               <span className="zt:flex zt:h-lh zt:shrink-0 zt:items-center">
                 <Icon
                   name={issue === null ? "circle-check" : "x-circle"}
@@ -249,7 +212,6 @@ function ExpressionField({
   );
 }
 
-/** A property's Display Name, saved when the field loses focus. */
 function PropertyDisplayName({
   view,
   property,
@@ -257,7 +219,6 @@ function PropertyDisplayName({
 }: {
   view: QueryView;
   property: string;
-  /** The name of the Formula the property shows, else `null`. */
   formula: string | null;
 }) {
   const [name, setName, typed] = useChooserPageText(
@@ -268,7 +229,6 @@ function PropertyDisplayName({
   );
   const save = () => {
     const file = view.state.getState().file;
-    // A Formula removed from the page's menu takes its Display Name along.
     if (
       !file ||
       (formula !== null && !Object.hasOwn(file.formulas ?? {}, formula))
@@ -295,29 +255,22 @@ const ownEntry = <T,>(
 ): T | undefined =>
   Object.hasOwn(dictionary, name) ? dictionary[name] : undefined;
 
-/**
- * A Formula's text, saved while it parses: a moment after the user stops
- * typing, and when the field loses focus.
- */
 function FormulaText({ view, name }: { view: QueryView; name: string }) {
   const saved = useQueryViewState(view, (s) => s.file?.formulas?.[name] ?? "");
   const issue = useQueryViewState(view, (s) =>
     ownEntry(formulaIssuesOf(s), name),
   );
   const [text, setText, typed] = useChooserPageText(saved);
-  // The pending save, on the timers of the window the field stands in.
   const pending = useRef<{ win: Window; timer: number } | null>(null);
   const save = (next: string) => {
     if (pending.current)
       pending.current.win.clearTimeout(pending.current.timer);
     pending.current = null;
     const now = view.state.getState().file?.formulas?.[name];
-    // A Formula removed from the page's menu stays removed.
     if (now !== undefined && next !== now && formulaSyntaxIssue(next) === null)
       view.document.saveFormula(name, next);
   };
   useChooserPageSave(() => save(typed.current));
-  // What ZotLit Query found in the saved text, while it stays as saved.
   const check = useMemo(
     () => formulaCheck(text, issue === undefined ? null : { ...issue, saved }),
     [text, saved, issue],
@@ -342,10 +295,6 @@ function FormulaText({ view, name }: { view: QueryView; name: string }) {
   );
 }
 
-/**
- * "Edit property": the page a property's row opens. Its menu shows or hides
- * the property and removes a Formula.
- */
 export function PropertyPage({
   view,
   entry,
@@ -354,7 +303,6 @@ export function PropertyPage({
 }: {
   view: QueryView;
   entry: PropertyEntry;
-  /** Whether the view shows the property. */
   shown: boolean;
   onShownChange: (shown: boolean) => void;
 }) {
@@ -408,11 +356,6 @@ export function PropertyPage({
   );
 }
 
-/**
- * "Add formula": a name, a Filter Expression and a Display Name for a new
- * Formula, which shows in the view on screen once saved. The page then
- * becomes the new Formula's "Edit property".
- */
 export function NewFormulaPage({ view }: { view: QueryView }) {
   const { replacePage } = useChooserPage();
   const file = useQueryViewState(view, (s) => s.file);

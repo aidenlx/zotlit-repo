@@ -1,9 +1,3 @@
-// Owned docs-layout sidebar slot: fumadocs' stock shapes with the site's type
-// on them — orange mono-uppercase folder rubrics, muted mono-uppercase
-// `links`-prop entries, near-ink page links.
-// Vendored from @fumadocs/base-ui `layouts/docs/slots/sidebar`; everything it
-// imports stays on package entry points. Re-diff on bumps.
-
 import { cva } from "class-variance-authority";
 import { usePathname } from "fumadocs-core/framework";
 import Link from "fumadocs-core/link";
@@ -58,11 +52,6 @@ export interface SidebarProps extends ComponentProps<"aside"> {
   banner?: ReactNode;
   footer?: ReactNode;
 
-  /**
-   * Support collapsing the sidebar on desktop mode
-   *
-   * @defaultValue true
-   */
   collapsible?: boolean;
 }
 
@@ -90,8 +79,6 @@ export function Sidebar({
   const viewport = (
     <Base.SidebarViewport>
       <div className="flex flex-col gap-0.5">
-        {/* No trailing margin on the last link item — `links`-prop entries read
-            as ordinary page links, uniform with the page tree below. */}
         {menuItems
           .filter((v) => v.type !== "icon")
           .map((item, i) => (
@@ -220,10 +207,6 @@ export function Sidebar({
   );
 }
 
-// Only the section that holds the current page stays open. The base folder
-// opens when it becomes active but never closes when it stops being active,
-// so a client-side move to another section would leave the old one open;
-// keying on `active` remounts the folder with its default state instead.
 function SidebarFolder(props: ComponentProps<typeof Base.SidebarFolder>) {
   return <Base.SidebarFolder key={String(props.active ?? false)} {...props} />;
 }
@@ -329,7 +312,6 @@ function SidebarDrawer({
   );
 }
 
-/** The muted mono-uppercase `links` label voice (DESIGN.md → Docs chrome). */
 const linksVoice =
   "font-mono text-[0.72rem] font-medium tracking-[0.08em] text-fd-muted-foreground uppercase";
 
@@ -345,8 +327,6 @@ function SidebarSeparator({
     <Base.SidebarSeparator
       className={cn(
         "mt-6 mb-1 inline-flex items-center gap-2 px-2 empty:mb-0 [&_svg]:size-4 [&_svg]:shrink-0",
-        // Separators are subheadings in the `links` label voice: grey sets
-        // them apart from orange folder rows, caps from page links.
         linksVoice,
         depth === 0 && "first:mt-0",
         className,
@@ -374,8 +354,6 @@ function SidebarItem({
     <Base.SidebarItem
       className={cn(
         itemVariants({ variant: "link", highlight: depth >= 1 }),
-        // Uniform rubric: every root-level row (links-prop entries included)
-        // speaks the orange caps voice; nested page links lead in near-ink.
         depth === 0
           ? "font-mono text-[0.72rem] font-semibold tracking-widest text-fd-primary uppercase"
           : "text-[0.84rem] text-[color-mix(in_oklab,var(--color-fd-foreground)_82%,var(--color-fd-muted-foreground))]",
@@ -419,12 +397,7 @@ function SidebarLinkEntry({
 }: ComponentProps<typeof Base.SidebarItem>) {
   return (
     <Base.SidebarItem
-      className={cn(
-        itemVariants({ variant: "link" }),
-        // Unified `links` voice (shared with the home-nav links)
-        linksVoice,
-        className,
-      )}
+      className={cn(itemVariants({ variant: "link" }), linksVoice, className)}
       style={{ paddingInlineStart: getItemOffset(0), ...style }}
       {...props}
     >
@@ -445,7 +418,6 @@ function SidebarFolderTrigger({
       className={(state) =>
         cn(
           itemVariants({ variant: collapsible ? "button" : null }),
-          // Rubricated folder labels at the TOC-title voice; chevrons stay muted.
           "w-full font-mono text-[0.72rem] font-semibold tracking-widest text-fd-primary uppercase [&_svg]:text-fd-muted-foreground",
           typeof className === "function" ? className(state) : className,
         )
@@ -476,7 +448,6 @@ function SidebarFolderLink({
     <Base.SidebarFolderLink
       className={cn(
         itemVariants({ variant: "link", highlight: depth > 1 }),
-        // Folder labels carry the rubric even when the folder is a link.
         "w-full font-mono text-[0.72rem] font-semibold tracking-widest text-fd-primary uppercase [&_svg]:text-fd-muted-foreground",
         className,
       )}

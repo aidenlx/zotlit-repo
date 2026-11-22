@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { looseFiles } from "./commit-tree.ts";
 
-/** `git status --porcelain=v1 -z` output for these entries. */
 const status = (...entries: string[]) =>
   entries.map((entry) => `${entry}\0`).join("");
 
@@ -33,7 +32,6 @@ describe("looseFiles", () => {
   });
 
   it("reads a rename's source field as part of the rename", () => {
-    // A source path that would read as an untracked entry on its own.
     expect(
       looseFiles(status("R  src/new.ts", "?? old.ts", " M src/c.ts")),
     ).toEqual(["src/c.ts"]);

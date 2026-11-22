@@ -31,3 +31,46 @@ status: accepted
 - Profile deletion no longer warns about rule references; the match dies with the file.
 - Spec [#971](https://github.com/aidenlx/zotlit/issues/971) and its child tickets are amended to this shape, and the settings reference page replaces the "Automatic profile selection" list with the per-Profile match row and drops "sharing or importing a Profile never carries them".
 - The `apps/obsidian/GLOSSARY.md` terms Profile Selection Rule, Rule Filter, and Rule condition are replaced by Profile Match, Match tree, and Match condition.
+
+## In-memory Match preview
+
+Use Item Query's planner, evaluator, and first-fault diagnostic for a Filter Expression on an in-memory Item. The preview uses the Items vocabulary without Query Context or Formulas. A caller can supply a Query Clock. Otherwise it uses the instant and time zone of that call.
+
+Store one live top-level Item as a JSON seed validated with `queryItemSeedSchema`. Keep its Library identity, present field values, complete source custom-field vocabulary, and Collection paths. The vocabulary distinguishes an absent value from a field the source does not define. The seed holds no Attachments, Annotations, or Child Notes. Report a filter that needs them as unavailable instead of returning a result from incomplete data.
+
+Evaluate Profile Matches for multiple Items in one typed query over their Libraries. A literal list of Indexed Keys selects the requested Items. Evaluate each Match as a Formula using filter truth, so null and an Error Value are false. Preserve an invalid Match's diagnostic and continue evaluating the others.
+
+Plan the stored Filter Tree using the Items vocabulary. An empty All group or a true expression matches every Item, while an absent Match makes no claim. A query that cannot read the Item is a failed selection. A Match that cannot evaluate for a returned Item does not hold.
+
+Keep the prepared Profile choice fixed for one creation. If its preview becomes unavailable, ask the user to choose instead of silently substituting a different Profile. A failed Item Match requires a choice. A unique Match does not. Citation and Companion entry points can create directly from an explicit choice. Run a New Profile dialog on the same fiber as the picker so an interrupt closes it. Create from the path the dialog showed. Missing installed CSL styles leave the picker available.
+
+In a batch, retain each new row's selection origin so a fallback only changes the rows that need it. Include all overlap candidates when offering a shared fallback. A Companion selection applies to new rows and leaves existing Profile stamps intact. Only an explicit all-new override changes that selection. A manual choice applies to its operation only. Leave the retired `note.last-used-profile` setting unread and unwritten. Re-render row details after a choice so the user sees the current Profile, reason, and path. Execution uses the confirmed path and verifies that the Profile still exists. A deleted Profile or an unresolved choice produces a row failure. [Batch update runner](../../packages/notes/src/desktop/note-feature/update-batch.ts)
+
+The contextual New Profile dialog returns the Profile and any prepared note write to the current caller. The caller owns the write and uses the previewed path. Settings can open the same dialog without a source Item or note preview.
+
+Let the picker return a New or Import request for the caller to open in its own fiber. Use the same effective Profile details in picker and embedded target rows. Put an unmatched problem between the input and results because the native suggester clears the modal content. Defer dismissal until after the native suggestion callback can deliver its selection. Give the focused Import button its own Enter binding above the modal's binding. Leave Escape and the arrows with the modal. Release the button's binding on redraw and close because a replaced button may receive no blur. [Profile picker](../../packages/notes/src/desktop/profile/profile-picker.ts)
+
+Cancel concurrent Match editor reads when their view unmounts, before the
+view registry's idle expiry.
+
+[Match data tests](../../packages/template-workbench/src/obsidian/view/match-data.test.ts)
+
+### Match controls and ordering
+
+The Profile Match writes through its document controller and master history. The same condition controls serve Query View Filters. The caller owns saved rows and accepted field kinds, and confirms whether a proposed edit was stored. A saved filter that differs from the edited rows replaces their local state. After adding a condition, focus its kind control.
+
+Let a host override part classes for its own layout. Keep short fixed choices in a native select and use the searchable plugin select for long or extensible lists. Search keywords stay separate from the display label. Offer values from the Libraries in the current dataset. Show a field path beside its label as in the Bases picker. Preserve the predicate label where possible and let its value move to another line when the row narrows.
+
+During a pointer reorder, resolve the element under the coordinates if Chromium omits the related target. Capture the drag image before dimming the row. Position the drop indicator beside the row without moving the list, which also serves the Properties ordering control.
+
+Test Match independently of the Preview mode. Supply vocabulary from all
+Libraries in the pinned snapshot. Each caller uses its mount's runner so
+closing it cancels the associated read. Evaluate a Sample Item from its
+seed in memory and a real Item through the same ZotLit Query path used by
+Profile selection. Attach diagnostics to the condition when a span exists.
+
+For desktop Match coverage, use a real Item and its ZotLit Query
+result. A blank Match has one placeholder row. A named-condition
+diagnostic marks its own row after editor layout. A Syntax Fault
+needs no Item query. Mod+Z in an expression updates the Match,
+while Mod+Z in a select search updates only the search input.

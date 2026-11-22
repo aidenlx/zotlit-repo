@@ -22,7 +22,6 @@ const annotation = {
 };
 const hidden = `[@k] [[Note]] [[Note#cite:]] [](${uri}) [](zotero://open/bad)`;
 
-// All coordinates are worked literals in UTF-16, independent of the scanner.
 const pos = (from: number, to: number) => ({
   start: { line: 0, col: from, offset: from },
   end: { line: 0, col: to, offset: to },
@@ -37,10 +36,6 @@ const afterLink = (line: number, col: number, offset: number) => ({
   },
 });
 
-// Every row below is a parity case. Wrong forms, lost group identity, and shifted
-// source positions are the failure modes at this text-in / record-out seam.
-// A row whose hidden region has an end carries a visible [[After]] tail, so it
-// proves the region ends as well as that it hides.
 const conformance: {
   name: string;
   text: string;
@@ -51,7 +46,6 @@ const conformance: {
     >[];
   };
 }[] = [
-  // remark-obsidian/test/parity/corpus.ts: probe/math-marker/dash-then-opener.
   {
     name: "unclosed display math in a list item ends at the list boundary",
     text: "- $$x\n  [[Note]]\n\n[[After]]",
@@ -76,7 +70,6 @@ const conformance: {
       ],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/math-unclosed/callout-title.
   {
     name: "unclosed display math in a callout body ends with the callout",
     text: "> [!note]\n> $$x\n> [[Note]]\n\n[[After]]",
@@ -101,7 +94,6 @@ const conformance: {
       ],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: comment/inline.
   {
     name: "a comment inside an Annotation embed label leaves the embed visible",
     text: `![%%hidden%%](${uri})`,
@@ -116,7 +108,6 @@ const conformance: {
       ],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/math-unclosed/quote-same-line.
   {
     name: "a fence after an unclosed math opener in a quote still opens code",
     text: "> $$x\n> ```\n> [[Note]]\n\n[[After]]",
@@ -133,7 +124,6 @@ const conformance: {
       ],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: math/in-blockquote.
   {
     name: "display math in a quote continues across a bare quote marker",
     text: "> $$x\n>\n> [[Note]]\n> $$\n\n[[After]]",
@@ -150,25 +140,21 @@ const conformance: {
       ],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/cross/highlight-wikilink.
   {
     name: "a highlight crossing a Wikilink opener leaves no Wikilink",
     text: "==a[[b==c]]\n",
     record: {},
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/label-wikilink/after-plain-bracket.
   {
     name: "a double bracket after a bracketed label is a reference label, not a Wikilink",
     text: "a [x][[w]] b\n",
     record: {},
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/footnote-embed/ref-wikilink.
   {
     name: "a footnote reference wrapping a Wikilink yields no Wikilink",
     text: "[^[[target]]]\n",
     record: {},
   },
-  // remark-obsidian/test/parity/corpus.ts: context/footnote-definition/wikilink.
   {
     name: "a Wikilink in a footnote definition body is a Wikilink",
     text: "[^1]: [[target]]\n",
@@ -176,13 +162,11 @@ const conformance: {
       wikilinks: [{ kind: "wikilink", raw: "target", position: pos(6, 16) }],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: math/text-after-close.
   {
     name: "a display math closer followed by text does not close the math",
     text: "Here is an equation\n$$\nx = x + 1\n$$and text after\n\n[[Test 2]]\n",
     record: {},
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/footnote-embed/inline-wikilink.
   {
     name: "an inline footnote around a Wikilink keeps the Wikilink",
     text: "^[[[Note]]]",
@@ -190,7 +174,6 @@ const conformance: {
       wikilinks: [{ kind: "wikilink", raw: "Note", position: pos(2, 10) }],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: comment/inline.
   {
     name: "a comment inside a labelled Annotation link leaves the link visible",
     text: `[visible %%hidden%%](${uri})`,
@@ -205,7 +188,6 @@ const conformance: {
       ],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/label-precedence/wikilink-inside.
   {
     name: "a Wikilink inside a link label is still a Wikilink",
     text: "[foo [[target]] bar](u)",
@@ -213,7 +195,6 @@ const conformance: {
       wikilinks: [{ kind: "wikilink", raw: "target", position: pos(5, 15) }],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/math-unclosed/quote-same-line.
   {
     name: "unclosed display math in a quote ends at the quote boundary",
     text: "> $$x\n> [[Note]]\n\n[[After]]",
@@ -238,7 +219,6 @@ const conformance: {
       ],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/math/display-same-line.
   {
     name: "an indented line after one-line display math stays paragraph text",
     text: "$$x$$ tail\n    [[Note]]",
@@ -365,7 +345,6 @@ const conformance: {
       annotations: [{ ...annotation, form: "citation", position: pos(0, 61) }],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: html/passthrough.
   {
     name: "raw HTML block",
     text: `<div>\n${hidden}\n</div>\n\n[[After]]`,
@@ -402,8 +381,6 @@ const conformance: {
       ],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: frontmatter/closing-line-trailing-text.
-  // Obsidian requires an exact closing delimiter; this block stays unclosed.
   {
     name: "frontmatter delimiter with trailing text stays prose",
     text: "---\nx: y\n--- [@k]",
@@ -423,7 +400,6 @@ const conformance: {
       ],
     },
   },
-  // Same corpus: token/wikilink/newline. An unclosed opener cannot span lines.
   { name: "wikilinks stay on one line", text: "[[a\nb]]", record: {} },
   {
     name: "angle-bracket destination",
@@ -539,7 +515,6 @@ const conformance: {
       citekeys: [{ kind: "citekey", raw: "key", position: pos(1, 5) }],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/wikilink-destination/closer-before-paren.
   {
     name: "wikilink wins over Markdown destination",
     text: `[[a]](${uri})`,
@@ -575,8 +550,6 @@ const conformance: {
     text: "[[Note#Heading]] [[Note#^block]] [[#cite:locator=4]] [[Note|Alias]] ![[Note]]",
     record: {},
   },
-  // remark-obsidian/test/parity/corpus.ts: token/wikilink/escaped-close;
-  // src/lib/syntax/wikilink.ts documents that a backslash cannot escape `]]`.
   {
     name: "wikilink trailing backslash is normalized",
     text: "[[Note\\]]",
@@ -584,9 +557,7 @@ const conformance: {
       wikilinks: [{ kind: "wikilink", raw: "Note", position: pos(0, 9) }],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/escape/wikilink-opener.
   { name: "escaped wikilink opener", text: "\\[[Note]]", record: {} },
-  // remark-obsidian/test/parity/corpus.ts: probe/wikilink-destination/paren-inside.
   {
     name: "citation inside wikilink",
     text: "[[a [@key] b]]",
@@ -632,14 +603,11 @@ const conformance: {
     text: `\`code\n${hidden}\` [[After]]`,
     record: { wikilinks: [afterLink(1, 113, 119)] },
   },
-  // remark-obsidian/test/parity/corpus.ts: probe/math/wikilink-inside,
-  // with the payload expanded to all occurrence forms.
   {
     name: "inline math consumes every source",
     text: `$x ${hidden}$ [[After]]`,
     record: { wikilinks: [afterLink(0, 116, 116)] },
   },
-  // remark-obsidian/test/parity/corpus.ts: math/currency and probe/math/currency-pair.
   {
     name: "currency stays prose",
     text: "$5 and [@k] for $6",
@@ -650,7 +618,6 @@ const conformance: {
       citekeys: [{ kind: "citekey", raw: "k", position: pos(8, 10) }],
     },
   },
-  // Same corpus: probe/math/inline-padded. The leading space refuses the opener.
   {
     name: "space after dollar stays prose",
     text: "$ [@k]$",
@@ -661,7 +628,6 @@ const conformance: {
       citekeys: [{ kind: "citekey", raw: "k", position: pos(3, 5) }],
     },
   },
-  // Same corpus: probe/math/escaped-dollar, token/inline-math/escaped-close.
   {
     name: "escaped math opener",
     text: "\\$x [@k]$",
@@ -677,7 +643,6 @@ const conformance: {
     text: `$x\\$ ${hidden}$ [[After]]`,
     record: { wikilinks: [afterLink(0, 118, 118)] },
   },
-  // Same corpus: probe/math/inline-across-line and probe/math/display-same-line.
   {
     name: "inline math across lines",
     text: `$x\n${hidden}$ [[After]]`,
@@ -698,13 +663,11 @@ const conformance: {
       citekeys: [{ kind: "citekey", raw: "k", position: pos(7, 9) }],
     },
   },
-  // Same corpus: probe/math/display-own-lines and math/empty-block.
   {
     name: "display math across blank lines",
     text: `$$\n\n${hidden}\n\n$$\n\n[[After]]`,
     record: { wikilinks: [afterLink(6, 0, 121)] },
   },
-  // Same corpus: probe/math/display-open-only.
   { name: "unclosed display math", text: `$$\n${hidden}`, record: {} },
   {
     name: "four hyphens do not close frontmatter",
@@ -732,13 +695,11 @@ const conformance: {
       ],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: frontmatter/wikilink-value.
   {
     name: "closed frontmatter",
     text: `---\nvalue: '${hidden}'\n---\n[[After]]`,
     record: { wikilinks: [afterLink(3, 0, 129)] },
   },
-  // Same corpus: frontmatter/unclosed-fence. The body is ordinary Markdown.
   {
     name: "unclosed frontmatter",
     text: "---\n[@k]",
@@ -758,7 +719,6 @@ const conformance: {
       ],
     },
   },
-  // Same corpus: frontmatter/indented-opener-is-not.
   {
     name: "frontmatter opener must start at zero",
     text: " ---\n[@k]\n---",
@@ -778,8 +738,6 @@ const conformance: {
       ],
     },
   },
-  // remark-obsidian/test/parity/corpus.ts: comment/inline, comment/block,
-  // comment/unterminated. Payloads exercise all five recorded occurrence kinds.
   {
     name: "inline comment",
     text: `before %%${hidden}%% [[After]]`,
@@ -795,7 +753,6 @@ const conformance: {
     text: `%%\n${hidden}`,
     record: {},
   },
-  // Same corpus: probe/quote-comment/crossing-text.
   {
     name: "comment crosses containers",
     text: `> %%\n\n${hidden}\n%%\n\n[[After]]`,
@@ -830,7 +787,6 @@ it.each(conformance)("$name", ({ text, record }) => {
   }).toEqual({ ...empty, ...record });
 });
 
-// Existing citation syntax remains stable when the legacy scanner retires.
 it.each(
   [
     "Before @a [{p. 3}; @b] after",
@@ -914,8 +870,6 @@ it.each([
   },
 );
 
-// Intentional ADR 0080 changes from the previous scanner (scan.ts).
-// Each row names what that scanner did; only the new scanner is asserted.
 it.each([
   {
     name: "fenced code nested in a quote hides its Citation (scan.ts read it)",
@@ -941,7 +895,6 @@ it.each([
   expect(scanNote(text).citekeys.map(({ raw }) => raw)).toEqual(citekeys);
 });
 
-// Export needs ranges even in notes that contain no citation opener.
 it.each([
   ["`code`", []],
   [">      ", []],

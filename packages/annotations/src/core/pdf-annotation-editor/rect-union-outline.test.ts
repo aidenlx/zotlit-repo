@@ -20,8 +20,6 @@ it("pads a single rect outward on every side", () => {
 });
 
 it("hugs two rects sharing an edge as one silhouette, not two boxes", () => {
-  // The shared edge at x=30 falls inside the union: no vertical edge is
-  // traced there, and the outline is one rectangle 40 wide.
   const d = unionOutlinePath(
     [
       [10, 10, 30, 20],
@@ -41,8 +39,6 @@ it("hugs two rects sharing an edge as one silhouette, not two boxes", () => {
 });
 
 it("follows a three-line staircase of uneven widths", () => {
-  // Three highlight lines, each narrower than the last, stacked with no gap
-  // between rows — the shape the drop-shadow treatment used to smear.
   const d = unionOutlinePath(
     [
       [0, 0, 100, 10],
@@ -67,8 +63,6 @@ it("follows a three-line staircase of uneven widths", () => {
 });
 
 it("bands edges that differ by less than a point's own noise floor", () => {
-  // Two edges 0.004 page units apart are the same edge: the outline steps
-  // from one to the other in one straight run, never a sliver jog between.
   const d = unionOutlinePath(
     [
       [0, 0, 100, 10],
@@ -88,10 +82,6 @@ it("bands edges that differ by less than a point's own noise floor", () => {
 });
 
 it("traces the Fixture's own three-line underline as an eight-corner staircase", () => {
-  // Annotation K3JRFLFQ on `rougier-2014.pdf`, its three stored rects
-  // converted to page units at rotation 0 (`y = 792 - y`). The first two
-  // lines' right edges sit 0.004 apart, which is conversion noise rather
-  // than a step in the text.
   const d = unionOutlinePath(
     [
       [67.011, 171.23, 211.485, 179.362],
@@ -143,9 +133,6 @@ it("traces one loop per disjoint island", () => {
 });
 
 it("keeps both rects outlined where two of them touch corner to corner", () => {
-  // Four boundary edges meet at (10, 10), the one junction where a walk has a
-  // real choice. Each rect stays fully drawn whichever way it goes, and the
-  // junction itself is collinear on both axes, so no corner is emitted there.
   const d = unionOutlinePath(
     [
       [0, 0, 10, 10],
@@ -156,11 +143,9 @@ it("keeps both rects outlined where two of them touch corner to corner", () => {
 
   expect(segmentsOf(d)).toEqual(
     [
-      // the first rect
       "0,0|10,0",
       "0,0|0,10",
       "0,10|20,10",
-      // the second rect, sharing the junction's two collinear runs
       "10,0|10,20",
       "10,20|20,20",
       "20,10|20,20",
@@ -178,14 +163,10 @@ it("outlines a run of rects that meet only at corners", () => {
     0,
   );
 
-  // Every rect contributes its own four sides, with each touching pair's two
-  // collinear runs merged into one segment: 12 sides, 4 merges.
   expect(segmentsOf(d)).toHaveLength(8);
   expect(segmentsOf(d).filter((segment) => diagonal(segment))).toEqual([]);
 });
 
-/** Each drawn segment as `"x1,y1|x2,y2"`, endpoints ordered so the trace's own
- * direction does not matter — the set of ink a stroked path puts on the page. */
 function segmentsOf(d: string): string[] {
   const segments: string[] = [];
   for (const piece of d
@@ -211,8 +192,6 @@ function segmentsOf(d: string): string[] {
   return segments.sort();
 }
 
-/** A segment that is neither horizontal nor vertical — a walk that closed
- * across open space rather than along the boundary. */
 function diagonal(segment: string): boolean {
   const [from, to] = segment.split("|");
   const [x1, y1] = from!.split(",");
@@ -220,7 +199,6 @@ function diagonal(segment: string): boolean {
   return x1 !== x2 && y1 !== y2;
 }
 
-/** Every closed subpath of `d`, each as its own list of `[x, y]` corners. */
 function loopsOf(d: string): string[] {
   const subpaths = d.split(/(?=M )/).filter((piece) => piece.length > 0);
   return subpaths
@@ -236,11 +214,6 @@ function loopsOf(d: string): string[] {
     .sort();
 }
 
-/**
- * A loop's corners, normalised so the trace's arbitrary starting point and
- * winding direction don't matter: rotate to start at the lexicographically
- * smallest corner, try both directions, and keep whichever reads smaller.
- */
 function canonical(points: readonly (readonly [number, number])[]): string {
   const rotations = (ordered: readonly (readonly [number, number])[]) =>
     ordered.map((_, offset) =>

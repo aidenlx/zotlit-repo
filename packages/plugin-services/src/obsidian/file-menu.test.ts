@@ -16,7 +16,6 @@ function fileOf(extension: string): TFile {
   return file;
 }
 
-/** A segment that records what it read and adds one row titled `title`. */
 function recording(title: string, seen: FileMenuContext[] = []) {
   const segment: FileMenuSegment = (menu, ctx) => {
     seen.push(ctx);

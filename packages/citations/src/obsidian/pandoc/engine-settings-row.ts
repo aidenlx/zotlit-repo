@@ -1,5 +1,3 @@
-// The settings row of the Pandoc engine: its status in the Resource Pack.
-
 import type { SettingDefinition } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -13,7 +11,6 @@ import { PandocEngine } from "./service.ts";
 
 const PANDOC_SOURCE = "https://github.com/jgm/pandoc";
 
-/** The engine row, in the Pandoc engine's own words. */
 export function pandocEngineDefinition(
   ctx: SettingTabContext,
 ): SettingDefinition<SettingsKey> {
@@ -29,7 +26,6 @@ export function pandocEngineDefinition(
   });
 }
 
-// The services this file's rows read, in the setting tab's context.
 declare module "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts" {
   interface SettingTabServiceRegistry {
     PandocEngine: PandocEngine;

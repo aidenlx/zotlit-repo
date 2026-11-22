@@ -5,7 +5,6 @@ import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-hos
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-// The one cited work, and the Citation Index answer naming it, that the citation-text suites read against.
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
@@ -26,15 +25,8 @@ import type { ProfileStyleReader } from "#obsidian/pandoc/profile-styles.ts";
 import type { FormattedOccurrence, PresentedCitation } from "#obsidian/citation-text/present.ts";
 import { CitationText, layerCitationText } from "#obsidian/citation-text/service.ts";
 
-/** The Indexed Key of the cited work, which is also the CSL id a render names it by. */
 export const ALPHA_KEY = "ALPHA234";
 
-/**
- * One Citation Index answer.
- *
- * @param indexedKey the Indexed Key the citekey reaches, or null for a key that
- *   reaches no Literature Note.
- */
 export function citation(
   citekey: string,
   indexedKey: string | null = ALPHA_KEY,
@@ -60,23 +52,14 @@ export function literalOccurrences(body: string): CitationOccurrence[] {
   return scanNote(body).citekeys;
 }
 
-/** One formatted citation, as the render cache hands it over. */
 export function rendered(text: string): RenderedCitation {
   return { content: [{ t: "Str", c: text }], citations: [] };
 }
 
-/** One formatted citation as a surface holds it, standing for no note. */
 export function presented(text: string): PresentedCitation {
   return { text: rendered(text), serials: [] };
 }
 
-/**
- * One formatted citation of a note-class style: the works it names read out of
- * the source, and a note where an in-text style would have written the text.
- *
- * @param source the citation as the render was asked for it, whose keys are
- *   the CSL ids the render answers with.
- */
 export function noted(source: string): RenderedCitation {
   return {
     content: [
@@ -94,10 +77,6 @@ export function noted(source: string): RenderedCitation {
   };
 }
 
-/**
- * The one occurrence a document holding a Citation once writes of it, for a
- * suite that stands in for a whole read.
- */
 export function occurrences(
   text: RenderedCitation,
   start = 0,
@@ -105,26 +84,19 @@ export function occurrences(
   return [{ start, text, serials: [] }];
 }
 
-/**
- * The text every occurrence of one held Citation reads as, in document order,
- * which is what a suite asserting on a position-dependent render asserts on.
- */
 export function occurrenceTexts(
   held: readonly FormattedOccurrence[] = [],
 ): string[] {
   return held.map(({ text }) => inlineText(text.content));
 }
 
-/** The text one held Citation's first occurrence reads as. */
 export function firstText(
   held: readonly FormattedOccurrence[] = [],
 ): string | undefined {
   return occurrenceTexts(held)[0];
 }
 
-/** The real CitationText layer over already-owned consumer fixture dependencies. */
 export interface CitationTextFixtureDeps {
-  /** The Obsidian objects the capability tags read; a missing one is empty. */
   host: HostSources;
   citationIndex: Pick<CitationIndex["Service"], "getParsedDocument" | "events">;
   citationLookup: Pick<CitationLookup["Service"], "current" | "changes">;
@@ -138,7 +110,6 @@ export interface CitationTextFixtureDeps {
     QueryClients["Service"],
     "client" | "changes" | "ask" | "read" | "peek" | "invalidate" | "watch"
   >;
-  /** The documents open in the workspace; without it, the layer reads the host's workspace. */
   openDocuments?: OpenDocuments;
 }
 

@@ -1,5 +1,3 @@
-// Synchronous, eval-free interpreter for generated JSON Language Packs.
-
 import { parseNumericLiteral } from "./language-pack.ts";
 import type { Expression, LanguagePack, Message } from "./language-pack.ts";
 import { noopLogger } from "./logger.ts";
@@ -12,7 +10,6 @@ type RenderMessageOptions = {
   inputs: Record<string, unknown>;
 };
 
-/** Each locale's bundled subset of Target-Locale Messages, keyed by locale. */
 export type TargetLocaleMessages = Readonly<
   Record<string, Readonly<Record<string, Message>>>
 >;
@@ -20,27 +17,14 @@ export type TargetLocaleMessages = Readonly<
 export type LanguagePackRuntime = {
   install(pack: LanguagePack): void;
   reset(): void;
-  /**
-   * The locale {@link LanguagePackRuntime.translate} renders from — the active
-   * pack's locale, so a caller formatting alongside a message (a list, a name
-   * order) uses the locale the text around it already reads in.
-   */
   getLocale(): string;
-  /** Routes runtime diagnostics to the consumer's logger; generated runtimes start with the no-op. */
   setLogger(logger: StructuredLogger): void;
-  /** Selects the locale {@link LanguagePackRuntime.translateTarget} renders from. */
   setTargetLocale(locale: string): void;
   translate(messageId: string, inputs?: Record<string, unknown>): string;
-  /**
-   * Renders a Target-Locale Message from the bundled subset for the target
-   * locale, never consulting the active Language Pack, then falls back per
-   * message to the base locale and finally to the message ID.
-   */
   translateTarget(messageId: string, inputs?: Record<string, unknown>): string;
 };
 
 export type CreateLanguagePackRuntimeOptions = {
-  /** Subsets shipped with the plugin; absent locales render base-locale text. */
   targetLocaleMessages?: TargetLocaleMessages;
 };
 
@@ -56,11 +40,9 @@ export function createLanguagePackRuntime(
 ): LanguagePackRuntime {
   let logger: StructuredLogger = noopLogger;
   let activePack = basePack;
-  /** The rung {@link translateTarget} renders from; absent until a target locale with a bundled subset is set. */
   let target:
     | { locale: string; messages: Readonly<Record<string, Message>> }
     | undefined;
-  /** Message IDs already reported as falling back, so a hot translate logs once per ID. */
   const reportedFallbacks = new Set<string>();
 
   const reportFallback = (
@@ -77,11 +59,6 @@ export function createLanguagePackRuntime(
     });
   };
 
-  /**
-   * Renders from one rung of the fallback ladder, or `undefined` to fall
-   * through to the base locale. `source` names the rung in the fallback log;
-   * omitting it silences reporting for a rung that is the base pack itself.
-   */
   const renderFrom = (
     {
       messages,
@@ -305,7 +282,6 @@ function resolveExpression(
   }
 }
 
-/** Coerces a datetime formatter argument (epoch number or ISO 8601 string) to epoch milliseconds. */
 function toEpochMilliseconds(argument: unknown): number {
   if (typeof argument === "number") return argument;
   const text = String(argument);

@@ -1,10 +1,3 @@
-// The hooks the Preact surfaces promise, held to their literal names.
-//
-// The Annotation View is React, and components are not mounted in tests, so
-// what a test can hold is the name itself: a rename of a registry key is free,
-// a rename of the class a theme selects on is not.
-//
-// @see apps/obsidian/policies/theme-hooks.md
 import { expect, it } from "vitest";
 
 import { themeAttribute, themeHook } from "./theme-hooks.ts";

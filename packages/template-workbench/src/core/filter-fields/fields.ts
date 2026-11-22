@@ -1,11 +1,3 @@
-// The conditions a filter offers over a Query Dataset, as Filter Expression
-// text: each one is a field of the dataset, an operator and a value. The
-// Query View's Filter and the Profile Match both offer them. The fields are
-// dataset-relative: an Item's title is `title` on Items and `item.title` on
-// Annotations. A few common fields come first, under names of their own; after
-// them comes every other field the dataset's planner reads, so that the list
-// cannot fall behind ZotLit Query. What a condition cannot read stays an
-// expression row in the Match editor.
 import { parseExpressionAst } from "@zotlit/filter-expression";
 import type { ExpressionNode } from "@zotlit/filter-expression";
 import {
@@ -17,13 +9,8 @@ import {
 } from "@zotlit/item-query";
 import type { QueryDataset } from "@zotlit/item-query";
 
-/** The records a filter selects. */
 export type FilterDataset = "annotations" | "attachments" | "items";
 
-/**
- * What a condition puts before a field of the Item and of the Attachment;
- * `null` where the dataset has no Attachment.
- */
 const PREFIX: Record<
   FilterDataset,
   { readonly item: string; readonly attachment: string | null }
@@ -33,7 +20,6 @@ const PREFIX: Record<
   items: { item: "", attachment: null },
 };
 
-/** How a field's value is tested, and so which operators it offers. */
 export type FilterValueType =
   | "text"
   | "list"
@@ -43,13 +29,8 @@ export type FilterValueType =
   | "date"
   | "boolean";
 
-/**
- * The kind of a field the host adds beside a dataset's own, such as a vault
- * property of the Query View, named by the host.
- */
 export type CustomFilterFieldKind = `custom:${string}`;
 
-/** The kind of a field of the dataset with no name of its own, by its path. */
 export type DatasetFilterFieldKind = `field:${string}`;
 
 export type FilterFieldKind =
@@ -74,15 +55,9 @@ export type FilterFieldKind =
 
 export interface FilterField {
   readonly kind: FilterFieldKind;
-  /**
-   * The field's path in the view's dataset, as a condition writes it: a
-   * name the dot cannot reach takes bracket access, as `vault["a-b"]` does.
-   */
   readonly path: string;
   readonly type: FilterValueType;
-  /** The name the kind picker shows; a field the host adds gives one. */
   readonly label?: string;
-  /** The words the kind picker also finds it by; a query never holds one. */
   readonly searchTerms?: readonly string[];
 }
 
@@ -106,17 +81,13 @@ export type FilterOperator =
   | "is-true"
   | "is-false";
 
-/** One condition row of the Query View's Filter. */
 export interface FilterRow {
   readonly kind: FilterFieldKind;
   readonly operator: FilterOperator;
-  /** The value of a one-value operator. */
   readonly value: string;
-  /** The values of "contains any of" and "contains all of". */
   readonly values: readonly string[];
 }
 
-/** The operators of each value type, the first one a new row's. */
 export const FILTER_OPERATORS: Record<
   FilterValueType,
   readonly FilterOperator[]
@@ -161,7 +132,6 @@ const ENGINES: Record<FilterDataset, QueryDataset<any>> = {
   items: ITEMS,
 };
 
-/** How each type the planner gives is tested in a condition. */
 const VALUE_TYPES: Readonly<Record<string, FilterValueType>> = {
   string: "text",
   list: "list",
@@ -170,15 +140,10 @@ const VALUE_TYPES: Readonly<Record<string, FilterValueType>> = {
   boolean: "boolean",
 };
 
-/** Whether `kind` names a field of the dataset by its path. */
 export const isDatasetFieldKind = (
   kind: FilterFieldKind,
 ): kind is DatasetFilterFieldKind => kind.startsWith("field:");
 
-/**
- * The paths a condition can test: each cell of `dataset`, after the field it
- * is part of, as `date` comes before `date.year`.
- */
 function conditionPaths(dataset: FilterDataset): Set<string> {
   return new Set(
     cellProperties(ENGINES[dataset]).flatMap((path) => {
@@ -188,7 +153,6 @@ function conditionPaths(dataset: FilterDataset): Set<string> {
   );
 }
 
-/** The paths of `dataset` its planner types, less the paths in `common`. */
 function otherFields(
   dataset: FilterDataset,
   common: readonly FilterField[],
@@ -204,10 +168,8 @@ function otherFields(
   });
 }
 
-/** The conditions of each dataset, which a descriptor never changes. */
 const fieldsOf = new Map<FilterDataset, readonly FilterField[]>();
 
-/** The conditions of a view's dataset, in the order the kind picker lists them. */
 export function filterFields(dataset: FilterDataset): readonly FilterField[] {
   let fields = fieldsOf.get(dataset);
   if (!fields) {
@@ -221,7 +183,6 @@ export function filterFields(dataset: FilterDataset): readonly FilterField[] {
   return fields;
 }
 
-/** The fields the kind picker lists first, under names of their own. */
 function commonFields(dataset: FilterDataset): FilterField[] {
   const { item, attachment } = PREFIX[dataset];
   const fields: FilterField[] = [];
@@ -248,7 +209,6 @@ function commonFields(dataset: FilterDataset): FilterField[] {
     { kind: "collection", path: `${item}collections`, type: "collection" },
     { kind: "library", path: "library", type: "choice" },
   );
-  // An Annotation lists the Tags of its own above; an Item, those of the Item.
   if (dataset === "items")
     fields.push({ kind: "tags", path: "tags", type: "list" });
   if (attachment !== null)
@@ -259,13 +219,11 @@ function commonFields(dataset: FilterDataset): FilterField[] {
   return fields;
 }
 
-/** A row of `field` with its first operator and no value yet. */
 export function freshFilterRow(field: FilterField): FilterRow {
   const operator = FILTER_OPERATORS[field.type][0]!;
   return { kind: field.kind, operator, value: "", values: [] };
 }
 
-/** `row` with another operator, keeping what its values still mean. */
 export function withOperator(
   row: FilterRow,
   operator: FilterOperator,
@@ -309,7 +267,6 @@ function fieldOf(
   return field;
 }
 
-/** Whether a row has the value its operator tests, so that it stores a condition. */
 export function hasFilterValue(row: FilterRow): boolean {
   switch (row.operator) {
     case "is-empty":
@@ -325,7 +282,6 @@ export function hasFilterValue(row: FilterRow): boolean {
   }
 }
 
-/** The Filter Expression of one row; `null` while the row has no value. */
 export function formatFilterRow(
   row: FilterRow,
   fields: readonly FilterField[],
@@ -463,10 +419,6 @@ function comparedValue(
   return null;
 }
 
-/**
- * The row one Filter Expression condition reads as, or `null` when no row
- * shows it as written.
- */
 export function parseFilterRow(
   text: string,
   fields: readonly FilterField[],

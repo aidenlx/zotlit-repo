@@ -18,7 +18,6 @@ import type { ItemQueryRequest, QueryResult } from "./request.ts";
 import { describeQueryVocabulary } from "./schema.ts";
 import { runEffect } from "./test-helpers.ts";
 
-// Read-only scenarios; a test that changes the database opens its own.
 let shared: ScenarioDatabase<NodeDatabaseClient>;
 let sharedAnnotations: ScenarioDatabase<NodeDatabaseClient>;
 
@@ -36,7 +35,6 @@ afterAll(() => {
 
 const vocabulary = describeQueryVocabulary();
 
-/** The hint line of a golden report, the canonical text of that diagnostic. */
 function goldenHint(name: string): string {
   const entry = reports.find((report) => report.name === name);
   if (!entry) throw new Error(`No golden report named ${name}`);
@@ -350,14 +348,11 @@ it("lists attachment.indexedKey among the Annotation Sortable Fields", async () 
   expect(error.value.diagnostic.expected).toContain("attachment.indexedKey");
 });
 
-// Golden diagnostic reports, with excerpt and caret lines. The first 24 entries
-// are the spec's probe cases; the rest replace the former sentence tests.
 it.each(reports)("reports $name", async ({ request, report, ...setup }) => {
   const dataset =
     "dataset" in setup && setup.dataset === "annotations" ? ANNOTATIONS : ITEMS;
   const withoutCustomFields =
     "withoutCustomFields" in setup && setup.withoutCustomFields;
-  // A case that changes the source opens its own copy.
   using changed =
     withoutCustomFields || setup.customFieldName !== undefined
       ? openScenarioDatabase(connectClient, {
@@ -382,14 +377,12 @@ it.each(reports)("reports $name", async ({ request, report, ...setup }) => {
     client: scenario.db,
   });
   const outcome = goldenOutcome(exit, dataset);
-  // A read that succeeds reports one warning; a read that fails, its Fault.
   expect(outcome.diagnostics).toHaveLength(1);
   const diagnostic = outcome.diagnostics[0];
   expect(outcome.dataset).toBe(dataset);
   expect(diagnostic.report).toEqual(report);
   expect(diagnostic.severity).toBe(outcome.severity);
   expect(diagnostic).toMatchObject(faultFields(outcome.fault));
-  // The excerpt shows the source span, else the indexed entry, else nothing.
   const location = diagnostic.location;
   const span = location?.span;
   const argument = location?.argument === "group" ? query.group : query.filter;
@@ -404,7 +397,6 @@ it.each(reports)("reports $name", async ({ request, report, ...setup }) => {
   );
 });
 
-/** The diagnostics of a golden case: the warnings of a read of the dataset, or its Fault. */
 function goldenOutcome(
   exit: Exit.Exit<QueryResult, unknown>,
   dataset: QueryDataset,
@@ -427,7 +419,6 @@ function goldenOutcome(
   } as const;
 }
 
-/** The diagnostic fields a Fault fixes regardless of its report. */
 function faultFields(fault: ItemQueryError["fault"] | undefined) {
   if (fault?.kind === "plain")
     return { found: "", expected: [], suggestions: [] };
@@ -436,8 +427,6 @@ function faultFields(fault: ItemQueryError["fault"] | undefined) {
   return {};
 }
 
-// Failure modes: escaped prefixes must not shift carets, zero-width spans
-// need a visible marker, and context must remain bounded on both sides.
 it.each([
   { text: '"\\\t\n\r\u0000bad', from: 6, to: 9, column: 16, width: 3 },
   { text: '"x"', from: 3, to: 3, column: 5, width: 1 },
@@ -469,7 +458,6 @@ it.each([
   },
 );
 
-// Syntax corrections depend on the stopped grammar's expected operators.
 it("offers an AND correction as data", () => {
   const diagnostic = diagnose(
     {
@@ -512,8 +500,6 @@ it("keeps syntax suggestions empty without source text", () => {
   expect(diagnostic.suggestions).toEqual([]);
 });
 
-// Failure modes: successful warnings must reach the result, suggest membership,
-// and mark both operands without changing the matching rows.
 it("returns a membership warning with an empty successful result", async () => {
   const { exit } = await runEffect(
     collectQuery(ITEMS, {
@@ -534,8 +520,6 @@ it("returns a membership warning with an empty successful result", async () => {
   ]);
 });
 
-// Corrections preserve the comparison relation and the surrounding expression.
-// Ambiguous signatures, invalid conversions, and executable strings offer no Try.
 it.each([
   ['tags != "bulk" && title == "x"', '!tags.contains("bulk") && title == "x"'],
   ['tags < "bulk"', undefined],
@@ -693,7 +677,6 @@ it("marks the received projection entry for a grammar fault", () => {
   expect(diagnostic.location?.span).toBeUndefined();
 });
 
-// Decoder prose joins the golden reports here; adapter tests keep structured facts.
 it.each(["0", "unlimited"])(
   "reports the count action for limit=%s",
   (limit) => {

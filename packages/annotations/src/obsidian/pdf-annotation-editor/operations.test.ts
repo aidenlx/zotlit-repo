@@ -68,11 +68,8 @@ it.effect(
           now: READER_NOW,
         }),
       );
-      // A create Zotero answers only once the view has begun to close; its
-      // settle writes the state, as a Text Draft's or an ink create's does.
       const started = yield* Deferred.make<void>();
       const answer = yield* Deferred.make<void>();
-      /** Mark visibility as the settle left it, read in the same write. */
       let settled: boolean | undefined;
       const create = writes(
         Effect.uninterruptible(
@@ -89,19 +86,16 @@ it.effect(
       );
       yield* Deferred.await(started);
       const closing = yield* Effect.forkChild(Scope.close(scope, Exit.void));
-      // The close begins, and waits on the create before Zotero answers it.
       yield* Effect.yieldNow;
       yield* Deferred.succeed(answer, undefined);
       yield* Fiber.join(closing);
       yield* Fiber.await(create);
 
-      // The settle landed on a live registry, and the close disposed it after.
       expect(settled).toBe(false);
       expect(isOpen(registry, model)).toBe(false);
     }),
 );
 
-/** Whether the registry still answers for the model, rather than being disposed. */
 function isOpen(
   registry: ReaderSurfaceRegistry,
   model: ReaderSurfaceModel,

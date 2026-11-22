@@ -1,13 +1,3 @@
-// TextMate grammar highlighting Eta v4 template markers only — the `<% %>`
-// delimiters, output operators, and whitespace-trim markers. Tag contents are
-// left unstyled: JavaScript is deliberately not embedded, which avoids the
-// source.js `{` block swallowing the `%>` close across a tag boundary.
-//
-// Tag shape follows Eta's parser: `<%` + optional trim marker (`-`/`_`) +
-// optional whitespace + optional operator (`=` escaped, `~` raw, empty exec),
-// closed by an optional trim marker + `%>`.
-// @see https://github.com/eta-dev/eta/blob/v4.0.0/src/parse.ts
-
 type CaptureMap = Record<string, { name: string }>;
 
 const endCaptures = {

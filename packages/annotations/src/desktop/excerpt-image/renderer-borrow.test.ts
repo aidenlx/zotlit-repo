@@ -9,8 +9,6 @@ import type {
 } from "#obsidian/excerpt-image/service.ts";
 import { Effect } from "effect";
 import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
-// The render seam: a crop drawn from the reader's own document once that
-// document proves it holds the file's bytes, and from the file otherwise.
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, expect, it, vi } from "vitest";
@@ -49,7 +47,6 @@ afterEach(async () => {
   );
 });
 
-/** The file the reader shows, and the bytes a matching document answers. */
 const PDF_BYTES = new Uint8Array([1, 2, 3, 4]);
 const OTHER_BYTES = new Uint8Array([9, 9, 9, 9]);
 
@@ -76,15 +73,12 @@ const request: ExcerptRequest = {
   zoteroPngPath: null,
 };
 
-/** A PDF.js page proxy whose render task the test holds open or fails. */
 function cropPage(
   options: {
-    /** What a render task started on this page answers with. */
     task?: () => { promise: Promise<void>; cancel: () => void };
   } = {},
 ) {
   const tasks: { promise: Promise<void>; cancel: Mock }[] = [];
-  // The reader's own render task for this page: excerpt work never touches it.
   const readerTask = { cancel: vi.fn(), promise: Promise.resolve() };
   const renderTasks = new Set<unknown>([
     { task: readerTask, _useRequestAnimationFrame: true },
@@ -114,8 +108,6 @@ function cropPage(
       };
       const task = { ...started, cancel: vi.fn(started.cancel) };
       tasks.push(task);
-      // The crop's own task is the one scheduling is adjusted on; the reader's
-      // task keeps its own flag.
       renderTasks.add({ task, _useRequestAnimationFrame: true });
       return task;
     },
@@ -130,7 +122,6 @@ function cropPage(
   };
 }
 
-/** A canvas that encodes whatever size it is given, as the WebP fixture. */
 function canvasFixture() {
   const canvases: {
     width: number;
@@ -155,10 +146,8 @@ function canvasFixture() {
   return { canvas, canvases };
 }
 
-/** A page the detached path renders: the loader's own, cleanup and all. */
 type LoadedCropPage = ExcerptCropPage & { cleanup: Mock };
 
-/** The renderer's own path: a PDF engine that counts its document loads. */
 function detachedLibrary(options: { page?: () => LoadedCropPage } = {}) {
   const pages = vi.fn(async (_pageIndex: number) =>
     options.page ? options.page() : cropPage().page,
@@ -175,7 +164,6 @@ function detachedLibrary(options: { page?: () => LoadedCropPage } = {}) {
   return { load, engine, pages, destroy };
 }
 
-/** The reader's document for the file, with the bytes it answers for itself. */
 function readerDocument(options: {
   bytes: Uint8Array | null;
   page?: (pageIndex: number) => Promise<ExcerptCropPage | null>;
@@ -183,7 +171,6 @@ function readerDocument(options: {
   const bytes = vi.fn(async () => options.bytes);
   const answered = cropPage();
   const page = vi.fn(options.page ?? (async () => answered.page));
-  // Whether the reader still holds the document, until a test withdraws it.
   const current = vi.fn(() => true);
   const borrowed: Omit<BorrowedExcerptDocument, "path"> & { path: string } = {
     path: "",
@@ -197,7 +184,6 @@ function readerDocument(options: {
   return { readers, borrow, borrowed, bytes, page, answered, current };
 }
 
-/** A file two harnesses can share, so both resolutions read one revision. */
 async function sharedPdf(): Promise<string> {
   const folder = await mkdtemp(join(tmpdir(), "zotlit-borrow-shared-"));
   folders.push(folder);
@@ -206,21 +192,11 @@ async function sharedPdf(): Promise<string> {
   return path;
 }
 
-/**
- * One service over a real file, a cache in memory, and a fake canvas. The
- * renderer the service builds is the real one; only PDF.js and the canvas are
- * doubles, so a detached resolution is a genuine document load and a borrowed
- * one genuinely draws from the page the reader answers. The fixture disposes
- * the service it owns.
- */
 async function harness(options: {
   reader?: (path: string) => ExcerptReaderDocuments;
   cache?: Map<string, ExcerptEntry>;
-  /** The file to render, so two harnesses can share one revision. */
   path?: string;
-  /** The page the detached path renders, when a test holds its crops open. */
   detachedPage?: () => LoadedCropPage;
-  /** The pdf.js build the connected Reader reports. */
   pdfjsBuild?: string;
 }) {
   const cleanup = new AsyncDisposableStack();
@@ -242,7 +218,6 @@ async function harness(options: {
               entries.set(key, entry);
             }),
         },
-        // Every request's own file, so a harness can carry more than one PDF.
         stamp: async (path) => {
           const info = await stat(path);
           return { size: info.size, mtimeMs: info.mtimeMs };
@@ -271,7 +246,6 @@ async function harness(options: {
   };
 }
 
-/** A reader that holds the file, with the bytes its document answers with. */
 function holdingReader(
   reader: ReturnType<typeof readerDocument>,
 ): (path: string) => ExcerptReaderDocuments {
@@ -302,16 +276,6 @@ it("selects the reader's document and publishes under the detached identity", as
 
   if (fromReader.kind !== "available" || fromFile.kind !== "available")
     throw new Error("both sources answer an available image");
-  // Route selection, which is what this file's seams can answer: the reader's
-  // own document renders the crop and no PDF is loaded for it, while the same
-  // request without a reader loads the file once. Both publish under one
-  // identity, so a later resolution finds either route's entry.
-  //
-  // The canvases here encode a fixed fixture and ignore every drawing call, so
-  // the two routes' bytes compare equal whatever either route drew. Pixel
-  // parity between the routes is established where a crop is really drawn and
-  // decoded: `verifyReaderBackedExcerpts` in packages/e2e compares the decoded
-  // borrowed and detached crops of one Fixture Annotation in the running app.
   expect(borrowed.detached.load).not.toHaveBeenCalled();
   expect(detached.detached.load).toHaveBeenCalledTimes(1);
   expect(fromReader.format).toEqual(fromFile.format);
@@ -339,8 +303,6 @@ it("serves a later resolution from the entry reader-backed work published", asyn
 
   const fromReader = await borrowed.service.resolve(borrowed.request);
 
-  // The import that follows finds the reader's crop already published: no
-  // document load, and the identical entry.
   await using later = await harness({ cache: shared, path });
   const fromCache = await later.service.resolve(later.request);
 
@@ -391,9 +353,6 @@ it.each([
 
 it("renders from the file when a reader open before startup holds bytes the file no longer has", async () => {
   const path = await sharedPdf();
-  // The reader's document was loaded before the plugin started, from the
-  // revision the file held then. The file has since been rewritten at the same
-  // length, so only the content proof can tell the two apart.
   const reader = readerDocument({ bytes: PDF_BYTES });
   await using f = await harness({ path, reader: holdingReader(reader) });
   await writeFile(path, OTHER_BYTES);
@@ -457,7 +416,6 @@ it("renders from the file when the reader's page fails under the crop", async ()
     kind: "available",
     provenance: "rendered",
   });
-  // One publication, from the file the borrow fell back to.
   expect(f.detached.load).toHaveBeenCalledTimes(1);
   expect([...f.entries.keys()]).toEqual([
     excerptKey(f.request, fakeReaderEngine),
@@ -479,9 +437,6 @@ it("stops waiting on a borrowed byte read that never settles", async () => {
   caller.abort();
 
   await rejected;
-  // The reader's own read is not cancelled or cleaned up to end the wait, and
-  // the render slot comes back at once instead of after a teardown that has to
-  // give up on the unresolved render.
   await vi.waitFor(() =>
     expect(f.service.queueDiagnostics).toMatchObject({
       rendering: 0,
@@ -504,7 +459,6 @@ it("reads the file when the reader replaces its document while the page is resol
 
   const pending = f.service.resolve(f.request);
   await vi.waitFor(() => expect(reader.page).toHaveBeenCalledTimes(1));
-  // The reader swaps its document while that page read is in flight.
   reader.current.mockReturnValue(false);
   reading.resolve(withdrawn.page);
 
@@ -512,8 +466,6 @@ it("reads the file when the reader replaces its document while the page is resol
     kind: "available",
     provenance: "rendered",
   });
-  // The withdrawn page was never drawn from, and the file supplied the one
-  // publication.
   expect(withdrawn.tasks).toHaveLength(0);
   expect(withdrawn.cleanup).not.toHaveBeenCalled();
   expect(f.detached.load).toHaveBeenCalledTimes(1);
@@ -535,7 +487,6 @@ it("reads the file when the reader replaces its document while the crop draws", 
 
   const pending = f.service.resolve(f.request);
   await vi.waitFor(() => expect(held.tasks).toHaveLength(1));
-  // The reader swaps its document under the crop, which goes on to finish.
   reader.current.mockReturnValue(false);
   gate.resolve();
 
@@ -543,8 +494,6 @@ it("reads the file when the reader replaces its document while the crop draws", 
     kind: "available",
     provenance: "rendered",
   });
-  // One publication, from the file: the withdrawn page's finished image was
-  // not it, and nothing of the reader's own task was cancelled for it.
   expect(held.readerTask.cancel).not.toHaveBeenCalled();
   expect(f.detached.load).toHaveBeenCalledTimes(1);
   expect([...f.entries.keys()]).toEqual([
@@ -580,7 +529,6 @@ it("cancels a borrowed crop when its caller aborts, and publishes nothing", asyn
   expect(f.detached.load).not.toHaveBeenCalled();
 });
 
-// Unload interrupts the layer's in-flight crop and releases its resources.
 it("unload cancels a borrowed crop and releases the reader page without publishing", async () => {
   const held = cropPage({
     task: () => ({
@@ -659,8 +607,6 @@ it("gives a waiting PDF its turn after four borrowed crops of another", async ()
   const pathB = await sharedPdf();
   const started: string[] = [];
   const gates: (() => void)[] = [];
-  // Every crop holds the one render slot until the test hands it back, so the
-  // queue's own order — not the speed of a crop — decides what starts next.
   const heldCrop = (label: string) =>
     cropPage({
       task: () => {
@@ -696,16 +642,12 @@ it("gives a waiting PDF its turn after four borrowed crops of another", async ()
   ];
 
   const jobs = requests.map((request) => f.service.resolve(request));
-  // Every crop is waiting in the one shared render queue before any settles.
   await vi.waitFor(() =>
     expect(f.service.queueDiagnostics).toMatchObject({
       rendering: 1,
       queued: 5,
     }),
   );
-  // The doc the reader holds supplies four crops, then the PDF waiting behind
-  // it — the one with no reader, rendering detached — takes the slot, and the
-  // borrowed PDF finishes last.
   const order = [
     "borrowed",
     "borrowed",

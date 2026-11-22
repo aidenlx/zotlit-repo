@@ -33,3 +33,48 @@ Turbo requires an acyclic package graph, and a dev dependency counts: `@zotlit/d
 
 - The non-test source of db imports `node:*` only in `src/client/node.ts` and `src/lib/zt-path.ts` (the desktop attachment paths of `./path`).
 - A change to a package that the root package.json reaches (directly: config, docs, e2e, obsidian, scripts, zotero; and their dependencies) still selects every package, because Turbo treats it as a root dependency change. The root dependencies on docs, e2e, obsidian and zotero date from the removed `lint:deps` task.
+
+## Fixture and driver contracts
+
+Query tests can create the shared hand-written table subset and insert
+only the rows they need. Column defaults reduce the setup needed for
+most cases. The scenario tests instead copy the pristine Zotero 10
+database so Zotero supplies the lookup tables, triggers, and foreign
+keys. Seeds resolve lookup identifiers by name. Indexed Keys identify
+rows across libraries because bare keys are only unique within a
+library. Seed values that need SQLite's INTEGER storage class bind as
+bigints, since Node's SQLite driver binds a JavaScript number as REAL.
+
+A scenario copy lives in memory by default. File-based tests use a
+temporary directory owned by the returned disposable handle. The
+optional lowest layout drops the normalized columns from migration
+126 and the client version columns from migration 129. It stamps
+userdata 125 and compatibility 7. A test project can select that
+layout through `ZOTLIT_SCENARIO_LAYOUT`. The template path resolves
+relative to the workspace package so the fixture can use the copy in
+`@zotlit/scripts` without adding a package dependency back to the
+scripts that already depend on DB. A failing client factory should
+release the connection and directory.
+[Scenario setup cleanup](https://github.com/aidenlx/zotlit-repo/issues/71)
+
+Statement counters wrap preparation before the first query, so later
+executions of cached statements are counted as well. The compile
+counter measures preparations separately from executions. The bulk
+library keeps large responsiveness tests separate from the small
+scenario whose tests assert exact rows. Its ordered keys and repeated
+groups let the tests exercise limited batches and filters. Bulk
+annotation tests use one PDF with mixed annotation kinds.
+
+The small scenario includes field aliases and custom-name collisions,
+date precision and unparseable input, case-sensitive tag examples,
+collections with repeated leaf names and trashed ancestors, identical
+bare keys in different libraries, ties broken by Item key, and live
+and trashed child rows. These rows let query tests distinguish stored
+values from defaults and normalized projections.
+
+The driver conformance suite uses no Node modules so the same checks
+can run against SQLite-WASM in a Worker. It takes factories for fresh
+writable and read-only databases. The shared-file lock case needs two
+independent connections with no busy timeout and runs only for drivers
+that provide that factory. Error checks follow Drizzle's cause chain
+to the SQLite message that ZoteroReads reports.

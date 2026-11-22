@@ -4,7 +4,6 @@ import type {
 } from "#obsidian/note-feature/compose.ts";
 import type { ResolvedProfile } from "#obsidian/profile/bindings.ts";
 import type { ResolvedLiteratureNoteTemplate } from "#obsidian/template/service.ts";
-// The Note Feature writes: create, update, overwrite, rewrite and Profile switch.
 import { Cause, DateTime, Effect, Fiber, Option, Result, Stream } from "effect";
 import { getFrontMatterInfo } from "obsidian";
 import type { TFile } from "obsidian";
@@ -118,7 +117,6 @@ import { syncTemplate } from "#obsidian/template/sync-template.ts";
 
 const logged = withLogCategory("note-feature");
 
-/** The services the note writes read through their tags. */
 export type NoteWriteServices =
   | AttachmentImport
   | ExcerptPreparation
@@ -133,25 +131,14 @@ export type NoteWriteServices =
   | ZoteroPref
   | ZoteroReads;
 
-/** What every write of one Note Feature shares. */
 export interface NoteWriteContext {
-  /**
-   * Raises a Note Feature event at once, from inside a render's synchronous
-   * callback as well as from Effect code.
-   */
   readonly emit: (event: NoteFeatureEvent) => void;
 }
 
-/** The pipeline's options for one create, beyond what a caller hands in. */
 type CreateNoteWriteOptions = CreateNoteInternalOptions & {
-  /** Runs once the note exists, before its attachments flush. */
   onFileCreated?: (file: TFile) => Effect.Effect<void>;
 };
 
-/**
- * The frontmatter-eval event as the composition raises it, inside a render's
- * synchronous callback.
- */
 export const composeEvents = (
   ctx: NoteWriteContext,
 ): NonNullable<ComposeNoteDeps["events"]> => ({
@@ -159,7 +146,6 @@ export const composeEvents = (
     ctx.emit({ _tag: "frontmatter-eval-failed", payload }),
 });
 
-/** The reads `use` runs on: the batch's Snapshot, or one of its own. */
 const withReads = <A, E, R>(
   provided: ZoteroReadsApi | undefined,
   use: (reads: ZoteroReadsApi) => Effect.Effect<A, E, R>,
@@ -173,10 +159,6 @@ const withReads = <A, E, R>(
         ),
       );
 
-/**
- * The resolvers of one note's render, over the write's services and the
- * Zotero data directory as it stands now.
- */
 const noteResolvers = Effect.fnUntraced(function* (
   options: Omit<
     Parameters<typeof buildNoteResolvers>[1],
@@ -194,30 +176,14 @@ const noteResolvers = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * What a note write at `path` fails with for `cause`, a throw that stopped it:
- * an inert Template's refusal as itself, so it stays a typed failure, and
- * anything else as {@link NoteWriteAborted}.
- */
 const aborted = (path: string, cause: unknown) =>
   cause instanceof InertTemplateError
     ? cause
     : new NoteWriteAborted({ path, cause });
 
-/** A render for the note at `path`; a throw fails as {@link aborted} gives it. */
 const renderFor = (path: string, render: () => string) =>
   Effect.try({ try: render, catch: (cause) => aborted(path, cause) });
 
-/**
- * The bound feature serializes calls by Indexed Key before this operation.
- * This operation checks the settled Note Index before it writes. The path was
- * found free in the vault cache when it was resolved; a note that took it
- * since fails the create with `FileExists`.
- *
- * Fails with `NotePathUnavailable` when the rendered filename is empty or
- * every `suffix()` attempt collides, and with `FileExists` or `VaultError`
- * when Obsidian refuses the create.
- */
 export const createNote = Effect.fnUntraced(function* (
   ctx: NoteWriteContext,
   item: Item,
@@ -264,8 +230,6 @@ export const createNote = Effect.fnUntraced(function* (
       indexedKey: item.indexedKey,
     }) satisfies CreateNoteResult;
   }
-  // One Snapshot across the render and the vault write: every read of this
-  // create sees one database state. A batch hands in its own.
   return yield* withReads(options.reads, (reads) =>
     Effect.gen(function* () {
       const source = yield* readNoteSource(reads, item.itemID, {
@@ -276,7 +240,6 @@ export const createNote = Effect.fnUntraced(function* (
           indexedKey: item.indexedKey,
           message: `Zotero item not found: ${item.indexedKey}`,
         });
-      // The filename renders from the Snapshot's Item, as the body does.
       const { itemTags, itemCollections } = itemFacets(source);
       const { path } =
         options.preparedPath ??
@@ -307,16 +270,11 @@ export const createNote = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * Prepare and render once; the supplied create boundary writes these composed
- * bytes in one create.
- */
 const writeNewNote = Effect.fnUntraced(function* <E>(
   ctx: NoteWriteContext,
   item: Item,
   options: {
     reads: ZoteroReadsApi;
-    /** The item's bundle, read under the same Snapshot. */
     source: NoteSource;
     path: string;
     settings: Readonly<Settings>;
@@ -325,14 +283,11 @@ const writeNewNote = Effect.fnUntraced(function* <E>(
     onFileCreated?: (file: TFile) => Effect.Effect<void>;
     createFile: (content: string) => Effect.Effect<TFile, E, Vault>;
     reportExcerpts?: (summary: ExcerptSummary) => void;
-    /** The batch's retained outcomes, or omitted for this note's own scope. */
     outcomes?: ExcerptOutcomeScope;
   },
 ) {
   const { path, settings } = options;
   yield* ensureVaultParentFolder(path);
-  // One created note is one initiating batch: its excerpts share this
-  // retention until the note settles.
   return yield* Effect.scoped(
     Effect.gen(function* () {
       const outcomes = yield* outcomeScope(options.outcomes);
@@ -379,8 +334,6 @@ const writeNewNote = Effect.fnUntraced(function* <E>(
         return refused;
       }
 
-      // The write and its attachment copies run to the end: an interrupt
-      // never leaves a written note that names attachments not yet copied.
       const file = yield* Effect.uninterruptible(
         Effect.gen(function* () {
           const file = yield* options.createFile(composed.content);
@@ -403,22 +356,11 @@ const writeNewNote = Effect.fnUntraced(function* <E>(
   );
 });
 
-/** What an update writes, and the batch above it when there is one. */
 export interface UpdateNoteOptions {
   indexedKey: string;
   scope?: UpdateScope;
   profile?: ProfileSelector;
-  /**
-   * Recheck a caller-owned editing session just before the note's one write;
-   * throwing leaves the note untouched. The write itself checks the note's
-   * Zotero key and refuses a note that no longer carries `indexedKey` with
-   * `literature-note-key-changed`.
-   */
   beforeWrite?: () => void;
-  /**
-   * The initiating batch's retained outcomes. Omitted, this update opens its
-   * own scope for the note it writes, then releases it once the note settles.
-   */
   outcomes?: ExcerptOutcomeScope;
 }
 
@@ -429,9 +371,6 @@ export const updateNote = Effect.fnUntraced(function* (
 ) {
   const { indexedKey, scope = "full" } = options;
   const profiles = yield* Profile;
-  // Settle readiness and prepare the attachment handle before pinning the
-  // Snapshot, so the lease spans only the DB reads and the vault writes — not
-  // the warm-up waits.
   yield* (yield* NoteIndex).whenIndexed;
   const settings = yield* (yield* PluginSettings).current;
   const existing = yield* profiles.profileOf(file);
@@ -463,8 +402,6 @@ export const updateNote = Effect.fnUntraced(function* (
   return yield* Effect.scoped(
     Effect.gen(function* () {
       const reads = yield* (yield* ZoteroReads).snapshot;
-      // One initiating batch: this note's excerpts share one retention until
-      // the note settles.
       const outcomes = yield* outcomeScope(options.outcomes);
       const { context, excerptImages } = yield* contextForIndexedKey(
         ctx,
@@ -478,8 +415,6 @@ export const updateNote = Effect.fnUntraced(function* (
           outcomes,
         },
       );
-      // Run inside the retention's scope, so the retention outlives the
-      // note's excerpt resolution.
       return yield* applyManagedUpdate(ctx, file, {
         context,
         attachmentImport,
@@ -496,15 +431,6 @@ export const updateNote = Effect.fnUntraced(function* (
 
 const NO_KEYS: ReadonlySet<string> = new Set();
 
-/**
- * The keys of a Literature Note that its next update replaces: those its
- * own Profile manages with the replace strategy, a Spread Entry's as it
- * evaluates for the note's Item now. A note the metadata cache has not
- * parsed yet, as one just created, is read once it does. None where the
- * update would refuse, or the Profile, its template or the Item cannot be
- * read now, so that a key stays editable rather than locked on a passing
- * fault. An interrupt passes on.
- */
 export const replacedKeys = (ctx: NoteWriteContext, file: TFile) =>
   readReplacedKeys(ctx, file).pipe(
     recover(
@@ -548,8 +474,6 @@ const readReplacedKeys = Effect.fnUntraced(function* (
   );
   const indexedKey = itemKeyFromFrontmatter(cache);
   if (spreads.length === 0 || !indexedKey) return keys;
-  // A Spread Entry names its keys as it runs for the Item, as the update
-  // runs it; nothing it queues is imported.
   const attachmentImport = yield* (yield* AttachmentImport).prepare(file.path);
   yield* Effect.scoped(
     Effect.gen(function* () {
@@ -571,11 +495,6 @@ const readReplacedKeys = Effect.fnUntraced(function* (
   return keys;
 });
 
-/**
- * The metadata of `file`, once the metadata cache has parsed it. The wait
- * listens before it reads the cache, so a parse that lands between the two
- * still answers.
- */
 const parsedCache = Effect.fnUntraced(function* (file: TFile) {
   const metadata = yield* MetadataCache;
   const parsed = yield* filterTag(metadata.changes, "changed").pipe(
@@ -589,7 +508,6 @@ const parsedCache = Effect.fnUntraced(function* (file: TFile) {
     return cache;
   }
   const event = yield* Fiber.join(parsed);
-  // The changes end only when the cache closes with the plugin.
   if (Option.isNone(event)) return yield* Effect.interrupt;
   return event.value.cache;
 });
@@ -625,8 +543,6 @@ export const switchNoteProfile = Effect.fnUntraced(function* (
     imported,
   });
   const move = options.move === true && targetPath !== previousPath;
-  // The move, the stamps and their rollback run to the end, so an interrupt
-  // never leaves a moved note without its stamp.
   yield* Effect.uninterruptible(
     Effect.gen(function* () {
       if (move) {
@@ -668,10 +584,6 @@ export const switchNoteProfile = Effect.fnUntraced(function* (
   return NO_BODY_UPDATE;
 });
 
-/**
- * Stamp each of `files` with `stamp`. A failure puts back the stamps already
- * written, the last first, then fails with what failed.
- */
 const stampNoteFamily = Effect.fnUntraced(function* (
   files: readonly TFile[],
   stamp: string | undefined,
@@ -693,7 +605,6 @@ const stampNoteFamily = Effect.fnUntraced(function* (
   ).pipe(
     Effect.catch(({ error, index }) =>
       Effect.gen(function* () {
-        // The failed note too: its write may have landed before it failed.
         const rollbacks = yield* Effect.forEach(
           previous.slice(0, index + 1).toReversed(),
           ([file, previousStamp]) =>
@@ -713,7 +624,6 @@ const stampNoteFamily = Effect.fnUntraced(function* (
   );
 });
 
-/** Write one note's Profile stamp; `undefined` unstamps it as the default. */
 const stampNoteProfile = (file: TFile, stamp: string | undefined) =>
   rewriteLiveText(file, (text) => {
     const fm = parseFrontMatter(text);
@@ -722,10 +632,6 @@ const stampNoteProfile = (file: TFile, stamp: string | undefined) =>
     return spliceFrontMatter(text, fm);
   });
 
-/**
- * Rewrite `file`'s live text with `fn`, as `processLiveText` does. A throw
- * from `fn` leaves the note as it was and fails as {@link aborted} gives it.
- */
 const rewriteLiveText = (file: TFile, fn: (text: string) => string) =>
   processLiveText(file, fn).pipe(
     Effect.catchTag("LiveTextRewriteFailed", ({ path, cause }) =>
@@ -733,16 +639,6 @@ const rewriteLiveText = (file: TFile, fn: (text: string) => string) =>
     ),
   );
 
-/**
- * Update an existing note from an already-fetched `item`. The batch runner
- * calls this to reuse the item it classified, skipping the per-item
- * resolution {@link updateNote} does via `indexedKey` (re-deriving the
- * library and re-querying the item).
- *
- * Assumes the caller has gated database, note-index, and template readiness;
- * the batch runner does so once for the whole run, so unlike {@link updateNote}
- * (via {@link contextForIndexedKey}) this does not wait for them itself.
- */
 export const writeNoteUpdate = Effect.fnUntraced(function* (
   ctx: NoteWriteContext,
   file: TFile,
@@ -775,8 +671,6 @@ export const writeNoteUpdate = Effect.fnUntraced(function* (
     return refusedUpdateMissingDocument(profile.document!, file.path);
   }
   const attachmentImport = yield* (yield* AttachmentImport).prepare(file.path);
-  // Without a batch above it, this update is its own initiating batch: its
-  // excerpts share this retention.
   return yield* Effect.scoped(
     Effect.gen(function* () {
       const outcomes = yield* outcomeScope(options.outcomes);
@@ -805,8 +699,6 @@ export const writeNoteUpdate = Effect.fnUntraced(function* (
         excerptImages,
       });
       const context = buildNoteContextFromSource(source, resolvers);
-      // Run inside the scope, so the retention outlives the note's excerpt
-      // resolution.
       return yield* applyManagedUpdate(ctx, file, {
         context,
         attachmentImport,
@@ -821,14 +713,6 @@ export const writeNoteUpdate = Effect.fnUntraced(function* (
   );
 });
 
-/** Compose a managed update: prepare the frontmatter, render the managed body
- *  region for the `full` scope, then write both in one {@link rewriteNote}. A
- *  document field refusal returns before the write, and the body render —
- *  where a call to a Shared Partial the vault holds no document for raises —
- *  runs while the note is still untouched, so a refusal leaves both the
- *  Properties block and the body as authored. Shared by {@link updateNote} and
- *  {@link writeNoteUpdate}; the caller supplies the already-built context and
- *  its prepared `attachmentImport`. */
 const applyManagedUpdate = Effect.fnUntraced(function* (
   ctx: NoteWriteContext,
   file: TFile,
@@ -858,7 +742,6 @@ const applyManagedUpdate = Effect.fnUntraced(function* (
   const noManagedBlock =
     scope === "full" && document !== undefined && !document.hasManagedBlock;
   const template = yield* syncTemplate;
-  // The render waits until the note's live text has a region to receive it.
   const renderRegion =
     scope === "full" && !noManagedBlock
       ? () =>
@@ -868,8 +751,6 @@ const applyManagedUpdate = Effect.fnUntraced(function* (
       : undefined;
   let replaced = false;
   let duplicateCount = 0;
-  // The write and its attachment copies run to the end: an interrupt never
-  // leaves a written note that names attachments not yet copied.
   const refused = yield* Effect.uninterruptible(
     Effect.gen(function* () {
       const refused = yield* rewriteNote(ctx, file, {
@@ -921,14 +802,8 @@ const applyManagedUpdate = Effect.fnUntraced(function* (
   return result;
 });
 
-/** What an overwrite writes, and the batch above it when there is one. */
 interface OverwriteNoteOptions {
-  /** The Indexed Key of the Zotero item the note is stamped for. */
   indexedKey: string;
-  /**
-   * The initiating batch's retained outcomes. Omitted, this overwrite opens its
-   * own scope for the note it writes, then releases it once the note settles.
-   */
   outcomes?: ExcerptOutcomeScope;
 }
 
@@ -938,9 +813,6 @@ export const overwriteNote = Effect.fnUntraced(function* (
   options: OverwriteNoteOptions,
 ) {
   const { indexedKey } = options;
-  // Settle readiness and prepare the attachment handle before pinning the
-  // Snapshot, so the lease spans only the DB reads and the vault writes — not
-  // the warm-up waits.
   yield* (yield* NoteIndex).whenIndexed;
   const settings = yield* (yield* PluginSettings).current;
   const result = yield* (yield* Profile).profileOf(file);
@@ -957,8 +829,6 @@ export const overwriteNote = Effect.fnUntraced(function* (
   return yield* Effect.scoped(
     Effect.gen(function* () {
       const reads = yield* (yield* ZoteroReads).snapshot;
-      // One initiating batch: this note's excerpts share one retention until
-      // the note settles.
       const outcomes = yield* outcomeScope(options.outcomes);
       const { context, excerptImages } = yield* contextForIndexedKey(
         ctx,
@@ -981,14 +851,9 @@ export const overwriteNote = Effect.fnUntraced(function* (
       if ("diagnostic" in prepared)
         return { ...NO_BODY_UPDATE, diagnostic: prepared.diagnostic };
       if (excerptImages) yield* excerptImages.prepare;
-      // The body renders before either write, so a render that raises — a call
-      // to a Shared Partial the vault holds no document for — leaves the note
-      // whole.
       const body = document
         ? yield* renderFor(file.path, () => document.renderForCreate(context))
         : yield* (yield* Template).render("note", context);
-      // The write and its attachment copies run to the end: an interrupt
-      // never leaves a written note that names attachments not yet copied.
       const refused = yield* Effect.uninterruptible(
         Effect.gen(function* () {
           const refused = yield* rewriteNote(ctx, file, {
@@ -1021,10 +886,6 @@ export const overwriteNote = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * Commit the note's attachment copies, then report its excerpt outcomes: to
- * the batch's collector, or as the Note Feature's own event.
- */
 const flushNoteAttachments = (
   ctx: NoteWriteContext,
   input: {
@@ -1047,22 +908,15 @@ const flushNoteAttachments = (
     );
   });
 
-/**
- * Assumes the caller has settled note-index and template readiness (and
- * pinned a Snapshot); {@link updateNote} and {@link overwriteNote} do so
- * before opening it.
- */
 const contextForIndexedKey = Effect.fnUntraced(function* (
   ctx: NoteWriteContext,
   indexedKey: string,
   options: {
-    /** Bound to the operation's Snapshot. */
     reads: ZoteroReadsApi;
     attachmentImport: Pick<AttachmentImportBatch, "decide" | "resolveLink">;
     sourcePath: string;
     settings: Readonly<Settings>;
     previousNote?: TFile;
-    /** The initiating batch's retained outcomes. */
     outcomes?: ExcerptOutcomeScope;
   },
 ) {
@@ -1093,10 +947,6 @@ const contextForIndexedKey = Effect.fnUntraced(function* (
   return { context, excerptImages };
 });
 
-/**
- * The {@link NoteSource} of an item, or `null` for an unknown item. An omitted
- * `username` reads the signed-in account.
- */
 const readNoteSource = (
   reads: ZoteroReadsApi,
   itemID: number,
@@ -1107,24 +957,11 @@ const readNoteSource = (
     ...(options.username !== undefined && { username: options.username }),
   });
 
-/**
- * Rewrite a Literature Note's live text in one `processLiveText`: apply the
- * prepared Managed Frontmatter with `spliceFrontMatter`, and transform the
- * body, so both land together or not at all. The note's Zotero key and
- * Profile stamp are read from the text this write replaces: the metadata cache
- * that chose the Profile lags behind a recent write or an unsaved edit.
- *
- * @returns the refusal when the note no longer carries `itemKey`, or its stamp
- *   no longer names the Profile the update rendered under; the note is left
- *   untouched then.
- */
 const rewriteNote = Effect.fnUntraced(function* (
   ctx: NoteWriteContext,
   file: TFile,
   input: ComposeFrontmatterInput & {
-    /** The Profile the update rendered under. */
     profile: Pick<ResolvedProfile, "selector">;
-    /** The caller's own session check, run just before the write. */
     beforeWrite?: () => void;
     body: (body: string) => string;
   },
@@ -1145,7 +982,6 @@ const rewriteNote = Effect.fnUntraced(function* (
       fm,
       input,
     );
-    // The Properties block and the body are rewritten apart, then joined.
     const { contentStart } = getFrontMatterInfo(content);
     return (
       spliceFrontMatter(content.slice(0, contentStart), fm) +
@@ -1173,7 +1009,6 @@ const rewriteNote = Effect.fnUntraced(function* (
   return undefined;
 });
 
-/** The Profile a note's Properties stamp: `default` when they carry no stamp. */
 function stampedSelector(
   fm: Record<string, unknown>,
 ): ProfileSelector | undefined {
@@ -1196,7 +1031,6 @@ const prepareFrontmatter = Effect.fnUntraced(function* (input: {
   return { diagnostic: yield* frontmatterRefusal(result.failures, input) };
 });
 
-/** A type guard: when conversion is pending, a non-default selector is a real Profile ID. */
 function conversionRequired(
   settings: Readonly<Settings>,
   selector: ProfileSelector,

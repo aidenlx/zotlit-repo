@@ -1,4 +1,3 @@
-// The state of a stored Profile Match, before any Item is tested.
 import { describe, expect, it } from "vitest";
 
 import type { MatchTree } from "@zotlit/templates/facade";

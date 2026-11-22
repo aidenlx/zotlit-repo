@@ -46,8 +46,6 @@ function appStub(): App {
   });
 }
 
-// Every Literature Note write that hits a missing partial names it and offers
-// the route back to the Workbench; create and single update already did.
 it.each([
   [
     "overwrite",
@@ -80,10 +78,6 @@ it.each([
   },
 );
 
-/**
- * The note actions' services, with `feature` as the Note Feature, `reads`
- * as the Zotero database in `state`.
- */
 function actions(
   feature: Partial<NoteFeature["Service"]> = {},
   database: { state: ZoteroReadsState["state"]; reads?: ZoteroReadsApi } = {
@@ -128,7 +122,6 @@ function actions(
   return { layer, ports };
 }
 
-/** The error logs of `run`, by message and annotations. */
 const errorLogs = Effect.fnUntraced(function* <A, E, R>(
   run: Effect.Effect<A, E, R>,
 ) {
@@ -235,7 +228,6 @@ it.effect("runs the library-wide update from the Update notes dialog", () =>
   }),
 );
 
-/** The Confirm or Cancel answer of the confirmation dialog, as the user gives it. */
 function answerConfirmation(confirmed: boolean) {
   const opened = vi
     .spyOn(ConfirmationModal.prototype, "open")

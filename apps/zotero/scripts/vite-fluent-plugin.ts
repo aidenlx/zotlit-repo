@@ -15,13 +15,9 @@ import type { ZoteroBuildEnv } from "./vite-zotero-plugin.ts";
 export interface FluentPluginOpts extends FluentEmitOptions {
   root: string;
   env: ZoteroBuildEnv;
-  /** Absolute path of the inlang project directory. */
   project: string;
-  /** Filename Zotero resolves via `new Localization([ftlFileName])`. */
   ftlFileName: string;
-  /** Addon-staging source dir; every `.xhtml` underneath is scanned for `data-l10n-id` refs. */
   addonDir: string;
-  /** Codegen output path for the `FluentMessages` map, relative to `root`. */
   typesOutput: string;
 }
 
@@ -59,8 +55,6 @@ export function fluentPlugin({
         includeMessagePrefixes: [namespace],
       });
       for (const path of data.watchPaths) this.addWatchFile(path);
-      // A locale may leave a message untranslated; the base locale may not
-      // lack one, and no locale may use an input the base never declares.
       const failing = formatCompilerWarnings({
         untranslated: [],
         undeclaredInputs: data.undeclaredInputs,

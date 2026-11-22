@@ -1,4 +1,3 @@
-// Profile state and note resolutions shared by Template Document views.
 import { Effect, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -27,11 +26,6 @@ export const defaultProfilePathAtom = Atom.map(
   (state) => state?.defaultDocumentPath ?? "",
 );
 
-/**
- * A note's stamp can change independently of the installed Profiles. Keyed by
- * path: a family hashes an object key by structure, and a TFile links back to
- * itself.
- */
 export const fileProfileAtom = Atom.family((path: string) =>
   viewRuntime.atom((get) => {
     get(profileStateAtom);
@@ -79,7 +73,6 @@ export const profileRevisionAtom = held(
   0,
 );
 
-/** Only the default bindings invalidate Workbench renders. */
 export const defaultBindingsAtom = held(
   Stream.unwrap(
     Effect.map(PluginSettings, (service) =>

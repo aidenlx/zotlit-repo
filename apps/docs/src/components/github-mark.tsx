@@ -1,5 +1,3 @@
-// GitHub's mark, inlined rather than imported as an asset so it renders as
-// <svg> and inherits `currentColor` from whatever carries it.
 export function GithubMark({ className }: { className?: string }) {
   return (
     <svg

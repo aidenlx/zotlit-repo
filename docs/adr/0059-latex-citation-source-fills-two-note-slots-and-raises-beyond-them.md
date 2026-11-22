@@ -23,3 +23,5 @@ The Citation Item shape and its two boundary checks live in one module both seri
 - **One command per Citation Item that carries a note**: preserves every note on every item, but emits adjacent commands whose typeset result no bibliography package defines, and turns one citation into several.
 - **Escape every TeX special in an affix**: removes the `%` failure, but also breaks the `\emph{see}` affixes this source form exists to carry.
 - **Reject a `]` in an affix**: matches the Pandoc serializer's affix round-trip, but fails an import over a bracket that `{]}` carries losslessly.
+
+Affix validation must account for TeX control symbols when deciding whether a percent starts a comment or a bracket closes an optional argument. A preceding backslash alone is insufficient because a pair of backslashes is itself a complete control symbol. [Affix escaping follow-up](https://github.com/aidenlx/zotlit-repo/issues/83)

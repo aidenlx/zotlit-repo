@@ -1,4 +1,3 @@
-// Per-host Query View state, held in the plugin registry, and its pure transitions.
 import { Option, Schema } from "effect";
 import type { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
@@ -67,7 +66,6 @@ export const patchQueryState =
       : { ...state, ...next };
   };
 
-/** The existing host interface, backed by the model rather than a second state store. */
 export function queryStateHandle(
   registry: ViewRegistryHandle,
   model: QueryViewModel,
@@ -115,7 +113,6 @@ export function queryStateHandle(
   };
 }
 
-/** Host-owned controls also read this model outside the Query View root, so the hook uses its registry directly. */
 export function useQueryViewState<T>(
   view: QueryView,
   selector: (state: QueryViewState) => T,
@@ -131,7 +128,6 @@ export function useQueryViewState<T>(
   );
 }
 
-/** Runs a table action on the leaf the component draws in; see `QueryView.runTask`. */
 export type QueryTaskRunner = (
   task: Effect.Effect<void, unknown, ViewServices>,
   failed?: () => NoticeMessage | undefined,
@@ -140,7 +136,6 @@ export type QueryTaskRunner = (
 const QueryTaskContext = createContext<QueryTaskRunner | null>(null);
 export const QueryTaskProvider = QueryTaskContext.Provider;
 
-/** The leaf's task runner, for a part that acts on the vault or the workspace. */
 export function useQueryTask(): QueryTaskRunner {
   const run = useContext(QueryTaskContext);
   if (!run)

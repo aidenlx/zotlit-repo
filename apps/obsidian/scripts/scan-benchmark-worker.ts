@@ -1,4 +1,3 @@
-// Runs the production RPC worker in Node, timing receipt through reply posting.
 import type { RpcMessage } from "effect/rpc";
 import type { Worker as EffectWorker } from "effect/workers";
 import { Worker } from "node:worker_threads";
@@ -18,8 +17,6 @@ export async function scanBenchmarkWorker<ParseReply>() {
   let workerMs = 0;
   let encodeMs = 0;
   let postMs = 0;
-  // Start the Node worker inside the RPC spawner so its ready message cannot
-  // arrive before the EventTarget bridge has an RPC listener.
   const client = stack.use(
     await bundle.connect(
       () => {

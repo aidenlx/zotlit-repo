@@ -65,3 +65,25 @@ once typescript-eslint supports it.
   upstream's intent, and 44 errors on the first run that had nothing to do with
   Obsidian's guidelines and everything to do with re-litigating oxlint's
   settings.
+
+## Shared review program
+
+`pnpm review` uses one TypeScript program to cover the Obsidian app
+and its bundled plugin packages with the app's compiler options.
+Separate programs would each load the packages they import, and the
+combined memory use exceeds the default Node heap. The
+`lint:plugin-packages` task checks the review program's package list.
+
+## Scanner config synchronization
+
+Keep the rule blocks, severity translation, and ignore list aligned with the type-aware branch of `buildScannerEslintConfig` in `obsidianmd/obsidian-workflows`. The copy used `src/lint.ts` at revision `8167caed39664214d82c86fdfa32e06d8d55f61d`. The inherited scanner blocks lower other errors to advisory warnings and keep the `eslint-comments/*` severities. Use Oxlint directives for Obsidian rules because the scanner rejects their ESLint suppression. Starting from the scanner's broad recommended globs, allow traversal through each ancestor of the review roots.
+
+Read the selected app's minimum version from its package metadata for the unsupported-API rule. The root store manifest reflects stable ZotLit releases only. Run the scanner from the repository root and declare a separate JSON-language block for the manifest because the inherited JSON block targets `package.json`.
+
+Validate the minimum Electron version separately. It belongs
+to the package's Obsidian settings and is injected at build
+time. The emitted plugin manifest follows Obsidian's schema.
+
+[Manifest validation](../../packages/scripts/lib/obsidian-manifest.ts)
+
+Both repository review configurations use the scanner's style ignore list from `src/lint.ts` at `8167caed39664214d82c86fdfa32e06d8d55f61d`. Validate the manifest derived from each published plugin's package metadata because the checked-in manifest can still describe the last stable release. Pass the derived manifest through ESLint's `manifest.json` input and use quiet mode to select the error-level validation rule.

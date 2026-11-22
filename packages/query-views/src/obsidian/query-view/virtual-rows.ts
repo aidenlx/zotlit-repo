@@ -1,17 +1,3 @@
-// The rows of a long Items Layout, mounted only near the screen. A list of
-// more than `VIRTUAL_MIN_ENTRIES` entries draws the entries in view and a few
-// on each side, in normal flow, with a spacer for each run it leaves out: a
-// table keeps its rows, and a list its markers. The browser then lays out and
-// restyles a screenful of rows on a resize or a sidebar toggle, not the
-// whole list.
-//
-// The list scrolls in the layout's own box, in a tab and in a note alike: a
-// note caps the view's height (`view.tsx`). The box turns off the
-// browser's scroll anchoring: the spacers and the rows they stand for
-// differ by a pixel, and an anchor that follows that pixel moves the
-// content under a scroll bar dragged by the pointer.
-// The selected row, the first row and the row that holds the focus stay
-// mounted wherever they are, so the host's keys and the Tab stop find them.
 import { useVirtualizer } from "@tanstack/react-virtual";
 import type { Range, VirtualItem } from "@tanstack/react-virtual";
 import { defaultRangeExtractor } from "@tanstack/react-virtual";
@@ -19,53 +5,26 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { observeResize } from "@zotlit/obsidian-kit/observe-resize.ts";
 
-/** The fewest entries a list mounts only near the screen. */
 const VIRTUAL_MIN_ENTRIES = 100;
 
-/** The entries mounted past each end of the screen. */
 const OVERSCAN = 8;
 
-/** One mounted entry, with the room its left-out entries take before it. */
 export interface MountedEntry {
   readonly index: number;
-  /** The room of the left-out entries before this one, in pixels. */
   readonly before: number;
 }
 
-/** What a layout draws: the entries, and the spacers between them. */
 export interface VirtualRows {
   readonly entries: readonly MountedEntry[];
-  /** The room of the left-out entries after the last one drawn. */
   readonly after: number;
-  /** The ref of each drawn entry; the entry carries `data-index`. */
   readonly measure: (el: Element | null) => void;
-  /** The ref of the element whose top is the first entry's top. */
   readonly list: (el: HTMLElement | null) => void;
-  /**
-   * Scroll the entry at an index into view, as the virtualizer places it
-   * once the entries around it are measured; `false` where the list mounts
-   * every entry, and the entry's element scrolls itself.
-   */
   readonly scrollTo: (index: number) => boolean;
-  /**
-   * Keep the entry under the focus mounted: the list's `onFocus`, which
-   * hears the focus of any element inside it.
-   */
   readonly onFocus: (event: { target: EventTarget }) => void;
-  /** The height each kind of entry measures on screen, once learned. */
   readonly learned: ReadonlyMap<string, number>;
-  /**
-   * The list's height as the virtualizer lays out its entries, which a
-   * scroll leaves as it is; `null` where the list mounts every entry.
-   */
   readonly size: number | null;
 }
 
-/**
- * The entries to draw, in order, each with the room before it: `items` and
- * their places, as the virtualizer gives them, from `start` (the list's top)
- * to `end` (its bottom).
- */
 export function flow(
   items: readonly { index: number; start: number; end: number }[],
   start: number,
@@ -80,7 +39,6 @@ export function flow(
   return { entries, after: Math.max(0, end - at) };
 }
 
-/** The entries of `range`, with the `pinned` ones wherever they are. */
 export function withPinned(range: Range, pinned: readonly number[]): number[] {
   const indexes = new Set(defaultRangeExtractor(range));
   for (const index of pinned)
@@ -88,13 +46,8 @@ export function withPinned(range: Range, pinned: readonly number[]): number[] {
   return [...indexes].toSorted((a, b) => a - b);
 }
 
-/** The measured entries of a kind its height is learned from. */
 const LEARN_SAMPLES = 5;
 
-/**
- * The height of each kind that `measured` holds enough entries of: the
- * median of their heights.
- */
 export function learn(
   measured: readonly { kind: string; size: number }[],
 ): Map<string, number> {
@@ -108,7 +61,6 @@ export function learn(
   return heights;
 }
 
-/** The distance from the scroller's content top to the list's top. */
 function marginOf(scroller: HTMLElement, list: HTMLElement): number {
   return Math.round(
     list.getBoundingClientRect().top -
@@ -117,22 +69,6 @@ function marginOf(scroller: HTMLElement, list: HTMLElement): number {
   );
 }
 
-/**
- * Mount the `count` entries of a layout near the screen only.
- * @param own The layout's own box, which scrolls the list.
- * @param estimate The height of the entry at an index before it is measured,
- *   until the list has measured entries of its kind.
- * @param kindOf The kind of the entry at an index, whose measured height an
- *   entry of that kind takes until it is measured itself; `null` for one of
- *   its own height, as an expanded row.
- * @param keyOf A key of the entry at an index that holds across runs.
- * @param pinned The entries that stay mounted wherever they are.
- * @param sticky The height of a header that stays over the entries, as a
- *   Table's: an entry scrolled into view lands under it.
- * @param shape What the entries' heights follow beside their content, such
- *   as the layout's options: a change measures them again.
- * @param all Draw every entry, as for a print.
- */
 export function useVirtualRows({
   count,
   own,
@@ -160,15 +96,9 @@ export function useVirtualRows({
   const [learned, setLearned] = useState<ReadonlyMap<string, number>>(
     () => new Map(),
   );
-  /** The measured heights of each kind not yet learned, by entry key. */
   const samples = useRef(new Map<string, Map<VirtualItem["key"], number>>());
-  // Until its box mounts, the list draws the window's worth at its top.
   const enabled = !all && count > VIRTUAL_MIN_ENTRIES;
   const scroller = own;
-  // A view moved into or out of a pop-out keeps its elements; the scroller
-  // goes for one draw, so the virtualizer observes it from its new window.
-  // The new window can draw a row at another height: the rows are measured
-  // again.
   const [moved, setMoved] = useState(false);
   const [moves, setMoves] = useState(0);
   useLayoutEffect(
@@ -193,12 +123,7 @@ export function useVirtualRows({
     () => (focusedIndex === -1 ? pinned : [...pinned, focusedIndex]),
     [pinned, focusedIndex],
   );
-  /** Whether a scroll drew entries it has not measured yet. */
   const deferred = useRef(false);
-  /**
-   * Whether the scroll on now brings an entry into view: it lands by the
-   * heights it measures as it goes, so it measures them.
-   */
   const revealing = useRef(false);
   const rangeExtractor = useCallback(
     (range: Range) => withPinned(range, kept),
@@ -217,8 +142,6 @@ export function useVirtualRows({
     enabled,
     getScrollElement: () => (moved ? null : scroller),
     estimateSize,
-    // TanStack reads the estimates again only for a new key function: a new
-    // one for each change of what the estimates read.
     getItemKey: useCallback(
       (index: number) => keyOf(index),
       // oxlint-disable-next-line react-hooks/exhaustive-deps -- a new estimate needs a new key function
@@ -229,7 +152,6 @@ export function useVirtualRows({
     onChange: (v) => {
       if (!v.isScrolling) {
         revealing.current = false;
-        // The entries drawn while the scroll went on take their heights now.
         if (deferred.current) {
           deferred.current = false;
           queueMicrotask(() => {
@@ -240,8 +162,6 @@ export function useVirtualRows({
     },
     scrollMargin: margin,
     scrollPaddingStart: sticky,
-    // The scroller's size, from the window that shows it, as the view moves
-    // into or out of a pop-out.
     observeElementRect: (instance, cb) => {
       const el = instance.scrollElement;
       if (!el) return;
@@ -250,18 +170,11 @@ export function useVirtualRows({
       const observing = observeResize(el, [el], read);
       return () => observing[Symbol.dispose]();
     },
-    // A row's height to the fraction of a pixel: rounded, the error of the
-    // rows above one adds up, and a row scrolled into view stops short.
-    // A row with no box, as in a folded callout, keeps the height it had.
     measureElement: (el, entry, instance) => {
       const index = instance.indexFromElement(el);
       const kept =
         instance.itemSizeCache.get(instance.options.getItemKey(index)) ??
         instance.options.estimateSize(index);
-      // While a scroll goes on, an entry keeps the height it was given: a
-      // new one changes the list's length, and the browser then drops part
-      // of a scroll bar drag, so the bar falls behind the pointer. The
-      // entries on screen are measured once the scroll stops.
       if (instance.isScrolling && !revealing.current) {
         deferred.current = true;
         return kept;
@@ -270,17 +183,10 @@ export function useVirtualRows({
         entry?.borderBoxSize[0]?.blockSize ?? el.getBoundingClientRect().height;
       return size > 0 ? size : kept;
     },
-    // The first draw, before the scroller is measured, fills a window.
     initialRect: { width: 0, height: (own?.win ?? activeWindow).innerHeight },
   });
-  // The entries stand in normal flow, at the heights they draw at: the rows
-  // a scroll drew stand where the reader saw them when the scroll ends and
-  // they take their heights, so the list does not scroll for those heights.
   virtualizer.shouldAdjustScrollPositionOnItemSizeChange = () => false;
 
-  // The list moves in the scroller as the content above it changes, such as
-  // a Table's header. Read its place as the list mounts, as the header
-  // changes height, and again as the scroller scrolls or changes size.
   useLayoutEffect(() => {
     if (!enabled || !scroller || !list) return;
     const read = () => setMargin(marginOf(scroller, list));
@@ -293,12 +199,6 @@ export function useVirtualRows({
     };
   }, [enabled, scroller, list, sticky]);
 
-  // An entry takes the height its kind measures on screen until it is
-  // measured itself: the list's height then holds as the rows come into
-  // view, and a scroll bar dragged by the pointer stays under it. It gathers
-  // the sizes the virtualizer measured since the last draw, so it runs after
-  // each one, across scroll positions; a kind it learned drops out, so the
-  // updates end.
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- runs after each draw on purpose
   useLayoutEffect(() => {
     if (!enabled) return;
@@ -321,9 +221,6 @@ export function useVirtualRows({
     setLearned(new Map([...learned, ...next]));
   });
 
-  // A change of what the heights follow, such as a List option or the
-  // window, measures every entry again: the mounted ones now, the others as
-  // they mount.
   const heightsFollow = `${moves}\n${shape}`;
   const measuredShape = useRef(heightsFollow);
   useLayoutEffect(() => {
@@ -353,8 +250,6 @@ export function useVirtualRows({
       if (!enabled) return false;
       revealing.current = true;
       virtualizer.scrollToIndex(index, { align: "auto" });
-      // An entry already in view takes no scroll; the next one is the
-      // reader's own.
       (own?.win ?? activeWindow).requestAnimationFrame(() => {
         if (!virtualizer.isScrolling) revealing.current = false;
       });

@@ -1,7 +1,3 @@
-// The language strip at the top of a page. It has two states:
-// - a `/zh-CN` page with no Chinese file says English is shown and links to the English page;
-// - an English page with a Chinese edition offers that edition to a reader whose browser puts Chinese first.
-
 import { useRouterState } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useSyncExternalStore } from "react";
@@ -25,20 +21,16 @@ function subscribeToHash(onChange: () => void) {
 }
 
 const browserHash = () => window.location.hash;
-// Fragments never reach the server. React reads the browser snapshot after
-// hydration, including when the router still carries its server snapshot.
 const serverHash = () => "";
 
 const STRIP_HEIGHT = "2.25rem";
 
-/** The suggestion strip's marker attribute, which its visibility rule names. */
 const SUGGESTION_ATTR = "data-chinese-edition";
 
 export function LanguageBanner({ state }: { state: PageLocaleState }) {
   const location = useRouterState({
     select: (router) => ({
       publicHref: router.location.publicHref,
-      // Router-only history updates must also re-read the browser fragment.
       hash: router.location.hash,
     }),
   });
@@ -48,12 +40,8 @@ export function LanguageBanner({ state }: { state: PageLocaleState }) {
   url.hash = hash;
 
   if (state.isFallback) {
-    // Preserve the arrival query: a V1 Chinese archive link stays Chinese even
-    // when the reader chooses the English V2 page. The missing locale file owns this notice.
     const englishHref = `${state.canonicalPath}${url.search}${url.hash}`;
 
-    // The thin top strip: `--fd-banner-height` moves the sticky header and
-    // sidebar down by its height instead of the notice pushing the page.
     return (
       <Banner
         role="note"
@@ -75,9 +63,6 @@ export function LanguageBanner({ state }: { state: PageLocaleState }) {
   );
   if (state.contentLocale !== "en" || !chinese) return null;
 
-  // In the HTML of every eligible page, shown only under the attribute that the
-  // <head> script sets before the first paint; the same attribute sets the strip
-  // height, so a reader who does not see the strip gets no gap either.
   return (
     <Banner
       {...{ [SUGGESTION_ATTR]: "" }}
@@ -116,8 +101,6 @@ function StripText({
   return (
     <div className="flex flex-wrap items-baseline justify-center gap-x-1.5 px-7 text-[0.8125rem] leading-snug tracking-[0.005em]">
       <p className="text-balance">{message}</p>
-      {/* A native anchor changes the locale with the page, instead of passing
-          through the router's outgoing locale rewrite. */}
       <a
         href={href}
         className="font-medium whitespace-nowrap text-fd-primary underline decoration-fd-primary/40 underline-offset-[3px] transition-[text-decoration-color] hover:decoration-fd-primary"

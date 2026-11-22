@@ -1,7 +1,3 @@
-// The Table layout's header row, whose cells move and resize their columns as
-// in a Bases table, and open the Bases column menu on a right click (a tap on
-// mobile): hide, group by, sort, and edit the property.
-
 import type {
   ColumnSizes,
   QueryFileDataset,
@@ -42,25 +38,17 @@ import {
 import { ExpanderSpace } from "#obsidian/query-view/expander-space.tsx";
 import { moved } from "#obsidian/query-view/reorder.tsx";
 
-/** The cell classes the header shares with the rows under it. */
 export interface HeaderClasses {
-  /** The expand-button column. */
   readonly gutter: string;
-  /** Every header cell. */
   readonly cell: string;
-  /** The first column of properties. */
   readonly first: string;
-  /** A column after the first. */
   readonly later: string;
-  /** The empty column after the last, which takes the room the columns leave. */
   readonly filler: string;
 }
 
-/** A transparent image, so a drag shows the drop line and no picture of the header. */
 const BLANK =
   "data:image/gif;base64,R0lGODlhAQABAIAAAAUEBAAAACwAAAAAAQABAAACAkQBADs=";
 
-/** Start a drag that moves nothing the browser knows: no picture, a grabbing cursor. */
 function startDrag(event: DragEvent<HTMLElement>): void {
   const doc = event.currentTarget.doc;
   const transfer = event.dataTransfer;
@@ -74,33 +62,14 @@ function startDrag(event: DragEvent<HTMLElement>): void {
   doc.body.classList.add("is-grabbing");
 }
 
-/** What one column drag does as it goes, and once it is over. */
 interface DragHandlers {
-  /**
-   * Follow the pointer.
-   * @returns Whether the place under the pointer takes the drop.
-   */
   // oxlint-disable-next-line obsidianmd/no-global-this -- type position: React's event type shadows the DOM name
   over: (event: globalThis.DragEvent) => boolean;
-  /**
-   * Take the drop, or leave it to the page.
-   * @returns Whether the drag dropped.
-   */
   // oxlint-disable-next-line obsidianmd/no-global-this -- type position: React's event type shadows the DOM name
   drop: (event: globalThis.DragEvent) => boolean;
-  /**
-   * Clean up after the drag, whatever ended it: a drop, the end of the drag
-   * without one (as Escape ends it), or the Table that closes mid-drag.
-   */
   done: (dropped: boolean) => void;
 }
 
-/**
- * Follow a drag on the window of `source`, before any target does, as Bases
- * does: the pointer can leave the table. Aborting `controller` ends the
- * drag, and so does a drop or the end of the drag; an end on the window
- * covers a source the Table took off the page.
- */
 function followDrag(
   source: HTMLElement,
   controller: AbortController,
@@ -139,7 +108,6 @@ function followDrag(
   win.addEventListener("dragend", end, options);
 }
 
-/** Where each sort entry of a column's menu puts the column's sort; `null` clears it. */
 const SORT_DIRECTION = {
   "sort-asc": "ASC",
   "sort-desc": "DESC",
@@ -148,7 +116,6 @@ const SORT_DIRECTION = {
   Record<ColumnMenuAction, QueryFileDirection | null>
 >;
 
-/** What each entry of a column's menu says and shows. */
 const ENTRY: Record<ColumnMenuAction, { title: () => string; icon: string }> = {
   hide: { title: m.query_view_table_hide_column, icon: "lucide-eye-off" },
   group: { title: m.query_view_table_group_by, icon: "lucide-layout-list" },
@@ -186,11 +153,6 @@ const ENTRY: Record<ColumnMenuAction, { title: () => string; icon: string }> = {
   },
 };
 
-/**
- * Keep the click that ends a resize from the header under the pointer: on
- * mobile, where a tap opens the column's menu, a touch let go off the edge
- * clicks the header. A pointer let go with no click leaves later clicks.
- */
 function swallowClick(win: Window): void {
   // oxlint-disable-next-line obsidianmd/no-global-this -- type position: React's event type shadows the DOM name
   const swallow = (click: globalThis.MouseEvent) => {
@@ -204,7 +166,6 @@ function swallowClick(win: Window): void {
   );
 }
 
-/** The narrowest a column can be, from the variable Bases reads. */
 function minColumnWidth(el: HTMLElement): number {
   return Number.parseFloat(
     el.win
@@ -213,14 +174,9 @@ function minColumnWidth(el: HTMLElement): number {
   );
 }
 
-/** Whether `el` lays out right to left. */
 const isRTL = (el: HTMLElement) =>
   el.win.getComputedStyle(el).direction === "rtl";
 
-/**
- * A header cell holds its column at its `--zt-column-width`: the width the
- * researcher set, else the default its column's class gives (ADR 0083).
- */
 const SIZED =
   "zt:w-(--zt-column-width) zt:min-w-(--zt-column-width) zt:max-w-(--zt-column-width)";
 
@@ -229,41 +185,26 @@ const COLUMN_WIDTH = "--zt-column-width";
 const widthStyle = (width: number) =>
   ({ [COLUMN_WIDTH]: `${width}px` }) as CSSProperties;
 
-/**
- * Mark the column of `th` as set by the researcher, or not, at once, ahead
- * of the save that renders the mark.
- */
 function markSized(th: HTMLTableCellElement, sized: boolean): void {
   if (sized) th.dataset.sized = "";
   else delete th.dataset.sized;
 }
 
-/** The `data-sized` mark of a header whose width the researcher set. */
 const sizedMark = (
   sizes: ColumnSizes | undefined,
   path: string,
 ): "" | undefined => (sizes?.[path] === undefined ? undefined : "");
 
-/** Show `width` on a header cell at once, ahead of the save that sets it. */
 function showWidth(th: HTMLTableCellElement, width: number): void {
   markSized(th, true);
   th.style.setProperty(COLUMN_WIDTH, `${width}px`);
 }
 
-/**
- * A header label, which its column clips: it takes no room of its own, so
- * the column can be narrower than the label.
- */
 const LABEL = "zt:flex zt:w-0 zt:min-w-full zt:items-center zt:gap-1";
 
-/**
- * Obsidian's drop line between table columns, placed by `--zt-drop-*`;
- * `table-header.css` lifts it over the sticky header.
- */
 const DROP_LINE =
   "table-drag-target mod-col zt-column-drop-line zt:start-(--zt-drop-x) zt:top-(--zt-drop-top) zt:h-(--zt-drop-height) zt:transition-all zt:duration-75 zt:ease-in";
 
-/** The header row: one cell for each visible property, the Literature Note Property among them. */
 export function TableHeader({
   view,
   properties,
@@ -275,39 +216,28 @@ export function TableHeader({
   view: QueryView;
   properties: ViewProperties;
   dataset: QueryFileDataset;
-  /** The box the table scrolls in, which holds the drop line. */
   scroller: HTMLElement | null;
   classes: HeaderClasses;
-  /** The widths the researcher set, by property path. */
   sizes: ColumnSizes | undefined;
 }) {
   const app = useObsidianApp();
   const columns = properties.visible;
   const editable = view.canSave;
-  // A host that keeps no column widths offers no resize.
   const resizable = editable && view.can.columnWidth;
-  // A vault column's icon follows the values its notes hold.
   const { literatureNotes } = view.tableDeps;
   useVaultVersion(literatureNotes);
-  // A column sorts by what the Sort control offers, and not at all while
-  // the rows follow the host's rank, as Sort stands off then.
   const vaultNames = useVaultPropertyNames(literatureNotes);
   const ranked = useQueryViewState(view, (s) => s.results?.ranked ?? false);
-  /** The view's sort, which marks each column it sorts by. */
   const sort = useQueryViewState(view, (s) => s.view?.sort);
-  /** Whether ZotLit Query sorts the view now by the column of `path`. */
   const sortable = (path: string): boolean =>
     !ranked &&
     viewSortOptions(view.state.getState().view?.from, vaultNames, {
       labelOf: (named) => named,
       typeOf: (name) => literatureNotes.propertyType(name),
     }).some((option) => option.path === path);
-  /** The column's "Edit property" page, which its menu opens. */
   const editor = useRef<ColumnPropertyHandle>(null);
-  /** The drag on now; the Table that closes ends it. */
   const drag = useRef<AbortController | null>(null);
   useEffect(() => () => drag.current?.abort(), []);
-  /** A new drag, which ends the one before it. */
   const begin = (): AbortController => {
     drag.current?.abort();
     const controller = new AbortController();
@@ -315,7 +245,6 @@ export function TableHeader({
     return controller;
   };
 
-  /** The header cells of the property columns, in their order. */
   const headerCells = (row: Element) => [
     ...row.querySelectorAll<HTMLElement>(":scope > th[data-query-column]"),
   ];
@@ -331,10 +260,6 @@ export function TableHeader({
     const line = th.doc.win.createDiv();
     line.className = DROP_LINE;
     th.dataset.dragging = "";
-    /**
-     * Where the pointer at `clientX` drops the column, read from the header
-     * on screen: its columns, the place of the dragged one, and the gap.
-     */
     const place = (clientX: number) => {
       const cells = headerCells(row);
       const from = cells.findIndex((cell) => cell.dataset.queryColumn === path);
@@ -359,14 +284,12 @@ export function TableHeader({
     };
     followDrag(th, controller, {
       over: (over) => {
-        // Only the table takes the drop; elsewhere the line goes.
         const at = table.contains(over.targetNode) ? place(over.clientX) : null;
         if (!at) {
           line.remove();
           return false;
         }
         const frame = box.getBoundingClientRect();
-        // The line's distance from the box's start edge, in its content.
         const x = at.rtl
           ? frame.right - box.clientLeft - at.edge - box.scrollLeft
           : at.edge - frame.left - box.clientLeft + box.scrollLeft;
@@ -377,13 +300,9 @@ export function TableHeader({
         return true;
       },
       drop: (drop) => {
-        // A drop outside the table moves nothing.
         if (!table.contains(drop.targetNode)) return false;
         drop.preventDefault();
         const at = place(drop.clientX);
-        // The order as the view holds it now, which a save can change while
-        // the drag is on. Where the header on screen shows another order,
-        // or no longer shows the column, the drop moves nothing.
         const { file, view: shown } = view.state.getState();
         if (!at || !shown) return true;
         const current = viewProperties(file, shown);
@@ -403,15 +322,8 @@ export function TableHeader({
     });
   };
 
-  /**
-   * Follow a drag on a column's edge with the pointer, not as a drag and
-   * drop, so the resize cursor holds over the whole page while it goes. The
-   * width saves when the pointer lets go, after it moved; Escape, a lost
-   * pointer or the Table that closes put the width back.
-   */
   const resizeColumn = (event: PointerEvent<HTMLElement>, path: string) => {
     if (event.button !== 0) return;
-    // The header cell would take the press as the start of a move.
     event.preventDefault();
     event.stopPropagation();
     const handle = event.currentTarget;
@@ -438,8 +350,6 @@ export function TableHeader({
         saved = true;
         swallowClick(th.win);
         showWidth(th, width);
-        // The widths as the view holds them now, which a save can change
-        // while the drag is on.
         const current = view.state.getState().view?.columnSize;
         if (current?.[path] !== width)
           view.document.editView({
@@ -461,7 +371,6 @@ export function TableHeader({
     });
   };
 
-  /** Move the column of `path` one place along the order the view holds now. */
   const stepColumn = (path: string, step: -1 | 1) => {
     const { file, view: shown } = view.state.getState();
     if (!shown) return;
@@ -473,21 +382,14 @@ export function TableHeader({
     view.document.editView({ order: current.orderOf(moved(order, from, to)) });
   };
 
-  /**
-   * The Bases column menu, on a right click (a tap on mobile), with the
-   * entries `columnMenuEntries` lays out. Each entry reads the view as it
-   * stands when it runs, which a save can change while the menu is open.
-   */
   const columnMenu = (event: MouseEvent<HTMLElement>, path: string) => {
     event.preventDefault();
     const th = event.currentTarget;
-    // One column's page at a time, beside the cell it opened from.
     editor.current?.close();
     const rtl = isRTL(th);
     const { view: shown } = view.state.getState();
     const dataset = shown?.from;
     const at = columns.findIndex((entry) => entry.path === path);
-    // A grouping by a list path, as `tags[]`, groups by the column of the list.
     const grouping =
       groupOptions(dataset).find(
         (option) => option.path.replace(/\[\]$/, "") === path,
@@ -557,7 +459,6 @@ export function TableHeader({
             .setIcon(ENTRY[action].icon)
             .onClick(() => run(action));
           if (disabled) item.setDisabled(true);
-          // As Bases does, an entry that can be checked always says whether.
           if (checked !== undefined) item.setChecked(checked);
           if (action === "clear-sort") item.setWarning(true);
         });
@@ -565,11 +466,6 @@ export function TableHeader({
     menu.setParentElement(th).showAtMouseEvent(event.nativeEvent);
   };
 
-  /**
-   * A click on a column's header steps its sort, as in Bases: A → Z, then
-   * Z → A, then no sort, the column's sort first among the view's. A press
-   * that ends a resize, or on the edge, takes the click away first.
-   */
   const toggleSort = (event: MouseEvent<HTMLElement>, path: string) => {
     if (event.defaultPrevented || event.button !== 0) return;
     event.preventDefault();
@@ -584,12 +480,8 @@ export function TableHeader({
   const { gutter, cell, first, later, filler } = classes;
   return (
     <tr className="zt:text-start">
-      {/* The expand-button column takes its width here, from a button's
-          room, whatever rows a long table mounts: with only its spacers
-          mounted, the columns stay where they are. */}
       <th className={gutter}>
         <ExpanderSpace />
-        {/* The popover stands on the body, beside the cell it opened from. */}
         {editable && view.can.propertyPages && (
           <ColumnPropertyPopover
             view={view}
@@ -603,11 +495,9 @@ export function TableHeader({
         const icon = propertyIcon(dataset, property, (name) =>
           literatureNotes.propertyType(name),
         );
-        // Rows in the host's rank follow no sort, so no column wears one.
         const sorted = ranked
           ? undefined
           : sort?.find((entry) => entry.property === property.path);
-        // The sort mask fades a long label before the sort mark.
         const label = cn(LABEL, sorted && SORTED_LABEL);
         const name = (
           <span className={cn("zt:truncate", sorted && SORTED_NAME)}>
@@ -628,7 +518,6 @@ export function TableHeader({
             data-sized={sizedMark(sizes, property.path)}
             data-query-column={property.path}
             data-query-formula-issue={property.issue ?? undefined}
-            // A screen reader hears the sort the rows follow first.
             aria-sort={
               !ranked && sort?.[0]?.property === property.path
                 ? sort[0].direction === "ASC"
@@ -640,9 +529,6 @@ export function TableHeader({
             onDragStart={
               editable ? (event) => moveColumn(event, property.path) : undefined
             }
-            // On the desktop a click steps the column's sort and a right
-            // click opens its menu; on mobile, where no right click comes,
-            // a tap opens the menu, as in Bases.
             {...(editable &&
               (Platform.isMobile
                 ? {
@@ -707,7 +593,6 @@ export function TableHeader({
                 data-query-column-resizer={property.path}
                 {...tooltipAttrs(m.query_view_table_resize_column_hint())}
                 onPointerDown={(event) => resizeColumn(event, property.path)}
-                // The header cell would take a drag from its edge as a move.
                 onDragStart={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
@@ -726,7 +611,6 @@ export function TableHeader({
           </th>
         );
       })}
-      {/* The filler names no column, so it is no header cell. */}
       <td
         aria-hidden="true"
         className={cn(cell, filler)}
@@ -736,40 +620,17 @@ export function TableHeader({
   );
 }
 
-/**
- * The label of a column the view sorts by, as Bases draws it: Obsidian's
- * sort mask fades its end, in either direction, before the sort mark.
- */
 const SORTED_LABEL = "zt:[mask-image:var(--bases-table-header-sort-mask)]";
 
-/** The name in a sorted column's label, which leaves the sort mark its room. */
 const SORTED_NAME = "zt:pe-(--size-4-4)";
 
-/**
- * The sort mark of a column the view sorts by, as Bases draws it: a chevron
- * at the cell's end, up for A → Z, down for Z → A, on every sort column. A
- * press goes through it to the cell.
- */
 const SORT_MARK =
   "zt:pointer-events-none zt:absolute zt:-top-px zt:end-0 zt:flex zt:h-full zt:items-center zt:pt-(--size-2-1) zt:pe-(--size-2-3) zt:text-muted-foreground";
 
-/**
- * A header cell whose column moves: it grabs, its label brightens on hover,
- * and it fades while it is dragged.
- */
 const MOVABLE =
   "zt:cursor-grab zt:hover:text-foreground zt:data-dragging:opacity-50";
 
-/**
- * The body class of a column resize on: the resize cursor over the whole
- * page, whatever the pointer passes over. `table-header.css` sets it.
- */
 const RESIZING = "zt-is-resizing-column";
 
-/**
- * The edge of a header cell that sets the column's width: a strip at the
- * column's end with the resize cursor, whose line shows on hover and holds
- * the accent while it is dragged.
- */
 const RESIZER =
   "zt:absolute zt:-end-px zt:inset-y-0 zt:z-(--layer-cover) zt:w-2 zt:cursor-col-resize zt:touch-none zt:after:absolute zt:after:inset-y-1 zt:after:end-px zt:after:w-0.5 zt:after:rounded-full zt:hover:after:bg-(--interactive-accent) zt:[&.is-active]:after:inset-y-0 zt:[&.is-active]:after:bg-(--interactive-accent)";

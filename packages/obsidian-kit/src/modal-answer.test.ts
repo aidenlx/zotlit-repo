@@ -20,7 +20,6 @@ test("modalAnswer opens the modal before it returns, and answers once", async ()
     return modal;
   });
   expect(open).toBe(true);
-  // A choice settles first, then the modal closes itself.
   settle(true);
   modal.close();
   await expect(answer).resolves.toBe(true);

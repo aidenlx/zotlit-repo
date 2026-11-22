@@ -1,13 +1,5 @@
 #!/usr/bin/env node
 
-// Lists every CSS variable a reference file names that the extracted Obsidian
-// build no longer carries. A name counts as carried when `app.css` or `app.js`
-// spells it, since Obsidian sets some variables from script.
-//
-// Usage: node .claude/skills/obsidian-css/check-references.mjs [--obsidian <version>]
-// Default version: the newest node_modules/.ob-rev-*/ that holds app.css.
-// Exit 0: every name is carried. Exit 1: names listed as file:line. Exit 2: no build.
-
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -48,7 +40,6 @@ for (const file of readdirSync(referencesDir).filter((f) => f.endsWith(".md"))) 
   readFileSync(path, "utf8")
     .split("\n")
     .forEach((line, index) => {
-      // A table row's first cell names the variable: | `--name` | Use |
       for (const [, name] of line.matchAll(/^\|\s*`(--[\w-]+)`/g)) {
         if (!new RegExp(`${name}(?![\\w-])`).test(shipped))
           missing.push(`${relative(repoRoot, path)}:${index + 1}: ${name}`);

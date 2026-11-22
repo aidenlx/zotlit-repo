@@ -13,6 +13,5 @@ export default defineConfig({
       rules: { "zotlit-logging/effect-logging-only": "error" },
     },
   ],
-  // The pinned port is upstream code, copied verbatim and never hand-edited.
   ignorePatterns: ["src/vendor/*.js"],
 });

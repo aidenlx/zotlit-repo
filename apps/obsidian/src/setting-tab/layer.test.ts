@@ -31,11 +31,6 @@ const OFFERED: LanguagePackSituation = {
   pack: { fileName: "zh-CN.json", origin: "github.com/aidenlx/zotlit" },
 };
 
-/**
- * The tab layer over services whose change streams stay quiet but for the
- * Language Pack and the settings, which the test moves. Counts each rebuild
- * of the tab.
- */
 const tabLayer = Effect.gen(function* () {
   const settings = yield* SubscriptionRef.make<Settings>(defaults);
   const situation = yield* SubscriptionRef.make<LanguagePackSituation>({
@@ -105,8 +100,6 @@ const tabLayer = Effect.gen(function* () {
   yield* Layer.build(
     layerSettingTab(features, host.settingTab).pipe(
       Layer.provide(testNotifier().layer),
-      // The test gives the services the tab layer itself reads; the rest
-      // stay unimplemented.
       Layer.provide(
         Layer.mergeAll(
           unimplementedTabServices,
@@ -156,7 +149,6 @@ it.effect(
             [key]: !current[key],
           }));
 
-        // A setting no row's presence reads leaves the definitions alone.
         yield* SubscriptionRef.update(settings, (current) => ({
           ...current,
           "log.to-file": !current["log.to-file"],

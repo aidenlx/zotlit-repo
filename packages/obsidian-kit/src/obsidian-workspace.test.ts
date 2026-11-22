@@ -35,7 +35,6 @@ function file(path: string): TFile {
   return file;
 }
 
-/** A text view that holds its text in `data`. */
 class MemoryTextView extends TextFileView {
   override getViewData(): string {
     return this.data;
@@ -51,7 +50,6 @@ class MemoryTextView extends TextFileView {
   }
 }
 
-/** The layer built on a Scope of its own, closed with the case's Scope. */
 const open = Effect.fnUntraced(function* (layer: Layer.Layer<Workspace>) {
   const scope = yield* Scope.fork(yield* Effect.scope);
   const context = yield* Layer.buildWithScope(layer, scope);
@@ -89,7 +87,6 @@ it.effect("finds the loaded text view of a file in any leaf", () =>
       const leaf = stubService<WorkspaceLeaf>("WorkspaceLeaf", {
         updateHeader() {},
       });
-      // The text view reads its App from the leaf.
       Object.defineProperty(leaf, "app", { value: {} });
       const view = Object.assign(new MemoryTextView(leaf), {
         file: file(path),
@@ -100,7 +97,6 @@ it.effect("finds the loaded text view of a file in any leaf", () =>
       return view;
     };
     const loaded = textView("a.md", "saved");
-    // A view whose text has not loaded yet does not count.
     const unloaded = textView("b.md", null);
     const { workspace } = yield* open(layerWorkspaceFrom(source));
     expect(yield* workspace.loadedTextView(loaded.file)).toBe(loaded);
@@ -148,7 +144,6 @@ it.effect("completes layoutReady inside Obsidian's callback", () =>
     expect(fiber.pollUnsafe()).toBeUndefined();
     source.layoutReady();
     expect(fiber.pollUnsafe()).toEqual(Exit.void);
-    // A second wait after the layout is ready completes at once too.
     const again = yield* workspace.layoutReady.pipe(
       Effect.forkChild({ startImmediately: true }),
     );

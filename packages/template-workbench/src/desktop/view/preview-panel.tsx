@@ -1,7 +1,3 @@
-// The Preview panel on the right of the Template Workbench View: the note,
-// annotation, citation, or partial the editor's own render made from the
-// chosen Item, read from the leaf's scheduler and host model. It owns no
-// model, scheduler, or runner; its settings live in the editor's pane menu.
 import "./preview-panel.css";
 import type { WorkbenchDocumentKind } from "#core/document/index.ts";
 import type { PartialContext, RenderDiagnostic } from "#core/render/index.ts";
@@ -37,12 +33,6 @@ import {
   templateWorkbenchButton,
 } from "#obsidian/workbench-ui/look.ts";
 
-/**
- * What the Preview renders for the document kind and root: which result, the
- * caller a Shared Partial is rendered as called from, and whether the render
- * reads a Citation set or an annotation. The panel and its pane-menu settings
- * both read it.
- */
 export function previewTarget(
   kind: WorkbenchDocumentKind,
   root: TemplateRoot,
@@ -61,8 +51,6 @@ export function previewTarget(
           ? "annotation"
           : "note";
   const caller = isPartialContext(root) ? root : DEFAULT_PARTIAL_CONTEXT;
-  // A partial reads the root its chosen caller reads, so the set it is shown
-  // against and the chooser it offers are that caller's, not the document's.
   return {
     mode,
     caller,
@@ -73,11 +61,6 @@ export function previewTarget(
   };
 }
 
-/**
- * The host sheet of the leaf's render. A failed attempt keeps the last output,
- * so the sheet reads the metadata of the result that output came from; it opens
- * its Properties block while the editor is on the Properties tab.
- */
 export function WorkbenchMarkdown({
   view,
   ...props
@@ -111,11 +94,6 @@ export function WorkbenchMarkdown({
   );
 }
 
-/**
- * The Preview pane's actions, as Obsidian's Markdown view has them: the mode
- * toggle names what a press shows, and More options holds the settings the
- * view's Preview submenu lists.
- */
 function PreviewActions({
   view,
   showMarkdown,
@@ -153,7 +131,6 @@ export function PreviewPanel({
   showProblem,
 }: {
   view: TemplateWorkbenchView;
-  /** Reads one problem in the editor's Problems area; null opens the area. */
   showProblem: (diagnostic: RenderDiagnostic | null) => void;
 }) {
   const { workbench, model } = view;
@@ -171,8 +148,6 @@ export function PreviewPanel({
     citationSet,
     annotationMode,
   } = previewTarget(kind, root);
-  // A Citation example carries its own data, so its preview is ready the moment
-  // the reader has one selected — no Item Snapshot to wait on.
   const ready =
     status === "ready" ||
     (annotationMode && example !== null) ||
@@ -199,7 +174,6 @@ export function PreviewPanel({
       : []),
     ...(!preview.live ? [m.workbench_preview_on_demand()] : []),
   ].join(m.workbench_selection_separator());
-  // The header row's file name and the body read the same render.
   const reading = {
     result,
     annotationResult: result,
@@ -210,15 +184,11 @@ export function PreviewPanel({
   };
   const filename = previewFilename(reading);
   return (
-    // The scroll padding keeps a control the reader tabs to clear of the
-    // sticky header row, so it stays at least as tall as that row: change
-    // one with the other.
     <div
       data-workbench-scroll="preview"
       data-zotlit-preview-result={result?.sourceRevision}
       className="zt:flex zt:min-h-0 zt:min-w-0 zt:flex-1 zt:scroll-pt-20 zt:flex-col zt:gap-3 zt:overflow-auto zt:p-3"
     >
-      {/* The view's item row above holds the chooser this hint points at. */}
       {status === "empty" && !ready && (
         <p className={selectionHint}>
           {annotationMode
@@ -257,9 +227,6 @@ export function PreviewPanel({
       )}
       {ready && (
         <>
-          {/* The header row stays at the top of the scroll area, so the
-              reader always sees which note and file name the preview shows.
-              It bleeds over the panel's padding to cover what scrolls under. */}
           <header
             data-workbench-preview-header=""
             className={cn(
@@ -267,8 +234,6 @@ export function PreviewPanel({
               paneCover,
             )}
           >
-            {/* The pane's actions keep the row's inline end, as a view
-                header's do; what the preview shows reads under the heading. */}
             <div className="zt:flex zt:min-w-0 zt:items-center zt:gap-2">
               <h2 className="zt-workbench-preview-heading zt:min-w-0 zt:flex-1">
                 {heading}

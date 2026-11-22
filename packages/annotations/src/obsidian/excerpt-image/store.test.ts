@@ -9,8 +9,6 @@ import {
 it.skipIf(!testElectron)(
   "persists and bounds derived images in Chromium IndexedDB",
   async () => {
-    // The trial throws on any failed check, so a returned report is the shape of
-    // a complete run: one non-empty label per stage it finished.
     const report = (await runInElectron({
       entry: resolve(import.meta.dirname, "store.browser-test.ts"),
       name: "excerptStoreTrial",

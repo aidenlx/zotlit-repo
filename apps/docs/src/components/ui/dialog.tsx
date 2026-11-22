@@ -1,4 +1,3 @@
-// shadcn Base UI Dialog, with the same surface as menus and editor Hover Cards.
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 
 import { cn } from "@/lib/cn.ts";

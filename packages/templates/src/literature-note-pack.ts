@@ -42,7 +42,6 @@ export interface ParsedLiteratureNotePack {
   readonly files: readonly LiteratureNotePackFile[];
 }
 
-/** Materialize one shared document into its document and bundled-partial files. */
 export function parseLiteratureNotePack(
   reference: string,
   source: string,
@@ -63,17 +62,6 @@ export function parseLiteratureNotePack(
   };
 }
 
-/**
- * What one bundled partial does to the vault's own Shared Partial files:
- * `write` for a name no document answers, `unchanged` for a document that
- * already holds this very source under this very language, `conflict` for one
- * that holds something else, which only a keep-or-replace answer settles,
- * `refused` for a name no Shared Partial file can be given, and `other-case`
- * for a name the vault's own files answer only under another case — one file
- * answers both spellings on a case-insensitive filesystem while a call
- * resolves by exact name. The last two reach no vault path and keep their
- * transport copy.
- */
 export type LiteratureNotePartialUnpackVerdict =
   | "write"
   | "unchanged"
@@ -81,26 +69,12 @@ export type LiteratureNotePartialUnpackVerdict =
   | "refused"
   | "other-case";
 
-/** One bundled partial and the file it unpacks to. */
 export interface LiteratureNotePartialUnpack {
   readonly name: string;
   readonly verdict: LiteratureNotePartialUnpackVerdict;
-  /** The plain Template Document bytes the partial's own file holds. */
   readonly document: string;
 }
 
-/**
- * Decide what the manifest's transport copy of each partial does to the files
- * a vault already holds, so a caller writes what is new, leaves identical text
- * alone, and asks about the rest before any byte of the reader's own file goes.
- *
- * @param held - what the vault holds under each name, keyed by name: a name
- *   the map does not carry has no document, and one mapped to `null` has a
- *   document whose text is unavailable, which reads as a conflict.
- * @param accepts - whether a name a bundle brings may become a file of its
- *   own. A name held under a document of the vault's own is settled before
- *   this is asked, so a reserved name still reads as `unchanged`.
- */
 export function unpackLiteratureNotePartials(
   bundled: readonly LiteratureNoteTemplatePartial[],
   held: ReadonlyMap<
@@ -157,13 +131,6 @@ export interface LiteratureNotePackDiffRow {
   readonly candidateSource: string;
 }
 
-/**
- * Every name a document's own templates call, sorted, before any bundle
- * resolves them. A name another Template already answers — the document's own
- * Annotation Section among them — is a call this scan reports all the same:
- * which of them can be a Shared Partial is the caller's own list to hold, and
- * this package carries none.
- */
 export function literatureNoteTemplateDependencies(
   document: LiteratureNoteTemplateDocument,
 ): string[] {
@@ -175,7 +142,6 @@ export function literatureNoteTemplateDependencies(
   return [...new Set(names)].sort();
 }
 
-/** The fields Share and Import can change while retaining authored template text. */
 export function updateLiteratureNotePackMetadata(
   source: string,
   changes: Partial<
@@ -225,19 +191,13 @@ export function updateLiteratureNotePackMetadata(
   return content;
 }
 
-/** Export reachable partials, keeping folder bindings only when requested. */
 export function exportLiteratureNotePack(
   source: string,
   availablePartials: readonly LiteratureNoteTemplatePartial[],
   options: {
     readonly includeFolders?: boolean;
     readonly includeMatch?: boolean;
-    /** Extra partial names to bundle, reachable or not. */
     readonly include?: readonly string[];
-    /**
-     * Reports a name no partial answers and keeps going, so a caller that
-     * previews a draft bundles what it has. Absent, a missing name throws.
-     */
     readonly onMissingPartial?: (name: string) => void;
   } = {},
 ): string {
@@ -300,7 +260,6 @@ export function exportLiteratureNotePack(
   );
 }
 
-/** Compare candidate bytes with effective files and prior Pack ownership. */
 export function diffLiteratureNotePack(
   candidate: readonly LiteratureNotePackFile[],
   current: readonly LiteratureNotePackCurrentFile[],
@@ -345,7 +304,6 @@ export function diffLiteratureNotePack(
   });
 }
 
-/** Create the durable exact-byte replacement record after an accepted diff. */
 export function createLiteratureNotePackInstallRecord(
   pack: LiteratureNotePackInstallRecord["pack"],
   candidate: readonly LiteratureNotePackFile[],
@@ -383,7 +341,6 @@ export type LiteratureNotePackRevertAction =
       readonly source: string;
     };
 
-/** Refuse edited installed files; otherwise restore exact prior bytes. */
 export function planLiteratureNotePackRevert(
   record: LiteratureNotePackInstallRecord,
   current: readonly LiteratureNotePackFile[],

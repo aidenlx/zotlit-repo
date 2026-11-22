@@ -1,5 +1,4 @@
 import { liquidTagLanguage } from "@codemirror/lang-liquid";
-// Profile regions keep independent template syntax inside plain frontmatter.
 import type { Range } from "@codemirror/state";
 import { Prec } from "@codemirror/state";
 import { Decoration } from "@codemirror/view";
@@ -12,7 +11,6 @@ import { etaParser } from "./eta-syntax.ts";
 import { templateHighlighters, documentToken } from "./highlight.ts";
 import { liquidBody, refusedLiquidMarks } from "./liquid.ts";
 
-/** A template body, scalar, or bare Property expression in editor offsets. */
 export interface TemplateSourceRegion {
   from: number;
   to: number;
@@ -21,7 +19,6 @@ export interface TemplateSourceRegion {
   language?: "liquid" | "eta" | "json-e";
 }
 
-/** Tokenize each embedded value independently from the surrounding YAML. */
 export function embeddedTemplates(
   read: (source: string) => readonly TemplateSourceRegion[],
   frontmatterEnd?: () => number,

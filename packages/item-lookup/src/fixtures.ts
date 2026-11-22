@@ -15,7 +15,6 @@ export {
   type MemorySegmenterBinaryReader,
 } from "./memory-segmenter-binary-reader.ts";
 
-/** The fields Zotero records for one item type, minus its discriminant. */
 type FieldsOf<TType extends ItemFields["itemType"]> = Omit<
   Extract<ItemFields, { itemType: TType }>,
   "itemType"
@@ -23,17 +22,12 @@ type FieldsOf<TType extends ItemFields["itemType"]> = Omit<
 
 export interface ItemFixtureOptions {
   key: string;
-  /**
-   * Set it where one key repeats across Libraries.
-   * @default key.charCodeAt(0)
-   */
   itemID?: number;
   libraryID?: number;
   itemType?: ItemFields["itemType"];
   title?: string | null;
   citationKey?: string | null;
   date?: string | null;
-  /** ISO 8601 instant (e.g. `2024-01-01T00:00:00Z`); defaults to epoch. */
   dateModified?: string;
   lastActivity?: number | null;
   creators?: Creator[];
@@ -47,20 +41,9 @@ export interface ItemFixtureOptions {
   pages?: string | null;
 }
 
-/**
- * {@link makeItem} options that also carry raw per-type fields. Naming the
- * fields obliges the caller to name the item type, and the type admits only
- * the fields Zotero records for it, so a fixture cannot state a shape the
- * query never emits.
- */
 export type TypedItemFixtureOptions<TType extends ItemFields["itemType"]> =
   ItemFixtureOptions & {
     itemType: TType;
-    /**
-     * Fields named as Zotero names them for {@link TypedItemFixtureOptions.itemType} —
-     * `{ repository: "arXiv" }` on a Preprint, `{ bookTitle: "..." }` on a Book
-     * Section. The base-field view and the Venue derive from them.
-     */
     fields?: FieldsOf<TType>;
   };
 
@@ -88,7 +71,6 @@ export function makeIndexedItem(options: ItemFixtureOptions): IndexedItem {
   };
 }
 
-/** One memory source row: the indexed row and the Item, from the same options. */
 export function makeMemoryItemRow(options: ItemFixtureOptions): MemoryItemRow {
   return { indexed: makeIndexedItem(options), item: makeItem(options) };
 }

@@ -1,14 +1,3 @@
-// The content directory as the build sees it, outside the app's module graph.
-//
-// Vite loads its config outside the app's module graph, so the collection index
-// (native macros built on `import.meta.glob`) is out of reach for the
-// build-time lists — the prerender page list and the OG card inventory. Both
-// read the content directory through this scan instead, using fumadocs' own
-// `getSlugs` and frontmatter reader so the folder-group and `index` rules match
-// what the loaders apply. `src/http.test.ts` walks the loaders and asserts the
-// built site carries a file for every page they publish, so a drift between
-// this scan and the collections fails the test run.
-
 import { frontmatter } from "fumadocs-core/content/md/frontmatter";
 import { getSlugs } from "fumadocs-core/source";
 import { globSync, readFileSync } from "node:fs";
@@ -17,18 +6,11 @@ import { join, resolve } from "node:path";
 import type { SiteLocale } from "./i18n.ts";
 import type { MarkdownSection } from "./markdown-routes.ts";
 
-/** One content file, addressed the way the loaders address it. */
 export interface ContentEntry {
   slugs: string[];
-  /** Raw YAML frontmatter; the collection schemas in `content.config.ts` own its shape. */
   frontmatter: unknown;
 }
 
-/**
- * One content directory per section, matching the file patterns the
- * collections in `collections.ts` pick up.
- */
-/** The infix that names a Chinese edition: `page.zh-CN.mdx` beside `page.mdx`. */
 export const chineseFile = /\.zh-CN(?=\.mdx?$)/;
 
 const sections: Record<MarkdownSection, { dir: string; files: string }> = {
@@ -38,10 +20,6 @@ const sections: Record<MarkdownSection, { dir: string; files: string }> = {
   learn: { dir: "content/learn", files: "*.mdx" },
 };
 
-/**
- * Every page file of every section, with its frontmatter parsed.
- * @param packageRoot the app's own root, which `vite.config.ts` owns.
- */
 export function scanContent(
   packageRoot: string,
   { locale = "en" }: { locale?: SiteLocale } = {},
@@ -60,7 +38,6 @@ export function scanContent(
   ) as Record<MarkdownSection, ContentEntry[]>;
 }
 
-/** Native Chinese pages only; an English fallback file is never a Chinese edition. */
 export function scanChinesePages(packageRoot: string): string[] {
   return Object.entries(scanContent(packageRoot, { locale: "zh-CN" })).flatMap(
     ([section, pages]) =>

@@ -28,7 +28,6 @@ import type {
 
 import { rendered } from "#__fixtures__/citation-text.ts";
 
-/** One citation, read out of the source text that is nothing but that citation. */
 function citation(source: string): CitationSource {
   const [found] = scanPandocCitations(source);
   return {
@@ -41,12 +40,6 @@ function citation(source: string): CitationSource {
   };
 }
 
-/**
- * The citations of a document whose literal keys name the given Items.
- *
- * @param works the Indexed Key and summary each literal citekey names; a key
- *   left out of it is one that reaches no Zotero Item.
- */
 function citedDocument(
   works: Record<string, { indexedKey: string; summary: string }> = {},
 ): DocumentCitations {
@@ -163,8 +156,6 @@ describe("citationState", () => {
       }),
   );
 
-  // The strongest failure stays visible: a key that reaches nothing at all
-  // outranks one that reaches several.
   it.effect("lets a missing key outrank ambiguity in a mixed cluster", () =>
     Effect.sync(() => {
       expect(stateFor("ambiguous", "missing")).toBe("unresolved");
@@ -188,8 +179,6 @@ describe("citationState", () => {
   );
 });
 
-// The class names are a public promise to themes, so the state each one stands
-// for is asserted by its literal name.
 describe("citationStateHooks", () => {
   it.effect("names one public theme hook per state a citation reads as", () =>
     Effect.sync(() => {
@@ -268,8 +257,6 @@ describe("literalKeyStateOf", () => {
     }),
   );
 
-  // The Item resolves, but the read could not render a summary for it, so no
-  // surface has anything to show in the citation's place.
   it.effect(
     "reads a key whose Item the document could not read as missing",
     () =>
@@ -313,10 +300,6 @@ describe("presentedCitationEqual", () => {
 });
 
 describe("citationContent", () => {
-  /**
-   * `First [@a]. Then [@a].` under a position-dependent style: the second
-   * occurrence of one source reads as the subsequent form citeproc gave it.
-   */
   const HELD: DocumentCitations = {
     formatted: new Map([
       [
@@ -378,8 +361,6 @@ describe("citationContent", () => {
     "falls back to the first occurrence where a coordinate reaches none",
     () =>
       Effect.sync(() => {
-        // No coordinate at all, an offset an edit has moved, and a section counting
-        // one occurrence more than the document writes there.
         for (const at of [
           undefined,
           { kind: "offset", start: 21 },

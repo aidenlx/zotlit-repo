@@ -103,8 +103,6 @@ describe("installToggleRow", () => {
   it("registers the listener the graph reads its value out of and writes it back through", () => {
     const { target, engine, section, toggle } = fixture();
     using _row = installToggleRow(target, ROW);
-    // `engine.getOptions` enumerates `optionListeners` and calls each with no
-    // argument; `engine.setOptions` calls the listener a passed key names.
     const listener = section.optionListeners["zotlit-pandoc-citations"];
 
     expect(listener?.()).toBe(true);
@@ -124,7 +122,6 @@ describe("installToggleRow", () => {
 
     expect(toggle().getValue()).toBe(true);
     expect(engine.options["zotlit-pandoc-citations"]).toBe(true);
-    // The native keys still went through the native implementation.
     expect(section.natives).toBe(1);
     expect(engine.render).toHaveBeenCalledTimes(2);
   });

@@ -75,8 +75,6 @@ it.effect(
 );
 
 describe("NoteIndex", () => {
-  // Obsidian fires a metadata cache event and a vault event in one tick; the
-  // index takes them in that order, though they come from two sources.
   it.effect(
     "keeps Obsidian's order of a metadata change and a vault rename in one tick",
     () =>
@@ -116,8 +114,6 @@ describe("NoteIndex", () => {
           service.bridge.runPromise(service.whenSettled),
         );
 
-        // The change lands first, while the note is still at its old path;
-        // the rename then moves a note that is already a Literature Note.
         expect(changes).toEqual([
           "changed draft.md",
           "frontmatter draft.md",
@@ -167,8 +163,6 @@ describe("NoteIndex", () => {
           service.bridge.runPromise(service.whenSettled),
         );
 
-        // The rename lands first and moves a note with no keys, so it says
-        // nothing; the change then makes it a Literature Note at its new path.
         expect(changes).toEqual(["changed paper.md", "frontmatter paper.md"]);
         expect(
           paths(service.bridge.runSync(service.getNotesByItemKey(ITEM_A))),
@@ -211,8 +205,6 @@ describe("NoteIndex", () => {
       }),
   );
 
-  // Layout-ready comes from the Workspace tag and the change from the
-  // MetadataCache tag; the index still takes them in Obsidian's order.
   it.effect(
     "keeps Obsidian's order of layout-ready and a metadata change in one tick",
     () =>
@@ -251,8 +243,6 @@ describe("NoteIndex", () => {
           service.bridge.runPromise(service.whenSettled),
         );
 
-        // The Full Scan runs first and indexes the old key; the change then
-        // moves the note to the new key.
         expect(changes).toEqual(["indexed", "frontmatter paper.md"]);
         expect(
           service.bridge.runSync(service.getNotesByItemKey(ITEM_A)),
@@ -328,7 +318,6 @@ describe("NoteIndex", () => {
           () => heard.push("indexed"),
         );
         startup({ metadataCache, workspace, vault });
-        // The whole index changed, not one file.
         expect(heard).toEqual(["indexed"]);
       }),
   );
@@ -409,7 +398,6 @@ describe("NoteIndex", () => {
         );
         startup({ metadataCache, workspace, vault });
 
-        // A rescan would read this silent cache swap; the per-file path never sees it.
         metadataCache.setCache("paper.md", cache({ itemKey: ITEM_B }));
         metadataCache.resolve();
 
@@ -566,7 +554,6 @@ describe("NoteIndex", () => {
           (file) => frontmatter.push(file.path),
         );
 
-        // A body edit: the cache is new, its frontmatter the same.
         metadataCache.change(
           vault.files.get("paper.md")!,
           cache({ itemKey: ITEM_A, properties: { status: "new" } }),
@@ -695,7 +682,6 @@ describe("NoteIndex", () => {
       });
       vault.files.get("old.md")!.stat.mtime = 100;
       vault.files.get("new.md")!.stat.mtime = 200;
-      // tie-a.md and tie-b.md keep the default mtime 0 → path breaks the tie.
       startup({ metadataCache, workspace, vault });
 
       expect(
@@ -736,7 +722,6 @@ describe("NoteIndex", () => {
 
   it("resolves a linkpath to the Indexed Key of the Literature Note it points at", () => {
     const metadataCache = new MemoryMetadataCache();
-    // Exact-path resolution; enough to tell a hit from a dangling link.
     for (const [linkpath, fileCache] of [
       ["Doe 2024", cache({ itemKey: ITEM_A })],
       ["Ordinary", cache({})],
@@ -752,11 +737,6 @@ describe("NoteIndex", () => {
   });
 });
 
-/**
- * Obsidian hears a rename in vault listener order. A plugin loaded during
- * startup subscribes before the metadata cache and hears it before the cache
- * rekeys the path; a plugin enabled at runtime subscribes after.
- */
 describe.each([
   { load: "during startup", enabledAtRuntime: false },
   { load: "at runtime", enabledAtRuntime: true },
@@ -824,7 +804,6 @@ describe.each([
           service.bridge.runSync(service.getNotesByItemKey(ITEM_A)),
         ).toEqual([]);
 
-        // The cache still holds the parse under the restored path and reports no change.
         vault.renameFile("paper.md.away", "paper.md");
         yield* Effect.promise(() =>
           service.bridge.runPromise(service.whenSettled),
@@ -858,7 +837,6 @@ describe.each([
         const { service, vault, metadataCache } = yield* loaded({});
         vault.addFile("paper.txt");
 
-        // The cache holds nothing for the file yet.
         const file = vault.renameFile("paper.txt", "paper.md");
         yield* Effect.promise(() =>
           service.bridge.runPromise(service.whenSettled),

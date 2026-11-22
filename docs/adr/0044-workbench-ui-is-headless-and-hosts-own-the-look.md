@@ -32,6 +32,97 @@ The web Template Workbench and the Obsidian Profile Editor present the same tabs
 - The shared tree's tests run under both React and `preact/compat` in CI.
 - The other `@zotlit/workbench` subpaths stay free of React.
 
+## Decision details before the one-host amendment
+
+The web Match tree and Properties list share their drag affordance. Draw the drop marker with an absolutely positioned pseudo-element so it can sit in the gap without shifting rows. The list passes its gap and border sizes as CSS properties if they differ from the defaults.
+
+The host supplies an Effect runner tied to its owner. Observers distinguish
+normal completion, interruption, and failure while preserving the host's
+original cause. When joining a host fiber, install the interrupt
+finalizer before the caller can be interrupted so an immediate cancel
+still stops that work. The child fiber stays interruptible.
+[Workbench host effects](../../packages/workbench/src/language/host-effects.ts)
+
+## Editor views and chrome
+
+Own one model per editor. Use the host's registry when given, or dispose
+the editor's own registry with the editor. A tree without an editor
+reads an inert model created on demand. Read the active host messages at
+use time so a language change reaches hover and completion.
+
+The host supplies component classes and named icons. The shared tree
+exposes parts and states and derives the type of the host's class map
+from its declared parts. A host can add editor extensions, completion row
+cells, and searchable selects. With no override, use CodeMirror's list
+and a native select. Keep short fixed lists native. Search keywords
+remain separate from the displayed labels. Side panel sizes use custom
+properties in the host's namespace.
+
+Tabs use arrows, Home, and End. Keep visited panels mounted and hide
+inactive ones so their editor views survive. Hidden slices report no
+selection and accept no reveal. On becoming visible, a slice reports
+its selection in master offsets. Keep current callbacks in a ref so
+changing host props does not rebuild the editor. Keep the user's caret
+placement across an editor rebuild for a language change. A scalar
+pane shows only its value and refuses a line break. The whole-file
+Advanced pane alone uses the line gutter.
+
+Use stable portal hosts for Annotation and Shared Partial call boxes.
+A selection touching a call reveals its source. Child controls can
+act without revealing it. The Note preview's selected line lives in
+master offsets so an edit in either pane can move it. Let the host own
+scrolling so browser scroll anchoring holds the pane when a box changes
+height. Put the focus ring outside the scroll container.
+[Editor provider](../../packages/workbench/src/ui/editor.tsx) · [Editor boxes](../../packages/workbench/src/ui/editor-boxes.ts) · [Slice editor](../../packages/workbench/src/ui/slice-editor.tsx)
+
+### Host UI and preference boundaries
+
+Route overlays, clipboard, guide links, and local data through the host
+interface. Obsidian uses its native dialogs and menus; the web host
+supplies Base UI controls. Anchor a context menu at the pointer, and
+an action menu below its control. Interrupting a chooser or confirmation
+closes it. Omit host-dependent actions if the host cannot supply them.
+Keep device and vault preference scopes separate. Use the editor's
+mount for overlays so they open in the correct window.
+
+Return focus to the Fields action when the popup closes unless
+insertion has already moved focus into the editor. Let Escape close
+field details or clear the search before it closes the popup. In a wide
+view the details appear beside their row and count as inside the Fields
+popup. Hosts without that overlay use the details bar at every width.
+A caret report records whether the reader focused the pane, so a pane
+that merely became visible cannot claim the insertion target.
+
+A host tooltip supplies presentation attributes without event handlers.
+Use a hidden label for container names in Obsidian because its
+`aria-label` also opens a tooltip. Use `aria-label` in the hostless
+prerendered skeleton so hydration does not depend on a generated ID.
+[Host adapter](../../packages/workbench/src/ui/host.tsx)
+
+Retain a visited pane only while the same occupant remains at its key.
+Keep the occupant map stable across unchanged renders so a vacated
+row cannot transfer its editor state to a different entry. Return
+the original view state for an update with no changed property.
+The host assembles Help links from shared guide paths and its own
+docs and community locations.
+[Visited panes](../../packages/workbench/src/ui/visited.ts) · [Help paths](../../packages/workbench/src/ui/help-pages.ts)
+
+### Obsidian editor styles
+
+Draw Show problem as a focusable link-style control inside the diagnostic
+sentence. Override the native unlayered button rules so the control can wrap
+with the sentence, including on hover. Restore a focus ring because the
+native ring uses the box shadow removed by the inline style. Render plain
+text when the preview has no editor to open.
+
+Use native pills for Match chips. Remove the property input's width allowance
+and preserve whole words until a word needs to wrap. Keep the compact pill
+remove mark. Style the pinned Fields control from its data state in the
+unlayered stylesheet because Obsidian's native icon color takes precedence
+over layered utilities.
+
+[Native editor styles](../../packages/template-workbench/src/obsidian/editor/theme.css)
+
 ## Amendment (2026-11-21): one host
 
 [ADR 0100](0100-the-web-template-workbench-is-retired.md) retired the web Workbench, so the Workbench UI has one host and is no longer headless. It is the unit `src/obsidian/workbench-ui/` of `@zotlit/template-workbench` and draws with its own `zt:` classes. The theme class map, the overlay members of the host adapter (menus, dialogs, suggesters, tooltips, notices) and the host's message supply are gone: the tree opens Obsidian's own overlays directly and reads the plugin's Language Pack. The host adapter keeps only the data ports, and the tests under both React and `preact/compat` are replaced by one Node run of the pure-logic suites.

@@ -1,9 +1,5 @@
 import { obRun } from "./obsidian-cli.ts";
 
-/**
- * Close the menus, dialogs and popovers a case left open in any window of
- * `vaultId`, and name each one. Rejects when the vault gives no reply.
- */
 export async function leftOpen(vaultId: string): Promise<string[]> {
   return obRun(
     vaultId,

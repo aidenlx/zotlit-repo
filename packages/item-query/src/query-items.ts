@@ -1,5 +1,3 @@
-// The Items dataset: Item Query over the top-level, non-trashed Items of the
-// Target Libraries.
 import { Effect } from "effect";
 
 import {
@@ -40,7 +38,6 @@ const sortable = (name: string) => {
     : undefined;
 };
 
-/** Item Query: one row for each top-level, non-trashed Item. */
 export const ITEMS: QueryDataset<ItemQueryRequest> = {
   id: "items",
   noun: "Item",

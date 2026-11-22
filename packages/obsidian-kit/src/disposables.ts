@@ -48,10 +48,6 @@ export function registerDomEvent(
   return disposable(() => el.removeEventListener(type, callback, options));
 }
 
-/**
- * Register a window event for the window that owns `el`, and follow `el` when
- * Obsidian moves its view into or out of a pop-out window.
- */
 export function registerMigratingWindowEvent<K extends keyof WindowEventMap>(
   el: HTMLElement,
   type: K,

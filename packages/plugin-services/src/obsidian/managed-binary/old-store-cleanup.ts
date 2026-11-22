@@ -1,6 +1,3 @@
-// The one-time cleanup after the update to the Resource Pack: the binaries
-// that earlier versions downloaded to the device, and the vault's records of
-// their dismissed install offers.
 import { Context, Deferred, Effect, Layer } from "effect";
 
 import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
@@ -14,14 +11,12 @@ import {
   oldDeclinedKey,
 } from "#core/managed-binary/old-store.ts";
 
-/** What the cleanup reads of a folder in the origin's private file system. */
 export interface OldStoreDirectory {
   getDirectoryHandle(name: string): Promise<OldStoreDirectory>;
   removeEntry(name: string, options?: { recursive?: boolean }): Promise<void>;
   keys(): AsyncIterable<string>;
 }
 
-/** Runs `step`; an entry that is already gone is a success. */
 async function unlessGone<A>(step: () => Promise<A>): Promise<A | undefined> {
   try {
     return await step();
@@ -32,7 +27,6 @@ async function unlessGone<A>(step: () => Promise<A>): Promise<A | undefined> {
   }
 }
 
-/** Removes each binary's folder, then the root when nothing else is in it. */
 async function removeFolders(
   openRoot: () => Promise<OldStoreDirectory>,
 ): Promise<void> {
@@ -50,21 +44,8 @@ async function isEmptyFolder(folder: OldStoreDirectory): Promise<boolean> {
   return true;
 }
 
-/**
- * How the cleanup of one start ended: it removed the old data and recorded
- * it, it found the vault's record of an earlier cleanup, or a removal failed.
- */
 export type OldStoreCleanupOutcome = "removed" | "skipped" | "failed";
 
-/**
- * Removes the downloaded binaries from the device and the dismissed install
- * offers from the vault, then records it in the vault, so each vault runs it
- * one time. The folder is device-wide: the first vault to start removes it,
- * and each other vault finds none. A removal that fails is logged and leaves
- * no record, so the next start runs it again. It answers how it ended.
- *
- * @param openRoot the root of the origin's private file system.
- */
 export const removeOldStore = Effect.fn("ManagedBinary.removeOldStore")(
   function* (openRoot: () => Promise<OldStoreDirectory>) {
     const storage = yield* DeviceStorage;
@@ -86,19 +67,13 @@ export const removeOldStore = Effect.fn("ManagedBinary.removeOldStore")(
   ),
 );
 
-/** The cleanup of this start of the plugin. */
 export class OldStoreCleanup extends Context.Service<
   OldStoreCleanup,
   {
-    /** How the cleanup ended; it waits while the cleanup runs. */
     readonly outcome: Effect.Effect<OldStoreCleanupOutcome>;
   }
 >()("zotlit/managed-binary/OldStoreCleanup") {}
 
-/**
- * Runs {@link removeOldStore} over the browser's private file system when the
- * plugin starts. The start does not wait for it.
- */
 export const layerOldStoreCleanup = Layer.effect(
   OldStoreCleanup,
   Effect.gen(function* () {

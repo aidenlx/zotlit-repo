@@ -1,6 +1,3 @@
-// The planner: the candidate sets that a validated Filter Expression gives.
-// A candidate set holds every Item that can match and may hold more; the
-// evaluator decides each match.
 import { Effect } from "effect";
 
 import type {
@@ -17,29 +14,17 @@ import type { FilterNode } from "./filter-plan.ts";
 import { lowerIndexedKeySelection } from "./indexed-key-selection.ts";
 import type { TargetLibrary } from "./request.ts";
 
-/** How the engine gets a candidate set for a filter. */
 export type CandidatePlan<Leaf = CandidateLeaf> =
   | { readonly kind: "leaf"; readonly leaf: Leaf; readonly sweep?: true }
-  /** `&&`: the intersection of the sets within the cap; one set is enough. */
   | { readonly kind: "all"; readonly plans: readonly CandidatePlan<Leaf>[] }
-  /** `||`: the union of the sets; it needs every set. */
   | { readonly kind: "any"; readonly plans: readonly CandidatePlan<Leaf>[] };
 
-/**
- * What the query read from the source before planning. A leaf that needs a
- * source the query did not read lowers nothing.
- */
 export interface CandidateSources {
   readonly library: TargetLibrary;
   readonly vocabulary: FieldVocabulary | null;
   readonly collectionPaths: CollectionPaths | undefined;
 }
 
-/**
- * A lowering turns one node into the leaf of a candidate reader, or gives
- * null for a node of another form. Every Item for which the node is truthy
- * must be in the candidate set of the leaf.
- */
 type Lowering = <Item>(
   node: FilterNode<Item>,
   sources: CandidateSources,
@@ -52,7 +37,6 @@ const stringLiteral = <Item>(
     ? node.value
     : null;
 
-/** `tags.contains("x")` */
 const lowerTagContains: Lowering = (node) => {
   if (node.kind !== "method" || node.name !== "contains") return null;
   if (node.subject.kind !== "field" || node.subject.name !== "tags") {
@@ -62,7 +46,6 @@ const lowerTagContains: Lowering = (node) => {
   return name === null ? null : { kind: "tag", value: name };
 };
 
-/** The field and the literal of `field == literal`, in either operand order. */
 export function equality<Item>(
   node: FilterNode<Item>,
   accepts: (name: string) => boolean,
@@ -79,17 +62,11 @@ export function equality<Item>(
   return null;
 }
 
-/** `key == "x"`, in either operand order. */
 const lowerKeyEquals: Lowering = (node) => {
   const match = equality(node, (name) => name === "key");
   return match && { kind: "key", key: match.value };
 };
 
-/**
- * `field == "x"` on a built-in field whose filter value is its stored string,
- * in either operand order. The set covers every field ID of the field's
- * aliases.
- */
 const lowerFieldEquals: Lowering = (node, { vocabulary }) => {
   const match = vocabulary && equality(node, isStoredStringField);
   return (
@@ -101,11 +78,6 @@ const lowerFieldEquals: Lowering = (node, { vocabulary }) => {
   );
 };
 
-/**
- * `collections.contains(path)` and `collections.within(path)`: the live
- * Collections whose root-first path, joined by `/`, is `path`, and for
- * `within` every Collection below them.
- */
 const lowerCollections: Lowering = (node, { collectionPaths }) => {
   if (node.kind !== "method" || !collectionPaths) return null;
   if (node.name !== "contains" && node.name !== "within") return null;
@@ -125,7 +97,6 @@ const lowerCollections: Lowering = (node, { collectionPaths }) => {
   return { kind: "collection", collectionIDs };
 };
 
-/** The lowered leaves. Add a leaf form here, with its reader in `@zotlit/db`. */
 const LOWERINGS: readonly Lowering[] = [
   lowerTagContains,
   lowerKeyEquals,
@@ -133,7 +104,6 @@ const LOWERINGS: readonly Lowering[] = [
   lowerCollections,
 ];
 
-/** The `all` plan of the branches that lower, or null when none does. */
 function allOf<Leaf>(
   branches: readonly (CandidatePlan<Leaf> | null)[],
 ): CandidatePlan<Leaf> | null {
@@ -144,11 +114,6 @@ function allOf<Leaf>(
   return plans.length === 1 ? plans[0]! : { kind: "all", plans };
 }
 
-/**
- * Plan the candidate sets of a filter. Null: no part of the filter gives a
- * set, and the query uses the scan. `&&` uses the sides that lower, `||`
- * needs both sides, and `!` and every other expression lower nothing.
- */
 export function planCandidates<Item, Leaf = CandidateLeaf>(
   node: FilterNode<Item>,
   sources: CandidateSources,
@@ -190,8 +155,6 @@ export function planCandidates<Item, Leaf = CandidateLeaf>(
         : node.args;
     if (!values.length || values.some((value) => stringLiteral(value) === null))
       return null;
-    // Method nodes resolve by name and subject type. Lowerings read only
-    // kind, name, subject and args; the evaluator keeps the original tree.
     const plans = values.map((value) =>
       planCandidates(
         { ...node, name: "contains", args: [value] },
@@ -216,18 +179,12 @@ export const lowerItemCandidate: Lowering = (node, sources) => {
   return null;
 };
 
-/** The reason this branch cannot supply a complete candidate set. */
 export type CandidateFallback =
   | "candidate-cap-exceeded"
   | "sparse-library"
   | "relation-page-budget-exhausted"
   | "parent-page-budget-exhausted";
 
-/**
- * Read a plan under the cap. An incomplete leaf cannot supply a candidate
- * set. An `all` plan keeps complete branches; an `any` plan needs them all.
- * When no set survives, the first failed branch supplies the reason.
- */
 export const readCandidatePlan = Effect.fnUntraced(function* <Leaf>(
   plan: CandidatePlan<Leaf>,
   options: {
@@ -287,7 +244,6 @@ export const readCandidatePlan = Effect.fnUntraced(function* <Leaf>(
   );
 });
 
-/** An all plan can use a seek alone; an any plan needs every branch. */
 function requiresSweep<Leaf>(plan: CandidatePlan<Leaf>): boolean {
   if (plan.kind === "leaf") return plan.sweep === true;
   return plan.kind === "all"
@@ -295,7 +251,6 @@ function requiresSweep<Leaf>(plan: CandidatePlan<Leaf>): boolean {
     : plan.plans.some(requiresSweep);
 }
 
-/** Pure seeks first, mixed branches next, and pure sweeps last. */
 function sweepOrder<Leaf>(plan: CandidatePlan<Leaf>): 0 | 1 | 2 {
   if (plan.kind === "leaf") return plan.sweep ? 2 : 0;
   const orders = plan.plans.map(sweepOrder);

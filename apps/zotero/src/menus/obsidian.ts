@@ -30,19 +30,8 @@ import type { FluentMessageId, FluentMessages } from "@/types/fluent.ts";
 
 const logger = appLogger.getChild(["menus", "obsidian"]);
 
-/**
- * Longest `obsidian://` URL we hand to `Zotero.launchURL`. Past this the OS URI
- * handler truncates silently on some platforms, so a larger batch falls back to
- * an HTTP POST to the Obsidian listener.
- */
 const URL_LENGTH_CAP = 2000;
 
-/**
- * Open Obsidian for one literature item via its
- * `obsidian://zotlit/<action>?item=<id>&source-id=<hash>` link.
- * {@link launchExternalUrl} routes the non-`zotero:`/`http(s):` scheme to the
- * OS default handler.
- */
 export function openInObsidian(
   action: ProtocolAction,
   item: Zotero.Item,
@@ -83,15 +72,6 @@ export function exploreInObsidian(
   launchExternalUrl(url);
 }
 
-/**
- * Ask Obsidian to create or update literature notes for every item in scope.
- * Obsidian checks the `groupID` against its own configured citation library and
- * skips when they differ.
- *
- * @param groupID `0` for the personal library, a positive integer for a group.
- * @param collectionKey narrows the run to that collection and every collection
- *   nested under it; absent covers the whole library.
- */
 export function updateAllInObsidian(
   groupID: number,
   collectionKey?: string,
@@ -101,14 +81,6 @@ export function updateAllInObsidian(
   launchExternalUrl(url);
 }
 
-/**
- * Ask Obsidian to import every Zotero note in scope — child notes of regular
- * items and standalone notes alike.
- *
- * @param groupID `0` for the personal library, a positive integer for a group.
- * @param collectionKey narrows the run to that collection and every collection
- *   nested under it; absent covers the whole library.
- */
 export function importAllNotesInObsidian(
   groupID: number,
   collectionKey?: string,
@@ -126,7 +98,6 @@ export function importAllNotesInObsidian(
   launchExternalUrl(url);
 }
 
-/** l10n ids driving one {@link launchOrPut} run's progress-window copy. */
 interface ListenerMessages {
   sendingTitleId: FluentMessageId;
   sentTitleId: FluentMessageId;
@@ -135,12 +106,6 @@ interface ListenerMessages {
   failedMessageId: FluentMessageId;
 }
 
-/**
- * Opens `url` directly when it fits {@link URL_LENGTH_CAP}; otherwise PUTs
- * `body` to the configured Obsidian listener at `path` and reports the
- * outcome on a {@link Zotero.ProgressWindow}. If no listener is reachable,
- * shows a hint pointing at the server setting.
- */
 async function launchOrPut(
   url: string,
   {
@@ -150,7 +115,6 @@ async function launchOrPut(
     count,
     messages,
   }: {
-    /** Noun used in log lines, e.g. `"batch update"` / `"batch import"`. */
     label: string;
     path: string;
     body: unknown;
@@ -218,12 +182,6 @@ async function launchOrPut(
   }
 }
 
-/**
- * Batch-update many literature items in one action. Sends a single
- * `update-many` link when it fits in {@link URL_LENGTH_CAP}; otherwise PUTs
- * the id list to the configured Obsidian listener. If no listener is reachable,
- * shows a hint pointing at the server setting.
- */
 export async function updateManyInObsidian(
   items: readonly Zotero.Item[],
   scope?: UpdateScope,
@@ -246,12 +204,6 @@ export async function updateManyInObsidian(
   });
 }
 
-/**
- * The background PUT never surfaces the Obsidian window, so the user never
- * sees the import prompt waiting there. Updating the headline and description
- * on the in-flight progress window reports the outcome — "continue in Obsidian"
- * on success, the failure hint otherwise — and auto-dismisses after a moment.
- */
 async function settleProgress<M extends FluentMessageId>(
   progress: Zotero.ProgressWindow,
   {
@@ -273,11 +225,6 @@ async function settleProgress<M extends FluentMessageId>(
   progress.startCloseTimer(8000);
 }
 
-/**
- * The Obsidian listener returns 426 when the request's protocol version is
- * incompatible with the one it expects. This is distinct from an unreachable
- * listener, so it gets its own copy telling the user to update the plugins.
- */
 async function settleProtocolMismatch(
   progress: Zotero.ProgressWindow,
 ): Promise<void> {
@@ -295,21 +242,12 @@ async function showServerHint(): Promise<void> {
   Zotero.alert(Zotero.getMainWindow(), title ?? "", message ?? "");
 }
 
-/**
- * Import a single note item in Obsidian via its
- * `obsidian://zotlit/import-note?item=<id>&mode=<mode>&source-id=<hash>` link.
- */
 export function importInObsidian(itemID: number, mode: ImportMode): void {
   const url = buildImportProtocolUrl(itemID, { sourceId: sourceId(), mode });
   logger.info("opening obsidian (import link)", { itemID, mode, url });
   launchExternalUrl(url);
 }
 
-/**
- * Batch-import note items in Obsidian. Sends a single `import-notes` link when
- * it fits in {@link URL_LENGTH_CAP}; otherwise PUTs the body to the Obsidian
- * listener at `PUT /zotero-notes`.
- */
 export async function importManyInObsidian(
   itemIDs: readonly number[],
   mode: ImportMode,
@@ -334,13 +272,6 @@ export async function importManyInObsidian(
   });
 }
 
-/**
- * The top-level (literature) item behind a reader tab. `reader.itemID` points
- * at the attachment being viewed; its `topLevelItem` is the regular item whose
- * note Obsidian acts on.
- *
- * @returns the parent item, or `null` when the reader has no associated item
- */
 export function readerTopLevelItem(
   reader: _ZoteroTypes.ReaderInstance,
 ): Zotero.Item | null {

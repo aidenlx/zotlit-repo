@@ -37,7 +37,6 @@ describe("getCollectionIDByKey", () => {
   });
 
   it("scopes the lookup to the library, not the key alone", () => {
-    // Library 2 owns its own collection under the same key.
     expect(
       getCollectionIDByKey(db, { libraryID: 2, collectionKey: ROOT }),
     ).toBe(200);
@@ -58,23 +57,22 @@ describe("getCollectionIDByKey", () => {
 
 describe("getIndexedItemIDsByCollection", () => {
   it("gathers regular items across the collection and its descendants", () => {
-    // 1 in the root, 2 one level down, 3 two levels down.
     expect(sorted(byCollection(ROOT))).toEqual([1, 2, 3]);
   });
 
   it("excludes trashed items, notes, and attachments", () => {
     const ids = byCollection(ROOT);
 
-    expect(ids).not.toContain(5); // trashed regular item
-    expect(ids).not.toContain(6); // standalone note
-    expect(ids).not.toContain(12); // attachment
+    expect(ids).not.toContain(5);
+    expect(ids).not.toContain(6);
+    expect(ids).not.toContain(12);
   });
 
   it("excludes items in unrelated and trashed collections", () => {
     const ids = byCollection(ROOT);
 
-    expect(ids).not.toContain(4); // sibling collection outside the subtree
-    expect(ids).not.toContain(10); // trashed subcollection
+    expect(ids).not.toContain(4);
+    expect(ids).not.toContain(10);
   });
 
   it("returns an empty list for an unknown key", () => {
@@ -90,7 +88,6 @@ describe("getIndexedItemIDsByCollection", () => {
 
 describe("getNoteItemIDsByCollection", () => {
   it("gathers standalone notes and child notes of items in scope", () => {
-    // 6 is standalone in a subcollection; 7 hangs off item 2 in that same one.
     expect(sorted(notesByCollection(ROOT))).toEqual([6, 7]);
   });
 
@@ -105,8 +102,8 @@ describe("getNoteItemIDsByCollection", () => {
   it("excludes notes outside the subtree", () => {
     const ids = notesByCollection(ROOT);
 
-    expect(ids).not.toContain(13); // child of an item in a sibling collection
-    expect(ids).not.toContain(14); // standalone note filed nowhere
+    expect(ids).not.toContain(13);
+    expect(ids).not.toContain(14);
   });
 
   it("returns an empty list for an unknown key", () => {

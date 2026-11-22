@@ -1,8 +1,3 @@
-// File Link Capture: a clicked Attachment File Link, or a Durable Annotation
-// Link, reaches the ZotLit PDF Reader instead of the system handler, when it
-// names an Obsidian-Openable Attachment. The patch is the opener's entry point
-// for links Obsidian rendered; which links it takes is the opener's to decide.
-
 import { Effect } from "effect";
 import { around } from "monkey-around";
 import type { PaneType } from "obsidian";
@@ -15,24 +10,12 @@ import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/s
 
 import type { TargetOpener } from "./open-target.ts";
 
-/**
- * The target Obsidian's own "Open in default browser" context-menu item passes
- * to `window.open`. Capture hands it straight back, so that item stays the
- * per-link way out of the ZotLit PDF Reader, and the opener hands Zotero a link
- * through it, past this patch.
- */
 export const EXTERNAL_TARGET = "_external";
 
-/**
- * The system handler, reached past File Link Capture: Obsidian sends a
- * non-web link to it whatever the target, and Capture hands `_external` back
- * untouched, so a link the opener gives to Zotero is never captured again.
- */
 export function openWithSystem(url: string): void {
   window.open(url, EXTERNAL_TARGET);
 }
 
-/** What `window.open`'s second argument says about where the click wanted the file. */
 export function paneFromTarget(target: string | undefined): PaneType | boolean {
   switch (target) {
     case "tab":
@@ -45,32 +28,13 @@ export function paneFromTarget(target: string | undefined): PaneType | boolean {
 }
 
 export interface FileLinkCaptureDeps {
-  /** Decides which links ZotLit takes, and opens them. */
   opener: Pick<TargetOpener["Service"], "follow">;
   attachments: Pick<AttachmentResolver["Service"], "warm">;
   settings: Pick<PluginSettings["Service"], "current">;
-  /** Runs the opener's decision at the click, then the open it answers. */
   bridge: Pick<EffectBridge, "runSync" | "runAndForget">;
-  /** The window whose `open` is patched. Defaults to the one the plugin runs in. */
   window?: Window;
 }
 
-/**
- * Patch `window.open`, the one symbol reading view, Live Preview, Properties,
- * and Bases all reach when a click leaves for an external link. Live Preview
- * renders no anchor at all, so a delegated DOM listener would cover reading
- * view alone and split one link's behaviour across the two modes.
- *
- * One patch covers pop-out windows too. Obsidian's link handlers call the bare
- * global `window.open`, which is why `activeWindow` exists at all, so the
- * click reaches this patch whichever window it happened in.
- *
- * The resolver builds its index on the first lookup, and the opener leaves
- * every link to the system handler until it lands. A note's links are clicked
- * before any PDF asks for that index, so Capture asks for it as it installs.
- *
- * @see apps/obsidian/docs/adr/0045-file-link-capture-patches-window-open.md
- */
 export function registerFileLinkCapture(deps: FileLinkCaptureDeps): Disposable {
   const host = (deps.window ?? window) as { open: Window["open"] };
   deps.bridge.runSync(deps.attachments.warm);
@@ -89,8 +53,6 @@ export function registerFileLinkCapture(deps: FileLinkCaptureDeps): Disposable {
           ) {
             return native(url, target, features);
           }
-          // The decision runs now, so the click is claimed or passed on
-          // before this handler returns.
           const followed = deps.bridge.runSync(
             deps.opener.follow(String(url), paneFromTarget(target)),
           );

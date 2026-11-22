@@ -1,6 +1,5 @@
 import { createRequire, Module } from "node:module";
 
-/** Replace the Electron CommonJS boundary for a scoped Node test. */
 export function electronAppData(appData: string): Disposable {
   const require = createRequire(import.meta.url);
   const id = require.resolve("@electron/remote");

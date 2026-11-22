@@ -1,8 +1,4 @@
 // @vitest-environment happy-dom
-// The Annotations Layout is the part a host mounts to show Annotation Cards:
-// the host gives it the Attachments to show, a Scope for the card keys and
-// the Obsidian app, and the layout keeps each Attachment's own Editing
-// Capability and Annotation Source (apps/obsidian ADR 0069).
 
 import type { AnnotationNoteActions } from "#obsidian/annot-view/note-actions.ts";
 import type { EditingCapability } from "#obsidian/annotation-repository/capability.ts";
@@ -87,7 +83,6 @@ const CAPABILITIES: Record<string, EditingCapability> = {
 
 type Listener = (...args: never[]) => void;
 
-/** A repository that answers two Attachments, each with its own source and capability. */
 function repository() {
   const lists = { ...LISTS };
   const capabilities = { ...CAPABILITIES };
@@ -163,7 +158,6 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-/** Mounts the layout, as a host does, over the rows of both Attachments. */
 async function mountLayout(
   host: Pick<AnnotationsLayoutHost, "showNewRecords" | "onListChanged"> = {},
 ) {
@@ -243,7 +237,6 @@ async function click(target: Element): Promise<void> {
   });
 }
 
-/** One key, as Obsidian hands it to the handlers the Scope holds. */
 async function press(
   scope: Scope,
   target: Element,
@@ -256,7 +249,6 @@ async function press(
     cancelable: true,
   });
   Object.defineProperty(event, "target", { value: target });
-  // The mock Scope records what it was given, which the real type hides.
   const { handlers } = scope as unknown as {
     handlers: {
       modifiers: string[] | null;
@@ -494,8 +486,6 @@ it("tells the host once a list it shows gains or loses an Annotation", async () 
   const change = (attachmentKey: string) =>
     act(() => repo.emit("annotations-changed", attachmentKey));
 
-  // A change that keeps the list's Annotations, such as a new colour, says
-  // nothing; the cards show it from the live list.
   repo.lists.PDFAAAAA = {
     ...LISTS.PDFAAAAA!,
     annotations: [{ ...ALPHA, color: "#ff6666" }],
@@ -503,20 +493,16 @@ it("tells the host once a list it shows gains or loses an Annotation", async () 
   await change("PDFAAAAA");
   expect(onListChanged).not.toHaveBeenCalled();
 
-  // A new Annotation says so once, and a later change that keeps it says
-  // nothing more.
   repo.lists.PDFAAAAA = { ...LISTS.PDFAAAAA!, annotations: [ALPHA, DELTA] };
   await change("PDFAAAAA");
   expect(onListChanged).toHaveBeenCalledTimes(1);
   await change("PDFAAAAA");
   expect(onListChanged).toHaveBeenCalledTimes(1);
 
-  // So does an Annotation the list lost.
   repo.lists.PDFAAAAA = LISTS.PDFAAAAA!;
   await change("PDFAAAAA");
   expect(onListChanged).toHaveBeenCalledTimes(2);
 
-  // A change to an Attachment the layout does not show says nothing.
   await change("PDFOTHER");
   expect(onListChanged).toHaveBeenCalledTimes(2);
 });
@@ -530,11 +516,8 @@ it("keeps a new Annotation on screen when the run its list change asked for has 
   });
   expect(cardKeys(el)).toEqual([ALPHA.key, DELTA.key, BETA.key]);
 
-  // Zotero's database does not hold the new Annotation yet: the rows of the
-  // run the list change asked for stay off screen.
   expect(layout.keepsBack([ALPHA.key, BETA.key], "list-change")).toBe(true);
 
-  // Rows that name it show.
   expect(
     layout.keepsBack([ALPHA.key, DELTA.key, BETA.key], "list-change"),
   ).toBe(false);
@@ -545,11 +528,8 @@ it("keeps waiting for a new Annotation through a rerun of the same request that 
   repo.lists.PDFAAAAA = { ...LISTS.PDFAAAAA!, annotations: [ALPHA, DELTA] };
   await act(() => repo.emit("annotations-changed", "PDFAAAAA"));
 
-  // A database change runs the same request before the list change's run
-  // lands; Zotero's database does not hold the new Annotation yet.
   expect(layout.keepsBack([ALPHA.key, BETA.key], "rerun")).toBe(false);
 
-  // The list change's run still waits for it.
   expect(layout.keepsBack([ALPHA.key, BETA.key], "list-change")).toBe(true);
 });
 
@@ -558,10 +538,8 @@ it("waits no more for a new Annotation once a new request shows without it", asy
   repo.lists.PDFAAAAA = { ...LISTS.PDFAAAAA!, annotations: [ALPHA, DELTA] };
   await act(() => repo.emit("annotations-changed", "PDFAAAAA"));
 
-  // A filter edit leaves the new Annotation out: its rows show.
   expect(layout.keepsBack([ALPHA.key, BETA.key], "new-request")).toBe(false);
 
-  // The next run a list change asks for shows too, without it.
   repo.lists.PDFAAAAA = {
     ...LISTS.PDFAAAAA!,
     annotations: [ALPHA, DELTA, { ...ALPHA, key: "EPSILON1" }],
@@ -581,7 +559,6 @@ it("waits no more for a new Annotation the repository no longer holds", async ()
   expect(layout.keepsBack([ALPHA.key, BETA.key], "list-change")).toBe(false);
 });
 
-/** Every card shown for one Annotation, in list order. */
 function copies(el: HTMLElement, key: string): HTMLElement[] {
   return [
     ...el.querySelectorAll<HTMLElement>(
@@ -619,7 +596,6 @@ it("steps over the cards of a collapsed group with the arrow keys, and drops a S
   expect(document.activeElement).toBe(card(el, ALPHA.key));
   expect(await press(scope, card(el, ALPHA.key), ["ArrowUp"])).toBe(true);
   expect(selected()).toEqual([BETA.key]);
-  // At the top of the list the key goes on, so the list still scrolls.
   expect(await press(scope, card(el, BETA.key), ["ArrowUp"])).toBe(false);
 
   await toggleGroup(el, "green");
@@ -666,7 +642,6 @@ it("reaches a card under each group heading it shows under, and steps on from th
   expect(await press(scope, card(el, BETA.key), ["ArrowUp"])).toBe(true);
   expect(document.activeElement).toBe(firstAlpha);
 
-  // A range over both places holds the one Annotation once.
   expect(await press(scope, firstAlpha!, ["ArrowDown", ["Shift"]])).toBe(true);
   expect(await press(scope, card(el, BETA.key), ["ArrowDown", ["Shift"]])).toBe(
     true,

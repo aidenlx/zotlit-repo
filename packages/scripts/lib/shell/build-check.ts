@@ -1,8 +1,3 @@
-// The proof that a shell builds the plugin the host app released: install the
-// shell from its lockfile, run its `build` script as the official Obsidian
-// release action does, and compare the result with the host app's build byte
-// for byte. `pnpm release:check-shell` runs it on a shell locked to a local
-// tarball, and `pnpm release:publish` on a copy of the shell it commits.
 import { createHash } from "node:crypto";
 import { readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -12,16 +7,10 @@ import type { BuiltFileName } from "./profiles.ts";
 
 export interface BuiltFile {
   file: BuiltFileName;
-  /** sha256 of the host app's file. */
   app: string;
-  /** sha256 of the shell's file. */
   shell: string;
 }
 
-/**
- * Runs `pnpm install --frozen-lockfile` and `npm run build` in `dir`. With
- * `npmrc`, that `.npmrc` is in place for the install, and removed after it.
- */
 export async function installAndBuild(
   dir: string,
   options: { npmrc?: string } = {},
@@ -42,7 +31,6 @@ const sha256 = async (path: string) =>
     .update(await readFile(path))
     .digest("hex");
 
-/** The hashes of each of `files` in `appDist` and in `shellDir`. */
 export async function compareBuilds(
   appDist: string,
   shellDir: string,
@@ -57,7 +45,6 @@ export async function compareBuilds(
   );
 }
 
-/** One line per file, `same` or `DIFFERENT`, for a log. */
 export function describeBuilds(files: readonly BuiltFile[]): string {
   return files
     .map(({ file, app, shell }) =>

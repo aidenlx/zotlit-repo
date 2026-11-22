@@ -1,6 +1,3 @@
-// The Template rows of the setting tab: the Advanced page's Template engine
-// group and the Citations page's Citation text row, with the codec of the
-// auto-trim dropdowns.
 import { Effect } from "effect";
 import type {
   SettingControl,
@@ -27,33 +24,27 @@ import type { TemplateWorkbenchLauncher } from "./workbench-launcher.ts";
 
 import { templateSettings } from "#core/template/settings.ts";
 
-/** Auto-trim dropdown sentinel for "keep whitespace" (`false` isn't a string). */
 const TRIM_KEEP = "keep";
 
 export type AutoTrimKey =
   | "template.auto-trim-leading"
   | "template.auto-trim-trailing";
 
-/** The two settings keys whose stored value uses the {@link TRIM_KEEP} sentinel. */
 export const AUTO_TRIM_KEYS: ReadonlySet<SettingsKey> = new Set<AutoTrimKey>([
   "template.auto-trim-leading",
   "template.auto-trim-trailing",
 ]);
 
-/** Map a stored {@link AutoTrim} to its dropdown string (`false` → `"keep"`). */
 export function encodeAutoTrim(value: unknown): string {
   return value === "nl" || value === "slurp" ? value : TRIM_KEEP;
 }
 
-/** Map a dropdown string back to a stored {@link AutoTrim} (`"keep"` → `false`). */
 export function decodeAutoTrim(value: unknown): AutoTrim {
   return value === "nl" || value === "slurp" ? value : false;
 }
 
-/** Rebuild the definitions once a row's action has run. */
 const rebuild = SettingTab.use((tab) => tab.update);
 
-/** Whether JavaScript Templates are on, for a row's `visible` predicate. */
 function javascriptTemplatesEnabled(ctx: SettingTabContext): () => boolean {
   return () =>
     ctx.tab.sync(
@@ -61,7 +52,6 @@ function javascriptTemplatesEnabled(ctx: SettingTabContext): () => boolean {
     );
 }
 
-/** The Advanced page's Template engine group. */
 export function templateEngineGroup(
   ctx: SettingTabContext,
 ): SettingDefinitionGroup<SettingsKey> {
@@ -73,11 +63,6 @@ export function templateEngineGroup(
   };
 }
 
-/**
- * The Advanced page's Template engine rows: the template folder, the
- * JavaScript Templates gate with its Eta editing options, and one row per
- * unrecognized file in the folder.
- */
 function templateEngineItems(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey>[] {
@@ -116,11 +101,6 @@ function templateEngineItems(
   ];
 }
 
-/**
- * One row per `zotlit-` prefixed file in the template folder that answers to
- * no Template Document kind, so a misnamed file is named where the folder is
- * configured. Structural, for the reason {@link citationTextItems} gives.
- */
 function unrecognizedFileItems(
   ctx: SettingTabContext,
 ): SettingDefinition<SettingsKey>[] {
@@ -140,16 +120,6 @@ function unrecognizedFileItems(
   }));
 }
 
-/**
- * The Citations page's Citation text row: Open edits `zotlit-citation.md`,
- * creating it from the built-in text when the vault holds none, and Reset
- * moves that document to trash.
- *
- * Structural, so it can't be deferred into a `render` callback the way the
- * row's own service reads are. The first `getSettingDefinitions()` runs from
- * `addSettingTab()`, before TemplateService finishes loading; the tab
- * re-renders this row on `ready` — see ZotLitSettingTab.
- */
 export function citationTextItems(
   ctx: SettingTabContext,
 ): SettingDefinition<SettingsKey>[] {
@@ -164,11 +134,6 @@ export function citationTextItems(
   ];
 }
 
-/**
- * The Citation Template's own row. A vault with no `zotlit-citation.md` reads
- * "Using the built-in default" and offers Open alone; a customized one names
- * its file and adds Reset.
- */
 function renderCitationTextRow(setting: Setting, ctx: SettingTabContext): void {
   const status = ctx.tab.sync(
     Template.use((template) => template.getCitationTemplateStatus),
@@ -206,9 +171,6 @@ function renderCitationTextRow(setting: Setting, ctx: SettingTabContext): void {
       .setIcon("pencil")
       .setTooltip(m.settings_citation_text_open())
       .onClick(() => {
-        // Obsidian's setting-item reconciler skips re-rendering any row that
-        // contains document.activeElement (to preserve focus mid-edit), so a
-        // row whose button materialized the file would keep its old state.
         btn.buttonEl.blur();
         void ctx.tab.run(
           reportCitationTemplateOpen().pipe(Effect.ensuring(rebuild)),
@@ -249,11 +211,6 @@ function resetCitationText(ctx: SettingTabContext, path: string) {
   }).pipe(Effect.ensuring(rebuild));
 }
 
-/**
- * Declarative dropdown for one auto-trim side. The stored value is
- * `false | "nl" | "slurp"`; the {@link TRIM_KEEP} sentinel bridges `false` to a
- * dropdown string in {@link ZotLitSettingTab}'s control encode/decode.
- */
 function trimControl(key: AutoTrimKey): SettingControl<SettingsKey> {
   return {
     type: "dropdown",
@@ -267,11 +224,6 @@ function trimControl(key: AutoTrimKey): SettingControl<SettingsKey> {
   };
 }
 
-/**
- * Gate button for `TemplateService.javascriptTemplatesEnabled` — "Turn on" /
- * "Turn off" by current state. Bare `render` row (not a declarative `control`)
- * because the flag is per-device state on the service, not a `SettingsKey`.
- */
 function renderJsTemplatesButton(
   setting: Setting,
   ctx: SettingTabContext,
@@ -284,8 +236,6 @@ function renderJsTemplatesButton(
       btn.setButtonText(m.settings_template_js_turn_on()).setWarning();
     }
     btn.onClick(() => {
-      // See the blur comment in renderEjectableRow's eject button: the
-      // reconciler skips re-rendering the row containing document.activeElement.
       btn.buttonEl.blur();
       void ctx.tab.run(
         applyJsTemplatesFlag(ctx, !enabled).pipe(Effect.ensuring(rebuild)),
@@ -295,11 +245,6 @@ function renderJsTemplatesButton(
   });
 }
 
-/**
- * Disabling applies immediately. Enabling requires confirmation first, since
- * Eta templates then run with ZotLit's full JS access; declining leaves the
- * gate off and the trailing rebuild re-renders the button to match.
- */
 function applyJsTemplatesFlag(ctx: SettingTabContext, enabled: boolean) {
   return Effect.gen(function* () {
     const template = yield* Template;

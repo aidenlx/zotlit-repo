@@ -1,8 +1,3 @@
-// The paths the community directory scanner's lint skips: `ignoreFiles` of
-// `SCANNER_STYLELINT_CONFIG` in obsidianmd/obsidian-workflows `src/lint.ts`
-// at 8167caed39664214d82c86fdfa32e06d8d55f61d, which its ESLint run reuses.
-// Both scanner ESLint configs read it: eslint.config.js for `pnpm review`,
-// and lib/shell/scanner-eslint.config.js for the publish repository's shell.
 import { PUBLISHED_PLUGINS } from "./shell/plugins.ts";
 import type { PublishedPlugin, PublishedPluginName } from "./shell/plugins.ts";
 

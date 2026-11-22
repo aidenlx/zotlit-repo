@@ -18,11 +18,9 @@ const bridge = openTestBridge();
 afterAll(() => bridge[Symbol.asyncDispose]());
 
 interface Surface extends HistorySurface {
-  /** Every step this surface was asked to take, in the order asked. */
   readonly stepped: readonly HistoryDirection[];
 }
 
-/** A view that names one Attachment and records what it was asked to step. */
 function surface(historyAttachment: string | null): Surface {
   const stepped: HistoryDirection[] = [];
   return {
@@ -32,7 +30,6 @@ function surface(historyAttachment: string | null): Surface {
   };
 }
 
-/** The two commands, registered against one active surface and one history. */
 function setup({
   active = surface("RGRPDF24"),
   undo = true,
@@ -120,10 +117,6 @@ describe("the Annotation History commands", () => {
   });
 });
 
-// What can go wrong with the notice of one undo or redo press:
-// - a step a lock refused gives the capability copy, or no notice at all;
-// - a block of the Editing Capability gets a second notice beside the one its
-//   own seam raises.
 describe("the notice of one undo or redo press", () => {
   const NOW = DateTime.makeUnsafe("2026-09-26T12:00:00Z");
 

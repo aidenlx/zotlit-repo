@@ -5,39 +5,13 @@ import type { AnyColumn, DBQueryConfig, Placeholder, SQL } from "drizzle-orm";
 
 export { CHILD_ITEM_TYPES, type ChildItemType } from "#lib/item-types.ts";
 
-/**
- * Schema-aware shape of an RQB v2 `findMany` config bound to a specific
- * table in our {@link relations} graph. Pair with `satisfies` so per-key
- * narrow literals (e.g. `orderBy: { x: "asc" }`) survive when the object
- * is later spread into a `findMany` call site.
- *
- * @see DBQueryConfig in drizzle-orm/src/relations.ts
- */
 export type FindManyOptions<TName extends keyof typeof relations> =
   DBQueryConfig<"many", typeof relations, (typeof relations)[TName]>;
 
 type Prepared<T> = T extends { prepare(): infer P } ? P : never;
 
-/**
- * Methods on Drizzle's `SQLitePreparedQuery` that accept the
- * `placeholderValues?: Record<string, unknown>` argument. Re-typed by
- * {@link WithParams} so call sites get strict checking against the query's
- * declared placeholder shape.
- */
 type ParamMethods = "run" | "all" | "get" | "values" | "execute";
 
-/**
- * Re-type the placeholder-accepting methods of a Drizzle prepared statement
- * against the query's declared param shape.
- *
- * - `TParams = void` — methods take no args (query has no placeholders).
- * - `TParams = Record<string, unknown>` (the default) — params optional,
- *   matching Drizzle's native loose typing.
- * - Concrete object type (e.g. `{ libraryID: number }`) — params required and
- *   structurally checked at the call site.
- *
- * Non-param methods (`getQuery`, `mapAllResult`, etc.) pass through unchanged.
- */
 type WithParams<TPrep, TParams> = Omit<TPrep, ParamMethods> & {
   [K in ParamMethods & keyof TPrep]: TPrep[K] extends (
     pv?: Record<string, unknown>,
@@ -51,35 +25,16 @@ type WithParams<TPrep, TParams> = Omit<TPrep, ParamMethods> & {
     : TPrep[K];
 };
 
-/**
- * Typed wrapper for {@link sql.placeholder}. Each query gets a `placeholder`
- * bound to its declared `TParams`, so referencing an unknown placeholder name
- * is a compile error — `placeholder("libraryId")` fails when
- * `TParams = { libraryID: ... }`.
- */
 export type ParamsPlaceholder<TParams> = <
   K extends Extract<keyof TParams, string>,
 >(
   name: K,
 ) => Placeholder<K, TParams[K]>;
 
-/**
- * Operators object passed as the second argument to a {@link defineQuery}
- * builder callback. Bundles typed helpers — currently just `placeholder` — so
- * the signature mirrors Drizzle's own RQB operator-bag pattern.
- */
 export interface QueryOperators<TParams> {
   placeholder: ParamsPlaceholder<TParams>;
 }
 
-/**
- * Values allowed in a builder's cache-key record — primitives and flat
- * readonly arrays of primitives. Anything {@link JSON.stringify} handles
- * deterministically without depth. `undefined` is intentionally excluded so
- * `{ a: undefined }` can't collide with `{ b: undefined }` at the cache key
- * (both would stringify to `{}`). Use the property's `?:` modifier on the
- * args type to express optionality, and omit the key when unset.
- */
 type CacheValue =
   | string
   | number
@@ -87,39 +42,12 @@ type CacheValue =
   | null
   | readonly (string | number | boolean | null)[];
 
-/**
- * Single-arg shape passed to a {@link defineQuery} builder. The same record
- * doubles as the prepared-statement cache key — see {@link cacheKey}.
- */
 type CacheArgs = Readonly<Record<string, CacheValue>>;
 
-/**
- * Conditional rest-tuple for the builder-args slot.
- *
- * - `T = Record<string, never>` or all-optional fields → `[args?: T]`.
- * - `T` has any required field → `[args: T]`, so `.prepared(db)` is a
- *   compile error for argful queries.
- *
- * `[Record<string, never>] extends [T]` (tuple-wrapped to disable
- * distribution) is true iff `T` is satisfied by an empty object — i.e. has
- * no required properties.
- */
 type ArgsRest<T extends CacheArgs> = [Record<string, never>] extends [T]
   ? [args?: T]
   : [args: T];
 
-/**
- * Callable produced by {@link defineQuery}.
- *
- * - Bare call returns the Drizzle builder (escape hatch for inspection /
- *   `.toSQL()`; not cached, no TParams typing on `.all`).
- * - `.prepared(db, args)` returns a cached prepared statement, re-typed via
- *   {@link WithParams} so `.all` / `.get` / `.run` / `.values` / `.execute`
- *   check against `TParams`.
- *
- * {@link QueryRow} recovers the row shape from the builder type that the
- * interface carries.
- */
 export interface DefinedQuery<
   TParams,
   TBuildArgs extends CacheArgs,
@@ -132,11 +60,6 @@ export interface DefinedQuery<
   ): WithParams<Prepared<TSyncResult>, TParams>;
 }
 
-/**
- * Stable cache key for a builder-args record. Keys are sorted so callers can
- * pass the same logical args in any order and hit the same prepared statement.
- * Returns `""` for undefined / empty input.
- */
 function cacheKey(args: CacheArgs | undefined): string {
   if (!args) return "";
   const keys = Object.keys(args).sort();
@@ -146,21 +69,6 @@ function cacheKey(args: CacheArgs | undefined): string {
   return JSON.stringify(sorted);
 }
 
-/**
- * Wrap a query, producing a callable that returns its Drizzle builder with a
- * per-client prepared-statement cache.
- *
- * Two-step generic: outer `<TParams>` declares placeholder shape; inner call
- * infers builder arg / result types. Use `<void>` for queries with no
- * placeholders; omit the generic for the default loose
- * `Record<string, unknown>` typing.
- *
- * @example
- *   const q = defineQuery<{ libraryID: number }>()((db, { placeholder }) =>
- *     db.select(...).where(eq(t.libraryID, placeholder("libraryID"))),
- *   );
- *   q.prepared(db).all({ libraryID: 1 }); // typed; missing/extra keys error
- */
 export function defineQuery<TParams = Record<string, unknown>>(): <
   TBuildArgs extends CacheArgs = Record<string, never>,
   TSyncResult = unknown,
@@ -223,16 +131,6 @@ export function defineQuery<TParams = Record<string, unknown>>(): <
   };
 }
 
-/**
- * Extract the row type from a {@link defineQuery}-wrapped query. Works for
- * both select chains and relational `findMany` builders by inferring the
- * builder type off {@link DefinedQuery}'s call signature and unwrapping
- * Drizzle's `QueryPromise<TResult>`.
- *
- * @example
- *   export const getTopItems = defineQuery()((db, { placeholder }, args) => ...);
- *   export type TopItem = QueryRow<typeof getTopItems>;
- */
 export type QueryRow<Q> =
   Q extends DefinedQuery<any, infer _B, infer R>
     ? Awaited<R> extends ArrayLike<infer E>
@@ -253,16 +151,6 @@ type KeyedOptionsRest<P, A> = [Record<string, never>] extends [
   ? [options?: KeyedOptions<P, A>]
   : [options: KeyedOptions<P, A>];
 
-/**
- * A keyed read owns its membership predicate, cached statement, and result
- * ordering. The input keys bind as one JSON array, so list length changes
- * neither the SQL nor its parameter count. Empty input executes no statement.
- * Misses add no rows; duplicates repeat their rows in request order.
- *
- * `contains(column)` belongs in an RQB `RAW` filter and must select the same
- * key that `keyOf` returns. The query describes independent keyed rows; global
- * limits and aggregates belong in a different query.
- */
 export function defineKeyedQuery<
   K extends string | number,
   TParams extends Record<string, unknown> = Record<string, never>,

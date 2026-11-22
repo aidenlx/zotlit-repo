@@ -3,9 +3,6 @@ import type {
   ColorMarkKind,
   HighlightOptions,
 } from "#core/note-import/turndown/color-mark.ts";
-// Zotero note HTML → Obsidian Markdown: schema gate, an annotation-template
-// prepass, and in-rule resolution of annotation excerpts, citation marks, and
-// embedded images.
 import { distinct } from "@std/collections";
 import { Effect } from "effect";
 import type TurndownService from "turndown";
@@ -56,77 +53,28 @@ import {
   encodeCalloutAttr,
 } from "#core/note-import/turndown/index.ts";
 
-/** Per-note dependencies wiring every DB/link-backed resolver in
- * {@link createNoteParser}. The database rows arrive already read: the
- * Turndown rules run synchronously. {@link noteReferences} names them. */
 export interface NoteParserDeps extends HighlightOptions {
-  /** The live Items the note cites, keyed by Indexed Key. */
   citedItems: ReadonlyMap<string, Item>;
-  /** The note's group, or `null` in the personal library: a personal-library ref resolves here. */
   groupID: number | null;
-  /** The note's embedded image attachments, keyed by attachment key. */
   attachments: ReadonlyMap<string, Attachment>;
-  /**
-   * The note's embedded `data-citation-items` snapshot, read off the schema
-   * container by {@link parseNote} and closed over by the
-   * citation rule.
-   */
   citationMap: ReadonlyMap<string, string>;
-  /**
-   * The same snapshot's full CSL-JSON item data per cited URI — the item-data
-   * fallback when a ref's live DB row can't be resolved (cross-library cite,
-   * degraded DB). Read off the schema container by {@link parseNote}.
-   */
   citationSnapshots: ReadonlyMap<string, Record<string, unknown>>;
-  /** Render the resolved cited items through the user's `cite` template. */
   renderCite: RenderCite;
-  /** Resolves `storage:` / linked attachment paths to absolute filesystem paths. */
   pathContext: AttachmentPathContext;
-  /**
-   * Decides each resolved image against the canonical roots, copies an
-   * approved one into the vault, and returns its embed link.
-   */
   attachmentImport: Pick<AttachmentImportBatch, "decide" | "resolveLink">;
 }
 
-/** Render cited items through the user's `cite` template. */
 export type RenderCite = (items: readonly ResolvedCiteRef[]) => string;
 
-/**
- * Caller-supplied subset of {@link NoteParserDeps}; `parseNote` fills
- * `citationMap`. `renderAnnotationParagraph` lives here, not on
- * {@link NoteParserDeps}: it drives the prepass, never a Turndown rule.
- */
 export type ParseNoteDeps = Omit<
   NoteParserDeps,
   "citationMap" | "citationSnapshots"
 > & {
-  /**
-   * Render this note's clean single-annotation paragraphs through the user's
-   * `annotation` template in one batch. The service supplies this with the
-   * per-note attachment-import batch already bound, so any excerpt-cache image
-   * copies into that note's attachment folder. A key absent from the result declines (the
-   * annotation is gone from the DB); a present-but-blank callout is dropped by
-   * the prepass. A declined paragraph falls to inline conversion —
-   * highlight/underline to linked marks, an image excerpt to a bare embed.
-   * Supplied only when `note.import-annotations-as-template` is enabled.
-   *
-   * @returns A `data-annotation key → callout` map.
-   */
   renderAnnotationParagraph?: (
     annotationKeys: readonly string[],
   ) => ReadonlyMap<string, string>;
 };
 
-/**
- * Build the per-note Turndown: Obsidian's base config plus the Zotero rules,
- * with the highlight/underline excerpt resolver and the DB/link-backed citation
- * + embedded-image resolvers all wired from `deps`. Built fresh per note
- * (sub-millisecond) so each rule closes over that note's deps.
- *
- * @param Turndown - Obsidian's `TurndownService` global at runtime; the npm
- *   package in tests.
- */
 export function createNoteParser(
   Turndown: typeof TurndownService,
   deps: NoteParserDeps,
@@ -143,22 +91,6 @@ export function createNoteParser(
   });
 }
 
-/**
- * Convert a Zotero note's stored HTML to Obsidian-flavored Markdown, building a
- * per-note Turndown that resolves highlight / underline excerpts to linked
- * inline marks, citation marks to the user's cite syntax, and embedded images to
- * real vault embeds.
- *
- * Notes below {@link parseNoteSchema}'s supported schema version convert to a
- * legacy-format callout instead. A Plain HTML Child Note with no usable schema
- * marker keeps basic Obsidian-compatible formatting without running the
- * Zotero-specific conversion rules.
- *
- * @param Turndown - Obsidian's `TurndownService` global at runtime; the npm
- *   package in tests.
- * @param html - the note's stored HTML (the `zotero-note znv1` storage wrapper
- *   is tolerated — the schema container is located within).
- */
 export function parseNote(
   Turndown: typeof TurndownService,
   html: string,
@@ -205,19 +137,11 @@ export function parseNote(
   return td.turndown(schema.container);
 }
 
-/** The database rows a supported note's conversion reads. */
 export interface NoteReferences {
-  /** Indexed Keys of the Items its citations name; see {@link citedIndexedKey}. */
   citedIndexedKeys: string[];
-  /** Keys of the attachments its embedded images name. */
   attachmentKeys: string[];
 }
 
-/**
- * Name the rows the citation and embedded-image rules of {@link parseNote}
- * read, so a caller can read them before the synchronous conversion. A note
- * the Zotero rules do not convert names none.
- */
 export function noteReferences(
   html: string,
   groupID: number | null,
@@ -242,10 +166,6 @@ export function noteReferences(
   };
 }
 
-/**
- * The Indexed Key a cited ref resolves to: the ref's group for a group-library
- * ref, else the note's own library (`groupID`).
- */
 export function citedIndexedKey(
   ref: ZoteroRef,
   groupID: number | null,
@@ -256,7 +176,6 @@ export function citedIndexedKey(
   );
 }
 
-/** Select the same live paragraphs as the final conversion, without executing templates. */
 export function noteAnnotationKeys(html: string): string[] {
   const root = new DOMParser().parseFromString(html, "text/html");
   const schema = parseNoteSchema(root);
@@ -269,15 +188,6 @@ export function noteAnnotationKeys(html: string): string[] {
     : [];
 }
 
-/**
- * Prepass replacing each clean single-annotation paragraph with a callout
- * sentinel carrying the template-rendered Markdown. Runs before the Turndown is
- * built so a subsumed image excerpt's inner `<img>` is gone before the in-rule
- * image leg would queue a copy — otherwise the storage attachment would be
- * copied as an orphan while the callout embeds the annotation cache image. A
- * paragraph the renderer declines (its key absent from the map) or whose callout
- * renders blank is left untouched for inline conversion.
- */
 function subsumeAnnotationParagraphs(
   container: HTMLElement,
   render: (annotationKeys: readonly string[]) => ReadonlyMap<string, string>,
@@ -288,40 +198,17 @@ function subsumeAnnotationParagraphs(
     distinct(paragraphs.map(({ annotationKey }) => annotationKey)),
   );
   for (const { paragraph, annotationKey } of paragraphs) {
-    // Skip a declined key (absent) or a blank callout: an all-blank sentinel
-    // hits Turndown's blankRule and silently drops the paragraph's content.
     const raw = callouts.get(annotationKey);
     if (raw === undefined) continue;
-    // Collapse blank runs and trim edges within this self-contained callout
-    // block only — never a global post-pass (contrast the removed
-    // EXTRA_BLANK_LINES pass, de520fe2), since that would also flatten
-    // intentional blank lines inside the note body's own code/math blocks.
-    // A custom `annotation` template's un-`bq()`-wrapped output is the only
-    // path that reaches here without already being trimmed.
     const callout = raw.replaceAll(/\n{3,}/g, "\n\n").trim();
     if (callout === "") continue;
-    // `ownerDocument` here is a detached `DOMParser` document (see line 152),
-    // not the app's window document, so `createDiv()`/`.win` aren't available.
     const sentinel = paragraph.ownerDocument.createElement("div");
     sentinel.setAttribute(ANNOTATION_CALLOUT_ATTR, encodeCalloutAttr(callout));
-    // Single placeholder so Turndown's blankRule keeps the node; avoids
-    // duplicating the full callout through the escape pass.
     sentinel.textContent = "\u200B";
     paragraph.replaceWith(sentinel);
   }
 }
 
-/**
- * Resolve a `span.citation[data-citation]` to the user's cite syntax in-rule.
- * Each cited item resolves to one citekey via DB → embedded map → `${key}?`
- * sentinel; a multi-item mark renders through one `renderCite` call so the
- * template joins them. A mark whose every cited item is unresolvable (no DB hit,
- * no embedded entry, no parseable key) passes through as raw HTML.
- *
- * Turndown does not escape rule-replacement output, so the cite syntax survives
- * unescaped. `.trim()` strips the template's structural newlines (e.g.
- * `cite.eta`'s trailing `\n`) so the mark stays inline.
- */
 function resolveCitation(
   deps: NoteParserDeps,
 ): TurndownService.ReplacementFunction {
@@ -354,16 +241,6 @@ function resolveCitation(
   };
 }
 
-/**
- * Pandoc-style abbreviation for a raw CSL locator label (e.g. `"chapter"` →
- * `"chap."`). An absent or unrecognized label (custom producer, `"page"`
- * itself) falls back to {@link DEFAULT_LOCATOR_LABEL_SHORT}, matching
- * Pandoc's own default locator term.
- *
- * @see https://github.com/citation-style-language/locales/blob/master/locales-en-US.xml
- *   (short-form locator terms; Pandoc resolves locator abbreviations against
- *   the CSL locale, not a Pandoc-specific table)
- */
 const PANDOC_LOCATOR_LABELS: Readonly<Record<string, string>> = {
   book: "bk.",
   chapter: "chap.",
@@ -389,13 +266,6 @@ function pandocLocatorLabel(label: string | undefined): string {
   return DEFAULT_LOCATOR_LABEL_SHORT;
 }
 
-/**
- * Resolve one cited item to a single citekey: the already-fetched live DB row's
- * own citation key, else the note's embedded snapshot map by any of its URIs,
- * else a visible `${key}?` sentinel. `null` only when the item has no
- * parseable key at all (every URI failed to parse into a ref) and the
- * embedded map also misses.
- */
 function resolveCitekey(
   item: CitationItem,
   dbItem: Item | undefined,
@@ -412,12 +282,6 @@ function resolveCitekey(
   return ref ? `${ref.key}?` : null;
 }
 
-/**
- * The note's embedded CSL-JSON snapshot for a cited item — the item-data
- * fallback {@link resolveCitedItem} narrows when the live DB has no row
- * (cross-library cite, degraded DB). Tried against every URI of the citation
- * item, mirroring {@link resolveCitekey}'s embedded-map lookup.
- */
 function findEmbeddedSnapshot(
   item: CitationItem,
   snapshots: ReadonlyMap<string, Record<string, unknown>>,
@@ -429,13 +293,6 @@ function findEmbeddedSnapshot(
   return undefined;
 }
 
-/**
- * Resolve a highlight/underline excerpt span to its linked inline mark.
- * Supported highlights can use Colored Highlight Syntax; underlines and
- * fallback highlights use linked HTML. Only spans reach this replacement
- * (image excerpts are owned by the `embeddedImage` rule). A malformed payload
- * keeps the converted text.
- */
 function resolveAnnotationExcerpt(
   options: HighlightOptions,
 ): TurndownService.ReplacementFunction {
@@ -504,12 +361,6 @@ function resolveEmbeddedImage(
   };
 }
 
-/**
- * Classify an embedded image's resolved path into the {@link SourceOrigin}
- * the source decision carries. Only called once `attachmentAbsPath`
- * has already returned a resolvable path, so the URL/unknown kinds — the only
- * ones `attachmentAbsPath` doesn't resolve to a path — are unreachable here.
- */
 function attachmentPathOrigin(attachment: Attachment): SourceOrigin {
   const { kind } = parseAttachmentPath(
     attachment.path,
@@ -529,13 +380,6 @@ function attachmentPathOrigin(attachment: Attachment): SourceOrigin {
   }
 }
 
-/**
- * Render a highlight/underline excerpt as an inline mark linking back to the
- * Zotero annotation. Supported highlights can use Colored Highlight Syntax;
- * underlines and fallback highlights use HTML. An unmapped hex (rare Mendeley
- * imports) stays inline, and a missing attachment ref drops the link but keeps
- * the mark.
- */
 function renderAnnotationMark(
   info: NoteAnnotation,
   text: string,
@@ -553,11 +397,6 @@ function renderAnnotationMark(
   return href ? `[${mark}](${href})` : mark;
 }
 
-/**
- * Build the `zotero://open/` backlink for an annotation. Returns `null` when the
- * attachment URI was malformed (no resolved ref), so the caller drops the link
- * gracefully.
- */
 function annotationHref(info: NoteAnnotation): string | null {
   const ref = info.attachment;
   if (!ref) return null;

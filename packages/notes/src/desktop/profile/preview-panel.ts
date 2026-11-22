@@ -1,6 +1,4 @@
 import type { ProfileNotePreview } from "#desktop/note-feature/index.ts";
-// The rendered-note preview the Create and Import Profile dialogs show beside
-// their fields, in the frame of `@zotlit/obsidian-kit/dialog-frame.ts`.
 import { stringifyYaml } from "obsidian";
 
 import { heading } from "@zotlit/obsidian-kit/dialog-frame.ts";
@@ -8,7 +6,6 @@ import { heading } from "@zotlit/obsidian-kit/dialog-frame.ts";
 const CODE_CLASS =
   "zt:m-0 zt:font-mono zt:text-xs zt:leading-normal zt:whitespace-pre-wrap zt:break-words zt:select-text zt:text-foreground";
 
-/** The rendered-note preview: path, properties, and body on one surface. */
 export function previewPanel(
   parent: HTMLElement,
   titles: {

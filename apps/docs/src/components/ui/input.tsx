@@ -1,5 +1,3 @@
-// shadcn Base UI Input, using the site's control sizes and semantic colors.
-// @see https://ui.shadcn.com/docs/components/base/input
 import { Input as InputPrimitive } from "@base-ui/react/input";
 import { cva } from "class-variance-authority";
 import type { ComponentProps } from "react";
@@ -25,7 +23,6 @@ export function Input({
   size = "default",
   ...props
 }: Omit<ComponentProps<"input">, "size"> & {
-  /** `xs` is the Workbench's 32 px control row. */
   size?: "xs" | "default";
 }) {
   return (

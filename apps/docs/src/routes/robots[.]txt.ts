@@ -1,15 +1,8 @@
-// `robots.txt`: crawl rules plus the sitemap pointer, at the current URL.
-
 import { createFileRoute } from "@tanstack/react-router";
 
 import { plainTextHeaders } from "@/lib/markdown-editions.tsx";
 import { baseURL } from "@/lib/shared.ts";
 
-/**
- * Everything a reader sees is crawlable; the machine endpoints are not. They
- * publish the same content in agent-facing form, so indexing them would only
- * duplicate the HTML pages in the results.
- */
 const disallow = [
   "/api/",
   "/llms.txt",

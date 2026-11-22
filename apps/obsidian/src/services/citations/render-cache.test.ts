@@ -68,7 +68,6 @@ it.effect.each(["Profile", "preference override"] as const)(
       const profile = yield* profileRuntimeOf(createTemplateHost());
       const { pref } = yield* zoteroPrefFixture();
       const dependencies = yield* profile.runtime.contextEffect;
-      // Settle the dependency graph before acquiring the cache under test.
       yield* TestClock.adjust(0);
       const cache = Context.get(
         yield* Layer.build(
@@ -309,8 +308,6 @@ it.effect("released reads retain the engine-absent outcome", () =>
   }),
 );
 
-// A read that must wait for the style finds the runtime closed: unload stops
-// it, so a render answers unavailable and a held read rejects.
 it.effect("a read that waits after unload ends at once", () =>
   Effect.gen(function* () {
     const h = yield* harnessOf({ "citation.references-style": APA });
@@ -455,15 +452,11 @@ function item(id: string): CslItemData {
   return { id, type: "article-journal" };
 }
 
-/** One engine, counting the renders it was asked for. */
 class EngineStub implements CitationEngine {
   readonly requests: BibliographyRequest[] = [];
   readonly citationRequests: CitationRequest[] = [];
-  /** Set to make the next render fail, as an engine that refuses one does. */
   fails = false;
-  /** Set to hold the next render until the test lets it finish. */
   gate: PromiseWithResolvers<void> | null = null;
-  /** What each render writes beside its entries, which tells two renders apart. */
   stamp: () => string = () => "";
 
   renderBibliography(
@@ -538,7 +531,6 @@ class PandocEngineStub {
       this.#events.stream.pipe(
         Stream.map(() => this.#status),
         Stream.prepend([this.#status]),
-        // No status is stated while the installed pack is unread.
         Stream.filter((status) => status !== null),
       ),
     ),
@@ -549,10 +541,6 @@ class PandocEngineStub {
   #refusal: ManagedBinaryError["status"] | null = null;
   #afterRefusal: PackBinaryStatus | null = null;
 
-  /**
-   * The installed pack is unread, and its first read will give `refusal`.
-   * `after` is the status of a pack that changes as that read ends.
-   */
   refuseFirstRead(
     refusal: ManagedBinaryError["status"],
     after: PackBinaryStatus | null = null,
@@ -561,14 +549,12 @@ class PandocEngineStub {
     this.#afterRefusal = after;
   }
 
-  /** A read of the pack that gives another status wakes the subscribers. */
   setStatus(status: PackBinaryStatus | null): void {
     this.#status = status;
     this.#events.emit();
   }
 }
 
-/** The one database event the cache listens for: a new working client. */
 class DatabaseStub {
   readonly #events = testEvent<void>();
   readonly events = this.#events.stream.pipe(
@@ -592,7 +578,6 @@ class ZoteroPrefStub {
   }
 }
 
-/** One render cache and the stubs it reads, torn down with the test that holds it. */
 interface Harness extends AsyncDisposable {
   cache: Awaited<ReturnType<typeof bibliographyRenderFixture>>;
   engine: EngineStub;
@@ -601,12 +586,10 @@ interface Harness extends AsyncDisposable {
   zoteroPref: ZoteroPrefStub;
   settings: SettingsFixture;
   bridge: SettingsFixture["bridge"];
-  /** Every `invalidated` the cache announced. */
   invalidations: number[];
   profileEvents: {
     emit(event: "changed"): void;
   };
-  /** Unavailable selected styles announced during this plugin lifecycle. */
   missingStyles: string[];
 }
 
@@ -637,7 +620,6 @@ async function openHarness(
     await bibliographyRenderFixture(
       {
         profile: {
-          // The vault's style is the default Profile's binding in the settings.
           vaultStyleId: defaultProfileStyle,
           changes:
             profile?.changes ??
@@ -700,7 +682,6 @@ function independentXml(styleId: string, title = "Selected"): string {
 async function installStyle(...styleIds: readonly string[]): Promise<
   AsyncDisposable & {
     dataDir: string;
-    /** Rewrite one installed style, as an edit in Zotero leaves it. */
     edit(index: number, xml: string): Promise<void>;
   }
 > {
@@ -717,7 +698,6 @@ async function installStyle(...styleIds: readonly string[]): Promise<
       independentXml(styleId),
     );
   }
-  /** A whole-second timestamp, which every filesystem stores exactly. */
   let written = 1_700_000_000;
   const edit = async (index: number, xml: string): Promise<void> => {
     const path = join(stylesDir, `selected-${index}.csl`);
@@ -735,11 +715,6 @@ async function installStyle(...styleIds: readonly string[]): Promise<
 
 const DEPENDENT = "http://www.zotero.org/styles/dependent";
 
-/**
- * One dependent style beside both independent parents it can name, so pointing
- * it at the other parent is a single file write. Each write moves the file's
- * timestamp on, which is what tells the resolver to read the file again.
- */
 async function installDependent(parentId: string): Promise<
   AsyncDisposable & {
     dataDir: string;
@@ -760,7 +735,6 @@ async function installDependent(parentId: string): Promise<
     );
   }
   const path = join(stylesDir, "dependent.csl");
-  /** A whole-second timestamp, which every filesystem stores exactly. */
   let written = 1_700_000_000;
   const pointAt = async (id: string): Promise<void> => {
     await writeFile(
@@ -896,7 +870,6 @@ describe("BibliographyRenderCache", () => {
         const changed = yield* Effect.promise(() =>
           cache.bridge.runPromise(cache.render(items)),
         );
-        // The same style again is no change at all.
         harness.bridge.runSync(
           updateDefaultLiteratureNoteProfileBindings(settings, {
             "citation.references-style": IEEE,
@@ -1027,7 +1000,6 @@ describe("BibliographyRenderCache", () => {
         }),
       );
       engine.fails = false;
-      // The refusal stands rather than re-running the engine on every ask.
       yield* Effect.promise(() =>
         expect(cache.bridge.runPromise(cache.render(items))).resolves.toEqual({
           kind: "unavailable",
@@ -1215,22 +1187,16 @@ describe("BibliographyRenderCache", () => {
       const harness = yield* harnessOf();
       const { cache, engine, db } = harness;
       const items = [item("alpha")];
-      // Each render names the ordinal of the engine run behind it, so the render
-      // that ends up standing is the one the entries name.
       engine.stamp = () => ` #${engine.requests.length}`;
       yield* Effect.promise(() => cache.bridge.runPromise(cache.render(items)));
 
       const gate = Promise.withResolvers<void>();
       engine.gate = gate;
       db.notifyChanged();
-      // The render that answers here is the held one; the replacement it starts
-      // is the one the second drop lands on.
       yield* Effect.promise(() => cache.bridge.runPromise(cache.render(items)));
       db.notifyChanged();
       gate.resolve();
 
-      // The superseded second render never publishes: the ask its cancellation
-      // armed is the third run, and that is the render that stands.
       yield* Effect.promise(() =>
         cache.bridge.runPromise(cache.readBibliography(items)),
       );
@@ -1323,7 +1289,6 @@ describe("BibliographyRenderCache", () => {
       yield* Effect.promise(() =>
         cache.bridge.runPromise(cache.renderCitations(["[@alpha]"], items)),
       );
-      // The same locale again is no change at all.
       harness.bridge.runSync(settings.update({ "citation.locale": "de-DE" }));
 
       expect(invalidations).toHaveLength(1);

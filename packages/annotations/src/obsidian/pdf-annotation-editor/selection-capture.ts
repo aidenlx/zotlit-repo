@@ -1,10 +1,3 @@
-// The text selection a mark is created from, read off each page's text layer:
-// where it starts and ends in the layer's text, and the boxes its text covers.
-// `PdfTextStructure.selectText` maps that onto the page's Structured
-// Characters, which is where the stored rectangles and text come from.
-//
-// The reader's own text layer is read exactly as the browser laid it out —
-// ZotLit never re-renders it.
 import { Effect } from "effect";
 
 import type { Rect, TextLayerSelection } from "@zotlit/pdf-structure";
@@ -16,7 +9,6 @@ import {
 import type { OverlayPageView } from "./render.ts";
 import { pageContentBox } from "./surface.ts";
 
-/** A box in client coordinates, as `Range.getClientRects()` answers them. */
 export interface ClientBox {
   left: number;
   top: number;
@@ -24,25 +16,11 @@ export interface ClientBox {
   bottom: number;
 }
 
-/** One page a selection reaches, as the reader has it laid out right now. */
 export interface SelectionPage extends TextLayerSelection {
-  /** The page's padding box: what its canvas and text layer fill. */
   box: ClientBox;
-  /** The boxes of the selected text on this page, in client coordinates. */
   clientRects: readonly ClientBox[];
 }
 
-/**
- * The pages one range reaches, each carrying the part of the range that falls
- * inside its text layer. A page with no text layer, and one the range only
- * crosses outside its text, are left out.
- *
- * Only text nodes give boxes. A range across a page break also holds the
- * pages' canvas, annotation and end-of-content elements whole, and their boxes
- * would cover the whole page.
- *
- * @param pages every page the reader has built, in any order.
- */
 export function selectionPagesOf(
   range: Range,
   pages: readonly { pageIndex: number; view: OverlayPageView }[],
@@ -75,7 +53,6 @@ export function selectionPagesOf(
   });
 }
 
-/** How many code units of the layer's text precede a boundary point. */
 function textOffset(layer: Node, node: Node, offset: number): number {
   const before = layer.doc.createRange();
   before.setStart(layer, 0);
@@ -83,11 +60,6 @@ function textOffset(layer: Node, node: Node, offset: number): number {
   return before.toString().length;
 }
 
-/**
- * The client boxes of the text the range holds, text node by text node.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/native-text-selection.js#L572-L609
- */
 function textBoxesOf(range: Range, layer: Node): ClientBox[] {
   const boxes: ClientBox[] = [];
   const walker = layer.doc.createTreeWalker(layer, NodeFilter.SHOW_TEXT);
@@ -104,15 +76,6 @@ function textBoxesOf(range: Range, layer: Node): ClientBox[] {
   return boxes;
 }
 
-/**
- * The part of `range` that falls inside `node`, or `null` where none does.
- *
- * The boundary constants are read off the range itself rather than the global
- * `Range`, because the reader runs in pop-out windows where the global belongs
- * to another one.
- *
- * @see apps/obsidian/policies/popout-windows.md
- */
 function clampToNode(range: Range, node: Node): Range | null {
   const within = range.cloneRange();
   within.selectNodeContents(node);
@@ -134,14 +97,6 @@ function boxOf(rect: DOMRect): ClientBox {
   return { left, top, right, bottom };
 }
 
-/**
- * The selection's boxes on one page, clipped to the page box and carried back
- * into PDF points. A box that falls wholly outside the page, and one the clip
- * leaves with no area, both draw nothing.
- *
- * @param transform PDF.js `viewport.transform`: the PDF-point to viewport-pixel
- *   matrix, whose inverse carries a box back at any zoom and rotation.
- */
 function pdfRectsOf(
   box: ClientBox,
   transform: readonly number[],
@@ -191,13 +146,6 @@ function clip(rect: ClientBox, box: ClientBox): ClientBox | null {
   return empty ? null : clipped;
 }
 
-/**
- * PDF.js's own matrix inverse, so a point converted here and one converted by
- * `convertToPdfPoint` agree to the bit.
- *
- * @returns `null` for a singular matrix, which no page viewport carries.
- * @see https://github.com/mozilla/pdf.js/blob/v5.3.31/src/shared/util.js — `Util.inverseTransform`
- */
 export function inverseTransform(
   transform: readonly number[],
 ): readonly number[] | null {

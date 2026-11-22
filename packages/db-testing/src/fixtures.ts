@@ -1,25 +1,9 @@
-// Zotero database fixtures for the tests of @zotlit/db and its consumers: the
-// hand-written table subset, statement counters, and row dates.
 import type { DatabaseSync, StatementSync } from "node:sqlite";
 
-/**
- * The one place that owns the Zotero fixture schema. Query tests call this to
- * create every table they might touch, then insert only their own rows — a
- * Zotero schema bump edits this DDL, not each `*.test.ts`.
- *
- * Every non-key column is nullable or defaulted so a test may insert any column
- * subset; the tables are a superset of the real Zotero columns the queries read.
- */
 export function createFixtureSchema(db: { exec(sql: string): void }): void {
   db.exec(FIXTURE_DDL);
 }
 
-/**
- * Count the statements run on `sqlite` from now on: each `all`, `get`, `run`,
- * or `iterate` call on a statement it prepares. Install it before the first
- * query, so statements a query caches are counted too. A batched read runs
- * the same count for one id as for many.
- */
 export function countStatements(sqlite: DatabaseSync): () => number {
   let count = 0;
   const prepare = sqlite.prepare.bind(sqlite);
@@ -39,11 +23,6 @@ export function countStatements(sqlite: DatabaseSync): () => number {
   return () => count;
 }
 
-/**
- * Count the statements compiled on `sqlite` from now on: each `prepare` call.
- * A warm batched read compiles none, for one id or for many: it runs only
- * statements its queries cache.
- */
 export function countCompiles(sqlite: DatabaseSync): () => number {
   let count = 0;
   const prepare = sqlite.prepare.bind(sqlite);
@@ -233,10 +212,6 @@ const FIXTURE_DDL = `
   );
 `;
 
-/**
- * A row date (`dateAdded`, `dateModified`) at `iso`. Rows carry
- * Temporal.Instant, the date type of the template contract.
- */
 export function rowInstant(iso: string): Temporal.Instant {
   return Temporal.Instant.from(iso);
 }

@@ -1,5 +1,3 @@
-// shadcn Base UI Popover, with the Workbench's compact surface and density.
-// @see https://ui.shadcn.com/docs/components/base/popover
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 import type { ComponentProps } from "react";
 

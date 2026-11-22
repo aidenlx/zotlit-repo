@@ -1,4 +1,3 @@
-/** Whether two maps have the same keys and pairwise-equal values. */
 export function mapsEqual<K, V>(
   prev: ReadonlyMap<K, V>,
   next: ReadonlyMap<K, V>,

@@ -1,4 +1,3 @@
-// Commands of the Template Data Explorer, run on the plugin's view registry.
 import { Cause, Effect } from "effect";
 
 import { TemplateDataReads } from "@zotlit/notes/desktop/template/data-reads.ts";
@@ -10,11 +9,6 @@ import {
 } from "./export-file.ts";
 import type { TemplateDataExportTarget } from "./export-file.ts";
 
-/**
- * A command that saves the Template data of one root as a JSON file. Each
- * leaf makes its own: closing the leaf interrupts its export alone, and one
- * leaf's export never interrupts another's.
- */
 export const makeExportTemplateDataCommand = () =>
   viewRuntime.fn(
     (target: TemplateDataExportTarget & { readonly pluginVersion: string }) =>

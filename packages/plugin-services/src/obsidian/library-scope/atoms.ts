@@ -1,4 +1,3 @@
-// Shared view atoms for the resolved Library Scope and all available Libraries.
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
@@ -27,7 +26,6 @@ export const availableLibrariesAtom = Atom.map(
   (state) => state.all?.available ?? [],
 );
 
-/** Available Libraries changed after the initial scope resolution. */
 export const libraryAvailabilityRevisionAtom = held(
   Stream.unwrap(
     Effect.map(LibraryScope, (scope) =>
@@ -45,7 +43,6 @@ export const libraryAvailabilityRevisionAtom = held(
   0,
 );
 
-/** Raw Libraries, independent of the scope selected for library searches. */
 export const libraryRowsAtom = Atom.map(
   libraryScopeStateAtom,
   (state) => state.libraryRows,

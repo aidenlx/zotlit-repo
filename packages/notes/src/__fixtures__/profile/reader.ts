@@ -1,5 +1,4 @@
 import { Stream } from "effect";
-// ProfileReader test double for consumers; registry behavior is tested with a vault.
 import type { MetadataCache } from "obsidian";
 
 import { readProfileStamp } from "@zotlit/obsidian-kit/profile-stamp.ts";

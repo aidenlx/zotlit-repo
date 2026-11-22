@@ -1,4 +1,3 @@
-// The Reading Card's per-leaf target, delayed row preview and interruptible data read.
 import { useAtomValue } from "@effect/atom-react";
 import { Effect, Option, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";

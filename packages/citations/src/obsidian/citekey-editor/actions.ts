@@ -1,7 +1,3 @@
-// Palette commands that open the citekey under the cursor, mirroring
-// Obsidian's native open-link-under-cursor set: in place, in a new tab, to
-// the right, and in a new window.
-
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
 import { Effect } from "effect";
 import type { Plugin } from "obsidian";
@@ -35,7 +31,6 @@ export function addCitekeyEditorActions(
     name: m.command_open_citekey_new_tab_name(),
     pane: "tab",
   });
-  // The plugin is `isDesktopOnly`, so split and popout panes always exist.
   addOpenCitekeyCommand(plugin, deps, {
     id: "open-citekey-right",
     name: m.command_open_citekey_right_name(),
@@ -73,8 +68,6 @@ function addOpenCitekeyCommand(
           withLogCategory("citekey-editor"),
         ),
       );
-      // Unload interrupts a pending open. The open logs its own failures, so
-      // the Exit is a success or an interrupt.
       void deps.bridge.runPromiseExit(
         deps.citekeyEditor.openCitekey(citekey, command.pane),
       );

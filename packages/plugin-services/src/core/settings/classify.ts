@@ -17,13 +17,6 @@ export type DiskClassification =
   | { kind: "future"; version: number }
   | { kind: "malformed"; reason: string };
 
-/**
- * Bucketed origin of a completed settings load, for the release service's
- * same-launch onboarding branch. `legacy` = ZotLit v1 Legacy Data was detected
- * and migrated this launch; `absent`/`malformed` both mean no usable data on
- * disk (first-install onboarding); `current` = existing versioned data loaded
- * normally.
- */
 export type HydrationOrigin = "legacy" | "absent" | "malformed" | "current";
 
 export function hydrationOriginOf(
@@ -52,11 +45,6 @@ export function hydrationOriginOf(
   }
 }
 
-/**
- * Classify the raw `loadData()` result. Only `null` means "no `data.json`";
- * `undefined` and any other non-plain value fall into `malformed` so the
- * service can warn loudly instead of silently treating them as fresh state.
- */
 export function classifyDiskData(raw: unknown): DiskClassification {
   if (raw === null) return { kind: "missing" };
   if (!isPlainObject(raw)) {
@@ -90,12 +78,6 @@ export function classifyDiskData(raw: unknown): DiskClassification {
   };
 }
 
-/**
- * Narrow `value` to a plain object literal (prototype is `Object.prototype`
- * or `null`). Arrays, class instances, and primitives are rejected so the
- * settings layer never confuses, e.g., a `Map` or a `Date` with persisted
- * key-value data.
- */
 export function isPlainObject(
   value: unknown,
 ): value is Record<string, unknown> {

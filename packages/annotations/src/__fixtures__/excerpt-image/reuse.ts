@@ -1,9 +1,4 @@
 import { NodeExcerptImageFixture as ExcerptImageService } from "./node-service.ts";
-// What a consumer sees when a batch reuses an excerpt: the real pipeline, run
-// through the scope the batch handed out, with the renderer's call count as the
-// evidence. Consumer tests whose subject is the batch (not excerpt rendering)
-// resolve this one request once per note they drive, then read `renders` to
-// tell a shared retention from a per-note one.
 import { vi } from "vitest";
 
 import { bluePng } from "./png.ts";
@@ -14,7 +9,6 @@ import type {
   ExcerptRequest,
 } from "#obsidian/excerpt-image/service.ts";
 
-/** The one excerpt every note driven through a probe asks for. */
 const reusedRequest: ExcerptRequest = {
   annotation: {
     key: "REUSE001",
@@ -44,25 +38,15 @@ const reusedRequest: ExcerptRequest = {
 };
 
 export interface ExcerptReuseProbe extends AsyncDisposable {
-  /** The renderer's call count: the renders the batch's notes really needed. */
   renders(): number;
-  /** Resolve the probe's excerpt through the scope a note's batch gave it. */
   resolve(outcomes: ExcerptOutcomeScope | undefined): Promise<ExcerptOutcome>;
 }
 
-/**
- * A counting renderer behind the production service and scope; the probe keeps
- * no persistent store, so what a later request reuses is the batch's own
- * retention and nothing else.
- */
 export function excerptReuseProbe(): ExcerptReuseProbe {
   const render = vi.fn(async () => ({ bytes: bluePng, format: PNG_FORMAT }));
   const service = new ExcerptImageService({ render });
   return {
     renders: () => render.mock.calls.length,
-    // The probe owns the operation it acquires, so the service's active count
-    // comes back down the way a consumer's does and the batch it drives runs at
-    // the lifetime production gives it.
     resolve: async (outcomes) => {
       await using operation = service.operation({ outcomes });
       return await operation.resolve(reusedRequest);

@@ -43,7 +43,6 @@ describe("Workbench menu", () => {
     });
     const menu = Menu.instances.at(-1)!;
     expect(menu.mouseEvent).toBe(pointerEvent);
-    // The control path leaves these unset; the pointer path takes neither.
     expect(menu.position).toBeNull();
     expect(menu.parentEl).toBeNull();
   });

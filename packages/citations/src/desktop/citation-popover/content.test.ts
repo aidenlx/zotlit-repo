@@ -267,7 +267,6 @@ describe("CitationPopoverContent", () => {
     expect(block!.textContent).toContain(
       m.references_citekey_ambiguous({ citekey: "doe2024" }),
     );
-    // Every candidate row states the same three facts the picker states.
     expect(block!.textContent).toContain("Doe (2024): A study of citations");
     expect(block!.textContent).toContain("DOE2024A");
     expect(block!.textContent).toContain("Shared group");
@@ -379,8 +378,6 @@ describe("CitationPopoverContent under a note-class style", () => {
     expect(serialsOf(container)).toEqual(["1", "⚠"]);
   });
 
-  // The class is a public promise to themes: a serial standing for a note
-  // carries it here as it does in the run this popover mirrors.
   it("marks every serial label with the zt-entry-serial theme hook", async () => {
     const container = await render(
       [entry("doe2024", { serial: 1 }), entry("smith2025", { serial: 2 })],

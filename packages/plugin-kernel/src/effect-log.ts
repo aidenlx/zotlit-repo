@@ -1,4 +1,3 @@
-// The renderer's plugin logger: every Effect log record of this bundle.
 import * as Cause from "effect/Cause";
 import * as Context from "effect/Context";
 import * as Effect from "effect/Effect";
@@ -207,11 +206,6 @@ setLibraryLogSink(({ level, category, message, properties }) =>
   ),
 );
 
-/**
- * The failure boundary of a consumer that outlives one bad element: log the
- * cause under `category`, with `annotations` on that record, and carry on.
- * Interruption passes through, so shutdown still stops the consumer.
- */
 export const logAndContinue =
   (
     message: string,
@@ -231,16 +225,11 @@ export const logAndContinue =
       }),
     );
 
-/** One level's log call for plain code: the message and the fields it carries. */
 type BridgeLogMethod = (
   message: string,
   fields?: Readonly<Record<string, unknown>>,
 ) => void;
 
-/**
- * The log calls of plain code that holds a bridge, written under `category`
- * through the bridge's runtime so they reach the plugin's loggers.
- */
 export function bridgeLog(
   bridge: Pick<EffectBridge, "runSync">,
   category: string,

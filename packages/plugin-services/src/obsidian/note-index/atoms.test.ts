@@ -35,7 +35,6 @@ function host() {
   };
 }
 
-/** Waits until `atom` holds a value `accept` takes. */
 const until = <A>(
   registry: AtomRegistry.AtomRegistry,
   atom: Atom.Atom<A>,
@@ -69,7 +68,6 @@ it.effect("follows the active note and the key in its frontmatter", () =>
     });
     yield* until(registry, activeNoteAtom, note("paper.md", "ZZZ99999g7"));
 
-    // Obsidian moves the cache entry with the file.
     metadataCache.setCache("moved.md", {
       frontmatter: { "zotero-key": "ZZZ99999g7" },
     });
@@ -96,7 +94,6 @@ it.effect("a deleted active note leaves no note to follow", () =>
     workspace.open(paper);
     yield* until(registry, activeNoteAtom, note("paper.md", "ABCD2345"));
 
-    // Obsidian keeps the file active until its leaf closes.
     vault.remove("paper.md");
     yield* until(registry, activeNoteAtom, note(null, null));
   }).pipe(Effect.scoped),

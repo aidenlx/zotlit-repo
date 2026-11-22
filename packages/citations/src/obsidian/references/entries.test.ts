@@ -45,7 +45,6 @@ function citation(
   };
 }
 
-/** A citekey the index resolved to no live Zotero Item. */
 function unresolved(
   citekey: string,
   refNumber: number,
@@ -59,7 +58,6 @@ function unresolved(
   };
 }
 
-/** A column-zero occurrence, shaped as the index reports positions. */
 function occurrenceAt(
   line: number,
   kind: CitationOccurrence["kind"] = "wikilink",
@@ -75,7 +73,6 @@ function occurrenceAt(
   };
 }
 
-/** A rendered entry as the engine hands it over: typed AST, not markup. */
 function rendered(text: string, marker?: string): RenderedReference {
   return {
     marker: marker === undefined ? undefined : [{ t: "Str", c: marker }],
@@ -110,7 +107,6 @@ describe("buildReferenceEntries", () => {
       ["ZEBRA001", source("ZEBRA001", "ref-zebra")],
       ["ALPHA002", source("ALPHA002", "ref-alpha")],
     ]);
-    // Alphabetical, as an author-name bibliography style sorts it.
     const alpha = rendered("Alpha", "[1]");
     const zebra = rendered("Zebra", "[2]");
     const bibliography = completed(
@@ -168,8 +164,6 @@ describe("buildReferenceEntries", () => {
       ["BOOK0002", source("BOOK0002", "ref-two")],
       ["BOOK0003", source("BOOK0003", "ref-three")],
     ]);
-    // The engine rendered the third citation alone; the first cites an Item
-    // the database no longer holds, and the second went unrendered.
     const bibliography = completed(
       new Map([["ref-three", rendered("Three", "[1]")]]),
     );
@@ -185,8 +179,6 @@ describe("buildReferenceEntries", () => {
     ]);
   });
 
-  // The Entry Serial names a place in the bibliography, so it counts the
-  // formatted entries alone: a Reference Error takes no number and shifts none.
   it("numbers the formatted entries by their place in the bibliography", () => {
     const citations = [
       citation("GONE0001", 1),
@@ -340,8 +332,6 @@ describe("buildReferenceEntries", () => {
     ]);
   });
 
-  // Pandoc warns on an undefined citation rather than dropping it, so a typo
-  // stays in the list as an error row showing the key as it was written.
   it("shows a citekey naming no live Zotero Item as an error row", () => {
     expect(
       buildReferenceEntries([unresolved("typo2024", 1, [3, 7])], new Map()),
@@ -402,8 +392,6 @@ describe("buildReferenceEntries", () => {
       ).toMatchObject([{ kind: "unresolved", citekey: "typo2024" }]);
     });
 
-    // The key adopts no candidate, so the bibliography holds no place for it,
-    // and its Reference Number is the one the index assigned the Citation.
     it("trails the bibliography's own order, keeping its Reference Number", () => {
       const citations = [unresolved("doe2024", 1), citation("BOOK0002", 2)];
       const sources = new Map([["BOOK0002", source("BOOK0002", "ref-two")]]);

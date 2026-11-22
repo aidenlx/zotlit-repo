@@ -1,9 +1,7 @@
-// Shared in-memory baseline composition for the Preview and CLI checks.
 import { getFrontMatterInfo, parseYaml } from "obsidian";
 
 import { replaceManagedRegion } from "@zotlit/templates/obsidian";
 
-/** Keep the real note's outside body and unrelated Properties, entirely in memory. */
 export function previewBaseline(
   source: string | null,
   created: string,

@@ -1,8 +1,3 @@
-// Cancels a running ZotLit Query through the two production commands, on a
-// Stress Build large enough that an export of every Item is still running when
-// a second CLI call arrives. The suite builds its own Fixture and vault, like
-// every e2e file, and removes both at its end.
-
 import { cp, mkdir, readdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -33,7 +28,6 @@ const pluginBundleDir = join(workspaceRoot, "apps", "obsidian", "dist-dev");
 const runVaultScript = vaultScript(workspaceRoot, fixture.root);
 const reachable = await isObsidianReachable(workspaceRoot);
 
-/** Items in My Library: an export of all of them runs for longer than a CLI call. */
 const STRESS_ITEMS = 100_000;
 const EXPORT_FIELDS = [
   "title",
@@ -45,7 +39,6 @@ const EXPORT_FIELDS = [
   "dateModified",
   "attachments",
 ].join(",");
-/** One `limit=all` export of the Stress Build. */
 const EXPORT_TIMEOUT_MS = 120_000;
 
 interface QueryAnswer {
@@ -136,7 +129,6 @@ describe.skipIf(!reachable)("ZotLit Query cancel", () => {
     const kept = query({ id: "export-b", limit: "all", output: keptPath });
     void kept.finally(() => (keptSettled = true));
 
-    // The private file of export-a exists once it writes rows.
     const writing = await waitFor(
       async () =>
         (await readdir(cancelledDir)).some((name) => name.endsWith(".tmp")),
@@ -144,7 +136,6 @@ describe.skipIf(!reachable)("ZotLit Query cancel", () => {
     );
     expect(writing).toBe(true);
 
-    // A second query with the running id fails and leaves export-a running.
     const duplicate = JSON.parse(
       await query({ id: "export-a", limit: "1", fields: "[]" }),
     ) as QueryAnswer;
@@ -153,8 +144,6 @@ describe.skipIf(!reachable)("ZotLit Query cancel", () => {
       diagnostic: { code: "query-id-in-use", details: { parameter: "id" } },
     });
 
-    // Both worker slots have Item exports. Annotation Query joins their job
-    // namespace and can be cancelled while its export waits for a slot.
     const annotationDir = join(exportsDir, "annotations");
     await mkdir(annotationDir);
     const annotation = cliCommand(vaultId, "zotlit:query", {
@@ -200,7 +189,6 @@ describe.skipIf(!reachable)("ZotLit Query cancel", () => {
       file: { path: keptPath },
     });
 
-    // Both ids are free once their queries settle.
     expect(await cancel("export-a")).toMatchObject({
       ok: true,
       cancelRequested: false,

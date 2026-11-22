@@ -30,11 +30,9 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-/** One character wide, on one line, so an offset alone gives a box. */
 const CHAR = 8;
 const LINE = { top: 10, bottom: 30 };
 
-/** happy-dom lays nothing out, so the editor's coordinates come from here. */
 function layout(view: EditorView) {
   vi.spyOn(view, "coordsAtPos").mockImplementation((position) => ({
     left: position * CHAR,
@@ -59,8 +57,6 @@ function mount(parent: HoverParent, doc = "{{ zt.title }}", language?: "eta") {
     }),
     parent: document.body,
   });
-  // The first parse stops after 20 ms, which a loaded machine overruns;
-  // finish it so each token carries its hook class.
   forceParsing(view, view.state.doc.length, Infinity);
   layout(view);
   return Object.assign(view, {
@@ -70,12 +66,6 @@ function mount(parent: HoverParent, doc = "{{ zt.title }}", language?: "eta") {
   });
 }
 
-/**
- * Moves the pointer onto the first span carrying `hook`, onto an element, or
- * onto a document offset — which is how a plain tag body is reached, because
- * it carries no span. The pointer rests on the offset the editor resolves,
- * the way a pointer at the token's left edge would.
- */
 async function hover(editor: EditorView, hook: string | Element | number) {
   const token =
     typeof hook === "number"
@@ -85,8 +75,6 @@ async function hover(editor: EditorView, hook: string | Element | number) {
         : hook;
   const position = typeof hook === "number" ? hook : editor.posAtDOM(token);
   vi.spyOn(editor, "posAtCoords").mockReturnValue(position);
-  // The pointer has already reached the new token when the old one reports
-  // mouseout, so every event of the visit carries the same coordinates.
   const box = editor.coordsAtPos(position, 1)!;
   const at = { clientX: box.left, clientY: box.top + 1 };
   await act(async () => {
@@ -140,8 +128,6 @@ describe("template hover", () => {
     const property = editor.contentDOM.querySelector(
       `.${themeHook.templateProperty}`,
     )!;
-    // `{{ zt.collections }}`: `zt` at 3-5 on one box, `collections` at 6-17
-    // wrapped over two.
     const boxes: Record<number, Rect> = {
       3: { left: 100, right: 116, top: 10, bottom: 30 },
       5: { left: 116, right: 116, top: 10, bottom: 30 },
@@ -456,7 +442,6 @@ describe("template hover", () => {
     expect(
       editor.contentDOM.querySelector(`.${themeHook.templateProperty}`),
     ).toBeNull();
-    // `title` runs from 7 to 12; Eta styles the delimiters alone.
     await hover(editor, 7);
     vi.advanceTimersByTime(300);
     expect(
@@ -469,7 +454,6 @@ describe("template hover", () => {
     const parent: HoverParent = { hoverPopover: null };
     using editor = mount(parent);
     const line = editor.contentDOM.querySelector(".cm-line")!;
-    // `title` runs from 6 to 11, so its boxes end well before x=500.
     vi.spyOn(editor, "posAtCoords").mockReturnValue(6);
     await act(async () => {
       line.dispatchEvent(

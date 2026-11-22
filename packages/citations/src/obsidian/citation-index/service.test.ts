@@ -57,7 +57,6 @@ async function citationsOf(
     .citations;
 }
 
-/** Clears the stored scans and starts a new pass, through the CitationIndex service. */
 function resetIndex(runtime: CitationIndexHarness["runtime"]): Promise<void> {
   return runtime.runPromise(CitationIndex.use((index) => index.reset));
 }
@@ -595,8 +594,6 @@ describe("CitationIndex", () => {
     }),
   );
 
-  // Obsidian fires a metadata cache event and a vault event in one tick; the
-  // index takes them in that order, though they come from two sources.
   it.effect(
     "indexes a change and a rename made in one tick under the new path",
     () =>
@@ -705,7 +702,6 @@ describe("CitationIndex", () => {
           Cause.hasInterruptsOnly(interrupted.cause),
       ).toBe(true);
 
-      // A later caller finds the index stopped and settles at once.
       expect(index.bridge.runSync(index.current).stopped).toBe(true);
       expect(index.bridge.runSync(index.whenIndexed)).toBeUndefined();
     }),
@@ -906,7 +902,6 @@ describe("CitationIndex persistence", () => {
         );
         const release = vault.hold("draft.md");
         workspace.layoutReady();
-        // Wait until the backfill parks on the held host read.
         await expect.poll(() => vault.reads).toContain("draft.md");
 
         vault.write(draft, "As @roe2025 wrote.");
@@ -914,8 +909,6 @@ describe("CitationIndex persistence", () => {
         await index.bridge.runPromise(index.whenIndexed);
         release();
 
-        // The parked read still holds the pre-reset body; a later session must not
-        // find it, so the restart adopts what the rebuild wrote and reads nothing.
         const restored = await makeHarness(
           { "draft.md": "As @roe2025 wrote." },
           { store },
@@ -2002,9 +1995,6 @@ describe("CitationIndex citedByOmittedSyntaxes", () => {
         workspace.layoutReady();
         await index.bridge.runPromise(index.whenIndexed);
 
-        // The citekey occurrence still joins the group; the wikilink occurrence
-        // of the same item does not, since wikilink citations are excluded by
-        // default — the case a short answer must still name.
         expect(
           await index.bridge.runPromise(index.getCitedBy(KEY_A)),
         ).toMatchObject({
@@ -2067,8 +2057,6 @@ describe("CitationIndex citedByOmittedSyntaxes", () => {
         workspace.layoutReady();
         await index.bridge.runPromise(index.whenIndexed);
 
-        // The occurrence is malformed, so it never would have joined a group:
-        // unlike a references answer, cited-by counts only eligible occurrences.
         expect(
           await index.bridge.runPromise(index.getCitedBy(KEY_A)),
         ).toMatchObject({ groups: [] });
@@ -2092,8 +2080,6 @@ describe("CitationIndex citedByOmittedSyntaxes", () => {
         workspace.layoutReady();
         await index.bridge.runPromise(index.whenIndexed);
 
-        // Wikilink citations is off, and an excluded wikilink cites KEY_B — but
-        // the queried item is KEY_A, which nobody cites at all.
         expect(
           await index.bridge.runPromise(index.getCitedBy(KEY_A)),
         ).toMatchObject({ groups: [] });
@@ -2325,8 +2311,6 @@ describe("CitationIndex ambiguous citation keys", () => {
       }),
   );
 
-  // The occurrence may cite either Item, so the reverse observation reports the
-  // possible relationship for each rather than omitting it from both.
   it.effect("attributes one ambiguous occurrence to every candidate", () =>
     Effect.promise(async () => {
       const { draft, index, workspace } = await makeHarness(
@@ -2350,8 +2334,6 @@ describe("CitationIndex ambiguous citation keys", () => {
     }),
   );
 
-  // One source occurrence stays one Citation of the key itself, however many
-  // Items the reverse observation attributes it to.
   it.effect("creates no Citation record per candidate", () =>
     Effect.promise(async () => {
       const { draft, index } = await makeHarness(
@@ -2398,7 +2380,6 @@ describe("CitationIndex ambiguous citation keys", () => {
   );
 });
 
-/** Runs one index to completion over `documents`, leaving its scans in `store`. */
 async function warmVault(
   documents: Record<string, string>,
   store: MemoryStore,

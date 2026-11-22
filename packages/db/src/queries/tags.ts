@@ -32,12 +32,6 @@ function tagName(row: { tagID: number; tag: Tag | null }): string {
   return row.tag.name;
 }
 
-/**
- * Tag applications of each item, in `itemIDs` order and in tag-name order
- * within one item, through one cached keyed read. An item with no tag adds
- * nothing; a repeated id repeats its tags. Items that share a tag share one
- * {@link Tag} object.
- */
 export function getTagsByItemIDs(
   db: ZoteroDatabase,
   itemIDs: readonly number[],
@@ -54,14 +48,8 @@ export function getTagsByItemIDs(
   });
 }
 
-/**
- * Per-batch memo of an item's tag applications, keyed by itemID. Hold one across
- * a batch (like a `GroupIDMemo`) so repeat lookups for the same itemID skip the
- * query; discard per single op.
- */
 export type TagMemo = Map<number, readonly ItemTag[]>;
 
-/** Resolve one item's tags, memoized per itemID within `memo`. */
 export function resolveItemTags(
   db: ZoteroDatabase,
   itemID: number,
@@ -70,7 +58,6 @@ export function resolveItemTags(
   return resolveItemTagsByIDs(db, [itemID], memo).get(itemID) ?? [];
 }
 
-/** Resolve each item's tags keyed by itemID, filling `memo`. */
 export function resolveItemTagsByIDs(
   db: ZoteroDatabase,
   itemIDs: readonly number[],
@@ -104,10 +91,6 @@ const allTagNamesQuery = defineQuery<void>()((db) =>
   db.query.tags.findMany({ columns: { name: true } }),
 );
 
-/**
- * Every Tag name across the database, each name once, in name order. A name
- * counts while the `tags` table holds it, whether or not an item carries it.
- */
 export function getAllTagNames(db: ZoteroDatabase): string[] {
   return distinct(
     allTagNamesQuery
@@ -128,11 +111,6 @@ const libraryTagNamesQuery = defineQuery<{ libraryID: number }>()(
     }),
 );
 
-/**
- * Every Tag name in use on one Library's items, each name once, in name order.
- * Zotero's `tags` table holds no library, so a name counts for a Library only
- * while an item there carries it.
- */
 export function getLibraryTagNames(
   db: ZoteroDatabase,
   libraryID: number,

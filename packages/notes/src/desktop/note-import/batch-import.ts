@@ -15,7 +15,6 @@ import type {
   BatchRunControls,
   RunOutcome,
 } from "#obsidian/batch/batch-run.ts";
-// Batch import runner for Zotero notes into standalone Markdown mirrors.
 import { distinct } from "@std/collections";
 import { Cause, Effect, Stream } from "effect";
 import type { TFile } from "obsidian";
@@ -68,14 +67,8 @@ import { Profile } from "#obsidian/profile/service.ts";
 
 const logged = withLogCategory("batch-import");
 
-/** Bounds concurrent per-note loads + writes during a modal run, so Cancel can
- * stop the queued remainder between items. */
 const IMPORT_CONCURRENCY = 16;
 
-/**
- * The services a batch import reads through their tags, the Profile dialogs
- * its Profile choice opens included.
- */
 export type BatchImportServices =
   | LibraryScope
   | MetadataCache
@@ -88,30 +81,16 @@ export type BatchImportServices =
   | ZoteroPref
   | ZoteroReads;
 
-/**
- * The legacy values a batch import calls: the UI port for the classify,
- * confirm and Profile modals, and the bridge the modal's callbacks enter
- * Effect through.
- */
 export interface BatchImportPorts {
-  /** UI port for the classify/confirm modals; keeps `App` out of the runners. */
   readonly view: NoteImportView;
-  /** Runs the modal's callbacks; unload interrupts a run still going. */
   readonly bridge: Pick<EffectBridge, "runSync" | "runPromiseExit">;
 }
 
-/**
- * The note-import command surface for callers outside Effect: the
- * interactive batch/single/child import routing. `plugin-runtime.ts` binds it over the
- * plugin's services (`batch-import-handle.ts`).
- */
 export interface BatchImport {
-  /** @see {@link runBatchImport} */
   runBatchImport(
     mode: ImportMode,
     itemIDs: readonly number[],
   ): Promise<BatchImportResult>;
-  /** @see {@link reimportNoteByKey} */
   reimportNoteByKey(
     noteKey: string,
     targetFile: TFile,
@@ -133,13 +112,6 @@ interface NotFoundEntry {
   label: string;
 }
 
-/**
- * Preflight outcomes the caller maps to a notice; the interactive paths own
- * their own feedback. `batch-modal` means a confirm/progress modal is now
- * driving the work (it surfaces its own summary). `single` carries the lone
- * note's write outcome + title for the toast; `cancelled` is the declined
- * single-note overwrite confirm.
- */
 export type BatchImportResult =
   | { outcome: "db-unavailable" }
   | { outcome: "empty-selection" }
@@ -151,30 +123,10 @@ export type BatchImportResult =
   | { outcome: "single"; write: WriteOutcome; title: string }
   | { outcome: "cancelled" };
 
-/** Whether the database answers reads, once its first open settled. */
 const databaseReady = Effect.flatMap(ZoteroReads, (zoteroReads) =>
   sharedDatabaseReady(zoteroReads, "batch-import"),
 );
 
-/**
- * Explicitly import notes by `itemIDs`, routing on mode + count (mirrors
- * {@link runBatchUpdate}):
- *
- * - `mode="child"` — always open the {@link HierarchyManifest} modal; its
- *   loading phase expands each lit item's child notes.
- * - `mode="note"`, 1 id — no modal: create imports + toasts, overwrite confirms
- *   first (an unattended single-key trigger shouldn't silently clobber).
- * - `mode="note"`, ≥2 ids — open the {@link FlatManifest} modal.
- *
- * The count is the flattened total, so a Library Scope expansion reaching one
- * note takes the same single-note path an explicit single id does.
- *
- * Returns a preflight {@link BatchImportResult}; modal/single paths surface their
- * own feedback, so the caller only notices the early-exit outcomes.
- *
- * @param request.unavailableLibraries selected Libraries this database holds no
- *   Library for; stated in the confirmation introduction.
- */
 export const runBatchImport = Effect.fn("runBatchImport")(function* (
   ports: BatchImportPorts,
   request: {
@@ -204,25 +156,8 @@ export const runBatchImport = Effect.fn("runBatchImport")(function* (
   return result({ outcome: "batch-modal" });
 });
 
-/** `value` as a {@link BatchImportResult}, so each branch returns one type. */
 const result = (value: BatchImportResult): BatchImportResult => value;
 
-/**
- * Import every Zotero note a target covers. An exact `target` names one Library,
- * optionally narrowed to one collection; no target expands every available
- * Library of the current Library Scope, in canonical order, under this one
- * planning lease. Both note kinds are gathered: the child notes of the regular
- * items in scope and the standalone notes filed there. The resolved notes then
- * run through the same flow as an explicit `mode="note"` import, so the user
- * still confirms in the batch modal before anything writes.
- *
- * @param target.groupID names the exact Library the run covers — `0` for
- *   My Library, a positive integer for a group. A group this database doesn't
- *   hold returns `unavailable-target` without scanning.
- * @param target.collectionKey narrows the run to that collection of the named
- *   Library and every collection nested under it. A key that Library doesn't
- *   hold returns `collection-not-found`.
- */
 export const runBatchImportAll = Effect.fn("runBatchImportAll")(function* (
   ports: BatchImportPorts,
   target: BatchTarget = {},
@@ -253,12 +188,10 @@ export const runBatchImportAll = Effect.fn("runBatchImportAll")(function* (
   });
 });
 
-/** Light row label for a note ref: its title, else a key fallback. */
 function noteLabel(note: ChildNote): string {
   return note.title?.trim() || m.batch_update_untitled({ id: note.itemID });
 }
 
-/** Existing file with matching `zotero-lastmod` → up-to-date; missing field → overwrite. */
 const toAction = Effect.fnUntraced(function* (note: ChildNote) {
   const label = noteLabel(note);
   const existing = (yield* (yield* NoteIndex).getImportedNoteByNoteKey(
@@ -333,11 +266,6 @@ interface ImportProfileChoice extends BatchProfileChoice {
   readonly selector: ProfileSelector;
 }
 
-/**
- * Preview each action's Profile and path, and the orphan Profile choice the
- * confirmation offers. The choice is the modal's edge: its getters and
- * `choose` run on the services this Effect runs with.
- */
 const prepareImportProfiles = Effect.fnUntraced(function* (
   ports: BatchImportPorts,
   actions: readonly ImportAction[],
@@ -485,10 +413,6 @@ const prepareImportProfiles = Effect.fnUntraced(function* (
   return choice;
 });
 
-// ---------------------------------------------------------------------------
-// Modal: note mode (≥2)
-// ---------------------------------------------------------------------------
-
 const openNoteImportModal = Effect.fnUntraced(function* (
   ports: BatchImportPorts,
   itemIDs: readonly number[],
@@ -561,7 +485,6 @@ const openNoteImportModal = Effect.fnUntraced(function* (
             : importRunSummary(() => notFoundCount)(result, state),
       },
       total: ids.length,
-      // The modal's cancel interrupts the classification.
       onClassify: (controls) => run(classify(controls), controls.signal),
       onRun: (controls) =>
         run(
@@ -574,17 +497,10 @@ const openNoteImportModal = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * Resolve note `itemIDs` into create/overwrite actions from the `NoteRefs`
- * stream, matched against the Note Index here. Each streamed slice advances
- * the loading bar; an interrupt stops the stream. Ids that don't resolve to a
- * note land in `notFound`.
- */
 const classifyNoteImport = Effect.fnUntraced(function* (
   itemIDs: readonly number[],
   controls: Pick<BatchClassifyControls, "onProgress">,
 ) {
-  // One Snapshot for the refs and the Libraries they are grouped by.
   return yield* Effect.scoped(
     Effect.gen(function* () {
       const reads = yield* (yield* ZoteroReads).snapshot;
@@ -625,10 +541,6 @@ const classifyNoteImport = Effect.fnUntraced(function* (
     }),
   );
 });
-
-// ---------------------------------------------------------------------------
-// Modal: child mode (always)
-// ---------------------------------------------------------------------------
 
 const openChildImportModal = Effect.fnUntraced(function* (
   ports: BatchImportPorts,
@@ -707,12 +619,6 @@ interface ChildGroup {
   actions: ImportAction[];
 }
 
-/**
- * Expand each lit item into its child notes from the `ChildNoteRefs` stream.
- * Each streamed slice advances the loading bar; an interrupt stops the stream.
- * Parents with no child notes are dropped; the modal's empty confirm state
- * then reports "no child notes to import".
- */
 const classifyChildImport = Effect.fnUntraced(function* (
   parentItemIDs: readonly number[],
   controls: Pick<BatchClassifyControls, "onProgress">,
@@ -752,10 +658,6 @@ const classifyChildImport = Effect.fnUntraced(function* (
   );
 });
 
-// ---------------------------------------------------------------------------
-// Single note (mode=note, 1 id)
-// ---------------------------------------------------------------------------
-
 const importSingleNote = Effect.fnUntraced(function* (
   ports: BatchImportPorts,
   itemID: number,
@@ -789,7 +691,6 @@ const importSingleNote = Effect.fnUntraced(function* (
   return result({ outcome: "single", write, title });
 });
 
-/** Load a note's full body under a fresh Snapshot and write its mirror. */
 const importOne = Effect.fnUntraced(function* (
   ports: BatchImportPorts,
   ref: ChildNote,
@@ -797,7 +698,6 @@ const importOne = Effect.fnUntraced(function* (
 ) {
   const settings = yield* (yield* PluginSettings).current;
   const importer = yield* NoteImporter;
-  // One Snapshot for the read and the write it feeds.
   return yield* Effect.scoped(
     Effect.gen(function* () {
       const reads = yield* (yield* ZoteroReads).snapshot;
@@ -820,17 +720,6 @@ const importOne = Effect.fnUntraced(function* (
   );
 });
 
-// ---------------------------------------------------------------------------
-// Shared run executor (modal onRun)
-// ---------------------------------------------------------------------------
-
-/**
- * Execute classified import actions, reporting per-item settle events for the
- * modal's progress bar. Each task loads its own full note (deferred from
- * classification) then writes; a note deleted between classify and its write
- * settles as skipped. Cancel stops the queued remainder while in-flight writes
- * finish.
- */
 const executeImportRun = Effect.fnUntraced(function* (
   ports: BatchImportPorts,
   actions: readonly ImportAction[],
@@ -850,14 +739,9 @@ const executeImportRun = Effect.fnUntraced(function* (
   const result = yield* Effect.scoped(
     Effect.gen(function* () {
       const excerpts = yield* collectExcerptReports;
-      // One run is one initiating batch: every note it writes reuses one
-      // retention, released as soon as the run's last admitted consumer
-      // settles.
       const outcomes = yield* Effect.acquireDisposable(
         Effect.sync(() => new ExcerptOutcomeScope()),
       );
-      // The run's note loads and writes read one Snapshot, held until the run
-      // settles.
       const reads = yield* zoteroReads.snapshot;
       const tasks = actions.map((a) => ({ ...a, id: a.note.itemID }));
       return yield* executeBatchRun({
@@ -946,11 +830,6 @@ const logClassified = (
     logged,
   );
 
-/**
- * Resolve an `indexedKey` (from frontmatter) to a parent item's `itemID`, then
- * run a `"child"` batch import. Returns a database-unavailable outcome when
- * the database is closed, or `null` when the key doesn't resolve to a live item.
- */
 export const runChildImportByKey = Effect.fn("runChildImportByKey")(function* (
   ports: BatchImportPorts,
   indexedKey: string,
@@ -980,10 +859,6 @@ export type ReimportResult =
   | { outcome: "not-found" }
   | { outcome: WriteOutcome };
 
-/**
- * Re-import a single note identified by its `indexedKey`. Resolves the note
- * from the database, then writes/overwrites the imported mirror file.
- */
 export const reimportNoteByKey = Effect.fn("reimportNoteByKey")(function* (
   ports: BatchImportPorts,
   noteKey: string,
@@ -1001,7 +876,6 @@ export const reimportNoteByKey = Effect.fn("reimportNoteByKey")(function* (
   yield* (yield* NoteIndex).whenIndexed;
 
   const importer = yield* NoteImporter;
-  // One Snapshot for the read and the write it feeds.
   return yield* Effect.scoped(
     Effect.gen(function* () {
       const reads = yield* (yield* ZoteroReads).snapshot;
@@ -1025,7 +899,6 @@ export const reimportNoteByKey = Effect.fn("reimportNoteByKey")(function* (
   );
 });
 
-/** The live note an Indexed Key names, with its body; `undefined` when none does. */
 const readNoteByIndexedKey = Effect.fnUntraced(function* (
   reads: ZoteroReadsApi,
   indexedKey: string,

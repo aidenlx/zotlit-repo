@@ -15,7 +15,6 @@ import {
   SegmenterUnavailable,
 } from "./segmenter.ts";
 
-// The web target binary, as the Chinese Segmenter download delivers it.
 const JIEBA_WASM = readFileSync(
   fileURLToPath(
     new URL("jieba_rs_wasm_bg.wasm", import.meta.resolve("jieba-wasm/web")),

@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// Holds the record PR workflow to the land (lib/record-pr-workflow.ts): the
-// job's name, its timeout and its run line.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 

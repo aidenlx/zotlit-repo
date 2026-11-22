@@ -1,5 +1,3 @@
-// How a confirmed write is recorded as a History Step in an open Annotation History.
-
 import type {
   FieldHistoryStep,
   HistoryChange,
@@ -30,12 +28,6 @@ import {
   tagChange,
 } from "#obsidian/annotation-repository/write.ts";
 
-/**
- * What one confirmed write changed, as the History Step that puts it back
- * names it: a delete the whole Annotation, a patch of one field that field's
- * value. A comment session, a Text Edit session, and a tag session are
- * recorded by rules of their own, and have no change here.
- */
 function historyChangeOf(
   before: AnnotationRecord,
   applied: ConfirmedWrite,
@@ -70,19 +62,6 @@ function historyChangeOf(
     : null;
 }
 
-/**
- * Take one confirmed edit into the Attachment's Annotation History.
- *
- * Nothing is recorded while no PDF view of the Attachment holds a history
- * open, and an undo's own write records nothing: the step it leaves behind is
- * already the one that steps it back.
- *
- * @param before the held record the write was sent against.
- * @param confirmed.attachmentKey the Attachment the write landed on.
- * @param confirmed.applied what Zotero answered the write with.
- * @param confirmed.join what this edit joins the step before it by, where it
- *   came from an input that runs.
- */
 const recordStep = Effect.fnUntraced(function* (
   core: CoreState,
   before: AnnotationRecord,
@@ -133,23 +112,6 @@ const recordStep = Effect.fnUntraced(function* (
   core.publish({ _tag: "history-changed", attachmentKey });
 });
 
-/**
- * Take one confirmed write of a text field — the comment or the Quoted Text —
- * into the step its editing session is shaping. One editing session is one
- * History Step: the first save of a session records the step from the text
- * the field held when the session began, every later save moves only its
- * `after`, and a session that settles on the text it began with leaves no
- * step at all.
- *
- * The session is read off the history rather than off the Annotation Draft,
- * which the repository drops and remakes around each settled save: a write
- * joins the step on top where that step is this Annotation's own step of
- * the same field and the write was stamped off the text it left in Zotero,
- * and starts a fresh one otherwise. So a colour pick between two sessions
- * keeps them apart, a text changed in Zotero between two saves keeps them
- * apart too, and the Mark Popup handing the comment editor to an Annotation
- * Card keeps them one.
- */
 const recordTextStep = Effect.fnUntraced(function* (
   core: CoreState,
   history: AnnotationHistory,
@@ -161,9 +123,7 @@ const recordTextStep = Effect.fnUntraced(function* (
   }: {
     field: TextField;
     attachmentKey: string;
-    /** The record the write was stamped off. */
     before: AnnotationRecord;
-    /** The record Zotero confirmed. */
     record: AnnotationRecord;
   },
 ) {
@@ -173,17 +133,9 @@ const recordTextStep = Effect.fnUntraced(function* (
     top?.kind === field &&
     top.changes.length === 1 &&
     top.changes[0]!.annotationKey === record.key &&
-    // The write was stamped off the very text that step left in Zotero, so
-    // the two saves are one session. A text changed in Zotero between them
-    // moves the record the next write is stamped off: that session is over,
-    // and a fresh step starts holding the foreign text, so one press puts
-    // that back rather than the text the session began with.
     sameText(valueOf(before), top.changes[0]!.after[field] ?? null)
       ? top
       : null;
-  // A step's own `before` never moves, so the session reads its starting
-  // text from there rather than from the draft's baseline, which the last
-  // save advanced.
   const origin = open?.changes[0]!.before[field] ?? valueOf(before) ?? "";
   const after = valueOf(record) ?? "";
   const step: HistoryStep | null = sameText(origin, after)
@@ -214,14 +166,6 @@ const recordTextStep = Effect.fnUntraced(function* (
   core.publish({ _tag: "history-changed", attachmentKey });
 });
 
-/**
- * Take one confirmed tag session into the Attachment's Annotation History,
- * as one step holding the names it added and removed with their types. The
- * names are read off the two records around the write, so a session whose
- * names Zotero already held leaves no step.
- *
- * @see apps/obsidian/docs/adr/0063-annotation-tags-save-once-per-editing-session-and-merge-by-name.md
- */
 const recordTagStep = Effect.fnUntraced(function* (
   core: CoreState,
   history: AnnotationHistory,
@@ -231,9 +175,7 @@ const recordTagStep = Effect.fnUntraced(function* (
     record,
   }: {
     attachmentKey: string;
-    /** The record the write was built against. */
     before: AnnotationRecord;
-    /** The record Zotero confirmed. */
     record: AnnotationRecord;
   },
 ) {
@@ -256,19 +198,6 @@ const recordTagStep = Effect.fnUntraced(function* (
   core.publish({ _tag: "history-changed", attachmentKey });
 });
 
-/**
- * Take the writes of one group that landed on one Attachment into its
- * Annotation History as one step, in the order of `annotationKeys`: the
- * order the gesture named them in, the Card Selection's list order. A group
- * where nothing landed records nothing.
- *
- * The group's kind is the step's kind. A landed write that changed another
- * kind of step is a caller's mistake: it is refused from the step and
- * logged, rather than letting any one write decide what the step is.
- *
- * @param group.attachmentKey the Attachment the writes landed on.
- * @param group.writes the landed writes on this Attachment.
- */
 const recordGroup = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKeys: readonly string[],
@@ -309,18 +238,6 @@ const recordGroup = Effect.fnUntraced(function* (
   core.publish({ _tag: "history-changed", attachmentKey });
 });
 
-/**
- * Take one confirmed create or delete into the Attachment's Annotation
- * History, under the same rules every other edit is recorded under.
- *
- * A restore comes back under a key Zotero picks, which no caller can name in
- * advance, so a running step keeps its own creates out by the Attachment it
- * runs on rather than by the Annotation every other kind names.
- *
- * @param made.attachmentKey the Attachment the create or delete landed on.
- * @param made.group what joins this create to the others of one gesture,
- *   where one gesture created several Annotations.
- */
 const recordExistence = Effect.fnUntraced(function* (
   core: CoreState,
   change: HistoryChange,

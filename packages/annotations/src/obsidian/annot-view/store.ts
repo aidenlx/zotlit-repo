@@ -1,4 +1,3 @@
-// Compatibility exports for Query View consumers during its parallel migration.
 export * from "./state.ts";
 export {
   AnnotStoreProvider,

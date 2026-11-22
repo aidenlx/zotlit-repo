@@ -1,8 +1,3 @@
-// The verbs over one Annotation or a group that both surfaces share: the
-// Annotation View's menus and keys, and the ZotLit PDF Reader's keys and Mark
-// Popup. A delete asks once, and a group names its count; one mark in the PDF
-// is erased with no question.
-
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
 
 import type { ConfirmOptions } from "@zotlit/obsidian-kit/confirm.ts";
@@ -13,11 +8,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { CardBlock } from "./card-controls.ts";
 import { copiedText } from "./copied-text.ts";
 
-/**
- * The confirmation a delete of `count` Annotations asks for. An erase leaves
- * Zotero holding nothing, and the Annotation History puts it back only under a
- * new key, so the delete asks once, and a group names its count.
- */
 export function deleteConfirmation(count: number): ConfirmOptions {
   return {
     ...(count > 1
@@ -34,13 +24,6 @@ export function deleteConfirmation(count: number): ConfirmOptions {
   };
 }
 
-/**
- * Put the text of these cards on the clipboard as `text/plain`, by the one
- * rule of {@link copiedText}.
- *
- * @param cards in list order.
- * @returns whether there was text to copy; nothing is written where none is.
- */
 export function copyText(
   cards: readonly Pick<AnnotationRecord, "text" | "comment">[],
 ): boolean {
@@ -53,12 +36,6 @@ export function copyText(
   return true;
 }
 
-/**
- * The notice a press on a blocked control raises, on every press: the reason,
- * and "Allow editing" where the block is one the user can end.
- *
- * @param onAllowEditing runs from the notice's "Allow editing".
- */
 export function blockedNotice(
   block: CardBlock,
   onAllowEditing: () => void,

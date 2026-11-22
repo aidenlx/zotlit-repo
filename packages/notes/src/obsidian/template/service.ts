@@ -115,15 +115,12 @@ import {
 import { normalizeVaultPath } from "#core/template/path.ts";
 
 const FLUSH_DEBOUNCE_MS = 500;
-/** Bounded wait for the reconciler after this service writes a document. */
 const SETTLE_TIMEOUT_MS = 5_000;
 const LEGACY_LITERATURE_NOTE_TEMPLATE_NAMES: ReadonlySet<TemplateName> =
   new Set(["filename", "note", "annotation", MANAGED_CONTENT_TEMPLATE]);
 
-/** localStorage key for the per-device JavaScript Templates consent flag. */
 const JS_TEMPLATES_STORAGE_KEY = "zotlit-javascript-templates";
 
-/** The winner of a name with no vault file: its packaged Liquid default. */
 const EMBEDDED_DEFAULT_WINNER = {
   language: "liquid",
   source: { kind: "embedded-default" },
@@ -143,12 +140,6 @@ interface TemplateEngineOptions {
   ) => void;
 }
 
-/**
- * The template a name currently resolves to, as the reconciler computed it.
- * `source.kind: "none"` means no compiled template backs the name at all: its
- * `.eta.md` file would win, but the JavaScript Templates gate keeps it inert,
- * so {@link Template.render} raises {@link InertTemplateError} for it.
- */
 export interface TemplateWinner {
   language: TemplateLanguage;
   source:
@@ -166,7 +157,6 @@ export interface TemplateFileStatus {
   compileError: string | null;
 }
 
-/** One reconciled Literature Note Template document in the template folder. */
 export interface ResolvedLiteratureNoteTemplate {
   readonly reference: string;
   readonly path: string;
@@ -187,7 +177,6 @@ export type ProfileAnnotationDiagnostic =
       readonly hint: string;
     };
 
-/** A stamped Profile cannot supply the requested annotation presentation. */
 export class ProfileAnnotationError extends Error {
   readonly _tag = "ProfileAnnotationError";
   readonly diagnostic: ProfileAnnotationDiagnostic;
@@ -207,7 +196,6 @@ export class ProfileAnnotationError extends Error {
   }
 }
 
-/** Validation state for one Literature Note Template document in the folder. */
 export interface LiteratureNoteTemplateStatus {
   readonly reference: string;
   readonly path: string;
@@ -224,9 +212,7 @@ export interface LiteratureNoteTemplateStatus {
           readonly code: LiteratureNoteTemplateErrorCode | "unknown";
           readonly message: string;
           readonly recovery: string;
-          /** UTF-16 offset of the responsible text in the document. */
           readonly offset?: number;
-          /** Path of the responsible manifest node. */
           readonly manifestPath?: readonly (string | number)[];
           readonly cause?: unknown;
         };
@@ -237,38 +223,25 @@ export interface ConvertedLegacyProfileDocument extends ConvertedLegacyLiteratur
   readonly legacyFiles: readonly string[];
 }
 
-/** One 2.1.x Legacy Template File that folds into a plain Template Document. */
 export interface LegacyTemplateFile {
-  /** The bare 2.1.x name: `cite`, `cite2`, or the partial's own name. */
   readonly name: string;
-  /** The `zotlit-<name>.(liquid|eta).md` file that owns the name. */
   readonly path: string;
   readonly language: TemplateLanguage;
-  /** The JavaScript Templates gate leaves this Eta file uncompiled. */
   readonly inert: boolean;
-  /** Editions that lose to {@link path}, trashed along with it. */
   readonly shadowed: readonly string[];
 }
 
-/** The Legacy Template Files the one-shot conversion still has to fold. */
 export interface LegacyTemplateDocuments {
-  /** `cite` before `cite2`, the order they fold in. */
   readonly citation: readonly LegacyTemplateFile[];
-  /** Every bare partial file, by name. */
   readonly partials: readonly LegacyTemplateFile[];
 }
 
-/** The plain Template Documents {@link LegacyTemplateDocuments} converts into. */
 export interface ConvertedLegacyTemplateDocuments {
-  /** Documents to create, each already verified. */
   readonly documents: readonly {
     readonly path: string;
     readonly source: string;
   }[];
-  /** Legacy files the documents replace, to move to trash. */
   readonly trashed: readonly string[];
-  /** Legacy files no document claims, left in place and reported: the Eta
-   *  side of a mixed-language `cite` / `cite2` pair. */
   readonly kept: readonly string[];
 }
 
@@ -277,84 +250,44 @@ interface ReconciledLiteratureNoteTemplate {
   document: LiteratureNoteTemplateDocument;
 }
 
-/** One Shared Partial as its document parsed it, ready to bundle into a pack. */
 interface RegisteredPartial {
   path: string;
   language: TemplateLanguage;
   source: string;
 }
 
-/** The Citation Template as it currently resolves; `path` is `null` while the
- *  built-in source stands in for a vault document. */
 interface RegisteredCitationTemplate {
   path: string | null;
   language: TemplateLanguage;
   source: string;
 }
 
-/**
- * One Shared Partial as the agent CLI reports it: the document that owns the
- * name, and the language that document renders in.
- */
 export interface SharedPartialDocument {
   readonly name: string;
-  /** Where `zotlit-partial.<name>.md` lives. */
   readonly path: string;
   readonly language: TemplateLanguage;
 }
 
-/** What {@link Template.unpackPartials} did with each planned partial. */
 export interface PartialUnpackOutcome {
-  /** The names a Shared Partial document now holds the bundle's source under. */
   readonly written: readonly string[];
-  /** The names the reader's own document answers, left exactly as they were. */
   readonly kept: readonly string[];
-  /**
-   * Every name whose transport copy has no reader left — written, already
-   * identical, or answered by the reader's own document — so the caller drops
-   * exactly those manifest entries. A name no Shared Partial file can carry
-   * stays out: the manifest copy is all that answers it.
-   */
   readonly dropped: readonly string[];
-  /**
-   * The names no Shared Partial file can be given, which reached no vault path
-   * and keep their manifest entries. A caller that reports nothing for these
-   * leaves Unpack partials looking inert, since the entry is still there to
-   * report the next time the document is read.
-   */
   readonly refused: readonly string[];
-  /**
-   * The names the template folder holds a file for under another case. One
-   * file answers both spellings, while a call resolves by exact name, so these
-   * keep their manifest entries — the copy that still answers the call.
-   */
   readonly otherCase: readonly string[];
 }
 
-/** The Citation Template's state, as the Citations settings row reads it. */
 export interface CitationTemplateStatus {
-  /** Where `zotlit-citation.md` lives, whether or not the vault holds it. */
   readonly path: string;
-  /** The vault holds the document; `false` means the built-in text renders. */
   readonly customized: boolean;
   readonly language: TemplateLanguage;
-  /** The document's path while it is Eta and the JavaScript Templates gate
-   *  keeps it inert, `null` otherwise. */
   readonly inertPath: string | null;
   readonly compileError: string | null;
 }
 
-/**
- * The reconciliation work one folder scan or one debounce window collected,
- * bucketed by the Template Document kind that reconciles each entry.
- */
 interface TemplateWork {
   readonly names: Set<string>;
   readonly documentReferences: Set<string>;
   readonly partialNames: Set<string>;
-  /** Holds {@link CITATION_TEMPLATE_NAME} while the one Citation Template
-   *  awaits reconciliation; a set so it clears and counts with every other
-   *  bucket. */
   readonly citation: Set<string>;
   readonly unrecognizedPaths: Set<string>;
 }
@@ -369,7 +302,6 @@ function emptyTemplateWork(): TemplateWork {
   };
 }
 
-/** Every bucket of `work`, so the whole set clears and counts as one. */
 function templateWorkBuckets(work: TemplateWork): readonly Set<string>[] {
   return [
     work.names,
@@ -384,7 +316,6 @@ function isTemplateWorkEmpty(work: TemplateWork): boolean {
   return templateWorkBuckets(work).every((bucket) => bucket.size === 0);
 }
 
-/** Move everything `pending` holds into the work one flush reconciles. */
 function takeTemplateWork(pending: TemplateWork): TemplateWork {
   const work: TemplateWork = {
     names: new Set(pending.names),
@@ -397,19 +328,9 @@ function takeTemplateWork(pending: TemplateWork): TemplateWork {
   return work;
 }
 
-/**
- * Route one template-folder file into the bucket its Template Document kind
- * reconciles from — the one place a kind maps to its reconciliation.
- *
- * @returns whether `path` landed in a bucket. A file ZotLit ignores lands in
- *   none.
- */
 function collectTemplatePath(work: TemplateWork, path: string): boolean {
   const classified = classifyTemplateFolderFile(path);
   switch (classified?.kind) {
-    // A Legacy Template File keeps 2.1.x's registration by bare name until the
-    // one-shot conversion trashes it, so a note template that calls a legacy
-    // partial still resolves and the conversion reads one reconciled winner.
     case "legacy-slot":
     case "legacy-citation":
     case "legacy-partial":
@@ -432,36 +353,23 @@ function collectTemplatePath(work: TemplateWork, path: string): boolean {
   }
 }
 
-/**
- * The language the folded Citation Template is written in. Liquid wins a
- * mixed `cite` / `cite2` pair, the way it wins every other name, and the Eta
- * side stays in the vault.
- */
 function foldCitationLanguage(
   files: readonly LegacyTemplateFile[],
 ): TemplateLanguage {
   return files.every((file) => file.language === "eta") ? "eta" : "liquid";
 }
 
-/** A recorded compile error: its message, the liquidjs caret-annotated
- *  source excerpt when the underlying error carried one, and the span the
- *  engine reported in the compiled source. */
 export interface CompileError {
   message: string;
   context?: string;
   at?: EngineFaultSpan;
 }
 
-/** Managed-frontmatter field configuration and inert-key state, as
- *  {@link Template.getFrontmatterFieldStatus} reports it. */
 export interface FrontmatterFieldStatus {
-  /** Configured fields in `note.frontmatter-fields` order. */
   fields: readonly FrontmatterField[];
-  /** Keys of `"javascript"` fields skipped because the gate is off. */
   inertKeys: readonly string[];
 }
 
-/** The liquidjs caret-annotated source excerpt on `error`, when it carries one. */
 export function errorContext(error: unknown): string | undefined {
   return error !== null &&
     typeof error === "object" &&
@@ -475,17 +383,13 @@ interface SettledWaiter {
   resolve: () => void;
 }
 
-/** Outcome of {@link Template.waitUntilSettled}. */
 export type SettleOutcome = "settled" | "timeout" | "init-failed";
 
 const wrapManagedContent = managedRegionTransform(MANAGED_CONTENT_TEMPLATE);
 
-/** Rendering and vault-document operations; the Template layer owns its lifetime. */
 function makeTemplateEngine(options: TemplateEngineOptions) {
   const state = {
     facade: new TemplateFacade({
-      // The built-in `content` renders inline; only a vault `content` template
-      // keeps its Managed Region on create.
       transformRender: (name, output) =>
         coreContentIsVaultBacked() ? wrapManagedContent(name, output) : output,
     }),
@@ -605,9 +509,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
 
     return names.map((name) => {
       const liquidPath = templatePath(folder, name, "liquid");
-      // Every canonical name is written while a folder rebuild walks it; the
-      // fallback covers a read taken inside that walk, before the name's own
-      // reconcile resolved.
       const winner = state.winners.get(name) ?? EMBEDDED_DEFAULT_WINNER;
 
       const shadowed = state.shadowed.get(name);
@@ -839,9 +740,7 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
     source: string,
     options: {
       includeFolders?: boolean;
-      /** Extra partial names to bundle, reachable from the draft or not. */
       include?: readonly string[];
-      /** Reports a name no partial answers instead of failing the export. */
       onMissingPartial?: (name: string) => void;
     } = {},
   ): Effect.fn.Return<string, TemplateFailure, Vault | Workspace> {
@@ -869,12 +768,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
         }),
       { concurrency: "unbounded" },
     )).filter((partial) => partial !== null);
-    // A Shared Partial bundles the source its document holds, without the
-    // manifest line that named the language — a document the JavaScript
-    // Templates gate left inert among them, which is why this reads the same
-    // set the Share sheet offers. The Citation Template joins them under its
-    // own name, so a host that renders an annotation's citation — the web
-    // Workbench — gets the text this vault would produce.
     partials.push(...getPartialEntries());
     if (state.citation) {
       partials.push({
@@ -992,8 +885,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
     const path = partialPath(coreCurrentTemplateFolder(), name);
     if (state.inertEta.get(name) === path)
       return { name, path, language: "eta" };
-    // A document the parser refused names no language, so it reads as the
-    // Liquid default a manifest-less document declares.
     return !state.partialNames.has(name)
       ? null
       : { name, path, language: "liquid" };
@@ -1049,13 +940,8 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
     const plan = unpackLiteratureNotePartials(
       bundled,
       held,
-      // A name the vault answers under this very spelling is settled above, so
-      // `taken` speaks for the case-folded ones alone.
       (name) => partialNameRefusal(name, state.partialNames) === null,
     );
-    // The name rule refuses a case-folded name only because the vault answers
-    // it, which is a reason of its own. This plan says so once, and every
-    // caller reads that one decision.
     return plan.map((step) =>
       otherCase.has(step.name)
         ? { ...step, verdict: "other-case" as const }
@@ -1083,15 +969,10 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
         dropped.push(step.name);
         continue;
       }
-      // One file answers every spelling of a name, so writing here would land
-      // in the reader's own document while the call keeps asking for a name
-      // the registry has no exact key for.
       if (step.verdict === "other-case") {
         otherCase.push(step.name);
         continue;
       }
-      // The name arrives inside a pasted bundle, so it passes the rule every
-      // entry point shares before it ever reaches a vault path.
       if (partialNameRefusal(step.name, [])) {
         refused.push(step.name);
         continue;
@@ -1290,7 +1171,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
     coreRequireLoaded("getLegacyTemplateDocuments");
     const citation: LegacyTemplateFile[] = [];
     const partials: LegacyTemplateFile[] = [];
-    // Sorted, so `cite` folds before `cite2` and both lists read stably.
     for (const name of [...state.winners.keys()].sort()) {
       if (isTemplateName(name)) continue;
       const file = coreLegacyTemplateFile(name);
@@ -1337,11 +1217,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
         main?: string;
         alt?: string;
       } = { language };
-      // Every bare name the pass unregisters with the files it trashes: the
-      // citation slots folded below, and the Literature Note slots the same
-      // pass folds into the default Profile document. The fold is verified
-      // against the registry that remains, so a branch that renders one of
-      // them is refused rather than written.
       const removedNames: string[] = coreLegacyLiteratureNoteSlots().map(
         ({ name }) => name,
       );
@@ -1555,13 +1430,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
     for (const waiter of state.settledWaiters) waiter.resolve();
     state.settledWaiters.clear();
   }
-  /**
-   * Save the template folder under the case the vault holds it in. The scan
-   * and every reader of the setting compare paths exactly, while a disk that
-   * folds case treats both spellings as one folder.
-   *
-   * @returns Whether it updated, so the change arrives by `onSettingsChanged`.
-   */
   const adoptFolderCase = Effect.fn("Template.core.adoptFolderCase")(function* (
     setting: string,
   ): Effect.fn.Return<boolean, never, Vault | PluginSettings> {
@@ -1571,7 +1439,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
     if (!(held instanceof TFolder) || held.path === folder) return false;
     yield* (yield* PluginSettings)
       .update({ "template.folder": held.path })
-      // The schema accepts any string for this key, so the patch cannot be invalid.
       .pipe(Effect.orDie);
     state.log("info", "Adopted the vault's case for the template folder", {
       folder: held.path,
@@ -1670,13 +1537,9 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
             for (const name of TEMPLATE_NAMES) {
               if (!work.names.has(name)) coreUseDefault(name);
             }
-            // Reconciled on every rebuild, file or none: with no document the
-            // built-in source registers, so `citation` always resolves to something.
             work.citation.add(CITATION_TEMPLATE_NAME);
 
             yield* coreReconcileWork(work, generation);
-            // A rebuild publishes after the settings snapshot reaches its other
-            // subscribers, as the previous asynchronous reconcile did.
             yield* Effect.yieldNow;
             if (generation !== state.folderGeneration) return;
 
@@ -1789,8 +1652,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
       name: string,
       generation: number,
     ): Effect.fn.Return<void, never, Vault> {
-      // Folder changes rebuild the full template set; stale reconciles from the
-      // old folder must not redefine or drop templates loaded by a newer rebuild.
       if (generation !== state.folderGeneration) return;
 
       const folder = coreCurrentTemplateFolder();
@@ -1801,10 +1662,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
         templatePath(folder, name, "eta"),
       );
 
-      // One bare name, two file forms: the 2.1.x Legacy Template File and the
-      // `zotlit-partial.<name>.md` document that replaces it. The document owns
-      // the name — the conversion writes it before it trashes the legacy file,
-      // so the deletion event that follows leaves the registered partial alone.
       if (state.partials.has(name)) {
         if (!liquidFile && !etaFile) {
           state.winners.delete(name);
@@ -1813,8 +1670,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
         return;
       }
 
-      // A shadowed eta file is reported as shadowed regardless of the gate —
-      // the liquid edition wins either way, so the flag never changes its fate.
       if (liquidFile && etaFile) {
         if (state.shadowed.get(name) !== etaFile.path) {
           state.log("warn", "Eta template shadowed by its Liquid edition", {
@@ -1827,10 +1682,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
         state.shadowed.delete(name);
       }
 
-      // Inert means the eta file would win, but the gate keeps it from compiling.
-      // Such a name is left with no compiled template at all: render/renderFilename
-      // must fail loudly with InertTemplateError rather than degrade to the
-      // embedded default.
       if (!state.javascriptTemplatesEnabled && !liquidFile && etaFile) {
         if (state.inertEta.get(name) !== etaFile.path) {
           state.log(
@@ -1949,8 +1800,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
       const path = partialPath(coreCurrentTemplateFolder(), name);
       const file = yield* (yield* Vault).getFileByPath(path);
 
-      // A reserved name already answers to another Template, so the file owns
-      // nothing: it is reported by name in settings rather than registered.
       if (RESERVED_PARTIAL_NAMES.has(name)) {
         if (file) {
           state.log("debug", "Partial file claims a reserved template name", {
@@ -2328,20 +2177,6 @@ function makeTemplateEngine(options: TemplateEngineOptions) {
 }
 type TemplateEngine = ReturnType<typeof makeTemplateEngine>;
 
-/**
- * Name the artifact a render failure belongs to, reading structured error
- * fields only. Message text names nothing: `#facade.render` evaluates lazy
- * data getters (`zt.citation`, `imgLink`, `noteLink`), so the chain routinely
- * carries application errors whose messages mention arbitrary paths — a
- * message holding an inert template's own path must not turn that failure
- * into an {@link InertTemplateError}.
- *
- * @returns the first {@link InertTemplateError} in the chain unchanged (it
- *   already carries the localized message, including the nameless
- *   managed-frontmatter case); otherwise the failure named by the first
- *   {@link TemplateError}, re-raised with the localized inert message or the
- *   recorded compile detail when that name has one; otherwise `error` itself.
- */
 function classifyRenderFailure(
   error: unknown,
   compileErrors: ReadonlyMap<string, CompileError>,
@@ -2382,23 +2217,10 @@ function classifyRenderFailure(
   return namedFailure;
 }
 
-/** The failure message for a name with a recorded compile error, identical
- *  whether a caller requested that name directly or reached it by include. */
 function compileErrorMessage(name: string, detail: string): string {
   return `Template '${name}' has a compile error:\n${detail}`;
 }
 
-/**
- * Every `Error` reachable from `error`, breadth-first, so "the first typed
- * error" is the one nearest the thrown surface. Three link kinds carry a
- * template failure out of the engines:
- *
- * - `cause` — eta wraps rather than subclasses (`EtaRuntimeError` copies
- *   `originalError.name`, so an `instanceof` check on the wrapper fails);
- * - `originalError` — liquidjs defines it non-enumerably on its render errors;
- * - `errors` when it is an array — one duck-typed check covering both
- *   `AggregateError` and liquidjs's `LiquidErrors` batch.
- */
 function errorChain(error: unknown): readonly Error[] {
   const errors: Error[] = [];
   const pending = [error];
@@ -2420,17 +2242,14 @@ function errorChain(error: unknown): readonly Error[] {
   return errors;
 }
 
-/** Extract a human-readable message from an unknown thrown value. */
 function errorMessage(error: unknown): string {
   return Error.isError(error) ? error.message : String(error);
 }
 
-/** Collapse rendered filename output to one trimmed line. */
 function toSingleLine(rendered: string): string {
   return rendered.trim().replaceAll(/\s*\n\s*/g, "");
 }
 
-/** Current startup and compilation status, replayed to every subscriber. */
 export type TemplateStatus = {
   readonly compileErrors: ReadonlyMap<string, CompileError>;
 } & (
@@ -2529,9 +2348,7 @@ export class Template extends Context.Service<
       source: string,
       options?: {
         includeFolders?: boolean;
-        /** Extra partial names to bundle, reachable from the draft or not. */
         include?: readonly string[];
-        /** Reports a name no partial answers instead of failing the export. */
         onMissingPartial?: (name: string) => void;
       },
     ): Effect.Effect<string, TemplateFailure>;
@@ -2693,7 +2510,6 @@ type TemplateCoreOperations = Pick<
   | "setJavascriptTemplatesEnabled"
 >;
 
-/** The Promise and synchronous form of the Template operations, for callers outside Effect. */
 export type TemplateOperations = {
   [K in keyof TemplateCoreOperations]: TemplateCoreOperations[K] extends (
     ...args: infer Args
@@ -2808,8 +2624,6 @@ export const layerTemplate = Layer.effect(
       )
       .pipe(Effect.forkScoped({ startImmediately: true }));
     yield* Effect.gen(function* () {
-      // The vault's events join the flush requests in one ordered intake:
-      // forkEach hands each over inside Obsidian's callback.
       yield* forkEach(vault.changes, intake.callback("vault"));
       yield* provide(engine.load());
       yield* publishStatus();
@@ -2830,13 +2644,9 @@ export const layerTemplate = Layer.effect(
     yield* Stream.runForEach(settings.changes, (snapshot) =>
       provide(engine.onSettingsChanged(snapshot)).pipe(
         Effect.catchCause(report("Template settings update failed")),
-        // Apply each snapshot immediately. Folder reads can overlap: the
-        // generation check lets a newer folder supersede a pending read.
         Effect.forkIn(scope, { startImmediately: true }),
       ),
     ).pipe(Effect.forkScoped({ startImmediately: true }));
-    // At Obsidian startup the vault cache fills after this layer loads, so the
-    // folder's case is known at layout ready. The update reaches the stream above.
     yield* (yield* Workspace).layoutReady.pipe(
       Effect.andThen(settings.current),
       Effect.flatMap((current) =>
@@ -2952,9 +2762,7 @@ export const layerTemplate = Layer.effect(
         source: string,
         options: {
           includeFolders?: boolean;
-          /** Extra partial names to bundle, reachable from the draft or not. */
           include?: readonly string[];
-          /** Reports a name no partial answers instead of failing the export. */
           onMissingPartial?: (name: string) => void;
         } = {},
       ) {
@@ -3125,7 +2933,6 @@ export const layerTemplate = Layer.effect(
   }),
 );
 
-/** Preserve domain failures; map unknown host failures once, with their cause. */
 export function templateFailure(cause: unknown): TemplateFailure {
   if (
     cause instanceof VaultError ||

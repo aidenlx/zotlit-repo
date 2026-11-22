@@ -1,5 +1,3 @@
-// Lezer grammar for the ZotLit Filter Expression language.
-
 @top program { expression }
 
 @precedence {

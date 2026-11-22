@@ -1,11 +1,8 @@
-// The launch link plugin: it hands Obsidian the link a case leaves in
-// localStorage under LAUNCH_LINK_KEY as the link that started the app.
 import { copyFile, mkdir, rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { build } from "vite";
 
 export const LAUNCH_LINK_ID = "zotlit-launch-link";
-/** The localStorage key the plugin reads the staged link from. */
 export const LAUNCH_LINK_KEY = "zotlit-e2e-launch-link";
 
 const fixtureDir = resolve(

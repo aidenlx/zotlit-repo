@@ -20,7 +20,6 @@ function styleEvents(existing = false) {
   const style = "http://www.zotero.org/styles/missing";
   return {
     cache: {
-      // The state a subscriber starts from, then each one the test emits.
       changes: Stream.unwrap(
         Effect.sync(() =>
           event.stream.pipe(Stream.prepend([stateOf(existing ? style : null)])),

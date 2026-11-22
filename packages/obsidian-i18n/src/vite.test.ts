@@ -208,8 +208,6 @@ describe("obsidianI18n", () => {
     });
     const port = devServerPort(configResult);
 
-    // A build-watch run closes the bundle after every build, and the plugin
-    // fetches its pack while the watcher idles — not mid-build.
     await callHook(plugin.closeBundle);
 
     await expect(
@@ -286,7 +284,6 @@ async function callBuildStart(
   await plugin.buildStart.call(context as never, {} as never);
 }
 
-/** Invokes a plugin hook when the plugin defines one, so absent hooks stay observable. */
 async function callHook(hook: unknown): Promise<void> {
   if (typeof hook === "function") await hook.call({});
 }

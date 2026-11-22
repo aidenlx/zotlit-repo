@@ -1,6 +1,3 @@
-// The Filter Expression language for CodeMirror: the parser of
-// `@zotlit/filter-expression`, tagged by the expression token roles so the
-// template highlighter colors it.
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import { LRLanguage, syntaxTree } from "@codemirror/language";
 import { Prec } from "@codemirror/state";
@@ -16,7 +13,6 @@ import { expressionClasses, expressionTag } from "./expression-tokens.ts";
 import { templateHighlighter } from "./highlight.ts";
 import type { Span } from "./span.ts";
 
-/** The symbols that open a pair; the grammar has no braces. */
 const pairedSymbols = ["(", "[", '"', "'"];
 
 export const filterExpressionLanguage = LRLanguage.define({
@@ -37,16 +33,10 @@ export const filterExpressionLanguage = LRLanguage.define({
     ],
   }),
   languageData: {
-    // A comma joins the arguments and items a new bracket stands before.
     closeBrackets: { brackets: pairedSymbols, before: ")]," },
   },
 });
 
-/**
- * The name each call invokes: a bare function, or the method after `.`. A
- * call's arguments sit beside its callee in the tree, so a tag rule cannot
- * single the callee out; this walk takes each call's first child.
- */
 function callees(tree: Tree): Span[] {
   const names: Span[] = [];
   tree.iterate({
@@ -58,16 +48,9 @@ function callees(tree: Tree): Span[] {
         names.push({ from: name.from, to: name.to });
     },
   });
-  // A method call's receiver can itself be a call, entered after it.
   return names.sort((a, b) => a.from - b.from);
 }
 
-/**
- * Highlights a Filter Expression tree with the template token hooks, the
- * callee of each call taking the function hook.
- * @param put Receives each highlighted token once, in document order; the
- *   ranges do not overlap.
- */
 export function highlightFilterExpression(
   tree: Tree,
   put: (from: number, to: number, classes: string) => void,
@@ -95,18 +78,12 @@ export const filterExpressionHighlighting = decorationLayer(
     return Decoration.set(marks);
   },
   {
-    // The parse can finish after the edit that started it.
     rebuild: (update) =>
       update.docChanged ||
       syntaxTree(update.state) !== syntaxTree(update.startState),
   },
 );
 
-/**
- * Inside a string or a regular expression a symbol is text. `closeBrackets`
- * cannot tell: it pairs by the next character alone. The literal's own quote
- * goes on to it, as that quote closes the literal.
- */
 const literalSymbols = Prec.high(
   // oxlint-disable-next-line max-params -- CodeMirror inputHandler signature.
   EditorView.inputHandler.of((view, from, to, text, insert) => {
@@ -127,7 +104,6 @@ const literalSymbols = Prec.high(
   }),
 );
 
-/** Closes each paired symbol as it is typed. */
 export const filterExpressionPairing: Extension = [
   literalSymbols,
   closeBrackets(),

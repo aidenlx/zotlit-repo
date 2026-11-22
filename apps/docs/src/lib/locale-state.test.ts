@@ -8,8 +8,6 @@ const nativeChinesePages = new Set([
   "/changelog/2.1.0",
 ]);
 
-// Failure modes: missing files must not advertise Chinese; native files need
-// reciprocal links; HTML and Markdown aliases must make the same decision.
 describe("getPageLocaleState", () => {
   it.each(["/docs", "/docs/pending", "/docs/missing"])(
     "keeps a missing Chinese page on its English canonical: %s",
@@ -90,8 +88,6 @@ describe("getPageLocaleState", () => {
     },
   );
 
-  // The landing, community, course, changelog and blog pages draw on
-  // translated catalog strings, so each has a Chinese edition of its own.
   it.each(["/", "/community", "/learn", "/changelog", "/blog"])(
     "serves %s natively in Chinese",
     (path) => {

@@ -19,13 +19,8 @@ import type {
 import type { QueryViewOutcome, QueryViewRequest } from "./query-view.ts";
 import type { WorkerMeasurement } from "./trace.ts";
 
-/** The Query Dataset that a job reads: Items or Annotations. */
 export type QueryDatasetId = QueryDataset["id"];
 
-/**
- * The command of a job: the schema, or the query that the renderer decoded,
- * of one Query Dataset. `command` is the CLI command that the envelope names.
- */
 export type QueryCommand = {
   command: QueryCliCommand;
 } & (
@@ -34,21 +29,18 @@ export type QueryCommand = {
   | { schema: false; query: DecodedQuery; dataset: QueryDatasetId }
 );
 
-/** The typed query of a Query View; its answer is data, not envelope text. */
 export interface QueryViewCommand {
   command: typeof QUERY_COMMAND;
   schema: false;
   view: QueryViewRequest;
 }
 
-/** The custom fields of the active source, for the expression editors. */
 export interface QueryCustomFieldsCommand {
   command: typeof QUERY_SCHEMA_COMMAND;
   schema: false;
   customFields: true;
 }
 
-/** Small request data for the ZoteroReads worker. Query rows stay in that worker. */
 export type QueryJob = (
   | QueryCommand
   | QueryViewCommand
@@ -65,46 +57,32 @@ export type QueryJob = (
   heap?: boolean;
 };
 
-/**
- * Where the result of a job is: in `answer` itself, or in the staging file
- * that the worker closed. The renderer publishes a `file` receipt.
- */
 export type QueryReceipt =
   | { kind: "inline" }
   | { kind: "file"; path: string; bytes: number };
 
-/** The envelope text of a job, with its command and receipt. */
 export interface QueryReply {
   command: QueryCliCommand;
   answer: string;
   receipt: QueryReceipt;
 }
 
-/** The answer to a typed query: the outcome as data; `answer` is empty. */
 export interface QueryViewReply extends QueryReply {
   view: Exclude<QueryViewOutcome, { kind: "cancelled" }>;
 }
 
-/** The answer of the worker to one job. */
 export interface QueryAnswer extends QueryReply {
-  /** `CancelItemQuery` interrupted the job; `answer` is empty. */
   cancelled?: true;
-  /** The outcome of a typed query; `answer` is empty. */
   view?: QueryViewReply["view"];
-  /** The names of the custom fields; absent when the source cannot answer. */
   customFields?: readonly string[];
   measurement?: WorkerMeasurement;
 }
 
-/** Compile-time assert: `T` must be `true`. */
 type Expect<T extends true> = T;
 type Equals<A, B> = [A, B] extends [B, A] ? true : false;
-/** The ZoteroReads contract carries these types (`ItemQueryTypes`, below). */
 type _Job = Expect<Equals<ItemQueryJob, QueryJob>>;
 type _Answer = Expect<Equals<ItemQueryAnswer, QueryAnswer>>;
 
-// The Query Job and its answer, named in the ZoteroReads contract
-// (`ItemQueryTypes`) by declaration merging.
 declare module "@zotlit/zotero-reads/contract/item-query.ts" {
   interface ItemQueryTypes {
     job: QueryJob;

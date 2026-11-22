@@ -23,7 +23,6 @@ it.effect("saves a value and loads it back", () =>
     expect(yield* storage.load("key")).toBeNull();
     const saved = { count: 1 };
     yield* storage.save("key", saved);
-    // As in Obsidian, the value is kept as JSON: a later change to it is not saved.
     saved.count = 2;
     expect(source.values.get("key")).toBe('{"count":1}');
     expect(yield* storage.load("key")).toEqual({ count: 1 });

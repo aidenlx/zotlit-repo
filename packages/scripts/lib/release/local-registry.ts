@@ -1,11 +1,3 @@
-// A local npm registry for the packages a release publishes: it serves the
-// tarballs put into it, in the registry's own format, so pnpm resolves and
-// installs them exactly as it does from registry.npmjs.org. The dry run of
-// `pnpm release:publish` publishes the bundle package here in place of npm,
-// and the tests of the release flow use it as the registry.
-//
-// Only the scopes routed to it reach it (`@scope:registry=<url>`); every other
-// package still comes from the public registry.
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -24,19 +16,15 @@ interface Version {
 }
 
 export interface LocalRegistry {
-  /** The registry URL, with a trailing slash. */
   readonly url: string;
-  /** Serves the package in `tarball` from now on. */
   publish(tarball: string, distTag: string): Promise<void>;
   close(): Promise<void>;
 }
 
-/** `sha512-<base64>`, the integrity npm and pnpm record for a tarball. */
 export function tarballIntegrity(bytes: Buffer): string {
   return `sha512-${createHash("sha512").update(bytes).digest("base64")}`;
 }
 
-/** The package.json inside an npm tarball. */
 export async function tarballManifest(
   tarball: string,
 ): Promise<Record<string, unknown> & { name: string; version: string }> {
@@ -130,7 +118,6 @@ export async function startLocalRegistry(): Promise<LocalRegistry> {
   };
 }
 
-/** `name-1.2.3.tgz`, without the scope, as npm names a tarball. */
 function tarballName(manifest: { name: string; version: string }): string {
   return `${manifest.name.split("/").at(-1)}-${manifest.version}.tgz`;
 }

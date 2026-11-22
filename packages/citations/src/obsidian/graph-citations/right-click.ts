@@ -1,5 +1,3 @@
-// The node-right-click wrap: a Cited Work Node opens ZotLit's own menu; every other node keeps the native one.
-
 import { Effect } from "effect";
 import { around } from "monkey-around";
 import { Keymap, Menu } from "obsidian";
@@ -26,16 +24,13 @@ import type { GraphLeafMembers } from "./install.ts";
 
 declare module "@zotlit/obsidian-kit/menu-events.ts" {
   interface ZotLitMenuEvents {
-    /** A Cited Work Node's menu in the graph: the citekey the node stands for. */
     "zotlit:graph-cited-work-menu": {
       citekey: string;
-      /** What the citekey names; `null` while the resolution snapshot is cold. */
       resolution: CitekeyResolution | null;
     };
   }
 }
 
-/** A Cited Work Node's menu in the graph. */
 const citedWorkNodeMenu = menuEvent("zotlit:graph-cited-work-menu", [
   "open",
   "clipboard",
@@ -45,20 +40,11 @@ const citedWorkNodeMenu = menuEvent("zotlit:graph-cited-work-menu", [
 const SECTION = menuSections(citedWorkNodeMenu);
 
 export interface NodeRightClickDeps extends NodeClickDeps {
-  /** What the citekey names in the current Library Scope; `null` while the resolution snapshot is cold. */
   resolveCitekey: (citekey: string) => CitekeyResolution | null;
-  /** Where the menu raises `zotlit:graph-cited-work-menu`. */
   workspace: Pick<Workspace, "trigger">;
-  /** Open the Library View on the Item `indexedKey`. */
   showInLibrary: (indexedKey: string) => void;
 }
 
-/**
- * The native callback resolves the node id to a file before it builds
- * anything, so a Cited Work Node carries no menu at all today. ZotLit's menu
- * takes that empty place, and every other node keeps the file menu Obsidian
- * builds for it.
- */
 export function wrapNodeRightClick(
   renderer: GraphLeafMembers["renderer"],
   deps: NodeRightClickDeps,
@@ -95,26 +81,9 @@ interface CitedWorkMenuContext
     Pick<NodeClickDeps, "open">,
     Pick<NodeRightClickDeps, "workspace" | "showInLibrary"> {
   citekey: string;
-  /** What the citekey names; `null` while the resolution snapshot is cold. */
   resolution: CitekeyResolution | null;
 }
 
-/**
- * The menu carries the actions the citekey can carry out, and only those:
- *
- * - **Create literature note** needs an Item to build the note from. A unique
- *   key names one, and an ambiguous key offers its candidates first and then
- *   names one. A cold snapshot names nothing the menu can read, so the entry
- *   shows and the open action reports what the warm snapshot holds — which may
- *   itself be nothing. A key already known missing names none, so the entry
- *   stays out rather than reporting a failure the click already reports.
- * - **Open in Zotero** and **Show in Zotero library** select one Item, so only
- *   a unique key says what to select.
- * - **Copy citation key** hands back the node's own label, whatever the key
- *   resolves to — which is what a mistyped key needs to be fixed.
- *
- * Listeners add to it through `zotlit:graph-cited-work-menu`.
- */
 function citedWorkMenu(ctx: CitedWorkMenuContext): Menu {
   const menu = new Menu();
   if (ctx.resolution?.kind !== "missing") {
@@ -128,8 +97,6 @@ function citedWorkMenu(ctx: CitedWorkMenuContext): Menu {
   }
   if (ctx.resolution?.kind === "unique") {
     const { key, indexedKey } = ctx.resolution.item;
-    // The Indexed Key the snapshot carries is `formatIndexedKey`'s own output,
-    // so it parses back; only the group id it encodes is read here.
     const { groupID } = parseIndexedKey(indexedKey)!;
     menu.addItem((item) =>
       item

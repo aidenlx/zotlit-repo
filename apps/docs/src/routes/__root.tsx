@@ -25,17 +25,9 @@ import { m } from "@/paraglide/messages.js";
 import { getLocale, localizeHref } from "@/paraglide/runtime.js";
 import appCss from "@/styles.css?url";
 
-/**
- * Cloudflare Web Analytics, the privacy-friendly counter that replaced Vercel
- * Analytics at the move off Vercel. The site token is public — it identifies
- * the property, not the account — and rides in at build time, so a checkout
- * without one simply serves no beacon.
- */
 const analyticsToken: string | undefined = import.meta.env.VITE_CF_BEACON_TOKEN;
 
 export const Route = createRootRoute({
-  // Site-wide defaults. A page's own `head` overrides these tag by tag, so a
-  // route only names what differs — see `src/lib/seo.ts`.
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -56,19 +48,8 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      // `.ico` leads for the browsers that pass over an SVG icon; it pairs the
-      // 16 px pixel-fit cut with the master tile at 32. Both editions are the
-      // tile rather than the bare mark, which is what keeps them legible on a
-      // dark tab bar.
-      // @see docs/brand.md → Tile padding
       { rel: "icon", href: "/favicon.ico", sizes: "32x32" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
-      // Serif display paints on essentially every route, so both its latin
-      // faces are eager — upright for headlines, italic for the lede and
-      // standfirst lines that ride beside them. Inter and IBM Plex Mono use
-      // metric-adjusted local fallbacks instead. The Archivo wordmark needs no
-      // entry — Vite inlines its small subset into the stylesheet.
-      // @see apps/docs/DESIGN.md → Font loading
       ...[gelasioLatin, gelasioLatinItalic].map((href) => ({
         rel: "preload",
         as: "font",
@@ -91,17 +72,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html lang={localeState.contentLocale} suppressHydrationWarning>
       <head>
         <HeadContent />
-        {/* Marks a Chinese-first browser before the body paints, so the
-            Chinese-edition strip shows without moving the page. */}
         <script dangerouslySetInnerHTML={{ __html: chineseReaderScript }} />
-        {/* Chinese content alone links the Chinese faces, so an English page
-            downloads no CJK font. @see apps/docs/DESIGN.md → Font loading */}
         {localeState.contentLocale === "zh-CN" && (
           <link rel="stylesheet" href={zhCnFontsCss} />
         )}
       </head>
       <body className="flex min-h-screen flex-col">
-        {/* The search dialog fetches `/api/search`, the fumadocs default. */}
         <LocaleProvider>
           <LanguageBanner state={localeState} />
           {children}
@@ -131,8 +107,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
 function NotFound() {
   return (
-    // The owned header rides along, so the nav reads the same here as on every
-    // other surface — this page renders outside the `_home` shell.
     <HomeLayout {...baseOptions()} slots={{ header: Header }}>
       <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-16">
         <h1 className="mb-2 text-3xl font-medium">

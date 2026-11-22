@@ -1,5 +1,3 @@
-// shadcn Base UI Toast, using the site tokens and shared notification manager.
-
 import { Toast as ToastPrimitive } from "@base-ui/react/toast";
 import {
   XIcon,
@@ -30,8 +28,6 @@ function ToastViewport({ className, ...props }: ToastPrimitive.Viewport.Props) {
     <ToastPrimitive.Viewport
       data-slot="toast-viewport"
       className={cn(
-        // A page can move the end edge with `--toast-end`, as the Workbench
-        // does to keep notices clear of its Fields popover.
         "pointer-events-none fixed start-4 end-[var(--toast-end,1rem)] bottom-4 z-50 ms-auto w-auto max-w-sm outline-none",
         className,
       )}

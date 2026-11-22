@@ -1,4 +1,3 @@
-// The database batch that each part of the Annotation Repository core reads the Zotero database through.
 import {
   Effect,
   Exit,
@@ -13,29 +12,18 @@ import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { DatabaseAnswer } from "./model.ts";
 import type { CoreState } from "./state.ts";
 
-/** Why the Zotero database answered no rows: no Snapshot, or a failed read. */
 type DatabaseRowsError =
   | Effect.Error<ZoteroReads["Service"]["snapshot"]>
   | Effect.Error<
       ReturnType<ZoteroReads["Service"]["reads"]["AnnotationsOfAttachments"]>
     >;
 
-/** One Attachment's rows, asked in the batch of one database generation. */
 class DatabaseRows extends Request.Class<
   { readonly attachmentKey: string; readonly generation: number },
   DatabaseAnswer,
   DatabaseRowsError
 > {}
 
-/**
- * The batch every database read asked in one task joins, by database
- * generation: one Snapshot and one query for all of them, whatever number of
- * Attachments a view shows. A read asked after a database change asks in the
- * new generation, so it reads the database that stands now.
- *
- * A batch that has started runs on `fibers`, the layer's, so the layer's
- * close interrupts it and lets its Snapshot go.
- */
 function databaseRowsResolver(
   db: Pick<ZoteroReads["Service"], "snapshot">,
   fibers: FiberSet.FiberSet,
@@ -75,7 +63,6 @@ function databaseRowsResolver(
   });
 }
 
-/** One Attachment's rows from the Zotero database, in this task's batch. */
 function databaseRows(
   core: Pick<CoreState, "databaseGeneration" | "databaseRows">,
   attachmentKey: string,

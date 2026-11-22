@@ -269,7 +269,6 @@ describe("migrateV1ToV2", () => {
           {
             key: "related",
             expr: "zt.relatedItems.map((i) => i.noteLink() ?? `zt-error:${i.indexedKey}`)",
-            // user changed merge on a default field
             merge: "append",
           },
           {
@@ -307,9 +306,7 @@ describe("migrateV1ToV2", () => {
     expect(
       migrateV1ToV2({
         "note.frontmatter-fields": [
-          // trailing space vs the byte-exact default
           { key: "title", expr: "zt.title ", merge: "replace" },
-          // different quotes vs the byte-exact default
           {
             key: "collections",
             expr: "zt.collections.map((c) => c.path.join('/'))",

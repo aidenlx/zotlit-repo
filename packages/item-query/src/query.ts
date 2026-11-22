@@ -1,5 +1,3 @@
-// The operations of the engine: one query of a Query Dataset, delivered to a
-// consumer in projection chunks or collected into the complete Query Result.
 import { Effect } from "effect";
 
 import type {
@@ -29,22 +27,12 @@ import type {
   TargetLibrary,
 } from "./request.ts";
 
-/** Metadata known before the projection pass begins. */
 export interface QuerySummary extends QueryMetadata {
   readonly groups?: readonly Omit<QueryGroup, "rows">[];
   readonly totalCount?: number;
-  /**
-   * The matching records, each once, grouped or not. The `zotlit:query`
-   * envelope leaves it out; a typed caller reads it as the count before the
-   * limit.
-   */
   readonly matchedCount: number;
 }
 
-/**
- * The warnings of one Filter Expression of the request, the filter or the
- * text of one Formula, in the order of the text.
- */
 const expressionWarnings = Effect.fnUntraced(function* (
   source: WarningSource,
   expression: FilterPlan,
@@ -69,9 +57,7 @@ const expressionWarnings = Effect.fnUntraced(function* (
     .map((fault) => diagnoseWarning(fault, source, warning));
 });
 
-/** Each write completes before the engine projects the next chunk. */
 export interface QueryConsumer<A, E = never, R = never> {
-  /** groupIndex addresses summary.groups; each chunk belongs to one group. */
   write(
     rows: readonly QueryRow[],
     groupIndex?: number,
@@ -79,11 +65,6 @@ export interface QueryConsumer<A, E = never, R = never> {
   end(): Effect.Effect<A, E, R>;
 }
 
-/**
- * Run one query of the Query Dataset over the Target Libraries, as one result
- * set. Run the Effect with `ItemQueryScheduler`; cancellation is fiber
- * interruption.
- */
 export function collectQuery<Request extends ItemQueryRequest>(
   dataset: QueryDataset<Request>,
   request: Request,
@@ -125,12 +106,6 @@ export function collectQuery<Request extends ItemQueryRequest>(
   );
 }
 
-/**
- * Deliver the same query in final-order projection chunks. Begin runs once
- * after ordering, including for an empty result. Failure or interruption stops
- * delivery; end runs only after every write succeeds. Consumer state belongs
- * inside begin, so each execution is independent.
- */
 export function consumeQuery<Request extends ItemQueryRequest, A, E, R>(
   dataset: QueryDataset<Request>,
   request: Request,
@@ -142,8 +117,6 @@ export function consumeQuery<Request extends ItemQueryRequest, A, E, R>(
 > {
   return Effect.gen(function* () {
     const sources = yield* openQuerySources;
-    // Query Sources checks each planned Formula for a custom field that the
-    // source lacks, so the plan leaves such a Formula out.
     const plan = yield* planRequest(
       dataset,
       request,
@@ -160,8 +133,6 @@ export function consumeQuery<Request extends ItemQueryRequest, A, E, R>(
         filter: plan.filter?.root,
         query,
         warnings: [
-          // The filter and each Formula the request reads warn alike, each
-          // at its own text.
           ...(yield* Effect.forEach(
             [
               ...(plan.filter

@@ -1,5 +1,3 @@
-// Headerless resources strip and migration reminder for the declarative (>=1.13) setting tab.
-
 import type {
   Setting,
   SettingDefinition,
@@ -26,13 +24,6 @@ import {
   migrationGuideUrl,
 } from "#obsidian/welcome/links.ts";
 
-/**
- * "Finish migrating from v1" reminder row. Callers include this item only
- * while migration is pending — never via `visible` — because a group's row
- * divider is a `::before` suppressed only on the group's `:first-child`, and
- * a `visible:false` row still renders `display:none` in place, so it still
- * counts as `:first-child` and the next row draws a stray top border.
- */
 export function migrationReminderItem(
   ctx: SettingTabContext,
 ): SettingDefinition<SettingsKey> {
@@ -46,7 +37,6 @@ export function migrationReminderItem(
   };
 }
 
-/** Durable reminder for the user-consented legacy template conversion. */
 export function templateConversionReminderItem(
   ctx: SettingTabContext,
 ): SettingDefinition<SettingsKey> {
@@ -77,8 +67,6 @@ function renderMigrationReminderButtons(
   );
   setting.addButton((btn) =>
     btn.setButtonText(m.settings_migration_reminder_mark_done()).onClick(() => {
-      // See the blur comment in the notes' renderJsTemplatesButton: the
-      // reconciler skips re-rendering the row containing document.activeElement.
       btn.buttonEl.blur();
       void ctx.tab.run(
         Release.use((release) => release.acknowledgeMigration),
@@ -88,11 +76,6 @@ function renderMigrationReminderButtons(
   );
 }
 
-/**
- * Headerless group at the top of the tab: the migration reminder (only
- * while pending, included structurally — see {@link migrationReminderItem})
- * followed by the resources strip — what's new, docs, and community links.
- */
 export function resourcesGroup(
   ctx: SettingTabContext,
 ): SettingDefinitionGroup<SettingsKey> {

@@ -1,4 +1,3 @@
-// Parses the current note's links independently of the asynchronous metadata cache.
 import { parser } from "@lezer/markdown";
 import { regex } from "arkregex";
 import { Effect } from "effect";
@@ -47,10 +46,6 @@ function markdownTarget(raw: string): string {
   }
 }
 
-/**
- * The vault files `note`'s live text links to: its loaded view's text, else
- * the vault's, read apart from the asynchronous metadata cache.
- */
 export const referencedExcerptPaths = Effect.fnUntraced(function* (
   note: TFile,
 ) {
@@ -64,7 +59,6 @@ export const referencedExcerptPaths = Effect.fnUntraced(function* (
   return [...paths];
 });
 
-/** The link texts a note's `content` points at: wikilinks, links and images. */
 export function linkTargets(content: string): string[] {
   const definitions = new Map<string, string>();
   const targets: string[] = [];

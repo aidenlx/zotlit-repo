@@ -31,3 +31,25 @@ ZotLit v2.1 stored a Literature Note's template as two files — `note` (whole b
 - `packages/templates/` and the note-feature pipeline reopen for this work, reversing the earlier edition's off-limits ruling; aidenlx/zotlit#862 and aidenlx/zotlit#863 re-scope against the document format.
 - The frontmatter field spec moves into the document's manifest. Its expression design (engine evaluation, no private YAML control-flow syntax; must solve aidenlx/zotlit#641 and aidenlx/zotlit#645) is a separate design ticket and gates the format spec's ratification.
 - Note-side coupling stays minimal: `zotero-key`, the Profile stamp, and the `%%zt-managed%%` markers are the whole contract between a note and this format.
+
+## Verification during conversion and editing
+
+Compare the legacy and synthesized output before persisting a converted Profile. Normalize the create output's trailing line break to the current note-writing convention before comparing. Carry legacy field expressions across without rewriting them. Report fields that fail on the verification item so the Profile editor can repair them. A manual body writes its content at creation. A managed body wraps the isolated block in a Managed Region. Keep an indented legacy insertion inline so a line-owning tag does not remove the author's whitespace. Return the line break owned by the closing tag after inserting the Managed Region.
+
+Stream candidate Items from the active Library Scope. Select the first candidate whose note and filename data build, and continue if the fold needs Annotation data that the candidate lacks. Retain the first base candidate so the caller can distinguish a missing Annotation from a missing verification Item. Read the one-item Citation before rendering and supply the same input shape as the citation suggester. Use the Workbench's write-free render path. [Migration verification data](../../packages/notes/src/desktop/template/migration-data.ts)
+
+Offer the migration from the Welcome View when any legacy file remains, including a Citation Template slot or a bare partial. Verify each fold before writing. Report editable template faults with their source files. Keep the Eta source of a mixed-language citation pair. If creating the new documents fails, roll back only documents created in that pass and preserve the legacy files. After the documents are active, record legacy files that resisted trash so the researcher can retry cleanup.
+
+Unload stops the waiting caller, while conversion finishes the writes, cleanup, and final settings flush. The migration tests wait for that flush and check that the new documents and stored result agree. Register each test service with its disposable resources as soon as it starts so a partial startup can still unwind. Test late vault inventory without create events because Obsidian can populate the initial files that way. [Migration](../../packages/notes/src/desktop/template/migration.ts) · [Migration tests](../../packages/notes/src/desktop/template/migration.test.ts)
+
+Compile the body, Managed Block, annotation section, and filename before save. Compilation validates source without evaluation. Its intended contract preserves the registry. [Registry collision follow-up](https://github.com/aidenlx/zotlit-repo/issues/79)
+
+The synthesized manifest stamps the same contract version as the Zotero data contract. The engine has no dependency on the database package, so the format-version gate checks the values in both packages. The Workbench uses the stamp to reject a Profile saved against a different contract.
+
+## Template context assembly
+
+The filename root reads only the Item's own data and facets. Give filename resolvers a separate copy with inert note path and link members so a filename template can use those members without re-entering path resolution. An unresolved Child Note link falls back to Zotero and displays the title or Item key. Sort related Items by locale-aware title with untitled Items last. Use the stored title directly so articles and Zotero's display-title fallback do not alter the order.
+
+Normalise empty field values to absence, and prefer built-in fields when a custom field has the same name. Keep Zotero's canonical field names alongside CSL-inspired aliases. Attach each preview's non-enumerable string conversion after spreading the data, so spreading cannot drop it. An Annotation's parent getter in a Note points to the finished Note root and is read only after that root is assembled.
+
+A generated relative note path drops suffix markers for its first candidate. Only retry a collision when the template supplied a suffix marker, and fill it with a fresh alphanumeric ID. A flat filename sanitizes a slash as part of one segment instead of creating a folder. Surface a localized failure if sanitizing leaves no usable name.

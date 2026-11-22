@@ -13,7 +13,6 @@ import type {
 
 type Row = ObsidianOpenableAttachment;
 
-/** An Attachment named `label`, opening from the vault. */
 function row(label: string): Row {
   return {
     indexedKey: "ATCH2345",
@@ -23,7 +22,6 @@ function row(label: string): Row {
   };
 }
 
-/** The workspace the picker raises `zotlit:attachments-menu` on. */
 const trigger = vi.fn();
 const APP = stubService<App>("App", {
   workspace: stubService<Workspace>("Workspace", { trigger }),

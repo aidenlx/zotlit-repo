@@ -1,5 +1,3 @@
-// Parser for a plain Template Document: an optional manifest, then one template source.
-
 import * as v from "valibot";
 
 import type { TemplateLanguage } from "./constants.ts";
@@ -18,9 +16,7 @@ export interface PlainTemplateDocumentManifest {
 
 export interface PlainTemplateDocument {
   readonly manifest: PlainTemplateDocumentManifest;
-  /** The template source below the manifest; the whole document when it carries none. */
   readonly source: string;
-  /** UTF-16 offset of {@link source} in the original document. */
   readonly sourceStart: number;
 }
 
@@ -32,7 +28,6 @@ export class PlainTemplateDocumentError extends Error {
   readonly _tag = "PlainTemplateDocumentError";
   readonly code: PlainTemplateDocumentErrorCode;
   readonly recovery: string;
-  /** UTF-16 offset of the responsible text, so a host can point at it. */
   readonly offset: number;
 
   constructor(
@@ -52,11 +47,6 @@ export class PlainTemplateDocumentError extends Error {
   }
 }
 
-/**
- * Serialize a plain Template Document — the inverse of
- * {@link parsePlainTemplateDocument}. The manifest is always written, so a
- * `source` that opens with its own `---` line survives the round trip.
- */
 export function formatPlainTemplateDocument(
   source: string,
   language: TemplateLanguage,
@@ -64,14 +54,6 @@ export function formatPlainTemplateDocument(
   return `---\nlanguage: ${language}\n---\n${source}`;
 }
 
-/**
- * Read the Citation Template or a Shared Partial: a document that is one
- * template source, optionally opened by a manifest naming its rendering
- * language. A document with no manifest is Liquid.
- *
- * @throws {@link PlainTemplateDocumentError} when an opened manifest has no
- *   closing fence, holds invalid YAML, or carries a key beyond `language`.
- */
 export function parsePlainTemplateDocument(
   source: string,
 ): PlainTemplateDocument {
@@ -97,7 +79,6 @@ export function parsePlainTemplateDocument(
   const { manifestSource, manifestStart, bodyStart } = split;
   const result = v.safeParse(
     manifestSchema,
-    // An empty manifest names no language, which is the Liquid default.
     parseManifestYaml(
       manifestSource,
       manifestStart,

@@ -9,7 +9,6 @@ import {
   toggleFormat,
 } from "./comment-format.ts";
 
-/** `[` and `]` mark the selection; one `|` marks a caret. */
 function sel(marked: string) {
   const caret = marked.indexOf("|");
   if (caret >= 0) {
@@ -45,8 +44,6 @@ describe("parseComment", () => {
   });
 
   it("keeps an unmatched or crossing tag as text, as Zotero does", () => {
-    // Zotero takes `<b>…</b>` first; the `<i>` inside has no `</i>` before
-    // the bold ends, so both `<i>` and the trailing `</i>` stay literal.
     expect(parseComment("<b>a<i>b</b>c</i>").map((s) => s.format)).toEqual([
       "b",
     ]);

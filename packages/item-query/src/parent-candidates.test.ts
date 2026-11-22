@@ -28,14 +28,11 @@ const runQuery = (
   options: Parameters<typeof runEffect>[1] = {},
 ) => runEffect(query, { ...options, logs });
 
-/** The properties of each plan record the candidate pass logged. */
 const planRecords = () =>
   logs
     .filter((record) => "plan" in record.properties)
     .map((record) => record.properties);
 
-// Failure modes: parent pages grow with Library size, a parent cap hides child
-// matches, or child candidates cross Target Libraries. Count the reader seam.
 const candidateStatements = (events: readonly RunEvent[]) =>
   events.filter(
     (event) =>
@@ -43,11 +40,6 @@ const candidateStatements = (events: readonly RunEvent[]) =>
       event.statement.reader.endsWith("candidate-set"),
   );
 
-// Failure modes: unrelated children consume a selective leaf's work budget,
-// and a partial candidate set loses the selected parent's later children.
-// The first bulk Item holds ATT22222 and BULKPDF2. The update below moves the
-// Annotations after ANN22255 (index 3 * 33 + 3 = 102) to ATT22223 of the second
-// Item, so indexes 0 to 102 stay on BULKPDF2.
 it.each([
   { dataset: ATTACHMENTS, returnedCount: 2 },
   { dataset: ANNOTATIONS, returnedCount: 103 },
@@ -92,10 +84,6 @@ it.each([
   },
 );
 
-// Each filter selects the personal ART2FULL alone: ALS2CNFL also carries
-// "methods" but has no children, and CHP2YEAR below Thesis has none. ART2FULL
-// holds 4 live Attachments (PDF2LINK, PDF2LIVE, URL2LIVE, WEB2LIVE) and 12 live
-// Annotations, 6 on PDF2LIVE and 6 on PDF2LINK.
 it.each([
   { dataset: ATTACHMENTS, returnedCount: 4 },
   { dataset: ANNOTATIONS, returnedCount: 12 },
@@ -193,8 +181,6 @@ it.each([1, 1_001])(
     seedBulkLibrary(scenario.sqlite, count);
     seedBulkAttachments(scenario.sqlite, count);
     seedBulkAnnotations(scenario.sqlite, 100);
-    // Each filter selects the first Item, which also holds BULKPDF2 and its
-    // 100 Annotations; every fifth Item is in the Bulk collection.
     for (const [filter, parents] of [
       ['item.tags.contains("bulk")', count],
       ['item.collections.within("Bulk collection")', Math.ceil(count / 5)],
@@ -230,8 +216,6 @@ it.each([1, 1_001])(
   },
 );
 
-// Failure modes: a dominant Parent Record leaf expands in one long statement,
-// or a partial page result hides later matching children.
 it.each([ATTACHMENTS, ANNOTATIONS])(
   "$id bounds a dominant Parent Record candidate read",
   async (dataset) => {
@@ -267,7 +251,6 @@ it.each([ATTACHMENTS, ANNOTATIONS])(
           event.statement.reader.endsWith("scan-page"),
       ),
     ).toBe(true);
-    // The read stops one row past the parent page budget.
     const budget = PRODUCTION_TUNING.relationPageBudget * SCAN_PAGE_SIZE;
     const rowCounts = statements.flatMap((event) =>
       event.type === "statement" ? [event.statement.rows.length] : [],
@@ -275,11 +258,9 @@ it.each([ATTACHMENTS, ANNOTATIONS])(
     expect(rowCounts).toHaveLength(1);
     expect(rowCounts[0]).toBeLessThanOrEqual(budget + 1);
   },
-  // Seeds and reads 10,000 records; the default 5000 ms limit fails on CI runners.
   20_000,
 );
 
-// Failure mode: children of another Library make a complete candidate set fall back.
 it("keeps other-Library children outside the Parent Record budget", async () => {
   using scenario = openScenarioDatabase(connectClient);
   seedBulkLibrary(scenario.sqlite, 4_000);

@@ -1,10 +1,4 @@
 import type { Suggestion, SuggestionSource } from "#core/language/index.ts";
-// What the template token under the pointer means, shown in Obsidian's own
-// popover: the shared resolver names the field, tag, or filter; the popover
-// opens once per pointer visit and follows the pointer between tokens. As in
-// VS Code, the open card keeps its content and rendered place until the
-// pointer has rested on the next token for the hover delay, then swaps; its
-// native target moves at once so the off-token grace keeps working.
 import { ViewPlugin } from "@codemirror/view";
 import type { EditorView, Rect, ViewUpdate } from "@codemirror/view";
 import type { HoverParent, Point } from "obsidian";
@@ -17,10 +11,6 @@ import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
 import { hoverHint } from "#core/language/semantics.ts";
 
-/**
- * Obsidian's own hover delay, which every popover of its own opens after. It
- * also serves as the dwell before an open card swaps to the next token.
- */
 const WAIT_TIME = 300;
 
 class TemplateHoverPopover extends SingletonHoverPopover {
@@ -38,13 +28,11 @@ class TemplateHoverPopover extends SingletonHoverPopover {
     });
     this.#root = createRoot(mount);
     this.#root.render(<HoverFacts option={card.option} />);
-    // The card takes its place again as the content settles.
     this.watchResize(mount);
     this.register(() => {
       this.#root?.unmount();
       this.#root = null;
     });
-    // Content exists before show(); cancelling the enter delay must unload it.
     this.load();
   }
 
@@ -53,12 +41,6 @@ class TemplateHoverPopover extends SingletonHoverPopover {
     if (this.hoverEl.isConnected) this.position();
   }
 
-  /**
-   * Obsidian anchors a popover to the union of its target's boxes, which for
-   * a token that wraps is the whole line, and a plain Eta tag body gives it
-   * the line outright. The card anchors to the resolved token's own first box,
-   * read live from the editor on every placement.
-   */
   override position(): void {
     const box = this.#box();
     this.staticPos = box
@@ -67,7 +49,6 @@ class TemplateHoverPopover extends SingletonHoverPopover {
     super.position();
     if (!box) return;
     const card = this.hoverEl.getBoundingClientRect();
-    // Keep Obsidian's side selection and horizontal viewport clamp.
     if (card.top >= box.bottom) this.hoverEl.style.top = `${box.bottom + 4}px`;
     else if (card.bottom <= box.top)
       this.hoverEl.style.top = `${box.top - card.height - 4}px`;
@@ -102,14 +83,6 @@ function HoverFacts({ option }: { option: Suggestion }) {
   );
 }
 
-/**
- * Hover presentation over one pane. The resolved token's range is the
- * content's identity. An open card swaps to a new range only after the pointer
- * has dwelt on it for the hover delay; a card still opening swaps at once so
- * the first card is never stale. Native target events own the off-token
- * grace; leaving the editor, an edit, a keystroke, or a click closes the visit
- * early.
- */
 export function templateHover(read: SuggestionSource, parent: HoverParent) {
   return ViewPlugin.fromClass(
     class {
@@ -129,8 +102,6 @@ export function templateHover(read: SuggestionSource, parent: HoverParent) {
         view.contentDOM.addEventListener("mouseout", this.#handoff, true);
       }
 
-      // Native mouseout hides a still-Showing popover immediately. Move its
-      // listeners before that handler runs to retain the original enter timer.
       readonly #handoff = (event: MouseEvent) => {
         if (this.#popover) this.move(event, event.relatedTarget);
       };
@@ -142,9 +113,6 @@ export function templateHover(read: SuggestionSource, parent: HoverParent) {
 
       move(event: MouseEvent, element = event.target) {
         const node = element as Node | null;
-        // A styled token carries its own element, which a plain Eta tag body
-        // has none of. The line stands in for it, and the resolved range owns
-        // the hit test the element used to supply.
         const target = node?.instanceOf(HTMLElement)
           ? node.closest<HTMLElement>(".cm-line span, .cm-line")
           : null;
@@ -157,8 +125,6 @@ export function templateHover(read: SuggestionSource, parent: HoverParent) {
           x: event.clientX,
           y: event.clientY,
         });
-        // Offsets alone answer a move inside the token already resolved, which
-        // is most of them; the resolver runs on the moves that leave it.
         if (
           target === this.#target &&
           position !== null &&
@@ -184,7 +150,6 @@ export function templateHover(read: SuggestionSource, parent: HoverParent) {
           return;
         }
         const popover = this.#popover;
-        // An attached card is open; one still waiting to open swaps at once.
         if (popover?.hoverEl.isConnected) {
           if (
             this.#pending?.range.from === hint.from &&
@@ -224,14 +189,12 @@ export function templateHover(read: SuggestionSource, parent: HoverParent) {
         });
       }
 
-      /** The token's first box, which is where the card anchors. */
       #box(): Rect | null {
         return this.#range === null
           ? null
           : this.view.coordsAtPos(this.#range.from, 1);
       }
 
-      /** The pointer rests on the token itself, not merely on its line. */
       #over(range: { from: number; to: number }, event: MouseEvent): boolean {
         const start = this.view.coordsAtPos(range.from, 1);
         const end = this.view.coordsAtPos(range.to, -1);

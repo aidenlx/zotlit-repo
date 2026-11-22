@@ -1,20 +1,8 @@
-// The OG cards the build never rendered.
-//
-// Every card a page advertises is emitted into the client output by the
-// `machineAssets` plugin, so the asset layer answers it and this route never
-// runs. What reaches here is a miss — and a miss on a changelog card is a
-// version this build never published (see `src/lib/beta-fallback.ts`).
-//
-// Server-only, like `/api/search`: the sole `createFileRoute` property is
-// `server`, which keeps the route out of the client bundle and the prerender
-// pass.
-
 import { createFileRoute } from "@tanstack/react-router";
 
 import { missingReleaseResponse } from "@/lib/beta-fallback.ts";
 import { ogImageUrl } from "@/lib/shared.ts";
 
-/** The tail segment every card URL ends with. @see ogImageUrl */
 const cardFile = "image.webp";
 
 export const Route = createFileRoute("/og/$")({

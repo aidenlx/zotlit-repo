@@ -1,50 +1,24 @@
-// Grouping one document's Citation Occurrences into Citations with Reference Numbers.
-
 import type { CitationOutcome } from "./outcome.ts";
 import { occurrencesEqual } from "./scan.ts";
 import type { CitationOccurrence } from "./scan.ts";
 
-/** The Item a Citation Occurrence resolves to. */
 export interface ResolvedNote {
-  /** Indexed Key of the cited Zotero Item. */
   indexedKey: string;
-  /** Linkpath that opens the Literature Note, or `null` when the Item has none yet. */
   linkpath: string | null;
 }
 
-/**
- * Resolution is lazy and per occurrence: a citekey resolves through the
- * citekey resolution snapshot, a linkpath through its Literature Note, and
- * an Annotation Indexed Key through its current parent Item.
- */
 export type ResolveOccurrence = (
   occurrence: CitationOccurrence,
 ) => ResolvedNote | null;
 
-/** One cited work of a document, with every place the document cites it. */
 export interface Citation {
   outcome?: CitationOutcome;
-  /** Indexed Key of the cited Item, or `null` when the occurrence names no live Zotero Item. */
   indexedKey: string | null;
-  /** Linkpath that opens the Literature Note, or `null` when the Item has none yet. */
   linkpath: string | null;
-  /** 1-based identifier, assigned by first occurrence in document order. */
   refNumber: number;
   occurrences: CitationOccurrence[];
 }
 
-/**
- * Group one document's occurrences into its Citations.
- *
- * Occurrences of the same Item collapse into one Citation, so a document that
- * cites it as a citekey and as a wikilink still gets one reference number. A
- * citekey naming no live Zotero Item stays a Citation of its own — Pandoc
- * warns on an undefined citation rather than dropping it — while a wikilink
- * that points at an ordinary note is no Citation at all.
- *
- * @param occurrences in document order, which is the order reference numbers
- *   are assigned in.
- */
 export function groupCitations(
   occurrences: readonly CitationOccurrence[],
   resolve: ResolveOccurrence,
@@ -74,11 +48,6 @@ export function groupCitations(
   return [...byIdentity.values()];
 }
 
-/**
- * Structural equality of two documents' Citation lists. A consumer refreshes on
- * signals as broad as any metadata change, so this is what keeps an unrelated
- * edit from rebuilding what it already shows.
- */
 export function citationsEqual(
   prev: readonly Citation[],
   next: readonly Citation[],

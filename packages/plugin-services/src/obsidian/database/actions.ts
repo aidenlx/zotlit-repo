@@ -8,14 +8,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-/**
- * Register the manual `zotlit:refresh-zotero-data` command: the escape hatch for
- * silent watcher staleness (system sleep, network-mounted data dirs, etc).
- *
- * A failed refresh rejects with {@link DbUnavailable}, also when the previous
- * database state keeps serving; the toast reports it. A refresh that was
- * interrupted (the plugin unloading mid-run) ends quietly, with no notice.
- */
 export const layerDatabaseActions: Layer.Layer<
   never,
   never,
@@ -28,8 +20,6 @@ export const layerDatabaseActions: Layer.Layer<
       yield* scopedBridge,
       yield* Effect.context<Notifier>(),
     );
-    // The toast outlives the command, as `toast.promise` did, until the
-    // Notifier's layer closes.
     const refresh = withProgress(reads.refresh, {
       loading: m.notice_db_refreshing(),
       success: m.notice_db_refreshed(),

@@ -5,7 +5,6 @@ declare module "@zotlit/templates/defaults/*?raw" {
   export default source;
 }
 
-/** The canonical logo SVGs of `assets/logo/`, as text. */
 declare module "*.svg?raw" {
   const source: string;
   export default source;
@@ -16,7 +15,6 @@ declare module "*.yaml?raw" {
   export default source;
 }
 
-/** Built by the `pandoc-filter-variants` Vite plugin, one variant per query. */
 declare module "*.lua?raw" {
   const source: string;
   export default source;
@@ -32,7 +30,6 @@ declare module "*.lua?variant=sandbox" {
   export default source;
 }
 
-/** The ZoteroReads worker bundle, built and embedded by the `embedded-worker` Vite plugin. */
 declare module "virtual:zotero-reads-worker" {
   const source: string;
   export default source;

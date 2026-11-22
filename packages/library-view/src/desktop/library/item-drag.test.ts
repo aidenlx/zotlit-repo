@@ -1,6 +1,4 @@
 // @vitest-environment happy-dom
-// A Library View row dragged into a note inserts the Item's citation where it
-// lands; dropped back on the view, it is refused.
 import type { App } from "obsidian";
 import type { DragEvent as ReactDragEvent } from "react";
 import { expect, it, vi } from "vitest";
@@ -10,7 +8,6 @@ import { createNanoEvents } from "@zotlit/shared/nanoevents";
 
 import { createItemDrag, ITEM_DRAG_TYPE, refuseItemDrop } from "./item-drag.ts";
 
-/** A drag's data, as the browser keeps it across one drag. */
 function transfer() {
   const data = new Map<string, string>();
   return {
@@ -70,7 +67,6 @@ function setup() {
 it("inserts the citation of the dragged Item where it lands in the note", () => {
   const { start, drop, insertCitation } = setup();
   const data = start("ABCD2345g4815");
-  // Outside a note the drag carries the Item's Zotero link.
   expect(data.getData("text/plain")).toBe(
     "zotero://select/groups/4815/items/ABCD2345",
   );

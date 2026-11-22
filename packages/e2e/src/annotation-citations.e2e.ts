@@ -1,9 +1,4 @@
 import { describe, expect, it } from "vitest";
-// Annotation Citations shown as citations: a Durable Annotation Link with no
-// text renders as its parent Item's formatted citation, located by the
-// Annotation's page, while the setting asks for it. With the setting off, the
-// link stays a link. The hover holds the Annotation and the Item's reference
-// in one popover either way.
 
 import {
   annotationAttachment,
@@ -15,42 +10,27 @@ import { obRun } from "./obsidian-cli.ts";
 
 const NOTE = "Annotation citations.md";
 
-/** An Annotation on page one of the Rougier PDF. */
 const FIRST_PAGE = attachmentAnnotations.find(({ key }) => key === "PUPR5FG5")!;
 
 const URL = `zotero://open/library/items/${annotationAttachment.key}?annotation=${FIRST_PAGE.key}&page=${FIRST_PAGE.pageLabel}`;
 
-/** What one look at the note's Annotation Citation found. */
 interface CitationLook {
-  /** The text the line or the paragraph holding the link shows. */
   shown: string;
-  /** What the hover's popover holds. */
   popover: {
-    /** Whether it shows the Annotation. */
     annotation: boolean;
-    /** The Annotation's quoted text, as the popover shows it. */
     quote: string;
-    /** How many reference blocks it holds. */
     references: number;
-    /** How many actions the reference offers. */
     actions: number;
   };
 }
 
-/**
- * Writes a note with one Annotation Citation, shows it in `gesture`, hovers
- * the link, and reads what the line and the popover show. Every change is
- * undone before the reply.
- */
 async function look({
   gesture,
   render,
   hoverAction = "popover",
 }: {
   gesture: "live-preview" | "reading";
-  /** `citation.render-annotation-citations` for the look. */
   render: boolean;
-  /** `citation.hover-action` for the look. */
   hoverAction?: "off" | "popover" | "page-preview";
 }): Promise<CitationLook> {
   return obRun(
@@ -83,8 +63,6 @@ async function look({
               ),
             ].find((line) => line.textContent?.startsWith("As Rougier")) ??
             null);
-      // The citation lands once the note's citations are read; until then,
-      // and for good with the setting off, the link stays the link it is.
       const target = await until(
         () => {
           const line = shownLine();
@@ -93,8 +71,7 @@ async function look({
             return line.querySelector<HTMLElement>(
               noteGesture === "reading"
                 ? `a[href="${url}"]`
-                : // The `[]` Obsidian draws for a link with no text.
-                  ".zt-annotation-link .cm-link",
+                : ".zt-annotation-link .cm-link",
             );
           return line.textContent?.includes("Rougier", "As Rougier".length)
             ? line.querySelector<HTMLElement>(".zt-annotation-citation")
@@ -179,7 +156,6 @@ describe.skipIf(!reachable)("Annotation Citations", () => {
     async (gesture) => {
       const outcome = await look({ gesture, render: true });
 
-      // The default Chicago author-date style, with the page as the locator.
       expect(outcome.shown).toMatch(
         new RegExp(`\\(Rougier .*2014, ${FIRST_PAGE.pageLabel}\\)`),
       );

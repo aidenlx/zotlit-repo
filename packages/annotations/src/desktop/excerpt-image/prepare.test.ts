@@ -1,5 +1,3 @@
-// Excerpt preparation reads the database before the vault, through ZoteroReads.
-
 import type { ExcerptImageFixture } from "#__fixtures__/excerpt-image/service.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/contract.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
@@ -54,7 +52,6 @@ const settings = { ...defaults, "attachment.import": true };
 
 type Images = Partial<Pick<ExcerptImageFixture, "operation" | "resolve">>;
 
-/** The seeded database's reads and its image annotation, closed with the case's Scope. */
 const seeded = Effect.gen(function* () {
   const client = yield* Effect.acquireRelease(
     Effect.sync(() => createClient(":memory:")),
@@ -70,10 +67,6 @@ const seeded = Effect.gen(function* () {
   return { reads, annotation: annotation! };
 });
 
-/**
- * The real preparation over `vault` and a stub of `images`, at the Zotero data
- * directory `/zotero`, built in the case's Scope.
- */
 const preparationOver = (vault: MemoryVault, images: Images) =>
   Effect.map(
     Layer.build(
@@ -104,7 +97,6 @@ const preparationOver = (vault: MemoryVault, images: Images) =>
     (context) => Context.get(context, ExcerptPreparation),
   );
 
-/** A resolve that settles only when its signal aborts, and gives that signal. */
 function pendingResolve() {
   const started = Promise.withResolvers<AbortSignal | undefined>();
   const resolve = (_request: ExcerptRequest, signal?: AbortSignal) => {

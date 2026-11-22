@@ -1,6 +1,3 @@
-// The one Shared Partial create flow: the Workbench's entry points and the
-// Add partial settings row both run it.
-
 import type { CreateSharedPartialOptions } from "#obsidian/view/new-partial.ts";
 import { Effect } from "effect";
 import type { App } from "obsidian";
@@ -16,13 +13,6 @@ import { openTemplateWorkbench } from "./open.ts";
 
 import { openNewPartialPrompt } from "#obsidian/view/new-partial.ts";
 
-/**
- * Ask a name under the shared rule and write `zotlit-partial.<name>.md`. An
- * interrupt closes the prompt. Where the document opens is the caller's.
- *
- * @returns the created document and its name, or `null` when the reader
- *   dismisses the prompt. Fails with the Template's failure.
- */
 export const createSharedPartial = Effect.fn("SharedPartial.create")(function* (
   app: App,
   options: Omit<CreateSharedPartialOptions, "open" | "from"> = {},
@@ -40,14 +30,6 @@ export const createSharedPartial = Effect.fn("SharedPartial.create")(function* (
   return { name, file };
 });
 
-/**
- * {@link createSharedPartial} for a Workbench entry point, which a leaf runs
- * on its runner, so closing the leaf also closes its prompt. The document opens
- * as `options.open` says. A failure is logged and shows a notice, and answers
- * `null` as a dismissal does.
- *
- * @returns the created name, or `null`.
- */
 export const createSharedPartialEffect = Effect.fn(
   "TemplateWorkbench.createSharedPartial",
 )(function* (app: App, options: CreateSharedPartialOptions = {}) {

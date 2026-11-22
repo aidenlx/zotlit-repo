@@ -1,5 +1,3 @@
-// A filter over Items held in memory: each form a stored Profile Match
-// holds keeps its meaning, and a mistake gives the Diagnostic a query gives.
 import { describe, expect, it } from "vitest";
 
 import { planItemFilter, queryItemFrom, testItemSeed } from "./index.ts";

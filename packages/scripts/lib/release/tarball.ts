@@ -1,6 +1,3 @@
-// Compares two npm tarballs by the files they hold. Two packs of the same
-// files can differ in their gzip bytes, so a published version is the same
-// as a local build when every file path and every file's bytes match.
 import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
@@ -27,10 +24,6 @@ async function fileHashes(dir: string): Promise<Map<string, string>> {
   return hashes;
 }
 
-/**
- * The files that differ between the tarballs `a` and `b`, by path; empty when
- * both hold the same files. Extracts them under `workDir`.
- */
 export async function tarballDifferences(
   a: Buffer,
   b: Buffer,

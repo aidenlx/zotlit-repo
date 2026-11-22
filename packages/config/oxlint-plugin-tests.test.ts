@@ -67,9 +67,6 @@ tester.run("no-class-assertion", noClassAssertion, {
   ],
 });
 
-// Failure modes: a markup read reaches an assertion directly, through a
-// matcher, or through a variable it initializes; selecting an element to act
-// on it, or by text, role or data attribute, stays legal.
 tester.run("no-markup-assertion", noMarkupAssertion, {
   valid: [
     'if (el.classList.contains("is-active")) el.click()',
@@ -131,8 +128,6 @@ tester.run("no-markup-assertion", noMarkupAssertion, {
   ].map((code) => ({ code, errors: [{ messageId: "markup" }] })),
 });
 
-// Failure modes: path constructors and templates hide source extensions;
-// fixtures remain valid inputs; raw imports read source without a filesystem.
 tester.run("no-source-text", noSourceText, {
   valid: [
     'readFile("./fixtures/source.ts", "utf8")',
@@ -159,8 +154,6 @@ tester.run("no-source-text", noSourceText, {
   ].map((code) => ({ code, errors: [{ messageId: "sourceText" }] })),
 });
 
-// Failure modes: every internal alias, both mock APIs, and Vitest's typed
-// import form must be checked while external boundaries stay available.
 tester.run("no-internal-mock", noInternalMock, {
   valid: [
     'vi.mock("obsidian")',
@@ -181,7 +174,6 @@ tester.run("no-internal-mock", noInternalMock, {
   ].map((code) => ({ code, errors: [{ messageId: "internalMock" }] })),
 });
 
-// Serialized page callbacks can use page globals and types, but no host bindings.
 tester.run("no-eval-capture", noEvalCapture, {
   valid: [
     "readQueryViewUntil(id, ({page}, args) => page.revealQueryView(args.handle), {handle}, {ready: value => value !== null})",
@@ -235,7 +227,6 @@ tester.run("no-eval-capture", noEvalCapture, {
   ],
 });
 
-// Readable page callbacks: role names, direct polls, typed values.
 tester.run("no-typed-arg-name", noTypedArgName, {
   valid: [
     "obRun(id, ({app}, {attachmentPath}) => app.vault.getFileByPath(attachmentPath), {attachmentPath})",

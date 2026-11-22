@@ -17,7 +17,6 @@ import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 import { bindLiteratureNoteAttachments } from "./handle.ts";
 import { literatureNoteAttachments } from "./literature-note.ts";
 
-/** Item ABCD2345 (itemID 7) with one stored PDF, ATCH2345. */
 const ITEM_WITH_PDF = `
   insert into libraries (libraryID, type) values (1, 'user');
   insert into itemTypes (itemTypeID, typeName)
@@ -28,11 +27,6 @@ const ITEM_WITH_PDF = `
     values (20, 7, 0, 'application/pdf', 'storage:Doe 2024.pdf');
 `;
 
-/**
- * The services the lookup reads: the real ZoteroReads over `seed` (`null`
- * gives a database that cannot open), Zotero's data directory at /data, and
- * a vault at /vault.
- */
 function services(
   seed: string | null = ITEM_WITH_PDF,
   zoteroPref: Effect.Effect<ZoteroPrefSnapshot> = Effect.succeed(
@@ -51,11 +45,6 @@ function services(
   );
 }
 
-/**
- * {@link ITEM_WITH_PDF}'s Obsidian-Openable shape, hand-computed from the
- * data directory ("/data") and the vault base ("/vault") — an independent
- * oracle, not a call into the mapper under test.
- */
 const OPENABLE_FIXTURE = [
   {
     indexedKey: "ATCH2345",
@@ -116,13 +105,7 @@ describe("literatureNoteAttachments", () => {
   );
 });
 
-// The handle is a Promise edge on purpose: its callers are Obsidian callbacks
-// and views.
 describe("bindLiteratureNoteAttachments", () => {
-  /**
-   * The handle over a test bridge and the services of {@link services};
-   * `unload` closes both, as unloading the plugin does.
-   */
   const handleOver = Effect.fnUntraced(function* (
     layer: ReturnType<typeof services> = services(),
   ) {

@@ -23,14 +23,12 @@
         ]
       }
     ],
-    // The desktop layer reads Node; lint keeps Node out of the other layers.
     "types": ["node-24"]
   },
   "include": [
     "./src/**/*.ts",
     "./src/**/*.tsx",
     "../obsidian-kit/src/typings/*.d.ts",
-    // The build constants the platform services read.
     "../plugin-services/src/typings/*.d.ts"
   ],
   "exclude": [

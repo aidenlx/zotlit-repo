@@ -2,8 +2,6 @@ import type {
   SettingsKey,
   SettingTabContext,
 } from "#obsidian/setting-tab/context.ts";
-// The Advanced page's Reset language packs action: it asks first, then
-// clears every downloaded Language Pack and the consent behind it.
 import { Effect } from "effect";
 import type { SettingGroupItem } from "obsidian";
 
@@ -14,10 +12,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { LanguagePack } from "./service.ts";
 
-/**
- * Clear every downloaded Language Pack and the consent behind it. The pack
- * applied at startup keeps running, so the notice names the restart.
- */
 export const resetLanguagePacks = Effect.fn("SettingTab.resetLanguagePacks")(
   function* (confirm: Effect.Effect<boolean>) {
     if (!(yield* confirm)) return;
@@ -29,7 +23,6 @@ export const resetLanguagePacks = Effect.fn("SettingTab.resetLanguagePacks")(
   withLogCategory("setting-tab", "advanced"),
 );
 
-/** The Recovery group's Reset language packs row. */
 export function languagePackResetItem(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey> {

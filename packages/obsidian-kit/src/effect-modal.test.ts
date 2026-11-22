@@ -4,7 +4,6 @@ import { expect } from "vitest";
 
 import { awaitModal } from "#effect-modal.ts";
 
-/** A modal that, as Obsidian's, calls its close callback once it closes. */
 function fakeModal<A>(dismissed: A) {
   let settle: (value: A) => void = () => undefined;
   let open = false;
@@ -14,7 +13,6 @@ function fakeModal<A>(dismissed: A) {
       return open;
     },
     choose(value: A) {
-      // A choice settles first, then the modal closes itself.
       settle(value);
       modal.close();
     },
@@ -71,8 +69,6 @@ it.effect("awaitModal closes the modal once on interrupt", () =>
 
 it.effect("awaitModal keeps a choice that settles after the modal closed", () =>
   Effect.gen(function* () {
-    // A SuggestModal closes before it reports the choice, so the modal
-    // guards its dismiss value and settles the choice after close.
     let settle: (value: string | null) => void = () => undefined;
     let closes = 0;
     const fiber = yield* awaitModal<string | null>((next) => {

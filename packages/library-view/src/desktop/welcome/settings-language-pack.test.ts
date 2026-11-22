@@ -26,7 +26,6 @@ import { resourcesGroup } from "./settings-resources.ts";
 import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";
 import { defaults } from "#__fixtures__/settings.ts";
 
-/** The Language Pack row of the resources group, when it stands. */
 const languagePackRow = (ctx: SettingTabContext) =>
   resourcesGroup(ctx).items?.find(
     (item): item is SettingDefinition<SettingsKey> =>

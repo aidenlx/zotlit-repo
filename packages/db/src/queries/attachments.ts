@@ -137,11 +137,6 @@ function toAttachment(row: AttachmentRow, groupID: number | null): Attachment {
   };
 }
 
-/**
- * Fetch the live attachments of each parent item, in `parentItemIDs` order and
- * in `itemID` order within one parent, through one cached keyed read. A parent with
- * no live attachment adds nothing; a repeated parent repeats its attachments.
- */
 export function getAttachmentsByParents(
   db: ZoteroDatabase,
   parentItemIDs: readonly number[],
@@ -153,11 +148,6 @@ export function getAttachmentsByParents(
   );
 }
 
-/**
- * Fetch attachments of one library by key, in `keys` order, through
- * one cached keyed read. A key that names no live attachment has no entry; a
- * repeated key repeats its attachment.
- */
 export function getAttachmentsByKey(
   db: ZoteroDatabase,
   libraryID: number,
@@ -180,23 +170,9 @@ export function getAttachmentByKey(
 }
 
 export interface AttachmentWithParentKey extends Attachment {
-  /**
-   * Indexed Key of the Item this Attachment hangs from; `null` for a standalone
-   * Attachment, which Zotero allows and which holds Annotations like any other.
-   */
   parentIndexedKey: string | null;
 }
 
-/**
- * One page of the live Attachments, each beside its parent Item's Indexed
- * Key — for a consumer that indexes the whole table rather than asking per
- * Item. The attachment path index runs `attachmentAbsPath` across these.
- * Pages run in `itemID` order: the live Attachments after `afterItemID`, at
- * most `limit` of them. Pass the last page's final `itemID` to read the next;
- * an empty page ends the table.
- *
- * @see ../lib/zt-path.ts — `attachmentAbsPath` and `attachmentPathKey`
- */
 export function getAttachmentPage(
   db: ZoteroDatabase,
   page: { afterItemID: number; limit: number },
@@ -214,8 +190,6 @@ function toAttachmentWithParentKey(
   row: AttachmentWithParentRow,
   memo: GroupIDMemo,
 ): AttachmentWithParentKey {
-  // Zotero keeps a child in its parent's library, so one group lookup covers
-  // both keys.
   const groupID = resolveGroupID(db, row.item_itemID.libraryID, memo);
   const parentKey = row.item_parentItemID?.key;
   return {

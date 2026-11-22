@@ -8,7 +8,6 @@ export function normalizeFolderPath(dir: string | null): string | null {
   return normalizePath(dir);
 }
 
-/** Join a child name onto a normalized folder path, treating `"/"` as the vault root. */
 export function joinFolderPath(folder: string, name: string): string {
   return folder === "/" ? name : `${folder}/${name}`;
 }

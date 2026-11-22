@@ -1,7 +1,3 @@
-// Vendored from fumadocs (`fumadocs add type-table`, base-ui). Adapted for the
-// template contract: rows carry a name prefix, an ordered list of labelled
-// detail rows, and no default/deprecated fields the contract never has.
-
 import Link from "fumadocs-core/link";
 import {
   Collapsible,
@@ -15,20 +11,15 @@ import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/cn.ts";
 import * as m from "@/paraglide/messages.js";
 
-/** One labelled line in an expanded row, e.g. `Liquid` → `{{ zt.noteLink }}`. */
 export interface DetailNode {
   label: string;
   content: ReactNode;
 }
 
 export interface TypeNode {
-  /** Additional description of the field. */
   description?: ReactNode;
-  /** Type signature (short). */
   type: ReactNode;
-  /** Type signature (full). */
   typeDescription?: ReactNode;
-  /** Optional `href` for the type. */
   typeDescriptionLink?: string;
   required?: boolean;
   details?: readonly DetailNode[];
@@ -44,9 +35,7 @@ export function TypeTable({
   ...props
 }: {
   type: Record<string, TypeNode>;
-  /** Row anchors extend it, e.g. `creators` gives `#creators-family`. */
   anchor?: string;
-  /** Rendered before every row name, e.g. `zt.`. */
   prefix?: string;
 } & ComponentProps<"div">) {
   return (

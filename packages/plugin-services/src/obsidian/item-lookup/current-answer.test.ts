@@ -1,7 +1,4 @@
 // @vitest-environment happy-dom
-// Regression tests: the editor suggesters chose a row of an earlier
-// query's answer while the typed query's answer was pending. The Item pickers'
-// cases run through `ItemSearchModal` in `search-modal.test.ts`.
 import { describe, expect, it, vi } from "vitest";
 
 import { CurrentAnswer } from "./current-answer.ts";
@@ -36,7 +33,6 @@ describe("CurrentAnswer", () => {
     const older = answer.track(ten.promise);
 
     answer.choose("DMRGRART", enter, select);
-    // The input was cleared: its answer, the fixed choices, comes at once.
     void answer.track(["Personal", "RUGIER24"]);
     ten.resolve(["DMRGRART", "RUGIER24"]);
     await older;

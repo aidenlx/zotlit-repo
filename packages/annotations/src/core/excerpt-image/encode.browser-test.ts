@@ -1,6 +1,3 @@
-// Runs in a disposable Electron renderer: the canvas encoding path, an
-// independent decode of its output, and the PNG/WebP size and timing comparison.
-
 import { usableExcerptWebp } from "./webp.ts";
 
 import { check } from "#__fixtures__/excerpt-image/check.ts";
@@ -21,15 +18,10 @@ export interface EncodeReport {
   userAgent: string;
   imageDecoder: boolean;
   measurements: CropMeasurement[];
-  /** Reported, not asserted: how the canvas round-trip compares to the source. */
   oracle: {
-    /** Opaque source: pixels compared with the source render buffer. */
     opaque: Comparison;
-    /** Translucent source: the same comparison, plus its alpha samples. */
     translucent: Comparison;
-    /** WebCodecs decode of the opaque payload, when the host provides one. */
     webcodecs: { opaque: Comparison; translucent: Comparison } | undefined;
-    /** Worst channel step of a lossy payload, to show the oracle discriminates. */
     lossyStep: number;
   };
 }
@@ -65,7 +57,6 @@ async function toBlob(
   );
 }
 
-/** Deterministic content, so a re-run on the same runtime reproduces every number. */
 function random(seed: number): () => number {
   let state = seed >>> 0;
   return () => {
@@ -76,7 +67,6 @@ function random(seed: number): () => number {
   };
 }
 
-/** Crops in the shapes the renderer produces: text, equations, ink, and images. */
 function crop(kind: "text" | "equation" | "ink" | "image"): HTMLCanvasElement {
   const next = random(0x1183);
   if (kind === "text") {
@@ -196,7 +186,6 @@ export interface Comparison {
   maxDelta: number;
 }
 
-/** Byte differences between two RGBA buffers, and the worst channel delta. */
 function compare(
   expected: Uint8ClampedArray,
   actual: Uint8ClampedArray,
@@ -221,7 +210,6 @@ function compare(
   return comparison;
 }
 
-/** Draws the payload back through a canvas: the decoder this host provides. */
 async function decode(bytes: Uint8Array, type: string) {
   const bitmap = await createImageBitmap(
     new Blob([bytes as unknown as BlobPart], { type }),
@@ -251,7 +239,6 @@ interface BrowserImageDecoder {
   close(): void;
 }
 
-/** WebCodecs decodes the file's own samples, without the canvas premultiplied step. */
 async function decodeWithImageDecoder(
   bytes: Uint8Array,
   premultiplyAlpha: "none" | "premultiply",
@@ -286,12 +273,6 @@ async function decodeWithImageDecoder(
   }
 }
 
-/**
- * Decodes one encoded payload and compares it with the source render buffer and
- * with the lossless PNG of the same canvas. The canvas round-trip is the only
- * decoder this host offers: `drawImage` premultiplies, so translucent samples are
- * compared with that step accounted for instead of being compared loosely.
- */
 async function probe(translucent: boolean) {
   const width = 37;
   const height = 23;
@@ -344,13 +325,6 @@ async function probe(translucent: boolean) {
   };
 }
 
-/**
- * Lossless proof. Generated crops are drawn on an opaque canvas, so their pixels
- * must decode byte for byte. A translucent source stays a supported input: its
- * alpha samples must survive exactly and its colors may move only by the 8-bit
- * step the canvas loses when it unpremultiplies for the WebP encoder, which a
- * lossy payload exceeds by two orders of magnitude.
- */
 async function oracle(): Promise<EncodeReport["oracle"]> {
   const opaque = await probe(false);
   const translucent = await probe(true);
@@ -359,17 +333,11 @@ async function oracle(): Promise<EncodeReport["oracle"]> {
       ? { opaque: opaque.independent, translucent: translucent.independent }
       : undefined;
   const lossyStep = Math.max(opaque.lossyStep, translucent.lossyStep);
-  // The decoder this host provides proves the payload itself: WebCodecs reads the
-  // samples the file holds, so both patterns must match the source render buffer
-  // exactly, translucent alpha included.
   for (const [pattern, comparison] of Object.entries(webcodecs ?? {}))
     check(
       comparison.exact === comparison.pixels && comparison.maxDelta === 0,
       `WebCodecs decode differs from the ${pattern} source render: ${JSON.stringify(comparison)}`,
     );
-  // Drawing the payload back through a canvas premultiplies it first, so opaque
-  // pixels must still match byte for byte and translucent colors may move only by
-  // the 8-bit step the canvas loses, which a lossy payload exceeds by far.
   check(
     opaque.againstSource.exact === opaque.againstSource.pixels,
     `Canvas decode differs from the opaque source render: ${JSON.stringify(opaque.againstSource)}`,
@@ -398,7 +366,6 @@ async function oracle(): Promise<EncodeReport["oracle"]> {
   };
 }
 
-/** Display reads the bytes through the MIME type the format metadata reports. */
 async function assertDisplays(image: { bytes: Uint8Array; mimeType: string }) {
   const url = URL.createObjectURL(
     new Blob([image.bytes as unknown as BlobPart], { type: image.mimeType }),

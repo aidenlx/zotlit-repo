@@ -7,13 +7,10 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import zhPack from "@zotlit/plugin-messages/zh-CN.json";
 
-// Turbo generates these artifacts before testing; compiler mechanics are
-// covered in @zotlit/obsidian-i18n. Check the plugin's actual build output here.
 afterEach(() => runtime.reset());
 
 test("the plugin pack contains its shared labels and fits the runtime cap", () => {
   expect(basePack.messages).not.toHaveProperty("docs_index_title");
-  // Native shared controls read the same pack as the rest of the plugin.
   expect(basePack.messages).toMatchObject({
     workbench_title: "Template workbench",
     workbench_tab_match: "Match",
@@ -25,9 +22,6 @@ test("the plugin pack contains its shared labels and fits the runtime cap", () =
       (key) => key.startsWith("reader_") || key.startsWith("pdf_reader_"),
     ),
   ).toEqual([]);
-  // A pack over the cap is refused at runtime, and copy another host owns is
-  // what fills it. Add the new prefix to EXCLUDE_MESSAGE_PREFIXES when this
-  // fails for messages the plugin never reads.
   expect(Object.keys(basePack.messages).length).toBeLessThanOrEqual(
     LANGUAGE_PACK_LIMITS.messages,
   );
@@ -39,15 +33,12 @@ test("the plugin pack contains its shared labels and fits the runtime cap", () =
 
 test("the generated facade renders bundled lifecycle copy and base-locale fallback", () => {
   expect(m.hello()).toBe("world");
-  // Lifecycle copy renders in the target language from the bundled subset,
-  // with no Language Pack installed and no network access.
   expect(m.settings_language_pack_name()).toBe("Language pack");
   runtime.setTargetLocale("zh-CN");
   expect(m.settings_language_pack_name()).toBe("语言包");
   expect(
     m.settings_language_pack_desc({ plugin: "ZotLit", language: "简体中文" }),
   ).toBe("以 简体中文 显示 ZotLit 界面。安装时将下载语言包。");
-  // Everything outside the configured prefixes keeps the existing ladder.
   expect(m.hello()).toBe("world");
   expect(m.workbench_tab_match()).toBe("Match");
   expect(m.creator_summary({ count: 3, first: "Ada" })).toBe("Ada et al.");

@@ -20,10 +20,6 @@ import { DATASETS } from "./datasets.ts";
 import { annotationsLayoutOptions, CARD_WIDTH, layoutsFor } from "./layouts.ts";
 import type { AnnotationsLayoutOptions } from "./layouts.ts";
 import { ListLayoutFields, listLayoutOptions } from "./list-layout.tsx";
-// "Configure view": the name, the rows and the Layout of one view of a
-// Query File, and the options of its Layout, as the view menu's page for that
-// view shows them. Each change saves to the file at once; a typed name saves
-// when its field loses focus.
 import { useQueryViewState } from "./model.ts";
 import { VIEW_NAME_RESERVED, viewNameIssue } from "./view-edits.ts";
 import type { ViewNameIssue } from "./view-edits.ts";
@@ -47,7 +43,6 @@ function issueText(issue: ViewNameIssue): string {
   }
 }
 
-/** The per-view actions, for the menu of "Configure view". */
 export function viewActions({
   view,
   index,
@@ -91,11 +86,6 @@ export function viewActions({
   ];
 }
 
-/**
- * The fields of "Configure view" for one view, as the view menu's page shows
- * them. `name` names the view; a rename here reports the new name through
- * `onRenamed`, so the page follows the view.
- */
 export function ConfigureViewFields({
   view,
   name,
@@ -187,7 +177,6 @@ export function ConfigureViewFields({
   );
 }
 
-/** The Annotations layout's options in "Configure view". */
 function AnnotationsLayoutFields({
   options,
   set,

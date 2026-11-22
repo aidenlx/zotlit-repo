@@ -7,10 +7,6 @@ import { makePortLogger } from "./effect-log-port.ts";
 import type { LogPortRecord, PortLogLevel } from "./effect-log-port.ts";
 import * as WorkerEffect from "./effect-worker-runtime.ts";
 
-// Failure mode: Effect's default minimum level is Info, so the worker dropped
-// debug and trace records before the port logger could forward them.
-// `effect-vitest` and the ZoteroReads helper add their own level, so only the
-// worker runtime's own entry points show the default.
 const portLoggerContext = (posted: LogPortRecord[]) =>
   Context.make(
     Logger.CurrentLoggers,

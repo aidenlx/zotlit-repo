@@ -1,9 +1,5 @@
-// Reads an npm registry over HTTP: whether a version of a package is
-// published, and its tarball. A release reads the public registry; the dry
-// run and the tests read a local one (local-registry.ts).
 import { setTimeout as delay } from "node:timers/promises";
 
-/** The public npm registry. */
 export const NPM_REGISTRY = "https://registry.npmjs.org/";
 
 interface Packument {
@@ -11,18 +7,12 @@ interface Packument {
 }
 
 export class Registry {
-  /** The registry URL, with a trailing slash. */
   readonly url: string;
 
   constructor(url: string) {
     this.url = url.endsWith("/") ? url : `${url}/`;
   }
 
-  /**
-   * The tarball of `name@version`, or undefined when the registry does not
-   * serve that version. The read skips caches, so a version published a
-   * moment ago shows as soon as the registry has it.
-   */
   async tarball(name: string, version: string): Promise<Buffer | undefined> {
     const response = await fetch(
       `${this.url}${name.replace("/", "%2f")}`,
@@ -45,10 +35,6 @@ export class Registry {
     return Buffer.from(await file.arrayBuffer());
   }
 
-  /**
-   * Waits until the registry serves `name@version` and its tarball. A version
-   * that `npm publish` accepted can take a minute to reach every reader.
-   */
   async waitFor(
     name: string,
     version: string,

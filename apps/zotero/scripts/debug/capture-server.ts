@@ -1,6 +1,3 @@
-// Tiny stand-in for the Obsidian notify listener. Logs every POST /notify body
-// so we can confirm the Zotero side actually dispatches events.
-
 import { createServer } from "node:http";
 
 const PORT = Number(process.argv[2] ?? 9091);

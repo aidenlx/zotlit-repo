@@ -5,14 +5,6 @@ import type {
 } from "#desktop/item-query/query-view.ts";
 import { Effect } from "effect";
 
-// The Annotation Suggester's search: ZotLit Query over the Zotero database,
-// so it answers with Zotero closed. The query text reads in the Library
-// View's search grammar, with `color:` and `paper:` beside `tag:`.
-//
-// Search across papers reads the database alone, so an annotation Zotero has
-// not yet written there is missing from the results until it has. Selection
-// reads the live annotation repository (`annotation-insert.ts`), the Local API
-// while Zotero runs, so what lands holds the latest edits.
 import {
   logServices,
   withLogCategory,
@@ -22,29 +14,19 @@ import { searchTokens } from "@zotlit/plugin-services/core/item-lookup/search-te
 
 import { visibleText } from "#core/item-query/visible-text.ts";
 
-/** The token names the Annotation Suggester reads beside its words. */
 export const ANNOTATION_SEARCH_TOKENS = ["tag", "color", "paper"] as const;
 
-/**
- * The most papers one search reads: the ones with the latest activity whose
- * annotations match. Each gives at most the suggester's limit.
- */
 const PAPER_LIMIT = 20;
 
-/** One annotation the search found, with what its suggestion shows. */
 export interface AnnotationHit {
-  /** Indexed Key of the annotation. */
   key: string;
-  /** Indexed Key of the Attachment it hangs from. */
   attachmentKey: string;
-  /** Indexed Key of the paper, the Attachment's parent Item. */
   itemKey: string;
   type: string | null;
   text: string | null;
   comment: string | null;
   color: string | null;
   pageLabel: string | null;
-  /** The paper's title. */
   title: string | null;
   citationKey: string | null;
 }
@@ -61,13 +43,6 @@ const FIELDS = {
 
 const quote = (value: string) => JSON.stringify(value);
 
-/**
- * The filter an annotation must pass, its fields read through `field`: on
- * the annotations dataset the field itself, inside an Item's
- * `annotations.filter(...)` the field of `value`. Every word must be in the
- * visible text of the text or the comment, in any case; every tag must be on it; one of the
- * colors, a palette name or a `#` hex, must be its color.
- */
 function annotationConditions(
   terms: { words: string; tag: readonly string[]; color: readonly string[] },
   field: (name: string) => string,
@@ -117,16 +92,6 @@ function toHit(row: QueryViewRow): AnnotationHit {
   };
 }
 
-/**
- * The annotations in Library Scope that `query` finds, the papers with the
- * latest activity first, as the Library View's Recent sorts them; a paper's
- * annotations in Zotero's reading order. At most `limit`.
- *
- * Two queries: the papers with a matching annotation, sorted by Last
- * Activity, which only Item Query offers; then their matching annotations.
- *
- * @returns `null` when the signal aborts it or ZotLit Query cannot answer.
- */
 export async function searchAnnotations(
   service: Pick<QueryHandle, "run">,
   query: string,

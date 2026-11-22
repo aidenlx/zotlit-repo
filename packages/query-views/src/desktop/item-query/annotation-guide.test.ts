@@ -24,7 +24,6 @@ const IDENTITY = {
   source: { id: "source-1", databasePath: "/zotero/zotero.sqlite" },
 };
 
-/** The parsed answer of an Annotation query; a malformed one fails with its rejection. */
 function runAnnotationQuery(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   params: CliData,

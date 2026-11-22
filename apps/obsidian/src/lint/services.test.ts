@@ -28,16 +28,13 @@ const tester = new RuleTester({
 
 tester.run("effect-native-resources", effectNativeResources, {
   valid: [
-    // The release callback is its own function, not the generator's body.
     `Effect.gen(function* () {
       yield* Effect.acquireRelease(acquire, (d) => Effect.sync(() => d[Symbol.dispose]()));
     })`,
-    // Outside Effect, stacks are the house pattern.
     `async function load() {
       await using stack = new AsyncDisposableStack();
       stack.defer(close);
     }`,
-    // A generator Effect does not run.
     `function* items() { using lock = take(); yield lock; }`,
     `Effect.fnUntraced(function* () { yield* Effect.acquireDisposable(Effect.sync(() => registerEvent(ref))); })`,
   ],
@@ -98,7 +95,6 @@ tester.run("service-tag-id", serviceTagId, {
 tester.run("cli-command-registration", cliCommandRegistration, {
   valid: [
     `host.registerCliCommand("zotlit:a", "A", null, handler)`,
-    // ZotLitPlugin's own boundary.
     `class P { registerCliHandler() { super.registerCliHandler(a, b, c, d); } }`,
     `class P { run() { this.registerCliHandler(a, b, c, d); } }`,
   ],
@@ -180,9 +176,7 @@ tester.run("no-nanoevents", noNanoevents, {
 tester.run("layer-stream-consumer", layerStreamConsumer, {
   valid: [
     `Effect.gen(function* () { yield* forkEach(settings.changes, apply); })`,
-    // Plain code bridges into the runtime.
     `function attach(runtime) { return subscribe(runtime, changes, apply); }`,
-    // A per-call observer returns its unsubscribe to a plain caller.
     `Effect.gen(function* () {
       return { observe: (cb) => subscribe(runner, changes, cb) };
     })`,
@@ -239,14 +233,10 @@ const effect = 'import { Effect } from "effect";\n';
 
 tester.run("obsidian-capabilities", obsidianCapabilities, {
   valid: [
-    // A legacy file, with no Effect import, keeps the App.
     "const file = app.vault.getFileByPath(path);",
     'stack.use(this.registerEvent(this.app.workspace.on("file-open", open)));',
-    // A type-only import of the bridge names the seam a legacy file holds.
     'import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nconst cache = app.metadataCache.getFileCache(file);',
-    // A plain file that only logs through Effect keeps the App.
     'import { Effect } from "effect";\nimport { logServices, withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";\nconst file = app.vault.getFileByPath(path);\nEffect.runSyncWith(logServices)(Effect.logDebug("Read {path}").pipe(Effect.annotateLogs({ path }), withLogCategory("views")));',
-    // Not the App: a tag, or another object's members.
     `${effect}Effect.gen(function* () {
       const vault = yield* Vault;
       const file = yield* vault.getFileByPath(path);
@@ -276,12 +266,10 @@ tester.run("obsidian-capabilities", obsidianCapabilities, {
       errors: [{ messageId: "capability" }],
     },
     {
-      // A type-only import of another Effect module counts.
       code: 'import type { ClosableModal } from "@zotlit/obsidian-kit/effect-modal.ts";\nctx.app.vault.create(path, data);',
       errors: [{ messageId: "capability" }],
     },
     {
-      // The bridge is an Effect module when its values are imported.
       code: 'import { bridgeOf } from "@zotlit/plugin-kernel/effect-bridge.ts";\napp.metadataCache.getFirstLinkpathDest(link, path);',
       errors: [{ messageId: "capability" }],
     },
@@ -294,7 +282,6 @@ tester.run("obsidian-capabilities", obsidianCapabilities, {
       errors: [{ messageId: "event" }],
     },
     {
-      // One report for the registration, one for the raw event; none for app.vault.
       code: `${effect}this.registerEvent(this.app.vault.on("rename", move));`,
       errors: [{ messageId: "registerEvent" }, { messageId: "event" }],
     },
@@ -311,10 +298,8 @@ tester.run("no-default-runtime", noDefaultRuntime, {
     'import { Effect } from "effect";\nbridge.runPromise(x);',
     'import { Effect } from "effect";\nEffect.runSyncWith(ctx)(x);',
     'import { Effect } from "effect";\nEffect.runPromiseWith(ctx)(x);',
-    // A local name that is not the Effect module.
     "const Effect = { runSync: () => 0 };\nEffect.runSync(x);",
     'import { Effect } from "./not-effect";\nEffect.runSync(x);',
-    // Not the Effect namespace of this module.
     'import { Effect } from "effect";\nStream.runSync(x);',
   ],
   invalid: [
@@ -341,9 +326,7 @@ tester.run("scoped-runner", scopedRunner, {
   valid: [
     'import { Effect } from "effect";\nimport { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nEffect.gen(function* () { const bridge = yield* scopedBridge; bridge.runPromise(x); });',
     'import { Effect, FiberSet } from "effect";\nEffect.gen(function* () { const run = yield* FiberSet.makeRuntimePromise(); });',
-    // A sync runner settles before unload can reach it.
     'import { Effect } from "effect";\nEffect.runSyncWith(ctx)(x);',
-    // A local name that is not the Effect module.
     "const Effect = { runPromiseWith: () => 0 };\nEffect.runPromiseWith(ctx);",
     'import { Effect } from "./not-effect";\nEffect.runPromiseWith(ctx);',
   ],
@@ -370,7 +353,6 @@ const instantOption = { messageId: "option" };
 
 tester.run("clock-time", clockTime, {
   valid: [
-    // No Effect in the file: the legacy clock stays.
     { code: "const at = Date.now();", filename: library },
     { code: "const at = Temporal.Now.instant();", filename: library },
     { code: "const at = performance.now();", filename: library },
@@ -378,24 +360,19 @@ tester.run("clock-time", clockTime, {
       code: "const at = new Date();",
       filename: library,
     },
-    // A type-only import of the bridge is not Effect code.
     {
       code: 'import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nconst at = Date.now();\nconst instant = Temporal.Now.instant();',
       filename: library,
     },
-    // Reading time through Clock, and building a Date from a value.
     {
       code: `${effectImport}const read = Effect.gen(function* () {\n  const at = yield* Clock.currentTimeMillis;\n  return new Date(at);\n});`,
       filename: library,
     },
-    // Another object's `now`.
     { code: `${effectImport}const at = clock.now();`, filename: library },
-    // A layer that reads Clock takes no `now`.
     {
       code: `${effectImport}export const layer = (options: { readonly root: string }) => Layer.empty;`,
       filename: services,
     },
-    // `now` as a value, not a function, and a non-layer function.
     {
       code: `${effectImport}export const layerFor = (options: { readonly now: string }) => Layer.empty;`,
       filename: services,
@@ -404,7 +381,6 @@ tester.run("clock-time", clockTime, {
       code: `${effectImport}export function build(options: { now?: () => Temporal.Instant }) {}`,
       filename: services,
     },
-    // Outside src/services the option part does not apply.
     {
       code: `${effectImport}export const layer = (options: { now?: () => number }) => Layer.empty;`,
       filename: library,
@@ -437,7 +413,6 @@ tester.run("clock-time", clockTime, {
       errors: [instantOption],
     },
     {
-      // The options type is declared in the same file.
       code: `${effectImport}interface LayerOptions { readonly now?: () => Temporal.Instant }\nexport const layer = (options: LayerOptions = {}) => Layer.empty;`,
       filename: services,
       errors: [instantOption],
@@ -448,7 +423,6 @@ tester.run("clock-time", clockTime, {
       errors: [instantOption],
     },
     {
-      // A plain parameter named `now`.
       code: `${effectImport}export const layerSessions = (now: () => Temporal.Instant = () => Temporal.Instant.from(zero)) => Layer.empty;`,
       filename: services,
       errors: [instantOption],
@@ -460,18 +434,15 @@ const temporal = { messageId: "temporal" };
 
 tester.run("temporal-in-effect", temporalInEffect, {
   valid: [
-    // Outside Effect, Temporal is the date API.
     { code: "const at = Temporal.Instant.from(text);", filename: library },
     {
       code: "let at: Temporal.Instant | undefined;\nconst zone = Temporal.Now.timeZoneId();",
       filename: library,
     },
-    // A type-only import of the bridge is not Effect code.
     {
       code: 'import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";\nconst at = Temporal.Instant.from(text);',
       filename: library,
     },
-    // Effect's DateTime, and a property that only shares the name.
     {
       code: `${effectImport}const at = DateTime.makeUnsafe(text);\nconst api = options.Temporal;\nconst names = { Temporal: 1 };`,
       filename: library,
@@ -504,7 +475,6 @@ tester.run("temporal-in-effect", temporalInEffect, {
       errors: [temporal],
     },
     {
-      // An `effect-*` module of the plugin packages is Effect code too.
       code: 'import { instantClock } from "@zotlit/plugin-kernel/effect-clock.ts";\nconst spy = vi.spyOn(Temporal.Now, "instant");',
       filename: library,
       errors: [temporal],
@@ -512,7 +482,6 @@ tester.run("temporal-in-effect", temporalInEffect, {
   ],
 });
 
-// Every consumer, including fixtures, reads the retained service contract.
 tester.run("no-plain-service-adapters", noPlainServiceAdapters, {
   valid: [
     {

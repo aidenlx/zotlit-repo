@@ -1,6 +1,4 @@
 import type { ProfileOperationError } from "#obsidian/profile/service.ts";
-// Template and Profile calls as the Workbench's plain callers answered them:
-// a failure is what the Template or the Profile store threw.
 import { Cause, Effect, Exit, Result } from "effect";
 
 import type { CompiledFrontmatterField } from "@zotlit/templates/frontmatter";
@@ -10,19 +8,11 @@ import type { TemplateFailure, TemplateOperations } from "./service.ts";
 
 import { plainTemplateError } from "#core/template/errors.ts";
 
-/**
- * A Template call that fails with what the Template threw, as `Effect.try`
- * over the plain call did. A defect stays a defect.
- */
 export const templateCall = <A, R>(
   effect: Effect.Effect<A, TemplateFailure, R>,
 ): Effect.Effect<A, unknown, R> =>
   Effect.mapError(effect, (error) => plainTemplateError(error));
 
-/**
- * A Profile call that fails with what the store threw, as `Effect.try` over
- * the plain call did. A defect stays a defect.
- */
 export const profileCall = <A, R>(
   effect: Effect.Effect<A, ProfileOperationError, R>,
 ): Effect.Effect<A, unknown, R> =>
@@ -32,12 +22,6 @@ export const profileCall = <A, R>(
     ),
   );
 
-/**
- * The Template's `render`, `renderManagedContent`, `renderCitation`,
- * `renderProfileAnnotation` and `frontmatterFields`, run
- * synchronously on the caller's context. A failure throws what the Template
- * threw, as the getter or helper that runs it expects.
- */
 export const syncTemplate: Effect.Effect<
   Pick<
     TemplateOperations,

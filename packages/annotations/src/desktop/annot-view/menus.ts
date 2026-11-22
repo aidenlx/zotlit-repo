@@ -1,9 +1,3 @@
-// The Annotation View's menus, as Obsidian builds them. One builder per menu:
-// each takes the entries a pure module answered plus the gestures they run, and
-// fills a native `Menu` its caller shows from the event that opened it.
-//
-// @see apps/obsidian/docs/adr/0044-menus-and-popovers-are-obsidians-own-primitives.md
-
 import type {
   FollowMenuAction,
   HeaderMenuAction,
@@ -13,7 +7,6 @@ import type { Menu } from "obsidian";
 
 import type { AnnotActions } from "./actions.tsx";
 
-/** The gestures a header menu row runs; the view supplies every one. */
 export type HeaderMenuGestures = Pick<
   AnnotActions,
   | "onAllowEditing"
@@ -26,16 +19,10 @@ export type HeaderMenuGestures = Pick<
 >;
 
 export interface HeaderMenuInput {
-  /** The groups `headerMenu` answered, in the order they are shown. */
   groups: HeaderMenuEntry[][];
   actions: HeaderMenuGestures;
 }
 
-/**
- * The header block's one menu: the groups a pure module decided, each divided
- * from the next by a separator. A row carrying no gesture is a reporting row —
- * `setIsLabel` leaves it readable and lets the arrow keys step over it.
- */
 export function buildHeaderMenu(
   menu: Menu,
   { groups, actions }: HeaderMenuInput,

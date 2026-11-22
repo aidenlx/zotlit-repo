@@ -1,6 +1,4 @@
 import type { WorkbenchRunner } from "#core/language/host-effects.ts";
-// The Workbench's chooser: a native suggest modal over groups of options, with
-// an optional ranked search of Zotero results added to the fixed choices.
 import { Effect, Fiber } from "effect";
 import {
   prepareSimpleSearch,
@@ -27,35 +25,22 @@ export interface WorkbenchSuggesterOption {
   readonly id: string;
   readonly label: string;
   readonly hint?: string;
-  /** A leading icon that marks an action row apart from the choices. */
   readonly icon?: IconName;
 }
 
 export interface WorkbenchSuggesterGroup {
-  /** Text shown when this group has no options. */
   readonly empty?: string;
   readonly label: string;
   readonly options: readonly WorkbenchSuggesterOption[];
 }
 
 export interface WorkbenchSuggesterRequest {
-  /**
-   * The control that receives focus after the chooser closes. The chooser
-   * opens in this control's window.
-   */
   readonly anchor?: HTMLElement;
-  /** The window the chooser opens in, where there is no `anchor`. */
   readonly window?: Window;
   readonly title: string;
   readonly placeholder?: string;
   readonly groups: readonly WorkbenchSuggesterGroup[];
-  /** The option chosen now, if any. */
   readonly selected?: string;
-  /**
-   * Ranked results for the typed query, added to the fixed choices. `run` is
-   * the runner of the view that asked, which interrupts a search when the view
-   * closes.
-   */
   readonly search?: {
     readonly run: WorkbenchRunner;
     readonly items: (
@@ -64,10 +49,6 @@ export interface WorkbenchSuggesterRequest {
   };
 }
 
-/**
- * The view a chooser opens for: the window it opens in, the app it opens on,
- * and the runner that interrupts its searches when the view closes.
- */
 export interface ChooserScope {
   readonly app: App;
   readonly window: Window;
@@ -78,7 +59,6 @@ type GroupedSuggestion = WorkbenchSuggesterOption & { group: string };
 
 class EditorSuggester extends SuggestModal<GroupedSuggestion> {
   #revision = 0;
-  /** The latest query's answer, or the search that answers it. */
   #latest: GroupedSuggestion[] | Fiber.Fiber<GroupedSuggestion[]> = [];
   readonly #current = new CurrentAnswer<GroupedSuggestion>(
     this.resultContainerEl,
@@ -125,7 +105,6 @@ class EditorSuggester extends SuggestModal<GroupedSuggestion> {
     const search = this.#request.search;
     if (!query.trim() || !search)
       return this.#current.track((this.#latest = choices));
-    /** The answer of a newer query, for a search it outran. */
     const newer = Effect.suspend(() => {
       const latest = this.#latest;
       return Array.isArray(latest)
@@ -152,11 +131,6 @@ class EditorSuggester extends SuggestModal<GroupedSuggestion> {
     this.#latest = searching;
     return this.#current.track(answerOf(searching, choices));
   }
-  /**
-   * A row reads the way a citation row reads: the name in the title slot,
-   * the hint beneath it, and the group at the trailing edge once the row is
-   * wide enough, otherwise as a badge closing the hint line.
-   */
   override renderSuggestion(option: GroupedSuggestion, el: HTMLElement): void {
     el.addClass("mod-complex", "zt-workbench-suggestion", FLAIR_ROW_CLASS);
     if (option.icon)
@@ -202,7 +176,6 @@ class EditorSuggester extends SuggestModal<GroupedSuggestion> {
     }
     if (option.group) appendTrailingFlair(el, option.group);
   }
-  /** Enter while the typed query's answer is pending chooses its first row. */
   override selectActiveSuggestion(event: MouseEvent | KeyboardEvent): void {
     if (this.#current.answersTypedQuery) super.selectActiveSuggestion(event);
     else
@@ -232,13 +205,6 @@ class EditorSuggester extends SuggestModal<GroupedSuggestion> {
   }
 }
 
-/**
- * Asks the reader to choose one of `request`'s options in a native chooser,
- * opened in the window of the control that asked.
- *
- * @returns The chosen option's id, or `null` when the reader dismisses the
- *   chooser. An interrupt closes the chooser.
- */
 export const chooseWorkbenchOption = (
   app: App,
   request: WorkbenchSuggesterRequest,

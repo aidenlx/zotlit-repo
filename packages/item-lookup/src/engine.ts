@@ -10,40 +10,26 @@ import { formatCreator } from "./format-creator.ts";
 import { Segmenter } from "./segmenter.ts";
 import { normalize, normalizeWithIndexMap } from "./tokenizer.ts";
 
-/** Structurally compatible with Obsidian's `SearchMatches`. */
 export type SearchMatches = [number, number][];
 
-/**
- * One ranked Item of a search, lean enough to cross a worker boundary: the
- * caller hydrates it by {@link ItemHit.indexedKey}.
- */
 export interface ItemHit {
   itemID: number;
   indexedKey: string;
   libraryID: number;
-  /** Highlight ranges in the original offsets of the Item's title. */
   matches: SearchMatches;
 }
 
 export interface SearchOptions {
   limit: number;
-  /** Last Uses by Indexed Key, as epoch milliseconds; applies to empty queries. */
   uses?: Readonly<Record<string, number>>;
-  /** Indexed Keys to put first in empty queries. */
   cited?: readonly string[];
 }
 
 export interface EngineIndexOptions {
-  /**
-   * Local `libraryID`s of every Library the index covers, in canonical order.
-   * Their positions become the Library tie-breaker; a `libraryID` absent from
-   * this list sorts after every listed one.
-   */
   libraries: readonly number[];
   languageLookup?: LanguageNameLookup | null;
 }
 
-/** The fields an Item is indexed under; each query term may match any of them. */
 export type SearchField =
   | "title"
   | "shortTitle"
@@ -76,30 +62,22 @@ const BOOSTS: Record<SearchField, number> = {
   year: 1,
 };
 
-/** Terms of three characters or fewer match exactly or by prefix only. */
 function fuzziness(term: string): number {
   return term.length <= 3 ? 0 : term.length <= 5 ? 0.1 : 0.2;
 }
 
 type IndexedSearchDocument = { id: number } & Record<SearchField, string>;
 
-/** What a hit needs from its Item after the build, without the Item itself. */
 interface IndexedRecord {
   itemID: number;
   indexedKey: string;
   libraryID: number;
   title: string;
-  /** The normalized citation key, or `null` when the Item has none. */
   citationKey: string | null;
-  /** Position in the global order; see {@link orderComparator}. */
   order: number;
   lastActivity: number | null;
 }
 
-/**
- * A built search index over the Items of one or more Libraries. Opaque: read
- * it through {@link searchEngineIndex}.
- */
 export interface EngineIndex {
   readonly size: number;
   /** @internal */
@@ -114,15 +92,11 @@ export interface EngineIndex {
   readonly words: (text: string) => string[];
 }
 
-/** Accumulates an {@link EngineIndex} one slice of Items at a time. */
 export interface EngineIndexBuilder {
-  /** Index a slice of Items, then yield to the scheduler. */
   add(slice: readonly IndexedItem[]): Effect.Effect<void>;
-  /** Impose the global order and return the index. */
   readonly build: Effect.Effect<EngineIndex>;
 }
 
-/** A builder over the words of the current {@link Segmenter}. */
 export const makeEngineIndexBuilder = (
   options: EngineIndexOptions,
 ): Effect.Effect<EngineIndexBuilder, never, Segmenter> =>
@@ -138,10 +112,6 @@ export const makeEngineIndexBuilder = (
     };
   });
 
-/**
- * Build an index from a stream of Item slices. Each slice ends at a yield, so
- * an interrupt stops the build between slices and no index comes out.
- */
 export const buildEngineIndex = <E, R>(
   slices: Stream.Stream<readonly IndexedItem[], E, R>,
   options: EngineIndexOptions,
@@ -152,22 +122,6 @@ export const buildEngineIndex = <E, R>(
     return yield* builder.build;
   });
 
-/**
- * Rank the Items that match `query`, best first, up to `limit`.
- *
- * - Every query term must match some field, by prefix, and fuzzily when it is
- *   longer than three characters; MiniSearch's score orders the matches.
- * - Items whose citation key starts with the whole query come first, shortest
- *   key first.
- * - A bare Zotero key answers every Item holding that key. With no key match,
- *   the query searches all fields as text.
- * - The empty query puts cited Items first, then the rest, each in Last Activity
- *   order with request Uses and Indexed Key ties. Nonempty ties retain
- *   modification order.
- *
- * The lookup and the ranking are separate steps with a yield between them, so
- * an interrupt can end a search mid-query.
- */
 export const searchEngineIndex = (
   index: EngineIndex,
   query: string,
@@ -182,9 +136,6 @@ export const searchEngineIndex = (
     return finishLookup(index, lookup, { limit, uses, cited });
   });
 
-// ---------------------------------------------------------------------------
-// Synchronous core behind the Effect API.
-
 interface EngineCore {
   add(slice: readonly IndexedItem[]): void;
   build(): EngineIndex;
@@ -198,8 +149,6 @@ function createCore(
     idField: "id",
     fields: [...SEARCH_FIELDS],
     storeFields: [],
-    // The whole citation key is one term too, so the citation key rule can
-    // find it by prefix wherever word segmentation would cut it.
     tokenize: (text, field) =>
       field === "citationKey" ? [text, ...words(text)] : words(text),
     processTerm,
@@ -229,8 +178,6 @@ function createCore(
       );
     },
     build() {
-      // Slices arrive one Library at a time, so the composite order is imposed
-      // here rather than by insertion: one global sort over the whole corpus.
       const compare = orderComparator(libraryRank);
       pending.sort((a, b) => compare(a.item, b.item));
       const ordered = pending.map(({ record }, order) => {
@@ -250,11 +197,6 @@ function createCore(
   };
 }
 
-/**
- * Canonical global order: most recently modified first, then canonical Library
- * order, then item id. Every ranking path ends here, so equal scores and equal
- * timestamps still produce one stable order across identical searches.
- */
 function orderComparator(
   libraryRank: ReadonlyMap<number, number>,
 ): (a: IndexedItem, b: IndexedItem) => number {
@@ -298,7 +240,6 @@ type Lookup =
   | { kind: "key"; records: IndexedRecord[] }
   | {
       kind: "ranked";
-      /** The cleaned query, normalized, for the citation key rule. */
       whole: string;
       results: SearchResult[];
     };
@@ -312,8 +253,6 @@ function lookupQuery(
   const cleaned = cleanQuery(query);
   const keyQuery = cleaned.toUpperCase();
   if (ZOTERO_KEY_RE.test(keyQuery)) {
-    // A bare Zotero Key is unique only inside one Library, so every Library in
-    // scope that holds it contributes a result rather than the first one found.
     const records = index.mini
       .search(keyQuery.toLowerCase(), {
         fields: ["key"],
@@ -330,8 +269,6 @@ function lookupQuery(
   if (tokens.length === 0) return { kind: "none" };
 
   const whole = normalize(cleaned);
-  // One lookup: every token across the fields, or the whole query as a
-  // prefix of a whole citation key.
   const results = index.mini.search({
     combineWith: "OR",
     queries: [
@@ -398,7 +335,6 @@ function recentRecords(
     const record = index.byKey.get(key);
     if (record) candidates.set(key, record);
   }
-  // A Use can only raise activity; add used Items before sorting the candidates.
   for (const [key, use] of Object.entries(uses ?? {})) {
     const record = index.byKey.get(key);
     if (
@@ -422,7 +358,6 @@ interface RankedResult {
   record: IndexedRecord;
   score: number;
   terms: readonly string[];
-  /** The citation key length when the key starts with the whole query. */
   keyLength: number | null;
 }
 
@@ -522,10 +457,6 @@ function processTerm(term: string): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-// `result.terms` is the indexed terms that actually matched (after prefix
-// and fuzzy expansion). `result.queryTerms` is the raw user input, which for
-// a fuzzy hit like `utilz` → `util` never appears in the title and would
-// render no highlight.
 function buildHighlightRegex(terms: ReadonlySet<string>): RegExp | null {
   if (terms.size === 0) return null;
   const escaped = [...terms]
@@ -537,9 +468,6 @@ function buildHighlightRegex(terms: ReadonlySet<string>): RegExp | null {
 function highlightRanges(re: RegExp, title: string): SearchMatches {
   if (!title) return [];
 
-  // Match in normalized space so terms align with diacritic-folded titles
-  // (`util` ↔ `útil`); map offsets back so renderMatches lights up the
-  // original glyphs.
   const { normalized, indexMap } = normalizeWithIndexMap(title);
 
   const ranges: SearchMatches = [];

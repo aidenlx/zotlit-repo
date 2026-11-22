@@ -1,6 +1,3 @@
-// The Library View as an Obsidian view: its tab type, the ribbon icon with
-// the ZotLit mark, and the command that opens or focuses it. A tab open at
-// quit comes back on startup, as Obsidian restores every registered view.
 import { Effect, Layer } from "effect";
 import { addIcon } from "obsidian";
 import type { App, Plugin } from "obsidian";
@@ -27,7 +24,6 @@ export function registerLibraryView(
   plugin: LibraryViewPlugin,
   deps: LibraryViewDeps,
 ): void {
-  // Item gestures can outlive the Library tab that started them.
   plugin.register(deps.registry.mount(libraryItemCommand));
   addIcon(ZOTLIT_MARK_ICON, zotlitMarkSvg());
   plugin.registerView(LIBRARY_VIEW_TYPE, (leaf) => new LibraryView(leaf, deps));
@@ -44,11 +40,6 @@ export function registerLibraryView(
   );
 }
 
-/**
- * Bring the Library View forward. Where no tab holds it, it opens in a new
- * tab; the first screen (a first install, an update) takes the active leaf
- * only while it is empty, so it never replaces the note open there.
- */
 export async function openLibraryView(
   app: App,
   { pane = "tab" }: { pane?: "tab" | "first-screen" } = {},
@@ -64,21 +55,13 @@ export async function openLibraryView(
         : workspace.getLeaf("tab");
     await leaf.setViewState({ type: LIBRARY_VIEW_TYPE, active: true });
   } else {
-    // Revealing a tab shows it but leaves the keyboard in the note.
     workspace.setActiveLeaf(leaf, { focus: true });
   }
   await workspace.revealLeaf(leaf);
-  // A tab that the workspace restores on startup leaves the cursor where it
-  // was.
   if (leaf.view instanceof LibraryView) leaf.view.arrive();
   return leaf.view instanceof LibraryView ? leaf.view : null;
 }
 
-/**
- * Open the Library View on the Item `indexedKey`, selected in its first
- * Collection: Show in Library, from the quick switcher and every surface that
- * reads {@link ShowInLibrary}.
- */
 export async function showInLibrary(
   app: App,
   indexedKey: string,
@@ -93,7 +76,6 @@ export async function showInLibrary(
     new BaseNotice(m.library_view_reveal_not_found());
 }
 
-/** {@link ShowInLibrary} over the vault's workspace. */
 export const layerShowInLibrary: Layer.Layer<
   ShowInLibrary,
   never,

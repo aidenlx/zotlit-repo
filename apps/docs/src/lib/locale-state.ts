@@ -1,5 +1,3 @@
-// Which edition a requested page serves, and the canonical and alternate URLs that follow.
-
 import type { SiteLocale } from "./i18n.ts";
 import { chineseCatalogPages, localizedPath } from "./i18n.ts";
 import { htmlPagePath } from "./markdown-routes.ts";
@@ -17,12 +15,10 @@ export interface PageLocaleState {
 const catalogPages: ReadonlySet<string> = new Set(chineseCatalogPages);
 const chinesePages = new Set(__DOCS_CHINESE_PAGES__);
 
-/** Normalize the two published locales while keeping unsupported input English. */
 function isChinese(locale: string): boolean {
   return locale.replaceAll("_", "-").toLowerCase() === "zh-cn";
 }
 
-/** Headers can address a Markdown edition; metadata always addresses its HTML page. */
 function htmlPath(path: string): string {
   const [pathname = "/"] = path.split(/[?#]/);
   const segments = pathname.split("/").filter(Boolean);
@@ -31,10 +27,6 @@ function htmlPath(path: string): string {
   return htmlPagePath(`/${segments.filter(Boolean).join("/")}`);
 }
 
-/**
- * Native-file-based locale metadata and reciprocal alternate links for a
- * requested locale. Missing Chinese files use the English edition at the requested URL.
- */
 export function getPageLocaleState(
   path: string,
   locale: string,

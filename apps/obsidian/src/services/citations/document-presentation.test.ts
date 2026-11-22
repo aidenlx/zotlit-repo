@@ -18,7 +18,6 @@ FILE.path = "draft.md";
 
 const STYLE_ID = "http://www.zotero.org/styles/nature";
 
-/** The presentation a note renders under, which is what most assertions read. */
 function read(frontmatter: Record<string, unknown> | null) {
   return documentPresentation(cacheOf(frontmatter), FILE);
 }
@@ -325,7 +324,6 @@ describe("documentCitationPresentation", () => {
     ).toEqual({
       kind: "read",
       presentation: { styleId: VAULT.styleId, locale: "de-DE" },
-      // Document order, and no slot for a Citation naming no readable work.
       items: [ALPHA, BETA],
     });
   });

@@ -1,9 +1,3 @@
-// The contract between the record PR workflow (.github/workflows/record-pr.yml)
-// and the land: the land finds the check by the job's name, waits for it a
-// fixed time after the job's timeout, and counts on the job to run the PR half
-// of `pnpm verify`. `pnpm lint` (scripts/check-record-pr.ts) holds the
-// workflow to these constants, so a rename fails the lint of the land's gate,
-// not a land after its 45 min wait.
 import { parse } from "yaml";
 
 import { verifyHalf } from "#gate-halves";
@@ -13,11 +7,9 @@ import {
   LAND_CI_WAIT_MS,
 } from "#land";
 
-/** The path of the workflow, relative to the repository root. */
 export const RECORD_PR_WORKFLOW = ".github/workflows/record-pr.yml";
 
 const MINUTE = 60_000;
-/** The time a runner and GitHub's check need around the job's own run. */
 const CHECK_MARGIN_MS = 5 * MINUTE;
 
 interface WorkflowJob {
@@ -26,7 +18,6 @@ interface WorkflowJob {
   steps?: { run?: string }[];
 }
 
-/** What in the workflow text `text` differs from the land; empty when none. */
 export function recordPrProblems(text: string): string[] {
   const workflow = parse(text) as { jobs?: Record<string, WorkflowJob> };
   const jobs = Object.values(workflow.jobs ?? {});

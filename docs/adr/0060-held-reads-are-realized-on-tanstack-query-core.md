@@ -19,3 +19,41 @@ ADR 0054 introduced Held Reads on a hand-rolled store in the plugin. The annotat
 - A Held Read is an immutable snapshot. A consumer that awaits `settled` asks again for the next snapshot instead of watching a status flip in place.
 - Semantic equality is expressed as structural sharing. Render results use the default deep comparison, so an equal re-render keeps its identity and emits only `settled`.
 - Surfaces do not hold query observers. An owner pins a query by observing it for as long as what the query serves is open: Citation Text pins each open document, and the Citation Lookup observes each view's request.
+
+Start a bibliography refresh on the render layer's Scope before peeking at the held value. Return the held answer immediately when it exists. The layer keeps the shared refresh alive when a caller stops waiting. Ignore the initial state emissions when subscribing to the Profile and engine, since acquisition is not a change.
+
+Include the complete resolved style, Item content, and ordered citations in a render key. Reusing IDs alone can let cancelled work answer for newer inputs under those IDs. Query Core's stable hash ignores object property order and preserves array order. [Bibliography render cache](../../packages/citations/src/desktop/pandoc/render-cache-layer.ts)
+
+Publish the global bibliography invalidation revision in one atom for Template Document previews to share. [Bibliography atoms](../../packages/citations/src/obsidian/pandoc/atoms.ts)
+
+## Shared read and settlement behavior
+
+Project a key as one immutable snapshot with its last committed value,
+current status, and settlement Promise. An editor can peek synchronously
+after the first commit. When a write already knows the new value, it can
+update an existing value without creating a cache entry for a previously
+unread key. Keep local mutations running while the window is hidden. Local
+reads never wait on network state.
+
+Join the same in-flight read for the same key. An interrupted caller stops
+waiting while the shared read continues. A display read can keep its old
+value after replacement failure. An ask can reuse the held value during a
+failure cooldown and otherwise reports no replacement on failure. A
+composed dependency read propagates the original failure, even during
+cooldown, so the parent does not commit fresh output calculated from stale
+input. Stamp both ends of the cooldown using the layer's Clock, including a
+test clock starting at zero. Query Core's error timestamp uses wall time.
+
+Retry once after non-silent invalidation cancellation, for the initiating
+reader and all joiners. A stale flag distinguishes a reverted value from a
+new commit. Cancelled work cannot retry after disposal or removal, even if
+a later query reuses that key. A fresh dependency read reports AbortError
+when no result remains because of release or cancellation.
+
+Capture the failure timestamp and Held Read snapshot in the synchronous
+cache event before notifying inline watchers and publishing the Stream
+event. Report every success or failure settlement. Structural sharing
+keeps an equal value's identity, so it settles without a changed event.
+Use the layer Clock in consumer fixtures. Effect tests let their Scope own
+the runtime. Plain callers dispose it through the fixture handle.
+[Query Clients](../../packages/plugin-services/src/core/query-client/service.ts)

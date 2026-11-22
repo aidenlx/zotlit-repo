@@ -1,4 +1,3 @@
-// Shared view state for the last Use of each Item.
 import { Effect, Stream } from "effect";
 
 import { held } from "@zotlit/obsidian-kit/view-atoms.ts";

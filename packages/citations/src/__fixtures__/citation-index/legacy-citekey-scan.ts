@@ -1,4 +1,3 @@
-// Frozen pre-worker backfill baseline from d19be4dbd:scan.ts; benchmark use only.
 import type { Loc } from "obsidian";
 
 import { scanPandocCitations } from "@zotlit/templates/pandoc-citation";
@@ -23,25 +22,16 @@ export function scanCitekeyOccurrences(text: string): CitationOccurrence[] {
   return occurrences;
 }
 
-
-/** A list item opens a list; its indented content is no code block. */
 const LIST_MARKER = /^ {0,3}(?:[-*+]|\d{1,9}[.)])(?:[ \t]|$)/u;
 
-/** Columns a tab advances, as CommonMark counts indentation. */
 const TAB_WIDTH = 4;
 
-/** The indentation an indented code block needs. */
 const CODE_INDENT = 4;
 
-/** The text the Pandoc grammar reads: exclusions and wikilinks blanked. */
 function citationBody(text: string): string {
   return maskWikilinks(maskExclusions(text));
 }
 
-/**
- * Blank every region the Citation Index must not read, keeping each character's
- * offset and every line break so the grammar still sees the document's shape.
- */
 function maskExclusions(text: string): string {
   const body = text.split("");
   maskBlocks(text, body);
@@ -55,11 +45,6 @@ function mask(body: string[], from: number, to: number): void {
   }
 }
 
-/**
- * Frontmatter, fenced code, and indented code, all of which a line reading
- * decides. An unterminated frontmatter block or fence is no block at all to
- * Obsidian, so it stays readable here too.
- */
 function maskBlocks(text: string, body: string[]): void {
   const lines = text.split("\n");
   const starts = lineStartsOf(text);
@@ -112,12 +97,6 @@ function maskBlocks(text: string, body: string[]): void {
   }
 }
 
-/**
- * Blank every wikilink and embed of `text`, keeping each offset. Pandoc reads
- * `[[…]]` as a wikilink, so a `[@key]` inside one is no citation; the Wikilink
- * Citations path alone reads a link. The citekey editor reads a line through
- * this alone: its syntax tree rules out the rest.
- */
 export function maskWikilinks(text: string): string {
   const body = text.split("");
   for (let at = 0; at < body.length; at += 1) {
@@ -130,7 +109,6 @@ export function maskWikilinks(text: string): string {
   return body.join("");
 }
 
-/** Inline code, math, and `%%` comments, over the body the block pass left. */
 function maskInline(body: string[]): void {
   for (let at = 0; at < body.length; at += 1) {
     const char = body[at];
@@ -146,11 +124,6 @@ function maskInline(body: string[]): void {
   }
 }
 
-/**
- * A wikilink stays on one line; an unclosed `[[` is text.
- *
- * @returns the offset the inline scan continues from, as {@link maskCodeSpan} does.
- */
 function maskWikilink(body: string[], open: number): number {
   for (let at = open + 2; at < body.length - 1 && body[at] !== "\n"; at += 1) {
     if (body[at] !== "]" || body[at + 1] !== "]") continue;
@@ -160,10 +133,6 @@ function maskWikilink(body: string[], open: number): number {
   return open + 1;
 }
 
-/**
- * @returns the offset the inline scan continues from: the last masked character
- *   when the span closes, or the last of the opening run when it does not.
- */
 function maskCodeSpan(body: string[], open: number): number {
   let content = open;
   while (body[content] === "`") content += 1;
@@ -181,7 +150,6 @@ function maskCodeSpan(body: string[], open: number): number {
   return content - 1;
 }
 
-/** @returns the offset the inline scan continues from, as {@link maskCodeSpan} does. */
 function maskComment(body: string[], open: number): number {
   for (let at = open + 2; at < body.length - 1; at += 1) {
     if (body[at] !== "%" || body[at + 1] !== "%") continue;
@@ -191,12 +159,6 @@ function maskComment(body: string[], open: number): number {
   return open + 1;
 }
 
-/**
- * `$$` spans lines; `$` stays on one and needs its content to touch both
- * delimiters, so a price pair such as `$5 and $6` is prose.
- *
- * @returns the offset the inline scan continues from, as {@link maskCodeSpan} does.
- */
 function maskMath(body: string[], open: number): number {
   const display = body[open + 1] === "$";
   const content = open + (display ? 2 : 1);
@@ -217,7 +179,6 @@ function maskMath(body: string[], open: number): number {
   return content - 1;
 }
 
-/** @returns the index of the line closing the frontmatter block, or `null` when there is none. */
 function frontmatterLine(lines: readonly string[]): number | null {
   if (lines[0]?.trim() !== "---") return null;
   for (let line = 1; line < lines.length; line += 1) {
@@ -226,7 +187,6 @@ function frontmatterLine(lines: readonly string[]): number | null {
   return null;
 }
 
-/** @returns the backtick or tilde run opening a fenced block, or `null` for any other line. */
 function openingFence(line: string): string | null {
   const indent = leadingSpaces(line);
   if (indent > 3) return null;
@@ -235,7 +195,6 @@ function openingFence(line: string): string | null {
   let end = indent;
   while (line[end] === char) end += 1;
   if (end - indent < 3) return null;
-  // A backtick fence's info string may hold no backtick of its own.
   if (char === "`" && line.includes("`", end)) return null;
   return line.slice(indent, end);
 }

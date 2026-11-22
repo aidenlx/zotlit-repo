@@ -1,5 +1,3 @@
-// View atoms over the active note: which file is active and the Zotero key
-// its frontmatter names. Read through `@zotlit/obsidian-kit/view-atoms.ts`.
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import type { TFile } from "obsidian";
@@ -14,7 +12,6 @@ import { itemKeyFromFrontmatter } from "./parse.ts";
 import { NoteIndex } from "./service.ts";
 import type { NoteIndexChange } from "./service.ts";
 
-/** The active file's path, and the key of the Item it is a note of. */
 export interface ActiveNote {
   readonly path: string | null;
   readonly key: string | null;
@@ -25,11 +22,6 @@ const NO_NOTE: ActiveNote = { path: null, key: null };
 const sameNote = (a: ActiveNote, b: ActiveNote) =>
   a.path === b.path && a.key === b.key;
 
-/**
- * The active note now and on each change: another leaf or file opens, the
- * active file's frontmatter changes, it moves, or it is deleted. Emits when
- * the path or the key changes.
- */
 export const activeNote: Stream.Stream<
   ActiveNote,
   never,
@@ -45,7 +37,6 @@ export const activeNote: Stream.Stream<
         file?.extension === "md" ? yield* metadata.fileCache(file) : null;
       return { path: file?.path ?? null, key: itemKeyFromFrontmatter(cache) };
     });
-    // A deleted active file is still the active file until its leaf closes.
     const onDelete = Stream.mapEffect(
       filterTag(vault.changes, "delete"),
       (event) =>
@@ -73,16 +64,13 @@ export const activeNote: Stream.Stream<
   }),
 );
 
-/** The active note; no note until the first read. */
 export const activeNoteAtom: Atom.Atom<ActiveNote> = held(activeNote, NO_NOTE);
 
-/** The active note's key. An equal key stops here, so a rename reads nothing new below. */
 export const activeKeyAtom: Atom.Atom<string | null> = Atom.map(
   activeNoteAtom,
   (note) => note.key,
 );
 
-/** The Item keys that have a Literature Note, now and after each index change. */
 export const notedItemKeysAtom = held<ReadonlySet<string>>(
   Stream.unwrap(
     Effect.gen(function* () {
@@ -102,7 +90,6 @@ export const notedItemKeysAtom = held<ReadonlySet<string>>(
   new Set<string>(),
 );
 
-/** The index facts that table cells and vault conditions read synchronously. */
 export interface NoteIndexSnapshot {
   readonly keys: readonly string[];
   readonly names: readonly string[];
@@ -168,7 +155,6 @@ export const noteIndexStructureRevisionAtom = Atom.map(
   (snapshot) => snapshot.structureRevision,
 );
 
-/** The most recent Literature Note of an Item, used to resolve comment links. */
 export const noteSourceAtom = Atom.family((key: string) =>
   held(
     Stream.unwrap(

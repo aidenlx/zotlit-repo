@@ -1,6 +1,3 @@
-// Validation of a Filter Expression against the registries. The result is a
-// typed tree in which every name is resolved, so that execution and the
-// planner read one structure.
 import {
   isIdentifierName,
   parseExpressionAst,
@@ -49,10 +46,6 @@ import { FORMULA_SEGMENT } from "./formulas.ts";
 import type { FilterNavigation } from "./record-field.ts";
 import type { QueryContext } from "./request.ts";
 
-/**
- * The type of a node's value as validation knows it. Each type also holds
- * null. `unknown`: the type depends on the Item.
- */
 export type StaticType = FilterValueType | "unknown";
 
 interface NodeBase extends Span {
@@ -60,36 +53,26 @@ interface NodeBase extends Span {
   readonly recordDataset?: FilterNavigation<never>["dataset"];
 }
 
-/** One node of a validated Filter Expression. */
 export type FilterNode<Item = QueryItem> = NodeBase &
   (
     | { readonly kind: "literal"; readonly value: FilterValue }
     | { readonly kind: "list"; readonly elements: readonly FilterNode<Item>[] }
     | {
-        /** A built-in field, read by its bare name. */
         readonly kind: "field";
         readonly name: string;
         readonly value: FilterValueDefinition<Item>;
       }
     | {
-        /** A custom field of the source, by its exact source name. */
         readonly kind: "custom-field";
         readonly name: string;
-        /** The filter reads it by a bare name, not as `custom["name"]`. */
         readonly bare: boolean;
         readonly value: FilterValueDefinition<Item>;
       }
     | {
-        /** A name an element expression binds: `value`, `index`, or `acc`. */
         readonly kind: "binding";
         readonly name: string;
       }
     | {
-        /**
-         * An element-expression method: the evaluator runs `expression` once
-         * for each element of `subject` with the names of `scope` bound. The
-         * further arguments are evaluated once, outside the binding.
-         */
         readonly kind: "element";
         readonly name: string;
         readonly subject: FilterNode<Item>;
@@ -121,16 +104,10 @@ export type FilterNode<Item = QueryItem> = NodeBase &
         readonly args: readonly FilterNode<Item>[];
       }
     | {
-        /** The value type of the subject at execution selects the method. */
         readonly kind: "method";
         readonly name: string;
         readonly subject: FilterNode<Item>;
         readonly args: readonly FilterNode<Item>[];
-        /**
-         * Membership in a list of literals, built once when the filter is
-         * planned: the evaluator calls it in place of the method of the
-         * subject, which it does not evaluate.
-         */
         readonly membership?: FunctionDefinition;
       }
     | {
@@ -145,26 +122,16 @@ export type FilterNode<Item = QueryItem> = NodeBase &
         readonly index: FilterNode<Item>;
       }
     | {
-        /**
-         * `formula.<name>`: the value of a Formula for the same record. `root`
-         * is the planned Formula; its spans are offsets into the Formula text.
-         */
         readonly kind: "formula";
         readonly name: string;
         readonly root: FilterNode<Item>;
       }
   );
 
-/** A validated Filter Expression. */
 export interface FilterPlan<Item = QueryItem, Needs = FieldNeeds> {
   readonly root: FilterNode<Item>;
   readonly warnings: readonly Extract<Fault, { kind: "constant" }>[];
-  /** What hydration loads before the filter runs: one entry for each field. */
   readonly needs: readonly Needs[];
-  /**
-   * The custom fields the filter names. The source decides whether each one
-   * exists, so the engine checks them when it has read the field vocabulary.
-   */
   readonly customFields: readonly FilterCustomFieldUse[];
 }
 
@@ -172,7 +139,6 @@ interface FilterCustomFieldUse extends Span {
   readonly name: string;
   readonly bare: boolean;
   readonly deferred?: Extract<Fault, { kind: "unknown" }>;
-  /** A valid property chain to check only when the source lacks its prefix. */
   readonly dotted?: Span & { readonly name: string };
 }
 
@@ -191,18 +157,11 @@ export type FilterFailure = Extract<
   }
 > & { readonly at: Span };
 
-/** A Formula that a Filter Expression reads as `formula.<name>`, planned. */
 export interface FormulaRead<Item, Needs> {
   readonly root: FilterNode<Item>;
-  /** What hydration loads before the Formula runs, with the Formulas it reads. */
   readonly needs: readonly Needs[];
 }
 
-/**
- * The meaning of `formula.<name>` at `at`: the planned Formula, the Fault of
- * the reference, or a Formula with a mistake. Without a resolver, every
- * Formula name is unknown.
- */
 export type FormulaResolver<Item, Needs> = (
   name: string,
   at: Span,
@@ -227,11 +186,6 @@ const HINTS = {
     "Write a regular expression as /pattern/flags with JavaScript syntax, such as /^the /i, and the flags d, g, i, m, s, u, v, and y at most once each.",
 } as const;
 
-/**
- * Validate a Filter Expression against the field and function registries.
- * A custom field is checked against the source later; see
- * {@link FilterPlan.customFields}.
- */
 export interface FilterRegistry<Item, Needs = FieldNeeds> {
   readonly field: (name: string) => FilterField<Item, Needs> | undefined;
   readonly custom: (name: string) => {
@@ -242,15 +196,9 @@ export interface FilterRegistry<Item, Needs = FieldNeeds> {
   readonly equalityField?: (name: string, literal: string) => string;
 }
 
-/** Options of {@link planFilter}. */
 export interface PlanFilterOptions<Item, Needs> {
   readonly registry?: FilterRegistry<Item, Needs>;
-  /** The Query Context that `this` reads. */
   readonly context?: QueryContext | undefined;
-  /**
-   * The Formulas that `formula.<name>` reads. A read of a Formula with a
-   * mistake gives a {@link FaultedFormulaRead}.
-   */
   readonly formula?: FormulaResolver<Item, Needs> | undefined;
 }
 
@@ -265,8 +213,6 @@ export function planFilter<Item = QueryItem, Needs = FieldNeeds>(
 export function planFilter<Item = QueryItem, Needs = FieldNeeds>(
   text: string,
   {
-    // The default is the Item Query registry, with its `QueryItem` and its
-    // `FieldNeeds`.
     registry = itemFilterRegistry as FilterRegistry<any, any>,
     context,
     formula,
@@ -285,8 +231,6 @@ export function planFilter<Item = QueryItem, Needs = FieldNeeds>(
       formula,
     }).node(ast);
     warnings.sort((a, b) => a.at.from - b.at.from);
-    // A Formula is planned once and gives the same needs to each read of it,
-    // so the needs merge as a set: a Formula read twice adds its needs once.
     return { root, needs: [...new Set(needs)], customFields, warnings };
   } catch (thrown) {
     if (thrown instanceof Invalid) return thrown.problem;
@@ -294,32 +238,14 @@ export function planFilter<Item = QueryItem, Needs = FieldNeeds>(
   }
 }
 
-/** The subexpression of a planned Filter Expression at one span. */
 export interface PlannedSubexpression {
   readonly valueType: StaticType;
-  /**
-   * The type of a member a filter reads on the record it gives, by name;
-   * undefined for a name that is not one. Absent for a value that is not a
-   * record, or a record whose members are known only at execution.
-   */
   readonly member?: (name: string) => StaticType | undefined;
-  /** Every name `member` answers, for a record of fixed keys. */
   readonly names?: readonly string[];
 }
 
-/** What a filter reads on a record of the Query Context. */
 export const CONTEXT_RECORD_MEMBERS: readonly string[] = ["indexedKey", "key"];
 
-/**
- * Plan `text`, as it is being typed, as {@link planFilter} does, and read the
- * subexpression at exactly `at` as the planner typed it where it stands: a
- * name a list method binds by that method's scope. An unfinished member
- * access stands for its object, as does a member being typed off `at`, a call left open ends with the text, and a
- * fault elsewhere leaves a subexpression planned before it typed. A custom
- * field is not a member: it is read by bracket access.
- * @returns Undefined where `text` does not parse that far or the planner
- *   does not reach a subexpression spanning `at`.
- */
 export function planSubexpression<Item, Needs>(
   text: string,
   at: Span,
@@ -329,7 +255,6 @@ export function planSubexpression<Item, Needs>(
     formula,
   }: PlanFilterOptions<Item, Needs>,
 ): PlannedSubexpression | undefined {
-  // A member being typed off `at` is not finished, so the planner reads past it.
   const ast = parsePartialExpressionAst(text, { typing: at });
   if (!ast) return undefined;
   let node: FilterNode<Item> | undefined;
@@ -339,7 +264,6 @@ export function planSubexpression<Item, Needs>(
     {
       context,
       formula,
-      // Children are told first, so the last at `at` is the outermost.
       observe: (planned, filter) => {
         if (planned.from === at.from && planned.to === at.to) node = filter;
       },
@@ -358,7 +282,6 @@ export function planSubexpression<Item, Needs>(
       valueType: node.valueType,
       ...(navigation.names && { names: navigation.names }),
       member: (name) => {
-        // `custom` is read only by bracket access, on a record as alone.
         if (name === "custom") return undefined;
         const field = members(name);
         return field?.filterable && !field.customField
@@ -366,7 +289,6 @@ export function planSubexpression<Item, Needs>(
           : undefined;
       },
     };
-  // The record `this` binds is a literal; its members are its keys.
   if (node.kind === "literal" && node.recordDataset)
     return {
       valueType: node.valueType,
@@ -377,22 +299,12 @@ export function planSubexpression<Item, Needs>(
   return { valueType: node.valueType };
 }
 
-/**
- * Whether a custom field has a bare form in a Filter Expression: its name is
- * one identifier of the grammar and no built-in field, function, or keyword
- * has that name. The check is the same for every Library and every Item.
- */
 export function hasBareForm(customFieldName: string): boolean {
   return (
     !RESERVED_NAMES.has(customFieldName) && isIdentifierName(customFieldName)
   );
 }
 
-/**
- * The bare names that always mean a built-in; a keyword parses as a literal.
- * `formula` is the first segment of every Formula, so a custom field of that
- * name is read as `custom["formula"]`.
- */
 const RESERVED_NAMES: ReadonlySet<string> = new Set([
   "this",
   FORMULA_SEGMENT,
@@ -441,12 +353,6 @@ const operandType = <Item>(
   at: { from: at.from, to: at.to },
 });
 
-/**
- * Whether an arithmetic operator takes operands of these types: `+` takes a
- * string on either side, two numbers, two lists, or a date and a duration;
- * `-` two numbers or a date and a duration; `*`, `/`, and `%` two numbers.
- * Every other operator takes every type.
- */
 function takesOperands(
   operator: BinaryOperator,
   left: Exclude<FilterValueType, "null">,
@@ -530,17 +436,12 @@ function takesCount(
   return count >= least && (definition.rest !== undefined || count <= most);
 }
 
-/** A type that validation knows and that is not null. */
 function isDefinite(
   type: StaticType,
 ): type is Exclude<FilterValueType, "null"> {
   return type !== "unknown" && type !== "null";
 }
 
-/**
- * The argument at `index` has a type that the parameter does not take, or is
- * a string literal outside the texts that the parameter takes.
- */
 function mismatch<Item>(
   definition: Pick<FunctionDefinition, "parameters" | "optional" | "rest">,
   args: readonly FilterNode<Item>[],
@@ -579,7 +480,6 @@ class Validator<Item, Needs> {
   readonly #needs: Needs[];
   readonly #customFields: FilterCustomFieldUse[];
   readonly #warnings: Extract<Fault, { kind: "constant" }>[];
-  /** The names the enclosing element expressions bind, innermost last. */
   readonly #scopes: (readonly string[])[] = [];
   readonly #elements: (FilterNavigation<Needs> | undefined)[] = [];
   readonly #navigation = new WeakMap<
@@ -587,7 +487,6 @@ class Validator<Item, Needs> {
     FilterNavigation<Needs>
   >();
 
-  /** The members and elements a planned node gives, where it tracks them. */
   navigation(node: FilterNode<Item>): FilterNavigation<Needs> | undefined {
     return this.#navigation.get(node);
   }
@@ -603,7 +502,6 @@ class Validator<Item, Needs> {
     return tracked;
   }
 
-  /** Both branches can supply the record, so retain the needs of both paths. */
   #mergeNavigation(
     left: FilterNavigation<Needs> | undefined,
     right: FilterNavigation<Needs> | undefined,
@@ -652,7 +550,6 @@ class Validator<Item, Needs> {
     }: {
       context: QueryContext | undefined;
       formula: FormulaResolver<Item, Needs> | undefined;
-      /** Told each node as it is planned, in the scope it stands in. */
       observe?: (ast: ExpressionNode, node: FilterNode<Item>) => void;
     },
   ) {
@@ -753,8 +650,6 @@ class Validator<Item, Needs> {
           };
           left = replace(left, right);
           right = replace(right, left);
-          // A Parent Record compared with the Query Context record compares
-          // Indexed Keys, so the candidate plan selects the bound key.
           const byKey = (field: FilterNode<Item>, other: FilterNode<Item>) =>
             field.kind === "field" &&
             field.recordDataset !== undefined &&
@@ -889,8 +784,6 @@ class Validator<Item, Needs> {
     span: Span,
   ): FilterNode<Item> {
     const subject = this.node(ast.object);
-    // Only a chain of identifiers has the ambiguous source-field spelling.
-    // Bracket access already names an exact custom field.
     let root: ExpressionNode = ast;
     const parts: string[] = [];
     while (root.type === "object-access") {
@@ -947,7 +840,6 @@ class Validator<Item, Needs> {
     };
   }
 
-  /** The RegExp of a literal, built once; a pattern or flag the engine rejects fails the query. */
   #regexp(ast: Extract<ExpressionNode, { type: "regexp" }>): RegExp {
     try {
       return new RegExp(ast.source, ast.flags);
@@ -964,7 +856,6 @@ class Validator<Item, Needs> {
   }
 
   #identifier(name: string, span: Span): FilterNode<Item> {
-    // Inside an element expression, a bound name comes before every field.
     if (this.#scopes.some((scope) => scope.includes(name))) {
       const navigation = name === "value" ? this.#elements.at(-1) : undefined;
       return this.#track(
@@ -1007,8 +898,6 @@ class Validator<Item, Needs> {
         field.navigation,
       );
     }
-    // `formula` is the reserved first segment of a Formula path; alone, it
-    // names no Formula.
     if (name === FORMULA_SEGMENT) return this.#formula("", span);
     if (name === "custom") {
       return fail(unreadable(name, span));
@@ -1019,7 +908,6 @@ class Validator<Item, Needs> {
     if (GLOBAL_FUNCTION_NAMES.includes(name)) {
       return fail(unknown({ role: "field", name, at: span }));
     }
-    // Outside the built-in names: the bare form of a custom field.
     if (this.registry.prefix && !name.startsWith(`${this.registry.prefix}.`)) {
       return fail(unknown({ role: "field", name, at: span }));
     }
@@ -1030,10 +918,6 @@ class Validator<Item, Needs> {
     );
   }
 
-  /**
-   * `formula.<name>`: the planned Formula, with its hydration needs. The name
-   * of a bare `formula` is empty, which no Formula has.
-   */
   #formula(name: string, span: Span): FilterNode<Item> {
     const read = this.formula?.(name, span) ?? {
       kind: "unknown",
@@ -1052,7 +936,6 @@ class Validator<Item, Needs> {
     };
   }
 
-  /** `this.item` or `this.attachment`: the bound record, as a literal. */
   #contextRecord(member: string, span: Span): FilterNode<Item> {
     if (member !== "item" && member !== "attachment") {
       return fail({
@@ -1092,7 +975,6 @@ class Validator<Item, Needs> {
     };
   }
 
-  /** A member of a Query Context record: its Indexed Key or its Zotero Key. */
   #contextMember(
     record: FilterNode<Item>,
     name: string,
@@ -1222,8 +1104,6 @@ class Validator<Item, Needs> {
         from: callee.to - callee.property.length,
         to: callee.to,
       };
-      // `custom.name(...)` calls a method on `custom`, which a filter cannot
-      // read; the subject reports it.
       const subject = this.node(callee.object);
       const call = { name: callee.property, nameSpan, subject };
       if (methodsNamed(call.name).some(([, method]) => method.scope)) {
@@ -1250,7 +1130,6 @@ class Validator<Item, Needs> {
     if (!definition) {
       return fail(unknown({ role: "global", name, at: nameSpan }));
     }
-    // Every argument is validated, also in a branch that never runs.
     const args = call.args.map((arg) => this.node(arg));
     if (!takesCount(definition, args.length)) {
       return fail(arity({ name }, span, args.length));
@@ -1297,10 +1176,6 @@ class Validator<Item, Needs> {
     };
   }
 
-  /**
-   * The methods `name` can select on `subject`: one for a subject of a known
-   * type; otherwise the method of the value type each Item gives it.
-   */
   #candidates(
     name: string,
     nameSpan: Span,
@@ -1333,10 +1208,6 @@ class Validator<Item, Needs> {
     return [method];
   }
 
-  /**
-   * An element-expression method. The first argument is validated with the
-   * names of the method's `scope` bound; the further arguments outside.
-   */
   #elementCall(
     call: {
       name: string;
@@ -1351,7 +1222,6 @@ class Validator<Item, Needs> {
       (method) => method.scope,
     );
     const scope = definition?.scope;
-    // The subject selects a same-named method without a scope.
     if (!definition || !scope) {
       const args = call.args.map((arg) => this.node(arg));
       return this.#methodCall({ ...call, args }, span);
@@ -1452,7 +1322,6 @@ function literal(
   return { ...span, kind: "literal", value };
 }
 
-/** The values of `nodes` when every one is a literal. */
 function literalValues(
   nodes: readonly FilterNode<any>[],
 ): FilterValue[] | undefined {
@@ -1506,7 +1375,6 @@ function binaryType(
       }
       return "unknown";
     case "-":
-      // `date - duration` is a date.
       if (left === "date" && right === "duration") return "date";
       return left === "date" ||
         left === "unknown" ||

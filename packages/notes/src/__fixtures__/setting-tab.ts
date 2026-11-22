@@ -1,6 +1,3 @@
-// The tab service over the services this package's tab rows read, for their
-// tests: the platform's stand-ins and this package's view services. A host's
-// program registers more services, which these tests never read.
 import { Layer } from "effect";
 
 import { settingTabHarness } from "@zotlit/plugin-services/__fixtures__/setting-tab-harness.ts";
@@ -8,7 +5,6 @@ import { unimplementedPlatformTabServices } from "@zotlit/plugin-services/__fixt
 
 import { layerUnreadViewServices } from "#__fixtures__/view-atoms.ts";
 
-/** Every service this package's tab rows read, with no member implemented. */
 export const unimplementedTabServices = Layer.mergeAll(
   layerUnreadViewServices,
   unimplementedPlatformTabServices,

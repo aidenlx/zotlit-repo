@@ -10,12 +10,10 @@ import { createNoteTurndown } from "./index.ts";
 
 const packageRoot = getPackageRoot(import.meta.filename);
 
-/** Convert an HTML fragment and trim the surrounding block whitespace. */
 function convert(html: string): string {
   return createNoteTurndown(TurndownService).turndown(html).trim();
 }
 
-/** Convert with the opt-in Colored Highlight Syntax enabled. */
 function convertColoredHighlight(html: string): string {
   return createNoteTurndown(TurndownService, {
     useColoredHighlightSyntax: true,
@@ -24,12 +22,6 @@ function convertColoredHighlight(html: string): string {
     .trim();
 }
 
-/**
- * Formats documented in Obsidian's "Editing and formatting" help pages
- * (Basic / Advanced formatting syntax, Obsidian Flavored Markdown, HTML
- * content). The HTML on the left is what each format renders to; the Markdown
- * on the right is the syntax those pages prescribe.
- */
 describe("Obsidian formatting syntax", () => {
   it("bold, italic, and their combination", () => {
     expect(convert("<strong>Bold text</strong>")).toBe("**Bold text**");
@@ -160,12 +152,6 @@ describe("Obsidian formatting syntax", () => {
   });
 });
 
-/**
- * Zotero note HTML quirks the base Obsidian config does not handle. Shapes are
- * taken from Zotero's note-editor serialization (math spans/pre, bare code
- * `<pre>`, styled strikethrough, sub/sup, underline, colored spans, and
- * attachment images without a `src`).
- */
 describe("Zotero note formats", () => {
   it("inline math survives unescaped", () => {
     expect(
@@ -348,13 +334,6 @@ describe("ZT_NOTE_EXAMPLE.html", () => {
   });
 });
 
-/**
- * Zotero's "annotation excerpt" note: each `<p>` pairs a `data-annotation`
- * highlight/underline span (the `highlight` / `underline` class names match the
- * annotation types in `@zotlit/db`'s `zt-annot`) with a `data-citation` span.
- * Both pass through as raw HTML (like the embedded image) so a later stage can
- * resolve their URL-encoded payloads — the snapshot documents that boundary.
- */
 describe("ZT_EXCERPT_NOTE.html", () => {
   it("converts an annotation excerpt note", async () => {
     const html = readFileSync(

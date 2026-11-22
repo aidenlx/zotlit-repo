@@ -10,7 +10,6 @@ const row = (text: string): ExpressionCondition => ({
   text,
 });
 
-/** A, B, C at the top, then a "Match any" group of X and Y. */
 const tree: Tree = {
   kind: "group",
   match: "all",
@@ -22,7 +21,6 @@ const tree: Tree = {
   ],
 };
 
-/** The tree as text: rows by their text, groups as nested lists. */
 function shape(group: Tree): unknown[] {
   return group.conditions.map((node) =>
     node.kind === "group" ? shape(node) : node.text,

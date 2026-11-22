@@ -1,8 +1,5 @@
 #!/usr/bin/env node
 
-// Evaluate JavaScript in a running Zotero's parent (chrome) process over the
-// Firefox Remote Debugging Protocol; see `--help`.
-
 import type { Packet } from "#zotero-rdp";
 import { relative } from "node:path";
 import yargs from "yargs";
@@ -42,12 +39,10 @@ expression must produce a value, and has ${ASYNC_EVAL_TIMEOUT_MS / 1_000} second
 Exit code 1: the expression threw (the error prints on stderr), Zotero sent
 no reply within --timeout, or no Zotero answered on the port.`;
 
-/** What the evaluated expression threw, or `undefined` when it did not. */
 function thrownMessage(packet: Packet): string | undefined {
   if (packet.exception || packet.exceptionMessage) {
     return JSON.stringify(packet.exceptionMessage ?? packet.exception, null, 2);
   }
-  // evalAsync reports a rejection as its result, prefixed "ERR:".
   if (typeof packet.result === "string" && packet.result.startsWith("ERR:")) {
     return packet.result.slice("ERR:".length);
   }

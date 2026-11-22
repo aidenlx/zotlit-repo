@@ -1,6 +1,3 @@
-// The slice editor: a CodeMirror view over one region of the master document,
-// with no history of its own. Modelled on Obsidian's Live Preview table cells.
-
 import { defaultKeymap, isolateHistory } from "@codemirror/commands";
 import {
   Annotation,
@@ -32,15 +29,8 @@ import {
   slicePairs,
 } from "#core/language/pairing-state.ts";
 
-/** Marks a child transaction as the master's own refresh, so it is not echoed back. */
 const fromMaster = Annotation.define<boolean>();
 
-/**
- * Binds one editor to `id`'s region of `controller`. Child edits are forwarded
- * to the master carrying their user event, so keystrokes group into one undo
- * step; master changes replace the child document wholesale. The editor shows
- * the region through the controller's {@link SliceCodec} for `id`.
- */
 export function workbenchSlice(
   controller: WorkbenchDocumentController,
   id: WorkbenchSliceId,
@@ -51,8 +41,6 @@ export function workbenchSlice(
         ? slicePairs(controller.state, controller.sliceRange(id))
         : [],
     ),
-    // Undo belongs to the master, which holds the only history, so this
-    // binding has to beat every other undo binding in the host.
     Prec.highest(
       keymap.of([
         { key: "Mod-z", preventDefault: true, run: () => controller.undo() },
@@ -69,7 +57,6 @@ export function workbenchSlice(
   ];
 }
 
-/** The text an editor shows for slice `id`. */
 export function sliceShownText(
   controller: WorkbenchDocumentController,
   id: WorkbenchSliceId,
@@ -79,7 +66,6 @@ export function sliceShownText(
     .show(controller.sliceText(id), controller.slicePrefix(id));
 }
 
-/** Maps carets between `shown`, an editor's text for slice `id`, and the slice's stored text. */
 export function sliceOffsets(
   controller: WorkbenchDocumentController,
   id: WorkbenchSliceId,
@@ -120,17 +106,12 @@ class SliceSync implements PluginValue {
       )
         this.#pull(update.transaction);
     });
-    // While this editor holds the region's live text, a master edit inside it
-    // is suppressed and handed back here instead.
     this.#unregister = controller.registerSlice(id, {
       replay: (changes, userEvent) => {
         const { codec } = this;
         const source = controller.sliceText(id);
         const edit = ChangeSet.of(changes, source.length);
         if (this.json && !isJson(source)) {
-          // A rule in another YAML form has no JSON tokens to map the edit
-          // onto, so the edit applies to its text and the editor shows the
-          // value that results.
           const edited = edit.apply(Text.of(source.split("\n"))).toString();
           this.view.dispatch({
             changes: {
@@ -142,8 +123,6 @@ class SliceSync implements PluginValue {
           });
           return;
         }
-        // The edit names places in the stored text; the editor takes it at the
-        // same places in its own text, as the reader's own text.
         const shown = this.view.state.doc.toString();
         const mapped: ChangeSpec[] = [];
         // oxlint-disable-next-line max-params -- CM's iterChanges callback signature.
@@ -162,15 +141,10 @@ class SliceSync implements PluginValue {
     });
   }
 
-  /**
-   * Read at each use: Advanced can rewrite a note name between a quoted and a
-   * block scalar while this editor stays mounted.
-   */
   get codec(): SliceCodec {
     return this.controller.sliceCodec(this.id);
   }
 
-  /** A JSON-e rule keeps the layout the reader typed as a draft of its own. */
   get json(): boolean {
     return this.codec === jsonCodec;
   }
@@ -193,7 +167,6 @@ class SliceSync implements PluginValue {
     this.controller.setFocusedSlice(null);
   }
 
-  /** Forward edits in source coordinates; the shown spelling stays in the child. */
   #push(transaction: Transaction): void {
     const { from } = this.#range;
     const { codec } = this;
@@ -236,8 +209,6 @@ class SliceSync implements PluginValue {
         right--;
         end--;
       }
-      // An empty value starts right after its colon, and YAML reads a value
-      // there only after a space.
       const gap =
         source === "" &&
         stored !== "" &&
@@ -299,12 +270,6 @@ class SliceSync implements PluginValue {
     }
   }
 
-  /**
-   * Master to child. The child document is replaced whole rather than patched,
-   * which is what keeps an undo landing inside the slice — or one that moves
-   * the slice's own boundaries — correct. A change this slice sent leaves the
-   * two documents equal, so the echo stops here.
-   */
   #pull(transaction: Transaction): void {
     const previous = this.#range;
     this.#range = this.controller.sliceRange(this.id);
@@ -356,8 +321,6 @@ class SliceSync implements PluginValue {
       ),
       annotations: fromMaster.of(true),
     });
-    // Undo and redo reach the master from anywhere — a menu, another pane — so
-    // the caret comes back to the text they just changed.
     if (transaction.isUserEvent("undo") || transaction.isUserEvent("redo")) {
       this.view.focus();
     }

@@ -1,9 +1,3 @@
-// The Mark Popup in create mode: the row a settled text selection offers, and
-// the comment sheet under it.
-//
-// The popup itself is the same one a selected mark hangs under — this module
-// supplies its content and nothing else.
-
 import type { EditorSheetSlotProps } from "#obsidian/annot-view/comment-parts.tsx";
 import type { EditingCapability } from "#obsidian/annotation-repository/capability.ts";
 import type { MutationState } from "#obsidian/annotation-repository/write.ts";
@@ -24,62 +18,33 @@ import type { AnnotationTool, MarkTool, SelectionTool } from "./tools.ts";
 import { editingBlockedReason } from "#obsidian/annot-view/card-controls.ts";
 import { EditorSheetSlot } from "#obsidian/annot-view/comment-parts.tsx";
 
-/** What a pressed control of the create-mode row asks for. */
 export type CreatePopupAction =
-  /** Create the selection as this mark, in that tool's own colour. */
   | { kind: "tool"; tool: SelectionTool }
-  /** Create the selection in this colour, with the armed tool. */
   | { kind: "color"; color: string }
-  /** Open or close the comment sheet. */
   | { kind: "comment" }
-  /** Put the quoted text on the clipboard; never a write. */
   | { kind: "copy" };
 
-/** One control of the create-mode row, decided as data. */
 export interface CreatePopupControl {
-  /** What the node carries in `data-zt-verb`. */
   id: string;
   icon: IconName;
-  /** The accessible name, which Obsidian also renders as the hover tooltip. */
   tooltip: string;
   disabled: boolean;
-  /** The swatch this control wears, or `null` for one that wears none. */
   color: string | null;
-  /** A toggle's state, or `null` for a control that is not a toggle. */
   pressed: boolean | null;
-  /** Classes beside Obsidian's own `clickable-icon`. */
   cls?: readonly string[];
   action: CreatePopupAction;
 }
 
 export interface CreatePopupRowInput {
-  /**
-   * The armed tool, which a colour commits with; highlight where none is, and
-   * where the armed one takes no text.
-   */
   armed: MarkTool | null;
   colors: Readonly<Record<AnnotationTool, string>>;
-  /** The swatches the row offers, in the order it draws them. */
   swatches: readonly string[];
-  /** What this Attachment's Annotations may be edited to right now. */
   capability: EditingCapability;
-  /** What the create in flight, if any, left on the selection. */
   mutation: MutationState;
-  /** Whether the comment sheet stands open under the row. */
   commenting: boolean;
-  /** The instant a cooldown's remaining seconds are measured from. */
   now: Temporal.Instant;
 }
 
-/**
- * The create-mode row: the two tools, the swatches it is handed, the comment
- * sheet, and copy. A swatch keeps its seat in Zotero's palette as its id, so
- * `color-3` and the `3` key name the same colour whatever the row offers.
- *
- * Copying never changes Zotero, so it never stands down; every verb that
- * creates follows the same rule the Annotation Card's header does, because they
- * are the same write reached from another surface.
- */
 export function createPopupRow({
   armed,
   colors,
@@ -125,7 +90,6 @@ export function createPopupRow({
         action: { kind: "color", color: hex },
         color: hex,
         pressed: isColor(colors[tool], hex),
-        // A swatch is a solid dot of its colour, not an outline.
         cls: ["zt:[&_svg]:fill-current"],
       }),
     ),
@@ -149,7 +113,6 @@ export function createPopupRow({
   ];
 }
 
-/** What a pressed control of the create-mode row runs. */
 export type CreatePopupActivate = (
   action: CreatePopupAction,
   node: HTMLElement,
@@ -159,11 +122,9 @@ export interface CreateMarkPopupProps {
   app: App;
   controls: readonly CreatePopupControl[];
   activate: CreatePopupActivate;
-  /** The comment sheet under the row, while it stands open. */
   sheet: Omit<EditorSheetSlotProps, "app" | "surface"> | null;
 }
 
-/** The popup in create mode: the row, and the comment sheet while it is open. */
 export function CreateMarkPopup({
   app,
   controls,

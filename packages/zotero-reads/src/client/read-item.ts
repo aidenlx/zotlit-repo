@@ -1,4 +1,3 @@
-// One Item read for a user action: Quick Switch, Library View rows and citation inserts.
 import { Effect } from "effect";
 
 import type { Item } from "@zotlit/db";
@@ -7,10 +6,6 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { ZoteroReads } from "./service.ts";
 
-/**
- * The Item `indexedKey` names, read on a pinned snapshot: `null` when the key
- * names no Item, or when the read fails (logged). An interrupt passes on.
- */
 export const readActionItem = (
   indexedKey: string,
 ): Effect.Effect<Item | null, never, ZoteroReads> =>

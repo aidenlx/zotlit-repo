@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-// Fails when a `.snap` entry exceeds MAX_SNAPSHOT_LINES. Checks the files it
-// is given (Lefthook passes the staged ones), or every tracked `.snap` file.
 import { readFile } from "node:fs/promises";
 import { $ } from "zx";
 

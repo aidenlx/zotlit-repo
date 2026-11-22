@@ -1,4 +1,3 @@
-// The `research` case family: evidence is checked against literals, independently of the agent.
 import { cp, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -29,7 +28,6 @@ function expectedGroups(expected, path) {
   return expected.groups;
 }
 
-// Per-paper counts can start from papers or from grouped reading marks.
 export function researchExpectation(spec, envelope) {
   if (spec.group !== "item.indexedKey" || envelope.request?.from !== "items")
     return spec;
@@ -142,7 +140,6 @@ function schemaFor(value) {
     };
   return { type: typeof value === "number" ? "integer" : typeof value };
 }
-// Merge shapes, not literal values, so the agent learns no expected answer.
 function unionSchemas(schemas) {
   const unique = [
     ...new Map(schemas.map((s) => [JSON.stringify(s), s])).values(),
@@ -258,16 +255,14 @@ export function checkResearchAnswer(
             },
           }))
         : answer.rows,
-      want.rows ??
-        // Element groups overlap: a paper in two groups is one answer row.
-        [
-          ...new Map(
-            groups
-              .flatMap((g) => g.rows)
-              .filter((row) => returned.has(row.indexedKey))
-              .map((row) => [row.indexedKey, row]),
-          ).values(),
-        ],
+      want.rows ?? [
+        ...new Map(
+          groups
+            .flatMap((g) => g.rows)
+            .filter((row) => returned.has(row.indexedKey))
+            .map((row) => [row.indexedKey, row]),
+        ).values(),
+      ],
     ).map((e) => `answer: ${e}`),
   );
   const countsInRows = want.paperGroups && answer.groups?.length === 0;
@@ -302,7 +297,6 @@ export function checkResearchAnswer(
   return errors;
 }
 
-// Receipts are written by the CLI wrapper, outside the agent's writable folder.
 export function checkCollectionDiscovery(spec, calls) {
   if (!spec.discovery) return [];
   const { library, path } = spec.discovery;

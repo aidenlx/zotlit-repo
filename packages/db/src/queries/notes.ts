@@ -1,5 +1,3 @@
-// Zotero note (`itemNotes`) lookups: child-note listing and single-note fetch.
-
 import type { ZoteroDatabase } from "#client/database.ts";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
@@ -9,20 +7,17 @@ import type { FindManyOptions, QueryRow } from "./_shared.ts";
 import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 import type { GroupIDMemo } from "./libraries.ts";
 
-/** A note's identity and staleness stamp, without its HTML body. */
 export interface ChildNote {
   groupID: number | null;
   itemID: number;
   libraryID: number;
   key: string;
-  /** `key` or `key + 'g' + groupID`, precomputed for NoteIndex lookup. */
   indexedKey: string;
   parentItemID: number | null;
   title: string | null;
   dateModified: Temporal.Instant;
 }
 
-/** A note with its stored HTML body, for materializing the imported file. */
 export interface Note extends ChildNote {
   note: string | null;
   dateAdded: Temporal.Instant;
@@ -146,11 +141,6 @@ const notesByKeysQuery = defineKeyedQuery<string, { libraryID: number }>()(
   { keyOf: (row) => row.item.key },
 );
 
-/**
- * Fetch notes of one library by key, in `keys` order, through
- * one cached keyed read. A key that names no live note has no
- * entry; a repeated key repeats its note.
- */
 export function getNotesByKey(
   db: ZoteroDatabase,
   libraryID: number,
@@ -163,12 +153,8 @@ export function getNotesByKey(
   return rows.map((row) => toNote(row, groupID));
 }
 
-// --- Queries for explicit note-import (Stage 9.3) ---
-
-/** A note found by its own item ID, live or in Zotero's trash. */
 export interface NoteRef {
   note: ChildNote;
-  /** The note's item is in Zotero's trash. */
   trashed: boolean;
 }
 
@@ -188,13 +174,6 @@ const noteRefsByItemIdsQuery = defineKeyedQuery<number>()(
   { keyOf: (row) => row.itemID },
 );
 
-/**
- * Note refs looked up by the notes' own item IDs (`mode=note` classify), in
- * one cached keyed read. Each note ID maps to the note's identity and title —
- * enough to label a batch manifest entry and deduplicate against the note index —
- * and to whether the note is in Zotero's trash. An ID that names no note has
- * no entry. Entries stay in ascending item ID order.
- */
 export function getNoteRefsByItemIDs(
   db: ZoteroDatabase,
   itemIDs: readonly number[],
@@ -231,10 +210,6 @@ const childNotesByParentsQuery = defineKeyedQuery<number>()(
   { keyOf: (row) => row.parentItemID! },
 );
 
-/**
- * Fetch child notes of multiple parent items (`mode=child`) through one cached
- * keyed read: {@link getChildNotes} for each parent, in `parentItemIDs` order.
- */
 export function getChildNotesByParentIDs(
   db: ZoteroDatabase,
   parentItemIDs: readonly number[],

@@ -4,12 +4,6 @@ import { entrySlice, WorkbenchDocumentController } from "./controller.ts";
 import { followEntries } from "./manifest-patch.ts";
 import type { ManagedEntryAction } from "./manifest-patch.ts";
 
-/**
- * A hand-written Profile whose Managed Frontmatter list carries a comment, a
- * quoted value, one entry that writes `merge` and one that leaves it out, and a
- * keyless Spread Entry, so a patch that rewrites more than it was asked to is
- * visible byte for byte.
- */
 const HAND_WRITTEN = `---
 # my own profile, do not reformat
 name: Reading notes
@@ -34,11 +28,6 @@ frontmatter:
 > {{ zt.text }}
 `;
 
-/**
- * A Profile whose entries write their expressions over several lines — a block
- * mapping and a block scalar — where the YAML node's own end sits on the line
- * under the value.
- */
 const MULTI_LINE = HAND_WRITTEN.replace(
   /frontmatter:\n(?: .*\n)+/,
   `frontmatter:
@@ -54,14 +43,12 @@ const MULTI_LINE = HAND_WRITTEN.replace(
 `,
 );
 
-/** Applies one action and returns the source it produced. */
 function edit(source: string, action: ManagedEntryAction) {
   const controller = new WorkbenchDocumentController(source);
   expect(controller.editManagedEntry(action)).toBe(true);
   return { controller, source: controller.source };
 }
 
-/** Every edit is one undo step, whatever the document's line endings. */
 function expectOneUndoStep(
   source: string,
   edit: (controller: WorkbenchDocumentController) => void,
@@ -114,7 +101,6 @@ describe("Managed Frontmatter patching", () => {
         userEvent: "input.type",
       });
 
-      // The line break the document arrived with is asserted by the caller.
       expect(typed.source.replaceAll("\r\n", "\n")).toBe(
         HAND_WRITTEN.replace("expr: zt.title", "expr: zt.shortTitle"),
       );
@@ -527,7 +513,6 @@ describe("Managed Frontmatter patching", () => {
 });
 
 describe("followEntries", () => {
-  /** Every position of HAND_WRITTEN's three entries, read in `to`. */
   const follow = (to: string) => {
     const map = followEntries(HAND_WRITTEN, to);
     return map && [1, 2, 3].map(map);
@@ -540,7 +525,6 @@ describe("followEntries", () => {
     expect(
       follow(edit(HAND_WRITTEN, { action: "move", position: 1, to: 3 }).source),
     ).toEqual([3, 1, 2]);
-    // A Spread Entry swapped with a static one is found by its own text.
     expect(
       follow(edit(HAND_WRITTEN, { action: "move", position: 3, to: 2 }).source),
     ).toEqual([1, 3, 2]);
@@ -571,7 +555,6 @@ describe("followEntries", () => {
       )?.call(null, 2),
     ).toBe(1);
     const typed = HAND_WRITTEN.replace("expr: zt.dateAdded", "expr: zt.date");
-    // Nothing moved, so there is nothing to translate.
     expect(followEntries(HAND_WRITTEN, typed)).toBeNull();
   });
 });

@@ -16,31 +16,6 @@ const pkg = JSON.parse(
   readFileSync(join(import.meta.dirname, plugin.app, "package.json"), "utf8"),
 );
 
-/**
- * The community directory scanner's ESLint run, for the plugin's source:
- * the host app's `src` and the plugin packages it bundles (PLUGIN_SOURCES).
- *
- * Mirrors the type-aware branch of `buildScannerEslintConfig` in
- * obsidianmd/obsidian-workflows `src/lint.ts` at
- * 8167caed39664214d82c86fdfa32e06d8d55f61d. To resync, compare that function
- * with this file: `toWarns` and the scanner rule blocks are copied from it,
- * and `SCANNER_IGNORES` (packages/scripts/lib/scanner-eslint.ts) too.
- *
- * `pnpm review` runs ESLint with `--quiet`, so it reports the error-level
- * findings that block a release. The scanner's warnings stay advisory.
- * oxlint runs the type-free `obsidianmd/*` rules on every lint, through
- * packages/config/oxlint-plugin-obsidian.ts.
- *
- * The scanner rejects any `eslint-disable` of an `obsidianmd/*` rule. Suppress
- * those with `oxlint-disable-next-line`, which ESLint reads as a plain comment.
- *
- * Run it from the workspace root: the plugin reads `manifest.json` relative to
- * `process.cwd()`.
- *
- * @see docs/adr/0020-obsidian-guideline-review-runs-on-eslint-at-release.md
- */
-
-/** Every severity below `eslint-comments/*` drops to warn, as the scanner does. */
 function toWarns(config) {
   if (!config.rules) return config;
   const rules = Object.entries(config.rules).map(([key, value]) => {
@@ -53,7 +28,6 @@ function toWarns(config) {
   return { ...config, rules: Object.fromEntries(rules) };
 }
 
-/** The source that ships in the plugin: the app and the plugin packages. */
 const PLUGIN_SOURCES = [
   `${plugin.app}/src`,
   ...reviewedPluginPackages(join(import.meta.dirname, plugin.app)).map(
@@ -62,9 +36,6 @@ const PLUGIN_SOURCES = [
 ];
 
 export default [
-  // The plugin's recommended config globs every TypeScript file. Ignore the
-  // tree, then unignore the review targets: each ancestor directory has to be
-  // unignored for traversal to descend into it.
   {
     ignores: [
       "**/*",
@@ -83,9 +54,6 @@ export default [
     files: PLUGIN_SOURCES.map((source) => `${source}/**/*.{ts,tsx}`),
     languageOptions: {
       parserOptions: {
-        // One program for every review target, with the host app's compiler
-        // options. The project service would open each package's own
-        // tsconfig: about 25 programs, each holding its imports' source again.
         project: `./${plugin.app}/tsconfig.review.json`,
         tsconfigRootDir: import.meta.dirname,
       },
@@ -145,10 +113,6 @@ export default [
       "obsidianmd/detach-leaves": "error",
       "obsidianmd/no-static-styles-assignment": "error",
       "obsidianmd/no-view-references-in-plugin": "error",
-      // `getManifest()` reads the root manifest.json, which release.ts only
-      // refreshes on stable bumps. package.json is the version source
-      // release.ts derives the manifest from, so it is accurate on either
-      // release line.
       "obsidianmd/no-unsupported-api": [
         "error",
         { minAppVersion: pkg.obsidian.minAppVersion },
@@ -158,8 +122,6 @@ export default [
 
   globalIgnores(SCANNER_IGNORES),
 
-  // The recommended config wires the `json/json` language for package.json
-  // only, so manifest.json needs its own block for validate-manifest to see it.
   {
     files: ["manifest.json"],
     language: "json/json",

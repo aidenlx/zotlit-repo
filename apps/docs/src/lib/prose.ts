@@ -1,19 +1,3 @@
-/**
- * The "quiet manuscript" prose restyle — sans body, serif display headings
- * (h1–h3), a mono-uppercase h4 label, serif-italic quotes/captions, and a
- * tighter list rhythm. Applied on the docs page and blog post bodies. Serif
- * headings sit one notch above the stock em-based scale to compensate Gelasio's
- * smaller x-height.
- *
- * Expressed as Fumadocs/tailwindcss-typography element modifiers — the plugin's
- * customization surface — not hand-written `.prose`-descendant CSS: the
- * modifiers carry the `not-prose` escape hatch and win over base `prose` by
- * layer order. The fork's variants are single-element only, so descendant
- * compounds (`li p`, nested `li ul/ol`) fall back to Tailwind arbitrary
- * variants, which do NOT carry that guard.
- *
- * @see apps/docs/DESIGN.md → CSS architecture
- */
 export const ztProse = [
   "font-sans",
   "prose-h1:font-serif prose-h1:font-medium prose-h1:text-balance prose-h1:text-[2.125em] prose-h1:leading-[1.2]",
@@ -26,19 +10,9 @@ export const ztProse = [
   "prose-code:rounded-none",
   "prose-ul:my-[0.75em] prose-ol:my-[0.75em] prose-li:my-[0.25em] prose-li:leading-[1.6]",
   "[&_li_p]:my-[0.375em] [&_li_ul]:my-[0.25em] [&_li_ol]:my-[0.25em]",
-  // Chinese glyphs fill the em box, so Chinese text takes looser leading and
-  // no tracking. The body paragraphs already sit at 1.75.
   "zh:prose-h1:leading-[1.35] zh:prose-h4:tracking-normal zh:prose-blockquote:leading-[1.8] zh:prose-li:leading-[1.75]",
 ].join(" ");
 
-/**
- * Shared type roles for the changelog list + detail bodies: sans body, the
- * mono-uppercase `##` category label with its accent left-bar (the repo-datum
- * motif), serif `###` feature names, square inline code. Each view layers its
- * own density — sizes, margins, tracking, bar dimensions — on top.
- *
- * @see apps/docs/DESIGN.md → Changelog
- */
 export const changelogProseRoles = [
   "prose max-w-none font-sans prose-sm text-fd-muted-foreground",
   "prose-code:rounded-none",

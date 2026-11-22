@@ -1,5 +1,3 @@
-// View atoms over the Citation Index: the live Cited By of an Item. Read
-// through `@zotlit/obsidian-kit/view-atoms.ts`.
 import { Effect, Option, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -18,10 +16,6 @@ const citedBy = (key: string) =>
     }),
   );
 
-/**
- * The Cited By of one key; `null` until the first snapshot. An equal key
- * gives the same atom, so every leaf that reads a key shares one observer.
- */
 export const citedByAtom = Atom.family(
   (key: string): Atom.Atom<CitedBySnapshot | null> =>
     Atom.map(viewRuntime.atom(citedBy(key)), (result) =>
@@ -29,11 +23,6 @@ export const citedByAtom = Atom.family(
     ),
 );
 
-/**
- * The active note's Cited By, through the family; `null` with no key or no
- * snapshot yet. On a key change the old key's observer loses this reader and
- * stops once no other reader holds it.
- */
 export const activeCitedByAtom: Atom.Atom<CitedBySnapshot | null> = Atom.make(
   (get) => {
     const key = get(activeKeyAtom);
@@ -41,13 +30,11 @@ export const activeCitedByAtom: Atom.Atom<CitedBySnapshot | null> = Atom.make(
   },
 );
 
-/** The lookup publication, including an equal-revision recovery after failure. */
 export const citationLookupStateAtom = held(
   Stream.unwrap(Effect.map(CitationLookup, (lookup) => lookup.changes)),
   { status: "pending", revision: null, stopped: false },
 );
 
-/** Document and membership changes; readers select only their own path. */
 export const documentRevisionsAtom = held(
   Stream.unwrap(
     Effect.map(CitationIndex, (index) =>

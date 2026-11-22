@@ -2,10 +2,6 @@ import type {
   QueryViewRow,
   QueryViewValue,
 } from "#desktop/item-query/query-view.ts";
-// The rows of a Query View as the List and Cards layouts draw them: the
-// records of any Query Dataset, under their group headings, each shown by
-// the text of its visible properties. The toolbar search and a collapsed
-// heading act on them as they do on the Annotations layout's cards.
 import { Fragment, useLayoutEffect, useMemo } from "react";
 
 import {
@@ -28,27 +24,18 @@ import type { QueryView } from "./view.tsx";
 import { vaultName } from "#core/query-view/query-file.ts";
 import "./record-rows.css";
 
-/** One row on screen, and the group it stands in. */
 export interface ShownRecord {
   readonly row: QueryViewRow;
-  /** The group the row stands in; a row with none stands under no heading. */
   readonly group?: { readonly key: string; readonly label: string };
 }
 
-/** One run of rows under one heading, or under none. */
 export interface RecordGroup {
   readonly key: string | null;
   readonly label: string | null;
   readonly collapsed: boolean;
-  /** The rows of the group, each with the text of its visible properties. */
   readonly rows: readonly RecordCells[];
 }
 
-/**
- * One entry of a grouped list, in the order it shows: the heading of a group
- * with a name, or a row of a group that is not collapsed. `key` holds across
- * runs. `at` is the row's place in its group.
- */
 export type GroupEntry =
   | {
       readonly kind: "heading";
@@ -63,7 +50,6 @@ export type GroupEntry =
       readonly at: number;
     };
 
-/** The entries of `groups`, one after the other, as a long list mounts them. */
 export function groupEntries(groups: readonly RecordGroup[]): GroupEntry[] {
   const entries: GroupEntry[] = [];
   groups.forEach((group, groupIndex) => {
@@ -84,20 +70,12 @@ export function groupEntries(groups: readonly RecordGroup[]): GroupEntry[] {
   return entries;
 }
 
-/** One row and its visible properties, each as text and, for a vault property, its value. */
 export interface RecordCells {
   readonly row: QueryViewRow;
   readonly cells: readonly string[];
-  /** The value of each vault property, by its place among the cells; else `null`. */
   readonly vault: readonly (VaultValue | null)[];
 }
 
-/**
- * The text of each visible property of `row`, in the view's order, as copy
- * writes it and the toolbar search finds it, and the value of each vault
- * property: of `host` for the Item it names, else of the Item's first
- * Literature Note.
- */
 export function recordCells(
   row: QueryViewRow,
   properties: readonly Pick<PropertyEntry, "path">[],
@@ -117,18 +95,12 @@ export function recordCells(
   return { cells, vault };
 }
 
-/** Whether the toolbar search `query`, lower-cased, finds any of `cells`. */
 export function searchFinds(cells: readonly string[], query: string): boolean {
   return (
     query === "" || cells.some((text) => text.toLowerCase().includes(query))
   );
 }
 
-/**
- * The rows of the shown view, gathered into runs of one group, with the text
- * of each visible property in the view's order. A row the search does not
- * find stays off screen.
- */
 export function useRecordGroups(view: QueryView): {
   properties: readonly PropertyEntry[];
   groups: readonly RecordGroup[];
@@ -138,14 +110,12 @@ export function useRecordGroups(view: QueryView): {
     view,
     (s) => (s.results ?? NO_RESULTS).records,
   );
-  // The layout draws these records in the same pass: a print waits for it.
   useLayoutEffect(() => view.drewRecords(records), [view, records]);
   const query = useAnnotStore((s) => s.filterQuery)
     .trim()
     .toLowerCase();
   const collapsed = useAnnotStore((s) => s.collapsedGroups);
   const { literatureNotes: notes } = view.tableDeps;
-  // The vault properties read again on a change of the notes, with no run.
   const vaultVersion = useVaultVersion(notes);
   return useMemo(() => {
     void vaultVersion;
@@ -177,15 +147,8 @@ export function useRecordGroups(view: QueryView): {
   }, [columns, records, query, collapsed, notes, view, vaultVersion]);
 }
 
-/** The height of a group heading after a row, before it is measured. */
 export const HEADING_ESTIMATE = 38;
 
-/**
- * A group's heading. Its button collapses the group's rows and expands them
- * again; the heading's own text names it, so it needs no tooltip. It reads
- * as the heading of a Bases group: the value in its size and weight, on the
- * line height of a Bases row, after a chevron in the collapse icon's ink.
- */
 export function RecordGroupHeading({ group }: { group: RecordGroup }) {
   const toggle = useToggleGroupCollapsed();
   if (group.key === null) return null;
@@ -213,7 +176,6 @@ export function RecordGroupHeading({ group }: { group: RecordGroup }) {
   );
 }
 
-/** The cell of the property at `at` of one row: a vault cell, or the row's value. */
 export function RecordCell({
   record: { row, cells, vault },
   properties,
@@ -224,7 +186,6 @@ export function RecordCell({
   at: number;
 }) {
   const value = vault[at];
-  // An empty vault property is blank, as any blank property is.
   if (value)
     return cells[at] === "" && value.note ? null : (
       <VaultCellContent value={value} />
@@ -234,7 +195,6 @@ export function RecordCell({
   );
 }
 
-/** Whether `value` is an Error Value, or a list that holds one at any depth. */
 export function holdsError(value: QueryViewValue | undefined): boolean {
   return (
     errorCell(value) !== null ||
@@ -242,11 +202,6 @@ export function holdsError(value: QueryViewValue | undefined): boolean {
   );
 }
 
-/**
- * One cell on screen: its text, or, for an Error Value, a warning icon with
- * the error's message as its tooltip. A list that holds an Error Value shows
- * its elements as `cell` writes them, each Error Value as its icon.
- */
 export function CellContent({
   value,
   text,

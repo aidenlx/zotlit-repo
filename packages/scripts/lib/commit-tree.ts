@@ -1,15 +1,5 @@
-// Type-aware lint reads workspace package source from disk. Lefthook hides the
-// unstaged hunks of a staged file, but a file with only unstaged changes stays
-// on disk, so lint would check a tree the commit never holds.
-
-/** Files whose content reaches the lint: sources, and JSON such as message catalogs. */
 const LINT_INPUT = /\.(?:[cm]?[jt]sx?|json)$/;
 
-/**
- * The files with changes outside the commit that lint would still build, read
- * from `git status --porcelain=v1 -z --untracked-files=all`. A file the commit
- * stages is left out: Lefthook hides its unstaged hunks.
- */
 export function looseFiles(status: string): string[] {
   const fields = status.split("\0");
   const loose: string[] = [];
@@ -19,7 +9,6 @@ export function looseFiles(status: string): string[] {
     const staged = field[0]!;
     const unstaged = field[1]!;
     const path = field.slice(3);
-    // A rename or copy carries its source path in the next field.
     if ("RC".includes(staged) || "RC".includes(unstaged)) index++;
     if ((staged === " " || staged === "?") && unstaged !== " ") {
       if (LINT_INPUT.test(path)) loose.push(path);
@@ -28,7 +17,6 @@ export function looseFiles(status: string): string[] {
   return loose;
 }
 
-/** The message that names the loose files and the two ways on. */
 export function looseFilesMessage(loose: readonly string[]): string {
   return [
     "Lint reads the working tree, and these files hold changes outside this commit:",

@@ -15,9 +15,9 @@ export function logToBrowserConsole(
   ].createInstance(Components.interfaces.nsIScriptError);
 
   const flagsByType = {
-    error: scriptError.errorFlag, // 0
-    warning: scriptError.warningFlag, // 1
-    info: scriptError.infoFlag, // 8
+    error: scriptError.errorFlag,
+    warning: scriptError.warningFlag,
+    info: scriptError.infoFlag,
   };
 
   const flags = Object.prototype.hasOwnProperty.call(flagsByType, type)

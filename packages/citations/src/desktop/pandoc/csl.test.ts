@@ -26,7 +26,6 @@ import { resolveInstalledStyle } from "./styles.ts";
 
 import { CONTRACT_VERSION } from "#core/pandoc/contract.ts";
 
-/** Filenames the filesystem refuses outright, as a file without read access is. */
 const deniedReads = new Set<string>();
 
 const deniedFileSystem = Layer.effect(
@@ -92,7 +91,6 @@ describe("zotlit:csl", () => {
           styleId: DEPENDENT,
           parentId: PARENT,
         });
-        // The parent's formatting under the dependent style's own default locale.
         const xml = yield* Effect.promise(() =>
           readFile(pathOf(response), "utf8"),
         );
@@ -156,7 +154,6 @@ describe("zotlit:csl", () => {
       expect(yield* Effect.promise(() => readFile(path!, "utf8"))).toContain(
         "</style>",
       );
-      // The staged writes leave nothing of their own behind.
       expect(yield* Effect.promise(() => readdir(dirname(path!)))).toEqual([
         basename(path!),
       ]);
@@ -241,9 +238,6 @@ describe("zotlit:csl", () => {
         const zotero = yield* Effect.acquireDisposable(
           Effect.promise(() => installStyles()),
         );
-        // The file names the installed parent, and closes an element it never
-        // opened. The parent's formatting stands in for the formatting a dependent
-        // style leaves out, never for markup it holds broken.
         yield* Effect.promise(() =>
           zotero.writeCsl(
             "journal-broken.csl",
@@ -297,10 +291,6 @@ describe("zotlit:csl", () => {
   );
 });
 
-/**
- * The path a successful response carries, asserting there is one and that it is
- * absolute — citeproc opens it from whatever working directory Pandoc runs in.
- */
 function pathOf(response: CslResponse): string {
   expect(response).not.toHaveProperty("errors");
   const path = "path" in response ? response.path : "";
@@ -312,15 +302,12 @@ interface StyleFixture {
   id: string;
   parentId?: string;
   defaultLocale?: string;
-  /** The elements a processor formats with, absent for a dependent style. */
   body?: string;
   hidden?: boolean;
 }
 
-/** One Zotero install, and the materialization store its resolutions land in. */
 interface ZoteroStyles extends AsyncDisposable {
   dataDir: string;
-  /** One `zotlit:csl` call against this install. */
   csl: (styleId: string) => ReturnType<typeof resolveCslStyle>;
   writeStyle: (filename: string, fixture: StyleFixture) => Promise<void>;
   writeCsl: (filename: string, xml: string) => Promise<void>;
@@ -367,7 +354,6 @@ async function installStyles(): Promise<ZoteroStyles> {
   };
 }
 
-/** A CSL file shaped like the ones Zotero installs. */
 function styleXml({ id, parentId, defaultLocale, body }: StyleFixture): string {
   return [
     '<?xml version="1.0" encoding="utf-8"?>',

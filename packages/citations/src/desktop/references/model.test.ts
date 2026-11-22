@@ -291,7 +291,6 @@ it.effect(
       const first = host.openSession();
       expect(first.state().engineHintDismissed).toBe(false);
       host.registry.set(engineHintDismissedAtom, true);
-      // The host's registry drops a node at once when its last reader goes.
       first[Symbol.dispose]();
 
       const later = yield* open(host);
@@ -380,7 +379,6 @@ it.effect(
     }),
 );
 
-// Opening a Literature Note belongs to the gesture, not its source pane.
 it.effect(
   "opens notes from two References panes without cancelling either creation",
   () =>

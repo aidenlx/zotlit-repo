@@ -1,7 +1,3 @@
-// Shared pieces for the settings rows that hold Device Overrides — state kept
-// per vault × device that never syncs: the folder dialog that picks a
-// machine-specific folder, and the note that says the value stays here.
-
 import { Effect } from "effect";
 
 import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
@@ -11,10 +7,6 @@ import {
 } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-/**
- * Open a folder picker and hand the chosen directory to `onPick`. `startPath`
- * seeds the dialog when the bound setting is unset.
- */
 export async function browseForDir(opts: {
   title: string;
   startPath: string | undefined;
@@ -38,7 +30,6 @@ export async function browseForDir(opts: {
   }
 }
 
-/** Append the "stored on this device only" Device Override note as a fresh description line. */
 export function appendDeviceOverrideNote(frag: DocumentFragment): void {
   frag.append(createEl("br"));
   const note = createEl("small");

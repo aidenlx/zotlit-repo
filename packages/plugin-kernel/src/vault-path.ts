@@ -1,11 +1,6 @@
-// `basename`, `dirname` and `join` of a vault path, which Obsidian writes with
-// `/` on every platform. The algorithms are those of Node's `path.posix`, copied so
-// that code which must load on Obsidian Mobile takes no Node built-in.
-
 const SLASH = 0x2f;
 const DOT = 0x2e;
 
-/** The last segment of `path`, as `path.posix.basename(path)` gives it. */
 export function basename(path: string): string {
   let start = 0;
   let end = -1;
@@ -25,7 +20,6 @@ export function basename(path: string): string {
   return path.slice(start, end);
 }
 
-/** The folder of `path`, as `path.posix.dirname(path)` gives it. */
 export function dirname(path: string): string {
   if (path.length === 0) return ".";
   const hasRoot = path.charCodeAt(0) === SLASH;
@@ -46,18 +40,12 @@ export function dirname(path: string): string {
   return path.slice(0, end);
 }
 
-/**
- * `segments` joined with `/` and normalized, as `path.posix.join(...segments)`
- * gives it: `.` and empty segments drop out and `..` removes the segment
- * before it.
- */
 export function join(...segments: string[]): string {
   const parts = segments.filter((segment) => segment.length > 0);
   if (parts.length === 0) return ".";
   return normalize(parts.join("/"));
 }
 
-/** `path.posix.normalize(path)`. */
 function normalize(path: string): string {
   if (path.length === 0) return ".";
   const isAbsolute = path.charCodeAt(0) === SLASH;
@@ -71,7 +59,6 @@ function normalize(path: string): string {
   return isAbsolute ? `/${normalized}` : normalized;
 }
 
-/** Resolves `.` and `..` segments of `path`, as Node's `normalizeString` does. */
 function normalizeString(path: string, allowAboveRoot: boolean): string {
   let res = "";
   let lastSegmentLength = 0;

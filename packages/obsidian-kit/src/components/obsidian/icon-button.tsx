@@ -7,10 +7,6 @@ import { tv } from "@zotlit/plugin-kernel/tw.ts";
 import { Icon } from "./icon.tsx";
 import type { IconSize } from "./icon.tsx";
 
-/**
- * The icon button's classes, for a control that keeps its own element and
- * content, such as a `<button>` with a label beside its icon.
- */
 export const iconButton = tv({
   base: "clickable-icon",
   variants: {
@@ -27,25 +23,14 @@ export interface IconButtonProps
     Omit<HTMLAttributes<HTMLDivElement>, "role" | "tabIndex" | "children">,
     IconButtonVariants {
   icon: IconName;
-  /** The icon's size, for a button inside smaller text; the context's otherwise. */
   size?: IconSize;
   disabled?: boolean;
-  /**
-   * A toggle's state, announced as `aria-pressed` and drawn as `is-active`;
-   * `undefined` for a button that is not a toggle.
-   */
   pressed?: boolean;
-  /**
-   * A control that cannot run right now keeps its seat and its place in the
-   * tab order, carries its reason in its tooltip, and takes no press.
-   */
   blocked?: boolean;
-  /** What the button shows after its icon, such as a count. */
   children?: ReactNode;
   ref?: Ref<HTMLDivElement>;
 }
 
-/** @see {@link tooltipAttrs} for opting into Obsidian's hover tooltip. */
 export function IconButton({
   icon,
   size,
@@ -95,10 +80,6 @@ export function IconButton({
   );
 }
 
-/**
- * The room of an icon button, unseen, for a row that has no button where its
- * neighbours do: every row's content then starts at one edge.
- */
 export function IconButtonSpace({
   icon,
   size,

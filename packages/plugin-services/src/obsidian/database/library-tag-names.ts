@@ -1,6 +1,3 @@
-// The tag names in use in one Annotation's Library, as the Zotero database
-// answers them.
-
 import { Cause, Effect } from "effect";
 
 import { resolveIndexedKeyLibraryIn } from "@zotlit/db";
@@ -10,12 +7,6 @@ import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-/**
- * The tag names in use in the Annotation's Library, which the tag editor
- * suggests. The Zotero database answers them, so a tag saved moments ago
- * joins once the database has caught up. Any failure answers no tags and
- * warns, so the editor still opens; an interrupt passes on.
- */
 export const libraryTagNames = (
   reads: Pick<ZoteroReads["Service"], "current" | "snapshot">,
   annotationKey: string,
@@ -45,11 +36,6 @@ export const libraryTagNames = (
     ),
   );
 
-/**
- * The Promise form for the Annotation editor and view, which run outside
- * Effect. It runs on the bridge, so unload stops a pending read, and a read
- * that unload stops or that starts after it answers no tags.
- */
 export function libraryTagNamesOf(
   reads: Pick<ZoteroReads["Service"], "current" | "snapshot">,
   bridge: Pick<EffectBridge, "runPromiseExit">,

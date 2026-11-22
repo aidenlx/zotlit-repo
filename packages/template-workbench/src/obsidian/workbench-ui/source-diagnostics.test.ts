@@ -1,6 +1,3 @@
-// Which text each source pane marks for a failure: the place the failure
-// verified, translated into the text that pane shows, and only in the pane
-// that holds it.
 import type { WorkbenchSliceId } from "#core/document/index.ts";
 import { expect, it } from "vitest";
 
@@ -15,7 +12,6 @@ import {
 import { sliceShownText } from "#core/document/index.ts";
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
 
-/** The text `slice` marks for `diagnoses`, read from the text the pane shows. */
 function marked({
   controller,
   slice,
@@ -25,7 +21,6 @@ function marked({
   controller: WorkbenchDocumentController;
   slice: WorkbenchSliceId;
   diagnoses: readonly WorkbenchDiagnosis[];
-  /** Whether the pane lays its text out as JSON, as a JSON-e row's does. */
   json?: boolean;
 }): string[] {
   const source = sliceShownText(controller, slice);
@@ -63,7 +58,6 @@ it("marks a verified note failure at its place in the note pane", () => {
 
 it("marks the expression a JSON-e property rule failed on, in the row's own pane", () => {
   const controller = new WorkbenchDocumentController(DEFAULT_PROFILE_SOURCE);
-  // The fourth row is the built-in JSON-e rule `{"$eval":"zt.citationKey"}`.
   const diagnoses = workbenchDiagnoses(
     [],
     [
@@ -83,7 +77,6 @@ it("marks the expression a JSON-e property rule failed on, in the row's own pane
   expect(
     marked({ controller, slice: entrySlice(4), diagnoses, json: true }),
   ).toEqual(['"zt.citationKey"']);
-  // Another row's pane cannot place it.
   expect(marked({ controller, slice: entrySlice(1), diagnoses })).toEqual([]);
 });
 

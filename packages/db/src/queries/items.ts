@@ -29,42 +29,18 @@ export interface BaseItem {
   itemID: number;
   libraryID: number;
   key: string;
-  /** `key` or `key + 'g' + groupID`, precomputed for NoteIndex lookup. */
   indexedKey: string;
-  /** UTC instant from Zotero's `dateAdded` text column. */
   dateAdded: Temporal.Instant;
-  /** UTC instant from Zotero's `dateModified` text column. */
   dateModified: Temporal.Instant;
   creators: Creator[];
-  /**
-   * Creator-type name that Zotero treats as primary for this item type
-   * (e.g. `author` for journalArticle/book, `interviewer` for interview,
-   * `podcaster` for podcast).
-   */
   primaryCreatorType: string | null;
-  /**
-   * User-defined custom fields (`fieldsCombined.custom = 1`). Built-in fields
-   * are assigned as direct item properties, including built-ins newer than the
-   * generated schema snapshot.
-   */
   customFields: ReadonlyMap<string, string | null>;
 }
 
 export type Item = BaseItem & {
   fields: ItemFields;
-  /**
-   * The same stored values as {@link Item.fields}, read under their canonical
-   * Zotero base-field names, so a caller asks one question of every item type
-   * (`bookSection.bookTitle` and `preprint.repository` both answer here).
-   * `fields` stays raw, which leaves the template data contract untouched.
-   */
   baseFields: ItemBaseFields;
-  /**
-   * The **Venue** derived from {@link Item.baseFields} — the journal, book,
-   * website, repository, university, or publisher the item appeared under.
-   */
   venue: string | null;
-  /** `groups.groupID` for a group library, `null` for the user library. */
   groupID: number | null;
 };
 
@@ -208,8 +184,6 @@ function toFields(
       row.itemTypeID,
       d.fieldsCombined.fieldID,
     );
-    // A null reads the same as an absent field here, so it never displaces a
-    // populated one where two stored fields resolve to the same base field.
     if (baseName && value !== null) baseFields[baseName] = value;
   }
   return { namedProps, customFields, baseFields };
@@ -261,17 +235,6 @@ export function getItemsByLibrary(
     .map((r) => toItem(r, groupId, baseFieldTable));
 }
 
-/**
- * Fetch items by global item id, in `itemIDs` order, through one cached keyed
- * read. An id that names no live regular item has no entry; a repeated id
- * repeats its item. Item ids
- * are unique across libraries, so the batch may span libraries; each row's
- * `groupID`/`indexedKey` resolves from its own `libraryID`.
- *
- * @param opts.memo caller-owned `libraryID → groupID` cache. Pass a shared memo
- *   to resolve each library once across many calls; omit to scope the cache
- *   to this call.
- */
 export function getItemsByID(
   db: ZoteroDatabase,
   itemIDs: readonly number[],
@@ -297,16 +260,6 @@ export function getItemTypeByKey(
   );
 }
 
-/**
- * Fetch regular items of one library by key, in `keys` order, through
- * one cached keyed read.
- * A key that names no live regular item has no entry; a repeated key repeats
- * its item.
- *
- * @param opts.memo caller-owned `libraryID → groupID` cache, as in
- *   {@link getItemsByID}. A caller that already knows the library's group
- *   seeds it and saves the group read.
- */
 export function getItemsByKey(
   db: ZoteroDatabase,
   keys: readonly string[],

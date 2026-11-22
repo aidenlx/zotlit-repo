@@ -39,7 +39,6 @@ declare module "./page-helpers.ts" {
       restore: () => void;
     };
     zotlitE2EPackManifest?: import("obsidian").PluginManifest;
-    /** The pack file of the run vault, kept while a case puts another in its place. */
     zotlitE2EPackFile?: ArrayBuffer;
     zotlitE2ELogStart?: number;
     zotlitE2EPanes?: { wide: WorkspaceLeaf; narrow: WorkspaceLeaf };

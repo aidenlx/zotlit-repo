@@ -1,12 +1,7 @@
-// zotlit-keyboard: keyboard ownership between stacked layers
-// (apps/obsidian/policies/keyboard-scope.md). no-layer-check moves a key that
-// yields to an open layer onto a Scope the layer pushes. Rule tests:
-// oxlint-plugin-keyboard.test.ts.
 import type { RuleTester } from "oxlint/plugins-dev";
 
 type Rule = Parameters<RuleTester["run"]>[1];
 
-/** The fields this rule reads; every ESTree node fits it. */
 interface AstNode {
   readonly type: string;
   readonly parent?: AstNode | null;
@@ -28,7 +23,6 @@ interface AstNode {
   readonly init?: AstNode | null;
 }
 
-/** The name after the dot in `a.name`, or null for anything else. */
 function memberName(node: AstNode | undefined): string | null {
   return node?.type === "MemberExpression" &&
     !node.computed &&
@@ -56,10 +50,6 @@ const jsxKeyProps = new Set([
   "onKeyUpCapture",
 ]);
 
-/**
- * Whether a function is a key handler by where it is passed: a JSX key prop,
- * a `keydown`/`keyup` listener, or a Scope's keymap callback.
- */
 function isKeyHandler(fn: AstNode): boolean {
   const { parent } = fn;
   if (parent?.type === "JSXExpressionContainer") {
@@ -74,7 +64,6 @@ function isKeyHandler(fn: AstNode): boolean {
       return args[1] === fn && isKeyEvent(args[0]);
     case "registerDomEvent":
       return args[2] === fn && isKeyEvent(args[1]);
-    // `scope.register(modifiers, key, fn)`; a Component's register takes one.
     case "register":
       return args.length === 3 && args[2] === fn;
     case "registerKeymap":
@@ -95,18 +84,11 @@ function inKeyHandler(node: AstNode): boolean {
   return false;
 }
 
-/**
- * What another layer is drawn with: a popover, a menu, a dialog or modal, a
- * suggester, or the trigger that marks one open. A field, an editor or a
- * list box the key landed on is the target's own, and is not here.
- */
 const layerSelector =
   /\[popover|:popover-open|\[role\s*=\s*["']?(?:menu|menuitem\w*|dialog|alertdialog)["']?\s*\]|\[aria-(?:haspopup|expanded)|has-active-menu|(?:^|[\s,>+~(])dialog(?![\w-])|\.(?:menu|menu-item|modal|modal-container|suggestion-container|suggestion-item|prompt|popover|hover-popover)(?![\w-])/;
 
-/** A class that marks a layer, or its trigger, open. */
 const layerClass = /^(?:has-active-menu|is-open|popover-open)$/;
 
-/** An attribute that marks a layer, or its trigger, open. */
 const layerAttribute = /^(?:popover|aria-haspopup|aria-expanded)$/;
 
 const selectorMethods = new Set([
@@ -116,11 +98,6 @@ const selectorMethods = new Set([
   "querySelectorAll",
 ]);
 
-/**
- * A key the surface would give up while another layer is open belongs on a
- * Scope that layer pushes; the innermost Scope hears it first, and the
- * surface needs no knowledge of the layer.
- */
 export const noLayerCheck: Rule = {
   meta: {
     type: "problem",
@@ -135,8 +112,6 @@ export const noLayerCheck: Rule = {
     schema: [],
   },
   create(context) {
-    // Top-level string consts, so a selector list named once is read
-    // where a handler passes it.
     const constants = new Map<string, string>();
     const text = (node: AstNode | undefined): string | null => {
       if (node?.type === "Literal" && typeof node.value === "string")

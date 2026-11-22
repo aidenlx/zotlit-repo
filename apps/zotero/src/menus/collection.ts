@@ -1,5 +1,3 @@
-// Collections-pane context menu for batch operations. Shown on library, group,
-// and collection rows.
 import { registerMenu } from "@/lib/l10n.ts";
 import type { TypedMenuOptions } from "@/lib/l10n.ts";
 import { logger as appLogger } from "@/lib/logger.ts";
@@ -19,7 +17,6 @@ type LibraryMenuContext = _ZoteroTypes.MenuManager.LibraryMenuContext;
 
 type CollectionMenuData = TypedMenuOptions<typeof MENU_TARGET>["menus"][number];
 
-/** One submenu entry, bound to the action it runs on the clicked row's scope. */
 function scopedMenuItem(
   l10nID: FluentMessageId,
   run: (scope: RowScope) => void,

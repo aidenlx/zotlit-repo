@@ -41,12 +41,9 @@ import { PREFS_FILENAME } from "#desktop/zotero-pref/prefs-file.ts";
 import { paintEach } from "#obsidian/setting-tab/effect-tab.ts";
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
-/** Folder-picker dropdown sentinel for auto-detect — a real dir is never empty. */
 const PICKER_AUTO = "";
-/** Folder-picker dropdown sentinel that opens the folder picker; NUL can't be in a path. */
 const PICKER_BROWSE = "\0browse";
 
-/** The Zotero page's lead row: the database file, its status, and refresh. */
 export function databaseFileItem(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey> {
@@ -58,11 +55,6 @@ export function databaseFileItem(
   };
 }
 
-/**
- * The Zotero page's Sync rows the database owns: Companion setup, change
- * watching, and the stale-data guide. `liveUpdates` are the Companion's rows,
- * placed right after its setup row.
- */
 export function databaseSyncItems(
   liveUpdates: SettingGroupItem<SettingsKey>[],
 ): SettingGroupItem<SettingsKey>[] {
@@ -101,10 +93,6 @@ export function databaseSyncItems(
   ];
 }
 
-/**
- * The Zotero location page: where and how ZotLit reads Zotero — the profile,
- * the data directory override, read mode, and the Source ID they produce.
- */
 export function databaseLocationItems(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey>[] {
@@ -136,7 +124,6 @@ export function databaseLocationItems(
   ];
 }
 
-/** What the Database file row's status line shows, folded from the reads' events. */
 interface DatabaseFileStatus {
   readonly state: ZoteroReadsState["state"];
   readonly refreshing: boolean;
@@ -144,10 +131,6 @@ interface DatabaseFileStatus {
   readonly errorMessage: string | null;
 }
 
-/**
- * Run `refresh` behind a progress notice. It fails with the refresh's own
- * error, which the notice names.
- */
 export const refreshReads = <E>(refresh: Effect.Effect<void, E>) =>
   withProgress(refresh, {
     loading: m.notice_db_refreshing(),
@@ -155,12 +138,6 @@ export const refreshReads = <E>(refresh: Effect.Effect<void, E>) =>
     error: m.notice_db_refresh_failed(),
   });
 
-/**
- * Database file row: resolved `zotero.sqlite` path + a refresh button + an
- * inline status line that surfaces loading / refreshing / degraded /
- * refresh-failed states. The path derives from the Zotero profile's data dir,
- * so it updates when the profile changes.
- */
 function renderDatabaseFileRow(
   setting: Setting,
   ctx: SettingTabContext,
@@ -210,14 +187,10 @@ function renderDatabaseFileRow(
     Effect.gen(function* () {
       const reads = yield* ZoteroReads;
       const pref = yield* ZoteroPref;
-      // The progress notice reports a failed refresh and logs it, so the
-      // runner has no failure left to show a second notice for.
       const refresh = refreshReads(reads.refresh).pipe(Effect.ignore);
 
       refreshButton?.onClick(() => void ctx.tab.run(refresh));
 
-      // Events miss the loading→ready/degraded transition (T14 contract), so
-      // the error starts from the reads' own state when already degraded.
       const initial = yield* reads.current;
       const status = Stream.mergeAll(
         [
@@ -366,8 +339,6 @@ function renderReadModeRow(
       });
   });
 
-  // The active mode is read again after each change, degrade, or failed
-  // refresh, as the reads report the mode their current connection settled on.
   return ctx.tab.mount(
     Effect.gen(function* () {
       const reads = yield* ZoteroReads;
@@ -392,12 +363,6 @@ function renderReadModeRow(
   );
 }
 
-/**
- * Profile picker row: a dropdown listing the `profiles.ini` profiles, plus an
- * "auto-detect default" entry (first) and a "choose folder" entry (last) that
- * opens a folder dialog. The description shows the resolved `prefs.js` path and
- * an inline loading / failed-to-read status from {@link ZoteroPref}.
- */
 function renderProfileDirRow(
   setting: Setting,
   ctx: SettingTabContext,
@@ -430,7 +395,6 @@ function renderProfileDirRow(
     dropdown.selectEl.replaceChildren();
     dropdown.addOption(PICKER_AUTO, m.settings_db_profile_auto());
     for (const p of profiles) dropdown.addOption(p.dir, profileLabel(p));
-    // A manually-chosen folder that isn't one of the listed profiles.
     if (current !== PICKER_AUTO && !profiles.some((p) => p.dir === current)) {
       dropdown.addOption(current, current);
     }
@@ -443,7 +407,7 @@ function renderProfileDirRow(
     d.onChange((value) => {
       if (value === PICKER_BROWSE) {
         const snapshot = ctx.tab.sync(currentPref);
-        d.setValue(selectedValue(snapshot)); // browse isn't itself a saved choice
+        d.setValue(selectedValue(snapshot));
         void ctx.tab.run(
           Effect.gen(function* () {
             const pref = yield* ZoteroPref;
@@ -499,9 +463,6 @@ function renderProfileDirRow(
         profiles = yield* pref.listProfiles;
         repopulate(selectedValue(yield* pref.current));
       });
-      // The current snapshot, then the snapshot current when the preferences
-      // were read again. A queued snapshot can name a profile the user has
-      // since replaced, and the override alone moves no `prefs`.
       const prefsChanges = paintEach(
         pref.changes.pipe(
           Stream.changesWith((a, b) => a.prefs === b.prefs),
@@ -532,11 +493,6 @@ function extractErrorMessage(err: Error): string {
   return err.message;
 }
 
-/**
- * Advanced data-directory override (auto-detect / a chosen folder). Wins over
- * the profile-derived data dir in {@link ZoteroPrefSnapshot.dataDir}; the
- * resolved path is echoed live so the user sees the effective value either way.
- */
 function renderDataDirRow(
   setting: Setting,
   ctx: SettingTabContext,
@@ -572,7 +528,7 @@ function renderDataDirRow(
     d.onChange((value) => {
       if (value === PICKER_BROWSE) {
         const snapshot = ctx.tab.sync(currentPref);
-        d.setValue(selectedValue(snapshot)); // browse isn't itself a saved choice
+        d.setValue(selectedValue(snapshot));
         void browseForDir({
           title: m.settings_db_data_dir_dialog_title(),
           startPath: snapshot.dataDirOverride ?? undefined,
@@ -598,12 +554,6 @@ function renderDataDirRow(
   );
 }
 
-/**
- * Live echo of the resolved profile dir, data dir, and computed
- * {@link ZoteroPrefSnapshot.sourceId}. Live updates are accepted only from a
- * Zotero install whose own profile + data dir hash to this same id, so showing
- * all three makes a mismatch diagnosable instead of silent.
- */
 function renderSourceIdRow(
   setting: Setting,
   ctx: SettingTabContext,
@@ -638,21 +588,15 @@ function renderSourceIdRow(
   );
 }
 
-/** The preference snapshot a row reads on a user's choice. */
 const currentPref = ZoteroPref.use((pref) => pref.current);
 
 const currentSettings = PluginSettings.use((settings) => settings.current);
 
-/** The Zotero data directory the styles and attachments resolve against now. */
 export const zoteroDataDir = Effect.map(
   currentPref,
   (snapshot) => snapshot.dataDir,
 );
 
-/**
- * The current snapshot, then each one whose preferences were read again or
- * whose data directory override moved: the paths derive from both.
- */
 const pathChanges = (pref: Pick<ZoteroPref["Service"], "changes">) =>
   pref.changes.pipe(
     Stream.changesWith(
@@ -660,7 +604,6 @@ const pathChanges = (pref: Pick<ZoteroPref["Service"], "changes">) =>
     ),
   );
 
-/** Append a `label: <code/>` line to `frag`, returning the `<code>` to fill in. */
 function appendLabeledCode(frag: DocumentFragment, label: string): HTMLElement {
   frag.append(createEl("br"));
   frag.append(label);
@@ -669,7 +612,6 @@ function appendLabeledCode(frag: DocumentFragment, label: string): HTMLElement {
   return code;
 }
 
-// The services this file's rows read, in the setting tab's context.
 declare module "#obsidian/setting-tab/effect-tab.ts" {
   interface SettingTabServiceRegistry {
     ZoteroPref: ZoteroPref;

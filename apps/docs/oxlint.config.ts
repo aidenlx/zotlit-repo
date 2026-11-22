@@ -11,8 +11,6 @@ export default defineConfig({
   extends: [baseConfig],
   plugins: [...(baseConfig.plugins ?? []), "nextjs"],
   rules: {
-    // Keep the framework-neutral image check without applying Next.js rules
-    // to this TanStack app.
     "nextjs/google-font-display": "off",
     "nextjs/google-font-preconnect": "off",
     "nextjs/inline-script-id": "off",
@@ -34,9 +32,6 @@ export default defineConfig({
     "nextjs/no-title-in-document-head": "off",
     "nextjs/no-typos": "off",
     "nextjs/no-unwanted-polyfillio": "off",
-    // The site renders on the server and hydrates one React root, so its ids
-    // come from useId, the one id that matches across the two renders. The
-    // base rule without its useId ban:
     "no-restricted-imports": [
       "error",
       {
@@ -48,15 +43,10 @@ export default defineConfig({
   overrides: [
     ...testBaselineOverrides("apps/docs"),
     {
-      // TanStack Router signals `notFound()` and `redirect()` by throwing
-      // objects that are not Errors.
       files: ["src/**"],
       rules: { "typescript/only-throw-error": "off" },
     },
     {
-      // workerd ships no Temporal: the publication-date schema, its date
-      // helpers, the Date the feed library takes, and the git date that
-      // fumadocs hands in (AGENTS.md → Dates).
       files: [
         "src/lib/shared.ts",
         "src/routes/changelog/rss\\[.\\]xml.ts",
@@ -71,8 +61,6 @@ export default defineConfig({
       },
     },
     {
-      // Codegen scripts read `src/` directly; the `@/` alias resolves for the
-      // bundler, not for `node scripts/*.ts`.
       files: ["scripts/**"],
       rules: {
         "no-restricted-imports": ["error", { patterns: [datePattern] }],

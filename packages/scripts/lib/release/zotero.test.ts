@@ -7,9 +7,6 @@ import type { SourceTags } from "./obsidian.ts";
 import { publishZotero, UPDATE_HOST_TAG } from "./zotero.ts";
 import type { ReleaseHost } from "./zotero.ts";
 
-// The releases of the publish repository and the tags of the source
-// repository are in memory, in place of GitHub; the build writes an XPI into
-// a temporary workspace.
 let root: string;
 let dist: string;
 beforeEach(async () => {
@@ -19,7 +16,6 @@ beforeEach(async () => {
 });
 afterEach(() => rm(root, { recursive: true, force: true }));
 
-/** Release assets by tag, each a file name and its text. */
 type Releases = Map<string, Map<string, string>>;
 
 function fakeHost(releases: Releases, calls: string[]): ReleaseHost {
@@ -84,7 +80,6 @@ async function publish(
     changelogVersion: "2.3.0-beta.0",
     sourceCommit: "c0ffee",
     build: () => writeFile(join(dist, "zotlit-zotero-2.3.0-beta.0.xpi"), build),
-    // The manifest names the XPI it finds in dist, as build-update-json.ts does.
     buildUpdateManifests: async () => {
       const xpi = await readFile(
         join(dist, "zotlit-zotero-2.3.0-beta.0.xpi"),

@@ -14,12 +14,7 @@ import {
 } from "drizzle-orm/sqlite-core";
 import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 
-type SqliteAnyOut =
-  | null
-  | number
-  // | bigint enable this if ever enable readBigInts
-  | string
-  | Uint8Array;
+type SqliteAnyOut = null | number | string | Uint8Array;
 type SqliteAnyIn = null | number | bigint | string | ArrayBufferView;
 
 export const sqliteAny = customType<{
@@ -31,8 +26,6 @@ export const sqliteAny = customType<{
   },
 });
 
-// Zotero stores all date columns as UTC strings ("YYYY-MM-DD HH:MM:SS"),
-// produced by SQLite's CURRENT_TIMESTAMP and Zotero.Date.dateToSQL(d, true).
 const sqlDateMapping = {
   fromDriver: (s: string) => Temporal.Instant.from(`${s.replace(" ", "T")}Z`),
   toDriver: (i: Temporal.Instant) =>
@@ -47,15 +40,10 @@ export const timestamp = customType<{
   ...sqlDateMapping,
 });
 
-// Columns declared in Zotero's schema with no type (e.g. `dateDeleted DEFAULT
-// CURRENT_TIMESTAMP NOT NULL`, `itemDataValues.value UNIQUE`). The stored
-// value is typically a TIMESTAMP/text string; SQLite gives the column NONE
-// affinity so it can hold any storage class.
 export const noType = customType<{ data: string; driverData: string }>({
   dataType: () => "",
 });
 
-// noType columns whose values are TIMESTAMP-format strings (e.g. dateDeleted).
 export const noTypeDate = customType<{
   data: Temporal.Instant;
   driverData: string;
@@ -64,8 +52,6 @@ export const noTypeDate = customType<{
   ...sqlDateMapping,
 });
 
-// Foreign-key columns Zotero declares without a type that always reference an
-// INTEGER PRIMARY KEY (e.g. `itemData.valueID` -> `itemDataValues.valueID`).
 export const noTypeInt = customType<{ data: number; driverData: number }>({
   dataType: () => "",
 });
@@ -377,13 +363,6 @@ export const itemAttachments = sqliteTable(
   ],
 );
 
-/**
- * Stored shape varies by parent attachment content type (PDF / EPUB / HTML
- * snapshot). Narrow at the query layer.
- *
- * @see {@link ../src/lib/zt-annot.ts} — `AnnotationPosition` discriminated
- *   union and `parseAnnotationPosition` narrowing util.
- */
 export interface AnnotationPositionRaw {
   type?: string;
   [k: string]: unknown;

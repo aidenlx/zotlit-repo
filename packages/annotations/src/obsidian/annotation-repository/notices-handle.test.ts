@@ -4,8 +4,6 @@ import { expect, it } from "vitest";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import type { RecordedNotice } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 // @vitest-environment happy-dom
-// The handle is a Promise edge for code outside Effect, so its cases run on
-// plain Vitest over a real runtime and bridge.
 import {
   ButtonComponent,
   controlsOf,
@@ -18,7 +16,6 @@ import { bindCapabilityNotices } from "./notices-handle.ts";
 import { layerCapabilityNotices, CapabilityNotices } from "./notices.ts";
 import { AnnotationRepository } from "./service.ts";
 
-/** Presses the one action of a recorded notice. */
 function press(notice: RecordedNotice): void {
   const actions = (
     notice.messages[0] as DocumentFragment
@@ -28,10 +25,6 @@ function press(notice: RecordedNotice): void {
   button.click();
 }
 
-/**
- * The handle over a runtime of the notices layer, against a Zotero that
- * answers every Allow editing with an Allow it does not remember.
- */
 async function open() {
   const stack = new AsyncDisposableStack();
   const ran: string[] = [];
@@ -110,13 +103,10 @@ it("settles as the bridge does after the runtime is disposed, and a notice's but
 
   await dispose();
 
-  // The button's FiberSet closed with the layer: it neither hides the notice
-  // nor asks Zotero again.
   press(notice);
   expect(notice.hidden).toBe(false);
   expect(asked.count).toBe(1);
 
-  // The bridge still runs over the released services, so the handle resolves.
   await expect(handle.allowEditing()).resolves.toBeUndefined();
   await expect(handle.showEditingCapability()).resolves.toBeUndefined();
   expect(handle.reportBlockedGesture("ABCD2345")).toBeUndefined();

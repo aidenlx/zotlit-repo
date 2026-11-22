@@ -10,7 +10,6 @@ import { removeOldStore } from "./old-store-cleanup.ts";
 import { originFiles } from "./test-utils.ts";
 import type { OriginFolder } from "./test-utils.ts";
 
-/** What a device holds after ZotLit downloaded both Managed Binaries. */
 const downloaded = (): OriginFolder => ({
   zotlit: {
     "chinese-segmenter": { "6f1c.wasm": null },
@@ -18,7 +17,6 @@ const downloaded = (): OriginFolder => ({
   },
 });
 
-/** A vault that dismissed both install offers of the old versions. */
 function dismissedVault(): MemoryDeviceStorage {
   const storage = new MemoryDeviceStorage();
   storage.saveLocalStorage("zotlit-chinese-segmenter-declined", true);
@@ -26,7 +24,6 @@ function dismissedVault(): MemoryDeviceStorage {
   return storage;
 }
 
-/** One start of the plugin in the vault of `storage`, on the device `files`. */
 const start = (
   storage: MemoryDeviceStorage,
   files: ReturnType<typeof originFiles>,

@@ -1,18 +1,12 @@
-// The Search Terms of a field: the other words a researcher uses for it, so
-// that "journal" finds `publicationTitle`. Only a list that offers fields reads
-// them. A query never holds one, and the planner and the Query Schema do not
-// know them, so no Search Term can name a field in a Filter Expression.
 import { FIELD_ALIASES } from "@zotlit/zotero-types";
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 
 import type { QueryDataset } from "./dataset.ts";
 
-/** The Query Dataset whose meaning a name has. */
 type DatasetId = QueryDataset["id"];
 
 type Terms = Readonly<Record<string, readonly string[]>>;
 
-/** The words for the fields of an Item, by field. */
 const ITEM_TERMS: Terms = {
   abstractNote: ["summary", "abstract note", "description", "摘要", "概要"],
   accessDate: ["date accessed", "access date", "retrieved", "访问时间"],
@@ -250,7 +244,6 @@ const ITEM_TERMS: Terms = {
   volume: ["vol", "journal volume", "卷号", "卷次"],
   websiteTitle: ["website", "site name", "网站名称", "网站"],
   websiteType: ["site type", "网站类型"],
-  // The fields beyond Zotero's own.
   creators: [
     "author",
     "authors",
@@ -301,7 +294,6 @@ const ITEM_TERMS: Terms = {
   ],
 };
 
-/** The words for a field of an Attachment, whose names can differ from an Item's in meaning. */
 const ATTACHMENT_TERMS: Terms = {
   title: ["file name", "filename", "attachment name", "附件标题", "文件名"],
   contentType: ["mime type", "media type", "内容类型"],
@@ -320,7 +312,6 @@ const ATTACHMENT_TERMS: Terms = {
   tags: ["tag", "keyword", "label", "标签", "关键词"],
 };
 
-/** The words for a field of an Annotation. */
 const ANNOTATION_TERMS: Terms = {
   type: [
     "annotation type",
@@ -358,7 +349,6 @@ const ANNOTATION_TERMS: Terms = {
   tags: ["tag", "keyword", "label", "标签", "关键词"],
 };
 
-/** The words for a field every Query Dataset reads with one meaning. */
 const SHARED_TERMS: Terms = {
   dateAdded: ITEM_TERMS.dateAdded!,
   dateModified: ITEM_TERMS.dateModified!,
@@ -373,19 +363,16 @@ const TERMS_OF_DATASET: Readonly<Record<DatasetId, Terms>> = {
   annotations: ANNOTATION_TERMS,
 };
 
-/** The Query Dataset a path of `dataset` reads below each parent prefix. */
 const PARENTS: readonly (readonly [string, DatasetId])[] = [
   ["item.", "items"],
   ["attachment.", "attachments"],
 ];
 
-/** The type-specific fields of each base field. */
 const SPECIFIC_FIELDS: ReadonlyMap<string, readonly string[]> = Map.groupBy(
   Object.keys(FIELD_ALIASES),
   (name) => FIELD_ALIASES[name]!,
 );
 
-/** A field's name and its label in each bundled language. */
 function zoteroNames(field: string): readonly string[] {
   const labels = Object.values(FIELD_LABELS).flatMap((locale) => {
     const label = locale[field];
@@ -394,23 +381,14 @@ function zoteroNames(field: string): readonly string[] {
   return [field, ...labels];
 }
 
-/** The words for one name of one Query Dataset, as written in the tables. */
 function ownTerms(dataset: DatasetId, name: string): readonly string[] {
   const table = TERMS_OF_DATASET[dataset];
   const authored = table[name] ?? SHARED_TERMS[name];
   if (authored) return authored;
-  // A path below a field, such as `firstAuthor.family`, reads its field's.
   const dot = name.indexOf(".");
   return dot < 0 ? [] : ownTerms(dataset, name.slice(0, dot));
 }
 
-/**
- * The Search Terms of `path`, a path of `dataset`, in lower case: its own
- * words, and for a Zotero field its name, its labels in every language and
- * the same of the fields it shares a base with. A path of a parent reads as
- * the path of the parent's dataset, so `item.publicationTitle` finds what
- * `publicationTitle` finds on Items.
- */
 export function fieldSearchTerms(
   dataset: DatasetId,
   path: string,
@@ -434,14 +412,8 @@ export function fieldSearchTerms(
 }
 
 const WORD_BREAK = /[\s\-_/]+/;
-/** Han script, which writes no spaces between words. */
 const HAN = /\p{Script=Han}/u;
 
-/**
- * Whether the typed `query` finds `term`: at the start of the term or of one
- * of its words, or anywhere in a Chinese term. A Search Term takes no match
- * of scattered letters: with so many terms, one would fill every list.
- */
 export function matchesSearchTerm(term: string, query: string): boolean {
   const typed = query.trim().toLowerCase();
   if (typed === "") return false;

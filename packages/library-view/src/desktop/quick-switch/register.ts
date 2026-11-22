@@ -12,15 +12,11 @@ import type { NoteResultDeps } from "./result-actions.ts";
 
 export interface QuickSwitchDeps extends NoteResultDeps {
   app: App;
-  /** Resolves the Attachments of the PDF a result asks for. */
   attachments: LiteratureNoteAttachmentsHandle;
   lookup: ItemLookupHandle;
   settings: Pick<PluginSettings["Service"], "current">;
-  /** Also runs each PDF open a result fires; unload interrupts it. */
   bridge: Pick<EffectBridge, "runSync" | "runAndForget">;
-  /** Opens the PDF a result asks for. */
   opener: Pick<TargetOpener["Service"], "open">;
-  /** Open the Library View with the Item selected. */
   showInLibrary: (indexedKey: string) => Promise<void>;
 }
 

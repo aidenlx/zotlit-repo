@@ -12,8 +12,6 @@ RuleTester.it = (name, fn) => {
 const tester = new RuleTester({
   languageOptions: { parserOptions: { lang: "ts" } },
 });
-// Failure modes: each reference form in a comment and in a test name, and the
-// look-alikes that stay legal: test data, colors, anchors, other projects.
 tester.run("no-tracker-reference", noTrackerReference, {
   valid: [
     "// A draft stays in memory until Zotero accepts the write.",

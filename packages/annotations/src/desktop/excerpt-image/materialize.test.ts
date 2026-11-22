@@ -90,13 +90,6 @@ const request: ExcerptRequest = {
   zoteroPngPath: null,
 };
 
-/**
- * The decoder the host supplies in production. A Node test process has none of
- * its own, so a test that crosses a WebP boundary states which host it drives:
- * one whose decoder reconstructs the pixels, one that cannot, or one with no
- * decoder. The real decoder is `webp-pixels.test.ts`'s Electron trial. The
- * stub ends with the case's Scope.
- */
 const stubWebpDecoder = (host: "decodes" | "fails" | "none") =>
   Effect.acquireRelease(
     Effect.sync(() => {
@@ -118,7 +111,6 @@ const read = <A>(evaluate: () => Promise<A>) =>
 
 type Services = FileManager | FileSystem.FileSystem | Vault;
 
-/** The Node file system with the members `decorate` gives in place of its own. */
 const decoratedFileSystem = (
   decorate: (fs: FileSystem.FileSystem) => Partial<FileSystem.FileSystem>,
 ) =>
@@ -129,10 +121,6 @@ const decoratedFileSystem = (
     ),
   ).pipe(Layer.provide(NodeFileSystem.layer));
 
-/**
- * A vault on disk under a temp folder, removed with the case's Scope, over
- * `fileSystem`.
- */
 const fixtureOver = (
   fileSystem: Layer.Layer<FileSystem.FileSystem> = NodeFileSystem.layer,
 ) =>
@@ -213,7 +201,6 @@ const fixtureOver = (
     };
   });
 
-/** A vault on disk under a temp folder, removed with the case's Scope. */
 const fixture = fixtureOver();
 
 const savedPath = (result: MaterializedExcerpt) => {
@@ -295,7 +282,6 @@ it.effect(
       const release = Promise.withResolvers<void>();
       const f = yield* fixtureOver(
         decoratedFileSystem((fs) => ({
-          // The link is on disk; the save is interrupted before it goes on.
           link: (from, to) =>
             fs.link(from, to).pipe(
               Effect.andThen(
@@ -327,7 +313,6 @@ it.effect(
     Effect.gen(function* () {
       const f = yield* fixtureOver(
         decoratedFileSystem((fs) => ({
-          // The check of the published bytes ends in an interrupt and a defect.
           readFile: (path) =>
             path.endsWith(".png")
               ? Effect.failCause(
@@ -417,7 +402,6 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const f = yield* fixture;
-      // The vault read decodes what it links, so this host's decoder must work.
       yield* stubWebpDecoder("decodes");
       const bytes = Buffer.from(chromiumLosslessWebp);
       const saved = yield* f.save(request, { bytes, format: WEBP_FORMAT });
@@ -439,7 +423,6 @@ it.effect(
 it.effect("keeps legacy PNG assets retainable beside a WebP asset", () =>
   Effect.gen(function* () {
     const f = yield* fixture;
-    // The vault read decodes what it links, so this host's decoder must work.
     yield* stubWebpDecoder("decodes");
     const legacy = savedPath(yield* f.save(request, pngImage));
     const webp = savedPath(
@@ -482,7 +465,6 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const f = yield* fixture;
-      // 44 bytes that declare 16 383 × 16 383: 1 GiB of RGBA for whoever decodes them.
       const bytes = sizedWebp(16_383, 16_383);
       expect(yield* f.save(request, { bytes, format: WEBP_FORMAT })).toEqual({
         kind: "unavailable",
@@ -502,8 +484,6 @@ it.effect(
     Effect.gen(function* () {
       const f = yield* fixture;
       const [identity] = excerptAssetIdentities(request);
-      // 44 bytes of complete container with no pixel data: the shared container
-      // walk accepts them, which is why the vault read decodes before it links one.
       const headerOnly = sizedWebp(8, 8);
       expect(usableExcerptWebp(headerOnly)).toBe(true);
       yield* read(() => mkdir(`${f.root}/Images`));
@@ -511,7 +491,6 @@ it.effect(
       yield* read(() => writeFile(`${f.root}/${damaged}`, headerOnly));
       yield* stubWebpDecoder("fails");
       expect(yield* f.retain(request, [damaged])).toBeUndefined();
-      // Pixels the same host does reconstruct are still retained.
       const decodable = `Images/zotlit-excerpt-${identity}-${"b".repeat(64)}.webp`;
       yield* read(() =>
         writeFile(`${f.root}/${decodable}`, chromiumLosslessWebp),
@@ -532,9 +511,6 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const f = yield* fixture;
-      // A record `storedImage()` accepted: a complete container with no image data,
-      // which reaches publication as available cache bytes and only the decoder
-      // tells apart from the pixels its name and link claim.
       const headerOnly = sizedWebp(8, 8);
       expect(usableExcerptWebp(headerOnly)).toBe(true);
       const publish = (bytes: Uint8Array, provenance: "cache" | "rendered") =>
@@ -552,15 +528,11 @@ it.effect(
         reason: "source",
       });
       expect(yield* read(() => readdir(f.root))).toEqual([]);
-      // Bytes this process's own encoder produced are already decoded output.
       expect((yield* publish(headerOnly, "rendered")).kind).toBe("saved");
-      // Pixels the same host does reconstruct are still published.
       yield* stubWebpDecoder("decodes");
       expect((yield* publish(chromiumLosslessWebp, "cache")).kind).toBe(
         "saved",
       );
-      // A host with no decoder cannot draw these pixels either, so the bytes are
-      // refused rather than admitted uninspected.
       yield* stubWebpDecoder("none");
       expect(yield* publish(chromiumLosslessWebp, "cache")).toEqual({
         kind: "unavailable",
@@ -592,8 +564,6 @@ it.effect(
     Effect.gen(function* () {
       const f = yield* fixture;
       const [current, previous] = excerptAssetIdentities(request);
-      // The name the previous release wrote, derived here from its own identity
-      // array rather than from the code under test.
       const released = createHash("sha256")
         .update(
           JSON.stringify([

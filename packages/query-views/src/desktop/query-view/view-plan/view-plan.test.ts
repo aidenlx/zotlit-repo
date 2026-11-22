@@ -19,7 +19,6 @@ import {
 } from "#core/query-view/query-file.ts";
 import { VAULT_SORT_CAP } from "#desktop/query-view/vault-sort.ts";
 
-/** The Literature Notes by Indexed Key, each with its frontmatter, counting their scans. */
 function notes(byKey: Record<string, Record<string, unknown>>) {
   const reader = {
     scans: 0,
@@ -53,13 +52,11 @@ function planner(sources: Partial<ViewPlanSources> = {}) {
   });
 }
 
-/** The plan of the view at `index` of the Query File `text`. */
 function plan(text: string | QueryFile, index = 0, sources = {}) {
   const file = typeof text === "string" ? parseQueryFile(text) : text;
   return planner(sources).plan(file, file.views[index]!);
 }
 
-/** An Items Table whose own filters are `filters`, as YAML. */
 const items = (filters: string) => `views:
   - type: table
     name: Items
@@ -67,7 +64,6 @@ const items = (filters: string) => `views:
     filters: ${filters}
 `;
 
-/** Where `needle` sits in `text`, as a fault's span. */
 const span = (text: string, needle: string) => {
   const from = text.indexOf(needle);
   return { from, to: from + needle.length };
@@ -244,7 +240,6 @@ views:
     expect(text).toBe(
       '((itemType == "book") && (dat == 1))\n&& (["ITEMAAAA"].contains(indexedKey))',
     );
-    // A fault in a kept conjunct falls at its place in the whole condition.
     const condition =
       'vault["status"] == "read" && itemType == "book" && (vault.rating > 3)';
     expect(planned.locate(span(text, "itemType"))).toEqual({

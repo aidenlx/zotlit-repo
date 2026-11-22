@@ -2,7 +2,6 @@ import type {
   RenderCallerSource,
   RenderDiagnostic,
 } from "#core/render/index.ts";
-// Complete, write-free Profile checking through the Preview's composition boundary.
 import { stringifyYaml } from "obsidian";
 
 import type { NoteTemplateContext } from "@zotlit/db";
@@ -48,7 +47,6 @@ export interface ProfileCheck {
   }[];
 }
 
-/** One Preview and check row per independent Managed Frontmatter contribution. */
 export function previewPropertyRows(
   fields: readonly EvaluatedFrontmatterField[],
 ) {
@@ -64,7 +62,6 @@ export function previewPropertyRows(
   });
 }
 
-/** Keep the original engine report and only source locations verified by shared diagnosis. */
 export function checkDiagnostic(error: unknown, caller: RenderCallerSource) {
   return {
     ...renderFailureDiagnosticWithCallSite(error, caller),
@@ -73,7 +70,6 @@ export function checkDiagnostic(error: unknown, caller: RenderCallerSource) {
   };
 }
 
-/** Each component executes independently; disclosure is applied after all checks finish. */
 export function checkComposedProfile(
   templates: Pick<TemplateOperations, "render" | "frontmatterFields">,
   input: {
@@ -84,7 +80,6 @@ export function checkComposedProfile(
     source: string;
     note: NoteTemplateContext;
     filename: object;
-    /** Undefined selects create; null selects a synthetic update baseline. */
     existing?: string | null;
     annotations: readonly {
       key: string;

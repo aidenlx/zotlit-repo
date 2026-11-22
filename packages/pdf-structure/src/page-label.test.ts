@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { alignPageLabel } from "#page-label.ts";
 
-/** A six-page front-matter run: roman covers i-iv, then arabic restarts. */
 const LABELS = ["i", "ii", "iii", "iv", "1", "2"];
 
 describe("the Page Label a creation gets", () => {
@@ -15,8 +14,6 @@ describe("the Page Label a creation gets", () => {
   });
 
   it("follows the newest Annotation that disagrees with the extraction", () => {
-    // Page 5 extracted as "2"; the user labelled page 4 as "233", so the run
-    // the user sees continues to 234.
     expect(
       alignPageLabel(LABELS, 5, [{ pageLabel: "233", pageIndex: 4 }]),
     ).toBe("234");
@@ -29,8 +26,6 @@ describe("the Page Label a creation gets", () => {
   });
 
   it("stops at the newest usable Annotation, even when it does not win", () => {
-    // The newest is on a page the extraction numbers in roman, so the deltas
-    // disagree and the walk stops there rather than reaching the arabic one.
     expect(
       alignPageLabel(LABELS, 5, [
         { pageLabel: "233", pageIndex: 4 },

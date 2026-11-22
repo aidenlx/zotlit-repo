@@ -1,15 +1,3 @@
-// The Paired Run scenario — ZotLit in a real desktop Obsidian window and a
-// real Zotero serving its Local API on the same Fixture. Run it with
-// `pnpm e2e`; see packages/e2e/AGENTS.md.
-//
-// Each run opens a Paired Run of its own (`openPairedEnvironment`): a new
-// Fixture, a new purged vault, and a Paired Zotero started on them, all
-// disposed when the test run ends. Every test therefore starts from the Fixture
-// Spec, and a developer's own Paired Run stays as it is.
-//
-// Project setup checks desktop readiness before collection and owns teardown.
-// Skips cleanly when no desktop Obsidian answers.
-
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -110,21 +98,15 @@ const effectPath = createRequire(
   ),
 ).resolve("effect");
 
-/** The Fixture Attachment this scenario reads, writes and never rewrites. */
 const attachment = ATTACHMENTS.find(({ key }) => key === "RGRPDF24")!;
-/** Its vault-relative path: the Fixture declares it as a `vault`-rooted link. */
 const attachmentPath = attachment.path!;
-/** Every Annotation the Fixture seeds, by key. */
 const SEEDED_KEYS = ANNOTATIONS.map(({ key }) => key);
-/** One Annotation the Fixture Spec declares on it, as a read oracle. */
 const seededAnnotation = ANNOTATIONS.find(
   ({ parentItemID }) => parentItemID === attachment.itemID,
 )!;
 
-/** The name ZotLit's own writes would not use, so a seeded key is telling. */
 const APP_NAME = "ZotLit End-to-end Run";
 
-/** Zotero issues exactly 32 characters, from `Zotero.Utilities.randomString`. */
 const KEY_SHAPE = expect.stringMatching(
   /^[0-9A-Za-z]{32}$/,
 ) as unknown as string;
@@ -143,12 +125,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
   let m: typeof import("@zotlit/plugin-messages/messages.ts");
 
   beforeAll(async () => {
-    // The dev build generates this facade; unreachable runs never load it.
     m = await import("@zotlit/plugin-messages/messages.ts");
     serverID = await readServerID(api);
     authorizationFixture = {
-      // The vault half of the seeded Write Authorization. Each tier that
-      // clears Zotero's keys puts a new key into it afterward.
       secret: await obRun(
         vaultId!,
         async ({ app }) => {
@@ -162,8 +141,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     };
   });
 
-  // The run seldom shows the vault's windows, and a hidden window gets no
-  // animation frames. The windows close with the vault when the run ends.
   beforeAll(async () => {
     await prepareRunWindow(vaultId!);
     await obRun(vaultId!, async ({ page }) => {
@@ -200,9 +177,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     authorizationFixture?.rdp[Symbol.dispose]();
   });
 
-  // The first case of the run: with the Companion installed in the profile,
-  // the run was ready before Better BibTeX registered its endpoint, and an
-  // export then fell back to the local API at Zotero's start-up.
   it("starts with Better BibTeX answering, as a Zotero that has finished starting does", async () => {
     const reply = await zoteroFetch(api, "/better-bibtex/json-rpc", {
       method: "POST",
@@ -218,8 +192,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
   });
 
   it("counts ZotLit Companion as installed, as Zotero's add-on list of the paired profile names it", async () => {
-    // Zotero writes its add-on list a moment after start-up, and ZotLit reads
-    // it from the profile it resolved.
     expect(
       await obRunUntil(
         vaultId!,
@@ -317,9 +289,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     await clearNotices(vaultId!);
     await openPdfWithAnnotationView(vaultId!, { attachmentPath, cleanup });
     let recorded: { instant: string } | null;
-    // The Local API reads the item from memory: while Zotero commits the
-    // read's PATCH, the record shows the new lastRead at the old version. The
-    // write has landed once both have moved.
     let stored = attachmentBefore;
     expect(
       await waitFor(async () => {
@@ -360,13 +329,8 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     });
   });
 
-  // ── Tier 1 ────────────────────────────────────────────────────────────────
-  // The Local API alone, no dialog and no debugging port: the read contract
-  // every other tier stands on.
   describe("Tier 1 — the Local API read contract", () => {
     it("refuses browser traffic and answers the same read when allowed", async () => {
-      // Zotero closes the connection on an `Origin` header, so the caller sees
-      // a network failure with no status at all.
       await expect(
         fetch(new URL("users/0/items?limit=1", api), {
           headers: { Origin: "app://obsidian.md" },
@@ -379,33 +343,17 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     });
 
     it("lists the Fixture Attachment's Annotations under a stable sort", async () => {
-      // `itemType=annotation` is load-bearing: without it the children route
-      // answers an empty list for an Attachment, whatever it holds.
-      // `dateModified` is the route's default sort and an edit reorders it
-      // between pages, so every paged read names `dateAdded` instead.
       const keys = await annotationKeys(api, serverID, attachment.key);
       expect(keys).toContain(seededAnnotation.key);
     });
 
     it("serves another Attachment's Annotations for a key outside Zotero's alphabet", async () => {
-      // `0`, `1`, `I` and `O` are not in Zotero's item-key alphabet, and such a
-      // key is rejected silently during the lookup. The read does NOT answer an
-      // empty list — it drops the parent constraint and answers every
-      // Annotation in the library. Measured against Zotero 10.0, schema 44, on
-      // 2026-09-17: `items/RGRPDF10/children?itemType=annotation` answered 200
-      // with ten records whose `parentItem` spanned three different
-      // Attachments. So a malformed key silently serves the wrong document's
-      // Annotations, which is why `parseIndexedKey` has to reject one before
-      // ZotLit ever sends the request.
       const stray = await annotationParents(api, serverID, "RGRPDF10");
       const own = await annotationParents(api, serverID, attachment.key);
       expect(new Set(stray).size).toBeGreaterThan(1);
       expect(new Set(stray)).not.toEqual(new Set(own));
       expect(stray.length).toBeGreaterThan(own.length);
 
-      // A key Zotero *could* have produced but did not is the empty answer,
-      // and that contrast is what makes the case above a silent mix-up rather
-      // than an ordinary miss.
       await expect(annotationKeys(api, serverID, "ZZZZZZZZ")).resolves.toEqual(
         [],
       );
@@ -419,10 +367,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     });
   });
 
-  // ── Tier 2 ────────────────────────────────────────────────────────────────
-  // The RDP stub (Route A): every authorization branch, driven through a real
-  // `POST /api/local/authorize`. The stub picks the branch; the endpoint and
-  // `getAuthorizationCount()` are the oracles.
   describe("Tier 2 — the authorization branches", () => {
     let rdp: ZoteroRdp;
 
@@ -452,7 +396,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
       expect(reply.status).toBe(200);
       expect(reply.body).toEqual({ key: KEY_SHAPE, remember: false });
-      // The count is of remembered keys only, so a one-time grant leaves it 0.
       await expect(authorizationCount(rdp)).resolves.toBe(0);
     });
 
@@ -497,7 +440,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       await resetAuthorizations(rdp);
       await stubPrompt(rdp, { allow: true, remember: true });
 
-      // No Zotero-Server-ID is checked before the body and before the prompt.
       const missingServer = await zoteroFetch(api, "local/authorize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -510,9 +452,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     });
 
     it("writes with a remembered key, raising no dialog", async () => {
-      // Tier 1's "no dialog at all" shape. The key comes from Zotero itself
-      // rather than from a hand-written key store; `grantRememberedKey` says
-      // why, and proves the authorization is held before the write.
       const key = await grantRememberedKey(api, rdp, {
         serverID,
         appName: APP_NAME,
@@ -529,9 +468,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         data: { annotationComment?: string };
       };
       const original = record.data.annotationComment ?? "";
-      // The revert cannot sit in straight-line code: an assertion failure
-      // below would leave the seeded Annotation edited and its version bumped,
-      // and every later run would inherit that.
       await using revert = new AsyncDisposableStack();
       revert.defer(async () => {
         await restoreAnnotationComment(api, {
@@ -563,10 +499,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     });
 
     it("replaces an Annotation's whole tag list, types kept, under the version precondition", async () => {
-      // The probe ADR 0063's tag write stands on: Zotero replaces the
-      // list it receives, so ZotLit sends every tag with its type. A disposable
-      // Annotation carries the tags, so the seeded ones stay as the Fixture
-      // declares them.
       const key = await grantRememberedKey(api, rdp, {
         serverID,
         appName: APP_NAME,
@@ -606,10 +538,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           tags: record.data.tags.toSorted((a, b) => a.tag.localeCompare(b.tag)),
         };
       };
-      /**
-       * One tag write. `body` puts the version in the body, as ZotLit's
-       * request builders do; `header` sends it as If-Unmodified-Since-Version.
-       */
       const patchTags = (
         precondition: "body" | "header",
         version: number,
@@ -631,7 +559,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         });
 
       const before = await readTags();
-      // The wire names an automatic tag's type and omits a manual tag's.
       expect(before.tags).toStrictEqual([
         { tag: "probe-auto", type: 1 },
         { tag: "probe-manual" },
@@ -655,9 +582,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         { tag: "probe-manual" },
       ]);
 
-      // A stale version in either form is refused as plain text naming both
-      // versions, with no Last-Modified-Version, and the tags stay as they
-      // were. The two forms word the refusal differently.
       const refusals = {
         body: `item version mismatch: expected ${before.version}, found ${after.version}`,
         header: `item has been modified since specified version (expected ${before.version}, found ${after.version})`,
@@ -677,12 +601,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     });
   });
 
-  // ── Tier 3 ────────────────────────────────────────────────────────────────
-  // The real dialog (Route B), unstubbed. Zotero's Write Authorization dialog
-  // is an ordinary Gecko common dialog and RDP keeps answering while its nested
-  // modal event loop spins, so the window can be found and its buttons pressed.
-  // Buttons are matched by slot, never by label: this Zotero runs in the host
-  // OS locale.
   describe("Tier 3 — Zotero's own dialog", () => {
     let rdp: ZoteroRdp;
 
@@ -691,10 +609,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     });
 
     afterEach(async () => {
-      // `authorize` blocks inside the modal, so a failed expectation between
-      // raising the dialog and answering it would leave the window open and
-      // the next case's request queued behind it. Deny, never dismissal —
-      // dismissal grants Always Allow.
       await denyAnyAuthorizationDialog(rdp);
       await resetAuthorizations(rdp);
     });
@@ -724,8 +638,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       await resetAuthorizations(rdp);
       const pending = authorize(api, { serverID, appName: APP_NAME });
 
-      // The window existing is itself the "Zotero's own dialog was reached"
-      // assertion — nothing here is stubbed.
       expect(await waitForAuthorizationDialog(rdp)).toBe(true);
       await clickAuthorizationDialog(rdp, "cancel");
 
@@ -756,21 +668,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       await dismissAuthorizationDialog(rdp);
 
       const reply = await pending;
-      // Deliberate, and it contradicts the spec and ADR 0038,
-      // which both read a dismissed dialog as a refusal. Gecko's common dialog
-      // sets `buttonNumClicked = 1` as the dismissal result and slot 1 is
-      // Always Allow, so dismissing grants a persistent authorization. This
-      // asserts what Zotero does, not what the spec assumed.
       expect(reply.status).toBe(200);
       expect(reply.body).toEqual({ key: KEY_SHAPE, remember: true });
       await expect(authorizationCount(rdp)).resolves.toBe(1);
     });
   });
 
-  // ── Tier 4 ────────────────────────────────────────────────────────────────
-  // The native concurrency boundary. Each case pauses one Zotero operation at
-  // a controlled completion point, then drives the competing operation through
-  // the real Reader or Local API before it releases the first one.
   describe("Tier 4 — native concurrent writes", () => {
     let rdp: ZoteroRdp;
     let key = "";
@@ -860,8 +763,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       expect(readerOutcome).toEqual({ ok: true });
       const final = await readAnnotationState(api, serverID, annotation.key);
 
-      // Zotero 10.0 acknowledges both writes, but the API value stands. The
-      // Reader's distinct accepted value is gone without a conflict response.
       expect(final).toMatchObject({
         status: 200,
         comment: apiComment,
@@ -942,10 +843,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
     },
   );
 
-  // ── ZotLit's surfaces ─────────────────────────────────────────────────────
-  // Tier 1's shape applied to the plugin: the prompt answers Always Allow for
-  // the whole block, so no test here is about the dialog. Every ZotLit write is
-  // read back out of Zotero, never out of ZotLit's own state.
   describe.skipIf(!debuggerPort || !vaultId)(
     "ZotLit and Zotero on one Fixture",
     () => {
@@ -959,18 +856,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         cleanup = new AsyncDisposableStack();
         rdp = cleanup.use(await openZoteroRdp(debuggerPort!));
         await prepareAuthorizationFixture();
-        // The PDF is a `vault`-rooted linked file, so it is only readable where
-        // the run's vault stands — which is exactly this block's gate.
         pdfDigestBefore = await digestAttachmentPdf();
-        // A digest of nothing would make the closing assertion vacuous.
         expect(pdfDigestBefore).toHaveLength(64);
-        // A run stopped before its own cleanup, or a create that landed after
-        // its test stopped waiting, leaves an Annotation where this run's
-        // tools press: the press then selects it and creates nothing.
         await eraseAnnotations(rdp, await madeSince(SEEDED_KEYS));
-        // Zotero's Reader is opened on the Attachment before anything is
-        // written, so "visible in the Zotero Reader" is a claim about a reader
-        // that was already showing the document when the write landed.
         readerTabID = await openZoteroReader(rdp);
         cleanup.defer(async () => {
           await closeZoteroReader(rdp, readerTabID);
@@ -978,17 +866,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         await openPdfWithAnnotationView(vaultId!, { attachmentPath, cleanup });
 
-        // Two setup preconditions, asserted here so a mis-prepared environment
-        // says so instead of timing out later. The Attachment must resolve to
-        // its Fixture key — `obsidian-vault open` repoints the linked file at
-        // the run's vault, and a bare Fixture build leaves it pointing
-        // elsewhere, which draws no marks. And Live Updates must be connected,
-        // because the Companion's Freshness Signal is the only thing that
-        // invalidates the Zotero Local API partition.
-        // The attachment path index is a Held Read: the first lookup starts
-        // its build and answers `pending` until the index arrives. The
-        // assertion reads the last answer, so a wait that runs out reports
-        // `pending`.
         let resolution: { kind: string; attachmentKey?: string } | undefined;
         await waitFor(async () => {
           resolution = await obRun(
@@ -1027,8 +904,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           "Live Updates is not listening; a Zotero-side edit cannot reach Obsidian",
         ).toBe(true);
 
-        // The Annotation Source must be the Local API before any write: a
-        // database-backed list refuses writes before it sends anything.
         await obRunUntil(
           vaultId!,
           async ({ zotlit }, { attachmentKey }: { attachmentKey: string }) => {
@@ -1056,13 +931,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         await cleanup.disposeAsync();
       }, 120000);
 
-      /** The Attachment's Annotations as Zotero holds them, by key. */
       const annotationKeys = () => heldAnnotationKeys(rdp, ATTACHMENT_ITEM);
-      /** The Attachment's Annotations beyond `held`, by key. */
       const madeSince = async (held: readonly string[]) =>
         (await annotationKeys()).filter((key) => !held.includes(key));
 
-      /** One seeded Annotation as the Local API answers it. */
       interface StoredMark {
         version: number;
         data: {
@@ -1072,21 +944,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         };
       }
 
-      /**
-       * One seeded Annotation a Geometry Edit test moves: Zotero's copy of it
-       * off the Local API, what Zotero's open Reader holds of it, the wait for
-       * that Reader to be done with it, and the seed put back.
-       *
-       * @param options.image whether it carries an Excerpt Image the Reader
-       *   renders after a position change.
-       */
       function seededMark(
         annotationKey: string,
         { image }: { image: boolean },
       ) {
         const path = `users/0/items/${annotationKey}`;
         const seeded = ANNOTATIONS.find(({ key }) => key === annotationKey)!;
-        /** The fields a Geometry Edit writes, as the Fixture Spec seeds them. */
         const seed = {
           annotationPosition: JSON.stringify(seeded.position),
           annotationSortIndex: seeded.sortIndex,
@@ -1109,13 +972,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           seed,
           stored,
           settled,
-          /** The position and quoted text Zotero's open Reader holds. */
           held: () => readerAnnotation(where()),
-          /**
-           * Puts the seed back through the Local API, against whatever
-           * version Zotero holds once its Reader is done, and has ZotLit read
-           * it.
-           */
           restore: async (): Promise<void> => {
             await settled();
             const current = await stored();
@@ -1165,7 +1022,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         };
       }
 
-      /** Presses one key with modifiers on the reader, as Obsidian delivers it. */
       const pressKey = (key: string, modifiers: Record<string, boolean>) =>
         obRun(
           vaultId!,
@@ -1195,14 +1051,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           { keyName: key, modifiers, attachmentPath },
         );
 
-      /**
-       * One chord as Obsidian delivers it, through the view's own Scope.
-       * The Reader Keymap registers there, which a DOM event dispatched on
-       * the container never reaches.
-       *
-       * @returns whether the Scope took the key, which is what Obsidian
-       *   answers by preventing the keystroke's default.
-       */
       const pressChord = (
         key: string,
         modifiers: {
@@ -1254,13 +1102,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           { keyName: key, modifierState: modifiers, attachmentPath },
         );
 
-      /** This host's own undo and redo chords. */
       const platformKey = process.platform === "darwin" ? "metaKey" : "ctrlKey";
       const undoKey = () => pressChord("z", { [platformKey]: true });
       const redoKey = () =>
         pressChord("z", { [platformKey]: true, shiftKey: true });
 
-      /** Settles when every open PDF view has answered its last history key. */
       const stepSettled = () =>
         obRun(
           vaultId!,
@@ -1276,10 +1122,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           undefined,
         );
 
-      /**
-       * Drags from one client point to another with the pointer held, then
-       * releases.
-       */
       async function dragPointer(
         from: { x: number; y: number },
         to: { x: number; y: number },
@@ -1326,12 +1168,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         );
       }
 
-      /**
-       * Whether the stored position's one rect is `expected`, side by side.
-       *
-       * @param tolerance how far a side may stray: three decimals by default,
-       *   more for a rect reached by a drag measured in client pixels.
-       */
       const rectIs = (
         position: string,
         expected: readonly number[],
@@ -1347,10 +1183,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       };
 
       it("creates an Annotation that reaches Zotero, the page overlay and the card", async () => {
-        // ZotLit Query waits while the Annotation is created, so the card can
-        // come only from the Annotation Repository's live list: the sidebar
-        // shows a new Annotation before its query runs again, as it did
-        // before it ran a query.
         await obRun(
           vaultId!,
           async ({ page: pageHelpers }) => {
@@ -1433,7 +1265,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               comment: "End-to-end Run create",
               text: "End-to-end Run",
               pageLabel: "1",
-              // Zotero orders by this string; the shape is page|offset|top.
               sortIndex: "00000|000100|00100",
               position: {
                 pageIndex: 0,
@@ -1444,7 +1275,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         );
         expect(created.kind).toBe("created");
         createdKey = created.annotationKey!;
-        // The Annotation Card, in the Annotation View, while the query waits.
         await obRunUntil(
           vaultId!,
           async ({ app }, { createdKey }: { createdKey: string }) => {
@@ -1488,8 +1318,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           })()`);
         });
 
-        // Zotero is the oracle: the record is read straight off the Local API,
-        // not out of ZotLit's cache.
         const stored = await zoteroFetch(api, `users/0/items/${createdKey}`, {
           headers: { "Zotero-Server-ID": serverID },
         });
@@ -1500,16 +1328,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         expect(record.data.parentItem).toBe(attachment.key);
         expect(record.data.annotationComment).toBe("End-to-end Run create");
 
-        // The Zotero Reader oracle. Zotero's reader draws from the Annotations
-        // its own open item holds, so asking the reader instance that is
-        // already showing this Attachment is a claim about that surface rather
-        // than about storage — and it is the finest-grained thing the reader
-        // exposes to RDP without reaching into its iframe.
         expect(
           await waitFor(() => readerHoldsAnnotation(rdp, createdKey)),
         ).toBe(true);
 
-        // The Obsidian page: an overlay mark carrying the Annotation's key.
         await obRunUntil(
           vaultId!,
           async ({ app, page }, { createdKey }: { createdKey: string }) => {
@@ -1527,7 +1349,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           },
         );
 
-        // The Annotation Card, in the Annotation View.
         await obRunUntil(
           vaultId!,
           async ({ app }, { createdKey }: { createdKey: string }) => {
@@ -1547,11 +1368,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       }, 120000);
 
       it("edits that Annotation and the edit reaches the same three surfaces", async () => {
-        // A colour edit, not a comment edit. The criterion names the Zotero
-        // Reader, the Obsidian page and the Annotation Card for the edit as
-        // well as the create, and a comment cannot appear on the page overlay
-        // — a mark paints colour and geometry, never text. Colour is the one
-        // edit all three surfaces can show.
         const edited = "#a28ae5";
         const state = await obRun(
           vaultId!,
@@ -1573,18 +1389,15 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         );
         expect(state.kind).toBe("idle");
 
-        // Zotero holds it, read straight off the Local API.
         expect(
           await waitFor(
             async () =>
               (await annotationColor(api, serverID, createdKey)) === edited,
           ),
         ).toBe(true);
-        // The Zotero Reader shows it.
         expect(
           await waitFor(() => readerAnnotationColor(rdp, createdKey, edited)),
         ).toBe(true);
-        // The Obsidian page's overlay mark paints it.
         await obRunUntil(
           vaultId!,
           async ({ app, page }, { createdKey }: { createdKey: string }) => {
@@ -1604,7 +1417,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             what: "the PDF overlay mark of the edited Annotation to take the new fill",
           },
         );
-        // The Annotation Card's swatch carries it.
         await obRunUntil(
           vaultId!,
           async (
@@ -1628,11 +1440,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       }, 120000);
 
       it("adds and removes tags on the card, and Zotero holds the list", async () => {
-        // The card's own gestures: the tag toggle opens the editor, Enter adds
-        // the typed name, a chip's remove button drops it, and the toggle's
-        // second press ends the session with its one write. The session ends
-        // through the toggle rather than through a blur: a window without the
-        // system focus sends no focus events.
         const {
           press,
           toggle,
@@ -1651,12 +1458,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         expect(await storedTags()).toStrictEqual([]);
         await press(toggle);
         expect(await editorReady()).toBe(true);
-        // Each chip is the signal that Enter added its name.
         await type(kept, { enter: true });
         await expect.poll(editorChips, poll).toEqual([kept]);
         await type(dropped, { enter: true });
         await expect.poll(editorChips, poll).toEqual([kept, dropped]);
-        // Nothing reaches Zotero while the session stands.
         expect(await storedTags()).toStrictEqual([]);
         await press(toggle);
 
@@ -1671,7 +1476,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         expect(await editorReady()).toBe(true);
         expect(await remove(dropped)).toBe("removed");
         await expect.poll(editorChips, poll).toEqual([kept]);
-        // The toggle ends the session with the text still in the field.
         await type(typed, { enter: false });
         await press(toggle);
 
@@ -1696,10 +1500,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         await type(added, { enter: true });
         await expect.poll(editorChips, poll).toEqual([added]);
 
-        // Each state of the card's tag row, from the toggle that ends the
-        // session until ZotLit has read its write back, recorded in one turn.
-        // The old, empty row drawn between the closed editor and the new chip
-        // is the flicker this guards.
         const shown = await obRun(
           vaultId!,
           async (
@@ -1740,9 +1540,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 bridge.runSync(repository.mutationFor(key)).kind === "idle" &&
                 !bridge.runSync(repository.tagDraftFor(key)),
               10000,
-            ).catch(
-              () => {},
-            ); /* 300 ms after the save is the window a late flicker would show in. */
+            ).catch(() => {});
             await new Promise((resolve) => setTimeout(resolve, 300));
             observer.disconnect();
             record();
@@ -1757,11 +1555,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       }, 120000);
 
       it("adds and removes tags from the Mark Popup, and Zotero holds the list", async () => {
-        // The Mark Popup's tag verb opens the same inline editor under the
-        // comment; its second press ends the session with its one write. As on
-        // the card, the session ends through the verb: a window without the
-        // system focus sends no focus events.
-
         const { editorReady, editorChips, type, remove } = tagEditorIn({
           kind: "popup",
         });
@@ -1783,7 +1576,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the Mark Popup to offer a Tags verb that can be pressed",
             },
           );
-        /** The read-only chips under the comment, by name, while no editor is open. */
         const popupTags = () =>
           obRun(
             vaultId!,
@@ -1810,15 +1602,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         const kept = "End-to-end Run tag, kept whole";
         const removed = "End-to-end Run tag left typed";
         const added = "End-to-end Run tag from the popup";
-        // The case's own tags, whatever the cases before it left.
         await setAnnotationTags(rdp, createdKey, [
           { tag: removed },
           { tag: kept },
         ]);
 
-        // A click on the mark's body selects it, as a researcher would. A
-        // seeded underline lies under the same point, so the popup's stepper
-        // walks the stack to the created mark.
         await obRunUntil(
           vaultId!,
           async (
@@ -1899,24 +1687,20 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             what: "the created mark to be selected by stepping the Mark Popup stack",
           },
         );
-        // The tags show read-only under the comment.
         await expect.poll(popupTags, poll).toEqual([removed, kept].toSorted());
 
         await pressVerb();
         expect(await editorReady()).toBe(true);
-        // Each chip is the signal that the gesture landed.
         await type(added, { enter: true });
         await expect.poll(editorChips, poll).toContain(added);
         expect(await remove(removed)).toBe("removed");
         await expect.poll(editorChips, poll).not.toContain(removed);
-        // Nothing reaches Zotero while the session stands.
         expect(await storedTags()).toStrictEqual([`${removed}:0`, `${kept}:0`]);
         await pressVerb();
 
         await expect
           .poll(storedTags, poll)
           .toEqual([`${added}:0`, `${kept}:0`]);
-        // The popup closes onto the confirmed tags, and the selection stays.
         await expect.poll(popupTags, poll).toEqual([added, kept].toSorted());
         expect(
           await obRun(
@@ -1945,19 +1729,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           disarmTool(vaultId!, { attachmentPath, tool: "image" }),
         );
 
-        /**
-         * Brings page one on screen in a window that lays it out, with the
-         * PDF point `at` in the middle of the window, and arms the image tool
-         * from the Creation Toolbar. A drag point off screen hit-tests to
-         * nothing, and how much of page one shows depends on the window.
-         */
         const armOnFirstPage = (at: readonly [number, number]) =>
           armToolOnFirstPage(vaultId!, { attachmentPath, tool: "image", at });
 
-        /**
-         * Drags a rectangle between two PDF points on page one, clear of every
-         * seeded mark, and releases it.
-         */
         const drag = (
           [x1, y1]: readonly [number, number],
           [x2, y2]: readonly [number, number],
@@ -2024,7 +1798,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await armOnFirstPage([150, 170]);
           const before = await annotationKeys();
 
-          // Drawn in full while the pointer is down: both sides pass ten points.
           expect(await drag([80, 220], [220, 120])).toEqual({ preview: "1" });
 
           const capturedKey = await freshAnnotationKey(rdp, {
@@ -2033,7 +1806,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             created: (keys) => cleanup.defer(() => eraseAnnotations(rdp, keys)),
           });
 
-          // Zotero holds an image at the dragged rect, read off the Local API.
           const stored = (await (
             await zoteroFetch(api, `users/0/items/${capturedKey}`, {
               headers: { "Zotero-Server-ID": serverID },
@@ -2066,8 +1838,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               stored.data.annotationPosition,
             ).toBeCloseTo(value, 2),
           );
-          // The Sort Index is the one the reader's text structure gives the
-          // stored rect.
           expect(stored.data.annotationSortIndex).toBe(
             await recomputedSortIndex(vaultId!, {
               attachmentPath,
@@ -2075,11 +1845,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             }),
           );
 
-          // Zotero's open Reader holds it.
           expect(
             await waitFor(() => readerHoldsAnnotation(rdp, capturedKey)),
           ).toBe(true);
-          // The page draws its mark, and the tool stood down after one capture.
           await obRunUntil(
             vaultId!,
             async (
@@ -2122,7 +1890,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the image tool's button to report not pressed after one capture",
             },
           );
-          // The card shows the Excerpt Image, decoded.
           await obRunUntil(
             vaultId!,
             async ({ app }, { capturedKey }: { capturedKey: string }) => {
@@ -2152,8 +1919,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await armOnFirstPage([85, 350]);
           const before = await annotationKeys();
 
-          // Nine points wide: drawn faint, and released to nothing. Clear of
-          // the image the create above may have left until the block ends.
           expect(await drag([80, 400], [89, 300])).toEqual({ preview: "0.2" });
           await obRun(
             vaultId!,
@@ -2197,7 +1962,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               { attachmentPath, toolName: "image" },
             ),
           ).toBe(JSON.stringify({ armed: "true", preview: false }));
-          // Escape stands the tool down, so the block goes on unarmed.
           await obRun(
             vaultId!,
             async (
@@ -2240,11 +2004,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       });
 
       describe("the ink tool on the first page", () => {
-        /**
-         * Half an ellipse of thirteen PDF points on page one, from (100, 340)
-         * over (150, 370) to (200, 340): the left column's body text, which
-         * no seeded mark covers.
-         */
         const CURVE = Array.from({ length: 13 }, (_, index) => {
           const turn = (index / 12) * Math.PI;
           return [
@@ -2253,11 +2012,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ] as const;
         });
 
-        /**
-         * What the Attachment held when this group began. Each test ends by
-         * erasing everything beyond it, a create that landed after the test
-         * stopped waiting for it included.
-         */
         let held: readonly string[] = [];
         beforeAll(async () => {
           held = await annotationKeys();
@@ -2265,17 +2019,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         afterEach(async () => {
           const keys = await madeSince(held);
-          // Zotero's Reader renders a new ink's Excerpt Image and saves it
-          // onto the item, which would put an item erased first back.
           for (const annotationKey of keys)
             await readerSettled(
               { rdp, attachmentKey: attachment.key, annotationKey },
               { api, serverID, image: true },
             );
           await eraseAnnotations(rdp, keys);
-          // The page drops an erased mark once Zotero's change reaches ZotLit.
-          // The next case presses where these strokes began, and a mark still
-          // drawn there takes the press from the tool it arms.
           await obRunUntil(
             vaultId!,
             async (
@@ -2300,18 +2049,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await disarmTool(vaultId!, { attachmentPath, tool: "ink" });
         });
 
-        /**
-         * Brings page one on screen in a window that lays it out, with the
-         * PDF point `at` in the middle of the window, and arms the ink tool
-         * from the Creation Toolbar.
-         */
         const armInk = (at: readonly [number, number]) =>
           armToolOnFirstPage(vaultId!, { attachmentPath, tool: "ink", at });
 
-        /**
-         * Presses on the first PDF point and moves through the rest, with
-         * the pointer held; the press's node is kept for the click.
-         */
         const press = (points: readonly (readonly [number, number])[]) =>
           obRun(
             vaultId!,
@@ -2356,13 +2096,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { attachmentPath, points },
           );
 
-        /**
-         * Releases the held pointer at a PDF point, and clicks after it.
-         * Answers, read in the same eval, the Pending Strokes on the page and
-         * whether a live stroke stands: a release that creates draws its
-         * Pending Stroke before it returns, so `{"pending":0,"live":false}`
-         * is a release that queued no create.
-         */
         const release = ([x, y]: readonly [number, number]) =>
           obRun(
             vaultId!,
@@ -2412,7 +2145,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           );
         const DISCARDED = JSON.stringify({ pending: 0, live: false });
 
-        /** Presses Escape on the reader, as Obsidian delivers it. */
         const escape = () =>
           obRun(
             vaultId!,
@@ -2432,14 +2164,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { attachmentPath },
           );
 
-        /** The one Annotation Zotero holds beyond `before`, once it does. */
         const freshKey = (before: readonly string[]) =>
           freshAnnotationKey(rdp, {
             item: ATTACHMENT_ITEM,
             before,
           });
 
-        /** An ink Annotation as the Local API answers it. */
         async function storedInk(key: string) {
           const { data } = (await (
             await zoteroFetch(api, `users/0/items/${key}`, {
@@ -2469,8 +2199,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           const before = await annotationKeys();
 
           await press(CURVE);
-          // The live stroke starts at the press, and carries the moves once
-          // a frame has published them.
           await obRunUntil(
             vaultId!,
             async (
@@ -2543,8 +2271,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             path[2 * index]!,
             path[2 * index + 1]!,
           ]);
-          // Chaikin keeps the first point; the close-point filter may drop
-          // the last one.
           const [first, last] = [CURVE[0]!, CURVE.at(-1)!];
           expect(points[0]![0]).toBeCloseTo(first[0], 3);
           expect(points[0]![1]).toBeCloseTo(first[1], 3);
@@ -2577,12 +2303,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             }),
           );
 
-          // Zotero's open Reader holds it.
           expect(await waitFor(() => readerHoldsAnnotation(rdp, inkKey))).toBe(
             true,
           );
-          // The page draws its mark, the live stroke is gone, and the tool
-          // stays armed for the next stroke.
           await obRunUntil(
             vaultId!,
             async (
@@ -2623,7 +2346,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the ink mark drawn, the live stroke cleared and the ink tool armed",
             },
           );
-          // The card shows the Excerpt Image, decoded.
           await obRunUntil(
             vaultId!,
             async ({ app }, { inkKey }: { inkKey: string }) => {
@@ -2663,8 +2385,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect(position.paths[0]).toHaveLength(2);
           expect(position.paths[0]![0]).toBeCloseTo(dot[0], 3);
           expect(position.paths[0]![1]).toBeCloseTo(dot[1], 3);
-          // A move-to and a line-to on the one point, which round caps draw
-          // as a dot.
           await obRunUntil(
             vaultId!,
             async (
@@ -2691,12 +2411,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
 
         it("draws at the width picked from the ink seat's menu, and keeps the pick over a reopen of the PDF", async () => {
-          /**
-           * Opens the ink seat's chevron menu and answers the first word of
-           * the checked width item; with `pick`, selects the width item that
-           * begins with that number, and otherwise closes the menu. The menu
-           * is DOM only with Obsidian's native menus off.
-           */
           const inkMenu = (pick?: number) =>
             obRun(
               vaultId!,
@@ -2791,10 +2505,8 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           const picked = width === "5" ? 8 : 5;
           await armInk([150, 355]);
 
-          // The menu checks the width in hand, and the pick replaces it.
           expect(await inkMenu(picked)).toBe(width);
 
-          // Closed and opened again, the PDF view takes a new binding.
           await reopenPdfView(vaultId!, attachmentPath);
           await armInk([150, 355]);
           expect(await inkMenu()).toBe(String(picked));
@@ -2804,7 +2516,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
           const inkKey = await freshKey(before);
           expect((await storedInk(inkKey)).position.width).toBe(picked);
-          // The page draws the new mark at that width, against the seed's 2.
           await obRunUntil(
             vaultId!,
             async (
@@ -2905,8 +2616,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         it("takes touch panning off the page container and shows the crosshair only while armed", async () => {
           await armInk([150, 355]);
 
-          // Over the text layer, whose own rule shows the text cursor.
-
           expect(
             await obRun(
               vaultId!,
@@ -2952,8 +2661,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               { attachmentPath },
             ),
           ).toBe("crosshair");
-          // A held stroke captures the pointer on the reader, whose own
-          // cursor then shows.
 
           await press([[150, 355]]);
           expect(
@@ -3064,9 +2771,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         it("shows each armed tool's cursor over the page, and keeps it through a held capture or click", async () => {
           await armInk([150, 355]);
 
-          // The page itself, and the text layer, whose own rule shows the
-          // text cursor.
-
           const arm = (id: string) =>
             obRun(
               vaultId!,
@@ -3168,8 +2872,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ),
           ).toBe("crosshair,crosshair");
 
-          // A held capture takes the pointer on the reader, whose own cursor
-          // then shows. The rectangle is the proof the press began one.
           await press(CURVE.slice(0, 5));
           expect(
             await obRun(
@@ -3239,9 +2941,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ),
           ).not.toContain("crosshair");
 
-          // The note and text tools place at the press; a held click takes
-          // the pointer on the reader too. Escape stands the tool down, which
-          // lets the press go without placing anything.
           for (const [id, cursor] of [
             ["note", "copy"],
             ["text", "text"],
@@ -3303,9 +3002,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         it("stands down from a toolbar press over a page scrolled under the toolbar", async () => {
           await armInk([150, 355]);
           const before = await annotationKeys();
-          // Where page one's top falls depends on the window's height, so the
-          // page is scrolled until its top sits one toggle height above the
-          // toggle's middle. The press below measures it in its own eval.
           await obRun(
             vaultId!,
             async (
@@ -3333,9 +3029,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { attachmentPath, toolName: "ink" },
           );
 
-          // The press lands on the ink toggle, inside the box of the page
-          // scrolled up under it, and draws no stroke. A stroke would hold
-          // the pointer, which keeps a real click from the toggle.
           expect(
             await obRun(
               vaultId!,
@@ -3457,8 +3150,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await armInk([220, 675]);
           const before = await annotationKeys();
 
-          // Pressed halfway along the seed's own stroke, mapped to the client
-          // by the overlay itself, and drawn down and to the right.
           await obRun(
             vaultId!,
             async (
@@ -3611,10 +3302,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
       });
 
-      /**
-       * Runs `gesture` with the Local API turned off, so editing is not live,
-       * and answers once editing is live again with the Local API back on.
-       */
       const whileEditingNotLive = async (gesture: () => Promise<void>) => {
         {
           await using restoreLocalApi = new AsyncDisposableStack();
@@ -3665,19 +3352,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       };
 
       describe("the note tool on the first page", () => {
-        /**
-         * A PDF point on page one clear of every seeded mark and of the image
-         * the image block may leave: the left column's body text.
-         */
         const CLEAR = [150, 250] as const;
-        /** The seeded note's centre, in PDF points on page one. */
         const SEED_NOTE = [577.901, 609.393] as const;
 
-        /**
-         * What the Attachment held when this group began. Each test ends by
-         * erasing everything beyond it, a create that landed after the test
-         * stopped waiting for it included.
-         */
         let held: readonly string[] = [];
         beforeAll(async () => {
           held = await annotationKeys();
@@ -3688,15 +3365,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await disarmTool(vaultId!, { attachmentPath, tool: "note" });
         });
 
-        /**
-         * Brings page one on screen in a window that lays it out, with the
-         * PDF point `at` in the middle of the window, and arms the note tool
-         * from the Creation Toolbar.
-         */
         const armNote = (at: readonly [number, number]) =>
           armToolOnFirstPage(vaultId!, { attachmentPath, tool: "note", at });
 
-        /** A click at a PDF point on page one, as the browser delivers it. */
         const click = ([x, y]: readonly [number, number]) =>
           obRun(
             vaultId!,
@@ -3755,8 +3426,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           };
           expect(position.pageIndex).toBe(0);
           expect(position.rects, data.annotationPosition).toHaveLength(1);
-          // A 22-point square centred on the click, within the rounding of
-          // the client point the click was dispatched at.
           const [x, y] = CLEAR;
           [x - 11, y - 11, x + 11, y + 11].forEach((value, index) =>
             expect(
@@ -3779,12 +3448,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             }),
           );
 
-          // Zotero's open Reader holds it.
           expect(await waitFor(() => readerHoldsAnnotation(rdp, noteKey))).toBe(
             true,
           );
-          // The page draws the note glyph, selected; the Mark Popup is open
-          // with its comment sheet focused; the tool stood down.
           await obRunUntil(
             vaultId!,
             async (
@@ -3835,7 +3501,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await armNote(SEED_NOTE);
           const before = await annotationKeys();
 
-          // A click on a mark starts no create, so the selection is the end.
           await click(SEED_NOTE);
 
           await obRunUntil(
@@ -3874,19 +3539,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       });
 
       describe("the text tool on the first page", () => {
-        /**
-         * A PDF point on page one clear of every seeded mark and of the image
-         * the image block may leave: the left column's body text.
-         */
         const CLEAR = [150, 250] as const;
-        /** The seeded text Annotation's centre, in PDF points on page one. */
         const SEED_TEXT = [479.804, 693.607] as const;
 
-        /**
-         * What the Attachment held when this group began. Each test ends by
-         * erasing everything beyond it, a create that landed after the test
-         * stopped waiting for it included.
-         */
         let held: readonly string[] = [];
         beforeAll(async () => {
           held = await annotationKeys();
@@ -3896,8 +3551,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           const erased = await madeSince(held);
           await eraseAnnotations(rdp, erased);
           await disarmTool(vaultId!, { attachmentPath, tool: "text" });
-          // The next click on the same spot finds no mark once the page has
-          // let go of the erased ones.
           await obRunUntil(
             vaultId!,
             async (
@@ -3923,19 +3576,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           );
         });
 
-        /**
-         * Brings page one on screen in a window that lays it out, with the
-         * PDF point `at` in the middle of the window, and arms the text tool
-         * from the Creation Toolbar.
-         */
         const armText = (at: readonly [number, number]) =>
           armToolOnFirstPage(vaultId!, { attachmentPath, tool: "text", at });
 
-        /**
-         * A click at a PDF point on page one, as the browser delivers it,
-         * answering whether a Text Draft then stands and whether the text
-         * tool is still pressed.
-         */
         const click = async ([x, y]: readonly [number, number]) =>
           (await obRun(
             vaultId!,
@@ -3989,7 +3632,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { attachmentPath, pointX: x, pointY: y, toolId: "text" },
           )) as { draft: boolean; focused: boolean; armed: string };
 
-        /** Types `text` into the Text Draft, and leaves the draft open. */
         const typeText = (text: string) =>
           obRun(
             vaultId!,
@@ -4014,10 +3656,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { attachmentPath, text },
           );
 
-        /**
-         * Types `text` into the Text Draft as an input does, then presses
-         * Escape in it.
-         */
         const typeAndEscape = (text: string) =>
           obRun(
             vaultId!,
@@ -4048,10 +3686,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { attachmentPath, text },
           );
 
-        /**
-         * The one text Annotation Zotero holds beyond `before`, once it does,
-         * with the comment it stores.
-         */
         const freshComment = async (before: readonly string[]) => {
           const textKey = await freshAnnotationKey(rdp, {
             item: ATTACHMENT_ITEM,
@@ -4070,7 +3704,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await armText(CLEAR);
           const before = await annotationKeys();
 
-          // The press opens the draft, focused, and stands the tool down.
           expect(await click(CLEAR)).toEqual({
             draft: true,
             focused: true,
@@ -4099,9 +3732,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             rotation: 0,
           });
           expect(position.rects, data.annotationPosition).toHaveLength(1);
-          // Zotero's square at the press anchors the box's top-left corner,
-          // half a font size up and to the left of the click, within the
-          // rounding of the client point the click was dispatched at.
           const [x, y] = CLEAR;
           const [left, , , top] = position.rects[0]!;
           expect(
@@ -4119,7 +3749,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             }),
           );
 
-          // Zotero's open Reader holds it in the same box.
           let held: { position: string } | null = null;
           expect(
             await waitFor(async () => {
@@ -4133,7 +3762,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ).toBe(true);
           expect(JSON.parse(held!.position)).toEqual(position);
 
-          // The page draws it on the two lines typed, the draft gone.
           await obRunUntil(
             vaultId!,
             async (
@@ -4175,8 +3803,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
           expect((await click(CLEAR)).draft).toBe(true);
           await typeText("Pressed away");
-          // A click on the page below the draft, with no tool armed: its
-          // press leaves the draft saving.
           const [x, y] = CLEAR;
           expect(
             await obRun(
@@ -4235,8 +3861,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
           expect((await click(CLEAR)).draft).toBe(true);
           await typeText("Blurred");
-          // The blur as the window delivers it when the focus leaves: a
-          // window without the system focus fires none for `blur()`.
           await obRun(
             vaultId!,
             async (
@@ -4301,8 +3925,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
           expect((await click(CLEAR)).draft).toBe(true);
           await typeText("Closed on");
-          // Closed and opened again in one step, so the next test finds the
-          // view it needs.
           await reopenPdfView(vaultId!, attachmentPath);
 
           expect(await freshComment(before)).toMatchObject({
@@ -4318,9 +3940,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect((await click(CLEAR)).draft).toBe(true);
           await typeAndEscape("Escaped");
           const { textKey } = await freshComment(before);
-
-          // The saved mark is selected under its popup, and the focus the
-          // textarea held stays in the reader.
 
           await obRunUntil(
             vaultId!,
@@ -4359,7 +3978,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             },
           );
 
-          // Escape where the focus is, as the keyboard delivers it.
           await obRun(
             vaultId!,
             async (_context) => {
@@ -4415,7 +4033,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await armText(CLEAR);
           const before = await annotationKeys();
 
-          // An empty draft goes in the Escape that finishes it.
           expect((await click(CLEAR)).draft).toBe(true);
           await typeAndEscape("");
 
@@ -4437,12 +4054,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
 
         it("selects the seeded text under a click and creates nothing", async () => {
-          // The seed sits too near the page's top to come to the window's
-          // middle; a point below it, as high as the seeded note, does.
           await armText([SEED_TEXT[0], 609.393]);
           const before = await annotationKeys();
 
-          // A click on a mark starts no create, so the selection is the end.
           expect((await click(SEED_TEXT)).draft).toBe(false);
 
           await obRunUntil(
@@ -4480,12 +4094,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
 
         it("types at the font size picked from the text seat's menu, and keeps the pick over a reopen of the PDF", async () => {
-          /**
-           * Opens the text seat's chevron menu and answers the first word of
-           * the checked font-size item; with `pick`, selects the font-size
-           * item that begins with that number. The menu is DOM only with
-           * Obsidian's native menus off.
-           */
           const textMenu = (pick?: number) =>
             obRun(
               vaultId!,
@@ -4526,11 +4134,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               },
               { attachmentPath, pick: pick ?? null },
             );
-          /**
-           * Closes the menu with Escape, outside the reader so the reader's
-           * own Escape stands no tool down. The menu hears it only once it
-           * has settled, and a click while it stands lands on it.
-           */
           const closeMenu = () =>
             obRunUntil(
               vaultId!,
@@ -4598,10 +4201,8 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           const picked = size === "24" ? 18 : 24;
           await armText(CLEAR);
 
-          // The menu checks the size in hand, and the pick replaces it.
           expect(await textMenu(picked)).toBe(size);
 
-          // Closed and opened again, the PDF view takes a new binding.
           await reopenPdfView(vaultId!, attachmentPath);
           await armText(CLEAR);
           expect(await textMenu()).toBe(String(picked));
@@ -4698,12 +4299,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             },
             undefined,
           );
-          // Zotero's green swatch, which no tool starts on.
           const green = "#5fb236";
           await armText(CLEAR);
 
-          // The swatch is picked from the text seat's chevron menu, which
-          // closes on the pick.
           expect(
             await obRun(
               vaultId!,
@@ -4759,8 +4357,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect(
             (await storedAnnotation(api, serverID, textKey)).annotationColor,
           ).toBe(green);
-          // Zotero's `darkenHex(green, 5)`: each channel times 0.95, rounded —
-          // 0x5f → 0x5a, 0xb2 → 0xa9, 0x36 → 0x33.
           await obRunUntil(
             vaultId!,
             async (
@@ -4787,11 +4383,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       });
 
       describe("free text on the first page", () => {
-        /**
-         * What the Attachment held when this group began. Each test ends by
-         * erasing everything beyond it, a create that landed after the test
-         * stopped waiting for it included.
-         */
         let held: readonly string[] = [];
         beforeAll(async () => {
           held = await annotationKeys();
@@ -4842,15 +4433,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               );
               if (!answer.startsWith("[")) return false;
               lines = JSON.parse(answer) as typeof lines;
-              // A page not yet laid out measures its text as nothing.
               return lines.every(([, , length]) => length > 0);
             }),
           ).toBe(true);
           expect(lines.map(([line]) => line)).toEqual([
             "Making figures is hard :(",
           ]);
-          // The box was fitted to the comment in Zotero's font; the page
-          // draws it in Obsidian's, and the run still ends inside the box.
           expect(lines[0]![2]).toBeLessThanOrEqual(right - left);
         }, 120000);
 
@@ -4868,9 +4456,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             },
             undefined,
           );
-          // Written straight through the Local API, so the page draws a text
-          // Annotation Zotero holds, not one ZotLit shaped. The box is 40
-          // points high, room for two 14-point lines.
           const written = await zoteroFetch(api, "users/0/items", {
             method: "POST",
             headers: {
@@ -4914,7 +4499,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { attachmentKey: attachment.key },
           );
 
-          // Each line starts 1.2 font sizes, 16.8 points, below the last.
           let lines: [string, string, number][] = [];
           expect(
             await waitFor(async () => {
@@ -4965,15 +4549,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       it("saves a Geometry Edit on the seeded image through one repository write", async () => {
         const imageKey = "FDRFQ7C2";
         const image = seededMark(imageKey, { image: true });
-        // The seed goes back through the Local API against whatever version
-        // Zotero holds then, so a failed assertion leaves no edited image for
-        // the next run to inherit.
         await using revert = new AsyncDisposableStack();
         revert.defer(image.restore);
 
-        // The seed's rect is [48.75, 395.509, 570, 743.723] on page index 1:
-        // the edit widens it 40 points to the right and lowers its top edge 40
-        // points, which moves the Sort Index's distance from the page top.
         const edited = {
           pageIndex: 1,
           rects: [[48.75, 395.509, 610, 703.723] as const],
@@ -5023,8 +4601,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         expect(outcome.state.kind).toBe("idle");
         expect(outcome.announced).toEqual([imageKey]);
 
-        // Zotero holds the rect and a recomputed Sort Index, read straight
-        // off the Local API.
         const stored = await image.stored();
         expect(JSON.parse(stored.data.annotationPosition)).toEqual(edited);
         expect(stored.data.annotationSortIndex).toBe(outcome.sortIndex);
@@ -5035,7 +4611,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           image.seed.annotationSortIndex,
         );
 
-        // Zotero's open Reader holds the same rect.
         expect(
           await waitFor(
             async () =>
@@ -5043,8 +4618,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ),
         ).toBe(true);
 
-        // The Obsidian overlay draws the mark in PDF points: 610 - 48.75 wide,
-        // 703.723 - 395.509 high.
         await obRun(
           vaultId!,
           async (
@@ -5092,12 +4665,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         const imageKey = "FDRFQ7C2";
         const image = seededMark(imageKey, { image: true });
 
-        /**
-         * Brings page two on screen and selects the image by a click on its
-         * body, as a researcher would, then answers where its bottom-right
-         * handle is and how many client pixels one PDF point spans on each
-         * axis of the drawn page.
-         */
         async function selectImage(): Promise<{
           x: number;
           y: number;
@@ -5170,12 +4737,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the eight Mark Handles to render on the seeded image",
             },
           );
-          // Measured in its own eval: the one that acts reads the nodes as
-          // they stood before its own events re-drew them. The page jump can
-          // still be scrolling, so the handle is read until it stands still.
-          // The handle is brought on screen, and counts only once it is the
-          // node under its own centre: that is what proves it takes the
-          // pointer.
 
           let last = "";
           expect(
@@ -5231,10 +4792,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           };
         }
 
-        /**
-         * Whether the image's Annotation Card shows the conflict a Geometry
-         * Edit left, with its prompt and its "Apply again" button.
-         */
         const conflictShown = async () =>
           (await obRun(
             vaultId!,
@@ -5263,8 +4820,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           )) === "true";
 
         beforeAll(async () => {
-          // A Reader opened afresh renders the Excerpt Images it lacks at
-          // once, which is what lets each write here wait for that render.
           await closeZoteroReader(rdp, readerTabID);
           readerTabID = await openZoteroReader(rdp);
           await image.restore();
@@ -5275,9 +4830,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("keeps the popup's comment editor open through a selection and a menu pick inside it", async () => {
           await selectImage();
-          // The seed carries no comment, so the popup's comment field shows
-          // its placeholder, and a click on it opens the editor; the row has
-          // no comment verb.
           await obRunUntil(
             vaultId!,
             async (
@@ -5297,8 +4849,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the Mark Popup comment field to show its placeholder and no comment verb",
             },
           );
-          // A press collapses the page's selection before its click, and a
-          // click over selected text only reads.
           await obRun(
             vaultId!,
             async ({ page: pageHelpers }) => {
@@ -5335,8 +4885,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           try {
             await expectEditorKeepsSelections(vaultId!);
           } finally {
-            // A press outside closes the editor, which saves what it holds;
-            // the seed carries no comment, so it is put back either way.
             await obRun(
               vaultId!,
               async ({ page: pageHelpers }) => {
@@ -5385,8 +4933,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           const handle = await selectImage();
           const { version } = await image.stored();
           await using pixels = await watchExcerptPixels(vaultId!);
-          // Twenty points right and thirty points down the page: the right
-          // edge moves out to 590 and the bottom edge, PDF's y1, to 365.509.
           const to = {
             x: handle.x + 20 * handle.perX,
             y: handle.y + 30 * handle.perY,
@@ -5435,9 +4981,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               targetY: to.y,
             },
           );
-          // The press landed on the drawn handle, and the popup stood aside.
           expect(pressed).toEqual({ grip: "br", popup: false });
-          // Nothing is written while the pointer is down.
           expect((await image.stored()).version).toBe(version);
 
           await obRun(
@@ -5459,7 +5003,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { attachmentPath, x: to.x, y: to.y },
           );
 
-          // Zotero holds the predicted rect, read straight off the Local API.
           const expected = [48.75, 365.509, 590, 743.723];
           expect(
             await waitFor(async () =>
@@ -5486,9 +5029,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               2,
             ),
           );
-          // The Sort Index is the one the reader's text structure gives the
-          // stored rect. A bottom-right drag leaves the top edge, which the
-          // Sort Index measures, where it was.
           expect(stored.data.annotationSortIndex).toBe(
             await recomputedSortIndex(vaultId!, {
               attachmentPath,
@@ -5496,7 +5036,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             }),
           );
 
-          // Zotero's open Reader holds the same rect.
           expect(
             await waitFor(
               async () =>
@@ -5505,8 +5044,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ),
           ).toBe(true);
 
-          // The overlay draws the saved rect, 590 - 48.75 points wide, and the
-          // Excerpt Image was told its pixels changed.
           await obRunUntil(
             vaultId!,
             async (
@@ -5551,12 +5088,8 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
 
         it("puts the image's geometry back for the undo key, and drags it out again for redo", async () => {
-          // A history ends with the last view of its Attachment, so a reopened
-          // view gives this test an empty one.
           await reopenPdfView(vaultId!, attachmentPath);
           const handle = await selectImage();
-          // Twenty points right and thirty points down the page, the drag the
-          // resize is proved with.
           await dragPointer(handle, {
             x: handle.x + 20 * handle.perX,
             y: handle.y + 30 * handle.perY,
@@ -5576,8 +5109,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect(await undoKey()).toEqual({ handled: true });
           await stepSettled();
 
-          // Zotero holds the seeded rect and Sort Index again, read straight
-          // off the Local API.
           expect(
             await waitFor(
               async () =>
@@ -5589,7 +5120,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect((await image.stored()).data.annotationSortIndex).toBe(
             image.seed.annotationSortIndex,
           );
-          // Zotero's own Reader holds the rect the undo wrote.
           expect(
             await waitFor(
               async () =>
@@ -5597,7 +5127,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 image.seed.annotationPosition,
             ),
           ).toBe(true);
-          // The reader landed on the Annotation the step changed.
           await obRunUntil(
             vaultId!,
             async (
@@ -5662,16 +5191,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { x: handle.x, y: handle.y, attachmentPath },
           );
 
-          // Read once the Reader has held one version across two polls, so a
-          // write the release started would have landed. The version is the
-          // marker: a write of the same rect still bumps it.
           await image.settled();
           const stored = await image.stored();
           expect(stored.version).toBe(version);
           expect(stored.data.annotationPosition).toBe(
             image.seed.annotationPosition,
           );
-          // The mark stays selected, with its handles.
           expect(
             await obRun(
               vaultId!,
@@ -5763,8 +5288,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             },
           );
 
-          // A drag from where the bottom-right handle stood is an ordinary
-          // gesture on the page, and the mark stays where it was drawn.
           const to = {
             x: before.x + 20 * before.perX,
             y: before.y + 30 * before.perY,
@@ -5839,11 +5362,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             prevented: true,
           });
 
-          // The seed's right edge, 570, moves out to 575; nothing else moves.
           const expected = [48.75, 395.509, 575, 743.723];
-          // The Local API reads the item from memory: while Zotero commits a
-          // PATCH, the record shows the new position at the old version. The
-          // write has landed once both have moved.
           let stored = await image.stored();
           expect(
             await waitFor(async () => {
@@ -5862,7 +5381,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             }),
           );
 
-          // Zotero's open Reader holds the same rect, and the overlay draws it.
           expect(
             await waitFor(
               async () =>
@@ -5906,8 +5424,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             prevented: true,
           });
 
-          // Five points down the page is five toward PDF's y origin: both
-          // edges move, the top edge the Sort Index measures among them.
           const expected = [48.75, 390.509, 570, 738.723];
           expect(
             await waitFor(async () =>
@@ -5928,8 +5444,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("lands a conflicted Geometry Edit against Zotero's fresh version when applied again", async () => {
           await using teardown = new AsyncDisposableStack();
-          // A conflict left standing by a failed assertion is ended before
-          // the seed goes back.
           teardown.defer(async () => {
             await obRun(
               vaultId!,
@@ -5946,8 +5460,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             );
           });
           const handle = await selectImage();
-          // Twenty points right from the bottom-right handle: the right edge
-          // is to move out from 570 to 590.
           const to = { x: handle.x + 20 * handle.perX, y: handle.y };
           const attempted = [48.75, 395.509, 590, 743.723];
           const pressed = await obRun(
@@ -5990,8 +5502,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           );
           expect(pressed).toEqual({ grip: "br" });
 
-          // Zotero moves the left edge while the pointer is still down, and
-          // the release follows at once, before ZotLit reads the change.
           const fresh = [60, 395.509, 570, 743.723];
           await rdp.json<boolean>(`(async () => {
             const attachment = ${ATTACHMENT_ITEM};
@@ -6021,22 +5531,14 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             },
             { attachmentPath, x: to.x, y: to.y },
           );
-          // Read after the release, so no read of ours stands between
-          // Zotero's change and the write that meets it.
           const changed = await image.stored();
           expect(rectIs(changed.data.annotationPosition, fresh)).toBe(true);
 
-          // The write met Zotero's newer version: the Annotation Card offers
-          // the choice, and Zotero keeps its own rect meanwhile.
           expect(await waitFor(conflictShown)).toBe(true);
           expect(
             rectIs((await image.stored()).data.annotationPosition, fresh),
           ).toBe(true);
 
-          // Zotero's open Reader saves the image it renders after a position
-          // change; a retry sent before that save meets a newer version once
-          // more and the card offers the choice again, so each retry waits
-          // for the Reader, and is pressed again while the choice stands.
           let landed = false;
           for (let attempt = 0; attempt < 3 && !landed; attempt++) {
             await image.settled();
@@ -6073,9 +5575,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 { imageKey },
               ),
             ).toBe("applied");
-            // Settled once Zotero holds the attempted rect at a newer
-            // version, or once a newer version refused it and the card asks
-            // again.
             expect(
               await waitFor(async () => {
                 const stored = await image.stored();
@@ -6086,7 +5585,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ).toBe(true);
           }
           expect(landed).toBe(true);
-          // The card lets the choice go once the edit landed.
           expect(await waitFor(async () => !(await conflictShown()))).toBe(
             true,
           );
@@ -6119,8 +5617,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           { attachmentPath },
           { what: "the PDF text layer on page 1 to render text" },
         );
-        // A drag on the page as the browser leaves it: the press, the text it
-        // selected, then the release that settles it into the create popup.
         await obRun(
           vaultId!,
           async (
@@ -6191,8 +5687,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         try {
           await expectEditorKeepsSelections(vaultId!);
         } finally {
-          // A press outside drops the waiting selection and its draft; nothing
-          // reaches Zotero.
           await obRun(
             vaultId!,
             async ({ page: pageHelpers }) => {
@@ -6452,8 +5946,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             (await marks()).filter((key) => !before.has(key)),
           );
         });
-        // The reader selects a passage and presses Highlight with a real
-        // click; the new highlight is selected, with its popup over it.
         await obRun(
           vaultId!,
           async (
@@ -6500,8 +5992,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           },
           { attachmentPath },
         );
-        // Zotero holds the highlight, and the popup stands over it as the
-        // selected mark's, with nothing left to write that would place it.
         await obRunUntil(
           vaultId!,
           async (
@@ -6528,9 +6018,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         await waitFor(async () =>
           (await marks()).some((key) => !before.has(key)),
         );
-        // The reads that follow a write, Zotero's notice of it among them, end.
         await new Promise((resolve) => setTimeout(resolve, 5000));
-        // A new tab (Cmd+T on macOS) covers the PDF, and its popup with it.
         await obRun(vaultId!, async ({ page: pageHelpers }) => {
           await pageHelpers
             .trusted(window)
@@ -6542,8 +6030,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               leaf.detach();
           });
         });
-        // The tab change alone hides it: no read lands in this half second
-        // to place the popup again.
         expect(
           await obRun(vaultId!, async ({ app }) => {
             await new Promise((resolve) => setTimeout(resolve, 500));
@@ -6557,7 +6043,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             };
           }),
         ).toEqual({ shown: false, tab: "empty" });
-        // The PDF's tab in front again: the highlight is still selected.
         await obRun(
           vaultId!,
           ({ app, page }, { attachmentPath }: { attachmentPath: string }) => {
@@ -6591,7 +6076,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             },
           ),
         ).toEqual({ shown: true, tab: READER_VIEW_TYPE });
-        // Escape closes it, as before.
         await obRun(vaultId!, async ({ page: pageHelpers }) => {
           await pageHelpers.trusted(window).key("Escape");
         });
@@ -6639,12 +6123,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await obRun(vaultId!, async ({ app, page: pageHelpers }) => {
             for (const leaf of app.workspace.getLeavesOfType("empty"))
               leaf.detach();
-            // The editor, then the selection: nothing reaches Zotero.
             await pageHelpers.trusted(window).key("Escape");
             await pageHelpers.trusted(window).key("Escape");
           });
         });
-        // The reader selects a passage, presses Add comment and types.
         await obRun(
           vaultId!,
           async (
@@ -6721,8 +6203,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             undefined,
             {
               what: "the create popup to hide behind the new tab",
-              // The new tab can be the most recent leaf a moment before its
-              // active-leaf-change places the popup.
               ready: (value) => value.tab === "empty" && !value.shown,
             },
           ),
@@ -6742,7 +6222,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           },
           { attachmentPath },
         );
-        // Back on the PDF, the comment is as the reader left it.
         expect(
           await obRunUntil(
             vaultId!,
@@ -6773,12 +6252,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }
         const seedPosition = ink.seeded.position as InkPosition;
 
-        /**
-         * Brings page one on screen and selects the ink by a click inside its
-         * stroke box, as a researcher would, then answers where the centre of
-         * that box and its bottom-right handle are, and how many client
-         * pixels one PDF point spans on each axis of the drawn page.
-         */
         async function selectInk(): Promise<{
           body: { x: number; y: number };
           corner: { x: number; y: number };
@@ -6834,7 +6307,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             },
             { attachmentPath, inkKey },
           );
-          // Ink scales from its four corners only.
           await obRunUntil(
             vaultId!,
             async (
@@ -6853,8 +6325,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the four handles on the seeded ink mark to appear",
             },
           );
-          // Measured in its own eval, and read until it stands still: the
-          // page jump can still be scrolling.
 
           let last = "";
           expect(
@@ -6913,11 +6383,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           return JSON.parse(last) as Awaited<ReturnType<typeof selectInk>>;
         }
 
-        /**
-         * The ink Zotero holds once the write and the Reader's render after
-         * it have settled, checked against Zotero's open Reader, and the
-         * pixel-change announcement for it.
-         */
         async function savedInk(
           pixels: Awaited<ReturnType<typeof watchExcerptPixels>>,
         ): Promise<InkPosition> {
@@ -6932,15 +6397,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ).toBe(true);
           await ink.settled();
           const stored = await ink.stored();
-          // The Sort Index is the one the reader's text structure gives the
-          // stored position.
           expect(stored.data.annotationSortIndex).toBe(
             await recomputedSortIndex(vaultId!, {
               attachmentPath,
               position: stored.data.annotationPosition,
             }),
           );
-          // Zotero's open Reader holds the same position.
           expect((await ink.held())?.position).toBe(
             stored.data.annotationPosition,
           );
@@ -6950,11 +6412,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           return JSON.parse(stored.data.annotationPosition) as InkPosition;
         }
 
-        /**
-         * Asserts every stored point sits where `expected` puts the seeded
-         * one, within the three-decimal rounding and the client-pixel
-         * measure of the drag.
-         */
         function expectPoints(
           position: InkPosition,
           expected: (x: number, y: number) => [number, number],
@@ -6978,8 +6435,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }
 
         beforeAll(async () => {
-          // A Reader opened afresh renders the Excerpt Images it lacks at
-          // once, which is what lets each write here wait for that render.
           await closeZoteroReader(rdp, readerTabID);
           readerTabID = await openZoteroReader(rdp);
           await ink.restore();
@@ -6991,8 +6446,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         it("moves every point of the ink by its body's drag, the width kept", async () => {
           const { body, perX, perY } = await selectInk();
           await using pixels = await watchExcerptPixels(vaultId!);
-          // Forty pixels right and twenty down the page: down the page is
-          // toward PDF's y origin.
           await dragPointer(body, { x: body.x + 40, y: body.y + 20 });
           const dx = 40 / perX;
           const dy = -20 / perY;
@@ -7001,8 +6454,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect(position.pageIndex).toBe(seedPosition.pageIndex);
           expect(position.width).toBe(seedPosition.width);
           expectPoints(position, (x, y) => [x + dx, y + dy]);
-          // The overlay draws the saved stroke, whose page units are PDF
-          // points counted from the page's left edge.
           await obRunUntil(
             vaultId!,
             async (
@@ -7059,8 +6510,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { what: "the ink mark 4PE492KU to render with a non-empty box" },
           );
 
-          // Halfway along the drawn stroke, mapped from page units to the
-          // client by the overlay itself.
           await obRun(
             vaultId!,
             async (
@@ -7107,10 +6556,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             },
           );
 
-          // The seed is a tick: the top-left of its box, a fifth of the way
-          // in and a tenth of the way down, lies inside the box and some
-          // fifteen points from either arm. No other mark covers it, so the
-          // click is a click-away and deselects.
           await obRun(
             vaultId!,
             async (
@@ -7176,8 +6621,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         it("scales the ink from its bottom-right corner with its proportions and its pen", async () => {
           const { corner, perX } = await selectInk();
           await using pixels = await watchExcerptPixels(vaultId!);
-          // Thirty pixels right; the vertical travel is ignored, since the
-          // new width alone sets a corner's scale.
           await dragPointer(corner, { x: corner.x + 30, y: corner.y + 10 });
           const points = seedPosition.paths.flat();
           const xs = points.filter((_, index) => index % 2 === 0);
@@ -7188,7 +6631,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           const scale = (width + 30 / perX) / width;
 
           const position = await savedInk(pixels);
-          // The top-left corner, opposite the handle, stays put.
           expectPoints(position, (x, y) => [
             left + (x - left) * scale,
             top - (top - y) * scale,
@@ -7231,7 +6673,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           rotation: number;
           rects: number[][];
         }
-        /** A seeded mark's stored rect, `[x1, y1, x2, y2]` in PDF points. */
         const rectOf = ({
           seeded: { position },
         }: ReturnType<typeof seededMark>) => {
@@ -7243,15 +6684,8 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         const textSeed = text.seeded.position;
         if (!("fontSize" in textSeed)) throw new Error("HRK7BG32 is text");
         const [x1, y1, x2, y2] = rectOf(text);
-        /** One line of free text, as Zotero's reader and the page lay it out. */
         const LINE = 1.2 * textSeed.fontSize;
 
-        /**
-         * Brings page one on screen, selects the mark by a click at the
-         * centre of its stored rect, as a researcher would, and answers how
-         * many handles it shows, each handle's client centre, and how many
-         * client pixels one PDF point spans on each axis of the drawn page.
-         */
         async function select(
           mark: ReturnType<typeof seededMark>,
           handles: number,
@@ -7370,8 +6804,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the handle count on the seeded note or free text to match the expected count",
             },
           );
-          // Measured in its own eval, and read until it stands still: the
-          // page jump can still be scrolling.
 
           let last = "";
           expect(
@@ -7452,11 +6884,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           return JSON.parse(last) as Awaited<ReturnType<typeof select>>;
         }
 
-        /**
-         * The position Zotero holds once the write and the Reader after it
-         * have settled, checked against Zotero's open Reader, with the Sort
-         * Index recomputed from it.
-         */
         async function savedPosition(
           mark: ReturnType<typeof seededMark>,
         ): Promise<string> {
@@ -7494,16 +6921,8 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await text.restore();
         });
 
-        /**
-         * Evaluates `body` with `context`, a canvas context set to the font
-         * the page draws the free text in, measured independently of ZotLit.
-         */
-
         it("moves the note by its body, with no handle drawn, and keeps its size", async () => {
           const { body, perX, perY } = await select(note, 0);
-          // Forty pixels left and twenty down the page, away from the page's
-          // right edge, which the seed stands 23 points from: down the page
-          // is toward PDF's y origin.
           await dragPointer(body, { x: body.x - 40, y: body.y + 20 });
           const dx = -40 / perX;
           const dy = -20 / perY;
@@ -7530,9 +6949,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         it("nudges the note five points for Alt+ArrowLeft, and resizes nothing for Shift+ArrowLeft", async () => {
           await select(note, 0);
           const { version } = await note.stored();
-          // The reader decides a key's Geometry Edit while the key is
-          // handled, and takes the key from the page whenever it begins one,
-          // so a key left to the page began none.
           expect(await pressKey("ArrowLeft", { shiftKey: true })).toEqual({
             prevented: false,
           });
@@ -7542,8 +6958,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect(await pressKey("ArrowLeft", { altKey: true })).toEqual({
             prevented: true,
           });
-          // The note keeps its size: a resize from the Shift key, landing
-          // late, would have changed it.
           const saved = await savedPosition(note);
           expect(
             rectIs(saved, [
@@ -7574,14 +6988,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("narrows the free text from its right handle, its font kept and its height fitted to the lines", async () => {
           const { handles, perX } = await select(text, 6);
-          // Eighty points in: the comment no longer fits one line, so the box
-          // keeps the width it was dragged to on release.
           await dragPointer(handles.r!, {
             x: handles.r!.x - 80 * perX,
             y: handles.r!.y + 7,
           });
-          // The lines the comment breaks into at that width, word by word as
-          // Zotero's render breaks them.
           const width = x2 - x1 - 80;
           const lines = await obRun(
             vaultId!,
@@ -7624,7 +7034,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect((JSON.parse(saved) as TextPosition).fontSize).toBe(
             textSeed.fontSize,
           );
-          // The top-left corner stays, and the box hangs one line per line.
           expect(
             rectIs(saved, [x1, y2 - lines * LINE, x2 - 80, y2], 0.01),
             saved,
@@ -7682,8 +7091,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect((JSON.parse(saved) as TextPosition).fontSize).toBe(
             textSeed.fontSize,
           );
-          // One line high from the top-left corner, as wide as the comment
-          // and 5 points of room.
           expect(
             rectIs(saved, [x1, y2 - LINE, x1 + width + 5, y2], 0.01),
             saved,
@@ -7692,8 +7099,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("scales the free text and its font from its bottom-right corner, the top-left corner kept", async () => {
           const { handles, perX } = await select(text, 6);
-          // Fifty-four points in of 162: a scale of two thirds. The vertical
-          // travel is ignored, since the width alone sets a corner's scale.
           await dragPointer(handles.br!, {
             x: handles.br!.x - 54 * perX,
             y: handles.br!.y - 30,
@@ -7701,8 +7106,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           const scale = (x2 - x1 - 54) / (x2 - x1);
 
           const saved = await savedPosition(text);
-          // 14 points scaled by two thirds is 9.33, which Zotero's drag
-          // rounds down to the half point.
           expect((JSON.parse(saved) as TextPosition).fontSize).toBe(9);
           expect(
             rectIs(saved, [x1, y2 - (y2 - y1) * scale, x2 - 54, y2], 0.01),
@@ -7719,7 +7122,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           const scale = (width + 5) / width;
 
           const saved = await savedPosition(text);
-          // 14 × 167 / 162 is 14.43, which rounds to 14.5.
           expect((JSON.parse(saved) as TextPosition).fontSize).toBe(14.5);
           expect(
             rectIs(saved, [x1, y2 - (y2 - y1) * scale, x2 + 5, y2]),
@@ -7732,18 +7134,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         const highlightKey = "Q8ZR4TDH";
         const highlight = seededMark(highlightKey, { image: false });
 
-        /** Whether the highlight's Annotation Card quotes text `test` accepts. */
-
         const seedText = highlight.seed.annotationText!;
         const seedRects = (
           highlight.seeded.position as { rects: readonly (readonly number[])[] }
         ).rects;
 
-        /**
-         * Brings page one on screen and selects the highlight by a click on
-         * one of its lines, as a researcher would, then answers where its end
-         * handle stands.
-         */
         async function selectHighlight(): Promise<{ x: number; y: number }> {
           await highlight.settled();
           await obRunUntil(
@@ -7818,8 +7213,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the highlight Q8ZR4TDH handles to be start and end grips",
             },
           );
-          // Measured in its own eval, and read until it stands still and is
-          // the node under its own centre, as the image's handle is.
 
           let last = "";
           expect(
@@ -7857,10 +7250,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           return JSON.parse(last) as { x: number; y: number };
         }
 
-        /**
-         * Drags the end handle to a point inside `word` on page one, `at` of
-         * the way across it, and releases there.
-         */
         async function dragEnd(
           handle: { x: number; y: number },
           {
@@ -7870,12 +7259,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           }: {
             word: string;
             at: number;
-            /** The quoted text Zotero holds before the drag. */
             from?: string;
           },
         ): Promise<string> {
-          // Annotation overlays can appear before PDF.js finishes the text layer.
-          // Wait for the word we will hit before sending the gesture once.
           await obRunUntil(
             vaultId!,
             async (
@@ -8007,8 +7393,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 (await highlight.stored()).data.annotationText !== from,
             ),
           ).toBe(true);
-          // Read once Zotero's open Reader has taken the write and saved
-          // nothing more over it.
           await highlight.settled();
           return (await highlight.stored()).data.annotationText!;
         }
@@ -8024,8 +7408,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("extends the quote by one word from its end handle", async () => {
           const handle = await selectHighlight();
-          // The seed ends on "few."; the next word on its line is
-          // "Furthermore,", and a release past its comma's middle takes it.
           const text = await dragEnd(handle, {
             word: "Furthermore,",
             at: 0.99,
@@ -8038,15 +7420,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             rects: number[][];
             nextPageRects?: number[][];
           };
-          // Three lines as seeded, and the last one runs further right.
           expect(position.pageIndex).toBe(0);
           expect(position.nextPageRects).toBeUndefined();
           expect(position.rects.slice(0, 3)).toEqual(seedRects.slice(0, 3));
           expect(position.rects).toHaveLength(4);
           expect(position.rects[3]![0]).toBe(seedRects[3]![0]);
           expect(position.rects[3]![2]).toBeGreaterThan(seedRects[3]![2]! + 20);
-          // The Sort Index is the one the reader's text structure gives the
-          // stored range.
           expect(stored.data.annotationSortIndex).toBe(
             await recomputedSortIndex(vaultId!, {
               attachmentPath,
@@ -8054,7 +7433,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             }),
           );
 
-          // Zotero's open Reader holds the same range and quote.
           expect(
             await waitFor(async () => {
               const held = await highlight.held();
@@ -8065,8 +7443,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             }),
           ).toBe(true);
 
-          // The overlay draws the saved last line, and the Annotation Card
-          // quotes the new text.
           await obRunUntil(
             vaultId!,
             async (
@@ -8134,8 +7510,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
 
         it("puts the quoted text and the range back for the undo key", async () => {
-          // A history ends with the last view of its Attachment, so a reopened
-          // view gives this test an empty one.
           await reopenPdfView(vaultId!, attachmentPath);
           const handle = await selectHighlight();
           const text = await dragEnd(handle, {
@@ -8147,7 +7521,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect(await undoKey()).toEqual({ handled: true });
           await stepSettled();
 
-          // Zotero holds the seeded quote, range and Sort Index again.
           expect(
             await waitFor(
               async () =>
@@ -8163,8 +7536,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             highlight.seed.annotationSortIndex,
           );
 
-          // Zotero's own Reader holds the quote the undo put back, and the
-          // Annotation Card quotes it again.
           expect(
             await waitFor(async () => {
               const held = await highlight.held();
@@ -8202,7 +7573,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
 
         it("takes the text of the new range over a Text Edit, as Zotero's reader does", async () => {
-          // A Text Edit through the verb the card's editor saves with.
           const typed = "Corrected by hand";
           await obRun(
             vaultId!,
@@ -8239,7 +7609,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             from: typed,
           });
 
-          // Zotero holds the text of the new range: the typed text is gone.
           const extended = `${seedText} Furthermore,`;
           expect(
             await waitFor(
@@ -8281,7 +7650,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("keeps one character when the end is dragged back past the start", async () => {
           const handle = await selectHighlight();
-          // "automatic." ends the line above the seed's first word, "There".
           const text = await dragEnd(handle, { word: "automatic", at: 0.1 });
           expect(text).toBe("T");
 
@@ -8322,9 +7690,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ).toBe(true);
           await highlight.settled();
 
-          // The seed ends on "few."; the next character is the "F" of
-          // "Furthermore,", after the space the text structure puts between
-          // words.
           const stored = await highlight.stored();
           const text = `${seedText} F`;
           expect(stored.data.annotationText).toBe(text);
@@ -8335,8 +7700,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             }),
           );
 
-          // Zotero's open Reader holds the same quote, and the Annotation
-          // Card quotes it.
           expect(
             await waitFor(async () => {
               const held = await highlight.held();
@@ -8378,18 +7741,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         const historyKey = "PUPR5FG5";
         const seeded = ANNOTATIONS.find(({ key }) => key === historyKey)!;
         const seedColor = seeded.color;
-        /** The swatch the number row's second key picks. */
         const picked = "#ff6666";
 
-        /** What the Local API holds for the Annotation right now. */
         const storedColor = () => annotationColor(api, serverID, historyKey);
 
-        /**
-         * Settles once ZotLit holds no write and no open draft on the
-         * Annotation. Zotero answers the Local API a moment before ZotLit has
-         * read its own write back, and an undo key pressed in that moment is
-         * turned away, not queued.
-         */
         async function writeSettled(): Promise<void> {
           await obRunUntil(
             vaultId!,
@@ -8409,7 +7764,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           );
         }
 
-        /** Whether ZotLit is showing the notice that names one word of it. */
         const noticeShows = (fragment: string) =>
           obRunUntil(
             vaultId!,
@@ -8422,7 +7776,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { what: "the ZotLit notice carrying the expected text to appear" },
           );
 
-        /** One field, written in Zotero itself, and read back into ZotLit. */
         async function saveInZotero(
           field: "annotationColor" | "annotationComment",
           value: string,
@@ -8472,7 +7825,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           );
         }
 
-        /** Selects the highlight by a click on its body, as a researcher would. */
         async function selectMark(): Promise<void> {
           await obRunUntil(
             vaultId!,
@@ -8540,7 +7892,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           );
         }
 
-        /** The colour pick itself: the number row's second key on the selection. */
         async function pickRed(): Promise<void> {
           expect(await pressKey("2", {})).toEqual({ prevented: true });
           expect(
@@ -8550,8 +7901,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }
 
         beforeEach(async () => {
-          // A history ends with the last view of its Attachment, so a reopened
-          // view is what gives each test an empty one.
           await reopenPdfView(vaultId!, attachmentPath);
           await clearNotices(vaultId!);
         });
@@ -8590,13 +7939,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect(
             await waitFor(async () => (await storedColor()) === seedColor),
           ).toBe(true);
-          // Zotero's own Reader holds the colour the undo wrote.
           expect(
             await waitFor(() =>
               readerAnnotationColor(rdp, historyKey, seedColor),
             ),
           ).toBe(true);
-          // The reader landed on the Annotation the step changed.
           await obRunUntil(
             vaultId!,
             async (
@@ -8631,7 +7978,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await selectMark();
           await pickRed();
 
-          // Both presses reach the reader before Zotero answers the first.
           await obRun(
             vaultId!,
             async ({ zotlit }, { attachmentPath }) => {
@@ -8646,8 +7992,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           );
           await stepSettled();
 
-          // The redo waited for the undo and took it back: a redo taken first
-          // or dropped would leave the seed colour.
           expect(
             await waitFor(async () => (await storedColor()) === picked),
           ).toBe(true);
@@ -8668,8 +8012,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await stepSettled();
 
           expect(await storedColor()).toBe(inZotero);
-          // The whole of `annot_history_changed_in_zotero`, because the
-          // fragment "changed in Zotero" belongs to two other notices as well.
           await noticeShows(
             "This annotation changed in Zotero, so ZotLit left it as it is.",
           );
@@ -8707,10 +8049,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
 
         describe("from the command palette", () => {
-          /**
-           * Whether the palette offers one command while the PDF view is the
-           * active view, as the palette asks before it lists it.
-           */
           const offered = (id: string) =>
             obRun(
               vaultId!,
@@ -8734,7 +8072,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               { attachmentPath, commandId: `zotlit:${id}` },
             );
 
-          /** Runs one command with the PDF view as the active view. */
           const run = (id: string) =>
             obRun(
               vaultId!,
@@ -8756,7 +8093,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             await selectMark();
             await pickRed();
             expect(await offered("undo-annotation-change")).toBe("true");
-            // A new edit leaves nothing to redo.
             expect(await offered("redo-annotation-change")).toBe("false");
 
             expect(await run("undo-annotation-change")).toBe("true");
@@ -8774,17 +8110,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           }, 120000);
         });
 
-        /** What the Local API holds for the Annotation's comment right now. */
         const storedComment = async () =>
           (await storedAnnotation(api, serverID, historyKey))
             .annotationComment ?? "";
 
-        /**
-         * Opens the Mark Popup's comment editor on the selected Annotation,
-         * through a click on the comment field. A press collapses the page's
-         * selection before its click, and a click over selected text only
-         * reads.
-         */
         async function openCommentEditor(): Promise<void> {
           await obRun(
             vaultId!,
@@ -8810,7 +8139,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           );
         }
 
-        /** Replaces what the open editor holds, as typing over a selection does. */
         const typeComment = (text: string) =>
           obRun(
             vaultId!,
@@ -8823,7 +8151,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { text },
           );
 
-        /** Escape, which stores the comment and takes the editor off screen. */
         async function closeCommentEditor(): Promise<void> {
           await obRun(
             vaultId!,
@@ -8853,7 +8180,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await selectMark();
           await openCommentEditor();
 
-          // Two texts, each left to stand until its own autosave landed.
           await typeComment("Worth");
           expect(
             await waitFor(async () => (await storedComment()) === "Worth"),
@@ -8869,7 +8195,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect(await undoKey()).toEqual({ handled: true });
           await stepSettled();
 
-          // The session went back whole, to the comment from before it began.
           expect(
             await waitFor(async () => (await storedComment()) === ""),
           ).toBe(true);
@@ -8891,10 +8216,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             await waitFor(async () => (await storedComment()) === "Typed once"),
           ).toBe(true);
 
-          // A second run typed on, then the platform undo chord, in one turn:
-          // no autosave can come due between them. The chord goes to the
-          // view's own Scope first, as Obsidian sends it, and then to the
-          // editor the focus sits in.
           const { scoped, typed } = await obRun(
             vaultId!,
             async (
@@ -8936,10 +8257,8 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { platformKey, attachmentPath },
           );
           expect(typed).toBe("Typed once and twice");
-          // The reader left the chord alone.
           expect(scoped).toBe(false);
 
-          // The editor's own text undo took it back one run.
           await obRunUntil(
             vaultId!,
             async ({ page: pageHelpers }) => {
@@ -8951,8 +8270,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the popup comment editor text to read Typed once",
             },
           );
-          // The Annotation History never heard the key, so Zotero's record
-          // still holds what the session last saved.
           expect(await storedComment()).toBe("Typed once");
 
           await closeCommentEditor();
@@ -8969,10 +8286,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ).toBe(true);
           await typeComment(after);
 
-          // Each state of the comment slot in the popup and on the Annotation
-          // Card, from the blur until ZotLit has read its write back, recorded
-          // in one turn. The stored comment drawn for one frame between the
-          // closed editor and the new text is the flicker this guards.
           const shown = await obRun(
             vaultId!,
             async (
@@ -9027,9 +8340,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                   bridge.runSync(repository.mutationFor(key)).kind === "idle" &&
                   !bridge.runSync(repository.textDraftFor("comment", key)),
                 10000,
-              ).catch(
-                () => {},
-              ); /* 300 ms after the save is the window a late flicker would show in. */
+              ).catch(() => {});
               await new Promise((resolve) => setTimeout(resolve, 300));
               observer.disconnect();
               record();
@@ -9038,17 +8349,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { key: historyKey },
           );
           expect(shown.popup).toEqual(["editor", `view:${after}`]);
-          // The card may show the stored comment up to the blur; from there it
-          // changes once, to the new text.
           expect(shown.card.at(-1)).toBe(`view:${after}`);
           expect(shown.card.length).toBeLessThanOrEqual(2);
           expect(await storedComment()).toBe(after);
 
-          // The comment is a field again once its editor closed: a click on
-          // it opens the editor, as on the card (ADR 0066). A press collapses
-          // the page's selection before its click, and a click over selected
-          // text stays a read. The click runs and renders in one task, so the
-          // frame after it shows what it did.
           expect(
             await obRun(
               vaultId!,
@@ -9071,11 +8375,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
 
         describe("and the Annotation Card beside it", () => {
-          /**
-           * The card's own colour pick: a click selects the card alone, and
-           * the number row's second key, on the view's own Scope, picks
-           * {@link picked} for it.
-           */
           async function pickOnCard(): Promise<void> {
             await obRunUntil(
               vaultId!,
@@ -9108,12 +8407,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             await writeSettled();
           }
 
-          /**
-           * One chord on a focused card, through the Annotation View's own
-           * Scope — where Obsidian delivers a key the focused view answers.
-           *
-           * @returns whether the Scope took the key.
-           */
           const pressOnCard = (
             key: string,
             modifiers: {
@@ -9180,7 +8473,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               { historyKey, keyName: key, keyModifiers: modifiers },
             );
 
-          /** This host's own undo chord, pressed on the card. */
           const undoOnCard = () => pressOnCard("z", { [platformKey]: true });
 
           it("puts back a colour the card picked, for the reader's undo key", async () => {
@@ -9192,7 +8484,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             expect(
               await waitFor(async () => (await storedColor()) === seedColor),
             ).toBe(true);
-            // The card itself shows what the undo wrote.
             await obRunUntil(
               vaultId!,
               async ({ app }, { historyKey }: { historyKey: "PUPR5FG5" }) => {
@@ -9225,13 +8516,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           }, 120000);
 
           describe("a tag session", () => {
-            /** The Fixture's own tags on the Annotation, which each test puts back. */
             const seededTags: WireTag[] = (seeded.tags ?? []).map(
               ({ name, type }) => ({ tag: name, type }),
             );
-            /** An automatic tag the session removes, so its undo must restore the type. */
             const autoTag = { tag: "e2e-auto", type: 1 };
-            /** The name the session adds, which Zotero stores as manual. */
             const addedName = "e2e-card";
             const poll = { timeout: 10_000, interval: 250 };
             const { press, toggle, editorReady, editorChips, type, remove } =
@@ -9241,10 +8529,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             const setTagsInZotero = (tags: readonly WireTag[]) =>
               setAnnotationTags(rdp, historyKey, tags);
 
-            /**
-             * The toggle's second press, which ends the session and saves it
-             * once. Settles when the editor has closed onto the confirmed tags.
-             */
             async function closeTagEditor(): Promise<void> {
               await press(toggle);
               await obRunUntil(
@@ -9292,7 +8576,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               expect(await editorReady()).toBe(true);
               expect(await remove(autoTag.tag)).toBe("removed");
               await type(addedName, { enter: true });
-              // The chip is the signal that Enter added the name.
               await expect
                 .poll(editorChips, poll)
                 .toEqual([...seededTags.map(({ tag }) => tag), addedName]);
@@ -9303,8 +8586,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               expect(await undoKey()).toEqual({ handled: true });
               await stepSettled();
 
-              // The whole session went back: the added name left, and the
-              // automatic tag came back as automatic.
               await expect
                 .poll(storedTags, poll)
                 .toEqual(spelledTags([...seededTags, autoTag]));
@@ -9318,7 +8599,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             it("saves a card session on a blur, keeps the editor open for the next, and records one step for each", async () => {
               const first = "e2e-blur-first";
               const second = "e2e-blur-second";
-              /** Settles when no tag write or draft stands on the Annotation. */
               const tagsSettled = () =>
                 obRunUntil(
                   vaultId!,
@@ -9345,9 +8625,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               expect(await editorReady()).toBe(true);
               await type(first, { enter: true });
               await expect.poll(editorChips, poll).toContain(first);
-              // Focus leaves the field for the view around the card. The
-              // event is sent rather than the focus moved: a window without
-              // the system focus sends no focus events.
               await obRun(
                 vaultId!,
                 async ({ app }, { historyKey }: { historyKey: "PUPR5FG5" }) => {
@@ -9376,7 +8653,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               ]);
               await expect.poll(storedTags, poll).toEqual(once);
               await tagsSettled();
-              // The editor stayed open through the save.
               expect(
                 await obRun(
                   vaultId!,
@@ -9398,8 +8674,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 ),
               ).toBe(true);
 
-              // Focus comes back to the field for the next change, sent as the
-              // leave was, and the editor takes its keys again.
               await obRun(
                 vaultId!,
                 async ({ app }, { historyKey }: { historyKey: "PUPR5FG5" }) => {
@@ -9418,8 +8692,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 },
                 { historyKey },
               );
-              // The next change starts a new session, which Escape ends and
-              // saves as it closes the editor.
               await type(second, { enter: true });
               await expect.poll(editorChips, poll).toContain(second);
               await obRun(
@@ -9469,8 +8741,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               );
               await tagsSettled();
 
-              // One History Step for each session: the first undo takes back
-              // the second name alone, the next one the first.
               expect(await undoKey()).toEqual({ handled: true });
               await stepSettled();
               await expect.poll(storedTags, poll).toEqual(once);
@@ -9482,11 +8752,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         });
 
         describe("a create and a delete", () => {
-          /**
-           * The Annotation each of these tests makes for itself. Nothing seeded
-           * is erased here: a restore comes back under a key Zotero picks, so a
-           * deleted seed could never be put back as the Fixture spells it.
-           */
           const draft: Omit<AnnotationDraft, "parentKey"> = {
             type: "highlight" as const,
             color: "#a28ae5",
@@ -9497,11 +8762,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             position: { pageIndex: 0, rects: [[100, 560, 300, 580]] },
           };
 
-          /**
-           * Creates the draft once the reopened view has read the Attachment's
-           * list. Until that read binds the Attachment to its database, the
-           * capability reads `server-changed` and a create answers `db-source`.
-           */
           const createDraft = async () => {
             await obRunUntil(
               vaultId!,
@@ -9569,14 +8829,8 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               { annotationKey },
             );
 
-          /**
-           * What the Attachment held before this test. Earlier tests in this
-           * tier leave Annotations of their own standing until the suite ends,
-           * so the baseline is taken per test rather than from the Fixture.
-           */
           let baseline: readonly string[] = [];
 
-          /** The one Annotation this test made, or `null` where it made none. */
           const extra = async (): Promise<string | null> =>
             (await madeSince(baseline))[0] ?? null;
 
@@ -9596,7 +8850,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             expect(await undoKey()).toEqual({ handled: true });
             await stepSettled();
 
-            // Zotero is the oracle: the Annotation is gone from the Attachment.
             expect(await waitFor(async () => (await extra()) === null)).toBe(
               true,
             );
@@ -9608,7 +8861,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               true,
             );
             const restored = (await extra())!;
-            // Zotero refuses a client-supplied key, so the redo made a new one.
             expect(restored).not.toBe(madeKey);
             expect(
               await storedAnnotation(api, serverID, restored),
@@ -9622,7 +8874,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           }, 120000);
 
           it("takes back a note the tool placed, and leaves nothing selected", async () => {
-            /** Body text in the left column, clear of every seeded mark. */
             const CLEAR = [150, 250] as const;
             await armToolOnFirstPage(vaultId!, {
               attachmentPath,
@@ -9687,8 +8938,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               },
             );
 
-            // The note opens its comment sheet, and a sheet left open keeps
-            // the undo key for its own text; Escape closes it.
             await obRun(
               vaultId!,
               async (_context) => {
@@ -9730,8 +8979,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               await waitFor(async () => (await extra()) === null),
               "Zotero no longer holds the note after undo",
             ).toBe(true);
-            // The reader landed where the note was, with nothing selected
-            // and no mark left for it.
             await obRunUntil(
               vaultId!,
               async (
@@ -9788,7 +9035,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             );
             const restored = (await extra())!;
             expect(restored).not.toBe(madeKey);
-            // The colour, the comment and the position all came back with it.
             expect(
               await storedAnnotation(api, serverID, restored),
             ).toMatchObject({
@@ -9799,8 +9045,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               annotationSortIndex: before.annotationSortIndex,
             });
 
-            // The redo erases the Annotation the restore made, not the key
-            // Zotero no longer holds.
             expect(await redoKey()).toEqual({ handled: true });
             await stepSettled();
 
@@ -9812,17 +9056,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       });
 
       describe("the Card Selection", () => {
-        /** A highlight the card is clicked on, apart from the mark clicked. */
         const cardKey = "Q8ZR4TDH";
-        /** The highlight clicked in the PDF, as the history tests click it. */
         const markKey = "PUPR5FG5";
 
         const poll = { timeout: 10_000, interval: 250 };
 
-        /**
-         * What each surface shows selected: the Selected Cards, the marks the
-         * PDF paints `is-selected`, and whether a Mark Popup stands.
-         */
         const shown = () =>
           obRun(
             vaultId!,
@@ -9858,7 +9096,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { attachmentPath },
           );
 
-        /** A plain click on one card, as the browser delivers it. */
         async function clickCard(key: string): Promise<void> {
           await obRunUntil(
             vaultId!,
@@ -9882,8 +9119,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }
 
         beforeEach(async () => {
-          // A fresh binding holds no selection and no popup from an earlier
-          // test, and its first page is on screen for the marks.
           await reopenPdfView(vaultId!, attachmentPath);
           await obRunUntil(
             vaultId!,
@@ -9909,7 +9144,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           );
         });
 
-        /** A mark click in the PDF, at the mark's centre, as a researcher makes it. */
         async function tapMark(key: string): Promise<void> {
           expect(
             await obRun(
@@ -9936,7 +9170,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ).toBe("tapped");
         }
 
-        /** Runs one Annotation View command from the palette's own registry. */
         const command = (id: string) =>
           obRun(
             vaultId!,
@@ -9956,13 +9189,10 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           );
           try {
             await clickCard(cardKey);
-            // Pinned binds no reader, so the PDF beside it selects nothing.
             await expect
               .poll(shown, poll)
               .toEqual({ cards: [cardKey], marks: [], popup: false });
 
-            // Escape on the focused card of the active view, which Obsidian's
-            // keymap hands to that view's Scope.
             expect(
               await obRun(
                 vaultId!,
@@ -9994,7 +9224,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               .toEqual({ cards: [], marks: [], popup: false });
           } finally {
             await command("zotlit:annot-view-unpin");
-            // The PDF is the active tab the view follows again.
             await obRun(
               vaultId!,
               async (
@@ -10024,8 +9253,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               undefined,
             ),
           ).toBe("active-tab");
-          // The PDF stands pages away, so the mark in view is the Landing's
-          // own scroll: the last step it takes.
           await obRun(
             vaultId!,
             async (
@@ -10067,7 +9294,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the PDF mark Q8ZR4TDH to be selected and inside the visible viewer",
             },
           );
-          // With the Landing done, no Mark Popup stands over the mark.
           expect(await shown()).toEqual({
             cards: [cardKey],
             marks: [cardKey],
@@ -10075,7 +9301,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           });
 
           await tapMark(markKey);
-          // The mark click replaces the Card Selection.
           await expect
             .poll(shown, poll)
             .toMatchObject({ cards: [markKey], marks: [markKey] });
@@ -10088,7 +9313,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             .poll(shown, poll)
             .toMatchObject({ cards: [cardKey], marks: [cardKey] });
 
-          /** Which of the card's two editors stand. */
           const editors = () =>
             obRun(
               vaultId!,
@@ -10111,7 +9335,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               { cardKey },
             );
 
-          // A collected query leaves the published card on screen.
           await obRun(
             vaultId!,
             async ({ zotlit }) => {
@@ -10181,9 +9404,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             .poll(editors, poll)
             .toEqual({ comment: true, tags: false });
 
-          // Hold the annotation ItemQuery worker message while the user
-          // changes editors: a refresh must preserve the card's editing
-          // capability.
           await using heldQuery = new AsyncDisposableStack();
           heldQuery.defer(async () => {
             await obRun(
@@ -10252,7 +9472,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             },
           );
 
-          // The tag toggle saves and closes the comment editor first.
           await obRun(
             vaultId!,
             async (
@@ -10313,7 +9532,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             .poll(editors, poll)
             .toEqual({ comment: false, tags: true });
 
-          // A click on the comment field ends the tag session first.
           await obRun(
             vaultId!,
             async (
@@ -10374,7 +9592,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             .poll(editors, poll)
             .toEqual({ comment: true, tags: false });
 
-          // Escape in the editor closes it.
           expect(
             await obRun(
               vaultId!,
@@ -10399,7 +9616,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           const original =
             (await readAnnotationState(api, serverID, cardKey)).comment ?? "";
           const typed = "Saved through the comment field";
-          /** The remembered write key the vault holds, for the restore. */
           const key = await obRun(
             vaultId!,
             async ({ app }) => {
@@ -10415,7 +9631,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             "pinned",
           );
           try {
-            // A card that is not selected alone offers no comment field.
             expect(
               await obRun(
                 vaultId!,
@@ -10533,8 +9748,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               },
               { typed, cardKey },
             );
-            // A click on the card away from the field, on its Quoted Text,
-            // saves and closes.
             await obRun(
               vaultId!,
               async (
@@ -10633,8 +9846,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               },
               { attachmentPath },
             );
-            // Every write the edit asked for has landed, so the restore
-            // writes against the version Zotero ends on.
             await obRunUntil(
               vaultId!,
               async ({ zotlit }, { cardKey }: { cardKey: "Q8ZR4TDH" }) => {
@@ -10660,14 +9871,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           }
         }, 120000);
 
-        /**
-         * Scrolls the target into view, then presses and releases at its centre
-         * through the window's own input, so focus moves with the click.
-         *
-         * @param modifiers the keys held through the click, as Electron names
-         *   them: `shift`, `meta`, `control`.
-         */
-
         it("keeps the card an editor is open on through a mark click, and takes the mark once it closes", async () => {
           await raiseWindow(vaultId!);
           await clickCard(cardKey);
@@ -10675,9 +9878,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             .poll(shown, poll)
             .toMatchObject({ cards: [cardKey], marks: [cardKey] });
 
-          // A click on the comment field opens the editor. A press collapses
-          // the page's selection before its click, and a click over selected
-          // text only reads.
           await obRunUntil(
             vaultId!,
             async (
@@ -10790,8 +9990,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             { what: "the card editor for Q8ZR4TDH to hold keyboard focus" },
           );
 
-          // The click in the PDF takes the focus out of the editor, which
-          // saves and stays open; the card keeps the selection.
           await obRun(
             vaultId!,
             async (
@@ -10884,8 +10082,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ),
           ).toBe(JSON.stringify({ open: true, focused: false }));
 
-          // Escape back in the editor closes it, and the PDF's selection
-          // applies.
           await obRun(
             vaultId!,
             async (
@@ -10977,10 +10173,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         describe("a Text Edit", () => {
           const highlight = seededMark(cardKey, { image: false });
 
-          /**
-           * Chooses "Edit quoted text", the first item of the card's "…"
-           * menu, once it stands there enabled.
-           */
           async function chooseEditQuotedText(): Promise<void> {
             await obRun(
               vaultId!,
@@ -11092,8 +10284,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               "pinned",
             );
             try {
-              // Chosen on a card that is not selected yet, the item selects
-              // the card alone.
               expect(
                 await obRun(
                   vaultId!,
@@ -11112,7 +10302,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               await expect
                 .poll(shown, poll)
                 .toMatchObject({ cards: [cardKey] });
-              // The editor opens in the Excerpt Block with the caret in it.
               await obRunUntil(
                 vaultId!,
                 async ({ app }, { cardKey }: { cardKey: "Q8ZR4TDH" }) => {
@@ -11129,7 +10318,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                   what: "the excerpt block editor on card Q8ZR4TDH to hold the caret",
                 },
               );
-              // Typed where the caret stands: at the end of the text.
               await obRun(
                 vaultId!,
                 async (_context) => {
@@ -11153,7 +10341,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 annotationPosition: highlight.seed.annotationPosition,
                 annotationSortIndex: highlight.seed.annotationSortIndex,
               });
-              // Escape closed the editor, and the card quotes the correction.
               await obRunUntil(
                 vaultId!,
                 async (
@@ -11223,8 +10410,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
             await using cleanup = new AsyncDisposableStack();
             cleanup.defer(async () => {
-              // Every exit lets the held write go and leaves no text draft or
-              // conflict behind; afterEach puts Zotero's text back.
               await restoreWriteOutcomeProbe(vaultId!);
               await obRun(
                 vaultId!,
@@ -11242,8 +10427,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 { cardKey },
               );
             });
-            // The draft's save waits at the seam until Zotero has moved, so
-            // Zotero refuses it whenever the save starts.
             await installHeldWriteProbe(vaultId!);
 
             await clickCard(cardKey);
@@ -11284,7 +10467,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               },
             );
 
-            // Zotero's sidebar changes the text while the save waits.
             const { version } = await highlight.stored();
             const edited = await zoteroFetch(api, path, {
               method: "PATCH",
@@ -11324,8 +10506,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               },
             );
 
-            // Another card takes the selection; the conflicted card keeps its
-            // panel in the Excerpt Block, with both texts and the two verbs.
             await clickCard(markKey);
             await expect.poll(shown, poll).toMatchObject({ cards: [markKey] });
             await obRunUntil(
@@ -11369,7 +10549,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               inZotero,
             );
 
-            // The press lands where the panel stands on screen.
             await obRun(
               vaultId!,
               async ({ app }, { cardKey }: { cardKey: "Q8ZR4TDH" }) => {
@@ -11489,7 +10668,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             const seedText = highlight.seed.annotationText!;
             const storedText = async () =>
               (await highlight.stored()).data.annotationText;
-            /** Typed where the caret stands, as the window's input types. */
             const type = (text: string) =>
               obRun(
                 vaultId!,
@@ -11521,10 +10699,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               },
             );
 
-            /**
-             * Settles once ZotLit holds no write on the Annotation and no
-             * draft waiting on one: the last save is confirmed and read back.
-             */
             const saveSettled = async () => {
               await obRunUntil(
                 vaultId!,
@@ -11546,8 +10720,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               );
             };
 
-            // Two saves in one session: the first run's autosave lands and is
-            // read back before the second run is typed, and Escape saves that.
             await type(" Checked.");
             expect(
               await waitFor(
@@ -11561,8 +10733,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             expect(
               await waitFor(async () => (await storedText()) === corrected),
             ).toBe(true);
-            // ZotLit holds no write and no draft on the Annotation, which is
-            // when an undo key is taken rather than turned away.
             await obRunUntil(
               vaultId!,
               async ({ zotlit }, { cardKey }: { cardKey: "Q8ZR4TDH" }) => {
@@ -11582,8 +10752,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
             expect(await undoKey()).toEqual({ handled: true });
             await stepSettled();
-            // The session went back whole, to the text from before it began,
-            // with its range and Sort Index as seeded.
             expect(
               await waitFor(async () => (await storedText()) === seedText),
             ).toBe(true);
@@ -11626,8 +10794,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             await whileEditingNotLive(async () => {
               await clearNotices(vaultId!);
               await clickCard(cardKey);
-              // The card has read the blocked capability: its comment field
-              // says so.
               await obRunUntil(
                 vaultId!,
                 async ({ app }, { cardKey }: { cardKey: "Q8ZR4TDH" }) => {
@@ -11668,7 +10834,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                   what: "the Zotero communication permission notice to appear",
                 },
               );
-              // The choice opened no editor.
               expect(
                 await obRun(
                   vaultId!,
@@ -11687,7 +10852,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           }, 120000);
         });
 
-        /** A key the window's own input delivers to whatever holds the focus. */
         async function press(keyCode: string): Promise<void> {
           expect(
             await obRun(
@@ -11724,8 +10888,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               undefined,
             ),
           ).toBe("active-tab");
-          // The card after the clicked one, in the order the grid holds its
-          // rows.
           const next = await obRun(
             vaultId!,
             async ({ app }, { cardKey }: { cardKey: "Q8ZR4TDH" }) => {
@@ -11816,8 +10978,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               { cardKey },
             ),
           ).toBe(true);
-          // The PDF stands pages away, so the next mark in view is the
-          // Landing's own scroll.
           await obRun(
             vaultId!,
             async (
@@ -11885,9 +11045,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               { next },
             ),
           ).toBe(true);
-
-          // The search field holds the focus, and ↓ is the field's. Its own
-          // keyup says the keydown before it has run its course.
 
           await obRunUntil(
             vaultId!,
@@ -12000,7 +11157,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             undefined,
           );
           const baseline = await annotationKeys();
-          /** Two commented highlights this test makes for itself. */
           const drafts = [1, 2].map((n) => ({
             type: "highlight" as const,
             color: "#a28ae5",
@@ -12059,7 +11215,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ]);
             const made = outcomes.map(({ annotationKey }) => annotationKey!);
             const [first, second] = made as [string, string];
-            /** A card's rendered comment, scrolled into the list's view. */
 
             const editorOpen = () =>
               obRun(
@@ -12078,8 +11233,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             await clickCard(first);
             await expect.poll(shown, poll).toMatchObject({ cards: [first] });
 
-            // Cmd/Ctrl-click on the comment text adds the card, as a click
-            // on its excerpt does.
             await obRun(
               vaultId!,
               async (
@@ -12145,7 +11298,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               .toEqual([first, second].toSorted());
             expect(await editorOpen()).toBe("false");
 
-            // Again, and it leaves.
             await obRun(
               vaultId!,
               async (
@@ -12209,8 +11361,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             await expect.poll(shown, poll).toMatchObject({ cards: [first] });
             expect(await editorOpen()).toBe("false");
 
-            // A plain click on the comment text selects that card alone, and
-            // leaves the text as it is.
             await obRun(
               vaultId!,
               async (
@@ -12280,7 +11430,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("adds a card for Cmd/Ctrl-click, takes a range for Shift-click and every card for Cmd/Ctrl+A, and lands only on an added card", async () => {
           await raiseWindow(vaultId!);
-          /** An underline and a highlight on page 1, and an image on page 2. */
           const [underline, highlight, image] = [
             "K3JRFLFQ",
             markKey,
@@ -12294,7 +11443,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             undefined,
           );
 
-          /** What `shown` answers, in a stable order for either surface. */
           const sorted = async () => {
             const { cards, marks, popup } = await shown();
             return { cards: cards.toSorted(), marks: marks.toSorted(), popup };
@@ -12327,11 +11475,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               },
               { attachmentPath },
             );
-          /**
-           * Every card from one to the other in the list's own order, read off
-           * the grid: an earlier test can leave an Annotation of its own
-           * between them.
-           */
           const rangeOf = async (from: string, to: string) => {
             const rows = await obRun(
               vaultId!,
@@ -12419,7 +11562,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             .poll(sorted, poll)
             .toEqual({ cards: [underline], marks: [underline], popup: false });
 
-          // Cmd/Ctrl-click adds a card: the PDF paints both marks, with no popup.
           await obRun(
             vaultId!,
             async (
@@ -12489,8 +11631,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             popup: false,
           });
 
-          // Shift-click takes the range from the card the Cmd/Ctrl-click
-          // anchored, and drops the card outside it.
           const anchored = await rangeOf(highlight, cardKey);
           expect(anchored).not.toContain(underline);
           await obRun(
@@ -12562,7 +11702,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             popup: false,
           });
 
-          // Cmd/Ctrl+A takes every card the list shows.
           const every = (await obRun(
             vaultId!,
             async ({ app }) => {
@@ -12603,7 +11742,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             .poll(async () => (await sorted()).cards, poll)
             .toEqual(every);
 
-          // A Cmd/Ctrl-click that adds a card on page 2 lands the PDF there.
           await obRun(
             vaultId!,
             async (
@@ -12735,7 +11873,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await expect.poll(page, poll).toBe("2");
           expect((await sorted()).cards).toEqual([underline, image].toSorted());
 
-          // Removing it only repaints: the PDF stays where it was put.
           await toTop();
           await expect.poll(page, poll).toBe("1");
           await obRun(
@@ -12803,8 +11940,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             .toEqual({ cards: [underline], marks: [underline], popup: false });
           expect(await page()).toBe("1");
 
-          // Removing the last card keeps its anchor through the PDF's echo, so
-          // a Shift-click still measures from it.
           await obRun(
             vaultId!,
             async (
@@ -12944,7 +12079,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("deletes a group of two Cmd/Ctrl-clicked cards after one counted confirmation, and one undo restores both", async () => {
           const baseline = await annotationKeys();
-          /** Two highlights this test makes for itself: no seed is erased. */
           const drafts = [1, 2].map((n) => ({
             type: "highlight" as const,
             color: "#a28ae5",
@@ -12996,7 +12130,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             expect(made).toHaveLength(2);
             const [first, second] = made as [string, string];
             await clickCard(first);
-            // Cmd/Ctrl-click adds the second card to the Card Selection.
             await obRunUntil(
               vaultId!,
               async (
@@ -13033,8 +12166,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             });
             expect((await shown()).cards).toHaveLength(2);
 
-            // Delete on the focused card of the active view, which Obsidian's
-            // keymap hands to that view's Scope.
             expect(
               await obRun(
                 vaultId!,
@@ -13061,8 +12192,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 { second },
               ),
             ).toEqual({ prevented: true });
-            // The confirmation names the count, and nothing is erased before
-            // it is confirmed.
             await obRunUntil(
               vaultId!,
               async (_context) => {
@@ -13096,15 +12225,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               ),
             ).toBe("confirmed");
 
-            // Zotero is the oracle: it holds neither Annotation.
             expect(
               await waitFor(
                 async () => (await madeSince(baseline)).length === 0,
               ),
             ).toBe(true);
             await expect.poll(shown, poll).toMatchObject({ cards: [] });
-            // ZotLit has read both deletes back, so the undo key finds no
-            // write still on its way, which it would turn away.
             await obRunUntil(
               vaultId!,
               async ({ zotlit }, { made }: { made: string[] }) => {
@@ -13121,10 +12247,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               },
             );
 
-            // One press of the undo key restores both, each under a new key.
-            // The chord goes to the PDF view's own Scope, so the view that
-            // follows the active tab has no list to read again while the
-            // restores are sent.
             expect(await undoKey()).toEqual({ handled: true });
             await stepSettled();
             expect(
@@ -13146,9 +12268,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               "Group delete 2",
             ]);
           } finally {
-            // A confirmation left open by a failed step would block every
-            // later test; its close answers "cancel".
-            // Teardown, not a reader's press.
             await obRun(
               vaultId!,
               async ({ app }) => {
@@ -13159,7 +12278,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               },
               undefined,
             );
-            // The PDF is the active tab the view follows again.
             await obRun(
               vaultId!,
               async (
@@ -13177,12 +12295,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           }
         }, 120000);
 
-        /**
-         * Two highlights of two colours and two quoted texts, which a test
-         * makes for itself, with both cards selected: a click on the first
-         * and a Cmd/Ctrl-click on the second. The Annotations are erased
-         * after `run`, whatever it leaves.
-         */
         async function withGroupOfTwo(
           run: (made: readonly [string, string]) => Promise<void>,
         ): Promise<void> {
@@ -13289,19 +12401,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           }
         }
 
-        /** Each Annotation's colour, as Zotero holds it. */
         const colorsOf = (keys: readonly string[]) =>
           Promise.all(keys.map((key) => annotationColor(api, serverID, key)));
 
-        /**
-         * Waits until Zotero holds green on both, and ZotLit has read both
-         * writes back, then presses the undo key once and waits until Zotero
-         * holds both first colours again.
-         */
         async function expectOneUndoReturnsBoth(
           made: readonly string[],
         ): Promise<void> {
-          // Zotero is the oracle: it holds the one colour on both.
           expect(
             await waitFor(async () =>
               (await colorsOf(made)).every((color) => color === "#5fb236"),
@@ -13323,8 +12428,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the grouped annotations to have no write in flight before undo",
             },
           );
-          // The chord goes to the PDF view's own Scope, and no tab switches
-          // while the undo writes are sent.
           expect(await undoKey()).toEqual({ handled: true });
           await stepSettled();
           expect(
@@ -13339,15 +12442,12 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("recolours a group of two Cmd/Ctrl-clicked cards with a reader colour key, and one undo returns both colours", async () => {
           await withGroupOfTwo(async (made) => {
-            // `3` is the palette's third swatch, green.
             expect(await pressKey("3", {})).toEqual({ prevented: true });
             await expectOneUndoReturnsBoth(made);
           });
         }, 120000);
 
         it("recolours a group from the palette of a card in it, and one undo returns both colours", async () => {
-          // The menu is Obsidian's own DOM menu here, so its entry is found
-          // and clicked as a researcher clicks it.
           const nativeMenus = await obRun(
             vaultId!,
             async ({ app }) => {
@@ -13419,8 +12519,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("recolours a group with a colour key on the view, and one undo returns both colours", async () => {
           await withGroupOfTwo(async (made) => {
-            // `3` on the focused card, through the view's own Scope, is the
-            // palette's third swatch, green.
             expect(
               await obRun(
                 vaultId!,
@@ -13461,7 +12559,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
         it("copies the quoted text of a group for Cmd/Ctrl+C on the view, in list order", async () => {
           await withGroupOfTwo(async (made) => {
-            // The vault's in-memory clipboard (prepareRunWindow), not the OS one.
             const clipboard = (text: string | null) =>
               obRun(
                 vaultId!,
@@ -13478,7 +12575,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                 { text },
               );
             await clipboard("before");
-            // Cmd/Ctrl+C on the focused card, through the view's own Scope.
             expect(
               await obRun(
                 vaultId!,
@@ -13537,7 +12633,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
 
         it("selects both cards of a Zotero Reader selection of two annotations", async () => {
-          /** Selects these Annotations in Zotero's own Reader, as its sidebar does. */
           const selectInZotero = (keys: readonly string[]) =>
             rdp.json<string[]>(`(() => {
               const reader = Zotero.Reader._readers.find(
@@ -13583,13 +12678,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               markKey,
               cardKey,
             ]);
-            // Both cards, in list order, whichever order Zotero holds them in.
             await expect.poll(cards, poll).toEqual({
               mode: "zotero-reader",
               cards: [cardKey, markKey],
             });
 
-            // A Zotero Reader clear clears the Card Selection too.
             await selectInZotero([]);
             await expect
               .poll(cards, poll)
@@ -13609,9 +12702,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         }, 120000);
       });
 
-      // The one place a confirmed write can land: the Local API is serving
-      // this Attachment, so a saved colour edit really moves the pixels the
-      // card paints, and the card's own publication of them is observable.
       it("keeps painting through a saved edit, then publishes the edited pixels", async (context) => {
         await verifySavedEditDisplay(vaultId!, context);
       }, 120000);
@@ -13680,9 +12770,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           { createdKey },
           { what: "the created annotation's card to be selected alone" },
         );
-        // The card selected alone offers its comment as a field, and a click
-        // on it opens the editor. A press collapses the page's selection
-        // before its click, and a click over selected text only reads.
         await obRunUntil(
           vaultId!,
           async (
@@ -13821,7 +12908,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ),
         ).toBe(true);
 
-        // Escape saves what was typed and closes the editor.
         const escapeComment = "Saved by pop-out card Escape";
         await obRun(
           vaultId!,
@@ -13897,10 +12983,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       }, 120000);
 
       it("carries a Zotero-side change back into Obsidian", async () => {
-        // Written through Zotero's data layer over RDP rather than through a
-        // click in its Reader: the Reader saves the same way, so the Freshness
-        // Signal this exercises is the same one, but the name should not claim
-        // a gesture that was not made.
         const fromZotero = "Edited in Zotero";
         await rdp.json(`(async () => {
           const item = Zotero.Items.getByLibraryAndKey(
@@ -14081,9 +13163,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         expect(stored.version).toBeGreaterThan(before.version);
         expect(await writeOutcomeCalls(vaultId!)).toBe(1);
 
-        // The failed ordinary refresh holds both rendered consumers on their
-        // last confirmed value; the independent Local API read above proves
-        // Zotero already committed a different one.
         expect(await visibleAnnotationColors(vaultId!, createdKey)).toEqual({
           card: before.color,
           mark: before.color,
@@ -14153,7 +13232,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             what: "the card and PDF mark colors to match the committed color",
           },
         );
-        // Restart reads Zotero; it does not replay the session-only attempt.
         expect(await annotationState(api, serverID, createdKey)).toEqual(
           stored,
         );
@@ -14167,8 +13245,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           if (pending === "in-flight write") {
             await installClosingPaneProbe(vaultId!, createdKey, color);
           }
-          // The in-flight write has reached Zotero and holds its reply; an
-          // unsent draft has no write probe at all.
           await expect
             .poll(
               () =>
@@ -14196,10 +13272,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             pending === "in-flight write" ? color : before.color,
           );
 
-          // Start the real plugin lifecycle in the same renderer turn as the
-          // draft edit, before its idle timer can fire. The plugin's unload
-          // starts asynchronous service disposal without awaiting it, so the
-          // registry is the completion signal available to this consumer.
           const unloading = await obRun(
             vaultId!,
             (
@@ -14322,10 +13394,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               what: "the stored annotation to match its baseline with no draft or write",
             },
           );
-          // Complete the old response only after the new repository read.
-          // Its completion must not restore the old operation or send again.
-          // The unload ended the old plugin's run, so the write it held ends
-          // in that unload's AbortError rather than an outcome.
           await obRun(
             vaultId!,
             async ({ page: pageHelpers }) => {
@@ -14451,8 +13519,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       }, 120000);
 
       it("degrades to the Zotero database when the Local API is turned off, and recovers", async () => {
-        // The pref must come back whatever this test does, so a failure part
-        // way through cannot leave the next run's Zotero serving nothing.
         await using restoreLocalApi = new AsyncDisposableStack();
         restoreLocalApi.defer(async () => {
           await setLocalApi(rdp, true);
@@ -14857,10 +13923,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect(await readFile(join(vaultPath, target))).toEqual(bytes);
       }, 120000);
 
-      // It clears both key stores and leaves a fresh Always Allow key behind,
-      // so it runs after every test that writes with the block's own key.
       it("Allow leaves ZotLit read-only, and says so", async () => {
-        /** Whether ZotLit is showing the notice with exactly this title. */
         const noticeShows = (title: string) =>
           obRunUntil(
             vaultId!,
@@ -14926,8 +13989,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           },
         );
 
-        // The settings row, where the capability notices open it: the
-        // settings modal in the main window, which eval can reach.
         await obRun(
           vaultId!,
           async ({ app, zotlit }) => {
@@ -14997,8 +14058,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         ).toBe(false);
         expect(await authorizationCount(rdp)).toBe(0);
 
-        // The notice's own button asks again, and Zotero now answers Always
-        // Allow.
         await stubPrompt(rdp, { allow: true, remember: true });
         expect(
           await obRun(
@@ -15100,8 +14159,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         ).toBe(true);
       }, 120000);
 
-      // Last in this block, so it covers every write above: ZotLit writes
-      // Annotations, never the PDF the Annotations hang from.
       it("leaves the Attachment's PDF byte-identical", async () => {
         expect(await digestAttachmentPdf()).toBe(pdfDigestBefore);
       });
@@ -15124,7 +14181,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
       const original =
         (await storedAnnotation(api, serverID, key)).annotationComment ?? "";
 
-      // The Annotation Source must be the Local API before a card can write.
       await obRunUntil(
         vaultId!,
         async ({ zotlit }, { attachmentKey }: { attachmentKey: string }) => {
@@ -15183,7 +14239,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         );
       });
 
-      // The file opens on its Items; its Annotations are the second view.
       await obRunUntil(
         vaultId!,
         async ({ app }, { created }: { created: string }) => {
@@ -15216,7 +14271,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         { created, viewName: m.query_file_annotations_view_name() },
       );
 
-      // The tab shows the seeded Annotation's card among the library's.
       await obRunUntil(
         vaultId!,
         async ({ app }, { created, key }: { created: string; key: string }) => {
@@ -15234,8 +14288,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           what: "the Query File tab to show the seeded annotation card",
         },
       );
-
-      // Select the card alone, open its comment editor, and type.
 
       await obRunUntil(
         vaultId!,
@@ -15352,7 +14404,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         { created, annotationKey: key, comment },
       );
 
-      // Zotero holds the comment, and the card shows it.
       expect(
         await waitFor(
           async () =>
@@ -15395,7 +14446,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         (await storedAnnotation(api, serverID, key)).annotationComment ?? "";
       const platformKey = process.platform === "darwin" ? "metaKey" : "ctrlKey";
 
-      // The Annotation Source must be the Local API before a card can write.
       await obRunUntil(
         vaultId!,
         async ({ zotlit }, { attachmentKey }: { attachmentKey: string }) => {
@@ -15411,8 +14461,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         },
       );
 
-      // The PDF open in Obsidian holds the Attachment's Annotation History;
-      // its Literature Note, in Live Preview beside it, embeds a view of its Item.
       const layout = await obRun(
         vaultId!,
         async ({ app }) => {
@@ -15524,8 +14572,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         { notePath },
       );
 
-      // The embed stands below the note's Query Block, past the part of the
-      // note Live Preview first draws.
       const embed = await revealQueryView(vaultId!, notePath, {
         embed: "Lab annotations.zotquery#This item",
       });
@@ -15547,8 +14593,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ready: (value) => value !== null && ((present) => present)(value),
         },
       );
-
-      // Type a comment on the embedded card, as on the sidebar's.
 
       await readQueryViewUntil(
         vaultId!,
@@ -15659,9 +14703,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         },
       );
 
-      /** The platform's undo chord, pressed where `target` names, as the keyboard sends it. */
-
-      // The undo key in the note's own text is the note's: the comment stays.
       await obRun(
         vaultId!,
         async (
@@ -15693,12 +14734,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         },
         { notePath, platformKey },
       );
-      // A second is the window a wrongly taken undo would reach Zotero in;
-      // no event marks that it did not.
       await new Promise((resolve) => setTimeout(resolve, 1000));
       expect(await storedComment()).toBe(comment);
 
-      // On the focused card, it takes the comment back in Zotero.
       expect(
         await obRun(
           vaultId!,
@@ -15737,7 +14775,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         await waitFor(async () => (await storedComment()) === original, 120),
       ).toBe(true);
 
-      // A card dragged from the embed lands in the note, as from the sidebar.
       expect(
         await obRun(
           vaultId!,
@@ -15832,7 +14869,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         const original =
           (await storedAnnotation(api, serverID, key)).annotationComment ?? "";
 
-        // The Annotation Source must be the Local API before a card can write.
         await obRunUntil(
           vaultId!,
           async ({ zotlit }, { attachmentKey }: { attachmentKey: string }) => {
@@ -15851,8 +14887,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           },
         );
 
-        // The Fixture wrote notes for the Item. Set them aside, so that the
-        // plugin creates the note the default Profile renders.
         const layout = await obRun(
           vaultId!,
           async ({ app }) => {
@@ -15990,15 +15024,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         ].join("\n");
         const managed = (text: string) =>
           /%%zt-managed%%\n([\s\S]*?)%%\/zt-managed%%/.exec(text)?.[1] ?? "";
-        // The default body renders once: the block is the note's own text,
-        // with no Managed Region around it.
         const createdText = await read();
         expect(createdText).toContain(block);
         expect(createdText).not.toContain("%%zt-managed%%");
         expect(createdText).not.toContain("[!note]");
 
-        // The block shows the Item's own Annotations, as ZotLit Query gives
-        // them for that Item.
         const report = JSON.parse(
           await cliCommand(vaultId!, "zotlit:query", {
             args: {
@@ -16046,8 +15076,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               ((cards) => JSON.stringify(cards) === JSON.stringify(own))(value),
           },
         );
-
-        // Select the card alone, open its comment editor, and type.
 
         await readQueryViewUntil(
           vaultId!,
@@ -16165,8 +15193,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           },
         );
 
-        // A sort change in the block's toolbar rewrites the block text.
-
         await obRun(
           vaultId!,
           async (
@@ -16195,7 +15221,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           },
           { blockEl },
         );
-        // The new sort goes after the two of the default block.
         await readQueryViewUntil(
           vaultId!,
           async (
@@ -16277,8 +15302,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           true,
         );
 
-        // A full update leaves a body with no Managed Region as the
-        // researcher has it.
         const update = () =>
           obRun(
             vaultId!,
@@ -16299,17 +15322,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         expect(await update()).toEqual({ diagnostic: null });
         expect(noteBody(await read())).toBe(noteBody(beforeUpdate));
 
-        // A note ZotLit wrote before Mark Landing, with a static listing of
-        // one callout per Annotation under a plain page label in a Managed
-        // Region, gets the block on its next full update. The Fixture no longer seeds that note
-        // so write the one it held.
         const item = ITEMS.find(({ key: candidate }) => candidate === itemKey)!;
         const attachments = ATTACHMENTS.filter(
           ({ parentItemID }) => parentItemID === item.itemID,
         );
         const attachmentIDs = new Set(attachments.map(({ itemID }) => itemID));
-        // What the note holds below the managed region: its citations, then
-        // its Attachment links.
         const outside = [
           `This note rests on ${item
             .literatureNoteCitations!.map((citation) => `[@${citation}]`)
@@ -16338,7 +15355,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             "",
             `> [!note] Page ${pageLabel}`,
             ">",
-            // An image Annotation holds neither text nor a comment.
             `> ${text ?? comment ?? ""}`,
             "",
           ]),
@@ -16347,7 +15363,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           outside,
           "",
         ].join("\n");
-        // The note holds the legacy text exactly, so the update starts from it.
         expect(
           await obRun(
             vaultId!,
@@ -16374,10 +15389,6 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
   );
 });
 
-/**
- * SHA-256 of the Fixture PDF. It is a `vault`-rooted linked file, so it lives
- * in the run's vault.
- */
 async function digestAttachmentPdf(): Promise<string> {
   const file = join(environment!.vaultPath, attachmentPath);
   return createHash("sha256")
@@ -16385,11 +15396,6 @@ async function digestAttachmentPdf(): Promise<string> {
     .digest("hex");
 }
 
-/**
- * One Attachment's Annotation keys, read the way ZotLit's own client reads
- * them — `itemType=annotation`, sorted by `dateAdded` so a page boundary holds
- * still while a paged walk runs.
- */
 async function annotationRecords(
   api: string,
   serverID: string,
@@ -16422,10 +15428,6 @@ async function annotationKeys(
   );
 }
 
-/**
- * Put one Annotation's comment back to `comment`, against whatever version
- * Zotero holds now rather than the one the caller last saw.
- */
 async function restoreAnnotationComment(
   api: string,
   options: {
@@ -16453,7 +15455,6 @@ async function restoreAnnotationComment(
   expect(reverted.status).toBe(204);
 }
 
-/** Which Attachment each listed Annotation actually hangs from. */
 async function annotationParents(
   api: string,
   serverID: string,
@@ -16464,7 +15465,6 @@ async function annotationParents(
   );
 }
 
-/** The colour Zotero's own Reader is showing for one Annotation. */
 function readerAnnotationColor(
   rdp: ZoteroRdp,
   key: string,
@@ -16520,10 +15520,6 @@ async function annotationState(
   };
 }
 
-/**
- * Let one real write commit, then replace its reply with a lost-response
- * outcome and fail the ordinary follow-up list read once.
- */
 async function installLostWriteProbe(vaultId: string): Promise<void> {
   await obRun(
     vaultId,
@@ -16571,7 +15567,6 @@ async function installLostWriteProbe(vaultId: string): Promise<void> {
   );
 }
 
-/** Hold the Annotation reply after its write commits; PDF read writes proceed. */
 async function installClosingPaneProbe(
   vaultId: string,
   annotationKey: string,
@@ -16630,11 +15625,6 @@ async function installClosingPaneProbe(
   );
 }
 
-/**
- * Hold every write on its way to Zotero until `release`, so a test orders what
- * Zotero holds before the write reaches it. `reached` turns true as the first
- * write arrives at the seam. {@link restoreWriteOutcomeProbe} lets it go.
- */
 async function installHeldWriteProbe(vaultId: string): Promise<void> {
   await obRun(
     vaultId,
@@ -16745,7 +15735,6 @@ function isZoteroReaderOpen(rdp: ZoteroRdp): Promise<boolean> {
   )`);
 }
 
-/** Open Zotero's Reader on the Fixture Attachment; answers its tab id. */
 function openZoteroReader(rdp: ZoteroRdp): Promise<string> {
   return rdp.json<string>(`(async () => {
     const reader = await Zotero.Reader.open(${ATTACHMENT_ITEM}.id);
@@ -16760,7 +15749,6 @@ function closeZoteroReader(rdp: ZoteroRdp, tabID: string): Promise<string> {
   })()`);
 }
 
-/** Whether the Reader open on the Attachment is showing the Annotation `key`. */
 function readerHoldsAnnotation(rdp: ZoteroRdp, key: string): Promise<boolean> {
   return rdp.json<boolean>(`(() => {
     const attachment = ${ATTACHMENT_ITEM};
@@ -16789,7 +15777,6 @@ interface ConcurrencyAnnotation {
   version: number;
 }
 
-/** Create one unique disposable Annotation from the Fixture's seeded shape. */
 function createConcurrencyAnnotation(
   rdp: ZoteroRdp,
   comment: string,
@@ -16807,7 +15794,6 @@ function createConcurrencyAnnotation(
   })()`);
 }
 
-/** Pause the Reader's real save after `_initSave`, before its transaction. */
 function pauseReaderCommentSave(
   rdp: ZoteroRdp,
   annotationKey: string,
@@ -16854,7 +15840,6 @@ function pauseReaderCommentSave(
   })()`);
 }
 
-/** Release and observe the paused Reader save, restoring the patched method. */
 function releaseReaderCommentSave(
   rdp: ZoteroRdp,
   annotationKey: string,
@@ -16872,7 +15857,6 @@ function releaseReaderCommentSave(
   })()`);
 }
 
-/** Save through the same callback the initialized Zotero Reader uses. */
 function saveReaderComment(
   rdp: ZoteroRdp,
   annotationKey: string,
@@ -16895,7 +15879,6 @@ function saveReaderComment(
   })()`);
 }
 
-/** Pause the next erase of one Annotation before its database transaction. */
 function pauseAnnotationErase(
   rdp: ZoteroRdp,
   annotationKey: string,
@@ -16962,7 +15945,6 @@ function releaseAnnotationErase(
   })()`);
 }
 
-/** Release any failed case's gate and restore the patched native method. */
 function restoreConcurrencyHooks(rdp: ZoteroRdp): Promise<string> {
   return rdp.json(`(async () => {
     const state = globalThis.__zlConcurrencyHook;
@@ -16976,7 +15958,6 @@ function restoreConcurrencyHooks(rdp: ZoteroRdp): Promise<string> {
   })()`);
 }
 
-/** Erase every disposable Annotation this scenario created. */
 function eraseConcurrencyAnnotations(rdp: ZoteroRdp): Promise<string> {
   return rdp.json(`(async () => {
     for (const key of globalThis.__zlConcurrencyKeys ?? []) {
@@ -16991,19 +15972,15 @@ function eraseConcurrencyAnnotations(rdp: ZoteroRdp): Promise<string> {
   })()`);
 }
 
-/** Independent Local API read used as the final-state oracle. */
-/** A Zotero tag as the Local API and Zotero's own `setTags` spell it. */
 interface WireTag {
   tag: string;
   type?: number;
 }
 
-/** Tags as comparable text: `name:type` in sorted order, a manual tag typed `0`. */
 function spelledTags(tags: readonly WireTag[]): string[] {
   return tags.map(({ tag, type }) => `${tag}:${type ?? 0}`).toSorted();
 }
 
-/** The tags the Local API holds for one Annotation, spelled by {@link spelledTags}. */
 async function annotationTags(
   api: string,
   serverID: string,
@@ -17017,10 +15994,6 @@ async function annotationTags(
   return spelledTags(record.data.tags);
 }
 
-/**
- * Sets one Annotation's tags in Zotero itself, and waits until ZotLit reads
- * them.
- */
 async function setAnnotationTags(
   rdp: ZoteroRdp,
   annotationKey: string,
@@ -17061,19 +16034,9 @@ async function setAnnotationTags(
   );
 }
 
-/**
- * One Annotation Card's tag gestures, through the card's own controls: the tag
- * toggle opens the editor, Enter adds the typed name, a chip's remove button
- * drops it, and the toggle's second press ends the session. A window without
- * the system focus sends no focus events, so no blur ends a session here.
- *
- * @param annotationKey the Annotation whose card, in whichever Annotation View
- *   holds it, the gestures act on.
- */
 function cardTagEditor(annotationKey: string) {
   return {
     ...tagEditorIn({ kind: "card", annotationKey }),
-    /** One click on a part of the card, once the card draws it. */
     press: (target: string) =>
       obRunUntil(
         vaultId!,
@@ -17104,9 +16067,7 @@ function cardTagEditor(annotationKey: string) {
           what: "the control matching the selector inside the annotation card to press",
         },
       ),
-    /** The tag toggle in the card's action bar. */
     toggle: ".clickable-icon:has(svg.lucide-tag)",
-    /** The names the card draws while no session is open. */
     cardTags: () =>
       obRun(
         vaultId!,
@@ -17128,12 +16089,6 @@ function cardTagEditor(annotationKey: string) {
   };
 }
 
-/**
- * The inline tag editor inside one surface, the Annotation Card or the Mark
- * Popup: one editor component, so one set of gestures reaches both.
- *
- * @param root the card or popup that holds the editor.
- */
 function tagEditorIn(
   root: { kind: "popup" } | { kind: "card"; annotationKey: string },
 ) {
@@ -17171,7 +16126,6 @@ function tagEditorIn(
           what: "the editable tag input in the PDF mark popup or annotation card",
         },
       ),
-    /** The names the open editor draws as chips. */
     editorChips: () =>
       obRun(
         vaultId!,
@@ -17203,7 +16157,6 @@ function tagEditorIn(
         },
         { root },
       ),
-    /** Text typed into the tag field; `enter` presses Enter after it. */
     type: (text: string, { enter }: { enter: boolean }) =>
       obRun(
         vaultId!,
@@ -17247,10 +16200,6 @@ function tagEditorIn(
         },
         { root, text, enter },
       ),
-    /**
-     * One chip's remove button. The chip is found by its name part, because
-     * an automatic chip also holds its label.
-     */
     remove: (name: string) =>
       obRun(
         vaultId!,

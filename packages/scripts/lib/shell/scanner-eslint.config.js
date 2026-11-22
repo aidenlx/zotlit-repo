@@ -1,12 +1,3 @@
-// The community directory scanner's ESLint run as it sees a publish
-// repository: the type-aware branch of `buildScannerEslintConfig` in
-// obsidianmd/obsidian-workflows `src/lint.ts` at
-// 8167caed39664214d82c86fdfa32e06d8d55f61d, which applies when the
-// repository has a root tsconfig.json. `toWarns` and the rule blocks are
-// copied from it; `SCANNER_IGNORES` is shared with eslint.config.js.
-//
-// `pnpm release:check-shell` runs it from the root of a generated shell, so
-// `cwd()` is the shell's root, as it is for the scanner.
 import obsidianmd from "eslint-plugin-obsidianmd";
 import { globalIgnores } from "eslint/config";
 import { cwd } from "node:process";

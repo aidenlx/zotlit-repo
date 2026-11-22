@@ -59,10 +59,6 @@ describe("evalAsync", () => {
 });
 
 describe("openRdpSession", () => {
-  /**
-   * A stand-in Zotero that greets and hands out its console actor, and then
-   * answers evaluations only as `onEvaluate` decides.
-   */
   async function fakeZotero(onEvaluate: (socket: Socket) => void) {
     const server = createServer((socket) => {
       const send = (packet: object): void => {

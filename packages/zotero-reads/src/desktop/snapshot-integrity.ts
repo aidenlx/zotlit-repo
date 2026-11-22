@@ -3,9 +3,6 @@ import { DatabaseSync } from "node:sqlite";
 
 import { DbUnavailable } from "#contract/rpc.ts";
 
-// A separate SQLite handle checks the owned clone before it can serve reads.
-// Node worker_threads are unavailable in Electron's Node-integrated workers.
-// boundary: generated Web Worker code owns its message loop and SQLite handle.
 const workerSource = `
   const { DatabaseSync } = require("node:sqlite");
   self.onmessage = ({ data: path }) => {
@@ -20,7 +17,6 @@ const timeoutFailure = () =>
     message: "Database snapshot verification timed out",
   });
 
-/** Structural check only; source equality and SQLite's WAL commit markers prove state. */
 export const verifySnapshot = Effect.fnUntraced(function* (
   path: string,
 ): Effect.fn.Return<void, DbUnavailable> {
@@ -35,7 +31,6 @@ export const verifySnapshot = Effect.fnUntraced(function* (
 });
 
 function verifyInProcess(path: string) {
-  // boundary: node:sqlite is synchronous; run it once at the port.
   return Effect.try({
     try: () => {
       using sqlite = new DatabaseSync(path, {
@@ -66,7 +61,6 @@ const verifyInWorker = Effect.fnUntraced(function* (
         ),
         (url) => Effect.sync(() => URL.revokeObjectURL(url)),
       );
-      // boundary: Electron provides Worker as a browser-style event source.
       const worker = yield* Effect.acquireRelease(
         Effect.try({
           try: () => new Worker(url, { name: "zotlit-snapshot-integrity" }),
@@ -93,7 +87,6 @@ function receiveWorkerReply(worker: Worker, path: string) {
     worker.onerror = null;
     worker.onmessageerror = null;
   };
-  // boundary: Worker replies and failures arrive through DOM event callbacks.
   return Effect.callback<unknown, DbUnavailable>((resume) => {
     worker.onmessage = (event) => resume(Effect.succeed(event.data as unknown));
     worker.onerror = (event) => {
@@ -114,7 +107,6 @@ function receiveWorkerReply(worker: Worker, path: string) {
           }),
         ),
       );
-    // boundary: MessagePort.postMessage may throw synchronously.
     try {
       worker.postMessage(path);
     } catch (error) {

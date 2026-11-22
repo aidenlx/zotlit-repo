@@ -70,3 +70,11 @@ Each of these broke the first migrations.
 - A view's reads stop when its leaf closes, and one service Stream serves every leaf.
 - `effect/reactivity` and `@effect/atom-react` are unstable APIs; `effecttsgo/unstable-api-usage` reports each use, and an Effect upgrade may change them.
 - Views that have not converted keep their stores and the bridge until their own migration.
+
+## Host test context
+
+An integration test can fill its view context with fail-fast stubs for unused view services. Merge that layer first so the real service or explicit fake for the operation under test replaces its stub. A newly introduced call to any other service fails at the call site.
+
+Keep the registry's seeded service context alive so a later view cannot fall back to an unseeded runtime. Use the renderer task scheduler for atom effects. Retain unobserved nodes briefly to bridge the time between render and Preact's subscription after paint. Use a positive timer resolution so the registry can schedule expiry. A state stream replays its current value, so the fallback is needed only before the first value. Build a watched node before subscribing and deliver updates in the task that made them. Dispose the registry before the services it reads. The host extends its view-service types by declaration merging.
+
+An Obsidian callback can fork a view-owned action on the same services. Keep those fibers in a view Scope and interrupt them on disposal. A caller can join and cancel its own run. A single in-flight action shares its fiber with another press and announces both start and end, including when the fiber already ended. A latest-action slot interrupts the previous run and reports an interrupt-only result as released. A non-interrupt failure still reaches the caller. A provided effect can also run under a different owner when its caller controls lifetime. [View atoms](../../../../packages/obsidian-kit/src/view-atoms.ts) · [View runner](../../../../packages/obsidian-kit/src/view-runner.ts)

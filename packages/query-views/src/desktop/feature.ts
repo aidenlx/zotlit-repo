@@ -14,10 +14,6 @@ import type { HistorySurface } from "@zotlit/annotations/obsidian/annotation-rep
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { PdfAnnotationEditor } from "@zotlit/annotations/obsidian/pdf-annotation-editor/service.ts";
 import { ZotlitPdfReader } from "@zotlit/annotations/obsidian/pdf-reader/service.ts";
-// ZotLit Query on the desktop: the Obsidian feature (`#obsidian/feature.ts`)
-// with the Item Query adapter, the Query View and the sidebar Annotation
-// View, the Annotation Suggester and the PDF view's note button, and the
-// ports of the annotations and the notes they fill.
 import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
 import { interactiveCreation } from "@zotlit/notes/desktop/profile/dialogs.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
@@ -68,11 +64,6 @@ import type { QueryViewDeps } from "./query-view/view.tsx";
 import { queryViews as obsidianQueryViews } from "#obsidian/feature.ts";
 import { QueryCardFocus } from "#obsidian/query-view/card-focus.ts";
 
-/**
- * What every Query View host reads: the card focus and the Literature Notes
- * of the Table, one of each for the plugin, so the Annotation History finds
- * the focused card in any of them.
- */
 function queryViewDeps(
   ctx: FeatureContext,
 ): QueryViewDeps & { readonly cardFocus: QueryCardFocus } {
@@ -92,8 +83,6 @@ function queryViewDeps(
 
 export const queryViews = extendFeature(obsidianQueryViews, {
   services: [
-    // Profile selection and the Template Workbench test Profile Matches
-    // through ZotLit Query.
     serviceGroup(
       "QueryService",
       {
@@ -117,8 +106,6 @@ export const queryViews = extendFeature(obsidianQueryViews, {
       { provides: [ItemMatchQuery], requires: [QueryService] },
       layerItemMatchQuery,
     ),
-    // The capability notices and the PDF reader's marks bring a card
-    // forward in the Annotation View.
     serviceGroup(
       "AnnotationViewReveal",
       { provides: [AnnotationViewReveal] },
@@ -133,7 +120,6 @@ export const queryViews = extendFeature(obsidianQueryViews, {
         ),
       ),
     ),
-    // A Target Opener's PDF opens bring the Annotation View forward beside it.
     serviceGroup(
       "PdfTargetReader",
       { provides: [PdfTargetReader], requires: [ZotlitPdfReader, Vault] },
@@ -142,15 +128,10 @@ export const queryViews = extendFeature(obsidianQueryViews, {
   ],
   registrations: [
     registration("QueryCli", layerQueryCli),
-    // Measurement-only: lets packages/e2e/src/query-measure.ts read the
-    // slices, statements, heap, and cancel times of a run. A dev-build port,
-    // never registered in a production build.
     ...(__DEV__ ? [registration("QueryMeasureCli", layerQueryMeasureCli)] : []),
   ],
   handles: (ctx) => {
     const { bridge, runtime, read } = ctx;
-    // The Annotation Suggester belongs to the plugin, not a view: its inserts
-    // fork on the runtime's Scope, so unload interrupts each one still running.
     const annotationNotes = read(AnnotationNoteActions);
     const annotationInsertRunner: InsertRunner<never> = {
       execute: (request) => annotationNotes.insert(request),
@@ -211,10 +192,6 @@ export const queryViews = extendFeature(obsidianQueryViews, {
       registry: deps.registry,
       creation: interactiveCreation(app),
     });
-    // The Annotation History's own verbs. A bound PDF view and an Annotation
-    // View each step the Attachment they show, and a Query View the
-    // Attachment of its focused card, so the palette acts on whichever of
-    // them the user is in. This feature names the views, so it registers them.
     addAnnotationHistoryActions(plugin, {
       annotations: read(AnnotationRepository),
       bridge,

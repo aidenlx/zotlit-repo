@@ -1,25 +1,13 @@
-// What a citation lookup answers: the Items a Citation Key names, as a bounded projection of one worker-owned citation revision.
-
-/** One Zotero Item a native citation key names. */
 export interface SnapshotItem {
   itemID: number;
-  /** Local id of the Library holding the Item, which names that Library. */
   libraryID: number;
-  /** Bare Zotero item key — unique only within one Library. */
   key: string;
-  /** The Item's exact identity across every Library. */
   indexedKey: string;
 }
 
-/**
- * What one Citation Key names in the current Library Scope. A key several
- * Items answer to is Ambiguous: the snapshot reports every candidate rather
- * than picking a Library or a first row.
- */
 export type CitekeyResolution =
   | { kind: "missing" }
   | { kind: "unique"; item: SnapshotItem }
-  /** Candidates in canonical Library order, then by ascending `itemID`. */
   | { kind: "ambiguous"; candidates: readonly SnapshotItem[] };
 
 export interface CitationLookupRequest {
@@ -40,7 +28,6 @@ export interface CitationLookupWireAnswer {
   readonly annotationKeys: ReadonlyMap<string, AnnotationParent | null>;
 }
 
-/** Only requested keys are retained. Reading an unrequested key is a programming error. */
 export class CitationLookupAnswer {
   readonly revision;
   readonly #citekeys;
@@ -66,7 +53,6 @@ export class CitationLookupAnswer {
     return this.#annotationKeys.has(indexedKey);
   }
 
-  /** @returns `null` for a missing Annotation; a parent with a null citekey still has an identity. */
   parentOfAnnotation(indexedKey: string): AnnotationParent | null {
     const parent = this.#annotationKeys.get(indexedKey);
     if (parent === undefined)
@@ -83,7 +69,6 @@ export class CitationLookupAnswer {
     return resolution;
   }
 
-  /** @returns `null` when the requested Item has no native Citation Key. */
   citekeyOf(indexedKey: string): string | null {
     const citekey = this.#indexedKeys.get(indexedKey);
     if (citekey === undefined)
@@ -92,7 +77,6 @@ export class CitationLookupAnswer {
   }
 }
 
-/** @returns `null` for pending: no held answer, or it does not cover this key yet. */
 export function heldResolution(
   answer: CitationLookupAnswer | null,
   citekey: string,
@@ -100,7 +84,6 @@ export function heldResolution(
   return answer?.covers(citekey) ? answer.resolve(citekey) : null;
 }
 
-/** @returns `undefined` for pending; `null` for a covered Item with no native Citation Key. */
 export function heldCitekeyOf(
   answer: CitationLookupAnswer | null,
   indexedKey: string,

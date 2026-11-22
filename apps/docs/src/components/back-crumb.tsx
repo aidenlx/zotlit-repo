@@ -1,12 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { LinkProps } from "@tanstack/react-router";
 
-/**
- * The "← Label" back crumb leading a changelog/blog detail head: the
- * mono-uppercase label voice with a text arrow (not a lucide icon).
- *
- * @see apps/docs/DESIGN.md → Changelog / Blog
- */
 export function BackCrumb({
   to,
   label,

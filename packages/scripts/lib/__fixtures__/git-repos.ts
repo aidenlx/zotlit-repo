@@ -1,8 +1,3 @@
-// Real Git repositories in a temporary folder for the land and push tests: a
-// bare `origin` whose default branch is `main`, and clones of it. Git reads
-// only the test's own global config, so the developer's hooks, signing, and
-// identity stay out, and a test that runs inside a Git hook or a land sees no
-// outer repository or Land Turn.
 
 import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
@@ -12,7 +7,6 @@ import { promisify } from "node:util";
 
 const run = promisify(execFile);
 
-/** Variables the tests replace, restored by `dispose`. */
 const ISOLATED = [
   "GIT_CONFIG_GLOBAL",
   "GIT_CONFIG_NOSYSTEM",
@@ -26,26 +20,19 @@ const ISOLATED = [
   "ZOTLIT_LAND_TURN",
 ];
 
-/** The new text of a file, and the message of its commit. */
 interface Change {
   text: string;
-  /** @default `change <file>` */
   message?: string;
 }
 
 export interface GitRepos {
-  /** The temporary folder; the Land Queue state lives in `state/` in it. */
   root: string;
-  /** The bare `origin`. */
   remote: string;
-  /** A new clone of `origin`, checked out at `main`. */
   clone: (name: string) => Promise<string>;
-  /** Commit `file` with `text` in `cwd`; returns the new commit. */
   commit: (cwd: string, file: string, change: Change) => Promise<string>;
   dispose: () => Promise<void>;
 }
 
-/** Stdout of `git ...args` in `cwd`, trimmed. */
 export async function git(cwd: string, ...args: string[]): Promise<string> {
   return (await run("git", args, { cwd })).stdout.trim();
 }
@@ -56,7 +43,6 @@ export async function makeGitRepos(): Promise<GitRepos> {
   for (const key of ISOLATED) delete process.env[key];
   const hooks = join(root, "no-hooks");
   await mkdir(hooks);
-  // The clones ignore `.scratch/`, as the repository does.
   const excludes = join(root, "gitignore");
   await writeFile(excludes, ".scratch/\n");
   const config = join(root, "gitconfig");

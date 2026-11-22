@@ -1,7 +1,5 @@
 import type { NoteImportView } from "#desktop/note-import/view.ts";
 import type { ActiveNote } from "#obsidian/note-feature/update-notes-view.ts";
-// The note commands and menu entries for callers outside Effect: the command
-// callbacks, the file menu and the Workbench's saved notice.
 import type { Context, Effect } from "effect";
 import type { TFile } from "obsidian";
 
@@ -24,30 +22,18 @@ import type { BatchUpdateNotices } from "./update-single.ts";
 
 import { awaitUpdateNotesChoice } from "#obsidian/note-feature/update-notes-view.ts";
 
-/** Each action asks, runs, and reports on a notice; it settles when it ends. */
 export interface NoteActions {
-  /** @see switchProfile */
   switchProfile(file: TFile): Promise<void>;
-  /** @see updateNote */
   updateNote(
     file: TFile,
     options: { itemKey: string; scope: UpdateScope },
   ): Promise<void>;
-  /** @see overwriteNote */
   overwriteNote(file: TFile, itemKey: string): Promise<void>;
-  /** @see reimportNote */
   reimportNote(file: TFile, noteKey: string): Promise<void>;
-  /** @see updateAll */
   updateAll(options?: Pick<BatchUpdateOptions, "create">): Promise<void>;
-  /** @see updateNotes */
   updateNotes(note?: ActiveNote): Promise<void>;
 }
 
-/**
- * The note actions over `context`, run through `bridge`; the import and
- * update modals' callbacks run through `bridge` too. Unload interrupts an
- * action: its open dialog closes, and it resolves.
- */
 export function bindNoteActions(
   bridge: Pick<EffectBridge, "runSync" | "runPromiseExit">,
   context: Context.Context<NoteActionServices>,

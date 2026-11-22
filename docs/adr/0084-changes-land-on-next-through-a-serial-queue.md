@@ -50,3 +50,9 @@ Pull requests into `next` had no checks (ADR 0076), so each was a merge step wit
 - **A queue of its own (a lock file or a daemon).** A second admission mechanism would need its own stale-holder recovery, order and deadline, which the Desktop Queue already has and tests.
 - **The End-to-end Run inside the land.** It takes most of the release gate's time; in each land it would cut throughput to a few lands an hour. After the land it still finds a regression within one run, and the issue names the range.
 - **Revert on an End-to-end failure.** A revert of a range can remove good changes and needs its own land; an issue hands the decision to a person or a fixing agent.
+
+### Hook and test boundaries
+
+The commit-message hook checks trailers and session credits. The shared pre-push command checks author and committer identities, commit messages, and agent branch namespaces. The attribution check skips ref deletions. The Land Turn check still applies to the push. Keep the agent environment names in the hook detector and Turbo's passthrough list aligned.
+
+The Land and pre-push tests use real Git clones of a temporary bare origin. They set their own global Git configuration and discard inherited repository variables and Land Turn credentials so that a developer's signing settings, hooks, and active turn cannot affect the tests.

@@ -1,14 +1,4 @@
 import type { FlatGroupDef } from "#desktop/batch/modal/index.ts";
-/**
- * The Library dimension of a batch run: which Libraries a run covers, and how
- * its confirmation groups the rows they contribute.
- *
- * A caller either names an exact target — the Library a Zotero collections-pane
- * link came from, optionally narrowed to one collection — or asks for the
- * unqualified operation, which expands every available Library of the captured
- * Library Scope in canonical order. An exact target bypasses Library Scope
- * entirely, so a link keeps working for a Library the user never selected.
- */
 import { Effect } from "effect";
 import type { RpcClientError } from "effect/rpc";
 
@@ -30,67 +20,31 @@ import type {
   SnapshotExpired,
 } from "@zotlit/zotero-reads/contract/rpc.ts";
 
-/** Which items a batch action collects from its scope. */
 export type BatchScopeKind = "literature-items" | "notes";
 
-/**
- * What a batch action runs against. The runners take this verbatim from their
- * own callers: the protocol handlers pass the parsed link fields, the command
- * palette passes nothing.
- */
 export type BatchTarget =
   | {
-      /**
-       * The exact Library this run covers, in the wire encoding: `0` for
-       * My Library, a positive integer for a Zotero group. Library Scope is not
-       * consulted.
-       */
       groupID: number;
-      /**
-       * Narrows the run to this collection of the named Library and every
-       * collection nested under it. Absent covers the whole Library.
-       */
       collectionKey?: string;
     }
   | { groupID?: never; collectionKey?: never };
 
 export interface BatchScopeRequest {
   target: BatchTarget;
-  /**
-   * Library Scope resolved against the caller's Snapshot. Read only for an
-   * unqualified run.
-   */
   scope?: ResolvedLibraryScope;
-  /** The Libraries the caller's Snapshot holds. Read only for an exact target. */
   libraries: readonly Library[];
 }
 
 export type BatchScope =
-  /** The named group has no Library in this database. */
   | { outcome: "unavailable-target" }
   | { outcome: "collection-not-found" }
   | { outcome: "resolved"; itemIDs: number[] };
 
-/**
- * How reading a batch scope through ZoteroReads fails: the source is
- * unavailable, the read snapshot expired, or the RPC transport failed.
- */
 export type BatchScopeError =
   | DbUnavailable
   | SnapshotExpired
   | RpcClientError.RpcClientError;
 
-/**
- * Resolve which item ids a batch run covers, rejecting a link aimed at a
- * Library this database no longer holds or at a collection it doesn't hold. An
- * existing but empty collection resolves to an empty id list, which the caller
- * reports as an empty selection rather than a stale link.
- *
- * An unqualified run queries each available Library of `scope` separately and
- * concatenates the results in canonical order, so no cross-Library query is
- * needed and the order the confirmation groups by is the order Library Scope
- * already defines.
- */
 export function resolveBatchScope(
   reads: ZoteroReadsApi,
   kind: BatchScopeKind,
@@ -135,26 +89,15 @@ export function resolveBatchScope(
 }
 
 export type BatchScopePlan =
-  /** Library Scope is Selected Libraries, and this database holds none of them. */
   | { outcome: "no-library-in-scope" }
   | { outcome: "unavailable-target" }
   | { outcome: "collection-not-found" }
   | {
       outcome: "resolved";
       itemIDs: number[];
-      /**
-       * Selected Libraries this database holds no Library for, so the run
-       * covers a subset. `0` for an exact target, which never reads the scope.
-       */
       unavailableLibraries: number;
     };
 
-/**
- * The planning phase both library-wide runners share: open one Snapshot,
- * resolve Library Scope for an unqualified run, and gather the item ids the run
- * covers. The Snapshot ends with this call, so nothing downstream —
- * classification, confirmation, writes — runs under it.
- */
 export function planBatchScope(
   kind: BatchScopeKind,
   target: BatchTarget,
@@ -193,7 +136,6 @@ export function planBatchScope(
   );
 }
 
-/** @returns the local id of the named Library, or `null` when it is absent. */
 function exactLibraryID(
   libraries: readonly Library[],
   groupID: number,
@@ -204,18 +146,11 @@ function exactLibraryID(
   );
 }
 
-/** One Library that contributed rows to a run, as its confirmation names it. */
 export interface BatchLibrary {
   libraryID: number;
   label: string;
 }
 
-/**
- * The Libraries a classified plan draws its rows from, in canonical order —
- * My Library first, then groups by ascending group id. Derived from the rows
- * themselves rather than from the request, so an explicit id list spanning
- * several Libraries groups the same way an expanded Library Scope does.
- */
 export function batchLibraries(
   libraries: readonly Library[],
   libraryIDs: ReadonlySet<number>,
@@ -246,22 +181,14 @@ function batchLibraryLabel(library: Library): string {
         libraryID: library.libraryID,
         name: library.name,
       })
-    : // A group row whose `groups` join is missing carries no stable id; its
-      // local id is the only identifier left to name it by.
-      (library.name ??
+    : (library.name ??
         m.settings_library_scope_group({ groupID: library.libraryID }));
 }
 
-/** The confirmation group a row belongs to: its Library and its action. */
 export function batchGroupKey(libraryID: number, kind: string): string {
   return `${libraryID}:${kind}`;
 }
 
-/**
- * Ordered confirm/summary groups for a run: `kinds` repeated per contributing
- * Library. One contributing Library keeps the plain action headings; above that
- * each heading names its Library, so identical actions stay apart.
- */
 export function batchGroups(
   libraries: readonly BatchLibrary[],
   kinds: readonly FlatGroupDef[],
@@ -282,11 +209,6 @@ export function batchGroups(
   );
 }
 
-/**
- * Append the unavailable-Library sentence to a confirmation introduction.
- * Library Scope stores no names for a selector this database cannot resolve, so
- * the copy reports a count.
- */
 export function withUnavailableLibraries(
   intro: string,
   unavailable: number,

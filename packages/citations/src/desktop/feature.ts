@@ -1,7 +1,3 @@
-// Citations on the desktop: the Obsidian feature (`#obsidian/feature.ts`)
-// with the bibliography render, which reads the Zotero data folder, the
-// Citation and Annotation Popovers, the References and Cited By views, Pandoc
-// export and resolve, the Citation Presentation, and the native Pandoc rows.
 import { Effect, FileSystem } from "effect";
 
 import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
@@ -81,7 +77,6 @@ export const citations = extendFeature(obsidianCitations, {
       },
       layerCitationPopover,
     ),
-    // An Annotation Citation's hover opens the Citation Popover.
     serviceGroup(
       "AnnotationPopover",
       {
@@ -110,8 +105,6 @@ export const citations = extendFeature(obsidianCitations, {
     citationPopover: read(CitationPopover),
     annotationPopover: read(AnnotationPopover),
   }),
-  // The Cited By view registers after the References view, as it did before
-  // the Obsidian feature took the citekey and Graph Citations actions.
   onload: ({ plugin, app, bridge, read }) => {
     const registry = read(ViewRegistry);
     registerReferencesView(plugin, { app, registry });

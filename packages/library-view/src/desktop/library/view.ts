@@ -1,12 +1,5 @@
 import type { WelcomeBannerDeps } from "#desktop/welcome/banner.tsx";
 import type { LibrarySelection } from "#obsidian/library/model.ts";
-// The Library View: a main-area tab that hosts the Query View without a file,
-// beside the Library Tree. Its Library View Document in plugin data says what
-// the tab shows; the tab derives the Query View's text and its Libraries from
-// it, and a toolbar change or a tree selection saves back into it. The tab
-// reads Zotero's database only, so Zotero does not need to run.
-//
-// @see apps/obsidian/docs/adr/0071-the-library-view-is-a-fileless-query-view-host-that-saves-to-plugin-data.md
 import { Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { debounce, ItemView, Keymap, Scope } from "obsidian";
@@ -107,26 +100,13 @@ export const LIBRARY_VIEW_TYPE = "zotlit-library";
 
 export interface LibraryViewDeps extends QueryViewDeps {
   registry: ViewRegistryHandle;
-  /** What a row does with its Item. */
   items: ItemActions;
-  /** The Welcome View banner above the tab, and its setup actions. ADR 0077. */
   welcome: WelcomeBannerDeps;
 }
 
-/**
- * The controls in the view that answer Enter and the arrow keys themselves:
- * links, buttons (an icon button, such as the Welcome View banner's dismiss,
- * is a `role="button"`), list boxes, and the Library Tree. A menu is none of
- * them: it holds a Scope of its own while it stands, so its keys never reach
- * the view's.
- */
 const OWN_KEYS =
   'a, button, [role="button"], [role="listbox"], [role="combobox"], [role="tree"], [data-library-card]';
 
-/**
- * What Enter does on the selected row, by its modifiers, as in the quick
- * switcher: Mod opens in a new tab.
- */
 const ENTER_ACTIONS: readonly (readonly [
   Modifier[],
   (items: ItemActions, key: string) => unknown,
@@ -142,30 +122,17 @@ export class LibraryView extends ItemView {
   readonly query: QueryView;
   readonly tree: LibraryTree;
   readonly search: LibrarySearch;
-  /** The Reading Card of the selected row. */
   readonly card: ReadingCard;
-  /** The Welcome View banner above the tree and the list. ADR 0077. */
   readonly welcome: WelcomeBanner;
   readonly #deps: LibraryViewDeps;
   readonly #storage: LibraryViewStorage;
-  /** The not-found state and the Welcome View banner, while the tab is open. */
   readonly #parts: Component[] = [];
   #arrival = 0;
   #arrived: Promise<void> = Promise.resolve();
-  /** What the tab runs: the query of the document as it opened. */
   #shown: LibraryViewQuery | null = null;
-  /** What the search last found, which a facet change lists again. */
   #found: SearchFound = { text: "" };
-  /**
-   * The selected row, by its Item's Indexed Key, for this tab alone: a new
-   * tab opens with none. A click, the arrow keys and "Show in Library" all
-   * select a row alone; the item details show the selected row while the
-   * researcher keeps them on (the document's `cardClosed` absent), at every
-   * pane width.
-   */
   readonly model = makeLibraryModel();
   #release: (() => void) | null;
-  /** What a Collection lookup waits on; a close ends each wait. */
   readonly #waiting = new Set<() => void>();
   get selected(): LibrarySelection {
     return this.#deps.registry.get(this.model.selection);
@@ -191,22 +158,14 @@ export class LibraryView extends ItemView {
       for (const release of releases) release();
     };
   }
-  /** The Reading Card's pane, once the tab has opened. */
   #cardEl: HTMLElement | null = null;
   #columnEl: HTMLElement | null = null;
-  /** The Reading Card's resizable inner edge, once the tab has opened. */
   #cardWidth: PaneWidth | null = null;
-  /** The Reading Card's top edge under a narrow list, once the tab has opened. */
   #cardHeight: PaneWidth | null = null;
-  /** The Library Tree's resizable inner edge, once the tab has opened. */
   #treeWidth: PaneWidth | null = null;
-  /** The Details button, once the tab has opened. */
   #details: DetailsToggle | null = null;
-  /** The list's Item rows, as its layout last showed them. */
   #listed: ShownRows = NO_ROWS;
-  /** The write of the search text that the box last asked for. */
   #saving: Promise<void> = Promise.resolve();
-  /** Keep the search text once typing pauses. */
   readonly #keep = debounce(
     () => {
       this.#saving = this.#storage.save().catch((error: unknown) => {
@@ -231,7 +190,6 @@ export class LibraryView extends ItemView {
     this.contentEl.dataset.libraryView = "";
     this.welcome = new WelcomeBanner(
       deps.welcome,
-      // The banner's Search your library is the search box under it.
       { searchLibrary: () => this.search.focus() },
       this.contentEl.createDiv({ cls: "zt:shrink-0" }),
     );
@@ -250,7 +208,6 @@ export class LibraryView extends ItemView {
         item,
       );
     const rows: ItemRowGestures = {
-      // Query View owns this interface; its selection is projected from our atom.
       selection: {
         getState: () => this.selected,
         getInitialState: () => ({ key: null }),
@@ -268,8 +225,6 @@ export class LibraryView extends ItemView {
           });
         },
       },
-      // A click, the keyboard entering the list, or a link or button in
-      // the row selects the row, as the arrow keys do.
       click: (key) => this.#selectRow({ key }),
       select: (key) => this.#selectRow({ key }),
       first: () =>
@@ -277,7 +232,6 @@ export class LibraryView extends ItemView {
       open: (key, event) => {
         deps.items.openPdf(key, Keymap.isModEvent(event));
       },
-      // The menu acts on the row it opens over, which it selects.
       menu: (key, event) => {
         this.#selectRow({ key });
         const values = this.#rowValues(key);
@@ -293,9 +247,6 @@ export class LibraryView extends ItemView {
     };
     this.register(() => drag.cancel());
     this.#registerRowKeys();
-    // Escape stays in the tab: otherwise Obsidian moves focus to the last
-    // navigable leaf, which in the main area switches the tab away from
-    // this view.
     const onEscape = () => {
       const { leftSplit, rightSplit } = deps.app.workspace;
       const root = this.leaf.getRoot();
@@ -306,16 +257,11 @@ export class LibraryView extends ItemView {
       scope: this.scope,
       sourcePath: () => "",
       context: () => undefined,
-      // The view runs once the tab has set its text, after the query.
       libraries: () => this.#shown!.libraries,
       rank: () => this.#shown!.rank,
-      // The document keeps the sort alone, and Papers is the one Layout, so
-      // the toolbar shows the result count, Sort and Save as query file.
       displayOnly: true,
       layouts: LIBRARY_LAYOUTS,
-      // The selected node's sort and the row limit are the view's own.
       defaults: () => libraryViewDefaults(this.tree.state.node),
-      // Has note, and the Literature Note half of Unread, the vault answers.
       rowPass: () =>
         this.#shown &&
         vaultPass(this.#shown.vault, {
@@ -334,14 +280,9 @@ export class LibraryView extends ItemView {
         const use = deps.registry.get(useLedgerAtom)[row.indexedKey];
         return recentReason(row.values, use);
       },
-      // The empty list names the search or the facets, which the derived
-      // text holds as filters the researcher never wrote.
       empty: ({ fallback }) => this.search.empty(this.tree.model, fallback),
-      // The document took the change from the toolbar's text already.
       save: () => this.#storage.save(),
-      // The way to the full Query View: a Query File of the list.
       saveAs: () => void this.#saveAs(),
-      // Sort and Save sit in the title block over the list.
       toolbar: "host",
       layout: { onEscape },
     });
@@ -349,8 +290,6 @@ export class LibraryView extends ItemView {
       menu: (item, button) => showMenuAtButton(menuOf(item), button),
       openInSidebar: (key) => void showItemInAnnotView(deps.app, key),
       close: () => this.#setDetails(false),
-      // A disclosure is a view state the document keeps; a failed write
-      // leaves it open on screen and says nothing in the toolbar.
       keepDisclosure: (name, open) => {
         this.#storage
           .change((doc) => withCardDisclosure(doc, name, open))
@@ -370,7 +309,6 @@ export class LibraryView extends ItemView {
       selectTag: (name) => {
         if (!this.tree.state.tags.includes(name)) this.tree.toggleTag(name);
       },
-      // The card shows the header of an Item it is reading from its row.
       row: (key) => this.#rowValues(key),
       stats: () => this.tree.model.stats,
       onEscape,
@@ -398,17 +336,6 @@ export class LibraryView extends ItemView {
     });
   }
 
-  /**
-   * The researcher brought the tab forward. Search is the front door: the
-   * cursor waits in the box, except under the Welcome View banner, whose
-   * focus ring would wrap the box right under it; the banner's "Search your
-   * library" puts the cursor there on purpose.
-   *
-   * Whether the banner shows can wait on its connection readout, as on a
-   * first launch, while Zotero's database loads: the box then takes the
-   * cursor once that is known, unless the researcher moved it meanwhile or
-   * brought the tab forward again.
-   */
   arrive(): void {
     const arrival = ++this.#arrival;
     if (this.welcome.known) {
@@ -425,12 +352,10 @@ export class LibraryView extends ItemView {
     });
   }
 
-  /** Settles once the last arrival placed the cursor, or left it. Never rejects. */
   get arrived(): Promise<void> {
     return this.#arrived;
   }
 
-  /** Settles once the list shows the newest search. Never rejects. */
   get searched(): Promise<void> {
     return this.search.settled;
   }
@@ -439,12 +364,6 @@ export class LibraryView extends ItemView {
     return LIBRARY_VIEW_TYPE;
   }
 
-  /**
-   * "Welcome & help" in the tab header toggles the Welcome View banner: it
-   * shows the banner with its setup steps and moves focus to it, as "Open
-   * welcome view" does, or dismisses it, as its dismiss button does. It
-   * reads as pressed while the banner shows, whatever brought it (ADR 0077).
-   */
   #addWelcomeAction(): void {
     const action = this.addAction(
       "circle-help",
@@ -454,7 +373,6 @@ export class LibraryView extends ItemView {
           this.welcome.dismiss();
           return;
         }
-        // Over a narrow pane the tree steps aside for the banner.
         this.tree.setOpen(false);
         this.welcome.request();
       },
@@ -481,38 +399,23 @@ export class LibraryView extends ItemView {
 
   protected override async onOpen(): Promise<void> {
     this.#release ??= this.#hold();
-    // An Item dragged from a row lands in a note, never back in the view.
     this.registerDomEvent(this.contentEl, "dragover", refuseItemDrop);
-    // The Welcome View banner sits above the tree and the list at its full
-    // height. Where the tab is too short for both, the list keeps 20rem, and
-    // the item details under a narrow list their own 16rem, and the tab
-    // scrolls as a whole, with its scrollbar, so no part of the banner or of
-    // the details is cut off.
     const column = this.contentEl.createDiv({
       cls: "zt:@container/column zt:flex zt:h-full zt:flex-col zt:overflow-y-auto",
       attr: { "data-library-column": "" },
     });
     this.#columnEl = column;
     column.append(this.welcome.el);
-    // The tree and the list share the top of the shell, and the item
-    // details sit beside them on a wide pane, or under both, across the
-    // whole pane, on a narrow one. The card is a container of its own, so
-    // what sits in it and asks the pane's width names the shell's.
     const shell = column.createDiv({
       cls: "zt:group zt:@container/library zt:relative zt:flex zt:min-h-[min(20rem,100%)] zt:flex-1 zt:overflow-hidden zt:@max-4xl/column:not-data-zotero-missing:has-[[data-library-card]:not([hidden])]:min-h-[min(36rem,100%)]",
       attr: { "data-library-shell": "" },
     });
-    // The shell's own width query reaches only what it holds, so a frame
-    // inside it turns the row into a column.
     const frame = shell.createDiv({
       cls: "zt:flex zt:min-h-0 zt:min-w-0 zt:flex-1 zt:@max-4xl:flex-col",
     });
     const top = frame.createDiv({
       cls: "zt:relative zt:flex zt:min-h-0 zt:min-w-0 zt:flex-1",
     });
-    // Beside a wide list the tree shows unless the researcher collapsed it;
-    // over a narrow one it shows while it is open, with its own end line
-    // where its divider does not show.
     const treePane = top.createDiv({
       cls: "zt:relative zt:hidden zt:w-[var(--zt-library-tree-width,14rem)] zt:shrink-0 zt:flex-col zt:@max-xl:border-e-(length:--border-width) zt:border-(--divider-color) zt:bg-(--background-primary) zt:@xl:flex zt:@xl:group-data-tree-collapsed:hidden zt:@max-xl:group-data-tree-open:flex zt:@max-xl:absolute zt:@max-xl:inset-y-0 zt:@max-xl:start-0 zt:@max-xl:max-w-[85%] zt:@max-xl:z-(--layer-popover) zt:@max-xl:shadow-(--shadow-s)",
       attr: { "data-library-tree": "" },
@@ -523,22 +426,12 @@ export class LibraryView extends ItemView {
     const main = top.createDiv({
       cls: "zt:flex zt:min-h-0 zt:min-w-0 zt:flex-1 zt:flex-col",
     });
-    // Where ZotLit cannot read Zotero's database, the tree and the list say
-    // so in place of what they hold; the search box and the header's count
-    // go with them.
     const hidden = "zt:group-data-zotero-missing:hidden";
-    // The item details show while the researcher keeps them on: the
-    // selected paper, or what fills them when none is selected.
     const cardEl = frame.createDiv({ cls: `zt:contents ${hidden}` }).createDiv({
       cls: "zt:@container/card zt:relative zt:hidden zt:w-[var(--zt-library-card-width,24rem)] zt:shrink-0 zt:flex-col zt:min-h-0 zt:bg-(--background-primary) zt:[&:not([hidden])]:flex zt:@max-4xl:w-auto zt:@max-4xl:h-[var(--zt-library-card-height,16rem)]",
       attr: { "data-library-card": "", hidden: "" },
     });
     this.#cardEl = cardEl;
-    // Each pane's inner edge sets its width beside the list; under a narrow
-    // list the details span the pane, and their top edge sets their height
-    // instead, and over a narrow one the tree keeps its own room.
-    // A drag past the minimum hides the details while the pointer stays
-    // there, and turns them off on release.
     const collapseCard = (collapsed: boolean) => {
       if (collapsed) cardEl.hidden = true;
       else this.#showCard();
@@ -631,8 +524,6 @@ export class LibraryView extends ItemView {
       {
         app: this.#deps.app,
         stored: () => this.#storage.document().treeWidth,
-        // A drag past the minimum hides the tree while the pointer stays
-        // there, and collapses it on release.
         collapse: (collapsed) =>
           shell.toggleAttribute(
             "data-tree-collapsed",
@@ -660,9 +551,6 @@ export class LibraryView extends ItemView {
     const cardBody = cardEl.createDiv({
       cls: "zt:flex zt:min-h-0 zt:flex-1 zt:flex-col",
     });
-    // The tree toggle and the Details button share the search box's row, so
-    // neither takes a row of its own above the heading. While Zotero is not
-    // found the tree toggle stays, so the tree's not-found part still shows.
     const searchRow = main.createDiv({
       cls: "zt:flex zt:items-center zt:gap-(--size-2-2) zt:ps-(--zt-query-toolbar-inset-start) zt:pe-(--zt-query-toolbar-inset-end) zt:pt-(--size-4-2)",
       attr: { "data-library-search-row": "" },
@@ -677,9 +565,6 @@ export class LibraryView extends ItemView {
     );
     const note = main.createDiv();
     const header = main.createDiv();
-    // The search row, the note and the header stay at their own height above
-    // the list, which takes the rest of the column: its rows scroll there,
-    // under the toolbar, and an empty or not-found state centres there.
     const list = main.createDiv({
       cls: "zt:flex zt:min-h-0 zt:flex-1 zt:flex-col",
     });
@@ -698,7 +583,6 @@ export class LibraryView extends ItemView {
           }),
           note,
         },
-        // The search the box holds runs again on the database found.
         () => void this.search.run(),
       ),
       this.welcome,
@@ -717,9 +601,6 @@ export class LibraryView extends ItemView {
     this.query.register(() => heading.unmount());
     this.search.load();
     this.search.render(searchEl);
-    // On a narrow pane the tree shows over the list while it is open, and
-    // on a wide one beside it unless collapsed: the list's room changes, so
-    // both edges clamp again.
     this.tree.register(
       this.tree.subscribe(({ open, collapsed }) => {
         shell.toggleAttribute("data-tree-open", open);
@@ -730,7 +611,6 @@ export class LibraryView extends ItemView {
       }),
     );
     this.#holdTreeKeys(treePane);
-    // A press on the list beside it puts the tree away.
     main.addEventListener("pointerdown", (event) => {
       if (!this.tree.state.open) return;
       const target = event.target as Node;
@@ -755,8 +635,6 @@ export class LibraryView extends ItemView {
         if (key !== null) this.#revealCard();
       }),
     );
-    // A selected row that leaves the list takes its selection with it, so
-    // the Reading Card never shows an Item the list does not hold.
     this.query.register(
       this.query.state.subscribe(({ phase, results }) => {
         const { key } = this.selected;
@@ -771,14 +649,11 @@ export class LibraryView extends ItemView {
           this.query.contextChanged();
       }),
     );
-    // A Literature Note added or removed changes what the vault answers.
     this.query.register(
       this.#deps.registry.subscribe(notedItemKeysAtom, () => {
         if (this.#shown && this.#shown.vault.length > 0) this.query.refresh();
       }),
     );
-    // A tab that the workspace restores on startup can open before plugin
-    // data has loaded.
 
     await this.#storage.load();
     const doc = this.#storage.document();
@@ -796,7 +671,6 @@ export class LibraryView extends ItemView {
     await this.search.open(doc.search);
   }
 
-  /** The researcher opened or closed tree nodes: show them, and keep them. */
   #expand(change: (doc: LibraryViewDocument) => LibraryViewDocument): void {
     this.#storage.change(change).catch((error: unknown) => {
       Effect.runSyncWith(logServices)(
@@ -813,7 +687,6 @@ export class LibraryView extends ItemView {
     this.tree.showExpanded(this.#storage.document().expanded);
   }
 
-  /** The values of the list's row of the Item `key`, where the list shows it. */
   #rowValues(key: string): Readonly<Record<string, QueryViewValue>> | null {
     return (
       this.query.state
@@ -822,11 +695,6 @@ export class LibraryView extends ItemView {
     );
   }
 
-  /**
-   * Show the item details as the document has them: on unless the
-   * researcher turned them off, with the Details button pressed while they
-   * show. The list's room changes, so the tree's edge clamps again.
-   */
   #showCard(): void {
     const el = this.#cardEl;
     if (!el) return;
@@ -838,11 +706,6 @@ export class LibraryView extends ItemView {
     this.#treeWidth?.apply();
   }
 
-  /**
-   * Scroll the tab so the item details of a selected paper show whole,
-   * with their Open PDF and Write literature note buttons: under a narrow
-   * list, the Welcome View banner above can push them below the tab's end.
-   */
   #revealCard(): void {
     const card = this.#cardEl;
     const column = this.#columnEl;
@@ -853,11 +716,6 @@ export class LibraryView extends ItemView {
     if (below > 0) column.scrollTop += below;
   }
 
-  /**
-   * Turn the item details on or off, and keep it. Turned on, they take room
-   * from the list, which keeps its selected row in view; turned off, the
-   * selected row takes the focus back.
-   */
   #setDetails(on: boolean): void {
     this.#storage
       .change((doc) => withCardClosed(doc, !on))
@@ -880,10 +738,6 @@ export class LibraryView extends ItemView {
     } else row?.focus();
   }
 
-  /**
-   * Collapse the tree beside a wide list, or show it again, and keep it. A
-   * tree shown over a narrow list goes with it.
-   */
   #collapseTree(collapsed: boolean): void {
     this.#storage
       .change((doc) => withTreeCollapsed(doc, collapsed))
@@ -903,12 +757,6 @@ export class LibraryView extends ItemView {
     this.tree.showCollapsed(collapsed);
   }
 
-  /**
-   * The row keys of the quick switcher (ADR 0074): ↑ and ↓ move the
-   * selection; Enter opens the selected row's Literature Note, or writes it,
-   * Mod+Enter in a new pane; Shift+Enter opens its PDF. Space turns the
-   * item details on or off (ADR 0071).
-   */
   #registerRowKeys(): void {
     for (const [key, step] of [
       ["ArrowUp", -1],
@@ -933,19 +781,11 @@ export class LibraryView extends ItemView {
     });
   }
 
-  /**
-   * The open tree's keys: Escape puts the tree away from anywhere inside it,
-   * before the list beneath clears its selection or puts its card away. The
-   * view's Scope hears a key before the tree does, so the tree takes Escape
-   * on a Scope of its own, on top while it is open and focus stands in it.
-   * A filter with text in it keeps Escape, which clears it first.
-   */
   #holdTreeKeys(pane: HTMLElement): void {
     const { keymap } = this.#deps.app;
     const scope = new Scope(this.scope);
     scope.register([], "Escape", (event) => {
       if (composing(event)) return;
-      // The tag filter, the one field in the tree, clears its text first.
       if (inTextEntry(event.target) && this.tree.state.tagFilter) return;
       this.tree.setOpen(false);
       return false;
@@ -962,14 +802,12 @@ export class LibraryView extends ItemView {
     this.register(() => keys[Symbol.dispose]());
   }
 
-  /** Whether a key landed on the list, and not on a control that takes it. */
   #onList(target: EventTarget | null): boolean {
     if (inTextEntry(target)) return false;
     const node = target as Node | null;
     return !(node?.instanceOf(Element) && node.closest(OWN_KEYS) !== null);
   }
 
-  /** The Item rows on screen, in the order they show. */
   #rows(): HTMLElement[] {
     return [
       ...this.contentEl.querySelectorAll<HTMLElement>(
@@ -978,23 +816,17 @@ export class LibraryView extends ItemView {
     ];
   }
 
-  /** The row of the selected Item, while one shows. */
   #selectedRow(): HTMLElement | undefined {
     const { key } = this.selected;
     return key === null ? undefined : this.#rowOf(key);
   }
 
-  /** The row of the Item `key`, while one shows. */
   #rowOf(key: string): HTMLElement | undefined {
     return this.#rows().find(
       (row) => row.getAttribute(ITEM_ROW_ATTRIBUTE) === key,
     );
   }
 
-  /**
-   * Move the selection `step` rows on, in the order the list shows them; the
-   * first row where the selected one is not listed.
-   */
   #move(step: -1 | 1): boolean {
     const { keys } = this.#listed;
     if (keys.length === 0) return false;
@@ -1014,10 +846,6 @@ export class LibraryView extends ItemView {
     return true;
   }
 
-  /**
-   * The row of the Item `key`, once the list draws it: a long list mounts
-   * the selected row on its next draw, wherever it stands.
-   */
   async #shownRow(key: string): Promise<HTMLElement | undefined> {
     const row = this.#rowOf(key);
     if (row) return row;
@@ -1025,26 +853,16 @@ export class LibraryView extends ItemView {
     return this.#rowOf(key);
   }
 
-  /** Give `row` the focus, in view. */
   #focus(row: HTMLElement): void {
     row.focus({ preventScroll: true });
     this.#scrollTo(row);
   }
 
-  /**
-   * Bring `row` into view: through its layout, which places it as the rows
-   * around it are measured, in a long list.
-   */
   #scrollTo(row: HTMLElement): void {
     const key = row.getAttribute(ITEM_ROW_ATTRIBUTE);
     if (key !== null) this.#listed.scrollTo(key);
   }
 
-  /**
-   * Flash `row` once, so the eye finds the row Show in Library selected. A
-   * flash still running starts over: the style read between the two writes
-   * makes the browser see the attribute go and come back.
-   */
   #flash(row: HTMLElement): void {
     row.removeAttribute(ITEM_ROW_REVEALED_ATTRIBUTE);
     row.getBoundingClientRect();
@@ -1057,19 +875,11 @@ export class LibraryView extends ItemView {
     row.addEventListener("animationend", ended);
   }
 
-  /**
-   * Show the Item `indexedKey` selected, in its first Collection, or in its
-   * Library where it is filed in none. A search, a Reading State facet or a
-   * selected tag that may leave the Item out is cleared.
-   * @returns `"not-listed"` where the list does not hold the Item, as past
-   * its row limit: nothing is selected, and the caller says so.
-   */
   async reveal(
     indexedKey: string,
   ): Promise<"listed" | "not-listed" | "not-found" | "closed"> {
     const node = await this.#itemNode(indexedKey);
     if (!this.#release) return "closed";
-    // An Item the Library Scope does not hold leaves the list as it was.
     if (!node) return "not-found";
     if (this.tree.state.facets.length > 0) this.#filter([]);
     if (this.tree.state.tags.length > 0) this.#tag([]);
@@ -1084,8 +894,6 @@ export class LibraryView extends ItemView {
       this.#selectRow({ key: null });
       return "not-listed";
     }
-    // Show in Library selects the row, as a click does: the details show it
-    // while they are on.
     this.#selectRow({ key: indexedKey });
     const row = await this.#shownRow(indexedKey);
     if (row) {
@@ -1095,14 +903,12 @@ export class LibraryView extends ItemView {
     return "listed";
   }
 
-  /** The node of the Item's first Collection, or of its Library. */
   async #itemNode(indexedKey: string): Promise<LibraryNode | null> {
     const { registry } = this.#deps;
     const atom = itemNodeAtom(indexedKey);
     const release = registry.mount(atom);
     try {
       await waitForRead(registry, atom, this.#waiting);
-      // A close ends the wait; its read is interrupted and answers nothing.
       if (!this.#release) return null;
       return Option.getOrNull(AsyncResult.value(registry.get(atom)));
     } finally {
@@ -1110,11 +916,8 @@ export class LibraryView extends ItemView {
     }
   }
 
-  /** The researcher picked `node` in the tree: list it, and keep it. */
   #select(node: LibraryNode): void {
     this.tree.show(node);
-    // The document takes the node at once (Recent writes its sort, and the
-    // Collections above it open), and the search runs again over the node.
     this.#storage
       .change((doc) => withNode(doc, node))
       .catch((error: unknown) => {
@@ -1130,16 +933,13 @@ export class LibraryView extends ItemView {
         );
       });
     this.tree.showExpanded(this.#storage.document().expanded);
-    // The selected row leaves the list with its node.
     this.#selectRow({ key: null });
     this.search.narrow();
     void this.search.run();
   }
 
-  /** The researcher turned a facet on or off: list the Items `facets` hold, and keep them. */
   #filter(facets: readonly ReadingStateFacet[]): void {
     this.tree.showFacets(facets);
-    // The document takes the facets at once; the search found what it found.
     this.#storage
       .change((doc) => withFacets(doc, facets))
       .catch((error: unknown) => {
@@ -1153,7 +953,6 @@ export class LibraryView extends ItemView {
     this.#show(this.#found);
   }
 
-  /** The researcher selected or let go of a tag: list the Items with every one of `tags`, and keep them. */
   #tag(tags: readonly string[]): void {
     this.tree.showTags(tags);
     this.#storage
@@ -1173,7 +972,6 @@ export class LibraryView extends ItemView {
     this.#show(this.#found);
   }
 
-  /** The researcher cleared the heading's filter chips: every facet off, every tag let go, in one run. */
   #clearFilters(): void {
     this.tree.showFacets([]);
     this.tree.showTags([]);
@@ -1192,10 +990,6 @@ export class LibraryView extends ItemView {
     this.#show(this.#found);
   }
 
-  /**
-   * Run the query of the tree node and of what the search `found`; the
-   * Libraries change apart from the text.
-   */
   #show(found: SearchFound): void {
     this.#found = found;
     const { text, keys, everywhere } = found;
@@ -1205,23 +999,15 @@ export class LibraryView extends ItemView {
       ...(keys && { keys }),
       ...(everywhere && { everywhere }),
     });
-    // The tree marks the node the list shows, and none past it.
     this.tree.showListed(this.#shown.node !== null);
     this.query.setText(this.#shown.text);
     this.query.contextChanged();
   }
 
-  /**
-   * The Libraries of the Library Scope that the database holds, which Recent
-   * reads: a saved scope can name a group the database no longer has, and a
-   * request that names it fails. Where the database holds none of them, the
-   * saved scope itself, so the view says which Library is missing.
-   */
   #scope(): LibraryScope {
     return scopeForLibrary(this.#deps.registry.get(libraryScopeStateAtom));
   }
 
-  /** "Save as query file": the document as it stands, once the toolbar's last change is in. */
   async #saveAs(): Promise<void> {
     await this.query.flush();
     const doc = this.#storage.document();
@@ -1259,9 +1045,6 @@ export class LibraryView extends ItemView {
     const saving = this.#saving;
     this.search.unload();
     const flushing = this.query.flush();
-    // Everything that reads the registry stops before the first wait: a
-    // plugin unload starts this close and then disposes the registry
-    // without waiting for it. The writes run on the storage's own runner.
     this.query.unload();
     this.card.unload();
     this.tree.unload();

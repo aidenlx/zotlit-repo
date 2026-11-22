@@ -1,6 +1,5 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
-// Real Annotation View menu insertion in the main window and a pop-out editor.
 import { expect } from "vitest";
 
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
@@ -137,7 +136,6 @@ export async function verifyAnnotationInsert(
         undefined,
       ),
     ).toBe(true);
-    // The cards render once the read lands, a frame after the snapshot.
     await obRunUntil(
       vaultId,
       async ({ page }) => {
@@ -327,7 +325,6 @@ export async function verifyAnnotationInsert(
       if (mode === "escape" || mode === "switch" || mode === "close") {
         expect(text).toBe("before TARGET after");
       } else if (mode === "disabled") {
-        // The placeholder points back with the Durable Annotation Link.
         expect(text).toContain(
           "[Zotero](zotero://open/library/items/RGRPDF24?annotation=FDRFQ7C2&page=2)",
         );
@@ -336,8 +333,6 @@ export async function verifyAnnotationInsert(
       } else {
         expect(text).toContain("![[");
         expect(text).toContain("zotlit-excerpt-");
-        // The default template cites the Rougier paper, at the Annotation's
-        // page, after the embedded excerpt.
         expect(text).toMatch(
           /\]\] \[@rougierTenSimpleRules2014, \{p\. \d+\}\]/,
         );

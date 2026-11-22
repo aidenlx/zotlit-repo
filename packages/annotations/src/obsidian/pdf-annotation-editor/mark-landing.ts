@@ -1,9 +1,3 @@
-// What an Annotation Anchor asks one PDF view to do, decided from data alone:
-// the Mark to select, the page it sits on, and whether that page is on screen
-// yet. The binding acts on the answer; nothing is read off the reader here.
-//
-// @see apps/obsidian/docs/adr/0046-landing-on-a-mark-is-an-ephemeral-state-contract-read-at-the-leaf.md
-
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
 
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
@@ -11,7 +5,6 @@ import type { AttachmentResolution } from "@zotlit/plugin-services/obsidian/atta
 
 import type { PdfPageAnnotation } from "./render.ts";
 
-/** Why an Anchor lands on its page alone, as the debug record names it. */
 export type MarkLandingMiss =
   | "attachment-pending"
   | "attachment-unknown"
@@ -19,48 +12,26 @@ export type MarkLandingMiss =
   | "annotation-unknown"
   | "annotation-unplaced";
 
-/** The Mark a Landing aims at, and the zero-based page that draws it. */
 export interface MarkLandingTarget {
   annotationKey: string;
   pageIndex: number;
 }
 
-/**
- * What one view does with the Anchor an open carried. `page` is the whole
- * degradation ladder: Obsidian's own `#page=N` has already fired, so leaving
- * the reader where it is *is* the fallback.
- */
 export type MarkLanding =
   | { kind: "drop" }
   | { kind: "page"; reason: MarkLandingMiss }
   | ({ kind: "wait" } & MarkLandingTarget)
   | ({ kind: "select" } & MarkLandingTarget);
 
-/** What a Mark Landing is judged from, with no Obsidian objects in it. */
 export interface MarkLandingInput {
-  /** The fragment the open carried, as the Anchor codec read it. */
   anchor: ParsedAnnotationSubpath;
-  /** What the open file resolved to in Zotero. */
   attachment: AttachmentResolution;
-  /**
-   * Whether a read of this Attachment's Annotations has answered yet. An empty
-   * list reads the same as no list at all, and the two mean opposite things:
-   * an Attachment with no Annotations, or an Annotation Source still loading.
-   */
   read: boolean;
-  /** This Attachment's Annotations, as the last read answered. */
   records: readonly AnnotationRecord[];
-  /** Those Annotations keyed by the page that draws them. */
   marks: ReadonlyMap<number, readonly PdfPageAnnotation[]>;
-  /** The zero-based pages PDF.js has built. */
   rendered: ReadonlySet<number>;
 }
 
-/**
- * Decide one Anchor. The Annotation's own page wins over the page the link
- * recorded, because the Indexed Key is the durable identity and the page
- * number is a hint that a replaced PDF can outdate.
- */
 export function decideMarkLanding({
   anchor,
   attachment,
@@ -91,11 +62,6 @@ export function decideMarkLanding({
     : { kind: "wait", annotationKey, pageIndex };
 }
 
-/**
- * The lowest page this Annotation draws on, which is where its quote starts —
- * a highlight that spilled over a page break carries half of itself on each of
- * its two pages.
- */
 function firstPageOf(
   marks: ReadonlyMap<number, readonly PdfPageAnnotation[]>,
   annotationKey: string,

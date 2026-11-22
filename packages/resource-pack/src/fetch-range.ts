@@ -1,28 +1,12 @@
-// The default `ReadRange`, for every host: `fetch` of the pack file's resource
-// URL with a `Range` header. Hosts answer the header in four ways, and each
-// gives the same bytes here:
-//
-//   206 with the range                    read the body;
-//   206 from the start to the file's end  (Android) read `length` bytes, cancel;
-//   200 with the range                    (desktop Obsidian) read the body;
-//   200 with the full file                (iOS) pass `offset` bytes, read `length`.
-//
-// A 200 answer does not state which of the two it is. Its body is the range
-// when it ends within `length` bytes, and the full file when it runs on.
 import type { ReadRange } from "#reader.ts";
 
 import { PackAbsentError } from "#reader.ts";
 
-/** The part of `fetch` that the capability calls. */
 export type RangeFetch = (
   url: string,
   init: { readonly headers: { readonly Range: string } },
 ) => Promise<Response>;
 
-/**
- * The first bytes of `body`, up to `limit` or a little more: the read stops at
- * the chunk that reaches `limit`, and the rest of the body is cancelled.
- */
 async function readUpTo(
   body: ReadableStream<Uint8Array>,
   limit: number,
@@ -47,14 +31,9 @@ async function readUpTo(
 }
 
 export interface FetchRangeOptions {
-  /**
-   * The `fetch` to call; a test gives a server's answer.
-   * @default globalThis.fetch
-   */
   readonly fetch?: RangeFetch;
 }
 
-/** A `ReadRange` over the file at `url`. */
 export function fetchRange(
   url: string,
   { fetch = globalThis.fetch }: FetchRangeOptions = {},

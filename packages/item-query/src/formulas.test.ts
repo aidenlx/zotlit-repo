@@ -1,5 +1,3 @@
-// Formulas: named Filter Expressions that a query evaluates for each record
-// and returns with the Query Row as `formula.<name>`.
 import { Cause } from "effect";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -384,7 +382,6 @@ it("fails a filter that reads a Formula the request does not define", async () =
 });
 
 it("plans a Formula that reads another one many times once for each Formula", async () => {
-  // Each Formula reads the one before it twice: 2^18 reads of a0 in all.
   const formulas: Record<string, string> = { a0: "date.year" };
   for (let index = 1; index <= 18; index++)
     formulas[`a${index}`] = `formula.a${index - 1} + formula.a${index - 1}`;
@@ -429,7 +426,6 @@ it("finds the Formulas a Filter Expression reads as the planner resolves them", 
     { name: "parts", from: 0, to: 13 },
     { name: "n", from: 19, to: 28 },
   ]);
-  // A text that does not parse reads no Formula.
   expect(formulaReferences("formula.year +")).toEqual([]);
 });
 
@@ -597,7 +593,6 @@ describe('onFormulaFault: "leave-out"', () => {
       { "formula.ok": 2019 },
     ]);
     const faults = result.formulaDiagnostics!;
-    // a reads worse first; the query still plans bad, which a reads after it.
     expect(Object.keys(faults).sort()).toEqual(["a", "b", "bad", "worse"]);
     expect(faults.bad).toMatchObject({ code: "wrong-operand-type" });
     expect(faults.a).toMatchObject({
@@ -851,8 +846,6 @@ describe('onFormulaFault: "leave-out"', () => {
       onFormulaFault: "leave-out",
     });
     expect({ ...result.formulaDiagnostics }).toEqual({});
-    // A Formula that no part of the request reads gives no warning: the
-    // caller sends Formulas that other requests read.
     expect(result.warnings).toEqual([]);
   });
 

@@ -1,6 +1,3 @@
-// Items for the "Reader" sub-page: what ZotLit does around Obsidian's own PDF
-// reader once it puts a Zotero Attachment there.
-
 import type { ReaderConnection } from "#obsidian/reader-connection/service.ts";
 import { Effect, Stream } from "effect";
 import type {

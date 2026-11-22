@@ -149,9 +149,6 @@ describe("explorerSections", () => {
       }),
       reader("citation"),
     );
-    // A Citation Item's own properties and a cited item's fields sit under
-    // `citations` and `items`; the taxonomy names top-level fields, so the
-    // reader reaches both by expanding those two rows.
     expect(
       sections.map((section) => [
         section.id,

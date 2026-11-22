@@ -1,5 +1,3 @@
-// Pure menu model for the Database Status control.
-
 import type {
   ManualCheckpointOutcome,
   WalCheckpointStatus,
@@ -7,10 +5,6 @@ import type {
 
 type VisibleManualOutcome = Exclude<ManualCheckpointOutcome, "unavailable">;
 
-/**
- * How the sidenav icon is tinted. `neutral` covers both a healthy WAL database
- * and one with no write-ahead log: neither asks anything of the user.
- */
 export type DatabaseIconState = "neutral" | "off" | "failed";
 
 export interface DatabaseStatusMenuModel {
@@ -72,11 +66,6 @@ function stateMessage(
   return "zotlit-database-status-working";
 }
 
-/**
- * The icon alone, off the same precedence the menu uses. Separate from
- * {@link databaseStatusMenuModel} because a repaint runs on every checkpoint
- * and has no use for the formatted timestamp.
- */
 export function databaseIconState(
   status: WalCheckpointStatus,
 ): DatabaseIconState {

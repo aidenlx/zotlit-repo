@@ -24,7 +24,6 @@ const tagValuesStatement = defineStatement<{ libraryID: number }>("tag-values")(
       ),
 );
 
-/** Tag names and application types on non-trashed records of one Library. */
 export function readTagValues(library: { libraryID: number }) {
   return tagValuesStatement.all(library);
 }

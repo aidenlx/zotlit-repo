@@ -1,12 +1,4 @@
 #!/usr/bin/env node
-// Writes the publish repository's tree for one plugin version.
-//   --plugin <name>        a key of PUBLISHED_PLUGINS (default: desktop)
-//   --version <version>    the plugin version (default: the host app's)
-//   --out <dir>            the folder to write; its old content is removed
-//   --bundle-tarball <tgz> lock the bundle package to a local tarball; without
-//                          it, pnpm resolves the package from the npm registry,
-//                          so the version must be published
-//   --no-lock              write no pnpm-lock.yaml
 import type { PublishedPluginName } from "#shell/plugins";
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";

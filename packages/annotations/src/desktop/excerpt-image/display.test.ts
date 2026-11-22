@@ -12,8 +12,6 @@ import type {
 } from "#obsidian/excerpt-image/service.ts";
 import { Effect } from "effect";
 import { open } from "node:fs/promises";
-// The live display read of one Annotation, as a card demands it and a saved
-// edit replaces it.
 import type { FileHandle } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 
@@ -42,8 +40,6 @@ import {
   excerptFingerprint,
 } from "#obsidian/excerpt-image/service.ts";
 
-// The one read below that goes through the service's own renderer doubles the
-// PDF file and the canvas that renderer needs, and nothing else.
 vi.mock("node:fs/promises", async (original) => ({
   ...(await original<typeof import("node:fs/promises")>()),
   open: vi.fn(),
@@ -56,7 +52,6 @@ const SOURCE: AnnotationSource = {
   libraryRevision: 1,
 };
 
-/** One ink Annotation: its colour and its path are the pixels an image paints. */
 function annotation(color: string, key = "INK1"): AnnotationRecord {
   return {
     key,
@@ -74,7 +69,6 @@ function annotation(color: string, key = "INK1"): AnnotationRecord {
   };
 }
 
-/** One request for those pixels; every colour is another canonical cache key. */
 function request(color: string, key = "INK1"): ExcerptRequest {
   return {
     annotation: annotation(color, key),
@@ -87,52 +81,36 @@ function request(color: string, key = "INK1"): ExcerptRequest {
   };
 }
 
-/** The store record one Annotation's latest image lives under. */
 function stored(identity: ExcerptRequest): string {
   return excerptAnnotationRecord(identity);
 }
 
-/** The image one render answers with; the byte tells the images apart. */
 function image(byte: number): ExcerptImage {
   return { bytes: new Uint8Array([byte]), format: PNG_FORMAT };
 }
 
-/** What one live display harness hands a test. */
 interface Live extends AsyncDisposable {
   readonly queries: ReturnType<typeof queryClientsFixture>;
   readonly service: ExcerptImageService;
   readonly display: ExcerptDisplayFixture;
   readonly renders: GatedRender[];
-  /** The store's own view of the devices images: what is cached, and its references. */
   readonly entries: Map<string, ExcerptEntry>;
   readonly references: Map<string, ExcerptIdentity>;
-  /** One card's demand, released when the harness goes. */
   card(): ExcerptDisplayDemand;
-  /** The render at `index`, once it has started. */
   started(index: number): Promise<GatedRender>;
-  /** The display's `index`-th read of a device-local image, once it settled. */
   storedRead(index: number): Promise<void>;
-  /** Wait for the render at `index` to be abandoned. */
   cancelled(index: number): Promise<void>;
-  /** Answer one render; the caller awaits its commit through a snapshot. */
   finish(index: number, bytes: number): void;
-  /** Fail one render, which leaves the resolution to Zotero's own image. */
   fail(index: number): void;
-  /** Replace the PDF behind the demanded path: its stamp moves, so its entry is stale. */
   replacePdf(): void;
 }
 
-/**
- * A real service on a real query client, with every render gated: the test, and
- * not a clock, decides when one finishes and what it answers.
- */
 function harness(): Live {
   const gate = renderGate();
   const entries = new Map<string, ExcerptEntry>();
   const references = new Map<string, ExcerptIdentity>();
   const demands: ExcerptDisplayDemand[] = [];
   const stack = new AsyncDisposableStack();
-  /** The PDF stamp every probe reads; a replacement moves its modification time. */
   let mtimeMs = 1;
   const service = stack.use(
     new ExcerptImageService({
@@ -211,23 +189,14 @@ function harness(): Live {
   };
 }
 
-/**
- * One read through the service's own renderer, with the PDF file and the canvas
- * that renderer needs doubled and the page render held open: the display read
- * engages the real `ExcerptRenderer`, and the test watches what it holds.
- */
 interface Resident extends AsyncDisposable {
   readonly service: ExcerptImageService;
   readonly card: ExcerptDisplayDemand;
-  /** What the service's own renderer reports it is holding. */
   diagnostics(): ExcerptRendererDiagnosticSnapshot;
-  /** Resolves once the page render has started and is held open. */
   painting(): Promise<void>;
-  /** Let the held render task finish, so the read commits. */
   finish(): void;
 }
 
-/** One renderer hold: a PDF file it reads, and a page render the test ends. */
 function resident(): Resident {
   const painting = Promise.withResolvers<void>();
   const painted = Promise.withResolvers<void>();
@@ -269,8 +238,6 @@ function resident(): Resident {
         y * scale + offsetY,
       ],
     }),
-    // The one intent state PDF.js would carry for this page, holding the render
-    // task about to run, which is how the renderer keeps the frame loop off.
     _intentStates: new Map([
       [
         1,
@@ -350,7 +317,6 @@ function resident(): Resident {
   };
 }
 
-/** Whether the snapshot holds an image for the demanded pixels. */
 const painted = (display: ExcerptImageDisplay): boolean =>
   display.status === "settled" && display.current && display.image !== null;
 
@@ -414,8 +380,6 @@ describe("Excerpt Image live display", () => {
     await live.started(1);
     live.display.revalidate(pixels);
     card.demand(pixels);
-    // The superseded resolution was cancelled, and the image already held for
-    // the pixels that are saved again answers without another render.
     await live.cancelled(1);
     expect(live.renders).toHaveLength(2);
     expect(live.renders[1]!.aborted).toBe(true);
@@ -444,9 +408,6 @@ describe("Excerpt Image live display", () => {
     const first = await settledDisplay(newer, painted);
     expect(first.image?.bytes).toEqual(new Uint8Array([1]));
 
-    // The delayed card states the record as it was before the newer save. What
-    // the slot answers is still the newer saved pixels, so neither card moves
-    // back, and no read starts for the superseded snapshot.
     delayed.demand(stale);
     expect(live.renders).toHaveLength(1);
     expect(delayed.snapshot()).toEqual({
@@ -460,7 +421,6 @@ describe("Excerpt Image live display", () => {
       status: "settled",
     });
 
-    // A newer saved version still proceeds: the slot reads the pixels it asks.
     const newest: ExcerptRequest = {
       ...request("#0000ff"),
       annotation: { ...request("#0000ff").annotation, version: 3 },
@@ -486,9 +446,6 @@ describe("Excerpt Image live display", () => {
     live.finish(0, 1);
     const first = await settledDisplay(card, painted);
 
-    // A revalidation of an older record — a list read that started before the
-    // newer save — cannot move the display back: the demand it answers is still
-    // the newer saved pixels, so no read starts for the superseded ones.
     const stale: ExcerptRequest = {
       ...request("#00ff00"),
       annotation: { ...request("#00ff00").annotation, version: 1 },
@@ -565,9 +522,6 @@ describe("Excerpt Image live display", () => {
       new Uint8Array([1]),
     );
 
-    // The same path now holds another PDF, and the stamp this fixture reports
-    // says so: the display must read the pixels again rather than join the read
-    // that already stands for them.
     live.replacePdf();
     live.display.refresh();
     const again = await live.started(1);
@@ -590,9 +544,6 @@ describe("Excerpt Image live display", () => {
     live.fail(0);
     await settledDisplay(card, (display) => display.status === "failed");
 
-    // A key whose last read failed is served from what it holds until the
-    // client's cooldown passes, so the refresh drops that answer before it
-    // reads: the gesture resolves the pixels again instead of waiting it out.
     live.display.refresh();
     await live.started(1);
     live.finish(1, 2);
@@ -642,14 +593,9 @@ describe("Excerpt Image live display", () => {
     ]);
     expect(first.image?.bytes).toEqual(new Uint8Array([1]));
     expect(second.image?.bytes).toEqual(new Uint8Array([1]));
-    // Both cards read a painted snapshot now, which is the state the clear has
-    // to move: a card that kept it would go on painting the cleared image.
     expect(one.snapshot().image?.bytes).toEqual(new Uint8Array([1]));
     expect(two.snapshot().image?.bytes).toEqual(new Uint8Array([1]));
 
-    // The clear takes the Held Read and the image it held: the cards mounted on
-    // it release the image they were painted from rather than going on painting
-    // a display the clear released.
     live.display.clear();
     expect(
       live.queries.bridge.runSync(live.queries.keysUnder([EXCERPT_DISPLAY])),
@@ -665,8 +611,6 @@ describe("Excerpt Image live display", () => {
       status: "cleared",
     });
 
-    // The demand those cards stated still stands: stating it again reads the
-    // pixels again, which is what a card that repaints after the clear does.
     one.demand(request("#00ff00"));
     await live.started(1);
     live.finish(1, 2);
@@ -680,14 +624,11 @@ describe("Excerpt Image live display", () => {
     const pixels = request("#ff0000");
     card.demand(pixels);
 
-    // The note captures the pixels the display is resolving: one job answers
-    // both, and the display moving on releases its own demand alone.
     const note = live.service.resolve(request("#ff0000"));
     await live.started(0);
     expect(live.renders).toHaveLength(1);
     card.demand(request("#00ff00"));
 
-    // The display's own demand is gone, but the job the note shares runs on.
     live.finish(0, 1);
     await expect(note).resolves.toMatchObject({
       kind: "available",
@@ -701,7 +642,6 @@ describe("Excerpt Image live display", () => {
     const display = await settledDisplay(card, painted);
     expect(display.image?.bytes).toEqual(new Uint8Array([2]));
 
-    // A note asking for pixels the display never held renders its own image.
     const later = live.service.resolve(request("#0000ff"));
     await live.started(2);
     expect(live.renders).toHaveLength(3);
@@ -725,8 +665,6 @@ describe("Excerpt Image live display", () => {
       excerptFingerprint(pixels.annotation),
     );
 
-    // The card goes and the display forgets the Held Read it held: what the
-    // next card paints first is the device-local image, not the query cache.
     shown.release();
     expect(
       live.queries.bridge.runSync(live.queries.keysUnder([EXCERPT_DISPLAY])),
@@ -770,9 +708,6 @@ describe("Excerpt Image live display", () => {
     expect((await settledDisplay(card, painted)).image?.bytes).toEqual(redPng);
 
     stored.mockClear();
-    // The saved edit needs a read of its own, and the Held Read still holds the
-    // image the card paints: a stored fallback would answer nothing and be
-    // thrown away, so the display never asks for one.
     const saved = {
       ...pixels,
       annotation: { ...pixels.annotation, color: "#00ff00" },
@@ -783,17 +718,9 @@ describe("Excerpt Image live display", () => {
 
   it("starts a replacement from the stored image when the client dropped the Held Read", async () => {
     await using live = harness();
-    // The display's own keys carry the client's own retention, so a Held Read
-    // that no observer holds is dropped five minutes after it settles, whether
-    // a card is mounted on it or not. The deadline is the test's to move: it
-    // shortens the retention, advances the clock past it once, and puts the
-    // default back so the replacement below runs under the retention the plugin
-    // really has.
     live.queries.client.setQueryDefaults([EXCERPT_DISPLAY], { gcTime: 25 });
     const card = live.card();
     const pixels = request("#ff0000");
-    // The render is gated by the test, not by a clock, so fake time only drives
-    // the client's own retention and never the read.
     vi.useFakeTimers();
     try {
       card.demand(pixels);
@@ -805,16 +732,12 @@ describe("Excerpt Image live display", () => {
       expect(
         live.queries.bridge.runSync(live.queries.keysUnder([EXCERPT_DISPLAY])),
       ).toEqual([]);
-      // The card is still mounted and still demands the pixels it was painted
-      // from; the Held Read behind it is what the client dropped.
       expect(card.snapshot().image).toBeNull();
       vi.useRealTimers();
       live.queries.client.setQueryDefaults([EXCERPT_DISPLAY], {
         gcTime: 5 * 60 * 1_000,
       });
 
-      // A saved edit starts the read the card is waiting on: what it paints
-      // while that read replaces the pixels is the image this device persists...
       live.display.revalidate(request("#00ff00"));
       await live.started(1);
       await vi.waitFor(() => expect(card.snapshot().image).not.toBeNull());
@@ -823,7 +746,6 @@ describe("Excerpt Image live display", () => {
       expect(held.current).toBe(true);
       expect(held.status).toBe("reading");
 
-      // ...and what it goes on painting once the replacement fails.
       live.fail(1);
       const failed = await settledDisplay(
         card,
@@ -860,8 +782,6 @@ describe("Excerpt Image live display", () => {
       excerptFingerprint(saved.annotation),
     );
 
-    // An Annotation this device never displayed has nothing to replace, so a
-    // saved edit to it stays on demand.
     const untouched = request("#ff0000", "INK2");
     live.display.revalidate(untouched);
     await live.storedRead(2);
@@ -905,10 +825,6 @@ describe("Excerpt Image live display", () => {
   it("holds the renderer for the live read alone, and releases it when the read settles", async () => {
     await using live = resident();
     await live.service.ready;
-    // The marker this fixture has to lack first: no file, no document, and no
-    // render task is open, so every one of them below is the read's own. A
-    // demand the renderer never engages — no PDF path, say — can only report
-    // this same idle state, which is what makes the assertions mean something.
     expect(live.diagnostics()).toMatchObject({
       jobActive: false,
       fileOpen: false,
@@ -918,8 +834,6 @@ describe("Excerpt Image live display", () => {
 
     live.card.demand(request("#ff0000"));
     await live.painting();
-    // The read is live: the renderer holds the PDF document and the page it is
-    // painting, and the card has no image yet.
     expect(live.diagnostics()).toMatchObject({
       jobActive: true,
       documentOpen: true,
@@ -930,7 +844,6 @@ describe("Excerpt Image live display", () => {
     live.finish();
     const shown = await settledDisplay(live.card, painted);
     expect(shown.image?.format).toBe(WEBP_FORMAT);
-    // The read is over while the card still demands it: what it held goes.
     expect(live.diagnostics()).toMatchObject({
       phase: "idle",
       jobActive: false,

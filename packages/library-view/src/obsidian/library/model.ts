@@ -1,4 +1,3 @@
-// Per-leaf row selection and completion signals for the Library's atom reads.
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
 
@@ -19,7 +18,6 @@ export const patchSelection =
       ? state
       : { ...state, ...patch };
 
-/** Resolves when this held read finishes; releasing its owner also resolves it. */
 export function waitForRead<A, E>(
   registry: ViewRegistryHandle,
   atom: Atom.Atom<AsyncResult.AsyncResult<A, E>>,

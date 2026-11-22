@@ -1,7 +1,5 @@
 import type { ItemDate } from "#lib/zt-date.ts";
 
-// Reverse mapper: embedded CSL-JSON item data (as Zotero hoists it onto a note's
-// `data-citation-items`) → the narrowed zt cite-item vocabulary.
 import {
   CSL_TEXT_FIELD_MAP,
   CSL_TYPE_MAP,
@@ -20,18 +18,12 @@ import {
 } from "#lib/zt-date.ts";
 import { parseItemExtra } from "#lib/zt-extra.ts";
 
-/**
- * {@link CREATOR_TYPE_TO_CSL_NAME} inverted into CSL variable → Zotero
- * creator type, first-declared-wins on a collision (e.g. both `creator` and
- * `author` map to the CSL `author` variable; `author` is declared first).
- */
 const CSL_NAME_VAR_TO_CREATOR_TYPE: ReadonlyMap<string, string> =
   Object.entries(CREATOR_TYPE_TO_CSL_NAME).reduceRight(
     (map, [creatorType, cslNameVar]) => map.set(cslNameVar, creatorType),
     new Map<string, string>(),
   );
 
-/** Every zt field a CSL text variable can resolve to, first-candidate-wins. */
 function textFieldsFromCsl(
   csl: Record<string, unknown>,
 ): Record<string, string> {
@@ -64,7 +56,6 @@ function cslNameToCreator(name: unknown, role: string): TemplateCreator {
   };
 }
 
-/** Every CSL name variable present on `csl`, mapped to zt creators in key order. */
 function creatorsFromCsl(csl: Record<string, unknown>): TemplateCreator[] {
   const creators: TemplateCreator[] = [];
   for (const [key, value] of Object.entries(csl)) {
@@ -75,12 +66,6 @@ function creatorsFromCsl(csl: Record<string, unknown>): TemplateCreator[] {
   return creators;
 }
 
-/**
- * Map a CSL `issued` date variable — `date-parts` triple/pair/singleton, or a
- * `literal` string — onto the {@link ItemDate} shape shared with the live-DB
- * leg. An invalid calendar date (e.g. a nonexistent day) degrades to
- * year-month, then to year-only, mirroring {@link parseItemDate}'s cascade.
- */
 function cslIssuedToItemDate(issued: unknown): ItemDate | null {
   const date = cslIssuedToItemDateInner(issued);
   return date && withToString(date);
@@ -111,15 +96,6 @@ function cslIssuedToItemDateInner(issued: unknown): ItemDate | null {
   return yearOnly(year, String(year));
 }
 
-/**
- * Convert one cited item's embedded CSL-JSON `itemData` into
- * {@link TemplateCiteItemData}: text variables via {@link CSL_TEXT_FIELD_MAP}
- * (first valid candidate), `type` via {@link CSL_TYPE_MAP}, name variables via
- * {@link CSL_NAME_VAR_TO_CREATOR_TYPE}, and `issued` via
- * {@link cslIssuedToItemDate}. `citation-key` maps onto both
- * `citationKey`/`citekey`; a caller resolving a final citekey across legs
- * (e.g. note import) overrides these afterward.
- */
 export function cslToTemplateItem(
   csl: Record<string, unknown>,
 ): TemplateCiteItemData {

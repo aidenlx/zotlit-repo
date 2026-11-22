@@ -1,42 +1,5 @@
-/**
- * Parser for Zotero's `language` field. Ported from
- * `Zotero.Utilities.Item.languageToISO6391`, reshaped to return a
- * discriminated union instead of an opaque string so callers can tell
- * parsed shapes apart from unrecognized text.
- *
- * Zotero stores the field as the user's free-form input verbatim — no
- * normalization on write. Observed shapes in a single real library:
- * ISO 639-1 codes in any case (`en`, `EN`, `En`), ISO 639-2/3 codes (`eng`,
- * `ENG`), English names (`English`, `english`, `ENGLISH`), BCP 47 with
- * region or script (`en-US`, `zh-Hant`), underscore-separated (`en_US`),
- * and outright junk (`New York`, `English.`).
- *
- * Name lookup is caller-provided: `packages/db` never reads the host locale.
- * `createLanguageLookup()` indexes English names, endonyms, and an optional
- * caller UI locale.
- *
- * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/utilities/utilities_item.js#L780 upstream `languageToISO6391`
- */
-
 import { regex } from "arkregex";
 
-/**
- * - `iso6391` — `Intl.Locale` canonicalized the input to a bare 2-letter
- *   language subtag, or a language name lookup hit. On V8 this also covers
- *   ISO 639-2/3 inputs that have a 639-1 equivalent (`eng` → `en`); other
- *   runtimes may instead surface them as `locale`.
- * - `locale`  — syntactically valid BCP 47 `tag` that is *not* a bare 639-1
- *   code: region (`en-US`), script (`zh-Hant`), 5-8 letter reserved primary
- *   subtags, or anything recovered by `_` → `-` substitution
- *   (`en_US` → `en-US`). `tag` is the canonicalized form from `Intl.Locale`,
- *   so syntactically valid but semantically unknown inputs like `foobar`
- *   land here rather than `text`.
- * - `text`    — failed both lookups: not a known language name and not a
- *   syntactically valid `Intl.Locale` even after `_` → `-` substitution
- *   (e.g. `New York`, `English.`). Preserved verbatim.
- *
- * `raw` is always the verbatim stored value, retained for round-tripping.
- */
 export type ItemLanguage =
   | { kind: "iso6391"; code: string; raw: string }
   | { kind: "locale"; tag: string; raw: string }
@@ -44,12 +7,6 @@ export type ItemLanguage =
 
 export type LanguageNameLookup = (input: string) => string | null;
 
-/**
- * Builds the display-name map eagerly so per-item parsing only normalizes and
- * reads the returned map.
- *
- * @param uiLocale UI locale to index, or `null` to skip caller-localized names.
- */
 export function createLanguageLookup(
   uiLocale: string | null,
 ): LanguageNameLookup {

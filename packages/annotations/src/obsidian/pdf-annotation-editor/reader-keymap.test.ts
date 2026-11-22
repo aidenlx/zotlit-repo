@@ -21,7 +21,6 @@ const MARK: AnnotationRecord = annotation("PARA7777", "highlight", {
   rects: [[100, 600, 500, 640]],
 });
 
-/** The reader surfaces of one PDF view on one platform. */
 async function setup(isMacOS: boolean) {
   const stack = new AsyncDisposableStack();
   const containerEl = document.body.appendChild(document.createElement("div"));
@@ -41,7 +40,6 @@ async function setup(isMacOS: boolean) {
   };
 }
 
-/** Every chord the two platforms are asked about, by the name a reader reads. */
 const CHORDS: Readonly<Record<string, KeyboardEventInit>> = {
   "Ctrl+Z": { key: "z", ctrlKey: true },
   "Ctrl+Shift+Z": { key: "z", ctrlKey: true, shiftKey: true },
@@ -81,7 +79,6 @@ it("reads Command+Z and Command+Shift+Z as the history keys on macOS", () => {
   expect(decisions(true)).toEqual({
     "Command+Z": "undo",
     "Command+Shift+Z": "redo",
-    // Mod+Y is not a macOS redo, and Ctrl is not the platform key there.
     "Command+Y": "pass",
     "Ctrl+Z": "pass",
     "Ctrl+Shift+Z": "pass",
@@ -98,7 +95,6 @@ it("reads Ctrl+Z, Ctrl+Shift+Z and Ctrl+Y as the history keys elsewhere", () => 
     "Ctrl+Z": "undo",
     "Ctrl+Shift+Z": "redo",
     "Ctrl+Y": "redo",
-    // The Command key is no platform key off macOS.
     "Command+Z": "pass",
     "Command+Shift+Z": "pass",
     "Command+Y": "pass",
@@ -177,12 +173,9 @@ it("leaves the history keys to the comment editor holding focus", async () => {
 
   h.key({ key: "z", ctrlKey: true }, view.contentDOM);
 
-  // The editor's own text undo took the chord: the typed run is gone and the
-  // Annotation History never heard the key.
   expect(view.state.doc.toString()).toBe("Worth citing");
   expect(h.stepped).toEqual([]);
 
-  // The very same chord away from the editor is the reader's own.
   h.key({ key: "z", ctrlKey: true });
   expect(h.stepped).toEqual(["undo"]);
 });

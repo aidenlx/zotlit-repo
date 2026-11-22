@@ -8,9 +8,6 @@ import type {
   FilterRow,
 } from "#core/filter-fields/fields.ts";
 import type { IconName } from "obsidian";
-// The conditions of a Query Dataset as the Match editor offers them: the
-// kind picker's names and icons, and each field's operator and value
-// controls. The Query View's Filter and the Profile Match share them.
 import type { ReactNode } from "react";
 
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
@@ -43,12 +40,9 @@ const matchControl =
 const matchInput =
   "zt:min-h-(--input-height) zt:min-w-0 zt:w-full zt:flex-auto zt:shrink-0";
 
-/** The values a condition offers, from the Libraries the filter reads. */
 export interface FilterValues {
   readonly tags: readonly string[];
-  /** Collection paths, joined by `/`. */
   readonly collections: readonly string[];
-  /** `personal` or `group:<groupID>`, with the group's name. */
   readonly libraries: readonly { id: string; name: string | null }[];
 }
 
@@ -100,7 +94,6 @@ const OPERATOR_LABELS: Record<FilterOperator, Label> = {
   "is-false": m.workbench_filter_op_is_false,
 };
 
-/** A Collection is a member, not a text: "is" reads better than "contains". */
 const COLLECTION_LABELS: Partial<Record<FilterOperator, Label>> = {
   contains: m.workbench_filter_op_is,
   "does-not-contain": m.workbench_filter_op_is_not,
@@ -191,10 +184,8 @@ function RowValue({
   values: FilterValues;
   onChange: (next: FilterRow) => void;
 }) {
-  // A text field shows its placeholder, so it takes no tooltip.
   const valueName = useContainerName(m.workbench_filter_value());
   const { operator } = condition;
-  // These operators test no value the row holds.
   if (
     operator === "is-empty" ||
     operator === "is-not-empty" ||
@@ -229,8 +220,6 @@ function RowValue({
     });
     return (
       <MatchSelect
-        // A list as long as the item types, or as the user's libraries, takes
-        // a search; the colours and file types are a short fixed list.
         searchable={field.kind === "item-type" || field.kind === "library"}
         data-part="control"
         className={matchControl}
@@ -285,7 +274,6 @@ const FIELD_ICONS: Record<FilterField["type"], IconName> = {
   boolean: "check-square",
 };
 
-/** The icon of a field's value type. */
 function FieldIcon({ field }: { field: FilterField }) {
   return (
     <Icon name={field.kind === "tags" ? "tags" : FIELD_ICONS[field.type]} />
@@ -299,14 +287,6 @@ function kindLabel(kind: FilterFieldKind): string {
     : KIND_LABELS[kind as NamedFilterFieldKind]();
 }
 
-/**
- * The conditions of one dataset, as the Match editor offers them, then
- * `extra`, the fields the host adds. A condition shows `label(field)` where
- * it gives one, else the field's own label, else the name of its kind, and
- * `icon(field)` where it gives one, else the icon of its value type.
- * Its field's path stands beside its name, as the Bases property picker
- * shows a property's id.
- */
 export function filterVocabulary(
   dataset: FilterDataset,
   {
@@ -329,7 +309,6 @@ export function filterVocabulary(
   },
 ): MatchVocabulary<FilterRow> {
   const fields = [...filterFields(dataset), ...extra];
-  // Every kind tries an expression row's text, and the list has many kinds.
   let last: { text: string; row: FilterRow | null } | undefined;
   const parsed = (text: string) => {
     if (last?.text !== text) last = { text, row: parseFilterRow(text, fields) };

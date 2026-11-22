@@ -10,7 +10,6 @@ import {
 
 const { livePreview, hoverLinks } = vi.hoisted(() => ({
   livePreview: vi.fn(() => false),
-  /** Every `hover-link` the editor's own workspace was asked to answer. */
   hoverLinks: [] as [event: string, link: Record<string, unknown>][],
 }));
 
@@ -76,13 +75,10 @@ import {
   hoverPreferences,
 } from "#obsidian/citekey-navigation/index.ts";
 
-/** The Indexed Key `@doe2024` reaches, which is what a summary is held under. */
 const DOE_KEY = "DOE22345";
 
-/** The one Literature Note the page preview branch reads for `@doe2024`. */
 const NOTE_PATH = "lit/doe2024.md";
 
-/** One Item of the resolution snapshot, as the handler carries it. */
 const item = (indexedKey: string, itemID = 1): SnapshotItem => ({
   itemID,
   libraryID: 1,
@@ -90,13 +86,11 @@ const item = (indexedKey: string, itemID = 1): SnapshotItem => ({
   indexedKey,
 });
 
-/** The snapshot's answer for a key naming exactly one Item. */
 const unique = (indexedKey: string): CitekeyResolution => ({
   kind: "unique",
   item: item(indexedKey),
 });
 
-/** The snapshot's answer for an Ambiguous Citation Key. */
 const ambiguous: CitekeyResolution = {
   kind: "ambiguous",
   candidates: [item("DOE22345"), item("DOE22346", 2)],
@@ -145,13 +139,11 @@ async function editorView(
   options: ConstructorParameters<typeof EditorView>[0],
 ) {
   const view = new EditorView(options);
-  // The empty test syntax tree must cover the viewport for lookup updates to draw.
   vi.spyOn(view, "viewport", "get").mockReturnValue({ from: 0, to: 0 });
   await yieldToMain();
   return Object.assign(view, { [Symbol.dispose]: () => view.destroy() });
 }
 
-/** `See @doe2024 here.` — the key spans `[4, 12)`. */
 const LINE = stateOf("See @doe2024 here.");
 
 describe("citekeyAtPos", () => {
@@ -300,8 +292,6 @@ describe("citekeyEditorExtension theme hooks", () => {
     );
   });
 
-  // An Ambiguous Citation Key reads apart from a key that reaches nothing, in
-  // both editor modes, and the document keeps the source the author wrote.
   it("adds the literal ambiguous citation-key hook in both editor modes", async () => {
     for (const livePreviewMode of [false, true]) {
       livePreview.mockReturnValue(livePreviewMode);
@@ -368,16 +358,12 @@ describe("citekeyEditorExtension theme hooks", () => {
         (element) => element.dataset.ztClick,
       );
 
-    // A key that opens on click reads as the link it is, stating nothing.
     expect(marks()).toEqual([undefined, undefined]);
 
     navigationEnabled = false;
-    // This harness uses an empty syntax tree. A zero-width viewport marks that
-    // tree complete, which lets the external invalidation rebuild.
     vi.spyOn(view, "viewport", "get").mockReturnValue({ from: 0, to: 0 });
     view.dispatch({ effects: citekeyDecorationsChanged.of(undefined) });
 
-    // The caret the editor places is what the mark's own source is edited by.
     expect(marks()).toEqual(["edit", "edit"]);
   });
 
@@ -423,8 +409,6 @@ describe("citekeyEditorExtension theme hooks", () => {
     expect(drawn.dataset.ztClick).toBe("open");
 
     navigationEnabled = false;
-    // This harness uses an empty syntax tree. A zero-width viewport marks that
-    // tree complete, which lets the external invalidation rebuild.
     vi.spyOn(view, "viewport", "get").mockReturnValue({ from: 0, to: 0 });
     view.dispatch({ effects: citekeyDecorationsChanged.of(undefined) });
     const closed = view.dom.querySelector<HTMLElement>(".zt-citation")!;
@@ -432,17 +416,11 @@ describe("citekeyEditorExtension theme hooks", () => {
 
     expect(opened).toEqual(["doe2024"]);
     expect(requests).toEqual([]);
-    // The caret the browser places is what reveals the Citation's source.
     expect(closed.dataset.ztClick).toBe("edit");
   });
 });
 
 describe("citekeyEditorExtension delegated hover", () => {
-  /**
-   * One Source-mode editor over `See @doe2024 here.`, with the pointer answered
-   * from inside the marked key — happy-dom lays nothing out, so the coordinate
-   * lookup the delegated handler runs is the one thing stood in for.
-   */
   async function sourceView(
     requests: CitationHoverRequest[],
     {
@@ -452,7 +430,6 @@ describe("citekeyEditorExtension delegated hover", () => {
     }: {
       preferences?: HoverPreferences;
       notePath?: string | null;
-      /** Citekey Navigation, which the hover result is independent of. */
       navigationEnabled?: boolean;
     } = {},
   ) {
@@ -589,9 +566,7 @@ describe("citekeyEditorExtension delegated hover", () => {
 });
 
 describe("citekeyEditorExtension citation widgets", () => {
-  /** Every popover the drawn citations of these views asked for. */
   const requests: CitationHoverRequest[] = [];
-  /** Every note the drawn citations of these views asked to open. */
   const opened: [citekey: string, pane: unknown][] = [];
 
   beforeEach(() => {
@@ -604,11 +579,6 @@ describe("citekeyEditorExtension citation widgets", () => {
     vi.restoreAllMocks();
   });
 
-  /**
-   * One view over `doc`, with `formatted` held as its citation text — by
-   * default one occurrence of `[@doe2024]`. Citekey Navigation is off, so what
-   * these views draw carries the Hover Action's result alone.
-   */
   function viewOf(
     doc: string,
     formatted: Map<string, FormattedOccurrence[]> = new Map([
@@ -711,8 +681,6 @@ describe("citekeyEditorExtension citation widgets", () => {
   });
 
   it("shows each occurrence the text held for its own document offset", async () => {
-    // A position-dependent style renders the second occurrence of one source
-    // as the subsequent form; each widget matches its own editor offset.
     using view = await viewOf(
       "One [@doe2024] and [@doe2024].",
       new Map([
@@ -742,8 +710,6 @@ describe("citekeyEditorExtension citation widgets", () => {
       changes: { from: view.state.doc.length, insert: " more" },
     });
 
-    // The held text is unchanged, so CodeMirror keeps the element it already
-    // drew.
     expect(view.dom.querySelector(".zt-citation")).toBe(drawn);
   });
 
@@ -760,8 +726,6 @@ describe("citekeyEditorExtension citation widgets", () => {
     using view = await viewWithCitationText("Hi [@doe2024]", () => held);
     const drawn = view.dom.querySelector<HTMLElement>(".zt-citation")!;
 
-    // CodeMirror redraws a widget whose start an insert touches, so the edit
-    // lands ahead of the text before the Citation.
     view.dispatch({ changes: { from: 0, insert: "Before " } });
     expect(view.dom.querySelector(".zt-citation")).toBe(drawn);
 
@@ -796,10 +760,6 @@ describe("citekeyEditorExtension citation widgets", () => {
   });
 
   it("keeps the citation drawn over a bracket Obsidian hides when a new read redraws it", async () => {
-    // Live Preview reads `[@doe2024] [@roe2025]` as link syntax and hides the
-    // opening bracket with a widget-less replace of its own, listed ahead of
-    // every plugin's decorations. A redraw of the widget alone must still show
-    // the citation, not that empty replace stretched over its whole range.
     livePreview.mockReturnValue(true);
     const read = () =>
       heldRead({
@@ -874,8 +834,6 @@ describe("citekeyEditorExtension citation widgets", () => {
     drawn.dispatchEvent(down);
     drawn.dispatchEvent(event);
 
-    // The editor's own mouse selection takes the mousedown and places the
-    // caret, which is what brings the Citation's source back.
     expect(opened).toEqual([]);
     expect(requests).toEqual([]);
     expect(down.defaultPrevented).toBe(true);
@@ -898,7 +856,6 @@ describe("citekeyEditorExtension citation widgets", () => {
 
     drawn.dispatchEvent(down);
 
-    // Mod-mousedown would add a selection range; the click opens the work.
     expect(down.defaultPrevented).toBe(false);
   });
 

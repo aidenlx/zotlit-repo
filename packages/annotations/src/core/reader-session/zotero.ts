@@ -1,4 +1,3 @@
-// The Zotero Reader as a Reader Session, translated from the companion's pushes.
 import { Effect, Stream } from "effect";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -11,10 +10,8 @@ import type {
 import { ReaderSessionHost } from "./session.ts";
 import type { ReaderSessionTarget } from "./session.ts";
 
-/** What one companion reader push names, in Indexed Keys. */
 export interface ZoteroReaderResolution {
   target: ReaderSessionTarget;
-  /** Indexed Keys of the Annotations the push reported as selected. */
   selected: readonly string[];
 }
 
@@ -24,38 +21,18 @@ export interface ZoteroReaderSessionDeps {
     "readerTarget" | "readerTargetChanges"
   >;
   bridge: Pick<EffectBridge, "runSync" | "subscribe">;
-  /**
-   * Names the Attachment, its parent Item, and the selected Annotations a
-   * reader push points at; `null` while the Zotero database cannot answer.
-   * The numeric ids the wire carries stop here. The session keeps its
-   * previous target until the answer arrives, and aborts `signal` once a
-   * later push or its disposal supersedes the read.
-   *
-   * @see apps/obsidian/docs/adr/0033-zotero-object-identity-is-the-indexed-key-server-id-is-source-data.md
-   */
   resolve: (
     target: ReaderTarget,
     signal: AbortSignal,
   ) => Promise<ZoteroReaderResolution | null>;
-  /** Opens an Annotation in Zotero, which owns every gesture on its own reader. */
   navigate: (annotationKey: string) => void;
 }
 
-/**
- * The Zotero Reader, in the same shape as a ZotLit PDF Reader's session.
- *
- * Zotero drives it one way: the companion pushes what its reader holds and
- * ZotLit translates it. `setSelectedAnnotations` therefore reaches nothing —
- * the companion gains no inbound channel (ADR 0036) — so the session reports
- * only selections Zotero itself announced, rather than claiming one Zotero
- * does not hold.
- */
 export class ZoteroReaderSession extends ReaderSessionHost {
   readonly #liveUpdate;
   readonly #bridge;
   readonly #resolve;
   readonly #stopTracking: () => void;
-  /** Aborts the resolution that runs; a later push supersedes it. */
   #resolving: AbortController | null = null;
 
   constructor({
@@ -87,11 +64,6 @@ export class ZoteroReaderSession extends ReaderSessionHost {
     );
   }
 
-  /**
-   * Re-reads the push the listener still holds. A push that arrived before the
-   * database could name its keys resolves on the next refresh rather than
-   * being lost.
-   */
   refresh(): void {
     this.#track(this.#bridge.runSync(this.#liveUpdate.readerTarget));
   }

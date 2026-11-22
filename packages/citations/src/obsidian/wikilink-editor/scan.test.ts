@@ -4,15 +4,6 @@ import type { TokenNode } from "@zotlit/obsidian-kit/editor-decoration.ts";
 
 import { scanWikilinks } from "./scan.ts";
 
-/**
- * The node list Obsidian's stream-parser bridge emits, built from
- * `[text, classes]` pairs in document order. A pair with no classes stands for
- * untyped text: it advances the offset without producing a node, the way plain
- * paragraph text is simply absent from the tree.
- *
- * Every class string below is copied from the tokenizer inventory in
- * docs/research/wikilink-editor-styling-hmd-syntax-tree.md — section 1.2.
- */
 function nodes(...pairs: readonly (readonly [string, string])[]): TokenNode[] {
   const built: TokenNode[] = [];
   let offset = 0;
@@ -29,7 +20,6 @@ const LINK_START = "formatting-link formatting-link-start";
 const LINK_END = "formatting-link formatting-link-end";
 const EMBED_START = "formatting-embed formatting-link formatting-link-start";
 
-/** `see [[Note]] end` */
 const PLAIN = nodes(
   ["see ", ""],
   ["[[", LINK_START],
@@ -219,8 +209,6 @@ describe("scanWikilinks conceal groups", () => {
         ["]]", "formatting-link-end"],
       ),
     );
-    // The opener and closer carry no group class here, so the group is the run
-    // of interior nodes; the link's own extent is the wider answer.
     expect(scanned[0]?.group).toEqual({ from: 0, to: 8 });
   });
 });

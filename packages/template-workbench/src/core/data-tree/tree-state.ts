@@ -1,14 +1,9 @@
-// Pure, immutable transitions over the Template Data Explorer's root-scoped navigation state (anchor, filter, expansion).
-
 export interface TreeState {
   readonly anchorKey: string | null;
   readonly filterQuery: string;
   readonly expanded: ReadonlySet<string>;
-  /** Stash of the note-root `expanded` set while anchored; restored when returning to the note root. */
   readonly noteRootExpanded: ReadonlySet<string> | null;
-  /** Stash of `expanded` from before the filter was typed; restored on clear. */
   readonly preFilterExpanded: ReadonlySet<string> | null;
-  /** Transient collapse set for filter mode; keys here render collapsed even though they matched. */
   readonly filterCollapsed: ReadonlySet<string>;
 }
 

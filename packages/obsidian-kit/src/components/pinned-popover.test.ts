@@ -1,6 +1,4 @@
 // @vitest-environment happy-dom
-// Where a pinned popover stands. Beside its anchor by default; with `inset`,
-// inside a box at its right edge, as tall as the box less Obsidian's gap.
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { createElement as h, createRef } from "react";
@@ -16,14 +14,12 @@ import { AppContext } from "#app-context.ts";
 let host: HTMLElement | null = null;
 afterEach(() => {
   const mounted = host;
-  // Unmounting hides the popover on the body.
   if (mounted) void act(() => render(null, mounted));
   host?.remove();
   host = null;
   vi.restoreAllMocks();
 });
 
-/** A box at 100, 50 that measures 600 by 400, with an 8 px gap token. */
 function box() {
   const element = document.body.appendChild(document.createElement("div"));
   element.style.setProperty("--size-4-2", "8px");
@@ -71,7 +67,6 @@ function mount(
   return { app, anchor, handle, shell };
 }
 
-/** A box at `left`, 50 that measures 320 by 400: the panel a popover stands beside. */
 function panel(left: number) {
   const element = document.body.appendChild(document.createElement("div"));
   element.style.setProperty("--size-4-2", "8px");
@@ -82,7 +77,6 @@ function panel(left: number) {
 }
 
 it("stands inset in its box at the right edge, as tall as the box less the gap", async () => {
-  // The surface is 320 px wide.
   vi.spyOn(HTMLElement.prototype, "offsetWidth", "get").mockReturnValue(320);
   const { handle, shell } = mount(box());
   await act(() => handle.current!.show());
@@ -90,7 +84,6 @@ it("stands inset in its box at the right edge, as tall as the box less the gap",
   expect(style.top).toBe("58px");
   expect(style.height).toBe("384px");
   expect(style.maxWidth).toBe("584px");
-  // 100 + 600 − 8 − 320
   expect(style.left).toBe("372px");
 });
 
@@ -110,7 +103,6 @@ it("stands beside a box, level with its anchor, on the side with more room", asy
     new DOMRect(680, 120, 300, 28),
   );
   await act(() => handle.current!.show());
-  // Left of the panel at the window's right edge: 672 − 8 − 288.
   expect(shell()!.style.left).toBe("376px");
   expect(shell()!.style.top).toBe("120px");
   expect(shell()!.style.getPropertyValue("--zt-pinned-max-height")).toBe(
@@ -127,9 +119,7 @@ it("stays inside the box's height, and stands right of a box at the left edge", 
     new DOMRect(8, 420, 300, 28),
   );
   await act(() => handle.current!.show());
-  // 0 + 320 + 8
   expect(shell()!.style.left).toBe("328px");
-  // The box ends at 450: 450 − 200.
   expect(shell()!.style.top).toBe("250px");
 });
 
@@ -177,11 +167,6 @@ it("lets the page hear its page keys, which no hotkey behind it takes", async ()
   expect(heard).toHaveBeenCalledTimes(1);
 });
 
-/**
- * A pointer press outside the popover on `target`, as the browser runs it:
- * the press, then the focus change its mousedown makes, which leaves no
- * element focused on a place that takes no focus.
- */
 async function pressOutside(target: HTMLElement) {
   await act(() => {
     target.dispatchEvent(
@@ -193,8 +178,6 @@ async function pressOutside(target: HTMLElement) {
   await new Promise((resolve) => target.win.setTimeout(resolve, 0));
 }
 
-// A press outside returns focus to the action, unless it gave focus
-// to the place it pressed.
 it("closes on a press outside, and hands focus to its anchor when the press focused nothing", async () => {
   const { anchor, handle, shell } = mount();
   await act(() => handle.current!.show());
@@ -217,9 +200,6 @@ it("closes on a press outside, and leaves focus on the focusable place pressed",
   other.remove();
 });
 
-// A field's details open as they mount, and a leaf can close in the same
-// frame, before the page paints and runs passive effects: the open popover
-// still goes with the tree that held it, and leaves no empty shell behind.
 it("hides as it unmounts in the frame it opened in", () => {
   const { handle, shell } = mount();
   handle.current!.show();

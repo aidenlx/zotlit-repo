@@ -1,5 +1,3 @@
-// Installed Native Pandoc Workflow files and its focused CLI reference.
-
 import { Effect, Schema } from "effect";
 import type { CliData } from "obsidian";
 
@@ -32,7 +30,6 @@ export type PandocIntegrationHandlers = Record<
   CliCommandHandler
 >;
 
-/** The version-matched pair distributed by one installed ZotLit build. */
 export function pandocIntegrationFiles(): Record<string, string> {
   return {
     [PANDOC_FILTER_FILENAME]: pandocCliFilter,
@@ -51,7 +48,6 @@ export function createPandocIntegrationHandlers(
       return JSON.stringify(
         {
           contractVersion: CONTRACT_VERSION,
-          // The namespace `contractVersion` belongs to (ADR 0026).
           command: PANDOC_FILES_COMMAND,
           pluginVersion,
           files: pandocIntegrationFiles(),
@@ -69,10 +65,6 @@ export function createPandocIntegrationHandlers(
   };
 }
 
-/**
- * A parameter-free command got a parameter. `message` is the rejection's text,
- * hint included, which the CLI prints; `cause` holds the rejection.
- */
 export class PandocParamsRejected extends Schema.TaggedError<
   PandocParamsRejected,
   { readonly brand: unique symbol }
@@ -81,7 +73,6 @@ export class PandocParamsRejected extends Schema.TaggedError<
   cause: Schema.Defect(),
 }) {}
 
-/** Fails with the rejection's text, hint included, which the CLI prints. */
 function assertNoParameters(
   command: string,
   params: CliData,
@@ -98,7 +89,6 @@ function assertNoParameters(
   );
 }
 
-/** Man-style reference for ZotLit's part of the Native Pandoc Workflow. */
 export function renderPandocGuide(pluginVersion: string): string {
   return `ZOTLIT-PANDOC(1)
 

@@ -1,12 +1,9 @@
-// Dev-server restarts that keep the Chinese page inventory in step with the content files.
-
 import { resolve } from "node:path";
 import { normalizePath } from "vite";
 import type { Plugin } from "vite";
 
 import { chineseFile, scanChinesePages } from "./content-scan.ts";
 
-/** Keep locale metadata aligned with the native content inventory. */
 export function chinesePagesPlugin(packageRoot: string): Plugin {
   const inventory = () => JSON.stringify(scanChinesePages(packageRoot).sort());
   const contentRoot = `${normalizePath(resolve(packageRoot, "content"))}/`;
@@ -25,11 +22,7 @@ export function chinesePagesPlugin(packageRoot: string): Plugin {
           normalizePath(path).startsWith(contentRoot) &&
           chineseFile.test(path)
         ) {
-          // Fumadocs refreshes its collections on file changes. Re-run the
-          // config too so browser/SSR defines and prerender metadata agree.
           await server.restart();
-          // Vite coalesces restarts. A checkout can add more translations after
-          // that restart scanned the files, so carry those changes through too.
           if (server.config.define?.__DOCS_CHINESE_PAGES__ !== inventory()) {
             await server.restart();
           }

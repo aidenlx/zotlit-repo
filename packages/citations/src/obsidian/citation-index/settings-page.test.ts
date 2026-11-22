@@ -14,7 +14,6 @@ import { testSettingTab } from "#__fixtures__/setting-tab.ts";
 import { defaults } from "#__fixtures__/settings.ts";
 import { PandocEngine } from "#obsidian/pandoc/service.ts";
 
-/** The tab over `settings` and a Pandoc engine that is not installed. */
 const pandocTab = (settings: Settings) =>
   testSettingTab(
     Context.make(
@@ -32,10 +31,6 @@ const pandocTab = (settings: Settings) =>
     ),
   ).tab;
 
-/**
- * The Citations page context over `settings`, with the Graph plugin off and
- * no rows from the features that fill the page's slots.
- */
 const citationsContext = (settings: Settings) =>
   stubService<SettingTabContext>("SettingTabContext", {
     tab: pandocTab(settings),
@@ -49,7 +44,6 @@ const citationsContext = (settings: Settings) =>
   });
 
 describe("hover settings", () => {
-  /** The Hover group's rows for a given saved hover action. */
   const hoverRows = (settings: Settings) => {
     const ctx = citationsContext(settings);
     const group = citationsPageItems(ctx).find(

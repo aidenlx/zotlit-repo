@@ -140,7 +140,6 @@ const annotationParentsQuery = defineKeyedQuery<
   { keyOf: (row) => row.item.key },
 );
 
-/** @returns Top-level parent keys, or standalone Attachment keys, for live Annotations in request order. */
 export function getAnnotationParentKeys(
   db: ZoteroDatabase,
   keys: readonly string[],
@@ -170,11 +169,6 @@ export function getAnnotationsByParent(
   );
 }
 
-/**
- * Fetch annotations of one library by key, in `keys` order, through
- * one cached keyed read. A key that names no live annotation has no entry; a
- * repeated key repeats its annotation.
- */
 export function getAnnotationsByKey(
   db: ZoteroDatabase,
   keys: readonly string[],

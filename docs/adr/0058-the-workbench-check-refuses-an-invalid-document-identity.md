@@ -47,3 +47,63 @@ shapes stand and the `check` guide topic states the rule.
   unreleased, so the version does not move for them. A refusal added to a
   published contract would move it, because a call that used to succeed now
   fails.
+
+### CLI request and fault boundaries
+
+Parse the selector, resolve the connected identity, check the caller's
+expected source, and then wait for pending Template edits to compile
+before reading or rendering. A Citation can use a built-in example
+without looking up an Item. A Shared Partial selects its caller root,
+and a Citation root also selects the Citation Variant. Data discovery
+parses accessors without evaluating arbitrary expressions.
+
+Preserve omitted frontmatter patch values so the handler can reuse
+existing values or choose defaults. Validate removal and reorder
+against the configured fields after parsing. An absent guide topic
+selects the quickstart. The schema command lists every root.
+
+A missing generated contract entry indicates inconsistent build
+metadata. Log it as a plugin defect. For a parser fault, report the
+document and offset even when source is unavailable. When a called
+template supplies the failure location, use that template's source for
+its excerpt and line. A data-root read runs no Template of its own,
+so it names a Template only when the error does.
+[CLI requests](../../packages/template-workbench/src/desktop/cli/request.ts) · [CLI handlers](../../packages/template-workbench/src/desktop/cli/cli.ts)
+
+### Check Attempt and source evidence
+
+The entry point parses the request, checks selectors and flags, acquires the
+source, and assembles one Check Attempt. Its document branches receive the
+validated Profile identity or caller root and extend the answer by value.
+They preserve failures from the checked source and the Templates it calls.
+A draft uses its own diagnostics because installed diagnostics describe the
+saved revision. For a Profile, fingerprint the annotation data without
+evaluating the Citation getter. The check verifies the source of the
+separately evaluated Citation Template.
+
+Create renders a new note. Update reads exactly one baseline from the Item's
+note, an explicit note path, or supplied text. The CLI and native preview
+compose baselines in memory to retain the note's outside body and unrelated
+Properties. Undefined selects create and null selects a synthetic update
+baseline. Check each Managed Frontmatter contribution independently. Preserve
+the engine report and use source locations verified by the shared diagnoser.
+
+Retain the latest finished attempts and evict the oldest at the limit. Attach
+render reports to a copy of the checks map. Apply output and evidence selectors
+after the attempt finishes, to a separate response copy. A subsequent lookup
+can disclose evidence omitted from the original response. Always include the
+top-level Diagnostic Report when represented as lines.
+
+### Inspect the requested revision
+
+Compare the first disk snapshot with the exact bytes reconciliation recorded.
+Keep that snapshot through the wait and set its time budget before the first
+read. A confirmed absence selects built-in source for canonical customization
+paths. Verify the complete installed Shared Partial registry and the Citation
+Template because a dynamic Eta include can select a dependency at render time.
+Inspection can report a registry diagnostic, a Profile scan problem, a manifest
+error, or a compile error. A compile error can lack a diagnostic code.
+
+[Check Attempt](../../packages/template-workbench/src/desktop/cli/check.ts) ·
+[Source inspection](../../packages/template-workbench/src/desktop/cli/inspect.ts) ·
+[Profile check](../../packages/template-workbench/src/obsidian/cli/check-profile.ts)

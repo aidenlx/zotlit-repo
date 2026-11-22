@@ -8,8 +8,6 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import { testAnnotHost } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
 import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
-// The Query File tab writes a toolbar change to its file at once, through
-// its own save, and the toolbar says when the write failed.
 import {
   resetMockPlatform,
   setMockPlatform,
@@ -52,11 +50,6 @@ afterEach(async () => {
   document.body.replaceChildren();
 });
 
-/**
- * A tab of the Query File. Its save acts as Obsidian's own: it writes the
- * view's text through `write`, which stands in for the vault, and a save
- * while one writes returns at once and writes again after it.
- */
 async function openTab() {
   setMockPlatform({ isMacOS: true });
   cleanup.defer(resetMockPlatform);
@@ -126,7 +119,6 @@ async function openTab() {
   const requestSave = vi.fn();
   tab.requestSave = requestSave;
   document.body.append(tab.contentEl);
-  // What the tab's `onload` does, which the mock view cannot run.
   tab.query.load();
   await act(() => tab.query.render(tab.contentEl));
   cleanup.defer(() => tab.query.unload());
@@ -137,7 +129,6 @@ async function openTab() {
   return { tab, write, written, requestSave };
 }
 
-/** Whether the toolbar says that the last change is not saved. */
 const notSaved = (tab: QueryFileView) => tab.query.state.getState().saveFailed;
 
 it("writes a toolbar change to the file at once", async () => {

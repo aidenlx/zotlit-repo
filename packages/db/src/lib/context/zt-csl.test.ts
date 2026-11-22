@@ -2,11 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { cslToTemplateItem } from "./zt-csl.ts";
 
-/**
- * A cited item's embedded CSL-JSON, as Zotero hoists it onto a note container's
- * `data-citation-items`. The reverse mapper turns this into the narrowed
- * {@link TemplateCiteItemData} cite legs share.
- */
 function csl(data: Record<string, unknown>): Record<string, unknown> {
   return { id: "http://zotero.org/users/local/x/items/KX67D9YM", ...data };
 }

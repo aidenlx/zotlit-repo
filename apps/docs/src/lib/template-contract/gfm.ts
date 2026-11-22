@@ -1,9 +1,3 @@
-// Renders the shared page model as GFM for the page's Markdown edition.
-//
-// The interactive table hides the full type, helper usage, and examples
-// behind a row expander; Markdown has no expander, so every detail this
-// module renders lands directly in the row.
-
 import { sectionOf } from "./page-model.ts";
 import type {
   Doc,
@@ -13,7 +7,6 @@ import type {
   TableModel,
 } from "./page-model.ts";
 
-/** One section's tables as GFM, replacing `<ContractTable section>` in the Markdown edition. */
 export function renderContractTableMarkdown(
   model: PageModel,
   section: string,
@@ -67,7 +60,6 @@ function renderRow(table: TableModel, row: RowModel): string {
   return `| ${property} | ${type} | ${description} |`;
 }
 
-/** The notes a row's expander shows in the React table, restated inline for Markdown. */
 function detailNotes(row: RowModel): string[] {
   const notes: string[] = [];
   if (row.helper) {
@@ -87,12 +79,10 @@ function detailNotes(row: RowModel): string[] {
   return notes;
 }
 
-/** A GFM cell cannot carry a raw `|` or a newline, both of which union types and Liquid filters use. */
 function cell(text: string): string {
   return text.replaceAll("|", "\\|").replaceAll(/\s+/g, " ").trim();
 }
 
-/** One Markdown paragraph per normalized paragraph; `onText` guards each prose run. */
 export function renderDocMarkdown(
   doc: Doc,
   onText?: (text: string) => string,

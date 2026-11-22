@@ -3,37 +3,24 @@ import type {
   QueryFileDirection,
 } from "#core/query-view/query-file.ts";
 
-// The properties a Query View's Sort and Group controls offer, by the names a
-// researcher knows them by. Sort offers only Sortable Fields of ZotLit Query;
-// Group offers the group paths the layouts of the view's dataset can gather
-// rows by.
 import { fieldSearchTerms } from "@zotlit/item-query";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { datasetSpec } from "./datasets.ts";
 import { propertyIcon } from "./property-icon.ts";
 
-/** How a property's values order, which names its two directions. */
 export type PropertyKind = "text" | "date" | "number";
 
 export interface PropertyOption {
-  /** The Projection Path, as the file names it. */
   readonly path: string;
   readonly label: string;
   readonly kind: PropertyKind;
-  /** The icon of the property's type, as the Bases property picker shows it. */
   readonly icon: string;
-  /** Other words its select finds it by. */
   readonly searchTerms?: readonly string[];
 }
 
-/**
- * The label of a property, as a view's Property entries give it; `undefined`
- * where the caller has no view, which leaves the labels of the dataset.
- */
 export type OptionLabel = ((path: string) => string) | undefined;
 
-/** The properties a view of `dataset` can sort by, in the order Sort lists them. */
 export function sortOptions(
   dataset: QueryFileDataset | undefined,
   labelOf?: OptionLabel,
@@ -51,7 +38,6 @@ export function sortOptions(
     }));
 }
 
-/** The properties a view of `dataset` can group by, in the order Group lists them. */
 export function groupOptions(
   dataset: QueryFileDataset | undefined,
   labelOf?: OptionLabel,
@@ -60,7 +46,6 @@ export function groupOptions(
     const field = path.replace(/\[\]$/, "");
     return {
       path,
-      // A grouping by a list path names one value of the list.
       label: labelOf?.(field) ?? label(),
       kind: "text",
       icon: propertyIcon(dataset ?? "annotations", {
@@ -72,7 +57,6 @@ export function groupOptions(
   });
 }
 
-/** The name of one direction of a property, as Bases names it. */
 export function directionLabel(
   kind: PropertyKind,
   direction: QueryFileDirection,

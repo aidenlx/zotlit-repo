@@ -1,8 +1,4 @@
 import type { LiteratureNoteServices } from "#obsidian/attachment-open/literature-note.ts";
-// Reading and annotating on the desktop: the Obsidian feature
-// (`#obsidian/feature.ts`) with the Excerpt Images, which read the file
-// system, the Target Opener and its commands, the `open-attachment` link,
-// and the excerpt cache's recovery row.
 import { Effect, FileSystem, Layer } from "effect";
 
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
@@ -52,7 +48,6 @@ import { openExcerptStore } from "#obsidian/excerpt-image/store.ts";
 import { annotations as obsidianAnnotations } from "#obsidian/feature.ts";
 import { ReaderConnection } from "#obsidian/reader-connection/service.ts";
 
-/** The Literature Note attachments a command or a view opens, over the built graph. */
 export const literatureNoteAttachmentsOf = ({
   bridge,
   read,
@@ -62,7 +57,6 @@ export const literatureNoteAttachmentsOf = ({
     read(Effect.context<LiteratureNoteServices>()),
   );
 
-/** What the attachment-open commands and their file menu entry read. */
 const attachmentOpenDeps = (ctx: FeatureContext) => ({
   app: ctx.app,
   attachments: literatureNoteAttachmentsOf(ctx),
@@ -72,8 +66,6 @@ const attachmentOpenDeps = (ctx: FeatureContext) => ({
 
 export const annotations = extendFeature(obsidianAnnotations, {
   services: [
-    // Every ZotLit gesture that opens an Attachment, and File Link Capture
-    // for a link Obsidian rendered, decides through this one opener.
     serviceGroup(
       "TargetOpener",
       {
@@ -150,8 +142,6 @@ export const annotations = extendFeature(obsidianAnnotations, {
         bridge,
       }),
     );
-    // A view's open outlives the tab that started it: the reader may
-    // replace that tab.
     stack.defer(read(ViewRegistry).mount(openTargetCommand));
     return { fileMenu: { "attachment-open": attachmentOpenFileMenu(deps) } };
   },

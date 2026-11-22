@@ -1,4 +1,3 @@
-// The Annotation loading descriptor: its fields and Parent Records.
 import { Effect } from "effect";
 
 import { readAnnotationHydrateChunk } from "@zotlit/db/item-query";
@@ -17,7 +16,6 @@ import { ITEM_LOADING } from "./hydration.ts";
 import { parentRecord } from "./record-loader.ts";
 import type { LoadingDescriptor } from "./record-loader.ts";
 
-/** What Hydration loads for an Annotation field. */
 export interface AnnotationNeeds {
   readonly details?: boolean;
   readonly tags?: boolean;

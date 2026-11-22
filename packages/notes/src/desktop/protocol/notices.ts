@@ -1,6 +1,3 @@
-// Outcome notices of the note links: what each refused link, early exit or
-// failure of a link-started run tells the user.
-
 import type { BatchUpdateResult } from "#desktop/note-feature/update-batch.ts";
 import { Effect } from "effect";
 import type { App } from "obsidian";
@@ -23,11 +20,6 @@ import {
   importNotices,
 } from "#desktop/note-import/batch-import-notices.ts";
 
-/**
- * Show the notice of a note link's outcome: a refusal shows its message; a
- * run reports its result for 2 s or its failure for 4 s, as
- * {@link reportOutcome} does. An ignored link and an open show none.
- */
 export const showNoteLinkOutcome = Effect.fn("protocol.showNoteLinkOutcome")(
   function* (outcome: NoteLinkOutcome, options: { readonly app?: App }) {
     const notifier = yield* Notifier;
@@ -47,7 +39,6 @@ export const showNoteLinkOutcome = Effect.fn("protocol.showNoteLinkOutcome")(
   },
 );
 
-/** A batch update's notices: the early-exit outcomes; a failure shows none. */
 const batchUpdateToast: OutcomeCopy<BatchUpdateResult> = {
   success: batchUpdateNotice,
   error: () => undefined,
@@ -82,7 +73,6 @@ function updateAllNotice(result: BatchUpdateResult): string | undefined {
   }
 }
 
-/** An update-all link's notices: the early-exit outcomes; a failure shows none. */
 const updateAllToast: OutcomeCopy<BatchUpdateResult> = {
   success: updateAllNotice,
   error: () => undefined,

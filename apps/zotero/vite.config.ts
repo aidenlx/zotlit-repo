@@ -21,14 +21,10 @@ const packageRoot = import.meta.dirname;
 const workspaceRoot = await getWorkspaceRoot(packageRoot);
 
 const FLUENT_PREFIX = "zotlit";
-/** The inlang namespace holding Companion copy; see ADR 0053. */
 const FLUENT_NAMESPACE = "zotero.";
-/** Zotero's fallback chain looks for `en-US`, so the base `en` catalog lands there. */
 const FLUENT_LOCALE_ALIASES = { en: "en-US" };
 const PREF_PREFIX = "extensions.zotlit.";
 
-// Names that Zotero's plugin loader expects as top-level bindings on the
-// bootstrap scope. Each is rebound in the bootstrap bundle's footer.
 const BOOTSTRAP_HOOKS = [
   "install",
   "uninstall",
@@ -39,17 +35,9 @@ const BOOTSTRAP_HOOKS = [
 ] as const;
 const BOOTSTRAP_IIFE_NAME = "__zotlitBootstrap";
 
-// Names that bootstrap.js plucks off the `loadSubScript` scope object. Each
-// is rebound in main.js's footer so it becomes a top-level `var`.
 const MAIN_EXPORTS = ["ZotLitZotero"] as const;
 const MAIN_IIFE_NAME = "__zotlitMain";
 
-// bootstrap.js and main.js can't share one Vite/Rolldown build: IIFE format
-// is single-entry by design (each top-level `var X = (function(){…})()`
-// wrapper produces exactly one file). The plugin runs the inner bootstrap
-// build inside `buildStart`, adds its module ids to the watch graph, and
-// owns staging-dir cleanup — so a single outer watcher picks up changes to
-// either source tree.
 const bootstrapBundle = {
   entry: "src/bootstrap.ts",
   iifeName: BOOTSTRAP_IIFE_NAME,
@@ -66,14 +54,9 @@ export function createZoteroViteConfig({ mode }: ConfigEnv) {
       iifeName: MAIN_IIFE_NAME,
       fileName: MAIN_BUNDLE_NAME,
       exports: MAIN_EXPORTS,
-      // `using` keyword supported in firefox 141, but firefox 140 target
-      // incorrectly flips `using` as supported; target es2023 explicitly here
       target: "es2023",
     }),
     plugins: [
-      // Runs before zoteroBuildPlugin: derives the locale FTLs from the
-      // inlang project and codegens `src/types/fluent.ts` before the zip
-      // step picks them up.
       fluentPlugin({
         root: packageRoot,
         env,

@@ -1,5 +1,3 @@
-// Obsidian's mark, inlined rather than imported as an asset so it renders as
-// <svg> and inherits `currentColor` from the link that carries it.
 export function ObsidianMark({ className }: { className?: string }) {
   return (
     <svg

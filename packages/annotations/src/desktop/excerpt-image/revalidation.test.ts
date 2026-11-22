@@ -1,5 +1,3 @@
-// A saved pixel edit revalidates its Excerpt Image, the newest edit winning.
-
 import type {
   AnnotationRecord,
   AnnotationSource,
@@ -39,7 +37,6 @@ const attachment = stubService<Attachment>("Attachment", {
   linkMode: 0,
   path: "storage:paper.pdf",
 });
-/** Reads of a database whose Server ID is `serverID`. */
 const readsOf = (serverID: string) =>
   readsAnswering({
     DatabaseIdentity: () =>
@@ -53,11 +50,6 @@ const readsOf = (serverID: string) =>
   });
 const reads = readsOf(SERVER_ID);
 
-/**
- * The revalidation layer over a pixel-edit stream the case publishes to.
- * `snapshot` is each read's Snapshot; `revalidated` takes each request the
- * display revalidates.
- */
 const register = Effect.fn("test.register")(function* (
   snapshot: Effect.Effect<ZoteroReadsApi>,
 ) {
@@ -122,7 +114,6 @@ it.effect("interrupts an older read of the same Annotation", () =>
       Effect.gen(function* () {
         const older = ++count === 1;
         yield* Queue.offer(started, undefined);
-        // The older read holds its Snapshot until it is interrupted.
         if (older)
           return yield* Effect.never.pipe(
             Effect.onInterrupt(() => Deferred.succeed(olderStopped, undefined)),

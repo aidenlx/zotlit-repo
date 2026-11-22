@@ -40,17 +40,11 @@ export {
   type ResolvedLiteratureNote,
 } from "./literature-note.ts";
 
-/** The metadata cache holds no entry for the file's path yet. */
 const UNREAD = Symbol("unread");
-/**
- * What the metadata cache holds for a file: its Indexed Keys, and its
- * frontmatter serialized, `null` for a file that is gone or not Markdown.
- */
 interface Read {
   contributions: FileContributions;
   frontmatter: string | null;
 }
-/** A file that is gone or not Markdown: no keys, no frontmatter. */
 const NONE: Read = { contributions: EMPTY_CONTRIBUTIONS, frontmatter: null };
 type Reading = Read | typeof UNREAD;
 
@@ -58,10 +52,6 @@ export type NoteIndexChange =
   | { readonly type: "indexed" }
   | { readonly type: "changed" | "frontmatter-changed"; readonly file: TFile };
 
-/**
- * {@link resolveLiteratureNote} over the MetadataCache tag, for an Effect
- * surface that turns a linkpath into a Citation.
- */
 export const resolveLiteratureNoteIn = Effect.fnUntraced(function* (
   metadata: Pick<MetadataCacheShape, "firstLinkpathDest" | "fileCache">,
   linkpath: string,
@@ -72,10 +62,6 @@ export const resolveLiteratureNoteIn = Effect.fnUntraced(function* (
   return literatureNoteOf(dest, yield* metadata.fileCache(dest));
 });
 
-/**
- * {@link resolveLiteratureNoteIn}, with the native citation key `lookup` holds
- * for the note's Item: the target a wikilink surface turns into a Citation.
- */
 export const literatureNoteTargetIn = Effect.fnUntraced(function* (
   metadata: Pick<MetadataCacheShape, "firstLinkpathDest" | "fileCache">,
   linkpath: string,
@@ -99,7 +85,6 @@ export const literatureNoteTargetIn = Effect.fnUntraced(function* (
 export class NoteIndex extends Context.Service<
   NoteIndex,
   {
-    /** Each index invalidation, in order, from when the consumer attaches. */
     readonly changes: Stream.Stream<NoteIndexChange>;
     getNotesByItemKey(indexedKey: string): Effect.Effect<TFile[]>;
     getImportedNoteByNoteKey(noteKey: string): Effect.Effect<TFile[]>;
@@ -109,12 +94,7 @@ export class NoteIndex extends Context.Service<
     }>;
     readonly getPropertyNames: Effect.Effect<string[]>;
     readonly getIndexedItemKeys: Effect.Effect<string[]>;
-    /**
-     * Settles after the Full Scan, or when the layer closes. Await this before
-     * create-vs-existing decisions: a pre-scan read can mint a duplicate.
-     */
     readonly whenIndexed: Effect.Effect<void>;
-    /** Waits for queued rename reads, including those that change no keys. */
     readonly whenSettled: Effect.Effect<void>;
   }
 >()("zotlit/note-index/NoteIndex") {}
@@ -145,7 +125,6 @@ const makeNoteIndex = Effect.gen(function* () {
   const notesByItemKey = new Map<string, Set<TFile>>();
   const notesByNoteKey = new Map<string, Set<TFile>>();
   const contribByFile = new Map<TFile, FileContributions>();
-  /** The frontmatter of each tracked file as last seen, serialized, to tell a frontmatter edit from a body edit. */
   const frontmatterByFile = new Map<TFile, string>();
   const warnedDuplicatePaths = new Map<string, string>();
   let disposed = false;
@@ -174,14 +153,12 @@ const makeNoteIndex = Effect.gen(function* () {
     return notes;
   });
 
-  /** Imported-note files carrying `zotero-note-key`; disjoint from lit notes. */
   const getImportedNoteByNoteKey = Effect.fn(
     "NoteIndex.getImportedNoteByNoteKey",
   )((noteKey: string) =>
     Effect.sync(() => sortNotes(notesByNoteKey.get(noteKey))),
   );
 
-  /** Await {@link whenIndexed} before querying; stamp labels are hints, IDs select membership. */
   const getNotesByProfile = Effect.fn("NoteIndex.getNotesByProfile")(
     (selector: ProfileSelector) =>
       Effect.gen(function* () {
@@ -198,11 +175,6 @@ const makeNoteIndex = Effect.gen(function* () {
       }),
   );
 
-  /**
-   * The frontmatter keys found across the Literature Notes, in locale order,
-   * but Obsidian's reserved keys and ZotLit's system keys: the names a vault
-   * property can take.
-   */
   const getPropertyNames = Effect.gen(function* () {
     const names = new Set<string>();
     for (const [file, contribution] of contribByFile) {
@@ -215,7 +187,6 @@ const makeNoteIndex = Effect.gen(function* () {
     return [...names].sort((a, b) => a.localeCompare(b));
   }).pipe(Effect.withSpan("NoteIndex.getPropertyNames"));
 
-  /** Indexed keys that currently have at least one Literature Note. */
   const getIndexedItemKeys = Effect.sync(() => [...notesByItemKey.keys()]).pipe(
     Effect.withSpan("NoteIndex.getIndexedItemKeys"),
   );
@@ -226,7 +197,6 @@ const makeNoteIndex = Effect.gen(function* () {
 
   const whenSettled = Effect.gen(function* () {
     if (disposed) return;
-    // The consumer must reach this marker before we snapshot pending renames.
     const barrier = yield* Deferred.make<void>();
     pendingBarriers.add(barrier);
     events.callback("barrier")(barrier);
@@ -240,31 +210,20 @@ const makeNoteIndex = Effect.gen(function* () {
     );
   }).pipe(Effect.withSpan("NoteIndex.whenSettled"));
 
-  // Acquire listeners after the functions below have been initialized.
   const listen = Effect.fn("NoteIndex.listen")(function* () {
-    // The metadata cache's events join the vault's in one ordered intake:
-    // forkEach hands each over inside Obsidian's callback.
     yield* forkEach(metadata.changes, events.callback("metadata"));
     yield* forkEach(
       filterTag(vault.changes, "delete", "rename"),
       events.callback("vault"),
     );
-    // Started immediately: a ready layout completes at once, so the event is
-    // queued here; else it is queued inside Obsidian's layout-ready callback.
     yield* workspace.layoutReady.pipe(
       Effect.andThen(Effect.sync(() => events.callback("layout")())),
       Effect.forkScoped({ startImmediately: true }),
     );
-    // Start immediately so a ready layout and clean cache finish the Full Scan
-    // before acquisition returns, as they did through the synchronous callbacks.
     yield* events
       .consume(consume)
       .pipe(Effect.forkScoped({ startImmediately: true }));
 
-    // Layout-ready and `onCleanCache` are one-shots with no unregister, so
-    // the scan gates on disposal instead. Callers parked on `whenIndexed()`
-    // are torn down alongside the service and would otherwise wait on
-    // nothing, so disposal settles them.
     yield* Effect.addFinalizer(() =>
       Effect.gen(function* () {
         disposed = true;
@@ -279,22 +238,12 @@ const makeNoteIndex = Effect.gen(function* () {
     );
   });
 
-  /**
-   * Runs the Full Scan exactly once, when the metadata cache covers every file.
-   * Obsidian's public API carries no "cache complete" signal; `whenResolved`
-   * waits for it. Layout-ready is the guard, since at plugin load during
-   * startup the vault is not loaded yet and the empty cache reads as clean;
-   * layout-ready runs strictly after the cache initializes, and synchronously
-   * when the plugin is enabled at runtime.
-   */
   const scanWhenCacheClean = Effect.fn("NoteIndex.scanWhenCacheClean")(
     function* () {
       if (disposed) return;
       yield* Effect.logDebug(
         "Note index requested a clean metadata cache",
       ).pipe(withLogCategory("note-index"));
-      // Started immediately: a clean cache calls back at once, so the Full
-      // Scan is queued before this event's handler returns.
       yield* metadata.whenResolved.pipe(
         Effect.andThen(Effect.sync(() => events.callback("clean")())),
         Effect.forkScoped({ startImmediately: true }),
@@ -327,8 +276,6 @@ const makeNoteIndex = Effect.gen(function* () {
           yield* apply(file, NONE);
           break;
         }
-        // Obsidian rekeys the same TFile in a later vault listener during
-        // startup. Read after that dispatch, keeping the moved-key notice first.
         if (contribByFile.has(file)) yield* publish({ type: "changed", file });
         const settled = yield* Deferred.make<void>();
         pendingRenames.add(settled);
@@ -364,11 +311,6 @@ const makeNoteIndex = Effect.gen(function* () {
     }
   });
 
-  /**
-   * What the metadata cache holds for the file now: its contributions, or
-   * {@link UNREAD} while the cache has no entry for its path. A non-Markdown
-   * file contributes nothing.
-   */
   const read = (file: TFile): Effect.Effect<Reading> =>
     isMarkdownFile(file)
       ? Effect.map(metadata.fileCache(file), (cache) =>
@@ -376,7 +318,6 @@ const makeNoteIndex = Effect.gen(function* () {
         )
       : Effect.succeed(NONE);
 
-  /** What a Markdown file's cache entry, as the cache hands it over, holds. */
   function readCache(cache: CachedMetadata): Read {
     return {
       contributions: fileContributions(cache),
@@ -384,10 +325,6 @@ const makeNoteIndex = Effect.gen(function* () {
     };
   }
 
-  /**
-   * Settles the file to `reading`, and reports a move of its keys as
-   * `changed`, then an edit of its frontmatter as `frontmatter-changed`.
-   */
   const apply = Effect.fn("NoteIndex.apply")(function* (
     file: TFile,
     reading: Reading,
@@ -398,15 +335,6 @@ const makeNoteIndex = Effect.gen(function* () {
       yield* publish({ type: "frontmatter-changed", file });
   });
 
-  /**
-   * The one step that changes the index: the file's keys, and the
-   * frontmatter of a tracked file as last seen. An {@link UNREAD} file keeps
-   * what the index holds for it, and the cache's next `changed` or `deleted`
-   * settles it.
-   * @returns whether the keys moved, and whether the frontmatter of a note
-   * the index tracks, or tracked until now, changed; a file that is gone
-   * reports no frontmatter edit.
-   */
   function settle(
     file: TFile,
     reading: Reading,
@@ -435,12 +363,6 @@ const makeNoteIndex = Effect.gen(function* () {
     };
   }
 
-  /**
-   * Reads every note at once, then says `indexed`: a consumer that read the
-   * index before the scan reads it again. It says no `changed` for each note;
-   * every later change arrives as `changed` or `frontmatter-changed` for its
-   * file.
-   */
   const fullScan = Effect.fn("NoteIndex.fullScan")(
     function* () {
       if (disposed) return;
@@ -505,7 +427,6 @@ function serializeFrontmatter(cache: CachedMetadata | null): string {
   return JSON.stringify(cache?.frontmatter ?? null);
 }
 
-/** Most-recently-modified first; ties broken by path for stable ordering. */
 function sortNotes(files: Set<TFile> | undefined): TFile[] {
   if (!files) return [];
   return [...files].sort(

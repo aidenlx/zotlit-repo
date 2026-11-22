@@ -1,4 +1,3 @@
-// A Promise host for the scoped renderer's resource ownership trials.
 import { Effect, Layer } from "effect";
 import type { FileSystem } from "effect";
 

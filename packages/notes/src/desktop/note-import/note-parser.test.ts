@@ -38,7 +38,6 @@ import { renderAnnotationSources } from "#desktop/template/annotation-render.ts"
 
 const packageRoot = getPackageRoot(import.meta.filename);
 
-// Keep the real DOM-free parsers; only the template-data leg is stubbed.
 vi.mock("@zotlit/db", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@zotlit/db")>();
   return {
@@ -47,16 +46,9 @@ vi.mock("@zotlit/db", async (importOriginal) => {
   };
 });
 
-/** The already-read cited Items the parser looks up, by Indexed Key. */
 const citedItem = vi.fn<(indexedKey: string) => Item | undefined>();
-/** The already-read embedded image attachments the parser looks up, by key. */
 const embeddedAttachment = vi.fn<(key: string) => Attachment | undefined>();
 
-/**
- * Serve a live DB row for each `key -> citationKey` entry in the library of
- * `groupID` (`null`: the personal library), mirroring how `resolveCitekey`
- * reads the citekey off the already-read item.
- */
 function mockDbCitekeys(
   entries: Record<string, string | null>,
   groupID: number | null = null,
@@ -77,13 +69,6 @@ function mockDbCitekeys(
 const ITEMS = "http://zotero.org/users/local/BOtEiq6p/items";
 const ATTACHMENT = `${ITEMS}/T2P8T29G`;
 
-/**
- * Render cited items as `[@key; @key]`, dropping the unresolved ones. Mirrors
- * the built-in Citation Template's citation-prop rendering (9.2-CSL #02):
- * `-@key` when suppressed, `, <labelShort> <locator>` when a locator is
- * present. Locator/labelShort/suppressAuthor are optional so this stub still
- * matches every citekey-only test unchanged.
- */
 const renderCite = (
   items: readonly {
     citationKey: string | null;
@@ -100,7 +85,6 @@ const renderCite = (
     })
     .join("; ")}]`;
 
-/** Stand-in decision port: every source blocks, so no test copies a file. */
 const blockedDecide = vi.fn(
   (path: string, origin: SourceOrigin): AttachmentSource => ({
     approved: false,
@@ -110,12 +94,10 @@ const blockedDecide = vi.fn(
   }),
 );
 
-/** A resolveLink stub echoing the requested vault name as a wikilink embed body. */
 const echoResolveLink = vi.fn(
   (opts: ResolveLinkOptions) => () => `[[${opts.vaultName}]]`,
 );
 
-/** Full {@link ParseNoteDeps} for the resolving path, over the lookup stubs. */
 const deps: ParseNoteDeps = {
   citedItems: { get: citedItem } as unknown as ReadonlyMap<string, Item>,
   groupID: null,
@@ -129,7 +111,6 @@ const deps: ParseNoteDeps = {
   attachmentImport: { decide: blockedDecide, resolveLink: echoResolveLink },
 };
 
-/** A storage-mode (linkMode 4) attachment row; the common case for note images. */
 function storageAttachment(key: string, filename = "img.png") {
   return { key, path: `storage:${filename}`, linkMode: 4 };
 }
@@ -138,11 +119,6 @@ beforeEach(() => {
   vi.resetAllMocks();
 });
 
-/**
- * Mirror the real batch renderer: map each key to its render, omitting only
- * unresolved keys (`null`). Blank callouts stay in the map — the prepass drops
- * them — so a `() => "  "` stub exercises that guard.
- */
 const batchRender = (fn: (key: string) => string | null) =>
   vi.fn((keys: readonly string[]) => {
     const out = new Map<string, string>();
@@ -153,10 +129,6 @@ const batchRender = (fn: (key: string) => string | null) =>
     return out;
   });
 
-/**
- * Wrap body HTML in the schema container `parseNote` gates on, optionally
- * hoisting `citationItems` onto the container's `data-citation-items`.
- */
 function note(body: string, version = 10, citationItems?: unknown): string {
   const attr =
     citationItems === undefined
@@ -165,13 +137,11 @@ function note(body: string, version = 10, citationItems?: unknown): string {
   return `<div data-schema-version="${version}"${attr}>${body}</div>`;
 }
 
-/** A `span.citation` mark carrying the URL-encoded `data-citation` payload. */
 function cite(payload: Record<string, unknown>, text = "(citation)"): string {
   const attr = encodeURIComponent(JSON.stringify(payload));
   return `<span class="citation" data-citation="${attr}">${text}</span>`;
 }
 
-/** A `data-annotation` excerpt span carrying the URL-encoded payload. */
 function annot(
   className: string,
   payload: Record<string, unknown>,
@@ -244,14 +214,10 @@ describe("blank lines", () => {
       note("<p>a</p><hr><hr><p>b</p>"),
       deps,
     );
-    // Two horizontal rules between paragraphs survive as raw Turndown output.
     expect(md).toBe("a\n\n---\n\n---\n\nb");
   });
 
   it("keeps a fenced code block's internal blank lines in the note body", () => {
-    // The callout-scoped blank-run collapse (subsumeAnnotationParagraphs)
-    // must not leak into the note body: a fenced block's textContent is
-    // copied verbatim by the fence rule, untouched by this parser.
     const md = parseNote(
       TurndownService,
       note("<pre><code>line1\n\n\n\nline2</code></pre>"),
@@ -532,8 +498,6 @@ describe("embedded image resolution", () => {
     );
     const md = parseNote(TurndownService, note(img("U5WTYIJK")), deps);
     expect(md).toBe("![[U5WTYIJK-diagram.png]]");
-    // The parser classifies the origin and hands the location to the decision
-    // port; approving it is the import service's job, not the parser's.
     expect(blockedDecide).toHaveBeenCalledWith(
       "/data/storage/U5WTYIJK/diagram.png",
       "storage",
@@ -558,7 +522,6 @@ describe("embedded image resolution", () => {
   });
 
   it("passes a path-unresolved attachment through as raw HTML", () => {
-    // linkMode 3 (linked_url) has no filesystem path, so attachmentAbsPath is null.
     embeddedAttachment.mockReturnValue(
       stubService<Attachment>("Attachment", {
         key: "URL12345",
@@ -573,7 +536,6 @@ describe("embedded image resolution", () => {
 });
 
 describe("annotation template mode", () => {
-  /** Declines for the `GONE` key (DB miss); otherwise renders a callout. */
   const render = batchRender((key) =>
     key === "GONE" ? null : `> [!note]\n>\n> callout ${key}`,
   );
@@ -587,7 +549,6 @@ describe("annotation template mode", () => {
     properties: {},
   });
 
-  /** A clean highlight/underline insertion `<p>`: excerpt, citation, comment. */
   const spanPara = (className: string, key: string) =>
     `<p>${annot(
       className,
@@ -601,7 +562,6 @@ describe("annotation template mode", () => {
       note(spanPara("highlight", "K1")),
       withRender(),
     );
-    // The multi-line callout survives the sentinel round-trip intact.
     expect(md).toBe("> [!note]\n>\n> callout K1");
     expect(render).toHaveBeenCalledExactlyOnceWith(["K1"]);
   });
@@ -659,9 +619,6 @@ describe("annotation template mode", () => {
   });
 
   it("leaves an annotation paragraph nested in a list inline, preserving structure", () => {
-    // Only "Add to note" top-level paragraphs are subsumed; a `<p>` a user
-    // moved into a list is restructured prose, so the block callout would
-    // detach and break the list. It falls through to the inline excerpt rule.
     const body = `<ul><li>${spanPara("highlight", "K7")}</li></ul>`;
     const md = parseNote(TurndownService, note(body), withRender());
     expect(render).not.toHaveBeenCalled();
@@ -683,11 +640,6 @@ describe("annotation template mode", () => {
   });
 
   it("collapses a blank-line run inside a custom template's callout and trims its edges", () => {
-    // A custom `annotation` template that doesn't wrap its output in bq()
-    // (autoTrim is [false, false]) can emit internal or trailing blank runs;
-    // subsumeAnnotationParagraphs normalizes those before they're sealed into
-    // the sentinel attribute, since Turndown only caps newlines *between*
-    // blocks, never inside one rule's returned string.
     const md = parseNote(TurndownService, note(spanPara("highlight", "K8")), {
       ...deps,
       renderAnnotationParagraph: batchRender((key) =>
@@ -701,11 +653,6 @@ describe("annotation template mode", () => {
   });
 
   it("carries zt.citation onto a subsumed annotation paragraph via the real render path (9.2-CSL #05)", () => {
-    // The import leg wires `renderAnnotationParagraph` to `renderAnnotationSources`,
-    // whose annotation-template data must expose `zt.citation` — the parent
-    // item rendered through the Citation Template with the annotation's page
-    // label as locator. A custom template referencing it should surface the
-    // same `[@citekey, p. N]` the annot-view drag-insert produces.
     const facade = new TemplateFacade();
     facade.define("citation", defaultCitation, "liquid");
     facade.define("annotation", "> [!note]\n>\n> <%= zt.citation %>", "eta");
@@ -741,8 +688,6 @@ describe("annotation template mode", () => {
           ),
         }),
         {
-          // The two template seams `renderAnnotationSources` reaches for, wired to
-          // one facade the way TemplateService wires them to its own.
           template: stubService<
             Parameters<typeof renderAnnotationSources>[1]["template"]
           >("Template", {
@@ -774,7 +719,6 @@ describe("annotation template mode", () => {
 });
 
 describe("citation resolution", () => {
-  /** A single-item citation mark referencing `KX67D9YM`. */
   const oneCite = cite({
     citationItems: [{ uris: [`${ITEMS}/KX67D9YM`] }],
     properties: {},
@@ -784,7 +728,6 @@ describe("citation resolution", () => {
     mockDbCitekeys({ KX67D9YM: "Hensher2011" });
     const md = parseNote(TurndownService, note(oneCite), deps);
     expect(md).toContain("[@Hensher2011]");
-    // The cite syntax is emitted unescaped — no `\[` from Turndown.
     expect(md).not.toContain("\\[");
   });
 
@@ -843,7 +786,6 @@ describe("citation resolution", () => {
   });
 
   it("still resolves via embedded and sentinel when the DB is degraded", () => {
-    // A degraded DB makes the DB leg miss uniformly; embedded + sentinel run.
     const md = parseNote(
       TurndownService,
       note(
@@ -871,7 +813,6 @@ describe("citation resolution", () => {
   });
 
   it("resolves a group-library citation in the group's own library, not the note's", () => {
-    // The note lives in the personal library; the ref points at group 9.
     mockDbCitekeys({ GRP1TEM: "GroupCite2020" }, 9);
     const md = parseNote(
       TurndownService,
@@ -900,8 +841,6 @@ describe("citation resolution", () => {
   });
 
   it("leaves a citation of a group the database does not hold to the sentinel", () => {
-    // The note's own library has an item under the same key; the ref still
-    // names group 9, so the note's library does not answer it.
     mockDbCitekeys({ GRP1TEM: "PersonalCite2020" });
     const md = parseNote(
       TurndownService,
@@ -965,9 +904,6 @@ describe("citation resolution", () => {
   });
 
   it("threads locator/label/suppress-author through the production renderCite glue (citekeysToCiteTemplateData + the built-in Citation Template)", () => {
-    // Exercises the actual service.ts wiring (renderCite →
-    // template.renderCitation → the Citation Template), not the hand-written
-    // `renderCite` stub used by every other test in this file.
     const facade = new TemplateFacade();
     facade.define("citation", defaultCitation, "liquid");
     mockDbCitekeys({ KX67D9YM: "Hensher2011" });
@@ -1085,7 +1021,6 @@ describe("noteReferences", () => {
 });
 
 describe("citation resolution — DB item data (9.2-CSL #03)", () => {
-  /** A single-item citation mark referencing `KX67D9YM`. */
   const oneCite = cite({
     citationItems: [{ uris: [`${ITEMS}/KX67D9YM`] }],
     properties: {},
@@ -1145,12 +1080,10 @@ describe("citation resolution — DB item data (9.2-CSL #03)", () => {
 });
 
 describe("citation resolution — embedded item data (9.2-CSL #04)", () => {
-  /** A data-driven cite template reading item data the snapshot must supply. */
   const dataDrivenCite =
     "<%= zt.citations.map(c => `${c.item.citekey}: ${c.item.title} " +
     "(${c.item.date?.year ?? 'n.d.'}) — ${c.item.containerTitle}`).join('; ') %>";
 
-  /** Full CSL-JSON `itemData` for a cited item, as Zotero embeds it. */
   const embedded = (uri: string, over: Record<string, unknown> = {}) => ({
     uris: [uri],
     itemData: {
@@ -1175,8 +1108,6 @@ describe("citation resolution — embedded item data (9.2-CSL #04)", () => {
   }
 
   it("renders full item data from the embedded snapshot for a cross-library cite the DB can't resolve", () => {
-    // group 9 is not synced locally, so no live item answers; item data
-    // must come from the embedded snapshot.
     const uri = "http://zotero.org/groups/9/items/GRP1TEM";
     const md = parseNote(
       TurndownService,
@@ -1191,8 +1122,6 @@ describe("citation resolution — embedded item data (9.2-CSL #04)", () => {
   });
 
   it("resolves full embedded item data when the DB is degraded (client not ready)", () => {
-    // No live item answers (the degraded-DB path);
-    // the embedded snapshot alone must carry item data plus the citekey.
     const uri = `${ITEMS}/KX67D9YM`;
     const md = parseNote(
       TurndownService,
@@ -1232,10 +1161,6 @@ describe("citation resolution — embedded item data (9.2-CSL #04)", () => {
   });
 });
 
-/**
- * End-to-end conversion of the real Zotero note fixtures with every resolver
- * wired, exercising image rendering and annotation extraction together.
- */
 describe("fixtures (resolving)", () => {
   function fixture(name: string): string {
     return readFileSync(
@@ -1254,13 +1179,10 @@ describe("fixtures (resolving)", () => {
       deps,
     );
 
-    // The plain embedded image resolves to a vault embed.
     expect(md).toContain("![[U5WTYIJK-img.png]]");
     expect(md).not.toContain("<img");
-    // The multi-item citation resolves through the embedded snapshot map.
     expect(md).toContain("[@Kang2013; @Hensher2011]");
     expect(md).not.toContain("data-citation");
-    // Non-DB formatting is untouched by the resolving path.
     expect(md).toContain("$e^{i\\pi}+1=0$");
     expect(md).toContain("$$\\frac{a_1}{b_2}$$");
   });
@@ -1269,25 +1191,19 @@ describe("fixtures (resolving)", () => {
     embeddedAttachment.mockImplementation(
       (key) => storageAttachment(key) as never,
     );
-    // No annotation-template renderer → inline marks / bare embed (default).
     const md = parseNote(
       TurndownService,
       fixture("zt-excerpt-note.html"),
       deps,
     );
 
-    // Highlight excerpts → linked, colored <mark>.
     expect(md).toContain('<mark class="zotlit-hl" data-color="red"');
     expect(md).toContain("annotation=JDJKX3N6&page=62)");
     expect(md).toContain("annotation=KMV38EI6&page=62)");
-    // Underline excerpt → linked, colored <u>.
     expect(md).toContain('<u class="zotlit-ul" data-color="yellow"');
     expect(md).toContain("annotation=V78IHLM9&page=62)");
-    // Image-excerpt embed → bare vault embed (no template renderer supplied).
     expect(md).toContain("![[7TTPMKWK-img.png]]");
     expect(md).not.toContain("<img");
-    // Citations resolve via the embedded snapshot map, threading the
-    // fixture's page-62 locator (9.2-CSL #02).
     expect(md).toContain("[@Hensher2011, p. 62]");
     expect(md).not.toContain("data-citation");
   });
@@ -1304,10 +1220,6 @@ describe("fixtures (resolving)", () => {
       renderAnnotationParagraph,
     });
 
-    // Every clean insertion paragraph is subsumed, keyed by its annotation key
-    // and in document order: highlight, underline, highlight, image, then the
-    // two trailing-comment underlines. `AFUVIG9Z` is absent — its leading prose
-    // ("this is the one to exclude") makes it user-edited, so the gate bails.
     const subsumed = [
       "JDJKX3N6",
       "V78IHLM9",
@@ -1316,8 +1228,6 @@ describe("fixtures (resolving)", () => {
       "XRZMBHKK",
       "NPUZ9NKS",
     ];
-    // One batched call carrying every found key in document order; the gated
-    // `AFUVIG9Z` (user-edited prose) is excluded from the batch.
     expect(renderAnnotationParagraph).toHaveBeenCalledExactlyOnceWith(subsumed);
     expect(renderAnnotationParagraph.mock.calls[0]![0]).not.toContain(
       "AFUVIG9Z",
@@ -1325,11 +1235,8 @@ describe("fixtures (resolving)", () => {
     for (const key of subsumed) {
       expect(md).toContain(`> [!note] Page 62\n>\n> excerpt ${key}`);
     }
-    // The excluded paragraph keeps its prose and falls back to an inline mark.
     expect(md).toContain("this is the one to exclude");
     expect(md).toContain("annotation=AFUVIG9Z&page=62)");
-    // The image excerpt's storage attachment is never resolved — its <img> is
-    // removed before the embed rule runs (no orphan copy).
     expect(md).not.toContain("![[7TTPMKWK");
     expect(embeddedAttachment).not.toHaveBeenCalled();
   });

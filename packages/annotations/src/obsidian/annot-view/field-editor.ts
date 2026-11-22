@@ -1,12 +1,3 @@
-// The CodeMirror field editor an Annotation Card edits its comment in, and any
-// other rich-text field Zotero stores with the same inline tags.
-//
-// The document is the field exactly as Zotero stores it, tags included, so
-// saving sends back what was typed and nothing is converted on the way. What
-// the editor draws is Zotero's rendering: each pair's text in its format, and
-// the tags themselves hidden until the selection touches the pair, the way
-// Obsidian's Live Preview reveals Markdown syntax.
-
 import type {
   CommentEdit,
   CommentFormat,
@@ -49,16 +40,13 @@ import {
 
 declare module "@zotlit/obsidian-kit/menu-events.ts" {
   interface ZotLitMenuEvents {
-    /** The context menu of the editor that writes an annotation's comment or text. */
     "zotlit:comment-editor-menu": {
-      /** Where the editor stands: a card, an excerpt, or a mark's popup. */
       surface: EditorSurface;
       editor: EditorView;
     };
   }
 }
 
-/** The context menu of the editor that writes an annotation's comment or text. */
 const commentEditorMenu = menuEvent("zotlit:comment-editor-menu", [
   "selection",
   "clipboard",
@@ -67,57 +55,36 @@ const commentEditorMenu = menuEvent("zotlit:comment-editor-menu", [
 
 const SECTION = menuSections(commentEditorMenu);
 
-/**
- * What an editor says about the Annotation field it edits. Everything else —
- * the inline formats, the keys, the paste conversion and the context menu —
- * is the same for every field.
- */
 export interface FieldEditorWording {
-  /** What the empty editor shows. */
   placeholder: string;
-  /** The editor's accessible name, which names the field. */
   label: string;
 }
 
 export interface FieldEditorOptions {
   app: App;
   parent: HTMLElement;
-  /** Where the editor stands, for the `zotlit:comment-editor-menu` listeners. */
   surface: EditorSurface;
-  /** The field the editor edits, for its placeholder and accessible name. */
   wording: FieldEditorWording;
   text: string;
   readOnly: boolean;
-  /** Every change the user makes, as the whole field. */
   onChange: (text: string) => void;
   onEscape: () => void;
-  /** Mod+Enter: store the field and keep editing. */
   onSubmit: () => void;
-  /**
-   * Focus left the editor for somewhere other than its own context menu.
-   *
-   * @param next the element focus went to, if any.
-   */
   onBlur: (next: Node | null) => void;
 }
 
 export interface FieldEditor extends Disposable {
   readonly view: EditorView;
-  /** Show text that changed outside this editor, keeping the caret near where it was. */
   setText(text: string): void;
   setReadOnly(readOnly: boolean): void;
 }
 
-/** Names one editor's text apart from another's, for `aria-labelledby`. */
 let labelSerial = 0;
 
-/** Marks a transaction that brings outside text in, which is not a user edit. */
 const external = Annotation.define<boolean>();
 
 export function createFieldEditor(opts: FieldEditorOptions): FieldEditor {
   const readOnly = new Compartment();
-  // The context menu takes focus from the editor while it stands; that blur is
-  // not the user leaving.
   let menuOpen = false;
   let scope: Scope | null = null;
   const releaseKeys = (): void => {
@@ -125,9 +92,6 @@ export function createFieldEditor(opts: FieldEditorOptions): FieldEditor {
     scope = null;
   };
 
-  // The field's name, beside the editor rather than on it: an `aria-label`
-  // would hang a tooltip over the text being written.
-  // @see apps/obsidian/policies/tooltips.md
   const label = opts.parent.createSpan({
     cls: "zt:sr-only",
     text: opts.wording.label,
@@ -174,7 +138,6 @@ export function createFieldEditor(opts: FieldEditorOptions): FieldEditor {
           },
           blur: (event) => {
             releaseKeys();
-            // A focus event's related target is an element or nothing.
             if (!menuOpen) opts.onBlur(event.relatedTarget as Node | null);
           },
           contextmenu: (event, v) => {
@@ -189,16 +152,12 @@ export function createFieldEditor(opts: FieldEditorOptions): FieldEditor {
                 editor: v,
               },
             });
-            // The editor is the menu's parent, so the surface it stands in
-            // takes a press on the menu as its own.
             menu.setParentElement(v.dom);
             menuOpen = true;
             menu.onHide(() => {
               menuOpen = false;
               v.focus();
             });
-            // A menu key or Shift+F10 reports no pointer, so the menu opens at
-            // the caret instead.
             if (event.clientX === 0 && event.clientY === 0) {
               const caret = v.coordsAtPos(v.state.selection.main.head);
               menu.showAtPosition(
@@ -238,26 +197,11 @@ export function createFieldEditor(opts: FieldEditorOptions): FieldEditor {
   };
 }
 
-/** The Markdown editor commands a comment has a Zotero format for. */
 const FORMAT_COMMANDS: Record<string, CommentFormat> = {
   "editor:toggle-bold": "b",
   "editor:toggle-italics": "i",
 };
 
-/**
- * The keys this editor takes while it has focus, pushed over whatever scope
- * the window holds — the way Obsidian's own embedded editors take theirs, since
- * focusing a card does not make its view the active leaf.
- *
- * Obsidian runs an editor command's hotkey against `workspace.activeEditor`,
- * which here is whatever Markdown note is open behind the view. So every
- * editor-command hotkey is held here: bold and italic run as their Zotero
- * formats, on whatever keys the user bound to them, and the rest reach
- * CodeMirror as plain keys rather than editing that note. Every other hotkey
- * passes on to the app.
- *
- * @see Obsidian 1.14.2 `app.js`, `Commands.addCommand` and `HotkeyManager.onTrigger`.
- */
 function editorKeyScope(
   app: App,
   run: { submit: () => void; toggle: (format: CommentFormat) => void },
@@ -268,8 +212,6 @@ function editorKeyScope(
     return false;
   });
   for (const [id, command] of Object.entries(app.commands.editorCommands)) {
-    // The map also holds every command pinned to the mobile toolbar, such as
-    // the command palette, which acts on no editor and keeps its key.
     if (!command.editorCallback && !command.editorCheckCallback) continue;
     const format = FORMAT_COMMANDS[id];
     const hotkeys =
@@ -278,7 +220,6 @@ function editorKeyScope(
       [];
     for (const hotkey of hotkeys) {
       scope.register(hotkey.modifiers, hotkeyKey(hotkey), () => {
-        // `true` ends the lookup without claiming the key.
         if (!format) return true;
         run.toggle(format);
         return false;
@@ -288,22 +229,14 @@ function editorKeyScope(
   return scope;
 }
 
-/** The key Obsidian matches a stored hotkey on: `KeyB` reads as `B`. */
 function hotkeyKey(hotkey: ExtendedHotkey): string {
   const { code } = hotkey;
   if (!code) return hotkey.key;
   return code.startsWith("Key") && code.length === 4 ? code.charAt(3) : code;
 }
 
-/** The "Format" submenu's groups, named as Obsidian's own editor names them. */
 const FORMAT_SECTION = { basic: "basic", danger: "danger" } as const;
 
-/**
- * Obsidian's own editor menu, cut to what a comment holds: the "Format"
- * submenu with the four Zotero formats, then the clipboard.
- *
- * @see Obsidian 1.13.7 `app.js`, the Markdown editor's `onContextMenu`.
- */
 function fillCommentMenu(menu: Menu, view: EditorView): void {
   const { state } = view;
   const { from, to } = state.selection.main;
@@ -438,7 +371,6 @@ const selOf = (view: EditorView) => {
   return { anchor, head };
 };
 
-/** One format edit, sent as the smallest change that produces it. */
 function apply(view: EditorView, edit: CommentEdit): void {
   view.dispatch({
     changes: diff(docOf(view), edit.text) ?? [],
@@ -453,10 +385,6 @@ function insert(view: EditorView, text: string, userEvent: string): void {
   view.focus();
 }
 
-/**
- * Rich text pasted in keeps the formats a comment can hold, as it does in
- * Zotero's own editor; plain text goes CodeMirror's usual way.
- */
 function pasteHtml(event: ClipboardEvent, view: EditorView): boolean {
   const html = event.clipboardData?.getData("text/html");
   if (!html || view.state.readOnly) return false;
@@ -488,12 +416,10 @@ async function readClipboard(rich: boolean): Promise<string> {
 }
 
 function parseHtml(html: string): string {
-  // The parsed document is only read, never adopted into a window.
   const parser = new DOMParser();
   return htmlToComment(parser.parseFromString(html, "text/html").body);
 }
 
-/** The single change that turns `from` into `to`, or `null` for none. */
 function diff(from: string, to: string) {
   if (from === to) return null;
   let start = 0;
@@ -522,7 +448,6 @@ const FORMAT_MARKS: Record<CommentFormat, Decoration> = {
 const SHOWN_TAG = Decoration.mark({ class: "zt:text-faint" });
 const HIDDEN_TAG = Decoration.replace({});
 
-/** Each pair drawn in its format, its tags hidden until the selection touches it. */
 const commentDecorations: Extension = EditorView.decorations.compute(
   ["doc", "selection"],
   (state) => {
@@ -546,11 +471,6 @@ const commentDecorations: Extension = EditorView.decorations.compute(
   },
 );
 
-/**
- * The editor is the card's own text with a caret in it: the comment's font,
- * size and leading, no gutter, no focus ring of its own, and exactly the height
- * of its text, so it takes the rendered comment's place without a shift.
- */
 const commentTheme = EditorView.theme({
   "&": { fontSize: "inherit" },
   "&.cm-focused": { outline: "none" },

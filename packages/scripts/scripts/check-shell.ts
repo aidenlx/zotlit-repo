@@ -1,19 +1,4 @@
 #!/usr/bin/env node
-// Proves, before anything is published, that each publish repository's shell
-// builds the plugin this workspace releases:
-//   1. builds the host app; its production build writes the bundle package
-//      into dist/package/ and builds dist/main.js from it (a Resource Pack's
-//      build copies it),
-//   2. packs the bundle package with `pnpm pack`,
-//   3. generates the shell into .scratch/shell-check/<plugin>/shell/, locked to that
-//      tarball in place of the registry version,
-//   4. installs the shell from its lockfile and runs its `build` script, as
-//      the official Obsidian release action does,
-//   5. compares the shell's main.js and styles.css with the host app's, byte
-//      for byte (a Resource Pack has main.js alone),
-//   6. runs the community scanner's ESLint config on the shell tree from its
-//      root, and the manifest rule on its manifest.json.
-// `pnpm verify --release` runs it after the Obsidian guideline review.
 import type { PublishedPluginName } from "#shell/plugins";
 import { mkdir, readdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -141,8 +126,6 @@ async function checkShell(name: PublishedPluginName): Promise<boolean> {
   );
 
   console.log("\n▸ Manifest rule on the shell's manifest.json");
-  // eslint.config.js applies `obsidianmd/validate-manifest` to `manifest.json`,
-  // as `pnpm review:manifest` does for the manifest the app's package.json makes.
   const manifest = await readFile(join(shellDir, "manifest.json"), "utf8");
   const manifestCheck = await $({
     cwd: root,

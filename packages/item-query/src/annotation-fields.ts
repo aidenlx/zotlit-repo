@@ -198,7 +198,6 @@ const attachmentParent = liftParentRecord({
     "fileType",
     "linkMode",
   ],
-  // `item`, `library`, and `annotations` repeat paths of the Annotation itself.
   listed: [
     "indexedKey",
     "title",
@@ -250,10 +249,6 @@ for (const name of ["type", "color", "pageIndex", "sortIndex"]) {
   });
 }
 
-/**
- * The Sortable Fields of Annotation Query. `attachment.indexedKey` orders by
- * the Attachment's Indexed Key across the Target Libraries.
- */
 export const ANNOTATION_SORT_FIELDS = parentSortFields(
   [
     "indexedKey",

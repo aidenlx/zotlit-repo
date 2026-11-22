@@ -16,7 +16,6 @@ export interface ItemDateYMD {
   day: number;
   /** The stored Zotero `date` value verbatim, retained for round-tripping. */
   raw: string;
-  /** ISO date, e.g. `2015-04-27`. */
   toString(): string;
 }
 
@@ -34,7 +33,6 @@ export interface ItemDateYearMonth {
   day: null;
   /** The stored Zotero `date` value verbatim, retained for round-tripping. */
   raw: string;
-  /** ISO year-month, e.g. `2013-01`. */
   toString(): string;
 }
 
@@ -56,7 +54,6 @@ export interface ItemDateYear {
   day: null;
   /** The stored Zotero `date` value verbatim, retained for round-tripping. */
   raw: string;
-  /** The bare year, e.g. `2023`. */
   toString(): string;
 }
 
@@ -79,59 +76,26 @@ export interface ItemDateText {
   day: null;
   /** The stored Zotero `date` value verbatim, retained for round-tripping. */
   raw: string;
-  /** {@link text} unchanged, e.g. `"submitted"`. */
   toString(): string;
 }
 
-/**
- * Parsed view of Zotero's "multipart" date field.
- *
- * Zotero stores the `date` field as `YYYY-MM-DD <user text>` where any of
- * year/month/day may be `00` to mark missing precision (e.g.
- * `2013-01-00 January 2013`, `0000-00-00 submitted`).
- *
- * Every variant exposes `year`, `month`, `day`, `value`, `raw`, and
- * `toString()`, so templates read them without narrowing on `kind` — an
- * accessor the variant cannot supply reads `null`. `toString()` is the
- * ISO-normalized rendering (see {@link formatItemDate}) that drives `${date}`;
- * pipe through the `date` filter (`{{ zt.date | date: "%Y-%m-%d" }}`) for
- * explicit strftime formatting, which an {@link ItemDateText} ignores because
- * it has no parsed value to format.
- *
- * `kind` narrows `value` to its concrete `Temporal` type for TS consumers.
- */
 export type ItemDate =
   | ItemDateYMD
   | ItemDateYearMonth
   | ItemDateYear
   | ItemDateText;
 
-/**
- * Ported verbatim from upstream Zotero (with named captures added for typed
- * access). Day range is per-month-agnostic; calendar validity is checked
- * separately via `Temporal`.
- *
- * @see https://github.com/zotero/utilities/blob/fbc4d6ad1c947035404db4321912ed46fb113380/date.js#L668
- */
 const MULTIPART_RE = regex(
   "^(?<year>[0-9]{4})-(?<month>0[0-9]|10|11|12)-(?<day>0[0-9]|[1-2][0-9]|30|31) (?<text>[\\s\\S]*)$",
 );
 
 const YEAR_RE = regex("\\b[12]\\d{3}\\b");
 
-/**
- * The returned object carries a non-enumerable `toString` (ISO-normalized, via
- * {@link formatItemDate}) so `<%= zt.date %>` renders a machine-friendly date,
- * while `zt.date.value` stays available for locale formatting (e.g.
- * `zt.date.value?.toLocaleString(...)`). `toString` is hidden from spread /
- * `JSON.stringify` / `Object.keys`.
- */
 export function parseItemDate(raw: string | null | undefined): ItemDate | null {
   const date = parseItemDateInner(raw);
   return date && withToString(date);
 }
 
-/** Attaches the {@link formatItemDate} rendering as the date's `toString`. */
 export function withToString(date: ItemDate): ItemDate {
   return defineToString(date, function () {
     return formatItemDate(this);
@@ -164,11 +128,6 @@ function parseItemDateInner(raw: string | null | undefined): ItemDate | null {
   );
 }
 
-/**
- * ISO-normalized rendering: `date` / `yearMonth` via their `Temporal` value
- * (`2015-04-27`, `2013-01`), `year` as the bare year. The `text` kind has no
- * parseable date, so its raw user text is returned verbatim.
- */
 export function formatItemDate(date: ItemDate | null | undefined): string {
   if (!date) return "";
   switch (date.kind) {

@@ -1,6 +1,5 @@
 import type { ImporterFakes } from "#__fixtures__/note-import/importer.ts";
 // @vitest-environment happy-dom
-// Exercises live and frozen Child Note images through the import writer.
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import {
@@ -219,7 +218,6 @@ async function setupFixture(mode = "normal") {
   };
 }
 
-/** {@link setupFixture} for the case's Scope, with the real importer over its fakes. */
 const fixture = Effect.fnUntraced(function* (mode = "normal") {
   const f = yield* Effect.acquireDisposable(
     Effect.promise(() => setupFixture(mode)),
@@ -329,13 +327,10 @@ const live = [
   "![[Images/SNAP3456-snapshot.png]]",
 ];
 const unavailableReport = [{ zotero: 0, unchecked: 0, unavailable: 2 }];
-// An unavailable excerpt points back to its Annotation by the Durable
-// Annotation Link, never by this computer's file path.
 const sourceLinks = [
   "[Zotero](zotero://open/library/items/RGRPDF24?annotation=FDRFQ7C2&page=1)",
   "[Zotero](zotero://open/library/items/RGRPDF24?annotation=TYY6Z6ZF&page=1)",
 ];
-// `expect.any` leaves a count or report unconstrained for that mode.
 it.effect.each([
   {
     mode: "disabled",

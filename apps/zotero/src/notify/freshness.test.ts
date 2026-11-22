@@ -11,8 +11,6 @@ import {
   vi,
 } from "vitest";
 
-// `@/prefs` pulls in `@/lib/l10n`, which constructs a `Localization` at module
-// scope. Hoisted so the stub exists before the import graph is evaluated.
 vi.hoisted(() => {
   (globalThis as { Localization?: unknown }).Localization = class {
     formatValue(): Promise<string | null> {
@@ -56,14 +54,12 @@ let registeredTypes: _ZoteroTypes.Notifier.Type[] | undefined;
 let unregistered: number[];
 let checkpointFails: boolean;
 let checkpointBusy: boolean;
-/** When set, the PASSIVE checkpoint query stays pending until it resolves. */
 let checkpointGate: PromiseWithResolvers<void> | undefined;
 let prefStore: Map<string, boolean | string | number>;
 let sent: NotifyEventInput[];
 
 const OBSERVER_ID = 42;
 
-/** Records each dispatch into `statements` too, so ordering is observable. */
 function send(event: NotifyEventInput): Promise<void> {
   sent.push(event);
   statements.push(`send ${event.event}`);
@@ -333,7 +329,6 @@ describe("registerFreshness", () => {
       emitNotifierEvent();
       await vi.advanceTimersByTimeAsync(200);
     }
-    // 200 ms of the trailing delay already ran off after the last event.
     await vi.advanceTimersByTimeAsync(299);
     expect(checkpoints()).toHaveLength(0);
     expect(sent).toHaveLength(0);
@@ -361,8 +356,6 @@ describe("registerFreshness", () => {
 
   it("runs at the ten second max wait during sustained write activity", async () => {
     using _handle = await registerFreshness(send);
-    // A 250 ms cadence keeps resetting the 500 ms trailing timer, so only the max
-    // wait can fire.
     for (let elapsed = 0; elapsed < 9_750; elapsed += 250) {
       emitNotifierEvent();
       await vi.advanceTimersByTimeAsync(250);
@@ -374,8 +367,6 @@ describe("registerFreshness", () => {
     expect(checkpoints()).toHaveLength(1);
     expect(sent).toHaveLength(1);
 
-    // The burst runs on past the boundary, so the one run above is
-    // unambiguously the max wait rather than a trailing expiry.
     for (let i = 0; i < 4; i++) {
       emitNotifierEvent();
       await vi.advanceTimersByTimeAsync(250);
@@ -427,9 +418,7 @@ describe("registerFreshness", () => {
 
       await expect(handle.writeNow()).resolves.toBe("in-use");
       expect(manualCheckpoints()).toHaveLength(1);
-      // A partial truncation may still have moved frames, so signal anyway.
       expect(sent).toEqual([{ event: "db/updated" }]);
-      // Nothing was written and nothing failed, so no run is recorded.
       expect(handle.status().lastRun).toBeNull();
     });
 

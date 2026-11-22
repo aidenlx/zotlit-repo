@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-// Compiles the plugin's Message facade and Language Packs into generated/,
-// for `mise run init`, the Turbo tasks that read them and the release
-// workflow, under the same prefix rules the plugin's Vite build applies.
 
 import { resolve } from "node:path";
 

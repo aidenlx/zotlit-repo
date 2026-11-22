@@ -2,7 +2,6 @@ import type {
   WorkbenchDocumentController,
   WorkbenchSliceRange,
 } from "#core/document/index.ts";
-// Annotation format editing, example selection, and access to the source section.
 import type { AnnotationExample } from "#core/render/index.ts";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 
@@ -44,7 +43,6 @@ export function AnnotationSampleBar({
   current: readonly Pick<AnnotationExample, "id" | "root">[];
   example: Pick<AnnotationExample, "id" | "root"> | null;
   onSelect: (id: string) => void;
-  /** Native headers already identify the selected annotation. */
   hideLabel?: boolean;
   compact?: boolean;
 }) {
@@ -163,7 +161,6 @@ export function AnnotationPane({
   "controller" | "reveal" | "suggest" | "onSelection"
 > & {
   problem: string | null;
-  /** The Shared Partials this section's calls name, previewed as an annotation. */
   partials?: PartialPlaceholderHost;
 }) {
   const problemId = useUniqueId();
@@ -205,10 +202,6 @@ export function AnnotationPane({
   );
 }
 
-/**
- * Advanced's own bar over the whole file: the section it holds, or the repair
- * action for the document that has none.
- */
 export function AnnotationSectionBar({
   controller,
   onGo,
@@ -218,8 +211,6 @@ export function AnnotationSectionBar({
 }) {
   useAtomValue(documentRevision(controller));
   const section = controller.annotationSection;
-  // A document mid-repair can hold the section ranges it had, so the refusal
-  // the parser raises decides which of the two actions the bar offers.
   const missing = controller.problems.some(
     ({ code }) => code === "missing-annotation-section",
   );

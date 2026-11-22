@@ -1,4 +1,3 @@
-// The default Profile key of the plugin settings, and its write.
 import { Effect } from "effect";
 import * as v from "valibot";
 
@@ -31,7 +30,6 @@ export type DefaultLiteratureNoteProfile = v.InferOutput<
   typeof defaultLiteratureNoteProfileSchema
 >;
 
-/** The built-in Profile is the total inheritance root for vault-local bindings. */
 export const DEFAULT_LITERATURE_NOTE_PROFILE = Object.freeze({
   bindings: Object.freeze({
     "note.literature-folder": "literatures",
@@ -52,7 +50,6 @@ declare module "@zotlit/plugin-services/core/settings/schema.ts" {
   interface SettingsRegistry extends SliceSettings<typeof profileSettings> {}
 }
 
-/** Merge `patch` into the default Profile's bindings. */
 export const updateDefaultLiteratureNoteProfileBindings = Effect.fn(
   "PluginSettings.updateDefaultLiteratureNoteProfileBindings",
 )(function* (

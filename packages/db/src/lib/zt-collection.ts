@@ -29,7 +29,6 @@ export interface TemplateCollection {
 
 type CollectionNodeRow = QueryRow<typeof collectionNodesByLibraryQuery>;
 
-/** Internal node form: the nodes-query row with Zotero column names normalized. */
 interface CollectionNode {
   collectionID: number;
   name: string;
@@ -56,22 +55,6 @@ function toNodeMap(
 const byName = (a: TemplateCollection, b: TemplateCollection): number =>
   a.name.localeCompare(b.name);
 
-/**
- * Per-batch memo for resolving an item's collections into `TemplateCollection` objects.
- * Owns four things so the cost stays cheap across a batch:
- *
- * 1. A lazy per-library bulk load of every non-trashed collection node,
- *    cached so each library loads once.
- * 2. A resolved-path cache keyed by the globally-unique `collectionID`, so a
- *    shared ancestor's path is built once.
- * 3. The in-memory ancestor walk, which truncates at the first parent absent
- *    from the node set (a live collection under a trashed parent roots there).
- * 4. An itemID-level result cache, so a repeat `byItemIDs` call for the same
- *    itemID within this instance's lifetime skips the membership query too.
- *
- * Hold one instance across a batch (like a `GroupIDMemo`); discard per single op.
- * @see collectionNodesByLibraryQuery
- */
 export class CollectionCache {
   readonly #nodesByLibrary = new Map<
     number,
@@ -80,7 +63,6 @@ export class CollectionCache {
   readonly #resolved = new Map<number, TemplateCollection>();
   readonly #byItem = new Map<number, TemplateCollection[]>();
 
-  /** Resolve each item's collections, sorted by name within each item. */
   byItemIDs(
     db: ZoteroDatabase,
     libraryID: number,
@@ -136,19 +118,6 @@ export class CollectionCache {
     return nodes;
   }
 
-  /**
-   * Walk ancestors to build the root→leaf path, memoizing per collectionID.
-   * A `parentID` absent from `nodes` (its parent is trashed) truncates the path,
-   * rooting it at the first live node — never throwing, never including the
-   * trashed parent.
-   *
-   * The recursion needs no cycle guard: Zotero rejects reparenting a collection
-   * into itself or any of its own descendants, so `parentCollectionID` is always
-   * an acyclic tree and the walk terminates at a `null` or trashed parent.
-   * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/data/collection.js#L250-L283 throws
-   *   "Cannot move collection into itself!" and "into one of its own descendents".
-   * @returns `undefined` when the collection itself is absent from `nodes` (trashed).
-   */
   #resolvePath(
     collectionID: number,
     nodes: ReadonlyMap<number, CollectionNode>,
@@ -173,10 +142,6 @@ export class CollectionCache {
   }
 }
 
-/**
- * Give a plain collection record its string coercion to `name`. A collection
- * that crossed a structured clone has lost it; this restores it.
- */
 export function toTemplateCollection(
   collection: TemplateCollection,
 ): TemplateCollection {

@@ -24,10 +24,8 @@ describe("delimited", () => {
     expect(
       delimitedLines([["a,b", 'say "hi"', "one\ntwo", "three\r\nfour"]], "csv"),
     ).toBe('"a,b","say ""hi""","one\ntwo","three\r\nfour"\r\n');
-    // A carriage return alone is quoted too.
     expect(delimitedLines([["a\rb", "c"]], "csv")).toBe('"a\rb",c\r\n');
     expect(delimitedLines([["a\rb"]], "tsv")).toBe('"a\rb"\n');
-    // A comma is plain text in TSV; a tab is quoted.
     expect(delimitedLines([["a,b", "c\td"]], "tsv")).toBe('a,b\t"c\td"\n');
   });
 

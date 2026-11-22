@@ -1,12 +1,7 @@
-// The `Changes` feed both adapters publish: lifecycle events, replayed from the current state to each subscriber.
 import { Effect, PubSub, Stream } from "effect";
 
 import type { ChangeEvent, DbUnavailable, EffectiveReadMode } from "./rpc.ts";
 
-/**
- * The `Changes` feed: lifecycle events, each subscriber first getting the
- * events that `seed` builds, starting with the `state` event.
- */
 export const makeChangeFeed = Effect.fnUntraced(function* (
   seed: () => readonly [ChangeEvent, ...ChangeEvent[]],
 ) {
@@ -14,8 +9,6 @@ export const makeChangeFeed = Effect.fnUntraced(function* (
   return {
     publish: (event: ChangeEvent) =>
       PubSub.publish(events, event).pipe(Effect.asVoid),
-    // Subscribe before reading the state, so no event falls between the
-    // seed and the live feed.
     changes: Stream.unwrap(
       Effect.map(PubSub.subscribe(events), (subscription) =>
         Stream.concat(
@@ -27,23 +20,14 @@ export const makeChangeFeed = Effect.fnUntraced(function* (
   };
 });
 
-/** The lifecycle facts a new `Changes` subscriber starts from. */
 export interface FeedState {
   readonly state: "loading" | "ready" | "degraded";
   readonly error: DbUnavailable | null;
-  /** The serving connection's Read Mode; sent only while ready. */
   readonly readMode?: EffectiveReadMode | null | undefined;
-  /** The last refresh failed for another database than the one serving. */
   readonly moved?: boolean | undefined;
-  /**
-   * The missing-file signal was raised. A subscriber that arrives after it
-   * (the renderer subscribes once the worker is up) still gets it while no
-   * connection serves.
-   */
   readonly missing: boolean;
 }
 
-/** A {@link makeChangeFeed} seeded from `current()`. */
 export const makeStateFeed = (current: () => FeedState) =>
   makeChangeFeed(() => {
     const { state, error, readMode, moved, missing } = current();

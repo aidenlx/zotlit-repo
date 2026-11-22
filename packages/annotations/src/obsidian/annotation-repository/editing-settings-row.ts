@@ -1,5 +1,3 @@
-// The "Zotero editing" row under Zotero → Connection: what the session may do
-// to Zotero's annotations, and the two actions that change it.
 import { DateTime, Effect, FiberHandle, Queue, Stream } from "effect";
 import type { ButtonComponent, Setting, SettingGroupItem } from "obsidian";
 
@@ -17,13 +15,6 @@ import { applyAction, editingRowModel } from "./editing-settings-model.ts";
 import { CapabilityNotices } from "./notices.ts";
 import { AnnotationRepository } from "./service.ts";
 
-/**
- * The lifecycle surface for Write Authorization: the status of the session, the
- * gesture that asks Zotero for permission, and the one that drops what this
- * device remembers.
- *
- * @see apps/obsidian/docs/adr/0038-write-authorization-starts-only-from-a-user-gesture.md
- */
 export function zoteroEditingRow(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey> {
@@ -74,13 +65,9 @@ function renderEditingRow(
       const repository = yield* AnnotationRepository;
       const localApi = yield* ZoteroLocalApi;
       const notices = yield* CapabilityNotices;
-      // What the keystore holds, which no event announces, is read again on
-      // each of these; a newer read drops the one still in flight.
       const rereads = yield* Queue.unbounded<void>();
       let remembered = false;
       let checking = false;
-      // Zotero's dialog rate limit is the one state whose copy changes with no
-      // event behind it, so the row redraws each second while it runs.
       const countdown = yield* FiberHandle.make();
       const tick: Effect.Effect<boolean> = Effect.suspend(() => apply).pipe(
         Effect.delay("1 second"),
@@ -134,7 +121,6 @@ function renderEditingRow(
           }),
         ),
       );
-      // A check already running keeps its own status and cleanup.
       const check = Effect.suspend(() => (checking ? Effect.void : runCheck));
 
       checkButton?.onClick(
@@ -159,9 +145,6 @@ function renderEditingRow(
 
       yield* apply;
       yield* Effect.forkScoped(repository.probe);
-      // An Allow editing from outside this row, such as a notice's button, can
-      // save or drop a key, and the capability moves with it. The status
-      // redraws at once; the key's line follows when the keystore answers.
       yield* Stream.merge(
         Stream.make(undefined),
         Stream.merge(
@@ -169,7 +152,6 @@ function renderEditingRow(
           Stream.fromQueue(rereads),
         ),
       ).pipe(
-        // A failed read keeps the last answer, so the row stays live.
         Stream.switchMap(() =>
           Stream.fromEffect(
             localApi.remembered.pipe(
@@ -193,7 +175,6 @@ function renderEditingRow(
   );
 }
 
-// The services this file's rows read, in the setting tab's context.
 declare module "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts" {
   interface SettingTabServiceRegistry {
     AnnotationRepository: AnnotationRepository;

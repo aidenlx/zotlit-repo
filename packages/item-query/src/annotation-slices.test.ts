@@ -1,4 +1,3 @@
-// Failure mode: a worker slice can cross several scan pages after its budget.
 import { expect, it } from "vitest";
 
 import {
@@ -13,7 +12,6 @@ import { ANNOTATIONS, collectQuery, ITEMS } from "./index.ts";
 import { ItemQueryScheduler, SLICE_BUDGET_MS } from "./scheduler.ts";
 import { runEffect } from "./test-helpers.ts";
 
-/** The cost of one scan page; each other statement costs `OTHER_MS`. */
 const PAGE_MS = 10;
 const OTHER_MS = 0.05;
 
@@ -53,7 +51,6 @@ it.each([
     );
     slices.push(clock - start);
     expect(actual.exit._tag).toBe("Success");
-    // Two pages in one slice cost more than the budget and one page together.
     expect(pages).toBeGreaterThanOrEqual(2);
     expect(actual.pauses).toBeGreaterThan(0);
     expect(Math.max(...slices)).toBeLessThan(SLICE_BUDGET_MS + PAGE_MS);

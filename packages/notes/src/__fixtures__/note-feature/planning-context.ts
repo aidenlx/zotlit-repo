@@ -1,4 +1,3 @@
-// The services creation planning reads, over a Note Feature test's plain deps.
 import { Context, Effect } from "effect";
 import type {
   MetadataCache as ObsidianMetadataCache,
@@ -19,7 +18,6 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import type { CreationPlanningServices } from "#desktop/note-feature/creation-planning.ts";
 
-/** The plain deps the planning services read, as a Note Feature test holds them. */
 export interface PlanningSources {
   profile: Pick<ProfileReader, "profiles" | "resolveProfile" | "profileOf">;
   noteIndex: {
@@ -38,11 +36,6 @@ export interface PlanningSources {
   };
 }
 
-/**
- * The planning services over `sources`. Each member reads `sources` when it
- * runs, so a test may replace a dep after it builds the context. `query`
- * stands for ZotLit Query; without one, a query fails the test.
- */
 export function planningContext(
   sources: PlanningSources,
   itemMatches?: ItemMatchQuery["Service"],
@@ -77,7 +70,6 @@ export function planningContext(
     ),
     Context.add(
       Template,
-      // A throwing plain dep fails typed, as the real tag's members do.
       stubService<Template["Service"]>("Template", {
         renderFilename: (data) =>
           Effect.try({

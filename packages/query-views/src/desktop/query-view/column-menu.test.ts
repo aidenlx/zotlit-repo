@@ -10,7 +10,6 @@ const ALL = {
   propertyPages: true,
 };
 
-/** A middle column at its auto width in a view that sorts and groups by nothing. */
 const BASE: ColumnMenuInput = {
   path: "title",
   kind: "field",
@@ -25,7 +24,6 @@ const BASE: ColumnMenuInput = {
   grouping: null,
 };
 
-/** The entries as `action` with their marks, one array per group. */
 const read = (input: Partial<ColumnMenuInput>) =>
   columnMenuEntries({ ...BASE, ...input }).map((group) =>
     group.map(
@@ -64,7 +62,6 @@ describe("columnMenuEntries", () => {
       "move-right",
       "reset-width (disabled)",
     ]);
-    // Right to left, the first column stands at the right edge.
     expect(read({ at: 0, rtl: true })[1]).toEqual([
       "move-left",
       "move-right (disabled)",
@@ -81,7 +78,6 @@ describe("columnMenuEntries", () => {
     expect(
       read({ sort: [{ property: "title", direction: "DESC" }] })[2],
     ).toEqual(["sort-asc", "sort-desc ✓", "clear-sort"]);
-    // Another column's sort checks nothing here.
     expect(read({ sort: [{ property: "date", direction: "ASC" }] })[2]).toEqual(
       ["sort-asc", "sort-desc"],
     );

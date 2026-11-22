@@ -79,3 +79,15 @@ operators.
 - Conversion is untouched: legacy settings fields convert to static-key
   entries only, and the built-in default document ships static `expr`
   entries.
+
+## Evaluation and merge contracts
+
+JSON-e renders one authored value inside an envelope. When the operator omits the envelope key, the runtime can distinguish absence from an explicit null. On create, omit absent entries. On update, absence under replace removes a prior key. Append and keep leave a prior value in place. Apply entries in document order, reading any value already contributed by the pending patch. Array append preserves the user's existing order and duplicates and appends each new distinct member once.
+
+Project the template data into JSON-e values so the engine reads data properties without template helper methods. Use one timestamp for the operation. A diagnostic includes the entry's one-based position. When JSON-e reports a location, drop the envelope segment and use the remaining string keys or numeric indices to locate the failing expression. Operator keys can be absent from the reported path, so validate the path against the authored value before using it. Output validation and engine failures without a usable location stay at the entry level.
+
+Legacy Liquid expressions use the same engine and vocabulary as templates. Evaluate with a fresh context so results retain their types. Compile trusted JavaScript expressions only when the JavaScript Templates gate allows them. Compile the expression directly so arrays and objects remain values. Put a newline before the closing parenthesis so a trailing JavaScript line comment cannot consume it. Defer per-field compile failures to evaluation so an error can mark its own entry while other fields continue. Liquid fields use the Liquid vocabulary, and the legacy JavaScript evaluator supplies the basename helper.
+
+A refused evaluation carries the fields and errors from its first pass so a caller displaying the partial result can reuse them. Run frontmatter fixtures through the same reserved-key filter and Liquid vocabulary as the production compile. Pin the ZotLit prefix of a JavaScript failure because the engine supplies the rest of the message.
+
+Use the same property grid for the rendered Note and the Properties tab, without loading the preview's Markdown parser. The Note preview provides its native Properties container. Show a single entry's own result and summarize a spread by the properties it produces. Give its expression editor a hidden accessible label so Obsidian does not open an extra tooltip.

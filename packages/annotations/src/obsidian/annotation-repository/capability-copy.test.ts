@@ -13,7 +13,6 @@ import { deadlineAfter } from "#__fixtures__/annotation-repository/capability.ts
 
 const NOW = Temporal.Instant.from("2026-09-16T15:52:21Z");
 
-/** Every read-only reason the spec names, so a new one fails this list. */
 const READ_ONLY_REASONS = [
   "zotero-unavailable",
   "local-api-disabled",
@@ -24,11 +23,6 @@ const READ_ONLY_REASONS = [
   "probing",
 ] as const;
 
-/**
- * Every capability value, each against the message the catalog holds for it.
- * The canonical declaration in `messages/en.json` is the oracle; this asserts
- * which state reaches which message, not what the English says.
- */
 it.each<[EditingCapability, { icon: string; tone: string; label: string }]>([
   [
     { kind: "writable" },
@@ -36,7 +30,6 @@ it.each<[EditingCapability, { icon: string; tone: string; label: string }]>([
   ],
   [
     { kind: "authorization-required" },
-    // The same icon as writable: the control stays live and the gesture asks.
     {
       icon: "pencil",
       tone: "action",
@@ -119,8 +112,6 @@ it("counts a cooldown down in whole seconds, and never past zero", () => {
   expect(copy(0).detail).toBe(m.capability_cooldown_detail({ seconds: 0 }));
   expect(copy(44).icon).toBe("clock");
 
-  // A partial second still counts as one: the user is told to wait, not that
-  // the wait is over.
   expect(secondsUntil(NOW.add({ milliseconds: 1200 }), NOW)).toBe(2);
   expect(secondsUntil(NOW.subtract({ seconds: 10 }), NOW)).toBe(0);
 });

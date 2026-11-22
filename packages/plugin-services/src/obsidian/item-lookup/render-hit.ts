@@ -13,35 +13,15 @@ import type { SearchHit } from "./service.ts";
 
 import { libraryLabel } from "#core/library-scope/label.ts";
 
-/** CSS owns this value; JS reads it so the truncation window matches the
- *  visible column width. Themes override by setting the same variable. */
 const TITLE_MAX_CHARS_VAR = "--zt-citation-title-max-chars";
 
-/** Must match the CSS default in `@zotlit/citations/obsidian/citation-suggest/style.css`; used
- *  only when CSS hasn't loaded yet (Vitest, very early renders). */
 const TITLE_MAX_CHARS_FALLBACK = 60;
 
-/** Identifier chip: the same shape the Profile picker's badges take. It
- *  wraps under the title once the row runs out of width. */
 const CITEKEY_CHIP_CLASS =
   "citekey zt:max-w-full zt:truncate zt:rounded-sm zt:bg-muted zt:px-1.5 zt:py-0.5 zt:font-mono zt:text-xs zt:leading-tight zt:font-normal zt:text-muted-foreground";
 
-/**
- * A row is a size container so a flair, the label that names where a row
- * comes from (its Library, its group), can change slot with the row's width:
- * a trailing flair from `@lg` (the 700px prompt), an inline badge below it
- * (the 500px editor popup), where a flair would squeeze the title to a few
- * words. Callers put this class on the row.
- */
 export const FLAIR_ROW_CLASS = "zt:@container";
 
-/**
- * The flair for a narrow row: a compact faint badge, the same shape as the
- * citekey chip, paired with {@link appendTrailingFlair}. It is a plain
- * inline box, so its text shares the baseline of the text beside it; a box
- * that clips its overflow would move its baseline to its bottom edge. A long
- * name wraps whole to the next line.
- */
 export function appendInlineFlair(
   parent: HTMLElement,
   label: string,
@@ -53,10 +33,7 @@ export function appendInlineFlair(
   });
 }
 
-/** Trailing-edge flair, the same slot on every row. */
 export function appendTrailingFlair(el: HTMLElement, label: string): void {
-  // Obsidian's aux slot is an unlayered flex box that a utility cannot hide,
-  // so the flair is drawn with the same shape from utilities instead.
   el.createDiv({
     cls: "zt-suggestion-flair zt:hidden zt:@lg:flex zt:shrink-0 zt:self-center zt:ps-3 zt:pe-1 zt:text-muted-foreground zt:opacity-(--icon-opacity)",
   }).createSpan({
@@ -90,8 +67,6 @@ export function renderSuggestion(
     cls: "zt:min-w-0 zt:truncate zt:max-w-[calc(var(--zt-citation-title-max-chars)*1ch)]",
   });
   renderTruncatedHighlight(textEl, summary.title, hit.matches);
-  // `renderMatches` owns the highlight spans; Obsidian bolds them and the
-  // accent color makes the match findable at a glance.
   for (const match of textEl.querySelectorAll(".suggestion-highlight")) {
     match.classList.add("zt:text-accent-foreground");
   }
@@ -103,8 +78,6 @@ export function renderSuggestion(
     titleEl.createSpan({ cls: CITEKEY_CHIP_CLASS, text: citationKey });
   }
 
-  // Present only while several Libraries can contribute; see ItemLookup.
-  // My Library is the implicit source, so only a group earns a label.
   const library =
     hit.library && hit.library.selector.type !== "personal"
       ? libraryLabel(hit.library)
@@ -121,16 +94,6 @@ export function renderSuggestion(
   for (const flair of flairs) appendTrailingFlair(el, flair);
 }
 
-/**
- * The meta line belongs to every item type: the Author Summary and year, the
- * Venue, and whichever locator fields the type records, as one comma-joined
- * line. The Venue keeps the `publication` class the journal-article
- * publication had, so theme CSS written against this row still matches.
- * On a narrow row cited and Library badges end the line, set apart from
- * the bibliographic text.
- *
- * @see docs/adr/0026-venue-resolves-the-container-role-before-the-publisher-role.md
- */
 function appendMeta(
   contentEl: HTMLElement,
   {
@@ -181,10 +144,6 @@ function appendMeta(
   }
 }
 
-/**
- * Render `text` into `el` with highlights, scrolling the visible window to
- * keep the first match in view when `text` exceeds the column budget.
- */
 function renderTruncatedHighlight(
   el: HTMLElement,
   text: string,
@@ -197,9 +156,6 @@ function renderTruncatedHighlight(
     return;
   }
 
-  // Leave ~1/3 of the budget as context before the first match, the rest
-  // stretches past it. Shift left if the match would otherwise sit at the
-  // very edge.
   const firstMatch = matches[0]!;
   const matchLen = firstMatch[1] - firstMatch[0];
   const contextBefore = Math.floor((maxChars - matchLen) / 3);
@@ -219,8 +175,6 @@ function renderTruncatedHighlight(
   if (windowEnd < text.length) el.appendText("…");
 }
 
-// Cached after first successful read; the CSS value is plugin-session
-// stable, and `getComputedStyle` would otherwise fire per row per keystroke.
 let cachedTitleMaxChars: number | null = null;
 
 function readTitleMaxChars(el: HTMLElement): number {

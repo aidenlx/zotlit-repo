@@ -1,4 +1,3 @@
-// The Query Dataset selected by from; command registration is shared.
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/item-query";
 import type { ItemQueryRequest, QueryDataset } from "@zotlit/item-query";
 

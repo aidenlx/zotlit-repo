@@ -1,14 +1,8 @@
-// The GitHub client of a land (`LandGitHub` in lib/land.ts) through the `gh`
-// CLI, with the credential of its login. The land tests use a fake of it at
-// the same seam; land-github.test.ts gives it a fake `gh`.
-
 import type { CiCheck, LandGitHub, RecordPullRequest } from "#land";
 import { $ } from "zx";
 
-/** Stdout of `gh ...args`, with `input` on stdin; throws on a failed call. */
 export type GhRun = (args: string[], input?: string) => Promise<string>;
 
-/** The `gh` CLI; the error has gh's stderr on a non-zero exit. */
 const ghCli: GhRun = async (args, input) => {
   const gh = $({ quiet: true, nothrow: true });
   const result = await (input === undefined ? gh : gh({ input }))`gh ${args}`;
@@ -20,7 +14,6 @@ const ghCli: GhRun = async (args, input) => {
   return result.stdout.trim();
 };
 
-/** The record PRs of `repo` (`owner/name`). */
 export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
   return {
     async findOpenPullRequest({ head, base }) {
@@ -40,8 +33,6 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
           "number,url,isCrossRepository",
         ]),
       ) as GitHubPullRequest[];
-      // `--head` matches the branch name alone, also on a fork's PR; the
-      // record PR's head is a branch of this repository.
       const own = listed.find((pull) => !pull.isCrossRepository);
       return own && { number: own.number, url: own.url };
     },
@@ -108,11 +99,6 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
         ]),
       ) as { check_runs: GitHubCheckRun[] };
       if (runs.length === 0) return undefined;
-      // Any workflow on the commit can name a job the same, also the
-      // workflow of a fork's PR on that head. The check counts only when its
-      // check suite is the workflow run of a PR from `branch` of this
-      // repository. A check suite does not name its head repository; the
-      // workflow run of the suite does.
       const { workflow_runs: workflows } = JSON.parse(
         await run([
           "api",
@@ -141,8 +127,6 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
         ...(latest.completed_at ? { completedAt: latest.completed_at } : {}),
       };
       if (latest.status !== "completed") return check;
-      // A check run of an Actions job has the id of the job, whose
-      // `created_at` is when it joined the queue for a runner.
       const job = JSON.parse(
         await run(["api", `repos/${repo}/actions/jobs/${latest.id}`]),
       ) as { created_at: string };
@@ -151,25 +135,20 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
   };
 }
 
-/** GitHub writes the name of a repository in any case. */
 function sameRepository(a: string, b: string): boolean {
   return a.toLowerCase() === b.toLowerCase();
 }
 
-/** The fields of a `gh pr list` entry that the land reads. */
 interface GitHubPullRequest extends RecordPullRequest {
-  /** Whether the head branch is in another repository, a fork. */
   isCrossRepository: boolean;
 }
 
-/** The fields of a GitHub Actions workflow run that the land reads. */
 interface GitHubWorkflowRun {
   head_branch: string | null;
   head_repository: { full_name: string } | null;
   check_suite_id: number;
 }
 
-/** The fields of a GitHub check run that the land reads. */
 interface GitHubCheckRun {
   id: number;
   status: CiCheck["status"];

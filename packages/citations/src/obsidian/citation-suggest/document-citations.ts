@@ -1,4 +1,3 @@
-// Bound the document citation read shared by both citation pickers.
 import type { CitationIndex } from "#obsidian/citation-index/service.ts";
 import { Cause, Effect } from "effect";
 import type { TFile } from "obsidian";
@@ -41,7 +40,6 @@ export async function readDocumentCitedKeys(
             indexedKey === null ? [] : [indexedKey],
           ),
         ),
-        // Allow 150 ms for a warm index; startup indexing must not hold the picker.
         Effect.timeoutOrElse({
           duration: 150,
           orElse: () => unavailable("timeout").pipe(Effect.as(empty)),
@@ -60,7 +58,6 @@ export async function readDocumentCitedKeys(
       { signal },
     );
   } catch {
-    // The Effect handles read failures; an interrupted bridge has no result.
     return empty;
   }
 }

@@ -1,11 +1,5 @@
 import { MixedScheduler } from "effect/Scheduler";
 
-/**
- * Runs `task` on Chromium's task queue; the returned function cancels it.
- * Node-integrated Obsidian also has Node's setImmediate, which Effect and
- * React's scheduler otherwise select, and which can starve browser messages
- * and browser timers even when the indexing fibers yield.
- */
 export function scheduleBrowserTask(task: () => void): () => void {
   const { port1, port2 } = new MessageChannel();
   const close = () => {
@@ -21,7 +15,6 @@ export function scheduleBrowserTask(task: () => void): () => void {
   return close;
 }
 
-/** Dispatch on Chromium's task queue in Node-integrated Obsidian. */
 export const browserScheduler = new MixedScheduler(
   "async",
   scheduleBrowserTask,

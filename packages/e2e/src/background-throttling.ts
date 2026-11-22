@@ -1,47 +1,3 @@
-// Keeps a vault's windows rendering and focused while they are hidden,
-// minimized, covered, or behind another app. Chromium throttles a background
-// window: `requestAnimationFrame` never fires and `document.visibilityState`
-// reads "hidden", so a plugin path that waits a frame (a Mark landing, an ink
-// stroke) never finishes in a window the run does not show. Turning Electron's
-// background throttling off keeps frames coming at full rate in every such
-// state. Chromium also holds back focus events while another app is in front,
-// so CodeMirror and the workspace never see an element take focus. CDP focus
-// emulation gives one window of the vault the focus it has while the developer
-// works in it: the main window first, then each window that `window.focus()`
-// or Obsidian's `electronWindow.focus()` raises, as the OS does for an active
-// app. Only that window answers `document.hasFocus()` with true, whichever
-// window holds the OS focus, and it gets the `focus` event that moves
-// Obsidian's `activeWindow` to it. When that window, or the one `activeWindow`
-// names, closes, the focus goes back to the main window, as the OS gives it to
-// another window of the app. A closed window cannot ask for the focus, and a
-// move still applying when its window closed ends without its `focus` event.
-// Turning focus emulation on in a window sends it a `focus` event of
-// Chromium's own, which can reach a popout after it closed; the main window
-// takes that event's place. Either event would leave `activeWindow` on the
-// closed window, and Obsidian's `navigator.clipboard` and timers through
-// `activeWindow` would fail from then on. Focus moves apply one at a time, in the
-// order they are asked for, so the last one asked wins. A window answers true
-// once its move has applied, not when it is asked for: until then Chromium
-// holds back the focus events of the elements focused in it, and CodeMirror
-// takes the caret the browser puts at the start of a field for the user's. A popout opens with
-// `page.showBehind` in place of Obsidian's `show`, and `window.focus()` and
-// `electronWindow.focus()` move only the emulation: each would take the OS
-// focus and put the window in front. A walk that needs a new popout active calls
-// its `window.focus()`. The run thus leaves the OS focus to the developer and to
-// runs in other worktrees.
-//
-// A vault window that `vaultScript` opens starts with throttling already off:
-// the `--inactive` open hook in `obsidian-vault.ts` turns it off before the page
-// loads, so the renderer keeps normal priority through startup and the
-// Restricted Mode reload. This module keeps it off from then on.
-//
-// Both settings belong to a window's `webContents` and last until Obsidian
-// restarts. A popout is its own window that inherits nothing, so the vault's
-// windows are covered again whenever the workspace opens one.
-//
-// Every vault window the run sets up passes through here, after each reload
-// too, so this also gives the window its in-memory clipboard.
-
 type RunWindow = Window &
   typeof globalThis & {
     electronWindow: import("electron").BrowserWindow;
@@ -50,19 +6,6 @@ type RunWindow = Window &
 import { installMemoryClipboard } from "./memory-clipboard.ts";
 import { obRun } from "./obsidian-cli.ts";
 
-/**
- * Prepares the vault window `vaultId` for a run, after it opens and after each
- * reload. It installs the window's in-memory clipboard
- * ({@link installMemoryClipboard}), which stays for the life of the window. It turns
- * background throttling off for the main window and every popout it has or
- * opens, shows each popout it opens behind other apps' windows and without the
- * OS focus, and moves focus emulation to the window `window.focus()` or
- * `electronWindow.focus()` last raised, starting with the main window. Calling
- * it again replaces the earlier call's hooks. Its restore, which
- * `reloadWindow` (`window-reload.ts`) runs before a reload, gives the main
- * window the throttling value it found: off for a window that the `--inactive`
- * open hook set up, so the window keeps normal priority through the reload.
- */
 export async function prepareRunWindow(vaultId: string): Promise<void> {
   await installMemoryClipboard(vaultId);
   const reply = await obRun(vaultId, async ({ app, page }) => {
@@ -169,8 +112,6 @@ export async function prepareRunWindow(vaultId: string): Promise<void> {
       followFocus(leaf.getContainer().win as RunWindow),
     );
     await emulateFocus(window as RunWindow);
-    // Obsidian can request popout focus from a focus handler. Wait for the
-    // last request, including requests queued while the previous one ran.
     let settled;
     do {
       settled = switching;

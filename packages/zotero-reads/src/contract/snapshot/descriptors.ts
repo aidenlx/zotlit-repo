@@ -1,5 +1,3 @@
-// Browser-safe descriptor contract and extraction for serialized Template data.
-
 import type { TemplatePathSegment } from "@zotlit/db/template-data";
 
 import type {

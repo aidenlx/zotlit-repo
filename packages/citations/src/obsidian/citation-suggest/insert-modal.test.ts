@@ -90,12 +90,6 @@ function makeModal(
   return new InsertCitationModal(deps, editor, file);
 }
 
-/**
- * Regression: the modal advertises `⇧↵` for the alternate
- * citation, but Obsidian's suggestion popup registers `Enter` with no
- * modifiers and matches them exactly, so Shift+Enter reached no handler at all
- * and the modal just sat there. The modal has to register the chord itself.
- */
 describe("InsertCitationModal keymap", () => {
   function findShiftEnter(
     modal: InsertCitationModal,
@@ -122,8 +116,6 @@ describe("InsertCitationModal keymap", () => {
     const result = findShiftEnter(modal)?.(evt);
 
     expect(select).toHaveBeenCalledWith(evt);
-    // Returning false tells Obsidian the chord was consumed, so the keypress
-    // does not fall through to the default Enter handling.
     expect(result).toBe(false);
   });
 });

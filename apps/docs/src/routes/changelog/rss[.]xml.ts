@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-// `/changelog/rss.xml`: the changelog feed, at the current URL.
 import { Feed } from "feed";
 
 import { baseURL, changelogRoute } from "@/lib/shared.ts";
@@ -20,8 +19,6 @@ function renderFeed(): string {
       title: `ZotLit ${page.data.version}`,
       description: page.data.description,
       link: `${baseURL}${page.url}`,
-      // The collections normalize the publication day to its ISO form, which
-      // parses as a UTC instant; `feed` formats it back to RFC 822.
       date: new Date(`${page.data.date}T00:00:00Z`),
     });
   }

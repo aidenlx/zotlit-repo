@@ -1,7 +1,3 @@
-// The open PDF as the Sort Index and Page Label port reads it: per-glyph text
-// content from the fork, the page boxes, and the catalog's page labels.
-//
-// @see apps/obsidian/docs/adr/0040-the-sort-index-and-page-label-are-computed-in-obsidian-from-a-port-of-zoteros-text-structure.md
 import type { PdfPageSource, Rect, ZoteroChar } from "@zotlit/pdf-structure";
 import type { ReaderDocument, TextChar } from "@zotlit/reader-api";
 

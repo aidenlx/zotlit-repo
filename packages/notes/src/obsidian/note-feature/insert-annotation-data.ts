@@ -1,5 +1,3 @@
-// The annotation template's data for one captured card, read lazily by the render.
-
 import type { AnnotationRecord } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { annotationColorToName } from "@zotlit/db";
 import type {
@@ -10,14 +8,8 @@ import type {
 } from "@zotlit/db";
 import { TemplateError } from "@zotlit/templates/facade";
 
-/**
- * The template data of `annotation`, the captured card. Each date and fact
- * the card's source may omit throws a {@link TemplateError} only when a
- * template reads it, and `citation` renders only when read.
- */
 export function annotationInsertData(options: {
   annotation: AnnotationRecord;
-  /** The Annotation's own key, without its group prefix. */
   key: string;
   libraryID: number;
   page: number | null;

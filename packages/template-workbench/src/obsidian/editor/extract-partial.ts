@@ -1,8 +1,3 @@
-// The context menu a Template editor opens over a selection: the standard
-// clipboard actions, and "Extract to partial…".
-//
-// @see docs/adr/0055-the-citation-template-is-one-document-and-partials-are-files.md
-
 import type { SuggestionSource } from "#core/language/index.ts";
 import type { WorkbenchRunner } from "#obsidian/workbench-ui/index.tsx";
 import { isolateHistory } from "@codemirror/commands";
@@ -17,36 +12,14 @@ import { observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 
-/**
- * Move `source` into a new Shared Partial: the host asks a name, writes the
- * file under the document's language, and opens it beside this editor.
- *
- * @returns the call that replaces the selection, or `null` when the reader
- *   dismisses the prompt or the file is not written.
- */
 export type ExtractPartial = (source: string) => Effect.Effect<string | null>;
 
-/**
- * The call one Template Document writes to render `name`. Both forms hand the
- * partial the caller's own root, which is what the shipped defaults and the
- * syntax reference write: Liquid's `render` opens an isolated scope, so `zt`
- * travels by name.
- */
 export function partialCall(name: string, language: TemplateLanguage): string {
   return language === "eta"
     ? `<%~ include("${name}", zt) %>`
     : `{% render "${name}" with zt as zt %}`;
 }
 
-/**
- * The context menu a Template editor opens over its selection. An empty
- * selection offers no action at all, and neither does a region that renders
- * no partial — a Property expression or a JSON-e value.
- *
- * The menu carries the clipboard actions itself: showing it suppresses the
- * gesture's default action, which is the Electron menu that otherwise offers
- * cut, copy, and paste over a plugin-owned editor.
- */
 export function extractPartialMenu(
   read: SuggestionSource,
   extract: ExtractPartial,
@@ -125,20 +98,8 @@ async function pasteOverSelection(view: EditorView): Promise<void> {
   });
 }
 
-/** What one Extract to partial gesture did with the editor's selection. */
 export type ExtractOutcome = "extracted" | "dismissed" | "stale";
 
-/**
- * Replace the selection with the call the host answers with, as one isolated
- * history event: undo brings the whole selection back in one step and leaves
- * the created file where it is.
- *
- * @returns `dismissed` when the reader closes the name prompt without a name,
- *   and `stale` when an edit landed while the prompt was open: the prompt
- *   lasts as long as the reader takes, and such an edit moves every offset
- *   measured before it, so the document keeps its text and the created partial
- *   stands on its own.
- */
 export const extractSelection = (
   view: EditorView,
   extract: ExtractPartial,
@@ -165,7 +126,6 @@ export const extractSelection = (
     );
   });
 
-/** The seam that renders one {@link extractSelection} outcome. */
 function reportExtraction(outcome: ExtractOutcome): void {
   if (outcome === "stale") new BaseNotice(m.notice_partial_extract_stale());
 }

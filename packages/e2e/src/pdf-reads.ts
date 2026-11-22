@@ -1,4 +1,3 @@
-// Real PDF navigation, with the ledger and rendered Recent order as observers.
 import { DatabaseSync } from "node:sqlite";
 import { expect } from "vitest";
 
@@ -13,8 +12,6 @@ const path = "attachments/rougier-2014.pdf";
 const itemKey = "RUGIER24";
 const attachmentKey = "RGRPDF24";
 
-// Failure modes: an open route misses its parent; restoration counts as a read;
-// page renders count as turns; close is missed; a standalone PDF records a Use.
 export async function verifyPdfReads(
   vaultId: string,
   databasePath: string,
@@ -525,8 +522,6 @@ export async function verifyPdfReads(
       )
     )[itemKey],
   ).toEqual(firstRead);
-  // The restored reader may turn pages later. A fresh plugin has no page
-  // throttle history, so this real transition proves the subscription records.
   await obRun(
     vaultId,
     async ({ app, zotlit, page }, { itemKey, firstInstant }) => {
@@ -733,8 +728,6 @@ export async function verifyPdfReads(
     },
     undefined,
   );
-  // Turn the Fixture Attachment into a standalone one, then reload the plugin
-  // to resolve it from the actual database rather than an old held path index.
   db.prepare("UPDATE itemAttachments SET parentItemID=NULL WHERE itemID=?").run(
     attachment.itemID,
   );

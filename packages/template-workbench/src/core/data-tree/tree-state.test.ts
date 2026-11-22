@@ -130,11 +130,6 @@ describe("setAnchor", () => {
   });
 
   it("preserves the pre-filter expanded snapshot for the eventual return to note root", () => {
-    // Regression: setAnchor must not touch `expanded` as part of clearing the
-    // filter, because during a filter `toggleNode` only ever mutates
-    // `filterCollapsed` — `expanded` stays exactly the pre-filter snapshot the
-    // whole time, so the note-root stash captured on the anchor swap is
-    // correct even though a filter was active moments before.
     const withExpansion: TreeState = {
       ...initialTreeState(),
       expanded: new Set(["a", "b"]),

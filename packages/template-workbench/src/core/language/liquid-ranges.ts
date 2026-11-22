@@ -1,4 +1,3 @@
-// Liquid source ranges for highlighting and completion, independent of editor state.
 import { regex } from "arkregex";
 
 import { MANAGED_BLOCK_TAG_NAMES } from "@zotlit/templates/constants";
@@ -10,11 +9,9 @@ export interface LiquidRange {
   kind: "output" | "tag" | "structural" | "comment";
   name: string;
   closed: boolean;
-  /** A tag line inside a liquid block, with no delimiters of its own. */
   line?: boolean;
 }
 
-/** The active code range, narrowing a liquid block to the current tag line. */
 export function liquidCodeRange(
   source: string,
   position: number,
@@ -60,13 +57,6 @@ export function liquidCodeRange(
   return undefined;
 }
 
-/**
- * Scans Liquid delimiters without parsing. Quotes hide delimiters except in
- * inline comments and liquid blocks, which end at the first closing delimiter;
- * `raw` and `comment` bodies are skipped whole, so their delimiters never open
- * a range. An unterminated range runs to the end of the source with
- * `closed: false`.
- */
 export function liquidRanges(source: string): LiquidRange[] {
   const result: LiquidRange[] = [];
   const start = /\{[{%]/g;
@@ -94,9 +84,6 @@ export function liquidRanges(source: string): LiquidRange[] {
     const closed = to < source.length;
     to = Math.min(to + 2, source.length);
     if (name === "raw" || name === "comment") {
-      // Two literal patterns instead of interpolating `name` into a RegExp
-      // (policies/regex.md); no captures are read, so a plain literal is
-      // enough — arkregex's typed captures buy nothing here.
       const end =
         name === "raw"
           ? /\{%-?\s*endraw\s*-?%}/g

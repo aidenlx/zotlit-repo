@@ -105,7 +105,6 @@ function watch(scope: ReturnType<typeof fakeScope>) {
   });
 }
 
-/** A Library Scope whose saved value a test breaks and repairs. */
 function fakeScope(invalid: boolean) {
   const event = testEvent<LibraryScopeState>();
   const stateOf = (broken: boolean): LibraryScopeState => ({
@@ -119,7 +118,6 @@ function fakeScope(invalid: boolean) {
   return {
     service: {
       invalid: Effect.sync(() => latest.invalid),
-      // The state a subscriber starts from, then each one the test sets.
       changes: Stream.unwrap(
         Effect.sync(() => event.stream.pipe(Stream.prepend([latest]))),
       ),

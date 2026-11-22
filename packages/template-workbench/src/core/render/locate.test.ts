@@ -90,7 +90,6 @@ describe("current repair call", () => {
   });
 });
 
-/** One authored row per way an entry expression can fail. */
 const ENTRIES = {
   evalRule: `  - key: broken
     value: {"$eval": "zt.nowhere.deep"}
@@ -103,20 +102,14 @@ const ENTRIES = {
   liquidExpression: `  - key: broken
     expr: "zt.]title"
     merge: replace`,
-  // An operator missing the clauses it needs fails on what the rule does not
-  // say, so no part of what it does say is the fault.
   operatorMissingClause: `  - key: broken
     value: {"$let": {}}
     merge: replace`,
-  // JSON-e renders an operator's own branches itself and leaves the operator
-  // out of the location it reports, so this failure inside `in` is reported at
-  // a path that also names the sibling `in` the author wrote beside it.
   operatorBranch: `  - key: broken
     value: {"$let": {"in": {"$eval": "zt.nowhere.deep"}}, "in": "safe"}
     merge: replace`,
 };
 
-/** The failure one appended row raises, beside the expression its row edits. */
 function entryFailure(rows: string): {
   diagnostic: RenderDiagnostic;
   expression: string;
@@ -128,7 +121,6 @@ function entryFailure(rows: string): {
   const diagnostic = renderProfile(source, SAMPLE_ITEMS[0]!).diagnostics.find(
     ({ code }) => code === "property-error",
   )!;
-  // The row's editor holds the expression alone, which every offset counts from.
   const expression = regex("(?:value|expr): (?<held>.*)").exec(rows)!.groups
     .held;
   return { diagnostic, expression };
@@ -160,7 +152,6 @@ describe("current entry site", () => {
     const { diagnostic, expression } = entryFailure(ENTRIES.liquidExpression);
 
     const site = currentSliceSite(diagnostic, expression)!;
-    // liquidjs stops on the filter name it wanted a pipe before.
     expect(expression.slice(site.from, site.to)).toBe("title");
   });
 
@@ -182,8 +173,6 @@ describe("current entry site", () => {
   it("marks nothing where JSON-e reported a path through an operator", () => {
     const { diagnostic, expression } = entryFailure(ENTRIES.operatorBranch);
 
-    // The reported path names `in`, which the author also wrote as a sibling
-    // of the operator: marking it would underline text that did not fail.
     expect(diagnostic.sliceSite).toBeUndefined();
     expect(currentSliceSite(diagnostic, expression)).toBeUndefined();
   });

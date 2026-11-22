@@ -1,11 +1,4 @@
 import type { SetupActions } from "#desktop/welcome/setup-actions.ts";
-// The Library View where ZotLit cannot find the Zotero data directory: the
-// tree says so in one line, the list offers to locate the folder or open
-// settings, and the papers come back as soon as the database reads again.
-// Where only a refresh failed, the list keeps the rows it read last under a
-// short note.
-//
-// @see apps/obsidian/docs/adr/0077-the-library-view-is-the-first-screen.md
 import { Component } from "obsidian";
 import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
@@ -28,13 +21,9 @@ export interface ZoteroNotFoundDeps {
 }
 
 export interface ZoteroNotFoundSlots {
-  /** Carries `data-zotero-missing` while the database cannot be read. */
   shell: HTMLElement;
-  /** Where the tree's part goes. */
   tree: HTMLElement;
-  /** Where the list's part goes. */
   list: HTMLElement;
-  /** Where the note of a failed refresh goes, above the list. */
   note: HTMLElement;
 }
 
@@ -45,7 +34,6 @@ export class ZoteroNotFound extends Component {
   #roots: Root[] = [];
   #note: Root | null = null;
 
-  /** `found` runs when the database reads again after it could not. */
   constructor(
     deps: ZoteroNotFoundDeps,
     slots: ZoteroNotFoundSlots,
@@ -61,8 +49,6 @@ export class ZoteroNotFound extends Component {
     const { registry, setupActions } = this.#deps;
     const { shell, tree, list, note } = this.#slots;
     this.#note = this.#mount(note, null);
-    // Read from the database service on each of its changes, so a folder
-    // that is set brings the papers back.
     const update = (reads: ZoteroReadsState) => {
       const missing = unavailable({ reads });
       const was = shell.hasAttribute("data-zotero-missing");
@@ -97,7 +83,6 @@ export class ZoteroNotFound extends Component {
 
 type Actions = ZoteroNotFoundDeps["setupActions"];
 
-/** One line in place of the tree: the list says the rest and offers the actions. */
 function TreeNotFound() {
   return (
     <div
@@ -131,10 +116,7 @@ function RefreshFailedNote({ actions }: { actions: Actions }) {
 function ListNotFound({ actions }: { actions: Actions }) {
   const titleId = useUniqueId();
   return (
-    // The card stands centred in the list, as an empty list does.
     <PaneState>
-      {/* Obsidian shows a tooltip for each `aria-label`, so the card takes
-          its name from the title on screen. */}
       <section
         aria-labelledby={titleId}
         data-library-not-found="list"

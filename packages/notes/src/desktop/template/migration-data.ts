@@ -1,4 +1,3 @@
-// The real Zotero item a Legacy Template conversion verifies against.
 import { Effect, Stream } from "effect";
 
 import type { CiteRef } from "@zotlit/db";
@@ -9,32 +8,23 @@ import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import { readTemplateData } from "./data.ts";
 import type { TemplateDataServices } from "./data.ts";
 
-/** One real Zotero item, in every shape a conversion verifies against. */
 export interface MigrationVerificationData {
   readonly note: object;
   readonly filename: object;
   readonly annotation: object | null;
-  /** The one-item Citation both Citation Variants of the fold render. */
   readonly citation: readonly CiteRef[];
 }
 
-/** A candidate whose note and filename data build, and its data with an annotation when found. */
 interface Verified {
   readonly base: MigrationVerificationData;
   readonly complete: MigrationVerificationData | null;
 }
 
-/** One root's data, failing with what failed to read or build it. */
 const load = (indexedKey: string, root: "note" | "filename" | "annotation") =>
   readTemplateData(indexedKey, root).pipe(
     Effect.mapError(({ cause }) => cause),
   );
 
-/**
- * Load one real in-scope Zotero item through the Workbench's inert render
- * seam: the first in-scope item whose note and filename data build, with an
- * annotation's data when `annotation` asks for one.
- */
 export const readMigrationVerificationData = Effect.fn(
   "TemplateMigration.readVerificationData",
 )(function* (options: {
@@ -75,9 +65,7 @@ export const readMigrationVerificationData = Effect.fn(
 
       const verified = yield* candidates.pipe(
         Stream.mapEffect(
-          // Untraced: runs once per candidate item until one verifies.
           Effect.fnUntraced(function* (indexedKey) {
-            // The Citation is read under the lease before the render, not after.
             const citation = yield* citationVerificationRefs(reads, indexedKey);
             const [note, filename] = yield* Effect.all(
               [load(indexedKey, "note"), load(indexedKey, "filename")],
@@ -105,7 +93,6 @@ export const readMigrationVerificationData = Effect.fn(
         ),
         Stream.filter((candidate) => candidate !== null),
         Stream.takeUntil((candidate) => candidate.complete !== null),
-        // Keep the first base, as the fallback when no candidate completes.
         Stream.runFold(
           (): Verified | null => null,
           (first, candidate): Verified => ({
@@ -119,11 +106,6 @@ export const readMigrationVerificationData = Effect.fn(
   );
 });
 
-/**
- * The one-item Citation the Citation Template fold verifies against: the same
- * ref shape the citation suggester inserts, so the fold is checked through the
- * data path a real insertion takes.
- */
 const citationVerificationRefs = Effect.fnUntraced(function* (
   reads: ZoteroReadsApi,
   indexedKey: string,

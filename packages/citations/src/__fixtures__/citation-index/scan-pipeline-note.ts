@@ -1,6 +1,3 @@
-// Shared synthetic note shape for the host and desktop scan budgets.
-// One citation per paragraph, a callout every fifth, and a fence every 25th.
-// Dense/sparse prose repeats 2/30 times; truncation fixes the UTF-16 length.
 export function syntheticNote(size: number, dense: boolean, links: boolean): string {
   const paragraphs: string[] = [];
   let length = 0;

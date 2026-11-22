@@ -1,6 +1,3 @@
-// The Query View reads a diagnostic of ZotLit Query as one sentence and the
-// line of the filter with a caret under the fault, from the diagnostic's
-// fields rather than from the CLI report.
 import { expect, it } from "vitest";
 
 import { readerDiagnostic, readerText } from "./reader-diagnostic.ts";
@@ -8,7 +5,6 @@ import type { ReaderDiagnosticSource } from "./reader-diagnostic.ts";
 
 const SYNTAX_FORMS = ["!", "(", "a name", "a string"];
 
-/** A syntax fault as ZotLit Query gives it, without a correction. */
 function syntaxFault(
   excerpt?: ReaderDiagnosticSource["excerpt"],
 ): ReaderDiagnosticSource {
@@ -23,7 +19,6 @@ function syntaxFault(
   } as ReaderDiagnosticSource;
 }
 
-/** The line and the caret under it, as the view shows them. */
 function shown(source: ReaderDiagnosticSource): string[] {
   const { excerpt } = readerDiagnostic(source);
   if (!excerpt) return [];

@@ -1,5 +1,4 @@
 import type { ProfileBindingSettings } from "#obsidian/profile/bindings.ts";
-// The resolvers a Literature Note's template render calls: note paths and links, annotations, Child Notes.
 import { Effect } from "effect";
 import type { TFile } from "obsidian";
 
@@ -32,13 +31,8 @@ import { Template } from "#obsidian/template/service.ts";
 
 const logged = withLogCategory("note-feature");
 
-/** The services the note resolvers read during a render. */
 export type NoteResolverServices = NoteIndex | Template | Vault;
 
-/**
- * Runs one resolver read synchronously, inside the template render that
- * calls the resolver: `Effect.runSyncWith` over the write's context.
- */
 export type NoteResolverRun = <A, E>(
   effect: Effect.Effect<A, E, NoteResolverServices>,
 ) => A;
@@ -48,7 +42,6 @@ interface NoteTarget {
   file: TFile;
 }
 
-/** An item's facets as its note filename reads them. */
 export function templateFacets(facets: ItemFacets): {
   itemTags: readonly ItemTag[];
   itemCollections: TemplateCollection[];
@@ -59,7 +52,6 @@ export function templateFacets(facets: ItemFacets): {
   };
 }
 
-/** The item's own tags and collections in `source`, for its note filename. */
 export function itemFacets(
   source: NoteSource,
 ): ReturnType<typeof templateFacets> {
@@ -70,13 +62,6 @@ export function itemFacets(
   });
 }
 
-/**
- * The full resolver bundle for `item`'s note context, passed to
- * `@zotlit/db`'s `fetchNoteContext`: annotation resolvers, the literature-note
- * path/link/author-summary resolvers, and `zt.notes`' child-note link mapper.
- * The template render calls each resolver synchronously; `run` reads the
- * services for it.
- */
 export function buildNoteResolvers(
   run: NoteResolverRun,
   options: {
@@ -85,7 +70,6 @@ export function buildNoteResolvers(
     sourcePath: string;
     zoteroPref: AttachmentPathContext;
     excerptImages?: PreparedExcerpts;
-    /** The render's link call. */
     link: MarkdownLinker;
   },
 ): NoteResolvers {
@@ -188,18 +172,12 @@ function resolveNoteTarget(
   resolvingFallback.add(item.indexedKey);
   try {
     const folderSetting = getProfileBinding(settings, "note.literature-folder");
-    // A synthetic link target must be deterministic, so drop any `suffix()`
-    // marker to the base name.
     const rel = baseNoteName(
       run(
         Effect.flatMap(Template, (template) => template.renderFilename(item)),
       ),
     );
     const path = joinNotePath(folderSetting, rel);
-    // This item has no indexed note (checked above), so an occupant at the
-    // base path belongs to a different item. The real note's random `suffix()`
-    // can't be predicted here, so linking to the occupant would point at the
-    // wrong item — surface no target instead.
     if (
       run(Effect.flatMap(Vault, (vault) => vault.getAbstractFileByPath(path)))
     ) {

@@ -28,10 +28,6 @@ vi.mock("./data.ts", async (original) => ({
   readTemplateData: vi.fn(),
 }));
 
-/**
- * My Library holds MAIN2345 (modified last), RELA2345, and LATE2345; the group holds
- * GRPITEMS, outside the saved scope.
- */
 const SEED = `
   insert into version (schema, version) values ('userdata', 129);
   insert into libraries (libraryID, type, version, clientVersion)
@@ -100,7 +96,6 @@ it.effect.each([
       const reads = yield* Layer.build(layerZoteroReads(client));
       vi.mocked(readTemplateData).mockImplementation((key, root) => {
         if (root === "note") events.push(`render ${key}`);
-        // The item modified last cannot render; the next one can.
         return Effect.succeed(
           key === "MAIN2345"
             ? { kind: "not-found" as const }

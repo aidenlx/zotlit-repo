@@ -64,7 +64,6 @@ it("watch hears each change with the value before it, in the update", () => {
 
   registry.set(count, 2);
   expect(heard).toEqual([[2, 1]]);
-  // A set to the value it holds is no change.
   registry.set(count, 2);
   registry.set(count, 3);
   expect(heard).toEqual([
@@ -96,7 +95,6 @@ it("watch stays still while the atom's equality holds", () => {
   const listener = vi.fn();
   watch(registry, keys, listener);
 
-  // A new list with the same keys, beside a change elsewhere.
   registry.set(source, { keys: ["A"], at: 1 });
   expect(listener).not.toHaveBeenCalled();
   registry.set(source, { keys: ["A", "B"], at: 1 });

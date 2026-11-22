@@ -1,5 +1,3 @@
-// Selector parsing: the request each command accepts, and the identity it asserts.
-
 import type { RenderTemplate } from "#core/cli/vocabulary.ts";
 import type { PartialContext } from "#core/render/index.ts";
 import { Schema } from "effect";
@@ -64,43 +62,31 @@ export {
 
 const INDEXED_KEY_MESSAGE = "key must be an Indexed Key.";
 
-/** The Indexed Key an item-backed command selects with. */
 const indexedKey = indexedKeyOr(INDEXED_KEY_MESSAGE);
 
-/** An Indexed Key, or `message` for any other text. */
 function indexedKeyOr(message: string) {
   return Schema.String.check(
     Schema.makeFilter((key: string) => isIndexedKey(key) || message),
   );
 }
 
-/**
- * The key message of a selector. A Citation takes one built-in example set
- * instead, since a Citation the user has yet to insert has no Zotero object.
- */
 function keyMessage(citation: boolean): string {
   return citation
     ? `key must be an Indexed Key, or select a built-in Citation with example=${choices(CITATION_EXAMPLE_NAMES)}.`
     : INDEXED_KEY_MESSAGE;
 }
 
-/** The example message of a selector that names an example it cannot take. */
 function exampleMessage(citation: boolean): string {
   return citation
     ? `Select the Citation with example=${choices(CITATION_EXAMPLE_NAMES)} or with key=<indexed-key>, not both.`
     : "example selects a built-in Citation set; it applies to the citation root only. Every other root selects a Zotero object with key=<indexed-key>.";
 }
 
-/**
- * The selector of a variant that reads a Citation by an Indexed Key. The
- * caller who names only a built-in example set takes {@link citationByExample}.
- */
 const citationByKey = {
   example: cliNotApplicable(exampleMessage(true)),
   key: indexedKeyOr(keyMessage(true)),
 };
 
-/** The selector of a variant that reads one built-in Citation example set. */
 const citationByExample = {
   example: cliLiterals(
     CITATION_EXAMPLE_NAMES,
@@ -113,7 +99,6 @@ const NOTE_SELECTOR_MESSAGE =
 
 const dataRoot = cliLiterals(CONTRACT_ROOT_NAMES, rootVocabulary());
 
-/** How `template-data` reads the root, after the object it reads. */
 const dataReading = {
   query: Schema.optionalKey(
     cliText("query must contain text. Use query=<field name> for discovery."),
@@ -131,7 +116,6 @@ const oneReadMode = cliOneOf<{ query?: string; path?: string; full?: true }>(
   { many: "Use one of query=<words>, path=<zt.path>, or full." },
 );
 
-/** The request every `template-data` variant decodes to. */
 function dataRequest<TSelected extends object>(
   selected: TSelected,
   reading: { root: ContractRoot } & Schema.Struct<typeof dataReading>["Type"],
@@ -198,7 +182,6 @@ const dataParams = cliVariants(
   },
 );
 
-/** What `template-data` reads: a note, a Zotero object, or a Citation set. */
 export type DataRequest = CliOutput<typeof dataParams>;
 export type DataParam = CliParamName<typeof dataParams>;
 
@@ -246,7 +229,6 @@ const renderFormat = {
   "expect-source": expectSourceParam,
 };
 
-/** The request every `template-render` variant decodes to. */
 function renderRequest<TSelected extends object>(
   selected: TSelected,
   reading: {
@@ -260,20 +242,12 @@ function renderRequest<TSelected extends object>(
   return {
     ...selected,
     template,
-    // The caller a partial render reads its data as; absent for every other Template.
     ...(root === undefined ? {} : { root }),
-    // The Citation Variant a citation render names; absent for every other Template.
     ...(variant === undefined ? {} : { variant }),
     format,
   };
 }
 
-/**
- * Whether a render reads a Citation decides its variant: the Citation
- * Template, or a partial read as called from a Citation. Under every other
- * caller a partial takes the caller's own object, and only a partial has a
- * caller to choose.
- */
 const renderParams = cliVariants(
   ({ template, root, key, example }) =>
     template === CITATION_TEMPLATE
@@ -377,7 +351,6 @@ const renderParams = cliVariants(
   },
 );
 
-/** The Template `template-render` renders, and the object it reads. */
 export type RenderRequest = CliOutput<typeof renderParams>;
 export type RenderParam = CliParamName<typeof renderParams>;
 
@@ -432,11 +405,9 @@ const documentRenderParams = cliVariants(
   },
 );
 
-/** The Indexed Key, and the Profile, installed document, or source to render. */
 export type DocumentRenderRequest = CliOutput<typeof documentRenderParams>;
 export type DocumentRenderParam = CliParamName<typeof documentRenderParams>;
 
-/** Select one Profile, installed document, or in-memory source override. */
 export function parseDocumentRenderRequest(
   params: CliData,
 ): Effect.Effect<DocumentRenderRequest, CliRejection> {
@@ -445,10 +416,8 @@ export function parseDocumentRenderRequest(
   });
 }
 
-/** A command that reads no selector at all. */
 const noParams = noCliParams.pipe(cliMap(() => null));
 
-/** `template-schema` lists every published schema and reads no selector at all. */
 export function parseSchemaRequest(
   params: CliData,
 ): Effect.Effect<null, CliRejection> {
@@ -471,7 +440,6 @@ const sourceParams = cliParams(
 
 export type SourceParam = CliParamName<typeof sourceParams>;
 
-/** `template-source` selects a Template name and reads nothing item-backed. */
 export function parseSourceRequest(
   params: CliData,
 ): Effect.Effect<TemplateSlot, CliRejection> {
@@ -495,21 +463,18 @@ const guideParams = cliParams({
 
 export type GuideParam = CliParamName<typeof guideParams>;
 
-/** `template-guide` prints the quickstart when `topic` is absent. */
 export function parseGuideRequest(
   params: CliData,
 ): Effect.Effect<GuideTopic | null, CliRejection> {
   return decodeCliParams(params, guideParams, { command: "template-guide" });
 }
 
-/** `template-status` reads no selector at all. */
 export function parseStatusRequest(
   params: CliData,
 ): Effect.Effect<null, CliRejection> {
   return decodeCliParams(params, noParams, { command: "template-status" });
 }
 
-/** `frontmatter-status` reads no selector at all. */
 export function parseFrontmatterStatusRequest(
   params: CliData,
 ): Effect.Effect<null, CliRejection> {
@@ -554,13 +519,9 @@ const frontmatterEvalParams = cliVariants(
   },
 );
 
-/** `frontmatter-eval`'s parsed selector: the configured set (`adhoc: null`),
- *  or one ad-hoc expression to evaluate instead. */
 export type FrontmatterEvalRequest = CliOutput<typeof frontmatterEvalParams>;
 export type FrontmatterEvalParam = CliParamName<typeof frontmatterEvalParams>;
 
-/** `frontmatter-eval` selects an Item and, with `expr=`, one ad-hoc
- *  expression to evaluate in place of the configured field set. */
 export function parseFrontmatterEvalRequest(
   params: CliData,
 ): Effect.Effect<FrontmatterEvalRequest, CliRejection> {
@@ -569,10 +530,8 @@ export function parseFrontmatterEvalRequest(
   });
 }
 
-/** The Managed Frontmatter field key a command names. */
 const fieldKey = trimmedText("field must not be empty.");
 
-/** Text with something beside whitespace, trimmed. */
 function trimmedText(message: string) {
   return cliText(message).pipe(cliMap((text) => text.trim()));
 }
@@ -596,18 +555,10 @@ const frontmatterSetParams = cliParams({
   })),
 );
 
-/**
- * `frontmatter-set`'s parsed selector: the field key to upsert, plus whichever
- * of `expr`/`language`/`merge` the caller supplied. An absent property means
- * "omitted" — the handler resolves it against the field's current
- * configuration (patch) or a default (new field), so parsing never fills one
- * in itself.
- */
 export type FrontmatterSetRequest = CliOutput<typeof frontmatterSetParams>;
 
 export type FrontmatterSetParam = CliParamName<typeof frontmatterSetParams>;
 
-/** `frontmatter-set` upserts one Managed Frontmatter field by key. */
 export function parseFrontmatterSetRequest(
   params: CliData,
 ): Effect.Effect<FrontmatterSetRequest, CliRejection> {
@@ -618,9 +569,6 @@ export function parseFrontmatterSetRequest(
 
 const frontmatterRemoveParams = cliParams({ field: fieldKey });
 
-/** `frontmatter-remove`'s parsed selector: the field key to delete. Whether
- *  it is actually configured is a handler concern (`FIELD_NOT_FOUND`), not a
- *  selector-level one. */
 export type FrontmatterRemoveRequest = CliOutput<
   typeof frontmatterRemoveParams
 >;
@@ -629,7 +577,6 @@ export type FrontmatterRemoveParam = CliParamName<
   typeof frontmatterRemoveParams
 >;
 
-/** `frontmatter-remove` deletes one Managed Frontmatter field by key. */
 export function parseFrontmatterRemoveRequest(
   params: CliData,
 ): Effect.Effect<FrontmatterRemoveRequest, CliRejection> {
@@ -650,10 +597,6 @@ const frontmatterReorderParams = cliParams({
   ),
 });
 
-/** `frontmatter-reorder`'s parsed selector: the candidate key order, split on
- *  commas and trimmed. Whether it is an exact permutation of the configured
- *  keys is a handler concern (it needs the current configuration), not a
- *  selector-level one. */
 export type FrontmatterReorderRequest = CliOutput<
   typeof frontmatterReorderParams
 >;
@@ -662,8 +605,6 @@ export type FrontmatterReorderParam = CliParamName<
   typeof frontmatterReorderParams
 >;
 
-/** `frontmatter-reorder` arranges the configured Managed Frontmatter fields;
- *  `order` must list every configured key exactly once. */
 export function parseFrontmatterReorderRequest(
   params: CliData,
 ): Effect.Effect<FrontmatterReorderRequest, CliRejection> {
@@ -672,11 +613,6 @@ export function parseFrontmatterReorderRequest(
   });
 }
 
-/**
- * Report the Zotero source the caller asserted when it differs from the
- * connected one, so an authoring loop stops before it reads or renders
- * against the wrong target.
- */
 export function targetMismatch(
   params: CliData,
   identity: WorkbenchIdentity,
@@ -700,7 +636,6 @@ function rootVocabulary(): string {
   return `root must be ${quotedList(CONTRACT_ROOT_NAMES)}.`;
 }
 
-/** `template-source` reads a `root=` swap meant for the data-root command. */
 function slotCommandRootHint(): string {
   return (
     `template-source selects a Template slot; use template=${choices(TEMPLATE_SLOT_NAMES)}. ` +
@@ -708,7 +643,6 @@ function slotCommandRootHint(): string {
   );
 }
 
-/** `template-data` reads a `template=` swap meant for a slot command. */
 function dataCommandTemplateHint(): string {
   return (
     `template-data selects a data root; use root=${choices(CONTRACT_ROOT_NAMES)}. ` +
@@ -716,6 +650,5 @@ function dataCommandTemplateHint(): string {
   );
 }
 
-/** `template-schema` reads a selector left over from its earlier per-root form. */
 const SCHEMA_LISTS_EVERY_ROOT_MESSAGE =
   "template-schema takes no parameters; it answers with the schema of every data root, keyed by root under 'schemas'.";

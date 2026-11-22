@@ -1,9 +1,5 @@
 #!/usr/bin/env node
 
-// Runs a command once the Memory Gate admits it. Root `pnpm test` runs
-// `turbo run test` through it, so the whole run passes the gate once and each
-// package's Vitest skips it. `--help` prints the contract.
-
 import { Effect } from "effect";
 import { spawn } from "node:child_process";
 import { constants } from "node:os";
@@ -73,14 +69,10 @@ const options = {
     ? { ...process.env, [MEMORY_GATE_ADMITTED_ENV]: "1" }
     : process.env,
 } as const;
-// Windows resolves `turbo` and `pnpm` through their .cmd shims, so it needs a
-// shell, and a shell takes one command line (DEP0190).
 const child =
   process.platform === "win32"
     ? spawn([command, ...args].join(" "), { ...options, shell: true })
     : spawn(command, args, options);
-// The terminal signals the whole foreground group; a supervisor such as
-// turbo signals only this process, so pass its signal on.
 for (const signal of ["SIGTERM", "SIGHUP"] as const) {
   process.on(signal, () => child.kill(signal));
 }

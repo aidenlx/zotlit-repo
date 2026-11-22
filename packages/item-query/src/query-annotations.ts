@@ -1,5 +1,3 @@
-// The Annotations dataset: Annotation Query over the non-trashed Annotations
-// of the Target Libraries, on the same bounded execution as Item Query.
 import { Effect } from "effect";
 
 import {
@@ -34,7 +32,6 @@ import { ITEMS } from "./query-items.ts";
 import { openRecordLoader } from "./record-loader.ts";
 import type { ItemQueryRequest } from "./request.ts";
 
-/** Annotation Query: one Annotation Row for each non-trashed Annotation. */
 export const ANNOTATIONS: QueryDataset<ItemQueryRequest> = {
   id: "annotations",
   noun: "Annotation",

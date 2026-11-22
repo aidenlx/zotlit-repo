@@ -65,7 +65,6 @@ describe("renderSuggestion library label", () => {
   });
 });
 
-/** The trailing library label's text, or `null` when no label was rendered. */
 function libraryText(library: AvailableLibrary | null): string | null {
   const el = document.createElement("div");
   renderSuggestion(settings, bridge, hit(library), el);
@@ -170,7 +169,6 @@ describe("renderSuggestion result meta line", () => {
   });
 });
 
-/** `null` where the row rendered no meta line at all. */
 function metaParts<TType extends ItemFields["itemType"]>(
   options: TypedItemFixtureOptions<TType>,
 ): Record<string, string> | null {

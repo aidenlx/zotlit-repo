@@ -1,9 +1,3 @@
-// The ZotLit Query guide: tiered literal-English text, after the Template
-// Workbench guide. Every command and Filter Expression it shows comes from
-// `example` or `filter` below, so a test runs each one against a real query.
-// Command names, parameters, and defaults come from the constants the
-// handlers run.
-
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/item-query";
 
 import {
@@ -24,18 +18,14 @@ import {
   queryCancelledText,
 } from "./contract.ts";
 
-/** One query command of the guide, as flat CLI arguments. */
 export type GuideExample = Readonly<Record<string, string>>;
 
 const examples: GuideExample[] = [];
 const filters: string[] = [];
 
-/** Every query command the guide shows. */
 export const GUIDE_EXAMPLES: readonly GuideExample[] = examples;
-/** Every Filter Expression the guide shows outside a command. */
 export const GUIDE_FILTERS: readonly string[] = filters;
 
-/** A query command, written with each value in single quotes. */
 function example(args: GuideExample): string {
   examples.push(args);
   const parts = Object.entries(args).map(([name, value]) =>
@@ -44,13 +34,11 @@ function example(args: GuideExample): string {
   return [`obsidian ${QUERY_COMMAND}`, ...parts].join(" ");
 }
 
-/** "a, b, and c". */
 function listOf(names: readonly string[]): string {
   return new Intl.ListFormat("en", { type: "conjunction" }).format(names);
 }
 
 const ITEM_DEFAULT_FIELD_LIST = listOf(ITEMS.defaultFields);
-/** The default sort in words, such as "dateModified descending". */
 const ITEM_DEFAULT_SORT_TEXT = listOf(
   ITEMS.defaultSort.map(
     ({ field, direction }) =>
@@ -58,7 +46,6 @@ const ITEM_DEFAULT_SORT_TEXT = listOf(
   ),
 );
 
-/** The query command with each parameter, wrapped as the synopsis shows it. */
 function querySynopsis(): string {
   const lines = [`obsidian ${QUERY_COMMAND}`];
   for (const [name, flag] of Object.entries(queryFlags)) {
@@ -73,7 +60,6 @@ function querySynopsis(): string {
   return lines.join("\n  ");
 }
 
-/** Each diagnostic code of the handlers with its recovery text, wrapped. */
 function diagnosticCodes(): string {
   return Object.entries(DIAGNOSTIC_HINTS)
     .map(([code, hint]) => {
@@ -91,7 +77,6 @@ function diagnosticCodes(): string {
     .join("\n  ");
 }
 
-/** A Filter Expression shown on its own line. */
 function filter(expression: string): string {
   filters.push(expression);
   return expression;
@@ -637,7 +622,6 @@ const VALUES_SECTION = `COLLECTION AND TAG VALUES
   obsidian vault=<vault> ${QUERY_VALUES_COMMAND} kind=collections match=thesis
   obsidian vault=<vault> ${QUERY_VALUES_COMMAND} kind=tags library=all limit=all`;
 
-/** Canonical topic registry shared by parsing, generated help, and the index. */
 export const GUIDE_TOPICS = {
   datasets: DATASETS_SECTION,
   filter: `${FILTER_SECTION}\n\n${ANNOTATION_GUIDE_SECTIONS.filter}`,

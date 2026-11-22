@@ -26,30 +26,16 @@ import { renderSiteRedirectsFile } from "./src/lib/redirects.ts";
 import type { DocsLine } from "./src/lib/shared.ts";
 
 const packageRoot = import.meta.dirname;
-/** One read of the recordings per config load, for the lesson media and the media-store URLs. */
 let recordings: StoredVideo[] | undefined;
 const videos = () => (recordings ??= scanVideos(packageRoot));
-// Keep Miniflare's local Worker registry with the package's other ignored
-// runtime state, so a build needs no access to the user's global config path.
 process.env.MINIFLARE_REGISTRY_PATH ??= resolve(
   packageRoot,
   ".wrangler/registry",
 );
-/** The real `fumadocs-core/server`, the entry its `import` condition names. */
 const fumadocsServer = fileURLToPath(
   import.meta.resolve("fumadocs-core/server"),
 );
 
-/**
- * `fumadocs-core/server` lists its `browser` export condition first, and the
- * Worker carries that condition — `@cloudflare/vite-plugin` resolves `workerd`,
- * `worker`, `module`, `browser` — so the Worker would load the stub whose
- * `renderToMarkdown` throws. The Markdown editions render inside the Worker, so
- * that environment alone takes the real entry; the client keeps the stub, which
- * is what holds Markdown rendering out of its bundle. This is a `resolveId`
- * hook rather than an alias because Vite resolves `resolve.alias` once for
- * every environment, leaving no place to name the Worker on its own.
- */
 function fumadocsServerOnWorker(): Plugin {
   return {
     name: "zotlit:fumadocs-server-on-worker",
@@ -75,13 +61,6 @@ function resolvedDocsLine(): DocsLine {
   return docsLine;
 }
 
-/**
- * Emits the Cloudflare asset-layer rule files into the client build, so moved
- * pages, legacy permalinks, and the giscus CORS header resolve without a Worker
- * invocation.
- * @see src/lib/redirects.ts
- * @see src/lib/headers.ts
- */
 function cloudflareAssetRules(): Plugin {
   return {
     name: "zotlit:cloudflare-asset-rules",
@@ -107,16 +86,6 @@ function cloudflareAssetRules(): Plugin {
   };
 }
 
-/**
- * Emits the binary machine assets — the OG cards and the agent-skill archives
- * with their discovery index — into the client build, and serves the same
- * bytes from the dev server.
- *
- * These bypass the prerender pass because it writes every response as text,
- * which a WebP or a zip does not survive. Rendering them here also keeps the
- * native takumi renderer and the workspace file reads in Node, where the
- * Worker runtime cannot reach them.
- */
 function machineAssets(): Plugin {
   const renderCard = createOgCardRenderer(packageRoot);
   let skills: Promise<Map<string, Uint8Array>> | undefined;
@@ -137,7 +106,6 @@ function machineAssets(): Plugin {
       }
     },
     configureServer(server) {
-      /** The asset's bytes and media type, or undefined when no asset owns the path. */
       async function resolveAsset(path: string) {
         const skill = (await agentSkills()).get(path);
         if (skill) {
@@ -178,18 +146,12 @@ function machineAssets(): Plugin {
 }
 
 export default defineConfig(({ command }) => ({
-  // `@base-ui/react` imports the named `useSyncExternalStoreWithSelector` from
-  // a CommonJS shim. The dev server serves that file raw unless the pre-bundler
-  // is told to convert it, and the missing named export stops hydration before
-  // the page becomes interactive. The production build converts it either way.
   optimizeDeps: {
     include: ["@base-ui/react > use-sync-external-store/shim/with-selector"],
   },
   environments: {
     ssr: {
       optimizeDeps: {
-        // Macro-generated and MDX-only imports arrive after the initial scan.
-        // Pre-bundle them so the first render keeps its SSR dependency graph.
         include: [
           "fumadocs-mdx/runtime/macro",
           "fumadocs-ui/components/card",
@@ -198,8 +160,6 @@ export default defineConfig(({ command }) => ({
       },
     },
   },
-  // Resolve the app alias explicitly: Vite 8 leaves the app tsconfig paths
-  // unresolved through `resolve.tsconfigPaths`.
   resolve: {
     alias: {
       "@": resolve(packageRoot, "src"),
@@ -213,7 +173,6 @@ export default defineConfig(({ command }) => ({
     fumadocsServerOnWorker(),
     paraglideVitePlugin({
       ...paraglideOptions,
-      // Group messages in dev to avoid one HTTP request per message.
       outputStructure:
         command === "serve" ? "locale-modules" : "message-modules",
     }),
@@ -232,10 +191,6 @@ export default defineConfig(({ command }) => ({
         docsLine = value;
       },
     }),
-    // The Markdown surface, the SEO endpoints, and every build-time-safe HTML
-    // page prerender into the client output, so the asset layer answers them
-    // without invoking the Worker. Discovery stays off: the routes are listed
-    // deliberately, and the request-time ones stay off the list.
     tanstackStart({
       pages: prerenderPages(packageRoot),
       prerender: {

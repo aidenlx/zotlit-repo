@@ -1,6 +1,3 @@
-// The checks every `obsidian://zotlit/<action>` link passes before its
-// handler acts: the query parses, it names this Zotero, the database is
-// ready, and the item it names is live.
 import { Effect, Option, Result, Stream } from "effect";
 import type { ObsidianProtocolData } from "obsidian";
 
@@ -14,10 +11,6 @@ import { LinkOutcome, refuse } from "./outcome.ts";
 
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
 
-/**
- * The link's query, or the outcome that refuses it: InvalidLink when it does
- * not parse, ForeignSource when it names another Zotero.
- */
 export function parseProtocolData<Query extends { sourceId: string }>(
   data: ObsidianProtocolData,
   options: {
@@ -53,7 +46,6 @@ export function parseProtocolData<Query extends { sourceId: string }>(
   }).pipe(withLogCategory("protocol"));
 }
 
-/** Whether the database is ready; when it is not, log it and say so. */
 export const databaseReady = Effect.fn("protocol.databaseReady")(function* (
   zoteroReads: Pick<ZoteroReads["Service"], "changes">,
   action: string,
@@ -69,7 +61,6 @@ export const databaseReady = Effect.fn("protocol.databaseReady")(function* (
   return false;
 });
 
-/** The Item the link names, or the outcome that refuses it. */
 export const resolveProtocolItem = Effect.fn("protocol.resolveProtocolItem")(
   function* (query: { item: number }, action: string) {
     const zoteroReads = yield* ZoteroReads;

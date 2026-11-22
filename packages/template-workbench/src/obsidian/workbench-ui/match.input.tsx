@@ -1,4 +1,3 @@
-// Hosts can attach their native typing suggestions to the shared text control.
 import { useEffect, useRef } from "react";
 import type { ComponentProps, ReactNode, RefObject } from "react";
 
@@ -6,11 +5,6 @@ import { useUniqueId } from "@zotlit/ui";
 
 import { useWorkbenchHost } from "./host.tsx";
 
-/**
- * Attaches the host's typing suggestions to `inputRef`'s input.
- * @returns For a host without typing suggestions, the `list` attribute for the
- * input and the `<datalist>` it names; otherwise no `list` and no element.
- */
 export function useInputSuggestions(
   inputRef: RefObject<HTMLInputElement | null>,
   {

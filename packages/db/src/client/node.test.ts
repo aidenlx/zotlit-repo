@@ -8,7 +8,6 @@ import type { ConformanceConnection } from "@zotlit/db-testing/conformance";
 
 import { connectClient, createClient } from "./node.ts";
 
-/** A new database file that `setup` built, and the cleanup of its directory. */
 function databaseFile(setup: string): { path: string; remove: () => void } {
   const directory = mkdtempSync(join(tmpdir(), "zotlit-conformance-"));
   const path = join(directory, "zotero.sqlite");

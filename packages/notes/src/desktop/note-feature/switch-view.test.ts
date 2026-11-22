@@ -29,10 +29,6 @@ vi.mock("#desktop/profile/profile-picker.ts", () => ({
   openLiteratureNoteProfile: vi.fn(),
 }));
 
-/**
- * Record the consent dialog's calls. `shown` completes when the dialog
- * opens.
- */
 function observeDialog() {
   using stack = new DisposableStack();
   const shown = Deferred.makeUnsafe<void>();
@@ -59,10 +55,6 @@ function observeDialog() {
   };
 }
 
-/**
- * Open the consent dialog for `options` on a detached fiber of its own, for
- * {@link interruptedWithin}.
- */
 const consentFor = (options: Parameters<typeof awaitProfileSwitchConsent>[1]) =>
   awaitProfileSwitchConsent(stubService<App>("App", {}), options).pipe(
     Effect.forkDetach({ startImmediately: true }),
@@ -190,7 +182,6 @@ const PROFILES = [
 ];
 const SWITCHED: UpdateResult = { bodyUpdated: false, duplicateRegionCount: 0 };
 
-/** The switch's services over a note that holds `imported`. */
 function switching(
   imported: TFile,
   switchNoteProfile: NoteFeature["Service"]["switchNoteProfile"],
@@ -230,7 +221,6 @@ const PORTS = {
   importProfile: () => Effect.undefined,
 };
 
-/** The picker answers the requested Profile, as the user would. */
 function pickRequested() {
   vi.mocked(openLiteratureNoteProfile).mockImplementation(
     (_app, _options, resolve) => {
@@ -334,7 +324,6 @@ it.effect.each(["new", "import"] as const)(
     Effect.gen(function* () {
       const opened = yield* Deferred.make<void>();
       const close = vi.fn();
-      // The dialog stays open until something closes it.
       const dialog = awaitModal<undefined>(() => {
         Deferred.doneUnsafe(opened, Effect.void);
         return { close };

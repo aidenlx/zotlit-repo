@@ -38,7 +38,6 @@ describe("headerSort", () => {
 });
 
 describe("dropGap", () => {
-  // Three columns of 100px; the dragged column is the middle one.
   const WIDTHS = [100, 100, 100];
 
   it("drops before a column that stands before the dragged one", () => {

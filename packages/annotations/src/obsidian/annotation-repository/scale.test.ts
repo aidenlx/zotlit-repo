@@ -1,6 +1,3 @@
-// The Annotation Repository at library scale: one batch read for many
-// Attachments, and a published list kept only while a surface holds it.
-
 import type { RepositoryClient } from "#__fixtures__/annotation-repository.ts";
 import { Duration } from "effect";
 import { TestClock } from "effect/testing";
@@ -30,7 +27,6 @@ it("reads the Annotations of several Attachments in one batch read", async () =>
   const { repository } = reads;
   clearReads(reads);
 
-  // A view reads each Attachment it shows in the same task.
   const [pdf, epub] = await Promise.all([
     repository.read("RGRPDF24"),
     repository.read("EPUBBKS2"),
@@ -64,8 +60,6 @@ it("tells a reader with no hold that the list it showed was let go, so it reads 
   const reader = repository.hold(["RGRPDF24"]);
   await repository.read("RGRPDF24");
 
-  // The sidebar reads the same Attachment the closing reader held, with no
-  // hold of its own: the drop is announced, and its read publishes again.
   const announced = nextChange(repository);
   reader[Symbol.dispose]();
   expect(await announced).toEqual(["RGRPDF24"]);
@@ -87,15 +81,8 @@ it("tells the readers of a first read still running when its last hold ends", as
   expect(again?.annotations).toHaveLength(7);
 });
 
-/** Zotero's key alphabet, which an Indexed Key is spelled in. */
 const ALPHABET = "23456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
 
-/**
- * Seed `count` more PDF Attachments on the Fixture's Item, each with one
- * highlight, as a library holds them.
- *
- * @returns the Attachments' Indexed Keys.
- */
 function seedAttachments(
   client: Awaited<ReturnType<typeof setup>>["client"],
   count: number,
@@ -122,12 +109,10 @@ function seedAttachments(
   return keys;
 }
 
-/** Lets every read a database change started run to its end. */
 async function settled(): Promise<void> {
   for (let task = 0; task < 5; task += 1) await yieldToMain();
 }
 
-/** The Attachments of `keys` whose list the repository still publishes. */
 function published(repository: RepositoryClient, keys: readonly string[]) {
   return keys.filter((key) => repository.peek(key) !== null);
 }
@@ -138,7 +123,6 @@ it("lets the lists go as views over many Attachments close", async () => {
   const { repository, client, acquireRead, dbEvents } = reads;
   const keys = seedAttachments(client, 40);
 
-  // Two views over overlapping sets of Attachments: one batch read each.
   const first = repository.hold(keys.slice(0, 25));
   const second = repository.hold(keys.slice(15));
   clearReads(reads);
@@ -147,13 +131,11 @@ it("lets the lists go as views over many Attachments close", async () => {
   expect(lists[39]?.annotations).toHaveLength(1);
   expect(published(repository, keys)).toHaveLength(40);
 
-  // The lists both views showed stay while the second view is open.
   first[Symbol.dispose]();
   expect(published(repository, keys)).toEqual(keys.slice(15));
   second[Symbol.dispose]();
   expect(published(repository, keys)).toEqual([]);
 
-  // A database change reads none of them again.
   acquireRead.mockClear();
   dbEvents.emit("changed");
   await settled();
@@ -183,15 +165,11 @@ it("lets go at a database change a list read with no hold and not asked for a wh
   const tick = Duration.millis(1);
 
   await repository.read("RGRPDF24");
-  // A reader that asks without a hold keeps its list while no change comes,
-  // so a card it shows still finds its record however long it stood idle.
   await runtime.runPromise(
     TestClock.adjust(Duration.sum(UNHELD_RETENTION, UNHELD_RETENTION)),
   );
   expect(repository.peek("RGRPDF24")).not.toBeNull();
 
-  // Asked again within the retention, a change reads it again; that read is
-  // the repository's own and no ask.
   await repository.read("RGRPDF24");
   await runtime.runPromise(
     TestClock.adjust(Duration.subtract(UNHELD_RETENTION, tick)),
@@ -202,7 +180,6 @@ it("lets go at a database change a list read with no hold and not asked for a wh
   expect(acquireRead).toHaveBeenCalledTimes(1);
   expect(repository.peek("RGRPDF24")).not.toBeNull();
 
-  // Unasked past the retention, the next change lets it go unread.
   await runtime.runPromise(TestClock.adjust(tick));
   acquireRead.mockClear();
   dbEvents.emit("changed");

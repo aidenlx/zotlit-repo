@@ -3,9 +3,6 @@ import type { PluginPrefKey } from "@/types/prefs.ts";
 
 type PrefValue = boolean | string | number;
 
-// `extensions.zotlit.*` keys are fully qualified, so every Zotero.Prefs call
-// passes `global: true`. Without it Zotero prepends its own `extensions.zotero.`
-// branch and the read/write/observe silently targets the wrong key.
 export const prefs = {
   get<T extends PrefValue = PrefValue>(k: PluginPrefKey): T | undefined {
     return Zotero.Prefs.get(k, true) as T | undefined;
@@ -13,7 +10,6 @@ export const prefs = {
   set(k: PluginPrefKey, v: PrefValue): void {
     Zotero.Prefs.set(k, v, true);
   },
-  /** @returns Teardown that unregisters the underlying Zotero observer. */
   onChange<T extends PrefValue = PrefValue>(
     k: PluginPrefKey,
     cb: (v: T | undefined) => void,

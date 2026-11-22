@@ -16,21 +16,13 @@ export function tokenize(text: string, opts: TokenizerOptions): string[] {
 }
 
 export function normalize(term: string): string {
-  return (
-    term
-      .toLowerCase()
-      // NFD does not decompose Polish ł.
-      .replaceAll("ł", "l")
-      .normalize("NFD")
-      .replace(DIACRITIC, "")
-  );
+  return term
+    .toLowerCase()
+    .replaceAll("ł", "l")
+    .normalize("NFD")
+    .replace(DIACRITIC, "");
 }
 
-/**
- * @returns the normalized string and an index map from normalized code-unit
- * offsets back to the original. The map has one trailing entry equal to
- * `text.length` so a `[start, end]` range maps cleanly at both endpoints.
- */
 export function normalizeWithIndexMap(text: string): {
   normalized: string;
   indexMap: number[];
@@ -38,10 +30,6 @@ export function normalizeWithIndexMap(text: string): {
   const parts: string[] = [];
   const indexMap: number[] = [];
   let sourceIndex = 0;
-  // for…of yields full code points, so surrogate-pair chars (emoji, some
-  // CJK extensions) are normalized as one unit instead of as two lone
-  // halves. char.length is 2 for surrogate pairs, keeping `sourceIndex`
-  // aligned with the original UTF-16 offsets that `SearchMatches` uses.
   for (const char of text) {
     const piece = normalize(char);
     for (let j = 0; j < piece.length; j++) indexMap.push(sourceIndex);

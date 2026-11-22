@@ -228,7 +228,6 @@ describe("itemToTemplateBaseData", () => {
     expect(result.abstract).toBeNull();
     expect(result.abstractNote).toBeUndefined();
     expect("abstractNote" in result).toBe(false);
-    // Unaffected fields still come through.
     expect(result.title).toBe("A Study");
   });
 

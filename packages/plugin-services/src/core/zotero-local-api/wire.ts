@@ -1,6 +1,3 @@
-// The Zotero Local API's wire format: what one answer means, and what a record
-// must satisfy before anything believes it.
-
 import { Duration } from "effect";
 import * as v from "valibot";
 
@@ -13,65 +10,25 @@ import type {
 import { parseJson } from "@zotlit/plugin-kernel/zotero-http.ts";
 import { formatIndexedKey, isItemKey } from "@zotlit/zotero-types/keys";
 
-/**
- * The one API version this client speaks. A data route answers `501` to any
- * other, and the root route answers its own version in a header — those two are
- * the whole compatibility gate, and the schema version is only logged.
- *
- * @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server/server_localAPI.js#L271-L278
- */
 export const API_VERSION = "3";
 
-/**
- * Added to every version-sensitive read, so a repeated `GET` reaches Zotero
- * rather than a cache that cannot know the library moved — beside the version
- * gate. The header that gets the call past Zotero's browser-traffic guard comes
- * from the `ZoteroHttp` client itself.
- */
 export const NO_CACHE_HEADERS: Readonly<Record<string, string>> = {
   "Zotero-API-Version": API_VERSION,
   "Cache-Control": "no-cache",
 };
 
-/**
- * The Client Name Zotero shows in its Write Authorization dialog, and the
- * `appName` the authorize route requires. One string for every vault.
- *
- * @see apps/obsidian/docs/adr/0038-write-authorization-starts-only-from-a-user-gesture.md
- */
 export const CLIENT_NAME = "ZotLit for Obsidian";
 
-/** The route that raises Zotero's Write Authorization dialog. */
 export const AUTHORIZE_PATH = "/api/local/authorize";
 
-/**
- * Zotero's 12-character per-database server id, `Zotero.Utilities.randomString`
- * over an alphanumeric alphabet.
- *
- * @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server/server_localAPI.js#L770-L789
- */
 const SERVER_ID_RE = /^[0-9A-Za-z]{12}$/;
 
-/**
- * Zotero's 32-character local API key, `Zotero.Utilities.randomString(32)` over
- * the same alphanumeric alphabet.
- *
- * @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server/server_localAPI.js#L823-L868
- */
 const API_KEY_RE = /^[0-9A-Za-z]{32}$/;
 
-/** Zotero's own colour rule, anchored and lower case as the client applies it. */
 const COLOR_RE = /^#[0-9a-f]{6}$/;
 
-/**
- * The three Sort Index formats Zotero validates a write against: PDF, EPUB, and
- * HTML snapshot. Each is zero-padded so that text order is reading order.
- *
- * @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/data/item.js#L4521-L4544
- */
 const SORT_INDEX_RE = /^(?:\d{5}\|\d{6}\|\d{5}|\d{5}\|\d{8}|\d{7,8})$/;
 
-/** Zotero's six annotation types, as the API spells them. */
 const ANNOTATION_TYPES = [
   "highlight",
   "underline",
@@ -81,78 +38,33 @@ const ANNOTATION_TYPES = [
   "text",
 ] as const;
 
-/**
- * Every outcome a call can have that is not the answer asked for. The client
- * returns one of these as a value; nothing here is thrown.
- */
 export type LocalApiFailure =
-  /** Nothing answered on Zotero's HTTP port. */
   | { kind: "unreachable" }
-  /** Zotero runs with `httpServer.localAPI.enabled` off. */
   | { kind: "local-api-disabled" }
-  /** `401` — no key, or one Zotero has invalidated. */
   | { kind: "unauthorized" }
-  /** `403 {"denied":true}` — the user refused the authorization dialog. */
   | { kind: "denied" }
-  /**
-   * Zotero answered the authorization dialog with Allow (`remember: false`), a
-   * single-use key that ZotLit discards unsent.
-   *
-   * @see apps/obsidian/docs/adr/0062-editing-requires-a-remembered-authorization-and-allow-leaves-zotlit-read-only.md
-   */
   | { kind: "not-remembered" }
-  /**
-   * Zotero answered Always Allow, but SecretStorage could not save the key, so
-   * ZotLit discards it unsent.
-   */
   | { kind: "not-saved" }
-  /** `403 Write access denied` — the target library is not editable. */
   | { kind: "library-read-only" }
-  /** `412` from this server: the object moved since it was read. */
   | { kind: "conflict" }
-  /** `412` from this server: the write token was replayed inside 12 hours. */
   | { kind: "write-token-used" }
-  /**
-   * `404` — Zotero holds no such object. Only a write produces one, and there
-   * it means the Annotation was deleted in Zotero. The Capability Probe reads a
-   * `404` as `unreachable`: there it comes from another server on Zotero's
-   * port.
-   */
   | { kind: "not-found" }
-  /** Another Zotero database answers on this port than the session holds. */
   | { kind: "server-changed" }
-  /** `429` — Zotero's authorization dialog rate limit. */
   | { kind: "cooldown"; retryAfter: Duration.Duration }
-  /** `501`, or an API version that is not {@link API_VERSION}. */
   | { kind: "incompatible-zotero" }
-  /** Zotero answered something this client cannot believe. */
   | { kind: "invalid-response"; issue: string }
-  /** The request left and its answer never arrived: an abort, or a timeout. */
   | { kind: "unknown-outcome" };
 
-/** An answer, or the one failure that stopped it. */
 export type LocalApiResult<T> = { value: T } | { failure: LocalApiFailure };
 
-/**
- * Zotero's authorization-dialog window, which is also the `Retry-After` it
- * sends. Used when an answer carries no parsable one.
- *
- * @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server/server_localAPI.js#L205-L221
- */
 const AUTHORIZE_RATE_LIMIT_WINDOW = Duration.seconds(60);
 
-/** One answer, read the way every transport presents it: header names lower case. */
 export interface ZoteroReply {
   status: number;
   headers: Headers;
   text: string;
 }
 
-/**
- * One Annotation as the Zotero Local API describes it, once every field has
- * been believed: Indexed Key, type name, narrowed position, and the object
- * version a write sends as its precondition.
- */
 export interface LocalApiAnnotation {
   key: string;
   type: ResolvedAnnotationTypeName;
@@ -161,50 +73,22 @@ export interface LocalApiAnnotation {
   text: string | null;
   position: AnnotationPosition;
   version: number;
-  /** Zotero's reading-order key, zero-padded so that text order is it. */
   sortIndex: string;
-  /** The Attachment's Indexed Key — the `parentItem` this Annotation hangs from. */
   parentKey: string;
-  /** Zotero's printed-page label, as Zotero stored it. */
   pageLabel: string | null;
-  /** When Zotero first stored this Annotation, or `null` where it named none. */
   dateAdded: string | null;
   dateModified?: string | null;
   authorName?: string | null;
   isExternal?: boolean | null;
-  /** The Annotation's Zotero tags, by name, in the order Zotero answered them. */
   tags: string[];
-  /** The same tags with Zotero's type number: `0` manual, `1` automatic. */
   tagDetails?: { name: string; type: number }[];
 }
 
-/**
- * One tag as Zotero's item JSON names it. Zotero leaves `type` out of a
- * manual tag.
- */
 export interface WireTag {
   tag: string;
   type?: number;
 }
 
-/**
- * What an answer means, or `null` where it is the answer that was asked for.
- *
- * An answer this client would read records out of must name the session's
- * server: Zotero stamps every answer with the current one, so an id that
- * differs is another database and an id that is absent is not this one either.
- * A refusal is classified by its status first, because Zotero's `401` carries
- * no server id at all.
- *
- * A `404` is its own member rather than an unreadable answer: no read can
- * produce one — the children route answers an empty list for a valid key
- * Zotero holds nothing under, and answers another attachment's annotations for
- * a malformed one, which is why `parseIndexedKey` guards every request — so a
- * `404` is always a write meeting an object Zotero has deleted.
- *
- * @param serverID the server id the session holds, or `null` before a probe has
- *   answered one, which is the one call that may be answered by any database.
- */
 export function classifyReply(
   reply: ZoteroReply,
   serverID: string | null,
@@ -253,17 +137,6 @@ export function classifyReply(
   }
 }
 
-/**
- * The Annotations of one page of the children route, in the order Zotero listed
- * them, or the first record that cannot be believed.
- *
- * Validation runs here rather than at the cache, so nothing unvalidated is ever
- * a record: key alphabet and length, parent key, colour, Sort Index format,
- * type-to-position pairing, and the version a write will send back.
- *
- * @param attachmentKey the Attachment's Indexed Key, which every record must
- *   name as its parent.
- */
 export function readAnnotationPage(
   body: string,
   attachmentKey: string,
@@ -282,14 +155,6 @@ export function readAnnotationPage(
   return { value: annotations };
 }
 
-/**
- * One Annotation, read from the single-item route — what a write reads back
- * once Zotero has taken it, because a `204` carries the library's version
- * rather than the object's. Every rule {@link readAnnotationPage} applies to a
- * listed record applies here too.
- *
- * @param attachmentKey the Attachment the record must name as its parent.
- */
 export function readAnnotationItem(
   body: string,
   attachmentKey: string,
@@ -301,19 +166,6 @@ export function readAnnotationItem(
   return toAnnotation(parsed.output, attachmentKey);
 }
 
-/**
- * The complete Annotation one create answered, or why its answer cannot be
- * believed. The full record remains usable if a later collection refresh
- * cannot reach Zotero.
- *
- * A `200` still carries object-level outcomes, so the body is read object by
- * object: any entry under `failed` fails the create, and the one object that
- * succeeded must carry the key `success` names, the Attachment the request
- * asked for, and the type it asked for.
- *
- * @param expected what the request asked Zotero to create.
- * @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server/server_localAPI.js#L1919-L1972
- */
 export function readCreateResult(
   body: string,
   expected: { parentKey: string; type: ResolvedAnnotationTypeName },
@@ -349,32 +201,15 @@ export function readCreateResult(
   return annotation;
 }
 
-/** The library route one Indexed Key names — `users/0`, or one group's. */
 export function libraryPath({ groupID }: { groupID: number | null }): string {
   return groupID === null ? "users/0" : `groups/${groupID}`;
 }
 
-/**
- * What Zotero granted, read from the authorize route's answer.
- *
- * `remember` is `true` for Always Allow **and for a dismissed dialog**: Gecko
- * records slot 1 as the result of any close that is not a button press, and
- * Zotero maps slot 1 to Always Allow. So a closed dialog grants a persistent
- * key; it is not a refusal and ZotLit must not read it as one. Only the Deny
- * button, which is also the default button that Return activates, answers
- * `403 {"denied":true}`.
- */
 export interface AuthorizationGrant {
-  /** Zotero's 32-character local API key. */
   key: string;
-  /** Whether Zotero kept the key past the request that spends it. */
   remember: boolean;
 }
 
-/**
- * The grant one `POST /api/local/authorize` answered, or why its body cannot be
- * believed. A refusal never reaches here: the status classifies it first.
- */
 export function readGrant(body: string): LocalApiResult<AuthorizationGrant> {
   const parsed = v.safeParse(grantSchema, parseJson(body));
   if (!parsed.success) {
@@ -389,12 +224,6 @@ export function readGrant(body: string): LocalApiResult<AuthorizationGrant> {
   return { value: { key, remember } };
 }
 
-/**
- * How many Annotations the whole search holds, which every page of it carries,
- * or `null` where the answer named none — the count a page walk ends on.
- *
- * @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server/server_localAPI.js#L388-L410
- */
 export function totalResults(headers: Headers): number | null {
   const value = headers.get("total-results");
   if (value === null || value.length === 0) return null;
@@ -404,7 +233,6 @@ export function totalResults(headers: Headers): number | null {
     : null;
 }
 
-/** Whether `value` is Zotero's 12-character server id. */
 export function isServerID(value: string): boolean {
   return SERVER_ID_RE.test(value);
 }
@@ -436,8 +264,6 @@ const itemSchema = v.object({
     annotationSortIndex: v.string(),
     annotationPosition: v.string(),
     annotationPageLabel: v.optional(v.string()),
-    // Zotero writes `dateAdded` for every stored object, but an answer that
-    // omits it is still a believable Annotation.
     dateAdded: v.optional(v.string()),
     dateModified: v.optional(v.string()),
     annotationAuthorName: v.optional(v.string()),
@@ -450,15 +276,6 @@ const itemSchema = v.object({
 
 const itemPageSchema = v.array(itemSchema);
 
-/**
- * The indexed result a multi-object write answers with. Zotero keys every map
- * by the object's position in the request body, as a string.
- *
- * Only the three fields the create checks are read here; everything else about
- * the new Annotation comes from the re-read, which applies the full record
- * validation. A stricter schema here would turn a create that landed into an
- * unreadable answer over a field the caller never looks at.
- */
 const createResultSchema = v.object({
   successful: v.record(v.string(), itemSchema),
   success: v.record(v.string(), v.string()),
@@ -533,11 +350,6 @@ function toAnnotation(
   };
 }
 
-/**
- * The stored position, narrowed by the shape it is in rather than by a content
- * type the Annotation itself does not carry: a PDF position first, then the
- * EPUB and snapshot selectors an Annotation View reads beside it.
- */
 function narrowPosition(raw: string): AnnotationPosition {
   const value = parseJson(raw);
   if (typeof value !== "object" || value === null)
@@ -556,11 +368,6 @@ function narrowPosition(raw: string): AnnotationPosition {
   return { kind: "unknown", raw };
 }
 
-/**
- * Zotero stores ink strokes and typed text in their own position shapes, and
- * every other type in rects. A non-PDF selector pairs with any type: it names a
- * place in a document that has no geometry.
- */
 function pairsWithType(
   type: ResolvedAnnotationTypeName,
   position: AnnotationPosition,
@@ -577,7 +384,6 @@ function pairsWithType(
   }
 }
 
-/** Zotero stores an empty annotation field as an empty string, never as null. */
 function emptyToNull(value: string | undefined): string | null {
   return value === undefined || value === "" ? null : value;
 }

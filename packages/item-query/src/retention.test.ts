@@ -1,12 +1,3 @@
-// The rows a limited query retains, counted with V8's collector: a `WeakRef`
-// on each row that a statement returns, and a forced collection at each
-// statement. No test reads wall time.
-//
-// This file runs without V8's optimizing compilers. A compilation job holds the
-// closure it compiles until the job ends, and the closure of a page or a chunk
-// holds its rows, so with the compilers on a finished page can stay in memory
-// for the time of one job. That time depends on the load of the machine; it is
-// not a reference of the engine.
 import { Effect, Exit } from "effect";
 import { setFlagsFromString } from "node:v8";
 import { runInNewContext } from "node:vm";
@@ -33,9 +24,7 @@ setFlagsFromString("--no-maglev");
 setFlagsFromString("--expose-gc");
 const collectGarbage = runInNewContext("gc") as () => void;
 
-/** The bulk Library: 2,600 top-level Items, 520 of them with `BULK_FIFTH_TAG`. */
 const BULK_ITEMS = 2600;
-/** The live top-level Items of the personal scenario Library. */
 const PERSONAL_ITEMS = 10;
 
 const databases = new DisposableStack();
@@ -52,13 +41,11 @@ beforeAll(() => {
 
 afterAll(() => databases.dispose());
 
-/** A request of the bulk Library, or of the Libraries it names. */
 type Request = Omit<ItemQueryRequest, "libraries"> &
   Partial<Pick<ItemQueryRequest, "libraries">>;
 
 const byTitle = [{ field: "title", direction: "asc" }] as const;
 
-/** The readers whose rows are the rows of the query universe. */
 const READS_UNIVERSE = new Set([
   "scan-page",
   "universe-rows",
@@ -75,7 +62,6 @@ describe("the rows a limited query retains", () => {
     attachment?: boolean;
     relation?: boolean;
     groups?: number;
-    /** The sample at the last hydrate statement, when it is not one group's. */
     last?: { rows: number; hydratedItems: number };
   }[] = [
     {
@@ -100,11 +86,6 @@ describe("the rows a limited query retains", () => {
       },
       items: PERSONAL_ITEMS + BULK_ITEMS,
       groups: 2,
-      // Each group keeps the limit plus one of its matches: all 10 personal
-      // Items and 11 bulk Items. "group:2718" orders before "personal", so the
-      // last hydrate chunk is the 10 returned personal Items, and the
-      // hydrate-chunk statement has rows for the 9 of them with a title
-      // ("TIE2CCCC" has none).
       last: {
         rows: Math.min(LIMIT + 1, PERSONAL_ITEMS) + (LIMIT + 1),
         hydratedItems: Math.min(LIMIT, PERSONAL_ITEMS) - 1,
@@ -175,7 +156,6 @@ describe("the rows a limited query retains", () => {
     },
     {
       name: "a scan of two Libraries",
-      // Each of the first rows by title has a title.
       request: {
         libraries: [SCENARIO_LIBRARIES.personal, BULK_LIBRARY],
         fields: ["title"],
@@ -189,8 +169,6 @@ describe("the rows a limited query retains", () => {
   it.each(QUERIES)(
     "holds the limit plus one row, one page, and one hydrate chunk at most in $name",
     async ({ request, items, attachment, relation, groups = 1, last }) => {
-      // The rows of the query universe and the rows of the hydrate statements
-      // that the collector has not freed.
       const scanned: WeakRef<object>[] = [];
       const hydrated: WeakRef<{ itemID: number }>[] = [];
       const samples: { at: string; rows: number; hydratedItems: number }[] = [];
@@ -205,9 +183,6 @@ describe("the rows a limited query retains", () => {
           keepStatements: false,
           onEvent: (event) => {
             if (event.type !== "statement") return;
-            // Free what the engine has released, then count what it holds with
-            // the rows of this statement. The first collection can end a marking
-            // cycle that began earlier and keeps what was live at its start.
             collectGarbage();
             collectGarbage();
             const { reader, rows } = event.statement;
@@ -241,7 +216,6 @@ describe("the rows a limited query retains", () => {
       });
       expect(scanned).toHaveLength(items);
       const most = (values: number[]) => Math.max(0, ...values);
-      // The collector sees the rows: one page is in memory while it is read.
       expect(most(samples.map((entry) => entry.rows))).toBeGreaterThanOrEqual(
         Math.min(items, 500),
       );
@@ -251,7 +225,6 @@ describe("the rows a limited query retains", () => {
       expect(
         most(samples.map((entry) => entry.hydratedItems)),
       ).toBeLessThanOrEqual(250);
-      // The projection starts with the matches only: the pages are released.
       expect(samples.at(-1)).toEqual({
         at: attachment && !relation ? "attachment-details" : "hydrate-chunk",
         ...(last ?? {
@@ -335,12 +308,9 @@ it("releases a paper's file records with each chunk of a limited query", async (
   expect(run.exit._tag).toBe("Success");
   expect(related).toHaveLength(BULK_ITEMS);
   expect(peak).toBe(250);
-  // The run has resolved, but the runtime can hold its last chunk until a
-  // later task; the test cannot name that task, so it polls a bounded number.
   await expectReleased(related);
 });
 
-/** Yield one task, collect, and expect every row released; retry, then throw. */
 async function expectReleased(rows: readonly WeakRef<object>[]) {
   let failure: unknown;
   for (let attempt = 0; attempt < 10; attempt++) {
@@ -358,8 +328,6 @@ async function expectReleased(rows: readonly WeakRef<object>[]) {
 }
 
 it("keeps the limit plus one row per group when papers fan out to many Tag groups", async () => {
-  // Each bulk paper has the Tags "bulk" and "bulk-fifth" of the seed, and two
-  // of 300 Tags: paper i has t<i % 300> and t<(i + 1) % 300>.
   const TAGS = 300;
   using source = openScenarioDatabase(connectClient);
   seedBulkLibrary(source.sqlite, BULK_ITEMS);
@@ -398,7 +366,6 @@ it("keeps the limit plus one row per group when papers fan out to many Tag group
         fields: [],
         limit: LIMIT,
       },
-      // Begin runs once after the scan pass, before the projection pass.
       (summary) =>
         Effect.sync(() => {
           collectGarbage();
@@ -424,7 +391,6 @@ it("keeps the limit plus one row per group when papers fan out to many Tag group
   if (!Exit.isSuccess(run.exit)) throw new Error(String(run.exit.cause));
   const result = run.exit.value;
   expect(scanned).toHaveLength(BULK_ITEMS);
-  // Papers with index i % 300 == r: 9 for r < 200, 8 otherwise (2,600 papers).
   const papers = (residue: number) => (residue < 200 ? 9 : 8);
   expect(result.groups!.map(({ value, count }) => [value, count])).toEqual([
     ["bulk", BULK_ITEMS],

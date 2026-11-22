@@ -226,8 +226,6 @@ it("reads bounded Attachment and parent key lists inside one Library", () => {
   ).toHaveLength(2);
 });
 
-// Failure modes: web links retain their MIME kind, missing MIME is omitted,
-// or a candidate read crosses the requested Library.
 it.each([
   ["application/pdf", 0, "pdf"],
   ["application/epub+zip", 0, "epub"],

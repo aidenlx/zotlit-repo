@@ -77,7 +77,6 @@ it("reads a long Relation List in keyset pages of 500 rows", () => {
       )
       .get() as { itemTypeID: number }
   ).itemTypeID;
-  // 499 more files on the paper make 500 with the PDF: one full page.
   const fileKeys = Array.from(
     { length: 499 },
     (_, index) => `FIL${bulkItemKey(index).slice(3)}`,
@@ -102,7 +101,6 @@ it("reads a long Relation List in keyset pages of 500 rows", () => {
     );
   const keys = (rows: readonly { key: string }[]) => rows.map((row) => row.key);
 
-  // The seed gives Annotation `index` the sort index `index`.
   const marks = Array.from(
     { length: 1_001 },
     (_, index) => `ANN${bulkItemKey(index).slice(3)}`,
@@ -122,8 +120,6 @@ it("reads a long Relation List in keyset pages of 500 rows", () => {
     expect([first, second, third].map(keys)).toEqual(pages);
   }
 
-  // "BULKPDF2" sorts before every "FIL" key; after a full page, the next is
-  // empty.
   const files = run(readItemAttachments([paper]));
   expect(keys(files)).toEqual(["BULKPDF2", ...fileKeys]);
   expect(run(readItemAttachments([paper], files.at(-1)))).toEqual([]);
@@ -145,7 +141,6 @@ it("reads a paper's Child Notes in keyset pages of 500 rows", () => {
       )
       .get() as { itemTypeID: number }
   ).itemTypeID;
-  // 501 notes: one full page, then a page of one.
   const noteKeys = Array.from(
     { length: 501 },
     (_, index) => `NOT${bulkItemKey(index).slice(3)}`,

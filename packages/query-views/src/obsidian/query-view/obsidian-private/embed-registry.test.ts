@@ -18,7 +18,6 @@ afterEach(() => forwarding[Symbol.dispose]());
 
 beforeEach(() => warn.mockClear());
 
-/** A registry as Obsidian 1.14.4 keeps it. */
 function registry() {
   const byExtension: Record<string, EmbedCreator> = {};
   return {

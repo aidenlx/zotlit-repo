@@ -1,18 +1,3 @@
-// The encoder of the docs-walk clips. It bakes the camera into a recording:
-// each output frame is the screencast frame shown at that time, cropped to
-// the camera's view and scaled to the window's ratio, 1440 px wide for a
-// lesson's 1440 × 860 window. It runs alone too, to cut a clip again from its
-// saved frames (`.scratch/docs-walks/<slug>/<name>.frames/`, out of git) with
-// another track or other settings, without a new recording:
-//
-//   node packages/e2e/src/docs-walks/clip-encode.ts <frames-dir> <out> [<track.json>|whole]
-//
-// writes <out>.mp4 and <out>.poster.webp, with the planned track
-// unless a track file, or `whole` for the whole window, is named. The
-// recording's own settings are those the clip was recorded with; the camera
-// and the pads are those of this run, today's defaults under the overrides
-// of `DOCS_WALK_CLIP` and `DOCS_WALK_CLIP_FILE` (see clip-settings.ts).
-
 import { execFile } from "node:child_process";
 import { access, link, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -28,29 +13,18 @@ import type { ClipSettings } from "./clip-settings.ts";
 
 const execFileAsync = promisify(execFile);
 
-/** One screencast frame on disk, at its capture time in epoch seconds. */
 export interface RecordedFrame {
   file: string;
   t: number;
 }
 
-/** The action log of a clip, `camera.json` beside its frames. */
 export interface CameraLog {
-  /** The window size, in CSS px. */
   viewport: { width: number; height: number };
-  /** Event times are clip seconds, from the first frame. */
   events: CameraEvent[];
-  /** The settings the clip was recorded with. */
   settings?: ClipSettings;
-  /**
-   * Parts of the frame to blur in all of the shot's frames, in the
-   * viewport's units: a desktop shot's private parts, such as the menu
-   * bar's status area.
-   */
   blur?: BlurRegion[];
 }
 
-/** A part of a shot's frames that the encoder blurs. */
 export interface BlurRegion {
   x: number;
   y: number;
@@ -58,10 +32,6 @@ export interface BlurRegion {
   h: number;
 }
 
-/**
- * Blur `regions` (source px) of the raw RGB image `image` in place, so
- * strongly that no text or icon in them stays legible.
- */
 async function blurRegions(
   image: Buffer,
   size: { width: number; height: number },
@@ -89,17 +59,10 @@ async function blurRegions(
   }
 }
 
-/**
- * A clip made of several shots, `sequence.json` in a clip's frames folder:
- * each shot is a folder of frames beside it, with its own camera log, cut
- * one after the other into one clip. A shot names `track.json` (a file in
- * its folder) to keep the track it was recorded with, or `whole`.
- */
 export interface ClipSequence {
   shots: { dir: string; track?: string }[];
 }
 
-/** One shot's frames, log and duration, from its folder. */
 async function readShot(dir: string) {
   const frames = JSON.parse(
     await readFile(join(dir, "frames.json"), "utf8"),
@@ -113,22 +76,6 @@ async function readShot(dir: string) {
   return { shown, log, start, duration: frames.at(-1)!.t - start };
 }
 
-/**
- * Encode the frames in `dir` as `<out>.mp4` (H.264) and the final frame
- * `<out>.poster.webp`, at their real timing, through the
- * camera track: `track` when given, `"whole"` for the whole window
- * throughout, or the plan of the clip's `camera.json`. `settings` default to
- * the recording's own settings with this run's camera and pads
- * ({@link recutSettings}); with the camera off, the clip keeps the whole
- * window and has no poster. The first image holds `openPad` before the clip,
- * or longer, so the opening shot rests `hold` ({@link openingPad}), and the
- * last `endPad` after it, or longer, so the shot after the last move rests
- * `hold` ({@link closingPad}); the track's times stay those of the frames.
- * The track
- * used is written to `dir/track.json` and answered with the clip's log.
- * A `dir` with a `sequence.json` is a clip of several shots
- * ({@link ClipSequence}); it answers the track and log of its last shot.
- */
 export async function encodeClip(
   dir: string,
   out: string,
@@ -169,8 +116,6 @@ export async function encodeClip(
     const read = await readShot(shot.dir);
     s ??= settings ?? recutSettings(read.log.settings ?? {});
     const { width: W, height: H } = read.log.viewport;
-    // The clip is `width` px wide at most, at the first shot's ratio, in
-    // even px.
     if (!size) {
       const first = await sharp(join(shot.dir, read.shown[0]!.file)).metadata();
       const outW = Math.min(s.width, first.width);
@@ -192,11 +137,7 @@ export async function encodeClip(
       join(shot.dir, "track.json"),
       `${JSON.stringify(used, null, 2)}\n`,
     );
-    // The shot's length in whole ticks, as baked.
     const length = Math.max(1, Math.round(read.duration * s.fps)) / s.fps;
-    // The clip's first ticks are the open pad, after the shots, long enough
-    // that the opening shot rests `hold` before its first move or the cut to
-    // the next shot.
     if (shot === shots[0]) {
       const cut = shots.length > 1 ? length : undefined;
       openTicks = Math.ceil(openingPad(used, s, cut) * s.fps - 1e-6);
@@ -215,8 +156,6 @@ export async function encodeClip(
     image = last.image;
     lastDuration = length;
   }
-  // The open pad holds the clip's first image, and the end pad its last,
-  // long enough that the closing shot rests `hold`.
   for (let n = 0; n < openTicks; n++)
     await link(
       join(baked, "b00000.png"),
@@ -249,11 +188,6 @@ export async function encodeClip(
   return { track: last!.track, log: last!.log, settings: s! };
 }
 
-/**
- * Bake one shot into `baked`: one image per tick from `tick` on, each the
- * screencast frame shown at that time, cropped to the camera's view and
- * scaled to the clip's size.
- */
 async function bakeShot({
   dir,
   read,
@@ -269,7 +203,6 @@ async function bakeShot({
   s: ClipSettings;
   size: { outW: number; outH: number };
   baked: string;
-  /** The first tick and image number of the shot. */
   from: { tick: number; image: number };
 }): Promise<{
   tick: number;
@@ -286,8 +219,6 @@ async function bakeShot({
   const sourceW = first.width;
   const sourceH = first.height;
 
-  // One output frame per tick; a run of ticks with the same source frame
-  // and crop becomes one image held for the run.
   type Shot = {
     frame: number;
     left: number;
@@ -326,9 +257,6 @@ async function bakeShot({
   }
 
   let source: { frame: number; image: Buffer } | undefined;
-  // Each tick is one file, a hard link to its shot's image, so ffmpeg reads
-  // the clip at exactly `fps`: a concat list rounds its times to 1/25 s and
-  // makes a camera move judder.
   let lastFile = "";
   for (const shot of shots) {
     if (source?.frame !== shot.frame) {
@@ -339,7 +267,6 @@ async function bakeShot({
           .raw()
           .toBuffer(),
       };
-      // The private parts this frame shows, blurred before the crop.
       const regions = (log.blur ?? []).map((b) => ({
         left: b.x * scale,
         top: b.y * scale,
@@ -375,11 +302,6 @@ async function bakeShot({
   return { tick, image, lastFile, track: used, log };
 }
 
-/**
- * Encode a screen capture as {@link encodeClip} encodes a screencast, with
- * `inset` px cut from each edge and no camera; its last frame becomes
- * `<out>.poster.webp`.
- */
 export async function encodeMovie(
   movie: string,
   out: string,
@@ -387,7 +309,6 @@ export async function encodeMovie(
 ): Promise<void> {
   const crop = inset > 0 ? `crop=iw-${2 * inset}:ih-${2 * inset},` : "";
   const filter = `${crop}scale='min(${s.width},iw)':-2:flags=lanczos`;
-  // The open pad holds the first frame, and the end pad the last.
   const pads = `tpad=start_mode=clone:start_duration=${s.openPad}:stop_mode=clone:stop_duration=${s.endPad}`;
   await encodeMp4(
     {
@@ -416,10 +337,6 @@ export async function encodeMovie(
   await rm(last, { force: true });
 }
 
-/**
- * Encode `input` through `filter` as `<out>.mp4` (H.264) at the settings'
- * frame rate and quality, no audio, tuned for sharp UI text.
- */
 async function encodeMp4(
   { input, filter }: { input: string[]; filter: string },
   out: string,
@@ -450,7 +367,6 @@ async function encodeMp4(
   ]);
 }
 
-/** The hand-written track `file`, or undefined when there is none. */
 export async function readTrack(
   file: string,
 ): Promise<CameraTrack | undefined> {

@@ -9,7 +9,6 @@ import { layerHostLogPort } from "./effect-log-port.ts";
 import type { LogMessagePort, LogPortRecord } from "./effect-log-port.ts";
 import { pluginLogger, withLogCategory } from "./effect-log.ts";
 
-/** A time no wall clock reads, so only the worker's stamp can produce it. */
 const WORKER_LOG_TIME = DateTime.toEpochMillis(
   DateTime.makeUnsafe("2001-02-03T04:05:06Z"),
 );

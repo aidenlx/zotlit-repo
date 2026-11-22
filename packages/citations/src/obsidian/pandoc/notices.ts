@@ -1,4 +1,3 @@
-// Lifecycle notices for citation formatting prerequisites.
 import { Effect, Layer } from "effect";
 import type { Scope, Stream } from "effect";
 
@@ -19,7 +18,6 @@ interface CitationStyleNoticeCopy {
   openSettings: () => void;
 }
 
-/** Show one recovery notice when the render cache first finds its selected style unavailable. */
 export const layerCitationStyleNotice = Layer.effectDiscard(
   Effect.gen(function* () {
     const host = yield* PluginHost;
@@ -39,10 +37,6 @@ export const layerCitationStyleNotice = Layer.effectDiscard(
   }),
 );
 
-/**
- * Watch the notice lifecycle without coupling its trigger to rendering. The
- * open notice hides when the Scope closes.
- */
 export function watchCitationStyleMissing<R>(
   renders: { readonly changes: Stream.Stream<BibliographyRenderState> },
   showNotice: Effect.Effect<NoticeHandle, never, R>,

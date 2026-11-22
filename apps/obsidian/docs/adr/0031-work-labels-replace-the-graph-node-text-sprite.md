@@ -16,6 +16,8 @@ The container owns its own `updateTransform`, which PIXI calls each frame on vis
 
 Label text is resident before render, not read during it. The render path is synchronous inside `requestAnimationFrame`, the Note Index holds paths and Zotero keys with no metadata, and reading an Item costs one prepared statement per Item. A cache inside the Graph Citations service holds the drawn works only — the Literature Note paths and Cited Work Nodes the adapter already computes — and fills during the existing render debounce.
 
+Measure each candidate line with PIXI in the active font so truncation follows the rendered glyph widths, including CJK text. Apply the title alpha before PIXI visits the children. Follow native assignments to `text.style` when the font or theme changes. If a style refresh fails during a native render, defer restoration until the render returns because it still holds the replacement text object. [Work Label graphics](../../../../packages/citations/src/obsidian/graph-citations/work-labels.ts)
+
 ## Considered options
 
 - **One sprite carrying both lines through `getDisplayText()`.** A newline inside the returned string is free and reaches the stable prototype seam. It gives two lines of one style, where both lines compete for the eye and neither reads as the subject of the other. The hierarchy is the reason to draw a second line at all.
@@ -27,6 +29,6 @@ Label text is resident before render, not read during it. The render path is syn
 ## Consequences
 
 - A node's label and Obsidian's graph search no longer agree. The search box matches the file; the label is canvas text. ZotLit writes no creator name into a Literature Note, so a name read off a node finds nothing when typed into the search box. The how-to page states this.
-- Work Labels stay off in a graph saved or bookmarked before they shipped. Each view owns its options, so a saved view keeps the options it saved. Running a Citation Graph command again applies them.
+- Work Labels default to off for older bookmarks. Each view owns its options, so a saved view keeps the options it saved. Running a Citation Graph command again applies them. An older bookmark restored into an existing global view can currently retain that view's Work Labels state. [Issue 169](https://github.com/aidenlx/zotlit-repo/issues/169)
 - A work ZotLit cannot read keeps Obsidian's own file name. A missing or ambiguous Citation Key keeps its Citation Key, which is the string the reader has to correct.
 - Two more internal members join ADR 0029's re-verification list for each minimum-version bump: the node text sprite lifecycle, where `initGraphics` builds the sprite, `clearGraphics` destroys it, and `setData` reuses it; and the renderer's text-fade term, read with a guard and treated as zero when absent.

@@ -13,3 +13,12 @@ ADR 0025 and ADR 0027 record a note's Literature Note Profile in the `zotlit-pro
 **Considered forms.** `slug--id` needs slug rules for every script ZotLit's users write in, and a slug is lossy: the label no longer reads back as the user wrote it. `id label` parses trivially but puts the opaque part first, which is the readability problem restated. A YAML mapping `{ id, label }` is the cleanest structure, but Obsidian's Properties UI does not edit nested objects and every stamp reader would change shape. `label (id)` keeps the label lossless, parses from the end so a label ending in `)` is safe, and matches how the Profile picker already presents a Profile ([#904](https://github.com/aidenlx/zotlit/issues/904): label first, ID secondary).
 
 **Scope.** The hint lives in note frontmatter only. The `&profile=` parameter of the Companion URL keeps carrying the bare Profile ID, and the Profile document filename (`literature-note-<id>.md`) and command id stay ID-only; a readable document filename is a file rename with link consequences and gets its own decision. The ID's length and alphabet are the ones the refactor that replaced UUIDs settled: twelve Nano ID characters from `A`–`Z`, `a`–`z`, and `0`–`9`. Decided in the [#835](https://github.com/aidenlx/zotlit/issues/835) follow-up grilling, before any Profile stamp shipped to users.
+
+Use one shape for Profile ID validation, parsing the last parenthesized ID,
+and the length stated in diagnostics. Keep accepting bare IDs. Coerce a
+stored stamp to text so a one-item Properties list can still resolve and an
+unrecognized value can be displayed verbatim. A missing stamp selects the
+built-in default Profile. The external selector accepts either a bare Profile
+ID or `default`. Store the trimmed label as the reading hint alongside the
+ID. Keep one recovery control per rendered section, and remove it when that
+section's failure clears. [Stamp parser](../../packages/obsidian-kit/src/profile-stamp.ts) · [Recovery control](../../packages/obsidian-kit/src/profile-recovery.ts)

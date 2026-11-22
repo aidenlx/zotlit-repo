@@ -1,15 +1,7 @@
-// The Mark Popup of a PDF in a pop-out stays in the pop-out while focus is in
-// the main window.
-//
-// Obsidian puts a popover with no target in whichever window holds focus each
-// time it places it. The popup opens from a click in the pop-out, then focus
-// moves to the main window, and a scroll of the pop-out's reader hides the
-// popup and opens it again with no click.
 import { expect } from "vitest";
 
 import { obRun } from "./obsidian-cli.ts";
 
-/** Opens `pdfPath` in a pop-out and selects the highlight `annotationKey`. */
 export async function verifyMarkPopupWindow(
   vaultId: string,
   { pdfPath, annotationKey }: { pdfPath: string; annotationKey: string },
@@ -75,7 +67,6 @@ export async function verifyMarkPopupWindow(
           buttons,
           clickCount: 1,
         }) as Promise<unknown>;
-      // The pop-out holds focus while the user clicks in it.
       activeWindow = container.win;
       activeDocument = own;
       await mouse("mouseMoved", 0);
@@ -83,7 +74,6 @@ export async function verifyMarkPopupWindow(
       await mouse("mouseReleased", 0);
       await page.until("the popup", () => where() !== "none", 5000);
       const opened = where();
-      // Focus last named the main window.
       activeWindow = window;
       activeDocument = document;
       const scroller = container.querySelector<HTMLElement>(

@@ -1,13 +1,5 @@
-// The candidates of one Ambiguous Citation Key, shared by the surfaces that
-// build and render them.
-
 import type { AmbiguousCandidate } from "#obsidian/citation-index/ambiguity.ts";
 
-/**
- * The two Items one Ambiguous Citation Key names, as a picker shows them: one
- * in the personal Library, one in a group Library, so a row's Library name and
- * Zotero item key both carry weight.
- */
 export const ambiguousCandidates: readonly AmbiguousCandidate[] = [
   {
     itemID: 11,

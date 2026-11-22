@@ -1,56 +1,31 @@
-// The query list of the scenario: the one place the parity suite reads. Every
-// query runs on the scenario database (`@zotlit/db-testing/scenario`) with
-// each plan and chunk size, and each run must give the Query Result of the
-// forced scan. Add an entry for each new scenario query, leaf, or function.
 import type { ScenarioLibraryName } from "@zotlit/db-testing/scenario";
 
 import type { ItemQueryRequest, SortSpec } from "./request.ts";
 
 export interface ScenarioQuery {
-  /** A unique name; it names the test. */
   readonly name: string;
-  /** The Target Libraries of the request. */
   readonly libraries: readonly ScenarioLibraryName[];
   readonly request: Omit<ItemQueryRequest, "libraries">;
-  /** The instant of the Query Clock, as an ISO string. Omitted: the test default. */
   readonly now?: string;
-  /** The zone of the Query Clock. Omitted: the test default. */
   readonly timeZone?: string;
-  /**
-   * The Indexed Keys of the Items the query returns, in any order, worked out
-   * from the scenario seed. Omitted: the forced scan is the only oracle.
-   */
   readonly matches?: readonly string[];
 }
 
-/**
- * The Formulas of the scenario: a scenario filter that reads `formula.<name>`
- * runs with all of them. `decade` reads `year`, so a filter that reads it
- * reads a Formula through another Formula.
- */
 const SCENARIO_FORMULAS: Readonly<Record<string, string>> = {
   year: "date.year",
   decade: "formula.year - formula.year % 10",
   tagged: 'tags.contains("to-read")',
   lovelace: 'creators.filter(value.contains("Lovelace")).length > 0',
   status: 'custom["review.status"]',
-  // An Error Value on each Item whose title is not a number.
   volumes: "number(title)",
 };
 
-/** The Formulas of a scenario request: all of them when the filter reads one. */
 export function scenarioFormulas(
   filter: string,
 ): Pick<ItemQueryRequest, "formulas"> {
   return filter.includes("formula") ? { formulas: SCENARIO_FORMULAS } : {};
 }
 
-/**
- * The Filter Expressions of the scenario. Each one runs in each Library and
- * in both Libraries together as an unlimited identity-only query in key order,
- * and in the personal Library and in both Libraries together as a limited,
- * sorted query with a projection.
- */
 const FILTERS: readonly string[] = [
   'title.icontains("literature")',
   'publicationTitle.contains("Handbook")',
@@ -95,7 +70,6 @@ const FILTERS: readonly string[] = [
   "false",
   'itemType == "book"',
   'itemType == "book" && key != "ART2FULL"',
-  // Tags: lowered leaves, exact names, Unicode and SQL wildcard hazards.
   'tags.contains("to-read")',
   'tags.icontains("TO-READ")',
   'tags.contains("To-Read")',
@@ -121,8 +95,6 @@ const FILTERS: readonly string[] = [
   "tags.isEmpty()",
   "tags.length > 1",
   'tags == ["tie"]',
-  // Zotero Key: both Libraries hold ART2FULL; the others are a group Item, a
-  // trashed Item, an Attachment, and no Item.
   'key == "ART2FULL"',
   '"ART2FULL" == key',
   'key == "GRP2BK22"',
@@ -133,7 +105,6 @@ const FILTERS: readonly string[] = [
   'key != "ART2FULL"',
   "key == null",
   'key.startsWith("TIE")',
-  // Combinations of lowered leaves with `&&`, `||`, `!`, and other expressions.
   'tags.contains("to-read") && tags.contains("methods")',
   'tags.contains("to-read") && itemType == "book"',
   'title == "Same Title" && tags.contains("tie")',
@@ -157,7 +128,6 @@ const FILTERS: readonly string[] = [
   'tags.contains("tie") == true',
   'tags.contains("tie") == (key == "TIE2AAAA")',
   'tags.contains("TIE".lower())',
-  // Text, null, and the type matrix.
   'title.contains("Exact")',
   'title.lower().contains("exact")',
   'title.startsWith("Lab")',
@@ -184,8 +154,6 @@ const FILTERS: readonly string[] = [
   '!(volume < "2")',
   "volume != null",
   "number(volume) > 3",
-  // Text, number, and wrapping helpers: each with values that match no Item,
-  // one Item, and several Items.
   "title.trim() == title",
   'title.trim() == "Lab Report"',
   'title.trim() == "  Lab Report  "',
@@ -216,8 +184,6 @@ const FILTERS: readonly string[] = [
   'number(volume).toFixed(2) == "12.00"',
   "number(volume).toFixed(101) == null",
   'number(volume).toFixed(0) == "13"',
-  // Regular expressions: each with values that match no Item, one Item, and
-  // several Items.
   "/^Same/.matches(title)",
   "/^lab report$/i.matches(title)",
   "/^zzz/.matches(title)",
@@ -255,7 +221,6 @@ const FILTERS: readonly string[] = [
   'list(mood) == ["calm"]',
   'list(volume).contains("12")',
   "list(null).isEmpty()",
-  // Names: base fields, aliases, and custom fields.
   'publicationTitle == "Handbook of Methods"',
   'publicationTitle == "Type-Specific Host"',
   'publicationTitle == "Custom Host"',
@@ -281,7 +246,6 @@ const FILTERS: readonly string[] = [
   'custom["review.status"].isEmpty()',
   'mood == "calm"',
   'custom.mood == "calm"',
-  // Relation Lists, including the truth value of the Attachment list.
   "creators.length == 2",
   'creators == ["Grace Hopper", "Grace Hopper"]',
   'creators.contains("Grace Hopper")',
@@ -314,7 +278,6 @@ const FILTERS: readonly string[] = [
   "attachments",
   "!attachments",
   'attachments && key == "ART2FULL"',
-  // List helpers without an element expression.
   'tags.sort()[0] == "tie"',
   'tags.sort() == ["to-read", "To-Read"]',
   'tags.sort().join(",") == "Éclair,eclair,100%_raw\\path"',
@@ -338,7 +301,6 @@ const FILTERS: readonly string[] = [
   "[date, dateAdded].sort()[0] == date",
   'tags.sort().reverse().slice(0, 1).unique().flat().join("") == "tie"',
   '[tags, creators].flat().unique().sort().join(" ").contains("Same tie")',
-  // Element expressions: value, index, and acc bound inside the expression.
   'creators.filter(value.contains("Lovelace")).length > 0',
   'creators.filter(value.contains("Lovelace")).length == 0',
   'creators.filter(index == 0).contains("Grace Hopper")',
@@ -360,8 +322,6 @@ const FILTERS: readonly string[] = [
   'tags.filter(mood == "calm").length > 0',
   'tags.filter(value == custom["value"]).isEmpty()',
   "[tags.filter(index == 0), creators.filter(index == 0)].flat().unique().length == 2",
-  // Dates under the Query Clock of the test: partial dates, timestamps, and
-  // date arithmetic.
   'date >= date("2020")',
   'date == date("2019-11-30")',
   'date == date("2021-06")',
@@ -383,7 +343,6 @@ const FILTERS: readonly string[] = [
   "!accessDate",
   'accessDate.date() == date("2020-01-07")',
   "date(title) == null",
-  // Typed failures: every plan gives the same failure.
   "title.startsWith(1)",
   'tags.contains("tie") && title.sort().length > 0',
   'tags.contains("tie") || tags.join(1) == ""',
@@ -399,8 +358,6 @@ const FILTERS: readonly string[] = [
   'tags.contains("tie") && noSuchFunction()',
   'key == "ART2FULL" && noSuchField == 1',
   'tags.contains("tie") || custom["Review.Status"] == "done"',
-  // Formulas: alone, beside a leaf that lowers, through another Formula, in
-  // an element predicate, and over a custom field. A Formula never lowers.
   "formula.year > 2018",
   'formula.decade == 2010 && tags.contains("to-read")',
   'formula.tagged || indexedKey == "ART2FULL"',
@@ -408,18 +365,9 @@ const FILTERS: readonly string[] = [
   "formula.lovelace",
   'formula.status == "done"',
   'attachments.filter(value.contentType == "application/pdf" && formula.year > 2000).length > 0',
-  // Typed failure: a Formula the scenario does not define.
   "formula.noSuchFormula > 0",
 ];
 
-/**
- * The Items that a subset of {@link FILTERS} matches, by Indexed Key, worked
- * out from the seed of `@zotlit/db-testing/scenario`. The live top-level Items
- * are ten in the personal Library (ART2FULL, BK2MNTH2, CHP2YEAR, CNF2TEXT,
- * RPT2NDTE, ALS2CNFL, UNI2CDE2, TIE2AAAA, TIE2BBBB, TIE2CCCC) and two in the
- * group Library (ART2FULLg4815, GRP2BK22g4815). TRS2SHED and GRP2TRSH are in
- * the trash; PDF2LIVE and the other child rows are no Items.
- */
 const PERSONAL = [
   "ART2FULL",
   "BK2MNTH2",
@@ -466,9 +414,6 @@ const FILTER_MATCHES: Readonly<Record<string, readonly string[]>> = {
   false: [],
   'itemType == "book"': ["BK2MNTH2", "GRP2BK22g4815"],
   'itemType == "book" && key != "ART2FULL"': ["BK2MNTH2", "GRP2BK22g4815"],
-  // Tags: to-read on ART2FULL, BK2MNTH2, and the group ART2FULL; methods on
-  // ART2FULL and ALS2CNFL; tie on the three TIE2 Items; group-only on
-  // GRP2BK22; three Tags on UNI2CDE2; none on CHP2YEAR, CNF2TEXT, RPT2NDTE.
   'tags.contains("to-read")': ["ART2FULL", "BK2MNTH2", "ART2FULLg4815"],
   'tags.icontains("TO-READ")': ["ART2FULL", "BK2MNTH2", "ART2FULLg4815"],
   'tags.contains("tie")': ["TIE2AAAA", "TIE2BBBB", "TIE2CCCC"],
@@ -498,7 +443,6 @@ const FILTER_MATCHES: Readonly<Record<string, readonly string[]>> = {
   'tags.contains("to-read") && itemType == "book"': ["BK2MNTH2"],
   'tags.contains("tie") && key == "TIE2BBBB"': ["TIE2BBBB"],
   'tags.contains("tie") && !tags.contains("tie")': [],
-  // Zotero Key: ART2FULL in both Libraries.
   'key == "ART2FULL"': ["ART2FULL", "ART2FULLg4815"],
   'key == "GRP2BK22"': ["GRP2BK22g4815"],
   'key == "TRS2SHED"': [],
@@ -511,7 +455,6 @@ const FILTER_MATCHES: Readonly<Record<string, readonly string[]>> = {
     "ART2FULLg4815",
     "GRP2BK22g4815",
   ],
-  // Fields: the TIE2 pair shares a title and TIE2CCCC has none.
   'title == "Same Title"': ["TIE2AAAA", "TIE2BBBB"],
   "title == null": ["TIE2CCCC"],
   'title.startsWith("Lab")': ["RPT2NDTE"],
@@ -526,13 +469,9 @@ const FILTER_MATCHES: Readonly<Record<string, readonly string[]>> = {
     "CHP2YEAR",
   ],
   'mood == "calm"': ["ART2FULL"],
-  // Creators: two on ART2FULL, BK2MNTH2, CHP2YEAR; none on RPT2NDTE,
-  // ALS2CNFL, TIE2CCCC, and GRP2BK22.
   "creators.length == 2": ["ART2FULL", "BK2MNTH2", "CHP2YEAR"],
   "creators.isEmpty()": ["RPT2NDTE", "ALS2CNFL", "TIE2CCCC", "GRP2BK22g4815"],
   'itemType == "report" && creators.isEmpty()': ["RPT2NDTE"],
-  // Collections: ART2FULL and CHP2YEAR in Thesis/Methods, CHP2YEAR in Thesis
-  // too, BK2MNTH2 in Teaching/Methods.
   'collections.contains("Thesis/Methods")': ["ART2FULL", "CHP2YEAR"],
   'collections.contains("Teaching/Methods")': ["BK2MNTH2"],
   'collections.containsAny("Thesis/Methods", "Teaching/Methods")': [
@@ -548,23 +487,16 @@ const FILTER_MATCHES: Readonly<Record<string, readonly string[]>> = {
   ],
   'collections.containsAll(["Thesis", "Thesis/Methods"])': ["CHP2YEAR"],
   'collections.within("Thesis")': ["ART2FULL", "CHP2YEAR"],
-  // PDF2LIVE is the one live Attachment, on ART2FULL.
   attachments: ["ART2FULL"],
   "!attachments": except("ART2FULL"),
 };
 
-/**
- * RPT2NDTE was accessed at 04:00Z on 2020-01-07 and CHP2YEAR on the calendar
- * day 2020-01-07; UNI2CDE2 stores an access date that does not parse. The
- * day starts after the timestamp in New York and before it in UTC and Tokyo.
- */
 const NEW_YORK = { now: "2020-01-08T02:00:00Z", timeZone: "America/New_York" };
 const TOKYO = { now: "2020-01-08T02:00:00Z", timeZone: "Asia/Tokyo" };
 const byAccessDate = (direction: SortSpec["direction"]): SortSpec[] => [
   { field: "accessDate", direction },
 ];
 
-/** The scenario requests that the filter list does not give. */
 const REQUESTS: readonly ScenarioQuery[] = [
   {
     name: "lastActivitySource projection with Uses",
@@ -891,10 +823,8 @@ const REQUESTS: readonly ScenarioQuery[] = [
   },
 ];
 
-/** Named regressions retained alongside every scenario filter and request. */
 const NAMED_CASES: readonly ScenarioQuery[] = [];
 
-/** Each filter with matches is in {@link FILTERS}. */
 export const PINNED_FILTERS: readonly string[] = Object.keys(FILTER_MATCHES);
 
 export const SCENARIO_QUERIES: readonly ScenarioQuery[] = [

@@ -26,7 +26,6 @@ interface KeyLiteral {
   readonly at: Span;
 }
 
-/** Equality in either order, or a literal list containing one Indexed Key field. */
 function selection<Item>(
   node: FilterNode<Item>,
   dataset: QueryDataset["id"],
@@ -65,7 +64,6 @@ function keyLiteral<Item>(node: FilterNode<Item>): KeyLiteral | null {
   return { ...parsed, text: node.value, at: { from: node.from, to: node.to } };
 }
 
-/** Invalid or computed list members leave the complete selection to the scan. */
 export function lowerIndexedKeySelection<Item>(
   node: FilterNode<Item>,
   dataset: QueryDataset["id"],
@@ -93,7 +91,6 @@ export interface KeyLibraryWarning {
 const selector = (groupID: number | null) =>
   groupID === null ? "personal" : `group:${groupID}`;
 
-/** Inspect selections in every branch; warnings never change Target Libraries. */
 export function indexedKeyWarnings<Item>(
   root: FilterNode<Item>,
   dataset: QueryDataset["id"],

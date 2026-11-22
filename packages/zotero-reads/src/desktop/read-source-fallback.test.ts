@@ -1,5 +1,3 @@
-// Read-fallback priority at the database source boundary.
-
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect } from "effect";
 import { mkdtemp, rm } from "node:fs/promises";

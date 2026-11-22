@@ -61,7 +61,6 @@ it("offers 'Forget authorization' only while this device remembers one", () => {
     shown: true,
     disabled: false,
   });
-  // Zotero closed and a key still stored: the row can still forget it.
   expect(
     row({ kind: "read-only", reason: "zotero-unavailable" }, true).forget.shown,
   ).toBe(true);
@@ -171,8 +170,6 @@ it.effect(
       yield* TestClock.adjust("0 millis");
       expect(reads).toBe(1);
 
-      // An Allow editing from a notice moves the capability after the failed
-      // read; the row reads the keystore again.
       yield* Queue.offer(changes, undefined);
       yield* TestClock.adjust("0 millis");
       expect(reads).toBe(2);

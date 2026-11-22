@@ -121,8 +121,6 @@ describe("renderSnippet — output", () => {
     expect(renderSnippet(node, "eta", "output")).toBe("<%= zt.noteLink() %>");
   });
 
-  // `backlink` is a bare URL; the snippet teaches the durable link as a
-  // Markdown link a note can follow.
   it("wraps a backlink in a Markdown link", () => {
     const node = value(
       ["backlink"],
@@ -193,8 +191,6 @@ describe("renderSnippet — loop", () => {
     ).toBe("{% for item in zt.extra.data %}\n- {{ item }}{% endfor %}");
   });
 
-  // Items with no text of their own would print `[object Object]`; the line
-  // shows their first property instead.
   it("shows the first property of items that do not read as text", () => {
     const node = value(["lines"], "array", [{ text: "x", page: 1 }]);
     expect(renderSnippet(node, "liquid", "loop")).toBe(
@@ -207,7 +203,6 @@ describe("renderSnippet — loop", () => {
 });
 
 describe("a list's preview and its loop line", () => {
-  // Items with different keys: the first item has no `a`.
   it("show the same property for each item", () => {
     const [node] = buildDisplayTree(
       { lines: [{ b: "first" }, { a: "second", b: "third" }] },
@@ -219,8 +214,6 @@ describe("a list's preview and its loop line", () => {
     );
   });
 
-  // A cited item's alphabetically first property is an abstract the paper
-  // does not have.
   it("pass over a property no item has a value for", () => {
     const [node] = buildDisplayTree(
       {
@@ -239,8 +232,6 @@ describe("a list's preview and its loop line", () => {
     );
   });
 
-  // A citation's alphabetically first property is the cited item, a record
-  // that would print `[object Object]`.
   it("pass over a property whose values do not read as text", () => {
     const [node] = buildDisplayTree(
       {
@@ -355,7 +346,6 @@ describe("list snippets never use an item index", () => {
 });
 
 describe("snippetResult", () => {
-  /** What the first form a node offers, the one an insert uses, writes. */
   const fieldResult = (subject: DisplayNode, kind?: SnippetKind) =>
     snippetResult(subject, kind ?? snippetKindsFor(subject)[0]!);
   const node = (data: Record<string, unknown>) =>
@@ -400,8 +390,6 @@ function resultShape(): { authors: DisplayNode; family: DisplayNode } {
   return { authors, family: authors.children[0]! };
 }
 
-// The row preview, the details values and
-// the snippet result read a list by one rule.
 describe("a list reads the same in its row and in its result", () => {
   const shape = (data: Record<string, unknown>) => {
     const [list] = buildDisplayTree(data, {

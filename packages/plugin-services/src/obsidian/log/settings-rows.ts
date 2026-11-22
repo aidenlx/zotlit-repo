@@ -3,9 +3,6 @@ import type {
   SettingsKey,
   SettingTabContext,
 } from "#obsidian/setting-tab/context.ts";
-// The Advanced page's Logging group: the log level, the log file switch, and
-// the log archive a user saves for a bug report. The desktop platform opens
-// the log file in the system's app through the `advanced.log-file` slot.
 import { Effect } from "effect";
 import { strToU8, zipSync } from "fflate";
 import type { SettingGroupItem } from "obsidian";
@@ -22,18 +19,15 @@ import { PluginSettings } from "#obsidian/settings/service.ts";
 
 declare module "#obsidian/setting-tab/context.ts" {
   interface SettingTabSlots {
-    /** The Logging group, under the log file switch: the log file's own actions. */
     "advanced.log-file": unknown;
   }
 }
 
 const LOG_LEVEL_OFF_KEY = "off";
 
-/** The vault path of the plugin's log file. */
 export const logPath = (ctx: SettingTabContext) =>
   `${ctx.manifest.dir}/${LOG_FILENAME}`;
 
-/** Whether the log file is off, for a log file action's `disabled` predicate. */
 export function logFileDisabled(ctx: SettingTabContext): () => boolean {
   return () =>
     !ctx.tab.sync(PluginSettings.use((settings) => settings.current))[
@@ -41,23 +35,13 @@ export function logFileDisabled(ctx: SettingTabContext): () => boolean {
     ];
 }
 
-/** The settings key whose stored `LogLevel | null` maps through {@link encodeLogLevel}. */
 export const LOG_LEVEL_KEY: SettingsKey = "log.level";
 
-/**
- * Maps stored `LogLevel | null` to a dropdown string (`null` → `"off"`).
- * @see decodeLogLevel
- */
 export function encodeLogLevel(value: unknown): string {
   const level = value as LogLevel | null;
   return level ?? LOG_LEVEL_OFF_KEY;
 }
 
-/**
- * Maps a dropdown string back to stored `LogLevel | null` (`"off"` → `null`).
- * @throws if `value` is not a known log level or the sentinel.
- * @see encodeLogLevel
- */
 export function decodeLogLevel(value: unknown): LogLevel | null {
   const key = value as string;
   if (key === LOG_LEVEL_OFF_KEY) return null;
@@ -73,7 +57,6 @@ const LOG_LEVEL_OPTIONS: Record<string, string> = (() => {
   return opts;
 })();
 
-/** The Logging group's rows. */
 export function loggingItems(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey>[] {
@@ -106,10 +89,6 @@ export function loggingItems(
   ];
 }
 
-/**
- * Save the log file at the vault path `path` as a zip the user downloads. It
- * fails with the Vault's read error when the log file cannot be read.
- */
 export const saveLogArchive = Effect.fnUntraced(function* (path: string) {
   const text = yield* (yield* Vault).readPath(path);
   yield* Effect.sync(() => {
@@ -121,10 +100,6 @@ export const saveLogArchive = Effect.fnUntraced(function* (path: string) {
   });
 });
 
-/**
- * {@link saveLogArchive} for the settings row. A failure is logged and a
- * notice tells the user.
- */
 const exportLogArchive = Effect.fn("SettingTab.exportLogArchive")(
   function* (path: string) {
     yield* reportOutcome(saveLogArchive(path), {

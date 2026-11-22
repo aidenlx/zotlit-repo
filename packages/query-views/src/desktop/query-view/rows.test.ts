@@ -73,7 +73,6 @@ describe("layoutRows", () => {
       shown.rows.map((r) => [r.annotationKey, r.attachmentKey, r.group?.label]),
     ).toEqual([
       ["ANNOT002", "ATTACHMT", "Deep learning"],
-      // A standalone Attachment has no Item: it stands under its own title.
       ["ANNOT004", "STANDALN", "Full text PDF"],
       ["ANNOT001", "ATTACHMT", "Ten simple rules"],
       ["ANNOT003", "ATTACHMT", "Ten simple rules"],
@@ -149,7 +148,6 @@ describe("layoutRows", () => {
       },
     );
     expect(placed(shown)).toEqual([
-      // A colour outside Zotero's palette is its own group, named by its hex.
       ["ANNOT003", "#123456"],
       ["ANNOT002", "Red"],
       ["ANNOT001", "Yellow"],
@@ -236,8 +234,6 @@ describe("layoutRows", () => {
       ["ANNOT001", "Yellow"],
       ["ANNOT004", "Yellow"],
     ]);
-    // Every group the rows hold, the shown ones first in their order; a value
-    // of the order that no row holds has no group.
     expect(shown.groups.map((g) => [g.value, g.count, g.shown])).toEqual([
       ["red", 1, true],
       ["yellow", 2, true],

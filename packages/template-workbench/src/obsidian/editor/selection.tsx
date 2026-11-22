@@ -1,4 +1,3 @@
-// Shared selection UI: Item and annotation lists, search, and labels.
 import "./selection.css";
 import type { AnnotationExample } from "#core/render/index.ts";
 import type { WorkbenchItemChoice } from "#obsidian/workbench-ui/index.tsx";
@@ -34,7 +33,6 @@ type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 
 const selectionOption = selectionControl({ kind: "option" });
 
-/** The selected data's own name, which a pane shows wherever its header cannot. */
 export function selectionName(input: {
   item: WorkbenchItemChoice | null;
   annotation?: AnnotationChoice | null;
@@ -98,7 +96,6 @@ export function updateSelectionTitle(view: ItemView): void {
   view.leaf.updateHeader();
 }
 
-/** A named set of choices; the heading labels the group for assistive technology. */
 function SelectionGroup({
   label,
   children,
@@ -117,7 +114,6 @@ function SelectionGroup({
   );
 }
 
-/** The one control that leaves the examples behind for the user's own library. */
 function SelectionSearch({
   label,
   onSearch,
@@ -135,7 +131,6 @@ function SelectionSearch({
   );
 }
 
-/** A choice in a boxed list; its content owns the box the row hands over. */
 function SelectionOption({
   onSelect,
   children,

@@ -71,7 +71,6 @@ test("generates before framework configuration and updates messages through Vite
       {
         name: "framework-consumer",
         async configResolved() {
-          // Framework plugins start dependency discovery during configuration.
           expect(await readFile(file, "utf8")).toContain("First greeting");
         },
       },
@@ -87,7 +86,6 @@ test("generates before framework configuration and updates messages through Vite
     join(root, "en.json"),
     JSON.stringify({ greeting: "Second greeting", stable: "Unchanged" }),
   );
-  // Vite has registered its watched paths; deliver the fixture change explicitly.
   server.watcher.emit("change", join(root, "en.json"));
   await expect
     .poll(async () => readFile(file, "utf8"), { timeout: 5000 })

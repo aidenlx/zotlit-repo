@@ -10,7 +10,6 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 
 import { addCitekeyEditorActions } from "./actions.ts";
 
-/** Every command id, in registration order. */
 const ALL_COMMAND_IDS = [
   "open-citekey",
   "open-citekey-new-tab",
@@ -18,7 +17,6 @@ const ALL_COMMAND_IDS = [
   "open-citekey-window",
 ];
 
-/** An editor whose cursor sits at `head` of `doc`. */
 function editorAt(doc: string, head: number): Editor {
   return stubService<Editor>("Editor", {
     cm: stubService<Editor["cm"]>("EditorView", {
@@ -27,25 +25,18 @@ function editorAt(doc: string, head: number): Editor {
   });
 }
 
-/** The bridge each case opened, closed after it. */
 const bridges: AsyncDisposable[] = [];
 afterEach(async () => {
   for (const bridge of bridges.splice(0)) await bridge[Symbol.asyncDispose]();
 });
 
-/**
- * @param open what an open runs after it records the call; it ends at once
- *   unless a case names a longer open.
- */
 function setup(
   enabled: boolean,
   open: Effect.Effect<void> = Effect.void,
 ): {
   plugin: ReturnType<typeof createMockPlugin>;
   opened: [citekey: string, pane: NavigationPane][];
-  /** Run one command's check callback; `checking` asks palette visibility. */
   run: (id: string, editor: Editor, checking: boolean) => boolean;
-  /** Close the bridge, as unload does. */
   unload: () => Promise<void>;
 } {
   const opened: [string, NavigationPane][] = [];

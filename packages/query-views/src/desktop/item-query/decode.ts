@@ -1,12 +1,3 @@
-// Decodes the flat CLI arguments of the ZotLit Query commands, once, in the
-// renderer: the query command into a `DecodedQuery` that crosses the
-// ZoteroReads worker seam through its own codec, or into the diagnostic of
-// the first malformed argument.
-//
-// Command, flag, and diagnostic text is all hardcoded English: an
-// agent-facing contract surface, not localized UI. See
-// apps/obsidian/policies/cli-text.md.
-
 import { Effect, Schema, SchemaIssue } from "effect";
 import { isAbsolute } from "node:path";
 import type { CliData } from "obsidian";
@@ -74,10 +65,6 @@ const queryId = Schema.String.check(
   ),
 );
 
-/**
- * Text decoded by the schema that `pick` chooses for it, which raises its own
- * issues: the caller's text names its form, as `all` or a JSON array does.
- */
 function textOf<T>(
   pick: (text: string) => Schema.Decoder<T>,
   options?: { readonly onExcessProperty?: "error" },
@@ -92,7 +79,6 @@ function textOf<T>(
   );
 }
 
-/** Split a comma list only outside quotes and bracketed Projection Paths. */
 function splitList(text: string): { value: string; start: number }[] {
   const parts: { value: string; start: number }[] = [];
   let start = 0;
@@ -117,7 +103,6 @@ function splitList(text: string): { value: string; start: number }[] {
   return parts;
 }
 
-/** A comma list, as its elements; an empty element is the issue, at its index. */
 const commaList = Schema.String.pipe(
   cliMapEffect((text: string, options) => {
     const parts = splitList(text);
@@ -139,10 +124,6 @@ const commaList = Schema.String.pipe(
   }),
 );
 
-/**
- * A parameter that takes a comma list, or a JSON array when its text starts
- * with `[`; `schema` decodes the elements either form gives.
- */
 function listParameter<T>(
   parameter: string,
   expected: string,
@@ -155,7 +136,6 @@ function listParameter<T>(
   );
 }
 
-/** One library argument names one or more Target Libraries. */
 const library = textOf((text): Schema.Decoder<LibraryScope> =>
   text === "all"
     ? Schema.Literal("all").pipe(cliMap((): LibraryScope => ({ mode: "all" })))
@@ -169,7 +149,6 @@ const library = textOf((text): Schema.Decoder<LibraryScope> =>
           ),
         )
           .check(
-            // The Diagnostic Report's wording: policies/cli-text.md.
             Schema.isMinLength(1, {
               message: "Invalid length: Expected >=1 but received 0",
             }),
@@ -194,7 +173,6 @@ const from = cliLiterals(
     `from '${input}' is not a Query Dataset: use items, attachments, annotations.`,
 );
 
-/** The key of the first selector `selectors` names twice. */
 function firstRepeat(
   selectors: readonly LibrarySelector[],
 ): string | undefined {
@@ -220,7 +198,6 @@ const limit = textOf((text): Schema.Decoder<number | null> =>
       ).pipe(cliMap(Number)),
 );
 
-/** The Indexed Key of a record that `this` binds. */
 const contextKey = (parameter: string, noun: string) =>
   Schema.String.check(
     cliIndexedKey(
@@ -254,8 +231,6 @@ const formulas = cliJson(
     ),
   )
   .pipe(
-    // The names come from the caller's text: a Formula named __proto__
-    // stays a Formula, in a dictionary without a prototype.
     cliMap((input) =>
       nameDictionary(Object.entries(input as Record<string, string>)),
     ),
@@ -271,7 +246,6 @@ const sortSpecs = Schema.Array(
   }),
 );
 
-/** A comma list of signed fields, or a JSON array of sort objects. */
 const sort = textOf(
   (text): Schema.Decoder<Schema.Schema.Type<typeof sortSpecs>> =>
     text.trimStart().startsWith("[")
@@ -290,11 +264,9 @@ const sort = textOf(
           ),
           Schema.decodeTo(sortSpecs),
         ),
-  // A sort object holds field and direction alone.
   { onExcessProperty: "error" },
 );
 
-/** The arguments every query takes, whichever Libraries it reads. */
 const queryOptions = {
   from: cliDefault(from, "items"),
   group: Schema.optionalKey(
@@ -341,7 +313,6 @@ const queryOptions = {
 
 type QueryOptions = Schema.Struct.Type<typeof queryOptions>;
 
-/** The {@link DecodedQuery} of the caller's parameters. */
 function decodedQuery(
   options: QueryOptions,
   libraries: NamedLibraries | null,
@@ -383,7 +354,6 @@ function decodedQuery(
   };
 }
 
-/** CSV and TSV go to a file: the answer in the terminal is always JSON. */
 const formatHasOutput = cliRule(
   "format",
   (input: { format: QueryOutputFormat; output?: string }) =>
@@ -407,7 +377,6 @@ const queryVariants = {
 const queryVariant = (params: CliData) =>
   params.library !== undefined ? "library" : "scope";
 
-/** The schema command optionally narrows its live dataset listing. */
 export function decodeSchemaArguments(params: CliData) {
   return decodeCliParams(
     params,
@@ -428,7 +397,6 @@ const guideParams = cliParams({
   ),
 }).pipe(cliMap(({ topic }): GuideTopic | null => topic ?? null));
 
-/** The guide topic, or `null` for the quickstart. */
 export function decodeGuideArguments(
   params: CliData,
 ): Effect.Effect<GuideTopic | null, CliRejection> {
@@ -442,7 +410,6 @@ const cancelParams = cliParams(
   { id: "id is missing: give the id of the query to cancel, as in id=<id>." },
 ).pipe(cliMap(({ id }) => id));
 
-/** The id of the query to cancel. */
 export function decodeCancelArguments(
   params: CliData,
 ): Effect.Effect<string, CliRejection> {
@@ -463,7 +430,6 @@ export function decodeQuery(
   }).pipe(Effect.mapError((rejection) => recovery(params, rejection)));
 }
 
-/** A rejected query, with the action that recovers from it. */
 function recovery(params: CliData, rejection: CliRejection): CliRejection {
   const { parameter, issue } = rejection;
   if (parameter === "item" || parameter === "attachment") {
@@ -492,7 +458,6 @@ function recovery(params: CliData, rejection: CliRejection): CliRejection {
     ) {
       const part = splitList(input)[index];
       if (part?.value === "") {
-        // Keep the list element index and the UTF-16 character span distinct.
         return amendRejection(rejection, {
           issue: { ...issue, span: { from: part.start, to: part.start } },
         });
@@ -532,7 +497,6 @@ const valuesParams = cliParams(
 
 export type QueryValuesParam = CliParamName<typeof valuesParams>;
 
-/** Discover exact Collection paths or Tag names before writing a filter. */
 export function decodeValues(
   params: CliData,
 ): Effect.Effect<DecodedValues, CliRejection> {

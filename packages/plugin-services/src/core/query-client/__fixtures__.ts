@@ -1,5 +1,4 @@
 import { Clock, Context, Effect, Exit, Layer, Scope } from "effect";
-// A real QueryClients layer for consumer tests outside Effect.
 import { TestClock } from "effect/testing";
 
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -41,7 +40,6 @@ export function buildQueryClients(
   });
 }
 
-/** A consumer fixture whose owner disposes its runtime. */
 export function queryClientsFixture(
   now?: QueryTestClock["now"],
 ): QueryClients["Service"] &
@@ -55,7 +53,6 @@ export function queryClientsFixture(
   });
 }
 
-/** The native QueryClients on this test's Clock, with its runtime and bridge; the test Scope owns the runtime. */
 export const queryClientsOf = Effect.fn("queryClientsOf")(function* () {
   const context = yield* Effect.context<never>();
   const scope = yield* Effect.acquireRelease(Scope.make(), (scope) =>

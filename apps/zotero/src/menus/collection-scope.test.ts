@@ -7,7 +7,6 @@ type LibraryMenuContext = _ZoteroTypes.MenuManager.LibraryMenuContext;
 const USER_LIBRARY_ID = 1;
 const GROUP_LIBRARY_ID = 7;
 
-/** Group ids are derived from library ids by an offset in the stub. */
 const groupIDOf = (libraryID: number): number => libraryID + 100;
 
 interface RowShape {
@@ -29,17 +28,12 @@ function row({
   } as unknown as Zotero.CollectionTreeRow;
 }
 
-/** Zotero 9 supplies the singular value and no plural. */
 function zotero9Context(
   collectionTreeRow: Zotero.CollectionTreeRow | undefined,
 ): LibraryMenuContext {
   return { collectionTreeRow } as unknown as LibraryMenuContext;
 }
 
-/**
- * Zotero 10 supplies the plural beside a singular getter that throws, so any
- * read of the singular fails the test rather than the user's menu.
- */
 function zotero10Context(
   collectionTreeRows: Zotero.CollectionTreeRow[],
 ): LibraryMenuContext {

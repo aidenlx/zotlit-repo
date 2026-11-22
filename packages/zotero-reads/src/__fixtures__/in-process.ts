@@ -1,4 +1,3 @@
-// Test support: ZoteroReads over `:memory:` fixture databases, for the service and its consumers.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, Layer, Stream } from "effect";
 import type { Scope } from "effect";
@@ -17,10 +16,6 @@ import { makeInProcessClient } from "#worker/in-process.ts";
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
 import type { SnapshotId } from "#contract/rpc.ts";
 
-/**
- * The handler layer on this runtime over `connection` and the Node file
- * system, for the caller's scope.
- */
 export const inProcessClient = Effect.fnUntraced(function* (
   connection: Layer.Layer<Connection>,
   options?: HandlersOptions,
@@ -31,10 +26,6 @@ export const inProcessClient = Effect.fnUntraced(function* (
   return yield* Effect.provideContext(makeInProcessClient(options), services);
 });
 
-/**
- * An opener over fresh `:memory:` fixture databases. Open #N runs `seed(N)`;
- * a `null` seed fails that open. `log` records opens and closes in order.
- */
 export function memoryOpener(seed: (open: number) => string | null) {
   const log: string[] = [];
   let opened = 0;
@@ -57,14 +48,9 @@ export function memoryOpener(seed: (open: number) => string | null) {
   return { open, log };
 }
 
-/**
- * An opener that serves `client` itself, for a fixture that also reads the
- * client directly. The connection leaves `client` open; its owner closes it.
- */
 export function sharedClientOpener(
   client: NodeDatabaseClient,
 ): ConnectionOpener {
-  // The connection closes `$client` on release; queries never read it.
   const shared = Object.create(client, {
     $client: { value: { close() {} } },
   }) as NodeDatabaseClient;
@@ -72,15 +58,11 @@ export function sharedClientOpener(
 }
 
 export interface InProcessReadsOptions {
-  /** Lets a test observe or gate the client its consumers call. */
   wrap?: (client: ZoteroReadsClient) => ZoteroReadsClient;
-  /** The client opens once this settles. */
   opening?: Promise<void>;
-  /** Options for the handler layer. */
   handlers?: HandlersOptions;
 }
 
-/** A {@link TestReads} on the in-process adapter over `opener`. */
 export function inProcessReadsService(
   opener: ConnectionOpener,
   {
@@ -99,11 +81,6 @@ export function inProcessReadsService(
   );
 }
 
-/**
- * A reads stand-in whose `state` the test sets. Its reads run on the
- * in-process adapter over an empty `:memory:` fixture database, so a suite
- * that stubs the `@zotlit/db` queries answers through the real handlers.
- */
 export function stubbedReads(): Pick<
   TestReads,
   "reads" | "ready" | "acquireRead"
@@ -123,10 +100,6 @@ export function stubbedReads(): Pick<
   };
 }
 
-/**
- * `service` with `state` fixed, for a suite that tests a consumer's state
- * gate. Every other member is the service's own.
- */
 export function withState<S extends TestReads>(
   service: S,
   state: import("#client/service.ts").ZoteroReadsState["state"],
@@ -136,17 +109,11 @@ export function withState<S extends TestReads>(
   });
 }
 
-/** One recorded call: the operation and the payload it carried. */
 export interface RecordedCall {
   readonly operation: string;
   readonly payload: Readonly<Record<string, unknown>>;
 }
 
-/**
- * A `wrap` for {@link inProcessReadsService} that records the payload of each
- * call to `operations` in `calls`, and each Snapshot id the client opens in
- * `snapshots`.
- */
 export function recordCalls(operations: readonly (keyof ZoteroReadsClient)[]): {
   wrap: (client: ZoteroReadsClient) => ZoteroReadsClient;
   calls: RecordedCall[];
@@ -185,22 +152,17 @@ export function recordCalls(operations: readonly (keyof ZoteroReadsClient)[]): {
   return { wrap, calls, snapshots };
 }
 
-/** A regular Item {@link seedWorksSql} writes into My Library. */
 export interface SeededWork {
   readonly itemID: number;
   readonly key: string;
-  /** My Library (1) when omitted; seed any other library's rows first. */
   readonly libraryID?: number;
-  /** One of {@link SEEDED_ITEM_TYPES}; a journal article when omitted. */
   readonly itemType?: (typeof SEEDED_ITEM_TYPES)[number];
   readonly title?: string;
   readonly citationKey?: string;
   readonly date?: string;
-  /** Authors as `[firstName, lastName]`, in order. */
   readonly creators?: readonly (readonly [string, string])[];
 }
 
-/** An Attachment {@link seedWorksSql} hangs from a seeded Item. */
 export interface SeededAttachment {
   readonly itemID: number;
   readonly key: string;
@@ -209,19 +171,12 @@ export interface SeededAttachment {
   readonly linkMode: number;
 }
 
-/** The regular item types {@link seedWorksSql} declares, by type id from 1. */
 const SEEDED_ITEM_TYPES = ["journalArticle", "letter", "book"] as const;
-/** The item type id {@link seedWorksSql} gives Attachments. */
 export const ATTACHMENT_TYPE_ID = 99;
 const SEEDED_FIELD_IDS = { title: 10, citationKey: 11, date: 12 } as const;
 
 const quoteSql = (value: string) => `'${value.replaceAll("'", "''")}'`;
 
-/**
- * SQL for a fixture database (after `createFixtureSchema`) holding My Library
- * with `works` and `attachments` beneath them, for a suite that reads works
- * through ZoteroReads over seeded rows.
- */
 export function seedWorksSql(
   works: readonly SeededWork[],
   attachments: readonly SeededAttachment[] = [],
@@ -242,10 +197,6 @@ export function seedWorksSql(
   ].join("\n");
 }
 
-/**
- * SQL that adds `works` and `attachments` to a database {@link seedWorksSql}
- * seeded. Row ids derive from each Item's id, so works added apart never clash.
- */
 export function worksSql(
   works: readonly SeededWork[],
   attachments: readonly SeededAttachment[] = [],
@@ -286,7 +237,6 @@ export function worksSql(
   return sql.join("\n");
 }
 
-/** SQL that removes every work and attachment {@link worksSql} added. */
 export const CLEAR_WORKS_SQL = `
   delete from itemAttachments;
   delete from itemCreators;
@@ -296,11 +246,6 @@ export const CLEAR_WORKS_SQL = `
   delete from items;
 `;
 
-/**
- * SQL for a fixture database whose user library holds one journal article per
- * key: "A study of nothing" (2020) by Ann Zeta, account user 1. Every key
- * names the same work, for a suite that cites works by Indexed Key.
- */
 export function citedWorkSeed(keys: readonly string[]): string {
   const items = keys
     .map(

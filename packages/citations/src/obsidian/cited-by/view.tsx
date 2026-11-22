@@ -1,4 +1,3 @@
-// ItemView shell for the Cited By Sidebar: follows the active Literature Note.
 import { ItemView } from "obsidian";
 import type { App, ViewStateResult, WorkspaceLeaf } from "obsidian";
 import { createRoot } from "react-dom/client";
@@ -25,7 +24,6 @@ export const CITED_BY_VIEW_TYPE = "zotlit-cited-by";
 
 export interface CitedByViewDeps {
   app: App;
-  /** The plugin's view registry: the followed note, its Cited By and previews. */
   registry: ViewRegistryHandle;
 }
 
@@ -39,7 +37,6 @@ export class CitedByView extends ItemView {
     super(leaf);
     this.contentEl.addClass("zt-root", "zt-cited-by-view");
     this.#deps = deps;
-    // Obsidian sets the layout state before the view opens.
     this.#release = holdCitedByModel(deps.registry, this.#model);
   }
 
@@ -55,11 +52,6 @@ export class CitedByView extends ItemView {
     return "file-input";
   }
 
-  /**
-   * The controls the workspace layout carries: the search field and its query,
-   * the Show more context mode, and the sort mode. Per-group collapse and
-   * manual excerpt expansions stay in memory, so they never appear here.
-   */
   override getState(): Record<string, unknown> {
     return { ...this.#deps.registry.get(this.#model.layout) };
   }
@@ -88,8 +80,6 @@ export class CitedByView extends ItemView {
       </ViewRegistryProvider>,
     );
 
-    // Nothing else touches the layout when a control changes, so the view asks
-    // for the save that carries its controls across a restart.
     let saved = registry.get(this.#model.layout);
     this.register(
       registry.subscribe(this.#model.layout, (layout) => {
@@ -98,14 +88,11 @@ export class CitedByView extends ItemView {
         app.workspace.requestSaveLayout();
       }),
     );
-    // Collapse and excerpt expansions belong to one Literature Note's Item.
     this.register(
       registry.subscribe(activeKeyAtom, () =>
         registry.set(this.#model.note, EMPTY_CITED_BY_NOTE_STATE),
       ),
     );
-    // An expansion holds offsets into the source it was made from, so a note
-    // that changed drops its expansions.
     let revisions = registry.get(revisionsAtom);
     this.register(
       registry.subscribe(revisionsAtom, (next) => {
@@ -128,7 +115,6 @@ export class CitedByView extends ItemView {
   }
 }
 
-/** The state the workspace layout holds; everything else lives one session. */
 const LAYOUT_KEYS = ["searchVisible", "search", "moreContext", "sort"] as const;
 
 function sameLayout(a: CitedByLayout, b: CitedByLayout): boolean {

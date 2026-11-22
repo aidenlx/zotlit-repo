@@ -1,20 +1,10 @@
-// Validates JSON Language Pack data against the bounded runtime contract.
-
 import { isSupportedLanguagePackFormatter } from "./language-pack.ts";
 import type { LanguagePack } from "./language-pack.ts";
 
 export { isSupportedLanguagePackFormatter } from "./language-pack.ts";
 
-/** Pack schema this plugin build reads; packs declaring anything else are rejected. */
-// Persisted version: packages/scripts/lib/format-versions.ts.
 export const LANGUAGE_PACK_SCHEMA_VERSION = 1;
 
-/**
- * A pack whose schema this build cannot read. {@link updateNeeded} tells the
- * two cases apart: a pack from a newer lineage is fixed by updating the
- * consuming plugin, while any other mismatch is a stale or corrupt artifact
- * the user cannot act on.
- */
 export class LanguagePackSchemaVersionError extends Error {
   readonly updateNeeded: boolean;
 
@@ -30,7 +20,6 @@ export class LanguagePackSchemaVersionError extends Error {
 
 export const LANGUAGE_PACK_LIMITS = {
   bytes: 256 * 1024,
-  // Sanity bound on entry count; the byte cap above is the size guard.
   messages: 4_000,
   textLength: 10_000,
   depth: 16,
@@ -78,9 +67,6 @@ export function validateLanguagePack(
     validateMessage(message, `$.messages.${messageId}`, 3);
   }
 
-  // validateMessage recursively checks every message against the exact
-  // Message/Declaration/Expression/Variant/Match shapes below, so `pack`
-  // matches LanguagePack in full at this point.
   return pack as LanguagePack;
 }
 

@@ -1,4 +1,3 @@
-// Pure Reading Card data: row previews, bibliographic fields and annotation quotes.
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { QueryViewValue } from "@zotlit/query-views/desktop/item-query/query-view.ts";
@@ -14,44 +13,33 @@ import {
 import type { CardField, CardHeader } from "./card-fields.ts";
 export type Values = Readonly<Record<string, QueryViewValue>>;
 
-/** One file of the Item. */
 export interface CardFile {
   readonly key: string;
   readonly title: string;
   readonly fileType: string;
 }
 
-/** One Zotero note of the Item. */
 export interface CardNote {
   readonly key: string;
   readonly title: string;
 }
 
-/** One colour of the Item's Annotations, and how many have it. */
 export interface CardColour {
-  /** The colour as Zotero stores it, in lower case. */
   readonly color: string;
   readonly count: number;
 }
 
-/** One of the first Annotations, as the preview quotes it. */
 export interface CardQuote {
   readonly key: string;
   readonly color: string;
-  /**
-   * `quote`: highlighted text; `note`: a comment alone; `image`: an area or
-   * a drawing, which has no text to quote, named "Image" or "Drawing".
-   */
   readonly kind: "quote" | "note" | "image";
   readonly text: string;
   readonly page: string;
 }
 
-/** The Item as the card shows it. */
 export interface CardItem extends CardHeader {
   fields: readonly CardField[];
   abstract: string | null;
-  /** Each place the Item sits, as Library › Collection names. */
   where: readonly (readonly string[])[];
   tags: readonly string[];
   files: readonly CardFile[];
@@ -59,14 +47,11 @@ export interface CardItem extends CardHeader {
   added: string | null;
   annotations: number;
   colours: readonly CardColour[];
-  /** The first two Annotations, in the order the cards show them. */
   quotes: readonly CardQuote[];
 }
 
-/** How many Annotations the preview quotes. */
 export const QUOTED = 2;
 
-/** The paths of an Annotation that the preview quotes. */
 export const QUOTE_PATHS = [
   "type",
   "text",
@@ -101,7 +86,6 @@ export function quoteOf(key: string, values: Values): CardQuote {
   };
 }
 
-/** The colours of the Item's Annotations, in the order of Zotero's palette. */
 function coloursOf(values: Values): CardColour[] {
   const counts = new Map<string, number>();
   for (const value of list(values["annotations[].color"])) {
@@ -117,7 +101,6 @@ function coloursOf(values: Values): CardColour[] {
     .toSorted((a, b) => place(a.color) - place(b.color));
 }
 
-/** The header of the Item as its list row reads it, while the card reads the rest. */
 export function previewItem(values: Values): CardItem {
   return {
     ...cardHeader(values),

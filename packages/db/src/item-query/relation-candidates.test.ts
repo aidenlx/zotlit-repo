@@ -37,7 +37,6 @@ it("maps element candidates to live parents in one statement per chunk", () => {
     "item-annotations",
     "attachment-annotations",
   ] as const) {
-    // Warm the layout check before counting the reader's statements.
     run(readRelationCandidateSet({ relation, libraryID: 1, itemIDs: ids }));
     statements.length = 0;
     const itemIDs = run(

@@ -4,8 +4,6 @@ import type {
   ChooserScope,
   WorkbenchSuggesterRequest,
 } from "#obsidian/workbench-ui/suggester.ts";
-// The Item and annotation choosers of the Template Workbench, as Effects on
-// the native chooser: an interrupt closes it, and a dismissal answers `null`.
 import { useAtomValue } from "@effect/atom-react";
 import { Effect } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -32,7 +30,6 @@ import { chooseWorkbenchOption } from "#obsidian/workbench-ui/suggester.ts";
 
 type AnnotationChoice = Pick<AnnotationExample, "id" | "root">;
 
-/** The parent Items among `hits`, as choices. */
 const itemChoices = (hits: readonly SearchHit[]): WorkbenchItemChoice[] =>
   hits.flatMap(({ item }) =>
     isChildItemFields(item.fields)
@@ -47,7 +44,6 @@ const itemChoices = (hits: readonly SearchHit[]): WorkbenchItemChoice[] =>
 
 const NO_RECENT: readonly WorkbenchItemChoice[] = [];
 
-/** The recently updated parent Items, at most three. */
 export const recentItemChoices: Effect.Effect<
   readonly WorkbenchItemChoice[],
   never,
@@ -56,24 +52,13 @@ export const recentItemChoices: Effect.Effect<
   lookup.search("", { limit: 3 }),
 ).pipe(Effect.map((hits) => itemChoices(hits)));
 
-/**
- * The recently updated parent Items, read while a list shows them; a list
- * that leaves interrupts the read.
- */
 export const recentItemsAtom = viewRuntime.atom(recentItemChoices);
 
-/** What {@link recentItemsAtom} answers; none until it answers. */
 export function useRecentItems(): readonly WorkbenchItemChoice[] {
   const result = useAtomValue(recentItemsAtom);
   return AsyncResult.isSuccess(result) ? result.value : NO_RECENT;
 }
 
-/**
- * Ask the reader for an Item: the Sample Items, the recently updated Items,
- * and a search of the Zotero library.
- *
- * @returns the chosen Item, or `null` when the reader dismisses the chooser.
- */
 export const workbenchItemChoice = (
   scope: ChooserScope,
   deps: ItemSearchDeps,
@@ -88,7 +73,6 @@ export const workbenchItemChoice = (
         ? [selected]
         : [];
     const found = new Map<string, WorkbenchItemChoice>();
-    // The chooser's typed searches; the recent Items above stay one-shot.
     const session = yield* lookup.openSession;
     const request: WorkbenchSuggesterRequest = {
       window: scope.window,
@@ -147,12 +131,6 @@ export const workbenchItemChoice = (
     );
   }).pipe(Effect.scoped);
 
-/**
- * Ask the reader to search the Zotero library for an Item.
- *
- * @returns the chosen parent Item, or `null` when the reader dismisses the
- *   search or picks a child Item.
- */
 export const workbenchItemSearch = (
   deps: ItemSearchDeps,
 ): Effect.Effect<WorkbenchItemChoice | null> =>
@@ -160,13 +138,6 @@ export const workbenchItemSearch = (
     Effect.map((hit) => (hit ? (itemChoices([hit])[0] ?? null) : null)),
   );
 
-/**
- * Ask the reader for the annotation a preview renders: the selected Item's
- * own annotations and the sample ones.
- *
- * @returns the chosen annotation's id, or `null` when the reader dismisses
- *   the chooser.
- */
 export const workbenchAnnotationChoice = (
   scope: ChooserScope,
   current: readonly AnnotationChoice[],

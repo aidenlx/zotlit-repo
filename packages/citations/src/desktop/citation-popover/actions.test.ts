@@ -31,7 +31,6 @@ const block = (
   ...overrides,
 });
 
-/** A click, as React hands one to a button's handler. */
 function click({
   button = 0,
   detail = 1,

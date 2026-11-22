@@ -1,9 +1,5 @@
 import { obRun } from "./obsidian-cli.ts";
 
-/**
- * Waits for `wait`; when it fails, adds the vault's Template Workbench
- * surfaces to the error, so the failure shows which leaves opened and where.
- */
 export async function withWorkbenchSurfaces<T>(
   vaultId: string,
   wait: Promise<T>,

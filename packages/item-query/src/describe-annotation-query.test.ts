@@ -14,7 +14,6 @@ import { ANNOTATIONS, collectQuery } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
 import { faultCode, runEffect } from "./test-helpers.ts";
 
-// Every test here only reads the scenario.
 let scenario: ScenarioDatabase<NodeDatabaseClient>;
 
 beforeAll(() => {

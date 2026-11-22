@@ -4,7 +4,6 @@ import { ATTACHMENTS } from "./query-attachments.ts";
 import { ITEMS } from "./query-items.ts";
 import type { ItemQueryRequest } from "./request.ts";
 
-/** Cross-dataset research questions, also run through the forced scan oracle. */
 export const RELATION_SCENARIO_QUERIES: readonly {
   readonly name: string;
   readonly dataset: QueryDataset;

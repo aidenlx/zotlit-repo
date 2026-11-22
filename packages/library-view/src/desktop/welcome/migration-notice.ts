@@ -1,6 +1,4 @@
 import type { LiteratureNoteTemplateMigrationResult } from "@zotlit/notes/desktop/template/migration.ts";
-// One sentence per conversion outcome, shared by the transient notice and the
-// Welcome banner so a refusal the notice named stays readable in the view.
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 export function templateMigrationNotice(

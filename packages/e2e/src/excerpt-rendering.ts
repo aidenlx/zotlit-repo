@@ -10,7 +10,6 @@ import {
   EXCERPT_RENDERING_PDFS,
   EXCERPT_RENDERING_VAULT_DIR,
 } from "@zotlit/scripts/fixture";
-// Real Obsidian acceptance for generated excerpt-rendering PDFs.
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import { cli } from "./obsidian-cli.ts";
@@ -267,11 +266,6 @@ async function startRenderProbe(
     )
   )
     await disposeRenderProbe(vaultId);
-  // The resolution ends by destroying its PDF.js document, which terminates
-  // that document's Web Worker. A memory dump requested while the worker exits
-  // waits out Chromium's 15 s dump timeout and rejects, and the next request
-  // answers at once; no event says when the worker is gone. So the `after`
-  // sample asks once more after a rejection, well inside `result()`'s wait.
   await obRun(
     vaultId,
     async (
@@ -803,9 +797,6 @@ export async function verifyExcerptRendering(
     undefined,
   );
 
-  // The batch's own numbers, emitted as soon as they exist: the probes below
-  // read host capabilities this environment does not always answer, and a
-  // failed probe must not cost the record the batch it measured.
   console.info("Excerpt rendering evidence", result);
 
   expect(result.cold).toHaveLength(EXCERPT_RENDERING_CASES.length);
@@ -999,7 +990,6 @@ export async function verifyExcerptRendering(
   return { engine: result.engine };
 }
 
-/** Compare PDF.js output with independent PNGs produced by Zotero's worker. */
 export async function verifyZoteroExcerptParity(
   vaultId: string,
 ): Promise<void> {

@@ -159,9 +159,6 @@ it("reads only the requested relations and resolves files only for path or exist
       },
     },
   ]);
-  // The linkMode candidate holds the one linked_file Attachment of the
-  // personal Library: the scan pass resolves it for `exists`, and the
-  // projection pass again for `path` and `exists`.
   expect(resolved).toEqual(["PDF2LINK", "PDF2LINK"]);
   resolved.length = 0;
   const urls = await query(
@@ -268,8 +265,6 @@ it("keeps the Library and parent identity of the same Attachment key in two Libr
   ]);
 });
 
-// Failure modes: selecting the wrong Library or parent, losing list members,
-// widening scope, dropping warnings on a matching branch, and scan fallback.
 it.each([
   ['indexedKey == "PDF2LIVE"', ["PDF2LIVE"]],
   ['"PDF2GRUPg4815" == indexedKey', ["PDF2GRUPg4815"]],
@@ -412,8 +407,6 @@ it("caps parent Indexed Key expansion and falls back to the Attachment scan", as
   expect(candidate.statement.rows).toHaveLength(2);
 });
 
-// Failure modes: counting only returned files, applying a global limit, losing
-// a parent's group, or sorting the absent group before a known value.
 it("groups Attachments by type and parent Citation Key with null last and per-group limits", async () => {
   using scenario = openScenarioDatabase(connectClient, { annotations: true });
   scenario.sqlite
@@ -478,8 +471,6 @@ it("groups Attachments by type and parent Citation Key with null last and per-gr
   ]);
 });
 
-// Failure modes: MIME-only classification of web links, missing MIME becoming
-// null, unsupported MIME becoming a known type, and filters disagreeing with groups.
 it.each([
   ["application/pdf", 0, "pdf"],
   ["application/epub+zip", 0, "epub"],

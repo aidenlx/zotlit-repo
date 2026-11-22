@@ -1,4 +1,3 @@
-// The views' edge to citation renders.
 import { it } from "@effect/vitest";
 import { Effect, Layer, Stream } from "effect";
 import { expect, vi } from "vitest";
@@ -32,10 +31,6 @@ import {
 import { Profile } from "#obsidian/profile/service.ts";
 import { Template } from "#obsidian/template/service.ts";
 
-/**
- * A journal article with the citation key `Hensher2011` and an attachment
- * that holds the highlight `ANNT2345` on page 62, in the personal library.
- */
 const SEED = `
   insert into version (schema, version) values ('userdata', 129);
   insert into libraries (libraryID, type, version) values (1, 'user', 0);
@@ -65,7 +60,6 @@ const pref = stubService<ZoteroPrefSnapshot>("ZoteroPrefSnapshot", {
   baseAttachmentPath: null,
 });
 
-/** The handle on a plugin-like runtime, with a Citation Template that runs `render`. */
 async function openHandle(
   render: (refs: readonly CiteRef[]) => string,
   reads: Layer.Layer<ZoteroReads> = layerZoteroReads(
@@ -156,7 +150,6 @@ it.effect("resolves the annotation reads with their results", () =>
 
 it.effect("rejects Copy citation with what the Citation Template threw", () =>
   Effect.promise(async () => {
-    // The annotation view shows an inert template's own message.
     const inert = new InertTemplateError("The Citation Template is inert");
     const handle = await openHandle(() => {
       throw inert;
@@ -176,7 +169,6 @@ it.effect("settles as the bridge does after the runtime is disposed", () =>
     const handle = await openHandle((refs) => `[@${refs[0]!.citationKey}]`);
     await handle.dispose();
     const { citations } = handle;
-    // The released Template still answers; the closed reads fail as closed.
     expect(
       citations.renderCitation([{ citationKey: "smith2024" }], "alt"),
     ).toBe("[@smith2024]");

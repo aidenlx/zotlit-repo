@@ -1,7 +1,4 @@
 import type { GroupNode } from "#core/graph.ts";
-// A host's declaration, and what the shell derives from its features: the
-// settings definition, the plugin graph, and the check that no feature reads a
-// service the composition leaves out.
 import { Layer } from "effect";
 import type { Plugin } from "obsidian";
 import * as v from "valibot";
@@ -41,25 +38,14 @@ import type { SettingTabOrder } from "./setting-tab/tab.ts";
 import { buildOrder, stackGroups } from "#core/graph.ts";
 import { startingAs } from "#core/startup-failure.ts";
 
-/** The services the shell builds above the features: the view registry. */
 export type ShellProvides = ViewRegistry;
 
-/** What the shell's own registrations read: every view service and tab service. */
 type ShellReads = ViewServices | Exclude<SettingTabEnv, SettingTab>;
 
-/**
- * The services the composition of `F` reads and fills nowhere: the features'
- * open ports, and the view and tab services that no feature fills.
- */
 export type MissingServices<F extends readonly Feature<any, any, any>[]> =
   | OpenPorts<F, ShellProvides>
   | Exclude<ShellReads, ProvidesOf<F> | ShellBase | ShellProvides>;
 
-/**
- * Nothing when the actions `Given` and `Registered` agree, or a type error
- * that names each action `Given` lacks under `missingLinkActions` and each
- * action no feature registers under `unregisteredLinkActions`.
- */
 export type LinkActionsCheck<Registered, Given> = ([
   Exclude<Registered, Given>,
 ] extends [never]
@@ -73,26 +59,15 @@ export type LinkActionsCheck<Registered, Given> = ([
         readonly unregisteredLinkActions: Listed<Exclude<Given, Registered>>;
       });
 
-/** A plugin host: what differs from one host to the next. */
 export interface HostDeclaration<F extends readonly Feature<any, any, any>[]> {
-  /** The features, in the order their services, registrations and hooks start. */
   readonly features: F;
-  /** The settings definition and this plugin's `data.json` migrations. */
   readonly settings: PluginSettingsOptions;
   readonly languagePack: LanguagePackIdentity;
-  /** Where the setting tab places each feature's entries. */
   readonly settingTab: SettingTabOrder;
-  /** The file menu's segments, by id, in row order. */
   readonly fileMenu: readonly string[];
-  /** The folder menu's segments, by id, in row order. */
   readonly folderMenu: readonly string[];
 }
 
-/**
- * A host's declaration, checked whole: a host whose features read a service
- * that none of them fills does not type-check, and the error names each such
- * service under `missingServices`.
- */
 export function defineHost<
   const F extends readonly Feature<any, any, any>[],
   M = MissingServices<F>,
@@ -103,12 +78,6 @@ export function defineHost<
   return host;
 }
 
-/**
- * The settings definition of `features`: every slice they keep, in feature
- * order. A key two slices claim is a composition error.
- *
- * @throws when two slices claim one key.
- */
 export function settingsDefinitionOf(
   features: readonly Feature<any, any, any>[],
 ): SettingsDefinition {
@@ -130,13 +99,6 @@ export function settingsDefinitionOf(
   };
 }
 
-/**
- * The plugin graph over `plugin`: the shell's base, every feature's service
- * groups in build order (`buildOrder`), and above them the registrations of
- * the features in their order, with the shell's protocol handlers, setting
- * tab and view registry. A defect while a group or a registration builds
- * names it.
- */
 export function pluginGraph<F extends readonly Feature<any, any, any>[]>(
   plugin: Plugin & CliHost,
   host: HostDeclaration<F>,
@@ -172,10 +134,6 @@ export function pluginGraph<F extends readonly Feature<any, any, any>[]>(
   >;
 }
 
-/**
- * The service groups of `features` in build order (`buildOrder`), stacked
- * above `base`. A defect while a group builds names it.
- */
 export function featureServices<F extends readonly Feature<any, any, any>[]>(
   features: F,
   base: Layer.Layer<ShellBase>,
@@ -188,7 +146,6 @@ export function featureServices<F extends readonly Feature<any, any, any>[]>(
   ) as Layer.Layer<ProvidesOf<F> | ShellBase>;
 }
 
-/** The build order of `host`'s service groups, by name, as the graph builds them. */
 export function serviceOrder(
   features: readonly Feature<any, any, any>[],
 ): string[] {

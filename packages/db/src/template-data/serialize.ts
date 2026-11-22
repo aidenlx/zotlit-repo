@@ -1,5 +1,3 @@
-// Converts live Template data into the Workbench's JSON-safe contract form.
-
 import type {
   ContractHelper,
   ContractType,
@@ -16,11 +14,6 @@ import contractIRJson from "#contract/generated/ir.runtime.json" with { type: "j
 const UNKNOWN_CONTRACT_TYPE: ContractType = { kind: "unknown" };
 const contractIR = contractIRJson as RuntimeContractIR;
 
-/**
- * The committed contract IR lacks an entry this build's data shapes need — a
- * stale generated artifact rather than anything a caller selected. Distinct
- * from a fault raised while evaluating the data itself.
- */
 export class ContractMetadataError extends Error {
   constructor(message: string) {
     super(message);
@@ -45,7 +38,6 @@ export function serializeTemplateData(
   });
 }
 
-/** Serialize only the selected field, preserving helper metadata at its real path. */
 export function serializeTemplatePath(
   root: object,
   contractRoot: ContractRoot,

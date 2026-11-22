@@ -1,5 +1,3 @@
-// Reproducible Sample Item generation from the committed Fixture selection.
-
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 

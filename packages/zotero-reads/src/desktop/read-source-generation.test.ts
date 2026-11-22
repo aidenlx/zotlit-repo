@@ -1,5 +1,3 @@
-// Content-based source identity against genuine SQLite database files.
-
 import { Effect } from "effect";
 import {
   copyFile,

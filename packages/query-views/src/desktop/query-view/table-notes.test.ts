@@ -1,7 +1,4 @@
 import type { NotesHostDeps as LiteratureNotesDeps } from "#__fixtures__/query-view/notes-host.ts";
-// The vault properties of the Query View as the vault answers them: the
-// frontmatter of an Item's Literature Note, by the Note Index, or of the note
-// that holds the view.
 import { Stream } from "effect";
 import { Effect } from "effect";
 import type { App, EventRef, TFile } from "obsidian";
@@ -28,31 +25,23 @@ vi.mock("#desktop/annot-view/register.ts", () => ({
   activateAnnotView: vi.fn(),
 }));
 
-/** What each test's Note Index holds, released after the test. */
 let owned = new AsyncDisposableStack();
 afterEach(async () => {
   await owned.disposeAsync();
   owned = new AsyncDisposableStack();
 });
 
-/** A Literature Note's frontmatter: the Item key it carries, and its properties. */
 const lit = (
   itemKey: string,
   properties: Record<string, unknown> = {},
 ): Record<string, unknown> => ({ [FIELD_ZOTERO_KEY]: itemKey, ...properties });
 
-/**
- * A vault of notes by path, each with its frontmatter, and the real Note
- * Index over it. `scanned: false` is plugin load during startup: the index
- * holds nothing until `startup(host)`.
- */
 async function setup(
   frontmatter: Record<string, Record<string, unknown>>,
   {
     types,
     scanned = true,
   }: {
-    /** The types Obsidian assigns, by name; none for a build without them. */
     types?: Record<string, string>;
     scanned?: boolean;
   } = {},
@@ -106,12 +95,10 @@ async function setup(
       },
     ),
   });
-  /** Assign `widget` to `name`, as the Properties panel does. */
   const setType = (name: string, widget: string) => {
     types![name] = widget;
     for (const callback of typesChanged) callback(name);
   };
-  /** The note at `path`, created when the vault holds none, now carries `properties`. */
   const write = async (path: string, properties: Record<string, unknown>) => {
     const file = host.vault.files.get(path) ?? host.vault.addFile(path);
     host.metadataCache.change(file, cache({ properties }));
@@ -127,7 +114,6 @@ describe("literatureNotes vault properties", () => {
       "Doe 2024.md": lit("ITEMAAAA", { status: "reading" }),
       "Doe 2024 (old).md": lit("ITEMAAAA", { status: "read" }),
     });
-    // The index ranks the most recently modified note first.
     host.vault.files.get("Doe 2024.md")!.stat.mtime = 1;
 
     expect(notes.read("ITEMAAAA", "status", null)).toEqual({
@@ -154,7 +140,6 @@ describe("literatureNotes vault properties", () => {
       "Doe 2024 (copy).md": lit("ITEMAAAA", { status: "read" }),
       "Roe 2025.md": lit("ITEMBBBB", { status: "reading" }),
     });
-    // The index ranks the most recently modified note first.
     vault.vault.files.get("Doe 2024.md")!.stat.mtime = 1;
     const host = { path: "Doe 2024 (copy).md", itemKey: "ITEMAAAA" };
 
@@ -162,7 +147,6 @@ describe("literatureNotes vault properties", () => {
       note: true,
       value: "read",
     });
-    // Another Item's row reads that Item's own note.
     expect(notes.read("ITEMBBBB", "status", host)).toEqual({
       note: true,
       value: "reading",
@@ -227,7 +211,6 @@ describe("literatureNotes vault properties", () => {
     );
     const listener = vi.fn();
     const off = notes.on("changed", listener);
-    // A view's first render, before the Full Scan.
     expect(notes.propertyNames()).toEqual([]);
 
     startup(host);
@@ -266,7 +249,6 @@ describe("literatureNotes vault properties", () => {
     expect(notes.propertyType("tags2")).toBe("multitext");
     expect(notes.propertyType("stamp")).toBe("datetime");
     expect(notes.propertyType("read")).toBe("checkbox");
-    // A type ZotLit has no editor for falls back to the values.
     expect(notes.propertyType("cover")).toBe("text");
   });
 
@@ -274,7 +256,6 @@ describe("literatureNotes vault properties", () => {
     const { notes, getCache, write } = await setup({
       "A.md": lit("ITEMAAAA", { pages: 12 }),
     });
-    // Read before any listener, as a view's first render reads.
     notes.propertyType("pages");
     notes.propertyType("pages");
     notes.propertyType("other");
@@ -289,7 +270,6 @@ describe("literatureNotes vault properties", () => {
     await vi.waitFor(() => expect(seen).not.toEqual([]));
     off();
 
-    // A listener reads the change, not the type from before it.
     expect(seen).toEqual(["text"]);
   });
 
@@ -341,16 +321,13 @@ describe("literatureNotes vault properties", () => {
 });
 
 describe("literatureNotes vault property writes", () => {
-  /** A vault of notes on disk, the Note Index over them, and the keys each note's Profile replaces. */
   async function vault(
     files: Record<string, string>,
     {
       replaced = {},
       cancelled = false,
     }: {
-      /** The keys each note's Profile replaces on each update, by path. */
       replaced?: Record<string, string[]>;
-      /** The user cancels the usual creation's Profile choice. */
       cancelled?: boolean;
     } = {},
   ) {
@@ -361,7 +338,6 @@ describe("literatureNotes vault property writes", () => {
       async (file: TFile) => new Set(replaced[file.path] ?? []),
     );
     const sources = { profile: testEvent<void>(), template: testEvent<void>() };
-    /** The usual creation: a note at `<key>.md`, as the Profile's template writes it. */
     const createNote = vi.fn<
       LiteratureNotesDeps["noteFeature"]["createNoteInteractively"]
     >(async (item) =>
@@ -432,7 +408,6 @@ describe("literatureNotes vault property writes", () => {
       host,
       replaced,
       replacedKeys,
-      /** Fire a change of the Profiles, or of the templates. */
       changed: (of: "profile" | "template") => {
         sources[of].emit();
       },
@@ -500,7 +475,6 @@ describe("literatureNotes vault property writes", () => {
 
   it("writes the note that holds the view for its own Item", async () => {
     const { host, write } = await vault({
-      // Written first, so the index ranks the newer A.md above it.
       "A (copy).md": "---\nzotero-key: ITEMAAAA\nstatus: unread\n---\n",
       "A.md": "---\nzotero-key: ITEMAAAA\nstatus: unread\n---\n",
     });
@@ -608,19 +582,16 @@ describe("literatureNotes vault property writes", () => {
     const listener = vi.fn();
     const off = notes.on("frontmatter-changed", listener);
 
-    // A cell reads before the Profile is read, and reads again when told.
     expect(notes.managed("ITEMAAAA", "status", null)).toBe(false);
     await vi.waitFor(() => expect(listener).toHaveBeenCalled());
     off();
 
     expect(notes.managed("ITEMAAAA", "status", null)).toBe(true);
     expect(notes.managed("ITEMAAAA", "rating", null)).toBe(false);
-    // The same key on a note of another Profile.
     notes.managed("ITEMBBBB", "status", null);
     await vi.waitFor(() =>
       expect(notes.managed("ITEMBBBB", "status", null)).toBe(false),
     );
-    // No note: nothing manages the key.
     expect(notes.managed("ITEMDDDD", "status", null)).toBe(false);
   });
 
@@ -645,7 +616,6 @@ describe("literatureNotes vault property writes", () => {
     const file = host.file("A.md");
     host.vault.renameFile("A.md", "Renamed.md");
     expect(host.file("Renamed.md")).toBe(file);
-    // As the table does, read again on the rename and await the Profile.
     expect(notes.managed("ITEMAAAA", "status", null)).toBe(false);
     await started.promise;
     shown.mockClear();
@@ -675,7 +645,6 @@ describe("literatureNotes vault property writes", () => {
     expect(notes.managed("ITEMAAAA", "rating", null)).toBe(false);
     expect(replacedKeys).toHaveBeenCalledTimes(2);
 
-    // The note's stamp names another Profile now.
     replaced["A.md"] = [];
     const told = vi.fn();
     const off = notes.on("frontmatter-changed", told);
@@ -688,7 +657,6 @@ describe("literatureNotes vault property writes", () => {
     await read("ITEMAAAA");
 
     expect(notes.managed("ITEMAAAA", "status", null)).toBe(false);
-    // Only that note is read again.
     notes.managed("ITEMBBBB", "status", null);
     expect(replacedKeys).toHaveBeenCalledTimes(3);
   });
@@ -705,7 +673,6 @@ describe("literatureNotes vault property writes", () => {
       const listener = vi.fn();
       const off = notes.on("frontmatter-changed", listener);
 
-      // The field is set to the replace strategy.
       replaced["A.md"] = ["status"];
       changed(of);
       await vi.waitFor(() => expect(listener).toHaveBeenCalled());
@@ -720,7 +687,6 @@ describe("literatureNotes vault property writes", () => {
   it("reads the host note's own Profile for its Item", async () => {
     const { notes } = await vault(
       {
-        // Written first, so the index ranks the newer A.md above it.
         "A (copy).md": "---\nzotero-key: ITEMAAAA\n---\n",
         "A.md": "---\nzotero-key: ITEMAAAA\n---\n",
       },

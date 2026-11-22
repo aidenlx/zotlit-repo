@@ -154,9 +154,6 @@ it("settles a pending attachment load without restarting a closed view", async (
   expect(read).not.toHaveBeenCalled();
 });
 
-// The sidebar is a Query View: the Annotations of the followed Attachment,
-// read through `attachment == this.attachment`.
-
 function record(key: string, color: string): AnnotationRecord {
   return {
     key,
@@ -237,11 +234,8 @@ async function openSidebar(
   }: {
     readsState?: "ready" | "degraded";
     query?: string;
-    /** Each Item's attachments, by its key; `attachments` for every Item otherwise. */
     attachmentsOf?: (key: string) => AnnotViewAttachment[];
-    /** Each Attachment's list, by its key; the one list otherwise. */
     listOf?: (attachmentKey: string) => AnnotationList;
-    /** Settles when the repository answers a read of the Attachment's list. */
     listRead?: (attachmentKey: string) => Promise<void>;
     activeNoteKey?: string;
     deferNoteKey?: boolean;
@@ -446,7 +440,6 @@ async function openSidebar(
 
     settle,
     repository,
-    /** What the repository holds for the Attachment from now on. */
     setList: (next: AnnotationList) => {
       list = next;
     },
@@ -484,12 +477,10 @@ it("shows the annotation cards when the Literature Note becomes active again", a
   cleanup.defer(() => act(() => view.close()));
   expect(cards(view.contentEl)).toEqual(["ANNOTAAA", "ANNOTBBB"]);
 
-  // A non-file pane can take focus while the active-note Stream still holds the note.
   const note = workspace.activeFile;
   workspace.activeFile = null;
   await act(() => reads.emit("changed"));
   await settle();
-  // The note becomes active again with the same key the Stream already holds.
   workspace.activeFile = note;
   app.workspace.activeLeaf = stubService<WorkspaceLeaf>(
     "LiteratureNoteLeaf",
@@ -542,7 +533,6 @@ it("sorts the cards by one property and direction from More options", async () =
   cleanup.defer(() => act(() => view.close()));
 
   const sort = menuItem(paneMenu(view), "Sort").submenu!;
-  // The Item and the Attachment are the same for every card the sidebar shows.
   expect(sort.items.some(({ title }) => title === "Item title")).toBe(false);
   await act(() => menuItem(sort, "Date added").click());
   await settle();
@@ -562,7 +552,6 @@ it("carries a Follow Mode gesture into the workspace layout and the cards' state
   cleanup.defer(() => act(() => view.close()));
   const requestSaveLayout = vi.spyOn(app.workspace, "requestSaveLayout");
 
-  // Restoring the state the layout already holds asks for no save.
   await act(() => view.setState(view.getState(), { history: false }));
   await settle();
   expect(requestSaveLayout).not.toHaveBeenCalled();
@@ -580,7 +569,6 @@ it("carries a Follow Mode gesture into the workspace layout and the cards' state
   });
   expect(requestSaveLayout).toHaveBeenCalledTimes(1);
 
-  // Switching to the mode in force changes nothing and saves nothing.
   await act(() => view.gestures!.onSetFollowMode("active-tab"));
   expect(requestSaveLayout).toHaveBeenCalledTimes(1);
 
@@ -617,7 +605,6 @@ it("runs no query and shows no card while the Item has no Attachment", async () 
 
   expect(run).not.toHaveBeenCalled();
   expect(cards(view.contentEl)).toEqual([]);
-  // Nothing to sort, group or filter.
   expect(paneMenu(view).items.some(({ title }) => title === "Sort")).toBe(
     false,
   );
@@ -629,8 +616,6 @@ it("shows a new Annotation's card as its write starts, before the query runs aga
   cleanup.defer(() => act(() => view.close()));
   const runs = run.mock.calls.length;
 
-  // A create's Pending Proposal stands in the repository's list at once; the
-  // database, which the query reads, has it only later.
   const created = {
     ...record("ANNOTNEW", "#5fb236"),
     sortIndex: "00000|000000|00001",
@@ -652,7 +637,6 @@ it("keeps a card the query left out by its filter off the list", async () => {
   await using cleanup = new AsyncDisposableStack();
   cleanup.defer(() => act(() => view.close()));
 
-  // A write to an Annotation the query did not give changes nothing on screen.
   await act(() => repository.emit("annotations-changed", "PDFAAAAA"));
 
   expect(cards(view.contentEl)).toEqual(["ANNOTBBB"]);
@@ -712,7 +696,6 @@ it("keeps the last cards under a note when a filter condition has an error", asy
     problems: [],
     source: {},
   });
-  // The filter ZotLit Query runs: the file's filters, then the view's.
   const composed = '(attachment == this.attachment) && (colorName == "yellow")';
   const from = composed.indexOf("colorName");
   const { view, settle } = await openSidebar(
@@ -753,9 +736,6 @@ it("keeps the last cards under a note when a filter condition has an error", asy
   ).toBe("The filter has an error. The sidebar shows the last results.");
 });
 
-// A switch to another Item keeps the last one on screen, its name,
-// attachments and cards, until the next one's cards are read.
-
 const PDF_B: AnnotViewAttachment = {
   itemID: 3,
   indexedKey: "PDFBBBBB",
@@ -774,7 +754,6 @@ const ROWS_B: QueryViewRow[] = [
   },
 ];
 
-/** A sidebar pinned to ITEMAAAA, whose run for ITEMBBBB waits on `next`. */
 async function twoItems(first: () => QueryViewOutcome = () => rows(ROWS)) {
   const next = Promise.withResolvers<QueryViewOutcome>();
   const started = Promise.withResolvers<void>();
@@ -804,7 +783,6 @@ it("keeps the last Item's cards and attachments until the next Item's cards are 
     view.pinItem("ITEMBBBB");
     await started.promise;
   });
-  // The query reads the next Item; the last one stays whole.
   expect(cards(view.contentEl)).toEqual(["ANNOTAAA", "ANNOTBBB"]);
   expect(view.snapshot).toMatchObject({
     itemKey: "ITEMAAAA",
@@ -849,8 +827,6 @@ it("shows the next Item over its cards loading, and none of the last Item's, onc
 });
 
 it("shows the next Item's cards where its list is read after 150 ms and its query before", async () => {
-  // The query answers at once; the repository reads the next Item's list from
-  // Zotero for longer than the next Item waits to show.
   const answer = (request: QueryViewRequest) =>
     rows(request.context?.attachment === "PDFBBBBB" ? ROWS_B : ROWS);
   const list = Promise.withResolvers<void>();
@@ -905,7 +881,6 @@ it("waits for the next Item's own run where the last Item's run had failed", asy
     view.pinItem("ITEMBBBB");
     await started.promise;
   });
-  // The last run's failure says nothing of the next Item.
   expect(view.snapshot.itemKey).toBe("ITEMAAAA");
 
   vi.useRealTimers();

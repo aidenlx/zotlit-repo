@@ -1,10 +1,8 @@
-// What the Welcome View banner shows, as one decision over its state.
 import { describe, expect, it } from "vitest";
 
 import { bannerBadge, bannerSections } from "./presentation.ts";
 import type { WelcomeState } from "./presentation.ts";
 
-/** A set-up vault: connected, with the literature-notes folder, never dismissed. */
 const SET_UP: WelcomeState = {
   migrationPending: false,
   dismissed: false,
@@ -13,7 +11,6 @@ const SET_UP: WelcomeState = {
   stepsShown: false,
   converted: false,
   connection: { status: "connected", path: "~/Zotero", itemCount: 3 },
-  // ZotLit Companion is optional: setup is complete without it.
   companionInstalled: false,
   readerStatus: "connected",
   literatureFolder: "literatures",
@@ -333,10 +330,6 @@ describe("bannerBadge", () => {
   });
 });
 
-/**
- * Every combination of what can bring the banner up, so a dismissal is
- * checked against each.
- */
 function* combinations(): Generator<Partial<WelcomeState>> {
   const flags = [
     "migrationPending",
@@ -368,7 +361,6 @@ function* combinations(): Generator<Partial<WelcomeState>> {
 }
 
 describe("a dismissal", () => {
-  /** What the dismiss action writes: the dismissal, and both acknowledgements. */
   const DISMISSED = {
     dismissed: true,
     requested: false,
@@ -389,7 +381,6 @@ describe("a dismissal", () => {
 
   it("keeps it hidden after a reload, until a later update or a new Migration Prompt", () => {
     for (const state of combinations()) {
-      // A reload keeps what plugin data holds; the session's request is gone.
       const reloaded = { ...SET_UP, ...state, ...DISMISSED };
       expect(bannerSections(reloaded)).toBeNull();
       expect(bannerSections({ ...reloaded, updatePending: true })?.update).toBe(

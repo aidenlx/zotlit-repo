@@ -1,6 +1,3 @@
-// One Reader Session's view of a PDF: Structured Characters computed lazily
-// per page and memoized, with the Sort Index and Page Label they feed.
-
 import type { Rect, StructuredPage, ZoteroChar } from "#chars.ts";
 import type { PageLabelSource, PreviousAnnotation } from "#page-label.ts";
 import type { PdfPosition } from "#sort-index.ts";
@@ -17,54 +14,33 @@ import { alignPageLabel, extractPageLabels } from "#page-label.ts";
 import { computeSortIndex } from "#sort-index.ts";
 import { adjustRange, rectRotation, selectText } from "#text-selection.ts";
 
-/** What a waiter reads once the document closed under it. */
 const CLOSED = Symbol("closed");
 
 export type PdfPageSource = PageLabelSource & {
   getChars(pageIndex: number): Promise<readonly ZoteroChar[]>;
 };
 
-/**
- * Everything a creation in Obsidian needs to name where it sits in Zotero's
- * reading order. One instance belongs to one Reader Session.
- */
 export class PdfTextStructure {
   readonly #source: PdfPageSource;
-  /**
-   * The session's own memo. Structuring a page costs a full text extraction
-   * plus the line grouping, and a session revisits the same pages, so the work
-   * is kept for as long as the session lives and no longer.
-   */
   readonly #cache = new Map<number, Promise<StructuredPage>>();
-  /** The pages the memo has finished structuring, for a synchronous read. */
   readonly #settled = new Map<number, StructuredPage>();
   readonly #emptyPagesLogged = new Set<number>();
   #pageLabels: Promise<readonly string[]> | null = null;
-  /**
-   * Settles as the document closes. A closed PDF.js document never answers
-   * the reads it was asked, so a waiter takes this instead.
-   */
   readonly #closed = Promise.withResolvers<typeof CLOSED>();
 
   constructor(source: PdfPageSource) {
     this.#source = source;
   }
 
-  /**
-   * The document is closed. A Sort Index or Page Label still waiting on a
-   * read stops waiting: what this session already holds still answers.
-   */
   close(): void {
     this.#closed.resolve(CLOSED);
   }
 
-  /** The page's Structured Characters, computed once per Reader Session. */
   page(pageIndex: number): Promise<StructuredPage> {
     const cached = this.#cache.get(pageIndex);
     if (cached) return cached;
     const page = this.#structure(pageIndex);
     this.#cache.set(pageIndex, page);
-    // A failed page is the awaiting caller's to report; nothing is held for it.
     void page.then(
       (structured) => this.#settled.set(pageIndex, structured),
       () => undefined,
@@ -72,14 +48,6 @@ export class PdfTextStructure {
     return page;
   }
 
-  /**
-   * The text rotation under a rect, as Zotero's reader turns a range's handles
-   * by it, read synchronously from a page this session has already
-   * structured.
-   *
-   * @returns `null` while the page is not yet structured; {@link page} asks
-   *   for it.
-   */
   textRotation(pageIndex: number, rect: Rect): number | null {
     const page = this.#settled.get(pageIndex);
     return page ? rectRotation(page.chars, rect) : null;
@@ -94,11 +62,6 @@ export class PdfTextStructure {
     return structureChars(pageIndex, viewBox, chars);
   }
 
-  /**
-   * One Page Label per page. The first call starts the pass, so the host runs
-   * it in idle time once the document has loaded (`void structure.pageLabels()`)
-   * and a creation that arrives before it finishes awaits the same pass.
-   */
   pageLabels(): Promise<readonly string[]> {
     this.#pageLabels ??= extractPageLabels(this.#source, async (pageIndex) => {
       const page = await this.page(pageIndex);
@@ -107,14 +70,6 @@ export class PdfTextStructure {
     return this.#pageLabels;
   }
 
-  /**
-   * The Sort Index Zotero's reader would give this position.
-   *
-   * A page with no text layer has no glyph to measure against, so the offset
-   * stays `000000` and only the geometry orders the Annotation. That is
-   * Zotero's own behaviour, so it is a debug line and no user-facing state,
-   * reported once per page for each Reader Session.
-   */
   async sortIndex(position: PdfPosition): Promise<string> {
     const page = await Promise.race([
       this.page(position.pageIndex),
@@ -134,10 +89,6 @@ export class PdfTextStructure {
     return computeSortIndex(page, position);
   }
 
-  /**
-   * What a DOM text selection creates, from the Structured Characters of the
-   * pages it reaches, or `null` for one they cannot place.
-   */
   async selectText(selection: TextSelection): Promise<SelectedText | null> {
     const pages = await Promise.all(
       selection.pages.map(({ pageIndex }) => this.page(pageIndex)),
@@ -148,12 +99,6 @@ export class PdfTextStructure {
     );
   }
 
-  /**
-   * A highlight or underline with one end dragged to a point or stepped from
-   * the keyboard, from the Structured Characters of its page and, where the
-   * range, the point, or a step on its end reaches it, the page after; `null`
-   * for one they cannot place.
-   */
   async adjustRange(adjustment: RangeAdjustment): Promise<SelectedText | null> {
     const { position } = adjustment;
     const spills =
@@ -175,11 +120,6 @@ export class PdfTextStructure {
     );
   }
 
-  /**
-   * The Page Label a creation on this page gets. A pass the closed document
-   * cannot finish leaves no extracted label, so the page's own number stands,
-   * as it does in Zotero for a page with none.
-   */
   async pageLabel(
     pageIndex: number,
     previous: readonly PreviousAnnotation[],

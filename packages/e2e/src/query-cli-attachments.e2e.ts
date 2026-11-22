@@ -120,8 +120,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
 
     it("finds broken linked files", async () => {
-      // Demo paper files are copied only to the demo Vault Case. Their linked
-      // rows remain in the configured Fixture and are also missing here.
       const answer = await query({
         filter: 'linkMode == "linked_file" && !exists',
         fields: "title,path,exists,tags",
@@ -227,7 +225,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         truncated: false,
       });
       expect(answer.libraries).toHaveLength(LIBRARIES.length);
-      // The three image Attachments of a Note are outside the Query Dataset.
       const attachedToItems = ATTACHMENTS.filter((attachment) =>
         ITEMS.some((item) => item.itemID === attachment.parentItemID),
       );

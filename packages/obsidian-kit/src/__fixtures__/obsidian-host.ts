@@ -1,6 +1,3 @@
-// An in-memory Obsidian host for tests of note and document reads and writes:
-// the vault's files, the text views that have them open, and a metadata cache
-// that follows the disk text — or lags it, where a test holds it.
 import { dirname } from "node:path/posix";
 import { getFrontMatterInfo, TextFileView, TFile, TFolder } from "obsidian";
 import type {
@@ -23,7 +20,6 @@ type VaultEvent = "create" | "modify" | "rename" | "delete";
 type VaultCallback = (...args: unknown[]) => void;
 
 export class MockVault implements VaultSource {
-  /** App settings the rendered surfaces read; tests run with Obsidian's defaults. */
   getConfig(_key: string): boolean {
     return false;
   }
@@ -114,7 +110,6 @@ export class MockVault implements VaultSource {
     return source;
   }
 
-  /** As Obsidian's adapter: the text at a path, rejecting with `ENOENT` when none. */
   readonly adapter = {
     read: async (path: string): Promise<string> => {
       const text = this.contents.get(path);
@@ -177,7 +172,6 @@ export class MockVault implements VaultSource {
     this.#emit("delete", file);
   }
 
-  /** As Obsidian: remove `file`; this vault keeps no trash to move it to. */
   async trash(file: TAbstractFile, _system: boolean): Promise<void> {
     this.deleteFile(file.path);
   }
@@ -239,13 +233,6 @@ this.data = data;
   }
 }
 
-/**
- * A text view with a file open, saving as Obsidian 1.14.2's `TextFileView`
- * does: a save writes the text it took when it started, a save asked for
- * during another one runs after it, and a disk change that lands during a save
- * is ignored. A disk change at any other time reloads a view without unsaved
- * edits; a view with unsaved edits keeps them (Obsidian merges the two).
- */
 export class HostTextView extends TextFileView {
   saving = false;
   #saveAgain = false;
@@ -270,7 +257,6 @@ this.lineEndings = lineEndings;
 
   }
 
-  /** Type into the editor: the view holds `text` as an unsaved edit. */
   edit(text: string): void {
     this.setViewData(text, false);
   }
@@ -317,7 +303,6 @@ this.lineEndings = lineEndings;
     }
   }
 
-  /** The host's `modify` event for this view's file. */
   onDiskChange(text: string): void {
     if (this.saving || text === this.lastSavedData) return;
     if (this.getViewData() !== this.lastSavedData) return;
@@ -326,37 +311,31 @@ this.lineEndings = lineEndings;
   }
 }
 
-/** The editor saves in flight; a held gate keeps each save from writing. */
 class SaveGate {
   #held: PromiseWithResolvers<void> | null = null;
   readonly #inFlight = new Set<Promise<void>>();
 
-  /** Keep every save that starts from now on from writing until `release`. */
   hold(): void {
     this.#held ??= Promise.withResolvers<void>();
   }
 
-  /** Let the held saves write; settles when every save has written. */
   async release(): Promise<void> {
     this.#held?.resolve();
     this.#held = null;
     await this.idle();
   }
 
-  /** Settles when no save is writing. */
   async idle(): Promise<void> {
     while (this.#inFlight.size > 0)
       await Promise.allSettled(this.#inFlight);
   }
 
-  /** Where a save waits before it writes. */
   gate(): Promise<void> {
     return this.#held?.promise ?? Promise.resolve();
   }
 
   track(save: Promise<void>): Promise<void> {
     this.#inFlight.add(save);
-    // The caller sees a failed save; the gate only stops waiting for it.
     save.finally(() => this.#inFlight.delete(save)).catch(() => {});
     return save;
   }
@@ -369,11 +348,6 @@ type MetadataCallback = (
   cache: CachedMetadata,
 ) => void;
 
-/**
- * The metadata cache over the disk text. It follows every disk change at once,
- * until a test holds it; a held cache answers from the text it last parsed,
- * and `null` for a file it never parsed, until `settle`.
- */
 class HostMetadataCache implements MetadataCacheSource {
   readonly #parsed = new Map<string, string>();
   readonly #listeners = new Set<MetadataCallback>();
@@ -385,7 +359,6 @@ class HostMetadataCache implements MetadataCacheSource {
 this.vault = vault;
 }
 
-  /** No note in this host links to another. */
   readonly resolvedLinks: Record<string, Record<string, number>> = {};
 
   getCache(path: string): CachedMetadata | null {
@@ -393,7 +366,6 @@ this.vault = vault;
     return file ? this.getFileCache(file) : null;
   }
 
-  /** The file at `linkpath`, with or without `.md`; no shortest-path search. */
   getFirstLinkpathDest(linkpath: string, _sourcePath: string): TFile | null {
     return (
       this.vault.getFileByPath(linkpath) ??
@@ -410,12 +382,10 @@ this.vault = vault;
     try {
       return { frontmatter: parseFrontMatter(text) };
     } catch {
-      // Obsidian's cache holds no Properties for a block that does not parse.
       return {};
     }
   }
 
-  /** Only `changed` fires; a listener for any other event hears nothing. */
   on(name: MetadataEvent | (string & {}), callback: MetadataCallback): EventRef {
     if (name === "changed") this.#listeners.add(callback);
     const ref = { e: this, callback };
@@ -432,18 +402,15 @@ this.vault = vault;
     callback();
   }
 
-  /** Answer from the text parsed so far, until `settle`. */
   hold(): void {
     this.#held = true;
   }
 
-  /** Parse every changed file, announce it as `changed`, and follow the disk again. */
   settle(): void {
     this.#held = false;
     for (const file of this.vault.files.values()) this.follow(file);
   }
 
-  /** Announce every file as `changed`, with the answer `getFileCache` gives now. */
   announceAll(): void {
     for (const file of this.vault.getMarkdownFiles()) {
       const cache = this.getFileCache(file);
@@ -465,18 +432,12 @@ this.vault = vault;
 
 export type ObsidianHost = ReturnType<typeof createObsidianHost>;
 
-/**
- * An in-memory host holding `files` (path to text). `host.app` carries the
- * vault, the workspace and the metadata cache; a test adds any other member
- * its module reads.
- */
 export function createObsidianHost(files: Record<string, string> = {}) {
   const vault = new MockVault();
   for (const [path, text] of Object.entries(files)) vault.addFile(path, text);
   const metadataCache = new HostMetadataCache(vault);
   for (const file of vault.files.values()) metadataCache.follow(file);
   const views: HostTextView[] = [];
-  // The layout is ready, as for a plugin enabled at runtime.
   const workspace = Object.assign(new MemoryWorkspace({ layoutReady: true }), {
     updateOptions: vi.fn(),
     iterateAllLeaves: (callback: (leaf: WorkspaceLeaf) => void) => {
@@ -502,20 +463,14 @@ export function createObsidianHost(files: Record<string, string> = {}) {
     metadataCache,
     workspace,
     saves: new SaveGate(),
-    /** The file at `path`; throws when the vault has none. */
     file(path: string): TFile {
       const file = vault.getFileByPath(path);
       if (!file) throw new Error(`Missing file: ${path}`);
       return file;
     },
-    /** The disk text at `path`. */
     text(path: string): string | undefined {
       return vault.contents.get(path);
     },
-    /**
-     * Open `file` in a loaded text view. `lineEndings: "lf"` gives a view that
-     * turns CRLF into LF, as CodeMirror does.
-     */
     openInEditor(
       file: TFile,
       options: { lineEndings?: "keep" | "lf" } = {},

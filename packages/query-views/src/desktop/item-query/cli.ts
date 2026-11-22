@@ -1,13 +1,3 @@
-// Registers the commands of each CLI dataset with Obsidian's CLI (ADR 0066):
-// the query and the schema command answer through the Query Jobs of the
-// service, and the guide command prints plain text. The cancel command stops
-// one running query that the caller named with `id`. The ZoteroReads worker
-// answers each job in `answer.ts`; nothing it runs imports this module.
-//
-// Command, flag, and diagnostic text is all hardcoded English: an
-// agent-facing contract surface, not localized UI. See
-// apps/obsidian/policies/cli-text.md.
-
 import { Effect, Layer } from "effect";
 import type { CliData } from "obsidian";
 
@@ -37,13 +27,11 @@ import { GUIDE_TOPIC_NAMES, renderGuide } from "./guide.ts";
 import { QueryService } from "./service.ts";
 import type { ItemQueryError, QueryCancelled } from "./service.ts";
 
-/** The runs of the service; interrupting a handler interrupts its run. */
 export type QueryRuns = Pick<
   QueryService["Service"],
   "query" | "values" | "schema" | "cancel"
 >;
 
-/** The `zotlit:query*` commands, over the plugin's ZotLit Query. */
 export const layerQueryCli: Layer.Layer<
   never,
   never,
@@ -92,11 +80,6 @@ export function registerQueryCli(host: CliHost, runs: QueryRuns): void {
   });
 }
 
-/**
- * A handler over one run of the service. A cancel by `zotlit:query-cancel` is
- * the handler's failure, whose message Obsidian prints; interrupting the
- * handler interrupts the run.
- */
 function runHandler(
   name: string,
   run: (
@@ -106,22 +89,15 @@ function runHandler(
   return Effect.fn(name)((params: CliData) => run(params));
 }
 
-/** A rejected request answers the diagnostic envelope of `command`. */
 const answerRejection = (command: QueryCliCommand) =>
   catchRejection((rejected) => failure(command, rejectionDiagnostic(rejected)));
 
-/** The guide is plain text; an unknown topic answers the diagnostic envelope. */
 export const guideHandler: CliCommandHandler = (params) =>
   decodeGuideArguments(params).pipe(
     Effect.map((topic) => renderGuide(topic)),
     answerRejection(QUERY_GUIDE_COMMAND),
   );
 
-/**
- * The cancel handler answers whether it requested the cancel of a running
- * query. An id with no running query, such as one that already finished,
- * answers `cancelRequested: false`.
- */
 export function createQueryCancelHandler(
   cancel: (id: string) => Effect.Effect<boolean>,
 ): CliCommandHandler {

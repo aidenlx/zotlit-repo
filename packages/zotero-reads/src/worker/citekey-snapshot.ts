@@ -2,7 +2,6 @@ import type {
   CitekeyResolution,
   SnapshotItem,
 } from "#contract/citation-lookup.ts";
-// Worker-owned citation maps: a native citekey's Items, and an Item's native citekey.
 import { Effect, Stream } from "effect";
 
 import type { LibraryCitekey } from "@zotlit/db";
@@ -10,12 +9,10 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 
 const SNAPSHOT_SLICE_MS = 4;
 
-/** Construction and comparison share one worker work budget. */
 class SnapshotWork {
   #deadline = performance.now() + SNAPSHOT_SLICE_MS;
   #steps = 0;
 
-  /** Check in small batches without creating an Effect for every row. */
   step(): Effect.Effect<void> | undefined {
     if (++this.#steps % 128 !== 0) return;
     if (performance.now() >= this.#deadline) return this.#pause;
@@ -26,26 +23,12 @@ class SnapshotWork {
   });
 }
 
-/**
- * Complete worker-owned maps: which Zotero Items a native citekey names,
- * and back again. Rebuilt from one pinned connection and never mutated after
- * publication. Construction and comparison yield in small worker slices.
- * Callers receive only the requested projections through CitationLookup.
- *
- * The two directions answer over different Libraries. Forward resolution
- * follows Library Scope, so narrowing the scope can leave one candidate and
- * make an Ambiguous Citation Key unique. The reverse lookup takes an exact
- * Indexed Key, which already names one Item across every local Library, so it
- * covers all of them and is scope-independent.
- */
 export class CitekeySnapshot {
   readonly #byCitekey = new Map<string, SnapshotItem[]>();
   readonly #citekeyByIndexedKey = new Map<string, string>();
 
-  /** Builds a complete snapshot, retaining `previous` when its answers match. */
   static from = Effect.fnUntraced(function* <E, R>(
     rows: Stream.Stream<LibraryCitekey, E, R>,
-    // Iteration order is the canonical Library order.
     inScope: ReadonlySet<number>,
     { previous }: { previous?: CitekeySnapshot } = {},
   ): Effect.fn.Return<CitekeySnapshot, E, R> {
@@ -99,7 +82,6 @@ export class CitekeySnapshot {
     return snapshot;
   });
 
-  /** The Items a native citation key names, in the current Library Scope. */
   resolve(citekey: string): CitekeyResolution {
     const candidates = this.#byCitekey.get(citekey);
     if (!candidates || candidates.length === 0) return { kind: "missing" };
@@ -108,12 +90,10 @@ export class CitekeySnapshot {
     return { kind: "ambiguous", candidates };
   }
 
-  /** The native citation key of an Item, or null when it carries none. */
   citekeyOf(indexedKey: string): string | null {
     return this.#citekeyByIndexedKey.get(indexedKey) ?? null;
   }
 
-  /** Whether both lookup directions answer identically. */
   static readonly #sameAs = Effect.fnUntraced(function* (
     snapshot: CitekeySnapshot,
     other: CitekeySnapshot,

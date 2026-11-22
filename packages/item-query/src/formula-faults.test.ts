@@ -1,10 +1,3 @@
-// The fault policy of Formulas on generated requests. Each request has a few
-// Formulas whose texts mix valid parts, mistakes in their own text, custom
-// fields the source lacks, and reads of other Formulas that form chains and
-// cycles. An oracle independent of the Formula planner gives the expected
-// outcome: the read graph from `formulaReferences`, each Formula's own
-// mistake from its text planned alone with every Formula read stubbed, and
-// the cycles from the strongly connected components of the graph.
 import { Cause } from "effect";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -26,15 +19,9 @@ import {
 import type { ItemQueryRequest } from "./index.ts";
 import { runEffect } from "./test-helpers.ts";
 
-/**
- * The fixed seed of the generated requests. A failure prints the seed and the
- * index of its request; add that request as a named case in
- * `formulas.test.ts`, then correct the engine.
- */
 const GENERATED_SEED = 1503;
 const GENERATED_COUNT = 250;
 
-/** A seeded generator (mulberry32) of numbers in [0, 1). */
 function random(seed: number): () => number {
   let state = seed;
   return () => {
@@ -47,15 +34,10 @@ function random(seed: number): () => number {
 
 type Request = Omit<ItemQueryRequest, "libraries" | "onFormulaFault">;
 
-/** The Formula names a text can read; `f` is never defined. */
 const READ_NAMES = ["a", "b", "c", "d", "e", "f"] as const;
-/** The Formula names a request can define with an identifier. */
 const VALID_NAMES = ["a", "b", "c", "d", "e"] as const;
-/** A Formula name that is not an identifier: only `fields` can read it. */
 const INVALID_NAME = "2nd";
-/** A `formula.<name>` column of `fields` that no request defines. */
 const UNDEFINED_COLUMN = "zz";
-/** The custom fields that the generated texts name and the source lacks. */
 const ABSENT_CUSTOM_FIELDS = new Set(["absent", "dat"]);
 const BASE_FILTER = 'indexedKey == "BK2MNTH2"';
 
@@ -64,8 +46,6 @@ function generateRequests(seed: number, count: number): Request[] {
   const pick = <T>(values: readonly T[]): T =>
     values[Math.floor(next() * values.length)]!;
   const read = () => `formula.${pick(READ_NAMES)}`;
-  // Each part reads a Formula only where any value type is valid, so a stub
-  // of the read plans the text as the read Formula does.
   const term = (): string => {
     const roll = next();
     if (roll < 0.55) return read();
@@ -92,7 +72,6 @@ function generateRequests(seed: number, count: number): Request[] {
       ...names.filter(() => next() < 0.5).map((name) => `formula.${name}`),
       ...(next() < 0.2 ? [`formula.${UNDEFINED_COLUMN}`] : []),
     ];
-    // Shuffle fields, so the planning order of fields varies.
     for (let index = fields.length - 1; index > 0; index--) {
       const other = Math.floor(next() * (index + 1));
       [fields[index], fields[other]] = [fields[other]!, fields[index]!];
@@ -109,26 +88,18 @@ function generateRequests(seed: number, count: number): Request[] {
   });
 }
 
-// --- The oracle -----------------------------------------------------------
-
-/** A mistake in the text of one Formula, planned alone. */
 interface OwnFaults {
-  /** The first mistake that planning finds, with its code and position. */
   readonly early: { readonly code: string; readonly from: number } | null;
-  /** A result type that a Query Row cannot hold. */
   readonly result: boolean;
-  /** A custom field that the source lacks. */
   readonly source: boolean;
 }
 
-/** The plan of `null`: the value of each stubbed Formula read. */
 const STUB = (() => {
   const plan = ITEMS.planFilter("null");
   if ("kind" in plan) throw new Error("The stub does not plan.");
   return { root: plan.root, needs: plan.needs };
 })();
 
-/** Plan `text` alone, each read of a defined Formula stubbed. */
 function ownFaults(
   name: string,
   text: string,
@@ -168,20 +139,15 @@ function ownFaults(
   };
 }
 
-/** The Formula analysis of one request. */
 interface Analysis {
   readonly invalid: readonly string[];
-  /** The defined Formulas that each defined Formula reads, in text order. */
   readonly reads: ReadonlyMap<
     string,
     readonly { name: string; from: number }[]
   >;
   readonly own: ReadonlyMap<string, OwnFaults>;
-  /** Each Formula on a cycle of reads. */
   readonly cyclic: ReadonlySet<string>;
-  /** Each strongly connected component with a cycle, as its Formulas. */
   readonly components: readonly (readonly string[])[];
-  /** The Formulas that the filter reads, in text order. */
   readonly filterReads: readonly string[];
 }
 
@@ -192,7 +158,6 @@ function analyze(request: Request): Analysis {
   const reads = new Map(
     names.map((name) => [
       name,
-      // A Formula without an identifier name is never planned.
       invalid.includes(name)
         ? []
         : formulaReferences(defined[name]!)
@@ -205,7 +170,6 @@ function analyze(request: Request): Analysis {
       .filter((name) => !invalid.includes(name))
       .map((name) => [name, ownFaults(name, defined[name]!, defined)]),
   );
-  // Tarjan's strongly connected components.
   const index = new Map<string, number>();
   const low = new Map<string, number>();
   const stack: string[] = [];
@@ -246,7 +210,6 @@ function analyze(request: Request): Analysis {
   };
 }
 
-/** The Formulas that `fields` reads, and its undefined Formula columns. */
 function fieldReads(request: Request) {
   const defined = request.formulas ?? {};
   const read: string[] = [];
@@ -259,7 +222,6 @@ function fieldReads(request: Request) {
   return { read, undefinedColumns };
 }
 
-/** Each Formula that `start` reads, also through other Formulas. */
 function closure(analysis: Analysis, start: readonly string[]): Set<string> {
   const reached = new Set<string>();
   const queue = [...start];
@@ -271,10 +233,6 @@ function closure(analysis: Analysis, start: readonly string[]): Set<string> {
   return reached;
 }
 
-/**
- * The outcome under `"leave-out"`: the code of each Formula Diagnostic, the
- * failure of a filter that reads a faulted Formula, and the columns of a row.
- */
 function leaveOutOracle(request: Request) {
   const analysis = analyze(request);
   const codes = new Map<string, string | null>();
@@ -284,9 +242,6 @@ function leaveOutOracle(request: Request) {
     if (analysis.invalid.includes(name)) found = "invalid-formula-name";
     else if (analysis.cyclic.has(name)) found = "formula-cycle";
     else {
-      // The first mistake in text order: a read of a faulted Formula or the
-      // first mistake of planning. A result type or a custom field the source
-      // lacks shows after every read is planned.
       const own = analysis.own.get(name)!;
       const reads = analysis.reads.get(name)!;
       const earlyAt = own.early?.from ?? Infinity;
@@ -340,13 +295,6 @@ interface Root {
   readonly path: string;
 }
 
-/**
- * The failure under `"fail"`: the first root fault in planning order. Names
- * come first, then the reads of the filter, then `fields` in order; a Formula
- * plans its reads depth first in text order, and a read of a Formula that is
- * in planning closes a cycle at the reader. A custom field the source lacks
- * fails the request after planning, at one Formula that has it.
- */
 function failOracle(request: Request): {
   root: Root | null;
   sourcePaths: string[];
@@ -421,8 +369,6 @@ function failOracle(request: Request): {
   };
 }
 
-// --- The runs -------------------------------------------------------------
-
 let scenario: ScenarioDatabase<NodeDatabaseClient>;
 
 beforeAll(() => {
@@ -486,10 +432,7 @@ describe("the Formula fault policy on generated requests", () => {
     ]);
     const count = (test: (oracle: (typeof oracles)[number]) => boolean) =>
       oracles.filter(test).length;
-    // A filter that reads a faulted Formula.
     expect(count(({ outcome }) => "failure" in outcome)).toBeGreaterThan(20);
-    // Two cycles that share a Formula: a component with more reads than
-    // Formulas.
     expect(
       count(({ analysis }) =>
         analysis.components.some(
@@ -501,7 +444,6 @@ describe("the Formula fault policy on generated requests", () => {
         ),
       ),
     ).toBeGreaterThan(20);
-    // A Formula that reads a faulted Formula before it reads another one.
     expect(
       count(({ analysis, outcome }) =>
         [...analysis.reads.values()].some(
@@ -551,8 +493,6 @@ describe("the Formula fault policy on generated requests", () => {
               diagnostics: answered.error.formulaDiagnostics,
             }
           : null;
-      // The source check names one of its Formulas; the oracle does not
-      // decide which.
       const expected = root && {
         ...root,
         path:

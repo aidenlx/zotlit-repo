@@ -8,18 +8,6 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
 import type { ReaderOutcome, TargetReader } from "./open-target.ts";
 
-/**
- * The ZotLit PDF Reader, opened through `open`. `Vault.getFileByPath`
- * already answers `null` for a path with no real file behind it — an in-vault
- * path absent from `fileMap`, or (via Obsidian's external-file fall-through) a
- * `file:`-prefixed path `lstat` finds nothing at — so that `null` is the one
- * signal a Zotero library moving or deleting an Attachment between the read
- * that offered it and the click needs to be caught by. The reader reports it
- * and shows nothing: the caller decides what a missing file means.
- *
- * @param onOpened runs once the file is on screen, and only then — a missing
- * file leaves it unrun, so a caller can hang follow-up UI off a real open.
- */
 export function obsidianAttachmentReader<E>({
   open,
   onOpened = Effect.void,
@@ -54,15 +42,6 @@ export function obsidianAttachmentReader<E>({
   });
 }
 
-/**
- * The subpath an open carries: where to land, and the Attachment it opens.
- * Two Attachments can keep one file, and the PDF view's binding names its
- * Attachment from this rather than from the path when the open names one.
- * Appended rather than re-serialised, so the keys Obsidian reads by name keep
- * the spelling they were written in.
- *
- * @see apps/obsidian/docs/adr/0046-landing-on-a-mark-is-an-ephemeral-state-contract-read-at-the-leaf.md
- */
 function namingAttachment({
   subpath,
   indexedKey,

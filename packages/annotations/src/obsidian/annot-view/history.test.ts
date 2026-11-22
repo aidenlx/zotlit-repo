@@ -8,14 +8,6 @@ import { mountCardHistoryKeys, onAnnotationCard } from "./history.ts";
 
 import { dispatchKey } from "#__fixtures__/pdf-annotation-editor.ts";
 
-/**
- * One Annotation View's Scope, with a card on screen: the card itself, a
- * control inside it, its comment editor, and a surface outside every card.
- *
- * A registration stands behind the view's own, where Obsidian's keymap
- * carries on to whatever else holds the chord — the app's own hotkeys, and the
- * command a researcher bound to it.
- */
 function setup(isMacOS = false) {
   const scope = new Scope();
   const stepped: HistoryDirection[] = [];
@@ -40,7 +32,6 @@ function setup(isMacOS = false) {
     header,
     keys,
     stepped,
-    /** One chord, as Obsidian's Scope delivers it to the view. */
     key(init: KeyboardEventInit, target: EventTarget = card) {
       return dispatchKey(scope, init, target);
     },
@@ -127,8 +118,6 @@ describe("the Annotation History keys on a card", () => {
 
     const event = h.key({ key: "z", ctrlKey: true }, h.header);
 
-    // The chord reaches what stands behind the view, so a command bound to it
-    // still runs while the Annotation View is the active leaf.
     expect([h.stepped, h.behind, event.defaultPrevented]).toEqual([
       [],
       ["z"],

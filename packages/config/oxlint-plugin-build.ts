@@ -1,8 +1,3 @@
-// zotlit-build: keeps the Obsidian plugin's build honest about its inputs.
-// no-undeclared-env follows the modules vite.config.ts loads and requires
-// every process.env it reads to be declared for Turbo. no-app-path keeps a
-// package's modules and stylesheets from naming a path inside `apps/`. Rule
-// tests: oxlint-plugin-build.test.ts.
 import { existsSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, matchesGlob, resolve, sep } from "node:path";
@@ -44,7 +39,6 @@ function staticString(
   return undefined;
 }
 
-/** Imported constant keys use the exporting module's literal declaration. */
 function importedString(
   specifier: string,
   importer: string,
@@ -69,7 +63,6 @@ function importedString(
   return undefined;
 }
 
-/** Follow workspace build imports, including re-exports, without executing them. */
 export function buildModules(entry: string): Set<string> {
   const files = new Set<string>();
   const visit = (file: string) => {
@@ -124,14 +117,6 @@ function propertyName(node: Member): string | undefined {
   return undefined;
 }
 
-/**
- * A `process.env` read in a module the Obsidian build loads must appear in the
- * env list of each Turbo task that builds the plugin (`build:dev`, `dev`).
- * Turbo hashes only declared variables, so an undeclared one lets a cached
- * build replay with the wrong value. Writes, and the GitHub token variables,
- * are exempt. The factory lets RuleTester supply a small build graph and task
- * declarations.
- */
 export function undeclaredEnvRule(policy: BuildPolicy): Rule {
   return {
     meta: {
@@ -158,7 +143,6 @@ export function undeclaredEnvRule(policy: BuildPolicy): Rule {
             env.object.name !== "process"
           )
             return;
-          // Assignment targets write an environment value rather than read it.
           if (
             node.parent.type === "AssignmentExpression" &&
             node.parent.left === node &&
@@ -224,13 +208,6 @@ export function undeclaredEnvRule(policy: BuildPolicy): Rule {
   };
 }
 
-/**
- * A file of a package names no path inside `apps/`: a package builds and tests
- * from its own source and its dependencies, and a host composes it. The rule
- * resolves each relative module specifier of a file under `<root>/packages/`,
- * and the `@import`, `@reference` and `@source` paths of each stylesheet that
- * file imports, and reports one that lands under `<root>/apps/`.
- */
 export function appPathRule({ root }: { root: string }): Rule {
   const packages = join(root, "packages") + sep;
   const apps = join(root, "apps") + sep;

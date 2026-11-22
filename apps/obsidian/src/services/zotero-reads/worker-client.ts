@@ -1,4 +1,3 @@
-// Worker configuration follows the native dependency streams on the layer Scope.
 import { Effect, FileSystem, Ref, Stream } from "effect";
 import workerSource from "virtual:zotero-reads-worker";
 
@@ -21,10 +20,8 @@ import {
   reapWorkerSnapshots,
 } from "@zotlit/zotero-reads/desktop/reap-temps.ts";
 
-/** Compile-time assert: `T` must be `true`. */
 type Expect<T extends true> = T;
 type Equals<A, B> = [A, B] extends [B, A] ? true : false;
-/** The settings feed the source settings unchanged. */
 type _ReadMode = Expect<Equals<ReadsConfig["readMode"], ZoteroReadMode>>;
 type _LogLevel = Expect<Equals<ReadsConfig["logLevel"], Settings["log.level"]>>;
 
@@ -42,13 +39,7 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
   const pack = yield* ResourcePackPlatform;
   const { language } = yield* ObsidianEnv;
   const workspace = yield* Workspace;
-  // `makeWorkerReads` takes a connect step with no requirement but its Scope
-  // and reruns it on every respawn, so the step carries the file system its
-  // dead-worker reap reads.
   const fs = yield* FileSystem.FileSystem;
-  // Clear the read clones of crashed runs from the system temp folder once a
-  // launch. Forked on the layer's Scope: the launch never waits on it, and
-  // unload interrupts it.
   yield* reapReadClones().pipe(Effect.forkScoped);
   const configuration = Effect.gen(function* () {
     const current = yield* settings.current;
@@ -57,8 +48,6 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
       readMode: current["zotero.read-mode"],
       autoRefresh: current["zotero.auto-refresh"],
       locale: language,
-      // The worker reads and verifies the entry itself, so the pack reaches
-      // it unread: this thread pays nothing for the binary at start-up.
       chineseSegmenter: yield* segmenterBinaryOf(pack),
       logLevel: current["log.level"],
     } satisfies ReadsConfig;
@@ -99,7 +88,6 @@ export const workerClient = Effect.fn("ZoteroReads.workerClient")(function* () {
     Stream.runForEach(() => push()),
     Effect.forkScoped({ startImmediately: true }),
   );
-  // Reconcile while acquisition was waiting for the worker handshake.
   yield* push();
   return reads;
 });

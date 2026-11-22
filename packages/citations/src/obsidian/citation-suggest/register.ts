@@ -14,14 +14,8 @@ import type { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/serv
 import { CitationEditorSuggest } from "./editor-suggest.ts";
 import { InsertCitationModal } from "./insert-modal.ts";
 
-/**
- * What the Citation Template answers for one insert: the rendered Citation,
- * the message of an inert Citation Template, or `null` while the templates
- * load.
- */
 export type CitationTemplateAnswer = string | { readonly inert: string } | null;
 
-/** The Citation Template, which the notes feature renders. */
 export interface CitationTemplate {
   renderCitation(
     citations: readonly CiteRef[],
@@ -35,8 +29,6 @@ export interface CitationSuggestDeps {
   citationTemplate: CitationTemplate;
   settings: Pick<PluginSettings["Service"], "current">;
   bridge: Pick<EffectBridge, "runSync" | "runPromise" | "runPromiseExit">;
-  /** Says whether the Citation Key of a chosen Item names several Items, and
-   *  whether the snapshot that answers that has resolved at all yet. */
   citationLookup: Pick<CitationLookup["Service"], "read" | "current">;
   citationIndex: Pick<CitationIndex["Service"], "getDocumentCitationSet">;
   useLedger: Pick<UseLedger["Service"], "record">;

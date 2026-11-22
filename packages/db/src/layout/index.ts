@@ -3,23 +3,9 @@ import { inArray, sql } from "drizzle-orm";
 
 import { logLibrary } from "@zotlit/shared/logging";
 
-// The layout of a Zotero database copy: the columns of each table and view,
-// and the version stamps. Every reader asks this module which columns a copy
-// has; the stamps are for logging only. It reads a copy once and keeps the
-// answer for the life of the client. This core is synchronous. The Effect
-// adapter of the Item Query readers (`readLayout`, `checkLayout`) is in
-// `src/item-query/database.ts`; `src/item-query/layout.ts` gives the typed
-// failure and the synchronous check `checkDatabaseLayout`.
 import { version } from "#drizzle/schema.ts";
 import { defineQuery } from "#queries/_shared.ts";
 
-/**
- * The layout manifest of the readers: every table and column that a reader
- * statement of Item Query, and the Library reader of `getLibraries`, needs.
- * A copy without one of them is a copy the readers cannot read. The manifest
- * test fails when a reader statement reads a table or column outside it and
- * {@link OPTIONAL_LAYOUT_COLUMNS}; extend it with each new reader.
- */
 export const ITEM_QUERY_LAYOUT = {
   items: [
     "itemID",
@@ -74,23 +60,12 @@ export const ITEM_QUERY_LAYOUT = {
   groups: ["groupID", "libraryID", "name"],
 } as const satisfies Readonly<Record<string, readonly string[]>>;
 
-/**
- * The columns a reader reads only when the copy has them: Zotero added them
- * after the lowest supported layout. A reader asks {@link DatabaseLayout.has}
- * before it selects one.
- */
 export const OPTIONAL_LAYOUT_COLUMNS = {
   libraries: ["clientVersion"],
 } as const satisfies Readonly<Record<string, readonly string[]>>;
 
-/**
- * The tables every Zotero database has, whatever its version. A file without
- * one of them is no Zotero database; a Zotero copy older or newer than the
- * manifest still has them.
- */
 export const ZOTERO_CORE_TABLES = ["items", "libraries"] as const;
 
-/** The file is no Zotero database: it lacks a table of {@link ZOTERO_CORE_TABLES}. */
 export class NotZoteroDatabaseError extends Error {
   override readonly name = "NotZoteroDatabaseError";
   constructor() {
@@ -100,42 +75,24 @@ export class NotZoteroDatabaseError extends Error {
   }
 }
 
-/** A table, or one column of a table, that the copy lacks. */
 export interface LayoutGap {
   readonly table: string;
-  /** `null` when the whole table is missing. */
   readonly column: string | null;
 }
 
-/** The Zotero schema versions of a copy, as its `version` table stamps them. */
 export interface LayoutVersions {
-  /** `null` when the copy carries no `userdata` stamp. */
   readonly userdata: number | null;
-  /** `null` when the copy carries no `compatibility` stamp. */
   readonly compatibility: number | null;
 }
 
-/** The layout of one copy, as it was when the copy was first read. */
 export interface DatabaseLayout {
-  /** The columns of each table and view. */
   readonly columns: ReadonlyMap<string, ReadonlySet<string>>;
-  /** The version stamps. They do not decide what the readers read. */
   readonly versions: LayoutVersions;
-  /**
-   * What the copy lacks of {@link ITEM_QUERY_LAYOUT}, in manifest order. Empty
-   * when the readers can read the copy.
-   */
   readonly missing: readonly LayoutGap[];
-  /** Whether the copy has every table of {@link ZOTERO_CORE_TABLES}. */
   readonly isZoteroDatabase: boolean;
-  /** Whether the copy has `column` in `table`. */
   has(table: string, column: string): boolean;
 }
 
-/**
- * Compare the columns of a copy, by table, with {@link ITEM_QUERY_LAYOUT}. A
- * missing table counts once, not once for each of its columns.
- */
 export function findLayoutGaps(
   columns: ReadonlyMap<string, ReadonlySet<string>>,
 ): LayoutGap[] {
@@ -153,7 +110,6 @@ export function findLayoutGaps(
   return gaps;
 }
 
-/** Name each gap for a person: `the table t` or `t.column`. */
 export function describeLayoutGaps(missing: readonly LayoutGap[]): string {
   return missing
     .map(({ table, column }) =>
@@ -161,10 +117,6 @@ export function describeLayoutGaps(missing: readonly LayoutGap[]): string {
     )
     .join(", ");
 }
-
-// ---------------------------------------------------------------------------
-// The two statements of a layout read. The Effect adapter runs the same
-// builders through its own statement seam, then records the rows here.
 
 /** @internal The columns of each table and view of the copy. */
 export const selectLayoutColumns = (db: ZoteroDatabase) =>
@@ -199,7 +151,6 @@ export interface LayoutVersionRow {
 const columnsQuery = defineQuery<void>()(selectLayoutColumns);
 const versionsQuery = defineQuery<void>()(selectLayoutVersions);
 
-/** The layout of each copy; a copy has one client. */
 const layouts = new WeakMap<ZoteroDatabase, DatabaseLayout>();
 
 /** @internal The layout already read for `client`, if any. */
@@ -274,12 +225,6 @@ export function recordLayout(
   return layout;
 }
 
-/**
- * Read the layout of the copy behind `client`: the columns of each table and
- * view, the `userdata` and `compatibility` stamps, and the gaps against the
- * manifest. The first call on a copy runs two statements and logs the stamps;
- * every later call gives the same answer and runs none.
- */
 export function readDatabaseLayout(client: ZoteroDatabase): DatabaseLayout {
   const known = knownLayout(client);
   if (known) return known;

@@ -1,5 +1,3 @@
-// CodeMirror completion adapter over the shared Template field resolver.
-
 import type {
   Completion,
   CompletionContext,
@@ -22,23 +20,12 @@ import type {
   SuggestionResult,
 } from "./suggestions.ts";
 
-/**
- * Apply one shared edit through CodeMirror and isolate it in the document
- * history. An option that resolves its own text — "New partial…" — writes once
- * the host answers with the name it created.
- */
 export function applyTemplateCompletion(
   view: EditorView,
   result: SuggestionResult,
   option: Suggestion,
 ): boolean {
   if (option.resolveInsert) {
-    // The ranges were measured when the popup opened. Resolving hands control
-    // back to the host, which may take a while and may end with the document
-    // rewritten, so a changed document drops the edit rather than writing at an
-    // offset that now means something else. A closed pane needs no guard:
-    // CodeMirror absorbs a dispatch to a destroyed view.
-    // A flow that fails or is interrupted writes nothing.
     const source = view.state.doc.toString();
     const { insert, start } = option.resolveInsert;
     start(insert, (text) => {
@@ -93,17 +80,10 @@ export function applyTemplateCompletion(
   return edit.continue;
 }
 
-/**
- * The contract one pane completes against right now: its root, the partials the
- * host has registered, and the Item the values come from. It is read per
- * keystroke, so a pane that follows the caret into another root needs no new
- * editor.
- */
 export type SuggestionSource = (position: number) => SuggestionConfig | null;
 
 export type { CompletionPresentation } from "./field-popup.ts";
 
-/** CodeMirror completion over the pane's current contract and source scope. */
 export function templateCompletion(
   read: SuggestionSource,
   presentation: CompletionPresentation = {},
@@ -116,7 +96,6 @@ export function templateCompletion(
 
 const suggestionOf = new WeakMap<Completion, Suggestion>();
 
-/** The shared suggestion a completion was made from, for a host that draws its own cells. */
 export function completionSuggestion(
   completion: Completion,
 ): Suggestion | undefined {
@@ -154,7 +133,6 @@ function option(suggestion: Suggestion): Completion {
     apply: suggestion.insert,
     type: suggestion.category,
     ...(suggestion.type === undefined ? {} : { detail: suggestion.type }),
-    // A tag's syntax and example read in the docstring; a field's description is a row cell.
     ...(suggestion.syntax
       ? {
           info: [suggestion.detail, suggestion.syntax, suggestion.example]
@@ -165,7 +143,6 @@ function option(suggestion: Suggestion): Completion {
   };
 }
 
-/** Snippets supply new syntax; partial names and field replacements supply text. */
 function snippetPairs(
   edit: CompletionEdit,
   result: SuggestionResult,

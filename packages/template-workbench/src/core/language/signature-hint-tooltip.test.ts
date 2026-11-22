@@ -11,15 +11,8 @@ import {
 } from "./signature-hint-tooltip.ts";
 import { documentFocus } from "./test-utils.ts";
 
-/**
- * A focused Filter Expression editor with the Signature Hint.
- * @param doc The editor's text.
- * @param extra Extensions beside the hint.
- */
 function editor(doc: string, extra: Extension = []) {
   const parent = document.body.appendChild(document.createElement("div"));
-  // CodeMirror tells the editor of a focus change in a later task; each
-  // change settles the wait made before it.
   let focusChanged = Promise.withResolvers<void>();
   const view = new EditorView({
     parent,
@@ -49,7 +42,6 @@ function editor(doc: string, extra: Extension = []) {
       view.contentDOM.blur();
       await told;
     },
-    /** The hint, while it shows. */
     hint: () => {
       const hint = parent.querySelector<HTMLElement>(
         `.${SIGNATURE_HINT_CLASS}`,
@@ -79,15 +71,12 @@ it("closes on Escape before the host hears it", () => {
 
   expect(escape()).toBe(true);
   expect(field.hint()).toBeNull();
-  // With the hint closed, Escape is the host's.
   expect(escape()).toBe(false);
 
   field.caret("title.slice(1, ".length);
   expect(field.hint()).not.toBeNull();
 });
 
-// Regression: the hint once followed the caret, rebuilt at each position, so
-// it flashed, slid and wrapped anew as the caret crossed the arguments.
 it("stays in place at the call's bracket while the caret moves through its arguments", () => {
   using field = editor("title.slice(1, 2)");
   const anchor = () => field.view.state.facet(showTooltip)[0]?.pos;
@@ -125,9 +114,6 @@ it("hides when the editor loses focus", async () => {
   expect(field.hint()).toBeNull();
 });
 
-// Regression: the hint once read focus from the update that told of
-// it, so a dispatch from the focus event, before CodeMirror tells of the
-// focus, kept it hidden.
 it("shows while another extension reconfigures the editor as it takes focus", () => {
   const placement = new Compartment();
   using field = editor(

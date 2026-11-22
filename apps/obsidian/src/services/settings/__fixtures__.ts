@@ -22,7 +22,6 @@ export type SettingsFixtureOptions = Partial<PluginSettingsOptions> & {
   plugin: Pick<Plugin, "loadData" | "saveData">;
 };
 
-/** The platform fixtures' options, under this plugin's definition and migrations. */
 const hostOptions = ({ plugin, ...options }: SettingsFixtureOptions) => ({
   plugin,
   ...withHost(options),
@@ -31,18 +30,12 @@ const hostOptions = ({ plugin, ...options }: SettingsFixtureOptions) => ({
 export const settingsOf = (options: SettingsFixtureOptions) =>
   hostSettingsOf(hostOptions(options));
 
-/**
- * The settings service, its bridge, and its runtime, using the test's Clock and
- * logger; all three close with the test Scope.
- */
 export const settingsRuntimeOf = (options: SettingsFixtureOptions) =>
   hostSettingsRuntimeOf(hostOptions(options));
 
-/** Consumer fixtures outside Effect own the service's runtime through this handle. */
 export const buildSettings = (options: SettingsFixtureOptions) =>
   buildHostSettings(hostOptions(options));
 
-/** Values a test seeds: persisted settings, and default Profile bindings by name. */
 export type SettingsOverrides = Partial<Settings> &
   Partial<ResolvedLiteratureNoteProfileBindings>;
 
@@ -54,10 +47,6 @@ const BINDING_KEYS = [
   "note.import-annotations-as-template",
 ] as const satisfies readonly (keyof ResolvedLiteratureNoteProfileBindings)[];
 
-/**
- * Writes `overrides` through the real store: settings through `update`, and a
- * binding name through the default Profile's bindings.
- */
 export function applySettings(
   settings: Pick<PluginSettings["Service"], "update">,
   bridge: Pick<EffectBridge, "runSync">,
@@ -81,7 +70,6 @@ export function applySettings(
     );
 }
 
-/** The real store over empty plugin data, seeded with `overrides`. */
 export async function buildSeededSettings(overrides: SettingsOverrides = {}) {
   const settings = await buildSettings({
     plugin: {

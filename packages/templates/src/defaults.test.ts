@@ -20,11 +20,9 @@ import noteLiquid from "#defaults/note.liquid?raw";
 
 const wrapContent = managedRegionTransform("content");
 
-/** The Durable Annotation Link of an Annotation on page label 5. */
 const PAGE_FIVE =
   "zotero://open/library/items/ATTX2345?annotation=ANNX2345&page=5";
 
-/** The Annotations section of the default content template. */
 const QUERY_BLOCK_SECTION = [
   "## Annotations",
   "",
@@ -75,12 +73,9 @@ describe("Liquid default templates via the facade", () => {
     expect(rendered).toContain("Highlighted text");
   });
 
-  // The Durable Annotation Link names the Annotation by its Zotero keys, so
-  // the note opens its passage on any computer, and in Zotero without ZotLit.
   const DURABLE =
     "zotero://open/library/items/ATTX2345?annotation=ANNX2345&page=iv";
 
-  // The quote goes into a draft already cited, with the page as locator.
   it("cites the paper after the quote", () => {
     const facade = new TemplateFacade();
     facade.define("annotation", annotationLiquid, "liquid");
@@ -106,7 +101,6 @@ describe("Liquid default templates via the facade", () => {
     );
   });
 
-  // Zotero's database can hold an empty label, which reads as no label.
   it.each([null, ""])(
     "links an annotation whose page label is %j",
     (pageLabel) => {
@@ -140,8 +134,6 @@ describe("Liquid default templates via the facade", () => {
     expect(noteLink).not.toHaveBeenCalled();
   });
 
-  // The Annotations show live through `this`: the block names no Item, and an
-  // Item that has no Annotation yet shows the ones added later.
   it("renders a Query Block of the note's own Item's Annotations", () => {
     const facade = new TemplateFacade();
     facade.define("annotation", annotationLiquid, "liquid");
@@ -293,11 +285,6 @@ describe("Liquid default templates via the facade", () => {
   });
 });
 
-/**
- * Both defaults' bq/annotation output funnels through the shared, pure
- * `formatBlockquote` helper — so pinning the pre-formatting captured text to
- * match line-for-line makes the final render byte-identical too.
- */
 describe("Liquid defaults match Eta defaults byte-for-byte", () => {
   function annotationFacades(): {
     eta: TemplateFacade;

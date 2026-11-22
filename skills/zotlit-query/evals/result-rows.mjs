@@ -1,10 +1,8 @@
-// Shared envelope and row checks; each case family adds its own evidence checks.
 import { join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
 
 import { librarySelector } from "./libraries.mjs";
 
-// Normalize row placement; each case checks completeness and limits separately.
 export function resultRows(envelope) {
   if (Array.isArray(envelope?.rows)) return envelope.rows;
   if (Array.isArray(envelope?.groups))
@@ -36,8 +34,6 @@ export function commonChecks(envelope, expected, { runRoot, vaultPath }) {
       0,
     );
     need(envelope.returnedCount === returned, "wrong returnedCount");
-    // Element groups overlap, so truncation is a cut group, not fewer rows
-    // than records.
     need(
       envelope.truncated ===
         (envelope.groups ?? []).some(

@@ -7,12 +7,6 @@ import { registerReaderPageMenu } from "./reader-page.ts";
 
 const logger = appLogger.getChild("menus");
 
-/**
- * Register all menu surfaces. Returns an {@link AsyncDisposable} that
- * unregisters them in LIFO order on shutdown — important for RDP dev
- * reloads where pluginID-scoped auto-cleanup would otherwise leave stale
- * registrations until full plugin teardown.
- */
 export async function registerMenus(
   pluginID: string,
 ): Promise<AsyncDisposable> {

@@ -1,5 +1,3 @@
-// Stubs of the services the Templates, the Profiles and the Template
-// Workbench read, for a test that gives the few it reads.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Layer } from "effect";
 import type { FileSystem } from "effect";
@@ -18,12 +16,10 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { Profile } from "#obsidian/profile/service.ts";
 import { Template } from "#obsidian/template/service.ts";
 
-/** Node's file system, which the check command reads a draft through. */
 const nodeFileSystem = Effect.runSync(
   Effect.scoped(Layer.build(NodeFileSystem.layer)),
 );
 
-/** The services the stubs stand in for. */
 export type StubbedServices =
   | ZoteroReads
   | NoteIndex
@@ -38,11 +34,6 @@ export type StubbedServices =
   | ObsidianEnv
   | FileSystem.FileSystem;
 
-/**
- * A stub for each service the Templates, the Profiles and the Template
- * Workbench read, which throws on a member the test leaves unread, under
- * `overrides`, a later one over an earlier one.
- */
 export function serviceStubs(
   ...overrides: readonly Context.Context<never>[]
 ): Context.Context<StubbedServices> {

@@ -1,4 +1,3 @@
-// ZotLit Query in the renderer: the Query Jobs that the ZoteroReads worker answers.
 import {
   Cause,
   Clock,
@@ -53,94 +52,42 @@ import type {
   QueryViewCommand,
 } from "./worker-protocol.ts";
 
-/**
- * How one ItemQuery call to the worker fails once `send` answers its
- * `DbUnavailable` with a diagnostic: the read snapshot expired, or the RPC
- * transport failed.
- */
 export type ItemQueryError = SnapshotExpired | RpcClientError.RpcClientError;
 
-/**
- * A CLI job ended without an answer: `zotlit:query-cancel` stopped it, or
- * the plugin unloaded. `message` is the text the CLI prints.
- */
 export class QueryCancelled extends Schema.TaggedError<
   QueryCancelled,
   { readonly brand: unique symbol }
 >()("QueryCancelled", { message: Schema.String }) {}
 
-/** What a measured run reports to, beside the heap switch. */
 export type QueryMeasure = QueryObserver & { heap: boolean };
 
-/**
- * The CLI jobs over the ZoteroReads worker: each job is a fiber in one map,
- * under its query id or an unnamed key. A job that the caller names with
- * `id` can be cancelled by that id until it settles; one service serves one
- * vault, so an id names one query in one vault. Interrupting a caller
- * interrupts its job, and closing the layer interrupts every job and waits
- * for it.
- */
 export class QueryService extends Context.Service<
   QueryService,
   {
-    /**
-     * Decode from and answer the shared query command. An id that names a
-     * running query answers `query-id-in-use`.
-     */
     query(
       params: CliData,
     ): Effect.Effect<string, QueryCancelled | ItemQueryError>;
-    /** Answer a query and report its measurement to `measure`. */
     measure(
       params: CliData,
       measure: QueryMeasure,
     ): Effect.Effect<string, QueryCancelled | ItemQueryError>;
-    /** List Collection paths or Tag names through the same worker connection. */
     values(
       params: CliData,
     ): Effect.Effect<string, QueryCancelled | ItemQueryError>;
-    /** Answer the shared schema command, optionally narrowed by from. */
     schema(
       params: CliData,
     ): Effect.Effect<string, QueryCancelled | ItemQueryError>;
-    /**
-     * Run the typed query of a Query View: every row up to `request.limit`,
-     * as parsed groups of rows. An invalid query, or a source that cannot
-     * answer, gives the diagnostic of `zotlit:query` as data; a job that the
-     * layer interrupts gives `cancelled`.
-     */
     run(
       request: QueryViewRequest,
     ): Effect.Effect<QueryViewOutcome, ItemQueryError>;
-    /**
-     * The custom fields of the active Zotero source, by name; none when the
-     * job is interrupted first.
-     */
     readonly customFieldNames: Effect.Effect<readonly string[], ItemQueryError>;
-    /**
-     * Request the cancel of the running query named `id`: `false` when no
-     * query with this id is running in this vault.
-     */
     cancel(id: string): Effect.Effect<boolean>;
-    /** The jobs that have not settled. */
     readonly runningJobs: Effect.Effect<number>;
-    /**
-     * How many typed queries of a Query View the service started. Counted in
-     * dev builds alone, for the End-to-end Run; `0` in production.
-     */
     readonly viewRuns: Effect.Effect<number>;
-    /**
-     * Each Use recorded from now on: a change to device Uses invalidates
-     * every open Query View.
-     */
     readonly changed: Stream.Stream<void>;
   }
 >()("zotlit/item-query/QueryService") {}
 
-/**
- * The key of a job that the caller does not name. A query id has no `:`, so
- * this key names no query.
- */
 const unnamedKey = (): string => `:${randomUUID()}`;
 
 export function layerQueryService({
@@ -170,12 +117,6 @@ export function layerQueryService({
       const jobs = yield* FiberMap.make<string, unknown, ItemQueryError>();
       let viewRuns = 0;
 
-      /**
-       * Forks a job into the map from the context of the call that yields it,
-       * so the caller's span and log annotations reach the job. The fiber is
-       * uninterruptible outside the waits of the job, so an answer that
-       * arrives wins a later cancel.
-       */
       const jobRunner = Effect.map(
         FiberMap.runtime(jobs)<never>(),
         (run) =>
@@ -183,15 +124,9 @@ export function layerQueryService({
             run(key, job, { uninterruptible: true }),
       );
 
-      /** Fork `job` under a key that names no query. */
       const forkUnnamed = <A>(job: Effect.Effect<A, ItemQueryError>) =>
         Effect.map(jobRunner, (fork) => fork(unnamedKey(), job));
 
-      /**
-       * Fork `job` under `id`, or none when `id` names a running job. The
-       * check and the fork are one synchronous step, so two calls with one
-       * id cannot both start.
-       */
       const claim = <A>(
         job: Effect.Effect<A, ItemQueryError>,
         id: string,
@@ -200,12 +135,6 @@ export function layerQueryService({
           FiberMap.hasUnsafe(jobs, id) ? undefined : fork(id, job),
         );
 
-      /**
-       * Fork a job with `fork` and wait until it settles: its value, or none
-       * when it was interrupted; `undefined` when `fork` started no job. No
-       * interrupt lands between the fork and the wait, so the job always has
-       * an owner; interrupting the caller interrupts the job and waits for it.
-       */
       const settle = <A>(
         fork: Effect.Effect<Fiber.Fiber<A, ItemQueryError> | undefined>,
       ): Effect.Effect<Option.Option<A> | undefined, ItemQueryError> =>
@@ -220,12 +149,6 @@ export function layerQueryService({
           }),
         );
 
-      /**
-       * Send one command to the worker and wait for its answer. An interrupt
-       * while the worker runs the job sends `CancelItemQuery` and waits for
-       * the answer, so the worker closes its writer and ends its borrow
-       * before the job ends; a job that the worker cancelled interrupts.
-       */
       const send = (
         command: QueryCommand | QueryViewCommand | QueryCustomFieldsCommand,
         {
@@ -302,10 +225,6 @@ export function layerQueryService({
           return result;
         });
 
-      /**
-       * One CLI job: send the command to the worker and publish its export.
-       * The staging file is removed when the job ends.
-       */
       const job = (
         command: QueryCommand,
         measure?: QueryMeasure,
@@ -336,12 +255,6 @@ export function layerQueryService({
           withLogCategory("item-query"),
         );
 
-      /**
-       * Run `job` under `id`, or under an unnamed key without one, until it
-       * settles. An interrupted job fails with {@link QueryCancelled}; the id
-       * of a named job is free once this ends. `command` answers
-       * `query-id-in-use` for an id that names a running job.
-       */
       const start = Effect.fnUntraced(function* (
         command: QueryCliCommand,
         job: Effect.Effect<string, ItemQueryError>,
@@ -353,7 +266,6 @@ export function layerQueryService({
         if (settled === undefined)
           return queryIdInUseFailure(id ?? "", command);
         if (Option.isSome(settled)) return settled.value;
-        // A job that the closing layer interrupted names the unload.
         return yield* new QueryCancelled({
           message:
             id === undefined || isScopeClosed(scope)
@@ -478,10 +390,6 @@ export function layerQueryService({
   );
 }
 
-/**
- * Decode a command's parameters: the request, or the diagnostic envelope of
- * `command` for the parameter that rejects it.
- */
 function decodeOrAnswer<A>(
   command: QueryCliCommand,
   decode: Effect.Effect<A, CliRejection>,
@@ -494,7 +402,6 @@ function decodeOrAnswer<A>(
   );
 }
 
-/** Report one phase of a cancel to the measurement, when one observes. */
 function reportCancel(
   measure: QueryObserver | undefined,
   phase: CancellationEvent["phase"],
@@ -506,7 +413,6 @@ function reportCancel(
   });
 }
 
-/** The staging path of an export, beside its output; removed with the job. */
 function stageExport(
   fs: FileSystem.FileSystem,
   output: string,
@@ -527,10 +433,6 @@ function stageExport(
   );
 }
 
-/**
- * Publish the closed staging file at `output`. A file at `output` stays: the
- * answer is then `output-error`, with the system's message.
- */
 function publishExport(
   fs: FileSystem.FileSystem,
   {
@@ -557,7 +459,6 @@ function publishExport(
   );
 }
 
-/** The message of the system call under `error`, as Node wrote it. */
 function systemMessage(error: PlatformError): string {
   const cause = error.reason.cause;
   return Error.isError(cause) ? cause.message : error.message;

@@ -1,5 +1,3 @@
-// What the user reads when an export cannot start, or stops.
-
 import type {
   BibliographySource,
   ExportFailure,
@@ -13,14 +11,8 @@ import {
 } from "@zotlit/plugin-services/obsidian/managed-binary/pack-row.ts";
 import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 
-/**
- * The engine is the one prerequisite the command cannot supply itself: the
- * notice names the Resource Pack, states where the engine stands, and opens
- * the page of the plugin to install or update in the community plugin browser.
- */
 export function engineMissingMessage(
   status: PackBinaryStatus,
-  /** The id of this plugin, which reads the pack. */
   readerId: string,
 ): DocumentFragment {
   return BaseNotice.render((renderer) => {
@@ -38,12 +30,6 @@ export function engineMissingMessage(
   });
 }
 
-/**
- * Everything that stops an export: the conversion's own failures, the note's
- * own unusable Citation Presentation, which stops the run before the engine sees
- * it, plus the destination write, which happens after the engine has already
- * answered.
- */
 export type ExportProblem =
   | ExportFailure
   | { kind: "document-style-invalid" }
@@ -55,11 +41,9 @@ export type ExportProblem =
       recover: () => void;
     }
   | { kind: "profile-style-invalid"; styleId: string }
-  /** A style the vault or the dialog selected, by its name. */
   | { kind: "style-invalid"; style: string }
   | { kind: "destination-unwritable"; detail: string };
 
-/** One message per failure arm, each naming the situation and its fix. */
 export function exportFailureMessage(failure: ExportProblem): DocumentFragment {
   return BaseNotice.render((renderer) => {
     renderer.setTitle(m.notice_pandoc_export_failed());

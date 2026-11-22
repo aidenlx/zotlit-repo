@@ -34,20 +34,15 @@ import {
   FakeControlSection,
 } from "#__fixtures__/graph-citations/test-double.ts";
 
-/** Every command id, in registration order. */
 const ALL_COMMAND_IDS = ["open-citation-graph", "open-local-citation-graph"];
 
-/** What the commands run Graph Citations' Effects through. */
 const bridge = openTestBridge();
 afterAll(() => bridge[Symbol.asyncDispose]());
 
-/** A note the local command can graph. */
 const DRAFT = new TFile();
 DRAFT.path = "Draft.md";
 
-/** What one opened leaf recorded: how it was asked for, and what it was told to show. */
 interface OpenedLeaf {
-  /** The `getLeaf` arguments the leaf came from. */
   asked: unknown[];
   state?: ViewState;
 }
@@ -55,13 +50,11 @@ interface OpenedLeaf {
 interface FixtureOptions {
   graphEnabled?: boolean;
   activeFile?: TFile | null;
-  /** The vault-wide "Show citations in graph view" setting. */
   featureEnabled?: boolean;
 }
 
 function setup(options: FixtureOptions = {}) {
   const opened: OpenedLeaf[] = [];
-  /** What each leaf showed by the time the preset reached it. */
   const preset: { leaf: WorkspaceLeaf; showing?: string }[] = [];
   const leafStates = new WeakMap<WorkspaceLeaf, OpenedLeaf>();
   const mostRecent = stubService<WorkspaceLeaf>("WorkspaceLeaf", {});
@@ -121,7 +114,6 @@ function setup(options: FixtureOptions = {}) {
     commandSettled: presetApplied.resolve,
     mostRecent,
     command,
-    /** Performs one command, then lets what it started settle. */
     async run(id: string): Promise<void> {
       const { callback, checkCallback } = command(id);
       if (callback) await callback();
@@ -144,7 +136,6 @@ describe("addGraphCitationsActions", () => {
     expect(fixture.opened).toEqual([
       { asked: ["tab"], state: { type: "graph", active: true, state: {} } },
     ]);
-    // The preset reaches the leaf it opened, and only once that leaf shows a graph.
     expect(fixture.preset).toEqual([
       { leaf: expect.anything(), showing: "graph" },
     ]);
@@ -260,8 +251,6 @@ describe("addGraphCitationsActions", () => {
     await fixture.run("open-citation-graph");
     await openLocalCitationGraph(fixture.deps, DRAFT);
 
-    // A preset graph with no citations drawn is a graph with the reader's own
-    // options taken away for nothing, so neither command opens a leaf at all.
     expect(fixture.opened).toEqual([]);
     expect(fixture.preset).toEqual([]);
   });

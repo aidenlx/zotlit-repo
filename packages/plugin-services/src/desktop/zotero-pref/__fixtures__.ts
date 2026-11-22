@@ -13,7 +13,6 @@ import { zoteroProfilesRoot } from "./profile-root.ts";
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
 import { electronAppData } from "#desktop/zotero-pref/__fixtures__/electron-app-data.ts";
 
-/** The real preference layer over device storage and file-system fakes. */
 export const zoteroPrefFixture = Effect.fn("zoteroPrefFixture")(function* (
   read: (
     path: string,
@@ -60,7 +59,6 @@ export const zoteroPrefFixture = Effect.fn("zoteroPrefFixture")(function* (
   return { pref, runtime, saved: () => saved };
 });
 
-/** The ordinary runtime boundary, owned by the fixture's Effect Scope. */
 async function scopedRuntime(layer: Layer.Layer<ZoteroPref>) {
   const stack = new AsyncDisposableStack();
   const runtime = buildRuntime(layer, stack);

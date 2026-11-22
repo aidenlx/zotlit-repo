@@ -123,7 +123,6 @@ function ctx(): SettingTabContext {
   });
 }
 
-/** Walk the definition tree, asserting ids unique among each sibling array. */
 function check(label: string, items: readonly SettingDefinitionItem[]): void {
   const seen = new Map<string, number>();
   items.forEach((item, index) => {
@@ -147,7 +146,6 @@ function check(label: string, items: readonly SettingDefinitionItem[]): void {
   }
 }
 
-/** The tab's definitions, as `getSettingDefinitions()` hands them out. */
 function realTree(c: SettingTabContext): SettingDefinitionItem[] {
   return settingDefinitions(
     settingTabContext(c, c, features),
@@ -160,11 +158,9 @@ let visited = 0;
 
 it("every setting definition carries an id unique among its siblings", () => {
   check("root", realTree(ctx()));
-  // Guard against a vacuous pass: the walk must reach the real tree.
   expect(visited).toBeGreaterThan(100);
 });
 
-/** Each item's id, indented under the page or group that holds it. */
 function outline(items: readonly SettingDefinitionItem[], depth = 0): string[] {
   return items.flatMap((item) => [
     `${"  ".repeat(depth)}${(item as { id?: string }).id}`,
@@ -172,19 +168,12 @@ function outline(items: readonly SettingDefinitionItem[], depth = 0): string[] {
   ]);
 }
 
-// The slots of each page take rows from several features: the outline holds
-// the order the tab shows them in, page by page.
 it("places every page and row of the composed tab in its order", () => {
   expect(outline(realTree(ctx())).join("\n")).toMatchSnapshot();
 });
 
 const TAB_ID = "zotlit";
 
-/**
- * Every row a `revealSetting` call names, with the call site that names it.
- * A renamed definition id breaks the link in silence, so the ids meet the real
- * tree here.
- */
 const DEEP_LINKED_ROWS = [
   ["settings_zotero_editing", "services/plugin-runtime.ts"],
   ["settings_citation_references_style", "zt-main.ts, views/references"],

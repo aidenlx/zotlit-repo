@@ -1,5 +1,3 @@
-// The Attachment Import keys of the plugin settings.
-
 import type { SliceSettings } from "#core/settings/slice.ts";
 import * as v from "valibot";
 

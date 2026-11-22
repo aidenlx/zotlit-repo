@@ -1,6 +1,3 @@
-// One editor owns its document, view state, and compact render examples, all
-// in the Workbench model.
-
 import type { WorkbenchDocumentController } from "#core/document/controller.ts";
 import type { TemplateRenderResult } from "#core/render/result.ts";
 import { RegistryContext, RegistryProvider } from "@effect/atom-react";
@@ -30,41 +27,25 @@ export interface WorkbenchEditorInstance<
   R extends TemplateRenderResult = TemplateRenderResult,
 > extends Disposable {
   readonly model: WorkbenchModel<R>;
-  /** The registry the model lives in. */
   readonly registry: AtomRegistry.AtomRegistry;
-  /** Sets the controller in use to one the host loaded. */
   attach(controller: WorkbenchDocumentController): void;
 }
 
 interface WorkbenchEditorOptions {
   controller: WorkbenchDocumentController;
-  /** The host members the model reads: its render and its Match data. */
   host: Pick<WorkbenchHost, "render" | "matchData">;
   state?: Partial<WorkbenchViewState>;
-  /**
-   * The registry to keep the model in, which the host disposes. Without one
-   * the editor keeps a registry of its own and disposes it with itself.
-   */
   registry?: AtomRegistry.AtomRegistry;
-  /** The host's one runtime, which every editor of the host shares. */
   runtime: WorkbenchRuntime;
-  /** The view state, when the host keeps it in an atom of its own. */
   view?: Atom.Writable<WorkbenchViewState>;
-  /** The chosen Item's data, when the host derives it from its own read. */
   itemData?: WorkbenchModelOptions<TemplateRenderResult>["itemData"];
-  /** {@link WorkbenchModelOptions.choices} */
   choices?: WorkbenchModelOptions<TemplateRenderResult>["choices"];
-  /** {@link WorkbenchModelOptions.partialName} */
   partialName?: WorkbenchModelOptions<TemplateRenderResult>["partialName"];
-  /** {@link WorkbenchModelOptions.panels} */
   panels?: WorkbenchModelOptions<TemplateRenderResult>["panels"];
-  /** {@link WorkbenchModelOptions.viewSize} */
   viewSize?: WorkbenchModelOptions<TemplateRenderResult>["viewSize"];
-  /** What names this editor in the report a failed example is copied as. */
   reportContext?: () => WorkbenchReportContext;
 }
 
-/** Own one editor's view state and rendering through its host adapter. */
 export function createWorkbenchEditor<R extends TemplateRenderResult>(
   options: WorkbenchEditorOptions & {
     mapResult: (result: TemplateRenderResult) => R;
@@ -140,17 +121,12 @@ export function createWorkbenchEditor<R extends TemplateRenderResult>({
 export interface WorkbenchEditor {
   readonly model: WorkbenchModel;
   readonly registry: AtomRegistry.AtomRegistry;
-  /** The prefix of this instance's element ids. */
   readonly id: string;
 }
 
 const EditorContext = createContext<WorkbenchEditor | null>(null);
 
 let inert: WorkbenchModel | undefined;
-/**
- * Never renders and is never written: what the tree reads where no editor is
- * in context. Made on first read, so importing the package builds nothing.
- */
 function inertModel(): WorkbenchModel {
   inert ??= makeWorkbenchModel({
     controller: new Controller(""),
@@ -162,10 +138,6 @@ function inertModel(): WorkbenchModel {
   return inert;
 }
 
-/**
- * Puts `editor` and its registry in context. `null` paints the tree inert in
- * a registry of its own, which goes with the provider.
- */
 export function WorkbenchEditorProvider<R extends TemplateRenderResult>({
   editor,
   children,
@@ -190,7 +162,6 @@ export function WorkbenchEditorProvider<R extends TemplateRenderResult>({
   );
 }
 
-/** The editor in context, or `null` where the tree paints inert. */
 export function useOptionalEditor(): WorkbenchEditor | null {
   return useContext(EditorContext);
 }
@@ -205,7 +176,6 @@ export function useWorkbenchEditor(): WorkbenchEditor {
   return editor;
 }
 
-/** The model in context, or an inert one where the tree paints inert. */
 export function useWorkbenchModel(): WorkbenchModel {
   return useContext(EditorContext)?.model ?? inertModel();
 }

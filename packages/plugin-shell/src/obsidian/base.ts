@@ -1,6 +1,3 @@
-// The services every plugin host builds first and the same way: settings,
-// logging, the Obsidian capability tags, the plugin, and the Language Pack.
-// Every service group and registration reads them without naming them.
 import { Layer } from "effect";
 import type { Plugin } from "obsidian";
 
@@ -52,7 +49,6 @@ import { GraphBuilt } from "./graph-built.ts";
 
 import { startingAs } from "#core/startup-failure.ts";
 
-/** The services the shell's base fills, which every group reads unnamed. */
 export type ShellBase =
   | PluginSettings
   | ObsidianApp
@@ -67,7 +63,6 @@ export type ShellBase =
   | LanguagePack
   | GraphBuilt;
 
-/** The keys of the {@link ShellBase} tags, for the build order. */
 export const shellBaseKeys: ReadonlySet<string> = new Set(
   [
     PluginSettings,
@@ -85,12 +80,6 @@ export const shellBaseKeys: ReadonlySet<string> = new Set(
   ].map((tag) => tag.key),
 );
 
-/**
- * The base over `plugin`: settings first, so logging reads its level and
- * every other service logs from its first line, then the Obsidian
- * capabilities, the plugin, and the Language Pack, which starts from what
- * `startI18n` applied before the graph.
- */
 export function layerShellBase(
   plugin: Plugin & CliHost,
   options: {
@@ -99,7 +88,6 @@ export function layerShellBase(
     readonly built: Layer.Layer<GraphBuilt>;
   },
 ): Layer.Layer<ShellBase> {
-  // The file manager decides its outcomes from the vault's cache.
   const fileManager = layerFileManager.pipe(Layer.provide(layerVault));
   const obsidian = Layer.mergeAll(
     layerNotifier,

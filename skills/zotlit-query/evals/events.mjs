@@ -1,4 +1,3 @@
-// Normalize completed tool exchanges before measuring either agent.
 export function parseEvents(jsonl) {
   return jsonl.split("\n").flatMap((line) => {
     try {

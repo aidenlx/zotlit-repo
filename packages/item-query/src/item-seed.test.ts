@@ -1,5 +1,3 @@
-// A seed keeps what the Items filter reads: an Item from its seed matches a
-// filter in memory exactly when a query with that filter returns it.
 import { Effect, Exit } from "effect";
 import * as v from "valibot";
 import { describe, expect, it } from "vitest";
@@ -43,10 +41,8 @@ describe("readQueryItemSeed", () => {
         scenario.db,
       );
       const seeds = seeded.flatMap((seed) => (seed ? [seed] : []));
-      // The Library has top-level Items, and child Items have no seed.
       expect(seeds.length).toBeGreaterThan(0);
       expect(seeds.length).toBeLessThan(rows.length);
-      // A seed passes its schema unchanged, as a host that stores it reads it.
       for (const seed of seeds)
         expect(v.parse(queryItemSeedSchema, seed)).toEqual(seed);
       for (const filter of FILTERS) {

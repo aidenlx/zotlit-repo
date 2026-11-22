@@ -1,12 +1,3 @@
-// The Reader Surface State: what the surfaces of one bound PDF view draw from,
-// held in one writable atom of the Reader Surface Model per view.
-//
-// The binding turns external signals into state through the transitions here,
-// each a pure function from the state to the next one, which answers the same
-// state when nothing changes. Each renderer watches its own derived atom of
-// the model, whose equality holds it still while what it draws stands, so a
-// signal that changes nothing on screen draws nothing.
-
 import type { CapabilityAffordance } from "#obsidian/annotation-repository/capability-copy.ts";
 import type { EditingCapability } from "#obsidian/annotation-repository/capability.ts";
 import type {
@@ -66,203 +57,97 @@ import {
   writePosition,
 } from "#obsidian/annotation-repository/write.ts";
 
-/** Where the create popup hangs, as a fraction of its page box, so a zoom keeps it. */
 export interface AnchorAt {
   pageIndex: number;
   fx: number;
   fy: number;
 }
 
-/**
- * A Geometry Edit in progress on the selected mark. Nothing is written while
- * it stands; a release saves the proposal once, and the mark draws the
- * proposal until that write settles.
- */
 export interface Adjustment {
-  /** The handle, or the body, the press took. */
   grip: Grip;
-  /** Where the press fell, in PDF points on the mark's page. */
   from: PdfPoint;
-  /** The position the mark draws while the adjustment stands. */
   proposal: EditablePosition;
-  /**
-   * The quoted text of a highlight's or underline's proposed range, saved
-   * with it; absent while the proposal is the confirmed position, and for an
-   * image or ink.
-   */
   text?: string;
-  /**
-   * `pressed` until the pointer moves, `dragging` while it does, and `saving`
-   * once a release sent the proposal to Zotero.
-   */
   phase: "pressed" | "dragging" | "saving";
 }
 
-/**
- * An image capture the armed image tool is dragging out on one page. Nothing
- * is written while it stands; a release big enough to keep creates the image
- * once, and the rectangle stays drawn until that write settles.
- */
 export interface Capture {
   kind: "capture";
-  /** The page the press fell on, which holds the whole rectangle. */
   pageIndex: number;
-  /** Where the press fell, in PDF points on that page. */
   from: PdfPoint;
-  /** The rectangle between the press and the pointer, in PDF points. */
   rect: PdfRect;
-  /**
-   * `pressed` until the pointer moves, `dragging` while it does, and `saving`
-   * once a release sent the rectangle to Zotero.
-   */
   phase: "pressed" | "dragging" | "saving";
 }
 
-/**
- * A Text Draft: free text the armed text tool opened on a page, typed into
- * here and created in Zotero once, with its text, when it is finished. It
- * stays drawn while that create is in flight, until the read that holds its
- * record takes its place.
- */
 export interface TextDraft {
   kind: "text-draft";
-  /** The page the click fell on, which holds the whole box. */
   pageIndex: number;
-  /** The font size the text is typed at, in PDF points. */
   fontSize: number;
   color: string;
-  /** The box's turn, which a new Text Draft never has. */
   rotation: 0;
-  /** The box fitted to {@link text}, unrounded, in PDF points. */
   box: PdfRect;
   text: string;
-  /**
-   * `typing` until the draft is finished, and `saving` once its text was sent
-   * to Zotero.
-   */
   phase: "typing" | "saving";
-  /** The created Annotation's Indexed Key, once Zotero named it. */
   key?: string;
 }
 
-/**
- * The one floating surface over the reader: nothing, the selected Annotation
- * Mark, a fresh text selection about to become one, an image capture being
- * dragged out, or a Text Draft. Being one union, the two popups can never
- * both stand.
- */
 export type Floating =
   | { kind: "none" }
   | {
       kind: "selected";
-      /** The selected Annotation, by Indexed Key. */
       key: string;
-      /** The marks under the point that selected it, smallest first. */
       stack: readonly string[];
-      /** Where {@link key} sits in {@link stack}. */
       index: number;
-      /** Whether the selection declined its popup, as a Mark Landing's does. */
       quiet: boolean;
-      /** Whether the comment editor stands open under the popup's row. */
       commenting: boolean;
-      /**
-       * Whether the tag editor stands open in the popup's tag section. It and
-       * the comment editor never stand open together.
-       */
       tagging: boolean;
-      /** The Geometry Edit a press on a Mark Handle or the body began. */
       adjust?: Adjustment;
     }
   | {
-      /**
-       * Several selected Annotations, as the Annotation View's Card Selection
-       * set them. A group has no Mark Popup and no Mark Handles.
-       *
-       * @see apps/obsidian/docs/adr/0061-the-annotation-view-owns-its-card-selection.md
-       */
       kind: "group";
-      /** The selected Annotations, two or more, by Indexed Key. */
       keys: readonly string[];
     }
   | {
       kind: "create";
-      /** The settled selection, placed on the page's characters. */
       captured: SelectedText;
       anchorAt: AnchorAt;
-      /** Whether the comment sheet stands open under the row. */
       commenting: boolean;
-      /** Whether a create from this selection is waiting on Zotero. */
       inFlight: boolean;
     }
   | Capture
   | TextDraft;
 
-/**
- * The Ink Stroke the pointer is drawing, as the last animation frame smoothed
- * it: one path, unrounded, on the page the press fell on. It sits beside the
- * floating surface rather than in it: a stroke opens no popup and dismisses
- * none.
- */
 export interface LiveStroke extends InkPosition {
   color: string;
 }
 
-/**
- * An Ink Stroke released and rounded, drawn on its page while its create is
- * in flight, until the read that holds its record takes its place.
- */
 export interface PendingStroke extends InkPosition {
-  /** Tells one in-flight create's stroke from another's. */
   id: number;
   color: string;
-  /** The created Annotation's Indexed Key, once Zotero named it. */
   key?: string;
 }
 
 export interface ReaderSurfaceState {
-  /** The tool a released selection commits with, or `null` while none is armed. */
   armed: MarkTool | null;
-  /** Whether the Annotation Marks are drawn over the pages. */
   marksVisible: boolean;
-  /** Every tool's colour, as the settings-backed tool colour store holds it. */
   colors: Readonly<Record<AnnotationTool, string>>;
-  /** The colours used last, most recent first, which every tool shares. */
   recentColors: readonly string[];
-  /** What this Attachment's Annotations may be edited to right now. */
   capability: EditingCapability;
-  /**
-   * The instant {@link ReaderSurfaceState.capability} was ingested at. The
-   * Creation Toolbar's copy is read against it, so the countdown's tick moves
-   * the affordance and leaves the toolbar still.
-   */
   capabilityAt: Temporal.Instant;
-  /** The instant a cooldown's remaining seconds are measured from. */
   now: Temporal.Instant;
   floating: Floating;
-  /** The Ink Stroke being drawn, or `null` while none is. */
   liveStroke: LiveStroke | null;
-  /** The released Ink Strokes whose creates are in flight, in release order. */
   pendingStrokes: readonly PendingStroke[];
-  /** Every Annotation of this Attachment, as the last read answered them. */
   records: readonly AnnotationRecord[];
-  /**
-   * What the last write left on each Annotation, by Indexed Key. A key with no
-   * entry is idle.
-   */
   mutations: ReadonlyMap<string, MutationState>;
-  /** The shared comment drafts, by Indexed Key. */
   commentDrafts: ReadonlyMap<string, TextFieldDraft>;
-  /** The shared tag drafts, by Indexed Key. */
   tagDrafts: ReadonlyMap<string, TagDraft>;
 }
 
-/** A change to the Reader Surface State: the same state when nothing changes. */
 export type Transition = (state: ReaderSurfaceState) => ReaderSurfaceState;
 
-/** A change that also answers what the caller acts on next. */
 export type Step<A> = (state: ReaderSurfaceState) => [A, ReaderSurfaceState];
 
-/** The state a bound PDF view starts from: no tool armed, nothing floating. */
 export function initialReaderSurfaceState({
   colors,
   recentColors = [],
@@ -288,12 +173,6 @@ export function initialReaderSurfaceState({
   };
 }
 
-/**
- * Arms a tool, or stands the armed one down for `null`. Arming a tool that
- * takes a click or a stroke clears the floating surface, so no Mark Handle
- * stands to take a press meant to place a mark or to draw. A Text Draft stays:
- * the tool change finishes it, which may save it.
- */
 export const arm =
   (tool: MarkTool | null): Transition =>
   (state) => {
@@ -313,11 +192,6 @@ export const toggleMarks: Transition = (state) => ({
   marksVisible: !state.marksVisible,
 });
 
-/**
- * Takes the capability the repository now answers. One with the same meaning
- * as the held one keeps the held object and only moves the clock, so a
- * repeated announcement changes no subscriber's slice.
- */
 export const ingestCapability =
   (capability: EditingCapability, now: Temporal.Instant): Transition =>
   (state) =>
@@ -332,7 +206,6 @@ export const tick =
 
 const NONE: Floating = { kind: "none" };
 
-/** The state with `floating` in place, or the same state if it already is. */
 function withFloating(
   state: ReaderSurfaceState,
   floating: Floating,
@@ -340,16 +213,6 @@ function withFloating(
   return state.floating === floating ? state : { ...state, floating };
 }
 
-/**
- * Takes an Annotation as the selection, or clears it for `null`. A repeat
- * selection of the same mark keeps its comment editor open.
- *
- * @param options.stack the marks under the point that selected it, smallest
- *   first; the mark alone where no point did.
- * @param options.quiet whether the popup stays closed until the next selection.
- * @param options.commenting whether the comment editor opens with the
- *   selection, as it does for a note just placed.
- */
 export const selectMark =
   (
     key: string | null,
@@ -377,7 +240,6 @@ export const selectMark =
     );
   };
 
-/** The floating surface of one selected mark, its editors as given. */
 function selectedMark(
   key: string,
   stack: readonly string[] | undefined,
@@ -393,25 +255,16 @@ function selectedMark(
   };
 }
 
-/**
- * Takes two or more Annotations as one selection, which draws no popup and no
- * handles.
- */
 export const selectGroup =
   (keys: readonly string[]): Transition =>
   (state) =>
     withFloating(state, { kind: "group", keys: [...keys] });
 
-/** A floating surface the Mark Popup never hangs over. */
 export type PopuplessFloating = Extract<
   Floating,
   { kind: "none" | "capture" | "text-draft" | "group" }
 >;
 
-/**
- * Whether nothing floats that the Mark Popup hangs over: nothing, an image
- * capture, a Text Draft, or a group.
- */
 export function drawsNoPopup(
   floating: Floating,
 ): floating is PopuplessFloating {
@@ -425,7 +278,6 @@ export function drawsNoPopup(
 
 export const clearFloating: Transition = (state) => withFloating(state, NONE);
 
-/** A settled selection takes the floating surface, whatever held it. */
 export const captureSelection =
   ({
     captured,
@@ -443,12 +295,10 @@ export const captureSelection =
       inFlight: false,
     });
 
-/** Forward through the selected mark's stack, wrapping at its end. */
 export const stepStack: Transition = (state) => {
   const { floating } = state;
   if (floating.kind !== "selected" || floating.stack.length < 2) return state;
   const index = (floating.index + 1) % floating.stack.length;
-  // A Geometry Edit stands on the mark it began on, not on the next one.
   const { adjust: _adjust, ...selected } = floating;
   return withFloating(state, {
     ...selected,
@@ -459,11 +309,6 @@ export const stepStack: Transition = (state) => {
   });
 };
 
-/**
- * Begins a Geometry Edit on the selected mark, proposing its confirmed
- * position. Nothing begins while no mark with a PDF rects, ink or text
- * position is selected.
- */
 export const beginAdjust =
   ({ grip, from }: Pick<Adjustment, "grip" | "from">): Transition =>
   (state) => {
@@ -477,11 +322,6 @@ export const beginAdjust =
     });
   };
 
-/**
- * Takes the position the pointer now proposes, with the quoted text of a text
- * range's. A move that stores the same as the held proposal changes nothing,
- * so no subscriber redraws; a saving adjustment takes no more moves.
- */
 export const moveAdjust =
   (proposal: EditablePosition, text?: string): Transition =>
   (state) => {
@@ -502,7 +342,6 @@ export const moveAdjust =
     });
   };
 
-/** Ends the adjustment and draws the mark from its record again. */
 export const cancelAdjust: Transition = (state) => {
   const { floating } = state;
   if (floating.kind !== "selected" || !floating.adjust) return state;
@@ -510,13 +349,6 @@ export const cancelAdjust: Transition = (state) => {
   return withFloating(state, selected);
 };
 
-/**
- * Ends the drag at a release. A proposal that stores the same as the
- * confirmed record ends the adjustment; any other is held, `saving`, while
- * the caller writes it.
- *
- * Answers the proposal to save, or `null` for a release that changed nothing.
- */
 export const endAdjust: Step<EditablePosition | null> = (state) => {
   const { floating, records } = state;
   if (floating.kind !== "selected" || !floating.adjust) return [null, state];
@@ -538,10 +370,6 @@ export const endAdjust: Step<EditablePosition | null> = (state) => {
   ];
 };
 
-/**
- * Begins an image capture at a press on a page, which takes the floating
- * surface from whatever held it. Nothing begins while a capture stands.
- */
 export const beginCapture =
   ({ pageIndex, from }: Pick<Capture, "pageIndex" | "from">): Transition =>
   (state) =>
@@ -555,11 +383,6 @@ export const beginCapture =
           phase: "pressed",
         });
 
-/**
- * Takes the rectangle the pointer now drags out. A move to the held
- * rectangle changes nothing, so no subscriber redraws; a saving capture takes
- * no more moves.
- */
 export const moveCapture =
   (rect: PdfRect): Transition =>
   (state) => {
@@ -574,12 +397,6 @@ export const moveCapture =
     return withFloating(state, { ...floating, rect, phase: "dragging" });
   };
 
-/**
- * Ends the capture at a release. A rectangle big enough to keep is held,
- * `saving`, while the caller creates it; any other ends the capture.
- *
- * Answers the rectangle to create, or `null` for a release that keeps none.
- */
 export const endCapture: Step<PdfRect | null> = (state) => {
   const { floating } = state;
   if (floating.kind !== "capture" || floating.phase === "saving")
@@ -588,18 +405,9 @@ export const endCapture: Step<PdfRect | null> = (state) => {
   return [floating.rect, withFloating(state, { ...floating, phase: "saving" })];
 };
 
-/** Ends the capture, whatever phase it stands in, and draws nothing for it. */
 export const cancelCapture: Transition = (state) =>
   state.floating.kind === "capture" ? clearFloating(state) : state;
 
-/**
- * Opens a Text Draft at a click on a page, which takes the floating surface
- * from whatever held it, and stands the armed tool down in the same update,
- * as Zotero's text tool stands down once it has placed its box. The box
- * starts as Zotero's does: a square one font size wide, centred on the click.
- *
- * @see https://github.com/zotero/reader/blob/df215c60334d2d0c7b1fbc9f3959b66afc1ced83/src/pdf/pdf-view.js#L3123-L3151
- */
 export const openTextDraft =
   ({
     pageIndex,
@@ -607,7 +415,6 @@ export const openTextDraft =
     fontSize,
     color,
   }: Pick<TextDraft, "pageIndex" | "fontSize" | "color"> & {
-    /** Where the click fell, in PDF points on that page. */
     at: PdfPoint;
   }): Transition =>
   (state) => {
@@ -629,13 +436,6 @@ export const openTextDraft =
     };
   };
 
-/**
- * Takes what the Text Draft now holds, and refits its box to it from the box
- * it had, as Zotero's reader refits a text box on each edit. A draft that is
- * saving takes no more typing.
- *
- * @param options.pageBox the page's view box, in PDF points.
- */
 export const refitTextDraft =
   (
     text: string,
@@ -656,12 +456,6 @@ export const refitTextDraft =
     return withFloating(state, { ...draft, text, box });
   };
 
-/**
- * Finishes the Text Draft. One holding text beyond whitespace is held,
- * `saving`, while the caller creates it; any other goes.
- *
- * Answers the draft to create, or `null` for one that creates nothing.
- */
 export const finishTextDraft: Step<TextDraft | null> = (state) => {
   const draft = selectTextDraft(state);
   if (draft?.phase !== "typing") return [null, state];
@@ -670,11 +464,6 @@ export const finishTextDraft: Step<TextDraft | null> = (state) => {
   return [saving, withFloating(state, saving)];
 };
 
-/**
- * A create answered with the Annotation's Indexed Key. The draft goes at once
- * where a read already holds that record; otherwise it carries the key, and
- * the read that brings the record takes it.
- */
 export const settleTextDraft =
   (key: string): Transition =>
   (state) =>
@@ -682,14 +471,9 @@ export const settleTextDraft =
       ? withFloating(state, heldBy({ ...state.floating, key }, state.records))
       : state;
 
-/** Takes a Text Draft whose create failed, or never ran, off the page. */
 export const dropTextDraft: Transition = (state) =>
   state.floating.kind === "text-draft" ? clearFloating(state) : state;
 
-/**
- * Opens or closes the comment editor or sheet of whatever is floating. The
- * comment editor opens in place of the tag editor.
- */
 export const setCommenting =
   (commenting: boolean): Transition =>
   (state) => {
@@ -708,10 +492,6 @@ export const setCommenting =
     );
   };
 
-/**
- * Opens or closes the selected mark's tag editor. The tag editor opens in
- * place of the comment editor.
- */
 export const setTagging =
   (tagging: boolean): Transition =>
   (state) => {
@@ -734,10 +514,6 @@ export const setInFlight =
     return withFloating(state, { ...floating, inFlight });
   };
 
-/**
- * Takes the Attachment's Annotations as the last read answered them. A
- * selected Annotation the read no longer holds stands down in the same update.
- */
 export const ingestRecords =
   (records: readonly AnnotationRecord[]): Transition =>
   (state) => ({
@@ -747,16 +523,6 @@ export const ingestRecords =
     pendingStrokes: unheldStrokes(state.pendingStrokes, records),
   });
 
-/**
- * The Pending Strokes a read does not hold yet. A record takes a stroke's
- * place once it carries the stroke's Indexed Key, or stores the very points,
- * width and colour the create sent — which is how a read that answers before
- * the create has returned still swaps the two in one update.
- *
- * Two strokes that round to the same points in the same pen — two taps on one
- * spot — are one stroke to that match: the first record to land takes both,
- * and the second shows again as its own mark once its record lands.
- */
 function unheldStrokes(
   pending: readonly PendingStroke[],
   records: readonly AnnotationRecord[],
@@ -778,12 +544,10 @@ function unheldStrokes(
   return unheld.length === pending.length ? pending : unheld;
 }
 
-/** A stroke as Zotero stores it: its rounded position, pen and colour. */
 function strokeIdentity(position: InkPosition, color: string): string {
   return `${color.toLowerCase()} ${writePosition(position)}`;
 }
 
-/** Publishes the stroke as the pointer has drawn it by this frame. */
 export const publishLiveStroke =
   (liveStroke: LiveStroke): Transition =>
   (state) => ({ ...state, liveStroke });
@@ -795,11 +559,6 @@ export const appendPendingStroke =
   (stroke: PendingStroke): Transition =>
   (state) => ({ ...state, pendingStrokes: [...state.pendingStrokes, stroke] });
 
-/**
- * A create answered with the Annotation's Indexed Key. The stroke goes at
- * once where a read already holds that record; otherwise it carries the key,
- * and the read that brings the record takes it.
- */
 export const settlePendingStroke =
   ({ id, key }: { id: number; key: string }): Transition =>
   (state) => ({
@@ -812,7 +571,6 @@ export const settlePendingStroke =
     ),
   });
 
-/** Takes a stroke whose create failed, or never ran, off the page. */
 export const dropPendingStroke =
   (id: number): Transition =>
   (state) => ({
@@ -820,13 +578,6 @@ export const dropPendingStroke =
     pendingStrokes: state.pendingStrokes.filter((stroke) => stroke.id !== id),
   });
 
-/**
- * What floats, stood down if it is a selection the records no longer hold, or
- * a saving Text Draft they now hold. A record takes a draft's place once it
- * carries the draft's Indexed Key, or stores the very box, colour and text the
- * create sent, which is how a read that answers before the create has
- * returned still swaps the two in one update.
- */
 function heldBy(
   floating: Floating,
   records: readonly AnnotationRecord[],
@@ -864,7 +615,6 @@ function heldBy(
     : floating;
 }
 
-/** The text position a Text Draft is created at: its fitted box, unrounded. */
 export function textDraftPosition({
   pageIndex,
   fontSize,
@@ -874,10 +624,6 @@ export function textDraftPosition({
   return { pageIndex, fontSize, rotation, rects: [box] };
 }
 
-/**
- * An Annotation a complete read confirmed gone leaves at once, with what a
- * write and a draft held on it.
- */
 export const dropRecord =
   (key: string): Transition =>
   ({ records, mutations, commentDrafts, tagDrafts, floating, ...state }) => {
@@ -894,18 +640,11 @@ export const dropRecord =
     };
   };
 
-/**
- * Takes one Annotation's whole state. A gone Annotation leaves with all it
- * held; a draft a database switch hid closes its editor, where a draft that
- * ended with its save leaves the editor as it stands.
- */
 export const ingestAnnotationState =
   (key: string, annotation: AnnotationState): Transition =>
   (state) => {
     if (annotation.gone) return dropRecord(key)(state);
     let next = state;
-    // Only a draft this state still holds is hidden: the switch closes its
-    // editor once, not every editor opened on the Annotation after it.
     if (annotation.hidden) {
       const comment = next.commentDrafts.get(key);
       const tags = next.tagDrafts.get(key);
@@ -919,10 +658,6 @@ export const ingestAnnotationState =
     return ingestTagDraft(key, annotation.tagDraft)(next);
   };
 
-/**
- * Takes what a write now leaves on one Annotation. One equal to the held state
- * changes nothing, so a repeated announcement fires no subscriber.
- */
 export const ingestMutation =
   (key: string, mutation: MutationState): Transition =>
   (state) => {
@@ -934,11 +669,6 @@ export const ingestMutation =
     return { ...state, mutations };
   };
 
-/**
- * Takes one Annotation's comment draft, or its absence once a save settled it.
- * A draft that turns into a Write Conflict closes its editor in the same
- * update, so the row can offer the conflict's choices.
- */
 export const ingestCommentDraft =
   (key: string, draft: TextFieldDraft | null): Transition =>
   (state) => {
@@ -954,11 +684,6 @@ export const ingestCommentDraft =
     };
   };
 
-/**
- * Takes one Annotation's tag draft, or its absence once its save settled. The
- * repository hands back the same draft while it stands unchanged, so a comment
- * change announced on the same event leaves this one alone.
- */
 const ingestTagDraft =
   (key: string, draft: TagDraft | null): Transition =>
   (state) =>
@@ -966,7 +691,6 @@ const ingestTagDraft =
       ? state
       : { ...state, tagDrafts: withDraft(state.tagDrafts, key, draft) };
 
-/** A database switch hid this draft; its editor closes in the same update. */
 export const hideCommentDraft =
   (key: string): Transition =>
   (state) => ({
@@ -975,10 +699,6 @@ export const hideCommentDraft =
     floating: closedEditor(state.floating, key),
   });
 
-/**
- * A database switch hid this tag draft; its editor closes in the same update,
- * with nothing to save.
- */
 const hideTagDraft =
   (key: string): Transition =>
   (state) => {
@@ -993,10 +713,6 @@ const hideTagDraft =
     };
   };
 
-/**
- * Whether the repository hid a held draft: it answers none for the Annotation,
- * or one that another database began.
- */
 function hidden(
   held: { serverID: string },
   now: { serverID: string } | null,
@@ -1015,7 +731,6 @@ function withDraft<T>(
   return next;
 }
 
-/** The floating surface with the selected mark's editor closed, if it is `key`'s. */
 function closedEditor(floating: Floating, key: string): Floating {
   return floating.kind === "selected" &&
     floating.key === key &&
@@ -1040,11 +755,6 @@ export function selectCreationToolbar({
   });
 }
 
-/**
- * The affordance the reader's toolbar shows, or `null` while it shows none.
- * Authorization is offered in the Annotation View and settings, so only the
- * two states a reader waits out are shown here.
- */
 export function selectCapabilityAffordance({
   capability,
   now,
@@ -1054,7 +764,6 @@ export function selectCapabilityAffordance({
     : null;
 }
 
-/** What decides whether the popup's row is rebuilt rather than refreshed. */
 export interface FloatingHead {
   kind: Floating["kind"];
   key: string | null;
@@ -1073,32 +782,24 @@ export function selectFloatingHead({
   };
 }
 
-/** The Text Draft on a page, or `null` while none stands. */
 export function selectTextDraft({
   floating,
 }: ReaderSurfaceState): TextDraft | null {
   return floating.kind === "text-draft" ? floating : null;
 }
 
-/** The image capture being dragged out, or `null` while none stands. */
 export function selectCapture({
   floating,
 }: ReaderSurfaceState): Capture | null {
   return floating.kind === "capture" ? floating : null;
 }
 
-/** The selected Annotation's Indexed Key, or `null` while none is selected. */
 export function selectSelectedKey({
   floating,
 }: ReaderSurfaceState): string | null {
   return floating.kind === "selected" ? floating.key : null;
 }
 
-/**
- * Whether the selected mark carries its Mark Handles: a mark selected alone
- * does while editing is live, and a group does not. A Locked Annotation
- * carries none, since its lock refuses the Geometry Edit they begin.
- */
 export function selectMarkHandles(state: ReaderSurfaceState): boolean {
   const key = selectSelectedKey(state);
   if (key === null || !editingLive(state.capability)) return false;
@@ -1106,10 +807,6 @@ export function selectMarkHandles(state: ReaderSurfaceState): boolean {
   return lockBlock(record?.lock ?? null, "geometry") === null;
 }
 
-/**
- * The Indexed Keys of every selected Annotation: the one selected mark, or a
- * group. Empty while none is selected.
- */
 export function selectSelectedKeys({
   floating,
 }: ReaderSurfaceState): readonly string[] {
@@ -1117,14 +814,12 @@ export function selectSelectedKeys({
   return floating.kind === "group" ? floating.keys : [];
 }
 
-/** The Geometry Edit on the selected mark, or `null` while none stands. */
 export function selectAdjust({
   floating,
 }: ReaderSurfaceState): Adjustment | null {
   return floating.kind === "selected" ? (floating.adjust ?? null) : null;
 }
 
-/** The selected Annotation's comment draft, or `null` while it has none. */
 export function selectSelectedDraft({
   floating,
   commentDrafts,
@@ -1134,7 +829,6 @@ export function selectSelectedDraft({
     : null;
 }
 
-/** The selected Annotation's tag draft, or `null` while it has none. */
 export function selectSelectedTagDraft({
   floating,
   tagDrafts,
@@ -1144,18 +838,10 @@ export function selectSelectedTagDraft({
     : null;
 }
 
-/** What the selected-mode popup is drawn from: its row's input, and its editor. */
 export interface SelectedRowInput extends MarkPopupRowInput {
-  /** Whether the comment editor stands open under the comment pencil. */
   commenting: boolean;
 }
 
-/**
- * What the selected-mode row is decided from, or `null` while no mark is
- * selected or its Annotation is not among the records. The copy is read
- * against the instant the capability was ingested, as the toolbar's is, so a
- * cooldown's tick leaves the row still.
- */
 export function selectSelectedRowInput({
   floating,
   records,
@@ -1177,34 +863,20 @@ export function selectSelectedRowInput({
   };
 }
 
-/** The last record of the selected row: what the popup draws beyond its verbs. */
 export interface SelectedRowHead {
   key: string;
   color: string | null;
   stackIndex: number;
   stackTotal: number;
-  /** Held by identity: the state keeps the object while it means the same. */
   mutation: MutationState;
   draft: TextFieldDraft | null;
-  /** The stored comment the popup renders under its row. */
   comment: string | null;
-  /** Held by identity, as {@link SelectedRowHead.draft} is. */
   tagDraft: TagDraft | null;
 }
 
-/**
- * One stored tag the popup renders under the comment, compared by value: a
- * re-read hands back new records for the same tags. The type is absent where
- * the record holds names alone.
- */
 type SelectedRowTag = Pick<AnnotationTag, "name"> &
   Partial<Pick<AnnotationTag, "type">>;
 
-/**
- * The selected-mode row as flat records, for {@link sameFlatList}: the verbs as
- * {@link markPopupRow} decides them, one record per stored tag, then one record
- * for the rest. Empty while no row stands.
- */
 export function selectSelectedRow(
   state: ReaderSurfaceState,
 ): readonly (MarkPopupVerb | SelectedRowTag | SelectedRowHead)[] {
@@ -1228,13 +900,8 @@ export function selectSelectedRow(
   ];
 }
 
-/** How many swatches the create-mode row offers; the `1`–`8` keys reach all. */
 const CREATE_POPUP_SWATCHES = 4;
 
-/**
- * What the create-mode row is decided from, or `null` while no selection
- * waits. Read against the instant the capability was ingested, as above.
- */
 export function selectCreateRowInput({
   floating,
   armed,
@@ -1255,11 +922,6 @@ export function selectCreateRowInput({
   };
 }
 
-/**
- * The create-mode row as flat records, for {@link sameFlatList}: each control
- * without the action it runs and the classes it wears, which its id already
- * names. Empty while no selection waits.
- */
 export function selectCreateRow(
   state: ReaderSurfaceState,
 ): readonly Omit<CreatePopupControl, "action" | "cls">[] {
@@ -1271,7 +933,6 @@ export function selectCreateRow(
     : [];
 }
 
-/** Whether two capabilities mean the same: one reason, and one deadline. */
 export function sameCapability(
   a: EditingCapability,
   b: EditingCapability,
@@ -1282,7 +943,6 @@ export function sameCapability(
     : true;
 }
 
-/** Whether two flat records, or two `null`s, hold equal primitive fields. */
 export function sameFlat<T extends object>(a: T | null, b: T | null): boolean {
   if (a === null || b === null) return a === b;
   const keys = Object.keys(a) as (keyof T)[];
@@ -1292,7 +952,6 @@ export function sameFlat<T extends object>(a: T | null, b: T | null): boolean {
   );
 }
 
-/** Whether two lists of flat records hold equal records in the same order. */
 export function sameFlatList<T extends object>(
   a: readonly T[],
   b: readonly T[],

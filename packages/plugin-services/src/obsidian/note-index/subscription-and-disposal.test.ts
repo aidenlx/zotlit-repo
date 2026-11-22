@@ -7,7 +7,6 @@ import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { cache, makeHarness } from "./__fixtures__.ts";
 import type { NoteIndexChange } from "./service.ts";
 
-// Attaching late must not lose the first invalidations.
 it.effect("a throwing subscriber receives both immediate edits", () =>
   Effect.gen(function* () {
     const { metadataCache, vault, service } = yield* makeHarness(
@@ -37,7 +36,6 @@ it.effect("a throwing subscriber receives both immediate edits", () =>
   }),
 );
 
-// The owning stack disposes the whole ManagedRuntime, not just its layer.
 it.effect("every adapter method remains usable after runtime disposal", () =>
   Effect.gen(function* () {
     const { service, close, metadataCache, vault } = yield* makeHarness(
@@ -105,8 +103,6 @@ it.effect("every adapter method remains usable after runtime disposal", () =>
   }),
 );
 
-// Failure modes: a stale event replayed on attach, loss of consecutive events,
-// or a callback after unsubscribe.
 it.effect(
   "the adapter resolves indexing and subscribes to future changes until unsubscribe",
   () =>

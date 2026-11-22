@@ -2,8 +2,6 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
-    // The suite reads the plugin's generated Message facade, so the type
-    // check needs it first.
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
@@ -12,8 +10,6 @@
         "@zotlit/pdf-reader#generate"
       ]
     },
-    // The ZotLit Query CLI cases read the generated Query Schema file, and the
-    // reader probe plugin bundles the reader's generated assets.
     "e2e": {
       "dependsOn": [
         "$TURBO_EXTENDS$",

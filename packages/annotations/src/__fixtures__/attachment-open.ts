@@ -1,7 +1,3 @@
-// The opener every ZotLit gesture opens through, over the real Attachment
-// resolver and a seeded Zotero database. The ZotLit PDF Reader and the system
-// handler are the host boundaries, so both are recorders.
-
 import { Context, Effect, Layer } from "effect";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
@@ -26,22 +22,12 @@ import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.t
 
 export const VAULT = "/fixture/vault";
 
-/** Where the seeded Attachments keep their files. */
 export const FILES = {
-  /** The Fixture's Rougier PDF: a linked file inside the vault. */
   rougier: `${VAULT}/attachments/rougier-2014.pdf`,
-  /** A Zotero-managed PDF outside the vault. */
   stored: `${DATA_DIR}/storage/PDFSTR22/sakimas song.pdf`,
-  /** A group Library's Zotero-managed PDF. */
   grouped: `${DATA_DIR}/storage/RGRGRUP9/shared.pdf`,
 } as const;
 
-/**
- * The Attachments an opener meets: the Rougier PDF, and a second Attachment
- * of its file that its path does not choose (`RGRCPYB8`, the higher item ID);
- * a stored PDF; an EPUB Obsidian cannot host; a web link that keeps no file;
- * and a group Library's PDF.
- */
 export const OPENER_ROWS = `
   insert into libraries (libraryID, type) values (1, 'user'), (2, 'group');
   insert into groups (groupID, libraryID, name)
@@ -72,21 +58,12 @@ export interface OpenerHarnessOptions extends Omit<
   ResolverHarnessOptions,
   "rows"
 > {
-  /** Files the reader finds missing at the open. */
   missing?: readonly string[];
-  /** Files whose open the reader fails. */
   broken?: readonly string[];
   native?: NativeOpener;
   settings?: Settings;
 }
 
-/**
- * The opener over the real resolver of {@link OPENER_ROWS}, on a runtime that
- * also carries `context` — a test's `TestClock`, for one. The reader records
- * each open, finds no file at the paths in `missing` and fails at the paths
- * in `broken`; the system handler records each link unless `native` takes
- * it; the Notifier records each notice. `close` disposes it.
- */
 export async function openOpener(
   {
     missing = [],
@@ -145,7 +122,6 @@ export async function openOpener(
   return {
     ...harness,
     opener,
-    /** Runs on the opener's runtime, which unload closes. */
     bridge: effectBridge(runtime),
     opened,
     handed,
@@ -154,7 +130,6 @@ export async function openOpener(
   };
 }
 
-/** {@link openOpener} on the test's own context, closed with its Scope. */
 export const openerFixture = Effect.fnUntraced(function* (
   options: OpenerHarnessOptions = {},
 ) {
@@ -165,7 +140,6 @@ export const openerFixture = Effect.fnUntraced(function* (
   );
 });
 
-/** {@link openOpener} for a Promise suite, disposed with `stack`. */
 export async function openerHarness(
   stack: AsyncDisposableStack,
   options: OpenerHarnessOptions = {},

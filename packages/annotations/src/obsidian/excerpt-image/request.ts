@@ -30,17 +30,11 @@ import { parseIndexedKey } from "@zotlit/zotero-types/keys";
 
 import type { ExcerptRequest } from "./contract.ts";
 
-/** The reads one excerpt request resolves through. */
 export type ExcerptRequestReads = Pick<
   ZoteroReadsApi,
   "AttachmentSources" | "DatabaseIdentity"
 >;
 
-/**
- * The file inputs one saved Annotation resolves through, under the paths of
- * the active source, or `null` where nothing can: no Annotation Source, a data
- * directory that moves during the read, or a database that cannot answer.
- */
 export function savedExcerptRequestFor(input: {
   annotation: AnnotationRecord;
   source: AnnotationSource | null;
@@ -61,11 +55,6 @@ export function savedExcerptRequestFor(input: {
   });
 }
 
-/**
- * {@link savedExcerptRequestFor} for Promise callers: the Annotation
- * Popover core. Unload
- * interrupts a pending read, which then resolves to `null`.
- */
 export function savedExcerptRequestOver(services: {
   readonly reads: ZoteroReads["Service"];
   readonly pref: ZoteroPref["Service"];
@@ -86,17 +75,11 @@ export function savedExcerptRequestOver(services: {
     );
 }
 
-/**
- * The request of a saved Annotation under `paths`, read from one Snapshot so
- * the identity and the attachment come from one database; `null` where the
- * data directory moves away from `paths` during the read, or the read fails.
- */
 function readSavedExcerptRequest<E>(options: {
   annotation: AnnotationRecord;
   source: AnnotationSource;
   paths: AttachmentPathContext;
   snapshot: Effect.Effect<ExcerptRequestReads, E, Scope.Scope>;
-  /** The data directory as it stands now. */
   dataDir: Effect.Effect<string>;
 }): Effect.Effect<ExcerptRequest | null> {
   const { annotation, source, paths } = options;
@@ -106,8 +89,6 @@ function readSavedExcerptRequest<E>(options: {
     return (yield* options.dataDir) === paths.dataDir ? request : null;
   }).pipe(
     Effect.scoped,
-    // A failed read, as a throw from a reader, resolves to nothing; an
-    // interrupt passes through.
     recover(
       (cause) =>
         Effect.logDebug("No excerpt request: the database did not answer").pipe(
@@ -122,10 +103,6 @@ function readSavedExcerptRequest<E>(options: {
   );
 }
 
-/**
- * Resolves file inputs only when the selected source identifies this database.
- * Fails where the database cannot answer.
- */
 export function excerptRequest(options: {
   annotation: AnnotationRecord;
   source: AnnotationSource;
@@ -139,12 +116,6 @@ export function excerptRequest(options: {
   );
 }
 
-/**
- * The database facts an excerpt request is verified and resolved against: the
- * database's identity, and the parent context of the attachment `parentKey`
- * names, with that attachment, `null` where the database holds none. Pass
- * Snapshot-bound reads, so both facts come from one database.
- */
 export function excerptInputs(reads: ExcerptRequestReads, parentKey: string) {
   return Effect.all(
     [
@@ -170,11 +141,6 @@ export function excerptInputs(reads: ExcerptRequestReads, parentKey: string) {
   );
 }
 
-/**
- * {@link excerptRequest} over database facts already read: the database's
- * identity and the Annotation's parent attachment, `null` where the database
- * holds none.
- */
 export function excerptRequestFrom(options: {
   annotation: AnnotationRecord;
   source: AnnotationSource;
@@ -208,25 +174,15 @@ export function excerptRequestFrom(options: {
   };
 }
 
-/** The reads {@link excerptRequestForKey} resolves one Indexed Key through. */
 export type ExcerptKeyReads = Pick<
   ZoteroReadsApi,
   "AnnotationSources" | "DatabaseIdentity" | "Libraries"
 >;
 
-/** A read of the database failed; `message` is the reader's own. */
 export class ExcerptSourceUnavailable extends Data.TaggedError(
   "ExcerptSourceUnavailable",
 )<{ readonly message: string }> {}
 
-/**
- * The excerpt request of the Annotation with Indexed Key `key`, read from the
- * database, or `null` where the source holds no Library of the key, no
- * Annotation has the key, or its Attachment is gone. Any Annotation type
- * yields a request; the caller decides whether it has an Excerpt Image. Pass
- * Snapshot-bound reads, so every fact comes from one database. Fails with
- * {@link ExcerptSourceUnavailable} where a read fails.
- */
 export function excerptRequestForKey(options: {
   reads: ExcerptKeyReads;
   key: string;
@@ -279,11 +235,6 @@ export function excerptRequestForKey(options: {
   );
 }
 
-/**
- * The Annotation record an excerpt request carries, from the Annotation's row
- * and its parent `attachment`. `position` defaults to the row's position read
- * by the attachment's content type.
- */
 export function annotationRecordOf(
   annotation: Annotation,
   attachment: Attachment,

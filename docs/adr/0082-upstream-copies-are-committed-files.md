@@ -36,3 +36,10 @@ Commit `fbce37433` committed `packages/pdfjs-dist` once, and commit `676074aaf` 
 - **Keep the submodules.** This keeps the costs in the context.
 - **Override `pdfjs-dist` with an upstream tarball.** pnpm accepts that source only for a direct dependency. For a transitive dependency, `blockExoticSubdeps` refuses it.
 - **Move the pdf.js types to a path that the scanner ignores.** No ignore pattern of the scanner fits a type package. Renaming the files to `.d.mts` would break their relative imports.
+
+Use `node packages/scripts/scripts/vendor-upstream.ts <source> [ref]`
+to refresh a named source. Resolve the optional commit, branch, or tag
+to one commit, with the upstream default branch as the fallback.
+Replace the vendored paths and record that commit in provenance.json
+so Git shows the complete upstream diff. Run the source's post-refresh
+step for its consumers.

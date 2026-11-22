@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { parseAttachmentPath } from "./zt-attach.ts";
 import type { LinkMode } from "./zt-attach.ts";
 
-/** A key that matches Zotero's 8-character key format. */
 const VALID_KEY = "ATCH2345";
 
 describe("parseAttachmentPath", () => {

@@ -2,8 +2,6 @@
   "extends": "./tsconfig.lib.json",
   "compilerOptions": {
     "noEmit": true,
-    // parity.test.ts reads the Fixture Spec from @zotlit/scripts, which uses
-    // Temporal.
     "lib": ["ES2025", "esnext.temporal"],
     "types": ["node"]
   },

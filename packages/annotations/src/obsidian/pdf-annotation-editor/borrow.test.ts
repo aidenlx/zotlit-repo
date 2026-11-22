@@ -1,6 +1,3 @@
-// The reader's borrowed-document accessor: what excerpt work may reach of an
-// open PDF view's document, and what a closed or replaced one withdraws.
-
 import type { FakeReader } from "#__fixtures__/pdf-annotation-editor.ts";
 import { FileSystemAdapter, Scope } from "obsidian";
 import type { App, EventRef, Vault, Workspace } from "obsidian";
@@ -31,7 +28,6 @@ function pdfView(path: string, reader: FakeReader = pdfReader()) {
     file: { path },
     fake: reader,
     containerEl: document.createElement("div"),
-    // `View.scope` — the Scope Obsidian gives every PDF view.
     scope: new Scope(),
   };
 }
@@ -52,17 +48,14 @@ function workspace() {
   return app;
 }
 
-/** The Note Index each test opened, released after it. */
 let noteIndexes = new AsyncDisposableStack();
 
-/** The real Note Index over a vault with no Literature Note. */
 async function emptyNoteIndex() {
   return (await openNoteVault({}, noteIndexes)).noteIndex.runtime.runSync(
     NoteIndex,
   );
 }
 
-/** A bound PDF view, and the registry that owns it. */
 async function readerRegistry(
   view: ReturnType<typeof pdfView>,
   { opened = true }: { opened?: boolean } = {},
@@ -80,8 +73,6 @@ async function readerRegistry(
   return service;
 }
 
-// The Reader Keymap binds the Annotation History keys for the host platform,
-// which every binding these tests build reads as it mounts.
 beforeEach(() => {
   setMockPlatform({ isMacOS: false });
 });

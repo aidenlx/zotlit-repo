@@ -11,12 +11,6 @@ import { deletedItems, itemAnnotations } from "#drizzle/schema.ts";
 
 export interface AnnotViewAttachment {
   itemID: number;
-  /**
-   * The Attachment's Indexed Key — the one identity the view, the reader, and
-   * the Zotero Local API share. `itemID` stays adapter data for the read here.
-   *
-   * @see apps/obsidian/docs/adr/0033-zotero-object-identity-is-the-indexed-key-server-id-is-source-data.md
-   */
   indexedKey: string;
   path: string | null;
   annotCount: number;
@@ -99,14 +93,6 @@ const annotationCountQuery = defineQuery<{ parentItemID: number }>()(
       ),
 );
 
-/**
- * How many live Annotations one Attachment holds, for the label the attachment
- * picker shows. The Annotations themselves are read through the annotation
- * repository, which answers from whichever Annotation Source is active rather
- * than from SQLite alone.
- *
- * @see apps/obsidian/docs/adr/0034-the-annotation-source-is-atomic-per-attachment.md
- */
 export function getAttachmentAnnotationCount(
   db: ZoteroDatabase,
   attachmentItemID: number,

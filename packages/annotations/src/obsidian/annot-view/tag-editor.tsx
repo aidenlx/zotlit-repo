@@ -1,7 +1,3 @@
-// The inline Annotation Tags editor: `TagsInput` with the view's own tag chips,
-// automatic tags marked, and the Library's tag names in Obsidian's suggestion
-// popup.
-
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
 import {
   AbstractInputSuggest,
@@ -29,69 +25,22 @@ import type { EditorSurface, HeldDraftActions } from "./editor-sheet.ts";
 
 import { tagChipVariants } from "#core/annot-view/tag-chip.ts";
 
-/**
- * Ends a tag editing session as its editor would: the text still typed is
- * added first, unless `withText` is `false`, as for Escape.
- */
 export type EndTagSession = (withText?: boolean) => void;
 
 export interface TagEditorProps {
-  /** The session's current names, in order. */
   names: readonly string[];
-  /** The names Zotero holds as automatic tags. */
   auto: ReadonlySet<string>;
-  /**
-   * The line under the editor, as the comment editor says it: why the last
-   * save failed, or why editing stopped while a save is in flight.
-   */
   hint: string | null;
-  /** The tag names of the Annotation's Library, read when the editor opens. */
   libraryNames: () => Promise<readonly string[]>;
   onChange: (names: string[]) => void;
-  /** The session ends, once: after this call the editor changes nothing. */
   onClose: () => void;
-  /**
-   * Focus left the editor: the session ends with the typed text added, and
-   * the editor stays open for the next session. Absent, leaving ends the
-   * session through {@link onClose}.
-   */
   onLeave?: () => void;
-  /**
-   * The last session's save is in flight: the field keeps the caret but is
-   * read-only until the save settles, as the draft takes no change, and a
-   * blur saves nothing more.
-   */
   saving?: boolean;
-  /**
-   * Where the editor puts its own end of the session, for a gesture outside
-   * it, such as the card's tag toggle.
-   */
   endSession: RefObject<EndTagSession | null>;
-  /**
-   * What focus may move within without ending the session; the editor itself
-   * by default. The Mark Popup passes its content, so its own verbs stand
-   * beside the editor.
-   */
   within?: HTMLElement;
-  /**
-   * Where the editor puts Obsidian's suggestion popup while it shows, for a
-   * surface that stands down on a press outside itself: the popup hangs
-   * outside the editor, and a press on a suggestion picks it.
-   */
   suggestRef?: RefObject<HTMLElement | null>;
 }
 
-/**
- * One tag editing session, drawn in place of the tag chips. Enter adds the
- * typed name and a comma stays part of it. Focus leaving the editor, the
- * editor going away, or {@link TagEditorProps.endSession} ends the session with
- * the typed text added; Escape anywhere in the editor ends it without that
- * text. After the end, a change such as a late pick changes nothing. With
- * {@link TagEditorProps.onLeave}, focus leaving ends the session and keeps the
- * editor open, and the next change starts a new one.
- *
- * @see apps/obsidian/docs/adr/0063-annotation-tags-save-once-per-editing-session-and-merge-by-name.md
- */
 export function TagEditor({
   names,
   auto,
@@ -110,9 +59,6 @@ export function TagEditor({
       <TagsInput.Root
         value={names}
         onValueChange={onChange}
-        // A press on a chip keeps the focus in the field, so it neither ends the
-        // session nor lands on the surface around the editor. A press on the
-        // editor's own empty space is Root's to answer.
         onMouseDown={(event) => {
           const target = event.target as HTMLElement;
           if (target === event.currentTarget) return;
@@ -177,10 +123,6 @@ export function TagEditor({
   );
 }
 
-/**
- * The text field, with the Library's names attached as Obsidian's suggestion
- * popup. The field takes focus as the editor opens.
- */
 function TagField({
   libraryNames,
   onClose,
@@ -204,13 +146,7 @@ function TagField({
   const inputRef = useRef<HTMLInputElement>(null);
   const labelId = useUniqueId();
   const suggest = useRef<TagSuggest | null>(null);
-  /**
-   * Whether the session has ended. Every way out runs through {@link end},
-   * and only the first one counts: Escape and the blur of the field it
-   * disables both end the same session.
-   */
   const ended = useRef(false);
-  // The suggester and the focus listener outlive renders; they read these.
   const latest = useRef({
     value,
     add,
@@ -236,13 +172,6 @@ function TagField({
     const input = inputRef.current;
     const editor = input?.closest<HTMLElement>("[data-slot=tags-input]");
     if (!input || !editor) return;
-    /**
-     * Ends the session. `add` hands the names on at once, so the text still
-     * typed is in the draft before the save reads it.
-     *
-     * @param close whether the editor closes with the session; otherwise it
-     *   stays open for the next one.
-     */
     const end = (withText: boolean, close = true): void => {
       if (ended.current) return;
       if (close) ended.current = true;
@@ -251,8 +180,6 @@ function TagField({
       if (close) latest.current.onClose();
       else latest.current.onLeave?.();
     };
-    // Read once as the editor opens. The popup answers Enter synchronously,
-    // so it offers the names once they land and none before.
     let library: readonly string[] = [];
     void latest.current.libraryNames().then((names) => {
       library = names;
@@ -260,8 +187,6 @@ function TagField({
     suggest.current = new TagSuggest(app, input, {
       names: () => library,
       taken: () => latest.current.value,
-      // A pick that lands after the end, such as a click on a suggestion
-      // that outlived its editor, adds nothing.
       pick: (name) => {
         if (!ended.current) latest.current.add(name);
       },
@@ -270,11 +195,6 @@ function TagField({
         if (ref) ref.current = el;
       },
     });
-    // Escape closes the editor alone, never a surface around it, wherever in
-    // the editor focus stands: the field or a chip's remove button. The
-    // surface's own Scope hears a key before the editor does, so the editor
-    // takes Escape on a Scope of its own while focus stands in it; the
-    // suggestion popup pushes its Scope above this one while it shows.
     const scope = new Scope(app.scope);
     scope.register([], "Escape", (event) => {
       if (composing(event)) return;
@@ -282,14 +202,10 @@ function TagField({
       return false;
     });
     const keys = holdScopeWhileFocused(editor, scope, { keymap: app.keymap });
-    // Focus moving between the field and a remove button stays inside the
-    // session; focus leaving the editor ends it, and closes the editor unless
-    // the surface keeps it open for the next session.
     const leave = (event: FocusEvent) => {
       const { within, onLeave, saving } = latest.current;
       if ((within ?? editor).contains(event.relatedTarget as Node | null))
         return;
-      // The save in flight is the last session's; leaving adds none.
       if (onLeave && saving) return;
       end(true, !onLeave);
     };
@@ -302,16 +218,12 @@ function TagField({
       suggest.current?.close();
       suggest.current = null;
       endSession.current = null;
-      // An editor that goes with no blur — the view closing, the item
-      // changing, the card leaving the list — still ends its session.
       end(true);
     };
   }, [app, endSession]);
 
   return (
     <>
-      {/* The field's name, held apart so that the pointer passes over the
-          field with no tooltip. */}
       <span id={labelId} hidden>
         {m.annot_view_card_tag_placeholder()}
       </span>
@@ -323,7 +235,6 @@ function TagField({
         autoComplete="off"
         readOnly={saving}
         onBlur={(event) => {
-          // A session that has ended takes no more text.
           if (ended.current) event.preventDefault();
         }}
       />
@@ -331,11 +242,6 @@ function TagField({
   );
 }
 
-/**
- * The tags the user holds that Zotero has not taken, in the tag row's place,
- * with the verbs that end them; see {@link renderHeldTagsPanel}. The card and
- * the Mark Popup both draw it.
- */
 export function HeldTagsPanel({
   held,
   surface,
@@ -346,12 +252,8 @@ export function HeldTagsPanel({
   actions: HeldDraftActions;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  // The panel outlives renders; its verbs read this render's callbacks.
   const latest = useRef(actions);
   latest.current = actions;
-  // A redraw between press and release would drop the click, so the panel
-  // redraws only when what it shows changes, compared by value: both
-  // surfaces build a fresh `held` on every render.
   const shown = useRef(held);
   if (!sameHeldTags(shown.current, held)) shown.current = held;
   const stable = shown.current;
@@ -369,21 +271,13 @@ export function HeldTagsPanel({
   return <div ref={ref} />;
 }
 
-/** Where a {@link TagSuggest} reads its names and hands its pick. */
 interface TagSuggestSource {
   names(): readonly string[];
-  /** The names the Annotation already carries, which are no addition. */
   taken(): readonly string[];
   pick(name: string): void;
-  /** The popup's element as it shows, and `null` as it closes. */
   shown(el: HTMLElement | null): void;
 }
 
-/**
- * The Library's tag names that match the typed text, minus the names the
- * Annotation already carries. The typed text itself leads the list, so Enter
- * adds exactly what was typed until the user moves to another name.
- */
 class TagSuggest extends AbstractInputSuggest<string> {
   readonly #source: TagSuggestSource;
   #search = prepareSimpleSearch("");
@@ -428,7 +322,6 @@ class TagSuggest extends AbstractInputSuggest<string> {
   }
 }
 
-/** The names Zotero holds as automatic tags on this Annotation. */
 export function autoTags(annot: AnnotationRecord): ReadonlySet<string> {
   return new Set(
     annot.tagDetails

@@ -1,5 +1,3 @@
-// Page state retained between excerpt acceptance callbacks.
-
 import type { ExcerptRequest } from "@zotlit/annotations/obsidian/excerpt-image/contract.ts";
 import type {
   ExcerptRendererDiagnostics,

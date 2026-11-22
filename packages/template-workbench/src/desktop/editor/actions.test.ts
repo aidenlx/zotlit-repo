@@ -10,7 +10,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { explainWorkbenchOpen, templateWorkbenchAction } from "./actions.ts";
 
-/** The notices and error logs one action leaves. */
 function recorder() {
   const notifier = testNotifier();
   const errors: unknown[] = [];
@@ -52,9 +51,6 @@ it.effect("logs a failed action under its operation and shows a notice", () =>
   }),
 );
 
-// An unpack or restore that unload stops is released quietly. A port
-// that unload stopped rejects with an abort, which passes on as an
-// interrupt.
 it.effect.each(["interrupt", "abort"] as const)(
   "releases an action stopped by %s without a notice or an error log",
   (reason) =>

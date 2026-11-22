@@ -4,21 +4,6 @@ import { readingOrder, stepReadingOrder } from "./reading-order.ts";
 
 import { annotation } from "#__fixtures__/pdf-annotation-editor.ts";
 
-/**
- * Four Annotations whose reading order is known by hand. PDF user space counts
- * up from the bottom of the page, so the largest `y` is the top of it:
- *
- * ```text
- *   page 0                      page 1
- *   ┌──────────────────────┐    ┌──────────────────────┐
- *   │ [FIRST ] [SECOND]    │    │                      │
- *   │  y 700    y 700      │    │      [FOURTH]        │
- *   │  x 100    x 300      │    │       y 500          │
- *   │                      │    │                      │
- *   │ [THIRD]  y 400       │    │                      │
- *   └──────────────────────┘    └──────────────────────┘
- * ```
- */
 const FIRST = annotation("AAAA1111", "highlight", {
   pageIndex: 0,
   rects: [[100, 690, 200, 700]],
@@ -36,7 +21,6 @@ const FOURTH = annotation("DDDD4444", "note", {
   rects: [[250, 490, 270, 500]],
 });
 
-/** The whole document, handed over in the order a list route happened to answer. */
 const SHUFFLED = [FOURTH, THIRD, FIRST, SECOND];
 const ORDER = ["AAAA1111", "BBBB2222", "CCCC3333", "DDDD4444"];
 
@@ -51,7 +35,6 @@ describe("readingOrder", () => {
       width: 2,
       paths: [[420, 660, 460, 695]],
     });
-    // Its highest point is y 695, below the two at y 700 and above y 400.
     expect(readingOrder([...SHUFFLED, ink])).toEqual([
       "AAAA1111",
       "BBBB2222",

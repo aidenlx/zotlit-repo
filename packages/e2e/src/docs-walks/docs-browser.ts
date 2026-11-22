@@ -1,10 +1,3 @@
-// A clean web browser for the docs walks: a headless Chrome on a new, empty
-// profile (no history, bookmarks, accounts or extensions), driven over the
-// DevTools protocol. A walk opens a docs page in it and records the page
-// content alone as one shot of a clip, with the same drawn pointer and
-// camera log as an Obsidian shot (docs-walk.ts). Downloads go to a folder the
-// walk names. See packages/e2e/AGENTS.md, "Docs walks".
-
 import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -19,7 +12,6 @@ import {
   ringStyle,
 } from "./pointer-look.ts";
 
-/** The Chrome binary; `DOCS_WALK_CHROME` names another. */
 const CHROME =
   process.env.DOCS_WALK_CHROME ??
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
@@ -32,7 +24,6 @@ type Message = {
   error?: { message: string };
 };
 
-/** One DevTools protocol connection. */
 class Cdp {
   readonly #ws: WebSocket;
   #next = 1;
@@ -67,7 +58,6 @@ class Cdp {
     return new Cdp(ws);
   }
 
-  /** Send `method`; a reply that takes over `timeoutMs` fails it. */
   send<T = Record<string, unknown>>(
     method: string,
     params: Record<string, unknown> = {},
@@ -98,7 +88,6 @@ class Cdp {
     return () => this.#listeners.delete(listener);
   }
 
-  /** The first event `method` whose params pass `test`. */
   once(
     method: string,
     test: (params: Record<string, unknown>) => boolean = () => true,
@@ -127,45 +116,23 @@ class Cdp {
   }
 }
 
-/** A page in the clean browser. */
 export interface DocsBrowserPage {
-  /** Evaluate `expression` in the page and answer its value, awaited. */
   eval<T>(expression: string): Promise<T>;
 }
 
 export interface DocsBrowser extends AsyncDisposable {
-  /**
-   * Open `url` in the page and wait for it to load, its web fonts, and
-   * `ready`, an expression in the page that holds once the page shows what
-   * the walk reads next.
-   */
   open(url: string, ready: string): Promise<void>;
-  /**
-   * Run `actions` and record the page content into `dir` as a shot: one PNG
-   * per frame, `frames.json` and `camera.json`, as `encodeClip` reads them.
-   * The page has `window.docsWalkPointer` (point, park, look) meanwhile.
-   */
   record<T>(
     dir: string,
     settings: ClipSettings,
     actions: (page: DocsBrowserPage) => Promise<T>,
   ): Promise<T>;
-  /**
-   * Take the next download whose file name passes `match` into the
-   * downloads folder: answers its name once it ends, and downloads are off
-   * again.
-   */
   download(
     match: (name: string) => boolean,
     timeoutMs?: number,
   ): Promise<{ done: Promise<string> }>;
 }
 
-/**
- * Start the clean browser: a page of `width` × `height` CSS px at 2× pixels,
- * like the Obsidian window of a walk, saving downloads into `downloads`. A
- * failed start stops Chrome and removes its profile.
- */
 export async function openDocsBrowser(options: {
   width: number;
   height: number;
@@ -187,7 +154,6 @@ export async function openDocsBrowser(options: {
       "--no-default-browser-check",
       "--disable-extensions",
       "--disable-sync",
-      // Chrome's own component downloads would land in the downloads folder.
       "--disable-component-update",
       "--disable-background-networking",
       `--window-size=${options.width},${options.height}`,
@@ -195,7 +161,6 @@ export async function openDocsBrowser(options: {
     ],
     { stdio: "ignore" },
   );
-  // A Chrome that cannot start reports an error and no exit.
   const exited = new Promise((r) => {
     chrome.once("exit", r);
     chrome.once("error", r);
@@ -235,8 +200,6 @@ export async function openDocsBrowser(options: {
   await page.send("Emulation.setEmulatedMedia", {
     features: [{ name: "prefers-color-scheme", value: "light" }],
   });
-  // Downloads stay off but for the one the walk asks for: Chrome fetches
-  // files of its own as well.
   const downloadsOn = (on: boolean) =>
     browser.send("Browser.setDownloadBehavior", {
       behavior: on ? "allow" : "deny",
@@ -399,11 +362,6 @@ export async function openDocsBrowser(options: {
   };
 }
 
-/**
- * The drawn pointer in a browser page: the arrow and click ring of the
- * Obsidian shots, and the same camera log, on the screencast's clock.
- * Serialized into the page, so it uses nothing outside itself.
- */
 function installPointer(o: {
   glideMs: number;
   arrowCss: string;

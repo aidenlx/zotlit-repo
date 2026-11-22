@@ -1,6 +1,3 @@
-// The Live Update service's routes on the Local Server: gates + routes, no
-// server lifecycle. The gates are scoped to the three Companion paths so a
-// service mounted beside these routes keeps its own gates.
 import { vValidator } from "@hono/valibot-validator";
 import { Effect } from "effect";
 import type { Context, Next } from "hono";
@@ -27,7 +24,6 @@ import type {
 
 import { rejectIncompatibleProtocol } from "./protocol-compat.ts";
 
-/** Sender's raw profile/data dirs, present only when its debug logging is on. */
 function senderDirs(event: NotifyEvent): Record<string, string> {
   const out: Record<string, string> = {};
   if (event.profilePath !== undefined) out.profilePath = event.profilePath;
@@ -35,15 +31,12 @@ function senderDirs(event: NotifyEvent): Record<string, string> {
   return out;
 }
 
-/** The slice of {@link NoteIndex} the note-status query route reads. */
 export interface NoteStatusSource {
-  /** Resolves `true` once the first full scan ends, `false` when the server stops first. */
   whenIndexed(): Promise<boolean>;
   getIndexedItemKeys(): string[];
 }
 
 export interface LiveUpdateAppDeps {
-  /** `false` while the Live updates toggle is off — every route answers 404. */
   enabled(): boolean;
   sourceId(): string | null;
   noteIndex: NoteStatusSource;
@@ -56,7 +49,6 @@ export interface LiveUpdateAppDeps {
   onImportNotes(event: { items: number[]; mode: ImportMode }): void;
 }
 
-/** The paths the Companion talks to — the gates below cover exactly these. */
 const LIVE_UPDATE_PATHS = [
   "/notify",
   "/literature-notes",
@@ -66,7 +58,6 @@ const LIVE_UPDATE_PATHS = [
 export function createLiveUpdateApp(deps: LiveUpdateAppDeps): Hono {
   const app = new Hono();
 
-  /** Answer 404 while the Live updates toggle is off, whatever else the server hosts. */
   const gateEnabled = async (
     c: Context,
     next: Next,
@@ -74,7 +65,6 @@ export function createLiveUpdateApp(deps: LiveUpdateAppDeps): Hono {
     if (!deps.enabled()) return c.body(null, 404);
     await next();
   };
-  /** Reject a request whose `X-Zotlit-Protocol-Version` header is incompatible. */
   const gateProtocol = async (
     c: Context,
     next: Next,
@@ -92,7 +82,6 @@ export function createLiveUpdateApp(deps: LiveUpdateAppDeps): Hono {
     }
     await next();
   };
-  /** Discard a request whose `X-Zotlit-Source-Id` isn't the configured install. */
   const gateSourceId = async (
     c: Context,
     next: Next,
@@ -147,8 +136,6 @@ export function createLiveUpdateApp(deps: LiveUpdateAppDeps): Hono {
         return c.body(null, 204);
       },
     )
-    // Fire-and-forget: the batch modal is interactive and long-running, so ack
-    // 204 immediately and let the subscriber drive it; never await the batch.
     .put(
       "/literature-notes",
       vValidator("json", batchUpdateRequestSchema, (result, c) => {
@@ -176,8 +163,6 @@ export function createLiveUpdateApp(deps: LiveUpdateAppDeps): Hono {
             withLogCategory("live-update"),
           ),
         );
-        // Decouple from the event loop to avoid the handler from blocking
-        // the main thread and let the response finish first.
         void yieldToMain().then(() => {
           deps.onUpdateMany({
             items: body.items,
@@ -223,13 +208,6 @@ export function createLiveUpdateApp(deps: LiveUpdateAppDeps): Hono {
         return c.body(null, 204);
       },
     )
-    /**
-     * Answers the companion's note-status query from the live Note Index's
-     * Literature-Note key set. Awaits the index's first full scan so a
-     * startup-time query never reports an empty vault. A server that stops
-     * before the scan ends answers 404, as with Live updates off, so the
-     * Companion keeps the status it has instead of a part of the vault.
-     */
     .get("/literature-notes", async (c) => {
       if (!(await deps.noteIndex.whenIndexed())) return c.body(null, 404);
       const keys = deps.noteIndex.getIndexedItemKeys();

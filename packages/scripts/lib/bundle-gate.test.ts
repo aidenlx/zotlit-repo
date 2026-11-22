@@ -12,7 +12,6 @@ import { bundledPlugin, CONTAINER_PLUGIN } from "./shell/profiles.ts";
 const scratch = await mkdtemp(join(tmpdir(), "zt-bundle-gate-"));
 afterAll(() => rm(scratch, { recursive: true, force: true }));
 
-/** A host app's folder: its package.json, and the files of its `dist/`. */
 async function app(
   name: string,
   packageJson: object,

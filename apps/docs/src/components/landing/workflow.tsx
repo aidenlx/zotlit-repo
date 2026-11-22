@@ -1,11 +1,3 @@
-// "From Zotero to finished chapter.": the research sequence as five steps in
-// a zig-zag, each with a recording of the real app beside its text.
-//
-// Each recording prerenders as its still, the poster. After mount, a step
-// whose case has a clip mounts its player (`Recording`) once it comes near
-// the viewport; the player owns playback, seeking and reduced motion.
-// @see apps/docs/DESIGN.md → Landing (Workflow)
-
 import { useEffect, useRef, useState } from "react";
 
 import { DocsImage } from "@/components/docs-image.tsx";
@@ -16,10 +8,8 @@ import { LessonLink } from "./parts.tsx";
 
 type Text = () => string;
 
-/** The recordings under public/img/landing/, in step order. */
 type Case = "find" | "read" | "note" | "cite" | "word";
 
-/** Which cases have a clip (`.mp4`); the others show their still. */
 const CLIPS: Readonly<Record<Case, boolean>> = {
   find: true,
   read: true,
@@ -33,12 +23,9 @@ interface Step {
   title: Text;
   line: Text;
   points: readonly (readonly [lead: Text, line: Text])[];
-  /** A requirement worth knowing before the step. */
   note?: Text;
   alt: Text;
-  /** The `/learn` lesson that walks through the step. */
   lesson: string;
-  /** The text of the link to that lesson. */
   link: Text;
 }
 
@@ -106,13 +93,11 @@ const STEPS: readonly Step[] = [
   },
 ];
 
-/** The 16:10 frame every recording fills. */
 function Recording({ id, alt }: { id: Case; alt: string }) {
   const frame = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(false);
   const base = `/img/landing/${id}`;
 
-  // Mount the player once the frame comes near the viewport.
   useEffect(() => {
     const el = frame.current;
     if (!el || !CLIPS[id]) return;
@@ -162,7 +147,6 @@ function Recording({ id, alt }: { id: Case; alt: string }) {
 function StepItem({ step, n, flip }: { step: Step; n: number; flip: boolean }) {
   return (
     <li className="relative grid items-center gap-8 lg:grid-cols-2 lg:gap-24">
-      {/* The step's number on the connecting line, from 1024px. */}
       <span
         aria-hidden
         className="absolute top-1/2 left-1/2 hidden size-9 -translate-1/2 items-center justify-center rounded-full border border-fd-border bg-fd-background font-mono text-sm text-fd-primary tabular-nums lg:flex"

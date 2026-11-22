@@ -1,7 +1,3 @@
-// The property grid every rendered frontmatter list is read through: the
-// sheet's own list and the Properties tab's columns. It parses no Markdown, so
-// the tab can read it without the reading view's parser stack.
-
 import type { RenderedProperty } from "#core/render/result.ts";
 import { regex } from "arkregex";
 import type { IconName } from "obsidian";
@@ -9,7 +5,6 @@ import type { IconName } from "obsidian";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-/** The property types Obsidian's own Properties editor tells apart. */
 export type PropertyType =
   | "text"
   | "list"
@@ -20,7 +15,6 @@ export type PropertyType =
   | "date"
   | "datetime";
 
-/** Obsidian's glyph for each property type. */
 const PROPERTY_ICONS: Record<PropertyType, IconName> = {
   text: "text",
   list: "list",
@@ -35,10 +29,6 @@ const PROPERTY_ICONS: Record<PropertyType, IconName> = {
 const DATE = regex("^\\d{4}-[01]\\d-[0-3]\\d$");
 const DATETIME = regex("^\\d{4}-[01]\\d-[0-3]\\dT[0-2]\\d:[0-5]\\d");
 
-/**
- * The type a property reads as, inferred from its key and value the way
- * Obsidian infers a property it has no recorded type for.
- */
 export function propertyType(property: RenderedProperty): PropertyType {
   if (property.key === "tags") return "tags";
   if (property.key === "aliases") return "aliases";
@@ -53,12 +43,6 @@ export function propertyType(property: RenderedProperty): PropertyType {
   return "text";
 }
 
-/**
- * A property grid — the name beside the value, or beside the reason it has
- * none. The sheet's own frontmatter list and the Properties tab's columns are
- * this one list. Each row and its value state the property's type, and the key
- * carries that type's icon.
- */
 export function PropertyList({
   properties,
   label,
@@ -69,12 +53,7 @@ export function PropertyList({
   variant?: "list" | "note" | "spread";
 }) {
   return (
-    <dl
-      aria-label={label}
-      data-part={variant}
-      // The note's own Properties list sits in the app's container, which the preview supplies.
-      className="metadata-properties"
-    >
+    <dl aria-label={label} data-part={variant} className="metadata-properties">
       {properties.map((property) => {
         const type = propertyType(property);
         return (
@@ -110,7 +89,6 @@ export function PropertyList({
   );
 }
 
-/** A produced value, or the reason it has none. */
 export function PropertyValue({ property }: { property: RenderedProperty }) {
   const { value } = property;
   if (
@@ -160,7 +138,6 @@ export function PropertyValue({ property }: { property: RenderedProperty }) {
   );
 }
 
-/** One property value as a single line of text, shared by every property list. */
 export function propertyText(value: unknown): string {
   if (Array.isArray(value)) return value.map(propertyText).join(", ");
   if (typeof value === "object" && value !== null) return JSON.stringify(value);

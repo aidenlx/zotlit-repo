@@ -1,21 +1,5 @@
 name: Docs Deploy
 
-# Deploys the docs site to Cloudflare Workers. There are two sites (ADR 0097):
-#
-#   pre-release  Pre-release Docs, the `beta` wrangler environment,
-#                `zotlit-docs-beta`, on zotlit-beta.aidenlx.site. A push to
-#                `main`, the trunk, deploys it.
-#   production   the top-level wrangler config, `zotlit-docs`, on
-#                zotlit.aidenlx.site. It deploys from the commit of a stable
-#                release: release.yml calls this workflow with the release tag
-#                after it publishes a stable version, and a dispatch deploys
-#                it from the ref it names (default: the latest stable release
-#                tag). A push deploys only the pre-release site.
-#
-# A push enters the gate job, which asks Turbo whether the push touched
-# `@zotlit/docs` or anything in its dependency closure. An unaffected push
-# stops at the gate; an affected push runs the deploy job. A call or a
-# dispatch always deploys.
 on:
   push:
     branches: [main]
@@ -50,20 +34,14 @@ jobs:
       site: ${{ steps.target.outputs.site }}
       ref: ${{ steps.target.outputs.ref }}
     steps:
-      # The gate compares the push base against HEAD, so it needs full history.
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
-      # The gate needs the pinned pnpm and Turbo versions, but an unaffected
-      # push stops before dependency installation or package builds.
       - uses: ./.github/actions/setup-workspace
         with:
           bootstrap: "false"
 
-      # The site and the commit to build. A push builds its own commit for
-      # Pre-release Docs; a call or a dispatch names the site, and a
-      # production deploy without a ref takes the latest stable release tag.
       - name: Pick the site and the ref
         id: target
         env:
@@ -85,9 +63,6 @@ jobs:
           echo "ref=$REF" >> "$GITHUB_OUTPUT"
           echo "target: the $SITE site from $REF"
 
-      # Fail open: every path that cannot prove "docs untouched" deploys —
-      # a manual dispatch, an unknown base commit, a force push, a change to
-      # deployment machinery, or a Turbo failure.
       - name: Check whether the docs closure changed
         id: check
         env:
@@ -135,28 +110,18 @@ jobs:
     needs: gate
     if: needs.gate.outputs.deploy == 'true'
     runs-on: ubuntu-latest
-    # One deploy at a time per site: a queued run would otherwise overwrite a
-    # newer build, while the two sites deploy independently of each other.
     concurrency:
       group: docs-deploy-${{ needs.gate.outputs.site }}
       cancel-in-progress: true
     env:
-      # The wrangler environment of the site: `beta` for Pre-release Docs,
-      # empty for the production site, which is the top-level config.
       WRANGLER_ENV: ${{ needs.gate.outputs.site == 'pre-release' && 'beta' || '' }}
     steps:
-      # The docs build reads each page's last commit date from git history and
-      # each image's bytes from Git LFS, so both must be present before Vite.
       - uses: actions/checkout@v7
         with:
           ref: ${{ needs.gate.outputs.ref }}
           fetch-depth: 0
           lfs: true
 
-      # Seeds the Git LFS cache that the record-PR job restores (see
-      # record-pr.yml): this checkout has already downloaded every object,
-      # and a cache saved on main is readable by every PR. The key is the
-      # same hash of the LFS object list; an existing key is kept.
       - name: Key of the Git LFS objects
         if: github.ref == 'refs/heads/main'
         id: lfs
@@ -167,8 +132,6 @@ jobs:
           path: .git/lfs
           key: ${{ steps.lfs.outputs.key }}
 
-      # The docs build installs its own dependency closure below, so the
-      # workspace-wide bootstrap stays off.
       - uses: ./.github/actions/setup-workspace
         with:
           bootstrap: "false"
@@ -176,9 +139,6 @@ jobs:
       - name: Install docs dependencies
         run: pnpm install --frozen-lockfile --filter @zotlit/docs...
 
-      # `CLOUDFLARE_ENV` picks the Cloudflare environment at build time, so the
-      # beta build has to be its own; a build made without it carries the
-      # production site's variables whatever `wrangler deploy --env` says.
       - name: Build
         run: |
           if [ -n "$WRANGLER_ENV" ]; then
@@ -186,20 +146,9 @@ jobs:
           fi
           pnpm turbo run build --filter=@zotlit/docs
         env:
-          # Public Cloudflare Web Analytics site token; without it the built
-          # site serves no beacon. Each site reports to its own analytics
-          # site, so the two sites' numbers stay apart.
           VITE_CF_BEACON_TOKEN: ${{ needs.gate.outputs.site == 'pre-release' && vars.CF_BEACON_TOKEN_BETA || vars.CF_BEACON_TOKEN }}
-          # The recordings' videos play from the media store, the R2 bucket
-          # `zotlit-docs-media` on this domain, which both sites share; the
-          # build points the players there and leaves the videos out of the
-          # Worker's assets.
           VITE_MEDIA_ORIGIN: https://zotlit-media.aidenlx.site
 
-      # The built pages name each video by a content-hashed key, so every key
-      # must be in the bucket before the deploy makes those pages live. The
-      # step sends only the keys the bucket lacks, with a token scoped to that
-      # bucket.
       - name: Upload media
         run: pnpm --filter @zotlit/docs upload:media
         env:

@@ -26,7 +26,6 @@ import type {
   InertNoteResolverDeps,
 } from "./inert-resolvers.ts";
 
-/** The Item a note resolver reads its identity from. */
 type ItemRef = Parameters<NoteResolvers["item"]["notePath"]>[0];
 
 function makeAttachment(overrides: Partial<Attachment>): Attachment {
@@ -56,7 +55,7 @@ function makeAnnotation(overrides: Partial<Annotation>): Annotation {
     groupID: null,
     dateAdded: Temporal.Instant.from("2024-01-01T00:00:00Z"),
     dateModified: Temporal.Instant.from("2024-01-01T00:00:00Z"),
-    type: 1, // highlight — no cache image
+    type: 1,
     text: "excerpt",
     comment: null,
     color: "#ffd400",
@@ -93,7 +92,6 @@ function makeFakeNoteIndex() {
 
 function makeFakeFileManager() {
   return {
-    // Mirrors Obsidian's (file, sourcePath, subpath, alias) signature.
     generateMarkdownLink: (...args: unknown[]) => {
       const file = args[0] as { path: string };
       const sourcePath = args[1] as string;
@@ -221,7 +219,7 @@ describe("buildInertNoteResolvers", () => {
   describe("annotationImageLink", () => {
     it("returns null for a non-image annotation type", () => {
       const resolvers = buildResolvers();
-      const highlightAnnotation = makeAnnotation({ type: 1 }); // "highlight"
+      const highlightAnnotation = makeAnnotation({ type: 1 });
       expect(
         resolvers.annotation.annotationImageLink(highlightAnnotation),
       ).toBeNull();
@@ -229,7 +227,7 @@ describe("buildInertNoteResolvers", () => {
 
     it("evaluates to a real file:// link when attachment import is disabled", () => {
       const resolvers = buildResolvers({ excerptImages: { kind: "file-url" } });
-      const imageAnnotation = makeAnnotation({ type: 3 }); // "image"
+      const imageAnnotation = makeAnnotation({ type: 3 });
       const link = resolvers.annotation.annotationImageLink(imageAnnotation);
       expect(link).not.toBeNull();
       expect(inertPlaceholderReason(link)).toBeUndefined();
@@ -314,8 +312,6 @@ describe("buildInertNoteResolvers", () => {
   });
 });
 
-// Build the note-root context from the db-package test fixture schema,
-// check its resolved values, and browse every property/getter/helper it exposes.
 describe("buildInertNoteResolvers over a real fetchNoteContext tree", () => {
   const MAIN_KEY = "FULL0001";
   const MAIN_NOTE_PATH = "Literature/Full Context Study.md";
@@ -365,14 +361,6 @@ describe("buildInertNoteResolvers over a real fetchNoteContext tree", () => {
     `);
   }
 
-  /**
-   * Recursively reads every enumerable own property (invoking getters) and,
-   * for zero-required-arg function members (the `noteLink`/`fileLink`/`imgLink`
-   * helpers the display layer evaluates the same way — see
-   * `display-tree.ts#evaluateHelper`), calls them and walks their result too.
-   * A `visited` guard stops the walk from looping on the annotation ->
-   * `parentItem` back-reference to the tree root.
-   */
   function fullyWalk(value: unknown, visited: WeakSet<object>): void {
     if (value === null || value === undefined) return;
     if (typeof value === "function") {
@@ -425,9 +413,6 @@ describe("buildInertNoteResolvers over a real fetchNoteContext tree", () => {
           fileManager.generateMarkdownLink(file, sourcePath, subpath, alias),
         getFileByPath: vault.getFileByPath,
         sourcePath: MAIN_NOTE_PATH,
-        // Excerpt images are not imported for this item, so the excerpt-image
-        // helper must resolve to the inert placeholder rather than minting a
-        // vault path.
         excerptImages: { kind: "not-imported" },
       }),
     );
@@ -443,7 +428,6 @@ describe("buildInertNoteResolvers over a real fetchNoteContext tree", () => {
       username: null,
     });
 
-    // Spot-check evaluated values before the full browse.
     expect(ctx.notePath).toBe(MAIN_NOTE_PATH);
     expect(ctx.noteLink()).toContain(MAIN_NOTE_PATH);
     expect(ctx.attachments).toHaveLength(1);

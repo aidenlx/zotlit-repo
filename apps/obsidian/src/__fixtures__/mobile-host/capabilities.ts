@@ -1,7 +1,3 @@
-// What a host without Node supplies itself, as stubs: the platform's Zotero
-// and file capabilities, which the desktop platform builds over Node, and the
-// ports that only the features' desktop parts fill. The list is what ZotLit
-// Mobile has to build in their place.
 import { Effect, FileSystem, Layer, Stream } from "effect";
 import type { Context } from "effect";
 
@@ -26,7 +22,6 @@ import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pre
 import { defineFeature, serviceGroup } from "@zotlit/plugin-shell/obsidian/feature.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-/** A Zotero data directory that is still loading. */
 const LOADING: ZoteroPrefSnapshot = {
   state: "loading",
   prefs: new Map(),
@@ -40,7 +35,6 @@ const LOADING: ZoteroPrefSnapshot = {
   httpPort: null,
 };
 
-/** A group that fills `tag` with a stub holding only `members`. */
 const stub = <I, S extends object>(
   tag: Context.Key<I, S>,
   members: Partial<S> = {},
@@ -54,8 +48,6 @@ const stub = <I, S extends object>(
 export const mobileCapabilities = defineFeature({
   name: "mobile capabilities",
   services: [
-    // The platform's capabilities: no Zotero database, no prefs.js, no
-    // listener, no file system.
     stub(ZoteroReads, {
       events: Stream.never,
       changes: Stream.never,
@@ -80,24 +72,17 @@ export const mobileCapabilities = defineFeature({
       updateManyRequests: Stream.never,
       importNotesRequests: Stream.never,
     }),
-    // The annotations' ports: the Excerpt Images read the file system, and
-    // the note actions and the Annotation View live in the desktop parts.
     stub(ExcerptImageService),
     stub(AnnotationNoteActions),
     stub(AnnotationViewReveal, {
       cardShown: () => false,
       revealAnnotation: () => {},
     }),
-    // The citations' ports: the parse Worker, the bibliography render over
-    // the Zotero data folder, the popovers and the citekey editor's notes.
     stub(CitationParse),
     stub(BibliographyRender),
     stub(CitationPopover),
     stub(AnnotationPopover),
     stub(CitekeyNoteActions),
-    // The notes' ports: the Profiles read the file system for their revision,
-    // ZotLit Query matches them, and the workbench opens their documents.
-    // A registry that never loads: no Profile document reads.
     stub(Profile, {
       state: Effect.die("unread"),
       changes: Stream.never,
@@ -105,7 +90,6 @@ export const mobileCapabilities = defineFeature({
     }),
     stub(ItemMatchQuery),
     stub(TemplateWorkbenchLauncher),
-    // The Library View's: the Release check and Show in Library.
     stub(Release),
     stub(ShowInLibrary),
   ],

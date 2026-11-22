@@ -1,5 +1,3 @@
-// One Filter Expression over Items held in memory: planned once, as a query
-// plans it, then tested on each Item with the evaluator a query uses.
 import type { Diagnostic } from "./diagnose.ts";
 import { ItemQueryError } from "./error.ts";
 import type { ItemQueryErrorCode } from "./error.ts";
@@ -12,21 +10,10 @@ import type { QueryClock } from "./query-clock.ts";
 import { ITEMS } from "./query-items.ts";
 import { missingCustomField } from "./query-sources.ts";
 
-/** A planned filter over Items. */
 export interface ItemFilter {
-  /**
-   * Whether the filter selects `item`. Dates read `clock`; by default, the
-   * instant and the time zone of the call.
-   */
   readonly matches: (item: QueryItem, clock?: QueryClock) => boolean;
 }
 
-/**
- * Plan `text` as the filter of the Items dataset, with no Query Context and
- * no Formulas.
- * @returns The planned filter, or the Diagnostic of its first mistake, as a
- * query with this filter reports it.
- */
 export function planItemFilter(
   text: string,
 ): ItemFilter | Diagnostic<ItemQueryErrorCode> {
@@ -55,14 +42,6 @@ function plan(text: string) {
   return planned;
 }
 
-/**
- * The answer of a filter for an Item held as its seed:
- * - `result`: whether the filter selects the Item, as a query would.
- * - `problem`: the Diagnostic a query with this filter reports, such as a
- *   custom field the source of the Item lacks.
- * - `unavailable`: the filter reads Attachments, Annotations, or Notes,
- *   which a seed does not keep.
- */
 export type SeedTest =
   | { readonly kind: "result"; readonly matched: boolean }
   | {
@@ -71,7 +50,6 @@ export type SeedTest =
     }
   | { readonly kind: "unavailable" };
 
-/** Test the filter `text` on the Item of `seed`, in memory. */
 export function testItemSeed(
   text: string,
   seed: QueryItemSeed,

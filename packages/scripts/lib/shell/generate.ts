@@ -1,6 +1,3 @@
-// The publish repository's tree for one plugin version: a thin shell that
-// builds the plugin from its bundle package. Files that carry a version or a
-// name are written here; the rest are copied from `templates/`.
 import { copyFile, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
@@ -21,25 +18,17 @@ const TEMPLATES = join(import.meta.dirname, "templates");
 
 export interface ShellOptions {
   readonly plugin: PublishedPluginName;
-  /** The plugin version, and so the bundle package version. */
   readonly version: string;
-  /** The folder to write the tree into; its old content is removed. */
   readonly outDir: string;
   readonly workspaceRoot: string;
 }
 
-/** The exact version of a package as the build script resolves it. */
 function installedVersion(name: string, from: string): string {
   const require = createRequire(from);
   const { version } = require(`${name}/package.json`) as { version: string };
   return version;
 }
 
-/**
- * The bundler the build script runs: Vite at the version this workspace
- * resolves for `scripts/build.mjs`, and the Rolldown that Vite runs. Both
- * decide the bytes of `main.js`, so the shell pins both.
- */
 export function shellToolchain(): { vite: string; rolldown: string } {
   const buildScript = join(TEMPLATES, SHELL_BUILD_SCRIPT);
   const vite = installedVersion("vite", buildScript);
@@ -53,11 +42,6 @@ async function readJson<T>(path: string): Promise<T> {
 
 const json = (value: unknown) => `${JSON.stringify(value, null, 2)}\n`;
 
-/**
- * The README of the publish repository: the workspace README, with its
- * relative image paths resolved on the source repository, and a section that
- * names where the source lives.
- */
 export function shellReadme(
   readme: string,
   plugin: PublishedPlugin,
@@ -83,13 +67,6 @@ ${plugin.profile.aboutRepository({ name, bundlePackage: plugin.bundlePackage })}
     : `${resolved.slice(0, footer + 1)}${section}${resolved.slice(footer + 1)}`;
 }
 
-/**
- * The `versions.json` of the shell: the plugin's own, with this version's
- * minimum Obsidian version when it is a stable release. Obsidian reads it
- * from the default branch, which carries stable releases only. A new
- * plugin's default branch holds its first beta shell until its first stable
- * release.
- */
 function shellVersions(
   versions: Record<string, string>,
   manifest: { version: string; minAppVersion: string },
@@ -118,7 +95,6 @@ const gitignore = (plugin: PublishedPlugin) => `node_modules/
 ${plugin.profile.builtFiles.join("\n")}
 `;
 
-/** Writes the shell tree for one plugin version into `outDir`. */
 export async function generateShell(options: ShellOptions): Promise<void> {
   const { version, outDir, workspaceRoot } = options;
   const plugin: PublishedPlugin = PUBLISHED_PLUGINS[options.plugin];
@@ -130,7 +106,6 @@ export async function generateShell(options: ShellOptions): Promise<void> {
     join(workspaceRoot, "package.json"),
   );
   const { profile } = plugin;
-  // A shell with no entry module copies main.js and runs no bundler.
   const toolchain = profile.entryModule ? shellToolchain() : undefined;
 
   await rm(outDir, { recursive: true, force: true });
@@ -219,11 +194,6 @@ overrides:
   );
 }
 
-/**
- * The `.npmrc` that routes the bundle package's scope to `registry`, for an
- * install from a registry other than npm's. The shell commits no `.npmrc`:
- * the publish repository installs from the public registry.
- */
 export function scopeRegistryNpmrc(
   plugin: PublishedPluginName,
   registry: string,
@@ -232,15 +202,6 @@ export function scopeRegistryNpmrc(
   return `${scope}:registry=${registry}\n`;
 }
 
-/**
- * Writes the shell's `pnpm-lock.yaml`. Without `bundleTarball`, pnpm resolves
- * the bundle package from the npm registry, as a release does after it
- * publishes the package. With it, an override installs that local tarball in
- * place of the registry version, as the local check does before anything is
- * published; the override then stays in `pnpm-workspace.yaml`. With
- * `registry`, the bundle package resolves from that registry, and the lockfile
- * keeps no URL of it, so it is the lockfile a resolve from npm writes.
- */
 export async function lockShell(
   outDir: string,
   options: {
@@ -253,7 +214,6 @@ export async function lockShell(
     const { bundlePackage } = PUBLISHED_PLUGINS[options.plugin];
     const workspace = join(outDir, "pnpm-workspace.yaml");
     const text = await readFile(workspace, "utf8");
-    // The override joins the shell's `overrides` block, the last of the file.
     const block = text.includes("\noverrides:\n") ? "" : "\noverrides:\n";
     await writeFile(
       workspace,
@@ -272,8 +232,6 @@ export async function lockShell(
   } finally {
     await rm(npmrc, { force: true });
   }
-  // pnpm records the tarball URL of a package from a registry other than its
-  // default one. The URL of the stand-in registry has no place in the shell.
   const lockfile = join(outDir, "pnpm-lock.yaml");
   const marker = `, tarball: ${registry}`;
   const lines = (await readFile(lockfile, "utf8")).split("\n").map((line) => {

@@ -195,15 +195,12 @@ describe("getIndexSignature", () => {
   it("counts only indexed items and checksums the row set", () => {
     const signature = getIndexSignature(db, USER_LIBRARY_ID);
 
-    // ARTICLE (id1) + BOOKSEC (id2) + NEWEST (id7) — excludes DELETED + child types.
     expect(signature.count).toBe(3);
     expect(signature.checksum).toBe(7985155987);
   });
 
   it("moves the checksum when a non-max item is edited into the max second", () => {
     const before = getIndexSignature(db, USER_LIBRARY_ID);
-    // ARTICLE jumps to NEWEST's second: count and max(dateModified) both stay put,
-    // but the per-row checksum must still move so the gate rebuilds.
     sqlite.exec(
       "update items set dateModified = '2025-01-01 00:00:00' where itemID = 1",
     );
@@ -216,10 +213,6 @@ describe("getIndexSignature", () => {
 });
 
 describe("getIndexSignatureRange", () => {
-  /**
-   * The signature that {@link sumSignatureRanges} sums over ranges of `size`
-   * Item IDs, each range read as the worker reads it.
-   */
   function chunked(libraryID: number, size: number): IndexSignature {
     const ranges = sumSignatureRanges(getItemIDBounds(db, libraryID), size);
     let step = ranges.next();
@@ -230,9 +223,6 @@ describe("getIndexSignatureRange", () => {
   }
 
   beforeEach(() => {
-    // Gaps in the Item IDs, with activity on a child, so that some ranges are
-    // empty and the last range is partial for most sizes. A group Library
-    // holds Item IDs inside the span of My Library.
     sqlite.exec(`
       insert into libraries (libraryID, type, editable, filesEditable)
         values (2, 'group', 1, 1);

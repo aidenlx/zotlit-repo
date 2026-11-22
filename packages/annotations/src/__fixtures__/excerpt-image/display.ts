@@ -1,4 +1,3 @@
-// Legacy Promise test harnesses exercise the real display layer through this edge.
 import { Effect, Layer } from "effect";
 
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";

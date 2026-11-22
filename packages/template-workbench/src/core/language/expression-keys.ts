@@ -1,5 +1,3 @@
-// Expression Completion inside the brackets of `vault[...]` and of the custom
-// fields' path: the names the host knows, quoted.
 import type { SyntaxNode } from "@lezer/common";
 
 import { noteOf, ranked } from "./expression-options.ts";
@@ -11,11 +9,6 @@ import type {
   ExpressionVocabulary,
 } from "./expression-options.ts";
 
-/**
- * The key of a bracket access the caret is in or right after the `[` of:
- * the path before the `[`, the range the quoted key fills, what is typed of
- * it, and whether the `]` is still to write.
- */
 function bracketKeyAt({ inner, pos, source }: Caret): {
   path: string;
   from: number;
@@ -51,11 +44,6 @@ function bracketKeyAt({ inner, pos, source }: Caret): {
   return null;
 }
 
-/**
- * The quoted keys offered with the caret inside `vault[...]`, in a filter
- * condition, or inside the brackets of the custom fields' path.
- * @returns Undefined in any other bracket access, which takes an expression.
- */
 export function keyCompletions(
   caret: Caret,
   vocabulary: ExpressionVocabulary,

@@ -1,7 +1,6 @@
 import type { ZoteroUserIdentity } from "#queries/account.ts";
 import type { Creator, Item } from "#queries/items.ts";
 
-// Forward mapper: a live-database Item -> the CSL-JSON a CSL processor renders.
 import { FIELD_ALIASES } from "@zotlit/zotero-types";
 import {
   CREATOR_TYPE_TO_CSL_NAME,
@@ -17,10 +16,8 @@ import type { ItemDate } from "./zt-date.ts";
 import { extraToCsl } from "./zt-extra-to-csl.ts";
 import { itemUri } from "./zt-uri.ts";
 
-/** A CSL name variable entry: a structured personal name, or a single literal. */
 export type CslName = CslPersonName | { literal: string };
 
-/** A CSL date variable entry: a `date-parts` triple/pair/singleton, or a literal. */
 export type CslDate =
   | {
       "date-parts": [[number] | [number, number] | [number, number, number]];
@@ -28,58 +25,20 @@ export type CslDate =
     }
   | { literal: string };
 
-/**
- * One item as CSL-JSON. Beyond `id` and `type` the variables are open — which
- * ones an item carries depends on its Zotero item type — so they read as
- * `unknown` and narrow to `string`, {@link CslName}`[]`, or {@link CslDate}.
- */
 export interface CslItemData {
-  /** The item's Zotero Item URI, the identity a CSL processor cites it by. */
   id: string;
-  /** CSL item type, e.g. `"article-journal"`. */
   type: string;
   [variable: string]: unknown;
 }
 
-/**
- * Zotero maps `place` onto `event-place` (and emits no `publisher-place`) for
- * these types, pending an `eventPlace` data migration.
- *
- * @see https://github.com/zotero/utilities/blob/1dd38e27edf81e9d9c4161c957b7efb7f5681ac3/utilities_item.js#L87
- */
 const EVENT_PLACE_ITEM_TYPES: ReadonlySet<string> = new Set([
   "audioRecording",
   "presentation",
   "videoRecording",
 ]);
 
-/** Zotero keeps only the leading ISBN of a multi-ISBN field in CSL-JSON. */
 const FIRST_ISBN_RE = /^(?:97[89]-?)?(?:\d-?){9}[\dx](?!-)\b/i;
 
-/**
- * Convert one {@link Item} into the CSL-JSON a CSL processor consumes: text
- * variables via {@link CSL_TEXT_FIELD_CANDIDATES} (first candidate carrying a
- * value), `type` via {@link ITEM_TYPE_TO_CSL_TYPE}, name variables via
- * {@link CREATOR_TYPE_TO_CSL_NAME}, and date variables via
- * {@link CSL_DATE_FIELD_MAP}. The inverse of `cslToTemplateItem`, which reads
- * the CSL-JSON Zotero embeds in a note back into the zt vocabulary.
- *
- * @param user the account owning the personal library, which names every
- *   personal-library item in its `id`. Read it once per database with
- *   {@link getZoteroIdentity} and pass the same value across a batch.
- *
- * Follows Zotero's `itemToCSLJSON()`, with these deliberate departures:
- *
- * - `id` falls back to the item's Indexed Key when the personal library has
- *   no account id to build an {@link itemUri} from.
- * - An unparseable date becomes a literal of its user text rather than of the
- *   raw multipart string.
- * - A date whose day does not exist in its month (`2015-02-30`) degrades to
- *   year-month, where Zotero keeps the impossible day; {@link parseItemDate}
- *   validates the calendar and Zotero only range-checks.
- *
- * @see https://github.com/zotero/utilities/blob/1dd38e27edf81e9d9c4161c957b7efb7f5681ac3/utilities_item.js#L51
- */
 export function itemToCsl(
   item: Item,
   user: Pick<ZoteroUserIdentity, "userID" | "localUserKey">,
@@ -101,12 +60,6 @@ function cslItemType(itemType: string): string {
   return cslType;
 }
 
-/**
- * Every non-empty field of the item under both its stored name and its base
- * field name, so a CSL candidate resolves whether it names the base field
- * (`publicationTitle`) or a type-specific one (`conferenceName`). Built-in
- * fields win over a custom field of the same name.
- */
 function itemFieldValues(item: Item): ReadonlyMap<string, string> {
   const fields = new Map<string, string>();
   const put = (name: string, value: string | null | undefined): void => {
@@ -132,8 +85,6 @@ function textVariables(
   for (const [variable, defaultCandidates] of Object.entries(
     CSL_TEXT_FIELD_CANDIDATES,
   )) {
-    // `shortTitle` is a read-only alias of `title-short`; Zotero writes neither
-    // twice, and CSL styles only know `title-short`.
     if (variable === "shortTitle") continue;
     if (isEventPlaceType && variable === "publisher-place") continue;
     const candidates =
@@ -163,11 +114,6 @@ function stripEnclosingQuotes(value: string): string {
     : value;
 }
 
-/**
- * Creators grouped under their CSL name variable, in Zotero's own order. A
- * creator type outside the CSL name mapping still counts as `author` when the
- * item type treats it as primary (e.g. `programmer` on a computer program).
- */
 function nameVariables(item: Item): Record<string, CslName[]> {
   const variables: Record<string, CslName[]> = {};
   for (const creator of item.creators) {
@@ -209,14 +155,8 @@ function dateVariables(
   return variables;
 }
 
-/** A SQL date with no time part, e.g. Zotero's `accessDate` after a web import. */
 const SQL_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-/**
- * {@link parseItemDate} reads Zotero's `YYYY-MM-DD <user text>` multipart form,
- * which a bare SQL date resembles but for the trailing text. Supplying an empty
- * one keeps such a value a date instead of degrading it to free text.
- */
 function parseDateField(raw: string | undefined): ItemDate | null {
   return parseItemDate(raw && SQL_DATE_RE.test(raw) ? `${raw} ` : raw);
 }

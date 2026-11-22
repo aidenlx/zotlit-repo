@@ -1,6 +1,3 @@
-// zotlit-design: the mechanical part of the Annotation View's design.
-// annotation-view keeps the Annotation View to logical direction, the text
-// scale and accessible tooltips. Rule tests: oxlint-plugin-design.test.ts.
 import { regex } from "arkregex";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -13,7 +10,6 @@ type Visitor = ReturnType<NonNullable<Rule["create"]>>;
 type Attribute = Parameters<NonNullable<Visitor["JSXAttribute"]>>[0];
 type Node = NonNullable<Attribute["parent"]>;
 
-/** Class fragments in JSX expressions: literals, templates, clsx and branches. */
 function classFragments(node: Node | null | undefined): string[] {
   if (!node) return [];
   switch (node.type) {
@@ -56,7 +52,6 @@ const physicalProperty = regex(
 );
 const pxSize = regex("^([0-9.]+)px$");
 
-/** The last variant separator outside brackets, including zt: and hover:. */
 function utility(token: string): string {
   let depth = 0;
   let start = 0;
@@ -95,7 +90,6 @@ function classProblems(tokens: string[]): string[] {
   return [...problems];
 }
 
-/** Parse declarations so selectors, comments and strings cannot act as CSS rules. */
 export function annotationCssProblems(
   source: string,
 ): { line: number; reason: string }[] {
@@ -129,18 +123,6 @@ export function annotationCssProblems(
   return problems;
 }
 
-/**
- * The Annotation View's design, in its JSX classes and in the CSS files it
- * imports (parsed, so selectors and comments cannot pass as rules). It
- * rejects:
- * - physical direction, which breaks right-to-left layouts;
- * - text below the scale and uppercase chrome;
- * - CSS columns for the card list, where grid keeps reading order;
- * - `transition: all`, which animates layout it never meant to;
- * - a line clamp with tight leading, which clips descenders;
- * - a `title` attribute, which screen readers and touch skip (use aria-label
- *   tooltips).
- */
 export const annotationDesign: Rule = {
   meta: {
     type: "problem",
@@ -177,8 +159,6 @@ export const annotationDesign: Rule = {
       },
       ImportDeclaration(node) {
         if (!node.source.value.endsWith(".css")) return;
-        // A stylesheet that moved into a package is imported by its package
-        // path, so the import resolves as Node resolves it from the file.
         const file = node.source.value.startsWith(".")
           ? resolve(dirname(context.filename), node.source.value)
           : createRequire(context.filename).resolve(node.source.value);

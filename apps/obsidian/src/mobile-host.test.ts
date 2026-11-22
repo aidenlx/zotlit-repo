@@ -24,12 +24,10 @@ import { makeGraphBuilt } from "@zotlit/plugin-shell/obsidian/graph-built.ts";
 
 import { mobileFeatures } from "./__fixtures__/mobile-host/features.ts";
 
-/** The shell's base over in-memory Obsidian sources and empty plugin data. */
 const base = Layer.mergeAll(
   layerHost(),
   layerTestObsidianEnv(),
   testNotifier().layer,
-  // No graph view to hook: the build has no view registry member.
   testPluginHost({
     onViewCreated: () => Effect.succeed(false),
     app: stubService<App>("App", {
@@ -44,7 +42,6 @@ const base = Layer.mergeAll(
     stubService<App>("App", {
       loadLocalStorage: () => null,
       saveLocalStorage: () => {},
-      // No plugin is installed beside the host, and none changes.
       plugins: Object.assign(new Events(), { plugins: {}, manifests: {} }),
       secretStorage: stubService<SecretStorage>("SecretStorage", {
         getSecret: () => null,

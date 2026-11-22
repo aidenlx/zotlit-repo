@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// Copy a generated Fixture, then seed an isolated Query evaluation corpus.
 import { cp, lstat, mkdir, readFile, writeFile } from "node:fs/promises";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -47,7 +46,6 @@ function lookup(db, sql, name) {
   return row.id;
 }
 function keyAt(i) {
-  // Zotero excludes 0 and 1 from its eight-character object keys.
   let n = i;
   let suffix = "";
   for (let digit = 0; digit < 5; digit++) {
@@ -255,8 +253,6 @@ function seed(db) {
       });
       addTag.run(itemID, edgeTagID);
     }
-    // These marks reuse text and PDF coordinates reviewed in the Fixture Spec
-    // for rougier-2014.pdf. The copied vault holds that same real PDF.
     const sourcePdf = "storage:rougier-2014.pdf";
     const addAttachment = db.prepare(
       "insert into itemAttachments (itemID, parentItemID, linkMode, contentType, path) values (?, ?, 0, 'application/pdf', ?)",
@@ -377,7 +373,6 @@ function seed(db) {
         },
       },
     );
-    // Five papers isolate the research questions from unrelated Fixture content.
     const crossTag = Number(
       db.prepare("insert into tags (name) values ('query-cross-eval')").run()
         .lastInsertRowid,

@@ -7,7 +7,6 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 
 import { openExcerptFile } from "./file.ts";
 
-// The platform keeps late file handles, while crop teardown stays bounded.
 it.effect(
   "bounds a cancelled open and closes the handle when it arrives later",
   () =>

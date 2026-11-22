@@ -1,6 +1,3 @@
-// The two pure transitions every state of the tree is changed through.
-
-/** Applies `changes`, or keeps `state` itself when every field already holds. */
 export const patch =
   <S extends object>(changes: Partial<S>) =>
   (state: S): S =>
@@ -10,10 +7,6 @@ export const patch =
       ? state
       : { ...state, ...changes };
 
-/**
- * Applies `changes` to the object `state` holds at `key`, or keeps `state`
- * itself when every field already holds.
- */
 export const patchAt =
   <S extends object, K extends keyof S>(
     key: K,

@@ -86,8 +86,6 @@ describe("processLiveText", () => {
 
     expect(host.text(PATH)).toBe("New\r\n");
     expect(save).not.toHaveBeenCalled();
-    // A view left holding the refused text has unsaved edits, and ignores the
-    // disk change it would later overwrite.
     expect(view.lastSavedData).toBe("New\r\n");
   });
 });

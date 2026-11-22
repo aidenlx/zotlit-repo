@@ -154,19 +154,15 @@ describe("buildNoteContext", () => {
       "zotero://open/library/items/ATCH0001?annotation=ANNO0001&page=5",
     );
     expect(annot.imgLink?.()).toBe("[[ANNO0001.png]]");
-    // prefix `!` to embed the excerpt image
     expect(`!${annot.imgLink?.()}`).toBe("![[ANNO0001.png]]");
-    // raw HTML from the mapper; `comment` lazily converts it via commentToMarkdown
     expect(annot.commentHtml).toBe("<i>raw</i>");
     expect(annot.comment).toBe("md(<i>raw</i>)");
-    // page derived from position.pageIndex (0) + 1; fileLink anchors to it
     expect(annot.page).toBe(1);
     expect(annot.fileLink()).toBe("[paper.pdf](file:///x/paper.pdf#page=1)");
     expect(ctx.attachments[0]!.filePath).toBe("/x/paper.pdf");
     expect(annot.tags).toEqual([{ name: "claim", type: "auto" }]);
     expect(annot.parentAttachment).toBe(ctx.attachments[0]);
     expect(annot.parentItem?.citationKey).toBe("smith2024");
-    // annotations have no web page
     expect("weblink" in annot).toBe(false);
     expect("librarylink" in annot).toBe(false);
 
@@ -204,7 +200,6 @@ describe("buildNoteContext", () => {
     expect(annot.commentHtml).toBeNull();
     expect(annot.pageLabel).toBeNull();
     expect(annot.authorName).toBeNull();
-    // No comment HTML means `comment` never calls commentToMarkdown.
     expect(annot.comment).toBeNull();
   });
 
@@ -235,7 +230,6 @@ describe("buildNoteContext", () => {
 
   it("derives a null page and unanchored fileLink for positions without a pageIndex", () => {
     const attachment = makeAttachment({ contentType: "application/epub+zip" });
-    // EPUB / snapshot positions carry no `pageIndex`.
     const annotation = makeAnnotation({
       position: { type: "FragmentSelector", value: "epubcfi(/6/4!/4)" },
     });
@@ -292,8 +286,6 @@ describe("buildNoteContext", () => {
           : null,
     });
 
-    // `null` when there is no cached image; otherwise a link helper. Prefix `!`
-    // to the rendered link for an embed.
     expect(
       ctx.annotations.map((a) => (a.imgLink ? `!${a.imgLink()}` : null)),
     ).toEqual(["![[WITHIMG1.png]]", null]);
@@ -479,14 +471,12 @@ describe("buildNoteContext", () => {
     expect(beta.authorsShort).toBe("short:RELB2345");
     expect(beta.tags.map((t) => t.name)).toEqual(["method"]);
     expect(beta.weblink).toBe("https://www.zotero.org/aidenlx/items/RELB2345");
-    // group backlink resolved from the related item's own indexedKey
     expect(ctx.relatedItems[0]!.backlink).toBe(
       "zotero://select/groups/99/items/RELA2345",
     );
     expect(ctx.relatedItems[0]!.weblink).toBe(
       "https://www.zotero.org/groups/99/items/RELA2345",
     );
-    // depth-1 boundary: no nested annotations / attachments / relatedItems
     expect("annotations" in beta).toBe(false);
     expect("attachments" in beta).toBe(false);
     expect("relatedItems" in beta).toBe(false);
@@ -540,7 +530,6 @@ describe("buildNoteContext", () => {
     ]);
   });
 
-  // Pins the TemplateItemResolvers invariant: resolvers see the inert item-own twin, not the live context.
   it("hands the notePath/noteLink resolvers the inert item-own twin, not the live context", () => {
     const mainCollections = [{ key: "COLLMAIN", name: "Main", path: ["Main"] }];
     const relatedCollections = [
@@ -700,8 +689,6 @@ describe("buildFilenameContext", () => {
       authorsShort: () => "",
     });
 
-    // A filename template referencing `zt.noteLink()`/`zt.notePath` (the note
-    // does not exist yet at this point) must not throw — it renders "".
     expect(ctx.notePath).toBe("");
     expect(ctx.noteLink()).toBe("");
     expect(ctx.noteLink("alias", "#sub")).toBe("");

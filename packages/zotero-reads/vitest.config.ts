@@ -12,13 +12,9 @@ import { effectEntry } from "@zotlit/plugin-kernel/vite";
 export default defineConfig({
   resolve: {
     alias: {
-      // The client layer reads the Obsidian kit, whose modules import the
-      // types-only `obsidian` package; runtime imports load the stand-in.
       obsidian: obsidianMock,
     },
   },
-  // The build constants the kernel reads, as the plugin's own test config
-  // defines them.
   define: {
     __PLUGIN_ID__: JSON.stringify("zotlit"),
     __ANNOTATION_SUGGESTER_ENABLED__: JSON.stringify(true),

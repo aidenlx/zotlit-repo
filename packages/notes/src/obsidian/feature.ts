@@ -1,9 +1,3 @@
-// The notes, as far as they load on every Obsidian: the Templates, the
-// Profiles' citation styles, the notes' settings, and their setting rows —
-// the main page's Literature note rows, the Imported notes page, the Template
-// engine group and the Citation text row. The desktop feature
-// (`#desktop/feature.ts`) extends it with the Profiles, note creation and
-// import, the template conversion and the note links.
 import { Effect, Stream } from "effect";
 
 import { citationsPageSlots } from "@zotlit/citations/obsidian/citation-index/settings-page.ts";
@@ -51,7 +45,6 @@ export const notes = defineFeature({
       { provides: [Template], requires: [] },
       layerTemplate,
     ),
-    // The citations read the Profiles through their port.
     serviceGroup(
       "ProfileStyles",
       { provides: [ProfileStyles], requires: [Profile] },
@@ -63,8 +56,6 @@ export const notes = defineFeature({
   ],
   settingTab: {
     entries: {
-      // The main page is the default Profile: its Literature Note rows
-      // inline, no top-level heading (per Obsidian style) — see ADR 0036.
       "literature-notes": (ctx) => literatureNoteItems(ctx),
       "note-import": (ctx) => [
         {
@@ -86,7 +77,6 @@ export const notes = defineFeature({
         read: (key) => profileControlValue(key as never),
         write: (key, value) => setProfileControlValue(key as never, value),
       },
-      // Auto-trim stores `false | "nl" | "slurp"`; its dropdown reads a string.
       settingCodec(
         (key) => AUTO_TRIM_KEYS.has(key as SettingsKey),
         encodeAutoTrim,
@@ -110,7 +100,6 @@ export const notes = defineFeature({
     return {
       template: read(Template),
       profile,
-      // The Default Profile, as the Template Workbench opens it from a note.
       defaultProfile: {
         get defaultDocumentPath() {
           return bridge.runSync(profile.defaultDocumentPath);

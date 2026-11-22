@@ -1,19 +1,3 @@
-// The prerender page list handed to TanStack Start in `vite.config.ts`.
-//
-// The routes are listed here deliberately rather than discovered, so the build
-// stays explicit about what the asset layer answers without a Worker
-// invocation. `src/lib/content-scan.ts` supplies the content side of the list;
-// `i18n.test.ts` compares this list with the public loaders; the HTTP verifier
-// also checks the emitted native locale assets.
-//
-// Native HTML and Markdown editions in both locales are on the list.
-// A missing Chinese file retains its request-time English fallback notice.
-// The pages with GitHub data bake the facts
-// their build saw and refresh them client-side. The Worker renders search and
-// release-fact endpoints, missing-file locale fallbacks, and the Pre-release
-// Docs fallback.
-// @see docs/adr/0051-the-docs-site-prerenders-asset-first-and-falls-through-to-an-ssr-worker.md
-
 import { scanContent } from "./content-scan.ts";
 import { chineseCatalogPages, localizedPath } from "./i18n.ts";
 import type { MarkdownSection } from "./markdown-routes.ts";
@@ -23,32 +7,18 @@ import {
   suffixEditionUrl,
 } from "./markdown-routes.ts";
 
-/** A page for `tanstackStart({ pages })` to prerender. */
 interface PrerenderPage {
   path: string;
 }
 
-/**
- * Sections whose bare path is a Markdown edition of its own. The docs index
- * page already carries the `/docs.md` edition; `changelog` and `blog` answer
- * their bare section path with a generated listing. `prerenderPages` adds the
- * `/learn` course listing itself, and the Chinese listings through
- * `chineseCatalogPages`.
- */
 const landingSections: MarkdownSection[] = ["changelog", "blog"];
 
-/** The SEO endpoints, which render from the collections and never change per request. */
 const seoPages: PrerenderPage[] = [
   { path: "/sitemap.xml" },
   { path: "/robots.txt" },
   { path: "/changelog/rss.xml" },
 ];
 
-/**
- * Every build-time-safe machine route.
- * @param landings whether the section listings' editions join the list; their
- *   copy comes from the English catalog, so the Chinese list leaves them out.
- */
 function machineRoutePages(
   content: Record<MarkdownSection, { slugs: string[] }[]>,
   { landings }: { landings: boolean },
@@ -69,12 +39,6 @@ function machineRoutePages(
   return pages;
 }
 
-/**
- * The HTML pages: the whole docs tree, the blog posts, the changelog
- * versions and the lessons, plus, with `landings`, the landing,
- * community, blog and changelog listing pages, whose copy comes from the
- * English catalog.
- */
 function htmlPages(
   content: Record<MarkdownSection, { slugs: string[] }[]>,
   { landings }: { landings: boolean },
@@ -109,10 +73,6 @@ function htmlPages(
   ];
 }
 
-/**
- * The catalog pages with a native Chinese edition; a section listing among
- * them also publishes its Markdown edition.
- */
 function chineseCatalogPagesWithEditions(): PrerenderPage[] {
   return chineseCatalogPages.flatMap((path) => {
     const section = path.slice(1);
@@ -130,10 +90,6 @@ function chineseCatalogPagesWithEditions(): PrerenderPage[] {
   });
 }
 
-/**
- * Every route the build prerenders into the client output.
- * @param packageRoot the app's own root, which `vite.config.ts` owns.
- */
 export function prerenderPages(packageRoot: string): PrerenderPage[] {
   const content = scanContent(packageRoot);
 

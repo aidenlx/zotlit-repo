@@ -14,11 +14,6 @@ const HOST = resolve(
   "../../__fixtures__/excerpt-image/renderer-host.ts",
 );
 
-/**
- * The stubs the renderer's module graph needs in place of its host seams. A
- * specifier Vite aliases by prefix is listed in full first, so `@zotlit/db/path`
- * never lands inside the stub module that stands for `@zotlit/db`.
- */
 const ALIAS = {
   "node:crypto": resolve(
     import.meta.dirname,
@@ -33,17 +28,9 @@ const ALIAS = {
   obsidian: HOST,
 };
 
-/**
- * The store and display halves in the same Chromium the plugin ships on: real
- * transactions, a real query client, and a real lossless-WebP crop per render.
- * The PDF host, the filesystem, and Zotero's database are stubs, so no trial
- * here reaches them — see docs/excerpt-image-refresh-measurements.md.
- */
 it.skipIf(!testElectron)(
   "refreshes, restarts, evicts, and clears over Chromium's IndexedDB",
   async () => {
-    // The trial throws on any failed check, so a returned report is the shape of
-    // a complete run: one non-empty label per scenario it finished.
     const report = (await runInElectron({
       entry: resolve(import.meta.dirname, "refresh.browser-test.ts"),
       name: "excerptRefreshTrial",
@@ -52,8 +39,6 @@ it.skipIf(!testElectron)(
       timeoutMs: 120_000,
     })) as RefreshReport;
 
-    // The record the trial's numbers are read from, in the style of the other
-    // excerpt-image measurement suites: printed, and written where asked.
     const serialized = JSON.stringify(report, null, 2);
     process.stdout.write(`${serialized}\n`);
     const out = process.env.ZOTLIT_REFRESH_MEASUREMENTS_OUT;
@@ -66,11 +51,8 @@ it.skipIf(!testElectron)(
       "eviction, references, and image byte accounting",
       "clear races with running and queued crop work",
     ]);
-    // The walk evicted down to its budget: the bytes the store still answers
-    // for cannot outgrow the bound the run configured.
     expect(report.bytes.retained).toBeLessThanOrEqual(report.bytes.budget);
     expect(report.references).toBe(40);
-    // Every replacement went through the shared queue, under its bound.
     expect(report.queue.limit).toBe(128);
     expect(report.queue.admitted).toBe(0);
     expect(report.queue.awaiting).toBe(0);

@@ -1,4 +1,3 @@
-// The typed tree consumers validate a vocabulary over.
 import { describe, expect, it } from "vitest";
 
 import {
@@ -9,7 +8,6 @@ import {
 } from "./index.ts";
 import type { ExpressionNode } from "./index.ts";
 
-/** The tree without source ranges, so a case reads as the structure alone. */
 function strip(node: ExpressionNode): unknown {
   const { from: _from, to: _to, ...rest } = node;
   return Object.fromEntries(

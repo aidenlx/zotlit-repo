@@ -53,7 +53,6 @@ afterEach(async () => {
   document.body.replaceChildren();
 });
 
-/** Retries `assertion` across host turns until it holds. */
 async function waitFor(assertion: () => void): Promise<void> {
   for (let attempt = 0; ; attempt += 1) {
     try {
@@ -85,7 +84,6 @@ describe("CitedByView", () => {
     await act(() => harness.rename(harness.note.path, "Literature/New.md"));
     await act(() => harness.publishSnapshot(selfCited("Literature/New.md")));
     expect(view.contentEl.textContent).toContain("This note");
-    // A same-key path change keeps the observer.
     expect(harness.host.started).toEqual(["ABCD2345"]);
 
     await act(() => harness.remove("Literature/New.md"));
@@ -118,7 +116,6 @@ describe("CitedByView", () => {
       click(view!.contentEl, "[data-cited-by-show-more-context]"),
     );
     await chooseSort(view.contentEl, "Modified time (new to old)");
-    // The expansion and the collapse below stay in this session.
     await act(() => click(view!.contentEl, '[data-cited-by-expand="after"]'));
     await act(() => click(view!.contentEl, "[data-cited-by-source-toggle]"));
 
@@ -140,7 +137,6 @@ describe("CitedByView", () => {
         search: "cites",
         moreContext: true,
         sort: "alphabeticalReverse",
-        // A collapse the view never writes stays out of the restored view.
         collapsed: [CITING_PATHS[0]],
       },
       { history: false },
@@ -284,9 +280,6 @@ describe("CitedByView", () => {
     const excerpt = () =>
       view!.contentEl.querySelector("[data-occurrence]")?.textContent;
     const truncated = excerpt();
-    // Expand the first source's excerpt, then collapse the SECOND source
-    // (not the one holding the expanded excerpt), so the surviving
-    // `[data-occurrence]` after the collapse is still the expanded one.
     await act(() => click(view!.contentEl, '[data-cited-by-expand="after"]'));
     const expanded = excerpt();
     expect(expanded).not.toBe(truncated);
@@ -340,8 +333,6 @@ describe("CitedByView", () => {
 
     expect(harness.host.started).toHaveLength(1);
 
-    // An unread observer stops on a later task (the plugin's registry waits a
-    // moment longer), so a reopen before then shares it.
     await act(() => view!.close());
     await act(() =>
       waitFor(() => expect(harness.host.stopped).toHaveLength(1)),
@@ -363,7 +354,6 @@ describe("CitedByView", () => {
 const CITING_BODY = "Alpha cites @doe2024 here.\nMore text follows.\n";
 const CITING_PATHS = ["Notes/alpha.md", "Notes/beta.md"] as const;
 
-/** A Cited By Sidebar over two citing notes that share one source body. */
 async function makeHarness() {
   const current = (host = await makeCitedByHost({
     getParsedNote: () =>
@@ -372,9 +362,6 @@ async function makeHarness() {
   const { registry, vault } = current;
   const note = { path: "Literature/Item.md", key: "ABCD2345" };
   const plain = { path: "Notes/Plain.md", key: null };
-  // A duplicate Literature Note of the same Item, at a path one citing group
-  // already uses, so activating it exercises both the same-key/different-path
-  // seam and the "This note" label switch.
   const duplicate = { path: CITING_PATHS[0], key: "ABCD2345" };
   for (const path of CITING_PATHS) {
     const file = vault.add(path, CITING_BODY);
@@ -398,7 +385,6 @@ async function makeHarness() {
   });
   let followed: { path: string; key: string | null } = note;
   current.follow(note.path, note.key);
-  /** Sends `snapshot` once the followed key's observer runs, and waits for it. */
   const publishSnapshot = async (snapshot: CitedBySnapshot) => {
     const key = followed.key;
     if (key === null) throw new Error("the followed note has no key");
@@ -420,7 +406,6 @@ async function makeHarness() {
         resolution: "fresh",
       }),
     publishSnapshot,
-    /** Opens `target` and waits until the registry follows it. */
     activate: async (target: { path: string; key: string | null }) => {
       followed = target;
       current.follow(target.path, target.key);
@@ -439,7 +424,6 @@ async function makeHarness() {
   };
 }
 
-/** Type one query into the open search field and let its debounce elapse. */
 async function typeSearch(root: HTMLElement, query: string): Promise<void> {
   const input = root.querySelector<HTMLInputElement>(
     "[data-cited-by-search] input",
@@ -473,8 +457,6 @@ function citingGroup(path: string): CitedByGroup {
   };
 }
 
-/** Settles the preview reads one published snapshot starts. */
-/** Waits until the followed note's Cited By shows, every preview read. */
 function settle(): Promise<void> {
   return waitFor(() => {
     const registry = host!.registry;
@@ -490,7 +472,6 @@ function click(root: HTMLElement, selector: string): void {
   (target as HTMLElement).click();
 }
 
-/** Open the sort menu and pick the mode of one title. */
 async function chooseSort(root: HTMLElement, title: string): Promise<void> {
   Menu.instances.length = 0;
   await act(() => click(root, "[data-cited-by-sort]"));
@@ -501,7 +482,6 @@ async function chooseSort(root: HTMLElement, title: string): Promise<void> {
   await act(() => item.click());
 }
 
-/** The source-group labels, in the order the sidebar shows them. */
 function sourceLabels(root: HTMLElement): (string | null)[] {
   return [...root.querySelectorAll("[data-cited-by-source-label]")].map(
     (label) => label.textContent,

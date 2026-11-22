@@ -37,21 +37,14 @@ const PARTIAL = {
 } as const;
 const OTHER_PARTIAL = { ...PARTIAL, context: "annotation" } as const;
 
-/** A render the scheduler asked for, which the test answers when it chooses. */
 interface PendingRender {
   readonly request: RenderRequest;
   answer(result?: Partial<TemplateRenderResult>): void;
   reject(error: unknown): void;
-  /** Whether the scheduler interrupted the render before it was answered. */
   readonly interrupted: boolean;
-  /** Completes once the scheduler interrupts the render. */
   readonly interruption: Deferred.Deferred<void>;
 }
 
-/**
- * A host render held open until the test answers it. It offers each request
- * to `started` and completes each render's `interruption`.
- */
 function fakeRender() {
   const renders: PendingRender[] = [];
   const started = Effect.runSync(Queue.unbounded<PendingRender>());
@@ -88,10 +81,6 @@ function fakeRender() {
   return { renders, started, render };
 }
 
-/**
- * One scheduler in a registry of its own, over a writable input the test
- * changes the way a host model does, on a test clock.
- */
 function open(
   initial: Partial<RenderSchedulerInput> = {},
   options: Partial<
@@ -123,7 +112,6 @@ function open(
   const context = AsyncResult.getOrThrow(registry.get(runtime));
   const state = () => registry.get(scheduler.state);
   let taken = 0;
-  /** Takes the start signal of every render up to the `count`th, then checks no other started. */
   const rendered = async (count: number) => {
     while (taken < count) {
       await Effect.runPromise(Queue.take(host.started));
@@ -131,7 +119,6 @@ function open(
     }
     expect(host.renders).toHaveLength(count);
   };
-  /** Answers a render, then waits for its result to land. */
   const settled = async (
     index: number,
     answer: (render: PendingRender) => void,
@@ -170,7 +157,6 @@ function open(
 
 type Opened = ReturnType<typeof open>;
 
-/** Whatever the refresh setting is, the way a reader starts one render. */
 const startRender = async (scheduler: Opened, live: boolean) => {
   if (live) await scheduler.advance(300);
   else scheduler.run();
@@ -179,7 +165,6 @@ const startRender = async (scheduler: Opened, live: boolean) => {
 it("renders after the quiet time and no sooner, and at once on Run", async () => {
   using scheduler = open();
   const { host } = scheduler;
-  // No result has landed yet, so the reason is why one is still on the way.
   expect(scheduler.state().staleReason).toBe("live");
   await scheduler.advance(299);
   expect(host.renders).toHaveLength(0);
@@ -194,7 +179,6 @@ it("renders after the quiet time and no sooner, and at once on Run", async () =>
   await scheduler.answer(0, { creationBody: "First" });
   expect(scheduler.state().result?.creationBody).toBe("First");
   expect(scheduler.state().busy).toBe(false);
-  // The delivered result matches the current input, so nothing is stale.
   expect(scheduler.state().staleReason).toBeNull();
   scheduler.set({ live: false });
   scheduler.run();
@@ -207,17 +191,14 @@ it("lets the render in flight finish after selecting On demand and starts no oth
   await scheduler.advance(300);
   await scheduler.rendered(1);
   scheduler.set({ live: false });
-  // On demand pauses live rendering; the render already running is still running.
   expect(scheduler.state().busy).toBe(true);
   expect(host.renders[0]!.interrupted).toBe(false);
-  // The refresh setting leaves the input alone, so that render still answers for it.
   await scheduler.answer(0, { creationBody: "In flight" });
   expect(scheduler.state().result?.creationBody).toBe("In flight");
   expect(scheduler.state().busy).toBe(false);
   scheduler.set({ source: "Typed while paused" });
   await scheduler.advance(1000);
   await scheduler.rendered(1);
-  // On demand and behind an edit no render has started for.
   expect(scheduler.state().staleReason).toBe("demand");
 });
 
@@ -264,7 +245,6 @@ it("drops the quiet time on Stop and starts no render", async () => {
   scheduler.pause();
   await scheduler.advance(1000);
   expect(scheduler.host.renders).toHaveLength(0);
-  // The next edit starts the quiet time over.
   scheduler.set({ source: "Edited" });
   await scheduler.advance(300);
   await scheduler.rendered(1);
@@ -291,7 +271,6 @@ it("drops a queued render on selecting On demand and reports the result as behin
   await scheduler.answer(0, { creationBody: "First" });
   expect(scheduler.state().staleReason).toBeNull();
   scheduler.set({ source: "Revised" });
-  // The quiet time has not passed: the render is queued, not running.
   await scheduler.advance(100);
   expect(scheduler.state().staleReason).toBe("live");
   scheduler.set({ live: false });
@@ -327,7 +306,6 @@ it("drops a render in flight and starts the quiet time over when Live is chosen 
 
 it("reads a fresh scheduler in on-demand mode as behind before any render starts", () => {
   using scheduler = open({ live: false });
-  // Nothing has rendered yet, and On demand starts nothing on its own.
   expect(scheduler.state().staleReason).toBe("demand");
 });
 
@@ -352,7 +330,6 @@ it("drops the render in flight on invalidate in on-demand mode and schedules not
 
 const SUPERSEDED: readonly {
   what: string;
-  /** The selection this dimension starts on, where a Note preview carries none. */
   start?: Partial<RenderSchedulerInput>;
   supersede: Partial<RenderSchedulerInput>;
 }[] = [
@@ -398,10 +375,8 @@ it.each(
     await startRender(scheduler, live);
     await scheduler.rendered(1);
     scheduler.set(supersede);
-    // The render it was waiting on is dropped, so nothing is running any more.
     expect(scheduler.state().busy).toBe(false);
     await scheduler.interrupted(0);
-    // No signal follows an answer to a dropped render; the landing below shows it never landed.
     scheduler.host.renders[0]!.answer({ creationBody: "Superseded" });
     await startRender(scheduler, live);
     await scheduler.rendered(2);
@@ -414,7 +389,6 @@ it.each(
 it("keeps the render in flight when the input is rebuilt with the same values", async () => {
   using scheduler = open();
   await scheduler.advance(300);
-  // A host model derives a new input object; every field is the same value.
   scheduler.set({});
   expect(scheduler.host.renders[0]!.interrupted).toBe(false);
   expect(scheduler.state().busy).toBe(true);
@@ -438,7 +412,6 @@ it.each([
     await scheduler.answer(0, { creationBody: "First example" });
     expect(scheduler.state().staleReason).toBeNull();
     scheduler.set({ annotation: OTHER_EXAMPLE });
-    // The result still on screen describes the example the reader has left.
     expect(scheduler.state().result?.creationBody).toBe("First example");
     expect(scheduler.state().staleReason).toBe(live ? "live" : "demand");
   },
@@ -453,7 +426,6 @@ it("clears the result once the host takes the paper away, and keeps it cleared",
   await scheduler.advance(1000);
   await scheduler.rendered(1);
   scheduler.set({ snapshot: PAPER });
-  // The result that stood before describes a paper the host had let go.
   expect(scheduler.state().result).toBeNull();
   await scheduler.advance(300);
   await scheduler.rendered(2);
@@ -476,13 +448,11 @@ it("shows a rejected render as a diagnostic carrying the engine's message", asyn
     result?.diagnostics.map(({ code, message }) => `${code}: ${message}`),
   ).toEqual(["render-error: Unclosed tag on line 3"]);
   expect(busy).toBe(false);
-  // The failure names the source it was rendered for, so it does not read stale.
   expect(staleReason).toBeNull();
 });
 
 it("keeps the last successful preview while a failure is repaired", async () => {
   using scheduler = open();
-  // The first attempt fails outright, so nothing successful stands behind it.
   await scheduler.advance(300);
   await scheduler.reject(0, new Error("Unclosed tag"));
   expect(scheduler.state().retained).toBeNull();
@@ -490,7 +460,6 @@ it("keeps the last successful preview while a failure is repaired", async () => 
   scheduler.set({ source: "Working" });
   await scheduler.advance(300);
   await scheduler.answer(1, { creationBody: "Working" });
-  // Nothing has failed since, so the result on screen is the current one.
   expect(scheduler.state().retained).toBeNull();
 
   scheduler.set({ source: "Broken" });
@@ -510,8 +479,6 @@ it("keeps the note name the newest attempt produced, whatever else failed", asyn
   using scheduler = open();
   await scheduler.advance(300);
   await scheduler.answer(0, { filename: "Old.md", creationBody: "Working" });
-  // The note body failed on its own; the note name this attempt produced is
-  // newer than the one kept beside that body, and replaces it.
   scheduler.set({ source: "Broken body" });
   await scheduler.advance(300);
   await scheduler.answer(1, {
@@ -527,7 +494,6 @@ it("keeps the note name the newest attempt produced, whatever else failed", asyn
 it("stands the last note name that worked while the Filename Template fails", async () => {
   using scheduler = open();
   await scheduler.advance(300);
-  // A failing rule leaves the note name alone: it renders apart from the note.
   await scheduler.answer(0, {
     filename: "Working.md",
     diagnostics: [{ code: "property-error", part: "properties", position: 1 }],
@@ -554,7 +520,6 @@ it("takes retained output back once another annotation example is chosen", async
   expect(scheduler.state().retained?.creationBody).toBe("Working");
 
   scheduler.set({ annotation: OTHER_EXAMPLE });
-  // That output answers for the example the reader has left.
   expect(scheduler.state().retained).toBeNull();
 });
 
@@ -577,8 +542,6 @@ it("takes retained output back once another Template Document is opened", async 
   await scheduler.reject(1, new Error("Unclosed tag"));
   expect(scheduler.state().retained?.creationBody).toBe("Working");
 
-  // Another document the parser refuses, on the same paper: the note kept for
-  // the document before it answers for that one, not for this reader's.
   scheduler.set({ document: "templates/book.md", hold: "invalid" });
   expect(scheduler.state().retained).toBeNull();
 });
@@ -592,8 +555,6 @@ it("keeps the note that worked while the annotation beside it renders", async ()
   });
   scheduler.set({ source: "Broken" });
   await scheduler.advance(300);
-  // One attempt, two surfaces: the note produced nothing and the annotation
-  // rendered, so each surface keeps the newest output it has.
   await scheduler.answer(1, {
     annotation: "Second highlight",
     diagnostics: [{ code: "render-error", message: "Unclosed tag" }],
@@ -634,7 +595,6 @@ it("names every selection on a failure the host reports", async () => {
   using scheduler = open({ citation: CITATION, partial: PARTIAL });
   await scheduler.advance(300);
   scheduler.fail("No citation data");
-  // The failure drops the render it stands in for.
   await scheduler.interrupted(0);
   const { result, busy, staleReason, trigger, attempt } = scheduler.state();
   expect(
@@ -645,8 +605,6 @@ it("names every selection on a failure the host reports", async () => {
     trigger: "automatic",
     attempt: 1,
   });
-  // The failure carries the Citation set and the caller it was reported for,
-  // so a Citation Template or Shared Partial preview reads it as its own.
   expect(staleReason).toBeNull();
 });
 
@@ -672,8 +630,6 @@ it("names the attempt behind each result and counts the attempts apart", async (
   await scheduler.reject(1, new Error("Unclosed tag on line 3"));
   expect(scheduler.state()).toMatchObject({ trigger: "explicit", attempt: 2 });
 
-  // The same source twice is two attempts, so a second deliberate failure
-  // reads as its own.
   scheduler.run();
   await scheduler.reject(2, new Error("Unclosed tag on line 3"));
   expect(scheduler.state()).toMatchObject({ trigger: "explicit", attempt: 3 });
@@ -685,7 +641,6 @@ it("replaces the render in flight on Run and drops the quiet time", async () => 
   scheduler.run();
   await scheduler.rendered(1);
   await scheduler.advance(1000);
-  // Run ended the quiet time it overtook.
   await scheduler.rendered(1);
   scheduler.run();
   await scheduler.interrupted(0);
@@ -714,12 +669,10 @@ it("tells a document the parser refuses from a hold that is only a wait", async 
   await scheduler.answer(0, { creationBody: "Good" });
 
   scheduler.set({ hold: true });
-  // Nothing failed: the host simply cannot answer for this draft yet.
   expect(scheduler.state().staleReason).toBe("hold");
   expect(scheduler.state().retained).toBeNull();
 
   scheduler.set({ hold: "invalid" });
-  // The parser refused the draft, so the output on screen is what worked last.
   expect(scheduler.state().staleReason).toBe("invalid");
   expect(scheduler.state().retained?.creationBody).toBe("Good");
   await scheduler.rendered(1);
@@ -761,8 +714,6 @@ it("reports the attempt a failure came from, not the draft the reader moved on t
     },
   );
   await scheduler.advance(300);
-  // The reader edits while the first render is still out, so that attempt is
-  // abandoned: its late failure reports nothing and shows nothing.
   scheduler.set({ source: "Draft two" });
   await scheduler.advance(300);
   scheduler.host.renders[0]!.reject(new Error("Abandoned failure"));
@@ -772,7 +723,6 @@ it("reports the attempt a failure came from, not the draft the reader moved on t
     1,
     Object.assign(new Error("Unclosed tag"), { context }),
   );
-  // The abandoned failure never landed: this is the first attempt.
   expect(scheduler.state().attempt).toBe(1);
   const captured = scheduler.state().result!.diagnostics[0]!.report!;
   expect(captured.trigger).toBe("automatic");
@@ -784,7 +734,6 @@ it("reports the attempt a failure came from, not the draft the reader moved on t
   expect(text).toContain("Template document: templates/paper.md");
   expect(text).toContain("Attempt: 1");
 
-  // Editing on does not reach back into what was already captured.
   scheduler.set({ source: "Draft three" });
   expect(
     formatRenderReport(scheduler.state().result!.diagnostics[0]!.report!),
@@ -793,8 +742,6 @@ it("reports the attempt a failure came from, not the draft the reader moved on t
 
 it.effect("renders once for a host whose render answers at once", () =>
   Effect.gen(function* () {
-    // A render that answers on the caller's own thread completes inside the
-    // step that starts it.
     const requests: RenderRequest[] = [];
     const input = Atom.make<RenderSchedulerInput>({
       source: "Draft",
@@ -828,7 +775,6 @@ it.effect("renders once for a host whose render answers at once", () =>
       { immediate: true },
     );
     registry.set(scheduler.run, undefined);
-    // Every attempt the state lands on, up to the first result.
     while ((yield* Queue.take(landings)) < 1);
     expect(requests).toHaveLength(1);
     expect(registry.get(scheduler.state).attempt).toBe(1);
@@ -837,7 +783,6 @@ it.effect("renders once for a host whose render answers at once", () =>
   }),
 );
 
-/** A Profile draft whose Managed Frontmatter lists `keys`, in order. */
 const listing = (...keys: string[]) =>
   [
     "---",
@@ -855,7 +800,6 @@ const listing = (...keys: string[]) =>
 
 const LISTED = listing("title", "related");
 
-/** A value on each of LISTED's two rows. */
 const LISTED_PROPERTIES = [
   { key: "title", position: 1, value: "A paper", missing: false },
   { key: "related", position: 2, value: "Linked", missing: false },
@@ -874,8 +818,6 @@ it("reads a standing result in the positions of the draft on screen", async () =
     ],
   });
   scheduler.set({ source: listing("related", "title") });
-  // The render the edit queued is on its way; the result stands meanwhile,
-  // each value and problem on the row it belongs to.
   const moved = scheduler.state();
   expect(moved.staleReason).toBe("live");
   expect(rows(moved.result?.properties)).toEqual([
@@ -885,13 +827,10 @@ it("reads a standing result in the positions of the draft on screen", async () =
   expect(moved.result?.diagnostics.map(({ position }) => position)).toEqual([
     2,
   ]);
-  // Reading the same draft again answers with the same result.
   scheduler.set({ live: true });
   expect(scheduler.state().result).toBe(moved.result);
 
   scheduler.set({ source: listing("related") });
-  // The removed row's value leaves with it. Its problem still explains the
-  // attempt, so it stays, naming no row.
   const { result } = scheduler.state();
   expect(rows(result?.properties)).toEqual([["related", 1]]);
   expect(result?.diagnostics).toHaveLength(1);
@@ -906,9 +845,6 @@ it("moves retained output to each draft a later attempt and the reader are on", 
     creationBody: "Working",
     properties: [...LISTED_PROPERTIES],
   });
-  // The next attempt renders the reordered list, produces the annotation, and
-  // fails the note body, so the kept note output joins it in that draft's
-  // positions.
   const reordered = listing("related", "title");
   scheduler.set({ source: reordered });
   await scheduler.advance(300);
@@ -922,8 +858,6 @@ it("moves retained output to each draft a later attempt and the reader are on", 
     ["title", 2],
     ["related", 1],
   ]);
-  // The reader puts the list back before the next render lands; what is kept
-  // reads in the list on screen.
   scheduler.set({ source: LISTED });
   expect(rows(scheduler.state().retained?.properties)).toEqual([
     ["title", 1],

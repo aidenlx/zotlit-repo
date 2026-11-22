@@ -1,10 +1,3 @@
-// Choosing an Annotation Suggester result whose insert does not land: the
-// Annotation is gone, or an edit took the trigger text while it rendered.
-// Where the text goes and how it is spaced is `captureInsertion`'s, tested in
-// `views/annot-view/async-insert.test.ts`; a landed insert and its Use are
-// proven in the running app by `packages/e2e/src/annotation-links.e2e.ts`.
-// The insert is one fiber on the plugin's runner: a cancelled destination or
-// an unload interrupts it.
 import type { EditorView } from "@codemirror/view";
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
@@ -32,7 +25,6 @@ import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.t
 import { insertAnnotation } from "./annotation-insert.ts";
 import type { AnnotationHit } from "./annotation-search.ts";
 
-/** The Fixture's highlight on the Rougier PDF, as the search finds it. */
 const hit: AnnotationHit = {
   key: "PUPR5FG5",
   attachmentKey: "RGRPDF24",
@@ -46,10 +38,6 @@ const hit: AnnotationHit = {
   citationKey: "rougier2014",
 };
 
-/**
- * Obsidian's workspace and per-vault storage, the host the insert runs in: the
- * Use Ledger reads the sources, the insert the app's workspace events.
- */
 function host(): { sources: HostSources; app: App } {
   const workspace = new MemoryWorkspace();
   const sources = ledgerHost({ workspace });
@@ -65,12 +53,6 @@ function host(): { sources: HostSources; app: App } {
   return { sources, app };
 }
 
-/**
- * The insert over the real Annotation repository of the Fixture's Rougier
- * Annotations and a real Use Ledger. The template render stands in for the
- * Literature Note Profile's: `whileRendering` is an edit the researcher makes
- * while it runs.
- */
 async function harness(
   stack: AsyncDisposableStack,
   doc: string,
@@ -104,7 +86,6 @@ async function harness(
       };
     },
   );
-  // The plugin's runner: its fibers sit on a Scope that unload closes.
   const { scope, close } = openScope();
   stack.defer(close);
   const runner: InsertRunner<never> = {
@@ -137,7 +118,6 @@ async function harness(
     if (!fiber) throw new Error("The insert did not start.");
     return fiber;
   };
-  /** The outcome of the insert, or `undefined` where it was interrupted. */
   const insert = (target: AnnotationHit, from: number, to: number) =>
     answerOf(start(target, from, to), undefined);
   return {

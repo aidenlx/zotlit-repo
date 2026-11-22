@@ -17,10 +17,6 @@ export const pluginsOption = {
   default: `zotlit-reader,${FIXTURE_PLUGIN_ID}`,
 } as const;
 
-/**
- * A plugin in this list is in the vault's plugin folder and absent from its
- * enabled list: the state the Resource Pack works in.
- */
 export const installOption = {
   describe:
     "plugins to install without enabling, comma-separated (the Resource Pack: zotlit-resources)",

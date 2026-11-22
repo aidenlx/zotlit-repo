@@ -1,9 +1,4 @@
 import type { ObsidianEventEmitter } from "#obsidian-event-source.ts";
-// The vault as a capability tag: the file reads and writes ZotLit makes and
-// the events it follows, without the Obsidian `App`. A rejected call fails
-// with `VaultError` (`@zotlit/plugin-kernel/vault-errors.ts`); an expected outcome is a tagged
-// error the tag decides from the vault cache first. It copies the shape of
-// `MetadataCache`; policies/events.md (Capability tags) describes it.
 import { Context, Effect, Layer } from "effect";
 import type { Stream } from "effect";
 import { FileSystemAdapter, TFolder } from "obsidian";
@@ -28,22 +23,16 @@ import { joinFolderPath } from "#ensure-folder.ts";
 import { ObsidianApp } from "#obsidian-app.ts";
 import { obsidianEventSource } from "#obsidian-event-source.ts";
 
-/** One vault event, tagged with its Obsidian event name. */
 export type VaultEvent =
-  /** The file or folder was created. */
   | { readonly _tag: "create"; readonly file: TAbstractFile }
-  /** The file's content changed. */
   | { readonly _tag: "modify"; readonly file: TAbstractFile }
-  /** The file or folder moved from `oldPath` to its current path. */
   | {
       readonly _tag: "rename";
       readonly file: TAbstractFile;
       readonly oldPath: string;
     }
-  /** The file or folder was deleted. */
   | { readonly _tag: "delete"; readonly file: TAbstractFile };
 
-/** The Obsidian object the tag reads: what `app.vault` gives. */
 export type VaultSource = Pick<
   ObsidianVault,
   | "read"
@@ -58,77 +47,42 @@ export type VaultSource = Pick<
   | "getAbstractFileByPathInsensitive"
   | "getMarkdownFiles"
 > & {
-  /** The vault's adapter, read by path. */
   readonly adapter: Pick<DataAdapter, "read">;
 } & ObsidianEventEmitter;
 
 export interface VaultShape {
-  /** The file's content, read from disk. */
   read(file: TFile): Effect.Effect<string, VaultError>;
-  /** The file's content, from Obsidian's cache when it holds it. */
   cachedRead(file: TFile): Effect.Effect<string, VaultError>;
-  /**
-   * The text at the vault path `path`, read from disk through the vault's
-   * adapter, whether or not the vault cache holds a file there. Fails with
-   * `FileNotFound` when the adapter rejects with `ENOENT`.
-   */
   readPath(path: string): Effect.Effect<string, FileNotFound | VaultError>;
-  /** Rewrite the file's content with `fn` in one step; the new content. */
   process(
     file: TFile,
     fn: (data: string) => string,
     options?: DataWriteOptions,
   ): Effect.Effect<string, VaultError>;
-  /**
-   * Create a file at `path` with `data`. Fails with `FileExists` when the
-   * vault cache holds a file or folder at `path` (case-sensitive), without
-   * calling Obsidian.
-   */
   create(
     path: string,
     data: string,
     options?: DataWriteOptions,
   ): Effect.Effect<TFile, FileExists | VaultError>;
-  /** Create a folder at `path`; its parent folders must exist. */
   createFolder(path: string): Effect.Effect<TFolder, VaultError>;
-  /** Move the file to the system trash, or to the vault's `.trash` when `system` is false. */
   trash(file: TAbstractFile, system: boolean): Effect.Effect<void, VaultError>;
-  /** The file at `path` now, `null` when there is none. */
   getFileByPath(path: string): Effect.Effect<TFile | null>;
-  /** The folder at `path` in the vault cache (case-sensitive), `null` when there is none. */
   getFolderByPath(path: string): Effect.Effect<TFolder | null>;
-  /** The file or folder at `path` in the vault cache (case-sensitive), `null` when there is none. */
   getAbstractFileByPath(path: string): Effect.Effect<TAbstractFile | null>;
-  /** `path` under the path the vault holds its parent folder at, in that case. */
   underHeldParent(path: string): Effect.Effect<string>;
-  /** The file or folder at `path`, or the one whose path differs only in case. */
   getAbstractFileByPathInsensitive(
     path: string,
   ): Effect.Effect<TAbstractFile | null>;
-  /** Every Markdown file in the vault now, in Obsidian's order. */
   readonly getMarkdownFiles: Effect.Effect<TFile[]>;
-  /**
-   * The file-system path of the vault path `path`, by the adapter's
-   * `getFullPath`; `null` when the vault is not on a file system.
-   */
   fullPath(path: string): Effect.Effect<string | null>;
-  /**
-   * Add the file that was written to disk at the vault path `path` to the
-   * vault cache now, before the file watcher reports it (Obsidian's internal
-   * `reconcileInternalFile`). Fails with `VaultError` when the vault is not
-   * on a file system or Obsidian rejects.
-   */
   reconcileFile(path: string): Effect.Effect<void, VaultError>;
-  /** Each vault event, in Obsidian's order, from when the consumer's Stream starts. */
   readonly changes: Stream.Stream<VaultEvent>;
 }
 
-/** The vault. */
 export class Vault extends Context.Service<Vault, VaultShape>()(
   "zotlit/obsidian/Vault",
 ) {}
 
-/** Run one vault call; a rejection fails with {@link VaultError}. */
 const call = <A>(
   operation: string,
   path: string,
@@ -136,7 +90,6 @@ const call = <A>(
 ): Effect.Effect<A, VaultError> =>
   Effect.tryPromise({ try: run, catch: vaultError(operation, path) });
 
-/** The vault service over `source`, for the life of the Scope. */
 export const makeVault = Effect.fnUntraced(function* (source: VaultSource) {
   const events = yield* obsidianEventSource<VaultEvent>();
   yield* events.listen(source, "create", (file: TAbstractFile) => ({
@@ -160,8 +113,6 @@ export const makeVault = Effect.fnUntraced(function* (source: VaultSource) {
     _tag: "delete",
     file,
   }));
-  // Obsidian accepts a parent in the wrong case on a disk that folds case, then
-  // answers for a second file that no folder holds.
   const underHeldParent = (path: string): string => {
     const parent = heldParent(path);
     return parent ? joinFolderPath(parent.path, basename(path)) : path;
@@ -174,8 +125,6 @@ export const makeVault = Effect.fnUntraced(function* (source: VaultSource) {
         : source.getAbstractFileByPathInsensitive(parent);
     return held instanceof TFolder ? held : null;
   };
-  // A new file misses the insensitive lookup, and a miss walks the whole vault.
-  // A case variant sits in the parent, so a create reads that one folder.
   const heldInAnyCase = (path: string): TAbstractFile | null => {
     const exact = source.getAbstractFileByPath(path);
     if (exact) return exact;
@@ -259,11 +208,9 @@ export const makeVault = Effect.fnUntraced(function* (source: VaultSource) {
   });
 });
 
-/** The tag over any object of the vault's shape, such as a test host's. */
 export const layerVaultFrom = (source: VaultSource): Layer.Layer<Vault> =>
   Layer.effect(Vault, makeVault(source));
 
-/** The tag over the app's vault. */
 export const layerVault: Layer.Layer<Vault, never, ObsidianApp> = Layer.effect(
   Vault,
   Effect.gen(function* () {

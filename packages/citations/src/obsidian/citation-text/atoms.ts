@@ -1,4 +1,3 @@
-// The held citation text of one note, shared by its reading surfaces.
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 

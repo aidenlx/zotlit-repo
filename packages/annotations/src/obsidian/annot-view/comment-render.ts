@@ -1,11 +1,3 @@
-// Markdown rendering for an Annotation Card comment.
-//
-// A comment is stored as Zotero HTML, yet it reaches the card as HTML→Markdown→
-// DOM rather than rendering that HTML directly. The extra hop is the point: it
-// runs through the same `commentToMarkdown` seam the `annotation` template uses,
-// so the card previews exactly the text a Literature Note will contain and a
-// `**bold**` typed in Zotero reads the same in both places.
-
 import { Effect } from "effect";
 import { Keymap, MarkdownRenderChild, MarkdownRenderer } from "obsidian";
 import type { App, Component } from "obsidian";
@@ -23,20 +15,12 @@ import { postProcessComment } from "#core/annot-view/comment-postprocess.ts";
 
 export interface CommentRenderDeps {
   app: App;
-  /** Owns the rendered children; unloading it tears every comment down. */
   component: Component;
-  /**
-   * Literature Note the comment's links resolve against, `""` for vault root.
-   * Read at render and again at click time, so a note created after the card
-   * rendered still anchors its links.
-   */
   getSourcePath: () => string;
 }
 
-/** Renders `html` into `el`; the returned callback disposes that render. */
 export type CommentRenderer = (el: HTMLElement, html: string) => () => void;
 
-/** One Turndown instance is shared across every comment the view renders. */
 export function createCommentRenderer(
   deps: CommentRenderDeps,
 ): CommentRenderer {
@@ -53,8 +37,6 @@ export function createCommentRenderer(
       openInternalLink(deps.app, deps.getSourcePath(), evt),
     );
     MarkdownRenderer.render(deps.app, markdown, el, deps.getSourcePath(), child)
-      // A render superseded mid-flight has already had its output cleared, so
-      // its fixups would land on the replacement's DOM.
       .then(() => {
         if (!disposed) postProcessComment(el);
       })
@@ -74,11 +56,6 @@ export function createCommentRenderer(
   };
 }
 
-/**
- * Route clicks on rendered internal links through the workspace so they open in
- * the vault with the usual modifier-key panes. External links keep the default
- * anchor behavior.
- */
 function openInternalLink(app: App, sourcePath: string, evt: MouseEvent): void {
   const target = evt.target as Node | null;
   if (!target?.instanceOf(HTMLElement)) return;

@@ -1,5 +1,3 @@
-// Spread entries through document validation, evaluation, and the frontmatter fold.
-
 import { describe, expect, it } from "vitest";
 import { stringify } from "yaml";
 

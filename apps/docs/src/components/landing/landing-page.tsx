@@ -1,10 +1,3 @@
-// The landing page, top to bottom: the hero on its research desk, the
-// research sequence in five steps, the collection-to-table demo, the trust
-// row, and the closing call to start the tutorial.
-// The page prerenders in its final, readable state; motion starts after
-// load, and only with motion allowed.
-// @see apps/docs/DESIGN.md → Landing
-
 import type { ReactNode } from "react";
 
 import { textLinkClass } from "@/components/learn/action-classes.ts";
@@ -82,7 +75,6 @@ function Closing() {
   );
 }
 
-/** A link to an answer page for readers who use another Zotero plugin. */
 function AnswerLink({ path, children }: { path: string; children: string }) {
   return (
     <a
@@ -99,7 +91,6 @@ function AnswerLink({ path, children }: { path: string; children: string }) {
 
 export function LandingPage({ footer }: { footer: ReactNode }) {
   return (
-    // Chinese body copy takes the open leading DESIGN.md sets for zh prose.
     <div className="flex w-full flex-1 flex-col overflow-x-clip zh:[--text-base--line-height:1.75] zh:[--text-lg--line-height:1.75] zh:[--text-xl--line-height:1.7]">
       <Hero />
       <Workflow />

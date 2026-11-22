@@ -11,8 +11,6 @@ class Probe extends Context.Service<Probe, { value: number }>()(
   "zotlit/effect-layer/Probe",
 ) {}
 
-// Failure mode: work run through the plugin's runtime falls back to Effect's
-// default scheduler, which Obsidian throttles in a hidden window.
 it.effect("runs its fibers on the browser scheduler", () =>
   Effect.gen(function* () {
     const stack = yield* Effect.acquireDisposable(
@@ -28,7 +26,6 @@ it.effect("runs its fibers on the browser scheduler", () =>
   }),
 );
 
-// Plugin startup must read settled state after async layer acquisition.
 it.effect("reads the loaded value synchronously after the graph builds", () =>
   Effect.gen(function* () {
     const context = yield* Effect.context<never>();
@@ -61,8 +58,6 @@ it.effect("reads the loaded value synchronously after the graph builds", () =>
   }),
 );
 
-// `onload`'s await-using boundary must roll back a failed graph and
-// propagate its error to Obsidian before startup can commit.
 it.effect("unwinds the startup stack before rejecting a failed graph", () =>
   Effect.gen(function* () {
     const error = new Error("first load failed");

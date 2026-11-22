@@ -1,4 +1,3 @@
-// Main-thread CPU for the production changed-event path, with persisted evidence.
 import { mkdir, writeFile } from "node:fs/promises";
 import type { Profiler } from "node:inspector";
 import { join } from "node:path";
@@ -10,22 +9,6 @@ import { obRun } from "./obsidian-cli.ts";
 import type { PageDebugger, FileScan } from "./page-citation-types.ts";
 import { e2eResultsDir } from "./results-dir.ts";
 
-/**
- * TaskDuration with threadTicks counts renderer task CPU, including native reply
- * deserialization, client recovery, map updates and IndexedDB serialization.
- * No worker session is measured. Worker execution, disk work and idle waits run
- * elsewhere. Other renderer tasks and the small harness cost stay in the result:
- * this is a conservative gate, with no guessed baseline subtracted.
- * The @electron/remote sendCommand calls cross synchronous IPC; part of their
- * cost falls inside each sample, biasing the gate conservatively upward.
- * Repeating changed with the same text measures the harness floor, including
- * the unchanged parse, reply and equality check. Report it without subtraction.
- *
- * A readonly transaction queues behind the production write. Its completion
- * bounds the measurement after persistence callbacks; the record is checked
- * outside timing. CPU profiling runs separately to keep sampling overhead out
- * of the gate. The profile includes native '(program)' and GC samples.
- */
 export async function measureCitationScan(vaultId: string) {
   const summaries = [];
   const directory = e2eResultsDir();
@@ -102,12 +85,9 @@ export async function measureCitationScan(vaultId: string) {
         const samples = [];
         const floorSamples = [];
         const edit = async (n: number, unchanged = false) => {
-          // Match work1's width so only membership changes, not later positions.
           const key = `r${String(n + 1).padStart(4, "0")}`;
           const body = text.replace("[@work1]", `[@${key}]`);
           const start = await taskCpu();
-          // The public intake event supplies edited text, just as Obsidian does.
-          // Keep editor rendering and Obsidian's own Markdown parse outside this gate.
           app.metadataCache.trigger("changed", file, body, cache);
           const scan = await bridge.runPromise(index.getFileScan(file));
           await barrier();

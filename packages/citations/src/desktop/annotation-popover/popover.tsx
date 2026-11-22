@@ -1,6 +1,3 @@
-// The annotation popover: what a hovered Durable Annotation Link names, read
-// from the live Annotation repository.
-
 import type { AnnotationHoverRequest } from "#obsidian/annotation-popover/service.ts";
 import type { PopoverPart } from "#obsidian/citation-popover/visits.ts";
 import { Effect } from "effect";
@@ -30,40 +27,16 @@ export interface AnnotationPopoverCoreDeps {
     AnnotationRepository["Service"],
     "hold" | "annotationsChanged"
   >;
-  /**
-   * Reads an Attachment's list. Unload interrupts the read, which then
-   * answers `undefined`.
-   */
   read: (attachmentKey: string) => Promise<AnnotationList | null | undefined>;
   bridge: Pick<EffectBridge, "runSync" | "subscribe">;
-  /** The live Excerpt Image display the Annotation View's cards share. */
   excerptDisplay: Pick<ExcerptDisplays["Service"], "open">;
-  /** The file inputs one saved Annotation's Excerpt Image resolves through. */
   excerptRequest: (input: {
     annotation: AnnotationRecord;
     source: AnnotationSource;
   }) => Promise<ExcerptRequest | null>;
-  /**
-   * Renders comments for one popover, which owns what they render.
-   *
-   * @param owner the popover, unloaded when it hides.
-   * @param sourcePath the note a comment's links resolve against.
-   */
   commentRenderer: (owner: Component, sourcePath: string) => CommentRenderer;
 }
 
-/**
- * Shows what a hovered Durable Annotation Link names: the Annotation's quoted
- * text, comment, page label and colour, and the Excerpt Image of an image or
- * ink Annotation from ZotLit's own cache and renderer — with no reader open.
- *
- * It draws into a part of the Citation Popover, above the parent Item's
- * reference, once the Annotation is read. Every hover reads the repository
- * again, and an open popover holds the Attachment's list and redraws on its
- * change, so an edit made in Zotero or in the Annotation View shows without a
- * note refresh. A link to an Annotation the list no longer holds says so
- * briefly.
- */
 export class AnnotationPopoverCore implements Disposable {
   readonly #deps;
   #closed = false;
@@ -76,12 +49,6 @@ export class AnnotationPopoverCore implements Disposable {
     this.#closed = true;
   }
 
-  /**
-   * Holds the link's list for the part's visit and draws the Annotation into
-   * the part now and on every change.
-   *
-   * @returns the first draw.
-   */
   follow(
     part: PopoverPart,
     { sourcePath, link }: Pick<AnnotationHoverRequest, "sourcePath" | "link">,
@@ -92,17 +59,11 @@ export class AnnotationPopoverCore implements Disposable {
     const attachmentKey = formatIndexedKey(link.attachmentKey, link.groupID);
     const annotationKey = formatIndexedKey(link.annotationKey, link.groupID);
     const renderComment = deps.commentRenderer(owner, sourcePath);
-    /** The newest read; an older one draws nothing. */
     let generation = 0;
-    // A read still running when the target moves or the popover hides draws
-    // nothing.
     subscriptions.defer(() => generation++);
     let excerpt: ExcerptDisplayDemand | null = null;
-    /** Whether this visit drew the link's Annotation, or its absence, yet. */
     let drawn = false;
 
-    // Released last: letting a held list go announces a change, which the
-    // subscription below must no longer answer.
     subscriptions.use(
       deps.bridge.runSync(deps.annotations.hold([attachmentKey])),
     );
@@ -112,10 +73,7 @@ export class AnnotationPopoverCore implements Disposable {
       return deps
         .read(attachmentKey)
         .then((list) => {
-          // An interrupted read draws nothing.
           if (list === undefined || !current()) return;
-          // No list stands: the library holds no such Attachment, or a change
-          // cancelled this read and draws again — over what is drawn, if any.
           if (list === null && drawn) return;
           const annotation =
             list?.annotations.find(({ key }) => key === annotationKey) ?? null;
@@ -192,7 +150,6 @@ export class AnnotationPopoverCore implements Disposable {
   }
 }
 
-/** Only image and ink Annotations have an Excerpt Image. */
 function hasExcerptImage(annotation: AnnotationRecord): boolean {
   return annotation.type === "image" || annotation.type === "ink";
 }

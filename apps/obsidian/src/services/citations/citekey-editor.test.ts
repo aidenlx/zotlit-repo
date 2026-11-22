@@ -84,24 +84,13 @@ const BOTH_LIBRARIES: ResolvedLibraryScope = {
 };
 
 interface EditorOptions {
-  /** Each Literature Note's path and the Item key it carries. */
   notes?: Record<string, string>;
-  /** What each citekey resolves to; any other key is missing. */
   resolutions?: Record<string, CitekeyResolution>;
-  /** The Items the database holds. */
   works?: readonly SeededWork[];
-  /** How the Note Feature plans the creation of a note. */
   planCreations?: NoteFeature["Service"]["planCreations"];
-  /** The database state the editor reads. */
   readsState?: ZoteroReadsState["state"];
 }
 
-/**
- * The Citekey Editor over the real Note Index on an in-memory vault, the real
- * settings and Zotero reads over a fixture database (My Library and the Shared
- * group: group 7, Library 4), and a Citation Lookup that answers from
- * `resolutions`.
- */
 const openEditor = Effect.fnUntraced(function* ({
   notes = {},
   resolutions = {},
@@ -130,7 +119,6 @@ const openEditor = Effect.fnUntraced(function* ({
         return lookupAnswerFor(citekeys, resolutions, "test");
       }),
   });
-  // The real reads over the fixture database, in the state the test names.
   const { reads, snapshot } = Context.get(
     yield* Layer.build(
       layerZoteroReads(
@@ -150,7 +138,6 @@ const openEditor = Effect.fnUntraced(function* ({
       ),
       Layer.provide(
         Layer.mergeAll(
-          // The Profile dialogs' own services: no case opens a dialog.
           Layer.mock(Profile, {}),
           Layer.mock(Template, {}),
           Layer.succeed(
@@ -205,7 +192,6 @@ const openEditor = Effect.fnUntraced(function* ({
     editor,
     settings,
     events,
-    /** Completes once `count` more events have reached `events`. */
     received: (count: number) => Queue.takeN(arrivals, count),
     workspace,
     citekeysRead,
@@ -510,8 +496,6 @@ describe("CitekeyEditor ambiguous citation keys", () => {
       }),
   );
 
-  // The page preview would have to pick one of the candidates to show, so it
-  // shows none of them: a hover implies no identity the key does not carry.
   it.effect("previews no note for a citekey that names several Items", () =>
     Effect.gen(function* () {
       const { editor } = yield* openEditor({
@@ -554,7 +538,6 @@ vi.mock("@zotlit/notes/desktop/profile/profile-picker.ts", () => ({
   openLiteratureNoteProfile: vi.fn(),
 }));
 
-/** The picker answers what `answer` gives, as the user would. */
 function pickerAnswers(
   answer: () => Promise<LiteratureNoteProfileChoice | undefined>,
 ) {
@@ -569,10 +552,6 @@ function pickerAnswers(
 
 const books = "Bk3Qn7XvT2Lp" as ProfileId;
 
-/**
- * A Note Feature plan of `selection` for every Item: Default and Books, whose
- * create writes Books/Paper.md.
- */
 function planning(
   selection: CreationProfileSelection = {
     selector: "default",

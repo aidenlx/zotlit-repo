@@ -1,32 +1,16 @@
-// The pack reader: the raw bytes of one Pack Entry, through one capability.
-// It loads on every host (the plugin's main thread, a Web Worker, a phone), so
-// it takes the pack file as a `ReadRange` and uses web APIs only.
 import type { PackFailure } from "#format.ts";
 
 import { PACK_COMPAT, PACK_INDEX_BYTES, parseIndex } from "#format.ts";
 import { sha256Hex } from "#sha256.ts";
 
-/**
- * The one capability the reader takes: `length` bytes at `offset` of the pack
- * file, or fewer when the file ends first. It rejects with `PackAbsentError`
- * when there is no pack file, and with any other error when the read fails.
- */
 export type ReadRange = (offset: number, length: number) => Promise<Uint8Array>;
 
-/**
- * One Pack Entry of an installed pack, for a reader in another realm: the
- * main thread names it, and a Web Worker reads it through `fetchRange(url)`.
- */
 export interface PackEntryLocation {
-  /** The resource URL of the pack file. */
   readonly url: string;
-  /** The name of the Pack Entry. */
   readonly entry: string;
-  /** The version of the pack, as its manifest states it. */
   readonly version: string;
 }
 
-/** A `ReadRange` rejects with this when the host has no pack file. */
 export class PackAbsentError extends Error {
   override readonly name = "PackAbsentError";
 }
@@ -35,12 +19,10 @@ export type PackRead =
   | {
       readonly ok: true;
       readonly bytes: Uint8Array<ArrayBuffer>;
-      /** The SHA-256 of the entry text, as the index states it. */
       readonly sha256: string;
     }
   | { readonly ok: false; readonly failure: PackFailure };
 
-/** A `ReadRange` over a pack held in memory. */
 export function bytesRange(pack: Uint8Array): ReadRange {
   return async (offset, length) => pack.subarray(offset, offset + length);
 }
@@ -50,11 +32,6 @@ const refused = (failure: PackFailure): PackRead => ({ ok: false, failure });
 const detailOf = (error: unknown): string =>
   error instanceof Error ? error.message : String(error);
 
-/**
- * The binary an entry text holds. The host's own base64 decoder runs through a
- * `data:` URL: `Uint8Array.fromBase64` is a slow polyfill on WebView 124 and
- * absent in its Worker.
- */
 async function decodeEntry(text: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
   const response = await fetch(
     `data:application/octet-stream;base64,${new TextDecoder().decode(text)}`,
@@ -64,11 +41,6 @@ async function decodeEntry(text: Uint8Array): Promise<Uint8Array<ArrayBuffer>> {
   return new Uint8Array(await new Response(raw).arrayBuffer());
 }
 
-/**
- * Reads the Pack Entry `name`: the index, the compatibility integer, the entry
- * text, its SHA-256, then base64 and gzip. Every call reads the pack file
- * again, so a pack that changes is seen on the next read.
- */
 export async function readPackEntry(
   read: ReadRange,
   name: string,

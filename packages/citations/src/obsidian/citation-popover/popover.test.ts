@@ -19,9 +19,6 @@ function popover() {
 const entry = () => createElement("p", null, "Doe (2024)");
 
 afterEach(() => {
-  // Every popover arms a wait timer that puts it in the document, and the
-  // document is shared with the test after it, so the suite hides what it
-  // opened. `hide()` is idempotent, so a test that hides its own popover may.
   for (const shown of opened.splice(0)) shown.hide();
   vi.useRealTimers();
 });
@@ -60,7 +57,6 @@ describe("CitationHoverPopover", () => {
     expect(shown.hoverEl.classList.contains(PLACEMENT_CLASS.above)).toBe(true);
     expect(shown.hoverEl.classList.contains(PLACEMENT_CLASS.below)).toBe(false);
 
-    // A reposition is another `position()` call, and the stamp follows it.
     shown.hoverEl.style.bottom = "";
     shown.hoverEl.style.top = "40px";
     shown.position();

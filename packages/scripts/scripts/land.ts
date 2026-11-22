@@ -1,13 +1,5 @@
 #!/usr/bin/env node
 
-// `pnpm land`: the only path by which a change reaches `main`, the trunk
-// (lib/land.ts). Run it from the task worktree, on its branch, with a clean
-// tree. It waits in the Land Queue, rebases onto `origin/main`, runs
-// `pnpm verify --local` on the rebased tree, opens the record PR from the
-// record file, waits for its CI check (`pnpm verify --pr`), and pushes. Then it starts the
-// End-to-end Run of the new tip in the background (lib/land-e2e.ts).
-// `--help` prints the contract.
-
 import { spawn } from "node:child_process";
 import { openSync, readFileSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
@@ -48,9 +40,7 @@ import { ghLandGitHub } from "#land-github";
 import { landAdmission, landStateDir, landWaitLog } from "#land-queue";
 
 const EXIT_USAGE = 2;
-/** The lines of the log a failed gate prints. */
 const GATE_TAIL = 40;
-/** The End-to-end Runs after lands that `pnpm land status` lists. */
 const STATUS_RUNS = 5;
 
 const epilogue = `A land holds the Land Turn while it fetches, rebases, runs the gate, and pushes, so one land at a time reaches ${SOURCE_BRANCH} on this machine, in the order the lands started. The gate cannot be skipped.
@@ -115,7 +105,6 @@ async function landCommand(wait: string | undefined) {
   await startE2e(cwd, result.commit, result.previous);
 }
 
-/** Request the End-to-end Run of the new tip and start its detached runner. */
 async function startE2e(cwd: string, commit: string, previous: string) {
   const git = $({ cwd, quiet: true, nothrow: true });
   const origin = (await git`git remote get-url origin`).stdout;
@@ -162,7 +151,6 @@ async function status() {
       ? `Land Queue:\n${describeWaiters(state.waiters)}`
       : "Land Queue: empty.",
   );
-  // A tip the desktop could not run shows as "not-run" with the machine state.
   const runs = await readLandE2eRecords(STATUS_RUNS);
   console.log(
     runs.length > 0

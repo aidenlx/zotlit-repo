@@ -53,7 +53,6 @@ const request: ExcerptRequest = {
   zoteroPngPath: null,
 };
 
-// The public display boundary owns pending resolutions and stored reads.
 it.effect.each(["visible", "stored"] as const)(
   "interrupts the pending %s read when the display layer closes",
   (kind) =>
@@ -102,7 +101,6 @@ it.effect.each(["visible", "stored"] as const)(
     }),
 );
 
-// A failed fresh read must still paint a slower stored fallback.
 it.live(
   "retains a stored fallback that arrives after the fresh read fails",
   () =>
@@ -136,7 +134,6 @@ it.live(
       const card = yield* displays.open;
       card.demand(request);
       yield* Fiber.join(settled);
-      // The host task lets the completed query's Promise settlement reach its owner.
       yield* Effect.promise(() => yieldToMain());
       yield* Deferred.succeed(fallback, {
         kind: "available",

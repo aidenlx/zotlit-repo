@@ -36,8 +36,6 @@ import {
   readDesktopSlotStatus,
 } from "./desktop-slot.ts";
 
-// Desktop Slots serve the local End-to-end Run and manual app sessions; the
-// hosted runner has no desktop, so these cases run on development machines only.
 const desktopOnly = describe.skipIf(process.env.GITHUB_ACTIONS === "true");
 
 const MINUTE = 60_000;
@@ -53,18 +51,14 @@ const saved = Object.fromEntries(
   ENV_KEYS.map((key) => [key, process.env[key]]),
 );
 
-/** Every process a test starts, ended after the test whatever its outcome. */
 const spawned = new Set<ChildProcess>();
-/** The tracked processes that lead their own group. */
 const detachedChildren = new WeakSet<ChildProcess>();
-/** Grandchildren, and their groups, that a test learns about. */
 const strays = new Set<number>();
 
 async function end(each: ChildProcess): Promise<void> {
   if (each.exitCode !== null || each.signalCode !== null) return;
   const exited = once(each, "exit");
   try {
-    // A detached child leads its own group; end the group with it.
     process.kill(
       detachedChildren.has(each) ? -each.pid! : each.pid!,
       "SIGKILL",
@@ -75,7 +69,6 @@ async function end(each: ChildProcess): Promise<void> {
   await exited;
 }
 
-/** Spawn a process that the next afterEach ends. */
 function track(
   [command, ...args]: readonly [string, ...string[]],
   { env, detached = false }: { env: NodeJS.ProcessEnv; detached?: boolean },
@@ -94,18 +87,13 @@ let dir: string;
 beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), "desktop-slot-"));
   process.env[DESKTOP_DIR_ENV] = dir;
-  // The Memory Gate has its own tests; these cases isolate Desktop Slots.
   process.env[MEMORY_GATE_ENV] = "off";
-  // So does the paint probe (desktop-paint.test.ts): these cases must pass
-  // whatever the real display of the machine shows.
   process.env[DESKTOP_PAINT_ENV] = "off";
-  // One slot, unless a test says otherwise; children inherit it.
   process.env[DESKTOP_SLOTS_ENV] = "1";
   delete process.env[DESKTOP_SLOT_ENV];
   delete process.env[MEMORY_GATE_ADMITTED_ENV];
 });
 afterEach(async () => {
-  // A failed assertion must not leave a process holding or waiting for the slot.
   await Promise.all([...spawned].map(end));
   spawned.clear();
   for (const pid of strays) {
@@ -125,7 +113,6 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-/** Options for an in-process holder that must not end the test run. */
 const IN_TEST = {
   silenceMs: 30 * MINUTE,
   pollMs: 10,
@@ -135,7 +122,6 @@ const IN_TEST = {
 
 const MODULE = new URL("./desktop-slot.ts", import.meta.url).href;
 
-/** Run `body` in a child Node process with `slot` bound to the slot module. */
 function child(
   body: string,
   env: NodeJS.ProcessEnv = {},
@@ -148,10 +134,6 @@ function child(
   });
 }
 
-/**
- * Resolve when the child prints a line that matches. The stream stays open:
- * the child may print more.
- */
 async function printed(
   process: ChildProcess,
   line: string | RegExp,
@@ -174,7 +156,6 @@ async function printed(
   });
 }
 
-/** Everything the child prints from now on. */
 function collect(process: ChildProcess): () => string {
   let output = "";
   process.stdout!.on("data", (chunk: Buffer) => (output += String(chunk)));
@@ -197,10 +178,6 @@ function isAlive(pid: number): boolean {
   }
 }
 
-/**
- * Resolve once `pid` is gone; its new parent reaps it a moment after it dies.
- * @throws {Error} when it outlives the retries.
- */
 async function gone(pid: number): Promise<void> {
   for (let attempt = 0; attempt < 100 && isAlive(pid); attempt++) {
     await new Promise((resolve) => setTimeout(resolve, 20));
@@ -208,22 +185,16 @@ async function gone(pid: number): Promise<void> {
   if (isAlive(pid)) throw new Error(`pid ${pid} is still running`);
 }
 
-/** The pid of a process that has exited. */
 async function deadPid(): Promise<number> {
   const gone = spawn(process.execPath, ["-e", ""]);
   await once(gone, "exit");
   return gone.pid!;
 }
 
-/** A child that holds the slot until a signal ends it. */
 const HOLD = `await slot.acquireDesktopSlot({ command: "holder", silenceMs: 30 * 60_000, pollMs: 10 });
 console.log("held");
 setInterval(() => {}, 1000);`;
 
-/**
- * A child in another worktree that holds a slot until a signal ends it,
- * printing what it waits for and then "held".
- */
 function holderIn(
   worktree: string,
   {
@@ -234,11 +205,8 @@ function holderIn(
     command?: string;
     exclusive?: boolean;
     silenceMs?: number;
-    /** A manual hold, instead of an automated holder. */
     manual?: boolean;
-    /** Lead its own process group. */
     detached?: boolean;
-    /** The number of slots this holder sees. */
     slots?: number;
   } = {},
 ): ChildProcess {
@@ -246,7 +214,6 @@ function holderIn(
     `await slot.acquireDesktopSlot({ command: "holder", silenceMs: 30 * 60_000, pollMs: 10, worktree: ${JSON.stringify(worktree)}, log: (message) => console.log(message), ...${JSON.stringify(options)} });
 console.log("held");
 setInterval(() => {}, 1000);`,
-    // Not a child of an in-process holder: it takes its own slot.
     {
       [DESKTOP_SLOT_ENV]: "",
       ...(slots === undefined ? {} : { [DESKTOP_SLOTS_ENV]: String(slots) }),
@@ -255,7 +222,6 @@ setInterval(() => {}, 1000);`,
   );
 }
 
-/** Wait as a holder in `worktree`, and expect the Admission Deadline. */
 async function blocked(options: {
   worktree: string;
   exclusive?: boolean;
@@ -273,7 +239,6 @@ async function blocked(options: {
   return error as DesktopSlotBlockedError;
 }
 
-/** A child that waits in the Desktop Queue, printing what it waits for. */
 function waiter(
   name: string,
   trace: string,
@@ -287,21 +252,18 @@ function waiter(
 const held = await slot.acquireDesktopSlot({ command: ${JSON.stringify(name)}, silenceMs: 60_000, pollMs: ${pollMs}, log: (message) => console.log(message), ...${JSON.stringify(options)} });
 appendFileSync(${JSON.stringify(trace)}, ${JSON.stringify(name)} + "\\n");
 held.release();`,
-    // Not a child of an in-process holder: it waits in the queue.
     { [DESKTOP_SLOT_ENV]: "" },
   );
 }
 
 const OWNER = () => join(dir, "slot-0", "owner.json");
 
-/** The pids of the holders, one per hold, in slot order. */
 async function holderPids(): Promise<number[]> {
   return (await readDesktopSlotStatus()).holders.map((holder) => holder.pid);
 }
 
 const SCRIPT = new URL("../scripts/desktop-slot.ts", import.meta.url).pathname;
 
-/** `pnpm desktop-slot`, still running; afterEach ends it. */
 function start(...args: string[]): ChildProcess {
   return track([process.execPath, SCRIPT, ...args], {
     env: { [DESKTOP_SLOT_ENV]: "" },
@@ -341,8 +303,6 @@ desktopOnly("the Desktop Queue", () => {
     const holder = await acquireDesktopSlot(IN_TEST);
     const trace = join(dir, "trace");
     await writeFile(trace, "");
-    // Each joins once the one before it is queued. The first in line polls
-    // slowest, yet it still goes first.
     const waiters: ChildProcess[] = [];
     for (const [name, pollMs] of [
       ["first", 200],
@@ -386,7 +346,6 @@ desktopOnly("the Desktop Queue", () => {
     const ticketGone = Promise.withResolvers<void>();
     const waiting = acquireDesktopSlot({
       ...IN_TEST,
-      // Bounds the wait should an assertion fail first.
       waitMs: 20_000,
       log: (message) => {
         messages.push(message);
@@ -445,8 +404,6 @@ desktopOnly("the Desktop Queue", () => {
   it("gives up at the Admission Deadline when it comes before the next poll", async () => {
     const holder = child(HOLD);
     await printed(holder, "held");
-    // A poll a minute long outlasts the test timeout unless the wait ends at
-    // the deadline.
     const error = await acquireDesktopSlot({
       ...IN_TEST,
       waitMs: 100,
@@ -546,7 +503,6 @@ desktopOnly("a pool of two Desktop Slots", () => {
     using slot = await acquireDesktopSlot({
       ...IN_TEST,
       worktree: "/c",
-      // Past the first holder's 30 min silence and grace, inside the other's 2 h.
       now: () => Temporal.Now.instant().add({ minutes: 33 }).epochMilliseconds,
       log: (message) => messages.push(message),
     });
@@ -572,7 +528,6 @@ desktopOnly("a pool of two Desktop Slots", () => {
   });
 
   it("makes an Exclusive Hold wait for a slot beyond the slots it sees", async () => {
-    // One at a time, so the last takes the third slot.
     const holders: ChildProcess[] = [];
     for (const worktree of ["/a", "/b", "/c"]) {
       const each = holderIn(worktree, { slots: 3 });
@@ -622,7 +577,6 @@ setInterval(() => {}, 1000);`,
     const second = holdDesktopMutex("registry.lock", { dir });
     first.kill("SIGTERM");
     using _held = await second;
-    // The first wrote this before it let go of the mutex.
     expect(await exists(released)).toBe(true);
   });
 
@@ -673,11 +627,6 @@ desktopOnly("a dead holder", () => {
   });
 
   describe("whose command's process group lives on", () => {
-    /**
-     * A `run` wrapper whose command, in its own group, outlives it: the
-     * wrapper is SIGKILLed once its record names the group.
-     * @returns the group, which the command `sh` leads, and its `sleep`.
-     */
     async function orphanGroup(): Promise<{ pgid: number; sleep: number }> {
       const pidFile = join(dir, "sleep");
       const wrapper = start(
@@ -785,7 +734,6 @@ desktopOnly("the Lease of an automated holder", () => {
       clock + 10 * MINUTE,
     );
 
-    // A tool started under the hold renews it through the environment.
     const nested = child(`slot.reportDesktopProgress("a nested step");`);
     expect((await once(nested, "exit"))[0]).toBe(0);
     [holder] = (await readDesktopSlotStatus()).holders;
@@ -808,7 +756,6 @@ setInterval(() => {}, 1000);`,
   });
 
   it("keeps a healthy run that lasts longer than the old fixed Lease of 20 min", async () => {
-    // Each step moves the holder's clock 5 min on, and reports progress.
     const holder = child(
       `let shift = 0;
 const held = await slot.acquireDesktopSlot({ silenceMs: slot.SILENCE_LIMIT_MS.e2e, pollMs: 10, now: () => Temporal.Now.instant().epochMilliseconds + shift, log: (message) => console.log(message) });
@@ -854,7 +801,6 @@ setInterval(() => {}, 1000);`,
     const messages: string[] = [];
     using _slot = await acquireDesktopSlot({
       ...IN_TEST,
-      // Past the holder's silence of 200 ms and the 2 min grace.
       now: () => Temporal.Now.instant().add({ minutes: 3 }).epochMilliseconds,
       log: (message) => messages.push(message),
     });
@@ -869,7 +815,6 @@ setInterval(() => {}, 1000);`,
     const messages: string[] = [];
     using _slot = await acquireDesktopSlot({
       ...IN_TEST,
-      // The holder's 30 min silence and its 2 min grace have passed.
       now: () => Temporal.Now.instant().add({ minutes: 33 }).epochMilliseconds,
       log: (message) => messages.push(message),
     });
@@ -879,7 +824,6 @@ setInterval(() => {}, 1000);`,
   });
 
   it("does not start while the holder waits at the Memory Gate, so no waiter evicts it there", async () => {
-    // A run currently checking memory holds the start lock.
     await mkdir(join(dir, "last-start.lock"));
     const holder = child(
       `await slot.acquireDesktopSlot({ command: "holder", silenceMs: 30 * 60_000, pollMs: 10, log: (message) => console.log(message) });
@@ -891,7 +835,6 @@ console.log("held");`,
     const error = await acquireDesktopSlot({
       ...IN_TEST,
       waitMs: 300,
-      // Past the claim plus the 30 min silence and its 2 min grace.
       now: () => Temporal.Now.instant().add({ minutes: 33 }).epochMilliseconds,
       log: (message) => messages.push(message),
     }).then(
@@ -905,18 +848,12 @@ console.log("held");`,
   });
 });
 
-/**
- * A waiter whose clock runs NOTICE_MS less `leftMs` behind: the notice it
- * gives ends `leftMs` from now on the holder's clock.
- */
 function behindByNotice(leftMs: number): () => number {
   return () => Temporal.Now.instant().epochMilliseconds - NOTICE_MS + leftMs;
 }
 
 desktopOnly("the Lease of a manual hold", () => {
   it("has no end while no run waits, past any old cap", async () => {
-    // The holder's clock is 3 h ahead: past the old manual cap of 60 min and
-    // the 2 h cap of an automated holder.
     const holder = child(
       `await slot.acquireDesktopSlot({ manual: true, command: "manual", pollMs: 10, now: () => Temporal.Now.instant().add({ hours: 3 }).epochMilliseconds, log: (message) => console.log(message) });
 console.log("held");
@@ -1028,8 +965,6 @@ setInterval(() => {}, 1000);`,
   it("goes on when no run waits at the end of its notice", async () => {
     const holder = holderIn("/a", { command: "manual", manual: true });
     await printed(holder, "held");
-    // The waiter's clock gives a notice that ends in 1 s, and its own
-    // deadline passes first.
     await blocked({ worktree: "/b", now: behindByNotice(1000) });
     await printed(holder, /no run waits any more, so this manual hold goes on/);
     expect(isAlive(holder.pid!)).toBe(true);
@@ -1057,7 +992,6 @@ inner.release();`,
     const error = await acquireDesktopSlot({
       ...IN_TEST,
       waitMs: 100,
-      // Past the Lease, inside the grace that keeps the holder from eviction.
       now: () => Temporal.Now.instant().add({ minutes: 31 }).epochMilliseconds,
     }).then(
       () => undefined,

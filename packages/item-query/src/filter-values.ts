@@ -9,10 +9,6 @@ import { errorValue, isError, renderEvaluationFault } from "./filter-error.ts";
 import type { ErrorValue } from "./filter-error.ts";
 import type { QueryClock } from "./query-clock.ts";
 
-/**
- * A value of a Filter Expression. A Zotero field value is a string whether
- * SQLite stores it as text or as a number.
- */
 export type FilterValue =
   | null
   | boolean
@@ -31,16 +27,11 @@ export interface RecordValue {
   readonly read: (name: string) => FilterValue;
 }
 
-/**
- * A regular expression, from a `/pattern/flags` literal. A filter-only
- * value: it never enters a Query Row.
- */
 export interface RegexpValue {
   readonly type: "regexp";
   readonly regexp: RegExp;
 }
 
-/** The type of a non-null {@link FilterValue}, or `"null"`. */
 export type FilterValueType =
   | "null"
   | "boolean"
@@ -80,11 +71,6 @@ export function isRegexp(value: FilterValue): value is RegexpValue {
   return typeOf(value) === "regexp";
 }
 
-/**
- * Whether a value selects the Item: null, an Error Value, `false`, zero, the
- * empty string, the empty list, and a zero duration are falsy. A date is
- * truthy.
- */
 export function truthy(value: FilterValue): boolean {
   if (value === null || isError(value)) return false;
   if (isList(value)) return value.length > 0;
@@ -92,14 +78,6 @@ export function truthy(value: FilterValue): boolean {
   return Boolean(value);
 }
 
-/**
- * Equality of `==`, `!=`, and list membership: exact, with no coercion between
- * types. Null equals only null. Strings compare by code unit: case-sensitive,
- * no Unicode normalization. Lists compare position by position. Two dates are
- * equal when they share a calendar day (see {@link compareDates}); two
- * durations when every unit holds the same count; two regexps when their
- * source and flags are equal. An Error Value equals no value, itself included.
- */
 export function equals(
   a: FilterValue,
   b: FilterValue,
@@ -126,11 +104,6 @@ export function equals(
   return a === b;
 }
 
-/**
- * The result of `<`, `<=`, `>`, and `>=`. Null when either value is null; an
- * Error Value when the types differ or the type has no order. Strings use the
- * Item Query string order; dates compare as {@link compareDates} says.
- */
 export function compare(
   operator: Exclude<DateComparison, "==" | "!=">,
   [a, b]: readonly [FilterValue, FilterValue],
@@ -159,12 +132,10 @@ function order(a: FilterValue, b: FilterValue): number | null {
   return null;
 }
 
-/** The text of an Error Value whose message is `message`. */
 export function errorValueText(message: string): string {
   return `Error: ${message}`;
 }
 
-/** The text of a value for `toString()` and for `+` with a string. */
 export function toText(value: FilterValue): string {
   if (value === null) return "null";
   if (isError(value)) return errorValueText(renderEvaluationFault(value.fault));

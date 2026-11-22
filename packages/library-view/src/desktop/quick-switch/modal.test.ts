@@ -26,8 +26,6 @@ import type { QuickSwitchDeps } from "./register.ts";
 import { makeLibraryHost } from "#__fixtures__/library.ts";
 import { defaults } from "#__fixtures__/settings.ts";
 
-// The picker's reader stays real, so the chord still exercises the reader the
-// plugin builds; only the database lookup behind it is stubbed.
 const literatureNoteAttachments =
   vi.fn<LiteratureNoteAttachmentsHandle["literatureNoteAttachments"]>();
 
@@ -123,7 +121,6 @@ function findHandler(
   )?.func;
 }
 
-/** Finds the handler registered for exactly this modifier set, not just one that includes it. */
 function findExactHandler(
   modal: QuickSwitchModal,
   modifiers: Modifier[],
@@ -143,12 +140,6 @@ function findExactHandler(
   )?.func;
 }
 
-/**
- * The same defect as in the citation insert modal, in the quick switcher: the
- * modal advertised a Mod+Enter chord for "open in new pane", but Obsidian's
- * suggestion popup registers `Enter` with no modifiers and matches them
- * exactly, so the keypress reached no handler and the modal just sat there.
- */
 describe("QuickSwitchModal keymap", () => {
   it("selects the highlighted suggestion when Mod+Enter fires", () => {
     onPlatform(true);
@@ -161,7 +152,6 @@ describe("QuickSwitchModal keymap", () => {
     const result = findHandler(modal, "Mod")?.(evt);
 
     expect(select).toHaveBeenCalledWith(evt);
-    // Returning false tells Obsidian the chord was consumed.
     expect(result).toBe(false);
   });
 
@@ -194,7 +184,6 @@ describe("QuickSwitchModal instructions", () => {
   });
 
   it("labels the new-pane chord as Ctrl off macOS", () => {
-    // On Linux a hardcoded ⌘ names a key the keyboard does not have.
     expect(capture(false)).toContain("Ctrl↵");
   });
 

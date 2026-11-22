@@ -1,4 +1,3 @@
-// Effect admission owns its clock, cancellation, and resource cleanup.
 import { it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Queue } from "effect";
 import { TestClock } from "effect/testing";
@@ -39,7 +38,6 @@ beforeEach(() => {
   vi.stubEnv(MEMORY_GATE_ADMITTED_ENV, "");
   Object.defineProperty(process, "platform", { value: "darwin" });
   pressure(2);
-  // Another admitted run is still running, so pressure makes a run wait.
   recordAdmittedRun(dir, process.ppid);
 });
 afterEach(() => {

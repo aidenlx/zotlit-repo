@@ -1,5 +1,3 @@
-// What a graph persisted before a plugin row existed to hear it: the Graph core plugin's own options, a deferred leaf's state, and the workspace file.
-
 import { Effect } from "effect";
 import type { App, GraphOptions, WorkspaceLeaf } from "obsidian";
 
@@ -10,43 +8,16 @@ import {
 
 import { GRAPH_CORE_PLUGIN_ID, GRAPH_VIEW_TYPES } from "./install.ts";
 
-/**
- * The options the global graph persists, which its view applies on load —
- * before a plugin row exists to hear them.
- *
- * @returns the Graph core plugin's own options, or `null` while the plugin is
- *   disabled or holds none.
- */
 export function savedGlobalOptions(app: App): GraphOptions | null {
   const graph = app.internalPlugins.getEnabledPluginById(GRAPH_CORE_PLUGIN_ID);
   return optionsOf((graph as { options?: unknown } | null)?.options);
 }
 
-/**
- * The options a local graph persists, read while its leaf is still deferred:
- * the placeholder view holds the saved state until the leaf loads, and the
- * load applies it before a plugin row exists to hear it.
- *
- * @returns the leaf's saved graph options, or `null` when it carries none.
- */
 export function deferredLeafOptions(leaf: WorkspaceLeaf): GraphOptions | null {
   const state = leaf.view.getState() as { options?: unknown } | null;
   return optionsOf(state?.options);
 }
 
-/**
- * The graph options every leaf carried at the last app exit, by leaf id, read
- * from the workspace file Obsidian restored the layout from. A local graph
- * that the layout loaded straight away — the visible one — applied its saved
- * state before any plugin row existed to hear it, and never passed through
- * the deferred placeholder that would still carry it, so the file is what is
- * left to read.
- *
- * @param layout what the Workspace tag's `readWorkspaceFile` read; `null`
- *   where the build moved the reader.
- * @returns an empty map when the build moved the reader, the file is absent,
- *   or no leaf in it is a graph.
- */
 export function savedLeafOptions(layout: unknown): Map<string, GraphOptions> {
   const saved = new Map<string, GraphOptions>();
   if (layout === null) {
@@ -67,7 +38,6 @@ export function savedLeafOptions(layout: unknown): Map<string, GraphOptions> {
   return saved;
 }
 
-/** Walks the serialized layout, whose splits nest to any depth. */
 function collectLeafOptions(
   node: unknown,
   saved: Map<string, GraphOptions>,

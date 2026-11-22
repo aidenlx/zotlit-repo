@@ -7,10 +7,6 @@ import type { Item } from "./items.ts";
 import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 import type { GroupIDMemo } from "./libraries.ts";
 
-/**
- * A Zotero item resolved to its key + owning library, library-scope-free — the
- * locate-the-note subset of {@link Item}, without the hydrated fields/creators.
- */
 export type ItemRef = Pick<
   Item,
   "itemID" | "libraryID" | "key" | "groupID" | "indexedKey"
@@ -25,13 +21,6 @@ const itemRefByIdQuery = defineQuery<{ itemID: number }>()(
     }),
 );
 
-/**
- * Resolve a Zotero item to its key + owning library by global item id, with no
- * caller-supplied library scope. Item ids are unique across libraries, so the
- * Zotero reader's `itemID` (which travels without a library) maps cleanly here.
- *
- * @returns the {@link ItemRef}, or `null` when no live item has that id.
- */
 export function getItemRefByID(
   db: ZoteroDatabase,
   itemID: number,
@@ -48,10 +37,7 @@ export function getItemRefByID(
   };
 }
 
-/** An {@link ItemRef} plus the item's title — a lightweight display label
- * without the heavy `getItemsByID` relational load. */
 export interface ItemDisplayRef extends ItemRef {
-  /** The item's `title` field, or `null` when unset. */
   title: string | null;
 }
 
@@ -76,16 +62,6 @@ const itemDisplayRefByIdQuery = defineQuery<{ itemID: number }>()(
     }),
 );
 
-/**
- * Resolve an item to its {@link ItemRef} plus title by global item id in one
- * lightweight query — enough to classify a batch (indexed key → existing note)
- * and label each row, without the heavy `getItemsByID` relational load.
- *
- * @param opts.memo caller-owned `libraryID → groupID` cache. Pass a shared memo
- *   to resolve each library once across the per-id calls of a batch classify
- *   loop; omit to scope the cache to this call.
- * @returns the {@link ItemDisplayRef}, or `null` when no live item has that id.
- */
 export function getItemDisplayRefByID(
   db: ZoteroDatabase,
   itemID: number,
@@ -130,12 +106,6 @@ const itemDisplayRefsByIdsQuery = defineKeyedQuery<number>()(
   { keyOf: (row) => row.itemID },
 );
 
-/**
- * {@link getItemDisplayRefByID} for many ids through one cached keyed read.
- *
- * @returns each live item's {@link ItemDisplayRef} by item id; an id with no
- *   live item is absent.
- */
 export function getItemDisplayRefsByIDs(
   db: ZoteroDatabase,
   itemIDs: readonly number[],

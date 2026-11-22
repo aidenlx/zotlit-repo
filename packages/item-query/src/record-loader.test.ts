@@ -1,7 +1,3 @@
-// The load plan of each pass: what a request reads from the source once, and
-// what each pass loads for a chunk of scan rows. Each test opens the Record Loader
-// of a planned request on the scenario database and observes the statements
-// through `Run.events`.
 import { Cause, Effect, Exit } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -26,16 +22,11 @@ import type { RunEvent } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 
-/** The custom fields of the scenario source, in field ID order. */
 const CUSTOM_FIELDS = ["review.status", "mood", "title", "publicationTitle"];
 
 type Request = Omit<ItemQueryRequest, "libraries"> &
   Partial<Pick<ItemQueryRequest, "libraries">>;
 
-/**
- * Open the Record Loader of a request and load the first scan page of the
- * personal Library through both passes.
- */
 async function open(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   request: Request,
@@ -76,9 +67,7 @@ async function open(
   const { opened, ...value } = exit.value;
   return {
     ...value,
-    /** The statements that opening the Record Loader ran. */
     opening: readersOf(events.slice(0, opened)),
-    /** The hydrate statements of both passes, in order. */
     hydrates: events
       .slice(opened)
       .flatMap((event) =>
@@ -89,7 +78,6 @@ async function open(
   };
 }
 
-/** The readers of the statements, without the layout check of the copy. */
 function readersOf(events: readonly RunEvent[]): string[] {
   return events.flatMap((event) =>
     event.type === "statement" && event.statement.reader !== "layout"
@@ -98,7 +86,6 @@ function readersOf(events: readonly RunEvent[]): string[] {
   );
 }
 
-/** The typed failure of opening the Record Loader of a request. */
 async function failure(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   request: Request,
@@ -146,7 +133,6 @@ describe("Record Loader", () => {
 
     expect(hydration.scan.hydrates).toBe(true);
     expect(hydration.projection.hydrates).toBe(false);
-    // One statement: the Tags of the chunk.
     expect(hydrates).toHaveLength(1);
     const article = scanned.find((item) => item.scan.key === "ART2FULL")!;
     expect(article.hydrated.tags?.map((tag) => tag.name)).toContain("to-read");
@@ -161,7 +147,6 @@ describe("Record Loader", () => {
 
     expect(hydration.scan.hydrates).toBe(true);
     expect(hydrates).toHaveLength(1);
-    // The report stores `institution`, an alias of `publisher`.
     const report = scanned.find((item) => item.scan.key === "RPT2NDTE")!;
     expect([...report.hydrated.fields]).toEqual([
       ["publisher", "Lab Institute"],
@@ -183,7 +168,6 @@ describe("Record Loader", () => {
 
     expect(hydration.scan.hydrates).toBe(true);
     expect(hydration.projection.hydrates).toBe(true);
-    // The scan pass: the Tags. The projection pass: the title.
     expect(hydrates).toHaveLength(2);
     const article = scanned.find((item) => item.scan.key === "ART2FULL")!;
     expect(article.hydrated.tags?.map((tag) => tag.name)).toContain("to-read");
@@ -227,8 +211,6 @@ describe("Record Loader", () => {
 
     expect(hydration.scan.hydrates).toBe(true);
     expect(hydration.projection.hydrates).toBe(true);
-    // The scan pass: the field values, then the Tags. The projection pass: the
-    // field values.
     expect(hydrates).toHaveLength(3);
     const scannedArticle = scanned.find(
       (item) => item.scan.key === "ART2FULL",
@@ -252,7 +234,6 @@ describe("Record Loader", () => {
 
     expect(hydration.scan.hydrates).toBe(false);
     expect(hydration.projection.hydrates).toBe(true);
-    // One read of the field vocabulary runs two statements.
     expect(opening).toEqual([
       "field-vocabulary",
       "field-vocabulary",
@@ -334,9 +315,6 @@ describe("Record Loader", () => {
   );
 });
 
-// Failure modes: dotted names must be resolved as a whole against the source,
-// known full names must fail with bracket access, and missing chains retain the
-// original property fault instead of reporting the intermediate custom name.
 it.each(["review.status", "custom.review.status"])(
   "corrects a source custom field written as %s",
   async (access) => {
@@ -356,7 +334,6 @@ it.each(["review.status", "custom.review.status"])(
     });
     const diagnostic = error.diagnostic;
     expect(diagnostic.suggestions[0]).toBe('custom["review.status"]');
-    // The hint rewrites the filter with the suggestion in place of the access.
     const hint = 'Try: custom["review.status"] == "include"';
     expect(diagnostic.hint).toBe(hint);
     expect(diagnostic.report.at(-1)).toBe(hint);
@@ -462,8 +439,6 @@ it.each(["review.status.phase", "mood.length.unit"])(
   },
 );
 
-// Failure modes: a valid property suffix can hide a dotted source name; the
-// correction must consume the full bare or custom-root chain.
 it.each(["review.length", "custom.review.length"])(
   "corrects the complete source name %s when its prefix is absent",
   async (access) => {
@@ -485,7 +460,6 @@ it.each(["review.length", "custom.review.length"])(
   },
 );
 
-// Failure modes: Query Group needs are omitted from the scan pass or leak into projection.
 it("loads Query Group needs in the scan pass", async () => {
   using scenario = openScenarioDatabase(connectClient);
   const { scanned, projected, hydrates } = await open(scenario, {

@@ -5,12 +5,9 @@ import { describe, expect, it, vi } from "vitest";
 
 const { tokenClassNodeProp, editorMode } = vi.hoisted(() => ({
   tokenClassNodeProp: {},
-  /** Whether the next editor these tests open shows Live Preview. */
   editorMode: { livePreview: false },
 }));
 
-// Obsidian's Markdown mode is a stream parser of its own fork, whose tree
-// carries each token's classes; the nodes here are classed as it classes them.
 vi.mock("@codemirror/language", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@codemirror/language")>();
   return {
@@ -45,13 +42,6 @@ vi.mock("@codemirror/language", async (importOriginal) => {
 const BRACKET = "formatting formatting-link link";
 const PAREN = "formatting formatting-link-string string url";
 
-/**
- * The token nodes Obsidian's HyperMD mode makes of the inline links and code
- * spans these tests write, as Obsidian 1.14.4 tokenizes them. Plain text makes
- * no node, which leaves a gap between the nodes either side, and touching
- * tokens of the same classes merge into one node, as the stream parser merges
- * them.
- */
 function hypermdTokens(
   text: string,
 ): { from: number; to: number; classes: string }[] {
@@ -74,7 +64,6 @@ function hypermdTokens(
       at++;
       continue;
     }
-    // A bracket pair inside the link text is part of the text.
     let depth = 0;
     let close = -1;
     for (let index = at + 1; index < text.length && close === -1; index++) {
@@ -97,7 +86,6 @@ function hypermdTokens(
   return nodes;
 }
 
-// Obsidian's editor carries the note it edits in a state field of its own.
 vi.mock("obsidian", async (importOriginal) => {
   const actual = await importOriginal<typeof import("obsidian")>();
   const { StateField } = await import("@codemirror/state");
@@ -107,7 +95,6 @@ vi.mock("obsidian", async (importOriginal) => {
       create: () => ({ file: { path: "note.md" } }),
       update: (value) => value,
     }),
-    // Obsidian's own Live Preview flag, which a new editor reads once.
     editorLivePreviewField: StateField.define({
       create: () => editorMode.livePreview,
       update: (value) => value,
@@ -130,7 +117,6 @@ import type { AnnotationLinkHoverHandlers } from "./annotation-link.ts";
 
 import { presented } from "#__fixtures__/citation-text.ts";
 
-/** The handlers of an editor whose Annotation Citations show as links. */
 function linkHandlers(
   shown: AnnotationHoverRequest[],
   overrides: Partial<AnnotationLinkHoverHandlers> = {},
@@ -151,7 +137,6 @@ function linkHandlers(
 const LINK =
   "[p. 2](zotero://open/library/items/RGRPDF24?annotation=FDRFQ7C2&page=2)";
 
-/** `See [p. 2](zotero://…) here.` — the link spans `[4, 76)`. */
 const LINE = EditorState.create({ doc: `See ${LINK} here.` });
 
 describe("annotationLinkAtPos", () => {
@@ -244,13 +229,9 @@ describe("annotationLinkAtPos", () => {
   });
 });
 
-// What a hovered link in the editor shows is proven in the running app
-// (`packages/e2e/src/annotation-links.e2e.ts`), which cannot move the pointer
-// within one link.
 describe("annotationLinkHoverExtension", () => {
   it("shows the annotation without a citation hover setting", () => {
     const shown: AnnotationHoverRequest[] = [];
-    // The link text classed the way Obsidian's Markdown highlighter classes it.
     const view = new EditorView({
       parent: document.body,
       state: EditorState.create({
@@ -282,9 +263,6 @@ describe("annotationLinkHoverExtension", () => {
 
   it("anchors on the whole link while the pointer crosses from its text to its URL", () => {
     const shown: AnnotationHoverRequest[] = [];
-    // Source mode draws the text and the URL as two spans. Obsidian's token
-    // highlighter sits at `Prec.lowest`, after every plugin extension, so the
-    // stand-in does too.
     const view = new EditorView({
       parent: document.body,
       state: EditorState.create({
@@ -355,14 +333,11 @@ describe("annotationLinkHoverExtension", () => {
   });
 });
 
-/** An Annotation Citation, the empty-text form of a Durable Annotation Link. */
 const CITATION_URL =
   "zotero://open/library/items/RGRPDF24?annotation=FDRFQ7C2&page=2";
 const CITATION = `[](${CITATION_URL})`;
-/** Where {@link CITATION} starts in `See … here.` */
 const CITATION_START = 4;
 
-/** The document's citations, formatting {@link CITATION} as `(Doe 2024, 2)`. */
 function citationsOf(
   formatted: Record<string, number[]> = { [CITATION]: [CITATION_START] },
 ): Held<DocumentCitations> {
@@ -388,7 +363,6 @@ function citationsOf(
   return { value, status: "fresh", settled: Promise.resolve(value) };
 }
 
-/** A Live Preview editor over `doc`, with `handlers`. */
 function livePreviewEditor(
   doc: string,
   handlers: AnnotationLinkHoverHandlers,
@@ -410,16 +384,12 @@ function livePreviewEditor(
   return view;
 }
 
-/** The element showing `text`, which a widget draws in the link's place. */
 function shownAs(view: EditorView, text: string): HTMLElement | undefined {
   return [...view.contentDOM.querySelectorAll<HTMLElement>("span")].find(
     (element) => element.textContent === text,
   );
 }
 
-// What a reader sees is proven in the running app
-// (`packages/e2e/src/annotation-citations.e2e.ts`); these cases cover which
-// links the editor shows as citations, and what their hover and click carry.
 describe("Annotation Citations in Live Preview", () => {
   it("shows the formatted citation in place of the link", () => {
     const shown: AnnotationHoverRequest[] = [];
@@ -462,8 +432,6 @@ describe("Annotation Citations in Live Preview", () => {
       `See ${labelled} and ${CITATION} here.`,
       linkHandlers([], {
         showCitations: () => true,
-        // No text for the empty link: the Document Citation Set leaves it
-        // out, as it does an Annotation Zotero no longer has.
         citationText: () => citationsOf({ [labelled]: [4] }),
       }),
     );

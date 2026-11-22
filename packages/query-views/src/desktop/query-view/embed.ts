@@ -3,14 +3,6 @@ import type {
   EmbedContext,
   EmbedCreator,
 } from "#obsidian/query-view/obsidian-private/embed-registry.ts";
-// The Query File embed: `![[file.zotquery]]` and `![[file.zotquery#View]]` in
-// a note, in Reading view, Live Preview and a hover popover. It mounts the one
-// Query View, whose `this` is the Item of the embedding note's `zotero-key`.
-// A toolbar change saves to the file; every embed and open tab of the file
-// reads the new text. In a preview the embed shows a placeholder (see
-// `preview-placeholder.ts`).
-//
-// @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
 import { Component, Keymap } from "obsidian";
 import type { App, EventRef, TFile } from "obsidian";
 
@@ -28,9 +20,7 @@ import { parseQueryFile } from "#core/query-view/query-file.ts";
 export class QueryFileEmbed extends Component implements EmbedComponent {
   readonly #app: App;
   readonly #file: TFile;
-  /** The view; `null` in a preview, where the embed shows a placeholder. */
   readonly #host: NoteQueryHost | null;
-  /** The placeholder's container and name; `null` outside a preview. */
   readonly #placeholder: {
     el: HTMLElement;
     name: string;
@@ -47,7 +37,6 @@ export class QueryFileEmbed extends Component implements EmbedComponent {
     }: {
       context: EmbedContext;
       file: TFile;
-      /** The view the link names; the first view for `null`. */
       viewName: string | null;
     },
   ) {
@@ -66,8 +55,6 @@ export class QueryFileEmbed extends Component implements EmbedComponent {
       el: context.containerEl,
       sourcePath: () => context.sourcePath,
       storage: {
-        // Through an open tab of the file, so the tab shows the change and its
-        // own save does not write over it.
         save: (text) => processLiveText(this.#app, this.#file, () => text),
         openFile: (event) => this.#open(event),
       },
@@ -93,11 +80,6 @@ export class QueryFileEmbed extends Component implements EmbedComponent {
     this.#events.length = 0;
   }
 
-  /**
-   * Read the file and show it; Obsidian calls it once the embed is added.
-   * It settles once the rows show, as Export to PDF waits for it to print
-   * them.
-   */
   async loadFile(): Promise<void> {
     const host = this.#host;
     if (host === null) {
@@ -111,7 +93,6 @@ export class QueryFileEmbed extends Component implements EmbedComponent {
     await host.shown();
   }
 
-  /** Open the Query File at the view the embed shows; Cmd/Ctrl opens a new tab. */
   #open(event: MouseEvent): void {
     const view = this.#host?.viewName ?? null;
     void this.#app.workspace
@@ -123,7 +104,6 @@ export class QueryFileEmbed extends Component implements EmbedComponent {
   }
 }
 
-/** The creator Obsidian's embed registry calls for each `![[file.zotquery]]`. */
 export function createQueryFileEmbed(
   deps: QueryViewDeps,
 ): (...args: Parameters<EmbedCreator>) => QueryFileEmbed {

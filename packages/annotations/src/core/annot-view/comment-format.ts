@@ -1,50 +1,22 @@
-// Zotero's annotation comment format: parse, restyle, and paste conversion.
-//
-// A comment is "plain text flavored with some HTML tags": attribute-free
-// `<b>`/`<i>`/`<sub>`/`<sup>` pairs and literal `\n` line breaks. Every edit
-// here works on that string itself, so what the editor holds is byte for byte
-// what Zotero stores, and anything these functions cannot parse stays text.
-
-/** @see https://github.com/zotero/zotero/blob/9.0.3/reader/src/common/components/common/editor.js#L4 */
 export const COMMENT_FORMATS = ["b", "i", "sub", "sup"] as const;
 export type CommentFormat = (typeof COMMENT_FORMATS)[number];
 
-/**
- * The regular expression source of one tag of {@link COMMENT_FORMATS},
- * opening or closing, to match without regard to case: the only markup in
- * Zotero's annotation text and comment. Any other angle bracket, as in
- * `p < 0.05`, is text.
- */
 export const COMMENT_TAG_SOURCE = `</?(?:${COMMENT_FORMATS.join("|")})>`;
 
-/** One matched tag pair, in document offsets. */
 export interface FormatSpan {
   format: CommentFormat;
-  /** Start of the opening tag. */
   from: number;
   contentFrom: number;
   contentTo: number;
-  /** End of the closing tag. */
   to: number;
 }
 
-/** A replacement of the whole comment, with the selection it leaves. */
 export interface CommentEdit {
   text: string;
   anchor: number;
   head: number;
 }
 
-/**
- * Every tag pair Zotero renders, outer before inner.
- *
- * Mirrors Zotero's `walkFormat`: in each run of text, the earliest opening tag
- * that has a closing tag after it wins, its content is parsed again on its own,
- * and the text after it is parsed next. An opening tag with no match stays
- * literal text, and so does a pair that crosses another.
- *
- * @see https://github.com/zotero/zotero/blob/9.0.3/reader/src/common/components/common/editor.js#L66
- */
 export function parseComment(text: string): FormatSpan[] {
   const lower = text.toLowerCase();
   const spans: FormatSpan[] = [];
@@ -79,10 +51,6 @@ function nextSpan(lower: string, from: number, to: number): FormatSpan | null {
   return null;
 }
 
-/**
- * The formats a selection carries: every character in a range has them, or a
- * collapsed caret sits inside (or at the edge of) their content.
- */
 export function activeFormats(
   text: string,
   from: number,
@@ -100,12 +68,6 @@ export function activeFormats(
   );
 }
 
-/**
- * Bold, italic, subscript or superscript on or off, the way Obsidian toggles
- * Markdown emphasis: a range that already carries the format loses it, any
- * other range gains it. A collapsed caret unwraps the pair it stands in, or
- * opens an empty pair around itself to type into.
- */
 export function toggleFormat(
   text: string,
   selection: { anchor: number; head: number },
@@ -133,7 +95,6 @@ export function toggleFormat(
   });
 }
 
-/** Every format off across the selection, or off the pairs a caret stands in. */
 export function clearFormatting(
   text: string,
   selection: { anchor: number; head: number },
@@ -144,22 +105,10 @@ export function clearFormatting(
   return restyle(text, selection, (formats) => formats.clear());
 }
 
-/**
- * The comment as plain text: every tag pair Zotero renders leaves only its
- * content, and a tag with no match stays text, as the card shows it.
- */
 export function commentPlainText(text: string): string {
   return unwrap(text, parseComment(text), 0).text;
 }
 
-/**
- * Pasted HTML as a comment: the four formats survive, `strong` and `em` read
- * as `b` and `i`, line breaks and block edges turn into `\n`, and every other
- * element leaves only its text. A format pair holding only whitespace is
- * dropped, as Zotero's `walkUnformat` drops it.
- *
- * @see https://github.com/zotero/zotero/blob/9.0.3/reader/src/common/components/common/editor.js#L112
- */
 export function htmlToComment(root: Node): string {
   const walk = (node: Node): string => {
     if (node.nodeType === 3) {
@@ -219,7 +168,6 @@ const BLOCKS = new Set([
   "ul",
 ]);
 
-/** The pairs whose content holds `pos`, outer before inner. */
 function spansAt(spans: FormatSpan[], pos: number): FormatSpan[] {
   return spans.filter((s) => s.contentFrom <= pos && pos <= s.contentTo);
 }
@@ -240,10 +188,8 @@ function unwrap(text: string, spans: FormatSpan[], caret: number): CommentEdit {
   return { text: next, anchor: pos, head: pos };
 }
 
-/** One visible character of the comment and the formats it renders in. */
 interface CommentChar {
   char: string;
-  /** Offset of the character in the comment it was read from. */
   at: number;
   formats: Set<CommentFormat>;
 }
@@ -275,11 +221,6 @@ function charsIn(chars: CommentChar[], from: number, to: number) {
   return chars.filter((c) => from <= c.at && c.at < to);
 }
 
-/**
- * Apply `change` to the formats of every character in the selection, then
- * write the whole comment out again with one tag pair per run. Tags nest in
- * {@link COMMENT_FORMATS} order, the order Zotero's own toolbar never breaks.
- */
 function restyle(
   text: string,
   selection: { anchor: number; head: number },

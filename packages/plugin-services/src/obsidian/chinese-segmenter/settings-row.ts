@@ -1,5 +1,3 @@
-// The settings row of the Chinese Segmenter: its status in the Resource Pack.
-
 import type {
   SettingsKey,
   SettingTabContext,
@@ -12,7 +10,6 @@ import { ChineseSegmenter } from "./service.ts";
 
 import { packBinaryDefinition } from "#obsidian/managed-binary/pack-row.ts";
 
-/** The segmenter row, in the Chinese Segmenter's own words. */
 export function chineseSegmenterDefinition(
   ctx: SettingTabContext,
 ): SettingDefinition<SettingsKey> {
@@ -24,7 +21,6 @@ export function chineseSegmenterDefinition(
   });
 }
 
-// The services this file's rows read, in the setting tab's context.
 declare module "#obsidian/setting-tab/effect-tab.ts" {
   interface SettingTabServiceRegistry {
     ChineseSegmenter: ChineseSegmenter;

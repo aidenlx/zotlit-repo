@@ -1,13 +1,3 @@
-// The Library Tree of the Library View: Recent, then the Libraries in the
-// Library Scope with their nested Collections, each with its paper count, the
-// Reading State facets under them, and the Tag Selector at its foot. It
-// counts the unread Items of the selection for the list heading. The tree reads its Collections, counts and tags again on
-// every database change; a selection, a facet or a tag goes to the host,
-// which makes it the query of the list.
-//
-// @see apps/obsidian/docs/adr/0072-the-library-tree-writes-filters.md
-// @see apps/obsidian/docs/adr/0076-recent-is-a-library-tree-node-that-writes-a-sort.md
-// @see apps/obsidian/docs/adr/0078-the-tag-selector-writes-tag-filters.md
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import { Component } from "obsidian";
@@ -50,17 +40,11 @@ export interface LibraryTreeDeps {
 }
 
 export interface LibraryTreeHost {
-  /** The researcher picked `node`, or the tree no longer holds the one selected. */
   select: (node: LibraryNode) => void;
-  /** The researcher turned a facet on or off: `facets` are those active now. */
   filter: (facets: readonly ReadingStateFacet[]) => void;
-  /** The researcher selected or let go of a tag: `tags` are those selected now. */
   tag: (tags: readonly string[]) => void;
-  /** The researcher opened or closed a node: `expanded` are the nodes open now. */
   expand: (expanded: readonly string[]) => void;
-  /** A read of the tree landed: the open nodes it does not `know` are gone. */
   prune: (know: (key: string) => boolean) => void;
-  /** The researcher collapsed the tree beside a wide list, or showed it. */
   collapse: (collapsed: boolean) => void;
 }
 
@@ -90,11 +74,6 @@ export class LibraryTree extends Component {
     return this.registry.subscribe(this.model.state, listener);
   }
 
-  /**
-   * The name of the selected node, as a file saved from it is first called.
-   * Recent names none: its file holds every paper of the Library Scope, and
-   * "Recent" would not say so.
-   */
   get name(): string | undefined {
     const { libraries, node } = this.state;
     if (node.kind === "recent") return undefined;
@@ -103,10 +82,6 @@ export class LibraryTree extends Component {
       : nodeLabel(libraries, node);
   }
 
-  /**
-   * Settles once the tree shows the last read it started, and not before it
-   * shows a first one. Never rejects.
-   */
   get settled(): Promise<void> {
     return Promise.all([
       waitForRead(this.registry, this.model.loaded, this.#waiting),
@@ -155,25 +130,18 @@ export class LibraryTree extends Component {
     this.#roots = [];
   }
 
-  /** Show `node` as the selection. */
   show(node: LibraryNode): void {
     this.#patch({ node, open: false });
   }
 
-  /**
-   * Show whether the list shows the selected node: a search of all
-   * libraries reads past it.
-   */
   showListed(listed: boolean): void {
     this.#patch({ listed });
   }
 
-  /** Show `tags` as the selected ones, and list the tags they leave. */
   showTags(tags: readonly string[]): void {
     this.#patch({ tags });
   }
 
-  /** The researcher selected or let go of the tag `name`. */
   toggleTag(name: string): void {
     const { tags } = this.state;
     this.#host.tag(
@@ -183,22 +151,18 @@ export class LibraryTree extends Component {
     );
   }
 
-  /** The researcher let go of every selected tag. */
   clearTags(): void {
     this.#host.tag([]);
   }
 
-  /** Narrow the tag names shown to those that hold `text`. */
   setTagFilter(text: string): void {
     this.#patch({ tagFilter: text });
   }
 
-  /** Show `facets` as the active ones. */
   showFacets(facets: readonly ReadingStateFacet[]): void {
     this.#patch({ facets });
   }
 
-  /** The researcher turned `facet` on or off. */
   toggleFacet(facet: ReadingStateFacet): void {
     const { facets } = this.state;
     this.#host.filter(
@@ -208,23 +172,19 @@ export class LibraryTree extends Component {
     );
   }
 
-  /** The researcher picked `node`. */
   select(node: LibraryNode): void {
     this.#host.select(node);
   }
 
-  /** Show every Library, or only those in the Library Scope, and read them. */
   showAll(all: boolean): void {
     this.#patch({ all });
     this.refresh();
   }
 
-  /** Show `expanded` as the nodes open to their children. */
   showExpanded(expanded: readonly string[]): void {
     this.#patch({ expanded: new Set(expanded) });
   }
 
-  /** The researcher opened or closed the node `key`. */
   toggle(key: string, open: boolean): void {
     const expanded = new Set(this.state.expanded);
     if (open) expanded.add(key);
@@ -232,28 +192,23 @@ export class LibraryTree extends Component {
     this.#host.expand([...expanded]);
   }
 
-  /** Show the tree over the list on a narrow pane, or hide it. */
   setOpen(open: boolean): void {
     this.#patch({ open });
   }
 
-  /** Show the tree collapsed beside a wide list, or shown. */
   showCollapsed(collapsed: boolean): void {
     this.#patch({ collapsed });
   }
 
-  /** The researcher collapsed the tree beside a wide list, or showed it. */
   setCollapsed(collapsed: boolean): void {
     this.#host.collapse(collapsed);
   }
 
-  /** The count of the selected node; `null` while unknown. */
   get count(): number | null {
     const { libraries, node } = this.state;
     return libraries ? (findNode(libraries, node)?.count ?? null) : null;
   }
 
-  /** Whether some Library of the database lies outside the Library Scope. */
   get canWiden(): boolean {
     return this.registry.get(this.model.canWiden);
   }
@@ -262,15 +217,10 @@ export class LibraryTree extends Component {
     this.#update(refreshTree);
   }
 
-  /** Draw the tree into `el`. */
   render(el: HTMLElement): void {
     this.#mount(el, <TreePane tree={this} />);
   }
 
-  /**
-   * Draw into `el` the button that shows and hides the tree: over the list
-   * on a narrow pane, and beside it on a wide one.
-   */
   renderToggle(el: HTMLElement): void {
     this.#mount(el, <TreeToggle tree={this} />);
   }
@@ -286,7 +236,6 @@ export class LibraryTree extends Component {
   }
 }
 
-/** The name of a node: Recent, its Library's, or its Collection path. */
 export function nodeLabel(
   libraries: readonly TreeLibrary[] | null,
   node: LibraryNode,
@@ -305,9 +254,6 @@ function TreeToggle({ tree }: { tree: LibraryTree }) {
   const open = useTreeState((s) => s.open);
   const collapsed = useTreeState((s) => s.collapsed);
   return (
-    // Obsidian's own rule shows a clickable icon, so each pane width shows
-    // and hides a wrapper: a narrow pane shows the tree over the list for a
-    // while, and a wide one keeps it beside the list or collapsed.
     <>
       <span className="zt:flex zt:@xl:hidden">
         <IconButton
@@ -331,21 +277,17 @@ function TreeToggle({ tree }: { tree: LibraryTree }) {
   );
 }
 
-/** One row of the tree, as the keyboard and the screen see it. */
 interface Row {
   readonly key: string;
   readonly node: LibraryNode;
   readonly label: string;
   readonly count: number | null;
   readonly level: number;
-  /** `null` for a node without children. */
   readonly expanded: boolean | null;
 }
 
-/** Recent, at the top of the tree: it lists the whole Library Scope and counts nothing. */
 const RECENT: LibraryNode = { kind: "recent" };
 
-/** The icon of a node, as Zotero's collection tree draws one. */
 export function nodeIcon(node: LibraryNode): IconName {
   if (node.kind === "recent") return "clock";
   if (node.kind === "collection") return "folder";
@@ -384,7 +326,6 @@ function rows(
   for (const { library, count, collections: list } of libraries) {
     const node: LibraryNode = { kind: "library", library: library.selector };
     const key = nodeKey(node);
-    // A Library shows its Collections until the researcher closes it.
     const open = !expanded.has(`${CLOSED_PREFIX}${key}`);
     out.push({
       key,
@@ -413,7 +354,6 @@ function TreePane({ tree }: { tree: LibraryTree }) {
     level: 1,
     expanded: null,
   };
-  // Recent shows before the first read lands: it needs no read of its own.
   const shown = [recent, ...(libraries ? rows(libraries, expanded) : [])];
   const selected = nodeKey(node);
   const headingId = useUniqueId();
@@ -443,8 +383,6 @@ function TreePane({ tree }: { tree: LibraryTree }) {
   };
 
   return (
-    // Obsidian shows a tooltip for each `aria-label`, so the tree takes its
-    // name from the heading on screen; the tree alone goes by it.
     <nav className="zt:flex zt:flex-col zt:gap-(--size-4-2) zt:p-(--size-4-2)">
       <div
         role="tree"
@@ -485,9 +423,6 @@ function TreePane({ tree }: { tree: LibraryTree }) {
               >
                 <Icon name="right-triangle" size="var(--size-4-3)" />
               </span>
-              {/* Decoration: the label names the node. The chevron keeps the
-                  row's narrow gap; the label stands 6 px off the icon, as a
-                  button's does, and the icon takes the selected row's ink. */}
               <Icon
                 name={nodeIcon(row.node)}
                 size="s"
@@ -509,9 +444,6 @@ function TreePane({ tree }: { tree: LibraryTree }) {
                 </span>
               )}
             </div>
-            {/* The heading over the Libraries names the tree, Recent above it
-                included; assistive technology reads it as that name alone,
-                not as an item of the tree. */}
             {index === 0 && (
               <div
                 id={headingId}
@@ -524,9 +456,6 @@ function TreePane({ tree }: { tree: LibraryTree }) {
           </Fragment>
         ))}
       </div>
-      {/* The toggle ends the Libraries it widens. The "Libraries" label is
-          inside the tree, hidden from assistive technology, which allows no
-          control there, so the toggle stands right under the last Library. */}
       {(all || tree.canWiden) && (
         <TextAction
           data-library-all={all ? "on" : "off"}
@@ -545,7 +474,6 @@ function TreePane({ tree }: { tree: LibraryTree }) {
   );
 }
 
-/** The name each Reading State facet goes by on screen. */
 export const FACET_LABELS: Record<ReadingStateFacet, () => string> = {
   unread: m.library_view_facet_unread,
   annotated: m.library_view_facet_annotated,
@@ -553,13 +481,10 @@ export const FACET_LABELS: Record<ReadingStateFacet, () => string> = {
   pdf: m.library_view_facet_pdf,
 };
 
-/** The Reading State facets, each a toggle that narrows the list. */
 function Facets({ tree }: { tree: LibraryTree }) {
   const facets = useTreeState((s) => s.facets);
   const headingId = useUniqueId();
   return (
-    // Named by a hidden heading: an `aria-label` would show a tooltip, and
-    // the chips say on screen what they do.
     <div
       role="group"
       aria-labelledby={headingId}
@@ -571,8 +496,6 @@ function Facets({ tree }: { tree: LibraryTree }) {
       </span>
       <div className="zt:flex zt:flex-wrap zt:gap-(--size-2-2) zt:px-(--size-4-2)">
         {READING_STATE_FACETS.map((facet) => (
-          // Drawn as the tags of the Tag Selector are: on an element of its
-          // own.
           <div
             key={facet}
             role="button"

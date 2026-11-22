@@ -1,5 +1,3 @@
-// A device for the Language Pack: Obsidian's storage, its language, and the
-// network, all in memory.
 import { Context, Effect, Layer } from "effect";
 import type { App } from "obsidian";
 
@@ -24,7 +22,6 @@ const ZOTLIT_IDENTITY: LanguagePackIdentity = {
   repository: "aidenlx/zotlit",
 };
 
-/** A valid zh-CN pack, overriding Messages the tests read through `m.*`. */
 export const CHINESE_PACK = JSON.stringify({
   schemaVersion: 1,
   locale: "zh-CN",
@@ -32,16 +29,11 @@ export const CHINESE_PACK = JSON.stringify({
 });
 
 export interface FakeDevice {
-  /** Obsidian's device storage, shared by every start on this device. */
   readonly storage: Map<string, unknown>;
-  /** Every URL downloaded, in order. */
   readonly requests: string[];
-  /** Obsidian's storage, replaced by a test that makes it throw. */
   loadLocalStorage: App["loadLocalStorage"];
   saveLocalStorage: App["saveLocalStorage"];
-  /** What the network answers: a body, a status with a body, or a dropped connection. */
   answer: string | { status: number; text: string } | Error;
-  /** While set, the network answers once this settles. */
   held?: Promise<unknown>;
 }
 
@@ -61,11 +53,6 @@ export function fakeDevice(
   };
 }
 
-/**
- * Start the plugin on `device` with Obsidian in `language`, as `onload` does:
- * the startup that applies the cached pack, then the LanguagePack layer, built
- * in the test's Scope.
- */
 export const startOn = Effect.fn("test.startOn")(function* (
   device: FakeDevice,
   {

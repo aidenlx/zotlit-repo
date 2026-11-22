@@ -1,6 +1,3 @@
-// A test host for the Template Data Explorer: one Explorer model in the
-// plugin's view registry, over Template data reads and Zotero changes the test
-// drives.
 import { Effect, Layer, Queue, Stream } from "effect";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
@@ -33,33 +30,26 @@ import {
 } from "#desktop/data-explorer/model.ts";
 import type { ExplorerModel, ExplorerSession, ExplorerState } from "#desktop/data-explorer/model.ts";
 
-/** The Template data reads, as promises the test resolves. */
 export interface ExplorerReads {
   read?(
     indexedKey: string,
     root: ContractRoot,
   ): Promise<TemplateDataLoadResult>;
   readCitation?: TemplateDataLoader["loadCitation"];
-  /** The recently updated Items an Item list offers. */
   recent?(): Effect.Effect<SearchHit[]>;
 }
 
 export interface ExplorerHost {
   readonly registry: AtomRegistry.AtomRegistry;
-  /** The Indexed Key of each read the Explorer interrupted, in order. */
   readonly cancelled: readonly string[];
-  /** Sends a Zotero database change to every Explorer in the registry. */
   changeZotero(): void;
-  /** How many Zotero change subscriptions are live. */
   zoteroSubscribers(): number;
-  /** One more Explorer model, held until the session's dispose. */
   openSession(): ExplorerSessionHandle;
   setJavascriptEnabled(enabled: boolean): void;
   permissionSubscribers(): number;
   close(): Promise<void>;
 }
 
-/** One Explorer model, driven as the view drives it. */
 export interface ExplorerSessionHandle extends Disposable {
   readonly model: ExplorerModel;
   state(): ExplorerState;
@@ -70,11 +60,9 @@ export interface ExplorerSessionHandle extends Disposable {
     annotationId?: string | null,
   ): void;
   refresh(): void;
-  /** Waits until the load the last change started has its last read. */
   ready(): Promise<void>;
 }
 
-/** A read that waits for `promise`, interruptible as the real read is. */
 const fromPromise = <A>(evaluate: (signal: AbortSignal) => Promise<A>) =>
   Effect.tryPromise({
     try: (signal) => evaluate(signal),

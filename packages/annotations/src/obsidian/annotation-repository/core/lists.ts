@@ -1,5 +1,3 @@
-// Reads and holds: the Annotation lists of each Attachment from its active source, the database partition, locks, and the Editing Capability.
-
 import type { EditingCapability } from "#obsidian/annotation-repository/capability.ts";
 import type { QueryFunction, QueryKey } from "@tanstack/query-core";
 import {
@@ -65,34 +63,19 @@ import {
 import { isTextField } from "#obsidian/annotation-repository/write.ts";
 import { excerptFingerprint } from "#obsidian/excerpt-image/contract.ts";
 
-/**
- * How long after the last ask the list of an Attachment no surface holds is
- * still read again on a database change. A list asked for longer ago is let
- * go at that change instead, so a surface that reads without a hold keeps its
- * list while it keeps asking.
- */
 export const UNHELD_RETENTION = Duration.minutes(5);
 
-/** The partition the Zotero database answers from, keyed by Indexed Key. */
 const ZOTERO_DB = "zotero-db";
 
-/**
- * The partition the Zotero Local API answers from, keyed by the Zotero Server
- * ID and then by Indexed Key, so one server's records never stand for another's.
- */
 const ZOTERO_LOCAL_API = "zotero-local-api";
 
-/** The log category of every read, hold and edge here. */
 const inRepository = withLogCategory("annotation-repository");
 
-/** One partition's key and the read that fills it. */
 interface AnnotationPartition {
   queryKey: QueryKey;
-  /** Takes the query's own signal, so an invalidation cancels the read it ran. */
   read: QueryFunction<AnnotationList>;
 }
 
-/** Why the Zotero Local API answered no list, as the query's failure. */
 export class LocalApiReadFailed extends Schema.TaggedError<
   LocalApiReadFailed,
   { readonly brand: unique symbol }
@@ -107,7 +90,6 @@ export class LocalApiReadFailed extends Schema.TaggedError<
   }
 }
 
-/** The Libraries the Zotero database holds name none for this Attachment. */
 export class AnnotationLibraryUnresolved extends Schema.TaggedError<
   AnnotationLibraryUnresolved,
   { readonly brand: unique symbol }
@@ -117,11 +99,6 @@ export class AnnotationLibraryUnresolved extends Schema.TaggedError<
   }
 }
 
-/**
- * @param attachmentKey the Attachment's Indexed Key.
- * @returns the list that stands, with the Pending Proposal of each write in
- *   flight drawn over it, or null while no read has answered for it.
- */
 const read = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
@@ -130,10 +107,6 @@ const read = Effect.fnUntraced(function* (
   return yield* readUnasked(core, attachmentKey);
 });
 
-/**
- * {@link read} for this repository's own reads, which are no ask: a list
- * read again after a database change is let go on time all the same.
- */
 const readUnasked = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
@@ -179,17 +152,6 @@ const readUnasked = Effect.fnUntraced(function* (
   return published(core, attachmentKey)?.value ?? null;
 });
 
-/**
- * Keeps the lists of these Attachments published while a surface shows
- * them: a database change reads them again, and a write finds their
- * records. Disposing the hold lets each list go once no other surface holds
- * it, and the next surface that holds it again gets a fresh read.
- *
- * The hold's dispose is a plain caller's edge: it runs the release on the
- * layer's bridge.
- *
- * @param attachmentKeys the Attachments' Indexed Keys.
- */
 function hold(
   core: CoreState,
   attachmentKeys: Iterable<string>,
@@ -210,7 +172,6 @@ function hold(
   });
 }
 
-/** One hold's end: each list no other surface holds is let go. */
 const release = Effect.fnUntraced(function* (
   core: CoreState,
   held: readonly string[],
@@ -222,30 +183,18 @@ const release = Effect.fnUntraced(function* (
       continue;
     }
     core.holds.delete(attachmentKey);
-    // A surface that reads with no hold of its own may still show the
-    // list; the announcement is its word to read it again.
     if (yield* letGo(core, attachmentKey)) {
       core.publish({ _tag: "annotations-changed", attachmentKey });
     }
   }
 });
 
-/**
- * Drops the list of an Attachment no surface holds, with what this
- * repository kept beside it, so its next read is a fresh one. A list that
- * work in progress still stands on — an Annotation Draft, a write, an open
- * Annotation History — stays until that work ends.
- *
- * @returns whether a list was let go that a reader may show or wait for.
- */
 const letGo = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
 ) {
   if (core.holds.has(attachmentKey) || inUse(core, attachmentKey)) return false;
   core.lastAsked.delete(attachmentKey);
-  // A read still running publishes nothing once its query goes, so its
-  // readers are told too.
   const reading = (yield* attachmentsHeld(core, [ANNOTATIONS])).includes(
     attachmentKey,
   );
@@ -269,11 +218,6 @@ const letGo = Effect.fnUntraced(function* (
   return published || reading;
 });
 
-/**
- * Whether an Attachment's list stands for a surface: one holds it, work in
- * progress stands on it, or a caller asked for it within
- * {@link UNHELD_RETENTION}.
- */
 const wanted = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
@@ -289,7 +233,6 @@ const wanted = Effect.fnUntraced(function* (
   );
 });
 
-/** Whether work in progress still stands on an Attachment's list. */
 function inUse(core: CoreState, attachmentKey: string): boolean {
   if (
     core.histories.has(attachmentKey) ||
@@ -309,18 +252,10 @@ function inUse(core: CoreState, attachmentKey: string): boolean {
   );
 }
 
-/**
- * Revalidates one Attachment through its active source. Concurrent surfaces
- * join the same operation, while the Held Read keeps their published list.
- * The operation runs on the layer's Scope, so a caller that stops waiting
- * leaves it running for the others.
- */
 const refresh = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
 ) {
-  // The join is getUnsafe + run: `onlyIfMissing` answers an interrupted
-  // fiber, not the running one.
   const running = FiberMap.getUnsafe(core.refreshes, attachmentKey);
   if (Option.isSome(running)) return yield* Fiber.join(running.value);
   const refreshing = yield* FiberMap.run(
@@ -345,15 +280,12 @@ const refresh = Effect.fnUntraced(function* (
   return yield* Fiber.join(refreshing);
 });
 
-/** Probes source availability, refreshes the active adapter, then reads it. */
 const revalidate = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
 ) {
   yield* core.localApi.probe;
   if ((yield* compatibleApiSource(core, attachmentKey)) === null) {
-    // A failed refresh keeps the previous database serving, so the read
-    // below still answers; a database that cannot serve fails that read.
     yield* core.db.refresh.pipe(
       Effect.catch((error) =>
         Effect.logDebug("The Zotero database refresh failed").pipe(
@@ -373,13 +305,6 @@ const revalidate = Effect.fnUntraced(function* (
   return value;
 });
 
-/**
- * What `attachmentKey` holds right now, for a caller that cannot wait — a
- * surface redrawing synchronously. The Held Read travels whole, so the caller
- * can tell a list that stands from one a refresh has already superseded.
- *
- * @returns null while no read has answered for the Attachment.
- */
 function peek(
   core: CoreState,
   attachmentKey: string,
@@ -387,13 +312,6 @@ function peek(
   return published(core, attachmentKey);
 }
 
-/**
- * What a surface may do to one Attachment's Annotations: the Capability
- * Probe, plus what the write path learned about this Attachment's library and
- * about the authorization gesture in flight.
- *
- * @param attachmentKey the Attachment's Indexed Key.
- */
 function capabilityFor(
   core: CoreState,
   attachmentKey: string,
@@ -401,23 +319,10 @@ function capabilityFor(
   return editingCapability(core, attachmentKey);
 }
 
-/**
- * What the session itself may do, with no Attachment in hand — what the
- * "Zotero editing" settings row shows. A library Zotero refuses writes to is
- * a fact about one Attachment and has no place here.
- */
 function capability(core: CoreState): Effect.Effect<EditingCapability> {
   return editingCapability(core, null);
 }
 
-/**
- * One Editing Capability, logged at debug where it differs from the last
- * value this consumer was given for the same subject — every read at trace,
- * every change at debug, so a session's capability history is in the log
- * without one line per redraw.
- *
- * @param attachmentKey the Attachment, or null for the session itself.
- */
 const editingCapability = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string | null,
@@ -446,25 +351,6 @@ const editingCapability = Effect.fnUntraced(function* (
   return capability;
 });
 
-/**
- * Announce every Annotation a read found moved, so an Excerpt Image made from
- * the record that stood before it is replaced rather than shown.
- *
- * An edit saved in Zotero itself — a crop resize, an ink colour — reaches this
- * repository through freshness invalidation and the read after it, where no
- * write of its own says so, and this is where that read's movement is found.
- * The comparison is the canonical pixel fingerprint against the list that
- * stood before the read answered, so a read that answers the same pixels — a
- * source switch, or Zotero echoing a colour the user picked — says nothing,
- * and a second read of a list already published says nothing either.
- *
- * The first read of a session has no such list: what stands before it then is
- * the image this device persists for the Annotation, which is what the read is
- * compared against instead. An Annotation this device never cached has no
- * baseline and says nothing here, exactly as it is replaced nowhere: whether an
- * image is held is the consumer's own stored-outcome gate to answer, and a
- * record nothing stands for stays on demand.
- */
 const announceReadPixels = Effect.fnUntraced(function* (
   core: CoreState,
   superseded: AnnotationList | undefined,
@@ -485,12 +371,6 @@ const announceReadPixels = Effect.fnUntraced(function* (
   }
 });
 
-/**
- * The pixels this device's persisted Excerpt Image of each of one Attachment's
- * Annotations was made from, as the baseline a session's first read is
- * compared against. An Annotation this device never cached answers nothing, so
- * it stays on demand.
- */
 const persistedFingerprints = Effect.fnUntraced(function* (
   core: CoreState,
   candidate: AnnotationList,
@@ -520,7 +400,6 @@ const persistedFingerprints = Effect.fnUntraced(function* (
   );
 });
 
-/** The repository owns the records visible to readers and write commands. */
 const holding = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -563,7 +442,6 @@ const sessionHolding = Effect.fnUntraced(function* (
   return record ? { attachmentKey, record } : null;
 });
 
-/** Verify the binding and complete the first API handoff before a write. */
 const prepareCollection = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
@@ -590,7 +468,6 @@ const handOff = Effect.fnUntraced(function* (
   return api ? yield* prepareCollection(core, attachmentKey, api) : false;
 });
 
-/** Locate the Annotation independently of the source's write readiness. */
 function attachmentHolding(
   core: CoreState,
   annotationKey: string,
@@ -622,13 +499,6 @@ const writeHolding = Effect.fnUntraced(function* (
   return yield* holding(core, annotationKey);
 });
 
-/**
- * One Attachment's list is superseded: it goes, and the Attachment is
- * announced. The only signal a consumer replaces a list on.
- *
- * @param queryKey the partition key the caller already holds; the active
- *   partition's own key where it does not.
- */
 const dropAttachment = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
@@ -640,19 +510,6 @@ const dropAttachment = Effect.fnUntraced(function* (
   core.publish({ _tag: "annotations-changed", attachmentKey });
 });
 
-/**
- * The partition the active Annotation Source answers from — the one place a
- * source is chosen. {@link read} and {@link peek} never name one, and a
- * result already carries the one that answered it.
- *
- * The choice is made once per ask and the whole list comes from it, which is
- * what makes the source atomic per Attachment. A Zotero that stops answering
- * changes what this returns, and the change is announced rather than folded
- * into the list in flight.
- *
- * Query Core calls each read for a Promise: the read runs on the layer's
- * bridge, so the query's signal and the layer's close interrupt it.
- */
 const activePartition = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
@@ -669,8 +526,6 @@ const activePartition = Effect.fnUntraced(function* (
           )
           .then((exit) =>
             settleAtEdge(exit, signal, () => {
-              // The layer closed under the read: its outcome is not known,
-              // and the session stays standing.
               throw new LocalApiReadFailed({
                 failure: { kind: "unknown-outcome" },
               });
@@ -689,11 +544,6 @@ const activePartition = Effect.fnUntraced(function* (
   };
 });
 
-/**
- * Fails with {@link LocalApiReadFailed} where the Zotero Local API did not
- * answer the list. The client has already stood its session down by then, so
- * the Attachment's next ask lands on the source that can answer.
- */
 const readFromLocalApi = Effect.fnUntraced(function* (
   core: CoreState,
   source: LocalApiSource,
@@ -711,16 +561,6 @@ const readFromLocalApi = Effect.fnUntraced(function* (
   return { source, annotations: result.value.map(fromLocalApi) };
 });
 
-/**
- * Read the locks of one Attachment's Annotations from the Zotero database
- * into {@link locks}, beside a Zotero Local API list, whose item JSON
- * carries no lock facts. The list itself stays wholly the Local API's (ADR
- * 0034). A database that cannot be read keeps the locks the last read gave,
- * so only an Attachment never read has no lock.
- *
- * @returns whether any lock of the Attachment moved.
- * @see apps/obsidian/docs/adr/0067-annotation-locks-come-from-the-zotero-database.md
- */
 const readLocks = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
@@ -739,17 +579,10 @@ const readLocks = Effect.fnUntraced(function* (
     ),
   );
   if (Option.isNone(annotations)) return false;
-  // A read a database change overtook holds the old locks; the change reads
-  // them again.
   if (generation !== core.databaseGeneration) return false;
   return keepLocks(core, attachmentKey, annotations.value);
 });
 
-/**
- * Keep the locks one database read gave an Attachment's Annotations.
- *
- * @returns whether any of them moved.
- */
 function keepLocks(
   core: CoreState,
   attachmentKey: string,
@@ -768,17 +601,8 @@ function keepLocks(
   );
 }
 
-/**
- * A refreshed Zotero database may lock an Annotation a Zotero Local API list
- * holds — Zotero imported it from the PDF file since the list was read — or
- * unlock one. The list is not read again from Zotero: only the locks move,
- * and each Attachment whose locks moved is announced, so its surfaces draw
- * the list again with the new locks.
- */
 const refreshLocks = Effect.fnUntraced(function* (core: CoreState) {
   for (const attachmentKey of core.locks.keys()) {
-    // The list of the Zotero DB source is read again whole, and that read
-    // keeps its locks.
     if (core.publishedLists.get(attachmentKey)?.source.kind === "zotero-db")
       continue;
     if (!(yield* readLocks(core, attachmentKey))) continue;
@@ -862,8 +686,6 @@ const adoptDatabaseSource = Effect.fnUntraced(function* (
     core.confirmedWrites.delete(attachmentKey);
   }
   if (revalidated || !databaseSourcesEqual(previous, source)) {
-    // Announced once the read that adopted the source has published: the
-    // fiber yields first, so the caller runs on to its own yield.
     yield* FiberSet.run(
       core.fibers,
       Effect.yieldNow.pipe(
@@ -880,13 +702,6 @@ const adoptDatabaseSource = Effect.fnUntraced(function* (
   }
 });
 
-/**
- * What the Zotero Local API answers has moved: another capability, another
- * Zotero database, or the Companion's Freshness Signal saying the library
- * changed. Its whole partition goes, and every Attachment either partition
- * holds is announced — a surface reading from the Zotero DB is the one a
- * switch to the Zotero Local API most concerns.
- */
 const sourceMoved = Effect.fnUntraced(function* (core: CoreState) {
   yield* core.queries.invalidate([ANNOTATIONS, ZOTERO_LOCAL_API]);
   const held = yield* attachmentsHeld(core, [ANNOTATIONS]);
@@ -900,11 +715,6 @@ const sourceMoved = Effect.fnUntraced(function* (core: CoreState) {
   yield* rereadSuperseded(core, held);
 });
 
-/**
- * Every Attachment one prefix holds a list for. Both partitions key by
- * Indexed Key last — the Zotero Local API one behind its server id — so the
- * last element names the Attachment whichever source answered.
- */
 const attachmentsHeld = Effect.fnUntraced(function* (
   core: CoreState,
   prefix: QueryKey,
@@ -915,10 +725,6 @@ const attachmentsHeld = Effect.fnUntraced(function* (
   return [...new Set(keys)];
 });
 
-/**
- * A refreshed database replaces every row the partition held, so the whole
- * partition goes rather than the rows a comparison would call changed.
- */
 const dropDatabasePartition = Effect.fnUntraced(function* (core: CoreState) {
   core.databaseGeneration += 1;
   const prefix = [ANNOTATIONS, ZOTERO_DB];
@@ -934,27 +740,6 @@ const dropDatabasePartition = Effect.fnUntraced(function* (core: CoreState) {
   yield* rereadSuperseded(core, held);
 });
 
-/**
- * Read every Attachment a source change superseded again, so the movement it
- * carried is found and announced whether or not a surface is mounted to ask:
- * an edit saved in Zotero itself reaches the repository through this change
- * and the read after it, and a device that holds an Excerpt Image of the
- * Annotation must replace it with no Annotation View, reader, or binding on
- * screen. The lists this repository still stands for are read too, because a
- * Held Read the query client collected leaves the standing list behind.
- *
- * Only a list a surface still wants is read again: one a surface holds, one
- * work in progress stands on, or one a caller asked for within
- * {@link UNHELD_RETENTION}. Every other list is let go here, so a view over a
- * whole Library costs nothing once it closes. Its next read compares against
- * the image this device persists, as a session's first read does.
- *
- * Whether this device holds an image for an Annotation is not this
- * repository's to know: the consumer resolves that against its own store, so
- * one this device never cached stays on demand.
- *
- * Each read runs on the layer's Scope, so the layer's close interrupts it.
- */
 const rereadSuperseded = Effect.fnUntraced(function* (
   core: CoreState,
   announced: readonly string[],
@@ -983,7 +768,6 @@ const rereadSuperseded = Effect.fnUntraced(function* (
   }
 });
 
-/** The published list as surfaces draw it: with every Pending Proposal. */
 function published(
   core: CoreState,
   attachmentKey: string,
@@ -999,12 +783,6 @@ function published(
     : null;
 }
 
-/**
- * One confirmed list with the Pending Proposal of every write in flight on
- * its Annotations drawn over it, the later write's field over the earlier's.
- * A proposal is drawn only over the list of the Zotero database it was sent
- * to. The list itself is answered while nothing is proposed.
- */
 function drawn(
   core: CoreState,
   attachmentKey: string,
@@ -1017,7 +795,6 @@ function drawn(
   );
 }
 
-/** One list with the locks the Zotero database last gave its Annotations. */
 function withLocks(
   core: CoreState,
   attachmentKey: string,
@@ -1100,7 +877,6 @@ const sameApiSource = Effect.fnUntraced(function* (
   );
 });
 
-/** Availability can lapse while an acknowledged write keeps its database identity. */
 const sourceStillBound = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
@@ -1132,7 +908,6 @@ const sourceStillBound = Effect.fnUntraced(function* (
   }
 });
 
-/** A newer database snapshot can prove a confirmed record was deleted. */
 function coverDatabaseDeletions(
   core: CoreState,
   attachmentKey: string,
@@ -1158,7 +933,6 @@ function coverDatabaseDeletions(
   );
 }
 
-/** Whether the key names a database partition a database change has left. */
 function overtakenPartition(core: CoreState, queryKey: QueryKey): boolean {
   return queryKey[1] === ZOTERO_DB && queryKey[2] !== core.databaseGeneration;
 }
@@ -1176,9 +950,6 @@ const canPublish = Effect.fnUntraced(function* (
   }
   const { source } = candidate;
   const current = core.publishedLists.get(attachmentKey);
-  // Keep the write's API collection until its acknowledgement can be applied.
-  // Availability can change while the request is in flight without changing
-  // the database that owns its records.
   if (
     core.writesInFlight.has(attachmentKey) &&
     current?.source.kind === "zotero-local-api" &&
@@ -1231,7 +1002,6 @@ function databaseSourcesEqual(
   );
 }
 
-/** One list's canonical pixel fingerprints, by Indexed Key. */
 function fingerprintMap(list: AnnotationList): ReadonlyMap<string, string> {
   return new Map(
     list.annotations.map((record) => [record.key, excerptFingerprint(record)]),
@@ -1274,11 +1044,6 @@ function coversConfirmations(
   );
 }
 
-/**
- * One capability as the value the change log compares by, which is the shared
- * reason plus a cooldown's own deadline: a log line per new deadline is what
- * says the rate limit was met again, where a notice counts one cooldown once.
- */
 function describeCapability(capability: EditingCapability): string {
   return capability.kind === "cooldown"
     ? `cooldown:${DateTime.formatIso(capability.retryAfter)}`
@@ -1301,7 +1066,6 @@ const toRecords = Effect.fnUntraced(function* (
     return [];
   }
   const contentType = attachment.contentType ?? "";
-  // Read with each list, so an account's first sync moves the locks too.
   const userID = found.accountUserID;
   return found.annotations.map((annotation) =>
     toRecord(annotation, { attachmentKey, contentType, userID }),

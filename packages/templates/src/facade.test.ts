@@ -8,7 +8,6 @@ import {
   MARKER_START,
 } from "./obsidian.ts";
 
-/** Every error reachable from `error` through the links liquidjs and eta use. */
 function errorLinks(error: unknown): Error[] {
   const links: Error[] = [];
   const pending = [error];

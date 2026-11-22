@@ -59,11 +59,8 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { defaults } from "@/services/settings/schema.ts";
 
-/** The styles Zotero has installed while the export dialog is open. */
 const zotero = vi.hoisted(() => ({ styles: [] as InstalledCslStyle[] }));
-/** How the stubbed export run ends. */
 const exportRun = vi.hoisted(() => ({
-  /** Interrupt the run, as unloading the plugin does. */
   unload: false,
 }));
 
@@ -76,8 +73,6 @@ vi.mock(
       >();
     return {
       ...actual,
-      // An installed style resolves as Zotero lists it; anything else takes the
-      // real resolver's answer for a data directory that holds no styles.
       resolveInstalledStyle: (
         ...args: Parameters<typeof actual.resolveInstalledStyle>
       ) => {
@@ -125,7 +120,6 @@ const PROFILE_ID = "Aa1Bb2Cc3Dd4" as ProfileId;
 
 interface VaultOptions {
   fileSystem?: FileSystem.FileSystem;
-  /** The properties the active note carries; `undefined` leaves no note active. */
   note?: Record<string, unknown>;
   settings?: Partial<Settings> &
     Pick<
@@ -133,16 +127,10 @@ interface VaultOptions {
       "citation.references-style"
     >;
   engineInstalled?: boolean;
-  /**
-   * `false` for an installed pack that is unread and refuses its first read
-   * as damaged.
-   */
   engineStarts?: boolean;
-  /** Where the vault stands on disk, which is where an export is written. */
   basePath?: string;
 }
 
-/** One vault the built-in export command is registered in, on one note. */
 function openVault({
   note,
   settings = {},
@@ -153,7 +141,6 @@ function openVault({
 }: VaultOptions = {}) {
   const file = markdownFile("draft.md");
   const frontmatter = note ?? {};
-  // The export stub above still needs an available engine handle.
   const getEngine = vi.fn(() => Promise.resolve({}));
   let command: Command | undefined;
   const {
@@ -238,8 +225,7 @@ function openVault({
             ? { kind: "pack-absent" }
             : engineStarts
               ? { kind: "ready", version: "test" }
-              : // Unread: the borrow alone states why it gave no engine.
-                null,
+              : null,
         ),
         getEngine: Effect.suspend(
           (): Effect.Effect<unknown, ManagedBinaryError> => {
@@ -308,17 +294,11 @@ function openVault({
     file,
     close: () => runtime.dispose(),
     notices: notifier.notices,
-    /** Whether the engine was ever asked to convert anything. */
     converted: () => getEngine.mock.calls.length > 0,
-    /** The command palette entry, as the palette offers it. */
     offered: () => palette.checkCallback?.(true) === true,
-    /** Run one export of the note, as the palette entry does. */
     export: runExport,
-    /** Run one export, and read the dialog it opens. */
     openDialog: () => dialog(runExport()),
-    /** Run the command from the palette. */
     runFromPalette: () => void palette.checkCallback?.(false),
-    /** Run the command from the palette, and read the dialog it opens. */
     openDialogFromPalette() {
       palette.checkCallback?.(false);
       return dialog(null);
@@ -334,11 +314,6 @@ function openVault({
     throw Cause.squash(exit.cause);
   }
 
-  /**
-   * The dialog an export opened.
-   *
-   * @param outcome how the export ends, where the test holds it.
-   */
   async function dialog(outcome: Promise<PandocExportOutcome> | null) {
     await vi.waitFor(() => expect(Modal.instances).toHaveLength(1));
     const modal = Modal.instances.at(-1)!;
@@ -346,20 +321,15 @@ function openVault({
     const [format, style] = rows
       .flatMap((row) => row.components)
       .filter((component) => component instanceof DropdownComponent);
-    // The listing lands after the dialog is built, so the entries the user
-    // reads are the ones the resolved listing left in the picker.
     await vi.waitFor(() => expect(style!.options.length).toBeGreaterThan(1));
     return {
       format: format!,
       style: style!,
-      /** What the dialog says under the style picker. */
       styleNote: () =>
         rows.find((row) => row.name === m.pandoc_export_style_name())?.desc,
-      /** The destination the dialog names, as the user reads it. */
       destination: () =>
         rows.find((row) => row.name === m.pandoc_export_destination_name())
           ?.desc,
-      /** Dismiss the dialog without answering, as closing its window does. */
       dismiss: () => modal.close(),
       confirm: () =>
         rows
@@ -371,7 +341,6 @@ function openVault({
           )
           ?.click(),
       title: modal.title,
-      /** How the export ended. */
       outcome,
     };
   }

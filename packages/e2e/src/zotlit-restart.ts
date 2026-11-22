@@ -1,11 +1,5 @@
-// The first half of a restart of ZotLit in an open vault: a case writes what
-// the next start reads, then turns ZotLit on itself.
 import { obRun } from "./obsidian-cli.ts";
 
-/**
- * Turns ZotLit off in the open vault, and waits until its services closed and
- * it holds no binding of a PDF tab.
- */
 export async function turnZotlitOff(vaultId: string): Promise<void> {
   await obRun(
     vaultId,

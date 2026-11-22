@@ -1,9 +1,5 @@
 import type { QueryFileDataset } from "#core/query-view/query-file.ts";
 
-// The icon that names the kind of value a Property holds, as Obsidian marks
-// each property type: text, number, date, list, checkbox, formula. A column
-// header of the Table shows it before the Property's label. A vault property
-// takes the icon Obsidian gives its property type.
 import { planPath } from "@zotlit/item-query";
 
 import { DATASETS } from "./datasets.ts";
@@ -12,7 +8,6 @@ import type { PropertyEntry } from "./view-properties.ts";
 
 import { LITERATURE_NOTE, vaultName } from "#core/query-view/query-file.ts";
 
-/** The Lucide icon Obsidian draws for each property type. */
 const VAULT_ICONS: Record<VaultPropertyType, string> = {
   text: "text",
   multitext: "list",
@@ -24,10 +19,6 @@ const VAULT_ICONS: Record<VaultPropertyType, string> = {
   aliases: "forward",
 };
 
-/**
- * The icon of `property` in a view of `dataset`. `vaultType` gives the type
- * of a vault property by its name; without it, a vault property is text.
- */
 export function propertyIcon(
   dataset: QueryFileDataset,
   property: Pick<PropertyEntry, "path" | "kind">,

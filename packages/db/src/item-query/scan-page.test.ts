@@ -154,7 +154,6 @@ describe("readScanPage", () => {
 
   it("fails with the tagged database error that carries the statement", () => {
     using scenario = openScenarioDatabase(connectClient);
-    // The copy passes the layout check first, so the statement itself fails.
     runOk(scenario, checkLayout());
     scenario.sqlite.exec("alter table items rename column dateAdded to added");
 
@@ -179,7 +178,6 @@ describe("readScanPage", () => {
 });
 
 describe("readUniverseRows", () => {
-  /** The ID of the `items` row with a key in a Library. */
   function idOf(
     scenario: ScenarioDatabase<NodeDatabaseClient>,
     key: string,
@@ -200,8 +198,6 @@ describe("readUniverseRows", () => {
         libraryID: personal.libraryID,
         itemIDs: [
           idOf(scenario, "UNI2CDE2"),
-          // A trashed Item, an Attachment, a Child Note, an Annotation, an Item
-          // of the other Library, and an ID that no row has.
           idOf(scenario, "TRS2SHED"),
           idOf(scenario, "PDF2LIVE"),
           idOf(scenario, "NTE2CHLD"),
@@ -292,7 +288,6 @@ describe("readUniverseRows", () => {
   });
 });
 
-// Failure mode: the Library index makes each Item ID page sort in a temporary B-tree.
 it.each([
   ["Items", readScanPage],
   ["Attachments", readAttachmentScanPage],

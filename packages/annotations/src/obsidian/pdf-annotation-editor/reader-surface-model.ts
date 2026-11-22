@@ -1,13 +1,3 @@
-// The Reader Surface Model: the Reader Surface State of one bound PDF view as
-// a writable atom, and one derived atom for each thing a surface draws, held
-// in the binding's own atom registry. Each derived atom carries the equality
-// that tells a change on screen from none, so a renderer that watches it
-// hears only what it draws.
-//
-// The writers live here too: `update` and `modify` run the pure transitions of
-// reader-surface-state.ts against the registry, and the edge functions below
-// take the tool colour store's and the repository's facts into the state.
-
 import type {
   AnnotationRecord,
   AnnotationRepository,
@@ -48,10 +38,8 @@ import type { AnnotationTool, ToolColorStore } from "./tools.ts";
 import { sameKeys } from "#core/annot-view/card-selection.ts";
 import { editingLive } from "#obsidian/annot-view/card-controls.ts";
 
-/** The registry a binding holds its model in, from bind to unbind. */
 export type ReaderSurfaceRegistry = AtomRegistry.AtomRegistry;
 
-/** One binding's registry, disposed when the Scope it is taken on closes. */
 export const readerSurfaceRegistry: Effect.Effect<
   ReaderSurfaceRegistry,
   never,
@@ -61,7 +49,6 @@ export const readerSurfaceRegistry: Effect.Effect<
   (registry) => Effect.sync(() => registry.dispose()),
 );
 
-/** What the Mark Popup draws: what floats, and the row it shows over it. */
 export interface PopupView {
   floating: Floating;
   row: readonly object[];
@@ -74,7 +61,6 @@ export interface ReaderSurfaceModel {
   readonly capabilityAffordance: Atom.Atom<
     ReturnType<typeof selectCapabilityAffordance>
   >;
-  /** The capability, held still while it means the same. */
   readonly capability: Atom.Atom<ReaderSurfaceState["capability"]>;
   readonly editingLive: Atom.Atom<boolean>;
   readonly floatingHead: Atom.Atom<ReturnType<typeof selectFloatingHead>>;
@@ -84,16 +70,11 @@ export interface ReaderSurfaceModel {
   readonly capture: Atom.Atom<ReturnType<typeof selectCapture>>;
   readonly textDraft: Atom.Atom<ReturnType<typeof selectTextDraft>>;
   readonly liveStroke: Atom.Atom<ReaderSurfaceState["liveStroke"]>;
-  /** Whether a stroke or an image capture is being drawn. */
   readonly drawing: Atom.Atom<boolean>;
   readonly pendingStrokes: Atom.Atom<ReaderSurfaceState["pendingStrokes"]>;
   readonly popup: Atom.Atom<PopupView>;
 }
 
-/**
- * The model over `initial`. The state is kept alive: it stands from the bind
- * to the unbind whether or not a surface watches it.
- */
 export function makeReaderSurfaceModel(
   initial: ReaderSurfaceState,
 ): ReaderSurfaceModel {
@@ -137,16 +118,11 @@ export function makeReaderSurfaceModel(
   };
 }
 
-/**
- * The surface a reader's gestures write: the registry that holds the Reader
- * Surface Model, and the model.
- */
 export interface ReaderSurface {
   readonly registry: ReaderSurfaceRegistry;
   readonly model: ReaderSurfaceModel;
 }
 
-/** Applies `transition` to the surface's state, and tells its watchers. */
 export function update(
   { registry, model }: ReaderSurface,
   transition: Transition,
@@ -154,7 +130,6 @@ export function update(
   registry.update(model.state, transition);
 }
 
-/** Applies `step` to the surface's state, and answers its result. */
 export function modify<A>(
   { registry, model }: ReaderSurface,
   step: Step<A>,
@@ -162,7 +137,6 @@ export function modify<A>(
   return registry.modify(model.state, step);
 }
 
-/** The surface's state as it stands now. */
 export function current({
   registry,
   model,
@@ -170,10 +144,6 @@ export function current({
   return registry.get(model.state);
 }
 
-/**
- * Writes a tool's colour to the settings-backed store and to this view. The
- * choice is a use of that colour too.
- */
 export function setToolColor(
   surface: ReaderSurface,
   toolColors: ToolColorStore,
@@ -184,10 +154,6 @@ export function setToolColor(
   recordColorUse(surface, toolColors, color);
 }
 
-/**
- * Puts a colour first in the recent list every tool shares: a tool coloured,
- * a mark created, or a mark recoloured.
- */
 export function recordColorUse(
   surface: ReaderSurface,
   toolColors: ToolColorStore,
@@ -197,17 +163,11 @@ export function recordColorUse(
   update(surface, (state) => ({ ...state, recentColors: toolColors.recent() }));
 }
 
-/** What the per-Annotation facts are read and announced through. */
 export type AnnotationFacts = Pick<
   AnnotationRepository["Service"],
   "annotationState" | "annotationChanged"
 >;
 
-/**
- * Takes a read's records, with the write state and the draft each one already
- * holds, in one update: those stood before this view could hear them
- * announced.
- */
 export function ingestAnnotations(
   surface: ReaderSurface,
   records: readonly AnnotationRecord[],
@@ -231,12 +191,6 @@ export function ingestAnnotations(
   );
 }
 
-/**
- * Takes what the repository announces about one Annotation — what a write left
- * on it, its drafts, and its deletion — into the state.
- *
- * @returns what stops the listening.
- */
 export function listenAnnotationEvents(
   surface: ReaderSurface,
   annotations: AnnotationFacts,

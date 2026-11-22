@@ -16,7 +16,6 @@ import { chooseBatchProfile } from "./batch-profile-choice.ts";
 import { interruptedWithin } from "#__fixtures__/note-feature/interrupt.ts";
 import { unimplementedProfileDialogServices } from "#__fixtures__/profile/dialogs.ts";
 
-/** The batch choice's services: no Zotero data folder. */
 function services() {
   return {
     layer: Layer.mergeAll(
@@ -40,7 +39,6 @@ const app = stubService<App>("App", {
   }),
 });
 
-/** Answer the open picker with its New profile row or its Import button. */
 const answerPicker = Effect.fnUntraced(function* (
   modal: SuggestModal<unknown>,
   action: "new" | "import",
@@ -63,7 +61,6 @@ it.effect.each(["new", "import"] as const)(
       using opened = vi.spyOn(SuggestModal.prototype, "open");
       const dialogOpened = yield* Deferred.make<void>();
       const close = vi.fn();
-      // The dialog stays open until something closes it.
       const dialog = awaitModal<undefined>(() => {
         Deferred.doneUnsafe(dialogOpened, Effect.void);
         return { close };

@@ -1,7 +1,6 @@
 import type { EffectiveReadMode } from "#contract/rpc.ts";
 import type { ReadsConfig } from "#contract/rpc.ts";
 import type { OpenClient } from "#worker/connection.ts";
-// The production Connection: owns the Zotero database source — Read Mode, fingerprints, watchers, and the refresh lane.
 import {
   Cause,
   Deferred,
@@ -57,10 +56,6 @@ import {
 } from "#worker/connection.ts";
 
 const WATCH_DEBOUNCE_MS = 1200;
-// Immutable mode never clones, so there is no self-echo to outwait: an fs
-// tick fires when the main file itself changed, and the companion sends its
-// Freshness Signal only after its Checkpoint attempt settles. Nothing here
-// waits on another application; the debounce only coalesces event bursts.
 const IMMUTABLE_WATCH_DEBOUNCE_MS = 300;
 
 const logDebug = (message: string, annotations: Record<string, unknown> = {}) =>
@@ -94,7 +89,6 @@ const logWarningCause = (
     withLogCategory("zotero-reads"),
   );
 
-/** The file-system and SQLite operations the source runs; tests swap them. */
 export interface SourcePorts {
   prepareRead: (
     mode: ReadsConfig["readMode"],
@@ -121,38 +115,21 @@ const defaultPorts: SourcePorts = {
 };
 
 export interface SourceOptions {
-  /** @default the real file system and SQLite */
   ports?: Partial<SourcePorts>;
-  /** The settings to open first; without them the source waits for `Configure`. */
   initial?: ReadsConfig | null;
   deferOpen?: boolean;
 }
 
-/** A change signal travelling from a watcher or a push to the refresh gate. */
 interface WatchSignal {
-  /**
-   * A Zotero push can refresh even with automatic file watching disabled.
-   * Its source fingerprint is checked inside the refresh lane.
-   */
   trusted: boolean;
-  /** The file name a watch event reported. */
   filename?: string;
 }
 
-/** A request for a refresh, and the completion its caller awaits. */
 interface RefreshRequest {
-  /** Whether an unchanged source fingerprint may stand in for the read. */
   skipUnchanged: boolean;
   done: Deferred.Deferred<void, DbUnavailable>;
 }
 
-/**
- * A {@link Connection} that owns the Zotero database source: it selects the
- * Read Mode, fingerprints the source, binds file watches with the self-echo
- * gate, and runs every refresh through one debounced, single-flight lane. A
- * refresh validates the new source before it swaps; a failed one keeps the
- * previous client serving.
- */
 export function layerSource(
   options?: SourceOptions,
 ): Layer.Layer<Connection, never, FileSystem.FileSystem> {
@@ -161,8 +138,6 @@ export function layerSource(
   return Layer.effect(Connection)(
     Effect.gen(function* () {
       const lifetime = yield* Scope.Scope;
-      // The refresh lane's Effects carry no requirement, so the snapshot sweep
-      // it starts takes the file system this layer was built with.
       const fs = yield* FileSystem.FileSystem;
       const state = yield* Ref.make<{
         config: ReadsConfig | null;
@@ -182,7 +157,6 @@ export function layerSource(
         lastError: null,
         hasClient: false,
         sourcePath: null,
-        /** The last refresh failed for another database than `sourcePath`. */
         moved: false,
         readMode: null,
         fingerprint: null,
@@ -193,17 +167,11 @@ export function layerSource(
       const loggedFallbacks = yield* Ref.make(new Set<ReadFallbackReason>());
       const mainWatcherScope = yield* Ref.make<Scope.Closeable | null>(null);
       const walWatcherScope = yield* Ref.make<Scope.Closeable | null>(null);
-      /**
-       * One WAL sync or rebind at a time. Each reads the stored scope
-       * before it binds a new one, so two at once both bound a WAL watch, and
-       * the second stored scope dropped the first.
-       */
       const watchBinds = yield* Semaphore.make(1);
       const watchSignals = yield* Queue.unbounded<WatchSignal>();
       const watchTimer = yield* Ref.make<Fiber.Fiber<void> | null>(null);
       const watchTrusted = yield* Ref.make(false);
       const refreshRequests = yield* Queue.unbounded<RefreshRequest>();
-      /** Completes once the first refresh settled, either way. */
       const firstSettled = yield* Deferred.make<void>();
       const held = yield* Ref.make(
         Boolean(options?.initial && options.deferOpen),
@@ -247,15 +215,6 @@ export function layerSource(
         ),
       );
 
-      // --- Opening ----------------------------------------------------------
-
-      /**
-       * A snapshot placed beside the database leaves its residue there, where
-       * the plugin-load sweep of the system temp folder never looks. Sweep
-       * that parent whenever the bound database path moves it.
-       *
-       * @see {@link reapReadClones} for what counts as residue.
-       */
       const reapReadParent = Effect.fnUntraced(function* (path: string) {
         const parent = readParentBeside(path);
         const fresh = yield* Ref.modify(state, (current) =>
@@ -276,7 +235,6 @@ export function layerSource(
         );
       });
 
-      /** Fail-soft {@link snapshotSource}: `null` where that function would throw. */
       const trySnapshotSource = (
         path: string,
       ): Effect.Effect<SourceFingerprint | null> =>
@@ -288,17 +246,11 @@ export function layerSource(
           ),
         );
 
-      /**
-       * Records the Zotero schema versions once per distinct pair. The stamps
-       * come from the layout that {@link validateClient} read for this client,
-       * so no statement runs here. A failed check never fails the refresh.
-       */
       const reportSchemaVersions = Effect.fnUntraced(function* (
         client: ZoteroDatabase,
       ) {
-        const versions = yield* Effect.try(
-          // boundary: @zotlit/db reads node:sqlite synchronously.
-          () => getSchemaVersions(client),
+        const versions = yield* Effect.try(() =>
+          getSchemaVersions(client),
         ).pipe(
           Effect.catch((error) =>
             logDebug("Zotero schema version unreadable", {
@@ -349,10 +301,6 @@ export function layerSource(
           });
       });
 
-      /**
-       * Open and validate a client over a prepared read of `file`, recording
-       * the database it reads; on failure release both.
-       */
       const openClient = Effect.fnUntraced(function* (
         readScope: Scope.Closeable,
         prepared: PreparedRead,
@@ -366,14 +314,12 @@ export function layerSource(
           Effect.gen(function* () {
             const client = yield* Effect.acquireRelease(
               Effect.try({
-                // boundary: @zotlit/db creates a synchronous node:sqlite client.
                 try: () =>
                   ports.createClient(
                     buildSqliteUri(prepared.path, prepared.uriOptions),
                   ),
                 catch: toDbUnavailable,
               }),
-              // validateClient closes a client that fails validation.
               (client) => closeClient(client),
             ).pipe(Scope.provide(clientScope));
             const { client: validated } = yield* validateClient(
@@ -397,10 +343,6 @@ export function layerSource(
         );
       });
 
-      /**
-       * Fresh-device handling: when a refresh fails because the database file
-       * is absent, emit `db-file-missing` at most once per source lifetime.
-       */
       const maybeSignalMissingDatabase = Effect.fnUntraced(function* (
         path: string,
       ) {
@@ -417,7 +359,6 @@ export function layerSource(
         yield* publish({ _tag: "db-file-missing" });
       });
 
-      /** Resolves to the failure the refresh ended on, or `null` when it did not fail. */
       const refreshOnce = Effect.fnUntraced(
         function* (
           skipUnchanged: boolean,
@@ -427,13 +368,7 @@ export function layerSource(
           if (!current) return null;
           const { databasePath, readMode: configuredMode } = current;
           yield* reapReadParent(databasePath);
-          // Fingerprinted before the read, never after: a Zotero write that
-          // lands while we clone then still differs from what we record, so the
-          // next watcher tick refreshes instead of being gated away as our echo.
           const nextFingerprint = yield* trySnapshotSource(databasePath);
-          // Reuse the refresh's pre-read fingerprint. Only a healthy clone can
-          // stay in place; failures, configuration changes and queued requests
-          // retain the full refresh path.
           if (
             skipUnchanged &&
             (yield* Queue.size(refreshRequests)) === 0 &&
@@ -492,8 +427,6 @@ export function layerSource(
             yield* publish({ _tag: "refresh-failed", error, moved });
             yield* logWarningCause("Failed to refresh Zotero database", error);
             yield* maybeSignalMissingDatabase(databasePath);
-            // Keep serving the previous client on a failed refresh; only go
-            // degraded when there was never a working client to fall back to.
             const after = yield* Ref.modify(state, (previous) => [
               { hasClient: previous.hasClient },
               {
@@ -527,12 +460,6 @@ export function layerSource(
         Effect.ensuring(Deferred.succeed(firstSettled, undefined)),
       );
 
-      /**
-       * Refreshes until no request is waiting. A request that arrives during a
-       * run waits in the queue, and everything that gathered there shares one
-       * trailing rerun, which always reads. Each caller of the busy period
-       * settles with the outcome of its last run.
-       */
       const runRefreshes = (
         callers: ReadonlyArray<RefreshRequest>,
         skipUnchanged: boolean,
@@ -568,10 +495,6 @@ export function layerSource(
         Effect.forkIn(lifetime, { startImmediately: true }),
       );
 
-      /**
-       * Single-flight refresh lane with trailing-rerun coalescing. Returns the
-       * completion of the busy period that serves this request.
-       */
       const enqueueRefresh = ({
         skipUnchanged = false,
       }: { skipUnchanged?: boolean } = {}): Effect.Effect<
@@ -584,17 +507,11 @@ export function layerSource(
           return done;
         });
 
-      // --- Watching ---------------------------------------------------------
-
       const closeWalWatcher = Effect.gen(function* () {
         const scope = yield* Ref.getAndSet(walWatcherScope, null);
         if (scope) yield* Scope.close(scope, Exit.void);
       });
 
-      /**
-       * Fails open: with no fingerprint to compare against, or when the
-       * source cannot be read, refresh anyway.
-       */
       const sourceMoved = Effect.gen(function* () {
         const before = yield* Ref.get(state);
         const previous = before.fingerprint;
@@ -626,8 +543,6 @@ export function layerSource(
             return;
           }
         }
-        // Rechecked after the gate's fingerprint read: the timer cleared before
-        // it, so switching auto-refresh off could no longer cancel it.
         if (!trusted && !(yield* Ref.get(state)).config?.autoRefresh) {
           yield* logDebug("Watcher tick ignored, auto-refresh switched off");
           return;
@@ -635,13 +550,6 @@ export function layerSource(
         yield* enqueueRefresh({ skipUnchanged: trusted });
       });
 
-      /**
-       * Debounce a change signal, then refresh only if the source really
-       * moved. Reading the database clones it, and on APFS a clone raises a
-       * `change` event against the source, so a tick proves nothing on its
-       * own; the gate holds it against the last read. One trusted signal in a
-       * burst sends the whole burst through the refresh lane's comparison.
-       */
       const scheduleWatchedRefresh = Effect.fnUntraced(function* ({
         trusted,
         filename,
@@ -667,25 +575,15 @@ export function layerSource(
 
       const watchedFilename = (name: string | undefined): boolean => {
         if (name === ZOTERO_DB_FILENAME) return true;
-        // Immutable reads ignore the live WAL, so WAL churn can't change what
-        // we'd read; only the main DB file is worth watching in that mode.
         return (
           Ref.getUnsafe(state).readMode !== "immutable" &&
           name === ZOTERO_WAL_FILENAME
         );
       };
 
-      /** Like `existsSync`: a path the process cannot reach reads as absent. */
       const fileExists = (path: string) =>
         fs.exists(path).pipe(Effect.orElseSucceed(() => false));
 
-      /**
-       * Watch `path` for the scope, calling `onEvent` for each event. Fails
-       * when the watch cannot start, with its failure or its defect: the Node
-       * file system starts `fs.watch` inside `Effect.sync`, so a throw there
-       * (no inotify watches left, too many open files) is a defect. A watch
-       * that stops later logs and ends.
-       */
       const watchPath = Effect.fnUntraced(function* (
         path: string,
         onEvent: (event: FileSystem.WatchEvent) => void,
@@ -697,8 +595,6 @@ export function layerSource(
           })
           .pipe(
             Stream.runForEach((event) => Effect.sync(() => onEvent(event))),
-            // A watch that never started fails `ready` for the caller to
-            // report; one that stops later reports here, with its whole cause.
             recover(
               (cause) =>
                 Effect.flatMap(
@@ -721,14 +617,6 @@ export function layerSource(
         yield* Deferred.await(ready);
       });
 
-      /**
-       * Start `watches` on a new scope and store the scope in `holder`, or log
-       * `failure` and close it when a watch cannot start.
-       *
-       * Nothing else holds the scope until `holder` does, so only the
-       * wait for the watches can be interrupted, and an interrupt there
-       * closes the scope.
-       */
       const bindWatches = (
         holder: Ref.Ref<Scope.Closeable | null>,
         watches: Effect.Effect<void, unknown, Scope.Scope>,
@@ -755,7 +643,6 @@ export function layerSource(
           }),
         );
 
-      /** Runs under the `watchBinds` permit of its caller. */
       const syncWalWatcherHeld = Effect.fnUntraced(function* () {
         const current = yield* Ref.get(state);
         if (!current.sourcePath || current.readMode === "immutable") {
@@ -778,7 +665,6 @@ export function layerSource(
         syncWalWatcherHeld().pipe(Semaphore.withPermit(watchBinds));
 
       const enqueueWatchSignal = (signal: WatchSignal): void => {
-        // boundary: a watch event calls back synchronously; bridge into Effect once.
         Queue.offerUnsafe(watchSignals, signal);
       };
 
@@ -824,8 +710,6 @@ export function layerSource(
         Effect.forkIn(lifetime, { startImmediately: true }),
       );
 
-      // --- Configuration ----------------------------------------------------
-
       const configure = Effect.fnUntraced(function* (next: ReadsConfig) {
         const previous = yield* Ref.modify(state, (current) => [
           current.config,
@@ -857,12 +741,8 @@ export function layerSource(
       if (options?.initial) yield* configure(options.initial);
 
       return Connection.of({
-        // A read before the first open waits for it, as callers once waited on
-        // the service's `ready`.
         borrow: Effect.andThen(Deferred.await(firstSettled), clients.borrow),
         changes,
-        // Fails when the lane's last refresh failed, also when the previous
-        // client keeps serving; `Changes` tells the two apart.
         refresh: Effect.flatMap(enqueueRefresh(), (deferred) =>
           Deferred.await(deferred),
         ),

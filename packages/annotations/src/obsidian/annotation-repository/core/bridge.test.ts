@@ -1,4 +1,3 @@
-// The database batch of the Annotation Repository core: what it answers to a key it did not find, and to callers that left before it started.
 import { describe, expect, it } from "@effect/vitest";
 import { Cause, Effect, Exit, Fiber, FiberSet, RequestResolver } from "effect";
 import { TestClock } from "effect/testing";
@@ -9,12 +8,6 @@ import { databaseRows, databaseRowsResolver } from "./bridge.ts";
 
 import { scopedStack, setup } from "#__fixtures__/annotation-repository.ts";
 
-/**
- * The batch over the Fixture's database, each Snapshot a counted lease, on
- * fibers of the case's Scope.
- *
- * @param answer what the Snapshot's reads answer, from the Fixture's own.
- */
 const batchOver = Effect.fnUntraced(function* (
   answer: (reads: ZoteroReadsApi) => ZoteroReadsApi = (reads) => reads,
 ) {
@@ -62,7 +55,6 @@ describe("databaseRows", () => {
       Effect.gen(function* () {
         const batch = yield* batchOver();
         const { acquireRead } = batch;
-        // The batch waits one second of the TestClock before it starts.
         const core = {
           ...batch.core,
           databaseRows: RequestResolver.setDelay(
@@ -79,11 +71,9 @@ describe("databaseRows", () => {
         });
         yield* Fiber.interrupt(first);
         yield* Fiber.interrupt(second);
-        // Past the batch's delay: a batch still standing would read now.
         yield* TestClock.adjust("1 second");
 
         expect(acquireRead).not.toHaveBeenCalled();
-        // The same asks, left to run, take one Snapshot for both.
         const both = yield* Effect.forkChild(
           Effect.all(
             [databaseRows(core, "RGRPDF24"), databaseRows(core, "EPUBBKS2")],

@@ -28,11 +28,6 @@ const e2eVaultPath = e2eVaultDir(workspaceRoot, "fixture-vault");
 const e2eFixture = getFixtureLayout(
   join(workspaceRoot, ".scratch", "e2e-fixture"),
 );
-/**
- * The Zotero HTTP endpoint the shared Fixture's profile names: it accepts and
- * drops every connection, so ZotLit sees Zotero closed. The shipped port 23119
- * belongs to whatever Zotero the developer runs.
- */
 const offlineZotero = createServer((socket) => socket.destroy());
 await new Promise<void>((resolve, reject) => {
   offlineZotero.once("error", reject);
@@ -43,14 +38,8 @@ const offlineZoteroAddress = offlineZotero.address();
 if (offlineZoteroAddress === null || typeof offlineZoteroAddress === "string")
   throw new Error("Offline Zotero endpoint did not receive a TCP port");
 
-/** The `obsidian-vault.ts` commands that rebuild the Fixture's profile. */
 const PROFILE_WRITERS = new Set(["open", "sync"]);
 const fixtureVaultScript = vaultScript(workspaceRoot, e2eFixture.root);
-/**
- * `obsidian-vault.ts` on the shared Fixture. Every rebuild of its profile names
- * the offline endpoint, so no vault on it, and no later rebuild, reaches the
- * developer's Zotero.
- */
 const runVaultScript: VaultScript = (args) =>
   fixtureVaultScript(
     PROFILE_WRITERS.has(args[0]!)
@@ -93,7 +82,6 @@ const annotationKeysByPage = Map.groupBy(
 afterAll(() => discardFixture(e2eFixture));
 
 const reachable = await isObsidianReachable(workspaceRoot);
-/** Whether the plugin under test was built with the Annotation Suggester. */
 const annotationSuggesterEnabled =
   process.env.ANNOTATION_SUGGESTER_ENABLED === "true";
 const BYTE_ORDER_MARK = String.fromCharCode(0xfeff);
@@ -124,7 +112,6 @@ const readingState = {
     ),
 };
 
-/** Expected activity from the committed Fixture facts, independent of Query output. */
 export function fixtureActivity(item: FixtureItem): string {
   const attachments = ATTACHMENTS.filter(
     (entry) => entry.parentItemID === item.itemID,

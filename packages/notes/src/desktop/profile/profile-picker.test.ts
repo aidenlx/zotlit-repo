@@ -20,7 +20,6 @@ import type {
 } from "./profile-picker.ts";
 
 const books = { id: "Bk3Qn7XvT2Lp" as ProfileId };
-/** The Default and Books rows, in that order. */
 const defaultAndBooks: ProfilePreview[] = [
   {
     selector: "default",
@@ -46,7 +45,6 @@ const emptyApp = stubService<App>("App", {
   }),
 });
 
-/** The picker opened as `awaitModal` opens it, its answer as a Promise. */
 function choose(
   app: App,
   options: Parameters<typeof openLiteratureNoteProfile>[1],
@@ -257,26 +255,22 @@ it("imports from Enter on the focused secondary action, before the list takes th
   const rows = await modal.getSuggestions("");
   const el = document.body.createDiv();
   onTestFinished(() => el.remove());
-  /** The Import button, as the list draws its rows on a keystroke. */
   const draw = () => {
     el.empty();
     modal.renderSuggestion(rows.at(-1)!, el);
     return el.querySelector("button")!;
   };
 
-  // A row drawn again gives the last button's Scope back.
   draw().focus();
   const button = draw();
   expect(app.scopes).toEqual([]);
 
   button.focus();
   expect(app.scopes).toHaveLength(1);
-  // The modal's own Scope, beneath, holds the list's Enter.
   expect(app.scopes[0]).not.toBe(modal.scope);
   expect(pressTop(app, { key: "Enter" }, button).defaultPrevented).toBe(true);
 
   await expect(choice).resolves.toEqual({ action: "import" });
-  // Closing the modal gives the Scope back.
   expect(app.scopes).toEqual([]);
 });
 

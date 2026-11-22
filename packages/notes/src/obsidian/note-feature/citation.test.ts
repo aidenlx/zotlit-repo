@@ -1,4 +1,3 @@
-// The Citation Suggester's render: the Citation Template under one Citation Variant.
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { describe, expect, vi } from "vitest";
@@ -20,7 +19,6 @@ import { CITATION_TEMPLATE_SOURCE } from "#core/template/defaults.ts";
 import { Profile } from "#obsidian/profile/service.ts";
 import { Template } from "#obsidian/template/service.ts";
 
-/** The Template and Profile tags, with `renderCitation` over `render`. */
 function citationLayer(
   render: (refs: readonly CiteRef[], variant: "main" | "alt") => string,
   loaded: { template?: boolean; profile?: boolean } = {},
@@ -35,7 +33,6 @@ function citationLayer(
   );
 }
 
-/** A `renderCitation` backed by the real engine over one Citation Template source. */
 function citationTemplate(source = CITATION_TEMPLATE_SOURCE) {
   const facade = new TemplateFacade();
   facade.define("citation", source, "liquid");
@@ -46,9 +43,6 @@ function citationTemplate(source = CITATION_TEMPLATE_SOURCE) {
 }
 
 describe("renderCitation", () => {
-  // renderCitation runs inside selectSuggestion/onChooseSuggestion, which
-  // can't await the Template; the `loaded` gate answers null so a cold-start
-  // citation insert shows "still loading" instead of a failure.
   it.effect.each([
     ["the template is", { template: false }],
     ["the Profiles are", { profile: false }],
@@ -65,9 +59,6 @@ describe("renderCitation", () => {
   );
 
   it.effect("renders the alternate variant from the same document", () =>
-    // One Citation Template answers both gestures: Shift+Enter and a trailing
-    // slash arrive as the alt variant, which the built-in source maps to an
-    // Author-in-text Citation.
     Effect.gen(function* () {
       const result = yield* renderCitation(
         [{ citationKey: "smith2024" }],
@@ -78,8 +69,6 @@ describe("renderCitation", () => {
   );
 
   it.effect("hands the variant to a document that branches on zt.variant", () =>
-    // The variant names the gesture only: a custom document decides what each
-    // one renders, so a vault can map alt to anything it likes.
     Effect.gen(function* () {
       const layer = citationLayer(
         citationTemplate(
@@ -99,9 +88,6 @@ describe("renderCitation", () => {
   it.effect(
     "carries the selected item's full narrowed data through to the Citation Template (9.2-CSL #03)",
     () =>
-      // Citation-suggest passes the selected search hit's full item alongside
-      // its citationKey; a data-driven (author-year) Citation Template should
-      // see the item's title/date, not just a citekey-only stub.
       Effect.gen(function* () {
         const result = yield* renderCitation(
           [{ citationKey: "root2024", item: statedChoiceMethods() }],

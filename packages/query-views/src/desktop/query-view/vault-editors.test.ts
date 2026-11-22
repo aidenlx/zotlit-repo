@@ -24,7 +24,6 @@ describe("suggestionsFor", () => {
   });
 
   it("suggests the values that hold the typed text, as a Bases cell ranks them, and not the text itself", () => {
-    // The earlier the text stands, the better; then the shorter value.
     expect(suggestionsFor(values, "REA")).toEqual([
       "read",
       "Reading 9",
@@ -32,10 +31,8 @@ describe("suggestionsFor", () => {
       "unread",
       "to-read",
     ]);
-    // The text whole, not its letters apart, and a space is part of it.
     expect(suggestionsFor(values, "rd")).toEqual([]);
     expect(suggestionsFor(values, "ing 1")).toEqual(["Reading 10"]);
-    // A value that holds the text twice ranks after one that holds it once.
     expect(suggestionsFor(["a-b-a", "xxxa"], "a")).toEqual(["xxxa", "a-b-a"]);
     expect(suggestionsFor(values, "nothing")).toEqual([]);
   });

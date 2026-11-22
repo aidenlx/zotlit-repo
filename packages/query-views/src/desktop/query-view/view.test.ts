@@ -32,9 +32,6 @@ import type {
 import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
 import { pressTop } from "@zotlit/obsidian-kit/__fixtures__/keymap.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
-// The Query View runs one view of a Query File through ZotLit Query and shows
-// its rows as live Annotation Cards. These tests drive it as a host does: the
-// file's text in, the cards, the count and the messages out.
 import {
   Menu,
   hideSuggestChooser,
@@ -81,7 +78,6 @@ vi.mock("obsidian", async (importOriginal) => {
   const obsidian = await importOriginal<typeof import("obsidian")>();
   return {
     ...obsidian,
-    // A substring match, enough for a search of the Properties popover.
     prepareFuzzySearch: (query: string) => (text: string) =>
       text.includes(query) ? { score: 0, matches: [] } : null,
   };
@@ -208,18 +204,12 @@ async function mount(
   }: {
     queryRead?: QueryHostDeps["query"]["run"];
     notes?: Record<string, string>;
-    /** The frontmatter of each note, by path. */
     frontmatter?: Record<string, Record<string, unknown>>;
-    /** The keys each note's Profile manages with replace, by path. */
     managed?: Record<string, string[]>;
-    /** The type Obsidian assigns each property, by name. */
     types?: Record<string, VaultPropertyType>;
-    /** The names the vault properties take. */
     propertyNames?: string[];
-    /** The note or file that holds the view. */
     sourcePath?: string;
     layout?: ConstructorParameters<typeof QueryView>[1]["layout"];
-    /** The host's write; it rejects where the text was not saved. */
     write?: (text: string) => Promise<void>;
     canSave?: () => boolean;
     context?: () => QueryContext | undefined;
@@ -231,14 +221,8 @@ async function mount(
     toolbar?: "host";
     rowPass?: ConstructorParameters<typeof QueryView>[1]["rowPass"];
     reason?: (row: QueryViewRow) => string | null;
-    /**
-     * What the usual creation does for an edit of an Item with no note:
-     * create its note at `<key>.md`, or have the Profile prompt cancelled.
-     */
     creation?: "created" | "cancelled";
-    /** The values the vault holds for each property, by name. */
     values?: Record<string, string[]>;
-    /** The notes a link reaches, by link text. */
     notePaths?: string[];
   } = {},
 ) {
@@ -261,7 +245,6 @@ async function mount(
   let list = LIST;
   const held: string[][] = [];
   const released: string[][] = [];
-  // As ZotLit Query does, each row carries only the fields the request names.
   const run = vi.fn((request: QueryViewRequest, signal: AbortSignal) =>
     queryRead
       ? queryRead(request, signal)
@@ -277,7 +260,6 @@ async function mount(
         : { path, basename: path.replace(/\.md$/, "") };
     },
     on: notesChanged.on,
-    /** Fire one of the Note Index's events. */
     emit: notesChanged.emit,
     propertyNames: () => propertyNames,
     itemKeys: () => Object.keys(notes),
@@ -300,7 +282,6 @@ async function mount(
       const path = host?.itemKey === itemKey ? host.path : notes[itemKey];
       return path !== undefined && (managed[path]?.includes(name) ?? false);
     },
-    /** What each write answered, in order. */
     written: [] as VaultWrite[],
     write: vi.fn(({ itemKey, name, value, host }: VaultEdit) =>
       Effect.sync((): VaultWrite => {
@@ -474,11 +455,8 @@ async function mount(
   return {
     view,
     el,
-    /** The keymap whose pushed Scopes a test can read. */
     app: deps.app as unknown as { scopes: Scope[] },
-    /** The Scope the host gives the view for its keys. */
     scope,
-    /** The notices the view showed. */
     notices: notifier.notices,
     run,
     changeUses: async () => {
@@ -511,7 +489,6 @@ async function mount(
       },
     },
     repository,
-    /** Change what the repository holds for the Attachment. */
     setList: (next: AnnotationList) => {
       list = next;
     },
@@ -544,7 +521,6 @@ it("runs the first view of the file and shows its rows with the count", async ()
     filter: 'colorName == "yellow"',
     limit: 100,
   });
-  // In a Query File's own tab, `this` has no value.
   expect(request.context).toBeUndefined();
   expect(cards(el)).toEqual(["ANNOTBBB"]);
   expect(el.querySelector("[data-query-count]")?.textContent).toBe("1 result");
@@ -597,7 +573,6 @@ it("runs again once an Attachment it shows gains an Annotation, so a grouped vie
       vi.advanceTimersByTime(ms);
     });
 
-  // A new Annotation runs the view once, after a short wait.
   setList({
     ...LIST,
     annotations: [...LIST.annotations, record("ANNOTCCC", "PDFAAAAA")],
@@ -623,7 +598,6 @@ it("keeps a new Annotation on screen when a run from its list change has not rea
     [
       result([row("ANNOTBBB")]),
       result([row("ANNOTAAA"), row("ANNOTBBB")]),
-      // Zotero's database does not hold the new Annotation yet.
       result([row("ANNOTAAA"), row("ANNOTBBB")]),
       result([row("ANNOTAAA"), row("ANNOTBBB"), row("ANNOTCCC")]),
     ],
@@ -650,7 +624,6 @@ it("keeps a new Annotation on screen when a run from its list change has not rea
   expect(run).toHaveBeenCalledTimes(3);
   expect(cards(el)).toEqual(["ANNOTAAA", "ANNOTBBB", "ANNOTCCC"]);
 
-  // The database change that brings it runs the view, and its rows hold it.
   await reads.emit("changed");
   await settle();
   expect(run).toHaveBeenCalledTimes(4);
@@ -740,7 +713,6 @@ it("says why when the query cannot read Zotero's data, rather than looking empty
   expect(el.querySelector("[data-query-empty]")).toBeNull();
 });
 
-/** Whether the rows' layout is out of the flow, so the frame takes the space. */
 function rowsHidden(el: HTMLElement): boolean {
   return el.querySelector(".annots-container")?.closest("[hidden]") != null;
 }
@@ -881,7 +853,6 @@ describe("saving a toolbar edit", () => {
     expect(shown?.views[0]?.limit).toBe(6);
     expect(run).toHaveBeenCalledTimes(runs + 1);
 
-    // The host reads the saved text again, as a vault change makes it.
     await act(() => view.setText(serializeQueryFile(shown!)));
     await settle();
     expect(run).toHaveBeenCalledTimes(runs + 1);
@@ -898,13 +869,11 @@ describe("saving a toolbar edit", () => {
     await settle();
     const runs = run.mock.calls.length;
 
-    // The same Query Context runs nothing.
     await act(() => view.contextChanged());
     await settle();
     expect(run).toHaveBeenCalledTimes(runs);
 
     attachment = "PDFBBBBB";
-    // The text alone does not read the Query Context again.
     await act(() => view.setText(saved.at(-1)!));
     await settle();
     expect(run).toHaveBeenCalledTimes(runs);
@@ -933,7 +902,6 @@ describe("saving a toolbar edit", () => {
       libraries: [{ type: "personal" }],
     });
 
-    // The same Libraries run nothing.
     await act(() => view.contextChanged());
     await settle();
     expect(run).toHaveBeenCalledTimes(1);
@@ -988,21 +956,18 @@ describe("saving a toolbar edit", () => {
     });
     await act(() => fixed.view.setText(PAPERS_FILE));
     await fixed.settle();
-    // A host that keeps only the sort has a search of its own (ADR 0073).
     expect(toolbar(fixed.el)).toEqual([
       "data-query-results",
       "sort",
       "data-query-save-as",
     ]);
     const button = fixed.el.querySelector<HTMLElement>("[data-query-save-as]")!;
-    // A labelled button: its name is its tooltip, and shows on a wide pane.
     expect(button.getAttribute("aria-label")).toBe(
       m.annot_view_save_as_query_file(),
     );
     await act(() => button.click());
     expect(saveAs).toHaveBeenCalledOnce();
 
-    // The result count still opens its menu, with no limit to set.
     await act(() =>
       fixed.el.querySelector<HTMLElement>("[data-query-results]")!.click(),
     );
@@ -1023,7 +988,6 @@ describe("saving a toolbar edit", () => {
     await hosted.settle();
     expect(hosted.el.querySelector('[role="toolbar"]')).toBeNull();
     expect(hosted.el.querySelector("[data-query-results]")).toBeNull();
-    // The rows still show under where the row would be.
     expect(hosted.el.querySelector("[data-query-layout]")).not.toBeNull();
     const place = document.createElement("div");
     document.body.append(place);
@@ -1062,7 +1026,6 @@ describe("saving a toolbar edit", () => {
     await settle();
     const trigger = () =>
       el.querySelector<HTMLElement>("[data-query-view-menu]")!;
-    // The menu names the Layout on screen; the view's own name is the host's.
     expect(trigger().textContent).toBe("Table");
     await act(() => trigger().click());
     expect(
@@ -1177,17 +1140,12 @@ it("collapses a group heading and expands it again", async () => {
   expect(cards(el)).toEqual(["ANNOTAAA", "ANNOTBBB"]);
 });
 
-/**
- * Presses on `target`, which shuts every open pinned popover it stands outside
- * of. A press inside a popover shuts only the popovers opened from within it.
- */
 function pressOutside(target: Element = document.body): Promise<void> {
   return act(() => {
     target.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
   });
 }
 
-/** A Select's popup, opened by a press on its trigger. */
 async function openSelect(trigger: Element): Promise<HTMLElement> {
   await act(() => (trigger as HTMLElement).click());
   return trigger.ownerDocument.querySelector<HTMLElement>(
@@ -1195,7 +1153,6 @@ async function openSelect(trigger: Element): Promise<HTMLElement> {
   )!;
 }
 
-/** The rows a Select offers, by value and by the label each row shows. */
 async function selectOptions(
   trigger: Element,
 ): Promise<{ value: string; label: string }[]> {
@@ -1206,13 +1163,10 @@ async function selectOptions(
     value: option.dataset.value!,
     label: option.querySelector("[data-select-label]")!.textContent,
   }));
-  // A press beside the trigger shuts the Select's popup and leaves the popover
-  // that holds the trigger open.
   await pressOutside(trigger.parentElement ?? document.body);
   return options;
 }
 
-/** Picks `value` from a native select, or the row of it from a Select's popup. */
 async function choose(trigger: Element, value: string): Promise<void> {
   if (trigger.instanceOf(HTMLSelectElement)) {
     await act(() => {
@@ -1230,10 +1184,6 @@ async function choose(trigger: Element, value: string): Promise<void> {
   );
 }
 
-/**
- * A toolbar popover stands on the body while it is open, and its button opens
- * it; a closed one keeps its contents out of the document.
- */
 async function openPopover(
   el: HTMLElement,
   hook: string,
@@ -1257,7 +1207,6 @@ it("adds sorts from the toolbar, runs them in order, and saves them to the file"
   await openPopover(el, "sort");
   const editor = () =>
     el.ownerDocument.querySelector<HTMLElement>('[data-query-popover="sort"]')!;
-  // The sort list offers only properties ZotLit Query can sort.
   const offered = [
     ...editor().querySelectorAll<HTMLButtonElement>("[data-sort-add]"),
   ];
@@ -1287,7 +1236,6 @@ it("adds sorts from the toolbar, runs them in order, and saves them to the file"
         direction: DESC
 `);
 
-  // Alt+ArrowDown on the first row's handle gives it the second place.
   await act(() => {
     editor()
       .querySelector<HTMLElement>("[data-reorder-handle]")!
@@ -1433,10 +1381,6 @@ it("shows a wrong condition's diagnostic at its row and keeps the last good resu
   );
 });
 
-/**
- * A syntax fault at the end of the filter text `before`, as ZotLit Query
- * reports it: the caret of its `report` counts the JSON-escaped text.
- */
 function endOfFilterFault(at: number | null, before: string): QueryViewOutcome {
   const message =
     "Found end of filter where the filter takes !, (, -, [, a name, a number, a regular expression, a string, false, null, true.";
@@ -1519,7 +1463,6 @@ it("names the tokens a syntax error lacks once, at the row and in the view's dia
   );
 });
 
-/** A section of the open Filter popover; `openPopover` opens it first. */
 function section(el: HTMLElement, name: "all" | "view"): HTMLElement {
   return el.ownerDocument.querySelector<HTMLElement>(
     `[data-query-popover="filter"] [data-filter-section="${name}"]`,
@@ -1550,8 +1493,6 @@ it("edits the filters for all views and for this view from the Filter popover", 
   );
   expect(run.mock.calls.at(-1)![0].filter).toBe('colorName == "red"');
 
-  // The empty "All views" section shows one placeholder: a colour condition
-  // with no value, which the file does not keep until it has one.
   const all = section(el, "all");
   const [placeholder] = all.querySelectorAll("[data-condition-row]");
   expect(all.querySelectorAll("[data-condition-row]")).toHaveLength(1);
@@ -1571,10 +1512,6 @@ it("edits the filters for all views and for this view from the Filter popover", 
   );
 });
 
-/**
- * A condition row's typed value field. It is named by a hidden element and
- * carries no `aria-label`, which Obsidian would draw as a hover tooltip.
- */
 const valueInput = (row: Element) =>
   [...row.querySelectorAll<HTMLInputElement>("input")].find((input) => {
     const nameId = input.getAttribute("aria-labelledby");
@@ -1612,7 +1549,6 @@ it("offers the vault properties in the Filter popover of an Items view, in brack
   const kind = status!.querySelector(
     `[aria-label="${m.workbench_match_condition_kind()}"]`,
   )!;
-  // Named as the note's, so it never reads as a database field.
   expect(kind.textContent).toContain(
     m.query_view_vault_property_label({ name: "reading-status" }),
   );
@@ -1659,7 +1595,6 @@ it("filters by a checkbox vault property as true or false from the Filter popove
   expect(operator!.selectedOptions[0]?.textContent).toBe(
     m.workbench_filter_op_is_true(),
   );
-  // A boolean has no value to type.
   expect(valueInput(done!)).toBeNull();
   await choose(operator!, "is-false");
   await settle();
@@ -1726,9 +1661,7 @@ ${FILE}`),
     )
   ).map((option) => option.label);
   expect(kinds).toContain("Highlight colour");
-  // The one "Color" left is `color`, the raw value, a field of its own.
   expect(kinds.filter((label) => label === "Color")).toHaveLength(1);
-  // A field without a Display Name keeps the name of its condition.
   expect(kinds).toContain("Item title");
 });
 
@@ -1758,7 +1691,6 @@ it("offers the Tags and Collections of the Libraries the view reads", async () =
   const { view, el, settle } = await mount([result([row("ANNOTBBB")])]);
   await act(() => view.setText(FILE));
   await settle();
-  // The popover reads the values while it is open.
   await openPopover(el, "filter");
   await waitFor(() =>
     expect(view.registry.get(filterValuesAtom)).toMatchObject({
@@ -1843,7 +1775,6 @@ it("saves a new order and a new limit to the file, and runs the view again with 
   expect(run.mock.calls.at(-1)![0]).toMatchObject({ limit: null });
 });
 
-/** The rows a List or Cards layout shows, as their Indexed Keys. */
 function shownRows(el: HTMLElement): (string | null)[] {
   return [...el.querySelectorAll("[data-query-row]")].map((node) =>
     node.getAttribute("data-query-row"),
@@ -1858,8 +1789,6 @@ function item(key: string, title: string, year: string): QueryViewRow {
 }
 
 it("shows only the rows the host keeps after the query, cut to the view's limit, and counts them, reading the fields of those rows alone", async () => {
-  // The host answers a condition the query cannot: here, which Items have a
-  // note in the vault.
   const kept = new Set(["ITEMAAAA", "ITEMCCCC", "ITEMDDDD"]);
   let pass: { key: string; keeps: (indexedKey: string) => boolean } | null = {
     key: "noted",
@@ -1877,8 +1806,6 @@ it("shows only the rows the host keeps after the query, cut to the view's limit,
     QueryViewRow,
     QueryViewRow,
   ];
-  // Each condition reads every match by key, then the rows it keeps; the
-  // engine gives those back in an order of its own.
   const { view, el, run, settle } = await mount(
     [result(rows), result([c, a]), result(rows), result([d, a]), result(rows)],
     undefined,
@@ -1895,8 +1822,6 @@ it("shows only the rows the host keeps after the query, cut to the view's limit,
 `),
   );
   await settle();
-  // The query reads the key of every match, so the limit cuts the kept rows
-  // alone; only the rows on screen are read with their fields.
   const [keys, page] = run.mock.calls.map(([request]) => request);
   expect(keys).toMatchObject({ fields: [], limit: null });
   expect(page!.fields).toEqual(expect.arrayContaining(["title"]));
@@ -1909,7 +1834,6 @@ it("shows only the rows the host keeps after the query, cut to the view's limit,
     "2 of 3 results",
   );
 
-  // Another condition of the host runs again, with the same text.
   kept.delete("ITEMCCCC");
   pass = { key: "noted-2", keeps: (indexedKey) => kept.has(indexedKey) };
   await act(() => view.contextChanged());
@@ -1918,7 +1842,6 @@ it("shows only the rows the host keeps after the query, cut to the view's limit,
   expect(shownRows(el)).toEqual(["ITEMAAAA", "ITEMDDDD"]);
   expect(el.querySelector("[data-query-count]")?.textContent).toBe("2 results");
 
-  // Without a condition, the query takes the view's limit again.
   pass = null;
   await act(() => view.contextChanged());
   await settle();
@@ -2017,7 +1940,6 @@ it("switches an Annotations view to Cards and to List, and keeps its rows, filte
   expect(shownRows(el)).toEqual(["ANNOTAAA", "ANNOTAAA", "ANNOTBBB"]);
   expect(headings(el)).toEqual(["figure", "method"]);
 
-  // Each switch saves the layout alone; the query stays as it was.
   const text = saved.at(-1)!;
   expect(text).toContain("type: list");
   expect(text).toContain('filters: colorName == "yellow"');
@@ -2027,7 +1949,6 @@ it("switches an Annotations view to Cards and to List, and keeps its rows, filte
     new Set(run.mock.calls.map(([request]) => JSON.stringify(request))),
   ).toHaveLength(1);
 
-  // Back on the Annotations layout, the same rows are cards again.
   await act(() => view.document.setViewLayout(0, "annotations"));
   await settle();
   expect(cards(el)).toEqual(["ANNOTAAA", "ANNOTAAA", "ANNOTBBB"]);
@@ -2099,7 +2020,6 @@ function itemRow(
     indexedKey: key,
     values: {
       title,
-      // A date as ZotLit Query gives it; the Table shows it as Zotero does.
       date: {
         kind: "year",
         value: null,
@@ -2115,8 +2035,6 @@ function itemRow(
   };
 }
 
-/** The Table's rows as text: each cell of each row, the header first. */
-/** The text of the Table as it shows: a `hidden` name of a cell is not. */
 function tableText(el: HTMLElement): string[][] {
   const shown = (node: Node): string =>
     node.instanceOf(HTMLElement) && node.hidden
@@ -2124,7 +2042,6 @@ function tableText(el: HTMLElement): string[][] {
       : node.nodeType === Node.TEXT_NODE
         ? (node.textContent ?? "")
         : [...node.childNodes].map(shown).join("");
-  // The empty filler column after the last holds no text.
   return [...el.querySelectorAll("[data-query-table] tr")].map((tr) =>
     [
       ...tr.querySelectorAll(
@@ -2140,7 +2057,6 @@ it("shows no property in the Table, Cards, List, copy and the run of a view with
       itemRow("ITEMAAAA", "Ten simple rules"),
       itemRow("ITEMBBBB", "Deep learning"),
     ]);
-  // Cards read less than the Table, so the switch runs again.
   const { view, el, run, settle } = await mount([rows(), rows()]);
   await act(() =>
     view.setText(`views:
@@ -2152,20 +2068,15 @@ it("shows no property in the Table, Cards, List, copy and the run of a view with
   );
   await settle();
 
-  // The run asks for what the Table itself reads, and no property.
   const [request] = run.mock.calls[0]!;
   expect(request.fields).not.toContain("title");
   expect(request.fields).not.toContain("itemType");
-  // The Table hides the Literature Note Property too, as `order` names it
-  // not, and keeps one row for each Item.
   const [header, ...body] = tableText(el);
   expect(header).toEqual([""]);
   expect(body).toHaveLength(2);
   expect(el.querySelector("[data-query-column]")).toBeNull();
-  // Copy and CSV write no column.
   expect(view.table()).toEqual({ header: [], body: [] });
 
-  // Cards and List keep one empty record for each Item.
   await act(() => view.document.setViewLayout(0, "cards"));
   await settle();
   expect(shownRows(el)).toEqual(["ITEMAAAA", "ITEMBBBB"]);
@@ -2199,7 +2110,6 @@ it("shows a column at the width the view keeps, and a double click on its edge s
   );
   expect(header("date").dataset.sized).toBeUndefined();
 
-  // A double click on the edge of a column at its auto width saves nothing.
   const edge = (path: string) =>
     header(path).querySelector("[data-query-column-resizer]")!;
   await act(() => {
@@ -2216,7 +2126,6 @@ it("shows a column at the width the view keeps, and a double click on its edge s
   expect(header("title").dataset.sized).toBeUndefined();
 });
 
-/** The entries of the header menu that `type` opens on the column of `path`, by title; none where it opens no menu. */
 function headerMenu(
   el: HTMLElement,
   path: string,
@@ -2235,7 +2144,6 @@ function headerMenu(
 }
 
 it("opens the header menu on a right click only, with what has nothing to do disabled, not hidden", async () => {
-  // A move runs the query again, for the new order of the fields.
   const { view, el, settle, save, saved } = await mount([
     result([itemRow("ITEMAAAA", "Ten simple rules")]),
     result([itemRow("ITEMAAAA", "Ten simple rules")]),
@@ -2249,11 +2157,8 @@ it("opens the header menu on a right click only, with what has nothing to do dis
   const open = (path: string, type?: "click" | "contextmenu") =>
     headerMenu(el, path, type);
 
-  // A click sorts by the column, and opens no menu.
   expect(open("vault.literatureNote", "click")).toEqual({});
 
-  // The first column at its auto width: it can only move right. Its menu
-  // is the Bases column menu, with the moves a drag makes spelled out.
   const first = open("title");
   expect(Object.keys(first)).toEqual([
     "Hide column",
@@ -2270,13 +2175,10 @@ it("opens the header menu on a right click only, with what has nothing to do dis
   first["Reset column width"]!.click();
   expect(save).not.toHaveBeenCalled();
 
-  // ZotLit Query sorts by no Literature Note.
   const note = open("vault.literatureNote");
   expect(note["Sort A → Z"]!.disabled).toBe(true);
   expect(note["Sort Z → A"]!.disabled).toBe(true);
 
-  // The last column, the Literature Note Property, resized: it can move
-  // left and reset.
   const last = open("vault.literatureNote");
   expect(last["Move left"]!.disabled).toBe(false);
   expect(last["Move right"]!.disabled).toBe(true);
@@ -2330,41 +2232,34 @@ it("steps a column's sort with a click on its header, as Bases does, and marks t
       );
       await view.flush();
     });
-    // A click opens no menu.
     expect(Menu.instances).toHaveLength(0);
     await settle();
   };
   expect(mark("date")).toBe("DESC");
   expect(mark("title")).toBeNull();
 
-  // None, then A → Z, first among the sorts.
   await click("title");
   expect(saved.at(-1)).toContain(
     "    sort:\n      - property: title\n        direction: ASC\n      - property: date\n        direction: DESC\n",
   );
   expect(mark("title")).toBe("ASC");
-  // Every sort column wears its mark; the first sort alone names its order.
   expect(mark("date")).toBe("DESC");
   expect(header("title").getAttribute("aria-sort")).toBe("ascending");
   expect(header("date").hasAttribute("aria-sort")).toBe(false);
-  // A → Z, then Z → A.
   await click("title");
   expect(saved.at(-1)).toContain(
     "      - property: title\n        direction: DESC\n      - property: date\n",
   );
   expect(mark("title")).toBe("DESC");
-  // Z → A, then no sort by the column; the others stay.
   await click("title");
   expect(saved.at(-1)).not.toContain("property: title");
   expect(saved.at(-1)).toContain("      - property: date\n");
   expect(mark("title")).toBeNull();
 
-  // ZotLit Query sorts by no Literature Note: its click does nothing.
   const writes = saved.length;
   await click("vault.literatureNote");
   expect(saved).toHaveLength(writes);
 
-  // A click on a column's edge, where it resizes, sorts nothing.
   await act(async () => {
     header("title")
       .querySelector("[data-query-column-resizer]")!
@@ -2377,7 +2272,6 @@ it("steps a column's sort with a click on its header, as Bases does, and marks t
 });
 
 it("opens the header menu on a tap on mobile, where a column moves by its menu", async () => {
-  // `mount` puts the platform back after the case.
   setMockPlatform({ isMobile: true });
   const { view, el, settle, save } = await mount([
     result([itemRow("ITEMAAAA", "Ten simple rules")]),
@@ -2387,7 +2281,6 @@ it("opens the header menu on a tap on mobile, where a column moves by its menu",
   expect(Object.keys(headerMenu(el, "title", "click"))).toContain(
     "Hide column",
   );
-  // The tap sorts nothing, as in Bases.
   await act(() => view.flush());
   expect(save).not.toHaveBeenCalled();
 });
@@ -2408,7 +2301,6 @@ it("sorts the view by a column first, keeping its other sorts, and clears that s
   );
   await settle();
 
-  // Each sort entry is checked by the direction the column sorts in now.
   const before = headerMenu(el, "title");
   expect(before["Sort A → Z"]!.checked).toBe(true);
   expect(before["Sort Z → A"]!.checked).toBe(false);
@@ -2433,7 +2325,6 @@ it("sorts the view by a column first, keeping its other sorts, and clears that s
   expect(saved.at(-1)).not.toContain("property: date");
   await settle();
 
-  // A column the view does not sort by offers no Clear sort.
   expect(Object.keys(headerMenu(el, "date"))).not.toContain("Clear sort");
 });
 
@@ -2456,7 +2347,6 @@ it("hides a column and groups the view by it from the header menu", async () => 
   );
   await settle();
 
-  // Only a property the dataset groups by offers the grouping.
   expect(Object.keys(headerMenu(el, "title"))).not.toContain(
     "Group by this property",
   );
@@ -2469,7 +2359,6 @@ it("hides a column and groups the view by it from the header menu", async () => 
   );
   await settle();
 
-  // Grouped by it already, the entry is checked and leaves the grouping be.
   const grouped = headerMenu(el, "itemType")["Group by this property"]!;
   expect(grouped.checked).toBe(true);
   const writes = saved.length;
@@ -2502,7 +2391,6 @@ it("opens a column's Edit property page at its header, with no way back, which r
   const page = () =>
     popup()?.querySelector<HTMLElement>('[data-query-property-page="title"]');
   expect(page()).toBeTruthy();
-  // A page with no list behind it offers no way back.
   expect(popup()!.querySelector("[data-chooser-page-back]")).toBeNull();
 
   const field = page()!.querySelector<HTMLInputElement>(
@@ -2511,7 +2399,6 @@ it("opens a column's Edit property page at its header, with no way back, which r
   await act(async () => {
     field.value = "Paper";
     field.dispatchEvent(new Event("input", { bubbles: true }));
-    // React's `onBlur` listens for `focusout`.
     field.dispatchEvent(new FocusEvent("focusout", { bubbles: true }));
     await view.flush();
   });
@@ -2538,15 +2425,12 @@ it("closes a column's page as a column menu opens, and as its column leaves the 
     expect(page()?.getAttribute("data-query-property-page")).toBe(path);
   };
 
-  // A keyboard's context menu presses nothing outside the page, so the menu
-  // closes it: a second column's page never stacks over the first.
   await edit("title");
   headerMenu(el, "date");
   await act(async () => {});
   expect(page()).toBeNull();
   await edit("date");
 
-  // A save from elsewhere hides the column the page hangs on.
   await act(() => view.setText(TABLE_FILE.replace("      - date\n", "")));
   await settle();
   expect(el.querySelector('th[data-query-column="date"]')).toBeNull();
@@ -2638,7 +2522,6 @@ it("shows the Literature Note Property where the view's order places it, at the 
   expect(header.querySelector("[data-query-column-resizer]")).not.toBeNull();
   expect(header.style.getPropertyValue("--zt-column-width")).toBe("180px");
   expect(run.mock.calls[0]![0].fields).not.toContain("vault.literatureNote");
-  // Copy and CSV write the values of the rows, which hold no note.
   expect(view.table().header).toEqual(["Title"]);
 });
 
@@ -2674,8 +2557,6 @@ views:
     [],
   );
   expect(request.sort).toEqual([{ field: "title", direction: "desc" }]);
-  // The vault conditions reach ZotLit Query only as the Items they keep:
-  // here none, since no Item has a Literature Note.
   expect(request.filter).toBe(
     '(itemType == "book")\n&& ([].contains(indexedKey))',
   );
@@ -2719,7 +2600,6 @@ it("expands an Item row into its Attachments, and an Attachment row into its Ann
   await act(() => view.setText(TABLE_FILE));
   await settle();
 
-  // Only an Item with Attachments can expand.
   expect(
     [...el.querySelectorAll("[data-query-expand]")].map((node) =>
       node.getAttribute("data-query-expand"),
@@ -2754,7 +2634,6 @@ it("expands an Item row into its Attachments, and an Attachment row into its Ann
     ["", "Deep learning", "2014", "Create"],
   ]);
 
-  // Collapsing the Item hides every row under it.
   await act(async () => {
     el.querySelector<HTMLElement>(
       '[data-query-expand="item:ITEMAAAA"]',
@@ -2888,7 +2767,6 @@ it("names and searches the properties of Items in Cards and List as the Table do
   );
   await settle();
 
-  // A card names each property by its label and shows its value as text.
   const card = el.querySelector("[data-query-row]")!;
   expect(
     [...card.children].slice(1).map((part) => ({
@@ -2908,7 +2786,6 @@ it("names and searches the properties of Items in Cards and List as the Table do
       input.dispatchEvent(new Event("input", { bubbles: true }));
     });
   };
-  // The search finds the text on screen, not the stored value.
   await search("journal article");
   expect(shownRows(el)).toEqual(["ITEMAAAA"]);
   await search("journalarticle");
@@ -2929,7 +2806,6 @@ it("shows an empty sort row while the view sorts by nothing, as Bases does, and 
   const editor = await openPopover(el, "sort");
   const empty = () => editor.querySelector<HTMLElement>("[data-sort-empty]");
   const trigger = empty()!.querySelector<HTMLElement>("[data-sort-property]")!;
-  // The row names no property: its select shows the placeholder.
   expect(trigger.textContent).toBe("Property");
   expect(trigger.querySelector("[data-placeholder]")).not.toBeNull();
   expect(editor.querySelectorAll("[data-sort-row]")).toHaveLength(0);
@@ -2988,11 +2864,6 @@ it("offers Item fields to sort and group a view of Items by", async () => {
   expect(document.body.textContent).not.toContain("Attachment");
 });
 
-/**
- * Representative groupings from each dataset, with each row's values and
- * heading. A List that shows none of the grouping's fields still gathers
- * its rows by them.
- */
 const GROUPINGS: {
   dataset: QueryFileDataset;
   path: string;
@@ -3126,7 +2997,6 @@ it("switches a view of Annotations to Items, saves it, and draws the Items in th
   expect(saved.at(-1)).toContain("from: items");
   expect(run.mock.calls.at(-1)![0]).toMatchObject({ from: "items" });
   expect(cards(el)).toEqual([]);
-  // A view with no visible properties shows the default fields of Items.
   const [header, first] = tableText(el);
   expect(header).toContain("Title");
   expect(first).toContain("Journal Article");
@@ -3157,7 +3027,6 @@ it("keeps what the new dataset lacks in the file, says the view does not use it,
 
   await act(() => view.document.setViewDataset(0, "items"));
   await settle();
-  // The file keeps the sort and the grouping; the Items run without them.
   expect(saved.at(-1)).toContain("property: pageIndex");
   expect(saved.at(-1)).toContain("property: item.indexedKey");
   const items = run.mock.calls.at(-1)![0];
@@ -3254,10 +3123,8 @@ it("runs a view with every Formula of the file, and shows the values of those it
   ]);
 });
 
-/** The Diagnostic of a Formula that ZotLit Query left out. */
 type Diagnostic = FormulaDiagnostics[string];
 
-/** `outcome` with the Formulas that ZotLit Query left out. */
 function withFaults(
   outcome: QueryViewOutcome,
   faults: Record<string, Diagnostic>,
@@ -3269,7 +3136,6 @@ function withFaults(
   return outcome;
 }
 
-/** The Diagnostic of a Formula that reads the wrong Formula `name`. */
 function readsFault(reader: string, name: string, root: string): Diagnostic {
   return {
     code: "reads-faulted-formula",
@@ -3323,8 +3189,6 @@ it("marks a wrong Formula at its column from the one run, and shows the other co
       },
     },
   });
-  // The formula page underlines the Fault at its place in the text the run
-  // planned.
   expect(formulaIssuesOf(view.state.getState())).toEqual({
     short: {
       message: "In formula.short: nope is not a method of string. Use slice.",
@@ -3341,7 +3205,6 @@ it("marks a wrong Formula at its column from the one run, and shows the other co
       ?.getAttribute("data-query-formula-issue"),
   ).toBe("In formula.short: nope is not a method of string. Use slice.");
 
-  // The same text runs as it did; a fixed Formula runs again.
   await act(() => view.setText(FORMULA_FILE));
   await settle();
   expect(run).toHaveBeenCalledTimes(1);
@@ -3485,7 +3348,6 @@ it("keeps the Formula marks of the cards on screen when it keeps back a run", as
   const { view, run, repository, setList, settle } = await mount(
     [
       withFaults(result([row("ANNOTBBB")]), { short: fault("First run.") }),
-      // Zotero's database does not hold the new Annotation yet.
       withFaults(result([row("ANNOTBBB")]), { short: fault("Second run.") }),
     ],
     undefined,
@@ -3811,7 +3673,6 @@ it("shows each Error Value element of a list cell as a warning icon in the Table
       values: { title: "Ten simple rules", "formula.parts": parts },
     },
   ]);
-  // The List and the Cards ask for other fields than the Table.
   const { view, el, settle } = await mount([shown, shown, shown]);
   await act(() =>
     view.setText(`formulas:
@@ -3846,7 +3707,6 @@ views:
     expect(marks(row)).toEqual(expected);
     expect(row.textContent).not.toContain("Error");
   }
-  // Copy and CSV write each Error Value as its message.
   expect(view.table().body).toEqual([
     [
       "Ten simple rules",
@@ -3882,7 +3742,6 @@ it("ticks the default properties of a view without order, and a tick writes them
     ["itemType", undefined],
     ["title", undefined],
     ["dateModified", undefined],
-    // The Table shows the Literature Note Property after the default fields.
     ["vault.literatureNote", undefined],
     ["abstractNote", ""],
   ]);
@@ -3913,8 +3772,6 @@ it("offers the Literature Note Property in the Properties popover of a Table tha
   await act(() => {
     el.querySelector<HTMLElement>("[data-query-properties]")!.click();
   });
-  // Its path has a dot, as the fields of a parent record do, yet it shows
-  // without a search.
   const row = document.querySelector<HTMLElement>(
     '[data-query-property="vault.literatureNote"]',
   );
@@ -3959,7 +3816,6 @@ it("keeps the row of a nested property in the Properties popover when a tick hid
   await settle();
   expect(written.at(-1)).toContain("order:\n      - type\n");
   expect(written.at(-1)).not.toContain("item.title");
-  // A tick leaves its row in place, so a second tick shows it again.
   expect(row()?.dataset.hidden).toBe("");
   expect(listed()).toEqual(before);
 });
@@ -3991,7 +3847,6 @@ it("keeps the row and the page of a typed path in the Properties popover when it
   await settle();
   expect(written.at(-1)).not.toContain("myField");
   expect(row()?.dataset.hidden).toBe("");
-  // Its page, opened from the row, stays open as it shows and hides the path.
   await act(() =>
     document
       .querySelector<HTMLElement>('[data-query-property-more="myField"]')!
@@ -3999,7 +3854,6 @@ it("keeps the row and the page of a typed path in the Properties popover when it
   );
   const page = () =>
     document.querySelector('[data-query-property-page="myField"]');
-  // The page menu opens with its button and shuts on a pick.
   const pick = async (hook: string) => {
     await act(() =>
       document.querySelector<HTMLElement>("[data-chooser-page-menu]")!.click(),
@@ -4071,7 +3925,6 @@ function paperRow(
   };
 }
 
-/** Each Papers row on screen, as its lines and end marks read. */
 function papers(el: HTMLElement) {
   return [...el.querySelectorAll<HTMLElement>("[data-query-papers-row]")].map(
     (node) => ({
@@ -4171,7 +4024,6 @@ it("expands a Papers row into its Attachments, Child Notes and Literature Note, 
       (node) => [node.dataset.queryPapersChild, node.textContent?.trim()],
     );
 
-  // Only an Item with something under it can expand.
   expect(
     [...el.querySelectorAll("[data-query-expand]")].map((node) =>
       node.getAttribute("data-query-expand"),
@@ -4220,7 +4072,6 @@ it("expands a Papers row into its Attachments, Child Notes and Literature Note, 
     },
     false,
   );
-  // A Child Note lives in Zotero, which shows it from its link.
   await act(() => child("note").click());
   expect(openWindow).toHaveBeenCalledWith(
     "zotero://select/library/items/NXTEAAAA",
@@ -4241,7 +4092,6 @@ describe("vault properties", () => {
       - title
       - vault.status
 `;
-  /** The vault cell of each row: its state and its text. */
   const vaultCells = (el: HTMLElement) =>
     [...el.querySelectorAll("[data-query-vault]")].map((cell) => [
       cell.getAttribute("data-query-vault"),
@@ -4277,7 +4127,6 @@ describe("vault properties", () => {
       ["empty", ""],
       ["no-note", m.query_view_vault_no_note()],
     ]);
-    // ZotLit Query is not asked for the vault property.
     expect(run.mock.calls[0]![0].fields).not.toContain("vault.status");
   });
 
@@ -4607,7 +4456,6 @@ ${filters}
   });
 
   describe("edited in place in the Table", () => {
-    /** One row of Item ITEMAAAA, whose note `A.md` has `status: unread`. */
     async function editable(options: Parameters<typeof mount>[2] = {}) {
       const mounted = await mount(
         [
@@ -4747,7 +4595,6 @@ ${filters}
         cell("ITEMAAAA").querySelector("[data-query-vault-managed]"),
       ).toBeNull();
 
-      // The note's stamp now names a Profile that replaces the key.
       managed["A.md"] = ["status"];
       await act(() => literatureNotes.emit("frontmatter-changed"));
 
@@ -4764,8 +4611,6 @@ ${filters}
 
       expect(target.getAttribute("role")).toBe("button");
       expect(target.tabIndex).toBe(0);
-      // Named without an `aria-label`, which Obsidian would show as a
-      // tooltip over the next row.
       const name = (el: Element | null | undefined) =>
         el?.ownerDocument.getElementById(
           el.getAttribute("aria-labelledby") ?? "",
@@ -4865,7 +4710,6 @@ ${filters}
   });
 
   describe("edited in place by type", () => {
-    /** One row of Item ITEMAAAA, whose note `A.md` holds `frontmatter`. */
     async function typed(
       order: string[],
       frontmatter: Record<string, unknown>,
@@ -4874,11 +4718,8 @@ ${filters}
         values = {},
         managed = [],
       }: {
-        /** The type Obsidian assigns each property, by name. */
         types?: Record<string, VaultPropertyType>;
-        /** The values the vault holds for each property, by name. */
         values?: Record<string, string[]>;
-        /** The properties the note's Profile replaces. */
         managed?: string[];
       } = {},
     ) {
@@ -4994,7 +4835,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
       const { cell, input, type, press, literatureNotes } = await typed(
         ["vault.pages"],
         { pages: 12 },
-        // A cleared value shows no type, so the number type is assigned.
         { types: { pages: "number" } },
       );
 
@@ -5055,7 +4895,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
       expect(shown?.value).toBe("2024-05-01T10:30");
       await act(() => cell("met").click());
       expect(input()?.type).toBe("datetime-local");
-      // The native field leaves out seconds that are none.
       expect(input()?.value).toBe("2024-05-01T10:30");
       await press("Enter");
       expect(literatureNotes.write).not.toHaveBeenCalled();
@@ -5149,7 +4988,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
     });
 
     it("tells a truncated chip by the window it stands in, after the view moves to another", async () => {
-      // Each element's listener for the view moving to another window.
       const migrated = new Map<HTMLElement, (win: Window) => void>();
       // oxlint-disable-next-line typescript/unbound-method -- saved to restore after the test
       const original = HTMLElement.prototype.onWindowMigrated;
@@ -5171,7 +5009,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
         "[data-query-vault-chip]",
       )!;
       const label = chip.firstElementChild as HTMLElement;
-      /** The observers of the other window, and what each observes. */
       const observers: { listener: () => void; observed: Element[] }[] = [];
       const other = {
         ResizeObserver: class {
@@ -5238,7 +5075,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
       );
       expect(document.activeElement).toBe(cell("note"));
 
-      // Shift+Tab goes back, and Escape drops the edit and stays.
       await act(() => cell("note").click());
       await press("Tab", { shiftKey: true });
       expect(document.activeElement).toBe(cell("status"));
@@ -5290,8 +5126,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
       await act(() => cell("authors").click());
       await type("Roe");
       await press("Enter");
-      // Shift+Tab moved focus to a chip's remove button; a click outside
-      // takes it out of the editor.
       const remove = cell("authors").querySelector<HTMLElement>(
         '[data-query-vault-chip="Roe"] [data-query-vault-chip-remove]',
       )!;
@@ -5318,7 +5152,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
         undefined,
         {
           notes: { ITEMAAAA: "A.md", ITEMBBBB: "B.md" },
-          // The property's first value is a checkbox.
           frontmatter: { "B.md": { flag: true }, "A.md": { flag: "maybe" } },
         },
       );
@@ -5372,8 +5205,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
         ["vault.status", "vault.authors"],
         { status: "unread", authors: ["Doe, J"] },
       );
-      // Enter that takes a candidate, and Escape that drops one; Chromium
-      // reports either as key 229 too.
       const composing = [{ isComposing: true }, { keyCode: 229 }] as const;
 
       await act(() => cell("status").click());
@@ -5399,7 +5230,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
       ).toBeNull();
       expect(input()).not.toBeNull();
 
-      // An item that edits in place, from its menu.
       await type("");
       await press("Backspace");
       Menu.instances.length = 0;
@@ -5434,35 +5264,26 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
       const { cell, input, app, el, scope } = await typed(["vault.authors"], {
         authors: ["Doe, J", "Roe"],
       });
-      // The view's keys go on the keymap as a note holds the view: while
-      // focus stands inside it, and not from a text field.
       using _held = new QueryCardFocus(app as unknown as App).hold(
         el,
         scope,
         {} as HistorySurface,
       );
       await act(() => cell("authors").click());
-      // The edit opens in the field, so a Scope of the editor's own alone
-      // stands on the keymap.
       expect(app.scopes).toHaveLength(1);
       const editor = app.scopes[0];
 
-      // Focus on a pill pushes the view's Scope as the event comes down,
-      // and the editor's goes back on top of it.
       const pill = cell("authors").querySelector<HTMLElement>(
         '[data-query-vault-chip="Roe"]',
       )!;
       await act(() => pill.focus());
       expect(app.scopes).toEqual([scope, editor]);
 
-      // The editor's Scope takes no key, so Escape reaches the pill rather
-      // than the view's Escape, and the pill gives focus back to the field.
       await act(() => {
         pressTop(app, { key: "Escape" }, pill);
       });
       expect(document.activeElement).toBe(input());
 
-      // Focus that leaves the editor gives the Scope back.
       await act(() => input()!.blur());
       expect(app.scopes).not.toContain(editor);
     });
@@ -5477,8 +5298,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
           '[data-query-vault-chip="Roe"]',
         );
       await act(() => pill()!.focus());
-      // Menus push their Scope on this keymap as they load, a timer after
-      // they show, as Obsidian's push theirs on its own.
       Menu.keymap = (app as unknown as App)
         .keymap as unknown as typeof Menu.keymap;
       onTestFinished(() => {
@@ -5492,25 +5311,20 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
         () => new Promise((resolve) => pill()!.win.setTimeout(resolve, 0)),
       );
       expect(Menu.instances).toHaveLength(1);
-      // The Scope that takes the menu's Escape stands above the menu's own.
       expect(app.scopes.at(-2)).toBe(Menu.instances[0]!.scope);
       const menu = app.scopes.at(-1);
 
-      // A key the menu leaves alone stops at it: Delete removes no item the
-      // menu still offers to remove.
       await act(() => {
         pressTop(app, { key: "Delete" }, pill()!);
       });
       expect(pill()).not.toBeNull();
 
-      // Escape hides the menu alone, and focus stays on the pill.
       await act(() => {
         pressTop(app, { key: "Escape" }, pill()!);
       });
       expect(app.scopes).not.toContain(menu);
       expect(document.activeElement).toBe(pill());
 
-      // The next Escape is the pill's, which gives focus back to the field.
       await act(() => {
         pressTop(app, { key: "Escape" }, pill()!);
       });
@@ -5556,7 +5370,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
     });
 
     describe("a chip's menu", () => {
-      /** The list `authors`, and the gestures on its chips. */
       async function chips(authors: string[]) {
         const mounted = await typed(["vault.authors"], { authors });
         const chip = (item: string) =>
@@ -5569,7 +5382,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
               .cell("authors")
               .querySelectorAll("[data-query-vault-chip]"),
           ].map((el) => el.getAttribute("data-query-vault-chip"));
-        /** Right-click `item`, or press the menu key on it, and read the menu. */
         const menuOn = (item: string, init: MouseEventInit = {}) => {
           Menu.instances.length = 0;
           void act(() => {
@@ -5623,7 +5435,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
           .spyOn(navigator.clipboard, "writeText")
           .mockResolvedValue();
 
-        // At rest, as on a Bases list cell.
         const atRest = menuOn("Roe", { clientX: 10, clientY: 10 })!;
         expect(
           atRest.items.map((item) => [item.title, item.icon] as const),
@@ -5636,8 +5447,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
         atRest.items.find((item) => item.title === "Copy")!.click();
         expect(clipboard).toHaveBeenLastCalledWith("Roe");
 
-        // In the editor, the menu key on a focused chip opens it under the
-        // chip, as no pointer says where.
         await act(() => cell("authors").click());
         chip("Roe").focus();
         const byKey = menuOn("Roe")!;
@@ -5665,7 +5474,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
               }),
             );
           });
-          // The first: a submenu is a menu of its own.
           return Menu.instances[0];
         };
 
@@ -5688,7 +5496,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
           edit("authors", ["Doe, J"]),
         );
 
-        // A list of one opens the item's own menu.
         expect(
           menuKey("ContextMenu")!.items.map((entry) => entry.title),
         ).toEqual(["Edit", "Copy", "Remove from list"]);
@@ -5705,7 +5512,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
           .mockResolvedValue();
         const el = cell("authors");
 
-        // A stop for the keys, which edits nothing.
         expect(el.tabIndex).toBe(0);
         expect(el.getAttribute("role")).toBeNull();
         Menu.instances.length = 0;
@@ -5773,7 +5579,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
         await choose("Roe", "Edit");
         expect(chipInput()?.value).toBe("Roe");
         expect(document.activeElement).toBe(chipInput());
-        // The chip keeps its place in the list while it edits.
         expect(shown()).toEqual(["Doe, J", "Roe", "Poe"]);
         await typeChip("Roe, R");
         await pressChip("Enter");
@@ -5831,7 +5636,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
         ]);
 
         await act(() => cell("authors").click());
-        // The second A: its menu opens on the pill in its place.
         Menu.instances.length = 0;
         await act(() => {
           cell("authors")
@@ -5885,7 +5689,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
     });
 
     describe("with the vault's values suggested", () => {
-      /** The suggestions on the page, a highlighted one marked with `*`. */
       const suggested = () => {
         const popover = document.querySelector(".suggestion-container");
         if (!popover) return null;
@@ -5967,7 +5770,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
         await press("Enter", { shiftKey: true });
         expect(chips()).toEqual(["zettelkasten", "citations", "hyp"]);
 
-        // The first Escape closes the suggestions, the second ends the edit.
         await press("Escape");
         expect(suggested()).toBeNull();
         expect(literatureNotes.write).not.toHaveBeenCalled();
@@ -5996,7 +5798,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
 
         await act(() => cell("projects").click());
         expect(suggested()).not.toContain("zettelkasten");
-        // The first item, by its x.
         await act(() =>
           pill("zettelkasten")
             .querySelector<HTMLElement>("[data-query-vault-chip-remove]")!
@@ -6004,8 +5805,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
         );
         expect(suggested()).toContain("zettelkasten");
 
-        // The first item again, from the keyboard: focus goes back to the
-        // field, whose suggestions hold it.
         await press("Backspace");
         await pressOn(pill("citations"), "ArrowUp");
         expect(document.activeElement).toBe(pill("memex"));
@@ -6020,7 +5819,6 @@ ${order.map((path) => `      - ${path}\n`).join("")}`),
 
         await act(() => cell("projects").click());
         expect(suggested()).toBeNull();
-        // Enter on the empty field ends the edit, taking no value.
         await press("Enter");
         expect(literatureNotes.write).not.toHaveBeenCalled();
 
@@ -6240,7 +6038,6 @@ ${sort}`;
       "C.md": { status: "done" },
     },
   };
-  /** The titles of the rows on screen, in order. */
   const titles = (view: QueryView) =>
     (view.state.getState().results?.rows ?? []).map(
       (row) => row.values["title"],
@@ -6260,7 +6057,6 @@ ${sort}`;
     const request = run.mock.calls[0]![0];
     expect(request.limit).toBe(5000);
     expect(request.sort).toEqual([{ field: "dateAdded", direction: "desc" }]);
-    // The engine sort field comes back, though no column shows it.
     expect(request.fields).toContain("dateAdded");
     expect(request.fields).not.toContain("vault.status");
     expect(titles(view)).toEqual(["Attention", "Deep learning"]);
@@ -6496,7 +6292,6 @@ it("shows a notice when a row's Literature Note cannot be created", async () => 
   ]);
   await act(() => view.setText(TABLE_FILE));
   await settle();
-  // The fake's failure type is never, so the failure arrives as a defect.
   literatureNotes.create.mockImplementationOnce(() =>
     Effect.die(new Error("Zotero is not running")),
   );

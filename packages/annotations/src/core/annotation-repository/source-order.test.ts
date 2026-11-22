@@ -1,4 +1,3 @@
-// The order of a Local API session's events against the failed read that causes them, through the real layers.
 import { expect, it } from "vitest";
 
 import {
@@ -22,9 +21,6 @@ it("hands a failed list read back only after the repository handled the source c
   using _hold = repository.hold(["RGRPDF24"]);
   await repository.read("RGRPDF24");
 
-  // The session stands down on this failure and announces `changed`. The
-  // repository handles that by announcing the Attachments it holds, which
-  // nothing else in this case does.
   let announced = false;
   stack.defer(
     repository.listen("annotations-changed", (attachmentKey) => {

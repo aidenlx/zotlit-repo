@@ -1,7 +1,3 @@
-// Which pane repairs a problem: one transition of the view state that both
-// hosts apply when the reader opens a problem from the Problems area, a result,
-// or a row. It reads the controller for the slices the document has now.
-
 import type {
   WorkbenchDocumentController,
   WorkbenchProblem,
@@ -16,13 +12,11 @@ import { isProfileProblem } from "./tabs.ts";
 import { entryPosition } from "#core/document/controller.ts";
 import { currentCallSite } from "#core/render/locate.ts";
 
-/** The document facts the routing reads. */
 export type RoutedDocument = Pick<
   WorkbenchDocumentController,
   "kind" | "sliceRange" | "annotationSection" | "source" | "language"
 >;
 
-/** A problem as a host names the place to open. */
 export type ProblemTarget = Pick<
   WorkbenchProblem,
   "slice" | "range" | "params"
@@ -32,14 +26,8 @@ export type ProblemTarget = Pick<
 
 type Transition = (state: WorkbenchViewState) => WorkbenchViewState;
 
-/** A caret at `from`: the reader goes on typing where the pane opens. */
 const caret = (from: number): SliceReveal => ({ from, to: from });
 
-/**
- * Opens the pane that edits `slice`, reveals `reveal` there, and focuses
- * `field` of the Name and folder form. A reveal is a new object each time,
- * so opening the same place twice reveals it again.
- */
 function openPane(
   document: RoutedDocument,
   {
@@ -51,14 +39,11 @@ function openPane(
     readonly slice: WorkbenchSliceId;
     readonly reveal: SliceReveal | null;
     readonly field?: string | null;
-    /** Whether the Profile tab, not Name and folder, holds `field`. */
     readonly profile?: boolean;
   },
 ): Transition {
   return (state) => {
     const revealed = reveal ? { ...reveal } : null;
-    // A plain document's every problem is in the one editor it opens with,
-    // so its tabs stay as they are.
     if (document.kind !== "profile" || slice === "source")
       return {
         ...state,
@@ -96,7 +81,6 @@ function openPane(
   };
 }
 
-/** The Annotation tab, with the caret at the start of its section. */
 function openAnnotation(document: RoutedDocument): Transition {
   const section = document.annotationSection;
   return openPane(document, {
@@ -105,19 +89,15 @@ function openAnnotation(document: RoutedDocument): Transition {
   });
 }
 
-/** The pane that edits a document problem's slice, on the text it names. */
 export function routeProblem(
   problem: ProblemTarget,
   document: RoutedDocument,
 ): Transition {
-  // A missing section is added from the Annotation tab.
   if (
     problem.code === "missing-annotation-section" ||
     (problem.slice === "annotation" && problem.range === undefined)
   )
     return openAnnotation(document);
-  // The Name and folder form writes its manifest fields through controls, so
-  // a problem it owns focuses the control rather than revealing text.
   if (problem.slice === "details")
     return openPane(document, {
       slice: "details",
@@ -131,10 +111,6 @@ export function routeProblem(
   });
 }
 
-/**
- * The pane whose own region holds `from`, which is where a verified call is
- * repaired. Advanced holds whatever no editing pane covers.
- */
 function sliceHolding(
   document: RoutedDocument,
   from: number,
@@ -147,11 +123,6 @@ function sliceHolding(
   return "advanced";
 }
 
-/**
- * The pane one selected problem is repaired in, whichever kind it is.
- * @returns null when a call the failure names is no longer in the source,
- * which the host tells the reader.
- */
 export function routeDiagnosis(
   diagnosis: WorkbenchDiagnosis,
   document: RoutedDocument,
@@ -159,8 +130,6 @@ export function routeDiagnosis(
   if (diagnosis.kind === "document")
     return routeProblem(diagnosis.problem, document);
   const { part, position, callSite, sourceSite } = diagnosis.diagnostic;
-  // A verified call outranks the part the engine reported the failure under:
-  // a failure inside a called template is repaired where it was called.
   if (callSite || sourceSite) {
     const current = currentCallSite(diagnosis.diagnostic, document);
     if (current === undefined) return null;
@@ -174,8 +143,6 @@ export function routeDiagnosis(
   if (document.kind !== "profile")
     return openPane(document, { slice: "source", reveal: null });
   if (part === "annotation") return openAnnotation(document);
-  // The note name is repaired in its own tab, whether or not the failure
-  // named a place inside it.
   if (part === "filename")
     return openPane(document, {
       slice: "filename",

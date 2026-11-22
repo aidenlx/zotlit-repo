@@ -14,7 +14,6 @@ import {
 
 const EXPECTED = { parentKey: "RGRPDF24", type: "highlight" } as const;
 
-/** One create's answer, as the multi-object route writes it. */
 const MADE = {
   key: "MADE2345",
   version: 42,
@@ -80,7 +79,6 @@ it("refuses an answer whose key is not the one it says it created", async () => 
 });
 
 it("refuses an answer whose key is not a Zotero key", async () => {
-  // `O` is outside Zotero's key alphabet, so this is a key nothing can hold.
   const result = readCreateResult(
     await body(createAccepted({ ...MADE, key: "MOOD2345" })),
     EXPECTED,
@@ -134,7 +132,6 @@ it("names the field when the answer is not the shape this client reads", () => {
   });
 });
 
-/** The session's own database, which every answer below but one names. */
 const SERVER_ID = "A8sf5Zsz8ySw";
 
 async function classify(answer: Response) {
@@ -149,8 +146,6 @@ async function classify(answer: Response) {
 }
 
 it("classifies each 412 by its body: a server, a spent token, a moved object", async () => {
-  // All four bodies are recorded from Paired Zotero 10.0: the two preconditions
-  // word themselves differently, and neither is the other two answers.
   expect(await classify(serverChanged())).toEqual({ kind: "server-changed" });
   expect(await classify(writeTokenUsed())).toEqual({
     kind: "write-token-used",

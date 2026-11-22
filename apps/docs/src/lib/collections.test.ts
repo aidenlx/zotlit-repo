@@ -123,7 +123,6 @@ export const fixtureSchema = v.object({ ...docsSchema.entries, description: v.op
     pagePath,
     "---\ntitle: Updated\n---\n# Changed\n\nSecond body\n",
   );
-  // Vite has registered its watched paths; deliver the fixture change explicitly.
   server.watcher.emit("change", pagePath);
   await expect
     .poll(async () => (await load()).docs.getPage("index.mdx")?.title, {

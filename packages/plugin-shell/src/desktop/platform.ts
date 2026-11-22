@@ -1,6 +1,3 @@
-// The desktop half of the platform services: what reads Node — the Zotero
-// preferences in `prefs.js`, the Local Server's listener, Attachment Import,
-// the Zotero HTTP client over Node `http` and the Node file system.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, FileSystem, Layer, Stream } from "effect";
 
@@ -42,8 +39,6 @@ import { zoteroPageSlots } from "#obsidian/setting-pages/zotero.ts";
 export const desktopPlatform = defineFeature({
   name: "desktop platform",
   services: [
-    // The Node file system, once for the whole graph: the temp sweeps read
-    // it, and so do the Profile dialogs that callers outside the graph open.
     serviceGroup(
       "FileSystem",
       { provides: [FileSystem.FileSystem] },
@@ -127,11 +122,9 @@ export const desktopPlatform = defineFeature({
       "advanced.log-file": (ctx) => [openLogFileItem(ctx)],
     },
     rebuild: [
-      // The Local server rows name the port the listener bound.
       Effect.map(LocalServer, (server) =>
         Stream.drop(server.effectivePortChanges, 1),
       ),
-      // The Approved folders list names each grant.
       Effect.map(AttachmentImport, (attachments) =>
         Stream.drop(attachments.approvedFoldersChanges, 1),
       ),
@@ -145,9 +138,6 @@ export const desktopPlatform = defineFeature({
   onload: ({ bridge, read, stack }) => {
     const localServer = read(LocalServer);
     const zoteroReads = read(ZoteroReads);
-    // The companion's Freshness Signal means the database changed and its
-    // Checkpoint attempt has settled; feed it into the same coalesced refresh
-    // lane as the filesystem watchers.
     stack.defer(
       bridge.subscribe(localServer.dbUpdated, () => {
         bridge.runAndForget(zoteroReads.notifyExternalChange);

@@ -1,34 +1,10 @@
-// Extracted facts from every recorded Obsidian 1.14.4 parity case.
 // Source: quartz-community/remark-obsidian at a80395a3d80f351e67a0afdb63b51a604e010c8e,
 // test/parity/corpus.ts and test/parity/goldens/obsidian.json (compute.links).
-//
-// Each fixture row derives from `cases[id]` in goldens/obsidian.json. The
-// extraction script was not kept, so this is the rule it applied:
-// - `text` is the case's `markdown`, verbatim.
-// - `links` is `obsidian.compute.links` followed by `obsidian.compute.embeds`.
-//   A fact reads `RAW=>TARGET|DISPLAY@L:C-L:C`. `kind` is "wikilink" when RAW is
-//   `[[…]]` or `![[…]]`, else "link". `embedded` is true for a compute.embeds
-//   fact. `target` is the text after `=>` up to the first `|` (wikilink) or the
-//   last `|` (Markdown destination, whose display text is the final field).
-//   Offsets are UTF-16, from line start plus column. Facts sort by start offset.
-// - `record` projects Citation eligibility only. `record.wikilinks` holds each
-//   unembedded, unaliased `[[path]]` fact with a nonempty path and no `#`
-//   subpath, as `{ kind, raw: <trimmed path>, position }`. Every other field is
-//   empty. The `deliberateDifferences` rows carry scanner-specific records: the
-//   comment and bare-URL rows, and probe/autolink/email-escaped, whose record
-//   holds its Pandoc Citation.
-// The fixture keeps only rows whose text holds a character a reference needs:
-// `[`, `@`, `<`, `]]`, `zotero`, `$`, `%%`, a backtick, `---` or `^`. The 836
-// rows without one expect an empty record from any scanner that does not throw.
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 
 import { scanNote } from "./scan-note.ts";
 import type { NoteScanRecord } from "./scan-note.ts";
-
-// External URLs are absent from Obsidian's cache. The annotation conformance
-// table and the hidden-payload cases below cover those links through the full
-// scan record.
 
 const labelPrecedence =
   "Retain Lezer's nested-label and inline-token precedence; matching Obsidian requires replacing the link/reference parser.";
@@ -49,10 +25,6 @@ type LinkFact = readonly [
   to: number,
 ];
 
-// Explicit alternatives pin the retained behavior as worked expectations. Every
-// row still compares its complete record; an exception never skips an assertion.
-// `recordOnly` marks a row whose links still equal the oracle's: the scanner
-// differs from the renderer in its citation fields alone.
 const deliberateDifferences: Record<
   string,
   { reason: string; links: LinkFact[]; recordOnly?: true }
@@ -245,7 +217,6 @@ const empty: Omit<NoteScanRecord, "ranges"> = {
   malformedAnnotationCitations: [],
 };
 
-// S4: Citation targets use the same normalized target as Obsidian links.
 const normalizedWikilinks: Record<string, NoteScanRecord["wikilinks"]> = {
   "fuzz/embed/26": [
     {
@@ -345,13 +316,9 @@ it("compares every corpus case and accounts for deliberate differences", () => {
   }
 });
 
-// The original code/math rows contain no references. These payload substitutions
-// make their recorded rendering boundaries observable at the scanner seam.
 const uri = "zotero://open/library/items/ABCD2345?annotation=EFGH6789";
 const payload = `[[Note]] ![[Embed]] [@key] [](${uri}) ![](${uri})`;
 
-// Obsidian renders each region below as code or math, so every reference in the
-// payload stays hidden.
 const hiddenPayloads = [
   ["probe/code-run/open-two-close-one", `\`\`${payload}\``],
   ["math/midline-quote", `> tail $$\n> ${payload}\n> $$`],
@@ -375,7 +342,6 @@ const at = (line: number, col: number, offset: number) => ({
 });
 
 it("token/display-math/newline-escaped-close: an escaped $$ leaves the payload visible", () => {
-  // The payload starts on line 2 at offset 8, after "$$\n" and "x\$$\n".
   const text = `$$\nx\\$$\n${payload}`;
   const annotation = {
     text: "",

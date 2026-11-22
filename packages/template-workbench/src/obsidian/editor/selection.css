@@ -2,7 +2,6 @@
   display: none;
 }
 
-/* Follow the same native containers that hide Obsidian's view header. */
 :is(
     .workspace-split.mod-primary-split,
     .workspace-split.mod-secondary-split,

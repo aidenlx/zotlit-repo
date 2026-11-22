@@ -4,8 +4,6 @@ import { describe, expect, it } from "vitest";
 
 import { serializationProbe } from "./__fixtures__/serialized-callback.ts";
 
-// Failure modes: injected transform helpers are absent from a fresh page,
-// and Node's type stripping must produce an independently executable function.
 describe("page callback serialization", () => {
   it("runs transformed callbacks with only the supplied context", async () => {
     expect(await serializationProbe()).toEqual({ value: 42, disposed: true });

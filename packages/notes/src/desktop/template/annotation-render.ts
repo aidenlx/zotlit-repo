@@ -1,5 +1,3 @@
-// Annotation-render leaf: direct attachment file links, import-capable
-// annotation image links, and the batch annotation-template render.
 import { basename } from "node:path";
 
 import {
@@ -30,14 +28,6 @@ import {
 } from "@zotlit/plugin-kernel/turndown/comment.ts";
 import type { AttachmentImportBatch } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 
-/**
- * Build the {@link FallibleTemplateLink} for an attachment's on-disk file
- * (`[name](file://…)`). Rendered with no override it shows the filename and,
- * for annotation-level links, anchors to the Annotation's page and to the
- * Annotation itself (`#page=N&zt-annotation=KEY`); pass `alias` / `subpath` to
- * override either. The helper returns `null` when the path cannot be resolved.
- * This direct source link never queues Attachment Import.
- */
 export function attachmentFileLink(
   attachment: Attachment,
   ctx: AttachmentPathContext,
@@ -53,12 +43,6 @@ export function attachmentFileLink(
   );
 }
 
-/**
- * Resolvers for direct attachment file paths and annotation rendering (comment
- * conversion, import-capable excerpt images). Shared by the full note context
- * (`buildNoteResolvers`) and the annotation paths
- * ({@link renderAnnotationSources}), so both render annotations identically.
- */
 export function buildAnnotationResolvers(options: {
   zoteroPref: AttachmentPathContext;
   attachmentImport: Pick<AttachmentImportBatch, "decide" | "resolveLink">;
@@ -94,13 +78,11 @@ export function buildAnnotationResolvers(options: {
   };
 }
 
-/** Synchronous callbacks used while a template evaluates its annotation fields. */
 interface AnnotationRenderers {
   render(name: "annotation", data: AnnotationTemplateContext): string;
   renderCitation(refs: readonly CiteRef[], variant: CitationVariant): string;
 }
 
-/** How {@link renderAnnotationSources} renders. */
 interface RenderAnnotationsOptions {
   template: AnnotationRenderers;
   zoteroPref: AttachmentPathContext;
@@ -109,12 +91,6 @@ interface RenderAnnotationsOptions {
   annotationImageLink?: AnnotationResolvers["annotationImageLink"];
 }
 
-/**
- * Resolve already-read {@link AnnotationSources} to their template data and
- * render each through the `annotation` template, returning a `key → rendered
- * string` map. `attachmentImport` decides each excerpt-cache image and copies
- * an approved one into the target note's attachment folder. Reads no database.
- */
 export function renderAnnotationSources(
   sources: AnnotationSources,
   options: RenderAnnotationsOptions,
@@ -136,7 +112,6 @@ function annotationResolvers(
   });
 }
 
-/** Render each annotation's template data through the `annotation` template. */
 function renderTemplateData(
   dataByKey: ReadonlyMap<string, TemplateAnnotation>,
   options: RenderAnnotationsOptions,
@@ -155,15 +130,6 @@ function renderTemplateData(
   return result;
 }
 
-/**
- * Render an annotation's page-pinned citation through the Citation Template —
- * the parent item with the annotation's page label as locator (label
- * `"page"`), mirroring Zotero's own annotation citations. The main Citation
- * Variant carries it, so an annotation excerpt and an Enter-inserted citation
- * agree. `null` when there is no parent item or it carries no citation key.
- * Shared by the `zt.citation` template field above and the annot-view "Copy
- * citation" action (`renderAnnotationCitation`).
- */
 export function annotationCitation(
   parentItem: TemplateParentItemData | null,
   pageLabel: string | null,
@@ -173,11 +139,6 @@ export function annotationCitation(
   return refs && template.renderCitation(refs, "main");
 }
 
-/**
- * The Citation Template input for {@link annotationCitation}: the parent item
- * with the page label as locator. `null` when there is no parent item or it
- * carries no citation key.
- */
 export function annotationCiteRefs(
   parentItem: TemplateParentItemData | null,
   pageLabel: string | null,

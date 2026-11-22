@@ -43,11 +43,9 @@ function span(classes: readonly string[], content: Inlines): Inline {
   return { t: "Span", c: [["", classes, []], content] };
 }
 
-/** Renders through a React tree the surface owns, as the sidebar does. */
 function attached(props: InlineContentProps): HTMLElement {
   const container = document.createElement("div");
   document.body.append(container);
-  // Awaiting would hide the point: the component renders synchronously.
   void act(() => {
     createRoot(container).render(createElement(InlineContent, props));
   });
@@ -366,9 +364,6 @@ describe("InlineContent entry serials", () => {
     expect(container.textContent).not.toContain("A study of nothing");
   });
 
-  // An accepted limitation: a note a reader wrote themselves, in a citation
-  // prefix, is a note like any other here, so it shows the cluster's serials
-  // rather than its own text.
   it("shows the cluster's serials for a note the reader wrote in a prefix", () => {
     const container = attached({
       nodes: [
@@ -386,8 +381,6 @@ describe("InlineContent entry serials", () => {
   });
 });
 
-// The text of a note the surfaces stand a serial in place of, which the
-// Citation Popover shows whole.
 describe("noteContent", () => {
   it("reads a note's paragraph as the flow it holds", () => {
     expect(

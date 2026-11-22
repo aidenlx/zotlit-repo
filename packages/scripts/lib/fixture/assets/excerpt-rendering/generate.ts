@@ -1,5 +1,3 @@
-// Generates the excerpt-rendering acceptance PDFs byte-for-byte.
-
 import type { PdfObject } from "#fixture/assets/pdf-writer";
 import { createHash } from "node:crypto";
 import { writeFileSync } from "node:fs";
@@ -7,8 +5,6 @@ import { join } from "node:path";
 
 import { buildPdf, contentStream } from "#fixture/assets/pdf-writer";
 
-// The committed bytes carry a PDF 1.7 header with a binary comment, a space
-// before each `/Length` and trailer `>>`, and a final newline.
 function stream(content: string, dictionary = ""): PdfObject {
   return contentStream(content, `${dictionary} `);
 }
@@ -81,14 +77,11 @@ const valid = excerptPdf([
   stream("0.15 0.25 0.75 rg 0 0 3000 100 re f"),
 ]);
 
-// A deterministic malformed input. It has a PDF header and a broken xref.
 const corrupt = Buffer.from(
   "%PDF-1.7\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\nstartxref\n999999\n%%EOF\n",
   "latin1",
 );
 
-// This valid trailer has a Standard security dictionary with deliberately
-// fixed credentials. PDF.js must request a password before it renders it.
 const encrypted = excerptPdf(
   [
     "<< /Type /Catalog /Pages 2 0 R >>",

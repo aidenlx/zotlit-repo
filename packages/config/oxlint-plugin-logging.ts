@@ -1,5 +1,3 @@
-// zotlit-logging: keeps the Obsidian plugins on Effect's logging API
-// (policies/logging.md). Rule tests: apps/obsidian/src/lint/logging.test.ts.
 import { sep } from "node:path";
 
 import { hasSource } from "./oxlint-ast.ts";
@@ -35,14 +33,6 @@ const namesGetLogger = (statement: ImportNode) =>
       (specifier.imported ?? specifier.local)?.name === "getLogger",
   );
 
-/**
- * Rejects every logging path of the Obsidian plugins but Effect's: an import
- * of LogTape, an import of a kernel `getLogger`, and a `console` call outside
- * the plugin logger's console sink and the Worker's log port. A record made
- * with `Effect.log*` goes through the bundle's one plugin logger, so it carries
- * the category, annotations and spans, honours the log level, and reaches the
- * console and the log file of its own plugin only (policies/logging.md).
- */
 export const effectLoggingOnly: Rule = {
   meta: {
     type: "problem",

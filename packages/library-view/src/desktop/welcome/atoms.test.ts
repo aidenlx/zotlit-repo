@@ -1,4 +1,3 @@
-// Welcome commands keep saved banner choices and give each leaf its own conversion.
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";

@@ -12,7 +12,6 @@ const pathContext: AttachmentPathContext = {
   baseAttachmentPath: null,
 };
 
-/** A live Zotero Attachment row, as `getAttachmentsByParents` hands one over. */
 function attachment(overrides: Partial<Attachment>): Attachment {
   return {
     itemID: 20,

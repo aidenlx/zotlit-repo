@@ -25,7 +25,6 @@ afterEach(() => {
   document.body.className = "";
 });
 
-/** Run the frames the drag asked for so far. */
 function runFrames() {
   const pending = frames;
   frames = [];
@@ -63,20 +62,17 @@ it("holds the cursor and the active edge while the drag is on, and moves once a 
 
   pointer("pointermove", 110);
   pointer("pointermove", 130);
-  // Another pointer moves nothing.
   pointer("pointermove", 500, 2);
   runFrames();
   expect(calls).toEqual([["move", 30]]);
 
   pointer("pointermove", 90);
   pointer("pointerup", 90);
-  // The drop takes the last move's offset; the pending frame does not run.
   runFrames();
   expect(calls).toEqual([["move", 30], ["drop", -10], ["end"]]);
   expect(document.body.classList.contains(CURSOR)).toBe(false);
   expect(handle.classList.contains("is-active")).toBe(false);
 
-  // The window no longer follows the pointer.
   pointer("pointermove", 200);
   pointer("pointerup", 200);
   runFrames();
@@ -95,7 +91,6 @@ it.each([
   [
     "Escape",
     (app: { scopes: Scope[] }) => {
-      // The drag takes the key: the Scope of the list under it never hears it.
       const escape = pressTop(app, { key: "Escape" }, document.body);
       expect(escape.defaultPrevented).toBe(true);
     },

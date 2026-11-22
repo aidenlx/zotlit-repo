@@ -1,5 +1,3 @@
-// Theme colors for literature-note group seeds and virtual Cited Work Nodes.
-
 import { regex } from "arkregex";
 import { Effect } from "effect";
 import { around } from "monkey-around";
@@ -15,7 +13,6 @@ import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import type { GraphCitationAdditions } from "./adapter.ts";
 import type { GraphLeafMembers } from "./install.ts";
 
-/** A theme property and its fallback CSS variable or color value. */
 export interface ThemeColorRole {
   property: string;
   fallback: string;
@@ -28,17 +25,10 @@ const ROLE = {
   },
 } as const satisfies Record<string, ThemeColorRole>;
 
-/** The virtual-node fill; `null` where no fill is stated. */
 export interface NodeColors {
   citedWorkNode: GraphColor | null;
 }
 
-/**
- * The virtual-node color as the theme states it, read once and held until the
- * theme changes. Reading costs a style recalculation, and every graph leaf
- * stamps from the same reading, so the caller invalidates on `css-change`
- * rather than reading per render.
- */
 export class GraphNodeColors {
   #current: NodeColors | null = null;
 
@@ -46,28 +36,21 @@ export class GraphNodeColors {
     return (this.#current ??= readNodeColors());
   }
 
-  /** Reads the seed at insertion time; native groups keep their saved color. */
   literatureNoteGroupColor(): GraphColor {
     return readLiteratureNoteGroupColor();
   }
 
-  /** Drops the reading, so the next ask reads the theme again. */
   invalidate(): void {
     this.#current = null;
   }
 }
 
-/**
- * @returns the virtual-node color as a throwaway probe element resolves it, the way
- *   Obsidian reads its own graph colours.
- */
 export function readNodeColors(): NodeColors {
   return {
     citedWorkNode: readThemeColor(ROLE.citedWorkNode),
   };
 }
 
-/** @see docs/brand.md — light and dark ZotLit accent colors. */
 function readLiteratureNoteGroupColor(): GraphColor {
   const rgb = document.body.classList.contains("theme-dark")
     ? 0xf0793f
@@ -80,20 +63,7 @@ function readLiteratureNoteGroupColor(): GraphColor {
   );
 }
 
-/**
- * Reads one role's colour off a throwaway probe element. The value is stated
- * on the element itself rather than in a ZotLit rule, so that no reading waits
- * on ZotLit's own stylesheet: Obsidian inserts a plugin's stylesheet after the
- * plugin's `onload`, and a graph that was already open is drawn while the
- * plugin loads — a rule-borne colour would read as the inherited text colour
- * there and stay stamped until the next theme change.
- *
- * A theme's property wins wherever it stands, since the fallback is reached
- * only where the theme states nothing at all.
- */
 export function readThemeColor(role: ThemeColorRole): GraphColor | null {
-  // A theme states the property on `body`, or on something `body` inherits it
-  // from, which is also where the probe inherits it from.
   const stated = getComputedStyle(document.body).getPropertyValue(
     role.property,
   );
@@ -119,12 +89,6 @@ export function readThemeColor(role: ThemeColorRole): GraphColor | null {
   return parsed;
 }
 
-/**
- * Colors virtual Cited Work Nodes that carry no native color. Literature-note
- * files receive their colors through ordinary native groups.
- *
- * @param colors shared by identity across renders, as the renderer expects.
- */
 export function stampNodeColors(
   data: GraphData,
   additions: GraphCitationAdditions,
@@ -139,15 +103,6 @@ export function stampNodeColors(
   }
 }
 
-/**
- * Colors virtual Cited Work Nodes on every data hand-off.
- *
- * @param installation read at hand-off time, so each render colours the nodes
- *   it drew.
- * @param colors read at hand-off time, so each render draws in the theme in
- *   force.
- * @returns a Disposable that puts the renderer back.
- */
 export function installNodeColors(
   renderer: GraphLeafMembers["renderer"],
   installation: {
@@ -168,22 +123,10 @@ export function installNodeColors(
   );
 }
 
-/** `rgb()` / `rgba()`, the legacy form a browser serializes a plain colour to. */
 const RGB = regex(
   "^rgba?\\((?<r>\\d+),\\s*(?<g>\\d+),\\s*(?<b>\\d+)(?:,\\s*(?<a>\\d*\\.?\\d+))?\\)$",
 );
 
-/**
- * @param color a computed `color`. The `rgb()`/`rgba()` form a browser
- *   serializes a plain colour to is read straight; every other syntax it
- *   accepts — `oklch()`, the `color(srgb …)` a `color-mix()` computes to — is
- *   painted on a canvas and read back as bytes.
- * @param opacity the same element's computed `opacity`, which fades the colour
- *   the way it fades the element; a document that computes none reads as fully
- *   opaque, as Obsidian's own reader takes it.
- * @returns the colour in the shape a graph node carries, or `null` for a value
- *   the browser itself states no colour for.
- */
 export function parseGraphColor(
   color: string,
   opacity: string,
@@ -215,16 +158,8 @@ function channelsOf(color: string): Channels | null {
   };
 }
 
-/** A value the browser refuses leaves `fillStyle` as it was, which this stands in for. */
 const REFUSED = "#010203";
 
-/**
- * Hands the value to the browser's own colour reader: a 1×1 canvas paints
- * whatever syntax it accepts, and the painted pixel reads back as bytes.
- *
- * @returns the bytes `color` paints as, or `null` where the browser refuses
- *   the value or the document offers no canvas to paint it on.
- */
 function paintedChannels(color: string): Channels | null {
   if (typeof OffscreenCanvas === "undefined") return null;
   const painter = new OffscreenCanvas(1, 1).getContext("2d", {

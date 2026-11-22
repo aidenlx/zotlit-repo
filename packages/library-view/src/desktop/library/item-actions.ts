@@ -1,10 +1,3 @@
-// What the Library View does with the Item of a row: the operations its keys,
-// its row menu and its drag run. Each runs the operation another surface
-// runs: the quick switcher's note and PDF opens, the citation insert of the
-// "Insert Markdown citation" command, and the `zotero://select` link of the
-// citation popover.
-//
-// @see apps/obsidian/docs/adr/0074-library-view-rows-act-as-quick-switcher-results.md
 import type { Scope } from "effect";
 import { Effect, Exit } from "effect";
 import type { Editor, MarkdownFileInfo, PaneType } from "obsidian";
@@ -41,10 +34,6 @@ import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 import { lastEditor } from "#obsidian/library/last-note.ts";
 
-/**
- * Runs one Item action at a time per call, beside the others. A failure is
- * logged here, where the gesture that started it has nothing to show.
- */
 export const libraryItemCommand = viewRuntime.fn(
   (effect: Effect.Effect<void, unknown, ViewServices | Scope.Scope>) =>
     effect.pipe(
@@ -65,31 +54,20 @@ export type ItemActionsDeps = Pick<AttachmentOpenDeps, "app" | "opener"> & {
   registry: ViewRegistryHandle;
   noteFeature: Pick<NoteFeatureHandle, "renderCitation">;
   creation: InteractiveCreationPorts;
-  /**
-   * Hands a `zotero://` link to the system.
-   * @default window.open
-   */
   openUri?: (uri: string) => void;
 };
 
-/** Where a citation goes: an editor, at its selection or at `at`. */
 export interface CitationTarget {
   editor: Editor;
   info: MarkdownFileInfo;
-  /** The offset to insert at; the editor's selection where absent. */
   at?: number;
 }
 
-/** What a row of the Library View can do with its Item, by Indexed Key. */
 export interface ItemActions {
-  /** Open the Literature Note, or write it through the Profile selection. */
   openNote(indexedKey: string, pane: PaneType | boolean): void;
-  /** Open the PDF in Obsidian. */
   openPdf(indexedKey: string, pane: PaneType | boolean): void;
-  /** Insert the Item's citation into `target`, or the note the researcher was last in. */
   insertCitation(indexedKey: string, target?: CitationTarget): void;
   copyCitationKey(indexedKey: string): void;
-  /** Select the Item in Zotero, which the system starts where it is closed. */
   showInZotero(indexedKey: string): void;
 }
 
@@ -228,11 +206,6 @@ export function itemActions(deps: ItemActionsDeps): ItemActions {
   };
 }
 
-/**
- * The note the researcher was last in: the one an annotation insert finds,
- * else, while the Library View is the active tab, the note in Source mode
- * or Live Preview that was active last.
- */
 function editorTarget({
   app,
 }: Pick<ItemActionsDeps, "app">): CitationTarget | null {

@@ -14,13 +14,10 @@ import type { LandWaitRecord } from "./land-queue.ts";
 import { land, LAND_CI_CHECK, LAND_RECORD_PATH } from "./land.ts";
 import type { CiCheck, LandGitHub, LandOptions } from "./land.ts";
 
-// Lands run real Git against a bare origin in a temporary folder, with a gate
-// command in place of `pnpm verify`.
 const SLOW = 30_000;
 
 let repos: GitRepos;
 const spawned = new Set<ChildProcess>();
-/** What the children wrote to stderr, for a failure message. */
 const output: string[] = [];
 beforeEach(async () => {
   repos = await makeGitRepos();
@@ -42,7 +39,6 @@ const quiet = {
   mergedPollMs: 10,
 } satisfies Partial<LandOptions>;
 
-/** A clone on branch `branch` with one commit of its own. */
 async function taskClone(name: string, branch = `feat/${name}`) {
   const cwd = await repos.clone(name);
   await git(cwd, "switch", "-q", "-c", branch);
@@ -50,7 +46,6 @@ async function taskClone(name: string, branch = `feat/${name}`) {
   return cwd;
 }
 
-/** A commit on origin's main, made from a clone of its own. */
 async function moveMain(file: string, text: string, message = `main ${file}`) {
   const other = await repos.clone(`main-${file}-${Math.random()}`);
   const sha = await repos.commit(other, file, { text, message });
@@ -88,7 +83,6 @@ describe("land", () => {
       const result = await land({
         ...quiet,
         cwd,
-        // The gate sees the commit that main gained after the branch left it.
         gate: ["sh", "-c", "test -e upstream.txt && test -e a.txt"],
       });
 
@@ -101,7 +95,6 @@ describe("land", () => {
       expect(await git(cwd, "rev-parse", "HEAD")).toBe(
         await git(repos.remote, "rev-parse", "main"),
       );
-      // The local main follows, and the task branch is gone on origin.
       expect(await git(cwd, "rev-parse", "main")).toBe(
         await git(cwd, "rev-parse", "HEAD"),
       );
@@ -142,7 +135,6 @@ describe("land", () => {
       const cwd = await taskClone("a");
       const other = await repos.clone("other");
       const marker = join(repos.root, "moved");
-      // The first gate run lands another change on main before the push.
       const gate = [
         `if [ ! -e '${marker}' ]; then`,
         `  touch '${marker}' && cd '${other}' &&`,
@@ -182,7 +174,6 @@ describe("land", () => {
         "the gate says no",
       );
       expect(await git(repos.remote, "rev-parse", "main")).toBe(upstream);
-      // The branch stays rebased onto the fetched main: the tree to fix.
       expect(await git(cwd, "symbolic-ref", "--short", "HEAD")).toBe("feat/a");
       expect(await git(cwd, "status", "--porcelain")).toBe("");
       expect(await git(cwd, "rev-parse", "HEAD~1")).toBe(upstream);
@@ -223,8 +214,6 @@ describe("land", () => {
         gate: ["sh", "-c", "echo starting; sleep 30"],
       });
       expect(result).toMatchObject({ ok: false, step: "lease" });
-      // On a loaded machine the limit can pass before the gate's first line
-      // arrives, so the message's last progress is not part of the claim.
       expect(result.ok || result.message).toMatch(
         /made no progress for .*silence limit of 500 ms/,
       );
@@ -277,13 +266,11 @@ interface FakePull {
   merged: boolean;
 }
 
-/** One read of the CI check of `commit`: the how-many-th read of that commit. */
 type CiScript = (read: {
   commit: string;
   count: number;
 }) => Promise<CiCheck | undefined> | CiCheck | undefined;
 
-/** A check that passed, as GitHub shows a finished run of the job. */
 const passed = (id = 1): CiCheck => ({
   id,
   status: "completed",
@@ -294,17 +281,11 @@ const passed = (id = 1): CiCheck => ({
   completedAt: "2026-11-22T10:05:20Z",
 });
 
-/**
- * GitHub over the bare origin: a PR needs its head branch on origin, and it
- * shows as merged once `main` holds the branch's tip, unless `merges` is off.
- * The CI check of each commit follows `ci`, which passes by default.
- */
 function fakeGitHub({
   merges = true,
   ci = () => passed(),
 }: { merges?: boolean; ci?: CiScript } = {}) {
   const pulls: FakePull[] = [];
-  /** Each read of a check, in order. */
   const checkReads: { commit: string; name: string }[] = [];
   const branchTip = (branch: string) =>
     git(repos.remote, "rev-parse", "--verify", `refs/heads/${branch}`);
@@ -371,7 +352,6 @@ const SECTIONS = [
   "e2e",
 ];
 
-/** Write the record file of the worktree `cwd`, with `sections`. */
 async function writeRecord(
   cwd: string,
   { title = "Add a", sections = SECTIONS, text = "Closes #1." } = {},
@@ -417,7 +397,6 @@ describe("the record PR", () => {
       const { github, pulls } = fakeGitHub();
       const other = await repos.clone("other");
       const marker = join(repos.root, "moved");
-      // The first land's gate moves main once, and that land has one attempt.
       const gate = [
         `if [ ! -e '${marker}' ]; then`,
         `  touch '${marker}' && cd '${other}' &&`,
@@ -539,7 +518,6 @@ describe("the record PR", () => {
       const cwd = await taskClone("a");
       await writeRecord(cwd);
       const { github } = fakeGitHub({ merges: false });
-      // GitHub marks the PR as merged a moment after the push of main.
       const reads = ["OPEN", "MERGED"] as const;
       let read = 0;
       github.pullRequestState = async () =>
@@ -606,7 +584,6 @@ describe("the CI check of the record PR", () => {
       const cwd = await taskClone("a");
       await writeRecord(cwd);
       const seed = await git(repos.remote, "rev-parse", "main");
-      /** origin's main at each read while the check runs. */
       const mainWhilePending: string[] = [];
       const { github, checkReads } = fakeGitHub({
         ci: async ({ count }) => {
@@ -642,7 +619,6 @@ describe("the CI check of the record PR", () => {
       const printed = lines.join("\n");
       expect(printed).toMatch(/CI .*queued/);
       expect(printed).toMatch(/CI .*in progress/);
-      // The time the job waited for a runner goes to the wait log.
       expect(await waits()).toMatchObject([
         {
           outcome: "landed",
@@ -669,7 +645,6 @@ describe("the CI check of the record PR", () => {
         "https://github.com/owner/repo/actions/runs/1/job/7",
       );
       expect(await git(repos.remote, "rev-parse", "main")).toBe(seed);
-      // The PR head stays on origin, so the PR shows the failed check.
       expect(await git(repos.remote, "rev-parse", "feat/a")).toBe(
         await git(cwd, "rev-parse", "HEAD"),
       );
@@ -772,7 +747,6 @@ describe("the Land Queue", () => {
     return each;
   }
 
-  /** A child that lands `cwd` and prints its result. */
   function landChild(cwd: string): ChildProcess {
     return child(
       `const { land } = await import(${JSON.stringify(MODULE)});
@@ -791,7 +765,6 @@ console.log(JSON.stringify(result));`,
   it(
     "lands in the order the lands joined the queue",
     async () => {
-      // A holder keeps the turn until its stdin closes.
       const holder = child(
         `const slot = await import(${JSON.stringify(SLOT)});
 const { landAdmission } = await import(${JSON.stringify(QUEUE)});

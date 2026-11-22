@@ -10,11 +10,9 @@ import { buildV2Redirects, V2_MOVES } from "./v2-redirects.ts";
 const packageRoot = resolve(import.meta.dirname, "../..");
 
 const content = scanContent(packageRoot);
-/** Every docs page URL the build publishes, as the prerender list spells it. */
 const docsPages = new Set(
   content.docs.map((entry) => `/${["docs", ...entry.slugs].join("/")}`),
 );
-/** Every page a move can land on: the docs, the lessons, and the course page. */
 const livePages = new Set([
   ...docsPages,
   "/learn",
@@ -22,10 +20,8 @@ const livePages = new Set([
 ]);
 const v1Sources = new Set(buildV1Redirects().map((rule) => rule.source));
 const v1Destinations = new Set(Object.values(PAGE_MAP));
-/** A live docs page, so a fixture fails only the rule under test. */
 const LIVE = "/docs/how-to/insert-citations";
 
-/** Every rule a moves table breaks, one message per offending entry. */
 function problems(moves: Record<string, string>): string[] {
   const found: string[] = [];
   for (const [from, to] of Object.entries(moves)) {
@@ -38,12 +34,9 @@ function problems(moves: Record<string, string>): string[] {
     if (v1Destinations.has(from)) {
       found.push(`${from} is a PAGE_MAP destination; point PAGE_MAP at ${to}`);
     }
-    // The Markdown editions' destinations follow from the page's, by the same
-    // scheme the prerender list publishes them under.
     if (!livePages.has(to)) found.push(`${from} → ${to} is no live page`);
   }
 
-  // Chains, over every emitted rule: the pages and their Markdown editions.
   const rules = buildV2Redirects(moves);
   const sources = new Set(rules.map((rule) => rule.source));
   for (const { source, destination } of rules) {

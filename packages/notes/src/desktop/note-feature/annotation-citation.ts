@@ -1,4 +1,3 @@
-// Renders an Annotation's page-pinned citation for the annotation view's "Copy citation".
 import { Effect } from "effect";
 
 import type { AnnotationCitation } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
@@ -15,14 +14,6 @@ import {
 } from "#desktop/template/annotation-render.ts";
 import { Template } from "#obsidian/template/service.ts";
 
-/**
- * Render an Annotation's page-pinned citation: the same Citation Template path
- * the `zt.citation` field uses ({@link annotationCiteRefs}), from one
- * `AnnotationSources` read in one Snapshot. A citation string imports no file,
- * so the resolvers' `attachmentImport` port blocks every source.
- *
- * @param annotationKey the Annotation's Indexed Key.
- */
 export const renderAnnotationCitation = Effect.fn(
   "NoteFeature.renderAnnotationCitation",
 )(function* (annotationKey: string) {

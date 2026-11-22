@@ -1,5 +1,3 @@
-// Annotation reads and gestures on the plugin's view runtime.
-
 import type {
   AnnotationCitation,
   AnnotationInsertRequest,
@@ -90,7 +88,6 @@ export const makeAttachmentRead = (key: string) => {
   });
 };
 
-/** The layout owns the returned hold and releases it when the next lists land. */
 export const makeHoldAttachmentsCommand = () =>
   viewRuntime.fn((keys: readonly string[]) =>
     Effect.flatMap(AnnotationRepository, (repository) => repository.hold(keys)),
@@ -178,8 +175,6 @@ export type AnnotationWriteRequest =
   | { kind: "color"; keys: readonly string[]; color: string }
   | { kind: "delete"; keys: readonly string[] };
 
-/** A card's write runs beside writes from other cards and other leaves. */
-// A closing editor submits a write that lasts until completion or plugin unload.
 export const annotationWriteCommand = Atom.keepAlive(
   viewRuntime.fn(
     (
@@ -249,7 +244,6 @@ export const annotationWriteCommand = Atom.keepAlive(
   ),
 );
 
-/** Each visible image may resolve beside every other card's image. */
 export const makeExcerptRequestCommand = () =>
   viewRuntime.fn(
     (
@@ -284,7 +278,6 @@ export const makeRefreshCommand = () =>
     }).pipe(Effect.onExit(() => Effect.sync(request.complete))),
   );
 
-/** History owns the confirmed write and its stack update until plugin unload. */
 export const annotationHistoryCommand = Atom.keepAlive(
   viewRuntime.fn(
     (request: {
@@ -339,7 +332,6 @@ export const readerResolutionAtom = viewRuntime.atom((get) => {
   );
 });
 
-/** Two panes can request authorization or report separate blocked gestures. */
 export const editingCapabilityCommand = viewRuntime.fn(
   (request: { kind: "allow" } | { kind: "blocked"; key: string }) =>
     Effect.gen(function* () {
@@ -351,7 +343,6 @@ export const editingCapabilityCommand = viewRuntime.fn(
   { concurrent: true },
 );
 
-/** Tag editors on duplicate cards resolve their suggestions independently. */
 export const makeLibraryTagNamesCommand = () =>
   viewRuntime.fn(
     (request: { key: string; complete: (names: readonly string[]) => void }) =>
@@ -374,20 +365,14 @@ export const refreshExcerptDisplayCommand = viewRuntime.fn(() =>
   Effect.flatMap(ExcerptDisplays, (display) => display.refresh),
 );
 
-/** The insert an editor gesture runs on the view's runner. */
 export const annotationInsert = (request: AnnotationInsertRequest) =>
   Effect.flatMap(AnnotationNoteActions, (notes) => notes.insert(request));
 
-/**
- * What a citation read answered: the citation, a template error the
- * researcher can fix by its own message, or a failure the log keeps.
- */
 export type CitationRead =
   | { kind: "read"; citation: AnnotationCitation }
   | { kind: "inert-template"; message: string }
   | { kind: "failed" };
 
-/** Read one Annotation's citation; the view's close interrupts the read. */
 export const readCitation = (key: string) =>
   Effect.flatMap(AnnotationNoteActions, (notes) => notes.citation(key)).pipe(
     Effect.map((citation): CitationRead =>

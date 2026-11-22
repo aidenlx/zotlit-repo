@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// Regrade saved evaluation runs with the current checkers and compare verdicts.
 import { access, readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -7,10 +6,6 @@ import { pathToFileURL } from "node:url";
 import { measureEvents } from "./events.mjs";
 import { gradeRun } from "./run.mjs";
 
-/**
- * Regrades one saved run folder through the same `gradeRun` path as a live run.
- * @returns `graded: false` when the run stopped before it saved an answer.
- */
 export async function regrade(root) {
   const report = JSON.parse(await readFile(join(root, "report.json"), "utf8"));
   const saved = JSON.parse(await readFile(join(root, "check.json"), "utf8"));

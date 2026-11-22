@@ -1,5 +1,3 @@
-// Materializes the Fixture described by `spec.ts`.
-
 import { readFileSync } from "node:fs";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
@@ -89,8 +87,6 @@ import type {
   PersistedLibraryScope,
 } from "./spec.ts";
 
-// The spec is part of this module's public surface: one import specifier
-// covers building the Fixture and reading what it is supposed to contain.
 export {
   ANNOTATIONS,
   ASSET_DIR,
@@ -191,83 +187,24 @@ export interface FixturePlugin {
 }
 
 export interface BuildOptions {
-  /** Scope case the fresh vault starts on. */
   scopeCase?: string;
-  /**
-   * Vault case the vault is written in. `fresh` writes no settings file, so
-   * it accepts only the default Scope Case.
-   */
   vaultCase?: string;
-  /** Number of additive synthetic Items in an on-demand Stress Build. */
   stressItemCount?: number;
-  /** Group Library with only the first and last ten Stress Items, modeling an import gap. */
   stressSparseLibraryID?: number;
-  /**
-   * Exact Item count of My Library in a one-Library Stress Build: synthetic
-   * Items fill it past its Fixture Spec Items. Excludes
-   * {@link BuildOptions.stressItemCount}.
-   */
   stressLibraryItemCount?: number;
-  /**
-   * Exact Item count of the group Library `STRESS_GROUP_LIBRARY` in a
-   * two-Library Stress Build, filled by the rules of My Library. Needs
-   * {@link BuildOptions.stressLibraryItemCount}.
-   */
   stressGroupLibraryItemCount?: number;
-  /**
-   * Built plugin bundles to copy into the vault, each into
-   * `.obsidian/plugins/<id>`, enabled in this order. Absent or empty, the
-   * vault carries the Fixture's data with no plugin of ours installed nor
-   * enabled, so it opens but verifies no tracer.
-   */
   plugins?: readonly FixturePlugin[];
-  /**
-   * Built plugin bundles to copy into `.obsidian/plugins/<id>` and leave out
-   * of the enabled list: installed, not enabled.
-   */
   installed?: readonly FixturePlugin[];
-  /**
-   * TCP port for this build's Live Updates channel, on
-   * {@link LIVE_UPDATE_HOSTNAME}. The vault binds it and the profile points the
-   * Companion at it, so the two sides always agree. Absent, both keep their
-   * shipped defaults, which the first ZotLit vault on the machine holds.
-   */
   liveUpdatePort?: number;
-  /** TCP port written to the generated Zotero profile's HTTP server pref. */
   zoteroHttpPort?: number;
-  /**
-   * Open Zotero's Local API in the generated profile. A caller that asks for it
-   * also passes {@link BuildOptions.zoteroHttpPort}, so Paired Zotero serves the
-   * API on a port of this Fixture's own and ZotLit reads that same port back
-   * from the profile.
-   */
   localApi?: boolean;
-  /**
-   * Seed one remembered Zotero Local API write key for the Development Vault.
-   * This applies only when {@link BuildOptions.localApi} is true.
-   *
-   * @default false
-   */
   grantLocalApiWrites?: boolean;
-  /**
-   * The upgrader case's `note.frontmatter-fields`, such as a reader's own list.
-   *
-   * @default UPGRADER_FRONTMATTER_FIELDS
-   */
   upgraderFields?: readonly FrontmatterField[];
-  /** Development Vault root used by vault-backed linked Attachment rows. */
   linkedAttachmentVaultDir?: string;
 }
 
-/** Loopback host the vault's `server.hostname` default binds. */
 export const LIVE_UPDATE_HOSTNAME = "127.0.0.1";
 
-/**
- * Write the throwaway Zotero data directory, the profile that points at it,
- * and the throwaway Obsidian vault. Removes whatever sits at `layout.root`
- * first, so a rebuild reproduces the spec rather than merging into an older
- * shape.
- */
 export async function buildFixture(
   layout: FixtureLayout,
   options: BuildOptions = {},
@@ -335,9 +272,6 @@ export async function buildFixture(
   await mkdir(layout.dataDir, { recursive: true });
   await mkdir(layout.profileDir, { recursive: true });
   await writeDatabase(layout, data, options);
-  // A Paired Zotero unpacks its bundled styles seconds after it starts, so the
-  // build lays them down itself: every Fixture offers the same Citation and
-  // References Style choices from the moment it exists, Zotero running or not.
   await writePristineStyles(layout.dataDir);
   await writeInstalledStyles(layout);
   const demo = holdsDemoPapers(vaultCase.id);
@@ -357,7 +291,6 @@ export async function buildFixture(
   }
 }
 
-/** Rewrite only the saved Library Scope of an already-built vault. */
 export async function selectScopeCase(
   layout: FixtureLayout,
   id: string,
@@ -384,9 +317,7 @@ const ATTACHMENT_LINK_MODES = {
 } as const;
 
 const VAULT_PAGES_DIR = join(import.meta.dirname, "vault-pages");
-/** The Demo Vault Case's notes, each one ZotLit wrote in a real session. */
 const DEMO_PAGES_DIR = join(import.meta.dirname, "demo-pages");
-/** The Graph Vault Case's research notes, which cite its Items. */
 const GRAPH_PAGES_DIR = join(import.meta.dirname, "graph-pages");
 const VAULT_PLUGINS_DIR = join(import.meta.dirname, "vault-plugins");
 
@@ -439,8 +370,6 @@ async function writeAttachmentFiles(
 ): Promise<void> {
   for (const attachment of attachments) {
     if (attachment.sourceAsset === null) continue;
-    // A vault holds the linked PDFs of its own case: the demo and docs vaults
-    // the demo papers', every other vault the test Items'.
     if (
       attachment.linkMode === "linked_file" &&
       attachment.fileRoot === "vault" &&
@@ -501,10 +430,6 @@ async function writeAnnotationCacheFiles(
   }
 }
 
-/**
- * Lay the Spec's user-installed styles down beside Zotero's bundled set, the
- * way Zotero keeps an installed style: one flat `.csl` file under `styles/`.
- */
 async function writeInstalledStyles(layout: FixtureLayout): Promise<void> {
   const stylesDir = join(layout.dataDir, "styles");
   await mkdir(stylesDir, { recursive: true });
@@ -516,12 +441,6 @@ async function writeInstalledStyles(layout: FixtureLayout): Promise<void> {
   }
 }
 
-/**
- * Lay the pristine template down and insert the Spec's rows into the copy.
- * The template carries Zotero's own schema — tables, triggers, foreign keys,
- * and the global schema's item types and fields — so the ids below are read
- * back by name rather than declared here.
- */
 async function writeDatabase(
   layout: FixtureLayout,
   data: FixtureZoteroData,
@@ -529,10 +448,6 @@ async function writeDatabase(
 ): Promise<void> {
   await writePristineDatabase(layout.databasePath);
   using db = new DatabaseSync(layout.databasePath);
-  // A user-defined function shadows the `CURRENT_TIMESTAMP` keyword on this
-  // connection, column defaults included, so a stamp the Spec forgets lands on
-  // a fixed value rather than the time of the build. The connection closes with
-  // this scope, so a Paired Zotero that opens the file later keeps a real clock.
   db.function(
     "current_timestamp",
     { deterministic: true },
@@ -558,7 +473,6 @@ async function writeDatabase(
   }
 }
 
-/** The global-schema ids the Spec's rows reference, resolved by name. */
 interface SchemaIDs {
   itemTypes: Record<
     FixtureItem["itemType"] | "annotation" | "attachment" | "note",
@@ -568,13 +482,7 @@ interface SchemaIDs {
     "title" | "citationKey" | "date" | "url" | "accessDate",
     number
   >;
-  /**
-   * Per-Item-type field ids for the two Venue roles, read from Zotero's own
-   * base-field mappings rather than named by the Spec, so adding an Item type
-   * never asks the Spec author to know Zotero's base-field table.
-   */
   roleFields: Record<FixtureItem["itemType"], VenueRoleFields>;
-  /** Per-Item-type ids of the {@link FixtureItem.fields} the type carries. */
   itemFields: Record<
     FixtureItem["itemType"],
     Partial<Record<FixtureItemField, number>>
@@ -647,11 +555,6 @@ function readSchemaIDs(db: DatabaseSync): SchemaIDs {
   };
 }
 
-/**
- * The Item type's own field for a Venue role: the field it aliases onto the
- * role's base field, or the base field itself where the type carries it under
- * its canonical name (`journalArticle.publicationTitle`, `book.publisher`).
- */
 function readVenueRoleFields(
   db: DatabaseSync,
   itemTypeID: number,
@@ -676,7 +579,6 @@ function readVenueRoleFields(
   };
 }
 
-/** The {@link FixtureItemField}s the Item type carries, by field id. */
 function readItemFields(
   db: DatabaseSync,
   itemTypeID: number,
@@ -696,7 +598,6 @@ function readItemFields(
   );
 }
 
-/** Where an Item's {@link FixtureItem.fields} entry is stored. */
 function itemFieldID(
   ids: SchemaIDs,
   item: FixtureItem,
@@ -711,11 +612,6 @@ function itemFieldID(
   return fieldID;
 }
 
-/**
- * Where an Item's Venue is stored: its container-role field, or its
- * publisher-role field for a type with no container. A Spec entry naming a
- * Venue its type cannot hold fails the build rather than dropping the value.
- */
 function venueFieldID(ids: SchemaIDs, item: FixtureItem): number {
   const roles = ids.roleFields[item.itemType];
   const fieldID = roles.container ?? roles.publisher;
@@ -727,7 +623,6 @@ function venueFieldID(ids: SchemaIDs, item: FixtureItem): number {
   return fieldID;
 }
 
-/** Where an Item's publisher-role value is stored, alongside its container-role Venue. */
 function publisherFieldID(ids: SchemaIDs, item: FixtureItem): number {
   const roles = ids.roleFields[item.itemType];
   if (roles.container === null || roles.publisher === null) {
@@ -756,8 +651,6 @@ function seedDatabase(
     for (const row of rows) statement.run(...row);
   };
 
-  // Zotero's first run already created My Library, so the Spec's row for it
-  // updates that row instead of colliding with it.
   insert(
     "insert into libraries (libraryID, type, editable, filesEditable) values (?, ?, ?, ?)" +
       " on conflict (libraryID) do update set type = excluded.type," +
@@ -862,9 +755,6 @@ function seedDatabase(
 
   seedItemData(insert, ids, { items, attachments });
 
-  // `creators` is keyed by name across the whole database, so two items by the
-  // same person would share one row. Ids follow first use, which the Spec's own
-  // order fixes, so a rebuild reproduces them.
   const creators = new Map<string, FixtureCreator & { creatorID: number }>();
   for (const creator of items.flatMap((item) => item.creators)) {
     const key = creatorKey(creator);
@@ -941,7 +831,6 @@ function seedDatabase(
   );
 }
 
-/** `creators` is unique on `(lastName, firstName, fieldMode)`. */
 function creatorKey({
   firstName,
   lastName,
@@ -991,15 +880,6 @@ function relatedItemUri(
     : `http://zotero.org/groups/${library.groupID}/items/${target.key}`;
 }
 
-/**
- * `itemDataValues.value` is unique across the database, so repeated titles,
- * dates, and container names share one value row. Ids follow first use, which
- * the Spec's own order fixes, so a rebuild reproduces them.
- *
- * `valueNormalized` stays unset: Zotero itself leaves it null whenever the
- * normalized form matches the ASCII-lowercased value, which holds for every
- * ASCII value the Spec carries. Search reads `coalesce(valueNormalized, value)`.
- */
 function seedItemData(
   insert: (sql: string, rows: readonly Row[]) => void,
   ids: SchemaIDs,
@@ -1089,28 +969,13 @@ function seedItemData(
   );
 }
 
-/**
- * Zotero ships its Local API off, and a build turns it on only where
- * {@link BuildOptions.localApi} asks. Paired Zotero then answers reads on its
- * HTTP port. A Paired Run seeds a remembered Write Authorization unless its
- * caller asks to exercise Zotero's run-time authorization dialog.
- *
- * @see {@link https://www.zotero.org/support/dev/web_api/v3/local_api} for the
- * endpoint set and the authorization flow.
- */
 const LOCAL_API_PREF =
   'user_pref("extensions.zotero.httpServer.localAPI.enabled", true);';
 
-/** Stable identity shared by the generated Zotero database and vault grant. */
 export const FIXTURE_LOCAL_API_SERVER_ID = "zotlitserver";
 
-/** A credential for this disposable Fixture profile only. */
 export const FIXTURE_LOCAL_API_WRITE_KEY = "zotlitFixtureWriteAuthorization1";
 
-/**
- * Seed Zotero's side of the Development Vault's remembered write grant.
- * Paired Run setup writes the matching record through Obsidian SecretStorage.
- */
 function writeLocalApiAuthorizations(
   layout: FixtureLayout,
   options: BuildOptions,
@@ -1130,14 +995,6 @@ function writeLocalApiAuthorizations(
   });
 }
 
-/**
- * A Zotero profile whose prefs point at the Fixture's data directory, so one
- * profile-directory override in ZotLit switches the whole install over. The
- * same profile carries {@link QUIET_FIRST_RUN_PREFS} and
- * {@link OBSIDIAN_PROTOCOL_PREFS}, because a Paired Zotero launches on it. Port
- * overrides also configure the Companion's notify URL and Zotero's HTTP server
- * for a Paired Run.
- */
 function writePrefs(
   layout: FixtureLayout,
   options: BuildOptions,
@@ -1159,9 +1016,6 @@ function writePrefs(
     ...(options.liveUpdatePort === undefined
       ? []
       : [
-          // The master switch is the Companion's counterpart to the vault's
-          // `server.enabled`: it gates every outbound notification at emit
-          // time, so a Paired Run needs it on to exercise Live Updates.
           'user_pref("extensions.zotlit.notify", true);',
           `user_pref("extensions.zotlit.notify-url", "http://${LIVE_UPDATE_HOSTNAME}:${options.liveUpdatePort}");`,
         ]),
@@ -1170,30 +1024,18 @@ function writePrefs(
   return writeFile(join(layout.profileDir, "prefs.js"), lines.join("\n"));
 }
 
-/** ZotLit's settings version, so the vault loads without a migration pass. */
 const SETTINGS_VERSION = 11;
 
-/** ZotLit's right-sidebar view types, as `registerView` declares them. */
 const ZOTLIT_SIDEBAR_VIEW_TYPES = [
   "zotero-annotation-view",
   "zotlit-references",
   "zotlit-cited-by",
 ];
 
-/** One saved sidebar tab. Obsidian fills the rest of the leaf state itself. */
 function workspaceLeaf(type: string): Record<string, unknown> {
   return { id: `zt-leaf-${type}`, type: "leaf", state: { type, state: {} } };
 }
 
-/**
- * The saved layout a Fixture Vault opens with: the file explorer and search on
- * the left, and the three ZotLit tabs beside Obsidian's backlink and
- * outgoing-link tabs on the right. Obsidian rewrites `workspace.json` as a
- * session goes on, so this preset decides the first open only.
- *
- * Obsidian shows a placeholder for a view type no loaded plugin registers, so
- * the ZotLit tabs join the layout only when the build installs the bundle.
- */
 function workspacePreset(options: BuildOptions): Record<string, unknown> {
   return {
     main: {
@@ -1261,25 +1103,17 @@ async function writeVault(
 
   await writeVaultConfig(layout, options);
   if (vaultCase.id === "fresh") {
-    // A Paired Run passes a Development Vault's plugin folder as the bundle,
-    // and that folder carries the settings ZotLit last saved there. A fresh
-    // vault promises no settings file at all.
     await rm(layout.pluginDataPath, { force: true });
     return;
   }
 
   if (vaultCase.id === "docs") {
-    // A new reader's first launch: the reader's own pages, ZotLit's Default
-    // Profile alone, and no settings file, so ZotLit opens its first screen.
     await cp(DEMO_PAGES_DIR, layout.vaultDir, { recursive: true });
     await rm(layout.pluginDataPath, { force: true });
     return;
   }
 
   if (vaultCase.id === "demo") {
-    // The demo vault's notes render through ZotLit's shipped templates and
-    // read the way a new user's do. Its one Profile document has no match,
-    // so it changes a note only when the reader chooses it.
     await cp(DEMO_PAGES_DIR, layout.vaultDir, { recursive: true });
     await mkdir(join(layout.vaultDir, "templates"), { recursive: true });
     await writeFile(
@@ -1289,7 +1123,6 @@ async function writeVault(
   } else if (vaultCase.id === "graph") {
     await writeGraphVault(layout);
   } else {
-    // The v2.1 vault predates Profiles, so it seeds every note unstamped.
     await writeVaultNotes(
       layout,
       options,
@@ -1317,16 +1150,12 @@ async function writeVault(
     );
   }
 
-  // After the bundle copy: a Paired Run passes a Development Vault's plugin
-  // folder as the bundle, and that folder carries the settings ZotLit last
-  // saved there. The generated settings are the ones this build promises.
   await writeJson(
     layout.pluginDataPath,
     vaultSettings(vaultCase, scopeCase.scope, options),
   );
 }
 
-/** The `.obsidian` configuration, the Hot Reload plugin, and the ZotLit bundle. */
 async function writeVaultConfig(
   layout: FixtureLayout,
   options: BuildOptions,
@@ -1335,11 +1164,7 @@ async function writeVaultConfig(
   await mkdir(layout.pluginDir, { recursive: true });
 
   await writeJson(join(configDir, "app.json"), {});
-  // Native menus interfere with automated Paired Run / E2E flows on
-  // Windows, so the seed disables them.
   await writeJson(join(configDir, "appearance.json"), { nativeMenus: false });
-  // Obsidian errors on an enabled plugin whose folder holds no bundle, so the
-  // enabled list names only the plugins the copy below installs.
   await writeJson(join(configDir, "community-plugins.json"), [
     "hot-reload",
     ...(options.plugins ?? []).map(({ id }) => id),
@@ -1358,10 +1183,6 @@ async function writeVaultConfig(
     ...findVaultCase(options.vaultCase ?? DEFAULT_VAULT_CASE).corePlugins,
   });
   await writeJson(join(configDir, "workspace.json"), workspacePreset(options));
-  // The types the vault cells showcase notes need, as the Properties panel
-  // records them once a property's type is set. The docs vault holds no
-  // showcase note, and its `related` text type would mark the list a new
-  // Literature Note writes there as a type mismatch.
   if ((options.vaultCase ?? DEFAULT_VAULT_CASE) !== "docs") {
     await writeJson(join(configDir, "types.json"), {
       types: VAULT_PROPERTY_TYPES,
@@ -1381,7 +1202,6 @@ async function writeVaultConfig(
   }
 }
 
-/** The committed test pages, the Literature Notes, and the Imported Notes. */
 async function writeVaultNotes(
   layout: FixtureLayout,
   options: BuildOptions,
@@ -1402,10 +1222,6 @@ async function writeVaultNotes(
     markLandingPage(layout, options),
   );
 
-  // Literature Notes for the My Library items give an update batch existing
-  // notes to act on and leave every other Fixture item as create work. The
-  // demo papers' PDFs live only in the demo vault, so they get no note here.
-  // An Item whose note is a committed vault page gets only that page.
   for (const item of ITEMS.filter(
     (candidate) =>
       candidate.libraryID === USER_LIBRARY_ID &&
@@ -1442,11 +1258,6 @@ async function writeVaultNotes(
   }
 }
 
-/**
- * The Graph Vault Case's research notes, a Literature Note for each Graph
- * Item in My Library, and the saved global graph. The works in a group
- * Library get no note, so the graph draws each one as a Cited Work Node.
- */
 async function writeGraphVault(layout: FixtureLayout): Promise<void> {
   await cp(GRAPH_PAGES_DIR, layout.vaultDir, { recursive: true });
   await mkdir(join(layout.vaultDir, "literatures"), { recursive: true });
@@ -1464,11 +1275,6 @@ async function writeGraphVault(layout: FixtureLayout): Promise<void> {
   );
 }
 
-/**
- * A Graph Vault Case Literature Note: what the shipped default templates
- * render for an Item with no Annotations, with the researcher's reading notes
- * typed above the Annotations section.
- */
 function graphLiteratureNote(item: FixtureItem): string {
   const body = GRAPH_LITERATURE_NOTE_BODIES[item.citationKey ?? ""];
   if (body === undefined) {
@@ -1493,7 +1299,6 @@ function graphLiteratureNote(item: FixtureItem): string {
   ].join("\n");
 }
 
-/** Eject the Upgrader vault's Legacy Template Files, each with its visible edit applied. */
 async function writeLegacyTemplates(layout: FixtureLayout): Promise<void> {
   for (const template of UPGRADER_LEGACY_TEMPLATES) {
     await writeFile(
@@ -1503,19 +1308,12 @@ async function writeLegacyTemplates(layout: FixtureLayout): Promise<void> {
   }
 }
 
-/** Vault path of one Legacy Template File, in ZotLit's `zotlit-<name>.<language>.md` form. */
 export function legacyTemplateFilename(
   template: FixtureLegacyTemplate,
 ): string {
   return `zotlit-${template.name}.${template.language}.md`;
 }
 
-/**
- * The shipped default one Legacy Template File starts from, with the Spec's
- * edit applied.
- * @throws when the default no longer holds the text the edit expects, so a
- *   drifted default fails the build rather than ejecting an unedited file.
- */
 export async function legacyTemplateSource(
   template: FixtureLegacyTemplate,
 ): Promise<string> {
@@ -1527,18 +1325,10 @@ export async function legacyTemplateSource(
   );
 }
 
-/** The Citation Variant each 2.1.x citation slot rendered. */
 const CITATION_SLOT_VARIANTS: Partial<
   Record<FixtureLegacyTemplateOrigin, "main" | "alt">
 > = { cite: "main", cite2: "alt" };
 
-/**
- * The shipped default text of one Literature Note slot or 2.1.x citation
- * branch. A slot's default is a file under `@zotlit/templates/defaults`, or for
- * the annotation slot the `DEFAULT_ANNOTATION_*` source; a citation branch is
- * the one-line source the 2.1.x slot rendered with no vault file, which the
- * fold still falls back to.
- */
 async function shippedDefaultSource(
   origin: FixtureLegacyTemplateOrigin,
   language: "liquid" | "eta",
@@ -1557,12 +1347,6 @@ async function shippedDefaultSource(
   );
 }
 
-/**
- * The Citation Template the Fixture Vault holds: the shipped default with the
- * Spec's visible edit. Every reader of the vault's citation text answers from
- * here, so each one sees what the file on disk holds.
- * @throws when the shipped default no longer holds the text the edit expects.
- */
 export function fixtureCitationSource(): string {
   return applyTemplateEdit(
     readFileSync(
@@ -1576,10 +1360,6 @@ export function fixtureCitationSource(): string {
   );
 }
 
-/**
- * One Fixture edit applied to the shipped default it names.
- * @throws when the default drifted away from the text the edit expects.
- */
 function applyTemplateEdit(
   source: string,
   edit: FixtureTemplateEdit,
@@ -1605,8 +1385,6 @@ function vaultSettings(
     ...(vaultCase.id === "graph" ? { "citation.graph-citations": true } : {}),
   };
   if (vaultCase.id === "upgrader") {
-    // The flat v2.1 shape: note bindings still vault-global, no Profiles, and
-    // a recorded launch version so the release check sees a real upgrade.
     return {
       __VERSION__: UPGRADER_SETTINGS_VERSION,
       "note.literature-folder": "literatures",
@@ -1635,7 +1413,6 @@ function literatureNote(
   item: FixtureItem,
   layout: FixtureLayout,
   options: {
-    /** Profile the note is stamped with; absent leaves it on the default. */
     profile?: (typeof LITERATURE_NOTE_PROFILES)[number];
     linkedAttachmentVaultDir?: string;
   },
@@ -1660,11 +1437,9 @@ function literatureNote(
     "---",
     `title: ${JSON.stringify(item.title)}`,
     `zotero-key: ${item.key}`,
-    // The Profile stamp: the Profile label, then its id in parentheses.
     ...(profile === undefined
       ? []
       : [`zotlit-profile: ${profile.label} (${profile.id})`]),
-    // `citekey` is the compatibility frontmatter key ZotLit still reads.
     ...(item.citationKey === null ? [] : [`citekey: ${item.citationKey}`]),
     ...vaultPropertyLines(item.vaultProperties ?? {}),
     "---",
@@ -1698,10 +1473,6 @@ function literatureNote(
   ].join("\n");
 }
 
-/**
- * Frontmatter lines for a note's vault properties: a list as a block list,
- * `null` as an empty key, a string quoted so YAML keeps it a string.
- */
 function vaultPropertyLines(
   properties: Readonly<Record<string, FixtureVaultValue>>,
 ): string[] {
@@ -1716,13 +1487,6 @@ function vaultPropertyLines(
   });
 }
 
-/**
- * The Annotations section the default note template renders, read from the
- * shipped `content` template. The section holds no Liquid, so its text is its
- * own render output.
- * @throws when the section is gone or holds Liquid, so a changed template
- *   fails the build rather than seeding text no render produces.
- */
 function renderedAnnotationsSection(): string {
   const source = readFileSync(
     new URL(import.meta.resolve("@zotlit/templates/defaults/content.liquid")),
@@ -1738,17 +1502,8 @@ function renderedAnnotationsSection(): string {
   return section;
 }
 
-/** The Query File view a rendered Literature Note embeds. */
 const RENDERED_NOTE_EMBED = "Lab annotations.zotquery#This item";
 
-/**
- * A Literature Note as an earlier default note template rendered it: its
- * Annotations section sits in a Managed Region, which Update Note refills with
- * the same text, so Update Note leaves the note as it is. Below the managed
- * region, outside what Update Note rewrites, the note embeds
- * {@link RENDERED_NOTE_EMBED}, so one note holds both a Query Block and a
- * Query File embed whose edits save to the file.
- */
 function renderedLiteratureNote(
   item: FixtureItem,
   layout: FixtureLayout,
@@ -1809,7 +1564,6 @@ function renderedLiteratureNote(
   ].join("\n");
 }
 
-/** A Query Block of the note's own Item's Annotations. */
 const QUERY_BLOCK = [
   "```zotquery",
   "views:",
@@ -1822,12 +1576,6 @@ const QUERY_BLOCK = [
   "",
 ];
 
-/**
- * The Mark Landing walkthrough. Generated rather than committed,
- * because a `file://` link names an absolute path and the Fixture learns its
- * own paths only at build time. The Anchors come from the shipped codec, so
- * the page cannot spell one differently from the reader that reads it.
- */
 function markLandingPage(layout: FixtureLayout, options: BuildOptions): string {
   const link = (
     attachmentKey: string,

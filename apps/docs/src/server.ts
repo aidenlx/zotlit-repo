@@ -1,13 +1,3 @@
-// The Worker's entry point: negotiate, then the asset layer, then SSR.
-//
-// `run_worker_first` in `wrangler.jsonc` registers this Worker ahead of the
-// static assets on the HTML page paths alone, which is the only way the Accept
-// header is read before a prerendered page is served. Every other path reaches
-// the Worker only after the asset layer found no file, so the lookup below is
-// a cheap miss for the server-rendered routes.
-//
-// @see docs/adr/0051-the-docs-site-prerenders-asset-first-and-falls-through-to-an-ssr-worker.md
-
 import handler, { createServerEntry } from "@tanstack/react-start/server-entry";
 import { env } from "cloudflare:workers";
 import { isMarkdownPreferred } from "fumadocs-core/negotiation";
@@ -21,12 +11,6 @@ import { buildV1Redirects } from "./lib/v1-redirects.ts";
 import { deLocalizeUrl } from "./paraglide/runtime.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
 
-/**
- * The request as the rest of the site should see it. An agent that prefers
- * Markdown is pointed at the page's authored edition; a path that publishes no
- * edition drops the preference instead, so the page answers as the HTML it is —
- * the renderer serves a document route to HTML readers alone.
- */
 function negotiate(request: Request, locale: SiteLocale): Request {
   if (!isMarkdownPreferred(request)) return request;
 
@@ -43,12 +27,8 @@ function isMarkdown(headers: Headers): boolean {
   return headers.get("content-type")?.startsWith("text/markdown") ?? false;
 }
 
-/** The asset layer's answer, or undefined when it holds no file for the request. */
 async function servedAsset(request: Request) {
   const response = await env.ASSETS.fetch(
-    // `redirect: "manual"` hands a `_redirects` rule back to the reader as the
-    // redirect it is. Following it here would chase a legacy v1 permalink to
-    // its own destination and answer with that page instead.
     new Request(request, { redirect: "manual" }),
   );
   return response.status === 404 ? undefined : response;
@@ -70,9 +50,6 @@ export default createServerEntry({
     const pathname = url.pathname;
     const unprefixedPath = deLocalizeUrl(url).pathname;
     const machinePath = unprefixedPath.replace(/\/+$/, "");
-    // Global inventories publish one English edition; do not render them under
-    // a Chinese request context.
-    // Unprefixed slash variants still render while prerender creates the assets.
     if (
       pathname.replace(/\/+$/, "") !== machinePath &&
       globalMachinePaths.has(machinePath)
@@ -80,7 +57,6 @@ export default createServerEntry({
       url.pathname = machinePath;
       return Response.redirect(url, 308);
     }
-    // Legacy slash aliases must resolve before locale normalization, in one hop.
     if (
       (request.method === "GET" || request.method === "HEAD") &&
       legacyPaths.has(pathname)
@@ -100,16 +76,12 @@ export default createServerEntry({
       if (state.isFallback) headers.set("x-robots-tag", "noindex, follow");
       if (negotiatedContentRoute(unprefixedPath))
         headers.append("vary", "Accept");
-      // A Markdown answer repeats its HTML page: the page is the one to index.
       if (response.ok && isMarkdown(headers)) {
         for (const [name, value] of Object.entries(
           markdownEditionHeaders(state.canonicalPath),
         ))
           headers.set(name, value);
       }
-      // Pre-release Docs repeats the production pages: the asset layer's
-      // `_headers` keeps its files out of the index, and this keeps out the
-      // pages the Worker answers.
       if (env.DOCS_LINE === "beta") headers.set("x-robots-tag", "noindex");
       return new Response(response.body, {
         status: response.status,

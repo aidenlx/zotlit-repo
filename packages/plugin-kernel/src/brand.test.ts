@@ -20,10 +20,8 @@ it("refuses a fill outside the two inks, and a group the logo does not have", ()
 it("finds the 16-unit mark's two inks, and the wordmark's glyphs after its own mark", () => {
   const cut = brandPaths(mark);
   expect([cut.ink.length, cut.accent.length]).toEqual([1, 1]);
-  // Z, o and t in ink; L, i and t in the accent.
   const glyphs = brandPaths(wordmark, 1);
   expect([glyphs.ink.length, glyphs.accent.length]).toEqual([3, 3]);
-  // The first group is the wordmark's own 24-unit mark, not its glyphs.
   const own = brandPaths(wordmark, 0);
   expect([own.ink.length, own.accent.length]).toEqual([1, 1]);
 });

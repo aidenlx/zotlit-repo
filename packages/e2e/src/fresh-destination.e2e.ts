@@ -348,8 +348,6 @@ describe.skipIf(!reachable)("Fresh destination flow", () => {
     });
   }, 180000);
 
-  // The folder renames under a disabled plugin, so the startup scan of the
-  // reload is what meets the saved setting in the other case.
   it("creates the Default document in a template folder held under another case", async () => {
     const note = await createFixtureNote(vaultId, 2, "default");
     if (note.outcome !== "created")

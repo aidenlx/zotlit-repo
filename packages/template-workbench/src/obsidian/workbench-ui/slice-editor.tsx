@@ -1,5 +1,3 @@
-// A CodeMirror pane bound to one slice of the master Profile document.
-
 import type {
   WorkbenchDocumentController,
   WorkbenchSliceId,
@@ -60,12 +58,6 @@ const sliceEditorSliceEditor = cn(
 
 export type { SuggestionSource } from "#core/language/index.ts";
 
-/**
- * Whether the panes under this provider are on screen. A retained pane stays
- * mounted inside a hidden wrapper and provides `false`, so the editors under it
- * report no selection. A host with its own notion of visibility sets `visible`
- * on the editor itself instead.
- */
 const Visible = createContext(true);
 
 export function SliceEditorVisibility({
@@ -78,14 +70,12 @@ export function SliceEditorVisibility({
   return <Visible.Provider value={visible}>{children}</Visible.Provider>;
 }
 
-/** The expression pane edits a bare Liquid expression; the note includes Markdown. */
 export type SliceLanguage = "liquid" | "json-e" | "expression";
 
 export interface SliceReveal extends WorkbenchSliceRange {
   anchor?: number;
   head?: number;
   slice?: WorkbenchSliceId;
-  /** Native restoration can select text while preserving focus and scroll. */
   focus?: boolean;
   scrollIntoView?: boolean;
 }
@@ -96,42 +86,13 @@ export interface SliceEditorProps {
   label: string;
   invalid?: boolean;
   describedBy?: string;
-  /** @default "liquid" */
   language?: SliceLanguage;
-  /**
-   * Refuses a line break. A pane over a manifest scalar — the note name is the
-   * one — holds a value of one line.
-   */
   singleLine?: boolean;
-  /**
-   * The host's own extensions over this pane — the boxes it draws on the text.
-   * They are read once, when the view is built, so a caller keeps one value.
-   */
   extensions?: Extension;
-  /**
-   * Whether this pane is on screen, overriding the surrounding visibility. A
-   * pane that is not visible reports no selection and answers no reveal, so a
-   * retained editor never moves the caret the reader is working with in the
-   * pane they can see. A pane inside a hidden `SliceEditorVisibility` needs no
-   * prop; a host with its own notion of visibility sets this itself.
-   * @default true
-   */
   visible?: boolean;
-  /**
-   * Master offsets to select and scroll to, so a problem opens on the text
-   * that caused it. Each new object reveals again.
-   */
   reveal?: SliceReveal | null;
-  /**
-   * The contract this pane's completion and hover resolve against. It is read
-   * per keystroke, so a pane that follows the caret into another root needs no
-   * new editor. A rule pane holds YAML, where the Template contract says
-   * nothing, so it offers neither.
-   */
   suggest?: SuggestionSource;
-  /** The selection in master offsets, whenever it moves or the pane takes focus. */
   onSelection?: (selection: WorkbenchInsertTarget["range"]) => void;
-  /** The pane took focus, so the host knows which editor the reader is in. */
   onFocus?: () => void;
 }
 
@@ -163,9 +124,6 @@ export function SliceEditor({
     createPartial({ create, created });
   const host = useRef<HTMLDivElement>(null);
   const editor = useRef<EditorView>(null);
-  // The document the reader has put the caret in this pane of: the pane has
-  // held focus, from a click, the keyboard, or a reveal that hands it focus.
-  // It outlives the view, which a language change builds again.
   const placedIn = useRef<WorkbenchDocumentController | null>(null);
   const syntaxSlot = useRef(new Compartment());
   const problemGutter = useRef<ReturnType<typeof sourceProblemGutter>>(null);
@@ -184,8 +142,6 @@ export function SliceEditor({
               : liquidBody,
     [engine, language, slice],
   );
-  // The view outlives every render, so it reads the current callbacks through
-  // a ref instead of being rebuilt whenever the host passes new ones.
   const report = useRef({
     onSelection,
     revealDiagnosis,
@@ -239,7 +195,6 @@ export function SliceEditor({
         root,
         language: language === "json-e" ? "json-e" : region?.language,
         mode: expression ? "expression" : undefined,
-        // A pane that shows a manifest value holds that value's text alone.
         scope:
           language === "json-e"
             ? undefined
@@ -318,8 +273,6 @@ export function SliceEditor({
           EditorView.lineWrapping,
           underlineOnlyLint,
           problemGutter.current.extension,
-          // The whole-file pane is the one place a reader counts lines, so the
-          // gutter rides with Advanced alone.
           ...(slice === "advanced" ? [lineNumbers()] : []),
           EditorView.contentAttributes.of({ "aria-labelledby": nameId }),
           extensions ?? [],
@@ -355,9 +308,6 @@ export function SliceEditor({
     };
   }, [controller, slice, nameId, language, singleLine, extensions, readOnly]);
 
-  // A pane reports where its own caret starts whenever it comes on screen — on
-  // mount, and again when a host shows a pane it had kept mounted and hidden.
-  // The host follows the pane on screen, not the pane before it.
   useEffect(() => {
     const view = editor.current;
     if (!view || !onScreen) return;
@@ -440,13 +390,6 @@ export function SliceEditor({
     if (reveal.focus !== false) view.focus();
   }, [controller, slice, reveal, language, onScreen]);
 
-  // The host is the scroll container and the editor grows to its content, so
-  // the browser's own scroll anchoring holds the pane in place when a block
-  // widget in it changes height. An editor that scrolls itself takes that job
-  // over with CodeMirror's anchor heuristics, which treat a height change it
-  // did not make as the reader scrolling to the bottom and move the pane. The
-  // focus ring sits outside the scroll container and follows the same tokens
-  // as the site's Input control.
   return (
     <div data-part="slice-editor" className={sliceEditorSliceEditor}>
       <HiddenName id={nameId}>{label}</HiddenName>
@@ -461,7 +404,6 @@ export function SliceEditor({
   );
 }
 
-/** The pane's own selection in master offsets, which is what the host tracks. */
 function sliceSelection(
   view: EditorView,
   {
@@ -471,7 +413,6 @@ function sliceSelection(
   }: {
     readonly sliceFrom: number;
     readonly toStored: (position: number) => number;
-    /** Whether the reader has put the caret in this pane. */
     readonly placed: boolean;
   },
 ): WorkbenchInsertTarget["range"] {

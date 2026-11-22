@@ -22,3 +22,8 @@ This settles one case of the membership ADR-0032 leaves to Pandoc's reading: a n
 - **Promote the nested work into the outer Citation's list**: `(Alpha 2020; Beta 2021)`. This changes the grouping the author wrote and leaves "with" stranded in the outer Item's suffix. It is the obvious-looking fix and the one most likely to be proposed again.
 - **Render the nested work as formatted citation text in the suffix**: `(Alpha 2020 with Beta 2021)`. This needs a second citeproc pass, or a style-dependent splice, for a construct citeproc itself does not support.
 - **Stop every export that has a nested Citation**: this refuses documents Pandoc reads fine and that render sensibly as text.
+
+The Lua filter turns nested literal citations into their citation-key
+text. The sandbox resolves the human key behind its temporary identifier,
+while `nocite` carries the bibliography identifier. The filter adds the
+nested works after any entries the document supplied.

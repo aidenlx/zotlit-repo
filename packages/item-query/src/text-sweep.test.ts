@@ -58,7 +58,6 @@ function title(
     .run(id as number, key);
 }
 
-// Failure modes: Unicode folding, literal wildcards, empty patterns and UTF-8 byte limits.
 it.each([
   ["climate", "%cl%mate%"],
   ["气候", "%气候%"],
@@ -72,7 +71,6 @@ it.each([
   expect(textSweepPattern(text)).toBe(expected);
 });
 
-// Fixed keys for the two stored forms; the expected sets do not call case folding.
 const UPPER = ["ART2FULL"] as const;
 const LOWER = ["BK2MNTH2"] as const;
 const BOTH = ["ART2FULL", "BK2MNTH2"] as const;

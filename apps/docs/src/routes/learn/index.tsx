@@ -63,10 +63,6 @@ export const Route = createFileRoute("/learn/")({
 
 type CourseLesson = Awaited<ReturnType<typeof getCourse>>[number];
 
-/**
- * Where "Continue" leads: the first lesson begun and not done, at its first
- * step not ticked; or, once any lesson is done, the first lesson not done.
- */
 function nextLesson(
   course: CourseLesson[],
   progress: Record<string, LessonProgress>,
@@ -84,8 +80,6 @@ function nextLesson(
 
 function Course() {
   const course = Route.useLoaderData();
-  // Saved progress lives in this browser only, so it is read after mount;
-  // the prerendered page shows the course with no progress.
   const [progress, setProgress] = useState<Record<string, LessonProgress>>({});
   useEffect(() => setProgress(readProgress()), []);
 
@@ -139,7 +133,6 @@ function Course() {
         >
           {m.docs_learn_pick_chore()}
         </h2>
-        {/* From `xl`, three cards over two, as in the prototype's chore grid. */}
         <ul className="grid gap-4 xl:grid-cols-6">
           {chores.map((lesson, index) => (
             <li
@@ -155,7 +148,6 @@ function Course() {
   );
 }
 
-/** The minutes, then "Done" or the count of steps ticked. */
 function Meta({
   lesson,
   progress,
@@ -188,7 +180,6 @@ function Meta({
   );
 }
 
-/** Lesson 1, which every other lesson needs: a card until it is done, then a strip. */
 function StartHere({
   lesson,
   progress,
@@ -278,7 +269,6 @@ function StartHere({
   );
 }
 
-/** One chore: its result, the reader's words, the lesson's title and the minutes. */
 function ChoreCard({
   lesson,
   progress,

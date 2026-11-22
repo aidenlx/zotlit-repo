@@ -12,7 +12,6 @@ const OLD = "views:\n  - type: annotations\n    name: All";
 const NEW = "views:\n  - type: annotations\n    name: All\n    sort: []";
 const NOTE = `---\nzotero-key: ABCD2345\n---\n# Paper\n\n\`\`\`zotquery\n${OLD}\n\`\`\`\n\nAfter the block.\n`;
 
-/** The block's lines in {@link NOTE}: the fence opens on line 5 and closes on line 9. */
 function context(
   text: string | null,
   extra: Partial<MarkdownPostProcessorContext> = {},

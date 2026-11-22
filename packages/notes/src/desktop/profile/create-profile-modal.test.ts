@@ -50,7 +50,6 @@ function fixture() {
     create,
   };
   const prepareCreate = vi.fn(async () => draft);
-  // The note write the dialog hands over; the dialog itself never runs it.
   const writes = { count: 0 };
   const preview: ProfileNoteDraft = {
     path: "Reading/Paper-7cx.md",
@@ -169,8 +168,6 @@ it.each([false, true])(
     });
     expect(f.create).toHaveBeenCalledOnce();
     expect(f.writes.count).toBe(0);
-    // The created Profile is handed to the caller's operation alone; besides
-    // Cancel, the dialog offers no action that keeps it for a later note.
     expect(
       label.mock.instances
         .filter(
@@ -205,8 +202,6 @@ it("says nothing when the dialog's Scope stops the save", async () => {
     .find((button) => button.text === m.settings_profile_add())!
     .click();
   await vi.waitFor(() => expect(f.create).toHaveBeenCalledOnce());
-  // The modal waited on the save first, so its catch has run once this one
-  // does.
   await f.create.mock.results[0]!.value.catch(() => {});
   expect(
     logs.records.filter(

@@ -40,10 +40,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     const created: string[] = [];
     await using cleanup = new AsyncDisposableStack();
-    // The tab closes before the text goes back, so no pending save of the
-    // tab writes over it.
     cleanup.defer(async () => {
-      // Teardown closes a popover a failed step left open; not a reader's press.
       await obRun(
         run.vaultId,
         async (
@@ -92,11 +89,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the expanded Item in the Query File view to list its annotation cards",
       },
     );
-    /** What the Table shows once its query settled. */
 
     interface Table {
       header: string[];
-      /** Every row of the Table in screen order, as its kind and key. */
       rows: [string, string][];
       items: string[];
       attachments: string[];
@@ -185,10 +180,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       return report.rows!;
     };
 
-    // Configure view switches the view's rows to Items. The Layout picker
-    // then offers the layouts of Items, with the Table chosen. The grouping
-    // by Item, which Items lack, stays in the file, and the view says it does
-    // not use it.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -202,7 +193,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // The Configure view page this view's menu opened.
 
     await obRunUntil(
       run.vaultId,
@@ -293,7 +283,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // The view saves as a Table of Items, and keeps its grouping.
     await obRunUntil(
       run.vaultId,
       async ({ app }, { path, expectedBlock }) => {
@@ -311,7 +300,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // The rows are the Items ZotLit Query gives for the view, in its order.
     const items = await query({
       from: "items",
       fields: "title",
@@ -321,8 +309,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(shown.items).toEqual(items.map((row) => row.indexedKey));
     expect(shown.header.at(-1)).toBe(run.m.query_view_table_literature_note());
 
-    // The Item expands into its Attachments, and an Attachment with
-    // Annotations into those Annotations, as ZotLit Query lists them.
     const item = ITEMS.find(
       ({ itemID }) => itemID === annotationAttachment.parentItemID,
     )!.key;
@@ -368,14 +354,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(expanded.annotations).toEqual(
       annotations.map((row) => row.indexedKey),
     );
-
-    // An Attachment link opens the PDF in Obsidian's reader as an Obsidian
-    // link does: a Cmd/Ctrl click and a middle click each in a new tab, so
-    // the Table stays open in its own.
-    // A new tab takes the focus from the Table, so the links are read off
-    // the Query File's own leaf.
-
-    /** A click on `el` with the buttons and keys `init` names, as an eval statement. */
 
     const pdfName = annotationAttachment.path!.split("/").pop()!;
 
@@ -477,8 +455,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(1);
 
-    // An Annotation link opens the PDF at the Annotation's page, with the
-    // Annotation Anchor that lands on its mark.
     const anchored = annotations.find(
       (row) => typeof row.values.pageIndex === "number",
     )!;
@@ -525,8 +501,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
     );
 
-    // An Attachment Obsidian's reader cannot host, such as a web snapshot,
-    // opens in Zotero's reader through its Zotero link.
     const snapshot = ATTACHMENTS.find(({ key }) => key === "HTMLSNAP")!;
     expect(snapshot.parentItemID).toBe(positionDocumentItem.itemID);
     await click(`[data-query-expand="item:${positionDocumentItem.key}"]`);
@@ -565,8 +539,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(`zotero://open/library/items/${snapshot.key}`);
 
-    // An Item with Child Notes expands into them with their titles; its
-    // trashed Child Note stays out.
     const noted = ITEMS.find(({ itemID }) => itemID === 1)!.key;
     const live = NOTES.filter(
       (note) => note.parentItemID === 1 && !note.trashed,
@@ -583,8 +555,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       live.map((note) => [note.key, note.title]),
     );
 
-    // An Item with both Attachments and a Child Note lists its notes after
-    // its Attachments.
     const both = ITEMS.find(({ itemID }) => itemID === 57)!;
     const bothNotes = NOTES.filter(
       (note) => note.parentItemID === both.itemID && !note.trashed,
@@ -619,9 +589,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ...bothNotes.map((note) => ["note", note.key]),
     ]);
 
-    // "Create" asks for a Profile where more than one fits; the new
-    // Literature Note, made with the Profile chosen, then shows as a link in
-    // the column.
     const book = shown.create.find(
       (key) =>
         key === booksProfileTargetItem.key ||
@@ -651,14 +618,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toBe(book);
   }, 180000);
 
-  // Vault properties of Items edit in place in the Table, with trusted
-  // input: a click anywhere in a cell, an empty one too, enters edit; focus
-  // that leaves a list editor from an item commits it; the first edit of a
-  // row with no note creates it; a vault sort and filter run.
   it("edits vault properties in the Table with real input, creates a note on a first edit, and sorts and filters by them", async () => {
     const path = "query-files/Vault properties.zotquery";
-    // Two My Library Items that tie on their date, each with its seeded
-    // Literature Note, and a Lab Archive Item with no note.
     const [tieFirst, tieSecond] = [11, 12].map(
       (itemID) => ITEMS.find((item) => item.itemID === itemID)!.key,
     ) as [string, string];
@@ -795,8 +756,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await raiseWindow(run.vaultId);
 
-    /** The rows of the Table, and the state and text of each vault cell. */
-
     interface Table {
       rows: string[];
       editing: boolean;
@@ -871,7 +830,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       return properties!;
     };
 
-    /** A trusted click, of the `button` given, at the centre of the element `target` evaluates to. */
     const click = async (
       target: {
         key?: string;
@@ -941,7 +899,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           { target, button },
         ),
       ).toBe("clicked");
-    /** A trusted key press, with the modifiers held. */
     const key = async (keyCode: string, modifiers: string[] = []) =>
       obRun(
         run.vaultId,
@@ -961,7 +918,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { keyCode, modifiers },
       );
-    /** Text typed into the focused field, as the keyboard types it. */
     const typeText = async (text: string) =>
       obRun(
         run.vaultId,
@@ -972,8 +928,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { text },
       );
 
-    // An empty cell is a click target across the whole cell, so the first
-    // value of a property goes in with one click (bug A).
     await click({ key: tieSecond, name: "zt-status", part: "td" });
     await obRunUntil(
       run.vaultId,
@@ -993,15 +947,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       (properties) => properties["zt-status"] === "to-read",
     );
 
-    // A cell edits its value in place, its first line where it was at rest,
-    // for each type of property.
-    /**
-     * The top of the first line of a vault cell, from the top of its row: of
-     * its first item for a list, of the field's content box for a field
-     * (and a date at rest, a native field too), else of its first text.
-     */
-
-    /** Open the edit of the cell `name`, and compare its first line with the cell's at rest. */
     const sameLine = async (name: string) => {
       const restLine = await obRun(
         run.vaultId,
@@ -1126,8 +1071,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         `${name}: first line ${restLine} at rest, ${editLine} editing`,
       ).toBeLessThan(0.5);
     };
-    // A number, a date and a list, each left unchanged: Escape closes the
-    // suggestions of a list first, then ends the edit, writing nothing.
     expect(
       await obRun(
         run.vaultId,
@@ -1186,8 +1129,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     }
     await sameLine("zt-status");
-    // The vault's values for the property show as the edit starts, before
-    // a key is typed, as in a Bases cell: those that match the text.
     await obRunUntil(
       run.vaultId,
       async (_context) => {
@@ -1205,8 +1146,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the vault value suggestions to list only the matching unread value",
       },
     );
-    // The field's text, selected, is replaced by what is typed; it matches
-    // vault values, and Shift+Enter keeps the text over the highlighted one.
     await obRun(
       run.vaultId,
       async (_context) => {
@@ -1221,7 +1160,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       (properties) => properties["zt-status"] === "read",
     );
 
-    // A checkbox toggles with one click on it.
     await click({
       key: tieFirst,
       name: "zt-done",
@@ -1232,9 +1170,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       (properties) => properties["zt-done"] === true,
     );
 
-    // A list commits when focus leaves the editor from an item, as a click
-    // outside the Table takes it (bug B). Backspace in the empty field
-    // selects the last item, as in a Bases list cell.
     await click({ key: tieFirst, name: "zt-projects" });
     await obRunUntil(
       run.vaultId,
@@ -1263,9 +1198,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
       { what: "the vault property chip labelled c to take focus" },
     );
-    // While the pill's menu stands it holds the keys: Delete removes no
-    // item, and Escape hides the menu alone, its Scope above the menu's own
-    // The next Escape is the pill's, which gives focus to the field.
     await key("F10", ["shift"]);
 
     await obRunUntil(
@@ -1357,9 +1289,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the vault property chip labelled c to take focus after the menu closes",
       },
     );
-    // A chip edits in place from its menu, as in a Bases list cell: a
-    // right click opens it, Edit makes the chip's text a field, and a comma
-    // stays inside the item.
     await click(
       {
         key: tieFirst,
@@ -1431,7 +1360,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
       { what: "the vault property chip labelled c, d to take focus" },
     );
-    // A click on an empty spot of the view, outside the Table.
     expect(
       await obRun(
         run.vaultId,
@@ -1487,8 +1415,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await tableWhen((table) => !table.editing);
 
-    // The first edit of a row with no note creates the note, then writes
-    // the value to it.
     await click({ key: fresh, name: "zt-status", part: "td" });
     await obRunUntil(
       run.vaultId,
@@ -1505,8 +1431,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await typeText("queued");
     await key("Enter");
-    // Where several Profiles fit the Item, the prompt asks; its first
-    // choice takes it.
     let createdPath: string | null = null;
     expect(
       await waitFor(async () => {
@@ -1546,8 +1470,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       (properties) => properties["zt-status"] === "queued",
     );
 
-    // A vault filter keeps the Items whose note passes it, and a vault sort
-    // breaks the tie of their dates: the higher rank first.
     await obRun(
       run.vaultId,
       async ({ app }, { path, viewYaml }) => {
@@ -1575,13 +1497,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(sorted.rows).toEqual([tieSecond, tieFirst]);
   }, 180000);
 
-  // A vault cell's editor stands over the rows out of the flow: it grows
-  // down from a row in the middle of a Table that scrolls, and up from the
-  // last row, where the box shows nothing below it. Neither open moves a row
-  // or the box's length.
   it("opens a vault cell's editor down from a middle row and up from the last row, inside the box, with no row moved", async () => {
     const path = "query-files/Editor side.zotquery";
-    // The vault cells showcase notes, the paper with the longest note last.
     const keys = [
       "BUSH45AA",
       "GRFLD55A",
@@ -1596,8 +1513,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const layout = await obRun(run.vaultId, ({ app }) =>
       JSON.stringify(app.workspace.getLayout()),
     );
-    // The middle paper's note holds the last one's long note too, so the
-    // side follows the row's place alone.
     const seeded = await obRun(
       run.vaultId,
       async ({ app, zotlit }, { last, middle }) => {
@@ -1663,8 +1578,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path, keys },
     );
     await raiseWindow(run.vaultId);
-    // The Table stands in a box five rows tall under its header, so it
-    // scrolls, with the long note on its middle and its last row.
     const rows = await obRunUntil(
       run.vaultId,
       async ({ app }, { middle, text }) => {
@@ -1715,8 +1628,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       }),
       true,
     );
-    // An empty cell on the last row opens one line tall and opens up too, so
-    // the text the reader types wraps over the rows above, inside the box.
     const typed = await openEditorAt(run.vaultId, {
       key: last,
       name: "summary",
@@ -1727,8 +1638,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(typed.caret, "the caret shown at the end of the text").toBe(true);
   }, 120_000);
 
-  // A List or Cards view of Items gathers its rows by a grouping whose
-  // fields it does not show, as the Table does.
   it("groups a List and Cards view of Items by item type, Collection and tag, as the Table does", async () => {
     const layout = await obRun(
       run.vaultId,

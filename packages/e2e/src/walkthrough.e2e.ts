@@ -3,7 +3,6 @@ import { basename, join } from "node:path";
 import type { MarkdownView } from "obsidian";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
-// The End-to-end vault holds the Resource Pack installed and not enabled.
 import { RESOURCE_PACK_ID } from "@zotlit/plugin-services/core/managed-binary/resource-pack.ts";
 import type { SearchHit } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
@@ -37,8 +36,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
   registerRunVaultGuard(() => vaultId, { leftovers: false });
   beforeAll(async () => {
     await clearVault(run, path);
-    // The Resource Pack holds the Pandoc engine. It is installed and not
-    // enabled, the state Obsidian leaves it in after an install.
     const opened = await run([
       "open",
       path,
@@ -89,7 +86,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
 
         const { waitFor } = page;
         await using cleanup = new AsyncDisposableStack();
-        // Ioannidis is cited only in this Fixture chapter; other walkthroughs cite Rougier.
         const chapter = app.vault.getFileByPath(
           "Thesis/Chapter 3 - Presenting the results.md",
         )!;
@@ -246,7 +242,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
               el.querySelector<HTMLElement>(".modal-title")?.textContent ===
               "Export with citations",
           );
-        // Teardown dismisses whatever dialog is left, not a reader's press.
         cleanup.defer(() =>
           dialog()
             ?.parentElement!.querySelector<HTMLElement>(".modal-bg")
@@ -792,8 +787,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
     for (const gesture of [result.plain, result.drag, result.extend]) {
       expect(gesture.source).toBe(source);
     }
-    // The stub records the open and hands the bridge an Effect that changes
-    // nothing (`navigationEnabled`), so no note opens.
     const navigation = await obRun(
       vaultId,
       async ({ app: host, zotlit, page }) => {
@@ -882,17 +875,9 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
         app.workspace.setActiveLeaf(leaf, { focus: true });
         const view = leaf.view as MarkdownView;
         cleanup.defer(() => view.hoverPopover?.hide());
-        // The reading view formats the citation once its render settles and
-        // may draw it again meanwhile, so each citation element that stands is
-        // hovered once, until a popover opens over one. Hovering one element
-        // again would restart the popover's opening delay. A popover that
-        // closed while its citation still stands hid itself and fails the
-        // case; one that closed with its citation drawn again is hovered again
-        // over the new element.
         let opened = false;
         let hovered: HTMLElement | null = null;
         let hovers = 0;
-        // Awaited here, so the cleanup stack runs after the read.
         return await until(
           "the Citation Popover entries of the hovered citation",
           () => {
@@ -1432,8 +1417,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
   });
 
   it("keeps the viewport and unsaved writing when an update replaces multiple callouts", async () => {
-    // The default Profile shows Annotations in a Query Block; a default
-    // document that lists them puts one callout per Annotation in the note.
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
       await obRun(
@@ -1575,7 +1558,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
     );
   });
 
-  // A live Explorer offers snippets for the permitted engines.
   it("updates Explorer template actions when JavaScript permission changes", async () => {
     const result = await obRun(vaultId, async ({ app: host, zotlit, page }) => {
       const app = host as WalkthroughApp;
@@ -1771,8 +1753,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
         mainSamples: 0,
         customized: true,
       });
-      // The template's Query Block shows a placeholder in the note preview,
-      // which lists its view and finds no problem in its text.
       await obRunUntil(
         vaultId,
         async ({ page }) => {
@@ -1801,8 +1781,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
 
   it("finds a paper in Choose item and previews its callouts with native paragraph styling", async () => {
     const m = await import("@zotlit/plugin-messages/messages.ts");
-    // The default Profile shows Annotations in a Query Block; a default
-    // document that lists them puts one callout per Annotation in the note.
     const original = await obRun(
       vaultId,
       async ({ app: host, zotlit }) => {
@@ -1856,8 +1834,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       undefined,
     );
 
-    // Opening the layout can move and reload the editor. Use the button only
-    // after its companion panes arrive in the same popout document.
     await obRunUntil(
       vaultId,
       async ({ zotlit, page }, { label }) => {
@@ -1873,7 +1849,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           )?.view;
         const doc = view?.contentEl?.ownerDocument;
         const ready = doc && doc !== document && !!page.previewPanel(view);
-        // The reader presses Choose item in the view's item row.
         const trigger =
           ready &&
           Array.from(page.itemRow(view)?.querySelectorAll("button") ?? []).find(
@@ -1917,7 +1892,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
         what: "the Choose item search input in the workbench to appear",
       },
     );
-    // The results are `aria-busy` while they answer an earlier query.
 
     await obRunUntil(
       vaultId,
@@ -2043,8 +2017,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
               leaf.detach();
           await app.vault.modify(file, original);
         });
-        // The built-in Profile writes its note name as a block scalar, which
-        // YAML holds as written; a hand-written Profile quotes it.
         const lines = original.split("\n");
         const at = lines.indexOf("filename: |");
         if (at < 0) throw new Error("Block note name");
@@ -2068,8 +2040,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           "Profile Editor",
         );
         const el = view()!.contentEl;
-        // The layout can still be moving the editor into its popout; press a
-        // tab once the reader can see it.
         const open = async (label: string) =>
           press(
             await until(
@@ -2161,7 +2131,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
 
   it("previews the full note path in the Profile editor and creates the note there", async () => {
     const m = await import("@zotlit/plugin-messages/messages.ts");
-    // A paper no other walkthrough keeps a note for, so creation is not refused.
     const title = "Why Most Published Research Findings Are False";
     const result = await obRun(
       vaultId,
@@ -2191,7 +2160,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
               leaf.detach();
         };
         detach();
-        // The paper is searchable once the item index answers.
         let hits: SearchHit[] = [];
         const hit = await until(
           "Paper not found",
@@ -2233,7 +2201,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           "Profile editor",
         );
         const el = view()!.contentEl;
-        // Choose item has its own walkthrough; this one starts from the paper.
         if (
           !(await services.bridge.runPromise(
             view()!.selectItem({ id: hit.item.indexedKey, title: noteTitle }),
@@ -2254,7 +2221,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           true,
           "Preview under the Profile folder",
         );
-        // A slash in the note name makes a subfolder under the folder.
         const nameEditor = () =>
           Array.from(el.querySelectorAll<HTMLElement>(".cm-content")).find(
             (content) =>
@@ -2276,7 +2242,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           userEvent: "input.type",
         });
         await waitFor(preview, expectedPreviewPath, "Preview with a subfolder");
-        // A folder override moves the whole preview.
         const label = Array.from(
           el.querySelectorAll<HTMLLabelElement>("label[for]"),
         ).find((label) => label.textContent === folderLabel);
@@ -2301,7 +2266,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           "Preview under the overridden folder",
         );
         await view()!.save();
-        // The Profile takes the saved document once the template recompiles.
         await waitFor(
           () =>
             services.bridge.runSync(services.profile.resolveProfile(profile.id))
@@ -2517,7 +2481,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       },
       undefined,
     );
-    // Obsidian lists no Resource Pack, as before its install.
     await obRun(
       vaultId,
       async ({ app, page }, { RESOURCE_PACK_ID }) => {
@@ -2684,8 +2647,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           `${m.settings_resource_pack_status_absent()} ${m.settings_citation_engine_fallback()}`,
       },
     );
-    // The row's one action opens the pack's page in the community plugin
-    // browser, and the row states the licence of Pandoc with its source.
     expect(
       await obRun(
         vaultId,
@@ -2738,8 +2699,6 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       },
       undefined,
     );
-    // The pack installed during the session: the next read of it gives the
-    // engine, and the preview formats the citation.
     expect(await installPack()).toBe("ready");
     await obRunUntil(
       vaultId,

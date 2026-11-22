@@ -1,4 +1,3 @@
-// Generates src/field-labels.ts: Zotero's own field labels for the bundled locales.
 import { writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
@@ -14,7 +13,6 @@ interface ZoteroSchemaLocale {
   readonly fields: Readonly<Record<string, string>>;
 }
 
-/** Locales whose field labels are bundled with the plugin. */
 const LOCALES = ["en-US", "zh-CN"] as const;
 
 const packageRoot = resolve(import.meta.dirname, "..");

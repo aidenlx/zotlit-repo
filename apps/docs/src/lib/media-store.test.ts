@@ -10,8 +10,6 @@ import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { mediaStorePlugin, scanVideos, uploadMissing } from "./media-store.ts";
 import type { SignedFetch } from "./media-store.ts";
 
-// The fixture's two videos and the keys their bytes give: the first 8 hex
-// digits of each file's SHA-256 (`shasum -a 256`), worked out by hand.
 const lessonBytes = Buffer.alloc(2048, "a");
 const landingBytes = Buffer.alloc(3000, "b");
 const lessonKey = "learn/demo/step-1.b2a3a502.mp4";
@@ -56,7 +54,6 @@ describe("scanVideos", () => {
   });
 });
 
-/** R2's S3 API as the uploader sees it: HEAD answers what the bucket holds, PUT stores. */
 function fakeBucket(held: string[] = [], headStatus?: number) {
   const objects = new Map<string, { body: Buffer; headers: Headers }>(
     held.map((key) => [
@@ -138,7 +135,6 @@ describe("uploadMissing", () => {
 });
 
 describe("mediaStorePlugin", () => {
-  /** A production build of an entry that exports the define, and its output folder. */
   async function buildSite() {
     await writeFile(
       join(packageRoot, "entry.js"),
@@ -171,7 +167,6 @@ describe("mediaStorePlugin", () => {
       "/img/landing/find.mp4": `${origin}/${landingKey}`,
       "/img/learn/demo/step-1.mp4": `${origin}/${lessonKey}`,
     });
-    // The keys the uploader sends are the ones the pages point at.
     const bucket = fakeBucket();
     await uploadMissing(scanVideos(packageRoot), {
       fetch: bucket.fetch,

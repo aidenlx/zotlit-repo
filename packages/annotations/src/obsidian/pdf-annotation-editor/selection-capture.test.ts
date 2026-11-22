@@ -7,28 +7,15 @@ import type { OverlayPageView } from "./render.ts";
 import { selectionPagesOf } from "./selection-capture.ts";
 import type { ClientBox } from "./selection-capture.ts";
 
-/**
- * A US Letter page as PDF.js lays it out at 150 %: the matrix is the one
- * `PageViewport` builds for an unrotated page, so the inverse this module
- * applies is the exact inverse of `convertToViewportPoint`.
- *
- * @see https://github.com/mozilla/pdf.js/blob/v5.3.31/src/display/display_utils.js
- */
 const SCALE = 1.5;
 const PAGE_HEIGHT = 792;
 const PAGE_WIDTH = 612;
 const UNROTATED = [SCALE, 0, 0, -SCALE, 0, PAGE_HEIGHT * SCALE];
 
-/** The same page turned a quarter turn clockwise, as `rotation: 90` builds it. */
 const ROTATED_90 = [0, SCALE, SCALE, 0, 0, 0];
 
-/** The desktop reader's page border at this zoom, in client pixels. */
 const BORDER = 6;
 
-/**
- * One page element with a text layer of one span per string, laid out with
- * its content box at `(left, top)` inside a border of {@link BORDER}.
- */
 function readerPage(
   spans: readonly string[],
   {
@@ -65,14 +52,9 @@ function readerPage(
   return { div, layer, box };
 }
 
-/** The text node of a layer's nth span. */
 const textOf = (layer: Element, index: number) =>
   layer.children[index]!.firstChild!;
 
-/**
- * Seeds the boxes the browser would lay out: `text` for any range over a text
- * node, and the whole page for any range over an element.
- */
 function layOut(text: ClientBox, page: ClientBox) {
   vi.spyOn(Range.prototype, "getClientRects").mockImplementation(function (
     this: Range,
@@ -82,7 +64,6 @@ function layOut(text: ClientBox, page: ClientBox) {
   });
 }
 
-/** The client box a PDF-point rectangle occupies on an unrotated page. */
 function clientBoxOf(
   [x1, y1, x2, y2]: readonly [number, number, number, number],
   box: ClientBox,
@@ -95,7 +76,6 @@ function clientBoxOf(
   };
 }
 
-/** Rounded only for the comparison; the capture itself keeps every digit. */
 function rounded(rects: readonly (readonly number[])[]): number[][] {
   return rects.map((rect) =>
     rect.map((value) => Math.round(value * 1e3) / 1e3),
@@ -153,8 +133,6 @@ it("leaves an end open where the selection runs on past the page", () => {
 });
 
 it("takes boxes from the selected text alone, never from the page's elements", () => {
-  // A range over a page break holds the canvas and the end-of-content element
-  // whole, and the browser answers the whole page's box for them.
   const first = readerPage(["end of one"]);
   const second = readerPage(["start of two"], { top: 2000 });
   const text = clientBoxOf([58, 600, 211, 610], first.box);
@@ -200,7 +178,6 @@ it("clips a box that overhangs the page to the page box", () => {
 
   const [page] = selectionPagesOf(range, [{ pageIndex: 0, view: view(div) }]);
 
-  // The clip leaves the page's own upper-left corner: x from 0, y from the top.
   expect(rounded(page!.rects)).toEqual([
     [0, PAGE_HEIGHT - 100, 100, PAGE_HEIGHT],
   ]);
@@ -212,8 +189,6 @@ it("reads a rotated page through the same inverse", () => {
     width: PAGE_HEIGHT * SCALE,
     height: PAGE_WIDTH * SCALE,
   });
-  // On a page turned a quarter turn, a PDF point (x, y) lands at
-  // (y * scale, x * scale), so this client box is the PDF box [10, 20, 30, 40].
   layOut(
     {
       left: 20 * SCALE,

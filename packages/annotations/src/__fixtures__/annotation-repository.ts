@@ -14,11 +14,6 @@ import type { Duration } from "effect";
 import { TestClock } from "effect/testing";
 import { vi } from "vitest";
 
-// The Annotation Repository over a real query client and a real Zotero Local
-// API client, with a fake transport under it: the seam every surface reads and
-// writes through. The repository's own suite and the reader suites build on it,
-// so a reader test sees the pending, failed and conflicted states the
-// repository itself produces.
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
@@ -81,14 +76,6 @@ import type { GeometryEdit, TextField } from "#obsidian/annotation-repository/wr
 
 export const NOW = toInstant(DateTime.makeUnsafe("2026-09-16T15:52:21Z"));
 
-// The Fixture's own rows are the oracle: the same item ids, keys, types,
-// colours, sort indexes and positions it builds on `rougier-2014.pdf`, which
-// carries one Annotation of each of Zotero's six types. The two ink strokes
-// keep the first three points of the Fixture's path — the repository moves a
-// position through unchanged, so the rest of the stroke proves nothing. The
-// EPUB attachment is not in the Fixture: it is seeded here so the content type
-// the position is narrowed by is observable.
-// @see packages/scripts/lib/fixture/spec.ts — `ANNOTATIONS`
 export const FIXTURE_ROWS = `
   insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
     values
@@ -137,27 +124,18 @@ export const FIXTURE_ROWS = `
         '{"type":"FragmentSelector","value":"epubcfi(/6/4!/4/2)"}', 0);
 `;
 
-/** A Remembered Write Authorization, so no gesture stands between a command and Zotero. */
 export const REMEMBERED_KEY = "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf";
 
-/**
- * The repository over a Zotero Local API session that already holds a Write
- * Authorization, with the Fixture's Annotations read into its partition — the
- * state a card is in when the user reaches for a verb.
- */
 export async function writable(
   stack: AsyncDisposableStack,
   answers: ZoteroAnswers = {},
   options: {
     key?: string;
     writeToken?: () => string;
-    /** The Annotations Zotero imported from the PDF file, by key. */
     external?: readonly string[];
   } = {},
 ) {
   const { writeToken, external } = options;
-  // Named as `undefined` means "no Remembered Authorization", which is not the
-  // same as leaving it out.
   const key = "key" in options ? options.key : REMEMBERED_KEY;
   const harness = await setup(
     stack,
@@ -173,7 +151,6 @@ export async function writable(
   return harness;
 }
 
-/** One Fixture Annotation as Zotero answers it once a write has landed. */
 export function afterWrite(
   key: string,
   patch: Partial<WireAnnotation>,
@@ -183,7 +160,6 @@ export function afterWrite(
   return { ...record, ...patch };
 }
 
-/** Read once so the Capability Probe runs, and wait for the source it finds. */
 export async function switchToLocalApi(
   repository: RepositoryClient,
 ): Promise<void> {
@@ -192,27 +168,16 @@ export async function switchToLocalApi(
   await announced;
 }
 
-/**
- * The repository over a real query client and a real Zotero Local API client,
- * with a fake transport under it: the seam a surface reads through, driven by
- * the answers a Paired Run recorded.
- *
- * @param answers what Zotero answers. The default is a Zotero that is not
- *   running, so the Zotero DB is the source.
- */
 export async function setup(
   stack: AsyncDisposableStack,
   answers: ZoteroAnswers = { root: unreachable },
   options: ClientOptions & {
     writeToken?: () => string;
-    /** What this device's persisted Excerpt Images were made from, by Annotation. */
     persistedExcerpt?: (
       annotation: AnnotationRecord,
       source: AnnotationSource,
     ) => Promise<string | null>;
-    /** The Annotations Zotero imported from the PDF file, by key. */
     external?: readonly string[];
-    /** The Fixture's rows in a group library, not the personal library. */
     group?: GroupLibrary;
   } = {},
 ) {
@@ -246,8 +211,6 @@ export async function setup(
       PubSub.publishUnsafe(dbBus, { _tag: "changed" });
     },
   };
-  // A rejection from a test's mock stands for a database that cannot answer,
-  // the failure the real service reports.
   const unavailable = (error: unknown) =>
     error instanceof DbUnavailable
       ? error
@@ -286,9 +249,6 @@ export async function setup(
       } as ZoteroPrefSnapshot),
     }),
   );
-  // Each persisted-excerpt baseline takes a lease of its own before it asks
-  // the store, so a test that counts the repository's batch reads subtracts
-  // these (see `batchReads`).
   const excerptBaselines = vi.fn();
   const excerptImages = stubService<ExcerptImageService["Service"]>(
     "ExcerptImageService",
@@ -305,8 +265,6 @@ export async function setup(
     },
   );
 
-  // One TestClock for every layer in this runtime, which `dateAdded` windows
-  // and retention are read against; a test moves it through `runtime`.
   const runtime = buildRuntime(
     Layer.mergeAll(
       Layer.succeed(ZoteroReads, readsService),
@@ -337,7 +295,6 @@ export async function setup(
     bridge,
     runtime,
   });
-  // The repository reads the harness runtime's TestClock, not the case's.
   const layerClock = Context.get(dependencies, Clock.Clock);
   const adjustLayerClock = (duration: Duration.Input) =>
     TestClock.adjust(duration).pipe(
@@ -363,22 +320,11 @@ export async function setup(
   };
 }
 
-/**
- * The stack an `it.effect` case builds its harness on: {@link setup} and
- * {@link writable} add to it, and the case's Scope disposes it. The
- * repository reads the TestClock of the harness's `runtime`, not the case's
- * own: a case moves the repository's time through `runtime`.
- */
 export const scopedStack = Effect.acquireRelease(
   Effect.sync(() => new AsyncDisposableStack()),
   (stack) => Effect.promise(() => stack.disposeAsync()),
 );
 
-/**
- * Read `read` task by task until `done` accepts its answer. A save that a
- * timer started on the TestClock runs on to the fake Zotero's Promises, which
- * `TestClock.adjust` does not wait for.
- */
 export function eventually<A, E, R>(
   read: Effect.Effect<A, E, R>,
   done: (value: A) => boolean,
@@ -389,7 +335,6 @@ export function eventually<A, E, R>(
   );
 }
 
-/** Wait until the save in flight lands and the text draft of `field` ends. */
 export function settledDraft(
   service: AnnotationRepository["Service"],
   field: TextField,
@@ -432,10 +377,6 @@ type PromiseMember =
 
 type Shape = AnnotationRepository["Service"];
 
-/**
- * The tag's members as plain calls: a member that waits answers a Promise,
- * the others their value; `capability` reads as a value and `probe` is a call.
- */
 type PlainMembers = {
   [K in Exclude<keyof Shape, "capability" | "probe">]: Shape[K] extends (
     ...args: infer P
@@ -473,7 +414,6 @@ const PROMISE_MEMBERS = new Set<PropertyKey>([
   "undo",
 ]);
 
-/** The tag and bridge behind the synchronous repository surface used by tests. */
 export function repositoryClient(
   service: AnnotationRepository["Service"],
   bridge: EffectBridge,
@@ -539,11 +479,6 @@ export function repositoryClient(
   });
 }
 
-/**
- * Fake wall-clock timers while leaving task dispatch real. Obsidian Effects
- * use MessageChannel; direct upstream Effects in Node tests can still use
- * setImmediate. Faking task dispatch stalls database reads.
- */
 export function useFakeTimers(): void {
   vi.useFakeTimers({
     toFake: [
@@ -556,10 +491,6 @@ export function useFakeTimers(): void {
   });
 }
 
-/**
- * A ZoteroReads lease over another database `client`: what a read that
- * started before a refresh holds.
- */
 export function leaseOver(
   stack: AsyncDisposableStack,
   client: ReturnType<typeof createClient>,
@@ -569,10 +500,6 @@ export function leaseOver(
     .acquireRead();
 }
 
-/**
- * Zotero imports one Annotation from the PDF file, as an External Annotation.
- * A database refresh is what tells the repository.
- */
 export function markExternal(
   client: ReturnType<typeof createClient>,
   key: string,
@@ -584,27 +511,15 @@ export function markExternal(
     .run(key);
 }
 
-/** The group library the Fixture's rows move into, as the Zotero database holds it. */
 export const GROUP_ID = 4711;
 
-/** The Fixture's Attachment, by its Indexed Key in {@link GROUP_ID}. */
 export const GROUP_ATTACHMENT = `RGRPDF24g${GROUP_ID}`;
 
-/** Who created what in a group library, and who the database says is signed in. */
 export interface GroupLibrary {
-  /**
-   * The creator of each Annotation, by bare key. A key left out has no
-   * `groupItems` row; a `null` has one with no creator.
-   */
   createdBy: Readonly<Record<string, number | null>>;
-  /** The account user ID of the database identity; left out, the account never synced. */
   userID?: number;
 }
 
-/**
- * Move the Fixture's PDF item, Attachment and Annotations into a group
- * library, with the creators Zotero keeps for a group item.
- */
 function moveToGroup(
   client: ReturnType<typeof createClient>,
   { createdBy, userID }: GroupLibrary,
@@ -633,10 +548,6 @@ function moveToGroup(
     ).run(userID);
 }
 
-/**
- * Runs `push` on each value a repository stream announces, on a fiber of the
- * case that starts at once and ends with the case.
- */
 export function collect<A>(
   stream: Stream.Stream<A>,
   push: (value: A) => Effect.Effect<unknown>,
@@ -649,7 +560,6 @@ export function collect<A>(
   );
 }
 
-/** The next `annotations-changed` the repository emits, as a completion signal. */
 export function nextChange(
   repository: RepositoryClient,
 ): Promise<readonly string[]> {
@@ -665,12 +575,6 @@ export function nextChange(
   });
 }
 
-/**
- * The next `annotations-changed` the repository emits, as a completion signal
- * for an `it.effect` case. It subscribes to the service stream at once; the
- * Effect it answers waits for the first announcement and the ones the same
- * step makes, and answers their keys.
- */
 export function nextChangeOf(
   service: Shape,
 ): Effect.Effect<Effect.Effect<readonly string[]>> {
@@ -691,10 +595,6 @@ export function nextChangeOf(
   );
 }
 
-/**
- * Read once so the Capability Probe runs, and wait for the source it finds:
- * the {@link switchToLocalApi} of an `it.effect` case.
- */
 export const switchServiceToLocalApi = Effect.fnUntraced(function* (
   service: Shape,
   attachmentKey = "RGRPDF24",
@@ -704,31 +604,20 @@ export const switchServiceToLocalApi = Effect.fnUntraced(function* (
   yield* announced;
 });
 
-/**
- * A Zotero that keeps everything ZotLit writes to it — a patch of any field, an
- * erase, and a create it answers with a key of its own, as Zotero 10 does with
- * the client-supplied key it refuses. What the Local API holds is the oracle
- * every assertion reads through; nothing asks the repository what it thinks.
- *
- * @param seed the Annotations of `RGRPDF24` it starts with.
- */
 export function zoteroLibrary(
   seed: readonly WireAnnotation[] = ROUGIER_ANNOTATIONS,
 ) {
   const held = new Map<string, WireAnnotation>(
     seed.map((entry) => [entry.key, { ...entry }]),
   );
-  /** The keys this Zotero hands out, in order, for the creates it takes. */
   const generated = ["MADE2345", "MADE2346", "MADE2347", "MADE2348"];
   let made = 0;
-  /** The answer the next write gets in place of the stored one. */
   let next: ((request: ZoteroRequest) => Promise<Response> | Response) | null =
     null;
   let hold: Promise<void> | null = null;
   let running = true;
   const keyOf = ({ url }: ZoteroRequest): string =>
     url.pathname.split("/").at(-1) ?? "";
-  // Zotero writes a type for an automatic tag only.
   const storedTags = (tags: Required<WireTag>[]) =>
     tags.map(({ tag, type }) => (type === 0 ? tag : { tag, type }));
   const create = (request: ZoteroRequest): Response => {
@@ -744,7 +633,6 @@ export function zoteroLibrary(
     }[];
     const key = generated[made++];
     if (!body || key === undefined) return createRefused();
-    // A create in a group library lands there: `/api/groups/<id>/items`.
     const [, , library, groupID] = request.url.pathname.split("/");
     const record: WireAnnotation = {
       key,
@@ -818,39 +706,29 @@ export function zoteroLibrary(
         return patch(request);
       },
     } satisfies ZoteroAnswers,
-    /** What the Local API holds for one Annotation, or `null` once erased. */
     at(key: string): WireAnnotation | null {
       return held.get(key) ?? null;
     },
-    /** An edit made in Zotero itself, beside ZotLit. */
     changeInZotero(key: string, patch: Partial<WireAnnotation>): void {
       const entry = held.get(key);
       if (entry)
         held.set(key, { ...entry, ...patch, version: entry.version + 1 });
     },
-    /** An erase in Zotero itself. */
     eraseInZotero(key: string): void {
       held.delete(key);
     },
-    /** Zotero quits, so its Local API stops answering. */
     quit(): void {
       running = false;
     },
-    /** An Annotation put back in Zotero itself, out of its trash. */
     restoreInZotero(key: string): void {
       const entry = seed.find((candidate) => candidate.key === key);
       if (entry) held.set(key, { ...entry, version: entry.version + 1 });
     },
-    /**
-     * Answer the next write with `answer` in place of storing it: a refusal,
-     * a lost reply, or a reply held open.
-     */
     answerNextWrite(
       answer: (request: ZoteroRequest) => Promise<Response> | Response,
     ): void {
       next = answer;
     },
-    /** Hold every write until the returned release is called. */
     holdWrites(): () => void {
       const { promise, resolve } = Promise.withResolvers<void>();
       hold = promise;
@@ -867,16 +745,11 @@ type ReadCounters = Pick<
   "acquireRead" | "excerptBaselines"
 >;
 
-/** Start counting the repository's database reads from zero. */
 export function clearReads(counters: ReadCounters): void {
   counters.acquireRead.mockClear();
   counters.excerptBaselines.mockClear();
 }
 
-/**
- * The batch reads the repository took: every lease, less the one each
- * Annotation's persisted-excerpt baseline takes for its saved request.
- */
 export function batchReads(counters: ReadCounters): number {
   return (
     counters.acquireRead.mock.calls.length -
@@ -884,7 +757,6 @@ export function batchReads(counters: ReadCounters): number {
   );
 }
 
-/** Every Annotation of `RGRPDF24`, in the reading order its sort indexes give. */
 const READING_ORDER = [
   ["TYY6Z6ZF", "ink"],
   ["4PE492KU", "ink"],
@@ -902,7 +774,6 @@ const DATABASE_SOURCE = {
   libraryRevision: 37,
 } as const;
 
-/** The Annotation one create asks Zotero for, in the reader's own words. */
 const DRAFT = {
   type: "highlight",
   color: "#FFD400",
@@ -916,7 +787,6 @@ const DRAFT = {
   },
 } as const;
 
-/** The Annotation Zotero answers a create with, and reads back afterwards. */
 const MADE: WireAnnotation = {
   key: "MADE2345",
   version: 42,
@@ -932,19 +802,12 @@ function colorOf(list: AnnotationList | null, key: string): string | null {
   return list?.annotations.find((record) => record.key === key)?.color ?? null;
 }
 
-/** Every stored Annotation row, as an oracle for "nothing was written". */
 function annotationRows(client: NodeDatabaseClient): unknown[] {
   return client.$client
     .prepare("select * from itemAnnotations order by itemID")
     .all();
 }
 
-/**
- * A Zotero that keeps what a patch sends, Annotation by Annotation, so every
- * later read answers the colour and comment the last accepted write asked for.
- * What the Local API holds is the oracle an undo is read through; nothing here
- * asks the history what it thinks.
- */
 function zoteroHolding(annotationKey: string) {
   const held = new Map<string, WireAnnotation>(
     ROUGIER_ANNOTATIONS.map((entry) => [entry.key, { ...entry }]),
@@ -958,7 +821,6 @@ function zoteroHolding(annotationKey: string) {
       const stored = held.get(entry.key);
       return stored ? [stored] : [];
     });
-  /** The item key a route names, which is its last segment. */
   const keyOf = ({ url }: ZoteroRequest) =>
     url.pathname.slice(url.pathname.lastIndexOf("/") + 1);
   return {
@@ -1003,15 +865,12 @@ function zoteroHolding(annotationKey: string) {
         return writeAccepted();
       },
     } satisfies ZoteroAnswers,
-    /** What the Local API holds for the Annotation, or `null` once erased. */
     get held(): WireAnnotation | null {
       return held.get(annotationKey) ?? null;
     },
-    /** What it holds for any other Annotation of the same Attachment. */
     heldOf(key: string): WireAnnotation | null {
       return held.get(key) ?? null;
     },
-    /** An edit made in Zotero itself, beside ZotLit. */
     changeInZotero(patch: Partial<WireAnnotation>): void {
       const stored = held.get(annotationKey);
       if (stored) {
@@ -1022,23 +881,15 @@ function zoteroHolding(annotationKey: string) {
         });
       }
     },
-    /** An erase in Zotero itself. */
     eraseInZotero(): void {
       held.delete(annotationKey);
     },
-    /** Refuse the next write with the `412` a moved object answers. */
     refuseNextWrite(): void {
       refuseOnce = true;
     },
   };
 }
 
-/**
- * Where a Geometry Edit puts each seeded mark, one step at a time: the whole
- * rectangle a nudge or a drag moved down the page, and the Sort Index the new
- * place gives it. Written out rather than computed, so the values a write
- * rounds are the values the Local API is read back for.
- */
 const MOVES: Readonly<Record<string, readonly GeometryEdit[]>> = {
   PUPR5FG5: [
     {
@@ -1065,22 +916,14 @@ const MOVES: Readonly<Record<string, readonly GeometryEdit[]>> = {
   ],
 };
 
-/** One step of {@link MOVES}, as a Geometry Edit the reader would have made. */
 function moved(annotationKey: string, step = 0): GeometryEdit {
   const edit = MOVES[annotationKey]?.[step];
   if (!edit) throw new Error(`No move ${step} for ${annotationKey}`);
   return edit;
 }
 
-/** A tag as a tag `PATCH` sends it: always with its type. */
 type SentTag = Required<WireTag>;
 
-/**
- * A Zotero holding one Annotation's tags and comment. It keeps the whole list a
- * tag `PATCH` names and answers `412` to a body version it does not hold, as the paired
- * probe recorded: what Zotero received and holds is the
- * oracle, never the draft.
- */
 function zoteroTagging(
   annotationKey: string,
   tags: NonNullable<WireAnnotation["tags"]>,
@@ -1110,7 +953,6 @@ function zoteroTagging(
         if (body.version !== stored.version) return staleVersionPatch();
         stored = {
           ...stored,
-          // Zotero writes a type for an automatic tag only.
           ...(sent && {
             tags: sent.map(({ tag, type }) =>
               type === 0 ? tag : { tag, type },
@@ -1125,9 +967,7 @@ function zoteroTagging(
         return writeAccepted();
       },
     } satisfies ZoteroAnswers,
-    /** Every tag `PATCH` body Zotero received. */
     patches,
-    /** The tags Zotero holds, as the wire writes them. */
     get tags() {
       return stored.tags;
     },
@@ -1137,11 +977,9 @@ function zoteroTagging(
     get text() {
       return stored.text;
     },
-    /** An edit made in Zotero itself, beside ZotLit. */
     changeInZotero(patch: Partial<WireAnnotation>): void {
       stored = { ...stored, ...patch, version: stored.version + 1 };
     },
-    /** Hold every write until `release` is called. */
     holdWrites(): () => void {
       const { promise, resolve } = Promise.withResolvers<void>();
       hold = promise;
@@ -1153,7 +991,6 @@ function zoteroTagging(
   };
 }
 
-/** The Fixture's highlight with a manual, an automatic, and a manual tag. */
 const TAGGED = ["review", { tag: "nlp", type: 1 }, "todo"] as const;
 
 export {

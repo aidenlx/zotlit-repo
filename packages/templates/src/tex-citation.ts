@@ -1,24 +1,10 @@
-// Complete formatting for the LaTeX and BibLaTeX citation command source form.
-
 import { assertCitationItems } from "./citation-items.ts";
 import type { CitationItemInput, CitationLocator } from "./citation-items.ts";
 
-/** A TeX control word, optionally starred: `cite`, `autocite`, `autocite*`. */
 const CONTROL_WORD = /^[A-Za-z]+\*?$/u;
 
-/**
- * Characters that end or re-scope `\command{...}` before the key list does.
- * `_`, `:`, `-`, and `.` stay legal, since Better BibTeX's own key styles use
- * them and LaTeX never typesets a key it only writes to the `.aux` file.
- */
 const UNSAFE_KEY = /[\s,\\{}%#~$^&]/u;
 
-/**
- * An unescaped `%` comments out the rest of the line, which would swallow the
- * command's own closing brace without any error. Every other TeX special in an
- * affix fails loudly at compile time, so this is the one that has to be caught
- * here.
- */
 const UNESCAPED_COMMENT = /(?<!\\)%/u;
 
 export type TexCitationErrorCode =
@@ -61,7 +47,6 @@ export class TexCitationError extends Error {
   }
 }
 
-/** The affix parts one optional argument carries, in postnote order. */
 const AFFIX_PARTS = [
   ["prefix", (item: CitationItemInput) => item.prefix],
   ["locator", (item: CitationItemInput) => locatorText(item.locator)],
@@ -71,27 +56,6 @@ const AFFIX_PARTS = [
   (item: CitationItemInput) => string | null,
 ])[];
 
-/**
- * Format Citation Items as one LaTeX citation command. Every retained item
- * joins a single key list, and the first retained item's Citation Prefix and
- * Locator/Citation Suffix become the command's prenote and postnote — the only
- * two slots the source form has, which is why a later item carrying either one
- * is unrepresentable rather than silently dropped.
- *
- * An affix reaches LaTeX as source, so `\emph{see}` renders as emphasis. Only
- * what would change the command's own structure is rejected or encoded.
- *
- * Note that the two-optional-argument form the prenote needs is BibLaTeX's and
- * natbib's, not the LaTeX kernel's single-argument `\cite`.
- *
- * @param items Citation Items in source order. Items with a null key are omitted.
- * @param command the control word to cite with, without its backslash, e.g.
- *   `cite` for LaTeX or `autocite` for BibLaTeX.
- * @returns one complete citation command, or an empty string when no keyed
- *   item remains.
- * @throws {TexCitationError} for invalid input, a value LaTeX cannot carry, or
- *   an affix that would change the command's structure.
- */
 export function formatTexCitation(
   items: readonly CitationItemInput[],
   command = "cite",
@@ -181,11 +145,6 @@ function unrepresentable(
   );
 }
 
-/**
- * An optional argument ends at the first `]` outside a group, so an affix whose
- * braces do not balance would move that boundary wherever {@link protect} hides
- * a bracket. An unescaped `%` would hide the boundary outright.
- */
 function assertSafeAffix(
   value: string | null,
   property: TexCitationProperty,
@@ -205,7 +164,6 @@ function assertSafeAffix(
   );
 }
 
-/** Whether every group in TeX source opens and closes; `\{` is a literal brace. */
 function balanced(value: string): boolean {
   let depth = 0;
   let escaped = false;
@@ -218,10 +176,6 @@ function balanced(value: string): boolean {
   return depth === 0;
 }
 
-/**
- * Hide each `]` in a group so it cannot end the optional argument. An escaped
- * `\]` is one control symbol the argument scanner already reads past.
- */
 function protect(value: string): string {
   return value.replaceAll(/(?<!\\)\]/gu, "{]}");
 }

@@ -59,7 +59,6 @@ import { CitationPopover } from "#obsidian/citation-popover/service.ts";
 import { CitationText } from "#obsidian/citation-text/service.ts";
 import { CitekeyEditor } from "#obsidian/citekey-editor/service.ts";
 
-/** The fakes Citekey Reading reads its tags from; a member a case leaves out fails when read. */
 interface ReadingFakes {
   workspace: MemoryWorkspace;
   vault?: MemoryVault;
@@ -70,11 +69,6 @@ interface ReadingFakes {
   settings: Layer.Layer<PluginSettings>;
 }
 
-/**
- * Citekey Reading over `fakes`, built as the plugin layer builds it, and the
- * post-processor it registers. `unload` closes the layer, which is the
- * plugin's unload.
- */
 const openReading = Effect.fnUntraced(function* ({
   workspace,
   vault = new MemoryVault(),
@@ -107,9 +101,7 @@ const openReading = Effect.fnUntraced(function* ({
   );
   const postProcessor = process!;
   return {
-    /** The registered post-processor, and what it returns. */
     postProcessor,
-    /** The registered post-processor over one section. */
     process: (el: HTMLElement, ctx: MarkdownPostProcessorContext): void => {
       void postProcessor(el, ctx);
     },
@@ -117,14 +109,12 @@ const openReading = Effect.fnUntraced(function* ({
   };
 });
 
-/** One rendered section, as a Markdown post-processor receives it. */
 function section(html: string): HTMLElement {
   const root = document.createElement("div");
   root.innerHTML = html;
   return root;
 }
 
-/** A reading view showing `containerEl`; each render-again request calls `rerender`. */
 function readingView(
   containerEl: HTMLElement,
   rerender: (scroll: boolean) => void,
@@ -148,20 +138,14 @@ const makeHarness = Effect.fnUntraced(function* ({
   open = Effect.void,
 }: {
   body: string;
-  /** What an open runs after it records the call; it ends at once by default. */
   open?: Effect.Effect<void>;
   cited?: Citation[];
-  /** The citekeys the resolution snapshot answers with several candidates for. */
   ambiguousKeys?: readonly string[];
-  /** Whether the citation-key snapshot has no first answer yet. */
   resolutionPending?: boolean;
-  /** Whether an engine is installed, which is what the cache answers for. */
   formats?: boolean;
-  /** Custom render answer for pending-generation tests. */
   formatCitations?: (
     citations: readonly string[],
   ) => Promise<readonly RenderedCitation[] | null>;
-  /** The text the render answers for each source, by its place in the request. */
   renderText?: (source: string, index: number) => string;
   overrides?: Partial<Settings>;
   frontmatter?: Record<string, unknown>;
@@ -298,7 +282,6 @@ const makeHarness = Effect.fnUntraced(function* ({
     ),
   );
   const text = fixture.runtime.runSync(CitationText);
-  // A pending render settles only when the case lets it.
   if (!formatCitations) yield* text.read("note.md").pipe(Effect.orDie);
 
   const reading = yield* openReading({
@@ -337,12 +320,6 @@ const makeHarness = Effect.fnUntraced(function* ({
     });
   const ctx = sectionCtx({ from: 0, to: body.split("\n").length - 1 });
 
-  /**
-   * Starts a wait for the next citation text event `matches` accepts, and
-   * answers the Effect that joins it: start it before the trigger and join it
-   * after. The layer subscribed to the events first, so it has handled every
-   * event up to that one when the join completes.
-   */
   const nextEvent = (matches: (event: CitationTextEvent) => boolean) =>
     Stream.runHead(Stream.filter(text.events, (event) => matches(event))).pipe(
       Effect.forkScoped({ startImmediately: true }),
@@ -352,17 +329,8 @@ const makeHarness = Effect.fnUntraced(function* ({
   return {
     postProcessor: reading.postProcessor,
     process: reading.process,
-    /**
-     * The context Obsidian hands a post-processor for the body lines `lines`
-     * covers, or for a section it places nowhere — an embed, a popover.
-     */
     sectionCtx,
-    /** {@link sectionCtx} over the whole body, which is one section for most suites. */
     ctx,
-    /**
-     * Places one rendered section in a reading view, which is what a popover
-     * hangs in, and answers with the context that section is processed under.
-     */
     viewedCtx: (el: HTMLElement): MarkdownPostProcessorContext => {
       workspace.openLeaf(
         "markdown",
@@ -373,49 +341,37 @@ const makeHarness = Effect.fnUntraced(function* ({
       return ctx;
     },
     citationRequests,
-    /** Every popover the rendered citations of this harness asked for. */
     popoverRequests,
-    /** Every note the rendered citations of this harness asked to open. */
     opened,
-    /** How often the reading views were asked to render again. */
     rerenders: () => rerenders,
-    /** Replaces what the render answers from here on. */
     renderAs: (renderText: (source: string, index: number) => string) => {
       render = renderText;
     },
-    /** From here on, the render formats nothing, the way it does with no engine. */
     stopFormatting: () => {
       formatting = false;
     },
-    /** Reports one file changed, the way the metadata cache does after an edit. */
     changeFile: (path: string) => {
       metadata.change(vault.getFileByPath(path)!, { frontmatter });
     },
-    /** Replaces the Ambiguous keys and reports a citekey resolution snapshot rebuild. */
     rebuildResolution: (keys: readonly string[]) => {
       ambiguous = keys;
       resolutionReady = true;
       citationLookup.refresh();
     },
-    /** Tears every rendered section down, the way Obsidian does on a re-render. */
     unloadSections: () => {
       for (const child of children.splice(0)) child.unload();
     },
     activeLookups: () => citationLookup.activeObservations,
     switchRequests,
-    /** Reads the text of `path` and waits until it stands. */
     read: (path: string) => text.read(path).pipe(Effect.orDie),
-    /** Starts a wait for the next read of `path` to commit; see {@link nextEvent}. */
     settles: (path: string) =>
       nextEvent((event) => event.type === "settled" && event.path === path),
-    /** Starts a wait for the next change to `path`; see {@link nextEvent}. */
     changes: (path: string) =>
       nextEvent((event) => event.type === "changed" && event.path === path),
     unload: reading.unload,
   };
 });
 
-/** A render whose answer waits until the case settles it. */
 function pendingRender() {
   let settle: ((value: readonly RenderedCitation[]) => void) | undefined;
   const pending = new Promise<readonly RenderedCitation[]>((resolve) => {
@@ -520,8 +476,6 @@ describe("CitekeyReading", () => {
       }),
   );
 
-  // Stands in for a position-dependent style, whose second occurrence of one
-  // source reads as the subsequent form.
   const IBID = (source: string, index: number): string =>
     index === 0 ? `«${source}»` : "ibid";
 
@@ -598,7 +552,6 @@ describe("CitekeyReading", () => {
       const el = section("<p>Blah [@alpha].</p>");
       const settled = yield* h.settles("note.md");
 
-      // The post-processor returns without waiting for the read it starts.
       expect(h.postProcessor(el, h.ctx)).toBeUndefined();
       expect(el.textContent).toBe("Blah [@alpha].");
 
@@ -675,8 +628,6 @@ describe("CitekeyReading", () => {
               "zt-citation-key-unresolved",
             ],
           },
-          // An Ambiguous Citation Key reads as its own state, and a missing key
-          // outranks it wherever a cluster writes both.
           {
             body: "[@twin]",
             cited: [citation("twin", null)],
@@ -723,8 +674,6 @@ describe("CitekeyReading", () => {
 
   it.live("shows the rendered citation's popover while navigation is off", () =>
     Effect.gen(function* () {
-      // The Hover Action owns hover on its own, so a rendered citation answers
-      // with the popover while Citekey Navigation is off.
       const h = yield* makeHarness({
         body: "Blah [@alpha].",
         overrides: { "citation.open-as-links": false },
@@ -768,7 +717,6 @@ describe("CitekeyReading", () => {
         expect(h.opened).toEqual([]);
         expect(h.popoverRequests).toEqual([]);
         expect(event.defaultPrevented).toBe(false);
-        // The citation says as much: nothing to click, so it reads as static text.
         expect(citationEl.dataset.ztClick).toBe("none");
       }),
   );
@@ -868,8 +816,6 @@ describe("CitekeyReading", () => {
       });
       const el = section("<p>Blah [@alpha].</p>");
 
-      // Citations open as links here, so the rendering is off but the citation
-      // is still wrapped; turning navigation off as well retires the treatment.
       h.process(el, h.viewedCtx(el));
       el.querySelector<HTMLElement>(".zt-citation")!.dispatchEvent(
         new MouseEvent("click", { bubbles: true, cancelable: true }),
@@ -907,8 +853,6 @@ describe("CitekeyReading", () => {
     }),
   );
 
-  // Sidebar occurrence navigation flashes the block element the line sits in,
-  // so the swap has to stay inside that element and leave it in place.
   it.live("keeps the block element a reading-view flash targets", () =>
     Effect.gen(function* () {
       const h = yield* makeHarness({
@@ -953,7 +897,6 @@ describe("CitekeyReading refresh", () => {
         h.renderAs((source) => `‹${source}›`);
         const settled = yield* h.settles("note.md");
         h.changeFile("note.md");
-        // The stale text stays while the replacement read runs.
         expect(el.textContent).toBe(`Blah «[@${ALPHA_KEY}]».`);
         yield* settled;
 
@@ -967,7 +910,6 @@ describe("CitekeyReading refresh", () => {
   it.live("leaves another document's sections alone", () =>
     Effect.gen(function* () {
       const h = yield* makeHarness({ body: "Blah [@alpha]." });
-      // A document nothing has read stays quiet, so the other one is read first.
       yield* h.read("other.md");
       const el = section("<p>Blah [@alpha].</p>");
       h.process(el, h.viewedCtx(el));
@@ -1058,7 +1000,6 @@ describe("CitekeyReading refresh", () => {
       h.process(el, h.viewedCtx(el));
       const element = el.querySelector<HTMLElement>(".zt-citation")!;
 
-      // Every text goes stale at once, and the rebuilt snapshot answers the same.
       const rebuilt = yield* h.settles("note.md");
       h.rebuildResolution([]);
       yield* rebuilt;

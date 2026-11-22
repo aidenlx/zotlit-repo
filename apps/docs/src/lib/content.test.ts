@@ -65,8 +65,6 @@ describe("MDX content", () => {
     expect(bareMessages).toEqual([]);
   });
 
-  // A key renamed or removed in the catalog fails the docs build, which no
-  // other check runs.
   it("names only Messages the catalog holds", () => {
     const catalog = JSON.parse(readFileSync(catalogPath, "utf8")) as Record<
       string,

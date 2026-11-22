@@ -1,32 +1,3 @@
-/**
- * WAL-fresh read sources for the live Zotero SQLite database.
- *
- * Zotero keeps `zotero.sqlite` open with exclusive locking while it runs. From
- * Zotero 10 it also runs the database in WAL mode, so recent writes live in
- * `zotero.sqlite-wal` until a checkpoint; Zotero 9 and earlier use a rollback
- * journal and write no `-wal` file at all. Every path below keys off the
- * presence of that file rather than off a version number, so both hold. To read
- * a fresh view without disturbing Zotero:
- *
- * - Clone modes (`reflink`/`copy`) copy the main DB plus its WAL into a fresh,
- *   writable snapshot dir and open the clone with `mode=ro`. The dir stays
- *   writable so SQLite can create the `-shm` sidecar and replay the cloned WAL,
- *   exposing committed *and* not-yet-checkpointed rows without writing the
- *   cloned main DB. {@link planReadParents} picks which volume holds that dir.
- * - `immutable` clones and verifies the main database only, then opens that
- *   owned snapshot with `immutable=1`. It does not replay the live WAL. On
- *   Zotero 10 that costs freshness, so a non-empty WAL records
- *   {@link ReadFallbackReason} `wal-not-replayed`.
- *
- * A Zotero 10 data dir holds no `-shm` file to clone: Zotero sets
- * `locking_mode=EXCLUSIVE` before `journal_mode=WAL`, which keeps the WAL index
- * in heap memory. Verified against a live Zotero 10.0 data directory.
- *
- * Fact: `node:sqlite` `DatabaseSync` does honor `file:` URI query params.
- *
- * @see https://github.com/zotero/zotero/blob/10.0.0/chrome/content/zotero/xpcom/db.js#L1551
- */
-
 import type { ConfiguredReadMode, EffectiveReadMode } from "#contract/rpc.ts";
 import {
   Cause,
@@ -120,7 +91,6 @@ interface JournalIdentity {
   header: Buffer;
 }
 
-/** Identity of the live source pair at one instant. See {@link snapshotSource}. */
 interface SourcePair {
   main: MainIdentity;
   wal: WalGeneration;
@@ -154,7 +124,6 @@ const logWarning = (
     withLogCategory("database", "read-source"),
   );
 
-/** A failed read attempt whose destination is clean and safe to retry. */
 class UnstableSnapshotError extends Schema.TaggedError<
   UnstableSnapshotError,
   { readonly brand: unique symbol }
@@ -164,16 +133,11 @@ class UnstableSnapshotError extends Schema.TaggedError<
   }
 }
 
-/**
- * A read snapshot could not be prepared: no parent was left, the source kept
- * changing, or it changed while it was fingerprinted.
- */
 class ReadSnapshotError extends Schema.TaggedError<
   ReadSnapshotError,
   { readonly brand: unique symbol }
 >()("ReadSnapshotError", { message: Schema.String }) {}
 
-/** The message callers see for a failed read-source operation. */
 function toDbUnavailable(cause: unknown): DbUnavailable {
   let error = cause;
   while (error instanceof Error && error.cause instanceof Error) {
@@ -184,7 +148,6 @@ function toDbUnavailable(cause: unknown): DbUnavailable {
   });
 }
 
-/** A bigint `stat`, for the nanosecond times `FileSystem` does not give. */
 function bigintStat(path: string) {
   return nodeFileSystemCall("stat", path, () => stat(path, { bigint: true }));
 }
@@ -199,19 +162,6 @@ export function buildSqliteUri(
   return url.href;
 }
 
-/**
- * `auto` and `reflink` attempt the native reflink clone. On a clone capability
- * failure, they acquire a verified owned main-file + WAL copy. This preserves
- * standalone startup and committed WAL rows where reflinks are unavailable,
- * without reopening the mutable source in place.
- *
- * Capability failures drive the fallback; source-access and transient I/O errors
- * propagate so the caller can report a refresh failure.
- *
- * @param owner Names the snapshot dir after the reader that holds it, so its
- *   residue can be reaped once that reader is gone while this process lives.
- * @see `reapWorkerClones` in `reap-temps.ts` for that reap.
- */
 export const prepareRead = Effect.fnUntraced(function* (
   configuredMode: ConfiguredReadMode,
   sourcePath: string,
@@ -234,11 +184,6 @@ export const prepareRead = Effect.fnUntraced(function* (
   return yield* pending.result;
 });
 
-/**
- * Owns the gap between starting a snapshot and its caller receiving it. An
- * interrupted waiter marks the acquisition abandoned at once. A clone that
- * lands later releases its directory without bringing the wait back.
- */
 const makePendingRead = Effect.fnUntraced(function* () {
   const deferred = yield* Deferred.make<PreparedRead, DbUnavailable>();
   const state = yield* Ref.make({
@@ -311,17 +256,6 @@ function acquireRead(
   });
 }
 
-/**
- * `wal-not-replayed` when reading the source in place would skip rows Zotero has
- * already committed — an `immutable` read never replays the live WAL, so on
- * Zotero 10 it hides every transaction since the last checkpoint. A non-empty
- * `zotero.sqlite-wal` is exactly that condition; Zotero truncates the file on
- * idle and on clean close, so a cleanly closed Zotero raises nothing.
- *
- * Measured against a live Zotero 10.0 data directory: five items created through
- * Zotero read back as five rows from a main+WAL clone and as zero rows from an
- * `immutable` read of the same source.
- */
 export const staleWalReason = Effect.fnUntraced(
   function* (sourcePath: string) {
     const wal = yield* walGeneration(`${sourcePath}-wal`);
@@ -353,15 +287,6 @@ const prepareImmutableRead = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * Place the snapshot on the volume {@link planReadParents} prefers, and where
- * that parent will not take one, fall back to the next candidate. Diversion is
- * an optimization, never a correctness dependency: a read that falls all the way
- * back to the system temp folder is exactly the read this did before placement
- * existed, and the choice is remade from scratch on every read.
- *
- * @see {@link SnapshotParentError} for which failures the fallback answers.
- */
 const prepareTempRead = Effect.fnUntraced(function* (
   mode: TempReadMode,
   sourcePath: string,
@@ -403,14 +328,6 @@ const prepareTempRead = Effect.fnUntraced(function* (
   return yield* tryParent(0);
 });
 
-/**
- * The parent would not take the snapshot — a read-only or full volume, a
- * directory the process may not create. Those are the failures a later
- * candidate can still answer, so they are the ones the fallback acts on. Every
- * other failure — a clone the volume cannot make, a source that moved mid-copy,
- * an unreadable source — reaches every candidate alike and propagates from the
- * first.
- */
 class SnapshotParentError extends Schema.TaggedError<
   SnapshotParentError,
   { readonly brand: unique symbol }
@@ -420,11 +337,6 @@ class SnapshotParentError extends Schema.TaggedError<
   }
 }
 
-/**
- * Every failure of preparing one read snapshot: the source pair could not be
- * fingerprinted, no parent or stable copy was left, the volume cannot clone,
- * the parent refused the snapshot, or a system call on the source failed.
- */
 type PrepareReadError =
   | DbUnavailable
   | ReadSnapshotError
@@ -444,7 +356,6 @@ const planParents = Effect.fnUntraced(function* (sourcePath: string) {
   });
 });
 
-/** `0n` — the plan's "unknown" — where the volume cannot be identified. */
 const deviceId = Effect.fnUntraced(function* (path: string) {
   return yield* bigintStat(path).pipe(
     Effect.map((stats) => stats.dev),
@@ -456,16 +367,6 @@ const deviceId = Effect.fnUntraced(function* (path: string) {
   );
 });
 
-/**
- * Clone the source DB + WAL into a fresh dir under `parent`, guarding against a
- * torn snapshot: fingerprint the source pair before and after copying and accept
- * the clone only when both files are unchanged across the copy. A concurrent
- * Zotero write invalidates the attempt; retry up to {@link CLONE_ATTEMPTS} times
- * with a short backoff, then throw so the service keeps its previous client.
- *
- * The clone opens with `mode=ro` (not `immutable`) so SQLite may build sidecar
- * files in the writable snapshot dir and replay the cloned WAL.
- */
 const cloneInto = Effect.fnUntraced(function* (
   sourcePath: string,
   {
@@ -608,14 +509,6 @@ const cloneAttempt = Effect.fnUntraced(function* (
   };
 });
 
-/**
- * Both steps are destination-only, so a failure here is the parent's and no
- * other candidate's. `mkdir` alone would miss a volume that went read-only
- * after the parent was first created, since a recursive `mkdir` over an
- * existing directory succeeds.
- *
- * @throws {@link SnapshotParentError} always, wrapping the underlying errno.
- */
 const createSnapshotDir = Effect.fnUntraced(function* (
   parent: string,
   owner: string | undefined,
@@ -632,13 +525,6 @@ const createSnapshotDir = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * Codes only a destination raises: reading a source never runs out of space,
- * exceeds a quota, or lands on a read-only filesystem. They mark a copy that
- * failed on the way in as the parent's failure, so a volume that fills between
- * creating the snapshot dir and writing the database falls back like one that
- * refused the dir outright.
- */
 const PARENT_WRITE_ERRNOS: readonly string[] = ["ENOSPC", "EDQUOT", "EROFS"];
 
 function isParentWriteFailure(error: unknown): boolean {
@@ -654,8 +540,6 @@ const copySource = Effect.fnUntraced(function* (
     const fs = yield* FileSystem.FileSystem;
     return yield* fs.copyFile(sourcePath, targetPath);
   }
-  // `reflink` rejects with its own `ReflinkUnsupportedError`, which the
-  // fallback reads by class; anything else is the system call's failure.
   return yield* nodeFileSystemCall("reflink", targetPath, () =>
     reflink(sourcePath, targetPath),
   ).pipe(
@@ -665,13 +549,6 @@ const copySource = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * Fingerprint the complete live source pair. Equal fingerprints identify the
- * same main-file and WAL bytes, including a reused WAL tail whose header and
- * size did not change.
- *
- * @see `sourceMoved` in `layerSource` (zotero-reads/source.ts) for the gate this feeds.
- */
 export const snapshotSource = Effect.fnUntraced(
   function* (sourcePath: string) {
     const pair = yield* snapshotPair(sourcePath, {
@@ -729,7 +606,6 @@ function sourcePairsEqual(a: SourcePair, b: SourcePair): boolean {
   );
 }
 
-/** Equal SQLite bytes, independent of the destination files' own identities. */
 function sourcePairContentsEqual(a: SourcePair, b: SourcePair): boolean {
   return (
     mainContentsEqual(a.main, b.main) &&
@@ -784,15 +660,6 @@ function mainContentsEqual(a: MainIdentity, b: MainIdentity): boolean {
   return a.size === b.size && a.digest === b.digest;
 }
 
-/**
- * SQLite's checkpoint sequence, salts, and checksums occupy the 32-byte WAL
- * header. SQLite can reuse rolled-back tail frames without changing that header
- * or the file size, so the full digest identifies the bytes. Any in-motion or
- * unreadable observation is unstable and therefore fails closed at the
- * caller's comparison.
- *
- * @see https://github.com/sqlite/sqlite/blob/version-3.50.4/src/wal.c#L34-L45
- */
 const walGeneration = Effect.fnUntraced(function* (path: string) {
   return yield* Effect.scoped(
     Effect.gen(function* () {
@@ -950,7 +817,6 @@ function openFile(path: string) {
   );
 }
 
-/** The bigint `stat` of an open file, for its nanosecond times. */
 function fileStat(file: FileHandle) {
   return nodeFileSystemCall("stat", String(file.fd), () =>
     file.stat({ bigint: true }),
@@ -982,12 +848,6 @@ export function walGenerationSize(
   return wal?.state === "present" ? wal.size.toString() : undefined;
 }
 
-/**
- * Distinguishes "this volume/platform cannot reflink" (drives mode fallback)
- * from genuine I/O failures (which propagate as refresh failures). Cross-device
- * (`EXDEV`) and filesystem-unsupported (`ENOTSUP`/`EOPNOTSUPP`) clone attempts,
- * plus any non-macOS/Linux platform, count as capability failures.
- */
 function isNativeCloneCapabilityError(error: unknown): boolean {
   if (error instanceof ReflinkUnsupportedError) return true;
   if (process.platform !== "darwin" && process.platform !== "linux") {

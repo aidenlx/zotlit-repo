@@ -1,6 +1,5 @@
 import type { QueryViewDeps } from "#desktop/query-view/view.tsx";
 // @vitest-environment happy-dom
-// Closing the filter dialog releases its pending database read and snapshot.
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { Scope } from "obsidian";

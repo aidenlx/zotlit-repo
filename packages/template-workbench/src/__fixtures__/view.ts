@@ -1,4 +1,3 @@
-// Test host translating the old boundary fixtures to Effect service fakes.
 import { Context, Effect, Layer, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import type { App } from "obsidian";
@@ -95,10 +94,6 @@ export type WorkbenchHostDeps = Omit<
   } & {
     zoteroPref: Pick<ZoteroPrefSnapshot, "dataDir">;
     noteFeature?: Pick<NoteFeatureHandle, "updateNote">;
-    /**
-     * ZotLit Query, which tests the Match of a Profile on a real Item and names
-     * the custom fields a condition reads.
-     */
     query?: {
       matches(
         items: readonly MatchItem[],
@@ -136,11 +131,6 @@ export type WorkbenchHostDeps = Omit<
     >;
   };
 
-/**
- * The services a Workbench launch runs with: `notifier`, and a vault, a
- * workspace and the Profile service whose members each test supplies when
- * its launch reads them.
- */
 export function workbenchActionContext(
   notifier: Notifier["Service"] = testNotifier().service,
   services: {
@@ -169,10 +159,6 @@ export function makeWorkbenchHost<Unread = never>(
   input: Partial<WorkbenchHostDeps> = {},
   options: {
     metadata?: Stream.Stream<MetadataEvent>;
-    /**
-     * The view services the test leaves unread. A host's test passes its own:
-     * the host's program registers more view services than this package.
-     */
     unread?: Layer.Layer<Unread>;
   } = {},
 ) {
@@ -292,7 +278,6 @@ export function makeWorkbenchHost<Unread = never>(
   ).pipe(
     Context.add(Template, deps.services?.template ?? template),
     Context.add(Notifier, testNotifier().service),
-    // The Item search over the test's lookup handle.
     Context.add(
       ItemLookup,
       stubService<ItemLookup["Service"]>("ItemLookup", {
@@ -384,8 +369,6 @@ export function makeWorkbenchHost<Unread = never>(
     Context.add(
       NoteFeature,
       stubService<NoteFeature["Service"]>("NoteFeature", {
-        // The service's write runs to its end once started; a rejection is
-        // what the note operation's write stopped on.
         updateNote: (file, options) =>
           Effect.uninterruptible(
             Effect.tryPromise({
@@ -411,8 +394,6 @@ export function makeWorkbenchHost<Unread = never>(
     ),
     stack,
   );
-  // The context holds every view service of the program that runs the test;
-  // a host's test supplies the services this package does not know.
   const registry = makeViewRegistry(
     runtime.runSync(Effect.context<never>()) as Context.Context<ViewServices>,
     { idleTTL: 0 },
@@ -438,25 +419,20 @@ export function makeWorkbenchHost<Unread = never>(
   };
 }
 
-/** The view state a Template Workbench View's leaf holds. */
 export const viewState = (view: TemplateWorkbenchView) =>
   view.registry.get(view.model.view);
 
-/** Makes `item` the leaf's choice, as a chooser does. */
 export const setViewItem = (
   view: TemplateWorkbenchView,
   item: WorkbenchItemChoice | null,
 ) => view.registry.update(view.model.view, chooseItem(item));
 
-/** The leaf's render state, as its tabs read it. */
 export const renderState = (view: TemplateWorkbenchView) =>
   view.registry.get(view.workbench.scheduler.state);
 
-/** Renders the draft now, as Run does. */
 export const runRender = (view: TemplateWorkbenchView) =>
   view.registry.set(view.workbench.scheduler.run, undefined);
 
-/** Chooses the Sample Item `snapshot` is, under the preview settings given. */
 export function chooseSample(
   view: TemplateWorkbenchView,
   snapshot: ItemSnapshot,

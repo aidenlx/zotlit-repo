@@ -1,5 +1,3 @@
-// The layer of the Annotation Popover, which draws an Annotation above its
-// Item's reference in the Citation Popover.
 import { Effect, Layer } from "effect";
 
 import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
@@ -82,7 +80,6 @@ export const layerAnnotationPopover: Layer.Layer<
             ),
           },
           open: request.open,
-          // The core catches read failures.
           lead: (part) => {
             void core.follow(part, request);
           },

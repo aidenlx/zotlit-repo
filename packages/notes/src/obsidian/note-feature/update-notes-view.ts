@@ -1,5 +1,3 @@
-// The one place to start a note update: each button answers "which notes?",
-// and creating missing notes is an explicit extra choice.
 import type { Effect } from "effect";
 import { ConfirmationModal } from "obsidian";
 import type { App, TFile } from "obsidian";
@@ -7,7 +5,6 @@ import type { App, TFile } from "obsidian";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-/** The Literature Note that is active when the dialog opens. */
 export interface ActiveNote {
   file: TFile;
   itemKey: string;
@@ -17,12 +14,6 @@ export type UpdateNotesChoice =
   | { target: "note"; note: ActiveNote }
   | { target: "all"; create: boolean };
 
-/**
- * Ask which notes to update. The option for the active note appears only with
- * a `note`.
- *
- * @returns the choice, or `null` when the dialog closes. An interrupt closes it.
- */
 export function awaitUpdateNotesChoice(
   app: App,
   note?: ActiveNote,

@@ -1,25 +1,18 @@
-// A Library large enough to need several statements on every plan path: the
-// responsiveness invariants of Item Query run on it. It is separate from the
-// scenario Items, whose tests pin exact rows.
 import type { DatabaseSync } from "node:sqlite";
 
 import { lookupID } from "./seed.ts";
 
-/** The Library that {@link seedBulkLibrary} fills. */
 export const BULK_LIBRARY = {
   libraryID: 3,
   groupID: 2718,
   name: "Bulk Library",
 } as const;
 
-/** The Tag on every bulk Item. */
 export const BULK_TAG = "bulk";
-/** The Tag on every fifth bulk Item, the first one included. */
 export const BULK_FIFTH_TAG = "bulk-fifth";
 
 const KEY_ALPHABET = "23456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
 
-/** The Zotero Key of the bulk Item at `index`; key order is index order. */
 export function bulkItemKey(index: number): string {
   let rest = index;
   let text = "";
@@ -30,12 +23,6 @@ export function bulkItemKey(index: number): string {
   return `BLK${text}`;
 }
 
-/**
- * Add the bulk Library to a scenario database: `count` top-level journal
- * articles, each with a title (`Bulk item 00000`, by index), a modification
- * time one second after the Item before it, and {@link BULK_TAG}. Every fifth
- * Item also carries {@link BULK_FIFTH_TAG}.
- */
 export function seedBulkLibrary(sqlite: DatabaseSync, count: number): void {
   const itemTypeID = lookupID(
     sqlite,
@@ -114,7 +101,6 @@ export function seedBulkLibrary(sqlite: DatabaseSync, count: number): void {
   }
 }
 
-/** Add `count` Annotations on one PDF in the seeded bulk Library. Every fifth is an image. */
 export function seedBulkAnnotations(sqlite: DatabaseSync, count: number): void {
   const typeID = (name: string) =>
     lookupID(
@@ -169,7 +155,6 @@ export function seedBulkAnnotations(sqlite: DatabaseSync, count: number): void {
   }
 }
 
-/** One Attachment per bulk Item; every fifth is tagged and URL-only. */
 export function seedBulkAttachments(sqlite: DatabaseSync, count: number): void {
   const attachmentType = lookupID(
     sqlite,

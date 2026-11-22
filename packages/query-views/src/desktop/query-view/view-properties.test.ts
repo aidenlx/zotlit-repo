@@ -117,7 +117,6 @@ describe("viewProperties entries", () => {
   });
 });
 
-/** The paths the Properties popover ticks: the entries with a place, by place. */
 const ticked = ({ entries }: ReturnType<typeof viewProperties>) =>
   entries
     .filter((entry) => entry.place !== null)
@@ -130,7 +129,6 @@ describe("viewProperties visible", () => {
 
   it("shows the default fields for a view without order, and ticks them", () => {
     const properties = viewProperties(null, { from: "items" });
-    // The default fields that give one cell each, as the Table shows them.
     expect(paths(properties)).toEqual(["itemType", "title", "dateModified"]);
     expect(ticked(properties)).toEqual(paths(properties));
     expect(properties.entries[3]).toMatchObject({
@@ -151,9 +149,7 @@ describe("viewProperties visible", () => {
       "date",
       "itemType",
     ]);
-    // Shown already, it keeps its place.
     expect(properties.withShown("title", true)).toEqual(["title", "date"]);
-    // The last one hidden leaves an empty order, as Hide all does.
     const one = viewProperties(null, { from: "items", order: ["title"] });
     expect(one.withShown("title", false)).toEqual([]);
   });
@@ -173,11 +169,9 @@ describe("viewProperties visible", () => {
     expect(ticked(properties)).toEqual(columns);
     expect(properties.unused.order).toEqual(["title"]);
 
-    // A tick shows the ticked fields and keeps "title" for the Items.
     const order = properties.orderOf(["text"]);
     expect(order).toEqual(["text", "title"]);
     expect(paths(viewProperties(null, { ...view, order }))).toEqual(["text"]);
-    // "Hide all" shows none.
     expect(properties.orderOf([])).toEqual([]);
   });
 
@@ -277,28 +271,22 @@ describe("viewProperties dataset fields", () => {
 
 describe("fieldLabel", () => {
   it.each([
-    // Zotero's own label for an Item field.
     ["title", "Title"],
     ["DOI", "DOI"],
-    // The Query Dataset's label where Zotero has none.
     ["item.title", "Item title"],
     ["colorName", "Color"],
     ["attachment.title", "Attachment title"],
     ["tags", "Tag"],
-    // ZotLit's label for a field that neither Zotero nor a dataset names.
     ["creators", "Creators"],
     ["date.year", "Year"],
     ["item.creators", "Item creators"],
-    // A field of the Item or the Attachment, under its parent's name.
     ["item.publicationTitle", "Item publication"],
     ["item.DOI", "Item DOI"],
     ["item.archiveID", "Item archive ID"],
     ["item.dateAdded", "Item date added"],
     ["item.itemType", "Item type"],
-    // A Vault Property reads as its frontmatter key, marked as the note's.
     ["vault.citekey", "citekey (note)"],
     ["vault.reading-status", "reading-status (note)"],
-    // A path no label covers stays as it is.
     ["attachment.contentType", "attachment.contentType"],
   ])("names %s as %s", (property, label) => {
     expect(fieldLabel(property)).toBe(label);
@@ -384,7 +372,6 @@ describe("viewProperties Literature Note Property", () => {
     expect(paths(first)).toEqual([LITERATURE_NOTE, "title"]);
     const left = viewProperties(null, { ...table, order: ["title"] });
     expect(paths(left)).toEqual(["title"]);
-    // The Properties popover still offers it, unticked.
     expect(left.entry(LITERATURE_NOTE).place).toBeNull();
     expect(left.entries.map((entry) => entry.path)).toContain(LITERATURE_NOTE);
   });
@@ -419,7 +406,6 @@ describe("viewProperties Literature Note Property", () => {
       LITERATURE_NOTE,
     );
     expect(cards.unused.order).toEqual([]);
-    // A change in Cards keeps it for a switch back to the Table.
     expect(cards.orderOf(["title", "date"])).toEqual([
       "title",
       "date",

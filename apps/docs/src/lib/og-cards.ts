@@ -1,11 +1,3 @@
-// Every OG card the build renders, keyed by the `/og/…/image.webp` URL it
-// answers at.
-//
-// Node-only: the inventory comes from the content scan rather than the
-// collections, for the reason `src/lib/content-scan.ts` explains. The card
-// bodies below mirror what each page's own head advertises, so a page and its
-// card always describe the same thing.
-
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import * as v from "valibot";
@@ -53,12 +45,10 @@ const lessonCard = v.object({
   steps: v.array(v.unknown()),
 });
 
-/** The site address a card of this edition prints in its footer. */
 function editionSite(locale: SiteLocale): string {
   return locale === "zh-CN" ? `${baseURL}/zh-CN` : baseURL;
 }
 
-/** The landing cards, which carry hand-written copy instead of frontmatter. */
 function landingCards(m: Messages, locale: SiteLocale): [OgType, CardProps][] {
   const o = { locale };
   const site = editionSite(locale);
@@ -112,14 +102,12 @@ function landingCards(m: Messages, locale: SiteLocale): [OgType, CardProps][] {
   ];
 }
 
-/** The landing card types whose page has a native Chinese edition. */
 const chineseLandingTypes = new Set<OgType>(
   chineseCatalogPages.map(
     (path) => (path === "/" ? "home" : path.slice(1)) as OgType,
   ),
 );
 
-/** One card per content file of a section, read through that section's schema. */
 function cardsOf<Schema extends v.GenericSchema>(
   type: OgType,
   entries: ContentEntry[],
@@ -135,11 +123,6 @@ function cardsOf<Schema extends v.GenericSchema>(
   ]);
 }
 
-/**
- * One edition's cards: the English edition covers every page; the Chinese
- * edition covers the native Chinese files and catalog pages, since a fallback
- * page advertises the English card.
- */
 function editionCards(
   m: Messages,
   packageRoot: string,
@@ -201,14 +184,9 @@ function editionCards(
   ];
 }
 
-/**
- * @param packageRoot the app's own root, which `vite.config.ts` owns.
- * @returns every card URL and the card it renders.
- */
 export async function ogCards(
   packageRoot: string,
 ): Promise<Map<string, CardProps>> {
-  // Asset hooks run after Paraglide generates the facade; config loading runs before it.
   const messagesUrl = pathToFileURL(
     join(packageRoot, "src/paraglide/messages.js"),
   );

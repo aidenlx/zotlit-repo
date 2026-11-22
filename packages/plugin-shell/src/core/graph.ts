@@ -1,31 +1,15 @@
-// The order the plugin graph builds its service groups in, derived from the
-// tags each group fills and reads, and the Layer that builds them in it.
 import { Layer } from "effect";
 
-/** What the derivation reads of a service group: its name and its tag keys. */
 export interface GroupNode {
   readonly name: string;
-  /** The keys of the tags the group fills. */
   readonly provides: readonly string[];
-  /** The keys of the tags the group reads that another group fills. */
   readonly requires: readonly string[];
 }
 
-/** A composition the shell cannot build: a tag with no filler, two fillers, or a cycle. */
 export class CompositionError extends Error {
   override readonly name = "CompositionError";
 }
 
-/**
- * The groups in build order: each group after every group that fills a tag it
- * reads. Among the groups that are free to build, the one declared first
- * builds first, so the order follows the host's feature list wherever the
- * tags allow it. `ambient` holds the keys the shell's base fills, which every
- * group may read.
- *
- * @throws {CompositionError} when a tag a group reads has no filler, when two
- *   groups fill one tag, or when the groups read each other in a cycle.
- */
 export function buildOrder<G extends GroupNode>(
   groups: readonly G[],
   ambient: ReadonlySet<string> = new Set(),
@@ -75,11 +59,6 @@ export function buildOrder<G extends GroupNode>(
   return order;
 }
 
-/**
- * One Layer that builds `groups` above `base`, one after the other, in the
- * order given. Each group reads every service built below it; the graph
- * closes in reverse, so a group closes before what it reads.
- */
 export function stackGroups(
   base: Layer.Layer<any>,
   groups: readonly Layer.Layer<any, never, any>[],

@@ -30,13 +30,11 @@ afterEach(async () => {
   await rm(parent, { recursive: true, force: true });
 });
 
-/** The test's now, in seconds since the epoch: every entry ages against it. */
 const NOW = 1_000_000_000;
 
 const HOUR = 60 * 60;
 const DAY = 24 * HOUR;
 
-/** A store entry stamped `seconds` before {@link NOW}, with the Clock at NOW. */
 const entry = (name: string, seconds: number) =>
   Effect.gen(function* () {
     const path = join(store, name);
@@ -64,7 +62,6 @@ layer(NodeFileSystem.layer)("reapCslStore", (it) => {
     Effect.gen(function* () {
       yield* entry(`.abandoned${CSL_STAGING_EXT}`, 2 * HOUR);
       yield* entry(`.writing${CSL_STAGING_EXT}`, 0);
-      // Same age as the abandoned staged file, but a style's clock is far longer.
       yield* entry("kept.csl", 2 * HOUR);
       yield* reapCslStore({ parent });
       expect(yield* names).toEqual([`.writing${CSL_STAGING_EXT}`, "kept.csl"]);

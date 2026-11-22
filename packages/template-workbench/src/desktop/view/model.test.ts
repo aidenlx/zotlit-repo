@@ -1,5 +1,4 @@
 import type { WorkbenchHostDeps } from "#__fixtures__/view.ts";
-// The Workbench's state seam and service dependencies.
 import { expect, it } from "@effect/vitest";
 import { Deferred, Effect, Queue, Stream, SubscriptionRef } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -43,11 +42,6 @@ const FIRST = "FIRST234";
 const LATER = "LATER234";
 const SNAPSHOT: ItemSnapshot = SAMPLE_ITEMS[0]!;
 
-/**
- * A Workbench host whose Item reads the test drives. Each check of a chosen
- * Item offers its key to `started`; a held check waits until an interrupt
- * stops it, which completes the key's `interrupted` signal.
- */
 const itemHost = Effect.fn(function* (
   answer: "held" | "paper" | "child" | "missing" = "held",
 ) {
@@ -121,11 +115,9 @@ const itemHost = Effect.fn(function* (
   const model = makeTemplateWorkbenchModel();
   const choose = (id: string) =>
     host.registry.update(model.view, chooseItem({ id, title: null }));
-  /** Holds the leaf's model, as the view does from its constructor to its close. */
   const hold = (): Disposable => ({
     [Symbol.dispose]: holdTemplateWorkbenchModel(host.registry, model),
   });
-  /** The chosen Item's read, once it settles. */
   const settled = Effect.exit(
     AtomRegistry.getResult(host.registry, model.chosen, {
       suspendOnWaiting: true,
@@ -168,7 +160,6 @@ it.effect("reads the chosen Item once for every surface that shows it", () =>
       snapshot: SNAPSHOT,
     });
     expect(host.registry.get(host.model.title)).toBe(FIRST);
-    // The tab changes the surfaces, not the read.
     host.registry.update(host.model.view, setTab("annotation"));
     expect(yield* Queue.takeAll(host.started)).toEqual([FIRST]);
     expect(host.snapshots).toEqual([FIRST]);
@@ -267,18 +258,13 @@ it("round-trips the saved and ephemeral state through Schema", () => {
     },
     citation: { variant: "alt", citationExample: null },
   });
-  // A Citation pick the state does not name, or names badly, is left out.
   expect(
     readSavedWorkbench({ variant: "sideways", citationExample: "two-items" })
       ?.citation,
   ).toEqual({ citationExample: "two-items" });
-  // A bad setting leaves the others.
   expect(
     readSavedWorkbench({ preview: { mode: "draft", live: false } })?.preview,
   ).toEqual({ live: false });
-  // A width under the limit is held to it. The Preview has no widest saved
-  // width: the view holds it to the room the editor leaves. A Fields column
-  // an older workspace saved has no place to restore to.
   expect(
     readSavedWorkbench({
       panels: {
@@ -297,8 +283,6 @@ it("round-trips the saved and ephemeral state through Schema", () => {
   ).toEqual({
     preview: { shown: true, width: 1400 },
   });
-  // The docked Fields Panel's width is held within 240 to 480 px; a bad pin
-  // fails its panel, and leaves the Preview.
   expect(
     readSavedWorkbench({
       panels: {
@@ -315,8 +299,6 @@ it("round-trips the saved and ephemeral state through Schema", () => {
       panels: { fields: { pinned: "yes", hidden: false, width: 300 } },
     })?.panels,
   ).toEqual({});
-  // A Preview height outside its shares is held to them; a bad one fails its
-  // side, as a bad width does.
   expect(
     readSavedWorkbench({
       panels: {
@@ -332,7 +314,6 @@ it("round-trips the saved and ephemeral state through Schema", () => {
       panels: { preview: { shown: true, width: 400, height: "tall" } },
     })?.panels,
   ).toEqual({});
-  // A bad field leaves the others; a cleared Item stays cleared.
   expect(
     readSavedWorkbench({
       tab: "nowhere",
@@ -426,7 +407,6 @@ it.effect("keeps default bindings stable when another setting changes", () =>
       ...defaults,
       "template.folder": "other-templates",
     });
-    // The folder read is the completion signal for the same settings event.
     const { templateFolderAtom } = yield* Effect.promise(
       () => import("@zotlit/notes/obsidian/template/atoms.ts"),
     );

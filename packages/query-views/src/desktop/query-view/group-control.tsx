@@ -3,14 +3,6 @@ import type {
   QueryFileSort,
 } from "#core/query-view/query-file.ts";
 
-// The Group control: the one property a view groups its rows by, the order of
-// the groups, and, in a Manual group order, which groups show and where. It
-// is host-neutral: it reads the grouping and the groups the rows hold, and
-// reports the next grouping; the host saves it.
-//
-// It lays out as the Bases Group menu: a "Group by" section with one joined
-// [property | direction] box and a delete button. A Manual group order adds
-// a section of group rows and a "Show all" / "Hide all" footer.
 import {
   Dropdown,
   DropdownItem,
@@ -41,7 +33,6 @@ import {
 } from "#obsidian/query-view/toolbar-popover.tsx";
 import "./group-control.css";
 
-/** A view's grouping, as the Group control reads and writes it. */
 export interface GroupSetting {
   groupBy?: QueryFileSort;
   groupOrder?: readonly QueryFileGroupValue[];
@@ -49,13 +40,9 @@ export interface GroupSetting {
 
 export interface GroupEditorProps {
   value: GroupSetting;
-  /** The properties the layout can group by. */
   options: readonly PropertyOption[];
-  /** The groups the view's rows hold now, the shown ones first. */
   groups: readonly LayoutGroup[];
-  /** Whether the view's dataset lacks the group property, so the view does not use it. */
   unused?: boolean;
-  /** The name the view gives a property, for one the options do not list. */
   labelOf?: (path: string) => string;
   onChange: (next: GroupSetting) => void;
 }
@@ -86,9 +73,6 @@ export function GroupEditor({
                   aria-label={m.query_view_group_by()}
                   data-group-property=""
                   className="zt:min-w-0 zt:flex-1"
-                  // Grouped by nothing, the select shows the placeholder,
-                  // as the Bases Group menu does; the delete button beside
-                  // it clears a grouping.
                   placeholder={m.query_view_property_placeholder()}
                   value={groupBy?.property ?? NONE}
                   options={[
@@ -171,11 +155,6 @@ export function GroupEditor({
   );
 }
 
-/**
- * The groups of a Manual group order: a tick shows or hides each, and drag
- * sets its place. A value of the order that no row holds now keeps its entry
- * after the ones listed, so a group that comes back takes its place again.
- */
 function ManualOrder({
   groups,
   order,

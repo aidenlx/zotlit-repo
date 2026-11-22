@@ -1,5 +1,3 @@
-// Resolves an Indexed Key and builds side-effect-free Template data.
-
 import type { CitationExampleId } from "#core/template-preview/citation-examples.ts";
 import type { ExcerptImageContext } from "#core/template/inert-resolvers.ts";
 import type { Template } from "#obsidian/template/service.ts";
@@ -46,10 +44,6 @@ import { InertTemplateError } from "#core/template/errors.ts";
 import { itemFacets } from "#desktop/note-feature/context.ts";
 import { syncTemplate } from "#obsidian/template/sync-template.ts";
 
-/**
- * The object one Citation's data is built from: a built-in example set, or an
- * Indexed Key naming a live Item.
- */
 export type CitationSelector =
   | { readonly key: string }
   | { readonly example: CitationExampleId };
@@ -61,12 +55,10 @@ export type TemplateDataLoadResult =
   | { kind: "annotation-required" }
   | { kind: "annotation-attachment-missing" };
 
-/** {@link TemplateDataLoadResult} with the Citation Template data typed. */
 export type CitationDataLoadResult =
   | { kind: "data"; data: CitationTemplateData }
   | Exclude<TemplateDataLoadResult, { kind: "data" }>;
 
-/** The services Template data of a root reads. */
 export type TemplateDataServices =
   | ZoteroReads
   | NoteIndex
@@ -76,13 +68,7 @@ export type TemplateDataServices =
   | Vault
   | FileManager;
 
-/**
- * Template data for a caller outside Effect: an edge handle `plugin-runtime.ts` binds
- * over the bridge (`bindTemplateData`). A load resolves with its result and
- * rejects with what failed, as a read or a Template does.
- */
 export interface TemplateDataLoader {
-  /** `settings`, when given, are the ones the data reads in place of the plugin's. */
   load(
     indexedKey: string,
     root: ContractRoot,
@@ -94,41 +80,27 @@ export interface TemplateDataLoader {
   ): Promise<CitationDataLoadResult>;
 }
 
-/** What a caller outside Effect passes to the Template data loader. */
 export interface TemplateDataDeps {
   readonly templateData: TemplateDataLoader;
-  /** The settings the data reads in place of the plugin's: a Profile's. */
   readonly dataSettings?: Readonly<Settings>;
 }
 
-/**
- * Template data could not be built: a wait for a service, the read lease, a
- * database read, or the building itself failed with `cause`.
- */
 export class TemplateDataError extends Data.TaggedError("TemplateDataError")<{
   readonly cause: unknown;
 }> {}
 
 const failed = (cause: unknown) => new TemplateDataError({ cause });
 
-/** A database read. */
 const query = <A, E>(read: Effect.Effect<A, E>) =>
   Effect.mapError(read, (cause) => failed(cause));
 
-/** Building data that can throw, as a Template a getter runs. */
 const build = <A>(evaluate: () => A) =>
   Effect.try({ try: evaluate, catch: failed });
 
-/** Reads under one Snapshot, released when the caller's scope closes. */
 const readLease = ZoteroReads.use((reads) =>
   Effect.mapError(reads.snapshot, (cause) => failed(cause)),
 );
 
-/**
- * Scope one item's Literature Note lookups to the note the caller selected, so
- * data built for an explicit note path reports that note rather than the first
- * indexed note of the same item.
- */
 export const withSelectedNote = (selection: { key: string; path: string }) =>
   Effect.updateService(NoteIndex, (index) => ({
     ...index,
@@ -140,14 +112,12 @@ export const withSelectedNote = (selection: { key: string; path: string }) =>
         : index.getNotesByItemKey(key),
   }));
 
-/** Build data under `settings` in place of the saved settings. */
 export const withSettings = (settings: Readonly<Settings>) =>
   Effect.updateService(PluginSettings, (service) => ({
     ...service,
     current: Effect.succeed(settings),
   }));
 
-/** The Template data of one root for the object an Indexed Key names. */
 export const readTemplateData = Effect.fn("TemplateData.read")(function* (
   indexedKey: string,
   root: ContractRoot,
@@ -224,13 +194,6 @@ export const readTemplateData = Effect.fn("TemplateData.read")(function* (
   };
 });
 
-/**
- * The Citation Template data one example set or one chosen Item produces:
- * `zt.citations` with `zt.items` beside it, under `variant`. A chosen Item
- * yields a one-item set with no locator, prefix, or suffix — what the
- * suggester inserts for a plain Enter. An example set reads nothing from the
- * database.
- */
 export const readCitationData = Effect.fn("TemplateData.readCitation")(
   function* (
     selector: CitationSelector,
@@ -260,11 +223,6 @@ export const readCitationData = Effect.fn("TemplateData.readCitation")(
   },
 );
 
-/**
- * Render the annotation root's `citation` field, labeling its failure with the
- * Template that raised it: the getter runs the Citation Template, so a fault
- * that names no Template belongs to it.
- */
 function renderAnnotationCitation(
   parentItem: Parameters<typeof annotationCitation>[0],
   pageLabel: string | null,
@@ -288,14 +246,6 @@ function renderAnnotationCitation(
   }
 }
 
-/**
- * Which side-effect-free excerpt-image path a render takes: a `file://` link
- * while attachments are not imported; nothing when no folder is set and no
- * Literature Note anchors the default folder; else the vault folder the
- * note's imports go to.
- *
- * @param litNotePath the item's Literature Note, or `null` when it has none.
- */
 export const excerptImageContext = (
   settings: Pick<Settings, "attachment.import" | "attachment.folder-path">,
   litNotePath: string | null,
@@ -325,7 +275,6 @@ const createInertResolvers = Effect.fnUntraced(function* (
   const { dataDir, baseAttachmentPath } = yield* (yield* ZoteroPref).current;
   const context = yield* Effect.context<FileManager>();
   const runSync = Effect.runSyncWith(context);
-  // The resolvers run synchronously while a Template renders.
   const noteIndex = {
     getNotesByItemKey: (key: string) => runSync(index.getNotesByItemKey(key)),
     getImportedNoteByNoteKey: (key: string) =>
@@ -366,10 +315,6 @@ type AnnotationResult =
   | { kind: "annotation-required" }
   | { kind: "annotation-attachment-missing" };
 
-/**
- * The {@link AnnotationSources} of the Annotation an Indexed Key names, with
- * its parent Item, `null` for a standalone attachment.
- */
 const readAnnotationSources = Effect.fnUntraced(function* (
   reads: ZoteroReadsApi,
   indexedKey: string,
@@ -399,23 +344,15 @@ type NoteItemResult =
   | { kind: "no-parent-item" }
   | { kind: "annotation-attachment-missing" };
 
-/** Where {@link resolveNoteItemID} found the Item, and what its absence means. */
 type NoteItemTarget =
   | {
       kind: "target";
       itemID: number;
-      /** The Item itself, when the Indexed Key named it directly. */
       item?: Item;
-      /** The outcome when no live Item has the id. */
       missing: "not-found" | "no-parent-item";
     }
   | Exclude<NoteItemResult, { kind: "item" }>;
 
-/**
- * The id of the Item an Indexed Key names, or of the parent Item of the
- * attachment, note, or annotation it names. Pass Snapshot-bound reads, so
- * every step reads one database state.
- */
 const resolveNoteItemID = Effect.fnUntraced(function* (
   reads: ZoteroReadsApi,
   indexedKey: string,
@@ -454,10 +391,6 @@ const resolveNoteItemID = Effect.fnUntraced(function* (
   return { kind: "target", itemID: parentItemID, missing: "no-parent-item" };
 });
 
-/**
- * {@link resolveNoteItemID}'s Item, read as a {@link NoteSource}. Pass
- * Snapshot-bound reads.
- */
 const readNoteItemSource = Effect.fnUntraced(function* (
   reads: ZoteroReadsApi,
   indexedKey: string,
@@ -472,7 +405,6 @@ const readNoteItemSource = Effect.fnUntraced(function* (
   return source ? { kind: "source", source } : { kind: target.missing };
 });
 
-/** {@link resolveNoteItemID}'s Item alone. Pass Snapshot-bound reads. */
 const readNoteItem = Effect.fnUntraced(function* (
   reads: ZoteroReadsApi,
   indexedKey: string,
@@ -480,7 +412,6 @@ const readNoteItem = Effect.fnUntraced(function* (
   const target = yield* resolveNoteItemID(reads, indexedKey);
   if (target.kind !== "target") return target;
   if (target.item) return { kind: "item", item: target.item };
-  // The display ref names the Item by the Indexed Key it is read by.
   const slices = yield* query(
     Stream.runCollect(reads.DisplayRefs({ itemIDs: [target.itemID] })),
   );

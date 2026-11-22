@@ -535,7 +535,6 @@ it("keeps grouped typing aligned across pretty and compact undo and redo", () =>
   expect(rule.view.state.selection.main.head).toBe(at + 2);
 });
 
-// A hand-written rule in YAML form, as the docs show a spread entry.
 const YAML_RULE_PROFILE = PROFILE.replace(
   "language: liquid",
   [
@@ -669,7 +668,6 @@ const LIQUID_PROFILE = PROFILE.replace(
   "language: liquid\nfrontmatter:\n  - key: title\n    expr: zt.title",
 );
 
-/** Replace the rule's whole text the way a reader retypes it. */
 function retype(rule: Slice, insert: string): void {
   rule.view.dispatch({
     changes: { from: 0, to: rule.text().length, insert },

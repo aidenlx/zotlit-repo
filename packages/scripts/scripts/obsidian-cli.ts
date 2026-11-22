@@ -1,10 +1,5 @@
 #!/usr/bin/env node
 
-// The Obsidian CLI, in-house: the same arguments and output as the `obsidian`
-// binary, sent over the same socket by `#obsidian-cli`. The binary can miss
-// the end of a reply on macOS and wait until killed; this client cannot, and
-// every call is bounded.
-
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import yargs from "yargs";
@@ -55,18 +50,12 @@ ${obsidianCliSocketPath()} is missing or refuses the connection), or
 the window gave no answer within --timeout. The interactive TTY mode of the
 binary is not supported.`;
 
-/**
- * Lifts throttling from the main window and its popouts; replies with each
- * window's old setting and whether the main window holds focus.
- */
 const THROTTLE_OFF = `(()=>{const r=require("@electron/remote"),m=r.getCurrentWebContents(),was=[];for(const c of r.webContents.getAllWebContents())if(c===m||(c.opener?.top?.processId===m.mainFrame.processId&&c.opener?.top?.routingId===m.mainFrame.routingId)){was.push([c.id,c.getBackgroundThrottling()]);c.setBackgroundThrottling(false);}return JSON.stringify({was,focused:document.hasFocus()});})()`;
 
-/** Puts back the settings `THROTTLE_OFF` replied with. */
 function throttleRestore(was: string): string {
   return `(()=>{const r=require("@electron/remote");for(const[id,on]of ${was}){const c=r.webContents.fromId(id);if(c&&!c.isDestroyed())c.setBackgroundThrottling(on);}return "restored";})()`;
 }
 
-/** Captures the element `selector` matches, else the page, and reads `samples` off the capture. */
 function shotCode(
   path: string,
   selector: string | undefined,
@@ -79,7 +68,6 @@ function shotCode(
   return `(async()=>{const el=${element};if(!el)return "Error: no element matches the selector";const b=el.getBoundingClientRect(),z=require("electron").webFrame.getZoomFactor();const img=await require("@electron/remote").getCurrentWebContents().capturePage({x:Math.round(b.left*z),y:Math.round(b.top*z),width:Math.max(1,Math.round(b.width*z)),height:Math.max(1,Math.round(b.height*z))});require("fs").writeFileSync(${JSON.stringify(path)},img.toPNG());const s=img.getSize(),bmp=img.toBitmap(),k=Math.sqrt(bmp.length/4/(s.width*s.height)),w=Math.round(s.width*k),h=Math.round(s.height*k),d=w/b.width,samples={};for(const[x,y]of ${JSON.stringify(samples)}){const px=Math.min(w-1,Math.max(0,Math.round(x*d))),py=Math.min(h-1,Math.max(0,Math.round(y*d))),i=(py*w+px)*4;samples[x+","+y]="rgb("+bmp[i+2]+", "+bmp[i+1]+", "+bmp[i]+")";}return JSON.stringify({path:${JSON.stringify(path)},rect:{x:b.left,y:b.top,width:b.width,height:b.height},samples});})()`;
 }
 
-/** The value of an `eval` reply: Obsidian prefixes it with `=> `. */
 function evalValue(reply: string): string {
   if (!reply.startsWith("=> ")) throw new Error(reply);
   return reply.slice(3);
@@ -165,8 +153,6 @@ await yargs(hideBin(process.argv))
           evalValue(await call([...vault, "eval", `code=${THROTTLE_OFF}`])),
         ) as { was: unknown; focused: boolean };
         was = JSON.stringify(off.was);
-        // Trusted input lands, and focus events fire, only in a focused
-        // window; a probe of either reads quietly wrong without it.
         if (!off.focused)
           console.error(
             "obsidian-cli: the window does not hold focus, so trusted input and focus events will not fire.",

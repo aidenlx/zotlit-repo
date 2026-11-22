@@ -1,5 +1,3 @@
-// The manifest/source split and manifest YAML parse every Template Document parser shares.
-
 import { parseDocument as parseYamlDocument } from "yaml";
 
 export type DocumentSplit =
@@ -12,14 +10,6 @@ export type DocumentSplit =
   | { readonly kind: "no-manifest" }
   | { readonly kind: "unclosed-manifest" };
 
-/**
- * Locate the YAML manifest a document opens with, in UTF-16 offsets, so each
- * parser decides for itself whether a manifest is required and words its own
- * failure.
- *
- * @returns `"no-manifest"` when the first line is not `---`,
- *   `"unclosed-manifest"` when no later `---` line closes it.
- */
 export function splitDocumentFrontmatter(source: string): DocumentSplit {
   const firstLineEnd = source.indexOf("\n");
   if (
@@ -52,22 +42,12 @@ export function trimCarriageReturn(line: string): string {
   return line.endsWith("\r") ? line.slice(0, -1) : line;
 }
 
-/** The first YAML syntax error in a manifest, at its offset in the document. */
 export interface ManifestYamlError {
   readonly message: string;
   readonly offset: number;
   readonly cause: unknown;
 }
 
-/**
- * Read a manifest's YAML, rejecting duplicate keys, so each parser words its
- * own failure and keeps its own error type.
- *
- * @param start UTF-16 offset of `source` in the whole document, added to the
- *   YAML error position so the reported offset points into the document.
- * @returns the manifest's plain JavaScript form, `undefined` when it is empty.
- * @throws whatever `onSyntaxError` builds for the first YAML syntax error.
- */
 export function parseManifestYaml(
   source: string,
   start: number,

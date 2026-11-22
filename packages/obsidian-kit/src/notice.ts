@@ -1,10 +1,5 @@
 import { ButtonComponent, Notice } from "obsidian";
 
-/**
- * Notice that defers its underlying `Notice` construction until the first
- * `setMessage` call. Pair with `using` so an undisposed loading toast clears
- * automatically when the caller scope exits.
- */
 export class LazyNotice implements Disposable {
   #notice: Notice | null = null;
 

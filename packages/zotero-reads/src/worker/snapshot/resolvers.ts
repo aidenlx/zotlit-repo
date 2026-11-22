@@ -1,5 +1,3 @@
-// Redacting Zotero resolvers and validation for permitted vault targets.
-
 import type {
   SnapshotProvenance,
   SnapshotVaultTargets,

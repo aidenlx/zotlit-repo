@@ -105,20 +105,12 @@ import { QueryView } from "#desktop/query-view/view.tsx";
 
 export const ANNOT_VIEW_TYPE = "zotero-annotation-view";
 
-/**
- * How long the view keeps the last Item while it reads the next one, before
- * it shows the next one's name over its cards loading.
- */
 const STAGED_LOADING_MS = 150;
 
-/** The next Item while its reads run, and what the store takes to show it. */
 interface Staged {
   load: object;
-  /** The store's state that shows the next Item. */
   patch: Partial<AnnotState>;
-  /** The Item and Attachment the query reads for it, once its attachments are read. */
   bound: { itemKey: string | null; attachmentKey: string | null } | null;
-  /** Whether its reads have taken {@link STAGED_LOADING_MS}. */
   late: boolean;
   timer: { win: Window; id: number } | null;
 }
@@ -126,11 +118,6 @@ interface Staged {
 const STORAGE_KEY_PREFIX = "zotlit-annot-atch-";
 const FILTER_STORAGE_KEY_PREFIX = "zotlit-annot-filter-";
 
-/**
- * The sections the view header's "More options" menu registers before the
- * view fills it, in its order. Verified against Obsidian 1.14.4's
- * `ItemView.onMoreOptions`.
- */
 const VIEW_MENU_SECTIONS = [
   "close",
   "pane",
@@ -146,80 +133,42 @@ const VIEW_MENU_SECTIONS = [
   "danger",
 ] as const;
 
-/**
- * Every member is a structural `Pick` of the full service sized to what the view
- * touches, so the real services satisfy it as-is and target-resolution logic can
- * be unit-tested against plain stubs.
- *
- * The database reads here await ZoteroReads, and what is on screen stays
- * until a read replaces it. The Libraries are the Held Read Library Scope
- * keeps. The Annotations come from the repository through the Annotations
- * Layout, which may answer from the Zotero Local API.
- */
 export interface AnnotViewDeps extends QueryViewDeps {
-  /** The shared item picker still consumes settings through its bridge. */
   bridge: Pick<EffectBridge, "runSync">;
-  /** Every open ZotLit PDF Reader, as the Reader Session it exposes. */
   itemLookup: Pick<ItemLookupHandle, "openSession">;
   settings: Pick<PluginSettings["Service"], "current">;
-  /** The plugin's view registry, which holds each leaf's Follow Mode state. */
   registry: ViewRegistryHandle;
-  /** What an open of the Template data explorer runs with. */
   explorer: WorkbenchActionDeps;
 }
 
 export class AnnotationView extends ItemView implements HistorySurface {
   override scope: Scope;
-  /**
-   * The Query View the sidebar is: the Annotations of the followed Attachment,
-   * through `attachment == this.attachment`.
-   */
   readonly #query: QueryView;
-  /** Whether Zotero's data cannot be read, which the sidebar says in place of cards. */
   #unreadable = false;
-  /** The Query File the sidebar runs, once a change made it differ from the default. */
   get #queryText(): string | null {
     return this.#deps.registry.get(this.model.query);
   }
-  /** The cards, their store, their actions, the Card Selection and the card keys. */
   readonly #layout: AnnotationsLayout;
   readonly #store: AnnotStore;
   readonly #deps: AnnotViewDeps;
-  /** This leaf's Follow Mode state, held in the plugin's view registry. */
   readonly model: AnnotViewModel;
   #release: (() => void) | null;
   #opened: DisposableStack | null = null;
   #loadDisposables: DisposableStack | null = null;
-  /** The load whose reads run; a later load or a clear supersedes it. */
   #loading: object | null = null;
-  /** The Zotero Reader, translated into Indexed Keys. */
   #zoteroReader: ReaderSessionHost | null = null;
   #targetRead: Disposable | null = null;
-  /** The active leaf's PDF view session, while one is being followed. */
   #leafSession: (() => void) | null = null;
-  /** What the attachment choice and the saved filter are remembered against. */
   #memoryKey: string | null = null;
   #itemKey: string | null = null;
-  /** The last load's attachment read, and the Annotation reads it started. */
   #reading = Promise.resolve();
-  /** Whether the view has closed, which the work it started away reads. */
   #closed = false;
-  /**
-   * The next Item while its reads run. The view keeps the Item it shows,
-   * its name, its attachments and its cards, until the next one's cards are
-   * read, and then shows the next one whole; `null` with none waiting.
-   */
   #staged: Staged | null = null;
 
-  /**
-   * Settles once the list on screen matches the last read this view started.
-   * Never rejects.
-   */
   get read(): Promise<void> {
     return this.#reading.then(() => this.#query.settled);
   }
 
-  /** This leaf's Follow Mode state, as the registry holds it. */
   get #followState(): AnnotViewState {
     return this.#deps.registry.get(this.model.state);
   }
@@ -244,7 +193,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
         };
       },
       contextSource: "sidebar",
-      // The header names the Item the cards belong to, and changes with them.
       keepsRowsOnRebind: true,
       save: (text) => {
         this.#deps.registry.set(this.model.query, text);
@@ -252,7 +200,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
       layout: {
         ...this.#layoutHost(),
         showNewRecords: true,
-        // The next Item shows with its cards, in the render that draws them.
         publishing: (attachmentKeys) => {
           const staged = this.#staged;
           const key = staged?.bound?.attachmentKey;
@@ -261,8 +208,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
             : null;
         },
       },
-      // The followed Attachment's own list, so its first new Annotation shows
-      // as the write starts, before the database has it.
       attachments: () => {
         const key = this.#bound().attachmentKey;
         return key === null ? [] : [key];
@@ -271,7 +216,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     this.#layout = this.#query.layout;
     this.#store = this.#layout.store;
     this.model = this.#store.model;
-    // Obsidian may set the workspace state before the view opens.
     this.#release = this.#holdModel();
   }
 
@@ -279,11 +223,9 @@ export class AnnotationView extends ItemView implements HistorySurface {
     return holdAnnotViewModel(this.#deps.registry, this.model);
   }
 
-  /** The sidebar's own gestures and list frame, which its cards answer through. */
   #layoutHost(): QueryViewHost["layout"] {
     return {
       gestures: {
-        // The last Item's attachments choose nothing while the next one reads.
         setSelectedAttachmentKey: (key) => {
           if (!this.#staged)
             this.#store.setState({ selectedAttachmentKey: key });
@@ -307,15 +249,10 @@ export class AnnotationView extends ItemView implements HistorySurface {
           );
         },
       },
-      // A click on the empty list leaves the focus on the body, and the key
-      // reaches this view's Scope only while the view is the active leaf.
       onList: (node) =>
         node === this.containerEl ||
         node === this.contentEl ||
         node === node.doc.body,
-      // Otherwise Obsidian moves focus to the last navigable leaf: right from
-      // the sidebar, but in the main area that switches the tab away from
-      // this view, so the key stops here.
       onEscape: () => {
         const { leftSplit, rightSplit } = this.#deps.app.workspace;
         const root = this.leaf.getRoot();
@@ -350,19 +287,11 @@ export class AnnotationView extends ItemView implements HistorySurface {
     result: ViewStateResult,
   ): Promise<void> {
     await super.setState(state, result);
-    // A mode this build cannot name, or a pin with no Item, takes the default
-    // rather than a source that cannot answer. Every other stored mode is kept
-    // whether or not its source answers right now.
     this.#deps.registry.set(this.model.state, parseAnnotViewState(state));
-    // The restored Query File runs with the Attachment the reload shows.
     this.#deps.registry.set(this.model.query, readSidebarQuery(state));
     this.#reload();
   }
 
-  /**
-   * What this view is showing, as its own surfaces read it: the pane menu, the
-   * React tree through the store, and the commands through the accessors below.
-   */
   get snapshot(): Readonly<
     AnnotState & { annotationSource: AnnotationSource | null }
   > {
@@ -370,7 +299,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     const { selectedAttachmentKey } = state;
     return {
       ...state,
-      // Which Annotation Source answered for the Attachment on screen.
       annotationSource:
         selectedAttachmentKey === null
           ? null
@@ -378,45 +306,20 @@ export class AnnotationView extends ItemView implements HistorySurface {
     };
   }
 
-  /**
-   * The gestures this view publishes to its React tree and its pane menu — the
-   * mode switches, the pin, "Turn on live updates", "Refresh data". `null`
-   * before the view opens.
-   *
-   * Named apart from `actions`, which `ItemView` itself uses for the view
-   * header's action buttons.
-   */
   get gestures(): AnnotActions | null {
     return this.#layout.actions;
   }
 
-  /**
-   * The Attachment whose Annotation History this view steps, which is the one
-   * its cards show; `null` while it shows none. An Attachment no PDF view has
-   * open holds no history, so the verbs that read this find nothing to take.
-   */
   get historyAttachment(): string | null {
     return this.#store.getState().selectedAttachmentKey;
   }
 
-  /**
-   * Step one confirmed edit of the Attachment this view shows, from a card's
-   * undo key or from the palette. An edit made on a card and one made in a PDF
-   * view of the same Attachment are one history, in the order they were made.
-   *
-   * The repository decides and writes; this seam shows its answer — a step
-   * Zotero moved under says so, a write that did not land says why, and a
-   * block is reported the way every other blocked edit gesture is.
-   *
-   * @see apps/obsidian/policies/ui-seams.md
-   */
   stepHistory(direction: HistoryDirection): void {
     const attachmentKey = this.historyAttachment;
     if (attachmentKey === null) return;
     this.#layout.stepHistory(direction, attachmentKey);
   }
 
-  /** "Refresh data" and the mode switches live here, off the toolbar row. */
   override onPaneMenu(menu: ObsidianMenu, source: string): void {
     super.onPaneMenu(menu, source);
     const actions = this.#layout.actions;
@@ -454,10 +357,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     });
   }
 
-  /**
-   * The view header's "More options" menu, for the header row's own button:
-   * the same sections, the same entries, and the same `leaf-menu` event.
-   */
   #fillViewMenu(menu: ObsidianMenu): void {
     menu.addSections(VIEW_MENU_SECTIONS);
     this.onPaneMenu(menu, "more-options");
@@ -470,8 +369,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     this.#opened = opened;
     this.register(() => opened.dispose());
     this.#release ??= this.#holdModel();
-    // Nothing else saves the workspace when the Follow Mode changes, so the
-    // view asks for the save that carries it across a restart.
     let saved = registry.get(this.model.state);
     opened.defer(
       registry.subscribe(this.model.state, (state) => {
@@ -510,8 +407,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     this.#query.load();
     opened.defer(
       this.#query.state.subscribe(({ phase }, last) => {
-        // A run for the next Item that fails shows the next Item, and says
-        // so. A run that had failed before it says nothing of the next one.
         if (
           phase === "failed" &&
           last.phase !== "failed" &&
@@ -526,7 +421,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     opened.defer(registry.subscribe(zoteroRevisionAtom, () => this.#reload()));
     opened.defer(registry.subscribe(zoteroStateAtom, () => this.#reload()));
     opened.defer(registry.subscribe(libraryRowsAtom, () => this.#reload()));
-    // Evaluating the derived key starts its dependency on the active note.
     opened.defer(
       registry.subscribe(
         activeKeyAtom,
@@ -541,8 +435,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
         if (this.#deps.app.workspace.activeLeaf === this.leaf) {
           this.#layout.revalidate();
         }
-        // A pane without a file can clear the target while the note atom
-        // still holds the key of the note that becomes active again.
         if (this.#followMode === "active-tab") this.#reload();
       }),
     );
@@ -602,8 +494,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
         { immediate: true },
       ),
     );
-    // The capability the header reports is the Attachment's, so it moves with
-    // the Attachment as well as with the probe.
     opened.defer(
       this.#store.subscribe(
         (s) => s.selectedAttachmentKey,
@@ -628,7 +518,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     this.#loadDisposables = null;
     this.#leafSession?.();
     this.#leafSession = null;
-    // The layout saves an open card editor and unmounts the cards.
     this.#query.unload();
     this.#release?.();
     this.#release = null;
@@ -636,35 +525,19 @@ export class AnnotationView extends ItemView implements HistorySurface {
 
   // #region follow mode
 
-  /**
-   * Every mode change runs through here, and every caller is a user gesture:
-   * the mode button, the pane menu, or one of the five commands. Nothing else
-   * writes the mode.
-   *
-   * @see apps/obsidian/docs/adr/0041-the-annotation-view-changes-its-follow-mode-only-on-a-user-gesture.md
-   */
   #setFollowMode(mode: Exclude<FollowMode, "pinned">): void {
     this.#commitMode(setFollowMode(mode));
   }
 
-  /**
-   * Pins the Item on screen. Taken from a ZotLit PDF Reader this releases that
-   * view's attachment lock, so the choice the PDF made becomes the remembered
-   * one and the picker starts there.
-   */
   #pinCurrentItem(): void {
     const { pinnable, selectedAttachmentKey } = this.#store.getState();
-    if (pinnable === null) return; // nothing on screen carries an Item
+    if (pinnable === null) return;
     if (selectedAttachmentKey !== null) {
       this.#saveAttachmentSelection(pinnable, selectedAttachmentKey);
     }
     this.#commitMode(pinCurrentItem(pinnable));
   }
 
-  /**
-   * Open the Attachment on screen in the ZotLit PDF Reader. A non-PDF
-   * Attachment or a missing file is answered by the reader's own notice.
-   */
   #openPdf(): void {
     const active = selectActiveAttachment(this.#store.getState());
     if (!active) return;
@@ -684,9 +557,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
       },
       m.annot_view_pin_placeholder(),
     ).then((hit) => {
-      // The item index the picker searches excludes every child item type, so
-      // a hit is always an Item a pin can name.
-      // @see packages/db/src/queries/index-items.ts
       if (hit) this.#commitMode(pinItem(hit.item.indexedKey));
     });
   }
@@ -705,8 +575,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
         withLogCategory("views", "annot-view"),
       ),
     );
-    // A Follow Mode change clears the Card Selection; a reader the new mode
-    // binds reports its own when the reload binds it.
     this.#layout.resetSelection();
     this.#deps.registry.set(this.model.state, next);
     this.#reload();
@@ -722,15 +590,12 @@ export class AnnotationView extends ItemView implements HistorySurface {
 
   #reload(): void {
     if (this.#closed) return;
-    // Only Active Tab follows an open PDF's own session, so the subscription
-    // stands exactly as long as that mode does.
     this.#followLeafSession(
       this.#followMode === "active-tab" ? this.#activePdfSession() : null,
     );
     this.#layout.bindReader(this.#followedSession());
     if (this.#deps.registry.get(zoteroStateAtom).state !== "ready") {
       this.#clearState();
-      // A database still opening says nothing yet; one that failed says so.
       this.#unreadable =
         this.#deps.registry.get(zoteroStateAtom).state === "degraded";
       this.#syncQueryProblem();
@@ -740,11 +605,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     this.#loadTarget(this.#resolveTarget());
   }
 
-  /**
-   * What stands in the way of the cards, from the Query View's own state:
-   * Zotero's data that cannot be read, a failed query, or a filter condition
-   * with an error under the last cards.
-   */
   #syncQueryProblem(): void {
     const { phase, failure, results } = this.#query.state.getState();
     const failed = phase === "failed" && failure !== null;
@@ -776,9 +636,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
           libraries,
         });
       case "zotero-reader":
-        // Live updates is what carries the reader's position from Zotero, so
-        // with it off this source answers nothing at all and the view offers
-        // to turn it on, rather than showing an attachment no reader is on.
         return this.#store.getState().liveUpdatesOn
           ? resolveLoadTarget({
               mode: "zotero-reader",
@@ -795,12 +652,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     }
   }
 
-  /**
-   * What the active tab offers: an open Zotero PDF through the Reader Session
-   * the PDF annotation editor holds for it, or a Literature Note through its
-   * frontmatter. A PDF the resolver does not know answers nothing rather than
-   * falling through to the note path.
-   */
   #resolveActiveLeaf(): ActiveLeafTarget | null {
     const activeFile = this.#deps.app.workspace.getActiveFile();
     if (!activeFile) return null;
@@ -812,18 +663,11 @@ export class AnnotationView extends ItemView implements HistorySurface {
     return itemKey === null ? null : { kind: "note", itemKey };
   }
 
-  /**
-   * Track the open PDF's own session while the active tab is what we follow,
-   * and drop the subscription as soon as it is not — a session outlives no
-   * mode it does not drive.
-   */
   #followLeafSession(session: ReaderSession | null): void {
     this.#leafSession?.();
     this.#leafSession = null;
     if (!session) return;
     const stack = new DisposableStack();
-    // The cards drive this selection, so a press on them is no click-away:
-    // the card's own click says what becomes selected.
     stack.defer(session.addSelectionSurface(this.contentEl));
     stack.defer(session.on("target-changed", () => this.#reload()));
     stack.defer(
@@ -834,11 +678,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     this.#leafSession = () => stack.dispose();
   }
 
-  /**
-   * The Reader Session of the PDF view in the main area the researcher last
-   * worked in, asked of that view itself: two tabs can show one file as two
-   * Attachments that keep it.
-   */
   #activePdfSession(): ReaderSession | null {
     const view = this.#deps.app.workspace.getMostRecentLeaf()?.view;
     return view
@@ -853,20 +692,11 @@ export class AnnotationView extends ItemView implements HistorySurface {
     }
 
     const { itemKey, lockedAttachmentKey, lock, key, groupID } = target;
-    // A standalone Attachment has no Item, so the Attachment itself is what
-    // the attachment choice and the saved filter are remembered against.
     const memoryKey = itemKey ?? lockedAttachmentKey ?? key;
     const memoryChanged = memoryKey !== this.#memoryKey;
     this.#itemKey = itemKey;
     this.#memoryKey = memoryKey;
 
-    // A new Item disposes the previous load's subscriptions before any state
-    // mutation of this load: `subscribeWithSelector` fires synchronously, so
-    // the next Item's state would otherwise trigger the old save
-    // subscription (closed over the previous item's key) and wipe its
-    // persisted filter. Its Annotation reads still running are superseded
-    // too. A reload of the same Item keeps them until the new list lands, so
-    // a choice made while it reads is still read and saved.
     if (memoryChanged) {
       this.#loadDisposables?.[Symbol.dispose]();
       this.#loadDisposables = null;
@@ -900,8 +730,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
       return;
     }
 
-    // The same Item reads again: what is on screen stays while it reads,
-    // the attachments and their Annotations until the new list lands.
     const sameItem = itemKey === this.#store.getState().itemKey;
     this.#store.setState({
       ...state,
@@ -920,12 +748,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     });
   }
 
-  /**
-   * Read the next Item while the one on screen stays: its name and its
-   * attachments, then its cards, through the query bound to it. The next
-   * Item shows whole once its cards are read, or with its cards loading
-   * once the reads take {@link STAGED_LOADING_MS}.
-   */
   async #stage(
     target: LoadTarget,
     {
@@ -954,7 +776,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
       id: win.setTimeout(() => {
         staged.timer = null;
         staged.late = true;
-        // The next Item's name, over its cards loading, once it is read.
         if (staged.bound) this.#commitStaged(staged, true);
       }, STAGED_LOADING_MS),
     };
@@ -990,7 +811,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
       selectedAttachmentKey: activeKey,
     };
     if (activeKey === null) {
-      // No cards to wait for: the next Item shows at once, with none.
       this.#commitStaged(staged);
       this.#query.clear();
       return;
@@ -1003,7 +823,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     });
   }
 
-  /** The Item and Attachment the query reads: the next Item's while it waits. */
   #bound(): { itemKey: string | null; attachmentKey: string | null } {
     const { itemKey, selectedAttachmentKey } = this.#store.getState();
     return (
@@ -1011,7 +830,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     );
   }
 
-  /** The state that shows the waiting Item, which then waits no more. */
   #takeStaged(staged: Staged): Partial<AnnotState> {
     if (staged.timer) staged.timer.win.clearTimeout(staged.timer.id);
     staged.timer = null;
@@ -1019,11 +837,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     return staged.patch;
   }
 
-  /**
-   * Show the waiting Item now, before its cards: with none of the last
-   * Item's, which never show under the next one's name. Its own cards still
-   * show, from the rows the query may already have landed for it.
-   */
   #commitStaged(staged: Staged, loading = false): void {
     if (this.#staged !== staged) return;
     this.#store.setState(this.#takeStaged(staged));
@@ -1035,7 +848,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     if (this.#staged) this.#takeStaged(this.#staged);
   }
 
-  /** The Attachment of `attachments` the view shows first: the locked, the saved, or the first. */
   #activeAttachment(
     { lockedAttachmentKey }: LoadTarget,
     attachments: readonly AnnotViewAttachment[],
@@ -1054,10 +866,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     );
   }
 
-  /**
-   * Shows the active Attachment's Annotations, and follows the choice of
-   * Attachment and of filter, which are remembered for the Item.
-   */
   #followAttachment(
     { lockedAttachmentKey, key, libraryID }: LoadTarget,
     activeKey: string | null,
@@ -1078,8 +886,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
       restoreFilter: memoryChanged,
     });
 
-    // A new Item takes its place on screen after this: its Attachment
-    // showing is no choice.
     let placing = memoryChanged && this.#staged !== null;
     load.defer(
       this.#store.subscribe(
@@ -1124,19 +930,11 @@ export class AnnotationView extends ItemView implements HistorySurface {
     return reading;
   }
 
-  /**
-   * Shows one Attachment's Annotations: the sidebar's Query File runs with the
-   * Attachment as `this.attachment`. A new Item's first list brings back the
-   * colour and tag filter saved for it.
-   */
   #showAnnotations(
     attachmentKey: string,
     { restoreFilter }: { restoreFilter: boolean },
   ): Promise<void> {
     const memoryKey = this.#memoryKey;
-    // The query runs again only for another Attachment or file: a database
-    // change already runs it again through the Query View, and a reload for
-    // the same Attachment (a tab switch, a note edit) changes nothing it reads.
     this.#query.setText(this.#queryText ?? sidebarQueryText());
     this.#query.contextChanged();
     return this.#query.settled.then(() => {
@@ -1155,10 +953,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     });
   }
 
-  /**
-   * The Editing Capability the header reports: the Attachment's own, or —
-   * with none on screen — the session's, which names no library.
-   */
   #syncCapability(): void {
     const { selectedAttachmentKey } = this.#store.getState();
     this.#store.setState({
@@ -1175,39 +969,19 @@ export class AnnotationView extends ItemView implements HistorySurface {
 
   // #endregion
 
-  /**
-   * The Literature Note comment links resolve against — the loaded item's most
-   * recent note. Falls back to the vault root when the item has no note yet, so
-   * a relative link still resolves to something rather than failing.
-   */
   #sourcePath(): string {
     if (this.#itemKey === null) return "";
     return this.#deps.registry.get(noteSourceAtom(this.#itemKey));
   }
 
-  /**
-   * Bring one Annotation's card forward and select it, from the Mark Popup in
-   * the PDF reader or a notice. A card the list on screen does not hold is
-   * left alone: the Follow Mode is the user's, and a reveal is not one of the
-   * gestures that changes it.
-   *
-   * @see apps/obsidian/docs/adr/0041-the-annotation-view-changes-its-follow-mode-only-on-a-user-gesture.md
-   */
   revealAnnotation(annotationKey: string): void {
     this.#layout.revealAnnotation(annotationKey);
   }
 
-  /**
-   * Pin the Item `itemKey`, as the researcher asked from another view: the
-   * Library View's Reading Card opens an Item's Annotations here.
-   *
-   * @see apps/obsidian/docs/adr/0041-the-annotation-view-changes-its-follow-mode-only-on-a-user-gesture.md
-   */
   pinItem(itemKey: string): void {
     this.#commitMode(pinItem(itemKey));
   }
 
-  /** The reader this view's Follow Mode is driven by, while one answers. */
   #followedSession(): ReaderSession | null {
     switch (this.#followMode) {
       case "active-tab":
@@ -1219,7 +993,6 @@ export class AnnotationView extends ItemView implements HistorySurface {
     }
   }
 
-  /** Opens an Annotation in Zotero, the one gesture its reader accepts. */
   #openInZotero(annotationKey: string): void {
     const annot = this.#store
       .getState()

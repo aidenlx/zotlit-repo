@@ -8,9 +8,6 @@ import { afterEach, expect, it, vi } from "vitest";
 import { makeAnnotHost } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
 import { PluginStub } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 // @vitest-environment happy-dom
-// The Library View keeps its document in plugin data: a toolbar change in its
-// Query View reaches the document there, and the toolbar says when the write
-// failed.
 import {
   resetMockPlatform,
   setMockPlatform,
@@ -57,7 +54,6 @@ const EMPTY: QueryViewOutcome = {
   },
 };
 
-/** The document plugin data holds before the view opens. */
 const STORED = {
   node: {
     kind: "collection",
@@ -70,7 +66,6 @@ const STORED = {
   card: { allFields: false, annotations: false },
 };
 
-/** {@link STORED} as an earlier build wrote it, with a Layout and Visible Properties. */
 const STORED_EARLIER = {
   ...STORED,
   layout: "table",
@@ -84,11 +79,6 @@ afterEach(async () => {
   document.body.replaceChildren();
 });
 
-/**
- * A Query View hosted as the Library View hosts it: no file and no Query
- * Context, its text derived from the document in plugin data, and its saves
- * written there.
- */
 async function openLibrary() {
   setMockPlatform({ isMacOS: true });
   cleanup.defer(resetMockPlatform);
@@ -143,7 +133,6 @@ async function openLibrary() {
     await makeQueryHost(layerUnreadViewServices, deps),
   );
   deps.registry = queryHost.registry;
-  // The view's text is the toolbar's, which the storage takes changes from.
   const toolbar = { text: (): string | null => null };
   const host = cleanup.use(
     await makeLibraryHost({
@@ -176,7 +165,6 @@ async function openLibrary() {
   return { query, plugin, saveData, storage, registry: host.registry };
 }
 
-/** The document plugin data holds now. */
 const saved = (plugin: PluginStub) =>
   (plugin.data as Record<string, unknown>)["library.document"];
 
@@ -191,7 +179,6 @@ it("reads the document that plugin data holds", async () => {
       path: ["Thesis", "Chapter 2"],
     },
     facets: ["annotated"],
-    // The Collection above the selected one opens.
     expanded: [JSON.stringify(["personal", "Thesis"])],
   });
   expect(query.state.getState().file?.filters).toEqual({
@@ -207,8 +194,6 @@ it("writes a toolbar change to the document in plugin data at once", async () =>
     });
     await query.flush();
   });
-  // The stored document, of an earlier build, selected no tags, left no
-  // node open but the one above the selected Collection.
   expect(saved(plugin)).toEqual({
     ...STORED,
     tags: [],
@@ -305,7 +290,6 @@ it("finishes a write that has started when the view closes", async () => {
   const saving = storage.change((doc) => withSearch(doc, "attention"));
   await vi.waitFor(() => expect(saveData).toHaveBeenCalledTimes(1));
   storage.close();
-  // The close ends the wait at once; the write goes on to disk.
   await saving;
   disk.resolve();
   await vi.waitFor(() =>
@@ -314,9 +298,6 @@ it("finishes a write that has started when the view closes", async () => {
 });
 
 it("settles a write when the plugin's registry closes under it, as a plugin reload does", async () => {
-  // Obsidian starts a view's close as the plugin unloads and does not wait
-  // for it; the plugin then disposes the registry while the close still
-  // waits for its write. The close must end, or the leaf keeps the old view.
   const { plugin, saveData, storage, registry } = await openLibrary();
   saveData.mockClear();
   const disk = Promise.withResolvers<void>();

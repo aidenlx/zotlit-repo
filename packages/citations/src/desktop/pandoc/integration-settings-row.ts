@@ -1,5 +1,4 @@
 import { Effect } from "effect";
-// Tutorial, integration-pair save action, and local CLI Guide for native Pandoc settings.
 import type { Setting, SettingDefinitionGroup } from "obsidian";
 
 import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";

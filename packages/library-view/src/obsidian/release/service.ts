@@ -1,5 +1,3 @@
-// Once-per-launch release check: onboarding branch, the update the banner announces, Release Note.
-
 import { Cause, Context, Deferred, Effect, Layer } from "effect";
 import { TFile } from "obsidian";
 
@@ -25,41 +23,21 @@ import { companionNotice, showCompanionNotice } from "./notices.ts";
 const WEBVIEWER_PLUGIN_ID = "webviewer";
 const WEBVIEWER_VIEW_TYPE = "webviewer";
 
-/** v1's ejected template filenames, e.g. `zt-note.eta.md`; matches the `zt-*.eta.md` glob. */
 const V1_EJECTED_TEMPLATE = /^zt-.+\.eta\.md$/i;
 
 export class Release extends Context.Service<
   Release,
   {
-    /** The running version, which the banner names in its update section. */
     readonly version: string;
-    /** Settles once the launch check has run and opened what it opens. Never fails. */
     readonly checked: Effect.Effect<void>;
-    /**
-     * Open the Release Note for the current version — reusing or creating a Web
-     * Viewer leaf when that core plugin is enabled, else the system browser. The
-     * external page only ever opens from a user action, never automatically.
-     */
     readonly openReleaseNote: Effect.Effect<void>;
-    /**
-     * Clear the Migration Prompt flag by hand. The setting-tab reminder's
-     * "Mark as done" control and the dismiss control of the Welcome View banner
-     * wire this up. No-op when the flag is already clear.
-     */
     readonly acknowledgeMigration: Effect.Effect<void, SettingsMutationError>;
-    /**
-     * Mark the update of the running version as seen, so the banner announces
-     * the next one only: "What's new" and the banner's dismiss control wire
-     * this up. No-op when no update is pending.
-     */
     readonly acknowledgeUpdate: Effect.Effect<void, SettingsMutationError>;
-    /** True when `folderPath` holds at least one ejected `zt-*.eta.md` template. */
     hasV1Templates(folderPath: string): Effect.Effect<boolean>;
   }
 >()("zotlit/release/Release") {}
 
 export function layerRelease(options: {
-  /** The plugin's current version, from the manifest. */
   readonly version: string;
   readonly openFirstScreen?: () => void | Promise<void>;
 }): Layer.Layer<
@@ -173,9 +151,6 @@ export function layerRelease(options: {
 
         const origin = (yield* settings.hydrationOrigin) ?? "current";
         const migrationPending = current["release.migration-pending"];
-        // Absent origin probes v1's default folder for templates-only detection;
-        // a pending flag instead probes the user's configured folder to decide
-        // whether the flag should auto-clear.
         const legacyTemplatesPresent =
           origin === "absent"
             ? yield* hasV1Templates(V1_TEMPLATE_FOLDER)
@@ -208,8 +183,6 @@ export function layerRelease(options: {
               }),
             );
             break;
-          // An update opens the first screen too: its banner announces the update
-          // while `release.update-pending` holds.
           case "update":
           case "welcome-fresh":
           case "welcome-upgraded":
@@ -222,16 +195,12 @@ export function layerRelease(options: {
         }
       });
 
-      // Layout-ready is a one-shot with no unregister, so gate the deferred
-      // check on disposal to avoid touching settings after the plugin unloads.
       yield* Effect.addFinalizer(() =>
         Effect.sync(() => {
           stopped = true;
         }).pipe(Effect.andThen(Deferred.succeed(checked, undefined))),
       );
 
-      // The launch check needs settings loaded and the workspace ready to open
-      // leaves; the layer settles before the check runs.
       yield* workspace.layoutReady.pipe(
         Effect.andThen(Effect.sync(() => events.callback("layoutReady")())),
         Effect.forkScoped({ startImmediately: true }),

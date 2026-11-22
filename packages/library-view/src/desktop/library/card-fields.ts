@@ -1,8 +1,3 @@
-// What the Reading Card says of an Item's fields: its header, as a paper's
-// title page reads, and "All fields", the other fields the Item has a value
-// for, in the order Zotero shows its type's fields, under Zotero's labels.
-//
-// @see apps/obsidian/docs/adr/0071-the-library-view-is-a-fileless-query-view-host-that-saves-to-plugin-data.md
 import { resolveVenue } from "@zotlit/db";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
@@ -15,7 +10,6 @@ import { ITEM_TYPES } from "@zotlit/zotero-types/item-types";
 
 type Values = Readonly<Record<string, QueryViewValue>>;
 
-/** The paths of the card's one read of the Item that are not Zotero fields. */
 const OWN_PATHS = [
   "itemType",
   "creators",
@@ -27,26 +21,18 @@ const OWN_PATHS = [
   "attachments[].title",
   "attachments[].fileType",
   "notes",
-  // The keys and colours alone, for the counts "Your annotations" shows.
   "annotations[].indexedKey",
   "annotations[].color",
 ] as const;
 
-/**
- * The paths the card reads: every Zotero field, since the type of the Item
- * is not known before the read, and the lists of its other parts.
- */
 export const CARD_PATHS: readonly string[] = [
   ...new Set([...Object.keys(FIELD_LABELS["en-US"]), ...OWN_PATHS]),
 ];
 
-/** A fact, or a field under "All fields". */
 export interface CardField {
-  /** The fact's name, or the Zotero field's. */
   readonly name: string;
   readonly label: string;
   readonly text: string;
-  /** Where the value links, for a DOI or a URL. */
   readonly href?: string;
 }
 
@@ -68,10 +54,6 @@ export function record(value: QueryViewValue | undefined): Values | null {
 
 const locale = () => runtime.getLocale();
 
-/**
- * A Zotero date as the researcher wrote it, at its precision: a day, a month,
- * a year, or the text where it does not parse.
- */
 function itemDateText(value: QueryViewValue | undefined): string {
   const date = record(value);
   if (!date) return text(value);
@@ -92,7 +74,6 @@ function itemDateText(value: QueryViewValue | undefined): string {
   });
 }
 
-/** A timestamp, or a calendar day, as a date in the researcher's time zone. */
 function timestampText(value: QueryViewValue | undefined): string {
   const raw = text(value);
   if (raw === "") return "";
@@ -106,36 +87,28 @@ function timestampText(value: QueryViewValue | undefined): string {
   }
 }
 
-/** The text of the Zotero field `name`. */
 function fieldText(name: string, value: QueryViewValue | undefined): string {
   if (name === "accessDate" || name === "dateAdded" || name === "dateModified")
     return timestampText(value);
   return record(value) ? itemDateText(value) : text(value);
 }
 
-/** Whether Zotero's type `type` has the base field `name`, under its own name or an alias. */
 function typeHas(type: string, name: string): boolean {
   return typeFields(type).some(
     (field) => field === name || FIELD_ALIASES[field] === name,
   );
 }
 
-/**
- * The value of the base field `name` where the Item's type has it: a value
- * left in a field of another type, after a change of type, is not the Item's.
- */
 function ownText(values: Values, name: string): string {
   return typeHas(text(values.itemType), name) ? text(values[name]) : "";
 }
 
-/** "30(1)": the volume and the issue. */
 function volumeText(values: Values): string {
   const volume = ownText(values, "volume");
   const issue = ownText(values, "issue");
   return `${volume}${issue === "" ? "" : `(${issue})`}`;
 }
 
-/** The Venue the header names, and the base field it was read from. */
 function venueOf(values: Values): { text: string; from: string } | null {
   const venue = resolveVenue({
     publicationTitle: text(values.publicationTitle) || null,
@@ -161,10 +134,8 @@ function yearOf(values: Values): string {
 
 const WEB = /^https?:\/\//i;
 
-/** The most creators the header names before "et al.". */
 export const CREATOR_CAP = 10;
 
-/** A creator's full name. */
 function creatorName(creator: Values): string {
   return (
     text(creator.fullName) ||
@@ -182,31 +153,17 @@ function creatorsOf(value: QueryViewValue | undefined): Values[] {
   });
 }
 
-/**
- * The header of the Item, as its title page reads: the title, the creators
- * in full, and the Venue with volume, issue, pages and year; the DOI and the
- * citation key. The list row reads the same paths, so the card shows the
- * same header from the row while it reads the rest.
- */
 export interface CardHeader {
   readonly title: string;
   readonly itemType: string;
-  /** The label of the Item type; `null` for a type this build does not know. */
   readonly type: string | null;
-  /**
-   * The creators of the first one's role, by full name, as the row names the
-   * authors and not the editors; "et al." past {@link CREATOR_CAP}.
-   */
   readonly creators: string;
-  /** "Venue, 30(1), 5998–6008 · 2017"; empty for none. */
   readonly venue: string;
   readonly doi: { readonly text: string; readonly href: string } | null;
   readonly citationKey: string | null;
-  /** Whether the Item has a PDF, which the card's primary button opens. */
   readonly pdf: boolean;
 }
 
-/** The base fields the header and the abstract show, which All fields leaves out. */
 const SHOWN_ELSEWHERE = [
   "title",
   "abstractNote",
@@ -251,15 +208,10 @@ export function cardHeader(values: Values): CardHeader {
   };
 }
 
-/** The date the Item was added, in the researcher's time zone; `null` for none. */
 export function addedText(values: Values): string | null {
   return timestampText(values.dateAdded) || null;
 }
 
-/**
- * The base fields the header shows, which "All fields" leaves out: the
- * Venue's, and the date where the header's year says all of it.
- */
 function shownInHeader(values: Values): Set<string> {
   const shown = new Set(SHOWN_ELSEWHERE);
   const venue = venueOf(values);
@@ -269,23 +221,14 @@ function shownInHeader(values: Values): Set<string> {
   return shown;
 }
 
-/** The fields of the item type `type`, in Zotero's order. */
 function typeFields(type: string): readonly string[] {
   const own = ITEM_TYPES.find((entry) => entry.name === type)?.fields;
   if (own) return own;
-  // A type this build does not know: its base fields, which name each
-  // value once.
   return Object.keys(FIELD_LABELS["en-US"]).filter(
     (name) => !(name in FIELD_ALIASES),
   );
 }
 
-/**
- * "All fields": the creators where the header does not name them all, then
- * each field of the Item's type with a value that the header and the
- * abstract do not show, in Zotero's order, then the date modified. A URL
- * links where it is a web address: a `javascript:` URL in Zotero never runs.
- */
 export function otherFields(values: Values): CardField[] {
   const shown = shownInHeader(values);
   const fields: CardField[] = [];
@@ -320,7 +263,6 @@ export function otherFields(values: Values): CardField[] {
   return fields;
 }
 
-/** The label of the item type `type`; `null` for a type this build does not know. */
 export function itemTypeLabel(type: string): string | null {
   const entry = ITEM_TYPES.find((each) => each.name === type);
   if (!entry) return null;

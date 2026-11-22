@@ -1,4 +1,3 @@
-// The Child Note loading descriptor: its scan row and its parent Item.
 import { Effect } from "effect";
 
 import type { NoteScanRow } from "@zotlit/db/item-query";
@@ -9,7 +8,6 @@ import type { QueryNote } from "./note-fields.ts";
 import { parentRecord } from "./record-loader.ts";
 import type { LoadingDescriptor } from "./record-loader.ts";
 
-/** What Hydration loads for a Child Note field. The scan row holds its own fields. */
 export interface NoteNeeds {
   readonly item?: readonly FieldNeeds[];
 }

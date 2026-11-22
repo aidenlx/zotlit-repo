@@ -1,5 +1,3 @@
-// The Citation Index keeps requested answers available while the worker
-// rebuilds a large lookup index. The Stress Build is isolated from the Development Vault.
 import { cp, mkdir, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { backup, DatabaseSync } from "node:sqlite";
@@ -36,10 +34,7 @@ const pluginBundleDir = join(workspaceRoot, "apps", "obsidian", "dist-dev");
 const runVaultScript = vaultScript(workspaceRoot, fixture.root);
 const reachable = await isObsidianReachable(workspaceRoot);
 const item = ITEMS.find(({ itemID }) => itemID === 1)!;
-// Renderer limits from origin/feat/zotlit-query:packages/e2e/src/query-record.ts
-// (THRESHOLDS.slice).
 const RENDERER_BUDGET = { p99Ms: 16, maxMs: 32 };
-// Native edits measured 39–57 ms searches and 113–128 ms worker timer gaps.
 const INTERACTIVE_MAX_MS = 100;
 const WORKER_TIMER_MAX_MS = 250;
 
@@ -56,7 +51,6 @@ interface RefreshEvidence {
   unrequested: boolean;
 }
 
-/** Each mutation owns a backup and restores both source data and held reads. */
 async function preserveFixture(vaultId: string): Promise<AsyncDisposableStack> {
   await using cleanup = new AsyncDisposableStack();
   const path = `${fixture.databasePath}.before-test`;
@@ -129,7 +123,6 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
     await prepareRunWindow(vaultId);
     await cli([`vault=${vaultId}`, "plugin:disable", "id=zotlit"]);
     await buildFixture(fixture, {
-      // Shared Reading keeps Stress Items at both ends of the 100,000-Item corpus.
       stressItemCount: 100_000 - ITEMS.length,
       stressSparseLibraryID: 2,
       plugins: [{ id: "zotlit", bundleDir: pluginBundleDir }],
@@ -168,7 +161,6 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
   }, 120_000);
 
   it("keeps requested answers and interactive reads responsive while refreshing 100,000 Items", async () => {
-    // A delivered push over unchanged bytes must leave downstream indexes alone.
     const unchanged = await obRun(
       vaultId,
       async ({ zotlit }, { itemKey }) => {
@@ -264,7 +256,6 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
                 })().finally(() => {
                   refreshing = false;
                 });
-                // Every search crosses the interactive worker and hydrates its hit from SQLite.
                 const reads = (async () => {
                   do {
                     const started = performance.now();
@@ -286,7 +277,6 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
                     const started = performance.now();
                     await s.bridge.runPromise(lookup.read(request));
                     citationReadMs.push(performance.now() - started);
-                    // A held answer can resolve immediately; yield so refresh and search can progress.
                     await new Promise((resolve) => setTimeout(resolve, 0));
                   } while (refreshing);
                 })();
@@ -402,8 +392,6 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
         }[] = [];
         for (let round = 1; round <= 3; round++) {
           const title = `Updated Item search regression ${round}`;
-          // A real source change moves the signature and forces an Item Index rebuild.
-          // This Fixture has no running Zotero; only the test writes its source.
           {
             using sqlite = new DatabaseSync(fixture.databasePath);
             sqlite.exec("BEGIN IMMEDIATE");
@@ -466,7 +454,6 @@ describe.skipIf(!reachable)("Citation Index renderer responsiveness", () => {
                         ? hits[0].item.fields.title
                         : undefined
                       : undefined) === expectedTitle;
-                  // Sampling cadence: each pass measures one search during the refresh.
                   await new Promise((resolve) => setTimeout(resolve, 50));
                 } while (
                   (!refreshed || !fresh) &&

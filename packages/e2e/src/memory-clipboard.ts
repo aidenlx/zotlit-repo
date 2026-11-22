@@ -1,21 +1,5 @@
 import { obRun } from "./obsidian-cli.ts";
-// An in-memory clipboard for each vault window of a run (ADR 0078).
 
-/**
- * Eval code that installs the in-memory clipboard in the window it runs in,
- * once; a later call keeps the store.
- *
- * Runs in other worktrees share the one Obsidian app, and the OS clipboard
- * with it, so a run that wrote and read the OS clipboard would read another
- * run's text or the developer's. The window instead swaps the methods of
- * Electron's `clipboard` and of `navigator.clipboard` for one store. The
- * plugin's own copy paths call these same objects, so they still run:
- * Electron's renderer `clipboard` is one plain object per renderer process,
- * which the plugin's `require("electron")` returns too. `navigator.clipboard`
- * keeps plain text and HTML, the two types the plugin writes and reads.
- *
- * @see https://github.com/electron/electron/blob/v43.3.0/lib/renderer/api/clipboard.ts
- */
 export const installMemoryClipboard = (vaultId: string): Promise<void> =>
   obRun(vaultId, () => {
     if (window.__ztMemoryClipboard) return;

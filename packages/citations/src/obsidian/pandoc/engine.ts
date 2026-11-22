@@ -1,5 +1,3 @@
-// Bibliography and cited-document rendering, behind an interface that hides Pandoc.
-
 import type {
   Blocks,
   CitationMode as AstCitationMode,
@@ -27,190 +25,80 @@ import { defaultLocaleOf } from "#core/pandoc/csl-style.ts";
 import { createPandocRuntime } from "#core/pandoc/runtime.ts";
 
 interface SupersedableRequest {
-  /**
-   * Names the slot this request occupies. A later request naming the same slot
-   * supersedes this one while it still waits behind a running conversion, and
-   * the superseded call rejects with {@link CitationRequestSupersededError}.
-   * A request without a slot always runs.
-   */
   supersedes?: string;
 }
 
 export interface BibliographyRequest extends SupersedableRequest {
   items: readonly CslItemData[];
-  /** CSL style XML; the engine's embedded default style when omitted. */
   styleXml?: string;
-  /**
-   * Citation Locale to render in, which overrides the locale the style names.
-   * Omitted leaves the style's own locale in charge.
-   */
   locale?: string;
 }
 
-/** One rendered bibliography entry, as typed AST. */
 export interface BibliographyEntry {
-  /** CSL `id` of the item this entry renders. */
   readonly id: string;
-  /**
-   * The Entry Marker the style rendered ahead of the entry, without the space
-   * that separates it from the entry text, or `undefined` for a style that
-   * renders none.
-   */
   readonly marker: Inlines | undefined;
-  /** The formatted entry, without its wrapping element and without the marker. */
   readonly content: Inlines;
 }
 
-/** How a citation names one of the works it cites. */
 export type CitationMode = "normal" | "author-in-text" | "suppress-author";
 
-/** One work a rendered citation names, in the order the citation names it. */
 export interface CitedWork {
-  /**
-   * The CSL id the source cites the work by. It is a citekey spelling, so it
-   * repeats across citations and never identifies a citation on its own.
-   */
   readonly id: string;
   readonly mode: CitationMode;
 }
 
-/** One rendered in-text citation, as typed AST. */
 export interface RenderedCitation {
-  /** The formatted citation wholesale, the style's own affixes included. */
   readonly content: Inlines;
   readonly citations: readonly CitedWork[];
 }
 
 export interface CitationRequest extends SupersedableRequest {
-  /**
-   * The citations to format, each as the source writes it — a bracketed
-   * cluster or a bare author-in-text key, one line apiece. A style that numbers
-   * counts them in this order, so a document hands over all of its own.
-   */
   citations: readonly string[];
-  /**
-   * CSL-JSON the citekeys resolve against. Each `id` is the citekey the source
-   * writes, which is what citeproc matches a citation by.
-   */
   items: readonly CslItemData[];
-  /** CSL style XML; the engine's embedded default style when omitted. */
   styleXml?: string;
-  /**
-   * Citation Locale to render in, which overrides the locale the style names.
-   * Omitted leaves the style's own locale in charge.
-   */
   locale?: string;
 }
 
 export type DocumentFormat = "docx" | "html";
 
 export interface PrepareRequest extends SupersedableRequest {
-  /** Obsidian-flavored Markdown of the document to convert. */
   markdown: string;
-  /** Lua filter sources, run in listed order over the parsed document. */
   luaFilters?: readonly string[];
-  /** Further files the filters read, such as a resolve map. */
   files?: VirtualFiles;
 }
 
-/**
- * One document Pandoc has read, held between the two conversions of an export.
- *
- * Its citations are Pandoc's own: the reader's, plus whatever the filters made
- * of the document. That is what makes it the single authority on what a
- * document cites — no second parser has to agree with it.
- *
- * The document envelope stays inside the engine, so this is opaque by
- * construction: a consumer reads the ids it spells and hands it back to render.
- */
 export interface PreparedDocument {
-  /**
-   * Every work the document cites, by the id the source spells it with, first
-   * appearance first. Body citations come before metadata ones, so a `nocite`
-   * key never takes a number the prose should have.
-   *
-   * Pandoc's `nocite` wildcard names no work, so it is absent here and stays in
-   * the document untouched.
-   */
   readonly citedIds: readonly string[];
-  /**
-   * The same document with every citation id replaced through `canonical`. An
-   * id the map does not name is left as the source spelled it.
-   */
   withCitedIds(canonical: ReadonlyMap<string, string>): PreparedDocument;
 }
 
 export interface RenderRequest extends SupersedableRequest {
-  /** What {@link CitationEngine.prepareDocument} read, ids already canonical. */
   document: PreparedDocument;
   format: DocumentFormat;
-  /** CSL-JSON the document's citations resolve against. */
   bibliography: readonly CslItemData[];
-  /** CSL style XML; the engine's embedded default style when omitted. */
   styleXml?: string;
-  /**
-   * Citation Locale citeproc renders in, which overrides the locale the style
-   * names. Omitted leaves the style's own locale in charge. It never becomes
-   * the converted document's own language: a document that declares `lang`
-   * keeps it, and one that declares none acquires none.
-   */
   locale?: string;
 }
 
-/**
- * Renders CSL bibliographies and cited documents.
- *
- * Requests on one engine run one at a time, so callers share an engine without
- * coordinating. A request that names a `supersedes` slot drops any request still
- * waiting in that slot, so a consumer that re-renders on every change keeps only
- * its newest request. Disposal waits for the running request and refuses later
- * ones.
- */
 export interface CitationEngine extends AsyncDisposable {
-  /**
-   * The whole bibliography as typed AST, which a consumer holds and shares as a
-   * value instead of copying it into place.
-   */
   renderBibliography(
     request: BibliographyRequest,
   ): Promise<readonly BibliographyEntry[]>;
-  /**
-   * The citations as typed AST, each paired with the works it names.
-   *
-   * @returns one rendered citation per requested source, in the same order.
-   */
   renderCitations(
     request: CitationRequest,
   ): Promise<readonly RenderedCitation[]>;
-  /**
-   * Read one document, filters included, without formatting its citations.
-   * Citation processing waits for {@link renderPrepared}, which needs the
-   * bibliography the prepared document's own citations select.
-   */
   prepareDocument(request: PrepareRequest): Promise<PreparedDocument>;
-  /** Format a prepared document's citations and write it in `format`. */
   renderPrepared(request: RenderRequest): Promise<Uint8Array>;
 }
 
-/** A conversion the engine could not complete. `message` is Pandoc's own text. */
 export class CitationEngineError extends Error {
   override name = "CitationEngineError";
 }
 
-/** A pending request dropped in favor of a newer one for the same slot. */
 export class CitationRequestSupersededError extends Error {
   override name = "CitationRequestSupersededError";
 }
 
-/**
- * Wikilinks reach the Lua filter as Links only under this reader extension,
- * which is also what the bundled `zotlit.yaml` selects for the native CLI.
- * Without `blank_before_blockquote`, a `>` line starts a block quote directly
- * under a paragraph, as it does in Obsidian. Obsidian reads `---` in the body as
- * a thematic break, so YAML metadata blocks and the simple and multiline tables
- * that overlap that syntax stay off. An opening `%` line, such as an Obsidian
- * `%%` comment, is body text, so Pandoc title blocks stay off too.
- */
 const MARKDOWN_READER =
   "markdown+wikilinks_title_after_pipe-blank_before_blockquote-pandoc_title_block-yaml_metadata_block-simple_tables-multiline_tables";
 
@@ -218,18 +106,12 @@ const STYLE_FILE = "style.csl";
 const BIBLIOGRAPHY_FILE = "bibliography.json";
 const PROPERTIES_FILE = "document-properties.yaml";
 
-/**
- * Instantiate one engine over the Pandoc WASM binary.
- *
- * @param wasmBinary the verified `pandoc.wasm` binary.
- */
 export async function createCitationEngine(
   wasmBinary: Blob | Uint8Array<ArrayBuffer>,
 ): Promise<CitationEngine> {
   return new PandocCitationEngine(await createPandocRuntime(wasmBinary));
 }
 
-/** One conversion as the queue carries it. */
 interface ConversionRequest extends SupersedableRequest {
   options: PandocOptions;
   stdin: string;
@@ -238,9 +120,7 @@ interface ConversionRequest extends SupersedableRequest {
 
 class PandocCitationEngine implements CitationEngine {
   #runtime: PandocRuntime | undefined;
-  /** Tail of the request queue; resolves once nothing is using the filesystem. */
   #queue: Promise<unknown> = Promise.resolve();
-  /** Newest claim per slot; a claim leaves the map once its request starts. */
   readonly #claims = new Map<string, object>();
 
   constructor(runtime: PandocRuntime) {
@@ -265,7 +145,6 @@ class PandocCitationEngine implements CitationEngine {
     );
   }
 
-  /** @returns Pandoc's JSON output for the whole bibliography of `items`. */
   async #formatBibliography({
     items,
     styleXml,
@@ -289,7 +168,6 @@ class PandocCitationEngine implements CitationEngine {
     return stdout;
   }
 
-  /** @returns Pandoc's JSON output for every citation the request names. */
   async #formatCitations({
     citations,
     items,
@@ -305,8 +183,6 @@ class PandocCitationEngine implements CitationEngine {
         standalone: false,
         filters: ["citeproc"],
         bibliography: [BIBLIOGRAPHY_FILE],
-        // The bibliography is the sidebar's job; this render wants the in-text
-        // citations alone.
         metadata: {
           "suppress-bibliography": true,
           ...(locale === undefined ? {} : { lang: locale }),
@@ -332,8 +208,6 @@ class PandocCitationEngine implements CitationEngine {
     const filterFiles = Object.fromEntries(
       luaFilters.map((source, index) => [`filter-${index}.lua`, source]),
     );
-    // The reader reads no YAML blocks, so the opening Properties, which
-    // Obsidian bounds, reach Pandoc as a metadata file.
     const properties = getFrontMatterInfo(markdown);
     const metadataFiles: Record<string, string> = properties.exists
       ? { [PROPERTIES_FILE]: properties.frontmatter }
@@ -369,7 +243,6 @@ class PandocCitationEngine implements CitationEngine {
         from: "json",
         to: format,
         standalone: true,
-        // The heading reads `lang` while the Citation Locale is lent to it.
         filters: [
           ...localePass,
           HEADING_FILTER_FILE,
@@ -404,15 +277,6 @@ class PandocCitationEngine implements CitationEngine {
     await this.#queue;
   }
 
-  /**
-   * Run one conversion once the queue ahead of it has drained, so no two
-   * conversions ever share the runtime's virtual filesystem. A request holds its
-   * slot only while it waits, so the conversion at the front of the queue always
-   * runs to completion.
-   *
-   * @throws {CitationRequestSupersededError} when a later request claimed the
-   * same slot first.
-   */
   #convert({
     options,
     stdin,
@@ -468,10 +332,6 @@ class PandocCitationEngine implements CitationEngine {
   }
 }
 
-/**
- * A read document, kept as the AST Pandoc wrote and handed back to it unchanged
- * apart from its citation ids.
- */
 class PandocPreparedDocument implements PreparedDocument {
   readonly #ast: Pandoc;
   #citedIds: readonly string[] | undefined;
@@ -494,16 +354,11 @@ class PandocPreparedDocument implements PreparedDocument {
     );
   }
 
-  /** The document as Pandoc's JSON reader takes it back. */
   toJson(): string {
     return JSON.stringify(this.#ast);
   }
 }
 
-/**
- * @throws {CitationEngineError} for a document this engine never prepared,
- *   which is the only way one could carry an AST Pandoc cannot read back.
- */
 function documentJson(document: PreparedDocument): string {
   if (!(document instanceof PandocPreparedDocument)) {
     throw new CitationEngineError("The document was prepared by no engine");
@@ -511,21 +366,8 @@ function documentJson(document: PreparedDocument): string {
   return document.toJson();
 }
 
-/**
- * `nocite: "@*"` reaches the AST as this citation id. It asks for every entry of
- * the bibliography rather than naming a work, so it is no cited id: nothing
- * resolves it, and it stays in the document for citeproc to act on.
- *
- * @see https://pandoc.org/MANUAL.html#including-uncited-items-in-the-bibliography
- */
 const NOCITE_WILDCARD = "*";
 
-/**
- * A `Citation` is the one AST record carrying a `citationId`, and it is plain
- * JSON, so both walks below read the tree generically rather than enumerating
- * every constructor that can hold an inline. A constructor added to
- * pandoc-types therefore needs no change here.
- */
 function collectCitedIds(value: unknown, into: string[]): string[] {
   if (Array.isArray(value)) {
     for (const item of value as unknown[]) collectCitedIds(item, into);
@@ -542,7 +384,6 @@ function collectCitedIds(value: unknown, into: string[]): string[] {
   return into;
 }
 
-/** The same tree with every `citationId` the map names replaced. */
 function rewriteCitedIds(
   value: unknown,
   canonical: ReadonlyMap<string, string>,
@@ -568,18 +409,6 @@ function distinct(ids: readonly string[]): string[] {
 const LOCALE_FILTER_FILE = "citation-locale.lua";
 const HEADING_FILTER_FILE = "bibliography-heading.lua";
 
-/**
- * The Citation Locale, applied to citation processing alone. Pandoc reads a
- * locale from `lang`, which is also the document's own language, so this filter
- * runs on both sides of citeproc: it lends `lang` to a document that declares
- * none, and takes its own loan back once citeproc has read it. A document that
- * declares `lang` is left as it is, and citeproc renders in the locale it names.
- *
- * The marker travels through the metadata, which is the only state one filter
- * pass leaves for the next. Its name carries a token drawn for this conversion
- * alone, so it names a loan this filter made and nothing a document wrote: a
- * note that declares the plain key keeps its own `lang` and its own key.
- */
 function citationLocaleFilter(locale: string): string {
   const marker = `zotlit-citation-locale-${crypto.randomUUID()}`;
   return `local MARKER = ${JSON.stringify(marker)}
@@ -597,7 +426,6 @@ end
 `;
 }
 
-/** The `csl` option and the file it names; both empty for the embedded style. */
 function styleInput(styleXml: string | undefined): {
   options: PandocOptions;
   files: VirtualFiles;
@@ -607,16 +435,10 @@ function styleInput(styleXml: string | undefined): {
     : { options: { csl: STYLE_FILE }, files: { [STYLE_FILE]: styleXml } };
 }
 
-/** Pandoc prefixes every entry's `id` with this, over the CSL id of the item. */
 const ENTRY_ID_PREFIX = "ref-";
 
-/** The span a style's Entry Marker sits in, when the style renders one. */
 const LEFT_MARGIN_CLASS = "csl-left-margin";
 
-/**
- * The document envelope stops here: the engine hands over domain shapes, so no
- * consumer ever holds a {@link Pandoc}.
- */
 function parseAst(stdout: string): Blocks {
   return (JSON.parse(stdout) as Pandoc).blocks;
 }
@@ -627,15 +449,6 @@ const CITATION_MODES = {
   SuppressAuthor: "suppress-author",
 } as const satisfies Record<AstCitationMode["t"], CitationMode>;
 
-/**
- * Each requested citation is fed as a paragraph of its own, so Pandoc answers
- * with one paragraph per citation in the order they were asked for. That
- * position is the join: a `citationId` is a citekey spelling, which repeats
- * across citations and names no one of them.
- *
- * @throws {CitationEngineError} when the output does not answer every citation,
- *   which would silently misalign the answers with what was asked.
- */
 function extractCitations(
   blocks: Blocks,
   expected: number,
@@ -654,11 +467,6 @@ function extractCitations(
   }));
 }
 
-/**
- * The prefix, suffix, note number, and hash a `Citation` carries are left
- * behind: the first two are already rendered into the citation's own content,
- * and the other two name Pandoc's bookkeeping rather than the cited work.
- */
 function collectCitations(inlines: Inlines, into: CitedWork[]): CitedWork[] {
   for (const inline of inlines) {
     if (inline.t === "Cite") {
@@ -671,7 +479,6 @@ function collectCitations(inlines: Inlines, into: CitedWork[]): CitedWork[] {
   return into;
 }
 
-/** The inlines a constructor carries, so the walk reaches every citation. */
 function nestedInlines(inline: Inline): Inlines {
   switch (inline.t) {
     case "Emph":
@@ -695,12 +502,6 @@ function nestedInlines(inline: Inline): Inlines {
   }
 }
 
-/**
- * Pandoc wraps every bibliography entry in a `Div` whose id is the CSL id of
- * the item behind {@link ENTRY_ID_PREFIX}, inside one `refs` Div, and reports
- * the entries in the style's own bibliography order. The outer Div's layout
- * attributes stay behind until a caller asks for them.
- */
 function extractBibliography(blocks: Blocks): BibliographyEntry[] {
   return blocks.flatMap((block) => {
     if (block.t !== "Div") return [];
@@ -713,13 +514,6 @@ function extractBibliography(blocks: Blocks): BibliographyEntry[] {
   });
 }
 
-/**
- * Take the Entry Marker off the front of an entry. A flush layout opens the
- * entry with the left-margin span, which holds the marker and the space that
- * sets the second column off from it — the space is layout, not marker. Every
- * other `csl-*` span passes through, since how they lay an entry out is the
- * renderer's policy.
- */
 function splitEntry(
   inlines: Inlines,
 ): Pick<BibliographyEntry, "marker" | "content"> {
@@ -735,7 +529,6 @@ function dropTrailingSpace(inlines: Inlines): Inlines {
   return inlines.at(-1)?.t === "Space" ? inlines.slice(0, -1) : inlines;
 }
 
-/** Unwraps the block envelopes an entry is laid out in, so only inlines leave. */
 function blockInlines(blocks: Blocks): Inlines {
   return blocks.flatMap((block) => {
     if (block.t === "Para" || block.t === "Plain") return block.c;

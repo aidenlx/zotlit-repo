@@ -46,9 +46,6 @@ async function detachedEngine(vaultId: string): Promise<string | null> {
 describe.skipIf(!reachable)("End-to-end Run", () => {
   registerEndToEndRunHooks();
 
-  // The reader-backed path against the Fixture's own Attachment: its
-  // Annotations, its Item's literature note, and Obsidian's PDF reader holding
-  // the same file the excerpt resolves from.
   it("crops from an open reader's document, reuses it for a note import, and falls back when it closes", async () => {
     await verifyReaderBackedExcerpts(run.vaultId);
     expect(await detachedEngine(run.vaultId)).toBe(
@@ -62,12 +59,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
   }, 180000);
 
-  // The saved-edit case's write only lands in a Paired Run, and this is not one.
-  // What every run can show is the subject that case asks about: the repository
-  // indexes its verified database sources by Attachment, so an Annotation's own
-  // key answers `read-only`/`server-changed` wherever the Attachment it belongs
-  // to is writable — the answer the case used to skip on. The capability itself
-  // is stubbed here, so the key the case asks with is the whole observation.
   it("asks the Fixture Attachment's Capability, not its Annotation's, before a saved edit", async () => {
     await obRun(
       run.vaultId,
@@ -229,7 +220,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
 
   it("copies an Annotation's citation after the database read, through Electron when the web clipboard refuses", async () => {
     const citation = `[@${annotationItem.citationKey}, {p. ${copiedAnnotation.pageLabel}}]`;
-    // Electron's clipboard here is the run's in-memory one (prepareRunWindow).
     const copy = (refuse: boolean) =>
       obRun(
         run.vaultId,
@@ -361,7 +351,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
 
-    // The real Refresh gesture re-arms the converted display layer.
     it("refreshes a displayed excerpt after an unavailable read", async () => {
       await verifyExcerptRefresh(run.vaultId);
     }, 120000);
@@ -372,9 +361,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       });
     }, 120000);
 
-    // A multi-PDF batch: several of the Fixture's own PDFs, each asked for
-    // its own excerpts, cold and then warm. The Node harness behind the
-    // measurements record models PDF work; this case is the app's own answer.
     it("measures a multi-PDF excerpt batch cold and warm", async () => {
       const rougier = join(e2eVaultPath, "attachments/rougier-2014.pdf");
       const generated = join(
@@ -389,9 +375,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         e2eFixture.dataDir,
         "storage/PDFSTR22/sakimas-song.pdf",
       );
-      // Four of the Fixture's PDFs, two excerpts each, grouped so the second of
-      // each pair is a repeated same-PDF excerpt: what one resident document
-      // serves. The rects are inside every page the Fixture ships.
       await verifyMultiPdfExcerptBatch(run.vaultId, [
         {
           attachmentKey: "RGRPDF24",
@@ -461,7 +444,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ]);
       const id = opened.stdout.trim().split("\n")[0]!.trim();
       await prepareRunWindow(id);
-      // No Zotero process runs on this suite's Fixture.
       expect(
         await obRun(
           id,
@@ -476,8 +458,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           undefined,
         ),
       ).toEqual({ reader: false, leaves: 0 });
-      // The default Profile shows Annotations in a Query Block; a Profile that
-      // lists them in the note renders their excerpts.
       await useListingProfile(id);
       const result = await createFixtureNote(id, 46);
       expect(result.outcome).toBe("created");
@@ -509,8 +489,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       for (const file of files) {
         const bytes = await readFile(join(path, file));
         initialImages.set(file, bytes);
-        // ADR 0053: a newly generated Excerpt Image is lossless WebP, so the
-        // durable asset is a RIFF/WEBP container carrying the VP8L chunk.
         expect(bytes.subarray(0, 4).toString("latin1")).toBe("RIFF");
         expect(bytes.subarray(8, 12).toString("latin1")).toBe("WEBP");
         expect(bytes.includes("VP8L", 12, "latin1")).toBe(true);
@@ -647,7 +625,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       } finally {
         await rename(unavailablePdf, sourcePdf);
       }
-      // The reimport pools its excerpt outcomes into one summary notice.
 
       const pooledSummary = JSON.stringify([
         "Excerpt images: 0 from Zotero with uncertain freshness, 2 with unchecked PDF freshness, 0 unavailable, 0 kept from the note and not refreshed.",

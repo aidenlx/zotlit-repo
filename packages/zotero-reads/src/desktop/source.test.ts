@@ -14,7 +14,6 @@ import {
   Stream,
 } from "effect";
 import { TestClock } from "effect/testing";
-// Database ownership behind the ZoteroReads interface: Read Mode, refresh lane, watcher gate, lifetimes.
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -34,19 +33,10 @@ import { DbUnavailable } from "#contract/rpc.ts";
 import { Connection } from "#worker/connection.ts";
 import { makeInProcessClient } from "#worker/in-process.ts";
 
-/** The watches the source holds, newest last; reset for each case. */
 let watchers: FakeWatcher[] = [];
-/**
- * Paths whose watch cannot start, and how: `fail` as a path that is gone
- * does, `die` as `fs.watch` throwing inside `NodeFileSystem` does (inotify
- * out of watches, too many open files), `hang` as a watch that opens and is
- * still starting until the case opens `hungStarts`.
- */
 let unwatchable = new Map<string, "fail" | "die" | "hang">();
-/** Opens to let every `hang` watch finish starting; reset for each case. */
 let hungStarts = Deferred.makeUnsafe<void>();
 
-/** A watch that records its listener for the case to call instead of watching. */
 const fakeWatch = (
   path: string,
   options?: FileSystem.WatchOptions,
@@ -100,10 +90,8 @@ const fakeWatch = (
           ),
         );
 
-/** The Node file system, with watches the case drives. */
 const testFileSystem = layerNodeFileSystemWith(() => ({ watch: fakeWatch }));
 
-/** The source over the test file system, which it also provides. */
 const testSource = (options?: SourceOptions) =>
   layerSource(options).pipe(Layer.provideMerge(testFileSystem));
 
@@ -124,10 +112,6 @@ afterEach(async () => {
   await rm(dir, { recursive: true, force: true });
 });
 
-/**
- * A Zotero database file on the fixture schema whose user library reports
- * `version`, so a read shows which state of the file it saw.
- */
 function writeLibrary(path: string, version: number): void {
   using sqlite = new DatabaseSync(path);
   seedLibrary(sqlite);
@@ -160,16 +144,10 @@ function config(patch: Partial<ReadsConfig> = {}): ReadsConfig {
 interface FakeWatcher {
   readonly path: string;
   readonly listener: (event: string, filename: string) => void;
-  /** The events the source has not taken yet. */
   readonly pending: () => number;
   closed: boolean;
 }
 
-/**
- * Ports over the real file system and SQLite, with spies a test can steer:
- * `prepareRead` and `snapshotSource` call through to the real functions until
- * a test overrides a call. `watchers` holds the watches of the case.
- */
 function testPorts() {
   const reads: PreparedRead[] = [];
   const releases: PreparedRead[] = [];
@@ -205,12 +183,6 @@ function testPorts() {
   return { ports, watchers, reads, releases, releaseGate };
 }
 
-/**
- * The source layer behind an in-process client, on a test clock. Changes are
- * recorded from before the first open: the layer starts unconfigured and
- * `initial` arrives through `Configure` once the recorder listens. `close`
- * tears the layer down as plugin unload does.
- */
 async function startSource(
   initial: ReadsConfig | null,
   ports: Partial<SourcePorts>,
@@ -250,22 +222,18 @@ async function startSource(
   return {
     reads,
     events,
-    /** Event tags after the first `state` seed. */
     tags,
-    /** Wait until the events recorded so far include `expected`, in order. */
     sawTags: (expected: ChangeEvent["_tag"][], start = 1) =>
       vi.waitFor(() =>
         expect(events.slice(start).map((event) => event._tag)).toEqual(
           expected,
         ),
       ),
-    /** Wait until the refresh lane has run and gone quiet. */
     idle: () =>
       vi.waitFor(() => {
         const lane = events.filter((event) => event._tag === "refreshing");
         expect(lane.at(-1)).toEqual({ _tag: "refreshing", active: false });
       }),
-    /** Run a request whose fiber teardown may interrupt. */
     detach: <A, E>(
       effect: Effect.Effect<
         A,
@@ -275,9 +243,7 @@ async function startSource(
     ) => {
       void run(effect).catch(() => undefined);
     },
-    /** Advance the test clock past every debounce. */
     elapse: () => run(TestClock.adjust("2 seconds")),
-    /** The library-1 version a read sees now. */
     version: () =>
       run(
         Effect.map(
@@ -291,11 +257,6 @@ async function startSource(
   };
 }
 
-/**
- * Completion of every watcher tick's gate: each fingerprint read has settled,
- * and a read queued after that has answered. The tick resumed when its read
- * settled, so it was scheduled ahead of that request and has decided by then.
- */
 async function gatesDecided(
   _ports: ReturnType<typeof testPorts>["ports"],
   source: { version: () => Promise<number> },
@@ -303,7 +264,6 @@ async function gatesDecided(
   await source.version();
 }
 
-/** Emit a directory event and wait until the source has taken it. */
 async function emitDirEvent(
   watchers: FakeWatcher[],
   filename: string,
@@ -314,7 +274,6 @@ async function emitDirEvent(
   await vi.waitFor(() => expect(bound!.pending()).toBe(0));
 }
 
-/** A held `prepareRead`: it waits for `release`, then reads for real. */
 function holdRead(ports: ReturnType<typeof testPorts>["ports"]) {
   const held = Deferred.makeUnsafe<void>();
   ports.prepareRead.mockImplementationOnce((mode, path) =>
@@ -467,8 +426,6 @@ describe("ZoteroReads source", () => {
       ["refreshing", "refresh-failed", "refreshing"],
       before,
     );
-    // The same database failed to refresh: the one serving is still the one
-    // the settings name.
     expect(
       source.events.find((e) => e._tag === "refresh-failed"),
     ).toMatchObject({ moved: false });
@@ -494,8 +451,6 @@ describe("ZoteroReads source", () => {
         expect.stringContaining("This file is not a Zotero database."),
       ),
     );
-    // The client still serving reads another database than the settings
-    // name, which a subscriber that comes later learns from the seed too.
     expect(
       source.events.find((e) => e._tag === "refresh-failed"),
     ).toMatchObject({ moved: true });
@@ -509,8 +464,6 @@ describe("ZoteroReads source", () => {
     await using source = await startSource(config(), ports);
     await source.version();
 
-    // Each change waits for the read it started: Configures that arrive
-    // together share one run on the newest settings.
     const immutable = config({ readMode: "immutable" });
     await source.run(source.reads.Configure(immutable));
     await vi.waitFor(() => expect(ports.prepareRead).toHaveBeenCalledTimes(2));
@@ -525,7 +478,6 @@ describe("ZoteroReads source", () => {
         autoRefresh: false,
       }),
     );
-    // Joins whatever the lane still runs, then reads once more.
     await source.run(source.reads.Refresh());
 
     expect(ports.prepareRead.mock.calls.slice(0, 3)).toEqual([
@@ -582,9 +534,6 @@ describe("ZoteroReads source", () => {
     await using source = await startSource(config(), ports);
     await vi.waitFor(() => expect(ports.prepareRead).toHaveBeenCalledOnce());
 
-    // A Zotero push lands while the first read is still preparing, and its
-    // debounce elapses inside that window: it becomes the trailing rerun of
-    // the same lane, never a second lane opening beside the first.
     await source.run(source.reads.NotifyExternalChange());
     await source.elapse();
 
@@ -595,7 +544,6 @@ describe("ZoteroReads source", () => {
   });
 
   describe("refresh lane coalescing", () => {
-    /** A held `prepareRead` that fails with `message` once released. */
     function holdFailure(
       ports: ReturnType<typeof testPorts>["ports"],
       message: string,
@@ -612,7 +560,6 @@ describe("ZoteroReads source", () => {
       };
     }
 
-    /** Tracks whether a request's promise has settled, without awaiting it. */
     function watchSettled<T>(promise: Promise<T>) {
       let settled = false;
       const outcome = promise.then(
@@ -641,13 +588,11 @@ describe("ZoteroReads source", () => {
         source.run(source.reads.Refresh()),
         source.run(source.reads.Refresh()),
       ];
-      // The requests must join the active lane before its read settles.
       await source.version();
       held.release();
       await Promise.all([first, ...during]);
       await source.idle();
 
-      // The startup open, the held run, and a single rerun for all three.
       expect(ports.prepareRead).toHaveBeenCalledTimes(3);
       await source.sawTags(
         ["refreshing", "changed", "changed", "refreshing"],
@@ -673,7 +618,6 @@ describe("ZoteroReads source", () => {
         expect(ports.prepareRead).toHaveBeenCalledTimes(3),
       );
 
-      // The first read is done and the trailing one is held.
       expect(first.isSettled()).toBe(false);
       expect(second.isSettled()).toBe(false);
       heldTrailing.release();
@@ -741,8 +685,6 @@ describe("ZoteroReads source", () => {
       await refresh;
       await source.idle();
 
-      // An idle push over an unchanged source reads nothing (see the
-      // self-echo gate); one that joined a running refresh still reads.
       expect(ports.prepareRead).toHaveBeenCalledTimes(3);
     });
   });
@@ -751,11 +693,8 @@ describe("ZoteroReads source", () => {
     const { ports, releaseGate } = testPorts();
     await using source = await startSource(config(), ports);
     await source.version();
-    // Read #2 is swapped in and never borrowed before the next refresh.
     await source.run(source.reads.Refresh());
 
-    // Releasing read #2 is slow; a read arriving meanwhile must get read #3
-    // and keep it after the release completes.
     const gate = {
       entered: Deferred.makeUnsafe<void>(),
       release: Deferred.makeUnsafe<void>(),
@@ -772,7 +711,6 @@ describe("ZoteroReads source", () => {
   });
 
   describe("databaseGeneration", () => {
-    /** The generation of the client a borrow gets now. */
     const generationNow = Effect.scoped(
       Effect.gen(function* () {
         const connection = yield* Connection;
@@ -838,8 +776,6 @@ describe("ZoteroReads source", () => {
   });
 
   describe("watch start interrupted", () => {
-    // The source made the watch's scope and stored it only after the
-    // watch was ready, so a close while it waited left the watch open.
     it.each(["zotero.sqlite", "zotero.sqlite-wal"])(
       "closes a %s watch still starting when the source closes",
       async (filename) => {
@@ -862,9 +798,6 @@ describe("ZoteroReads source", () => {
   });
 
   describe("WAL watch start overlapping", () => {
-    // The refresh lane and a WAL event each found no WAL watch, both
-    // started one, and the second stored scope dropped the first, which
-    // nothing closed.
     it("keeps one WAL watch when a WAL event arrives while the lane starts it", async () => {
       const walPath = join(dir, "zotero.sqlite-wal");
       await writeFile(walPath, "");
@@ -875,13 +808,9 @@ describe("ZoteroReads source", () => {
         expect(watchers.map((w) => w.path)).toContain(walPath),
       );
 
-      // On the parent code, red needs the stream to reach the hung WAL start
-      // within the poll interval of this wait; on the fixed code the case is
-      // deterministic.
       await emitDirEvent(watchers, "zotero.sqlite-wal");
       Effect.runSync(Deferred.succeed(hungStarts, undefined));
       await source.version();
-      // The debounce timer starts once the event's WAL sync has returned.
       await vi.waitFor(async () => {
         await source.elapse();
         expect(ports.snapshotSource).toHaveBeenCalledTimes(2);
@@ -898,10 +827,6 @@ describe("ZoteroReads source", () => {
   });
 
   describe("watcher self-echo gate", () => {
-    /**
-     * Regression: every refresh re-armed the watchers that started the next
-     * one, so the plugin refreshed forever on a database nobody had touched.
-     */
     it("ignores a watcher tick when the source is unchanged since the last read", async () => {
       const { ports, watchers } = testPorts();
       await using source = await startSource(config(), ports);
@@ -1077,7 +1002,6 @@ describe("ZoteroReads source", () => {
         expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
       );
       const forced = source.run(source.reads.Refresh());
-      // The request must join the active lane before its fingerprint settles.
       await source.version();
       Effect.runSync(Deferred.succeed(gate, fingerprint));
       await forced;
@@ -1138,16 +1062,12 @@ describe("ZoteroReads source", () => {
       await using source = await startSource(config(), ports);
       await source.version();
 
-      // Hold a refresh open past the point where it fingerprints the source,
-      // so the write below is later than the state this refresh reads.
       const held = holdRead(ports);
       const refresh = source.run(source.reads.Refresh());
       await vi.waitFor(() =>
         expect(ports.prepareRead).toHaveBeenCalledTimes(2),
       );
 
-      // Zotero writes, and its tick arms the debounce mid-refresh. The rebind
-      // after the swap must keep that tick, or the write stays unseen.
       await emitDirEvent(watchers, "zotero.sqlite");
       held.release();
       await refresh;
@@ -1162,7 +1082,6 @@ describe("ZoteroReads source", () => {
       await using source = await startSource(config(), ports);
       await source.idle();
 
-      // The push applies to its own burst; later watcher echoes are gated.
       writeLibrary(dbPath, 2);
       const before = source.events.length;
       await source.run(source.reads.NotifyExternalChange());
@@ -1184,7 +1103,6 @@ describe("ZoteroReads source", () => {
       await using source = await startSource(config(), ports);
       await source.version();
 
-      // A push is its own change source, so the flag must not silence it.
       writeLibrary(dbPath, 2);
       await source.run(source.reads.NotifyExternalChange());
       await source.run(source.reads.Configure(config({ autoRefresh: false })));
@@ -1215,8 +1133,6 @@ describe("ZoteroReads source", () => {
       await using source = await startSource(config(), ports);
       await source.version();
 
-      // Inside the gate the timer has already cleared itself, so switching
-      // auto-refresh off cannot cancel the tick; it must refuse on its own.
       const gate = Deferred.makeUnsafe<SourceFingerprint, never>();
       ports.snapshotSource.mockImplementationOnce(() => awaitFingerprint(gate));
       writeLibrary(dbPath, 2);
@@ -1251,7 +1167,6 @@ describe("ZoteroReads source", () => {
         expect(ports.snapshotSource).toHaveBeenCalledTimes(2),
       );
 
-      // Teardown completes with the tick interrupted inside its gate.
       await source.close();
       Effect.runSync(
         Deferred.succeed(gate, await Effect.runPromise(snapshotSource(dbPath))),
@@ -1308,7 +1223,6 @@ describe("ZoteroReads source", () => {
       await vi.waitFor(() =>
         expect(ports.prepareRead).toHaveBeenCalledTimes(2),
       );
-      // Teardown completes with the refresh interrupted inside its read.
       await source.close();
       Effect.runSync(
         Deferred.fail(late, new DbUnavailable({ message: "gone" })),
@@ -1324,8 +1238,6 @@ describe("ZoteroReads source", () => {
       const source = await startSource(config(), ports);
       await source.version();
 
-      // Releasing the previous read removes its clone: a real await, and a
-      // window for teardown while the new client is being handed over.
       const gate = {
         entered: Deferred.makeUnsafe<void>(),
         release: Deferred.makeUnsafe<void>(),

@@ -1,13 +1,7 @@
-// The Item Query scenario: a small, deterministic set of Items for the
-// adversarial cases of the Item Query spec. Each row says which behavior it
-// supports.
-// Rows reference Zotero's own lookup tables by name, so the pristine database
-// decides every item type, field, and creator type ID.
 import type { DatabaseSync } from "node:sqlite";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-/** The two Libraries of the scenario. `libraryID` is local to the copy. */
 export const SCENARIO_LIBRARIES = {
   personal: { libraryID: 1, groupID: null, name: null },
   group: { libraryID: 2, groupID: 4815, name: "Methods Reading Group" },
@@ -20,14 +14,12 @@ type Stamp = string;
 interface ScenarioCreator {
   firstName?: string;
   lastName: string;
-  /** `1`: one-field (institutional) name in `lastName`. */
   fieldMode?: 0 | 1;
   creatorType: "author" | "editor";
 }
 
 interface ScenarioTag {
   name: string;
-  /** `0` manual, `1` automatic. */
   type: 0 | 1;
 }
 
@@ -37,16 +29,12 @@ interface ScenarioItemSpec {
   itemType: string;
   dateAdded: Stamp;
   dateModified: Stamp;
-  /** Built-in fields by their stored name. An integer is stored as an SQLite INTEGER. */
   fields?: Record<string, string | number>;
-  /** Custom fields (`fieldsCombined.custom = 1`) by exact source name. */
   custom?: Partial<Record<ScenarioCustomField, string>>;
   creators?: readonly ScenarioCreator[];
   tags?: readonly ScenarioTag[];
-  /** Names of {@link COLLECTIONS} entries. */
   collections?: readonly string[];
   trashed?: boolean;
-  /** Name of an earlier {@link ITEMS} entry. */
   parent?: string;
   attachment?: { linkMode: number; contentType: string; path: string };
   annotation?: {
@@ -61,15 +49,10 @@ interface ScenarioItemSpec {
   note?: { note: string; title: string };
 }
 
-/** Exact source names of the custom fields the scenario defines. */
 const SCENARIO_CUSTOM_FIELDS = [
-  // Punctuation: reachable only as custom["review.status"].
   "review.status",
-  // Identifier-safe and outside the built-in names: has a bare form.
   "mood",
-  // Collides with a built-in field name.
   "title",
-  // Collides with a base field that type-specific fields alias.
   "publicationTitle",
 ] as const;
 
@@ -79,7 +62,6 @@ interface ScenarioCollectionSpec {
   library: ScenarioLibraryName;
   key: string;
   name: string;
-  /** Name of an earlier {@link COLLECTIONS} entry. */
   parent?: string;
   trashed?: boolean;
 }
@@ -93,7 +75,6 @@ const COLLECTIONS = {
     parent: "thesis",
   },
   teaching: { library: "personal", key: "CL2TCHNG", name: "Teaching" },
-  // Same leaf name as Thesis/Methods under another parent.
   teachingMethods: {
     library: "personal",
     key: "CL2TCMTH",
@@ -106,14 +87,12 @@ const COLLECTIONS = {
     name: "Archive",
     trashed: true,
   },
-  // A live Collection below a trashed ancestor.
   archiveOld: {
     library: "personal",
     key: "CL2ARLD2",
     name: "Old",
     parent: "archive",
   },
-  // Same name and key shape in the other Library.
   groupMethods: { library: "group", key: "CL2GRMTH", name: "Methods" },
 } as const satisfies Record<string, ScenarioCollectionSpec>;
 
@@ -121,9 +100,6 @@ const SAME_DAY_ADDED = "2021-01-01 00:00:00";
 const SAME_MODIFIED = "2024-03-01 12:00:00";
 
 const BASE_ITEMS = {
-  // Full date, both creator modes, Tags that differ only in case, a number-
-  // stored field value, three custom fields, two Collections (one below a
-  // trashed ancestor), and every child row kind.
   fullDateArticle: {
     library: "personal",
     key: "ART2FULL",
@@ -157,8 +133,6 @@ const BASE_ITEMS = {
     ],
     collections: ["thesisMethods", "archiveOld"],
   },
-  // Year-month date; the same person as author and as editor; a trashed
-  // Collection membership; an empty custom value; added 06:00Z on 2020-01-07.
   yearMonthBook: {
     library: "personal",
     key: "BK2MNTH2",
@@ -179,9 +153,6 @@ const BASE_ITEMS = {
     tags: [{ name: "to-read", type: 0 }],
     collections: ["teachingMethods", "archive"],
   },
-  // Year-only date; `bookTitle` aliases the `publicationTitle` base field;
-  // filed in a parent Collection and its child; accessed on the calendar day
-  // 2020-01-07.
   yearOnlyChapter: {
     library: "personal",
     key: "CHP2YEAR",
@@ -201,8 +172,6 @@ const BASE_ITEMS = {
     ],
     collections: ["thesis", "thesisMethods"],
   },
-  // Text date with no year; `proceedingsTitle` aliases `publicationTitle`;
-  // added 04:00Z on 2020-01-07.
   textDateConference: {
     library: "personal",
     key: "CNF2TEXT",
@@ -218,8 +187,6 @@ const BASE_ITEMS = {
       { firstName: "Ada", lastName: "Lovelace", creatorType: "author" },
     ],
   },
-  // No date, no creators, no Tags, no Collections; `institution` aliases
-  // `publisher`; accessed at 04:00Z on 2020-01-07.
   missingDateReport: {
     library: "personal",
     key: "RPT2NDTE",
@@ -232,8 +199,6 @@ const BASE_ITEMS = {
       accessDate: "2020-01-07 04:00:00",
     },
   },
-  // Alias conflict: the base field and its type-specific variant are both
-  // stored, and a custom field carries the base field's name.
   aliasConflictChapter: {
     library: "personal",
     key: "ALS2CNFL",
@@ -249,8 +214,6 @@ const BASE_ITEMS = {
     custom: { publicationTitle: "Custom Host" },
     tags: [{ name: "methods", type: 0 }],
   },
-  // Unicode and SQL wildcard hazards; a leap-day date; an access date that
-  // does not parse.
   unicodeArticle: {
     library: "personal",
     key: "UNI2CDE2",
@@ -271,9 +234,6 @@ const BASE_ITEMS = {
       { name: "100%_raw\\path", type: 0 },
     ],
   },
-  // Tie-heavy group: equal title, date, venue, and timestamps. Only the key
-  // separates the first two; the third has no title and no volume. `volume` is
-  // stored as an integer on one and as text on the other.
   tieFirst: {
     library: "personal",
     key: "TIE2AAAA",
@@ -316,7 +276,6 @@ const BASE_ITEMS = {
     },
     tags: [{ name: "tie", type: 0 }],
   },
-  // A trashed top-level Item that still carries a Tag and a Collection.
   trashedArticle: {
     library: "personal",
     key: "TRS2SHED",
@@ -331,8 +290,6 @@ const BASE_ITEMS = {
     collections: ["thesisMethods"],
     trashed: true,
   },
-  // Child rows of fullDateArticle: a live and a trashed Attachment, an
-  // Annotation on the live Attachment, and a Child Note.
   liveAttachment: {
     library: "personal",
     key: "PDF2LIVE",
@@ -383,9 +340,6 @@ const BASE_ITEMS = {
       title: "Child note",
     },
   },
-  // Group Library: the same bare key as fullDateArticle, a shared Tag, a
-  // Collection with a leaf name used in the personal Library, and a trashed
-  // Item.
   groupArticle: {
     library: "group",
     key: "ART2FULL",
@@ -429,7 +383,6 @@ const BASE_ITEMS = {
 } as const satisfies Record<string, ScenarioItemSpec>;
 
 const ANNOTATION_ITEMS = {
-  // A trashed Child Note beside the live `childNote` of the same Item.
   trashedChildNote: {
     library: "personal",
     key: "NTE2TRSH",
@@ -443,7 +396,6 @@ const ANNOTATION_ITEMS = {
     },
     trashed: true,
   },
-  // A Child Note in the group Library, read with its group Indexed Key.
   groupChildNote: {
     library: "group",
     key: "NTE2GRUP",
@@ -840,14 +792,11 @@ const ITEMS = { ...BASE_ITEMS, ...ANNOTATION_ITEMS };
 export type ScenarioItemName = keyof typeof ITEMS;
 
 export interface ScenarioItem {
-  /** Zotero's 8-character Key, unique within its Library only. */
   key: string;
-  /** The cross-Library identity Item Query reports. */
   indexedKey: string;
   library: ScenarioLibraryName;
 }
 
-/** Every scenario row by symbolic name, addressed by Indexed Key. */
 export const SCENARIO_ITEMS = Object.fromEntries(
   Object.entries<ScenarioItemSpec>(ITEMS).map(([name, spec]) => [
     name,
@@ -862,14 +811,8 @@ export const SCENARIO_ITEMS = Object.fromEntries(
   ]),
 ) as Record<ScenarioItemName, ScenarioItem>;
 
-/**
- * Zotero's offset between a `customFields` row ID and its `fieldsCombined` ID.
- *
- * @see https://github.com/zotero/zotero/blob/10.0.0/chrome/content/zotero/xpcom/data/cachedTypes.js#L345
- */
 const CUSTOM_ID_OFFSET = 10_000;
 
-/** Insert the scenario into a pristine Zotero database, in one transaction. */
 export function seedScenario(sqlite: DatabaseSync, annotations = false): void {
   sqlite.exec("begin");
   try {
@@ -881,12 +824,6 @@ export function seedScenario(sqlite: DatabaseSync, annotations = false): void {
   }
 }
 
-/**
- * The `id` column of the row that `sql` selects for `name` in one of Zotero's
- * lookup tables.
- *
- * @throws {Error} when the pristine database has no such row.
- */
 export function lookupID(
   sqlite: DatabaseSync,
   sql: string,
@@ -974,7 +911,6 @@ function insertScenario(sqlite: DatabaseSync, annotations: boolean): void {
   }
 
   const internValue = (value: string | number): number => {
-    // node:sqlite binds a JS number as REAL; a bigint binds as INTEGER.
     const bound = typeof value === "number" ? BigInt(value) : value;
     const found = sqlite
       .prepare("select valueID from itemDataValues where value is ?")

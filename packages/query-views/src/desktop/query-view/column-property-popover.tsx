@@ -1,8 +1,3 @@
-// A Table column's "Edit property", as the Bases column menu opens it: the
-// property's page of the Properties popover — its Display Name, its Formula
-// and its "…" menu — standing alone at the column's header cell, with no
-// rows under it to step back to. It closes once that cell leaves the page,
-// as a hidden column or a switch of view takes it.
 import { useImperativeHandle, useLayoutEffect, useRef } from "react";
 import type { Ref, RefObject } from "react";
 
@@ -16,9 +11,7 @@ import { PropertyPage } from "./property-page.tsx";
 import type { ViewProperties } from "./view-properties.ts";
 import type { QueryView } from "./view.tsx";
 
-/** Opens a column's page from outside the popover, and closes it. */
 export interface ColumnPropertyHandle {
-  /** Open the page of the property at `path`, beside `anchor`. */
   open(anchor: HTMLElement, path: string): void;
   close(): void;
 }
@@ -37,8 +30,6 @@ export function ColumnPropertyPopover({
 }) {
   const anchor = useRef<HTMLElement | null>(null);
   const popup = useRef<PinnedPopoverHandle>(null);
-  // The header renders again with the view's Properties: a cell that left
-  // the page with them takes the page along.
   useLayoutEffect(() => {
     if (anchor.current && !anchor.current.isConnected) popup.current?.hide();
   }, [properties]);
@@ -74,7 +65,6 @@ export function ColumnPropertyPopover({
   );
 }
 
-/** The Chooser's own way in, handed to the header outside it. */
 function Opener({
   anchor,
   popup,

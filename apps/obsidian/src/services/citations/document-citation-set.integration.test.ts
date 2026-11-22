@@ -1,4 +1,3 @@
-// Runs in the happy-dom-native-response vitest project (vitest.config.ts).
 import { it } from "@effect/vitest";
 import { Effect, Stream } from "effect";
 import { readFile } from "node:fs/promises";
@@ -77,7 +76,6 @@ const NUMERIC_STYLE = `<?xml version="1.0" encoding="utf-8"?>
   </bibliography>
 </style>`;
 
-/** Prints the author alone, so a rendered citation names the Item it came from. */
 const AUTHOR_STYLE = `<?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0">
   <info>
@@ -89,10 +87,6 @@ const AUTHOR_STYLE = `<?xml version="1.0" encoding="utf-8"?>
   <bibliography><layout><names variable="author"><name/></names></layout></bibliography>
 </style>`;
 
-/**
- * A note-class style: citeproc writes every citation as a footnote, which is
- * the whole document no inline surface can show without Entry Serials.
- */
 const NOTE_STYLE = `<?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="note" version="1.0">
   <info>
@@ -134,16 +128,10 @@ const IBID_STYLE = `<?xml version="1.0" encoding="utf-8"?>
 const BODY =
   "@doe2024 then [[Roe 2025#cite:locator=4]] then [[Doe 2024]] then @doe2024.";
 
-/** The Indexed Keys of the keyless Items the collision suites cite. */
 const KEY_C = "CCCC2345";
 const KEY_D = "DDDD2345";
 const KEY_E = "EEEE2345";
 
-/**
- * The Items the database holds: KEY_A is "A study of nothing" (2020) by Ann
- * Zeta; KEY_B (group 7) and the keyless Items each a "<Family> study" (2021)
- * by Bea <Family>.
- */
 const ITEM_ROWS = `
   insert into libraries (libraryID, type, version, clientVersion)
     values (1, 'user', 1, 1), (4, 'group', 1, 1);
@@ -227,10 +215,6 @@ async function readText(
   return service.bridge.runSync(service.peek(file.path))?.value ?? held.value;
 }
 
-/**
- * A Literature Note for an Item Zotero holds no citation key for, so the
- * derived citekey falls back to the note's own filename.
- */
 async function addKeylessNote(
   harness: CitationIndexHarness,
   path: string,
@@ -479,9 +463,6 @@ describe("Document Citation Set integration", { timeout: 60_000 }, () => {
       }),
   );
 
-  // The acceptance scenario of the whole rework: a note-class style shows its
-  // citations as Entry Serials inline and its full entries in the sidebar,
-  // with the digits inline and in the gutter reading the same.
   it.effect(
     "shows a note-class style's citations as the serials its sidebar gutter repeats",
     () =>
@@ -505,8 +486,6 @@ describe("Document Citation Set integration", { timeout: 60_000 }, () => {
           serialRuns(rendered.formatted.get("[@doe2024; @roe2025]")),
         ).toEqual(["1,2"]);
         expect(serialRuns(rendered.formatted.get("@roe2025"))).toEqual(["2"]);
-        // The sidebar shows the same works in the same order, each entry formatted
-        // in full, and its gutter carries the very digits the citations show.
         expect(
           entries.map((entry) =>
             entry.kind === "rendered" ? entry.serial : undefined,
@@ -600,8 +579,6 @@ describe("Document Citation Set integration", { timeout: 60_000 }, () => {
       }),
   );
 
-  // Two keyless Items whose Literature Notes share a filename derive one
-  // citekey, so a render keyed by that spelling shows one Item for both.
   it.effect("renders each work of a filename collision from its own Item", () =>
     Effect.promise(async () => {
       const body = "First [[folder1/Draft]] then [[folder2/Draft]].";
@@ -635,8 +612,6 @@ describe("Document Citation Set integration", { timeout: 60_000 }, () => {
     }),
   );
 
-  // One keyless Item with two Literature Notes is spelled two ways, and a
-  // numbering style counts one physical source once however it is spelled.
   it.effect("numbers one work cited under two spellings once", () =>
     Effect.promise(async () => {
       const body = "First [[Papers/Ess]] then [[Archive/Ess2]].";
@@ -670,9 +645,6 @@ describe("Document Citation Set integration", { timeout: 60_000 }, () => {
     }),
   );
 
-  // Zotero holds no uniqueness rule for a citation key, so one key can name
-  // two Items. The literal spelling then keeps its own identity and adopts
-  // neither candidate, while the wikilink names one Item exactly and renders.
   it.effect(
     "keeps an ambiguous literal key out of CSL while its wikilink still renders",
     () =>
@@ -706,8 +678,6 @@ describe("Document Citation Set integration", { timeout: 60_000 }, () => {
         await using engine = await openEngine();
         await using text = openText(harness, engine, AUTHOR_STYLE);
 
-        // The first scan of a document announces itself, which drops a citation
-        // text read that raced it; the surfaces answer that by asking again.
         const set = await harness.index.bridge.runPromise(
           harness.index.getDocumentCitationSet(harness.draft),
         );
@@ -732,7 +702,6 @@ describe("Document Citation Set integration", { timeout: 60_000 }, () => {
   );
 });
 
-/** One CitationText over a harness, formatting through the real engine. */
 function openText(
   { host, index, lookup, noteIndex, queryClient }: CitationIndexHarness,
   engine: CitationEngine,
@@ -853,11 +822,6 @@ function referenceSources(): ReadonlyMap<string, ReferenceSource> {
   ]);
 }
 
-/**
- * The Entry Serial run each occurrence of one held Citation shows, read off
- * the element a surface inserts — the digits a reader sees, not the numbers
- * behind them.
- */
 function serialRuns(
   held: readonly FormattedOccurrence[] = [],
 ): (string | undefined)[] {

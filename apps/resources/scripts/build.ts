@@ -1,8 +1,4 @@
 #!/usr/bin/env node
-// Builds the Resource Pack plugin: `main.js`, the pack container, and
-// `manifest.json`. The production build writes `dist/` and the bundle package
-// in `dist/package/`; `--mode development` writes `dist-dev/` and copies it
-// into this worktree's Development Vault.
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import yargs from "yargs";

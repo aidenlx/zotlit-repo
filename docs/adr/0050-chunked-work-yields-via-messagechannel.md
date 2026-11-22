@@ -18,3 +18,12 @@ Long batch loops (e.g. `classifyChunked` in `batch-run.ts`) yield between fixed-
 
 - The `await delay(0)` yield points in chunked loops move to the shared `MessageChannel` primitive; `delay`/`setTimeout` remain fine for actual _delays_ (backoff, debounce), where wall-clock time is the point.
 - Background responsiveness is now a tested property of batch runs, not incidental to whether the window happens to be focused.
+
+The shared `yieldToMain` helper in `packages/plugin-kernel/src/yield-to-main.ts` uses the same MessageChannel task under Node and in Chromium. Vitest can exercise it without a test-specific implementation.
+
+## Bounded merge steps
+
+The `makeSortedRuns` helper in `packages/shared/src/sorted-runs.ts` takes
+ownership of each input chunk and sorts it in place. It merges two runs at a
+time and bounds each Effect step by the requested number of rows. This gives
+the scheduler a place to yield or interrupt between merge steps.

@@ -1,4 +1,3 @@
-// Collect a second destination before committing its Profile document.
 import { Modal, TextComponent } from "obsidian";
 import type { App } from "obsidian";
 
@@ -18,10 +17,8 @@ import type {
   ProfileCreateOptions,
 } from "./service.ts";
 
-/** What the destination dialog reads and runs while it is open. */
 export interface ProfileDestinationDeps {
   app: App;
-  /** The default Profile's note folder, which an empty folder falls back to. */
   defaultFolder: string;
   prepareCreate(
     options: ProfileCreateOptions,
@@ -132,12 +129,10 @@ export class ProfileDestinationModal extends Modal {
     void update();
   }
 
-  /** The user's close, which waits while the Profile document is written. */
   override close(): void {
     if (!this.#saving) super.close();
   }
 
-  /** The dialog Scope's close, which takes the dialog away during a write too. */
   teardown(): void {
     super.close();
   }

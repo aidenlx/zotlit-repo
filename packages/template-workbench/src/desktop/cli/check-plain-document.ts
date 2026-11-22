@@ -1,9 +1,5 @@
 import type { RenderCallerSource } from "#core/render/index.ts";
 import type { ProfileCheck } from "#obsidian/cli/check-profile.ts";
-// The check's plain-document branch: a Citation Template, a Shared Partial, or a
-// plain draft, rendered against one caller root. The entry module keeps request
-// parsing, the flag guards, Check Attempt retention, and answer assembly, and
-// hands this branch every input it reads.
 import { Effect, Schema } from "effect";
 
 import type { CitationTemplateData } from "@zotlit/db";
@@ -37,34 +33,25 @@ import { createInspectHandler, sourceRevision } from "./inspect.ts";
 import { isCitationExampleId } from "#core/render/index.ts";
 import { checkDiagnostic } from "#obsidian/cli/check-profile.ts";
 
-/** The refusal a Reserved Partial Name carries, as the inspection registry names it. */
 export const RESERVED_PARTIAL_NAME =
   "RESERVED_PARTIAL_NAME" satisfies InspectDiagnosticCode;
 
-/**
- * The checked source, or a Template it runs, threw `cause`, or the check
- * refused the source with the Error in `cause`. The check's answer reads
- * `cause`, as {@link thrown} gives it.
- */
 export class CheckSourceThrew extends Schema.TaggedError<
   CheckSourceThrew,
   { readonly brand: unique symbol }
 >()("CheckSourceThrew", { cause: Schema.Defect() }) {}
 
-/** Runs `evaluate`, failing with what it threw as a {@link CheckSourceThrew}. */
 export const attempt = <A>(evaluate: () => A) =>
   Effect.try({
     try: evaluate,
     catch: (cause) => new CheckSourceThrew({ cause }),
   });
 
-/** What a failed check reports: what was thrown, or the failure itself. */
 export const thrown = (error: unknown): unknown =>
   error instanceof CheckSourceThrew || error instanceof ProfileOperationError
     ? error.cause
     : plainTemplateError(error);
 
-/** Checks a document the Profile branch does not own, and returns the answer. */
 export const checkPlainDocument = Effect.fn(
   "TemplateWorkbenchCli.checkPlainDocument",
 )(function* ({
@@ -98,8 +85,6 @@ export const checkPlainDocument = Effect.fn(
     [document.kind]: { status: "not-checked", diagnostics: [] },
   };
   let caller: RenderCallerSource = { source, language: "liquid" };
-  // A failure anywhere below is the check's answer, as the source or a
-  // Template it runs reported it.
   return yield* Effect.gen(function* (): Effect.fn.Return<
     CheckOutcome,
     unknown,

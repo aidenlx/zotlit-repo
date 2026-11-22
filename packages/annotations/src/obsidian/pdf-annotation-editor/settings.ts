@@ -1,5 +1,3 @@
-// The reader keys of the plugin settings, registered in the platform's
-// settings registry; a host composes the slice into its definition.
 import * as v from "valibot";
 
 import { settingsSlice } from "@zotlit/plugin-services/core/settings/slice.ts";
@@ -16,29 +14,11 @@ import {
 export const readerSettings = settingsSlice(
   {
     "reader.focus-annot-view": v.boolean(),
-    /**
-     * Whether a clicked Attachment File Link opens in the ZotLit PDF Reader
-     * instead of the system handler — File Link Capture, ADR 0045.
-     */
     "reader.open-file-links": v.boolean(),
-    /**
-     * Open a clicked Durable Annotation Link in the ZotLit PDF Reader, with the
-     * Annotation selected; off hands it to Zotero.
-     */
     "reader.open-annotation-links": v.boolean(),
-    /**
-     * The colour each PDF reader annotation tool draws in. Sparse, so a tool
-     * never recoloured follows Zotero's own default.
-     */
     "reader.annotation-colors": annotationToolColorsSchema,
-    /**
-     * The annotation colours used last in the PDF reader, most recent first. One
-     * list for every tool, so the popup offers the same swatches to each.
-     */
     "reader.recent-colors": v.array(v.string()),
-    /** The pen width the PDF reader's ink tool draws at, in PDF points. */
     "reader.ink-width": inkWidthSchema,
-    /** The font size the PDF reader's text tool types at, in PDF points. */
     "reader.text-font-size": textFontSizeSchema,
   },
   {

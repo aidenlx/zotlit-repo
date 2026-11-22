@@ -1,4 +1,3 @@
-// Note import for callers outside Effect: the debug surface.
 import { Effect } from "effect";
 import type { Context } from "effect";
 
@@ -11,11 +10,6 @@ import type {
   BatchImportServices,
 } from "./batch-import.ts";
 
-/**
- * The note import commands over `context`, run through `bridge`. A command
- * resolves with its outcome and rejects with what failed, as a read or a
- * write does. The batch modal's callbacks run through `bridge` too.
- */
 export function bindBatchImport(
   bridge: Pick<EffectBridge, "runPromise" | "runSync" | "runPromiseExit">,
   context: Context.Context<BatchImportServices>,

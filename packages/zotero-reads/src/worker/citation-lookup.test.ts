@@ -38,10 +38,6 @@ insert into itemAnnotations (itemID, parentItemID, type) values
   (11, 10, 1), (21, 20, 1), (31, 30, 1), (41, 40, 1);
 `;
 
-/**
- * Runs `body` against an in-process client over fixture databases seeded by
- * `seedSql` (open #N runs `seedSql(N)`; `null` fails that open).
- */
 function withClient<A, E>(
   body: (client: ZoteroReadsClient) => Effect.Effect<A, E>,
   {
@@ -415,7 +411,6 @@ it.each(["construction", "comparison"] as const)(
             const fiber = Fiber.getCurrent();
             if (fiber) Deferred.doneUnsafe(reached, Effect.succeed(fiber));
           };
-          // Make each budget check expire, independent of machine speed.
           let now = 0;
           using clock = vi.spyOn(performance, "now").mockImplementation(() => {
             now += 5;

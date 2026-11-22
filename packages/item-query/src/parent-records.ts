@@ -11,19 +11,15 @@ import {
 } from "./record-field.ts";
 import type { RecordVocabulary } from "./record-field.ts";
 
-/** The vocabulary and access to one Parent Record, with its contract lists. */
 export function liftParentRecord<Item, Needs, Row, ParentNeeds>(options: {
   readonly name: string;
   readonly vocabulary: () => RecordVocabulary<Row, ParentNeeds>;
   readonly read: (item: Item) => Row | undefined;
   readonly needs: (needs: readonly ParentNeeds[]) => Needs;
   readonly sortable: readonly string[];
-  /** Parent fields whose lowering is a superset for this child Query Dataset. */
   readonly candidates: "all" | readonly string[];
   readonly listed: readonly string[] | (() => readonly string[]);
-  /** Fields retain their dotted roots in diagnostics; records use member navigation. */
   readonly syntax: "fields" | "record";
-  /** Identity available on the scan row, before the Parent Record loads. */
   readonly identity?: (item: Item) => {
     readonly scan: { readonly key: string };
     readonly groupID: number | null;
@@ -110,7 +106,6 @@ export function liftParentRecord<Item, Needs, Row, ParentNeeds>(options: {
             indexedKeyField.read(options.identity!(item)) as string,
         },
       };
-    // Record members keep the member navigation and Faults of their vocabulary.
     return syntax === "fields" ? definitionFilter(field(path)) : undefined;
   };
   return {
@@ -188,7 +183,6 @@ export function liftParentRecord<Item, Needs, Row, ParentNeeds>(options: {
           (vocabulary().parents ?? []).some((parent) => parent.owns(rest, key)))
       );
     },
-    /** A candidate leaf in the parent's vocabulary; evaluation still uses the original tree. */
     candidateLeaf: <Record>(
       node: FilterNode<Record>,
     ): FilterNode<never> | null => {
@@ -221,12 +215,10 @@ export function liftParentRecord<Item, Needs, Row, ParentNeeds>(options: {
   };
 }
 
-/** The row type is private to the parent declaration, like a Query Dataset. */
 export type ParentRecord<Item = any, Needs = any> = ReturnType<
   typeof liftParentRecord<Item, Needs, any, any>
 >;
 
-/** Keep the established order of Sortable Fields in Diagnostic Reports. */
 export function parentSortFields(
   own: readonly string[],
   parents: readonly ParentRecord[],
@@ -283,7 +275,6 @@ function candidateMemberPath<Item>(node: FilterNode<Item>): string | null {
   return path === null ? null : `${path}.${node.name}`;
 }
 
-/** Recognize a field of a Parent Record at any declared depth. */
 export function parentFieldSubject<Item>(
   subject: FilterNode<Item>,
   name: string,

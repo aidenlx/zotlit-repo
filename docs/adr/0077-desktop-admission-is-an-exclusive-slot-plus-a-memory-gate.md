@@ -66,6 +66,32 @@ the developer's other applications kept the machine under pressure.
 An admitted run now leaves a marker that counts until its process exits; a
 reader removes the marker of a process that is gone.
 
+The Memory Gate uses the kernel's pressure level on macOS. Swap and compressed
+idle pages can persist after memory becomes available. Windows checks commit
+charge against 1.25 times physical memory. Linux compares used memory plus
+used swap against the same limit. The limit gives compression and paging room.
+
+`packages/config/memory-gate.ts` adapts the gate from vattention's
+`scripts/memory-gate.ts`. A top-level run sets `ZOTLIT_MEMORY_GATE_ADMITTED` so
+nested invocations skip admission. Vitest's global setup does this for a bare
+`vitest run` and for a run with several projects. On an Admission Deadline the
+setup exits with code 75 because Vitest converts a thrown error to exit code 1.
+
+The Unix admission directory has a fixed path per user because the shell and
+Turbo can provide different values of `TMPDIR`. Windows uses the OS temporary
+directory. `ZOTLIT_DESKTOP_DIR` can override the path.
+
+A single start lock covers ticket allocation and admission. A waiter that
+reaches its deadline can remove its ticket during another run's scan. The scan
+continues when that ticket has disappeared. A terminated process can leave its
+start lock behind, so the gate can remove a lock that is more than 10 seconds
+old. Log messages report a change in the reason for waiting and omit repeated
+polls with the same reason. The gate records its most recent start in the
+shared directory. A supplied deadline is in epoch milliseconds.
+
+The Windows memory probe starts PowerShell without a profile so profile output
+cannot precede the JSON response.
+
 ## Docs walk update (2026-11-13)
 
 A docs-walk run that captures or records takes an Exclusive Hold of every
@@ -160,3 +186,100 @@ display, macOS had no awake display and locked the screen. Desktop Obsidian
 painted nothing, and three End-to-end Runs and one release gate each ran for
 about 20 min and failed 30 or more cases that read a painted PDF page. The
 runner after a land opened a `needs-triage` issue for each run.
+
+### Paint Check and display assertion
+
+Require an awake display and an unlocked session for work that
+reads a painted window. On macOS read the online and asleep
+fields from the display report and the lock field for the
+current user from the console-session list. A different user's
+locked session does not block the current one. Unknown probe
+results allow the run to proceed. A manual hold can proceed
+with a warning because its command may need no window.
+
+Check before a long gate starts and diagnose unavailable paint
+again after an unsuccessful run. While admitted, hold a display
+and system assertion tied to the holder's process lifetime.
+An idle timer cannot sleep the display under the assertion.
+A closed lid and locked session still require the person at
+the machine. The opt-out skips both probe and assertion.
+
+Fixtures supply recorded macOS output and a stand-in assertion
+process to child admission tests. Read the fixture state on
+each probe so a case can change paint readiness mid-run. A
+hosted runner has no desktop for these cases.
+
+[Paint probe](../../packages/scripts/lib/desktop-paint.ts) ·
+[Paint cases](../../packages/scripts/lib/desktop-paint.test.ts)
+
+### Admission records and cleanup
+
+Keep admission state per user and machine so different clones
+share the queue. Assign FIFO tickets under a short sequence
+mutex. A slot directory claims it atomically, and its owner
+record is written through a replacement so readers see the
+whole record. Count claims even above the current holder's
+configured slot count. Recheck ownership under the takeover
+mutex before removing an orphan or evicted claim. Include a
+token in a mutex so a previous owner cannot remove its
+successor's lock after a stale takeover.
+
+Use the Git worktree root to enforce one hold per worktree.
+A wired-in clock and state directory let tests exercise
+admission without changing the machine clock. Test strict FIFO
+with a head waiter that polls slower than the following
+waiter. Use child processes, track their groups for cleanup,
+and stub memory and paint independently. A dead process can
+remain visible until its parent reaps it.
+
+The Memory Gate shares the admission deadline and starts
+before the Lease. Hold the start lock while checking memory.
+An automated holder's silence budget exceeds its longest
+healthy quiet step. This lets the test timeout report first
+while the Lease still catches a hung harness. Progress of a
+wrapped child is its output. Throttle progress record writes
+for busy output streams. Inherited tokens allow a child to
+reuse its holder's slot. It keeps the holder's ownership and
+does not release it. A reused automated hold watches the same
+Lease. The owner of a manual hold handles its own notice.
+
+A head waiter that requires every slot gives notice to each
+manual hold that blocks it. When one released slot suffices,
+give notice to the oldest blocking manual hold. Keep at most
+one such notice round in progress. If no waiter remains, a
+manual hold continues. The notice, grace, and kill interval
+fit within the default admission deadline. Land Queue uses the
+same admission mechanism with one slot, without the Memory
+Gate and desktop requirements.
+
+Check process start time as well as PID before signalling.
+A detached command has its own process group and the wrapper
+forwards terminal signals. On an ended Lease, give that group
+time to stop before forcing it down. Keep the claim until
+cleanup completes so an orphan cannot keep driving the desktop
+for the next holder. A dead wrapper can leave its command
+alive. Evict its group only when the recorded leader start
+time still matches. Never signal the waiter's own group.
+Register child exit handlers before recording its group so
+an immediate exit cannot be lost.
+
+Run the root test command under one Memory Gate and let its
+packages reuse admission. Use a shell for Windows command
+shims. Forward signals from a supervisor to the child because
+the supervisor can target the wrapper alone.
+
+[Admission](../../packages/scripts/lib/desktop-slot.ts) ·
+[Admission tests](../../packages/scripts/lib/desktop-slot.test.ts) ·
+[Manual command](../../packages/scripts/scripts/desktop-slot.ts) ·
+[Memory Gate command](../../packages/scripts/scripts/memory-gate.ts)
+
+The release gate checks the ability to paint before starting the other checks. Both desktop suites then borrow one hold, inherit its token and Memory Gate mark, and renew the Lease as cases run. Release that hold before the start-up check takes an Exclusive Hold. Forward the admission and lease exit codes to distinguish them from failed checks. Parallel Vitest packages each own a worker pool. Limit concurrent packages to two locally and one on the four-core hosted runner to keep worker timeouts from competing with concurrency. A gate-level Memory Gate pass covers the child runs.
+
+The Fixture's manual Paired Run holds its Desktop Slot until the session
+exits. A waiter's notice stops the watchers and Paired Zotero through the
+same cleanup as SIGTERM, then exits 76. The slot listener and the session
+listener have distinct lifetimes.
+
+## Admission deadline
+
+The memory and Desktop Slot waits schedule their last wake at the Admission Deadline when it comes before the next normal poll. The deadline test uses a poll interval longer than its test timeout to distinguish the two behaviors.

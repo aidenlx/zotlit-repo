@@ -4,7 +4,6 @@ import { ANNOTATIONS } from "./query-annotations.ts";
 import { ITEMS } from "./query-items.ts";
 import { subexpressionTypes } from "./subexpression-types.ts";
 
-/** The type of the subexpression `part` of `text`, at its first occurrence. */
 function typeOf(
   types: ReturnType<typeof subexpressionTypes>,
   text: string,
@@ -51,7 +50,6 @@ describe("subexpression types", () => {
 
   it("types a bound name where its list method binds it", () => {
     const types = subexpressionTypes(ITEMS);
-    // Alone, `value` is a custom field of text.
     expect(typeOf(types, "value")).toEqual({ valueType: "string" });
     expect(typeOf(types, "tags.filter(value)", "value")).toEqual({
       valueType: "unknown",
@@ -67,7 +65,6 @@ describe("subexpression types", () => {
       name: "title",
       valueType: "string",
     });
-    // An Annotation's own field names no member of its Item.
     expect(names(item)).not.toContain("comment");
     for (const name of names(item)!)
       expect(ANNOTATIONS.planFilter(`item.${name}`), name).toHaveProperty(
@@ -90,7 +87,6 @@ describe("subexpression types", () => {
     expect(
       names(typeOf(types, 'attachments.reduce(value., "")', "value")),
     ).toContain("fileType");
-    // A missing operand leaves the text untyped.
     expect(typeOf(types, "(title +.", "title")).toBeUndefined();
   });
 
@@ -108,7 +104,6 @@ describe("subexpression types", () => {
 
   it("does not read into another Formula's text", () => {
     const types = subexpressionTypes(ITEMS, { formulas: { t: "title" } });
-    // `formula.t` spans 0–9; the Formula's own `title` spans 0–5 of its text.
     expect(typeOf(types, "formula.t", "formul")).toBeUndefined();
   });
 });

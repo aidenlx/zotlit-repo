@@ -1,8 +1,3 @@
-// Registers the Native Pandoc Workflow CLI surface.
-//
-// Command, flag, and response text is all hardcoded English: an agent-facing
-// contract surface, not localized UI. See apps/obsidian/policies/cli-text.md.
-
 import type { ProfileStyleReader } from "#obsidian/pandoc/profile-styles.ts";
 import type {
   ResolveDocument,
@@ -68,7 +63,6 @@ export { CSL_COMMAND };
 export interface PandocResolveDeps {
   fileSystem: FileSystem.FileSystem;
   app: App;
-  /** The vault's folder on disk, which the CLI's absolute paths start with. */
   basePath: string;
   reads: Pick<ZoteroReads["Service"], "current" | "reads">;
   zoteroPref: Pick<ZoteroPref["Service"], "current">;
@@ -79,12 +73,6 @@ export interface PandocResolveDeps {
   >;
 }
 
-/**
- * The `zotlit:resolve`, `zotlit:csl` and Pandoc integration commands. The CSL
- * store they materialize styles into ages out on its own clock: building the
- * layer starts evicting the entries that ran out, on the layer's Scope, so the
- * launch never waits on the sweep and unload interrupts it.
- */
 export const layerPandocResolve: Layer.Layer<
   never,
   never,
@@ -230,8 +218,6 @@ export function registerPandocResolve(
         const settings = yield* deps.settings.current;
         const run = Effect.runSyncWith(yield* Effect.context<never>());
         const profile = profileReaderOf(deps.profile, run);
-        // A native run carries no vault Citation Locale: the installed style
-        // keeps the locale behavior Zotero installed it with.
         const ports = {
           resolve: (styleId: string) =>
             resolveInstalledStyle(dataDir, { styleId }),
@@ -271,10 +257,6 @@ export function registerPandocResolve(
   });
 }
 
-/**
- * The style one note renders with in Obsidian, read through the boundary every
- * in-app surface and the built-in export read it through.
- */
 function readDocumentStyle(
   {
     app,
@@ -302,7 +284,6 @@ function readDocumentStyle(
   return { kind: "read", styleId, source: styleSourceOf(declared) };
 }
 
-/** The note at an absolute path, with the links Obsidian's cache holds for it. */
 function readDocument(
   { app, basePath }: Pick<PandocResolveDeps, "app" | "basePath">,
   absolutePath: string,
@@ -315,7 +296,6 @@ function readDocument(
   };
 }
 
-/** The vault file at an absolute path under `basePath`. */
 function vaultFile(
   app: App,
   basePath: string,
@@ -327,7 +307,6 @@ function vaultFile(
   );
 }
 
-/** One database read per invocation, however many links the document carries. */
 const readItems = Effect.fn("PandocCli.readItems")(function* (
   reads: PandocResolveDeps["reads"],
   indexedKeys: readonly string[],
@@ -342,8 +321,6 @@ const readItems = Effect.fn("PandocCli.readItems")(function* (
     items.set(indexedKey, {
       citationKey:
         ("citationKey" in item.fields ? item.fields.citationKey : null) ?? null,
-      // Every item type `ItemsByIndexedKeys` can return carries `title`; the
-      // check is what narrows Zotero's field union, which includes child items.
       title: ("title" in item.fields ? item.fields.title : null) ?? item.key,
     });
   }

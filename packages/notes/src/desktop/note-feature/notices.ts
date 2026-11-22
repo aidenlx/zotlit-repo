@@ -1,5 +1,3 @@
-// The Note Feature's change notices: the excerpt image summary and the
-// skipped frontmatter expressions, shown through the Notifier.
 import { Effect, Layer } from "effect";
 
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -8,11 +6,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { eventPayloads, NoteFeature } from "./service.ts";
 
-/**
- * Show a notice for each excerpt image summary and each note write that
- * skipped a failed frontmatter expression. The subscriptions end when the
- * layer's Scope closes.
- */
 export const layerNoteFeatureNotices: Layer.Layer<
   never,
   never,

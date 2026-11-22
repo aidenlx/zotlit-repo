@@ -1,4 +1,3 @@
-// The Annotation Repository's drafts: comment, Quoted Text and tag drafts, their autosave, and how reads reconcile them.
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Exit, Fiber, Logger } from "effect";
 import { expect, vi } from "vitest";
@@ -46,7 +45,6 @@ import {
   editingBlockedReason,
 } from "#obsidian/annot-view/card-controls.ts";
 
-/** The first Annotation an announcement shows `hidden` or `gone`. */
 const firstAnnotation = Effect.fnUntraced(function* (
   service: AnnotationRepository["Service"],
   flag: "hidden" | "gone",
@@ -163,8 +161,6 @@ it.effect(
       zotero.eraseInZotero("K3JRFLFQ");
       yield* service.refresh("RGRPDF24");
 
-      // A surface re-reads the whole state on each announcement, so one may come
-      // more than once.
       expect(new Set(announced)).toEqual(new Set(["K3JRFLFQ", "PUPR5FG5"]));
       expect(yield* service.annotationState("K3JRFLFQ")).toMatchObject({
         gone: true,
@@ -499,7 +495,6 @@ it.effect(
       expect(patches()).toHaveLength(0);
       yield* adjustLayerClock("1 millis");
       yield* settledDraft(service, "text");
-      // The version precondition and the text: no position, no Sort Index.
       expect(patches()).toEqual([
         { version: 11, annotationText: "Identify your message" },
       ]);
@@ -705,7 +700,6 @@ it.effect(
         service.submitTextField("comment", "PUPR5FG5"),
         { startImmediately: true },
       );
-      // The save the user pressed is the one the editor says it waits on.
       expect(
         fieldEditorControls(
           capabilityBlock(yield* service.capabilityFor("RGRPDF24"), NOW),
@@ -913,8 +907,6 @@ it.effect.each(["tags", "comment"] as const)(
       yield* Effect.promise(() => repository[Symbol.asyncDispose]());
       readBack.resolve(zotero.answers.item());
 
-      // Zotero took the save before the unload; only the read-back after it
-      // stops, so the save keeps its answer.
       expect(yield* Fiber.join(saving)).toEqual({ kind: "idle" });
     }),
 );
@@ -945,8 +937,6 @@ it.effect(
       yield* Effect.promise(() => repository[Symbol.asyncDispose]());
       reply.resolve(writeAccepted());
 
-      // The unload interrupts the send, so ZotLit cannot say whether Zotero
-      // saved it.
       expect(yield* Fiber.join(saving)).toEqual({
         kind: "failed",
         failure: { kind: "unknown-outcome" },
@@ -975,7 +965,6 @@ it.effect(
         if (logLevel === "Warn") warnings.push(...[message].flat());
       });
 
-      // The timers and the save they start run with the loggers of the edit.
       yield* service
         .editTextField("comment", "PUPR5FG5", "Saved on its own")
         .pipe(
@@ -983,8 +972,6 @@ it.effect(
         );
       yield* adjustLayerClock("1 second");
       yield* Effect.promise(() => sending.promise);
-      // The database changes under the send, and its new read fails, so the
-      // save fails with WriteRunFailed and no caller waits on it.
       dbEvents.emit("changed");
       acquireRead.mockRejectedValueOnce(new Error("database gone"));
       reply.resolve(writeAccepted(20));
@@ -1190,7 +1177,6 @@ it.effect("keeps newer typing when a reviewed comment retry succeeds", () =>
       service.retryTextDraft("comment", "PUPR5FG5"),
       { startImmediately: true },
     );
-    // A submit of the same text joins the retry rather than sending again.
     const duplicate = yield* Effect.forkChild(
       service.submitTextField("comment", "PUPR5FG5"),
       { startImmediately: true },
@@ -1453,7 +1439,6 @@ it.effect(
         (yield* service.peek("RGRPDF24"))?.value ?? null,
       );
 
-      // The editor closing on blur submits what it holds.
       yield* service.editTextField("comment", "PUPR5FG5", "Blurred words");
       const saving = yield* Effect.forkChild(
         service.submitTextField("comment", "PUPR5FG5", {
@@ -1463,8 +1448,6 @@ it.effect(
       );
 
       expect(drawn).toEqual(["Blurred words"]);
-      // A read that lands while the write is away answers the old comment, and
-      // the proposal is still drawn over it.
       yield* service.refresh("RGRPDF24");
       expect(commentOf((yield* service.peek("RGRPDF24"))?.value ?? null)).toBe(
         "Blurred words",
@@ -1485,8 +1468,6 @@ it.effect(
       const stack = yield* scopedStack;
       const first = Promise.withResolvers<Response>();
       const sent: string[] = [];
-      // Zotero holds what the last accepted write sent, in its list as in its
-      // item answer.
       const stored = () =>
         afterWrite("PUPR5FG5", { comment: sent.at(-1) ?? "" });
       const { service } = yield* Effect.promise(() =>
@@ -1524,8 +1505,6 @@ it.effect(
       yield* Effect.promise(() =>
         vi.waitFor(() => expect(sent).toEqual(["first"])),
       );
-      // Two more submits while the first is away: the later text replaces the
-      // earlier one, on screen at once and in what Zotero is sent next.
       yield* service.editTextField("comment", "PUPR5FG5", "second");
       yield* Effect.forkChild(service.submitTextField("comment", "PUPR5FG5"), {
         startImmediately: true,
@@ -1549,7 +1528,6 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const stack = yield* scopedStack;
-      // A minimised or covered window reports its document hidden.
       vi.stubGlobal("document", { visibilityState: "hidden" });
       stack.defer(() => {
         vi.unstubAllGlobals();
@@ -1622,8 +1600,6 @@ it.effect(
       yield* Fiber.join(saved);
       yield* Fiber.join(queued);
 
-      // The failure holds the draft with its newest text, and nothing more goes
-      // to Zotero until the researcher saves again.
       expect(sent).toEqual(["first"]);
       expect(yield* service.textDraftFor("comment", "PUPR5FG5")).toMatchObject({
         text: "second",
@@ -1639,20 +1615,15 @@ it.effect("drops a comment draft holding what Zotero already has", () =>
     const { service, requests } = yield* Effect.promise(() => writable(stack));
     const sent = requests.length;
 
-    // Opening the editor starts a draft before any typing. Closing it asks for
-    // the submit, and an untouched draft leaves nothing behind for a card to
-    // announce as unsaved.
     expect(yield* service.editTextField("comment", "PUPR5FG5")).not.toBeNull();
     yield* service.submitTextField("comment", "PUPR5FG5", { automatic: true });
     expect(yield* service.textDraftFor("comment", "PUPR5FG5")).toBeNull();
 
-    // Typing and undoing it back to Zotero's own text says the same thing.
     yield* service.editTextField("comment", "PUPR5FG5", "Second thoughts");
     yield* service.editTextField("comment", "PUPR5FG5", "");
     yield* service.submitTextField("comment", "PUPR5FG5", { automatic: true });
     expect(yield* service.textDraftFor("comment", "PUPR5FG5")).toBeNull();
 
-    // Neither close wrote to Zotero.
     expect(
       requests.slice(sent).filter(({ method }) => method === "PATCH"),
     ).toHaveLength(0);
@@ -1677,7 +1648,6 @@ it.effect("draws nothing while an automatic comment save is in flight", () =>
             ),
         }),
     );
-    // What the card and the Mark Popup draw from this Annotation's state.
     const drawn = () => {
       const capability = repository.capabilityFor("RGRPDF24");
       const mutation = repository.mutationFor("PUPR5FG5");
@@ -1706,7 +1676,6 @@ it.effect("draws nothing while an automatic comment save is in flight", () =>
     );
 
     yield* adjustLayerClock("1 second");
-    // The idle timer's save runs on to the fake Zotero: wait until it is away.
     yield* Effect.promise(() => vi.waitFor(() => expect(saved).toBe("typed")));
     frames.push(drawn());
     answer.resolve(writeAccepted());
@@ -1753,7 +1722,6 @@ it.effect(
       const undoing = yield* Effect.forkChild(service.undo("RGRPDF24"), {
         startImmediately: true,
       });
-      // The undo puts the automatic tag back after the kept ones, as it merges.
       expect(yield* drawn).toEqual(["review", "todo", "nlp"]);
       release();
       expect(yield* Fiber.join(undoing)).toMatchObject({ kind: "stepped" });
@@ -1789,8 +1757,6 @@ it.effect(
 
       expect(yield* service.submitTags("PUPR5FG5")).toEqual({ kind: "idle" });
 
-      // Kept tags keep their types and new tags are manual. The version is the
-      // Fixture highlight's own.
       expect(zotero.patches).toEqual([
         {
           version: 11,
@@ -1998,7 +1964,6 @@ it.effect(
 
       yield* service.submitTags("PUPR5FG5");
 
-      // `from Zotero` stays, and `todo`, which Zotero removed, does not come back.
       expect(zotero.tags).toEqual([
         "review",
         { tag: "nlp", type: 1 },
@@ -2023,7 +1988,6 @@ it.effect(
       );
 
       yield* service.editTags("PUPR5FG5", ["review", "nlp", "figure"]);
-      // Zotero moves under the session, and ZotLit has not read it yet.
       zotero.changeInZotero({ tags: [...TAGGED, "from Zotero"] });
 
       expect(yield* service.submitTags("PUPR5FG5")).toEqual({ kind: "idle" });
@@ -2055,7 +2019,6 @@ it.effect(
         Effect.sync(() => announced.push(key)),
       );
 
-      // The Mark Popup starts the session; the card opens onto the same draft.
       yield* service.editTags("PUPR5FG5", ["review", "figure"]);
       expect(yield* service.editTags("PUPR5FG5")).toMatchObject({
         names: ["review", "figure"],
@@ -2090,7 +2053,6 @@ it.effect(
         Effect.sync(() => (conflicts += 1)),
       );
 
-      // Both editors are open on one Annotation; the tag session ends first.
       yield* service.editTextField("comment", "PUPR5FG5", "Worth citing");
       yield* service.editTags("PUPR5FG5", ["review", "figure"]);
       yield* service.submitTags("PUPR5FG5");
@@ -2102,7 +2064,6 @@ it.effect(
         state: { kind: "editing" },
       });
 
-      // The comment's idle save lands under an open tag session.
       yield* service.editTags("PUPR5FG5", ["review", "figure", "todo"]);
       yield* adjustLayerClock("1 second");
       yield* settledDraft(service, "comment");
@@ -2116,8 +2077,6 @@ it.effect(
         state: { kind: "editing" },
       });
 
-      // Zotero moves the comment under typed text: only the comment conflicts,
-      // and the tag session still saves.
       yield* service.editTextField("comment", "PUPR5FG5", "Worth citing twice");
       zotero.changeInZotero({ comment: "From Zotero" });
       yield* service.refresh("RGRPDF24");
@@ -2130,7 +2089,6 @@ it.effect(
         text: "Worth citing twice",
         state: { kind: "conflict", fresh: "From Zotero" },
       });
-      // The card still offers Apply again and Discard for the comment.
       expect((yield* service.annotationState("PUPR5FG5")).mutation).toEqual({
         kind: "conflict",
         conflict: {
@@ -2140,7 +2098,6 @@ it.effect(
         },
       });
 
-      // Discarding one field's draft leaves the other's.
       yield* service.editTags("PUPR5FG5", ["review"]);
       yield* service.discardTagDraft("PUPR5FG5");
       expect(yield* service.textDraftFor("comment", "PUPR5FG5")).toMatchObject({
@@ -2174,7 +2131,6 @@ it.effect(
       const patches = (from: number) =>
         requests.slice(from).filter(({ method }) => method === "PATCH");
 
-      // A Geometry Edit in Zotero's reader rewrites the text under typed text.
       yield* service.editTextField("text", "PUPR5FG5", "My correction");
       zotero.changeInZotero({ text: "Text of the new range" });
       let sent = requests.length;
@@ -2189,11 +2145,9 @@ it.effect(
           fresh: "Text of the new range",
         },
       });
-      // The conflict holds the draft: a submit sends nothing.
       yield* service.submitTextField("text", "PUPR5FG5");
       expect(patches(sent)).toEqual([]);
 
-      // Apply again sends the text alone against the version Zotero holds now.
       yield* service.retryTextDraft("text", "PUPR5FG5");
       expect(patches(sent).map(({ body }) => JSON.parse(body ?? ""))).toEqual([
         { version: 12, annotationText: "My correction" },
@@ -2202,7 +2156,6 @@ it.effect(
       expect(yield* service.textDraftFor("text", "PUPR5FG5")).toBeNull();
       expect(yield* service.mutationFor("PUPR5FG5")).toEqual({ kind: "idle" });
 
-      // Discard keeps Zotero's text and sends nothing.
       yield* service.editTextField("text", "PUPR5FG5", "Another correction");
       zotero.changeInZotero({ text: "Edited in Zotero's sidebar" });
       yield* service.refresh("RGRPDF24");
@@ -2245,16 +2198,12 @@ it.effect(
       );
       expect(yield* drawn).toBe("Fixed ligature");
 
-      // Zotero's sidebar moves the text while the write waits, so Zotero refuses
-      // it against the version it was stamped with.
       zotero.changeInZotero({ text: "Edited in Zotero" });
       release();
       expect(yield* Fiber.join(saving)).toMatchObject({
         kind: "conflict",
         conflict: { write: "text" },
       });
-      // The refused proposal leaves the list. The API readback now supplies
-      // the confirmed text to both the card and the conflict.
       expect(confirmed).toBe("Identify Your Message");
       expect(yield* drawn).toBe("Edited in Zotero");
     }),
@@ -2307,7 +2256,6 @@ it.effect(
         },
       };
 
-      // A text save leaves the comment draft unsent.
       yield* service.editTextField("comment", "PUPR5FG5", "Worth citing");
       yield* service.editTextField("text", "PUPR5FG5", "Fixed ligature");
       yield* service.submitTextField("text", "PUPR5FG5");
@@ -2319,8 +2267,6 @@ it.effect(
         state: { kind: "editing" },
       });
 
-      // Zotero moves the comment: only the comment conflicts, and a text save
-      // still lands beside the conflict and leaves it standing.
       zotero.changeInZotero({ comment: "From Zotero" });
       yield* service.refresh("RGRPDF24");
       yield* service.editTextField("text", "PUPR5FG5", "Fixed ligature twice");
@@ -2330,8 +2276,6 @@ it.effect(
       expect(yield* service.textDraftFor("text", "PUPR5FG5")).toBeNull();
       expect(yield* service.mutationFor("PUPR5FG5")).toEqual(commentConflict);
 
-      // Zotero moves the text too: both conflicts stand, and ending the text's
-      // leaves the comment's for the card to offer next.
       yield* service.editTextField("text", "PUPR5FG5", "Third fix");
       zotero.changeInZotero({ text: "Changed range" });
       yield* service.refresh("RGRPDF24");
@@ -2375,7 +2319,6 @@ it.effect(
       expect((yield* service.tagDraftFor("PUPR5FG5"))?.state).toEqual({
         kind: "pending",
       });
-      // The draft is saving, so a change meanwhile is not taken.
       yield* service.editTags("PUPR5FG5", ["review"]);
       expect((yield* service.tagDraftFor("PUPR5FG5"))?.names).toEqual([
         "review",
@@ -2401,8 +2344,6 @@ it.effect(
         { disabled: false },
       ]);
 
-      // The draft leaves only once the confirmed record stands, so the editor
-      // closes onto the new chips rather than the old ones.
       let tagsWhenClosed: readonly string[] | undefined;
       yield* collect(service.annotationChanged, () =>
         Effect.gen(function* () {
@@ -2440,8 +2381,6 @@ it.effect("hides an old database's tag draft when the database switches", () =>
     yield* service.editTags("PUPR5FG5", ["figure"]);
     const hidden = yield* firstAnnotation(service, "hidden");
 
-    // With the Local API gone, the draft is found by the database it was made
-    // in, so the switch itself must hide it.
     answering = false;
     const lost = yield* nextChangeOf(service);
     freshnessSignal(serverEvents);
@@ -2471,7 +2410,6 @@ it.effect(
       yield* service.editTags("PUPR5FG5", ["review", "nlp", "todo"]);
       yield* localApiService.forgetAuthorization;
       expect((yield* service.tagDraftFor("PUPR5FG5"))?.manualSave).toBe(true);
-      // The editor closes as editing goes, and adds the text still typed first.
       yield* service.editTags("PUPR5FG5", ["review", "nlp", "todo", "figure"]);
       expect(
         yield* service.submitTags("PUPR5FG5", { automatic: true }),
@@ -2483,10 +2421,8 @@ it.effect(
         held: true,
         state: { kind: "editing" },
       });
-      // No new session starts while editing is unavailable.
       expect(yield* service.editTags("FDRFQ7C2")).toBeNull();
 
-      // Approval alone saves nothing, and neither does another close.
       yield* localApiService.authorize;
       yield* service.submitTags("PUPR5FG5", { automatic: true });
       expect(zotero.patches).toEqual([]);
@@ -2549,7 +2485,6 @@ it.effect(
           ...zotero.answers,
           write: async (request) => {
             const answer = await zotero.answers.write(request);
-            // Zotero took the write; its answer never arrives.
             if (lose) unreachable();
             return answer;
           },
@@ -2557,7 +2492,6 @@ it.effect(
       );
 
       yield* service.editTags("PUPR5FG5", ["review", "nlp", "todo", "figure"]);
-      // A lost answer is the Local API gone mid-write: which it did, nobody knows.
       expect(yield* service.submitTags("PUPR5FG5")).toMatchObject({
         kind: "failed",
         failure: { kind: "unreachable" },
@@ -2571,8 +2505,6 @@ it.effect(
       lose = false;
       yield* service.submitTags("PUPR5FG5", { automatic: true });
       expect(zotero.patches).toHaveLength(1);
-      // Save tags applies the same names to what Zotero holds, which already has
-      // them, so the list comes out the same.
       expect(yield* service.submitTags("PUPR5FG5")).toEqual({ kind: "idle" });
       expect(zotero.patches).toHaveLength(2);
       expect(zotero.tags).toEqual([
@@ -2606,8 +2538,6 @@ it.effect(
       expect(yield* service.submitTags("PUPR5FG5")).toEqual({ kind: "idle" });
       expect(zotero.patches).toHaveLength(1);
 
-      // The hold ended with that save, so a new session saves as its editor
-      // closes.
       yield* service.editTags("PUPR5FG5", ["review", "nlp", "figure"]);
       expect(
         yield* service.submitTags("PUPR5FG5", { automatic: true }),
@@ -2646,7 +2576,6 @@ it.effect("discards a tag draft when deletion is confirmed in Zotero", () =>
 
     expect(new Set(deleted)).toEqual(new Set(["PUPR5FG5"]));
     expect(yield* service.tagDraftFor("PUPR5FG5")).toBeNull();
-    // The editor unmounting on the deleted card sends nothing.
     expect(yield* service.submitTags("PUPR5FG5", { automatic: true })).toEqual({
       kind: "idle",
     });

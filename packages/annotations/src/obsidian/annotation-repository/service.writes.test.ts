@@ -1,4 +1,3 @@
-// The Annotation Repository's writes: commands, Pending Proposals, Write Conflicts, creates and Geometry Edits.
 import { it } from "@effect/vitest";
 import { Effect, Fiber } from "effect";
 import { expect, vi } from "vitest";
@@ -81,7 +80,6 @@ it.effect(
     }),
 );
 
-// A PATCH needs its record readback; a DELETE is confirmed by its acknowledgement.
 const settledDelete = { settled: { kind: "idle" }, record: undefined };
 
 const settledColour = {
@@ -228,7 +226,6 @@ it.effect(
         colorOf((yield* service.peek("RGRPDF24"))?.value ?? null, "PUPR5FG5"),
       ).toBe("#ff6666");
       yield* Effect.promise(() => sending.promise);
-      // Zotero now runs on another database, which the Local API serves too.
       serverID = "Zzzz11119999";
       client.$client.exec(
         `update settings set value = '${serverID}' where setting = 'localAPI' and key = 'serverID'`,
@@ -271,8 +268,6 @@ it.effect(
         "zotero-allowed-request": "1",
         "content-type": "application/json",
       });
-      // The Fixture's highlight is at version 11, and a colour edit names the
-      // colour and the precondition alone — never a Sort Index.
       expect(JSON.parse(patch!.body ?? "")).toEqual({
         version: 11,
         annotationColor: "#ff6666",
@@ -311,8 +306,6 @@ it.effect("says nothing for a saved write that left the pixels alone", () =>
       writable(stack, {
         item: ({ url }) =>
           annotationItem(
-            // A comment on an ink stroke, and a colour on a highlight: neither is a
-            // pixel of the image ZotLit renders for this Annotation.
             url.pathname.endsWith("TYY6Z6ZF")
               ? afterWrite("TYY6Z6ZF", { comment: "Saved" })
               : afterWrite("PUPR5FG5", { color: "#5fb236" }),
@@ -354,8 +347,6 @@ it.effect("announces nothing while a write is still in flight", () =>
       service.patchColor("TYY6Z6ZF", "#2EA8E5"),
       { startImmediately: true },
     );
-    // Zotero has taken the write; the record it answers with has not landed, so
-    // the pixels a card paints are still the saved ones it was showing.
     yield* Effect.promise(() => reread.promise);
     expect(announced).toEqual([]);
 
@@ -398,8 +389,6 @@ it.effect(
       expect(
         list?.annotations.find(({ key }) => key === "PUPR5FG5"),
       ).toMatchObject({ color: "#ff6666", version: 20 });
-      // 5 is the library version the `204` carried; 20 is the object's, which only
-      // the re-read could answer.
       expect(JSON.parse(requests[reread]!.body ?? "")).toMatchObject({
         version: 20,
       });
@@ -447,7 +436,6 @@ it.effect("refuses a write under the Zotero DB source before any request", () =>
     expect(list?.source).toEqual(DATABASE_SOURCE);
     expect(outcome).toEqual({ kind: "failed", failure: { kind: "db-source" } });
     expect(yield* service.mutationFor("PUPR5FG5")).toEqual(outcome);
-    // Nothing but reads left ZotLit, and the database is as it was.
     expect(requests.filter(({ method }) => method !== "GET")).toEqual([]);
     expect(annotationRows(client)).toEqual(rows);
   }),
@@ -491,9 +479,6 @@ it.effect("classifies each 412 body by what it says, not by its status", () =>
       kind: "failed",
       failure: { kind: "server-changed" },
     });
-    // The third body, `Write token already used`, is a create's answer alone: a
-    // patch carries a version and no write token. It is replayed on the retry
-    // path below.
   }),
 );
 
@@ -537,8 +522,6 @@ it.effect(
       const { service } = yield* Effect.promise(() =>
         writable(stack, {
           write: () => staleVersion(),
-          // The Annotation moved to the very colour this write asks for — another
-          // client, or the same user in Zotero.
           item: () =>
             annotationItem(afterWrite("PUPR5FG5", { color: "#ff6666" })),
         }),
@@ -566,7 +549,6 @@ it.effect(
           write: () => staleVersion(),
           item: () =>
             annotationItem(afterWrite("PUPR5FG5", { color: "#5fb236" })),
-          // What Zotero holds now, which the drop is what makes the view read.
           children: () =>
             annotationPage([
               afterWrite("PUPR5FG5", { color: "#5fb236", version: 30 }),
@@ -607,8 +589,6 @@ it.effect.each([false, true])(
       const outcome = yield* service.retryWrite("PUPR5FG5");
 
       expect(outcome).toEqual({ kind: "idle" });
-      // 11 was the version the first write sent and 30 is the one the conflict
-      // read back: a retry that repeated 11 would conflict for ever.
       expect(
         JSON.parse(
           requests.slice(sent).find(({ method }) => method === "PATCH")!.body ??
@@ -688,8 +668,6 @@ it.effect(
       const { repository, service } = yield* Effect.promise(() =>
         writable(stack, {
           write: () => notFound(),
-          // Zotero stopped holding it between the read the card was drawn from and
-          // the write, which is exactly what the `404` reports.
           children: () =>
             annotationPage(
               deletedInZotero
@@ -814,7 +792,6 @@ it.effect(
           .mutationFor(key)
           .pipe(Effect.map(({ kind }) => states.push(kind))),
       );
-      // What a surface redrawing on the announcement reads, in the same task.
       const announced: (string | null)[] = [];
       yield* collect(service.annotationsChanged, (key) =>
         service
@@ -826,13 +803,11 @@ it.effect(
           ),
       );
 
-      // Zotero stores lower case, so the proposal is drawn as Zotero will answer.
       const running = yield* Effect.forkChild(
         service.patchColor("PUPR5FG5", "#5FB236"),
         { startImmediately: true },
       );
 
-      // The write and its proposal both stand in the task that asked for it.
       expect(announced).toEqual(["#5fb236"]);
       expect(states).toEqual(["pending"]);
       expect(yield* service.mutationFor("PUPR5FG5")).toEqual({
@@ -883,7 +858,6 @@ it.effect(
       yield* Fiber.join(first);
       yield* Fiber.join(second);
 
-      // The verbs never come back between the two writes.
       expect(states.at(-1)).toBe("idle");
       expect(states.slice(0, -1).every((kind) => kind === "pending")).toBe(
         true,
@@ -906,7 +880,6 @@ it.effect.each([
       const { service } = yield* Effect.promise(() =>
         writable(stack, {
           write,
-          // Zotero's own copy, which a conflict re-reads.
           item: () =>
             annotationItem(afterWrite("PUPR5FG5", { color: "#5fb236" })),
         }),
@@ -927,7 +900,6 @@ it.effect.each([
       expect(outcome.kind).not.toBe("idle");
       expect(drawn[0]).toBe("#ff6666");
       expect(drawn.at(-1)).not.toBe("#ff6666");
-      // The list Zotero answers still holds the Fixture's colour.
       expect(colorOf(yield* service.read("RGRPDF24"), "PUPR5FG5")).toBe(
         "#2ea8e5",
       );
@@ -1170,8 +1142,6 @@ it.effect(
       yield* Effect.promise(() => repository[Symbol.asyncDispose]());
       first.resolve(writeAccepted());
 
-      // The unload interrupts the send, so ZotLit cannot say whether Zotero
-      // saved it.
       expect(yield* Fiber.join(color)).toEqual({
         kind: "failed",
         failure: { kind: "unknown-outcome" },
@@ -1224,8 +1194,6 @@ it.effect(
         ),
       );
 
-      // Zotero took the write before the unload; only the read-back after it
-      // stops, so the write keeps its answer.
       expect(yield* Fiber.join(color)).toEqual({ kind: "idle" });
     }),
 );
@@ -1266,8 +1234,6 @@ it.effect(
         annotationItem(afterWrite("PUPR5FG5", { color: "#5fb236" })),
       );
 
-      // Zotero refused the write before the unload and saved nothing; only the
-      // read of its fresh record stops, so the write keeps the refusal.
       expect(yield* Fiber.join(color)).toEqual({
         kind: "failed",
         failure: { kind: "conflict" },
@@ -1303,8 +1269,6 @@ it.effect(
         { startImmediately: true },
       );
       yield* Effect.promise(() => sent.promise);
-      // The database changes under the send, so the write checks its binding
-      // against a new read of the Zotero database once Zotero answers.
       dbEvents.emit("changed");
       acquireRead.mockImplementationOnce(() => {
         verifying.resolve();
@@ -1312,8 +1276,6 @@ it.effect(
       });
       reply.resolve(writeAccepted(20));
       yield* Effect.promise(() => verifying.promise);
-      // The close interrupts the started database check and waits for its
-      // Snapshot to be acquired and let go.
       const unload = yield* Effect.forkChild(
         Effect.promise(() => repository[Symbol.asyncDispose]()),
         { startImmediately: true },
@@ -1349,8 +1311,6 @@ it.effect(
         { startImmediately: true },
       );
       yield* Effect.promise(() => sent.promise);
-      // The database changes under the send, so the create checks its binding
-      // against a new read of the Zotero database once Zotero answers.
       dbEvents.emit("changed");
       acquireRead.mockImplementationOnce(() => {
         verifying.resolve();
@@ -1358,8 +1318,6 @@ it.effect(
       });
       reply.resolve(createAccepted(MADE));
       yield* Effect.promise(() => verifying.promise);
-      // The close interrupts the started database check and waits for its
-      // Snapshot to be acquired and let go.
       const unload = yield* Effect.forkChild(
         Effect.promise(() => repository[Symbol.asyncDispose]()),
         { startImmediately: true },
@@ -1367,8 +1325,6 @@ it.effect(
       lease.resolve(yield* Effect.promise(() => leaseOver(stack, client)));
       yield* Fiber.join(unload);
 
-      // Zotero created the Annotation before the unload, so the create keeps
-      // the key Zotero answered.
       expect(yield* Fiber.join(creating)).toEqual({
         kind: "created",
         annotationKey: "MADE2345",
@@ -1428,7 +1384,6 @@ it.effect(
         { startImmediately: true },
       );
       yield* Effect.promise(() => sent.promise);
-      // The database changes under the send, and its new read fails.
       dbEvents.emit("changed");
       acquireRead.mockRejectedValueOnce(new Error("database gone"));
       reply.resolve(writeAccepted(20));
@@ -1460,7 +1415,6 @@ it.effect(
         { startImmediately: true },
       );
       yield* Effect.promise(() => sent.promise);
-      // The database changes under the send, and its new read fails.
       dbEvents.emit("changed");
       acquireRead.mockRejectedValueOnce(new Error("database gone"));
       reply.resolve(createAccepted(MADE));
@@ -1717,7 +1671,6 @@ it.effect(
 
 // #region the create path
 
-/** A stand-in token, so a request's own shape is what an assertion reads. */
 const TOKEN = "0123456789abcdef0123456789abcdef";
 
 it.effect(
@@ -1887,8 +1840,6 @@ it.effect(
     Effect.gen(function* () {
       const stack = yield* scopedStack;
       const { service, requests } = yield* Effect.promise(() => setup(stack));
-      // The Capability Probe runs on the first ask, so it is behind us before the
-      // create is measured against "nothing was sent".
       yield* service.read("RGRPDF24");
       const sent = requests.length;
 
@@ -1902,10 +1853,6 @@ it.effect(
     }),
 );
 
-/**
- * The Fixture's image, 40 points wider on the right, and the Sort Index its
- * new top-left gives. The seed rect is `[48.75, 395.509, 570, 743.723]`.
- */
 const WIDER_IMAGE = {
   position: { pageIndex: 1, rects: [[48.75, 395.509, 610, 743.723]] },
   sortIndex: "00001|001860|00048",
@@ -1985,7 +1932,6 @@ it.effect(
         Effect.sync(() => pixels.push(record.key)),
       );
 
-      // The reader's own edge, before Zotero's three decimals.
       const saving = yield* Effect.forkChild(
         service.patchGeometry(
           "FDRFQ7C2",
@@ -2101,7 +2047,6 @@ it.effect(
         "FDRFQ7C2",
         {
           ...WIDER_IMAGE,
-          // Unrounded, as the reader computes it; Zotero stores three decimals.
           position: {
             pageIndex: 1,
             rects: [[48.750_2, 395.509, 610.000_4, 743.723]],
@@ -2175,12 +2120,6 @@ it.effect(
     }),
 );
 
-/**
- * A clock the test moves itself, so the `dateAdded` window a reconciliation
- * matches inside is a value rather than the wall clock.
- *
- * @see policies/test-timing.md
- */
 it.effect(
   "reports a lost create response and refreshes without replaying it",
   () =>

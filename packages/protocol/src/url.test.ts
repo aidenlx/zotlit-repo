@@ -28,7 +28,6 @@ import {
 const SOURCE = "a1b2c3d4";
 const PROFILE = "V1StGXR8Z5jd";
 
-/** Reconstruct the flat record Obsidian decodes from an `obsidian://zotlit/<action>` link. */
 function decode(url: string): Record<string, string> {
   const parsed = new URL(url);
   return {

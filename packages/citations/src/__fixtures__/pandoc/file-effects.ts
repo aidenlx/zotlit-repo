@@ -1,4 +1,3 @@
-// Promise fixtures enter file Effects through this test-owned Node filesystem.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, FileSystem } from "effect";
 

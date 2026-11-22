@@ -1,5 +1,3 @@
-// The parity suite: every plan and every chunk size gives the complete Query
-// Result of the forced scan. The queries come from `scenario-queries.ts`.
 import { Cause, Effect, Exit } from "effect";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -28,17 +26,8 @@ import type { RunOptions } from "./test-helpers.ts";
 
 type Tuning = NonNullable<RunOptions["tuning"]>;
 
-/** The oracle: the Library scan at the production chunk sizes. */
 const FORCED_SCAN: Tuning = { forceScan: true };
 
-/**
- * The plans and chunk sizes under test. The personal Library of the scenario
- * has 15 `items` rows and the group Library has 3, so the cap ratios give
- * caps of 3 and 0 Items (default), 15 and 3 (every set), 1 and 0, and 5 and 1.
- * Each Library has its own cap: a query of both Libraries reads a candidate
- * set in one Library and scans the other when a set is within one cap only,
- * as the Tag `to-read` is at the default ratio.
- */
 const PLANS: readonly { name: string; tuning: Tuning }[] = [
   { name: "the default plan", tuning: {} },
   { name: "every candidate set within the cap", tuning: { capRatio: 1 } },
@@ -72,10 +61,6 @@ const PLANS: readonly { name: string; tuning: Tuning }[] = [
   },
 ];
 
-/**
- * The pause methods under test, each with small chunks so that a run has many
- * operations. Semantic parity runs use a scheduler with no pauses.
- */
 const PAUSE_METHODS: readonly {
   name: string;
   scheduler: () => ItemQueryScheduler;
@@ -83,7 +68,6 @@ const PAUSE_METHODS: readonly {
   {
     name: "a MessageChannel pause after several operations",
     scheduler: () => {
-      // A counter in place of the clock, as in the test scheduler.
       let ticks = 0;
       return new ItemQueryScheduler({ budgetMs: 10, now: () => ticks++ });
     },
@@ -95,7 +79,6 @@ const PAUSE_METHODS: readonly {
   {
     name: "a setImmediate pause after every operation",
     scheduler: () => {
-      // A counter in place of the clock, as in the test scheduler.
       let ticks = 0;
       return new ItemQueryScheduler({
         budgetMs: 3,
@@ -128,16 +111,11 @@ afterAll(() => {
 
 let annotated: ScenarioDatabase<NodeDatabaseClient> | undefined;
 
-/** The scenario with Annotations, opened on first use. No test writes to it. */
 const annotatedScenario = (): ScenarioDatabase<NodeDatabaseClient> =>
   (annotated ??= databases.use(
     openScenarioDatabase(connectClient, { annotations: true }),
   ));
 
-/**
- * The complete outcome of one run in its wire form: the Query Result, or the
- * typed failure. A defect or an interruption fails the test.
- */
 async function outcome(
   query: ScenarioQuery,
   tuning: Tuning,
@@ -172,7 +150,6 @@ async function outcome(
   });
 }
 
-/** A value as JSON gives it back: a Temporal value becomes its ISO string. */
 const wire = (value: unknown): unknown => JSON.parse(JSON.stringify(value));
 
 async function expectParity(query: ScenarioQuery): Promise<unknown> {
@@ -232,7 +209,6 @@ describe("parity of every plan with the forced scan", () => {
     });
 
     it.runIf(highest)("pins the matches of filters of the list only", () => {
-      // One key-order query of each pinned filter carries its matches.
       expect(SCENARIO_QUERIES.filter((query) => query.matches)).toHaveLength(
         PINNED_FILTERS.length,
       );
@@ -246,7 +222,6 @@ describe("parity of every plan with the forced scan", () => {
     },
   );
 
-  // A query with pinned matches also checks the forced scan against the seed.
   it.each(
     scenarioQueries.flatMap(({ matches, ...query }) =>
       matches ? [{ ...query, matches }] : [],
@@ -259,7 +234,6 @@ describe("parity of every plan with the forced scan", () => {
   });
 });
 
-/** The Indexed Keys of a Query Result, sorted. */
 function indexedKeys(outcome: unknown): string[] {
   const { result } = outcome as { result: { rows: { indexedKey: string }[] } };
   return result.rows.map((row) => row.indexedKey).sort();
@@ -294,10 +268,6 @@ function indexedKeys(outcome: unknown): string[] {
   );
 }
 
-/**
- * The indexes of the pristine Zotero database that the Tag and field-value
- * candidate statements use. An index affects speed only.
- */
 const LEAF_INDEXES = ["itemTags_tagID", "itemData_fieldID", "itemData_valueID"];
 
 {
@@ -308,7 +278,6 @@ const LEAF_INDEXES = ["itemTags_tagID", "itemData_fieldID", "itemData_valueID"];
 
       beforeAll(() => {
         unindexed = openScenarioDatabase(connectClient);
-        // `drop index` fails for a name the database does not have.
         for (const index of LEAF_INDEXES)
           unindexed.sqlite.exec(`drop index "${index}"`);
       });
@@ -388,8 +357,6 @@ const LEAF_INDEXES = ["itemTags_tagID", "itemData_fieldID", "itemData_valueID"];
   });
 }
 
-// Failure modes: a property suffix can hide a dotted source name; an existing
-// prefix keeps its property meaning even when the dotted name also exists.
 it.each(["review.length", "custom.review.length"])(
   "preserves source-dependent property resolution for %s in every plan",
   async (access) => {

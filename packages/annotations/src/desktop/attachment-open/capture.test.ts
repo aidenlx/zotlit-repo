@@ -12,10 +12,6 @@ import {
 import { FILES, openerHarness } from "#__fixtures__/attachment-open.ts";
 
 describe("paneFromTarget", () => {
-  // The pane names pass through, which `registerFileLinkCapture` proves with
-  // `split`. What is not obvious is that every other target Obsidian sends —
-  // reading view's `""`, Live Preview's absent one, Properties' `_blank` — all
-  // mean the current pane.
   it.each([[""], [undefined], ["_blank"]])(
     "reads %s as the current pane",
     (target) => {
@@ -28,14 +24,6 @@ const PDF_LINK = `file://${FILES.rougier}#page=7`;
 const DURABLE =
   "zotero://open/library/items/RGRPDF24?annotation=FDRFQ7C2&page=2";
 
-/**
- * Capture installed over a window stand-in whose original `open` records
- * every call, with the real opener behind it: the opener reaches Zotero
- * through the patched `open` with {@link EXTERNAL_TARGET}, as
- * `openWithSystem` does. `open` reads `target.open` at each call, so a
- * disposed registration is observed rather than the wrapper the install
- * returned.
- */
 async function host(
   stack: AsyncDisposableStack,
   {
@@ -129,9 +117,6 @@ describe("registerFileLinkCapture", () => {
     expect(capture.opened).toEqual([]);
   });
 
-  // The opener hands Zotero a link through the system handler, which is
-  // `window.open` again: the link must pass this patch once, not loop. A
-  // Durable Annotation Link whose PDF this computer lacks takes that path.
   it("lets a link the opener hands to Zotero pass the patch once", async () => {
     await using stack = new AsyncDisposableStack();
     const capture = await host(stack, { missing: [FILES.rougier] });

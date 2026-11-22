@@ -20,42 +20,18 @@ import type {
 
 import { makeStopRequest } from "#obsidian/batch/batch-run.ts";
 
-/**
- * Imperative loading → confirm → progress → summary modal for a batch run, in a
- * single fixed-size shell (imperative DOM, not React). The phases swap the body
- * content and footer buttons but never resize the window: the body is a fixed
- * height scroll region under Obsidian's pinned title, and the buttons sit in
- * Obsidian's pinned `.modal-button-container` after it.
- *
- * The loading phase runs {@link BatchModalOptions.onClassify} behind a
- * determinate bar (its synchronous DB classification is the only real UI-freeze
- * risk, so it yields between chunks while this bar paints) and yields the
- * {@link BatchManifest} the remaining phases render. Run progress is a
- * determinate bar driven by per-item {@link BatchRunControls.onItemSettled}
- * events; the per-item listing is collapsed behind a disclosure and updated in
- * place. Execution is delegated to {@link BatchModalOptions.onRun}; cancel
- * completes the run's {@link BatchRunControls.stop}, which skips queued work
- * while in-flight items finish.
- */
 export class BatchModal extends Modal {
   readonly #options: BatchModalOptions;
-  /** Populated by {@link #classify} once the loading phase resolves. */
   #manifest: BatchManifest | null = null;
-  /** The loading phase's cancel, for {@link BatchModalOptions.onClassify}. */
   #classifyAbort: AbortController | null = null;
-  /** Requests the run phase's stop, for {@link BatchModalOptions.onRun}. */
   #stopRun: (() => void) | null = null;
   #dismissed = false;
   #choosingProfile = false;
 
-  /** Terminal status per row id; the single source for progress counts. Absent
-   * ids were aborted before running. */
   readonly #finalStatus = new Map<number, "done" | "skipped" | "failed">();
   #barFill: HTMLElement | null = null;
   #countEl: HTMLElement | null = null;
   #failedEl: HTMLElement | null = null;
-  /** Live failed-panel refs for the run phase: the pinned `<details>` (hidden
-   * until the first failure), its count summary, and the list to append rows to. */
   #failedPanel: HTMLElement | null = null;
   #failedPanelSummary: HTMLElement | null = null;
   #failedPanelList: HTMLElement | null = null;
@@ -74,10 +50,6 @@ export class BatchModal extends Modal {
   }
 
   override onClose(): void {
-    // A window dismissal mid-classify aborts and mid-run requests the stop: the
-    // classification checks its signal between chunks and the run its stop
-    // between items, and #dismissed suppresses the now-detached confirm/summary
-    // render.
     this.#dismissed = true;
     this.#classifyAbort?.abort();
     this.#stopRun?.();
@@ -89,12 +61,6 @@ export class BatchModal extends Modal {
     return this.#manifest;
   }
 
-  /**
-   * Loading phase: drive {@link BatchModalOptions.onClassify} behind a
-   * determinate bar, then hand its manifest to the confirm phase. Cancel/dismiss
-   * aborts and closes silently (nothing has been written yet); a genuine failure
-   * surfaces a notice.
-   */
   async #classify(): Promise<void> {
     this.#renderLoading();
     const abort = new AbortController();
@@ -108,9 +74,6 @@ export class BatchModal extends Modal {
         signal: abort.signal,
       });
     } catch {
-      // Cancel button and window dismissal both route through onClose, which
-      // sets #dismissed and aborts; the resulting AbortError lands here with
-      // nothing left to render.
       if (!this.#dismissed) {
         new BaseNotice(this.#options.text.loadFailed);
         this.close();
@@ -125,14 +88,12 @@ export class BatchModal extends Modal {
     this.#renderConfirm();
   }
 
-  /** Fixed-height flex shell: caller fills the returned body region. */
   #renderShell(): HTMLElement {
     const { contentEl } = this;
     contentEl.empty();
     return contentEl.createDiv({ cls: "zt:flex zt:flex-col zt:h-[60vh]" });
   }
 
-  /** The pinned button row for the current phase, replacing the last one. */
   #renderFooter(): HTMLElement {
     this.modalEl.querySelector(":scope > .modal-button-container")?.remove();
     return this.modalEl.createDiv({ cls: "modal-button-container zt-root" });
@@ -189,19 +150,11 @@ export class BatchModal extends Modal {
     this.#button(footer, m.modal_cancel(), () => this.close());
   }
 
-  /**
-   * Loading phase: a determinate "classified / total" bar over the synchronous
-   * DB classification. Cancel aborts it (closing the modal); since nothing is
-   * written during classification, the close is silent.
-   */
   #renderLoading(): void {
     const shell = this.#renderShell();
     const headline = this.#renderBarHeadline(
       shell,
       this.#options.text.loadingLabel,
-      // No width transition: classification can finish faster than the 200ms
-      // ease, leaving the bar mid-animation when the confirm phase replaces it
-      // while the count already reads 100%.
       false,
     );
     this.#countEl = headline.createDiv({
@@ -247,12 +200,6 @@ export class BatchModal extends Modal {
     });
   }
 
-  /**
-   * Live failures panel for the run phase: a bounded, scrollable section pinned
-   * above the (collapsed) details disclosure so errors surface as they happen
-   * instead of waiting for the summary. Starts hidden; {@link #addFailure}
-   * reveals it and updates the count as failures arrive.
-   */
   #renderFailedPanel(parent: HTMLElement): void {
     const details = parent.createEl("details", {
       cls: "zt:shrink-0 zt:mb-2 zt:max-h-32 zt:overflow-y-auto",
@@ -268,8 +215,6 @@ export class BatchModal extends Modal {
     });
   }
 
-  /** Record a failure and, while the run-phase panel is mounted, append its row
-   * and reveal the panel with an updated count. */
   #addFailure(failure: BatchFailure): void {
     this.#failures.push(failure);
     if (!this.#failedPanel || !this.#failedPanelList) return;
@@ -282,11 +227,6 @@ export class BatchModal extends Modal {
     );
   }
 
-  /**
-   * Shared headline: phase label above a determinate fill bar. Sets
-   * {@link #barFill}. `animate` adds a width ease for the run phase, where items
-   * settle over real time; the loading phase omits it (see {@link #renderLoading}).
-   */
   #renderBarHeadline(
     shell: HTMLElement,
     label: string,
@@ -311,10 +251,6 @@ export class BatchModal extends Modal {
     return headline;
   }
 
-  /**
-   * A `flex-1` scroll region behind a "Show/Hide details" disclosure; the
-   * summary text tracks the open state. Returns the `<details>` to fill.
-   */
   #renderDisclosure(parent: HTMLElement, open: boolean): HTMLElement {
     const details = parent.createEl("details", {
       cls: "zt:flex-1 zt:min-h-0 zt:overflow-y-auto",
@@ -334,7 +270,6 @@ export class BatchModal extends Modal {
     return details;
   }
 
-  /** Drive the determinate bar + count line shared by the loading and run phases. */
   #setBar(done: number, total: number): void {
     const pct = total === 0 ? 100 : Math.round((done / total) * 100);
     if (this.#barFill) this.#barFill.style.width = `${pct}%`;
@@ -411,11 +346,7 @@ export class BatchModal extends Modal {
     this.#renderSummary(summary);
   }
 
-  /** Summary line above the manifest's outcome-grouped listing. The disclosure
-   * auto-opens only when there were failures. */
   #renderSummary(summary: string): void {
-    // The progress-phase DOM (its row icons and live failed panel) is gone after
-    // #renderShell; release the detached element references.
     this.#failedPanel = null;
     this.#failedPanelSummary = null;
     this.#failedPanelList = null;

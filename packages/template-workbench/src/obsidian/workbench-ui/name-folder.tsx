@@ -1,7 +1,3 @@
-// The Name and folder and Profile forms share manifest controls. Name and
-// folder owns the note path (the folder and the note-name template) and the
-// other bindings; Profile owns identity, language, and compatibility details.
-
 import type {
   ManifestScalar,
   WorkbenchDocumentController,
@@ -60,12 +56,10 @@ const nameFolderConfirmation = cn(
 const nameFolderConfirmButton = cn(templateWorkbenchButton, "zt:ms-auto");
 const nameFolderCancelButton = templateWorkbenchButton;
 
-/** The manifest, named without depending on the templates package. */
 type ProfileManifest = NonNullable<
   WorkbenchDocumentController["document"]
 >["manifest"];
 
-/** The manifest keys that carry a vault-local value the Profile may override. */
 type BindingKey =
   | "folder"
   | "citationStyle"
@@ -76,22 +70,15 @@ type BindingKey =
 interface Binding {
   readonly key: BindingKey;
   readonly label: () => string;
-  /**
-   * The control the value is edited through. A style is picked from the vault's
-   * installed styles while the host lists them, and typed as its CSL ID when no
-   * list is given.
-   */
   readonly kind: "path" | "style" | "toggle";
 }
 
-/** The folder part of the note path, which the note path group holds. */
 const FOLDER_BINDING: Binding = {
   key: "folder",
   label: m.workbench_name_binding_folder,
   kind: "path",
 };
 
-/** The bindings outside the note path, which keep a group of their own. */
 const BINDINGS: readonly Binding[] = [
   {
     key: "citationStyle",
@@ -115,17 +102,11 @@ const BINDINGS: readonly Binding[] = [
   },
 ];
 
-/** A CSL style the vault has installed: its id and its title. */
 export interface InstalledCitationStyle {
   readonly id: string;
   readonly title: string;
 }
 
-/**
- * The vault's own value for each sparse binding a Profile may override, so the
- * form shows the default in effect there rather than the plugin's built-in
- * one, and Override writes that same value.
- */
 export interface ProfileBindingDefaults {
   readonly folder: string;
   readonly citationStyle: string | null;
@@ -134,12 +115,6 @@ export interface ProfileBindingDefaults {
   readonly importAnnotationsAsTemplate: boolean;
 }
 
-/**
- * What an unset binding inherits with no vault to ask: the plugin's built-in
- * Default Profile, which is what a fresh install starts on. The Obsidian
- * host replaces this with the vault's own effective values.
- * @see apps/obsidian/src/services/settings/schema.ts DEFAULT_LITERATURE_NOTE_PROFILE
- */
 export const BUILT_IN_BINDING_DEFAULTS: ProfileBindingDefaults = {
   folder: "literatures",
   citationStyle: null,
@@ -148,20 +123,14 @@ export const BUILT_IN_BINDING_DEFAULTS: ProfileBindingDefaults = {
   importAnnotationsAsTemplate: false,
 };
 
-/** The Profile whose bindings live in Obsidian's settings rather than here. */
 const DEFAULT_PROFILE_ID = "default";
 
-/**
- * The control that holds one manifest key. A problem the parser pinned to a key
- * opens the control under this id, so every field this form writes carries one.
- */
 const FieldIdContext = createContext({ prefix: "workbench", readOnly: false });
 
 function fieldId(prefix: string, key: string): string {
   return `${prefix}-field-${key}`;
 }
 
-/** One binding value in the words the tab reads it in. */
 function valueText(value: string | boolean | null | undefined): string {
   if (value === undefined) return m.workbench_name_unset();
   if (value === null) return citationStyleLabel();
@@ -178,47 +147,19 @@ export interface NameFolderPaneProps {
   onOpenSettings?: () => void;
   onChooseItem?: () => void;
   onRetry?: () => void;
-  /**
-   * The manifest this form writes: the last one the document parsed with, so a
-   * draft under repair keeps the values the reader is repairing. Null before
-   * any parse has succeeded, which is what the form has nothing to show for.
-   */
   manifest: ProfileManifest | null;
-  /** The note name the current render produced, for the live result. */
   filename: string | null;
-  /**
-   * The relative Note Path the current render resolved from that note name,
-   * which the preview joins under the effective folder. Null where the note
-   * name resolves to empty.
-   */
   notePath: string | null;
-  /**
-   * The styles the connected vault has installed, for the citation-style
-   * picker. Null standalone, and while the connection lists none.
-   */
   citationStyles?: readonly InstalledCitationStyle[] | null;
-  /**
-   * The values an unset binding inherits. The host gives the vault's own;
-   * without them this is the plugin's built-in Default Profile.
-   */
   defaults?: ProfileBindingDefaults;
-  /**
-   * The manifest key to open, named by the problem that sent the reader here.
-   * Each new object opens it again.
-   */
   focus?: {
     readonly field: string;
     readonly focus?: boolean;
     readonly scrollIntoView?: boolean;
   } | null;
-  /** The contract the note-name editor completes and explains against. */
   suggest?: SuggestionSource;
   reveal?: WorkbenchSliceRange | null;
   onSelection?: (selection: WorkbenchSliceRange) => void;
-  /**
-   * Reads the explanation for a note-name failure, named by its diagnosis. The
-   * tab offers the route only while the note name is the surface that failed.
-   */
   onShowProblem?: (id: string) => void;
 }
 
@@ -244,9 +185,6 @@ export function NameFolderPane({
   const prefix = useUniqueId();
   const statusId = useUniqueId();
   const previewLabelId = useUniqueId();
-  // The note name on screen: this attempt's own, or the last that worked while
-  // the Filename Template is under repair. Anything else the tab cannot show,
-  // and its condition is read in place of a name.
   const shown =
     // oxlint-disable-next-line zotlit-errors/no-message-match -- the Example's condition text, not an error's message.
     example.message === null
@@ -257,12 +195,8 @@ export function NameFolderPane({
             notePath: example.retained.notePath,
           }
         : null;
-  // A name that rendered and still resolves to nothing creates no note.
   const empty = shown?.filename != null && shown.notePath === null;
   const container = useRef<HTMLDivElement>(null);
-  // The control a problem named, brought on screen with the keyboard in it. A
-  // key the locked details hold opens that block first, so the reader lands on
-  // the field rather than on the summary that hides it.
   useEffect(() => {
     if (!focus || focus.focus === false) return;
     const control = [
@@ -297,8 +231,6 @@ export function NameFolderPane({
   const write = (key: string, value: ManifestScalar | undefined) =>
     controller.setManifestKey(key, value);
   const isDefault = manifest.id === DEFAULT_PROFILE_ID;
-  // The folder in effect: the Default Profile's lives in settings, and any
-  // other Profile's own value stands over the one it inherits.
   const folder = isDefault
     ? defaults.folder
     : (manifest.folder ?? defaults.folder);
@@ -334,7 +266,6 @@ export function NameFolderPane({
               )}
               {controller.filenameSlice ? (
                 <div data-part="path-row" className={nameFolderPathRow}>
-                  {/* The editor carries this name itself; the caption shows it. */}
                   <span
                     aria-hidden
                     data-part="binding-label"
@@ -589,7 +520,6 @@ function Group({
 }: {
   heading: string;
   lede?: string;
-  /** Names the group by its heading, as a landmark the reader can reach. */
   region?: boolean;
   children: ReactNode;
 }) {
@@ -629,13 +559,6 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   );
 }
 
-/**
- * A box the reader types in freely, written to the manifest when they leave it,
- * so one edit is one undo step and no keystroke re-parses the document. The
- * draft is this box's own; a value written from anywhere else — an undo,
- * Override, Use default — replaces it. The box itself outlives every write, so
- * the control the reader moves focus to receives their click.
- */
 function DraftText({
   id,
   value,
@@ -664,7 +587,6 @@ function DraftText({
       placeholder={placeholder}
       onInput={(event) => setDraft(event.currentTarget.value)}
       onBlur={(event) => {
-        // The text in the box, even when the blur precedes the draft's render.
         const next = event.currentTarget.value.trim();
         if (next !== value) onCommit(next);
       }}
@@ -674,17 +596,12 @@ function DraftText({
   );
 }
 
-/**
- * One manifest string. An emptied optional field removes its key rather than
- * writing the empty string the schema refuses.
- */
 function TextValue({
   field,
   value,
   optional = false,
   onCommit,
 }: {
-  /** The manifest key this box writes, which names the control. */
   field: string;
   value: string;
   optional?: boolean;
@@ -701,7 +618,6 @@ function TextValue({
   );
 }
 
-/** The Default Profile's bindings, read-only: they live in the host's settings. */
 function DefaultBindings({
   bindings,
   defaults,
@@ -739,7 +655,6 @@ function DefaultBindings({
   );
 }
 
-/** Editing an inherited binding stores an override; resetting removes its key. */
 function BindingRow({
   binding,
   value,
@@ -749,7 +664,6 @@ function BindingRow({
 }: {
   binding: Binding;
   value: string | boolean | null | undefined;
-  /** The value in effect where this binding is unset. */
   fallback: string | boolean | null;
   citationStyles: readonly InstalledCitationStyle[] | null;
   onWrite: (value: ManifestScalar | undefined) => void;
@@ -830,8 +744,6 @@ function BindingRow({
               ? m.workbench_name_citation_style_placeholder()
               : m.workbench_name_value_vault_root()
           }
-          // A style is named or absent; a folder path is a string, and its
-          // empty form is the vault root.
           onCommit={(next) =>
             onWrite(binding.kind === "style" && next === "" ? null : next)
           }
@@ -842,11 +754,6 @@ function BindingRow({
   );
 }
 
-/**
- * The citation style as the vault's own list. A style the profile names that the
- * vault has not installed keeps its place in the list, so opening the picker
- * never quietly rewrites a value the reader did not touch.
- */
 function StylePicker({
   id,
   value,
@@ -882,11 +789,6 @@ function StylePicker({
   );
 }
 
-/**
- * The language key, which one confirmation changes on its own. Nothing is
- * translated: the note name, the note, and the Annotation Section stay as the
- * author wrote them, one undo away.
- */
 function LanguageGroup({
   language,
   onWrite,

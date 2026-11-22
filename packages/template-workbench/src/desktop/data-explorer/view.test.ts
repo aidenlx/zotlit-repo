@@ -119,7 +119,6 @@ it("shows its own Item, offers no field insertion, and stops its Zotero reads on
     );
     expect(read).toHaveBeenLastCalledWith("PAPER001", "note");
     expect(explorerHost.zoteroSubscribers()).toBe(1);
-    // Its fields are copy-only: no editor receives them.
     expect(
       [...view.contentEl.querySelectorAll<HTMLElement>("[aria-label]")].some(
         (button) =>
@@ -127,7 +126,6 @@ it("shows its own Item, offers no field insertion, and stops its Zotero reads on
           m.workbench_fields_put_in_note(),
       ),
     ).toBe(false);
-    // A Zotero change reads the shown Item again.
     const reads = read.mock.calls.length;
     await act(async () => explorerHost.changeZotero());
     await act(() =>
@@ -167,8 +165,6 @@ it("restores independent Explorer navigation after delayed data and keeps search
   });
   cleanup.defer(() => act(async () => view.close()));
   await act(async () => view.open());
-  // A leaf saved as an editor's Fields pane names its file; it restores as
-  // this standalone Explorer, with its Item.
   await act(async () =>
     view.setState(
       { ...descriptor, sourceFile: "profiles/paper.md" },
@@ -210,8 +206,6 @@ it("restores independent Explorer navigation after delayed data and keeps search
   expect(document.activeElement).toBe(typing);
   expect(saves).not.toHaveBeenCalled();
   expect(view.getState()).toEqual(descriptor);
-  // The file the Fields pane named has no effect: the Explorer saves none, and
-  // offers no field to an editor.
   expect(view.getState()).not.toHaveProperty("sourceFile");
   expect(
     [...view.contentEl.querySelectorAll("[aria-label]")].some(

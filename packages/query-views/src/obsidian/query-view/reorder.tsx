@@ -1,6 +1,3 @@
-// Drag to set the place of a row in a list, as the Sort and Group controls'
-// lists do. A pointer drags the row by its handle; the keyboard moves it with
-// Alt+ArrowUp and Alt+ArrowDown on the handle, as Bases does.
 import { useState } from "react";
 import type { DragEvent, HTMLAttributes, KeyboardEvent } from "react";
 
@@ -8,7 +5,6 @@ import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-/** The list with the entry at `from` moved to `to`. */
 export function moved<T>(list: readonly T[], from: number, to: number): T[] {
   const next = [...list];
   const [entry] = next.splice(from, 1);
@@ -19,10 +15,6 @@ export function moved<T>(list: readonly T[], from: number, to: number): T[] {
 
 const DRAG_TYPE = "application/x-zotlit-query-row";
 
-/**
- * The props of one row of a list that can be reordered: the handle's and the
- * row's own. `onMove` gets the row's index and the index it moves to.
- */
 export function useReorder(
   count: number,
   onMove: (from: number, to: number) => void,
@@ -57,8 +49,6 @@ export function useReorder(
       tabIndex: 0,
       "aria-label": m.query_view_drag_to_reorder(),
       "data-reorder-handle": "",
-      // Drawn as the Bases grip: faint, muted on hover, no button box. It
-      // stays focusable, so the keyboard can move the row.
       className:
         "zt:flex zt:shrink-0 zt:items-center zt:self-center zt:rounded-sm zt:cursor-grab zt:text-(--text-faint) zt:hover:text-muted-foreground zt:active:cursor-grabbing zt:focus-visible:shadow-[0_0_0_var(--input-border-width-focus)_var(--background-modifier-border-focus)] zt:focus-visible:outline-none",
       onDragStart: (event: DragEvent) => {

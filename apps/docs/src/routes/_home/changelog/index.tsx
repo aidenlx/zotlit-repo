@@ -68,11 +68,6 @@ export const Route = createFileRoute("/_home/changelog/")({
 const headingLevels = ["h2", "h3", "h4", "h5", "h6"] as const;
 type HeadingLevel = (typeof headingLevels)[number];
 
-/**
- * One release's notes on the shared index. Every release repeats headings such
- * as "What's new", so each heading id takes the release's version as a prefix
- * (`v2.2.2-whats-new`) and every anchor on the page stays unique.
- */
 function ReleaseBody({
   Body,
   version,

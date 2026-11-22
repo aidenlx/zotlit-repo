@@ -8,9 +8,6 @@ import { scanChinesePages } from "./src/lib/content-scan.ts";
 import { scanFirstCommitDays } from "./src/lib/first-commits.ts";
 import { scanLearnMedia } from "./src/lib/learn-media.ts";
 
-// Unit seam only — the app's own Vite config carries the Cloudflare and
-// TanStack Start plugins, which neither a pure-function test nor the
-// collection index has any use for.
 export default defineConfig({
   define: {
     __DOCS_CHINESE_PAGES__: JSON.stringify(
@@ -20,7 +17,6 @@ export default defineConfig({
     __FIRST_COMMIT_DAYS__: JSON.stringify(
       scanFirstCommitDays(import.meta.dirname),
     ),
-    // Tests play the clips from their site paths, as the dev server does.
     __MEDIA_URLS__: "{}",
   },
   test: testDefaults,

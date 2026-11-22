@@ -23,7 +23,6 @@ const STANDALONE: ReaderSessionTarget = {
   itemKey: null,
 };
 
-/** Records what each side of the session saw, so a test asserts events. */
 function watch(session: ReaderSessionHost) {
   const targets: (ReaderSessionTarget | null)[] = [];
   const selections: readonly string[][] = [];
@@ -90,7 +89,6 @@ describe("ReaderSessionHost", () => {
   });
 
   it("holds the selection a reader answers with, and no other", () => {
-    // A reader that cannot be told what to select reports nothing back.
     const deaf = host();
     deaf.session.setSelectedAnnotations(["ANNO2345"]);
     expect(deaf.session.selected).toEqual([]);
@@ -113,7 +111,6 @@ describe("ReaderSessionHost", () => {
   });
 });
 
-/** The companion's push, in the numeric ids the wire carries. */
 const PUSHED: ReaderTarget = { itemID: 1, attachmentID: 2, selected: [7] };
 
 type LiveUpdatePort = ZoteroReaderSessionDeps["liveUpdate"];
@@ -153,7 +150,6 @@ function liveUpdate(initial: ReaderTarget | null) {
 }
 
 describe("ZoteroReaderSession", () => {
-  /** The resolution the database gives a push. */
   const named = (target: ReaderTarget) =>
     target.attachmentID === 2
       ? { target: PAPER, selected: ["ANNO2345"] }
@@ -192,7 +188,6 @@ describe("ZoteroReaderSession", () => {
     await expect.poll(() => session.target).toEqual(PAPER);
     expect(session.selected).toEqual(["ANNO2345"]);
 
-    // A push the database cannot name leaves the session holding nothing.
     live.push({ itemID: 9, attachmentID: 9, selected: [] });
     await expect.poll(() => session.target).toBe(null);
     expect(session.selected).toEqual([]);

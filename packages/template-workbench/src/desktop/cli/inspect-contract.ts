@@ -1,4 +1,3 @@
-// Shared facts for inspection parsing, registered flags, and generated help.
 import type { CliFlag } from "obsidian";
 
 import { RESERVED_PARTIAL_NAME_LIST } from "@zotlit/notes/core/template/defaults.ts";
@@ -91,7 +90,6 @@ export const INSPECT_DIAGNOSTICS = {
   },
 } as const;
 
-/** A diagnostic code the inspection registry enumerates. */
 export type InspectDiagnosticCode = keyof typeof INSPECT_DIAGNOSTICS;
 
 const argumentsText = Object.entries(inspectFlags).map(

@@ -1,7 +1,6 @@
 import type { EffectiveReadMode } from "#contract/rpc.ts";
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
 import type { ChangeEvent, ReadsConfig } from "#contract/rpc.ts";
-// Web Worker adapter, renderer side: spawns the ZoteroReads worker and keeps one client across worker deaths.
 import * as BrowserWorker from "@effect/platform-browser/BrowserWorker";
 import {
   Cause,
@@ -28,45 +27,21 @@ import { makeStateFeed } from "#contract/change-feed.ts";
 import { DbUnavailable, WorkerInitSchema, ZoteroReads } from "#contract/rpc.ts";
 import { WORKER_CLOSED } from "#contract/worker-signal.ts";
 
-/**
- * Requests one worker serves at once. A request holds its slot until it
- * ends, so `Changes`, every held Snapshot, and every open stream each keep
- * one for their whole life. The bound sits far above what the plugin holds
- * at once, so neither a read nor the liveness ping waits behind them.
- */
 const WORKER_CONCURRENCY = 1024;
 
-/** How long unload waits for a worker to remove its snapshots. */
 const WORKER_CLOSE_TIMEOUT = Duration.seconds(5);
 
-/** Bound the initial handshake and each later recovery attempt. */
 const WORKER_START_TIMEOUT = Duration.seconds(15);
 
-/** How often the renderer asks a live worker to answer. */
 const HEARTBEAT_INTERVAL = Duration.seconds(10);
 
-/**
- * How long a worker may take to answer before it counts as hung. Every read
- * runs in slices of well under a second, so only a stuck worker misses it.
- */
 const HEARTBEAT_TIMEOUT = Duration.seconds(15);
 
-/**
- * How long a second ping may take after the first went unanswered. A timer
- * that ran on through system sleep fires at wake before the answer lands;
- * the second ping tells that from a stuck worker.
- */
 const HEARTBEAT_RETRY_TIMEOUT = Duration.seconds(5);
 
-/** One live worker: its client, and a signal that completes if it dies. */
 export interface WorkerConnection {
   readonly client: ZoteroReadsClient;
-  /** Completes with the reason when the worker reports an error. */
   readonly died: Effect.Effect<DbUnavailable>;
-  /**
-   * Terminates the worker at once, for a transport that is already gone: the
-   * scope's end then skips the wait for a close the worker cannot confirm.
-   */
   readonly abandon: Effect.Effect<void>;
 }
 
@@ -87,35 +62,16 @@ interface ReadsRuntimeState {
 
 type ForwardedRead = (payload: unknown, options?: unknown) => unknown;
 
-/**
- * Removes the read snapshots that the workers of one connection left: the
- * host's sweep. `owner` is the tag the workers named their snapshots with,
- * and `databasePaths` every database path a worker of the connection was
- * given.
- */
 export type ReapWorkerSnapshots = (gone: {
   readonly owner: string;
   readonly databasePaths: readonly string[];
 }) => Effect.Effect<unknown, unknown, FileSystem.FileSystem>;
 
 export interface ConnectWorkerOptions {
-  /**
-   * Runs once the connection's scope ends and every worker is terminated.
-   * Without it the connection removes no snapshot.
-   */
   readonly reapSnapshots?: ReapWorkerSnapshots;
   readonly deferOpen?: Effect.Effect<boolean>;
 }
 
-/**
- * Spawn one worker from the embedded bundle and connect a client to it. The
- * worker gets `config` with its spawn and lives for the caller's scope; the
- * scope's end terminates it, since the platform layer only sends the close
- * message. Its log records reach the plugin's logger under their own
- * categories. Its read snapshots carry an owner tag of this connection's own,
- * so the scope's end also starts removing the ones a crashed worker left
- * behind, through `reapSnapshots`.
- */
 export const connectWorker = Effect.fnUntraced(function* (
   source: string,
   config: Effect.Effect<ReadsConfig>,
@@ -132,17 +88,11 @@ export const connectWorker = Effect.fnUntraced(function* (
   const url = URL.createObjectURL(
     new Blob([source], { type: "text/javascript" }),
   );
-  /** Live workers, each with a Deferred that settles once it shut down. */
   const workers = new Map<Worker, Deferred.Deferred<void>>();
-  /** The Scope that owns the live worker's log port and consumer. */
   const logScope = yield* Ref.make<Scope.Closeable | null>(null);
   const died = yield* Deferred.make<DbUnavailable>();
   const snapshotOwner = crypto.randomUUID().replaceAll("-", "").slice(0, 12);
-  /** Every database path a worker of this connection was given. */
   const databasePaths = yield* Ref.make<ReadonlySet<string>>(new Set());
-  // Added first, so it runs last: once every worker here is terminated, no
-  // snapshot with this tag has a reader left. The detached sweep neither
-  // holds a respawn nor unload open; the next launch reaps what it cannot.
   yield* Effect.addFinalizer(() =>
     Effect.gen(function* () {
       const { databasePath } = yield* config;
@@ -158,9 +108,6 @@ export const connectWorker = Effect.fnUntraced(function* (
       }).pipe(Effect.ignore, Effect.forkDetach);
     }),
   );
-  // Added before the protocol, so it runs after the protocol's close message:
-  // each worker gets to remove its snapshots before it is terminated.
-  // A worker that never answers is terminated after a bounded wait.
   yield* Effect.addFinalizer(() =>
     Effect.gen(function* () {
       const answered = yield* Effect.forEach(
@@ -186,25 +133,18 @@ export const connectWorker = Effect.fnUntraced(function* (
   );
 
   const spawn = () => {
-    // The protocol respawns a failed worker on its own; the one it replaces
-    // is still running, so end it here.
     for (const worker of workers.keys()) worker.terminate();
     workers.clear();
-    // boundary: BrowserWorker.layer requires a synchronous Worker spawn.
     const worker = new Worker(url, {
       name: "zotlit-zotero-reads",
     });
     const shutDown = Deferred.makeUnsafe<void>();
-    // boundary: the DOM Worker message event has no Effect listener API.
     worker.addEventListener("message", (event: MessageEvent<unknown>) => {
       if (event.data === WORKER_CLOSED)
         Deferred.doneUnsafe(shutDown, Exit.void);
     });
-    // boundary: the DOM Worker error event has no Effect listener API.
     worker.addEventListener("error", (event) => {
-      // A failed worker has nothing left to shut down.
       Deferred.doneUnsafe(shutDown, Exit.void);
-      // boundary: the DOM Worker error event delivers its reason synchronously.
       Deferred.doneUnsafe(
         died,
         Exit.succeed(
@@ -234,8 +174,6 @@ export const connectWorker = Effect.fnUntraced(function* (
               next.add(current.databasePath);
               return next;
             });
-            // Each worker gets its own channel; the one it replaces is
-            // terminated already.
             const { port1, port2 } = new MessageChannel();
             const nextScope = yield* Scope.fork(hostScope);
             yield* Scope.provide(
@@ -271,7 +209,6 @@ export const connectWorker = Effect.fnUntraced(function* (
   const client = yield* RpcClient.make(ZoteroReads).pipe(
     Effect.provideContext(protocol),
   );
-  // With no live workers left, the finalizer has nothing to wait for.
   const abandon = Effect.sync(() => {
     for (const worker of workers.keys()) worker.terminate();
     workers.clear();
@@ -279,7 +216,6 @@ export const connectWorker = Effect.fnUntraced(function* (
   return { client, died: Deferred.await(died), abandon };
 });
 
-/** The answer while no worker serves: the caller sees a client error. */
 function noWorker(reason: DbUnavailable) {
   return new RpcClientError.RpcClientError({
     reason: new RpcClientError.RpcClientDefect({
@@ -289,13 +225,6 @@ function noWorker(reason: DbUnavailable) {
   });
 }
 
-/**
- * One {@link ZoteroReadsClient} across worker lifetimes. It connects on
- * creation. When the worker dies, the client reports `degraded` on `Changes`
- * with a {@link DbUnavailable}, calls fail with a client error, and the next
- * `Refresh` connects a new worker before it refreshes.
- * The last worker ends with the caller's scope.
- */
 export const makeWorkerReads = Effect.fnUntraced(function* (
   connect: Effect.Effect<WorkerConnection, DbUnavailable, Scope.Scope>,
 ): Effect.fn.Return<ZoteroReadsClient, never, Scope.Scope> {
@@ -320,11 +249,6 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
   });
   const connecting = yield* Semaphore.make(1);
 
-  /**
-   * End `connection` and report why; a no-op once it was replaced. Holds the
-   * connect permit, so no new worker reports before this one's `degraded`.
-   * With `transportGone`, the worker is abandoned instead of closed.
-   */
   const die = (
     connection: LiveConnection,
     error: DbUnavailable,
@@ -356,12 +280,10 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
       }),
     );
 
-  /** Track the worker's state from its own feed and pass the feed on. */
   const relay = (event: ChangeEvent): Effect.Effect<void> => {
     return Effect.gen(function* () {
       switch (event._tag) {
         case "state": {
-          // The seed of a new worker's feed: a new client serves or fails.
           yield* Ref.update(runtime, (before) => ({
             ...before,
             state: event.state,
@@ -417,8 +339,6 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
   };
 
   const connectNew = Effect.gen(function* () {
-    // A child of the host's scope: whatever happens to this connect, the
-    // worker it spawned ends with the host at the latest.
     const scope = yield* Scope.fork(hostScope);
     const result = yield* Scope.provide(connect, scope).pipe(
       Effect.timeoutOrElse({
@@ -461,8 +381,6 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
       ...before,
       current: connection,
     }));
-    // Either signal ends the connection: the worker's error event, or its
-    // feed ending, which only happens when the transport broke.
     const lost = (message: string, transportGone = false) =>
       Effect.forkIn(
         die(connection, new DbUnavailable({ message }), transportGone),
@@ -474,14 +392,10 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
       ),
       scope,
     );
-    // A worker stuck in a loop sends no error event and keeps its transport
-    // open; only a request it fails to answer shows it.
     yield* Effect.forkIn(
       Effect.gen(function* () {
         for (;;) {
           yield* Effect.sleep(HEARTBEAT_INTERVAL);
-          // `true` when the worker answered, `false` when the wait ran out;
-          // a transport failure is the `Changes` watcher's to report.
           const answered = (timeout: Duration.Duration) =>
             connection.client.Ping().pipe(
               Effect.timeoutOption(timeout),
@@ -518,7 +432,6 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
     return connection.client;
   });
 
-  /** The live worker's client, connecting a new worker when none serves. */
   const ensureConnected = connecting
     .withPermits(1)(
       Effect.gen(function* () {
@@ -541,7 +454,6 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
 
   yield* Effect.ignore(ensureConnected);
 
-  /** The live client, or a client error while no worker serves. */
   const live = Effect.gen(function* () {
     const current = yield* Ref.get(runtime);
     if (current.current) return current.current.client;
@@ -595,8 +507,6 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
   const reads = forwarded as unknown as ZoteroReadsClient;
   return {
     ...reads,
-    // The feed outlives each worker: subscribers keep one stream across a
-    // death and a respawn.
     Changes: () => changes,
     Configure: (payload, options) =>
       Effect.flatMap(ensureConnected, (client) =>

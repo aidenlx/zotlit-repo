@@ -41,3 +41,14 @@ The next step adds two more hosts, ZotLit Reader and ZotLit Mobile. What stays i
 - The app holds 32 non-test files (about 5,800 lines), all host composition. The folder-level value graph of the app and its packages has no cycle.
 - A Reader host composes the base, ZoteroReads, the platform services, the annotations, the citations, the notes, the Template Workbench and the Query Views, and leaves out the Library View.
 - Most of the Query View and the Library View is in `desktop/`: they import the attachment opens and the Annotations Layout of `@zotlit/annotations/desktop`, and the note creation of `@zotlit/notes/desktop`. A Mobile host needs those to move to `obsidian/` first.
+
+The Library View's Obsidian feature registers the shared settings, the Show in Library and Release actions, and the protocol handler. The desktop feature extends it with the view registrations and fills the Show in Library and Template Migration Prompt ports once the desktop host is ready.
+
+Draw the shared Match editor as a Bases filter menu in Query Views.
+Use form backgrounds on conditions, table borders on nested groups,
+an unboxed conjunction in the header and bare text actions in the
+footer. Keep the property icon and name visible, size short selects
+to their text, and let the value wrap onto a new line. Use a divider
+before the operator. The Template Workbench supplies its own look.
+The view tests check its input to the shared dataset vocabulary.
+[Filter menu](../../packages/query-views/src/desktop/query-view/filter-popover.tsx)

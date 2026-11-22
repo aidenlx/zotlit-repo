@@ -1,4 +1,3 @@
-// The Item search's Promise edge after the runtime under it is disposed.
 import { expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 

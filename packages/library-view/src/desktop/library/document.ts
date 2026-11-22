@@ -1,23 +1,5 @@
 import * as v from "valibot";
 
-// The Library View Document: what the Library View shows, as one plain value
-// that plugin data keeps per vault, and the one module that reads, changes
-// and derives it. Its transitions take a tree selection, the tree nodes
-// left open, the Reading Card's width, the facets, the search and a toolbar change; its derivations give the list's query (the
-// tree node, the facets and the selected tags become the filters for all views, Recent adds none
-// and reads the whole Library Scope, a search becomes its ranked key set, and
-// the sort passes through to the one Items view, always in the Papers
-// Layout), the tree's paper and unread counts, the tags the Tag Selector
-// lists, the Libraries of a node,
-// and the text "Save as query file" writes. The Library Tree, the search box,
-// the Library View and its storage all call it, so the tree's counts and the
-// list are built one way.
-//
-// @see apps/obsidian/docs/adr/0071-the-library-view-is-a-fileless-query-view-host-that-saves-to-plugin-data.md
-// @see apps/obsidian/docs/adr/0072-the-library-tree-writes-filters.md
-// @see apps/obsidian/docs/adr/0073-search-enters-the-library-view-as-an-ordered-key-set.md
-// @see apps/obsidian/docs/adr/0076-recent-is-a-library-tree-node-that-writes-a-sort.md
-// @see apps/obsidian/docs/adr/0078-the-tag-selector-writes-tag-filters.md
 import type { FilterTree } from "@zotlit/filter-expression";
 import { searchTerms } from "@zotlit/plugin-services/core/item-lookup/search-text.ts";
 import {
@@ -42,7 +24,6 @@ import type {
   LibrarySelector,
 } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-/** The Reading State facets, in the order the Library Tree shows them. */
 export const READING_STATE_FACETS = [
   "unread",
   "annotated",
@@ -51,19 +32,8 @@ export const READING_STATE_FACETS = [
 ] as const;
 export type ReadingStateFacet = (typeof READING_STATE_FACETS)[number];
 
-/**
- * The Layouts the Library View offers: Papers alone, so it shows no Layout
- * switch. The full Query View is a "Save as query file" away.
- *
- * @see apps/obsidian/docs/adr/0075-the-papers-layout-is-a-query-view-layout-the-library-view-offers-with-the-table.md
- */
 export const LIBRARY_LAYOUTS = ["papers"] as const;
 
-/**
- * The node selected in the Library Tree: Recent, a Library, or a Collection by
- * its root-first name path in one Library. The path stays a list of names,
- * since a name may hold a `/`. Recent reads every Library in the Library Scope.
- */
 export type LibraryNode =
   | { readonly kind: "recent" }
   | { readonly kind: "library"; readonly library: LibrarySelector }
@@ -75,75 +45,27 @@ export type LibraryNode =
 
 export interface LibraryViewDocument {
   readonly node: LibraryNode;
-  /** The active Reading State facets, in {@link READING_STATE_FACETS} order. */
   readonly facets: readonly ReadingStateFacet[];
-  /**
-   * The tags selected in the Tag Selector, each once, sorted by
-   * {@link sortTags}: the list holds the Items with every one of them.
-   */
   readonly tags: readonly string[];
-  /** The text in the search box; empty while the view browses. */
   readonly search: string;
   readonly sort: readonly QueryFileSort[];
-  /** Which disclosures of the Reading Card are open, for every Item it shows. */
   readonly card: ReadingCardDisclosures;
-  /**
-   * The Library Tree nodes left open, each once: the {@link nodeKey} of an
-   * open Collection, and `closed:` before the {@link nodeKey} of a Library,
-   * which shows its Collections until the researcher closes it.
-   */
   readonly expanded: readonly string[];
-  /**
-   * The Reading Card's width in pixels, as the researcher set it by its
-   * inner edge; absent for the default, {@link CARD_WIDTH_DEFAULT}.
-   */
   readonly cardWidth?: number;
-  /**
-   * The Reading Card's height in pixels under a narrow list, as the
-   * researcher set it by its top edge; absent for the default,
-   * {@link CARD_HEIGHT_DEFAULT}.
-   */
   readonly cardHeight?: number;
-  /**
-   * Whether the researcher turned the item details off, from the Details
-   * button, Space on the list, the card's close button or a drag of its edge
-   * past the minimum; absent while they show. While on, the details show the
-   * selected paper at every pane width.
-   */
   readonly cardClosed?: boolean;
-  /**
-   * The Library Tree's width in pixels, as the researcher set it by its
-   * inner edge; absent for the default, {@link TREE_WIDTH_DEFAULT}.
-   */
   readonly treeWidth?: number;
-  /**
-   * Whether the researcher collapsed the Library Tree on a pane wide enough
-   * to show it beside the list; absent while it shows.
-   */
   readonly treeCollapsed?: boolean;
 }
 
-/** The Reading Card's width, in pixels, until the researcher sets one: 24rem. */
 export const CARD_WIDTH_DEFAULT = 384;
-/** The narrowest the Reading Card can be, in pixels: 18rem. */
 export const CARD_WIDTH_MIN = 288;
-/** The Reading Card's height under a narrow list until the researcher sets one: 16rem. */
 export const CARD_HEIGHT_DEFAULT = 256;
-/** The lowest the Reading Card can be under a narrow list, in pixels: 8rem. */
 export const CARD_HEIGHT_MIN = 128;
-/** The room the list keeps beside the Reading Card, in pixels: 20rem. */
 export const CARD_LIST_MIN = 320;
-/** The Library Tree's width, in pixels, until the researcher sets one: 14rem. */
 export const TREE_WIDTH_DEFAULT = 224;
-/** The narrowest the Library Tree can be, in pixels: 10rem. */
 export const TREE_WIDTH_MIN = 160;
 
-/**
- * The widths a pane beside the list, the Reading Card or the Library Tree,
- * can take where it and the list share `pane` pixels: at least `min`, and at
- * most what leaves the list {@link CARD_LIST_MIN}, unless the room is too
- * narrow for both.
- */
 export function cardWidthBounds(
   pane: number,
   min = CARD_WIDTH_MIN,
@@ -154,10 +76,6 @@ export function cardWidthBounds(
   };
 }
 
-/**
- * `width` within the {@link cardWidthBounds} of a pane `pane` pixels wide,
- * in whole pixels; `pane` absent takes the floor alone.
- */
 export function clampCardWidth(
   width: number,
   pane?: number,
@@ -167,15 +85,11 @@ export function clampCardWidth(
   return Math.round(Math.min(max, Math.max(min, width)));
 }
 
-/** The Reading Card's disclosures, open or closed. */
 export interface ReadingCardDisclosures {
-  /** "All fields": the fields beside the key facts. */
   readonly allFields: boolean;
-  /** The Item's Annotation Cards. */
   readonly annotations: boolean;
 }
 
-/** Both disclosures closed, so a selected paper draws no Annotation Card. */
 const CLOSED_CARD: ReadingCardDisclosures = Object.freeze({
   allFields: false,
   annotations: false,
@@ -198,7 +112,6 @@ const sortSchema = v.array(
   }),
 );
 
-/** The document as plugin data stores it: JSON data. */
 export type StoredLibraryViewDocument = {
   node: v.InferOutput<typeof nodeSchema>;
   facets: ReadingStateFacet[];
@@ -214,16 +127,10 @@ export type StoredLibraryViewDocument = {
   treeCollapsed?: boolean;
 };
 
-/**
- * The sort Recent writes: Last Activity, newest first.
- *
- * @see apps/obsidian/docs/adr/0076-recent-is-a-library-tree-node-that-writes-a-sort.md
- */
 export const RECENT_SORT: readonly QueryFileSort[] = Object.freeze([
   { property: "lastActivity", direction: "DESC" },
 ]);
 
-/** What a new Library View shows: Recent as Papers. */
 export const DEFAULT_LIBRARY_VIEW_DOCUMENT: LibraryViewDocument = Object.freeze(
   {
     node: { kind: "recent" },
@@ -236,7 +143,6 @@ export const DEFAULT_LIBRARY_VIEW_DOCUMENT: LibraryViewDocument = Object.freeze(
   } satisfies LibraryViewDocument,
 );
 
-/** One identity for a node, whatever its names hold. */
 export function nodeKey(node: LibraryNode): string {
   if (node.kind === "recent") return JSON.stringify(["recent"]);
   return JSON.stringify([
@@ -245,7 +151,6 @@ export function nodeKey(node: LibraryNode): string {
   ]);
 }
 
-/** The Collections above a Collection: what stays open to show it. */
 function ancestors(node: LibraryNode): string[] {
   if (node.kind !== "collection") return [];
   return node.path.slice(0, -1).map((_, index) =>
@@ -257,27 +162,10 @@ function ancestors(node: LibraryNode): string[] {
   );
 }
 
-/** `expanded` with the Collections above `node` open, each once. */
 function openTo(expanded: readonly string[], node: LibraryNode): string[] {
   return [...new Set([...expanded, ...ancestors(node)])];
 }
 
-/**
- * Read the document that plugin data holds: the one check of its shape. A
- * value that is not an object takes the default document; a field this
- * build cannot read takes its default and the other fields stay; a facet it
- * does not know drops out, and so does a tag that is not a name. A document
- * of an earlier build has no tags, and selects none; nor does it hold open
- * nodes. The Collections above the selected node open
- * on read, as the tree shows a selection. A field it no longer reads, such
- * as the `layout`, `order` and `selected` of an earlier build, is ignored. A card width
- * that is not a finite number is dropped, so the card takes its default; one
- * below {@link CARD_WIDTH_MIN} takes the minimum. The pane, which sets the
- * maximum, clamps it again as the view applies it. The tree width reads
- * the same way against {@link TREE_WIDTH_MIN}. The details are off only
- * where `cardClosed` is `true`, and the tree collapsed only where
- * `treeCollapsed` is `true`.
- */
 export function parseLibraryViewDocument(raw: unknown): LibraryViewDocument {
   const stored =
     raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
@@ -329,7 +217,6 @@ export function parseLibraryViewDocument(raw: unknown): LibraryViewDocument {
   };
 }
 
-/** A disclosure this build cannot read stays closed; the other keeps its state. */
 const cardSchema = v.pipe(
   v.unknown(),
   v.transform((raw): ReadingCardDisclosures => {
@@ -342,7 +229,6 @@ const cardSchema = v.pipe(
   }),
 );
 
-/** `doc` with the Reading Card's disclosure `name` open or closed. */
 export function withCardDisclosure(
   doc: LibraryViewDocument,
   name: keyof ReadingCardDisclosures,
@@ -351,17 +237,10 @@ export function withCardDisclosure(
   return { ...doc, card: { ...doc.card, [name]: open } };
 }
 
-/** The sort that selecting `node` writes; `null` for a node that keeps the sort. */
 function nodeSort(node: LibraryNode): readonly QueryFileSort[] | null {
   return node.kind === "recent" ? RECENT_SORT : null;
 }
 
-/**
- * `doc` with `node` selected in the tree and the Collections above it open.
- * Recent writes its sort, and leaving it clears that sort, so the next node
- * opens unsorted; a sort the researcher changed while on Recent is theirs
- * and stays.
- */
 export function withNode(
   doc: LibraryViewDocument,
   node: LibraryNode,
@@ -377,7 +256,6 @@ export function withNode(
   };
 }
 
-/** `doc` with `expanded` as the Library Tree nodes left open, each once. */
 export function withExpanded(
   doc: LibraryViewDocument,
   expanded: Iterable<string>,
@@ -385,10 +263,6 @@ export function withExpanded(
   return { ...doc, expanded: [...new Set(expanded)] };
 }
 
-/**
- * `doc` with the Reading Card `width` pixels wide, at least
- * {@link CARD_WIDTH_MIN}; `undefined` returns it to the default.
- */
 export function withCardWidth(
   doc: LibraryViewDocument,
   width: number | undefined,
@@ -399,10 +273,6 @@ export function withCardWidth(
     : { ...rest, cardWidth: clampCardWidth(width) };
 }
 
-/**
- * `doc` with the Reading Card `height` pixels high under a narrow list, at
- * least {@link CARD_HEIGHT_MIN}; `undefined` returns it to the default.
- */
 export function withCardHeight(
   doc: LibraryViewDocument,
   height: number | undefined,
@@ -416,10 +286,6 @@ export function withCardHeight(
       };
 }
 
-/**
- * `doc` with the Library Tree `width` pixels wide, at least
- * {@link TREE_WIDTH_MIN}; `undefined` returns it to the default.
- */
 export function withTreeWidth(
   doc: LibraryViewDocument,
   width: number | undefined,
@@ -433,7 +299,6 @@ export function withTreeWidth(
       };
 }
 
-/** `doc` with the Library Tree collapsed beside the list, or shown again. */
 export function withTreeCollapsed(
   doc: LibraryViewDocument,
   collapsed: boolean,
@@ -442,7 +307,6 @@ export function withTreeCollapsed(
   return collapsed ? { ...rest, treeCollapsed: true } : rest;
 }
 
-/** `doc` with the item details off, or on again. */
 export function withCardClosed(
   doc: LibraryViewDocument,
   closed: boolean,
@@ -451,10 +315,6 @@ export function withCardClosed(
   return closed ? { ...rest, cardClosed: true } : rest;
 }
 
-/**
- * `doc` without the open nodes the tree does not `know`, such as a
- * Collection renamed or removed in Zotero; `doc` itself where it knows each.
- */
 export function pruneExpanded(
   doc: LibraryViewDocument,
   know: (key: string) => boolean,
@@ -463,12 +323,6 @@ export function pruneExpanded(
   return expanded.length === doc.expanded.length ? doc : { ...doc, expanded };
 }
 
-/**
- * What the view writes itself while `node` is selected: the node's sort and
- * the row limit. The toolbar shows them as not set.
- *
- * @see apps/obsidian/docs/adr/0076-recent-is-a-library-tree-node-that-writes-a-sort.md
- */
 export function libraryViewDefaults(node: LibraryNode): {
   sort: readonly QueryFileSort[];
   limit: number;
@@ -476,7 +330,6 @@ export function libraryViewDefaults(node: LibraryNode): {
   return { sort: nodeSort(node) ?? [], limit: LIBRARY_VIEW_ROW_LIMIT };
 }
 
-/** `doc` with `facets` as the active Reading State facets. */
 export function withFacets(
   doc: LibraryViewDocument,
   facets: readonly ReadingStateFacet[],
@@ -487,7 +340,6 @@ export function withFacets(
   };
 }
 
-/** `doc` with `tags` as the tags selected in the Tag Selector. */
 export function withTags(
   doc: LibraryViewDocument,
   tags: readonly string[],
@@ -495,14 +347,12 @@ export function withTags(
   return { ...doc, tags: sortTags(tags) };
 }
 
-/** `tags` each once, sorted by name as the Tag Selector shows them. */
 export function sortTags(tags: Iterable<string>): string[] {
   return [...new Set(tags)].sort((a, b) => TAG_ORDER.compare(a, b));
 }
 
 const TAG_ORDER = new Intl.Collator(undefined, { numeric: true });
 
-/** `doc` with `search` as the text in the search box. */
 export function withSearch(
   doc: LibraryViewDocument,
   search: string,
@@ -510,7 +360,6 @@ export function withSearch(
   return { ...doc, search };
 }
 
-/** What {@link parseLibraryViewDocument} reads back, as JSON data. */
 export function serializeLibraryViewDocument(
   doc: LibraryViewDocument,
 ): StoredLibraryViewDocument {
@@ -539,46 +388,22 @@ export function serializeLibraryViewDocument(
   };
 }
 
-/** The names the derived query shows: its view's name. */
 export interface LibraryViewLabels {
   readonly papers: string;
 }
 
-/**
- * A condition on a row that the vault answers, not the query: the view
- * applies it to the rows the query returns.
- */
 export type VaultCondition = "has-literature-note" | "no-literature-note";
 
-/** What the Library View runs for its document. */
 export interface LibraryViewQuery {
-  /** The Query File text the Query View reads. */
   readonly text: string;
-  /** The Libraries the query reads: the Library of the tree node, or the Library Scope for Recent. */
   readonly libraries: LibraryScope;
-  /**
-   * The Indexed Keys of a search, best match first: the order the view shows
-   * the rows in, in place of the sort. `null` while the view browses.
-   */
   readonly rank: readonly string[] | null;
-  /** The conditions every row passes in the vault, after the query. */
   readonly vault: readonly VaultCondition[];
-  /**
-   * The tree node the list shows, which the tree marks as selected; `null`
-   * while a search of all libraries reads past it.
-   */
   readonly node: LibraryNode | null;
 }
 
-/**
- * The most rows the view shows: a Layout draws every row it gets, and a
- * library of 10,000 Items takes about two seconds to draw, 50,000 over
- * half a minute. The toolbar says how many more match; the tree and the
- * search narrow to them.
- */
 export const LIBRARY_VIEW_ROW_LIMIT = 1000;
 
-/** What each facet asks of an Item: a filter, a condition in the vault, or both. */
 const FACETS: Readonly<
   Record<ReadingStateFacet, { filter?: string; vault?: VaultCondition }>
 > = {
@@ -594,14 +419,6 @@ const FACETS: Readonly<
   },
 };
 
-/**
- * The query of `doc`.
- * @param scope the Library Scope in force, which Recent reads.
- * @param keys the ranked Indexed Keys that the words of `doc.search` found;
- * absent while the view browses, and for a search of tags alone.
- * @param everywhere the Libraries a search of all libraries reads, in place
- * of the tree node; absent while the search keeps to the node.
- */
 export function libraryViewQuery(
   doc: LibraryViewDocument,
   {
@@ -617,7 +434,6 @@ export function libraryViewQuery(
   },
 ): LibraryViewQuery {
   const { node } = doc;
-  // A search of every Library leaves the node's Collection behind.
   const { filters, vault } = selectionConditions(
     everywhere === undefined ? node : null,
     doc.facets,
@@ -652,16 +468,10 @@ export function libraryViewQuery(
       : librariesOf(node, scope),
     rank: keys ?? null,
     vault,
-    // Recent reads every Library of the Library Scope already.
     node: everywhere === undefined || node.kind === "recent" ? node : null,
   };
 }
 
-/**
- * `doc` with what a toolbar change set in `text`: the sort of its view, the
- * one toolbar change the document keeps. The tree node, the facets and the
- * search stay as `doc` holds them.
- */
 export function withText(
   doc: LibraryViewDocument,
   text: string,
@@ -671,10 +481,6 @@ export function withText(
   return { ...doc, sort: view.sort ?? [] };
 }
 
-/**
- * The Libraries `node` reads: its own Library, or for Recent the Library
- * Scope in force, `scope`.
- */
 export function librariesOf(
   node: LibraryNode,
   scope: LibraryScope,
@@ -684,12 +490,6 @@ export function librariesOf(
     : { mode: "selected", libraries: [node.library] };
 }
 
-/**
- * The request that counts the papers of `library` for the tree: its Items,
- * each by its Indexed Key alone, grouped by the Collections they are filed
- * in. One Library each, since a path names a Collection only inside its
- * Library.
- */
 export function paperCountRequest(library: LibrarySelector): QueryViewRequest {
   return {
     from: "items",
@@ -700,15 +500,6 @@ export function paperCountRequest(library: LibrarySelector): QueryViewRequest {
   };
 }
 
-/**
- * The request that lists the tags of the Tag Selector: the Items `node`
- * lists with no facet and no search, as the paper count reads them, grouped
- * by tag. While `tags` are selected, only the Items with every one of them,
- * so selecting a listed tag never empties the list. A group's rows go
- * unread, so each holds one.
- *
- * @see apps/obsidian/docs/adr/0078-the-tag-selector-writes-tag-filters.md
- */
 export function tagListRequest(
   node: LibraryNode,
   tags: readonly string[],
@@ -726,11 +517,6 @@ export function tagListRequest(
   };
 }
 
-/**
- * The tag names the Tag Selector lists from the answer to
- * {@link tagListRequest}, sorted by name, with every one of `selected`, which
- * always shows. `groups` is `null` while the answer is unknown.
- */
 export function tagNames(
   groups: readonly Pick<QueryViewGroup, "value">[] | null,
   selected: readonly string[],
@@ -741,17 +527,10 @@ export function tagNames(
   return sortTags([...names, ...selected]);
 }
 
-/** The filters of the selected tags: an Item has every one. */
 function tagFilters(tags: readonly string[]): string[] {
   return tags.map((tag) => `tags.contains(${JSON.stringify(tag)})`);
 }
 
-/**
- * How the header counts the unread Items of `node`: the request with no
- * facet or search beside Unread, as the paper count reads them (ADR 0072),
- * and the rows of its answer that the vault leaves unread. `null` for
- * Recent, which counts nothing.
- */
 export function unreadCount(
   node: LibraryNode,
   notes: Pick<LiteratureNotes, "find">,
@@ -763,12 +542,6 @@ export function unreadCount(
   return nodeCount(node, ["unread"], { scope: { mode: "all" }, notes });
 }
 
-/**
- * How to count the Items of `node` that pass every one of `facets`, with
- * no tag or search beside them, as the paper count reads them (ADR 0072):
- * the request, and the rows of its answer the vault keeps. Recent counts
- * the Library Scope it lists, `scope`.
- */
 export function nodeCount(
   node: LibraryNode,
   facets: readonly ReadingStateFacet[],
@@ -795,10 +568,6 @@ export function nodeCount(
   };
 }
 
-/**
- * What the Items of `node` with `facets` pass: the conditions of the query,
- * and those the vault answers after it. `null`: no node narrows them.
- */
 export function selectionConditions(
   node: LibraryNode | null,
   facets: readonly ReadingStateFacet[],
@@ -815,10 +584,6 @@ export function selectionConditions(
   return { filters, vault };
 }
 
-/**
- * The rows that pass every one of `vault` as the Note Index has it now;
- * `null` for no condition.
- */
 export function vaultPass(
   vault: readonly VaultCondition[],
   notes: Pick<LiteratureNotes, "find">,
@@ -835,18 +600,10 @@ export function vaultPass(
   };
 }
 
-/**
- * The Query File that "Save as query file" writes for `doc`: the query of
- * `doc` with the Library of its tree node as a filter, since a Query File
- * tab reads every Library in the Library Scope. Recent, which reads the
- * Library Scope too, needs none. The search stays out; a Query File cannot
- * express it (ADR 0073).
- */
 export function libraryViewQueryFileText(
   doc: LibraryViewDocument,
   { labels }: { labels: LibraryViewLabels },
 ): string {
-  // The text names no Libraries: the Query File tab reads its own.
   const { text } = libraryViewQuery(
     { ...doc, search: "" },
     { labels, scope: { mode: "all" } },
@@ -866,11 +623,6 @@ export function libraryViewQueryFileText(
   });
 }
 
-/**
- * What "Save as query file" leaves out of `doc`, for the dialog to say: the
- * search, and the facets whose Literature Note check the vault answers after
- * the query. A Query File can hold neither (ADR 0073).
- */
 export function libraryViewQueryFileLeftOut(doc: LibraryViewDocument): {
   facets: ReadingStateFacet[];
   search: boolean;

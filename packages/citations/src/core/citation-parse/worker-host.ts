@@ -1,4 +1,3 @@
-// Owns one RPC connection; recovering-client owns replacement after a death.
 import { Deferred, Effect } from "effect";
 import type { Scope } from "effect";
 
@@ -69,7 +68,6 @@ export const connectParseWorker = Effect.fnUntraced(function* (
     (url) => Effect.sync(() => URL.revokeObjectURL(url)),
   );
   const death = yield* Deferred.make<ParseWorkerDied>();
-  // boundary: Dedicated workers require terminate(); the platform layer closes only its port.
   const worker = yield* Effect.acquireRelease(
     Effect.try({
       try: () => new Worker(url, { name: "zotlit-citation-parse" }),
@@ -85,14 +83,12 @@ export const connectParseWorker = Effect.fnUntraced(function* (
       stop(new ParseWorkerDied({ message: "Parse worker disposed" })),
     ),
   );
-  // boundary: Worker error events have no Effect hook; BrowserWorker owns the platform listeners.
   worker.addEventListener("error", (event) =>
     stop(new ParseWorkerDied({ message: event.message })),
   );
   worker.addEventListener("messageerror", () =>
     stop(new ParseWorkerDied({ message: "Parse worker message failed" })),
   );
-  // boundary: Worker messages can arrive before Effect's protocol listener attaches.
   const workerPort = new EarlyMessageWorker(worker);
   const client = yield* makeParseWorkerClient(
     () => workerPort as unknown as Worker,

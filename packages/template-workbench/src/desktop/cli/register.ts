@@ -1,8 +1,3 @@
-// Registers the Workbench commands with Obsidian's CLI.
-//
-// Command, flag, guide, and diagnostic text is all hardcoded English: an
-// agent-facing contract surface, not localized UI. See
-// apps/obsidian/policies/cli-text.md.
 import { Context, Effect, Layer } from "effect";
 import type { CliData, CliFlag, CliFlags } from "obsidian";
 
@@ -74,11 +69,8 @@ import type {
 import { CONTRACT_ROOT_NAMES } from "#core/cli/schema.ts";
 import { choices } from "#core/cli/vocabulary.ts";
 
-/** What the Workbench commands read: the Template, Profile, Note Index,
- *  Zotero Pref and Zotero Reads services, and Obsidian's capabilities. */
 export type WorkbenchServices = CheckServices;
 
-/** Registers the Workbench commands over the plugin's services. */
 export const layerTemplateWorkbenchCli: Layer.Layer<
   never,
   never,
@@ -92,7 +84,6 @@ export const layerTemplateWorkbenchCli: Layer.Layer<
   }),
 );
 
-/** The Indexed Key selector a command with no other way to name an object takes. */
 function keyFlag(): CliFlag {
   return {
     value: "<indexed-key>",
@@ -101,11 +92,6 @@ function keyFlag(): CliFlag {
   };
 }
 
-/**
- * The Indexed Key selector on a command an `example=` set can select instead.
- * Neither of the two is required alone: the parser reports which of the two
- * a call must name.
- */
 function selectorKeyFlag(): CliFlag {
   return {
     value: "<indexed-key>",
@@ -114,7 +100,6 @@ function selectorKeyFlag(): CliFlag {
   };
 }
 
-/** The built-in Citation set the citation root reads in place of a key. */
 function exampleFlag(): CliFlag {
   return {
     value: choices(CITATION_EXAMPLE_NAMES),
@@ -122,7 +107,6 @@ function exampleFlag(): CliFlag {
   };
 }
 
-/** The identity assertion both item-backed commands take, listed last. */
 function expectationFlags(): Record<"expect-source", CliFlag> {
   return {
     "expect-source": {
@@ -140,9 +124,6 @@ function rootFlag(): CliFlag {
   };
 }
 
-/** `format`'s `value` keeps `choices()`'s bracketed form: Obsidian turns a
- *  `json` or `--json` token into `format=json` before the handler when the
- *  value is a bare `|`-separated list, so `--json` would pass the decoder. */
 function formatFlag(values: readonly string[]): CliFlag {
   return {
     value: choices(values),

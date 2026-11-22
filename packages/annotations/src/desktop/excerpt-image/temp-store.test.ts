@@ -38,7 +38,6 @@ afterEach(async () => {
   );
 });
 
-/** A fresh directory under the system temp directory, removed after the case. */
 const testDirectory = Effect.promise(async () => {
   const directory = await mkdtemp(join(tmpdir(), "zotlit-excerpt-test-"));
   directories.push(directory);
@@ -66,7 +65,6 @@ effectIt.effect(
     }).pipe(Effect.provide(NodeFileSystem.layer)),
 );
 
-// The publish restamps with the wall clock, so the reap reads the live Clock.
 effectIt.live(
   "keeps a reused PNG and reaps one unused for more than seven days",
   () =>
@@ -120,7 +118,6 @@ const denied = PlatformError.systemError({
   method: "link",
 });
 
-/** The Node file system, with a link that the system refuses. */
 const refusedLink = Layer.effect(
   FileSystem.FileSystem,
   Effect.map(FileSystem.FileSystem, (fs) =>
@@ -143,7 +140,6 @@ effectIt.effect("removes the staged file when the publish is interrupted", () =>
   Effect.gen(function* () {
     const directory = yield* testDirectory;
     const staged = yield* Deferred.make<void>();
-    // The staged file is written, and the publish then waits in its link.
     const stalledAfterWrite = Layer.effect(
       FileSystem.FileSystem,
       Effect.map(FileSystem.FileSystem, (fs) =>
@@ -180,8 +176,6 @@ effectIt.effect(
       const release = Promise.withResolvers<void>();
       const written = Promise.withResolvers<void>();
       let cleanupStarted = false;
-      // As a native write does, the write goes on after an interrupt stops
-      // waiting for it, and creates the staged file later.
       const lateWrite = Layer.effect(
         FileSystem.FileSystem,
         Effect.map(FileSystem.FileSystem, (fs) =>
@@ -209,8 +203,6 @@ effectIt.effect(
       );
       yield* Effect.promise(() => writing.promise);
 
-      // The interrupt reaches the publish before the fork returns, so a
-      // write that the interrupt can stop has started its cleanup here.
       const interrupting = yield* Effect.forkChild(
         Fiber.interrupt(publishing),
         { startImmediately: true },

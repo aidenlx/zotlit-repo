@@ -1,15 +1,7 @@
-// The Lucide icon of each Zotero item type, as Zotero's item list starts each
-// row with one. Every name is in the Lucide set Obsidian bundles. `file-text`
-// is a PDF's, as Obsidian draws one and as the row's end marks it, so no type
-// takes it: a journal article is a periodical's, as a magazine article is.
-//
-// @see apps/obsidian/docs/adr/0075-the-papers-layout-is-a-query-view-layout-the-library-view-offers-with-the-table.md
 import type { IconName } from "obsidian";
 
-/** The icon of a type the map does not name. */
 const FALLBACK_ICON: IconName = "file";
 
-/** Every top-level item type of the bundled Zotero schema, by name. */
 export const ITEM_TYPE_ICONS: Readonly<Record<string, IconName>> = {
   artwork: "palette",
   audioRecording: "audio-lines",
@@ -50,7 +42,6 @@ export const ITEM_TYPE_ICONS: Readonly<Record<string, IconName>> = {
   webpage: "globe",
 };
 
-/** The icon of `itemType`, a document for a type the map does not name. */
 export function itemTypeIcon(itemType: string | null): IconName {
   return itemType !== null && Object.hasOwn(ITEM_TYPE_ICONS, itemType)
     ? ITEM_TYPE_ICONS[itemType]!

@@ -1,4 +1,3 @@
-// Resolved Zotero paths shared by view reads.
 import { Effect, Stream } from "effect";
 
 import { held } from "@zotlit/obsidian-kit/view-atoms.ts";

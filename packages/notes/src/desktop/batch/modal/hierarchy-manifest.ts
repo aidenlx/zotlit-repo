@@ -1,4 +1,3 @@
-// Parent → child-note tree body for the batch modal (import child notes).
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 
 import {
@@ -28,27 +27,16 @@ export interface HierarchyParent {
 
 export interface HierarchyManifestOptions {
   parents: readonly HierarchyParent[];
-  /** Items classified as up-to-date; shown as a static informational group. */
   upToDate?: readonly BatchRow[];
   upToDateHeader?: (args: { count: number }) => string;
   doneHeader: (args: { count: number }) => string;
-  /** Header for items that ran but had nothing to write (e.g. vanished note). */
   skippedHeader?: (args: { count: number }) => string;
-  /** Header for items that never ran (cancelled before executing). */
   abortedHeader: (args: { count: number }) => string;
 }
 
-/**
- * Parent → child-note tree: each parent is a collapsible section labeled with
- * its display title; its child notes are indented status rows keyed by child
- * item id. The confirm and progress phases show the tree; the summary regroups
- * children flat by terminal status (the shell already lists failures), matching
- * the {@link FlatManifest} recap.
- */
 export class HierarchyManifest implements BatchManifest {
   readonly #options: HierarchyManifestOptions;
   readonly #rows = new RowStatusBoard();
-  /** Flattened child tasks across all parents, for counts and summary grouping. */
   readonly #children: readonly FlatTask[];
 
   constructor(options: HierarchyManifestOptions) {

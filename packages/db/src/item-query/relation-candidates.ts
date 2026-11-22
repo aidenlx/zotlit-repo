@@ -71,7 +71,6 @@ const statements = {
   "attachment-annotations": statement("attachment-annotations"),
 };
 
-/** Map at most 500 element IDs to distinct parents in the Relation List universe. */
 export function readRelationCandidateSet(chunk: {
   relation: CandidateRelation;
   libraryID: number;

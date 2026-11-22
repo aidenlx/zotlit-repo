@@ -1,5 +1,3 @@
-// Fumadocs' framework and i18n providers, wired to TanStack Router and Paraglide.
-
 import {
   Link,
   useParams,
@@ -24,11 +22,6 @@ import {
   setLocale,
 } from "@/paraglide/runtime.js";
 
-/**
- * Fumadocs' TanStack adapter with the public pathname. Router rewrites keep
- * route matching unprefixed, while Fumadocs' locale trees use public URLs.
- * Keep the package adapter's stable pathname during pending navigation.
- */
 const framework: Framework = {
   Link({ href = "#", prefetch = true, ...props }) {
     return (
@@ -78,7 +71,6 @@ const framework: Framework = {
   },
 };
 
-/** Native language controls and search, with Paraglide owning locale changes. */
 export function LocaleProvider({ children }: { children: ReactNode }) {
   const translations = i18n
     .translations()
@@ -94,7 +86,6 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
           ...i18nProvider(translations, getLocale()),
           onLocaleChange(locale) {
             if (!isLocale(locale)) return;
-            // Choosing English here also stops the Chinese-edition suggestion.
             rememberLanguageChoice(locale);
             void setLocale(locale);
           },

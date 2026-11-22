@@ -1,5 +1,3 @@
-// What a Citation Popover entry can do: reach its Literature Note, its Zotero Item, its row in the Library View, and its Attachments.
-
 import type { CitationEntryBlock } from "#obsidian/citation-popover/blocks.ts";
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
 import { Keymap } from "obsidian";
@@ -15,34 +13,20 @@ import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
 export interface CitationPopoverActions {
-  /**
-   * Open the work's Literature Note, creating it first when it has none. A
-   * Mod-click and a middle-click open a new pane, as they do on every citation.
-   */
   onOpenNote: (block: CitationEntryBlock, event: MouseEvent) => void;
   onOpenInZotero: (block: CitationEntryBlock) => void;
   onShowInLibrary: (block: CitationEntryBlock) => void;
-  /**
-   * Open the work's Attachment in Zotero's reader: one opens straight away,
-   * several offer a menu.
-   */
   onOpenAttachment: (block: CitationEntryBlock, event: MouseEvent) => void;
-  /** Every action leaves the popover closed over what it just opened. */
   onDone: () => void;
   onSwitchProfile: (path: string) => void;
 }
 
 export interface CitationPopoverActionDeps {
-  /** Raises the Attachment menu on its workspace. */
   host: WorkspaceEventHost;
-  /** The open-or-create flow the hovering surface carries. */
   open: (block: CitationEntryBlock, pane: NavigationPane) => void;
-  /** Hide the popover the entries are shown in. */
   hide: () => void;
-  /** Open the Library View on the Item `indexedKey`. */
   showInLibrary: (indexedKey: string) => void;
   switchProfile: (path: string) => void;
-  /** Refresh source-less Item availability before any action. */
   prepare?: (block: CitationEntryBlock) => Promise<CitationEntryBlock | null>;
   log: (
     level: "debug",
@@ -60,12 +44,7 @@ export function createCitationPopoverActions({
   prepare,
   log,
 }: CitationPopoverActionDeps): CitationPopoverActions {
-  /** Whether the last action ran; `onDone` hides only after one that did. */
   let completed: boolean | Promise<boolean> = true;
-  /**
-   * Run `action` on the block as it stands now. Without `prepare` the action
-   * runs at once; with it, once the fresh read settles.
-   */
   const act = (
     block: CitationEntryBlock,
     action: (current: CitationEntryBlock) => void,
@@ -108,9 +87,6 @@ export function createCitationPopoverActions({
       });
     },
     onOpenAttachment(block, event) {
-      // With `prepare` the picker opens after the fresh read, when the button
-      // is no longer the event's target, so its box is read while dispatch is
-      // live. Without it the picker opens at once, on the button itself.
       const button = event.currentTarget as HTMLElement;
       const anchor: MenuAnchor | undefined = prepare
         ? { rect: button.getBoundingClientRect(), doc: button.ownerDocument }
@@ -141,10 +117,6 @@ export function createCitationPopoverActions({
   };
 }
 
-/**
- * Obsidian owns the modifier-to-pane mapping, except for the middle click it
- * reads off `mousedown` and answers nothing for.
- */
 function navigationPaneOf(event: MouseEvent): NavigationPane {
   return event.button === 1 ? "tab" : Keymap.isModEvent(event.nativeEvent);
 }

@@ -15,11 +15,6 @@ import {
 import type { ResolverHarnessOptions } from "./__fixtures__.ts";
 import { buildPathIndex } from "./service.ts";
 
-// The Fixture's own attachment rows are the oracle: the same item ids, keys and
-// parents it builds, with its three roots given literal paths. Two rows depart
-// from it deliberately and say so where they are seeded — the base-directory
-// row, which the Fixture has no equivalent of, and the standalone row.
-// @see packages/scripts/lib/fixture/spec.ts — `ATTACHMENTS`
 const VAULT_DIR = "/fixture/zt-fixture-vault";
 const LINKED_FILES_DIR = "/fixture/linked-files";
 const BASE_ATTACHMENT_DIR = "/fixture/base-attachments";
@@ -90,7 +85,6 @@ it.effect(
           itemKey: "SAKIMA22",
           openable: true,
         },
-        // A web snapshot resolves, but the ZotLit PDF Reader cannot host it.
         {
           kind: "resolved",
           serverID: null,
@@ -113,7 +107,6 @@ it.effect(
           itemKey: "IANNP5A2",
           openable: true,
         },
-        // A standalone attachment names itself and no Item (Ruling 14).
         {
           kind: "resolved",
           serverID: null,
@@ -127,8 +120,6 @@ it.effect(
     }),
 );
 
-// The lookup a caller holding a key needs — a `zotero://open` link, a card, a
-// row — names an Attachment by its key, never by a path.
 it.effect(
   "looks an Attachment up by its Indexed Key, with its file and its openable verdict",
   () =>
@@ -153,9 +144,7 @@ it.effect(
           openable: false,
           absolutePath: `${DATA_DIR}/storage/HTMLSNAP/sakimas-song.html`,
         },
-        // A web link names no file.
         { kind: "unresolved" },
-        // A base-directory row names none while the base pref is unset.
         { kind: "unresolved" },
         { kind: "unresolved" },
       ]);
@@ -252,9 +241,6 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const { service: resolver } = yield* setup({
-        // Rows arrive group first, then personal 47 ahead of personal 40, so
-        // neither "the first row wins" nor "the lowest id wins" alone answers
-        // `RGREARL8`.
         rows: `
       insert into libraries (libraryID, type) values (1, 'user'), (2, 'group');
       insert into groups (groupID, libraryID, name)
@@ -289,8 +275,6 @@ it.effect(
     }),
 );
 
-// Two Attachments of one file, as Zotero allows: the path answers one of them,
-// and a caller that already knows which one it opened says so.
 const SHARED_FILE_ROWS = `
   insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
     values
@@ -334,7 +318,6 @@ it.effect("resolves a shared file to the Attachment the opener named", () =>
   }),
 );
 
-// A name left over from an earlier open must not rename the file now shown.
 it.effect(
   "resolves by the path alone when the named Attachment keeps another file",
   () =>
@@ -357,8 +340,6 @@ it.effect(
 it("reports each file several attachments name, with the one it kept and the ones it dropped", () => {
   const path = `${VAULT_DIR}/attachments/rougier-2014.pdf`;
   const { index, collisions } = buildPathIndex(
-    // Ranked last, first and second, so neither arrival order nor item id alone
-    // produces this outcome.
     [
       linkedAttachment({
         itemID: 30,
@@ -431,8 +412,6 @@ it.effect(
       });
       const path = `${VAULT_DIR}/attachments/rougier-2014.pdf`;
 
-      // Not `unresolved`: "I cannot answer yet" and "Zotero does not know this
-      // file" are different answers, and only the second one is final.
       expect(yield* resolver.resolve(path)).toEqual({ kind: "pending" });
       yield* Stream.runHead(
         reads.changes.pipe(Stream.filter(({ state }) => state === "degraded")),
@@ -440,7 +419,6 @@ it.effect(
       expect(yield* resolver.resolve(path)).toEqual({ kind: "pending" });
       expect(yield* resolver.lookup("RGRPDF24")).toEqual({ kind: "pending" });
 
-      // The database recovers: the build it was waiting on lands and says so.
       const announced = yield* nextAnnouncement(resolver);
       yield* reads.refresh;
       yield* Fiber.join(announced);
@@ -449,9 +427,6 @@ it.effect(
     }),
 );
 
-// `indexed` is what a caller waits on to know lookups answer for real; waiting
-// on it must not be what builds the index, or it could not tell a warmed
-// resolver from one nobody asked.
 it.effect(
   "settles indexed once the first index lands, and builds nothing itself",
   () =>
@@ -461,7 +436,6 @@ it.effect(
       const indexed = yield* resolver.indexed.pipe(
         Effect.forkScoped({ startImmediately: true }),
       );
-      // Every build reads the index through the query client.
       expect(queries.client.isFetching()).toBe(0);
 
       yield* resolver.warm;
@@ -567,7 +541,6 @@ it.effect(
       yield* Fiber.join(failed);
       expect(f.failures).toBe(1);
 
-      // Inside the cooldown the failed build is not asked again.
       expect(yield* f.service.resolve(path)).toEqual({ kind: "unresolved" });
       expect(f.failures).toBe(1);
 
@@ -606,9 +579,6 @@ it.effect("rebuilds after the resolved Zotero paths changed", () =>
   }),
 );
 
-// Callers outside Effect run these through the bridge after unload too: a
-// released resolver answers `pending` and builds nothing, rather than throwing
-// into a DOM callback.
 it("answers pending, and builds nothing, once its runtime is released", async () => {
   const { service, bridge, close } = await openResolver({ rows: FIXTURE_ROWS });
   await close();
@@ -624,10 +594,8 @@ it("answers pending, and builds nothing, once its runtime is released", async ()
   expect(() => bridge.runSync(service.warm)).not.toThrow();
 });
 
-/** When every `linked_file` row below was added and last modified. */
 const ADDED = toInstant(DateTime.makeUnsafe("2025-02-04T12:00:00Z"));
 
-/** A `linked_file` row of the shape `getAttachmentPage` returns. */
 function linkedAttachment({
   itemID,
   key,
@@ -657,7 +625,6 @@ function linkedAttachment({
   };
 }
 
-/** The resolver over {@link FIXTURE_ROWS}, unless the case seeds its own. */
 function setup(options: ResolverHarnessOptions = {}) {
   return resolverFixture({ rows: FIXTURE_ROWS, ...options });
 }

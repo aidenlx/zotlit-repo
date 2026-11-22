@@ -1,22 +1,5 @@
 #!/usr/bin/env node
 
-// Registers and unregisters this worktree's Obsidian debug vault.
-//
-// Obsidian holds its vault registry in main-process memory and overwrites
-// `obsidian.json` on many events, so editing that file is safe only while the
-// app is shut. While it runs, the registry is reachable on the `vault-open` /
-// `vault-remove` / `vault-list` IPC channels, which the Obsidian CLI `eval`
-// command reaches from inside a vault window. This drives whichever route
-// applies, so cleanup never has to wake a shut app. Removing the vault whose
-// window is the only one open closes that window first, then unregisters
-// offline if Obsidian quit with it, else through a registered vault the host
-// check opens; with none to open, it names the command to run after quitting.
-//
-// Creating needs Obsidian 1.13.4+ with "Command line interface" enabled
-// (Settings → General) and one registered vault to host the eval calls: the
-// focused vault window, else a registered vault the host check opens, Obsidian's
-// sandbox vault first.
-
 import type { VaultEntry } from "#obsidian-vault-registry";
 import type { VaultPlugin } from "#vault-plugins";
 import { execFile } from "node:child_process";
@@ -70,20 +53,16 @@ const execFileAsync = promisify(execFile);
 const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
 
 const defaultVault = getDevVaultDir(workspaceRoot);
-// `--fixture-root` moves both to another Fixture, before any command runs.
 let fixtureLayout = getFixtureLayout(getFixtureRoot(workspaceRoot));
 let fixtureVault = getFixtureVaultDir(workspaceRoot);
-// `--inactive` opens vault windows behind the app that has the OS focus.
 let inactive = false;
 const pluginId = "zotlit";
 const defaultPlugins = await resolveVaultPlugins(
   workspaceRoot,
   pluginsOption.default,
 );
-/** The folder in Obsidian's user data that holds its sandbox vault. */
 const sandboxFolder = "Obsidian Sandbox";
 
-/** Where Obsidian keeps `obsidian.json`, per-vault state, and Partitions. */
 function obsidianUserData(): string {
   if (process.platform === "win32") {
     return join(
@@ -105,17 +84,8 @@ function obsidianUserData(): string {
   );
 }
 
-/**
- * The Obsidian CLI always exits 0 — failures come back only as output text.
- * Bounded, because a vault window that has gone while the registry still calls
- * it open never answers at all; see `#obsidian-cli`.
- */
 const cli = createObsidianCall();
 
-/**
- * Swallow a probe's failure so a retry loop can poll, but never the one that
- * says the window is gone — no number of retries brings that window back.
- */
 function rethrowUnreachable(error: unknown): undefined {
   if (isObsidianUnreachable(error)) throw error;
   return undefined;
@@ -148,7 +118,6 @@ const checkObsidianHost = createObsidianHostReadiness(
   { sandboxVaultPath: join(obsidianUserData(), sandboxFolder) },
 );
 
-/** Run JavaScript in a vault window. Without `target`, the focused one answers. */
 async function obEval(code: string, target?: string): Promise<string> {
   const text = await cli([
     ...(target ? [`vault=${target}`] : []),
@@ -162,46 +131,21 @@ async function obEval(code: string, target?: string): Promise<string> {
   return text.slice(3);
 }
 
-/**
- * Code that opens `abs` through `vault-open` in a host window. Obsidian's main
- * process creates the vault window during that call and later calls its `show`,
- * which gives it the OS focus. With `--inactive`, a `browser-window-created`
- * listener in the main process, there only for the call, makes that window's
- * `show` call `showInactive` and its `focus` do nothing. `showInactive` still
- * puts the window in front of every other app's windows on macOS, so `show`
- * then calls `blur`, which there orders the window behind them.
- *
- * The listener also turns the window's background throttling off before its
- * page loads. With throttling on, the renderer of a window that is not in
- * front can drop to macOS background priority under load and run about ten
- * times slower; the vault's startup, Restricted Mode exit, and reload then
- * pass the 30-second CLI bound, and the call reports a live window as
- * unreachable. With throttling off, the renderer stays at normal
- * priority. The setting lasts through the window's reloads.
- */
 function vaultOpenCode(abs: string): string {
   const open = `require('electron').ipcRenderer.sendSync('vault-open',${JSON.stringify(abs)},false)`;
   if (!inactive) return open;
   return `(()=>{const remote=require('@electron/remote');const off=remote.require('vm').runInThisContext('(app)=>{const hook=(_event,win)=>{win.webContents.setBackgroundThrottling(false);win.show=()=>{win.showInactive();if(process.platform==="darwin")win.blur();};win.focus=()=>{};};app.on("browser-window-created",hook);return ()=>app.off("browser-window-created",hook);}')(remote.app);try{return ${open};}finally{off();}})()`;
 }
 
-/**
- * Run `call`, which makes `vault-open` or `vault-remove` calls, under a short
- * machine-wide mutex. Runs in other worktrees share the app's vault registry,
- * and the `--inactive` window-created hook would catch another run's window.
- */
 async function withVaultRegistry<T>(call: () => Promise<T>): Promise<T> {
   using _registry = await holdDesktopMutex("vault-registry.lock");
   return await call();
 }
 
-/** Any reply means the app runs, including "Vault not found." with no vault window. */
 function isObsidianRunning(): Promise<boolean> {
   return cli(["eval", "code=true"]).then(
     () => true,
     (error: unknown) => {
-      // An unreachable window is not a stopped app: taking the offline route
-      // here would rewrite the registry under a running main process.
       rethrowUnreachable(error);
       return false;
     },
@@ -231,11 +175,6 @@ async function resolveHost(avoidPath?: string): Promise<string> {
   return (await checkObsidianHost({ avoidPath })).id;
 }
 
-/**
- * Pick a live window other than the vault that an online removal targets.
- * With `exclude`, resolve to `undefined` when that vault's window is the only
- * one open.
- */
 async function resolveRemovalHost(abs: string): Promise<string>;
 async function resolveRemovalHost(
   abs: string,
@@ -256,8 +195,6 @@ async function resolveRemovalHost(
     return id;
   }
 
-  // With no vault window open, the host check opens a registered vault other
-  // than the one being removed.
   const focused = await resolveHost(abs);
   if (focused !== exclude) return focused;
 
@@ -268,23 +205,13 @@ async function resolveRemovalHost(
 interface SeedOptions {
   purge?: boolean;
   scopeCase?: string;
-  /** Vault Case to seed; each case has its own Development Vault folder. */
   vaultCase?: string;
-  /**
-   * Live Updates port the generated seed binds, in the vault settings and in
-   * the Companion's notify URL alike. Absent, both keep their shipped defaults.
-   */
   liveUpdatePort?: number;
-  /** HTTP server port written into the generated Zotero profile. */
   zoteroHttpPort?: number;
-  /** Open Zotero's Local API in the generated profile. */
   localApi?: boolean;
-  /** Seed the matching remembered write grant in Zotero and Obsidian. */
   grantLocalApiWrites?: boolean;
-  /** The upgrader case's `note.frontmatter-fields`, in place of its built-in list. */
   upgraderFields?: readonly FrontmatterField[];
   plugins?: readonly VaultPlugin[];
-  /** Plugins to install and leave not enabled. */
   installed?: readonly VaultPlugin[];
 }
 
@@ -310,8 +237,6 @@ async function create(
   const existing = findVaultId(vaults, abs);
   if (existing) throw new Error(`already registered as ${existing}: ${abs}`);
 
-  // A duplicate folder name would make `vault=<name>` ambiguous, because
-  // Obsidian resolves that to the first basename match.
   const name = basename(abs);
   const clash = Object.keys(vaults).find(
     (id) => basename(resolve(vaults[id]!.path)) === name,
@@ -341,15 +266,11 @@ async function create(
     if (exists) await purgeVault(abs);
   }
 
-  // `force: false` preserves the bundle that `build:dev` copied into the dev
-  // vault before this script generated its seed.
   await mkdir(join(abs, ".obsidian", "plugins"), { recursive: true });
   if (abs !== resolve(fixtureVault)) {
     await cp(fixtureVault, abs, { recursive: true, force: false });
   }
 
-  // Obsidian loads the plugin from the vault, so the bundle has to be in place
-  // before the window opens; registering first would only show an empty vault.
   for (const { id, app } of [...plugins, ...installed]) {
     const bundle = join(abs, ".obsidian", "plugins", id, "main.js");
     await access(bundle).catch(() => {
@@ -359,8 +280,6 @@ async function create(
     });
   }
 
-  // `vault-open` registers the path and opens its window. Pass create=false
-  // because the folder is already there; create=true rejects an existing one.
   const opened = await withVaultRegistry(() =>
     obEval(vaultOpenCode(abs), host),
   );
@@ -387,8 +306,6 @@ async function create(
   console.log(id);
   console.error(`created vault ${id} at ${abs}`);
 
-  // A window answers `eval` before its command registry is built, so wait for
-  // the vault to report a Restricted Mode state before acting on it.
   const answered = await waitFor(async () => {
     const state = await cli([`vault=${id}`, "plugins:restrict"]);
     return state === "on" || state === "off";
@@ -397,22 +314,13 @@ async function create(
     throw new Error(`vault ${id} opened but never answered plugins:restrict`);
   }
 
-  // A fresh vault starts in Restricted Mode, which makes it ignore the seeded
-  // `community-plugins.json`. Trusting the vault reloads the window, and the
-  // plugin loads from that file — no separate `plugin:enable` needed.
   const trustedPage = await obEval("String(performance.timeOrigin)", id);
   const trusted = await cli([`vault=${id}`, "plugins:restrict", "off"]);
   if (!/disabled|^off$/i.test(trusted)) {
     throw new Error(`could not leave Restricted Mode in ${id}: ${trusted}`);
   }
-  // Obsidian loads the plugin in the old page, answers, and reloads the window
-  // 10 ms later. A call that reaches the reloading window runs before its
-  // `eval` command is registered and answers `Command "eval" not found`, so
-  // every check below waits for the new page.
   const reloads = /reloading/i.test(trusted);
 
-  // Confirm the plugin object exists — `enabledPlugins` only mirrors
-  // `community-plugins.json` and says nothing about what actually loaded.
   let reloaded = !reloads;
   const ids = JSON.stringify(plugins.map((plugin) => plugin.id));
   const loaded = await waitFor(async () => {
@@ -441,12 +349,6 @@ async function create(
   }
 }
 
-/**
- * Unload the plugin while the generated Fixture is replaced. Windows needs this
- * on every sync, to release its file handles. A purge needs it on every
- * platform, so the loaded plugin writes none of its vault-scoped local storage
- * back after the purge clears it.
- */
 async function suspendLoadedPlugin(
   abs: string,
   plugins: readonly VaultPlugin[],
@@ -494,10 +396,6 @@ async function suspendLoadedPlugin(
   return suspension.move();
 }
 
-/**
- * Rebuild and re-copy the Fixture Vault over an existing Development Vault.
- * The vault folder path stays the same, so Obsidian's registry needs no update.
- */
 async function sync(
   vaultPath: string,
   {
@@ -524,7 +422,6 @@ async function sync(
     await using _pluginSuspension = await suspendLoadedPlugin(abs, plugins, {
       always: purge,
     });
-    // Build before a purge so the generated seed captures the current dev bundle.
     await rebuildFixtureVault(abs, {
       scopeCase,
       vaultCase,
@@ -537,13 +434,7 @@ async function sync(
       installed,
     });
 
-    // `--purge` deletes the folder first, so renamed or removed Fixture files
-    // drop out too, not just the ones the Fixture Vault still has.
     if (purge) {
-      // Every ZotLit key and database goes with the folder, so a purged vault
-      // holds no Device Overrides, consent, view state, or stored excerpt
-      // images. Obsidian's own keys stay, including the trust marker that
-      // keeps Restricted Mode off.
       const registered = findVaultId(await vaultList(host), abs);
       await purgeVault(abs);
       if (registered) {
@@ -576,12 +467,6 @@ async function rebuildFixtureVault(
 ): Promise<void> {
   if (resolve(target) === resolve(fixtureVault)) return;
 
-  // The dev build's output is the source: `build:dev` declares `dist-dev` as
-  // its turbo output, so it holds the current bundle on a fresh run and on a
-  // cache hit alike, whatever `ZT_VAULT_CASE` the build saw. Reading the
-  // target's own bundle first would recycle it forever — the seed would carry
-  // the vault's old bundle, and `--purge` would copy that same bundle straight
-  // back, so a new build could never reach the vault.
   const hasBundle = (dir: string) =>
     access(join(dir, "main.js")).then(
       () => true,
@@ -590,8 +475,6 @@ async function rebuildFixtureVault(
   const bundlesOf = async (list: readonly VaultPlugin[]) => {
     const bundles = [];
     for (const { id, devBundleDir } of list) {
-      // The target's own bundle stands in when this script runs on its own,
-      // with no dev build in the worktree.
       const vaultBundleDir = join(resolve(target), ".obsidian", "plugins", id);
       if (await hasBundle(devBundleDir)) {
         bundles.push({ id, bundleDir: devBundleDir });
@@ -615,7 +498,6 @@ async function rebuildFixtureVault(
   });
 }
 
-/** Rebuild, synchronize, and ensure the Development Vault window is open. */
 async function open(
   vaultPath: string,
   {
@@ -653,7 +535,6 @@ async function open(
   }
 
   await sync(abs, seed);
-  // Undefined when the window is already open.
   const opened = await withVaultRegistry(async () =>
     (await vaultList(host))[registered]?.open === true
       ? undefined
@@ -673,10 +554,6 @@ async function open(
     }
   }
 
-  // Right after a vault window opens (or resumes), the CLI's own command
-  // registry can lag a beat behind `vault-list`'s `open` flag, so the first
-  // `plugin:reload` sometimes answers "not found" even though the plugin is
-  // enabled. Retry a few times before treating it as a real failure.
   for (const { id } of plugins) {
     let reloaded = "";
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -765,7 +642,6 @@ async function linkFixture(vaultId: string): Promise<void> {
   }
 }
 
-/** Write or invalidate the Development Vault's half of the Fixture grant. */
 async function setFixtureWriteAuthorization(
   vaultId: string,
   grant: boolean,
@@ -792,31 +668,16 @@ async function readFixtureLink(vaultId: string): Promise<FixtureLinkReport> {
   return JSON.parse(raw) as FixtureLinkReport;
 }
 
-/**
- * Unregister without a running app, by editing the registry file directly.
- * The shared-origin localStorage and IndexedDB keys need a live window, so they
- * stay behind — a few stale LevelDB keys that Obsidian ignores.
- */
 function removeOffline(abs: string): Promise<string | undefined> {
   return unregisterVaultFile(obsidianUserData(), abs);
 }
 
-/**
- * Delete vault-scoped local storage and IndexedDB databases through a live
- * window. Obsidian and ZotLit keep both in the shared `app://obsidian.md`
- * origin as `<vaultId>-<name>` — ZotLit's device-local excerpt store included —
- * outside the vault folder, so they outlive a folder purge and an unregister
- * alike. A `keyPrefix` narrows the sweep to one owner's keys and databases; the
- * empty default takes every one the vault holds.
- */
 async function clearVaultStorage(
   vaultId: string,
   host: string,
   { keyPrefix = "" }: { keyPrefix?: string } = {},
 ): Promise<void> {
   const prefix = `${vaultId}-${keyPrefix}`;
-  // A deletion that an open connection blocks still completes once that
-  // connection closes, so `blocked` settles the wait rather than hanging it.
   const cleared = await obEval(
     `(async function(){var p=${JSON.stringify(prefix)};` +
       `Object.keys(localStorage).filter(function(k){return k.indexOf(p)===0})` +
@@ -833,10 +694,6 @@ async function clearVaultStorage(
   }
 }
 
-/**
- * Close the window of vault `id` and wait until `closed` holds. ZotLit is
- * disabled first, so it releases its file handles before the window goes.
- */
 async function closeVaultWindow(
   id: string,
   closed: () => Promise<boolean>,
@@ -852,14 +709,11 @@ async function closeVaultWindow(
   await waitFor(closed);
 }
 
-/** Unregister the closed vault `id` through the live window `host`. */
 async function unregisterThrough(
   host: string,
   abs: string,
   id: string,
 ): Promise<void> {
-  // localStorage and IndexedDB live in the shared `app://obsidian.md` origin,
-  // so a surviving window clears what `vault-remove` leaves behind.
   await clearVaultStorage(id, host).catch(() => undefined);
   await obEval(
     `localStorage.removeItem('enable-plugin-'+${JSON.stringify(id)});'ok'`,
@@ -877,12 +731,6 @@ async function unregisterThrough(
   }
 }
 
-/**
- * Remove vault `id` when its window is the only one open. Close that window,
- * then unregister offline when Obsidian quit with it, or else through a
- * registered vault the host check opens. With no other vault to open, the
- * entry stays until Obsidian quits, and the error names the offline command.
- */
 async function removeFromLastWindow(abs: string, id: string): Promise<string> {
   await closeVaultWindow(id, async () => {
     const reply = await cli(["eval", "code=app.appId"]).catch(() => undefined);
@@ -914,8 +762,6 @@ async function removeOnline(abs: string): Promise<string | undefined> {
     host = other;
   }
 
-  // `vault-remove` refuses while the vault window is open. Close it only when
-  // it is open, because targeting a closed vault would re-open it.
   if ((await vaultList(host))[id]?.open) {
     await closeVaultWindow(id, async () => !(await vaultList(host))[id]?.open);
   }
@@ -928,8 +774,6 @@ async function purgeVault(abs: string): Promise<void> {
     throw new Error(`refusing to purge a folder with no .obsidian: ${abs}`);
   });
 
-  // A folder outside any repo has nothing tracked, but any other git failure
-  // means the guard never ran — refuse rather than delete on an unproven check.
   let tracked = "";
   try {
     ({ stdout: tracked } = await execFileAsync("git", ["ls-files", "--", "."], {
@@ -957,7 +801,6 @@ async function purgeVault(abs: string): Promise<void> {
 async function remove(vaultPath: string, purge: boolean): Promise<void> {
   const abs = resolve(vaultPath);
 
-  // Cleanup must never wake a shut app, so branch on whether one answers.
   const running = await isObsidianRunning();
   let id: string | undefined;
   let failure: unknown;
@@ -973,9 +816,6 @@ async function remove(vaultPath: string, purge: boolean): Promise<void> {
     console.error(`not registered: ${abs}`);
   }
 
-  // Purge even when unregistering failed. Obsidian drops registry entries whose
-  // folder has gone at its next start, so removing the folder lets a stranded
-  // entry heal itself instead of outliving the worktree.
   if (purge) await purgeVault(abs);
   if (failure)
     throw failure instanceof Error
@@ -1032,7 +872,6 @@ const upgraderFieldsOption = {
   type: "string",
 } as const;
 
-/** The `--upgrader-fields` file, checked against the field shape ZotLit saves. */
 async function readUpgraderFields(
   path: string | undefined,
   vaultCase: string | undefined,

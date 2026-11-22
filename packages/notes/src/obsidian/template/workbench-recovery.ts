@@ -1,6 +1,4 @@
 import type { RenderDiagnostic } from "#core/template/render-diagnostic.ts";
-// The route back to the Template Workbench from a note operation that refused:
-// one notice, shared by every surface that reports one.
 import { Effect } from "effect";
 import type { App, EventRef } from "obsidian";
 
@@ -19,31 +17,15 @@ import {
   engineEvidence,
 } from "#core/template/render-report.ts";
 
-/**
- * The failure a refused note operation asks the Workbench to explain: the
- * diagnostic the refused render reported, including the report already
- * captured at the refusal boundary. The Workbench can explain it even when a
- * later check does not reproduce the failure.
- */
 export interface ArrivingProblem {
   readonly diagnostic: RenderDiagnostic;
 }
 
-/** What brought the reader to the Template Workbench, and what to explain. */
 export interface TemplateWorkbenchRequest {
-  /**
-   * The vault path of the Template Document holding the call that refused, so
-   * the reader lands on it; the Default Profile stands in when the failure
-   * names no document.
-   */
   readonly document?: string;
   readonly problem?: ArrivingProblem;
 }
 
-/**
- * Ask the workspace to open the Template Workbench, where a template is
- * repaired.
- */
 function requestTemplateWorkbench(
   app: App,
   request: TemplateWorkbenchRequest,
@@ -62,13 +44,6 @@ function requestTemplateWorkbench(
   app.workspace.trigger("zotlit:open-template-workbench", request);
 }
 
-/**
- * The notice a note operation refuses with when the engine reached a Shared
- * Partial the vault holds no document for: the partial is named, and nothing
- * was written, because the render raised before any byte reached the vault.
- *
- * @returns undefined for every other failure, which the caller words itself.
- */
 export function missingPartialNotice(
   error: unknown,
   options: { app?: App } = {},
@@ -79,12 +54,8 @@ export function missingPartialNotice(
   });
   const { app } = options;
   if (!app) return message;
-  // The render names the document its call sits in, so the action opens that
-  // Profile rather than whichever one the Workbench would default to.
   const document =
     error instanceof MissingPartialError ? error.documentPath : undefined;
-  // The Workbench opens the explanation for this very failure, so the reader
-  // reads what refused rather than hunting for it among the editor's checks.
   const classified = {
     ...renderFailureDiagnostic(error, { source: "", language: "liquid" }),
     evidence: engineEvidence(error),
@@ -116,9 +87,6 @@ export function missingPartialNotice(
 
 declare module "obsidian" {
   interface Workspace {
-    /** `request.document` is the vault path of the Template Document holding
-     *  the call that refused, and `request.problem` the failure to explain on
-     *  arrival; the Default Profile stands in when there is no document. */
     on(
       name: "zotlit:open-template-workbench",
       callback: (request: TemplateWorkbenchRequest) => void,

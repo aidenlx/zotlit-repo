@@ -4,20 +4,6 @@ import type { BootstrapReason } from "./lib/bootstrap-reasons.ts";
 import { logToBrowserConsole } from "./lib/zotero-log.js";
 import type { ZotLitZotero as ZotLitZoteroCtor } from "./main.ts";
 
-/**
- * Shape of the `params` object Zotero's plugin loader passes to every
- * bootstrap lifecycle hook. Built in `_callMethod` and forwarded as the
- * first argument of `func.call(scope, params, reason)` — see
- * https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/plugins.js#L248-L258.
- * For `onMainWindowLoad` / `onMainWindowUnload`, Zotero additionally merges
- * `{ window }` into the same object via the `extraParams` argument — see
- * https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/plugins.js#L106
- * — represented by {@link WindowBootstrapData}.
- *
- * `reason` is one of Zotero's `REASONS` integers — see
- * {@link BootstrapReason} for the full int → symbolic-name map and the
- * dispatch site of each value inside `plugins.js`.
- */
 interface BootstrapData {
   id: string;
   version: string;
@@ -28,29 +14,6 @@ interface WindowBootstrapData extends BootstrapData {
   window: Window;
 }
 
-/**
- * Scope object populated by `Services.scriptloader.loadSubScript(..., scope)`.
- * The IIFE wrapper around `main.js` declares `var ZotLitZotero = ...` at its
- * top level (via the Vite/rolldown `output.footer`), and `loadSubScript`
- * attaches every top-level `var`/`function` declaration of the loaded script
- * onto the explicit `targetObj` we pass as the second argument.
- *
- * Why an explicit scope object (rather than `this` or no second argument):
- *   - `this` inside `startup({...}, reason)` would be the bootstrap sandbox
- *     global, but TypeScript/ESM output runs in strict mode where the
- *     identity of `this` at the top level depends on how the bundler emits
- *     entry code (Vite IIFE wraps user code in `"use strict"`, where `this`
- *     becomes `undefined` at the module top level after bundling). Passing
- *     `this` from a strict-mode function expression is fine here, but it
- *     couples our loader to a JS-language semantic that future bundler
- *     changes can quietly break.
- *   - Omitting the second argument loads the script into the *caller's*
- *     global — i.e. our bootstrap sandbox — polluting it with whatever
- *     bindings the bundle introduces (e.g. a synthetic IIFE-wrapper name).
- *   - An explicit, dedicated scope object isolates the load: only the names
- *     we read (`ZotLitZotero`) leave this function. No accidental sandbox
- *     pollution, and the binding contract is visible in this file.
- */
 interface MainScope {
   ZotLitZotero?: typeof ZotLitZoteroCtor;
 }

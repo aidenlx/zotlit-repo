@@ -3,7 +3,6 @@ import type { ZoteroReadsClient } from "#contract/rpc.ts";
 import type { ChangeEvent, ReadsConfig } from "#contract/rpc.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it } from "@effect/vitest";
-// The worker adapter's lifetime: degraded on a worker death, a new worker on Refresh, termination on scope end.
 import {
   Deferred,
   Effect,
@@ -40,29 +39,12 @@ import { nodeClient } from "#desktop/node-client.ts";
 import { layerRcRef } from "#worker/connection.ts";
 import { makeInProcessClient } from "#worker/in-process.ts";
 
-/**
- * Stand-in workers: each connection serves the handler layer in process over
- * a fresh `:memory:` database whose library 1 reports the worker's number.
- * `kill(n)` raises worker #n's error event; `cut(n, how)` makes its
- * `Changes` feed fail or end, as a transport gone with no error event.
- * `ended(n)` tells whether its scope (the real adapter terminates the worker
- * there) has closed; `abandoned(n)` whether its close wait was skipped.
- */
 function fakeWorkers(
   options: {
     failStart?: (n: number) => boolean;
     hangStart?: (n: number) => boolean;
-    /** The Read Mode worker #n's connections open with. */
     readMode?: (n: number) => EffectiveReadMode;
-    /**
-     * How many pings worker #n leaves unanswered before it answers again;
-     * `Infinity` is a worker stuck in a loop.
-     */
     unanswered?: (n: number) => number;
-    /**
-     * How long worker #n's scope waits for its graceful close, as a worker
-     * that never confirms it; an abandoned worker skips the wait.
-     */
     closeWait?: (n: number) => Duration.Input | undefined;
   } = {},
 ) {
@@ -162,7 +144,6 @@ const workerSeen = (reads: Pick<ZoteroReadsClient, "Libraries">) =>
     (libraries) => libraries.find((l) => l.libraryID === 1)!.version,
   );
 
-/** Pull change events until one tagged `tag` arrives. */
 const until = Effect.fnUntraced(function* (
   pull: Effect.Effect<readonly ChangeEvent[], unknown>,
   tag: ChangeEvent["_tag"],
@@ -365,14 +346,11 @@ describe("ZoteroReads worker adapter", () => {
           const seed = Effect.map(Stream.runHead(reads.Changes()), (option) =>
             Option.getOrThrow(option),
           );
-          // The probe asks 10 s after the connect and waits 15 s for the
-          // answer, then asks once more and waits 5 s.
           yield* TestClock.adjust("10 seconds");
           yield* TestClock.adjust("15 seconds");
           yield* TestClock.adjust("4999 millis");
           const before = yield* seed;
           yield* TestClock.adjust("1 millis");
-          // The death runs on its own fiber once the deadline passed.
           let after = yield* seed;
           const degraded = (event: ChangeEvent) =>
             event._tag === "state" && event.state === "degraded";
@@ -403,7 +381,6 @@ describe("ZoteroReads worker adapter", () => {
         });
         expect(result.read).toMatchObject({ _tag: "RpcClientError" });
         expect(result.ended).toBe(true);
-        // A hung worker keeps its transport: it still gets the bounded close.
         expect(result.abandoned).toBe(false);
         expect(result.seen).toBe(2);
       }),
@@ -424,15 +401,11 @@ describe("ZoteroReads worker adapter", () => {
           yield* workerSeen(reads);
           const changes = yield* Stream.toPull(reads.Changes());
           yield* workers.cut(1, how);
-          // The death runs on its own fiber; let it start before Refresh.
           for (let turn = 0; turn < 100; turn++) yield* Effect.yieldNow;
-          // The clock stands still: a respawn that waits out the close
-          // never finishes.
           const refresh = yield* Effect.forkChild(reads.Refresh());
           for (let turn = 0; turn < 100 && !refresh.pollUnsafe(); turn++)
             yield* Effect.yieldNow;
           const exit = refresh.pollUnsafe();
-          // Let a pending close run out, so the scope can end.
           if (!exit) yield* TestClock.adjust("5 seconds");
           const events = exit ? yield* until(changes, "changed") : [];
           return {
@@ -465,7 +438,6 @@ describe("ZoteroReads worker adapter", () => {
         const result = yield* Effect.gen(function* () {
           const reads = yield* makeWorkerReads(workers.connect);
           yield* workerSeen(reads);
-          // The first ping runs out, as a timer that ran through system sleep.
           yield* TestClock.adjust("10 seconds");
           yield* TestClock.adjust("15 seconds");
           yield* TestClock.adjust("5 seconds");
@@ -482,7 +454,6 @@ describe("ZoteroReads worker adapter", () => {
       const result = yield* Effect.gen(function* () {
         const reads = yield* makeWorkerReads(workers.connect);
         yield* workerSeen(reads);
-        // Ten minutes of probes, one probe interval at a time.
         for (let probe = 0; probe < 60; probe++)
           yield* TestClock.adjust("10 seconds");
         return yield* workerSeen(reads);
@@ -574,7 +545,6 @@ describe("ZoteroReads worker adapter", () => {
         yield* workers.kill(1);
         yield* until(changes, "degraded");
 
-        // The caller gives up on the respawn while worker #2 is starting.
         const refreshing = yield* reads
           .Refresh()
           .pipe(Effect.timeoutOption("10 millis"), Effect.forkChild);
@@ -638,7 +608,6 @@ describe("ZoteroReads worker adapter", () => {
       yield* runtime.disposeEffect;
 
       expect(workers.ended(1)).toBe(true);
-      // A live worker gets its graceful close on unload.
       expect(workers.abandoned(1)).toBe(false);
       expect(degraded).toEqual([]);
       expect((yield* service.current).state).toBe("ready");
@@ -715,13 +684,8 @@ describe("ZoteroReads worker adapter", () => {
   );
 });
 
-/**
- * A stand-in for the browser `Worker`: it signals ready at once, records what
- * the renderer posts, and raises its error event on `crash()`.
- */
 class StandInWorker extends EventTarget {
   static spawned: StandInWorker[] = [];
-  /** Whether a worker answers the close message, as a live one does. */
   static answersClose = true;
   readonly posted: unknown[] = [];
   terminated = false;
@@ -734,7 +698,6 @@ class StandInWorker extends EventTarget {
   }
   postMessage(data: unknown): void {
     this.posted.push(data);
-    // The close message: a live worker removes its snapshots and says so.
     if (StandInWorker.answersClose && Array.isArray(data) && data[0] === 1)
       queueMicrotask(() =>
         this.dispatchEvent(
@@ -750,7 +713,6 @@ class StandInWorker extends EventTarget {
       Object.assign(new Event("error"), { message: "worker crashed" }),
     );
   }
-  /** The snapshot owner tag the renderer sent with this worker's spawn. */
   get snapshotOwner(): string | undefined {
     for (const data of this.posted) {
       const message = (data as [number, { _tag?: string; value?: unknown }])[1];
@@ -770,7 +732,6 @@ const readsConfig = (databasePath: string): ReadsConfig => ({
   logLevel: null,
 });
 
-/** Open one connection in its own scope, once its worker got its spawn message. */
 const openConnection = Effect.fnUntraced(function* (
   config: Effect.Effect<ReadsConfig>,
   reapSnapshots: ReapWorkerSnapshots,
@@ -818,7 +779,6 @@ describe("connectWorker close", () => {
     vi.unstubAllGlobals();
   });
 
-  /** Close the connection's scope while the clock stands still. */
   const closeOnStillClock = Effect.fnUntraced(function* () {
     const { scope, worker } = yield* openConnection(
       Effect.succeed(readsConfig("zotero.sqlite")),

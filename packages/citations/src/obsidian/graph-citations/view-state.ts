@@ -1,5 +1,3 @@
-// Per-view graph options: restore before rendering, serialize with the leaf, and keep global defaults independent.
-
 import { around } from "monkey-around";
 import type { GraphEngine, GraphOptions, GraphView, View } from "obsidian";
 
@@ -13,7 +11,6 @@ import {
 } from "./filters.ts";
 import { membersPresent } from "./install.ts";
 
-/** Local graphs already persist options through their native view state. */
 export function installGraphViewState(
   view: View,
   engine: GraphEngine,
@@ -59,7 +56,6 @@ export function installGraphViewState(
       onload: (native) =>
         function (this: GraphView) {
           native.call(this);
-          // Old core-plugin data can contain ZotLit choices from earlier versions.
           engine.setOptions!({
             [COLOR_CITATION_LINKS]: false,
             [CITATION_POPOVER]: false,
@@ -68,8 +64,6 @@ export function installGraphViewState(
             [WIKILINK_CITATIONS]: true,
           });
         },
-      // Native persistence writes shared defaults, including the shortcut's groups
-      // and filters. Keep all choices with this view instead.
       onOptionsChange: () =>
         function (this: GraphView) {
           this.app.workspace.requestSaveLayout();

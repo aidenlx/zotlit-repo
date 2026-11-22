@@ -52,7 +52,6 @@ import {
   writePosition,
 } from "#obsidian/annotation-repository/write.ts";
 
-/** The Fixture's own underline on `rougier-2014.pdf`, in PDF points. */
 const QUOTE = [
   [67.011, 612.638, 211.485, 620.77],
   [58.054, 601.98, 211.489, 610.112],
@@ -89,7 +88,6 @@ function selectionOf(members: Partial<Selection>): Selection {
   return stubService<Selection>("Selection", members);
 }
 
-/** The client box a PDF-point rectangle occupies on the page laid out above. */
 function clientBox([x1, y1, x2, y2]: readonly number[]) {
   return {
     left: x1! * SCALE,
@@ -103,17 +101,11 @@ function boxes(rects: readonly (readonly number[])[] = QUOTE) {
   return rects.map((rect) => clientBox(rect));
 }
 
-/** The comment editor the popup holds, or `null` while it holds none. */
 function commentView(popup: HTMLElement): EditorView | null {
   const dom = popup.querySelector<HTMLElement>(".cm-editor");
   return dom && EditorView.findFromDOM(dom);
 }
 
-/**
- * What Zotero was asked to create, in request order: the one object each
- * create `POST` carries, under the names the reader drafted it with and with
- * its position parsed. A draft with no quoted text carries no `text`.
- */
 function createsIn(requests: readonly ZoteroRequest[]) {
   return requests
     .filter(
@@ -143,18 +135,9 @@ function createsIn(requests: readonly ZoteroRequest[]) {
     });
 }
 
-/**
- * One reader with a settled text selection over the quote above, and everything
- * the creation surfaces read and write through, over a Zotero that holds one
- * highlight.
- *
- * happy-dom lays nothing out, so the page box and the selection's own boxes are
- * supplied; every other geometry step is the production one.
- */
 async function reader(
   options: {
     capability?: EditingCapability;
-    /** What the page's characters make of the selection; `null` refuses it. */
     selected?: SelectedText | null;
   } = {},
 ) {
@@ -205,8 +188,6 @@ async function reader(
     capability: options.capability,
     structure: structure as never,
   });
-  // The repository reads Zotero on real time; the reader's own timers are
-  // driven by hand from here on.
   useFakeTimers();
   const { app, creation, surface, revealed, zotero } = reader;
 
@@ -218,7 +199,6 @@ async function reader(
     containerEl,
     pageEl,
     zotero,
-    /** What Zotero was asked to create, in request order. */
     get drafts() {
       return createsIn(reader.requests);
     },
@@ -227,22 +207,14 @@ async function reader(
     revealed,
     structure,
     slot: document.body.createDiv(),
-    /**
-     * A drag that starts on the page and releases with text selected, once
-     * the selection has been placed on the page's characters.
-     */
     async selectText(rects = boxes()) {
       this.startSelecting(rects);
       await creation.settled;
-      // Obsidian's hover popover shows on a timer, even at no delay.
       vi.advanceTimersByTime(0);
     },
-    /** The same drag, left before its selection has been placed. */
     startSelecting(rects = boxes()) {
       const range = document.createRange();
       range.selectNodeContents(textLayer);
-      // The capture clamps a clone of the range to each page, so the boxes are
-      // supplied on the prototype rather than on this one object.
       vi.spyOn(Range.prototype, "getClientRects").mockReturnValue(
         rects as never,
       );
@@ -261,7 +233,6 @@ async function reader(
       );
       creation.settle();
     },
-    /** A press on the page that selects nothing. */
     pressEmpty() {
       vi.spyOn(window, "getSelection").mockReturnValue(
         selectionOf({
@@ -608,7 +579,6 @@ it("steps back on Escape wherever the focus sits in the active view", async () =
   open.creation.mountToolbar(open.slot);
   open.press("u");
 
-  // The press on a tool left the focus where it was, outside the pages.
   expect(open.press("Escape", document.body).defaultPrevented).toBe(true);
 
   expect(
@@ -769,7 +739,6 @@ it("closes the create popup and drops its selection on a press on the page", asy
   );
 
   expect(open.popup()).toBeNull();
-  // Nothing waits any more, so the tool key arms rather than commits.
   open.press("h");
   await open.creation.created;
   expect(open.drafts).toEqual([]);
@@ -785,7 +754,6 @@ it("keeps the comment sheet and its text through capability announcements", asyn
   update(open.surface, ingestCapability({ kind: "writable" }, NOW));
   expect(commentView(open.popup()!)).toBe(editor);
 
-  // A real block stands the sheet down where it is, rather than rebuilding it.
   update(
     open.surface,
     ingestCapability({ kind: "read-only", reason: "zotero-unavailable" }, NOW),
@@ -802,7 +770,6 @@ it("ignores a drag released while an armed create is still in flight", async () 
   open.startSelecting();
   await open.creation.settled;
 
-  // The second drag starts no create of its own while the first waits.
   open.startSelecting();
   await open.creation.settled;
 
@@ -835,7 +802,6 @@ it("refuses an image create from a text selection, and offers the popup instead"
   expect(open.popup()).not.toBeNull();
 });
 
-/** A US Letter page laid out at its own size at the client origin. */
 const LETTER_AT_ORIGIN = {
   left: 0,
   top: 0,
@@ -845,16 +811,11 @@ const LETTER_AT_ORIGIN = {
   height: 792,
 } as DOMRect;
 
-/** The highlight Zotero holds on page one; it draws round client `(300, 177)`. */
 const MARK = annotation("PUPR5FG5", "highlight", {
   pageIndex: 0,
   rects: [[265.833, 611.202, 374.503, 620.019]],
 });
 
-/**
- * One pointer event on a page: a press goes down on the page, and everything
- * after it reaches the container, as a captured pointer does.
- */
 function pointerOn(pageEl: HTMLElement, containerEl: HTMLElement) {
   return (
     type: "pointerdown" | "pointermove" | "pointerup" | "pointercancel",
@@ -873,11 +834,6 @@ function pointerOn(pageEl: HTMLElement, containerEl: HTMLElement) {
     );
 }
 
-/**
- * One reader with the image tool armed from its toolbar, over a US Letter page
- * laid out at its own size at the client origin: a client point `(x, y)` is
- * the PDF point `(x, 792 - y)`. Zotero holds {@link MARK} on it.
- */
 async function imageReader(
   capability?: EditingCapability,
   {
@@ -885,11 +841,8 @@ async function imageReader(
     closed = false,
     structure: given,
   }: {
-    /** Each tool's colour and the ink width; held in memory unless given. */
     colors?: ToolColorStore;
-    /** Whether the viewer holds no document, so no text structure stands. */
     closed?: boolean;
-    /** The text structure the viewer holds on each ask, in place of the stub below. */
     structure?: () => PdfTextStructure | null;
   } = {},
 ) {
@@ -920,13 +873,9 @@ async function imageReader(
     capability,
     structure: closed ? null : (given ?? (structure as never)),
   });
-  // The repository reads Zotero on real time; the reader's own timers are
-  // driven by hand from here on.
   useFakeTimers();
   const slot = document.body.createDiv();
   surfaces.creation.mountToolbar(slot);
-  // Armed as a researcher arms it, from the toolbar; the arm itself stands
-  // outside any block, which only the capture has to answer.
   update(surfaces.surface, arm("image"));
 
   const pointer = pointerOn(page.div, containerEl);
@@ -934,13 +883,11 @@ async function imageReader(
     ...surfaces,
     containerEl,
     slot,
-    /** What Zotero was asked to create, in request order. */
     get drafts() {
       return createsIn(surfaces.requests);
     },
     structure,
     pointer,
-    /** One drag from a client point to another, released there. */
     async drag(from: [number, number], to: [number, number]) {
       pointer("pointerdown", from);
       pointer("pointermove", to);
@@ -1004,10 +951,6 @@ it("leaves a press on a mark to the mark while the image tool is armed", async (
   });
 });
 
-/**
- * The image reader with another tool armed from its toolbar instead. A client
- * point `(x, y)` is the PDF point `(x, 792 - y)`.
- */
 async function toolReader(
   tool: "note" | "text" | "ink",
   ...args: Parameters<typeof imageReader>
@@ -1086,7 +1029,6 @@ it.each([
 });
 
 it("reports a note press while editing is not live, and creates nothing", async () => {
-  // Armed while editing was live, and blocked since.
   await using open = await toolReader("note");
   update(
     open.surface,
@@ -1123,9 +1065,6 @@ it("creates one ink stroke as Zotero smooths it, and stays armed", async () => {
 
   await open.drag([100, 100], [110, 100]);
 
-  // Two Chaikin passes over (100, 692)–(110, 692) cut at 100.625, 101.875,
-  // 103.75, 106.25, 108.125 and 109.375; the points under one point from the
-  // last kept one — 100.625, and the end at 110 — go.
   const position = {
     pageIndex: 0,
     width: 2,
@@ -1155,10 +1094,6 @@ it("creates one ink stroke as Zotero smooths it, and stays armed", async () => {
   });
 });
 
-/**
- * A second PDF view of the reader's Attachment, over the one repository, with
- * the ink tool armed: the view that writes into the same Annotation History.
- */
 function secondInkView(open: ImageReader) {
   const containerEl = document.body.createDiv();
   const page = pageView();
@@ -1175,7 +1110,6 @@ function secondInkView(open: ImageReader) {
   update(surfaces.surface, arm("ink"));
   const pointer = pointerOn(page.div, containerEl);
   return {
-    /** One stroke from a client point to another, released there. */
     async drag(from: [number, number], to: [number, number]) {
       pointer("pointerdown", from);
       pointer("pointermove", to);
@@ -1195,16 +1129,12 @@ it("names every stroke its own group, in one reader and across two", async () =>
   await one.drag([100, 100], [110, 100]);
   await one.drag([100, 120], [110, 120]);
 
-  // A second PDF view of the same Attachment writes into the one Annotation
-  // History, so a group it names alike would draw its first stroke into the
-  // other view's step and one undo press would take both.
   using other = secondInkView(one);
   await other.drag([100, 140], [110, 140]);
 
   const strokes = ["MADE2345", "MADE2346", "MADE2347"];
   const held = () => strokes.filter((key) => one.zotero.at(key) !== null);
   expect(held()).toEqual(strokes);
-  // Each undo press takes one stroke off Zotero, the latest first.
   await one.repository.undo("RGRPDF24");
   expect(held()).toEqual(["MADE2345", "MADE2346"]);
   await one.repository.undo("RGRPDF24");
@@ -1218,8 +1148,6 @@ it("keeps a stroke run off the page on the page it began on", async () => {
 
   await open.drag([600, 100], [700, 100]);
 
-  // The move is taken at the page's right edge, x = 612; the smoothing cuts
-  // (600, 612) at 611.25 and drops the end, 0.75 points on.
   const { position } = open.drafts[0]!;
   const [path] = "paths" in position ? position.paths : [];
   expect(Math.max(...path!.filter((_, index) => index % 2 === 0))).toBe(611.25);
@@ -1278,7 +1206,6 @@ it.each([
   expect(current(open.surface).liveStroke).toBeNull();
 });
 
-/** The ink reader, armed while editing was live and blocked since. */
 async function blockedInkReader() {
   const open = await toolReader("ink");
   update(
@@ -1328,7 +1255,6 @@ it("saves a stroke in the colour it was pressed in", async () => {
 
 it("creates an image while an ink stroke still saves", async () => {
   await using open = await toolReader("ink");
-  // Zotero holds the stroke's create open, and takes the next write at once.
   const inkAnswered = Promise.withResolvers<void>();
   open.zotero.answerNextWrite(async (request) => {
     await inkAnswered.promise;
@@ -1371,7 +1297,6 @@ it("draws while an earlier stroke saves, and creates in release order", async ()
   open.pointer("pointerup", [200, 200]);
   await vi.waitFor(() => expect(open.drafts).toHaveLength(1));
 
-  // The second stroke waits on the first create, and both stay on the page.
   expect(
     current(open.surface).pendingStrokes.map(({ paths }) => paths),
   ).toEqual([[[100, 692]], [[200, 592]]]);
@@ -1396,8 +1321,6 @@ it("sends no stroke still waiting behind a create when its view closes", async (
   open.pointer("pointerup", [200, 200]);
   await vi.waitFor(() => expect(open.drafts).toHaveLength(1));
 
-  // The first stroke is with Zotero; the second waits its turn as the view
-  // closes, and goes with the view.
   open[Symbol.dispose]();
   answerFirst();
   await open.creation.created;
@@ -1428,7 +1351,6 @@ it("takes a stroke off the page and says why when editing lapsed while it waited
   open.pointer("pointerup", [200, 200]);
   await vi.waitFor(() => expect(open.drafts).toHaveLength(1));
 
-  // The second stroke was released while editing was live, and waits.
   update(
     open.surface,
     ingestCapability({ kind: "read-only", reason: "zotero-unavailable" }, NOW),
@@ -1438,8 +1360,6 @@ it("takes a stroke off the page and says why when editing lapsed while it waited
 
   expect(open.drafts).toHaveLength(1);
   expect(open.gestures.reportBlockedGesture).toHaveBeenCalledOnce();
-  // The first stroke saved and draws from the record Zotero answered; the
-  // second is gone.
   const { records, pendingStrokes } = current(open.surface);
   expect(records.map(({ key, type }) => [key, type])).toContainEqual([
     "MADE2345",
@@ -1474,8 +1394,6 @@ it("takes a stroke off the page when its create's reply is lost, and creates the
 it("finishes a stroke that reaches the position ceiling as its own Annotation, and draws on with the pointer held", async () => {
   await using open = await toolReader("ink");
   open.repository.openHistory("RGRPDF24");
-  // A zig-zag scribble of three-point steps, row after row, as long as about
-  // one and a half Annotations hold.
   const samples = Array.from({ length: 3000 }, (_, index): [number, number] => {
     const row = Math.floor(index / 150);
     const column = index % 150;
@@ -1489,7 +1407,6 @@ it("finishes a stroke that reaches the position ceiling as its own Annotation, a
   for (const sample of samples.slice(1)) open.pointer("pointermove", sample);
   await vi.waitFor(() => expect(open.drafts).toHaveLength(1));
 
-  // The pointer still draws, and the tool is still armed.
   expect(open.creation.capturing).toBe(true);
   expect(current(open.surface)).toMatchObject({ armed: "ink" });
   open.pointer("pointerup", samples.at(-1)!);
@@ -1502,14 +1419,12 @@ it("finishes a stroke that reaches the position ceiling as its own Annotation, a
   expect(second).toMatchObject({ pageIndex: 0, width: 2 });
   const firstPath = "paths" in first! ? first.paths[0]! : [];
   const secondPath = "paths" in second! ? second.paths[0]! : [];
-  // The second part begins where the first one ends, so the two meet.
   expect(secondPath.slice(0, 2)).toEqual(firstPath.slice(-2));
   expect(firstPath.slice(0, 2)).toEqual([samples[0]![0], 792 - samples[0]![1]]);
   expect(current(open.surface)).toMatchObject({
     armed: "ink",
     liveStroke: null,
   });
-  // Both parts are the one stroke, so one undo press takes both off Zotero.
   await open.repository.undo("RGRPDF24");
   expect([open.zotero.at("MADE2345"), open.zotero.at("MADE2346")]).toEqual([
     null,
@@ -1517,10 +1432,6 @@ it("finishes a stroke that reaches the position ceiling as its own Annotation, a
   ]);
 });
 
-/**
- * A 2D context that sets each character half a font size wide. happy-dom has
- * no canvas to measure the interface font with.
- */
 function halfEmContext() {
   let fontSize = 0;
   return {
@@ -1531,10 +1442,6 @@ function halfEmContext() {
   };
 }
 
-/**
- * Opens a Text Draft with a click on page one, and types `text` into it as
- * its textarea's input hands it on, measured by {@link halfEmContext}.
- */
 function typeDraft(open: ImageReader, text: string) {
   vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(
     halfEmContext() as never,
@@ -1544,12 +1451,6 @@ function typeDraft(open: ImageReader, text: string) {
   open.creation.typeDraft(text);
 }
 
-/**
- * One text page with no characters, read from a document the view can close.
- * After `close()` the viewer holds no document, as Obsidian's own unload
- * leaves it before ZotLit's disposal runs, and every read rejects, as PDF.js
- * rejects on a destroyed document.
- */
 function closingDocument() {
   let closed = false;
   const read = async <T>(value: T): Promise<T> => {
@@ -1565,7 +1466,6 @@ function closingDocument() {
   const structure = new PdfTextStructure(source);
   return {
     structure: () => (closed ? null : structure),
-    /** Settles once the reads a click on page one started have answered. */
     read: async () => {
       await Promise.all([structure.page(0), structure.pageLabels()]);
     },
@@ -1619,7 +1519,6 @@ it("says why a Text Draft finished after editing lapsed was not created", async 
   await open.creation.created;
 
   expect(open.drafts).toEqual([]);
-  // The typed text is lost, so the create failure names the block.
   expect(open.reportCreateFailure.mock.calls).toEqual([
     [blockedReason(lapsed, NOW)],
   ]);
@@ -1632,13 +1531,10 @@ it("creates a Text Draft finished as the view closes, from the page it read at t
   await using open = await toolReader("text", undefined, {
     structure: document_.structure,
   });
-  // The text tool's colour, read while the view's state stands.
   const { text: color } = current(open.surface).colors;
   {
-    // The view's own surfaces close; the repository outlives them.
     using _closing = open;
     typeDraft(open, "Typed");
-    // The reads the click started run to their end before the view closes.
     await document_.read();
     document_.close();
   }
@@ -1660,15 +1556,11 @@ it("creates a Text Draft finished as the view closes, from the page it read at t
       },
     },
   ]);
-  // The box the typing refit: five characters half a font size wide, and
-  // Zotero's five points past them.
   const [box] = (open.drafts[0]!.position as TextPosition).rects;
   expect(box![2]! - box![0]!).toBeCloseTo(40, 2);
 });
 
 it("creates a Text Draft the view closes on before the Page Label pass ends, with the page's own number", async () => {
-  // The page answers; the catalog read the label pass needs never does, as a
-  // PDF.js document closed under it.
   const structure = new PdfTextStructure({
     numPages: 1,
     getViewBox: async () => [0, 0, 612, 792],
@@ -1683,7 +1575,6 @@ it("creates a Text Draft the view closes on before the Page Label pass ends, wit
     typeDraft(open, "Typed");
     await structure.page(0);
   }
-  // The binding closes the structure as it lets the document go.
   structure.close();
   await open.creation.created;
 
@@ -1730,8 +1621,6 @@ it("stops an image create waiting for PDF geometry when its view closes", async 
   open.pointer("pointerup", [200, 200]);
   expect(open.structure.sortIndex).toHaveBeenCalledOnce();
 
-  // The view closes before the document answers: nothing was sent yet, so
-  // the create goes with the view.
   open[Symbol.dispose]();
   read.resolve("00000|000100|00100");
   await open.creation.created;
@@ -1749,8 +1638,6 @@ it("waits for a create Zotero holds when its view closes, and says why it failed
   open.pointer("pointerup", [200, 200]);
   await vi.waitFor(() => expect(open.drafts).toHaveLength(1));
 
-  // The create is with Zotero when the view closes: the close waits for the
-  // answer, and the lost reply is still told.
   open[Symbol.dispose]();
   reply.reject(new AbortError("The reply was lost"));
   await open.creation.created;
@@ -1792,7 +1679,6 @@ it("says nothing of a create that landed when what follows it fails, and logs it
   open.pointer("pointerup", [200, 200]);
   await open.creation.created;
 
-  // Zotero holds the Annotation, so no notice says it was not created.
   expect(open.drafts).toHaveLength(1);
   expect(open.reportCreateFailure).not.toHaveBeenCalled();
   expect(logs.records).toContainEqual(

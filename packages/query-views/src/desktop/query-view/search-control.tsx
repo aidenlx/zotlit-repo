@@ -1,7 +1,3 @@
-// The toolbar's Search: a button that opens a field which finds text in the
-// rows on screen. It filters the cards the query gave; it runs no query. As
-// in Bases, the field opens in a row of its own under the toolbar, and the
-// button shows in the accent ink while the row stands.
 import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 
@@ -20,12 +16,10 @@ import type { QueryView } from "./view.tsx";
 
 import { ToolbarButton } from "#obsidian/query-view/toolbar-button.tsx";
 
-/** Whether the search row stands, and how the button and the row change it. */
 export interface SearchBar {
   open: boolean;
   buttonRef: RefObject<HTMLButtonElement | null>;
   toggle: () => void;
-  /** Close the row, clear the search, and give the focus back to the button. */
   close: () => void;
 }
 
@@ -60,23 +54,17 @@ export function SearchButton({ bar }: { bar: SearchBar }) {
   );
 }
 
-/** The row under the toolbar that holds the search field, while it stands. */
 export function SearchRow({ view, bar }: { view: QueryView; bar: SearchBar }) {
   const dataset = useQueryViewState(view, (s) => s.view?.from);
   const query = useAnnotStore((s) => s.filterQuery);
   const setQuery = useSetFilterQuery();
   const inputRef = useRef<HTMLInputElement>(null);
-  // The placeholder shows what the field finds, so a hidden element names it
-  // and the field takes no tooltip.
   const nameId = useUniqueId();
-  // The field takes the focus once it is mounted.
   useLayoutEffect(() => {
     if (bar.open) inputRef.current?.focus({ preventScroll: true });
   }, [bar.open]);
   if (!bar.open) return null;
   return (
-    // The row takes the toolbar's insets and its bottom border, and the field
-    // fills the row without a box of its own.
     <div
       className={cn(
         "zt:flex zt:shrink-0 zt:items-center zt:border-b-(length:--border-width) zt:border-(--table-border-color) zt:py-(--size-2-2) zt:ps-[var(--zt-query-toolbar-inset-start,var(--size-2-1))] zt:pe-[var(--zt-query-toolbar-inset-end,var(--size-2-1))] zt:in-[.print]:hidden",

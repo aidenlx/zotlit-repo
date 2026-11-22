@@ -1,24 +1,13 @@
-/*
- * Outranks Obsidian's unlayered `.table-drag-target` layer, so the column drop
- * line stands over the Table's sticky header.
- */
 .zt-column-drop-line.table-drag-target {
   z-index: var(--layer-cover);
 }
 
-/* A column resize keeps its cursor wherever the pointer goes. */
 body.zt-is-resizing-column,
 body.zt-is-resizing-column * {
   cursor: col-resize !important;
   user-select: none;
 }
 
-/*
- * The box a Table scrolls in draws Obsidian's styled scroll bar, whose
- * vertical track starts under the sticky header: a press at the header's
- * edge reaches a column, never the bar. `scrollbar-color` and
- * `scrollbar-width` at `auto` let the `::-webkit-scrollbar` parts apply.
- */
 @media screen {
   body:not(.is-mobile) .zt-table-scroller {
     scrollbar-color: auto;

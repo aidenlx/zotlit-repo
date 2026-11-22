@@ -2,8 +2,6 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
-    // The Fluent plugin derives the Companion's FTL files and
-    // `src/types/fluent.ts` from the `zotero` namespace of the root catalogs.
     "build": {
       "inputs": [
         "$TURBO_DEFAULT$",

@@ -4,7 +4,6 @@ import {
   DOCS_SITE_URL,
   RESERVED_KEYS,
 } from "@zotlit/plugin-kernel/constants.ts";
-// Focused Workbench reference, using the executable command vocabularies.
 import {
   LIQUID_BUILTIN_FILTER_NAMES,
   LIQUID_BUILTIN_TAG_NAMES,
@@ -201,7 +200,6 @@ DIAGNOSTICS
 LEGACY CONVERSION
   ${DIAGNOSTIC_HINTS.COMMAND_RETIRED}`;
 
-/** Canonical topic registry shared by parsing, generated help, and the index. */
 export const GUIDE_TOPICS = {
   inspect: INSPECT_GUIDE,
   check: CHECK_GUIDE,

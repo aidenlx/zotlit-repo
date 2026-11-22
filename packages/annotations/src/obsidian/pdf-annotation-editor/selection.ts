@@ -1,16 +1,3 @@
-// The selected Annotation Mark of one PDF view: the gesture that picks it, the
-// keys that walk and edit it, and the Mark Popup that hangs over it.
-//
-// Marks take no pointer input, so every gesture here is answered from geometry
-// and nothing is hung on a mark's own node. Click-away belongs to this hit test
-// rather than to the popup: the press that opens the popup is not an outside
-// press, and this is the only thing that hides it. A surface outside the reader
-// that drives the selection, such as the Annotation View, is not outside either:
-// its own gesture says what the selection becomes.
-//
-// @see apps/obsidian/docs/adr/0042-the-surfaces-inside-the-pdf-reader-are-vanilla-dom-on-obsidians-popover.md
-// @see apps/obsidian/docs/adr/0065-the-mark-popup-is-one-preact-root-on-obsidians-popover.md
-
 import type {
   LockBlock,
   LockedVerb,
@@ -196,7 +183,6 @@ import {
   writeFailureReason,
 } from "#obsidian/annotation-repository/write.ts";
 
-/** What the selection reads and writes one Annotation through. */
 export type AnnotationEdits = Pick<
   AnnotationRepository["Service"],
   | "textDraftFor"
@@ -214,172 +200,72 @@ export type AnnotationEdits = Pick<
   | "submitTags"
 >;
 
-/** How a selection taken from outside the reader opens its Mark Popup. */
 export interface SelectOptions {
-  /** Whether the Mark Popup opens over the selection. */
   popup?: boolean;
-  /** Whether the popup opens on its comment editor. */
   commenting?: boolean;
 }
 
-/**
- * The gestures the Mark Popup hands to its UI seam, which render and decide
- * nothing themselves.
- *
- * @see apps/obsidian/policies/ui-seams.md
- */
 export interface MarkGestures {
-  /**
-   * Bring this Annotation's card forward in the Annotation View. The popup
-   * edits the comment in place, so the card's editors stay as they are.
-   */
   revealAnnotation: (annotationKey: string) => void;
-  /**
-   * An edit gesture met a block on this Attachment. The seam probes Zotero and
-   * says why, once per reason per capability episode.
-   */
   reportBlockedGesture: () => void;
-  /**
-   * A press on a control the Editing Capability blocks, such as the comment
-   * field: the seam says why on every press, and offers the gesture that
-   * ends the block where there is one, as the card's own blocked press does.
-   */
   blockedPress: (block: CardBlock) => void;
-  /**
-   * Open the "Zotero editing" settings row, whose Allow editing asks Zotero,
-   * from the held-draft panel's "Allow editing".
-   * A button answers every press, so it does not go through the blocked-gesture
-   * notice, which speaks once per reason per episode.
-   */
   allowEditing: () => void;
 }
 
 export interface MarkSelectionDeps {
-  /** The PDF view's container: where the gestures are heard, and what scrolls. */
   containerEl: HTMLElement;
-  /** The app the comment editor takes its keys through. */
   app: App;
-  /** Renders a stored comment as the Annotation Card does. */
   renderComment: CommentRenderer;
-  /** The tag names of an Annotation's Library, which the tag editor suggests. */
   libraryTagNames: (annotationKey: string) => Promise<readonly string[]>;
-  /**
-   * The one popup of this view: a press inside it leaves the selection
-   * standing, and a scroll re-hangs it.
-   */
   popup: Pick<MarkPopupHost, "contains" | "sync">;
-  /**
-   * The surfaces outside the reader that drive this selection: a press inside
-   * one leaves the selection standing too.
-   */
   selectionSurfaces: Pick<ReaderSessionHost, "onSelectionSurface">;
-  /** The marks on screen, by page index, as the binding last painted them. */
   marks: () => ReadonlyMap<number, readonly PdfPageAnnotation[]>;
-  /** Every Annotation of this Attachment, as the repository last answered. */
   records: () => readonly AnnotationRecord[];
-  /** The page that draws a page index, or `null` while the viewer holds none. */
   pageAt: (pageIndex: number) => OverlayPageView | null;
-  /** Redraws the overlays, so the selected mark carries `is-selected`. */
   repaint: () => void;
-  /** Brings the reader to an Annotation, for the keys that walk the list. */
   navigate: (annotationKey: string) => void;
-  /** Announces the selection to whoever follows this reader. */
   report: (annotationKeys: readonly string[]) => void;
   annotations: AnnotationEdits;
   bridge: Pick<EffectBridge, "runSync" | "runPromise" | "runPromiseExit">;
-  /** Starts a Geometry Edit's save on the view's own Scope. */
   writes: BindingWrites;
-  /** Where a write that did not land says why. */
   notifier: Notifier["Service"];
-  /** The colours used last, which a recolour puts a colour first in. */
   colors: ToolColorStore;
-  /** What this view's surfaces draw from, the Editing Capability among it. */
   surface: ReaderSurface;
   gestures: MarkGestures;
-  /**
-   * The creation surfaces, which hear the same pointer and key gestures this
-   * class already owns. One listener set serves both.
-   */
   creation: CreationGestures | null;
-  /**
-   * The Sort Index of a position in the open document, which a Geometry Edit
-   * is saved with; `null` while no document is open.
-   */
   sortIndex: (position: PdfPosition) => Promise<string | null>;
-  /**
-   * A highlight's or underline's range with one end dragged to a point, from
-   * the open document's Structured Characters; `null` while no document is
-   * open, or for a point no range can be placed from.
-   */
   adjustRange: (adjustment: RangeAdjustment) => Promise<SelectedText | null>;
-  /** The text rotation a text range's handles lie across, as they are drawn. */
   textRotation: TextRotation;
-  /** The clock a cooldown's remaining seconds are read against. */
   now: () => Temporal.Instant;
-  /**
-   * Takes a drag of the selected mark out of the reader: a drop into a note
-   * inserts the Annotation, as a card dragged from the Annotation View does.
-   */
   dragOut: (event: AnnotationDragStart, annotation: AnnotationRecord) => void;
 }
 
-/**
- * One selected mark per PDF view, held in the Reader Surface State, with the
- * row and the comment editor the popup host draws over it.
- */
 export class MarkSelection implements Disposable {
   readonly #deps;
   readonly #surfaces = new DisposableStack();
-  /**
-   * Where the click that made the selection fell, which a repeat click steps
-   * from; `null` for a selection no click made.
-   */
   #at: Pick<MarkSelectionPoint, "pageIndex" | "point"> | null = null;
-  /** The popup's comment editor, while it stands. */
   readonly #sheet: RefObject<EditorSheet | null> = { current: null };
-  /** Where the click that opened the comment editor landed, until it mounts. */
   #caretAt: CaretPoint | undefined;
-  /** The popup's tag section, while it stands. */
   readonly #tagSection: RefObject<HTMLDivElement | null> = { current: null };
-  /** The open tag editor's own end of its session. */
   readonly #endSession: RefObject<EndTagSession | null> = { current: null };
-  /** The tag editor's suggestion popup while it shows, outside the popup. */
   readonly #suggest: RefObject<HTMLElement | null> = { current: null };
   #pressedAt: Point | null = null;
-  /** The pointer a Geometry Edit holds, and where it last stood. */
   #dragging: { pointerId: number; client: Point } | null = null;
-  /** Whether the last press took a Mark Handle, whose click selects nothing. */
   #pressedHandle = false;
-  /** Whether the last press was the armed ink tool's, whose click selects nothing. */
   #pressedStroke = false;
-  /**
-   * The page a press on the selected mark made draggable, so the browser
-   * starts a drag of the mark rather than a text selection; `null` once the
-   * press ends or the drag begins.
-   */
   #dragOutPage: HTMLElement | null = null;
   #adjusting = Promise.resolve();
-  /**
-   * The text range the pointer last asked for, which a release waits on so
-   * it saves where the pointer let go.
-   */
   #ranging = Promise.resolve();
-  /** Counts the range asks, so an answer a later ask or a cancel overtook is dropped. */
   #rangeAsk = 0;
 
   constructor(deps: MarkSelectionDeps) {
     this.#deps = deps;
   }
 
-  /** The Indexed Keys the overlay draws as selected: one mark, or a group. */
   get selected(): ReadonlySet<string> {
     return new Set(this.#selectedKeys());
   }
 
-  /**
-   * Settles when the last Geometry Edit released in this reader has saved, or
-   * ended without a write. Already settled while none has. Never rejects.
-   */
   get adjusted(): Promise<void> {
     return this.#adjusting;
   }
@@ -390,21 +276,15 @@ export class MarkSelection implements Disposable {
       registerDomEvent(containerEl, "pointerdown", (event) => {
         this.#pressedAt = { x: event.clientX, y: event.clientY };
         this.#pressGrip(event);
-        // A press no grip took is the armed image tool's, unless a mark
-        // lies under it.
         if (!this.#dragging)
           this.#deps.creation?.grab(event, {
             onMark: () => this.#onMark(event),
           });
-        // The armed ink tool takes every main-button press before any mark
-        // could, as Zotero's reader does, whether or not the press drew.
         this.#pressedStroke =
           event.button === 0 && this.#state().armed === "ink";
         this.#armDragOut(event);
       }),
     );
-    // A drag the press on the selected mark armed carries its Annotation; any
-    // other drag, such as one of selected text, stays the browser's own.
     this.#surfaces.use(
       registerDomEvent(containerEl, "dragstart", (event) => {
         const armed = this.#dragOutPage !== null;
@@ -443,8 +323,6 @@ export class MarkSelection implements Disposable {
         else this.#deps.creation?.release(event);
       }),
     );
-    // A drag on a grip moves the mark, and an image capture draws a
-    // rectangle; the browser selects no text under either.
     this.#surfaces.use(
       registerDomEvent(containerEl, "selectstart", (event) => {
         if (this.#dragging || this.#deps.creation?.capturing)
@@ -457,9 +335,6 @@ export class MarkSelection implements Disposable {
         else this.#deps.creation?.cancel(event);
       }),
     );
-    // A capture the browser took away without a cancel ends the stroke or the
-    // rectangle it held; a release lets go of its own first, so its loss
-    // matches nothing.
     this.#surfaces.use(
       registerDomEvent(containerEl, "lostpointercapture", (event) => {
         if (event.pointerId !== this.#dragging?.pointerId)
@@ -469,8 +344,6 @@ export class MarkSelection implements Disposable {
     this.#surfaces.use(
       registerDomEvent(containerEl, "click", (event) => this.#click(event)),
     );
-    // The browser has settled the selection by the time a release bubbles, so
-    // this is where a drag on the page becomes a selection worth acting on.
     this.#surfaces.use(
       registerDomEvent(containerEl.doc, "pointerup", () => {
         this.#disarmDragOut();
@@ -480,20 +353,14 @@ export class MarkSelection implements Disposable {
     this.#surfaces.use(
       registerDomEvent(containerEl, "keydown", (event) => {
         this.#key(event);
-        // The selected mark's keymap answers first; what it left alone is the
-        // creation surfaces', so one key never runs two verbs.
         if (!event.defaultPrevented) this.#deps.creation?.key(event);
       }),
     );
-    // Scrolling does not bubble, so the page's own scroller is reached by
-    // listening on the way down.
     this.#surfaces.use(
       registerDomEvent(
         containerEl,
         "scroll",
         () => {
-          // The page moved under a pointer that did not, so the drag is
-          // measured again against the page where it now stands.
           if (this.#dragging) this.#propose();
           this.#deps.popup.sync();
         },
@@ -505,16 +372,12 @@ export class MarkSelection implements Disposable {
         containerEl.doc,
         "pointerdown",
         (event) => {
-          // On the way down, so the creation surfaces hear every press in this
-          // window — inside the reader and outside it alike.
           this.#deps.creation?.press(event);
           this.#outsidePress(event);
         },
         { capture: true },
       ),
     );
-    // Only one floating surface is ever open, and a live text selection is the
-    // one the browser is already showing.
     this.#surfaces.use(
       registerDomEvent(containerEl.doc, "selectionchange", () => {
         if (
@@ -532,35 +395,18 @@ export class MarkSelection implements Disposable {
         this.#deps.report(keys);
       }),
     );
-    // The editor goes with the episode it was opened for: a closed editor, a
-    // stepped or dropped selection, and a hidden or conflicting draft alike.
-    // A tag editing session is saved as it ends, however it ends.
     this.#surfaces.defer(
       watch(registry, model.floatingHead, (head, previous) => {
         const { kind, commenting } = head;
         if (kind !== "selected" || !commenting) this.#closeCommentEditor();
         if (!previous.tagging || previous.key === null) return;
         if (head.tagging && head.key === previous.key) return;
-        // The editor adds the text still typed before the save reads it.
         this.#endTags();
         this.#submitTags(previous.key);
       }),
     );
   }
 
-  /**
-   * Take this Annotation as the selection, from outside a mark click: a Mark
-   * Landing, a mark just created, or {@link selectMarks} with one mark. The
-   * Annotation View's cards enter through {@link selectMarks}.
-   *
-   * @param options.popup whether the Mark Popup opens over the selection.
-   *   A Mark Landing passes `false`: the user followed a link to read a
-   *   passage, not for a popover over a document they have only just arrived
-   *   at. The suppression lasts until the next selection, so a page re-render
-   *   does not summon the popup the Landing declined.
-   * @param options.commenting whether the popup opens on its comment editor,
-   *   as it does for a note just placed.
-   */
   select(
     annotationKey: string | null,
     { popup = true, commenting = false }: SelectOptions = {},
@@ -568,11 +414,6 @@ export class MarkSelection implements Disposable {
     this.#apply(annotationKey, null, { popup, commenting });
   }
 
-  /**
-   * Take these Annotations as the selection, from the Annotation View's Card
-   * Selection. The reader takes it quietly: one mark opens no Mark Popup, and
-   * several are a group, painted with no popup and no Mark Handles.
-   */
   selectMarks(annotationKeys: readonly string[]): void {
     if (annotationKeys.length < 2) {
       this.select(annotationKeys[0] ?? null, { popup: false });
@@ -588,7 +429,6 @@ export class MarkSelection implements Disposable {
     this.#endTagSession();
     this.#disarmDragOut();
     this.#surfaces.dispose();
-    // A range step still in flight lands on no surface.
     this.#rangeAsk++;
     if (this.#selectedKeys().length > 0)
       update(this.#deps.surface, selectMark(null));
@@ -623,13 +463,10 @@ export class MarkSelection implements Disposable {
   #click(event: MouseEvent): void {
     const pressed = this.#pressedAt;
     this.#pressedAt = null;
-    // A Mark Handle is a grip, not a mark: its click keeps the selection.
     if (this.#pressedHandle) {
       this.#pressedHandle = false;
       return;
     }
-    // A press of the ink tool on a mark — a stroke, a dot, or one that editing
-    // blocked — selects nothing.
     if (this.#pressedStroke) {
       this.#pressedStroke = false;
       return;
@@ -662,14 +499,6 @@ export class MarkSelection implements Disposable {
     }
   }
 
-  /**
-   * Escape on the selected mark, which the Reader Keymap runs ahead of the
-   * creation surfaces: a drag is taken back first, and the selection only
-   * after. An open tag editor closes alone, as Escape inside it does, though
-   * focus stands on a chip's remove button or a verb beside it.
-   *
-   * @returns whether a mark, or a group, was selected to step back from.
-   */
   escape(): boolean {
     if (this.#selectedKeys().length === 0) return false;
     if (selectFloatingHead(this.#state()).tagging && this.#endTags(false))
@@ -679,12 +508,6 @@ export class MarkSelection implements Disposable {
     return true;
   }
 
-  /**
-   * Cmd/Ctrl+C on the selected mark or group: its text, by the Annotation
-   * View's rule. A text selection in the PDF is the platform's to copy.
-   *
-   * @returns whether the selection had text to copy.
-   */
   copy(): boolean {
     const selected = this.#selectedKeys();
     if (selected.length === 0 || !selectionCollapsed(this.#deps.containerEl))
@@ -696,15 +519,12 @@ export class MarkSelection implements Disposable {
   }
 
   #key(event: KeyboardEvent): void {
-    // A keystroke inside a text field belongs to the field.
     if (inTextEntry(event.target)) return;
     if (this.#geometryKey(event)) return;
-    // A modified keystroke belongs to Obsidian's own commands.
     if (event.ctrlKey || event.metaKey) return;
     const walk =
       event.key === "ArrowDown" ? 1 : event.key === "ArrowUp" ? -1 : null;
     if (walk !== null) {
-      // A group reduces to one mark, walking from its first in reading order.
       const order = readingOrder(this.#deps.records());
       const selected = this.#selectedKeys();
       const next = stepReadingOrder(
@@ -718,10 +538,6 @@ export class MarkSelection implements Disposable {
       this.#deps.navigate(next);
       return;
     }
-    // The Mac keyboards that print "delete" on the backspace key send
-    // `Backspace`, so both reach the same verb. It erases every selected mark.
-    // A delete of one mark keeps its behaviour in the PDF: it asks nothing. A
-    // group asks once and names its count, as the Annotation View does.
     if (event.key === "Delete" || event.key === "Backspace") {
       const selected = this.#selectedKeys();
       if (selected.length === 0) return;
@@ -743,16 +559,9 @@ export class MarkSelection implements Disposable {
     }
     const selected = this.#selectedKeys();
     if (selected.length === 0) return;
-    // `1`–`8` are the palette's own order, so the key and the swatch can never
-    // name different colours. It recolours every selected mark.
     const swatch = ANNOTATION_COLORS[Number(event.key) - 1];
     if (swatch !== undefined) {
-      // A colour key is one of the shared edit keymap's keys, so whether this
-      // keystroke is one of them is read from there rather than decided again:
-      // `Alt`+`1` is no edit gesture for the block's notice, and none here.
       if (!isEditGesture(event)) return;
-      // A blocked colour key is answered by the binding's own edit-gesture
-      // listener, which hears every key of the shared edit keymap.
       if (this.#live()) {
         event.preventDefault();
         const locked = this.#lockOn(selected, "color");
@@ -763,21 +572,11 @@ export class MarkSelection implements Disposable {
     }
   }
 
-  /**
-   * A modified arrow on the selected mark is one Geometry Edit, committed
-   * through the same path a released drag takes: `Shift` steps a text range's
-   * end, `Mod`+`Shift` its start, `Shift` resizes an image or ink, and `Alt`
-   * nudges it. While editing is not live the key does nothing, and while an
-   * earlier edit is still on its way it waits for none.
-   *
-   * @returns whether the key was one of these, which no other verb then takes.
-   */
   #geometryKey(event: KeyboardEvent): boolean {
     const arrow = ARROWS[event.key];
     const record = this.#record();
     if (!arrow || !record || !isEditablePosition(record.position)) return false;
     const mod = Keymap.isModifier(event, "Mod");
-    // `Ctrl` on macOS, and `Meta` elsewhere, is no platform key.
     if ((event.ctrlKey || event.metaKey) && !mod) return false;
     const edit = keyEdit(record.type, {
       shift: event.shiftKey,
@@ -787,7 +586,6 @@ export class MarkSelection implements Disposable {
     if (!edit) return false;
     if (this.#dragging || selectAdjust(this.#state())) return true;
     event.preventDefault();
-    // The Editing Capability's block comes first, as it does for Delete.
     if (!this.#live()) {
       this.#deps.gestures.reportBlockedGesture();
       return true;
@@ -846,18 +644,11 @@ export class MarkSelection implements Disposable {
     return true;
   }
 
-  /**
-   * A press on a Mark Handle, or on the body of a selected mark that moves by
-   * it, begins a Geometry Edit: the pointer is captured and the browser's text
-   * selection is held off for the drag. Every other press, and every press
-   * while editing is not live, is left to the click and the text selection.
-   */
   #pressGrip(event: PointerEvent): void {
     this.#pressedHandle = false;
     const record = this.#record();
     if (event.button !== 0 || !record || !this.#live()) return;
     const state = this.#state();
-    // A Locked Annotation has no Mark Handles, and its body moves by none.
     if (!selectMarkHandles(state)) return;
     if (!state.marksVisible || selectAdjust(state)) return;
     if (!isEditablePosition(record.position)) return;
@@ -896,10 +687,6 @@ export class MarkSelection implements Disposable {
     this.#holdGrip(event, grip, pdfPointOf(page, point));
   }
 
-  /**
-   * Captures the pointer for a Geometry Edit on a grip, holding the browser's
-   * text selection off for the drag.
-   */
   #holdGrip(event: PointerEvent, grip: Grip, from: PdfPoint): void {
     event.preventDefault();
     this.#deps.containerEl.setPointerCapture(event.pointerId);
@@ -911,11 +698,6 @@ export class MarkSelection implements Disposable {
     update(this.#deps.surface, beginAdjust({ grip, from }));
   }
 
-  /**
-   * The end of a selected highlight's or underline's range a press takes, and
-   * where it fell on the page of that end's strip; `null` for a press on
-   * neither, or on a mark that is no text range.
-   */
   #rangeGripAt(
     record: AnnotationRecord,
     client: Point,
@@ -938,15 +720,12 @@ export class MarkSelection implements Disposable {
     return grip && from ? { grip, from } : null;
   }
 
-  /** Proposes the position the held grip reaches at the pointer's last place. */
   #propose(): void {
     const record = this.#record();
     const adjust = selectAdjust(this.#state());
     const dragging = this.#dragging;
     if (!record || !adjust || !dragging) return;
     if (!isEditablePosition(record.position)) return;
-    // Read on every move, so a scroll or a zoom mid-drag is measured against
-    // the page as it now stands.
     if (isRangeGrip(adjust.grip)) {
       this.#proposeRange(record, adjust.grip, dragging.client);
       return;
@@ -968,11 +747,6 @@ export class MarkSelection implements Disposable {
     );
   }
 
-  /**
-   * What a selected free-text box's height is fitted to: its text, measured
-   * in the font it is drawn in. Every mark's edit takes it; only a free-text
-   * box's measures anything.
-   */
   #textContent(record: AnnotationRecord): FreeTextContent {
     const win = this.#deps.containerEl.win;
     return {
@@ -981,15 +755,6 @@ export class MarkSelection implements Disposable {
     };
   }
 
-  /**
-   * Asks the document for the range the held end reaches at a client point,
-   * and proposes it once it answers, unless a later ask or a cancel came
-   * first. A point no range can be placed from keeps the last proposal.
-   *
-   * The start is measured on the Annotation's own page, however far off it
-   * the pointer is, since the start never leaves that page. The end is
-   * measured on that page or the next, whichever box the pointer is nearer.
-   */
   #proposeRange(
     record: AnnotationRecord,
     grip: RangeGrip,
@@ -1041,18 +806,15 @@ export class MarkSelection implements Disposable {
     this.#dragging = releaseCapture(this.#deps.containerEl, this.#dragging);
     const key = this.#selectedKey();
     const surface = this.#deps.surface;
-    // A range that answers after the view closed has no surface to save from.
     const settle = () =>
       key === null || this.#surfaces.disposed
         ? undefined
         : this.#settle(key, "pointer");
-    // A text range's last proposal may still be on its way from the document.
     const adjust = selectAdjust(current(surface));
     if (isRangeGrip(adjust?.grip ?? "body")) {
       this.#adjusting = this.#ranging.then(settle);
       return;
     }
-    // A free-text box whose side was dragged is sized to its text once more.
     const record = this.#record();
     const page =
       record &&
@@ -1075,13 +837,6 @@ export class MarkSelection implements Disposable {
     if (saving) this.#adjusting = saving;
   }
 
-  /**
-   * Ends the adjustment and saves its proposal, unless it changed nothing.
-   *
-   * @param input what made the edit, which the Annotation History groups a run
-   *   of keyboard edits by.
-   * @returns the save, or `undefined` where nothing is written.
-   */
   #settle(key: string, input: GeometryInput): Promise<void> | undefined {
     const surface = this.#deps.surface;
     const text = selectAdjust(current(surface))?.text;
@@ -1097,14 +852,6 @@ export class MarkSelection implements Disposable {
     update(this.#deps.surface, cancelAdjust);
   }
 
-  /**
-   * Saves a released proposal with the Sort Index recomputed from it. The mark
-   * draws the proposal while that index is computed; from the write on, the
-   * repository's Pending Proposal stands in its place until the write
-   * settles: a saved one then draws the record Zotero answered, and any other
-   * snaps back to the confirmed record, with a failure told at the notice
-   * seam.
-   */
   #saveGeometry(
     key: string,
     proposal: EditablePosition,
@@ -1115,7 +862,6 @@ export class MarkSelection implements Disposable {
       if (selectAdjust(current(surface))?.proposal === proposal)
         update(surface, cancelAdjust);
     };
-    // The capability can lapse while the pointer is down.
     if (!this.#live()) {
       end();
       this.#deps.gestures.reportBlockedGesture();
@@ -1138,29 +884,16 @@ export class MarkSelection implements Disposable {
     );
   }
 
-  /**
-   * A press outside the reader, the popup and every surface that drives the
-   * selection stands the selection down. The press that opens the popup lands
-   * inside the reader, so it is never one of these.
-   */
   #outsidePress(event: PointerEvent): void {
     if (this.#selectedKeys().length === 0) return;
     const target = event.target as Node | null;
     if (this.#deps.containerEl.contains(target)) return;
     if (this.#deps.popup.contains(target)) return;
-    // The tag editor's suggestion popup hangs outside the Mark Popup.
     if (this.#tagsContain(target)) return;
     if (this.#deps.selectionSurfaces.onSelectionSurface(target)) return;
     this.#apply(null);
   }
 
-  /**
-   * The popup's content in selected mode, for the popup host: the row, then
-   * the comment in one of its states, a Write Conflict, and the tag section.
-   *
-   * @param content the popup's content element, which focus may move within
-   *   without leaving an editor.
-   */
   popupView(content: HTMLElement): ReactNode | undefined {
     const input = selectSelectedRowInput(this.#state());
     if (!input) return undefined;
@@ -1176,10 +909,6 @@ export class MarkSelection implements Disposable {
     });
   }
 
-  /**
-   * The tag section under the comment: the tags read-only, or the tag editor
-   * in their place, while it stands.
-   */
   #tagSlot(
     content: HTMLElement,
     input: MarkPopupRowInput,
@@ -1204,9 +933,6 @@ export class MarkSelection implements Disposable {
       heldActions: this.#heldTagsActions(annotation),
       libraryNames: () => this.#deps.libraryTagNames(annotation.key),
       onChange: (names) => {
-        // A change that lands once no session stands and its draft is gone —
-        // a database switch hid it, or its save already settled — would start
-        // a session that nothing saves.
         const state = this.#state();
         if (
           !selectFloatingHead(state).tagging &&
@@ -1220,10 +946,6 @@ export class MarkSelection implements Disposable {
     };
   }
 
-  /**
-   * Whether a node belongs to the tag section: one inside it, or inside the
-   * editor's suggestion popup, which hangs outside it.
-   */
   #tagsContain(node: Node | null): boolean {
     return (
       (this.#tagSection.current?.contains(node) ?? false) ||
@@ -1231,35 +953,18 @@ export class MarkSelection implements Disposable {
     );
   }
 
-  /**
-   * Ends the open tag editor's session as the editor itself would; nothing
-   * while no editor is open.
-   *
-   * @param withText whether the text still typed is added first, as focus
-   *   leaving adds it; Escape leaves it out.
-   * @returns whether an editor was open to end.
-   */
   #endTags(withText = true): boolean {
     const end = this.#endSession.current;
     end?.(withText);
     return end !== null;
   }
 
-  /**
-   * Save the tag editing session that just ended on one Annotation, or hold
-   * it where it needs Save tags.
-   */
   #submitTags(annotationKey: string): void {
     void this.#write(
       this.#deps.annotations.submitTags(annotationKey, { automatic: true }),
     );
   }
 
-  /**
-   * What stands in the comment's place: the open editor, a held draft, or
-   * the comment field, resting on the stored comment or on "Add a comment…".
-   * The open editor is where the draft stands, so neither panel repeats it.
-   */
   #commentSlot(
     content: HTMLElement,
     input: SelectedRowInput,
@@ -1273,10 +978,6 @@ export class MarkSelection implements Disposable {
     const entry = controlEntry(control, (at) =>
       this.#pressComment(annotation, control, at),
     );
-    // The popup announces a held draft on the same rule the card does, and
-    // carries the same verbs: the two surfaces reach one shared draft, so a
-    // decision offered on one is offered on the other. Like the card, it
-    // shows the held draft in the stored comment's place.
     const held = heldTextDraft(
       "comment",
       this.#deps.bridge.runSync(
@@ -1300,11 +1001,6 @@ export class MarkSelection implements Disposable {
     };
   }
 
-  /**
-   * A press on the resting comment, on the card's own rule: a write in flight
-   * refuses it, a blocked capability spends it on the notice that states the
-   * reason, and otherwise it opens the editor.
-   */
   #pressComment(
     annotation: AnnotationRecord,
     control: CardControl,
@@ -1316,11 +1012,6 @@ export class MarkSelection implements Disposable {
     });
   }
 
-  /**
-   * A Write Conflict on the comment, while no editor is open. It is read from
-   * the comment draft alone, as the card reads it, so a later write on
-   * another field leaves it standing.
-   */
   #conflictSlot(input: SelectedRowInput): SelectedMarkPopupProps["conflict"] {
     const { annotation } = input;
     const draft = this.#deps.bridge.runSync(
@@ -1338,7 +1029,6 @@ export class MarkSelection implements Disposable {
     };
   }
 
-  /** The panels' verbs, bound to the repository's own writes. */
   #draftActions(annotation: AnnotationRecord): TextDraftActions {
     const { annotations, gestures } = this.#deps;
     const discard = () =>
@@ -1358,11 +1048,9 @@ export class MarkSelection implements Disposable {
     };
   }
 
-  /** The held tags panel's verbs, bound to the repository's own writes. */
   #heldTagsActions(annotation: AnnotationRecord): HeldDraftActions {
     const { annotations, gestures } = this.#deps;
     return {
-      // Save tags is the explicit save, never the editor's automatic one.
       save: () => void this.#write(annotations.submitTags(annotation.key)),
       allowEditing: () => gestures.allowEditing(),
       discard: () =>
@@ -1370,12 +1058,6 @@ export class MarkSelection implements Disposable {
     };
   }
 
-  /**
-   * The comment editor, opened on the shared draft, which it takes in as the
-   * draft changes so the Annotation View and the popup edit one draft. The
-   * draft is started as the editor opens; an open editor stays through a
-   * draft that settles.
-   */
   #commentEditorSlot(
     content: HTMLElement,
     input: SelectedRowInput,
@@ -1390,7 +1072,6 @@ export class MarkSelection implements Disposable {
             this.#deps.annotations.editTextField("comment", annotation.key),
           ));
     if (!draft && !this.#sheet.current) {
-      // Closed in the state too, so a later refresh does not try again.
       update(this.#deps.surface, setCommenting(false));
       return null;
     }
@@ -1398,8 +1079,6 @@ export class MarkSelection implements Disposable {
       this.#submitCommentEditor(annotation, true);
       update(this.#deps.surface, setCommenting(false));
     };
-    // The sheet places the caret once, as it mounts; a later mount opens at
-    // the end.
     const caretAt = this.#caretAt;
     this.#caretAt = undefined;
     return {
@@ -1422,8 +1101,6 @@ export class MarkSelection implements Disposable {
         onSave: () => this.#submitCommentEditor(annotation),
         onCancel: close,
         onLeave: close,
-        // The row's own verbs stand beside the editor, so reaching one is not
-        // leaving it.
         within: content,
         caretAt,
       },
@@ -1465,10 +1142,6 @@ export class MarkSelection implements Disposable {
     this.#closeCommentEditor();
   }
 
-  /**
-   * Lets go of the open editor, which leaves with the popup's next render; a
-   * store that reaches it before then finds no editor to read.
-   */
   #closeCommentEditor(): void {
     this.#sheet.current = null;
   }
@@ -1510,7 +1183,6 @@ export class MarkSelection implements Disposable {
     }
   }
 
-  /** Opens the comment editor where a draft starts. */
   #openComment(annotation: AnnotationRecord, caretAt?: CaretPoint): void {
     this.#caretAt = caretAt;
     if (
@@ -1521,11 +1193,6 @@ export class MarkSelection implements Disposable {
       update(this.#deps.surface, setCommenting(true));
   }
 
-  /**
-   * The tag verb is a toggle: pressed again, it ends the session, which saves
-   * it. The tag editor opens in place of the comment editor, which stores what
-   * it holds first.
-   */
   #toggleTags(annotation: AnnotationRecord): void {
     if (selectFloatingHead(this.#state()).tagging) {
       this.#endTagSession();
@@ -1541,18 +1208,10 @@ export class MarkSelection implements Disposable {
     update(this.#deps.surface, setTagging(true));
   }
 
-  /**
-   * Closes the tag editor, which saves its session. The editor's own end adds
-   * the typed text first; a popup that stands hidden has no editor to end.
-   */
   #endTagSession(): void {
     if (!this.#endTags()) update(this.#deps.surface, setTagging(false));
   }
 
-  /**
-   * Recolour one mark, or a group as one History Step, as the Annotation View
-   * does.
-   */
   #recolor(annotationKeys: readonly string[], color: string): void {
     recordColorUse(this.#deps.surface, this.#deps.colors, color);
     this.#writes(
@@ -1561,29 +1220,14 @@ export class MarkSelection implements Disposable {
     );
   }
 
-  /**
-   * Erase these marks with no confirmation: one alone, or a group as one
-   * History Step, as the Annotation View does.
-   */
   #erase(annotationKeys: readonly string[]): void {
     this.#writes(eraseMarks(this.#deps.annotations, annotationKeys), "delete");
   }
 
-  /** Forward through the stack under the last click, wrapping at its end. */
   #step(): void {
     update(this.#deps.surface, stepStack);
   }
 
-  /**
-   * The seam a write's outcome is rendered at: the repository answers data and
-   * the notice is raised through the Notifier, once, naming the reason. A
-   * failed write's Pending Proposal goes with it, so a failure needs no undo
-   * here.
-   *
-   * @param message the notice for a failure; a Geometry Edit names itself.
-   * @returns once the write settled; it never rejects.
-   * @see apps/obsidian/policies/ui-seams.md
-   */
   #write(
     write: Parameters<typeof reportWrite>[1],
     message?: (failure: WriteFailure, now: CopyInstant) => string,
@@ -1597,7 +1241,6 @@ export class MarkSelection implements Disposable {
     );
   }
 
-  /** {@link MarkSelection.#write} for the writes of one verb over a group. */
   #writes(writes: Parameters<typeof reportWrites>[1], verb: string): void {
     void this.#runReport(
       reportWrites(this.#deps.notifier, writes, {
@@ -1607,7 +1250,6 @@ export class MarkSelection implements Disposable {
     );
   }
 
-  /** Runs a reported write; unload ends it with no notice. */
   #runReport(
     report: Parameters<MarkSelectionDeps["bridge"]["runPromise"]>[0],
   ): Promise<void> {
@@ -1620,15 +1262,6 @@ export class MarkSelection implements Disposable {
     return editingLive(this.#capability());
   }
 
-  /**
-   * The block the lock puts on a keystroke's verb over the selected marks, or
-   * `null` where it acts. A group verb is all or nothing, so the first mark
-   * whose lock refuses the verb stops the press before a group delete asks
-   * its confirmation. A press it refuses is spent on the notice that gives
-   * that mark's Lock Reason, on every press.
-   *
-   * @param selected Indexed Keys, in the order the first is picked from.
-   */
   #lockOn(
     selected: readonly string[],
     verb: Extract<LockedVerb, "color" | "delete">,
@@ -1664,13 +1297,6 @@ export class MarkSelection implements Disposable {
     return selectSelectedRowInput(this.#state())?.annotation ?? null;
   }
 
-  /**
-   * A main-button press on the selected mark that no Geometry Edit and no
-   * armed tool took makes its page draggable for this press alone, so moving
-   * the pointer drags the mark out, as Zotero's reader drags it. A mark that
-   * moves by its body keeps that press for the move while editing is live,
-   * and text selected in the PDF keeps the press for its own drag.
-   */
   #armDragOut(event: PointerEvent): void {
     this.#disarmDragOut();
     if (event.button !== 0 || this.#dragging || this.#pressedStroke) return;
@@ -1692,19 +1318,16 @@ export class MarkSelection implements Disposable {
     this.#dragOutPage = null;
   }
 
-  /** Whether an Annotation Mark lies under a press. */
   #onMark(event: PointerEvent): boolean {
     const page = this.#pageUnder({ x: event.clientX, y: event.clientY });
     return page !== null && marksAtPoint(page.targets, page.at).length > 0;
   }
 
-  /** What is selected now, and where the click that selected it fell. */
   #previous(): MarkSelectionPoint | null {
     const key = this.#selectedKey();
     return key !== null && this.#at !== null ? { key, ...this.#at } : null;
   }
 
-  /** The page with marks under a client point, and where the point fell on it. */
   #pageUnder(client: Point): HitPage | null {
     for (const [index, annotations] of this.#deps.marks()) {
       const page = this.#deps.pageAt(index);
@@ -1715,12 +1338,6 @@ export class MarkSelection implements Disposable {
     return null;
   }
 
-  /**
-   * Where the popup hangs, for the popup host: the bottom centre of the
-   * selected mark's union rect, recomputed from the page as it stands now — a
-   * page re-render can wipe the mark while the popup is open. `null` once the
-   * mark is off screen, which hides the popup and keeps the selection.
-   */
   anchor(): Point | null {
     const key = this.#selectedKey();
     if (key === null) return null;
@@ -1738,7 +1355,6 @@ export class MarkSelection implements Disposable {
   }
 }
 
-/** The arrow keys, by the way they point on the page. */
 const ARROWS: Partial<Record<string, Arrow>> = {
   ArrowLeft: "left",
   ArrowRight: "right",
@@ -1746,7 +1362,6 @@ const ARROWS: Partial<Record<string, Arrow>> = {
   ArrowDown: "down",
 };
 
-/** The position a highlight's or underline's placed range stores. */
 function rectsPositionOf(selected: SelectedText): EditablePosition {
   return {
     kind: "pdf-rects",
@@ -1763,18 +1378,12 @@ function rectsPositionOf(selected: SelectedText): EditablePosition {
   };
 }
 
-/** How far a client point lies outside a page's drawn box; `0` inside it. */
 function boxDistance(box: PageBox, { x, y }: Point): number {
   const dx = Math.max(box.left - x, 0, x - (box.left + box.width));
   const dy = Math.max(box.top - y, 0, y - (box.top + box.height));
   return Math.hypot(dx, dy);
 }
 
-/**
- * Whether the PDF's own link annotation is under the gesture. A link wins a
- * plain click, because "follow the reference" is the reader's contract; the
- * mark beneath it is still reached with `Alt`, and through the stack stepper.
- */
 function linkUnder(target: EventTarget | null): boolean {
   const node = target as Node | null;
   const element = node?.instanceOf(HTMLElement)
@@ -1783,11 +1392,6 @@ function linkUnder(target: EventTarget | null): boolean {
   return element?.closest("a[href], .linkAnnotation") != null;
 }
 
-/**
- * The picture under the pointer while a mark is dragged out: Obsidian's own
- * drag ghost, with the Annotation's type and its text, in place of the whole
- * page the browser would draw for the draggable page.
- */
 function dragGhost(
   doc: Document,
   {
@@ -1803,14 +1407,9 @@ function dragGhost(
   setIcon(self, typeIcon(type));
   self.createSpan({ text: text || comment || "" });
   dataTransfer.setDragImage(ghost, 0, 0);
-  // The browser takes its picture of the ghost as the drag starts.
   doc.win.setTimeout(() => ghost.remove(), 0);
 }
 
-/**
- * The notice for a Geometry Edit that did not land: it names the edit, and a
- * lock says its own reason alone, as it does on every other surface.
- */
 export function geometryFailureMessage(
   failure: WriteFailure,
   now: CopyInstant,

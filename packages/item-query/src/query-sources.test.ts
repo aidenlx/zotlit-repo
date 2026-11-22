@@ -18,8 +18,6 @@ import { runEffect } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 
-// Failure modes: opening reads eagerly; repeated needs read again; equivalent
-// Target Library objects miss the cache; one query leaks sources into the next.
 it("reads Query Sources lazily and keeps completed reads for one query", async () => {
   using scenario = openScenarioDatabase(connectClient);
   const readers: string[] = [];
@@ -55,11 +53,6 @@ it("reads Query Sources lazily and keeps completed reads for one query", async (
   ]);
 });
 
-// Failure modes: nested routes lose Collection paths, read them more than once,
-// or report an existing Collection as unknown. Both passes share the same reads.
-// The live Items below Thesis are ART2FULL (Thesis/Methods) and CHP2YEAR; its
-// one live Attachment is PDF2LIVE of ART2FULL, with the Annotation ANN2HGHT.
-// The group Library has no Thesis Collection, so both passes match the same.
 it.each([
   {
     dataset: ITEMS,
@@ -123,7 +116,6 @@ it.each([
       );
       expect(exit.value.warnings).toEqual([]);
       expect(reads).toEqual(libraries.map((library) => library.libraryID));
-      // One vocabulary read consists of its field and base-field statements.
       expect(vocabularyReads).toBe(2);
     }
   },
@@ -153,8 +145,6 @@ it.each([ITEMS, ATTACHMENTS, ANNOTATIONS])(
   },
 );
 
-// Failure modes: a Collection warning depends on opening a loader, or warning
-// lookups read paths again after another consumer has already read them.
 it("checks Collection warnings directly through Query Sources", async () => {
   using scenario = openScenarioDatabase(connectClient);
   const { exit, events } = await runEffect(

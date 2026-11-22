@@ -83,7 +83,6 @@ const zoteroSink: Sink = (record) => {
   }
 };
 
-/** Call once during plugin startup. Dispose the return value to tear down. */
 export async function setupLogging(): Promise<AsyncDisposable> {
   await using stack = new AsyncDisposableStack();
   consoleLevel = consoleLevelFromPref(

@@ -82,7 +82,6 @@ interface ItemQueryReport {
   warnings?: ItemQueryDiagnostic[];
 }
 
-/** Asserts one `zotlit:query` diagnostic of a syntax or name probe. */
 function expectQueryDiagnostic(
   diagnostic: ItemQueryDiagnostic | undefined,
   probe: {
@@ -115,8 +114,6 @@ interface ItemQueryDiagnostic {
   location?: { argument: string; span?: { from: number; to: number } };
 }
 
-/** The `zotlit:query-schema` reply shape this suite reads (see
- *  packages/query-views/src/desktop/item-query/contract.ts and answer.ts). */
 interface ItemQuerySchemaReport {
   contractVersion: number;
   command: string;
@@ -126,8 +123,6 @@ interface ItemQuerySchemaReport {
   defaults?: object;
 }
 
-/** The `zotlit:library-scope` reply shape this suite reads (see
- *  packages/plugin-services/src/obsidian/library-scope/cli.ts). */
 interface LibraryScopeReport {
   contractVersion: number;
   ok: boolean;

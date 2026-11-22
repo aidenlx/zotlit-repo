@@ -1,9 +1,3 @@
-// Drag a row by its handle to another place in a list or a tree of lists, as
-// the Bases filter menu does: before or after a row of any group, above a
-// nested group by its header, or at the end of a group by its body. The
-// keyboard moves one place with Alt+ArrowUp and Alt+ArrowDown on the handle,
-// as the Query View's Sort and Group lists do. A flat list is a tree of one
-// group, whose rows sit at `[index]`.
 import { useEffect, useRef, useState } from "react";
 import type { DragEvent, KeyboardEvent } from "react";
 
@@ -12,21 +6,11 @@ import type { RowPath } from "./row-path.ts";
 
 const DRAG_TYPE = "application/x-zotlit-reorder";
 
-/**
- * Where a drop lands: before the row at `before` in the group at `group`, both
- * as the tree stands while the dragged row is still in it.
- */
 interface DropTarget {
   group: RowPath;
   before: number;
 }
 
-/**
- * The index the row at `from` takes in `target.group` once it is out of its
- * own place, for a drop on `target`.
- *
- * @returns `null` where the drop changes nothing: the row's own place.
- */
 function moveIndex(from: RowPath, target: DropTarget): number | null {
   const at = from.at(-1)!;
   if (!samePath(from.slice(0, -1), target.group)) return target.before;
@@ -34,7 +18,6 @@ function moveIndex(from: RowPath, target: DropTarget): number | null {
   return target.before > at ? target.before - 1 : target.before;
 }
 
-/** Whether the pointer is past the middle of the element it is over. */
 function lowerHalf(event: DragEvent<HTMLElement>): boolean {
   const rect = event.currentTarget.getBoundingClientRect();
   return event.clientY > rect.top + rect.height / 2;
@@ -42,34 +25,22 @@ function lowerHalf(event: DragEvent<HTMLElement>): boolean {
 
 const pathKey = (path: RowPath) => path.join(".");
 
-/** Where a moved row goes: the index it takes in the group at `group`. */
 export interface ReorderDestination {
   group: RowPath;
   index: number;
 }
 
-/**
- * The drag state of one reorderable list and the props that wire its parts:
- * `list` commits a drop, `handle` starts one, `row` and `header` place it
- * beside a row or above a group, `group` and `rows` place it at the end of a
- * group or keep the place across a gap.
- */
 export function useReorder({
   disabled,
   onMove,
 }: {
   disabled: boolean;
-  /** Saves the move; answers whether anything changed. */
   onMove: (from: RowPath, to: ReorderDestination) => boolean;
 }) {
-  // The handlers read the drag from refs: a browser can send the next drag
-  // event before the state of the last one has rendered.
   const [dragging, setDraggingState] = useState<RowPath | null>(null);
   const [over, setOverState] = useState<DropTarget | null>(null);
   const draggingRef = useRef<RowPath | null>(null);
   const overRef = useRef<DropTarget | null>(null);
-  // Rows render by index, so a handle the keyboard moved hands its focus to
-  // the handle that now holds the row.
   const focusNext = useRef<{ list: Element; path: string } | null>(null);
   useEffect(() => {
     const next = focusNext.current;
@@ -99,16 +70,11 @@ export function useReorder({
     setDraggingState(null);
     setOver(null);
   }
-  /** Saves `from` dropped on `target`, and answers whether it moved. */
   function move(from: RowPath, target: DropTarget): boolean {
     const index = moveIndex(from, target);
     if (index === null) return false;
     return onMove(from, { group: target.group, index });
   }
-  /**
-   * A dragover handler that places the drop where `place` answers. Where it
-   * answers none, or a group into itself, the element takes no drop.
-   */
   function target(place: (event: DragEvent<HTMLElement>) => DropTarget | null) {
     return (event: DragEvent<HTMLElement>) => {
       const from = draggingRef.current;
@@ -135,8 +101,6 @@ export function useReorder({
         end();
       },
       onDragLeave: (event: DragEvent<HTMLElement>) => {
-        // Chromium may leave `relatedTarget` empty on a drag event, so the
-        // point the pointer went to answers where it is.
         const into = (event.relatedTarget ??
           event.currentTarget.ownerDocument.elementFromPoint(
             event.clientX,
@@ -158,15 +122,10 @@ export function useReorder({
         event.dataTransfer?.setData(DRAG_TYPE, pathKey(path));
         if (event.dataTransfer) {
           event.dataTransfer.effectAllowed = "move";
-          // The browser draws the whole row, as Bases draws the card, rather
-          // than the handle alone.
           const row =
             event.currentTarget.closest<HTMLElement>("[data-reorder-row]");
           if (row) {
             const rect = row.getBoundingClientRect();
-            // Chromium fills the corners outside a rounded row in the image
-            // it takes; a row on its own compositing layer keeps them clear.
-            // The layer stays only until the image is taken.
             const transform = row.style.transform;
             // oxlint-disable-next-line obsidianmd/no-static-styles-assignment -- the layer is set and cleared within one drag start, which a stylesheet class cannot time.
             row.style.transform = "translateZ(0)";
@@ -181,7 +140,6 @@ export function useReorder({
           }
         }
         draggingRef.current = path;
-        // The row fades once the browser has taken its drag image.
         event.currentTarget.win.setTimeout(() => {
           if (draggingRef.current === path) setDraggingState(path);
         });
@@ -200,7 +158,6 @@ export function useReorder({
           focusNext.current = { list, path: pathKey([...group, at + step]) };
       },
     }),
-    // One mark per place: before a row, or after the last row of a group.
     row: (path: RowPath, count: number) => {
       const group = path.slice(0, -1);
       const at = path.at(-1)!;
@@ -229,14 +186,12 @@ export function useReorder({
       ),
     }),
     group: (path: RowPath, count: number) => ({
-      // An empty group has no row to mark, so the group takes the mark.
       "data-drop":
         shown && count === 0 && samePath(shown.group, path)
           ? "into"
           : undefined,
       onDragOver: target(() => ({ group: path, before: count })),
     }),
-    // A gap between the rows of a group keeps the place its last row gave.
     rows: (path: RowPath) => ({
       onDragOver: target(() =>
         overRef.current && samePath(overRef.current.group, path)
@@ -249,15 +204,6 @@ export function useReorder({
 
 export type Reorder = ReturnType<typeof useReorder>;
 
-/**
- * Where a row of a flat list stands once another row has moved. The list may
- * count from 0 or from 1, so long as all three arguments count alike.
- *
- * @param at - the row's place before the move.
- * @param from - the moved row's place before the move.
- * @param to - the moved row's place after it.
- * @returns the row's place after the move.
- */
 export function indexAfterMove(at: number, from: number, to: number): number {
   if (at === from) return to;
   if (from < at && at <= to) return at - 1;
@@ -265,16 +211,11 @@ export function indexAfterMove(at: number, from: number, to: number): number {
   return at;
 }
 
-/**
- * The drag state of one flat list, its rows addressed by index: `list` goes on
- * the element that holds the rows, `row` and `handle` on each row.
- */
 export function useListReorder({
   disabled,
   onMove,
 }: {
   disabled: boolean;
-  /** Saves the row at `from` moved to `to`; answers whether anything changed. */
   onMove: (from: number, to: number) => boolean;
 }) {
   const reorder = useReorder({

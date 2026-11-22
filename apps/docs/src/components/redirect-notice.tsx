@@ -1,8 +1,3 @@
-// Callout for visitors who arrived through a redirect. Driven entirely by the
-// query contract documented in lib/v1-redirects.ts: `from=v1` + `src` identify
-// the exact v1 page, and `lang=zh-CN` selects its Chinese version. Translation
-// fallback has its own missing-file notice; a locale hint alone adds none.
-
 import { ArrowUpRight, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -10,10 +5,8 @@ import { cn } from "@/lib/cn.ts";
 import { zotlitLegacyUrl } from "@/lib/shared.ts";
 import * as m from "@/paraglide/messages.js";
 
-/** What the query says about how the reader arrived, or null for a direct visit. */
 interface Arrival {
   isZh: boolean;
-  /** The v1 path the reader followed, when the redirect named one. */
   v1Src: string;
 }
 
@@ -21,8 +14,6 @@ function readArrival(search: string): Arrival | null {
   const params = new URLSearchParams(search);
   const isZh = params.get("lang") === "zh-CN";
   const src = params.get("src");
-  // Guard against open-redirect input: only build the back-link from an
-  // internal absolute path, never a caller-supplied host.
   const v1Src =
     params.get("from") === "v1" && src?.startsWith("/") && !src.startsWith("//")
       ? src
@@ -31,12 +22,6 @@ function readArrival(search: string): Arrival | null {
   return v1Src ? { isZh, v1Src } : null;
 }
 
-/**
- * The notice a redirected reader sees above the page they landed on. The query
- * is read after mount rather than during render: the pages this sits on are
- * prerendered, so their HTML is built without any query at all, and only the
- * browser knows how the reader arrived.
- */
 export function RedirectNotice({ className }: { className?: string }) {
   const [arrival, setArrival] = useState<Arrival | null>(null);
   const [dismissed, setDismissed] = useState(false);

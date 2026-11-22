@@ -1,9 +1,7 @@
-// What the ZotLit oxlint plugins share: the rule type and the AST they read.
 import type { RuleTester } from "oxlint/plugins-dev";
 
 export type Rule = Parameters<RuleTester["run"]>[1];
 
-/** The fields these rules read; every ESTree node fits it. */
 export interface AstNode {
   readonly type: string;
   readonly parent?: AstNode | null;
@@ -19,7 +17,6 @@ export interface AstNode {
   readonly superClass?: AstNode | null;
 }
 
-/** `<object>.<name>`, where `object` names one of `objects` and `name` matches. */
 export function isMemberOf(
   node: AstNode | undefined,
   objects: ReadonlySet<string>,
@@ -51,7 +48,6 @@ export interface ModuleProgram extends AstNode {
   readonly body?: readonly ModuleStatement[];
 }
 
-/** An import, re-export or `export *`: a statement with a module source. */
 export function hasSource(node: ModuleStatement): boolean {
   return (
     node.type === "ImportDeclaration" ||
@@ -60,10 +56,6 @@ export function hasSource(node: ModuleStatement): boolean {
   );
 }
 
-/**
- * The plugin packages' Effect helpers (`effect-*.ts`), by package name from
- * outside the package and by `#` subpath import from inside it.
- */
 const EFFECT_HELPER_MODULE =
   /^(?:@zotlit\/(?:plugin-kernel|obsidian-kit|obsidian-desktop)\/|#)effect-/u;
 
@@ -75,10 +67,6 @@ function isEffectModule(source: string): boolean {
   );
 }
 
-/**
- * A type-only import of the Effect bridge names the seam a legacy file holds,
- * not Effect code in the file (policies/services.md → Bridge).
- */
 function isBridgeType(statement: ModuleStatement, source: string): boolean {
   return (
     statement.type === "ImportDeclaration" &&
@@ -88,11 +76,6 @@ function isBridgeType(statement: ModuleStatement, source: string): boolean {
   );
 }
 
-/**
- * Whether a module imports Effect: any import or re-export from `effect`,
- * one of its submodules or an `effect-*` module of the plugin packages, but not a type-only import of the
- * bridge.
- */
 export function importsEffect(statements: readonly ModuleStatement[]): boolean {
   return statements.some((statement) => {
     if (!hasSource(statement)) return false;
@@ -146,13 +129,6 @@ function importsOnlyLogging(statements: readonly ModuleStatement[]): boolean {
   });
 }
 
-/**
- * Whether a module is Effect code: it imports Effect ({@link importsEffect})
- * for more than logging. Plain code logs through `Effect.log*`, its fields
- * through `Effect.annotateLogs` and its category through `withLogCategory`,
- * run with `Effect.runSyncWith(logServices)`; those uses alone keep it plain
- * (policies/logging.md).
- */
 export function isEffectCode(
   statements: readonly ModuleStatement[],
   sourceText: string,

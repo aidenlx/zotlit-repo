@@ -1,5 +1,3 @@
-// The view services a test host leaves unread, so its registry context is
-// whole. Each member dies when called.
 import { FileSystem, Layer, Stream } from "effect";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -41,10 +39,6 @@ import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { ReaderConnection } from "@zotlit/annotations/obsidian/reader-connection/service.ts";
 
-/**
- * Every view service outside the Obsidian host tags, as an empty mock. Merge
- * it first: a service the test reads, merged after it, takes its place.
- */
 export const layerUnreadViewServices = Layer.mergeAll(
   Layer.mock(PdfAnnotationEditor, {
     extension: { id: "zotlit-annotation-editor" },

@@ -18,7 +18,6 @@ declare module "vitest" {
   }
 }
 
-/** Launch once before test collection; keep ownership in the main process. */
 export default async function setup(project: TestProject) {
   const root = await getWorkspaceRoot(import.meta.dirname);
   const directory = e2eResultsDir();

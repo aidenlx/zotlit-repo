@@ -1,4 +1,3 @@
-// Citation Lookup: fresh command reads and view-owned Held Reads of requested keys.
 import { QueryObserver } from "@tanstack/query-core";
 import type { QueryObserverOptions } from "@tanstack/query-core";
 import {
@@ -46,7 +45,6 @@ export class CitationLookup extends Context.Service<
     readonly current: Effect.Effect<CitationLookupState>;
     readonly changes: Stream.Stream<CitationLookupState>;
     readonly invalidated: Stream.Stream<void>;
-    /** A fresh answer from one published revision; unavailable reads fail. */
     read(
       request: CitationLookupRequest,
     ): Effect.Effect<
@@ -54,7 +52,6 @@ export class CitationLookup extends Context.Service<
       DbUnavailable | RpcClientError.RpcClientError
     >;
     observe(changed: () => void): Effect.Effect<CitationLookupObservation>;
-    /** Wait for the current publication attempt, including failure or unload. */
     readonly whenResolved: Effect.Effect<void>;
   }
 >()("zotlit/citation-index/CitationLookup") {}
@@ -68,7 +65,6 @@ declare module "@zotlit/obsidian-kit/view-atoms.ts" {
 const LOOKUP_KEY = ["citation-lookup"] as const;
 const GC_TIME = Duration.toMillis(Duration.minutes(5));
 
-/** Each Citation Lookup answer revision that replaces the previous one. */
 export function lookupChanged(
   lookup: Pick<CitationLookup["Service"], "changes">,
 ): Stream.Stream<void> {
@@ -79,7 +75,6 @@ export function lookupChanged(
   );
 }
 
-/** Each Citation Lookup status that replaces the previous one. */
 export function lookupStatusChanged(
   lookup: Pick<CitationLookup["Service"], "changes">,
 ): Stream.Stream<void> {
@@ -110,7 +105,6 @@ export const layerCitationLookup = Layer.effect(
       stopped: false,
     });
     const current = SubscriptionRef.get(state);
-    // Including the terminal state lets even a subscriber after close see it.
     const changes = SubscriptionRef.changes(state).pipe(
       Stream.takeUntil((state) => state.stopped),
     );
@@ -185,7 +179,6 @@ export const layerCitationLookup = Layer.effect(
       },
       Effect.raceFirst(Deferred.await(stop)),
     );
-    /** Pins only this view's query. Request changes use its previous answer as a placeholder. */
     const observe = Effect.fn("CitationLookup.observe")(function* (
       changed: () => void,
     ) {
@@ -211,7 +204,6 @@ export const layerCitationLookup = Layer.effect(
         placeholderData: (answer) => answer ?? previous,
         structuralSharing: (old, value) => {
           const answer = value as CitationLookupAnswer;
-          // Parent links can change while the Citekey Resolution Snapshot stays equal.
           return old instanceof CitationLookupAnswer &&
             old.revision === answer.revision &&
             (request?.annotationKeys ?? []).every((key) => {
@@ -235,8 +227,6 @@ export const layerCitationLookup = Layer.effect(
       const publish = (): void => {
         if (disposed) return;
         const result = observer.getCurrentResult();
-        // query-core drops placeholderData on error. The view still owns the
-        // last delivered answer, including one from its previous request.
         const value = result.data ?? previous;
         previous = value;
         const query = observer.getCurrentQuery();
@@ -371,7 +361,6 @@ export const layerCitationLookup = Layer.effect(
         yield* PubSub.shutdown(events);
       }),
     );
-    // Legacy ready registered intake and started this attempt; it never awaited the database.
     yield* revalidate();
     return CitationLookup.of({
       current,
@@ -380,7 +369,6 @@ export const layerCitationLookup = Layer.effect(
       read,
       observe,
       whenResolved: Effect.gen(function* () {
-        // Let queued dependency notifications start their replacement attempt.
         yield* Effect.yieldNow;
         if (refresh) yield* Fiber.await(refresh);
       }).pipe(Effect.withSpan("CitationLookup.whenResolved")),

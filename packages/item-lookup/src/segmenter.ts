@@ -1,29 +1,20 @@
-// The Segmenter port of the item search engine, with its Intl.Segmenter and jieba layers.
 import { Context, Effect, Layer, Schema } from "effect";
 import { cut_for_search, initSync } from "jieba-wasm/web";
 
 import { tokenize } from "./tokenizer.ts";
 
-/**
- * Cuts text into search words for the item search engine. The engine reads it
- * once per build and uses the same words for indexing and for queries, so a
- * new Segmenter layer needs a new build.
- */
 export class Segmenter extends Context.Service<
   Segmenter,
   {
-    /** The search words of `text` in reading order, before normalization. */
     readonly words: (text: string) => string[];
   }
 >()("zotlit/item-lookup/Segmenter") {}
 
-/** The Chinese Segmenter binary could not load from the bytes given. */
 export class SegmenterUnavailable extends Schema.TaggedError<SegmenterUnavailable>()(
   "SegmenterUnavailable",
   { message: Schema.String },
 ) {}
 
-/** Word segmentation through `Intl.Segmenter` alone, CJK runs included. */
 export const layerSegmenterNone: Layer.Layer<Segmenter> = Layer.sync(
   Segmenter,
   () => {
@@ -32,13 +23,6 @@ export const layerSegmenterNone: Layer.Layer<Segmenter> = Layer.sync(
   },
 );
 
-/**
- * Word segmentation with every CJK run cut by jieba's `cut_for_search` and the
- * rest through `Intl.Segmenter`. `wasm` holds the bytes of the `jieba-wasm` web
- * target binary (`jieba_rs_wasm_bg.wasm`); the caller reads and verifies them.
- * `jieba-wasm` holds one instance per JavaScript realm: the first bytes that
- * load serve every later jieba layer in the same realm.
- */
 export function layerSegmenterJieba(
   wasm: BufferSource,
 ): Layer.Layer<Segmenter, SegmenterUnavailable> {
@@ -61,18 +45,12 @@ export function layerSegmenterJieba(
 
 const CJK_RUN = /([\u4e00-\u9fa5]+)/u;
 
-/** Whether `text` holds a run that the Chinese Segmenter cuts. */
 export const hasChineseRun = (text: string): boolean => CJK_RUN.test(text);
 
-/**
- * `cut_for_search` sees each whole CJK run, so it can emit both a compound and
- * its parts (`长江大桥`, `长江`, `大桥`); `Intl.Segmenter` would cut the run first.
- */
 function jiebaSegmenter(): (typeof Segmenter)["Service"] {
   const intl = wordSegmenter();
   return {
     words: (text) =>
-      // A capturing split puts the CJK runs at the odd positions.
       text
         .split(CJK_RUN)
         .flatMap((part, position) =>

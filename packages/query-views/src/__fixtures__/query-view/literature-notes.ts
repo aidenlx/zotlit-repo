@@ -2,7 +2,6 @@ import { Effect } from "effect";
 
 import type { LiteratureNotes } from "#desktop/query-view/table-notes.ts";
 
-/** A vault with no Literature Note: no note to link, and no vault property. */
 export function noLiteratureNotes(): LiteratureNotes {
   return {
     find: () => null,

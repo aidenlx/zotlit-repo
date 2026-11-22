@@ -1,7 +1,6 @@
 import { Effect, Queue, Stream } from "effect";
 import type { Cause, Fiber } from "effect";
 
-/** A controlled event source at a consumer fixture's Stream boundary. */
 export function testEvent<A>() {
   const queues = new Set<Queue.Queue<A, Cause.Done>>();
   const fibers = new Set<Fiber.Fiber<unknown, unknown>>();
@@ -31,8 +30,6 @@ export function testEvent<A>() {
     ),
     emit(value: A): void {
       for (const queue of queues) Queue.offerUnsafe(queue, value);
-      // Fixture publication completes runnable deliveries; async handlers still
-      // expose their own completion signal to the test.
       for (const fiber of fibers) fiber.currentDispatcher.flush();
     },
   };
@@ -48,7 +45,6 @@ type EventValue<F extends (...args: never[]) => unknown> =
       ? A
       : Parameters<F>;
 
-/** Named native Streams with controlled event publication for consumer tests. */
 export function testEvents<Events extends EventsShape<Events>>(
   names: readonly (keyof Events)[],
 ) {

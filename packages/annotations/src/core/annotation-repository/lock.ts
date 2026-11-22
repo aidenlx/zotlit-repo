@@ -1,10 +1,3 @@
-// A Locked Annotation: one Zotero's own reader refuses to edit, which ZotLit
-// refuses to edit for the same reason. The lock is a fact of one Annotation,
-// read from the Zotero database under either Annotation Source, and it stands
-// apart from the Editing Capability of its Attachment.
-//
-// @see apps/obsidian/docs/adr/0067-annotation-locks-come-from-the-zotero-database.md
-
 import { Effect } from "effect";
 
 import type { Annotation } from "@zotlit/db";
@@ -16,19 +9,12 @@ import {
 
 import { lockReasonText } from "./lock-copy.ts";
 
-/**
- * Why an Annotation is locked. `external`: Zotero imported it from the PDF
- * file and imports it again when the file changes, so an edit made here is
- * lost. `another-user`: another member of a group library created it, and
- * only its creator can change it.
- */
 export type LockReason = "external" | "another-user";
 
 export interface AnnotationLock {
   reason: LockReason;
 }
 
-/** A verb the lock can refuse: every write to an Annotation that exists. */
 export type LockedVerb =
   | "color"
   | "comment"
@@ -37,11 +23,6 @@ export type LockedVerb =
   | "geometry"
   | "delete";
 
-/**
- * Whether `lock` refuses `verb`, as Zotero's reader refuses it. An External
- * Annotation refuses every edit and the delete; another user's Annotation
- * refuses every edit and allows the delete.
- */
 export function lockRefuses(
   lock: AnnotationLock | null,
   verb: LockedVerb,
@@ -55,21 +36,12 @@ export function lockRefuses(
   }
 }
 
-/**
- * What a lock puts in the way of one verb: the Lock Reason, and no action,
- * since no gesture in ZotLit ends a lock.
- */
 export interface LockBlock {
   reason: string;
   action: null;
   source: "lock";
 }
 
-/**
- * The block `lock` puts on `verb`, or `null` where the lock allows it: the one
- * lock question every surface asks, the card's verbs, the reader's keys, and
- * the Mark Handles of a Geometry Edit alike.
- */
 export function lockBlock(
   lock: AnnotationLock | null,
   verb: LockedVerb,
@@ -78,15 +50,6 @@ export function lockBlock(
   return { reason: lockReasonText(lock.reason), action: null, source: "lock" };
 }
 
-/**
- * The first of these Annotations whose lock refuses `verb`. A group verb is
- * all or nothing, as in Zotero's reader, so this one Annotation stops the
- * whole group.
- *
- * @param annotationKeys Indexed Keys, in the order the first is picked from.
- * @param lockOn the lock of one Annotation by its Indexed Key, or `null`
- *   where none stands in the way.
- */
 export function firstLockRefusal(
   annotationKeys: Iterable<string>,
   verb: LockedVerb,
@@ -99,16 +62,6 @@ export function firstLockRefusal(
   return null;
 }
 
-/**
- * The lock the Zotero database facts give one Annotation. A fact the database
- * does not hold gives no lock, as Zotero itself reads it: Zotero counts a
- * missing creator (`!createdByUserID`, so `0` too) or a missing account user
- * ID as the author. `external` comes first, since it also refuses the delete.
- *
- * @param currentUserID the account user ID of the database identity, or
- *   `null` where the account never synced.
- * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/annotations.js#L134-L160
- */
 export function lockOf(
   facts: Pick<
     Annotation,

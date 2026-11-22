@@ -1,14 +1,6 @@
-// The camera of a docs-walk clip: the part of the window each frame of the
-// clip shows. The recorder logs where each action of the clip happens
-// (`camera.json` beside the frames); `planCamera` turns that log into a
-// track, and the encoder crops every frame to the track's view. A track file
-// `<slug>.camera/<name>.json` beside the walk replaces the planned track of
-// one clip. See packages/e2e/AGENTS.md, "Docs walks".
-
 import { defaultClipSettings } from "./clip-settings.ts";
 import type { ClipSettings } from "./clip-settings.ts";
 
-/** A rectangle in the window's CSS px. */
 export interface Rect {
   x: number;
   y: number;
@@ -16,53 +8,30 @@ export interface Rect {
   h: number;
 }
 
-/**
- * One action of a clip, at `t` clip seconds (from its first frame). `rect`
- * is the area the action concerns, in CSS px.
- */
 export type CameraEvent =
-  /** A click mark at `x`, `y`, on the element `rect` when there is one. */
   | { kind: "point"; t: number; x: number; y: number; rect?: Rect }
-  /** A pointer move without a click. The camera does not follow it. */
   | { kind: "park"; t: number; x: number; y: number }
-  /**
-   * A press at `from` at `t`, a drag, and a release at `to` at `end`. The
-   * camera shows both ends in one view from `lead` before the press to the
-   * release.
-   */
   | { kind: "drag"; t: number; end: number; from: Spot; to: Spot }
-  /** Typing from `t` to `end` into the input `rect`. */
   | { kind: "type"; t: number; end: number; rect: Rect }
-  /** Typing from `t` to `end`, with the caret or focused element in `rect`. */
   | { kind: "keys"; t: number; end: number; rect?: Rect }
-  /** A region to frame without a pointer move, such as a step's result. */
   | { kind: "look"; t: number; rect: Rect; padding?: number };
 
-/** A point of a pointer action in CSS px, on the element `rect` when there is one. */
 export interface Spot {
   x: number;
   y: number;
   rect?: Rect;
 }
 
-/**
- * The view at each keyframe, in clip seconds. Between two keyframes with
- * different views the camera eases in and out; between equal views it holds.
- * Before the first keyframe and after the last, the view stands.
- */
 export interface CameraTrack {
   keyframes: { t: number; view: Rect }[];
 }
 
 export interface CameraPlanInput {
-  /** The window size, in CSS px; every view keeps its ratio. */
   viewport: { width: number; height: number };
-  /** The clip's length in seconds. */
   duration: number;
   events: readonly CameraEvent[];
 }
 
-/** The planner's settings; see {@link ClipSettings} for each one. */
 export type CameraPlanOptions = Partial<
   Pick<
     ClipSettings,
@@ -90,17 +59,8 @@ const defaults: Required<CameraPlanOptions> = {
   padding: defaultClipSettings.padding,
 };
 
-/** A zoom in narrows the view to this share of its width or less. */
 const ZOOM_IN = 0.8;
 
-/**
- * Plan the camera track of a clip from its action log. The camera prefers
- * the whole window and moves seldom: each shot holds at least `hold` after
- * its move, and frames every action that comes before the next move could
- * arrive. It zooms in, to `zoom` at most, only on a group of actions that
- * the current view shows and that a tighter shot can hold; when an action
- * falls outside the view, it widens to a view of both.
- */
 export function planCamera(
   input: CameraPlanInput,
   options: CameraPlanOptions = {},
@@ -110,23 +70,15 @@ export function planCamera(
   const full: Rect = { x: 0, y: 0, w: W, h: H };
   const keyframes: CameraTrack["keyframes"] = [{ t: 0, view: full }];
   let current = full;
-  /** The earliest time the next move may start. */
   let free = o.openHold;
-  /** When the last move arrived. */
   let arrived = 0;
-  /** The end of the last action the current shot shows. */
   let busy = 0;
 
   const actions = input.events
     .flatMap((e) => frame(e, input.viewport, o) ?? [])
     .toSorted((a, b) => a.t - b.t);
-  /** The end of the last drag, before which the view stands. */
   let held = 0;
 
-  /**
-   * Widen the shot in view at `deadline` to also hold `view`, and take out
-   * each move that arrives after `deadline`.
-   */
   const fold = (view: Rect, deadline: number) => {
     let area = view;
     while (keyframes.length > 1 && keyframes.at(-1)!.t > deadline) {
@@ -141,8 +93,6 @@ export function planCamera(
 
   for (const [i, next] of actions.entries()) {
     const shown = inside(next.need, centre(current, o.central));
-    // A widening keeps the current shot in view, so a drag's move need not
-    // wait for the actions in it to end.
     const start = Math.max(
       free,
       next.still && !shown ? held : busy,
@@ -150,8 +100,6 @@ export function planCamera(
     );
     const length = Math.min(o.ease, Math.max(o.minEase, next.by - start));
     const arrive = start + length;
-    // The shot holds `hold`, so it shows every action due before the move
-    // after it could arrive.
     const group = actions
       .slice(i)
       .filter((a) => a.by < arrive + o.hold + o.ease);
@@ -160,16 +108,12 @@ export function planCamera(
       o.zoom,
     ]);
     const view = !shown
-      ? // Out of view: a view of both, rather than a pan at the zoom.
-        fit(union(current, shot), input.viewport, [1, o.zoom])
-      : // A zoom in takes its whole `ease`, before the action.
-        shot.w <= ZOOM_IN * current.w && next.by - start >= o.ease
+      ? fit(union(current, shot), input.viewport, [1, o.zoom])
+      : shot.w <= ZOOM_IN * current.w && next.by - start >= o.ease
         ? shot
         : undefined;
     const moves = view !== undefined && !sameView(view, current);
     if (next.still && (moves ? arrive : arrived) > next.by) {
-      // A drag's view is in place `lead` before the press: a move that would
-      // arrive later goes into the shot before it.
       fold(moves ? view : current, next.by);
       busy = Math.max(busy, next.end);
       held = next.end;
@@ -186,16 +130,10 @@ export function planCamera(
     free = arrive + o.hold;
     busy = next.end;
   }
-  // The last shot holds to the end: the clip's rest on the result.
   keyframes.push({ t: Math.max(input.duration, arrived), view: current });
   return { keyframes };
 }
 
-/**
- * How long the encoder holds the last frame of a clip `duration` s long cut
- * with `track`: `endPad`, or longer, so the shot after the last move rests
- * `hold` at least.
- */
 export function closingPad(
   track: CameraTrack,
   duration: number,
@@ -214,13 +152,6 @@ export function closingPad(
     : Math.max(endPad, hold - (duration - arrival));
 }
 
-/**
- * How long the encoder holds the first frame of a clip whose first shot is
- * cut with `track`: `openPad`, or longer, so the opening shot rests `hold` at
- * least before the first move starts or the clip cuts to its next shot.
- * @param cut when the first shot ends and the next begins, in s; none for a
- *   clip of one shot.
- */
 export function openingPad(
   track: CameraTrack,
   { openPad, hold }: Pick<ClipSettings, "openPad" | "hold">,
@@ -239,7 +170,6 @@ export function openingPad(
   return change === Infinity ? openPad : Math.max(openPad, hold - change);
 }
 
-/** The view of `track` at `t` clip seconds. */
 export function viewAt(track: CameraTrack, t: number): Rect {
   const keys = track.keyframes;
   if (keys.length === 0) throw new Error("a camera track needs a keyframe");
@@ -260,25 +190,15 @@ export function viewAt(track: CameraTrack, t: number): Rect {
   return keys.at(-1)!.view;
 }
 
-/** An action the camera follows, as {@link planCamera} plans it. */
 interface Action {
   t: number;
-  /** When the camera is to arrive: `lead` before a click or typing. */
   by: number;
-  /** When the action ends. */
   end: number;
-  /** The area that must show in the view. */
   need: Rect;
-  /** The area a shot of the action frames: `need` with its context. */
   frame: Rect;
-  /** A drag: its view stands from `by` to `end`. */
   still?: true;
 }
 
-/**
- * The action that `event` is to the camera, or nothing for an event the
- * camera does not follow. Every area is clipped to the window.
- */
 function frame(
   event: CameraEvent,
   viewport: CameraPlanInput["viewport"],
@@ -290,7 +210,6 @@ function frame(
     case "park":
       return undefined;
     case "look": {
-      // A look region is framed from its call, as the walk chose it.
       const need = clip(pad(event.rect, event.padding ?? o.padding));
       return {
         t: event.t,
@@ -311,8 +230,6 @@ function frame(
       };
     }
     case "drag": {
-      // Both ends with their context must show, at a lower zoom when the
-      // ends lie far apart.
       const ends = union(
         pointArea(event.from, viewport, o),
         pointArea(event.to, viewport, o),
@@ -329,7 +246,6 @@ function frame(
     }
     case "type":
     case "keys": {
-      // Only the part of the field inside the window counts.
       const need = clip(pad(event.rect ?? whole, o.padding));
       return {
         t: event.t,
@@ -342,10 +258,6 @@ function frame(
   }
 }
 
-/**
- * The area a click or a drag's end at `s` must show: a small box about the
- * point, and the element too when both fit the zoom.
- */
 function pointArea(
   s: Spot,
   viewport: CameraPlanInput["viewport"],
@@ -358,10 +270,6 @@ function pointArea(
     : mark;
 }
 
-/**
- * The view of the window's ratio, clamped inside it, that holds `rect` at a
- * zoom between `minZoom` and `maxZoom`, centred on `rect` where it can be.
- */
 function fit(
   rect: Rect,
   viewport: CameraPlanInput["viewport"],
@@ -389,7 +297,6 @@ function fits(
   return rect.w <= viewport.width / zoom && rect.h <= viewport.height / zoom;
 }
 
-/** The central part of `view`, `share` of each side. */
 function centre(view: Rect, share: number): Rect {
   const w = view.w * share;
   const h = view.h * share;
@@ -402,7 +309,6 @@ function inside(a: Rect, b: Rect): boolean {
   );
 }
 
-/** The part of `a` inside `b`, or undefined when they do not meet. */
 function meet(a: Rect, b: Rect): Rect | undefined {
   const x = Math.max(a.x, b.x);
   const y = Math.max(a.y, b.y);

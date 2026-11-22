@@ -1,5 +1,3 @@
-// The request and the result of one Item Query, with the validation that
-// applies the defaults and resolves each name against the registries.
 import { Effect } from "effect";
 
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
@@ -23,77 +21,26 @@ import { canGroup, planPath, readPath } from "./projection.ts";
 import type { PlannedPath } from "./projection.ts";
 import type { QueryClock } from "./query-clock.ts";
 
-/**
- * One Target Library, resolved by the caller. `libraryID` is local to the
- * database copy; `groupID` is `null` for the personal Library.
- */
 export interface TargetLibrary {
   readonly libraryID: number;
   readonly groupID: number | null;
 }
 
 export interface ItemQueryRequest {
-  /** Last Uses by Indexed Key, as epoch milliseconds. Omitted: Zotero activity alone. */
   readonly uses?: Readonly<Record<string, number>>;
-  /**
-   * The Target Libraries: each Library once, in any order. Their Items make
-   * one result set. An empty list gives an empty Query Result; a Library that
-   * the list names twice is invalid.
-   */
   readonly libraries: readonly TargetLibrary[];
-  /**
-   * The Filter Expression that selects the Items. Omitted: every Item matches.
-   * An empty filter is invalid.
-   */
   readonly filter?: string | undefined;
-  /**
-   * The Projection Paths of each Query Row. Omitted: the default projection.
-   * Empty: identity-only rows.
-   */
   readonly fields?: readonly string[] | undefined;
-  /**
-   * The Sortable Fields that order the result, the first one first. Omitted:
-   * the default sort of the Query Dataset. Indexed Key always breaks the last
-   * tie.
-   */
   readonly sort?: readonly SortSpec[] | undefined;
-  /**
-   * One scalar Projection Path, or a Projection Path with one `[]` whose
-   * element is scalar: a record joins one group for each distinct element
-   * value. The limit applies inside each group.
-   */
   readonly group?: string | undefined;
-  /** The most rows to return. Omitted or `null`: every match. */
   readonly limit?: number | null | undefined;
-  /**
-   * The Query Context: the records a Filter Expression reads as `this.item`
-   * and `this.attachment`, each named by its Indexed Key. Omitted: `this`
-   * has no value, and a filter that reads it is invalid.
-   */
   readonly context?: QueryContext | undefined;
-  /**
-   * The Formulas of the request: each name with its Filter Expression text.
-   * A name is an identifier. The query plans and evaluates a Formula only when
-   * `fields` reads it as `formula.<name>`.
-   */
   readonly formulas?: Readonly<Record<string, string>> | undefined;
-  /**
-   * What a Formula with a mistake does to the query. `"fail"`, the default:
-   * the query fails with the first such mistake. `"leave-out"`: the Query
-   * Rows leave out each such Formula and each Formula that reads one,
-   * `formulaDiagnostics` of the answer gives their Diagnostics, and a Formula
-   * that nothing reads gives no warning.
-   */
   readonly onFormulaFault?: FormulaFaultPolicy | undefined;
 }
 
-/**
- * The Formulas of a request that have a mistake, each by name with its
- * Diagnostic.
- */
 export type FormulaDiagnostics = NameDictionary<Diagnostic<ItemQueryErrorCode>>;
 
-/** The records `this` binds, each by its Indexed Key. */
 export interface QueryContext {
   readonly item?: string | undefined;
   readonly attachment?: string | undefined;
@@ -104,21 +51,16 @@ export interface SortSpec {
   readonly direction: "asc" | "desc";
 }
 
-/** The Item Query after defaults: what the engine ran. */
 export interface ItemQuery {
-  /** `null`: every Item matches. */
   readonly filter: string | null;
   readonly fields: readonly string[];
   readonly sort: readonly SortSpec[];
   readonly limit: number | null;
   readonly group?: string;
-  /** The Query Context of the request, when it binds a record. */
   readonly context?: QueryContext;
-  /** The Formulas of the request, when it names any. */
   readonly formulas?: Readonly<Record<string, string>>;
 }
 
-/** A value of one Projection Path in a Query Row. */
 export type ProjectionValue =
   | null
   | string
@@ -134,7 +76,6 @@ export interface QueryRow {
   readonly indexedKey: string;
   readonly attachmentIndexedKey?: string;
   readonly itemIndexedKey?: string;
-  /** One entry for each requested Projection Path. */
   readonly values: Readonly<Record<string, ProjectionValue>>;
 }
 
@@ -168,58 +109,31 @@ export interface QueryMetadata {
     | "unknown-collection"
     | "unused-formula"
   >[];
-  /**
-   * The Formulas that the query left out, each with its Diagnostic: only
-   * when the request leaves out Formulas with a mistake.
-   */
   readonly formulaDiagnostics?: FormulaDiagnostics;
-  /** The normalized request. */
   readonly query: ItemQuery;
   readonly returnedCount: number;
-  /** More Items match than the limit returned. */
   readonly truncated: boolean;
 }
 
-/** The validated form of a request that the engine executes. */
 export interface ItemQueryPlan<Item = any, Needs = any> {
   readonly dataset: QueryDataset<any>;
   readonly query: ItemQuery;
-  /** `null`: every record matches. */
   readonly filter: FilterPlan<Item, Needs> | null;
   readonly paths: readonly PlannedPath<Item, Needs>[];
-  /**
-   * The Formulas that `fields`, the filter, or another Formula reads, each
-   * once.
-   */
   readonly formulas: readonly PlannedFormula<Item, Needs>[];
-  /** The Formulas that the request names and never reads. */
   readonly unusedFormulas: readonly string[];
-  /**
-   * The Formulas with a mistake that the query leaves out, or null when the
-   * request fails on such a Formula.
-   */
   readonly formulaDiagnostics: FormulaDiagnostics | null;
-  /** The values of each Query Row, in the order of `fields`. */
   readonly columns: readonly PlannedColumn<Item, Needs>[];
   readonly group: PlannedGroup<Item, Needs> | null;
-  /** What hydration loads before reading each matched record's group values. */
   readonly groupNeeds: readonly Needs[];
-  /** The request's sort and dataset tie-breakers. */
   readonly order: readonly SortSpec[];
-  /** One entry for each entry of {@link ItemQueryPlan.order}. */
   readonly sorts: readonly PlannedSort<Item, Needs>[];
 }
 
-/** A validated group path and the groups that one record joins. */
 export interface PlannedGroup<
   Item = QueryItem,
   Needs = FieldNeeds,
 > extends PlannedPath<Item, Needs> {
-  /**
-   * Each distinct group value of the record, at least one. A scalar path
-   * gives its value; an element path gives each distinct non-null element
-   * value, or null when the list has none.
-   */
   readonly values: (item: Item) => readonly GroupValue[];
 }
 
@@ -241,29 +155,18 @@ function groupValues<Item, Needs>(
   };
 }
 
-/** A validated Sortable Field and its direction. */
 export interface PlannedSort<Item = QueryItem, Needs = FieldNeeds> {
   readonly direction: SortSpec["direction"];
-  /** What hydration loads before {@link PlannedSort.key} runs. */
   readonly needs: Needs;
   readonly key: (item: Item, clock: QueryClock) => SortKey;
 }
 
-/** CLI forms for the query that counts every match with identity-only rows. */
 export const COUNT_FIELDS: readonly string[] = [];
 export const UNLIMITED_LIMIT = "all";
 
-/**
- * Validate a request against the registries of its Query Dataset and apply
- * the defaults of the dataset.
- */
 export function planRequest(
   dataset: QueryDataset<any>,
   request: ItemQueryRequest,
-  /**
-   * The check of the source on each planned Formula, when the request leaves
-   * out a Formula with a mistake.
-   */
   sourceCheck?: FormulaSourceCheck,
 ): Effect.Effect<ItemQueryPlan, ItemQueryError> {
   return Effect.gen(function* () {
@@ -423,7 +326,6 @@ export function planRequest(
       }
       sorts.push({ direction, ...sortable });
     }
-    // A tie-breaker that the sort already names adds no order.
     const tieBreakers = dataset.tieBreakers.filter(
       (tie) => !sort.some(({ field }) => field === tie.field),
     );

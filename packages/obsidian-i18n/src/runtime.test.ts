@@ -7,7 +7,6 @@ import type {
   TargetLocaleMessages,
 } from "./index.ts";
 
-/** The floor every Message Input accepts, absent a narrowing base-locale usage. */
 type Input = string | number;
 
 const BASE_PACK = fakePack("en", {
@@ -133,8 +132,6 @@ describe("Language Pack runtime", () => {
     expect(m.creator_summary({ count: 2, first: "Ada", second: "Grace" })).toBe(
       "premier: Ada",
     );
-    // A string selector still matches the numeric literal, though the base
-    // locale's usage types `count` as a number for call sites.
     expect(
       runtime.translate("creator_summary", {
         count: "2",
@@ -175,8 +172,6 @@ describe("Language Pack runtime", () => {
       }),
     );
 
-    // 9007199254740993 is not a safe integer, so the numeric input never
-    // equals the literal text and the catch-all renders instead.
     expect(
       runtime.translate("creator_summary", {
         count: Number("9007199254740993"),
@@ -354,8 +349,6 @@ describe("Language Pack runtime", () => {
     expect(m.creator_summary({ count: 2, first: 0, second: 1234.5 })).toBe(
       "two|1,234.50|Jan 1, 1970",
     );
-    // A locale narrowing an input to `:number` still renders the string the
-    // caller passed, which is why non-base narrowing never reaches the facade.
     expect(m.creator_summary({ count: 2, first: 0, second: "1234.5" })).toBe(
       "two|1,234.50|Jan 1, 1970",
     );
@@ -435,7 +428,6 @@ describe("Target-Locale Messages", () => {
   test("falls back per message to the base locale, then to the bundle ID", () => {
     targeted.setTargetLocale("zh-CN");
 
-    // Translated in no subset: the half-translated locale still renders.
     expect(targeted.translateTarget("hello")).toBe("world");
     expect(targeted.translateTarget("missing_message")).toBe("missing_message");
   });

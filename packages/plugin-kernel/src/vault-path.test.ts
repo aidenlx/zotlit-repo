@@ -3,8 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import { basename, dirname, join } from "#vault-path.ts";
 
-// Failure mode: the copy drifts from Node's algorithm, so a vault path splits
-// differently than it did through `node:path/posix`.
 const PATHS = [
   "",
   "a",
@@ -38,8 +36,6 @@ describe("vault-path", () => {
     ]);
   });
 
-  // Failure mode: a folder and a file name join to another vault path than
-  // `node:path/posix` gave, so a Profile or template document moves.
   it.each(PATHS.flatMap((folder) => PATHS.map((name) => [folder, name])))(
     "joins %j and %j as Node's posix path does",
     (folder, name) => {

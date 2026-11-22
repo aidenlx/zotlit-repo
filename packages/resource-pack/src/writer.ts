@@ -1,38 +1,21 @@
-// The pack writer: the text of the Resource Pack's `main.js`. The pack build
-// runs it; it uses web APIs only, so the container tests also run it in a
-// browser.
 import type { PackIndexEntry } from "#format.ts";
 
 import { PACK_COMPAT, PACK_INDEX_BYTES, encodeIndex } from "#format.ts";
 import { sha256Hex } from "#sha256.ts";
 
-/** One binary to pack. */
 export interface PackSource {
-  /** The entry's name in the index: lowercase letters, digits and hyphens. */
   readonly name: string;
   readonly bytes: Uint8Array<ArrayBuffer>;
-  /** The pinned lowercase hex SHA-256 of `bytes`. */
   readonly sha256: string;
 }
 
 export interface PackOptions {
-  /** @default PACK_COMPAT */
   readonly compat?: number;
-  /** The licence text and source link of each binary, shown in a comment. */
   readonly notice?: string;
   readonly entries: readonly PackSource[];
-  /**
-   * Compresses one binary to gzip. A host with a stronger compressor gives
-   * its own; the reader takes any gzip stream.
-   * @default `CompressionStream` at its own level
-   */
   readonly gzip?: (bytes: Uint8Array<ArrayBuffer>) => Promise<Uint8Array>;
 }
 
-/**
- * The plugin part. Obsidian loads `main.js` as a CommonJS module and takes the
- * class it exports; this one adds nothing to `Plugin`.
- */
 const PLUGIN = `"use strict";
 module.exports = class ZotLitResources extends require("obsidian").Plugin {};
 `;
@@ -43,7 +26,6 @@ const ENTRIES_CLOSE = "*/\n";
 
 const ENTRY_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/u;
 
-/** Bytes per `btoa` call: a multiple of 3, so the parts join with no padding between. */
 const BASE64_CHUNK = 3 * 0x4000;
 
 const encoder = new TextEncoder();
@@ -72,13 +54,6 @@ function noticeComment(notice: string): string {
   return `/*\n${notice.trimEnd()}\n*/\n`;
 }
 
-/**
- * Writes a pack.
- *
- * @throws when the bytes of an entry differ from its pin, when an entry name
- *   is not lowercase letters, digits and hyphens, or when the index does not
- *   fit its line.
- */
 export async function writePack(
   options: PackOptions,
 ): Promise<Uint8Array<ArrayBuffer>> {

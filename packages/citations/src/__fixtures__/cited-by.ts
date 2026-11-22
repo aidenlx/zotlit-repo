@@ -1,6 +1,3 @@
-// A test host for the Cited By Sidebar: the plugin's view registry over
-// in-memory Obsidian sources and a Citation Index whose observers and parses
-// the test drives.
 import { Effect, Layer, Queue, Stream } from "effect";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import type { TFile } from "obsidian";
@@ -18,33 +15,21 @@ import type { CitedBySnapshot } from "#obsidian/citation-index/service.ts";
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 
 export interface CitedByHost {
-  /** The view registry, with no idle delay: an unread observer stops at once. */
   readonly registry: AtomRegistry.AtomRegistry;
   readonly vault: MemoryVault;
   readonly metadataCache: MemoryMetadataCache;
   readonly workspace: MemoryWorkspace;
-  /** Each key an observer started for, in order. */
   readonly started: readonly string[];
-  /** Each key an observer stopped for, in order. */
   readonly stopped: readonly string[];
-  /** Each Indexed Key the sidebar showed in the Library View, in order. */
   readonly shownInLibrary: readonly string[];
-  /** Sends `snapshot` to the live observer of `key`; false with none. */
   publish(key: string, snapshot: CitedBySnapshot): boolean;
-  /**
-   * Makes `path` the active file: a note of `key`, or a note with no key.
-   * `null` leaves no file active.
-   */
   follow(path: string | null, key?: string | null): TFile | null;
-  /** Moves the file at `path`, its cache entry with it, as Obsidian does. */
   rename(path: string, next: string): void;
-  /** Deletes the file at `path`; it stays the active file. */
   remove(path: string): void;
   close(): Promise<void>;
 }
 
 export interface CitedByHostOptions {
-  /** The Citation Index's parse of a citing note; the default fails. */
   readonly getParsedNote?: CitationIndex["Service"]["getParsedNote"];
 }
 

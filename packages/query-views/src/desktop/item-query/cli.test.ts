@@ -35,10 +35,6 @@ import { GUIDE_EXAMPLES, GUIDE_FILTERS } from "./guide.ts";
 
 const itemQueryGuideHandler = guideHandler;
 
-/**
- * The answer text of the Item Query of flat arguments on `scenario`, as a
- * Query Job gives it. A malformed test query fails with its rejection.
- */
 function answerTextOf(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   scope: LibraryScope = MY_LIBRARY_SCOPE,
@@ -72,7 +68,6 @@ function answerTextOf(
     );
 }
 
-/** The parsed answer of the Item Query of flat arguments on `scenario`. */
 function answerOf(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   scope: LibraryScope = MY_LIBRARY_SCOPE,
@@ -84,7 +79,6 @@ function answerOf(
     );
 }
 
-/** The scenario database, held for the case's scope. */
 const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
   Effect.acquireDisposable(
     Effect.sync(() => openScenarioDatabase(connectClient, options)),
@@ -214,9 +208,6 @@ describe("zotlit:query formulas", () => {
 });
 
 describe("zotlit:query formula answer text", () => {
-  // The CLI fails a wrong Formula with the Fault in its own text, and keeps
-  // each answer byte-identical when the engine leaves Formulas out for
-  // another caller.
   it.effect.each<[string, CliData]>([
     [
       "a Formula that fields reads",

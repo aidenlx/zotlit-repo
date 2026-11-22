@@ -18,32 +18,18 @@ const icons: Record<ActionKind, (props: { className?: string }) => ReactNode> =
 export interface ActionLinkProps {
   href: string;
   kind: ActionKind;
-  /** Mono filename rendered beside the link (download only). */
   filename?: string;
   children: ReactNode;
 }
 
-/**
- * Square hairline-bordered link with a leading kind glyph and a trailing arrow,
- * matching the changelog's "Open release" device. `download` saves the asset;
- * `obsidian` hands an `obsidian://` deep link to the app from the same tab, so
- * no empty tab is left behind; `external` opens a web page in a new tab.
- */
 export function ActionLink({
   href,
   kind,
   filename,
   children,
 }: ActionLinkProps) {
-  // The Markdown edition keeps the link and drops the chrome: the kind glyph,
-  // the trailing arrow, and the new-tab behaviour have no Markdown form, and
-  // the link text already names the action the glyph stands for. A download's
-  // filename follows the link the way it sits beside it on the page.
   if (asMarkdown()) {
     const trailing = filename ? ` \`${filename}\`` : "";
-    // Every call site places the device on its own line, so the empty line
-    // prefix is here for the block framing it carries, not for a prefix. The
-    // children of a block element arrive on their own lines; a link label is one.
     return md`${children}`.then(
       (label) => md.linePrefix("")`[${label.trim()}](${href})${trailing}`,
     );

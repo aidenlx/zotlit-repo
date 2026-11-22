@@ -1,8 +1,3 @@
-// The Profile dialogs as Effects. Each reads the Profile, Template and Note
-// Feature tags, opens its modal, and answers when the modal closes. A modal's
-// callbacks run on a runner the dialog's Scope owns, so an interrupt closes
-// the modal and stops the work its callbacks started.
-
 import type { InteractiveCreationPorts } from "#desktop/note-feature/creation-view.ts";
 import type { TemplateDataServices } from "#desktop/template/data.ts";
 import type { ResolvedProfile } from "#obsidian/profile/bindings.ts";
@@ -61,7 +56,6 @@ import { ShareProfileModal } from "#obsidian/profile/share-profile-modal.ts";
 import { Template } from "#obsidian/template/service.ts";
 import { TemplateWorkbenchLauncher } from "#obsidian/template/workbench-launcher.ts";
 
-/** What the Profile dialogs read. */
 export type ProfileDialogServices =
   | Profile
   | Template
@@ -73,11 +67,6 @@ export type ProfileDialogServices =
   | LibraryScope
   | FileSystem.FileSystem;
 
-/**
- * The New profile dialog as the note creation and the batch Profile choice
- * open it, in the caller's own fiber: an interrupt of the caller closes it.
- * @see createProfileDialog
- */
 export type CreateProfileDialog = (
   options?: CreateProfileOptions,
 ) => Effect.Effect<
@@ -86,10 +75,6 @@ export type CreateProfileDialog = (
   ProfileDialogServices
 >;
 
-/**
- * The Profile import dialog, as {@link CreateProfileDialog} opens it.
- * @see importProfileDialog
- */
 export type ImportProfileDialog = (options?: {
   indexedKey?: string;
   source?: ImportSource;
@@ -99,41 +84,24 @@ export type ImportProfileDialog = (options?: {
   ProfileDialogServices
 >;
 
-/** What a modal's callbacks run on. */
 type DialogServices = Profile | Template | NoteFeature;
 
-/**
- * Runs a modal callback's Effect on the dialog's runner. When the dialog's
- * Scope stops the Effect, it rejects with `UserCancelled` where the user
- * closed the dialog, and with an `AbortError` where an interrupt, such as
- * unload, closed it.
- */
 type DialogRun<R = DialogServices> = <A, E>(
   effect: Effect.Effect<A, E, R>,
 ) => Promise<A>;
 
-/** A modal a dialog opens and waits on. */
 interface DialogModal<A> extends ClosableModal {
   open(): void;
-  /** Settles with the dialog's answer when it closes. */
   readonly result: Promise<A>;
-  /** The close the dialog's Scope calls, when it differs from the user's. */
   teardown?(): void;
 }
 
-/**
- * The modal `open` builds, opened over a runner of the dialog's own, answered
- * with what its `result` settles with. The dialog's Scope then interrupts the
- * work its callbacks started: the user's close stops it with `UserCancelled`.
- * An interrupt closes the modal, and stops that work as unload does.
- */
 function runDialog<A, R = DialogServices>(
   open: (run: DialogRun<R>) => DialogModal<A>,
 ) {
   return Effect.scoped(
     Effect.gen(function* () {
       const runFork = yield* FiberSet.runtime(yield* FiberSet.make())<R>();
-      // Set once the modal answers, before the Scope stops the callbacks.
       let answered = false;
       const run: DialogRun<R> = (effect) =>
         new Promise((resolve, reject) =>
@@ -164,11 +132,6 @@ function runDialog<A, R = DialogServices>(
   );
 }
 
-/**
- * The Profile document text to import: from `source`, or from the one the
- * user picks. `undefined` when the user cancels, or the source cannot be read
- * or is empty; a notice then tells the user. An interrupt closes the picker.
- */
 const readImportSource = Effect.fn("readImportSource")(function* (
   app: App,
   source: ImportSource | undefined,
@@ -206,7 +169,6 @@ const readImportSource = Effect.fn("readImportSource")(function* (
   return text;
 });
 
-/** The Profile document file the user picks; `null` when they cancel. */
 const readProfileFile = Effect.gen(function* () {
   const selection = yield* portCall("choose-profile-file", () =>
     requireDialog().showOpenDialog({
@@ -220,7 +182,6 @@ const readProfileFile = Effect.gen(function* () {
   return yield* (yield* FileSystem.FileSystem).readFileString(path);
 });
 
-/** The default Profile, which every dialog's fields fall back to. */
 const defaultProfile = Effect.gen(function* () {
   const base = yield* (yield* Profile).resolveProfile("default");
   if (!base)
@@ -231,10 +192,6 @@ const defaultProfile = Effect.gen(function* () {
   return base;
 });
 
-/**
- * The item data a dialog previews its note with: `indexedKey`'s item, or one
- * real item in scope. `null` when none is at hand or the read fails.
- */
 const previewData = (indexedKey: string | undefined) =>
   Effect.gen(function* () {
     if (!indexedKey) {
@@ -263,7 +220,6 @@ const previewData = (indexedKey: string | undefined) =>
     ),
   );
 
-/** The note `profile` would create for `data` from the document `source`. */
 const previewNote = (
   data: ProfileCreationData,
   profile: ResolvedProfile,
@@ -279,17 +235,11 @@ const previewNote = (
     });
   });
 
-/** A creation plan whose write runs on `run`. */
 const creationOn = (
   plan: ProfileCreation,
   run: DialogRun,
 ): PreparedProfileCreation => ({ ...plan, create: () => run(plan.create()) });
 
-/**
- * The New profile dialog. It answers the created Profile and the note it
- * previewed, whose `create` writes that note at the path the dialog showed;
- * `undefined` when the user cancels.
- */
 export const createProfileDialog = Effect.fn("createProfileDialog")(function* (
   app: App,
   options: CreateProfileOptions = {},
@@ -331,11 +281,6 @@ export const createProfileDialog = Effect.fn("createProfileDialog")(function* (
   return created;
 });
 
-/**
- * Import a Profile from `source`, or from the source the user picks, after
- * the user consents. Answers the imported Profile, or `undefined` when the
- * user cancels or the import cannot start; a notice then says why.
- */
 export const importProfileDialog = Effect.fn("importProfileDialog")(
   function* (
     app: App,
@@ -410,10 +355,6 @@ export const importProfileDialog = Effect.fn("importProfileDialog")(
     ),
 );
 
-/**
- * Add profile from settings: ask a name and folder, create the document, and
- * open it in the Template Workbench to name its look.
- */
 export const addProfileDestination = Effect.fn("addProfileDestination")(
   function* (app: App) {
     const profile = yield* Profile;
@@ -446,10 +387,6 @@ export const addProfileDestination = Effect.fn("addProfileDestination")(
   },
 );
 
-/**
- * Put the Share bundle `source` at `destination`. A failure is logged and a
- * notice tells the user; a closed dialog stops it before the file is written.
- */
 const shareOutput = Effect.fn("shareOutput")(
   function* (
     destination: ShareDestination,
@@ -495,10 +432,6 @@ const shareOutput = Effect.fn("shareOutput")(
     ),
 );
 
-/**
- * The Share dialog over one snapshot of `selector`'s Profile. It answers when
- * the dialog closes; an interrupt closes it and stops its output.
- */
 export const shareProfile = Effect.fn("shareProfile")(function* (
   app: App,
   selector: ProfileSelector,
@@ -515,7 +448,6 @@ export const shareProfile = Effect.fn("shareProfile")(function* (
   );
 });
 
-/** The Profile dialogs a note creation opens, over `app`. */
 export function interactiveCreation(app: App): InteractiveCreationPorts {
   return {
     app,

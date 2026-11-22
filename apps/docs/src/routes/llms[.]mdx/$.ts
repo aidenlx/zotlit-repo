@@ -1,10 +1,3 @@
-// The Markdown surface's one page route: `/llms.mdx/<section>/<…>/content.md`.
-//
-// The splat carries the whole tail, so this route answers for all three
-// sections, for a section's landing edition (`/llms.mdx/changelog/content.md`),
-// and — through the router's `.md` suffix rewrite — for every `.md` suffix
-// edition as well.
-
 import { createFileRoute } from "@tanstack/react-router";
 
 import { missingReleaseResponse } from "@/lib/beta-fallback.ts";
@@ -23,8 +16,6 @@ export const Route = createFileRoute("/llms.mdx/$")({
         const page = parseContentRoute(params._splat ?? "");
         const edition = page && (await getMarkdownEdition(page, { locale }));
         if (edition === undefined) {
-          // A changelog version this build never published moves on, to the
-          // `.md` edition a reader can open (robots.txt keeps `/llms.mdx` out).
           if (page?.section !== "changelog" || page.slugs.length === 0) {
             return new Response("Not found", { status: 404 });
           }

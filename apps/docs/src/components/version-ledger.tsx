@@ -3,11 +3,9 @@ import type { ReactNode } from "react";
 import { useReleaseSnapshot } from "@/components/release-snapshot.tsx";
 import type { ReleaseChannel } from "@/lib/github-releases.ts";
 import { formatReleaseInstant } from "@/lib/shared.ts";
-// Current-version and compatibility ledger for the install pages.
 import * as m from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 
-/** The channel label the ledger's first row carries. */
 const channelLabels: Record<ReleaseChannel, () => string> = {
   "pre-release": m.docs_release_channel_prerelease,
   stable: m.docs_release_channel_stable,
@@ -33,13 +31,6 @@ export interface VersionLedgerProps {
   channel: ReleaseChannel;
 }
 
-/**
- * Two-row leader-dots ledger showing the current release and its compatibility
- * range, read from the release snapshot the route loaded. A channel with
- * nothing to advertise — never released, or a dormant pre-release line —
- * renders a single status row instead; when the release facts could not be
- * fetched at all it renders nothing, so the page reads as its plain self.
- */
 export function VersionLedger({ app, channel }: VersionLedgerProps) {
   const ledger = useReleaseSnapshot()?.[app][channel];
   if (!ledger) return null;

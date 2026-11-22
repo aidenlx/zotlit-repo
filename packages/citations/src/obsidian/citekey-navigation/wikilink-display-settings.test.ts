@@ -9,15 +9,10 @@ import { WikilinkDisplaySettings } from "./wikilink-display-settings.ts";
 
 import { settingsOf } from "#__fixtures__/settings.ts";
 
-/** Lets a Stream consumer take what was just published. */
 const settle = Effect.gen(function* () {
   for (let turn = 0; turn < 5; turn++) yield* Effect.yieldNow;
 });
 
-/**
- * A display that follows the real settings, seeded with `overrides` before it
- * starts, and counts the redraws it asks for until the test Scope closes.
- */
 const following = Effect.fnUntraced(function* (
   overrides: Partial<Settings> = {},
 ) {

@@ -1,5 +1,3 @@
-// Attachment Import: decides which files a note may copy into the vault, against
-// the trusted roots and the folders approved on this device, and copies them.
 import type {} from "#core/attachment-import/settings.ts";
 import {
   Context,
@@ -89,39 +87,25 @@ export {
 
 const logged = withLogCategory("attachment-import");
 
-/**
- * Idle window the per-operation skip counts are pooled over before one summary
- * is announced. A batch update flushes once per note, so without pooling a run
- * over a hundred notes would announce a hundred times; every flush restarts the
- * window, leaving one summary once the run settles.
- */
 const SKIP_SUMMARY_DEBOUNCE = Duration.millis(1500);
 
-/** Sources an operation did not import, by the stage that turned them away. */
 export interface AttachmentSkipCounts {
-  /** Blocked by the decision: rendered as a `file://` link, never queued. */
   blocked: number;
-  /** Queued, then refused by the copy-time confirmation. */
   refused: number;
 }
 
-/** Details needed to explain a pooled skip and its next action to the user. */
 export interface AttachmentSkipSummary extends AttachmentSkipCounts {
-  /** Parent folders of blocked absolute linked files, unique across the run. */
   blockedFolders: readonly string[];
 }
 
 export interface ResolveLinkOptions {
-  /** The decided source to link or copy in. */
   source: AttachmentSource;
-  /** Desired in-vault filename for the imported copy; also the default link display text. */
   vaultName: string;
 }
 
 export interface AttachmentImportResult
   extends AttachmentCopyResult, AttachmentSkipCounts {}
 
-/** The copy of confirmed sources failed; `cause` holds the copy's failure. */
 export class AttachmentCopyError extends Schema.TaggedError<
   AttachmentCopyError,
   { readonly brand: unique symbol }
@@ -130,94 +114,34 @@ export class AttachmentCopyError extends Schema.TaggedError<
   cause: Schema.Defect(),
 }) {}
 
-/** What a flush fails with: a source check, the folder, or the copy. */
 export type AttachmentFlushError =
   | PlatformError.PlatformError
   | VaultFolderBlockedError
   | AttachmentCopyError
   | VaultError;
 
-/** One note's imports: the decisions a render takes, and the copies it queued. */
 export interface AttachmentImportBatch {
-  /**
-   * Decide whether `path` may be read as an attachment source, against the
-   * service's standing canonical-roots snapshot as it stands at the call.
-   * Synchronous and memory-only, so a template render can call it inline.
-   */
   decide(path: string, origin: SourceOrigin): AttachmentSource;
-  /**
-   * Return a {@link TemplateLink} helper — a `file://` link to the source when
-   * `source` is blocked or import is disabled, or a vault link to the
-   * in-vault copy otherwise. Prefix the rendered link with `!` for an embed.
-   * With import enabled and `source` approved, the copy is queued lazily,
-   * once, on the helper's first invocation, so an excerpt whose link is never
-   * rendered imports nothing.
-   */
   resolveLink(opts: ResolveLinkOptions): TemplateLink;
-  /** Confirm and copy what was queued since the last flush. */
   readonly flush: Effect.Effect<AttachmentImportResult, AttachmentFlushError>;
-  /**
-   * Drop every copy queued since the last `flush` without importing it, so
-   * a handle kept across drags carries nothing from a drag that never landed.
-   */
   readonly discard: Effect.Effect<void>;
 }
 
 export interface PrepareOptions {
-  /**
-   * Keyed by `dirname(notePath)`; every note in the same folder resolves to
-   * the same attachment folder, so a run-scoped cache lets a batch import skip
-   * the repeated attachment folder lookup.
-   */
   folderCache?: Map<string, string>;
 }
 
-/**
- * Attachment Import: the folders approved as attachment sources on this
- * device, and the per-note batch that decides and copies sources.
- */
 export class AttachmentImport extends Context.Service<
   AttachmentImport,
   {
-    /**
-     * The folders approved on this device, canonical and in the order granted —
-     * what the settings tab lists and revokes from.
-     */
     readonly approvedFolders: Effect.Effect<readonly string[]>;
-    /**
-     * The approved folders now, then after each approve or revoke that
-     * changes them. Ends when the layer closes.
-     */
     readonly approvedFoldersChanges: Stream.Stream<readonly string[]>;
-    /**
-     * The canonical-roots snapshot every decision is taken against now, then
-     * after each rebuild. Ends when the layer closes.
-     */
     readonly rootsChanges: Stream.Stream<CanonicalRoots>;
-    /**
-     * Permit `folder` as a source for absolute linked files on this device. The
-     * record holds the folder's canonical path, so a folder later replaced by a
-     * link to another location stops matching. Rebuilds the snapshot before it
-     * succeeds, so the next import already reads the grant.
-     *
-     * Succeeds with the canonical path stored, or `null` when `folder` does not
-     * resolve and nothing was granted.
-     */
     approveFolder(
       folder: string,
     ): Effect.Effect<string | null, DeviceStorageError>;
-    /**
-     * Withdraw `folder`'s approval. Takes effect at once: the next import
-     * decides against a snapshot the folder has already left.
-     */
     revokeFolder(folder: string): Effect.Effect<void, DeviceStorageError>;
-    /**
-     * Sources skipped over the operations that just settled, pooled so one
-     * notice covers a whole run. Carries the folders the user can approve;
-     * routine logs still omit source locations. Ends when the layer closes.
-     */
     readonly skipped: Stream.Stream<AttachmentSkipSummary>;
-    /** The import batch for the note at `notePath`. */
     prepare(
       notePath: string,
       options?: PrepareOptions,
@@ -225,7 +149,6 @@ export class AttachmentImport extends Context.Service<
   }
 >()("zotlit/attachment-import/AttachmentImport") {}
 
-/** What the layer reads. */
 export type AttachmentImportServices =
   | PluginSettings
   | ZoteroPref
@@ -235,9 +158,7 @@ export type AttachmentImportServices =
   | DeviceStorage
   | FileSystem.FileSystem;
 
-/** A queued copy, carrying what the copy-time confirmation needs to judge it. */
 interface PendingCopy {
-  /** The decided location, re-confirmed at each flush. */
   path: string;
   origin: SourceOrigin;
   root: string;
@@ -250,10 +171,6 @@ const NO_SKIPS: AttachmentSkipSummary = {
   blockedFolders: [],
 };
 
-/**
- * Attachment Import over the plugin's services. `platform` decides whether
- * paths compare without case; it defaults to this process's.
- */
 export const layerAttachmentImport = (
   options: { readonly platform?: NodeJS.Platform } = {},
 ): Layer.Layer<AttachmentImport, never, AttachmentImportServices> =>
@@ -274,20 +191,10 @@ export const layerAttachmentImport = (
         );
       const link = yield* markdownLinker;
 
-      // Obsidian's device store catches its own errors, so a failure here is
-      // a defect, and the layer fails with it.
       const approved = yield* SubscriptionRef.make<readonly string[]>(
         yield* Effect.orDie(loadApprovedFolders),
       );
-      /**
-       * The standing canonical-roots snapshot every decision is taken against.
-       * Rebuilt at start, on a settings change — the plugin's own and Zotero's
-       * resolved location alike — and at the start of each import operation,
-       * so a moved base directory is followed and a drag between refreshes
-       * reads a snapshot at most one operation old.
-       */
       const roots = yield* SubscriptionRef.make<CanonicalRoots>(NO_ROOTS);
-      // One rebuild at a time, so the last one started is the one that stays.
       const rebuildRoots = SubscriptionRef.updateEffect(roots, () =>
         Effect.gen(function* () {
           const { dataDir, baseAttachmentPath } = yield* pref.current;
@@ -295,8 +202,6 @@ export const layerAttachmentImport = (
             {
               dataDir,
               baseAttachmentPath,
-              // Re-canonicalized on every rebuild, so an approval whose folder
-              // moved, vanished, or became a link elsewhere stops matching.
               approvedFolders: yield* SubscriptionRef.get(approved),
             },
             platform,
@@ -307,7 +212,6 @@ export const layerAttachmentImport = (
       const pending = yield* Ref.make(NO_SKIPS);
       const nudges = yield* Queue.unbounded<void>();
       const skipped = yield* PubSub.unbounded<AttachmentSkipSummary>();
-      // Closing the layer ends both streams for their subscribers.
       yield* Effect.addFinalizer(() =>
         Effect.all([
           PubSub.shutdown(approved.pubsub),
@@ -315,8 +219,6 @@ export const layerAttachmentImport = (
           PubSub.shutdown(skipped),
         ]),
       );
-      // The pooled counts are announced once the window passes with no new
-      // skip. Closing the layer drops a summary still waiting.
       yield* forkEach(
         Stream.fromQueue(nudges).pipe(Stream.debounce(SKIP_SUMMARY_DEBOUNCE)),
         () =>
@@ -340,9 +242,6 @@ export const layerAttachmentImport = (
               ],
             })).pipe(Effect.andThen(Queue.offer(nudges, undefined)));
 
-      // Every root reads from Zotero's prefs — the data directory the storage
-      // and annotation-cache roots are joined onto, and the base attachment
-      // path — so a profile re-read or a data-dir override moves them all.
       yield* forkEach(
         Stream.merge(
           settings.changes.pipe(
@@ -361,27 +260,14 @@ export const layerAttachmentImport = (
       }): AttachmentImportBatch => {
         const { notePath, importEnabled } = input;
         const folderPath = normalizeFolderPath(input.folderPath);
-        // Read through to the standing snapshot rather than copying it, so a
-        // rebuild reaches a long-lived handle — the annot view holds one
-        // across every drag out of the active note. With import switched off
-        // nothing is written, so no source is judged and no skip is announced.
         const rootsNow = importEnabled
           ? SubscriptionRef.get(roots)
           : Effect.succeed(NO_ROOTS);
         const items: PendingCopy[] = [];
         let blocked = 0;
         const blockedFolders = new Set<string>();
-        /** Blocked sources rendered since the previous flush, which logs them. */
         const blockedLogs: Pick<BlockedSource, "origin" | "reason">[] = [];
 
-        /**
-         * Render a blocked source's `file://` fallback, counting it once
-         * rendered and queuing its log for the flush. The log carries the
-         * origin and the reason only — never the location — so a maintainer
-         * can support a user whose source never reached the queue. With import
-         * switched off nothing is written, so nothing is judged, counted, or
-         * logged.
-         */
         const blockedLink = (
           source: BlockedSource,
           vaultName: string,
@@ -405,12 +291,6 @@ export const layerAttachmentImport = (
           };
         };
 
-        /**
-         * Confirm every queued source before a byte moves, replacing each with
-         * the form its origin copies from. A refusal is logged with its origin
-         * and reason only — never the location — and counted for the summary.
-         * Every descriptor the confirmation opens belongs to the Scope.
-         */
         const confirmQueue = Effect.fnUntraced(function* (
           queued: readonly PendingCopy[],
         ) {
@@ -460,21 +340,12 @@ export const layerAttachmentImport = (
             if (!importEnabled || folderPath === null) {
               return fileUrlLink(sourcePath, vaultName);
             }
-            // Reduce the row-sourced name to a single path segment before it
-            // ever reaches a join — the same normalizer the note filename slot
-            // uses — so a hostile Zotero attachment filename cannot route the
-            // copy outside the attachment folder.
             const safeName = normalizeFilename(vaultName);
             const vaultPath = normalizePath(
               joinFolderPath(folderPath, safeName),
             );
             const file = syntheticFile(vaultPath);
-            // Queue the copy on first render of this link, not at resolve
-            // time, so an excerpt the template never embeds imports nothing.
             let queued = false;
-            // generateMarkdownLink fills the default display text from the
-            // filename per the vault's wikilink / Markdown preference, so the
-            // default link is never blank.
             return (alias, subpath) => {
               if (!queued) {
                 queued = true;
@@ -492,8 +363,6 @@ export const layerAttachmentImport = (
             };
           },
           flush: Effect.gen(function* () {
-            // Drain the queue, so a second flush confirms and counts only what
-            // was queued since the first one.
             const queued = items.splice(0);
             for (const { origin, reason } of blockedLogs.splice(0)) {
               yield* Effect.logWarning("Blocked attachment source").pipe(
@@ -501,15 +370,9 @@ export const layerAttachmentImport = (
                 logged,
               );
             }
-            // A linked-file source is confirmed by opening it, and the copy
-            // reads that descriptor; this scope owns every one of them until
-            // the copy is done.
             const { copied, refused, missing } = yield* Effect.scoped(
               Effect.gen(function* () {
                 const confirmation = yield* confirmQueue(queued);
-                // Create the folder only now that a copy has cleared
-                // confirmation; copyAttachments writes straight to dest and
-                // never makes the parent.
                 if (confirmation.confirmed.length > 0 && folderPath) {
                   yield* ensureVaultFolder(folderPath).pipe(
                     Effect.provideService(Vault, vault),
@@ -529,8 +392,6 @@ export const layerAttachmentImport = (
                 return { ...confirmation, copied: copies };
               }),
             );
-            // Counted since the previous flush, so a re-flush never announces
-            // the same skip twice.
             const skips: AttachmentSkipCounts = { blocked, refused };
             blocked = 0;
             const folders = [...blockedFolders];
@@ -643,11 +504,6 @@ export const layerAttachmentImport = (
     }),
   );
 
-/**
- * The on-disk path of `vaultPath`, held to the attachment folder — a hostile
- * filename is already reduced to one segment before this runs, so this is a
- * defense-in-depth invariant, not the primary containment mechanism.
- */
 function absoluteVaultPath(
   basePath: string,
   vaultPath: string,
@@ -658,12 +514,6 @@ function absoluteVaultPath(
   return dest;
 }
 
-/**
- * Throw when `dest` does not resolve inside `root`. Both are absolute,
- * platform-native paths built from trusted (settings-derived) and sanitized
- * (single-segment) components, so this should never trigger in practice —
- * it guards the invariant rather than replacing the sanitization upstream.
- */
 function assertContained(root: string, dest: string): void {
   const rel = relative(root, dest);
   if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {

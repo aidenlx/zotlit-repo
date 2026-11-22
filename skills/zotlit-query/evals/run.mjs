@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// One bounded persona evaluation. Run data is private; compact evidence remains.
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
@@ -76,7 +75,6 @@ export function parseOptions(argv) {
   };
 }
 
-/** A bounded process, with stdout/stderr captured for evidence and test injection. */
 export function runProcess(
   command,
   args,
@@ -158,9 +156,7 @@ export function runProcess(
     });
     child.on("error", (error) => settle(null, error));
     child.on("close", (code) => settle(code));
-    child.stdin.on("error", () => {
-      /* an early process exit is reported by close/error */
-    });
+    child.stdin.on("error", () => {});
     child.stdin.end(input);
   });
 }
@@ -173,7 +169,6 @@ function required(result, stage) {
   return result.stdout;
 }
 
-/** Pure final-answer check for the runner and saved-response regrades. */
 export function checkAnswer(caseName, answer, context) {
   const { spec, family } = caseFamily(caseName);
   return family.checkAnswer(spec, answer, context);
@@ -191,10 +186,6 @@ function prompt(caseName, vaultId, agentRoot) {
   return family.prompt(spec, { preamble, agentRoot, result, retained });
 }
 
-/**
- * Grades the evidence retained in a run folder. A live run and a regrade of a
- * saved run both call this after the evidence is in `root`.
- */
 export async function gradeRun(
   caseName,
   root,
@@ -227,7 +218,6 @@ export async function gradeRun(
   return { answer, errors };
 }
 
-/** The lifecycle seam accepts a fake process runner in tests; production uses spawn. */
 export async function runCase(
   {
     caseName,
@@ -277,7 +267,7 @@ export async function runCase(
   let vaultOpened = false;
   let vaultId = null;
   try {
-    vaultOpened = true; // A failed open may still have registered a window.
+    vaultOpened = true;
     const open = await processRunner(
       process.execPath,
       [fixtureTool, "--fixture-root", base, "--inactive", "open", vault],

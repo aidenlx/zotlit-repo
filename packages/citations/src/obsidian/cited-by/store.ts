@@ -1,4 +1,3 @@
-// Preview, excerpt, and sort rules for the Cited By Sidebar.
 import type { ParsedNote } from "#obsidian/citation-index/parsed-note.ts";
 import type {
   CitationOccurrence,
@@ -12,7 +11,6 @@ import type {
   SectionCache,
 } from "obsidian";
 
-/** A half-open `[start, end)` offset range into a citing note's source. */
 export interface SourceRange {
   start: number;
   end: number;
@@ -20,18 +18,10 @@ export interface SourceRange {
 
 export interface ReadyOccurrenceContext {
   status: "ready";
-  /** The compact Citation Context: the match ± up to {@link COMPACT_CAP} characters. */
   range: SourceRange;
-  /** Whether the {@link COMPACT_CAP} cap (not a newline) cut the text on each side. */
   rangeClippedStart: boolean;
   rangeClippedEnd: boolean;
-  /**
-   * The Citation Context the Show more context mode shows: the enclosing
-   * logical block, or the full source line where the metadata cache resolves
-   * none.
-   */
   block: SourceRange;
-  /** The occurrence itself, always inside both ranges. */
   token: SourceRange;
 }
 
@@ -39,7 +29,6 @@ export type OccurrenceContext =
   | { status: "unavailable" }
   | ReadyOccurrenceContext;
 
-/** The logical Markdown structure one citing note's excerpts expand through. */
 export interface SourceOutline {
   listItems: readonly ListItemCache[];
   sections: readonly SectionCache[];
@@ -50,18 +39,14 @@ export type CitedByPreview =
   | { readonly status: "unavailable" }
   | ReadyPreview;
 
-/** One citing note, read once for every occurrence it holds. */
 export interface ReadyPreview {
   readonly status: "ready";
   readonly facts: ParsedNote;
   readonly source: string;
-  /** Read together with {@link source}, so both describe one revision. */
   readonly outline: SourceOutline;
-  /** The metadata cache entry read with the source. */
   readonly cache: CachedMetadata | null;
 }
 
-/** The Citation Context of each occurrence of one citing note, by `occurrenceID`. */
 export function previewContexts(
   preview: ReadyPreview,
   occurrences: readonly CitationOccurrence[],
@@ -78,14 +63,12 @@ export function previewContexts(
   );
 }
 
-/** The six Backlinks sort modes, in the pairs the sort menu groups them by. */
 export const CITED_BY_SORT_GROUPS = [
   ["alphabetical", "alphabeticalReverse"],
   ["byModifiedTime", "byModifiedTimeReverse"],
   ["byCreatedTime", "byCreatedTimeReverse"],
 ] as const;
 
-/** The presentation order of the source groups. */
 export type CitedBySortMode = (typeof CITED_BY_SORT_GROUPS)[number][number];
 
 export const DEFAULT_CITED_BY_SORT: CitedBySortMode = "alphabetical";
@@ -96,14 +79,12 @@ export const EMPTY_CITED_BY_SNAPSHOT: CitedBySnapshot = {
   resolution: null,
 };
 
-/** The vault facts the sort modes read from one citing note. */
 export interface SourceFileFacts {
   name: string;
   mtime: number;
   ctime: number;
 }
 
-/** Obsidian's own file-name order: case-insensitive and number-aware. */
 const nameOrder = new Intl.Collator(undefined, {
   usage: "sort",
   sensitivity: "base",
@@ -122,14 +103,6 @@ const SORT_COMPARATORS: Record<
   byCreatedTimeReverse: (a, b) => a.ctime - b.ctime,
 };
 
-/**
- * The source groups in presentation order. The Citation Index emits them in
- * canonical vault path order, and this sort is stable, so that path order
- * breaks every tie. Occurrences inside a group keep their source position.
- *
- * @param facts the vault metadata of one citing note, `null` once its file
- * left the vault: such a group sorts by its own name at time zero.
- */
 export function sortCitedByGroups(
   groups: readonly CitedByGroup[],
   mode: CitedBySortMode,
@@ -149,20 +122,14 @@ export function sortCitedByGroups(
     .map(({ group }) => group);
 }
 
-/** The name one vault path shows, without its Markdown extension. */
 export function noteName(path: string): string {
   const slash = path.lastIndexOf("/");
   const filename = path.slice(slash + 1);
   return filename.endsWith(".md") ? filename.slice(0, -3) : filename;
 }
 
-/**
- * Characters the compact excerpt extends on each side of the match before
- * stopping, the same cap Obsidian's own search results use.
- */
 export const COMPACT_CAP = 100;
 
-/** The Citation Context of one occurrence: its own lines and its block. */
 export function citationContext(
   source: string,
   occurrence: CitationOccurrence | null,
@@ -183,7 +150,6 @@ export function citationContext(
   };
 }
 
-/** The full source line(s) one token spans, from newline to newline. */
 function enclosingLine(source: string, token: SourceRange): SourceRange {
   const lineStart = source.lastIndexOf("\n", Math.max(0, token.start - 1)) + 1;
   const nextBreak = source.indexOf("\n", token.end);
@@ -193,11 +159,6 @@ function enclosingLine(source: string, token: SourceRange): SourceRange {
   };
 }
 
-/**
- * The match plus up to {@link COMPACT_CAP} characters on each side, stopping
- * at a newline. The clipping flags tell whether the cap (not a newline) cut
- * the text — those drive the ellipsis in compact mode.
- */
 function compactExcerpt(
   source: string,
   token: SourceRange,
@@ -205,7 +166,7 @@ function compactExcerpt(
   let start = token.start - 1;
   let back = 0;
   while (back < COMPACT_CAP && start >= 0) {
-    if (source.charCodeAt(start) === 10) break; // \n
+    if (source.charCodeAt(start) === 10) break;
     start -= 1;
     back += 1;
   }
@@ -214,7 +175,7 @@ function compactExcerpt(
   let end = token.end;
   let fwd = 0;
   while (fwd < COMPACT_CAP && end < source.length) {
-    if (source.charCodeAt(end) === 10) break; // \n
+    if (source.charCodeAt(end) === 10) break;
     end += 1;
     fwd += 1;
   }
@@ -225,12 +186,6 @@ function compactExcerpt(
   };
 }
 
-/**
- * The logical block one occurrence sits in, read from the metadata cache: the
- * list item it belongs to together with that item's descendants, otherwise the
- * section entry that encloses it. A heading section spans its own line only,
- * so a heading never widens the excerpt.
- */
 function enclosingBlock(
   cache: CachedMetadata | null,
   token: SourceRange,
@@ -240,7 +195,6 @@ function enclosingBlock(
   const item = items[index];
   if (item) {
     return {
-      // From the start of the item's line, so its marker and indent stay.
       start: lineStartOf(item.position),
       end: listItemEnd(items, index),
     };
@@ -261,7 +215,6 @@ function encloses(position: Pos, token: SourceRange): boolean {
   );
 }
 
-/** Where one list item ends together with every descendant it owns. */
 function listItemEnd(items: readonly ListItemCache[], index: number): number {
   const item = items[index];
   if (!item) return 0;
@@ -275,7 +228,6 @@ function listItemEnd(items: readonly ListItemCache[], index: number): number {
   return last.position.end.offset;
 }
 
-/** Where the line that carries one cache entry begins. */
 function lineStartOf(position: Pos): number {
   return position.start.offset - position.start.col;
 }
@@ -284,22 +236,17 @@ export interface ContextParts {
   before: string;
   token: string;
   after: string;
-  /** The compact-mode cap cut the text on this side (shows an ellipsis). */
   ellipsisBefore: boolean;
   ellipsisAfter: boolean;
-  /** Source text the excerpt leaves out on this side (shows a chevron). */
   canExpandBefore: boolean;
   canExpandAfter: boolean;
 }
 
 export interface ExcerptOptions {
-  /** Show the enclosing block instead of the compact line. */
   moreContext?: boolean;
-  /** The manual chevron expansion in force, which only ever widens. */
   expansion?: SourceRange | undefined;
 }
 
-/** The source range one excerpt shows under the current mode and expansion. */
 export function excerptRange(
   context: ReadyOccurrenceContext,
   options: ExcerptOptions = {},
@@ -313,13 +260,6 @@ export function excerptRange(
   };
 }
 
-/**
- * The excerpt one Citation Context renders, split around its occurrence.
- *
- * Ellipsis appears only in compact mode without a manual expansion, and only
- * when the {@link COMPACT_CAP} cap — not a newline — cut the text. Chevrons
- * appear whenever source text the excerpt omits sits on that side.
- */
 export function contextParts(
   source: string,
   context: ReadyOccurrenceContext,
@@ -341,7 +281,6 @@ export function contextParts(
 
 const WHITESPACE = /\s/u;
 
-/** Whether anything other than whitespace sits between two offsets. */
 function hasText(source: string, from: number, to: number): boolean {
   for (let at = from; at < to; at += 1) {
     if (!WHITESPACE.test(source.charAt(at))) return true;
@@ -349,21 +288,12 @@ function hasText(source: string, from: number, to: number): boolean {
   return false;
 }
 
-/** The side of an excerpt one chevron reveals more source text on. */
 export type ExpandDirection = "before" | "after";
 
-/** The logical Markdown structure of one citing note, as the cache holds it. */
 export function sourceOutline(cache: CachedMetadata | null): SourceOutline {
   return { listItems: cache?.listItems ?? [], sections: cache?.sections ?? [] };
 }
 
-/**
- * The excerpt range one chevron activation reveals: the adjacent logical
- * Markdown chunk — the list item with its descendants first, then a Markdown
- * section, then the adjacent line. Whitespace-only lines carry no chunk of
- * their own, so one activation crosses them and lands on the next chunk. A
- * range that already reaches its end of the file comes back unchanged.
- */
 export function expandExcerptRange(options: {
   source: string;
   outline: SourceOutline;
@@ -395,7 +325,6 @@ export function expandExcerptRange(options: {
   return { start: range.start, end: at };
 }
 
-/** Where the logical chunk that covers one offset begins. */
 function chunkStartAt(
   source: string,
   outline: SourceOutline,
@@ -408,7 +337,6 @@ function chunkStartAt(
   return source.lastIndexOf("\n", at - 1) + 1;
 }
 
-/** Where the logical chunk that covers one offset ends. */
 function chunkEndAt(
   source: string,
   outline: SourceOutline,
@@ -422,10 +350,6 @@ function chunkEndAt(
   return lineBreak === -1 ? source.length : lineBreak;
 }
 
-/**
- * The innermost cache entry that covers one offset, from the start of its own
- * line so that a list marker and its indent count as part of the item.
- */
 function coveringIndex(
   entries: readonly { position: Pos }[],
   at: number,
@@ -435,7 +359,6 @@ function coveringIndex(
   );
 }
 
-/** The key one manual excerpt expansion is held under. */
 export function excerptKey(
   path: string,
   occurrence: CitationOccurrence,
@@ -443,7 +366,6 @@ export function excerptKey(
   return `${path}\n${occurrenceID(occurrence)}`;
 }
 
-/** Whether one expansion key belongs to a given citing note. */
 export function excerptKeyIn(key: string, path: string): boolean {
   return key.startsWith(`${path}\n`);
 }

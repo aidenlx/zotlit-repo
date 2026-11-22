@@ -1,8 +1,3 @@
-// Choosing which Attachment of the Item on screen the Annotation View reads.
-//
-// Obsidian's own pattern for picking from a list, in parallel with the item
-// picker behind "Choose item…": the menu row opens the suggester, and the
-// suggester alone offers the names.
 import { FuzzySuggestModal } from "obsidian";
 import type { App } from "obsidian";
 
@@ -10,25 +5,13 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { AttachmentLine } from "./presentation.ts";
 
-/** The Attachments to choose between, named as `attachmentLine` names them. */
 export type AttachmentOptions = Extract<
   AttachmentLine,
   { kind: "picker" }
 >["options"];
 
-/**
- * The class the stylesheet lets a long name wrap under. Obsidian clips a
- * suggestion row unlayered, where no `zt:` utility reaches it.
- *
- * @see packages/annotations/src/desktop/annot-view/style.css
- */
 const SUGGESTER_CLASS = "zt-annot-attachment-suggester";
 
-/**
- * Every Attachment of the Item on screen, by name and Annotation count. This is
- * the one surface whose whole job is telling two similar names apart, so it
- * spends the height a wrapped name takes.
- */
 class AttachmentSuggester extends FuzzySuggestModal<AttachmentOptions[number]> {
   readonly #options: AttachmentOptions;
   readonly #choose: (indexedKey: string) => void;
@@ -58,7 +41,6 @@ class AttachmentSuggester extends FuzzySuggestModal<AttachmentOptions[number]> {
   }
 }
 
-/** Open the picker over `options`, showing the Attachment chosen from it. */
 export function chooseAttachment(
   app: App,
   options: AttachmentOptions,

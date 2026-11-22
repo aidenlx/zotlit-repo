@@ -1,12 +1,3 @@
-// Opening a Target: an Attachment, one Annotation in it, or a link that names
-// one, sent to the ZotLit PDF Reader where this device holds an
-// Obsidian-Openable file for it, and to Zotero everywhere else. Every ZotLit
-// gesture that opens an Attachment, and File Link Capture for a link Obsidian
-// rendered, decides here, so the choice and its Zotero fallback are written
-// once.
-//
-// @see apps/obsidian/docs/adr/0045-file-link-capture-patches-window-open.md
-
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
 import type { ReaderOpenFailed } from "#obsidian/pdf-reader/service.ts";
 import { Context, Effect, Layer, Schema } from "effect";
@@ -35,52 +26,33 @@ import {
 
 import { filename, obsidianOpenPath } from "#core/attachment-open/resolve.ts";
 
-/**
- * What one gesture opens: an Attachment, or one Annotation in it. Both keys
- * are Indexed Keys.
- */
 export type OpenTarget =
   | { readonly kind: "attachment"; readonly attachmentKey: string }
   | {
       readonly kind: "annotation";
       readonly attachmentKey: string;
       readonly annotationKey: string;
-      /** The zero-based PDF page; `null` where the Annotation has none. */
       readonly pageIndex: number | null;
-      /** The printed page label Zotero's own link carries. */
       readonly pageLabel: string | null;
     };
 
-/** Where an open ended up. */
 export type OpenOutcome =
-  /** The ZotLit PDF Reader shows the target. */
   | { kind: "reader" }
-  /** The system handler was handed `url`, which Zotero opens. */
   | { kind: "zotero"; url: string }
-  /**
-   * The reader found no file behind an Attachment File Link, which names
-   * nothing Zotero could open in its stead. The caller says so.
-   */
   | { kind: "file-missing" }
-  /** The target names no Zotero object at all; nothing opened. */
   | { kind: "unknown" }
-  /** The reader or the system handler failed; the Notifier said so. */
   | { kind: "failed" };
 
-/** The system handler threw as it was handed a `zotero://` link. */
 export class SystemOpenFailed extends Schema.TaggedError<
   SystemOpenFailed,
   { readonly brand: unique symbol }
 >()("SystemOpenFailed", {
-  /** The link the handler was handed. */
   url: Schema.String,
   cause: Schema.Defect(),
 }) {}
 
-/** Whether the ZotLit PDF Reader opened the file, which it learns at the open itself. */
 export type ReaderOutcome = "opened" | "file-missing";
 
-/** The ZotLit PDF Reader, as the opener drives it. */
 export interface TargetReader<E = never> {
   open(
     attachment: ObsidianOpenableAttachment,
@@ -88,45 +60,15 @@ export interface TargetReader<E = never> {
   ): Effect.Effect<ReaderOutcome, E>;
 }
 
-/** The system handler a `zotero://` link reaches Zotero through. */
 export type NativeOpener = (url: string) => void;
 
-/**
- * The opener every ZotLit gesture opens an Attachment through, and File Link
- * Capture follows a link Obsidian rendered through.
- */
 export class TargetOpener extends Context.Service<
   TargetOpener,
   {
-    /**
-     * Open a target named by key. An Attachment that the ZotLit PDF Reader can
-     * host, and whose file this device holds, opens there in `pane`; every
-     * other one opens in Zotero, which finds any Attachment by its key. Waits
-     * a bounded time for the Attachment index while it is still being built,
-     * and opens in Zotero once that wait ends. A failed build is retried, so
-     * the index never fails outright; it is only late. An Annotation opens in
-     * Zotero at once while the Reader settings leave annotation links to
-     * Zotero.
-     *
-     * An interrupt opens nothing and shows nothing. A reader or system
-     * handler that fails shows a notice and ends `failed`; so does a defect.
-     */
     open(
       target: OpenTarget,
       pane: PaneType | boolean,
     ): Effect.Effect<OpenOutcome>;
-    /**
-     * Follow a clicked link: an Attachment File Link or a Durable Annotation
-     * Link that names an Obsidian-Openable Attachment opens in Obsidian's
-     * reader. The decision runs at once, from the index held now, so a click
-     * handler runs it synchronously and claims the click; the open it answers
-     * is what the handler runs next.
-     *
-     * @returns `null` for a link ZotLit leaves to the caller's own handler —
-     *   another scheme, a file no Attachment keeps, a file Obsidian cannot
-     *   host, a Durable Annotation Link while the settings leave those to
-     *   Zotero, and every link while the index is still being built.
-     */
     follow(
       url: string,
       pane: PaneType | boolean,
@@ -134,42 +76,23 @@ export class TargetOpener extends Context.Service<
   }
 >()("zotlit/attachment-open/TargetOpener") {}
 
-/**
- * The ZotLit PDF Reader as the Target Opener opens a file in it. The host's
- * Annotation View owner fills it (`@zotlit/query-views`), so the view comes
- * forward beside the file.
- */
 export class PdfTargetReader extends Context.Service<
   PdfTargetReader,
   TargetReader<ReaderOpenFailed>
 >()("zotlit/annotations/PdfTargetReader") {}
 
 export interface TargetOpenerPorts<R, E> {
-  /** The ZotLit PDF Reader, built over the layer's services. */
   readonly reader: Effect.Effect<TargetReader<E>, never, R>;
   readonly native: NativeOpener;
-  /** @default process.platform */
   readonly platform?: NodeJS.Platform;
-  /**
-   * How long a keyed open waits for the first Attachment index before it
-   * hands the target to Zotero.
-   *
-   * @default 5 seconds
-   */
   readonly indexWait?: Duration.Input;
 }
 
-/**
- * What a followed link opens: the Attachment, and the link Zotero takes in
- * its stead when the reader finds no file; `null` for a link that names
- * nothing Zotero could open.
- */
 interface Claim {
   readonly attachment: ObsidianOpenableAttachment;
   readonly fallback: string | null;
 }
 
-/** A printed page label that also reads as a 1-based page number. */
 const PAGE_NUMBER_RE = /^[1-9]\d*$/;
 
 export function layerTargetOpener<R, E>({
@@ -202,12 +125,6 @@ export function layerTargetOpener<R, E>({
         ...(subpath ? { subpath } : {}),
       });
 
-      /**
-       * Whether ZotLit, not Zotero, opens an Annotation: the Reader settings
-       * keep both PDF file links and annotation links in Obsidian. A followed
-       * Durable Annotation Link and a ZotLit gesture on an Annotation, such as
-       * the page chip, decide by this one rule.
-       */
       const opensAnnotations = Effect.map(
         settings.current,
         (current) =>
@@ -221,7 +138,6 @@ export function layerTargetOpener<R, E>({
           catch: (cause) => new SystemOpenFailed({ url, cause }),
         }).pipe(Effect.as<OpenOutcome>({ kind: "zotero", url }));
 
-      /** Opens in the reader, or hands `fallback` to Zotero when the file is gone. */
       const read = Effect.fnUntraced(function* (
         attachment: ObsidianOpenableAttachment,
         {
@@ -242,10 +158,6 @@ export function layerTargetOpener<R, E>({
         return yield* toZotero(fallback);
       });
 
-      /**
-       * A reader or system handler that failed, or a defect, shows a notice
-       * and ends `failed`; an interrupt passes on.
-       */
       const reported = <E, R>(open: Effect.Effect<OpenOutcome, E, R>) =>
         withOutcome(open, {
           success: () => undefined,
@@ -258,10 +170,6 @@ export function layerTargetOpener<R, E>({
           Effect.provideService(Notifier, notifier),
         );
 
-      /**
-       * The index's answer for `attachmentKey`, waiting a bounded time for the
-       * first index; still `pending` when that wait ends.
-       */
       const lookup = Effect.fnUntraced(function* (attachmentKey: string) {
         const found = yield* attachments.lookup(attachmentKey);
         if (found.kind !== "pending") return found;
@@ -296,24 +204,6 @@ export function layerTargetOpener<R, E>({
         };
       });
 
-      /**
-       * A `zotero://open` link that names an Annotation names its Attachment
-       * by key, so the Attachment it names opens — even where another one
-       * keeps the same file. A file this device does not hold leaves the link
-       * to Zotero, which is what makes the link durable; the reader finds that
-       * out at the open, so the link is handed over then, as written. Anything
-       * short of a valid Annotation key is Zotero's alone, `zotero://select`
-       * included.
-       *
-       * The link's `page` is a printed label, which Obsidian's own jump reads
-       * as a page number. It is carried only when it reads as one; the
-       * Annotation's own page wins over it whenever the reader can place the
-       * Annotation.
-       *
-       * The link is ZotLit's to follow only while the Reader settings keep
-       * annotation links in Obsidian; otherwise the click is Zotero's and the
-       * link reaches Zotero as written.
-       */
       const followDurable = Effect.fnUntraced(function* (
         url: string,
       ): Effect.fn.Return<Claim | null> {
@@ -418,7 +308,6 @@ export function layerTargetOpener<R, E>({
             if (parsed.protocol === "zotero:") return yield* followDurable(url);
             return null;
           },
-          // The decision is the claim; the open it answers runs later.
           (claim, _url, pane) =>
             Effect.map(claim, (claimed) =>
               claimed === null
@@ -440,10 +329,6 @@ export function layerTargetOpener<R, E>({
   );
 }
 
-/**
- * The `zotero://open` link of the target, which opens it in Zotero's reader;
- * `null` for a key that is no Indexed Key.
- */
 export function zoteroUri(target: OpenTarget): string | null {
   const attachment = parseIndexedKey(target.attachmentKey);
   if (!attachment) return null;

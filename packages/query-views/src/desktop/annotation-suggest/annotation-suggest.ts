@@ -1,6 +1,4 @@
 import type { QueryHandle } from "#desktop/item-query/handle.ts";
-// The Annotation Suggester: a trigger in the editor opens a search over the
-// annotations in Library Scope, beside the Citation Suggester.
 import { Component, EditorSuggest } from "obsidian";
 import type {
   Editor,
@@ -32,24 +30,13 @@ export interface AnnotationSuggestDeps extends AnnotationInsertDeps {
   bridge: Pick<EffectBridge, "runSync">;
   query: Pick<QueryHandle, "run">;
   settings: Pick<PluginSettings["Service"], "current">;
-  /**
-   * The comment renderer every annotation surface shares, which draws a
-   * comment as the Markdown the note will hold. `owner` holds the rendered
-   * comments; links in them resolve against `sourcePath`.
-   */
   commentRenderer: (owner: Component, sourcePath: string) => CommentRenderer;
 }
 
 export class AnnotationEditorSuggest extends EditorSuggest<AnnotationHit> {
   readonly #deps: AnnotationSuggestDeps;
   #searchController?: AbortController;
-  /** The hits the latest search returned, which the popup draws next. */
   #incoming: readonly AnnotationHit[] = [];
-  /**
-   * The rows the popup shows: the hits they draw and a stack that holds each
-   * row's drawn comment and the component that owns them. A new result set
-   * disposes it, and so does closing the popup.
-   */
   #rows: {
     hits: readonly AnnotationHit[];
     stack: DisposableStack;
@@ -61,7 +48,6 @@ export class AnnotationEditorSuggest extends EditorSuggest<AnnotationHit> {
     super(deps.app);
     this.#deps = deps;
     this.limit = DEFAULT_LIMIT;
-    // The popup is a plugin UI root: its rows draw with `zt:` utilities.
     this.suggestEl.addClass("zt-root");
     this.setInstructions([
       { command: "↑↓", purpose: m.instruction_navigate() },
@@ -96,13 +82,11 @@ export class AnnotationEditorSuggest extends EditorSuggest<AnnotationHit> {
   override getSuggestions(
     context: EditorSuggestContext,
   ): Promise<AnnotationHit[]> {
-    // Obsidian shows nothing for a `null` answer; `[]` would close the popup.
     return this.#answer.track(this.#search(context)) as Promise<
       AnnotationHit[]
     >;
   }
 
-  /** The hits for `context`, or `null` when a later keystroke superseded it. */
   async #search(
     context: EditorSuggestContext,
   ): Promise<AnnotationHit[] | null> {
@@ -129,8 +113,6 @@ export class AnnotationEditorSuggest extends EditorSuggest<AnnotationHit> {
   }
 
   override renderSuggestion(hit: AnnotationHit, el: HTMLElement): void {
-    // The first row of a new result set replaces every row of the last one,
-    // so the comments those rows drew go with them.
     if (
       this.#rows === null ||
       (this.#rows.hits !== this.#incoming && this.#incoming.includes(hit))
@@ -181,14 +163,6 @@ export class AnnotationEditorSuggest extends EditorSuggest<AnnotationHit> {
   }
 }
 
-/**
- * One result: the quote with its color, the comment, the page and paper. The
- * quote is Zotero's stored rich text, drawn as the Annotation View and the
- * Annotation Popover draw an excerpt; the comment goes through the comment
- * renderer they share, so it reads as the Markdown the note will hold.
- *
- * @returns the cleanup of the drawn comment, a no-op for a row without one.
- */
 export function renderAnnotationHit(
   hit: AnnotationHit,
   el: HTMLElement,

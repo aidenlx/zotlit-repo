@@ -201,7 +201,6 @@ it.effect(
         await release.promise;
         return create(...args);
       };
-      // Unload stops the waiting caller; the write itself finishes.
       const writing = expect(
         profile.bridge.runPromise(profile.materializeDefault),
       ).rejects.toMatchObject({ name: "AbortError" });
@@ -307,7 +306,6 @@ Annotation`,
       );
       yield* TestClock.adjust(1);
       const closedBeforeLayout = Option.isSome(yield* Fiber.join(outcome));
-      // Release the old implementation too, so a failing case can close cleanly.
       for (const callback of layouts) callback();
       yield* TestClock.adjust(500);
       expect(yield* Effect.promise(() => deleting)).toMatchObject({

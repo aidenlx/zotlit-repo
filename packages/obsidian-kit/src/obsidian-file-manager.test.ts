@@ -251,7 +251,6 @@ it.effect("reads the live layer's file manager from ObsidianApp", () =>
   }),
 );
 
-// Test hosts that never touch the file manager stub no `fileManager`.
 it.effect("builds over a test host's app that has no file manager", () =>
   Effect.gen(function* () {
     const app = stubService<App>("App", {

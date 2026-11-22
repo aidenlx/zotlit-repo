@@ -1,17 +1,8 @@
-// Shared Inlang project fixtures for compiler/cli/vite tests. Not a package
-// export and not a `*.test.ts` file, so no consumer imports it and vitest does
-// not run it as a test suite itself.
-
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { onTestFinished } from "vitest";
 
-/**
- * A fresh `<os-tmpdir>/<prefix>*` directory, removed automatically when the
- * test finishes. Fixtures stay out of the repository tree so an interrupted
- * run leaves no artifacts in the workspace.
- */
 export async function createTemporaryDirectory(
   prefix = "zotlit-language-packs-",
 ): Promise<string> {
@@ -20,7 +11,6 @@ export async function createTemporaryDirectory(
   return directory;
 }
 
-/** Writes an Inlang message-format catalog, prefixing the `$schema` field. */
 export async function writeCatalog(
   path: string,
   messages: Record<string, unknown>,
@@ -40,10 +30,6 @@ export async function writeCatalog(
   );
 }
 
-/**
- * A minimal Inlang project under a fresh temporary directory, with its base
- * locale (`en`) catalog seeded from `messages`. Returns the project's path.
- */
 export async function createFixtureProject(
   messages: Record<string, unknown>,
   { prefix }: { prefix?: string } = {},
@@ -55,9 +41,6 @@ export async function createFixtureProject(
     join(projectPath, "settings.json"),
     `${JSON.stringify(
       {
-        // No `modules`: the compiler supplies the message-format and
-        // m-function-matcher plugins directly (see `INLANG_PLUGINS` in
-        // compiler.ts), so fixtures never trigger a network fetch.
         $schema: "https://inlang.com/schema/project-settings",
         baseLocale: "en",
         locales: ["en"],
@@ -74,7 +57,6 @@ export async function createFixtureProject(
   return projectPath;
 }
 
-/** Adds a locale to a fixture project's settings and writes its catalog. */
 export async function addLocale(
   projectPath: string,
   locale: string,
@@ -94,7 +76,6 @@ export async function addLocale(
   );
 }
 
-/** Adds a second `pathPattern` entry so a locale's messages merge from two catalogs. */
 export async function addSourcePattern(
   projectPath: string,
   directoryName: string,

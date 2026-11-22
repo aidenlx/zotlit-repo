@@ -1,4 +1,3 @@
-// The Cited By Sidebar's sort menu.
 import { Menu } from "obsidian";
 
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
@@ -16,10 +15,6 @@ const SORT_LABELS: Record<CitedBySortMode, () => string> = {
   byCreatedTimeReverse: m.cited_by_sort_created_time_reverse,
 };
 
-/**
- * The sort menu, one section per Backlinks mode pair, anchored under the button
- * that opened it.
- */
 export function showSortMenu(
   button: HTMLElement,
   options: {

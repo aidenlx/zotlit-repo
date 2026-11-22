@@ -1,8 +1,6 @@
 pre-commit:
   piped: true
   commands:
-    # Runs first: lint reads the working tree, so files outside the commit
-    # would reach it. See packages/scripts/lib/commit-tree.ts.
     tree:
       priority: 1
       run: mise exec -- node packages/scripts/scripts/commit-tree.ts
@@ -20,18 +18,11 @@ pre-commit:
       glob: "*.snap"
       run: mise exec -- node packages/scripts/scripts/snapshot-size.ts {staged_files}
 
-# Commits and pushes carry no AI-agent attribution, and claude/*, codex/* and
-# cursor/* branches stay local. See packages/scripts/lib/ai-attribution.ts.
 commit-msg:
   commands:
     ai-attribution:
       run: mise exec -- node packages/scripts/scripts/ai-attribution.ts message {1}
 
-# main takes pushes only from `pnpm land`, which runs the quality gate
-# on the rebased result; an agent session pushes nothing itself; and no pushed
-# commit credits an agent. One command makes every check, because Lefthook
-# hands stdin, where Git writes the pushed refs, to one command at most. See
-# packages/scripts/scripts/pre-push.ts.
 pre-push:
   commands:
     push-rules:

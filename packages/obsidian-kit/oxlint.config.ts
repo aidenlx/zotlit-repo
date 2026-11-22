@@ -15,8 +15,6 @@ import {
   withPatterns,
 } from "@zotlit/config/oxlint-plugin-code";
 
-// The Obsidian layer loads in Obsidian Mobile: no Node built-in and no
-// Electron, and nothing of the desktop layer above it.
 const layerPattern = {
   group: [
     "electron",
@@ -49,17 +47,14 @@ export default defineConfig({
       "vitest.preset.ts",
     ]),
     {
-      // The capability tags themselves read the App.
       files: ["src/obsidian-*.ts"],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
-      // The wrappers that hand Obsidian's control classes to everything else.
       files: ["src/components/obsidian/**"],
       rules: { "zotlit-css/no-obsidian-class": "off" },
     },
     {
-      // The one module that wraps Obsidian's popover itself.
       files: ["src/hover-popover.ts"],
       rules: {
         "no-restricted-imports": [
@@ -72,13 +67,10 @@ export default defineConfig({
       },
     },
     {
-      // This stand-in implements the runtime helper that the rule requires.
       files: ["vitest.setup.js"],
       rules: { "zotlit-obsidian/no-cross-window-instanceof": "off" },
     },
     {
-      // Background work that stands in no window, which lives as long as the
-      // plugin and so as the main window.
       files: ["src/disposables.ts"],
       rules: { "zotlit-obsidian/no-global-timer": "off" },
     },

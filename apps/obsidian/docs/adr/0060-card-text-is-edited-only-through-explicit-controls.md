@@ -12,3 +12,5 @@ ZotLit's users are researchers, many of them not technical. Text that turns into
 - **Select, then click the text** (Zotero's reader): safe for reading, but still invisible to a user who does not know it.
 - **One card-level Edit mode for both fields**: explicit, but it opens two editors at once, which breaks one-editor-at-a-time and one History Step per session.
 - **Labelled action row on the selected card**: the most explicit, at the cost of a row of text buttons on every selected card.
+
+The Quoted Text control applies to highlights and underlines. The card actions fixture uses the same rule to exercise the controls each Annotation type offers. [Card actions tests](../../../../packages/annotations/src/desktop/annot-view/actions.test.ts)

@@ -1,8 +1,3 @@
-// What choosing a quick switcher result does, by its key: open the Item's
-// Literature Note, or write it, and open the Item's PDF. A Library View row
-// answers the same keys through the same functions (ADR 0074).
-//
-// @see apps/obsidian/docs/adr/0074-library-view-rows-act-as-quick-switcher-results.md
 import { Cause, Effect, Exit } from "effect";
 import type { PaneType } from "obsidian";
 
@@ -26,7 +21,6 @@ export interface NoteResultDeps {
   creation: InteractiveCreationPorts;
 }
 
-/** Run the shared note navigation from the Quick Switch modal callback. */
 export function openOrCreateNote(
   deps: NoteResultDeps,
   options: { indexedKey: string; item: Item; newPane: PaneType | boolean },
@@ -52,13 +46,6 @@ export function openOrCreateNote(
   return result.promise.finally(release);
 }
 
-/**
- * Open the PDF of the Item `indexedKey` in Obsidian, in `pane`. The search
- * index holds regular Items only, so the Item's Attachments are resolved
- * through the database, as the `open-pdf` command does. No pointer event
- * reaches `openAttachments` — a key carries no pointer to anchor a context
- * menu at — so several Attachments always fall to the Suggest modal picker.
- */
 export async function openItemPdf(
   deps: AttachmentOpenDeps,
   indexedKey: string,

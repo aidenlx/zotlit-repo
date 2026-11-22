@@ -6,7 +6,6 @@ import { datasetVocabulary } from "./expression-vocabulary.ts";
 
 const noLabel = () => undefined;
 
-/** The type the vocabulary gives the receiver `text`, standing alone. */
 const typeOf = (
   vocabulary: ReturnType<typeof datasetVocabulary>,
   text: string,
@@ -21,7 +20,6 @@ describe("the fields of a Query Dataset", () => {
     expect(named("title")).toMatchObject({ label: "Title", type: "string" });
     expect(named("dateAdded")).toMatchObject({ type: "date" });
     expect(named("creators")).toMatchObject({ type: "list" });
-    // `custom` is read only by bracket access to a custom field.
     expect(fields.map((field) => field.path)).not.toContain("custom");
   });
 
@@ -114,7 +112,6 @@ it("labels every entry by its id, as the expression names it", () => {
     type: "string",
     label: "Paper heading",
   });
-  // A path with no label of its own shows none.
   const keys = vocabulary.receiver?.("this.item", { from: 0, to: 9 })?.members;
   expect(keys?.map((member) => member.label)).toEqual([undefined, undefined]);
 });

@@ -1,4 +1,3 @@
-// Drive Obsidian's `file-menu` event through the real `registerFileMenu`.
 import type {
   App,
   EventRef,
@@ -16,7 +15,6 @@ import type {
   FolderMenuSegment,
 } from "#obsidian/file-menu.ts";
 
-/** Obsidian's own `file-menu` listener shape. */
 // oxlint-disable-next-line max-params -- Obsidian's own `file-menu` shape.
 export type FileMenuHandler = (
   menu: Menu,
@@ -25,10 +23,6 @@ export type FileMenuHandler = (
   leaf?: WorkspaceLeaf,
 ) => void;
 
-/**
- * The `file-menu` listener `registerFileMenu` installs for `segments`, over a
- * vault where every file carries `frontmatter`.
- */
 export function fileMenuHandler(
   segments: readonly FileMenuSegment[],
   frontmatter: Record<string, unknown> = {},

@@ -53,15 +53,6 @@ export function registerTemplateDataExplorer(
   });
 }
 
-/**
- * Every in-vault entry point delegates to this function. Two opens at once
- * open one pane. It opens the standalone Explorer, with its own Item, whether
- * or not an editor is open.
- *
- * @param options.paneType a pane the caller asks for, in Obsidian's URI
- *   vocabulary. Absent keeps the explorer's usual placement: the reusable
- *   sidebar leaf.
- */
 export const openTemplateDataExplorer = Effect.fn("TemplateDataExplorer.open")(
   function* (
     state?: { itemIndexedKey: string; anchorAnnotationKey?: string },
@@ -76,8 +67,6 @@ const openExplorerLeaf = Effect.fn("TemplateDataExplorer.openLeaf")(function* (
   paneType: PaneType | undefined,
 ) {
   const workspace = yield* Workspace;
-  // A named pane always gets a fresh leaf; without one the explorer reuses the
-  // free sidebar leaf it already has.
   const reused = paneType
     ? undefined
     : (yield* workspace.leavesOfType(EXPLORER_VIEW_TYPE)).find(
@@ -101,7 +90,6 @@ const openExplorerLeaf = Effect.fn("TemplateDataExplorer.openLeaf")(function* (
   yield* workspace.revealLeaf(leaf);
 });
 
-/** "Explore template data" on a Literature Note's file menu. */
 export function explorerFileMenu(deps: WorkbenchActionDeps): FileMenuSegment {
   return (menu, { itemKey }) => {
     if (!itemKey) return;

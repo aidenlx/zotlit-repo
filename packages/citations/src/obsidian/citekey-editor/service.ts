@@ -1,6 +1,3 @@
-// The citekey editor treatment service: it reads the settings that switch the
-// treatment on and owns the click that opens a citekey's note. Its CodeMirror
-// extension registers in ./register.
 import type { AmbiguousCandidate } from "#obsidian/citation-index/ambiguity.ts";
 import type {
   HoverPreferences,
@@ -32,15 +29,12 @@ import { hoverPreferences } from "#obsidian/citekey-navigation/index.ts";
 
 export type { AmbiguousCandidate } from "#obsidian/citation-index/ambiguity.ts";
 
-/** One Ambiguous Citation Key, as the candidate picker is asked to show it. */
 export interface AmbiguousCitekey {
   citekey: string;
   candidates: readonly AmbiguousCandidate[];
-  /** Where the chosen candidate's Literature Note opens. */
   pane: NavigationPane;
 }
 
-/** What an open reports when it opens no note by itself. */
 export type CitekeyEditorEvent =
   | { readonly _tag: "db-unavailable"; readonly citekey: string }
   | { readonly _tag: "citekey-not-found"; readonly citekey: string }
@@ -48,35 +42,19 @@ export type CitekeyEditorEvent =
       readonly _tag: "item-unavailable";
       readonly reason: "database" | "item";
     }
-  /** The citekey names several Items; a UI subscriber asks which one to open. */
   | {
       readonly _tag: "citekey-ambiguous";
       readonly ambiguous: AmbiguousCitekey;
     };
 
-/** What the citekey editor treatment does under one settings snapshot. */
 export interface CitekeyTreatment {
-  /** Whether literal Citations expose ZotLit navigation. */
   readonly navigationEnabled: boolean;
-  /** Whether Live Preview replaces complete Citations with formatted text. */
   readonly showFormatted: boolean;
-  /** Whether the extension is installed at all. */
   readonly active: boolean;
-  /**
-   * Whether Live Preview shows an Annotation Citation as its formatted text,
-   * which its hover answers with the Item's reference too. Independent of
-   * `active`: the annotation link extension is always installed.
-   */
   readonly annotationCitations: boolean;
-  /** What hover answers with. */
   readonly hover: HoverPreferences;
 }
 
-/**
- * The treatment `settings` ask for: nothing while Pandoc citations are off.
- * An Annotation Citation shows as one while it is a Citation at all and
- * Citations show formatted, whichever other syntaxes are on.
- */
 export function citekeyTreatment(
   settings: Readonly<Settings>,
 ): CitekeyTreatment {
@@ -96,49 +74,20 @@ export function citekeyTreatment(
   };
 }
 
-/**
- * The citekey editor treatment: literal Pandoc `@citekey` text opens the
- * Literature Note of the Zotero Item its native citation key names — the note
- * an Indexed Key already points at, or a note created from the matching Item.
- * An open that finds no single note reports why on `events`. An open never
- * fails: a defect is logged, and the open ends.
- */
 export class CitekeyEditor extends Context.Service<
   CitekeyEditor,
   {
-    /** What an open reports, from when the consumer's Stream starts. */
     readonly events: Stream.Stream<CitekeyEditorEvent>;
-    /** The palette commands gate on this independently from presentation. */
     readonly navigationEnabled: Effect.Effect<boolean>;
-    /**
-     * The Literature Note a page preview may show: the one note indexed under
-     * the Indexed Key a citekey resolves to. A citekey with zero or several
-     * notes answers with nothing, which keeps every preview path clear of the
-     * create-then-open flow. An Ambiguous Citation Key names no one Item, so
-     * it answers with nothing too.
-     */
     hoverNotePath(
       citekey: string,
       lookup?: CitationLookupAnswer | null,
     ): Effect.Effect<string | null>;
-    /**
-     * The Zotero Item a citekey names decides what opens: an existing note for
-     * its Indexed Key wins, and only an Item with no note at all creates one.
-     * A citekey naming several Items opens nothing by itself — it reports its
-     * candidates, and the choice opens one of them exactly.
-     */
     openCitekey(citekey: string, pane: NavigationPane): Effect.Effect<void>;
-    /**
-     * Opens one candidate of an Ambiguous Citation Key by its exact Indexed
-     * Key. The candidate already carries the identity the picker showed, so
-     * the Citation Key is never resolved again and the choice cannot re-enter
-     * ambiguity.
-     */
     openCandidate(
       candidate: AmbiguousCandidate,
       pane: NavigationPane,
     ): Effect.Effect<void>;
-    /** Opens an exact Item using current database identity and Literature Note paths. */
     openIndexedKey(
       indexedKey: string,
       pane: NavigationPane,
@@ -152,11 +101,6 @@ declare module "@zotlit/obsidian-kit/view-atoms.ts" {
   }
 }
 
-/**
- * The one Item a citekey names. An Ambiguous Citation Key answers with
- * nothing: it adopts no candidate's identity, so every surface reading this
- * treats it as a key that opens no single Item.
- */
 function uniqueItem(
   citekey: string,
   lookup: CitationLookupAnswer,
@@ -165,7 +109,6 @@ function uniqueItem(
   return resolved?.kind === "unique" ? resolved.item : null;
 }
 
-/** A failure `report` answers for; an interrupt stays an interrupt. */
 function reportFailure<A, E, R, B, R2>(
   effect: Effect.Effect<A, E, R>,
   report: (cause: Cause.Cause<E>) => Effect.Effect<B, never, R2>,
@@ -178,10 +121,6 @@ function reportFailure<A, E, R, B, R2>(
 }
 
 const log = withLogCategory("citekey-editor");
-/**
- * An open ends when a read, the creation flow or Obsidian fails: the failure
- * or defect is logged here, and the caller runs the open fire-and-forget.
- */
 const contained = logAndContinue("Cannot open the note", "citekey-editor");
 
 export const layerCitekeyEditor: Layer.Layer<
@@ -210,7 +149,6 @@ export const layerCitekeyEditor: Layer.Layer<
     );
     const report = (event: CitekeyEditorEvent) => PubSub.publish(events, event);
 
-    /** The live Item an Indexed Key names, or `undefined` when none does. */
     const readItem = (indexedKey: string) =>
       reads.reads
         .ItemsByIndexedKeys({ indexedKeys: [indexedKey] })
@@ -222,10 +160,6 @@ export const layerCitekeyEditor: Layer.Layer<
         state: { active: true },
       });
 
-    /**
-     * @param citekey the key the Item was reached by, for the not-found
-     *   report an exact candidate has no key to name.
-     */
     const openItem = Effect.fnUntraced(function* (
       item: SnapshotItem,
       pane: NavigationPane,
@@ -246,7 +180,6 @@ export const layerCitekeyEditor: Layer.Layer<
         return;
       }
 
-      // A failed read ends the open: the open's boundary logs it.
       const zoteroItem = yield* readItem(item.indexedKey);
       if (!zoteroItem) {
         yield* Effect.logDebug("Citekey open blocked").pipe(
@@ -293,7 +226,6 @@ export const layerCitekeyEditor: Layer.Layer<
         Effect.map((current) => citekeyTreatment(current).navigationEnabled),
         Effect.withSpan("CitekeyEditor.navigationEnabled"),
       ),
-      // Untraced: every hover over a citation reads it.
       hoverNotePath: Effect.fnUntraced(function* (citekey, answer) {
         const item = answer ? uniqueItem(citekey, answer) : null;
         if (!item) return null;

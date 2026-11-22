@@ -34,7 +34,6 @@ describe("collectionIDsByItemQuery", () => {
       .map((row) => row.collectionID)
       .toSorted((a, b) => a - b);
 
-    // item 1 is in 100, 101, 103, and the trashed 105 — 105 is dropped.
     expect(ids).toEqual([100, 101, 103]);
   });
 
@@ -53,7 +52,6 @@ describe("collectionNodesByLibraryQuery", () => {
       .map((row) => row.collectionID)
       .toSorted((a, b) => a - b);
 
-    // 102 and 105 are trashed; 200 belongs to library 2.
     expect(ids).toEqual([100, 101, 103, 104]);
   });
 });
@@ -75,8 +73,6 @@ describe("CollectionCache.byItemIDs", () => {
   });
 
   it("truncates a live collection's path at a trashed ancestor", () => {
-    // 103 "Deep" sits under the trashed 102 "Archive" (under live 100). The
-    // path roots at the first live ancestor in the node set — just ["Deep"].
     const deep = new CollectionCache().byItemIDs(db, 1, [1]).get(1)?.[0];
 
     expect(deep).toMatchObject({ name: "Deep", path: ["Deep"] });
@@ -85,8 +81,6 @@ describe("CollectionCache.byItemIDs", () => {
   it("reuses one node load across items (library cached on the instance)", () => {
     const cache = new CollectionCache();
     cache.byItemIDs(db, 1, [1]);
-    // A second call for the same library must still resolve correctly off the
-    // cached node map.
     expect(
       cache
         .byItemIDs(db, 1, [2])
@@ -104,9 +98,6 @@ describe("CollectionCache.byItemIDs", () => {
         ?.map((c) => c.name),
     ).toEqual(["Deep", "Reading", "Research"]);
 
-    // Mutating the underlying membership row must not affect a repeat call
-    // for the same itemID — proof the second call reused the first's result
-    // instead of re-querying.
     sqlite.exec("delete from collectionItems where itemID = 1");
 
     expect(

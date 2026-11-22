@@ -1,8 +1,3 @@
-/**
- * Test doubles for the node-colour suites. A theme states a node colour by
- * setting the custom property on something the reading inherits from, which is
- * what these state and clear.
- */
 import type { GraphColor, GraphData } from "obsidian";
 
 import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
@@ -28,7 +23,6 @@ export function themeStates(
   }
 }
 
-/** Puts the document back to a theme that states neither colour. */
 export function themeStatesNothing(): void {
   document.head.replaceChildren();
   document.body.replaceChildren();

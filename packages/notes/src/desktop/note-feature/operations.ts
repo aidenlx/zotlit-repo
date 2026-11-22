@@ -30,37 +30,22 @@ export type {
   UpdateScope,
 } from "./types.ts";
 
-/**
- * The Note Feature for callers outside Effect, as `bindNoteFeature` builds it
- * over the `NoteFeature` tag.
- */
 export interface NoteFeatureHandle extends NoteCitations, NoteCreation {
-  /** @see updateNote */
   updateNote(
     file: TFile,
     options: {
       indexedKey: string;
       scope?: UpdateScope;
       profile?: ProfileSelector;
-      /**
-       * Recheck a caller-owned editing session just before the note's one
-       * write; throwing leaves the note untouched. The write itself checks the
-       * note's Zotero key and refuses a note that no longer carries
-       * `indexedKey` with `literature-note-key-changed`.
-       */
       beforeWrite?: () => void;
     },
   ): Promise<UpdateResult>;
-  /** Imported Notes currently materialized for one Zotero item. */
   getImportedNotesForItem(indexedKey: string): Promise<TFile[]>;
-  /** @see replacedKeys */
   replacedKeys(file: TFile): Promise<ReadonlySet<string>>;
-  /** @see createNote */
   createNote(
     item: Item,
     options?: CreateNoteOptions,
   ): Promise<CreateNoteResult>;
-  /** @see overwriteNote */
   overwriteNote(
     file: TFile,
     indexedKey: string,

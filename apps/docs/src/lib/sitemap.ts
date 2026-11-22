@@ -1,12 +1,3 @@
-// The sitemap's URL table, keyed off the generated route tree.
-//
-// `FileRouteTypes["to"]` is every route this app serves. Subtracting the
-// machine endpoints below leaves the page routes, and the table is a
-// `Record` over exactly those: adding a page route leaves a key missing and
-// fails the typecheck until the route is placed here, so a new page cannot
-// silently escape the sitemap. A new machine endpoint fails the `satisfies`
-// below instead, which is the same decision made explicitly.
-
 import type { FileRouteTypes } from "@/routeTree.gen.ts";
 
 import type { SiteLocale } from "./i18n.ts";
@@ -14,7 +5,6 @@ import { getPageLocaleState } from "./locale-state.ts";
 import { baseURL } from "./shared.ts";
 import { blog, changelog, getLessonPages, learn, source } from "./source.ts";
 
-/** Routes that answer machines rather than readers, so no crawler indexes them. */
 const machineRoutes = [
   "/api/search",
   "/api/repo-stats",
@@ -31,9 +21,7 @@ const machineRoutes = [
 type PageRoute = Exclude<FileRouteTypes["to"], (typeof machineRoutes)[number]>;
 
 interface Entry {
-  /** The URL path this entry publishes. @default the route's own path */
   pathname?: string;
-  /** Each edition's publication or last-commit day in ISO form, for the pages that carry one. */
   lastModified?: Partial<Record<SiteLocale, string>>;
 }
 
@@ -46,11 +34,6 @@ function renderUrl(loc: string, lastModified?: string): string {
   return `<url><loc>${loc.replaceAll("&", "&amp;")}</loc>${lastmod}</url>`;
 }
 
-/**
- * The collections are `async`, so a page's git date rides with its compiled
- * body rather than the frontmatter head; the body is already compiled for the
- * Markdown editions, so this costs the sitemap no extra MDX work.
- */
 async function lastCommitDay(page: {
   data: { load(): Promise<{ lastModified?: Date }> };
 }): Promise<string | undefined> {
@@ -58,7 +41,6 @@ async function lastCommitDay(page: {
   return lastModified?.toISOString().slice(0, 10);
 }
 
-/** The page's Chinese edition, when a Chinese file exists rather than an English fallback. */
 export function nativeChinese<P extends { path: string; slugs: string[] }>(
   collection: { getPage(slugs: string[], locale: SiteLocale): P | undefined },
   page: P,
@@ -83,7 +65,6 @@ async function docsEntries(): Promise<Entry[]> {
   );
 }
 
-/** A post's last commit day, or its publication day when git knows no later one. */
 async function blogEntries(): Promise<Entry[]> {
   return Promise.all(
     blog.getPages("en").map(async (page) => {
@@ -101,7 +82,6 @@ async function blogEntries(): Promise<Entry[]> {
 }
 
 export async function renderSitemap(): Promise<string> {
-  // A missing key is a compile error: adding a page route forces a sitemap entry.
   const routes: Record<PageRoute, Entry[]> = {
     "/": [{ pathname: "" }],
     "/blog": [{}],
@@ -115,12 +95,8 @@ export async function renderSitemap(): Promise<string> {
       pathname: page.url,
       lastModified: { en: page.data.date, "zh-CN": page.data.date },
     })),
-    // The `/docs` index is a page of the collection too, and lists itself with
-    // an empty slug set, so the route above carries no entry of its own.
     "/docs/$": await docsEntries(),
     "/learn": [{}],
-    // A lesson's Chinese edition is dated from its own file; `nativeChinese`
-    // skips the English fallback a missing Chinese file leaves.
     "/learn/$lesson": await Promise.all(
       getLessonPages().map(async (page) => {
         const chinese = nativeChinese(learn, page);

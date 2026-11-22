@@ -28,7 +28,6 @@ function additionsOf(
   };
 }
 
-/** The metadata of a file the reader tagged, which the tag scan draws a node from. */
 const TAGGED: CachedMetadata = {
   tags: [
     {
@@ -41,7 +40,6 @@ const TAGGED: CachedMetadata = {
   ],
 };
 
-/** A metadata cache whose one method reads its own state through `this`. */
 function cacheWith(links: {
   resolved: MetadataCache["resolvedLinks"];
   unresolved: MetadataCache["unresolvedLinks"];
@@ -158,7 +156,6 @@ describe("facadeApp under the Filters rows", () => {
       resolved: {
         "Draft.md": { "Literature/Doe 2024.md": 1, "Other.md": 1 },
         "Other.md": { "Literature/Doe 2024.md": 1 },
-        // An aliased link no citation names, so the edge stays.
         "Alias.md": { "Literature/Doe 2024.md": 1 },
       },
       unresolved: {},
@@ -240,8 +237,6 @@ describe("facadeApp under the Filters rows", () => {
       }),
     );
 
-    // Other and todo both draw a node of their own where the link stands, so
-    // the row that took their nodes away takes the links with them.
     expect(facade.metadataCache.resolvedLinks).toEqual({
       "Draft.md": { "Literature/Doe 2024.md": 1 },
     });

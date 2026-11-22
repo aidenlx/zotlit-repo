@@ -1,6 +1,4 @@
 // @vitest-environment happy-dom
-// The Template Workbench fills the notes feature's launch port with its one
-// open, which shows the document in a Template Workbench View.
 import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { TFile } from "obsidian";
@@ -41,7 +39,6 @@ it.effect("opens a launched document in a Template Workbench View", () =>
         }),
       view: stubService<WorkspaceLeaf["view"]>("View", {}),
     });
-    // No Workbench is open, so the open takes a new window: `leaf`.
     const workspace = Layer.mock(Workspace, {
       leavesOfType: () => Effect.succeed([]),
       rootSplit: Effect.succeed(

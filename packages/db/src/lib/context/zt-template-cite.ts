@@ -1,4 +1,3 @@
-// Cite-template contract: narrowed cited-item data and the Citation Item wrapper.
 import type { ItemDate } from "#lib/zt-date.ts";
 import type { ItemExtra } from "#lib/zt-extra.ts";
 import type { Item } from "#queries/items.ts";
@@ -103,13 +102,11 @@ export type CitationVariant =
   /** Shift+Enter, or a trailing `/` in the suggester query. */
   | "alt";
 
-/** Every Citation Variant, in the order a chooser offers them. */
 export const CITATION_VARIANTS = [
   "main",
   "alt",
 ] as const satisfies readonly CitationVariant[];
 
-/** The variant a Citation takes when no gesture asks for the other one. */
 export const DEFAULT_CITATION_VARIANT: CitationVariant = "main";
 
 export function isCitationVariant(value: unknown): value is CitationVariant {
@@ -134,18 +131,8 @@ export interface CitationTemplateData {
   citations: readonly CitationTemplateItem[];
 }
 
-/**
- * A resolved ref's citation-scoped properties, as carried by the note-import
- * parser leg. The DB-query leg (citation-suggest) omits these and gets the
- * {@link toCitationItem} defaults.
- */
 export interface CiteRef {
   citationKey: string | null;
-  /**
-   * The cited item's data, when resolved: the live DB row, or already-narrowed
-   * data from a fallback leg (e.g. the embedded CSL-JSON snapshot, via
-   * {@link resolveCitedItem}). A citekey-only stub otherwise.
-   */
   item?: Item | TemplateCiteItemData;
   locator?: string | null;
   label?: string | null;
@@ -155,26 +142,9 @@ export interface CiteRef {
   suffix?: string | null;
 }
 
-/**
- * A {@link CiteRef} with every citation-scoped property resolved (never
- * omitted), as produced by the note-import parser leg — the DB-query leg is
- * the only caller relying on {@link CiteRef}'s optionality/defaults.
- */
 export type ResolvedCiteRef = Required<Omit<CiteRef, "item">> &
   Pick<CiteRef, "item">;
 
-/**
- * Build the cite-template contract from resolved refs — a real DB item is
- * narrowed onto {@link TemplateCiteItemData} when supplied, else a
- * citekey-only stub — wrapped in a Citation Item carrying each ref's
- * citation-scoped properties (locator/label/suppress-author/prefix/suffix),
- * defaulted when a caller (the DB-query leg) doesn't supply them. The ref's
- * own `citationKey` always wins over the item's, so legs may mix (e.g. an
- * embedded-snapshot key with live DB item data).
- *
- * @param variant the Citation Variant this citation was requested with; every
- *   caller names the gesture, so the Citation Template always reads one.
- */
 export function citekeysToCiteTemplateData(
   refs: readonly CiteRef[],
   variant: CitationVariant,
@@ -194,18 +164,10 @@ export function citekeysToCiteTemplateData(
   return { variant, items: citations.map((c) => c.item), citations };
 }
 
-/** A raw DB {@link Item} carries `fields`; already-narrowed cite data never does. */
 function isDbItem(item: Item | TemplateCiteItemData): item is Item {
   return "fields" in item;
 }
 
-/**
- * Narrow a full DB {@link Item} onto {@link TemplateCiteItemData}: the same
- * field vocabulary as {@link TemplateItemData}, dropping vault/DB-only context
- * (tags, dates-added/modified, library identity) the embedded CSL-JSON
- * snapshot leg can't express. `citationKey`/`citekey` are overridden with the
- * ref's already-resolved key rather than the item's own.
- */
 function narrowToCiteItemData(
   item: Item,
   citationKey: string | null,
@@ -216,13 +178,6 @@ function narrowToCiteItemData(
   );
 }
 
-/**
- * Narrow any already-built {@link TemplateItemBaseData} (e.g. the annotation
- * path's `TemplateParentItemData`) onto {@link TemplateCiteItemData},
- * dropping the same vault/DB-only context {@link narrowToCiteItemData} strips
- * from a raw DB item. Exported for callers (the annotation-citation path)
- * that build a {@link CiteRef} from template data rather than a raw DB item.
- */
 export function narrowBaseDataToCiteItemData(
   base: TemplateItemBaseData,
   citationKey: string | null,
@@ -235,8 +190,6 @@ export function narrowBaseDataToCiteItemData(
     dateAdded: _dateAdded,
     dateModified: _dateModified,
     tags: _tags,
-    // Parent-item resolvers (present when narrowing a TemplateParentItemData via
-    // the annotation-citation leg); excluded like the other vault/DB context.
     notePath: _notePath,
     noteLink: _noteLink,
     ...rest
@@ -249,20 +202,6 @@ export function narrowBaseDataToCiteItemData(
   };
 }
 
-/**
- * The three-tier Citation item-data policy (ADR-0003), as one named function:
- * the live DB row wins, else the note's embedded CSL-JSON snapshot, else a
- * citekey-only stub. The already-resolved citation key — which may originate in
- * a different tier than the item data (e.g. an embedded-snapshot key over live
- * DB data) — is stamped onto whichever tier supplies the data.
- *
- * The note-import parser leg calls this after fetching the live row and locating
- * the embedded snapshot; other legs build their {@link CiteRef} `item` directly.
- *
- * @param dbItem - the cited item's live DB row, when one was found
- * @param snapshot - the note's embedded CSL-JSON `itemData` for this ref, when present
- * @param citationKey - the ref's already-resolved citation key
- */
 export function resolveCitedItem(
   dbItem: Item | undefined,
   snapshot: Record<string, unknown> | undefined,
@@ -308,12 +247,6 @@ function stubCiteItem(citationKey: string | null): TemplateCiteItemData {
   };
 }
 
-/**
- * Fallback `labelShort` for an absent/unrecognized CSL locator label — Pandoc's
- * own default locator term. Shared with the note-import parser's
- * `pandocLocatorLabel`, which owns the full label vocabulary but defers to
- * this constant for its own fallback case.
- */
 export const DEFAULT_LOCATOR_LABEL_SHORT = "p.";
 
 function toCitationItem(

@@ -19,7 +19,6 @@ export function clipExcerptBounds(
   return crop;
 }
 
-/** Zotero's padded small-ink crop includes round-cap spill in PDF units. */
 export function excerptBounds(annotation: AnnotationRecord): number[] {
   const position = annotation.position;
   if (annotation.type === "image" && position.kind === "pdf-rects") {
@@ -57,7 +56,6 @@ export function excerptBounds(annotation: AnnotationRecord): number[] {
   throw new Error("Unsupported excerpt bounds");
 }
 
-/** Apply the same rotated, crop-box-aware viewport to the crop and strokes. */
 export function viewportBounds(
   crop: number[],
   viewport: ExcerptViewport,
@@ -72,7 +70,6 @@ export function viewportBounds(
   ];
 }
 
-/** Paint stored paths after the PDF background; isolated points are round marks. */
 export function paintInk(options: {
   annotation: AnnotationRecord;
   viewport: ExcerptViewport;

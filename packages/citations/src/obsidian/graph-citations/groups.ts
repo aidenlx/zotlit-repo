@@ -1,5 +1,3 @@
-// The "Add literature notes group" button beside the graph's native "New group" control, and the one colour group it inserts.
-
 import { Effect } from "effect";
 import { around } from "monkey-around";
 import type {
@@ -19,35 +17,19 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { targetOnce } from "./install.ts";
 import type { GraphNodeColors } from "./node-color.ts";
 
-/**
- * The search query the inserted group carries: every note holding the
- * `zotero-key` property, which is what makes a note a Literature Note.
- * `[property]` is Obsidian's own property-existence operator, and the quotes
- * carry the hyphen through it.
- */
 export const LITERATURE_NOTES_QUERY = `["${FIELD_ZOTERO_KEY}"]`;
 
-/** What `targetOnce` keeps this probe's own report under. */
 const PROBE_KEY = "color-groups";
 
-/** The engine member the button writes a group through. */
 export interface GroupsEngine {
   setOptions(options: GraphOptions): void;
 }
 
-/** The engine members the button reads and writes. */
 export interface GroupsTarget {
   engine: GroupsEngine;
   section: GraphColorGroupSection;
 }
 
-/**
- * Locates the Groups section and the engine member the button writes through.
- * A build that moved any of them is reported at `warn` once per graph and gets
- * no button, so the panel keeps its native shape.
- *
- * @returns `null` when a member is missing.
- */
 export function groupsTarget(engine: GraphEngine): GroupsTarget | null {
   const section = engine.colorGroupOptions;
   return targetOnce(engine, {
@@ -66,16 +48,6 @@ export function groupsTarget(engine: GraphEngine): GroupsTarget | null {
   });
 }
 
-/**
- * Inserts the literature notes colour group, unless a group already carries its
- * query. The insertion goes through the engine's set-options path, so the
- * result is an ordinary group the user can recolour, reorder, or delete: the
- * Groups section's own option listener rebuilds the rows, re-runs the search,
- * and saves the graph's options.
- *
- * @param color what the group starts at, which the user is free to change.
- * @returns whether a group was added.
- */
 export function addLiteratureNotesGroup(
   target: GroupsTarget,
   color: GraphColor,
@@ -101,15 +73,6 @@ export function addLiteratureNotesGroup(
   return true;
 }
 
-/**
- * Builds the "Add literature notes group" button into the Groups section, below
- * the native "New group" control and styled as it is.
- *
- * @param colors read at click time, so the group starts with the theme override
- *   or the ZotLit accent for the active color scheme.
- * @returns a Disposable that leaves the section as found. Empty when the
- *   section could not be read; the panel then keeps its native shape.
- */
 export function installGroupsButton(
   engine: GraphEngine,
   colors: GraphNodeColors,
@@ -132,13 +95,6 @@ export function installGroupsButton(
       );
     },
   );
-  // Three paths rebuild the section body from scratch, which takes the button
-  // with it: the section's own `colorGroups` option listener, a drag-reorder of
-  // the rows, and the panel's "Restore default settings". Placing the button
-  // again after each rebuild is what keeps it there; `append` moves the one
-  // element rather than building another. The native "New group" and the
-  // per-row delete instead mutate the group rows in place, and leave the
-  // button's own container standing.
   restores.defer(
     around(section, {
       setColorQueries: (setColorQueries) =>

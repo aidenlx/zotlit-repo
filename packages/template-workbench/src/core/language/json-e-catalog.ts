@@ -1,5 +1,3 @@
-// JSON-e operator shapes and function documentation from upstream docs/src and specification.yml.
-// These describe authoring choices; the JSON-e renderer owns semantic validation.
 export const jsonOperators: Record<
   string,
   { description: string; value: unknown; siblings?: Record<string, unknown> }

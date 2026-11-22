@@ -1,5 +1,4 @@
 import type { ResourcePackHostPorts } from "#obsidian/managed-binary/pack-platform.ts";
-// The Chinese Segmenter over a fake device and an in-process ZoteroReads worker.
 import { Layer } from "effect";
 
 import {
@@ -17,17 +16,12 @@ import type { ChineseSegmenter } from "./service.ts";
 import { readSegmenterOver } from "#core/chinese-segmenter/pack-reader.ts";
 import { layerPackDevice } from "#obsidian/managed-binary/__fixtures__.ts";
 
-/** The handler options of a worker that reads the Segmenter from the pack of `device`. */
 export const segmenterHandlers = (
   device: ResourcePackHostPorts,
 ): Pick<HandlersOptions, "readSegmenter"> => ({
   readSegmenter: readSegmenterOver((url) => device.open(url)),
 });
 
-/**
- * The Chinese Segmenter on `device`, over `reads`: by default an in-process
- * worker on an empty database that reads the pack of the device.
- */
 export const layerDeviceSegmenter = (
   device: ResourcePackHostPorts,
   reads: Layer.Layer<ZoteroReads> = layerZoteroReads(

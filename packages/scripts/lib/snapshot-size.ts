@@ -1,13 +1,5 @@
-// oxlint's jest/no-large-snapshots reads inline snapshots only, so the entries
-// of a `.snap` file get this check. A whole-output snapshot pins structure,
-// not behavior (policies/tautological-tests.md › Bulk output).
 import { regex } from "arkregex";
 
-/**
- * The most lines one `.snap` entry may hold. It admits the deliberate contract
- * snapshots (the docs package-swap tree is 551 lines) and rejects a catalog
- * dump.
- */
 export const MAX_SNAPSHOT_LINES = 600;
 
 const ENTRY_START = regex("^exports\\[`(?<name>.*)`\\] = `");
@@ -17,10 +9,6 @@ export interface LargeSnapshot {
   readonly lines: number;
 }
 
-/**
- * The entries of a `.snap` file longer than `maxLines`, counted from the
- * `exports[...]` line through the closing `` `; `` line.
- */
 export function largeSnapshots(
   text: string,
   maxLines = MAX_SNAPSHOT_LINES,
@@ -40,7 +28,6 @@ export function largeSnapshots(
   return large;
 }
 
-/** The message that names each large entry and the way on. */
 export function largeSnapshotsMessage(
   files: readonly {
     readonly path: string;

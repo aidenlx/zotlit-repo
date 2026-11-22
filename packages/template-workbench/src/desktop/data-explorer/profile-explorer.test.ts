@@ -43,7 +43,6 @@ import { WorkbenchHostProvider } from "#obsidian/workbench-ui/index.tsx";
 import { TEST_APP, watchChoosers } from "#obsidian/workbench-ui/test-host.tsx";
 
 const read = vi.fn<NonNullable<ExplorerReads["read"]>>();
-/** What the next Item list's read of the recent Items answers. */
 let recent: Effect.Effect<SearchHit[]> = Effect.succeed([]);
 let host: ExplorerHost;
 beforeEach(async () => {
@@ -52,7 +51,6 @@ beforeEach(async () => {
   host = await makeExplorerHost({ read, recent: () => recent });
 });
 afterEach(() => host.close());
-/** Gives `child` the host's registry and one Explorer model. */
 function withModel(model: ExplorerModel, child: ReactNode) {
   return createElement(
     ViewRegistryProvider,
@@ -61,7 +59,6 @@ function withModel(model: ExplorerModel, child: ReactNode) {
   );
 }
 const PAPER: WorkbenchItemChoice = { id: "PAPER234", title: "Paper" };
-/** Shows `root` of `item` in `session`, as a choice in the Explorer does. */
 function show(
   session: ExplorerSessionHandle,
   {
@@ -139,7 +136,6 @@ describe("independent Explorer", () => {
     expect(session.state().data?.title).toBe("Current");
     show(session);
     await waitFor(() => expect(read).toHaveBeenCalledTimes(3));
-    // The new Item interrupted the first read; the close interrupts the last.
     expect(host.cancelled).toEqual(["PAPER234"]);
     session[Symbol.dispose]();
     await waitFor(() =>

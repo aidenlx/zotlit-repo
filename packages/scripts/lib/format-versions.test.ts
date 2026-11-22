@@ -12,8 +12,6 @@ const entry = {
   constant: "SCHEMA_VERSION",
 };
 
-// Failure modes: repeated unreleased bumps, new formats starting above 1,
-// missing declarations, malformed literals, and resource tags as the baseline.
 describe("persisted format versions", () => {
   it.each([
     [1, 1, true],

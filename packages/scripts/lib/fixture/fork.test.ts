@@ -41,8 +41,6 @@ async function fixture() {
   return layout;
 }
 
-// Failure modes: shared database/assets, missed WAL commits, overwrite of a
-// prior fork, path escape, missing source and partial copies left after errors.
 describe("Fixture data forks", () => {
   it("isolates database and asset writes, then removes only the fork", async () => {
     const layout = await fixture();

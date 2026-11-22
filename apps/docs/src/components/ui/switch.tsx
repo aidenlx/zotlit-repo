@@ -1,5 +1,3 @@
-// shadcn Base UI Switch, with a 40 px pointer target and the site's colors.
-// @see https://ui.shadcn.com/docs/components/base/switch
 import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
 
 import { cn } from "@/lib/cn.ts";

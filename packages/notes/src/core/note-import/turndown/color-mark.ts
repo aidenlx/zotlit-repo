@@ -1,5 +1,3 @@
-// Inline color marks shared by Zotero annotation excerpts and note-editor color
-// spans, rendered as HTML or opt-in Colored Highlight Syntax.
 import { highlightEmoji } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 import type { HighlightMappings } from "@zotlit/plugin-kernel/highlight-mapping.ts";
 
@@ -57,20 +55,6 @@ export function renderHighlight(
   return renderColorMark("highlight", text, color);
 }
 
-/**
- * Render an inline color mark as
- * `<tag class="…" [data-color="…" style="prop: var(--zotlit-…-{name}, {raw})"]>text</tag>`.
- * Color resolves to a theme-overridable CSS variable with the raw color as
- * fallback, so it renders standalone yet a snippet can override it without
- * `!important`. An unmapped color (`name` null) falls back to the inline raw
- * color with no variable; a colorless mark (`color` null) keeps just the class.
- *
- * @param color.raw - the source CSS color (`#rrggbb`, `rgb(...)`, or `rgba(...)`),
- *   used as the `var()` fallback.
- * @param color.name - the palette name resolved by the caller
- *   (`annotationColorToName` / `highlightColorToName` / `textColorToName`), or
- *   `null` when the color is outside the palette.
- */
 export function renderColorMark(
   kind: ColorMarkKind,
   text: string,

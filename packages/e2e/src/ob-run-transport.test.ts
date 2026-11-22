@@ -5,8 +5,6 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const socketBoundary = vi.hoisted(() => ({
   answer: async (_code: string): Promise<string> => "",
 }));
-// Node's promise timer retains its original timer even when globals are faked.
-// Keep this OS boundary on the test clock too.
 vi.mock("node:timers/promises", () => ({
   setTimeout: (milliseconds: number) =>
     new Promise<void>((resolve) => setTimeout(resolve, milliseconds)),
@@ -121,7 +119,6 @@ it("defaults to true and names the last rejected value on exhaustion", async () 
   await rejected;
 });
 
-// Preserve wrapper behavior through the public typed transport.
 it("awaits a callback promise", async () => {
   expect(await obRun("vault", () => Promise.resolve(7))).toBe(7);
 });

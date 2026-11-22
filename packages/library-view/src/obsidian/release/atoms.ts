@@ -1,4 +1,3 @@
-// The running release version, shared by view leaves through the plugin registry.
 import { Effect } from "effect";
 
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";

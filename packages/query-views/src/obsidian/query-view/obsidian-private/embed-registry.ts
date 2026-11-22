@@ -1,9 +1,3 @@
-// The one place ZotLit reads Obsidian's private embed registry, which draws
-// `![[file.ext]]` for a file type; Bases embeds its `.base` files through it.
-// A build without the registry gets no ZotLit embed: Obsidian then draws its
-// own file card, which opens the file.
-//
-// @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
 import { Effect } from "effect";
 import type { App, EmbedCreator } from "obsidian";
 
@@ -14,12 +8,6 @@ import {
 
 export type { EmbedComponent, EmbedContext, EmbedCreator } from "obsidian";
 
-/**
- * Draw `![[file.<extension>]]` with `creator`.
- *
- * @returns the callback that removes the creator, or `null` after one `warn`
- *   when this Obsidian build has no registry to take it.
- */
 export function registerEmbed(
   app: App,
   extension: string,
@@ -50,7 +38,6 @@ export function registerEmbed(
     );
     return null;
   }
-  // A plugin reload that left its creator behind would make the register throw.
   if (isRegistered.call(registry, extension))
     unregister.call(registry, extension);
   register.call(registry, extension, creator);

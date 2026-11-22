@@ -33,7 +33,6 @@ import { ChineseSegmenter } from "./service.ts";
 
 import { packDevice, packFile } from "#obsidian/managed-binary/test-utils.ts";
 
-/** The web-target binary the Resource Pack holds, read from the `jieba-wasm` dev dependency. */
 const BINARY = new Uint8Array(
   await readFile(
     join(
@@ -46,7 +45,6 @@ const BINARY = new Uint8Array(
 const pack = (binary: Uint8Array<ArrayBuffer>) =>
   Effect.promise(() => packFile({ "chinese-segmenter": binary }));
 
-/** The Chinese Segmenter on `device`, over `reads` or a worker that reads the device's pack. */
 const segmenterOn = (
   device: ReturnType<typeof packDevice>,
   reads?: Layer.Layer<ZoteroReads>,
@@ -143,7 +141,6 @@ describe("Chinese Segmenter", () => {
     () =>
       Effect.gen(function* () {
         const state = yield* SubscriptionRef.make(readsState("ready"));
-        // The worker that serves after the first one cannot read the pack.
         let readable = true;
         const reads = Context.get(
           yield* Layer.build(

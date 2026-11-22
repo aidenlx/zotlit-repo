@@ -8,17 +8,6 @@ import { createSender } from "./send.ts";
 
 const logger = appLogger.getChild("notify");
 
-/**
- * Register all event push surfaces (`reader/active`, `reader/annot-select`)
- * plus the freshness pipeline that keeps `zotero.sqlite` current for the
- * Obsidian side and signals it (`db/updated`). Returns a {@link Disposable}
- * that unregisters the underlying Zotero observers and disconnects the reader
- * DOM observers in LIFO order — important for RDP dev reloads where stale
- * registrations would otherwise linger.
- *
- * Observers are always registered; the `notify` master switch is read at emit
- * time (see {@link notifyEnabled}), so toggling it needs no re-registration.
- */
 export interface Notify extends Disposable {
   checkpoint: WalCheckpoint;
 }

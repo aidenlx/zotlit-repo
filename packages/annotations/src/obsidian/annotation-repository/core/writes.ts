@@ -1,5 +1,3 @@
-// Writes and conflicts: every command to Zotero, run one at a time per Annotation, and what its answer leaves behind.
-
 import type {
   AnnotationLock,
   LockedVerb,
@@ -109,111 +107,54 @@ import {
   writePosition,
 } from "#obsidian/annotation-repository/write.ts";
 
-/** The write failure a lock gives, with its Lock Reason. */
 type LockedFailure = Extract<WriteFailure, { kind: "locked" }>;
 
-/**
- * Why a write's run answered no outcome: a read under it failed, or it threw.
- * Its `cause` is a `WriteReadError` or a defect from the run.
- */
 export class WriteRunFailed extends Schema.TaggedError<
   WriteRunFailed,
   { readonly brand: unique symbol }
 >()("WriteRunFailed", { cause: Schema.Defect() }) {}
 
-/**
- * What a write answers when the repository closed under it: Zotero may or
- * may not have taken it.
- */
 const UNKNOWN_OUTCOME: MutationState = {
   kind: "failed",
   failure: { kind: "unknown-outcome" },
 };
 
-/** One write on the query client's mutation cache; its variables are its proposal. */
-/**
- * What a write does once its turn comes, given the send itself: it can answer
- * still pending with nothing sent, or act on its outcome before the next
- * write on the Annotation starts. It runs inside the write, on the layer's
- * bridge.
- */
 type WriteTurn = (
   send: Effect.Effect<MutationState, WriteReadError>,
   own: AnnotationMutation,
 ) => Effect.Effect<MutationState, WriteReadError>;
 
-/** One command, as {@link command} takes it. */
 type Command = WriteAttempt & {
   request: (target: WriteTarget, record: AnnotationRecord) => WriteRequest;
   settle?: "re-read" | "drop";
   join?: HistoryJoin;
-  /** The fields the write proposes, from the confirmed record it goes to. */
   propose?: (record: AnnotationRecord) => ProposedFields;
   run?: WriteTurn;
   gather?: GroupWrites;
 };
 
-/** One command once it is queued, as {@link runCommand} sends it. */
 type QueuedCommand = WriteAttempt & {
   expectedServerID: string | null;
   generation: number;
   request: (target: WriteTarget, record: AnnotationRecord) => WriteRequest;
   settle?: "re-read" | "drop";
   join?: HistoryJoin;
-  /**
-   * Where a write of a group puts what it landed; the group records one
-   * step for all of them once every write settles.
-   */
   gather?: GroupWrites;
-  /** Set on the second send of a tag write, after its `412` re-read. */
   reapplied?: true;
-  /**
-   * What Zotero answered the send, or `null` while no answer is read. A close
-   * of the layer after the answer interrupts only the reads that follow, so
-   * the write keeps it. Read only by the `mutationFn` edge.
-   */
   progress?: { answer: MutationState | null };
 };
 
-/** Why a write's reads failed under it. */
 type WriteReadError = DatabaseRowsError | AnnotationLibraryUnresolved;
 
-/** What one create ended with. */
 export type CreateOutcome =
-  /** @param annotationKey the Indexed Key Zotero generated. */
   | { kind: "created"; annotationKey: string }
   | { kind: "failed"; failure: WriteFailure };
 
-/**
- * Create one highlight or underline on an Attachment, from a user gesture.
- *
- * An explicit authorization must already be available. The write is a
- * one-element multi-object `POST` carrying
- * a write token and no client key, and its answer is checked object by object
- * before the created Annotation is read back.
- *
- * The Attachment's list is dropped rather than patched, because the list is
- * kept in Zotero's own reading order and only a fresh read can place a new
- * Annotation in it.
- *
- * @param attachmentKey the Attachment's Indexed Key.
- * @param create.draft everything about the Annotation except its parent,
- *   which this Attachment names; its Sort Index was computed from the
- *   unrounded position.
- * @param create.group what joins this create to the others of one gesture in
- *   the Annotation History — one ink stroke split at the position ceiling
- *   creates several Annotations and is still one History Step. A create that
- *   names none is a step of its own.
- * @see apps/obsidian/docs/adr/0038-write-authorization-starts-only-from-a-user-gesture.md
- */
 const createAnnotation = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
   create: { draft: Omit<AnnotationDraft, "parentKey">; group?: string },
 ): Effect.fn.Return<CreateOutcome, WriteReadError> {
-  // The create runs on the layer's Scope, as a command does. A close of the
-  // layer interrupts it: before Zotero answered the send, its outcome is
-  // unknown; after, the create keeps that answer.
   const progress: { answer: CreateOutcome | null } = { answer: null };
   const fiber = yield* FiberSet.run(
     core.fibers,
@@ -245,10 +186,6 @@ const sendCreate = Effect.fnUntraced(function* (
   }: {
     draft: Omit<AnnotationDraft, "parentKey">;
     group?: string;
-    /**
-     * What Zotero answered the create, or `null` while no answer is read.
-     * Read only by {@link createAnnotation}.
-     */
     progress: { answer: CreateOutcome | null };
   },
 ): Effect.fn.Return<CreateOutcome, WriteReadError> {
@@ -337,13 +274,6 @@ const sendCreate = Effect.fnUntraced(function* (
   return { kind: "created", annotationKey };
 });
 
-/**
- * Recolour one Annotation, of whatever type: Zotero's colour setter is one
- * rule for all six, so an ink stroke recolours like a highlight.
- *
- * @param annotationKey the Annotation's Indexed Key.
- * @param color the swatch to store, in any case; the write sends lower case.
- */
 const patchColor = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -352,18 +282,6 @@ const patchColor = Effect.fnUntraced(function* (
   return yield* recolor(core, annotationKey, { color });
 });
 
-/**
- * Recolour a group of Annotations in Zotero, from one gesture on the Card
- * Selection. Each Annotation goes out as a request of its own and keeps its
- * own outcome, a Write Conflict included. The recolours that land are one
- * History Step, so one undo puts every colour back; a recolour that did not
- * land is not in it. A lock on one Annotation refuses the whole group, so
- * none goes out.
- *
- * @param annotationKeys Indexed Keys, in the order the step names them.
- * @param color the swatch to store, in any case; the write sends lower case.
- * @returns one outcome per key, in the order of `annotationKeys`.
- */
 const patchColors = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKeys: readonly string[],
@@ -376,10 +294,6 @@ const patchColors = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * @param recolour.gather where a recolour of a group puts its landed write,
- *   rather than recording a step of its own.
- */
 const recolor = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -394,11 +308,6 @@ const recolor = Effect.fnUntraced(function* (
   });
 });
 
-/**
- * Replace one Annotation's comment. An empty string clears it.
- *
- * @param annotationKey the Annotation's Indexed Key.
- */
 const patchComment = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -410,7 +319,6 @@ const patchComment = Effect.fnUntraced(function* (
   });
 });
 
-/** Replace one text field of an Annotation. An empty string clears it. */
 const writeText = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -426,18 +334,6 @@ const writeText = Effect.fnUntraced(function* (
   });
 });
 
-/**
- * Save one Geometry Edit: the new position, the Sort Index recomputed from
- * it, and for a highlight or underline the quoted text. The record Zotero
- * answers after the write is what the marks and cards draw next.
- *
- * @param annotationKey the Annotation's Indexed Key.
- * @param geometry.edit its Sort Index was computed from the unrounded
- *   position.
- * @param geometry.input what made the edit. A run of keyboard edits on one
- *   Annotation is one History Step; a pointer gesture is a step of its own.
- * @see apps/obsidian/docs/adr/0040-the-sort-index-and-page-label-are-computed-in-obsidian-from-a-port-of-zoteros-text-structure.md
- */
 const patchGeometry = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -467,13 +363,6 @@ const patchGeometry = Effect.fnUntraced(function* (
   });
 });
 
-/**
- * Erase one Annotation in Zotero. The record leaves the Attachment's list
- * only once Zotero has answered, so the card and the Annotation Mark stand
- * until the delete is real.
- *
- * @param annotationKey the Annotation's Indexed Key.
- */
 const deleteAnnotation = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -481,10 +370,6 @@ const deleteAnnotation = Effect.fnUntraced(function* (
   return yield* erase(core, annotationKey);
 });
 
-/**
- * @param gather where a delete of a group puts its landed write, rather than
- *   recording a step of its own.
- */
 const erase = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -503,17 +388,6 @@ const erase = Effect.fnUntraced(function* (
   });
 });
 
-/**
- * Erase a group of Annotations in Zotero, from one gesture on the Card
- * Selection. Each Annotation goes out as a request of its own and keeps its
- * own outcome, a Write Conflict included. The deletes that land are one
- * History Step, so one undo puts all of them back; a delete that did not
- * land is not in it. A lock on one Annotation refuses the whole group, so
- * none goes out and no draft of the group is ended.
- *
- * @param annotationKeys Indexed Keys, in the order the step names them.
- * @returns one outcome per key, in the order of `annotationKeys`.
- */
 const deleteAnnotations = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKeys: readonly string[],
@@ -525,25 +399,6 @@ const deleteAnnotations = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * Send one write per Annotation of a group at once, and record what landed
- * as one History Step once every write has settled. A write another surface
- * confirms meanwhile is a step of its own and stays below this one, so one
- * undo still takes the whole group.
- *
- * A write that threw is an outcome ZotLit never learned, so the other
- * Annotations keep theirs.
- *
- * Every lock is read before any write starts. Where one refuses the verb,
- * nothing is sent: the first refused Annotation answers its `locked`
- * failure, so the notice names its Lock Reason once, and every other
- * Annotation answers `idle`.
- *
- * @param group.kind the one kind of step every write of the group joins.
- * @param group.annotationKeys Indexed Keys, in the order the step names them.
- * @param write one Annotation's write, which puts what it landed in `gather`.
- * @returns one outcome per key, in the order of `annotationKeys`.
- */
 const groupWrite = Effect.fnUntraced(function* <E>(
   core: CoreState,
   {
@@ -555,8 +410,6 @@ const groupWrite = Effect.fnUntraced(function* <E>(
     gather: GroupWrites,
   ) => Effect.Effect<MutationState, E>,
 ) {
-  // A group verb is all or nothing, as in Zotero's reader: one Annotation
-  // the lock refuses keeps every write of the group from going out.
   const locked = yield* firstHeldLockRefusal(core, annotationKeys, kind);
   if (locked)
     return annotationKeys.map((key): MutationState =>
@@ -588,16 +441,6 @@ const groupWrite = Effect.fnUntraced(function* <E>(
   return settled;
 });
 
-/**
- * Send one conflicted write again, against the value Zotero holds now — the
- * card's "Apply again", and its "Delete anyway". The user has seen both
- * values by then, so this asks for the same change with the fresh version as
- * its precondition.
- *
- * @param annotationKey the Annotation's Indexed Key.
- * @returns what the second write left, which is `idle` where it landed and
- *   another conflict where Zotero moved again.
- */
 const retryWrite = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -619,19 +462,11 @@ const retryWrite = Effect.fnUntraced(function* (
     case "geometry":
       return yield* patchGeometry(core, annotationKey, {
         edit: conflict.attempted,
-        // The re-send is the very edit the conflict refused, so a nudge goes
-        // again as a nudge and the run it belongs to stays one step.
         input: conflict.input,
       });
   }
 });
 
-/**
- * Leave Zotero's copy as it stands, from the card's "Discard". The card goes
- * back to what the last read answered; nothing is sent.
- *
- * @param annotationKey the Annotation's Indexed Key.
- */
 const discardConflict = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -644,41 +479,11 @@ const discardConflict = Effect.fnUntraced(function* (
   settle(core, annotationKey, { write: standing.conflict.write, state: IDLE });
 });
 
-/**
- * One command, from the record it stamps its precondition off to the state it
- * leaves on the card.
- *
- * Everything a write needs comes from the list the active source already
- * answered, which is what makes a command take keys alone. The database
- * partition supplies committed versions for source handoff, but writes wait
- * for an active Local API source and its authorization state.
- *
- * Every mutation requires an existing authorization.
- *
- * The write is a mutation on the query client's mutation cache, which runs
- * the writes of one Annotation one at a time. Query Core calls the write for
- * a Promise: it runs on the layer's bridge, so the layer's close interrupts
- * it, and the write then answers that its outcome is not known.
- *
- * @param command.write which verb this is, so a conflict can name the two
- *   values the card puts side by side.
- * @param command.attempted the value the user asked for; `null` for a delete.
- * @param command.request the request, built against the held record's
- *   version and type.
- * @param command.settle whether the Annotation is read back after the `204`,
- *   or leaves the list because the write erased it.
- * @param command.join what a confirmed edit joins the step before it by,
- *   where the edit came from an input that runs.
- * @see apps/obsidian/docs/adr/0034-the-annotation-source-is-atomic-per-attachment.md
- * @see apps/obsidian/docs/adr/0038-write-authorization-starts-only-from-a-user-gesture.md
- */
 const command = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
   command: Command,
 ): Effect.fn.Return<MutationState, WriteRunFailed> {
-  // A lock refuses the write before it is built, so no Pending Proposal is
-  // drawn and a Write Conflict standing on the Annotation stays.
   const locked = yield* lockRefusal(core, annotationKey, command.write);
   if (locked) return { kind: "failed", failure: locked };
   const expectedServerID =
@@ -698,13 +503,9 @@ const command = Effect.fnUntraced(function* (
   const { client } = core.queries;
   const mutation: AnnotationMutation = client.getMutationCache().build(client, {
     mutationKey: [ANNOTATIONS, annotationKey, command.write],
-    // One write per Annotation at a time, in the order they were asked for.
     scope: { id: JSON.stringify([ANNOTATIONS, annotationKey]) },
-    // Zotero runs on this device, so no write waits for an online event.
     networkMode: "always",
     mutationFn: async () => {
-      // A close of the layer interrupts the write: before Zotero answered the
-      // send, its outcome is unknown; after, the write keeps that answer.
       const progress: { answer: MutationState | null } = { answer: null };
       const send = runCommand(core, annotationKey, { ...queued, progress });
       const exit = await core.bridge.runPromiseExit(
@@ -713,16 +514,12 @@ const command = Effect.fnUntraced(function* (
       return valueOr(exit, progress.answer ?? UNKNOWN_OUTCOME);
     },
   });
-  // The mutation holds its proposal from here on, so a surface redrawing on
-  // this announcement draws it in the same task.
   core.pendingStates.set(mutation, {
     kind: "pending",
     write: command.write,
     ...("session" in command && command.session && { session: true }),
   });
   const operation = mutation.execute(proposal);
-  // Query Core answers the write as a Promise: the wait on it is the edge
-  // that every caller of the write, and every caller that joins it, takes.
   const answer = Effect.tryPromise({
     try: () => operation,
     catch: (cause) => new WriteRunFailed({ cause }),
@@ -735,10 +532,6 @@ const command = Effect.fnUntraced(function* (
     });
   }
   core.publish({ _tag: "annotation-changed", annotationKey });
-  // A write that settles lets its proposal go: confirmed, the list already
-  // holds the same value; refused, the confirmed value is drawn again. What
-  // it left on the Annotation is announced in the same turn, on the
-  // mutation's own Promise, before any caller of the write resumes.
   const settled = () => {
     if (proposal) {
       core.publish({
@@ -807,8 +600,6 @@ const runCommand: (
       });
     }
 
-    // The write takes over its field: a failure on the Annotation, or a
-    // conflict of this field, is over once this one runs.
     takeOver(core, annotationKey, command.write);
     const blocked = yield* writeBlocked(core, held.attachmentKey);
     if (blocked) {
@@ -821,8 +612,6 @@ const runCommand: (
       });
     }
 
-    // The lock is read before the write goes out: a database read after it
-    // no longer holds a deleted Annotation, and so no longer its lock.
     const lock = core.locks.get(held.attachmentKey)?.get(annotationKey)?.reason;
     const library = libraryPath(parsed);
     const { path, method, headers, body } = command.request(
@@ -830,7 +619,6 @@ const runCommand: (
       held.record,
     );
     const source = yield* compatibleApiSource(core, held.attachmentKey);
-    // A second send (a tag write applied again) starts with no answer.
     if (command.progress) command.progress.answer = null;
     const reply = yield* core.localApi.authorizedSend(path, {
       library,
@@ -954,13 +742,6 @@ const runCommand: (
   },
 );
 
-/**
- * Count one write against its Attachment while it is in flight, which is what
- * the Annotation History's guard reads.
- *
- * @param attachmentKey the Attachment the write lands on, or `undefined`
- *   where no list holds the Annotation and the write will refuse itself.
- */
 function counted<A, E>(
   core: CoreState,
   attachmentKey: string | undefined,
@@ -979,11 +760,6 @@ function counted<A, E>(
   );
 }
 
-/**
- * The end of one counted write. The last write on an Attachment while no
- * Local API source stands reads its list again from the Zotero database, on
- * the layer's Scope.
- */
 const uncount = Effect.fnUntraced(function* (
   core: CoreState,
   attachmentKey: string,
@@ -1010,12 +786,6 @@ const uncount = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * The `locked` failure one verb meets on an Annotation; see
- * {@link firstHeldLockRefusal}.
- *
- * @param annotationKey the Annotation's Indexed Key.
- */
 const lockRefusal = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -1026,18 +796,6 @@ const lockRefusal = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * The first lock that refuses a write of `kind` over these Annotations: one
- * write, the writes of a group verb, and the Annotations one History Step
- * changes. The Editing Capability keeps priority: a lock on an Attachment
- * whose capability refuses the write too stands aside, and the write meets
- * the capability's own refusal, whose reason can carry an action.
- *
- * @param annotationKeys Indexed Keys, in the order the first is picked from.
- * @param kind the kind of write; a History Step's `existence` is a delete.
- * @returns the first refused Annotation with its `locked` failure, or `null`
- *   where every lock allows the write.
- */
 const firstHeldLockRefusal = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKeys: readonly string[],
@@ -1066,10 +824,6 @@ const firstHeldLockRefusal = Effect.fnUntraced(function* (
   return { annotationKey, failure: { kind: "locked", reason: lock.reason } };
 });
 
-/**
- * The lock a write meets on one Annotation, or `null` where it has none or
- * where the Editing Capability of its Attachment refuses the write first.
- */
 const writeLock = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -1115,25 +869,6 @@ const writeBlocked = Effect.fnUntraced(function* (
   }
 });
 
-/**
- * What a refused write leaves on the card.
- *
- * A version `412` invalidates the Attachment's list whatever it turns out to
- * mean: the write proved that what ZotLit holds is behind Zotero. The
- * Annotation is then read back on its own, so the card can put Zotero's value
- * beside the user's — and so the next write stamps the version Zotero holds
- * now rather than the one that just failed. An equal fresh value resolves
- * silently: the user's change is already what stands.
- *
- * A `404` is the other end of the same story — Zotero no longer holds the
- * Annotation — so the list drops and the card leaves on the next read.
- *
- * A tag write never conflicts: once the fresh record stands in the list, it
- * answers `re-apply`, and the same names are applied to the fresh tags.
- *
- * @param refusal.source the Local API source the write was sent through.
- * @see apps/obsidian/docs/adr/0063-annotation-tags-save-once-per-editing-session-and-merge-by-name.md
- */
 const writeRefused = Effect.fnUntraced(function* (
   core: CoreState,
   held: HeldAnnotation,
@@ -1186,15 +921,6 @@ const writeRefused = Effect.fnUntraced(function* (
   return { kind: "conflict", conflict };
 });
 
-/**
- * The Attachment's list, once Zotero has taken the write.
- *
- * A patch reads the Annotation back rather than believing its own input: the
- * `204` carries the library's version, not the object's, and the next write
- * needs the object's. A re-read that does not answer drops the list instead,
- * so the Attachment reconciles on its next read rather than holding a record
- * whose version is known to be stale.
- */
 const applyWrite = Effect.fnUntraced(function* (
   core: CoreState,
   held: HeldAnnotation,
@@ -1205,7 +931,6 @@ const applyWrite = Effect.fnUntraced(function* (
   }: {
     write: ConflictedWrite | "tags";
     settle: "re-read" | "drop";
-    /** The Lock Reason the Annotation stood under when the write was sent. */
     lock: LockReason | undefined;
   },
 ): Effect.fn.Return<{ value: ConfirmedWrite } | { failure: LocalApiFailure }> {
@@ -1237,11 +962,6 @@ const applyWrite = Effect.fnUntraced(function* (
   };
 });
 
-/**
- * Publish API confirmations independently of the transport cache's lifetime.
- *
- * @param target.source the Local API source the confirmation came through.
- */
 const publishApiChange = Effect.fnUntraced(function* (
   core: CoreState,
   { attachmentKey, source }: { attachmentKey: string; source: LocalApiSource },
@@ -1293,10 +1013,6 @@ function confirmationKey(confirmation: AnnotationConfirmation): string {
     : confirmation.record.key;
 }
 
-/**
- * The Write Conflict a refused write leaves against the record Zotero holds
- * now, or `null` where that record already holds what the write asked for.
- */
 function conflictOf(
   attempt: Exclude<WriteAttempt, { write: "tags" }>,
   record: AnnotationRecord,
@@ -1319,12 +1035,6 @@ function conflictOf(
     : { write, attempted, fresh };
 }
 
-/** One record's tags with their types, as a tag write merges into them. */
-/**
- * A Geometry Edit as the record Zotero answers after the write holds it: the
- * position rounded as it is sent and parsed as a read parses it, the Sort
- * Index, and a highlight's or underline's quoted text.
- */
 function proposedGeometry(
   record: AnnotationRecord,
   edit: GeometryEdit,

@@ -35,7 +35,6 @@ const failure = () => {
   return error;
 };
 
-/** The log file's lines once each record went through the plugin's logging. */
 async function logFileLines(
   records: readonly Effect.Effect<void>[],
 ): Promise<string[]> {

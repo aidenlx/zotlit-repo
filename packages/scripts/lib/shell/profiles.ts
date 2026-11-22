@@ -1,5 +1,3 @@
-// The kinds of published plugin, a profile each: what a plugin of the kind ships, and how its bundle package, its shell and its bundle check differ.
-
 import type { PackReport } from "#pack-gate";
 
 import { SOURCE_REPOSITORY } from "@zotlit/config/repositories";
@@ -11,51 +9,30 @@ import { checkPack } from "#pack-gate";
 
 export type BuiltFileName = "main.js" | "styles.css";
 
-/** The path of the build script in every shell, and of its template for a bundled plugin. */
 export const SHELL_BUILD_SCRIPT = "scripts/build.mjs";
-/** The path of the release workflow in every shell, and of its template for a bundled plugin. */
 export const SHELL_RELEASE_WORKFLOW = ".github/workflows/plugin-release.yml";
 
 export interface PluginProfile {
-  /** The files the shell's build writes and the release uploads. */
   readonly builtFiles: readonly BuiltFileName[];
-  /**
-   * Whether the shell bundles the plugin through an entry module. The shell
-   * then carries `src/main.ts`, its `tsconfig.json` and the pinned bundler,
-   * and the bundle package carries the type of its default export.
-   */
   readonly entryModule: boolean;
-  /** The shell's files this kind has its own text of, relative to `templates/`. */
   readonly templates: {
-    /** The shell's `scripts/build.mjs`. */
     readonly buildScript: string;
-    /** The shell's `.github/workflows/plugin-release.yml`. */
     readonly releaseWorkflow: string;
   };
-  /** The value of each `@@NAME@@` of the release workflow that the kind fills. */
   readonly workflowValues: Readonly<Record<string, string>>;
-  /** The fields of the bundle package's package.json that name its files. */
   readonly bundlePackage: {
     readonly files: readonly string[];
     readonly [field: string]: unknown;
   };
-  /** The bundle package's README after its first paragraph: its files, and how the shell builds from them. */
   bundleContents(facts: {
-    /** The plugin's name in Obsidian. */
     readonly name: string;
     readonly version: string;
-    /** The host app's folder, relative to the workspace root. */
     readonly app: string;
   }): string;
-  /**
-   * The start of the shell README's "About this repository" section: what the
-   * repository publishes, and what its build does.
-   */
   aboutRepository(facts: {
     readonly name: string;
     readonly bundlePackage: string;
   }): string;
-  /** The checks of `main.js` that the kind adds to the bundle check, from the host app's package.json. */
   checkMain(mainJs: string, appPackage: unknown): Promise<PackReport>;
 }
 
@@ -63,15 +40,7 @@ const source = `[${SOURCE_REPOSITORY}](https://github.com/${SOURCE_REPOSITORY})`
 const npmLink = (name: string) =>
   `[\`${name}\`](https://www.npmjs.com/package/${name})`;
 
-/**
- * A bundled plugin: an ES module and a stylesheet, which the shell bundles
- * into `main.js` and `styles.css`, and a Resource Release per version.
- */
 export function bundledPlugin(options: {
-  /**
-   * What the plugin downloads at runtime from the Resource Release of its
-   * version, as the release notes name it.
-   */
   readonly resources: string;
 }): PluginProfile {
   return {
@@ -126,12 +95,6 @@ at the version that \`package.json\` names: \`pnpm install\`, then
   };
 }
 
-/**
- * A Resource Pack container: `main.js` alone, which the app's own build
- * writes and every later step ships byte for byte. Its package.json pins each
- * Pack Entry under `packEntries`. Its publish repository makes no Resource
- * Release.
- */
 export const CONTAINER_PLUGIN: PluginProfile = {
   builtFiles: ["main.js"],
   entryModule: false,
@@ -141,7 +104,6 @@ export const CONTAINER_PLUGIN: PluginProfile = {
   },
   workflowValues: {},
   bundlePackage: {
-    // main.js is a CommonJS file that the shell copies and never loads.
     exports: {
       "./main.js": "./main.js",
       "./package.json": "./package.json",

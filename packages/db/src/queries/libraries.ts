@@ -11,29 +11,14 @@ import { readDatabaseLayout } from "#layout/index.ts";
 export interface Library {
   libraryID: number;
   type: LibraryType;
-  /** Last committed Zotero server revision recorded for this Library. */
   version: number;
-  /**
-   * Last committed local client revision recorded for this Library; `null`
-   * when the copy has no `libraries.clientVersion` column.
-   */
   clientVersion: number | null;
-  /** `groups.groupID` when {@link type} is `"group"`, `null` for the user library. */
   groupID: number | null;
-  /** `groups.name` when {@link type} is `"group"`, `null` for the user library. */
   name: string | null;
 }
 
-/** The columns of a Library row that a copy may lack. */
 export type LibraryColumns = { clientVersion: boolean };
 
-/**
- * The Library reader: each personal and group Library of the copy with its
- * group join, as one {@link Library} row, in `libraryID` order. It selects
- * `clientVersion` only when `columns` says the copy has it. The synchronous
- * queries here and the Item Query reader `readLibraries` build their
- * statements with it.
- */
 export function selectLibraries(
   db: ZoteroDatabase,
   columns: LibraryColumns,
@@ -56,7 +41,6 @@ export function selectLibraries(
     .orderBy(asc(libraries.libraryID));
 }
 
-/** The Library columns of the copy behind `db`, from its layout. */
 function libraryColumns(db: ZoteroDatabase): LibraryColumns {
   return {
     clientVersion: readDatabaseLayout(db).has("libraries", "clientVersion"),
@@ -85,19 +69,10 @@ const libraryByIDQuery = defineQuery<{ libraryID: number }>()(
     ).limit(1),
 );
 
-/**
- * Enumerate the personal and group Libraries with their group join. Mirrors
- * v1's `LibrariesFull` SQL but returns the raw `type` and group fields so the
- * UI can localize labels itself.
- */
 export function getLibraries(db: ZoteroDatabase): Library[] {
   return librariesQuery.prepared(db, libraryColumns(db)).all();
 }
 
-/**
- * Resolve the {@link Library} backing a Zotero group by its `groupID`, or
- * `null` when no group library matches.
- */
 export function getLibraryByGroupID(
   db: ZoteroDatabase,
   groupID: number,
@@ -109,7 +84,6 @@ export function getLibraryByGroupID(
   );
 }
 
-/** Resolve a library's `groupID` (null for the user library). */
 export function groupIDForLibrary(
   db: ZoteroDatabase,
   libraryID: number,
@@ -120,10 +94,8 @@ export function groupIDForLibrary(
   );
 }
 
-/** Per-call `libraryID → groupID` cache; a batch resolves each library once. */
 export type GroupIDMemo = Map<number, number | null>;
 
-/** Resolve a library's `groupID` (null for the user library), caching per call. */
 export function resolveGroupID(
   db: ZoteroDatabase,
   libraryID: number,

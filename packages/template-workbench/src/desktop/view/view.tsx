@@ -33,7 +33,6 @@ import type {
 } from "#obsidian/workbench-ui/index.tsx";
 import type { ChooserScope } from "#obsidian/workbench-ui/suggester.ts";
 import { EditorView } from "@codemirror/view";
-// One file-backed authoring session; TextFileView owns vault updates and saves.
 import { useAtomValue } from "@effect/atom-react";
 import { Cause, Effect, Schema, Semaphore, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -243,13 +242,8 @@ import {
   pickPanelSize,
 } from "#obsidian/workbench-ui/panel-menu.ts";
 
-// Show problem reads inside the sentence that reports the failure, so
-// it wears link text rather than the native button box; the box, font
-// and hover Obsidian styles unlayered are taken back in `theme.css`.
-
 export const TEMPLATE_WORKBENCH_VIEW_TYPE = "zotlit-template-workbench";
 
-/** A native read that a newer read, an edit, or another file outran. */
 class StaleSourceRead extends Schema.TaggedError<
   StaleSourceRead,
   { readonly brand: unique symbol }
@@ -259,18 +253,14 @@ export type OriginatingNoteUpdateOutcome =
   | { outcome: "unavailable" | "save-failed" | "not-ready"; name: string }
   | { outcome: "updated" | "refused"; name: string; result: UpdateResult };
 
-/** The note operation failed while updating the originating note `note`. */
 export class OriginatingNoteUpdateError extends Schema.TaggedError<
   OriginatingNoteUpdateError,
   { readonly brand: unique symbol }
 >()("OriginatingNoteUpdateError", {
-  /** The originating note's name. */
   note: Schema.String,
-  /** What the note operation rejected with. */
   cause: Schema.Defect(),
 }) {}
 
-/** The notices that report what unpacking a Profile's bundled partials did. */
 export function unpackedPartialNotices(
   result: Pick<
     PartialUnpackOutcome,
@@ -288,15 +278,12 @@ export function unpackedPartialNotices(
     ...(otherCase.length > 0
       ? [m.notice_partials_other_case({ names: otherCase.join(", ") })]
       : []),
-    // The manifest entry stays, so without this the action reads as inert:
-    // the bundled-partial problem is still there the next time it is read.
     ...(refused.length > 0
       ? [m.notice_partials_refused({ names: refused.join(", ") })]
       : []),
   ];
 }
 
-/** The UI renders operation outcomes, keeping template saves separate from note updates. */
 export function originatingNoteUpdateNotice(
   app: App,
   result: OriginatingNoteUpdateOutcome,
@@ -331,13 +318,11 @@ export interface TemplateWorkbenchDeps {
   render?: WorkbenchHost["render"];
   previewRender?: PreviewRenderDeps;
   pluginVersion?: string;
-  // The shared Item search modal still reads these capabilities.
   itemLookup: Pick<ItemLookupHandle, "search" | "openSession">;
   settings: ItemSearchDeps["settings"];
   bridge: ItemSearchDeps["bridge"];
 }
 
-/** The icons of a panel's size submenu and its entries, by the way its edge moves. */
 const PANEL_SIZE_ICONS = {
   horizontal: {
     menu: "move-horizontal",
@@ -354,41 +339,25 @@ const PANEL_SIZE_ICONS = {
 } as const;
 
 export class TemplateWorkbenchView extends TextFileView implements HoverParent {
-  /** The editor hover popover now open, which the next one replaces. */
   hoverPopover: HoverPopover | null = null;
   readonly #editor: WorkbenchEditorInstance<PreviewRenderResult>;
-  /**
-   * The leaf's size, which places the side panels; null until measured.
-   * Public so a test, whose document lays nothing out, can set it.
-   */
   readonly viewSize = Atom.make<ViewSize | null>(null);
-  /** Measures the leaf in its own window, which a pop-out has apart. */
   #sizeObserver: ResizeObserver | null = null;
   readonly #revealListeners = new Set<
     (target: Pick<WorkbenchProblem, "slice" | "range" | "params">) => void
   >();
   readonly #openProblemsListeners = new Set<() => void>();
-  /**
-   * The captured failure a refused note operation asked this editor to explain.
-   * Its report remains available even when this editor's own check differs.
-   */
   #arrival: ArrivingProblem | null = null;
-  /** This leaf's host model: its view state, choices, and Item read. */
   readonly model: TemplateWorkbenchModel;
-  /** A Shared Partial's previews; a leaf without the Preview renderer has none. */
   readonly partialPreviews: ReturnType<typeof makePartialPreviews> | null;
-  /** The Fields panel's atoms over {@link model}. */
   readonly fields: FieldsPanelModel;
-  /** The Fields panel's actions: choosing, sections, copy and export. */
   readonly fieldsActions: ExplorerActions;
   get registry() {
     return this.#deps.registry;
   }
-  /** The Workbench model the editor's tabs read, in this leaf's registry. */
   get workbench(): WorkbenchModel<PreviewRenderResult> {
     return this.#editor.model;
   }
-  /** The view state's transitions, applied to this leaf's model. */
   readonly change = {
     setTab: (tab: WorkbenchViewState["tab"]) => this.#update(setTab(tab)),
     setRoot: (root: TemplateRoot) => this.#update(setRoot(root)),
@@ -400,7 +369,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   #update(transition: (state: WorkbenchViewState) => WorkbenchViewState) {
     this.registry.update(this.model.view, transition);
   }
-  /** Runs this leaf's Effects; closing the leaf interrupts them all. */
   readonly #runner: ViewRunner;
   readonly #exportCommand = makeExportTemplateDataCommand();
   #release: (() => void) | null;
@@ -410,18 +378,14 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   #controller = new WorkbenchDocumentController("");
   #root: Root | null = null;
   #updateActions = () => {};
-  /** The Fields view action, which takes focus back as the Fields popover closes. */
   readonly #fieldsButton: { current: HTMLElement | null } = { current: null };
-  /** The Fields view action, and the Fields popover inset in the view. */
   readonly #fieldsAction: WorkbenchFieldsAction = fieldsActionHost(
     this.#fieldsButton,
     { current: this.contentEl },
   );
   #unsubscribe: (() => void) | null = null;
   #closed = false;
-  /** Counts the documents this leaf loaded, so each one mounts a fresh tree. */
   #loads = 0;
-  /** The partial this leaf's partial Profile and root were chosen for. */
   #partialChoiceFile: string | null = null;
   get #defaultDraft(): boolean {
     return this.registry.get(this.model.defaultDraft);
@@ -432,37 +396,25 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   #bindingDraft = false;
   #receivingSource = false;
   #sourceRevision = 0;
-  /** The file read; a newer read or a clear stops the one in flight. */
   readonly #reads: LatestSlot<ViewServices>;
-  /** The read that a clearing load started, while it runs. */
   #initialRead: object | null = null;
   #pendingSource: string | null = null;
   #clearing = false;
-  /** The launch that sets the originating note; a later one stops an older one. */
   readonly #origins: LatestSlot<ViewServices>;
-  /** One save at a time: a native save returns early while another runs. */
   readonly #saveLock = Semaphore.makeUnsafe(1);
-  /** The originating-note update; a second press joins the one in flight. */
   readonly #noteUpdates: InFlightSlot<
     OriginatingNoteUpdateOutcome,
     OriginatingNoteUpdateError
   >;
-  /** Customize; a second press joins the materialization in flight. */
   readonly #customizing: InFlightSlot<void, never>;
-  /** The citation styles read; a request while one runs joins it. */
   readonly #styles: InFlightSlot<void, never>;
 
-  /**
-   * Save this file after any save in progress. The write finishes once it
-   * starts, so closing the leaf waits for it.
-   */
   #saveFile(clear?: boolean): Effect.Effect<void, Cause.UnknownError> {
     const write = () => super.save(clear);
     return this.#saveLock.withPermit(
       Effect.uninterruptible(Effect.tryPromise(() => write())),
     );
   }
-  /** Obsidian's save, run on this leaf so its close waits for the write. */
   override save(clear?: boolean): Promise<void> {
     return answerOf(this.#runner.run(this.#saveFile(clear)), undefined);
   }
@@ -470,24 +422,12 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   get originatingNote(): TFile | null {
     return this.registry.get(this.model.origin)?.file ?? null;
   }
-  /** Whether the originating note's update runs. */
   get updatingNote(): boolean {
     return this.registry.get(this.model.updating);
   }
-  /**
-   * Fork `flow` on this leaf, for a button or a menu entry. The flow reports
-   * its own outcome, so it fails with nothing.
-   */
   #start(flow: Effect.Effect<unknown, never, ViewServices>): void {
     this.#runner.run(flow);
   }
-  /**
-   * A launch explicitly sets the target; focus and preview changes leave it
-   * intact. A later launch outranks one still reading its Profile.
-   *
-   * @returns the name of a note this editor cannot update, for the launch to
-   *   explain, or `null`.
-   */
   setOriginatingNote(file: TFile | null) {
     return this.#origins.join(
       Effect.gen({ self: this }, function* () {
@@ -511,42 +451,30 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       null,
     );
   }
-  /**
-   * Update the originating note and report the outcome in a notice. A second
-   * call while one runs joins it; closing the leaf before the note's write
-   * stops it quietly.
-   */
   updateOriginatingNote(): Effect.Effect<
     OriginatingNoteUpdateOutcome,
     OriginatingNoteUpdateError
   > {
     return this.#noteUpdates.join;
   }
-  /** Run a Workbench action on this leaf; closing the leaf stops it quietly. */
   #act(operation: string, action: Effect.Effect<void, unknown, ViewServices>) {
     this.#start(Effect.ignore(templateWorkbenchAction(operation, action)));
   }
-  /** Update the originating note, for the button; the run reports its outcome. */
   startNoteUpdate(): void {
     this.#noteUpdates.start();
   }
-  /** Customize the Default Profile, for the button. */
   startCustomize(): void {
     this.#customizing.start();
   }
-  /** Open the Item chooser, for a button or a menu entry. */
   startItemChoice(): void {
     this.#start(this.chooseItem());
   }
-  /** Open the annotation chooser, for a button or a menu entry. */
   startAnnotationChoice(): void {
     this.#start(this.chooseAnnotation());
   }
-  /** Read the citation styles again, as the Name tab asks on each visit. */
   startStylesRefresh(): void {
     this.#styles.start();
   }
-  /** Update the originating note and report the outcome in a notice. */
   #noteUpdate(): Effect.Effect<
     OriginatingNoteUpdateOutcome,
     OriginatingNoteUpdateError,
@@ -563,17 +491,11 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       });
     });
   }
-  /** `effect` as a Workbench host member that runs on this leaf's services. */
   toHostEffect<A, E>(
     effect: Effect.Effect<A, E, ViewServices>,
   ): Effect.Effect<A, WorkbenchHostError> {
     return hostEffect(this.#runner.provide(effect));
   }
-  /**
-   * Save this template, wait for it to compile, and update the originating
-   * note with it. What stands in the way is an outcome; the note operation's
-   * own failure is an {@link OriginatingNoteUpdateError}.
-   */
   #updateOriginatingNote(): Effect.Effect<
     OriginatingNoteUpdateOutcome,
     OriginatingNoteUpdateError,
@@ -583,16 +505,12 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       const origin = this.registry.get(this.model.origin);
       if (!origin) return { outcome: "no-target" } as const;
       const name = origin.file.basename;
-      // Session state only: the note update checks the note's own Zotero key
-      // against the content its one write replaces. Closing the leaf
-      // interrupts the update before the write; a write that started finishes.
       const available = () =>
         this.registry.get(this.model.origin) === origin &&
         this.file === origin.template &&
         this.app.vault.getFileByPath(origin.file.path) === origin.file;
       if (!available()) return { outcome: "unavailable", name } as const;
       const vault = yield* Vault;
-      /** Whether the file on disk holds what this editor shows; `false` where it cannot be read. */
       const saved = Effect.gen({ self: this }, function* () {
         const file = this.file;
         return (
@@ -617,12 +535,10 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       );
       if (!written || !(yield* saved))
         return { outcome: "save-failed", name } as const;
-      // Settlement covers this revision. Later edits get their own update attempt.
       const revision = this.#sourceRevision;
       const settled = yield* (yield* Template).waitUntilSettled(10_000);
       if (settled !== "settled") return { outcome: "not-ready", name } as const;
       if (!(yield* saved)) return { outcome: "save-failed", name } as const;
-      /** What a write this editor can no longer stand behind answers. */
       const refusal = () =>
         !available()
           ? ({ outcome: "unavailable", name } as const)
@@ -636,15 +552,12 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
           indexedKey: origin.indexedKey,
           scope: "full",
           profile: origin.profile,
-          // The note operation stops its write where this throws.
           beforeWrite: () => {
             if (refusal()) throw new Error("The originating note moved on");
           },
         })
         .pipe(
           Effect.map((result): OriginatingNoteUpdateOutcome =>
-            // The note no longer belongs to the item this editor opened it for,
-            // so another update from here would be refused the same way.
             result.diagnostic?.code === "literature-note-key-changed"
               ? { outcome: "unavailable", name }
               : {
@@ -676,7 +589,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       : null;
     this.model = makeTemplateWorkbenchModel();
     this.#release = holdTemplateWorkbenchModel(deps.registry, this.model);
-    // Closing the leaf interrupts every Effect it still runs.
     this.#runner = makeViewRunner(deps.registry);
     this.#origins = latestSlot(this.#runner.run);
     this.#reads = latestSlot(this.#runner.run);
@@ -729,7 +641,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
             }),
           ),
       },
-      // The menu runs this on the host's runner, which is this leaf's.
       extractPartial: (source) =>
         this.#runner.provide(this.#extractPartial(source)),
       hoverParent: this,
@@ -790,29 +701,21 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         this.#receivingSource = true;
         try {
           this.#controller.applyExternalSource(source);
-          // Native external-file merging must include unsaved peer input.
           this.dirty = true;
         } finally {
           this.#receivingSource = false;
         }
       }),
     );
-    // The Default Profile's bindings feed a render through the Profile.
     this.#cleanup.defer(
       watch(deps.registry, this.model.bindingDefaults, () =>
         this.#invalidate(),
       ),
     );
   }
-  /** Logs from plain code under this leaf's category, on its runner. */
   #log(entry: Effect.Effect<void>): void {
     this.#runner.run(entry.pipe(withLogCategory("template-workbench")));
   }
-  /**
-   * The scheduler decides on its own which render runs and which result the
-   * reader sees; this reads its state transitions back out as the log lines a
-   * diagnosis needs, since the shared package carries no logger of its own.
-   */
   #logRenders(): () => void {
     const { registry } = this;
     const { state } = this.workbench.scheduler;
@@ -847,17 +750,11 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     if (!this.#closed)
       this.registry.set(this.workbench.scheduler.invalidate, undefined);
   }
-  /**
-   * What follows this leaf's model: the layout save, the authoring context
-   * the companion panes read, and the render's own inputs from outside it.
-   * @returns Stops following.
-   */
   #follow(): () => void {
     const { registry, model } = this;
     const stops: (() => void)[] = [];
     stops.push(
       watch(registry, model.view, (next, previous) => {
-        // A Shared Partial's caller is this root, which its file remembers.
         if (next.root !== previous.root && this.documentKind === "partial")
           this.#rememberPartialChoice();
         if (
@@ -870,7 +767,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       }),
     );
     stops.push(
-      // Every choice is saved state.
       registry.subscribe(this.workbench.choices, () =>
         this.app.workspace.requestSaveLayout(),
       ),
@@ -878,8 +774,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         this.#updateActions();
         this.app.workspace.requestSaveLayout();
       }),
-      // The Fields action shows whether the Fields popover or the docked
-      // panel stands open.
       registry.subscribe(this.workbench.fieldsAction, () =>
         this.#updateActions(),
       ),
@@ -902,19 +796,16 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       for (const stop of stops.reverse()) stop();
     };
   }
-  /** What a Preview render reads from outside the model: partials, bibliography, the note. */
   #followRenderInputs(): () => void {
     const previewRender = this.#deps.previewRender!;
     const { registry } = previewRender;
     const stops: (() => void)[] = [];
-    // A saved partial or bibliography changes what a render reads.
     for (const atom of [templateRevisionAtom, bibliographyRevisionAtom])
       stops.push(
         watch(registry, atom, (next, previous) => {
           if (next !== previous) this.#invalidate();
         }),
       );
-    // The note a render previews as an update changed on disk.
     this.registerEvent(
       previewRender.app.vault.on("modify", (file) => {
         if (
@@ -932,22 +823,9 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   get previewRenderDeps(): PreviewRenderDeps | undefined {
     return this.#deps.previewRender;
   }
-  /**
-   * The Template Document this view holds, which picks its tabs and its root:
-   * the kind the controller was opened for, from the file's path at load.
-   */
   get documentKind(): WorkbenchDocumentKind {
     return this.#controller.kind;
   }
-  /**
-   * What names this Workbench in a copied error report. Read once per failed
-   * attempt, so the report keeps the document, root, and Item that attempt
-   * ran against however the reader moves on afterwards.
-   *
-   * `selection` is the Item the attempt read, which a linked preview answers
-   * for itself: a pinned one keeps the Item it was pinned on while this editor
-   * moves to another. Left out, this editor's own choice answers.
-   */
   reportContext(
     root: TemplateRoot,
     selection: string | null = this.#view.item?.id ?? null,
@@ -963,30 +841,20 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       hostVersion: `Obsidian ${apiVersion}`,
     };
   }
-  /** The folder a filename has to sit in to name a Template Document. */
   get #templateFolder(): string {
     return this.registry.get(templateFolderAtom);
   }
-  /** The root an editor with no template region of its own writes. */
   get #defaultRoot(): TemplateRoot {
     if (this.documentKind === "citation") return "citation";
     return this.documentKind === "partial" ? this.partialContext : "note";
   }
-  /**
-   * The caller a Shared Partial is previewed as called from, which is the root
-   * its one editor completes and its companions read.
-   *
-   * @see {@link PartialContext} for whose choice it is.
-   */
   get partialContext(): PartialContext {
     const { root } = this.#view;
     return isPartialContext(root) ? root : DEFAULT_PARTIAL_CONTEXT;
   }
-  /** The Profile a Shared Partial preview reads bindings from; null is the default one. */
   get partialProfile(): string | null {
     return this.registry.get(this.workbench.choices).partialProfile;
   }
-  /** Applies the caller and Profile the reader chose for this partial. */
   setPartialSelection(selection: PartialChoice): void {
     if (this.documentKind !== "partial") return;
     this.registry.update(
@@ -997,11 +865,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     this.#rememberPartialChoice();
   }
 
-  /**
-   * Hold this partial's caller and Profile against its own file, so reopening
-   * it — in a new leaf, or after a restart — shows the choice the reader made
-   * rather than the default the workspace has no leaf left to carry.
-   */
   #rememberPartialChoice(): void {
     if (this.documentKind !== "partial") return;
     writePartialChoice(this.app, this.file?.path ?? null, {
@@ -1009,17 +872,11 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       profile: this.partialProfile,
     });
   }
-  /**
-   * The box the side panels and the editor share, under the item row; the
-   * leaf's content until React draws that box.
-   */
   #panelsBox: HTMLElement | null = null;
-  /** Measures `box`, the panels' own box, from now on. A ref callback. */
   readonly measurePanels = (box: HTMLElement | null): void => {
     this.#panelsBox = box;
     if (!this.#closed) this.#observeSize(this.contentEl.win);
   };
-  /** The one observer of the panels' size, made in the window `win` that shows it. */
   #observeSize(win: Window): void {
     this.#sizeObserver?.disconnect();
     const { ResizeObserver } = win as typeof window;
@@ -1028,10 +885,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     this.#sizeObserver = observer;
     this.#measure();
   }
-  /**
-   * Measures the panels' box, whose size places the side panels. A leaf in a
-   * background tab measures nothing and keeps the size it last had.
-   */
   #measure(): void {
     const { clientWidth: width, clientHeight: height } =
       this.#panelsBox ?? this.contentEl;
@@ -1064,14 +917,8 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       this.#revealListeners.delete(listener);
     };
   }
-  /**
-   * Opens the Problems area on whatever it already has selected, which is
-   * what a failed note operation asks for.
-   */
   openProblems(reveal = true): void {
     for (const listener of this.#openProblemsListeners) listener();
-    // A deliberate request brings this editor forward; a failed automatic or
-    // Run attempt leaves the reader's pane where they put it.
     if (reveal) void this.app.workspace.revealLeaf(this.leaf);
   }
   subscribeOpenProblems(listener: () => void): () => void {
@@ -1080,12 +927,10 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       this.#openProblemsListeners.delete(listener);
     };
   }
-  /** Records the captured failure that brought the reader here, and opens Problems. */
   explainArrival(arrival: ArrivingProblem): void {
     this.#arrival = arrival;
     this.openProblems(false);
   }
-  /** Takes one arrival so it opens one explanation. */
   takeArrival(): ArrivingProblem | null {
     const held = this.#arrival;
     this.#arrival = null;
@@ -1103,15 +948,10 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   get controller(): WorkbenchDocumentController {
     return this.#controller;
   }
-  /** The last focused slice remains the insertion target while a sidebar has focus. */
   get insertTarget(): WorkbenchInsertTarget | null {
     return insertionTarget(this.#view.presentation.selection, this.#controller);
   }
 
-  /**
-   * Where a field from the Fields Panel goes now: the document's template
-   * language, and the kind of place the insertion target is in.
-   */
   fieldInsertion(): FieldInsertionContext {
     const target = this.insertTarget;
     const region =
@@ -1130,10 +970,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     };
   }
 
-  /**
-   * Writes `snippet` at the editor's insertion target. With `keepOpen`, the
-   * editor takes no focus: the Fields Panel keeps it.
-   */
   insertField(
     snippet: string,
     { keepOpen }: FieldInsertOptions = { keepOpen: false },
@@ -1165,7 +1001,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         Effect.annotateLogs({ slice: target.slice }),
       ),
     );
-    // The caret stays one the reader placed, so the next insert finds it.
     const cursor = from + snippet.length;
     this.#focusTarget(
       {
@@ -1220,11 +1055,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       ? m.template_workbench_name()
       : m.template_workbench_title_profile({ label });
   }
-  /**
-   * The name the Profile calls itself, which the tab title carries beside its
-   * kind. The manifest's own name leads, so a renamed file still reads as the
-   * Profile the reader knows; a draft that does not parse falls back to it.
-   */
   get profileLabel(): string | null {
     return (
       this.#controller.document?.manifest.name ?? this.file?.basename ?? null
@@ -1286,15 +1116,9 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       this.app.workspace.trigger("quick-preview", this.file, this.data);
     }
   }
-  /** Obsidian's file read, run on this leaf so its close stops the read. */
   override loadFileInternal(file: TFile, clear: boolean): Promise<void> {
     return answerOf(this.#reads.run(this.#loadFile(file, clear)), undefined);
   }
-  /**
-   * Read `file` into this view. A read that a newer read, an edit, or another
-   * file outran is discarded before it changes anything, and read again while
-   * the edit is the only change. Closing the leaf stops the read.
-   */
   #loadFile(
     file: TFile,
     clear: boolean,
@@ -1305,17 +1129,12 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       const initial = {};
       let reset = clear;
       if (clear) this.#initialRead = initial;
-      /** Set once the read is interrupted; the native read then stands down. */
       let stopped = false;
       const read = (): Effect.Effect<void, Cause.UnknownError> =>
         Effect.suspend(() => {
           if (file !== this.file) return Effect.void;
           const revision = this.#sourceRevision;
           const baseline = this.lastSavedData;
-          // TextFileView writes its baseline immediately after the awaited
-          // read, before its native three-way merge. Cancel there, before any
-          // mutation; native methods still run on this view so private fields
-          // keep their owner.
           const receiver = new Proxy(this, {
             get(target, property) {
               const value = Reflect.get(target, property, target);
@@ -1426,7 +1245,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   override setEphemeralState(input: unknown): void {
     const state = readEphemeralWorkbench(input);
     if (!state || state.context !== this.#presentationContext()) return;
-    // The decoded target names a slice of some document; this one checks it.
     const selection = state.selection as WorkbenchInsertTarget | null;
     let restoredSelection: WorkbenchInsertTarget | null = null;
     if (selection && this.controller.hasSlice(selection.slice)) {
@@ -1488,7 +1306,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     }
     this.setPresentation({ restoring: false });
   }
-  /** Obsidian's view-state restore, run on this leaf. */
   override async setState(
     state: unknown,
     result: ViewStateResult,
@@ -1508,8 +1325,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       Effect.tryPromise(() => super.setState(state, result));
     return Effect.gen({ self: this }, function* () {
       const value = readSavedWorkbench(state);
-      // The saved choice lands first, so a choice the reader makes while the
-      // document loads comes after it and stands.
       if (value) {
         const { itemIndexedKey, annotationId } = value;
         if (itemIndexedKey !== undefined)
@@ -1576,13 +1391,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       );
       const { change } = this;
       if (this.#applyKindDefaults()) {
-        // A plain document has one tab and one editor, so nothing of the saved
-        // tab or Basic and Source choice applies to it. A Shared Partial's root
-        // is the reader's own "as called from" choice, which the workspace
-        // carries with the Profile it was chosen beside. A descriptor that names
-        // the file alone — every open through `openTemplateWorkbench` — keeps
-        // what `#applyKindDefaults` read back from this device instead. The
-        // Profile is set first, so the root subscription remembers the pair.
         if (this.documentKind === "partial" && value.partialContext !== null) {
           this.registry.update(
             this.workbench.choices,
@@ -1610,19 +1418,10 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     });
   }
 
-  /**
-   * The tab, root, and edit mode the kind fixes. A plain document is one
-   * editor over one source under one root, so it has no such choice to make or
-   * to restore. A Profile document keeps the reader's own choice, less a tab
-   * and root the leaf held for a document of another kind.
-   * @returns whether the kind fixed them.
-   */
   #applyKindDefaults(): boolean {
     const { change } = this;
     const kind = this.documentKind;
     if (kind === "profile") {
-      // A tab and root this leaf kept from a document of another kind name no
-      // panel and no data here, which would leave every panel unmounted.
       if (!TABS.includes(this.#view.tab)) {
         change.setTab("note");
         change.setRoot("note");
@@ -1635,9 +1434,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       change.setRoot("citation");
       return true;
     }
-    // The caller and the Profile belong to the partial they were chosen for, so
-    // a leaf that moves to another partial — or that kept a root from a document
-    // of another kind — opens on the default caller rather than on that choice.
     const path = this.file?.path ?? null;
     if (path !== this.#partialChoiceFile) {
       this.#partialChoiceFile = path;
@@ -1656,8 +1452,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     this.#closed = false;
     this.#release ??= holdTemplateWorkbenchModel(this.registry, this.model);
     this.#observeSize(this.contentEl.win);
-    // An observer hears only the window it was made in: a tab moved to
-    // another window watches its size from there.
     const migrated = this.contentEl.onWindowMigrated((win) =>
       this.#observeSize(win),
     );
@@ -1678,21 +1472,14 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       },
       true,
     );
-    // Added first, so it sits nearest More options; Obsidian prepends actions.
-    // It opens the docs a template author returns to, at the button.
     const help: HTMLElement = this.addAction(
       "circle-help",
       m.workbench_help(),
       () => this.#showHelpMenu(help),
     );
-    // Added after Help, so it sits to its left. The eye stays the same
-    // while the action's pressed state says whether the Preview shows.
     const preview = this.addAction("eye", m.workbench_show_preview(), () =>
       this.togglePreview(),
     );
-    // Added after the Preview's, so it sits to its left.
-    // It opens the Fields popover and closes it again, or hides and shows
-    // the docked panel.
     const fields = this.addAction("braces", m.workbench_view_fields(), () =>
       pressFieldsAction(this.registry, this.workbench),
     );
@@ -1714,8 +1501,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         action.setAttribute("aria-disabled", String(!enabled));
         action.classList.toggle("is-disabled", !enabled);
       }
-      // Basic and Source are two views of a Profile document's structure; a
-      // plain document is one source, so it is never offered the choice.
       source.toggle(this.documentKind === "profile");
       const { advanced } = this.#view;
       source.setAttribute("aria-pressed", String(advanced));
@@ -1724,7 +1509,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       preview.setAttribute("aria-pressed", String(shown));
       preview.classList.toggle("is-active", shown);
       const action = this.registry.get(this.workbench.fieldsAction);
-      // A disclosure of the Fields popover or the docked panel.
       for (const [name, value] of Object.entries(
         fieldsActionAttributes(action, this.#fieldsAction.popoverId),
       ))
@@ -1757,10 +1541,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     this.startStylesRefresh();
     return Promise.resolve();
   }
-  /**
-   * Obsidian's close. It waits for the write a running flow has started, such
-   * as a save or the originating note's write, and interrupts the rest.
-   */
   protected override async onClose(): Promise<void> {
     this.#closed = true;
     try {
@@ -1771,7 +1551,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       this.#sizeObserver?.disconnect();
       this.#sizeObserver = null;
       this.#cleanup.dispose();
-      // Interrupts what still runs before the host and the editor go.
       const stopped = this.#runner[Symbol.asyncDispose]();
       this.#editor[Symbol.dispose]();
       this.#host[Symbol.dispose]();
@@ -1797,7 +1576,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     );
   }
 
-  /** Saves the Template data of `target` as a JSON file. */
   exportTemplateData(target: TemplateDataExportTarget): void {
     const pluginVersion = this.#deps.pluginVersion;
     if (pluginVersion)
@@ -1811,24 +1589,16 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       : m.template_data_explorer_menu_export_json();
   }
 
-  /** Shows the Preview the leaf hides, or hides it. */
   togglePreview(): void {
     this.registry.update(this.workbench.panels, (panels) =>
       showPreview(!panels.preview.shown)(panels),
     );
   }
 
-  /** Shows the Profile document as Source, or as Basic again. */
   #toggleSource(): void {
     this.change.setAdvanced(!this.#view.advanced);
   }
 
-  /**
-   * The view's More options. The entries a template author reaches
-   * for most lead it, the view actions among them, as a reader who hides the
-   * view header finds them here alone; the rare ones wait in More workbench
-   * options.
-   */
   override onPaneMenu(menu: Menu, source: string): void {
     super.onPaneMenu(menu, source);
     menu.addItem((item) =>
@@ -1836,8 +1606,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         .setSection(MENU_SECTION.pane)
         .setTitle(m.workbench_show_fields())
         .setIcon("braces")
-        // The view action's own press: it opens or closes the Fields
-        // popover, or hides or shows the docked panel.
         .setChecked(this.registry.get(this.workbench.fieldsAction) !== "closed")
         .onClick(() => pressFieldsAction(this.registry, this.workbench)),
     );
@@ -1866,7 +1634,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       );
     this.#addPreviewMenu(menu);
     this.#addPanelSizeMenus(menu);
-    // As the view action: only a Profile document has a Source to show.
     if (this.documentKind === "profile")
       menu.addItem((item) =>
         item
@@ -1928,14 +1695,8 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
           .onClick(() => this.#start(Effect.ignore(this.#restoreDefault()))),
       );
   }
-  /**
-   * The entries a template author needs now and then: the rendering language
-   * and the Template data export, in the action section before Help.
-   */
   #addTemplateEntries(menu: Menu): void {
     if (this.documentKind !== "profile") this.#addLanguageMenu(menu);
-    // With the Fields popover or the docked panel open, the export saves
-    // the root it shows.
     const target = this.templateDataTarget();
     if (this.registry.get(this.workbench.fieldsAction) !== "closed")
       this.fieldsActions.addExportMenuItem(menu);
@@ -1948,7 +1709,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
           .onClick(() => this.exportTemplateData(target)),
       );
   }
-  /** The Preview panel's settings in a submenu of their own, while the panel shows. */
   #addPreviewMenu(menu: Menu): void {
     if (!this.registry.get(this.workbench.panels).preview.shown) return;
     menu.addItem((item) => {
@@ -1959,11 +1719,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       this.#addPreviewSettings(item.setSubmenu());
     });
   }
-  /**
-   * A submenu for each panel edge the view draws, with entries that grow,
-   * shrink and reset the panel: the path to each size for a reader who
-   * cannot drag the edge (WCAG 2.5.7). The panels announce the new size.
-   */
   #addPanelSizeMenus(menu: Menu): void {
     const { registry, workbench } = this;
     const menus = panelSizeMenus(registry.get(workbench.panels), {
@@ -1986,19 +1741,11 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       });
     }
   }
-  /**
-   * The Preview pane's More options, opened under `trigger`: the same
-   * settings the view's Preview submenu holds.
-   */
   showPreviewMenu(trigger: HTMLElement): void {
     const menu = new Menu();
     this.#addPreviewSettings(menu);
     showMenuAtButton(menu, trigger, "end");
   }
-  /**
-   * The Fields pane's More options, opened under `trigger`: choosing the
-   * Item, the export of the root the pane shows, and its Indexed Key.
-   */
   showFieldsMenu(trigger: HTMLElement): void {
     const menu = new Menu().addSections([
       MENU_SECTION.action,
@@ -2015,11 +1762,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     this.fieldsActions.addCopyKeyMenuItem(menu);
     showMenuAtButton(menu, trigger, "end");
   }
-  /**
-   * The Preview panel's settings (ADR 0048): what the render reads beside the
-   * Item and which note it shows, then how it refreshes. The view's Preview
-   * submenu and the Preview pane's More options both list them.
-   */
   #addPreviewSettings(menu: Menu): void {
     const { registry } = this;
     const { mode, citationSet } = previewTarget(
@@ -2032,7 +1774,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       registry.update(choices, setPreview(value));
     const setCitation = (value: Parameters<typeof chooseCitation>[0]) =>
       registry.update(choices, chooseCitation(value));
-    // The caller leads: it decides which set the Citation pair below it names.
     if (mode === "partial") this.#addCallerMenu(menu);
     if (citationSet) {
       for (const [value, title] of [
@@ -2069,8 +1810,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
             .setTitle(title)
             .setIcon(icon)
             .setChecked(preview.mode === value && !preview.showManaged)
-            // A Sample Item, or an Item with no note in the vault yet, has no
-            // existing note to update; until a result lands the choice stays open.
             .setDisabled(
               value === "update" && result !== null && !result.sourcePath,
             )
@@ -2113,11 +1852,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         .onClick(() => this.refresh()),
     );
   }
-  /**
-   * The checked triple naming the caller a Shared Partial is rendered as called
-   * from, and — only where the vault holds more than one — the Profile whose
-   * bindings that caller's data is built with.
-   */
   #addCallerMenu(menu: Menu): void {
     const current = this.partialContext;
     const profile = this.partialProfile;
@@ -2137,8 +1871,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
           .setChecked(current === context)
           .onClick(() => this.setPartialSelection({ context, profile })),
       );
-    // `profiles` holds the custom Profiles alone, so an empty list is the
-    // default Profile by itself: there is nothing to choose between.
     const profiles = this.registry.get(profilesAtom);
     if (profiles.length === 0) return;
     menu.addItem((item) => {
@@ -2158,12 +1890,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         );
     });
   }
-  /**
-   * The docs pages a template author returns to: the step-by-step guide, the
-   * syntax and the field references, and the community for what they miss.
-   * The Help view action opens them under itself and the pane menu's Help
-   * submenu lists them.
-   */
   #addHelpEntries(menu: Menu): void {
     for (const { label, path } of HELP_PAGES)
       menu.addItem((entry) =>
@@ -2180,23 +1906,14 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         .onClick(() => window.open(communityUrl())),
     );
   }
-  /** The Help view action's menu, opened under its button. */
   #showHelpMenu(trigger: HTMLElement): void {
     const menu = new Menu();
     this.#addHelpEntries(menu);
     showMenuAtButton(menu, trigger, "end");
   }
-  /**
-   * Every Shared Partial the vault holds, so the reader moves between
-   * documents without leaving the view, and the create flow that ends the list.
-   */
   #addPartialsMenu(menu: Menu): void {
     const partials = this.registry.get(partialDocumentsAtom);
     if (!AsyncResult.isSuccess(partials)) return;
-    // The partials this document still carries from the Profile it was shared
-    // with. Unpacking writes them into files, which is an ordinary partial
-    // operation and belongs beside the rest of them rather than inside the
-    // reading of a problem (ADR 0056).
     const bundled = this.#controller.document?.manifest.partials ?? [];
     menu.addItem((item) => {
       item
@@ -2246,26 +1963,12 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     );
   }
 
-  /**
-   * The shared create flow. A failure answers `null` as a dismissal does.
-   *
-   * @returns the created name, or `null` when the reader dismisses the prompt.
-   */
   #createPartial(
     options: CreateSharedPartialOptions,
   ): Effect.Effect<string | null, never, ViewServices> {
     return createSharedPartialEffect(this.app, { ...options, from: this.leaf });
   }
 
-  /**
-   * Move an editor selection into a new Shared Partial through the same create
-   * flow, under this document's own language. The language always writes a
-   * manifest, which is what keeps a selection that opens with its own `---`
-   * line out of the manifest position.
-   *
-   * @returns the call that replaces the selection, or `null` when the reader
-   *   dismisses the prompt.
-   */
   extractPartial(source: string): Effect.Effect<string | null> {
     return joinOnView(this.#runner.run, this.#extractPartial(source));
   }
@@ -2278,7 +1981,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     );
   }
 
-  /** The language this document renders in; a document with no manifest is Liquid. */
   get #documentLanguage(): TemplateLanguage {
     return (
       this.#controller.document?.manifest.language ??
@@ -2287,10 +1989,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     );
   }
 
-  /**
-   * The rendering language, switched on the manifest key alone: a Template
-   * changes language by being rewritten, so no source is converted here.
-   */
   #addLanguageMenu(menu: Menu): void {
     const current = this.#controller.plainDocument?.manifest.language;
     if (current === undefined) return;
@@ -2325,19 +2023,10 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   get isDefaultDraft(): boolean {
     return this.#defaultDraft;
   }
-  /**
-   * Every Shared Partial the vault registers. Read during render, so it
-   * answers empty until the folder scan has run.
-   */
   get partialNames(): readonly string[] {
     if (this.#closed) return [];
     return this.registry.get(partialNamesAtom);
   }
-  /**
-   * Open the Shared Partial `name` in a Template Workbench View of its own.
-   * Edit partial reaches a document the vault already holds; a call to a name
-   * with no document offers Create instead.
-   */
   openPartial(name: string): void {
     const partials = this.registry.get(partialDocumentsAtom);
     if (!AsyncResult.isSuccess(partials)) {
@@ -2359,18 +2048,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     }
     this.#openPartial(document.path);
   }
-  /**
-   * Write every partial this document still carries in its manifest into the
-   * Shared Partial file it belongs in, then drop the entries those names came
-   * from, so each partial is edited in one place from here on.
-   *
-   * A name the vault already holds a document for under this very spelling
-   * keeps that document, and its entry goes with the rest: the reader's own
-   * file answers the call. A name the vault holds a file for only under
-   * another case keeps its entry, which is all that still answers the call.
-   * The keep-or-replace ask belongs to import, which is where the bundle's copy
-   * still has somewhere to go.
-   */
   unpackBundledPartials() {
     return joinOnView(this.#runner.run, this.#unpackBundledPartials());
   }
@@ -2391,7 +2068,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       }),
     );
   }
-  /** Save this document, then restore the Default Profile and show it. */
   restoreDefault() {
     return joinOnView(this.#runner.run, this.#restoreDefault());
   }
@@ -2425,11 +2101,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     );
   }
 
-  /**
-   * Customize binds the existing document before enabling any edits. A second
-   * press while the Default Profile materializes joins that run, so the
-   * document is written once.
-   */
   customizeDefault(): Effect.Effect<void> {
     return this.#customizing.join;
   }
@@ -2489,7 +2160,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       withLogCategory("template-workbench"),
     );
   }
-  /** Read the citation styles again; closing the leaf stops the read quietly. */
   #refreshStyles(): Effect.Effect<void, never, ViewServices> {
     return Effect.gen({ self: this }, function* () {
       const list = yield* installedStyles;
@@ -2515,14 +2185,9 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       withLogCategory("template-workbench"),
     );
   }
-  /**
-   * Read the citation styles again. A request while a read runs joins it, so
-   * an older read never lands after a newer one.
-   */
   refreshStyles(): Effect.Effect<void> {
     return this.#styles.join;
   }
-  /** Save this document, then show it in Obsidian's Markdown view. */
   #openMarkdown(): Effect.Effect<void, Cause.UnknownError> {
     return Effect.gen({ self: this }, function* () {
       const file = this.file;
@@ -2535,12 +2200,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       });
     });
   }
-  /**
-   * Ask the reader for an Item. A second request while the chooser is open
-   * joins it; the leaf's close interrupts it.
-   *
-   * @returns whether the reader chose an Item.
-   */
   chooseItem(): Effect.Effect<boolean> {
     return this.#join<WorkbenchItemChoice>(this.model.chooseItem, () =>
       workbenchItemChoice(
@@ -2561,11 +2220,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       ),
     ).pipe(Effect.map((choice) => choice !== null));
   }
-  /**
-   * Starts `command` with the chooser `open` makes, or joins the chooser
-   * already open.
-   * @returns what the reader chose; an interrupt when the leaf closes.
-   */
   #join<A>(
     command: Atom.AtomResultFn<
       Effect.Effect<A | null, never, ViewServices>,
@@ -2583,7 +2237,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         return AtomRegistry.getResult(registry, command, {
           suspendOnWaiting: true,
         }).pipe(
-          // A chooser that could not open answers as a dismissal does.
           recover(
             (cause) =>
               Effect.logWarning("Template Workbench chooser failed").pipe(
@@ -2596,7 +2249,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       }),
     );
   }
-  /** Makes `item` the choice of this leaf. */
   setItem(item: WorkbenchItemChoice): void {
     if (this.#closed) return;
     this.registry.set(this.workbench.pick, item);
@@ -2605,10 +2257,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   #remember(item: WorkbenchItemChoice): void {
     if (!getSampleItem(item.id)) rememberTemplateItem(this.app, item.id);
   }
-  /**
-   * Make `item` the choice, and wait for its read.
-   * @returns whether the read found it while it is still the choice.
-   */
   selectItem(item: WorkbenchItemChoice): Effect.Effect<boolean> {
     return joinOnView(
       this.#runner.run,
@@ -2633,7 +2281,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
             Effect.succeed(false),
           ),
         );
-        // A newer choice outruns this one before its read answers.
         const outrun = AtomRegistry.toStream(registry, model.item).pipe(
           Stream.filter((choice) => choice?.id !== item.id),
           Stream.runHead,
@@ -2643,11 +2290,9 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       }),
     );
   }
-  /** Read the chosen Item again. */
   refresh(): void {
     if (!this.#closed) this.registry.update(this.model.refresh, (n) => n + 1);
   }
-  /** Ask the reader for the annotation the preview renders. */
   chooseAnnotation(): Effect.Effect<void> {
     return this.#join<string>(this.model.chooseAnnotation, () => {
       const { current, example } = this.registry.get(this.workbench.examples);
@@ -2672,8 +2317,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     this.#unsubscribe = this.#controller.subscribe(
       ({ docChanged, transaction }) => {
         if (!docChanged) return;
-        // What the scheduler follows on its own, named here so a diagnosis can
-        // read the edit that queued or dropped a render.
         this.#log(
           Effect.logTrace("Preview source changed").pipe(
             Effect.annotateLogs({
@@ -2699,7 +2342,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
                         1,
                       ),
                     }),
-                // An edit moves the caret the reader put; it is still theirs.
                 ...(range.placed ? { placed: range.placed } : {}),
               },
             },
@@ -2724,7 +2366,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       return;
     if (redo ? this.#controller.redo() : this.#controller.undo()) return false;
   }
-  /** Where this leaf's choosers open and which runner interrupts their searches. */
   #chooserScope(): ChooserScope {
     return {
       app: this.app,
@@ -2733,7 +2374,6 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     };
   }
   provide(content: ReactNode): ReactNode {
-    // The Match tab's selects are Choosers, which hold Obsidian's keyboard.
     return (
       <ViewRegistryProvider registry={this.registry}>
         <AppContext value={this.app}>
@@ -2795,8 +2435,6 @@ function EditorContent({
     ({ part, engine }) =>
       part === "annotation" || engine?.template === "annotation",
   );
-  // A render reads the selected example, so the inline preview waits on a
-  // choice rather than on a render while the reader has made none.
   const annotation = useAtomValue(workbench.examples).example;
   const advanced = useAtomValue(workbench.advanced);
   const [sourceVisited, setSourceVisited] = useState(advanced);
@@ -2828,10 +2466,7 @@ function EditorContent({
       reveal: { ...insertRequest.range, focus: insertRequest.focus },
     });
   }, [view, insertRequest]);
-  // The last manifest that parsed, so a repair keeps the form's values.
   const manifest = useAtomValue(view.workbench.document.manifest);
-  // A missing partial is the engine's own render failure, so the boxes read
-  // the names the last render could not resolve rather than a scan.
   const missingPartials = (result?.diagnostics ?? []).flatMap((diagnostic) =>
     diagnostic.code === "missing-partial" &&
     diagnostic.params?.name !== undefined
@@ -2868,8 +2503,6 @@ function EditorContent({
           kind === "citation" ? "citation" : controller.partialContext,
         ),
   );
-  // A manifest the parser never read has no field pane to open, so its
-  // problems are repaired in the source the reader can still see.
   const documentProblems = controller.problems.map((entry) =>
     entry.slice === "details" && manifest === null
       ? { ...entry, slice: "advanced" as const }
@@ -2887,8 +2520,6 @@ function EditorContent({
     diagnoses,
     trigger,
     attempt,
-    // A parser problem never reached a render, so the area captures its report
-    // itself, naming this Workbench the way a failed render's report does.
     capture: {
       source: controller.source,
       context: () =>
@@ -2901,9 +2532,6 @@ function EditorContent({
     () => view.subscribeOpenProblems(() => openProblems(true)),
     [view, openProblems],
   );
-  // A refused note operation brings its own captured diagnosis here. Consume
-  // the arrival once, then keep its report available even when this editor's
-  // own check finds no matching failure.
   useEffect(() => {
     if (!pendingArrival) return;
     arrivalAttempt.current = attempt;
@@ -2981,8 +2609,6 @@ function EditorContent({
       (annotationCheck && result.annotation === null)
     )
       return;
-    // The Problems area already holds the inspected report. A fresh applicable
-    // success clears its active failure while that report remains available.
     setArrival(null);
   }, [
     arrival,
@@ -3011,9 +2637,6 @@ function EditorContent({
     (slice: WorkbenchInsertTarget["slice"]) => (range: WorkbenchSliceRange) =>
       onSelection({ slice, range });
   const content = (
-    // The pane the source and the Problems area share. It measures itself, so
-    // whether a reading fits beside the source is the pane's own question
-    // rather than the window's.
     <div className="zt:@container-[size]/workbench-editor zt:flex zt:h-full zt:min-w-0 zt:flex-col zt:text-sm">
       {originatingNote && (
         <div
@@ -3042,10 +2665,7 @@ function EditorContent({
             <button
               className={originatingNoteNotice.button}
               disabled={updatingNote}
-              onClick={() =>
-                // The update reports its own outcome, failures included.
-                view.startNoteUpdate()
-              }
+              onClick={() => view.startNoteUpdate()}
             >
               <span className={originatingNoteNotice.labels}>
                 <span
@@ -3111,8 +2731,6 @@ function EditorContent({
           tabs={tabsFor(kind)}
           defaultProfile={view.isDefaultProfile ? true : undefined}
           onTabChange={(tab) => {
-            // The Partial tab keeps the caller the reader chose; every other
-            // tab names one root of its own.
             if (tab !== "partial")
               state.setRoot(
                 tab === "annotation"
@@ -3292,8 +2910,6 @@ function EditorContent({
       value={problems.diagnoses}
       onReveal={selectProblem}
     >
-      {/* The item row spans the panels; the box under it is the view the
-          panels and the editor share, which the view measures to place them. */}
       <div className="zt:flex zt:h-full zt:min-h-0 zt:flex-col">
         <ViewItemRow view={view} />
         <div
@@ -3328,7 +2944,6 @@ function EditorContent({
   );
 }
 
-/** The annotation examples of the chosen Item, and the one the render reads. */
 function AnnotationSelection({ view }: { view: TemplateWorkbenchView }) {
   const { current, example } = useAtomValue(view.workbench.examples);
   return (

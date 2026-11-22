@@ -1,4 +1,3 @@
-// ZotLit Query built from its layer over a test's reads, for tests outside Effect.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, Layer, Stream } from "effect";
 
@@ -16,7 +15,6 @@ import { bindQuery } from "#desktop/item-query/handle.ts";
 import type { QueryHandle } from "#desktop/item-query/handle.ts";
 import { layerQueryService, QueryService } from "#desktop/item-query/service.ts";
 
-/** The Zotero source a test's jobs name. */
 export interface QuerySource {
   readonly sourceId: string;
   readonly databasePath: string;
@@ -25,12 +23,9 @@ export interface QuerySource {
 }
 
 export interface QueryFixtureOptions {
-  /** The worker operations the jobs go to. */
   readonly reads: ZoteroReads["Service"]["reads"];
   readonly source: QuerySource;
-  /** The saved Library Scope of each job; all Libraries where absent. */
   readonly effective?: () => SavedLibraryScope;
-  /** The device Uses of each job; none where absent. */
   readonly uses?: Readonly<Record<string, number>>;
   readonly vaultName?: string;
   readonly basePath?: string;
@@ -52,7 +47,6 @@ function prefSnapshot(source: QuerySource): ZoteroPrefSnapshot {
   };
 }
 
-/** ZotLit Query over `options.reads`, the real file system, and fixed deps. */
 export function layerTestQueryService(
   options: QueryFixtureOptions,
   useLedger: Layer.Layer<UseLedger> = Layer.mock(UseLedger, {
@@ -85,13 +79,11 @@ export function layerTestQueryService(
   );
 }
 
-/** The built service and its Promise edge. */
 export interface QueryFixture {
   readonly service: QueryService["Service"];
   readonly handle: QueryHandle;
 }
 
-/** ZotLit Query from {@link layerTestQueryService}; `stack` closes it. */
 export async function buildQueryService(
   options: QueryFixtureOptions,
   stack: AsyncDisposableStack,

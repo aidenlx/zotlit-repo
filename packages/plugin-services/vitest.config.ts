@@ -10,7 +10,6 @@ import {
 } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry } from "@zotlit/plugin-kernel/vite";
 
-/** The settings of the build constants these services and the kernel read. */
 export const buildConstants = {
   __PLUGIN_ID__: JSON.stringify("zotlit"),
   __DEV__: JSON.stringify(true),
@@ -18,7 +17,6 @@ export const buildConstants = {
   __DOCS_SITE_URL__: JSON.stringify("https://zotlit.aidenlx.site"),
 };
 
-/** The plugin code the effectEntry wrappers apply to. */
 export const pluginCode = [
   fileURLToPath(new URL("./src/", import.meta.url)),
   packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
@@ -29,17 +27,12 @@ export const pluginCode = [
 export default defineConfig({
   resolve: {
     alias: {
-      // The services read the Obsidian kit and `obsidian`, a types-only
-      // package; runtime imports load the stand-in.
       obsidian: obsidianMock,
     },
   },
-  // The build constants, as the plugin's own test config defines them.
   define: buildConstants,
   plugins: [
     effectEntry("renderer", { vitest: true, scopes: pluginCode }),
-    // The view atoms of the Obsidian kit import `react`, which the plugin
-    // bundles as Preact.
     preact(),
   ],
   test: {

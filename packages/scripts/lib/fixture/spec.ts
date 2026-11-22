@@ -1,24 +1,17 @@
-// Deterministic description of the Fixture.
-
 import { join } from "node:path";
 
 import { CONTRACT_VERSION, USER_LIBRARY_ID } from "@zotlit/db";
 
-/** Directory the committed source assets named below are read from. */
 export const ASSET_DIR = join(import.meta.dirname, "assets");
 
-/** Names My Library in the printed Library table, beside the group IDs. */
 export const PERSONAL_SELECTOR = "my-library";
 
-/** A stable Library selector: My Library, or a Zotero group by its group ID. */
 export type LibrarySelector =
   | { readonly type: "personal" }
   | { readonly type: "group"; readonly groupID: number };
 
-/** My Library, which every valid Selected Libraries case starts from. */
 export const MY_LIBRARY: LibrarySelector = { type: "personal" };
 
-/** One group Library by its stable Zotero group ID. */
 export function group(groupID: number): LibrarySelector {
   return { type: "group", groupID };
 }
@@ -26,19 +19,11 @@ export function group(groupID: number): LibrarySelector {
 export interface FixtureLibrary {
   libraryID: number;
   type: "user" | "group";
-  /** `null` for My Library; the stable Zotero group ID for a group Library. */
   groupID: number | null;
-  /** `null` for My Library, which Zotero names in the UI rather than the database. */
   name: string | null;
-  /** `0` marks read-only group membership. */
   editable: 0 | 1;
 }
 
-/**
- * Local `libraryID` order deliberately disagrees with group ID order, so a
- * canonical-order check proves that stable selector order does not follow
- * database row order.
- */
 export const LIBRARIES: readonly FixtureLibrary[] = [
   {
     libraryID: USER_LIBRARY_ID,
@@ -70,38 +55,18 @@ export const LIBRARIES: readonly FixtureLibrary[] = [
   },
 ];
 
-/**
- * Group IDs the Fixture never creates. A saved scope that names one exercises
- * the unavailable-selector paths without any database edit.
- */
 export const UNAVAILABLE_GROUP_IDS: readonly number[] = [606001, 606002];
 
 export interface FixtureCollection {
   collectionID: number;
   libraryID: number;
-  /**
-   * Bare Zotero collection key — unique per Library, not globally, and in
-   * Zotero's object-key format, so `isItemKey` accepts it.
-   */
   key: string;
   name: string;
-  /** Parent in the same Library; absent for a top-level collection. */
   parentCollectionID?: number;
 }
 
-/**
- * What `CURRENT_TIMESTAMP` reads as while a build runs. Zotero's schema
- * defaults ten columns to the clock, and a column the Spec does not stamp
- * falls back to one of them, so the build pins the clock instead of letting
- * the time of the build reach the database.
- */
 export const BUILD_TIMESTAMP = "2026-08-19 08:00:00";
 
-/**
- * `SHAREDCL` repeats in three Libraries, so a collection target must name one.
- * `PERSCHLD` nests under `PERSNAL2`, so a descendant walk and a direct
- * membership check give different answers for the one Item filed there.
- */
 export const COLLECTIONS: readonly FixtureCollection[] = [
   { collectionID: 1, libraryID: 1, key: "SHAREDCL", name: "Shared key" },
   { collectionID: 2, libraryID: 2, key: "SHAREDCL", name: "Shared key" },
@@ -116,11 +81,6 @@ export const COLLECTIONS: readonly FixtureCollection[] = [
   },
 ];
 
-/**
- * The Zotero Item types the Spec builds. Venue coverage drives the set: a
- * native container field, an aliased one, an aliased publisher-role field, a
- * native publisher field, and a type with neither role.
- */
 export const FIXTURE_ITEM_TYPES = [
   "journalArticle",
   "bookSection",
@@ -131,7 +91,6 @@ export const FIXTURE_ITEM_TYPES = [
   "letter",
 ] as const;
 
-/** The Zotero fields an Item's {@link FixtureItem.fields} can carry. */
 export const FIXTURE_ITEM_FIELDS = [
   "volume",
   "issue",
@@ -143,7 +102,6 @@ export const FIXTURE_ITEM_FIELDS = [
 
 export type FixtureItemField = (typeof FIXTURE_ITEM_FIELDS)[number];
 
-/** A vault property value as frontmatter holds it; `null` is an empty key. */
 export type FixtureVaultValue =
   | string
   | number
@@ -151,11 +109,6 @@ export type FixtureVaultValue =
   | null
   | readonly string[];
 
-/**
- * The property types the Fixture Vault records in `.obsidian/types.json`:
- * one property for every type a Bases table shows, set on the vault cells
- * showcase notes through {@link FixtureItem.vaultProperties}.
- */
 export const VAULT_PROPERTY_TYPES: Readonly<Record<string, string>> = {
   status: "text",
   note: "text",
@@ -173,77 +126,25 @@ export const VAULT_PROPERTY_TYPES: Readonly<Record<string, string>> = {
 export interface FixtureItem {
   itemID: number;
   libraryID: number;
-  /**
-   * Bare Zotero item key — unique per Library, not globally, and in Zotero's
-   * object-key format, so `isItemKey` accepts it.
-   */
   key: string;
   itemType: (typeof FIXTURE_ITEM_TYPES)[number];
-  /** `null` leaves the item without a native Zotero Citation Key. */
   citationKey: string | null;
-  /** Fixture Vault filename stem when a prose page needs a stable target. */
   literatureNoteName?: string;
-  /**
-   * Committed vault page that is this Item's Literature Note. The build copies
-   * the page and seeds no generated note, so the Item keeps one note.
-   */
   literatureNotePage?: string;
-  /**
-   * Citation Keys the seeded Literature Note cites in its body, so a
-   * Literature Note carries citation edges of its own and a local graph can
-   * walk from one literature node to a second.
-   */
   literatureNoteCitations?: readonly string[];
-  /**
-   * Literature Note Profile the seeded note belongs to, written as a Profile
-   * stamp. An absent value seeds the note under the default Profile, unstamped.
-   */
   literatureNoteProfile?: string;
-  /**
-   * Seed this Item's Literature Note as an earlier default note template
-   * rendered it: the Zotero and Attachment links, then a managed region whose
-   * Annotations are a Query Block. Below the region, outside what Update Note rewrites,
-   * the note embeds a view of a Query File, so one note holds both forms.
-   */
   literatureNoteRendered?: boolean;
-  /**
-   * End this Item's Literature Note with a Query Block of the Item's own
-   * Annotations (`item == this.item`), so the note shows a Query View whose
-   * `this` comes from its `zotero-key`.
-   */
   literatureNoteQueryBlock?: boolean;
-  /**
-   * Vault properties the seeded Literature Note carries in its frontmatter,
-   * typed by {@link VAULT_PROPERTY_TYPES}, so the vault cells showcase shows
-   * a value of every type in a Base and in a Query File's Table side by side.
-   */
   vaultProperties?: Readonly<Record<string, FixtureVaultValue>>;
   title: string;
-  /**
-   * The Item's **Venue**. The builder resolves which per-type field receives
-   * it — the container-role field where {@link itemType} has one, its
-   * publisher-role field otherwise. Omit it for a type that records neither.
-   */
   venue?: string;
-  /**
-   * A publisher-role value on a type that also records a container role, so
-   * the container-first Venue chain has something to win against.
-   */
   publisher?: string;
-  /**
-   * Locator, imprint and abstract fields under their canonical Zotero names. The build
-   * fails when {@link itemType} has no such field.
-   */
   fields?: Readonly<Partial<Record<FixtureItemField, string>>>;
-  /** Publication year, as Zotero stores the raw `date` string. */
   date: string;
   creators: readonly FixtureCreator[];
   tags?: readonly { name: string; type: 0 | 1 }[];
-  /** Related Item keys in the same Library, stored reciprocally by the Spec. */
   relatedKeys?: readonly string[];
-  /** `YYYY-MM-DD HH:MM:SS` in UTC, the shape Zotero writes. */
   dateModified: string;
-  /** Addition time when a later metadata edit must be distinct. */
   dateAdded?: string;
   collectionIDs: readonly number[];
 }
@@ -252,18 +153,11 @@ export interface FixtureCreator {
   firstName: string | null;
   lastName: string;
   creatorType: "author" | "contributor" | "editor";
-  /** `1` stores a single-field institutional name in {@link lastName}. */
   fieldMode: 0 | 1;
 }
 
-/** Id of the Fixture's second Literature Note Profile, {@link LITERATURE_NOTE_PROFILES}. */
 const BOOKS_PROFILE_ID = "V1StGXR8Z5jd";
 
-/**
- * The papers the Demo Vault Case reads: real articles with their real
- * metadata, each on an Attachment of its own over a committed PDF, so
- * screenshots and walkthroughs never touch a test Item.
- */
 export const DEMO_ITEMS: readonly FixtureItem[] = [
   {
     itemID: 900,
@@ -305,7 +199,6 @@ export const DEMO_ITEMS: readonly FixtureItem[] = [
     dateModified: "2024-11-19 09:00:00",
     collectionIDs: [],
   },
-  // A book with no Literature Note yet, so a walkthrough can write the first one.
   {
     itemID: 918,
     libraryID: 1,
@@ -323,17 +216,8 @@ export const DEMO_ITEMS: readonly FixtureItem[] = [
   },
 ];
 
-/** Vault folder that holds the demo papers' linked PDFs. */
 export const DEMO_PAPERS_DIR = "Papers";
 
-/**
- * The item set every discovery, Citation Key, and batch tracer reads.
- *
- * Item 2 has the newest metadata edit and an older addition time. Other
- * modification times descend with item id apart from two deliberate ties:
- * items 7 and 9 tie across Libraries (canonical Library order decides), and
- * items 11 and 12 tie inside My Library (ascending item id decides).
- */
 export const ITEMS: readonly FixtureItem[] = [
   {
     itemID: 1,
@@ -652,7 +536,6 @@ export const ITEMS: readonly FixtureItem[] = [
       author("Michael", "Droettboom"),
       author("Philip E.", "Bourne"),
     ],
-    // The Library View's Reading Card shows it.
     fields: {
       abstractNote:
         "Fixture abstract: a figure carries the argument of a paper at a glance, so each rule keeps one message per figure.",
@@ -739,10 +622,6 @@ export const ITEMS: readonly FixtureItem[] = [
     dateModified: "2025-05-22 03:30:30",
     collectionIDs: [],
   },
-  // ── Publisher by item type ───────────────────────────────────
-  // One `publisher` property formatted per item type: a journal article with
-  // every locator and one with only a volume, a book with a place, a chapter
-  // in an edited collection, and a thesis whose university is its publisher.
   {
     itemID: 86,
     libraryID: 1,
@@ -823,10 +702,6 @@ export const ITEMS: readonly FixtureItem[] = [
     dateModified: "2024-11-01 12:00:00",
     collectionIDs: [],
   },
-  // ── Title collation (Item Query string order) ─────────────────────
-  // Titles that differ in case, accent, and digits. Item Query sorts them as
-  // 10, 9, apple, eclair, Éclair, Zebra in the running Obsidian, which proves
-  // that Electron's collator agrees with Node's.
   ...(
     [
       [91, "SRTZEBRA", "Zebra"],
@@ -848,7 +723,6 @@ export const ITEMS: readonly FixtureItem[] = [
     dateModified: `2019-01-01 00:00:${String(itemID - 90).padStart(2, "0")}`,
     collectionIDs: [],
   })),
-  // ── Graph showcase: information-science citation web ──────────────
   {
     itemID: 70,
     libraryID: 1,
@@ -1074,9 +948,6 @@ export const ITEMS: readonly FixtureItem[] = [
     collectionIDs: [2],
   },
   {
-    // A Chinese title of several words. `Intl.Segmenter` keeps `长江流域` one
-    // word, so a search for `流域` finds this Item only when the Chinese
-    // Segmenter of the Resource Pack cuts the title.
     itemID: 97,
     libraryID: 2,
     key: "CHNSEG5A",
@@ -1092,18 +963,8 @@ export const ITEMS: readonly FixtureItem[] = [
   ...DEMO_ITEMS,
 ];
 
-/** How a seeded Citation Key resolves against the Items the build writes. */
 export type SeededCitationKeyResolution = "unique" | "ambiguous" | "missing";
 
-/**
- * The Citation Keys the seeded vault cites for its graph cases, with the
- * resolution each case rests on: one Item behind a Literature Note, several
- * behind an ambiguous key, none behind an unresolved key.
- * {@link assertSeededCitationKeys} holds the build to this map, so an Item
- * edit that retires a case stops the build instead of leaving a seeded page
- * that no longer shows what it names. Declare a key here as you seed a page
- * that cites it.
- */
 export const SEEDED_CITATION_KEYS: Readonly<
   Record<string, SeededCitationKeyResolution>
 > = {
@@ -1142,7 +1003,6 @@ function citationKeyResolution(
   return held === 1 ? "unique" : "ambiguous";
 }
 
-/** One message per seeded Citation Key that left its declared resolution. */
 export function seededCitationKeyDrift(
   items: readonly FixtureItem[],
 ): readonly string[] {
@@ -1156,7 +1016,6 @@ export function seededCitationKeyDrift(
   });
 }
 
-/** Stops a build whose Items no longer carry the seeded citation cases. */
 export function assertSeededCitationKeys(items: readonly FixtureItem[]): void {
   const drift = seededCitationKeyDrift(items);
   if (drift.length > 0) {
@@ -1171,34 +1030,16 @@ function author(firstName: string, lastName: string): FixtureCreator {
 export interface FixtureNote {
   itemID: number;
   libraryID: number;
-  /**
-   * Bare Zotero item key — unique per Library, not globally, and in Zotero's
-   * object-key format, so `isItemKey` accepts it.
-   */
   key: string;
-  /** `null` for a standalone note; otherwise the parent item it hangs off. */
   parentItemID: number | null;
   title: string;
-  /** Complete HTML derived from Zotero-created Note output. */
   note: string;
-  /** Markdown body for a generated Imported Note; `null` for other Notes. */
   importedNoteBody: string | null;
-  /** `YYYY-MM-DD HH:MM:SS` in UTC, the shape Zotero writes. */
   dateModified: string;
   trashed?: boolean;
-  /**
-   * Collections the note is filed in. A child note carries none: Zotero files
-   * it with its parent item rather than in a collection of its own.
-   */
   collectionIDs: readonly number[];
 }
 
-/**
- * The note set every note-import tracer reads. Every Library holds at least one
- * note, so a scoped import finds work wherever the scope reaches, and `NNNNAAAA`
- * repeats in My Library and Shared Reading, so an exact note target has to name
- * its Library.
- */
 export const NOTES: readonly FixtureNote[] = [
   {
     itemID: 13,
@@ -1337,34 +1178,18 @@ export type FixtureAsset =
   | "pdf-reader/jbig2.pdf"
   | "pdf-reader/jpx.pdf";
 
-/** One line-grouping branch of Zotero's PDF text-structuring algorithm. */
 export type FixtureParityBranch =
   | "rotation"
   | "ligature"
   | "multi-column"
   | "no-text-layer";
 
-/**
- * One PDF built for the Sort Index / Page Label parity test, asset-only: no
- * Zotero item, attachment, annotation, or collection backs it. The parity
- * test reads it straight from the asset directory, so it stays out of the
- * Fixture database and every count assertion that reads from there.
- */
 export interface FixtureParityPdf {
-  /** Committed asset path, under `assets/`. */
   readonly asset: FixtureAsset;
-  /** Line-grouping branches this PDF is built to exercise. */
   readonly branches: readonly FixtureParityBranch[];
-  /** SHA-256 of the committed bytes; `pdf-parity/NOTICE.md` records the same value. */
   readonly sha256: string;
 }
 
-/**
- * The two hand-generated parity PDFs (`pdf-parity/generate.ts`): one page
- * that drives Zotero's line-grouping algorithm through its rotation,
- * ligature, and multi-column branches, and one scanned page with no text
- * layer, whose only content is an image.
- */
 export const PARITY_PDFS: readonly FixtureParityPdf[] = [
   {
     asset: "pdf-parity/pdf-parity-layout.pdf",
@@ -1385,7 +1210,6 @@ export const SELECTION_LINK_PDFS: readonly FixtureAsset[] = [
   "pdf-reader/mock-form.pdf",
 ];
 
-/** Stable vault directory for the excerpt-rendering acceptance inputs. */
 export const EXCERPT_RENDERING_VAULT_DIR = "attachments/excerpt-acceptance";
 
 export const PDF_READER_VAULT_DIR = "attachments/pdf-reader";
@@ -1406,10 +1230,6 @@ export interface FixtureExcerptPdf {
   readonly sha256: string;
 }
 
-/**
- * Small, generated PDFs for renderer acceptance. They are copied into the
- * Fixture Vault, but stay out of Zotero's database and Item count assertions.
- */
 export const EXCERPT_RENDERING_PDFS: readonly FixtureExcerptPdf[] = [
   {
     asset: "excerpt-rendering/excerpt-rendering.pdf",
@@ -1436,7 +1256,6 @@ export interface FixtureExcerptCase {
   readonly width?: number;
   readonly paths?: readonly (readonly number[])[];
   readonly measureMemory?: boolean;
-  /** Independent decoded-PNG oracles; sample coordinates are output pixels. */
   readonly expected: {
     readonly width: number;
     readonly height: number;
@@ -1451,7 +1270,6 @@ export interface FixtureExcerptCase {
   };
 }
 
-/** Independent geometry cases consumed by desktop acceptance tests. */
 export const EXCERPT_RENDERING_CASES: readonly FixtureExcerptCase[] = [
   {
     id: "crop-user-unit",
@@ -1568,13 +1386,10 @@ export const EXCERPT_RENDERING_CASES: readonly FixtureExcerptCase[] = [
 ];
 
 interface FixtureAttachmentBase {
-  /** Last read in Zotero, in Unix seconds; absent means never read. */
   lastRead?: number;
-  /** Manual or automatic Zotero Tags on the Attachment. */
   tags?: readonly { name: string; type: 0 | 1 }[];
   itemID: number;
   libraryID: number;
-  /** Bare Zotero key for the Attachment row. */
   key: string;
   parentItemID: number;
   contentType:
@@ -1583,9 +1398,7 @@ interface FixtureAttachmentBase {
     | "image/png"
     | "text/html";
   title: string;
-  /** Committed source to copy; `null` makes a URL row or deliberate miss. */
   sourceAsset: FixtureAsset | null;
-  /** `YYYY-MM-DD HH:MM:SS` in UTC, the shape Zotero writes. */
   dateModified: string;
 }
 
@@ -1600,7 +1413,6 @@ export type FixtureAttachment = FixtureAttachmentBase &
         linkMode: "linked_file";
         path: string;
         url: null;
-        /** Root that holds the generated file and backs its absolute database path. */
         fileRoot: "linked-files" | "vault";
       }
     | {
@@ -1616,10 +1428,6 @@ export type FixtureAttachment = FixtureAttachmentBase &
       }
   );
 
-/**
- * The demo papers' PDFs, linked from {@link DEMO_PAPERS_DIR} under the names
- * Zotero's default file renaming gives them.
- */
 export const DEMO_ATTACHMENTS: readonly FixtureAttachment[] = [
   {
     itemID: 901,
@@ -1651,11 +1459,6 @@ export const DEMO_ATTACHMENTS: readonly FixtureAttachment[] = [
   },
 ];
 
-/**
- * File-backed rows cover every storage and linked-file branch. `LINKURL2`
- * exercises the URL-only branch, while `MISSNG22` resolves to the one path the
- * generator deliberately leaves absent.
- */
 export const ATTACHMENTS: readonly FixtureAttachment[] = [
   {
     itemID: 150,
@@ -1847,9 +1650,6 @@ export const ATTACHMENTS: readonly FixtureAttachment[] = [
     dateModified: "2025-02-28 12:00:00",
   },
   {
-    // Its PDF embeds one highlight another PDF reader saved, and the Fixture
-    // seeds no Annotation here. A Paired Zotero that opens the PDF imports
-    // that highlight as an External Annotation, which Zotero keeps read-only.
     itemID: 85,
     libraryID: 1,
     key: "EXTPDF25",
@@ -1883,24 +1683,16 @@ export const ATTACHMENTS: readonly FixtureAttachment[] = [
 interface FixtureAnnotationBase {
   itemID: number;
   libraryID: number;
-  /** Bare Zotero key for the Annotation row. */
   key: string;
   parentItemID: number;
   text: string | null;
   comment: string | null;
   color: string;
-  /** Manual (`0`) or automatic (`1`) Zotero tags on the Annotation. */
   tags?: readonly { name: string; type: 0 | 1 }[];
-  /**
-   * An External Annotation: Zotero imported it from the PDF file and keeps it
-   * read-only. Absent for an Annotation drawn in Zotero.
-   */
   isExternal?: true;
   pageLabel: string;
   sortIndex: string;
-  /** `YYYY-MM-DD HH:MM:SS` in UTC, the shape Zotero writes. */
   dateAdded: string;
-  /** `YYYY-MM-DD HH:MM:SS` in UTC, the shape Zotero writes. */
   dateModified: string;
 }
 
@@ -1938,13 +1730,11 @@ export type FixtureAnnotation = FixtureAnnotationBase &
     | {
         type: 3;
         position: FixturePdfRectsPosition;
-        /** Generated Zotero annotation-cache PNG. */
         cacheImageAsset: FixtureAnnotationAsset;
       }
     | {
         type: 4;
         position: FixturePdfInkPosition;
-        /** Generated Zotero annotation-cache PNG. */
         cacheImageAsset: FixtureAnnotationAsset;
       }
     | {
@@ -1959,15 +1749,6 @@ export type FixtureAnnotation = FixtureAnnotationBase &
       }
   );
 
-/**
- * A reader's Annotations on the demo papers, captured from a Zotero 10 reader
- * session: Zotero drew each one, so its position, text, Sort Index, and page
- * label are Zotero's own. Two rows are exceptions. The Spec writes the External
- * Annotation `XTPPV7Q3` as the row Zotero keeps after it imports a highlight
- * from the PDF file. `K7MWQ2RD` copies the position and Sort Index of the
- * configured highlight `PUPR5FG5` on the same PDF, so the template tutorial's
- * "Identify Your Message" exists in the Demo Vault Case.
- */
 export const DEMO_ANNOTATIONS: readonly FixtureAnnotation[] = [
   {
     itemID: 904,
@@ -2182,7 +1963,6 @@ export const DEMO_ANNOTATIONS: readonly FixtureAnnotation[] = [
     pageLabel: "2",
     sortIndex: "00001|001860|00047",
     position: { pageIndex: 1, rects: [[48.75, 395.509, 570, 743.723]] },
-    // Zotero cached this capture byte-for-byte as FDRFQ7C2's: same page, same rectangle.
     cacheImageAsset: "rougier-2014/annotations/FDRFQ7C2.png",
     dateAdded: "2026-09-26 16:55:19",
     dateModified: "2026-09-26 16:55:20",
@@ -2266,9 +2046,6 @@ export const DEMO_ANNOTATIONS: readonly FixtureAnnotation[] = [
     dateModified: "2026-09-26 16:57:18",
   },
   {
-    // A highlight that another PDF reader saved in the file, as Zotero stores
-    // it after import: read-only, so its card shows the lock. Its rects are
-    // the two full lines, measured from the page's text layer.
     itemID: 916,
     libraryID: 1,
     key: "XTPPV7Q3",
@@ -2293,7 +2070,6 @@ export const DEMO_ANNOTATIONS: readonly FixtureAnnotation[] = [
   },
 ];
 
-/** Reviewed anchors for the committed Fixture documents. */
 export const ANNOTATIONS: readonly FixtureAnnotation[] = [
   {
     itemID: 31,
@@ -2607,25 +2383,12 @@ export const ANNOTATIONS: readonly FixtureAnnotation[] = [
   ...DEMO_ANNOTATIONS,
 ];
 
-/** One CSL style a user installed in Zotero, as the Fixture carries it. */
 export interface FixtureStyle {
-  /** File under `assets/styles/`, and the name Zotero installs it under. */
   file: string;
-  /** `<info><id>` — the identity the Citation and References Style setting stores. */
   id: string;
-  /** `<info><title>` — the label the Citation and References Style picker lists. */
   title: string;
 }
 
-/**
- * The styles a user installed on top of Zotero's bundled set, which every build
- * lays down beside it. The one here is a numeric style carrying its own
- * `zh-CN` default locale, so the picker offers a selection the bundled styles
- * have no equivalent of, and a Citation Locale case that reads in one glance.
- *
- * Each file travels under its own CC BY-SA 3.0 licence, as its `<rights>`
- * element states.
- */
 export const INSTALLED_STYLES: readonly FixtureStyle[] = [
   {
     file: "chinese-gb7714-1987-numeric.csl",
@@ -2634,11 +2397,6 @@ export const INSTALLED_STYLES: readonly FixtureStyle[] = [
   },
 ];
 
-/**
- * The Fixture's second Literature Note Profile. Together with the built-in
- * default Profile and its built-in document, it provides two document-backed
- * layouts and two target folders for real-vault checks.
- */
 export const LITERATURE_NOTE_PROFILES = [
   {
     id: BOOKS_PROFILE_ID,
@@ -2651,33 +2409,19 @@ export const LITERATURE_NOTE_PROFILES = [
   },
 ] as const;
 
-/**
- * The Fixture's Shared Partial. The Books Profile note body calls it, the
- * Profile import example bundles a different edition under this name, and
- * removing the file is what makes a Literature Note create refuse.
- */
 export const FIXTURE_PARTIAL_NAME = "book-details";
 
-/**
- * The Configured vault's `zotlit-citation.md`: the shipped Citation Template
- * default with one visible edit, so an inserted alternate citation reads as
- * the reader's own rather than the built-in text.
- */
 export const CITATION_DOCUMENT_EDIT: FixtureTemplateEdit = {
   find: '{{ zt.citations | pandoc_cite: "prefer-author-in-text" }}',
   replace: 'cf. {{ zt.citations | pandoc_cite: "prefer-author-in-text" }}',
 };
 
-/** One Shared Partial the Fixture Vault holds, as its `zotlit-partial.<name>.md` file carries it. */
 export interface FixtureSharedPartial {
-  /** The partial's vault-global name, which a render call names. */
   readonly name: string;
   readonly language: "liquid" | "eta";
-  /** The template source below the document's manifest. */
   readonly source: string;
 }
 
-/** Shared Partial documents placed in the Fixture template folder. */
 export const SHARED_PARTIAL_DOCUMENTS: readonly FixtureSharedPartial[] = [
   {
     name: FIXTURE_PARTIAL_NAME,
@@ -2689,7 +2433,6 @@ export const SHARED_PARTIAL_DOCUMENTS: readonly FixtureSharedPartial[] = [
   },
 ];
 
-/** Literature Note Template documents placed in the Fixture template folder. */
 export const LITERATURE_NOTE_DOCUMENTS = [
   {
     filename: "zotlit-profile.books.md",
@@ -2736,17 +2479,8 @@ Citation key: {{ zt.citationKey }}
   },
 ] as const;
 
-/** Id of the Demo Vault Case's Literature Note Profile, {@link DEMO_PROFILE_DOCUMENT}. */
 const DEMO_PROFILE_ID = "Rd9QmT4kLw2P";
 
-/**
- * The Demo Vault Case's one Literature Note Profile document. It has no
- * match, so the shipped default Profile still writes every new note. Its
- * properties show JSON-e rules next to an expression: `year` evaluates one
- * field, and one keyless rule chooses which properties a note gets: a book
- * gets `publisher`, any other item gets `journal`. A property with a key
- * writes only that key, so only a keyless rule can choose between names.
- */
 export const DEMO_PROFILE_DOCUMENT = {
   filename: "zotlit-profile.reading.md",
   source: `---
@@ -2791,25 +2525,14 @@ frontmatter:
 
 const STRESS_ITEM_KEY_ALPHABET = "23456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
 const STRESS_BUILD_SEED = 0x5eed_0000;
-/**
- * Seed of the group Library of a two-Library Stress Build. The Item count of
- * a Library is at most the distance between the two seeds
- * ({@link STRESS_LIBRARY_MAX_ITEM_COUNT}), so the two Libraries share no
- * Zotero Key.
- */
 const STRESS_GROUP_LIBRARY_SEED = 0x6eed_0000;
-/** The largest Item count of one Library in a Stress Build of whole Libraries. */
 const STRESS_LIBRARY_MAX_ITEM_COUNT =
   STRESS_GROUP_LIBRARY_SEED - STRESS_BUILD_SEED;
 
-/** Synthetic Item count used by `pnpm fixture stress`. */
 export const DEFAULT_STRESS_ITEM_COUNT = 25_000;
 export const STRESS_ITEM_COUNT_CONSTRAINT = "a non-negative safe integer";
 
 function stressItemKey(index: number): string {
-  // The multiplier is coprime to 33, so it permutes all seven-character
-  // suffixes without collisions and separates key order from Item ID order.
-  // BigInt keeps the product exact.
   let value = Number(
     (BigInt(index) * 26_339_145_517n) %
       BigInt(STRESS_ITEM_KEY_ALPHABET.length) ** 7n,
@@ -2824,7 +2547,6 @@ function stressItemKey(index: number): string {
   return `S${suffix}`;
 }
 
-/** Additive synthetic corpus for an on-demand Stress Build. */
 export function createStressItems(
   count: number,
   { sparseLibraryID }: { sparseLibraryID?: number } = {},
@@ -2865,8 +2587,6 @@ export function createStressItems(
     const collection = COLLECTIONS.find(
       ({ libraryID }) => libraryID === library.libraryID,
     );
-    // One Item in ten has a long subtitle, Venue and author list, which wrap
-    // to more lines in a List: a long list draws rows of unlike heights.
     const long = index % 10 === 8;
     return {
       itemID: firstItemID + index,
@@ -2896,78 +2616,50 @@ export function createStressItems(
   });
 }
 
-/** Fixture Spec Items in My Library, the floor of a one-Library Stress Build. */
 export const STRESS_LIBRARY_MIN_ITEM_COUNT = ITEMS.filter(
   ({ libraryID }) => libraryID === USER_LIBRARY_ID,
 ).length;
-/** The Item counts a Library with `floor` Fixture Spec Items takes. */
 function stressLibraryItemCountConstraint(floor: number): string {
   return `a safe integer of at least ${floor}, and at most ${STRESS_LIBRARY_MAX_ITEM_COUNT}`;
 }
 export const STRESS_LIBRARY_ITEM_COUNT_CONSTRAINT =
   stressLibraryItemCountConstraint(STRESS_LIBRARY_MIN_ITEM_COUNT);
-/** My Library sizes the Item Query performance tiers measure. */
 export const STRESS_LIBRARY_TIERS = [10_000, 50_000, 100_000] as const;
-/** The group Library that a two-Library Stress Build fills: Shared Reading. */
 export const STRESS_GROUP_LIBRARY = LIBRARIES.find(
   ({ groupID }) => groupID === 4200309,
 )!;
-/** Fixture Spec Items in that group Library, the floor of its Item count. */
 export const STRESS_GROUP_LIBRARY_MIN_ITEM_COUNT = ITEMS.filter(
   ({ libraryID }) => libraryID === STRESS_GROUP_LIBRARY.libraryID,
 ).length;
 export const STRESS_GROUP_LIBRARY_ITEM_COUNT_CONSTRAINT =
   stressLibraryItemCountConstraint(STRESS_GROUP_LIBRARY_MIN_ITEM_COUNT);
 
-/**
- * Query targets of a one-Library Stress Build. Every synthetic Item draws each
- * value from its index `i` in the corpus: rare values recur every 1,000 Items,
- * common values every 10, and dominant values cover more than a quarter of the
- * Library, so a selective and a non-selective query each have a target.
- */
 export const STRESS_LIBRARY_VALUES = {
-  /** One paper: 3 tagged marks per 100 Items (300, 1,500, 3,000 at the measured tiers). */
   annotations: { tag: "stress-many-marks", perHundredItems: 3 },
   tags: {
-    /** `i % 1000 == 0`: 0.1% of the corpus. */
     rare: "stress-rare",
-    /** `i % 10 == 5`: 10%. */
     common: "stress-common",
-    /** `i % 5 < 3`: 60%. */
     dominant: "stress-dominant",
   },
   collections: {
-    /** Top-level; files no Item directly, so its subtree is the other three. */
     root: { key: "STRESSRT", name: "Stress Build" },
-    /** Under `root`; `i % 10 == 6`: 10%. */
     common: { key: "STRESSCM", name: "Common" },
-    /** Under `common`; `i % 1000 == 1`: 0.1%. */
     rare: { key: "STRESSRR", name: "Rare" },
-    /** Under `root`; `i % 5 >= 2`: 60%. */
     dominant: { key: "STRESSDM", name: "Dominant" },
   },
   itemTypes: {
-    /** `i % 1000 == 2`, with Venue "Stress Build University". */
     rare: "thesis",
-    /** `i % 10 == 7`, with Venue "Stress Build Press". */
     common: "book",
-    /** Every other Item: about 90%. */
     dominant: "journalArticle",
   },
-  /** `publicationTitle` of the journal articles. */
   venues: {
-    /** `i % 1000 == 3`. */
     rare: "Stress Rare Journal",
-    /** `i % 10 == 8`. */
     common: "Stress Common Journal",
-    /** Every other journal article. */
     dominant: "Stress Dominant Journal",
   },
-  /** Title of the Item at `i == floor(count / 2)`; every other title is unique too. */
   uniqueTitle: "Stress Build unique title",
 } as const;
 
-/** Data a Stress Build of whole Libraries adds to the Fixture Spec. */
 export interface StressLibraryCorpus {
   items: readonly FixtureItem[];
   collections: readonly FixtureCollection[];
@@ -2979,12 +2671,6 @@ const STRESS_LIBRARY_MODIFIED_EPOCH = Temporal.Instant.from(
   "2020-01-01T00:00:00Z",
 );
 
-/**
- * Synthetic corpus that fills My Library to exactly `itemCount` Items, with
- * the distributions of {@link STRESS_LIBRARY_VALUES}. With `groupItemCount`,
- * it also fills {@link STRESS_GROUP_LIBRARY} to that Item count by the same
- * rules, with Collections, Zotero Keys, and Citation Keys of its own.
- */
 export function createStressLibraryCorpus(
   itemCount: number,
   groupItemCount?: number,
@@ -3088,12 +2774,6 @@ function addStressRelations(
   return { ...corpus, attachments: [attachment], annotations };
 }
 
-/**
- * The synthetic Items that fill a Library with `floor` Fixture Spec Items to
- * `itemCount` Items.
- *
- * @throws {Error} when the Library does not take the Item count.
- */
 function syntheticItemCount(
   library: "Library" | "group Library",
   { itemCount, floor }: { itemCount: number; floor: number },
@@ -3110,7 +2790,6 @@ function syntheticItemCount(
   return itemCount - floor;
 }
 
-/** The synthetic Items and Collections of one Library of a Stress Build. */
 function fillStressLibrary({
   libraryID,
   count,
@@ -3120,9 +2799,7 @@ function fillStressLibrary({
   firstCollectionID,
 }: {
   libraryID: number;
-  /** Synthetic Items to make. */
   count: number;
-  /** Start of the Zotero Keys. */
   seed: number;
   citationKeyPrefix: string;
   firstItemID: number;
@@ -3179,8 +2856,6 @@ function fillStressLibrary({
       ...(i % 1000 === 1 ? [rare.collectionID] : []),
       ...(i % 5 >= 2 ? [dominant.collectionID] : []),
     ];
-    // A multiplicative scramble by a prime keeps modification order apart
-    // from key order, one second apart for each Item.
     const modifiedOffset = (i * 7919) % Math.max(count, 1);
     const dateModified = STRESS_LIBRARY_MODIFIED_EPOCH.add({
       seconds: modifiedOffset,
@@ -3209,11 +2884,6 @@ function fillStressLibrary({
   return { items, collections, attachments: [], annotations: [] };
 }
 
-/**
- * Persisted Library Scope, in the shape the specification fixes: All Libraries,
- * or a non-empty set of stable selectors in canonical order (My Library first,
- * then groups by ascending group ID).
- */
 export type PersistedLibraryScope =
   | { readonly mode: "all" }
   | {
@@ -3221,16 +2891,10 @@ export type PersistedLibraryScope =
       readonly libraries: readonly LibrarySelector[];
     };
 
-/**
- * Settings key the scope is written under. This constant and
- * {@link PersistedLibraryScope} are the single seam to update when the Library
- * Scope setting changes shape.
- */
 export const LIBRARY_SCOPE_SETTING_KEY = "zotero.library-scope";
 
 export interface FixtureScopeCase {
   id: string;
-  /** One line for the maintainer choosing a case. */
   summary: string;
   scope: PersistedLibraryScope;
 }
@@ -3279,10 +2943,6 @@ export function findScopeCase(id: string): FixtureScopeCase {
   return found;
 }
 
-/**
- * Persisted shape of one Managed Frontmatter field, as ZotLit v2.1 saved it
- * under `note.frontmatter-fields`.
- */
 export interface FixtureFrontmatterField {
   readonly key: string;
   readonly expr: string;
@@ -3290,21 +2950,11 @@ export interface FixtureFrontmatterField {
   readonly language: "liquid";
 }
 
-/**
- * One find-and-replace against a shipped default, which stands in for a
- * reader's own customization.
- */
 export interface FixtureTemplateEdit {
-  /** Text present in the shipped default source; the build fails otherwise. */
   readonly find: string;
-  /** Visible edit that stands in for a user's customization. */
   readonly replace: string;
 }
 
-/**
- * Shipped default one ejected Legacy Template File starts from: a Literature
- * Note slot's default file, or one 2.1.x citation branch.
- */
 export type FixtureLegacyTemplateOrigin =
   | "filename"
   | "note"
@@ -3313,21 +2963,9 @@ export type FixtureLegacyTemplateOrigin =
   | "cite"
   | "cite2";
 
-/**
- * The bare 2.1.x partial the Upgrader vault ejects. The one-pass conversion
- * renames it to `zotlit-partial.annotation-callout.md`.
- */
 export const UPGRADER_LEGACY_PARTIAL_NAME = "annotation-callout";
 
-/**
- * One 2.1.x Legacy Template File the Upgrader vault ejects. The file is
- * `zotlit-<name>.<language>.md` in the template folder, and its text is the
- * shipped default of the same name with the edit applied. The bare partial is
- * the exception: it has no default of its own, so it names the one it starts
- * from in `from`.
- */
 export type FixtureLegacyTemplate = FixtureTemplateEdit & {
-  /** The language the file is written in; it picks the extension. */
   readonly language: "liquid" | "eta";
 } & (
     | { readonly name: FixtureLegacyTemplateOrigin }
@@ -3337,28 +2975,16 @@ export type FixtureLegacyTemplate = FixtureTemplateEdit & {
       }
   );
 
-/** The graph showcase Items of {@link ITEMS} the Graph Vault Case reuses. */
 const GRAPH_SHOWCASE_ITEM_IDS: ReadonlySet<number> = new Set([
   70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
 ]);
 
-/** Library of the works the Graph Vault Case's reader cites but has not written up. */
 const GRAPH_CITED_ONLY_LIBRARY_ID = 2;
 
-/**
- * The works the Graph Vault Case reads: the ten graph showcase Items and
- * further real works on hypertext, citation analysis, and memory and note
- * taking, with their published metadata. The showcase Items come without
- * their test collection, and their Literature Notes carry none of their vault
- * properties or showcase citations. Every My Library Item gets a
- * Literature Note; the works in {@link GRAPH_CITED_ONLY_LIBRARY_ID} get none,
- * so each one is a Cited Work Node.
- */
 export const GRAPH_ITEMS: readonly FixtureItem[] = [
   ...ITEMS.filter(({ itemID }) => GRAPH_SHOWCASE_ITEM_IDS.has(itemID)).map(
     (item) => ({ ...item, collectionIDs: [] }),
   ),
-  // ── Hypertext and augmentation ──
   {
     itemID: 800,
     libraryID: 1,
@@ -3444,7 +3070,6 @@ export const GRAPH_ITEMS: readonly FixtureItem[] = [
     dateModified: "2025-03-06 10:00:00",
     collectionIDs: [],
   },
-  // ── Citation analysis and link analysis ──
   {
     itemID: 805,
     libraryID: 1,
@@ -3578,7 +3203,6 @@ export const GRAPH_ITEMS: readonly FixtureItem[] = [
     dateModified: "2025-03-13 10:00:00",
     collectionIDs: [],
   },
-  // ── Memory, cognition, and note taking ──
   {
     itemID: 812,
     libraryID: 1,
@@ -3710,12 +3334,6 @@ export const GRAPH_ITEMS: readonly FixtureItem[] = [
   },
 ];
 
-/**
- * The reading notes a researcher wrote below the template output of each
- * Graph Vault Case Literature Note, by Citation Key. A citation here draws an
- * edge from one Literature Note to another work. Every Graph Item in My
- * Library has an entry.
- */
 export const GRAPH_LITERATURE_NOTE_BODIES: Readonly<Record<string, string>> = {
   bushAsWeMayThink1945:
     "Bush's real problem is selection: the record grows faster than anyone can consult it, and indexing by class and subclass does not follow how a reader thinks. The memex answers with association. A reader ties two items together, and the tie stays as a trail that a colleague can copy and follow.",
@@ -3771,19 +3389,12 @@ export const GRAPH_LITERATURE_NOTE_BODIES: Readonly<Record<string, string>> = {
     "A review of how people use their bodies and their tools to reduce the cognitive demand of a task, such as reminders and written notes. The philosophical frame is [@clarkExtendedMind1998].",
 };
 
-/** Vault folders that hold the Graph Vault Case's research notes. */
 export const GRAPH_RESEARCH_FOLDERS = [
   "Projects",
   "Reading log",
   "Topics",
 ] as const;
 
-/**
- * The global graph options the Graph Vault Case saves in
- * `.obsidian/graph.json`: the values ZotLit's Citation Graph preset applies,
- * with author and title labels on, and two colour groups — Literature Notes in
- * the ZotLit accent, research notes in blue.
- */
 export const GRAPH_VIEW_OPTIONS = {
   search: "",
   showTags: false,
@@ -3807,10 +3418,6 @@ export const GRAPH_VIEW_OPTIONS = {
   "zotlit-author-title-labels": true,
 } as const;
 
-/**
- * The Docs Vault Case's two collections, in My Library. The demo papers and
- * the docs papers are filed by topic, as a researcher sorts a reading list.
- */
 export const DOCS_COLLECTIONS: readonly FixtureCollection[] = [
   { collectionID: 900, libraryID: 1, key: "DCRPRDCB", name: "Reproducibility" },
   {
@@ -3821,7 +3428,6 @@ export const DOCS_COLLECTIONS: readonly FixtureCollection[] = [
   },
 ];
 
-/** The collections the Docs Vault Case files each demo paper in. */
 export const DOCS_DEMO_COLLECTIONS: Readonly<
   Record<string, readonly number[]>
 > = {
@@ -3829,11 +3435,6 @@ export const DOCS_DEMO_COLLECTIONS: Readonly<
   DMIANART: [900],
 };
 
-/**
- * The papers the Docs Vault Case adds to the demo papers: real articles on
- * reproducible research with their real metadata. Sandve et al. carries a PDF
- * with highlights, Wilson et al. a PDF not yet read, and Munafò et al. no PDF.
- */
 export const DOCS_ITEMS: readonly FixtureItem[] = [
   {
     itemID: 930,
@@ -3921,10 +3522,6 @@ export const DOCS_ITEMS: readonly FixtureItem[] = [
   },
 ];
 
-/**
- * The docs papers' PDFs, stored in Zotero's `storage` folder as a PDF added
- * to Zotero is, under the names Zotero's default file renaming gives them.
- */
 export const DOCS_ATTACHMENTS: readonly FixtureAttachment[] = [
   {
     itemID: 931,
@@ -3954,11 +3551,6 @@ export const DOCS_ATTACHMENTS: readonly FixtureAttachment[] = [
   },
 ];
 
-/**
- * A reader's highlights on Sandve et al., in five colours. Each rectangle is
- * the line box of the quoted text on its page, in PDF points, so the marks
- * sit on the words in Zotero's reader and in Obsidian's.
- */
 export const DOCS_ANNOTATIONS: readonly FixtureAnnotation[] = [
   {
     itemID: 936,
@@ -4079,13 +3671,11 @@ export const DOCS_ANNOTATIONS: readonly FixtureAnnotation[] = [
   },
 ];
 
-/** A My Library item's URI, as Zotero's note editor writes it into a note. */
 const docsItemUri = (key: string) =>
   `http://zotero.org/users/local/LOCAL/items/${key}`;
 const encodeNoteData = (data: unknown) =>
   encodeURIComponent(JSON.stringify(data));
 
-/** A citation mark as Zotero's note editor inserts it. */
 function docsCitation(
   items: readonly { key: string; locator?: string }[],
   text: string,
@@ -4097,10 +3687,6 @@ function docsCitation(
   return `<span class="citation" data-citation="${encodeNoteData({ citationItems, properties: {} })}">(<span class="citation-item">${text}</span>)</span>`;
 }
 
-/**
- * Zotero's note container: the editor stores a CSL snapshot of every item the
- * note cites on it.
- */
 function docsNoteHtml(
   cited: readonly { key: string; itemData: Record<string, unknown> }[],
   body: string,
@@ -4148,10 +3734,6 @@ const MUNAFO_CSL = {
   },
 };
 
-/**
- * Sandve's yellow highlight on page 1, dragged from the PDF into a note as
- * Zotero's note editor inserts it: the quote, then its citation.
- */
 const SANDVE_HIGHLIGHT = `<span class="highlight" data-annotation="${encodeNoteData(
   {
     attachmentURI: docsItemUri("DCSNDPDF"),
@@ -4170,13 +3752,6 @@ const SANDVE_HIGHLIGHT = `<span class="highlight" data-annotation="${encodeNoteD
   },
 )}">“As a minimal requirement, you should at least be able to reproduce the results yourself.”</span> ${docsCitation([{ key: "DCSNDART", locator: "1" }], "Sandve et al., 2013, p. 1")}`;
 
-/**
- * The notes a researcher wrote in Zotero before ZotLit: a summary of
- * Ioannidis 2005, structured notes on Sandve et al. with a highlight dragged
- * in from the PDF, a short note on Wilson et al. that cites Sandve, and a
- * standalone chapter plan filed in "Reproducibility" that cites two papers.
- * No vault copy exists: a lesson imports them.
- */
 export const DOCS_NOTES: readonly FixtureNote[] = [
   {
     itemID: 941,
@@ -4236,22 +3811,11 @@ export const DOCS_NOTES: readonly FixtureNote[] = [
 
 export interface FixtureVaultCase {
   id: "configured" | "fresh" | "upgrader" | "demo" | "graph" | "docs";
-  /** One line for the maintainer choosing a case. */
   summary: string;
-  /** Core features for a capture scenario. */
   corePlugins?: Readonly<Record<string, boolean>>;
-  /**
-   * The only Items the case's Zotero data holds, with their child rows and
-   * parents. Absent, the case holds every Fixture Item.
-   */
   ownItems?: readonly FixtureItem[];
 }
 
-/**
- * A Vault Case is a named, saved Fixture Vault state. The Scope Case selects
- * the saved Library Scope; the Vault Case selects everything else the vault
- * holds: settings file, notes, Profiles, and template files.
- */
 export const VAULT_CASES: readonly FixtureVaultCase[] = [
   {
     id: "configured",
@@ -4293,10 +3857,6 @@ export const VAULT_CASES: readonly FixtureVaultCase[] = [
 
 export const DEFAULT_VAULT_CASE = "configured";
 
-/**
- * Whether a Vault Case holds the demo papers: `demo`, and `docs`, which adds
- * the docs papers beside them.
- */
 export function holdsDemoPapers(vaultCaseId: string): boolean {
   const { id } = findVaultCase(vaultCaseId);
   return id === "demo" || id === "docs";
@@ -4312,7 +3872,6 @@ export function findVaultCase(id: string): FixtureVaultCase {
   return found;
 }
 
-/** The Zotero rows one build writes. */
 export interface FixtureZoteroData {
   libraries: readonly FixtureLibrary[];
   collections: readonly FixtureCollection[];
@@ -4322,7 +3881,6 @@ export interface FixtureZoteroData {
   annotations: readonly FixtureAnnotation[];
 }
 
-/** Select one complete data set, including the parents of every selected row. */
 export function vaultCaseZoteroData(
   vaultCaseId: string,
   items: readonly FixtureItem[],
@@ -4364,7 +3922,6 @@ export function vaultCaseZoteroData(
     libraryIDs.has(library.libraryID),
   );
   if (findVaultCase(vaultCaseId).id === "docs") {
-    // The docs papers join the demo papers, and both are filed by topic.
     return {
       items: [
         ...ownItems.map((item) => ({
@@ -4392,16 +3949,10 @@ export function vaultCaseZoteroData(
   };
 }
 
-/** Settings version ZotLit v2.1.0 wrote, before Profiles absorbed the note bindings. */
 export const UPGRADER_SETTINGS_VERSION = 9;
 
-/** Plugin version the Upgrader vault records as its last launch. */
 export const UPGRADER_PLUGIN_VERSION = "2.1.0";
 
-/**
- * The v2.1 `note.frontmatter-fields` list: the four shipped defaults, plus one
- * visible addition so the list reads as user-edited.
- */
 export const UPGRADER_FRONTMATTER_FIELDS: readonly FixtureFrontmatterField[] = [
   { key: "title", expr: "zt.title", merge: "replace", language: "liquid" },
   {
@@ -4425,17 +3976,6 @@ export const UPGRADER_FRONTMATTER_FIELDS: readonly FixtureFrontmatterField[] = [
   { key: "year", expr: "zt.date.year", merge: "replace", language: "liquid" },
 ];
 
-/**
- * Legacy Template Files the Upgrader vault ejects into its template folder:
- * the four Literature Note slots, the two citation slots, and one bare
- * partial. Each starts from a shipped default and carries one visible edit, so
- * a converted document is recognizably the user's own and the trashed files
- * are easy to tell from the defaults.
- *
- * The pair is mixed-language on purpose: `cite` is Liquid and `cite2` is Eta,
- * so the fold takes the Liquid side and the conversion leaves the Eta file in
- * the vault and names it in its notice.
- */
 export const UPGRADER_LEGACY_TEMPLATES: readonly FixtureLegacyTemplate[] = [
   {
     name: "filename",

@@ -31,19 +31,15 @@ describe("getRelatedKeysByItemID", () => {
   });
 
   it("ignores non-dc:relation predicates (owl:sameAs, dc:replaces)", () => {
-    // item 2 only has an owl:sameAs row → no related items.
     expect(getRelatedKeysByItemID(db, 2)).toEqual([]);
   });
 
   it("is forward-only: returns only rows owned by the queried itemID", () => {
-    // Item 5 owns a row pointing at ITEM3REL; item 3 does NOT own that row, so
-    // querying item 3 must not surface it (no inverse-relation traversal).
     expect(getRelatedKeysByItemID(db, 3)).toEqual(["RELATEDC"]);
     expect(getRelatedKeysByItemID(db, 5)).toEqual(["ITEM3REL"]);
   });
 
   it("skips object URIs that are not Zotero item URIs", () => {
-    // item 4 relates to a collection URI → unparseable as an item, omitted.
     expect(getRelatedKeysByItemID(db, 4)).toEqual([]);
   });
 

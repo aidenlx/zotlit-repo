@@ -1,29 +1,16 @@
 import type { CompletionPresentation } from "#core/language/index.ts";
 
-// The typing popup of every editor the plugin hosts, Template Completion and
-// Expression Completion alike, in Obsidian's own suggestion skin.
 import { appendProse } from "#core/language/index.ts";
 
-/** One entry of CodeMirror's list, as the presentation receives it. */
 type Completion = Parameters<
   NonNullable<CompletionPresentation["optionClass"]>
 >[0];
 
-/** The cells a row adds under its label. */
 export interface CompletionCells {
-  /** A type or a call signature, on a line of its own. */
   readonly type?: string;
-  /** A description, as Obsidian's suggestion note, its code spans as code. */
   readonly note?: string;
 }
 
-/**
- * The popup wears Obsidian's own suggestion classes, the way Obsidian skins
- * CodeMirror's completion for a Bases formula. Types get their own line so
- * unions and function signatures keep the same reading order.
- * @param cells The cells of one row, from the entry its completion was made
- *   from.
- */
 export function nativeCompletion(
   cells: (completion: Completion) => CompletionCells | undefined,
 ): CompletionPresentation {

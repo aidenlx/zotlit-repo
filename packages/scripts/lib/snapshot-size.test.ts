@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { largeSnapshots } from "./snapshot-size.ts";
 
-/** A `.snap` entry whose value spans `body` lines between its two markers. */
 const entry = (name: string, body: number) =>
   [
     `exports[\`${name}\`] = \``,
@@ -19,7 +18,6 @@ describe("largeSnapshots", () => {
   });
 
   it("counts an entry from its exports line through its closing line", () => {
-    // 2 marker lines + 2 body lines = 4.
     expect(largeSnapshots(file(entry("at the cap 1", 2)), 4)).toEqual([]);
     expect(largeSnapshots(file(entry("over the cap 1", 3)), 4)).toEqual([
       { name: "over the cap 1", lines: 5 },

@@ -3,29 +3,11 @@ import type { ZoteroDatabase } from "#client/database.ts";
 import { defineQuery } from "./_shared.ts";
 import type { QueryRow } from "./_shared.ts";
 
-/**
- * Zotero's base-field mapping, narrowed to the base fields one caller tracks.
- * {@link BaseFieldTable.resolve} answers the canonical/actual fieldName split:
- * a stored field either carries a tracked name itself, or aliases one for its
- * item type (`bookSection.bookTitle` → `publicationTitle`).
- *
- * The mapping is read from the connected database rather than from a table
- * generated off Zotero's upstream schema, so custom item types and custom
- * fields resolve like stock ones.
- */
 export interface BaseFieldTable<TName extends string> {
-  /** fieldIDs to fetch — union of canonical ids and per-itemType alias ids. */
   readonly fieldIDs: readonly number[];
-  /** Canonical name for a stored field, or `null` when it is not tracked. */
   resolve(itemTypeID: number, fieldID: number | null): TName | null;
 }
 
-/**
- * RQB v2 can't express the resolution as an inline join, because
- * `baseFieldMappingsCombined` must match on the parent `items.itemTypeID` plus
- * the child `itemData.fieldID`, and v2 `where` clauses can't reference the
- * parent. Both halves are read once and combined in memory instead.
- */
 const canonicalFieldsQuery = defineQuery<void>()(
   (db, _operators, args: { names: readonly string[] }) =>
     db.query.fieldsCombined.findMany({
@@ -46,17 +28,11 @@ const aliasFieldsQuery = defineQuery<void>()(
 type CanonicalFieldRow = QueryRow<typeof canonicalFieldsQuery>;
 type AliasFieldRow = QueryRow<typeof aliasFieldsQuery>;
 
-/** Per client, per tracked-name set — the mapping is fixed for a database. */
 const tablesByClient = new WeakMap<
   object,
   Map<string, BaseFieldTable<string>>
 >();
 
-/**
- * The {@link BaseFieldTable} for `names`, built on first use and memoized for
- * the client. Every consumer of Zotero's base-field mapping goes through here,
- * so the search index and the Item query cannot drift apart.
- */
 export function getBaseFieldTable<TName extends string>(
   db: ZoteroDatabase,
   names: readonly TName[],
@@ -110,7 +86,6 @@ export function buildTable<TName extends string>(
   const isTracked = (value: string | undefined | null): value is TName =>
     value != null && tracked.has(value);
 
-  /** Direct match: a field whose own name is one of `names`. */
   const canonicalByFieldID = new Map<number, TName>();
   for (const row of canonicalRows) {
     if (isTracked(row.fieldName)) {
@@ -118,7 +93,6 @@ export function buildTable<TName extends string>(
     }
   }
 
-  /** Per-itemType alias: `${itemTypeID}:${fieldID}` → canonical name. */
   const aliasByTypeAndField = new Map<string, TName>();
   const fieldIDs = new Set<number>(canonicalByFieldID.keys());
   for (const row of aliasRows) {

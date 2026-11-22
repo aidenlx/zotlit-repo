@@ -1,12 +1,3 @@
-// The table demo's window and caption trail, drawn for one step of the demo
-// (see ./table-demo). Steps: 0 the collection in the Library View; 1–3 Save
-// as query file and its dialog; 4 the query file opens; 5–9 the table and
-// its columns fill in; 10–11 the sort by year; 12–16 the rating column and
-// the ratings typed in; 17 the finished frame.
-// Inside the window, ZotLit's own labels (the plugin's `m.*` messages) and
-// Obsidian's purple; around it, the site tokens.
-// @see apps/docs/DESIGN.md → Landing (Compare your papers)
-
 import {
   ArrowLeft,
   ArrowRight,
@@ -49,10 +40,8 @@ import {
 } from "./papers.ts";
 import type { Paper } from "./papers.ts";
 
-/** The finished frame: the prerendered page and reduced motion show it. */
 export const FINAL = 17;
 
-/** Obsidian's accent: only inside the enacted window. */
 const PURPLE = "text-(--desk-purple)";
 const TINT = "bg-(--desk-selected)";
 const EASE = "cubic-bezier(.2,.75,.25,1)";
@@ -64,21 +53,11 @@ const BEATS = [
   m.docs_home_table_beat_sort,
   m.docs_home_table_beat_rating,
 ];
-/** When each beat starts, in ms from the cycle start; the last entry ends the cycle. */
 const BEAT_AT = [0, 2000, 5900, 9700, 12000, 19800];
 const beatOf = (s: number) =>
   s >= 12 ? 4 : s >= 10 ? 3 : s >= 5 ? 2 : s >= 1 ? 1 : 0;
 const two = (n: number) => String(n).padStart(2, "0");
 
-/**
- * FLIP over every [data-flip] element in the stage. `snap` records where
- * things are (any running animation included); after React commits, `play`
- * cancels running animations, measures the new places, and animates each
- * element from old to new. A keyed element inside a keyed element animates
- * relative to it, so a cell is not moved twice with its row. An element new
- * to the stage with [data-enter] fades and rises in. Only transform and
- * opacity animate.
- */
 export function makeFlip() {
   let prev: Map<string, DOMRect> | null = null;
   const snap = (root: HTMLElement | null) => {
@@ -94,7 +73,6 @@ export function makeFlip() {
     if (!root || !map) return;
     const els = [...root.querySelectorAll<HTMLElement>("[data-flip]")];
     for (const el of els) for (const a of el.getAnimations()) a.cancel();
-    // Reads first: every element's new place.
     const delta = new Map<HTMLElement, { dx: number; dy: number }>();
     for (const el of els) {
       const from = map.get(el.dataset["flip"]!);
@@ -151,8 +129,6 @@ function Icon({
     />
   );
 }
-
-// ---- The Library View's collection pane ----
 
 function TreeRow({
   indent = 0,
@@ -258,8 +234,6 @@ function Tree({ open }: { open: boolean }) {
     </aside>
   );
 }
-
-// ---- The list heading (Library View) and the toolbar (query file) ----
 
 function LibraryHead({ step }: { step: number }) {
   const pressed = step >= 1;
@@ -413,8 +387,6 @@ function QueryBar({ step }: { step: number }) {
   );
 }
 
-// ---- The Save as query file dialog ----
-
 function SaveDialog({ step }: { step: number }) {
   const saving = step >= 3;
   return (
@@ -462,17 +434,13 @@ function SaveDialog({ step }: { step: number }) {
   );
 }
 
-// ---- Rows: the two-line Papers row that becomes a Table row ----
-
 type ColumnKey = "note" | "year" | "pub" | "creators" | "rating";
 
 interface Column {
   key: ColumnKey;
   label: () => string;
   icon: LucideIcon;
-  /** The step at which the column fills. */
   at: number;
-  /** Phones keep only Title, Year and rating. */
   wideOnly: boolean;
 }
 
@@ -514,12 +482,6 @@ const COLUMNS: readonly Column[] = [
   },
 ];
 
-/**
- * Every column track is reserved from the first Table frame, so the grid
- * never changes and no column moves sideways; each column fills in place at
- * its beat. `minmax(0, …)` on every wide track: the header and each row share
- * one grid, whatever the cells' text would ask for.
- */
 const TABLE_GRID =
   "grid-cols-[minmax(0,1fr)_3.5rem_6rem] md:grid-cols-[minmax(0,3fr)_minmax(0,1.12fr)_minmax(3.5rem,0.6fr)_minmax(0,1.7fr)_minmax(0,1.75fr)_minmax(0,1.05fr)]";
 
@@ -596,8 +558,6 @@ function Cell({
         </div>
       );
     case "rating": {
-      // A property of the paper's literature note, typed one row at a time
-      // with Obsidian's cell focus. A paper with no note shows "No note".
       if (!p.note)
         return (
           <div className={base}>
@@ -641,7 +601,6 @@ function Cell({
 
 function Row({ p, i, step }: { p: Paper; i: number; step: number }) {
   const table = step >= 5;
-  // Before the table, the second line holds what has not moved into a column.
   const meta: readonly (readonly [string, string | number])[] = table
     ? []
     : [
@@ -749,8 +708,6 @@ function HeadRow({ step }: { step: number }) {
   );
 }
 
-// ---- The window ----
-
 export function DemoWindow({
   step,
   fading,
@@ -845,8 +802,6 @@ export function DemoWindow({
   );
 }
 
-// ---- The caption trail ----
-
 export function Trail({
   step,
   cycle,
@@ -859,8 +814,6 @@ export function Trail({
   className?: string;
 }) {
   const beat = beatOf(step);
-  // A beat behind the current one is full; the current one fills over its
-  // span while the demo plays; the finished frame shows every bar full.
   const bar = (i: number): { className?: string; style?: CSSProperties } => {
     if (i < beat || (!playing && step === FINAL)) return {};
     if (i > beat || !playing) return { className: "scale-x-0" };

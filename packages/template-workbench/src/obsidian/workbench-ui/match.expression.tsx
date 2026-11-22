@@ -1,7 +1,3 @@
-// The expression input of a Match condition and of a Formula: a small
-// CodeMirror editor that colors its Filter Expression as the template panes
-// color theirs, and underlines its Syntax Fault, else the Fault a run found.
-
 import type { ExpressionVocabulary } from "#core/language/filter-expression-completion.ts";
 import type { PlacedFault } from "#core/language/span.ts";
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
@@ -40,8 +36,6 @@ import {
 } from "#obsidian/editor/editor-extension.ts";
 import { obsidianPopupKeys } from "#obsidian/editor/field-popup.ts";
 
-// A CodeMirror field drawn as an Obsidian text input, at least as tall
-// as one; the editor hook scopes the template token colors to it.
 const matchExpression = cn(
   themeHook.templateEditor,
   editorBox,
@@ -50,10 +44,6 @@ const matchExpression = cn(
   "zt:[&_.cm-placeholder]:text-(--text-faint)",
 );
 
-/**
- * The label and validity of the field, on its editable content. The label
- * is a hidden element the content points at, so the text takes no tooltip.
- */
 const contentAttributes = ({
   label,
   labelId,
@@ -68,7 +58,6 @@ const contentAttributes = ({
     ...(label === undefined ? {} : { "aria-labelledby": labelId }),
   });
 
-/** Expression Completion over the vocabulary the field holds now. */
 const completionOf = (props: {
   readonly current: { vocabulary?: ExpressionVocabulary };
 }) =>
@@ -77,13 +66,8 @@ const completionOf = (props: {
     nativeCompletion(expressionOption),
   );
 
-/** Marks the edit that brings in a new `value`, which is not the user's. */
 const fromValue = Annotation.define<true>();
 
-/**
- * What the field underlines in `text`: its Syntax Fault, else the run's
- * Fault while `text` is the text that run planned.
- */
 function underlines(
   text: string,
   fault: PlacedFault | undefined,
@@ -95,41 +79,16 @@ function underlines(
 
 export interface MatchExpressionInputProps {
   value: string;
-  /**
-   * Where the last run found a Fault, which the field underlines while its
-   * text is the text that run planned. The field underlines its own Syntax
-   * Fault first. The owner's status line reports both; the field shows no
-   * tooltip over them.
-   */
   fault?: PlacedFault;
-  /**
-   * Each edit, with the window the field is in. The owner gives a text it
-   * keeps back as `value` in the render the edit causes; a `value` that
-   * differs from the field's text then replaces it.
-   */
   onChange: (text: string, win: Window) => void;
   onBlur?: () => void;
   "aria-label"?: string;
   "aria-invalid"?: boolean;
   placeholder?: string;
-  /** The lines the field shows before it grows with its text. */
   lines?: number;
-  /**
-   * What the field can read, read per keystroke: Expression Completion
-   * offers its names, and the Signature Hint types a method call's receiver
-   * by it. A field without one offers no completion, and its Signature Hint
-   * names every definition of a method.
-   */
   vocabulary?: ExpressionVocabulary;
 }
 
-/**
- * A Filter Expression field. The `data-*` attributes go on its `expression`
- * part. The editor draws no focus outline and no padding, so the part owns
- * both: it must show `:focus-within`. The part also sets the box height: a
- * part as tall as Obsidian's text inputs reads like one, as the editor stands
- * at its vertical centre while the text is shorter than the box.
- */
 export function MatchExpressionInput({
   value,
   fault,
@@ -143,9 +102,6 @@ export function MatchExpressionInput({
   ...data
 }: MatchExpressionInputProps & Partial<Record<`data-${string}`, string>>) {
   const app = useObsidianApp();
-  // The editor draws in its own window and over the chooser page or popover it
-  // stands in, and its popup keys sit on the keymap as Obsidian's suggesters
-  // take them. One extension per app, so a render hands the editor the same.
   const hostExtension = useMemo(
     () => [hostedEditor, popoverTooltips, obsidianPopupKeys(app)],
     [app],
@@ -153,8 +109,6 @@ export function MatchExpressionInput({
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const labelId = useUniqueId();
-  // The editor is made once; it reads what it needs then, and later props,
-  // through this ref.
   const props = useRef({
     value,
     onChange,
@@ -183,8 +137,6 @@ export function MatchExpressionInput({
   };
   const attributes = useRef(new Compartment());
   const completer = useRef(new Compartment());
-  // The vocabulary is read per keystroke, so only its arrival or its leaving
-  // changes the editor; the editor starts with what this holds.
   const completes = vocabulary !== undefined;
   const completing = useRef(completes);
   useEffect(() => {
@@ -206,8 +158,6 @@ export function MatchExpressionInput({
           keymap.of([...defaultKeymap, ...historyKeymap]),
           EditorView.lineWrapping,
           underlineOnlyLint,
-          // Each edit underlines its own text, so no underline is carried to
-          // a text it was not found in.
           EditorState.transactionExtender.of((tr) =>
             tr.docChanged
               ? {
@@ -217,10 +167,6 @@ export function MatchExpressionInput({
                 }
               : null,
           ),
-          // CodeMirror's base theme is unlayered CSS, so it outranks a
-          // host's layered utilities on these parts. The text takes the
-          // part's font and line height, as a textarea takes its own, and
-          // the field is `lines` of that line tall before it grows.
           EditorView.theme({
             "&.cm-focused": { outline: "none" },
             ".cm-scroller": { fontFamily: "inherit", lineHeight: "inherit" },
@@ -268,10 +214,6 @@ export function MatchExpressionInput({
       ),
     });
   }, [completes]);
-  // Read as the owner's render commits, before the next key: an effect
-  // waits for paint, and the user may type again before it runs, so the
-  // owner's echo of a text the field sent would read as an older text and
-  // undo the typing.
   useLayoutEffect(() => {
     const editor = view.current;
     if (!editor) return;
@@ -300,8 +242,6 @@ export function MatchExpressionInput({
       ),
     });
   }, [invalid, label, labelId]);
-  // A column that centres the editor: one line stands where a text input's
-  // text stands, and wrapped text grows the box.
   return (
     <>
       <div

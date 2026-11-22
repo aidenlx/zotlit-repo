@@ -1,18 +1,7 @@
-// A selected Annotation Mark dragged out of Obsidian's PDF reader into a note.
-//
-// The drag starts in Chromium itself: a press on the selected mark makes its
-// page draggable, so the browser's own drag detection has to start it. The
-// gesture is sent through the DevTools protocol with drags intercepted, which
-// starts the drag the browser would start and hands back its data for the
-// drop, with no operating-system drag session and no window focus.
 import { expect } from "vitest";
 
 import { obRun } from "./obsidian-cli.ts";
 
-/**
- * Drags the selected highlight `annotationKey` from the open PDF at `pdfPath`
- * and drops it on the empty middle line of a note in a split beside it.
- */
 export async function verifyReaderAnnotationDrag(
   vaultId: string,
   { pdfPath, annotationKey }: { pdfPath: string; annotationKey: string },
@@ -107,7 +96,6 @@ export async function verifyReaderAnnotationDrag(
       ) => {
         if (method === "Input.dragIntercepted") data = params.data;
       };
-      // A click selects the mark, as the reader's own click does.
       await mouse("mouseMoved", from, 0);
       await mouse("mousePressed", from, 1);
       await mouse("mouseReleased", from, 0);
@@ -156,11 +144,9 @@ export async function verifyReaderAnnotationDrag(
     { pdfPath, annotationKey, notePath, before },
     { timeoutMs: 60000 },
   );
-  // The drag carries the quote for any editor, and ZotLit's own tag.
   expect(outcome.types).toEqual(
     expect.arrayContaining(["text/plain", "application/x-zotlit-annotation"]),
   );
-  // The drop inserts the Annotation by the Profile's template, at the drop.
   expect(outcome.text.startsWith("BEFORE\n\n> [!note] Page ")).toBe(true);
   expect(outcome.text).toContain(`?annotation=${annotationKey}&page=`);
   expect(outcome.text).toContain("[@rougierTenSimpleRules2014, {p. 1}]");

@@ -1,4 +1,3 @@
-// A Managed Binary layer over fake device ports.
 import { Context, Effect, Layer } from "effect";
 
 import { layerPackBinary } from "./pack-binary.ts";
@@ -6,13 +5,11 @@ import type { PackBinary, PackBinaryApi } from "./pack-binary.ts";
 import { ResourcePackPlatform, resourcePackPorts } from "./pack-platform.ts";
 import type { ResourcePackHostPorts } from "./pack-platform.ts";
 
-/** The Resource Pack platform over fake host ports. */
 export const layerPackDevice = (
   ports: ResourcePackHostPorts,
 ): Layer.Layer<ResourcePackPlatform> =>
   Layer.succeed(ResourcePackPlatform, resourcePackPorts(ports));
 
-/** One Resource Pack binary over fake host ports, built on the caller's Scope. */
 export function packBinary<Engine extends Disposable | AsyncDisposable>(
   binary: PackBinary<Engine>,
   ports: ResourcePackHostPorts,

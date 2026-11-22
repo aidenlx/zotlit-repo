@@ -1,4 +1,3 @@
-// Puts the Indexed Keys of the objects a user selected on the clipboard.
 import { formatObjectKeys, identityForObject } from "@/lib/indexed-key.ts";
 import { logger as appLogger } from "@/lib/logger.ts";
 

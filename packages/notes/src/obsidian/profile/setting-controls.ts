@@ -1,13 +1,9 @@
-// The setting tab's controls of the default Profile's bindings: a control key
-// names a binding of the default Literature Note Profile, and its value reads
-// and writes that binding in the settings store.
 import { Effect } from "effect";
 
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 
 import { updateDefaultLiteratureNoteProfileBindings } from "./settings.ts";
 
-/** The control key of a default Profile binding. */
 export type ProfileControlKey = `note-profile:default:${ProfileControlField}`;
 
 export type ProfileControlField =
@@ -31,7 +27,6 @@ export function isProfileControlKey(key: string): key is ProfileControlKey {
   );
 }
 
-/** The default Profile binding a profile control shows. */
 export function profileControlValue(key: ProfileControlKey) {
   const field = key.slice(
     "note-profile:default:".length,
@@ -44,7 +39,6 @@ export function profileControlValue(key: ProfileControlKey) {
   );
 }
 
-/** Store what a profile control set as the default Profile's binding. */
 export function setProfileControlValue(key: ProfileControlKey, value: unknown) {
   const field = key.slice(
     "note-profile:default:".length,
@@ -61,7 +55,6 @@ export function setProfileControlValue(key: ProfileControlKey, value: unknown) {
   );
 }
 
-/** The control key of the `field` binding of the Profile `id`. */
 export function profileControlKey(
   id: "default",
   field: ProfileControlField,

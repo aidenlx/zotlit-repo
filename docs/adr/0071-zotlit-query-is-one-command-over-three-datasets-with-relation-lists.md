@@ -21,3 +21,37 @@ Why: the two command families, the boolean `attachments`, and the one-way `item.
 Considered and rejected: keeping the two commands and adding a third for Attachments, which triples the names an agent learns for one engine; `item=` and `attachment=` as sugar beside the filter, which keeps the key-versus-Library conflict rule and a second selection grammar; an Indexed Key that widens the Target Libraries, which makes `libraries` in the envelope depend on the filter text; implicit vectorization of a Projection Path over a list, which ADR 0064 excluded and `[]` makes explicit; `sort=-annotations.length`, which hydrates a relation for the whole universe before the top-K and waits for its own measurement; an output format argument, a saved query file in the `.base` shape, and a `search=` argument over the item-lookup index, all deferred as later work rather than rejected.
 
 This decision amends ADR 0064 (the field-oriented contract: Relation Lists of records, the Attachment dataset, `library`), ADR 0065 (the CLI: the command names, the comma-list arguments, one `library`, `group`, contract version 3), and ADR 0066 (the deep module: three datasets).
+
+## Research evaluation checks
+
+The Query skill evaluation isolates a small set of papers inside a private copy of the standard Fixture. Reuse the reviewed Fixture annotation coordinates and its corresponding PDF. Generate legal Zotero keys and stable SQLite timestamps so two seeds yield the same expected evidence. Keep live response fixtures distinct from corpus-verified contract examples. The selected corpus item types use author as the primary creator type. Apply [ADR 0074](0074-zotlit-query-first-author-is-the-first-primary-creator.md) to determine the author answer and require an explicit editor only when the primary creator answer is an editor.
+
+The runner owns the fixed CLI and the receipt file. The agent needs access to the socket only. Use a short temporary socket path for the macOS path limit and resolve it before allow-listing it so the sandbox and filesystem agree on the path. A successful parsed value listing is required as discovery evidence. Copy export and image receipts and the image itself before cleanup so a regrade can check the same evidence. Older runs can still resolve the path in their original receipt. Item-answer checks use the saved Query envelope.
+
+Use per-case answer shapes without revealing oracle values. Check literal evidence independently of the agent's explanation. Accept a per-paper count from a paper query or from a correctly grouped mark query. Paper groups count papers, mark groups count marks, and overlapping element groups can return more row entries than distinct records. Count a paper once in the final answer even if it appears in two groups. A grouped result is truncated when a group returns fewer rows than its own count. Preserve reading order when the case asks for it and compare key sets otherwise. A previous common answer schema required an unrelated field in one saved answer. The regression fixture keeps that field optional for that case.
+
+The event parser accepts JSON after a CLI wrapper prefix. Tests can replace the process runner while retaining the case lifecycle. Startup waits for matching database and vault identity because the source refresh can still be in progress. Enter cleanup even when open reports a failure because a window may already exist. Early process termination can close stdin and leave no process group to signal. Keep close and error as the process completion signals. Live grading and regrading use the same path once evidence is saved, and a run that stopped before saving an answer remains ungraded.
+
+## Reader paging and source records
+
+A Relation List uses the same visibility rules as its Query Dataset. Read it in keyset pages of at most 500 rows, stopping at a short page. Each page can cover up to 500 requested parents. Map candidate Child Records to distinct in-scope parents. Keep Attachment and Child Note key ordering and Annotation reading order across the page boundary. An Attachment's own note lacks a parent in `itemNotes` and does not enter the Item's Child Note list. Read Annotation positions as raw text so damaged JSON on one record does not fail the query.
+
+Collection paths include only Collections visible in Zotero's tree. Exclude descendants of a trashed ancestor even if they are live themselves. The path walk uses the acyclic Collection tree and remembers paths it has visited.
+
+The dataset descriptor supplies the reader, field and sort vocabulary, hydration, and result projection for each dataset. An optional host capability resolves Attachment file paths. Without it, that projection is absent. Restrict text sweeps to a root candidate plan. Relation List and Parent Record paths use seek candidates and page by source ID.
+
+Pass each Target Library once. An empty list yields an empty result. The query treats all requested Libraries as one result set. Bind Query Context records by Indexed Key and report an unbound context reference during validation. The dataset adds sort tie-breakers before Indexed Key, skipping a tie-breaker already in the requested sort. Keep those internal tie-breakers out of the normalized request.
+
+Plan Parent Record predicates in the parent's vocabulary and Relation List predicates in the element's vocabulary. Preserve dotted parent names for diagnostics while retaining ordinary record member navigation. Rebind only the current list expression's value paths. Bare fields and Formulas still belong to the outer row, and nested bindings keep their own scope. Bound pages and track distinct mapped ancestors up to the root cap. An intersection of child predicates can admit a parent whose different children satisfy each predicate separately, so the evaluator must still test the original expression on that parent.
+
+When either branch of a conditional can supply a navigable record, retain hydration needs from both paths. A Parent Record compared with a bound Query Context record of the same dataset compares their Indexed Keys. The candidate planner can then select by the bound key.
+
+Query Context binds `this.item` and `this.attachment` to caller-supplied records. Each Query Dataset returns one row per eligible record. Item Query returns live top-level Items. Attachment and Annotation Query return live records of their dataset. A mark still reaches its embedded-image Parent Record even when that image is outside Attachment Query's root universe. Decode stored Annotation positions at the query boundary, validate by document kind, and preserve raw unreadable positions.
+
+Group counts include all matching records. A record with multiple distinct Relation List values contributes to each corresponding group, so group counts can exceed the match count. Hydrate a Relation List used as the group path. Apply the limit within each group and put absent group values last. Classify Attachment kinds from link mode and MIME together, so a web link stays a web link and an unsupported file kind retains its unknown classification. Use the same kind for filters and groups.
+
+The Attachment Query proof runs with demo linked rows whose files
+exist only in the demo Vault Case. It also verifies exclusion of
+the Note's image Attachments from the Query Dataset.
+
+[Attachment Query cases](../../packages/e2e/src/query-cli-attachments.e2e.ts)

@@ -15,9 +15,6 @@ beforeEach(() => {
   env.DOCS_LINE = "production";
 });
 
-// The plugin's release-note links name every GitHub release tag, and the
-// 2.0.0 alphas shipped before the changelog began: those must land on the
-// changelog rather than a 404 or a beta page that never existed.
 describe("missingReleaseResponse", () => {
   it.each(["production", "beta"])(
     "moves a version older than the first release notes to the changelog on %s",

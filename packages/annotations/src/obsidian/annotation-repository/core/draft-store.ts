@@ -1,5 +1,3 @@
-// The Annotation Drafts the core holds, their autosave timers, and how a read reconciles them.
-
 import type {
   MutationState,
   TextField,
@@ -32,7 +30,6 @@ import {
   TEXT_FIELDS,
 } from "#obsidian/annotation-repository/write.ts";
 
-/** The active Zotero database's shared draft of one field of an Annotation. */
 const draftFor = Effect.fnUntraced(function* <F extends DraftField>(
   core: CoreState,
   field: F,
@@ -46,7 +43,6 @@ const draftFor = Effect.fnUntraced(function* <F extends DraftField>(
     : null;
 });
 
-/** Every field's draft on one Annotation, in any Zotero database. */
 function draftsOn(
   core: CoreState,
   annotationKey: string,
@@ -71,7 +67,6 @@ function setDraft<F extends DraftField>(
   });
 }
 
-/** Drop one field's draft of an Annotation, with its autosave. */
 const dropDraft = Effect.fnUntraced(function* (
   core: CoreState,
   field: DraftField,
@@ -86,7 +81,6 @@ const dropDraft = Effect.fnUntraced(function* (
   core.publish({ _tag: "annotation-changed", annotationKey });
 });
 
-/** Drop every field's draft of an Annotation that {@link draftFor} finds. */
 const dropDrafts = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -97,7 +91,6 @@ const dropDrafts = Effect.fnUntraced(function* (
   }
 });
 
-/** The key of one text draft's autosave timers in either map. */
 function saveKey(
   field: TextField,
   {
@@ -108,7 +101,6 @@ function saveKey(
   return `${field}:${indexedID(serverID, annotationKey)}`;
 }
 
-/** Whether one text draft's autosave is armed: its idle or burst timer. */
 function autosaveDue(
   core: CoreState,
   field: TextField,
@@ -121,7 +113,6 @@ function autosaveDue(
   );
 }
 
-/** Stop both autosave timers of one text draft. */
 const cancelTextSave = Effect.fnUntraced(function* (
   core: CoreState,
   field: TextField,
@@ -132,7 +123,6 @@ const cancelTextSave = Effect.fnUntraced(function* (
   yield* FiberMap.remove(core.burstSaves, key);
 });
 
-/** Reconcile drafts only against a complete read from their own database. */
 const reconcileDrafts = Effect.fnUntraced(function* (
   core: CoreState,
   { serverID, attachmentKey }: { serverID: string; attachmentKey: string },
@@ -142,8 +132,6 @@ const reconcileDrafts = Effect.fnUntraced(function* (
   const completeID = indexedID(serverID, attachmentKey);
   const before = core.completeKeys.get(completeID);
   core.completeKeys.set(completeID, new Set(records.keys()));
-  // Gone is what the last complete read showed, or a draft stands on, and
-  // this one no longer answers.
   const gone = new Set(
     [
       ...(before ?? []),
@@ -159,8 +147,6 @@ const reconcileDrafts = Effect.fnUntraced(function* (
   );
   for (const key of records.keys()) core.gone.delete(key);
   for (const key of gone) core.gone.add(key);
-  // Deletion confirmed in Zotero discards the tag draft with the text
-  // drafts; the gone Annotation is announced below.
   for (const draft of core.drafts.tags.values()) {
     if (
       draft.serverID !== serverID ||
@@ -177,19 +163,12 @@ const reconcileDrafts = Effect.fnUntraced(function* (
       records,
     });
   }
-  // What a write left on an Annotation goes with it, and every surface
-  // still drawing it hears that it is gone, with a draft or without.
   for (const key of gone) {
     core.outcomes.delete(key);
     core.publish({ _tag: "annotation-changed", annotationKey: key });
   }
 });
 
-/**
- * Reconcile one text field's drafts in one Attachment against a complete
- * read: a value Zotero already holds ends the draft, an untouched draft
- * follows Zotero, and a changed value under typed text is a Write Conflict.
- */
 const reconcileTextDrafts = Effect.fnUntraced(function* (
   core: CoreState,
   field: TextField,
@@ -272,11 +251,6 @@ const reconcileTextDrafts = Effect.fnUntraced(function* (
   }
 });
 
-/**
- * Reconcile only a complete result Query Core accepted for publication.
- *
- * @param held what the list's query key holds now.
- */
 const reconcilePublishedDrafts = Effect.fnUntraced(function* (
   core: CoreState,
   held: Held<AnnotationList> | null,

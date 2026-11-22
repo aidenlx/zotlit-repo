@@ -1,5 +1,3 @@
-// Resolved Profile values and the binding overlay used by note rendering.
-
 import { formatProfileStamp } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type {
   ProfileSelector,
@@ -20,7 +18,6 @@ export interface ResolvedLiteratureNoteProfileBindings {
 export type ProfileBindingSettings = Readonly<Settings> &
   Partial<ResolvedLiteratureNoteProfileBindings>;
 
-/** Read an effective binding from an optional resolved-Profile overlay. */
 export function getProfileBinding<
   K extends keyof ResolvedLiteratureNoteProfileBindings,
 >(
@@ -35,8 +32,6 @@ export function getProfileBinding<
     : value;
 }
 
-/** Merge one Profile's sparse bindings over the default Profile. `profile`
- *  undefined merges the default Profile with itself, i.e. resolves to it. */
 function mergeBindings(
   settings: Readonly<Settings>,
   profile: LiteratureNoteProfile | undefined,
@@ -61,18 +56,13 @@ function mergeBindings(
   };
 }
 
-/** One Literature Note Profile as an operation runs under it. */
 export interface ResolvedProfile {
   readonly selector: ProfileSelector;
-  /** The label as the user wrote it; `undefined` for the default Profile, whose display name is a UI string. */
   readonly label: string | undefined;
-  /** Stamp a note written under this Profile carries; `undefined` for the default Profile. */
   readonly stamp: string | undefined;
   readonly document: string | undefined;
   readonly bindings: ResolvedLiteratureNoteProfileBindings;
-  /** Settings snapshot with this Profile's effective bindings overlaid. */
   readonly settings: ProfileBindingSettings;
-  /** The Profile's own `citation.references-style` override, `undefined` when it inherits. Feeds the note's `citation-style` frontmatter, which states only what the Profile declares. */
   readonly citationStyle: string | null | undefined;
 }
 
@@ -97,15 +87,10 @@ export function bindProfile(
   };
 }
 
-/** The Profile a note belongs to, or the parsed stamp that names no Profile. */
 export type NoteProfile =
   | { readonly ok: true; readonly profile: ResolvedProfile }
   | { readonly ok: false; readonly stamped: ProfileStamp };
 
-/**
- * The selector a note's stamp names — a parsed ID even when no Profile
- * carries it — or `undefined` when the stamp holds none.
- */
 export function noteProfileSelector(
   note: NoteProfile,
 ): ProfileSelector | undefined {

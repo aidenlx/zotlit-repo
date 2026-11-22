@@ -1,4 +1,3 @@
-// The ZoteroReads contract: one RpcGroup and the Schema codecs both sides share.
 import { Effect, Predicate, Schema, SchemaGetter } from "effect";
 import type { SchemaIssue } from "effect";
 import { Rpc, RpcGroup } from "effect/rpc";
@@ -47,33 +46,17 @@ import type { LibraryScope } from "./library-scope.ts";
 import { DecodedQuery, DecodedValues } from "./query-codec.ts";
 import type { ItemSnapshot } from "./snapshot/types.ts";
 
-/** Compile-time assert: `T` must be `true`. */
 type Expect<T extends true> = T;
-/** Mutual assignability: the decoded type is the `@zotlit/db` type. */
 type Equals<A, B> = [A, B] extends [B, A] ? true : false;
 
-/**
- * A raw Zotero integer column typed as its known values. Decoding accepts any
- * number: Zotero can add a value after the mapping was written, and the
- * `@zotlit/db` name resolvers already answer `"unknown"` for it.
- */
 function rawInt<T extends number>() {
   return Schema.declare((u: unknown): u is T => Predicate.isNumber(u));
 }
 
-/**
- * A JSON object whose shape the `@zotlit/db` layer owns (item fields, base
- * fields, annotation position). It crosses the wire as JSON, unchanged.
- */
 function jsonObject<T extends object>() {
   return Schema.declare((u: unknown): u is T => Predicate.isObject(u));
 }
 
-/**
- * A Query Job. The query or values listing the renderer decoded crosses
- * through its own codec (`query-codec.ts`), so the worker reads it in
- * the shape the decoder declares; the rest of the job is plain data.
- */
 const QueryJobSchema = jsonObject<ItemQueryJob>().pipe(
   Schema.decodeTo(jsonObject<ItemQueryJob>(), {
     decode: SchemaGetter.transformEffect((job: ItemQueryJob) =>
@@ -85,7 +68,6 @@ const QueryJobSchema = jsonObject<ItemQueryJob>().pipe(
   }),
 );
 
-/** `job` with its query or values listing passed through `code`. */
 function codeRequest(
   job: ItemQueryJob,
   code: typeof Schema.decodeUnknownEffect,
@@ -103,24 +85,17 @@ function codeRequest(
   return Effect.mapError(request, (error) => error.issue);
 }
 
-// --- Errors ---------------------------------------------------------------
-
-/** The database cannot answer: no connection opens, or the source is not a Zotero database. */
 export class DbUnavailable extends Schema.TaggedError<
   DbUnavailable,
   { readonly brand: unique symbol }
 >()("DbUnavailable", { message: Schema.String }) {}
 
-/** The Snapshot id names no open Snapshot: it ended or never existed. */
 export class SnapshotExpired extends Schema.TaggedError<
   SnapshotExpired,
   { readonly brand: unique symbol }
 >()("SnapshotExpired", { snapshot: Schema.String }) {}
 
-/** The errors a read can fail with. */
 export const ReadError = Schema.Union([DbUnavailable, SnapshotExpired]);
-
-// --- Rows -----------------------------------------------------------------
 
 export const LibrarySchema = Schema.Struct({
   libraryID: Schema.Int,
@@ -304,7 +279,6 @@ type _ItemDisplayRef = Expect<
   >
 >;
 
-/** The inputs of one graph Work Label; the renderer formats the label. */
 export const WorkLabelSourceSchema = Schema.Struct({
   libraryID: Schema.Int,
   creators: Schema.mutable(Schema.Array(CreatorSchema)),
@@ -315,7 +289,6 @@ export const WorkLabelSourceSchema = Schema.Struct({
 });
 export type WorkLabelSource = typeof WorkLabelSourceSchema.Type;
 
-/** One attachment the annotation sidebar lists, with its annotation count. */
 export const AnnotViewAttachmentSchema = Schema.Struct({
   itemID: Schema.Int,
   indexedKey: Schema.String,
@@ -326,19 +299,12 @@ type _AnnotViewAttachment = Expect<
   Equals<typeof AnnotViewAttachmentSchema.Type, AnnotViewAttachment>
 >;
 
-/** What one Zotero reader push names, in Indexed Keys. */
 export const ReaderTargetKeysSchema = Schema.Struct({
   attachmentKey: Schema.String,
-  /** The parent Item; `null` for a standalone attachment. */
   itemKey: Schema.NullOr(Schema.String),
-  /** The selected annotations that are live children of the attachment. */
   selected: Schema.Array(Schema.String),
 });
 
-/**
- * One ranked answer of `SearchItems`: the hydrated Item and the ranges of its
- * title that matched the query, as `[start, end)` offsets into the title.
- */
 export const SearchHitSchema = Schema.Struct({
   item: ItemSchema,
   matches: Schema.mutable(
@@ -348,7 +314,6 @@ export const SearchHitSchema = Schema.Struct({
 export type SearchHit = typeof SearchHitSchema.Type;
 type _SearchHit = Expect<Equals<SearchHit, ItemIndexHit>>;
 
-/** The account and Local API database a Zotero database belongs to. */
 export const DatabaseIdentitySchema = Schema.Struct({
   userID: Schema.NullOr(Schema.Int),
   localUserKey: Schema.NullOr(Schema.String),
@@ -358,7 +323,6 @@ type _DatabaseIdentity = Expect<
   Equals<typeof DatabaseIdentitySchema.Type, ZoteroDatabaseIdentity>
 >;
 
-/** The Item an Item Snapshot exports, and the context it carries. */
 export const ItemSnapshotRequestSchema = Schema.Struct({
   selection: Schema.Struct({
     library: Schema.Union([
@@ -392,12 +356,6 @@ export const ItemSnapshotRequestSchema = Schema.Struct({
   ),
 });
 
-// --- Lifecycle ------------------------------------------------------------
-
-/**
- * The Chinese Segmenter binary of the installed Resource Pack: the Pack Entry
- * `entry` of the pack file at `url`. The worker reads and verifies it.
- */
 export const SegmenterBinarySchema = Schema.Struct({
   url: Schema.String,
   entry: Schema.String,
@@ -405,10 +363,6 @@ export const SegmenterBinarySchema = Schema.Struct({
 });
 export type SegmenterBinary = typeof SegmenterBinarySchema.Type;
 
-/**
- * A status in which the Resource Pack gives no binary that runs: the Schema of
- * `PackBinaryRefusal`, which `ManagedBinaryError` carries.
- */
 export const PackBinaryRefusalSchema = Schema.Union([
   Schema.Struct({ kind: Schema.Literal("pack-absent") }),
   Schema.Struct({ kind: Schema.Literal("pack-outdated") }),
@@ -420,11 +374,6 @@ type _PackBinaryRefusal = Expect<
   Equals<typeof PackBinaryRefusalSchema.Type, PackBinaryRefusal>
 >;
 
-/**
- * Where a binary of the Resource Pack stands: the one Schema of
- * `PackBinaryStatus`, a refusal or `ready`. `@zotlit/resource-pack/status.ts`
- * states the type and what each arm means.
- */
 export const PackBinaryStatusSchema = Schema.Union([
   ...PackBinaryRefusalSchema.members,
   Schema.Struct({ kind: Schema.Literal("ready"), version: Schema.String }),
@@ -436,31 +385,20 @@ type _SegmenterBinary = Expect<
   Equals<SegmenterBinary, ItemIndexSegmenterBinary>
 >;
 
-/** Settings that drive the source; `Configure` pushes them. */
 export const ReadsConfigSchema = Schema.Struct({
   databasePath: Schema.String,
   readMode: Schema.Literals(["auto", "reflink", "copy", "immutable"]),
   autoRefresh: Schema.Boolean,
-  /** The UI locale the Item Index formats creator names with; `null` for none. */
   locale: Schema.NullOr(Schema.String),
-  /** The Chinese Segmenter binary of the installed Resource Pack, which the Item Index cuts CJK text with; `null` for none. */
   chineseSegmenter: Schema.NullOr(SegmenterBinarySchema),
-  /** The lowest level the worker forwards to the plugin's logger; `null` for none. */
   logLevel: Schema.NullOr(
     Schema.Literals(["trace", "debug", "info", "warning", "error", "fatal"]),
   ),
 });
 export type ReadsConfig = typeof ReadsConfigSchema.Type;
 
-/** The Read Mode the settings ask for; `auto` lets the source choose. */
 export type ConfiguredReadMode = ReadsConfig["readMode"];
 
-/**
- * What the renderer sends with each worker spawn: the settings to open, the
- * owner tag the worker names its read snapshots with, so the renderer can
- * reap them once that worker is gone, and the port the worker posts its log
- * records to.
- */
 export const WorkerInitSchema = Schema.Struct({
   ...ReadsConfigSchema.fields,
   snapshotOwner: Schema.String,
@@ -468,55 +406,34 @@ export const WorkerInitSchema = Schema.Struct({
   logs: Transferable.MessagePort,
 });
 
-/** The Read Mode a serving client opened with; absent when the source has none. */
 const readMode = {
   readMode: Schema.optionalKey(
     Schema.Literals(["reflink", "copy", "immutable"]),
   ),
 };
-/** The Read Mode a client opened with: the configured mode, or the fallback it took. */
 export type EffectiveReadMode = NonNullable<(typeof readMode.readMode)["Type"]>;
 
-/** One event on the `Changes` stream. The first event is always `state`. */
 export const ChangeEventSchema = Schema.Union([
-  /** The state when the subscription starts. */
   Schema.TaggedStruct("state", {
     state: Schema.Literals(["loading", "ready", "degraded"]),
     error: Schema.NullOr(DbUnavailable),
     ...readMode,
-    /** As on `refresh-failed`: sent while the last refresh failed. */
     moved: Schema.optional(Schema.Boolean),
   }),
-  /** A new client serves; re-query cached results. */
   Schema.TaggedStruct("changed", readMode),
-  /** No client can serve. */
   Schema.TaggedStruct("degraded", { error: DbUnavailable }),
-  /**
-   * A refresh failed; the previous client keeps serving. `moved`: the
-   * refresh was to another database than the serving client reads, as when
-   * the data folder changed, so what serves is no longer what the settings
-   * name.
-   */
   Schema.TaggedStruct("refresh-failed", {
     error: DbUnavailable,
     moved: Schema.Boolean,
   }),
   Schema.TaggedStruct("refreshing", { active: Schema.Boolean }),
-  /** The configured database file is absent. */
   Schema.TaggedStruct("db-file-missing", {}),
 ]);
 export type ChangeEvent = typeof ChangeEventSchema.Type;
 
-// --- Operations -----------------------------------------------------------
-
-/**
- * Pins one connection: an operation that names this id reads that connection
- * instead of the current one.
- */
 export const SnapshotId = Schema.String.pipe(Schema.brand("SnapshotId"));
 export type SnapshotId = typeof SnapshotId.Type;
 
-/** The optional Snapshot every read accepts. */
 const snapshot = { snapshot: Schema.optionalKey(SnapshotId) };
 
 const CitationItemSchema = Schema.Struct({
@@ -586,19 +503,16 @@ export class ZoteroReads extends RpcGroup.make(
     success: Schema.mutable(Schema.Array(LibrarySchema)),
     error: ReadError,
   }),
-  /** Items across every library, independent of Library Scope. */
   Rpc.make("ConnectionReadout", {
     payload: snapshot,
     success: Schema.Struct({ itemCount: Schema.Int }),
     error: ReadError,
   }),
-  /** Items keyed by the Indexed Key each was asked by; a key with no live item is absent. */
   Rpc.make("ItemsByIndexedKeys", {
     payload: { indexedKeys: Schema.Array(Schema.String), ...snapshot },
     success: Schema.ReadonlyMap(Schema.String, ItemSchema),
     error: ReadError,
   }),
-  /** An item's related items and child notes; empty for an unknown item. */
   Rpc.make("ItemFamily", {
     payload: { itemID: Schema.Int, ...snapshot },
     success: Schema.Struct({
@@ -607,7 +521,6 @@ export class ZoteroReads extends RpcGroup.make(
     }),
     error: ReadError,
   }),
-  /** The Literature Note bundle for an item; `null` for an unknown item. */
   Rpc.make("NoteSource", {
     payload: {
       itemID: Schema.Int,
@@ -617,10 +530,6 @@ export class ZoteroReads extends RpcGroup.make(
     success: Schema.NullOr(NoteSourceSchema),
     error: ReadError,
   }),
-  /**
-   * The facets each item's note path renders from, one entry per requested
-   * item in request order; an unknown item has no tags or collections.
-   */
   Rpc.make("ItemFacets", {
     payload: {
       items: Schema.Array(
@@ -634,7 +543,6 @@ export class ZoteroReads extends RpcGroup.make(
     error: ReadError,
     stream: true,
   }),
-  /** The annotation template bundle for annotations named by key. */
   Rpc.make("AnnotationSources", {
     payload: {
       libraryID: Schema.Int,
@@ -645,7 +553,6 @@ export class ZoteroReads extends RpcGroup.make(
     success: AnnotationSourcesSchema,
     error: ReadError,
   }),
-  /** An attachment's annotations with the account facts their locks need. */
   Rpc.make("AnnotationsOfAttachment", {
     payload: { attachmentKey: Schema.String, ...snapshot },
     success: Schema.Struct({
@@ -655,11 +562,6 @@ export class ZoteroReads extends RpcGroup.make(
     }),
     error: ReadError,
   }),
-  /**
-   * The annotations of many attachments, read against one snapshot: one entry
-   * per requested key, in request order, as {@link AnnotationsOfAttachment}
-   * answers each.
-   */
   Rpc.make("AnnotationsOfAttachments", {
     payload: { attachmentKeys: Schema.Array(Schema.String), ...snapshot },
     success: Schema.Array(
@@ -672,13 +574,11 @@ export class ZoteroReads extends RpcGroup.make(
     ),
     error: ReadError,
   }),
-  /** The attachments of the given parent items, in display order. */
   Rpc.make("AttachmentsOf", {
     payload: { itemIDs: Schema.Array(Schema.Int), ...snapshot },
     success: Schema.Array(AttachmentSchema),
     error: ReadError,
   }),
-  /** One entry per requested id; `ref` is `null` for an id with no live item. */
   Rpc.make("DisplayRefs", {
     payload: {
       itemIDs: Schema.Array(Schema.Int),
@@ -693,7 +593,6 @@ export class ZoteroReads extends RpcGroup.make(
     error: ReadError,
     stream: true,
   }),
-  /** Notes with their bodies; a key with no live note is absent. */
   Rpc.make("NoteBodies", {
     payload: {
       libraryID: Schema.Int,
@@ -703,7 +602,6 @@ export class ZoteroReads extends RpcGroup.make(
     success: Schema.Array(NoteSchema),
     error: ReadError,
   }),
-  /** Work Label inputs keyed by Indexed Key; child items and unknown keys are absent. */
   Rpc.make("WorkLabels", {
     payload: { indexedKeys: Schema.Array(Schema.String), ...snapshot },
     success: Schema.ReadonlyMap(Schema.String, WorkLabelSourceSchema),
@@ -719,10 +617,6 @@ export class ZoteroReads extends RpcGroup.make(
     success: ChangeEventSchema,
     stream: true,
   }),
-  /**
-   * Emits one Snapshot id and holds its connection until the caller ends the
-   * stream or goes away.
-   */
   Rpc.make("Snapshot", {
     success: SnapshotId,
     error: DbUnavailable,
@@ -731,21 +625,11 @@ export class ZoteroReads extends RpcGroup.make(
   Rpc.make("Refresh", { error: DbUnavailable }),
   Rpc.make("NotifyExternalChange", {}),
   Rpc.make("Configure", { payload: ReadsConfigSchema }),
-  /**
-   * Reads the Chinese Segmenter binary `binary` again and answers where the
-   * Segmenter stands in the worker: `ready` while the Item Index cuts CJK
-   * text with the binary, with the version of the pack whose bytes run, and
-   * each other arm while it cuts with `Intl.Segmenter`. A binary that the read gives starts when
-   * the Item Index does not cut with it; one that the read refuses stops, as
-   * the binary does with `null`, for no installed pack.
-   */
   Rpc.make("CheckChineseSegmenter", {
     payload: { binary: Schema.NullOr(SegmenterBinarySchema) },
     success: PackBinaryStatusSchema,
   }),
-  /** Answers at once: the renderer's proof that the worker still runs. */
   Rpc.make("Ping", {}),
-  /** Attachments of one library by key; a key with no live attachment is absent. */
   Rpc.make("AttachmentsByKeys", {
     payload: {
       libraryID: Schema.Int,
@@ -755,13 +639,6 @@ export class ZoteroReads extends RpcGroup.make(
     success: Schema.Array(AttachmentSchema),
     error: ReadError,
   }),
-  /**
-   * The Items of `libraryIDs` (local ids in canonical order) that match
-   * `query`, best first, at most `limit`. The first search of a Library list
-   * waits for its index; later ones answer from the last complete index while
-   * a rebuild runs. An Item that vanished since the build is left out, so the
-   * answer can be shorter than `limit`.
-   */
   Rpc.make("SearchItems", {
     payload: {
       libraryIDs: Schema.Array(Schema.Int),
@@ -773,22 +650,16 @@ export class ZoteroReads extends RpcGroup.make(
     success: Schema.Array(SearchHitSchema),
     error: DbUnavailable,
   }),
-  /** The identity excerpt assets are keyed by. */
   Rpc.make("DatabaseIdentity", {
     payload: snapshot,
     success: DatabaseIdentitySchema,
     error: ReadError,
   }),
-  /**
-   * The Item Snapshot the Local Server and the note preview serve. An Item
-   * outside the selected Library fails with {@link DbUnavailable}.
-   */
   Rpc.make("ItemSnapshot", {
     payload: { ...ItemSnapshotRequestSchema.fields, ...snapshot },
     success: jsonObject<ItemSnapshot>(),
     error: ReadError,
   }),
-  /** The library, key, and type of any live Item, child Items included; `null` for none. */
   Rpc.make("ItemType", {
     payload: { indexedKey: Schema.String, ...snapshot },
     success: Schema.NullOr(
@@ -800,10 +671,6 @@ export class ZoteroReads extends RpcGroup.make(
     ),
     error: ReadError,
   }),
-  /**
-   * The attachments the annotation sidebar lists: an item's attachments, or
-   * a standalone attachment alone. Empty for an unknown key.
-   */
   Rpc.make("AnnotViewAttachments", {
     payload: {
       libraryID: Schema.Int,
@@ -814,7 +681,6 @@ export class ZoteroReads extends RpcGroup.make(
     success: Schema.mutable(Schema.Array(AnnotViewAttachmentSchema)),
     error: ReadError,
   }),
-  /** A Zotero reader push's numeric ids as Indexed Keys; `null` for an unknown attachment. */
   Rpc.make("ReaderTargetKeys", {
     payload: {
       attachmentID: Schema.Int,
@@ -824,20 +690,11 @@ export class ZoteroReads extends RpcGroup.make(
     success: Schema.NullOr(ReaderTargetKeysSchema),
     error: ReadError,
   }),
-  /**
-   * The attachment `itemID` names, or the attachments of the regular item it
-   * names; empty for an unknown item.
-   */
   Rpc.make("AttachmentsAt", {
     payload: { itemID: Schema.Int, ...snapshot },
     success: Schema.Array(AttachmentSchema),
     error: ReadError,
   }),
-  /**
-   * Attachments by Indexed Key, with their parent items, the parents' tags,
-   * and the username: an Annotation's parent context without its own row. A
-   * key with no live attachment is absent.
-   */
   Rpc.make("AttachmentSources", {
     payload: {
       attachmentKeys: Schema.Array(Schema.String),
@@ -847,11 +704,6 @@ export class ZoteroReads extends RpcGroup.make(
     success: AnnotationSourcesSchema,
     error: ReadError,
   }),
-  /**
-   * The ids a batch run covers in one library, or in one collection and its
-   * descendants: regular items by `dateModified` descending, or live notes by
-   * id. `null` for a collection key the library does not hold.
-   */
   Rpc.make("ScopeItemIDs", {
     payload: {
       kind: Schema.Literals(["literature-items", "notes"]),
@@ -862,10 +714,6 @@ export class ZoteroReads extends RpcGroup.make(
     success: Schema.NullOr(Schema.Array(Schema.Int)),
     error: ReadError,
   }),
-  /**
-   * One entry per requested id; `note` is `null` for an id with no live note,
-   * and `trashed` tells a note in the trash from an id that names no note.
-   */
   Rpc.make("NoteRefs", {
     payload: {
       itemIDs: Schema.Array(Schema.Int),
@@ -881,7 +729,6 @@ export class ZoteroReads extends RpcGroup.make(
     error: ReadError,
     stream: true,
   }),
-  /** One entry per requested parent id: its display ref and its child notes. */
   Rpc.make("ChildNoteRefs", {
     payload: {
       itemIDs: Schema.Array(Schema.Int),
@@ -897,13 +744,11 @@ export class ZoteroReads extends RpcGroup.make(
     error: ReadError,
     stream: true,
   }),
-  /** The tag names in use in one library, or in every library; sorted, distinct. */
   Rpc.make("TagNames", {
     payload: { libraryID: Schema.optionalKey(Schema.Int), ...snapshot },
     success: Schema.Array(Schema.String),
     error: ReadError,
   }),
-  /** Every live collection of the libraries as its root-first names, sorted. */
   Rpc.make("CollectionPaths", {
     payload: { libraryIDs: Schema.Array(Schema.Int), ...snapshot },
     success: Schema.Array(Schema.Array(Schema.String)),
@@ -911,7 +756,6 @@ export class ZoteroReads extends RpcGroup.make(
   }),
 ) {}
 
-/** The client interface every ZoteroReads caller holds. */
 export type ZoteroReadsClient = RpcClient.RpcClient<
   RpcGroup.Rpcs<typeof ZoteroReads>,
   RpcClientError.RpcClientError

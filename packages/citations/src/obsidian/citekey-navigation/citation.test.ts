@@ -29,7 +29,6 @@ const work = (citekey: string, label: string): CitedWork => ({
   label,
 });
 
-/** One `hover-link` the Page preview core plugin was asked to answer. */
 type HoverLink = Record<string, unknown>;
 
 function citation(
@@ -260,8 +259,6 @@ describe("attachClosedCitationGestures", () => {
   const click = (overrides: MouseEventInit = {}): MouseEvent =>
     new MouseEvent("click", { bubbles: true, cancelable: true, ...overrides });
 
-  // An earlier suite may have left a modifier held; every click here names its
-  // own modifiers.
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -298,7 +295,6 @@ describe("attachClosedCitationGestures", () => {
     element.dispatchEvent(down);
     element.dispatchEvent(event);
 
-    // The selection the caret places reveals the Citation's source text.
     expect(down.defaultPrevented).toBe(false);
     expect(event.defaultPrevented).toBe(false);
     expect(opened).toEqual([]);
@@ -362,8 +358,6 @@ describe("markCitationClick", () => {
 });
 
 describe("clickWikilinkCitation", () => {
-  // An earlier suite may have left a modifier held; every click here names its
-  // own modifiers.
   beforeEach(() => {
     vi.restoreAllMocks();
   });
@@ -377,12 +371,8 @@ describe("clickWikilinkCitation", () => {
     where: GestureSurface = { surface: "reading" },
   ) {
     const parts = citation([work("doe2024", "Doe (2024)")], where);
-    /** Every click Obsidian's own delegated handler would have answered. */
     const native: MouseEvent[] = [];
-    /** Every click the surface answered with the caret. */
     const edited: MouseEvent[] = [];
-    // The container the delegated handler sits on, as Obsidian hangs it above
-    // the link rather than on it.
     const container = document.createElement("div");
     container.append(parts.element);
     container.addEventListener("click", (reached) =>

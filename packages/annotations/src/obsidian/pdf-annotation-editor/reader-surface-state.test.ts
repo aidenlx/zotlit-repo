@@ -79,10 +79,6 @@ import { IDLE, writePosition } from "#obsidian/annotation-repository/write.ts";
 const NOW = Temporal.Instant.from("2026-09-17T10:00:00Z");
 const RETRY_AFTER = deadlineAfter(NOW, 45);
 
-/**
- * One store and a listener on each of its three slices, the way the reader's
- * surfaces subscribe to it.
- */
 function observed(capability: EditingCapability = { kind: "writable" }) {
   const colors = toolColors();
   const surface = readerSurface({
@@ -100,7 +96,6 @@ function observed(capability: EditingCapability = { kind: "writable" }) {
   return { surface, colors, toolbar, affordance, capability: capabilitySlice };
 }
 
-/** A new object that means what the given capability means. */
 function sameMeaning(capability: EditingCapability): EditingCapability {
   return capability.kind === "cooldown"
     ? {
@@ -110,7 +105,6 @@ function sameMeaning(capability: EditingCapability): EditingCapability {
     : { ...capability };
 }
 
-/** The ids of the controls whose drawn state differs between two models. */
 function changedIds(
   before: readonly CreationToolbarControl[],
   after: readonly CreationToolbarControl[],
@@ -137,7 +131,6 @@ it.each([
       capability: slice,
     } = observed(capability);
 
-    // A fresh object with the same meaning, as a repeated probe answers it.
     update(surface, ingestCapability(sameMeaning(capability), NOW));
 
     expect(toolbar).not.toHaveBeenCalled();
@@ -199,7 +192,6 @@ it("changes only that tool's toggle on a colour change, and keeps the colour", (
   const after = toolbar.mock.calls[0]![0] as CreationToolbarControl[];
   expect(changedIds(before, after)).toEqual(["underline"]);
   expect(after.find(({ id }) => id === "underline")?.color).toBe(chosen);
-  // The colour outlives this view: the next PDF opened reads it back.
   expect(colors.current().underline).toBe(chosen);
 });
 
@@ -212,7 +204,6 @@ const WORD = annotation("WRDS2222", "highlight", {
   rects: [[200, 610, 240, 630]],
 });
 
-/** The selection over one line of the Fixture's own underline, as placed. */
 const CAPTURED: SelectedText = {
   pageIndex: 0,
   rects: [[58.054, 601.98, 211.489, 610.112]],
@@ -220,7 +211,6 @@ const CAPTURED: SelectedText = {
 };
 const ANCHOR_AT = { pageIndex: 0, fx: 0.5, fy: 0.25 };
 
-/** A store holding two marks, the second inside the first. */
 function reader() {
   const surface = readerSurface({
     colors: toolColors().current(),
@@ -231,7 +221,6 @@ function reader() {
   return surface;
 }
 
-/** One Annotation's comment draft, as the repository holds it. */
 function draft(
   annotationKey: string,
   state: TextFieldDraft["state"] = { kind: "editing" },
@@ -445,7 +434,6 @@ it("takes a read's records with the drafts and write states that stood before it
     WORD,
   ]);
   zotero.holdWrites();
-  // The held write is still away when the stack closes, and unload rejects it.
   void repository.patchColor("PARA7777", "#ff6666").catch(passAborted);
   repository.editTextField("comment", "WRDS2222", "worth quoting");
 
@@ -765,13 +753,11 @@ it("stands the create row down while its create is in flight", () => {
   });
 });
 
-/** The Fixture's image region on page two, as the repository answers it. */
 const FIGURE = annotation("FDRFQ7C2", "image", {
   pageIndex: 1,
   rects: [[48.75, 395.509, 570, 743.723]],
 });
 
-/** The figure with its right edge dragged out to `x2`. */
 function widened(x2: number): EditablePosition {
   return {
     kind: "pdf-rects",
@@ -780,7 +766,6 @@ function widened(x2: number): EditablePosition {
   };
 }
 
-/** A store with the figure selected, and a listener on the adjustment. */
 function adjusting() {
   const surface = reader();
   update(surface, ingestRecords([PARAGRAPH, WORD, FIGURE]));
@@ -923,7 +908,6 @@ it("carries a text range's quoted text with its proposal", () => {
   expect(selectAdjust(current(surface))?.text).toBe("the longer quote");
 });
 
-/** A store with an image capture pressed on page one at (100, 500). */
 function capturing() {
   const surface = reader();
   update(surface, beginCapture({ pageIndex: 0, from: [100, 500] }));
@@ -985,7 +969,6 @@ it("takes the floating surface from a selected mark, and cancels to nothing", ()
     commenting: false,
     tagging: false,
   });
-  // A capture has no comment to open.
   update(surface, setCommenting(true));
   expect(selectFloatingHead(current(surface)).commenting).toBe(false);
 
@@ -993,7 +976,6 @@ it("takes the floating surface from a selected mark, and cancels to nothing", ()
   expect(current(surface).floating).toEqual({ kind: "none" });
 });
 
-/** A stroke released on page one, rounded as a create sends it. */
 const STROKE = {
   pageIndex: 0,
   width: 2,
@@ -1014,7 +996,6 @@ it("publishes the Live Stroke beside the floating surface, and clears it", () =>
 
   update(surface, publishLiveStroke(live));
   expect(current(surface).liveStroke).toEqual(live);
-  // The popup host reads the floating surface alone, which a stroke leaves be.
   expect(current(surface).floating).toBe(floating);
 
   update(surface, clearLiveStroke);
@@ -1076,7 +1057,6 @@ it("swaps a Pending Stroke for its record in one update", () => {
 
   update(surface, ingestRecords([PARAGRAPH, WORD, record]));
 
-  // Never both drawn, and never neither.
   expect(frames).toEqual([{ records: 3, pending: 0 }]);
 });
 
@@ -1140,7 +1120,6 @@ it("swaps a Pending Stroke for a record that differs only in colour case", () =>
 it("drops a settled Pending Stroke whose record already stands", () => {
   const surface = reader();
   update(surface, appendPendingStroke({ id: 1, ...STROKE }));
-  // Zotero stored other points than were sent, so no geometry matches.
   const stored = annotation("INK11111", "ink", {
     pageIndex: 0,
     width: 2,
@@ -1186,7 +1165,6 @@ it("drops a failed create's Pending Stroke and leaves the others", () => {
   expect(current(surface).pendingStrokes.map(({ id }) => id)).toEqual([2]);
 });
 
-/** A text box opened by a click at `[100, 500]` on page one, at 14 points. */
 function drafting() {
   const surface = reader();
   update(surface, arm("text"));
@@ -1202,16 +1180,13 @@ function drafting() {
   return surface;
 }
 
-/** Half a font size per character, so a box is worked out by hand. */
 const FIT = {
   measure: (text: string, fontSize: number) => (text.length * fontSize) / 2,
   pageBox: [0, 0, 612, 792],
 };
 
-/** `abcd` typed into {@link drafting}'s box, as Zotero's fit places it. */
 const FITTED = [93, 490.2, 126, 507];
 
-/** The record Zotero answers for {@link drafting}'s box once `abcd` saved. */
 function typed(key: string, overrides: Partial<AnnotationRecord> = {}) {
   return {
     ...annotation(key, "text", {
@@ -1336,8 +1311,6 @@ it("refits the box to what is typed, keeping its top-left corner", () => {
 
   update(surface, refitTextDraft("abcd", FIT));
 
-  // Four characters at 7 points, plus Zotero's 5 points; one line of 1.2
-  // font sizes hangs from the corner at [93, 507].
   const draft = selectTextDraft(current(surface));
   expect(draft?.text).toBe("abcd");
   draft?.box.forEach((value, index) =>
@@ -1347,7 +1320,6 @@ it("refits the box to what is typed, keeping its top-left corner", () => {
 
 it("stores a box as wide as each line the fit measured, once Zotero rounds it", () => {
   const surface = drafting();
-  // Two lines, each a hair over ten points in the draft's font.
   const measure = (text: string) => text.length * 5.0002;
   update(surface, refitTextDraft("ab\ncd", { ...FIT, measure }));
 
@@ -1392,13 +1364,11 @@ it("swaps a saving Text Draft for its record in one update", () => {
     (frame) => frames.push(frame),
   );
 
-  // Zotero stores the rects rounded and the colour as it likes.
   update(
     surface,
     ingestRecords([PARAGRAPH, WORD, typed("TEXT1111", { color: "#FFD400" })]),
   );
 
-  // Never both drawn, and never neither.
   expect(frames).toEqual([{ records: 3, draft: false }]);
 });
 
@@ -1406,7 +1376,6 @@ it("drops a settled Text Draft whose record already stands", () => {
   const surface = drafting();
   update(surface, refitTextDraft("abcd", FIT));
   modify(surface, finishTextDraft);
-  // Zotero stored another box than was sent, so no identity matches.
   update(
     surface,
     ingestRecords([

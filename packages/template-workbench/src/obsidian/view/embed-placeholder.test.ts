@@ -1,6 +1,3 @@
-// A note embed in a template's note preview shows a placeholder before
-// Obsidian loads the embedded note. These tests run the post-processor on the
-// spans Obsidian's Markdown step writes for `![[…]]`.
 // @vitest-environment happy-dom
 import type { App, MarkdownPostProcessorContext, TFile } from "obsidian";
 import { expect, it } from "vitest";
@@ -32,10 +29,8 @@ const ctx = stubService<MarkdownPostProcessorContext>("Context", {
   sourcePath: "literature/Bush 1945.md",
 });
 
-/** The embeds left for Obsidian to load. */
 const embedsLeft = (el: HTMLElement) => el.querySelectorAll("[src]").length;
 
-/** Render `srcs` as Obsidian's Markdown step does, inside a preview or not. */
 function render(srcs: string[], draft = true): HTMLElement {
   const el = document.createElement("div");
   if (draft) el.dataset["zotlitDraft"] = "";

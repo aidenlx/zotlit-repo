@@ -23,17 +23,12 @@ import { bindTemplateData } from "./data-handle.ts";
 import { serviceStubs } from "#__fixtures__/service-stubs.ts";
 import { defaults } from "#__fixtures__/settings.ts";
 
-/** My Library, which holds no item. */
 const SEED = `
   insert into version (schema, version) values ('userdata', 129);
   insert into libraries (libraryID, type, version, clientVersion)
     values (1, 'user', 1, 1);
 `;
 
-/**
- * The handle over `reads`, with plugin settings that count their reads. It
- * runs through `bridge`, or through a bridge that counts its runs.
- */
 function handle(
   reads: Context.Context<ZoteroReads>,
   bridge?: Pick<EffectBridge, "runPromise">,
@@ -70,7 +65,6 @@ function handle(
   return { templateData, runs, settingsReads };
 }
 
-/** Zotero reads over a database that holds My Library alone. */
 const memoryReads = Layer.build(
   layerZoteroReads(inProcessClient(layerRcRef(memoryOpener(() => SEED).open))),
 );
@@ -147,12 +141,9 @@ it.effect("settles a load after disposal as the bridge does", () =>
       { value: { kind: "not-found" } },
     );
 
-    // Unload: the runtime under the bridge, then the services it held.
     yield* Effect.promise(() => bridge[Symbol.asyncDispose]());
     yield* Scope.close(scope, Exit.void);
 
-    // bridge.runPromise runs on the captured context, so the load rejects
-    // with the released reads' own answer.
     expect(
       yield* settled(() => templateData.load("ABCD2345", "note")),
     ).toMatchObject({ error: { _tag: "DbUnavailable" } });

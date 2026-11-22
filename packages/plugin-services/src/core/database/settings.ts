@@ -1,6 +1,3 @@
-// The keys of the plugin settings that configure the database source: how
-// ZoteroReads reads the Zotero database (`ReadsConfig` of its contract).
-
 import type { SliceSettings } from "#core/settings/slice.ts";
 import * as v from "valibot";
 

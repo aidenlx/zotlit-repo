@@ -1,4 +1,3 @@
-// Closing the Local Server while a rebind is binding: the close waits for it.
 import type { ServerType } from "@hono/node-server";
 import { Stream } from "effect";
 import { expect, it, vi } from "vitest";
@@ -9,7 +8,6 @@ import { buildLocalServer } from "./__fixtures__.ts";
 
 import { platformSettings } from "#__fixtures__/platform-settings.ts";
 
-/** The listeners `serve` opened, and the gate holding their bind callback. */
 const binds = vi.hoisted(() => ({
   gate: null as Promise<void> | null,
   opened: [] as ServerType[],
@@ -54,7 +52,6 @@ it("closing waits for a rebind that has started", async () => {
     );
   });
 
-  // Hold the next bind, then make the server rebind.
   const { promise: gate, resolve: release } = Promise.withResolvers<void>();
   binds.gate = gate;
   const opened = new Promise<void>((resolve) => {
@@ -86,6 +83,5 @@ it("closing waits for a rebind that has started", async () => {
 
   release();
   await closing;
-  // The rebind finished, and the stop that followed closed its listener.
   expect(rebound.listening).toBe(false);
 });

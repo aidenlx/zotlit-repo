@@ -33,7 +33,6 @@ for (const [name, spec] of Object.entries(oracle.cases).filter(
         limit: null,
         group: spec.group,
       },
-      // A record in two element groups is two row entries.
       returnedCount:
         expected.rows?.length ??
         expected.groups.reduce((sum, group) => sum + group.rows.length, 0),
@@ -305,7 +304,6 @@ for (const projection of ["annotations.length", "annotations[]"]) {
       checkAnswer("count_per_paper", answer, groupedContext),
       [],
     );
-    // Grouping papers counts papers; those group counts are not mark counts.
     const paperCounts = {
       ...answer,
       groups: [
@@ -317,7 +315,6 @@ for (const projection of ["annotations.length", "annotations[]"]) {
       checkAnswer("count_per_paper", paperCounts, groupedContext).join("\n"),
       /wrong group counts/,
     );
-    // The saved Claude answer used the existing schema's item.title and explicit groups.
     answer.rows = answer.rows.map((row) => ({
       indexedKey: row.indexedKey,
       values: { "item.title": row.values.title },
@@ -446,7 +443,6 @@ await test("tag groups overlap: a paper in two groups is one paper of the count"
   };
   assert.deepEqual(validate("papers_per_tag", envelope, context), []);
   assert.deepEqual(checkAnswer("papers_per_tag", answer, context), []);
-  // limit=4 cuts the five-paper group: five row entries, truncated.
   const limited = structuredClone(envelope);
   limited.request.limit = 4;
   limited.groups[0].rows = limited.groups[0].rows.slice(0, 4);
@@ -458,7 +454,6 @@ await test("tag groups overlap: a paper in two groups is one paper of the count"
     validate("papers_per_tag", limited, context).join("\n"),
     /wrong grouped truncation/,
   );
-  // The paper count is the number of papers, not the row entries.
   assert.match(
     checkAnswer("papers_per_tag", { ...answer, count: 6 }, context).join("\n"),
     /answer count is wrong/,

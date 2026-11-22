@@ -1,33 +1,19 @@
-// Citation occurrence types, equality, and the editor's synchronous wikilink mask.
 import type { Pos } from "obsidian";
 
-/** Which syntax wrote a Citation Occurrence. */
 export type CitationSyntax = "citekey" | "wikilink" | "annotation";
 
-/**
- * One appearance of a Citation in one document. Raw and unresolved by design:
- * what it cites is answered at query time.
- */
 export interface CitationOccurrence {
   kind: CitationSyntax;
-  /** The literal citekey, stripped wikilink linkpath, or Annotation Indexed Key. */
   raw: string;
-  /** The validated text after a Wikilink Citation’s #cite: marker. */
   fragment?: string;
   position: Pos;
-  /** The Annotation Citation's page locator, when supplied by its link. */
   pageLabel?: string | null;
 }
 
-/** A Citation Fragment that declares citation intent but cannot be parsed. */
 export interface MalformedWikilinkCitation {
   occurrence: CitationOccurrence;
 }
 
-/**
- * Structural equality. A `changed` event also fires on a content-identical
- * touch, so this is what keeps such a touch from waking the index's listeners.
- */
 export function occurrencesEqual(
   prev: readonly CitationOccurrence[],
   next: readonly CitationOccurrence[],
@@ -46,12 +32,6 @@ export function occurrencesEqual(
   });
 }
 
-/**
- * Blank every wikilink and embed of `text`, keeping each offset. Pandoc reads
- * `[[…]]` as a wikilink, so a `[@key]` inside one is no citation; the Wikilink
- * Citations path alone reads a link. The citekey editor reads a line through
- * this alone: its syntax tree rules out the rest.
- */
 export function maskWikilinks(text: string): string {
   const body = text.split("");
   for (let at = 0; at < body.length; at += 1) {
@@ -70,11 +50,6 @@ function mask(body: string[], from: number, to: number): void {
   }
 }
 
-/**
- * A wikilink stays on one line; an unclosed `[[` is text.
- *
- * @returns the offset the inline scan continues from, after the masked link.
- */
 function maskWikilink(body: string[], open: number): number {
   for (let at = open + 2; at < body.length - 1 && body[at] !== "\n"; at += 1) {
     if (body[at] !== "]" || body[at + 1] !== "]") continue;

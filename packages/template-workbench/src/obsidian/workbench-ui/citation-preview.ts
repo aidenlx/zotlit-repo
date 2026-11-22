@@ -1,6 +1,3 @@
-// The names a host shows for the Citation Template preview's own two choices:
-// which built-in example set it renders, and which Citation Variant.
-
 import type { CitationVariant } from "@zotlit/db";
 import type { CitationExampleId } from "@zotlit/notes/core/template-preview/citation-examples.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -19,12 +16,10 @@ const VARIANT_LABEL: Record<CitationVariant, () => string> = {
   alt: m.workbench_citation_variant_alt,
 };
 
-/** The name one built-in Citation example set is chosen and captioned by. */
 export function citationExampleLabel(id: CitationExampleId): string {
   return EXAMPLE_LABEL[id]();
 }
 
-/** The Citation Variant as the short noun a caption names it with. */
 export function citationVariantLabel(variant: CitationVariant): string {
   return VARIANT_LABEL[variant]();
 }

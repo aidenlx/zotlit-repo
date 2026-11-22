@@ -5,11 +5,6 @@ import { Comments } from "@/components/comments.tsx";
 import { Footer } from "@/layouts/docs/page/slots/footer.tsx";
 import { unlocalizedPath } from "@/lib/i18n.ts";
 
-/**
- * The docs page tail: the owned prev/next cards, then the comment thread.
- * The thread is keyed on the page's path without its leading slash, the term
- * the site's existing giscus discussions were mapped by.
- */
 export function DocsPageFooter(props: FooterProps) {
   const pathname = usePathname();
 

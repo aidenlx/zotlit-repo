@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-// Check a saved ZotLit Query envelope against the committed evaluation oracle.
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -13,7 +12,6 @@ const oracle = JSON.parse(
 );
 const families = { items, annotations, research };
 
-/** Resolves a case's oracle entry and the family module named by its `kind`. */
 export function caseFamily(caseName) {
   const spec = oracle.cases[caseName];
   if (!spec) throw new Error(`unknown case: ${caseName}`);

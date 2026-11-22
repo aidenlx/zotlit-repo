@@ -1,31 +1,4 @@
 import type { PublishedPluginName } from "#shell/plugins";
-// The publish of one Obsidian plugin version, from the source repository to
-// npm and the publish repository (ADR 0095):
-//
-//   build ─▶ pack ─▶ npm ─▶ registry ─▶ shell ─▶ check ─▶ commit ─▶ push ─▶ source tag
-//
-//   build       the host app's production build, with the docs site of the line
-//   pack        the bundle package, as the tarball npm publishes
-//   npm         publish it, with the dist-tag of the line
-//   registry    wait until the registry serves it
-//   shell       generate the shell; pnpm resolves its lockfile from the registry
-//   check       install the shell from its lockfile in a clean folder, build it,
-//               and compare main.js and styles.css with the host app's build
-//               (main.js alone for the Resource Pack, whose shell copies it)
-//   commit      the shell commit on the line's branch of the publish repository
-//   push        the commit and the version tag, in one atomic push; the tag
-//               starts the publish repository's release workflow. When the
-//               publish repository is new and its main has no files, the
-//               push also fast-forwards main to the commit
-//   source tag  the product's release tag in the source repository, on the
-//               source commit
-//
-// Each step that reaches outside (npm, push, source tag) is injected, so the
-// same code runs in release.yml, on the lead's machine, in the dry run and in
-// the tests. Each step finds what an earlier run did and skips it: a version
-// on npm with the same files, a tag in the publish repository on the same
-// tree, a source tag on the same commit. A version on npm or a tag with other
-// content stops the run, since a published version is not made again.
 import { cp, mkdir, readdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -48,9 +21,7 @@ import {
 import { generateShell, lockShell, scopeRegistryNpmrc } from "#shell/generate";
 import { BUNDLE_PACKAGE_DIR, PUBLISHED_PLUGINS } from "#shell/plugins";
 
-/** The tags of the source repository: read, and push one. */
 export interface SourceTags {
-  /** The commit `tag` names, or undefined when there is no such tag. */
   get(tag: string): Promise<string | undefined>;
   push(tag: string, commit: string): Promise<void>;
 }
@@ -59,22 +30,16 @@ export interface ObsidianPublish {
   workspaceRoot: string;
   plugin: PublishedPluginName;
   version: string;
-  /** The source repository commit the release is built from. */
   sourceCommit: string;
   sourceTag: string;
-  /** A folder of this run's files; its old content is removed. */
   workDir: string;
-  /** The host app's production build, with `env` set. */
   build: (env: { DOCS_SITE_URL: string }) => Promise<void>;
-  /** The registry the bundle package is published to and read from. */
   registry: Registry;
   publishPackage: (tarball: string, distTag: string) => Promise<void>;
   publishRepo: PublishRepoOptions;
   pushShell: (shell: ShellCommit) => Promise<void>;
   sourceTags: SourceTags;
-  /** How long to wait for the registry to serve a new version. */
   registryWait?: { timeoutMs: number; intervalMs: number };
-  /** The pause between two tries of a lockfile resolve. @default 30 s */
   lockRetryMs?: number;
   say: (line: string) => void;
 }
@@ -85,7 +50,6 @@ export interface ObsidianPublished {
   shellDir: string;
 }
 
-/** The attempts of a lockfile resolve: the registry's mirrors can lag its API. */
 const LOCK_ATTEMPTS = 3;
 
 export async function publishObsidian(
@@ -231,10 +195,6 @@ ${SOURCE_REPOSITORY}@${options.sourceCommit}.
   return { tarball, shell, shellDir };
 }
 
-/**
- * Pushes `tag` on `commit` to the source repository; skips a tag that names
- * `commit` already and stops at one that names another commit.
- */
 export async function pushSourceTag({
   tags,
   tag,

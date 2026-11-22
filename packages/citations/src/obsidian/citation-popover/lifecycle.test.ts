@@ -31,19 +31,16 @@ import { defaults } from "#__fixtures__/settings.ts";
 import { NO_ADDITIONS } from "#obsidian/graph-citations/adapter.ts";
 import { wrapNodeHover } from "#obsidian/graph-citations/hover.ts";
 
-/** Every reads stand-in a test opened, disposed after it. */
 const opened: AsyncDisposable[] = [];
 afterEach(async () => {
   for (const reads of opened.splice(0)) await reads[Symbol.asyncDispose]();
 });
 
-/** The works a hover can show, as Zotero holds them. */
 const WORKS_SQL = seedWorksSql([
   { itemID: 1, key: "ABCD2345", title: "Alpha" },
   { itemID: 2, key: "BCDE3456", title: "Beta" },
 ]);
 
-/** ZoteroReads on the in-process adapter over the seeded works. */
 function reads() {
   const service = inProcessReadsService(memoryOpener(() => WORKS_SQL).open);
   opened.push(service);
@@ -72,7 +69,6 @@ function harness() {
     ) => Promise<BibliographyRenderResult | null>
   >(async () => null);
   const open = vi.fn();
-  /** The signal of every document-text read a visit started, in order. */
   const textReads: AbortSignal[] = [];
   const db = reads();
   const popover = citationPopoverFixture({
@@ -104,8 +100,6 @@ function harness() {
       }),
     },
     citationText: {
-      // One read that never settles on its own, so a visit that ends while it
-      // runs is what releases the wait.
       read: (_path: string, { signal }: { signal: AbortSignal }) => {
         textReads.push(signal);
         return new Promise<never>((_resolve, reject) => {
@@ -248,7 +242,6 @@ describe("Citation Popover visits", () => {
     const otherCard = other.hoverPopover!.hoverEl;
     expect(otherCard).not.toBe(firstCard);
 
-    // Simulate the same DOM target being adopted into a different owner window.
     Object.defineProperty(run.first, "win", { value: {}, configurable: true });
     await run.show("gamma");
     expect(firstCard.isConnected).toBe(false);
@@ -303,8 +296,6 @@ describe("Citation Popover visits", () => {
 
     run.readBibliography.mockReturnValueOnce(old.promise);
     run.events.emit("invalidated");
-    // The redraw's database read settles on the runtime's clock; the stale
-    // formatting is in flight once it does.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
@@ -324,7 +315,6 @@ describe("Citation Popover visits", () => {
     await act(async () => {
       old.reject(new Error("Stale render failed"));
     });
-    // The newest work's database read settles on the runtime's clock.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
@@ -335,7 +325,6 @@ describe("Citation Popover visits", () => {
       '[data-citation-popover-actions] [role="button"]',
     )!;
     await act(() => openNote.click());
-    // The action reads the Item again first, so it lands once that read does.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
@@ -368,7 +357,6 @@ describe("Citation Popover visits", () => {
     expect(run.textReads).toHaveLength(2);
     expect(run.textReads[0]!.aborted).toBe(true);
     expect(run.textReads[1]!.aborted).toBe(false);
-    // The interrupted read draws nothing, not even a failure.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(300);
     });
@@ -397,7 +385,6 @@ describe("Citation Popover visits", () => {
     await showing;
 
     expect(signals[0]!.aborted).toBe(true);
-    // The interrupted read draws nothing: no card opens again.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1000);
     });
@@ -428,7 +415,6 @@ describe("Citation Popover visits", () => {
     });
 
     expect(run.textReads[0]!.aborted).toBe(true);
-    // The interrupted read draws nothing: no card opens again.
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1000);
     });
@@ -465,7 +451,6 @@ describe("Citation Popover visits", () => {
     },
   );
 
-  // A visit closed before its delay never showed a card; a later close has one to detach.
   it.each([
     ["close", 0, false],
     ["close", 300, true],

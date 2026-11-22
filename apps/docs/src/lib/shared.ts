@@ -1,6 +1,3 @@
-// Site-wide constants and small formatters shared by routes, components, and
-// the redirect generator.
-
 import * as v from "valibot";
 
 import {
@@ -12,9 +9,7 @@ import {
 import type { SiteLocale } from "./i18n.ts";
 
 export const appName = "ZotLit";
-/** The documentation line selected by the Worker configuration. */
 export type DocsLine = "beta" | "production";
-/** Origin every canonical URL, OG card, sitemap entry, and feed link resolves against. */
 export const baseURL = "https://zotlit.aidenlx.site";
 export const docsRoute = "/docs";
 export const changelogRoute = "/changelog";
@@ -27,30 +22,16 @@ const [releaseOwner, releaseName] = RELEASE_REPOSITORY.split("/") as [
   string,
 ];
 
-/**
- * The publish repository: the releases, the stars, the discussions, and the
- * default-branch `manifest.json` the community directory reads.
- */
 export const gitConfig = {
   user: releaseOwner,
   repo: releaseName,
   branch: "main",
 };
 
-/**
- * A docs page's own title — its H1, `<title>`, and every edition of it: the
- * searcher-facing `searchTitle` when the page sets one, else the sidebar `title`.
- */
 export function docsPageTitle(data: { title: string; searchTitle?: string }) {
   return data.searchTitle ?? data.title;
 }
 
-/**
- * A Markdown edition's headers: it repeats its HTML page, so the edition stays
- * out of the search index and names the page canonical. The `_headers` rules
- * and the Worker's Markdown answers both send these.
- * @param pagePath the HTML page's root-relative path.
- */
 export function markdownEditionHeaders(pagePath: string) {
   return {
     "X-Robots-Tag": "noindex",
@@ -58,29 +39,16 @@ export function markdownEditionHeaders(pagePath: string) {
   };
 }
 
-/** `owner/name`, the form GitHub's API and giscus both name the repository by. */
 export const repoSlug = RELEASE_REPOSITORY;
 
 export const repoUrl = `https://github.com/${repoSlug}`;
 
-/** The source repository, where each docs page and the license live. */
 export const sourceRepoUrl = `https://github.com/${SOURCE_REPOSITORY}`;
-/**
- * Files on the trunk of the source repository, where every change lands. Both
- * docs sites link here to edit a page and to read the license.
- */
 export const sourceBlobUrl = `${sourceRepoUrl}/blob/${SOURCE_BRANCH}`;
 
-/** The frozen v1 site; every v1-only permalink still resolves there. */
 export const zotlitLegacyUrl = "https://zotlit-v1.aidenlx.site";
-/** Pre-release Docs, the beta deployment of this site. */
 export const zotlitBetaUrl = "https://zotlit-beta.aidenlx.site";
 
-/**
- * The OG card each `/og/<type>/…` URL selects. One list feeds both the card
- * inventory the build renders and the `og:image` URL every page head carries,
- * so the two cannot drift.
- */
 export const ogTypes = [
   "home",
   "community",
@@ -91,11 +59,6 @@ export const ogTypes = [
 ] as const;
 export type OgType = (typeof ogTypes)[number];
 
-/**
- * OG card URL for a page type. Empty `slugs` → the index/landing card.
- * @param locale the edition the page shows: a native Chinese page has its own
- *   card under `/og/zh-CN/`, and an English fallback advertises the English one.
- */
 export function ogImageUrl(
   type: OgType,
   { slugs = [], locale = "en" }: { slugs?: string[]; locale?: SiteLocale } = {},
@@ -104,17 +67,6 @@ export function ogImageUrl(
   return `/og/${[...edition, type, ...slugs, "image.webp"].join("/")}`;
 }
 
-/**
- * Publication day. A quoted frontmatter date arrives as an ISO day string, an
- * unquoted one as the UTC-midnight `Date` the YAML parser built; both normalize
- * to the ISO day here. The value crosses into the collection index as that
- * string because the index is JSON — see the date note in AGENTS.md. `Date`
- * stands in for `Temporal` (the date rule in packages/config/oxlint.base.ts) because workerd carries
- * no Temporal API.
- *
- * `content.config.ts` reads frontmatter through this schema, and the build-time
- * OG card scan reads the same frontmatter through it again.
- */
 export const publishedOn = v.pipe(
   v.union([v.pipe(v.string(), v.isoDate()), v.date()]),
   v.transform((val) =>
@@ -122,21 +74,10 @@ export const publishedOn = v.pipe(
   ),
 );
 
-/**
- * The closing year of the footer's copyright range, read at render time.
- * `Date` stands in for `Temporal` (the date rule in packages/config/oxlint.base.ts) because workerd
- * carries no Temporal API.
- */
 export function currentYear() {
   return new Date().getFullYear();
 }
 
-/**
- * Publication day in the reader's long form. Collections normalize the day to
- * its ISO form (see `content.config.ts`), so the value parses as a UTC instant
- * and formats in UTC. `Date` stands in for `Temporal`
- * (the date rule in packages/config/oxlint.base.ts) because workerd carries no Temporal API.
- */
 export function formatReleaseDate(
   isoDay: string,
   { locale = "en" }: { locale?: string } = {},
@@ -149,12 +90,6 @@ export function formatReleaseDate(
   }).format(new Date(`${isoDay}T00:00:00Z`));
 }
 
-/**
- * Publication day in the reader's short form, from the ISO instant GitHub
- * stamps a release with; the day is read in UTC, as the long form is. `Date`
- * stands in for `Temporal` (the date rule in packages/config/oxlint.base.ts) because workerd carries
- * no Temporal API.
- */
 export function formatReleaseInstant(
   iso: string,
   { locale = "en" }: { locale?: string } = {},

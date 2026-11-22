@@ -26,7 +26,6 @@ import type { UpdateScope } from "./operations.ts";
 interface NoteFeatureActionDeps {
   app: App;
   noteActions: NoteActions;
-  /** Runs Import child notes for the item `indexedKey` names. */
   importChildNotes: (indexedKey: string) => void;
 }
 
@@ -106,11 +105,6 @@ export function addNoteFeatureActions(
   });
 }
 
-/**
- * The note operations on a Literature Note's or a Note Import's file menu.
- * Overwrite and reimport replace what the user wrote, so they stand with
- * "Delete" rather than with the updates.
- */
 export function noteFeatureFileMenu(
   deps: NoteFeatureActionDeps,
 ): FileMenuSegment {
@@ -179,10 +173,6 @@ function buildFileMenu(
   }
 }
 
-/**
- * Register a command that updates the active literature note at the
- * given {@link UpdateScope}.
- */
 function addUpdateCommand(
   plugin: Pick<Plugin, "addCommand"> & { app: Plugin["app"] },
   deps: NoteFeatureActionDeps,
@@ -203,7 +193,6 @@ function addUpdateCommand(
   });
 }
 
-/** `file` and its item key, when `file` is a Literature Note. */
 function literatureNoteIn(app: App, file: unknown): ActiveNote | undefined {
   if (!(file instanceof TFile) || !isLiteratureNote(file, app)) {
     return undefined;
@@ -212,10 +201,6 @@ function literatureNoteIn(app: App, file: unknown): ActiveNote | undefined {
   return itemKey ? { file, itemKey } : undefined;
 }
 
-/**
- * Run `run` on the Literature Note `ctx` holds, unless `checking`: whether a
- * command applies there.
- */
 export function withLiteratureNote(
   plugin: Pick<Plugin, "app">,
   options: { ctx: Pick<MarkdownFileInfo, "file">; checking: boolean },

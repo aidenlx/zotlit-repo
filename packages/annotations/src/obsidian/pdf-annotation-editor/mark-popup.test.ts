@@ -41,7 +41,6 @@ function row(
   });
 }
 
-/** Each verb, as its id beside whether it runs and what its tooltip says. */
 function verbs(
   built: MarkPopupRow,
 ): Partial<Record<string, [boolean, string]>> {
@@ -102,8 +101,6 @@ describe("markPopupRow", () => {
       delete: [true, reason],
       reveal: [false, "Reveal in the annotation view"],
     });
-    // The comment field keeps its press and rests as text, as on the card:
-    // its press states the reason.
     expect(built.comment).toMatchObject({
       disabled: false,
       blocked: { reason },

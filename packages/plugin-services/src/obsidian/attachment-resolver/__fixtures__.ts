@@ -1,8 +1,3 @@
-// The Attachment resolver for real, over an in-process Zotero database seeded
-// with the rows a suite names. The resolver's own suite and the opener suites
-// build on it, so a lookup answers as the real index answers it. The database
-// read is the only seam: it can be held, failed, or left unopened.
-
 import type { ZoteroPrefSnapshot } from "#core/zotero-pref/service.ts";
 import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 
@@ -24,10 +19,8 @@ import { AttachmentResolver, layerAttachmentResolver } from "./service.ts";
 import { layerQueryClients, QueryClients } from "#core/query-client/service.ts";
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
 
-/** The Zotero data directory the seeded `storage:` rows resolve under. */
 export const DATA_DIR = "/fixture/zotero-data";
 
-/** Completes on the next `resolutionsChanged`; forked, so it hears what follows. */
 export const nextAnnouncement = (
   resolver: Pick<AttachmentResolver["Service"], "resolutionsChanged">,
 ) =>
@@ -39,22 +32,17 @@ export const nextAnnouncement = (
 export interface ResolverHarnessOptions {
   platform?: NodeJS.Platform;
   baseAttachmentPath?: string | null;
-  /** The rows each database open holds, in open order; `null` fails that open. */
   seeds?: (string | null)[];
-  /** The rows of the one database open, when `seeds` is not given. */
   rows?: string;
-  /** Build the first index before the test runs. @default true */
   prime?: boolean;
 }
 
-/** The resolved Zotero paths the resolver reads, as `ZoteroPref` holds them. */
 function prefSnapshot(
   dataDir: string,
   baseAttachmentPath: string | null,
 ): ZoteroPrefSnapshot {
   return {
     state: "ready",
-    // A fresh map: a new one is what tells `resolvedChanged` the paths moved.
     prefs: new Map(),
     resolvedProfileDir: null,
     profileDirOverride: null,
@@ -67,10 +55,6 @@ function prefSnapshot(
   };
 }
 
-/**
- * A real Attachment resolver over the seeded rows, on a runtime that also
- * carries `context` — a test's `TestClock`, for one. `close` disposes it.
- */
 export async function openResolver(
   options: ResolverHarnessOptions,
   context: Context.Context<never> = Context.empty(),
@@ -131,7 +115,6 @@ export async function openResolver(
   const service = runtime.runSync(AttachmentResolver);
   const reads = runtime.runSync(ZoteroReads);
   const queries = runtime.runSync(QueryClients);
-  // These index scenarios start after the first database load has settled.
   await runtime.runPromise(
     Stream.runHead(
       reads.changes.pipe(Stream.filter(({ state }) => state !== "loading")),
@@ -146,24 +129,19 @@ export async function openResolver(
     bridge: effectBridge(runtime),
     reads,
     queries,
-    /** Moves the resolved Zotero data directory, as a preference change does. */
     moveDataDir: (dataDir: string) =>
       SubscriptionRef.set(paths, prefSnapshot(dataDir, baseAttachmentPath)),
-    /** Makes every later path index read fail, until set back. */
     failReads: (on: boolean) => {
       failing = on;
     },
-    /** How many path index reads failed. */
     get failures() {
       return failures;
     },
-    /** Holds the next path index read until `release`. */
     gate: () => {
       held = Promise.withResolvers<void>();
       reached = Promise.withResolvers<void>();
       const gated = held;
       return {
-        /** Settles once a read waits at the gate. */
         waiting: reached.promise,
         release: () => gated.resolve(),
       };
@@ -172,7 +150,6 @@ export async function openResolver(
   };
 }
 
-/** {@link openResolver} on the test's own context, closed with its Scope. */
 export const resolverFixture = Effect.fnUntraced(function* (
   options: ResolverHarnessOptions,
 ) {

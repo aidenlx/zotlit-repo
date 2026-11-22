@@ -1,7 +1,3 @@
-// The tab strip over the authoring panes and the panel each tab opens. The
-// strip owns the keyboard: arrow keys move through the tabs and choose as they
-// go, Home and End jump to the ends. The chosen tab lives in the editor's model.
-
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useEffect, useMemo, useRef } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
@@ -18,11 +14,8 @@ import { TABS, tabDocs, tabLabel, tabLede } from "./tabs.ts";
 import type { WorkbenchTab } from "./tabs.ts";
 import { useRetention } from "./visited.ts";
 
-// The same room above the tabs as below them, so they stand clear of
-// the item row's rule over the editor.
 const tabBarTabBar =
   "zt:flex zt:shrink-0 zt:flex-wrap zt:gap-1 zt:border-b zt:border-border zt:px-3 zt:py-2";
-// Obsidian's own external-link class: link color and the trailing arrow.
 const tabPanelDocsLink = "external-link";
 const tabPanelDescription = cn(
   "zt:text-xs zt:leading-normal zt:text-muted-foreground zt:text-pretty",
@@ -37,7 +30,6 @@ function panelId(prefix: string, tab: WorkbenchTab): string {
   return `${prefix}panel-${tab}`;
 }
 
-/** Where an arrow or a jump key lands, from `index`; `null` for any other key. */
 function keyTarget(key: string, index: number, length: number): number | null {
   const last = length - 1;
   switch (key) {
@@ -54,7 +46,6 @@ function keyTarget(key: string, index: number, length: number): number | null {
   }
 }
 
-/** The tabs' strip; inert outside an editor. */
 export function TabBar({
   onTabChange,
   defaultProfile,
@@ -62,7 +53,6 @@ export function TabBar({
 }: {
   onTabChange?: (tab: WorkbenchTab) => void;
   defaultProfile?: boolean;
-  /** The tabs this document shows; the Template Document kind picks the set. */
   tabs?: readonly WorkbenchTab[];
 } = {}) {
   const editor = useOptionalEditor();
@@ -149,10 +139,6 @@ export function TabBar({
   );
 }
 
-/**
- * The docs page that shows how to write `tab`'s part of the template, set
- * after the tab's lede.
- */
 export function TabDocsLink({ tab }: { tab: WorkbenchTab }) {
   const { docsUrl } = useWorkbenchHost();
   const { label, path } = tabDocs(tab);
@@ -169,10 +155,6 @@ export function TabDocsLink({ tab }: { tab: WorkbenchTab }) {
   );
 }
 
-/**
- * The panel `tab` opens. A tab the reader has opened before stays in the page,
- * hidden, so an editor inside keeps its view; one never opened is gone.
- */
 export function TabPanel({
   tab,
   modeActive = true,
@@ -180,7 +162,6 @@ export function TabPanel({
   description = true,
 }: {
   tab: WorkbenchTab;
-  /** Whether the mode that owns this panel is visible. */
   modeActive?: boolean;
   children?: ReactNode;
   description?: boolean;
@@ -188,8 +169,6 @@ export function TabPanel({
   const editor = useOptionalEditor();
   const active = useAtomValue(useWorkbenchModel().tab) === tab;
   const prefix = editor?.id ?? "";
-  // A tab's occupant is the tab itself, so the list never changes and a visit
-  // is remembered for as long as the editor lives.
   const occupants = useMemo(() => new Map([[tab, tab]]), [tab]);
   const retention = useRetention(occupants);
   const { open } = retention;

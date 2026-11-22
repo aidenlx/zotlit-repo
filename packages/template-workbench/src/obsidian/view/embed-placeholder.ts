@@ -1,20 +1,9 @@
-// A note embed, `![[Reading list]]`, in a template's note preview draws a
-// placeholder in place of the embedded note.
-// Obsidian renders Markdown in two steps: the Markdown becomes HTML, where an
-// embed is an empty `.internal-embed` span, and then the post-processors run,
-// after which Obsidian loads each span not marked `is-loaded`. This
-// post-processor runs in that gap and replaces each note embed with a
-// placeholder that names the note and says whether the vault holds it. The
-// preview is not the note, so it neither shows the note's text nor offers to
-// create a missing note. Embeds of other files the vault holds, such as
-// images, PDFs and Query Files, keep their own rendering.
 import { parseLinktext, setIcon } from "obsidian";
 import type { App, MarkdownPostProcessor, TFile } from "obsidian";
 
 import { isDraftMarkdown } from "@zotlit/obsidian-kit/reading-view.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-/** The note an embed in the preview links to; `null` for an embed of another file. */
 function embeddedNote(
   app: App,
   linktext: string,
@@ -24,12 +13,9 @@ function embeddedNote(
   const file = app.metadataCache.getFirstLinkpathDest(path, sourcePath);
   if (file !== null)
     return file.extension === "md" ? { path, subpath, file } : null;
-  // A link with no file behind it is a note Obsidian offers to create,
-  // whatever its name holds, such as "Smith et al. 2020".
   return { path, subpath, file: null };
 }
 
-/** The post-processor that draws the placeholder for each note embed in a preview. */
 export function noteEmbedPlaceholders(app: App): MarkdownPostProcessor {
   return (el, ctx) => {
     if (!isDraftMarkdown(el)) return;

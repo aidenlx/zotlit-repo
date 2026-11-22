@@ -1,4 +1,3 @@
-// The settings store over a test's plugin data, for any host definition.
 import { Context, Effect, Layer, Stream } from "effect";
 import type { Plugin } from "obsidian";
 
@@ -29,7 +28,6 @@ export const settingsOf = Effect.fnUntraced(function* ({
   );
 });
 
-/** Writes `overrides` through the real store's `update`. */
 export function applySettings(
   settings: Pick<PluginSettings["Service"], "update">,
   bridge: Pick<EffectBridge, "runSync">,
@@ -39,10 +37,6 @@ export function applySettings(
     bridge.runSync(settings.update(overrides));
 }
 
-/**
- * The settings service, its bridge, and its runtime, using the test's Clock and
- * logger; all three close with the test Scope.
- */
 export const settingsRuntimeOf = Effect.fnUntraced(function* (
   options: SettingsFixtureOptions,
 ) {
@@ -60,7 +54,6 @@ export type SettingsFixture = PluginSettings["Service"] &
     readonly runtime: SubscriptionRuntime;
   };
 
-/** Consumer fixtures outside Effect own the service's runtime through this handle. */
 export async function buildSettings(
   options: SettingsFixtureOptions,
 ): Promise<SettingsFixture> {
@@ -92,14 +85,6 @@ async function openSettings(
   };
 }
 
-/**
- * Settings whose changes the test publishes, for a layer that reads only
- * `current` and `changes`. `changes` replays the current value to a new
- * subscriber, then each `update`. `update` returns once every subscriber's
- * runnable handling of the new value has run.
- *
- * @param defaults the host's whole map, which `overrides` replaces in part.
- */
 export function settingsFeed(
   defaults: Readonly<Settings>,
   overrides: Partial<Settings> = {},

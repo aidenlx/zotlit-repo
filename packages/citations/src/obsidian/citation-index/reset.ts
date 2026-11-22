@@ -1,6 +1,3 @@
-// The Advanced page's Reset citation index action: it asks first, then clears
-// every stored citekey scan and rebuilds it from the vault, and names the
-// outcome in a notice.
 import { Effect } from "effect";
 import type { SettingGroupItem } from "obsidian";
 
@@ -15,11 +12,6 @@ import type {
 
 import { CitationIndex } from "./service.ts";
 
-/**
- * Clear every stored citekey scan and rebuild it from the vault. The rebuild
- * runs on past this action, so the notice names it rather than claiming it is
- * done.
- */
 export const resetCitationIndex = Effect.fn("SettingTab.resetCitationIndex")(
   function* (confirm: Effect.Effect<boolean>) {
     if (!(yield* confirm)) return "cancelled" as const;
@@ -29,7 +21,6 @@ export const resetCitationIndex = Effect.fn("SettingTab.resetCitationIndex")(
   withLogCategory("setting-tab", "advanced"),
 );
 
-/** Report a confirmed index reset, preserving silence on cancellation. */
 export const reportResetCitationIndex = (confirm: Effect.Effect<boolean>) =>
   reportOutcome(resetCitationIndex(confirm), {
     success: (outcome) =>
@@ -37,7 +28,6 @@ export const reportResetCitationIndex = (confirm: Effect.Effect<boolean>) =>
     error: () => m.notice_citation_index_reset_failed(),
   });
 
-/** The Recovery group's Reset citation index row. */
 export function citationIndexResetItem(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey> {

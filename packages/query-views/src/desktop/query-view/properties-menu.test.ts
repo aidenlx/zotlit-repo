@@ -21,7 +21,6 @@ views:
     from: items
 `);
 
-/** The rows a search for `query` leaves, as a case-blind substring match. */
 function search(rows: ReturnType<typeof propertyRow>[], query: string) {
   const matcher: ChooserMatcher = (text) =>
     text.toLowerCase().includes(query.toLowerCase()) ? { score: 0 } : null;

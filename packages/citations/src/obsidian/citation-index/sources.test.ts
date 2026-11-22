@@ -23,7 +23,6 @@ import {
 const KEY = "ABCD2345";
 const OTHER_KEY = "EFGH6789";
 
-/** The cited Item every case seeds, as Zotero holds it. */
 const CITED: SeededWork = {
   itemID: 1,
   key: KEY,
@@ -33,12 +32,9 @@ const CITED: SeededWork = {
   creators: [["Jane", "Doe"]],
 };
 
-/** ZoteroReads on the in-process adapter over the seeded rows. */
 let ready: TestReads;
-/** The `ItemsByIndexedKeys` calls the readers made. */
 let itemReads: ReturnType<typeof recordCalls>["calls"];
 
-/** Open ZoteroReads over `sql`, recording the item reads. */
 async function readsOver(sql: string): Promise<TestReads> {
   const recorded = recordCalls(["ItemsByIndexedKeys"]);
   itemReads = recorded.calls;
@@ -299,9 +295,7 @@ describe("toZoteroOpenableAttachments", () => {
   it("leaves out an attachment that names no file", () => {
     expect(
       toZoteroOpenableAttachments([
-        // A bare web link, which Zotero's reader cannot open.
         attachment({ path: "https://example.com/paper", linkMode: 3 }),
-        // A stored row whose path lost its `storage:` prefix.
         attachment({ path: "paper.pdf", linkMode: 0 }),
         attachment({ path: null, linkMode: 0 }),
       ]),

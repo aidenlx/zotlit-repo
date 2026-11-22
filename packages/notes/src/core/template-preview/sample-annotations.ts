@@ -1,5 +1,3 @@
-// Built-in annotation examples and the serialized root/descriptor pair a preview renders.
-
 import type { SnapshotRootDescriptors } from "@zotlit/zotero-reads/contract/snapshot/descriptors.ts";
 import type { ItemSnapshot } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
 

@@ -20,7 +20,6 @@ import {
 } from "#obsidian/workbench-ui/index.tsx";
 import { chooseWorkbenchOption } from "#obsidian/workbench-ui/suggester.ts";
 
-/** How `fiber` ended: its value, or its failure as a rejection. */
 function settled<A, E>(fiber: Fiber.Fiber<A, E>): Promise<A> {
   return new Promise((resolve, reject) =>
     fiber.addObserver((exit) => {

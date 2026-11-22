@@ -6,7 +6,6 @@
     "allowJs": true,
     "checkJs": true,
     "isolatedDeclarations": false,
-    // Read by the effecttsgo lint rules, as in tsconfig.app.json.
     "plugins": [
       {
         "name": "@effect/language-service",

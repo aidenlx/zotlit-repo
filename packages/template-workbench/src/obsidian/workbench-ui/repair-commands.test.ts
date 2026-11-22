@@ -18,10 +18,8 @@ const BOTH: WorkbenchPanels = {
   preview: { ...INITIAL_PANELS.preview, shown: true },
 };
 
-/** A narrow view, where the Preview stands under the editor. */
 const NARROW: ViewSize = { width: 560, height: 800 };
 
-/** The reader on Advanced with the Fields Panel open over the editor. */
 function open({
   source,
   diagnoses = [],
@@ -75,7 +73,6 @@ const diagnosis = (diagnostic: RenderDiagnostic): WorkbenchDiagnosis => ({
   occurrences: [diagnostic],
 });
 
-/** The default Profile with one call to a partial no vault holds, in the note. */
 const MISSING_CALL = DEFAULT_PROFILE_SOURCE.replace(
   "# {{ zt.title }}",
   '# {{ zt.title }}\n{% render "missing-bit" %}',
@@ -170,7 +167,6 @@ describe("the repair commands", () => {
     });
     expect(page.fields()).toBe("to-editor");
     expect(page.panels()).toEqual(BOTH);
-    // Focus goes to the call, so the area's status says why it fails.
     expect(page.announced).toEqual([
       "The partial 'missing-bit' isn't in your template folder.",
     ]);

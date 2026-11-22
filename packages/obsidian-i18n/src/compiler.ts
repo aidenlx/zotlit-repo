@@ -1,9 +1,5 @@
-// Each consumer type-checks this source under its own tsconfig, so the module
-// names the ambient declarations it needs.
 // oxlint-disable-next-line typescript/triple-slash-reference
 /// <reference path="./inlang-plugins.d.ts" />
-
-// Compiles an Inlang project into typed wrappers and JSON Language Packs.
 
 import mFunctionMatcherPlugin from "@inlang/plugin-m-function-matcher";
 import messageFormatPlugin from "@inlang/plugin-message-format";
@@ -60,16 +56,9 @@ export class LanguagePackCompilerError extends Error {
   }
 }
 
-/** Which bundles a consumer's artifacts carry, by bundle ID. */
 export type MessageFilterOptions = {
-  /** Bundle-ID prefixes to leave out; a nested namespace is `"zotero."`. */
   excludeMessagePrefixes?: readonly string[];
-  /** When set, only bundles under one of these prefixes are carried. */
   includeMessagePrefixes?: readonly string[];
-  /**
-   * Included Messages: bundle IDs carried although a prefix rule would drop
-   * them. The facade exports one under its literal ID.
-   */
   includeMessages?: readonly string[];
 };
 
@@ -80,22 +69,12 @@ export type MessageDataOptions = MessageFilterOptions & {
 
 export type CompileOptions = MessageDataOptions & {
   output?: string;
-  /**
-   * Generated ESM namespace modules, keyed by `*-messages.ts` file name. Each
-   * module re-exports only Messages under one of its bundle-ID prefixes.
-   */
   scopedMessageModules?: Readonly<
     Record<`${string}-messages.ts`, readonly string[]>
   >;
-  /**
-   * Key prefixes whose Messages become Target-Locale Messages: bundled as a
-   * per-locale subset and rendered in the resolved target locale regardless of
-   * which Language Pack is active.
-   */
   targetLocaleMessagePrefixes?: readonly string[];
 };
 
-/** Options the Obsidian emission step reads beyond the message data itself. */
 export type EmitOptions = Pick<
   CompileOptions,
   "targetLocaleMessagePrefixes" | "includeMessages" | "scopedMessageModules"
@@ -105,7 +84,6 @@ export type RawSourceCatalog = {
   locale: string;
   path: string;
   contents: string;
-  /** Higher values override lower values, matching the plugin's file order. */
   mergePrecedence: number;
 };
 
@@ -114,7 +92,6 @@ export type CompileProjectInput = {
   sourceCatalogs: readonly RawSourceCatalog[];
 };
 
-/** One locale's untranslated plugin messages, which fall back per message at runtime. */
 export type UntranslatedMessages = {
   locale: string;
   sourcePath: string;
@@ -122,7 +99,6 @@ export type UntranslatedMessages = {
   bundleIds: string[];
 };
 
-/** One locale message dropped for using an input the base locale never declares. */
 export type UndeclaredInputMessage = {
   locale: string;
   sourcePath: string;
@@ -132,7 +108,6 @@ export type UndeclaredInputMessage = {
   inputs: string[];
 };
 
-/** Bundles no base-locale catalog defines, so no wrapper can be typed for them. */
 export type MissingBaseMessages = {
   sourcePath: string;
   sourcePaths: string[];
@@ -145,18 +120,12 @@ export type CompilerReports = {
   missingBaseLocale: MissingBaseMessages | undefined;
 };
 
-/** One bundle the base locale defines: its input contract and each locale's eval-free IR. */
 export type CompiledMessage = {
   id: string;
   inputs: { name: string; type: string }[];
-  /** Keyed by locale; a locale dropped for an undeclared input is absent. */
   messages: Record<string, PackMessage>;
 };
 
-/**
- * The message-data step's output: every selected bundle compiled to the IR
- * every emitter shares, plus the compiler reports. Sorted by bundle ID.
- */
 export type MessageData = CompilerReports & {
   baseLocale: string;
   locales: string[];
@@ -167,9 +136,7 @@ export type MessageData = CompilerReports & {
 
 export type MessageDataResult = MessageData & {
   projectPath: string;
-  /** {@link formatCompilerWarnings}'s report lines, ready for a caller's log sink. */
   warnings: string[];
-  /** Every input a rebuild should watch: `settings.json` plus every discovered source catalog. */
   watchPaths: string[];
 };
 
@@ -189,9 +156,7 @@ export type CompileResult = CompilerReports &
   Pick<CompilePaths, "projectPath" | "outputDirectory"> & {
     messageCount: number;
     sourcePaths: string[];
-    /** {@link formatCompilerWarnings}'s report lines, ready for a caller's log sink. */
     warnings: string[];
-    /** Every input a rebuild should watch: `settings.json` plus every discovered source catalog. */
     watchPaths: string[];
   };
 
@@ -201,13 +166,6 @@ export type CompilePaths = {
   outputDirectory: string;
 };
 
-/**
- * Resolves the project and output locations a compile reads and writes.
- *
- * Callers that need the output directory before compiling — Vite's `config`
- * hook excludes it from the watcher — share these defaults instead of
- * restating them.
- */
 export function resolveCompilePaths({
   root: configuredRoot,
   project = "project.inlang",
@@ -221,7 +179,6 @@ export function resolveCompilePaths({
   };
 }
 
-/** A bundle the base locale defines, with the input contract read from it. */
 type CompiledBundle = {
   bundle: BundleNested;
   inputs: { name: string; type: string }[];
@@ -284,10 +241,6 @@ const RESERVED_IDENTIFIERS = new Set([
   "yield",
 ]);
 
-/**
- * Installed plugins used for every compile. Project settings may still list
- * CDN modules for Inlang editors; the compiler clears those in memory.
- */
 export const INLANG_PLUGINS: InlangPlugin[] = [
   messageFormatPlugin,
   mFunctionMatcherPlugin,
@@ -314,12 +267,6 @@ export async function compile(
   };
 }
 
-/**
- * The message-data step on its own: loads the project and compiles the
- * selected bundles to the IR without emitting any Obsidian artifact. A
- * consumer with its own output format — the Companion's Fluent files — starts
- * here, so both consumers agree on message semantics.
- */
 export async function loadMessageData(
   options: MessageDataOptions = {},
 ): Promise<MessageDataResult> {
@@ -395,11 +342,6 @@ export async function compileProject(
   return emitObsidianArtifacts(data, options);
 }
 
-/**
- * Compiles every selected bundle to the IR and produces the three reports.
- * The base locale alone defines a bundle's input contract; a locale message
- * that drifts from it is dropped and reported rather than typed.
- */
 export async function compileMessageData(
   { project, sourceCatalogs }: CompileProjectInput,
   options: MessageFilterOptions = {},
@@ -485,10 +427,6 @@ export async function compileMessageData(
   };
 }
 
-/**
- * The Obsidian emission step: the typed facade, the runtime module, the
- * Locale Catalog, every Language Pack, and the Target-Locale Messages subset.
- */
 export function emitObsidianArtifacts(
   data: MessageData,
   {
@@ -563,11 +501,6 @@ export function emitObsidianArtifacts(
   };
 }
 
-/**
- * Whether a bundle enters a consumer's artifacts. An Included Message always
- * does; otherwise the include prefixes (when set) admit it and the exclude
- * prefixes drop it.
- */
 function messageSelector({
   excludeMessagePrefixes = [],
   includeMessagePrefixes,
@@ -581,12 +514,6 @@ function messageSelector({
       !excludeMessagePrefixes.some((prefix) => bundleId.startsWith(prefix)));
 }
 
-/**
- * Locales whose catalog omits plugin messages the base locale defines. A pack
- * may be partial by design — the runtime falls back to the base locale per
- * message — so this is reported rather than rejected, letting translators see
- * what still needs a string.
- */
 function findUntranslatedMessages(
   compiled: CompiledBundle[],
   { locales, baseLocale }: { locales: string[]; baseLocale: string },
@@ -608,7 +535,6 @@ function findUntranslatedMessages(
     .filter((report) => report.bundleIds.length > 0);
 }
 
-/** Renders every compiler report for a build log, or `undefined` when there is nothing to warn about. */
 export function formatCompilerWarnings(
   reports: CompilerReports,
 ): string | undefined {
@@ -616,7 +542,6 @@ export function formatCompilerWarnings(
   return lines.length === 0 ? undefined : lines.join("\n");
 }
 
-/** The formatted report lines {@link formatCompilerWarnings} and {@link compile}'s `warnings` share. */
 function compilerWarningLines({
   untranslated,
   undeclaredInputs,
@@ -639,12 +564,6 @@ function compilerWarningLines({
   ];
 }
 
-/**
- * Reads a bundle's input contract from its base-locale message, which alone
- * decides that a Message takes an input at all and what the input accepts.
- * A bundle the base locale never defines has no contract to read, so it is
- * dropped from every artifact rather than typed from a translation.
- */
 function compileBundle(
   bundle: BundleNested,
   baseLocale: string,
@@ -671,13 +590,6 @@ function compileBundle(
   };
 }
 
-/**
- * Declarations reach the compiler unioned across locales with only their name
- * to identify them, so two locales declaring one name differently leave the
- * bundle ambiguous — both survive the union, and both would land in every
- * pack. Rejecting says so instead of letting one locale's formatter silently
- * render another's message.
- */
 function assertUniqueDeclarations(bundle: BundleNested): void {
   const seen = new Set<string>();
   for (const { name } of bundle.declarations) {
@@ -688,12 +600,6 @@ function assertUniqueDeclarations(bundle: BundleNested): void {
   }
 }
 
-/**
- * The declarations a single locale's message reaches, expanded through the
- * locals it references. The message-format plugin unions declarations across
- * every locale onto the bundle, so this is the only way back to what one
- * locale actually uses.
- */
 function referencedDeclarations(
   bundle: BundleNested,
   message: NestedMessage,
@@ -733,11 +639,6 @@ function referencedDeclarations(
   );
 }
 
-/**
- * Best-effort input types read from base-locale usage: a `plural` or `number`
- * argument and a selector whose every literal match is numeric are numbers, a
- * `datetime` argument takes a date, and an input used both ways keeps the floor.
- */
 function inferInputTypes(
   declarations: Declaration[],
   message: NestedMessage,
@@ -807,15 +708,9 @@ function generateFacade(
             .map((input) => `${input.name}: ${input.type}`)
             .join("; ")} }`;
     const inputArgument = inputs.length === 0 ? "" : ", inputs";
-    // A Target-Locale Message keeps its wrapper name and signature and only
-    // changes which runtime path renders it, so adopting the feature is
-    // configuration-only for every call site.
     const render = isTargetLocaleMessage(id) ? "translateTarget" : "translate";
     used.add(render);
     const wrapper = `(${inputParameter}): string => ${render}(${JSON.stringify(id)}${inputArgument});`;
-    // An Included Message is the one place a bundle ID need not be an
-    // identifier: a dotted ID is declared under a safe local name and
-    // exported under its literal string, Paraglide-style.
     if (includedMessages.has(id) && !isIdentifier(id)) {
       const localName = safeLocalName(id);
       if (localNames.has(localName)) {
@@ -833,8 +728,6 @@ function generateFacade(
   )
     ? ['import { type DatetimeInput } from "@zotlit/obsidian-i18n";', ""]
     : [];
-  // A project with no Messages at all still imports `translate`, so an empty
-  // facade keeps the shape every other one has.
   const renderers = ["translate", "translateTarget"].filter((name) =>
     used.size === 0 ? name === "translate" : used.has(name),
   );
@@ -902,12 +795,6 @@ function generateRuntime(
 const TARGET_LOCALE_MESSAGES_FILE = "target-locale-messages.ts";
 const TARGET_LOCALE_MESSAGES_MODULE = "target-locale-messages.js";
 
-/**
- * The prefix-matched Messages of every remote pack locale, bundled with the
- * plugin so lifecycle copy reads in the target language before — and without —
- * any pack download. The base locale is omitted: its subset would duplicate the
- * bundled base pack the target ladder already falls back to.
- */
 function generateTargetLocaleMessages(
   messagesByLocale: ReadonlyMap<string, Record<string, PackMessage>>,
   {
@@ -942,11 +829,6 @@ function generateTargetLocaleMessages(
   ].join("\n");
 }
 
-/**
- * Locales the consuming app downloads as remote Language Packs: every
- * configured locale except the base, which ships bundled instead. Sorted by
- * codepoint so the emitted `catalog.ts` is byte-deterministic across compiles.
- */
 function remoteLanguagePacks(
   baseLocale: string,
   locales: readonly string[],
@@ -978,7 +860,6 @@ function generateCatalog(
   ].join("\n");
 }
 
-/** One locale's messages, plus the ones dropped for drifting from the base input contract. */
 type GeneratedPack = {
   messages: Record<string, PackMessage>;
   drift: UndeclaredInputMessage[];
@@ -1027,11 +908,6 @@ function generatePack(
   return { messages, drift };
 }
 
-/**
- * No pretty-printing: packs ship as artifacts under a serialized-byte cap.
- *
- * @see {@link LANGUAGE_PACK_LIMITS}
- */
 function serializePack(
   locale: string,
   messages: Record<string, PackMessage>,
@@ -1158,12 +1034,10 @@ function normalizeMatch(match: Match, bundleId: string): PackMatch {
   );
 }
 
-/** Codepoint-order comparator: byte-deterministic across ICU versions/locales, unlike localeCompare. */
 function compareCodepoints(left: string, right: string): number {
   return left < right ? -1 : left > right ? 1 : 0;
 }
 
-/** Guards the facade against names that would emit uncompilable TypeScript. */
 function assertIdentifier(
   name: string,
   bundleId: string,
@@ -1177,7 +1051,6 @@ function isIdentifier(name: string): boolean {
   return /^[$A-Z_a-z][$\w]*$/.test(name) && !RESERVED_IDENTIFIERS.has(name);
 }
 
-/** A local binding name for a bundle ID that is no identifier, e.g. `zotero.a.label` → `zotero_a_label`. */
 function safeLocalName(bundleId: string): string {
   const replaced = bundleId.replaceAll(/[^$\w]/g, "_");
   return isIdentifier(replaced) ? replaced : `_${replaced}`;
@@ -1215,11 +1088,6 @@ function rejectMarkupSources(
   }
 }
 
-/**
- * A raw catalog's bundles under their dotted IDs: the message-format plugin
- * flattens a nested object into `outer.inner` bundles and keeps an array (a
- * complex message) whole.
- */
 function* catalogBundles(
   catalog: Record<string, unknown>,
   prefix = "",
@@ -1271,8 +1139,6 @@ function isEscaped(value: string, index: number): boolean {
   return precedingBackslashes % 2 === 1;
 }
 
-// Discovers source catalogs and attributes compiler diagnostics to source text.
-
 type SourceIndex = Map<
   string,
   Array<RawSourceCatalog & { messages: Record<string, unknown> }>
@@ -1310,12 +1176,6 @@ async function discoverSourceCatalogs(
   return catalogs;
 }
 
-/**
- * Re-reads the configured catalogs from `settings.json` after the project
- * itself failed to load, so the thrown error can still cite a source position.
- * {@link discoverSourceCatalogs} is unavailable here — the plugin whose
- * `toBeImportedFiles` hook it needs is exactly what failed to load.
- */
 async function readConfiguredSourceCatalogsForDiagnostics(
   projectPath: string,
 ): Promise<RawSourceCatalog[]> {
@@ -1437,13 +1297,6 @@ async function positionedError(
   return new Error(`${position}: ${normalized.message}`, { cause: normalized });
 }
 
-/**
- * Positions a {@link LanguagePackCompilerError} at its source location and
- * throws it as a plain `Error`; any other error passes through unchanged.
- * The compiler's one error-positioning path: `unsupported()` throws
- * unpositioned, and every catch site around bundle compilation routes back
- * through here to attach a source location before the error escapes.
- */
 function positionCompilerError(
   error: unknown,
   source?: RawSourceCatalog,
@@ -1558,8 +1411,6 @@ function toError(value: unknown): Error {
   return value instanceof Error ? value : new Error(String(value));
 }
 
-// Persists generated compiler artifacts while avoiding unchanged writes.
-
 export async function writeOutput(
   generated: GeneratedArtifacts,
   outputDirectory: string,
@@ -1591,11 +1442,6 @@ export async function writeOutput(
   return { writtenPaths, removedPaths };
 }
 
-/**
- * Whether a leftover file in the output directory is shaped like something a
- * previous compile emitted — a locale pack, the facade, or the runtime. Files
- * the compiler never emits are left alone rather than swept.
- */
 function isGeneratedArtifactName(fileName: string): boolean {
   return (
     fileName === "messages.ts" ||

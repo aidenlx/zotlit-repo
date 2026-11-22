@@ -1,5 +1,3 @@
-// An in-memory vault for tests. The test drives it; the tag's own layer runs
-// over it (`layerVaultFrom`). It copies the shape of MemoryMetadataCache.
 import { dirname } from "node:path/posix";
 import { TFile, TFolder } from "obsidian";
 import type { DataWriteOptions, EventRef, TAbstractFile } from "obsidian";
@@ -8,7 +6,6 @@ import type { VaultSource } from "#obsidian-vault.ts";
 
 type Callback = (...args: unknown[]) => unknown;
 
-/** The first of `held` whose path differs from `path` only in case. */
 export function heldInAnyCase(
   held: readonly TAbstractFile[],
   path: string,
@@ -17,19 +14,13 @@ export function heldInAnyCase(
   return held.find((entry) => entry.path.toLowerCase() === folded) ?? null;
 }
 
-/** The files of a test vault, by path, with their text, and Obsidian's vault events. */
 export class MemoryVault implements VaultSource {
   readonly files = new Map<string, TFile>();
   readonly contents = new Map<string, string>();
   readonly folders = new Map<string, TFolder>();
-  /** The files moved to the trash, in order. */
   readonly trashed: TAbstractFile[] = [];
   readonly #listeners = new Map<string, Set<Callback>>();
 
-  /**
-   * An in-memory vault whose members `stub` replaces: for a host that stubs a
-   * few vault reads, so the tag still has Obsidian's events to listen to.
-   */
   static with<Stub extends object>(stub: Stub): MemoryVault & Stub {
     return Object.assign(new MemoryVault(), stub);
   }
@@ -46,7 +37,6 @@ export class MemoryVault implements VaultSource {
     return this.files.get(path) ?? this.folders.get(path) ?? null;
   }
 
-  /** As Obsidian: the exact path first, then any path that differs only in case. */
   getAbstractFileByPathInsensitive(path: string): TAbstractFile | null {
     return (
       this.getAbstractFileByPath(path) ??
@@ -54,7 +44,6 @@ export class MemoryVault implements VaultSource {
     );
   }
 
-  /** As Obsidian: the files whose extension is `md`. */
   getMarkdownFiles(): TFile[] {
     return [...this.files.values()].filter((file) => file.extension === "md");
   }
@@ -69,7 +58,6 @@ export class MemoryVault implements VaultSource {
     return this.read(file);
   }
 
-  /** As Obsidian's adapter: the text at a path, rejecting with `ENOENT` when none. */
   readonly adapter = {
     read: async (path: string): Promise<string> => {
       const text = this.contents.get(path);
@@ -122,12 +110,10 @@ export class MemoryVault implements VaultSource {
     this.#listeners.get(name)?.delete(fn);
   }
 
-  /** How many listeners are registered for `name`. */
   listenerCount(name: string): number {
     return this.#listeners.get(name)?.size ?? 0;
   }
 
-  /** Hold a file at `path` with `data`, then `create`. */
   add(path: string, data = ""): TFile {
     const file = new TFile();
     file.path = path;
@@ -138,7 +124,6 @@ export class MemoryVault implements VaultSource {
     return file;
   }
 
-  /** Hold a folder at `path`, then `create`. */
   addFolder(path: string): TFolder {
     const folder = new TFolder();
     folder.path = path;
@@ -147,13 +132,11 @@ export class MemoryVault implements VaultSource {
     return folder;
   }
 
-  /** Change the file's text, then `modify`. */
   modify(file: TFile, data: string): void {
     this.contents.set(file.path, data);
     this.trigger("modify", file);
   }
 
-  /** Move the file to `path`, then `rename`. */
   rename(file: TFile, path: string): void {
     const oldPath = file.path;
     const data = this.contents.get(oldPath);
@@ -165,7 +148,6 @@ export class MemoryVault implements VaultSource {
     this.trigger("rename", file, oldPath);
   }
 
-  /** Drop the file at `path`, then `delete`. */
   remove(path: string): void {
     const file = this.files.get(path);
     if (!file) return;
@@ -174,7 +156,6 @@ export class MemoryVault implements VaultSource {
     this.trigger("delete", file);
   }
 
-  /** Call each listener of `name`, in registration order. */
   trigger(name: string, ...args: unknown[]): void {
     for (const callback of this.#listeners.get(name) ?? [])
       callback(...args);

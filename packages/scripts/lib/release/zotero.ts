@@ -1,17 +1,3 @@
-// The publish of one ZotLit Companion version to the publish repository:
-//
-//   build ─▶ release zt-<v> ─▶ update manifests ─▶ update channel ─▶ source tag
-//
-//   build             the Companion's production build: the XPI
-//   release           the release zt-<v> with the XPI
-//   update manifests  update.json and update-beta.json from the rolling
-//                     release, with this version where it is newer
-//   update channel    the rolling release takes the new manifests
-//   source tag        zt-<v> in the source repository, on the source commit
-//
-// The release exists before a manifest names its XPI. A second run reuses
-// what the first one published: when zt-<v> has its XPI, that XPI, not the new
-// build, is what the manifests hash, so they match the file users download.
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -19,26 +5,19 @@ import { releaseLine, releaseTag } from "./lines.ts";
 import { pushSourceTag } from "./obsidian.ts";
 import type { SourceTags } from "./obsidian.ts";
 
-/** The rolling release whose assets are the Companion's update manifests. */
 export const UPDATE_HOST_TAG = "zotero-release";
 const UPDATE_MANIFESTS = "update*.json";
-/** The notes of the rolling release, which the manifest build writes. */
 const HOST_NOTES = "release-host-notes.md";
 
-/** The releases of the publish repository. */
 export interface ReleaseHost {
-  /** The asset names of the release `tag`, or undefined when it does not exist. */
   assets(tag: string): Promise<string[] | undefined>;
   create(
     tag: string,
     release: { title: string; notes: string; prerelease: boolean },
     files: readonly string[],
   ): Promise<void>;
-  /** Uploads `files`, replacing assets of the same name. */
   upload(tag: string, files: readonly string[]): Promise<void>;
-  /** Downloads the assets that match `pattern` into `dir`, replacing files there. */
   download(tag: string, pattern: string, dir: string): Promise<void>;
-  /** Sets the rolling release's title and notes; it stays a pre-release, never "Latest". */
   editHost(
     tag: string,
     host: { title: string; notesFile: string },
@@ -48,11 +27,9 @@ export interface ReleaseHost {
 export interface ZoteroPublish {
   workspaceRoot: string;
   version: string;
-  /** The plugin version, whose changelog entry the release notes link. */
   changelogVersion: string;
   sourceCommit: string;
   build: () => Promise<void>;
-  /** Writes the update manifests and the host notes into `dist/` from the XPI there. */
   buildUpdateManifests: () => Promise<void>;
   host: ReleaseHost;
   sourceTags: SourceTags;
@@ -97,7 +74,6 @@ export async function publishZotero(options: ZoteroPublish): Promise<void> {
   }
 
   step(`update manifests: from ${UPDATE_HOST_TAG}`);
-  // A missing rolling release fails here, before any channel changes.
   await host.download(UPDATE_HOST_TAG, UPDATE_MANIFESTS, dist);
   await options.buildUpdateManifests();
 

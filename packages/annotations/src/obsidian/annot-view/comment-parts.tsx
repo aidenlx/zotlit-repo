@@ -1,11 +1,3 @@
-// The comment controls as Preact components, for the Annotation Card and the
-// Mark Popup alike: the rendered comment, the resting comment field that opens
-// the editor, the editor sheet, the held-draft panel and the Write Conflict
-// panel. Each draws through the vanilla builder in
-// `editor-sheet.ts` and redraws only when what it shows changes, so a render
-// of the surface around it never drops a click between its press and its
-// release.
-
 import type { WriteConflict } from "#obsidian/annotation-repository/write.ts";
 import type { App } from "obsidian";
 import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
@@ -41,11 +33,6 @@ type DivProps = Omit<HTMLAttributes<HTMLDivElement>, "children">;
 
 export type { CommentEntry } from "./editor-sheet.ts";
 
-/**
- * The comment field's entry for one editing control: its refusal and its
- * block come from the control, so a surface that decides its verbs through
- * {@link CardControl} states nothing twice.
- */
 export function controlEntry(
   control: CardControl,
   onPress: CommentEntry["onPress"],
@@ -57,22 +44,6 @@ export function controlEntry(
   };
 }
 
-/**
- * The rendered comment, in the place the editor sheet's editor puts its text.
- * With an `entry` — on a card selected alone, and in the Mark Popup — it is
- * the comment field at rest: it shows "Add a comment…" where there is no
- * comment, and a click, Enter, or reaching it with Tab opens the editor in
- * its place. A click that selected text or followed a link stays a read
- * (ADR 0066).
- *
- * One element with an entry or without it, so a text selection made on the
- * comment survives the card becoming selected alone under it. The Markdown
- * renders again only when the comment does. The field is named by a hidden
- * label rather than `aria-label`, which Obsidian would show as a tooltip over
- * the text.
- *
- * @see apps/obsidian/docs/adr/0066-the-comment-is-an-editable-field-on-a-card-selected-alone-and-in-the-mark-popup.md
- */
 export function CommentView({
   surface,
   render,
@@ -81,10 +52,6 @@ export function CommentView({
 }: {
   surface: EditorSurface;
   render: CommentRenderer;
-  /**
-   * The stored comment, or `null` where there is none, which only a field
-   * shows, as its placeholder.
-   */
   html: string | null;
   entry?: CommentEntry;
 }) {
@@ -95,7 +62,6 @@ export function CommentView({
     return render(ref.current, html);
   }, [render, html]);
   const empty = html === null;
-  // The label stands in every state, so the comment's element keeps its seat.
   const label = (
     <span key="label" id={labelId} hidden>
       {m.annot_view_card_comment_label()}
@@ -119,8 +85,6 @@ export function CommentView({
     <>
       {label}
       <div
-        // Keyed by what it draws, so the renderer's nodes and the placeholder
-        // never share one element.
         key={empty ? "empty" : "comment"}
         ref={ref}
         role="textbox"
@@ -139,15 +103,10 @@ export function CommentView({
         data-blocked={blocked ? "" : undefined}
         onClick={(e) => {
           if (disabled || !clickEdits(e)) return;
-          // Placing the caret is not the surface's own click.
           claimClick(e);
-          // A click with no pointer behind it, from assistive technology or a
-          // script, has no point to put the caret at.
           onPress(e.detail > 0 ? { x: e.clientX, y: e.clientY } : undefined);
         }}
         onFocus={(e) => {
-          // Reaching the field from the keyboard is reaching into it; a press
-          // focuses it too, and its click is what opens the editor then.
           if (editable && e.currentTarget.matches(":focus-visible")) onPress();
         }}
         onKeyDown={(e) => {
@@ -169,24 +128,11 @@ export interface EditorSheetSlotProps
     Omit<DivProps, "onChange" | "onSubmit"> {
   app: App;
   surface: EditorSurface;
-  /**
-   * The field's text taken into the open editor as it changes, keeping the caret;
-   * `undefined` leaves the editor's text alone.
-   */
   text?: string;
   status: EditorSheetStatus;
-  /** Holds the sheet while it stands, for an owner that reads its text. */
   sheetRef?: RefObject<EditorSheet | null>;
 }
 
-/**
- * The editor sheet, built once as the slot mounts and torn down as it
- * unmounts, opening on `value` with the wording of `field`. Its callbacks read
- * the latest render's values, and a change of text or status is taken into the
- * sheet as it stands, so the caret stays.
- *
- * @see {@link renderEditorSheet}
- */
 export function EditorSheetSlot({
   app,
   surface,
@@ -239,7 +185,6 @@ export function EditorSheetSlot({
       const gone = sheet.current;
       gone?.[Symbol.dispose]();
       sheet.current = null;
-      // An owner's handle may already hold the sheet that replaced this one.
       if (sheetRef?.current === gone) sheetRef.current = null;
       if (!el) return;
       const at = latest.current;
@@ -284,13 +229,6 @@ export function EditorSheetSlot({
   return <div ref={mount} {...rest} />;
 }
 
-/**
- * The comment the user holds that Zotero has not taken, with the verbs that
- * end it, compared by value: a surface may build a fresh `held` on every
- * render.
- *
- * @see {@link renderHeldDraftPanel}
- */
 export function HeldDraftSlot({
   held,
   surface,
@@ -301,7 +239,6 @@ export function HeldDraftSlot({
   held: HeldDraft;
   surface: EditorSurface;
   actions: HeldDraftActions;
-  /** What a click on the held text does; absent where a click only reads. */
   entry?: CommentEntry;
 } & DivProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -328,12 +265,6 @@ export function HeldDraftSlot({
   return <div ref={ref} {...rest} />;
 }
 
-/**
- * A Write Conflict on the comment: the fresh Zotero value beside what the user
- * asked for, and the two verbs that end it.
- *
- * @see {@link renderConflictPanel}
- */
 export function ConflictPanelSlot({
   conflict,
   block,
@@ -341,7 +272,6 @@ export function ConflictPanelSlot({
   actions,
 }: {
   conflict: WriteConflict;
-  /** What stands in the way of the conflict's verb, or `null` while it acts. */
   block: CardBlock | null;
   surface: EditorSurface;
   actions: ConflictActions;
@@ -365,7 +295,6 @@ export function ConflictPanelSlot({
   return <div ref={ref} />;
 }
 
-/** The held panel's verbs, each reading the latest render's actions. */
 function boundHeldActions(
   latest: RefObject<HeldDraftActions>,
 ): HeldDraftActions {
@@ -376,7 +305,6 @@ function boundHeldActions(
   };
 }
 
-/** The conflict panel's verbs, each reading the latest render's actions. */
 function boundConflictActions(
   latest: RefObject<ConflictActions>,
 ): ConflictActions {

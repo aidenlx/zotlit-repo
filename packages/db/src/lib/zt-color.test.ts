@@ -52,8 +52,6 @@ describe("highlightColorToName", () => {
   });
 
   it("names highlights serialized as rgba() by Firefox", () => {
-    // The actual on-disk form for notes: Firefox normalizes the editor's
-    // #rrggbbaa into rgba(r, g, b, 0.5) when innerHTML is read back.
     expect(highlightColorToName("rgba(255, 212, 0, 0.5)")).toBe("yellow");
     expect(highlightColorToName("rgba(255, 102, 102, 0.5)")).toBe("red");
     expect(highlightColorToName("rgba(170, 170, 170, 0.5)")).toBe("gray");
@@ -69,7 +67,6 @@ describe("highlightColorToName", () => {
   });
 
   it("returns null for text-palette and unmapped colors", () => {
-    // text-color hexes are a different palette and must not match here
     expect(highlightColorToName("#ffcb0080")).toBeNull();
     expect(highlightColorToName("#12345680")).toBeNull();
     expect(highlightColorToName("rgba(255, 203, 0, 0.5)")).toBeNull();
@@ -92,8 +89,6 @@ describe("textColorToName", () => {
   });
 
   it("names text colors serialized as rgb() by Firefox", () => {
-    // The actual on-disk form for notes: Firefox normalizes the editor's
-    // #rrggbb into rgb(r, g, b) when innerHTML is read back.
     expect(textColorToName("rgb(255, 32, 32)")).toBe("red");
     expect(textColorToName("rgb(255, 119, 0)")).toBe("orange");
     expect(textColorToName("rgb(126, 131, 134)")).toBe("gray");
@@ -108,7 +103,6 @@ describe("textColorToName", () => {
   });
 
   it("returns null for highlight-palette and unmapped colors", () => {
-    // highlight hexes are a different palette and must not match here
     expect(textColorToName("#ffd400")).toBeNull();
     expect(textColorToName("#123456")).toBeNull();
     expect(textColorToName("rgb(255, 212, 0)")).toBeNull();

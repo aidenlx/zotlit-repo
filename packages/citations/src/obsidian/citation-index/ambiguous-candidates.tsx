@@ -1,16 +1,6 @@
-// The Items an Ambiguous Citation Key names, listed the same way wherever a surface shows them.
-
 import { candidateRow } from "./ambiguity.ts";
 import type { AmbiguousCandidate } from "./ambiguity.ts";
 
-/**
- * One row per candidate, in the order the resolution snapshot reports them:
- * the Item summary, then its Library name and bare Zotero item key — the three
- * facts that tell two candidates of one Library apart.
- *
- * @param textClass the surface's own entry text class, so the rows read as the
- *   entries they stand among.
- */
 export function AmbiguousCandidates({
   candidates,
   textClass,

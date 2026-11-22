@@ -1,6 +1,3 @@
-// The dialog one note's Citation Presentation is set from: the style it renders
-// under and its Document Language, together in one confirmation.
-
 import type { StyleDropdownOptions } from "#desktop/pandoc/style-dropdown.ts";
 import type {
   CitationPresentationChoice,
@@ -22,23 +19,12 @@ export interface CitationPresentationModalOptions extends Pick<
   StyleDropdownOptions,
   "fileSystem" | "bridge"
 > {
-  /** Zotero data directory the installed styles are listed from. */
   dataDir: string;
-  /** The vault Citation and References Style; `null` selects Default. */
   vaultStyleId: string | null;
-  /** The vault Citation Locale; empty leaves the style's own locale in charge. */
   vaultLocale: string;
-  /** What the note's own properties hold right now. */
   declared: DeclaredPresentation;
 }
 
-/**
- * The dialog opens on what the note reads as today — the style it names or the
- * vault style it inherits, and the Document Language it declares — so a note
- * that carries neither property is configured the same way as one that does.
- *
- * Calls `resolve` with the choice, or `null` when the user dismissed the dialog.
- */
 export function openCitationPresentationModal(
   app: App,
   {
@@ -87,10 +73,6 @@ export function openCitationPresentationModal(
       text.setValue(declared.language);
       text.onChange(() => text.inputEl.setCustomValidity(""));
     })
-    // Emptying the field removes the property, which is what hands the note
-    // back to the vault Citation Locale, so the reset says both. It says it
-    // from a tooltip: a sentence long enough to explain the reset is longer
-    // than the row has for a label, and reads as one either way.
     .addExtraButton((button) =>
       button
         .setIcon("rotate-ccw")
@@ -116,7 +98,6 @@ export function openCitationPresentationModal(
   modal.open();
   return modal;
 
-  /** A Document Language citeproc cannot read stops at the field it was typed in. */
   function submit(): void {
     const language = languageInput.getValue().trim();
     const invalid = citationLocaleError(language);

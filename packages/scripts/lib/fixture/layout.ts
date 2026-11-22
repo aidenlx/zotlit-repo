@@ -1,5 +1,3 @@
-// Host-native paths for one built Fixture.
-
 import { join } from "node:path";
 
 export const FIXTURE_PLUGIN_ID = "zotlit";
@@ -8,23 +6,17 @@ export function holdsZotLit(plugins: readonly { id: string }[]): boolean {
   return plugins.some(({ id }) => id === FIXTURE_PLUGIN_ID);
 }
 
-/** Every path a maintainer or a test needs from a built Fixture. */
 export interface FixtureLayout {
-  /** The whole disposable tree — `discardFixture` removes exactly this. */
   root: string;
-  /** Stands in for a Zotero data directory; holds `zotero.sqlite`. */
   dataDir: string;
   databasePath: string;
-  /** Host-native files referenced by `linked_file` Attachment rows. */
   linkedFilesDir: string;
-  /** Stands in for a Zotero profile directory; its `prefs.js` names `dataDir`. */
   profileDir: string;
   vaultDir: string;
   pluginDir: string;
   pluginDataPath: string;
 }
 
-/** Where the Fixture lives, under the workspace `.scratch/` root (git-ignored). */
 export function getFixtureRoot(workspaceRoot: string): string {
   return join(workspaceRoot, ".scratch", "acceptance-fixture");
 }

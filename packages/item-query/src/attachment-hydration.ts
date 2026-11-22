@@ -1,4 +1,3 @@
-// The Attachment loading descriptor: its fields, parent Item, and Annotations.
 import { Effect } from "effect";
 
 import { readAttachmentHydrateChunk } from "@zotlit/db/item-query";
@@ -19,7 +18,6 @@ import { parentRecord, relationList } from "./record-loader.ts";
 import type { LoadingDescriptor } from "./record-loader.ts";
 import { relatedAttachmentAnnotations } from "./relation-hydration.ts";
 
-/** What Hydration loads for an Attachment field. */
 export interface AttachmentNeeds {
   readonly annotations?: readonly AnnotationNeeds[];
   readonly details?: boolean;

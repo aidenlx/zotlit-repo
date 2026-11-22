@@ -20,7 +20,6 @@ export type CalloutType =
 
 const iconClass = "size-5 -me-0.5 fill-(--callout-color) text-fd-card";
 
-/** Obsidian's callout keyword for each type this component resolves to. */
 const obsidianTypes: Record<CalloutType, string> = {
   info: "info",
   warn: "warning",
@@ -35,9 +34,6 @@ export function Callout({
   title,
   ...props
 }: { title?: ReactNode } & Omit<CalloutContainerProps, "title">) {
-  // A reader of the Markdown edition is working in Obsidian, so the callout
-  // keeps its shape there: the type keyword in a `> [!type]` header, the title
-  // beside it, and the body as the quoted lines under it.
   if (asMarkdown()) {
     const type = obsidianTypes[resolveAlias(props.type ?? "info")];
     const header = title ? md`[!${type}] ${title}` : `[!${type}]`;
@@ -54,14 +50,8 @@ export function Callout({
 }
 
 export interface CalloutContainerProps extends ComponentProps<"div"> {
-  /**
-   * @defaultValue info
-   */
   type?: CalloutType;
 
-  /**
-   * Force an icon
-   */
   icon?: ReactNode;
 }
 

@@ -17,12 +17,6 @@ export interface PluginData {
   rootURI: string;
 }
 
-/**
- * Subsystems are registered against `#stack` and torn down LIFO.
- *
- * The Database Status subsystem owns one hand-injected control per main
- * window. Other registered UI surfaces remain app-global.
- */
 export class ZotLitZotero {
   readonly #data: PluginData;
   #stack: AsyncDisposableStack | null = null;
@@ -37,11 +31,6 @@ export class ZotLitZotero {
     const stack = new AsyncDisposableStack();
     this.#stack = stack;
     void stack.use(await setupLogging());
-    // Plugin-FTL → window binding doesn't happen automatically. At
-    // first-startup the main window typically isn't open yet so this loop
-    // is empty and `onMainWindowLoad` handles it; on runtime
-    // install/enable the window is already open and would otherwise miss
-    // its FTL link until the next restart.
     for (const win of Zotero.getMainWindows()) {
       attachFluentToWindow(win);
     }

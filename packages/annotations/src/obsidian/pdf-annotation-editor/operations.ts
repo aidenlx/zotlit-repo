@@ -1,5 +1,3 @@
-// PDF.js supplies the geometry; the repository owns each Annotation write.
-
 import type { CopyInstant } from "#obsidian/annotation-repository/capability-copy.ts";
 import type {
   AnnotationRepository,
@@ -46,23 +44,12 @@ import {
   writeFailureReason,
 } from "#obsidian/annotation-repository/write.ts";
 
-/** One write a PDF view started on its own Scope. */
 export type WriteRun = Fiber.Fiber<unknown, never>;
 
-/**
- * Forks a write onto a PDF view's own Scope, which the view's close closes: a
- * write still running then is interrupted, or finishes where it is
- * uninterruptible.
- */
 export type BindingWrites = <A>(
   effect: Effect.Effect<A>,
 ) => Fiber.Fiber<A, never>;
 
-/**
- * The write runner of one PDF view, over a `FiberSet` on the Scope it is
- * built in. A write's own failures are its outcomes; what is left is a
- * defect, logged here because the FiberSet keeps no failure.
- */
 export const bindingWrites: Effect.Effect<BindingWrites, never, Scope.Scope> =
   Effect.map(
     Effect.flatMap(FiberSet.make(), (fibers) =>
@@ -83,12 +70,6 @@ export const bindingWrites: Effect.Effect<BindingWrites, never, Scope.Scope> =
       ),
   );
 
-/**
- * What one PDF view holds on its own Scope: the registry of its Reader Surface
- * Model, and its write runner. The registry is taken first, so the Scope's
- * close ends the writes before it disposes the registry: a create that
- * settles as the view closes still writes the state it leaves.
- */
 export const bindingResources: Effect.Effect<
   { readonly registry: ReaderSurfaceRegistry; readonly writes: BindingWrites },
   never,
@@ -99,10 +80,6 @@ export const bindingResources: Effect.Effect<
   return { registry, writes };
 });
 
-/**
- * Settles when `run` has ended, however it ended: answered, interrupted by the
- * view's close, or ended by unload. Settled for `null`. Never rejects.
- */
 export function settledOf(
   bridge: Pick<EffectBridge, "runPromiseExit">,
   run: WriteRun | null,
@@ -112,10 +89,6 @@ export function settledOf(
     : Promise.resolve();
 }
 
-/**
- * A keystroke asked to edit under a block: probe Zotero first, because the
- * block may be one a probe clears, and report only what survives it.
- */
 export const reportBlockedEdit = Effect.fn(
   "PdfAnnotationEditor.reportBlockedEdit",
 )(function* (
@@ -126,53 +99,26 @@ export const reportBlockedEdit = Effect.fn(
   report();
 });
 
-/** A PDF.js read that could not produce the geometry or text for a gesture. */
 class PdfStructureReadError extends Schema.TaggedError<
   PdfStructureReadError,
   { readonly brand: unique symbol }
 >()("PdfStructureReadError", { cause: Schema.Defect() }) {}
 
-/** The outcome of a write that failed before Zotero answered. */
 const UNKNOWN_OUTCOME = {
   kind: "failed",
   failure: { kind: "unknown-outcome" },
 } as const satisfies MutationState;
 
-/** One committed create, answering the created key or `null`. */
 export type CreateWrite = Effect.Effect<string | null>;
 
-/** What one create does on the creation surfaces around its write. */
 export interface CreateSeam {
-  /** The create is on its way. */
   begin: () => void;
-  /**
-   * Zotero created the Annotation. What the seam does after it is logged when
-   * it fails, and the create keeps its key.
-   */
   created: (annotationKey: string) => void;
-  /** The create made nothing, for `reason`; the seam says why. */
   failed: (reason: string) => void;
-  /** However the create ended: the created key, or `null`. */
   end: (annotationKey: string | null) => void;
-  /** The clock a cooldown's remaining seconds are read against. */
   now: () => CopyInstant;
 }
 
-/**
- * One create the researcher committed: read both placement fields, then ask
- * the repository to create the mark, with the Attachment's list held from
- * start to end. A create that made nothing says why through the seam; one
- * that failed or died before Zotero answered is one whose outcome ZotLit
- * never learned, so no committed draft goes without a notice.
- *
- * The read is interruptible: a reader closed or unloaded while PDF.js places
- * the mark sends nothing. From the send on, the create and what the seam does
- * with its answer are uninterruptible, so a close waits for Zotero's answer.
- *
- * @param create.uninterruptible whether the read is uninterruptible too: a
- *   Text Draft's typed text is created even when the view's close finished it.
- * @returns the created Annotation's Indexed Key, or `null`.
- */
 export const createMark = Effect.fn("PdfAnnotationEditor.createMark")(
   function* (
     annotations: Pick<
@@ -228,10 +174,6 @@ export const createMark = Effect.fn("PdfAnnotationEditor.createMark")(
           ),
         ),
       );
-      // The list stays held until the create settles: a draft the view's
-      // close finishes is created after the view let go of its own hold, and
-      // a list dropped under the create leaves it no Zotero source to write
-      // to.
       return Effect.acquireUseRelease(
         annotations
           .hold([attachmentKey])
@@ -270,25 +212,14 @@ export const createMark = Effect.fn("PdfAnnotationEditor.createMark")(
   },
 );
 
-/** The writes of one reader that run one at a time, in the order asked. */
 export const oneAtATime = (): Semaphore.Semaphore => Semaphore.makeUnsafe(1);
 
-/**
- * A write that waits for the writes asked before it in `queue`, then runs as
- * `make` builds it then; `null` from `make` is a write that cannot run. A
- * close ends the wait, so a write still waiting is never built.
- */
 export const queued = <A>(
   queue: Semaphore.Semaphore,
   make: () => Effect.Effect<A> | null,
 ): Effect.Effect<A | void> =>
   queue.withPermits(1)(Effect.suspend(() => make() ?? Effect.void));
 
-/**
- * Place a settled text selection on the Structured Characters of its pages,
- * then hand the placement on. A read that failed, or a selection that maps
- * onto no character, places nothing.
- */
 export const placeSelection = Effect.fn("PdfAnnotationEditor.placeSelection")(
   function* (
     structure: PdfTextStructure,
@@ -319,7 +250,6 @@ export const placeSelection = Effect.fn("PdfAnnotationEditor.placeSelection")(
   },
 );
 
-/** A settled DOM selection waits for PDF.js inside the reader's scope. */
 export const captureText = Effect.fn("PdfAnnotationEditor.captureText")(
   (structure: PdfTextStructure, selection: TextSelection) =>
     Effect.tryPromise({
@@ -328,20 +258,6 @@ export const captureText = Effect.fn("PdfAnnotationEditor.captureText")(
     }),
 );
 
-/**
- * Save a released Geometry Edit: recompute its Sort Index, write it, and say
- * through the Notifier why it did not land. A read or a write that failed is
- * an outcome ZotLit never learned.
- *
- * The read is interruptible: a reader closed while the index is computed
- * sends nothing, and its mark goes with it. From the send on, the write and
- * its notice are uninterruptible, so a close waits for Zotero's answer and a
- * refused edit is still told.
- *
- * @param options.end ends the adjustment the mark draws: called once the
- *   index is read, and again however the save ended.
- * @param options.message the notice for one failure.
- */
 export const saveGeometry = Effect.fn("PdfAnnotationEditor.saveGeometry")(
   function* (
     annotations: Pick<AnnotationRepository["Service"], "patchGeometry">,
@@ -405,21 +321,8 @@ export const saveGeometry = Effect.fn("PdfAnnotationEditor.saveGeometry")(
   },
 );
 
-/** The notice for one write that did not land. */
 type FailureMessage = (failure: WriteFailure, now: CopyInstant) => string;
 
-/**
- * Run the writes of one verb, and say why through the Notifier, once per
- * reason, for each that did not land. A send that failed is an outcome ZotLit
- * never learned. An interrupt, such as plugin unload, passes on with no
- * notice.
- *
- * @param options.message the notice for one failure; a Geometry Edit names
- *   itself.
- * @param options.now the clock a cooldown's remaining seconds are read against.
- * @returns the outcome of each write.
- * @see apps/obsidian/policies/ui-seams.md
- */
 export const reportWrites = Effect.fn("PdfAnnotationEditor.reportWrites")(
   function* <E>(
     notifier: Pick<Notifier["Service"], "show">,
@@ -445,7 +348,6 @@ export const reportWrites = Effect.fn("PdfAnnotationEditor.reportWrites")(
   },
 );
 
-/** {@link reportWrites} for one write. */
 export const reportWrite = <E>(
   notifier: Pick<Notifier["Service"], "show">,
   write: Effect.Effect<MutationState, E>,
@@ -457,12 +359,6 @@ export const reportWrite = <E>(
     options,
   );
 
-/**
- * Recolour these Annotations in Zotero: one alone, or two or more as one
- * History Step where each keeps its own outcome.
- *
- * @param annotationKeys Indexed Keys, in list order.
- */
 export const recolorMarks = (
   annotations: Pick<
     AnnotationRepository["Service"],
@@ -478,12 +374,6 @@ export const recolorMarks = (
     : annotations.patchColors(annotationKeys, color);
 };
 
-/**
- * Erase these Annotations in Zotero: one alone, or two or more as one History
- * Step where each keeps its own outcome.
- *
- * @param annotationKeys Indexed Keys, in list order.
- */
 export const eraseMarks = (
   annotations: Pick<
     AnnotationRepository["Service"],
@@ -498,19 +388,6 @@ export const eraseMarks = (
     : annotations.deleteAnnotations(annotationKeys);
 };
 
-/**
- * Take one History Step on an Attachment, and say through the Notifier what
- * the reader should know of it: a step Zotero moved under, one that did not
- * land, or one that put an Annotation back under a new creator. A step that
- * failed before Zotero answered is one whose outcome ZotLit never learned.
- *
- * The step itself is uninterruptible: the repository moves the step to the
- * other stack only once its writes answered, so a reader closed under it
- * waits for that answer. What the reader is told runs after, and the close
- * ends it.
- *
- * @param options.now the clock a cooldown's remaining seconds are read against.
- */
 export const stepMarkHistory = Effect.fn("PdfAnnotationEditor.stepHistory")(
   function* (
     annotations: Pick<AnnotationRepository["Service"], "undo" | "redo">,
@@ -548,10 +425,6 @@ export const stepMarkHistory = Effect.fn("PdfAnnotationEditor.stepHistory")(
   },
 );
 
-/**
- * One Annotation History press of a reader: its step, then the landing on
- * what the step changed, once the presses before it have landed.
- */
 export const pressHistory = Effect.fn("PdfAnnotationEditor.pressHistory")(
   function* (
     presses: Semaphore.Semaphore,
@@ -566,12 +439,6 @@ export const pressHistory = Effect.fn("PdfAnnotationEditor.pressHistory")(
   },
 );
 
-/**
- * Read an Attachment's Annotations for the marks of an open PDF. A read that
- * failed is logged and fails on; an interrupt passes on unlogged.
- *
- * @param path the open file, which the log names.
- */
 export const readMarks = (
   annotations: Pick<AnnotationRepository["Service"], "read">,
   attachmentKey: string,

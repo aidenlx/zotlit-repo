@@ -1,28 +1,16 @@
-// The research data the landing's app windows show: the docs Fixture's
-// papers in the collection "Reproducibility", with their real metadata, and
-// the reader's own rating from each literature note. Sample data, not copy:
-// titles, names and journals stay as they are in every locale.
-// Source: packages/scripts/lib/fixture/spec.ts (`DOCS_ITEMS`).
-
 export interface Paper {
   citekey: string;
   title: string;
-  /** The library row's author line: "Sandve, Nekrutenko, Taylor et al.". */
   short: string;
-  /** The table's Creators cell. */
   creators: string;
   year: number;
   venue: string;
-  /** The rating property of the paper's literature note, when it has one. */
   rating: number;
-  /** Child items (attachments, notes) under the paper in Zotero. */
   children: boolean;
   pdf: boolean;
-  /** The paper has a literature note in the vault. */
   note: boolean;
 }
 
-/** The collection's four papers, in the Library View's order. */
 export const COLLECTION_PAPERS: readonly Paper[] = [
   {
     citekey: "munafo2017",
@@ -76,7 +64,6 @@ export const COLLECTION_PAPERS: readonly Paper[] = [
   },
 ];
 
-/** The same papers sorted by year, old to new, as the saved table shows them. */
 export const BY_YEAR: readonly Paper[] = [...COLLECTION_PAPERS].sort(
   (a, b) => a.year - b.year,
 );

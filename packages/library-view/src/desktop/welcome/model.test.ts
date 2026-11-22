@@ -1,4 +1,3 @@
-// The Welcome model follows service changes and releases the reads owned by its leaves.
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { expect } from "vitest";
@@ -204,7 +203,6 @@ it.effect(
     }),
 );
 
-// The shared connection read belongs to its remaining Library leaves.
 it.effect("cancels the real cached read only after its last leaf closes", () =>
   Effect.gen(function* () {
     const pending: Array<{

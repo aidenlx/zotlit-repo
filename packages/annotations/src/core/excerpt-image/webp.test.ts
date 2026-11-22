@@ -17,7 +17,6 @@ function offsetOf(bytes: Uint8Array, fourcc: string): number {
   throw new Error(`Missing ${fourcc} chunk`);
 }
 
-/** Swaps the fourcc of an existing chunk, keeping the file's structure intact. */
 function renameChunk(
   bytes: Uint8Array,
   fourcc: string,
@@ -42,7 +41,6 @@ it("accepts Chromium lossless output and checks its dimensions", () => {
 });
 
 it("accepts a lossless container whose size and declared geometry fit the bounds", () => {
-  // 4 096 × 4 096 costs a decoder 64 MiB of RGBA, which the bounds admit.
   expect(usableExcerptWebp(sizedWebp(4096, 4096))).toBe(true);
   expect(
     usableExcerptWebp(sizedWebp(8192, 1), { width: 8192, height: 1 }),
@@ -50,12 +48,10 @@ it("accepts a lossless container whose size and declared geometry fit the bounds
 });
 
 it("rejects a declared geometry past the dimension ceiling", () => {
-  // A 16 384 px side is one step past the ceiling and costs 64 KiB of RGBA here.
   expect(usableExcerptWebp(sizedWebp(16_384, 1))).toBe(false);
 });
 
 it("rejects a declared geometry past the decoded byte ceiling", () => {
-  // 16 383 × 16 383 would cost a decoder 1 GiB of RGBA from a 44-byte file.
   expect(usableExcerptWebp(sizedWebp(16_383, 16_383))).toBe(false);
 });
 

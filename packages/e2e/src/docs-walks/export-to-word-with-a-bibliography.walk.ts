@@ -1,10 +1,3 @@
-// The walk of /learn Lesson 4, "Export your draft to Word with a reference
-// list": a researcher sends `Chapter 3 - Presenting the results`, which cites
-// three papers after Lesson 3, to a supervisor as a Word document in APA
-// style, with a References list. Each `it` is one step of the lesson, in the
-// lesson's order, named after it, and asserts what the lesson says the reader
-// sees. Run it with `pnpm --filter @zotlit/e2e docs-walk`; see AGENTS.md.
-
 import { obRun } from "@e2e/obsidian-cli.ts";
 import type { PageApp } from "@e2e/page-host.ts";
 import { isObsidianReachable } from "@e2e/vault-script.ts";
@@ -37,25 +30,20 @@ const reachable = await isObsidianReachable(root);
 const m = await import("@zotlit/plugin-messages/messages.ts");
 
 const SLUG = "export-to-word-with-a-bibliography";
-/** The thesis chapter of the docs Vault Case; it already cites two papers. */
 const DRAFT = "Thesis/Chapter 3 - Presenting the results.md";
 const EXPORTED = DRAFT.replace(/\.md$/, ".docx");
 const EXPORTED_NAME = "Chapter 3 - Presenting the results.docx";
-/** The section Lesson 3 added, with its citation and page. */
 const LESSON_3 =
   "## 3.3 Keeping each figure reproducible\n\nEvery figure in this chapter comes from a script that records how it ran [@sandve2013, p. 2].\n\n";
-/** The chapter's private notes, which the reader takes out before sending it. */
 const NOTES_TO_SELF = "## Notes to self";
 const APA = "http://www.zotero.org/styles/apa";
 const APA_TITLE = "APA Style 7th edition";
 const VAULT_STYLE = "Default (Chicago author-date)";
-/** What the supervisor reads in the exported chapter, in APA style. */
 const IN_TEXT = [
   "(Rougier et al., 2014, p. 1)",
   "(Ioannidis, 2005)",
   "(Sandve et al., 2013, p. 2)",
 ];
-/** The first words of each reference, in the order APA sorts them. */
 const ENTRIES = [
   "Ioannidis, J. P. A. (2005). Why Most Published Research Findings Are False.",
   "Rougier, N. P., Droettboom, M., & Bourne, P. E. (2014). Ten Simple Rules for Better Figures.",
@@ -63,7 +51,6 @@ const ENTRIES = [
 ];
 
 type DraftLeaf = WorkspaceLeaf & { view: MarkdownView };
-/** The file explorer's rows, by path. */
 type ExplorerLeaf = WorkspaceLeaf & {
   view: View & {
     fileItems: Record<
@@ -76,14 +63,12 @@ type ExplorerLeaf = WorkspaceLeaf & {
     >;
   };
 };
-/** Obsidian's "Show all file types" setting, by its config key. */
 type ConfigVault = PageApp["vault"] & {
   getConfig(key: "showUnsupportedFiles"): boolean;
 };
 
 const STEP = { timeoutMs: 60000 };
 
-/** The exported document as plain text, read back with the Pandoc CLI. */
 async function plainText(file: string): Promise<string> {
   const { stdout } = await execFileAsync("pandoc", [
     file,
@@ -94,7 +79,6 @@ async function plainText(file: string): Promise<string> {
   return stdout;
 }
 
-/** The export dialog's rows: each name, description and chosen option. */
 function dialogRows(
   vaultId: string,
 ): Promise<{ name: string; desc: string; value: string | null }[]> {
@@ -131,8 +115,6 @@ describe.skipIf(!reachable)(
       vaultPath = await obRun(walk.vaultId, ({ app }) =>
         (app.vault.adapter as FileSystemAdapter).getBasePath(),
       );
-      // The draft as Lesson 3 left it: a third section that cites Sandve et
-      // al. 2013 with its page.
       await obRun(
         walk.vaultId,
         async ({ app }, { draft, section, notes }) => {
@@ -152,7 +134,6 @@ describe.skipIf(!reachable)(
         STEP,
       );
       await watchNotices(walk.vaultId);
-      // The reader closed the setup section in Lesson 1.
       await closeWelcome(walk.vaultId);
     });
 
@@ -175,8 +156,6 @@ describe.skipIf(!reachable)(
             const doc = cm.state.doc.toString();
             const at = doc.indexOf(notes);
             if (pointer) {
-              // The reader drags from the notes' heading to the end, and
-              // deletes the selection.
               const from = cm.coordsAtPos(at + 1)!;
               const to = cm.coordsAtPos(doc.length)!;
               await pointer.drag(
@@ -194,7 +173,6 @@ describe.skipIf(!reachable)(
             await leaf.view.save();
             leaf.view.editor.setCursor({ line: 0, ch: 0 });
             if (pointer) {
-              // The step ends on the draft's last lines, where the notes were.
               const { doc: left } = cm.state;
               const text = cm.contentDOM.getBoundingClientRect();
               const top = cm.coordsAtPos(
@@ -243,7 +221,6 @@ describe.skipIf(!reachable)(
             );
             input.focus();
             if (pointer) {
-              // The pointer rests below the palette, off its list.
               const b = input.getBoundingClientRect();
               await pointer.park(b.right + 40, b.top);
               await pointer.keys(
@@ -273,7 +250,6 @@ describe.skipIf(!reachable)(
                 ),
               10000,
             );
-            // The step ends on the dialog's title and its Format row.
             await pointer?.look([
               dialog.querySelector(".modal-title")!,
               dialog.querySelectorAll(".setting-item")[0]!,
@@ -325,8 +301,6 @@ describe.skipIf(!reachable)(
             await pointer?.point(style);
             await page.pick(style, apa, "Citation style");
             if (pointer) {
-              // The pointer steps just below the choice, off its text, and
-              // the step ends on the row and its new description.
               const b = style.getBoundingClientRect();
               await pointer.park(
                 b.left + Math.min(b.width / 2, 120),
@@ -378,9 +352,7 @@ describe.skipIf(!reachable)(
                   ),
                 60000,
               );
-              // The pointer leaves the notice in the top right corner clear.
               await pointer?.park(at.left, at.bottom);
-              // The step ends on the notice.
               if (pointer) {
                 const notice = await page.until(
                   "the notice in place",
@@ -422,7 +394,6 @@ describe.skipIf(!reachable)(
       const docx = join(vaultPath, EXPORTED);
       const text = await plainText(docx);
       for (const citation of IN_TEXT) expect(text).toContain(citation);
-      // The References list closes the document under its own heading.
       const at = text.indexOf("\nReferences\n");
       expect(at).toBeGreaterThan(text.indexOf(IN_TEXT.at(-1)!));
       const entries = text
@@ -432,8 +403,6 @@ describe.skipIf(!reachable)(
         .filter((line) => line.trim());
       expect(entries).toHaveLength(ENTRIES.length);
       ENTRIES.forEach((entry, i) => expect(entries[i]).toContain(entry));
-      // Fact f: what Obsidian's file explorer shows for the Word file, as
-      // installed: Show all file types is off by default.
       const explorer = await obRun(
         walk.vaultId,
         async ({ app }, { exported }) => {

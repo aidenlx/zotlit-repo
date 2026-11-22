@@ -2,8 +2,6 @@ import type { LiquidTagName } from "#core/language/semantics.ts";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-// Localized descriptions for the shared Liquid tag syntax catalog.
-
 const DESCRIPTIONS = {
   assign: m.workbench_tag_assign,
   capture: m.workbench_tag_capture,
@@ -46,7 +44,6 @@ const DESCRIPTIONS = {
   endmanaged: m.workbench_tag_endmanaged,
 } satisfies Record<LiquidTagName, () => string>;
 
-/** Read at use time so hover and completion use the active language. */
 export function tagDescription(name: LiquidTagName): string {
   return DESCRIPTIONS[name]();
 }

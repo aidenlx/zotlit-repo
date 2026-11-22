@@ -1,8 +1,3 @@
-// When one case breaks the run vault, every later case of its file would wait
-// on its own CLI deadline and fail: one broken popout cost a Query View file
-// 27 failures and 15 minutes. The guard ends a file at the first case after
-// which the vault stops answering, and names that case as the cause.
-
 import { afterEach, beforeEach, expect } from "vitest";
 
 import { leftOpen } from "./case-leftovers.ts";
@@ -12,7 +7,6 @@ import {
   RunVaultStoppedError,
 } from "./obsidian-cli.ts";
 
-/** What a per-case hook reads of Vitest's context. */
 interface GuardedCase {
   task: {
     fullName: string;
@@ -21,10 +15,6 @@ interface GuardedCase {
   };
 }
 
-/**
- * The first case after which a vault stopped answering, keyed by the file
- * and the vault: one file's stop leaves other files' calls alone.
- */
 const stops = new Map<string, { caseName: string; failure: string }>();
 
 const stopKey = (file: string, vaultId: string): string =>
@@ -41,12 +31,6 @@ function stoppedError(
   );
 }
 
-/**
- * One error as indented lines: `name: message`, then the inner errors that a
- * report would hide. A `SuppressedError` from `await using` carries the case's
- * own failure in `suppressed` and the disposal's in `error`. The shape is the
- * same for a thrown error and for Vitest's serialized copy of it.
- */
 function describeError(error: unknown, indent = ""): string {
   if (typeof error !== "object" || error === null)
     return `${indent}${String(error)}`;
@@ -73,7 +57,6 @@ function describeError(error: unknown, indent = ""): string {
   return lines.join("\n");
 }
 
-/** Whether the vault answers `1` within the suite's CLI deadline. */
 async function answers(vaultId: string): Promise<boolean> {
   try {
     await cli([`vault=${vaultId}`, "eval", "code=1"]);
@@ -83,17 +66,6 @@ async function answers(vaultId: string): Promise<boolean> {
   }
 }
 
-/**
- * The per-case hooks of a file that runs in one Obsidian vault.
- *
- * A reply to the leftovers check shows that the vault answers. When that
- * check gets no reply, or a case fails with no leftovers check, one more call
- * asks the vault for `1`. When that call gets no answer, the file stops for
- * that vault: each later case fails in its `beforeEach`, and each later CLI
- * call of the file to that vault, its own hooks' included, fails at once.
- * The message names the first failed case and its errors. Other files still
- * reach the vault.
- */
 export function createRunVaultGuard(
   vaultId: () => string,
   {
@@ -154,7 +126,6 @@ export function createRunVaultGuard(
   };
 }
 
-/** Register {@link createRunVaultGuard}'s hooks in the current suite. */
 export function registerRunVaultGuard(
   ...args: Parameters<typeof createRunVaultGuard>
 ): void {

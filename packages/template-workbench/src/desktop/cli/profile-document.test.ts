@@ -19,7 +19,6 @@ const IDENTITY = {
 
 const BOOKS_ID = "Bk3Qn7XvT2Lp";
 
-/** `evaluate`'s answer, or a failure with what it threw. */
 const threw = <A>(evaluate: () => A) =>
   Effect.try(evaluate).pipe(Effect.mapError(({ cause }) => cause));
 
@@ -96,7 +95,6 @@ function makeHandlers(options?: {
     literatureNotes: {
       readProfiles: Effect.sync(() => readProfiles()),
       getDocumentStatuses: Effect.sync(() => getDocumentStatuses()),
-      // A fake that throws fails the port with what it threw.
       getDocument: (reference) => threw(() => getDocument(reference)),
       renderSource: (source, data) => threw(() => renderSource(source, data)),
     },
@@ -338,7 +336,6 @@ describe("Template Workbench Profile documents", () => {
       });
       const registered =
         DIAGNOSTIC_HINTS[code as keyof typeof DIAGNOSTIC_HINTS];
-      // A document fault carries the parser's own recovery as its hint.
       const recovery =
         error instanceof LiteratureNoteTemplateError
           ? error.recovery

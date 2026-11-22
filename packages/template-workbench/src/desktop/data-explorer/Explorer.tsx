@@ -2,7 +2,6 @@ import type {
   DataExplorerProps,
   WorkbenchItemChoice,
 } from "#obsidian/workbench-ui/index.tsx";
-// Presentational root for the Template Data Explorer: db-not-ready, no-item, and tree states.
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
 import { useContext } from "react";
 
@@ -47,7 +46,6 @@ export function Explorer({
   onSearchItem,
   placement = "sidebar",
 }: {
-  /** A standalone Explorer's own leaf, or an editor's Fields panel. */
   placement?: "sidebar" | "panel";
   onSelectAnnotation: (id: string) => void;
   onChooseAnnotation: () => void;
@@ -137,10 +135,6 @@ export function Explorer({
         )
       ) : (
         <>
-          {/* In a Workbench panel, the view's item row names the Item and
-              holds its chooser, and the sections button trails the search.
-              In a sidebar, the caption's own padding and the explorer's top
-              padding space the bar from the explorer. */}
           {(anchor || placement === "sidebar") && (
             <div
               className={

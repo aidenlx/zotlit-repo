@@ -1,12 +1,5 @@
-// Reports redacted Template-data fields as explicit unavailable values.
-
 import type { SnapshotUnavailableValue } from "#contract/snapshot/types.ts";
 
-/**
- * Fields the exporter leaves null on purpose, and why. A `weblink` is null for
- * a personal Library because its public form spells out the Zotero account
- * name; a group Library keeps the link its public group ID builds.
- */
 const REDACTED_FIELDS = new Map([
   ["filePath", "Attachment paths are not included in Item Snapshots."],
   [
@@ -15,10 +8,6 @@ const REDACTED_FIELDS = new Map([
   ],
 ]);
 
-/**
- * @param root one serialized Template root
- * @param rootPath how that root is addressed in the reported paths
- */
 export function collectUnavailable(
   root: Record<string, unknown>,
   rootPath: string,

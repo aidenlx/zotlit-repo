@@ -1,16 +1,3 @@
-// The Query Block: a ` ```zotquery ` code block in a note that holds a Query
-// File's text and shows it as the one Query View, with `this` bound as for an
-// embed (see `note-host.ts`). A change in the view rewrites the block text only
-// (see `block-write.ts`).
-//
-// The block saves to the note that holds it, also through a section embed or a
-// hover popover. Where it has no save path (print, export, an Annotation
-// comment), the view still reads and its toolbar says a change is not saved.
-// A note preview shows a placeholder (see `preview-placeholder.ts`). Inside a
-// Query View, a block shows its text only, so a Query View never holds another
-// live one.
-//
-// @see apps/obsidian/docs/adr/0068-query-files-are-a-zotlit-file-type-embedded-through-the-private-embed-registry.md
 import { MarkdownRenderChild } from "obsidian";
 import type { MarkdownPostProcessorContext, Plugin } from "obsidian";
 
@@ -30,9 +17,7 @@ import {
   writeBlockCode,
 } from "#obsidian/query-view/block-write.ts";
 
-/** A Query View: a block in one of its cards' comments shows its text only. */
 const IN_QUERY_VIEW = ".zt-query-view";
-/** An Annotation comment, which gives a block no place to save to. */
 const IN_COMMENT = ".zt-annot-comment";
 
 type QueryBlockPlugin = Pick<Plugin, "registerMarkdownCodeBlockProcessor">;
@@ -46,7 +31,6 @@ export function registerQueryBlock(
     (source, el, ctx) => {
       const block = new QueryBlock(el, deps, { ctx, source });
       ctx.addChild(block);
-      // Export to PDF waits for this promise before it prints the note.
       return block.shown;
     },
   );
@@ -55,15 +39,9 @@ export function registerQueryBlock(
 class QueryBlock extends MarkdownRenderChild {
   readonly #deps: QueryViewDeps;
   readonly #ctx: MarkdownPostProcessorContext;
-  /** The block text as the note holds it, as this block last read or wrote it. */
   #source: string;
   #host: NoteQueryHost | null = null;
-  /**
-   * The line the block's opening fence stood at, as the block last found it
-   * on the page; `null` while it has had no place in a note.
-   */
   #lineStart: number | null = null;
-  /** Whether the block is leaving the page, as its note closes or shows another file. */
   #leaving = false;
 
   constructor(
@@ -97,7 +75,6 @@ class QueryBlock extends MarkdownRenderChild {
         save: (text) => this.#save(text),
         canSave: () => this.#canSave(),
       },
-      // A block is its text: the note builds it again for each new text.
       view: this.#source,
     });
     this.addChild(host);
@@ -105,26 +82,15 @@ class QueryBlock extends MarkdownRenderChild {
     this.#host = host;
   }
 
-  /**
-   * The block leaves the page. Its view saves a typed change that waits for
-   * its delay as it unloads, which writes at the line the block last stood
-   * at: the editor it stood in may already show another note.
-   */
   override unload(): void {
     this.#leaving = true;
     super.unload();
   }
 
-  /** Settles once the block shows its first rows, or its text only. Never rejects. */
   get shown(): Promise<void> {
     return this.#host?.shown() ?? Promise.resolve();
   }
 
-  /**
-   * Whether a change saves: the block stands in its own note, or stood there
-   * as it leaves the page. A section embed, a popover, a print and a
-   * Markdown render outside a note give it no place.
-   */
   #canSave(): boolean {
     if (this.#leaving) return this.#lineStart !== null;
     const el = this.containerEl;
@@ -135,7 +101,6 @@ class QueryBlock extends MarkdownRenderChild {
   }
 
   async #save(file: string): Promise<void> {
-    // The closing fence takes the place of the file's last line break.
     const text = file.replace(/\n$/, "");
     const previous = this.#source;
     if (text === previous) return;

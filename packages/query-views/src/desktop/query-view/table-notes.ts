@@ -1,12 +1,4 @@
 import type { ItemQueryError } from "#desktop/item-query/service.ts";
-// The Literature Notes the Query View reads: the note of an Item the Table's
-// "Literature note" column links, or "Create" where it has none, and the
-// vault properties, `vault.<name>`, each the value of one frontmatter key of
-// that note. "Create" is the usual Literature Note creation, which asks for a
-// Profile when more than one fits. A view that a Literature Note holds reads
-// that note for its own Item, whichever note the Note Index ranks first.
-//
-// @see apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md
 import { Effect, Option } from "effect";
 import type { Cause } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -46,14 +38,8 @@ import {
   vaultTags,
 } from "#obsidian/query-view/obsidian-private/property-values.ts";
 
-/** A Literature Note as the column links it. */
 export type LiteratureNoteLink = Pick<TFile, "path" | "basename">;
 
-/**
- * The type of a vault property, by the id of the Obsidian property widget
- * that shows it: the one Obsidian assigns the property, else one inferred
- * from a value it holds, else text.
- */
 export type VaultPropertyType =
   | "text"
   | "multitext"
@@ -64,14 +50,12 @@ export type VaultPropertyType =
   | "tags"
   | "aliases";
 
-/** The types whose value is a list of strings, shown as pills. */
 export const LIST_TYPES: ReadonlySet<VaultPropertyType> = new Set([
   "multitext",
   "tags",
   "aliases",
 ]);
 
-/** The assigned widgets a vault property takes as its type; others infer. */
 const ASSIGNABLE: ReadonlySet<string> = new Set<VaultPropertyType>([
   "text",
   "multitext",
@@ -83,110 +67,47 @@ const ASSIGNABLE: ReadonlySet<string> = new Set<VaultPropertyType>([
   "aliases",
 ]);
 
-/**
- * The note that holds a Query View, and the Item its `zotero-key` names: a
- * row of that Item reads the vault properties of this note.
- */
 export interface VaultHost {
   readonly path: string;
   readonly itemKey: string;
 }
 
-/**
- * A vault property of one Item: no Literature Note to read it from, or the
- * value of the note's key, `null` where the note lacks the key or holds null.
- */
 export type VaultValue =
   | { readonly note: false }
   | { readonly note: true; readonly value: unknown };
 
-/**
- * What a write of a vault property did: `written` to the note, `created`
- * where the Item had no Literature Note, so the usual creation made one and
- * the key was written to it, `cancelled` where no note came of that
- * creation, the Profile prompt cancelled, and nothing was written, or
- * `managed` where the note's Profile replaces the key on each update, so
- * nothing was written, though the note may have just been created.
- */
 export type VaultWrite = "written" | "created" | "cancelled" | "managed";
 
-/** An edit of the vault property `name` of the Item `itemKey` to `value`. */
 export interface VaultEdit {
   readonly itemKey: string;
   readonly name: string;
   readonly value: unknown;
-  /** The note that holds the view, where a note holds it. */
   readonly host: VaultHost | null;
 }
 
-/**
- * The link text `target`, held in a vault property of the Item `itemKey`,
- * which resolves from the note {@link LiteratureNotes.read} reads.
- */
 export interface VaultLinkRef {
   readonly target: string;
   readonly itemKey: string;
   readonly host: VaultHost | null;
 }
 
-/**
- * How the usual creation of an Item's Literature Note fails: the Zotero read
- * of the Item, the Profile selection, or the template render.
- */
 export type NoteCreationFailure =
   | DbUnavailable
   | ItemQueryError
   | ProfileOperationError
   | TemplateFailure;
 
-/** What the "Literature note" column and the vault properties read and do. */
 export interface LiteratureNotes {
-  /** The Literature Note of an Item, by its Indexed Key; `null` where it has none. */
   find(itemKey: string): LiteratureNoteLink | null;
-  /**
-   * `changed`: a Literature Note was added, changed or removed.
-   * `frontmatter-changed`: the frontmatter of a Literature Note, the type
-   * Obsidian assigns a property, or the keys a note's Profile replaces
-   * changed.
-   */
   on(
     event: "changed" | "frontmatter-changed",
     listener: () => void,
   ): () => void;
-  /**
-   * The names the vault properties take: the frontmatter keys of the
-   * Literature Notes, less the reserved and system keys.
-   */
   propertyNames(): readonly string[];
-  /** The Indexed Keys of the Items that have a Literature Note. */
   itemKeys(): readonly string[];
-  /**
-   * The type of the vault property `name`: the one Obsidian assigns it, else
-   * the one `value`, a cell's value, infers, else the one the property's
-   * first value infers, else text.
-   */
   propertyType(name: string, value?: unknown): VaultPropertyType;
-  /**
-   * The vault property `name` of an Item, by its Indexed Key: of `host`
-   * where the Item is the one it names, else of the Item's first Literature
-   * Note.
-   */
   read(itemKey: string, name: string, host: VaultHost | null): VaultValue;
-  /**
-   * Whether the Profile of the note {@link read} reads manages `name` with
-   * the replace strategy, so that the next update of the note overwrites it.
-   * Until the note's Profile has been read it answers `false`, and tells
-   * `frontmatter-changed` once it has.
-   */
   managed(itemKey: string, name: string, host: VaultHost | null): boolean;
-  /**
-   * Set the vault property `name` of an Item to `value` on the note
-   * {@link read} reads, through the note's editor where one has it open.
-   * Only that key changes; `null` keeps the key with no value. Where the
-   * Item has no note, the usual creation makes one first, asking for a
-   * Profile when more than one fits. A key the note's Profile replaces, as
-   * {@link managed} tells, is not written.
-   */
   write(
     edit: VaultEdit,
   ): Effect.Effect<
@@ -194,24 +115,16 @@ export interface LiteratureNotes {
     NoteCreationFailure | Cause.UnknownError,
     ViewServices
   >;
-  /**
-   * The values the vault holds for the property `name`, each once, which an
-   * edit of it suggests: the vault's tags for a property of tags.
-   */
   suggestions(name: string, type: VaultPropertyType): readonly string[];
-  /** Whether a link in a vault property reaches a note. */
   resolves(link: VaultLinkRef): boolean;
-  /** Open a link in a vault property; a Cmd/Ctrl press opens a new tab. */
   openLink(
     link: VaultLinkRef,
     event: MouseEvent,
   ): Effect.Effect<void, OpenLinkFailed, ViewServices>;
-  /** Open the note; a Cmd/Ctrl press opens it in a new tab. */
   open(
     note: LiteratureNoteLink,
     event: MouseEvent,
   ): Effect.Effect<void, OpenLinkFailed, ViewServices>;
-  /** Create the Item's Literature Note, as the usual creation does. */
   create(
     itemKey: string,
   ): Effect.Effect<void, NoteCreationFailure, ViewServices>;
@@ -223,13 +136,8 @@ export interface LiteratureNotesDeps {
   creation: InteractiveCreationPorts;
 }
 
-/**
- * What the vault properties read across many notes, kept until a note is
- * added, changed or removed, or a Profile or a template changes.
- */
 interface VaultMemo {
   names?: readonly string[];
-  /** The type each name's first value infers. */
   inferred?: ReadonlyMap<string, VaultPropertyType>;
 }
 
@@ -240,7 +148,6 @@ interface VaultEvents {
   "frontmatter-changed": () => void;
 }
 
-/** The column's Literature Notes, from the Note Index and the usual creation. */
 export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
   const { registry } = deps;
   const memoAtom = Atom.map(noteIndexSnapshotAtom, () => freshMemo());
@@ -297,7 +204,6 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
     }
     return result;
   };
-  // An assigned type is read live: listened to while any listener listens.
   let typeListeners = 0;
   let offTypes = () => {};
   const listenTypes = () => {
@@ -325,7 +231,6 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
   };
   const frontmatterOf = (path: string): Readonly<Record<string, unknown>> =>
     deps.app.metadataCache.getCache(path)?.frontmatter ?? {};
-  // Body edits change the ranking through the live file stats without an index event.
   const firstNote = (itemKey: string) =>
     registry
       .get(noteIndexSnapshotAtom)
@@ -333,7 +238,6 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
       ?.toSorted(
         (a, b) => b.stat.mtime - a.stat.mtime || a.path.localeCompare(b.path),
       )[0];
-  /** The path of the note an Item's vault properties are of. */
   const pathOf = (itemKey: string, host: VaultHost | null) =>
     host?.itemKey === itemKey ? host.path : firstNote(itemKey)?.path;
   const fileOf = (itemKey: string, host: VaultHost | null) => {
@@ -359,7 +263,6 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
           off();
           offSource();
         };
-      // A change of an assigned type shows as a change of the frontmatter.
       const offTypes = listenTypes();
       return () => {
         off();
@@ -437,11 +340,6 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
   };
 }
 
-/**
- * The type a value shows as, as Obsidian infers one for a property it has no
- * type for: a list, a number, a checkbox, a date, a date and time to the
- * minute, else text.
- */
 export function inferType(value: unknown): VaultPropertyType {
   if (Array.isArray(value)) return "multitext";
   if (typeof value === "number") return "number";

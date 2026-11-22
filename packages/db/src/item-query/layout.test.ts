@@ -16,7 +16,6 @@ import { setLibraryLogSink } from "@zotlit/shared/logging";
 import type { LibraryLogRecord } from "@zotlit/shared/logging";
 
 import { checkLayout, readerStatementSQL } from "./database.ts";
-// The index loads every reader module, so every reader statement is defined.
 import {
   ItemQueryDatabase,
   ItemQueryDatabaseError,
@@ -31,7 +30,6 @@ afterEach(() => {
   setLibraryLogSink(undefined);
 });
 
-/** A scenario copy, changed by `alter` before the first reader runs. */
 function openCopy(
   alter: (sqlite: DatabaseSync) => void = () => {},
   options: ScenarioDatabaseOptions = {},
@@ -73,11 +71,6 @@ const firstPage = readScanPage({
   afterItemID: 0,
 });
 
-/**
- * The tables and columns of the database that one statement reads, as SQLite's
- * authorizer reports them when it compiles the statement. A table-valued
- * function such as `json_each` is not a table of the database.
- */
 function columnsRead(sqlite: DatabaseSync, sql: string): string[] {
   const tables = new Set(
     (
@@ -180,8 +173,6 @@ describe("the layout check", () => {
   it("keeps the check result for the life of the copy", () => {
     using passed = openCopy();
     expect(Exit.isSuccess(run(passed, checkLayout()))).toBe(true);
-    // A column that goes away after the check is not checked again: the
-    // statement itself fails.
     passed.sqlite.exec('drop table "deletedItems"');
     expect(failureOf(run(passed, firstPage))).toBeInstanceOf(
       ItemQueryDatabaseError,

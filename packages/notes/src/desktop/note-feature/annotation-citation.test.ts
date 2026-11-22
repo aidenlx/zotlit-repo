@@ -1,4 +1,3 @@
-// "Copy citation" renders an Annotation's page-pinned citation from one ZoteroReads read.
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { describe, expect, vi } from "vitest";
@@ -26,10 +25,6 @@ import { CITATION_TEMPLATE_SOURCE } from "#core/template/defaults.ts";
 import { TemplateRenderError } from "#core/template/errors.ts";
 import { Template, templateFailure } from "#obsidian/template/service.ts";
 
-/**
- * A journal article with the citation key `Hensher2011` (or none) and an
- * attachment that holds one highlight on page 62, in the personal library.
- */
 function seed(citekey: string | null) {
   return `
     insert into version (schema, version) values ('userdata', 129);
@@ -74,7 +69,6 @@ function citationTemplate(
     );
 }
 
-/** {@link renderAnnotationCitation} over a fixture database seeded by {@link seed}. */
 const render = Effect.fn(function* (
   annotationKey: string,
   options: { citekey?: string | null; template?: RenderCitation } = {},

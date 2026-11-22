@@ -1,18 +1,14 @@
 import { DateTime } from "effect";
-// The view's clock and its ledger's Uses, for tests: the view is plain code,
-// so it reads Temporal.
 
 import type { Use } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import type { UseKind } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 
 export { holdNow } from "#__fixtures__/library/clock.ts";
 
-/** A `kind` Use at `iso`. */
 export function useAt(kind: UseKind, iso: string): Use {
   return { kind, instant: DateTime.makeUnsafe(iso) };
 }
 
-// The Library embeds the Welcome banner, so its test host supplies the same sources.
 import { Effect, Layer, Stream } from "effect";
 
 import { ANNOT_PATHS } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";

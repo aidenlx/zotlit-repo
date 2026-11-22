@@ -16,15 +16,6 @@ import {
 } from "@zotlit/config/oxlint-plugin-code";
 import type { RestrictedImports } from "@zotlit/config/oxlint-plugin-code";
 
-// Each layer of the annotation feature has one home and one boundary, by what
-// a file needs from its host. `core/` is host-free: no Node built-in,
-// `obsidian` or `electron`, so any host loads it. `obsidian/` loads on
-// Obsidian Mobile: the Obsidian API and kit, and no Node or Electron; the
-// Annotation Repository and the annotation model live here. `desktop/` alone
-// reads Node and Electron. A layer imports the layers below it only:
-// core <- obsidian <- desktop.
-
-/** The plugin layers above the host-free base. */
 const pluginLayers = {
   group: [
     "@zotlit/obsidian-kit",
@@ -104,10 +95,6 @@ const NOT_TESTS = [
   "src/**/__fixtures__/**",
 ];
 
-/**
- * IndexedDB transactions must finish their request microtasks before a task
- * yield, so `file` may import the scheduler's yield guards.
- */
 function indexedDbYield(
   file: string,
   imports: RestrictedImports,
@@ -136,7 +123,6 @@ function indexedDbYield(
   };
 }
 
-/** The folders that hold Effect services; the Annotation View holds a view. */
 const SERVICES = [
   "src/*/annotation-repository/**",
   "src/*/attachment-open/**",
@@ -165,7 +151,6 @@ export default defineConfig({
       rules: { "no-restricted-imports": ["error", obsidianImports] },
     },
     {
-      // The desktop host: Node and Electron.
       files: ["src/desktop/**"],
       excludeFiles: NOT_TESTS,
       rules: {
@@ -179,7 +164,6 @@ export default defineConfig({
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**", "src/**/*.browser-test.ts"]),
     {
-      // UI code runs in the window it stands in, a pop-out included.
       files: ["src/*/annot-view/**"],
       rules: { "zotlit-obsidian/no-global-timer": "error" },
     },
@@ -189,8 +173,6 @@ export default defineConfig({
       rules: { "zotlit-design/annotation-view": "error" },
     },
     {
-      // Legacy emitters, written before no-nanoevents. A file moves off this
-      // list when its service converts to Effect.
       files: ["src/core/reader-session/session.ts"],
       rules: { "zotlit-services/no-nanoevents": "off" },
     },
@@ -200,8 +182,6 @@ export default defineConfig({
       runtimeImports,
     ),
     {
-      // Code written before the rule; new code follows it, and a file moves
-      // off this list when it is next reworked.
       files: [
         "src/desktop/annot-view/AnnotView.tsx",
         "src/obsidian/annot-view/FilterBar.tsx",

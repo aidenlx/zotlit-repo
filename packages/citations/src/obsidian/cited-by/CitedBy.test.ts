@@ -99,7 +99,6 @@ function locAt(source: string, offset: number): Loc {
   };
 }
 
-/** Where one fixture body carries a given piece of text. */
 function span(source: string, text: string): Pos {
   const offset = source.indexOf(text);
   return {
@@ -108,7 +107,6 @@ function span(source: string, text: string): Pos {
   };
 }
 
-/** The group of the single `@doe2024` citation of one fixture body. */
 function citedIn(source: string): CitedByGroup {
   return {
     path: group.path,
@@ -157,7 +155,6 @@ const headingSections: SectionCache[] = [
   { type: "paragraph", position: span(headingBody, "Body paragraph.") },
 ];
 
-/** A citing note whose citation has a logical chunk on either side of it. */
 const expansionBody =
   "# Overview\n\nIntro paragraph.\n\n- Alpha cites @doe2024 here.\n  - Nested detail.\n- Beta item.\n\nClosing paragraph.\n";
 const expansionSections: SectionCache[] = [
@@ -178,12 +175,6 @@ const expansionListItems: ListItemCache[] = [
   { parent: -1, position: span(expansionBody, "- Beta item.") },
 ];
 
-/**
- * A citing note with a line long enough to trigger the compact-excerpt cap.
- * The padding on each side exceeds {@link COMPACT_CAP}, so compact mode clips
- * the line and the "show more context" toggle reveals the full paragraph.
- * Spaces separate the padding from the citekey so the scanner recognises it.
- */
 const longParagraph = `${"x ".repeat(COMPACT_CAP)}@doe2024${" y".repeat(COMPACT_CAP)}`;
 const longLineBody = `Preamble.\n\n${longParagraph}\n\nEpilogue.\n`;
 const longLineSections: SectionCache[] = [
@@ -192,14 +183,12 @@ const longLineSections: SectionCache[] = [
   { type: "paragraph", position: span(longLineBody, "Epilogue.") },
 ];
 
-/** Three citing notes in vault-path order, two of them sharing a name. */
 const sortedGroups: CitedByGroup[] = [
   { ...group, path: "A/beta.md" },
   { ...group, path: "B/alpha.md" },
   { ...group, path: "C/alpha.md" },
 ];
 
-/** Vault times that give each time mode an order of its own. */
 const sortedStats: Record<string, { ctime: number; mtime: number }> = {
   "A/beta.md": { ctime: 3, mtime: 2 },
   "B/alpha.md": { ctime: 1, mtime: 3 },
@@ -209,7 +198,6 @@ const sortedStats: Record<string, { ctime: number; mtime: number }> = {
 let root: Root | undefined;
 let host: CitedByHost | undefined;
 
-/** Bounds state polling while preserving the preview stream's host-yield boundary. */
 async function waitForState(assertion: () => void): Promise<void> {
   for (let attempt = 0; ; attempt += 1) {
     try {
@@ -241,7 +229,6 @@ function snapshot(overrides: Partial<CitedBySnapshot> = {}): CitedBySnapshot {
   };
 }
 
-/** Hold a citing note at `path` in `vault`, with the facts the sort modes read. */
 function addFile(
   vault: CitedByHost["vault"],
   path: string,
@@ -271,21 +258,18 @@ async function render(options: {
   listItems?: ListItemCache[];
   duplicateSourceLeaf?: boolean;
   stats?: Readonly<Record<string, { ctime: number; mtime: number }>>;
-  /** Citing notes the snapshot still holds whose file left the vault. */
   missingPaths?: readonly string[];
 }) {
   const shown = options.snapshot ?? snapshot();
   const read = vi.fn(
     (file: TFile) => options.read?.(file) ?? Promise.resolve(body),
   );
-  /** The path of each parse the sidebar cancelled, in order. */
   const cancelled: string[] = [];
   const current = (host = await makeCitedByHost({
     getParsedNote: (file) =>
       options.citationIndex
         ? options.citationIndex.getParsedNote(file)
         : Effect.tryPromise({
-            // Taking the signal makes the read interruptible, as the real parse is.
             try: async (signal) => {
               signal.addEventListener("abort", () => cancelled.push(file.path));
               const source = await read(file);
@@ -316,8 +300,6 @@ async function render(options: {
     files.values().next().value ??
     addFile(vault, group.path);
 
-  // The source note open in a Markdown leaf, and active; with
-  // `duplicateSourceLeaf`, an older leaf shows it too.
   const setEphemeralState = vi.fn();
   const oldSetEphemeralState = vi.fn();
   const markdownView = (onState: () => void) =>
@@ -331,7 +313,6 @@ async function render(options: {
   const sourceView = markdownView(setEphemeralState);
   workspace.openLeaf("markdown", sourceView);
   workspace.activeView = sourceView;
-  /** Each note the sidebar opened: its link text, source path and pane. */
   const openLinkText =
     vi.fn<
       (
@@ -346,9 +327,7 @@ async function render(options: {
   );
   const setActiveLeaf = vi.spyOn(workspace, "setActiveLeaf");
 
-  // The component reads these once it renders; hold them for the setup too.
   registry.mount(activeCitedByAtom);
-  /** Follows a note of `key` at `path` and waits for its Cited By to show. */
   const retarget = async (
     key: string | null,
     path: string,
@@ -359,7 +338,6 @@ async function render(options: {
     await waitForState(() => expect(current.started).toContain(key));
     await show(shownNext, key);
   };
-  /** Sends `next` to the followed key's observer and waits for it to show. */
   const show = async (next: CitedBySnapshot, key = followedKey()) => {
     expect(current.publish(key, next)).toBe(true);
     await waitForState(() =>
@@ -383,10 +361,8 @@ async function render(options: {
     ...EMPTY_CITED_BY_NOTE_STATE,
     collapsed: options.collapsed ? [group.path] : [],
   });
-  /** Changes the controls as the toolbar does. */
   const setLayout = (patch: Partial<CitedByLayout>) =>
     registry.update(model.layout, (layout) => ({ ...layout, ...patch }));
-  /** The collapse toggle of the toolbar, over every group shown. */
   const controls = {
     collapseAll: () =>
       registry.update(
@@ -450,7 +426,6 @@ async function render(options: {
   };
 }
 
-/** The source-group labels, in the order the sidebar shows them. */
 function sourceLabels(container: Element): (string | null)[] {
   return [...container.querySelectorAll("[data-cited-by-source-label]")].map(
     (label) => label.textContent,
@@ -467,7 +442,6 @@ async function openSortMenu(container: Element): Promise<Menu> {
   return menu;
 }
 
-/** Activate the chevron on one side of the first occurrence card. */
 async function expandContext(
   container: Element,
   direction: "before" | "after",
@@ -479,7 +453,6 @@ async function expandContext(
   await act(() => (chevron as HTMLElement).click());
 }
 
-/** Open the sort menu and pick the mode of one title. */
 async function chooseSort(container: Element, title: string): Promise<void> {
   const menu = await openSortMenu(container);
   const item = menu.items.find((entry) => entry.title === title);
@@ -650,8 +623,6 @@ describe("CitedBy", () => {
     await act(() => waitForState(() => expect(read).toHaveBeenCalledOnce()));
 
     await act(() => root?.unmount());
-    // Cancelling one read frees its turn before the next read stops, so that
-    // one may still start; it is cancelled too, and none after it starts.
     await act(() =>
       waitForState(() => {
         expect(cancelled).toContain(groups[0]!.path);
@@ -1160,10 +1131,8 @@ describe("CitedBy", () => {
     const card = () => container.querySelector("[data-occurrence]");
     const compactText = `…${"x ".repeat(COMPACT_CAP / 2)}@doe2024${" y".repeat(COMPACT_CAP / 2)}…`;
 
-    // Compact mode: only COMPACT_CAP characters on each side of the match.
     expect(card()?.textContent).toBe(compactText);
 
-    // Toggle reveals the full single-line paragraph.
     await act(() =>
       (
         container.querySelector(
@@ -1173,7 +1142,6 @@ describe("CitedBy", () => {
     );
     expect(card()?.textContent).toBe(longParagraph);
 
-    // Toggle back returns to the capped compact excerpt.
     await act(() =>
       (
         container.querySelector(

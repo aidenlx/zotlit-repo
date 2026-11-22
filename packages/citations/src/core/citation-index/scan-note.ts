@@ -1,4 +1,3 @@
-// One worker-safe parse produces the raw citation and annotation facts for one note.
 import { InlineContext, parser } from "@lezer/markdown";
 import type { BlockContext, Line } from "@lezer/markdown";
 import { regex } from "arkregex";
@@ -30,13 +29,11 @@ export interface NoteCitationOccurrence {
 }
 
 export interface AnnotationOccurrence extends AnnotationLink {
-  /** Source text between the label brackets, or the URI of an autolink. */
   text: string;
   position: SourcePosition;
 }
 
 export interface NoteScanRecord {
-  /** Transient syntax ranges for whole-document export; never persisted. */
   ranges: (
     | {
         kind: "comment" | "text-dollar";
@@ -48,18 +45,15 @@ export interface NoteScanRecord {
         from: number;
         to: number;
         lineStart: number;
-        /** Container continuation for an inserted blank line; null if already separated. */
         blankLinePrefix: string | null;
       }
   )[];
-  /** Vault references before citation eligibility, including aliases and embeds. */
   links: {
     kind: "wikilink" | "link";
     embedded: boolean;
     target: string;
     position: SourcePosition;
   }[];
-  /** Whole Pandoc spans retain author-in-text groups for rendering and export. */
   citations: (ScannedPandocCitation & {
     keys: { citekey: string; start: number; end: number }[];
   })[];
@@ -73,7 +67,6 @@ export interface NoteScanRecord {
   }[];
 }
 
-// Each paragraph searches a suffix at most once per delimiter width.
 const codeRuns = new WeakMap<
   InlineContext,
   Map<number, { positions: number[]; index: number }>
@@ -83,12 +76,7 @@ const referenceLabelOpeners = new WeakMap<InlineContext, number>();
 const exhaustedHighlights = new WeakSet<InlineContext>();
 
 const markdown = parser.configure({
-  // Trim only inline presentation nodes: these cannot move exclusion boundaries.
-  // Keep every block parser, including headings, rules and reference definitions,
-  // so a following indented code block stays separate from paragraph text.
   remove: ["Emphasis", "HardBreak", "Entity"],
-  // Keep HTMLBlock: remark-obsidian/test/parity/corpus.ts, html/passthrough,
-  // records a raw HTML section whose [[not a wikilink]] produces no link.
   defineNodes: [
     "WikiLink",
     "Math",
@@ -168,8 +156,6 @@ const markdown = parser.configure({
                 line.markers.length < markers))
           ) {
             if (inContainer && hasContent) {
-              // An unclosed container opener is prose. Restore block structure
-              // too, so a following fence or indented block still excludes code.
               const prose = cx.parser
                 .configure({ remove: ["DisplayMath"] })
                 .parse(lines.join("\n"));
@@ -194,8 +180,6 @@ const markdown = parser.configure({
       before: "Escape",
       parse(cx, next, pos) {
         if (!isPlainCharacter(next)) return -1;
-        // None of this grammar's inline constructs opens with a letter, digit,
-        // or space. Consume the run once instead of trying every parser per character.
         let end = pos + 1;
         while (isPlainCharacter(cx.char(end))) end++;
         return end;
@@ -393,7 +377,6 @@ function displayMathOpener(cx: BlockContext, line: Line): number {
   if (line.text.indexOf("$$", displayMathStart(line.text, opener)) >= 0)
     return -1;
   if (opener !== line.pos) {
-    // Inline code, links and escapes own their dollar signs.
     const elements = cx.parser.parseInline(line.text.slice(line.pos), line.pos);
     if (
       elements.some((element) => element.from <= opener && element.to > opener)
@@ -420,18 +403,15 @@ function decodeLinkTarget(destination: string): string {
   try {
     return decodeURIComponent(destination);
   } catch {
-    // Obsidian keeps a destination containing an invalid percent escape literal.
     return destination;
   }
 }
 
-// Decode in one pass so an escaped ampersand cannot open a character reference.
 const MARKDOWN_ESCAPE_OR_REFERENCE = regex(
   "\\\\([!-/:-@\\[-`{-~])|&(?:#(?:[0-9]{1,7}|x[0-9a-f]{1,6})|[a-z0-9]{1,31});",
   "gi",
 );
 
-/** @returns Raw, unresolved occurrences with half-open UTF-16 source positions. */
 export function scanNote(text: string): NoteScanRecord {
   const record: NoteScanRecord = {
     ranges: [],
@@ -443,7 +423,6 @@ export function scanNote(text: string): NoteScanRecord {
     annotations: [],
     malformedAnnotationCitations: [],
   };
-  // Plain prose has neither occurrences nor export ranges.
   if (text.length === 0 || /^[A-Za-z][A-Za-z0-9 ,.!?;:]*$/.test(text))
     return record;
   const starts = [0];
@@ -480,8 +459,6 @@ export function scanNote(text: string): NoteScanRecord {
       }
     },
   });
-  // Pair markers after parsing: comments can cross quote and list boundaries,
-  // while a marker inside code cannot open or close one.
   const commentText = text.includes("%%") ? maskedText(text, body) : text;
   const comments: { from: number; to: number }[] = [];
   for (let from = commentText.indexOf("%%"); from >= 0;) {
@@ -495,7 +472,6 @@ export function scanNote(text: string): NoteScanRecord {
   let commentIndex = 0;
   tree.iterate({
     enter({ name, from, to, node }) {
-      // A link's label stays masked; nested wikilinks and images are references.
       if (
         node.parent?.name === "Link" &&
         node.parent.getChild("URL") &&
@@ -577,7 +553,6 @@ export function scanNote(text: string): NoteScanRecord {
         let destination = text.slice(url.from, url.to);
         if (destination.startsWith("<")) destination = destination.slice(1, -1);
         else if (name !== "Autolink") {
-          // Obsidian treats a no-break space before a quoted title as whitespace.
           const titleAt = destination.lastIndexOf("\u00a0");
           const quote = destination[titleAt + 1];
           if (
@@ -715,8 +690,6 @@ function maskedText(
   ranges: { from: number; to: number }[],
 ): string {
   if (ranges.length === 0) return text;
-  // Each tree pass and the comment pass emits ordered ranges. Merge their overlaps
-  // before copying, so nested links and comments never copy a source span twice.
   ranges.sort((a, b) => a.from - b.from);
   const parts: string[] = [];
   let copied = 0;

@@ -20,7 +20,6 @@ export function createClient(url: string, options?: DatabaseOptions) {
   );
 }
 
-/** A client on a database that is already open. */
 export function connectClient(
   sqlite: DatabaseSync,
   options?: Omit<DatabaseOptions, "connection">,

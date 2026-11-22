@@ -24,3 +24,47 @@ Proposed on 2026-10-17 with [#1544](https://github.com/aidenlx/zotlit/issues/154
 - The list header reads "Selection · M unread"; the paper count shows once, beside the node in the tree, and the header leaves it out (amended after the interface review). Like the paper count, the unread count ignores the facets and the search: it is the Items of the node with no Annotation and no Literature Note, counted again on a database, scope, node or Note Index change. Recent has no header text, since the selected node names it. The count the facets narrow is the toolbar's "N of M results", and the search summary while a search is on screen, which screen readers hear as a status.
 - The facets stay on during a search and during "Search all libraries", which drops the Collection condition but not the facets (ADR 0073). Facets combine with Recent as with any node.
 - The list heading is a title block (amended after the heading redesign): the node's icon in a soft tile, the Collection path above the name as a breadcrumb, the name in the interface face, semibold and one step above the body text rather than a display size, with a smaller icon tile (amended after the typography review: the list heading is chrome a researcher glances at, and the serif is kept for paper titles), and under it the papers shown and the unread count, "3 papers · 1 unread" ("3 of 44 papers" while facets or tags narrow it; "N matches for “…”" as the title during a search, still a status for screen readers). Sort and "Save as query file" sit at the right of the block, and the Query View's own toolbar row is not drawn in the Library View. The active facets and selected tags show under the block as chips that remove themselves, with "Clear all", so the reason the list is narrowed is always on screen.
+
+Use the same chip treatment for facets and Tags, including Tags displayed on the Reading Card. Selected chips use the accent and expose `aria-pressed`. Use an element with `role="button"` for the filter chip because Obsidian's unlayered button rules override the chip utilities.
+
+Store a Collection node's identity as a Library and an array of path names, so persisted node keys can distinguish names containing a slash. Include a closed marker on Library keys because Libraries start open. Prune an unknown node only after reading its Library in full. Sibling Collections with the same path share one tree node. Build the tree from visible parents and omit an orphan whose parent is absent.
+
+Count a paper once in each ancestor Collection even when it is filed in several descendants. Use the same filter for a selected Collection and its count. Compute Reading State facet counts without selected tags or search terms. The Note Index handles conditions that depend on a Literature Note in the vault. Test the derived Filter Expression through the query engine.
+
+## Tree and heading controls
+
+Display Recent before the first database read. Refresh the tree, counts, and Tags when the database changes. A narrow pane opens the tree over the list. A wide pane shows it beside the list and retains the collapsed choice. Toggle a wrapper at each breakpoint because Obsidian controls display on the clickable icon. Keep the Library Scope toggle immediately after the last Library, outside the ARIA tree. Name the tree, active filters, and facet groups with `aria-labelledby` to avoid host tooltips from `aria-label`.
+
+Mount the Query View's Sort control in the Library heading under the Query View's context. At narrow widths, Sort and Save use their icons. Active filter chips remove the individual filter. Text actions and chips use `role="button"` where Obsidian's unlayered button styles would override their utilities. Provide Tab focus and Enter and Space activation for those controls.
+
+### Library navigation proof
+
+Check Library View selection from the active Literature Note
+command, the Cited By toolbar, and the native handler for the
+Library Link a template writes. An Item absent from all Libraries
+leaves the search in place and reports that it could not select
+the Item. Check the setup actions above the initial Library View in
+the window size used for the course.
+
+[Library navigation cases](../../../../packages/e2e/src/library-view-reading.e2e.ts)
+
+### Tree facet proof
+
+Use a Collection name present in several Libraries to check that
+export preserves its Library. Combine Reading State facets with
+the selected Collection and with search. Removing the Literature
+Note changes an Item without Annotations to unread. An Item read
+in Zotero stays read after removal. A narrow pane opens the tree
+before a facet press and can dismiss it when focus moves to search.
+Verify that plugin reload restores the selected Collection and
+facet.
+
+[Tree facet cases](../../../../packages/e2e/src/library-view-navigation.e2e.ts)
+
+Use a tree oracle that counts Items in a Collection and all its
+subcollections once. Recent has no tree count. All libraries shows
+groups outside the configured scope, and selecting one lists its own
+Items. A database change in a subcollection updates ancestor counts
+and the selected list.
+
+[Library tree cases](../../../../packages/e2e/src/library-view.e2e.ts)

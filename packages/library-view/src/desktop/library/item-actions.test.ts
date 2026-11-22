@@ -1,6 +1,4 @@
 // @vitest-environment happy-dom
-// Insert citation from a Library View row goes to the note the researcher was
-// in last, which Obsidian no longer names once the Library View tab is active.
 import { it as effectIt } from "@effect/vitest";
 import { Effect, Layer, DateTime } from "effect";
 import { MarkdownView } from "obsidian";
@@ -43,7 +41,6 @@ afterEach(async () => {
   cleanup = new AsyncDisposableStack();
 });
 
-/** A tab of the workspace: a note, in `mode`, or the Library View. */
 interface Tab {
   leaf: WorkspaceLeaf;
   text: () => string;
@@ -52,13 +49,8 @@ interface Tab {
 function workspaceFixture() {
   const open: WorkspaceLeaf[] = [];
   let active: WorkspaceLeaf | null = null;
-  /**
-   * As Obsidian keeps them, across plugin reloads: the file of the last
-   * active tab that showed one, and the files left before it, newest first.
-   */
   let activeFile: string | null = null;
   const lastOpen: string[] = [];
-  /** Obsidian's file-open: the file `leaf` shows, if any, is the active file. */
   const fileOpen = (leaf: WorkspaceLeaf) => {
     const path = (leaf.view as Partial<MarkdownView>).file?.path;
     if (!path || path === activeFile) return;
@@ -83,25 +75,19 @@ function workspaceFixture() {
       return active?.view instanceof MarkdownView ? active.view : null;
     },
     getMostRecentLeaf: () => active,
-    // As Obsidian's, the iteration stops at a callback that returns a truthy
-    // value.
     iterateAllLeaves: (callback: (leaf: WorkspaceLeaf) => unknown) =>
       open.some((leaf) => callback(leaf)),
-    // The row actions here change no tab while an insert is held.
     on: () => ({}),
     offref: () => {},
   });
-  /** The researcher makes `tab` the active tab. */
   const activate = (tab: Tab) => {
     active = tab.leaf;
     fileOpen(tab.leaf);
   };
-  /** `tab` shows `view`, as a tab does that opens a note. */
   const show = (tab: Tab, view: WorkspaceLeaf["view"]) => {
     Object.assign(tab.leaf, { view });
     if (active === tab.leaf) fileOpen(tab.leaf);
   };
-  /** A note at `path`, in Source mode or Reading view. */
   const note = (path: string, mode: "source" | "preview" = "source"): Tab => {
     const cm = stateEditor({ doc: "LEFT RIGHT" });
     const leaf = stubService<WorkspaceLeaf>("WorkspaceLeaf", {});
@@ -128,17 +114,12 @@ function workspaceFixture() {
     text: () => "",
   };
   open.push(library.leaf);
-  /** The researcher closes `tab`. */
   const close = (tab: Tab) => {
     open.splice(open.indexOf(tab.leaf), 1);
   };
   return { workspace, activate, show, note, library, close };
 }
 
-/**
- * The row actions, made once `before` has set up the workspace, as a plugin
- * that loads into tabs the researcher already had open.
- */
 async function setup(
   before: (fixture: ReturnType<typeof workspaceFixture>) => void = () => {},
 ) {
@@ -214,7 +195,6 @@ async function setup(
       ),
     }),
   );
-  // Each gesture runs on the registry; the test waits for the commands to finish.
   const settle =
     <A extends unknown[]>(gesture: (...args: A) => void) =>
     async (...args: A) => {
@@ -230,7 +210,6 @@ async function setup(
   return { ...fixture, raw, actions, record, notifier, host };
 }
 
-/** Settles once no Item action runs on `registry`. */
 const idle = (registry: ViewRegistryHandle) =>
   waitFor(() => expect(registry.get(libraryItemCommand).waiting).toBe(false));
 
@@ -271,7 +250,6 @@ it("inserts into a new tab that became active before it opened its note", async 
   const env = await setup();
   const earlier = env.note("Earlier.md");
   env.activate(earlier);
-  // A new tab is active while it is empty, then opens the note.
   const fresh = env.note("Fresh.md");
   const view = fresh.leaf.view;
   env.show(
@@ -319,13 +297,10 @@ it("parts a dropped or inserted citation from the word before it with a space, a
     at,
   });
 
-  // Dropped right after LEFT.
   await env.actions.insertCitation(KEY, target(4));
   expect(draft.text()).toBe("LEFT [@vaswani2017] RIGHT");
-  // Dropped at the start of the line.
   await env.actions.insertCitation(KEY, target(0));
   expect(draft.text()).toBe("[@vaswani2017]LEFT [@vaswani2017] RIGHT");
-  // Inserted at the cursor, at the end of the line.
   const { cm } = view.editor;
   cm.dispatch({ selection: { anchor: cm.state.doc.length } });
   await env.actions.insertCitation(KEY);

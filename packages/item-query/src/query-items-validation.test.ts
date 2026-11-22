@@ -1,4 +1,3 @@
-// Request and Filter Expression validation that fails before any database read.
 import { Cause, Exit } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -15,7 +14,6 @@ import { runEffect } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 
-/** The typed failure of a run without a database: it reads nothing. */
 async function failure(
   request: ItemQueryRequest,
   dataset: QueryDataset<ItemQueryRequest> = ITEMS,
@@ -49,7 +47,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
       ["title.lenght > 3", "unknown-property", [6, 12]],
       ['custom == "a"', "unfilterable-field", [0, 6]],
       ["dateAdded > date(2020)", "wrong-argument-type", [17, 21]],
-      // A branch that never runs.
       ["false && title.startsWith(1)", "wrong-argument-type", [26, 27]],
       ["true || noSuchFunction()", "unknown-function", [8, 22]],
       ["if(true, true, title.lower(1))", "wrong-argument-count", [15, 29]],
@@ -70,15 +67,11 @@ describe("collectQuery(ITEMS) with a filter", () => {
   });
 });
 
-/** The invalid request entries of each Query Dataset. */
 interface ValidationCase {
   readonly dataset: QueryDataset<ItemQueryRequest>;
-  /** A valid Projection Path and a valid sort entry of the dataset. */
   readonly field: string;
   readonly sort: SortSpec;
-  /** Invalid Projection Paths and the code of each. */
   readonly paths: readonly (readonly [string, ItemQueryErrorCode])[];
-  /** Invalid Sortable Fields and the code of each. */
   readonly sortFields: readonly (readonly [string, ItemQueryErrorCode])[];
 }
 
@@ -102,7 +95,6 @@ const DATASETS: readonly ValidationCase[] = [
       ["custom[0]", "unknown-path"],
       ["creators[ ]", "invalid-path"],
       ["title[]", "unknown-path"],
-      // Array access does not vectorize.
       ["creators.fullName", "unknown-path"],
       ["tags.name", "unknown-path"],
       ["creators[0].name", "unknown-path"],
@@ -188,7 +180,6 @@ describe.each(DATASETS)(
             code,
             location: { argument: "fields", index: 1 },
           });
-          // The report marks the whole entry the caller sent.
           expect(error.diagnostic.excerpt?.at).toBe(path);
         },
       );

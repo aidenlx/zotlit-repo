@@ -1,13 +1,3 @@
-/**
- * Runtime stand-in for the `obsidian` module, used by Vitest via
- * `vitest.config.ts` `resolve.alias`. The real `obsidian` package is
- * types-only, so without this alias any test
- * that imports values from `"obsidian"` fails to resolve.
- *
- * Only the surface area the plugin actually touches in tests is exposed
- * here — extend as needed alongside the services that consume it.
- */
-
 import type {
   App,
   Command,
@@ -39,10 +29,6 @@ import {
   stringify as stringifyYamlSource,
 } from "yaml";
 
-/**
- * Stand-in for Obsidian's simple search: every whitespace-separated term of the
- * query must appear in the text, case-insensitively.
- */
 export function prepareSimpleSearch(
   query: string,
 ): (text: string) => SearchResult | null {
@@ -59,11 +45,6 @@ export function prepareSimpleSearch(
   };
 }
 
-/**
- * Stand-in for Obsidian's fuzzy search: the query's characters must appear in
- * the text in order, case-insensitively. A run of them in one piece scores
- * above one spread out, and an earlier run above a later one.
- */
 export function prepareFuzzySearch(
   query: string,
 ): (text: string) => SearchResult | null {
@@ -105,36 +86,28 @@ export function setIcon(el: HTMLElement, name: IconName): void {
   el.setAttribute("data-icon", name);
 }
 
-/** Stand-in for Obsidian's delegated tooltip attributes. */
 export function setTooltip(el: HTMLElement, tooltip: string): void {
   el.setAttribute("aria-label", tooltip);
 }
 
-// Obsidian exposes `sleep` as a runtime global; toast durations await it.
-// Provide it for tests that exercise that code path.
 globalThis.sleep ??= (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-/** Minimal element stub covering the `addClasses` / `querySelector` surface
- * `BaseNotice` touches in its constructor. */
 const noticeElStub = {
   addClasses: (_classes: string[]) => {},
   toggle: (_show: boolean) => {},
   querySelector: (_selector: string): HTMLElement | null => null,
-  /** Obsidian opens a modal or a notice in `activeWindow`. */
   get win(): Window {
     return activeWindow;
   },
 } as unknown as HTMLElement;
 
 export class Notice {
-  /** Every notice shown, in order, for a test to read; a test clears it. */
   static instances: Notice[] = [];
 
   noticeEl: HTMLElement = noticeElStub;
   containerEl: HTMLElement = noticeElStub;
   messageEl: HTMLElement = noticeElStub;
-  /** The latest message the notice shows. */
   message: string | DocumentFragment;
   constructor(message: string | DocumentFragment, _duration?: number) {
     this.message = message;
@@ -197,28 +170,16 @@ export class Events implements ObsidianEvents {
   }
 }
 
-// The three CodeMirror facets/fields Obsidian adds to its editors. A state
-// without them answers `state.field(field, false)` with `undefined` and
-// `view.plugin(plugin)` with `null`, which is what an editor-less test needs.
 export const editorInfoField = {};
 export const editorLivePreviewField = {};
 export const livePreviewState = {};
 
-/**
- * Constructible stand-in for `MarkdownView`, enough for the `instanceof` narrow
- * that reaches a leaf's reading view.
- */
 export class MarkdownView {
   previewMode = {
     rerender(_full?: boolean): void {},
   };
 }
 
-/**
- * Stand-in for Obsidian's `Component`: the load/unload pair and the child
- * list, which is what a post-processor's `ctx.addChild` hangs a render child
- * on and what Obsidian tears down with the section.
- */
 export class Component {
   #loaded = false;
   readonly #children: Component[] = [];
@@ -247,7 +208,6 @@ export class Component {
 
   registerEvent(_ref: unknown): void {}
 
-  /** As Obsidian's: the listener goes when the component unloads. */
   registerDomEvent(
     ...[element, type, callback, options]: [
       HTMLElement,
@@ -270,7 +230,6 @@ export class Component {
   onunload(): void {}
 }
 
-/** Stand-in for `Plugin`: a component over the app and its manifest. */
 export class Plugin extends Component {
   readonly app: App;
   readonly manifest: PluginManifest;
@@ -282,7 +241,6 @@ export class Plugin extends Component {
   }
 }
 
-/** Stand-in for `MarkdownRenderChild`: a component bound to one element. */
 export class MarkdownRenderChild extends Component {
   readonly containerEl: HTMLElement;
 
@@ -300,15 +258,9 @@ export const PopoverState = {
 } as const;
 export type PopoverState = (typeof PopoverState)[keyof typeof PopoverState];
 
-/**
- * The popovers still waiting on their show timer. Obsidian's global click
- * handler hides each of them on any click, focused or not, before it looks at
- * the shown ones. Verified against Obsidian 1.14.2.
- */
 const pendingPopovers = new Set<HoverPopover>();
 let clickHandlerArmed = false;
 
-/** Arms the global click handler once, with the first popover, as Obsidian does. */
 function armClickHandler(): void {
   if (clickHandlerArmed) return;
   clickHandlerArmed = true;
@@ -321,30 +273,12 @@ function armClickHandler(): void {
   );
 }
 
-/**
- * Stand-in for Obsidian's own hover popover: the element a plugin fills, the
- * unload hook its content is torn down through, and the placement `position()`
- * records as an inline style. Placement is inert here — a test that asserts a
- * placement writes the style itself, the way Obsidian's positioning engine does.
- * The document `position()` puts the popover in follows the runtime's.
- *
- * The opening sequence follows the runtime one — the constructor arms the wait
- * timer, and the timer opens the popover — so a subclass meets the lifecycle it
- * inherits rather than a stub of it. Timers keep the runtime's window too: each
- * is armed and cancelled on the main window, whichever window holds focus, as
- * Obsidian 1.15.1 does.
- */
 export class HoverPopover {
   readonly hoverEl: HTMLElement;
   targetEl: HTMLElement | null;
   onTarget = true;
   onHover = false;
   isFocused = false;
-  /**
-   * The point `position()` anchors to in place of the target's boxes. A
-   * popover with neither a target nor a static position is placed from the
-   * last pointer move, which no test drives, so it stays where it was put.
-   */
   staticPos: Point | null;
   state: PopoverState = PopoverState.Showing;
   readonly waitTime: number;
@@ -407,7 +341,6 @@ export class HoverPopover {
     );
   }
 
-  /** Pins the popover open with nothing hovering it, as Obsidian's own does. */
   setIsFocused(focused: boolean): void {
     this.isFocused = focused;
   }
@@ -468,7 +401,6 @@ export class HoverPopover {
     this.load();
   }
 
-  /** This popover as the parent holds it, which the vendored type names. */
   get #self(): ObsidianHoverPopover {
     return this as unknown as ObsidianHoverPopover;
   }
@@ -478,10 +410,6 @@ export class HoverPopover {
     this.#parent.hoverPopover = this.#self;
   }
 
-  /**
-   * Joins the target's document, or `activeDocument` when there is no target,
-   * on every call, as Obsidian 1.15.1 does.
-   */
   position(): void {
     const { body } = this.targetEl?.ownerDocument ?? activeDocument;
     if (this.hoverEl.parentElement !== body) body.appendChild(this.hoverEl);
@@ -526,7 +454,6 @@ export class TFile extends TAbstractFile {
   extension = "";
 }
 
-/** Obsidian spells an external file's path as its absolute path behind `file:`. */
 export class TExternalFile extends TFile {
   getRealPath(): string {
     return this.path.substring("file:".length);
@@ -541,21 +468,14 @@ export class TFolder extends TAbstractFile {
   }
 }
 
-/**
- * Minimal WorkspaceLeaf shell. Only the prototype matters here: ZotLit patches
- * `setViewState` and `setEphemeralState` on it to read an Annotation Anchor
- * off an open.
- */
 export class WorkspaceLeaf {
   async setViewState(_viewState: unknown, _eState?: unknown): Promise<void> {}
   setEphemeralState(_state: unknown): void {}
 }
 
-/** Minimal ItemView shell for tests of plugin-registered views. */
 export class ItemView {
   readonly contentEl: HTMLElement;
   readonly titleEl: HTMLElement;
-  /** The leaf's App, as Obsidian's `View` keeps it. */
   app: App;
 
   readonly leaf: ObsidianWorkspaceLeaf;
@@ -591,7 +511,6 @@ export class ItemView {
   ): HTMLElement {
     const action = document.createElement("div");
     action.setAttribute("aria-label", title);
-    // Records the icon, which Obsidian draws, for a test to read.
     action.dataset.icon = icon;
     action.addEventListener("click", callback);
     this.actions.push(action);
@@ -651,7 +570,6 @@ export class FileView extends ItemView {
 
 export class EditableFileView extends FileView {}
 
-/** File serialization seam; tests drive the editor's load and save callbacks. */
 export class TextFileView extends ItemView {
   readonly app: App;
   file: TFile | null = null;
@@ -676,7 +594,6 @@ export class TextFileView extends ItemView {
   async save(): Promise<void> {
     this.data = this.getViewData();
   }
-  /** Native read/baseline ordering; real-app checks cover native three-way merging. */
   async loadFileInternal(file: TFile, clear: boolean): Promise<void> {
     const source = await this.app.vault.read(
       file as unknown as import("obsidian").TFile,
@@ -733,23 +650,12 @@ export class FileSystemAdapter {
   }
 }
 
-/**
- * Parses like the real `sanitizeHTMLToDom`, but sanitizes nothing — Obsidian
- * runs the markup through DOMPurify, which the plugin does not depend on.
- * A test that asserts on sanitizing belongs against the real Obsidian runtime.
- * Needs a DOM, so its callers run under `// @vitest-environment happy-dom`.
- */
 export function sanitizeHTMLToDom(html: string): DocumentFragment {
   const template = document.createElement("template");
   template.innerHTML = html;
   return template.content;
 }
 
-/**
- * Appends `text` to `el`, wrapping each match range in the highlight span the
- * real renderer uses. Needs a DOM, so its callers run under
- * `// @vitest-environment happy-dom`.
- */
 // oxlint-disable-next-line max-params -- mirrors Obsidian's own signature.
 export function renderMatches(
   el: HTMLElement,
@@ -776,7 +682,6 @@ export function normalizePath(path: string): string {
   return path.replaceAll("\\", "/").replaceAll(/\/+/g, "/").replace(/\/$/, "");
 }
 
-/** Splits a linktext at its first `#`; the subpath keeps that separator. */
 export function parseLinktext(linktext: string): {
   path: string;
   subpath: string;
@@ -794,11 +699,6 @@ export function parseYaml(source: string): unknown {
   return parseYamlSource(source);
 }
 
-/**
- * Obsidian 1.14.2's Properties block scan: an opening `---` line, then the
- * first `---` that starts a line and ends one or the text. `to` is the start of
- * that closing fence, so `frontmatter` keeps its last line break.
- */
 export function getFrontMatterInfo(source: string): FrontMatterInfo {
   const none = {
     exists: false,
@@ -829,7 +729,6 @@ export abstract class EditorSuggest<T> {
   context: EditorSuggestContext | null = null;
   limit = 0;
   readonly app: App;
-  /** The popup's container; a bare element outside a DOM environment. */
   suggestEl: HTMLElement =
     typeof document === "undefined"
       ? ({
@@ -853,39 +752,21 @@ export abstract class EditorSuggest<T> {
 
 let suggestChooserHidden = false;
 
-/**
- * Leave `forceSetSelectedItem` off the private chooser of each input suggest
- * made from now on, as an Obsidian build without it would; `false` restores it.
- */
 export function hideSuggestChooser(hidden: boolean): void {
   suggestChooserHidden = hidden;
 }
 
-/**
- * Stand-in for Obsidian's input suggest, as Obsidian 1.14.4 drives it: the
- * field's focus and input ask {@link getSuggestions} for the field's value
- * while it holds focus; a list shows as `.suggestion-item`s in a
- * `.suggestion-container` on the page, the first highlighted, and none
- * shows for no suggestion; blur closes it. While it shows, its scope takes
- * the keys first, at the window, before the field sees them: ArrowUp and
- * ArrowDown move the highlight, Enter takes the highlighted item (and is
- * taken with none), Escape closes it, and what a subclass registers runs
- * after those. A press on an item takes it.
- */
 export abstract class AbstractInputSuggest<T> {
   limit = 100;
   readonly app: App;
   readonly scope = new Scope();
   readonly suggestEl: HTMLDivElement;
-  /** Obsidian's private chooser over the list. */
   readonly suggestions: {
     values: T[];
     selectedItem: number;
-    /** Absent while {@link hideSuggestChooser} hides it. */
     forceSetSelectedItem?(at: number, event: unknown): void;
     useSelectedItem(event: KeyboardEvent | MouseEvent): boolean;
   };
-  /** Highlight the item at `at`, as the chooser does. */
   readonly #highlight: (at: number) => void;
   readonly #input: HTMLInputElement | HTMLDivElement;
   #shown = false;
@@ -1033,10 +914,6 @@ export abstract class AbstractInputSuggest<T> {
   abstract selectSuggestion(value: T, event: MouseEvent | KeyboardEvent): void;
 }
 
-/**
- * Records keymap registrations so a test can look one up by modifiers plus key
- * and invoke its handler, standing in for a real keypress.
- */
 export class Scope {
   readonly handlers: {
     modifiers: Modifier[] | null;
@@ -1046,7 +923,6 @@ export class Scope {
 
   readonly parent?: Scope;
 
-  /** The Scope a key no registration here ended goes on to. */
   constructor(parent?: Scope) {
     this.parent = parent;
   }
@@ -1069,10 +945,6 @@ export class Scope {
   }
 }
 
-/**
- * The window a modal opens in. Obsidian's `Modal.open` takes `activeWindow`,
- * the window that last took focus.
- */
 function openingWindow(): Window | null {
   return (globalThis as { activeWindow?: Window }).activeWindow ?? null;
 }
@@ -1094,7 +966,6 @@ export abstract class SuggestModal<T> {
   readonly containerEl = {
     addClass() {},
     removeClass() {},
-    /** Obsidian opens a modal in `activeWindow`. */
     get win(): Window {
       return activeWindow;
     },
@@ -1120,7 +991,6 @@ export abstract class SuggestModal<T> {
     return this;
   }
   setInstructions(_instructions: Instruction[]): void {}
-  /** The window `open` put the modal in. */
   win: Window | null = null;
   open(): void {
     this.win = openingWindow();
@@ -1149,11 +1019,6 @@ export const Keymap = {
   },
 };
 
-/**
- * Lightweight stand-in for the subset of `Plugin.addCommand` tests touch.
- * Holds the most-recently registered command per id so a test can invoke its
- * callback directly.
- */
 export function createMockPlugin(): {
   addCommand(command: Command): Command;
   commands: Map<string, Command>;
@@ -1171,7 +1036,6 @@ export function createMockPlugin(): {
 let platformIsWin: boolean | undefined;
 let platformIsMacOS: boolean | undefined;
 let platformIsDesktopApp: boolean | undefined;
-/** Mobile defaults to off: most tests run as the desktop app. */
 let platformIsMobile = false;
 
 export const Platform = {
@@ -1203,11 +1067,6 @@ export const Platform = {
   },
 };
 
-/**
- * Configure the mocked `Platform` for the current test. Mirrors the real
- * `obsidian` module, where `Platform` is effectively read-only — tests must
- * never assign to `Platform.isWin` directly.
- */
 export function setMockPlatform(overrides: {
   isWin?: boolean;
   isMacOS?: boolean;
@@ -1236,17 +1095,12 @@ export async function requestUrl(): Promise<never> {
   throw new Error("requestUrl not configured in the Obsidian test mock");
 }
 
-/** Tests run against the current API surface, so every version check passes. */
 export function requireApiVersion(_version: string): boolean {
   return true;
 }
 
-/** The version an error report names its host by. */
 export const apiVersion = "1.0.0-test";
 
-/** Minimal stand-in for `MenuItem`; only the builder methods the plugin
- * chains off `Menu.addItem` plus a test-only `click()` to invoke the
- * registered handler. */
 export class MenuItem {
   #title: string | DocumentFragment = "";
   #icon: string | null = null;
@@ -1256,42 +1110,34 @@ export class MenuItem {
   #isLabel = false;
   #onClick: ((evt: MouseEvent | KeyboardEvent) => unknown) | null = null;
 
-  /** Populated by {@link setSubmenu}; lets tests inspect a submenu's items. */
   submenu: Menu | null = null;
 
-  /** The title's text, whether it was set as a string or as a fragment. */
   get title(): string {
     return typeof this.#title === "string"
       ? this.#title
       : (this.#title.textContent ?? "");
   }
 
-  /** The fragment a rich title was built from, or `null` for a plain one. */
   get titleFragment(): DocumentFragment | null {
     return typeof this.#title === "string" ? null : this.#title;
   }
 
-  /** `null` for an item that carries no icon, as in Obsidian. */
   get icon(): string | null {
     return this.#icon;
   }
 
-  /** `null` for an item that carries no check mark, as in Obsidian. */
   get checked(): boolean | null {
     return this.#checked;
   }
 
-  /** `""` for an unsectioned item, as in Obsidian. */
   get section(): string {
     return this.#section;
   }
 
-  /** Whether the row is disabled, as in Obsidian. */
   get disabled(): boolean {
     return this.#disabled;
   }
 
-  /** Whether the row is a non-clickable label, as in Obsidian. */
   get isLabel(): boolean {
     return this.#isLabel;
   }
@@ -1340,47 +1186,27 @@ export class MenuItem {
     return this;
   }
 
-  /** Test helper: invoke the registered `onClick` handler with the given
-   * event (a plain `{}` when the test does not care), or a no-op while
-   * disabled, as Obsidian ignores clicks on disabled items. */
   click(evt: Partial<MouseEvent | KeyboardEvent> = {}): void {
     if (this.#disabled) return;
     this.#onClick?.(evt as MouseEvent);
   }
 }
 
-/**
- * Minimal stand-in for `Menu`. Records every constructed instance on
- * `Menu.instances` so tests can inspect the menu built by code under test
- * without the production code needing to return it.
- *
- * `items` stays in insertion order: Obsidian's section grouping runs in
- * `sort()` from `show()`, which this mock never performs, and a faithful
- * `sort()` would materialize separators into `items`, which {@link
- * Menu.addSeparator} deliberately keeps out. Assert
- * {@link MenuItem.section} instead of inferring grouping from position.
- */
 export class Menu extends Component {
   static instances: Menu[] = [];
 
   readonly items: MenuItem[] = [];
 
-  /** Where `showAtPosition` was asked to open, or `null` while it was not. */
   position: MenuPositionDef | null = null;
 
-  /** The document `showAtPosition` was given, or `null` for none. */
   positionDoc: Document | null = null;
 
-  /** The element `setParentElement` anchored this menu to, or `null`. */
   parentEl: HTMLElement | null = null;
 
-  /** The event `showAtMouseEvent` opened at, or `null` for none. */
   mouseEvent: MouseEvent | null = null;
 
-  /** Every section `addSections` registered, in the order given. */
   readonly sections: string[] = [];
 
-  /** The menu's keys, whose Escape hides it without taking the key. */
   readonly scope = new Scope();
 
   constructor() {
@@ -1404,7 +1230,6 @@ export class Menu extends Component {
     return this;
   }
 
-  /** No-op divider; kept out of `items` so index-based assertions see only actionable entries. */
   addSeparator(): this {
     return this;
   }
@@ -1413,7 +1238,6 @@ export class Menu extends Component {
     return this;
   }
 
-  /** What `hide` runs, as Obsidian runs it once the menu closes. */
   #onHide: (() => void) | null = null;
 
   onHide(callback: () => void): this {
@@ -1421,25 +1245,16 @@ export class Menu extends Component {
     return this;
   }
 
-  /**
-   * Close the menu as Obsidian does: it unloads, its children with it, and
-   * runs what `onHide` registered.
-   */
   hide(): this {
     this.unload();
     this.#onHide?.();
     return this;
   }
 
-  /** As Obsidian's: the menu loads, its children after it, a timer after it shows. */
   #show(): void {
     setTimeout(() => this.load(), 0);
   }
 
-  /**
-   * The keymap a test hands the menus it opens, which a loaded menu pushes
-   * its Scope on, as Obsidian's push theirs on its global keymap.
-   */
   static keymap: {
     pushScope(scope: Scope): void;
     popScope(scope: Scope): void;
@@ -1472,12 +1287,6 @@ export class Menu extends Component {
   }
 }
 
-/**
- * Deterministic test stand-in for Obsidian's `debounce`. Unlike the real
- * implementation it does **not** use timers: the callback fires only when
- * `.run()` is invoked explicitly. This matches how `SettingsService.flush()`
- * drives writes and keeps tests free of fake-timer setup.
- */
 export function debounce<T extends unknown[], V>(
   cb: (...args: T) => V,
   _timeout?: number,
@@ -1504,13 +1313,6 @@ export function debounce<T extends unknown[], V>(
   return debouncer;
 }
 
-/**
- * Stand-in for `Modal`. Every instance lands on `Modal.instances`, so a test
- * reaches the dialog a function opened without that function returning it. The
- * `contentEl` is the dialog's own, so the rows built on it are readable through
- * {@link settingsOf}, and `close()` runs the close callback the way dismissing
- * the dialog does.
- */
 export class Modal {
   static instances: Modal[] = [];
 
@@ -1541,7 +1343,6 @@ export class Modal {
     return this;
   }
 
-  /** The window `open` put the modal in. */
   win: Window | null = null;
   open(): void {
     this.isOpen = true;
@@ -1558,15 +1359,12 @@ export class Modal {
   onClose(): void {}
 }
 
-/** A real element under a DOM environment, so a dialog can build its body and
- * footer; the row-only stub elsewhere. */
 function elementOrStub(): HTMLElement {
   return globalThis.document
     ? document.createElement("div")
     : containerElStub();
 }
 
-/** Minimal container a `Setting` row attaches itself to. */
 function containerElStub(): HTMLElement {
   return {
     addClass: (_cls: string) => {},
@@ -1577,7 +1375,6 @@ function containerElStub(): HTMLElement {
 
 const settingRows = new WeakMap<HTMLElement, Setting[]>();
 
-/** The rows built on one container, in the order they were built. */
 export function settingsOf(containerEl: HTMLElement): Setting[] {
   return settingRows.get(containerEl) ?? [];
 }
@@ -1594,26 +1391,16 @@ function registerControl(containerEl: HTMLElement, control: Control): void {
   controls.set(containerEl, list);
 }
 
-/** The controls built directly on one container, in the order built; a dialog
- * that lays its own fields out (no `Setting` row) is read through this. */
 export function controlsOf(containerEl: HTMLElement): Control[] {
   return controls.get(containerEl) ?? [];
 }
 
-/**
- * Stand-in for one `Setting` row. It records what it was named and holds the
- * components it was given, so a test reads a dialog the way a user does and
- * drives it through {@link DropdownComponent.choose}, {@link
- * TextComponent.type}, and {@link ButtonComponent.click}.
- */
 export class Setting {
-  /** The row's own element. Removing it takes the row out of {@link settingsOf}, as it takes it off the screen. */
   readonly settingEl: HTMLElement = Object.assign(containerElStub(), {
     remove: () => this.#remove(),
     detach: () => this.#remove(),
   });
   readonly controlEl = containerElStub();
-  /** Every component added to this row, in the order it was added. */
   readonly components: (
     | ButtonComponent
     | DropdownComponent
@@ -1624,9 +1411,7 @@ export class Setting {
 
   name = "";
   desc = "";
-  /** The hover text the row carries, as the user reads it. */
   tooltip = "";
-  /** The classes the row was given, in the order it was given them. */
   readonly classes: string[] = [];
   errorMessage: string | null = null;
 
@@ -1715,11 +1500,6 @@ export class Setting {
   }
 }
 
-/**
- * `row` rendered into a fresh {@link Setting}, as Obsidian renders a `render`
- * row, so a test reads the controls the user gets. `cleanup` is what `render`
- * returned.
- */
 export function renderRow<K extends string>(
   row: SettingDefinitionItem<K>,
 ): Setting & { readonly cleanup: (() => void) | undefined } {
@@ -1736,7 +1516,6 @@ export function renderRow<K extends string>(
 }
 
 export class DropdownComponent {
-  /** Every entry the dropdown offers, in the order it offers them. */
   options: { value: string; label: string; disabled?: boolean }[] = [];
 
   selectEl = {
@@ -1782,7 +1561,6 @@ export class DropdownComponent {
     return this;
   }
 
-  /** Test helper: pick an entry, as the user does; a disabled entry refuses. */
   choose(value: string): void {
     if (this.options.find((option) => option.value === value)?.disabled) return;
     this.#value = value;
@@ -1790,7 +1568,6 @@ export class DropdownComponent {
   }
 }
 
-/** The input surface a dialog seeds a value in and refuses one through. */
 function inputElStub(): HTMLInputElement {
   const input = {
     value: "",
@@ -1801,8 +1578,6 @@ function inputElStub(): HTMLInputElement {
       input.validationMessage = message;
     },
     reportValidity: () => !input.validationMessage,
-    // A dialog wires its own key handling and takes focus; a test drives the
-    // component through `type` instead, so both stand in as no-ops.
     addEventListener: () => {},
     removeEventListener: () => {},
     focus: () => {},
@@ -1852,7 +1627,6 @@ export class TextComponent {
     return this;
   }
 
-  /** Test helper: type a value, as the user does. */
   type(value: string): void {
     this.setValue(value);
     this.#changed?.(value);
@@ -1888,11 +1662,6 @@ export class ToggleComponent {
     this.disabled = disabled;
     return this;
   }
-  /**
-   * Publishes the value under `key`, the way a graph controls-panel row
-   * persists: the listener reads the value, and writes it when called with
-   * one — which fires `onChange`, as `setValue` does.
-   */
   registerOptionListener(
     listeners: Record<string, GraphOptionListener>,
     key: string,
@@ -1907,21 +1676,14 @@ export class ToggleComponent {
     this.#changed = callback;
     return this;
   }
-  /** Test helper: change the checked state, as the user does. */
   toggle(value: boolean): void {
     if (!this.disabled) this.setValue(value);
   }
 }
 
-/**
- * The borderless icon action a row carries beside its control. It is read by
- * the tooltip it names, which is the label the user gets from it.
- */
 export class ExtraButtonComponent {
   icon = "";
-  /** The label the button carries, as the user reads it on hover. */
   tooltip = "";
-  /** Whether the row locked the button, as the user finds it. */
   disabled = false;
 
   #clicked: ((evt: MouseEvent) => unknown) | null = null;
@@ -1952,7 +1714,6 @@ export class ExtraButtonComponent {
     return this;
   }
 
-  /** Test helper: press the button, as the user does. */
   click(): void {
     this.#clicked?.({} as MouseEvent);
   }
@@ -1964,10 +1725,8 @@ export class ButtonComponent {
   }
   buttonEl: HTMLElement = noticeElStub;
 
-  /** The label the button carries, as the user reads it. */
   text = "";
   icon = "";
-  /** The label an icon-only button carries, as the user reads it on hover. */
   tooltip = "";
 
   setIcon(icon: string): this {
@@ -2018,7 +1777,6 @@ export class ButtonComponent {
     return this;
   }
 
-  /** Test helper: press the button, as the user does. */
   click(): void {
     this.#clicked?.({} as MouseEvent);
   }
@@ -2061,7 +1819,6 @@ export class ConfirmationModal {
     this.#closed = callback;
     return this;
   }
-  /** The window `open` put the modal in. */
   win: Window | null = null;
   open(): void {
     this.win = openingWindow();
@@ -2071,7 +1828,6 @@ export class ConfirmationModal {
   }
 }
 
-/** Host boundary for exercising a plugin's declarative control bridge. */
 export class PluginSettingTab {
   constructor(_app: App, _plugin: unknown) {}
   update(): void {}

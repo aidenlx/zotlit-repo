@@ -165,7 +165,6 @@ await test("every case oracle matches a real query over the seeded Fixture", asy
           },
         };
         assert.deepEqual(validate(name, envelope, { runRoot: root }), []);
-        // A grouped count is of records; element groups can overlap.
         assert.equal(
           result.groups ? result.totalCount : result.returnedCount,
           spec.count,

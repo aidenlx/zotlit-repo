@@ -1,21 +1,3 @@
-// The view menu of a Query View's toolbar, as a Bases view menu is built: a
-// search field over the file's views, a row per view (its layout icon, its
-// name, and a chevron that configures it) to switch to it, drag to reorder,
-// and the row that adds a view. The chevron, ArrowRight on a highlighted row
-// and a right-click on a row open "Configure view" for that view as a page of
-// the popover, as Bases does; a right-click on the button opens it for the
-// view on screen.
-//
-// A host without views of its own (`displayOnly`, ADR 0071) gets the menu as
-// a Layout switch: a row per Layout the host offers, and no view to add or
-// configure. A host that offers one Layout, as the Library View, gets no menu
-// at all (ADR 0075).
-//
-// It stands on the Chooser, the one popover that filters as the user types
-// (ADR 0044).
-//
-// @see apps/obsidian/docs/adr/0044-menus-and-popovers-are-obsidians-own-primitives.md
-// @see apps/obsidian/docs/adr/0075-the-papers-layout-is-a-query-view-layout-the-library-view-offers-with-the-table.md
 import { useMemo, useRef, useState } from "react";
 
 import type {
@@ -43,7 +25,6 @@ import {
   toolbarButtonClass,
 } from "#obsidian/query-view/toolbar-button.tsx";
 
-/** The drag payload of a view row: its place in the file's list. */
 const VIEW_ROW_DRAG_TYPE = "application/x-zotlit-query-view";
 
 const ADD_ROW = "action:add";
@@ -69,8 +50,6 @@ function ViewSwitch({ view }: { view: QueryView }) {
     <Chooser
       value={currentIndex === -1 ? [] : [String(currentIndex)]}
       onValueChange={(next) => {
-        // A tick on another row adds it to the selection; a tick on the row
-        // on screen takes it away, which leaves that view as it is.
         const picked = next.find((value) => value !== String(currentIndex));
         const name = picked === undefined ? undefined : views[Number(picked)];
         if (name) view.pickView(name.name);
@@ -80,8 +59,6 @@ function ViewSwitch({ view }: { view: QueryView }) {
       <ViewMenuTrigger view={view} />
       <Chooser.Popup
         handle={popup}
-        // "Configure view" holds more than the list, as the Properties
-        // popover does.
         className="zt:[max-height:min(--spacing(120),calc(100vh_-_--spacing(2)))]"
         data-query-view-list=""
       >
@@ -98,7 +75,6 @@ function ViewSwitch({ view }: { view: QueryView }) {
   );
 }
 
-/** The menu as a switch between the Layouts the host offers for the view on screen. */
 function LayoutSwitch({ view }: { view: QueryView }) {
   const file = useQueryViewState(view, (s) => s.file);
   const current = useQueryViewState(view, (s) => s.view);
@@ -119,7 +95,6 @@ function LayoutSwitch({ view }: { view: QueryView }) {
     ],
     [layouts],
   );
-  // One Layout leaves nothing to switch to.
   if (!file || !current || layouts.length <= 1) return null;
   const index = file.views.indexOf(current);
   const shown = layoutOf(current);
@@ -174,12 +149,9 @@ function ViewMenuTrigger({ view }: { view: QueryView }) {
   if (!shown) return null;
   return (
     <Chooser.Trigger
-      // The switcher keeps its name on a narrow toolbar and gives way
-      // first when the row runs out of room. It reads in the normal ink.
       className={cn(toolbarButtonClass, "zt:shrink zt:text-foreground")}
       aria-label={m.query_view_views()}
       data-query-view-menu=""
-      // A right-click configures the view on screen, as in Bases.
       onContextMenu={(event) => {
         if (!current) return;
         event.preventDefault();
@@ -210,7 +182,6 @@ function ViewList({ view }: { view: QueryView }) {
         })),
       },
       {
-        // "Add view" stays in reach below a long list of views.
         pinned: true,
         items: [
           {
@@ -252,13 +223,10 @@ function ViewList({ view }: { view: QueryView }) {
             key={row.value}
             value={row.value}
             icon={layoutOf(views[index]!)?.icon ?? "table"}
-            // The view on screen reads in the medium weight, as Bases
-            // marks it, in place of a tick.
             className="zt:data-selected:[font-weight:var(--font-medium)]"
             end={
               <button
                 type="button"
-                // The pointer's way in; ArrowRight is the keyboard's.
                 tabIndex={-1}
                 className={cn(
                   chooserIconButton,
@@ -290,7 +258,6 @@ function ViewList({ view }: { view: QueryView }) {
               event.preventDefault();
               view.document.moveView(Number(from), index);
             }}
-            // A right-click configures the view, as the chevron does.
             onContextMenu={(event) => {
               event.preventDefault();
               openPage(row.label);
@@ -304,19 +271,12 @@ function ViewList({ view }: { view: QueryView }) {
   );
 }
 
-/**
- * "Configure view" for one view, as a page of the view menu. Its menu sets
- * the view as the one the file opens on, duplicates it and deletes it.
- */
 function ConfigureViewPage({ view, name }: { view: QueryView; name: string }) {
   const { back, replacePage } = useChooserPage();
-  // The name the view holds now, which a rename on this page moves.
   const [current, setCurrent] = useState(name);
-  // The menu reads the view's place in the file as it stands.
   const file = useQueryViewState(view, (s) => s.file);
   const index =
     file?.views.findIndex((candidate) => candidate.name === current) ?? -1;
-  // A view that leaves the file leaves no page to show.
   if (file && index < 0) return <Chooser.PageGone />;
   return (
     <>

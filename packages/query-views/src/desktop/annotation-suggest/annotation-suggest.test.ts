@@ -30,7 +30,6 @@ import {
   resolveAnnotationTrigger,
 } from "#core/annotation-suggest/annotation-trigger.ts";
 
-/** The Fixture's highlight on the Rougier PDF, as the search finds it. */
 const hit: AnnotationHit = {
   key: "PUPR5FG5",
   attachmentKey: "RGRPDF24",
@@ -114,7 +113,6 @@ describe("Annotation Suggester trigger", () => {
       query: "fig",
     });
     expect(at("quote [>fig", undefined, ";;")).toBeNull();
-    // A trigger that opens no bracket leaves a bracket after the cursor.
     expect(at("[;;fig]", 6, ";;")).toEqual({ start: 1, end: 6, query: "fig" });
   });
 
@@ -171,12 +169,6 @@ describe("AnnotationEditorSuggest", () => {
     expect(trigger(h.suggest, "x [>fig")).toBeNull();
   });
 
-  /**
-   * ZotLit Query as the suggester reaches it: a search for one word answers
-   * one paper and two annotations named after the word, once `release(word)`
-   * lets it finish, and answers `cancelled` for a search aborted meanwhile,
-   * as the query worker does.
-   */
   function gatedQuery() {
     const gates = new Map<string, PromiseWithResolvers<void>>();
     const gate = (word: string) => {
@@ -248,15 +240,12 @@ describe("AnnotationEditorSuggest", () => {
     const keys = async (hits: Promise<{ key: string }[] | null>) =>
       (await hits)?.map(({ key }) => key) ?? null;
 
-    // The next keystroke's search starts while the first is still running.
     const before = keys(h.suggest.getSuggestions({ ...context, query: "fi" }));
     const typed = keys(h.suggest.getSuggestions({ ...context, query: "fig" }));
     query.release("fig");
     query.release("fi");
 
     await expect(typed).resolves.toEqual(["fig-1", "fig-2"]);
-    // A dropped search answers `null`, which Obsidian skips; `[]` would close
-    // the popup while the typed query's answer is pending.
     await expect(before).resolves.toBeNull();
 
     const closing = keys(
@@ -268,11 +257,6 @@ describe("AnnotationEditorSuggest", () => {
     await expect(closing).resolves.toBeNull();
   });
 
-  /**
-   * The suggester over {@link gatedQuery}, drawing each row it finds. Obsidian's
-   * Markdown renderer, which draws a row's comment, stands outside the test:
-   * `live` holds every comment drawn and not yet let go.
-   */
   function drawing() {
     const query = gatedQuery();
     const live = new Set<string>();
@@ -319,7 +303,6 @@ describe("AnnotationEditorSuggest", () => {
 
   it.live("stays silent when unload ends the insert of a chosen result", () =>
     Effect.gen(function* () {
-      // The plugin's runner: its fibers sit on a Scope that unload closes.
       const unload = openScope();
       const run = yield* FiberSet.makeRuntime<never>().pipe(
         Scope.provide(unload.scope),
@@ -358,7 +341,6 @@ describe("AnnotationEditorSuggest", () => {
               offref: (ref) => workspace.offref(ref),
             }),
             bridge: { runSync: Effect.runSync },
-            // The insert waits on the read of the annotation until unload.
             runner: { execute: () => Effect.never, run },
             notify,
           }),
@@ -378,7 +360,6 @@ describe("AnnotationEditorSuggest", () => {
         try {
           suggest.selectSuggestion(hit, new MouseEvent("click"));
           await unload.close();
-          // Node reports an unhandled rejection before the next task runs.
           await yieldToMain();
         } finally {
           process.off("unhandledRejection", unhandled);

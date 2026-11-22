@@ -17,11 +17,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { testAnnotHost } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
 import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
-// A note holds a Query View in two ways: the Query File embed and the Query
-// Block. Both bind `this` to the note's Item, take the card keys, keep a click
-// from selecting them in Live Preview and settle as Export to PDF waits for
-// them. These tests drive each host as Obsidian does: the embed through its
-// creator and `loadFile`, the block through its code block processor.
 import {
   resetMockPlatform,
   setMockPlatform,
@@ -65,7 +60,6 @@ const EMPTY: QueryViewOutcome = {
     rows: [],
   },
 };
-/** A run that cannot read Zotero's data. */
 const FAILED: QueryViewOutcome = {
   kind: "failed",
   diagnostic: {
@@ -79,7 +73,6 @@ const FAILED: QueryViewOutcome = {
     suggestions: [],
   },
 };
-/** A Table of Items, a Layout that draws records. */
 const TABLE = `views:
   - type: table
     name: Papers
@@ -105,7 +98,6 @@ afterEach(async () => {
   document.body.replaceChildren();
 });
 
-/** A Query View that a note holds, once its host has loaded. */
 interface Held {
   el: HTMLElement;
   view: QueryView;
@@ -122,7 +114,6 @@ async function setup(kind: HostKind, file = FILE) {
     "notes/Lab.md": NOTE("RUGIER24"),
     "notes/Plain.md": "No properties\n",
   });
-  /** The keymap's pushed Scopes, the last one on top. */
   const scopes: Scope[] = [];
   const app = stubService<App>("App", {
     vault: host.vault as unknown as App["vault"],
@@ -144,10 +135,6 @@ async function setup(kind: HostKind, file = FILE) {
     Promise.resolve(EMPTY),
   );
   const runtime = testRuntime();
-  /**
-   * Where each view stands: on screen as it loads, or `far` from it until
-   * `come` brings it near.
-   */
   const screen = {
     far: false,
     waiting: new Map<HTMLElement, () => void>(),
@@ -203,16 +190,9 @@ async function setup(kind: HostKind, file = FILE) {
     deps,
   );
 
-  /** The Query View the End-to-end Run reads from the host's element. */
   const viewOf = (el: HTMLElement): QueryView =>
     (el as HTMLElement & { zotlitQueryView: QueryView }).zotlitQueryView;
 
-  /**
-   * Show the Query File in the note at `sourcePath`, under `parent`, as
-   * Obsidian does. It settles as Export to PDF waits for the host: the
-   * embed's `loadFile`, the block's processor. Its element and its unload
-   * are there at once.
-   */
   function show(
     sourcePath: string,
     parent: HTMLElement,
@@ -240,7 +220,6 @@ async function setup(kind: HostKind, file = FILE) {
       );
     }
     let child: MarkdownRenderChild | undefined;
-    // The block has no section to save to, as in a print.
     const ctx = stubService<MarkdownPostProcessorContext>(
       "MarkdownPostProcessorContext",
       {
@@ -261,7 +240,6 @@ async function setup(kind: HostKind, file = FILE) {
     );
   }
 
-  /** Show it in a note on the page, and wait until its rows show. */
   async function hold(sourcePath = "notes/Lab.md"): Promise<Held> {
     let held: Held | undefined;
     await act(async () => {
@@ -270,10 +248,6 @@ async function setup(kind: HostKind, file = FILE) {
     });
     return held!;
   }
-  /**
-   * Show the block `source` under the context `ctx` gives, as Obsidian's
-   * code block processor does, and wait until its rows show.
-   */
   async function block(
     source: string,
     ctx: Omit<MarkdownPostProcessorContext, "addChild">,
@@ -346,7 +320,6 @@ describe.each<HostKind>(["embed", "block"])("a %s", (kind) => {
     void view.settled.then(() => {
       settled = true;
     });
-    // The note's Item changes while the view waits, which asks for a run.
     await act(async () => {
       host.vault.modifyFile("notes/Lab.md", NOTE("SMITHJ25"));
       await delay(50);
@@ -354,7 +327,6 @@ describe.each<HostKind>(["embed", "block"])("a %s", (kind) => {
     expect(run).not.toHaveBeenCalled();
     expect(view.state.getState().phase).toBe("waiting");
     expect(settled).toBe(false);
-    // It holds the room its rows take for when they come.
     expect(el.hasAttribute("data-query-waiting")).toBe(true);
 
     await act(async () => {
@@ -364,7 +336,6 @@ describe.each<HostKind>(["embed", "block"])("a %s", (kind) => {
     expect(run).toHaveBeenCalledTimes(1);
     expect(run.mock.calls[0]![0].context).toEqual({ item: "SMITHJ25" });
     expect(view.state.getState().phase).toBe("ready");
-    // It lets the room go once the Layout draws the rows, not before.
     await act(() => view.drawn());
     expect(el.hasAttribute("data-query-waiting")).toBe(false);
   });
@@ -378,7 +349,6 @@ describe.each<HostKind>(["embed", "block"])("a %s", (kind) => {
     let phase: string | undefined;
     await act(async () => {
       shown = show("notes/Lab.md", document.body);
-      // The view, as it loads: on screen, and the embed's text still to come.
       const el = document.body.lastElementChild as HTMLElement;
       const view = (el as HTMLElement & { zotlitQueryView: QueryView })
         .zotlitQueryView;
@@ -411,7 +381,6 @@ describe.each<HostKind>(["embed", "block"])("a %s", (kind) => {
       answer.resolve(EMPTY);
       await delay(50);
     });
-    // The list draws the rows once the render settles.
     await delay(0);
     expect(printed).toBe(true);
     const { el } = await held!;
@@ -419,7 +388,6 @@ describe.each<HostKind>(["embed", "block"])("a %s", (kind) => {
   });
 
   describe("settles in a print where it draws no rows", () => {
-    /** Whether `shown` settles, as Export to PDF waits for it, in a short wait. */
     async function printed(shown: () => Promise<unknown>): Promise<boolean> {
       let done = false;
       await act(async () => {
@@ -457,8 +425,6 @@ describe.each<HostKind>(["embed", "block"])("a %s", (kind) => {
       const done = await printed(async () => {
         const shown = show("notes/Lab.md", print);
         el = shown.el;
-        // The note leaves the page in the moment the rows land, within one
-        // render, which the rows would draw in.
         const stop = viewOf(el).state.subscribe((state) => {
           if (state.phase === "ready") shown.unload();
         });
@@ -492,7 +458,6 @@ describe.each<HostKind>(["embed", "block"])("a %s", (kind) => {
   });
 
   describe("the card keys", () => {
-    /** A control in the view that takes focus as a card does, and is no text field. */
     const control = (el: HTMLElement) => {
       const button = el.querySelector("button");
       if (!button) throw new Error(`The ${kind} shows no button`);
@@ -553,15 +518,8 @@ describe("a Query Block that leaves the page", () => {
   const PATH = "notes/Lab.md";
   const SOURCE = `${FILE}    limit: 100`;
   const BLOCK_NOTE = `${NOTE("RUGIER24")}\n\`\`\`zotquery\n${SOURCE}\n\`\`\`\n\nAfter the block.\n`;
-  /** The opening fence's line in {@link BLOCK_NOTE}. */
   const LINE_START = 5;
 
-  /**
-   * A block on the page until it unloads, as in Reading view and Live
-   * Preview: its section, while it stands there, and Live Preview's own
-   * `replaceCode`, which writes into an editor that no longer shows the note
-   * once the block has left it.
-   */
   async function leaving({ replaceCode }: { replaceCode?: () => void }) {
     const { block, host } = await setup("block");
     host.vault.modifyFile(PATH, BLOCK_NOTE);

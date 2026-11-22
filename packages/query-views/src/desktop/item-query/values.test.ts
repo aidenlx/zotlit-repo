@@ -66,10 +66,6 @@ it.effect.each<CliData>([
   }),
 );
 
-/**
- * The parsed listing answer of `params` on `scenario`, read in `scope`. A
- * malformed listing fails with its rejection.
- */
 const listingOf = (
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   params: CliData,
@@ -87,7 +83,6 @@ const listingOf = (
     Effect.map((reply) => JSON.parse(reply.answer)),
   );
 
-/** The scenario database, held for the case's scope. */
 const scenarioOf = Effect.acquireDisposable(
   Effect.sync(() => openScenarioDatabase(connectClient)),
 );

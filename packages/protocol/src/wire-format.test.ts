@@ -48,7 +48,6 @@ type PipedObjectSchema = {
   ];
 };
 
-/** Extract sorted raw-entry keys from a `v.pipe(v.object(…), v.transform(…))` schema. */
 function pipedObjectKeys(schema: unknown): string[] {
   return Object.keys((schema as PipedObjectSchema).pipe[0].entries).sort();
 }

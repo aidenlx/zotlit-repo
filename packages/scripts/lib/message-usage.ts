@@ -1,20 +1,8 @@
-// Message keys that no source reads. The catalogs in `messages/` hold the
-// user-facing copy of every surface; a key that no source names is dead copy
-// that translators still maintain.
-
-/** One message key and the names a source reads it by. */
 export interface MessageKey {
-  /** The key as the catalog writes it: `query_view_filter` or `zotero.menu_item_open`. */
   readonly key: string;
-  /** A source that holds one of these as a whole word reads the key. */
   readonly names: readonly string[];
 }
 
-/**
- * The keys of the base catalog. A top-level key is read by its name. A key of
- * the `zotero` object is Companion copy, read by its Fluent ID
- * (`zotlit-menu-item-open`) or as `zotero.menu_item_open`.
- */
 export function messageKeys(
   catalog: Readonly<Record<string, unknown>>,
 ): MessageKey[] {
@@ -34,7 +22,6 @@ export function messageKeys(
   return keys;
 }
 
-/** The keys that none of `sources` reads, in catalog order. */
 export function unusedMessageKeys(
   keys: readonly MessageKey[],
   sources: Iterable<string>,
@@ -43,8 +30,6 @@ export function unusedMessageKeys(
   for (const source of sources)
     for (const word of source.matchAll(/[\w.-]+/g)) {
       words.add(word[0]);
-      // `m.query_view_filter()` reads as one dotted word; so does a Fluent
-      // ID with an attribute, `zotlit-menu-item-open.label`.
       for (const part of word[0].split(".")) words.add(part);
     }
   return keys
@@ -52,10 +37,6 @@ export function unusedMessageKeys(
     .map(({ key }) => key);
 }
 
-/**
- * What the check reports: keys newly unused, and baseline keys that a source
- * reads again or the catalog no longer holds. Each list must be empty.
- */
 export function compareWithBaseline(
   unused: readonly string[],
   baseline: readonly string[],

@@ -4,9 +4,6 @@ import type {
 } from "#core/query-view/query-file.ts";
 import type { QueryViewRow } from "#desktop/item-query/query-view.ts";
 
-// What each Query Dataset gives a Query View, in one table: its engine
-// descriptor, its name, the properties Sort offers, the groupings Group
-// offers, and the paths of its parent records in a filter condition.
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/item-query";
 import type { QueryDataset } from "@zotlit/item-query";
 import { itemTypeLabel } from "@zotlit/notes/obsidian/profile-selection/describe.ts";
@@ -15,24 +12,17 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { PropertyKind } from "./properties.ts";
 
-/** A property Sort offers: its Projection Path, its label and how its values order. */
 export type SortCandidate = readonly [
   path: string,
   label: () => string,
   kind: PropertyKind,
 ];
 
-/** The group a row stands in, and the heading the group shows under. */
 export interface Placement {
   readonly value: QueryFileGroupValue;
   readonly label: string;
 }
 
-/**
- * A grouping Group offers: its group path, its label, the Projection Paths
- * it reads, and the groups it places a row in. A row with several values of
- * a list path, such as two tags, stands in each of their groups.
- */
 export interface Grouping {
   readonly path: string;
   readonly label: () => string;
@@ -44,7 +34,6 @@ function text(value: unknown): string | null {
   return typeof value === "string" && value !== "" ? value : null;
 }
 
-/** The texts of a list; an Item's tags come as `{ name, type }`. */
 function texts(value: unknown): string[] {
   return Array.isArray(value)
     ? value
@@ -57,14 +46,12 @@ function texts(value: unknown): string[] {
     : [];
 }
 
-/** One group for each value, or the group of no value where there is none. */
 function each(values: string[]): Placement[] {
   return values.length > 0
     ? values.map((value) => ({ value, label: value }))
     : [{ value: null, label: m.query_view_group_none() }];
 }
 
-/** A grouping by each text of the list at `field`. */
 function byList(path: string, label: () => string, field: string): Grouping {
   return {
     path,
@@ -74,19 +61,11 @@ function byList(path: string, label: () => string, field: string): Grouping {
   };
 }
 
-/**
- * The Attachment's group, named by its title at `title`. A row of the
- * Attachments dataset is the Attachment itself.
- */
 function attachmentPlacement(row: QueryViewRow, title: string): Placement {
   const key = row.attachmentIndexedKey ?? row.indexedKey;
   return { value: key, label: text(row.values[title]) ?? key };
 }
 
-/**
- * A grouping by the Item; an Attachment that stands alone has no Item, and
- * is its own group, named by its title at `attachmentTitle`.
- */
 function byItem(attachmentTitle: string): Grouping {
   return {
     path: "item.indexedKey",
@@ -144,15 +123,10 @@ const BY_ITEM_COLLECTION = byList(
 
 export interface DatasetSpec {
   readonly engine: QueryDataset;
-  /** The dataset's name, as "Configure view" lists it. */
   readonly name: () => string;
-  /** What the view says when no row matches. */
   readonly empty: () => string;
-  /** The placeholder of the toolbar's Search. */
   readonly search: () => string;
-  /** The properties Sort offers, in order; the engine's Sortable Fields filter them. */
   readonly sort: readonly SortCandidate[];
-  /** The groupings the layouts of the dataset can gather rows by, in order. */
   readonly group: readonly Grouping[];
 }
 
@@ -218,21 +192,18 @@ export const DATASETS: Readonly<Record<QueryFileDataset, DatasetSpec>> = {
     ],
     group: [
       BY_ITEM_TYPE,
-      // An Item's tags come as `{ name, type }`; the grouping reads the names.
       BY_TAG,
       byList("collections[]", m.query_view_property_collection, "collections"),
     ],
   },
 };
 
-/** The spec of a view's dataset; a view that names none reads Annotations. */
 export function datasetSpec(
   dataset: QueryFileDataset | undefined,
 ): DatasetSpec {
   return DATASETS[dataset ?? "annotations"];
 }
 
-/** The grouping of a view of `dataset` by `path`, where the dataset offers one. */
 export function grouping(
   dataset: QueryFileDataset | undefined,
   path: string,

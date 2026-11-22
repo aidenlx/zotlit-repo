@@ -1,6 +1,5 @@
 import type { ManagedFrontmatterPreparationFailure } from "#core/note-feature/frontmatter.ts";
 import type { ComposeWarn } from "#obsidian/note-feature/compose.ts";
-// The refusals a Note Feature operation returns instead of writing a note.
 import { Effect } from "effect";
 import type { TFile } from "obsidian";
 
@@ -24,10 +23,6 @@ import type {
 
 const logged = withLogCategory("note-feature");
 
-/**
- * The composition's warnings, logged through Effect's logger from inside a
- * render's synchronous callback.
- */
 export const composeWarn: Effect.Effect<ComposeWarn> = Effect.gen(function* () {
   const run = Effect.runSyncWith(yield* Effect.context<never>());
   return (message, annotations) =>
@@ -36,7 +31,6 @@ export const composeWarn: Effect.Effect<ComposeWarn> = Effect.gen(function* () {
     );
 });
 
-/** Result for an update that intentionally leaves the body region untouched. */
 const NO_BODY_UPDATE: UpdateResult = {
   bodyUpdated: false,
   duplicateRegionCount: 0,
@@ -64,10 +58,6 @@ function refusedCreate(
   };
 }
 
-/**
- * Map one Managed Frontmatter refusal to the diagnostic a caller reports, and
- * log each field whose evaluation failed.
- */
 const frontmatterRefusal = Effect.fnUntraced(function* (
   failures: readonly ManagedFrontmatterPreparationFailure[],
   input: {

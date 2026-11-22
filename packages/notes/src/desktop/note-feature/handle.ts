@@ -1,4 +1,3 @@
-// The Note Feature for callers outside Effect: views, the setting tab and the legacy runners.
 import { Effect } from "effect";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -10,13 +9,6 @@ import type { NoteFeature } from "./service.ts";
 
 import { plainNoteError } from "#obsidian/note-feature/errors.ts";
 
-/**
- * The Note Feature's members over `service`, run through `bridge`, with the
- * citation members and the interactive creation of `edges`
- * (`policies/services.md` → Edge handle). A
- * member resolves with its result and rejects with what failed, a render's
- * or a rewrite's throw as it was thrown.
- */
 export function bindNoteFeature(
   bridge: Pick<EffectBridge, "runPromise">,
   service: NoteFeature["Service"],

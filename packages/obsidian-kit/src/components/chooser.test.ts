@@ -1,7 +1,4 @@
 // @vitest-environment happy-dom
-// The Chooser mounts the state of one open with its popup. The popup is a
-// pinned popover on the document's body, so these tests press the trigger to
-// open it and press outside it to shut it.
 import type { App } from "obsidian";
 import { render } from "preact";
 import { act } from "preact/test-utils";
@@ -17,7 +14,6 @@ import { AppContext } from "#app-context.ts";
 
 vi.mock("obsidian", async (importOriginal) => ({
   ...(await importOriginal<typeof import("obsidian")>()),
-  // A substring match, enough for a query to narrow the rows.
   prepareFuzzySearch: (query: string) => (text: string) =>
     text.includes(query) ? { score: 0, matches: [] } : null,
 }));
@@ -66,11 +62,9 @@ function mount(app: App, trigger: { blocked?: boolean } = {}) {
   });
   render(ui, host);
   const button = host.querySelector<HTMLButtonElement>("button")!;
-  /** The popup stands on the body while it is open. */
   const popup = () => document.querySelector<HTMLElement>(".zt-chooser");
   const toggle = async (newState: "open" | "closed") => {
     if ((popup() !== null) === (newState === "open")) return;
-    // A press on the trigger opens it; a press anywhere else shuts it.
     await act(() => {
       if (newState === "open") button.click();
       else
@@ -93,7 +87,6 @@ function mount(app: App, trigger: { blocked?: boolean } = {}) {
 it("keeps a blocked trigger in the tab order and opens nothing on its press", async () => {
   const { button, popup } = mount(editorApp(), { blocked: true });
   expect(button.getAttribute("aria-disabled")).toBe("true");
-  // Native `disabled` would drop it from the tab order and its tooltip.
   expect(button.disabled).toBe(false);
   await act(() => button.click());
   expect(popup()).toBeNull();
@@ -122,7 +115,6 @@ it("draws its rows only while the popup is open", async () => {
   expect(app.scopes).toHaveLength(0);
   await toggle("open");
   expect(options()).toEqual(["method", "theory", "review"]);
-  // The popover's scope, and the session's above it.
   expect(app.scopes).toHaveLength(2);
   await toggle("closed");
   expect(options()).toEqual([]);
@@ -148,18 +140,12 @@ it("opens again with an empty search, every row and no highlight", async () => {
   expect(options()).toEqual(["method", "theory", "review"]);
   expect(highlighted()).toBeNull();
   expect(app.scopes).toHaveLength(2);
-  // The next key starts from the first row, not from the last open's row.
   await act(() => {
     pressKey(app.scopes.at(-1)!, "ArrowDown");
   });
   expect(highlighted()).toBe("method");
 });
 
-/**
- * A key through the Chooser's pushed scope, as the mock records it.
- * @returns `false` when the Chooser took the key, which then reaches nothing
- *   else.
- */
 function pressKey(scope: unknown, key: string): unknown {
   const { handlers } = scope as {
     handlers: {

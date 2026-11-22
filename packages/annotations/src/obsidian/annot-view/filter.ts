@@ -1,22 +1,13 @@
-// Pure filtering and derived data for the annotation view's search & filter surfaces.
-
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
 
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 
 export interface AnnotFilter {
-  /** Case-insensitive substring query; "" disables the query group. */
   query: string;
-  /** Selected swatch colors as canonical uppercase "#RRGGBB"; [] disables the color group. */
   colors: readonly string[];
-  /** Selected tag names; [] disables the tag group. */
   tags: readonly string[];
 }
 
-/**
- * Ordering for {@link deriveSwatchColors} — the Zotero reader's swatch order,
- * taken from the one palette and raised to the case this module keys colours in.
- */
 const SWATCH_PALETTE_ORDER = ANNOTATION_COLORS.map((color) =>
   color.toUpperCase(),
 );
@@ -58,7 +49,6 @@ export function isFilterActive(filter: AnnotFilter): boolean {
   );
 }
 
-/** Annotations surviving the filter: colors OR within group, tags OR within group, groups AND each other and the query. */
 export function filterAnnotations(
   annots: readonly AnnotationRecord[],
   filter: AnnotFilter,
@@ -71,7 +61,6 @@ export function filterAnnotations(
   );
 }
 
-/** Canonical uppercase colors present in the annotations. */
 function collectColors(annots: readonly AnnotationRecord[]): Set<string> {
   const seen = new Set<string>();
   for (const annot of annots) {
@@ -80,7 +69,6 @@ function collectColors(annots: readonly AnnotationRecord[]): Set<string> {
   return seen;
 }
 
-/** Distinct colors present in the annotations, canonical uppercase, ordered by the Zotero reader palette; unknown colors appended in first-seen order. Null colors are skipped. */
 export function deriveSwatchColors(
   annots: readonly AnnotationRecord[],
 ): string[] {
@@ -97,16 +85,6 @@ export interface SavedFilter {
   tags: string[];
 }
 
-/**
- * Parse and prune a persisted filter selection against the loaded annotations,
- * dropping colors/tags no longer present (a vanished selection would filter
- * invisibly).
- *
- * A filter saved by a released build that still keyed tags by numeric id
- * fails the `typeof t === "string"` check below and reads as absent — a
- * graceful lapse of a stale selection, not a bug.
- * @returns `null` for malformed input or when nothing survives.
- */
 export function sanitizeSavedFilter(
   raw: unknown,
   annots: readonly AnnotationRecord[],
@@ -141,22 +119,10 @@ export function sanitizeSavedFilter(
 export interface TagChip {
   name: string;
   selected: boolean;
-  /** Number of annotations carrying the tag among those passing the color+query groups (the tag group is ignored for this count). */
   hitCount: number;
-  /** `hitCount > 0` */
   available: boolean;
 }
 
-/**
- * Distinct tags across the annotations, ordered by hit count descending and
- * then by name (localeCompare), so the tags that reach the most annotations
- * lead the Chooser. Stable regardless of selection so the list never reorders
- * on toggle.
- *
- * Keyed by name, not a numeric id — the Local API source has none, and two
- * annotations' same-named tags were already indistinguishable to a reader,
- * so they collapse into one chip here.
- */
 export function deriveTagChips(
   annots: readonly AnnotationRecord[],
   filter: AnnotFilter,
@@ -192,22 +158,11 @@ export function deriveTagChips(
   );
 }
 
-/** What a bounded active state draws, and what it only counts. */
 export interface CappedSelection<T> {
-  /** The leading values the control draws, at most `cap` of them. */
   shown: T[];
-  /** How many the cap left out; `0` while everything is drawn. */
   hiddenCount: number;
 }
 
-/**
- * A selection bounded for a control that must stop growing as it fills: the
- * leading `cap` values, and a count of the rest. The order given is kept, so
- * the control reads the same way whatever order its values were ticked in.
- *
- * The cap reaches the eye alone — the control's accessible name is built from
- * the whole selection, which a screen reader has no width constraint on.
- */
 export function cappedSelection<T>(
   values: readonly T[],
   cap: number,

@@ -1,7 +1,3 @@
-// Browser-safe rendering of Workbench Item Snapshots. CSL formatting stays in
-// Obsidian because this preview produces the Profile's generated Markdown and
-// has no bibliography or citation processor.
-
 import { stringify as stringifyYaml } from "yaml";
 
 import {
@@ -138,9 +134,6 @@ export function renderProfile(
   const defined = new Set(
     (document.manifest.partials ?? []).map(({ name }) => name),
   );
-  // The draft this render reads, which a repair location is an offset into:
-  // the diagnostic names the partial the engine could not resolve and the call
-  // to repair it at, rather than the engine's bare words.
   const caller: RenderCallerSource = {
     source,
     profileId: document.manifest.id,
@@ -164,11 +157,7 @@ export function renderProfile(
       snapshot.roots.filename,
       snapshot.descriptors.filename,
     );
-    // The note name is rendered on its own first, so a mistake in the Filename
-    // Template is named as the note name's and leaves every other output on
-    // screen. A mistake anywhere else leaves the name this attempt produced.
     try {
-      // A preview assumes a free filename; the vault resolves collisions on save.
       filename = replaceSuffixMarkers(
         facade.renderLiteratureNoteTemplateFilename(document, filenameData),
         () => "",
@@ -187,10 +176,6 @@ export function renderProfile(
         defined.has(CITATION_TEMPLATE),
       );
     });
-    // The format is rendered on its own, ahead of the note, so a failure inside
-    // it is named as the format's and a host can show it where it is edited. The
-    // note goes on rendering: one that never calls the format keeps its
-    // preview, and one that does retains its own occurrence of the fault.
     try {
       const selected = example
         ? withRenderedCitation(
@@ -243,8 +228,6 @@ export function renderProfile(
       frontmatterBlock: frontmatterBlock(frontmatter.fold),
       creationBody,
       managedRegion,
-      // This render reads a Profile only; the Template Workbench View's own
-      // render previews a Citation Template and a Shared Partial.
       citation: null,
       partial: null,
       annotation: preview,
@@ -252,7 +235,6 @@ export function renderProfile(
       annotationRanges: locateOutputs(
         creationBody,
         annotations.flatMap((annotation) => {
-          // Marks belong only to successful outputs of the note's own annotations.
           try {
             return [
               facade.renderLiteratureNoteTemplateAnnotation(
@@ -295,22 +277,10 @@ export function renderProfile(
   }
 }
 
-/**
- * What one failed note-name render reads as, wherever it ran. The place is
- * named inside the note-name template's own text rather than in the document
- * that holds it: the pane the reader edits shows exactly that text, so the
- * mark lands there without reading whatever quoting the manifest wrote the
- * value under. Every render path renders the note name apart from the note,
- * so each names the fault the same way; this is where that answer is written,
- * once.
- */
 export function filenameErrorDiagnostic(
   error: unknown,
   caller: RenderCallerSource,
 ): RenderDiagnostic {
-  // Every place read off the whole document is dropped: a scan of the source
-  // can spell the blamed template in the note as well, and one fault marks one
-  // place. What is left names the note name and nowhere else.
   const {
     sourceSite: _read,
     callSite: _called,
@@ -325,7 +295,6 @@ export function filenameErrorDiagnostic(
   };
 }
 
-/** Preserve which verified call failed without making its source offset an ID. */
 function withCallIdentity(
   diagnostic: Omit<RenderDiagnostic, "part">,
   caller: RenderCallerSource,
@@ -339,18 +308,8 @@ function withCallIdentity(
       };
 }
 
-/** The Citation Template name an annotation's page-pinned citation renders through. */
 const CITATION_TEMPLATE = "citation";
 
-/**
- * The annotation's `citation`, produced here rather than carried in the
- * snapshot: Obsidian renders it from the parent Item with the annotation's
- * page as locator through the Citation Template under the main Citation
- * Variant, so a preview holding that template produces the same text. A bundle
- * carrying no Citation Template, and a parent Item with no citation key, leave
- * the value null.
- * @see apps/obsidian/src/services/template/annotation-render.ts annotationCitation
- */
 function withRenderedCitation(
   facade: TemplateFacade,
   restored: Record<string, unknown>,
@@ -379,13 +338,6 @@ function withRenderedCitation(
   });
 }
 
-/**
- * Evaluates every authored entry against one snapshot — each on its own, none
- * reading another's result — so a row shows what it produced by itself, then
- * folds every contribution in list order into the frontmatter the note gets.
- * Every diagnostic carries the 1-based position of the entry that raised it,
- * which is how a row claims its own.
- */
 function evaluateFrontmatter(
   facade: TemplateFacade,
   authored: readonly ManagedFrontmatterEntry[],
@@ -406,10 +358,6 @@ function evaluateFrontmatter(
   const properties = values.map(rendered);
   const conflicts: EntryDiagnostic[] = [];
   const patch = mergeManagedFrontmatterEntries(values, {
-    // An append that meets a value it cannot extend leaves the fold without the
-    // key it produced, so the entry that produced it says so. Every compiled
-    // entry stamps its own position onto what it produced, so the conflict
-    // names one.
     onConflict: (key, { position, recovery }) =>
       conflicts.push({
         code: "property-append-conflict",
@@ -423,9 +371,6 @@ function evaluateFrontmatter(
     key,
     ...(value === FRONTMATTER_ABSENT ? {} : { value }),
     missing: value === FRONTMATTER_ABSENT,
-    // Every merged key came from one of these values, and the first entry to
-    // produce one fixes where it sits in a created note. An entry whose
-    // expression produced nothing contributed no such value.
     position: properties.find(
       (property) => property.key === key && !property.missing,
     )!.position,
@@ -453,10 +398,6 @@ function evaluateFrontmatter(
   return { properties, fold, diagnostics };
 }
 
-/**
- * The fold as the note's own YAML block. An absent key contributes nothing to
- * the created note, so it is left out here too.
- */
 function frontmatterBlock(fold: readonly RenderedProperty[]): string | null {
   const present = fold.filter(({ missing }) => !missing);
   if (present.length === 0) return null;
@@ -466,10 +407,8 @@ function frontmatterBlock(fold: readonly RenderedProperty[]): string | null {
   );
 }
 
-/** A property diagnostic, which always names the entry that raised it. */
 type EntryDiagnostic = RenderDiagnostic & { readonly position: number };
 
-/** List order, so the diagnostic a host reads first belongs to the first row. */
 function byPosition(a: EntryDiagnostic, b: EntryDiagnostic): number {
   return a.position - b.position;
 }
@@ -480,7 +419,6 @@ function rendered({
   position,
 }: EvaluatedFrontmatterField): RenderedProperty {
   const missing = value === undefined || value === FRONTMATTER_ABSENT;
-  // Every compiled entry stamps its own position onto what it produced.
   return { key, ...(missing ? {} : { value }), missing, position: position! };
 }
 
@@ -488,12 +426,6 @@ function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/**
- * What one failed Managed Frontmatter entry reads as, wherever it ran. Both
- * hosts evaluate the same entries through the same engines, so both name the
- * fault the same way and place it in the same row; this is where that answer
- * is written, once.
- */
 export function propertyErrorDiagnostic(
   { key, position, error }: ManagedFrontmatterEvaluationError,
   authored: ManagedFrontmatterEntry | undefined,
@@ -503,8 +435,6 @@ export function propertyErrorDiagnostic(
     code: "property-error",
     message: errorMessage(error),
     evidence: engineEvidence(error),
-    // The engine's own last word, which the row reads on its own: the wrapper
-    // around it names the entry the row already names.
     params: { key, detail: engineClause(error) },
     part: "properties",
     position,
@@ -512,30 +442,15 @@ export function propertyErrorDiagnostic(
   };
 }
 
-/**
- * What the engine itself said, taken from the innermost link of the chain.
- * Everything wrapped around it repeats the entry the row already names, so a
- * row that carries this reads one sentence about one fault.
- */
 function engineClause(error: unknown): string {
   return errorMessage(errorChain(error).at(-1) ?? error);
 }
 
-/**
- * Where one entry failure points inside the entry's own expression, with what
- * the attempt read there. JSON-e names the keys and indexes it walked; Liquid
- * names the span of expression text it tokenized. Either way the text travels
- * with the place, so a host marks it only against an expression that still
- * spells the same thing.
- */
 function entrySite(
   error: unknown,
   authored: ManagedFrontmatterEntry | undefined,
 ): SliceSite | undefined {
   const chain = errorChain(error);
-  // An empty path is the whole authored value, which is the place a rule of
-  // one operator fails at: JSON-e names the node it walked to, and for such a
-  // rule that node is the expression itself.
   const path = chain.find(
     (link): link is FrontmatterJsonEError =>
       link instanceof FrontmatterJsonEError && link.path !== undefined,
@@ -547,13 +462,6 @@ function entrySite(
   return renderFailureSpan(error);
 }
 
-/**
- * What the author wrote at `path`, as the value a later mark is checked
- * against. Undefined where the path does not describe the authored value at
- * all: JSON-e leaves its own operator keys out of the locations it reports, so
- * a path that steps through an operator names a place the author never wrote
- * there, and a sibling that happens to sit at that name is not the fault.
- */
 function authoredAt(
   value: unknown,
   path: readonly (string | number)[],
@@ -569,12 +477,10 @@ function authoredAt(
   return JSON.stringify(node);
 }
 
-/** A key JSON-e reads as an operator rather than as a name to produce. */
 function isOperatorKey(key: string): boolean {
   return key.startsWith("$") && !key.startsWith("$$");
 }
 
-/** Liquid retains the source token when a note call fails inside the format. */
 function isAnnotationError(error: unknown): boolean {
   if (!(error instanceof Error) || !("token" in error)) return false;
   const { token } = error;
@@ -586,12 +492,6 @@ function isAnnotationError(error: unknown): boolean {
   );
 }
 
-/**
- * Where each output landed in the body, searched forward in order so two
- * highlights with the same text take two places. An output the body does not
- * carry — a note that calls the format for some highlights only — is skipped,
- * and an empty output marks nothing.
- */
 function locateOutputs(
   body: string,
   outputs: readonly string[],

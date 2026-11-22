@@ -32,7 +32,6 @@ ${bindings}
 --- zotlit:annotation ---\nAnnotation`;
 }
 
-/** A note's text: its Properties block over `body`. */
 function noteText(properties: Record<string, unknown>, body: string): string {
   return `---\n${stringifyYaml(properties)}---\n${body}`;
 }
@@ -344,14 +343,10 @@ describe("Profile", () => {
         const pending = yield* Effect.forkChild(plan.import(), {
           startImmediately: true,
         });
-        // Two debounced template-folder reconciles: the one the import settles on
-        // before it reads its target, then the one the files it writes raise.
         yield* TestClock.adjust(500);
         yield* TestClock.adjust(500);
         const imported = yield* Fiber.join(pending);
         expect(imported.id).toBe(BOOKS);
-        // The bundle's partial becomes a file of its own, and the transport copy
-        // it travelled in goes with it.
         expect([...f.vault.files.keys()].sort()).toEqual([
           "templates/zotlit-partial.shared.md",
           "templates/zotlit-profile.books.md",
@@ -401,13 +396,9 @@ describe("Profile", () => {
           plan.partials.map(({ name, verdict }) => `${name}:${verdict}`),
         ).toEqual(["summary:unchanged", "authors:conflict"]);
 
-        // Nothing approved: the reader's own authors file stands untouched, and
-        // its entry goes all the same — their document answers that name now.
         const pending = yield* Effect.forkChild(plan.import(), {
           startImmediately: true,
         });
-        // Two debounced template-folder reconciles: the one the import settles on
-        // before it reads its target, then the one the files it writes raise.
         yield* TestClock.adjust(500);
         yield* TestClock.adjust(500);
         const imported = yield* Fiber.join(pending);
@@ -517,8 +508,6 @@ describe("Profile", () => {
         yield* TestClock.adjust(500);
         yield* Fiber.join(pending);
 
-        // The reader kept their authors, so the Profile calls their file — and
-        // summary, unpacked to a file of its own, still answers.
         expect(
           f.template.bridge
             .runSync(
@@ -608,8 +597,6 @@ describe("Profile", () => {
             f.profileService.prepareImport(document("default")),
           )).message,
         ).toContain(m.profile_import_default());
-        // The catalog states the length as its own literal, so hold it to the
-        // pattern PROFILE_ID_LENGTH builds rather than letting the copy drift.
         expect(m.settings_profile_id_invalid()).toContain(
           String(PROFILE_ID_LENGTH),
         );

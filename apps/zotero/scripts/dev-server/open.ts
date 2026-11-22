@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-// Opens one detached Paired Zotero and verifies the companion is installed.
-
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -17,10 +15,6 @@ const addonId = await readAddonId();
 const controller = new AbortController();
 
 try {
-  // The companion is installed in the profile, as a researcher's install is,
-  // through a proxy file that names the build: Zotero then lists it in the
-  // profile's `extensions.json`, which ZotLit reads to say the Companion is
-  // installed. A temporary add-on runs the same code but is not listed.
   const extensionsDir = join(profilePath, "extensions");
   await mkdir(extensionsDir, { recursive: true });
   await writeFile(join(extensionsDir, addonId), addonPath);
@@ -42,10 +36,6 @@ try {
 
   const { pid } = session.child;
   if (pid === undefined) throw new Error("Paired Zotero has no process id");
-  // `debuggerPort` is the remote debugging port `spawnZotero` allocated for
-  // this instance. Reporting it is what lets a caller evaluate JS in the
-  // running Zotero (packages/scripts/scripts/zotero-rdp.ts) without hunting for the
-  // listening socket.
   console.log(JSON.stringify({ pid, debuggerPort: session.port }));
 } catch (error) {
   controller.abort(error);

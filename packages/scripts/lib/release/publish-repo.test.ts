@@ -10,16 +10,12 @@ import type { PublishRepoOptions } from "./publish-repo.ts";
 
 import { git, makeGitRepos } from "#git-repos";
 
-// The publish repository is a bare repository in a temporary folder whose
-// main holds an old history without the shell's workflow, as aidenlx/zotlit
-// does; each test writes a shell tree and commits it the way a release does.
 const SLOW = 30_000;
 const WORKFLOW = ".github/workflows/plugin-release.yml";
 const run = promisify(execFile);
 
 let repos: GitRepos;
 let publish: PublishRepoOptions;
-/** A clone of the publish repository, for commits that are not releases. */
 let maintainer: string;
 
 beforeEach(async () => {
@@ -38,7 +34,6 @@ beforeEach(async () => {
 });
 afterEach(() => repos.dispose());
 
-/** A shell tree for `version` in its own folder. */
 async function shellTree(version: string): Promise<string> {
   const dir = join(repos.root, `shell-${version}-${Math.random()}`);
   await mkdir(join(dir, "src"), { recursive: true });
@@ -47,7 +42,6 @@ async function shellTree(version: string): Promise<string> {
   await writeFile(join(dir, "manifest.json"), `{"version":"${version}"}\n`);
   await writeFile(join(dir, "src/main.ts"), "export {};\n");
   await writeFile(join(dir, ".gitignore"), "node_modules/\nmain.js\n");
-  // The build output stays out of the commit.
   await writeFile(join(dir, "main.js"), "built\n");
   return dir;
 }
@@ -216,7 +210,6 @@ describe("the shell commit", () => {
       expect(stable).toMatchObject({ branch: "main", parents: [mainBefore] });
       expect(await remoteRev("main")).toBe(stable.commit);
       expect(next.parents).toEqual([beta.commit, stable.commit]);
-      // beta still moves as a fast-forward, and it now has main's history.
       await git(
         publish.remote,
         "merge-base",
@@ -238,7 +231,6 @@ describe("the shell commit", () => {
         line: "stable",
         message: "release\n",
       });
-      // main moves after the commit was made, so the push is no fast-forward.
       await repos.commit(maintainer, "later.txt", { text: "later\n" });
       await git(maintainer, "push", "-q", "origin", "main");
 

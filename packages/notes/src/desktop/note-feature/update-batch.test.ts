@@ -105,17 +105,11 @@ import { InertTemplateError } from "#core/template/errors.ts";
 import { NoteWriteAborted } from "#obsidian/note-feature/errors.ts";
 import { Profile } from "#obsidian/profile/service.ts";
 
-/** Captured options of every batch modal the runner opened via its view port. */
 const openedModals: BatchModalOptions[] = [];
-/** The Profile picker's answer when the user closes it. */
 const noProfile: ProfileSelector | undefined = undefined;
 const pickerClosed = Effect.succeed(noProfile);
-/** The view port's Profile picker; controlled per Profile-choice test. */
 const chooseProfile = vi.fn<NoteImportView["chooseProfile"]>();
 
-// Stub only the DOM-bound manifest so classify/run drive the real batch-run
-// mechanics headlessly; classification runs inside the modal, which never
-// opens here.
 vi.mock("#desktop/batch/modal/index.ts", () => {
   class FlatManifest {
     readonly options: any;
@@ -144,7 +138,6 @@ const PERSONAL_LIBRARY: Library = {
   name: null,
 };
 
-/** A group whose local id sorts before the personal library's own row order. */
 const GROUP_LIBRARY: Library = {
   libraryID: 12,
   version: 0,
@@ -176,10 +169,6 @@ function scopeOf(
 
 let currentScope: ResolvedLibraryScope = scopeOf([PERSONAL_LIBRARY]);
 
-/**
- * Answers `ItemsByIndexedKeys` at the interface: every key `ITEM<n>`, or
- * `ITEM<n>g<groupID>`, names item `n`. The item shape stays partial, as the stubbed note writes need.
- */
 function itemsAtInterface(client: ZoteroReadsClient): ZoteroReadsClient {
   return {
     ...client,
@@ -213,10 +202,6 @@ function creationPlans(
   );
 }
 
-/**
- * The Zotero database each case seeds: My Library, the Reading group's
- * library 12, and an empty collection `COLLECTION` in My Library.
- */
 let db: NodeDatabaseClient;
 
 function seedDatabase(): NodeDatabaseClient {
@@ -235,10 +220,6 @@ function seedDatabase(): NodeDatabaseClient {
   return client;
 }
 
-/**
- * Live items `ITEM<n>` titled `Item <n>`, each in its library. A lower id
- * is modified later, so a library lists its items in ascending id order.
- */
 function itemsIn(byLibrary: ReadonlyMap<number, number>): void {
   for (const [itemID, libraryID] of byLibrary) {
     const modified = DateTime.formatIso(
@@ -257,7 +238,6 @@ function itemsIn(byLibrary: ReadonlyMap<number, number>): void {
   }
 }
 
-/** Put items in the collection `COLLECTION` of `libraryID`, creating it there. */
 function collectionHolds(libraryID: number, itemIDs: readonly number[]): void {
   db.$client.exec(`
     delete from collections where libraryID = ${libraryID};
@@ -267,21 +247,14 @@ function collectionHolds(libraryID: number, itemIDs: readonly number[]): void {
   `);
 }
 
-/** {@link db} and the read services the current case opened over it. */
 let caseResources: AsyncDisposableStack;
 
-/**
- * The values a case sets: the plugin services' answers, which the runtime
- * reads from here at the time of each call, and Note Feature's note writes.
- */
 interface UpdateDeps {
   profile: ProfileReader;
   zoteroReads: TestReads;
   dbState: ZoteroReadsState["state"];
-  /** The Snapshot the runners open; the case's reads by default. */
   snapshot: ZoteroReads["Service"]["snapshot"];
   settings: Pick<PluginSettings["Service"], "current" | "update">;
-  /** The Note Feature members the runners call; a case may replace one. */
   noteFeature: Pick<
     NoteFeature["Service"],
     | "reportExcerptImages"
@@ -294,7 +267,6 @@ interface UpdateDeps {
     whenIndexed(): Promise<void>;
     getNotesByItemKey(indexedKey: string): TFile[];
   };
-  /** The plugin services the runners read, answering from these values. */
   layer: Layer.Layer<BatchUpdateServices>;
 }
 
@@ -342,9 +314,7 @@ function makeDeps(
       }),
       noteFeature
         ? Layer.suspend(() => noteFeature(deps))
-        : // Each call reads the member as it is then, so a case may replace a
-          // member after the layer is built.
-          Layer.mock(NoteFeature, {
+        : Layer.mock(NoteFeature, {
             reportExcerptImages: (summary) =>
               deps.noteFeature.reportExcerptImages(summary),
             createNote: (item, options) =>
@@ -356,7 +326,6 @@ function makeDeps(
             planCreations: (indexedKeys, sources) =>
               deps.noteFeature.planCreations(indexedKeys, sources),
           }),
-      // Only the one-item path reads them, and no case here reaches it.
       Layer.mock(MetadataCache, {}),
       Layer.mock(Workspace, {}),
       Layer.mock(NoteIndex, {
@@ -375,7 +344,6 @@ function makeDeps(
           Effect.sync(() => deps.profile.resolveProfile(selector)),
         profileOf: (file) => Effect.sync(() => deps.profile.profileOf(file)),
       }),
-      // Only the real Profile picker reads it; the fake view does not.
       Layer.mock(ZoteroPref, {}),
       Layer.mock(ZoteroReads, {
         current: Effect.sync(() =>
@@ -398,10 +366,6 @@ function makeDeps(
   return deps;
 }
 
-/**
- * The ports a case's runs take: the view port fakes, and `bridge` for the
- * modal's callbacks.
- */
 function portsOf(
   deps: UpdateDeps,
   bridge: BatchUpdatePorts["bridge"],
@@ -418,11 +382,6 @@ function portsOf(
   };
 }
 
-/**
- * {@link runBatchUpdateEffect} on the case's services. The modal's callbacks
- * run through a bridge over the case's Scope, so the case's end, or `bridge`
- * when given, is the unload.
- */
 const runBatchUpdate = Effect.fnUntraced(function* (
   deps: UpdateDeps,
   itemIDs: readonly number[],
@@ -438,7 +397,6 @@ const runBatchUpdate = Effect.fnUntraced(function* (
   ).pipe(Effect.provide(deps.layer));
 });
 
-/** {@link runBatchUpdateAllEffect} on the case's services. */
 const runBatchUpdateAll = Effect.fnUntraced(function* (
   deps: UpdateDeps,
   options?: Parameters<typeof runBatchUpdateAllEffect>[1],
@@ -449,7 +407,6 @@ const runBatchUpdateAll = Effect.fnUntraced(function* (
   ).pipe(Effect.provide(deps.layer));
 });
 
-/** Drive the last opened modal's loading phase and return its manifest options. */
 async function classifyLastModal(): Promise<{
   tasks: { id: number; kind: string }[];
   groups: FlatGroupDef[];
@@ -484,7 +441,6 @@ beforeEach(() => {
   return () => caseResources.disposeAsync();
 });
 
-/** The libraries (and collection keys) a run's scope read asked for. */
 function scopeReads() {
   const recorded = recordCalls(["ScopeItemIDs"]);
   return {
@@ -501,10 +457,6 @@ function scopeReads() {
   };
 }
 
-/**
- * A client whose DisplayRefs stream sends its first slice and then waits until
- * it is interrupted, which `onInterrupt` hears.
- */
 function stallAfterFirstSlice(onInterrupt: () => void) {
   return (client: ZoteroReadsClient): ZoteroReadsClient => ({
     ...client,
@@ -536,7 +488,6 @@ describe("classify through the DisplayRefs stream", () => {
         const deps = makeDeps("ready", recorded.wrap);
         deps.noteFeature.createNote = (item, options) =>
           Effect.gen(function* () {
-            // The create renders through the reads it was handed.
             yield* options!.reads!.ItemsByIndexedKeys({
               indexedKeys: [item.indexedKey],
             });
@@ -581,11 +532,9 @@ describe("classify through the DisplayRefs stream", () => {
           itemIDs.slice(500, 1000),
           itemIDs.slice(1000),
         ]);
-        // Two item loads and the two creates' reads.
         expect(loads.map(({ operation }) => operation)).toEqual(
           Array(4).fill("ItemsByIndexedKeys"),
         );
-        // Classify reads its own Snapshot; the run's loads and creates share another.
         const [classifySnapshot, runSnapshot] = recorded.snapshots;
         for (const request of classify)
           expect(request.payload.snapshot).toBe(classifySnapshot);
@@ -654,7 +603,6 @@ describe("classify through the DisplayRefs stream", () => {
     () =>
       Effect.gen(function* () {
         const deps = makeDeps("ready");
-        // An additional Profile makes classify plan the new rows.
         deps.profile = profileReader({
           ...defaults,
           profiles: [{ id: BOOKS, label: "Books" }],
@@ -676,7 +624,6 @@ describe("classify through the DisplayRefs stream", () => {
             [2, USER_LIBRARY_ID],
           ]),
         );
-        // Closing `cancel` aborts the signal, as the modal's Cancel does.
         const cancel = yield* Scope.make();
         const signal = yield* Effect.abortSignal.pipe(Scope.provide(cancel));
 
@@ -695,10 +642,6 @@ describe("classify through the DisplayRefs stream", () => {
 });
 
 describe("unload during a batch run", () => {
-  /**
-   * The case's batch on `[1, 2]`, classified, with its modal's callbacks on a
-   * bridge over `unload`; `run` starts the run.
-   */
   const classifiedOver = Effect.fnUntraced(function* (
     deps: UpdateDeps,
     unload: Scope.Scope,
@@ -730,7 +673,6 @@ describe("unload during a batch run", () => {
     Effect.gen(function* () {
       const deps = makeDeps("ready");
       const reading = yield* Deferred.make<void>();
-      // The create stalls in its reads, before any write.
       deps.noteFeature.createNote = () =>
         Deferred.succeed(reading, undefined).pipe(Effect.andThen(Effect.never));
       const unload = yield* Scope.make();
@@ -741,7 +683,6 @@ describe("unload during a batch run", () => {
       yield* Scope.close(unload, Exit.void);
 
       yield* Effect.promise(() => running.catch(() => undefined));
-      // An interrupted row is no failure.
       expect(onItemSettled).not.toHaveBeenCalled();
     }),
   );
@@ -870,7 +811,6 @@ describe("a write that rejects", () => {
                 prepare: () =>
                   Effect.succeed(
                     stubService<AttachmentImportBatch>("AttachmentBatch", {
-                      // The render stops the create before any attachment.
                       decide: () => {
                         throw new Error("This case copies no attachment.");
                       },
@@ -912,7 +852,6 @@ describe("a write that rejects", () => {
             (reason: unknown) => reason,
           ),
         );
-        // The refusal stays a typed failure across the write pipeline.
         expect(error).toBe(inert);
         expect(error).toMatchObject({ _tag: "InertTemplateError" });
         expect(onItemSettled).not.toHaveBeenCalledWith(
@@ -969,7 +908,6 @@ describe("a write that rejects", () => {
 });
 
 describe("the run's Snapshot", () => {
-  /** Record in `events` each open and close of a Snapshot that `deps` hands out. */
   function trackSnapshots(deps: UpdateDeps, events: string[]): void {
     deps.snapshot = deps.zoteroReads.snapshot.pipe(
       Effect.tap(() => Effect.sync(() => events.push("open"))),
@@ -979,10 +917,6 @@ describe("the run's Snapshot", () => {
     );
   }
 
-  /**
-   * Classify items 1 and 2 in the opened modal, then start its run in a fiber
-   * that succeeds with how the run settled.
-   */
   const classifyAndRun = Effect.fnUntraced(function* (deps: UpdateDeps) {
     itemsIn(
       new Map([
@@ -1031,7 +965,6 @@ describe("the run's Snapshot", () => {
 
       const run = yield* classifyAndRun(deps);
       yield* Deferred.await(started);
-      // Classify closed its own Snapshot; the run's stays open.
       expect(events).toEqual(["open", "close", "open"]);
       yield* Deferred.succeed(release, undefined);
       expect(yield* Fiber.join(run)).toMatchObject({ rejected: false });
@@ -1127,10 +1060,6 @@ describe("one item without additional Profiles", () => {
     title: "Item 1",
   };
 
-  /**
-   * The services the one-item path reads, over an Item `ITEM1` with `note` as
-   * its Literature Note, or none; `feature` answers the Note Feature's writes.
-   */
   function oneItemServices(
     feature: Partial<NoteFeature["Service"]>,
     note?: TFile,
@@ -1168,7 +1097,6 @@ describe("one item without additional Profiles", () => {
       Layer.mock(Profile, {
         profiles: Effect.succeed([]),
       }),
-      // Only the real Profile picker reads it; the fake view does not.
       Layer.mock(ZoteroPref, {}),
       Layer.mock(ZoteroReads, {
         current: Effect.succeed(
@@ -1198,7 +1126,6 @@ describe("one item without additional Profiles", () => {
         const { layer, opened } = oneItemServices({ createNote });
         const ports: BatchUpdatePorts = {
           notices: batchUpdateNotices(stubService<App>("App", {})),
-          // The single-update path opens no batch modal.
           bridge: stubService<BatchUpdatePorts["bridge"]>("EffectBridge", {}),
           view: stubService<BatchUpdatePorts["view"]>("NoteImportView", {}),
         };
@@ -1234,7 +1161,6 @@ describe("one item without additional Profiles", () => {
       const { layer } = oneItemServices({ updateNote }, note);
       const ports: BatchUpdatePorts = {
         notices: batchUpdateNotices(stubService<App>("App", {})),
-        // The single-update path opens no batch modal.
         bridge: stubService<BatchUpdatePorts["bridge"]>("EffectBridge", {}),
         view: stubService<BatchUpdatePorts["view"]>("NoteImportView", {}),
       };
@@ -1243,7 +1169,6 @@ describe("one item without additional Profiles", () => {
         scope: "full",
       }).pipe(Effect.provide(layer), Effect.forkChild);
       yield* Deferred.await(called);
-      // While the write is pending, the run does not end.
       const early = yield* Fiber.await(run).pipe(
         Effect.timeoutOption("1 second"),
         Effect.forkChild,
@@ -1275,7 +1200,6 @@ describe("one item without additional Profiles", () => {
       const { layer, opened } = oneItemServices({ createNote });
       const ports: BatchUpdatePorts = {
         notices: batchUpdateNotices(stubService<App>("App", {})),
-        // The single-update path opens no batch modal.
         bridge: stubService<BatchUpdatePorts["bridge"]>("EffectBridge", {}),
         view: stubService<BatchUpdatePorts["view"]>("NoteImportView", {}),
       };
@@ -1303,7 +1227,6 @@ describe("one item without additional Profiles", () => {
       );
       const ports: BatchUpdatePorts = {
         notices: batchUpdateNotices(stubService<App>("App", {})),
-        // The single-update path opens no batch modal.
         bridge: stubService<BatchUpdatePorts["bridge"]>("EffectBridge", {}),
         view: stubService<BatchUpdatePorts["view"]>("NoteImportView", {}),
       };
@@ -1325,7 +1248,6 @@ describe("one item without additional Profiles", () => {
       });
       const ports: BatchUpdatePorts = {
         notices: batchUpdateNotices(stubService<App>("App", {})),
-        // The single-update path opens no batch modal.
         bridge: stubService<BatchUpdatePorts["bridge"]>("EffectBridge", {}),
         view: stubService<BatchUpdatePorts["view"]>("NoteImportView", {}),
       };
@@ -1430,9 +1352,6 @@ it.effect(
         Effect.sync(excerptReuseProbe),
       );
       const scopes: (ExcerptOutcomeScope | undefined)[] = [];
-      // Each row resolves the probe's excerpt in turn, so the second resolution
-      // cannot be merged into the first one's in-flight request: only the run's own
-      // retention can answer it.
       let resolutions: Promise<unknown> = Promise.resolve();
       const resolveThrough = (outcomes: ExcerptOutcomeScope | undefined) =>
         Effect.promise(() => {
@@ -1476,13 +1395,9 @@ it.effect(
       );
 
       expect(result).toMatchObject({ created: 1, updated: 1, failed: 0 });
-      // One run is one batch: both rows' notes share one scope, and the second one
-      // reuses the outcome the first produced instead of rendering it again.
       expect(scopes).toHaveLength(2);
       expect(scopes[1]).toBe(scopes[0]);
       expect(probe.renders()).toBe(1);
-      // The run released what it retained, so a later note driven through the same
-      // scope renders again rather than reusing.
       yield* Effect.promise(() => probe.resolve(scopes[0]));
       expect(probe.renders()).toBe(2);
     }),
@@ -1517,7 +1432,6 @@ it.effect(
         () => Effect.succeed({ bodyUpdated: true, duplicateRegionCount: 0 }),
       );
       deps.noteFeature.writeNoteUpdate = writeNoteUpdate;
-      // A remembered Profile persisted by an earlier version stays inert.
       Object.assign(deps.settings, {
         current: Effect.succeed({
           ...defaults,
@@ -1592,8 +1506,6 @@ it.effect(
       expect(chooseProfile).not.toHaveBeenCalled();
       expect(create).not.toHaveBeenCalled();
       expect(settingsUpdate).not.toHaveBeenCalled();
-      // Every row carries the Companion's Profile, so the only control is the
-      // explicit all-new override.
       const choices: BatchProfileChoice[] = manifest.options.profileChoices;
       expect(choices.map(({ scope }) => scope)).toEqual(["all-new"]);
       const choice = choices[0]!;
@@ -1721,12 +1633,6 @@ const FOLDERS: Record<ProfileSelector, string> = {
   [ARTICLES]: "Articles",
 };
 
-/**
- * A mixed batch: rows 1 and 2 match different matches, 3 and 4 match none,
- * 5 has an invalid explicit selector, 6 has a Books-stamped note, 7 an unstamped note, and
- * 8 a note with an unknown stamp. Every selection comes from the (stubbed)
- * shared boundary keyed by the Item it receives.
- */
 function mixedBatch() {
   const deps = makeDeps();
   const cache = {
@@ -1893,7 +1799,6 @@ describe("mixed batch", () => {
         const { modal, tasks, choices, choice, run, onItemSettled } =
           yield* classifyMixedBatch(deps);
 
-        // One call resolves every new row.
         expect(planCreations).toHaveBeenCalledExactlyOnceWith(
           [1, 2, 3, 4, 5].map((itemID) => `ITEM${itemID}`),
           { headless: undefined },
@@ -1944,7 +1849,6 @@ describe("mixed batch", () => {
         });
         expect(choice("all-new")).toMatchObject({ count: 5, label: undefined });
 
-        // The fallback moves the two unmatched rows only.
         chooseProfile.mockReturnValueOnce(Effect.succeed(BOOKS));
         yield* Effect.promise(() => choice("unresolved").choose());
         expect(chooseProfile).toHaveBeenLastCalledWith(
@@ -1984,7 +1888,6 @@ describe("mixed batch", () => {
           label: undefined,
         });
 
-        // Cancelling the recovery leaves the affected row without a destination.
         chooseProfile.mockReturnValueOnce(pickerClosed);
         yield* Effect.promise(() => choice("affected").choose());
         expect(chooseProfile).toHaveBeenLastCalledWith(
@@ -2103,8 +2006,6 @@ describe("mixed batch", () => {
         const { tasks, run, onItemSettled } = yield* classifyMixedBatch(deps);
         planCreations.mockClear();
 
-        // Articles disappears between preview and run; the rows keep the
-        // destinations they showed, and no selection is computed again.
         deps.profile = profileReader({
           ...defaults,
           profiles: [{ id: BOOKS, label: "Books" }],
@@ -2397,7 +2298,6 @@ describe("runBatchUpdateAll", () => {
       "reports an unknown collection key instead of an empty scope",
       () =>
         Effect.gen(function* () {
-          // The key names a collection of another library only.
           collectionHolds(GROUP_LIBRARY.libraryID, []);
           db.$client.exec(
             `delete from collections where libraryID = ${USER_LIBRARY_ID}`,

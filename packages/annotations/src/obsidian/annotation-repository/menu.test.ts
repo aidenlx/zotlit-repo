@@ -17,11 +17,9 @@ const bridge = openTestBridge();
 afterAll(() => bridge[Symbol.asyncDispose]());
 
 interface Surface extends HistorySurface {
-  /** Every step this surface was asked to take, in the order asked. */
   readonly stepped: readonly HistoryDirection[];
 }
 
-/** A bound PDF view that records what it was asked to step. */
 function surface(historyAttachment: string | null): Surface {
   const stepped: HistoryDirection[] = [];
   return {
@@ -31,10 +29,8 @@ function surface(historyAttachment: string | null): Surface {
   };
 }
 
-/** The leaf a More options menu was opened over. */
 const LEAF = stubService<WorkspaceLeaf>("WorkspaceLeaf", { id: "pdf-leaf" });
 
-/** The mock menu behind the public Obsidian `Menu` type its consumer takes. */
 function obsidianMenu(menu: Menu): ObsidianMenu {
   const typed = Object.assign(stubService<ObsidianMenu>("Menu", {}), {
     addItem(callback: (item: MenuItem) => unknown): ObsidianMenu {
@@ -45,7 +41,6 @@ function obsidianMenu(menu: Menu): ObsidianMenu {
   return typed;
 }
 
-/** The mock item behind the public Obsidian `MenuItem` type. */
 function obsidianMenuItem(item: MockMenuItem): MenuItem {
   const typed = Object.assign(stubService<MenuItem>("MenuItem", {}), {
     setSection(section: string): MenuItem {
@@ -74,7 +69,6 @@ function obsidianMenuItem(item: MockMenuItem): MenuItem {
   return typed;
 }
 
-/** The registered `file-menu` handler, over one leaf and one history. */
 function setup({
   active = surface("RGRPDF24"),
   undo = true,
@@ -99,7 +93,6 @@ function setup({
   pdf.extension = "pdf";
   return {
     surfaceFor,
-    /** One More options menu, built over the leaf this test names. */
     open: (source = "more-options", leaf: WorkspaceLeaf | null = LEAF) => {
       const menu = new Menu();
       registered(obsidianMenu(menu), pdf, source, leaf ?? undefined);

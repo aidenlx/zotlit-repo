@@ -6,7 +6,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { Release } from "./service.ts";
 
-/** The command that reopens the Release Note for the current version. */
 export const layerReleaseActions: Layer.Layer<
   never,
   never,

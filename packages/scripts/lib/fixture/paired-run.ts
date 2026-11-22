@@ -5,17 +5,9 @@ export type PairedRunMode = "open" | "dev";
 export interface PairedRunOptions {
   mode: PairedRunMode;
   scopeCase: string;
-  /** Vault Case to seed; absent keeps the Development Vault's current case. */
   vaultCase?: string;
   purge: boolean;
-  /**
-   * Open Zotero's Local API in the Fixture profile. The run's Zotero HTTP port
-   * carries it, so Paired Zotero serves the API where ZotLit reads it.
-   *
-   * @default false
-   */
   localApi?: boolean;
-  /** Seed the Development Vault's remembered Local API write grant. */
   grantLocalApiWrites?: boolean;
 }
 
@@ -33,15 +25,11 @@ export interface PairedRunReady {
   mode: PairedRunMode;
   vault: DevelopmentVault;
   zotero: PairedZotero;
-  /** The port this run gave the Development Vault and Paired Zotero. */
   liveUpdatePort: number;
-  /** The HTTP server port this run gave the active Zotero profile. */
   zoteroHttpPort: number;
-  /** Whether this run opened Zotero's Local API on that port. */
   localApi: boolean;
 }
 
-/** A Zotero process that holds the Fixture database open. */
 export interface LivePairedZotero {
   command: string;
   pid: number;
@@ -49,16 +37,8 @@ export interface LivePairedZotero {
 
 export interface PairedRunPorts {
   assertObsidianHost(): Promise<void>;
-  /**
-   * Close a Paired Zotero that still holds this Fixture, so the rebuild that
-   * follows starts on a Fixture root no process keeps open.
-   *
-   * @returns the processes it closed, empty where none held the Fixture.
-   */
   stopLivePairedZotero(): Promise<readonly LivePairedZotero[]>;
-  /** A port that is free right now, for this run's Live Updates channel. */
   allocateLiveUpdatePort(): Promise<number>;
-  /** A port that is free right now, for this run's Zotero HTTP server. */
   allocateZoteroHttpPort(): Promise<number>;
   prepareDevelopmentVault(options: {
     scopeCase: string;
@@ -96,8 +76,6 @@ export async function runPairedRun(
       localApi,
       grantLocalApiWrites,
     });
-    // Zotero reads `httpServer.port` during startup, after the generated
-    // profile has been written above.
     const zotero = await ports.openPairedZotero();
     ports.reportReady({
       mode: options.mode,
@@ -112,8 +90,6 @@ export async function runPairedRun(
 
   await ports.assertObsidianHost();
   await ports.stopLivePairedZotero();
-  // Two fresh ports per Paired Run keep both loopback servers independent of
-  // other ZotLit and Zotero profiles on the machine.
   const liveUpdatePort = await ports.allocateLiveUpdatePort();
   const zoteroHttpPort = await ports.allocateZoteroHttpPort();
   const vault = await ports.prepareDevelopmentVault({

@@ -23,7 +23,6 @@ import {
 import { emptyRender, SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
 import { annotationSamples } from "#obsidian/workbench-ui/index.tsx";
 
-/** Where the counting template records how often its body has rendered. */
 const BODY_RENDERS = "__zotlitPreviewBodyRenders";
 
 describe("Profile Preview rendering", () => {
@@ -88,7 +87,6 @@ describe("Profile Preview rendering", () => {
       });
       expect(result.diagnostics).toEqual([]);
       expect(result.filename).toBe(title);
-      // A colon in a title is one a file name cannot hold.
       expect(result.notePath).toBe(title?.replaceAll(":", "_"));
       expect(result.creationBody).toContain(`# ${title}`);
       expect(result.creationBody).toContain("See [@figures2014].");
@@ -512,8 +510,6 @@ frontmatter: []
   );
 
   it("shows update mode the body the preparation rendered, without a second render", async () => {
-    // A JavaScript template may carry state between renders, so a body rendered
-    // a second time can differ from the one the preparation already produced.
     await using fixture = await createRenderFixture({ javascript: true });
     const counting = `---
 id: counting-paper
@@ -589,9 +585,6 @@ Body render <%= (globalThis.${BODY_RENDERS} = (globalThis.${BODY_RENDERS} ?? 0) 
 describe("Citation Preview rendering", () => {
   it("reads a real Item from the database, not from the snapshot it was chosen with", async () => {
     await using fixture = await createRenderFixture();
-    // The snapshot was taken above; the reader then edits the Item in Zotero.
-    // The Data Explorer's citation root reads the change at once, so the
-    // preview beside it has to read the same Item.
     fixture.client.$client.exec(
       "update itemDataValues set value = 'Readable figures' where valueID = 1;",
     );
@@ -630,8 +623,6 @@ describe("renderRegisteredPartial", () => {
       profile: null,
     });
 
-    // The fixture's annotation carries pageLabel "2" (see the fixture's
-    // itemAnnotations row); the note root has no such field.
     expect(underAnnotation).toBe("Page 2");
     expect(underNote).not.toBe(underAnnotation);
   });
@@ -641,9 +632,6 @@ describe("renderRegisteredPartial", () => {
       partials: { "venue-line": "Venue {{ zt.title }}" },
     });
 
-    // The partial's own editor previews its own text, so the request source is
-    // the partial rather than a Profile document. It names no Profile to bind,
-    // and the render still reaches the note root.
     const rendered = await renderRegisteredPartial(
       fixture.deps,
       {

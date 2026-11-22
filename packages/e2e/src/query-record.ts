@@ -1,17 +1,6 @@
-// The pure half of the ZotLit Query measurement script: the thresholds of the
-// performance acceptance criteria, their evaluation, and the
-// summary to read before a release. `query-measure.ts` produces the measurements.
-
-/** The thresholds of the reference machine: macOS arm64, a visible window. */
 export const THRESHOLDS = {
-  /** Every query at every tier. */
   slice: { p99Ms: 16, maxMs: 32 },
-  /** From a cancel request to settlement, at every tier. */
   cancelMs: 50,
-  /**
-   * Median total of five `limit 100` runs, by query class and tier. A tier
-   * with no entry, and every `limit=all` query, is recorded only.
-   */
   totalMs: {
     selective: { 10_000: 50, 50_000: 50 },
     other: { 10_000: 150, 50_000: 750 },
@@ -22,13 +11,8 @@ export const THRESHOLDS = {
   totalMs: Record<"selective" | "other", Record<number, number>>;
 };
 
-/**
- * `selective`: one exact Tag, field value, Collection, or key that few Items
- * have. `other`: any other `limit 100` query. `all`: a `limit=all` query.
- */
 export type QueryClass = "selective" | "other" | "all";
 
-/** The same cross-dataset workload at every measurement tier. */
 export const DATASET_QUERY_SPECS: readonly Pick<
   QueryMeasurement,
   "id" | "class" | "args"
@@ -96,53 +80,33 @@ export const DATASET_QUERY_SPECS: readonly Pick<
   },
 ];
 
-/** One run of one query, as the measurement command reports it. */
 export interface RunSample {
   totalMs: number;
   slices: readonly number[];
-  /** Present for worker execution: renderer timer gaps across the entire call. */
   uiGaps?: readonly number[];
-  /** The readers of the statements in the longest slice. */
   worstSliceReaders: readonly string[];
-  /** Synchronous encoding steps within query execution. */
   answerSteps: readonly number[];
 }
 
 export interface QueryMeasurement {
   id: string;
   class: QueryClass;
-  /** The arguments of the query, as given to the CLI. */
   args: Readonly<Record<string, string>>;
   returnedCount: number;
   runs: readonly RunSample[];
 }
 
-/**
- * One cancelled run. `timer`: a timer in the window requests the cancel.
- * `cli`: a second Obsidian CLI call requests it. `unload`: the plugin unloads.
- */
 export interface CancelMeasurement {
   delivery: "timer" | "cli" | "unload";
   query: string;
-  /**
-   * From the cancel request to settlement. The request is the time the timer
-   * was due, or the time the request reached the window.
-   */
   latencyMs: number;
-  /** From the CLI call in the terminal to its arrival in the window. */
   transportMs?: number;
-  /** Absent when cancellation ends the worker before a complete trace exists. */
   worstSliceMs?: number;
 }
 
-/**
- * A cancel request that measured nothing: the run ended before the request
- * arrived, or it gave no report.
- */
 export interface MissedCancel {
   delivery: CancelMeasurement["delivery"];
   query: string;
-  /** How the run ended, such as `answered`. */
   outcome: string;
 }
 
@@ -150,65 +114,46 @@ export interface HeapMeasurement {
   query: string;
   class: QueryClass;
   returnedCount: number;
-  /** Absolute worker heap peak, largest of the runs. */
   peakBytes: number;
   beforeBytes?: number;
-  /** Absolute worker heap after the handler built its answer. */
   afterAnswerBytes: number;
 }
 
-/**
- * The queries of a tier that read two large Libraries as one result set: My
- * Library with the Items of the tier, and a group Library. They have the slice
- * limits and the cancel limit; their totals are recorded.
- */
 export interface TwoLibraryMeasurement {
-  /** Top-level Items in the group Library. */
   groupItems: number;
   queries: readonly QueryMeasurement[];
   cancels: readonly CancelMeasurement[];
   missedCancels: readonly MissedCancel[];
-  /** The run measured every query and every cancel of the part. */
   complete: boolean;
 }
 
 export interface TierMeasurement {
-  /** Top-level Items in the Library. */
   items: number;
   queries: readonly QueryMeasurement[];
   cancels: readonly CancelMeasurement[];
   missedCancels: readonly MissedCancel[];
   heaps: readonly HeapMeasurement[];
-  /** Undefined: the run stopped before the queries over two Libraries. */
   twoLibraries: TwoLibraryMeasurement | undefined;
 }
 
 export interface MeasurementRecord {
-  /** ISO time the run started. */
   startedAt: string;
-  /** The machine, Obsidian, and ZotLit versions, one line each. */
   environment: readonly string[];
   tiers: readonly TierMeasurement[];
-  /** Statements of the first record and of each later finding. */
   notes: readonly string[];
-  /** Where the raw output is. */
   rawPath: string;
 }
 
-/** `recorded`: the value has no threshold. */
 export type Status = "passed" | "failed" | "recorded";
 
 export interface Check {
   tier: number;
-  /** `complete`: the run measured the part that the subject names. */
   kind: "slices" | "answer" | "ui" | "total" | "cancel" | "complete";
   subject: string;
-  /** The measured values with their limits, as text. */
   detail: string;
   status: Status;
 }
 
-/** The nearest-rank percentile: the smallest value with `p`% of the sample at or below it. */
 export function percentile(values: readonly number[], p: number): number {
   if (values.length === 0) return 0;
   const sorted = values.toSorted((a, b) => a - b);
@@ -225,7 +170,6 @@ export function median(values: readonly number[]): number {
     : (sorted[middle - 1]! + sorted[middle]!) / 2;
 }
 
-/** The total-time budget of a query class at a tier, when it has one. */
 export function totalBudgetMs(
   queryClass: QueryClass,
   items: number,
@@ -238,22 +182,15 @@ export function totalBudgetMs(
 const ms = (value: number): string =>
   value >= 100 ? value.toFixed(0) : value.toFixed(1);
 
-/** The slices of every run of a query, as one sample. */
 function pooledSlices(query: QueryMeasurement): number[] {
   return query.runs.flatMap((run) => run.slices);
 }
 
-/**
- * The queries of a tier that read one set of Libraries, with their cancels:
- * those of one Library, or those of two Libraries.
- */
 interface TierPart {
-  /** The words that mark a subject of this part, when it needs a mark. */
   mark: string;
   queries: readonly QueryMeasurement[];
   cancels: readonly CancelMeasurement[];
   missedCancels: readonly MissedCancel[];
-  /** The total-time budget of a query, when it has one. */
   budgetOf: (query: QueryMeasurement) => number | undefined;
 }
 
@@ -277,13 +214,11 @@ function twoLibraryPart(measured: TwoLibraryMeasurement): TierPart {
   };
 }
 
-/** Every threshold of one tier, each passed, failed, or recorded. */
 export function evaluateTier(tier: TierMeasurement): Check[] {
   const { items, twoLibraries } = tier;
   return [
     ...evaluatePart(items, oneLibraryPart(tier)),
     ...(twoLibraries ? evaluatePart(items, twoLibraryPart(twoLibraries)) : []),
-    // A record without these queries proves nothing about two Libraries.
     ...(twoLibraries?.complete
       ? []
       : [
@@ -299,7 +234,6 @@ export function evaluateTier(tier: TierMeasurement): Check[] {
   ];
 }
 
-/** The checks of one part of the tier with `items` Items. */
 function evaluatePart(items: number, part: TierPart): Check[] {
   const checks: Check[] = [];
   for (const query of part.queries) {
@@ -317,7 +251,6 @@ function evaluatePart(items: number, part: TierPart): Check[] {
           ? "passed"
           : "failed",
     });
-    // Execution and encoding retain the spec's limits in either process.
     const answerSteps = query.runs.flatMap((run) => run.answerSteps);
     const answerP99 = percentile(answerSteps, 99);
     const answerMax = Math.max(0, ...answerSteps);
@@ -377,7 +310,6 @@ function evaluatePart(items: number, part: TierPart): Check[] {
       status: cancel.latencyMs <= THRESHOLDS.cancelMs ? "passed" : "failed",
     });
   }
-  // A kind of request with no measured run proves nothing about the limit.
   const missed = Map.groupBy(part.missedCancels, (cancel) => cancel.delivery);
   for (const [delivery, requests] of missed) {
     if (part.cancels.some((cancel) => cancel.delivery === delivery)) continue;
@@ -392,10 +324,6 @@ function evaluatePart(items: number, part: TierPart): Check[] {
   return checks;
 }
 
-/**
- * The failed execution-slice, renderer-gap, and total-time checks for some
- * queries of a tier. Encoding steps have their own check.
- */
 export function failedEngineChecks(
   tier: TierMeasurement,
   queryIDs: ReadonlySet<string>,
@@ -428,7 +356,6 @@ function table(header: readonly string[], rows: readonly string[][]): string {
   ].join("\n");
 }
 
-/** The query table and the cancel table of one part of a tier. */
 function partTables(items: number, part: TierPart): string[] {
   const checks = evaluatePart(items, part);
   const statusOf = (kind: Check["kind"], subject: string): Status =>
@@ -557,7 +484,6 @@ function tierSection(tier: TierMeasurement): string {
   return parts.join("\n\n");
 }
 
-/** The summary of one record, to read before a release. */
 export function formatSummary(record: MeasurementRecord): string {
   const checks = record.tiers.flatMap((tier) => evaluateTier(tier));
   const failed = checks.filter((check) => check.status === "failed");

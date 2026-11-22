@@ -17,7 +17,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   registerEndToEndRunHooks();
 
   it("renders the header menu's Follow Mode entries inside the popup's own box", async () => {
-    // An earlier case leaves the settings modal open over the workspace.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -112,28 +111,16 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
     );
 
-    // The two modes lead under their heading, always in this order. The pin's
-    // row is followed by a reason line whenever this vault has nothing to pin,
-    // so what comes after them is asserted by presence rather than by position.
     expect(report.labels.slice(0, 3)).toEqual([
       run.m.annot_view_header_menu_label(),
       run.m.annot_view_mode_active_tab(),
       run.m.annot_view_mode_zotero_reader(),
     ]);
     expect(report.labels).toContain(run.m.annot_view_pin_choose_item());
-    // The assertion this test exists for: every entry the menu holds sits
-    // inside the box the menu draws, so none is clipped out of sight.
     expect(report.covered).toBe(report.labels.length);
-    // And it hangs off the button that opened it, rather than off a pointer
-    // position the button never supplied. Which of the button's edges it lines
-    // up with is Obsidian's call — it right-aligns a menu that would otherwise
-    // overflow — so the assertion is that the two overlap at all.
     expect(report.belowTriggerBy).toBe(2);
     expect(report.overlapsTriggerX).toBe(true);
 
-    // A second press closes it. The press is itself what dismisses an open
-    // menu, so a trigger that does not check for that reopens the menu it just
-    // closed and the menu never appears to shut.
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -185,8 +172,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   });
 
   it("answers zotlit:annotation-image with Zotero's PNG and a rendered ink PNG without an open reader", async () => {
-    // Other cases rebuild the shared Fixture for disposable vaults. Keep this
-    // database's linked PDF paths tied to the vault this case owns.
     const imageFixture = getFixtureLayout(
       join(workspaceRoot, ".scratch", "e2e-annotation-image-fixture"),
     );
@@ -232,7 +217,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         provenance: string;
         path: string;
       };
-    // A local PDF missing on this device exercises the service's Zotero fallback.
     await rename(pdfPath, `${pdfPath}.image-test`);
     try {
       const cached = await answer(imageKey);

@@ -1,5 +1,3 @@
-// The Annotation Suggester's search through ZotLit Query over the Zotero
-// database alone, as it runs with Zotero closed.
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -18,11 +16,6 @@ import { searchAnnotations } from "./annotation-search.ts";
 import { buildQueryService } from "#__fixtures__/item-query.ts";
 import { queryJobRunner } from "#desktop/item-query/job.ts";
 
-/**
- * A second annotated paper beside the scenario's `ART2FULL`, older on every
- * date the scenario gives: "Ten Simple Rules" (`RULES222`), its PDF
- * `RULESPDF`, and one highlight `RULESANN`.
- */
 function addOlderPaper(
   sqlite: ScenarioDatabase<NodeDatabaseClient>["sqlite"],
 ): void {
@@ -88,7 +81,6 @@ async function setup(uses: Record<string, number> = {}) {
   };
 }
 
-/** The scenario's live annotations of `ART2FULL` carrying the comment "<b>Comment</b>". */
 const COMMENTED = [
   "ANN2UNDR",
   "ANN2NOTE",
@@ -116,9 +108,6 @@ describe("searchAnnotations", () => {
     expect(await h.search("use it")).toEqual(["RULESANN"]);
   });
 
-  // Zotero stores rich text with its reader's inline tags. A search reads
-  // what the researcher sees: H<sub>2</sub>O reads "H2O", and the tag names
-  // are no words of it.
   it("matches the visible text of rich text, not its markup", async () => {
     await using h = await setup();
     h.sqlite.exec(`
@@ -130,8 +119,6 @@ describe("searchAnnotations", () => {
     expect(await h.search("sub")).toEqual([]);
   });
 
-  // Only the four tags the reader renders are markup; any other angle bracket
-  // is text the researcher reads, as the card and the copied comment keep it.
   it("keeps the literal angle brackets of a comparison", async () => {
     await using h = await setup();
     h.sqlite.exec(`
@@ -176,7 +163,6 @@ describe("searchAnnotations", () => {
       expect(await h.search("exact")).toEqual(["ANN2HGHT", "RULESANN"]);
     }
     {
-      // A Use of the older paper on this device makes it the most recent.
       await using h = await setup({
         RULES222: Temporal.Instant.from("2026-10-01T00:00:00Z")
           .epochMilliseconds,

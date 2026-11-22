@@ -1,5 +1,3 @@
-// Blockquote `>`-prefix formatting shared by the Eta and Liquid engines.
-
 export function formatBlockquote(content: string): string {
   const lines = content
     .trim()

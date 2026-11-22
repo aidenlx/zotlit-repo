@@ -2,7 +2,6 @@ import type { ExcerptImage } from "#core/excerpt-image/format.ts";
 import { it } from "@effect/vitest";
 import { Context, Effect, Exit, Fiber, FileSystem, Layer } from "effect";
 import { TestClock } from "effect/testing";
-// What one initiating batch retains, and what it refuses to retain.
 import { describe, expect, vi } from "vitest";
 
 import { ExcerptOutcomeScope } from "./outcome-scope.ts";
@@ -44,7 +43,6 @@ const request: ExcerptRequest = {
   pdfPath: "/paper.pdf",
   zoteroPngPath: "/fallback.png",
 };
-/** The same Annotation with its pixel inputs moved, so it hashes differently. */
 const movedRequest: ExcerptRequest = {
   ...request,
   annotation: {
@@ -133,8 +131,6 @@ describe("Excerpt outcome scope", () => {
       provenance: "rendered",
     });
     stored.mockClear();
-    // Retention holds these bytes, so the repeat answers from memory: a store
-    // that stalls or fails cannot hold back what the batch already owns.
     expect(await operation.resolve(request)).toMatchObject({
       provenance: "rendered",
     });
@@ -220,7 +216,6 @@ describe("Excerpt outcome scope", () => {
     f.changePdf();
     await operation.resolve(request);
     expect(f.render).toHaveBeenCalledTimes(2);
-    // The record the changed PDF invalidated is gone, not shadowed by a new one.
     expect(outcomes.diagnostics).toMatchObject({ retained: 1, hits: 0 });
   });
 
@@ -235,13 +230,11 @@ describe("Excerpt outcome scope", () => {
     });
     await operation.resolve(keyed("FIRST"));
     await operation.resolve(keyed("SECOND"));
-    // The hit makes FIRST the most recently used, so SECOND leaves next.
     await operation.resolve(keyed("FIRST"));
     await operation.resolve(keyed("THIRD"));
     expect(outcomes.diagnostics).toMatchObject({ retained: 2, hits: 1 });
     expect(f.render).toHaveBeenCalledTimes(3);
     await operation.resolve(keyed("FIRST"));
-    // FIRST is still retained; SECOND recomputes.
     await operation.resolve(keyed("SECOND"));
     expect(f.render).toHaveBeenCalledTimes(4);
     expect(outcomes.diagnostics).toMatchObject({ retained: 2, hits: 2 });
@@ -260,8 +253,6 @@ describe("Excerpt outcome scope", () => {
     const evicting = await operation.resolve(keyed("EVICTING"));
     expect(small).toMatchObject({ kind: "available" });
     expect(evicting).toMatchObject({ kind: "available" });
-    // Two 4-byte images cannot both stay under a 6-byte bound, and the peak is
-    // what the retention holds afterwards: eviction runs in the same step.
     expect(outcomes.diagnostics).toMatchObject({
       retained: 1,
       bytes: 4,
@@ -276,7 +267,6 @@ describe("Excerpt outcome scope", () => {
     }));
     const oversized = await operation.resolve(keyed("OVERSIZED"));
     expect(oversized).toMatchObject({ kind: "available" });
-    // The oversized image is left out rather than evicting everything else.
     expect(outcomes.diagnostics).toMatchObject({ retained: 1, bytes: 4 });
     await operation.resolve(keyed("SMALL"));
     expect(f.render).toHaveBeenCalledTimes(4);
@@ -290,20 +280,15 @@ describe("Excerpt outcome scope", () => {
     await using second = new ExcerptOutcomeScope();
     await using one = service.operation({ outcomes: first });
     await using two = service.operation({ outcomes: second });
-    // The store keeps nothing here, so only each batch's own retention can
-    // answer its repeats.
     const [a, b, unscoped] = await Promise.all([
       one.resolve(request),
       two.resolve(request),
       service.resolve(request),
     ]);
-    // Identical active work is one admission: the two batches and the
-    // scope-less consumer render it once.
     expect(f.render).toHaveBeenCalledTimes(1);
     expect(a).toMatchObject({ kind: "available" });
     expect(b).toMatchObject({ kind: "available" });
     expect(unscoped).toMatchObject({ kind: "available" });
-    // Each batch retains that one answer for itself, and reads only its own.
     expect(first.diagnostics).toMatchObject({ retained: 1, hits: 0 });
     expect(second.diagnostics).toMatchObject({ retained: 1, hits: 0 });
     await one.resolve(request);
@@ -378,11 +363,8 @@ describe("Excerpt outcome scope", () => {
     ).rejects.toMatchObject({ name: "AbortError" });
     await started.promise;
     controller.abort();
-    // The cancelled job's teardown owns the slot until its own render settles.
     gate.resolve({ bytes: new Uint8Array([1, 2, 3]), format: PNG_FORMAT });
     await cancelled;
-    // The cancelled job keeps nothing for the batch, even if its render had
-    // already produced bytes: a later consumer resolves for itself.
     expect(outcomes.diagnostics).toMatchObject({ retained: 0, hits: 0 });
     expect(await operation.resolve(request)).toMatchObject({
       provenance: "rendered",
@@ -412,7 +394,6 @@ describe("Excerpt outcome scope", () => {
       peakBytes: 3,
       released: true,
     });
-    // Nothing refills a released batch: a later consumer resolves again.
     await operation.resolve(request);
     expect(f.render).toHaveBeenCalledTimes(2);
     expect(outcomes.diagnostics).toMatchObject({

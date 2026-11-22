@@ -34,3 +34,29 @@ A Reader plugin and a Mobile plugin need the same schema, queries and Item Query
 - A new host writes an adapter that returns a `ZoteroDatabase` and runs the conformance suite on it; no engine file changes.
 - Code that closes a connection keeps the adapter's own type, because closing is a driver operation.
 - `@zotlit/db-testing` now depends on `drizzle-orm` and `vitest`. Its lockfile entries use the same peer variants as `@zotlit/db`, so the two packages share one copy of each and the Drizzle types are compatible.
+
+## Layout compatibility
+
+The synchronous Layout module inspects SQLite table and view columns once per client. The Item Query adapter shares its builders and cache and reports its initial probe through the statement observer. It reads the version stamps when the version table has the expected columns. Stamps are for logging. The actual tables and columns decide which copies the readers can use.
+
+Keep the required layout manifest aligned with all Item Query statements and the shared Library lookup. Mark columns that can be absent as optional and check for them before selecting them. The Library reader omits `libraries.clientVersion` when it is absent. A missing core table identifies a file outside the Zotero database contract. Report one gap for a missing table, or one gap for each missing column in a present table.
+
+The manifest test imports all reader modules and compiles their SQL under the SQLite authorizer. Count only reads of real schema tables and views so table-valued functions do not become manifest entries. Keep the first layout result for the client's life. A later schema edit can still cause a driver statement error. Tests that need a fresh layout open a new client.
+
+## Shared synchronous query helpers
+
+Keep declared placeholder names and bound values checked at TypeScript call sites. A query with no placeholders takes no arguments. A declared object shape requires that shape, and an unqualified query keeps Drizzle's optional parameter record. Preserve narrow literals in relational-query configuration so a shared projection still type-checks after it is spread into a call.
+
+Cache prepared statements by client and by sorted builder arguments. Restrict the argument values to JSON-compatible primitives and flat arrays. Omit unset keys so different builder arguments cannot collapse into the same serialized key. Keep the uncached builder callable for SQL inspection. Bind keyed membership as a single JSON array so key count does not change the statement shape. Skip empty requests and return hits in input order, including duplicates. A keyed query selects independent rows, leaving global limits and aggregates to other readers.
+
+Resolve physical Item IDs across Libraries without a caller-supplied Library scope. A display reference reads the key, owning Library, and title without hydrating the Item. Batch callers can reuse a Library-to-group lookup cache. Keep Library metadata raw so the host can localize its labels.
+
+The tested schema-version range is advisory. Report the stored stamps and whether both fall within that range. Let each caller handle an untested version, because a newer Zotero copy can still have the columns the reader requires. The layout check continues to decide which SQL can run.
+
+Bind Library IDs at execution time on cached statements. A statement prepared for one Library must still accept a different Library on its next call. Item IDs are global within one database, so a batch can span Libraries and derive each Indexed Key from its own row. Read Zotero's timestamp text as UTC, and compare epoch milliseconds in tests to avoid a dependency on the runner's time zone.
+
+## Schema mapping and tool entry points
+
+Preserve Zotero column spelling during introspection. The config uses JavaScript because the TypeScript loader failed to pass the nested casing option through validation when introspection was set up. The schema represents SQLite columns with no declared type without forcing affinity. Use the timestamp mapping for untyped date columns, and the integer type for untyped foreign keys to an integer primary key. Interpret timestamps as UTC strings. Narrow Annotation position data in the reader because PDFs, EPUBs, and snapshots carry different shapes.
+
+Database code generation runs TypeScript source directly in Node. Its lint rules permit the source import paths the generator needs, and the Node SQLite adapter remains the production entry that can import Node.

@@ -1,6 +1,5 @@
 import type { RenderDiagnostic, PartialContext } from "#core/render/index.ts";
 import type { ProfileCheck } from "#obsidian/cli/check-profile.ts";
-// Saved-source checking and attempt retention. Output flags only disclose completed work.
 import { Clock, Effect, FileSystem, Result, Schema } from "effect";
 import type { PlatformError } from "effect";
 import { randomUUID } from "node:crypto";
@@ -67,7 +66,6 @@ import {
 import { PROFILE_OUTPUTS } from "#obsidian/cli/check-profile.ts";
 
 export const TEMPLATE_CHECK_COMMAND = "zotlit:template-check";
-/** How many finished attempts stay readable; the oldest is evicted beyond it. */
 const RETAINED_ATTEMPTS = 32;
 const ATTEMPT_LOOKUP_HELP =
   "Keep the same vault prefix. Use only attempt, output, and evidence for a retained lookup; omit expect-source and all input selectors. Example: zotlit:template-check attempt=<id> evidence=full output=all. The retained result carries the original source identity.";
@@ -181,10 +179,8 @@ ${Object.entries(checkFlags)
   .map(([name, flag]) => `  ${name}: ${flag.description}`)
   .join("\n")}`;
 
-/** The inspection fields a check answer repeats, beside the source itself. */
 export interface InspectedAnswer {
   ok?: boolean;
-  /** The inspection's own refusal, which a check branch forwards unchanged. */
   diagnostic?: FaultDiagnostic;
   document?: InspectDocument;
   input?: { revision: string; path: string | null; origin: string };
@@ -196,35 +192,20 @@ export interface InspectedSource extends InspectedAnswer {
   source?: string;
 }
 
-/**
- * What one check phase hands to the answer assembly: the inspection fields the
- * answer repeats, and the evidence a Check Attempt and a render report read. A
- * phase extends it by value and passes the extension on, so the answer never
- * reads state a distant branch wrote.
- */
 export interface CheckContext {
   readonly answer: Readonly<InspectedAnswer>;
-  /** Checked source text the render report fingerprints. */
   readonly source: string;
-  /** Fingerprint of the data a render read; empty until data is loaded. */
   readonly dataRevision: string;
-  /** Template language the report context names. */
   readonly language?: string;
-  /** Document path or ID the report context names. */
   readonly documentPath?: string;
-  /** Caller root the report context names. */
   readonly root: string;
-  /** Whether the checked document is a Shared Partial. */
   readonly partial: boolean;
-  /** Profile selector a partial render report names. */
   readonly profileSelector?: string;
-  /** Indexed key the baseline block reports. */
   readonly itemKey: string;
   readonly baseline?: Extract<
     Effect.Success<ReturnType<typeof selectCheckBaseline>>,
     { ok: true }
   >;
-  /** Profile the baseline block reports. */
   readonly selectedProfile?: { id: string; label: string };
 }
 
@@ -233,25 +214,18 @@ export interface CheckDeps {
   hostVersion: string;
 }
 
-/** What a check reads: the inspection's services and the item data's. */
 export type CheckServices =
   | InspectServices
   | TemplateDataServices
   | FileSystem.FileSystem;
 
-/**
- * The message of what the draft read threw, as Node's own `readFile` gave it:
- * the CLI shows it in `DRAFT_READ_FAILED`.
- */
 const draftReadMessage = (error: PlatformError.PlatformError): string =>
   error.cause instanceof Error
     ? error.cause.message
     : (error.reason.description ?? error.message);
 
-/** A command's answer to the caller's parameters, over the services it reads. */
 type CheckHandler<R> = (params: CliData) => Effect.Effect<string, unknown, R>;
 
-/** Attaches the attempt's render report to one diagnostic the branch raises. */
 type AttachReport = <
   T extends RenderDiagnostic & {
     annotation?: { key: string; revision?: string };
@@ -261,19 +235,12 @@ type AttachReport = <
   diagnostic: T,
 ) => T & { report: ReturnType<typeof captureRenderReport> };
 
-/**
- * A refusal answer body. `hint` is required because the Workbench Guide tells a
- * caller that a failed check answers with `diagnostic.hint`, so a branch that
- * refuses without one loses the repair instruction the caller acts on.
- */
 export interface CheckFault {
   ok: false;
   diagnostic: FaultDiagnostic;
   [field: string]: unknown;
 }
 
-/** The fault a refusal reports. A promoted render diagnostic says the whole
- *  thing through `code` and `params`, so only `hint` is unconditional. */
 export interface FaultDiagnostic {
   code: string;
   message?: string;
@@ -281,60 +248,32 @@ export interface FaultDiagnostic {
   [field: string]: unknown;
 }
 
-/**
- * One answer body: a refusal carrying its hint, or an answer that raises no
- * top-level diagnostic at all — a passing check, or a failed check whose causes
- * stay in the `checks` map. The second arm admits no `diagnostic`, so a branch
- * that raises one reaches this type only through {@link CheckFault}, with its
- * hint.
- */
 export type CheckAnswerBody =
   | CheckFault
   | { diagnostic?: undefined; [field: string]: unknown };
 
-/**
- * What one document branch returns: the answer context it built, and the answer
- * body the entry module merges onto it. The entry module makes the single
- * `finish` call, so no branch can assemble an answer twice.
- */
 export interface CheckOutcome {
   context: CheckContext;
   result: CheckAnswerBody;
 }
 
-/**
- * What the entry module hands one document branch: the parsed request, the
- * acquired source with its inspection, and the render-report closure the entry
- * module owns.
- */
 export interface CheckBranch {
   params: CheckRequest;
   mode: "create" | "update";
   draft: { source: string; path: string } | undefined;
-  /** Reruns the source inspection to detect a superseded source. */
   inspect: CheckHandler<InspectServices>;
   inspectRequest: CliData;
   inspected: InspectedSource;
-  /** Checked source text, acquired before the branch runs. */
   source: string;
   context: CheckContext;
   attachReport: AttachReport;
 }
 
-/**
- * A {@link CheckBranch} carrying the inspected document the entry module's kind
- * guard established, so the Profile branch reads it without asserting it.
- */
 export interface ProfileCheckBranch extends CheckBranch {
   inspectedDocument: InspectDocument;
 }
 
-/**
- * A {@link CheckBranch} carrying the caller root the entry module's flag guards
- * derived, so the plain branch selects data with the root those guards accepted.
- */
 export interface PlainCheckBranch extends CheckBranch {
-  /** Caller root the request selected; undefined when the request named none. */
   root: string | undefined;
 }
 
@@ -355,7 +294,6 @@ const OUTPUT_NAMES: readonly string[] = [
 const ATTEMPT_LOOKUP_MESSAGE =
   "An attempt lookup takes only attempt, output, and evidence.";
 
-/** What a check discloses, for a new check and a retained attempt alike. */
 const disclosure = {
   output: Schema.optionalKey(
     Schema.String.pipe(cliMap((names) => names.split(","))).check(
@@ -371,14 +309,8 @@ const disclosure = {
 
 const notInLookup = cliNotApplicable(ATTEMPT_LOOKUP_MESSAGE);
 
-/** The parameters an attempt lookup takes; {@link notInLookup} rejects the rest. */
 const LOOKUP_PARAMETERS = new Set(["attempt", ...Object.keys(disclosure)]);
 
-/**
- * Whether `rejection` is {@link notInLookup}'s: a lookup whose decode refused a
- * parameter it does not take. A token no check takes, or an empty value, is
- * refused before the decode and carries no `issue`.
- */
 function isNotInLookup(cliData: CliData, rejection: CliRejection): boolean {
   return (
     cliData.attempt !== undefined &&
@@ -387,7 +319,6 @@ function isNotInLookup(cliData: CliData, rejection: CliRejection): boolean {
   );
 }
 
-/** The Template a check renders and the data it reads, in either mode. */
 const renderSelection = {
   root: Schema.optionalKey(
     cliLiterals(PARTIAL_CONTEXT_NAMES, INVALID_CHECK_REQUEST),
@@ -400,7 +331,6 @@ const renderSelection = {
   ),
 };
 
-/** The Profile, installed document, or draft a check reads its source from. */
 const sourceSelection = {
   profile: selector,
   document: selector,
@@ -411,7 +341,6 @@ const indexedKey = cliText(INVALID_CHECK_REQUEST).check(
   cliIndexedKey(INVALID_CHECK_REQUEST),
 );
 
-/** A check reads a Zotero object by key, or a built-in Citation set, not both. */
 const oneObject = cliOneOf<{ key?: string; example?: string }>(
   ["key", "example"],
   { many: INVALID_CHECK_REQUEST },
@@ -419,11 +348,6 @@ const oneObject = cliOneOf<{ key?: string; example?: string }>(
 
 const notInCreate = cliNotApplicable(INVALID_CHECK_REQUEST);
 
-/**
- * A retained attempt reads only its disclosure; a create check renders a new
- * note; an update check reads its baseline from the item's note, from one
- * note path, or from supplied text.
- */
 const checkParams = cliVariants(
   ({ attempt, mode, note, existing }) =>
     attempt !== undefined
@@ -474,7 +398,6 @@ const checkParams = cliVariants(
       { mode: INVALID_CHECK_REQUEST, key: INVALID_CHECK_REQUEST },
     ).check(
       oneObject,
-      // An update baseline comes from one note, or from supplied text.
       cliRule(
         "existing",
         ({ note, existing }: { note?: string; existing?: string }) =>
@@ -485,11 +408,6 @@ const checkParams = cliVariants(
   },
 );
 
-/**
- * A refusal with the Diagnostic Report the other Workbench commands carry. A
- * promoted render diagnostic keeps its render report under `report` and the
- * editor's own vocabulary, so it stays as it is.
- */
 function reported(diagnostic: FaultDiagnostic): FaultDiagnostic {
   if ("report" in diagnostic || typeof diagnostic.message !== "string")
     return diagnostic;
@@ -503,7 +421,6 @@ function reported(diagnostic: FaultDiagnostic): FaultDiagnostic {
   };
 }
 
-/** A decoded `template-check` request. */
 export type CheckRequest = CliOutput<typeof checkParams>;
 type CheckParam = CliParamName<typeof checkParams>;
 
@@ -527,7 +444,6 @@ export function createCheckHandler(
       );
       const output = params.output ?? [];
       const answer = (result: object) => {
-        // Construct a separate disclosure tree so retained attempts keep all outputs.
         const copy = JSON.parse(JSON.stringify(result)) as {
           checks?: Record<string, ProfileCheck>;
           diagnostic?: { evidence?: unknown; report?: unknown };
@@ -550,7 +466,6 @@ export function createCheckHandler(
           }
           if (copy.diagnostic) {
             delete copy.diagnostic.evidence;
-            // An array is the Diagnostic Report, which every disclosure keeps.
             if (!Array.isArray(copy.diagnostic.report))
               delete copy.diagnostic.report;
           }
@@ -588,7 +503,6 @@ export function createCheckHandler(
       const attempt = randomUUID();
       const attemptSequence = ++sequence;
       const capturedAt = instantClock(yield* Clock.Clock)().toString();
-      // Source acquisition extends this before either document branch takes over.
       let sourceContext: CheckContext = {
         answer: {},
         source: "",
@@ -670,8 +584,6 @@ export function createCheckHandler(
             : {}),
         };
         const { checks } = merged as { checks?: Record<string, ProfileCheck> };
-        // The checks map a branch returns stays the branch's own record, so the
-        // attempt reports go into a copy rather than into that record.
         const answered: object = checks
           ? {
               ...merged,
@@ -779,7 +691,6 @@ export function createCheckHandler(
         sourceContext = { ...sourceContext, source: draft.source };
       }
       if (mode === "update") {
-        // Any failure to read the baseline refuses the check.
         const refused = yield* Effect.gen(function* () {
           const parent = yield* readTemplateData(
             sourceContext.itemKey,
@@ -875,7 +786,6 @@ export function createCheckHandler(
                   path: draft.path,
                   revision: sourceRevision(draft.source),
                 },
-                // Installed document diagnostics describe the saved version, not this draft.
                 problems: [],
                 document: {
                   kind: "profile",

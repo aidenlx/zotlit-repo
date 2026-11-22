@@ -1,8 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-// `@/lib/l10n` builds a `Localization` at module scope, and that Gecko global
-// only exists inside Zotero. It has to stand before the import, so the menu
-// module is pulled in dynamically.
 (globalThis as { Localization?: unknown }).Localization = class {
   formatValue(): Promise<null> {
     return Promise.resolve(null);
@@ -35,7 +32,6 @@ function item({ kind, notes = 0 }: ItemShape): Zotero.Item {
   } as unknown as Zotero.Item;
 }
 
-/** What one `onShowing` wrote to its menu element. */
 interface ShownState {
   visible?: boolean;
   enabled?: boolean;
@@ -77,7 +73,6 @@ afterEach(() => {
   delete (globalThis as { Zotero?: unknown }).Zotero;
 });
 
-/** The ZotLit submenu beside the state of each of its entries. */
 function showSubmenu(items: Zotero.Item[]): {
   submenu: ShownState;
   entries: ShownState[];
@@ -102,8 +97,6 @@ describe("the ZotLit item submenu", () => {
     expect(submenu).toEqual({ visible: true, enabled: false });
   });
 
-  // The submenu's own condition and its entries' conditions are separate code,
-  // so the entries are an independent oracle for what the submenu must report.
   it.each([
     ["one regular item", [item({ kind: "regular" })]],
     [

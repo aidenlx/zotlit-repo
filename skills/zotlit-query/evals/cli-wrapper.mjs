@@ -13,12 +13,7 @@ const commands = new Set([
   "zotlit:annotation-image",
 ]);
 
-// The runner executes the fixed CLI and writes receipts. The agent can call the
-// socket, but its sandbox needs no write access to the receipt file or run root.
 export async function startCliWrapper({ agentRoot, callLog, vaultId, invoke }) {
-  // macOS Unix socket paths must fit in 104 bytes; worktree paths do not fit.
-  // The agent sandbox matches resolved paths, and macOS resolves /tmp to
-  // /private/tmp, so the allow-listed path must be the resolved one.
   const socketPath = join(await realpath("/tmp"), `zq-${randomUUID()}.sock`);
   const controller = new AbortController();
   const sockets = new Set(),

@@ -1,4 +1,3 @@
-// Shared repository observations for view models and card layouts.
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
@@ -12,7 +11,6 @@ import type {
   EditingCapability,
 } from "./service.ts";
 
-/** A batch can change several cards before the registry publishes one update. */
 export const annotationChangeAtom = held<ReadonlyMap<string, AnnotationState>>(
   Stream.unwrap(
     Effect.map(AnnotationRepository, (repository) =>

@@ -1,7 +1,3 @@
-// The source decision is synchronous over a constructed snapshot, so every
-// case here runs without touching a filesystem — including the
-// case-insensitive one, which must hold regardless of the CI host.
-
 import { describe, expect, it } from "vitest";
 
 import { decideSource, NO_ROOTS } from "./source.ts";

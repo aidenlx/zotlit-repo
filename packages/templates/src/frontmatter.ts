@@ -32,7 +32,6 @@ export { FRONTMATTER_ABSENT } from "./frontmatter-merge.ts";
 type BasenameHelper = (path: string, ext?: string) => string;
 type FrontmatterEvaluator = (zt: object, basename: BasenameHelper) => unknown;
 
-/** A {@link FrontmatterField} whose `expr` is compiled once for repeated eval. */
 export interface CompiledFrontmatterField {
   key: string;
   fn: FrontmatterEvaluator;
@@ -65,7 +64,6 @@ export interface CompiledManagedFrontmatter {
 
 export interface ManagedFrontmatterEvaluationError {
   readonly key: string;
-  /** 1-based list position of the entry that raised it. */
   readonly position: number;
   readonly error: unknown;
 }
@@ -77,15 +75,12 @@ export interface ManagedFrontmatterEvaluation {
 }
 
 export interface CompileFrontmatterOptions {
-  /** Shared Liquid engine providing the same vocabulary as the templates. */
   liquid: Liquid;
-  /** JavaScript Templates gate: when false, javascript fields are skipped uncompiled. */
   javascript: boolean;
 }
 
 export interface CompiledFrontmatter {
   compiled: CompiledFrontmatterField[];
-  /** Keys of javascript fields skipped (never compiled) because the gate is off. */
   inertKeys: string[];
 }
 
@@ -209,26 +204,6 @@ export function evalManagedFrontmatterEntries(
   return { values, keys: [...keys], errors };
 }
 
-/**
- * Compile each field's `expr` into a reusable evaluator, dropping empty keys.
- *
- * A `"javascript"` field is user-authored JS (trusted, local config)
- * evaluated via `new Function`, so values return verbatim (numbers/arrays/
- * objects stay intact) — which is why this can't route through `Eta.render`.
- * With {@link CompileFrontmatterOptions.javascript} off, javascript fields are
- * filtered out before compilation (never compiled-then-skipped) and their
- * keys collected into {@link CompiledFrontmatter.inertKeys}: the hard
- * invariant is that no dynamic code compilation runs anywhere with the gate
- * off.
- *
- * A `"liquid"` field compiles once via liquidjs's `Value`, whose evaluator
- * feeds a fresh `Context` per call so typed values (arrays, numbers, null)
- * return verbatim, same as the JS path.
- *
- * A syntactically invalid `expr` (either language) compiles to an evaluator
- * that throws at eval time, so {@link evalFrontmatterFields} reports it
- * per-field through `onError` rather than this aborting the whole set.
- */
 export function compileFrontmatterFields(
   fields: readonly FrontmatterField[],
   options: CompileFrontmatterOptions,
@@ -259,8 +234,6 @@ export function compileFrontmatterFields(
 }
 
 function compileExpr(expr: string): FrontmatterEvaluator {
-  // Newline before `)` so an expr ending in a `//` line comment doesn't swallow
-  // the closing paren — matches the engine's `#assertExpressionSyntax` check.
   // oxlint-disable-next-line no-implied-eval
   return new Function(
     "zt",
@@ -269,7 +242,6 @@ function compileExpr(expr: string): FrontmatterEvaluator {
   ) as FrontmatterEvaluator;
 }
 
-/** Defer a syntax error to eval time so {@link evalFrontmatterFields} reports it. */
 function toEvaluator(expr: string): FrontmatterEvaluator {
   try {
     return compileExpr(expr);
@@ -280,10 +252,6 @@ function toEvaluator(expr: string): FrontmatterEvaluator {
   }
 }
 
-/**
- * Defer a parse error to eval time, matching {@link toEvaluator}. `basename`
- * is ignored — liquid fields have no equivalent helper injected.
- */
 function toLiquidEvaluator(expr: string, liquid: Liquid): FrontmatterEvaluator {
   try {
     const value = new Value(expr, liquid);
@@ -296,10 +264,6 @@ function toLiquidEvaluator(expr: string, liquid: Liquid): FrontmatterEvaluator {
   }
 }
 
-/**
- * Compile-check a single expression for the settings UI.
- * @returns `null` when `expr` compiles, or the error message when it does not.
- */
 export function validateFrontmatterExpr(
   expr: string,
   language: FrontmatterLanguage,
@@ -314,11 +278,6 @@ export function validateFrontmatterExpr(
   }
 }
 
-/**
- * Evaluate precompiled fields over `zt` into a record. A field whose evaluator
- * throws (invalid expression or runtime error) is skipped and reported via
- * `onError` rather than aborting the rest.
- */
 export function evalFrontmatterFields(
   fields: readonly Pick<CompiledFrontmatterField, "key" | "fn">[],
   zt: object,
@@ -336,7 +295,6 @@ export function evalFrontmatterFields(
   return fm;
 }
 
-/** Serialize selected keys first, preserving their explicit order. */
 export function stringifyFrontmatterInOrder(
   values: Readonly<Record<string, unknown>>,
   keys: readonly string[],

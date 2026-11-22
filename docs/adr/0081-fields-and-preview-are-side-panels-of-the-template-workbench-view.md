@@ -126,3 +126,249 @@ Spec [#1962](https://github.com/aidenlx/zotlit/issues/1962). This amendment repl
 - One function, `openTemplateWorkbench` (`views/template-workbench/open.ts`), opens a Template Document in the Workbench for every route: commands, file menus, the Markdown header action, the settings rows, the recovery notice, the Customize flow's Obsidian side and the `import-profile` link. It reveals the window that already holds the document. An open that starts from a leaf in a Workbench window (Open as Markdown and back, Edit partial, Extract to partial, the citation text from the pane menu) opens in that window: in the leaf, or in a new tab or split beside it. A Workbench leaf that an older workspace saved in the main window moves into a window of its own. Otherwise the open makes a new window. Every open shows the Preview.
 - One command, "Open template workbench" (`open-template-workbench`), opens the active Profile, Citation Template, Shared Partial, or the Profile of the active Literature Note with its Item and the note to update. The file menu and the Markdown header action carry the same entry. "Switch to template workbench view", the second "Open template workbench" command (`customize-profile`), "Customize this note's template" (`customize-note-template`) and the pane menu's "Open template workbench" are gone. The pane menu's citation entry takes the command's name, "Customize citation text". The web Workbench launch and the settings' Customize chooser stay.
 - The `import-profile` link's `paneType` no longer picks a pane for the imported Profile.
+
+## Web panel behavior
+
+Keep one Preview region mounted when placement changes so its reading state survives the move. Size the panels from their displayed size, including when a short frame clamps the saved split. The View menu stays open during size steps and closes if the set of handles changes, so controls do not move under the pointer. Announce a size chosen from the menu because focus stays in the menu. Let the handle announce its own value when it has focus.
+
+Put the web Fields popover inside the panels' box. Its own action handles the pointer press and the focus it moves, so an outside-press or focus-out event on the same action does not toggle it a second time. The View menu waits for its close to finish before opening Fields, and sends focus to Fields. On dismissal, return focus to the Fields action if the popup still held it. An insert that already focused the editor keeps that focus. Keep a disabled pin focusable so the reader can discover how to enable it. When the available side band is wide enough, move toasts outside the popover so they leave its bottom controls clear.
+
+At wide sizes, anchor the field details beside the row and let Base UI flip them to the other side if needed. At narrow sizes, limit the details bar to half the panel so fields remain visible, and keep its actions at the bottom as the contents scroll. Mark the keyboard-selected row independently of hover. Keep the Item controls mounted while the row shows an annotation so a pending Item load keeps its state. Use one row for the Item or annotation above all panels.
+
+Each web Explorer owns its display and navigation state. Changing the Item resets navigation and changing the root moves its anchor. Completion, hover, and insertion read the active pane and sample at the time of the action, so switching samples or roots does not rebuild the editor. Field values use the renderer's snapshot restoration. Clamp an insertion to its target slice so a caret last used in another pane cannot modify that pane.
+
+## Scheduler publication and surface state
+
+Observe the scheduler to run its quiet timer and render Effect. A new
+source, selection, external invalidation, or host hold advances the
+generation and interrupts obsolete work. Run ends the timer and starts
+an explicit job. Stop and On demand leave a render already in flight
+eligible to land. Turning Live on starts a new quiet period. Removing
+the Item clears output for the previous one. The scheduler compares
+selection objects by reference, so a changed choice has a new object.
+
+Take render results from the render atom's own value so an immediate
+render does not write another atom during its build. Consume each
+render result or reported host failure once. An interrupted or stale
+attempt publishes no result and captures no report. Each published
+attempt has its own sequence even when the source is identical. Capture
+the report from that result with its trigger and full selection so a
+later edit cannot change the evidence. Preserve the host's original
+error when constructing a failure result.
+
+Keep successful output per surface and require the same Template
+Document and selection before reusing it. A Properties failure makes
+the note surface unsuccessful even when the renderer returned a partial
+body. Independent output can still land. Rebase retained Properties
+positions to the current draft. Drop the value of a removed row but
+keep its diagnostic without a row number. Memoize the result for the
+same attempt and draft so an unchanged read keeps its identity.
+
+The Preview, Properties example, and Name example share the pending
+state mapping. A pending live check shows rendering when there is no
+output yet. On demand can leave a result waiting for Run. A host hold
+blocks a new render and can leave previous output visible. An invalid
+draft uses the failure state, with retained output only when that
+surface produced it. An empty surface has no previous preview to
+describe.
+[Render scheduler](../../packages/workbench/src/ui/scheduler-atoms.ts) · [Pending view](../../packages/workbench/src/ui/pending-view.ts)
+
+### Per-editor view state
+
+Keep the controller authoritative for text and let one model hold the
+current controller, preview choices, and panel state. Hosts can supply
+derived view and Item data and share one runtime across editors. Read
+choices independently so changing one selection updates only its
+consumers. A chosen Citation example carries its own data. An explicit
+Item choice for the Citation root replaces that example. Without an
+Item, a Sample Annotation can supply its own parent.
+
+Persist panel choice and size. Derive placement from the measured
+container. Keep popover visibility, announced size, focus requests, and
+live-region counts in memory. Pin and unpin can move Fields between a
+popover and a dock. Moving a focused popover into a dock closes that
+popover, so a later resize cannot reopen it. Only reader actions open
+the undocked popup. Keep the Fields live region across popup closure
+and count repeated announcements.
+
+Scope clipboard, chooser, and partial creation commands to their
+surfaces. A failed choice acts as dismissal, and failed creation leaves
+the text alone. Retry Match reads through their revision and retry
+signals. Treat a failed Match evaluation as failed even if its cause
+was a defect.
+[Workbench model](../../packages/workbench/src/ui/model.ts)
+
+### Placement and sizing
+
+Lay out docked Fields, editor, and Preview in that document order.
+Move Preview from a column to below the editor when the container is
+narrower than 56 rem at the hosts' 16 px root size. Keep Preview at the
+same point in the tree so it stays mounted across the breakpoint.
+Before measurement, use column placement. Let the Preview column and
+its handle claim space first. Dock a shown, pinned Fields Panel only
+when its minimum width and the editor's 360 px width both fit beside
+the Preview. Count any handle width the host adds. Below the editor,
+clamp Preview height to leave the editor 320 px for its controls and
+source. Derive these limits from the measured view so saved sizes
+can apply again when the view grows.
+
+Use one sizing rule for drag, arrows, Home and End, the size menu,
+and double-click reset. Start increments from the drawn size, account
+for reading direction, and keep space for the other visible column.
+A drag previews the size on the region's own style and saves it when
+the drag ends. Use the current model size for each key press so rapid
+presses each count. The size menu reaches every handle without a drag
+and disables actions at their limit or default.
+
+Use a labeled separator for each handle. Its orientation describes
+the line it draws. Report the drawn size on the handle and announce a
+menu resize separately because it leaves focus in the menu. If a dock
+that held focus disappears, return focus to the Fields action. A
+development cleanup replay on a dock that still stands keeps its
+focus. Keep insertion announcements outside the Fields popup so
+closing it does not hide them from the live region.
+[Panel placement](../../packages/workbench/src/ui/panel-layout.ts) · [Panel handles](../../packages/workbench/src/ui/panels.tsx) · [Panel size menu](../../packages/workbench/src/ui/panel-menu.ts)
+
+Name the docked panel and popup by their visible title. The Fields
+action discloses the region currently open. A user-opened panel
+focuses search and falls back to its pin button before there is an
+Item. A restored dock leaves focus alone. An unavailable pin uses
+`aria-disabled` so it retains focus and can explain its state.
+In the panel, Escape closes details, then clears search, then passes
+to the host. An active input method owns Escape. The panel's live
+region describes insertion and explains when there is no insertion
+target. Name field rows by their label and describe them by their
+value.
+[Fields Panel](../../packages/workbench/src/ui/fields-panel.tsx) · [Fields Panel tests](../../packages/workbench/src/ui/fields-panel.test.tsx)
+
+### Item row and result display
+
+Place one shared Item row above the editor and both panels, because
+they read the same choice. Hide the old Item's example when that
+choice changes, even if the new data is still loading. While the same
+Item's source is edited, keep its previous example until the new
+result lands. A Properties diagnostic with a row position belongs to
+that row. A whole-surface failure can retain the last output from
+that surface. A failure earlier in the pipeline can leave a surface
+unavailable without blaming its template.
+
+Keep stale and failure notices visible while the host's Markdown
+renderer works. Only the output waits for that renderer. Leave the
+file name to a host header if it already shows it. Show the final
+Properties fold in the note preview. Offer Show problem when the
+editor is available. A parser failure opens the editor's findings
+because no render diagnostic exists.
+[Example state](../../packages/workbench/src/ui/example-state.tsx) · [Item row](../../packages/workbench/src/ui/item-row.tsx) · [Preview result](../../packages/workbench/src/ui/result-column.tsx)
+
+Use one list item formatter for the tree preview, list shape, and insertion snippets. A list property uses the joined form. A loop snippet emits Markdown list lines. The Workbench Item selection carries either the built-in Sample Item ID or an Item key supplied by the host.
+
+Use the same pending-result rule for Preview, Properties, and Name. A dependency hold drops in-flight work and identifies any shown result as stale. A refused document is a failed check and can retain output from the last successful render. A new input cancels a pending debounce. The scheduler also supports hosts whose render completes within the same turn that starts it.
+
+### Fields popovers and insertion
+
+Give each leaf one Fields action and one inset native popover. Mount search content after the popover shows so the input can receive focus. A user dismissal informs the model, while a model-driven close needs no callback. Return focus to the action on dismissal. After an insert, let focus remain in the editor. Insert the selected field form at the placed caret, keep the panel open on Shift, and announce the inserted field. A missing insertion target changes the hint to explain how to place one. Bind Mod+Enter in the popover scope before Obsidian's global command sees it.
+
+Show field details beside the row in a wide view and keep the child popover within the current leaf. Its key scope consumes Escape before the parent. In a narrow view, keep details in a fixed footer and let them yield space so at least one row and its sticky section heading remain visible. Put the snippet first and retain the detail controls at the foot while contents scroll. Use the visible label as the accessible name. Dock Fields when pinned and when the view has room. Preserve focus and the tooltip if the dock has to collapse.
+
+Use the same labels and ordering for Completion and field discovery. Put common fields first and assign remaining fields to a single section. Use the native view title in a full pane and supply an internal title where a sidebar hides it. Keep Fields rows on one line, preserve the expanded value preview, and allow other Explorer rows to wrap. Use the selected-row data attribute for Obsidian's keyboard focus style and keep action controls visible on touch devices. Derive an accessible row name from its label rather than the tooltip.
+
+Persist the user's panel visibility and dimensions. Derive placement from the measured view. An unpinned Fields Panel opens over the view without taking column space. Pin at the leading edge where the editor has room. Put Preview below the editor under the 56 rem column breakpoint. Count the handle line in the minimum editor width. Lay each divider against the pane before it and expose the panel as a named region.
+
+Key Annotation examples by their source and Indexed Key so a refresh or reorder preserves the current choice. The Citation preview chooses an example set and Citation Variant. The Shared Partial preview chooses the caller through which the Partial runs. Let the Preview Panel title stay in its sticky row while the result owns its content and controls. Keep a hint about successful output in the same notice style as an out-of-date result. Failure notices preserve readable body text and put severity in the heading and the accent.
+
+Measure the panels' own box below the shared Item row in the leaf's window. Preserve the last measurement while a background tab has no size. Replace the observer when a leaf moves windows. Keep Fields disclosure in sync with the dock or popover. Update Preview inputs when a Partial, bibliography, or originating note changes. A Preview of a sample or a new Item with no note cannot select Update once the result establishes that no note exists. Panel size menu actions provide grow, shrink, and reset without dragging and announce the new size. Export the root shown by an open Fields panel. Preserve the editor insertion caret across focus changes and map it through edits. Shift insertion keeps focus in Fields while the mapped caret remains available.
+
+Restore older saved View descriptors by folding their separate Preview choices into the current model. A changed Item or editor root clears a temporary Fields root override. Give the Preview region a visible label reference because an Obsidian aria-label on the whole region opens a hover tooltip.
+
+### Desktop state and window restore
+
+Use the Workspace service to find and arrange dedicated windows. Apply view
+state directly through each leaf. Read a deferred leaf's saved state first and
+load possible matches so a restored editor can be reused. Show Preview in the
+editor's own leaf and focus its window. Concurrent requests to arrange one
+editor join the same operation. Register its completion handler before the
+interruptible move so cancellation releases the entry.
+
+Keep the loaded document, commands, Item read, and temporary Fields root in
+the leaf registry. The host model owns this state and the Workbench model holds
+reader choices. The shared Item read confirms a library selection resolves to a
+top-level Item. Sample Items carry their own data and do not depend on Zotero's
+revision. A disconnected database or a missing Item reports a failed read. A
+missing selection reports an empty read. Explicit refresh and a changed Item or
+Zotero revision replace the read; closing the leaf interrupts it and its
+commands. A newer chooser replaces the earlier one. Keep previous Preview
+output scoped to its Template Document.
+
+Keep navigation for each Fields root and the collapsed sections while the leaf
+lives so hiding the panel preserves them. An Item change resets navigation. The
+note's annotation list explores the selected example or falls back to the
+Item's first annotation. Put root choice, section state, export, and Indexed Key
+in the same surface as the standalone Explorer. Show these actions in the
+Fields header beside the pin. Insert at a valid caret in an editable document.
+The shared Item row keeps space for its chooser, shows truncated names on
+hover, and identifies built-in example data and the Partial's caller.
+
+Decode saved Workbench settings independently. An omitted Item or annotation
+preserves the current choice and a saved null clears it. A null Citation
+example uses the chosen Item. Omitted panels and Preview height preserve the
+leaf defaults. Clamp saved dimensions and derive the maximum Preview width
+from current editor space. An older Fields column without a pin carries no
+dock state. Restore transient selection and scroll only for the document and
+Item that saved them, with independent decoding once that context is known.
+
+[Desktop model](../../packages/template-workbench/src/desktop/view/model.ts) ·
+[Fields panel](../../packages/template-workbench/src/desktop/view/fields-panel.tsx) ·
+[Window layout](../../packages/template-workbench/src/desktop/view/layout.ts)
+
+Close the native Item and annotation choosers when their Effect is
+interrupted. A reader dismissal returns an empty choice to the caller.
+
+Desktop walkthroughs wait for the panels and editor to reach the same
+popout document before pressing controls. Keep Query Blocks as
+placeholders in Preview without reporting valid Query text as a problem.
+
+### Desktop layout and input proof
+
+In the desktop cases, switch one Item and verify the editor, Fields,
+and Preview together. Keep one chooser beside the Item name even
+when the name truncates. A popout chooser belongs to its requesting
+view even if the main window last had focus. Label the panels by
+reference so Obsidian's tooltip handling leaves them alone. Check
+consistent space around the tabs with and without docked Fields.
+
+Measure Preview against the panels' container below the Item row.
+The side column can exceed forty percent while the editor keeps
+360 px and a one-pixel divider. At less than 56 rem, move Preview
+below the editor. Keep its side width and lower height separately.
+Use forty percent height when restoring a state that leaves height
+out. Restore the dock pin, hidden state, and width. A legacy unpinned
+column and a temporary Fields popover restore closed. Measure native
+one-pixel dividers as part of the layout. The menu and keyboard can
+resize without dragging and announce the result. Keep the Preview
+header visible above scrolled content, and keep editor tabs within
+the editor column.
+
+Fields opens as a nonmodal inset popover when it is unpinned.
+Changing width alone leaves it closed. Shift+Enter inserts while
+keeping it open and focused, and Escape clears search before closing.
+A press outside or a second press on its action closes it. Return
+focus to the action when the clicked target takes no focus. Open
+details by click or key, not hover. Display them beside the row in
+a wide view or at the popover foot in a short view. Keep a complete
+row and its sticky section header visible at high zoom. Escape
+closes details before search and the popover. Copy keeps the panel
+open. Insert dismisses the details and the popover. Keep details
+within their leaf even in a split.
+
+Dock a pinned panel at the leading edge while there is room. A docked
+insert keeps the panel and focuses the editor. The Fields action
+can hide that panel without clearing the pin. In the docked search
+and details, Mod+Enter performs the local action without triggering
+the reader's editor hotkey. Collapsing a section holds its header in
+place, including at the end of the list. Re-expansion leaves a
+previously selected row where it would appear without scrolling to it.
+
+The Help menu opens at its view action. Preview and Fields own
+their header actions. Preview contains its own settings and Fields
+contains Item and Template Data actions.
+[Template Workbench cases](../../packages/e2e/src/template-workbench.e2e.ts)

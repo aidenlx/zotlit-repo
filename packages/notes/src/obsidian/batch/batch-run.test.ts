@@ -43,14 +43,11 @@ import {
 import { BatchUpdateRefusedError } from "#desktop/note-feature/update-batch.ts";
 import { NoteImportProfileError } from "#desktop/note-import/service.ts";
 
-/** The failure a test task answers its write with. */
 class WriteFailed extends Schema.TaggedError<
   WriteFailed,
   { readonly brand: unique symbol }
 >()("WriteFailed", { message: Schema.String }) {}
 
-/** Settle event recorder for a run's controls, plus `requestStop` so a test can
- * stop the run mid-run from inside a settle callback. */
 function makeRunControls(onSettle?: () => void): {
   controls: BatchRunControls;
   requestStop: () => void;
@@ -72,7 +69,6 @@ function task(id: number): BatchRunTask {
   return { id, label: `Item ${id}` };
 }
 
-/** A ZoteroReads service whose Snapshot acquisition is observable. */
 function makeSnapshotReads(reads: ZoteroReadsApi): {
   zoteroReads: Pick<ZoteroReads["Service"], "snapshot">;
   dispose: ReturnType<typeof vi.fn>;
@@ -147,7 +143,6 @@ describe("executeBatchRun", () => {
           }),
         );
         yield* Effect.promise(() => started.promise);
-        // Task 2 settles on its own while task 1 stays admitted and unfinished.
         yield* Effect.promise(() => secondSettled.promise);
         expect(settled).toEqual([{ id: 2, status: "done" }]);
         release.resolve();
@@ -335,7 +330,6 @@ describe("executeBatchRun", () => {
         run,
       });
 
-      // Task 1 runs and settles; its settle requests the stop, so tasks 2 and 3 never run.
       expect(run).toHaveBeenCalledTimes(1);
       expect(settled).toHaveLength(1);
       expect(result).toMatchObject({ created: 1, failed: 0, cancelled: true });
@@ -520,7 +514,6 @@ describe("a halted run", () => {
   );
 });
 
-/** The Promise edge a batch modal's runner uses, over the default runtime. */
 const runBatch = runBatchWith((effect, options) =>
   Effect.runPromiseExit(effect, options),
 );
@@ -541,7 +534,6 @@ describe("runBatchWith", () => {
 });
 
 describe("classifyStream", () => {
-  /** The controls a batch modal hands its classify step, and its cancel. */
   function classifyControls(): {
     controls: BatchClassifyControls;
     abort: AbortController;
@@ -559,10 +551,6 @@ describe("classifyStream", () => {
     };
   }
 
-  /**
-   * Runs `build`'s classification in its own fiber and returns how it ended.
-   * `interrupt` stops that fiber; `early` interrupts it before it starts.
-   */
   function exitOf<A, E>(
     build: (interrupt: () => void) => Effect.Effect<A, E>,
     { early = false }: { early?: boolean } = {},
@@ -829,14 +817,12 @@ describe("planBatchScope", () => {
     return { ...makeSnapshotReads(reads), libraries, scopeItemIDs };
   }
 
-  /** The tags planBatchScope reads: the Snapshot and Library Scope. */
   function planningServices(
     zoteroReads: Pick<ZoteroReads["Service"], "snapshot">,
     resolveLibraries: LibraryScope["Service"]["resolveLibraries"],
   ) {
     return Layer.mergeAll(
       Layer.mock(ZoteroReads, {
-        // The plan reads only through its Snapshot.
         reads: readsAnswering({}),
         snapshot: zoteroReads.snapshot,
       }),

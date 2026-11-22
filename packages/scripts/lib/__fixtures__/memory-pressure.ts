@@ -1,4 +1,3 @@
-// OS boundary for admission tests: the file supplies the kernel pressure level.
 import childProcess from "node:child_process";
 import { appendFileSync, readFileSync } from "node:fs";
 import { syncBuiltinESMExports } from "node:module";

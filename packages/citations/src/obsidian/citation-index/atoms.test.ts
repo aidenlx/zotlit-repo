@@ -22,7 +22,6 @@ const snapshot = (coverage: CitedBySnapshot["coverage"]): CitedBySnapshot => ({
   resolution: null,
 });
 
-/** A host whose Citation Index records each observer it starts and stops. */
 const host = Effect.gen(function* () {
   const vault = new MemoryVault();
   const metadataCache = new MemoryMetadataCache();
@@ -57,7 +56,6 @@ const host = Effect.gen(function* () {
     ),
   );
   const registry = yield* scopedViewRegistry(context);
-  /** Opens `path` as a note of `key`. */
   const openNote = (path: string, key: string) => {
     const file = vault.add(path);
     file.extension = "md";
@@ -77,7 +75,6 @@ const host = Effect.gen(function* () {
   };
 });
 
-/** Waits until `atom` holds a value `accept` takes. */
 const until = <A>(
   registry: AtomRegistry.AtomRegistry,
   atom: Atom.Atom<A>,
@@ -122,7 +119,6 @@ it.effect(
       publish.get("ABCD2345")?.(first);
       yield* until(registry, activeCitedByAtom, (value) => value === first);
 
-      // A rename and a duplicate note of the same Item keep the observer.
       vault.rename(paper, "moved.md");
       openNote("duplicate.md", "ABCD2345");
       yield* Effect.yieldNow;

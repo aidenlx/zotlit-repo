@@ -7,7 +7,6 @@ import type {
   PreparedProfileCreation,
 } from "#obsidian/profile/service.ts";
 import { Effect } from "effect";
-// One Profile creation dialog shared by settings and contextual Profile pickers.
 import { DropdownComponent, Modal, TextComponent } from "obsidian";
 import type { App } from "obsidian";
 
@@ -37,10 +36,6 @@ export interface ProfileCreationData {
   note: NoteTemplateContext;
   filename: object;
 }
-/**
- * The Profile the dialog created, and the note it previewed: its `create`
- * writes that note at the path the dialog showed.
- */
 export interface CreatedProfile {
   profile: LiteratureNoteProfile;
   preview: ProfileNoteDraft;
@@ -50,20 +45,13 @@ export interface CreateProfileOptions {
   useForNote?: boolean;
 }
 
-/** What the creation dialog reads and runs while it is open. */
 export interface ProfileCreationDeps {
   app: App;
-  /** The default Profile, whose values the fields fall back to. */
   base: ResolvedProfile;
-  /** The Profiles whose look a new one can copy. */
   profiles: readonly LiteratureNoteProfile[];
   prepareCreate(
     options: ProfileCreateOptions,
   ): Promise<PreparedProfileCreation>;
-  /**
-   * The note `profile` would create from the document `source`; absent when
-   * no item supplies preview data.
-   */
   previewNote?(
     profile: ResolvedProfile,
     source: string,

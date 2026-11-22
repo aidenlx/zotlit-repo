@@ -50,7 +50,6 @@ describe("eta grammar", () => {
 
 describe("etaRange", () => {
   const source = "a <%= zt.title %> b <%~ include('x', zt) %> <% c";
-  //              0123456789012345678901234567890123456789012345678
 
   it("returns the tag body kind for a position inside a tag", () => {
     expect(etaRange(source, 8)).toEqual({

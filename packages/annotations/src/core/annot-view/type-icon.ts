@@ -1,4 +1,3 @@
-// The icon that names an Annotation's type, on its card and on its drag.
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
 
 const TYPE_ICON: Record<string, string> = {

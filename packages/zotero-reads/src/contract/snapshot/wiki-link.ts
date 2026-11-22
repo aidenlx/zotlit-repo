@@ -1,5 +1,3 @@
-// Shared formatting for vault-relative Obsidian wiki links.
-
 export interface WikiLinkOptions {
   readonly alias?: string;
   readonly subpath?: string;

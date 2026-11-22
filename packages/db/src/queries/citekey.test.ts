@@ -43,17 +43,13 @@ describe("getItemIDByCitekey", () => {
   });
 
   it("scopes the lookup to the requested library", () => {
-    // The same key lives in both libraries; each library resolves its own item.
     expect(getItemIDByCitekey(db, USER_LIBRARY_ID, "shared2024")).toBe(6);
     expect(getItemIDByCitekey(db, 2, "shared2024")).toBe(7);
-    // A group-only key is invisible from the user library.
     expect(getItemIDByCitekey(db, USER_LIBRARY_ID, "groupkey2025")).toBeNull();
     expect(getItemIDByCitekey(db, 2, "groupkey2025")).toBe(9);
   });
 
   it("does not match a non-citationKey field that holds the same value", () => {
-    // `title` of item 8 equals the citekey we search; only the citationKey
-    // field should match.
     expect(
       getItemIDByCitekey(db, USER_LIBRARY_ID, "title-collision"),
     ).toBeNull();
@@ -68,7 +64,6 @@ describe("getCitekeyByItemKey", () => {
   });
 
   it("returns null when the item carries no citation key", () => {
-    // Item 8 (USER3) has only a `title` field, no citationKey.
     expect(getCitekeyByItemKey(db, USER_LIBRARY_ID, "USER3")).toBeNull();
   });
 
@@ -82,7 +77,6 @@ describe("getCitekeyByItemKey", () => {
 
   it("scopes the lookup to the requested library", () => {
     expect(getCitekeyByItemKey(db, 2, "GRP1")).toBe("shared2024");
-    // The same key does not exist in the user library.
     expect(getCitekeyByItemKey(db, USER_LIBRARY_ID, "GRP1")).toBeNull();
   });
 });
@@ -140,7 +134,6 @@ describe("getCitekeysByLibrary", () => {
   });
 
   it("excludes a non-citationKey field holding the same value", () => {
-    // Item 8 (USER3) has only a `title` field, not a citationKey.
     const rows = getCitekeysByLibrary(db, USER_LIBRARY_ID);
     expect(rows.some((row) => row.itemID === 8)).toBe(false);
   });

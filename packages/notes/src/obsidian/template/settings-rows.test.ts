@@ -20,11 +20,6 @@ import { citationTextItems } from "./settings-rows.ts";
 import { rebuildingSettingTab } from "#__fixtures__/setting-tab.ts";
 import { Template } from "#obsidian/template/service.ts";
 
-/**
- * The tab context over `template` and `vault`, with a settings window that
- * closes through `close`. `rebuilt` takes one element per definition rebuild
- * an action asks for.
- */
 const tabOver = Effect.fnUntraced(function* (
   template: Partial<Template["Service"]>,
   options: {
@@ -52,7 +47,6 @@ const DEFAULT_STATUS: CitationTemplateStatus = {
   compileError: null,
 };
 
-/** The Citation text row as it renders for one Citation Template state. */
 const citationRow = Effect.fnUntraced(function* (
   status: CitationTemplateStatus,
 ) {
@@ -65,7 +59,6 @@ const citationRow = Effect.fnUntraced(function* (
   return renderRow(row);
 });
 
-/** The row's description, as `setDesc` received it. */
 function description(setting: Setting): DocumentFragment {
   return setting.desc as unknown as DocumentFragment;
 }

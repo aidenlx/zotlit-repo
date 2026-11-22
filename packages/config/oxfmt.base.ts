@@ -1,6 +1,3 @@
-// oxfmt picks the *nearest* config per subtree — no merge with parent configs.
-// Nested configs that declare their own ignorePatterns MUST spread this list
-// first; omitting the spread silently drops all entries defined here.
 import { defineConfig } from "oxfmt";
 
 export default defineConfig({
@@ -26,14 +23,10 @@ export default defineConfig({
     "**/__fixtures__/**",
     "**/__snapshots__/**",
     "pnpm-lock.yaml",
-    // Agent skills, most of them synced from upstream sources whose hashes
-    // skills-lock.json records.
     ".agents/**",
   ],
   overrides: [
     {
-      // Code blocks in Markdown docs quote source and output as written,
-      // often with aligned comments.
       files: ["**/*.md"],
       options: { embeddedLanguageFormatting: "off" },
     },

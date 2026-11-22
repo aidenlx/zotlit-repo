@@ -25,7 +25,6 @@ const CITATION = Object.assign(new TFile(), {
   path: "Templates/zotlit-citation.md",
 });
 
-/** A Template Workbench whose launch port records each document it opens. */
 function workspaceApp() {
   const opened: {
     path: string;
@@ -43,7 +42,6 @@ function workspaceApp() {
   return { app: stubService<App>("App", {}), opened, workspace };
 }
 
-/** The Template, Notifier and Template Workbench the open reads. */
 const servicesOver = (
   materializeCitationTemplate: Effect.Effect<TFile, TemplateFailure>,
   notifier: Notifier["Service"] = testNotifier().service,

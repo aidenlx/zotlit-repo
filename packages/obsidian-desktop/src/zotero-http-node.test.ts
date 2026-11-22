@@ -14,7 +14,6 @@ import type {
 
 import { layerZoteroHttpNode } from "./zotero-http-node.ts";
 
-// With the services every plugin runtime has, as `buildRuntime` adds them.
 const runtime = ManagedRuntime.make(
   layerZoteroHttpNode.pipe(
     Layer.provideMerge(Layer.succeedContext(runtimeServices)),
@@ -22,7 +21,6 @@ const runtime = ManagedRuntime.make(
 );
 afterAll(() => runtime.dispose());
 
-/** One round trip through the production `ZoteroHttp` client. */
 async function send(
   origin: string,
   init: Omit<ZoteroRequest, "port" | "path"> & {
@@ -43,7 +41,6 @@ type Handler = (
   response: ServerResponse,
 ) => void | Promise<void>;
 
-/** A loopback server on an OS-assigned port, closed when its scope ends. */
 async function serve(
   handler: Handler,
 ): Promise<{ origin: string } & AsyncDisposable> {
@@ -58,7 +55,6 @@ async function serve(
     origin: `http://127.0.0.1:${port}`,
     [Symbol.asyncDispose]: () =>
       new Promise<void>((resolve, reject) => {
-        // Node keeps the client's connection alive, which close() would wait on.
         server.closeAllConnections();
         server.close((error) => {
           if (error) reject(error);
@@ -68,7 +64,6 @@ async function serve(
   };
 }
 
-/** The request as it arrived, so the assertions read the wire, not the call. */
 function record(): {
   handler: Handler;
   arrived: Promise<{ method: string; headers: IncomingMessage["headers"] }>;
@@ -140,8 +135,6 @@ describe("ZoteroHttp over node:http", () => {
   });
 
   it("measures the body, so no request arrives without a content length", async () => {
-    // Zotero's HTTP server answers 400 to a chunked body, which is how Node
-    // frames one it was given no length for.
     const seen = record();
     await using server = await serve(seen.handler);
 
@@ -164,7 +157,6 @@ describe("ZoteroHttp over node:http", () => {
   });
 
   it("sends Zotero's header and no trace context, over a kept-alive connection", async () => {
-    // The headers the `fetch` over Node's global agent sent before.
     const seen = record();
     await using server = await serve(seen.handler);
 
@@ -178,10 +170,6 @@ describe("ZoteroHttp over node:http", () => {
   });
 
   it("reaches loopback with a proxy in the environment, rather than through it", async () => {
-    // A proxy in front of Zotero turns its connection-close refusal of browser
-    // traffic into the proxy's own answer, so every local API failure would
-    // arrive as an unrelated status. Node's HTTP stack reads no proxy variable;
-    // this holds a transport that ever did to the same rule.
     const seen = record();
     await using server = await serve(seen.handler);
     using _env = {

@@ -1,14 +1,3 @@
-// The shell commit of a release in the publish repository. The commit goes on
-// top of the branch of its line, so the history of the publish repository,
-// its tags and its releases stay as they are, and no push needs force:
-//
-//   stable:  main ── shell x.y.z                   (tag x.y.z)
-//   beta:    beta ── shell x.y.z-beta.n            (tag x.y.z-beta.n)
-//            the first beta, or a beta after a stable release that `beta`
-//            lacks, also takes the tip of main as a parent
-//
-// A second run finds what the first one did: a tag that names the same tree
-// is a finished release, and a branch tip with the same tree is reused.
 import { access, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { $ } from "zx";
@@ -16,38 +5,27 @@ import { $ } from "zx";
 import { PUBLISH_BRANCH } from "./lines.ts";
 import type { ReleaseLine } from "./lines.ts";
 
-/** Who the shell commits name. A release is made by the release flow, not by a person. */
 export const RELEASE_AUTHOR = {
   name: "github-actions[bot]",
   email: "41898282+github-actions[bot]@users.noreply.github.com",
 } as const;
 
 export interface ShellCommit {
-  /** `released`: the tag exists and names this tree; nothing to push. */
   state: "released" | "ready";
   commit: string;
   branch: string;
   tag: string;
   parents: string[];
-  /** The branch tip the commit goes on, before the push. */
   base: string;
   movesMain: boolean;
 }
 
 export interface PublishRepoOptions {
-  /** A bare repository that holds what is fetched; made when missing. */
   gitDir: string;
-  /** The publish repository: a URL, or a path for a local stand-in. */
   remote: string;
-  /**
-   * Git settings for the commands that reach the remote, such as an auth
-   * header. They go through the environment (`GIT_CONFIG_COUNT`), so no
-   * command line or log shows them.
-   */
   remoteConfig?: Readonly<Record<string, string>>;
 }
 
-/** `GIT_CONFIG_*` variables that set `config` for one Git command. */
 export function gitConfigEnv(
   config: Readonly<Record<string, string>> = {},
 ): Record<string, string> {
@@ -61,7 +39,6 @@ export function gitConfigEnv(
   ]);
 }
 
-/** The header that authenticates Git over HTTPS to GitHub with a token. */
 export function githubTokenConfig(token: string): Record<string, string> {
   const basic = Buffer.from(`x-access-token:${token}`).toString("base64");
   return {
@@ -83,10 +60,8 @@ function gitIn(options: PublishRepoOptions, env: NodeJS.ProcessEnv = {}) {
     },
   });
   return {
-    /** A local command; stdout, trimmed. */
     local: async (...args: string[]) =>
       (await sh`git --git-dir ${options.gitDir} ${args}`).stdout.trim(),
-    /** A command that reaches the remote. */
     remote: async (...args: string[]) =>
       (await remoteSh`git --git-dir ${options.gitDir} ${args}`).stdout.trim(),
     test: async (...args: string[]) =>
@@ -95,7 +70,6 @@ function gitIn(options: PublishRepoOptions, env: NodeJS.ProcessEnv = {}) {
   };
 }
 
-/** The `refs/...` → sha map the remote lists for its heads and tags. */
 async function remoteRefs(
   options: PublishRepoOptions,
 ): Promise<Map<string, string>> {
@@ -114,10 +88,6 @@ async function remoteRefs(
   return refs;
 }
 
-/**
- * Fetches the publish repository's state and writes the shell commit of
- * `version` from the files in `shellDir`, without pushing it.
- */
 export async function prepareShellCommit(
   options: PublishRepoOptions & {
     shellDir: string;
@@ -136,8 +106,6 @@ export async function prepareShellCommit(
   const refs = await remoteRefs(options);
   const branch = PUBLISH_BRANCH[line];
   const tag = version;
-  // Commits and trees only: the shell commit needs its parents and their
-  // trees, not the files of the old history.
   const fetch = (from: string, to: string) =>
     git.remote(
       "fetch",
@@ -191,7 +159,6 @@ export async function prepareShellCommit(
     line !== "stable" &&
     (await git.local("ls-tree", "refs/remotes/publish/main")) === "";
   if (parents.length === 1 && (await treeOf(base)) === tree) {
-    // A run before this one pushed the commit, and not the tag.
     return {
       state: "ready",
       commit: base,
@@ -218,7 +185,6 @@ export async function prepareShellCommit(
   return { state: "ready", commit, branch, tag, parents, base, movesMain };
 }
 
-/** The tree of the files in `dir`, as Git would commit them; honors its `.gitignore`. */
 async function writeTree(
   options: PublishRepoOptions,
   dir: string,
@@ -230,11 +196,6 @@ async function writeTree(
   return git.local("write-tree");
 }
 
-/**
- * The refspecs of the release push: the commit onto its branch, onto main
- * when main has no files, and the tag, in one atomic push, so
- * the branches and the tag move together or not at all.
- */
 export function releaseRefspecs(
   shell: ShellCommit,
   { tag = true }: { tag?: boolean } = {},
@@ -246,7 +207,6 @@ export function releaseRefspecs(
   ];
 }
 
-/** Pushes the shell commit (and its tag) to the publish repository. */
 export async function pushShellCommit(
   options: PublishRepoOptions,
   shell: ShellCommit,

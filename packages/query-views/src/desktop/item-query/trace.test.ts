@@ -7,7 +7,6 @@ import { ItemQueryScheduler } from "@zotlit/item-query";
 
 import { createTrace, finishTrace } from "./trace.ts";
 
-/** Advance elapsed time before a host callback, as a pending file write would. */
 function clock() {
   let now = 0;
   let scheduledWait: number | undefined;
@@ -42,7 +41,6 @@ function clock() {
   };
 }
 
-/** `effect` on the time-budget scheduler of a query, as a worker runs it. */
 const onScheduler =
   (
     options: ConstructorParameters<typeof ItemQueryScheduler>[0] = {
@@ -62,8 +60,6 @@ const reportOf = (trace: ReturnType<typeof createTrace>) =>
     answerSteps: [],
   });
 
-// Live: the subject is real host callbacks, which async_hooks reports, and
-// real waits between them.
 describe("Item Query execution slices", () => {
   it.live.each([60, 600])(
     "keeps a %i ms asynchronous wait out of execution slices",
@@ -137,8 +133,6 @@ describe("Item Query execution slices", () => {
       }),
   );
 
-  // In the Obsidian worker the pause is a Chromium MessageChannel task, which
-  // async_hooks does not report: the resume is no Node host callback there.
   it.live(
     "ends a slice at a scheduler pause that async_hooks does not report",
     () =>
@@ -173,7 +167,6 @@ describe("Item Query execution slices", () => {
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
         const trace = createTrace(false);
-        // The run interrupts itself once the wait ends, as a cancel would.
         const run: Fiber.Fiber<void> = yield* Effect.forkChild(
           trace
             .instrument(

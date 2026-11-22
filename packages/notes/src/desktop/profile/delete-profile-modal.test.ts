@@ -14,7 +14,6 @@ import { openProfileDeletion } from "./delete-profile-modal.ts";
 import { profileReader } from "#__fixtures__/profile/reader.ts";
 import { defaults } from "#__fixtures__/settings.ts";
 
-/** The user's answer to the deletion dialog for `plan`. */
 function confirmProfileDeletion(
   app: App,
   options: { plan: ProfileDeletionPlan },

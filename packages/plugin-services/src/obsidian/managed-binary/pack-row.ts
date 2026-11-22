@@ -1,6 +1,3 @@
-// The settings row of one Managed Binary that ships in the Resource Pack: what
-// the binary is, where it stands, and the way to the pack's page.
-
 import type { SettingsKey } from "#obsidian/setting-tab/context.ts";
 import type {
   SettingTabEnv,
@@ -19,33 +16,20 @@ import type { PackStatusApi } from "./pack-status.ts";
 
 import { paintEach } from "#obsidian/setting-tab/effect-tab.ts";
 
-/** The binary's service as the row reads it: its tag, or a fake in a test. */
 export type PackBinaryTag = Effect.Effect<
   Pick<PackStatusApi, "check" | "changes">,
   never,
   SettingTabEnv
 >;
 
-/** The words one binary's row carries, already in the user's language. */
 export interface PackBinaryCopy {
   id: string;
   name: string;
-  /** What the binary is; the status follows it. */
   desc: string;
-  /** What the feature does without the binary; it follows each status but `ready`. */
   fallback: string;
-  /**
-   * The terms the pack redistributes the binary under, with a link to its
-   * source code; shown between the description and the status.
-   */
   licence?: { text: string; source: { text: string; url: string } };
 }
 
-/**
- * The binary row. It reads the pack each time it is shown, so the status is
- * that of the pack on disk, and shows each later status while it stays open.
- * Until the first status it says that it checks the pack.
- */
 export function packBinaryDefinition(
   tab: SettingTabShape,
   binary: PackBinaryTag,
@@ -59,7 +43,6 @@ export function packBinaryDefinition(
   };
 }
 
-/** One sentence per arm, in the words of the step that mends it. */
 export function packStatusSentence(status: PackBinaryStatus): string {
   switch (status.kind) {
     case "pack-absent":
@@ -77,17 +60,11 @@ export function packStatusSentence(status: PackBinaryStatus): string {
   }
 }
 
-/** The id of the plugin that reads the pack, as its manifest states it. */
 export const packReaderId: Effect.Effect<string, never, PluginHost> =
   Effect.gen(function* () {
     return (yield* PluginHost).manifest.id;
   });
 
-/**
- * Opens the page of the plugin that mends `status` in Obsidian's community
- * plugin browser: the plugin that reads the pack ({@link packReaderId}) when
- * the pack is newer than it reads, else the Resource Pack.
- */
 export function openPackStatusPage(
   status: Pick<PackBinaryStatus, "kind"> | null,
   readerId: string,
@@ -104,8 +81,6 @@ function renderStatus(
     copy,
   }: { tab: SettingTabShape; binary: PackBinaryTag; copy: PackBinaryCopy },
 ): () => void {
-  // The first status takes a read of the pack; the Chinese Segmenter's also
-  // waits for the worker that states it.
   const statusEl = createDiv({
     attr: { role: "status" },
     text: m.settings_resource_pack_status_checking(),
@@ -122,7 +97,6 @@ function renderStatus(
   }
   desc.append(statusEl);
   setting.setDesc(desc);
-  /** The status the row shows; `null` until the first read ends. */
   let shown: PackBinaryStatus | null = null;
   setting.addButton((button) =>
     button.setButtonText(m.settings_resource_pack_open()).onClick(() => {

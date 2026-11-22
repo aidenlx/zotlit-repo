@@ -1,5 +1,3 @@
-// The Effect-native readers of Item Query. This entry is the only one of
-// `@zotlit/db` that loads `effect`.
 export {
   type CandidateLeaf,
   type SeekCandidateLeaf,

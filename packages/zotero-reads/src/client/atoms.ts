@@ -1,4 +1,3 @@
-// View atoms over ZoteroReads. Read through `@zotlit/obsidian-kit/view-atoms.ts`.
 import { Effect, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
@@ -14,10 +13,6 @@ declare module "@zotlit/obsidian-kit/view-atoms.ts" {
   }
 }
 
-/**
- * How many times the Zotero database changed this session. A view atom that
- * reads Zotero data reads this too, so a change reads its data again.
- */
 export const zoteroRevisionAtom: Atom.Atom<number> = held(
   Stream.unwrap(
     Effect.gen(function* () {
@@ -31,7 +26,6 @@ export const zoteroRevisionAtom: Atom.Atom<number> = held(
   0,
 );
 
-/** The current database condition, including a missing file found during startup. */
 export const zoteroStateAtom: Atom.Atom<ZoteroReadsState> =
   held<ZoteroReadsState>(
     Stream.unwrap(Effect.map(ZoteroReads, (reads) => reads.changes)),
@@ -44,20 +38,17 @@ export const zoteroStateAtom: Atom.Atom<ZoteroReadsState> =
     },
   );
 
-/** Whether the database is unavailable to a view, including a failed move. */
 export const zoteroUnavailableAtom = Atom.map(
   zoteroStateAtom,
   (state) =>
     state.state === "degraded" || (state.error !== null && state.moved),
 );
 
-/** Changes that require a tree to discard its database data. */
 export const zoteroTreeUnavailableAtom = Atom.map(
   zoteroStateAtom,
   (state) => state.state === "degraded" || state.dbFileMissing,
 );
 
-/** A source became unreadable, so an open query must show its diagnostic. */
 export const zoteroQueryUnavailableRevisionAtom = held(
   Stream.unwrap(
     Effect.map(ZoteroReads, (reads) =>
@@ -76,7 +67,6 @@ export const zoteroQueryUnavailableRevisionAtom = held(
   0,
 );
 
-/** Whether the current database can answer a read. */
 export const zoteroReadyAtom = Atom.map(
   zoteroStateAtom,
   (state) => state.state === "ready",

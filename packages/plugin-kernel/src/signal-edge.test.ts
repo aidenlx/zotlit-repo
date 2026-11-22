@@ -1,4 +1,3 @@
-// The edge where a plain caller's AbortSignal ends an Effect run.
 import { it } from "@effect/vitest";
 import { Cause, Effect, Exit } from "effect";
 import { describe, expect } from "vitest";

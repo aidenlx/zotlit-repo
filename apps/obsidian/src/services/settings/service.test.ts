@@ -326,7 +326,6 @@ describe("PluginSettings loading", () => {
         yield* Effect.promise(() => service.loaded);
         const returned = service.update({ "server.hostname": "/x" });
         expect(returned).toEqual({ ...defaults, "server.hostname": "/x" });
-        // Mutating the returned snapshot must not affect the service.
         (returned as { "server.hostname": string })["server.hostname"] =
           "/tampered";
         expect(service.current?.["server.hostname"]).toBe("/x");
@@ -652,8 +651,6 @@ describe("PluginSettings legacy migration", () => {
         const saveSpy = vi.spyOn(plugin, "saveData");
         const { service } = yield* makeService({
           plugin,
-          // Promise prototype is not Object.prototype, so this hits the "non-plain
-          // return" branch — proves the hook is treated synchronously, never awaited.
           migrateLegacy: () =>
             Promise.resolve({ "note.literature-folder": "/legacy" }),
         });
@@ -680,8 +677,6 @@ describe("PluginSettings legacy migration", () => {
         migratedSettings({ "note.literature-folder": "/legacy-path" }),
       );
       expect(errorSpy).toHaveBeenCalled();
-      // Failed migration writes must not leak into pendingWrite: a subsequent
-      // flush() should observe no pending work and resolve cleanly.
       yield* Effect.promise(() =>
         expect(service.flush()).resolves.toBeUndefined(),
       );
@@ -831,9 +826,6 @@ describe("PluginSettings v1→v11 migration", () => {
     "a hand-edited field missing merge still fails per-key validation and drops the whole key to defaults",
     () =>
       Effect.gen(function* () {
-        // migrateV1ToV2 stamps `language` onto this plain object, but `merge` is
-        // still absent, so the whole `note.frontmatter-fields` array fails
-        // frontmatterFieldSchema and the key drops to its default.
         const plugin = new PluginStub({
           __VERSION__: 1,
           "note.frontmatter-fields": [{ key: "custom", expr: "zt.custom" }],
@@ -1722,7 +1714,6 @@ describe("PluginSettings persistence", () => {
         const handoff = {};
         const { service: before } = yield* makeService({ plugin, handoff });
         yield* Effect.promise(() => before.loaded);
-        // Each write lands only when the test lets it, in the order it began.
         const writes = yield* Queue.unbounded<() => void>();
         vi.spyOn(plugin, "saveData").mockImplementation(
           (data) =>
@@ -1735,8 +1726,6 @@ describe("PluginSettings persistence", () => {
         );
         before.update({ "citation.at-trigger": true });
         before.release();
-        // The Library View closes after the plugin began to unload, and keeps
-        // its document then.
         before.update({ "server.enabled": true });
         const reopening = yield* Effect.forkChild(
           makeService({ plugin, handoff }),
@@ -1757,7 +1746,6 @@ describe("PluginSettings persistence", () => {
         const plugin = new PluginStub();
         const { service } = yield* makeService({ plugin });
         yield* Effect.promise(() => service.loaded);
-        // A disk that lands the newest of the writes in flight first.
         const writes = yield* Queue.unbounded<() => void>();
         vi.spyOn(plugin, "saveData").mockImplementation(
           (data) =>

@@ -23,12 +23,9 @@ tester.run("no-effect-run-in-test", noEffectRunInTest, {
   valid: [
     `${effect}it.effect("reads", () => Effect.gen(function* () { yield* read; }))`,
     `${effect}it.live("waits", () => Effect.sleep(1))`,
-    // A fixture runs outside any case.
     `${effect}export const ledger = () => Effect.runSync(make);`,
     `${effect}it("renders", () => { expect(render()).toBe("x"); })`,
-    // A Promise edge's test drives the service through its runtime.
     `${effect}it("records", () => { runtime.runSync(Effect.void); })`,
-    // Only Effect's own run entry points count.
     'import type { Effect } from "effect";\nit("reads", () => { Effect.runSync(read); })',
     'import { runSync } from "./worker";\nit("reads", () => { runSync(read); })',
   ],
@@ -70,15 +67,12 @@ tester.run("no-effect-run-in-test", noEffectRunInTest, {
 
 const timer = [{ messageId: "timer" }];
 
-// Failure modes: an Effect case waits on real time and goes unflagged, or a
-// plain or live case, which owns real time, is flagged.
 tester.run("no-real-timer-in-effect-test", noRealTimerInEffectTest, {
   valid: [
     'it.effect("waits", () => Effect.gen(function* () { yield* Effect.sleep("1 second"); yield* TestClock.adjust("1 second"); }))',
     'it("waits", async () => { await delay(50); })',
     'it.live("waits", () => Effect.promise(() => delay(50)))',
     'it.effect.live("waits", () => Effect.promise(() => new Promise((r) => setTimeout(r, 5))))',
-    // A fixture outside any case.
     "const wait = () => delay(5);",
   ],
   invalid: [
@@ -111,8 +105,6 @@ tester.run("no-real-timer-in-effect-test", noRealTimerInEffectTest, {
 
 const mock = [{ messageId: "mock" }];
 
-// Failure modes: a test mocks a notice module and goes unflagged, or a mock
-// of the Notifier or another module is flagged.
 tester.run("no-notice-mock", noNoticeMock, {
   valid: [
     'vi.mock("@zotlit/obsidian-kit/notifier.ts")',
@@ -133,7 +125,6 @@ const stub = [{ messageId: "stub" }];
 tester.run("service-stub", serviceStub, {
   valid: [
     'Layer.succeed(Reads, stubService<Reads["Service"]>("Reads", { current }))',
-    // A cast of a value that is not a literal fake.
     'const service = context.unsafeMap.get(key) as Reads["Service"];',
     'const options = { retry: 1 } as Options["retry"];',
   ],
@@ -160,9 +151,6 @@ const neverFake = [{ messageId: "never" }];
 const layer = 'import { Effect, Layer } from "effect";\n';
 const host = 'import type { App, CachedMetadata, TFile } from "obsidian";\n';
 
-// Failure modes: a fake whose type a cast hides goes unflagged, or a typed
-// fake, a cast of a value that is no fake, or a case service-stub reports is
-// flagged.
 tester.run("typed-fake", typedFake, {
   valid: [
     `${layer}Layer.mock(Reads, { current });`,
@@ -170,18 +158,14 @@ tester.run("typed-fake", typedFake, {
     `${layer}Layer.succeed(Reads, stubService<Reads["Service"]>("Reads", { current }));`,
     `${host}const app = stubService<App>("App", { vault });`,
     `${host}const cache: CachedMetadata = { frontmatter: {} };`,
-    // A cast of a value that is no literal fake, outside a layer.
     `${host}const app = host.app as unknown as App;`,
     `${layer}layerHost({ vault: host.vault });`,
-    // A cast in a property of an object no layer takes.
     `${layer}const sources = { vault: host.vault as unknown as VaultSource };`,
     `${host}const target = event.target as HTMLElement;`,
     "const shape = { hoverEl } as unknown as { hoverEl: HTMLElement };",
     "const value = read() as never;",
     `${layer}const items = [1, 2] as const;`,
-    // service-stub reports this one.
     `${layer}Layer.succeed(Reads, { current } as unknown as Reads["Service"]);`,
-    // A name from another module.
     'import type { App } from "./app";\nconst app = { vault } as unknown as App;',
   ],
   invalid: [

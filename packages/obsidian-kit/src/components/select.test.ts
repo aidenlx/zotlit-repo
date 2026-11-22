@@ -1,6 +1,4 @@
 // @vitest-environment happy-dom
-// The Select is a Chooser that keeps one value. Its popup is a pinned popover
-// on the document's body, so a test finds it there while it is open.
 import { render } from "preact";
 import { act } from "preact/test-utils";
 import { createElement as h } from "react";
@@ -15,7 +13,6 @@ import { AppContext } from "#app-context.ts";
 
 vi.mock("obsidian", async (importOriginal) => ({
   ...(await importOriginal<typeof import("obsidian")>()),
-  // A substring match, enough for a query to narrow the rows.
   prepareFuzzySearch: (query: string) => (text: string) =>
     text.includes(query) ? { score: 0, matches: [] } : null,
 }));
@@ -82,7 +79,6 @@ it("opens searching for a printable key, on its first match", async () => {
     popup()!.querySelector('[role="option"]')!.id,
   );
   expect(trigger.getAttribute("aria-controls")).toBe(list.id);
-  // The list takes the field's name; an `aria-label` would be a hover tooltip.
   expect(
     document.getElementById(list.getAttribute("aria-labelledby")!)!.textContent,
   ).toBe("Sort by");
@@ -107,14 +103,12 @@ it("shuts when focus leaves for its trigger by keyboard, not by a press", async 
         new FocusEvent("focusout", { bubbles: true, relatedTarget: to }),
       );
     });
-  // A press on the trigger moves focus there and is the popover's to answer.
   await act(() => {
     trigger.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
   });
   await leave(trigger);
   expect(popup()).not.toBeNull();
   document.dispatchEvent(new PointerEvent("pointerup"));
-  // Shift+Tab onto the trigger shuts it, as it shuts a native select's list.
   await leave(trigger);
   expect(popup()).toBeNull();
 });
@@ -141,8 +135,6 @@ it("keeps undo in its search field, out of a surface around it that steps a hist
   await key({ key: "ArrowDown" });
   const field = popup()!.querySelector("input")!;
 
-  // The Chooser's Scope stands on top and leaves undo alone, so the field's
-  // own undo runs and the surface never hears the key.
   for (const init of [
     { key: "z", ctrlKey: true },
     { key: "z", ctrlKey: true, shiftKey: true },
@@ -153,7 +145,6 @@ it("keeps undo in its search field, out of a surface around it that steps a hist
   }
   expect(surface).not.toHaveBeenCalled();
 
-  // Off the popup, the key is the surface's.
   await act(() => {
     pressTop(app, { key: "z", ctrlKey: true }, trigger);
   });
@@ -182,7 +173,6 @@ it("hands focus back to the trigger when it shuts from its search field", async 
   const { trigger, popup, key } = mount();
   await key({ key: "ArrowDown" });
   expect(document.activeElement).toBe(popup()!.querySelector("input"));
-  // Escape, or a press outside, shuts the popover without a pick.
   await act(() => {
     document.body.dispatchEvent(
       new PointerEvent("pointerdown", { bubbles: true }),

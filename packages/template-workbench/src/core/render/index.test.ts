@@ -19,7 +19,6 @@ import { ANNOTATION_LIST_PROFILE_SOURCE } from "./test-profiles.ts";
 import { WorkbenchDocumentController } from "#core/document/index.ts";
 import { workbenchDiagnoses } from "#obsidian/workbench-ui/problems.ts";
 
-/** The default Profile with the annotation section printing `zt.citation`. */
 const SAMPLE_WITH_CITATION = ANNOTATION_LIST_PROFILE_SOURCE.replace(
   "{{ zt.imgLink | embed }}{{ zt.text }}",
   "{{ zt.citation }} {{ zt.text }}",
@@ -210,12 +209,10 @@ describe("Sample Items", () => {
   });
 
   it("locates each rendered highlight inside the note it produced", () => {
-    // The conference paper is the Sample Item that carries highlights.
     const sample = SAMPLE_ITEMS[1]!;
     const result = renderProfile(ANNOTATION_LIST_PROFILE_SOURCE, sample);
     const body = result.creationBody!;
 
-    // One range per highlight, in reading order, none overlapping the last.
     expect(sample.roots.annotations.length).toBeGreaterThan(0);
     expect(result.annotationRanges).toHaveLength(
       sample.roots.annotations.length,
@@ -252,8 +249,6 @@ describe("Sample Items", () => {
   });
 
   it("reports note and annotation failures as occurrences of one missing partial", () => {
-    // The engine could not resolve the same partial in either attempt, so both
-    // failures reach the Problems area and can be grouped there by cause.
     const source = ANNOTATION_LIST_PROFILE_SOURCE.replace(
       "{{ zt.imgLink | embed }}{{ zt.text }}",
       "{% render 'book-details' %}{{ zt.text }}",
@@ -261,8 +256,6 @@ describe("Sample Items", () => {
     const result = renderProfile(source, SAMPLE_ITEMS[1]!);
 
     expect(result.creationBody).toBeNull();
-    // The partial the engine could not resolve is named, and the call to it
-    // is the repair target.
     expect(result.diagnostics.map(({ code, part }) => [code, part])).toEqual([
       ["missing-partial", "annotation"],
       ["missing-partial", "annotation"],
@@ -293,8 +286,6 @@ describe("Sample Items", () => {
   });
 
   it("repairs a blamed template at its one call, and names none where two spell it", () => {
-    // A partial the engine refuses: it reports the failure inside the partial,
-    // and the reader repairs it where that partial was called.
     const withPartial = (body: string) =>
       ANNOTATION_LIST_PROFILE_SOURCE.replace(
         "filename:",
@@ -320,8 +311,6 @@ describe("Sample Items", () => {
       to: one.indexOf(call) + call.length,
     });
 
-    // Two calls, and nothing says which one this render took: the location
-    // stays absent rather than pointing at whichever comes first.
     const several = renderProfile(
       withPartial(`${call}\n${call}`),
       SAMPLE_ITEMS[0]!,
@@ -354,9 +343,6 @@ describe("Sample Items", () => {
     expect(result.creationBody).toContain(
       "# Designing reproducible research interfaces",
     );
-    // One mark per Annotation the sample carries, each over the text it
-    // rendered. The two conference-paper Annotations share their text, so
-    // the marks are told apart by count and order, not by content.
     expect(
       result.annotationRanges.map(({ from, to }) =>
         result.creationBody!.slice(from, to),
@@ -386,8 +372,6 @@ describe("Sample Items", () => {
     expect(result.diagnostics.map(({ code, part }) => [code, part])).toEqual([
       ["liquid-syntax-error", "filename"],
     ]);
-    // The place is named inside the note-name template's own text, so the pane
-    // that shows that text marks it without reading the document around it.
     const failure = result.diagnostics[0]!;
     expect(failure.sourceSite).toBeUndefined();
     const pane = new WorkbenchDocumentController(source).sliceText("filename");
@@ -396,8 +380,6 @@ describe("Sample Items", () => {
   });
 
   it("marks a note name YAML wrote as a block scalar, and names no other pane", () => {
-    // A run-time partial name, spelled literally in a note branch this item
-    // never takes: a scan of the whole document would blame that call.
     const source = ANNOTATION_LIST_PROFILE_SOURCE.replace(
       "filename: '{{ zt.citationKey | default: zt.DOI | default: zt.title | default: zt.key }}{% suffix %}'",
       `filename: |\n  {% assign part = "book-details" %}{% render part %}`,
@@ -579,11 +561,6 @@ describe("Sample Items", () => {
   });
 });
 
-/**
- * The default Profile with three entries appended: a Spread Entry that produces
- * one new key and overrides one an earlier entry set, a rule that cannot
- * evaluate, and a `js` entry this render does not run.
- */
 const ROWS_PROFILE = ANNOTATION_LIST_PROFILE_SOURCE.replace(
   "---\n# {{ zt.title }}",
   `  - value: { title: 'From the spread', kind: { $eval: 'zt.itemType' } }
@@ -598,11 +575,6 @@ const ROWS_PROFILE = ANNOTATION_LIST_PROFILE_SOURCE.replace(
 # {{ zt.title }}`,
 );
 
-/**
- * The default Profile with four entries appended: a rule that produces nothing
- * followed by a spread that produces the same key, then a value one entry sets
- * and a spread that cannot append to it.
- */
 const MERGE_PROFILE = ANNOTATION_LIST_PROFILE_SOURCE.replace(
   "---\n# {{ zt.title }}",
   `  - key: doi

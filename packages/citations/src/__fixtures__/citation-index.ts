@@ -1,4 +1,3 @@
-/** The real Citation Lookup layer over already-owned consumer fixture dependencies. */
 import type { Scope } from "effect";
 import { Context, Effect, Layer, Stream } from "effect";
 
@@ -127,7 +126,6 @@ export async function citationLookupFixture(
   });
 }
 
-/** Native tests use the real graph over the RPC/process boundary. */
 export const lookupFixture = Effect.fnUntraced(function* (
   client: Effect.Effect<ZoteroReadsClient, never, Scope.Scope>,
 ) {
@@ -169,7 +167,6 @@ async function openLookup(
   return { runtime, service, close: () => owned.disposeAsync() };
 }
 
-/** Citation Index layer over the existing host/process test boundaries. */
 export function citationIndexFixture(
   deps: {
     host: HostSources;

@@ -1,4 +1,3 @@
-// Duplicate a Profile and open the copy through the shared workbench flow.
 import { Effect } from "effect";
 
 import {

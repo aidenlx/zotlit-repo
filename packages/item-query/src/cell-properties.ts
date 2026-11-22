@@ -1,13 +1,6 @@
-// The Projection Paths of a Query Dataset that a Query View can show as cells.
 import type { QueryDataset } from "./dataset.ts";
 import type { ValueShape } from "./fields.ts";
 
-/**
- * The Projection Paths of a Query Dataset that give one cell of a table each:
- * every scalar and every list of scalars, below the records and objects the
- * dataset projects, in the order of its fields. A Query View lists them as its
- * properties.
- */
 export function cellProperties(dataset: QueryDataset): string[] {
   const paths = new Set<string>();
   const walk = (path: string, shape: ValueShape): void => {

@@ -4,7 +4,6 @@ import { expect } from "vitest";
 
 import { zoteroPrefFixture } from "./__fixtures__.ts";
 
-// Unload can leave consumers holding the native service after runtime disposal.
 it.effect(
   "keeps released reads and no-op writes after the whole runtime closes",
   () =>
@@ -15,7 +14,6 @@ it.effect(
         ),
       );
       const pref = f.pref;
-      // No intervening native service read: the retained snapshot must include this write.
       yield* pref.setDataDir("/last-data");
       yield* f.runtime.disposeEffect;
       const last = yield* f.pref.current;

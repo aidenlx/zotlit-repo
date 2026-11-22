@@ -1,4 +1,3 @@
-// Shared copy-key action used by Literature Notes, Annotation View, and Template Data Explorer.
 import { TFile } from "obsidian";
 import type { Plugin } from "obsidian";
 
@@ -11,7 +10,6 @@ import { itemKeyFromFrontmatter } from "#obsidian/note-index/service.ts";
 
 export type IndexedKeyKind = "item" | "annotation";
 
-/** The Indexed Key to copy, plus the kind that names it in the UI. */
 export interface IndexedKeyCopyTarget {
   indexedKey: string;
   kind: IndexedKeyKind;

@@ -2,11 +2,6 @@ import { logLibrary } from "@zotlit/shared/logging";
 
 import { defineToString } from "./to-string.ts";
 
-/**
- * `itemTags.type`: 0 (default) is a manual tag, 1 is an automatic tag.
- *
- * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/data/item.js#L4508-L4518 — `Zotero.Item.prototype.addTag`
- */
 const TAG_TYPE = {
   0: "manual",
   1: "auto",
@@ -23,14 +18,9 @@ export interface Tag {
 export interface ItemTag {
   itemID: number;
   tag: Tag;
-  /** Raw `itemTags.type` int; resolve names via {@link tagTypeToName}. */
   type: TagType;
 }
 
-/**
- * The name of a tag type. It takes any number, because a Zotero reply can name
- * a type that Zotero added after this mapping was written.
- */
 export function tagTypeToName(type: number): TagTypeName | "unknown" {
   const name = (TAG_TYPE as Partial<Record<number, TagTypeName>>)[type];
   if (name) return name;
@@ -59,7 +49,6 @@ export interface TemplateTag {
    * for a type id Zotero added after this mapping was written.
    */
   type: TagTypeName | "unknown";
-  /** {@link TemplateTag.name} verbatim. */
   toString(): string;
 }
 

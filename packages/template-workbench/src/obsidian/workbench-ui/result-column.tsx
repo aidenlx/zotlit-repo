@@ -1,5 +1,3 @@
-// The shared result controls and render selection, with Markdown supplied by the host.
-
 import type {
   RenderDiagnostic,
   TemplateRenderResult,
@@ -21,9 +19,6 @@ const resultRegionRegion = cn(
   "zt:min-w-0 zt:rounded-sm zt:select-text zt:focus-visible:outline-2 zt:focus-visible:outline-ring",
 );
 const resultColumnLabelText = "zt:text-muted-foreground";
-// Show problem reads inside the sentence that reports the failure, so
-// it wears link text rather than the native button box; the box, font
-// and hover Obsidian styles unlayered are taken back in `theme.css`.
 const resultColumnProblemOpen = "zt-workbench-problem-open";
 const resultColumnBehind = cn(
   previewNotice,
@@ -31,18 +26,12 @@ const resultColumnBehind = cn(
 );
 const resultColumnBehindText = "zt:min-w-0 zt:flex-1 zt:text-pretty";
 const resultColumnRun = cn(templateWorkbenchButton, "zt:ms-auto zt:shrink-0");
-// The Preview Panel draws the label in its own sticky header row,
-// outside the `filename` box, so the label carries its own size.
 const resultColumnFilename = "zt:text-sm";
-// A failure wears the same notice as the behind state, and states its
-// severity in the bar and the heading: the sentence itself stays in
-// reading color, and the line about the output on screen steps back.
 const resultColumnProblem = cn(
   previewNotice,
   "zt:flex-col zt:border-(--text-error) zt:[overflow-wrap:anywhere]",
 );
 
-/** The box the rendered note is read in. */
 export function ResultRegion({
   ref,
   emphasis,
@@ -69,42 +58,23 @@ export function ResultRegion({
   );
 }
 
-/** Which of the four outputs a preview shows, which picks its heading and body. */
 export type ResultMode = WorkbenchMarkdownProps["surface"];
 
 export interface ResultBodyProps {
   result: TemplateRenderResult | null;
   annotationResult?: TemplateRenderResult | null;
-  /**
-   * The last successful output kept for this document and preview selection,
-   * which a failed attempt is read against. Null where no matching success
-   * stands, which is what an unavailable preview says.
-   */
   retained?: TemplateRenderResult | null;
   mode: ResultMode;
-  /** Why `result` is stale, or why none exists yet; `null` while it is current. */
   staleReason: "hold" | "invalid" | "demand" | "live" | null;
   showMarkdown: boolean;
   showManaged: boolean;
-  /**
-   * Whether the region opens on the note's file name. A host that names the
-   * file in a header of its own, from `previewFilename`, leaves it out.
-   */
   showFilename?: boolean;
   sourceAvailable?: boolean;
-  /**
-   * Reads the failure behind this preview in the editor's Problems area. A
-   * preview with no editor to reach leaves it out, and Show problem is absent.
-   * A document the parser refuses reached no render and names no diagnostic,
-   * so the reading opens on whatever the editor's own checks found.
-   */
   onShowProblem?: (diagnostic: RenderDiagnostic | null) => void;
-  /** Runs a render now; on demand, this is how the stale-behind notice offers Run. */
   onRun?: () => void;
   busy?: boolean;
 }
 
-/** What a preview reads its body from. */
 type ResultReading = Pick<
   ResultBodyProps,
   | "result"
@@ -115,11 +85,6 @@ type ResultReading = Pick<
   | "showManaged"
 >;
 
-/**
- * What a preview paints: the failure it reports, the output that stands, and
- * the result the region reads, which is retained output wherever a failure
- * kept some.
- */
 function readResult({
   result,
   annotationResult,
@@ -139,9 +104,6 @@ function readResult({
     : result?.diagnostics.find(
         ({ part }) => part !== "annotation" || result.creationBody === null,
       );
-  // What this mode shows. A render that failed produced nothing at all, which
-  // is not the same as a template that produced an empty result, so the
-  // failure reads as a failure rather than as empty content.
   const outputOf = (source: TemplateRenderResult | null | undefined) =>
     (showPartial
       ? source?.partial
@@ -153,20 +115,15 @@ function readResult({
             ? source?.managedRegion
             : source?.creationBody) ?? null;
   const output = outputOf(showAnnotation ? annotationResult : result);
-  // What stands while a render is pending, under the examples' own rule.
   const pendingState = pendingView(
     { staleReason, result, retained },
     (source) => outputOf(source) !== null,
   );
-  // A document the parser refuses never reached a render, and its explanation
-  // is the editor's; the result on screen is as far behind as a failed one.
   const failed =
     pendingState.notice === "failed" ||
     (showNote &&
       result?.diagnostics.some(({ code }) => code === "property-error")) ||
     (previewProblem !== undefined && output === null);
-  // A failure leaves the last successful output standing, so the reader
-  // repairs the source against working output rather than an empty pane.
   const kept =
     failed && retained !== null && outputOf(retained) !== null
       ? retained
@@ -182,20 +139,11 @@ function readResult({
   };
 }
 
-/**
- * The file name a note preview names for its result, or null where it names
- * none: another mode, a failure, or no result yet.
- */
 export function previewFilename(reading: ResultReading): string | null {
   const { failed, shown } = readResult(reading);
   return reading.mode === "note" && !failed && shown ? shown.filename : null;
 }
 
-/**
- * "File name: <name>", with the whole name as its tooltip where a host cuts
- * it short. The region opens on it, and a host that keeps the name in a
- * header of its own draws it there.
- */
 export function PreviewFilenameLabel({ filename }: { filename: string }) {
   const tooltip = tooltipAttrs(filename);
   return (
@@ -212,7 +160,6 @@ export function PreviewFilenameLabel({ filename }: { filename: string }) {
   );
 }
 
-/** The stale notice and rendered result, without a heading. */
 export function ResultBody({
   result,
   annotationResult,
@@ -249,7 +196,6 @@ export function ResultBody({
       {m.workbench_result_pending()}
     </p>
   );
-  /** Show problem, which every failure this preview reports offers. */
   const showProblem = (diagnostic: RenderDiagnostic | null) =>
     onShowProblem && (
       <button
@@ -262,8 +208,6 @@ export function ResultBody({
         {m.workbench_problem_show()}
       </button>
     );
-  // "Rendering…" is honest only while a render is on its way: on demand the
-  // notice below says Run starts one, and a hold shows its own problem.
   const showPending = pendingState.notice === "rendering";
   return (
     <>
@@ -296,10 +240,6 @@ export function ResultBody({
       )}
       <ResultRegion emphasis={false}>
         {shown || failed ? (
-          // The notice and the note's name are this pane's own words, so they
-          // stand while the host's Markdown renderer is still on its way: what
-          // waits is the output, and a reader is never left reading
-          // "Rendering…" in place of the failure it replaced.
           <>
             {showFilename && showNote && !failed && shown?.filename != null && (
               <header data-part="filename" className={resultColumnFilename}>
@@ -336,18 +276,12 @@ export function ResultBody({
                     {kept === null
                       ? m.workbench_preview_unavailable()
                       : m.workbench_preview_retained()}{" "}
-                    {/* A document the parser refuses produced no diagnostic to
-                        name, and the reading it leads to is the editor's own
-                        check — the same one control, on the sentence that
-                        reports the failure. */}
                     {previewProblem ? null : showProblem(null)}
                   </p>
                 )}
               </div>
             )}
             {hint && !failed && (
-              // A suggestion about output that stands, so it wears the behind
-              // notice rather than a problem's.
               <div
                 role="status"
                 data-part="behind"
@@ -413,8 +347,6 @@ export function ResultBody({
                 <Markdown
                   surface="note"
                   markdown={shown.creationBody ?? ""}
-                  // The sheet is the note, so its list is the fold every
-                  // entry merged into, not each entry's own contribution.
                   properties={shown.fold}
                   frontmatterBlock={shown.frontmatterBlock}
                   showMarkdown={showMarkdown}

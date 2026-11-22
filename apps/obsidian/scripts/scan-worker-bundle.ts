@@ -1,5 +1,3 @@
-// Loads the guarded production parse worker and its RPC client for Node tests.
-
 import { resolve } from "node:path";
 import type { MessagePort } from "node:worker_threads";
 import { build } from "vite";
@@ -24,9 +22,6 @@ export interface BenchmarkParseClient<Reply> extends AsyncDisposable {
   ): Promise<Reply>;
 }
 
-// Both imports of renderer code stay inside Vite: the Node script loads only
-// the guarded bundle, with the same RPC codecs and scheduler as production.
-// A path under scripts/, so effectEntry applies to the entry's imports.
 const CLIENT_ENTRY_ID = resolve(import.meta.dirname, "scan-benchmark-entry.js");
 const CLIENT_ENTRY = `
 export { default } from "virtual:scan-worker";
@@ -94,7 +89,6 @@ export async function scanWorkerBundle<Reply>(): Promise<{
         config: {
           define,
           resolve: resolveConfig,
-          // The renderer entry, as the `@` alias gave this worker before.
           plugins: [effectEntry("renderer", { scopes })],
           external: [],
           minify: false,

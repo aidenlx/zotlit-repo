@@ -9,8 +9,6 @@ import { TagsInput, useTagsInput } from "@zotlit/ui";
 import { useContainerName } from "./host.tsx";
 import { useInputSuggestions } from "./match.input.tsx";
 
-// Wrapping list values retain free text and optional host suggestions.
-
 const matchChips =
   "zt:flex zt:min-h-(--input-height) zt:min-w-0 zt:flex-wrap zt:items-start zt:gap-x-1.5 zt:px-2 zt:[--metadata-divider-width:0px] zt:[--metadata-input-font-size:var(--font-ui-small)] zt:[--metadata-input-text-color:var(--text-normal)]";
 const matchChipInput =
@@ -23,7 +21,6 @@ export interface ChipInputProps {
   hint?: (value: string) => string | null;
 }
 
-/** A Match value commits on a comma as well as on Enter. */
 const COMMIT_KEYS = ["Enter", ","];
 
 export function ChipInput({
@@ -89,7 +86,6 @@ export function ChipInput({
   );
 }
 
-/** The text field, offering the suggestions not yet among the values. */
 function ChipField({
   placeholder,
   suggestions,
@@ -102,7 +98,6 @@ function ChipField({
     hint,
     onSelect: add,
   });
-  // A hidden name: a tooltip would hang over the gap after the chips.
   const name = useContainerName(m.workbench_match_value());
   return (
     <>

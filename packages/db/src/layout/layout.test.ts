@@ -21,7 +21,6 @@ afterEach(() => {
   setLibraryLogSink(undefined);
 });
 
-/** A scenario copy, changed by `alter` before the first read. */
 function openCopy(
   alter: (sqlite: DatabaseSync) => void = () => {},
   options: ScenarioDatabaseOptions = {},

@@ -1,5 +1,3 @@
-// Prepares excerpt helpers once, then counts only helpers used by the final render.
-
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
 import type { ExcerptSummary } from "#obsidian/excerpt-image/contract.ts";
 import type { ExcerptOutcomeScope } from "#obsidian/excerpt-image/outcome-scope.ts";
@@ -40,7 +38,6 @@ export type { ExcerptSummary } from "#obsidian/excerpt-image/contract.ts";
 
 const logged = withLogCategory("excerpt-prepare");
 
-/** Skips one excerpt that failed, with `message` logged for `annotationKey`. */
 const skipLogged = (message: string, annotationKey: string) =>
   recover(
     (cause) =>
@@ -51,10 +48,8 @@ const skipLogged = (message: string, annotationKey: string) =>
     Effect.void,
   );
 
-/** One collector belongs to one user operation, including partial or cancelled batches. */
 export function collectExcerptSummary(): {
   add: (summary: ExcerptSummary) => void;
-  /** The sum, or `undefined` while it counts no excerpt. */
   total: () => ExcerptSummary | undefined;
 } {
   const total: ExcerptSummary = { zotero: 0, unchecked: 0, unavailable: 0 };
@@ -70,7 +65,6 @@ export function collectExcerptSummary(): {
   };
 }
 
-/** `summary`, or `undefined` when it counts no excerpt. */
 export const nonEmptySummary = (
   summary: ExcerptSummary,
 ): ExcerptSummary | undefined =>
@@ -81,86 +75,53 @@ export const nonEmptySummary = (
     ? summary
     : undefined;
 
-/** The reads of the write the excerpts serve, bound to its Snapshot. */
 export type ExcerptPreparationReads = Pick<
   ZoteroReadsApi,
   "AttachmentsByKeys" | "DatabaseIdentity" | "Libraries"
 >;
 
-/**
- * What {@link PreparedExcerpts.prepare} fails with: a database read, or the
- * read of the previous note.
- */
 export type ExcerptPrepareError =
   | Effect.Error<
       ReturnType<ExcerptPreparationReads[keyof ExcerptPreparationReads]>
     >
   | VaultError;
 
-/** The excerpt helpers of one note write. */
 export interface PreparedExcerpts {
-  /** The template's image helper; it collects the excerpts the render asks for. */
   annotationImageLink: AnnotationResolvers["annotationImageLink"];
-  /**
-   * Resolve and write every collected excerpt. Every database input is read
-   * before the vault. One excerpt that fails is logged and stays unavailable.
-   */
   readonly prepare: Effect.Effect<void, ExcerptPrepareError>;
-  /** The outcomes of the helpers the final render used. */
   summary(): ExcerptSummary;
 }
 
-/** The note write {@link ExcerptPreparation.forNote} prepares excerpts for. */
 export interface NoteExcerptOptions {
   reads: ExcerptPreparationReads;
   notePath: string;
   settings: Readonly<Settings>;
   previousNote?: TFile;
-  /**
-   * The initiating batch's retained outcomes. Every note that batch writes —
-   * including the Child Notes imported through this one's template — resolves
-   * through this same scope, so repeated excerpts reuse one resolution.
-   */
   outcomes?: ExcerptOutcomeScope;
 }
 
-/** The captured card {@link ExcerptPreparation.forCard} prepares an excerpt for. */
 export interface CardExcerptOptions {
   annotation: AnnotationRecord;
   request: ExcerptRequest | null;
   settings: Readonly<Settings>;
   notePath: string;
-  /** Markdown link the unavailable-excerpt text points back to the Annotation with. */
   sourceLink: string;
-  /** Whether the insertion target is still current. */
   valid: Effect.Effect<boolean>;
 }
 
-/** A captured card's durable image helper, `null` for a card with no image. */
 export interface PreparedCardExcerpt {
   helper: TemplateLink | null;
   summary(): ExcerptSummary;
 }
 
-/**
- * The Excerpt Image preparation of note writes and captured cards: it
- * resolves each excerpt through {@link ExcerptImageService} and writes it into the
- * vault before the template renders its link.
- */
 export class ExcerptPreparation extends Context.Service<
   ExcerptPreparation,
   {
-    /** The excerpt helpers of one note write, at the Zotero data directory now. */
     forNote(options: NoteExcerptOptions): Effect.Effect<PreparedExcerpts>;
-    /**
-     * A captured card's helper, prepared before its one template render. An
-     * interrupt cancels it and takes back the bytes it wrote.
-     */
     forCard(options: CardExcerptOptions): Effect.Effect<PreparedCardExcerpt>;
   }
 >()("zotlit/excerpt-image/ExcerptPreparation") {}
 
-/** The services the preparation reads through their tags. */
 export type ExcerptPreparationServices =
   | ExcerptImageService
   | FileManager
@@ -170,7 +131,6 @@ export type ExcerptPreparationServices =
   | Workspace
   | ZoteroPref;
 
-/** The preparation over the graph's tags; one publication gate for all of it. */
 export const layerExcerptPreparation = Layer.effect(
   ExcerptPreparation,
   Effect.gen(function* () {
@@ -224,7 +184,6 @@ function noteExcerpts(
 ): PreparedExcerpts {
   const candidates = new Map<string, Candidate>();
   const prepare = Effect.gen(function* () {
-    // Every database input is read before the vault, in one batch.
     const keysByLibrary = Map.groupBy(
       candidates.values(),
       ({ annotation }) => annotation.libraryID,

@@ -1,35 +1,14 @@
-// A scroll bar drag of a long Items Layout, as a reader drags it: trusted
-// input from Electron's main process presses the thumb, moves it with holds
-// and a reverse, and lets go. Two rules of Chromium decide such a drag. The
-// list's scroll length must stay one number while the pointer moves the
-// thumb: a change of any size makes Chromium keep the distance the thumb was
-// behind at that moment, so the thumb leaves the pointer and stays off it in
-// a hold. And only what the box paints itself is sure to be on the screen:
-// a drag moves the content further each frame than the page can paint.
-//
-// The record reads both, frame by frame: the scroll length and the thumb
-// against the pointer from the page, and the screen frames of the box from
-// the window's compositor output.
 import type { MarkdownView } from "obsidian";
 
 import { obRun } from "./obsidian-cli.ts";
 
-/** Where the list scrolls: the Library View, a Query File tab, or an embed in a note's mode. */
 export type DragHost =
   | { readonly kind: "library" }
   | { readonly kind: "tab"; readonly path: string }
   | { readonly kind: "note"; readonly path: string; readonly root: string };
 
-/**
- * One leg of a drag: the pointer goes to `to`, a fraction of the track, in
- * `ms`; a leg to the fraction the pointer stands at holds it there.
- */
 export type DragLeg = readonly [to: number, ms: number];
 
-/**
- * A fast leg down, where the list moves several screens a frame; a hold; a
- * slow leg on down, a few rows a frame; a hold; a fast leg back up; a hold.
- */
 export const DRAG_PATH: readonly DragLeg[] = [
   [0.35, 150],
   [0.35, 400],
@@ -39,61 +18,33 @@ export const DRAG_PATH: readonly DragLeg[] = [
   [0.4, 500],
 ];
 
-/** What a drag did, frame by frame. */
 export interface DragRecord {
-  /** The box's scroll length and height, in CSS px. */
   readonly box: { readonly length: number; readonly height: number };
-  /** The thumb's length, read from a plain box of the same size and length. */
   readonly thumb: number;
-  /** The thumb's offset from the pointer at the end of each hold, in pt. */
   readonly holds: readonly number[];
-  /** The most the thumb stood off the pointer on a frame while it moved, in pt. */
   readonly moving: number;
-  /** The changes of the scroll length while the pointer moved, and while it held still. */
   readonly lengthChanges: { readonly moving: number; readonly resting: number };
-  /**
-   * For each leg, the fewest and the most entries mounted on its frames, and
-   * its screen frames: how many, and how many showed nothing in the box.
-   */
   readonly legs: readonly {
     readonly to: number;
     readonly fewest: number;
     readonly most: number;
     readonly frames: number;
     readonly empty: number;
-    /** The frames that showed rows: the ink of text in the box. */
     readonly rows: number;
   }[];
-  /**
-   * The screen frames of the box from the first move to the release: how
-   * many, how many showed nothing in the box at all, neither rows nor
-   * outlines, how many showed rows, and the largest share of the box one
-   * frame left blank. A frame neither empty nor with rows showed outlines
-   * only.
-   */
   readonly screen: {
     readonly frames: number;
     readonly empty: number;
     readonly rows: number;
     readonly blankShare: number;
   };
-  /** Each set of header cell places the drag drew (a Table's), or none. */
   readonly header: readonly string[];
-  /**
-   * The mounted rows at rest after the drag: how many, and how many draw at
-   * another height than the outline's row height on the box.
-   */
   readonly rows: { readonly mounted: number; readonly unlike: number };
 }
 
-/** The boxes that scroll an Items Layout's rows. */
 const BOXES =
   '[data-query-layout="papers"], [data-query-layout="list"], .zt-table-scroller';
 
-/**
- * Drag the scroll bar of the long list `host` shows along `path`, and record
- * what each frame did. The host's tab is active and its list drawn.
- */
 export async function dragScrollBar(
   vaultId: string,
   host: DragHost,
@@ -126,7 +77,6 @@ export async function dragScrollBar(
         new Promise((resolve) => win.requestAnimationFrame(resolve));
       if (host.kind === "note") box.scrollIntoView({ block: "center" });
       box.scrollTop = 0;
-      // The list's length settles at its top before the drag.
       for (let still = 0, last = -1, tries = 0; still < 5; tries++) {
         if (tries > 120) throw new Error("The list's length never held");
         await frame();
@@ -135,12 +85,10 @@ export async function dragScrollBar(
       }
       const contents = remote.getCurrentWebContents();
       const zoom = contents.getZoomFactor();
-      // The vertical track starts under a Table's header.
       const trackTop =
         Number.parseFloat(
           box.style.getPropertyValue("--zt-table-header-height"),
         ) || 0;
-      /** A drag of `el`'s thumb, in the window's own pixels. */
       const geometry = (el: HTMLElement) => {
         const r = el.getBoundingClientRect();
         const bar = el.offsetWidth - el.clientWidth;
@@ -155,11 +103,6 @@ export async function dragScrollBar(
           span: (track - 2 * grab) * zoom,
         };
       };
-      /**
-       * Electron's main process sends the pointer along `g.path` and logs
-       * each send; with `g.crop`, it reads each screen frame of that part of
-       * the window: per band of its height, whether the band holds no ink.
-       */
       const driver = async (g: {
         wcId: number;
         x: number;
@@ -168,15 +111,12 @@ export async function dragScrollBar(
         path: readonly (readonly [number, number])[];
         innerWidth: number;
         crop: { x: number; y: number; width: number; height: number } | null;
-        /** The page's time as it calls, which the driver's times follow. */
         now: number;
       }) => {
         const { webContents } = (
           process as unknown as { mainModule: NodeJS.Module }
         ).mainModule.require("electron") as typeof import("electron");
         const w = webContents.fromId(g.wcId)!;
-        // Each process's clock starts at its own origin: the driver's times
-        // are the page's.
         const skew = performance.timeOrigin + performance.now() - g.now;
         const clock = () => performance.timeOrigin + performance.now() - skew;
         const nap = (ms: number) =>
@@ -184,10 +124,6 @@ export async function dragScrollBar(
         const sends: [number, number, number][] = [];
         const shots: [number, number, number][] = [];
         const BANDS = 24;
-        /**
-         * The least a pixel of text stands off the box's colour, against
-         * the faint bars of the outlines and the lines between rows.
-         */
         const TEXT = 48;
         if (g.crop)
           w.beginFrameSubscription(false, (image) => {
@@ -223,8 +159,6 @@ export async function dragScrollBar(
               let line = 0;
               for (let x = 0; x < W; x++)
                 if (Math.abs(lum(x, y) - bg) > TEXT) line++;
-              // A pixel row inked across half the box is the line under a
-              // row, an outline's too, not text.
               if (line < W / 2) text += line;
             }
             for (let b = 0; b < BANDS; b++) {
@@ -239,8 +173,6 @@ export async function dragScrollBar(
                 }
               if (ink / Math.max(1, n) < 0.002) blank++;
             }
-            // A frame shows rows where some pixels hold text: a few
-            // hundred in a screenful of rows.
             shots.push([t, blank / BANDS, text >= 20 ? 1 : 0]);
           });
         const send = (
@@ -261,8 +193,6 @@ export async function dragScrollBar(
           ]);
         };
         try {
-          // A reader's pointer comes to the thumb, rests, and presses it;
-          // the pauses model the hand, not a wait for the page.
           for (let i = 0; i < 3; i++) {
             send("mouseMove", g.top - 2 + i);
             await nap(40);
@@ -273,13 +203,10 @@ export async function dragScrollBar(
           for (const [to, ms] of g.path) {
             const t0 = clock();
             const from = at;
-            // Where each leg starts.
             sends.push([t0, Math.round(g.top + g.span * from), 3]);
             await new Promise<void>((resolve) => {
               const step = () => {
                 const p = Math.min(1, (clock() - t0) / ms);
-                // A hand speeds up and slows down again: the last moves
-                // before a hold are short.
                 const eased = p * p * (3 - 2 * p);
                 if (to !== from)
                   send(
@@ -302,7 +229,6 @@ export async function dragScrollBar(
       const drive = (
         remote.getGlobal("eval") as (code: string) => typeof driver
       )(`(${driver.toString()})`);
-      /** Show an overlay scroll bar, which shows only after a scroll. */
       const showBar = async (el: HTMLElement) => {
         el.scrollTop = 2;
         await frame();
@@ -310,11 +236,6 @@ export async function dragScrollBar(
         await frame();
       };
 
-      // A plain box of the same size and length, with no rows, tells the
-      // thumb's length: its drag moves the scroll by the pointer's travel
-      // over the track less the thumb.
-      // It takes the box's own classes and place among its ancestors, so the
-      // same scroll bar styles reach it.
       const plain = box.cloneNode(false) as HTMLElement;
       plain.removeAttribute("data-query-layout");
       const r0 = box.getBoundingClientRect();
@@ -360,12 +281,10 @@ export async function dragScrollBar(
         plain.remove();
       }
 
-      // The drag of the list itself.
       await showBar(box);
       const g = geometry(box);
       const samples: [number, number, number, number][] = [];
       const header = new Set<string>();
-      /** The header's top and each of its cells' left edge and width, from the box's edges. */
       const cells = () => {
         const head = box.querySelector("thead");
         const first = head?.querySelector("th");
@@ -395,7 +314,6 @@ export async function dragScrollBar(
       };
       box.addEventListener("scroll", cells);
       win.requestAnimationFrame(tick);
-      // The rows' part of the box: under a Table's header, beside the bar.
       const crop = {
         x: g.rect.left,
         y: g.rect.top + trackTop,
@@ -429,7 +347,6 @@ export async function dragScrollBar(
       const down = sends.find((s) => s[2] === 1)!;
       const up = sends.find((s) => s[2] === 2)!;
       const moves = sends.filter((s) => s[2] === 0).map((s) => s[0]);
-      /** Whether the pointer moved in the 50 ms before `t`. */
       const moving = (t: number) => moves.some((m) => m <= t && t - m < 50);
       const pointerAt = (t: number) => {
         let y = sends[0]![1];
@@ -439,7 +356,6 @@ export async function dragScrollBar(
         }
         return y / zoom;
       };
-      /** The thumb's top against the pointer's travel since the press, in pt. */
       const offset = ([t, top, length]: readonly number[]) => {
         const max = length! - box.clientHeight;
         return (
@@ -451,9 +367,7 @@ export async function dragScrollBar(
       for (let i = 1; i < during.length; i++)
         if (during[i]![2] !== during[i - 1]![2])
           lengthChanges[moving(during[i]![0]) ? "moving" : "resting"]++;
-      // Each leg's frames, and the end of each hold.
       const holds: number[] = [];
-      /** A screen frame that shows nothing in the box: neither rows nor outlines. */
       const EMPTY = 0.9;
       const legs: DragRecord["legs"][number][] = [];
       let at = 0;
@@ -481,9 +395,7 @@ export async function dragScrollBar(
         .filter(([t]) => moving(t))
         .map((s) => Math.abs(offset(s)));
       const shown = shots.filter(([t]) => t >= starts[0]! && t <= up[0]);
-      // The rows at the list's top, at rest: a group's heading among them.
       box.scrollTop = 0;
-      /** The heights of the mounted entries, once the top's are mounted. */
       const drawn = () =>
         box.querySelector("[data-index]")?.getAttribute("data-index") === "0"
           ? [...box.querySelectorAll<HTMLElement>("[data-index]")]

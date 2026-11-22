@@ -8,7 +8,6 @@ import { DecodedQuery } from "@zotlit/zotero-reads/contract/query-codec.ts";
 
 import * as decode from "./decode.ts";
 
-/** The decoded value, or the diagnostic the handler answers with. */
 const answered =
   <T>(decoder: (params: CliData) => Effect.Effect<T, CliRejection>) =>
   (params: CliData) =>
@@ -20,7 +19,6 @@ const answered =
 
 const decodeQuery = answered(decode.decodeQuery);
 
-/** `query` as the worker reads it: encoded to plain JSON, then decoded. */
 const acrossSeam = (query: DecodedQuery): DecodedQuery =>
   Schema.decodeUnknownSync(DecodedQuery)(
     JSON.parse(JSON.stringify(Schema.encodeSync(DecodedQuery)(query))),
@@ -31,7 +29,6 @@ const decodeSchemaArguments = answered((params) =>
   decode.decodeSchemaArguments(params),
 );
 
-/** The diagnostic of an argument that the decoder rejects. */
 const rejected = (parameter: string) => ({
   code: "invalid-argument",
   hint: expect.any(String),
@@ -627,7 +624,6 @@ it.effect(
 const decodeAnnotationQuery = answered((params) =>
   decode.decodeQuery({ ...params, from: "annotations" }),
 );
-// Failure modes: selectors still resolve Libraries, or their rejection omits recovery.
 it.effect.each([
   ["items", "item", "indexedKey"],
   ["items", "attachment", "indexedKey"],

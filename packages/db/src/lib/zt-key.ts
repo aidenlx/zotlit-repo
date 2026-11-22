@@ -7,7 +7,6 @@ import { USER_LIBRARY_ID } from "./constants.ts";
 
 import { getLibraryByGroupID } from "#queries/libraries.ts";
 
-/** Resolve the active library for an `indexedKey`, or `null` when unresolvable. */
 export function resolveIndexedKeyLibrary(
   client: ZoteroDatabase,
   indexedKey: string,
@@ -21,10 +20,6 @@ export function resolveIndexedKeyLibrary(
   return { key, libraryID: library.libraryID };
 }
 
-/**
- * {@link resolveIndexedKeyLibrary} against libraries already read, for a caller
- * that holds the library list rather than a client.
- */
 export function resolveIndexedKeyLibraryIn(
   libraries: readonly Pick<Library, "libraryID" | "groupID">[],
   indexedKey: string,

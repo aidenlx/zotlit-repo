@@ -14,7 +14,6 @@ import type {
   WorkbenchInsertTarget,
   WorkbenchModel,
 } from "#obsidian/workbench-ui/index.tsx";
-// The Fields panel shows the Template Data Explorer's tree over the leaf's own chosen Item, derived from the one read every surface shares.
 import { useAtomValue } from "@effect/atom-react";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -54,7 +53,6 @@ import {
 
 type FieldsData = Omit<ExplorerLoad, "itemId">;
 
-/** Where the reader was on one root of one Item. */
 interface FieldsPlace {
   readonly annotationId: string | null;
   readonly navigation: TreeState;
@@ -62,9 +60,7 @@ interface FieldsPlace {
   readonly restore: ExplorerPresentation | null;
 }
 
-/** What the panel owns; the Item, the annotation and the data are the editor's. */
 export interface FieldsLocal {
-  /** The reader's place on each root of the Item named by `item`. */
   readonly places: {
     readonly item: string | null;
     readonly byRoot: Partial<Record<TemplateRoot, FieldsPlace>>;
@@ -77,19 +73,10 @@ const NO_FIELDS: FieldsLocal = {
   collapsedSections: new Set(),
 };
 
-/** The Fields panel's atoms over one leaf's host model. */
 export interface FieldsPanelModel extends ExplorerSurface {
-  /**
-   * The panel's place on each root and its closed sections; held while the
-   * leaf lives, so hiding the panel keeps them. The root it shows is the host
-   * model's.
-   */
   readonly local: Atom.Writable<FieldsLocal>;
-  /** The root the panel shows. */
   readonly root: Atom.Atom<TemplateRoot>;
-  /** What an export from the panel saves; null when nothing can be. */
   readonly exportTarget: Atom.Atom<TemplateDataExportTarget | null>;
-  /** Whether the editor can take a field now: it holds a caret and is writable. */
   readonly canInsert: Atom.Atom<boolean>;
 }
 
@@ -109,12 +96,6 @@ const dataOf = (data: Record<string, unknown>): FieldsData => ({
   error: null,
 });
 
-/**
- * The panel's atoms over `model` and the reader's choices in `workbench`. The
- * editor takes a field while its document
- * takes edits and `editor.insertTarget` names a place in it, which the caret
- * in the view state and the document's slices decide.
- */
 export function makeFieldsPanelModel(
   model: TemplateWorkbenchModel,
   workbench: Pick<WorkbenchModel, "choices" | "examples">,
@@ -124,8 +105,6 @@ export function makeFieldsPanelModel(
   },
 ): FieldsPanelModel {
   const local = Atom.make(NO_FIELDS);
-  // The editor's root, unless the reader moved the panel to another; a new
-  // editor root or Item drops that one.
   const root = Atom.make(
     (get): TemplateRoot => get(model.fieldsRoot) ?? get(model.view).root,
   );
@@ -134,10 +113,6 @@ export function makeFieldsPanelModel(
       ? (get(workbench.examples).example?.id ?? null)
       : null,
   );
-  /**
-   * The panel's session: the editor's Item and annotation, with the reader's
-   * own place on the root the panel shows. A new Item starts every root over.
-   */
   const session = Atom.writable(
     (get): ExplorerSession => {
       const { places, collapsedSections } = get(local);
@@ -191,7 +166,6 @@ export function makeFieldsPanelModel(
       });
     },
   );
-  /** The data of the panel's root, from the one read every surface shares. */
   const data = Atom.make((get): FieldsData => {
     const target = get(root);
     const read = get(model.read);
@@ -261,12 +235,6 @@ export function makeFieldsPanelModel(
   };
 }
 
-/**
- * The annotation example the note root's `annotations` row explores. The
- * panel shows that list by its items' properties, with no row for one
- * annotation, so the row explores the view's chosen annotation, else the
- * Item's first; the view's "Choose annotation" picks another from there.
- */
 function annotationOfNode(
   view: TemplateWorkbenchView,
   node: DisplayNode,
@@ -281,21 +249,15 @@ function annotationOfNode(
   );
 }
 
-/** Shows `root` in the Fields panel of `view`. */
 function moveTo(view: TemplateWorkbenchView, root: TemplateRoot): void {
   view.registry.set(view.model.fieldsRoot, root);
 }
 
-/** Makes `id` the annotation, and shows it in the Fields panel of `view`. */
 function chooseExample(view: TemplateWorkbenchView, id: string): void {
   view.registry.update(view.workbench.choices, chooseAnnotation(id));
   moveTo(view, "annotation");
 }
 
-/**
- * The Fields panel's actions in `view`, as the standalone Explorer has them:
- * choosing, the sections, and the export and Indexed Key of the root shown.
- */
 export function makeFieldsActions(
   view: TemplateWorkbenchView,
   exportData: (target: TemplateDataExportTarget) => void,
@@ -344,10 +306,6 @@ export function makeFieldsActions(
   });
 }
 
-/**
- * The Fields pane's More options, which the shared panel draws in its header
- * beside the pin.
- */
 export function FieldsMoreOptions({ view }: { view: TemplateWorkbenchView }) {
   return (
     <IconButton
@@ -360,7 +318,6 @@ export function FieldsMoreOptions({ view }: { view: TemplateWorkbenchView }) {
   );
 }
 
-/** The Explorer's tree in the leaf's Fields Panel. */
 export function FieldsPanel({
   view,
   actions,

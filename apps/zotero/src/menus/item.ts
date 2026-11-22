@@ -46,23 +46,15 @@ type SelectedObjectKind =
 
 function kindOf(item: Zotero.Item): SelectedObjectKind {
   if (item.isAttachment()) return "attachment";
-  // A standalone note is a top-level row, so it is not a Child Note.
   if (item.isNote()) return item.isTopLevelItem() ? "note" : "childNote";
   return "item";
 }
 
-/** The one kind every selected row shares, or `mixed`. */
 function selectedKind(items: Zotero.Item[]): SelectedObjectKind {
   const kinds = new Set(items.map(kindOf));
   return kinds.size === 1 ? [...kinds][0]! : "mixed";
 }
 
-/**
- * The single selected item openable as a PDF in Obsidian: a PDF attachment
- * itself, or a regular item with at least one PDF child attachment. File
- * existence is checked later, on the Obsidian side — `getAttachments` /
- * `Zotero.Items.get` stay synchronous so this can gate a menu.
- */
 function pdfOpenableItem(context: LibraryMenuContext): Zotero.Item | null {
   const items = allItems(context);
   if (items.length !== 1) return null;
@@ -72,20 +64,10 @@ function pdfOpenableItem(context: LibraryMenuContext): Zotero.Item | null {
   return children.some((child) => child.isPDFAttachment()) ? item : null;
 }
 
-/**
- * Whether any submenu entry can show for this selection. Every entry needs a
- * regular item or a note, so a selection of attachments alone leaves the
- * submenu with nothing to open.
- */
 function submenuHasEntries(context: LibraryMenuContext): boolean {
   return regularItems(context).length >= 1 || noteItems(context).length >= 1;
 }
 
-/**
- * `count` feeds the `$count` plural selector in the `update` label's Fluent
- * message. `setL10nArgs` needs a JSON string, not an object (see the type
- * augmentation in `types/zotero.d.ts`).
- */
 function onShowing(action: ProtocolAction) {
   return (_event: Event, context: LibraryMenuContext): void => {
     const count = regularItems(context).length;
@@ -108,8 +90,6 @@ function onCommand(action: ProtocolAction, scope?: UpdateScope) {
       });
       return;
     }
-    // Update routes a multi-selection through one batch action; open stays a
-    // per-item loop.
     if (action === "update" && items.length > 1) {
       void updateManyInObsidian(items, scope);
       return;

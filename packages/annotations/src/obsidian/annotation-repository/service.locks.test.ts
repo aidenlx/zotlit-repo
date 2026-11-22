@@ -1,5 +1,3 @@
-// The Annotation Repository's Locked Annotations: External Annotations and another user's Annotations in a group library.
-
 import type { GroupLibrary } from "#__fixtures__/annotation-repository.ts";
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
@@ -56,46 +54,25 @@ import {
 
 // #region annotation locks
 
-// What can go wrong with a Locked Annotation, seen from outside the repository
-// (ADR 0067):
-// - the Local API sends no lock facts, so a list it answers carries no lock;
-// - a fact the database does not hold, or cannot give, locks an Annotation;
-// - a read of the database that fails drops a lock an earlier read gave;
-// - a lock Zotero adds after a Local API list was read never reaches it;
-// - a refused verb still sends a request, draws a Pending Proposal, or ends a
-//   Write Conflict that stands;
-// - a comment, Quoted Text or tag draft open when the lock appears still saves;
-// - the card offers a verb the lock refuses, or the lock's block hides the
-//   Editing Capability's own reason;
-// - a group verb with one Locked Annotation writes the others, or ends their
-//   drafts, and leaves a partial result;
-// - an undo or redo takes a step that writes a Locked Annotation, drops it, or
-//   answers with no Lock Reason, so the notice gives the capability copy;
-// - a refused step drops out of canUndo/canRedo, so the command disappears.
-
 const LOCKED = {
   kind: "failed",
   failure: { kind: "locked", reason: "external" },
 } as const;
 
-/** What an undo or redo answers where a lock refuses its History Step. */
 const LOCKED_STEP = { kind: "locked", reason: "external" } as const;
 
-/** The block every verb of an External Annotation meets on its card. */
 const EXTERNAL_BLOCK = {
   reason: m.annot_view_lock_external(),
   action: null,
   source: "lock",
 } as const;
 
-/** Each Annotation's lock, by key. */
 function locksOf(list: AnnotationList | null) {
   return Object.fromEntries(
     list?.annotations.map(({ key, lock }) => [key, lock]) ?? [],
   );
 }
 
-/** Every Fixture Annotation unlocked, but those `locked` names, by bare key. */
 function expectedLocks(locked: Readonly<Record<string, LockReason>> = {}) {
   return Object.fromEntries(
     READING_ORDER.map(([key]) => {
@@ -105,7 +82,6 @@ function expectedLocks(locked: Readonly<Record<string, LockReason>> = {}) {
   );
 }
 
-/** The published record of one Fixture Annotation, read through the repository tag. */
 function recordIn(
   service: AnnotationRepository["Service"],
   key: string,
@@ -121,11 +97,6 @@ function recordIn(
   );
 }
 
-/**
- * Zotero imports one Annotation from the PDF file while ZotLit reads through
- * the Local API: the database changes, and the next list is the Local API's
- * again, with the lock on it.
- */
 async function importFromPdf(
   harness: Awaited<ReturnType<typeof writable>>,
   key: string,
@@ -179,7 +150,6 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const stack = yield* scopedStack;
-      // Zotero holds an Annotation the database copy ZotLit reads does not have yet.
       const unread = {
         ...afterWrite("PUPR5FG5", {}),
         key: "UNREAD23",
@@ -197,8 +167,6 @@ it.effect(
       expect(read.UNREAD23).toBeNull();
       expect(read.PUPR5FG5).toEqual({ reason: "external" });
 
-      // The database cannot be read, and the list still can. The lock the last
-      // read gave stands.
       acquireRead.mockRejectedValue(new Error("database is locked"));
       const refreshed = yield* service.refresh("RGRPDF24");
       expect(refreshed?.source.kind).toBe("zotero-local-api");
@@ -249,14 +217,12 @@ it.effect(
       ];
 
       expect(outcomes).toEqual([LOCKED, LOCKED, LOCKED, LOCKED]);
-      // No draft starts, so no autosave and no Done can send one.
       expect(
         yield* service.editTextField("comment", "PUPR5FG5", "typed"),
       ).toBeNull();
       expect(yield* service.editTextField("text", "PUPR5FG5")).toBeNull();
       expect(yield* service.editTags("PUPR5FG5", ["review"])).toBeNull();
       expect(requests.slice(sent)).toEqual([]);
-      // No Pending Proposal was drawn, and no outcome stands on the card.
       expect(drawn).toEqual([]);
       expect(yield* service.mutationFor("PUPR5FG5")).toEqual({ kind: "idle" });
     }),
@@ -281,7 +247,6 @@ it.effect(
       yield* Effect.promise(() => importFromPdf(harness, "PUPR5FG5"));
       yield* adjustLayerClock("30 seconds");
 
-      // Done on either text field, and Apply again, send nothing.
       expect(yield* service.submitTextField("comment", "PUPR5FG5")).toEqual(
         LOCKED,
       );
@@ -292,7 +257,6 @@ it.effect(
         LOCKED,
       );
       expect(yield* service.submitTags("PUPR5FG5")).toEqual(LOCKED);
-      // A keystroke is not taken.
       yield* service.editTextField(
         "comment",
         "PUPR5FG5",
@@ -302,7 +266,6 @@ it.effect(
         requests.slice(sent).filter(({ method }) => method !== "GET"),
       ).toEqual([]);
 
-      // The editor is read-only and says why; the held text keeps Discard alone.
       const blocks = annotationBlocks({
         annotation: yield* recordIn(service, "PUPR5FG5"),
         capability: yield* service.capabilityFor("RGRPDF24"),
@@ -388,8 +351,6 @@ it.effect(
       freshnessSignal(serverEvents);
       yield* lost;
 
-      // The database is behind the colour Zotero confirmed, so the Local API
-      // list stays published over each list the database gives.
       markExternal(client, "K3JRFLFQ");
       dbEvents.emit("changed");
 
@@ -448,7 +409,6 @@ it.effect(
       );
       const { service, requests } = harness;
       yield* service.openHistory("RGRPDF24");
-      // A comment step below, and the Text Edit step undone onto the redo side.
       yield* service.editTextField("comment", "PUPR5FG5", "Worth citing");
       yield* service.submitTextField("comment", "PUPR5FG5");
       const original = zotero.held?.text;
@@ -458,7 +418,6 @@ it.effect(
         kind: "stepped",
       });
       expect(zotero.held?.text).toBe(original);
-      // A comment draft open when the lock appears is held, and hides the step.
       yield* service.editTextField(
         "comment",
         "PUPR5FG5",
@@ -618,17 +577,10 @@ it.effect(
 
 // #region another user's annotations
 
-/** The account user ID the database identity names. */
 const ME = 7;
 
-/** Another member of the group library. */
 const COLLEAGUE = 9;
 
-/**
- * Who created each Fixture Annotation in the group library. HRK7BG32 has a
- * group item with no creator, TYY6Z6ZF one whose creator is `0`, and
- * 4PE492KU no group item at all.
- */
 const CREATED_BY = {
   PUPR5FG5: COLLEAGUE,
   C94NJNYG: COLLEAGUE,
@@ -638,7 +590,6 @@ const CREATED_BY = {
   TYY6Z6ZF: 0,
 } as const;
 
-/** The locks of the Annotations {@link COLLEAGUE} created. */
 const BY_COLLEAGUE = {
   PUPR5FG5: "another-user",
   C94NJNYG: "another-user",
@@ -651,19 +602,16 @@ const ANOTHER_USER_LOCKED = {
   failure: { kind: "locked", reason: "another-user" },
 } as const;
 
-/** The block every edit of another user's Annotation meets on its card. */
 const ANOTHER_USER_BLOCK = {
   reason: m.annot_view_lock_another_user(),
   action: null,
   source: "lock",
 } as const;
 
-/** One Fixture Annotation by its Indexed Key in the group library. */
 function inGroup(key: string): string {
   return `${key}g${GROUP_ID}`;
 }
 
-/** Each Annotation's lock, by bare key. */
 function groupLocks(list: AnnotationList | null) {
   return Object.fromEntries(
     list?.annotations.map(({ key, lock }) => [
@@ -673,10 +621,6 @@ function groupLocks(list: AnnotationList | null) {
   );
 }
 
-/**
- * The repository over a Zotero Local API session with a Write Authorization,
- * with the Fixture's Annotations read from a group library.
- */
 const groupWritable = Effect.fnUntraced(function* (
   stack: AsyncDisposableStack,
   group: GroupLibrary = SYNCED,
@@ -846,7 +790,6 @@ it.effect(
         ANOTHER_USER_LOCKED,
         ANOTHER_USER_LOCKED,
       ]);
-      // No draft starts, so no autosave and no Done can send one.
       expect(yield* service.editTextField("comment", key, "typed")).toBeNull();
       expect(yield* service.editTextField("text", key)).toBeNull();
       expect(yield* service.editTags(key, ["review"])).toBeNull();
@@ -948,8 +891,6 @@ it.effect(
         `/api/groups/${GROUP_ID}/items/C94NJNYG`,
       ]);
 
-      // Zotero restores each under a new key, with the current user as creator,
-      // and the database copy ZotLit reads holds them so. The undo says so.
       expect(yield* service.undo(GROUP_ATTACHMENT)).toMatchObject({
         kind: "stepped",
         restoredAsCreator: { count: 2 },
@@ -974,10 +915,6 @@ it.effect(
     }),
 );
 
-/**
- * The repository over a group library that Zotero answers writes for, with
- * the Annotation History of its Attachment open.
- */
 async function groupHistory(stack: AsyncDisposableStack) {
   const zotero = zoteroLibrary(
     ROUGIER_ANNOTATIONS.map((annotation) => ({

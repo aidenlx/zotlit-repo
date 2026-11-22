@@ -3,13 +3,11 @@ import { MaxOpsBeforeYield } from "effect/Scheduler";
 
 import { openExcerptStore } from "./store.ts";
 
-// Runs in a disposable Electron renderer so transactions use Chromium's IndexedDB.
 import { check } from "#__fixtures__/excerpt-image/check.ts";
 import { encodeExcerptImage } from "#__fixtures__/excerpt-image/encode.ts";
 import { sizedWebp } from "#__fixtures__/excerpt-image/webp.ts";
 import { PNG_FORMAT, WEBP_FORMAT } from "#core/excerpt-image/format.ts";
 
-/** The budget assertions need exact lengths; every payload carries a PNG signature. */
 const UNIT = 1_000;
 
 function sameBytes(left: Uint8Array, right: Uint8Array): boolean {
@@ -39,7 +37,6 @@ async function pngOf(width: number, height: number): Promise<Uint8Array> {
   );
 }
 
-/** Writes a record with the browser's own IndexedDB, bypassing the store schema. */
 async function writeRaw(
   databaseName: string,
   record: Record<string, unknown>,
@@ -188,7 +185,6 @@ export async function run(): Promise<string[]> {
     passed.push("failed transaction rolls back pixels and accounting");
   }
   {
-    // Both formats and every record generation share one store.
     using store = await openExcerptStore("formats", 10 * UNIT);
     const source = document.createElement("canvas");
     source.width = 12;
@@ -252,8 +248,6 @@ export async function run(): Promise<string[]> {
     passed.push("mixed PNG and WebP records");
   }
   {
-    // One Annotation's latest image: the reference a display reads before its
-    // saved pixels resolve, which survives a launch and leaves with its bytes.
     const reference = {
       key: "first",
       fingerprint: "F1",
@@ -303,7 +297,6 @@ export async function run(): Promise<string[]> {
     passed.push("latest references");
   }
   {
-    // Eviction must keep its transaction even when the caller is due to yield.
     using store = await openExcerptStore("eviction-yield", 10 * UNIT);
     await Effect.runPromise(store.put("oldest", entry(4)));
     await Effect.runPromise(store.put("next", entry(4)));
@@ -330,7 +323,6 @@ export async function run(): Promise<string[]> {
     passed.push("eviction transaction survives scheduler pressure");
   }
   {
-    // Interruption after a reference deletion rolls the whole write back.
     using store = await openExcerptStore("eviction-interrupt", 10 * UNIT);
     await Effect.runPromise(store.put("held", entry(10)));
     await store.putLatest("annotation", {
@@ -388,7 +380,6 @@ export async function run(): Promise<string[]> {
       "interrupted eviction rolls back images, references and accounting",
     );
   }
-  // Simulate the next schema version using the real open/upgrade machinery.
   const originalOpen = Object.getOwnPropertyDescriptor(
     IDBFactory.prototype,
     "open",

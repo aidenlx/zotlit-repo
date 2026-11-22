@@ -1,5 +1,3 @@
-// Owns per-node Work Label graphics across Obsidian's lazy graphics lifecycle.
-
 import { Effect } from "effect";
 import { around } from "monkey-around";
 import type {
@@ -48,7 +46,6 @@ export class WorkLabelGraphics implements Disposable {
     this.#members = members;
   }
 
-  /** Receives resident text only; node builders perform no metadata reads. */
   update(labels: ReadonlyMap<string, WorkLabel>): void {
     const { renderer } = this.#members;
     if (
@@ -177,7 +174,6 @@ export class WorkLabelGraphics implements Disposable {
               withLogCategory("graph-citations"),
             ),
           );
-          // Native render still holds this text object until it returns.
           queueMicrotask(() => {
             if (this.#held.get(node) !== held || node.text !== held.container)
               return;
@@ -239,7 +235,6 @@ export class WorkLabelGraphics implements Disposable {
   }
 }
 
-/** PIXI measures each candidate in the actual font, including CJK glyph widths. */
 function fitLine(sprite: TextSprite, value: string): void {
   sprite.text = value;
   if (sprite.width <= LABEL_WIDTH) return;
@@ -298,7 +293,6 @@ function makeLabel(
   second.alpha = titleAlpha();
   const updateTransform = container.updateTransform.bind(container);
   container.updateTransform = () => {
-    // PIXI visits visible children only; update alpha before child transforms.
     second.alpha = titleAlpha();
     updateTransform();
   };
@@ -328,7 +322,6 @@ function makeLabel(
     second.y = first.height + 2;
   };
   applyStyle(style);
-  // Native render assigns `text.style` on theme/font changes.
   Object.defineProperty(container, "style", {
     configurable: true,
     set: (next: GraphTextStyle) => {

@@ -23,7 +23,6 @@ const companionHeaders = {
   [SOURCE_ID_HEADER]: SOURCE_ID,
 };
 
-/** Resolve the port once the listener binds one. */
 async function whenListening(
   service: Awaited<ReturnType<typeof buildLocalServer>>,
 ): Promise<number> {
@@ -42,7 +41,6 @@ async function whenListening(
   });
 }
 
-/** Resolve once the listener has closed. */
 async function whenClosed(
   service: Awaited<ReturnType<typeof buildLocalServer>>,
 ): Promise<void> {
@@ -77,8 +75,6 @@ it("serves without taking over the window's Request and Response", async () => {
   const port = await whenListening(service);
   expect(port).toBeGreaterThan(0);
 
-  // The globals are the window's own, and WebAssembly streaming brand-checks
-  // the native `Response`: a swapped-in class breaks the Pandoc engine.
   expect(globalThis.Request).toBe(nativeRequest);
   expect(globalThis.Response).toBe(nativeResponse);
 
@@ -106,15 +102,12 @@ it("keeps the listener up while Live updates is off", async () => {
   const port = await whenListening(service);
 
   expect(service.runtime.runSync(service.server.effectivePort)).toBe(port);
-  // The port is open, and Live Update alone refuses.
   expect(service.runtime.runSync(service.server.available)).toBe(false);
   const refused = await fetch(`http://127.0.0.1:${port}/literature-notes`, {
     headers: companionHeaders,
   });
   expect(refused.status).toBe(404);
 
-  // Turning Live updates back on answers again on the same port: the toggle
-  // gates the routes, so nothing rebinds.
   service.runtime.runSync(
     service.settings.update({ "server.live-update": true }),
   );
@@ -129,7 +122,6 @@ it("keeps the listener up while Live updates is off", async () => {
 it("binds the next free port when the configured one is taken", async () => {
   await using holders = new AsyncDisposableStack();
   let port: number;
-  // Keep every candidate in the ten-port search inside the TCP port range.
   do {
     const holder = holders.use(createServer());
     await new Promise<void>((resolve, reject) => {
@@ -151,8 +143,6 @@ it("binds the next free port when the configured one is taken", async () => {
   );
   const bound = await whenListening(service);
 
-  // The held port is skipped for one inside the range of ten. Which one is not
-  // pinned: a parallel test worker can hold the very next port too.
   expect(bound).toBeGreaterThan(port);
   expect(bound).toBeLessThanOrEqual(port + 9);
   expect(service.runtime.runSync(service.server.effectivePort)).toBe(bound);
@@ -170,15 +160,12 @@ it("unloads cleanly when no port in the range can bind", async () => {
       overrides: {
         "server.enabled": true,
         "server.port": 0,
-        // An address this machine does not own, so every bind in the range fails.
         "server.hostname": "203.0.113.1",
       },
     },
     stack,
   );
   const bridge = effectBridge(service.runtime);
-  // Disposal waits on the bind chain: a bind attempt that never settles hangs
-  // the plugin's unload instead of returning here.
   await stack.disposeAsync();
 
   expect(bridge.runSync(service.server.effectivePort)).toBe(null);
@@ -230,7 +217,6 @@ it("answers a note-status query as unavailable when unload ends the first scan",
     },
     stack,
     {
-      // The first scan is still running; the keys so far are a part of the vault.
       whenIndexed: Effect.sync(() => waiting.resolve()).pipe(
         Effect.andThen(Effect.never),
       ),
@@ -238,7 +224,6 @@ it("answers a note-status query as unavailable when unload ends the first scan",
   );
   const port = await whenListening(service);
 
-  // A connection the client keeps alive would hold the listener's close open.
   const status = new Promise<number | undefined>((resolve, reject) => {
     get(
       `http://127.0.0.1:${port}/literature-notes`,
@@ -252,12 +237,9 @@ it("answers a note-status query as unavailable when unload ends the first scan",
   await waiting.promise;
   await stack.disposeAsync();
 
-  // The Companion reads any answer other than 200 as a failed refresh and
-  // keeps the status it has; a 200 would show the partial keys as complete.
   expect(await status).toBe(404);
 });
 
-/** POST one companion notify event, the way the Zotero plugin's sender does. */
 async function notify(port: number, event: unknown): Promise<number> {
   const res = await fetch(`http://127.0.0.1:${port}/notify`, {
     method: "POST",
@@ -305,7 +287,6 @@ it("keeps the last reader target and flags it closed on reader/inactive", async 
   expect(service.runtime.runSync(service.server.readerClosed)).toBe(false);
 
   expect(await notify(port, { event: "reader/inactive" })).toBe(204);
-  // The attachment stays on screen; only the presence flag moves.
   expect(service.runtime.runSync(service.server.readerTarget)).toEqual({
     itemID: 11,
     attachmentID: 22,
@@ -313,7 +294,6 @@ it("keeps the last reader target and flags it closed on reader/inactive", async 
   });
   expect(service.runtime.runSync(service.server.readerClosed)).toBe(true);
 
-  // A repeat carries no new edge, and the next reader push clears the flag.
   expect(await notify(port, { event: "reader/inactive" })).toBe(204);
   expect(await notify(port, { ...READER_ACTIVE, attachmentID: 44 })).toBe(204);
   expect(service.runtime.runSync(service.server.readerClosed)).toBe(false);
@@ -342,8 +322,6 @@ it("holds the reader target past a listener that stops answering", async () => {
     service.settings.update({ "server.live-update": false }),
   );
   expect(service.runtime.runSync(service.server.available)).toBe(false);
-  // A view following the Zotero reader keeps what it shows and says why,
-  // rather than emptying because the companion cannot reach us.
   expect(
     service.runtime.runSync(service.server.readerTarget)?.attachmentID,
   ).toBe(22);

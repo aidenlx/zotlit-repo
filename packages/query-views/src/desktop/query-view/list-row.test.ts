@@ -29,7 +29,6 @@ const property = (path: string): PropertyEntry => ({
 
 const PROPERTIES = ["title", "date", "itemType"].map(property);
 
-/** A row of `PROPERTIES` that shows `cells`, each its own value. */
 const record = (
   cells: readonly string[],
   values: Partial<Record<string, QueryViewValue>> = {},
@@ -82,7 +81,6 @@ describe("listRowText", () => {
 });
 
 describe("a List row's predicted height", () => {
-  // At 12px the stub gives each character 6px.
   const metrics = (width: number, size = 12): ListMetrics => ({
     font: `normal 400 ${size}px sans-serif`,
     lineHeight: 20,
@@ -93,7 +91,6 @@ describe("a List row's predicted height", () => {
   const lines = (row: RecordCells, rows: ListRows, at: ListMetrics) =>
     (rowHeight(prepareRow(listRowText(row, rows)!, at.font), at) - at.padding) /
     at.lineHeight;
-  // 28 characters on one line.
   const row = record(["A title of twenty characters", "", ""]);
 
   it("takes as many lines as its text wraps to at the list's width and font, and one line at least", () => {
@@ -104,14 +101,12 @@ describe("a List row's predicted height", () => {
   });
 
   it("wraps each indented property line at the width less the indent", () => {
-    // 10 characters a line at 60px; 6 at the 36px an indented line has.
     const indented = record(["A title", "12345678", "Book"]);
     expect(lines(indented, INDENTED, metrics(60))).toBe(1 + 2 + 1);
   });
 });
 
 describe("drawListRow", () => {
-  /** The text of each line of `entry`'s row, as the Items Window draws it. */
   async function drawnLines(entry: RecordCells, rows: ListRows) {
     const host = document.createElement("ul");
     document.body.append(host);

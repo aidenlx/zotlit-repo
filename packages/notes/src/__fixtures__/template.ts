@@ -52,7 +52,6 @@ export const templateOf = Effect.fnUntraced(function* (
   return Context.get(yield* Layer.build(templateOver(host)), Template);
 });
 
-/** Reuse a consumer fixture's Settings service. */
 export function templateSettings(settings: PluginSettings["Service"]) {
   return Layer.succeed(PluginSettings, settings);
 }

@@ -1,5 +1,3 @@
-// UI seam for an Ambiguous Citation Key: the picker that opens one candidate exactly.
-
 import type {
   AmbiguousCandidate,
   CandidateRow,
@@ -23,7 +21,6 @@ import type { AmbiguousCitekey } from "./service.ts";
 
 import { candidateRow } from "#obsidian/citation-index/ambiguity.ts";
 
-/** Whether a candidate row answers a typed filter, over the text it shows. */
 export function candidateMatches(row: CandidateRow, query: string): boolean {
   const trimmed = query.trim().toLowerCase();
   if (trimmed.length === 0) return true;
@@ -69,8 +66,6 @@ class AmbiguousCitekeyModal extends SuggestModal<AmbiguousCandidate> {
     const contentEl = el.createDiv({ cls: "suggestion-content zt:min-w-0" });
     contentEl.createDiv({ cls: "suggestion-title", text: row.summary });
     contentEl.createDiv({ cls: "suggestion-note zt:font-mono", text: row.key });
-    // The Library is a second fact, so it takes the trailing slot an item row
-    // gives it, or a badge under the key on a narrow row.
     if (row.library) {
       appendInlineFlair(
         contentEl.createDiv({ cls: "suggestion-note" }),
@@ -85,10 +80,6 @@ class AmbiguousCitekeyModal extends SuggestModal<AmbiguousCandidate> {
   }
 }
 
-/**
- * Asks which Item an Ambiguous Citation Key should open, then opens that one
- * by its exact Indexed Key.
- */
 export const layerCitekeyCandidatePicker = Layer.effectDiscard(
   Effect.gen(function* () {
     const host = yield* PluginHost;
@@ -98,7 +89,6 @@ export const layerCitekeyCandidatePicker = Layer.effectDiscard(
       filterTag(editor.events, "citekey-ambiguous"),
       ({ ambiguous }) => {
         new AmbiguousCitekeyModal(host.app, ambiguous, (candidate) => {
-          // Unload interrupts a pending open.
           bridge.runAndForget(editor.openCandidate(candidate, ambiguous.pane));
         }).open();
       },

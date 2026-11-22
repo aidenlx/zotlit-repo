@@ -5,7 +5,6 @@ import type {
 } from "#contract/citation-lookup.ts";
 import type { LibraryScope } from "#contract/library-scope.ts";
 import type { DbUnavailable } from "#contract/rpc.ts";
-// The worker owns the full citation maps and publishes requested projections.
 import { Effect, Fiber, Option, Ref, Scope, Stream } from "effect";
 
 import {
@@ -198,8 +197,6 @@ export const makeCitationLookup = Effect.fnUntraced(function* (
         }),
       );
       if (answer !== null) return answer;
-      // A caller owns only its wait. The worker lifetime owns the shared build
-      // and its connection borrow, even if the initiating caller cancels.
       const running = yield* Effect.uninterruptible(
         Effect.suspend(() =>
           Effect.gen(function* () {

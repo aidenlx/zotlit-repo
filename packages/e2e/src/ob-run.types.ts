@@ -2,7 +2,6 @@ import type { readQueryViewUntil } from "./note-query-view.ts";
 import type * as Cli from "./obsidian-cli.ts";
 import { obRun } from "./obsidian-cli.ts";
 
-// Typecheck is the seam: these calls are compiled, never executed.
 function proofs() {
   // @ts-expect-error Query View reads take typed callbacks.
   const queryViewReader: Parameters<typeof readQueryViewUntil>[1] =
@@ -36,7 +35,6 @@ function proofs() {
 }
 void proofs;
 
-// Only typed callbacks cross the public eval boundary.
 type LegacyEvalExports = Extract<
   keyof typeof Cli,
   | "obEval"

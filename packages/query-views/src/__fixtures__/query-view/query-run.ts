@@ -1,17 +1,9 @@
-// A fake ZotLit Query for the Query View tests, and its answer cut as the real
-// one is: each row carries only the fields its request names, so a view that
-// asks for too little shows the gap in a test.
 import type {
   QueryViewOutcome,
   QueryViewRequest,
 } from "#desktop/item-query/query-view.ts";
 import type { QueryHostDeps } from "./host.ts";
 
-/**
- * The ZotLit Query a Query View reads in a test, answering by `run`; every
- * other read answers nothing. A wider `QueryHostDeps["query"]` adds its read
- * here.
- */
 export const fakeQuery = (
   run: QueryHostDeps["query"]["run"],
 ): QueryHostDeps["query"] => ({
@@ -20,7 +12,6 @@ export const fakeQuery = (
   customFieldNames: async () => [],
 });
 
-/** `outcome` with each row's values cut to the fields `request` names. */
 export function requested(
   outcome: QueryViewOutcome,
   request: QueryViewRequest,

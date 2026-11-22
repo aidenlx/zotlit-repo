@@ -1,35 +1,4 @@
 import { randomUUID } from "node:crypto";
-// The release-time measurement of ZotLit Query against its performance
-// acceptance criteria. Run it before a release and after a planner change:
-//
-//   pnpm exec turbo run build:dev --filter=@zotlit/obsidian
-//   pnpm --filter @zotlit/e2e measure:query
-//
-// It needs desktop Obsidian running with the CLI enabled, as the End-to-end Run
-// does (packages/e2e/AGENTS.md). It opens one vault of its own, builds the
-// Stress Build Library of each tier, and measures every query through the
-// dev-build command `zotlit:query-measure`, which runs the handler of
-// `zotlit:query` with the observers of the engine. After the queries of
-// one Library, each tier takes the Stress Build of two Libraries (the group
-// Library gets the Item count of the tier too) and measures the queries that
-// read both as one result set.
-//
-// THE VAULT WINDOW MUST STAY VISIBLE: on screen, not minimized, and not fully
-// covered by another window. Chromium throttles a hidden window, which changes
-// every number. The script waits for a visible window before each tier, and it
-// repeats a run in which the window was hidden. The E2E window setup disables
-// background throttling and emulates focus while leaving OS focus unchanged.
-//
-// "Cancel through the Obsidian CLI" here is the production command
-// `zotlit:query-cancel`, called with the `id` of the measured run from a
-// second CLI call. The script measures a plugin unload too, which cancels
-// every run.
-//
-// Output: `.scratch/query-measure/<time>/raw.json` and `summary.md`. Post
-// `summary.md` to read before a release. The thresholds are in
-// `query-record.ts`.
-//
-// `--help` prints the options and the thresholds.
 import { cp, mkdir, rm, writeFile } from "node:fs/promises";
 import { arch, cpus, release, totalmem } from "node:os";
 import { join, relative } from "node:path";
@@ -89,12 +58,9 @@ import {
 
 const MEASURE_COMMAND = "zotlit:query-measure";
 const CANCEL_COMMAND = "zotlit:query-cancel";
-/** One measured call may be a `limit=all` run on 100,000 Items. */
 const CALL_TIMEOUT_MS = 180_000;
-/** Runs to repeat when the window was hidden in a run. */
 const VISIBILITY_RETRIES = 3;
 
-/** The report of `zotlit:query-measure` (packages/query-views/src/desktop/item-query/measure.ts). */
 interface MeasureReport {
   outcome: "answered" | "cancelled" | "failed";
   error?: string;
@@ -158,12 +124,6 @@ const quote = (value: string): string => JSON.stringify(value);
 
 const SORT_BY_TITLE = "title";
 
-/**
- * The queries of each tier. `selective`: one exact leaf that 0.1% of the
- * Library has, or one key. `other`: every other `limit 100` query, with the
- * 10% leaves, the near-cap union (20%), the dominant leaves that go above the
- * 25% cap and fall back to the scan, and the plain scans. `all`: `limit=all`.
- */
 function querySpecs(uniqueKey: string): QuerySpec[] {
   const limited = (
     id: string,
@@ -199,8 +159,6 @@ function querySpecs(uniqueKey: string): QuerySpec[] {
       "selective",
       `publicationTitle == ${quote(venues.rare)}`,
     ),
-    // Zotero has no index on the item type, so this leaf gives no candidate
-    // set and the query is a scan, whatever share of the Library matches.
     limited("item-type-rare", "other", `itemType == ${quote(itemTypes.rare)}`),
     limited("tag-common", "other", common),
     limited(
@@ -218,8 +176,6 @@ function querySpecs(uniqueKey: string): QuerySpec[] {
       class: "other",
       args: {
         from: "annotations",
-        // The Stress Build keeps the Fixture's annotated Items in Shared key;
-        // its synthetic Items in the Stress Build Collections have no marks.
         filter: `attachment.item.collections.within(${quote("Shared key")})`,
         limit: "100",
       },
@@ -229,14 +185,11 @@ function querySpecs(uniqueKey: string): QuerySpec[] {
       "other",
       `publicationTitle == ${quote(venues.common)}`,
     ),
-    // Two disjoint 10% leaves: the largest candidate set the Stress Build
-    // gives under the 25% cap.
     limited(
       "near-cap-union",
       "other",
       `${common} || collections.contains(${quote(collectionPath(collections.common.name))})`,
     ),
-    // One candidate statement returns `cap + 1` IDs, then the scan runs.
     limited("tag-dominant", "other", `tags.contains(${quote(tags.dominant)})`),
     limited(
       "collection-dominant",
@@ -277,16 +230,9 @@ function querySpecs(uniqueKey: string): QuerySpec[] {
   ];
 }
 
-/** The arguments that name My Library and the group Library of the Stress Build. */
 const TWO_LIBRARY_ARGS = {
   library: `personal,group:${STRESS_GROUP_LIBRARY.groupID}`,
 };
-/**
- * The queries over two large Libraries as one result set. An unlimited query
- * holds a match for every Item of both. A query that names no sort has the
- * default sort, `dateModified` descending; `two-all-no-sort` gives an empty
- * sort list, so the Indexed Key alone orders its matches.
- */
 const TWO_LIBRARY_ALL: QuerySpec = {
   id: "two-all",
   class: "all",
@@ -321,10 +267,8 @@ const TWO_LIBRARY_SPECS: readonly QuerySpec[] = [
   },
 ];
 
-/** The runs of each query; the record takes their median. */
 const DEFAULT_RUNS = 5;
 
-/** The reference of `--help`, from the constants the script runs on. */
 function renderReference(): string {
   const totals = Object.entries(THRESHOLDS.totalMs).flatMap(
     ([queryClass, budgets]) =>
@@ -355,9 +299,6 @@ function renderReference(): string {
   ].join("\n");
 }
 
-/**
- * @throws {Error} when an entry is not an Item count a Stress Build takes.
- */
 function parseTiers(text: string): number[] {
   return text.split(",").map((entry) => {
     const items = Number(entry.trim());
@@ -419,7 +360,6 @@ const outDir = join(
 
 await mkdir(outDir, { recursive: true });
 
-/** Each step logs, and each logged step renews the Lease of the hold. */
 const log = (message: string): void => {
   console.error(message);
   reportDesktopProgress(message.trim().split("\n")[0]!);
@@ -435,13 +375,11 @@ using _desktopSlot = await acquireDesktopSlotOrExit({
   cwd: workspaceRoot,
   command: "measure:query",
   silenceMs: SILENCE_LIMIT_MS.measureQuery,
-  // Its timings mean nothing while another run competes for the CPU.
   exclusive: true,
 });
 
 let vaultId = "";
 
-/** The window is on screen and Chromium counts the page as visible. */
 async function isVisible(): Promise<boolean> {
   const state = await obRun(
     vaultId,
@@ -458,10 +396,8 @@ async function isVisible(): Promise<boolean> {
   return state === "true";
 }
 
-/** Wait for a visible window; the maintainer brings it forward. */
 async function requireVisible(): Promise<void> {
   if (await isVisible()) return;
-  // Shows a hidden or minimized window and leaves the OS focus where it is.
   await obRun(vaultId, ({ page }) => {
     const win = (
       require("@electron/remote") as {
@@ -479,13 +415,8 @@ async function requireVisible(): Promise<void> {
   );
 }
 
-/**
- * The Library every query reads: the Stress Build fills My Library, and the
- * thresholds are those of one Library.
- */
 const STRESS_LIBRARY = { library: "personal" };
 
-/** One measured run. A run with a hidden window is repeated. */
 async function measure(args: Record<string, string>): Promise<MeasureReport> {
   reportDesktopProgress("a measured run");
   for (let attempt = 0; ; attempt++) {
@@ -525,11 +456,6 @@ function expectAnswered(id: string, report: MeasureReport): MeasureReport {
   return report;
 }
 
-/**
- * Wait until the plugin answers a query.
- *
- * @throws {Error} `failure`, with the last answer or error of the plugin.
- */
 async function requirePluginReady(failure: string): Promise<void> {
   let last = "no answer";
   const ready = await waitFor(async () => {
@@ -554,10 +480,6 @@ async function requirePluginReady(failure: string): Promise<void> {
   if (!ready) throw new Error(`${failure}. Last ${last}`);
 }
 
-/**
- * Replace the Fixture database with the Stress Build of `items` Items. With
- * `groupItems`, the group Library of the Stress Build has that Item count.
- */
 async function loadTier(items: number, groupItems?: number): Promise<void> {
   await cli([`vault=${vaultId}`, "plugin:disable", "id=zotlit"]);
   await buildFixture(fixture, {
@@ -570,8 +492,6 @@ async function loadTier(items: number, groupItems?: number): Promise<void> {
   await requirePluginReady(
     `ZotLit did not answer a query on the ${items}-Item tier`,
   );
-  // Initial fuzzy-search indexing is a separate renderer job. Wait for its
-  // normal completion so this record measures ZotLit Query rather than startup.
   log("Waiting for the search index of this Fixture to finish...");
   await obRun(
     vaultId,
@@ -583,7 +503,6 @@ async function loadTier(items: number, groupItems?: number): Promise<void> {
     undefined,
     { timeoutMs: 600000 },
   );
-  // Citation Lookup pages share the query worker. Await its resolved answers.
   log("Waiting for the Citation Index snapshot of this Fixture to finish...");
   await obRun(
     vaultId,
@@ -606,9 +525,7 @@ interface RawQuery {
 interface RawCancel {
   delivery: CancelMeasurement["delivery"];
   query: string;
-  /** When the terminal sent the cancel call. */
   sentAtEpochMs?: number;
-  /** When the request reached the window. */
   arrivedAtEpochMs?: number;
   report: MeasureReport;
 }
@@ -619,18 +536,14 @@ interface RawTier {
   queries: RawQuery[];
   heaps: { spec: QuerySpec; runs: MeasureReport[] }[];
   cancels: RawCancel[];
-  /** The cancel requests whose run gave no report. */
   unreported: { delivery: CancelMeasurement["delivery"]; query: string }[];
-  /** The queries over two Libraries, each with the Items of the tier. */
   twoLibraries: {
     queries: RawQuery[];
     cancels: RawCancel[];
-    /** The run measured every query and every cancel of the part. */
     complete: boolean;
   };
 }
 
-/** One warm-up run and the measured runs of one query. */
 async function measureQuery(spec: QuerySpec): Promise<RawQuery> {
   const warmUp = expectAnswered(spec.id, await measure(spec.args));
   const runs: MeasureReport[] = [];
@@ -643,12 +556,10 @@ async function measureQuery(spec: QuerySpec): Promise<RawQuery> {
   return { spec, warmUp, runs };
 }
 
-/** The time a cancel can interrupt: the handler up to the end of the engine. */
 function cancellableMs({ runs }: RawQuery): number {
   return median(runs.map((run) => (run.adapterMs ?? 0) + (run.engineMs ?? 0)));
 }
 
-/** Cancel one run of a query by a timer at a fraction of `cancellable`. */
 async function cancelByTimer(
   spec: QuerySpec,
   { cancellable, fraction }: { cancellable: number; fraction: number },
@@ -663,12 +574,10 @@ async function cancelByTimer(
   };
 }
 
-/** The wait before a cancel that comes from outside the window. */
 function outsideCancelDelayMs(cancellable: number): number {
   return Math.min(cancellable * 0.3, 300);
 }
 
-/** Cancel one run of a query by a second CLI call that arrives in the run. */
 async function cancelThroughCli(
   spec: QuerySpec,
   delayMs: number,
@@ -688,13 +597,11 @@ async function cancelThroughCli(
     delivery: "cli",
     query: spec.id,
     sentAtEpochMs,
-    // The cancel command aborts the run when the call arrives in the window.
     arrivedAtEpochMs: report.cancel?.firedAtEpochMs,
     report,
   };
 }
 
-/** Measure one tier into `raw`, so a run that stops early keeps its part. */
 async function measureTier(raw: RawTier): Promise<void> {
   const { items } = raw;
   log(`\n== ${items.toLocaleString("en-US")} Items ==`);
@@ -717,7 +624,6 @@ async function measureTier(raw: RawTier): Promise<void> {
 
   for (const spec of specs) raw.queries.push(await measureQuery(spec));
 
-  // Absolute worker heap: a limited query and unlimited projections.
   const byId = (id: string): QuerySpec => specs.find((spec) => spec.id === id)!;
   for (const spec of [byId("scan-no-filter"), byId("all"), byId("all-keys")]) {
     const runs: MeasureReport[] = [];
@@ -729,7 +635,6 @@ async function measureTier(raw: RawTier): Promise<void> {
     raw.heaps.push({ spec, runs });
   }
 
-  // Cancel: the longest query, cancelled at five points of its run by a timer.
   const exportSpec = byId("all");
   const exportMs = cancellableMs(
     raw.queries.find(({ spec }) => spec === exportSpec)!,
@@ -740,13 +645,11 @@ async function measureTier(raw: RawTier): Promise<void> {
     );
   }
 
-  // Cancel through a second CLI call, which arrives while the run is in progress.
   const cancelDelayMs = outsideCancelDelayMs(exportMs);
   for (let run = 0; run < 3; run++) {
     raw.cancels.push(await cancelThroughCli(exportSpec, cancelDelayMs));
   }
 
-  // The cancel the product has for a CLI run: the plugin unloads.
   {
     const running = measure(exportSpec.args);
     await delay(cancelDelayMs);
@@ -775,8 +678,6 @@ async function measureTier(raw: RawTier): Promise<void> {
     } else {
       raw.unreported.push({ delivery: "unload", query: exportSpec.id });
     }
-    // `disablePlugin` leaves the plugin in the enabled list, so the CLI
-    // `plugin:enable` refuses; load it again in the same way.
     await obRun(
       vaultId,
       async ({ app }) => {
@@ -792,11 +693,6 @@ async function measureTier(raw: RawTier): Promise<void> {
   await measureTwoLibraries(raw);
 }
 
-/**
- * Measure the queries over two Libraries into `raw`, on the Stress Build that
- * gives the group Library the Item count of the tier too. The queries of one
- * Library ran before, on the Stress Build of My Library alone.
- */
 async function measureTwoLibraries(raw: RawTier): Promise<void> {
   const { items, twoLibraries: part } = raw;
   log(
@@ -858,7 +754,6 @@ function toQuery(
   };
 }
 
-/** The measured cancels, and the requests that measured nothing. */
 function toCancels(
   rawCancels: readonly RawCancel[],
   tier: string,
@@ -897,7 +792,6 @@ function toCancels(
   return { cancels, missedCancels };
 }
 
-/** The measurements of one tier, with the notes on runs that gave none. */
 function toTier(raw: RawTier, notes: string[]): TierMeasurement {
   const tier = raw.items.toLocaleString("en-US");
   const queries = raw.queries.map((query) => toQuery(query, tier, notes));
@@ -927,7 +821,6 @@ function toTier(raw: RawTier, notes: string[]): TierMeasurement {
     cancels,
     missedCancels,
     heaps,
-    // A run that stopped before the queries of two Libraries has no part.
     twoLibraries:
       rawPart.queries.length > 0
         ? {
@@ -942,7 +835,6 @@ function toTier(raw: RawTier, notes: string[]): TierMeasurement {
   };
 }
 
-/** The statements each record makes from its own data. */
 function findings(rawTiers: RawTier[], tiers: TierMeasurement[]): string[] {
   const notes: string[] = [];
   const allRuns = (raw: RawTier): MeasureReport[] =>
@@ -963,7 +855,6 @@ function findings(rawTiers: RawTier[], tiers: TierMeasurement[]): string[] {
       .map((raw) => `${raw.items.toLocaleString("en-US")} Items: ${text(raw)}`)
       .join("; ");
 
-  // Keyset paging: every query that reads a scan page.
   const scanFailures = tiers.flatMap((tier, index) => {
     const scanning = new Set(
       rawTiers[index]!.queries.filter(({ runs }) =>
@@ -1039,7 +930,6 @@ const pluginDir = join(vaultPath, ".obsidian", "plugins", "zotlit");
 await mkdir(pluginDir, { recursive: true });
 await cp(pluginBundleDir, pluginDir, { recursive: true });
 
-// Released in the `finally` below: `process.exit` at the end skips disposal.
 const pdfSidebar = await pinPdfSidebar();
 const rawTiers: RawTier[] = [];
 let failure: Error | undefined;
@@ -1067,7 +957,6 @@ try {
     await measureTier(raw);
   }
 } catch (error) {
-  // The tiers measured so far are still written.
   failure = error instanceof Error ? error : new Error(String(error));
 } finally {
   await pdfSidebar[Symbol.asyncDispose]().catch((error: unknown) =>
@@ -1087,7 +976,6 @@ const notes: string[] = [
   "Queries run in Electron utility processes. The measurement vault uses the E2E window setup: background throttling is disabled and focus is emulated without moving OS focus. Execution slices and encoding steps retain the spec's 16 ms p99 / 32 ms maximum limits. Renderer timer gaps (4 ms sampling) are an additional check against those limits. All limit=all runs write complete JSON files and return small receipts. These measurements include worker transfer and export publication. Fixture startup and initial search indexing finish before timing begins.",
 ];
 const measured = rawTiers.map((raw) => toTier(raw, notes));
-// The wall-clock time calibrates the cap on a Desktop Slot Lease.
 notes.push(
   `Wall-clock duration: ${Temporal.Now.instant().since(startedAt).total("minutes").toFixed(1)} min, within the cap of ${formatDuration(MAX_LEASE_MS)} on a Desktop Slot Lease (silence limit ${formatDuration(_desktopSlot.owner.silenceMs ?? 0)}).`,
 );
@@ -1115,7 +1003,6 @@ if (failure) {
   console.error(failure);
   process.exit(1);
 }
-// A failed threshold blocks the release.
 if (
   measured.some((tier) =>
     evaluateTier(tier).some((check) => check.status === "failed"),

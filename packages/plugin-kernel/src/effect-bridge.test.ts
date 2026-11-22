@@ -1,4 +1,3 @@
-// The bridge that runs Effects for plain code, and the helper that reads an Exit back.
 import { it } from "@effect/vitest";
 import {
   Cause,
@@ -85,7 +84,6 @@ it.effect("a subscription stops receiving after it is unsubscribed", () =>
       received.push(next);
       first.resolve();
     });
-    // A witness subscribed after the first one hears each value after it.
     const witnessed: number[] = [];
     const second = Promise.withResolvers<void>();
     const stopWitness = bridge.subscribe(Stream.fromPubSub(bus), (next) => {
@@ -156,8 +154,6 @@ describe("valueOr", () => {
   );
 });
 
-// Failure mode: a layer's plain code keeps receiving elements, or reads as
-// open, after the layer's Scope closed.
 it.effect("a scoped bridge closes with its Scope", () =>
   Effect.gen(function* () {
     const scope = yield* Scope.make();

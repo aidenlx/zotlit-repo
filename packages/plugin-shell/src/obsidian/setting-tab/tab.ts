@@ -1,6 +1,4 @@
 import type { Feature, SettingRows } from "#obsidian/feature.ts";
-// The plugin's declarative setting tab: the entries the features give, in the
-// host's order.
 import { PluginSettingTab } from "obsidian";
 import type { Plugin, SettingDefinitionItem, SettingGroupItem } from "obsidian";
 
@@ -13,24 +11,13 @@ import type {
 
 import { controlValue, writeControlValue } from "./controls.ts";
 
-/**
- * Where the tab places each feature's entries: `top` on the main page, then
- * `pages` as one group of navigable sub-pages. Each id names an entry a
- * composed feature gives.
- */
 export interface SettingTabOrder {
   readonly top: readonly string[];
   readonly pages: readonly string[];
 }
 
-/** The id of the group that holds the sub-pages. */
 const PAGES_GROUP = "settings_pages";
 
-/**
- * The tab of `features`. It holds no state of its own: every callback
- * Obsidian makes runs an Effect through `ctx.tab`, and the tab layer
- * (`layer.ts`) owns its subscriptions and lifetime.
- */
 export class ShellSettingTab extends PluginSettingTab {
   readonly #ctx: SettingTabContext;
   readonly #features: readonly Feature<any, any, any>[];
@@ -57,10 +44,6 @@ export class ShellSettingTab extends PluginSettingTab {
     return this.#ctx.tab.sync(controlValue(this.#features, key));
   }
 
-  /**
-   * Obsidian awaits this, then refreshes `visible`/`disabled` from the stored
-   * value; it reports no failure itself, so `run` does.
-   */
   override setControlValue(key: string, value: unknown): Promise<void> {
     return this.#ctx.tab.run(
       writeControlValue(this.#features, key, value),
@@ -73,7 +56,6 @@ export class ShellSettingTab extends PluginSettingTab {
   }
 }
 
-/** The context every entry of `features` builds from, its slots included. */
 export function settingTabContext(
   plugin: Pick<Plugin, "app" | "manifest">,
   context: Pick<SettingTabContext, "tab">,
@@ -88,12 +70,6 @@ export function settingTabContext(
   return ctx;
 }
 
-/**
- * The tab's items: the `top` entries, then the `pages` entries, grouped apart
- * from the rows above so the page rows read as their own section.
- *
- * @throws when an id names an entry no composed feature gives.
- */
 export function settingDefinitions(
   ctx: SettingTabContext,
   features: readonly Feature<any, any, any>[],
@@ -119,7 +95,6 @@ export function settingDefinitions(
   ];
 }
 
-/** The rows `features` give the slot `id`, in their order. */
 function slotRows(
   features: readonly Feature<any, any, any>[],
   id: keyof SettingTabSlots,

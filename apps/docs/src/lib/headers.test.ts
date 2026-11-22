@@ -30,8 +30,6 @@ describe("renderHeadersFile", () => {
   });
 });
 
-// Pre-release Docs repeats the production pages; search engines list the
-// production line alone.
 describe("beta line", () => {
   const file = renderHeadersFile(buildHeaderRules([], { docsLine: "beta" }));
 
@@ -51,9 +49,6 @@ describe("beta line", () => {
   });
 });
 
-// The asset layer answers these Markdown editions without the Worker, so the
-// `_headers` file alone can keep them out of the index and point a crawler at
-// the HTML page. A Cloudflare placeholder matches one path segment.
 describe("Markdown edition rules", () => {
   const rules = buildHeaderRules([
     "/llms.mdx/docs/content.md",

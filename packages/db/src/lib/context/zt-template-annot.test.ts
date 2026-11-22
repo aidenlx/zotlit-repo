@@ -67,7 +67,6 @@ function makeTemplateData(
   });
 }
 
-/** The anchors the app-layer resolver was asked to build a link for. */
 function anchorsFor(
   overrides?: Partial<Annotation>,
 ): (AnnotationFileLinkAnchor | undefined)[] {
@@ -109,8 +108,6 @@ describe("indexedKey", () => {
 });
 
 describe("fileLink", () => {
-  // The page is what Obsidian jumps to; the Indexed Key is what ZotLit lands a
-  // Mark on. Both ride in the one subpath the app layer builds from this.
   it("anchors to the annotation's page and to the annotation itself", () => {
     expect(anchorsFor()).toEqual([{ page: 42, annotation: "ANNO0001" }]);
   });
@@ -121,14 +118,10 @@ describe("fileLink", () => {
     ]);
   });
 
-  // An EPUB or snapshot Annotation has no page, and no reader places a Mark in
-  // one, so the Anchor beside the page goes with it.
   it("anchors nothing for a position that carries no page", () => {
     expect(anchorsFor({ position: {} })).toEqual([undefined]);
   });
 
-  // A profile that tuned its own link keeps it: the template's arguments reach
-  // the helper untouched, so the default anchor is a default and nothing more.
   it("hands a template's own alias and subpath straight to the helper", () => {
     const data = makeTemplateData(
       undefined,

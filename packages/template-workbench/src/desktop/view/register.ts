@@ -34,19 +34,11 @@ import { noteEmbedPlaceholders } from "#obsidian/view/embed-placeholder.ts";
 
 type RegistrationDeps = TemplateWorkbenchDeps &
   WorkbenchActionDeps & {
-    /** The Default Profile, which a note on the Default Profile opens. */
     defaultProfile: DefaultProfileTarget;
   };
 
-/**
- * What the Workbench's commands, header action, and file-menu entries ask of a
- * file: which kind of Template Document it is, which Profile a note opens, the
- * and the one open "Open template workbench" runs for it.
- */
 function workbenchTargets(app: App, deps: RegistrationDeps) {
   const state = () => deps.registry.get(profileStateAtom);
-  /** A plain document — the Citation Template or a Shared Partial — which the
-   *  view opens without any Profile flow. */
   const isPlainDocument = (file: TFile | null): file is TFile =>
     file !== null &&
     templateDocumentKind(file, deps.registry.get(templateFolderAtom)) !==
@@ -57,7 +49,6 @@ function workbenchTargets(app: App, deps: RegistrationDeps) {
     (file.path === state()?.defaultDocumentPath ||
       (state()?.profiles ?? []).some((profile) => profile.path === file.path) ||
       file.basename.startsWith("zotlit-profile."));
-  /** The Profile a Literature Note carries, or the stamp the vault holds no Profile for. */
   const noteProfile = (file: TFile | null) => {
     if (!file || !itemKeyFromFrontmatter(app.metadataCache.getFileCache(file)))
       return null;
@@ -78,13 +69,6 @@ function workbenchTargets(app: App, deps: RegistrationDeps) {
     const target = profile ? app.vault.getFileByPath(profile.path) : null;
     return target ? { kind: "open" as const, target } : null;
   };
-  /**
-   * "Open template workbench" for `file`: a Template Document opens itself,
-   * starting from `leaf` when that is the document's own Markdown leaf; a
-   * Literature Note opens its Profile with the note's Item, and the note as
-   * the one to update. A note on the built-in Default writes its document
-   * first, so the reader edits at once. `null` when `file` is neither.
-   */
   const workbenchOpen = (
     file: TFile | null,
     leaf?: WorkspaceLeaf,
@@ -111,7 +95,6 @@ function workbenchTargets(app: App, deps: RegistrationDeps) {
   return { isPlainDocument, isProfile, workbenchOpen };
 }
 
-/** Register the Template Workbench view, its commands, and its header actions. */
 export function registerTemplateWorkbenchView(
   plugin: Plugin,
   deps: RegistrationDeps,
@@ -129,14 +112,12 @@ export function registerTemplateWorkbenchView(
         pluginVersion: plugin.manifest.version,
       }),
   );
-  // A note embed in the Preview draws a placeholder for the embedded note.
   plugin.registerMarkdownPostProcessor(noteEmbedPlaceholders(plugin.app));
   plugin.addCommand({
     id: "open-template-workbench",
     name: m.template_workbench_open_layout(),
     checkCallback(checking) {
       const { workspace } = plugin.app;
-      // The built-in Default draft has no file; its view opens it all the same.
       const editor = workspace.getActiveViewOfType(TemplateWorkbenchView);
       const active = workspace.getActiveFile();
       const open =
@@ -148,10 +129,6 @@ export function registerTemplateWorkbenchView(
       return true;
     },
   });
-  // A note operation that refused offers this route back: the Workbench opens
-  // on the document whose call refused, so the repair is one click away. The
-  // Default Profile stands in when the refusal named no document — a legacy
-  // slot render, or a draft compiled from source rather than from a file.
   plugin.registerEvent(
     plugin.app.workspace.on("zotlit:open-template-workbench", (request) => {
       const { document, problem } = request;
@@ -209,7 +186,6 @@ export function registerTemplateWorkbenchView(
   plugin.app.workspace.onLayoutReady(refreshActions);
 }
 
-/** The Workbench's entries on Obsidian's file menu; none off the desktop app. */
 export function templateWorkbenchFileMenu(
   app: App,
   deps: RegistrationDeps,
@@ -217,9 +193,6 @@ export function templateWorkbenchFileMenu(
   if (!Platform.isDesktopApp) return () => {};
   const { workbenchOpen } = workbenchTargets(app, deps);
   return (menu, { file, leaf: menuLeaf }) => {
-    // The Workbench view's own pane menu raises this event too. Inside the
-    // view these entries repeat the routes it already offers, so the file
-    // menu keeps them for the surfaces that stand outside the Workbench.
     if (menuLeaf?.view instanceof TemplateWorkbenchView) return;
     const open = workbenchOpen(file, activeLeafFor(app, file));
     if (open)

@@ -1,11 +1,6 @@
 import { regex } from "arkregex";
 import type TurndownService from "turndown";
 
-/**
- * Construction options that align our converter with Obsidian's built-in
- * `htmlToMarkdown`, so notes convert into the same Markdown dialect Obsidian
- * emits when it pastes or imports HTML.
- */
 export const obsidianTurndownOptions: TurndownService.Options = {
   headingStyle: "atx",
   hr: "---",
@@ -43,23 +38,19 @@ const TABLE_ALIGN: Record<string, string> = {
   center: ":-:",
 };
 
-/** Collapse newline runs in `title` / `alt` attributes to a single newline. */
 function normalizeAttr(value: string | null): string {
   return value ? value.replaceAll(ATTR_WS, "\n") : "";
 }
 
-/** Percent-encode spaces and backslash-escape parentheses in a URL. */
 function encodeUrl(value: string): string {
   return value.replaceAll(" ", "%20").replaceAll(PARENS, "\\$1");
 }
 
-/** Render the optional ` "title"` suffix of a link/image, escaping quotes. */
 function titleSuffix(node: Element): string {
   const title = normalizeAttr(node.getAttribute("title"));
   return title ? ` "${title.replaceAll('"', '\\"')}"` : "";
 }
 
-/** Extra columns a cell spans beyond the first, or 0 when `colspan` is unset. */
 function extraColspan(cell: Element): number {
   const value = cell.getAttribute("colspan");
   if (!value) return 0;
@@ -71,10 +62,6 @@ function colspanPad(cell: Element, separator: string): string {
   return separator.repeat(extraColspan(cell));
 }
 
-/**
- * A `<tr>` is the header row when it lives in `<thead>`, or it is the first row
- * of the table/`<tbody>` and every cell is a `<th>`.
- */
 function isHeaderRow(row: HTMLTableRowElement | null | undefined): boolean {
   if (!row) return false;
   const parent = row.parentElement;
@@ -227,7 +214,5 @@ export function addObsidianRules(td: TurndownService): void {
     replacement: (content) => content,
   });
 
-  // Obsidian disables Markdown escaping entirely, so `[`, `*`, `_`, `\`, `$`
-  // pass through verbatim — essential for code, math, and citation markers.
   td.escape = (text) => text;
 }

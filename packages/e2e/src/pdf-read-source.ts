@@ -1,4 +1,3 @@
-// A retained PDF binding must keep the source that resolved its Attachment.
 import { copyFile, mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -202,8 +201,6 @@ export async function verifyPdfReadSource(
         (before.data.lastRead ?? 0),
     ),
   ).toBe(true);
-  // Keep the client alive while the close write would finish. This catches a
-  // retained binding adopting the newly selected database's identity.
   await obRun(
     vaultId,
     async ({ app, page }) => {
@@ -213,8 +210,6 @@ export async function verifyPdfReadSource(
     },
     undefined,
   );
-  // The trace records the completed write-back decision. Keep Zotero and the
-  // client alive until it lands, then check the external record.
   let outcome:
     | { message: string; properties: { reason?: string; outcome?: string } }
     | null

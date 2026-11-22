@@ -1,4 +1,3 @@
-// The `annotations` case family: Annotation Query evidence, answers, prompt, and answer schema.
 import { cp, readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { isDeepStrictEqual } from "node:util";
@@ -10,7 +9,6 @@ const oracle = JSON.parse(
   await readFile(new URL("./oracle.json", import.meta.url), "utf8"),
 );
 
-// Oracle names for first-row evidence: the row value path and the error label.
 const evidenceFields = {
   tags: { path: "tags", label: "Annotation Tags" },
   hasExcerptImage: {
@@ -37,7 +35,6 @@ function projected(fields, field) {
   );
 }
 
-/** Ordered cases compare reading order; the rest compare key sets. */
 function keyOrder(expected, keys) {
   return JSON.stringify(
     expected.ordered ? keys : [...keys].sort((a, b) => a.localeCompare(b)),
@@ -80,7 +77,6 @@ export function checkEnvelope(expected, envelope, context) {
   );
   const byKey = new Map(rows.map((row) => [row.indexedKey, row]));
   need(byKey.size === rows.length, "duplicate Annotation Indexed Key");
-  // Cases on one paper name its parents; the others name per-row oracle facts.
   if (expected.itemKey)
     for (const row of rows) {
       need(
@@ -363,10 +359,6 @@ export function answerSchema(expected) {
 
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
-/**
- * Copies receipts and the Excerpt Image out of folders that cleanup removes,
- * so a regrade reads the same evidence as the live run.
- */
 export async function retainEvidence(expected, { agentRoot, root }) {
   if (expected.export)
     await cp(
@@ -393,7 +385,6 @@ export async function loadEvidence(expected, root) {
     evidence.imageReceipt = JSON.parse(
       await readFile(join(root, "image.json"), "utf8"),
     );
-    // Runs saved before the copy was retained fall back to the receipt path.
     if (typeof evidence.imageReceipt.path === "string")
       evidence.imageBytes = await readFile(
         join(root, "excerpt-image.png"),

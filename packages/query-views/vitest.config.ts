@@ -10,7 +10,6 @@ import {
 } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry } from "@zotlit/plugin-kernel/vite";
 
-/** The plugin code the effectEntry wrappers apply to. */
 const pluginCode = [
   fileURLToPath(new URL("./src/", import.meta.url)),
   packageSource(import.meta.resolve("@zotlit/obsidian-kit/package.json")),
@@ -26,16 +25,12 @@ const pluginCode = [
 export default defineConfig({
   resolve: {
     alias: {
-      // The Query Views read the Obsidian kit and `obsidian`, a types-only
-      // package; runtime imports load the stand-in.
       obsidian: obsidianMock,
-      // Pretext measures text with a canvas, which the test DOM lacks.
       "@chenglou/pretext": fileURLToPath(
         new URL("./__mocks__/pretext.ts", import.meta.url),
       ),
     },
   },
-  // The build constants, as the plugin's own test config defines them.
   define: {
     __PLUGIN_ID__: JSON.stringify("zotlit"),
     __DEV__: JSON.stringify(true),
@@ -44,7 +39,6 @@ export default defineConfig({
   },
   plugins: [
     effectEntry("renderer", { vitest: true, scopes: pluginCode }),
-    // The views import `react`, which the plugin bundles as Preact.
     preact(),
   ],
   test: {
@@ -54,8 +48,6 @@ export default defineConfig({
     clearMocks: true,
     server: {
       deps: {
-        // Run through Vite so its `react` import lands on the Preact alias
-        // like our own sources; externalized, it would load real React.
         inline: ["@effect/atom-react", "@tanstack/react-virtual"],
       },
     },

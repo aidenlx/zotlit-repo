@@ -1,12 +1,3 @@
-// The LiquidJS date seam: LiquidJS's builtin `date` filter takes a JS `Date`,
-// so the template's Temporal and ItemDate values convert here.
-
-/**
- * Minimal structural view of a Zotero multipart date, duck-typed so this
- * package doesn't depend on `@zotlit/db`.
- *
- * @see `packages/db/src/lib/zt-date.ts` `ItemDate` for the full shape
- */
 interface ItemDateLike {
   kind: "date" | "yearMonth" | "year" | "text";
   year: number | null;
@@ -30,12 +21,6 @@ export function isItemDateLike(value: unknown): value is ItemDateLike {
   );
 }
 
-/**
- * Normalizes Temporal / ItemDate-shaped values into a local-time JS `Date`
- * before delegating to the builtin `date` filter, which throws on Temporal
- * objects and would otherwise parse a stringified `PlainDate` as UTC via
- * `new Date(string)`.
- */
 export function toLiquidDate(v: unknown): unknown {
   if (v instanceof Temporal.Instant) {
     return new Date(v.epochMilliseconds);

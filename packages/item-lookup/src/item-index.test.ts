@@ -48,8 +48,6 @@ const delta = item({
   lastActivity: 1767225600000,
 });
 
-// `Intl.Segmenter` keeps `长江流域` whole; jieba's `cut_for_search` adds
-// `长江`, `江流`, `流域`. So `流域` hits only through jieba.
 const chinese = item({
   key: "CHINA",
   itemID: 9,
@@ -59,7 +57,6 @@ const chinese = item({
 });
 const JIEBA_ONLY = "流域";
 const WHOLE_RUN = "长江流域";
-// The web target binary, as the Resource Pack holds it.
 const JIEBA_WASM = readFileSync(
   fileURLToPath(
     new URL("jieba_rs_wasm_bg.wasm", import.meta.resolve("jieba-wasm/web")),
@@ -71,11 +68,9 @@ const INSTALLED: SegmenterBinary = {
   entry: "chinese-segmenter",
   version: "1.0.0",
 };
-/** A later pack with the same binary. */
 const UPDATED: SegmenterBinary = { ...INSTALLED, version: "1.1.0" };
 const MISSING: SegmenterBinary = { ...INSTALLED, version: "0.9.0" };
 const CORRUPT: SegmenterBinary = { ...INSTALLED, version: "1.0.1" };
-/** The bytes each binary of the tests reads as; another binary is missing. */
 const storedBytes = (binary: SegmenterBinary): BufferSource | undefined =>
   binary.version === INSTALLED.version || binary.version === UPDATED.version
     ? JIEBA_WASM
@@ -89,12 +84,10 @@ const GROUP = [GROUP_LIBRARY_ID] as const;
 interface Harness {
   source: MemoryItemSource;
   reader: MemorySegmenterBinaryReader;
-  /** The Indexed Keys of the hits, best first. */
   search: (
     libraries: readonly number[],
     query: string,
   ) => Effect.Effect<string[], unknown>;
-  /** The hydrated hits, best first. */
   hits: (
     libraries: readonly number[],
     query: string,
@@ -106,17 +99,12 @@ interface Harness {
 }
 
 interface Setup {
-  /** The rows of each Library; by default Alpha and Beta in the user Library, Gamma in the group. */
   rows?: ReadonlyMap<number, readonly MemoryItemRow[]>;
-  /** Yield every few steps, so concurrent fibers interleave finely. */
   maxOpsBeforeYield?: number;
-  /** @default { locale: "en", segmenterBinary: null } */
   initial?: IndexSettings;
-  /** @default storedBytes */
   bytesFor?: (binary: SegmenterBinary) => BufferSource | undefined;
 }
 
-/** Run `body` against a fresh Item Index over in-memory ports. */
 function withIndex<A>(
   body: (harness: Harness) => Effect.Effect<A, unknown, Scope.Scope>,
   setup: Setup = {},
@@ -210,11 +198,7 @@ describe("Item Index", () => {
           {
             concurrency: "unbounded",
           },
-        ).pipe(
-          // Yield every few steps, so the two searches interleave at the
-          // points where the scheduler could split them.
-          Effect.provideService(Scheduler.MaxOpsBeforeYield, 4),
-        );
+        ).pipe(Effect.provideService(Scheduler.MaxOpsBeforeYield, 4));
         return { answers, scans: source.reads.scans };
       }),
     );
@@ -302,7 +286,6 @@ describe("Item Index", () => {
         const abandoned = yield* Effect.forkChild(search(USER, ""));
         yield* source.held;
         yield* Fiber.interrupt(abandoned);
-        // The first emission still counts the search before it.
         yield* source.notify;
         const group = yield* Effect.forkChild(search(GROUP, ""));
         yield* eventually(() => source.waiting === 2);
@@ -335,7 +318,6 @@ describe("Item Index", () => {
         yield* source.swap;
         yield* source.swap;
         yield* source.openGate;
-        // The first waiter waits for the whole lane, trailing rerun included.
         const answer = yield* Fiber.join(first);
         return {
           answer,
@@ -362,8 +344,6 @@ describe("Item Index", () => {
       ({ source, search }) =>
         Effect.gen(function* () {
           yield* search(USER, "");
-          // The second swap lands as the first rebuild replaces the index,
-          // after the lane's last check for a trailing request.
           yield* source.onNextRelease(
             Effect.andThen(
               source.setItems(USER_LIBRARY_ID, [alpha, beta, delta, epsilon]),
@@ -470,7 +450,6 @@ describe("Item Index", () => {
       BETA: "Beta transit summary",
       ALPHA: "Alpha transit memo",
     });
-    // The highlight ranges describe the title the hit carries.
     for (const hit of [...result.first, ...result.after]) {
       const title = titleOf(hit) ?? "";
       expect(
@@ -483,7 +462,6 @@ describe("Item Index", () => {
     const result = await withIndex(({ source, search }) =>
       Effect.gen(function* () {
         const before = yield* search(USER, "");
-        // No change event: the index still holds the Item.
         yield* source.vanish("ALPHA");
         const after = yield* search(USER, "");
         return { before, after, scans: source.reads.scans };
@@ -500,7 +478,6 @@ describe("Item Index", () => {
       Effect.gen(function* () {
         yield* search(USER, "");
         const built = source.reads.released;
-        // A search holds the index's source while it hydrates.
         yield* source.closeHydrationGate;
         const held = yield* Effect.forkChild(search(USER, ""));
         yield* source.hydrationHeld;
@@ -527,10 +504,8 @@ describe("Item Index", () => {
       Effect.gen(function* () {
         yield* search(USER, "");
         yield* search(GROUP, "");
-        // The first emission counts both searches and re-checks both lists.
         yield* source.notify;
         yield* eventually(() => source.reads.released === 2);
-        // The second evicts the user list and re-checks the group list.
         yield* source.notify;
         yield* eventually(() => source.reads.released === 4);
         return source.reads.released;
@@ -584,7 +559,6 @@ describe("Item Index", () => {
         );
         const failure = Exit.isFailure(exit) ? Cause.squash(exit.cause) : null;
         yield* source.setUnavailable(false);
-        // The recovered source builds again: the failure dropped the index.
         const answer = yield* search(USER, "");
         return { failure, answer, scans: source.reads.scans };
       }),
@@ -656,7 +630,6 @@ describe("Item Index with the Chinese Segmenter", () => {
 
     expect(result.before).toEqual([]);
     expect(result.after).toEqual(["CHINA"]);
-    // One ids read per Library per build: [1] and [1, 2], each built twice.
     expect(result.scans).toBe(6);
   });
 
@@ -667,7 +640,6 @@ describe("Item Index with the Chinese Segmenter", () => {
           yield* search(USER, JIEBA_ONLY);
           yield* search(EVERYTHING, JIEBA_ONLY);
           yield* configure({ locale: "zh", segmenterBinary: INSTALLED });
-          // A jieba hit shows only after a build with both settings.
           for (const libraries of [USER, EVERYTHING]) {
             yield* until(
               search(libraries, JIEBA_ONLY),
@@ -679,7 +651,6 @@ describe("Item Index with the Chinese Segmenter", () => {
       rows,
     );
 
-    // One ids read per Library per build: [1] and [1, 2], each built twice.
     expect(scans).toBe(6);
   });
 
@@ -734,7 +705,6 @@ describe("Item Index with the Chinese Segmenter", () => {
       rows,
     );
 
-    // The index never left Intl.Segmenter, so nothing rebuilt.
     expect(result).toEqual({ whole: ["CHINA"], scans: 1 });
   });
 
@@ -777,8 +747,6 @@ describe("Item Index with the Chinese Segmenter", () => {
             configure({ locale: "en", segmenterBinary: null }),
           );
           yield* Effect.yieldNow;
-          // The uninstall waits for the install that reads its binary.
-          // An unstarted fiber also polls undefined; the final hits still prove arrival order.
           const waited = uninstall.pollUnsafe() === undefined;
           yield* reader.openGate;
           yield* Fiber.join(install);
@@ -802,8 +770,6 @@ describe("Item Index with the Chinese Segmenter", () => {
           Effect.gen(function* () {
             yield* search(USER, "");
             yield* configure({ locale: "en", segmenterBinary: next });
-            // A change re-checks the list; its release ends the first
-            // rebuild after the configure, so a configure rebuild lands first.
             yield* source.notify;
             yield* eventually(() => source.reads.released === 1);
             yield* search(USER, "");
@@ -815,7 +781,6 @@ describe("Item Index with the Chinese Segmenter", () => {
         { ...rows, initial: { locale: "en", segmenterBinary: binary } },
       );
 
-      // One ids read: the first build. The re-check reads only signatures.
       expect(result).toEqual({ scans: 1, asked: binary ? 1 : 0 });
     },
   );
@@ -852,7 +817,6 @@ describe("Item Index with the Chinese Segmenter", () => {
       ({ configure, checkSegmenter }) =>
         Effect.gen(function* () {
           const checked = yield* checkSegmenter(UPDATED);
-          // The pack goes and comes back: the realm keeps its first binary.
           yield* configure({ locale: "en", segmenterBinary: null });
           return { checked, again: yield* checkSegmenter(UPDATED) };
         }),
@@ -937,7 +901,6 @@ describe("Item Index with the Chinese Segmenter", () => {
   });
 });
 
-/** The title of each hit, keyed by Indexed Key in rank order. */
 function titlesOf(hits: readonly SearchHit[]): Record<string, string | null> {
   return Object.fromEntries(
     hits.map((hit) => [hit.item.indexedKey, titleOf(hit)]),
@@ -948,7 +911,6 @@ function titleOf({ item }: SearchHit): string | null {
   return "title" in item.fields ? (item.fields.title ?? null) : null;
 }
 
-/** Yield until `check` holds; fail the test when it never does. */
 function eventually(check: () => boolean): Effect.Effect<void> {
   return until(
     Effect.sync(() => undefined),
@@ -956,7 +918,6 @@ function eventually(check: () => boolean): Effect.Effect<void> {
   ).pipe(Effect.asVoid);
 }
 
-/** Run `probe` until its answer passes `check`, yielding between runs. */
 function until<A, E>(
   probe: Effect.Effect<A, E>,
   check: (answer: A) => boolean,

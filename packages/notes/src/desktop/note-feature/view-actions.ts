@@ -1,5 +1,3 @@
-// The notes side of the annotation surfaces' note gestures: the layer of the
-// annotation feature's `AnnotationNoteActions` port.
 import { Effect, Layer } from "effect";
 
 import { AnnotationNoteActions } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
@@ -29,8 +27,6 @@ export const layerAnnotationNoteActions: Layer.Layer<
     return AnnotationNoteActions.of({
       citation: Effect.fn("AnnotationNoteActions.citation")((key) =>
         renderAnnotationCitation(key).pipe(
-          // A Citation Template the JavaScript Templates gate keeps inert is
-          // an answer the researcher acts on by its message.
           Effect.catch((cause) => {
             const error = plainTemplateError(cause);
             return error instanceof InertTemplateError

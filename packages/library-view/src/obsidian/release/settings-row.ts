@@ -1,5 +1,3 @@
-// The Advanced page's Update notices row: whether ZotLit tells what changed
-// after it updates.
 import type { SettingDefinitionItem } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";

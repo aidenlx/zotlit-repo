@@ -15,7 +15,6 @@ import type { ItemQueryRequest, ItemQuerySchema } from "./index.ts";
 import { describeQueryVocabulary } from "./schema.ts";
 import { faultCode, runEffect } from "./test-helpers.ts";
 
-// Every test here only reads the scenario.
 let scenario: ScenarioDatabase<NodeDatabaseClient>;
 
 beforeAll(() => {
@@ -52,7 +51,6 @@ it("publishes Attachment fields and parent paths in the single catalog, and defa
     })),
     limit: null,
   });
-  // The guide sends a reader to the live response for defaults.
   expect(describeQueryVocabulary().datasets.attachments).not.toHaveProperty(
     "defaults",
   );
@@ -62,7 +60,6 @@ it("publishes Attachment fields and parent paths in the single catalog, and defa
     filter: "list",
   });
   expect(entry("annotations.length")).toMatchObject({ filter: "number" });
-  // A list element's type depends on the Attachment.
   expect(entry("annotations[0]")).toMatchObject({ filter: "any" });
   expect(entry("fileType")).toMatchObject({
     valueForms: ["pdf", "epub", "web", "other"],

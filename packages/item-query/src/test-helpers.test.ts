@@ -20,7 +20,6 @@ describe("runEffect", () => {
 
     expect(run.exit).toEqual(
       Exit.succeed({
-        // 2020-01-08T02:00:00Z.
         millis: 1_578_448_800_000,
         zone: "America/New_York",
       }),
@@ -39,7 +38,6 @@ describe("runEffect", () => {
 
     expect(run.exit).toEqual(
       Exit.succeed({
-        // TEST_NOW, 2024-07-15T12:00:00Z: 19,919 days after the epoch, at noon.
         millis: 1_721_044_800_000,
         zone: "UTC",
       }),
@@ -58,7 +56,6 @@ describe("runEffect", () => {
     });
 
     expect(Exit.isSuccess(run.exit)).toBe(true);
-    // One pause or more between every two steps, in step order.
     const collapsed = log.filter(
       (entry, i) => entry !== "pause" || log[i - 1] !== "pause",
     );

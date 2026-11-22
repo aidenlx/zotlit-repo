@@ -23,7 +23,6 @@ import { readerFeatures, readerHost } from "./__fixtures__/reader-host.ts";
 import { AnnotationRepository } from "#obsidian/annotation-repository/service.ts";
 import { PdfAnnotationEditor } from "#obsidian/pdf-annotation-editor/service.ts";
 
-/** The shell's base over in-memory Obsidian sources and empty plugin data. */
 const base = Layer.mergeAll(
   layerHost(),
   layerTestObsidianEnv(),
@@ -41,7 +40,6 @@ const base = Layer.mergeAll(
     stubService<App>("App", {
       loadLocalStorage: () => null,
       saveLocalStorage: () => {},
-      // No plugin is installed beside the host, and none changes.
       plugins: Object.assign(new Events(), { plugins: {}, manifests: {} }),
       secretStorage: stubService<SecretStorage>("SecretStorage", {
         getSecret: () => null,

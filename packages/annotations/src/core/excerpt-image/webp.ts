@@ -1,17 +1,9 @@
-// Structural validation of the lossless WebP payloads ZotLit publishes.
-// The container is walked chunk by chunk, so an engine that hands back a lossy
-// payload is rejected even though the encoder was asked for a lossless one.
-
-const RIFF_CHUNK = 0x52494646; // "RIFF"
-const WEBP_BRAND = 0x57454250; // "WEBP"
-const EXTENDED_CHUNK = 0x56503858; // "VP8X"
-const LOSSLESS_CHUNK = 0x5650384c; // "VP8L"
-/** Lossy, alpha-only, and animated chunks never come out of the canvas encoder. */
+const RIFF_CHUNK = 0x52494646;
+const WEBP_BRAND = 0x57454250;
+const EXTENDED_CHUNK = 0x56503858;
+const LOSSLESS_CHUNK = 0x5650384c;
 const REJECTED_CHUNKS: ReadonlySet<number> = new Set([
-  0x56503820, // "VP8 "
-  0x414c5048, // "ALPH"
-  0x414e494d, // "ANIM"
-  0x414e4d46, // "ANMF"
+  0x56503820, 0x414c5048, 0x414e494d, 0x414e4d46,
 ]);
 const ANIMATION_FLAG = 0x02;
 const RESERVED_FLAGS = 0xc1;
@@ -19,14 +11,6 @@ const LOSSLESS_SIGNATURE = 0x2f;
 const HEADER_BYTES = 12;
 const CHUNK_HEADER_BYTES = 8;
 
-/**
- * Bounds for payloads this process did not encode itself: the IndexedDB record
- * and the vault file the durable readers accept. A few dozen bytes can declare a
- * geometry whose RGBA cost only appears when a decoder allocates it. The encoded
- * and decoded ceilings are the ones the reader of Zotero's own PNG copies and the
- * vault's previous asset already apply; the dimension ceiling sits one below what
- * the 14-bit lossless fields can express.
- */
 const MAX_ENCODED_BYTES = 32 * 1024 * 1024;
 const MAX_DECODED_BYTES = 128 * 1024 * 1024;
 const MAX_DIMENSION = 16_383;
@@ -36,7 +20,6 @@ export interface ExcerptImageDimensions {
   height: number;
 }
 
-/** Declared geometry inside the dimension and decoded-RGBA ceilings above. */
 function withinDeclaredBounds({
   width,
   height,
@@ -58,7 +41,6 @@ function fourcc(bytes: Uint8Array, offset: number): number {
   );
 }
 
-/** RIFF size field and brand only: chunk payloads are a separate question. */
 export function isWebpContainer(bytes: Uint8Array): boolean {
   return (
     bytes.byteLength > HEADER_BYTES &&
@@ -67,7 +49,6 @@ export function isWebpContainer(bytes: Uint8Array): boolean {
   );
 }
 
-/** Dimensions packed into the lossless header; `undefined` when it is not a valid one. */
 function losslessDimensions(
   bytes: Uint8Array,
   payload: number,
@@ -79,7 +60,7 @@ function losslessDimensions(
     bytes.byteOffset + payload + 1,
     4,
   ).getUint32(0, true);
-  if (bits >>> 29) return undefined; // reserved version bits
+  if (bits >>> 29) return undefined;
   return { width: (bits & 0x3fff) + 1, height: ((bits >>> 14) & 0x3fff) + 1 };
 }
 
@@ -105,11 +86,6 @@ function extendedDimensions(
   };
 }
 
-/**
- * Accepts a complete lossless WebP file, optionally of the given dimensions.
- * A payload that is truncated, lossy, animated, dimensionally inconsistent, or
- * past the encoded/dimension/decoded ceilings fails.
- */
 export function usableExcerptWebp(
   bytes: Uint8Array,
   expected?: ExcerptImageDimensions,

@@ -1,8 +1,3 @@
-// A link that starts Obsidian, staged for the End-to-end Run. Obsidian's main
-// process sets `window.OBS_ACT` to the link data when the window has no
-// dispatcher yet, and Obsidian dispatches it once the layout is ready. This
-// plugin does the same with the link staged under LINK_KEY, and records the
-// text of each notice the window shows from its load on.
 import { Plugin } from "obsidian";
 
 const LINK_KEY = "zotlit-e2e-launch-link";

@@ -38,6 +38,53 @@ The plugin base (ADR 0087), ZoteroReads (ADR 0088), the platform services (ADR 0
 - A host composes the notes' slices into its settings definition, provides `ItemMatchQuery`, `TemplateWorkbenchLauncher` and the Profile revision, and passes both packages' source to `effectEntry` and to Tailwind `@source`.
 - A further cut that moves the Note Feature to `obsidian/` splits the tags of Attachment Import and Excerpt Preparation from their desktop layers.
 
+The Profile revision is the SHA-256 of the exact source bytes represented by
+the document string. The editor sends the revision it loaded. The file writer
+computes the current revision the same way before it replaces the document.
+
+## Liquid editor parser
+
+The CodeMirror dependency patch exports the bare Liquid tag language so the Workbench can parse template syntax without loading the HTML overlay. The Workbench configures the grammar for standalone Liquid expressions and uses it for embedded template ranges. Keep the pure annotations on the default overlaid language factory so a bundle that imports only the tag language can drop the unused overlay.
+
+The database resolves a batch Collection key within its Library so the caller can distinguish a stale link from an empty Collection. Walk descendants with a recursive query that skips trashed Collections at every level. Include live standalone Notes filed in scope and Child Notes of live Items filed there. Filtering trashed Items before the child lookup excludes their Notes as well. A whole-Library Note scope also includes live Notes outside Collections.
+
+Explicit Note import can look up a Note identity and title by its own item ID even when Zotero has trashed it. Put the trash status beside the identity so the batch can classify it before materializing HTML. Deduplicate and sort these references by item ID so the manifest stays stable. Child Note reads return live notes in the requested parent order.
+
+Resolve Zotero's Related panel with forward `dc:relation` rows alone. Zotero writes reciprocal rows, so reading inverse links would add unintended matches. Resolve returned keys in the source Item's Library, and skip URIs that do not identify an Item. [Zotero Related Items lookup](https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/data/item.js#L6099)
+
+Profile selection and the Template Workbench's Match tab use the same Item Match port. Query Views fills it through Item Query, which tests the requested filters in one Items query over the Libraries that own the Items and returns per-Item outcomes by Indexed Key.
+
+Enforce inward imports and host capabilities in each Notes layer. The portable Obsidian feature supplies Templates, citation styles, and settings. The desktop feature adds Note Feature writes, Note Import, template migration, Profile dialogs, and Companion links. Wire creation planning after the Item Match Query port. Share the Annotation insertion port between Annotation View and ZotLit Reader. The Library View and Citation Suggester use bound Note Feature calls. [Notes layers](../../packages/notes/oxlint.config.ts) · [Desktop Notes feature](../../packages/notes/src/desktop/feature.ts)
+
+Use the Obsidian runtime stand-in and apply the Effect entry checks to Notes and its source dependencies in Vitest. Run the view dependencies through Vite so `@effect/atom-react` receives the same React-to-Preact alias as view code. Use offline engine metadata in this configuration and let tests of concrete engine metadata supply their own values. [Notes Vitest configuration](../../packages/notes/vitest.config.ts)
+
+Build Notes test settings from the slices Notes reads. Tests choose the migrations they need because the installed host owns migration of its settings history. Supply empty service tags to complete the tab, view, and dialog test contexts. Merge implemented services last so each test supplies just the members it exercises. An unexpected call fails at the stub. Use a Profile Reader fake in consumer tests and a vault-backed registry for registry behavior. CLI draft tests read through Node's file system. [Notes fixtures](../../packages/notes/src/__fixtures__)
+
+Declare bundled raw templates as text in Notes. Shared stylesheet declarations live in Obsidian Kit. [Notes asset types](../../packages/notes/src/typings/assets.d.ts) · [Obsidian Kit asset types](../../packages/obsidian-kit/src/typings/assets.d.ts)
+
 ## Amendment (2026-11-21): one Template Workbench package
 
 [ADR 0100](0100-the-web-template-workbench-is-retired.md) retired the web Workbench, so the Workbench core has one host. `@zotlit/workbench` is folded into `@zotlit/template-workbench`: the core is its host-free units under `src/core/`, and the "names follow the glossary" bullet above no longer names a separate core package.
+
+The Workbench test host supplies the view services the package reads and
+accepts additional services from app tests. Setting row tests stub only the
+services the package's rows can read. Test query fakes provide both real Item
+Match results and the field vocabulary. Preserve the write boundary in the
+view fixture: a started write completes and its rejection reaches the note
+operation.
+
+Lint enforces the direction of imports: desktop can use Node and Electron,
+Obsidian loads on desktop and mobile, and core loads on any host. The base
+Feature carries the host-independent Workbench contributions. Its desktop
+extension adds Customize, the view, the standalone Explorer, Profile settings
+and Workbench links, and fills the launch port from Notes. The Citation
+Template and the Profile dialogs use that port. A refused link reports the
+failure, while an ignored link or a successful open needs no notice.
+
+The Workbench state, scheduler, and hooks use Effect Atom APIs, so the
+TypeScript configuration allows those unstable imports. The library
+configuration excludes core fixture helpers from its typecheck inputs.
+
+## Testing editor parsing
+
+The Workbench editor can yield after its initial parse budget, leaving a partial token tree until an idle callback. Tests that assert token classes or hover behavior first finish that parse so their assertions read the final tree under load.

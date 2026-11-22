@@ -1,9 +1,3 @@
-// Owned banner strip: the dismissible top strip whose `height` is read as a
-// floor, so the strip wraps on narrow viewports instead of overflowing.
-// Vendored from @fumadocs/base-ui `components/banner` (16.14.0), including its
-// local encodeBase32 and rainbow flow; everything else stays on package entry
-// points. Re-diff on bumps.
-
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import { X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -28,32 +22,14 @@ export function Banner({
   onClose: onCloseProp,
   ...props
 }: HTMLAttributes<HTMLDivElement> & {
-  /**
-   * @defaultValue 3rem
-   */
   height?: string;
 
-  /**
-   * @defaultValue 'normal'
-   */
   variant?: BannerVariant;
 
-  /**
-   * For rainbow variant only, customize the colors
-   */
   rainbowColors?: string[];
 
-  /**
-   * Called when the reader closes the strip. Like `id`, it adds the close
-   * button; unlike `id`, the caller decides what closing remembers.
-   */
   onClose?: () => void;
 
-  /**
-   * Change Fumadocs layout styles
-   *
-   * @defaultValue true
-   */
   changeLayout?: boolean;
 }) {
   const [open, setOpen] = useState(true);
@@ -64,9 +40,6 @@ export function Banner({
     if (globalKey && localStorage.getItem(globalKey) === "true") setOpen(false);
   }, [globalKey]);
 
-  // `height` is only a floor: the strip wraps to multiple lines on narrow
-  // viewports. Sync `--fd-banner-height` to the real height so sticky offsets
-  // (docs header/sidebar) track the wrapped banner instead of the SSR default.
   useEffect(() => {
     const el = ref.current;
     if (!changeLayout || !open || !el) return;

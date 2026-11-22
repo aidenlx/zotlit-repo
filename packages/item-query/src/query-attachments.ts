@@ -1,5 +1,3 @@
-// The Attachments dataset: Attachment Query over the non-trashed Attachments
-// of the Target Libraries, on the same bounded execution as Item Query.
 import { Effect } from "effect";
 
 import {
@@ -35,7 +33,6 @@ import { ITEMS } from "./query-items.ts";
 import { openRecordLoader } from "./record-loader.ts";
 import type { ItemQueryRequest } from "./request.ts";
 
-/** Attachment Query: one Attachment Row for each non-trashed Attachment. */
 export const ATTACHMENTS: QueryDataset<ItemQueryRequest> = {
   id: "attachments",
   noun: "Attachment",

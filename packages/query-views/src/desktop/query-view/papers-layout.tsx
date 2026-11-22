@@ -1,14 +1,5 @@
 import type { ItemRowGestures } from "#core/query-view/item-rows.ts";
 import type { QueryViewValue } from "#desktop/item-query/query-view.ts";
-// The Papers layout: the Items of a view as a reading list, two lines per
-// Item after the icon of its Item type. The title, cut to one line; then the creators, the year and the
-// Venue, ending with the reason the host gives for the row. The row ends
-// with the kind of the Item's main Attachment and a mark for its Literature
-// Note, and expands into the rows the Table expands into. It reads no
-// Annotation: the Reading Card and the Reading State facets carry the rest
-// of the Reading State.
-//
-// @see apps/obsidian/docs/adr/0075-the-papers-layout-is-a-query-view-layout-the-library-view-offers-with-the-table.md
 import { Fragment, useMemo, useSyncExternalStore } from "react";
 import type { CSSProperties, ReactNode } from "react";
 
@@ -57,10 +48,6 @@ export const PAPERS_LAYOUT: QueryLayout = {
   icon: "library",
 };
 
-/**
- * The paths each Papers row reads beside the visible properties: its icon,
- * its lines, its Attachment kinds and what it expands into.
- */
 export const PAPERS_FIELDS: readonly string[] = [
   "itemType",
   "title",
@@ -68,8 +55,6 @@ export const PAPERS_FIELDS: readonly string[] = [
   "date",
   "publicationTitle",
   "publisher",
-  // The rest of the Library View's Reading Card header, which it shows from
-  // the row while it reads the Item.
   "volume",
   "issue",
   "pages",
@@ -79,14 +64,11 @@ export const PAPERS_FIELDS: readonly string[] = [
   ...TABLE_FIELDS,
 ];
 
-/** A row-end slot, one extra-small icon wide, kept where it holds no mark. */
 const MARK_SLOT =
   "zt:flex zt:w-(--icon-xs) zt:shrink-0 zt:items-center zt:justify-center";
 
-/** The most creators the second line names before "et al.". */
 const SHOWN_CREATORS = 3;
 
-/** The Attachment kinds a row's end mark shows, the first one an Item has winning. */
 const ATTACHMENT_KINDS = [
   {
     type: "pdf",
@@ -121,11 +103,6 @@ function record(
     : null;
 }
 
-/**
- * The names of the Item's first creators, by family name: the creators of
- * the role the first one has, as Zotero's Creator column names the authors
- * and not the editors.
- */
 function creatorsText(value: QueryViewValue | undefined): string {
   const creators = list(value).flatMap((entry) => {
     const creator = record(entry);
@@ -147,7 +124,6 @@ function yearText(value: QueryViewValue | undefined): string {
   return typeof year === "number" ? String(year) : "";
 }
 
-/** The second line: the creators, the year and the Venue. */
 export function metaText(values: TableRecord["values"]): string {
   const venue = resolveVenue({
     publicationTitle: text(values.publicationTitle) || null,
@@ -166,15 +142,10 @@ function mainAttachmentKind(values: TableRecord["values"]) {
   return ATTACHMENT_KINDS.find((kind) => types.includes(kind.type)) ?? null;
 }
 
-/**
- * Whether the Item has a PDF to open: the one rule for every surface that
- * offers Open PDF, read from the Attachment kinds a Papers row reads.
- */
 export function holdsPdf(values: Readonly<Record<string, QueryViewValue>>) {
   return list(values["attachments[].fileType"]).includes("pdf");
 }
 
-/** The path of the Item's Literature Note, as the Note Index has it now. */
 function useNotePath(notes: LiteratureNotes, itemKey: string): string | null {
   return useSyncExternalStore(
     (listener) => notes.on("changed", listener),
@@ -182,30 +153,17 @@ function useNotePath(notes: LiteratureNotes, itemKey: string): string | null {
   );
 }
 
-/** The height of a Papers entry of each kind, before it is measured. */
 const ESTIMATES = { heading: HEADING_ESTIMATE, row: 46, line: 32 };
 
-/**
- * The outline of a row not yet drawn, where a row draws its parts: past the
- * room of the expand button, the type's icon on the title's line, a bar for
- * the title and a shorter one for the second line, and the line under the
- * row. The places follow the sizes the row's parts take: its padding, the
- * expand button's, the icon's, and the lines of its two text sizes.
- */
 const GHOST = cn(
   "zt:bg-repeat-y zt:[--zt-ghost:var(--background-modifier-hover)]",
-  // The row's padding above its title, and the line of the title and of the
-  // second line.
   "zt:[--zt-ghost-meta:calc(var(--font-ui-smaller)*var(--line-height-tight))] zt:[--zt-ghost-pad:var(--size-2-3)] zt:[--zt-ghost-title:calc(var(--font-ui-small)*var(--line-height-tight))]",
-  // The left of the icon, past the row's padding and the expand button with
-  // a gap after each; and of the text, past the icon and its gap.
   "zt:[--zt-ghost-icon:calc(var(--size-4-1)+var(--icon-xs)+3*var(--size-2-3))] zt:[--zt-ghost-text:calc(var(--zt-ghost-icon)+var(--icon-s)+var(--size-2-3))]",
   "zt:bg-[image:linear-gradient(to_bottom,transparent_calc(var(--zt-ghost-pad)+(var(--zt-ghost-title)-var(--icon-s))/2),var(--zt-ghost)_0_calc(var(--zt-ghost-pad)+(var(--zt-ghost-title)+var(--icon-s))/2),transparent_0),linear-gradient(to_bottom,transparent_calc(var(--zt-ghost-pad)+var(--zt-ghost-title)/2-0.35*var(--font-ui-small)),var(--zt-ghost)_0_calc(var(--zt-ghost-pad)+var(--zt-ghost-title)/2+0.35*var(--font-ui-small)),transparent_0),linear-gradient(to_bottom,transparent_calc(var(--zt-ghost-pad)+var(--zt-ghost-title)+var(--zt-ghost-meta)/2-0.35*var(--font-ui-smaller)),var(--zt-ghost)_0_calc(var(--zt-ghost-pad)+var(--zt-ghost-title)+var(--zt-ghost-meta)/2+0.35*var(--font-ui-smaller)),transparent_0),linear-gradient(to_bottom,transparent_calc(100%-var(--border-width)),var(--background-modifier-border)_0)]",
   "zt:bg-size-[var(--icon-s)_var(--zt-virtual-row),min(55%,24rem)_var(--zt-virtual-row),min(35%,16rem)_var(--zt-virtual-row),100%_var(--zt-virtual-row)]",
   "zt:bg-position-[var(--zt-ghost-icon)_0,var(--zt-ghost-text)_0,var(--zt-ghost-text)_0,0_0]",
 );
 
-/** The rows of the shown view as a reading list, under their group headings. */
 export function PapersLayout({ view }: { view: QueryView }) {
   const { groups } = useRecordGroups(view);
   const { literatureNotes, readers } = view.tableDeps;
@@ -220,7 +178,6 @@ export function PapersLayout({ view }: { view: QueryView }) {
         const { row } = entry.record;
         return {
           key: entry.key,
-          // A row with no second line is one line high.
           kind:
             metaText(row.values) !== "" || view.reason(row) !== null
               ? "row"
@@ -235,8 +192,6 @@ export function PapersLayout({ view }: { view: QueryView }) {
     const entry = entries[index]!;
     if (entry.kind === "heading")
       return {
-        // The heading drops its own top margin as the first child here; the
-        // entry keeps it after a row.
         props: { className: cn(index > 0 && "zt:pt-2") },
         children: <RecordGroupHeading group={entry.group} />,
       };
@@ -286,7 +241,6 @@ interface Expansion {
   readonly readers: TargetOpenGesture;
 }
 
-/** What a Papers row's `li` holds: the row, and the rows it expands into. */
 function PaperRow({
   item,
   notes,
@@ -298,7 +252,6 @@ function PaperRow({
 }: Expansion & {
   item: TableRecord;
   notes: LiteratureNotes;
-  /** Why the row is in the list, last on its second line. */
   reason: string | null;
   gestures: ItemRowGestures | undefined;
 }) {
@@ -314,15 +267,11 @@ function PaperRow({
   const typeIcon = itemTypeIcon(text(values.itemType) || null);
   return (
     <>
-      {/* A row the host lets take focus is a group named by its title: an
-          `aria-label` would show a tooltip. */}
       <div
         {...row}
         {...(gestures && { role: "group", "aria-labelledby": titleId })}
         className="zt:flex zt:items-start zt:gap-1.5 zt:rounded-sm zt:px-1 zt:py-1.5 zt:outline-hidden zt:hover:bg-(--background-modifier-hover) zt:focus-visible:shadow-[inset_0_0_0_var(--input-border-width-focus)_var(--background-modifier-border-focus)] zt:data-revealed:animate-row-flash zt:data-selected:bg-(--nav-item-background-selected)"
       >
-        {/* The chevron, the type and the marks at the end sit on the
-            title's line, not the row's top. */}
         <FirstLine className="zt:text-sm">
           <Expander
             record={item}
@@ -332,7 +281,6 @@ function PaperRow({
           />
         </FirstLine>
         <FirstLine className="zt:text-sm">
-          {/* Decoration: the title names the row, so the type is not read out. */}
           <Icon
             name={typeIcon}
             size="s"
@@ -341,8 +289,6 @@ function PaperRow({
           />
         </FirstLine>
         <div className="zt:min-w-0 zt:flex-1">
-          {/* An Item with no title keeps the title's line, so the row's
-              height follows its second line alone. */}
           <div
             id={titleId}
             className="zt:min-h-lh zt:truncate zt:text-sm zt:font-(--font-medium) zt:text-foreground"
@@ -359,10 +305,6 @@ function PaperRow({
             </div>
           )}
         </div>
-        {/* Two fixed slots, the note's then the Attachment's, each holding
-            its place where the row has no mark, so every mark of a kind
-            lines up in one column. The title, cut short, stops 8 px before
-            them. */}
         <FirstLine className="zt:ms-(--size-2-1) zt:gap-1 zt:text-sm zt:text-(--icon-color)">
           <span className={MARK_SLOT} data-query-papers-slot="note">
             {note !== null && (
@@ -403,7 +345,6 @@ function PaperRow({
   );
 }
 
-/** The inset of a row `depth` levels under its Item, past the Item's chevron. */
 const indent = (depth: number) =>
   ({
     "--zt-indent": `calc(${depth} * var(--size-4-5))`,
@@ -412,7 +353,6 @@ const indent = (depth: number) =>
 const CHILD_ROW =
   "zt:flex zt:min-w-0 zt:items-center zt:gap-1.5 zt:rounded-sm zt:py-0.5 zt:ps-(--zt-indent) zt:pe-1 zt:text-xs zt:hover:bg-(--background-modifier-hover)";
 
-/** The rows under one expanded row, and the rows under those that are expanded. */
 function ChildRows({
   parent,
   depth,
@@ -422,8 +362,6 @@ function ChildRows({
 }: Expansion & { parent: TableRecord; depth: number }) {
   const state = expanded.get(id(parent));
   if (!state) return null;
-  // A row being read takes the room of the row it becomes, so the rows
-  // under it move once, as it opens.
   if (state.phase === "loading")
     return state.pending.map((child, at) => (
       <li
@@ -494,7 +432,6 @@ function ChildRows({
   });
 }
 
-/** The Item's Literature Note, last under it, which opens as a link does. */
 function LiteratureNoteRow({
   notes,
   item,
@@ -511,8 +448,6 @@ function LiteratureNoteRow({
       style={indent(1)}
       data-query-papers-child="literature-note"
     >
-      {/* A row with nothing under it holds the place of a chevron, so the
-          icon lines up with the rows above. */}
       <ExpanderSpace />
       <Icon
         name="notebook-pen"

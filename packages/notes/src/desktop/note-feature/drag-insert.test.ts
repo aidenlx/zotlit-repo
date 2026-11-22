@@ -51,11 +51,6 @@ const card: AnnotationRecord = {
 };
 type Result = AnnotationInsert;
 
-/**
- * A runner over a Scope the test closes, as the view's runner is over the
- * view's lifetime, and the inserts it ran: each one's controlled render and
- * whether it was interrupted.
- */
 function insertRunner() {
   const resource = openScope();
   const run = Effect.runSync(
@@ -88,7 +83,6 @@ function insertRunner() {
   return { run, execute, pending, interrupted, close: resource.close };
 }
 
-/** The outcome an insert answered, or `"interrupted"` when it was stopped. */
 async function outcomeOf(
   fiber: Fiber.Fiber<AnnotationInsertOutcome> | null,
 ): Promise<AnnotationInsertOutcome | "interrupted"> {
@@ -401,7 +395,6 @@ it.each([
     { kind: "inserted", summary: { zotero: 0, unchecked: 0, unavailable: 0 } },
     null,
   ],
-  // The error's own detail stays in the log.
   [{ kind: "failed" }, m.annot_view_insert_failed()],
   [{ kind: "cancelled" }, null],
 ] satisfies [AnnotationInsertOutcome, string | null][])(
@@ -558,8 +551,6 @@ it.effect(
   () =>
     Effect.promise(async () => {
       await using f = dragFixture();
-      // An empty active last line has no exact position under the pointer; the
-      // nearest one still exists.
       vi.spyOn(f.cm, "posAtCoords").mockImplementation((_, precise = true) =>
         precise ? null : 4,
       );

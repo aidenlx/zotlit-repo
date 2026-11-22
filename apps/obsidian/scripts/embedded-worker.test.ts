@@ -7,10 +7,8 @@ import { embeddedWorker } from "./embedded-worker.ts";
 
 const ID = "virtual:scheduler-worker";
 
-/** A name a top-level `var` or function declaration can take. */
 const DECLARED_NAME = regex("^[\\p{ID_Start}$_][\\p{ID_Continue}$]*$", "u");
 
-/** The worker source the plugin bundle embeds for `entry`. */
 async function workerSource(minify: boolean): Promise<string> {
   const plugin = embeddedWorker({
     id: ID,
@@ -40,10 +38,6 @@ async function workerSource(minify: boolean): Promise<string> {
 }
 
 describe("embeddedWorker", () => {
-  // A worker runs its source as a classic script: a top-level declaration
-  // there becomes a property of the worker's global object. Effect declares
-  // its own `setImmediate`, which then replaces the host's and calls itself
-  // until the stack overflows.
   it.each([false, true])(
     "keeps the bundle's declarations off the worker global (minify: %s)",
     async (minify) => {
@@ -64,7 +58,6 @@ describe("embeddedWorker", () => {
 
       expect(scope.setImmediate).toBe(hostSetImmediate);
       expect(hostSetImmediate).toHaveBeenCalled();
-      // Effect keeps its own registry on the global under `~effect/` keys.
       const added = Object.keys(scope).filter(
         (key) => !globalsBefore.includes(key),
       );

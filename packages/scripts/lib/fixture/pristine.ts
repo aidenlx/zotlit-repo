@@ -1,6 +1,3 @@
-// The committed pristine Zotero database every Fixture build starts from, and
-// the harvest that regenerates it from a real Zotero first run.
-
 import type { ChildProcess } from "node:child_process";
 import {
   mkdir,
@@ -22,30 +19,16 @@ import {
   spawnZotero,
 } from "./paired-zotero.ts";
 
-/**
- * Zotero schema versions the template declares. The pinned Zotero writes them
- * on its first run; a build asserts them, so a template harvested from a
- * different Zotero fails loudly instead of seeding a database ZotLit's version
- * gate would reject.
- *
- * @see packages/db/src/queries/schema-version.ts for the range ZotLit accepts.
- */
 export const PRISTINE_SCHEMA_VERSIONS = {
   userdata: 129,
   compatibility: 9,
 } as const;
 
-/**
- * The committed template, gzipped. Zotero lays the database out in 32 KB
- * pages, so a first-run database is 5 MB of mostly empty pages that compress
- * to a fraction of that — the working tree carries the small form.
- */
 export const PRISTINE_TEMPLATE_PATH = join(
   import.meta.dirname,
   "pristine-zotero.sqlite.gz",
 );
 
-/** Lay the pristine template down at `databasePath`, ready to be seeded. */
 export async function writePristineDatabase(
   databasePath: string,
 ): Promise<void> {
@@ -58,24 +41,15 @@ export async function writePristineDatabase(
   await writeFile(databasePath, gunzipSync(compressed));
 }
 
-/**
- * The bundled CSL styles, gzipped, as a record of `styles/`-relative path to
- * file content. Zotero unpacks them into the data directory on a first run, so
- * the harvest keeps them beside the database it captures from that same run: a
- * Fixture carrying the database alone offers no Citation and References Style
- * until a Paired Zotero has run long enough to unpack them again.
- */
 export const PRISTINE_STYLES_PATH = join(
   import.meta.dirname,
   "pristine-styles.json.gz",
 );
 
-/** Zotero's own styles directory, and the parents it keeps out of the picker. */
 const STYLES_DIR = "styles";
 const HIDDEN_DIR = "hidden";
 const CSL_EXT = ".csl";
 
-/** Lay the committed CSL styles down under `dataDir`, as Zotero installs them. */
 export async function writePristineStyles(dataDir: string): Promise<void> {
   const compressed = await readFile(PRISTINE_STYLES_PATH).catch(() => {
     throw new Error(
@@ -103,7 +77,6 @@ export interface SchemaVersions {
   compatibility: number;
 }
 
-/** @throws when the database declares no `userdata` or `compatibility` row. */
 function readSchemaVersions(db: DatabaseSync): SchemaVersions {
   const rows = db
     .prepare("select schema, version from version where schema in (?, ?)")
@@ -116,10 +89,6 @@ function readSchemaVersions(db: DatabaseSync): SchemaVersions {
   return { userdata: read("userdata"), compatibility: read("compatibility") };
 }
 
-/**
- * @returns the versions the database declares.
- * @throws when they are not {@link PRISTINE_SCHEMA_VERSIONS}.
- */
 export function assertSchemaVersions(db: DatabaseSync): SchemaVersions {
   const found = readSchemaVersions(db);
   const expected = PRISTINE_SCHEMA_VERSIONS;
@@ -140,32 +109,17 @@ export interface HarvestReport {
   applicationDir: string;
   userdata: number;
   compatibility: number;
-  /** Size of the harvested database on disk. */
   bytes: number;
-  /** Size of the committed template. */
   compressedBytes: number;
-  /** CSL styles the first run unpacked, which the harvest captured. */
   styles: number;
-  /** Size of the committed style archive. */
   stylesCompressedBytes: number;
 }
 
-/** Long enough for a cold first run to unpack translators and styles. */
 const INIT_TIMEOUT_MS = 300_000;
 const POLL_INTERVAL_MS = 1_000;
-/** Consecutive unchanged polls that read as "Zotero has stopped writing". */
 const QUIET_POLLS = 8;
-/** How long a `SIGTERM` gets to end the process before a `SIGKILL` follows. */
 const SHUTDOWN_TIMEOUT_MS = 30_000;
 
-/**
- * First-run the pinned Zotero on an empty data directory and capture the
- * database it creates as the committed template. `workDir` holds the throwaway
- * profile and data directory, and is removed on the way out.
- *
- * @throws when Zotero exits early, initialization times out, or the captured
- * database fails its integrity checks.
- */
 export async function harvestPristineTemplate(
   workDir: string,
 ): Promise<HarvestReport> {
@@ -210,13 +164,6 @@ export async function harvestPristineTemplate(
   };
 }
 
-/**
- * Zotero holds its database under an exclusive lock, so nothing can read the
- * initialization out of it while Zotero runs. Wait on the data directory
- * instead: the bundled styles land after the schema is in place, and a
- * write-ahead log that stops growing means Zotero has stopped writing. The
- * capture itself is verified once the lock is gone — see {@link compact}.
- */
 async function waitForInitialization(
   zotero: ChildProcess,
   dataDir: string,
@@ -244,10 +191,6 @@ async function waitForInitialization(
   );
 }
 
-/**
- * What Zotero has written so far, or `null` before it has written enough to
- * judge. Two consecutive equal signatures mean nothing moved in between.
- */
 async function readWriteSignature(dataDir: string): Promise<string | null> {
   const styles = await readdir(join(dataDir, "styles")).catch(() => []);
   if (styles.length === 0) return null;
@@ -263,13 +206,6 @@ async function readWriteSignature(dataDir: string): Promise<string | null> {
   return sizes.includes(null) ? null : sizes.join(" ");
 }
 
-/**
- * The CSL styles a first run unpacked, keyed by their path under `styles/`.
- * Zotero keeps the independent parents that only dependent styles need in
- * `styles/hidden/`, so both levels travel into the archive.
- *
- * @throws when the first run unpacked no style at all.
- */
 async function captureStyles(dataDir: string): Promise<Record<string, string>> {
   const root = join(dataDir, STYLES_DIR);
   const styles: Record<string, string> = {};
@@ -289,11 +225,6 @@ async function captureStyles(dataDir: string): Promise<Record<string, string>> {
   return styles;
 }
 
-/**
- * Stop Zotero. It holds its database open under an exclusive lock and leaves
- * the write-ahead log behind either way, so the capture is only sound once
- * {@link compact} folds that log back in.
- */
 async function quit(zotero: ChildProcess): Promise<void> {
   if (zotero.exitCode !== null || zotero.signalCode !== null) return;
   const exited = new Promise<void>((resolve) => zotero.once("exit", resolve));
@@ -308,13 +239,6 @@ async function quit(zotero: ChildProcess): Promise<void> {
   await exited;
 }
 
-/**
- * Fold the write-ahead log back into the database and shrink it, so the
- * template is one self-contained file — the shape ADR 0022 commits to.
- *
- * @throws when the captured database fails `integrity_check`,
- * `foreign_key_check`, or declares versions the Fixture does not target.
- */
 function compact(
   databasePath: string,
   applicationDir: string,

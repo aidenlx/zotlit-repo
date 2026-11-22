@@ -1,4 +1,3 @@
-// Shared invalidation of view reads that depend on compiled templates.
 import { Effect, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -38,7 +37,6 @@ export const partialNamesAtom = Atom.map(partialDocumentsAtom, (result) =>
     : [],
 );
 
-/** JavaScript permission follows the template rebuild that applies it. */
 export const javascriptTemplatesEnabledAtom = viewRuntime.atom((get) => {
   get(templateRevisionAtom);
   return Effect.flatMap(
@@ -47,7 +45,6 @@ export const javascriptTemplatesEnabledAtom = viewRuntime.atom((get) => {
   );
 });
 
-/** The template folder the plugin settings hold. */
 export const templateFolderAtom = held(
   Stream.unwrap(
     Effect.map(PluginSettings, (service) =>

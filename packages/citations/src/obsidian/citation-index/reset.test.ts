@@ -11,7 +11,6 @@ import { CitationIndex } from "./service.ts";
 
 type Mode = "cancel" | "clear" | "failure";
 
-/** The user's answer to the confirmation, as `awaitConfirm` gives it. */
 const answer = (mode: Mode) => Effect.succeed(mode !== "cancel");
 
 describe("resetCitationIndex", () => {

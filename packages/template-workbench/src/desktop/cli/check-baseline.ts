@@ -1,4 +1,3 @@
-// Select one read-only update input before resolving the Profile to check.
 import { Effect, Result } from "effect";
 
 import { readLiveText } from "@zotlit/obsidian-kit/effect-live-text.ts";
@@ -10,10 +9,6 @@ import { sourceRevision } from "./inspect.ts";
 
 import { previewBaseline } from "#obsidian/cli/preview-baseline.ts";
 
-/**
- * The update baseline of one item, or the refusal that names why there is
- * none.
- */
 export const selectCheckBaseline = Effect.fnUntraced(function* (input: {
   key: string;
   note?: string;

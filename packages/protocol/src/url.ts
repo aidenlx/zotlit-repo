@@ -33,17 +33,10 @@ export {
   updateAllProtocolActionId,
 } from "./actions.ts";
 
-/** Numeric Zotero `itemID`, carried on the wire as a decimal string. */
 const itemID = v.pipe(v.string(), v.regex(/^\d+$/u), v.transform(Number));
 
-/** 8-char hex id from {@link sourceIdFromUris}. */
 const sourceIdValue = v.pipe(v.string(), v.regex(/^[0-9a-f]{8}$/u));
 
-/**
- * How much of a managed note an `update` / `update-many` touches. Absent on the
- * wire means `full` (refresh frontmatter and the managed body region);
- * `metadata` refreshes managed frontmatter only.
- */
 export type UpdateScope = "full" | "metadata";
 
 const updateScopeValue = v.optional(
@@ -55,21 +48,12 @@ const literatureNoteProfileValue = v.optional(
   v.pipe(v.string(), v.regex(/^[A-Za-z0-9]{12}$/u)),
 );
 
-/**
- * Where the receiver opens what the action brings up, spelled as Obsidian's own
- * URI links spell it: `tab` opens a new tab, `split` a new tab group, `window`
- * a pop-out window (desktop only). Absent on the wire keeps the receiver's
- * usual placement — for a note, the last active tab is replaced.
- *
- * @see https://help.obsidian.md/Extending+Obsidian/Obsidian+URI
- */
 export type PaneType = "tab" | "split" | "window";
 
 const paneTypeValue = v.optional(
   v.picklist(["tab", "split", "window"] satisfies PaneType[]),
 );
 
-/** Query payload for `zotlit/{open,update}` protocol handlers. */
 export const protocolQuerySchema = v.pipe(
   v.object({
     item: itemID,
@@ -87,13 +71,8 @@ export const protocolQuerySchema = v.pipe(
   })),
 );
 
-/** Decoded, validated query for a literature-note action. */
 export type ProtocolQuery = v.InferOutput<typeof protocolQuerySchema>;
 
-/**
- * Whether a decoded query targets the configured Zotero install. Rejects when
- * `expected` is unknown or when the query's `sourceId` differs.
- */
 export function protocolSourceMatches(
   query: { sourceId: string },
   expected: string | null,
@@ -101,12 +80,6 @@ export function protocolSourceMatches(
   return expected !== null && query.sourceId === expected;
 }
 
-/**
- * Build an `obsidian://zotlit/<action>?item=<id>&source-id=<hash>` link for
- * `Zotero.launchURL`. A non-default {@link UpdateScope} adds `&scope=<scope>`.
- * A selected literature-note Profile adds `&profile=<profileId>`. A named
- * {@link PaneType} adds `&paneType=<pane>`.
- */
 export function buildProtocolUrl(
   action: ProtocolAction,
   item: number,
@@ -124,11 +97,6 @@ export function buildProtocolUrl(
   return `obsidian://${protocolActionId(action)}?${params}`;
 }
 
-/**
- * `URLSearchParams` shared by every `obsidian://zotlit/*` link builder:
- * action-specific params first, then the common `source-id`. A Public URI Link
- * is unversioned, so no version param is emitted.
- */
 function protocolUrlParams(
   params: Record<string, string>,
   sourceId: string,
@@ -136,8 +104,6 @@ function protocolUrlParams(
   return new URLSearchParams({ ...params, "source-id": sourceId });
 }
 
-/** Append `scope` only when it diverges from the `full` default so the common
- *  link stays stable. */
 function appendScope(
   params: URLSearchParams,
   scope: UpdateScope | undefined,
@@ -152,8 +118,6 @@ function appendProfile(
   if (profileId) params.set("profile", profileId);
 }
 
-/** Append `paneType` only when the builder names a pane, so a link that takes
- *  the receiver's usual placement stays the short, stable form. */
 function appendPaneType(
   params: URLSearchParams,
   paneType: PaneType | undefined,
@@ -161,10 +125,6 @@ function appendPaneType(
   if (paneType) params.set("paneType", paneType);
 }
 
-/**
- * Comma-separated decimal item ids carried by `update-many`. A trailing comma
- * is tolerated, ids are deduped, and an empty list is rejected.
- */
 const batchItems = v.pipe(
   v.string(),
   v.transform((raw) => raw.split(",").filter(Boolean)),
@@ -173,7 +133,6 @@ const batchItems = v.pipe(
   v.minLength(1),
 );
 
-/** Query payload for the `zotlit/update-many` protocol handler. */
 export const protocolBatchQuerySchema = v.pipe(
   v.object({
     items: batchItems,
@@ -189,39 +148,20 @@ export const protocolBatchQuerySchema = v.pipe(
   })),
 );
 
-/** Decoded, validated query for the batch literature-note action. */
 export type ProtocolBatchQuery = v.InferOutput<typeof protocolBatchQuerySchema>;
 
-/**
- * Parse and validate the `ObsidianProtocolData` for a `zotlit/update-many` link.
- *
- * @param data decoded query record from Obsidian
- * @returns the typed query, with deduped item ids
- * @throws {v.ValiError} when `items` is empty/malformed or `source-id` is absent
- */
 export function parseProtocolBatchQuery(
   data: Record<string, unknown>,
 ): ProtocolBatchQuery {
   return v.parse(protocolBatchQuerySchema, data);
 }
 
-/**
- * Numeric Zotero item ids as sent in a request body: deduped, non-empty.
- * Shared by {@link batchUpdateRequestSchema} and {@link importNotesRequestSchema}.
- */
 const dedupedItemIDs = v.pipe(
   v.array(v.pipe(v.number(), v.integer())),
   v.transform((ids) => [...new Set(ids)]),
   v.minLength(1),
 );
 
-/**
- * Body for `PUT {host}/literature-notes` — the HTTP fallback the companion
- * uses when a batch is too large to fit in an `obsidian://` URL. `items` carries
- * the same invariants as the URL path (integer ids, deduped, non-empty) so both
- * transports validate identically. The batch is gated by the
- * {@link SOURCE_ID_HEADER} header, as the URL is gated by its `source-id` query.
- */
 export const batchUpdateRequestSchema = v.pipe(
   v.object({
     items: dedupedItemIDs,
@@ -235,20 +175,12 @@ export const batchUpdateRequestSchema = v.pipe(
   })),
 );
 
-/** Producer-facing request body. Defaulted fields (`scope`) are optional to
- *  send; the server fills them on parse. */
 export type BatchUpdateRequest = v.InferInput<typeof batchUpdateRequestSchema>;
 
-// ---------------------------------------------------------------------------
-// Note-import protocol family
-// ---------------------------------------------------------------------------
-
-/** How note-keys are gathered from the selected items. */
 export type ImportMode = "note" | "child";
 
 const importModeValue = v.picklist(["note", "child"] satisfies ImportMode[]);
 
-/** Query payload for `zotlit/import-note`. */
 export const importProtocolQuerySchema = v.pipe(
   v.object({
     item: itemID,
@@ -262,12 +194,10 @@ export const importProtocolQuerySchema = v.pipe(
   })),
 );
 
-/** Decoded, validated query for a single-note import action. */
 export type ImportProtocolQuery = v.InferOutput<
   typeof importProtocolQuerySchema
 >;
 
-/** Query payload for `zotlit/import-notes`. */
 export const importManyProtocolQuerySchema = v.pipe(
   v.object({
     items: batchItems,
@@ -281,50 +211,29 @@ export const importManyProtocolQuerySchema = v.pipe(
   })),
 );
 
-/** Decoded, validated query for a batch note-import action. */
 export type ImportManyProtocolQuery = v.InferOutput<
   typeof importManyProtocolQuerySchema
 >;
 
-/**
- * Parse and validate the `ObsidianProtocolData` for a `zotlit/import-note` link.
- *
- * @throws {v.ValiError} when required fields are missing or malformed
- */
 export function parseImportProtocolQuery(
   data: Record<string, unknown>,
 ): ImportProtocolQuery {
   return v.parse(importProtocolQuerySchema, data);
 }
 
-/**
- * Parse and validate the `ObsidianProtocolData` for a `zotlit/import-notes` link.
- *
- * @throws {v.ValiError} when `items` is empty/malformed or `source-id` is absent
- */
 export function parseImportManyProtocolQuery(
   data: Record<string, unknown>,
 ): ImportManyProtocolQuery {
   return v.parse(importManyProtocolQuerySchema, data);
 }
 
-/**
- * Body for `PUT {host}/zotero-notes` — the HTTP fallback the companion uses
- * when a batch import is too large to fit in an `obsidian://` URL. Same
- * invariants on `items` as the URL transport. Gated by {@link SOURCE_ID_HEADER}.
- */
 export const importNotesRequestSchema = v.object({
   items: dedupedItemIDs,
   mode: importModeValue,
 });
 
-/** Producer-facing request body for note import. */
 export type ImportNotesRequest = v.InferInput<typeof importNotesRequestSchema>;
 
-/**
- * Build an `obsidian://zotlit/import-note?item=<id>&mode=<mode>&source-id=<hash>`
- * link for `Zotero.launchURL`.
- */
 export function buildImportProtocolUrl(
   item: number,
   options: { sourceId: string; mode: ImportMode },
@@ -336,10 +245,6 @@ export function buildImportProtocolUrl(
   return `obsidian://${importProtocolActionId}?${params}`;
 }
 
-/**
- * Build an `obsidian://zotlit/import-notes?items=<csv>&mode=<mode>&source-id=<hash>`
- * link for `Zotero.launchURL`.
- */
 export function buildImportManyProtocolUrl(
   items: readonly number[],
   options: { sourceId: string; mode: ImportMode },
@@ -351,11 +256,6 @@ export function buildImportManyProtocolUrl(
   return `obsidian://${importManyProtocolActionId}?${params}`;
 }
 
-/**
- * Build an `obsidian://zotlit/update-many?items=<id,id,…>&source-id=<hash>` link
- * for `Zotero.launchURL` (symmetry with {@link buildProtocolUrl}). A non-default
- * {@link UpdateScope} adds `&scope=<scope>`.
- */
 export function buildBatchProtocolUrl(
   items: readonly number[],
   options: {
@@ -394,13 +294,6 @@ export type ExploreProtocolQuery = v.InferOutput<
   typeof exploreProtocolQuerySchema
 >;
 
-/**
- * Parse and validate the `ObsidianProtocolData` for a `zotlit/explore` link.
- *
- * @param data decoded query record from Obsidian
- * @returns the typed query
- * @throws {v.ValiError} when `item` or `source-id` is missing or malformed
- */
 export function parseExploreProtocolQuery(
   data: Record<string, unknown>,
 ): ExploreProtocolQuery {
@@ -417,11 +310,6 @@ export const showInLibraryProtocolQuerySchema = v.pipe(
   v.transform(({ "item-key": indexedKey }) => ({ indexedKey })),
 );
 
-/**
- * Build the `obsidian://zotlit/show-in-library?item-key=<indexed key>` link
- * that opens ZotLit's Library View on an Item, for the `zt.librarylink`
- * template variable.
- */
 export function libraryViewUri(key: string, groupID: number | null): string {
   const params = new URLSearchParams({
     "item-key": formatIndexedKey(key, groupID),
@@ -433,31 +321,14 @@ type ShowInLibraryProtocolQuery = v.InferOutput<
   typeof showInLibraryProtocolQuerySchema
 >;
 
-/**
- * Parse and validate the `ObsidianProtocolData` for a `zotlit/show-in-library`
- * link.
- *
- * @throws {v.ValiError} when `item-key` is missing or not an Indexed Key
- */
 export function parseShowInLibraryProtocolQuery(
   data: Record<string, unknown>,
 ): ShowInLibraryProtocolQuery {
   return v.parse(showInLibraryProtocolQuerySchema, data);
 }
 
-/**
- * 8-char base-32 Zotero collection key. Collection keys and item keys share
- * `Zotero.Utilities.generateObjectKey()`'s format, so {@link isItemKey} validates
- * both.
- */
 const collectionKeyValue = v.optional(v.pipe(v.string(), v.check(isItemKey)));
 
-/**
- * Query payload shared by `zotlit/update-all` and `zotlit/import-all-notes`:
- * one exact target library, optionally narrowed to one collection and its
- * descendants. The target is exact — the receiver runs that library alone,
- * whatever libraries its own discovery configuration covers.
- */
 const exactLibraryTargetQuerySchema = v.pipe(
   v.object({
     "source-id": sourceIdValue,
@@ -466,9 +337,7 @@ const exactLibraryTargetQuerySchema = v.pipe(
   }),
   v.transform(({ "source-id": sourceId, library, collection }) => ({
     sourceId,
-    /** `0` for the personal library; a positive integer for a group library. */
     groupID: library ? Number(library) : 0,
-    /** Absent scopes the action to the whole library. */
     collectionKey: collection,
   })),
 );
@@ -485,33 +354,18 @@ export type ImportAllNotesProtocolQuery = v.InferOutput<
   typeof importAllNotesProtocolQuerySchema
 >;
 
-/**
- * @param data decoded query record from Obsidian
- * @throws {v.ValiError} when `source-id` is missing or malformed
- */
 export function parseUpdateAllProtocolQuery(
   data: Record<string, unknown>,
 ): UpdateAllProtocolQuery {
   return v.parse(updateAllProtocolQuerySchema, data);
 }
 
-/**
- * @param data decoded query record from Obsidian
- * @throws {v.ValiError} when `source-id` or `collection` is malformed
- */
 export function parseImportAllNotesProtocolQuery(
   data: Record<string, unknown>,
 ): ImportAllNotesProtocolQuery {
   return v.parse(importAllNotesProtocolQuerySchema, data);
 }
 
-/**
- * Build an `obsidian://zotlit/update-all?source-id=<hash>&library=<groupID>`
- * link for `Zotero.launchURL`. `groupID` 0 (or absent) means the personal
- * library; Obsidian runs that library exactly, whatever its own Library Scope
- * covers. A `collectionKey` narrows the action to that collection and its
- * descendants.
- */
 export function buildUpdateAllProtocolUrl(
   sourceId: string,
   groupID?: number,
@@ -523,11 +377,6 @@ export function buildUpdateAllProtocolUrl(
   });
 }
 
-/**
- * Build an `obsidian://zotlit/import-all-notes?source-id=<hash>&library=<groupID>`
- * link for `Zotero.launchURL`, optionally narrowed to one collection and its
- * descendants.
- */
 export function buildImportAllNotesProtocolUrl(
   sourceId: string,
   groupID?: number,
@@ -539,7 +388,6 @@ export function buildImportAllNotesProtocolUrl(
   });
 }
 
-/** Shared builder for the two {@link exactLibraryTargetQuerySchema} actions. */
 function buildExactLibraryTargetUrl(
   actionId: string,
   sourceId: string,
@@ -551,11 +399,6 @@ function buildExactLibraryTargetUrl(
   return `obsidian://${actionId}?${params}`;
 }
 
-/**
- * Build an `obsidian://zotlit/explore?item=<id>&source-id=<hash>` link for
- * `Zotero.launchURL`. An optional `annotation` key anchors the explorer at
- * that annotation; a named {@link PaneType} adds `&paneType=<pane>`.
- */
 export function buildExploreProtocolUrl(
   item: number,
   options: { sourceId: string; annotation?: string; paneType?: PaneType },
@@ -583,26 +426,12 @@ export type OpenAttachmentProtocolQuery = v.InferOutput<
   typeof openAttachmentProtocolQuerySchema
 >;
 
-/**
- * Parse and validate the `ObsidianProtocolData` for a `zotlit/open-attachment`
- * link.
- *
- * @param data decoded query record from Obsidian
- * @returns the typed query
- * @throws {v.ValiError} when `item` or `source-id` is missing or malformed
- */
 export function parseOpenAttachmentProtocolQuery(
   data: Record<string, unknown>,
 ): OpenAttachmentProtocolQuery {
   return v.parse(openAttachmentProtocolQuerySchema, data);
 }
 
-/**
- * Build an `obsidian://zotlit/open-attachment?item=<id>&source-id=<hash>` link
- * for `Zotero.launchURL`. `item` may name either a regular item or an
- * attachment; the receiver branches on which it finds. A named
- * {@link PaneType} adds `&paneType=<pane>`.
- */
 export function buildOpenAttachmentProtocolUrl(
   item: number,
   options: { sourceId: string; paneType?: PaneType },
@@ -612,13 +441,6 @@ export function buildOpenAttachmentProtocolUrl(
   return `obsidian://${openAttachmentProtocolActionId}?${params}`;
 }
 
-/**
- * Parse and validate the `ObsidianProtocolData` Obsidian hands a handler.
- *
- * @param data decoded query record from Obsidian
- * @returns the typed query
- * @throws {v.ValiError} when `item` or `source-id` is missing or malformed
- */
 export function parseProtocolQuery(
   data: Record<string, unknown>,
 ): ProtocolQuery {

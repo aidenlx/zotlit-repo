@@ -1,7 +1,3 @@
-// A long list mounts only the rows near the screen: the Library View's Papers
-// and Table layouts over hundreds of papers, and a Query File embed in a
-// note. The Stress Build is isolated from the Development Vault and from the
-// run's shared Fixture, which lists fewer papers than a long list starts at.
 import { cp, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { MarkdownView } from "obsidian";
@@ -40,13 +36,7 @@ const vaultPath = e2eVaultDir(workspaceRoot, "long-list-vault");
 const pluginBundleDir = join(workspaceRoot, "apps", "obsidian", "dist-dev");
 const runVaultScript = vaultScript(workspaceRoot, fixture.root);
 const reachable = await isObsidianReachable(workspaceRoot);
-/**
- * The synthetic Items of the Stress Build. They spread over its Libraries;
- * My Library then lists about a thousand papers, long enough that a scroll
- * bar drag moves the list several screens a frame.
- */
 const STRESS_ITEMS = 4000;
-/** The fewest papers each case reads from My Library. */
 const LISTED = 260;
 
 describe.skipIf(!reachable)("Library View long lists", () => {
@@ -108,7 +98,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     await discardFixture(fixture);
   }, 120_000);
 
-  /** Open the Library View in `layout`, once it lists every paper. */
   async function openLibrary(layout: "papers" | "table"): Promise<number> {
     return await obRunUntil(
       vaultId,
@@ -138,22 +127,13 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     );
   }
 
-  /** The scroll box of a Library View list. */
   const BOX = '[data-query-layout="papers"], .zt-table-scroller';
 
-  /** The entries the Items Window mounts past each end of the screen (`virtual-rows.ts`). */
   const OVERSCAN = 8;
 
-  /**
-   * The most rows a long list mounts in a box `box` px tall whose shortest
-   * entry is `row` px: the screen's, one cut at each end, the overscan
-   * past each end, and the selected, first and focused rows kept mounted
-   * wherever they are.
-   */
   const mountBound = ({ box, row }: { box: number; row: number }) =>
     Math.ceil(box / row) + 1 + 2 * OVERSCAN + 3;
 
-  /** Close the Library View once the case ends, as it found none open. */
   function closeLibrary(cleanup: AsyncDisposableStack) {
     cleanup.defer(() =>
       obRun(vaultId, ({ app }) => {
@@ -163,13 +143,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     );
   }
 
-  /**
-   * The list's rows as the pointer drags its scroll bar from top to end, a
-   * step each frame: how many are mounted, how far the list's height moved,
-   * and each set of widths a Table's property columns took on the way; and
-   * the box's height and its shortest entry. The drag starts once the
-   * list's height, its mounted rows and its columns hold.
-   */
   async function dragToEnd(rowSelector: string) {
     await obRunUntil(
       vaultId,
@@ -210,7 +183,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         let row = Infinity;
         let off = 0;
         const end = list.scrollHeight - list.clientHeight;
-        // The pointer moves the bar once a frame, as a drag does.
         for (let at = 0; at <= end; at += 200) {
           list.scrollTop = at;
           await new Promise((resolve) =>
@@ -228,7 +200,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           );
           for (const entry of list.querySelectorAll("[data-index]"))
             row = Math.min(row, entry.getBoundingClientRect().height);
-          // A step past the end the list has now is the browser's clamp.
           const max = list.scrollHeight - list.clientHeight;
           if (at <= max && Math.abs(list.scrollTop - at) > 1) off++;
         }
@@ -247,7 +218,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     );
   }
 
-  /** Whether the row of `key` shows whole in its list, selected and with the focus. */
   async function shownWhole(key: string, what: string) {
     return await obRunUntil(
       vaultId,
@@ -278,7 +248,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     );
   }
 
-  /** The Indexed Keys of the list's rows, in order. */
   async function listedKeys() {
     return await obRun(vaultId, ({ app }) =>
       (
@@ -289,11 +258,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     );
   }
 
-  /**
-   * Show in Library selects a far paper, which shows whole with the focus;
-   * the list scrolls back to its top and keeps the row mounted; ↓ then
-   * selects the next paper and brings it into view with the focus.
-   */
   async function revealThenStep() {
     const keys = await listedKeys();
     const [far, next] = [keys[250]!, keys[251]!];
@@ -325,7 +289,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           .view as LibraryView;
         const list = view.contentEl.querySelector<HTMLElement>(box)!;
         const first = list.querySelector("[data-index]");
-        // The list draws its top again, and the selected row stays mounted.
         return (
           list.scrollTop === 0 &&
           first?.getAttribute("data-index") === "0" &&
@@ -362,8 +325,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     expect(listed).toBeGreaterThan(LISTED);
     const drag = await dragToEnd("[data-query-papers-row]");
     expect(drag.mounted).toBeLessThanOrEqual(mountBound(drag));
-    // The list stands at the height its window lays out, whatever the rows
-    // measured on the way draw: the scroll bar stays under the pointer.
     expect(drag.heightMoved).toBe(0);
     expect(drag.off).toBe(0);
     const keys = await listedKeys();
@@ -399,7 +360,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         const list = view.contentEl.querySelector<HTMLElement>(box)!;
         list.scrollTop = 0;
         await new Promise((resolve) => requestAnimationFrame(resolve));
-        // A scroll of 100 px a frame, as a slow drag of the scroll bar.
         for (let step = 0; step < 30; step++) {
           list.scrollTop += 100;
           await new Promise((resolve) => requestAnimationFrame(resolve));
@@ -416,14 +376,11 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       },
       { box: BOX },
     );
-    // The bars are the box's own, which stay on the screen as its content
-    // scrolls; a spacer only takes its height, and a row covers the bars.
     expect(drawn.bars).toContain("linear-gradient");
     expect(drawn.spacer).toBe("none");
     expect(drawn.row).toMatch(/^rgb\(/);
   }, 120_000);
 
-  /** A theme's larger interface: its small text and icons a size up. */
   const LARGER_SIZES = {
     "--font-ui-small": "16px",
     "--font-ui-smaller": "14px",
@@ -478,8 +435,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
             style.getPropertyValue("--zt-virtual-row"),
           );
           const bounds = list.getBoundingClientRect();
-          // The outlines repeat from the top of the box's content, under a
-          // Table's header.
           const origin =
             bounds.top +
             list.clientTop +
@@ -490,7 +445,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           const entries = [
             ...list.querySelectorAll<HTMLElement>("[data-index]"),
           ];
-          // A two-line row, as tall as the outline's row, at an outline's top.
           const entry = entries.find((el) => {
             const r = el.getBoundingClientRect();
             const off = (((r.top - origin) % row) + row) % row;
@@ -515,7 +469,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           const at = rect(entry);
           const frame = () =>
             new Promise((resolve) => requestAnimationFrame(resolve));
-          // The outlines show where the rows let them through.
           for (const el of entries) el.style.visibility = "hidden";
           const contents = remote.getCurrentWebContents();
           const zoom = contents.getZoomFactor();
@@ -527,7 +480,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
                 x: Math.round(bounds.left * zoom),
                 y: Math.round(at.top * zoom),
                 width: Math.round((bounds.right - bounds.left) * zoom),
-                // The line under the row too, at its bottom edge.
                 height: Math.round((at.bottom - at.top + 2) * zoom),
               });
             } finally {
@@ -539,7 +491,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           const k = Math.sqrt(bmp.length / 4 / (size.width * size.height));
           const W = Math.round(size.width * k);
           const H = Math.round(size.height * k);
-          /** Device pixels a CSS pixel takes. */
           const scale = W / (bounds.right - bounds.left);
           const lum = (x: number, y: number) => {
             const i = (y * W + x) * 4;
@@ -550,7 +501,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
             for (let x = 0; x < W; x++) hist[lum(x, y)]!++;
           let bg = 0;
           for (let i = 1; i < 256; i++) if (hist[i]! > hist[bg]!) bg = i;
-          /** The bounds of the outline's ink inside a part of the row, in CSS px. */
           const ink = ({
             left,
             right,
@@ -592,7 +542,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           };
           const middle = (r: { top: number; bottom: number }) =>
             (r.top + r.bottom) / 2;
-          // The line under the row, at the box's right, where no bar reaches.
           const end = bounds.left + list.clientLeft + list.clientWidth;
           const line = ink({
             left: end - 40,
@@ -677,7 +626,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         },
       );
       console.log(`outlines ${layout} ${sizes}: ${JSON.stringify(parts)}`);
-      // Each part of the outline stands within a pixel of the row's.
       type Pair = {
         outline: Record<string, number>;
         row: Record<string, number>;
@@ -715,13 +663,10 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     expect(drag.mounted).toBeLessThanOrEqual(mountBound(drag));
     expect(drag.heightMoved).toBe(0);
     expect(drag.off).toBe(0);
-    // A column the researcher has not sized holds its default width, wherever
-    // the list scrolls: the first, where a title reads, wider than the rest.
     expect(drag.columnWidths).toHaveLength(1);
     const [first, ...later] = drag.columnWidths[0]!.split(" ").map(Number);
     expect(first).toBe(300);
     expect(new Set(later)).toEqual(new Set([150]));
-    // A pane wider than the columns leaves its room to the filler after them.
     const wide = await obRun(
       vaultId,
       async ({ app }, { box }) => {
@@ -772,7 +717,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
             once: true,
           }),
         );
-        // The bar's column, at the header's height.
         await page.trusted(list.win).click(list, {
           x: list.offsetWidth - bar / 2,
           y: head.offsetHeight / 2,
@@ -790,8 +734,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         ready: (result) => result !== null,
       },
     );
-    // The bar takes room of its own beside the rows and the header, rather
-    // than lie over them; a press on it stays with the box.
     expect(pressed.bar).toBeGreaterThan(0);
     expect(pressed).toMatchObject({ onHeader: false, onBox: true });
   }, 120_000);
@@ -825,21 +767,17 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     await revealThenStep();
   }, 180_000);
 
-  /** The box that scrolls an embed's rows, in each Items layout. */
   const EMBED_BOX =
     '[data-query-layout="papers"], [data-query-layout="list"], .zt-table-scroller';
 
-  /** The rows of each layout, as the page marks them. */
   const ROWS = {
     papers: "[data-query-papers-row]",
     table: 'tr[data-query-table-row="item"]',
     list: "[data-query-row]",
   } as const;
 
-  /** A note's two modes: Reading view and the Live Preview editor. */
   const NOTE_MODES = ["preview", "source"] as const;
 
-  /** The element that holds a note's shown embeds in each mode. */
   const MODE_ROOT = {
     preview: ".markdown-preview-view",
     source: ".markdown-source-view",
@@ -902,9 +840,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       const view = await revealQueryView(vaultId, notePath, {
         embed: queryPath,
       });
-      // The embed's length holds as it scrolls a screen each frame, where a
-      // row that draws at another height than it took would move it, and a
-      // scroll bar drag with it.
       const lengths = await obRun(
         vaultId,
         async ({ page }, { view, box }) => {
@@ -929,11 +864,7 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         { view, box: EMBED_BOX },
         { timeoutMs: 60_000 },
       );
-      // The length does not move at all: the list stands at the height its
-      // window lays out.
       expect(Math.max(...lengths) - Math.min(...lengths)).toBe(0);
-      // The embed stands no taller than its cap, and scrolls its own rows
-      // 5,000 px down; the rows there mount.
       const capped = await obRunUntil(
         vaultId,
         async ({ page }, { view, box }) => {
@@ -961,8 +892,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           const leaf = app.workspace
             .getLeavesOfType("markdown")
             .find((l) => (l.view as MarkdownView).file?.path === notePath)!;
-          // The mode's own embed: the tab keeps the other mode's, hidden,
-          // beside it.
           const scroller =
             leaf.view.containerEl.querySelector<HTMLElement>(root)!;
           const host =
@@ -1007,7 +936,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       );
       expect(scrolled.mounted).toBeLessThanOrEqual(mountBound(scrolled));
 
-      // Obsidian's own Export to PDF, as the Query View print case drives it.
       const printed = await obRun(
         vaultId,
         async ({ app }, { notePath, pdfPath, rowSelector, box }) => {
@@ -1038,7 +966,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           modal.print = async (el, component, includeName) => {
             const out = await print(el, component, includeName);
             rows = el.querySelectorAll(rowSelector).length;
-            // The print lifts the cap: no box scrolls its rows out of the page.
             clipped = [...el.querySelectorAll<HTMLElement>(box)].some(
               (list) => list.scrollHeight > list.clientHeight + 1,
             );
@@ -1065,9 +992,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     240_000,
   );
 
-  /**
-   * Create `files`, and remove them and close their tabs once the case ends.
-   */
   async function createFiles(
     cleanup: AsyncDisposableStack,
     files: Record<string, string>,
@@ -1103,8 +1027,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
 
   it("keeps the List's height as the scroll bar is dragged while its rows wrap, and after Indent properties makes them taller", async () => {
     const path = "Long indent.zotquery";
-    // A paper in three repeats its title, so the rows wrap to different
-    // numbers of lines, as a real library's titles do.
     const view = (indent: boolean) =>
       [
         "formulas:",
@@ -1132,7 +1054,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       },
       { path },
     );
-    /** The List of the Query File tab drawn the way `indent` asks. */
     const drawn = (indent: boolean) =>
       obRunUntil(
         vaultId,
@@ -1143,7 +1064,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           const row = leaf?.view.containerEl.querySelector(
             '[data-query-layout="list"] li[data-query-row]',
           );
-          // An indented row holds its other properties on lines below.
           const indented = [...(row?.children ?? [])].some((child) =>
             child.className.includes("zt:block"),
           );
@@ -1154,10 +1074,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           what: `the List drawn with Indent properties ${indent ? "on" : "off"}`,
         },
       );
-    /**
-     * Drag the List's scroll bar from top to end, a step each frame; at
-     * `width`, where the rows wrap to more lines, the longer ones to more.
-     */
     const drag = (width?: number) =>
       obRun(
         vaultId,
@@ -1211,7 +1127,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       );
     await drawn(false);
     const inline = await drag();
-    // Narrow, a row wraps to as many lines as its text takes there.
     const wrapped = await drag(180);
     expect(wrapped.start).toBeGreaterThan(inline.start * 1.5);
     expect(wrapped.heightMoved).toBe(0);
@@ -1226,15 +1141,10 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     const indented = await drag();
     expect(inline.mounted).toBeLessThanOrEqual(mountBound(inline));
     expect(indented.mounted).toBeLessThanOrEqual(mountBound(indented));
-    // The rows take more lines, and the list learns their new height.
     expect(indented.start).toBeGreaterThan(inline.start * 1.3);
     expect(indented.heightMoved).toBe(0);
   }, 180_000);
 
-  /**
-   * A List whose rows wrap to different numbers of lines: a paper in three
-   * repeats its title, with Indent properties on or off.
-   */
   const wrappingList = (indent: boolean) =>
     [
       "formulas:",
@@ -1283,17 +1193,12 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           still++;
           last = list.scrollHeight;
         }
-        // The rows' letters stand wider apart than the canvas measured them,
-        // as with a font the browser draws in place of the one asked for: a
-        // row the scroll brings into view can wrap a line more than its text
-        // foretold.
         const style = list.doc.createElement("style");
         style.dataset.e2eScrollEnd = "";
         style.textContent =
           '[data-query-layout="list"] li[data-query-row] { letter-spacing: 0.08em; }';
         list.doc.head.append(style);
         try {
-          /** Each mounted row's top, from the box's top. */
           const tops = () => {
             const top = list.getBoundingClientRect().top;
             return new Map(
@@ -1307,15 +1212,12 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           };
           list.scrollTop = 0;
           await frame();
-          // A scroll down of 150 px a frame, as a wheel's.
           for (let step = 0; step < 30; step++) {
             list.scrollTop += 150;
             await frame();
           }
           const last = tops();
           const length = list.scrollHeight;
-          // The scroll ends; the rows it drew take their heights then, which
-          // makes the list longer.
           let moved = 0;
           let grew = false;
           for (let frames = 0, after = 0; after < 3 && frames < 240; frames++) {
@@ -1340,7 +1242,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       },
     );
     console.log(`scroll end: ${JSON.stringify(settled)}`);
-    // The scroll measured rows that drew taller, and no row moved for it.
     expect({ grew: settled!.grew, still: settled!.moved <= 1 }).toEqual({
       grew: true,
       still: true,
@@ -1363,7 +1264,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         "    from: items",
         '    filters: library == "personal"',
       ];
-      /** The view's lines in the note: the embed's link, or the block. */
       const view =
         kind === "embed"
           ? [`![[${queryPath}]]`]
@@ -1394,11 +1294,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         },
         { notePath, mode },
       );
-      /**
-       * The embeds the mode shows, and those of the other mode it hides: for
-       * each, whether it waits to run and holds its room, its listed, mounted
-       * and shown rows.
-       */
       const state = (
         what: string,
         ready: (s: { shown: Embed[]; hidden: Embed[] }) => boolean,
@@ -1480,11 +1375,8 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       });
       const [top, folded] = loaded.shown;
       expect(top!.listed).toBeGreaterThan(LISTED);
-      // The view with rows stands no taller than the cap it reserves.
       expect(top).toMatchObject({ waiting: false, reserve: "0px" });
       expect(top!.height).toBeLessThanOrEqual(501);
-      // The folded view runs nothing, and holds the room its rows take at
-      // most for when it unfolds.
       expect(folded).toMatchObject({
         folded: true,
         phase: "waiting",
@@ -1492,7 +1384,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         reserve: "500px",
         listed: 0,
       });
-      // Nor does the mode the tab hides run its views.
       for (const hidden of loaded.hidden)
         expect(hidden).toMatchObject({
           phase: "waiting",
@@ -1508,7 +1399,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           const callout = leaf.view.containerEl.querySelector<HTMLElement>(
             `${root} .callout`,
           )!;
-          // The fold button, which Live Preview and Reading view both draw.
           callout.querySelector<HTMLElement>(".callout-fold")!.click();
           callout.scrollIntoView({ block: "start" });
         },
@@ -1584,12 +1474,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         { notePath, root: MODE_ROOT[mode] },
         { what: "the block's three rows" },
       );
-      /**
-       * The block's height on each frame as the note builds it again: in Live
-       * Preview once the cursor leaves it, in Reading view across a switch to
-       * Live Preview and back; and after a toolbar change rewrites its text.
-       * `null` for a frame with no block on screen.
-       */
       const { runs, rebuilt } = await obRun(
         vaultId,
         async ({ app }, { notePath, mode }) => {
@@ -1620,7 +1504,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
               state: { ...leaf.getViewState().state, mode: next },
             });
           const runs: Record<string, (number | null)[]> = {};
-          /** Whether each run's block is another element than the one before it. */
           const rebuilt: Record<string, boolean> = {};
           let last = shown();
           const note = (run: string) => {
@@ -1629,7 +1512,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           };
           const rebuild = async (pass: string) => {
             if (mode === "source") {
-              // The cursor on the block's `views:` line shows its text.
               view.editor.setCursor({ line: 3, ch: 0 });
               for (let i = 0; i < 10; i++) await frame();
               view.editor.setCursor({ line: 11, ch: 0 });
@@ -1645,9 +1527,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
             }
           };
           await rebuild("");
-          // A limit the toolbar saves rewrites the block's text: the view
-          // runs again, one row shorter, and the note builds the block for
-          // its new text the next time.
           shown()!.zotlitQueryView!.document.editView({ limit: 2 });
           runs.edit = await sample();
           note("edit");
@@ -1658,7 +1537,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         { timeoutMs: 60_000 },
       );
       const passes = mode === "source" ? ["cursor"] : ["source", "preview"];
-      // Each rebuild is a new block; the edit runs the one on screen again.
       expect(rebuilt).toEqual(
         Object.fromEntries([
           ...passes.map((pass) => [pass, true]),
@@ -1672,14 +1550,11 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       for (const [run, heights] of Object.entries(again)) {
         const settled = heights.at(-1)!;
         expect(settled, run).toBeGreaterThan(0);
-        // Every frame stands at the height the block settles at.
         expect(
           heights.map((height) => near(height, settled)),
           `${run}: ${JSON.stringify(heights)}`,
         ).not.toContain(false);
       }
-      // Across the edit every frame stands at the height before it or at the
-      // one after it, one row shorter.
       const before = runs[passes.at(-1)!]!.at(-1)!;
       const after = edit!.at(-1)!;
       expect(after).toBeLessThan(before - 1);
@@ -1706,8 +1581,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           '    filters: library == "personal"',
           "",
         ].join("\n"),
-        // A heading first: Live Preview shows the line the cursor stands on,
-        // the note's first, as text.
         [notePath]: [
           "# Callout",
           "",
@@ -1753,20 +1626,17 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           ready: (h) => h !== null && h.scrolled > 0,
         },
       );
-      // An opaque colour has no alpha part, `rgb(...)`; the tint lies over it.
       expect(header!.color).toMatch(/^rgb\(/);
       expect(header!.tint).toContain("linear-gradient");
     },
     120_000,
   );
 
-  /** The box a note scrolls in, in each mode. */
   const NOTE_SCROLLER = {
     preview: ".markdown-preview-view",
     source: ".markdown-source-view .cm-scroller",
   } as const;
 
-  /** The box and the rows of each Layout a note takes off the page. */
   const FAR_BOX = `${EMBED_BOX}, [data-query-layout="cards"]`;
   const FAR_ROWS = { ...ROWS, cards: '[role="listitem"]' } as const;
 
@@ -1797,7 +1667,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           "    name: All",
           "    from: items",
           '    filters: library == "personal"',
-          // A Table wider than the note scrolls sideways too.
           ...(layout === "table"
             ? [
                 "    order:",
@@ -1812,12 +1681,9 @@ describe.skipIf(!reachable)("Library View long lists", () => {
                 "      - abstractNote",
               ]
             : []),
-          // A short list mounts every row.
           ...(size === "short" ? ["    limit: 40"] : []),
           "",
         ].join("\n"),
-        // Text far above and below the embed: the note drops it from the
-        // page as it scrolls far away.
         [notePath]: [
           "# Far embed",
           "",
@@ -1840,14 +1706,12 @@ describe.skipIf(!reachable)("Library View long lists", () => {
             state: { mode },
           });
           app.workspace.setActiveLeaf(leaf, { focus: true });
-          // The cursor stays on the heading, far from the embed.
           if (mode === "source")
             (leaf.view as MarkdownView).editor.setCursor({ line: 0, ch: 0 });
         },
         { notePath, mode },
       );
       await revealQueryView(vaultId, notePath, { embed: queryPath });
-      // The embed's own box scrolls far down its rows.
       const deep = await obRunUntil(
         vaultId,
         async ({ app }, { notePath, root, box, rowSelector }) => {
@@ -1894,9 +1758,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
             shown > 0,
         },
       );
-      // The note scrolls to its end, until the embed has left the page, and
-      // back to where it stood; the embed then shows its rows where it was,
-      // with no scroll of its own.
       const back = await obRun(
         vaultId,
         async ({ app }, { notePath, root, scroller, box, rowSelector }) => {
@@ -1957,7 +1818,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         },
         { timeoutMs: 60_000 },
       );
-      // The note took the embed off the page, and put the same one back.
       expect(back.gone).toBe(true);
       expect(back.connected).toBe(true);
       expect(Math.abs(back.top - deep.top)).toBeLessThanOrEqual(1);
@@ -2003,7 +1863,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       );
       if (place !== "tab")
         await revealQueryView(vaultId, notePath, { embed: queryPath });
-      /** The Table's box, in the tab or in the mode's own embed. */
       const geometry = await obRunUntil(
         vaultId,
         async ({ app }, { queryPath, notePath, root }) => {
@@ -2022,11 +1881,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           if (!box?.querySelector("thead th[data-query-column]")) return null;
           const frame = () =>
             new Promise((resolve) => requestAnimationFrame(resolve));
-          /**
-           * The header's top, which stays at the box's top as the rows
-           * scroll, and each header cell's left edge and width, from the
-           * box's edges.
-           */
           const topOf = () =>
             Math.round(
               box.querySelector("thead th")!.getBoundingClientRect().top -
@@ -2043,19 +1897,11 @@ describe.skipIf(!reachable)("Library View long lists", () => {
             ].join(" ");
           };
           const seen = new Set<string>();
-          // A sample on each scroll event too, before the rows for the new
-          // place are drawn.
           const sample = () => seen.add(cells());
-          /**
-           * The header as it stands with no row mounted, only the spacers,
-           * as in a frame of a fast drag: the rows leave the layout a moment.
-           */
           const bare = () => {
             const rows = [
               ...box.querySelectorAll<HTMLElement>("tbody[data-index]"),
             ];
-            // The header's top as the rows stand: without them the table
-            // ends higher, and near the list's end its header with it.
             const top = topOf();
             for (const row of rows) row.style.display = "none";
             seen.add(cells(top));
@@ -2066,8 +1912,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
             box.scrollTop = 0;
             await frame();
             const end = box.scrollHeight - box.clientHeight;
-            // A drag that moves a screen and more each frame, then one that
-            // moves a step.
             for (const step of [box.clientHeight * 3, 200])
               for (let at = 0; at <= end; at += step) {
                 box.scrollTop = at;
@@ -2091,16 +1935,11 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           ready: (result) => result !== null,
         },
       );
-      // One set of header cells in every frame of the drag, and with only
-      // the spacers in the table.
       expect(geometry).toMatchObject({ cells: [expect.any(String)] });
     },
     120_000,
   );
 
-  // A long Table holds its length in a block that clips it: a vault cell's
-  // editor on its last row opens up, over the rows above, and shows whole,
-  // as it opens down from a row in the middle.
   it("opens a vault cell's editor up from a long Table's last row and down from a middle row, inside the box, with no row moved", async () => {
     const path = "Long vault cells.zotquery";
     const note =
@@ -2132,7 +1971,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       },
       { path },
     );
-    // The paper at the top of the box scrolled half way, and the last one.
     const [middle, last] = await obRunUntil(
       vaultId,
       async ({ app }) => {
@@ -2148,7 +1986,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         if (!box || keys.length <= 100) return [];
         box.scrollTop = box.scrollHeight / 2;
         await new Promise((resolve) => setTimeout(resolve, 300));
-        // The header stays at the box's top.
         const under =
           box.getBoundingClientRect().top +
           box.querySelector("thead")!.offsetHeight;
@@ -2165,7 +2002,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         ready: (keys) => keys.length === 2,
       },
     );
-    // Each of the two papers gets a note with the long text.
     await createFiles(
       cleanup,
       Object.fromEntries(
@@ -2187,7 +2023,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       { keys: [middle!, last!] },
       { what: "the notes of the two papers in the note index" },
     );
-    // The middle paper's row stays mounted: the box has not scrolled.
     await obRunUntil(
       vaultId,
       ({ app }, { middle, note }) =>
@@ -2210,8 +2045,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       await openEditorAt(vaultId, { key: last!, name: "note", place: "end" }),
       true,
     );
-    // An empty cell on the last row opens one line tall and opens up too, so
-    // the text the reader types wraps over the rows above, inside the block.
     const typed = await openEditorAt(vaultId, {
       key: last!,
       name: "summary",
@@ -2222,7 +2055,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
     expect(typed.caret, "the caret shown at the end of the text").toBe(true);
   }, 180_000);
 
-  /** Each Layout in each place it shows: the Library View has no List. */
   const DRAG_CASES = (["papers", "table", "list"] as const).flatMap((layout) =>
     (layout === "list"
       ? (["tab", ...NOTE_MODES] as const)
@@ -2243,7 +2075,6 @@ describe.skipIf(!reachable)("Library View long lists", () => {
         const queryPath = `Drag ${layout} ${place}.zotquery`;
         const notePath = `Drag ${layout} ${place}.md`;
         await createFiles(cleanup, {
-          // Grouped, so the list holds group headings among its rows.
           [queryPath]: [
             "views:",
             `  - type: ${layout}`,
@@ -2302,17 +2133,10 @@ describe.skipIf(!reachable)("Library View long lists", () => {
       console.log(`drag ${layout} ${place}: ${JSON.stringify(drag)}`);
       expect(drag.screen.frames).toBeGreaterThan(10);
       expect({
-        // The grouped list's entries draw at unlike heights, a heading's or
-        // a wrapped row's: an entry that drew at another height than it took
-        // could move the length. The Library View's flat rows draw at one.
         unlike: place === "library" || drag.rows.unlike > 0,
-        // The list's length holds while the pointer moves the thumb, so the
-        // thumb stays under the pointer at each hold, after the reverse too.
         lengthChanges: drag.lengthChanges.moving,
         holds: drag.holds.map((off) => Math.abs(off) <= 3),
-        // A Table's header cells stand in one place on every frame.
         headers: drag.header.length,
-        // Every screen frame shows rows or their outlines in the box.
         empty: drag.screen.empty,
       }).toEqual({
         unlike: true,

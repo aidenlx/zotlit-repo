@@ -1,17 +1,9 @@
-// The workspace packages an Obsidian plugin host bundles as plugin code: its
-// workspace dependencies, followed through theirs, that are the plugin kernel
-// or build on it. A host's build, test and review configs read this one list.
-// The review also reads the source packages the host names in the
-// `pluginSources` field of its package.json: bundled packages that do not
-// build on the kernel.
 import { readFileSync, realpathSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 
-/** The host-free base every plugin package builds on. */
 export const PLUGIN_KERNEL = "@zotlit/plugin-kernel";
 
-/** One plugin package: its name and the folder of its `package.json`. */
 export interface PluginPackage {
   readonly name: string;
   readonly root: string;
@@ -28,7 +20,6 @@ function readManifest(root: string): Manifest {
   ) as Manifest;
 }
 
-/** The workspace packages `manifest` depends on at runtime. */
 function workspaceDependencies(manifest: Manifest): string[] {
   return Object.entries(manifest.dependencies ?? {})
     .filter(([, version]) => version.startsWith("workspace:"))
@@ -52,11 +43,6 @@ function workspaceGraph(
   return packages;
 }
 
-/**
- * The plugin packages of the host at `hostRoot`, sorted by name: each
- * workspace package it reaches through runtime dependencies that is
- * {@link PLUGIN_KERNEL} or depends on it.
- */
 export function pluginPackages(hostRoot: string): PluginPackage[] {
   const packages = workspaceGraph(hostRoot);
   const reaches = new Map<string, boolean>();

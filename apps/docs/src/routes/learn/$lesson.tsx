@@ -26,7 +26,6 @@ const getLesson = createServerFn({ method: "GET" })
   .handler(async ({ data: { slug, locale } }) => {
     const page = learn.getPage([slug], locale);
     if (!page) throw notFound();
-    // The git date rides with the compiled body, not the frontmatter head.
     const modified = (await page.data.load()).lastModified
       ?.toISOString()
       .slice(0, 10);

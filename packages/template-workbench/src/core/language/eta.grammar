@@ -1,4 +1,3 @@
-// Eta delimiter rules: quoted strings and block comments shield closing tags.
 @top Template { (Text | Tag)* }
 
 Tag { (TagOpen | TagOpenInterp | TagOpenRaw) TagContent TagClose }

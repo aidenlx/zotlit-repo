@@ -1,4 +1,3 @@
-// The Item loading descriptor: stored fields and its child Relation Lists.
 import { Effect } from "effect";
 
 import { readHydrateChunk } from "@zotlit/db/item-query";

@@ -1,5 +1,3 @@
-// UI seam for a creation selection: the words its reason and its problem are
-// shown by. Shared by the picker badge and the batch rows.
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type {
@@ -7,7 +5,6 @@ import type {
   CreationSelectionProblem,
 } from "./operations.ts";
 
-/** Where a batch destination came from; Default (`bound`) has no words. */
 export function describeSelectionSource(
   source: CreationProfileSource,
 ): string | undefined {
@@ -23,7 +20,6 @@ export function describeSelectionSource(
   }
 }
 
-/** Why automatic selection stopped, as the user reads it before choosing. */
 export function describeSelectionProblem(
   problem: CreationSelectionProblem,
 ): string {

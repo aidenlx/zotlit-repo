@@ -69,7 +69,6 @@ it.effect(
     }),
 );
 
-// Both state and discrete-event subscriptions must attach synchronously.
 it.effect("keeps throwing state and event listeners subscribed", () =>
   Effect.gen(function* () {
     const { open } = memoryOpener(seed);

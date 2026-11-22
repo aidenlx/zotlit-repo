@@ -111,8 +111,6 @@ it.effect(
         if (++compilations === 1) throw new Error("compile listener failed");
       });
       yield* Queue.take(received);
-      // Concurrent folder rebuilds coalesce. Chain the second reconciliation
-      // as soon as the first completes so both actual changes are observable.
       const both = template.bridge
         .runPromise(template.refresh)
         .then(() => template.bridge.runPromise(template.refresh));
@@ -165,7 +163,6 @@ it.effect("published vault edits reconcile on the Effect Clock", () =>
 it.effect("startup failure settles into the init-failed state", () =>
   Effect.gen(function* () {
     const host = createTemplateHost();
-    // The first folder read of startup's template scan throws.
     vi.spyOn(host.vault, "getFolderByPath").mockImplementationOnce(() => {
       throw new Error("vault unavailable");
     });
@@ -200,7 +197,6 @@ it.effect("runtime disposal waits for a document write that has started", () =>
       await writing.promise;
       return create(path, source);
     });
-    // Unload stops the waiting caller; the write itself finishes.
     const created = expect(
       template.bridge.runPromise(
         template.createPartial("authors", { source: "Authors" }),
@@ -223,8 +219,6 @@ it.effect("runtime disposal waits for a document write that has started", () =>
   }),
 );
 
-// The unpack writes through the engine's own runner, which must stay open
-// until the write's Scope has closed.
 it.effect("runtime disposal waits for a partial unpack that has started", () =>
   Effect.gen(function* () {
     const host = createTemplateHost();
@@ -303,13 +297,11 @@ it.effect(
       const migration = Object.assign(runtime.runSync(TemplateMigration), {
         bridge: effectBridge(runtime),
       });
-      // The migration, and the template folder's case.
       expect(callbacks).toHaveLength(2);
       yield* Effect.promise(() => runtime.dispose());
       host.vault.addFile("templates/zotlit-note.liquid.md", "Late inventory");
       for (const callback of callbacks) callback();
       const aborted = { name: "AbortError" };
-      // A closed migration has nothing to settle: the answer is at once.
       yield* Effect.promise(() =>
         migration.bridge.runPromise(migration.whenSettled),
       );

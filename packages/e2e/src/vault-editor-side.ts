@@ -1,42 +1,23 @@
-// The side a vault cell's editor opens to in a Query File tab's Table: down
-// over the rows below, or up over the rows above where its box shows more
-// room above the cell. Either way it shows whole in the box, and the open
-// moves no row and leaves the box's length as it was.
 import { expect } from "vitest";
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 
-/** The box and its rows as the open finds them, and leaves them. */
 interface BoxState {
   scrollTop: number;
   scrollHeight: number;
-  /** The top of each mounted Item row in the window, by its key. */
   rows: Record<string, number>;
 }
 
-/** An editor just opened, and the box around it. */
 export interface EditorSide {
   before: BoxState;
   after: BoxState;
-  /** The editor opened up over the rows above. */
   up: boolean;
-  /** How many rows tall the editor stands. */
   rows: number;
-  /** The editor stands between the header's bottom and the box's end. */
   inside: boolean;
-  /** The editor itself is under the pointer at its top and bottom edges. */
   edges: boolean[];
-  /** The caret stands at the end of the text, and the field shows it. */
   caret: boolean;
 }
 
-/**
- * Opens the editor of the vault cell `name` on the row of `key` in the
- * Table of the first Query File tab, with a trusted click, reads where it
- * stands, then drops it with Escape. `place` scrolls the box first: `end`
- * to its end, `top` so the row stands under the header. With `lines`, the
- * reader first types words into the text until it wraps to that many lines.
- */
 export async function openEditorAt(
   vaultId: string,
   {
@@ -59,7 +40,6 @@ export async function openEditorAt(
         box.querySelector<HTMLElement>(
           `[data-query-key="${key}"] [data-query-vault-cell][data-query-vault-name="${name}"]`,
         )!;
-      // The rows show under the header, which stays at the box's top.
       const top = box.getBoundingClientRect().top + box.clientTop;
       const start = top + head.offsetHeight;
       const end = top + box.clientHeight;
@@ -69,7 +49,6 @@ export async function openEditorAt(
           cellOf().closest("tr")!.getBoundingClientRect().top - start;
       for (let frame = 0; frame < 3; frame++)
         await new Promise((resolve) => requestAnimationFrame(resolve));
-      // The cell's column comes into view; the row already shows whole.
       cellOf().scrollIntoView({
         block: "nearest",
         inline: "nearest",
@@ -107,7 +86,6 @@ export async function openEditorAt(
             electronWindow: { webContents: import("electron").WebContents };
           }
         ).electronWindow.webContents;
-        // The lines the text takes, its padding aside.
         const wrapped = () => {
           const style = getComputedStyle(field);
           return Math.round(
@@ -130,7 +108,6 @@ export async function openEditorAt(
       const editor = cell.querySelector<HTMLElement>(
         "[data-query-vault-editor]",
       )!;
-      // A click that reached another element names it.
       if (!editor) {
         const b = cell.getBoundingClientRect();
         const hit = box.doc.elementFromPoint(
@@ -156,7 +133,6 @@ export async function openEditorAt(
           field.selectionEnd === field.value.length &&
           field.scrollTop + field.clientHeight >= field.scrollHeight - 0.5,
       };
-      // The first Escape can close the suggestions of the text alone.
       for (let tries = 0; tries < 3 && editor.isConnected; tries++) {
         await page.trusted(box.win).key("Escape");
         await new Promise((resolve) => setTimeout(resolve, 200));
@@ -174,16 +150,11 @@ export async function openEditorAt(
   return side;
 }
 
-/**
- * The editor of `side` stands whole in its box on the side `up` names, at
- * least two rows tall, and its open moved no row and kept the box's length.
- */
 export function expectEditorSide(side: EditorSide, up: boolean) {
   expect(side.rows, "the editor wraps its value").toBeGreaterThan(2);
   const { rows: before, ...box } = side.before;
   const { rows: after, ...opened } = side.after;
   expect(opened, "the box after the open").toEqual(box);
-  // A long Table can mount other rows past the screen meanwhile.
   const kept = Object.keys(before).filter((key) => key in after);
   expect(kept.length, "the rows mounted through the open").toBeGreaterThan(4);
   expect(

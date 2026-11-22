@@ -12,7 +12,6 @@ import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" 
 
 import { itemToCsl } from "./zt-csl-item.ts";
 
-// Differential coverage: Zotero's own corpus through storage, hydration, CSL.
 import { relations } from "#drizzle/relations.ts";
 import {
   creators,
@@ -60,14 +59,12 @@ interface SchemaItemType {
 const corpus: ItemToCslFixture = fixture;
 const schemaItemTypes: readonly SchemaItemType[] = zoteroSchema.itemTypes;
 
-/** A synced personal account; the comparison drops the `id` it names. */
 const USER = {
   userID: 475425,
   localUserKey: "v3aG8nQf",
   username: "aidenlx",
 };
 
-/** Zotero writes `dateAdded`/`dateModified` on every row; the mapper ignores both. */
 const SEED_TIMESTAMP = Temporal.Instant.from("2024-01-15T10:00:00Z");
 
 describe(`itemToCsl: Zotero ${corpus.zoteroVersion} corpus`, () => {
@@ -99,7 +96,6 @@ describe(`itemToCsl: Zotero ${corpus.zoteroVersion} corpus`, () => {
 
     for (const [itemType, { csl }] of Object.entries(corpus.cases)) {
       const item = hydrated.get(itemType);
-      // Soft, so one absent row still leaves the other item types compared.
       expect.soft(item, itemType).toBeDefined();
       if (!item) continue;
       expect
@@ -113,15 +109,6 @@ function isChildItemType(itemType: string): boolean {
   return CHILD_ITEM_TYPES.some((childType) => childType === itemType);
 }
 
-/**
- * Zotero's expected CSL-JSON and ZotLit's own differ in two agreed places:
- *
- * - `id`, because Zotero's corpus keys items by database item id and ZotLit
- *   keys them by Zotero Item URI.
- * - `accessed`, because ZotLit reads the stored UTC timestamp as the local
- *   calendar day, so the value depends on the test machine's time zone.
- *   {@link file://./zt-csl-item.test.ts} is the authority for that conversion.
- */
 function comparable(
   csl: Readonly<Record<string, unknown>>,
 ): Record<string, unknown> {
@@ -129,11 +116,6 @@ function comparable(
   return rest;
 }
 
-/**
- * CSL 1.0.2 permits a date part as a string or a number, and Zotero's corpus
- * holds string years. ZotLit's date contract is numbers throughout, so the
- * expected side converts before the comparison.
- */
 function coerceDateParts(
   csl: Record<string, unknown>,
 ): Record<string, unknown> {
@@ -149,14 +131,6 @@ function coerceDateParts(
   return csl;
 }
 
-// -- Storage adapter ---------------------------------------------------------
-// Native Zotero JSON -> the rows Zotero's database holds. It implements only
-// the conversions this corpus needs, not Zotero's whole `fromJSON()`.
-
-/**
- * Assigns each distinct name a row id, the way Zotero's lookup tables
- * (`fieldsCombined`, `creatorTypes`, `itemDataValues`) do.
- */
 class LookupTable {
   readonly #ids = new Map<string, number>();
 
@@ -188,7 +162,6 @@ function seedCorpus(db: NodeDatabaseClient): void {
   for (const [index, [itemType, { item }]] of Object.entries(
     corpus.cases,
   ).entries()) {
-    // One row id per case keeps `itemID` and `itemTypeID` readable in failures.
     const id = index + 1;
     itemTypeRows.push({ itemTypeID: id, typeName: itemType });
     itemRows.push({
@@ -289,10 +262,6 @@ function itemTypeSchema(itemType: string): SchemaItemType {
   return schema;
 }
 
-/**
- * The field Zotero stores the value under. Native JSON names a base field
- * (`medium`) where the database holds the type-specific one (`artworkMedium`).
- */
 function storedField(itemType: string, nativeField: string): string {
   const { fields } = itemTypeSchema(itemType);
   if (fields.some(({ field }) => field === nativeField)) return nativeField;
@@ -303,7 +272,6 @@ function storedField(itemType: string, nativeField: string): string {
   );
 }
 
-/** `itemDataValues.value` is text; native JSON holds numbers for e.g. `volume`. */
 function storedValue(field: string, value: unknown): string {
   const text = String(value);
   if (field === "accessDate") return sqlTimestamp(text);
@@ -315,10 +283,6 @@ function storedValue(field: string, value: unknown): string {
 
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-/**
- * Zotero stores a date field as `YYYY-MM-DD <user text>`. Every date in this
- * corpus is a complete ISO calendar day, so the SQL part repeats the text.
- */
 function multipartDate(value: string): string {
   if (!ISO_DATE_RE.test(value)) {
     throw new Error(
@@ -328,7 +292,6 @@ function multipartDate(value: string): string {
   return `${value} ${value}`;
 }
 
-/** Zotero stores `accessDate` as a UTC SQL timestamp, `YYYY-MM-DD HH:MM:SS`. */
 function sqlTimestamp(value: string): string {
   return Temporal.Instant.from(value)
     .toString({ smallestUnit: "second" })

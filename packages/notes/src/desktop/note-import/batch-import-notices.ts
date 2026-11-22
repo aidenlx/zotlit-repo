@@ -7,7 +7,6 @@ import type {
 } from "@zotlit/obsidian-kit/notifier.ts";
 import { profileRecoveryNotice } from "@zotlit/obsidian-kit/profile-recovery.ts";
 import * as toast from "@zotlit/obsidian-kit/toast.ts";
-// Batch-import outcomes and actionable Profile recovery for notices and toasts.
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { BatchImportResult } from "./batch-import.ts";
@@ -50,7 +49,6 @@ type ImportErrorNotice = (
   error: unknown,
 ) => string | DocumentFragment;
 
-/** Map preflight import outcomes to a notice; modal/cancelled paths are silent. */
 export function batchImportNotice(
   result: BatchImportResult,
 ): string | undefined {
@@ -77,11 +75,6 @@ export function batchImportNotice(
   }
 }
 
-/**
- * Notices for a library-wide or collection-scoped import. Its early exits carry
- * their own copy — an empty scope is a plain "nothing to import", not the
- * missing-item report an explicit id list would get.
- */
 export function batchImportAllNotice(
   result: BatchImportResult,
 ): string | undefined {
@@ -130,7 +123,6 @@ export function childImportToast(options: { app?: App } = {}): {
   };
 }
 
-/** The outcome notice of a note import, from its toast copy. */
 export function importNotices<A>(copy: {
   success: (result: A) => NoticeMessage | undefined;
   error: (message: string, error: unknown) => NoticeMessage | undefined;
@@ -141,7 +133,6 @@ export function importNotices<A>(copy: {
   };
 }
 
-/** Build the run-summary copy; `notFound` is captured from classification. */
 export function importRunSummary(
   notFound: () => number,
 ): (

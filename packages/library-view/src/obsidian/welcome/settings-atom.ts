@@ -1,5 +1,3 @@
-// The settings the Welcome View banner reads, shared by every leaf. Each key's
-// default comes from the slice that owns it.
 import { Effect, Stream } from "effect";
 
 import { templateSettings } from "@zotlit/notes/core/template/settings.ts";
@@ -24,7 +22,6 @@ const KEYS = [
   "template.folder",
 ] as const;
 
-/** The settings keys the banner reads. */
 export type WelcomeSettings = Pick<Settings, (typeof KEYS)[number]>;
 
 const pick = (settings: Readonly<WelcomeSettings>): WelcomeSettings =>

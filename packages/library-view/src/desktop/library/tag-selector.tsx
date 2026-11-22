@@ -1,9 +1,3 @@
-// The Tag Selector at the foot of the Library Tree: the tags of the Items the
-// selected node lists, as chips beside the Reading State facets, with a box
-// that filters the names it shows. A chip selects its tag; the tree hands the
-// selection to the host, which makes it filters of the list.
-//
-// @see apps/obsidian/docs/adr/0078-the-tag-selector-writes-tag-filters.md
 import { useState } from "react";
 import type { KeyboardEvent } from "react";
 
@@ -15,10 +9,6 @@ import { useTreeState } from "./tree-model.ts";
 
 import { TAG_CHIP_CLASS } from "#core/library/chip.ts";
 
-/**
- * The tag names to show out of `names`: those that hold `filter`, whatever
- * the case, and every selected one, so a selection never hides.
- */
 export function shownTags(
   names: readonly string[],
   selected: readonly string[],
@@ -31,7 +21,6 @@ export function shownTags(
   );
 }
 
-/** The keys that move between the chips, as the tree's arrows move between rows. */
 const STEPS: Readonly<Record<string, (at: number, last: number) => number>> = {
   ArrowRight: (at, last) => Math.min(at + 1, last),
   ArrowDown: (at, last) => Math.min(at + 1, last),
@@ -47,7 +36,6 @@ export function TagSelector({ tree }: { tree: LibraryTree }) {
   const filter = useTreeState((s) => s.tagFilter);
   const headingId = useUniqueId();
   const filterLabel = useUniqueId();
-  // The chip Tab lands on: the last one the keyboard reached, else the first.
   const [current, setCurrent] = useState<string | null>(null);
   const shown = shownTags(names ?? selected, selected, filter);
   const stop = current !== null && shown.includes(current) ? current : shown[0];
@@ -69,7 +57,6 @@ export function TagSelector({ tree }: { tree: LibraryTree }) {
   };
 
   return (
-    // Named by its heading on screen: an `aria-label` would show a tooltip.
     <div
       role="group"
       aria-labelledby={headingId}
@@ -77,7 +64,6 @@ export function TagSelector({ tree }: { tree: LibraryTree }) {
       className="zt:flex zt:flex-col zt:gap-(--size-2-2) zt:border-t-(length:--border-width) zt:border-(--background-modifier-border) zt:pt-(--size-4-2)"
     >
       <div className="zt:flex zt:items-baseline zt:justify-between zt:gap-(--size-2-2) zt:px-(--size-4-2)">
-        {/* The group goes by this name alone, not as text of its own. */}
         <div
           id={headingId}
           aria-hidden="true"
@@ -102,8 +88,6 @@ export function TagSelector({ tree }: { tree: LibraryTree }) {
           </div>
         )}
       </div>
-      {/* Hundreds of tags scroll here, so the tree above stays in reach. The
-          padding keeps each chip's focus ring inside the scroll box. */}
       <div className="zt:flex zt:max-h-56 zt:flex-wrap zt:content-start zt:gap-(--size-2-2) zt:overflow-y-auto zt:p-(--size-2-1) zt:px-(--size-4-2)">
         {shown.map((name, index) => (
           <div
@@ -146,8 +130,6 @@ export function TagSelector({ tree }: { tree: LibraryTree }) {
           value={filter}
           className="zt:w-full"
           onChange={(event) => tree.setTagFilter(event.currentTarget.value)}
-          // Escape clears the filter; on an empty one it reaches the open
-          // tree's own Scope, which puts the tree away.
           onKeyDown={(event) => {
             if (event.key !== "Escape" || filter === "") return;
             event.preventDefault();

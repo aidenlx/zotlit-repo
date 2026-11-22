@@ -18,10 +18,8 @@ vi.mock("./open-attachments.ts", async (importOriginal) => ({
   openAttachments: vi.fn(),
 }));
 
-/** What the Literature Note's lookup resolves to in a case. */
 let resolved: ObsidianOpenableAttachment[] = [];
 
-/** The mock menu behind the public Obsidian `Menu` type its consumer takes. */
 function obsidianMenu(menu: Menu): ObsidianMenu {
   const typed = Object.assign(stubService<ObsidianMenu>("Menu", {}), {
     addItem(callback: (item: MenuItem) => unknown): ObsidianMenu {
@@ -32,7 +30,6 @@ function obsidianMenu(menu: Menu): ObsidianMenu {
   return typed;
 }
 
-/** The mock item behind the public Obsidian `MenuItem` type. */
 function obsidianMenuItem(item: MockMenuItem): MenuItem {
   const typed = Object.assign(stubService<MenuItem>("MenuItem", {}), {
     setSection(section: string): MenuItem {
@@ -87,7 +84,6 @@ function fileMenuHandler(
           "TargetOpener",
           {},
         ),
-        // The picker is mocked, so no open runs.
         bridge: { runAndForget: () => {} },
         ...deps,
       }),
@@ -102,7 +98,6 @@ function markdownFile(): TFile {
   return file;
 }
 
-/** A rendered bounding rect a keyboard-driven click's `currentTarget` answers with. */
 function anchorRect(): DOMRect {
   return {
     x: 10,
@@ -173,13 +168,6 @@ describe("Literature Note attachment-open file menu", () => {
     );
   });
 
-  /**
-   * `evt.currentTarget` is nulled once dispatch ends, which for an async
-   * `onClick` happens at the very `await` this handler carries — before the
-   * picker opens. The box is read before that gap and carried through it.
-   * Exercises the real `openAttachments` (not the module-level mock) so the
-   * regression is caught end to end.
-   */
   it("shows the picker at the button's own box for a keyboard click, after the async Attachment lookup", async () => {
     const actual = await vi.importActual<
       typeof import("./open-attachments.ts")
@@ -210,9 +198,6 @@ describe("Literature Note attachment-open file menu", () => {
       currentTarget: { getBoundingClientRect: () => rect },
     } as unknown as MouseEvent;
     expect(() => menu.items[0]!.click(evt)).not.toThrow();
-    // Dispatch has ended by the time the `await` above resumes — simulated
-    // here by nulling `currentTarget` the instant the synchronous part of the
-    // click handler returns.
     (evt as unknown as { currentTarget: unknown }).currentTarget = null;
 
     await vi.waitFor(() => expect(Menu.instances).toHaveLength(2));

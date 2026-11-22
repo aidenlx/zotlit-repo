@@ -1,11 +1,3 @@
-// The one-page Citations Guide: the field semantics behind the citation commands.
-//
-// Guide prose is literal English, like the diagnostics: it is the agent-facing
-// reference, not UI text a user reads while browsing help. Every value list is
-// a registry typed against the contract it documents, so an entry kind, an
-// index state, a selector, or a diagnostic code cannot reach the payload
-// without its row reaching this page.
-
 import type {
   AnnotationOccurrence,
   CitationCoverage,
@@ -22,7 +14,6 @@ import type {
   ReferencesParam,
 } from "./request.ts";
 
-/** What each selector of the citation commands names. */
 const SELECTORS = {
   key: "A Zotero key: an 8-character item key, with a 'g<group-id>' suffix for an item in a group library. cited-by takes exactly one of key= or citekey=. annotation-uses takes the Annotation's own key=.",
   citekey:
@@ -35,7 +26,6 @@ const SELECTORS = {
   string
 >;
 
-/** What each entry kind of a references answer reports (ADR 0024). */
 const ENTRY_KINDS = {
   unreadable:
     "The database read failed. The answer has no verdict on whether this Item exists.",
@@ -51,7 +41,6 @@ const ENTRY_KINDS = {
     "Citation intent that cannot be parsed. It names no work, so it carries no refNumber.",
 } as const satisfies Record<ReferenceEntry["kind"], string>;
 
-/** Which syntax wrote an occurrence. */
 const OCCURRENCE_KINDS = {
   annotation:
     "An empty-text Zotero annotation link that cites the annotation's parent item. Its raw identifier is the Annotation Indexed Key; pageLabel holds the page locator or null.",
@@ -68,7 +57,6 @@ const ANNOTATION_FORMS = {
   embed: "An image link: ![...](zotero://...).",
 } as const satisfies Record<AnnotationOccurrence["form"], string>;
 
-/** How much of the vault the reported citation facts cover. */
 const COVERAGE_STATES = {
   indexing: "The vault-wide scan is still running.",
   complete: "Every Markdown note in the vault is indexed.",
@@ -76,7 +64,6 @@ const COVERAGE_STATES = {
     "At least one note could not be read, so a citer inside it is absent from the answer.",
 } as const satisfies Record<CitationCoverage, string>;
 
-/** Which setting controls a Citation Syntax's admission into an answer. */
 const SYNTAX_STATES = {
   annotation:
     "Included while the 'Annotation citations' setting (citation.annotation-citations) is on; off by default.",
@@ -86,7 +73,6 @@ const SYNTAX_STATES = {
     "Included while the 'Wikilink citations' setting (citation.wikilink-citations) is on; off by default.",
 } as const satisfies Record<CitationSyntax, string>;
 
-/** How well citation keys resolve to items of the connected Zotero source. */
 const RESOLUTION_STATES = {
   null: "No citation-key snapshot has settled yet.",
   fresh: "The snapshot matches the connected Zotero source.",
@@ -98,7 +84,6 @@ const RESOLUTION_STATES = {
   string
 >;
 
-/** Whether the connected Zotero source answered the references entry join. */
 const DATABASE_STATES = {
   ready: "The connected Zotero source answered the entry join.",
   unreadable:
@@ -108,7 +93,6 @@ const DATABASE_STATES = {
 const LABEL_WIDTH = 12;
 const PAGE_WIDTH = 78;
 
-/** The Citations Guide: one page, served without an envelope. */
 export function renderCitationsGuide(): string {
   return `ZOTLIT-CITATIONS(1)
 
@@ -250,7 +234,6 @@ DIAGNOSTICS
 ${rows(DIAGNOSTIC_HINTS)}`;
 }
 
-/** A parameter is written `name=<value>`, so its row is labeled that way. */
 function assignments(entries: Record<string, string>): Record<string, string> {
   return Object.fromEntries(
     Object.entries(entries).map(([name, description]) => [
@@ -260,10 +243,6 @@ function assignments(entries: Record<string, string>): Record<string, string> {
   );
 }
 
-/**
- * `  name        description`, in the man-page column layout. A name as wide as
- * the label column takes a line of its own.
- */
 function rows(entries: Record<string, string>, indent = 2): string {
   const margin = " ".repeat(indent + LABEL_WIDTH);
   return Object.entries(entries)
@@ -278,7 +257,6 @@ function rows(entries: Record<string, string>, indent = 2): string {
     .join("\n");
 }
 
-/** Greedy fill, so a registry description reads as a paragraph in its column. */
 function wrap(text: string, width: number): string[] {
   const lines: string[] = [];
   let line = "";

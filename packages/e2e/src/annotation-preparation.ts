@@ -1,4 +1,3 @@
-// The installed Effect module used by the held card-preparation probe.
 import { createRequire } from "node:module";
 import { join } from "node:path";
 

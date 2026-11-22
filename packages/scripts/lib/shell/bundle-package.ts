@@ -1,8 +1,3 @@
-// The bundle package of a published plugin: what a host app's production
-// build writes beside the plugin's ES module, and the entry module that turns
-// the package into the `main.js` Obsidian loads. The host app's build and the
-// publish repository's build both read the entry from here, so they bundle the
-// same module.
 import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
@@ -11,7 +6,6 @@ import { SOURCE_REPOSITORY } from "@zotlit/config/repositories";
 import { LEGAL_FILES } from "./legal-files.ts";
 import type { PublishedPlugin } from "./plugins.ts";
 
-/** The fields of a host app's package.json the bundle package reads. */
 interface AppPackage {
   readonly version: string;
   readonly description: string;
@@ -19,7 +13,6 @@ interface AppPackage {
   readonly obsidian: { readonly name: string };
 }
 
-/** The license of the workspace, from its root package.json. */
 export async function workspaceLicense(workspaceRoot: string): Promise<string> {
   const { license } = JSON.parse(
     await readFile(join(workspaceRoot, "package.json"), "utf8"),
@@ -27,7 +20,6 @@ export async function workspaceLicense(workspaceRoot: string): Promise<string> {
   return license;
 }
 
-/** `src/main.ts` of the publish repository: the plugin class, from the bundle package. */
 function shellEntrySource(plugin: PublishedPlugin): string {
   return `// Entry module of the plugin: re-exports the plugin class from the npm package that holds the plugin's code.
 // Generated at each release from ${SOURCE_REPOSITORY}, where changes to the plugin go.
@@ -35,7 +27,6 @@ export { default } from "${plugin.bundlePackage}";
 `;
 }
 
-/** `tsconfig.json` of the publish repository, which type-checks `src/main.ts`. */
 const SHELL_TSCONFIG = {
   compilerOptions: {
     target: "ES2022",
@@ -49,12 +40,6 @@ const SHELL_TSCONFIG = {
   include: ["src"],
 };
 
-/**
- * Writes the publish repository's entry module, `src/main.ts`, and the
- * `tsconfig.json` its transform reads, into `dir`.
- *
- * @returns the path of `src/main.ts`.
- */
 export async function writeShellEntry(
   dir: string,
   plugin: PublishedPlugin,
@@ -69,7 +54,6 @@ export async function writeShellEntry(
   return entry;
 }
 
-/** The type of the bundle's default export, for `src/main.ts`. */
 const BUNDLE_TYPES = `// The plugin class Obsidian loads, a subclass of Plugin from "obsidian".
 declare const plugin: abstract new (...args: never[]) => object;
 export default plugin;
@@ -98,7 +82,6 @@ function bundleManifest(
     author: app.author,
     license,
     homepage: `https://github.com/${plugin.repository}`,
-    // npm provenance checks this against the repository that publishes.
     repository: {
       type: "git",
       url: `https://github.com/${SOURCE_REPOSITORY}`,
@@ -108,11 +91,6 @@ function bundleManifest(
   };
 }
 
-/**
- * Writes the bundle package's own files into `dir`, beside the `main.js` and
- * `styles.css` the host app's build wrote there. A Resource Pack's bundle
- * package holds `main.js` alone.
- */
 export async function writeBundlePackage(options: {
   plugin: PublishedPlugin;
   app: AppPackage;

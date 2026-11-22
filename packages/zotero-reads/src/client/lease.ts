@@ -1,4 +1,3 @@
-// A Zotero read snapshot lease owned by code outside Effect.
 import { Cause, Exit, Scope } from "effect";
 
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";

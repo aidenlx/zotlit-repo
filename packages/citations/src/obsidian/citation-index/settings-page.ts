@@ -1,8 +1,4 @@
 import type { HoverAction } from "#core/citation-index/settings.ts";
-// The "Citations" page: how citations are suggested, read, shown on hover
-// and formatted. The Annotation trigger row comes from the query views, the
-// Citation text row from the notes, and the native Pandoc rows from the
-// desktop citations, each through the page's slots.
 import type {
   SettingDefinitionItem,
   SettingDefinitionPage,
@@ -23,16 +19,12 @@ import { pandocEngineDefinition } from "#obsidian/pandoc/engine-settings-row.ts"
 
 declare module "@zotlit/plugin-services/obsidian/setting-tab/context.ts" {
   interface SettingTabSlots {
-    /** The Citation suggestions group, after its own rows. */
     "citations.suggestions": unknown;
-    /** The Citations page, after the Formatting group: the citation text. */
     "citations.citation-text": unknown;
-    /** The Citations page's last rows: the native Pandoc workflow. */
     "citations.native-pandoc": unknown;
   }
 }
 
-/** The slots the Citations page holds. */
 export const citationsPageSlots = {
   suggestions: "citations.suggestions",
   citationText: "citations.citation-text",
@@ -53,7 +45,6 @@ export function citationsPage(
   };
 }
 
-/** Items for the "Citations" sub-page. */
 export function citationsPageItems(
   ctx: SettingTabContext,
 ): SettingDefinitionItem<SettingsKey>[] {
@@ -187,7 +178,6 @@ export function citationsPageItems(
           control: {
             type: "text",
             key: "citation.locale",
-            // Empty leaves the selected style's own default locale in charge.
             defaultValue: "",
             placeholder: m.settings_citation_locale_default(),
             validate: citationLocaleError,
@@ -201,18 +191,12 @@ export function citationsPageItems(
   ];
 }
 
-/**
- * Names the Graph view core plugin while it is disabled, since the toggle
- * then changes nothing on screen. Read at build time: the page is rebuilt on
- * every open, which is when a core-plugin change can reach it.
- */
 function graphCitationsDescription(ctx: SettingTabContext): string {
   return ctx.app.internalPlugins.getEnabledPluginById(GRAPH_CORE_PLUGIN_ID)
     ? m.settings_citation_graph_desc()
     : m.settings_citation_graph_desc_disabled();
 }
 
-/** The Hover Action choices, in the order the select offers them. */
 function hoverActionOptions(): Record<HoverAction, string> {
   return {
     off: m.settings_citation_hover_action_off(),
@@ -221,7 +205,6 @@ function hoverActionOptions(): Record<HoverAction, string> {
   };
 }
 
-/** The Require Mod toggles for editing modes and graph views. */
 const REQUIRE_MOD_KEYS = [
   [
     "citation.hover-require-mod-source",
@@ -245,16 +228,6 @@ const REQUIRE_MOD_KEYS = [
   ],
 ] as const satisfies readonly (readonly [SettingsKey, string, () => string])[];
 
-/**
- * The Require Mod toggles, on a sub-page of their own that lists one hover
- * surface per row, like the Page preview plugin lists one hover source per row.
- * The page's own title names the list, so the rows carry the requirement in the
- * page description instead of repeating it on each row.
- *
- * The toggles gate the Citation Popover alone — under Page preview the Page
- * preview plugin's own settings own that gate, and under Off there is nothing
- * to gate — so the entry appears under the Citation Popover alone.
- */
 function requireModPage(
   ctx: SettingTabContext,
 ): SettingDefinitionPage<SettingsKey> {

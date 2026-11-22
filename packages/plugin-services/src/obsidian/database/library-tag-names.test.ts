@@ -29,7 +29,6 @@ interface Logged {
   annotations: Readonly<Record<string, unknown>>;
 }
 
-/** A Logger layer that records each Effect log record it is given. */
 function captureLogs() {
   const logged: Logged[] = [];
   const layer = Logger.layer([
@@ -168,8 +167,6 @@ describe("libraryTagNames", () => {
     }),
   );
 
-  // A read that unload stops, such as one whose worker the unload ends,
-  // answers with an interrupt.
   it.effect("passes a read's interrupt on without a warning", () =>
     Effect.gen(function* () {
       const snapshot = snapshotOf(

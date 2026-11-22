@@ -1,4 +1,3 @@
-// Renders the captured card once, after its final image outcome is durable.
 import { Effect } from "effect";
 
 import { ExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
@@ -37,26 +36,14 @@ export interface AnnotationInsertOptions {
   source: AnnotationSource;
   sourceScope: string;
   notePath: string;
-  /** Whether the editor still takes the insert. */
   valid: () => boolean;
 }
 
-/** The captured card's rendered text and its Excerpt Image summary. */
 export interface AnnotationInsert {
   text: string;
   summary: ExcerptSummary;
 }
 
-/**
- * Render the captured card through the annotation template of its parent
- * item's Literature Note Profile, after its Excerpt Image is prepared. `null`
- * where the insert went stale (the caller's `valid`, or a moved Zotero data
- * directory) or the database cannot place the card. An interrupt cancels it,
- * and aborts the excerpt preparation.
- *
- * Fails with {@link ProfileAnnotationError} when the parent's note names an
- * unknown Profile.
- */
 export const prepareAnnotationInsert = Effect.fn(
   "NoteFeature.prepareAnnotationInsert",
 )(function* (options: AnnotationInsertOptions) {
@@ -64,16 +51,12 @@ export const prepareAnnotationInsert = Effect.fn(
   const pref = yield* ZoteroPref;
   const reads = yield* (yield* ZoteroReads).snapshot;
   const { dataDir: startDataDir, baseAttachmentPath } = yield* pref.current;
-  // The insert is current while the editor takes it and the Zotero data
-  // directory is the one the card came from.
   const valid = Effect.map(
     pref.current,
     ({ dataDir }) => options.valid() && options.sourceScope === dataDir,
   );
   if (!(yield* valid)) return null;
   const paths = { dataDir: startDataDir, baseAttachmentPath };
-  // The parent context, not the Annotation's own row: a card the Local API
-  // answered can precede its SQLite row.
   const { identity, sources, attachment } = yield* excerptInputs(
     reads,
     a.parentKey,
@@ -85,7 +68,6 @@ export const prepareAnnotationInsert = Effect.fn(
     attachment,
     paths,
   });
-  // This also validates the captured source against the Snapshot's database identity.
   const key = parseIndexedKey(a.key);
   if (!request || !attachment || !key) return null;
   const unusedImport = () => {
@@ -117,8 +99,6 @@ export const prepareAnnotationInsert = Effect.fn(
     );
   const page = "pageIndex" in a.position ? a.position.pageIndex + 1 : null;
   const fileLink = resolvers.fileLink(attachment, { annotation: a.key, page });
-  // The Durable Annotation Link: what the note points back to the passage
-  // with, on any computer, rather than this computer's file path.
   const backlink = annotationOpenUri({
     annotationKey: key.key,
     attachmentKey: attachment.key,

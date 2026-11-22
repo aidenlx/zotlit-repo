@@ -19,12 +19,6 @@ import {
   syntaxTree,
   tokenClassNodeProp,
 } from "@codemirror/language";
-// The CodeMirror side of the citekey editor treatment: citekey marks and
-// citation widgets over the visible ranges, the lookup that answers which
-// citekey covers a document position, the click that opens the marked key's
-// Literature Note, and the hover that shows its entry. Wherever a Citation does
-// not open as a link, a plain click on its widget stays the editor's own and
-// places the caret in the source the widget hides.
 import { Prec, RangeSetBuilder, StateEffect } from "@codemirror/state";
 import type { EditorState, Extension } from "@codemirror/state";
 import {
@@ -91,90 +85,40 @@ import {
 } from "#obsidian/citekey-navigation/index.ts";
 import "./style.css";
 
-/** Opens the Literature Note of `citekey`, creating it when none exists yet. */
 export type OpenCitekey = (citekey: string, pane: NavigationPane) => void;
 
-/**
- * What a citekey names — read synchronously from the Citation Index's
- * resolution snapshot: one Zotero Item, none, or several candidates.
- */
 export type ResolveCitekey = (citekey: string) => CitekeyResolution | null;
 
-/**
- * The resolution state the page preview branch reads.
- *
- * @returns the vault path of the one Literature Note `citekey` names, or null
- *   when zero or several name it.
- */
 export interface CitekeyEditorHandlers {
   open: OpenCitekey;
-  /** Raises the menus a rendered citation opens. */
   workspace: Pick<Workspace, "trigger">;
-  /** Show the Citation Popover of one hovered citation. */
   showPopover: (request: CitationHoverRequest) => void;
-  /** What hover answers with, read once per hover. */
   hoverPreferences: () => HoverPreferences;
   hoverNotePath: (
     citekey: string,
     lookup?: CitationLookupAnswer | null,
   ) => string | null;
   observeLookup: (changed: () => void) => CitationLookupObservation;
-  /** Whether literal Citations expose ZotLit navigation. */
   navigationEnabled: () => boolean;
-  /** Whether Live Preview replaces complete Citations with formatted text. */
   showFormatted: () => boolean;
-  /**
-   * The formatted citations held for one document, or null while none are —
-   * decorations are built synchronously, so a widget can only show text that is
-   * already there.
-   */
   citationText: (path: string) => Held<DocumentCitations> | null;
 }
 
-/**
- * Dispatched by the citekey editor service whenever something outside the
- * document changed what these decorations should say — a citekey's resolution,
- * or the citation text a widget shows. Both invalidations are coarse, so this
- * one effect asks for a rebuild rather than naming what it touched.
- */
 export const citekeyDecorationsChanged = StateEffect.define<void>();
 
-/**
- * `cm-underline` is Obsidian's own link-text class: it draws the link
- * decoration line and, together with the plugin's cursor rule, gives a
- * recognized citekey the affordance of an internal link.
- */
 const MARK_CLASS = `cm-underline ${themeHook.citationKey}`;
 
-/**
- * The classes one marked key carries for what it names, drawn from the shared
- * classifier so a marked key and the Citation it is written in state one thing.
- */
 function markClass(state: CitationKeyState): string {
   return [MARK_CLASS, ...citationStateHooks(citationState([state]))].join(" ");
 }
 
-/**
- * What a plain click on a marked citekey reaches wherever Citations stay closed
- * as links: the caret, in both editor modes. The mark says so the same way a
- * rendered Citation does, which is what its cursor and its hover colour are
- * drawn from.
- *
- * @see markCitationClick
- */
 const EDIT_ATTRIBUTES = { "data-zt-click": "edit" };
 
-/**
- * The marks of every resolution state, in the two states Citekey Navigation
- * leaves a citekey in. A citekey that opens on click carries the link
- * affordance whole and states nothing further.
- */
 const CITEKEY_MARKS = {
   open: markDecorations(),
   edit: markDecorations(EDIT_ATTRIBUTES),
 } as const;
 
-/** @param attributes what every mark of this set states about its own click. */
 function markDecorations(
   attributes?: Record<string, string>,
 ): Record<CitationKeyState, Decoration> {
@@ -186,42 +130,18 @@ function markDecorations(
   };
 }
 
-/**
- * What the decoration pass produced. The widgets stand apart because cursor
- * motion treats them as atoms and because they draw at a higher precedence
- * than the marks.
- */
 interface CitekeyDecorations {
-  /** The citekey marks over source text that stays visible. */
   marks: DecorationSet;
-  /** The widgets that replace whole Citations. */
   widgets: DecorationSet;
-  /** The complete visible request this pass read. */
   citekeys: readonly string[];
 }
 
-/**
- * Marks every recognized `@citekey` in the visible ranges and replaces each
- * Citation with its formatted text in Live Preview. Navigation handlers apply
- * independently when their setting is enabled.
- *
- * Marks and widgets are provided from a view plugin, which the CodeMirror
- * provisioning rule allows because nothing here changes the vertical block
- * structure. Obsidian's own clickable-token machinery never sees a citekey —
- * its Markdown mode emits no token for one — so the click and hover paths are
- * the plugin's own.
- */
 export function citekeyEditorExtension(
   handlers: CitekeyEditorHandlers,
 ): Extension {
   return ViewPlugin.fromClass(
     class CitekeyEditorPlugin {
-      /** The citekey marks, drawn at the plugin's own precedence. */
       decorations: DecorationSet = Decoration.none;
-      /**
-       * The widget ranges, which {@link EditorView.atomicRanges} reads and a
-       * higher-precedence decoration source draws.
-       */
       widgets: DecorationSet = Decoration.none;
       #editClick: { from: number; x: number; y: number } | null = null;
       readonly #lookup;
@@ -243,10 +163,6 @@ export function citekeyEditorExtension(
       update(update: ViewUpdate): void {
         if (update.docChanged) this.#editClick = null;
         const tree = syntaxTree(update.state);
-        // The stream parse stops just past the viewport, so a tree shorter than
-        // the viewport has no nodes over part of it. Obsidian also freezes its
-        // decorations during IME composition and while the mouse is down. In
-        // all three cases the mapped set stands in until the next update.
         if (
           tree.length < update.view.viewport.to ||
           update.view.composing ||
@@ -261,8 +177,6 @@ export function citekeyEditorExtension(
         if (
           update.docChanged ||
           update.viewportChanged ||
-          // A widget hides its Citation's source, so every selection and focus
-          // change decides again which Citations show raw text.
           update.selectionSet ||
           update.focusChanged ||
           tree !== syntaxTree(update.startState) ||
@@ -320,8 +234,6 @@ export function citekeyEditorExtension(
         ) {
           return false;
         }
-        // Native mousedown owns drag and extended selection. Once an ordinary
-        // click finishes, move its edge caret into the source it just revealed.
         view.dispatch({
           selection: { anchor: click.from + 1 },
           userEvent: "select.pointer",
@@ -330,20 +242,11 @@ export function citekeyEditorExtension(
         return true;
       }
 
-      /**
-       * @returns whether the citekey under the pointer was opened, which also
-       *   tells CodeMirror to stop handling the event.
-       */
       openAt(event: MouseEvent, view: EditorView): boolean {
         if (!handlers.navigationEnabled()) return false;
-        // A widget runs its own handlers on its own element, so this delegated
-        // one leaves everything the widget covers to it.
         if (citationElementAt(event) !== null) return false;
 
         const editorMode = editorModeOf(view);
-        // A drag that ended on a citekey is a selection, not a click. Source
-        // mode still lets a modifier click through: Shift-click extends the
-        // selection on mousedown, and native links navigate regardless.
         if (!view.state.selection.main.empty && editorMode === "live-preview")
           return false;
         const citekey = citekeyAtEvent(view, event);
@@ -359,9 +262,6 @@ export function citekeyEditorExtension(
           citekey,
         });
         if (intent.kind !== "open") {
-          // A Source-mode plain click falls through to CodeMirror's caret
-          // placement; every other non-open intent means this shell does not
-          // handle the gesture yet.
           if (logLevelEnabled("debug"))
             Effect.runSyncWith(logServices)(
               Effect.logDebug("Citekey click not followed").pipe(
@@ -396,15 +296,7 @@ export function citekeyEditorExtension(
         return true;
       }
 
-      /**
-       * Shows what the Hover Action asks of the marked citekey under the
-       * pointer — the surface a Citation keeps wherever its source text stays
-       * visible. The Hover Action alone owns this result, so it answers
-       * wherever the treatment marks a citekey.
-       */
       hoverAt(event: MouseEvent, view: EditorView): void {
-        // A widget hovers on its own element, and its formatted text carries
-        // the citekey hook too, so this delegated handler leaves it alone.
         if (citationElementAt(event) !== null) return;
         const targetEl = citekeyElementAt(event);
         if (targetEl === null) return;
@@ -437,8 +329,6 @@ export function citekeyEditorExtension(
         if (!info) return;
 
         if (intent.kind === "page-preview") {
-          // A key naming zero or several notes previews nothing, so no popover
-          // path can reach the create-then-open flow.
           const notePath = handlers.hoverNotePath(
             intent.citekey,
             this.#lookup.current?.value ?? null,
@@ -494,8 +384,6 @@ export function citekeyEditorExtension(
             const resolution = this.#resolve(key);
             return {
               citekey: key,
-              // An Ambiguous Citation Key adopts no candidate's identity, so
-              // the popover reads it as the key it is and names its candidates.
               indexedKey:
                 resolution?.kind === "unique"
                   ? resolution.item.indexedKey
@@ -506,12 +394,6 @@ export function citekeyEditorExtension(
         });
       }
 
-      /**
-       * The Citations of the document this editor shows, or null when none can
-       * be shown yet: Source mode keeps raw text, a view with no file has no
-       * document to read, and a read still running leaves the marked source in
-       * place until it settles.
-       */
       #editedDocument(view: EditorView): EditedDocument | null {
         if (!handlers.showFormatted()) return null;
         if (!livePreviewOf(view.state)) return null;
@@ -539,16 +421,7 @@ export function citekeyEditorExtension(
         const widgets = (view: EditorView): DecorationSet =>
           view.plugin(plugin)?.widgets ?? Decoration.none;
         return [
-          // Cursor motion steps over a widget in one go, and backspace removes
-          // the Citation it hides whole, rather than entering text that is not
-          // shown.
           EditorView.atomicRanges.of(widgets),
-          // Live Preview reads a Citation next to another bracket, such as
-          // `[@a] [@b]`, as link syntax and hides its brackets with replaces of
-          // its own, which start where the widget starts. CodeMirror then draws
-          // the widget on a full render, but on a redraw of the widget alone it
-          // draws the higher-precedence empty replace over the whole Citation.
-          // Ranking the widgets above Live Preview makes every draw show them.
           Prec.high(EditorView.decorations.of(widgets)),
         ];
       },
@@ -558,7 +431,6 @@ export function citekeyEditorExtension(
           if (this.finishEditClick(event, view)) return true;
           return this.openAt(event, view);
         },
-        // Obsidian reads middle-click off `mousedown`; `click` never fires for it.
         mousedown(event, view) {
           this.startEditClick(event, view);
           if (event.button !== 1) return false;
@@ -573,7 +445,6 @@ export function citekeyEditorExtension(
   );
 }
 
-/** The document an editor shows, with the citation text held for it. */
 interface EditedDocument {
   citations: DocumentCitations;
   path: string;
@@ -593,13 +464,6 @@ const renderedCitationWidgets = new WeakMap<
   RenderedCitationWidget
 >();
 
-/**
- * One Citation shown as the text a style formatted.
- *
- * A document read can move the occurrence while preserving its rendered text
- * and Entry Serials. The equal fast path recognizes the held value, and the
- * DOM update path keeps a value-equal element while refreshing its navigation.
- */
 class CitationWidget extends WidgetType {
   readonly #source;
   readonly #content;
@@ -615,15 +479,12 @@ class CitationWidget extends WidgetType {
   constructor(options: {
     source: string;
     content: PresentedCitation;
-    /** Which occurrence the widget stands for, read again on every popover read. */
     shown: ShownCitation;
     works: readonly CitedWork[];
     sourcePath: string;
     handlers: CitekeyEditorHandlers;
     themeClasses: readonly string[];
-    /** Whether the Citation is written inside a footnote. */
     footnote: boolean;
-    /** Whether the Citation opens on click, which Citekey Navigation owns. */
     navigable: boolean;
     lookupRevision: string;
   }) {
@@ -701,9 +562,6 @@ class CitationWidget extends WidgetType {
   #navigation(view: EditorView): CitationNavigation {
     return {
       works: this.#works,
-      // The occurrence this widget stands in the citation's place, which is
-      // where a note-class style's own note text is read from, however often
-      // the popover reads it again.
       shown: this.#shown,
       where: { surface: "editor", editorMode: "live-preview" },
       open: this.#handlers.open,
@@ -724,10 +582,6 @@ class CitationWidget extends WidgetType {
     };
   }
 
-  /**
-   * Native mousedown keeps selection and drag behavior; the completed plain
-   * click lets the editor place its caret inside the revealed Citation source.
-   */
   ignoreEvent(event: Event): boolean {
     if (
       this.#navigable ||
@@ -748,12 +602,10 @@ class CitationWidget extends WidgetType {
   }
 }
 
-/** One decoration of a line, before the whole line is sorted into the builder. */
 interface PlacedDecoration {
   from: number;
   to: number;
   decoration: Decoration;
-  /** Whether it replaces a Citation, which also makes its range atomic. */
   replaces: boolean;
 }
 
@@ -772,8 +624,6 @@ function buildDecorations(
   const widgets = new RangeSetBuilder<Decoration>();
   const { state } = view;
   const marksOf = CITEKEY_MARKS[handlers.navigationEnabled() ? "open" : "edit"];
-  // A blurred editor conceals everything, the way Obsidian's own live preview
-  // reads its selection.
   const selection = view.hasFocus ? state.selection.ranges : [];
   const visibleCitekeys = new Set<string>();
   let lastLineFrom = -1;
@@ -781,7 +631,6 @@ function buildDecorations(
     for (let pos = range.from; pos <= range.to;) {
       const line = state.doc.lineAt(pos);
       pos = line.to + 1;
-      // A line straddling two visible ranges is offered twice; decorate it once.
       if (line.from === lastLineFrom) continue;
       lastLineFrom = line.from;
 
@@ -832,8 +681,6 @@ function buildDecorations(
         });
       }
 
-      // Marks never fall inside a widget's range, so ordering by start alone
-      // gives the builder the sorted, non-overlapping ranges it requires.
       placed.sort((a, b) => a.from - b.from);
       for (const { from, to, decoration, replaces } of placed) {
         (replaces ? widgets : marks).add(from, to, decoration);
@@ -847,17 +694,11 @@ function buildDecorations(
   };
 }
 
-/**
- * @returns the widget for one Citation. An unresolved Citation keeps its
- *   source text and error hook, without navigation handlers.
- */
 function citationWidget(options: {
   citation: CitationRange;
-  /** Document offset the Citation starts at, which picks out its occurrence. */
   start: number;
   edited: EditedDocument;
   handlers: CitekeyEditorHandlers;
-  /** Whether the Citation is written inside a footnote. */
   footnote: boolean;
 }): CitationWidget | null {
   const {
@@ -892,13 +733,6 @@ function citationWidget(options: {
   });
 }
 
-/**
- * Applies the same re-entry guard Obsidian runs before its own `hover-link`,
- * so moving within one mark fires a single hover.
- *
- * @returns the citekey mark the pointer entered, or null when the event lands
- *   on no mark or moves within the one it is already inside.
- */
 function citekeyElementAt(event: MouseEvent): HTMLElement | null {
   const target = event.target as Node | null;
   const relatedTarget = event.relatedTarget as Node | null;
@@ -911,14 +745,12 @@ function citekeyElementAt(event: MouseEvent): HTMLElement | null {
   return targetEl;
 }
 
-/** @returns the citation widget the event landed in, or null when it landed in none. */
 function citationElementAt(event: MouseEvent): HTMLElement | null {
   const target = event.target as Node | null;
   if (!target?.instanceOf(HTMLElement)) return null;
   return target.closest<HTMLElement>(`.${themeHook.citation}`);
 }
 
-/** @returns the citekey under the pointer, or null when it covers none. */
 function citekeyAtEvent(view: EditorView, event: MouseEvent): string | null {
   const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
   if (pos === null) return null;
@@ -929,14 +761,6 @@ function editorModeOf(view: EditorView): EditorMode {
   return view.dom.closest(".is-live-preview") ? "live-preview" : "source";
 }
 
-/**
- * The citekey covering document position `pos` — the one lookup the click and
- * the palette commands share. `pos` counts as inside the key at either
- * boundary, the same `from <= pos && to >= pos` range test Obsidian runs on
- * its own tokens.
- *
- * @see Editor.getClickableTokenAt in Obsidian 1.13
- */
 export function citekeyAtPos(state: EditorState, pos: number): string | null {
   const line = state.doc.lineAt(pos);
   const from = line.from;
@@ -950,20 +774,6 @@ export function citekeyAtPos(state: EditorState, pos: number): string | null {
   return null;
 }
 
-/**
- * Whether a widget over `[from, to)` has to carry the footnote treatment
- * itself, which the range's own tokens decide.
- *
- * A node meeting the range only at a boundary describes the text beside it —
- * the `^[` opening an inline note is such a neighbor — so the range's own
- * tokens are the ones that overlap it. Of those, a footnote run reaching past
- * both ends is one CodeMirror wraps the replacement in, which passes the
- * treatment down on its own; the class would then shrink the same em-relative
- * step a second time. Every other footnote range leaves the replacement
- * outside the run, with nothing to inherit from.
- *
- * @see FOOTNOTE_WIDGET_CLASS
- */
 function statesFootnoteTreatment(
   state: EditorState,
   from: number,
@@ -987,7 +797,6 @@ function statesFootnoteTreatment(
   return inside && !wrapped;
 }
 
-/** Whether Obsidian's syntax tree classifies `[from, to)` as non-citation text. */
 function isExcluded(state: EditorState, from: number, to: number): boolean {
   let excluded = false;
   syntaxTree(state).iterate({

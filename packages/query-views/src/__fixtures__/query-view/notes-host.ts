@@ -1,4 +1,3 @@
-// A notes-table test host over the index and creation boundaries its tests drive.
 import { Effect, Layer, Stream } from "effect";
 import type { TFile } from "obsidian";
 
@@ -40,7 +39,7 @@ export interface NotesHostDeps {
   noteFeature: Pick<
     NoteFeatureHandle,
     "replacedKeys" | "createNoteInteractively"
-  >;  /** The vault's file at `path`, as the table resolves a note it keys by path. */
+  >;
   getFile: (path: string) => TFile | null;
 }
 
@@ -150,7 +149,6 @@ export async function makeNotesHost(deps: NotesHostDeps) {
   return {
     notes,
     registry,
-    /** Write a vault property, as a leaf runs the write, and its answer. */
     write: (edit: VaultEdit): Promise<VaultWrite> =>
       runtime.runPromise(notes.write(edit)),
     async [Symbol.asyncDispose]() {

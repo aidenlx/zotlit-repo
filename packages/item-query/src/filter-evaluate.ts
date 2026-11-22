@@ -1,6 +1,3 @@
-// The evaluator of a validated Filter Expression: the authority for every
-// match. Missing data gives null; a value that the Item cannot compute gives
-// an Error Value, which passes through every node that does not read a truth.
 import { addDuration } from "./filter-dates.ts";
 import { errorValue, firstError, isError } from "./filter-error.ts";
 import { finite, invoke, methodOf, propertyOf } from "./filter-functions.ts";
@@ -18,17 +15,14 @@ import {
 import type { FilterValue } from "./filter-values.ts";
 import type { QueryClock } from "./query-clock.ts";
 
-/** The values of the names the enclosing element expressions bind. */
 type Bindings = ReadonlyMap<string, FilterValue>;
 
-/** What one evaluation reads: the Item, the Query Clock, and the bindings. */
 interface Context<Item> {
   readonly item: Item;
   readonly clock: QueryClock;
   readonly bindings: Bindings;
 }
 
-/** Whether the filter selects the Item: null and an Error Value are falsy. */
 export function matches<Item>(
   root: FilterNode<Item>,
   item: Item,
@@ -37,10 +31,6 @@ export function matches<Item>(
   return truthy(evaluate(root, item, clock));
 }
 
-/**
- * The value of a node for one Item. Every date function and every
- * calendar-day comparison reads `clock`, the Query Clock of the query.
- */
 export function evaluate<Item>(
   node: FilterNode<Item>,
   item: Item,
@@ -49,7 +39,6 @@ export function evaluate<Item>(
   return valueOf(node, { item, clock, bindings: new Map() });
 }
 
-/** The value of each Formula for each record, by the root of the Formula. */
 const formulaValues = new WeakMap<
   object,
   Map<
@@ -58,11 +47,6 @@ const formulaValues = new WeakMap<
   >
 >();
 
-/**
- * The value of a Formula for one record. The Formula runs once for each
- * record and Query Clock: a second read, from the filter, another Formula, or
- * the projection, gives the first value. The Formula text binds no names.
- */
 export function evaluateFormula<Item>(
   root: FilterNode<Item>,
   item: Item,
@@ -79,7 +63,6 @@ export function evaluateFormula<Item>(
   return value;
 }
 
-/** The value of a node in `context`. */
 function valueOf<Item>(
   node: FilterNode<Item>,
   context: Context<Item>,
@@ -100,7 +83,6 @@ function valueOf<Item>(
       return evaluateFormula(node.root, item, clock);
     case "unary": {
       const operand = value(node.operand);
-      // Null and an Error Value are falsy, so `!` of them is true.
       if (node.operator === "!") return !truthy(operand);
       if (operand === null || isError(operand)) return operand;
       return typeof operand === "number"
@@ -133,7 +115,6 @@ function valueOf<Item>(
       }
       const subject = value(node.subject);
       const method = methodOf(typeOf(subject), node.name);
-      // An Error Value answers only the methods of every value.
       if (!method) return wrongSubject(subject, `${node.name}()`);
       return invoke(
         method,
@@ -168,16 +149,11 @@ function valueOf<Item>(
             typeof index === "string" ? JSON.stringify(index) : toText(index),
         });
       }
-      // A negative index counts from the end.
       return subject[index < 0 ? index + subject.length : index] ?? null;
     }
   }
 }
 
-/**
- * The value of an operation on a subject of a type without it: null on null,
- * the subject itself when it is an Error Value, and an Error Value otherwise.
- */
 function wrongSubject(subject: FilterValue, callee: string): FilterValue {
   if (subject === null || isError(subject)) return subject;
   return errorValue({
@@ -187,21 +163,12 @@ function wrongSubject(subject: FilterValue, callee: string): FilterValue {
   });
 }
 
-/**
- * An element expression: the expression runs once for each element of the
- * list with `value` and `index` bound, and `acc` in `reduce`. A null subject
- * gives null, another subject that is not a list an Error Value; `initial` is
- * evaluated once, outside the binding, and an Error Value among them is the
- * result. `filter` drops an element whose
- * expression gives an Error Value.
- */
 function element<Item>(
   node: Extract<FilterNode<Item>, { kind: "element" }>,
   context: Context<Item>,
 ): FilterValue {
   const subject = valueOf(node.subject, context);
   if (!isList(subject)) return wrongSubject(subject, `${node.name}()`);
-  // As in every other call, an Error Value among the arguments is the result.
   const args = node.args.map((arg) => valueOf(arg, context));
   const failed = firstError(args);
   if (failed !== undefined) return failed;
@@ -230,7 +197,6 @@ function element<Item>(
   }
 }
 
-/** A date that date arithmetic gave; none is a date out of range. */
 function shifted(date: FilterValue, operator: string): FilterValue {
   return date ?? errorValue({ code: "date-out-of-range", operator });
 }
@@ -242,7 +208,6 @@ function binary<Item>(
   const { operator } = node;
   const { clock } = context;
   const value = (child: FilterNode<Item>) => valueOf(child, context);
-  // `&&` and `||` evaluate the right side only when the left side needs it.
   if (operator === "&&") {
     return truthy(value(node.left)) && truthy(value(node.right));
   }
@@ -253,7 +218,6 @@ function binary<Item>(
   const right = value(node.right);
   if (operator === "==") return equals(left, right, clock);
   if (operator === "!=") return !equals(left, right, clock);
-  // Every other operator passes an Error Value through.
   if (isError(left)) return left;
   if (isError(right)) return right;
   switch (operator) {
@@ -264,14 +228,12 @@ function binary<Item>(
       return compare(operator, [left, right], clock);
     case "+":
       if (typeof left === "string" || typeof right === "string") {
-        // Null adds no text.
         return (
           (left === null ? "" : toText(left)) +
           (right === null ? "" : toText(right))
         );
       }
       if (isList(left) && isList(right)) return [...left, ...right];
-      // Date arithmetic follows the calendar of the query time zone.
       if (isDate(left) && isDuration(right)) {
         return shifted(addDuration(left, right.duration, clock), operator);
       }
@@ -288,7 +250,6 @@ function binary<Item>(
       }
       break;
   }
-  // Null in arithmetic is missing data.
   if (left === null || right === null) return null;
   if (typeof left !== "number" || typeof right !== "number") {
     return errorValue({

@@ -9,14 +9,6 @@ type Payload<E> = {
   [K in keyof E]: { readonly type: K; readonly args: E[K] };
 }[keyof E];
 
-/**
- * One ordered intake for a layer's Obsidian events. The subscription exists
- * before registration, including one-shots that call back immediately.
- * Fork `consume(handler)` on the layer's Scope. Each failed event is logged
- * with its cause; consumption continues until interruption. `on` owns an Events
- * registration; `callback` also adapts onLayoutReady and onCleanCache. Late
- * one-shot callbacks are harmless after the Scope shuts down the PubSub.
- */
 export const obsidianEvents = Effect.fnUntraced(function* <
   E extends { [K in keyof E]: unknown[] },
 >() {
@@ -38,7 +30,6 @@ export const obsidianEvents = Effect.fnUntraced(function* <
     source: ObsidianEventEmitter,
     name: string,
   ) {
-    // Obsidian's base Events API erases event-specific argument types.
     return yield* obsidianListener(
       source,
       name,
@@ -70,7 +61,6 @@ export const obsidianEvents = Effect.fnUntraced(function* <
     consume,
     on,
     callback,
-    /** Payloads published but not yet dispatched by consume, including buffered chunks. */
     get pending() {
       return pending;
     },

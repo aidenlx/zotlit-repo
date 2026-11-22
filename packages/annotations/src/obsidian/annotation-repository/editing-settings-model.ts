@@ -1,44 +1,29 @@
-// What the "Zotero editing" row shows for one Editing Capability, decided
-// before any element is touched.
 import type { ButtonComponent } from "obsidian";
 
 import { editingCapabilityCopy } from "./capability-copy.ts";
 import type { CapabilityCopy, CopyInstant } from "./capability-copy.ts";
 import type { EditingCapability } from "./capability.ts";
 
-/** Whether one action is offered at all, and whether it can be selected now. */
 export interface ActionState {
   shown: boolean;
   disabled: boolean;
 }
 
-/** Everything the row renders, decided before any element is touched. */
 export interface EditingRowModel {
   status: CapabilityCopy;
-  /** "Allow editing" — the gesture that asks Zotero for write permission. */
   enable: ActionState;
   check: ActionState;
-  /** "Forget authorization" — offered only while there is one to forget. */
   forget: ActionState;
-  /** Whether the row must redraw itself on a clock rather than on an event. */
   countsDown: boolean;
 }
 
 export interface EditingRowInput {
   capability: EditingCapability;
-  /** A connection check started from this settings row is in flight. */
   checking?: boolean;
-  /** Whether a Remembered Write Authorization is stored on this device. */
   remembered: boolean;
-  /** The instant a cooldown's remaining seconds are measured from. */
   now: CopyInstant;
 }
 
-/**
- * What the "Zotero editing" row offers for one Editing Capability.
- *
- * Authorization and connection checks are separate user actions.
- */
 export function editingRowModel({
   capability,
   checking = false,

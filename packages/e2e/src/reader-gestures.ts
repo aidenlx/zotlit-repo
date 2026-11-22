@@ -1,18 +1,8 @@
 import { expect } from "vitest";
-// The Obsidian half of a gesture on a PDF page in the Paired Run: the PDF
-// opened with the Annotation View beside it, the reader's view as an eval
-// expression, pointer events dispatched as the browser sends them, the window
-// raised so the page lays out, and the reads a Geometry Edit test takes of the
-// plugin around a gesture.
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import type { BackgroundWindow } from "./page-notes-types.ts";
 
-/**
- * Brings page one on screen in a window that lays it out, and arms `tool`
- * from the Creation Toolbar. With `at`, the PDF point `at` on page one is
- * first brought to the middle of the window.
- */
 export async function armToolOnFirstPage(
   vaultId: string,
   {
@@ -75,7 +65,6 @@ export async function armToolOnFirstPage(
   ).toBe("true");
 }
 
-/** Stands the named Creation Toolbar tool down after a test. */
 export async function disarmTool(
   vaultId: string,
   { attachmentPath, tool }: { attachmentPath: string; tool: string },
@@ -90,11 +79,6 @@ export async function disarmTool(
   );
 }
 
-/**
- * Settles once the blocked gesture a press reported in the view on
- * `attachmentPath` has run to its end: the probe it starts, and the notice
- * after it.
- */
 export async function settledGesture(
   vaultId: string,
   attachmentPath: string,
@@ -110,12 +94,6 @@ export async function settledGesture(
   );
 }
 
-/**
- * Closes the PDF view on `attachmentPath` that {@link pdfViewOf} answers and
- * opens the PDF again in the same leaf, in one step, so the view takes a new
- * binding. A background tab can hold the same PDF, and closing that one would
- * leave the view under test open.
- */
 export async function reopenPdfView(
   vaultId: string,
   attachmentPath: string,
@@ -139,16 +117,6 @@ export async function reopenPdfView(
   ).toBe("reopened");
 }
 
-/**
- * Opens the PDF `attachmentPath` in a new tab and waits for its binding, then
- * opens the Annotation View and sets it to follow the active tab. The
- * workspace layout goes back as it was found when `cleanup` disposes; the
- * restore is on the stack before the tab opens, so a failed open puts it back
- * too.
- *
- * @param attachmentPath the vault path of the PDF.
- * @param cleanup the stack that restores the workspace layout.
- */
 export async function openPdfWithAnnotationView(
   vaultId: string,
   {
@@ -212,11 +180,6 @@ export async function openPdfWithAnnotationView(
   );
 }
 
-/**
- * Shows the vault's window if it is hidden or minimized, behind other apps'
- * windows, and leaves the OS focus where it is. A pointer gesture is hit-tested against the page as laid
- * out; `prepareRunWindow` keeps a covered window laying it out.
- */
 export async function raiseWindow(vaultId: string): Promise<void> {
   await obRunUntil(
     vaultId,
@@ -237,12 +200,6 @@ export async function raiseWindow(vaultId: string): Promise<void> {
   );
 }
 
-/**
- * Selects text in the open comment editor of the Mark Popup three ways — a
- * double click, a drag, and "Select all" from the editor's own context menu —
- * and expects each selection to land while the editor stays open. The menu is
- * Obsidian's DOM menu for the run, whatever the vault set.
- */
 export async function expectEditorKeepsSelections(
   vaultId: string,
 ): Promise<void> {
@@ -378,13 +335,6 @@ export async function expectEditorKeepsSelections(
   }
 }
 
-/**
- * The Sort Index the reader's text structure gives a stored position, through
- * the binding of the view on `attachmentPath` — the value a Geometry Edit is
- * saved with.
- *
- * @param position the position as Zotero stores it, a JSON string.
- */
 export async function recomputedSortIndex(
   vaultId: string,
   { attachmentPath, position }: { attachmentPath: string; position: string },
@@ -406,11 +356,6 @@ export async function recomputedSortIndex(
   );
 }
 
-/**
- * Records the Annotations whose Excerpt Image pixels the repository announces
- * as changed, from now until disposal, which lets go of the listener on every
- * exit.
- */
 export async function watchExcerptPixels(
   vaultId: string,
 ): Promise<AsyncDisposable & { keys(): Promise<string[]> }> {

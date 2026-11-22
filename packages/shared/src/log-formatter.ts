@@ -47,13 +47,6 @@ function escapeFormat(s: string): string {
   return s.replaceAll("%", "%%");
 }
 
-/**
- * DevTools formatter of the plugin's console sink. Emits a `%c`-styled
- * single line `HH:mm:ss.sss LVL category msg` with structured properties (if
- * any) appended as a trailing `%o`. User-controlled segments (category and
- * message template parts) have `%` doubled so a `%c` / `%o` inside them does
- * not consume our style/value arguments.
- */
 export function devToolsFormatter(record: LogRecord): readonly unknown[] {
   const timestamp = formatTimestamp(record.timestamp);
   const levelAbbr = LEVEL_ABBREVIATIONS[record.level] ?? record.level;

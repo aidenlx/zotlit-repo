@@ -1,26 +1,3 @@
-// The Item Index: item search over the Libraries a caller names, built from an ItemSource.
-/**
- * The Item Index: one search index per Library list, built from an
- * {@link ItemSource} and kept fresh by its generation stream.
- *
- * - The first search for a Library list waits for its build; later searches
- *   answer from the last complete index while a rebuild runs.
- * - Rebuilds of one list are single-flight with one trailing rerun: a request
- *   that arrives mid-build lets the build finish, then runs once more.
- * - A generation emission re-checks every held list. A changed generation, a
- *   changed configuration, or a moved signature vector rebuilds; an equal one
- *   keeps the index. The list the latest search asked for stays held. Any
- *   other list no search asked for since the last emission, and that no
- *   search waits on, is evicted and its build interrupted.
- * - A build reads one pinned source for its whole life, in slices, and yields
- *   to the scheduler after each slice.
- * - A held index keeps the pinned source it was built on, or last verified
- *   against with equal signatures, until a newer index replaces it or the list
- *   leaves. A search hydrates its hits on that source, so the rows and the
- *   highlight ranges describe one state.
- * - A locale or Segmenter change through `configure` rebuilds every held
- *   list.
- */
 import {
   Cause,
   Context,
@@ -54,45 +31,28 @@ import {
 import type { SegmenterBinary, SegmenterStatus } from "./segmenter-switch.ts";
 import { layerSegmenterNone, Segmenter } from "./segmenter.ts";
 
-/** The source behind an {@link ItemSource} cannot answer. */
 export class SourceUnavailable extends Schema.TaggedError<SourceUnavailable>()(
   "SourceUnavailable",
   { message: Schema.String },
 ) {}
 
-/** Reads bound to one state of the source, for the scope of one build. */
 export interface PinnedItemSource {
-  /** The generation of the source these reads are bound to. */
   readonly generation: number;
-  /**
-   * All indexed Items of one Library, in bounded batches. The source owns
-   * read scheduling; batches need no ranking order. Empty batches are valid.
-   */
   readonly items: (
     libraryID: number,
   ) => Stream.Stream<readonly IndexedItem[], SourceUnavailable>;
-  /** The change signature of one Library's indexed Items. */
   readonly signature: (
     libraryID: number,
   ) => Effect.Effect<IndexSignature, SourceUnavailable>;
-  /** The live Items for Indexed Keys, keyed by Indexed Key; a key that no longer resolves is absent. */
   readonly itemsByIndexedKey: (
     indexedKeys: readonly string[],
   ) => Effect.Effect<ReadonlyMap<string, Item>, SourceUnavailable>;
 }
 
-/** The port the Item Index reads Items through. */
 export class ItemSource extends Context.Service<
   ItemSource,
   {
-    /**
-     * Emits each time the source may have changed. The next pinned source
-     * reports the generation after the change; it rises when the source behind
-     * the port is swapped. The stream emits only changes after the
-     * subscription, never a replay of the current state.
-     */
     readonly generation: Stream.Stream<void>;
-    /** A source bound to one state until the caller's scope closes. */
     readonly pinned: Effect.Effect<
       PinnedItemSource,
       SourceUnavailable,
@@ -101,48 +61,25 @@ export class ItemSource extends Context.Service<
   }
 >()("zotlit/item-lookup/ItemSource") {}
 
-/** The settings an index is built with. */
 export interface IndexSettings {
-  /** The UI locale, for creator-name language lookup; `null` for none. */
   readonly locale: string | null;
-  /** The installed Chinese Segmenter binary; `null` cuts CJK text with `Intl.Segmenter`. */
   readonly segmenterBinary: SegmenterBinary | null;
 }
 
-/** One ranked answer of a search: the hydrated Item and the ranges of its title that matched. */
 export interface SearchHit {
   readonly item: Item;
   readonly matches: SearchMatches;
 }
 
-/** Item search over the Libraries a caller names. */
 export class ItemIndex extends Context.Service<
   ItemIndex,
   {
-    /**
-     * Rank the Items of `libraries` (local ids in canonical order) that match
-     * `query`, best first, up to `limit`, hydrated on the source the answering
-     * index holds. A hit whose Item no longer resolves there is dropped.
-     */
     readonly search: (
       libraries: readonly number[],
       query: string,
       options: SearchOptions,
     ) => Effect.Effect<readonly SearchHit[], SourceUnavailable>;
-    /**
-     * Replace the settings. Calls serialize in arrival order. Returns once the
-     * Segmenter switch is applied and the rebuilds of held lists are scheduled
-     * (not finished).
-     */
     readonly configure: (settings: IndexSettings) => Effect.Effect<void>;
-    /**
-     * Read `binary` again and answer where the Chinese Segmenter stands: the
-     * status of the Segmenter that the builds cut with. A binary that this
-     * read gives starts when the index does not cut with it, and a binary
-     * that it refuses stops, as the binary does with `null`, for no installed
-     * pack; either one rebuilds the held lists. `binary` replaces the one of
-     * the settings, in arrival order with `configure`.
-     */
     readonly checkSegmenter: (
       binary: SegmenterBinary | null,
     ) => Effect.Effect<SegmenterStatus>;
@@ -158,25 +95,18 @@ const log = (message: string, properties?: Readonly<Record<string, unknown>>) =>
 interface BuiltIndex {
   readonly engine: EngineIndex;
   readonly generation: number;
-  /** One per covered Library, in list order. */
   readonly signatures: readonly IndexSignature[];
-  /** The configuration version the index was built with. */
   readonly config: number;
-  /** The pinned source the index was built on or last verified against. */
   readonly binding: Binding;
 }
 
-/** A pinned source a held index keeps; it closes once retired and unused. */
 interface Binding {
   readonly source: PinnedItemSource;
   readonly scope: Scope.Closeable;
-  /** Searches that hold the source for hydration now. */
   users: number;
-  /** No index holds the source any more. */
   retired: boolean;
 }
 
-/** Retire `binding`; its source closes now, or after its last search. */
 const retire = (binding: Binding | undefined): Effect.Effect<void> =>
   Effect.suspend(() => {
     if (!binding || binding.retired) return Effect.void;
@@ -187,9 +117,7 @@ const retire = (binding: Binding | undefined): Effect.Effect<void> =>
   });
 
 interface Lane {
-  /** Set as soon as the lane is forked. */
   fiber: Fiber.Fiber<void, SourceUnavailable> | null;
-  /** Completes when the lane ends; an interrupted lane completes with void. */
   readonly done: Deferred.Deferred<void, SourceUnavailable>;
 }
 
@@ -197,18 +125,11 @@ interface Entry {
   readonly libraries: readonly number[];
   built: BuiltIndex | null;
   lane: Lane | null;
-  /** A rebuild was requested while the lane ran. */
   rerun: boolean;
-  /** A search asked for this list since the last generation emission. */
   asked: boolean;
-  /** Searches waiting for this list's first index. */
   waiters: number;
 }
 
-/**
- * The Item Index, starting with `initial`. The initial Segmenter resolves
- * before the index exists, so no search sees it half-configured.
- */
 export const layerItemIndex = (
   initial: IndexSettings,
 ): Layer.Layer<ItemIndex, never, ItemSource | SegmenterBinaryReader> =>
@@ -221,17 +142,12 @@ function makeItemIndex(initial: IndexSettings) {
       yield* Effect.service(SegmenterBinaryReader),
     );
     let settings = initial;
-    /** The Segmenter every build cuts with. */
     let segmenter =
       (yield* segmenterSwitch.resolve(initial.segmenterBinary)) ??
       (yield* Effect.provide(Effect.service(Segmenter), layerSegmenterNone));
-    /** One `configure` at a time, in arrival order. */
     const configuring = yield* Semaphore.make(1);
     const entries = new Map<string, Entry>();
-    /** The list the latest search asked for; no emission evicts it. */
     let latest: Entry | null = null;
-    // Registered before the lanes' FiberSet, so it runs after every lane
-    // ended: no lane can bind a source after it.
     yield* Effect.addFinalizer(() =>
       Effect.forEach(
         entries.values(),
@@ -256,7 +172,6 @@ function makeItemIndex(initial: IndexSettings) {
       return languageLookup.lookup;
     };
 
-    /** Hold `built` for the entry and retire the binding it replaces. */
     const hold = (entry: Entry, built: BuiltIndex) =>
       Effect.suspend(() => {
         const replaced = entry.built?.binding;
@@ -264,7 +179,6 @@ function makeItemIndex(initial: IndexSettings) {
         return retire(replaced);
       });
 
-    /** Drop the entry's index and retire its binding. */
     const drop = (entry: Entry) =>
       Effect.suspend(() => {
         const replaced = entry.built?.binding;
@@ -272,11 +186,6 @@ function makeItemIndex(initial: IndexSettings) {
         return retire(replaced);
       });
 
-    /**
-     * Re-check the entry on a fresh pinned source: keep the index on equal
-     * signatures, build a new one otherwise. Either way the entry then holds
-     * the fresh source; a pinned source no index takes closes at the end.
-     */
     const rebuildOnce = (entry: Entry) =>
       Effect.uninterruptibleMask((restore) =>
         Effect.gen(function* () {
@@ -334,7 +243,6 @@ function makeItemIndex(initial: IndexSettings) {
             libraries: entry.libraries,
             generation: pinned.generation,
           });
-          // Equal signatures: the fresh source holds what the index holds.
           yield* holdOnce({ ...held, binding });
           return;
         }
@@ -375,16 +283,9 @@ function makeItemIndex(initial: IndexSettings) {
         });
       });
 
-    /**
-     * Start the entry's lane: rebuild, then once more per trailing request.
-     * Synchronous, so the check for a running lane and the reservation of a
-     * new one cannot be split by a scheduler yield.
-     */
     const startLane = (entry: Entry): Lane => {
       const done = Deferred.makeUnsafe<void, SourceUnavailable>();
       const lane: Lane = { fiber: null, done };
-      // The check for a trailing request and the lane's release are one
-      // synchronous step, so a request cannot land between them and be lost.
       const loop: Effect.Effect<void, SourceUnavailable> = Effect.suspend(
         () => {
           entry.rerun = false;
@@ -417,10 +318,8 @@ function makeItemIndex(initial: IndexSettings) {
       return lane;
     };
 
-    /** Join the running lane, or start one. */
     const ensureLane = (entry: Entry): Lane => entry.lane ?? startLane(entry);
 
-    /** Rebuild after the running build, or now when none runs. */
     const requestRebuild = (entry: Entry): Effect.Effect<void> => {
       if (entry.lane) {
         entry.rerun = true;
@@ -469,8 +368,6 @@ function makeItemIndex(initial: IndexSettings) {
 
     const configure = (next: IndexSettings): Effect.Effect<void> =>
       Effect.gen(function* () {
-        // The locale and the Segmenter land in one change, so every held
-        // list rebuilds once for both.
         const switched = yield* segmenterSwitch.resolve(next.segmenterBinary);
         const changed =
           switched !== undefined || next.locale !== settings.locale;
@@ -494,7 +391,6 @@ function makeItemIndex(initial: IndexSettings) {
         return yield* segmenterSwitch.status;
       }).pipe(configuring.withPermits(1));
 
-    /** The list's entry once it holds an index, waiting for a build when none. */
     const indexFor = (
       libraries: readonly number[],
     ): Effect.Effect<Entry, SourceUnavailable> =>
@@ -504,8 +400,6 @@ function makeItemIndex(initial: IndexSettings) {
         latest = entry;
         if (entry.built === null) {
           const lane = ensureLane(entry);
-          // The count rises and its release registers in one step, so an
-          // interrupt cannot leave the entry counted as waited on.
           yield* Effect.acquireUseRelease(
             Effect.sync(() => {
               entry.waiters++;
@@ -518,8 +412,6 @@ function makeItemIndex(initial: IndexSettings) {
           );
         }
         if (entry.built) return entry;
-        // A waited-on entry is never evicted, so only the layer closing ends
-        // its lane without an index.
         return yield* Effect.interrupt;
       });
 
@@ -540,10 +432,6 @@ function makeItemIndex(initial: IndexSettings) {
       return entry;
     };
 
-    /**
-     * Hold the entry's index and its binding for the caller's scope. `null`
-     * when the index was dropped since `indexFor` answered.
-     */
     const holdIndex = (entry: Entry) =>
       Effect.acquireRelease(
         Effect.sync(() => {
@@ -562,8 +450,6 @@ function makeItemIndex(initial: IndexSettings) {
           }),
       );
 
-    // Hydration reads the source the answering index holds, so the rows and
-    // the highlight ranges describe one state.
     const search = (
       libraries: readonly number[],
       query: string,
@@ -572,7 +458,6 @@ function makeItemIndex(initial: IndexSettings) {
       Effect.scoped(
         Effect.gen(function* () {
           const built = yield* holdIndex(yield* indexFor(libraries));
-          // Dropped in between: wait for the list's next index.
           if (!built) return yield* search(libraries, query, options);
           const hits = yield* searchEngineIndex(built.engine, query, options);
           const items = yield* built.binding.source.itemsByIndexedKey(

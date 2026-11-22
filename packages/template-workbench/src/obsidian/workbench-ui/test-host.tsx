@@ -1,8 +1,3 @@
-// A host for the shared suite: the data ports answer on the test's terms and
-// preferences live in memory. Choosers and notices go to Obsidian's own
-// classes, which the `obsidian` mock records: `shownNotices` and
-// `watchChoosers` read them.
-
 import type { RenderRequest } from "#core/render/request.ts";
 import type { TemplateRenderResult } from "#core/render/result.ts";
 import { Effect, Layer, Queue } from "effect";
@@ -41,20 +36,14 @@ import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
 import { failedRender, renderIdentity } from "#core/render/result.ts";
 
-/** A render the tree asked for, which the test answers when it chooses. */
 export interface PendingRender {
   readonly request: RenderRequest;
-  /** Answers with `result` merged over an empty result for this request. */
   answer(result?: Partial<TemplateRenderResult>): void;
-  /** Fails the render with a host failure caused by `error`. */
   reject(error: unknown): void;
-  /** Whether the tree interrupted the render before it was answered. */
   readonly interrupted: boolean;
-  /** Settles once the tree interrupts the render. */
   readonly interruption: Promise<void>;
 }
 
-/** A request the host holds open while `hold` is set. */
 export interface HeldRequest {
   readonly kind:
     | "copy"
@@ -65,36 +54,24 @@ export interface HeldRequest {
     | "customFields";
   answer(value: unknown): void;
   fail(error: unknown): void;
-  /** Whether the tree interrupted the request before it was answered. */
   readonly interrupted: boolean;
-  /** Settles once the tree interrupts the request. */
   readonly interruption: Promise<void>;
 }
 
 export interface FakeHost extends WorkbenchHost {
   readonly calls: {
-    /** Every text handed to the clipboard, in order. */
     copies: string[];
-    /** How many times the tree moved focus to the Fields action. */
     actionFocuses: number;
   };
-  /** Every render asked for, in order, none of them answered yet. */
   readonly renders: PendingRender[];
-  /** Takes each render as it starts: the signal a render was asked for. */
   readonly started: Queue.Queue<PendingRender>;
-  /**
-   * While set, `copy` and every Match data read wait in `held` until the test
-   * answers them; otherwise they answer at once.
-   */
   hold: boolean;
   readonly held: HeldRequest[];
   readonly preferences: Map<string, string>;
-  /** Whether `copy` fails, which stands for a clipboard the host refused. */
   copyFails: boolean;
 }
 
 export function fakeHost(): FakeHost {
-  // A test starts with the menus and notices it causes alone.
   Menu.instances.length = 0;
   Notice.instances.length = 0;
   const preferences = new Map<string, string>();
@@ -103,7 +80,6 @@ export function fakeHost(): FakeHost {
   const renders: PendingRender[] = [];
   const started = Effect.runSync(Queue.unbounded<PendingRender>());
   const held: HeldRequest[] = [];
-  /** A request that answers at once, or waits in `held` while `hold` is set. */
   function holdable<A, E>(
     kind: HeldRequest["kind"],
     immediate: () => Effect.Effect<A, E>,
@@ -154,8 +130,6 @@ export function fakeHost(): FakeHost {
       }),
     communityUrl: "https://example.invalid/community",
     docsUrl: "https://example.invalid",
-    // Every render is held open, so a test decides when a result lands and
-    // what the reader had time to change before it did.
     render: (request) =>
       Effect.callback<TemplateRenderResult, WorkbenchHostError>((resume) => {
         const identity = renderIdentity(request);
@@ -222,7 +196,6 @@ export function fakeHost(): FakeHost {
   return host;
 }
 
-/** An Obsidian App with the keymap a field's popup keys sit on. */
 export const TEST_APP = stubService<App>("App", {
   scope: new Scope(),
   keymap: stubService<App["keymap"]>("Keymap", {
@@ -231,14 +204,12 @@ export const TEST_APP = stubService<App>("App", {
   }),
 });
 
-/** The text of each notice shown since the host was made, in order. */
 export function shownNotices(): string[] {
   return Notice.instances.map(({ message }) =>
     typeof message === "string" ? message : (message.textContent ?? ""),
   );
 }
 
-/** One option of a chooser, with the group it stands under. */
 interface ChooserRow {
   id: string;
   label: string;
@@ -246,7 +217,6 @@ interface ChooserRow {
   group: string;
 }
 
-/** The part of a native chooser a test reads and answers. */
 interface Chooser {
   getSuggestions(query: string): ChooserRow[];
   renderSuggestion(row: ChooserRow, el: HTMLElement): void;
@@ -254,15 +224,9 @@ interface Chooser {
   close(): void;
 }
 
-/**
- * The choosers the tree opens while this is held: each is the native modal
- * Obsidian would show, which a test reads through `getSuggestions` and answers
- * with `selectSuggestion`. Release it with `using`.
- */
 export function watchChoosers() {
   const open = vi.spyOn(SuggestModal.prototype, "open");
   return {
-    /** The chooser opened last. */
     get last(): Chooser {
       const modal = open.mock.contexts.at(-1);
       if (!modal) throw new Error("No chooser has opened.");
@@ -277,22 +241,17 @@ export function watchChoosers() {
   };
 }
 
-/** Disposing it disposes the editor and registry `mount` built, so bind it with `using`. */
 export interface Mounted extends Disposable {
   host: FakeHost;
-  /** The registry the editor's model lives in. */
   registry: AtomRegistry.AtomRegistry;
   model: WorkbenchModel;
   controller: WorkbenchDocumentController;
   ui: ReactNode;
-  /** Puts other children under the same host and editor, for a rerender. */
   wrap(children: ReactNode): ReactNode;
 }
 
-/** The one runtime of the test host, as a host keeps one for all its editors. */
 export const TEST_RUNTIME = Atom.runtime(Layer.empty);
 
-/** The tree under a fake host and theme, over the built-in Default. */
 export function mount(
   children: ReactNode,
   {
@@ -346,11 +305,6 @@ export function mount(
   };
 }
 
-/**
- * The fake host's Fields popover: it closes on Escape the panel leaves to it,
- * and on a press outside, as a host's does. Closed, it records whether focus went back to the Fields
- * action in `data-return-focus`.
- */
 function FakeFieldsPopover({
   open,
   onClose,
@@ -387,11 +341,6 @@ function FakeFieldsPopover({
   );
 }
 
-/**
- * The fake host's popover for a field's details: it stands inside the Fields
- * popover, so a press in it is inside that one, and names the row it stands
- * level with in `data-anchor`.
- */
 function FakeFieldDetails({
   anchor,
   panel,

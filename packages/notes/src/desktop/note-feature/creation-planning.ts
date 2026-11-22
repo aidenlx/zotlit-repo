@@ -2,7 +2,6 @@ import type { ItemMatchQuery } from "#core/profile-selection/item-matches.ts";
 import type { ComposeNoteDeps } from "#obsidian/note-feature/compose.ts";
 import type { MatchSelection } from "#obsidian/profile-selection/index.ts";
 import type { ResolvedProfile } from "#obsidian/profile/bindings.ts";
-// Creation planning and Profile selection: which Profile a new or switched note gets, and its preview.
 import { DateTime, Effect, Schema } from "effect";
 import type { TFile } from "obsidian";
 
@@ -65,7 +64,6 @@ import { Template, templateFailure } from "#obsidian/template/service.ts";
 
 const logged = withLogCategory("note-feature");
 
-/** The services creation planning and Profile selection read through their tags. */
 export type CreationPlanningServices =
   | MetadataCache
   | NoteIndex
@@ -75,29 +73,21 @@ export type CreationPlanningServices =
   | Vault
   | ZoteroReads;
 
-/**
- * The create gate the Note Feature owns: it serializes creates by Indexed Key
- * and refuses a note created before the Note Index saw it.
- */
 export type CreateAtGate = (
   item: Item,
   options: CreateNoteInternalOptions,
 ) => Effect.Effect<CreateNoteResult, CreateNoteError>;
 
-/** {@link PreparedCreationProfile} whose create runs on the services. */
 export type PlannedCreationProfile = Omit<PreparedCreationProfile, "create"> & {
-  /** Re-enters the create gate; the preview holds no database lease. */
   readonly create: (
     options?: Pick<CreateNoteOptions, "reportExcerpts" | "outcomes" | "reads">,
   ) => Effect.Effect<CreateNoteResult, CreateNoteError>;
 };
 
-/** {@link CreationPlan} whose previews create on the services. */
 export type PlannedCreation = Omit<CreationPlan, "previews"> & {
   readonly previews: readonly PlannedCreationProfile[];
 };
 
-/** The file carries neither a Zotero key nor a Zotero note key. */
 export class NotLiteratureNote extends Schema.TaggedError<
   NotLiteratureNote,
   { readonly brand: unique symbol }
@@ -107,7 +97,6 @@ export class NotLiteratureNote extends Schema.TaggedError<
   }
 }
 
-/** A managed Property of the previewed document cannot be prepared. */
 export class ManagedFrontmatterRefused extends Schema.TaggedError<
   ManagedFrontmatterRefused,
   { readonly brand: unique symbol }
@@ -121,7 +110,6 @@ export class ManagedFrontmatterRefused extends Schema.TaggedError<
   }
 }
 
-/** {@link ProfileNotePreview} whose create runs on the services. */
 export type PreparedProfileNote = Omit<ProfileNotePreview, "create"> & {
   readonly create: Effect.Effect<
     CreateNoteResult,
@@ -133,10 +121,6 @@ export type PreparedProfileNote = Omit<ProfileNotePreview, "create"> & {
   >;
 };
 
-/**
- * The note an existing Companion link opens, or creation when the Item has
- * none. A requested Profile the registry lacks is refused first.
- */
 const resolveCompanionNote = Effect.fnUntraced(function* (
   indexedKey: string,
   options: { profile?: ProfileSelector } = {},
@@ -207,15 +191,6 @@ const resolveCompanionNote = Effect.fnUntraced(function* (
   } satisfies CompanionNoteTarget;
 });
 
-/**
- * How each Indexed Key's note would be created: its Item in one Snapshot, the
- * Profile its sources or its Profile Match select, and each selectable
- * Profile's preview. The facets the paths render from stream from the worker,
- * and the Matches of every Item are tested in one query. A path one Item takes
- * is reserved, so a later Item of the batch gets its own. A key the Snapshot
- * lacks has no Item and no previews; its Profile is the given or the Default.
- * Each preview's create enters `create`, the Note Feature's create gate.
- */
 const planCreations = Effect.fnUntraced(function* (
   indexedKeys: readonly string[],
   options: CreationProfileSources & { create: CreateAtGate },
@@ -260,11 +235,6 @@ const planCreations = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * Each selectable Profile's preview for each of `items`, by itemID. The
- * Items' facets stream from the worker slice by slice; the paths then render
- * in `items` order, so an earlier Item reserves its path first.
- */
 const prepareCreationPreviews = Effect.fnUntraced(function* (
   items: readonly Item[],
   options: { reads: ZoteroReadsApi; create: CreateAtGate },
@@ -360,7 +330,6 @@ const prepareCreationPreviews = Effect.fnUntraced(function* (
   return previews;
 });
 
-/** The Default and each registered Profile that resolves now. */
 const selectableProfiles = Effect.gen(function* () {
   const profiles = yield* Profile;
   const selectors: ProfileSelector[] = [
@@ -389,11 +358,6 @@ function profilePreview(
   };
 }
 
-/**
- * The creation Profile when no Item decides: the asked or headless one, or
- * the Default. The operation fixes this result; subsequent operations read the
- * current registry.
- */
 const resolveCreationProfile = Effect.fnUntraced(function* (
   sources: CreationProfileSources = {},
 ) {
@@ -419,7 +383,6 @@ const stoppedCreationProfile = (
     }),
   );
 
-/** The Profile the caller asked for, or the headless one, when given. */
 const givenCreationProfile = Effect.fnUntraced(function* (
   sources: CreationProfileSources,
   shouldAsk: boolean,
@@ -442,7 +405,6 @@ const givenCreationProfile = Effect.fnUntraced(function* (
   return undefined;
 });
 
-/** The Profile an Item's Match selects; with no Match known, the Default. */
 function matchedCreationProfile(
   item: Item | undefined,
   { result, shouldAsk }: { result?: MatchSelection; shouldAsk: boolean },
@@ -452,7 +414,6 @@ function matchedCreationProfile(
       { kind: "overlap", candidates: result.candidates },
       item,
     );
-  // With no Match known, the researcher chooses the Profile.
   if (result?.outcome === "failed")
     return Effect.succeed({
       selector: DEFAULT_PROFILE,
@@ -473,11 +434,6 @@ function matchedCreationProfile(
   });
 }
 
-/**
- * The note a draft Profile would create for the previewed Item: its path,
- * body and Properties, rendered now. Its create reads the Item in one
- * Snapshot and writes at the previewed path through `create`.
- */
 const prepareProfileNote = Effect.fnUntraced(function* (
   options: ProfileNotePreviewOptions,
   {
@@ -499,8 +455,6 @@ const prepareProfileNote = Effect.fnUntraced(function* (
     return yield* new ManagedFrontmatterRefused({
       fields: prepared.failures.map(({ key }) => key),
     });
-  // Only a legacy document composes the global field set; a document's own
-  // Managed Frontmatter replaces it.
   const frontmatterFields =
     prepared.prepared.kind === "legacy"
       ? yield* (yield* Template).frontmatterFields
@@ -524,8 +478,6 @@ const prepareProfileNote = Effect.fnUntraced(function* (
     path: preparedPath.path,
     body,
     properties,
-    // One Snapshot for the Item lookup and the body; the filename is the one
-    // the preview showed.
     create: Effect.scoped(
       Effect.gen(function* () {
         const reads = yield* (yield* ZoteroReads).snapshot;
@@ -535,7 +487,6 @@ const prepareProfileNote = Effect.fnUntraced(function* (
             indexedKey: note.indexedKey,
             message: m.notice_protocol_item_not_found(),
           });
-        // Run inside the Snapshot's scope, which the create reads through.
         return yield* create(item, {
           profile: profile.selector,
           preparedPath,
@@ -547,7 +498,6 @@ const prepareProfileNote = Effect.fnUntraced(function* (
   return preview;
 });
 
-/** Imported Notes currently materialized for one Zotero item. */
 const getImportedNotesForItem = Effect.fnUntraced(function* (
   indexedKey: string,
 ) {
@@ -571,11 +521,6 @@ const getImportedNotesForItem = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * What switching `file` to another Profile would do: its current Profile,
- * each selectable Profile with the path the note would move to, and, for a
- * Literature Note, its Imported Notes (`null` when they cannot be read).
- */
 const prepareProfileSwitch = Effect.fnUntraced(function* (file: TFile) {
   const current = yield* (yield* Profile).profileOf(file);
   const cache = yield* (yield* MetadataCache).fileCache(file);

@@ -1,6 +1,3 @@
-// The CSL styles Zotero installed, as Effect code over the FileSystem service.
-// Each caller chooses what to show where a folder refuses to be listed.
-
 import type { InstalledCslStyle } from "#core/pandoc/csl-style.ts";
 import { Effect } from "effect";
 import type { FileSystem, PlatformError } from "effect";
@@ -17,12 +14,6 @@ import {
 
 import { selectableStyles } from "#core/pandoc/csl-style.ts";
 
-/**
- * The styles a user can select, sorted by title. A styles folder that is
- * absent holds no style. A folder that refuses to be listed fails the read.
- * A CSL file that refuses to be read is skipped, as one that declares no
- * style ID is.
- */
 export const listInstalledStyles = Effect.fn("CslStyles.listInstalled")(
   function* (
     dataDir: string,
@@ -39,7 +30,6 @@ export const listInstalledStyles = Effect.fn("CslStyles.listInstalled")(
   },
   withLogCategory("pandoc", "styles"),
 );
-/** Dialogs retain the readable styles when either directory refuses to be listed. */
 export const listInstalledStylesOrNone = Effect.fn("CslStyles.listReadable")(
   function* (dataDir: string) {
     const root = join(dataDir, STYLES_DIR);

@@ -41,8 +41,6 @@ import { workerClient } from "./worker-client.ts";
 
 vi.mock("virtual:zotero-reads-worker", () => ({ default: "" }));
 
-/** A controlled browser process boundary with the real worker RPC protocol. */
-/** The smallest module that compiles: the magic number and the version. */
 const EMPTY_MODULE = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
 
 const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
@@ -123,7 +121,6 @@ const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
   const settings = yield* settingsOf({
     plugin: { loadData: async () => null, saveData: async () => undefined },
   });
-  // The worker reads the pack itself: this thread opens no file at start.
   const device = packDevice(installed ? new Uint8Array() : null, "1.2.0");
   const pack = Context.get(
     yield* Layer.build(layerPackDevice(device)),
@@ -147,7 +144,6 @@ const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
   };
 });
 
-// A delayed prefs.js must settle before the worker receives its first configuration.
 it.effect("starts the worker with the loaded profile data directory", () =>
   Effect.gen(function* () {
     const worker = yield* workerFixture();
@@ -179,7 +175,6 @@ it.effect("starts the worker with the loaded profile data directory", () =>
     expect(yield* Queue.take(worker.initial)).toMatchObject({
       databasePath: "/research-data/zotero.sqlite",
       deferOpen: true,
-      // No Resource Pack is installed on this device.
       chineseSegmenter: null,
     });
     worker.host.layoutReady();
@@ -191,7 +186,6 @@ it.effect("starts the worker with the loaded profile data directory", () =>
   }),
 );
 
-// An override written during the connection wait must reach the worker.
 it.effect(
   "reconciles preferences changed during the worker connection wait",
   () =>
@@ -217,7 +211,6 @@ it.effect(
     }),
 );
 
-// The installed pack reaches the first worker configuration.
 it.effect(
   "sends the segmenter entry of the installed pack in the worker's first configuration",
   () =>

@@ -3,35 +3,6 @@ import type {
   QueryViewResult,
   QueryViewRow,
 } from "#desktop/item-query/query-view.ts";
-// The cost of a "mixed" Query View query: one that sorts or
-// filters by a vault property, `vault.<name>`, beside a Zotero filter, sort
-// and `limit`. It drives the path the view takes, end to end:
-//
-//   plan     the View Plan the Query View makes (`ViewPlanner`): vault
-//            conditions planned against every Literature Note into a key
-//            list in the filter text, and the capped request of a vault sort;
-//   engine   `answerView` of the ZoteroReads worker over a real SQLite Zotero
-//            database, with the production scheduler, split by reader from
-//            the statement observer;
-//   transfer the structured clone of the answer across the worker seam;
-//   client   the plan's layout of the rows: the vault sort and the truncate
-//            to `limit`, or the plain layout.
-//
-// Run with `pnpm --filter @zotlit/obsidian bench`. It stays out of `pnpm test`:
-// it builds Stress Build databases of 10k to 100k Items and runs for minutes.
-// It checks the rows it gets, never a time.
-//
-// Environment:
-//   ZOTLIT_BENCH_SIZES  Item counts of My Library, default "10000,50000,100000"
-//   ZOTLIT_BENCH_RUNS   measured runs of each cell after one warm-up, default 5
-//   ZOTLIT_BENCH_REAL   a Zotero database to copy and measure as well, such as
-//                       ~/Zotero/zotero.sqlite; it is read only, through
-//                       `VACUUM INTO` a scratch copy
-//   ZOTLIT_BENCH_OUT    the JSON results, default
-//                       <workspace>/.scratch/mixed-query-bench/results.json
-//
-// The Note Index here is a Map: production reads go through the Note Index
-// and the metadata cache, so the plan times are a lower bound.
 import { DateTime, Effect } from "effect";
 // oxlint-disable-next-line no-restricted-imports -- the production scheduler of a Query Job, as job.ts provides it.
 import { Scheduler } from "effect";
@@ -82,11 +53,6 @@ const LIMIT = 100;
 const COVERAGES = [0.1, 0.5, 1] as const;
 const SELECTIVITIES = [0.01, 0.5] as const;
 
-/**
- * The Zotero filter of each selectivity: one ZotLit Query reads as candidates
- * from the database (a Tag the bench adds), and one it tests on each Item it
- * scans (a pattern of the Zotero Key, whose characters are uniform).
- */
 const ZOTERO_FILTERS = {
   candidates: {
     0.01: 'tags.contains("bench-p01")',
@@ -127,21 +93,12 @@ const SCENARIOS = {
 >;
 type ScenarioName = keyof typeof SCENARIOS;
 
-// ---------------------------------------------------------------------------
-// Databases
-
 interface Library {
   name: string;
   path: string;
-  /** The Indexed Keys of the top-level Items of My Library, by itemID. */
   keys: string[];
 }
 
-/**
- * A Stress Build of My Library with `count` Items, built once and kept. The
- * Fixture builder runs in Node from its own package, as `pnpm fixture` runs
- * it: its sources import `.ts` paths the plugin's tsconfig does not take.
- */
 function stressLibrary(count: number): Library {
   const root = join(SCRATCH, `stress-${count}`);
   const path = join(root, "zotero-data", "zotero.sqlite");
@@ -168,12 +125,10 @@ function stressLibrary(count: number): Library {
   return { name: `stress ${count / 1000}k`, path, keys: topLevelKeys(path) };
 }
 
-/** A scratch copy of a real Zotero database; the source is opened read only. */
 function realLibrary(source: string): Library {
   const path = join(SCRATCH, "real", "zotero.sqlite");
   rmSync(dirname(path), { recursive: true, force: true });
   mkdirSync(dirname(path), { recursive: true });
-  // `immutable` reads the file alone, so a write-ahead log must be empty.
   const wal = `${source}-wal`;
   if (existsSync(wal) && statSync(wal).size > 0)
     throw new Error(`${wal} holds writes: quit Zotero to copy ${source}`);
@@ -202,7 +157,6 @@ function topLevelKeys(path: string): string[] {
   return rows.map(({ key }) => key);
 }
 
-/** Tag every 100th top-level Item `bench-p01` and every 2nd `bench-p50`. */
 function seedBenchTags(path: string): void {
   const db = new DatabaseSync(path);
   const items = db.prepare(TOP_LEVEL).all() as { itemID: number }[];
@@ -230,15 +184,11 @@ function seedBenchTags(path: string): void {
   db.close();
 }
 
-// ---------------------------------------------------------------------------
-// The Literature Notes
-
 interface Note {
   status: string;
   rating?: number;
 }
 
-/** A well-mixed hash of `i` with `salt`, in [0, 1). */
 function unit(i: number, salt: number): number {
   let x = Math.imul(i ^ salt, 0x9e3779b1);
   x = Math.imul(x ^ (x >>> 15), 0x85ebca6b);
@@ -246,10 +196,6 @@ function unit(i: number, salt: number): number {
   return (x >>> 0) / 2 ** 32;
 }
 
-/**
- * The notes of `coverage` of the Items: `selectivity` of them read
- * `status: read`, and four in five carry a `rating` of 1 to 5.
- */
 function noteIndex(
   keys: readonly string[],
   coverage: number,
@@ -278,9 +224,6 @@ function readNote(notes: Map<string, Note>) {
   };
 }
 
-// ---------------------------------------------------------------------------
-// The view's Query File
-
 function queryFile(zotero: string, scenario: ScenarioName): QueryFile {
   const { vault, sort } = SCENARIOS[scenario];
   const filters = [zotero, ...(vault ? [vault] : [])];
@@ -303,21 +246,6 @@ ${sort.map(([property, direction]) => `      - property: ${property}\n        di
 `);
 }
 
-// ---------------------------------------------------------------------------
-// One run
-
-/**
- * Where the engine's time goes, from the statements it runs, each with the
- * time since the one before it (less the scheduler's pauses), which holds the
- * work in memory that led to it:
- * - prelude: request, Formula and filter planning, up to the first statement;
- * - sources: the layout, the Libraries and the field vocabulary;
- * - candidate: the row count and the candidate sets;
- * - match: the scan pages or the candidate universe, with the records the
- *   filter needs and its test of each Item, up to the last page;
- * - project: the hydrate of the rows the query returns, and their encoding;
- * - tail: after the last statement, to the answer.
- */
 type Stage = "prelude" | "sources" | "candidate" | "match" | "project" | "tail";
 
 const SOURCES = new Set<ItemQueryReader>([
@@ -339,7 +267,6 @@ interface Measure {
   parse: number;
   engine: number;
   stages: Record<Stage, number>;
-  /** Time the scheduler gave back to the host between slices. */
   paused: number;
   transfer: number;
   client: number;
@@ -354,7 +281,6 @@ interface Facts {
   keyCandidates: number | null;
   path: "candidates" | "scan";
   fellBack: boolean;
-  /** The Items the scan pages or the candidate universe gave the filter. */
   evaluated: number;
   returned: number;
   matched: number;
@@ -381,8 +307,6 @@ async function runOnce(
   const t1 = performance.now();
   if (planned.fault)
     throw new Error(`vault filter fault: ${planned.fault.diagnostic.code}`);
-  // A stand-in for the engine's own parse and plan of the filter text, which
-  // runs inside the prelude below as well.
   if (planned.request.filter !== undefined) {
     const parsed = planItemFilter(planned.request.filter);
     if ("code" in parsed) throw new Error(`filter: ${parsed.message}`);
@@ -501,8 +425,6 @@ async function runOnce(
       cap,
       keyCandidates,
       path: statements["scan-page"] ? "scan" : "candidates",
-      // An inclusion list ZotLit Query could not read as candidates: more
-      // keys matched than the cap, so the Zotero filter or the scan decides.
       fellBack:
         keys !== null &&
         !keys.startsWith("!") &&
@@ -517,9 +439,6 @@ async function runOnce(
     },
   };
 }
-
-// ---------------------------------------------------------------------------
-// The grid
 
 interface Cell {
   library: string;
@@ -560,7 +479,6 @@ function medianOf(measures: Measure[]): Measure {
   };
 }
 
-/** The keys an unlimited run of the Zotero filter matches, in title order. */
 async function zoteroMatches(
   client: NodeDatabaseClient,
   filter: string,
@@ -589,7 +507,6 @@ async function zoteroMatches(
   return reply.view.result.rows!.map((row) => row.indexedKey);
 }
 
-/** What a vault filter scenario must show: the first `LIMIT` that pass. */
 function expected(
   scenario: ScenarioName,
   matches: readonly string[],
@@ -615,14 +532,11 @@ async function measureLibrary(library: Library, cells: Cell[]): Promise<void> {
       for (const coverage of COVERAGES) {
         const notes = noteIndex(library.keys, coverage, selectivity);
         for (const scenario of Object.keys(SCENARIOS) as ScenarioName[]) {
-          // A Zotero-only query reads no note: one coverage is enough.
           if (scenario === "0 zotero only" && coverage !== COVERAGES[0])
             continue;
           const file = queryFile(zotero, scenario);
           const warm = await runOnce(client, file, notes);
           const want = expected(scenario, matches, notes);
-          // A filter shows the rows a brute force over the notes keeps; a
-          // vault sort shows `limit` of the rows it got.
           expect({
             shown: warm.facts.shown,
             keys: want && warm.facts.keys,

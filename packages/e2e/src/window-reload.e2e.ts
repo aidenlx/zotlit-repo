@@ -17,7 +17,6 @@ import { registerRunVaultGuard } from "./run-vault-guard.ts";
 import { clearVault, e2eVaultDir } from "./vault-script.ts";
 import { reloadWindow } from "./window-reload.ts";
 
-/** Records the same rename listeners before and after a whole-window reload. */
 const recordRename = async (
   { app, page }: ObsidianContext,
   { listenerSources }: { listenerSources: string[] | null },
@@ -118,8 +117,6 @@ describe.skipIf(!reachable)("Window reload", () => {
           await app.plugins.disablePlugin("zotlit");
           await app.plugins.enablePlugin("zotlit");
         }
-        // The console keeps each object it logged, and a dev build logs
-        // records that reach ZotLit's classes; this case looks past that.
         console.clear();
         const reachable = () => old.filter((ref) => ref.deref()).length;
         await page
@@ -227,8 +224,6 @@ describe.skipIf(!reachable)("Window reload", () => {
         );
         const path = `${app.vault.configDir}/community-plugins.json`;
         const text = await app.vault.adapter.read(path);
-        // The launch link plugin loads before ZotLit, as Obsidian's main
-        // process sets the link before any plugin loads.
         await app.vault.adapter.write(
           path,
           JSON.stringify([id, ...(JSON.parse(text) as string[])]),
@@ -297,7 +292,6 @@ describe.skipIf(!reachable)("Window reload", () => {
         },
         10000,
       );
-      // prepareRunWindow replaces focus with background focus emulation.
       popout.focus();
       await page.until(
         "popout focused",
@@ -319,7 +313,6 @@ describe.skipIf(!reachable)("Window reload", () => {
         reloaded: page.scratch.windowBeforeReload === undefined,
         popoutDocument: page.windowDocuments().includes(popout.document),
         clicked: clicks,
-        // CLI eval stays in the main window even with a popout active.
         evalInMainWindow: window !== popout,
         popoutActive: activeWindow === popout,
       };
@@ -366,9 +359,7 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
       vaultId,
       async ({ app, zotlit, page }) => {
         const { bridge, localServer } = zotlit.services;
-        // The cancelled start-up binds the port the running instance frees.
         const port = bridge.runSync(localServer.effectivePort);
-        // The database workers made from here on that nothing has terminated.
         const NativeWorker = window.Worker;
         const databaseWorkers = new Set<Worker>();
         window.Worker = class extends NativeWorker {
@@ -396,7 +387,6 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
             views: Object.keys(app.viewRegistry.viewByType).filter((type) =>
               type.startsWith("zotlit"),
             ).length,
-            // ZotLit's Live Updates listener: a Node server on its port.
             liveUpdates: process._getActiveHandles().filter((handle) => {
               const server = handle as {
                 listening?: boolean;
@@ -416,7 +406,6 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
           };
           await app.plugins.disablePlugin("zotlit");
           const enabling = app.plugins.enablePlugin("zotlit");
-          // Loaded but not started: onload still waits for its services.
           await page.until(
             "onload in progress",
             () => app.plugins.plugins.zotlit?._loaded === true && !started(),
@@ -437,7 +426,6 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
         }
       },
       undefined,
-      // Past the 10 s wait inside and the restarts around it.
       { timeoutMs: 60000 },
     );
     expect(proof).toMatchObject({
@@ -451,14 +439,10 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
         databaseWorkers: 0,
       },
       restarted: true,
-      // The counts see what a start-up leaves when it runs.
       afterRestart: { liveUpdates: 1, databaseWorkers: 1 },
     });
   }, 120000);
 
-  // Off and on again while the old instance still builds: the old start-up is
-  // held at its settings read until the new instance exists, so the two
-  // runtimes overlap as far as the new instance lets them.
   it("starts a new instance only after the old one has released its commands, zotlit:* names and port", async () => {
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
@@ -469,7 +453,6 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
     });
     cleanup.defer(async () => {
       await obRun(vaultId, ({ app }) => {
-        // The case's override is an own property over Obsidian's method.
         Reflect.deleteProperty(app.vault, "readPluginData");
       });
     });
@@ -486,7 +469,6 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
           [...app.cli.handlers.keys()].filter((name) =>
             name.startsWith("zotlit:"),
           );
-        // Node servers by port: ZotLit's Live Updates listener is one of them.
         const serverPorts = () =>
           process._getActiveHandles().flatMap((handle) => {
             const server = handle as {
@@ -518,9 +500,6 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
         const readPluginData = app.vault.readPluginData.bind(app.vault);
         try {
           await app.plugins.disablePlugin("zotlit");
-          // What the App holds under the handoff key before the old start-up
-          // begins: the release of the instance just disabled, a stale one
-          // from an earlier build, or nothing.
           const releaseBefore: unknown = Reflect.get(
             app,
             Symbol.for(releaseKey),
@@ -529,10 +508,6 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
           app.vault.readPluginData = async (dir) => {
             if (++reads === 1) {
               const oldInstance = app.plugins.plugins.zotlit;
-              // Hold the old start-up until the new instance exists. Then a
-              // build that does not wait for the old instance overtakes it and
-              // starts; a build that does waits for the release the old
-              // instance published on the App as it unloaded.
               await page.until(
                 "new instance started, or waiting for the old one",
                 () =>
@@ -554,7 +529,6 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
           await app.plugins.disablePlugin("zotlit");
           await Promise.all([oldEnable, app.plugins.enablePlugin("zotlit")]);
           await page.until("new instance started", started, 30000);
-          // `zotlit.services` reads the instance running now.
           const now = zotlit.services;
           return {
             port: now.bridge.runSync(now.localServer.effectivePort) === port,
@@ -571,12 +545,10 @@ describe.skipIf(!reachable)("Plugin start-up", () => {
             ),
           };
         } finally {
-          // The override is an own property over Obsidian's method.
           Reflect.deleteProperty(app.vault, "readPluginData");
         }
       },
       { releaseKey: releaseKeyDescription("zotlit") },
-      // Past the waits chained inside: 10 s, 30 s and 30 s.
       { timeoutMs: 90000 },
     );
     expect(proof).toEqual({

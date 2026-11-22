@@ -13,9 +13,6 @@ export default defineConfig({
     engineNodeOnlyOverride(),
     ...testBaselineOverrides("packages/templates"),
     {
-      // Date adapters: LiquidJS's builtin `date` filter takes a Date
-      // (liquid-date.ts), and a template's output can be a JS Date from its
-      // own code or its data (coerce.ts and its test).
       files: ["src/liquid-date.ts", "src/coerce.ts", "src/coerce.test.ts"],
       rules: {
         "effecttsgo/global-date": "off",

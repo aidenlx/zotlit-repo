@@ -15,7 +15,6 @@ function measureHandler(): CliCommandHandler {
   return command(QUERY_MEASURE_COMMAND).handler;
 }
 
-/** The message of the error the handler rejects with before the run starts. */
 const rejection = (params: Record<string, string>) =>
   Effect.flip(measureHandler()(params)).pipe(
     Effect.map((error) => {

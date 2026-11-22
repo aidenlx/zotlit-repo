@@ -1,4 +1,3 @@
-// Caller-sized answers for citation consumer fixtures.
 import { CitationLookupAnswer } from "#contract/citation-lookup.ts";
 import type { CitekeyResolution } from "#contract/citation-lookup.ts";
 
@@ -15,7 +14,6 @@ export function lookupAnswer(
   });
 }
 
-/** An answer to a request for `requested` Citekeys: each resolves as `resolutions` says, else it is missing. */
 export function lookupAnswerFor(
   requested: readonly string[],
   resolutions: Readonly<Record<string, CitekeyResolution>> = {},

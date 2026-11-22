@@ -4,8 +4,6 @@ import { TemplateFacade } from "@zotlit/templates/facade";
 
 import { renderFailureDiagnosticWithCallSite } from "./call-attribution.ts";
 
-/** The diagnostic `render` attributes to the thrown failure, or `null` when
- *  rendering succeeded. Keeps the expectations below unconditional. */
 function diagnosticOf(source: string, render: () => void) {
   try {
     render();

@@ -27,10 +27,12 @@
     "@effect/tsgo": "catalog:",
     "@types/node": "catalog:",
     "arkregex": "catalog:",
+    "jsonc-parser": "catalog:",
     "oxc-parser": "catalog:",
     "oxfmt": "catalog:",
     "oxlint": "catalog:",
     "postcss": "^8.5.23",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "yaml": "catalog:"
   }
 }

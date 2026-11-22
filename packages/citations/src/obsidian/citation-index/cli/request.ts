@@ -1,5 +1,3 @@
-// Selector parsing: the request each citation command accepts, and the identity it asserts.
-
 import type { Effect } from "effect";
 import type { CliData } from "obsidian";
 
@@ -47,18 +45,10 @@ const citedByParams = cliVariants(
   },
 );
 
-/** The one Item `cited-by` reports citers of, named either way round. */
 export type CitedBySelector = CliOutput<typeof citedByParams>;
 
-/** The parameters of `cited-by`, to type its `CliFlags`. */
 export type CitedByParam = CliParamName<typeof citedByParams>;
 
-/**
- * `cited-by` takes exactly one selector: a Zotero key, or a citation key the
- * Citekey Resolution Snapshot answers for. Whether the named Item exists is a
- * handler concern (`KEY_NOT_FOUND`): both the snapshot and the database read
- * only once the index has settled.
- */
 export function parseCitedByRequest(
   params: CliData,
 ): Effect.Effect<CitedBySelector, CliRejection> {
@@ -90,18 +80,10 @@ const referencesParams = cliParams(
   },
 ).pipe(cliMap(({ file }) => ({ file })));
 
-/** The vault-relative path of the document `references` reads. */
 export type ReferencesSelector = CliOutput<typeof referencesParams>;
 
-/** The parameters of `references`, to type its `CliFlags`. */
 export type ReferencesParam = CliParamName<typeof referencesParams>;
 
-/**
- * `references` takes one vault path, and accepts any Markdown note: a document
- * need not be a Literature Note to cite works. Whether the vault holds a note
- * there is a handler concern (`FILE_NOT_FOUND`), read only once the index has
- * settled.
- */
 export function parseReferencesRequest(
   params: CliData,
 ): Effect.Effect<ReferencesSelector, CliRejection> {
@@ -110,20 +92,12 @@ export function parseReferencesRequest(
 
 const guideParams = noCliParams.pipe(cliMap(() => null));
 
-/**
- * The guide answers the same page for every caller, so a parameter can only be
- * a mistaken call: rejecting it keeps a wrong assumption visible.
- */
 export function parseGuideRequest(
   params: CliData,
 ): Effect.Effect<null, CliRejection> {
   return decodeCliParams(params, guideParams, { command: "citations-guide" });
 }
 
-/**
- * Report the Zotero source the caller asserted when it differs from the
- * connected one, so an agent never reads citation facts from the wrong library.
- */
 export function targetMismatch(
   params: CliData,
   identity: CitationsIdentity,

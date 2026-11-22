@@ -1,4 +1,3 @@
-// Runs the Fluent plugin against fixture inlang projects and asserts the emitted text.
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -8,7 +7,6 @@ import { fluentPlugin } from "./vite-fluent-plugin.ts";
 
 type Catalogs = Record<string, Record<string, unknown>>;
 
-/** A fixture workspace: an inlang project, an addon dir, and an empty staging dir. */
 async function createFixture(
   catalogs: Catalogs,
   { xhtml = "" }: { xhtml?: string } = {},
@@ -146,7 +144,6 @@ describe("fluentPlugin", () => {
         zotero: {
           prefs_pane_label: "ZotLit",
           menu_item_open: { label: "在 Obsidian 中打开文献笔记" },
-          // Only one of the two parts: the whole message falls back to en-US.
           database_status: { tooltiptext: "数据库状态 — 自动写入已关闭" },
         },
       },

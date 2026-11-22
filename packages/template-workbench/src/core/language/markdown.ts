@@ -1,4 +1,3 @@
-// Secondary source hints: prose keeps its ordinary typography.
 import { styleTags, tags } from "@lezer/highlight";
 import { parser } from "@lezer/markdown";
 

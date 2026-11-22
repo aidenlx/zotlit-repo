@@ -1,6 +1,3 @@
-// The date rule's built-in checks (`dateGlobals`, `dateTypes`, `datePattern`
-// in @zotlit/config/oxlint), run through the oxlint binary: RuleTester runs
-// plugin rules only.
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
@@ -65,10 +62,8 @@ interface Diagnostic {
   readonly help?: string;
 }
 
-/** Each case's file name, in `dir`. */
 const caseFile = (name: string) => `${name.replaceAll(/\W+/g, "-")}.ts`;
 
-/** Every case linted in one oxlint run: the reports per case file, each with its message and help text. */
 function lintAll(): ReadonlyMap<string, { code: string; text: string }[]> {
   const files = [...reported, ...passed].map(([name, code]) => {
     writeFileSync(join(dir, caseFile(name)), code);
@@ -82,7 +77,6 @@ function lintAll(): ReadonlyMap<string, { code: string; text: string }[]> {
       { cwd: dir, encoding: "utf8" },
     );
   } catch (error) {
-    // oxlint exits 1 when it reports an error.
     output = (error as { stdout: string }).stdout;
   }
   const byFile = new Map<string, { code: string; text: string }[]>();

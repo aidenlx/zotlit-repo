@@ -4,7 +4,6 @@ import { isAbsolute, relative, resolve, sep } from "node:path";
 const require = createRequire(import.meta.url);
 const vitestRequire = createRequire(require.resolve("vitest/package.json"));
 const globRequire = createRequire(vitestRequire.resolve("tinyglobby"));
-// Use the glob engine installed with Vitest, including its dotfile semantics.
 const picomatch = globRequire("picomatch") as (
   patterns: string[],
   options: { dot: boolean },
@@ -28,7 +27,6 @@ export interface CollectionConfig {
   };
 }
 
-/** Match a tracked path with the same include/exclude engine as Vitest. */
 export function matchesCollection(
   file: string,
   collection: Collection,
@@ -51,7 +49,6 @@ export function matchesCollection(
   );
 }
 
-/** Resolve one inline project after Vite has applied its extends merge. */
 export function projectCollection(
   config: CollectionConfig,
   cwd: string,
@@ -65,7 +62,6 @@ export function projectCollection(
   };
 }
 
-/** Node's recursive discovery, or the explicit globs in a node --test task. */
 export function matchesNodeTest(
   file: string,
   cwd: string,

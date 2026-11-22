@@ -7,12 +7,10 @@ import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import { cliRunner } from "./cli-command.ts";
 
-/** The plugin's unload, which a CLI runner hears through its signal. */
 function pluginUnload(): AbortController {
   return new AbortController();
 }
 
-/** A runner over an empty runtime's bridge, and the controller standing in for unload. */
 const runnerFixture = Effect.gen(function* () {
   const stack = yield* Effect.acquireDisposable(
     Effect.tryPromise(async () => new AsyncDisposableStack()),
@@ -51,8 +49,6 @@ describe("cliRunner", () => {
     }),
   );
 
-  // Failure mode: unloading the plugin mid-command leaves the caller with an
-  // interruption cause instead of the reason the run stopped.
   it.effect("rejects with the unload reason when unload interrupts a run", () =>
     Effect.gen(function* () {
       const { run, unload } = yield* runnerFixture;
@@ -69,10 +65,6 @@ describe("cliRunner", () => {
     }),
   );
 
-  // Failure mode: a command that starts after unload rejects with the closed
-  // runtime's own error instead of the reason the run stopped. The run stops
-  // at its first pause, so the command pauses before its work, as a command
-  // that reads Zotero does.
   it.effect("stops a command that starts after unload at its first pause", () =>
     Effect.gen(function* () {
       const { run, unload, stack } = yield* runnerFixture;

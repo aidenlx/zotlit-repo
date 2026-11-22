@@ -10,7 +10,6 @@ import type { CandidateFallback, CandidateSources } from "./candidate-plan.ts";
 import { isStoredStringField } from "./fields.ts";
 import type { FilterNode } from "./filter-plan.ts";
 
-/** A LIKE superset of both JavaScript contains and lowercase contains. */
 export function textSweepPattern(text: string): string | null {
   let pattern = "%";
   for (const c of text.toLowerCase()) {
@@ -22,13 +21,11 @@ export function textSweepPattern(text: string): string | null {
     else if (!pattern.endsWith("%")) pattern += "%";
   }
   if (!pattern.endsWith("%")) pattern += "%";
-  // The real SQLite driver rejects LIKE patterns above 50,000 UTF-8 bytes.
   return pattern === "%" || new TextEncoder().encode(pattern).length > 50_000
     ? null
     : pattern;
 }
 
-/** Only the Item Dataset root offers this lowering. */
 export function lowerTextSweep(
   node: FilterNode<never>,
   { vocabulary }: CandidateSources,
@@ -62,7 +59,6 @@ export interface SweepScope {
   readonly sparseRatio: number;
 }
 
-/** Each yield enters the same statement Effect as scan and hydrate readers. */
 export const readTextSweep = Effect.fnUntraced(function* ({
   libraryID,
   leaf,

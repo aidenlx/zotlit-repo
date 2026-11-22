@@ -1,4 +1,3 @@
-// Real Annotation View drag insertion across main and pop-out windows.
 import { expect } from "vitest";
 
 import { annotationPreparationModule } from "./annotation-preparation.ts";
@@ -100,9 +99,6 @@ export async function verifyAnnotationDrag(
         what: "the draggable handle for annotation FDRFQ7C2 in the Annotation View",
       },
     );
-    // The unrelated drop enters through CodeMirror's DOM input handler. The
-    // tagged drop enters at Obsidian's editor-drop event, the plugin's public
-    // consumer boundary, so core focus handling cannot activate the target.
     const native = (await obRun(
       vaultId,
       async ({ app, page }) => {
@@ -355,14 +351,11 @@ export async function verifyAnnotationDrag(
     );
     expect(text).toContain("![[zotlit-excerpt-");
     expect(text.split("FDRFQ7C2")).toHaveLength(2);
-    // The one mention of the Annotation is its Durable Annotation Link.
     expect(text).toContain(
       "Page [2](zotero://open/library/items/RGRPDF24?annotation=FDRFQ7C2&page=2)",
     );
-    // The default template cites the Rougier paper, at the page, after the quote.
     expect(text).toContain(" [@rougierTenSimpleRules2014, {p. 2}]");
     expect(text).not.toContain("file://");
-    // The callout stands as its own block, even where the drop splits a line.
     const prefix = "LEFT RIGHT".slice(0, capture.directPosition);
     const suffix = "LEFT RIGHT".slice(capture.directPosition);
     expect(text.slice(0, text.indexOf("> [!note]"))).toBe(`user ${prefix}\n\n`);

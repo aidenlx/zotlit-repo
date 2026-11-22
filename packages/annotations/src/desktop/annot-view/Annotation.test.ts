@@ -1,7 +1,4 @@
 // @vitest-environment happy-dom
-// A click on a card's comment or held text is the card's own selection gesture
-// (ADR 0061) until the card is selected alone. Then the comment is a field: a
-// click on it opens its editor, which Escape or a click away closes (ADR 0066).
 
 import type { EditingCapability } from "#obsidian/annotation-repository/capability.ts";
 import type {
@@ -64,10 +61,8 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-/** The app of the tree drawn last, whose keymap a test can read and press. */
 let app = editorApp();
 
-/** Draws one element in a fresh root, as the view mounts its tree. */
 async function mount(element: ReturnType<typeof createElement>) {
   const host = document.createElement("div");
   document.body.append(host);
@@ -79,10 +74,6 @@ async function mount(element: ReturnType<typeof createElement>) {
   return host;
 }
 
-/**
- * One editable card, and the actions it calls: the card's click and the
- * editors it opens. Every other action is inert.
- */
 async function mountCard({
   held = false,
   opens = true,
@@ -93,13 +84,10 @@ async function mountCard({
   mutation,
 }: {
   held?: boolean;
-  /** Whether the repository starts a comment draft for the editor to open on. */
   opens?: boolean;
   comment?: string | null;
-  /** The Card Selection: this card alone by default. */
   selected?: string[];
   capability?: EditingCapability;
-  /** Each text field's draft beside the held comment, by the state it is in. */
   drafts?: Partial<
     Record<
       "comment" | "text",
@@ -108,7 +96,6 @@ async function mountCard({
       }
     >
   >;
-  /** What a write left on the Annotation. */
   mutation?: MutationState;
 } = {}) {
   const draftOf = (
@@ -222,7 +209,6 @@ async function mountCard({
   };
 }
 
-/** A click as the browser delivers it, with these keys held. */
 async function click(el: Element, keys: MouseEventInit = {}): Promise<void> {
   await act(() => {
     el.dispatchEvent(
@@ -231,14 +217,12 @@ async function click(el: Element, keys: MouseEventInit = {}): Promise<void> {
   });
 }
 
-/** The comment field at rest, or `undefined` where the card offers none. */
 function field(host: HTMLElement): HTMLElement | undefined {
   return (
     host.querySelector<HTMLElement>(".zt-annot-comment-field") ?? undefined
   );
 }
 
-/** The name a screen reader gives the element, from the labels it points at. */
 function accessibleName(el: HTMLElement): string | null {
   const ids = el.getAttribute("aria-labelledby");
   if (ids === null) return el.getAttribute("aria-label");
@@ -248,7 +232,6 @@ function accessibleName(el: HTMLElement): string | null {
     .join(" ");
 }
 
-/** A key pressed in an element, as the browser delivers it. */
 async function press(el: Element, key: string): Promise<void> {
   await act(() => {
     el.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));
@@ -260,7 +243,6 @@ describe("the comment field", () => {
     for (const selected of [[], [CARD.key, "BBBB2222"]]) {
       const { host } = await mountCard({ selected });
       expect(field(host)).toBeUndefined();
-      // The tag toggle stays on a card selected with others.
       expect(() => tagToggle(host)).not.toThrow();
       await act(() => root?.unmount());
       host.remove();
@@ -269,7 +251,6 @@ describe("the comment field", () => {
     expect(accessibleName(field(host)!)).toBe(
       m.annot_view_card_comment_label(),
     );
-    // A label Obsidian would show as a tooltip over the comment's text.
     expect(field(host)!.hasAttribute("aria-label")).toBe(false);
   });
 
@@ -289,7 +270,6 @@ describe("the comment field", () => {
     for (const opens of [false, true]) {
       const { host, store, onSelectAnnotation } = await mountCard({ opens });
       await click(field(host)!, { clientX: 12, clientY: 34, detail: 1 });
-      // The caret goes where the click landed.
       expect(store.getState().editing).toEqual(
         opens
           ? {
@@ -377,14 +357,12 @@ describe("the comment field", () => {
     ]);
     expect(store.getState().editing).toBeNull();
     expect(host.querySelector(".cm-content")).toBeNull();
-    // The keyboard stays on the card.
     expect(document.activeElement).toBe(host.querySelector(".zt-annot-card"));
   });
 });
 
 it("selects the card from a click on the tag row's empty space, and opens no tag editor", async () => {
   const { host, onSelectAnnotation, onOpenTags } = await mountCard();
-  // The tag toggle alone opens the editor, as the Mark Popup's tag verb does.
   const row = host.querySelector("[aria-pressed]")!.parentElement!;
 
   await click(row);
@@ -392,7 +370,6 @@ it("selects the card from a click on the tag row's empty space, and opens no tag
   expect(onOpenTags).not.toHaveBeenCalled();
 });
 
-/** The tag toggle in the card's action bar, the one way into the tag editor. */
 function tagToggle(host: HTMLElement): Element {
   const toggle = [...host.querySelectorAll(".clickable-icon")].find((el) =>
     el.querySelector("svg.lucide-tag"),
@@ -418,7 +395,6 @@ describe("the card's tag editor", () => {
       field: "tags",
     });
 
-    // Focus back in the editor puts its Scope on top again.
     input.dispatchEvent(new FocusEvent("focusin", { bubbles: true }));
     await act(() => {
       expect(pressTop(app, { key: "Escape" }, input).defaultPrevented).toBe(
@@ -442,10 +418,7 @@ describe("the card's tag editor", () => {
         relatedTarget: remove,
       }),
     );
-    // Focus moving inside the editor keeps its Scope; the view's Scope,
-    // beneath it, never hears the key.
     expect(app.scopes).toHaveLength(1);
-    // An Escape that drops a composition stays the input method's.
     await act(() => {
       const escape = pressTop(
         app,
@@ -501,7 +474,6 @@ describe("the card's tag editor", () => {
 
     await click(field(host)!);
 
-    // The tag editor ended its session as it unmounted.
     expect(onSaveTags).toHaveBeenCalledOnce();
     expect(store.getState().editing).toMatchObject({
       annotationKey: CARD.key,
@@ -510,7 +482,6 @@ describe("the card's tag editor", () => {
   });
 });
 
-/** One panel's button, by its label. */
 function button(panel: Element, label: string): Element {
   return [...panel.querySelectorAll("button")].find(
     (node) => node.textContent === label,
@@ -527,7 +498,6 @@ describe("a text field's draft on the card", () => {
         comment: { text: "My comment", state: conflict("Zotero's comment") },
         text: { text: "My text", state: conflict("Zotero's text") },
       },
-      // A save of another field in flight hides neither.
       mutation: { kind: "pending", write: "tags", session: true },
     });
     const panels = [...host.querySelectorAll(".zt-annot-conflict")];
@@ -590,7 +560,6 @@ describe("a text field's draft on the card", () => {
     await act(() =>
       store.setState({ editing: { annotationKey: CARD.key, field: "text" } }),
     );
-    // A blur's save left the draft pending.
     await act(() =>
       store.setState({
         fieldDrafts: {

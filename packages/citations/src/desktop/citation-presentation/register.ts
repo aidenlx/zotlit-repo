@@ -1,7 +1,5 @@
 import type { StyleDropdownOptions } from "#desktop/pandoc/style-dropdown.ts";
 import type { CitationPresentationChoice } from "#obsidian/citation-presentation/presentation.ts";
-// The Set citation presentation action: its command-palette entry, its place in
-// the active note's More options menu, and the update a confirmed dialog writes.
 import type { ProfileStyles } from "#obsidian/pandoc/profile-styles.ts";
 import { Effect, Schema } from "effect";
 import type { App, Plugin, TFile } from "obsidian";
@@ -36,11 +34,8 @@ class CitationPresentationWriteError extends Schema.TaggedError<
 export interface CitationPresentationDeps {
   app: App;
   fileSystem: StyleDropdownOptions["fileSystem"];
-  /** Where the installed styles the dialog lists are read from. */
   zoteroPref: Pick<ZoteroPref["Service"], "current">;
-  /** The vault selections a note inherits where it names none of its own. */
   settings: Pick<PluginSettings["Service"], "current">;
-  /** The Profiles, whose default Profile binds the vault's style. */
   profiles: Pick<ProfileStyles["Service"], "vaultStyleId">;
   bridge: Pick<EffectBridge, "runSync" | "runPromiseExit">;
   workspace: Pick<Workspace["Service"], "getActiveFile">;
@@ -48,10 +43,6 @@ export interface CitationPresentationDeps {
   notifier: Notifier["Service"];
 }
 
-/**
- * Every note is presented one way or another, so the action asks for nothing of
- * the note but that it be a Markdown note on screen.
- */
 export function registerCitationPresentation(
   plugin: Pick<Plugin, "addCommand">,
   deps: CitationPresentationDeps,
@@ -69,10 +60,6 @@ export function registerCitationPresentation(
   });
 }
 
-/**
- * The action on the note's own More options menu, which is where the note on
- * screen is configured from; every other file menu leaves it to the palette.
- */
 export function citationPresentationFileMenu(
   deps: CitationPresentationDeps,
 ): FileMenuSegment {
@@ -88,7 +75,6 @@ export function citationPresentationFileMenu(
   };
 }
 
-/** One scoped run reads the selections, waits for confirmation, and writes the note. */
 export async function setCitationPresentation(
   file: TFile,
   deps: CitationPresentationDeps,
@@ -132,7 +118,6 @@ const choosePresentation = Effect.fn("CitationPresentation.choose")(function* (
       ),
   );
   if (!choice) return;
-  // Once confirmed, the save and its known outcome finish before unload.
   yield* reportOutcome(
     Effect.tryPromise({
       try: () => applyCitationPresentation(app, file, choice),

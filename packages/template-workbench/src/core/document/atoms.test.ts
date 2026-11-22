@@ -26,7 +26,6 @@ frontmatter:
 > {{ zt.text }}
 `;
 
-/** A registry that reads one controller's atoms, held the way a host holds them. */
 function hold(controller: WorkbenchDocumentController) {
   const registry = AtomRegistry.make({
     defaultIdleTTL: 0,

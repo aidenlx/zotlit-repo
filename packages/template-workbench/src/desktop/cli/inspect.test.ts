@@ -77,12 +77,10 @@ async function fixture(
   const cleanup = stack.move();
   return {
     ...f,
-    /** The Template service the commands read. */
     templates: Context.get(services, Template),
     disk,
     read,
     readSignal,
-    /** Settles once the adapter is next read. */
     nextRead: () => {
       nextRead = Promise.withResolvers<void>();
       return nextRead.promise;
@@ -90,23 +88,15 @@ async function fixture(
     [Symbol.asyncDispose]: () => cleanup.disposeAsync(),
     inspect,
     guide,
-    // The cases that wait out TemplateService's reconciliation debounce stay
-    // Promise code: the debounce is a window timer that only Vitest's fake
-    // timers advance, which an it.effect case may not use. They run the
-    // command as Obsidian does, outside any test Effect.
     inspectNow: (params?: CliData) => Effect.runPromise(inspect(params)),
   };
 }
 
-/** {@link fixture}, closed when the test's scope closes. */
 const scopedFixture = (files?: Record<string, string>) =>
   Effect.acquireDisposable(Effect.tryPromise(() => fixture(files)));
 
-/** The parsed answer, once it holds that every refusal carries a hint. */
 function assertRefusalsHint(output: string) {
   const answer = JSON.parse(output);
-  // The Workbench Guide tells a caller to follow `diagnostic.hint` on
-  // failure, so every refusal this suite reaches carries one.
   const refusals = [answer].filter(
     (entry) => entry.ok === false && entry.diagnostic,
   );
@@ -306,7 +296,6 @@ describe("registered template-inspect", () => {
         const attempt = yield* Effect.forkChild(
           f.inspect({ document: BOOKS, source: "full" }),
         );
-        // The wait's deadline is set before the first read.
         yield* Effect.promise(() => f.readSignal.promise);
         yield* TestClock.adjust(1001);
         const response = yield* Fiber.join(attempt);
@@ -383,7 +372,6 @@ describe("registered template-inspect", () => {
         f.disk.set(path, "External customization not observed");
         const read = f.nextRead();
         const attempt = yield* Effect.forkChild(f.inspect(selection));
-        // The wait's deadline is set before the first read.
         yield* Effect.promise(() => read);
         yield* TestClock.adjust(1001);
         expect(yield* Fiber.join(attempt)).toMatchObject({
@@ -554,7 +542,6 @@ describe("registered template-inspect", () => {
             ),
           ),
         });
-        // The first read never answers, so the inspection is still at work.
         f.read.mockImplementation(() => {
           f.readSignal.resolve();
           return new Promise<string>(() => {});

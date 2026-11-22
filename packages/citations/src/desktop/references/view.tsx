@@ -1,4 +1,3 @@
-// The Obsidian leaf adapter for the References model in the plugin's view registry.
 import { ItemView } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";
 import { createRoot } from "react-dom/client";
@@ -36,9 +35,7 @@ export const REFERENCES_VIEW_TYPE = "zotlit-references";
 export interface ReferencesViewDeps {
   registry: ViewRegistryHandle;
   app: App;
-  /** Reveals the engine row in settings, where the install lives. */
   openSettings: () => void;
-  /** Reveals the Citation and References Style row in settings. */
   openStyleSettings: () => void;
 }
 
@@ -98,8 +95,6 @@ export class ReferencesView extends ItemView {
       reportCopy: (outcome) =>
         void new BaseNotice(copyBibliographyMessage(outcome)),
     });
-    // References has no saved layout fields; its title is fixed and its actions
-    // read the current model. The registry owns their refresh with the leaf.
     cleanup.defer(
       registry.subscribe(this.model.state, () => this.leaf.updateHeader()),
     );

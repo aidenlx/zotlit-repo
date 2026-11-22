@@ -4,7 +4,6 @@ import type { SQLWrapper } from "drizzle-orm";
 
 import { unindexed } from "./database.ts";
 
-// Leaf predicates shared by Item, Attachment, and Annotation candidate readers.
 import { items, itemTags, tags } from "#drizzle/schema.ts";
 
 export function candidateTag(

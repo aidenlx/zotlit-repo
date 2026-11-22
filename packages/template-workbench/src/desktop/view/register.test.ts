@@ -44,7 +44,6 @@ import {
 type RegistrationHostDeps = WorkbenchHostDeps & {
   profile: Profile["Service"];
 };
-/** The Default Profile as the plugin runtime hands it over, read from `profile`. */
 const defaultTarget = (
   profile: Pick<Profile["Service"], "defaultDocumentPath">,
 ): DefaultProfileTarget => ({
@@ -52,12 +51,10 @@ const defaultTarget = (
     return Effect.runSync(profile.defaultDocumentPath);
   },
 });
-/** The built-in Default Profile, whose document is missing. */
 const builtInDefault = defaultTarget({
   defaultDocumentPath: Effect.succeed("templates/zotlit-profile.default.md"),
 });
 
-/** The Profile service a launch reads, as a test supplies it. */
 type LaunchServices = {
   profile?: Partial<Profile["Service"]>;
   notifier?: Notifier["Service"];
@@ -76,7 +73,6 @@ import {
   TemplateWorkbenchView,
 } from "./view.tsx";
 
-// The real leaf edges stand in: the layout module imports this view.
 vi.mock("./layout.ts", () => ({
   setLeafState: (leaf: WorkspaceLeaf, state: ViewState) =>
     Effect.tryPromise(() => leaf.setViewState(state)),
@@ -102,7 +98,6 @@ afterEach(() => {
     .mockReturnValue(Effect.succeed(null));
 });
 
-/** The workspace and vault a launch reads, over the test's App. */
 function appContext(
   app: App,
   { notifier = testNotifier().service, ...services }: LaunchServices = {},
@@ -128,7 +123,6 @@ function appContext(
   });
 }
 
-/** Run the launch `open` over the workspace and vault of `app`. */
 function launch<A, E>(
   app: App,
   open: Effect.Effect<A, E, WorkbenchActionServices>,
@@ -139,7 +133,6 @@ function launch<A, E>(
   );
 }
 
-/** A bridge over an empty runtime, closed when the test ends. */
 function testBridge() {
   const bridge = openTestBridge();
   onTestFinished(() => bridge[Symbol.asyncDispose]());
@@ -223,7 +216,6 @@ function setup() {
   });
   const deps = stubService<RegistrationHostDeps>("TemplateWorkbenchDeps", {
     runtime: testRuntime(),
-    // The classifier reads a filename only inside the template folder.
     settings: stubService<RegistrationHostDeps["settings"]>("PluginSettings", {
       current: Effect.succeed({
         ...defaults,
@@ -262,7 +254,6 @@ function setup() {
   };
 }
 
-/** Register the view, and place its file-menu entries as the plugin does. */
 function register(
   plugin: Plugin,
   deps: RegistrationHostDeps,
@@ -458,8 +449,6 @@ Annotation`);
     ) as TemplateWorkbenchView;
     Object.assign(leaf, { view: workbench });
     vi.mocked(findWorkbenchLayout).mockReturnValue(Effect.succeed(workbench));
-    // As Obsidian 1.14.5's `WorkspaceLeaf.setViewState`: a call while the
-    // leaf still applies an earlier state returns at once and applies nothing.
     const firstApplied = Promise.withResolvers<void>();
     const applied: unknown[] = [];
     let working = false;
@@ -662,7 +651,6 @@ Annotation`);
           }),
         ),
       );
-      // The file menu offers the one action, on the same route.
       expect(fileMenu().items.map(({ title }) => title)).toEqual([
         m.template_workbench_open_layout(),
       ]);
@@ -691,7 +679,6 @@ Annotation`);
     );
     expect(openPopoutLeaf).toHaveBeenCalledOnce();
   });
-  // Inside the view, the command reveals the view's own window.
   it("reveals the active editor's Workbench window from Open template workbench", async () => {
     setMockPlatform({ isDesktopApp: true });
     const { app, file, leaf, deps, plugin, commands, openPopoutLeaf } = setup();
@@ -757,7 +744,6 @@ Annotation`);
         openPopoutLeaf,
         setViewState,
       } = setup();
-      // The Markdown leaf stands in the main window.
       Object.assign(app.workspace, { rootSplit: leaf.getContainer() });
       const markdownView = Object.assign(new MarkdownView(leaf), {
         file,
@@ -846,7 +832,6 @@ Annotation`);
       } = setup();
       file.path = "Literature/Figures.md";
       file.basename = "Figures";
-      // The note's Profile resolves through the vault, by path.
       Object.assign(deps, { app });
       vi.spyOn(app.vault, "getFileByPath").mockImplementation((path) =>
         path === file.path ? file : null,
@@ -893,8 +878,6 @@ Annotation`);
       await vi.waitFor(() =>
         expect(setOriginatingNote).toHaveBeenCalledWith(file),
       );
-      // The built-in Default writes its document, so the note's template is
-      // editable at once.
       expect(customizeDefault).toHaveBeenCalledOnce();
     },
   );

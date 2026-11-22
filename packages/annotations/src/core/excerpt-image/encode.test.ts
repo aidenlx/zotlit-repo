@@ -9,11 +9,6 @@ import {
   testElectron,
 } from "#__fixtures__/excerpt-image/electron-renderer.ts";
 
-/**
- * The recorded run's slowest single encode is 17.5 ms
- * (docs/excerpt-image-webp-measurements.md), so a second is a different code path
- * rather than a slower machine.
- */
 const MAX_ENCODE_MS = 1000;
 
 it.skipIf(!testElectron)(
@@ -26,15 +21,11 @@ it.skipIf(!testElectron)(
       timeoutMs: 60_000,
     })) as EncodeReport;
 
-    // The record the doc's tables are read from, in the style of the other
-    // excerpt-image measurement suites: printed, and written where asked.
     const serialized = JSON.stringify(report, null, 2);
     process.stdout.write(`${serialized}\n`);
     const out = process.env.ZOTLIT_WEBP_MEASUREMENTS_OUT;
     if (out) await writeFile(out, `${serialized}\n`, "utf8");
 
-    // The trial throws on any failed check, so this is the shape of a complete
-    // run: every stage reported, every crop measured, every payload non-empty.
     expect(report.passed).toHaveLength(3);
     expect(report.measurements).toHaveLength(4);
     expect(new Set(report.measurements.map((entry) => entry.crop)).size).toBe(
@@ -45,8 +36,6 @@ it.skipIf(!testElectron)(
       expect(entry.height).toBeGreaterThan(0);
       expect(entry.pngBytes).toBeGreaterThan(0);
       expect(entry.webpBytes).toBeGreaterThan(0);
-      // Timings start at `Infinity` and only fall, so the bound is the assertion
-      // that reports a pathology; finiteness rules out a lost measurement.
       expect(Number.isFinite(entry.pngMs)).toBe(true);
       expect(Number.isFinite(entry.webpMs)).toBe(true);
       expect(entry.pngMs).toBeLessThan(MAX_ENCODE_MS);
@@ -57,9 +46,6 @@ it.skipIf(!testElectron)(
       if (!entry) throw new Error(`The trial measured no ${crop} crop`);
       return entry;
     };
-    // Recorded run (Electron 43.3.0, Chromium 150, Apple M4 Pro): lossless WebP
-    // pays on text, ink, and image crops and costs a small overhead on crops
-    // with almost no ink, where the lossless bitstream has little to model.
     for (const crop of ["text", "ink", "image"])
       expect(measured(crop).webpBytes).toBeLessThan(measured(crop).pngBytes);
     const equation = measured("equation");

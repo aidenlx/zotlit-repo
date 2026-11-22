@@ -1,4 +1,3 @@
-// Template delimiter and expression bracket input shared by editor hosts.
 import { EditorSelection, Prec } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
 import { EditorView, keymap } from "@codemirror/view";

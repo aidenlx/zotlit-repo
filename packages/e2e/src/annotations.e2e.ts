@@ -188,10 +188,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           undefined,
         ),
       ).toEqual(expected);
-      // Wait for the card's growing excerpt to settle before starting a transition.
-      // A height unchanged for 300 ms counts as settled.
-      // Seek each transition to its midpoint so a late timer cannot sample its end.
-      // Under reduced motion neither property has an intermediate value.
 
       const { motion, ...eased } = (await obRun(
         run.vaultId,
@@ -257,12 +253,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         select: { fill: motion, ring: motion },
         deselect: { fill: motion, ring: motion },
       });
-      // The header block is one press target however much it reports (the
-      // view's own More options beside it is not part of it), and the pane
-      // names its controls with `aria-label` alone. Both are shapes only a
-      // rendered view has: the focus stops are what the DOM ended up with, and
-      // a `title` anywhere in the view is the hover tooltip Obsidian would draw
-      // over its own.
 
       expect(
         await obRun(
@@ -298,15 +288,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           undefined,
         ),
       ).toBe(JSON.stringify({ focusable: 1, titled: 0 }));
-      // The tag Chooser stands on Obsidian's popover, placed by Obsidian —
-      // which only a running Obsidian does. What tells is whether its own box
-      // is still around its rows.
-      //
-      // The tag Chooser is named by its trigger's label, never by DOM order:
-      // the filter bar draws the colour Chooser first whenever the palette has
-      // a colour, and every Fixture Annotation under this attachment carries
-      // one. A closed popup is not in the document, so the trigger names the
-      // Chooser and the popup is the one standing.
 
       await obRun(
         run.vaultId,
@@ -342,31 +323,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           }),
         },
       );
-      // `menuChrome` is the computed-style half of the proof. The popup wears no
-      // `.menu` class, so its chrome can only come from Obsidian's `--menu-*`
-      // variables. A throwaway sibling declares the same seven variables and is
-      // measured beside it: equal computed values mean the popup reads them, in
-      // whatever units the engine resolved, under whatever theme is loaded. The
-      // sibling is also checked against the initial values, because an
-      // undefined variable would leave both boxes bare and make equality say
-      // nothing.
-      //
-      // The padding is the one read taken from the list box. The popup keeps
-      // none of its own, so the search field runs edge to edge, and the list
-      // carries `--menu-padding` as the inset.
-      //
-      // The shadow is the one read compared by suffix. Tailwind's `shadow-()`
-      // utility composes its ring and inset placeholders ahead of the value, so
-      // the popup carries four transparent stops in front of the three
-      // `--menu-shadow` supplies.
-      //
-      // The chrome read is kept here rather than left to the development loop
-      // because it is the one place ADR 0044's variable contract is held: the
-      // popup wears no `.menu` class, so nothing else would notice a theme
-      // hook that stopped reading those variables. The closed state below is
-      // kept for the same reason — only a running Obsidian has the user-agent
-      // rule it depends on. `rows` names the vocabulary, which is what proves
-      // the popup under measurement is the tag one.
 
       await obRunUntil(
         run.vaultId,
@@ -505,8 +461,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           }),
         },
       );
-      // A closed popup leaves the document, so it cannot keep painting over
-      // the view behind it.
       await obRunUntil(
         run.vaultId,
         async ({ app }, { tagTriggerLabel, activeTriggerPrefix }) => {
@@ -667,8 +621,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { annotationAttachmentPath: annotationAttachment.path! },
     );
 
-    /** The sidebar's cards in screen order, each under the group heading above it. */
-
     interface Sidebar {
       cards: { key: string; color: string; group: string | null }[];
       query: string | null;
@@ -728,14 +680,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         JSON.stringify(cards.map(({ key }) => key).sort()) ===
         JSON.stringify(expected),
     );
-    // A plain sidebar stands under no heading.
     expect(before.cards.every(({ group }) => group === null)).toBe(true);
     const colors = new Set(before.cards.map(({ color }) => color));
     expect(colors.size).toBeGreaterThan(1);
 
-    // More options → Group by → Color, through Obsidian's own menu. A side
-    // dock hides the view header, so the reader presses the header row's own
-    // "More options".
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -819,7 +767,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const grouped = await sidebarWhen(({ cards }) =>
       cards.some(({ group }) => group !== null),
     );
-    // The same cards, one group for each colour, each colour under one heading.
     expect(grouped.cards.map(({ key }) => key).sort()).toEqual(expected);
     const headings = new Map<string, string>();
     for (const { color, group } of grouped.cards) {
@@ -828,13 +775,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       headings.set(color, group!);
     }
     expect(new Set(headings.values()).size).toBe(colors.size);
-    // The grouping is the sidebar's Query File, which its state keeps.
     expect(grouped.query).toContain("attachment == this.attachment");
     expect(grouped.query).toContain("colorName");
 
-    // "Filter…" opens the Match editor of the sidebar's one view, without the
-    // filter that names the followed Attachment. A side dock hides the view
-    // header, so the reader presses the header row's own "More options".
     expect(
       await obRun(
         run.vaultId,
@@ -917,14 +860,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the annotation filter modal to show only the view section and no attachment text",
       },
     );
-    // In an expression condition of the dialog, Escape closes the completion
-    // list, then the Signature Hint, and leaves the dialog open each time; a
-    // list the typing opens over the hint closes first. Tab takes the
-    // list's option and keeps focus in the field; the method it writes
-    // brings its Signature Hint, which Escape closes, the dialog still open.
-    // A key typed straight after Enter or Tab takes an option lands in the
-    // field, which keeps focus. The condition goes again before the
-    // eval answers.
     const escapes = await obRun(
       run.vaultId,
       async (
@@ -1157,7 +1092,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // No menu or dialog stays over the window for the cases after this one.
     await obRunUntil(
       run.vaultId,
       async (_context) => {
@@ -1190,10 +1124,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { notePath },
     );
 
-    /**
-     * Opens the colour Chooser, ticks the row of `color` (or "Clear selected
-     * colors" for `null`), and closes the Chooser.
-     */
     const pickColor = (color: string | null) =>
       obRun(
         run.vaultId,
@@ -1261,7 +1191,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     let picked = false;
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(async () => {
-      // The colour filter is saved for the Item; clearing it takes it back.
       if (picked) await pickColor(null);
       await obRun(
         run.vaultId,
@@ -1318,7 +1247,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // Filter the sidebar by the colour of the Fixture's first Annotation.
     const color = attachmentAnnotations[0]!.color;
     const ofColor = attachmentAnnotations
       .filter((annotation) => annotation.color === color)
@@ -1354,9 +1282,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // More options → "Save as query file…", through Obsidian's own menu. A
-    // side dock hides the view header, so the reader presses the header
-    // row's own "More options".
     expect(
       await obRun(
         run.vaultId,
@@ -1411,8 +1336,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { saveQueryLabel: run.m.annot_view_save_as_query_file() },
     );
-
-    // The dialog asks the name, the folder, and which records the file shows.
 
     const dialog = (await obRun(
       run.vaultId,
@@ -1496,8 +1419,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
     );
 
-    // The file opens in a tab, where `this` has no value.
-
     await obRunUntil(
       run.vaultId,
       async ({ app }, { savedPath }) => {
@@ -1538,8 +1459,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(saved).toMatch(/^filters: item == this\.item$/m);
     expect(saved).toMatch(/^ {4}filters: color/m);
 
-    // Embedded in the Item's Literature Note, it shows that note's
-    // Annotations of the colour.
     await obRun(
       run.vaultId,
       async ({ app }, { notePath, updatedNoteText }) => {

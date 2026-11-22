@@ -1,15 +1,4 @@
 import type { VirtualRows } from "#obsidian/query-view/virtual-rows.ts";
-// The window of an Items Layout over its entries: the group headings and
-// Item rows of the Papers, Table and List layouts, of which a long list
-// mounts only those near the screen (`virtual-rows.ts`). A layout gives its
-// entries and a function that draws one; the window draws the box the list
-// scrolls in, the list, an element for each mounted entry and a spacer for
-// each run it leaves out. It keeps the rows its host needs mounted (the
-// selected row, the first row, the row under the focus), tells the host the
-// order of the Item rows and how to scroll to one, and draws every entry for
-// a print.
-//
-// @see apps/obsidian/docs/adr/0074-library-view-rows-act-as-quick-switcher-results.md
 import {
   Fragment,
   useCallback,
@@ -34,112 +23,54 @@ import {
 } from "#core/query-view/virtual-spacers.tsx";
 import { useVirtualRows } from "#obsidian/query-view/virtual-rows.ts";
 
-/** One entry of an Items Layout, in the order it shows. */
 export interface WindowEntry {
-  /** A key of the entry that holds across runs. */
   readonly key: string;
-  /**
-   * What the entry is, such as a heading or a row of one line: an entry
-   * takes the height its kind measures until it is measured itself.
-   */
   readonly kind: string;
-  /** The Indexed Key of the Item an Item row shows; `null` for a heading. */
   readonly item: string | null;
-  /**
-   * The entry takes a height of its own, as a row expanded into its
-   * Attachments: its kind learns no height from it.
-   */
   readonly own?: boolean;
-  /**
-   * The entry's height before it is drawn, where the layout knows it, as
-   * the List does from a row's text: the entry takes it in place of its
-   * kind's, and its kind learns no height from it.
-   */
   readonly height?: number;
 }
 
-/**
- * The height of an entry of each kind before the list has measured entries
- * of that kind: a `row`'s for a kind it does not name, and for the outlines
- * of the rows a spacer stands for.
- */
 export type Estimates = Readonly<Record<string, number>> & {
   readonly row: number;
 };
 
-/** The attributes a layout gives an element the window draws. */
 type Attributes<E extends HTMLAttributes<HTMLElement>> = E & {
   readonly [data: `data-${string}`]: string | undefined;
 };
 
-/** One entry as its layout draws it. */
 export interface DrawnEntry {
-  /** The attributes of the entry's element: a `li`, or a Table's `tbody`. */
   readonly props?: Attributes<LiHTMLAttributes<HTMLElement>>;
   readonly children: ReactNode;
 }
 
-/** A list whose entries are its `li` elements, as the Papers and List layouts draw. */
 interface ListFlow {
   readonly kind: "list";
   readonly as: "ul" | "ol";
-  /** The attributes of the list element. */
   readonly props?: Attributes<HTMLAttributes<HTMLElement>>;
-  /** The outline of one row, which the box repeats under its entries. */
   readonly ghost: string;
 }
 
-/** A table with one `tbody` for each entry, as the Table layout draws. */
 interface TableFlow {
   readonly kind: "table";
-  /** The attributes of the table element. */
   readonly props?: Attributes<HTMLAttributes<HTMLElement>>;
-  /** The rows of the table's header, which the window draws in its `thead`. */
   readonly head: ReactNode;
-  /** The columns of properties, which a spacer draws an outline for. */
   readonly columns: number;
 }
 
-/** What the window draws through `useVirtualRows`. */
 interface MountedRows extends VirtualRows {
-  /** The ref of the layout's own box, which scrolls the list in a tab. */
   readonly box: (el: HTMLElement | null) => void;
 }
 
-/** The classes of every layout's box, which scrolls its list. */
 const BOX = "zt:min-h-0 zt:flex-1 zt:overflow-auto zt:[overflow-anchor:none]";
 
-/** The height of a long list, `--zt-virtual-size`, held whatever its rows draw. */
 const HOLD = "zt:box-content zt:h-(--zt-virtual-size) zt:overflow-y-clip";
 
-/**
- * A long list's box draws its rows' outlines as its background, inside its
- * padding, where the list draws its rows (`virtual-spacers.tsx`).
- */
 const OUTLINES = "zt:bg-origin-content zt:bg-clip-content";
 
-/**
- * An entry of a long list covers the outlines under it with the colour the
- * page shows there: a side dock's, or a callout's tint over the page, as a
- * Table's header does.
- */
 const SURFACE =
   "zt:bg-background zt:in-[.mod-sidedock]:bg-(--background-secondary) zt:in-[.callout]:bg-[image:linear-gradient(color-mix(in_oklch,var(--callout-color)_10%,transparent),color-mix(in_oklch,var(--callout-color)_10%,transparent))]";
 
-/**
- * The list of `view`'s Items Layout over `entries`, mounted near the screen
- * in a box of its own.
- * @param estimates The height of an entry of each kind before it is measured.
- * @param shape What the entries' heights follow beside their content, such
- *   as the layout's options: a change measures them again.
- * @param box The attributes of the box the list scrolls in.
- * @param boxRef The box, as the layout reads it back.
- * @param flow The list's elements: `li` entries in a list, or one `tbody`
- *   for each entry in a table.
- * @param draw Draws the entry at an index of `entries`.
- * @param drew Runs after each draw of the window, as a scroll or a resize
- *   draws it, with the drawn rows in place.
- */
 export function ItemsWindow({
   view,
   entries,
@@ -163,9 +94,6 @@ export function ItemsWindow({
 }) {
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- runs after each draw on purpose
   useLayoutEffect(() => drew?.());
-  // A table's header stays over its rows as they scroll: a row scrolled into
-  // view lands under it, and the box's scroll bar starts under it, so a
-  // press at the header's edge never lands on the bar (`table-header.css`).
   const [head, setHead] = useState<HTMLElement | null>(null);
   const [header, setHeader] = useState(0);
   useLayoutEffect(() => {
@@ -221,9 +149,6 @@ export function ItemsWindow({
     );
   });
   const end = after > 0 && spacer(after);
-  // A long list stands at the height its window lays out, its header's with
-  // it: a row that draws at another height than it took then moves the rows
-  // under it, not the list's length under a scroll bar drag.
   const hold = size !== null && HOLD;
   let list: ReactNode;
   if (flow.kind === "list") {
@@ -241,12 +166,9 @@ export function ItemsWindow({
     );
   } else
     list = (
-      // A table stands at the height of its rows at least: it holds its
-      // height in a block that clips it.
       <div className={cn(hold)}>
         <table {...flow.props} onFocus={onFocus}>
           {flow.head && <thead ref={setHead}>{flow.head}</thead>}
-          {/* The rows start here, under the header. */}
           <tbody ref={listRef} />
           {rows}
           {end}
@@ -280,7 +202,6 @@ export function ItemsWindow({
   );
 }
 
-/** The window of `view`'s Items Layout over `entries`. */
 function useItemsWindow(
   view: QueryView,
   entries: readonly WindowEntry[],
@@ -293,7 +214,6 @@ function useItemsWindow(
   const gestures = view.rows;
   const [own, setOwn] = useState<HTMLElement | null>(null);
 
-  /** The Item rows in order, and the place of each Item's first row. */
   const { keys, places } = useMemo(() => {
     const keys: string[] = [];
     const places = new Map<string, number>();
@@ -305,8 +225,6 @@ function useItemsWindow(
     return { keys, places };
   }, [entries]);
 
-  // The host's keys find the selected row, and the Tab stop is the first
-  // row while none is selected: both stay mounted wherever they are.
   const selected = useSyncExternalStore(
     (listener) => gestures?.selection.subscribe(listener) ?? (() => {}),
     () => gestures?.selection.getState().key ?? null,
@@ -351,13 +269,11 @@ function useItemsWindow(
       scrollTo: (key) => {
         const index = places.get(key);
         if (index === undefined || scrollTo(index)) return;
-        // A list that mounts every row scrolls the row's own element.
         [...(own?.querySelectorAll(`[${ITEM_ROW_ATTRIBUTE}]`) ?? [])]
           .find((row) => row.getAttribute(ITEM_ROW_ATTRIBUTE) === key)
           ?.scrollIntoView({ block: "nearest" });
       },
     });
-    // A layout that goes shows no rows.
     return () => gestures?.shown(NO_ROWS);
   }, [gestures, keys, places, scrollTo, own]);
 

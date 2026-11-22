@@ -1,6 +1,5 @@
 import type { App, ExtendedHotkey, TFile, View } from "obsidian";
 
-/** Host APIs used only by the End-to-end Run, outside the plugin's surface. */
 export interface RenameListener {
   fn: (file: TFile, oldPath: string) => unknown;
 }
@@ -43,9 +42,7 @@ export type PageApp = App & {
     };
     manifests: Record<string, import("obsidian").PluginManifest>;
     loadManifests(): Promise<void>;
-    /** Reads the manifest in the plugin folder `dir` again, as an install does. */
     loadManifest(dir: string): Promise<void>;
-    /** Reports a change of the installed plugins, as an install or an uninstall does. */
     didChange(): void;
     disablePlugin(id: string): Promise<void>;
     enablePlugin(id: string): Promise<void>;
@@ -57,7 +54,6 @@ export type PageApp = App & {
   };
   vault: App["vault"] & {
     _: { rename?: RenameListener[] };
-    /** What `Plugin.loadData` reads through. */
     readPluginData(dir: string): Promise<unknown>;
     setConfig(key: "trashOption", value: "local" | "system" | "none"): void;
     getConfig(key: "nativeMenus" | "settingsPopoutWindow"): boolean;
@@ -79,7 +75,6 @@ declare global {
   }
   namespace NodeJS {
     interface Process {
-      /** Node's open handles: sockets, servers, timers. Internal. */
       _getActiveHandles(): object[];
     }
   }

@@ -1,8 +1,3 @@
-// Resolves a real Zotero application — an override or the managed install — and
-// launches it on the Fixture's profile beside a personal Zotero. It also owns
-// the preferences that profile carries, because they describe what a real
-// Zotero does on a profile it has never opened.
-
 import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { execFile } from "node:child_process";
@@ -29,10 +24,6 @@ import { $ } from "zx";
 
 const execFileAsync = promisify(execFile);
 
-/**
- * The official Zotero build the Paired Zotero runs. A deliberate constant: it
- * fixes both the managed install and the schema era the Fixture targets.
- */
 export const PINNED_ZOTERO_VERSION = "10.0";
 export const PINNED_BETTER_BIBTEX_VERSION = "9.0.64";
 
@@ -45,7 +36,6 @@ const BETTER_BIBTEX_SHA256 =
 const BETTER_BIBTEX_ARCHIVE = `zotero-better-bibtex-${PINNED_BETTER_BIBTEX_VERSION}.xpi`;
 const BETTER_BIBTEX_DOWNLOAD_URL = `https://github.com/retorquere/zotero-better-bibtex/releases/download/v${PINNED_BETTER_BIBTEX_VERSION}/${BETTER_BIBTEX_ARCHIVE}`;
 
-/** Preferences that preserve the Fixture Spec's native Citation Keys. */
 export const BETTER_BIBTEX_PREFS = [
   'user_pref("extensions.update.enabled", false);',
   'user_pref("extensions.zotero.translators.better-bibtex.fillKeyAfter", 0);',
@@ -168,12 +158,6 @@ function isApplicationDir(applicationDir: string): Promise<boolean> {
   );
 }
 
-/**
- * The application folder the Paired Zotero runs: `ZOTERO_APP` when set, else the
- * managed install, downloaded on first use and reused from cache afterwards.
- *
- * @throws when the override names no application folder, or the download fails.
- */
 export async function resolveZoteroApp(): Promise<string> {
   const layout = getManagedZoteroLayout();
 
@@ -199,11 +183,6 @@ export async function resolveZoteroApp(): Promise<string> {
   return layout.applicationDir;
 }
 
-/**
- * Download the pinned archive and lay its application into `cacheDir`. Stages the
- * whole install beside the destination and renames it into place, so an
- * interrupted run leaves no half-copied bundle for the next run to trust.
- */
 async function installManagedZotero(
   layout: ManagedZoteroLayout,
 ): Promise<void> {
@@ -255,7 +234,6 @@ async function sha256(path: string): Promise<string | undefined> {
   }
 }
 
-/** Download and verify the pinned Better BibTeX XPI, then install it in a profile. */
 export async function installBetterBibtex(
   profileDir: string,
   layout = getManagedBetterBibtexLayout(),
@@ -293,7 +271,6 @@ export async function installBetterBibtex(
   );
 }
 
-/** Coarse progress for managed downloads. */
 async function* reportProgress(
   source: AsyncIterable<Uint8Array>,
   total: number,
@@ -311,11 +288,6 @@ async function* reportProgress(
   }
 }
 
-/**
- * `hdiutil` and `ditto` rather than a JavaScript unpacker: the app bundle
- * carries symlinks, extended attributes, and a code signature that only the
- * macOS tools reproduce faithfully.
- */
 async function extractApplication(
   archivePath: string,
   destination: string,
@@ -334,22 +306,6 @@ async function extractApplication(
   }
 }
 
-/**
- * What Zotero does on a profile it has never opened: it loads the start page in
- * the developer's browser, shows guidance popups and an upgrade banner, asks
- * to enable sideloaded add-ons and set up sync, and starts backing the database
- * up. Each preference here turns one of those off, and `app.update.auto` holds
- * {@link PINNED_ZOTERO_VERSION} in place. Zotero rides Gecko 140, where
- * `app.update.auto` is the live knob: it ships the pref as `true` and patches
- * `UpdateUtils` to keep reading it from `prefs.js`.
- *
- * @see {@link https://github.com/zotero/zotero/blob/22f08d1ced/chrome/content/zotero/zoteroPane.js#L636}
- * for the branch that opens the start page.
- * @see {@link https://github.com/zotero/zotero/blob/22f08d1ced/test/runtests.sh#L143-L166}
- * for the same Zotero preference names in Zotero's own test harness.
- * @see {@link https://github.com/zotero/zotero/blob/22f08d1ced/app/scripts/fetch_xulrunner#L155}
- * for the patch that keeps `app.update.auto` live.
- */
 export const QUIET_FIRST_RUN_PREFS = [
   'user_pref("extensions.autoDisableScopes", 0);',
   'user_pref("extensions.zotero.firstRun2", false);',
@@ -363,21 +319,10 @@ export const QUIET_FIRST_RUN_PREFS = [
   'user_pref("app.update.auto", false);',
 ] as const;
 
-/**
- * What Zotero asks before it hands an `obsidian://` link to Obsidian: a
- * confirmation dialog, on every click of a ZotLit backlink. Gecko reads
- * `network.protocol-handler.external.<scheme>` as standing permission for that
- * scheme, so the Fixture grants it and a smoke test reaches the vault in one
- * click. The same preference is what the how-to asks a reader to add by hand.
- *
- * @see {@link https://searchfox.org/mozilla-central/source/uriloader/exthandler/ContentDispatchChooser.sys.mjs}
- * for `_hasProtocolHandlerPermission`, which reads this preference.
- */
 export const OBSIDIAN_PROTOCOL_PREFS = [
   'user_pref("network.protocol-handler.external.obsidian", true);',
 ] as const;
 
-/** The profile and data directory a Zotero process opens. */
 export interface ZoteroTarget {
   profileDir: string;
   dataDir: string;
@@ -423,12 +368,6 @@ async function installCompanionProxy(
   await writeFile(join(extensionsDir, addonId), resolve(companionDir));
 }
 
-/**
- * Start `applicationDir` on `target`, beside a personal Zotero.
- *
- * @param options.detached `true` lets the instance outlive the command;
- * `false` keeps the child attached, so a caller can wait for it and signal it.
- */
 export function spawnZotero(
   applicationDir: string,
   target: ZoteroTarget,
@@ -440,8 +379,6 @@ export function spawnZotero(
     {
       detached: options.detached,
       stdio: "ignore",
-      // Gecko otherwise hands the command line to an already-running Zotero,
-      // which would raise a window on the personal library instead.
       env: { ...process.env, MOZ_NO_REMOTE: "1" },
     },
   );
@@ -450,22 +387,9 @@ export function spawnZotero(
 export interface PairedZotero {
   applicationDir: string;
   pid: number;
-  /**
-   * The remote debugging port this instance listens on, for evaluating JS in
-   * Zotero's parent process (`packages/scripts/scripts/zotero-rdp.ts`). A
-   * Paired Run reports it; {@link launchPairedZotero} starts Zotero without a
-   * debugger, so it reports none.
-   */
   debuggerPort?: number;
 }
 
-/**
- * Start the Paired Zotero on the Fixture's profile and data directory,
- * detached so the command returns and the instance outlives it.
- *
- * @throws when the Fixture or companion build is missing, the companion
- * manifest is invalid, or no application directory resolves.
- */
 export async function launchPairedZotero(
   target: ZoteroTarget,
   companionDir: string,

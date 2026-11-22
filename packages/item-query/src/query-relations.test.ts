@@ -23,7 +23,6 @@ import {
 import { runEffect } from "./test-helpers.ts";
 import { PRODUCTION_TUNING } from "./tuning.ts";
 
-// Read-only tests share one scenario; a test that writes opens its own.
 let scenario: ScenarioDatabase<NodeDatabaseClient>;
 beforeAll(() => {
   scenario = openScenarioDatabase(connectClient, { annotations: true });
@@ -180,8 +179,6 @@ it("finds papers with no usable PDF on this machine", async () => {
     { client: scenario.db },
   );
   if (exit._tag === "Failure") throw Cause.squash(exit.cause);
-  // ART2FULL is the only paper with files, and its PDF2LIVE resolves: every
-  // other live top-level paper of My Library matches, with no file paths.
   expect(
     exit.value.rows!.map((row) => [
       row.indexedKey,
@@ -523,8 +520,6 @@ it("reads fewer rows for a selective relation filter than its forced scan", asyn
   ).toBe(true);
 });
 
-// ART2FULL is filed in Thesis/Methods and is the only paper with files and
-// marks; CHP2YEAR is filed there too but has neither.
 it.each([
   'attachments.filter(value.item.collections.contains("Thesis/Methods")).length > 0',
   'annotations.filter(value.item.collections.within("Thesis")).length >= 1',
@@ -557,8 +552,6 @@ it.each([
   ).toBe(true);
 });
 
-// ART2FULL owns every file and mark of My Library. PDF2LINK carries the Tag
-// "attachment-method"; both PDFs hold yellow marks tagged method, ANN2HGHT is on PDF2LIVE.
 it.each([
   [
     ITEMS,
@@ -676,8 +669,6 @@ it.each([
   ).toBe(false);
 });
 
-// Failure modes: rejected identities, bare keys with a suffix, parent identities
-// from the wrong Library, and numeric rather than text ordering of group IDs.
 it.each([
   [ITEMS, "ART2FULL", "ART2FULL"],
   [ATTACHMENTS, "PDF2LIVE", "PDF2GRUP"],
@@ -867,7 +858,6 @@ it("groups papers by each tag name across two Libraries, with overlapping counts
     ["To-Read", 1, ["ART2FULL"]],
     [null, 3, ["CHP2YEAR", "CNF2TEXT"]],
   ]);
-  // Twelve papers match; their group counts add up to sixteen.
   expect(exit.value).toMatchObject({
     totalCount: 12,
     returnedCount: 13,
@@ -902,11 +892,9 @@ it("puts a paper in a file-type group once, however many files of that type it h
     "ART2FULL",
     "ART2FULLg4815",
   ]);
-  // The group path names its Relation List, so the list is hydrated.
   expect(exit.value.groups![1]!.rows[0]!.values).toEqual({
     "attachments[].fileType": ["pdf", "pdf", "web", "web"],
   });
-  // ART2FULL has PDF and web files, so it is in two groups.
   expect(exit.value).toMatchObject({
     totalCount: 12,
     returnedCount: 13,
@@ -1074,10 +1062,6 @@ it("rejects a group path with two [] and names the one-[] rule", async () => {
   });
 });
 
-// Failure modes: many elements on one paper bypass the parent cap, a budget
-// grows with match count, or an incomplete candidate set changes the result.
-// The production budget reads 8 pages of 500 elements, each page with one
-// parent read: 3,000 elements take 6 pages, and above 4,000 the plan scans.
 it.each([
   [3_000, 6, false],
   [4_000, 8, false],
@@ -1128,7 +1112,6 @@ it.each([
       expect(
         readers.filter((reader) => reader === "relation-candidate-set"),
       ).toHaveLength(pages);
-      // A page reads its elements in at most two statements.
       expect(readers.length).toBeLessThanOrEqual(
         3 * PRODUCTION_TUNING.relationPageBudget,
       );
@@ -1141,7 +1124,6 @@ it.each([
       ).toBe(scans);
     }
   },
-  // Seeds and reads up to 10,000 records; the default 5000 ms limit fails on CI runners.
   20_000,
 );
 

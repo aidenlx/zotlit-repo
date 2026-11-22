@@ -1,16 +1,3 @@
-// One lesson page: the opener, the outcome, the checklist of steps from the
-// lesson body, and the end. See DESIGN.md → Learn.
-//
-// The page prerenders every step open, in order, so search engines and readers
-// without JavaScript get the whole lesson. Once it runs, at most one row is
-// open: the row the URL hash names (`#3`), or the first one not ticked for a
-// reader who began. A new reader starts with every row closed, on the
-// outcome, until they press Start or open a row themselves. The outcome's
-// recording loops; a step's plays once and ends dimmed under its replay and
-// tick buttons. Ticks are saved per step for this browser, and the course
-// page reads them. Until the page runs, CSS alone opens the row the hash
-// targets — see `preHydration`.
-
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
 import {
@@ -54,7 +41,6 @@ import type {
 } from "./lesson-state.ts";
 import { StepPicture } from "./step-picture.tsx";
 
-/** Another lesson, as the end offers it. */
 export interface ChoreLink {
   slug: string;
   lesson: number;
@@ -62,7 +48,6 @@ export interface ChoreLink {
   chore: string;
   minutes: number;
   media: string;
-  /** The lesson's last step, whose picture shows the result. */
   result: { n: number; alt: string };
 }
 
@@ -77,18 +62,13 @@ export interface LessonViewData {
   needs: { item: string; detail: string }[];
   steps: LessonStepMeta[];
   end: { title: string; caption: string };
-  /** The guides for the other ways to do the lesson's task. */
   further: FurtherLink[];
-  /** Every other lesson, in course order. */
   others: ChoreLink[];
 }
 
-/** A docs page the lesson's "Go further" list links, by its title. */
 export interface FurtherLink {
   title: string;
-  /** A root-relative `/docs/...` path. */
   href: string;
-  /** When the reader needs the page, as a phrase that follows the title. */
   when: string;
 }
 
@@ -96,10 +76,8 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-// Tailwind's `xl`, from which the lesson shows its media panel.
 const wideQuery = "(min-width: 80rem)";
 
-/** Whether the window is `xl` wide; false while the page prerenders. */
 function useWide() {
   return useSyncExternalStore(
     (change) => {
@@ -117,7 +95,6 @@ export function LessonView({
   children,
 }: {
   lesson: LessonViewData;
-  /** The compiled lesson body: its `<Step>` rows. */
   children: ReactNode;
 }) {
   const total = lesson.steps.length;
@@ -127,22 +104,16 @@ export function LessonView({
   const [ready, setReady] = useState(false);
   const [ticks, setTicks] = useState<ReadonlySet<number>>(new Set());
   const [open, setOpen] = useState<number | null>(null);
-  // The row the reader opened with Start, whose recording plays at once.
   const [launched, setLaunched] = useState<number | null>(null);
   const [progress, setProgress] = useState<Record<string, LessonProgress>>({});
   const [say, setSay] = useState("");
-  // The hash this page wrote itself, which the hash effect leaves alone.
   const written = useRef<string | null>(null);
-  // The row to bring into view after the next render.
   const reveal = useRef<number | null>(null);
 
-  // Runs before paint, so a client-side visit — which never ran the inline
-  // script below — does not show every row open for a frame.
   useLayoutEffect(() => {
     document.documentElement.setAttribute("data-lesson-js", "");
   }, []);
 
-  // Saved ticks live in this browser only, so they are read after mount.
   useLayoutEffect(() => {
     const all = readProgress();
     const saved = all[lesson.slug]?.ticks ?? [];
@@ -151,13 +122,10 @@ export function LessonView({
     setReady(true);
   }, [lesson.slug]);
 
-  // The hash names the open row; with none, a reader who began finds the
-  // first row not ticked open, and a new reader finds every row closed.
   useLayoutEffect(() => {
     if (!ready) return;
     if (written.current === hash) return;
     written.current = null;
-    // Storage holds the latest ticks, so this effect need not run on each tick.
     const saved = readProgress()[lesson.slug]?.ticks ?? [];
     setOpen(openOnLoad(hash, saved, total));
   }, [hash, total, ready, lesson.slug]);
@@ -179,7 +147,6 @@ export function LessonView({
     }
   }, [open, total]);
 
-  /** Opens row `n`, or closes every row, and brings `into` view: a row, or the end. */
   function show(n: number | null, into: number | null = n) {
     setOpen(n);
     setLaunched(null);
@@ -223,10 +190,6 @@ export function LessonView({
     return after;
   }
 
-  /**
-   * Start, or "Continue with step N": opens the first row not ticked, exactly
-   * as selecting its title does, and plays its recording at once.
-   */
   function start() {
     const n = firstOpenStep(ticks, total);
     if (n === undefined) return;
@@ -276,8 +239,6 @@ export function LessonView({
   return (
     <LessonContext value={state}>
       <script
-        // Marks a running page before it paints, so `preHydration` closes
-        // every row but the one the hash targets.
         dangerouslySetInnerHTML={{
           __html: `document.documentElement.setAttribute("data-lesson-js","")`,
         }}
@@ -386,20 +347,13 @@ function Opener({ lesson }: { lesson: LessonViewData }) {
   );
 }
 
-/**
- * Below `xl`, the result once, above the checklist: its title, the Start
- * button while no row is open, and the last step's recording in a loop. From
- * `xl` a running page shows it in the panel.
- */
 function Outcome({
   lesson,
   active,
   children,
 }: {
   lesson: LessonViewData;
-  /** The page runs without the panel, so the recording can mount. */
   active: boolean;
-  /** The Start button, while no row is open. */
   children: ReactNode;
 }) {
   const total = lesson.steps.length;
@@ -428,28 +382,19 @@ function Outcome({
         n={total}
         alt={last.alt}
         active={active}
-        // The page's first picture, and what a visitor sees on arrival.
         priority
       />
     </section>
   );
 }
 
-/**
- * From `xl`: the open row's recording beside the checklist, or, while no row
- * is open, the outcome in a loop over the Start button. The open row's
- * recording plays at once after Start, and otherwise while it crosses the
- * middle of the window; it plays once and ends under the row's tick action.
- */
 function MediaPanel({
   lesson,
   children,
 }: {
   lesson: LessonViewData;
-  /** The Start button, while no row is open. */
   children: ReactNode;
 }) {
-  // LessonView provides the context and renders the panel only once the page runs, so `live` is set.
   const live = use(LessonContext)!.live!;
   const { open, ticks, launched } = live;
   const total = lesson.steps.length;
@@ -485,7 +430,6 @@ function MediaPanel({
             <span className="min-w-0">{step.title}</span>
           </p>
           <StepPicture
-            // The last step shares its clip with the outcome; the key mounts a fresh player when the panel turns.
             key="step"
             media={lesson.media}
             n={open}
@@ -527,10 +471,6 @@ function MediaPanel({
   );
 }
 
-/**
- * Two other chores: lesson 1 first while it is not done, then the lessons
- * after this one not done yet, then any others.
- */
 function nextChores(
   lesson: LessonViewData,
   progress: Record<string, LessonProgress>,
@@ -546,7 +486,6 @@ function nextChores(
   return [...(first ? [first] : []), ...open, ...done].slice(0, 2);
 }
 
-/** Every step ticked: what ZotLit now does, and two more chores. */
 function End({
   lesson,
   progress,
@@ -600,7 +539,6 @@ function End({
   );
 }
 
-/** A small link card to another lesson: its result, the chore and its minutes. */
 function ChoreCard({ chore, done }: { chore: ChoreLink; done?: boolean }) {
   return (
     <div className="group relative grid h-full content-start gap-2.5 rounded-[12px] border border-transparent bg-fd-background p-3 shadow-ring transition-shadow duration-150 hover:shadow-ring-hover">
@@ -639,7 +577,6 @@ function ChoreCard({ chore, done }: { chore: ChoreLink; done?: boolean }) {
   );
 }
 
-/** After the checklist: the guides for the other ways to do the task. */
 function GoFurther({ further }: { further: FurtherLink[] }) {
   if (further.length === 0) return null;
   return (
@@ -667,7 +604,6 @@ function GoFurther({ further }: { further: FurtherLink[] }) {
   );
 }
 
-/** A check and "Done" in the check green. */
 export function DoneBadge() {
   return (
     <span className="inline-flex items-center gap-1 font-semibold text-check-label">

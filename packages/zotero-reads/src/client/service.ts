@@ -1,7 +1,6 @@
 import type { EffectiveReadMode } from "#contract/rpc.ts";
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
 import type { ChangeEvent, SnapshotId } from "#contract/rpc.ts";
-/** The renderer's scoped database capability over the ZoteroReads RPC client. */
 import {
   Cause,
   Context,
@@ -97,7 +96,6 @@ function bindReads(client: ZoteroReadsClient, snapshot?: SnapshotId) {
   return reads as unknown as ZoteroReadsApi;
 }
 
-/** The transport owns its workers and connections on this layer's Scope. */
 export function layerZoteroReads<R>(
   makeClient: Effect.Effect<ZoteroReadsClient, never, R | Scope.Scope>,
 ) {
@@ -207,8 +205,6 @@ export function layerZoteroReads<R>(
       });
       yield* Deferred.await(seeded);
       if ((yield* current).state === "loading") {
-        // Legacy ready waited for the feed seed, including loading. The first
-        // database read belongs to the Scope; consumers follow its state.
         yield* client.Libraries({}).pipe(
           Effect.catchCause((cause) =>
             Effect.gen(function* () {

@@ -186,7 +186,6 @@ it("tells the unmatched fallback, the affected recovery, and the all-new overrid
   controls[2]!.click();
   expect(chooseProfile).toHaveBeenLastCalledWith(override);
 
-  // Once chosen, the override names the shared destination and its source.
   Object.assign(override, { label: "Articles", source: "asked" });
   container.replaceChildren();
   manifest.renderList(container, { chooseProfile });
@@ -525,7 +524,6 @@ const papers = (count: number) =>
     kind: "update",
   }));
 
-/** The status each mounted row shows, by label. */
 const rowStatuses = (container: HTMLElement) =>
   Array.from(container.querySelectorAll("li"), (li) => [
     li.textContent,

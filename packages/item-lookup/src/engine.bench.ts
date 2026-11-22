@@ -1,5 +1,3 @@
-// Run with `pnpm --filter @zotlit/item-lookup bench`; it stays out of
-// `pnpm test` because it builds a 100,000-Item index and checks a time bound.
 import { Effect, Stream } from "effect";
 import MiniSearch from "minisearch";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -14,7 +12,6 @@ import { layerSegmenterNone } from "./segmenter.ts";
 
 const ITEMS = 100_000;
 const SLICE = 500;
-/** Wall-clock bound for one query; ADR 0069 measured ~170 ms in Obsidian. */
 const QUERY_BOUND_MS = 500;
 
 const WORDS = [

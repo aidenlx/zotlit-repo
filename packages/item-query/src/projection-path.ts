@@ -1,23 +1,13 @@
-/** One step of a Projection Path: an object key, an index, or every element. */
 export type PathSegment = string | number | { readonly kind: "each" };
 
 export type ParsedPath =
   | {
       readonly ok: true;
       readonly segments: readonly PathSegment[];
-      /** Start of each accessor, including its dot or opening bracket. */
       readonly offsets: readonly number[];
     }
   | { readonly ok: false; readonly message: string };
 
-/**
- * Parse a Projection Path in the template accessor grammar: dotted identifier
- * access (`date.year`), numeric array indexes (`creators[0]`), element projection
- * (`creators[]`), and JSON-quoted
- * brackets for arbitrary keys (`custom["review.status"]`). An identifier is
- * ASCII letters, digits, `_`, and `$`, and does not start with a digit. The
- * path has no whitespace.
- */
 export function parseProjectionPath(text: string): ParsedPath {
   const segments: PathSegment[] = [];
   const offsets: number[] = [];
@@ -75,14 +65,12 @@ export function parseProjectionPath(text: string): ParsedPath {
   return { ok: true, segments, offsets };
 }
 
-/** The position of the `]` that closes the bracket at `open`, or -1. */
 function bracketEnd(text: string, open: number): number {
   let at = open + 1;
   if (text[at] !== '"') {
     const close = text.indexOf("]", at);
     return close;
   }
-  // Skip the JSON string, so that a quoted key can hold "]".
   at += 1;
   while (at < text.length) {
     const char = text[at];

@@ -1,7 +1,3 @@
-// The `obsidian-i18n compile` command: one compile per invocation. Rebuilding
-// on input changes belongs to the Vite plugin in `./vite.ts`, which registers
-// the compile result's `watchPaths` with the bundler's own watcher.
-
 import { compile } from "./compiler.ts";
 import type { CompileOptions } from "./compiler.ts";
 

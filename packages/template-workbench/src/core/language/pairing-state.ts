@@ -1,4 +1,3 @@
-// Generated delimiter provenance, mapped through edits and document history.
 import { invertedEffects } from "@codemirror/commands";
 import { MapMode, StateEffect, StateField } from "@codemirror/state";
 import type { ChangeDesc, EditorState, Text } from "@codemirror/state";
@@ -8,7 +7,6 @@ export interface GeneratedPair {
   open: string;
   closeFrom: number;
   close: string;
-  /** Position of the generated space before the closer, while it survives. */
   padding?: number;
 }
 
@@ -65,7 +63,6 @@ export const pairingState = StateField.define<readonly GeneratedPair[]>({
   },
 });
 
-/** History stores provenance with the text edit that produced it. */
 export const pairingHistory = invertedEffects.of((transaction) =>
   transaction.docChanged
     ? [restorePairs.of(transaction.startState.field(pairingState))]
@@ -81,7 +78,6 @@ export function offsetPair(pair: GeneratedPair, offset: number): GeneratedPair {
   };
 }
 
-/** Project master provenance into a newly mounted or refreshed slice. */
 export function slicePairs(
   state: EditorState,
   range: { from: number; to: number },

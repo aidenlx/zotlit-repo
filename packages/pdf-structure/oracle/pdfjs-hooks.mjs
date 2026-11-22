@@ -1,11 +1,7 @@
-// Module-resolution hooks that stand in for the aliases Zotero's pdf.js build
-// applies, so its source tree runs in Node with no build step.
-
 import { pathToFileURL } from "node:url";
 
 const src = `${process.env.ZOTLIT_ZOTERO_CHECKOUT}/reader/pdfjs/pdf.js/src/`;
 
-// The three library aliases `createWebpackAlias` sets for the GENERIC build.
 const aliases = {
   "display-binary_data_factory": `${src}display/binary_data_factory.js`,
   "display-network_stream": `${src}display/stubs.js`,

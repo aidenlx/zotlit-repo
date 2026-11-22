@@ -1,4 +1,3 @@
-// Uses observed through real note navigation, Recent, empty search and Query CLI.
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { WorkspaceLeaf, MarkdownView } from "obsidian";
@@ -20,7 +19,6 @@ const targetTitle = "Alpha of the personal library";
 const targetCitekey = "personalAlpha2024";
 const sourceText = "[[literatures/AAAAAAAA]]\n\n[@personalAlpha2024]\n";
 
-/** Failure modes: a route misses a Use, browsing records one, or restore reorders. */
 export async function verifyRecentUses(
   vaultId: string,
   vaultPath: string,
@@ -272,7 +270,6 @@ export async function verifyRecentUses(
       },
     );
   };
-  /** Open an empty Citation Suggester and assert its first paper. */
 
   for (const route of [
     "quick switcher",
@@ -390,7 +387,6 @@ export async function verifyRecentUses(
     await quick(false);
   }
 
-  // The tab stays open while another note is used, then becomes active again.
   await obRun(
     vaultId,
     async ({ app }, { targetpath }) => {
@@ -519,8 +515,6 @@ export async function verifyRecentUses(
   );
   await first(target);
 
-  // Selecting a Citation Suggester result records the cited paper after the
-  // editor accepts its text. Recent and the next empty suggester both agree.
   await obRun(
     vaultId,
     async ({ app }) => {
@@ -594,7 +588,6 @@ export async function verifyRecentUses(
     undefined,
   );
   await first("CCCC3333");
-  // A paper the note cites leads the empty suggester over a newer paper.
   await obRun(
     vaultId,
     async ({ app }, { sourcepath, sourceInput, enabled }) => {
@@ -612,8 +605,6 @@ export async function verifyRecentUses(
     cited: true,
   });
 
-  // Dragging a Library row into the note runs the same successful insert
-  // decision. The Use is visible through Recent and an empty suggester.
   await obRun(
     vaultId,
     async ({ app }) => {
@@ -694,7 +685,6 @@ export async function verifyRecentUses(
     { sourcepath: sourcePath, sourcetext: sourceText },
   );
 
-  // Annotation follow, row selection and the Reading Card consume no Use.
   const beforeBrowse = await timeline();
   await obRun(
     vaultId,
@@ -777,8 +767,6 @@ export async function verifyRecentUses(
   await quick(true, true);
   expect(await timeline()).toEqual(beforeBrowse);
 
-  // Call the registered handlers that receive the Companion's URI, keeping
-  // its update navigation while excluding that operation's activation only.
   await obRun(
     vaultId,
     async ({ app }, { sourcepath, sourceInput, enabled }) => {
@@ -851,15 +839,6 @@ export async function verifyRecentUses(
   );
 }
 
-/**
- * Checks that the empty Citation Suggester puts the target paper first, then
- * closes it with Escape.
- *
- * @param vaultId - The vault window to drive.
- * @param options.noteBody - The text the source note holds, saved before `[@` is typed after it.
- * @param options.cited - Whether `noteBody` cites the target. A cited note waits for the Document
- * Citation Set to hold the target and expects the "cited in note" label on the first suggestion.
- */
 async function expectEmptyCitationFirst(
   vaultId: string,
   { noteBody, cited }: { noteBody: string; cited: boolean },

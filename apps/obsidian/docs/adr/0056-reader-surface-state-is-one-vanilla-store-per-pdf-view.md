@@ -41,3 +41,35 @@ The Reader Surface State lives in the Reader Surface Model (`reader-surface-mode
 - `apps/obsidian` no longer depends on zustand: the Workbench left it in [#1946](https://github.com/aidenlx/zotlit/issues/1946).
 - The per-Annotation facts a refresh reads are ingested in one update.
 - Watchers of one derived atom hear a change together, in the order its node was first built; the Mark Popup Host watches its own atom and is built after the owners, so an editor that closes is still let go before the host redraws.
+
+A repeated capability announcement with the same toolbar content keeps a pressed control's element in place. Stop the countdown when the capability changes or the leaf closes.
+
+Keep one floating surface. A live browser text selection ends a selected-mark surface before creation handles the new selection.
+
+Keep the binding's state atom alive even when no renderer watches it. Each derived atom compares the fields its subscriber draws. The toolbar and popup rows use ordered value comparisons so a new list with equal control or tag data does not force a redraw. The cooldown affordance uses the current instant. The toolbar and popup copy use the capability's ingest instant. Preserve the held capability object on an equivalent report and advance only the clock.
+
+Prefer one floating variant. Arming a click or stroke tool clears other floating state to give the new tool the press. Let the previous Text Draft finish through its owner. A selection captures its anchor as a page fraction so it can follow zoom. Reselecting the same mark keeps its editor, while stepping the overlapping stack leaves the prior mark's adjustment behind. Ingest a read and the drafts and mutation state its records already hold in one update, since these facts can predate the view's subscription. [Reader Surface State](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/reader-surface-state.ts) · [Reader Surface Model](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/reader-surface-model.ts)
+
+Mount the toolbar once the document and resolved Attachment binding are available. Use the toolbar window's timer for cooldown updates while the binding lives. Re-read capability at each tick because a cooldown can expire without a notification. The binding's cleanup tolerates earlier removal of the toolbar or status slot.
+
+### Paired Creation Toolbar gestures
+
+Scroll the intended PDF point fully into view before sending a
+trusted pointer gesture. Viewport height affects hit testing.
+An image capture must pass the minimum on both sides and
+disarms after creation. A smaller rectangle previews faintly
+and releases without an Annotation. During a held capture the
+Reader owns the pointer and cursor, including above the text
+layer. Note and text tools can also hold the pointer at press.
+Escape disarms before release and leaves no new mark.
+
+Where the page scrolls under a toolbar toggle, pressing the
+toggle must not start a page gesture. Check the overlay
+geometry in the same callback as the press. Creating a note
+uses the click's rounded PDF position, selects the new mark,
+and focuses its Mark Popup editor. A click already on a mark
+selects it without creating another Annotation. Check the
+read-only gestures with the Local API off, then restore live
+editing before the next case.
+
+[Creation Toolbar cases](../../../../packages/e2e/src/paired-run.e2e.ts)

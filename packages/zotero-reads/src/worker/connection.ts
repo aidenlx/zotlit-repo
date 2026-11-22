@@ -1,5 +1,4 @@
 import type { ChangeEvent, ReadsConfig } from "#contract/rpc.ts";
-// The Connection the ZoteroReads handlers borrow, and its RcRef-backed provider.
 import {
   Context,
   Duration,
@@ -23,51 +22,20 @@ import {
 import { makeChangeFeed } from "#contract/change-feed.ts";
 import { DbUnavailable } from "#contract/rpc.ts";
 
-/**
- * The database connection behind every ZoteroReads operation. A borrow lasts
- * for the caller's scope: a swap hands later borrowers a new client, and the
- * old one closes after its last borrower releases.
- */
 export class Connection extends Context.Service<
   Connection,
   {
-    /** Borrow the current client until the caller's scope closes. */
     readonly borrow: Effect.Effect<ZoteroDatabase, DbUnavailable, Scope.Scope>;
-    /** Lifecycle events, starting with the current state for each subscriber. */
     readonly changes: Stream.Stream<ChangeEvent>;
-    /**
-     * Open and validate a new client, then swap it in. Fails when the new
-     * source fails, also when the previous client keeps serving.
-     */
     readonly refresh: Effect.Effect<void, DbUnavailable>;
-    /** A change signal from outside the process (a Zotero push). */
     readonly notifyExternalChange: Effect.Effect<void>;
-    /** New settings for the source; the provider rebinds to them. */
     readonly configure: (config: ReadsConfig) => Effect.Effect<void>;
-    /**
-     * The database a client of this connection reads, as a number. The
-     * number rises each time a client opens a database this connection has
-     * not seen before: another file, or another Zotero identity (account,
-     * local user key, server id) at the same path. Zotero reassigns local
-     * Library ids across databases, so a held index built on an older number
-     * rebuilds. A refresh that reopens the same database keeps the number,
-     * and the signatures decide. Recorded when the client opens and
-     * validates, so the call is synchronous and answers for every client this
-     * connection hands out.
-     */
     readonly databaseGeneration: (client: ZoteroDatabase) => number;
-    /**
-     * The database file a client of this connection opened from, or null
-     * when it opened from no file. Recorded with the generation, so it
-     * answers for every client this connection hands out.
-     */
     readonly databaseFile: (client: ZoteroDatabase) => string | null;
   }
 >()("zotlit/zotero-reads/Connection") {}
 
-/** The database each client reads, for `Connection.databaseGeneration`. */
 export function makeDatabaseGenerations() {
-  /** The generation of each database seen so far. */
   const generations = new Map<string, number>();
   const clientGenerations = new WeakMap<ZoteroDatabase, number>();
   const clientFiles = new WeakMap<ZoteroDatabase, string | null>();
@@ -95,13 +63,6 @@ export function makeDatabaseGenerations() {
     clientFiles.set(client, file);
   });
   return {
-    /**
-     * Record the database a validated client reads: the file it opened from
-     * and the Zotero identity inside it.
-     *
-     * @returns Fails with the identity read's error after the client closes.
-     * @see {@link validateClient}, which closes a client the same way.
-     */
     record,
     databaseGeneration: (client: ZoteroDatabase): number => {
       const generation = clientGenerations.get(client);
@@ -116,17 +77,8 @@ export function makeDatabaseGenerations() {
   };
 }
 
-/**
- * Opens a client for the configured source, with the close that releases it:
- * the host's database opener. Throws when the source cannot open; the
- * provider then validates the client before it serves.
- */
 export type ConnectionOpener = (config: ReadsConfig | null) => OpenClient;
 
-/**
- * A failure as a {@link DbUnavailable}. The message is the innermost cause's:
- * a failed Drizzle query wraps the SQLite error that names the problem.
- */
 export function toDbUnavailable(cause: unknown): DbUnavailable {
   let error = cause;
   while (error instanceof Error && error.cause instanceof Error) {
@@ -137,7 +89,6 @@ export function toDbUnavailable(cause: unknown): DbUnavailable {
   });
 }
 
-/** Run a synchronous read; a SQLite throw becomes a {@link DbUnavailable}. */
 export function read<A>(
   client: ZoteroDatabase,
   f: (client: ZoteroDatabase) => A,
@@ -145,11 +96,6 @@ export function read<A>(
   return Effect.try({ try: () => f(client), catch: toDbUnavailable });
 }
 
-/**
- * The layout check threw for a reason other than a layout gap: the file is not
- * a Zotero database, or a statement failed. `message` is the original's, which
- * {@link toDbUnavailable} reads through `cause`.
- */
 export class ClientValidationError extends Schema.TaggedError<
   ClientValidationError,
   { readonly brand: unique symbol }
@@ -158,13 +104,6 @@ export class ClientValidationError extends Schema.TaggedError<
   cause: Schema.Defect(),
 }) {}
 
-/**
- * Prove a client reads as a Zotero database before it serves: its layout has
- * every table and column the readers need, so a copy that validates is a copy
- * Item Query reads. The layout read stays with the client, so the readers and
- * `reportSchemaVersions` run no statement for it again. On failure, the Effect
- * closes the client before it fails with the layout error.
- */
 export const validateClient = Effect.fnUntraced(function* (
   open: OpenClient,
 ): Effect.fn.Return<OpenClient, ItemQueryLayoutError | ClientValidationError> {
@@ -182,7 +121,6 @@ export const validateClient = Effect.fnUntraced(function* (
   return open;
 });
 
-/** Open a client and prove it reads as a Zotero database before it serves. */
 function openValidated(
   opener: ConnectionOpener,
   config: ReadsConfig | null,
@@ -199,27 +137,18 @@ function openValidated(
   );
 }
 
-/** A client with the resources it holds open; `close` releases them all. */
 export interface OpenClient {
   readonly client: ZoteroDatabase;
   readonly close: Effect.Effect<void>;
 }
 
-/** Close a client, also one that `validateClient` already closed. */
 function closeQuietly(open: OpenClient): Effect.Effect<void> {
   return open.close.pipe(Effect.catchDefect(() => Effect.void));
 }
 
-/**
- * The current client behind one `RcRef`. A borrow lasts for the caller's
- * scope; `swap` hands later borrowers a new client, and the old one closes
- * after its last borrower releases. With no client swapped in, a borrow runs
- * `fallback` to get one.
- */
 export const makeClientRef = Effect.fnUntraced(function* (
   fallback: Effect.Effect<OpenClient, DbUnavailable>,
 ) {
-  /** A client waiting for the next acquire. */
   const staged = yield* Ref.make<OpenClient | null>(null);
   const ref = yield* RcRef.make({
     acquire: Effect.acquireRelease(
@@ -237,12 +166,6 @@ export const makeClientRef = Effect.fnUntraced(function* (
   );
   return {
     borrow: Effect.map(RcRef.get(ref), (open) => open.client),
-    /**
-     * Hand later borrowers `next`. Run it in the same uninterruptible region
-     * as the open, so a new client always has an owner. The ref is emptied
-     * before any close awaits, so a borrower arriving meanwhile gets `next`
-     * and keeps it.
-     */
     swap: (next: OpenClient) =>
       Ref.getAndSet(staged, next).pipe(
         Effect.flatMap((replaced) =>
@@ -255,11 +178,6 @@ export const makeClientRef = Effect.fnUntraced(function* (
   };
 });
 
-/**
- * A {@link Connection} over one `RcRef`. A refresh opens and validates the new
- * source first; only a valid one invalidates the ref, so a failed refresh
- * leaves the current client serving and reports `refresh-failed`.
- */
 export function layerRcRef(opener: ConnectionOpener): Layer.Layer<Connection> {
   return Layer.effect(Connection)(
     Effect.gen(function* () {
@@ -272,13 +190,10 @@ export function layerRcRef(opener: ConnectionOpener): Layer.Layer<Connection> {
       }>({
         state: "loading",
         lastError: null as DbUnavailable | null,
-        /** The database file the serving client opened from. */
         serving: null,
-        /** The last refresh failed for another database than `serving`. */
         moved: false,
       });
       const databaseGenerations = makeDatabaseGenerations();
-      /** Open and validate a client, recording the database it reads. */
       const openRecorded = Ref.get(config).pipe(
         Effect.flatMap((current) => {
           const opened = current?.databasePath ?? null;
@@ -300,7 +215,6 @@ export function layerRcRef(opener: ConnectionOpener): Layer.Layer<Connection> {
         ];
       });
 
-      /** A direct open (no refresh before it) reports the state it moves to. */
       const openDirect = openRecorded.pipe(
         Effect.tap((open) =>
           Ref.update(status, (current) => ({

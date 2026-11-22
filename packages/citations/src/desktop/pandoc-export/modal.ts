@@ -1,5 +1,3 @@
-// The built-in export's one dialog: output format, CSL style, and destination.
-
 import type { InstalledCslStyle } from "#core/pandoc/csl-style.ts";
 import type { StyleDropdownOptions } from "#desktop/pandoc/style-dropdown.ts";
 import type { StyleSource } from "#obsidian/pandoc/document-presentation.ts";
@@ -26,17 +24,13 @@ import {
 } from "#core/pandoc/citation-style.ts";
 import { addStyleDropdown } from "#desktop/pandoc/style-dropdown.ts";
 
-/** The formats the WASM engine writes; PDF needs an external engine. */
 const FORMATS: readonly DocumentFormat[] = ["docx", "html"];
 
-/** Extensions the destination stem drops, so the format always names the file. */
 const KNOWN_EXTENSIONS = new Set([".md", ".docx", ".html"]);
 
 export interface PandocExportChoices {
   format: DocumentFormat;
-  /** CSL style ID, or `null` for the engine's embedded default style. */
   styleId: string | null;
-  /** Absolute path the converted document is written to. */
   destination: string;
 }
 
@@ -44,24 +38,12 @@ export interface PandocExportModalOptions extends Pick<
   StyleDropdownOptions,
   "fileSystem" | "bridge"
 > {
-  /** Zotero data directory the installed styles are listed from. */
   dataDir: string;
-  /** Citation and References Style ID — where the style picker starts. */
   referencesStyleId: string | null;
-  /** Where the note's style comes from; the dialog names it under the picker. */
   styleSource: StyleSource;
-  /** Absolute path of the note being exported; seeds the destination. */
   notePath: string;
 }
 
-/**
- * Collect the three choices one export needs.
- *
- * The destination is held as a stem, so the chosen format always names the
- * file and the two can never disagree.
- *
- * @returns the choices, or `null` when the user dismissed the dialog.
- */
 export function openPandocExportModal(
   app: App,
   {
@@ -77,8 +59,6 @@ export function openPandocExportModal(
   let format: DocumentFormat = "docx";
   const noteStyleId = referencesStyleId ?? STYLE_DEFAULT;
   let styleId = noteStyleId;
-  // The listing the picker last filled from, so the dialog names a style the
-  // way the picker does.
   let installed: readonly InstalledCslStyle[] = [];
   const titleOf = (id: string): string => citationStyleLabel(id, installed);
   let stem = stemOf(notePath);
@@ -104,8 +84,6 @@ export function openPandocExportModal(
   const styleSetting = new Setting(modal.contentEl).setName(
     m.pandoc_export_style_name(),
   );
-  // The picker holds the style for this run alone, so a changed pick says the
-  // note keeps its own.
   const showStyleSource = (): void => {
     styleSetting.setDesc(
       styleId === noteStyleId

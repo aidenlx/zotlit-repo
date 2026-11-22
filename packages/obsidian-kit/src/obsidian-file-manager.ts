@@ -1,6 +1,3 @@
-// The file manager as a capability tag: the link, rename and Properties calls
-// ZotLit makes, without the Obsidian `App`. It copies the MetadataCache tag's
-// shape (policies/events.md, Capability tags); the file manager has no events.
 import { Context, Effect, Layer } from "effect";
 import { normalizePath } from "obsidian";
 import type {
@@ -15,7 +12,6 @@ import type { VaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
 import { ObsidianApp } from "#obsidian-app.ts";
 import { Vault } from "#obsidian-vault.ts";
 
-/** The Obsidian object the tag calls: what `app.fileManager` gives. */
 export type FileManagerSource = Pick<
   ObsidianFileManager,
   | "processFrontMatter"
@@ -26,51 +22,26 @@ export type FileManagerSource = Pick<
 >;
 
 export interface FileManagerShape {
-  /**
-   * Change the Properties of `file`: `fn` mutates the parsed frontmatter and
-   * Obsidian writes it back. Fails when Obsidian rejects, `fn` throwing too.
-   * Obsidian writes from the file on disk, so for a note the user may be
-   * editing use `processLiveFrontMatter` (`lib/live-text.ts`), which goes
-   * through the note's Live Text.
-   */
   processFrontMatter(
     file: TFile,
     fn: (frontmatter: Record<string, unknown>) => void,
   ): Effect.Effect<void, VaultError>;
-  /**
-   * Move `file` to `newPath`; Obsidian updates the links to it. Fails with
-   * `FileExists` when the vault cache holds another file or folder at
-   * `newPath` (case-sensitive), without calling Obsidian. A move to the
-   * file's own path, or one that changes only its case, is no collision.
-   */
   renameFile(
     file: TFile,
     newPath: string,
   ): Effect.Effect<void, FileExists | VaultError>;
-  /** The link to `file` from the note at `sourcePath`, in the user's link format. */
   generateMarkdownLink(
     file: TFile,
     sourcePath: string,
     options?: { readonly subpath?: string; readonly alias?: string },
   ): Effect.Effect<string>;
-  /**
-   * A free vault path for an attachment named `filename`, in the folder the
-   * user's attachment setting picks for the note at `sourcePath`. A rejection
-   * fails with `VaultError` on `sourcePath`, or on the vault root `/` without it.
-   */
   getAvailablePathForAttachment(
     filename: string,
     sourcePath?: string,
   ): Effect.Effect<string, VaultError>;
-  /**
-   * Move `file` to the trash the user chose in Obsidian's "Deleted files"
-   * setting. A rejection fails with `VaultError` on the file's path.
-   */
   trashFile(file: TAbstractFile): Effect.Effect<void, VaultError>;
 }
 
-/** The vault's file manager. */
-/** A synchronous {@link FileManagerShape.generateMarkdownLink}. */
 export type MarkdownLinker = (
   file: TFile,
   sourcePath: string,
@@ -82,11 +53,6 @@ export class FileManager extends Context.Service<
   FileManagerShape
 >()("zotlit/obsidian/FileManager") {}
 
-/**
- * The file manager service over `source`, deciding its outcomes from the
- * `Vault` tag's cache. It reads a member of `source` only when a call runs, so
- * a test host without a file manager still builds it.
- */
 export const makeFileManager = Effect.fnUntraced(function* (
   source: FileManagerSource,
 ) {
@@ -100,15 +66,12 @@ export const makeFileManager = Effect.fnUntraced(function* (
         }),
     ),
     renameFile: Effect.fn("FileManager.renameFile")(function* (file, newPath) {
-      // As Obsidian's `Vault.rename`: the normalized path, and no move when
-      // it is the file's own.
       const path = normalizePath(newPath);
       const held = yield* vault.getAbstractFileByPath(path);
       if (held !== null && held !== file)
         return yield* new FileExists({ path });
       const target = yield* vault.underHeldParent(path);
       yield* Effect.tryPromise({
-        // Obsidian moves `file.path` on success; name the path it had.
         try: () => source.renameFile(file, target),
         catch: vaultError("renameFile", file.path),
       });
@@ -141,13 +104,11 @@ export const makeFileManager = Effect.fnUntraced(function* (
   });
 });
 
-/** The tag over any object of the file manager's shape, such as a test host's. */
 export const layerFileManagerFrom = (
   source: FileManagerSource,
 ): Layer.Layer<FileManager, never, Vault> =>
   Layer.effect(FileManager, makeFileManager(source));
 
-/** The tag over the vault's file manager. */
 export const layerFileManager: Layer.Layer<
   FileManager,
   never,
@@ -160,10 +121,6 @@ export const layerFileManager: Layer.Layer<
   }),
 );
 
-/**
- * The link call over the current FileManager, run synchronously: for a
- * template render, which links inline. The template-render edge.
- */
 export const markdownLinker: Effect.Effect<MarkdownLinker, never, FileManager> =
   Effect.gen(function* () {
     const run = Effect.runSyncWith(yield* Effect.context<FileManager>());

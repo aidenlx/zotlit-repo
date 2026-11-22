@@ -1,6 +1,3 @@
-// An in-memory workspace for tests. The test drives it; the tag's own layer
-// runs over it (`layerWorkspaceFrom`, or `layerHostApp` from
-// ./obsidian-host-app). It copies the shape of ./obsidian-metadata-cache.
 import type { EditorView } from "@codemirror/view";
 import { MarkdownView, TFile } from "obsidian";
 import type {
@@ -21,39 +18,21 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 
 type Callback = (...args: unknown[]) => unknown;
 
-/**
- * The layout state, the active file and view, and Obsidian's workspace events
- * of a test host. A module under test that still reads `app.workspace` takes
- * this object, so it sees the same state as the tag.
- */
 export class MemoryWorkspace implements WorkspaceSource {
-  /** What `getActiveFile` returns. */
   activeFile: TFile | null = null;
-  /** The view of the active leaf, for `getActiveViewOfType`. */
   activeView: unknown = null;
-  /** The open leaves, by view type, for `getLeavesOfType`. */
   readonly leaves = new Map<string, WorkspaceLeaf[]>();
-  /** The path of each editor a dispatch reached, in order. */
   readonly dispatched: string[] = [];
-  /** How many times `updateOptions` reconfigured the editors. */
   reconfigures = 0;
-  /** Each `openLinkText` call, in order. */
   readonly opened: {
     linktext: string;
     sourcePath: string;
     newLeaf: PaneType | boolean | undefined;
     openViewState: OpenViewState | undefined;
   }[] = [];
-  /** What `readWorkspaceFile` answers: the layout Obsidian restored the leaves from. */
   savedLayout: unknown = {};
-  /** Each leaf `setActiveLeaf` activated, in order. */
   readonly activated: WorkspaceLeaf[] = [];
-  /** The pane of each `getLeaf` call, in order. */
   readonly leafRequests: (PaneType | boolean | undefined)[] = [];
-  /**
-   * As Obsidian's debounced active-leaf events: `run` opens each file
-   * {@link deferOpen} held, now.
-   */
   readonly requestActiveLeafEvents = {
     run: (): void => {
       for (const file of this.#deferred.splice(0)) this.open(file);
@@ -64,18 +43,15 @@ export class MemoryWorkspace implements WorkspaceSource {
   readonly #deferred: TFile[] = [];
   #layoutReady: boolean;
 
-  /** `layoutReady: true` is a plugin enabled at runtime; the default is startup. */
   constructor(options: { layoutReady?: boolean } = {}) {
     this.#layoutReady = options.layoutReady ?? false;
   }
 
-  /** As Obsidian: at once when the layout is ready, else when it is. */
   onLayoutReady(callback: () => void): void {
     if (this.#layoutReady) callback();
     else this.#readyCallbacks.push(callback);
   }
 
-  /** The layout is ready: `layout-ready` fires, then queued callbacks run. */
   layoutReady(): void {
     this.#layoutReady = true;
     this.trigger("layout-ready");
@@ -94,12 +70,10 @@ export class MemoryWorkspace implements WorkspaceSource {
     return [...(this.leaves.get(type) ?? [])];
   }
 
-  /** As Obsidian: each open leaf, of every view type. */
   iterateAllLeaves(callback: (leaf: WorkspaceLeaf) => void): void {
     for (const leaves of this.leaves.values()) leaves.forEach(callback);
   }
 
-  /** Open a leaf of `type` that shows `view`. */
   openLeaf(type: string, view: View): WorkspaceLeaf {
     const leaf = stubService<WorkspaceLeaf>("WorkspaceLeaf", { view });
     const leaves = this.leaves.get(type) ?? [];
@@ -108,10 +82,6 @@ export class MemoryWorkspace implements WorkspaceSource {
     return leaf;
   }
 
-  /**
-   * Open a Markdown leaf showing `path` in an editor; each dispatch to that
-   * editor lands in {@link dispatched}.
-   */
   openMarkdownEditor(path: string): MarkdownView {
     const file = Object.assign(new TFile(), { path });
     const editor = stubService<Editor>("Editor", {
@@ -137,7 +107,6 @@ export class MemoryWorkspace implements WorkspaceSource {
     this.reconfigures += 1;
   }
 
-  /** Records the call; no leaf opens. */
   async openLinkText(
     ...[linktext, sourcePath, newLeaf, openViewState]: Parameters<
       WorkspaceSource["openLinkText"]
@@ -146,49 +115,40 @@ export class MemoryWorkspace implements WorkspaceSource {
     this.opened.push({ linktext, sourcePath, newLeaf, openViewState });
   }
 
-  /** Records the pane; the leaf shows no view. */
   getLeaf(newLeaf?: PaneType | boolean): WorkspaceLeaf {
     this.leafRequests.push(newLeaf);
     return stubService<WorkspaceLeaf>("WorkspaceLeaf", {});
   }
 
-  /** A sidebar leaf; the leaf shows no view. */
   getRightLeaf(): WorkspaceLeaf {
     return stubService<WorkspaceLeaf>("WorkspaceLeaf", {});
   }
 
-  /** A leaf beside `leaf`; the leaf shows no view. */
   createLeafBySplit(): WorkspaceLeaf {
     return stubService<WorkspaceLeaf>("WorkspaceLeaf", {});
   }
 
-  /** A leaf in a new window; no window opens. */
   openPopoutLeaf(): WorkspaceLeaf {
     return stubService<WorkspaceLeaf>("WorkspaceLeaf", {});
   }
 
-  /** No window opens; the leaf stays where it is. */
   moveLeafToPopout(): WorkspaceWindow {
     return stubService<WorkspaceWindow>("WorkspaceWindow", {});
   }
 
-  /** The main window's split, which holds no leaf of this host. */
   readonly rootSplit = stubService<WorkspaceRoot>("WorkspaceRoot", {});
 
-  /** Records the leaf; the active file stays. */
   async revealLeaf(_leaf: WorkspaceLeaf): Promise<void> {}
 
   setActiveLeaf(leaf: WorkspaceLeaf): void {
     this.activated.push(leaf);
   }
 
-  /** The active file becomes `file`, then `file-open`. */
   open(file: TFile | null): void {
     this.activeFile = file;
     this.trigger("file-open", file);
   }
 
-  /** Hold an open of `file`, as Obsidian defers it, until `requestActiveLeafEvents.run()`. */
   deferOpen(file: TFile): void {
     this.#deferred.push(file);
   }
@@ -206,12 +166,10 @@ export class MemoryWorkspace implements WorkspaceSource {
     this.#listeners.get(name)?.delete(fn);
   }
 
-  /** How many listeners are registered for `name`. */
   listenerCount(name: string): number {
     return this.#listeners.get(name)?.size ?? 0;
   }
 
-  /** Call each listener of `name`, in registration order. */
   trigger(name: string, ...args: unknown[]): void {
     for (const callback of this.#listeners.get(name) ?? [])
       callback(...args);

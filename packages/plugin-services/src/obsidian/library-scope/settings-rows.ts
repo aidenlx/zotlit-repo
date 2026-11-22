@@ -30,36 +30,17 @@ import { LibraryScope as LibraryScopeService } from "./service.ts";
 import { libraryLabel, selectorLabel } from "#core/library-scope/label.ts";
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
-// The Library Scope reads the rows take. Each one is synchronous, so a
-// definition build runs it through `ctx.tab.sync`.
 const effectiveScope = LibraryScopeService.use((scope) => scope.effective);
 const resolvedScope = LibraryScopeService.use((scope) => scope.current);
 const savedScopeInvalid = LibraryScopeService.use((scope) => scope.invalid);
 const availableLibraries = LibraryScopeService.use((scope) => scope.libraries);
 
-/** One selected Library as the list renders it. */
 interface SelectedEntry {
   selector: LibrarySelector;
   label: string;
-  /** This database holds no Library for the selector; it stays selected. */
   unavailable: boolean;
 }
 
-/**
- * Library scope: the All / Selected choice ({@link libraryScopeRow}) and,
- * under Selected, the editable list of stable selectors
- * ({@link selectedLibrariesList}). The list is a sibling of the row's group
- * on the Zotero page, since a group cannot hold a list.
- *
- * Every control here reads the *effective* scope — the runtime My Library
- * fallback while the saved value is broken — so what the user edits is what
- * ZotLit is using. The first valid edit replaces the broken value on disk and
- * clears both the inline warning and the one-off notice.
- *
- * While the Zotero database is unreadable the scope cannot be resolved, so the
- * controls disable and the saved value is left alone. That is distinct from a
- * resolvable scope with no available Library, which stays editable.
- */
 export function libraryScopeRow(
   ctx: SettingTabContext,
 ): SettingDefinition<SettingsKey> {
@@ -83,8 +64,6 @@ export function selectedLibrariesList(
     id: "settings_library_scope_selected",
     heading: m.settings_library_scope_selected(),
     visible: () => scope.mode === "selected",
-    // The final selected Library has no delete affordance at all: Selected
-    // Libraries is never allowed to become empty.
     onDelete:
       editable && entries.length > 1
         ? (index) => removeSelector(ctx, scope, index)
@@ -106,10 +85,6 @@ export function selectedLibrariesList(
   };
 }
 
-/**
- * Whether the controls accept an edit. An unreadable database lists no Library,
- * so the rows disable and the saved value is left exactly as it is.
- */
 function isEditable(ctx: SettingTabContext): boolean {
   return ctx.tab.sync(resolvedScope) !== null;
 }
@@ -142,7 +117,6 @@ function renderModeRow(
       .setValue(scope.mode)
       .setDisabled(!isEditable(ctx))
       .onChange((value) => {
-        // Selected starts at My Library; All discards the prior selection.
         saveScope(
           ctx,
           value === "all" ? DEFAULT_LIBRARY_SCOPE : MY_LIBRARY_SCOPE,
@@ -151,10 +125,6 @@ function renderModeRow(
   });
 }
 
-/**
- * The saved selectors paired with their live names. An unavailable selector
- * keeps its place and shows its group id, since no name is persisted for it.
- */
 function selectedEntries(
   ctx: SettingTabContext,
   scope: LibraryScope,
@@ -172,13 +142,11 @@ function selectedEntries(
     return {
       selector,
       label: library ? libraryLabel(library) : selectorLabel(selector),
-      // An unreadable database knows of no missing Library, only of none.
       unavailable: resolved !== null && library === undefined,
     };
   });
 }
 
-/** Every Library of the active database that this selection does not name. */
 function addableLibraries(
   ctx: SettingTabContext,
   scope: LibraryScope,
@@ -235,7 +203,6 @@ function removeSelector(
   saveScope(ctx, { mode: "selected", libraries });
 }
 
-/** Persist and rebuild the tab, so the list rows follow the new selection. */
 function saveScope(ctx: SettingTabContext, scope: LibraryScope): void {
   void ctx.tab.run(
     PluginSettings.use((settings) =>
@@ -245,7 +212,6 @@ function saveScope(ctx: SettingTabContext, scope: LibraryScope): void {
   );
 }
 
-// The services this file's rows read, in the setting tab's context.
 declare module "#obsidian/setting-tab/effect-tab.ts" {
   interface SettingTabServiceRegistry {
     LibraryScope: LibraryScopeService;

@@ -1,7 +1,3 @@
-// The Profiles a Citation Presentation reads, as a test double: Profiles by ID
-// and label, each with the Citation and References Style it binds; a Profile
-// that binds none inherits the vault's style. The notes feature owns the real
-// registry; its tests cover the inheritance in full.
 import type { MetadataCache } from "obsidian";
 
 import { readProfileStamp } from "@zotlit/obsidian-kit/profile-stamp.ts";
@@ -24,11 +20,9 @@ export interface ProfileFixture {
 
 export type ProfileFixtureSettings = Readonly<Settings> & {
   readonly profiles?: readonly ProfileFixture[];
-  /** The vault's style, which the default Profile binds; none by default. */
   readonly vaultStyle?: string | null;
 };
 
-/** A reader over `settings`, which a test may hand over as a getter. */
 export function profileReader(
   settings?: ProfileFixtureSettings | (() => ProfileFixtureSettings),
   metadataCache: Pick<MetadataCache, "getFileCache"> = {

@@ -1,5 +1,3 @@
-// Pure restoration of the JSON-safe Template-data graph used by browser renders.
-
 import type { TemplatePathSegment } from "@zotlit/db/template-data";
 import { formatAccessorPath } from "@zotlit/db/template-data";
 import type { SnapshotRootDescriptors } from "@zotlit/zotero-reads/contract/snapshot/descriptors.ts";

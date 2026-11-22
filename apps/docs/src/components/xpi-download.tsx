@@ -9,11 +9,6 @@ export interface XpiDownloadProps {
   channel?: ReleaseChannel;
 }
 
-/**
- * Direct download link for the newest companion `.xpi`, so readers skip the
- * releases page. Falls back to the releases listing when the release could not
- * be resolved — the channel has no release yet, or GitHub was unreachable.
- */
 export function XpiDownload({ channel = "pre-release" }: XpiDownloadProps) {
   const companion = useReleaseSnapshot()?.companion[channel];
 

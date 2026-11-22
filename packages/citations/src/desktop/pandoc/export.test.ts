@@ -31,7 +31,6 @@ import { createCitationEngine } from "#obsidian/pandoc/engine.ts";
 
 const SOURCE = "Notes/Paper.md";
 
-/** Its `id` is a native citation key, which is what a literal `@key` cites. */
 const ZETA: CslItemData = {
   id: "zeta2020",
   type: "book",
@@ -39,15 +38,10 @@ const ZETA: CslItemData = {
   author: [{ family: "Zeta", given: "Ann" }],
   issued: { "date-parts": [[2020]] },
 };
-/**
- * The same work as a source that knows no citation key answers it, which is
- * what makes a rewrite to the key visible rather than a no-op.
- */
 const ZETA_URI: CslItemData = {
   ...ZETA,
   id: "http://zotero.org/users/1/items/ZETA1234",
 };
-/** Its `id` is the item URI an Item with no citation key carries. */
 const ADAMS: CslItemData = {
   id: "http://zotero.org/users/1/items/ADAM5678",
   type: "book",
@@ -73,31 +67,18 @@ function ref(itemKey: string, groupID: number | null = null) {
 
 interface Fixture {
   links?: readonly LinkCache[];
-  /** Linkpath → Indexed Key of the Literature Note it names. */
   notes?: Record<string, string>;
-  /** Citation key → Indexed Key, as the resolution snapshot answers. */
   citekeys?: Record<string, string>;
-  /** Citation keys several Items answer to. */
   ambiguous?: readonly string[];
-  /** Deny the resolution snapshot, as an unreadable database does. */
   snapshotUnavailable?: boolean;
-  /**
-   * What Pandoc read out of the document, overriding what the declared links
-   * and `markdown` would produce. The real engine answers this for itself.
-   */
   citedIds?: readonly string[];
-  /** Indexed Key → the Zotero library address the database places it in. */
   placed?: Record<string, BibliographyItemRef>;
-  /** Indexed Key → the CSL-JSON Zotero answers with. */
   items?: Record<string, CslItemData>;
-  /** Deny the read lease, as a degraded database does. */
   databaseUnavailable?: boolean;
   bibliographyFailure?: BibliographyFailure;
-  /** Make the engine refuse the conversion. */
   engineError?: string;
 }
 
-/** One document as the engine hands it over, with no Pandoc behind it. */
 function prepared(citedIds: readonly string[]): PreparedDocument {
   return {
     citedIds,
@@ -111,7 +92,6 @@ function ports(fixture: Fixture): ExportPorts & {
   renderPrepared: ReturnType<typeof vi.fn>;
   fetchBibliography: ReturnType<typeof vi.fn>;
 } {
-  /** What the sandbox filter would leave behind, as Pandoc would read it. */
   const citedIds =
     fixture.citedIds ??
     (fixture.links ?? []).flatMap((link) =>
@@ -181,7 +161,6 @@ function ports(fixture: Fixture): ExportPorts & {
   };
 }
 
-/** The export, parsing through the in-process parser. */
 const exportParsed = (...args: Parameters<typeof exportCitedDocument>) =>
   exportCitedDocument(...args).pipe(
     Effect.provide(
@@ -304,8 +283,6 @@ describe("exportCitedDocument", () => {
     Effect.gen(function* () {
       const running = yield* run({
         ...CITED,
-        // A source that answers with the item URI, so the rewrite to the
-        // author's own citation key is what the assertions below read.
         items: { ZETA1234: ZETA_URI, ADAM5678g5: ADAMS },
         citekeys: { zeta2020: "ZETA1234" },
         citedIds: ["#ZETA1234", "zeta2020", "#ADAM5678g5"],
@@ -315,7 +292,6 @@ describe("exportCitedDocument", () => {
       const [request] = running.ports.renderPrepared.mock.calls[0] as [
         RenderRequest,
       ];
-      // One Item, one entry, and the citation key the author wrote carries it.
       expect(request.bibliography).toEqual([
         { ...ZETA_URI, id: "zeta2020" },
         ADAMS,
@@ -332,8 +308,6 @@ describe("exportCitedDocument", () => {
     "tells one Item's Indexed Key from another Item's citation key",
     () =>
       Effect.gen(function* () {
-        // The wikilinked Item is keyed ZETA1234; the literal Citation spells that
-        // same text as a citation key, and it belongs to the other Item.
         const running = yield* run({
           links: [link("Zeta 2020")],
           notes: { "Zeta 2020": "ZETA1234" },
@@ -347,7 +321,6 @@ describe("exportCitedDocument", () => {
         const [request] = running.ports.renderPrepared.mock.calls[0] as [
           RenderRequest,
         ];
-        // Two Items, cited apart: the wikilink's own, and the one the key names.
         expect(request.document.citedIds).toEqual([ZETA_URI.id, "ZETA1234"]);
         expect(request.bibliography).toEqual([
           ZETA_URI,
@@ -581,16 +554,11 @@ describe("exportCitedDocument", () => {
   );
 });
 
-/**
- * The binary the plugin pins, read straight out of `pandoc-wasm`. The package
- * resolves through its `node` condition, so its entry sits beside `pandoc.wasm`.
- */
 const WASM_PATH = join(
   dirname(createRequire(import.meta.url).resolve("pandoc-wasm")),
   "pandoc.wasm",
 );
 
-/** Every citation shape at once: plain, fragment, run, literal, ordinary link. */
 const DEMO_MARKDOWN = `Plain [[Zeta 2020]] and fragment [[Adams 2018#cite:locator=33]].
 
 A run [[Zeta 2020]]; [[Adams 2018]] here.
@@ -602,10 +570,7 @@ Ordinary [[Some Note]] stays a link.
 
 const DEMO: Fixture = {
   ...CITED,
-  // The literal key the demo writes, as the resolution snapshot answers it.
   citekeys: { zeta2020: "ZETA1234" },
-  // Zeta's source names it by item URI, so the demo's wikilink and its literal
-  // key have to meet on the citation key rather than on what Zotero answered.
   items: { ZETA1234: ZETA_URI, ADAM5678g5: ADAMS },
   links: [
     link("Zeta 2020"),
@@ -616,16 +581,11 @@ const DEMO: Fixture = {
   ],
 };
 
-/**
- * The body text of a docx. Only `<w:t>` elements hold text nodes, so dropping
- * every tag joins the runs Word splits one sentence across.
- */
 function docxText(docx: Uint8Array): string {
   const body = unzipSync(docx)["word/document.xml"];
   return new TextDecoder().decode(body).replaceAll(/<[^>]*>/g, "");
 }
 
-/** Each body paragraph of a docx: its style, its text, and its bold text. */
 function docxParagraphs(
   docx: Uint8Array,
 ): { style: string | undefined; text: string; bold: string }[] {
@@ -644,7 +604,6 @@ function docxParagraphs(
   }));
 }
 
-/** The bundled Pandoc engine, disposed with the test's Scope. */
 const realEngine = Effect.acquireDisposable(
   Effect.promise(async () =>
     createCitationEngine(new Blob([await readFile(WASM_PATH)])),
@@ -675,7 +634,6 @@ describe(
         absent: [],
       },
       {
-        // Obsidian shows a Property value as text, without the body's notes.
         name: "a footnote marker in a Property value as literal text",
         markdown:
           '---\ntitle: "Draft[^credit]"\n---\nBody [@a].\n\n[^credit]: Grant support.',
@@ -780,8 +738,6 @@ describe(
       {
         name: "a selected vault link inside a citation suffix",
         markdown: "[@a with [[Note]]]",
-        // The nested link reads as its text, and both works take an entry
-        // (ADR-0081).
         contains: [
           '<p><span class="citation" data-cites="a">(Zeta 2020 with Note)</span></p>',
           'id="ref-a"',
@@ -995,19 +951,15 @@ describe(
         );
 
         expect(result).toHaveProperty("output");
-        // Pandoc's HTML writer wraps lines, so match on collapsed whitespace.
         const html = new TextDecoder()
           .decode((result as { output: Uint8Array }).output)
           .replaceAll(/\s+/g, " ");
-        // The fragment's locator, the run's two keys, and the literal key.
         expect(html).toContain("(Adams 2018, 33)");
         expect(html).toContain(`data-cites="${ZETA.id} ${ADAMS.id}"`);
         expect(html).toContain(`data-cites="${ZETA.id}">Zeta (2020)`);
         expect(html).toContain('<a href="Some Note" class="wikilink">');
         expect(html).toContain(`id="ref-${ZETA.id}"`);
         expect(html).toContain(`id="ref-${ADAMS.id}"`);
-        // One entry for Zeta, under the key the note writes rather than under the
-        // item URI its source answered with.
         expect(html).not.toContain(ZETA_URI.id);
       }),
     );
@@ -1056,7 +1008,6 @@ describe(
           const html = new TextDecoder()
             .decode((result as { output: Uint8Array }).output)
             .replaceAll(/\s+/g, " ");
-          // The link reads as its text, and its work still takes an entry.
           expect(html).toContain(
             `data-cites="${ZETA.id}">(Zeta 2020 with Adams 2018)`,
           );
@@ -1097,8 +1048,6 @@ describe(
         }),
     );
 
-    // A literal citation key sends the document through the filter's second
-    // read, which assigns heading IDs; it reads body separators as the first did.
     it.effect("keeps body separators beside a literal citation key", () =>
       Effect.gen(function* () {
         const engine = yield* realEngine;
@@ -1141,7 +1090,6 @@ describe(
           { ...ports(DEMO), engine },
         );
 
-        // The wildcard names no work, so it resolves to nothing and stops nothing.
         expect(result).toHaveProperty("output");
         const html = new TextDecoder()
           .decode((result as { output: Uint8Array }).output)
@@ -1178,14 +1126,10 @@ describe(
           const html = new TextDecoder()
             .decode((result as { output: Uint8Array }).output)
             .replaceAll(/\s+/g, " ");
-          // Every form the reported note wrote, formatted rather than left as a key.
           expect(html).toContain("(Zeta 2020)");
-          // The default style writes a bare locator, the `p.` label included in it.
           expect(html).toContain("(Zeta 2020, 12)");
           expect(html).toContain("(2020)");
-          // Pandoc's undefined-citation output, which is what the defect wrote.
           expect(html).not.toContain("zeta2020?");
-          // The bibliography the note earns, which the defect left out entirely.
           expect(html).toContain('id="ref-zeta2020"');
           expect(html).toContain("A Study of Nothing");
         }),
@@ -1205,26 +1149,22 @@ describe(
 
         expect(result).toHaveProperty("output");
         const output = (result as { output: Uint8Array }).output;
-        // docx is a zip container; its local file header starts every archive.
         expect(output.slice(0, 4)).toEqual(
           new Uint8Array([0x50, 0x4b, 0x03, 0x04]),
         );
 
         const text = docxText(output);
-        // Every citation shape renders, and the ordinary link stays plain text.
         expect(text).toContain(
           "Plain (Zeta 2020) and fragment (Adams 2018, 33).",
         );
         expect(text).toContain("A run (Zeta 2020; Adams 2018) here.");
         expect(text).toContain("Literal Zeta (2020) too.");
         expect(text).toContain("Ordinary Some Note stays a link.");
-        // Both cited Items reach the bibliography, and nothing else does.
         expect(text).toContain("Zeta, Ann. 2020. A Study of Nothing.");
         expect(text).toContain("Adams, Bob. 2018. Beta and Beyond.");
       }),
     );
 
-    /** Export `markdown`, citing Zeta once, to docx paragraphs. */
     const exportDocx = Effect.fnUntraced(function* (
       markdown: string,
       locale?: string,
@@ -1246,8 +1186,6 @@ describe(
 
     it.effect("writes a callout as a block quote under its bold title", () =>
       Effect.gen(function* () {
-        // An annotation dropped under a sentence, as Obsidian renders it: the
-        // callout starts on the next line, with no blank line between.
         const paragraphs = yield* exportDocx(
           "Each figure states one message [[Zeta 2020]].\n> [!note] Page 1\n>\n> A figure is meant to express an idea.\n",
         );
@@ -1319,7 +1257,6 @@ describe(
         const chinese = yield* exportDocx(markdown, "zh-CN");
         expect(chinese.some((p) => p.text === "参考文献")).toBe(true);
 
-        // A document's own `lang` names its citation language.
         const declared = yield* exportDocx(
           `---\nlang: de-DE\n---\n\n${markdown}`,
         );
@@ -1336,7 +1273,6 @@ describe(
         expect(texts).toContain("Works cited");
         expect(texts).not.toContain("References");
 
-        // A closing section heading is the one Pandoc heads the bibliography with.
         const closing = yield* exportDocx(
           "Cited [[Zeta 2020]].\n\n## Sources\n",
         );

@@ -46,11 +46,6 @@ import {
 import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";
 import { defaults } from "#__fixtures__/settings.ts";
 
-/**
- * Style folder reads a case holds in flight, the folders it refuses to list,
- * the folders read so far, and the reads whose end a case awaits, by folder
- * path.
- */
 interface StyleReads {
   readonly held: Map<string, Deferred.Deferred<void>>;
   readonly denied: Set<string>;
@@ -61,11 +56,6 @@ interface StyleReads {
   >;
 }
 
-/**
- * The Node file system, with each styles folder read going through `reads`: a
- * held read waits for its release, a denied folder refuses to be listed, and
- * an awaited read reports how it ended.
- */
 const styleFileSystem = (reads: StyleReads) =>
   Layer.effect(
     FileSystem.FileSystem,
@@ -107,7 +97,6 @@ beforeAll(() => {
     document.createElement(tag)) as typeof createEl;
 });
 
-/** Settings whose default Profile binds `style` as its References style. */
 const withStyle = (style: string | null): Settings => ({
   ...defaults,
   "note.default-profile": {
@@ -119,7 +108,6 @@ const withStyle = (style: string | null): Settings => ({
   },
 });
 
-/** A CSL file shaped like the ones Zotero installs. */
 const cslXml = ({ id, title }: { id: string; title: string }) =>
   [
     '<?xml version="1.0" encoding="utf-8"?>',
@@ -128,28 +116,21 @@ const cslXml = ({ id, title }: { id: string; title: string }) =>
     "</style>",
   ].join("\n");
 
-/** A Zotero data folder of its own, removed when the case ends. */
 const dataFolder = Effect.acquireRelease(
   Effect.promise(() => mkdtemp(join(tmpdir(), "zotlit-styles-row-"))),
   (dir) => Effect.promise(() => rm(dir, { recursive: true, force: true })),
 );
 
-/** Install `style` into the data folder `dir`, as Zotero does. */
 const install = (dir: string, style: { id: string; title: string }) =>
   Effect.promise(async () => {
     await mkdir(join(dir, "styles"), { recursive: true });
     await writeFile(join(dir, "styles", `${style.title}.csl`), cslXml(style));
   });
 
-/** Wait until `assert` passes: the row reads the folder on real time. */
 const eventually = (assert: () => void) =>
   Effect.promise(() => vi.waitFor(assert, { timeout: 2000, interval: 5 }));
 
 describe("References style row", () => {
-  /**
-   * The rendered row over a Zotero data folder at `dataDir` and settings that
-   * start as `settings`; `write` answers a choice.
-   */
   const setup = Effect.fn("setup")(function* (
     dataDir: string,
     {
@@ -157,7 +138,6 @@ describe("References style row", () => {
       write = () => Effect.void,
     }: {
       settings?: Settings;
-      /** Answers the default Profile bindings a choice writes. */
       write?: (
         bindings: DefaultLiteratureNoteProfile["bindings"],
       ) => Effect.Effect<void, SettingsMutationError>;
@@ -222,22 +202,16 @@ describe("References style row", () => {
     return {
       dropdown,
       refresh,
-      /** The handler Effects the row started, with how each ended. */
       runs,
-      /** The styles folder reads, which a case holds or refuses. */
       reads,
-      /** The data folder the Zotero preferences resolve to. */
       moveDataFolder: (dir: string) =>
         SubscriptionRef.update(pref, (current) => ({
           ...current,
           prefs: new Map(),
           dataDir: dir,
         })),
-      /** Settings as vault sync rewrites them while the tab stays open. */
       store: (next: Settings) => SubscriptionRef.set(stored, next),
-      /** How many times the row has filled the dropdown so far. */
       paints: () => paint.mock.calls.length,
-      /** The titles the dropdown offers after the embedded default. */
       titles: () => dropdown.options.slice(1).map(({ label }) => label),
     };
   });
@@ -279,7 +253,6 @@ describe("References style row", () => {
       const painted = row.paints();
       row.refresh.click();
 
-      // The row paints once the failed read has settled to a list.
       yield* eventually(() => expect(row.paints()).toBe(painted + 1));
       expect(row.titles()).toEqual(["APA"]);
     }),
@@ -298,7 +271,6 @@ describe("References style row", () => {
         const row = yield* setup(first);
         yield* eventually(() => expect(row.titles()).toEqual(["APA"]));
 
-        // The read of the folder in between stays in flight until released.
         const held = yield* Deferred.make<void>();
         const ended =
           yield* Deferred.make<
@@ -315,7 +287,6 @@ describe("References style row", () => {
         yield* eventually(() => expect(row.titles()).toEqual(["Chicago"]));
 
         yield* Deferred.succeed(held, undefined);
-        // The newer read ended the stale one, so its list never reaches the row.
         expect(Exit.hasInterrupts(yield* Deferred.await(ended))).toBe(true);
         expect(row.titles()).toEqual(["Chicago"]);
       }),

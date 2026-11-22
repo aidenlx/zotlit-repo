@@ -3,7 +3,6 @@ import { Effect, Scope } from "effect";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { makeExcerptPdfQueue } from "#core/excerpt-image/pdf-queue.ts";
 
-/** Promise boundary for the existing queue contract and real Chromium crops. */
 export const queueFixture = Effect.fn("queueFixture")(function* (
   options: { limit?: number; render?: number; preflight?: number } = {},
 ) {
@@ -30,7 +29,6 @@ export const queueFixture = Effect.fn("queueFixture")(function* (
         ) =>
           bridge.runPromise(
             admission.render(
-              // Canvas promises keep their permit until the work settles.
               Effect.uninterruptible(Effect.tryPromise(() => task())),
               order,
             ),

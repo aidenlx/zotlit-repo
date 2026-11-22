@@ -15,8 +15,6 @@ async function readPkg(pkgPath: string): Promise<ZoteroPkg> {
 }
 
 type BuildResult = Awaited<ReturnType<typeof build>>;
-// build() can return a watcher when build.watch is set; we don't set that
-// on the inner config, so narrow off the watcher branch structurally.
 type BuildOutput = Exclude<BuildResult, { close: unknown }>;
 
 async function addWatchTree(
@@ -59,11 +57,9 @@ export interface ZoteroIifeBundleOpts {
   fileName: string;
   exports: readonly string[];
   emptyOutDir?: boolean;
-  /** @default "es2022" */
   target?: string;
 }
 
-/** Zotero sandbox: chrome-privileged JS scope, no modules, no DOM globals. */
 export function zoteroSandboxConfig(
   root: string,
   env: ZoteroBuildEnv,
@@ -124,19 +120,12 @@ export function zoteroBuildPlugin({
   return {
     name: "zotero-build",
     async buildStart() {
-      // Wipe staging every rebuild so deletions or renames under addon/ —
-      // and stale bundle chunks from prior runs — don't leak into the XPI.
-      // Safe to do here because both bundle writes happen after buildStart.
       await rm(addonDistDir, { recursive: true, force: true });
 
-      // Register stable watch paths before the inner build so a failing
-      // bootstrap build still leaves the entry file under watch; otherwise
-      // the dev's next save can't trigger a retry.
       this.addWatchFile(pkgPath);
       this.addWatchFile(bootstrapEntryPath);
       await addWatchTree(this.addWatchFile.bind(this), addonSrcDir);
 
-      // The icon lives outside addon/, so watch it off its declared path.
       const { zotero } = await readPkg(pkgPath);
       this.addWatchFile(resolve(root, zotero.icon));
 
@@ -156,12 +145,8 @@ export function zoteroBuildPlugin({
 
       const manifest = parseManifest(pkg, updateUrl(pkg.version));
 
-      // bootstrap.js (from the inner build) and main.js (just written) are
-      // both in `outDir`. Overlay the static addon assets on top.
       await cp(addonSrcDir, addonDistDir, { recursive: true });
 
-      // The icon is consumed from its canonical location under assets/, so
-      // the XPI never carries a divergent copy of the brand mark.
       const iconDest = join(addonDistDir, iconEntryPath(pkg.zotero.icon));
       await mkdir(dirname(iconDest), { recursive: true });
       await cp(resolve(root, pkg.zotero.icon), iconDest);

@@ -1,5 +1,3 @@
-// Emits one contract root's JSON Schema (draft 2020-12) from the contract IR.
-
 import type {
   ContractIR,
   ContractMember,
@@ -20,7 +18,6 @@ interface SchemaContext {
   references: readonly ContractReference[];
   owner: string;
   matchedReferences: Set<ContractReference>;
-  /** True only for the members directly on a `$defs` entry's own object — never for a nested inline object it contains. */
   atOwnerRoot: boolean;
 }
 
@@ -65,7 +62,6 @@ function defRef(name: string): string {
   return `#/$defs/${name}`;
 }
 
-/** Whether a declared reference substitutes `owner`'s `member` at its own root. */
 function referenceFor(
   references: readonly ContractReference[],
   owner: string | undefined,
@@ -76,11 +72,6 @@ function referenceFor(
   );
 }
 
-/**
- * Every named type a root reaches, skipping a member a declared reference
- * substitutes — the same scoping {@link memberSchema} applies via
- * `atOwnerRoot`, so a reference-only owner never drags its ref-arm type in.
- */
 export function reachableTypes(
   ir: ContractIR,
   root: string,
@@ -210,11 +201,6 @@ function objectSchema(
   };
 }
 
-/**
- * An item-fields owner's own description plus its dropped index-signature
- * description, since {@link itemTypeSchema} rebuilds the object without an
- * `additionalProperties` keyword to carry the latter.
- */
 function joinDescriptions(
   ...parts: (string | undefined)[]
 ): string | undefined {
@@ -247,11 +233,6 @@ function memberSchema(
   );
 }
 
-/**
- * Replace only the ref arm of a reference-substituted member with the
- * reference marker, keeping any other union options (e.g. `null`) as
- * themselves.
- */
 function substituteReference(
   type: ContractType,
   path: string,
@@ -272,7 +253,6 @@ function substituteReference(
   );
 }
 
-/** A member's own doc wins over any note the emitted type carries. */
 function withDescription(schema: JsonSchema, description?: string): JsonSchema {
   if (!description) return schema;
   return { ...schema, description: normalizeDoc(description) };
@@ -285,7 +265,6 @@ function unionSchema(union: ContractUnion, context: SchemaContext): JsonSchema {
     option.kind === "literal" ? option.value : undefined,
   );
   if (enumValues.every((value) => value !== undefined)) {
-    // A documented option needs a schema of its own to hold its description.
     const documented = union.options.some(
       (option) => option.kind === "literal" && option.description,
     );
@@ -304,15 +283,8 @@ function unionSchema(union: ContractUnion, context: SchemaContext): JsonSchema {
   return { anyOf: options, description };
 }
 
-/** Every contract doc comment writes the plain `{@link Target}` form. */
 const LINK_TAG = /\{@link\s+([^}\s]+)\}/g;
 
-/**
- * JSDoc wraps at the source's column limit and links its own symbols. Rejoin
- * each paragraph so the description reads as prose, keep the paragraph breaks,
- * and render a link tag as the code-formatted target a schema reader can search
- * for.
- */
 function normalizeDoc(text: string | undefined): string | undefined {
   return text
     ?.trim()
@@ -366,11 +338,6 @@ function referenceMarkerSchema(path: string): JsonSchema {
   };
 }
 
-/**
- * What a root's schema says it describes: the Legacy Template File slots
- * rendering against it, or the root itself when a Template Document names the
- * root directly and no slot does.
- */
 function rootDescription(
   root: ContractRoot,
   templates: readonly string[],

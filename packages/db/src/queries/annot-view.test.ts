@@ -70,7 +70,6 @@ describe("getAttachmentAnnotationCount", () => {
   });
 
   it("excludes trashed annotations, as the attachment list's own count does", () => {
-    // The seed holds two annotations on itemID 200, one of them trashed.
     expect(getAnnotViewAttachments(db, "DOCITEM1", 1)[0]!.annotCount).toBe(1);
     expect(getAttachmentAnnotationCount(db, 200)).toBe(1);
   });

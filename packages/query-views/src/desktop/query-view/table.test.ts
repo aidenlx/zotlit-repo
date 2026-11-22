@@ -6,7 +6,6 @@ import { viewProperties } from "./view-properties.ts";
 
 import { parseQueryFile } from "#core/query-view/query-file.ts";
 
-/** The columns of `paths`, as a view of Items with no Display Names names them. */
 const columns = (paths: readonly string[]) => {
   const properties = viewProperties(null, { from: "items" });
   return paths.map((path) => properties.entry(path));

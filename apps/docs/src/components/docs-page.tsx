@@ -1,11 +1,3 @@
-// The docs page body, shared by the `/docs` index and the `/docs/*` catch-all.
-//
-// The page's own body rides with the compiled MDX module rather than the
-// loader payload: the table of contents carries React nodes, so it renders
-// where the module is loaded instead of crossing the server boundary. The
-// head, which renders before the module resolves, reads title and description
-// off the loader payload instead.
-
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { getBreadcrumbItems } from "fumadocs-core/breadcrumb";
@@ -50,7 +42,6 @@ import {
 import * as m from "@/paraglide/messages.js";
 import { getLocale, localizeHref } from "@/paraglide/runtime.js";
 
-/** Resolves a docs URL to the collection file the client loader compiles, plus what the head needs. */
 export const resolveDocsPage = createServerFn({ method: "GET" })
   .validator(localeInput<{ splat: string }>())
   .handler(async ({ data: { splat, locale } }) => {
@@ -64,7 +55,6 @@ export const resolveDocsPage = createServerFn({ method: "GET" })
         typeof crumb.name === "string" && typeof crumb.url === "string",
     );
 
-    // The git date rides with the compiled body, as the sitemap reads it.
     const { lastModified } = await page.data.load();
 
     return {
@@ -82,16 +72,12 @@ export const resolveDocsPage = createServerFn({ method: "GET" })
         { locale },
       ),
       githubUrl: `${sourceBlobUrl}/apps/docs/content/docs/${page.path}`,
-      // Only the install pages carry release facts. The snapshot is the one
-      // this render saw — the build's own in a prerendered page, where the
-      // provider then refreshes it from `/api/release-snapshot`.
       snapshot: installPageSlugs.includes(page.slugs.join("/"))
         ? await getReleaseSnapshot()
         : null,
     };
   });
 
-/** What the compiled body needs beyond the module: page actions. */
 interface DocsBodyProps {
   githubUrl: string;
   markdownUrl: string;
@@ -127,7 +113,6 @@ function DocsPageContent({
   );
 }
 
-/** Loader shared by both docs routes: resolve the file, then compile it. */
 export async function loadDocsPage(splat: string) {
   const page = await resolveDocsPage({ data: { splat, locale: getLocale() } });
   await docs.getPage(page.path)?.preload();
@@ -136,12 +121,6 @@ export async function loadDocsPage(splat: string) {
 
 type DocsPageData = Awaited<ReturnType<typeof loadDocsPage>>;
 
-/**
- * Head shared by both docs routes. Every page publishes a TechArticle, and a
- * page with a `faq` list publishes a FAQPage. The docs index carries no trail
- * of its own, and neither does a folder outside the sidebar, so those publish
- * no breadcrumb.
- */
 export function docsPageHead(page: DocsPageData | undefined) {
   if (page === undefined) return {};
 

@@ -1,35 +1,17 @@
-// ZotLit Query for views and legacy code: the QueryService tag behind Promises.
 import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
 import type { QueryViewOutcome, QueryViewRequest } from "./query-view.ts";
 import type { QueryService } from "./service.ts";
 
-/**
- * {@link QueryService} for callers outside Effect: an edge handle
- * (`policies/services.md` → Edge handle).
- */
 export interface QueryHandle {
-  /**
-   * Run the typed query of a Query View. An abort of `signal`, or the unload,
-   * stops the query and gives `cancelled`.
-   * @throws An internal error.
-   */
   run(
     request: QueryViewRequest,
     signal: AbortSignal,
   ): Promise<QueryViewOutcome>;
-  /**
-   * The custom fields of the active Zotero source, by name; none when
-   * `signal` aborts first.
-   * @throws An internal error.
-   */
   customFieldNames(signal: AbortSignal): Promise<readonly string[]>;
-  /** `callback` runs on each Use recorded after this call. */
   on(event: "changed", callback: () => void): () => void;
-  /** Typed queries of a Query View started; dev builds only, for the End-to-end Run. */
   readonly viewRuns: number;
-  /** The jobs that have not settled. */
   readonly runningJobs: number;
 }
 

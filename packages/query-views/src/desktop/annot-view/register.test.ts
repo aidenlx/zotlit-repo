@@ -45,7 +45,6 @@ function register(
   const byName = (name: string) => {
     const command = commands.find((entry) => entry.name === name)!;
     return {
-      /** Whether the palette offers it. */
       get offered() {
         return command.checkCallback!(true) === true;
       },
@@ -61,9 +60,6 @@ describe("the five Follow Mode commands", () => {
   it("gives each command an id and a name of its own", () => {
     const { commands } = register(view());
 
-    // Obsidian keys a command by its id, so a repeat would silently replace
-    // the one before it, and a repeated name would be unreadable in the
-    // palette.
     expect(new Set(commands.map((command) => command.id)).size).toBe(
       commands.length,
     );

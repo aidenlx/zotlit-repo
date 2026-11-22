@@ -12,8 +12,6 @@ import {
   Scope,
 } from "./effect.ts";
 
-// Failure modes: raw root defaults, explicit-context roots, synchronous runtime
-// factories, and cancellation losing the supplied AbortSignal.
 it("uses Chromium scheduling in every async entry point", async () => {
   const context = Context.empty();
   const check = Effect.gen(function* () {
@@ -70,8 +68,6 @@ it("preserves cancellation options", async () => {
   expect(Exit.isFailure(await pending)).toBe(true);
 });
 
-// Failure mode: the runtime services replace the logger a caller supplied,
-// so a layer's own context loses its records.
 it("lets a supplied context override the runtime services", async () => {
   const logged: string[] = [];
   const capture = Logger.make(({ message }) => {

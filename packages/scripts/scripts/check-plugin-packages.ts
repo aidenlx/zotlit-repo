@@ -1,9 +1,4 @@
 #!/usr/bin/env node
-// Holds the three plugin-package lists that a static file must spell out to
-// what `pluginPackages` derives from each host's dependencies: the Tailwind
-// `@source` lines of the host's stylesheet, the inputs of the host's review
-// task in turbo.json, and the include list of the review program's tsconfig.
-// The build, test and review configs read the derived list itself.
 import type { PublishedPluginName } from "#shell/plugins";
 import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -12,7 +7,6 @@ import { getWorkspaceRoot } from "#package-roots";
 import { pluginPackages, reviewedPluginPackages } from "#plugin-packages";
 import { PUBLISHED_PLUGINS } from "#shell/plugins";
 
-/** The hosts that bundle plugin packages; a Resource Pack bundles none. */
 type HostName = Exclude<PublishedPluginName, "resources">;
 
 const HOSTS = {

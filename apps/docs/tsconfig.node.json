@@ -4,7 +4,6 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "isolatedDeclarations": false,
-    // The build renders the OG cards from JSX through takumi.
     "jsx": "react-jsx",
     "types": ["node"]
   },

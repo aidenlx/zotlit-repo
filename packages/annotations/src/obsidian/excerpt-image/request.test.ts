@@ -1,5 +1,3 @@
-// One Annotation reached through the Local API and the database must reuse pixels.
-
 import type {
   AnnotationRecord,
   AnnotationSource,
@@ -84,7 +82,6 @@ const groupRecord: AnnotationRecord = {
   parentKey: `${ATTACHMENT}g${GROUP_ID}`,
 };
 
-/** One Attachment, in each of the user Library and a group Library. */
 async function fixture(serverID: string | null = SERVER_ID): Promise<
   AsyncDisposableStack & {
     reads: ZoteroReadsApi;
@@ -96,7 +93,6 @@ async function fixture(serverID: string | null = SERVER_ID): Promise<
     db.$client.close(),
   );
   createFixtureSchema(client.$client);
-  // An empty Server ID is what Zotero holds before Local API initialization.
   client.$client.exec(`
     insert into libraries (libraryID, type) values (1, 'user'), (2, 'group');
     insert into groups (groupID, libraryID, name) values (${GROUP_ID}, 2, 'Shared');
@@ -118,11 +114,9 @@ async function fixture(serverID: string | null = SERVER_ID): Promise<
   return Object.assign(stack, { reads, zoteroReads });
 }
 
-/** {@link fixture}, held for the case's scope. */
 const fixtureDb = (serverID?: string | null) =>
   Effect.acquireDisposable(Effect.tryPromise(() => fixture(serverID)));
 
-/** An Excerpt Image service over `render` and an in-memory cache. */
 const serviceOf = (
   options: ConstructorParameters<typeof ExcerptImageService>[0],
 ) =>
@@ -281,7 +275,6 @@ describe("Saved excerpt request", () => {
         const started = yield* Deferred.make<void>();
         let interrupted = false;
         let released = false;
-        // The Snapshot is taken; its identity read starts and never answers.
         const reads = new Proxy(db.reads, {
           get(target, key, receiver) {
             return key === "DatabaseIdentity"
@@ -372,9 +365,6 @@ describe("Excerpt request verification", () => {
         const bytes = new Uint8Array([1, 2, 3]);
         const entries = new Map<string, ExcerptEntry>();
         const render = vi.fn(async () => ({ bytes, format: PNG_FORMAT }));
-        // The cache evidence the record in docs/excerpt-image-reuse-measurements.md
-        // states: reads, the reads that answered an entry, and writes, counted on
-        // the double the production preflight and the render path actually drive.
         const cache = { reads: 0, hits: 0, writes: 0 };
         const service = yield* serviceOf({
           stamp: async () => ({ size: 100, mtimeMs: 10 }),
@@ -410,7 +400,6 @@ describe("Excerpt request verification", () => {
           },
         });
         expect(render).toHaveBeenCalledTimes(1);
-        // One read misses and stores the bytes; the second reads them and hits.
         expect(cache).toEqual({ reads: 2, hits: 1, writes: 1 });
       }),
   );
@@ -468,12 +457,9 @@ describe("Excerpt request verification", () => {
       };
       const request = yield* excerptRequest(standalone);
       expect(request).not.toBeNull();
-      // No Local API session can be verified against this database, so no API
-      // source may claim its pixels.
       expect(
         yield* excerptRequest({ ...standalone, source: apiSource }),
       ).toBeNull();
-      // A copy of the database keeps its own identity through its source scope.
       expect(excerptKey(request!, fakeReaderEngine)).not.toBe(
         excerptKey(
           (yield* excerptRequest({
@@ -533,7 +519,6 @@ describe("Excerpt request for an Indexed Key", () => {
   const dataDir = "/zotero";
   const keyPaths = { dataDir, baseAttachmentPath: "/linked" };
 
-  /** Snapshot-bound reads of the scenario database, held for the case's scope. */
   const scenarioReads = (wrap?: InProcessReadsOptions["wrap"]) =>
     Effect.acquireDisposable(
       Effect.tryPromise(async () => {

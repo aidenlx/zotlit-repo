@@ -1,4 +1,3 @@
-/** Show download dialog to save given file. */
 export function saveFile(data: Blob, filename: string): void {
   const url = URL.createObjectURL(data);
 
@@ -14,7 +13,6 @@ export function saveFile(data: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-/** Compact timestamp suffix for download filenames, e.g. `20260512-143000`. */
 export function exportTimestamp(): string {
   const now = Temporal.Now.plainDateTimeISO();
   const pad = (n: number): string => n.toString().padStart(2, "0");

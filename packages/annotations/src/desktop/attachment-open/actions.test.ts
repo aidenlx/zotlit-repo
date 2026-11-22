@@ -32,7 +32,6 @@ beforeEach(() => {
   vi.mocked(openAttachments).mockReset();
 });
 
-/** The Attachments Item ABCD2345 resolves to. */
 const OPENABLE_FIXTURE: ObsidianOpenableAttachment[] = [
   {
     indexedKey: "ATCH2345",
@@ -42,16 +41,11 @@ const OPENABLE_FIXTURE: ObsidianOpenableAttachment[] = [
   },
 ];
 
-/** A lookup that resolves ABCD2345 to {@link OPENABLE_FIXTURE}, and every other key to none. */
 const fixtureAttachments: LiteratureNoteAttachmentsHandle = {
   literatureNoteAttachments: (indexedKey) =>
     Promise.resolve(indexedKey === "ABCD2345" ? OPENABLE_FIXTURE : []),
 };
 
-/**
- * An App whose workspace has `active` open and whose metadata cache answers
- * `cache` for it.
- */
 function appWith(
   active: TFile | null = null,
   cache: CachedMetadata | null = null,
@@ -66,13 +60,11 @@ function appWith(
   });
 }
 
-/** A lookup a case leaves unread: reading one throws. */
 const unreadAttachments = stubService<LiteratureNoteAttachmentsHandle>(
   "LiteratureNoteAttachments",
   {},
 );
 
-/** An opener a case leaves unused: the picker it builds is mocked. */
 const unusedOpener = stubService<Pick<TargetOpener["Service"], "open">>(
   "TargetOpener",
   {},
@@ -85,7 +77,6 @@ function lookupDeps(
   return {
     app: appWith(),
     attachments,
-    // The picker is mocked, so no open runs.
     bridge: { runAndForget: () => {} },
     opener: unusedOpener,
     ...overrides,
@@ -161,8 +152,6 @@ describe("open-pdf command", () => {
 });
 
 describe("pdfPickerReader", () => {
-  // A picker row fires its open and forgets it; unload must neither open
-  // the row nor turn the wait for the index into an unhandled rejection.
   it("stays silent when unload ends an open that waits for the index", async () => {
     const { opener, bridge, gate, close, opened, handed, notices } =
       await openOpener({ prime: false });

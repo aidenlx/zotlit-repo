@@ -44,7 +44,6 @@ vi.mock("#desktop/profile/profile-picker.ts", () => ({
   openLiteratureNoteProfile: vi.fn(),
 }));
 
-/** The picker answers `answer` once, as the user would. */
 function pickerAnswersOnce(answer: LiteratureNoteProfileChoice | undefined) {
   vi.mocked(openLiteratureNoteProfile).mockImplementationOnce(
     (_app, _options, resolve) => {
@@ -71,16 +70,11 @@ function creationPlans(
   return new Map(indexedKeys.map((key) => [key, plan]));
 }
 
-/** The services the flow reads through their tags, over one test's fakes. */
 interface FlowServices {
-  /** Records each `openLinkText`. */
   readonly workspace: MemoryWorkspace;
-  /** The path of each note the Use Ledger was told not to count, in order. */
   readonly excluded: string[];
   readonly readItems?: ReadsAnswers["ItemsByIndexedKeys"];
-  /** Shows the flow's notices. */
   readonly notifier: ReturnType<typeof testNotifier>;
-  /** Answers the Note Feature's lookups and updates. */
   readonly feature: Partial<NoteFeature["Service"]>;
 }
 
@@ -114,7 +108,6 @@ function flowLayer({
   );
 }
 
-/** One `openLinkText` of `path` in `newLeaf`, as the flow makes it. */
 function openedAt(
   path: string,
   newLeaf: MemoryWorkspace["opened"][number]["newLeaf"],
@@ -236,7 +229,6 @@ it.effect.each(["open", "update"] as const)(
       expect(harness.workspace.opened).toEqual([
         openedAt("Papers/Study.md", false),
       ]);
-      // Only an update keeps the navigation out of the Use Ledger.
       expect(harness.excluded).toEqual(
         action === "update" ? ["Papers/Study.md"] : [],
       );
@@ -591,7 +583,6 @@ function noteAt(path: string): TFile {
   return file;
 }
 
-// Interactive entry points report the same operation outcome as links.
 it.effect("opens an indexed Literature Note without planning a creation", () =>
   Effect.gen(function* () {
     const harness = creationHarness({
@@ -621,7 +612,6 @@ it.effect("opens an indexed Literature Note without planning a creation", () =>
   }),
 );
 
-// Callers observe the file created through the selected Profile.
 it.effect(
   "creates and opens an interactive Literature Note through its matched Profile",
   () =>
@@ -653,7 +643,6 @@ it.effect(
     }),
 );
 
-// Library navigation keeps the existing unavailable-database fallback.
 it.effect("opens nothing when the interactive Item read is unavailable", () =>
   Effect.gen(function* () {
     const harness = creationHarness({

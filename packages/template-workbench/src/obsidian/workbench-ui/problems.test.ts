@@ -101,9 +101,6 @@ describe("problemText", () => {
     const problem = controller.problems[0]!;
 
     expect(problem.code).toBe("bundled-partial");
-    // The recovery is a text suggestion like every other one: unpacking writes
-    // files, which the host offers among its ordinary partial operations
-    // rather than inside the reading of a problem (ADR 0056).
     expect(problemText(problem)).toEqual({
       message: m.workbench_problem_bundled_partial({ names: "authors" }),
       recovery: m.workbench_problem_bundled_partial_recovery(),
@@ -138,7 +135,6 @@ describe("diagnosticText", () => {
     } as const;
 
     expect(diagnosticText(failure)).toBe(m.workbench_diagnostic_render_error());
-    // Problems shows the cause without requiring a second disclosure.
     expect(diagnosisExplanation(renderDiagnosis(failure))).toEqual({
       object: m.workbench_problems_object_profile(),
       condition: "Unexpected tag",
@@ -162,8 +158,6 @@ describe("diagnosisExplanation", () => {
 });
 
 describe("attribution", () => {
-  /** A Note calling Citation text with the note's own data: the engine fails
-   *  inside the Citation Template, and the call in the note is the repair. */
   const callerData = renderDiagnosis({
     code: "citation-data-mismatch",
     message:
@@ -255,7 +249,6 @@ describe("attribution", () => {
 
     expect(diagnosisLocated(unknown)).toBe(false);
     expect(diagnosisWhere(unknown)).toBe(m.workbench_problems_where_advanced());
-    // The engine's claim survives; it is not promoted into a repair location.
     expect(diagnosisEngineSources(unknown)).toEqual([
       m.workbench_problems_engine_source_line({
         template: "paper:body",
@@ -293,10 +286,7 @@ describe("attribution", () => {
         callSite: { from, to: from + 27 },
       }).id;
 
-    // Typing above the call moves every offset below it and changes nothing
-    // about the failure, so the reader stays on the problem they are reading.
     expect(at(512)).toBe(at(395));
-    // Another partial is another problem, whatever either call's offset is.
     expect(
       renderDiagnosis({
         code: "missing-partial",
@@ -373,15 +363,11 @@ describe("attribution", () => {
       [failure("Unexpected tag"), failure("Unexpected tag")],
     );
 
-    // Nothing is verified about either, so nothing establishes them as one
-    // problem — least of all the words they share. Both explanations, and both
-    // reports, stay reachable.
     expect(rest).toEqual([]);
     expect(first!.id).not.toBe(second!.id);
     expect([first, second].map((found) => found!.occurrences.length)).toEqual([
       1, 1,
     ]);
-    // A named object and the same verified call make two occurrences one problem.
     expect(
       workbenchDiagnoses(
         [],

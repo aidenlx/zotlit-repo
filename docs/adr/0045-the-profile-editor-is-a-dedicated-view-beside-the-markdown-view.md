@@ -37,3 +37,55 @@ Map [#835](https://github.com/aidenlx/zotlit/issues/835) first framed the Obsidi
 - The JavaScript Templates gate governs rendering only; the Profile Editor edits an Eta or `js` document at any time.
 - Built-in inspection is read-only. Customize creates `zotlit-profile.default.md` before editing, which is the Eject; an existing customization opens its current document.
 - Run/Stop in the Note Preview pauses live rendering; a render in flight completes, because the pipeline runs on the main thread.
+
+## Template Data reads
+
+Expose Template Data through one service tag so view atoms need only that tag. A preview can substitute its Profile settings and scope Note Index lookups to the selected Literature Note when several notes share one Item.
+
+Read under a scoped Snapshot. For a key that names an Attachment, Child Note, or Annotation, resolve its owning Item within that Snapshot. Keep the missing-attachment and missing-parent outcomes distinct. Reuse an Item that was fetched during resolution. Read the parent's display reference when only its numeric ID is known, then use its Indexed Key to fetch the Item. Preserve read or build failures for the caller, including errors thrown by synchronous Template data getters.
+
+Resolve preview links without writing. Use source file links when attachment import is off. When import is on, use the configured vault folder or the selected Literature Note's attachment folder. An unset folder and absent note leave no import target. Build synchronous resolvers over the host services so Template getters can call them during rendering. [Template Data](../../packages/notes/src/desktop/template/data.ts)
+
+### Open and unload
+
+Serialize leaf creation for the Template Workbench View and Template Data
+Explorer at workspace scope. A second open sees the leaves the first one
+created. Failure or cancellation releases the turn.
+
+Run actions from Obsidian callbacks on the plugin bridge so unload can stop
+them. Log failures and show a notice, and let interruption end quietly.
+Report when a document uses Eta or JavaScript fields that only the native
+editor runs. Report when the selected note cannot update from this editor.
+
+[Layout turn](../../packages/template-workbench/src/core/editor/layout-turn.ts) ·
+[Workbench actions](../../packages/template-workbench/src/desktop/editor/actions.ts)
+
+### File lifecycle in the Workbench view
+
+Give each loaded file a fresh editor tree. Let Obsidian's TextFileView own the native save path and three-way merge, including unsaved input from peer edits. Serializing writes prevents the native save from returning early while another write is active. On close, interrupt reads and other leaf work, and wait for writes that have started. When the normal load is pending, intercept the first saved-baseline write to reject a read made stale by an edit, a changed baseline, a different file, or interruption. Keep native methods bound to the real view so their private fields still work. Retry against current state when the same file remains active, with the merge enabled if the draft changed. Restore saved view choices before asynchronously loading the file so choices made during the load win. Materialize the Default Profile before enabling edits and join any materialization already in progress.
+
+Update uses the note that opened the leaf. Use the Default Profile's bindings
+for Name and folder when the current Profile supplies none. In settings tests,
+the folder read signals that the same settings event reached the view.
+
+[Desktop model](../../packages/template-workbench/src/desktop/view/model.ts)
+
+A launch entry point that cannot open its editor shows a notice. Starting
+from a note does not establish an update target when that editor cannot
+update the originating note.
+
+The desktop Customize case starts from an existing Default document.
+It verifies the original note association and Preview in the editor's
+native window. A customized Annotation callout appears once per
+Annotation when the template lists them. The dedicated walkthrough
+starts from a searchable Item without an existing note, exercises a
+slash in the note name and a folder override, and waits for the saved
+Profile document to compile before asserting its output. The built-in
+name can use a YAML block scalar. Profile management stays in the
+row's More actions menu.
+
+The dedicated-window test opens from both a Profile's Markdown view
+and a Literature Note. The latter carries its resolved Profile and
+the note to update. Each document gets one Workbench leaf. A repeat
+open reveals the same window with Preview shown. Close the source
+tabs so they do not change the next case's root split.

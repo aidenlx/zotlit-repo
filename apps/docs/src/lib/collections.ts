@@ -1,15 +1,10 @@
-// Native Fumadocs collections for server loaders and lazy browser bodies.
-
 import { defineCollections, defineDocs } from "fumadocs-mdx/macro";
 
-// These imports are inside macro arguments, so compilation removes them from
-// the app module. Validation and Markdown transforms stay in the Node process.
 export const docs = defineDocs({
   dir: "content/docs",
   docs: {
     async: true,
     lastModified: true,
-    // Underscore-prefixed partials enter through <include>, as part of a page.
     files: ["**/[^_]*.mdx"],
     schema: (await import("#content-config")).docsSchema,
     postprocess: {

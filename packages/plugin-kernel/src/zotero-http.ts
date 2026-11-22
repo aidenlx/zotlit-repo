@@ -1,7 +1,3 @@
-// What every call to Zotero's own HTTP server shares: the header that gets past
-// its browser-traffic guard, the loopback origin it binds, the client that
-// carries both, and a body reader.
-
 import type { EffectBridge } from "#effect-bridge.ts";
 import { Cause, Context, Effect, Exit, Layer, Option } from "effect";
 import {
@@ -14,28 +10,14 @@ import type { HttpMethod } from "effect/http";
 
 import { AbortError } from "#abort-error.ts";
 
-/**
- * Zotero refuses requests it reads as browser traffic: a `Mozilla/` user agent,
- * or any `Origin` header. It closes the connection, so the caller sees a
- * network failure with no status. This header is the documented opt-out, and
- * every ZotLit call to Zotero carries it.
- *
- * @see docs/fixture.md — "Trial the Zotero Local API"
- */
 export const ZOTERO_ALLOWED_REQUEST: Readonly<Record<string, string>> = {
   "Zotero-Allowed-Request": "1",
 };
 
-/**
- * Zotero's HTTP server binds `127.0.0.1` — never `localhost`, never a hostname.
- *
- * @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/server.js#L48-L89
- */
 export function zoteroOrigin(port: number): string {
   return `http://127.0.0.1:${port}`;
 }
 
-/** @returns the parsed value, or undefined for a body that is not JSON. */
 export function parseJson(text: string): unknown {
   try {
     return JSON.parse(text) as unknown;
@@ -44,22 +26,11 @@ export function parseJson(text: string): unknown {
   }
 }
 
-/**
- * The loopback `HttpClient` for Zotero's own HTTP server, apart from the
- * remote client so the two cannot be mixed up. Every request it sends carries
- * {@link ZOTERO_ALLOWED_REQUEST}.
- *
- * Production builds it over Node's own stack (`zotero-http-node.ts`): no
- * `Origin`, no user agent, no CORS check on the answer, and no proxy read from
- * the environment, so a loopback call arrives as Zotero requires it. Desktop
- * only.
- */
 export class ZoteroHttp extends Context.Service<
   ZoteroHttp,
   HttpClient.HttpClient
 >()("zotlit/zotero-http/ZoteroHttp") {}
 
-/** `client` with {@link ZOTERO_ALLOWED_REQUEST} added to each request. */
 export function withZoteroHeaders(
   client: HttpClient.HttpClient,
 ): HttpClient.HttpClient {
@@ -69,7 +40,6 @@ export function withZoteroHeaders(
   );
 }
 
-/** {@link ZoteroHttp} over the `HttpClient` below it, through {@link withZoteroHeaders}. */
 export const layerZoteroHttp: Layer.Layer<
   ZoteroHttp,
   never,
@@ -79,43 +49,26 @@ export const layerZoteroHttp: Layer.Layer<
   Effect.map(HttpClient.HttpClient, (client) => withZoteroHeaders(client)),
 );
 
-/** One request to Zotero's HTTP server. */
 export interface ZoteroRequest {
-  /** Zotero's HTTP port; the request goes to {@link zoteroOrigin} of it. */
   readonly port: number;
-  /** The path and query, from the leading `/`. */
   readonly path: string;
-  /** @default "GET" */
   readonly method?: ZoteroMethod;
   readonly headers?: Readonly<Record<string, string>>;
   readonly body?: string;
 }
 
-/** A method a Zotero request goes out with. */
 export type ZoteroMethod = HttpMethod.HttpMethod;
 
-/** What Zotero answered, read to the end. */
 export interface ZoteroAnswer {
   readonly status: number;
   readonly headers: Headers;
   readonly text: string;
 }
 
-/**
- * One round trip to Zotero over {@link ZoteroHttp}. Succeeds with whatever
- * status Zotero answered, however unhappy; fails only when the connection
- * itself failed, which is how a closed Zotero announces itself.
- *
- * The body is read to the end before this succeeds, and it is measured, so no
- * request arrives without a `Content-Length`: Zotero answers `400` to a
- * chunked one. An interrupt destroys the request.
- */
 export function exchangeWithZotero(
   http: ZoteroHttp["Service"],
   { port, path, method = "GET", headers = {}, body }: ZoteroRequest,
 ): Effect.Effect<ZoteroAnswer, HttpClientError.HttpClientError> {
-  // The headers go on after the body: setting a raw body removes any
-  // `Content-Type`, and the caller's headers carry it.
   const request = HttpClientRequest.make(method)(
     `${zoteroOrigin(port)}${path}`,
     {
@@ -136,21 +89,8 @@ export function exchangeWithZotero(
   );
 }
 
-/**
- * The runner a Promise caller enters Effect through: the plugin's
- * `EffectBridge`, or one made from a layer's own context.
- */
 export type ZoteroRunner = Pick<EffectBridge, "runPromiseExit">;
 
-/**
- * {@link exchangeWithZotero} for the Promise code that calls Zotero, run
- * through `runner`, with the errors `fetch` raised before.
- *
- * @param request.signal abandons the exchange.
- * @throws {AbortError} when `signal` aborts, before the answer or mid-body.
- * @throws {TypeError} carrying the transport failure as its `cause`, when the
- *   connection fails.
- */
 export async function sendToZotero(
   runner: ZoteroRunner,
   http: ZoteroHttp["Service"],
@@ -170,10 +110,6 @@ export async function sendToZotero(
   });
 }
 
-/**
- * Whether a failed exchange is the transport's own abort, as `fetch` reports
- * one: the request left and no answer came, so its outcome is unknown.
- */
 export function isTransportAbort(error: unknown): boolean {
   const reason = transportReason(error);
   const cause =
@@ -183,7 +119,6 @@ export function isTransportAbort(error: unknown): boolean {
   return isAbort(reason) || isAbort(cause);
 }
 
-/** What the transport reported: the reason inside an `HttpClientError`, else the error itself. */
 function transportReason(error: unknown): unknown {
   return HttpClientError.isHttpClientError(error) ? error.reason : error;
 }

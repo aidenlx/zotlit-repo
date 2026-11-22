@@ -47,12 +47,6 @@ import {
 import { groupedCards, visibleOrder } from "#obsidian/annot-view/state.ts";
 import { confineTabOrder } from "#obsidian/annot-view/tab-order.ts";
 
-/**
- * Whether an event landed in the open text field's sheet. `instanceOf` rather
- * than `instanceof`: the view runs in pop-out windows.
- *
- * @see apps/obsidian/policies/popout-windows.md
- */
 function inFieldSheet(target: EventTarget | null): boolean {
   const node = target as Node | null;
   return (
@@ -61,12 +55,6 @@ function inFieldSheet(target: EventTarget | null): boolean {
   );
 }
 
-/**
- * Each shape `presentation.ts` derives is a fresh object, and the store is read
- * through `useSyncExternalStore`, which compares snapshots by identity — a
- * selector that builds one on every call never settles. So each is built from
- * the slices it depends on and held while those are unchanged.
- */
 function useHeaderShape(): HeaderShape {
   const attachments = useAnnotStore((s) => s.attachments);
   const selectedAttachmentKey = useAnnotStore((s) => s.selectedAttachmentKey);
@@ -129,14 +117,8 @@ function useBody(): AnnotViewBody {
 export function AnnotView() {
   const searchOpen = useAnnotStore((s) => s.searchOpen);
   const body = useBody();
-  /**
-   * Collapse is this view's own display state rather than part of the filter:
-   * nothing outside the pane reads it and nothing persists it, so it stays
-   * here and reaches the control row as a prop.
-   */
   const [collapsed, setCollapsed] = useState(true);
   const searchBarId = useUniqueId();
-  /** Where Escape in the search bar sends focus, the button that opened it. */
   const searchButtonRef = useRef<HTMLDivElement>(null);
 
   const hasItem = body.kind === "list" || body.kind === "loading";
@@ -145,15 +127,9 @@ export function AnnotView() {
   const editingText = useAnnotStore(
     (s) => s.editing !== null && s.editing.field !== "tags",
   );
-  /** Whether the press the next click ends began in the open field. */
   const pressInField = useRef(false);
 
   return (
-    // A click in the view away from an open text field ends the edit, as
-    // Escape does, before the click reaches what it landed on (ADR 0066). A
-    // drag that selected text in the field and let go outside it is still in
-    // the field. The empty list's own click closes the editor before it
-    // clears anything, so that click is left to it.
     <div
       className="zt:@container zt:flex zt:h-full zt:flex-col zt:overflow-hidden"
       onPointerDownCapture={(e) => {
@@ -195,7 +171,6 @@ export function AnnotView() {
       {body.kind === "list" ? (
         <AnnotList collapsed={collapsed} />
       ) : body.kind === "loading" ? (
-        // Loading gives way to the cards at the top, so it waits there.
         <div className="pane-empty zt:p-2" data-annot-view-loading="">
           {m.annot_view_loading()}
         </div>
@@ -221,15 +196,6 @@ export function AnnotView() {
   );
 }
 
-/**
- * The header block: one press target opening one grouped menu, in the two
- * shapes `headerShape` leaves it. Everything it reports — the mode, the
- * Attachment count, the read-only state, a closed reader — is inert text
- * inside that one target, so the block takes one hover shape and one focus
- * stop however much it has to say.
- *
- * @see apps/obsidian/docs/adr/0044-menus-and-popovers-are-obsidians-own-primitives.md
- */
 function AnnotHeader() {
   const actions = useContext(AnnotActionsContext);
   const shape = useHeaderShape();
@@ -244,10 +210,6 @@ function AnnotHeader() {
         onClick={(evt) => actions.onHeaderMenu(evt)}
         className="zt-annot-header zt:inline-flex zt:max-w-full zt:min-w-0 zt:items-center zt:gap-2 zt:rounded-sm zt:px-1.5 zt:py-1 zt:text-start zt:hover:bg-card zt:hover:ring-1 zt:hover:ring-border zt:focus-visible:bg-card zt:focus-visible:ring-2 zt:focus-visible:ring-border-focus"
       >
-        {/* The name the block promises assistive technology, held apart from
-            the words on screen: an `aria-label` would reach the pointer too,
-            and Obsidian would draw the whole sentence as a hover tooltip.
-            @see apps/obsidian/policies/tooltips.md */}
         <span id={labelId} className="zt:sr-only">
           {shape.label}
         </span>
@@ -258,15 +220,8 @@ function AnnotHeader() {
             <StatusBar shape={shape} />
           )}
         </span>
-        {/* The chevron belongs to the block, not to any word in it: its own
-            inline-end lane beside the text, so it stays by the words however
-            wide the pane grows, and no wrapped byline segment runs under it. */}
         <ChromeIcon name="chevron-down" />
       </button>
-      {/* A side dock hides the view header and its "More options", so the
-          header row carries the same menu there, in every state of the
-          view. Obsidian's own `.mod-sidedock` ancestor shows it; the wrapper
-          holds the display, since `.clickable-icon` sets its own. */}
       <div className="zt:ms-auto zt:hidden zt:shrink-0 zt:in-[.mod-sidedock]:flex">
         <IconButton
           icon="more-vertical"
@@ -280,7 +235,6 @@ function AnnotHeader() {
   );
 }
 
-/** The Item over its byline, with the Follow Mode carried by its glyph alone. */
 function Masthead({
   shape,
 }: {
@@ -302,7 +256,6 @@ function Masthead({
   );
 }
 
-/** The Follow Mode in full, with whatever the pane has to report after it. */
 function StatusBar({
   shape,
 }: {
@@ -316,11 +269,6 @@ function StatusBar({
   );
 }
 
-/**
- * A glyph in the header's chrome: the mode's own icon and the block's
- * chevron, at the `--icon-xs` Obsidian sets beside its own 13px text, in the
- * byline's ink.
- */
 function ChromeIcon({ name }: { name: IconName }) {
   return (
     <Icon
@@ -331,10 +279,6 @@ function ChromeIcon({ name }: { name: IconName }) {
   );
 }
 
-/**
- * One line of quiet chrome, its segments divided by a separator each carries
- * after itself — the last suppressed, so no separator can begin a wrapped line.
- */
 function Byline({ segments }: { segments: string[] }) {
   return (
     <span className="zt:min-w-0 zt:text-xs zt:text-muted-foreground zt:tabular-nums">
@@ -374,17 +318,6 @@ function EmptyPane({
   );
 }
 
-/**
- * The search bar, revealed under the control row by the search toggle that
- * names it. Escape leaves it exactly as the toggle does — closed, with the
- * query cleared — and sends focus back to the button that opened it, so the
- * keyboard never lands nowhere. The press stops there: Obsidian's own Escape
- * would otherwise act on the pane behind it.
- *
- * The field takes `type="text"` for that: a `search` input keeps the browser's
- * own Escape-to-clear while it holds a query, and this surface would never see
- * the key.
- */
 function SearchRow({
   id,
   searchButtonRef,
@@ -395,10 +328,6 @@ function SearchRow({
   const filterQuery = useAnnotStore((s) => s.filterQuery);
   const setFilterQuery = useSetFilterQuery();
   const toggleSearchOpen = useToggleSearchOpen();
-  // Preact renders `autoFocus` as the HTML attribute, which only acts at page
-  // load; a field the toggle reveals is focused by hand once it is mounted. A
-  // layout effect runs at commit, where a passive effect waits for a frame the
-  // window may not paint.
   const inputRef = useRef<HTMLInputElement>(null);
   const inputId = useUniqueId();
   useLayoutEffect(() => {
@@ -407,9 +336,6 @@ function SearchRow({
 
   return (
     <div id={id} className="zt:px-2 zt:pt-1">
-      {/* The field's own name, in the words the toggle that reveals it carries:
-          a placeholder is not a name, and no visible label has room in a row
-          this dense. */}
       <label htmlFor={inputId} className="zt:sr-only">
         {m.annot_view_search_tooltip()}
       </label>
@@ -432,17 +358,11 @@ function SearchRow({
   );
 }
 
-/** The Annotation Cards, in the grid the Annotations Layout draws them in. */
 export function AnnotList({
   collapsed,
   cardWidth,
 }: {
   collapsed: boolean;
-  /**
-   * The narrowest a card is drawn, in pixels, as a Query View's Annotations
-   * layout sets it: the tracks fill the row from there. Without one the
-   * tracks follow the pane's width steps.
-   */
   cardWidth?: number;
 }) {
   const actions = useContext(AnnotActionsContext);
@@ -453,7 +373,6 @@ export function AnnotList({
   const clearFilters = useClearFilters();
   const gridRef = useRef<HTMLDivElement>(null);
   const labelId = useUniqueId();
-  /** Whether the list is scrolled off its top, which shows the top fade. */
   const [scrolled, setScrolled] = useState(false);
 
   const filter = useAnnotFilter();
@@ -461,13 +380,11 @@ export function AnnotList({
     () => (annotations ? filterAnnotations(annotations, filter) : []),
     [annotations, filter],
   );
-  /** The list's one tab stop: the place a move steps from, else the first. */
   const tabStop = useAnnotStore((s) => {
     const visible = visibleOrder(s);
     return moveOrigin(s.cardSelection, visible) ?? visible[0] ?? null;
   });
   const tabOrder = useRef<Disposable | null>(null);
-  /** Only the tab stop's controls stay in the Tab order. */
   const mountGrid = useCallback((grid: HTMLDivElement | null) => {
     gridRef.current = grid;
     tabOrder.current?.[Symbol.dispose]();
@@ -486,40 +403,15 @@ export function AnnotList({
   }
 
   return (
-    // A grid, never `columns`: a masonry column reads down its own length, so
-    // the page order the reader is scanning breaks the moment the pane widens.
-    // The tracks answer to the scroll box's own width through the container
-    // query on it, and `items-start` keeps each card the height of its own
-    // content rather than its row's.
-    //
-    // A click on the list's empty space, around or between the cards, closes
-    // an open card editor or clears the Card Selection.
     <div
       className={cn(
         "annots-container zt:@container zt:mt-1 zt:min-h-0 zt:flex-1 zt:overflow-auto zt:px-3 zt:pt-1",
-        // Obsidian's status bar (fixed, bottom-right) overlays the pane's
-        // bottom edge in any dock. The list scrolls under it, and its end
-        // padding, the list's own 3 plus the bar's 8, lets the last card
-        // scroll fully clear of the bar; the scroll padding keeps a card
-        // scrolled into view clear of it too.
         "zt:scroll-pb-8 zt:pb-11",
-        // A card scrolled up under the filter bar fades out rather than being
-        // cut flat. The strip lies over the top of the list, held there as the
-        // cards scroll under it (`-top-1` cancels the `pt-1`, where a sticky
-        // box stops), and is painted from the pane's own background, as
-        // Obsidian paints the leaf. It spans the side gutters too, where a
-        // card's ring and shadow reach. It shows only while the list is
-        // scrolled off its top, so at the top of the list, and in a list too
-        // short to scroll, the first row shows whole; the top scroll padding
-        // keeps a card scrolled into view below it. It sits inside the
-        // scrolled content, so the overlay scrollbar draws over it.
         "zt:scroll-pt-2 zt:before:pointer-events-none zt:before:sticky zt:before:-top-1 zt:before:z-1 zt:before:-mx-3 zt:before:-mb-2 zt:before:block zt:before:h-2",
         "zt:before:bg-linear-to-b zt:before:from-(--background-secondary) zt:before:to-transparent zt:[.mod-root_&]:before:from-(--background-primary)",
         "zt:before:opacity-0 zt:before:transition-opacity zt:data-scrolled:before:opacity-100",
       )}
       data-scrolled={scrolled ? "" : undefined}
-      // A list that stops being scrollable, as when the pane widens, is
-      // clamped back to its top, and that clamp fires a scroll too.
       onScroll={(e) => setScrolled(e.currentTarget.scrollTop > 0)}
       onClick={(e) => {
         if (e.target !== e.currentTarget && e.target !== gridRef.current)
@@ -527,15 +419,9 @@ export function AnnotList({
         actions.onClearSelection();
       }}
     >
-      {/* The grid's name, held apart from the cards: an `aria-label` on the
-          grid would reach the pointer too, and Obsidian would draw it as a
-          hover tooltip over the whole list.
-          @see apps/obsidian/policies/tooltips.md */}
       <span id={labelId} className="zt:sr-only">
         {m.annot_view_name()}
       </span>
-      {/* To assistive technology the cards are one column of rows, in list
-          order, however many tracks the layout draws them in. */}
       <div
         ref={mountGrid}
         className={cn(
@@ -565,12 +451,6 @@ export function AnnotList({
               />
             ))
           : groupedCards(groups, filtered).map(({ annot, group, opens }) => {
-              // A Query View's grouped rows: a heading opens each run of
-              // cards that stands in one group, across every column, and a
-              // card with two tags stands once under each. The card keeps one
-              // place in the tree whether or not a heading stands before it,
-              // so a card that starts or stops a group is not mounted again
-              // and an open editor on it stays.
               const folded = collapsedGroups.has(group.key);
               const place = cardPlace(annot.key, group.key);
               return (
@@ -601,10 +481,6 @@ export function AnnotList({
   );
 }
 
-/**
- * A group's heading. Its button collapses the group's cards and expands them
- * again; the heading's own text names it, so it needs no tooltip.
- */
 function GroupHeading({
   label,
   groupKey,
@@ -617,9 +493,6 @@ function GroupHeading({
   onToggle: () => void;
 }) {
   return (
-    // A group ends on a hairline, as a group does in a Bases Cards view: every
-    // heading after the first stands under one, a little further from the
-    // cards above it than the cards stand from each other.
     <div
       role="row"
       data-query-group={groupKey}
@@ -627,14 +500,6 @@ function GroupHeading({
       className="zt:group/heading zt:col-span-full zt:not-first:mt-1 zt:not-first:border-t-(length:--border-width) zt:not-first:border-border zt:not-first:pt-2"
     >
       <span role="rowheader" className="zt:flex zt:min-w-0">
-        {/* The press target is Obsidian's `clickable-icon`, which takes back
-            the button chrome Obsidian draws, unlayered, on a bare `<button>`
-            and gives the theme's own hover. It pulls back by its inline
-            padding, so the chevron starts on the cards' edge. Obsidian
-            sets a button's weight and colour unlayered as well, so the label
-            carries the heading type itself. The chevron stays shown, so a
-            collapsed group reads as collapsed without a pointer over it, in the
-            colour Obsidian gives a collapsed fold. */}
         <button
           type="button"
           aria-expanded={expanded}

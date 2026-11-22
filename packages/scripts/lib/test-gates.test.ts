@@ -12,8 +12,6 @@ const defaults = {
   include: ["**/*.{test,spec}.?(c|m)[jt]s?(x)"],
   exclude: ["**/node_modules/**"],
 };
-// Failure modes: excludes and package boundaries narrow collection; defaults,
-// TSX/MTS, dotfiles, test.dir and project roots widen it only as configured.
 describe("gate collection matcher", () => {
   it.each([
     ["src/value.test.ts", true],

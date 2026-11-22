@@ -1,8 +1,3 @@
-// What the Signature Hint of a Filter Expression editor names: the call
-// around the caret, the callee's signatures and the parameter at the caret.
-// The registry of `@zotlit/item-query` is the one source of the signatures,
-// so the hint names what evaluation checks. The tooltip is in
-// `signature-hint-tooltip.ts`.
 import type { SyntaxNode } from "@lezer/common";
 
 import { parser } from "@zotlit/filter-expression";
@@ -20,45 +15,29 @@ import type { FilterValueType, FunctionDefinition } from "@zotlit/item-query";
 import type { ExpressionReceiver } from "./expression-options.ts";
 import type { Span } from "./span.ts";
 
-/** One parameter as the hint names it. */
 export interface HintParameter {
   readonly name: string;
-  /** The types it takes, its texts quoted and null, joined by ` | `. */
   readonly type: string;
-  /** Whether a call can omit it. */
   readonly optional: boolean;
-  /** Whether it takes every further argument. */
   readonly rest: boolean;
-  /** `name: type`, `name?: type` or `...name: type`, as the reference writes it. */
   readonly text: string;
 }
 
-/** One definition the callee can name. */
 export interface HintSignature {
-  /** The value type a method belongs to, `any` for every type, else null. */
   readonly receiver: FilterValueType | "any" | null;
   readonly parameters: readonly HintParameter[];
-  /** The index in `parameters` of the one at the caret, or -1 past the last. */
   readonly active: number;
-  /** The type of the result, `any` when it varies. */
   readonly returns: string;
   readonly description: string;
 }
 
 export interface SignatureHintResult {
   readonly callee: string;
-  /** The offset of the bracket that opens the call's arguments. */
   readonly open: number;
-  /** One per definition; several when the receiver's type is not known. */
   readonly signatures: readonly HintSignature[];
 }
 
 export interface SignatureHintOptions {
-  /**
-   * What a method call's receiver at `at` of `source` is, as the planner
-   * reads it where it stands; undefined, or no type, when it is not known.
-   * Without it, a method names every definition of its name.
-   */
   readonly receiver?: (
     source: string,
     at: Span,
@@ -92,7 +71,6 @@ function signature(
   };
 }
 
-/** The innermost call whose argument list holds `pos`. */
 function callAround(inner: SyntaxNode, pos: number): SyntaxNode | null {
   for (let node: SyntaxNode | null = inner; node; node = node.parent) {
     if (node.name !== "Call") continue;
@@ -103,14 +81,6 @@ function callAround(inner: SyntaxNode, pos: number): SyntaxNode | null {
   return null;
 }
 
-/**
- * The Signature Hint at a position of a Filter Expression.
- * @param text The Filter Expression.
- * @param pos The caret's offset in `text`.
- * @returns The call whose arguments hold `pos`, each definition its callee
- *   can name, and in each the parameter the argument at `pos` fills. Null
- *   outside a call's arguments and for a name the registry does not hold.
- */
 export function signatureAt(
   text: string,
   pos: number,
@@ -145,8 +115,6 @@ export function signatureAt(
     from: receiver.from,
     to: receiver.to,
   })?.type;
-  // A type's own method comes before the method of every value, as the
-  // evaluator looks them up.
   const own =
     named.find(([of]) => of === type) ?? named.find(([of]) => of === "any");
   const chosen = type === undefined ? named : own ? [own] : [];

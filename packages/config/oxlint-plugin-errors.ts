@@ -1,12 +1,8 @@
-// zotlit-errors: code decides a failure by its type, not its text
-// (policies/events.md, Capability tags → Expected outcomes).
-// Rule tests: apps/obsidian/src/lint/errors.test.ts.
 import type { AstNode, Rule } from "./oxlint-ast.ts";
 
 const COMPARISONS = new Set(["===", "!==", "==", "!="]);
 const STRING_TESTS = new Set(["includes", "startsWith", "endsWith", "match"]);
 
-/** `<anything>.message` or `<anything>?.message`, not computed. */
 function isMessage(node: AstNode | null | undefined): boolean {
   return (
     node?.type === "MemberExpression" &&
@@ -16,21 +12,10 @@ function isMessage(node: AstNode | null | undefined): boolean {
   );
 }
 
-/** The node itself, or the optional chain that wraps it. */
 function outer(node: AstNode): AstNode {
   return node.parent?.type === "ChainExpression" ? node.parent : node;
 }
 
-/**
- * Rejects a match on an error's `.message`: a comparison (`===`, `!==`),
- * a string test (`.includes`, `.startsWith`, `.endsWith`, `.match`), or a
- * regex `.test` of it. A message is text for people: Obsidian's carries an
- * absolute path or changes between versions, and our own is localized. A
- * capability tag decides an expected outcome before it calls Obsidian and
- * fails with a tagged error, which a caller handles with `Effect.catchTag`;
- * our own errors carry a `_tag`, a class or a `code` to test instead
- * (policies/events.md, Capability tags → Expected outcomes).
- */
 export const noMessageMatch: Rule = {
   meta: {
     type: "problem",
@@ -60,13 +45,11 @@ export const noMessageMatch: Rule = {
           | null
           | undefined = self.parent;
         if (!parent) return;
-        // `error.message === "…"`
         if (
           parent.type === "BinaryExpression" &&
           COMPARISONS.has(parent.operator ?? "")
         )
           return report(parent);
-        // `error.message.includes("…")`
         if (
           parent.type === "MemberExpression" &&
           parent.object === self &&
@@ -76,7 +59,6 @@ export const noMessageMatch: Rule = {
           const call = outer(parent).parent;
           if (call?.type === "CallExpression") return report(call);
         }
-        // `/…/.test(error.message)`
         if (
           parent.type === "CallExpression" &&
           parent.arguments?.[0] === self &&

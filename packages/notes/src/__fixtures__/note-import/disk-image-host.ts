@@ -1,15 +1,9 @@
-// An in-memory Obsidian host for note-import tests whose images live on disk.
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { FileSystemAdapter } from "obsidian";
 
 import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 
-/**
- * An in-memory host whose images live on disk under `vaultRoot`: a folder the
- * vault creates is made on disk too, and an image the filesystem adapter
- * publishes joins the vault.
- */
 export function diskImageHost(vaultRoot: string) {
   const host = createObsidianHost();
   const createFolder = host.vault.createFolder.bind(host.vault);

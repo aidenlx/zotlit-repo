@@ -1,5 +1,4 @@
 // @vitest-environment happy-dom
-// The skipped-sources notice: one notice for each pooled skip summary.
 import { it } from "@effect/vitest";
 import { Effect, Exit, Layer, PubSub, Queue, Scope, Stream } from "effect";
 import { expect, vi } from "vitest";
@@ -25,10 +24,6 @@ const SUMMARY: AttachmentSkipSummary = {
   blockedFolders: ["/outside"],
 };
 
-/**
- * The notice layer over a skip stream the case publishes to, built in
- * `scope`. `shown` takes one element for each notice shown.
- */
 const register = Effect.fn("test.register")(function* (scope: Scope.Scope) {
   const skipped = yield* PubSub.unbounded<AttachmentSkipSummary>();
   const shown = yield* Queue.unbounded<void>();
@@ -46,7 +41,6 @@ const register = Effect.fn("test.register")(function* (scope: Scope.Scope) {
   return { skipped, shown, notices: notifier.notices, openSettings };
 });
 
-/** The notice's message, and its one action button. */
 function partsOf(notice: RecordedNotice | undefined) {
   const message = notice?.messages[0];
   if (message === undefined || typeof message === "string")
@@ -94,7 +88,6 @@ it.effect("shows nothing for a summary published after the Scope closes", () =>
     const scope = yield* Scope.make();
     const { skipped, notices } = yield* register(scope);
 
-    // Closing the Scope ends the subscription, so the summary reaches no one.
     yield* Scope.close(scope, Exit.void);
     yield* PubSub.publish(skipped, SUMMARY);
 

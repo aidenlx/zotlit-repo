@@ -112,7 +112,6 @@ const ROUGIER_ANNOTATION_KEYS = [
 ] as const;
 
 beforeAll(async () => {
-  // Workspace scratch, not the system temp dir — see AGENTS.md → Working files.
   const scratch = join(await getWorkspaceRoot(import.meta.dirname), ".scratch");
   await mkdir(scratch, { recursive: true });
   layout = getFixtureLayout(await mkdtemp(join(scratch, "fixture-test-")));
@@ -122,7 +121,6 @@ beforeAll(async () => {
 
 afterAll(() => fixture.disposeAsync());
 
-/** A fixture client whose SQLite handle closes with the enclosing scope. */
 function openClientAt(databasePath: string): NodeDatabaseClient & Disposable {
   const db = createClient(databasePath);
   return Object.assign(db, {
@@ -136,7 +134,6 @@ function openClient(): NodeDatabaseClient & Disposable {
   return openClientAt(layout.databasePath);
 }
 
-/** Indexed items of one Library, in the reader's own `dateModified desc` order. */
 function indexedItems(
   db: NodeDatabaseClient,
   libraryID: number,
@@ -152,7 +149,6 @@ function indexedItemCount(db: NodeDatabaseClient): number {
   );
 }
 
-/** Build a Fixture in a new directory that the suite removes at its end. */
 async function buildTemporaryFixture(
   prefix: string,
   options: BuildOptions,
@@ -174,7 +170,6 @@ function buildTemporaryStressFixture(
   return buildTemporaryFixture(prefix, { stressItemCount });
 }
 
-/** Public-query snapshot of every discoverable Item's generated semantics. */
 function readIndexedItemSemantics(fixtureLayout: FixtureLayout): string {
   using db = openClientAt(fixtureLayout.databasePath);
   const itemIDs = getLibraries(db).flatMap(({ libraryID }) =>
@@ -214,7 +209,6 @@ async function digest(path: string): Promise<string> {
     .digest("hex");
 }
 
-/** Semantic snapshot a build has to reproduce, apart from its host-native path. */
 function readSemantics(fixtureLayout: FixtureLayout): string {
   using sqlite = new DatabaseSync(fixtureLayout.databasePath, {
     readOnly: true,
@@ -269,7 +263,6 @@ async function readAttachmentTree(
   );
 }
 
-/** Page box from the committed PDF's uncompressed page tree. */
 function readPdfPageBox(pdf: Buffer, pageIndex: number): number[] {
   const source = pdf.toString("latin1");
   const objectBody = (id: number): string => {
@@ -508,8 +501,6 @@ describe("the generated Zotero database", () => {
   it("carries Zotero's own item types and base-field mappings", () => {
     using db = openClient();
 
-    // A bookSection stores its container under `bookTitle`, which only reads
-    // back as `publicationTitle` through Zotero's own base-field mapping.
     const bookSection = indexedItems(db, 1).find(
       (item) => item.key === "EEEE5555",
     );
@@ -529,13 +520,10 @@ describe("the generated Zotero database", () => {
         venue,
       ]),
     ).toEqual([
-      // A native container field, then an aliased one.
       ["AAAAAAAA", "Journal of Personal Records"],
       ["EEEE5555", "Collected Personal Essays"],
-      // An aliased publisher-role field, then a native one.
       ["PREPRNT2", "arXiv"],
       ["BKPUBLR4", "Fixture University Press"],
-      // An item type that records neither role.
       ["LETTERS5", null],
     ]);
   });
@@ -1291,17 +1279,11 @@ describe("the generated Zotero database", () => {
       if (!item) throw new Error(`missing ${key} in library ${libraryID}`);
       return item.dateModified.epochMilliseconds;
     };
-    // Same-Library tie, and a cross-Library tie between groups 118 and 4200309.
     expect(at(1, "JJJJJJJJ")).toBe(at(1, "KKKKKKKK"));
     expect(at(3, "HHHH8888")).toBe(at(2, "FFFF6666"));
-    // Most recent overall sits in My Library, above every group Library.
     expect(at(1, "AAAAAAAA")).toBeGreaterThan(at(2, "AAAAAAAA"));
   });
 
-  // Zotero's schema defaults several timestamp columns to `CURRENT_TIMESTAMP`.
-  // A row that falls back to that default carries the time of the build, so two
-  // builds stop matching. Every Fixture timestamp is therefore a fixed Spec
-  // value, and this guard covers the columns a later Spec grows into.
   it("stamps every clock-defaulted column from the Spec", () => {
     using sqlite = new DatabaseSync(layout.databasePath, { readOnly: true });
     const query = <T>(sql: string): T[] => sqlite.prepare(sql).all() as T[];
@@ -1333,7 +1315,6 @@ describe("the generated Zotero database", () => {
       .map(({ column, stamp }) => `${column} = ${stamp}`);
 
     expect(offenders).toEqual([]);
-    // A build that stamped nothing would pass the check above vacuously.
     expect(stamps).not.toEqual([]);
   });
 
@@ -1369,7 +1350,6 @@ describe("the generated Zotero database", () => {
   });
 });
 
-/** Whether a Library takes part in a saved Library Scope. */
 function inLibraryScope(
   libraryID: number,
   scope: PersistedLibraryScope,
@@ -1621,7 +1601,6 @@ describe("a Stress Build", () => {
   );
 });
 
-/** The synthetic Items a Stress Build put in one Library. */
 function synthetic(db: NodeDatabaseClient, libraryID = 1): IndexedItem[] {
   return indexedItems(db, libraryID).filter(({ citationKey }) =>
     citationKey?.startsWith("stress"),
@@ -1637,9 +1616,7 @@ function countBy(values: readonly (string | null)[]): Record<string, number> {
 }
 
 describe("a one-Library Stress Build", () => {
-  /** The Fixture Spec Items of My Library: the floor of the build. */
   const SPEC_ITEMS = ITEMS.filter(({ libraryID }) => libraryID === 1).length;
-  /** My Library with the Fixture Spec Items and 2,000 synthetic ones. */
   const LIBRARY_ITEMS = SPEC_ITEMS + 2_000;
   let libraryLayout: FixtureLayout;
 
@@ -1667,8 +1644,6 @@ describe("a one-Library Stress Build", () => {
     }
   });
 
-  // Failure modes: the Stress Build has no many-marks paper, the shared Tag
-  // is absent, or the Parent Record measurement has no matching Annotations.
   it("supplies rows for the many-marks and dominant Parent Record cases", () => {
     using db = openClientAt(libraryLayout.databasePath);
     const paper = synthetic(db).find(
@@ -1820,13 +1795,10 @@ describe("a one-Library Stress Build", () => {
 });
 
 describe("a two-Library Stress Build", () => {
-  /** The group Library the build fills. */
   const GROUP_LIBRARY_ID = STRESS_GROUP_LIBRARY.libraryID;
   const itemsOf = (libraryID: number) =>
     ITEMS.filter((item) => item.libraryID === libraryID).length;
-  /** My Library with the Fixture Spec Items and 2,000 synthetic ones. */
   const LIBRARY_ITEMS = itemsOf(1) + 2_000;
-  /** The group Library with its Fixture Spec Items and 1,000 synthetic ones. */
   const GROUP_LIBRARY_ITEMS = itemsOf(GROUP_LIBRARY_ID) + 1_000;
   let bothLayout: FixtureLayout;
   let oneLayout: FixtureLayout;
@@ -1839,7 +1811,6 @@ describe("a two-Library Stress Build", () => {
     oneLayout = await buildTemporaryFixture("fixture-stress-two-one-", {
       stressLibraryItemCount: LIBRARY_ITEMS,
     });
-    // Two builds of 2,000 and 3,000 Items: about 1 s on an idle machine.
   }, 60_000);
 
   it("holds exactly the requested Item counts in My Library and in the group Library, and leaves the other Libraries as specified", () => {
@@ -1890,7 +1861,6 @@ describe("a two-Library Stress Build", () => {
       rare: subtree("STRESSRR"),
       dominant: subtree("STRESSDM"),
     }).toEqual({ root: 701, common: 101, rare: 1, dominant: 600 });
-    // The Collections of My Library keep their own Items.
     expect(
       getIndexedItemIDsByCollection(db, {
         libraryID: 1,
@@ -2032,8 +2002,6 @@ describe("the generated Obsidian vault", () => {
     }
   });
 
-  // The vault cells showcase: the same vault properties in a Base and in a
-  // Query File's Table, side by side, for every type a Bases table shows.
   it("seeds vault property values and their types on the showcase notes", async () => {
     const bush = await readFile(
       join(layout.vaultDir, "literatures", "bushAsWeMayThink1945.md"),
@@ -2339,7 +2307,6 @@ describe("the generated Obsidian vault", () => {
       const parent = ITEMS.find(
         ({ itemID }) => itemID === attachment.parentItemID,
       );
-      // A demo paper's Literature Note lives only in the demo vault.
       if (!parent || DEMO_ITEMS.includes(parent)) continue;
       const note = await readFile(
         join(
@@ -2384,8 +2351,6 @@ describe("the generated Obsidian vault", () => {
     const stylesDir = join(layout.dataDir, "styles");
     const names = await readdir(stylesDir);
 
-    // The style the Citation and References Style picker offers as Default is
-    // the one a styleless data directory would leave as the only choice.
     expect(names).toContain("chicago-author-date.csl");
     expect(
       names.filter((name) => name.endsWith(".csl")).length,
@@ -2410,8 +2375,6 @@ describe("the generated Obsidian vault", () => {
   it("quiets the first run, so a Paired Zotero opens no start page", async () => {
     const prefs = await readFile(join(layout.profileDir, "prefs.js"), "utf-8");
 
-    // `firstRun2` is the one that opens the start page; the rest keep the
-    // profile quiet in other ways.
     for (const line of QUIET_FIRST_RUN_PREFS) expect(prefs).toContain(line);
   });
 
@@ -2549,8 +2512,6 @@ describe("the generated Obsidian vault", () => {
   });
 
   it("keeps the generated settings over a bundle folder's own data.json", async () => {
-    // A Paired Run passes the Development Vault's plugin folder as the bundle,
-    // and ZotLit saves its settings there while the vault runs.
     const bundleDir = await mkdtemp(join(dirname(layout.root), "bundle-"));
     fixture.defer(() => rm(bundleDir, { recursive: true, force: true }));
     await writeFile(join(bundleDir, "main.js"), "// stale bundle\n");
@@ -2702,8 +2663,6 @@ describe("the generated Obsidian vault", () => {
     );
 
     expect(source).toMatch(/^---\nlanguage: liquid\n---\n/);
-    // The alternate branch carries the edit; the main branch stays shipped, so
-    // the two gestures read apart at a glance.
     expect(source).toContain(
       'cf. {{ zt.citations | pandoc_cite: "prefer-author-in-text" }}',
     );
@@ -2726,8 +2685,6 @@ describe("the generated Obsidian vault", () => {
 
     expect(partial).toMatch(/^---\nlanguage: liquid\n---\n/);
     expect(partial).toContain("[!info] Book details");
-    // The call sits in the Managed Block, so removing the file refuses a
-    // Literature Note create as well as an update.
     expect(profile).toContain(
       `{% render "${FIXTURE_PARTIAL_NAME}" with zt as zt %}`,
     );
@@ -2749,8 +2706,6 @@ describe("the generated Obsidian vault", () => {
 
     expect(bundle).toContain(`  - name: ${FIXTURE_PARTIAL_NAME}\n`);
     expect(bundle).toContain("  - name: reading-log\n");
-    // Import asks keep or replace only when the bytes differ, so the bundled
-    // edition must not be the vault's own text.
     expect(held).not.toContain("Bundled book details");
   });
 
@@ -2786,8 +2741,6 @@ describe("a Vault Case", () => {
       await mkdtemp(join(dirname(layout.root), `fixture-test-${vaultCase}-`)),
     );
     fixture.defer(() => rm(caseLayout.root, { recursive: true, force: true }));
-    // A stale bundle folder stands in for a Development Vault's plugin folder,
-    // whose data.json holds whatever ZotLit last saved there.
     const bundleDir = await mkdtemp(join(dirname(layout.root), "bundle-"));
     fixture.defer(() => rm(bundleDir, { recursive: true, force: true }));
     await writeFile(join(bundleDir, "main.js"), "// stale bundle\n");
@@ -2840,7 +2793,6 @@ describe("a Vault Case", () => {
         keys: keysWithTitle.all(item.title).map(({ key }) => key),
       })),
     ).toEqual(DEMO_ITEMS.map(({ title, key }) => ({ title, keys: [key] })));
-    // The test Items they would repeat stay in every other case's library.
     using configured = new DatabaseSync(layout.databasePath, {
       readOnly: true,
     });
@@ -2890,7 +2842,6 @@ describe("a Vault Case", () => {
       "Papers",
       "Thesis",
     ]);
-    // No settings file, so ZotLit opens its first screen on the Default Profile.
     await expect(stat(docs.pluginDataPath)).rejects.toThrow("ENOENT");
     expect(
       JSON.parse(
@@ -2946,7 +2897,6 @@ describe("a Vault Case", () => {
         "select items.key as key from itemAnnotations join items using (itemID) where parentItemID = (select itemID from items where key = 'DCSNDPDF') order by key",
       ),
     ).toEqual(DOCS_ANNOTATIONS.map(({ key }) => key).sort());
-    // The docs papers' PDFs sit in Zotero storage, as a PDF added to Zotero does.
     expect(await readdir(join(docs.dataDir, "storage", "DCSNDPDF"))).toEqual([
       "Sandve et al. - 2013 - Ten Simple Rules for Reproducible Computational Research.pdf",
     ]);
@@ -2961,7 +2911,6 @@ describe("a Vault Case", () => {
       ...GRAPH_RESEARCH_FOLDERS,
       "literatures",
     ]);
-    // One note per My Library Item; the group Library works stay cited only.
     expect((await readdir(join(graph.vaultDir, "literatures"))).sort()).toEqual(
       GRAPH_ITEMS.filter(({ libraryID }) => libraryID === 1)
         .map(({ citationKey }) => `${citationKey}.md`)
@@ -3044,8 +2993,6 @@ describe("a Vault Case", () => {
   it("leaves a fresh vault with ZotLit enabled and nothing else", async () => {
     const fresh = await buildVaultCase("fresh");
 
-    // `attachments` holds the vault-backed linked-file Attachment the Zotero
-    // data references: a file the user keeps in the vault, not ZotLit state.
     expect(await readdir(fresh.vaultDir)).toEqual([".obsidian", "attachments"]);
     expect(
       JSON.parse(
@@ -3144,8 +3091,6 @@ describe("a Vault Case", () => {
       expect(source).toBe(await legacyTemplateSource(template));
       expect(source).toContain(template.replace);
     }
-    // The v2.1 vault has no Profiles, so the Books Profile note it seeds is
-    // one more unstamped note in the single literature folder.
     expect(
       (await readdir(join(upgrader.vaultDir, "literatures"))).sort(),
     ).toEqual(
@@ -3161,13 +3106,9 @@ describe("a Vault Case", () => {
     const upgrader = await buildVaultCase("upgrader");
     const templates = join(upgrader.vaultDir, "templates");
 
-    // `cite` is the Liquid side the fold takes, so its edit reaches the
-    // converted `zotlit-citation.md`.
     await expect(
       readFile(join(templates, "zotlit-cite.liquid.md"), "utf-8"),
     ).resolves.toBe("({{ zt.citations | pandoc_cite }})\n");
-    // `cite2` is the Eta side the fold leaves in the vault and names in its
-    // notice, so the alternate gesture falls back to the built-in branch.
     await expect(
       readFile(join(templates, "zotlit-cite2.eta.md"), "utf-8"),
     ).resolves.toBe(
@@ -3187,8 +3128,6 @@ describe("a Vault Case", () => {
       "utf-8",
     );
 
-    // The bare name is the partial's own; the shipped source is the annotation
-    // slot's, so the file reads as a factored-out callout.
     expect(source).toContain("[!tip] ");
     expect(source).not.toContain("[!note]");
     expect(source).toContain("{% bq %}");

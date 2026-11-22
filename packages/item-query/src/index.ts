@@ -19,8 +19,6 @@ export {
   type ParameterText,
   type SignatureShape,
 } from "./signature-text.ts";
-// The function registry of the Filter Expression language, for in-process
-// editors. The Query Schema stays the agent contract.
 export {
   GLOBAL_FUNCTIONS,
   IF_FUNCTION,
@@ -59,8 +57,6 @@ export {
   type ItemQueryErrorCode,
   type ItemQueryErrorLocation,
 } from "./error.ts";
-// The typed database failures of `collectQuery`, `consumeQuery`, and
-// `describeQueryCustomFields`, from the readers of `@zotlit/db/item-query`.
 export {
   ItemQueryDatabaseError,
   ItemQueryLayoutError,

@@ -146,7 +146,6 @@ describe("citationRanges", () => {
     ).toEqual(["@kept"]);
   });
 
-  // Pandoc reads `[[@a]]` as a wikilink, never as the citation `[@a]` inside it.
   it("reads no citation inside a wikilink or an embed", () => {
     expect(
       citationRanges("[[@a]], ![[@b]], and [@c]", never).map(

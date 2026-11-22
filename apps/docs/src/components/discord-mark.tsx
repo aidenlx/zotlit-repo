@@ -1,5 +1,3 @@
-// Discord's mark, inlined rather than imported as an asset so it renders as
-// <svg> and inherits `currentColor` from the card that carries it.
 export function DiscordMark({ className }: { className?: string }) {
   return (
     <svg

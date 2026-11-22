@@ -1,8 +1,3 @@
-// Reading and annotating, as far as it loads on every Obsidian: the
-// Annotation Repository and its capability notices, the PDF reader's
-// annotation editor, the reader settings and the Zotero editing row. The
-// desktop feature (`#desktop/feature.ts`) extends it with the Excerpt Images,
-// the Target Opener and the commands that open Attachments.
 import { Effect, Layer } from "effect";
 
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
@@ -117,9 +112,6 @@ export const annotations = defineFeature({
         }),
       ),
     ),
-    // An Annotation inserts into a note alike from the Annotation View and
-    // from a mark dragged out of the PDF reader, so the reader builds above
-    // the note actions.
     serviceGroup(
       "PdfAnnotationEditor",
       {
@@ -187,7 +179,6 @@ export const annotations = defineFeature({
   },
 });
 
-/** The Reader page. */
 function readerPage(ctx: SettingTabContext) {
   return {
     type: "page" as const,

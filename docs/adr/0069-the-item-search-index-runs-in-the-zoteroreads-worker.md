@@ -71,3 +71,153 @@ The shipped worker adapter, measured in Obsidian 1.14.4 by the End-to-end Run (`
 | Query during a rebuild                                             | 2.8 ms median, 4.6 ms max over 82 polls; every poll answered from the held index                                             |
 
 Inside a real `RpcServer` worker, `Effect.yieldNow` after each slice of 250–500 items gives a 5.5 ms median wait for a concurrent request and adds no build time. A worker-drained `Stream.mapEffect` without it does not yield; `scheduler.yield()` and no yield make a query wait for the whole build; `setTimeout(0)` works but adds 38–40 % build time. A single read of 100,000 ids overflows the call stack in the query builder, so the build reads in slices.
+
+## Ranking details and title highlight ranges
+
+The engine holds a lean record with the Indexed Key and title. The service
+hydrates hits from the pinned source. An unresolved key drops out. A bare
+Zotero key is library-local, so an exact key search returns all matches across
+the requested libraries. A key query without an exact match falls through to
+text search.
+
+The engine adds each complete citation key alongside its segmented words.
+This lets a complete query prefix match across a segmentation boundary. Text
+search combines that prefix branch with a branch that requires each term to
+match an indexed field. Terms of up to three characters use exact or prefix
+matching. Longer terms can match fuzzily. The ranked path yields between
+lookup and ranking so an interrupted search can stop before ranking.
+
+Build slices arrive one library at a time. The engine sorts the full corpus
+after reading them. Ties in key and scored searches use modification time,
+the requested library order, and item id. An unknown library ranks after the
+listed ones. An empty query puts cited Indexed Keys first, then sorts by
+Last Activity and Indexed Key. A request Use is in epoch milliseconds and
+can only raise activity. The engine brings those Items into the candidates
+before sorting.
+
+The highlight comes from MiniSearch's matched indexed terms, including prefix
+or fuzzy expansion. The engine folds diacritics and handles Polish ł before
+matching. It walks original code points as whole units and maps both match
+endpoints back to UTF-16 offsets for Obsidian. The map includes the trailing
+end offset. The creator formatter follows the pinned citeproc name character
+class. [citeproc implementation](https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/citeproc.js#L705)
+[CJK highlight follow-up](https://github.com/aidenlx/zotlit-repo/issues/56)
+
+## Index and Segmenter lifecycle
+
+A pinned source supplies bounded batches, signatures, and a lookup for
+hydration. Empty batches are valid. The change stream reports new events
+after subscription. A changed generation can mark a source swap. An
+equal-signature recheck moves the existing index to the fresh source. An
+unequal recheck builds a new index. A failed or interrupted build releases
+any source it did not publish.
+
+Searches hold a binding through hydration so the returned rows and ranges
+describe one state. A retired binding closes after its last reader. If the
+index disappears between lookup and acquisition, the search waits for the
+next index. A list with a waiting search cannot be evicted. The most recent
+list also stays held. The lane's final rerun check and release share a
+synchronous step, and a waiter registers its release as it increments the
+count. On shutdown, lanes finish before the finalizer releases the held
+sources.
+
+The first Segmenter resolves before search becomes available. Configuration
+calls serialize in arrival order. A locale change and a Segmenter change
+from the same call schedule one rebuild per held list. The call returns
+after scheduling. Each build uses the same splitter for indexing and
+queries. A failed binary read or initialization falls back to
+`Intl.Segmenter`. The next request can try that binary again. Jieba receives
+whole CJK runs so it can return compound words and their parts. The web
+binding reuses the first live instance in a realm. Uninstall switches back
+to Intl without unloading that instance. [Binary replacement follow-up](https://github.com/aidenlx/zotlit-repo/issues/57)
+
+## Test seams
+
+The in-memory source provides both the indexed row and its hydration row from
+one fixture. Typed fixture fields require the corresponding Zotero item type
+and drive the derived base fields and Venue. The source can simulate a
+disappearing hydrated row without changing signatures. Its one-shot
+hydration gate permits later reads and its release callback runs in the
+closing fiber. Tests use these seams to interleave builds, configuration,
+and searches. The canonical library order in the ranking test differs from
+the source order. The interruption test starts its search fiber inline so it
+reaches a real scheduling boundary before the interrupt.
+
+The benchmark runs separately with
+`pnpm --filter @zotlit/item-lookup bench` because it builds a 100,000-Item
+index and checks a wall-clock bound.
+
+## Worker source scheduling
+
+The pinned Item Index source uses one connection for signatures, indexing and hit hydration. It rechecks on changed or degraded events. The lifecycle seed is a current-state event and does not trigger a second initial build.
+
+A worker SQLite statement is synchronous. A search can wait behind the current statement. The source yields between signature ranges of 10,000 item ids. On the 100,000-Item Stress Build, a range took a few milliseconds, and a whole-Library signature took 60–96 ms. Signature scans use one statement per range to preserve margin under the 100 ms search budget. Each range obeys the fixed statement count for a ZoteroReads slice.
+
+The whole-Library batch selector shares the bounded scan with indexing. It reads spans of 500 ids, sorts each run, and merges at most 500 rows per step to keep newest-first order. Its caller keeps the client borrowed through the scan. The merge runs on the Item Query scheduler so its yields return to the browser's MessageChannel queue.
+
+The search-handler tests distinguish a signature check from a rebuild by counting their statements. A rename that preserves the modification time leaves the signature equal, while a new local user key distinguishes another database even with the same ids and signatures. The equal-signature case reuses the built index with a new hydration connection and keeps the list active between refreshes. The Configure tests can replace the rebind with a no-op to isolate the locale and Segmenter. The Segmenter fixture searches for a substring that jieba emits from a larger word but Intl keeps whole.
+
+The Chinese Segmenter pin tracks the installed `jieba-wasm` web build. Fetch its bare WASM file from the versioned npm CDN path and compare its SHA-256 with the installed package bytes. Keep the glue and binary from the same package build. The Vite transform prevents library mode from inlining the default WASM URL because the worker uses `initSync` with the installed Managed Binary. A changed upstream loader path fails the transform so the asset cannot enter the worker silently.
+
+The signature sums a contribution for each indexed Item. Weight child activity by the parent Item ID so moving a child between Items changes the signature even when the Library's total activity is stable. Apply a modulus to bound each activity term. Sum disjoint Item ID ranges to get the Library signature. Use the Library index for the whole-Library reference read and a rowid range for each worker slice, so sparse Libraries do not make each slice scan the Library index. [Same-second search refresh follow-up](https://github.com/aidenlx/zotlit-repo/issues/146)
+
+The Chinese Segmenter uses the pinned web build of `jieba-wasm`. The
+renderer compiles it during install to verify the binary, with no instance
+or memory to release. The ZoteroReads worker instantiates it from the device
+cache. Both contexts share the renderer's origin and OPFS directory. Read
+OPFS through its Promise API at the worker boundary.
+[Renderer segmenter service](../../packages/plugin-services/src/obsidian/chinese-segmenter/service.ts) · [Worker binary reader](../../packages/plugin-services/src/core/chinese-segmenter/opfs-reader.ts)
+
+### Index rebuild responsiveness proof
+
+Use a Stress Build isolated from the Development Vault. Place
+searchable Stress Items near both ends of the corpus. An unchanged
+push leaves downstream indexes alone. A source change updates
+the signature and rebuilds the Item Index. The Fixture has no
+running Zotero, so the test controls source writes. Warm searches
+still cross the interactive worker boundary and hydrate from
+SQLite. Yield after a held response so refresh and search can
+progress, and sample one search per pass during the rebuild.
+
+Use the renderer slice limits from the Query measurement. Check
+search response and worker timer gaps separately. Earlier native
+edits measured 39–57 ms searches and 113–128 ms worker timer gaps.
+
+[Index responsiveness cases](../../packages/e2e/src/citation-index.e2e.ts)
+
+Observe frame gaps and long tasks in the active renderer. Measure its
+heap after garbage collection, excluding the worker heap. The refresh
+fixture inserts deterministic synthetic My Library journal articles in a
+single transaction. Their titles have a shared marker and distinct final
+words. Derive keys and names from the new Item IDs so successive
+inserts stay distinct. Signal freshness through the Companion's update
+path. On disposal, delete the inserted rows.
+[Measurement helpers](../../packages/e2e/src/e2e-run-note-helpers.ts)
+
+Require a populated index before measuring. Sample at 10 ms while the
+worker builds to observe the held answer and its replacement. Check
+renderer frame gaps and tasks concurrently, and bound retained index heap
+in the renderer. Measure queries that hydrate results. Share one Snapshot
+for a large classification while bounding request encoding and replies.
+Run the Citation Suggester after these measurements because formatting
+can start Pandoc and add renderer work. Space keystrokes beyond
+Obsidian's suggester delay to send a search for each input. Use busy state
+to distinguish old results from the final query.
+
+Resolve canonical Library IDs for the current request, or accept its
+explicit override. Read the Library labels from the requested scope so
+a rename does not require index rebuild. Prewarm after startup and
+scope changes. An unresolved scope or unavailable database gives an
+empty answer. A Search Session interrupts its previous request through
+the Worker on the next keystroke. One-shot searches run alongside it.
+Chinese queries request the Segmenter without waiting for its status
+or notice. Concurrent keystrokes share the pack read. The focused
+fixture can hold that read while successive searches interrupt.
+
+A verified digest added by the renderer can confirm the same entry
+the Worker already loaded, without rebuilding solely to add the hash.
+When a requested binary fails to load, clear the requested identity
+so the same location can be retried. Apply a resolved switch before
+requesting another. Test configuration and source changes together so
+the configuration rebuild can publish first.
+[Segmenter switch](../../packages/item-lookup/src/segmenter-switch.ts)

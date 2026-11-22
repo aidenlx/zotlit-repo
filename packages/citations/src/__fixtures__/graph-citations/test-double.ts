@@ -1,5 +1,3 @@
-// Test doubles for the graph controls-panel sections, shared by the row, groups and service suites. Needs a DOM environment.
-
 import type {
   GraphColorGroup,
   GraphColorGroupSection,
@@ -8,21 +6,14 @@ import type {
   GraphOptions,
 } from "obsidian";
 
-/** What Obsidian's own `setDefaultOptions` replays: native keys alone. */
 export const NATIVE_DEFAULT_OPTIONS: GraphOptions = {
   showTags: false,
   showOrphans: true,
 };
 
-/**
- * Keeps the two rules that decide whether a plugin row persists: `setOptions`
- * reaches a key only through its registered listener, and `getOptions`
- * enumerates the listeners rather than the engine's options.
- */
 export class FakeControlSection implements GraphControlSection {
   readonly childrenEl: HTMLElement = createDiv();
   readonly optionListeners: Record<string, GraphOptionListener> = {};
-  /** How many times the native "Restore default settings" path ran. */
   natives = 0;
 
   setDefaultOptions(): void {
@@ -46,13 +37,6 @@ export class FakeControlSection implements GraphControlSection {
   }
 }
 
-/**
- * Test double for the Groups section. Keeps the rule anything built into that
- * section rests on: `setColorQueries` empties the section body and builds it
- * again, taking whatever else stood in it. The native "New group" and the
- * per-row delete reach no such rebuild — they mutate the group rows in place —
- * so the fake models the rows as a list alone.
- */
 export class FakeColorGroupSection implements GraphColorGroupSection {
   readonly childrenEl: HTMLElement = createDiv();
   #groups: GraphColorGroup[] = [];

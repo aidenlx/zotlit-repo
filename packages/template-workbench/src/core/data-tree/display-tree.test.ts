@@ -968,7 +968,6 @@ describe("buildFilteredDisplayTree — collapsed option", () => {
     const creatorsNode = nodes[0]!;
     expect(creatorsNode).toMatchObject({ label: "creators", expandable: true });
     expect(creatorsNode).not.toHaveProperty("children");
-    // matchedKeys stays computed from the full walk, regardless of collapsing.
     expect(matchedKeys.has("creators[0].lastName")).toBe(true);
   });
 

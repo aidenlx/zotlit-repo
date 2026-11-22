@@ -37,7 +37,6 @@ type CandidateSetReader = (
 
 type Node = FilterNode<never>;
 
-/** Plan with the sources shared by every loader of this query. */
 export function planDatasetCandidates(
   node: Node,
   sources: Pick<QuerySources, "candidateContext">,
@@ -58,7 +57,6 @@ export function planDatasetCandidates(
   });
 }
 
-/** Keep the dataset's leaf rules single, including inside a Relation List. */
 function planRelatedCandidates(
   node: Node,
   sources: CandidateSources,
@@ -180,11 +178,6 @@ export const readDatasetCandidates = Effect.fnUntraced(function* (
   });
 });
 
-/**
- * Page each leaf and retain only distinct ancestors up to the root's cap.
- * Intersecting ancestor supersets can admit different matching children;
- * the evaluator still checks the complete predicate on each parent.
- */
 function parentCandidates(
   read: CandidatePageReader,
   parents: readonly CandidateRelation["readParents"][],
@@ -264,7 +257,6 @@ function relationSelection(node: Node, dataset: CandidateDataset) {
     : null;
 }
 
-/** Rebind this lambda's value paths for planning; keep nested bindings local. */
 function elementPredicate(node: Node, dataset: CandidateDataset): Node {
   const path = valuePath(node);
   const field = path === null ? undefined : dataset.filterField(path);
@@ -272,8 +264,6 @@ function elementPredicate(node: Node, dataset: CandidateDataset): Node {
     return { ...node, kind: "field", name: path!, value: field.value };
   const visit = (node: Node) => elementPredicate(node, dataset);
   switch (node.kind) {
-    // Bare fields and Formulas belong to the outer row, never to the element
-    // dataset.
     case "field":
     case "custom-field":
     case "formula":

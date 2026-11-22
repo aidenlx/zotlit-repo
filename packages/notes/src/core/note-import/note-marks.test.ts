@@ -11,14 +11,12 @@ import {
   parseNoteSchema,
 } from "./note-marks.ts";
 
-/** Build an element carrying `attr` set to the URL-encoded JSON of `payload`. */
 function mark(tag: string, attr: string, payload: unknown): Element {
   const el = document.createElement(tag);
   el.setAttribute(attr, encodeURIComponent(JSON.stringify(payload)));
   return el;
 }
 
-/** Parse `html` into a detached root the schema gate can be run against. */
 function load(html: string): HTMLElement {
   const root = document.createElement("div");
   root.innerHTML = html;
@@ -103,9 +101,6 @@ describe("parseNoteSchema", () => {
     });
   });
 
-  // Zotero reads the marker with `parseInt`, so a value carrying trailing text
-  // is the leading integer to Zotero and must be to us as well — treating it as
-  // malformed would drop a real note to basic formatting.
   it.each([
     ["6invalid", 6],
     ["6e0", 6],
@@ -165,7 +160,6 @@ describe("zt-excerpt-note.html fixture", () => {
     expect(annots.every((a) => a?.citationItem?.ref?.key === "KX67D9YM")).toBe(
       true,
     );
-    // Only the image excerpt carries an embedded-image key.
     expect(annots.map((a) => a?.imageAttachmentKey)).toEqual([
       undefined,
       undefined,

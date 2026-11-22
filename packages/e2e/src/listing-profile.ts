@@ -1,15 +1,5 @@
-// The listing Profile: the default Profile with a static annotation listing in
-// a Managed Block in place of its Query Block, for cases that check
-// Annotations rendered into the note body and refilled on update.
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 
-/**
- * Write the listing Profile as the default Profile's document, and wait until
- * the default Profile reads it.
- *
- * @param restore whether to restore the default Profile first, for a vault
- *   where a case before this one customized it.
- */
 export async function useListingProfile(
   vaultId: string,
   { restore = false }: { restore?: boolean } = {},

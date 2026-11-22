@@ -23,7 +23,6 @@
         ]
       }
     ],
-    // The desktop host reads Node; lint keeps Node out of the other layers.
     "types": ["node-24"]
   },
   "include": [

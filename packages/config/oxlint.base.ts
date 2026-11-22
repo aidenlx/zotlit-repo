@@ -25,10 +25,6 @@ export const itemQuerySchemaPaths = [
   },
 ];
 
-/**
- * `useId` counts within one Preact root, and Obsidian mounts each view, modal
- * and pane as a root of its own, so two of them in one window share its ids.
- */
 export const uniqueIdPaths = ["react", "preact/compat", "preact/hooks"].map(
   (name) => ({
     name,
@@ -38,33 +34,21 @@ export const uniqueIdPaths = ["react", "preact/compat", "preact/hooks"].map(
   }),
 );
 
-/**
- * The date rule: Effect code uses Effect's `DateTime` (time read through
- * `Clock`), other code uses TC39 `Temporal`, and no code uses `Date`,
- * `date-fns` or `dayjs`. One date type per side keeps each value's instant,
- * zone and serialized string the same as it crosses between them. A library
- * that takes or hands in a `Date` converts in one adapter module, which an
- * override names with its reason (CODING_STANDARDS.md → Dates).
- */
 const dateFix =
   "Use Temporal outside Effect and DateTime in Effect code (DateTime.now or Clock for the current time). A library that takes or gives a Date converts in its adapter module.";
 
-/** `no-restricted-globals`: every use of the `Date` global. */
 export const dateGlobals = {
   globals: [{ name: "Date", message: dateFix }],
   checkGlobalObject: true,
 };
 
-/** `typescript/no-restricted-types`: `Date` as a type. */
 export const dateTypes = { types: { Date: dateFix } };
 
-/** `no-restricted-imports` pattern for the date libraries. Every restatement of the rule spreads it. */
 export const datePattern = {
   group: ["date-fns", "date-fns/**", "dayjs", "dayjs/**"],
   message: dateFix,
 };
 
-/** The lint configs that load the zotlit-effect-tests plugin (oxlint-plugin-code.ts). */
 const EFFECT_TESTS_CONFIGS = new Set([
   "apps/obsidian",
   "packages/plugin-kernel",
@@ -81,10 +65,6 @@ const EFFECT_TESTS_CONFIGS = new Set([
   "packages/library-view",
 ]);
 
-/**
- * One override per baselined rule, with exact paths relative to the nested
- * lint config in `directory`, or to the repository root when it is omitted.
- */
 export function testBaselineOverrides(directory?: string) {
   const prefix = directory ? `${directory}/` : "";
   const filesByRule = new Map<string, string[]>();
@@ -93,8 +73,6 @@ export function testBaselineOverrides(directory?: string) {
   )) {
     if (!file.startsWith(prefix)) continue;
     for (const rule of rules) {
-      // Only the plugin code loads the zotlit-effect-tests plugin; any other
-      // config that names one of its rules fails to build.
       if (
         rule.startsWith("zotlit-effect-tests/") &&
         !EFFECT_TESTS_CONFIGS.has(directory ?? "")
@@ -106,37 +84,19 @@ export function testBaselineOverrides(directory?: string) {
       ]);
     }
   }
-  // Entries may be deleted, never added.
   return [...filesByRule].map(([rule, files]) => ({
     files,
     rules: { [rule]: "off" as const },
   }));
 }
 
-/**
- * The engine boundary. The read engine and the packages it loads run on every
- * host, also in a Web Worker on mobile, where Node, Obsidian and Electron are
- * absent. Their source takes each host capability as a value: the Zotero
- * database client from an adapter, the host's services from their caller.
- * Only a desktop host and Node tests load `@zotlit/db/client/node`.
- */
 export const hostModulePattern = {
-  // A regex, not a gitignore `group`: a group entry without a slash, such as
-  // `obsidian`, matches the last segment of any path, which caught the
-  // host-free `@zotlit/templates/obsidian`. The regex names each host module
-  // from the start of the specifier. `@zotlit/pdf-reader/obsidian` is the PDF
-  // Reader's Obsidian layer, which a package that depends on the Reader can
-  // resolve.
   regex:
     "^(?:obsidian|electron|@zotlit/pdf-reader/obsidian|@zotlit/db/client/node)(?:/.*)?$|^#client/node\\.ts$",
   message:
     "Engine source runs on every host. Take the host capability as a value; only a desktop host and Node tests load Obsidian, Electron or @zotlit/db/client/node.",
 };
 
-/**
- * Top-level rules of an engine package: no Node built-in, and no host module.
- * The base `no-restricted-imports` options hold, with the host pattern added.
- */
 export function engineBoundaryRules(): DummyRuleMap {
   return {
     "import/no-nodejs-modules": "error",
@@ -150,11 +110,6 @@ export function engineBoundaryRules(): DummyRuleMap {
   };
 }
 
-/**
- * The files of an engine package that run in Node only: tests, benchmarks,
- * configuration and scripts, and the package's named Node adapters in
- * `adapters`. Node built-ins are allowed there.
- */
 export function engineNodeOnlyOverride(
   adapters: string[] = [],
 ): OxlintOverride {
@@ -169,11 +124,6 @@ export function engineNodeOnlyOverride(
   };
 }
 
-/**
- * `@effect/tsgo` rules that are off by default and that this repository turns
- * on (apps/obsidian/oxlint.config.ts opts in to the console rules). Every
- * other rule keeps the level of the `recommended` preset.
- */
 const effectOptInRules = [
   "global-date",
   "global-date-in-effect",
@@ -182,10 +132,6 @@ const effectOptInRules = [
   "process-env-in-effect",
 ].map((rule) => [`effecttsgo/${rule}`, "error"] as const);
 
-/**
- * `@effect/tsgo` rules that support Effect v3 only (`SupportedEffect: ["v3"]`):
- * they never report on the Effect v4 this repository uses, so they are off.
- */
 const effectV3OnlyRules = [
   "generic-effect-services",
   "missing-effect-service-dependency",
@@ -194,11 +140,6 @@ const effectV3OnlyRules = [
   "scope-in-layer-effect",
 ].map((rule) => [`effecttsgo/${rule}`, "off"] as const);
 
-/**
- * `@effect/tsgo` rules this repository turns off. `any-unknown-in-error-context`:
- * `unknown` is the correct error at a Promise seam and in generic helpers that
- * accept any Effect; the tsgo default is also off.
- */
 const effectOffRules = ["any-unknown-in-error-context"].map(
   (rule) => [`effecttsgo/${rule}`, "off"] as const,
 );
@@ -228,8 +169,6 @@ export default defineConfig({
     "zotlit-build/no-undeclared-env": "error",
     "zotlit-build/no-app-path": "error",
     "zotlit-comments/no-tracker-reference": "error",
-    // Node runs workspace TypeScript by stripping its types, and Node
-    // resolves no import without its file extension.
     "import/extensions": [
       "error",
       "always",
@@ -266,28 +205,16 @@ export default defineConfig({
     "typescript/no-explicit-any": "off",
     "typescript/ban-ts-comment": "off",
     "typescript/prefer-readonly": "error",
-    // A union member erased by another is an inference bug, not intent: an
-    // `infer` that came out `never` silently drops a type from a signature.
     "typescript/no-redundant-type-constituents": "error",
 
     "no-unused-vars": "error",
     "no-param-reassign": "error",
     "default-param-last": "error",
     "max-params": ["error", { max: 3 }],
-    // A whole-output snapshot pins structure, not behavior: index the
-    // artifact and assert the keys a test owns (policies/tautological-tests.md).
-    // oxlint reads inline snapshots only; packages/scripts/scripts/snapshot-size.ts
-    // checks .snap files.
     "vitest/no-large-snapshots": ["error", { inlineMaxSize: 50 }],
-    // An assertion on one path only lets a test pass without checking it.
     "vitest/no-conditional-expect": "error",
-    // An unawaited async assertion never fails its test. valid-expect would
-    // also flag the deferred `const rejection = expect(p).rejects…` that
-    // policies/test-timing.md requires; no-floating-promises passes it.
     "typescript/no-floating-promises": "error",
     "vitest/valid-expect": "off",
-    // Default rules of the plugin with an untriaged backlog; enable each one
-    // when its findings are fixed.
     "vitest/require-to-throw-message": "off",
     "vitest/require-mock-type-parameters": "off",
     "vitest/expect-expect": "off",
@@ -315,7 +242,6 @@ export default defineConfig({
   },
   overrides: [
     {
-      // Nested package configs share the test policy enabled by the root.
       files: ["**/*.test.{ts,tsx,mts,mjs,js}"],
       jsPlugins: [join(import.meta.dirname, "oxlint-plugin-tests.ts")],
       rules: {
@@ -324,22 +250,16 @@ export default defineConfig({
       },
     },
     {
-      // A test asserts what an element does, not the zt: classes that draw it
-      // (policies/ui-testing.md).
       files: ["**/*.{test,spec}.{ts,tsx}", "**/*.e2e.ts"],
-      // Absolute: a config that extends this one cannot resolve a relative path.
       jsPlugins: [join(import.meta.dirname, "oxlint-plugin-tests.ts")],
       rules: { "zotlit-tests/no-class-assertion": "error" },
     },
     {
-      // A unit test asserts what an element does; its classes and markup
-      // belong in the End-to-end Run (policies/testing-strategy.md).
       files: ["**/*.test.{ts,tsx}"],
       jsPlugins: [join(import.meta.dirname, "oxlint-plugin-tests.ts")],
       rules: { "zotlit-tests/no-markup-assertion": "error" },
     },
     {
-      // Tests and build scripts can inspect the generated schema.
       files: [
         "**/*.{test,spec}.{ts,tsx,js,jsx}",
         "**/*.{config,setup}.{ts,js,mjs,cjs}",
@@ -356,7 +276,6 @@ export default defineConfig({
       },
     },
     {
-      // The module that defines the hook the ban points to.
       files: ["**/use-unique-id.ts"],
       rules: {
         "no-restricted-imports": [

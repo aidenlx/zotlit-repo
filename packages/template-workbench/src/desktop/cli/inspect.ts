@@ -1,4 +1,3 @@
-// Resolve saved authoring inputs and prove which exact bytes reconciliation observed.
 import { Clock, Deferred, Duration, Effect, Schema, Stream } from "effect";
 import type { Scope } from "effect";
 import { createHash } from "node:crypto";
@@ -82,21 +81,12 @@ export interface SourceVersion {
 }
 
 export interface FreshnessDeps {
-  /** The text on disk at `path`; `FileNotFound` when no file is there. */
   read: (path: string) => Effect.Effect<string, FileNotFound | VaultError>;
-  /** The text reconciliation loaded from `path`, when it holds one. */
   loaded: (path: string) => Effect.Effect<string | undefined, TemplateFailure>;
-  /** Each completed reconciliation. */
   changes: Stream.Stream<void>;
-  /** Canonical customization paths whose confirmed absence selects built-in source. */
   absent?: ReadonlySet<string>;
 }
 
-/**
- * Compare adapter reads with exact reconciliation bytes, with a bounded event
- * wait. The initial disk snapshot remains the requested version throughout the
- * attempt; the wait ends `timeoutMs` after it began, by the Effect Clock.
- */
 export const verifySavedSources = Effect.fn(
   "TemplateWorkbenchCli.verifySavedSources",
 )(
@@ -191,7 +181,6 @@ export const verifySavedSources = Effect.fn(
   withLogCategory("template-workbench"),
 );
 
-/** What an inspection reads. */
 export type InspectServices =
   | Profile
   | Template
@@ -202,22 +191,17 @@ export type InspectServices =
   | ObsidianEnv
   | ZoteroPref;
 
-/** One problem drawn from the inspection diagnostics registry. */
 export interface InspectDiagnostic {
   code: InspectDiagnosticCode;
   message: string;
   hint: string;
 }
 
-/** The manifest error an invalid Profile document reports. */
 type InvalidProfileDocumentError = Extract<
   LiteratureNoteTemplateStatus["validation"],
   { state: "invalid" }
 >["error"];
 
-/** What an inspected document reports. Four producers contribute: the inspection
- *  diagnostics registry, the Profile scan, an invalid Profile document manifest,
- *  and a template compile error, which carries no code. */
 export type InspectProblem =
   | InspectDiagnostic
   | ProfileDiagnostic
@@ -246,7 +230,6 @@ function profileRow(profile: ResolvedProfile) {
   };
 }
 
-/** The folder Template Documents are saved in. */
 export const templateFolder = PluginSettings.use((settings) =>
   Effect.map(settings.current, (current) => current["template.folder"]),
 );
@@ -354,10 +337,8 @@ export const inspectInventory = Effect.fnUntraced(function* () {
   return documents;
 });
 
-/** The one target an inspection names. */
 type InspectSelection = Pick<InspectRequest, "profile" | "document">;
 
-/** Resolve one explicit target. Ambiguity is retained for the caller to report. */
 export function selectInspectDocument(
   inventory: InspectDocument[],
   params: InspectSelection,
@@ -387,7 +368,6 @@ const INVALID_TARGET = INSPECT_DIAGNOSTICS.INVALID_SELECTOR.message;
 
 const target = Schema.optionalKey(cliText(INVALID_TARGET));
 
-/** The selectors and the editor switch, as the rules between them read them. */
 type InspectTarget = {
   note?: string;
   profile?: string;
@@ -406,7 +386,6 @@ const inspectParams = cliParams({
   "expect-source": expectSourceParam,
 }).check(
   cliOneOf<InspectTarget>(INSPECT_SELECTORS, { many: INVALID_TARGET }),
-  // Editor source belongs to one selected document.
   cliRule(
     "editor",
     (input: InspectTarget) =>
@@ -419,7 +398,6 @@ const inspectParams = cliParams({
 export type InspectRequest = CliOutput<typeof inspectParams>;
 export type InspectParam = CliParamName<typeof inspectParams>;
 
-/** The note an inspection or a field discovery selected, or why none is. */
 export type InspectionNote =
   | {
       error: "AMBIGUOUS_TARGET" | "TARGET_NOT_FOUND";
@@ -432,7 +410,6 @@ export type InspectionNote =
       profile: string;
     };
 
-/** The same Literature Note selector for document inspection and field discovery. */
 export const selectInspectionNote = Effect.fnUntraced(function* (
   name: string,
 ): Effect.fn.Return<
@@ -563,8 +540,6 @@ export function createInspectHandler(
           { matches },
         );
       let document = matches[0]!;
-      // Eta includes can be dynamic. Verify the complete installed partial registry
-      // and the Citation Template so a selected Profile cannot hide an old dependency.
       const isDependency = (entry: InspectDocument) =>
         entry.id !== document.id &&
         entry.id !== replacedDependency &&

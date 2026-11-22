@@ -1,7 +1,3 @@
-// Stops an End-to-end Run that would install a dev plugin bundle older than
-// the sources that feed it. Root `pnpm e2e` rebuilds the bundle first; a direct
-// `vitest run` installs whatever bundle is on disk.
-
 import { execFile } from "node:child_process";
 import { readFile, realpath, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
@@ -10,18 +6,12 @@ import { promisify } from "node:util";
 const execFileAsync = promisify(execFile);
 
 export interface BundleInput {
-  /** Path relative to the workspace root. */
   path: string;
   mtimeMs: number;
 }
 
-/** Test and benchmark files sit beside the sources but never enter the bundle. */
 const OUTSIDE_BUNDLE = /\.(?:test|bench)\.[cm]?[jt]sx?$/;
 
-/**
- * The newest bundle input written after the bundle, or `undefined` when the
- * bundle is current.
- */
 export function newerInput(
   bundleMtimeMs: number,
   inputs: Iterable<BundleInput>,
@@ -35,7 +25,6 @@ export function newerInput(
   return newest;
 }
 
-/** Workspace packages the plugin bundles, followed through their own dependencies. */
 async function bundledPackageDirs(appDir: string): Promise<string[]> {
   const found = new Set<string>();
   const visit = async (dir: string): Promise<void> => {
@@ -54,7 +43,6 @@ async function bundledPackageDirs(appDir: string): Promise<string[]> {
   return [...found];
 }
 
-/** Git-visible files under the bundle's inputs, so ignored generated output stays out. */
 async function readBundleInputs(
   workspaceRoot: string,
   appDir: string,
@@ -91,7 +79,6 @@ export async function gitInputs(
   const files = [...new Set(stdout.split("\0").filter(Boolean))];
   const inputs = await Promise.all(
     files.map(async (path) => {
-      // A tracked file deleted in the working tree is no longer an input.
       const stats = await stat(join(workspaceRoot, path)).catch(
         (error: NodeJS.ErrnoException) => {
           if (error.code === "ENOENT") return undefined;
@@ -104,10 +91,6 @@ export async function gitInputs(
   return inputs.filter((input) => input !== undefined);
 }
 
-/**
- * Throw when the dev bundle `<app>/dist-dev` is missing or older than a source
- * input, naming the command that rebuilds it.
- */
 export async function assertDevBundleFresh(
   workspaceRoot: string,
   app: string,

@@ -22,10 +22,6 @@ import {
 
 import { DEFAULT_FRONTMATTER_FIELDS } from "#core/template/defaults.ts";
 
-/** Mirror the production compile (TemplateService): drop reserved keys, then
- *  compile against the shared Liquid vocabulary — applyManagedFrontmatter only
- *  ever receives pre-filtered fields. Defaults to the gate on since most
- *  fixtures below are javascript-language, matching their pre-ticket-06 shape. */
 function compileFrontmatter(
   fields: readonly FrontmatterField[],
   options: { javascript?: boolean } = {},
@@ -404,8 +400,6 @@ describe("prepareManagedFrontmatter", () => {
   }
 
   it("carries the evaluated values and the per-field errors when a field fails", () => {
-    // The tail of the message is V8 wording ("Cannot read properties of
-    // undefined"), so pin only the ZotLit-authored prefix.
     const evaluationError = expect.objectContaining({
       message: expect.stringContaining(
         "Managed Frontmatter field 'broken' (entry #2) failed evaluation:",

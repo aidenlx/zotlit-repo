@@ -21,3 +21,19 @@ Proposed on 2026-10-17 with [#1550](https://github.com/aidenlx/zotlit/issues/155
 - Selecting Recent writes its sort (`RECENT_SORT`, `dateModified DESC` until [#1532](https://github.com/aidenlx/zotlit/issues/1532)). A later sort change is saved and Recent stays selected; selecting Recent again writes its sort again. Leaving Recent clears its own sort, so the next node opens unsorted; a sort the researcher changed while on Recent is theirs and stays (amended after review pass 4).
 - "Save as query file" on Recent writes no `library ==` filter, so the file reads the Library Scope as Recent does.
 - The Sort button marks a sort as set only when it differs from the sort the selected node writes, so Recent's own sort leaves the button plain; the result count follows the same rule for the Library View's row limit (amended after the interface review).
+
+Read the whole Library Scope for Recent and omit its header unread count. Leaving Recent clears the default Last Activity sort. A sort the researcher set remains. Use the signal chosen by Item Query when wording Last Activity. Read the ledger's Use kind only if it has the same instant as the query result. A replaced ledger entry is reflected after the query reruns.
+
+A Query File saved from Recent takes no name from that node. It represents the entire Library Scope.
+
+### Recent sort proof
+
+A new Library View starts on Recent with every Item in the Library
+Scope ordered by last activity. Clear prior Use evidence when a case
+shares a vault. A narrow pane places the tree toggle beside search.
+Changing Library Scope changes Recent's rows. Choosing a custom sort
+keeps Recent selected and carries the custom sort to the next
+Collection. Leaving the default Recent sort restores the normal
+Collection order. Selecting Recent again restores its activity sort.
+
+[Recent cases](../../../../packages/e2e/src/library-view.e2e.ts)

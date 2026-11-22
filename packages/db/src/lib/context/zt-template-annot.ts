@@ -18,14 +18,6 @@ import { annotationTypeToName } from "#lib/zt-annot.ts";
 import { annotationColorToName } from "#lib/zt-color.ts";
 import { toTemplateTag } from "#lib/zt-tag.ts";
 
-/**
- * Annotation data in the v2 template vocabulary. Exposed on `zt.annotations`
- * and as the `zt` root of the single-annotation template.
- *
- * Drops DB-internal fields (`itemID`, `parentItemID`, `parentKey`, `sortIndex`,
- * `position`) — `parentAttachment.key` carries the parent reference, and the
- * position survives only as the derived {@link TemplateAnnotation.page}.
- */
 export interface TemplateAnnotationBaseData {
   /** Zotero item key of the annotation. */
   key: string;
@@ -163,14 +155,6 @@ export interface AnnotationTemplateContext extends TemplateAnnotation {
   citation: string | null;
 }
 
-/**
- * Attach {@link AnnotationTemplateContext.citation} to an annotation's template
- * data, promoting it to the annotation root.
- *
- * @param renderCitation - Called lazily, only when a template reads
- *   `zt.citation`, so the citation render is skipped otherwise.
- * @returns `data` itself, redeclared as the annotation root.
- */
 export function withAnnotationCitation(
   data: TemplateAnnotation,
   renderCitation: (this: void) => string | null,
@@ -181,11 +165,6 @@ export function withAnnotationCitation(
   }) as AnnotationTemplateContext;
 }
 
-/**
- * Map a DB {@link Annotation} to its template shape. App-layer fields
- * (`imgLink`, `comment`, `fileLink`, `backlink`) and parent references are
- * omitted — they are filled by the Obsidian-side note-create flow.
- */
 function annotationToTemplateBaseData(
   annotation: Annotation,
   tags: readonly ItemTag[],
@@ -215,23 +194,8 @@ export interface AnnotationTemplateDataInput {
   tags: readonly ItemTag[];
   getParentAttachment(this: void): TemplateAttachment;
   getParentItem(this: void): TemplateParentItemData | null;
-  /**
-   * Convert an annotation's raw comment HTML to Markdown. Called lazily, only
-   * when a template reads `zt.comment`, so the conversion is skipped otherwise.
-   */
   commentToMarkdown: (html: string) => string;
-  /**
-   * Build an annotation's excerpt-image link helper, or `null` when the
-   * annotation type has no cached image. Prefix `!` to the rendered link for an
-   * embed.
-   */
   annotationImageLink: (annotation: Annotation) => TemplateLink | null;
-  /**
-   * Build an attachment's file-link helper. Pass the Annotation's page and
-   * Indexed Key to default the helper's subpath to `#page=N&zt-annotation=KEY`
-   * — the page Obsidian jumps to, and the Annotation Anchor ZotLit lands a Mark
-   * on; the helper returns `null` when the file is unresolvable.
-   */
   fileLink: (anchor?: AnnotationFileLinkAnchor) => FallibleTemplateLink;
 }
 
@@ -246,10 +210,6 @@ export function annotationToTemplateData({
 }: AnnotationTemplateDataInput): TemplateAnnotation {
   let comment: string | null | undefined;
   const baseData = annotationToTemplateBaseData(annotation, tags);
-  // Previews by excerpt text, falling back to the raw comment then the type
-  // name — so `zt.annotations` items read as content, not a bare index. Uses
-  // `commentHtml` (not the lazy `comment` getter) to avoid triggering Markdown
-  // conversion on every stringify.
   return defineToString(
     {
       ...baseData,
@@ -270,9 +230,6 @@ export function annotationToTemplateData({
         }
         return comment ?? null;
       },
-      // An Annotation with no page is in an Attachment no reader places a
-      // Mark in — an EPUB, a snapshot — so its link keeps the plain shape it
-      // has always had, with no Anchor and no fragment.
       fileLink: fileLink(
         baseData.page === null
           ? undefined

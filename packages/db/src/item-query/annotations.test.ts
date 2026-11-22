@@ -169,8 +169,6 @@ it("counts the live Annotation universe and applies a candidate limit after the 
   ).toHaveLength(1);
 });
 
-// Failure modes: keys select the wrong parent level, cross Libraries, or exceed
-// the cap after the parent join. The universe reader proves the returned rows.
 it.each([
   ["self", ["ANN2HGHT", "ANN2GRUP"], 1],
   ["item", ["ART2FULL"], 12],

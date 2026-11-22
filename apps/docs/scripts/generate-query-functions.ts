@@ -1,9 +1,3 @@
-// Emits the Functions and methods reference page from the published Query
-// Schema of @zotlit/item-query. The descriptions come from the function
-// registry; the page framing lives here.
-//
-// @see docs/adr/0015-template-contract-artifacts-generate-from-ts-types.md
-
 import { writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { format } from "oxfmt";
@@ -38,7 +32,6 @@ Each signature shows the parameters and the type of the result. A parameter mark
 
 const body = renderFunctionsReference(schema as LanguageVocabulary);
 
-// Formatted as the repo formatter would, so `pnpm format` passes on the page.
 const { code, errors } = await format(
   PAGE,
   `${[FRONTMATTER, BANNER, INTRO, body].join("\n\n")}\n`,

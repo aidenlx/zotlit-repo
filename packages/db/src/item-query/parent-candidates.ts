@@ -9,7 +9,6 @@ import type { IdSlot } from "./database.ts";
 import { recordUniverse } from "./record-universe.ts";
 import { SCAN_PAGE_SIZE } from "./scan-page.ts";
 
-// Bound Parent Record work to matching parents and their children in one Target Library.
 import {
   itemAnnotations,
   itemAttachments,
@@ -25,7 +24,6 @@ export type ParentCandidateLeaf =
   | SeekCandidateLeaf
   | { readonly kind: "key"; readonly value: string };
 
-/** A bounded Parent Record read reports whether matches remain unchecked. */
 export interface ParentCandidates {
   readonly itemIDs: number[];
   readonly exhausted: boolean;
@@ -83,7 +81,6 @@ const statements = {
   "annotation-attachment": statement("annotation-attachment"),
 };
 
-/** Match the leaf before expanding its parents, with a separate bound on each. */
 export const readParentCandidateSet = Effect.fnUntraced(function* ({
   relation,
   libraryID,

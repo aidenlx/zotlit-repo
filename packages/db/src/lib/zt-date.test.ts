@@ -42,9 +42,6 @@ describe("parseItemDate", () => {
   });
 
   it("drops the spurious day in Zotero's Y-00-D misparse to year", () => {
-    // Zotero parses '01 2003' as day=01, no month — the day is meaningless;
-    // surfacing it as `year` preserves the sortable year and avoids inventing
-    // an unsupported Temporal type for "year + day without month".
     const parsed = parseItemDate("2003-00-01 01 2003");
     expect(parsed).toEqual<ItemDate>({
       kind: "year",
@@ -83,8 +80,6 @@ describe("parseItemDate", () => {
   });
 
   it("treats a non-multipart raw value as text verbatim", () => {
-    // Zotero's storage layer always writes multipart, but a hand-edited DB
-    // (or pre-Zotero-4 leftover) could carry a raw string.
     const parsed = parseItemDate("in press");
     expect(parsed).toEqual<ItemDate>({
       kind: "text",
@@ -98,9 +93,6 @@ describe("parseItemDate", () => {
   });
 
   it("degrades an impossible full date to yearMonth (Feb 30)", () => {
-    // The multipart regex accepts day 00-31 without per-month validation;
-    // Temporal rejects Feb 30 with overflow:'reject'. Falling through to
-    // yearMonth keeps a sortable signal instead of throwing on a dirty row.
     const parsed = parseItemDate("2015-02-30 February 30, 2015");
     expect(parsed?.kind).toBe("yearMonth");
     if (parsed?.kind !== "yearMonth") throw new Error("expected yearMonth");

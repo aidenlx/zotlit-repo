@@ -4,8 +4,6 @@ import type { Stack } from "@lezer/lr";
 import { parser } from "./generated/parser.ts";
 import type { ExpressionSyntaxError } from "./index.ts";
 
-// Lezer's public partial parse omits its live stacks and term count. Keep that
-// version-specific surface here; no grammar terms leave the package.
 type LiveParse = PartialParse & { stacks: Stack[] };
 const strict = parser.configure({ strict: true });
 const terms = parser as typeof parser & { maxTerm: number };
@@ -22,7 +20,6 @@ export function syntaxFault(input: string, tree: Tree): ExpressionSyntaxError {
   let stacks = parse.stacks;
   try {
     while (true) {
-      // advance replaces the array before processing it, and may append splits.
       stacks = parse.stacks;
       if (parse.advance()) throw new Error("Expected a syntax fault");
     }
@@ -46,7 +43,6 @@ export function syntaxFault(input: string, tree: Tree): ExpressionSyntaxError {
       );
     }
   }
-  // EOF accepts through reductions and an accepting-state flag, not a shift.
   try {
     strict.parse(input.slice(0, from));
     expected.add("end of filter");
@@ -68,7 +64,6 @@ export function syntaxFault(input: string, tree: Tree): ExpressionSyntaxError {
   };
 }
 
-/** @see ExpressionSyntaxError.span */
 function underlined(
   tree: Tree,
   { from, to, opened }: Pick<ExpressionSyntaxError, "from" | "to" | "opened">,
@@ -76,8 +71,6 @@ function underlined(
   if (from < to) return { from, to };
   if (opened) return { from: opened.from, to: Math.max(from, opened.to) };
   let last: ExpressionSyntaxError["span"] = null;
-  // Nodes come in order of where they start, so none after this one starts
-  // before the fault.
   const cursor = tree.cursor();
   do {
     if (cursor.from >= from) break;

@@ -1,23 +1,5 @@
-// zotlit-effect-style: the Effect v4 code style
-// (https://effect.website/docs/v4/code-style/guidelines). Rejects a tacit
-// (point-free) callback passed to an `effect` combinator, and `flow`. Rule
-// tests: apps/obsidian/src/lint/effect-style.test.ts.
 import type { AstNode, Rule } from "./oxlint-ast.ts";
 
-/**
- * Combinators whose last parameter is a callback that the combinator calls
- * with arguments, in every overload, by `effect` module. Checked against the
- * installed `dist/*.d.ts`. In both the data-first and the data-last form the
- * callback is the last argument, so the rule reads only that one.
- *
- * Left out on purpose: a parameter that also takes a value (`Effect.andThen`,
- * `Effect.tap`); a zero-argument thunk (`Effect.sync`, `Effect.suspend`,
- * `Option.getOrElse`), which gets no argument to misread; an `Order` or
- * `Equivalence` (`Array.sort`, `Array.dedupeWith`), a value that is callable;
- * a function that wraps a function (`Option.liftPredicate`,
- * `Effect.effectify`, `Effect.fn`), where the reference is the point; and a
- * callback inside an object (`Option.match({ onNone, onSome })`).
- */
 const CALLBACK_LAST: Readonly<Record<string, ReadonlySet<string>>> = {
   Effect: new Set([
     "acquireRelease",
@@ -259,12 +241,6 @@ const CALLBACK_LAST: Readonly<Record<string, ReadonlySet<string>>> = {
   ]),
 };
 
-/**
- * Combinators that take an options object after the callback
- * (`Effect.forEach(items, f, { concurrency })`). An object literal in the
- * last place is skipped; an options object passed by name is not told apart
- * from a callback.
- */
 const OPTIONS_AFTER = new Set([
   "Effect.acquireRelease",
   "Effect.filter",
@@ -291,7 +267,6 @@ const OPTIONS_AFTER = new Set([
   "Stream.tap",
 ]);
 
-/** The `effect` module that exports `flow`. */
 const FUNCTION_MODULE = "Function";
 
 interface ImportSpecifier {
@@ -304,11 +279,6 @@ interface ImportSpecifier {
   };
 }
 
-/**
- * The `effect` modules a file names: `import { Effect, Array as Arr } from
- * "effect"` or `import * as Effect from "effect/Effect"`, by local name.
- * `flow` imported on its own is recorded under the name it takes.
- */
 interface EffectNames {
   readonly modules: Map<string, string>;
   readonly flow: Set<string>;
@@ -339,7 +309,6 @@ function collectNames(
   }
 }
 
-/** `<module>.<name>` when `callee` is a member of a named `effect` module. */
 function combinator(
   callee: AstNode | undefined,
   names: EffectNames,
@@ -355,7 +324,6 @@ function combinator(
   return module && `${module}.${callee.property.name as string}`;
 }
 
-/** The argument in the callback's place: the last, before an options literal. */
 function callbackArgument(
   name: string,
   args: readonly AstNode[],
@@ -366,21 +334,10 @@ function callbackArgument(
   return last;
 }
 
-/** A function passed by name: `fn`, `service.method`, `Effect.fail`. */
 function isReference(node: AstNode | undefined): boolean {
   return node?.type === "Identifier" || node?.type === "MemberExpression";
 }
 
-/**
- * The Effect v4 code style asks for `Effect.map((x) => fn(x))`, not
- * `Effect.map(fn)` (code-style guidelines → Avoid Tacit Usage). A function
- * passed by name gets every argument the combinator passes, so an optional
- * parameter can take an index or an AbortSignal it was not written for; an
- * overloaded or generic function loses its generics; and the stack trace
- * loses the call site. The explicit lambda passes only the arguments it
- * names. `flow` builds the same tacit pipeline; `pipe` with lambdas replaces
- * it.
- */
 export const noTacit: Rule = {
   meta: {
     type: "suggestion",

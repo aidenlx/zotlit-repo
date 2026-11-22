@@ -21,7 +21,6 @@ interface ToastPromiseOptions<T> {
       ) => string | DocumentFragment | undefined)
     | string
     | DocumentFragment;
-  /** Delay before the loading toast is shown; suppresses flicker on fast resolves. */
   loadingDelay?: number;
   successDuration?: number;
   errorDuration?: number;
@@ -57,10 +56,6 @@ async function promiseToast<T>(
   using notice = new LazyNotice();
 
   if (loading) {
-    // Race the promise against the loading delay so a fast resolve doesn't
-    // flash the loading toast. If the promise rejects during the race, swallow
-    // here — the catch below will report it, and otherwise the race itself
-    // would surface an "Uncaught (in promise)" warning.
     try {
       const loadingTimeout =
         loadingDelay > 0 ? sleep(loadingDelay) : Promise.resolve();
@@ -119,20 +114,12 @@ async function promiseToast<T>(
 export async function promise<T>(
   promise: Promise<T>,
   options: ToastPromiseOptions<T> & {
-    /**
-     * If false, the promise result is propagated to the caller.
-     * @default true
-     */
     swallowError: false;
   },
 ): Promise<T>;
 export async function promise<T>(
   promise: Promise<T>,
   options: ToastPromiseOptions<T> & {
-    /**
-     * If false, the promise result is propagated to the caller.
-     * @default true
-     */
     swallowError?: true;
   },
 ): Promise<void>;

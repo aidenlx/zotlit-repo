@@ -47,7 +47,6 @@ it.effect(
           expect(log).toEqual(["open #1", "open #2"]);
         }),
       );
-      // A round trip fences the server's processing of the released Snapshot.
       yield* service.reads.Libraries({});
       expect(log).toContain("close #1");
     }),

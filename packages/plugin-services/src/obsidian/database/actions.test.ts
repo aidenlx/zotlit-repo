@@ -14,7 +14,6 @@ import { layerDatabaseActions } from "./actions.ts";
 
 const REFRESH_COMMAND = "refresh-zotero-data";
 
-/** `refresh` runs each time the refresh Effect runs, so a spy counts the runs. */
 function layerCommand(refresh: () => ZoteroReads["Service"]["refresh"]) {
   return Effect.gen(function* () {
     const host = testPluginHost();

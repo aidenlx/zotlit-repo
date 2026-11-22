@@ -69,18 +69,12 @@ import {
 } from "#core/render/index.ts";
 import { fieldForm } from "#obsidian/workbench-ui/index.tsx";
 
-/**
- * Every entry of `menu` and of the submenus under it, each before its own
- * submenu's, as a reader meets them by opening each submenu in turn.
- */
 const menuEntries = (menu: Menu | null): MenuItem[] =>
   (menu?.items ?? []).flatMap((item) => [item, ...menuEntries(item.submenu)]);
 
-/** Inserts `node` as the Fields Panel does: in its first form, as the place the caret is in reads it. */
 const insertNode = (view: TemplateWorkbenchView, node: DisplayNode) =>
   view.insertField(fieldForm(node, view.fieldInsertion()).snippet);
 
-// The real leaf edges stand in: the layout module imports this view.
 vi.mock("./layout.ts", () => ({
   setLeafState: (leaf: WorkspaceLeaf, state: ViewState) =>
     Effect.tryPromise(() => leaf.setViewState(state)),
@@ -88,16 +82,10 @@ vi.mock("./layout.ts", () => ({
   openWorkbenchLayout: vi.fn(() => Effect.void),
 }));
 
-// The create flow belongs to the partial command, driven end to end by
-// new-partial.test.ts. Here it stands in, so a right-click reports the source
-// and the language it was handed and the extraction's own edit is what the
-// assertions read.
 vi.mock("./partial-command.ts", () => ({
   createSharedPartialEffect: vi.fn(() => Effect.succeed(null)),
 }));
 
-// The renderers are the Preview panel's own; here they stand in, so a render reports
-// which document kind the view asked for and what the session fed it.
 vi.mock("#desktop/view/preview/render.ts", async (importOriginal) => {
   const actual =
     await importOriginal<typeof import("#desktop/view/preview/render.ts")>();
@@ -132,7 +120,6 @@ A stable note.
 An annotation.
 `;
 
-/** Run a view flow to its end, as a launch or a button does. */
 const run = <A, E>(flow: Effect.Effect<A, E>) => Effect.runPromise(flow);
 
 class TestTemplateWorkbenchView extends TemplateWorkbenchView {
@@ -144,7 +131,6 @@ class TestTemplateWorkbenchView extends TemplateWorkbenchView {
   }
 }
 
-/** One device-local store behind every view a test opens, as Obsidian's is. */
 const deviceStorage = new Map<string, unknown>();
 beforeEach(() => deviceStorage.clear());
 
@@ -174,7 +160,6 @@ function setup(
   const app =
     sharedApp ??
     stubService<App>("App", {
-      // The Fields popover holds a Scope on the keymap while it stands.
       ...keymapApp(),
       workspace: stubService<App["workspace"]>("Workspace", {
         requestSaveLayout,
@@ -305,8 +290,6 @@ describe("TemplateWorkbenchView", () => {
     };
   }
 
-  // Ticket 04's review: a launch whose Profile read finishes last replaced
-  // the note a later launch had set.
   it("keeps the later launch's note when an earlier Profile read finishes last", async () => {
     const h = await originHarness();
     const earlierRead = Promise.withResolvers<void>();
@@ -343,7 +326,6 @@ describe("TemplateWorkbenchView", () => {
       .mockReturnValue(other);
     setViewItem(h.view, { id: "BBBBBBBB", title: "Other paper" });
     const updating = run(h.view.updateOriginatingNote());
-    // A second press while the update runs joins it.
     const again = run(h.view.updateOriginatingNote());
     await vi.waitFor(() => expect(save).toHaveBeenCalledOnce());
     expect(h.view.registry.get(h.view.model.updating)).toBe(true);
@@ -449,7 +431,6 @@ describe("TemplateWorkbenchView", () => {
     });
   });
 
-  // Closing the leaf stops a waiting update quietly, before the write.
   it("stops quietly when the leaf closes before the note's write", async () => {
     const h = await originHarness();
     const waiting = Promise.withResolvers<"settled">();
@@ -501,7 +482,6 @@ describe("TemplateWorkbenchView", () => {
     expect(closed).toBe(false);
     saved.resolve();
     await closing;
-    // The save finished; the update stopped after it, before the note.
     expect(Exit.isSuccess(await updating)).toBe(false);
     expect(h.updateNote).not.toHaveBeenCalled();
   });
@@ -654,7 +634,6 @@ describe("TemplateWorkbenchView", () => {
     expect(view.contentEl.textContent).toContain(
       m.workbench_problems_object_partial({ name: "venue-line" }),
     );
-    // A result from before arrival does not prove a repair.
     expect(view.contentEl.textContent).not.toContain(
       m.workbench_problems_none(),
     );
@@ -1142,7 +1121,6 @@ An annotation.
     expect(view.registry.get(view.model.customization) === "pending").toBe(
       true,
     );
-    // A second press while the document is written joins that write.
     const again = run(view.customizeDefault());
     await vi.waitFor(() =>
       expect(materializeDefault).toHaveBeenCalledExactlyOnceWith(),
@@ -1658,8 +1636,6 @@ An annotation.
     expect(insertNode(view, node)).toBe(false);
   });
 
-  // A pane that only came on screen reports where its caret starts; the
-  // start of the note is no place the reader chose.
   it("refuses an insertion before the reader places the caret", async () => {
     const { view } = setup();
     document.body.append(view.contentEl);
@@ -1929,7 +1905,6 @@ describe("Profile source exchange", () => {
     const loading = view.loadFileInternal(file, false);
     const saved = SOURCE.replace("A stable note.", "Current saved note.");
     app.workspace.trigger("quick-preview", file, saved);
-    // A native save completes while the older read is waiting.
     view.lastSavedData = saved;
     view.dirty = false;
     read.mockResolvedValue(saved);
@@ -2191,7 +2166,6 @@ language: liquid
       (tab) => tab.textContent,
     );
 
-  /** The Basic and Source view action, which only a Profile document offers. */
   const sourceAction = (view: TemplateWorkbenchView) =>
     (view as unknown as { actions: HTMLElement[] }).actions.find(
       (action) => action.getAttribute("aria-label") === m.workbench_advanced(),
@@ -2232,8 +2206,6 @@ language: liquid
     cleanup.defer(() => act(async () => view.close()));
     await act(async () => view.open());
 
-    // The companion preview asks for the advanced slice, which a Profile holds
-    // behind its own view; a plain document has nowhere else to open.
     await act(async () => view.revealSlice("advanced"));
 
     expect(viewState(view)).toMatchObject({
@@ -2262,7 +2234,6 @@ language: liquid
     const editor = EditorView.findFromDOM(
       view.contentEl.querySelector(".cm-editor")!,
     )!;
-    // An automatic check stays compact until the reader asks for the rest.
     expect(area.textContent).toContain(
       m.workbench_problem_missing_annotation_section(),
     );
@@ -2304,7 +2275,6 @@ language: liquid
       view.setViewData(SOURCE.replace("--- zotlit:annotation ---", ""), false),
     );
 
-    // Where the reader was editing, which every pane reports as it moves.
     const editor = EditorView.findFromDOM(
       view.contentEl.querySelector(".cm-editor")!,
     )!;
@@ -2313,7 +2283,6 @@ language: liquid
       editor.dispatch({ selection: { anchor: 4 } });
     });
     const left = view.insertTarget!;
-    // The pane reports master offsets, so the caret's own slice places it.
     const caret = view.controller.sliceRange(left.slice).from + 4;
     expect(left.range).toMatchObject({ from: caret, to: caret });
 
@@ -2334,7 +2303,6 @@ language: liquid
     expect(area.dataset.state).toBe("open");
 
     await press(m.workbench_problems_return());
-    // The area gives the editor back whole, and the caret is where it was.
     expect(area.dataset.state).toBe("compact");
     expect(viewState(view).presentation.reveal).toMatchObject({
       from: caret,
@@ -2368,7 +2336,6 @@ language: liquid
 
     await press('[data-part="problems-open"]');
     expect(area.dataset.state).toBe("compact");
-    // The section is added from the Annotation tab, as on the web.
     expect(viewState(view)).toMatchObject({
       advanced: false,
       tab: "annotation",
@@ -2416,8 +2383,6 @@ language: liquid
       view.setViewData(SOURCE, true);
     });
 
-    // The Citation tab names no panel a Profile document has, so the six
-    // Profile tabs open on the first of them rather than on none.
     expect(viewState(view)).toMatchObject({ tab: "note", root: "note" });
     expect(tabLabels(view)).toEqual([
       m.workbench_tab_note(),
@@ -2448,7 +2413,6 @@ language: liquid
     expect(titles(profile.view)).toContain(
       m.command_customize_citation_text_name(),
     );
-    // The view already stands in its Workbench window: no entry opens it.
     expect(titles(profile.view)).not.toContain(
       m.template_workbench_open_layout(),
     );
@@ -2461,7 +2425,6 @@ language: liquid
     expect(titles(citation.view)).toContain(
       m.template_workbench_change_language(),
     );
-    // The annotation example belongs to a Profile's own Annotation Section.
     expect(titles(citation.view)).not.toContain(
       m.workbench_choose_annotation(),
     );
@@ -2528,7 +2491,6 @@ language: liquid
         ) =>
           partials.map(({ name, source }) => ({
             name,
-            // The vault holds a venue-line of the reader's own already.
             verdict: name === "venue-line" ? "conflict" : "write",
             document: source,
           })),
@@ -2555,9 +2517,6 @@ language: liquid
       params: { names: "authors, venue-line" },
     });
 
-    // Unpacking writes files, so the reader reaches it among the ordinary
-    // partial operations rather than inside the reading of a problem
-    // (ADR 0056). It is offered only while this document carries any.
     const menu = new Menu();
     view.onPaneMenu(menu as never, "more-options");
     const partials = menu.items.find(
@@ -2568,8 +2527,6 @@ language: liquid
       m.workbench_problem_bundled_partial_unpack(),
     ]);
 
-    // Both entries go — the written one and the one the reader's own file
-    // answers — so the problem clears and neither name has two homes left.
     await run(view.unpackBundledPartials());
     expect(unpacked).toEqual(["authors", "venue-line"]);
     expect(view.getViewData()).not.toContain("partials:");
@@ -2642,7 +2599,6 @@ language: liquid
       }),
     });
 
-    // The placeholder reads this during render, before the folder scan ends.
     expect(view.partialNames).toEqual([]);
   });
 
@@ -2733,7 +2689,6 @@ language: liquid
       partialProfile: "reading1",
     });
 
-    // The workspace hands the same descriptor back when the file reopens.
     const reopened = openKind(
       "templates/zotlit-partial.authors.md",
       PARTIAL_SOURCE,
@@ -2764,8 +2719,6 @@ language: liquid
     );
     await act(async () => first.view.close());
 
-    // A new leaf, so the workspace has no saved state to carry the choice.
-    // `openTemplateWorkbench` hands it a descriptor of the file alone.
     const reopened = openKind(
       "templates/zotlit-partial.authors.md",
       PARTIAL_SOURCE,
@@ -2794,7 +2747,6 @@ language: liquid
       view.setPartialSelection({ context: "annotation", profile: "reading1" }),
     );
 
-    // The same leaf moves to a second partial, which was never chosen for.
     const other = new TFile();
     other.path = "templates/zotlit-partial.venue.md";
     await act(async () => {
@@ -2866,14 +2818,11 @@ filename: paper
 An annotation.
 `;
 
-  /** The three lines the reader selects, hand-counted off EXTRACT_SOURCE. */
   const SELECTION =
     "{{ zt.authors }}\n{{ zt.publicationTitle }}\n{{ zt.date }}";
 
-  /** The Liquid call the extraction leaves in its place. */
   const CALL = '{% render "authors" with zt as zt %}';
 
-  /** Every row the menu carries, in order; the extraction is the last one. */
   const MENU_TITLES = [
     m.template_workbench_cut(),
     m.template_workbench_copy(),
@@ -2900,7 +2849,6 @@ An annotation.
     return { ...harness, editor };
   }
 
-  /** The right-click gesture, answering with the menu it opened or none. */
   function rightClick(editor: EditorView): Menu | null {
     const opened = Menu.instances.length;
     editor.contentDOM.dispatchEvent(
@@ -2964,8 +2912,6 @@ An annotation.
     vi.mocked(createSharedPartialEffect).mockReturnValueOnce(
       Effect.succeed("authors"),
     );
-    // A Markdown rule on the first line reads as a manifest opener where the
-    // create flow writes the raw source.
     const ruled = `---\n${SELECTION}`;
     const { view, editor } = await openProfile(
       "liquid",
@@ -3036,8 +2982,6 @@ An annotation.
       view.controller.undo();
     });
 
-    // One undo takes back the keystroke alone, and the next one the extraction
-    // alone: neither joins the other.
     expect(view.getViewData()).toBe(
       EXTRACT_SOURCE.replace(SELECTION, `${CALL} · 2020`),
     );
@@ -3070,7 +3014,6 @@ An annotation.
       await Promise.resolve();
     });
 
-    // The reader edits the template while the name prompt is still open.
     await act(() => {
       editor.dispatch({
         changes: { from: SELECTION.length, insert: " · 2020" },
@@ -3083,8 +3026,6 @@ An annotation.
       await Promise.resolve();
     });
 
-    // The stale answer itself is extract-partial.test.ts's; here the claim is
-    // that the reader's own edit survives the gesture whole.
     expect(view.getViewData()).toBe(
       EXTRACT_SOURCE.replace(SELECTION, `${SELECTION} · 2020`),
     );
@@ -3092,7 +3033,6 @@ An annotation.
 
   it("cuts the selection out to the clipboard", async () => {
     await using cleanup = new AsyncDisposableStack();
-    // The gesture takes the Electron menu's place, so the menu owns cut itself.
     const writeText = vi.fn(async () => {});
     const clipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
     Object.defineProperty(navigator, "clipboard", {
@@ -3192,7 +3132,6 @@ describe("Template Workbench Item choice", () => {
   const FIRST = "FIRST234";
   const LATER = "LATER234";
 
-  /** A ZoteroReads fake whose Item reads hold until they are interrupted. */
   function heldReads() {
     const started: string[] = [];
     const interrupted: string[] = [];
@@ -3224,11 +3163,9 @@ describe("Template Workbench Item choice", () => {
     });
     const first = run(view.selectItem({ id: FIRST, title: "First" }));
     await vi.waitFor(() => expect(reads.started).toEqual([FIRST]));
-    // The later read holds until the leaf closes, which interrupts it.
     void Effect.runPromiseExit(view.selectItem({ id: LATER, title: "Later" }));
     await vi.waitFor(() => expect(reads.started).toEqual([FIRST, LATER]));
     await expect(first).resolves.toBe(false);
-    // The later read still runs.
     expect(reads.interrupted).toEqual([FIRST]);
   });
 
@@ -3247,7 +3184,6 @@ describe("Template Workbench Item choice", () => {
     const selecting = Effect.runPromiseExit(
       view.selectItem({ id: FIRST, title: "First" }),
     );
-    // An extraction run from outside the leaf still runs on it.
     const extracting = Effect.runPromiseExit(view.extractPartial("venue"));
     await vi.waitFor(() => expect(reads.started).toEqual([FIRST]));
     await view.close();
@@ -3257,7 +3193,6 @@ describe("Template Workbench Item choice", () => {
     expect(
       Exit.isFailure(extracted) && Cause.hasInterruptsOnly(extracted.cause),
     ).toBe(true);
-    // The selection stops quietly: unapplied, or interrupted with the leaf.
     const exit = await selecting;
     expect(
       Exit.isSuccess(exit) ? exit.value : !Cause.hasInterruptsOnly(exit.cause),
@@ -3265,7 +3200,6 @@ describe("Template Workbench Item choice", () => {
   });
 
   it("keeps a later selection over a chosen Item whose read still runs", async () => {
-    // The read that confirms the chosen Item holds until the test lets it go.
     const firstRead = Promise.withResolvers<void>();
     const firstReading = Promise.withResolvers<void>();
     let gated = false;
@@ -3314,7 +3248,6 @@ describe("Template Workbench Item choice", () => {
       itemLookup: stubService<TemplateWorkbenchDeps["itemLookup"]>(
         "ItemLookup",
         {
-          // The chooser lists the first paper among the recently updated Items.
           search: async () => [
             {
               item: first,
@@ -3342,14 +3275,12 @@ describe("Template Workbench Item choice", () => {
       new KeyboardEvent("keydown", { key: "Enter" }),
     );
     modal.close();
-    // The reader picks the later paper while the first choice still reads.
     await firstReading.promise;
     await expect(
       run(view.selectItem({ id: LATER, title: "Later paper" })),
     ).resolves.toBe(true);
     firstRead.resolve();
 
-    // The chooser's Item was the choice; the later one replaced it.
     await expect(chosen).resolves.toBe(true);
     expect(viewState(view).item).toMatchObject({ id: LATER });
     await vi.waitFor(() =>
@@ -3383,7 +3314,6 @@ describe("Template Workbench Item choice", () => {
       )!,
       new KeyboardEvent("keydown", { key: "Enter" }),
     );
-    // The Zotero search opens in its own picker.
     await vi.waitFor(() => expect(open).toHaveBeenCalledTimes(2));
     const picker = open.mock.contexts[1];
     await view.close();
@@ -3395,15 +3325,11 @@ describe("Template Workbench Item choice", () => {
   });
 });
 
-// The Preview is a side panel of the one view, which the reader shows,
-// hides and widens, and which the workspace saves with the view.
 describe("the side panels of the Template Workbench View", () => {
   const actionOf = (view: TemplateWorkbenchView, title: string) =>
     (view as unknown as MockItemView).actions.find(
       (element) => element.getAttribute("aria-label") === title,
     )!;
-  // A region names itself through `aria-labelledby`: Obsidian draws an
-  // `aria-label` as a hover tooltip over the whole region.
   const region = (view: TemplateWorkbenchView, name: string) =>
     [...view.contentEl.querySelectorAll<HTMLElement>("[role=region]")].find(
       (element) => {
@@ -3415,13 +3341,10 @@ describe("the side panels of the Template Workbench View", () => {
         );
       },
     ) ?? null;
-  // A ResizeObserver hears only the window it was made in, so a tab moved to
-  // another window watches its size from there.
   it("measures the leaf from the window its tab moves to", async () => {
     using migration = windowMigration();
     const { view } = setup();
     await act(async () => view.open());
-    // The box under the item row, which the panels and the editor share.
     const box = view.contentEl.querySelector("[data-workbench-panels]")!;
     expect(box).not.toBeNull();
     const size = { width: 1200, height: 800 };
@@ -3444,7 +3367,6 @@ describe("the side panels of the Template Workbench View", () => {
       }
       disconnect() {}
     }
-    // The window the tab lands in brings its own observer.
     vi.stubGlobal("ResizeObserver", PopoutResizeObserver);
     await act(async () => migration.move(window));
     vi.unstubAllGlobals();
@@ -3464,12 +3386,9 @@ describe("the side panels of the Template Workbench View", () => {
     return menu;
   };
   const paneMenu = (view: TemplateWorkbenchView) => paneMenuOf(view).items;
-  /** The entry `title` of the pane menu, or of a submenu under it. */
   const entry = (view: TemplateWorkbenchView, title: string) =>
     menuEntries(paneMenuOf(view)).find((item) => item.title === title);
 
-  // The most-used entries lead, the rare ones wait in a submenu, and
-  // every view action is in the menu for a reader who hides the header.
   it("leads the pane menu with the view's own actions, and folds the rare ones away", async () => {
     await using cleanup = new AsyncDisposableStack();
     const { view } = setup();
@@ -3504,7 +3423,6 @@ describe("the side panels of the Template Workbench View", () => {
       m.template_data_explorer_menu_export_json(),
       m.workbench_help(),
     ]);
-    // Nothing is left to undo in a document just opened.
     expect(entry(view, m.workbench_undo())?.disabled).toBe(true);
     const preview = entry(view, m.workbench_view_preview())!;
     expect(preview.submenu?.items.map((item) => item.title)).toEqual([
@@ -3515,7 +3433,6 @@ describe("the side panels of the Template Workbench View", () => {
       m.workbench_show_markdown(),
       m.workbench_refresh_item(),
     ]);
-    // The Help submenu lists what the Help view action opens.
     expect(
       entry(view, m.workbench_help())?.submenu?.items.map((item) => item.title),
     ).toEqual([
@@ -3524,14 +3441,12 @@ describe("the side panels of the Template Workbench View", () => {
       m.workbench_docs_data(),
       m.workbench_problems_community(),
     ]);
-    // The Source entry is the view action's own toggle.
     expect(entry(view, m.workbench_advanced())?.checked).toBe(false);
     await act(async () => entry(view, m.workbench_advanced())!.click());
     expect(viewState(view).advanced).toBe(true);
     expect(entry(view, m.workbench_advanced())?.checked).toBe(true);
   });
 
-  // The menu path to each size, for a reader who cannot drag the edge.
   it("sizes the Preview from the pane menu, and has the panels announce it", async () => {
     await using cleanup = new AsyncDisposableStack();
     const { view } = setup();
@@ -3573,7 +3488,6 @@ describe("the side panels of the Template Workbench View", () => {
       m.workbench_preview_auto_refresh(),
       m.workbench_show_markdown(),
     ];
-    // In the Preview submenu, which sits among the display choices.
     expect(entry(view, m.workbench_view_preview())?.section).toBe("pane");
     expect(
       entry(view, m.workbench_view_preview())?.submenu?.items.map(
@@ -3612,7 +3526,6 @@ describe("the side panels of the Template Workbench View", () => {
     await using cleanup = new AsyncDisposableStack();
     const { view } = setup();
     cleanup.defer(() => act(async () => view.close()));
-    // The shape the build before one owner for the choices wrote.
     await act(async () =>
       view.setState(
         {
@@ -3649,7 +3562,6 @@ describe("the side panels of the Template Workbench View", () => {
     );
   });
 
-  // Story 17: what the Preview's render finds is the editor's own problem.
   it("opens the editor's Problems area on a failed Run from the Preview panel", async () => {
     await using cleanup = new AsyncDisposableStack();
     const { view } = setup({
@@ -3695,25 +3607,17 @@ describe("the side panels of the Template Workbench View", () => {
   });
 });
 
-// Fields is the left side panel of the one view. It reads the view's
-// own Item and root, and inserts a field straight into the editor.
 describe("the Fields panel of the Template Workbench View", () => {
-  // The panel's key hint names Mod+Enter as the platform does.
   beforeEach(() => setMockPlatform({ isMacOS: false }));
   afterEach(resetMockPlatform);
   const actionOf = (view: TemplateWorkbenchView, title: string) =>
     (view as unknown as MockItemView).actions.find(
       (element) => element.getAttribute("aria-label") === title,
     )!;
-  /** The Fields popover, which stands on the body while it is open. */
   const fields = (_view: TemplateWorkbenchView) =>
     document.querySelector<HTMLElement>('.zt-pinned-popover [role="dialog"]');
   const openFields = (view: TemplateWorkbenchView) =>
     view.registry.set(view.workbench.fieldsPanel, "open");
-  /**
-   * Opens the view in the document with its actions: the Fields popover
-   * opens from the Fields action, which Obsidian keeps in the view header.
-   */
   const openView = async (view: ReturnType<typeof setup>["view"]) => {
     await view.open();
     document.body.append(
@@ -3749,7 +3653,6 @@ describe("the Fields panel of the Template Workbench View", () => {
 
   it("follows the editor's root, and keeps the root the reader moved to until the editor's root changes", async () => {
     const { view } = setup();
-    // The conference paper carries annotations of its own.
     const paper = SAMPLE_ITEMS[1]!;
     await act(async () => openView(view));
     await act(async () => openFields(view));
@@ -3768,15 +3671,12 @@ describe("the Fields panel of the Template Workbench View", () => {
     await vi.waitFor(() => expect(back()).toBeDefined());
     await act(async () => back()!.click());
     expect(back()).toBeUndefined();
-    // The editor keeps its own root.
     expect(viewState(view).root).toBe("annotation");
-    // A new editor root drops the root the reader moved to, for good.
     await act(async () => view.change.setRoot("filename"));
     expect(view.registry.get(view.fields.root)).toBe("filename");
     await act(async () => view.change.setRoot("annotation"));
     expect(view.registry.get(view.fields.root)).toBe("annotation");
     expect(back()).toBeDefined();
-    // So does a new Item.
     await act(async () => back()!.click());
     expect(view.registry.get(view.fields.root)).toBe("note");
     await act(async () => chooseSample(view, SAMPLE_ITEMS[0]!));
@@ -3821,7 +3721,6 @@ describe("the Fields panel of the Template Workbench View", () => {
     );
     expect(data()).toMatchObject({ variant: "alt" });
     expect(data()!["citations"]).toHaveLength(2);
-    // With no example set, the chosen Item's own one-item set stands.
     await act(async () => {
       view.registry.update(view.workbench.choices, (picks) => ({
         ...picks,
@@ -3880,7 +3779,6 @@ describe("the Fields panel of the Template Workbench View", () => {
         view.onPaneMenu(menu as never, "more-options");
         return menuEntries(menu).find((item) => item.icon === "file-json");
       };
-      // The paper has no annotations, so its own data stands in.
       await vi.waitFor(() =>
         expect(exportEntry()?.title).toBe(
           m.template_data_explorer_export_selected_paper(),

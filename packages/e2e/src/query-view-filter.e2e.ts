@@ -132,7 +132,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         cleanup.defer(() => {
           pageHelpers.closePopovers(document);
         });
-        // A tooltip outlives the button it hovers until a pointer comes up.
         cleanup.defer(() => {
           document.body.dispatchEvent(new PointerEvent("pointerup"));
         });
@@ -148,8 +147,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             '[data-filter-section="view"] [aria-label="Remove condition"]',
           )!,
         );
-        // Obsidian shows a tooltip for a mouse that has moved: two moves
-        // count as one, and the hover itself is what its listener reads.
         const hover = { bubbles: true, pointerType: "mouse", view: el.win };
         remove.dispatchEvent(new PointerEvent("pointermove", hover));
         remove.dispatchEvent(new PointerEvent("pointermove", hover));
@@ -160,8 +157,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const box = tooltip.getBoundingClientRect();
         const button = remove.getBoundingClientRect();
         const shell = popover.getBoundingClientRect();
-        // A tooltip takes no pointer; for this one reading it takes the
-        // point, so the hit test reports what paints there.
         const x =
           (Math.max(box.left, shell.left) + Math.min(box.right, shell.right)) /
           2;
@@ -173,8 +168,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         tooltip.style.pointerEvents = "";
         return {
           onTop: painted === tooltip,
-          // Obsidian keeps a tooltip inside the window, so one near its edge
-          // sits off the button's centre but still covers it.
           underButton:
             box.left <= (button.left + button.right) / 2 &&
             box.right >= (button.left + button.right) / 2,

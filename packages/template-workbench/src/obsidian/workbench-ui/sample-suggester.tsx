@@ -1,5 +1,4 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
-// Item and annotation choice controls; the host owns the searchable overlay.
 
 import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
@@ -28,10 +27,6 @@ export function SampleSuggester({
 }: {
   readonly id?: string;
   readonly title: string;
-  /**
-   * The chosen sample's name beside the trigger. Without it the trigger
-   * stands alone, for a row that names the sample itself.
-   */
   readonly label?: string;
   readonly selected: string;
   readonly groups: readonly {

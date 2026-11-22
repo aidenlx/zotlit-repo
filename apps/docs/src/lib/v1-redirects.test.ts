@@ -36,9 +36,7 @@ describe("buildV1Redirects", () => {
     ]) {
       expect(find(path)).toBeUndefined();
     }
-    // A wildcard would intercept these paths before the locale router runs.
     expect(redirects.some((rule) => rule.source.includes("*"))).toBe(false);
-    // No redirect anywhere claims v1's root as a linkable source page.
     expect(redirects.some((r) => r.destination.includes("src=%2F&"))).toBe(
       false,
     );
@@ -63,7 +61,6 @@ describe("buildV1Redirects", () => {
           status: 308,
         });
       }
-      // Each target is a live v2 page, so it must not start another redirect.
       for (const target of [to, `${to}/`, `/zh-CN${to}`, `/zh-CN${to}/`]) {
         expect(find(target)).toBeUndefined();
       }

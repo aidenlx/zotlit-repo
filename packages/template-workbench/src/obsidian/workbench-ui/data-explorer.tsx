@@ -51,17 +51,11 @@ import {
   toggleNode,
 } from "#core/data-tree/index.ts";
 
-/** The native title already names the item and the Fields role in a full pane; the heading reads only where a sidebar hides that title. */
 const dataExplorerHeader =
   "zt-workbench-sidebar-control zt:items-center zt:justify-between zt:gap-x-2 zt:px-3";
-/** Never shorter than a sticky section header and one whole row. */
 const dataExplorerBody =
   "zt:min-h-18 zt:flex-1 zt:overflow-auto zt:overscroll-contain zt:px-2 zt:pb-3";
 
-/**
- * How one insert goes: `keepOpen` as {@link FieldInsertOptions} has it, and
- * the `form` the reader picked in the details, the field's first otherwise.
- */
 interface FieldInsertRequest {
   readonly keepOpen?: boolean;
   readonly form?: FieldForm;
@@ -78,35 +72,23 @@ export interface DataExplorerProps {
   restore?: ExplorerPresentation | null;
   onRestored?: () => void;
   onPresentationChange?: (value: ExplorerPresentation) => void;
-  /** Section ids the reader has closed; the host keeps them with its view state. */
   collapsedSections: ReadonlySet<string>;
   onCollapsedSectionsChange: (collapsed: ReadonlySet<string>) => void;
   navigation: TreeState;
   onNavigationChange: (navigation: TreeState) => void;
-  /** The host distinguishes absent input, loading, and data failures. */
   empty?: ReactNode;
   root: TemplateRoot;
   data: Record<string, unknown> | null;
   trigger?: string;
-  /**
-   * Where an insert writes now, read as the details draw and at the time of
-   * each insert or copy; a Liquid template by default.
-   */
   insertion?: () => FieldInsertionContext;
-  /** Evaluated when the menu opens, so the host's JavaScript setting is current. */
   engines?: () => readonly TemplateEngine[];
   disabled?: boolean;
-  /**
-   * Writes a field's text at the receiving editor's insertion target;
-   * `false` when the editor refused it.
-   */
   onInsert?: (text: string, options: FieldInsertOptions) => boolean | void;
   copy: (text: string) => Effect.Effect<void, WorkbenchClipboardError>;
   onExploreAnnotation?: (node: DisplayNode) => void;
   canExploreAnnotation?: (node: DisplayNode) => boolean;
 }
 
-/** The name each root goes by in the Explorer's header. */
 const ROOT_LABELS: Record<TemplateRoot, () => string> = {
   note: m.workbench_fields_root_note,
   annotation: m.workbench_fields_root_annotation,
@@ -114,7 +96,6 @@ const ROOT_LABELS: Record<TemplateRoot, () => string> = {
   citation: m.workbench_fields_root_citation,
 };
 
-/** What each root's field search says it searches. */
 const SEARCH_LABELS: Record<TemplateRoot, () => string> = {
   note: m.workbench_fields_search_note,
   annotation: m.workbench_fields_search_annotation,
@@ -166,16 +147,10 @@ export function DataExplorer({
   const startCopy = useAtomSet(model.copy(useUniqueId()));
   const setFields = useAtomSet(model.fieldsPanel);
   const setStatus = useAtomSet(model.fieldsStatus);
-  /** Says `text` in a notice, and to a screen reader in the panels' live region. */
   const announce = (text: string) => {
     new BaseNotice(text);
     setStatus(announceFields(text));
   };
-  // An insert writes the field in its first form, or the form the reader
-  // picked in its details, as the place the caret is in reads it. It closes
-  // the Fields Panel and leaves focus to the editor, at the inserted text;
-  // Shift keeps the panel open for the next field. It names the field it
-  // inserted to a screen reader.
   const insertNode =
     onInsert &&
     ((
@@ -196,8 +171,6 @@ export function DataExplorer({
     () => ({ root, locale }),
     [root, locale],
   );
-  // The names top-level fields and the properties of list items show,
-  // which the filter also searches.
   const labels = useMemo(() => {
     if (!data) return new Map<string, string>();
     const nodes = buildDisplayTree(data, { expanded: new Set() });
@@ -209,8 +182,6 @@ export function DataExplorer({
     ]);
   }, [data, reader]);
   const panelRows = useFieldsPanelRows();
-  // The Fields Panel opens a list to its items' properties, never to one
-  // item's index; the standalone explorer keeps the items.
   const lists = panelRows ? "shape" : "items";
   const visible = useMemo(() => {
     if (!data) return { nodes: [], matchedKeys: null };
@@ -226,9 +197,7 @@ export function DataExplorer({
     };
   }, [data, tree, labels, lists]);
   const filtering = tree.filterQuery !== "";
-  /** Whether an insert can write now: the host takes fields and the editor has a place for one. */
   const canInsert = insertNode !== undefined && !disabled;
-  // A filter holds every section that still has a row open.
   const sections = useMemo<DisplaySection[]>(
     () =>
       explorerSections(visible.nodes, reader).map((section) => ({
@@ -246,9 +215,6 @@ export function DataExplorer({
     labels,
     query: tree.filterQuery,
   });
-  // A search that matches nothing says so to a screen reader in the panel,
-  // for as long as it matches nothing: the sentence goes once the search
-  // matches again or is cleared.
   const noMatches =
     panelRows !== null && data !== null && filtering && sections.length === 0;
   useEffect(() => {
@@ -259,23 +225,16 @@ export function DataExplorer({
   const detailsSurface = useRef<HTMLElement>(null);
   const [openRow, setOpenRow] = useState<HTMLElement | null>(null);
   const viewSize = useAtomValue(model.viewSize);
-  // The row the open details stand level with, once it is drawn.
   useLayoutEffect(() => {
     const key = rows.open?.node.key ?? null;
     setOpenRow(key === null ? null : rowElement(body.current, key));
   }, [rows.open]);
-  // The selected row stays in view as ↑/↓ move it, clear of its section's
-  // sticky heading. Only a move scrolls: a selection a collapse hid and an
-  // expand shows again stays where the list draws it.
   const { reveal } = rows;
   useLayoutEffect(() => {
     if (reveal === null || !body.current) return;
     const row = rowElement(body.current, reveal.key);
     if (row) revealRow(body.current, row);
   }, [reveal]);
-  // A collapse or an expand keeps the section heading or row the reader
-  // pressed where it stood, and the list moves around it. Room the list
-  // lacks at its end comes from a spacer, which scrolling back up gives back.
   const held = useRef<{ element: HTMLElement; top: number } | null>(null);
   const spacer = useRef<HTMLDivElement>(null);
   const holdInPlace = (element: HTMLElement | null) => {
@@ -296,16 +255,13 @@ export function DataExplorer({
     if (short > 0) room.style.height = `${room.offsetHeight + short}px`;
     list.scrollTop = top;
   }, [sections]);
-  /** Drops the part of the spacer below the view. */
   const trimSpacer = (list: HTMLElement) => {
     const room = spacer.current;
     if (!room?.offsetHeight) return;
     const below = list.scrollHeight - list.scrollTop - list.clientHeight;
     room.style.height = `${Math.max(0, room.offsetHeight - below)}px`;
   };
-  // A press outside the details and outside their row closes them.
   const openKey = rows.open?.node.key ?? null;
-  // Focus the details held as they closed goes back to the search.
   const searchInput = useRef<HTMLInputElement>(null);
   const shownBefore = useRef(false);
   useLayoutEffect(() => {
@@ -336,7 +292,6 @@ export function DataExplorer({
     doc.addEventListener("pointerdown", away, true);
     return () => doc.removeEventListener("pointerdown", away, true);
   }, [openKey, closeDetails]);
-  // Escape closes the details, then clears the search, before the panel.
   useLayoutEffect(() => {
     if (!panelRows) return;
     const { escape } = panelRows;
@@ -365,7 +320,6 @@ export function DataExplorer({
       failed: () => announce(m.workbench_field_copy_failed()),
     });
   };
-  /** ↑/↓ move the selection; Enter shows or hides its details; Mod+Enter inserts it. */
   const onSearchKey = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (!panelRows || composing(event)) return;
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
@@ -380,11 +334,8 @@ export function DataExplorer({
     if (event.metaKey || event.ctrlKey) {
       if (canInsert) insertEntry(entry);
       else announce(m.workbench_fields_choose_place());
-      // Details Enter opens take focus, so the keys reach their controls.
     } else rows.toggle(entry.node.key, { focus: true });
   };
-  // Every section shown closed reads as collapsed; the button opens them all
-  // then, and closes them all otherwise. A filter holds its sections open.
   const sectionIds = sections.map((section) => section.id);
   const allCollapsed =
     sectionIds.length > 0 &&
@@ -440,9 +391,6 @@ export function DataExplorer({
       loop: m.workbench_explorer_menu_copy_loop,
       joined: m.workbench_explorer_menu_copy_joined,
     };
-    // The menu copies what an insert at the caret writes. A template offers
-    // each engine the reader may write in; a Properties value reads the
-    // field itself, in no engine.
     const context = insertion();
     const languages =
       context.mode === "template"
@@ -473,14 +421,12 @@ export function DataExplorer({
       });
     return { items, submenus };
   };
-  /** The row's Menu from its own control, anchored under that control. */
   const openTemplateMenu = (node: DisplayNode, event: React.MouseEvent) => {
     showWorkbenchMenu({
       anchor: event.currentTarget as HTMLElement,
       ...menuEntries(node),
     });
   };
-  /** The same Menu from a right-click on the row, anchored at the pointer. */
   const openFieldContextMenu = (node: DisplayNode, event: React.MouseEvent) => {
     showWorkbenchMenu({
       anchor: event.currentTarget as HTMLElement,
@@ -505,7 +451,6 @@ export function DataExplorer({
     </button>
   );
   const search = SEARCH_LABELS[root]();
-  // The placeholder shows the name, so the field takes no tooltip.
   const searchName = useContainerName(search);
   return (
     <section
@@ -550,8 +495,6 @@ export function DataExplorer({
         />
         {searchName.hiddenName}
       </div>
-      {/* The Fields Panel's header holds the button that collapses or
-          expands every section. */}
       {panelRows?.actions && createPortal(sectionsButton, panelRows.actions)}
       <div
         ref={body}
@@ -609,8 +552,6 @@ export function DataExplorer({
               panelRows
                 ? {
                     ...rows.state,
-                    // The search keeps the keys: a press on a row, which
-                    // takes no focus itself, hands it back there.
                     onRowClick: (node) => {
                       rows.state.onRowClick(node);
                       searchInput.current?.focus({ preventScroll: true });
@@ -663,8 +604,7 @@ export function DataExplorer({
                   host.fieldsAction?.insertShortcut ??
                   m.workbench_fields_insert_key(),
               })
-            : // With no place to insert, the hint promises no insert and says why.
-              m.workbench_fields_details_hint_no_place({
+            : m.workbench_fields_details_hint_no_place({
                 hint: m.workbench_fields_details_hint_view(),
                 reason: m.workbench_fields_choose_place(),
               })}
@@ -674,19 +614,12 @@ export function DataExplorer({
   );
 }
 
-/** One row the reader can select in the Fields Panel, as its row names it. */
 interface FieldEntry {
   readonly node: DisplayNode;
   readonly label: string;
-  /** Its section, and the field it belongs to. */
   readonly context: string;
 }
 
-/**
- * The name a field goes by on every surface of the Fields Panel: its row, its
- * details, and what an insert or a copy announces. A top-level field has its
- * reader-facing name in `labels`; a nested one shows its key.
- */
 export function fieldLabel(
   node: DisplayNode,
   labels: ReadonlyMap<string, string>,
@@ -694,7 +627,6 @@ export function fieldLabel(
   return labels.get(node.key) ?? node.label;
 }
 
-/** Every row the sections show, in order, with the names its details show. */
 function fieldEntries(
   sections: readonly DisplaySection[],
   labels: ReadonlyMap<string, string>,
@@ -713,11 +645,6 @@ function fieldEntries(
   return entries;
 }
 
-/**
- * The selected row and the row whose details stand open in the Fields Panel.
- * A new search starts both over; a row the sections no longer show has
- * neither.
- */
 function useFieldRows({
   enabled,
   sections,
@@ -735,7 +662,6 @@ function useFieldRows({
     selected: null as string | null,
     open: null as string | null,
     focus: false,
-    /** The row the last ↑/↓ moved to, which the list scrolls into view. */
     reveal: null as { readonly key: string } | null,
   });
   let { selected, open } = state;
@@ -756,7 +682,6 @@ function useFieldRows({
   const [close] = useState(
     () => () => setState((last) => ({ ...last, open: null })),
   );
-  /** Shows or hides the details of `key`; with `focus`, the details take focus as they open. */
   const toggle = (key: string, { focus = false }: { focus?: boolean } = {}) =>
     setState((last) => ({
       ...last,
@@ -786,7 +711,6 @@ function useFieldRows({
     entries,
     selected,
     open: openEntry,
-    /** Whether the open details take focus as they draw: Enter opened them. */
     focusDetails: state.focus,
     reveal: state.reveal,
     idOf,
@@ -797,10 +721,6 @@ function useFieldRows({
   };
 }
 
-/**
- * Scrolls `body` the least that shows `row` whole, below the sticky heading
- * of the section it stands in, which would otherwise cover it.
- */
 function revealRow(body: HTMLElement, row: HTMLElement): void {
   const heading = row
     .closest("[data-workbench-section]")
@@ -812,7 +732,6 @@ function revealRow(body: HTMLElement, row: HTMLElement): void {
   else if (box.bottom > view.bottom) body.scrollTop += box.bottom - view.bottom;
 }
 
-/** The element of the row for `key` in `body`. */
 function rowElement(body: HTMLElement | null, key: string): HTMLElement | null {
   const item = [
     ...(body?.querySelectorAll<HTMLElement>("[data-workbench-field]") ?? []),

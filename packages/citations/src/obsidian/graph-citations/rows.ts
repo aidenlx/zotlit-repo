@@ -1,5 +1,3 @@
-// One native-styled toggle row in a section of the graph's controls panel, persisted the way a native row is.
-
 import { Effect } from "effect";
 import { around } from "monkey-around";
 import { Setting } from "obsidian";
@@ -12,60 +10,37 @@ import {
 
 import { targetOnce } from "./install.ts";
 
-/** Which section of the controls panel a row is built into. */
 export type GraphSectionName = "filter" | "display";
 
-/** The engine member each section stands behind. */
 const SECTIONS = {
   filter: "filterOptions",
   display: "displayOptions",
 } as const satisfies Record<GraphSectionName, keyof GraphEngine>;
 
-/** The engine members one row writes when its value changes. */
 export interface RowEngine {
   options: GraphOptions;
   render(): unknown;
   onOptionsChange(): void;
 }
 
-/** Where a row is built, and what the graph persisted before it existed. */
 export interface ToggleRowTarget {
   engine: RowEngine;
   section: GraphControlSection;
-  /**
-   * The graph's saved options, or `null` when they cannot be read. A graph
-   * applies them before a plugin row exists to hear them, so the row reads
-   * its own key back out of them instead of starting at its default.
-   */
   saved: GraphOptions | null;
 }
 
-/** One toggle row: what it says, what it persists under, what it defaults to. */
 export interface ToggleRow {
-  /** The option key the value round-trips under; ZotLit's keys are `zotlit-` prefixed. */
   key: string;
-  /** The row label, in sentence case. */
   name: string;
-  /** The native hover tooltip. */
   tooltip: string;
-  /** What a fresh row starts at, and what "Restore default settings" returns it to. */
   defaultValue: boolean;
 }
 
 export interface ToggleRowTargetOptions {
-  /** Which section of the controls panel the rows are built into. */
   section: GraphSectionName;
-  /** What the graph persisted; see {@link ToggleRowTarget.saved}. */
   saved: GraphOptions | null;
 }
 
-/**
- * Locates one section of the controls panel and the engine members a row
- * writes. A build that moved any of them is reported at `warn` once per
- * section per graph and gets no rows, so that section keeps its native shape.
- *
- * @returns `null` when a member is missing.
- */
 export function toggleRowTarget(
   engine: GraphEngine,
   options: ToggleRowTargetOptions,
@@ -95,22 +70,6 @@ export function toggleRowTarget(
   });
 }
 
-/**
- * Builds one native-styled toggle row into the section and registers it as an
- * option listener, which is what makes the value round-trip: `getOptions`
- * enumerates the listeners, so the row persists where its graph persists —
- * Graph core plugin data for the global graph, leaf state for a local one.
- *
- * A change has the three effects a native row has: it writes
- * `engine.options[key]`, re-renders, and saves. "Restore default settings"
- * replays native keys alone, so the row also wraps the section's
- * `setDefaultOptions` to return itself to {@link ToggleRow.defaultValue}.
- *
- * @returns a Disposable that removes the row, its listener, and the wrap. The
- *   value stays in `engine.options`, where nothing native reads it and no
- *   `getOptions` reports it, so a re-install finds the row as the user left
- *   it while a native render is unchanged.
- */
 export function installToggleRow(
   target: ToggleRowTarget,
   row: ToggleRow,
@@ -162,11 +121,6 @@ export function installToggleRow(
   return restores;
 }
 
-/**
- * The value one row leaves in the graph's live options. A key the row never
- * wrote — an engine whose section could not be read, or a read before the rows
- * are built — reads as `defaultValue`.
- */
 export function rowFlag(
   engine: { options?: GraphOptions },
   key: string,
@@ -176,7 +130,6 @@ export function rowFlag(
   return typeof value === "boolean" ? value : defaultValue;
 }
 
-/** The value a row starts at: the live options, else the saved ones, else its default. */
 function rowValue(target: ToggleRowTarget, row: ToggleRow): boolean {
   for (const options of [target.engine.options, target.saved]) {
     const value = options?.[row.key];

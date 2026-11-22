@@ -1,8 +1,3 @@
-// obsidianmd: the type-free rules of eslint-plugin-obsidianmd, loaded into
-// oxlint under the same name so a finding reads the same in both linters.
-// oxlint's JS plugin layer gives a rule no type information, so the six
-// type-aware rules stay with ESLint in `pnpm review`. Rule tests:
-// oxlint-plugin-obsidian.test.ts.
 import obsidianmd from "eslint-plugin-obsidianmd";
 
 const typeAware = new Set([
@@ -16,7 +11,6 @@ const typeAware = new Set([
 
 type Rule = NonNullable<(typeof obsidianmd.rules)[string]>;
 
-/** The rule without its autofix: it reports, and the author picks the global. */
 function reportOnly(rule: Rule): Rule {
   return {
     ...rule,
@@ -38,12 +32,8 @@ const rules: Record<string, Rule> = {};
 for (const [name, rule] of Object.entries(obsidianmd.rules)) {
   if (rule && !typeAware.has(name)) rules[name] = rule;
 }
-// `window` is undefined in a worker, so `oxlint --fix` must leave this alone.
 rules["no-global-this"] = reportOnly(rules["no-global-this"]!);
 
-// The scanner's `no-restricted-globals` entry (eslint-plugin-obsidianmd
-// ruleOptions). It is a rule of its own here, so it sits beside the
-// repository's `Date` rule instead of replacing its options.
 const restrictedGlobals: Record<string, string> = {
   app: "Avoid using the global app object. Instead use the reference provided by your plugin instance.",
   fetch:
@@ -52,7 +42,6 @@ const restrictedGlobals: Record<string, string> = {
     "Prefer `App#saveLocalStorage` / `App#loadLocalStorage` functions to write / read localStorage data that's unique to a vault.",
 };
 
-/** Names that are not references to a global: property keys, member names, type positions. */
 function isReference(node: any): boolean {
   const parent = node.parent;
   if (!parent) return true;

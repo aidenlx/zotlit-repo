@@ -1,4 +1,3 @@
-// One Profile snapshot supplies both Share destinations without changing the vault.
 import { Modal, Setting } from "obsidian";
 import type { App, ButtonComponent, TextComponent } from "obsidian";
 import inc from "semver/functions/inc";
@@ -15,13 +14,8 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { PreparedProfileShare, ProfileShareOptions } from "./service.ts";
 
-/** Where Share puts the bundle. */
 export type ShareDestination = "clipboard" | "file";
 
-/**
- * Put `source` at `destination`. It settles once the output is done or has
- * told the user why not.
- */
 export type ShareOutput = (
   destination: ShareDestination,
   source: string,
@@ -31,11 +25,8 @@ export class ShareProfileModal extends Modal {
   readonly #plan: PreparedProfileShare;
   readonly #share: ShareOutput;
   readonly #decision = Promise.withResolvers<void>();
-  /** Settles when the dialog closes. */
   readonly result = this.#decision.promise;
-  /** Every share choice but the checked partials, which {@link #partials} holds. */
   readonly #options: Omit<ProfileShareOptions, "partials">;
-  /** The checked partials, which the bundle carries and nothing else. */
   readonly #partials: Set<string>;
   #source: string | undefined;
   #reason: { set(text: string, tone?: "muted" | "error"): void } | undefined;
@@ -100,7 +91,6 @@ export class ShareProfileModal extends Modal {
           this.#refresh();
         });
       });
-    // Stacked so the text area gets the row's full width.
     description.settingEl.addClasses(["zt:flex-col", "zt:gap-2"]);
     description.controlEl.addClass("zt:w-full");
     this.#partialChecklist(this.contentEl);
@@ -141,11 +131,6 @@ export class ShareProfileModal extends Modal {
     this.contentEl.empty();
   }
 
-  /**
-   * One checkbox per partial the bundle can carry, opened on the set the
-   * dependency scan reaches. The scan reads a quoted name wherever it stands,
-   * so a partial named only in prose starts checked and the reader clears it.
-   */
   #partialChecklist(parent: HTMLElement): void {
     heading(parent, m.profile_share_partials()).addClass("zt:pt-3");
     note(parent, {

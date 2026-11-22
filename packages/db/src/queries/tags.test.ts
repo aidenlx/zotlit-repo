@@ -118,7 +118,6 @@ describe("getTagsByItemIDs", () => {
       return statements() - before;
     };
     cost([4]);
-    // The many-id read holds more items and more distinct tags than item 4.
     expect(cost([1, 2, 3, 4, 999, 2])).toBe(cost([4]));
     const compiled = compiles();
     cost([1, 2, 3, 4, 999, 2]);
@@ -128,7 +127,6 @@ describe("getTagsByItemIDs", () => {
 
 describe("getLibraryTagNames", () => {
   it("names each tag used in one library once, in name order", () => {
-    // `delta` is only on a deleted item, so it is not in use.
     expect(getLibraryTagNames(db, 1)).toEqual(["alpha", "beta", "gamma"]);
   });
 
@@ -169,8 +167,6 @@ describe("TagMemo", () => {
       "beta",
     ]);
 
-    // Mutating the underlying rows must not affect a repeat call for the same
-    // itemID — proof the second call reused the first's result.
     sqlite.exec("delete from itemTags where itemID = 1");
 
     expect(resolveItemTags(db, 1, memo).map((t) => t.tag.name)).toEqual([

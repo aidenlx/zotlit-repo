@@ -1,5 +1,3 @@
-// Complete formatting and scanning for ZotLit's supported Pandoc Citation source.
-
 import { regex } from "arkregex";
 
 import { assertCitationItems } from "./citation-items.ts";
@@ -97,14 +95,6 @@ export class PandocCitationError extends Error {
   }
 }
 
-/**
- * @param items Citation Items in source order. Items with a null key are omitted.
- * @param form `normal`, or a preference that falls back when author-in-text
- *   syntax cannot preserve the first keyed item.
- * @returns one complete Citation, or an empty string when no keyed item remains.
- * @throws {PandocCitationError} for invalid input, unrepresentable values,
- *   unsafe source structure, or a formatter/scanner invariant failure.
- */
 export function formatPandocCitation(
   items: readonly PandocCitationItem[],
   form: PandocCitationForm = "normal",
@@ -128,7 +118,6 @@ export function formatPandocCitation(
   return source;
 }
 
-/** Render already parsed Items, selecting and renaming their keys without re-parsing source. */
 export function rewriteScannedPandocCitation(
   citation: ScannedPandocCitation,
   keys: readonly (string | null)[],
@@ -380,11 +369,6 @@ function authorLocatorSource(locator: PandocLocator | null): string {
   return locator === null ? "" : `{${locator.label} ${locator.value}}`;
 }
 
-/**
- * @param source Markdown source to scan for supported single-line Citations.
- * @returns Citations in source order. All spans are half-open UTF-16 offsets
- *   into `source`.
- */
 export function scanPandocCitations(source: string): ScannedPandocCitation[] {
   const keys = scanCitationKeys(source);
   const citations = scanNormalCitations(source, keys);

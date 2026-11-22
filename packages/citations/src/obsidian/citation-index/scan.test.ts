@@ -22,8 +22,6 @@ it("groups an Author-in-text Citation with its trailing items", () => {
   ]);
 });
 
-// Pandoc reads `[[@a]]` as a wikilink, so its inner `[@a]` is no citation; only
-// the Wikilink Citations path may count such a link.
 it("reads no citation inside a wikilink or an embed", () => {
   const source = "See [[@a]] and ![[@b|B]], then [@c] and [[Note]] @d.";
   expect(

@@ -47,8 +47,6 @@ describe("formatAnnotationSubpath", () => {
     ).toBe("#page=2&zt-annotation=ABCD2345g5678");
   });
 
-  // Two Attachments can keep one file, so an open that knows which one it
-  // opened says so beside the Annotation.
   it("writes the Attachment the open names after the Anchor", () => {
     expect(
       formatAnnotationSubpath({
@@ -91,9 +89,6 @@ describe("parseAnnotationSubpath", () => {
     );
   });
 
-  // Obsidian reads `page`, `offset`, `annotation`, `selection` and `height` by
-  // name; a fragment carrying them is one ZotLit reads its own key out of and
-  // leaves alone.
   it("reads its own key out of a fragment Obsidian also owns keys in", () => {
     expect(
       parseAnnotationSubpath(

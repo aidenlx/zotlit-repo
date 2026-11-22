@@ -13,7 +13,6 @@ export default defineConfig({
   extends: [baseConfig],
   rules: {
     "import/no-nodejs-modules": "error",
-    // This package's runtime entry may re-export schema types, but not values.
     "no-restricted-imports": [
       "error",
       {
@@ -44,7 +43,6 @@ export default defineConfig({
   overrides: [
     engineNodeOnlyOverride(),
     {
-      // Static vocabulary generation and its direct tests own these values.
       files: [
         "src/schema.ts",
         "src/describe-item-query.ts",

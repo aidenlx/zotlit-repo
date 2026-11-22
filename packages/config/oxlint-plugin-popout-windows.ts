@@ -1,6 +1,3 @@
-// zotlit-obsidian: UI code works in the window it stands in, a pop-out
-// included (policies/popout-windows.md). Rejects global DOM instanceof checks
-// and global timers in UI code. Rule tests: apps/obsidian/src/lint/popout-windows.test.ts.
 import type { RuleTester } from "oxlint/plugins-dev";
 
 type Rule = Parameters<RuleTester["run"]>[1];
@@ -49,12 +46,6 @@ function isWindowLocalConstructor(name: string): boolean {
   );
 }
 
-/**
- * Each pop-out window has its own DOM constructors, so `x instanceof
- * HTMLElement` is false for an element from a pop-out. Obsidian's
- * `instanceOf` checks against the element's own window; the message names the
- * replacement for each constructor.
- */
 export const noCrossWindowInstanceof: Rule = {
   meta: {
     type: "problem",
@@ -76,8 +67,6 @@ export const noCrossWindowInstanceof: Rule = {
           !isWindowLocalConstructor(node.right.name)
         )
           return;
-        // The replacement names the checked value itself, so the message
-        // reads as the fix for this line rather than a pattern to adapt.
         const left = context.sourceCode.getText(node.left);
         const receiver =
           node.left.type === "Identifier" ||
@@ -107,10 +96,6 @@ const timers = new Set([
   "cancelAnimationFrame",
 ]);
 
-/**
- * A timer belongs to a window: one set on the main window keeps running, or
- * stops, apart from the pop-out the UI stands in.
- */
 export const noGlobalTimer: Rule = {
   meta: {
     type: "problem",
@@ -144,11 +129,6 @@ export const noGlobalTimer: Rule = {
   },
 };
 
-/**
- * A `ResizeObserver` reports only elements in the window whose constructor
- * made it: the main window's never reports an element in a pop-out. Verified
- * against Obsidian 1.14.5.
- */
 export const noGlobalResizeObserver: Rule = {
   meta: {
     type: "problem",
@@ -163,7 +143,6 @@ export const noGlobalResizeObserver: Rule = {
     schema: [],
   },
   create(context) {
-    /** Whether code around `node` declares its name, as `win`'s `ResizeObserver` taken apart. */
     const declared = (
       node: Parameters<typeof context.sourceCode.getScope>[0],
       name: string,

@@ -17,3 +17,33 @@ Suggestions are not a part. The consumer attaches its own suggester to the input
 
 - The Workbench's `ChipInput` is rebuilt on `TagsInput`. It passes its `useParts("match")` classes to each part and `commitKeys: ["Enter", ","]`, so its behaviour stays the same. Its `data-part` theme stays the Workbench's contract, placed on top of the parts.
 - A later shared part joins `@zotlit/ui` only when two consumers need it.
+
+## TagsInput contract across React and Preact
+
+Each part renders one element with a `data-slot` plus its native element props.
+The consumer chooses the order, appearance, and accessible name of the remove
+button. `Input` takes `inputRef` for focus and suggesters because Preact
+does not forward a plain function component's `ref`.
+
+The root owns the draft text. Commit keys default to Enter. Pending text also
+commits on blur. Blank text changes nothing, and an exact duplicate clears
+the input without adding another name. With an empty field, Backspace removes
+the last tag. A consumer can pass the exact item index when the controlled
+list contains duplicate names. Without an index, removal uses the first
+matching name. A pointer press keeps focus where it is. Removing a focused
+button with the keyboard returns focus to the input.
+
+The consumer's key and blur handlers run first and can skip the built-in
+action by calling `preventDefault`. Preact passes the native focus event,
+whose `defaultPrevented` remains false for non-cancelable focusout. The
+component observes the call itself. The consumer's change handler runs first
+and the component always records the new draft text. Enter and Escape during
+IME composition belong to the input method. Use the native event to recognize
+composition, including Chromium's key code 229 before `isComposing` turns true.
+
+The UI suite runs against both runtimes, with the same React-to-Preact aliases
+as the Obsidian build. Each Vitest project owns its include pattern because
+Vite merges the root pattern into each project. Helpers with no rendering run
+once.
+
+[Cancellation-tracking follow-up](https://github.com/aidenlx/zotlit-repo/issues/52)

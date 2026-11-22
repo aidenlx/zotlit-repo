@@ -141,8 +141,6 @@ describe("Literature Note Template document", () => {
     );
   });
 
-  // A field that fails carries over verbatim: the Profile editor is the one place
-  // that repairs it, and that editor stays locked until the conversion runs.
   it("converts a frontmatter field that fails to evaluate and names it", () => {
     const facade = new TemplateFacade({
       transformRender: (name, output) =>
@@ -673,8 +671,6 @@ Before{% managed %}{{ zt.title }}{% endmanaged %}After\n--- zotlit:annotation --
     facade.compileLiteratureNoteTemplate(
       facade.parseLiteratureNoteTemplate(source),
     );
-    // Nothing the check compiled stays behind, so a later render resolves the
-    // same names it would have without it.
     expect(() => facade.render("example.compile:compile:0", {})).toThrowError(
       /not found/,
     );
@@ -1228,8 +1224,6 @@ describe("Annotation Section boundary", () => {
       ).toThrowError(
         expect.objectContaining({ code: "duplicate-annotation-section" }),
       );
-      // The split leaves the body's opening construct unclosed; only a body
-      // that is complete without its annotation section still renders.
       expect(rendersForCreate(facade, document)).toBe(bodyRenders);
     },
   );
@@ -1389,7 +1383,6 @@ describe("Line-Owning Tags", () => {
 describe("where a Profile document is repaired", () => {
   const facade = new TemplateFacade();
 
-  /** The error `source` raises, so each case reads the location it carries. */
   function parseFailure(source: string): LiteratureNoteTemplateError {
     try {
       facade.parseLiteratureNoteTemplate(source);
@@ -1419,8 +1412,6 @@ describe("where a Profile document is repaired", () => {
 
     expect(failure.code).toBe("invalid-manifest");
     expect(failure.manifestPath).toEqual(["filename"]);
-    // Every schema issue names its node instead, so the offset stays on the
-    // first manifest line: the byte after the opening fence.
     expect(failure.offset).toBe(source.indexOf("\n") + 1);
   });
 

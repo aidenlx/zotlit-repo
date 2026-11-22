@@ -1,13 +1,8 @@
-// What the Template Workbench View's reads and previews fail with.
 import { Schema } from "effect";
 
 import { formatErrorMessage } from "@zotlit/obsidian-kit/toast.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-/**
- * The chosen Item cannot be read: it is not in the library, it is a child
- * Item, or the database is unavailable.
- */
 export class ItemUnavailable extends Schema.TaggedError<
   ItemUnavailable,
   { readonly brand: unique symbol }
@@ -22,7 +17,6 @@ export class ItemUnavailable extends Schema.TaggedError<
   }
 }
 
-/** A partial preview was asked for before any paper was chosen. */
 export class PreviewItemMissing extends Schema.TaggedError<
   PreviewItemMissing,
   { readonly brand: unique symbol }
@@ -32,12 +26,10 @@ export class PreviewItemMissing extends Schema.TaggedError<
   }
 }
 
-/** The registered Shared Partial failed to render. The message is the render's own. */
 export class PartialPreviewFailed extends Schema.TaggedError<
   PartialPreviewFailed,
   { readonly brand: unique symbol }
 >()("PartialPreviewFailed", {
-  /** What the render failed with. */
   cause: Schema.Defect(),
 }) {
   override get message(): string {

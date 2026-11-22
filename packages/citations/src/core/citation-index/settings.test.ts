@@ -13,14 +13,11 @@ describe("citationLocaleError", () => {
       "pt-BR",
       "zh-Hans-CN",
       "es-419",
-      // Pandoc sorts a bibliography by the collation this extension names.
       "de-u-co-phonebk",
-      // The extended language, private-use, and irregular tags BCP 47 keeps.
       "zh-cmn-Hans-CN",
       "x-pmr",
       "i-klingon",
       "en-GB-oed",
-      // Case carries no meaning in a language tag, irregular ones included.
       "I-KLINGON",
       "SGN-BE-FR",
       "DE-de",
@@ -38,7 +35,6 @@ describe("citationLocaleError", () => {
       "de-",
       "de--DE",
       "abcdefghi",
-      // A tag writes each variant and each extension once.
       "de-1901-1901",
       "en-u-ca-gregory-u-nu-latn",
     ]) {

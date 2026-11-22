@@ -27,10 +27,6 @@ afterEach(async () => {
   await rm(parent, { recursive: true, force: true });
 });
 
-/**
- * A clone directory tagged with `pid`, and with `owner` when given, as
- * `prepareRead` names one.
- */
 async function readClone(
   pid: number,
   owner?: string,
@@ -46,7 +42,6 @@ async function names(): Promise<string[]> {
   return (await readdir(parent)).sort();
 }
 
-/** A PID no process can hold: above the highest value any platform assigns. */
 const DEAD_PID = 4_194_305;
 
 layer(NodeFileSystem.layer)("reapReadClones", (it) => {

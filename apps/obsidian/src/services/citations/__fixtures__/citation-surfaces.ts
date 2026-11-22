@@ -34,9 +34,6 @@ import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-// One vault, read at once through every Citation Presentation surface: the
-// Document Citation Text, the References Sidebar, the Citation Popover, the
-// Copied Bibliography, and the built-in export.
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { spliceFrontMatter } from "@zotlit/obsidian-kit/live-text.ts";
 import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -97,15 +94,11 @@ import {
 } from "./citation-surface-mocks.ts";
 import type { CitedWork } from "./citation-surface-mocks.ts";
 
-// Every module this vault stands in for, registered once here so each suite
-// that opens one takes the same doubles. The registrations hoist above the
-// imports, so this fixture's own graph loads with them already in place.
 vi.mock("@zotlit/citations/desktop/pandoc-export/modal.ts", async () => ({
   openPandocExportModal: (await import("./citation-surface-mocks.ts"))
     .answerExportModal,
 }));
 
-/** Zotero itself, answering for the Items this vault cites. */
 vi.mock("@zotlit/citations/desktop/pandoc/bibliography.ts", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@zotlit/citations/desktop/pandoc/bibliography.ts")>()),
   fetchBibliography: (await import("./citation-surface-mocks.ts"))
@@ -128,31 +121,18 @@ vi.mock("@zotlit/obsidian-kit/components/obsidian/icon-button.tsx", async (impor
   };
 });
 
-/** Instantiating the Haskell runtime dominates every timing here. */
 export const TIMEOUT = 60_000;
 
-/** The citation key the draft cites first, which the harness resolves to {@link KEY_A}. */
 const CITATION_KEY = "doe2024";
-/** The citation key the draft cites second, which the harness resolves to {@link KEY_B}. */
 export const SECOND_CITATION_KEY = "roe2025";
 
-/**
- * The note whose citations every in-app surface below reads. It cites two works
- * in this order, so a numbering style has an ordered citation set to count and
- * each surface can be read for the work it stands beside.
- */
 const DRAFT = "draft.md";
 const DRAFT_BODY = `Cited @${CITATION_KEY}. Then @${SECOND_CITATION_KEY}.`;
 
-/** The note the built-in export runs over, which cites the first of those works. */
 export const EXPORT_NOTE = "export.md";
 const LINKPATH = "Doe 2024";
 export const EXPORT_BODY = `Cited [[${LINKPATH}]].\n`;
 
-/**
- * SQL for the Zotero database: My Library of account user 1, the library of
- * group 7, and `works`.
- */
 function zoteroRows(works: readonly CitedWork[]): string {
   return `
     ${seedWorksSql(works.map(({ work }) => work))}
@@ -162,7 +142,6 @@ function zoteroRows(works: readonly CitedWork[]): string {
   `;
 }
 
-/** The work both notes cite first, as the database and Zotero itself answer it. */
 const CITED_WORK: CitedWork = {
   work: {
     itemID: 1,
@@ -181,7 +160,6 @@ const CITED_WORK: CitedWork = {
   },
 };
 
-/** The work the draft cites second, which every surface numbers after the first. */
 const SECOND_CITED_WORK: CitedWork = {
   work: {
     itemID: 2,
@@ -219,76 +197,41 @@ function pandocEngineHandle(engine: CitationEngine) {
 }
 
 export interface CitationVaultOptions {
-  /** Every style Zotero has installed here, by the file name it carries. */
   styles: Record<string, string>;
-  /** The vault settings every surface renders under. */
   settings: Partial<Settings> & Partial<ResolvedLiteratureNoteProfileBindings>;
-  /** The `zotlit-csl` property both notes carry; `undefined` writes none. */
   documentStyle?: unknown;
-  /** The `lang` property both notes carry; `undefined` writes none. */
   documentLanguage?: unknown;
-  /** Other frontmatter properties both notes carry. */
   documentProperties?: Record<string, unknown>;
-  /**
-   * Whether Zotero holds the works these notes cite; `false` leaves every
-   * citation unresolved, so nothing reaches the bibliography.
-   *
-   * @default true
-   */
   zoteroHoldsWork?: boolean;
 }
 
-/** One vault whose notes declare the Citation Presentation its surfaces render. */
 export interface CitationVault extends AsyncDisposable {
-  /**
-   * The Document Citation Text of one citation the draft writes.
-   *
-   * @param citekey which citation to read; the first one by default.
-   */
   citationText(citekey?: string): Promise<string | undefined>;
-  /** The References Sidebar entry, once its own render settles. */
   sidebarText(): Promise<string>;
-  /** The References Sidebar once it settles on its minimal, note-scoped error. */
   minimalSidebarText(): Promise<string>;
-  /** The Citation Popover of one citation, as it fills, and then closed. */
   popoverText(citekey?: string): Promise<string>;
-  /** That same popover, left on screen while the vault changes under it. */
   showPopover(citekey?: string): OpenPopover;
-  /** What the sidebar's copy action puts on the clipboard, as plain text. */
   copiedBibliography(): Promise<string>;
-  /** Whether the sidebar offers a Copied Bibliography right now. */
   copyOffered(): boolean;
-  /** The built-in export of the cited note, and the style its dialog opened on. */
   exportNote(override?: { styleId: string | null }): Promise<ExportedDocument>;
-  /** The style ID the vault-level notice named, when it fired at all. */
   vaultStyleMissing(): string | null;
-  /** The style property one note carries right now. */
   noteStyle(path: string): unknown;
   noteBody(path: string): string | undefined;
-  /** Rewrite the `zotlit-csl` both notes carry; `undefined` removes it. */
   setNoteStyle(declared: unknown): Promise<void>;
-  /** Rewrite the `lang` both notes carry; `undefined` removes it. */
   setNoteLanguage(declared: unknown): Promise<void>;
-  /** Rewrite both properties the way the confirmed action writes them. */
   setPresentation(choice: CitationPresentationChoice): Promise<void>;
-  /** Drop new vault settings on every surface at once. */
   setSettings(next: Partial<Settings>): Promise<void>;
 }
 
 export interface ExportedDocument {
-  /** Where the dialog's style picker started, which the note decides. */
   openedOn: string | null;
-  /** The document the run wrote; `null` where the run stopped before writing. */
   html: string | null;
 }
 
-/** One Citation Popover on screen, read as often as the vault moves under it. */
 export interface OpenPopover extends Disposable {
-  /** What the popover shows once it fills, or once it leaves `after` behind. */
   text(after?: string): Promise<string>;
 }
 
-/** The References Sidebar, opened over the real pane so its own state drives it. */
 class TestReferencesView extends ReferencesView {
   open(): Promise<void> {
     return this.onOpen();
@@ -323,8 +266,6 @@ export async function openCitationVault({
     await writeFile(join(dataDir, "styles", name), xml);
   }
 
-  // The Profile registry this fixture reads lives beside the settings store,
-  // which holds no Profile list of its own.
   const { profiles, defaultDocument, ...persisted } = overrides;
   let profileFixture: ProfileFixture = { profiles, defaultDocument };
   const profileChanged = testEvent<void>();
@@ -343,16 +284,13 @@ export async function openCitationVault({
       },
     ),
   );
-  // The wikilink Obsidian's own cache reports for the exported note.
   harness.metadataCache.fileCache.set(EXPORT_NOTE, {
     links: [link(LINKPATH)],
   });
-  /** The presentation properties both notes carry right now. */
   const declared: { style: unknown; language: unknown } = {
     style: documentStyle,
     language: documentLanguage,
   };
-  /** Those same properties as one record, the way a note carries them. */
   const properties = (): Record<string, unknown> => {
     const record: Record<string, unknown> = { ...documentProperties };
     if (declared.style !== undefined) record["zotlit-csl"] = declared.style;
@@ -362,10 +300,6 @@ export async function openCitationVault({
   const writeProperties = (): void => {
     const written = properties();
     const frontmatter = Object.keys(written).length > 0 ? written : undefined;
-    // Pandoc reads the Document Language out of the exported note's own source,
-    // which is what makes it the exported document's language, so that one
-    // property is written into the body the export reads as well. Every other
-    // property reaches ZotLit through Obsidian's metadata cache alone.
     harness.vault.write(
       harness.metadataCache.files.get(EXPORT_NOTE)!,
       typeof declared.language === "string"
@@ -488,7 +422,6 @@ export async function openCitationVault({
   );
 
   const view = new TestReferencesView(
-    // The view's leaf carries no App, as before the stub.
     Object.assign(
       stubService<WorkspaceLeaf>("WorkspaceLeaf", { updateHeader: () => {} }),
       { app: undefined },
@@ -527,10 +460,8 @@ export async function openCitationVault({
     view.contentEl.querySelector<HTMLElement>(
       "[data-references-copy-bibliography]",
     )!;
-  /** The sidebar offers copy exactly when its own completed render is on screen. */
   const copyOffered = (): boolean => !copyAction().hasAttribute("disabled");
 
-  /** One Citation Popover over one draft citation, shown until it is disposed. */
   const showPopover = (citekey: string = CITATION_KEY): OpenPopover => {
     const parent: HoverParent = { hoverPopover: null };
     const targetEl = document.body.appendChild(document.createElement("span"));
@@ -546,7 +477,6 @@ export async function openCitationVault({
             indexedKey: citekey === CITATION_KEY ? KEY_A : KEY_B,
           },
         ],
-        // The occurrence the pointer is on, as a rendered surface names it.
         shown: { citation: { source: `@${citekey}`, keys: [] } },
         open: () => undefined,
       }),
@@ -576,7 +506,6 @@ export async function openCitationVault({
     notifier: await buildRuntime(testNotifier().layer, stack).runPromise(Notifier),
   });
 
-  /** Wait until References acknowledges the change by withdrawing copy. */
   const changeSidebar = async (change: () => void): Promise<void> => {
     const changed = Promise.withResolvers<void>();
     using cleanup = new DisposableStack();
@@ -659,9 +588,6 @@ export async function openCitationVault({
       });
     },
     async setPresentation(choice) {
-      // The action's own update, over the draft as text: its Properties block
-      // over an empty body. Both notes then carry the properties it wrote, so
-      // the surfaces follow the one metadata change a confirmed dialog makes.
       const host = createObsidianHost({
         [DRAFT]: spliceFrontMatter("", properties()),
       });
@@ -688,10 +614,6 @@ export async function openCitationVault({
   };
 }
 
-/**
- * The workspace the sidebar follows: one active note, and no leaf ever moving
- * away from it.
- */
 function sidebarApp({ host, draft }: CitationIndexHarness): App {
   return harnessApp(
     host,
@@ -702,10 +624,6 @@ function sidebarApp({ host, draft }: CitationIndexHarness): App {
   );
 }
 
-/**
- * Let every surface's own asynchronous work land, re-rendering the pane between
- * polls, until `settled` holds.
- */
 async function settle(settled: () => boolean): Promise<void> {
   const deadline = DateTime.add(DateTime.nowUnsafe(), {
     milliseconds: TIMEOUT / 2,
@@ -720,12 +638,6 @@ async function settle(settled: () => boolean): Promise<void> {
   }
 }
 
-/**
- * What the built-in export command runs against: this vault's own notes and
- * settings, one read lease over the stubbed database, and the engine every
- * other surface renders through. The command reads the Citation Locale itself,
- * so the export takes the same one the in-app surfaces do.
- */
 function exportAdapter({
   dataDir,
   engine,
@@ -778,7 +690,6 @@ function exportAdapter({
       Context.add(Notifier, notifier),
       Context.add(PandocEngine, pandocEngineHandle(engine).binary),
       Context.add(PluginSettings, settings),
-      // The bibliography fetch is mocked, so nothing reaches Zotero.
       Context.add(
         ZoteroHttp,
         fakeFetchClient(() => {

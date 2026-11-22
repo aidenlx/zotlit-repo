@@ -1,18 +1,13 @@
-// A test gate an in-memory adapter holds its reads at, with a wait for the first held read.
 import { Effect, Latch } from "effect";
 
 export interface Gate {
   readonly closed: boolean;
-  /** Hold every later {@link Gate.pass} until {@link Gate.open}. */
   readonly close: Effect.Effect<void>;
   readonly open: Effect.Effect<void>;
-  /** Wait until a read is held at the closed gate. */
   readonly held: Effect.Effect<void>;
-  /** Wait until the gate opens when it is closed; pass at once when it is open. */
   readonly pass: Effect.Effect<void>;
 }
 
-/** @param options.once Hold only the first read after {@link Gate.close}; later reads pass. */
 export const makeGate = (options?: {
   readonly once?: boolean;
 }): Effect.Effect<Gate> =>

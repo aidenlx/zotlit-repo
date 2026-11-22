@@ -1,4 +1,3 @@
-// UI recovery for an unavailable Profile, shared by notes and citation surfaces.
 import { Effect } from "effect";
 import type { App, EventRef } from "obsidian";
 
@@ -12,7 +11,6 @@ import { BaseNotice } from "./notice.ts";
 import type { WorkspaceEventHost } from "./obsidian-workspace.ts";
 import type { UnknownProfileDiagnostic } from "./profile-stamp.ts";
 
-/** Ask for a Profile switch on the host's workspace: the app, or the Workspace tag's trigger. */
 export function requestProfileSwitch(
   host: WorkspaceEventHost,
   path: string,
@@ -49,7 +47,6 @@ export function profileRecoveryNotice(
   });
 }
 
-/** One recovery control per reading section, cleared when its failure clears. */
 export function renderProfileRecovery(
   container: HTMLElement,
   host: WorkspaceEventHost,
@@ -72,7 +69,6 @@ export function renderProfileRecovery(
 
 declare module "obsidian" {
   interface Workspace {
-    /** A request to switch the Profile of the note at `request.path`. */
     on(
       name: "zotlit:switch-profile",
       callback: (request: { path: string }) => void,

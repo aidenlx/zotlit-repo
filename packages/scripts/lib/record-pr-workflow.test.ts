@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { recordPrProblems } from "./record-pr-workflow.ts";
 
-/** A record PR workflow with the job's name, timeout and run line. */
 function workflow({
   name = "Record PR tests",
   timeout = 40,

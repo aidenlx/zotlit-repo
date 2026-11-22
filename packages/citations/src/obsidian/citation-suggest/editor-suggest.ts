@@ -31,16 +31,11 @@ import { readDocumentCitedKeys } from "./document-citations.ts";
 import type { CitationSuggestDeps } from "./register.ts";
 
 const TRIGGER = regex("[\\[【]@([^\\]】]*)$");
-// Bare `@` at a word boundary: line start, or preceded by whitespace or one of
-// the openers `( [ { （ 【 「 " '`. Query runs to the cursor, stopping at the
-// first whitespace or closing bracket.
 const AT_TRIGGER = regex("(?:^|[\\s(\\[{（【「\"'])@([^\\s\\]】]*)$");
 
 export class CitationEditorSuggest extends EditorSuggest<SearchHit> {
   readonly #deps: CitationSuggestDeps;
-  /** Set in {@link onTrigger}: the Citation Variant the open query asks for. */
   #variant: CitationVariant = "main";
-  /** The searches of the open dropdown: its first search opens it, and {@link close} ends it. */
   #session: SearchSession | null = null;
   #lookupController?: AbortController;
   #documentController?: AbortController;
@@ -96,11 +91,9 @@ export class CitationEditorSuggest extends EditorSuggest<SearchHit> {
   }
 
   override getSuggestions(context: EditorSuggestContext): Promise<SearchHit[]> {
-    // Obsidian shows nothing for a `null` answer; `[]` would close the dropdown.
     return this.#answer.track(this.#search(context)) as Promise<SearchHit[]>;
   }
 
-  /** The hits for `context`, or `null` when a later keystroke superseded it. */
   async #search(context: EditorSuggestContext): Promise<SearchHit[] | null> {
     this.#lookupController?.abort();
     const controller = new AbortController();
@@ -203,12 +196,6 @@ export class CitationEditorSuggest extends EditorSuggest<SearchHit> {
   }
 }
 
-/**
- * Write `citation` over `from`–`to` of `editor`, placed by the citation rule
- * of {@link placeInsertion} against the note as it stands now, and leave the
- * cursor where that rule puts it. `replacesTrigger` where the range is a
- * trigger the researcher typed.
- */
 export function writeCitation(
   editor: Editor,
   citation: string,
@@ -231,11 +218,6 @@ export function writeCitation(
   return true;
 }
 
-/**
- * Commit one resolved citation and record the Use only after the destination
- * accepts nonempty text. The callback returns false when a stale destination
- * writes nothing.
- */
 export function commitCitationInsert(
   deps: Pick<CitationSuggestDeps, "useLedger" | "bridge">,
   {
@@ -249,26 +231,10 @@ export function commitCitationInsert(
   return true;
 }
 
-/** What selecting a suggestion does: insert `text`, or show `message`. */
 export type CitationInsertOutcome =
   | { kind: "insert"; text: string }
   | { kind: "notice"; message: string };
 
-/**
- * Decide what selecting `hit` inserts — the pure decision core both citation
- * insertion entry points run: the inline Citation Suggester and the
- * command-palette insert modal.
- *
- * Returns the rendered citation to insert, or the notice message to show:
- * an item without a citekey, a citekey several Zotero Items answer to, a
- * resolution snapshot that has not answered yet, an inert Citation Template,
- * or a template not loaded yet. An Ambiguous Citation Key is refused rather than
- * inserted, because the inserted text carries the key alone and would lose the
- * identity the user picked here. A snapshot still resolving reports every key
- * as missing, so it is refused too rather than let an ambiguous key through
- * while the answer is pending. A failure of the template other than an inert
- * one propagates. Interruption returns null, so the editor reports no outcome.
- */
 export async function resolveCitationInsert(
   deps: Pick<
     CitationSuggestDeps,
@@ -288,8 +254,6 @@ export async function resolveCitationInsert(
         };
       }
 
-      // A pending snapshot has no verdict yet and would read an ambiguous key as
-      // missing. A held snapshot keeps its verdict while it revalidates or fails.
       if ((yield* deps.citationLookup.current).status === "pending") {
         return { kind: "notice", message: m.notice_citekey_not_ready() };
       }
@@ -333,26 +297,13 @@ export async function resolveCitationInsert(
   return valueOr(exit, null);
 }
 
-/** Resolved inline trigger: ch offsets on the cursor line. */
 export interface CitationTrigger {
-  /** ch of the trigger's first char (`[`, `【`, or `@`). */
   start: number;
-  /** ch replacement end (cursor, or cursor+1 when a bracket match consumes an adjacent closing bracket). */
   end: number;
-  /** Search query (trailing `/` stripped; at-queries have `_` → space applied). */
   query: string;
-  /** The Citation Variant the query asks for: `"alt"` when it ended with `/`. */
   variant: CitationVariant;
 }
 
-/**
- * Decide whether `line` at cursor `ch` opens the Citation Suggester, and with
- * what query. Pure decision core for {@link CitationEditorSuggest.onTrigger}.
- * The Bracket Trigger (`[@`/`【@`, always on) is tried first; the At Trigger
- * (bare `@` at a word boundary) is only consulted when it doesn't match and
- * `atTrigger` is enabled. A comma after a known key starts locator editing;
- * other queries keep their title-search punctuation and spaces.
- */
 export function resolveCitationTrigger(
   line: string,
   ch: number,

@@ -5,14 +5,12 @@ import { replaceCitations, sectionCitations } from "./render.ts";
 
 import { citationElement } from "#obsidian/citation-text/present.ts";
 
-/** One rendered section, as a Markdown post-processor receives it. */
 function section(html: string): HTMLElement {
   const root = document.createElement("div");
   root.innerHTML = html;
   return root;
 }
 
-/** Puts the citekeys of every citation in its place, so the swap is readable. */
 function keysInPlace(root: HTMLElement): string {
   replaceCitations(sectionCitations(root), (citation) =>
     citationElement(

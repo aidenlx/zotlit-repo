@@ -14,7 +14,6 @@ import type {
   CitationLookupState,
 } from "#obsidian/citation-index/lookup-service.ts";
 
-/** The consumer seam: async delivery, strict requested answers, and a held placeholder. */
 type LookupService = CitationLookup["Service"];
 
 export class CitationLookupStub implements LookupService {
@@ -91,7 +90,6 @@ export class CitationLookupStub implements LookupService {
         ? { value: previous, status: "revalidating", settled: pending.promise }
         : null;
       changed();
-      // The gap is part of the seam, even when the fixture knows the answer now.
       const delivery = Promise.resolve()
         .then(() => this.#answer(request!))
         .then(
@@ -150,7 +148,6 @@ export class CitationLookupStub implements LookupService {
   }
 }
 
-/** One observation for extension fixtures that receive a factory instead of a service. */
 export function lookupObservation(
   answer: ConstructorParameters<typeof CitationLookupStub>[0],
   changed: () => void,

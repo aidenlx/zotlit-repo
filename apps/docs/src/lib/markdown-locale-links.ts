@@ -1,5 +1,3 @@
-// Rewrites a Markdown edition's internal links to the locale it is served in.
-
 import type { Definition, Link as MarkdownLink, Nodes } from "mdast";
 import remarkGfm from "remark-gfm";
 import remarkParse from "remark-parse";
@@ -12,14 +10,12 @@ import { changelogFeedRoute } from "./shared.ts";
 
 const markdownParser = unified().use(remarkParse).use(remarkGfm);
 
-/** A path inside a section that has locale editions, or a section's own `.md` edition. */
 function isLocalizedSectionPath(path: string) {
   const [, head = "", ...rest] = path.split("/");
   const section = rest.length === 0 ? head.replace(/\.md$/, "") : head;
   return isMarkdownSection(section) || section === "llms.mdx";
 }
 
-/** The raw destination's start, with parsed labels and code left intact. */
 function destinationStart(markdown: string, node: MarkdownLink | Definition) {
   const start =
     node.type === "link"
@@ -36,11 +32,6 @@ function destinationStart(markdown: string, node: MarkdownLink | Definition) {
   return prefix ? start + prefix[0].length : undefined;
 }
 
-/**
- * Localize parsed document links without reformatting the Markdown. Source
- * offsets keep code, images, labels, titles, escapes and unrelated URLs intact.
- * Raw HTML/JSX links remain authored; ActionLink has rendered to Markdown here.
- */
 export function localizeMarkdownLinks(markdown: string, locale: SiteLocale) {
   const tree = markdownParser.parse(markdown);
   const links: (MarkdownLink | Definition)[] = [];
@@ -76,8 +67,6 @@ export function localizeMarkdownLinks(markdown: string, locale: SiteLocale) {
     const hasPrefix = pathname !== canonical;
     if (hasPrefix === (locale === "zh-CN")) continue;
     const start = destinationStart(markdown, node);
-    // An escaped leading slash is valid Markdown; leave that unusual form
-    // authored rather than guessing its raw destination width.
     if (start === undefined || markdown[start] !== "/") continue;
     edits.push({
       start,

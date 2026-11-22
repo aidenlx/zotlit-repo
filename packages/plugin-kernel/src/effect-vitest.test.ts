@@ -14,8 +14,6 @@ const scheduler = Effect.gen(function* () {
   expect(yield* Scheduler).toBe(browserScheduler);
 });
 
-// Failure modes: a tester, a modifier, or a layer-wrapped `it` runs the body
-// on Effect's default scheduler, or the wrapper drops the test services.
 describe("Effect tests", () => {
   it.effect("run on the browser scheduler", () => scheduler);
   it.live("run live on the browser scheduler", () => scheduler);

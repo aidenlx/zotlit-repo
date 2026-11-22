@@ -1,6 +1,4 @@
 import type { ProfileFixture } from "#__fixtures__/profile/reader.ts";
-// Companion targets and the creation Profile, read through the Profile and
-// Note Index tags.
 import { describe, expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { TFile } from "obsidian";
@@ -28,10 +26,6 @@ function noteAt(path: string): TFile {
   return file;
 }
 
-/**
- * The Profile registry `profiles` and the Note Index, whose notes for every
- * key are `notes`, each stamped as `stamps` says.
- */
 function services(
   options: {
     profiles?: readonly ProfileFixture[];

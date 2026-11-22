@@ -1,6 +1,3 @@
-// The authoring tabs, in the order the pane offers them, with the label and
-// the lede each opens with. The Template Document kind picks the set.
-
 import type {
   WorkbenchDocumentKind,
   WorkbenchProblem,
@@ -18,7 +15,6 @@ export type WorkbenchTab =
   | "citation"
   | "partial";
 
-/** The tabs a Profile document opens with. */
 export const TABS: readonly WorkbenchTab[] = [
   "note",
   "properties",
@@ -28,7 +24,6 @@ export const TABS: readonly WorkbenchTab[] = [
   "profile",
 ];
 
-/** The manifest's `details` fields the Profile tab edits; the rest are the Name and folder tab's. */
 const PROFILE_FIELDS: readonly string[] = [
   "name",
   "description",
@@ -38,7 +33,6 @@ const PROFILE_FIELDS: readonly string[] = [
   "language",
 ];
 
-/** Whether `problem` names a manifest field the Profile tab edits. */
 export const isProfileProblem = (
   problem: Pick<WorkbenchProblem, "slice" | "params">,
 ): boolean =>
@@ -51,7 +45,6 @@ const KIND_TABS: Record<WorkbenchDocumentKind, readonly WorkbenchTab[]> = {
   partial: ["partial"],
 };
 
-/** The tabs `kind` shows, in the order the tab strip offers them. */
 export function tabsFor(kind: WorkbenchDocumentKind): readonly WorkbenchTab[] {
   return KIND_TABS[kind];
 }
@@ -78,7 +71,6 @@ const TAB_LEDE: Record<WorkbenchTab, () => string> = {
   partial: m.workbench_partial_lede,
 };
 
-/** The docs page that shows how to write each tab's part of the template. */
 const TAB_DOCS: Record<
   WorkbenchTab,
   { readonly label: () => string; readonly path: string }
@@ -117,7 +109,6 @@ const TAB_DOCS: Record<
   },
 };
 
-/** The guide link for `tab`: its text and its path under the docs site. */
 export function tabDocs(tab: WorkbenchTab): { label: string; path: string } {
   const { label, path } = TAB_DOCS[tab];
   return { label: label(), path };

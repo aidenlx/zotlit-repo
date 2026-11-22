@@ -1,17 +1,3 @@
-// The Select: one value out of a list, picked from a Chooser popup with a
-// search field, as a Bases toolbar menu picks a property, an operator or a
-// layout. It stands where a native `<select>` stood and draws itself from the
-// variables Obsidian draws a dropdown with, so a caller that tuned those
-// variables for its surroundings keeps its look.
-//
-// The Bases property picker is the same combobox as every other one, given
-// options that carry an icon and a raw id beside the name. A Select is the
-// same: an option with an `icon` puts it before its name in the row and on the
-// trigger, and an option with a `detail` shows it at the end of its row, unless
-// it repeats the name. There is no property variant to pick.
-//
-// @see apps/obsidian/docs/bases-toolbar-menu.md#comboboxes
-
 import { useCallback, useRef } from "react";
 import type {
   ButtonHTMLAttributes,
@@ -35,13 +21,9 @@ import { cn } from "#utils.ts";
 
 export interface SelectOption {
   value: string;
-  /** The name the row and the trigger show. */
   label: string;
-  /** The glyph before the name, such as a property's type icon. */
   icon?: ReactNode;
-  /** Muted text at the end of the row, such as a property's raw id. */
   detail?: string;
-  /** Other words the search finds the option by, which it never shows. */
   searchTerms?: readonly string[];
   disabled?: boolean;
 }
@@ -53,10 +35,6 @@ export interface SelectProps extends Omit<
   value: string;
   onChange: (next: string) => void;
   options: readonly SelectOption[];
-  /**
-   * The trigger's text while the value is empty, in the placeholder ink. A
-   * value that names no option shows as itself.
-   */
   placeholder?: string;
   ref?: Ref<HTMLButtonElement>;
 }
@@ -65,12 +43,6 @@ interface SelectRow extends ChooserRow {
   option: SelectOption;
 }
 
-/**
- * The trigger as Obsidian draws `select, .combobox-button`: the dropdown's
- * background, the input's shadow and radius, Bases' combobox padding and gap.
- * Every one is read from its variable, which is how the Filter's statement,
- * the sort row's joined pair and the conjunction strip the box back.
- */
 const triggerClass = cn(
   "zt:flex zt:h-(--input-height) zt:max-w-full zt:min-w-0 zt:items-center zt:gap-(--size-2-2) zt:overflow-hidden zt:whitespace-nowrap",
   "zt:ps-(--size-4-2) zt:pe-(--size-2-3) zt:text-start zt:text-sm zt:leading-(--line-height-tight) zt:font-(--input-font-weight) zt:text-foreground",
@@ -79,24 +51,9 @@ const triggerClass = cn(
   "zt:focus-visible:shadow-[0_0_0_var(--input-border-width-focus)_var(--background-modifier-border-focus)] zt:focus-visible:outline-none",
 );
 
-/** The glyph box of a row and of the trigger, at Obsidian's small icon size. */
 const glyphClass =
   "zt:flex zt:min-w-(--icon-s) zt:shrink-0 zt:items-center zt:text-(--icon-color) zt:[--icon-size:var(--icon-s)] zt:[--icon-stroke:var(--icon-s-stroke-width)]";
 
-/**
- * @example
- * ```tsx
- * <Select
- *   aria-label="Direction"
- *   value={direction}
- *   onChange={setDirection}
- *   options={[
- *     { value: "ASC", label: "A → Z" },
- *     { value: "DESC", label: "Z → A" },
- *   ]}
- * />
- * ```
- */
 export function Select({
   value,
   onChange,
@@ -119,9 +76,6 @@ export function Select({
     [ref],
   );
 
-  // The Chooser ticks; a Select keeps one value. A press on the value that
-  // stands untoggles it there, which here keeps it, and either way the popup
-  // shuts, as a native select's does.
   const choose = useCallback(
     (next: string[]) => {
       const picked = next.find((entry) => entry !== value);
@@ -155,7 +109,6 @@ interface SelectBodyProps extends Omit<SelectProps, "onChange" | "ref"> {
   trigger: RefObject<HTMLButtonElement | null>;
 }
 
-/** The trigger and the popup, inside the Chooser whose search they open. */
 function SelectBody({
   value,
   options,
@@ -173,7 +126,6 @@ function SelectBody({
   const glyphs = options.some((option) => option.icon !== undefined);
   const rows: SelectRow[] = options.map((option) => ({
     value: option.value,
-    // The query reaches the raw id too, as the Bases picker matches it.
     label: shownDetail(option)
       ? `${option.label} ${option.detail}`
       : option.label,
@@ -182,11 +134,6 @@ function SelectBody({
     option,
   }));
 
-  // Focus that leaves the popup shuts it, as a Tab or Shift+Tab out of a
-  // native select's list does. A popover shuts on a press outside, not on
-  // focus moving out, and an open one goes on holding the keys of the
-  // control focus left for, the trigger included. A press on the trigger
-  // moves focus there too, and is left to the trigger, which shuts it.
   const pressed = useRef(false);
   const leave = (event: FocusEvent<HTMLElement>) => {
     const next = event.relatedTarget;
@@ -205,9 +152,6 @@ function SelectBody({
         blocked={disabled}
         data-value={value}
         {...rest}
-        // The arrow keys open the popup from the trigger, as they open a
-        // native select and the Bases combobox; a printable key opens it
-        // searching for that key, as typing on a Bases combobox does.
         onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
           onKeyDown?.(event);
           if (event.defaultPrevented || disabled) return;
@@ -276,7 +220,6 @@ function SelectBody({
               key={row.value}
               value={row.value}
               data-value={row.value}
-              // The tick reads the row's selected state.
               className="zt:group"
               leading={
                 glyphs ? (
@@ -287,7 +230,6 @@ function SelectBody({
                   false
                 )
               }
-              // The tick stands at the end of the row, as Bases orders it.
               end={
                 <>
                   {shownDetail(row.option) && (
@@ -312,7 +254,6 @@ function SelectBody({
   );
 }
 
-/** A detail that only repeats the name stays off the row, as Bases leaves it. */
 function shownDetail(option: SelectOption): boolean {
   return !!option.detail && option.detail !== option.label;
 }

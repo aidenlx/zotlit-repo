@@ -14,7 +14,6 @@ class Dependent extends Context.Service<
   { readonly value: number }
 >()("zotlit/test/Dependent") {}
 
-/** A layer that holds a resource until its scope closes. */
 const holding = (released: string[]) =>
   Layer.effect(
     Base,
@@ -31,8 +30,6 @@ const dying = Layer.effect(
   }),
 ).pipe(startingAs("Dependent"));
 
-// Failure modes: the failure names the wrong service or none, an outer layer
-// renames it, or what started before the failure stays open.
 it.effect(
   "names the service whose acquisition died and releases what started",
   () =>

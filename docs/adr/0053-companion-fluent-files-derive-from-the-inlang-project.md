@@ -43,3 +43,9 @@ compiler produces.
 - The Companion emitter generates a typed map from Fluent ID to input names
   and types, derived from the base locale like the Obsidian facade, and
   `formatValue` / `requireMessage` / `l10nID` are generic over it.
+
+## Emitter and build checks
+
+Pass date inputs to Fluent as epoch numbers. Inline local declarations because Fluent has no matching local binding. A formatting-only local can produce a catch-all-only table, which the emitter reduces to a plain pattern. Omit a partly translated message as a whole because Fluent falls back by message id across the value and its attributes.
+
+Generate `src/types/fluent.ts` from the base locale. An input-free message has type `never` in its argument map. Compare the generated file with the committed file during builds. Base messages are required, and non-base messages can only use inputs declared in the base. Check each addon XHTML localization reference against the emitted base ids. A production build regenerates stale types and fails so the generated result is included in the change. Write the compiled FTL files to staging before the package step reads it.

@@ -33,7 +33,6 @@ export type LiteratureNoteTemplateMigrationDiagnostic =
       message: string;
       difference: string;
       hint: string;
-      /** Legacy template files the user must edit before retrying. */
       files: readonly string[];
     }
   | {
@@ -57,17 +56,10 @@ export type LiteratureNoteTemplateMigrationDiagnostic =
 export type LiteratureNoteTemplateMigrationResult =
   | {
       outcome: "converted";
-      /** The converted Profile document, `null` when the vault held no
-       *  Literature Note slots to fold into one. */
       document: string | null;
       trashed: readonly string[];
-      /** Legacy files a failed trash left behind; retry from the Welcome view. */
       pendingCleanup: readonly string[];
-      /** Legacy files left in place and reported: the Eta side of a
-       *  mixed-language `cite` / `cite2` pair. */
       kept: readonly string[];
-      /** Managed Frontmatter fields carried over verbatim that failed the dry
-       *  run; the Profile editor repairs them. */
       frontmatterFailures: readonly string[];
     }
   | {
@@ -75,7 +67,6 @@ export type LiteratureNoteTemplateMigrationResult =
       diagnostic: LiteratureNoteTemplateMigrationDiagnostic;
     };
 
-/** Owns the user-consented, one-shot transition from slot files to documents. */
 const makeMigrationEngine = Effect.fnUntraced(function* (options: {
   loadVerificationData: TemplateMigrationOptions["loadVerificationData"];
   openPrompt: TemplateMigrationOptions["openPrompt"];
@@ -189,7 +180,6 @@ const makeMigrationEngine = Effect.fnUntraced(function* (options: {
         "Add an annotation to a Zotero item, then retry conversion.",
       );
     }
-    // Verify every fold before writing, so a refusal leaves the vault as it was.
     const converted = yield* template
       .convertLegacyTemplateDocuments(data.citation)
       .pipe(
@@ -268,7 +258,6 @@ const makeMigrationEngine = Effect.fnUntraced(function* (options: {
       frontmatterFailures,
     };
   }).pipe(
-    // Every failure the user can act on reaches the banner as a refusal.
     Effect.catchIf(isConversionFailure, (error) =>
       log("warn", "Template conversion failed", { error }).pipe(
         Effect.as(
@@ -396,7 +385,6 @@ function refused(
   return { outcome: "refused", diagnostic: { code, message, hint } };
 }
 
-/** A failure of the vault or the settings, which no template edit repairs. */
 function isConversionFailure(
   error: TemplateFailure | SettingsMutationError | SettingsPersistenceError,
 ): error is TemplateFailure {
@@ -406,7 +394,6 @@ function isConversionFailure(
   );
 }
 
-/** A failure the legacy files caused, so a change to them repairs it. */
 function isTemplateProblem(error: TemplateFailure): boolean {
   return !(
     error instanceof VaultError ||
@@ -415,7 +402,6 @@ function isTemplateProblem(error: TemplateFailure): boolean {
   );
 }
 
-/** Carry a failed verification out as the refusal the prompt reports. */
 function refusedByConversion(
   error: TemplateFailure,
   files: readonly string[],
@@ -450,17 +436,12 @@ function refusedByConversion(
 }
 
 export interface TemplateMigrationOptions<R = never> {
-  /** The real Zotero item a conversion verifies against, run by the layer. */
   loadVerificationData: (options: {
     annotation: boolean;
   }) => Effect.Effect<MigrationVerificationData | null, unknown, R>;
   openPrompt: () => void | Promise<void>;
 }
 
-/**
- * Where the template conversion prompts the user: the host's onboarding
- * surface (`@zotlit/library-view` opens the Welcome View) fills it.
- */
 export class TemplateMigrationPrompt extends Context.Service<
   TemplateMigrationPrompt,
   Pick<TemplateMigrationOptions, "openPrompt">

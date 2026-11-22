@@ -1,5 +1,3 @@
-// shadcn Base UI Select, sharing the editor's Hover Card surface.
-// @see https://ui.shadcn.com/docs/components/base/select
 import { Select as SelectPrimitive } from "@base-ui/react/select";
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 

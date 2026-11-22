@@ -31,10 +31,6 @@ const approvedFolder: SettingDefinition = {
   name: "Approved folder",
 };
 
-/**
- * The shape the tab hands out: a group wrapping navigable pages, whose own
- * groups hold the rows. Only a page names a step of the path.
- */
 const settingItems: SettingDefinitionItem[] = [
   logLevel,
   {
@@ -71,7 +67,6 @@ const settingItems: SettingDefinitionItem[] = [
   },
 ];
 
-/** The settings modal as these links drive it, with every call recorded. */
 function createSettingsModal(items = settingItems) {
   const tab = stubService<SettingTab>("SettingTab", {
     id: TAB_ID,
@@ -92,14 +87,6 @@ function createSettingsModal(items = settingItems) {
   };
 }
 
-/**
- * How Obsidian resolves a `pagePath` segment: against a page's `id`, with a
- * group stepped through without consuming a segment. A transcription, so the
- * running app stays the ground truth — verify a link there with
- * `/obsidian-debug` before trusting a green run here.
- *
- * @see node_modules/.ob-rev-1.14.2/app.js — `R6` and `F6`
- */
 function resolvePage(
   items: SettingDefinitionItem[],
   pagePath: readonly string[],
@@ -120,7 +107,6 @@ function resolvePage(
   return null;
 }
 
-/** The page path one call handed Obsidian. */
 function pagePathOf(
   setting: ReturnType<typeof createSettingsModal>["setting"],
 ): string[] {

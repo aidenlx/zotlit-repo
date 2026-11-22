@@ -2,8 +2,6 @@ import type { DisplayNode } from "#core/data-tree/index.ts";
 import type { IconName } from "obsidian";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
-// Which fields a root lists, in which section and order, and the name a
-// reader sees for each. Common fields lead; every other field has one home.
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 import type { FieldLabelLocale } from "@zotlit/zotero-types/field-labels";
 
@@ -50,7 +48,6 @@ const SECTION_LABELS: Record<ExplorerSectionId, () => string> = {
   citation: m.workbench_explorer_section_citation,
 };
 
-/** The glyph each section's heading carries. */
 export const SECTION_ICONS: Record<ExplorerSectionId, IconName> = {
   common: "layout-list",
   reference: "book-marked",
@@ -64,7 +61,6 @@ export const SECTION_ICONS: Record<ExplorerSectionId, IconName> = {
   citation: "quote",
 };
 
-/** Item fields follow Zotero's Info pane order inside each section. */
 const ITEM_SECTIONS: readonly SectionSpec[] = [
   {
     id: "reference",
@@ -146,18 +142,9 @@ const SECTIONS: Record<TemplateRoot, readonly SectionSpec[]> = {
       ],
     },
   ],
-  // The citation root's three fields are all common, so this spec names none
-  // of them and stands as the root's home for any field the taxonomy has yet
-  // to place.
   citation: [{ id: "citation", keys: [] }],
 };
 
-/**
- * Fields a root lists once under another name. An item root carries both
- * halves of each CSL alias pair, so the Zotero spelling stands for
- * `abstract`, and `publicationTitle` stands for `containerTitle`; the
- * note-name root also carries link stubs that are empty for every item.
- */
 const ITEM_HIDDEN: readonly string[] = ["abstractNote", "containerTitle"];
 const HIDDEN: Record<TemplateRoot, ReadonlySet<string>> = {
   note: new Set(ITEM_HIDDEN),
@@ -166,7 +153,6 @@ const HIDDEN: Record<TemplateRoot, ReadonlySet<string>> = {
   citation: new Set(),
 };
 
-/** ZotLit's own fields on an item root, which Zotero has no label for. */
 const ITEM_LABELS: Readonly<Record<string, () => string>> = {
   authorsShort: m.workbench_field_authors_short,
   creators: m.workbench_field_creators,
@@ -199,38 +185,25 @@ const ANNOTATION_LABELS: Readonly<Record<string, () => string>> = {
   libraryID: m.workbench_field_library_id,
 };
 
-/** `zt` names that differ from the Zotero field they carry. */
 const ZOTERO_FIELD: Readonly<Record<string, string>> = {
   abstract: "abstractNote",
 };
 
-/** The Zotero label locale that the host locale `locale` reads. */
 export function schemaLocale(locale: string): FieldLabelLocale {
   return locale.startsWith("zh") ? "zh-CN" : "en-US";
 }
 
-/**
- * Lowers the capital that starts each later word when a lowercase letter
- * follows, so Zotero's "Date Added" reads "Date added" while "DOI" and "URL"
- * keep their case.
- */
 export function sentenceCase(label: string): string {
   return label.replaceAll(/(?<=\S\s+)\p{Lu}(?=\p{Ll})/gu, (initial) =>
     initial.toLowerCase(),
   );
 }
 
-/** The reader a label or section is resolved for. */
 export interface ExplorerReader {
   readonly root: TemplateRoot;
   readonly locale: string;
 }
 
-/**
- * The name a reader sees for a top-level field: the common-field label, then
- * ZotLit's own label, then Zotero's label in the reader's locale, then the
- * raw key.
- */
 export function fieldLabel(
   key: string,
   { root, locale }: ExplorerReader,
@@ -245,12 +218,6 @@ export function fieldLabel(
   return schema === "en-US" ? sentenceCase(zotero) : zotero;
 }
 
-/**
- * The names the reader sees for the properties of the items of the top-level
- * lists in `nodes`, by their row keys (`annotations[].comment`): the label
- * of the field each property is, where a label exists. The items of a
- * note's `annotations` take the annotation's labels.
- */
 export function listPropertyLabels(
   nodes: readonly DisplayNode[],
   reader: ExplorerReader,
@@ -267,17 +234,14 @@ export function listPropertyLabels(
     });
 }
 
-/** The note's own list of annotations, whose items are annotations. */
 function isNoteAnnotations(list: DisplayNode["path"]): boolean {
   return list.length === 1 && list[0] === "annotations";
 }
 
-/** Every section id a root can show, in display order. */
 export function explorerSectionIds(root: TemplateRoot): ExplorerSectionId[] {
   return ["common", ...SECTIONS[root].map((section) => section.id)];
 }
 
-/** The sections `data` actually shows, so a host can tell "all closed" from the reader's view. */
 export function visibleSectionIds(
   data: Record<string, unknown> | null,
   reader: ExplorerReader,
@@ -287,12 +251,6 @@ export function visibleSectionIds(
   return explorerSections(nodes, reader).map((section) => section.id);
 }
 
-/**
- * The sections for `root` over its top-level display nodes. Common fields
- * lead in their fixed order; each remaining field joins one section, and a
- * field the taxonomy does not name — an item-type field, a new contract key —
- * joins the first section in data order. Empty sections are dropped.
- */
 export function explorerSections(
   nodes: readonly DisplayNode[],
   reader: ExplorerReader,

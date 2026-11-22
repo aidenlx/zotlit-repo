@@ -1,6 +1,3 @@
-// External URLs surfaced by the Welcome View — docs, community, and news links.
-// The docs-site links follow the reader's language, so each is read when used.
-
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 

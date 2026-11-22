@@ -3,9 +3,6 @@ import { describe, expect, it } from "vitest";
 import { ghLandGitHub } from "./land-github.ts";
 import type { GhRun } from "./land-github.ts";
 
-// The gh client against a fake `gh`: each test gives the JSON that GitHub
-// returns for one call, keyed by the call's first arguments. The shapes are
-// trimmed from real responses of aidenlx/zotlit-repo (2026-11-22).
 const REPO = "aidenlx/zotlit-repo";
 
 function fakeGh(replies: Record<string, unknown>): GhRun {
@@ -20,7 +17,6 @@ function fakeGh(replies: Record<string, unknown>): GhRun {
   };
 }
 
-/** A `gh pr list` entry; a fork's PR names the fork as its head repository. */
 const pull = (number: number, owner: string) => ({
   number,
   url: `https://github.com/${REPO}/pull/${number}`,
@@ -59,7 +55,6 @@ describe("findOpenPullRequest", () => {
 
 const SHA = "a".repeat(40);
 
-/** A check run of check suite `suite`: one that passed, or one that runs. */
 const run = (id: number, suite: number, passed: boolean) => ({
   id,
   name: "Record PR tests",
@@ -72,7 +67,6 @@ const run = (id: number, suite: number, passed: boolean) => ({
   app: { slug: "github-actions" },
 });
 
-/** The workflow run of check suite `suite`, for a PR from `repo`'s feat/a. */
 const workflow = (suite: number, repo: string) => ({
   id: suite * 10,
   name: "Record PR",
@@ -88,12 +82,10 @@ describe("readCheck", () => {
       REPO,
       fakeGh({
         [`api repos/${REPO}/commits/${SHA}/check-runs`]: {
-          // Suite 2 is another app's, with no workflow run.
           check_runs: [run(30, 3, true), run(20, 2, true), run(10, 1, false)],
         },
         [`api repos/${REPO}/actions/runs`]: {
           workflow_runs: [
-            // A fork's PR on the same head, from a branch of the same name.
             workflow(3, "mallory/zotlit-repo"),
             workflow(1, REPO),
           ],

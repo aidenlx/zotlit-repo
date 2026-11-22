@@ -31,7 +31,6 @@ const ports: BatchImportPorts = {
   bridge: stubService<BatchImportPorts["bridge"]>("EffectBridge", {}),
 };
 
-/** The services an import reads: the database in `state`, its Snapshot `snapshot`. */
 function servicesWith(
   state: ZoteroReadsState["state"],
   snapshot: ZoteroReads["Service"]["snapshot"],

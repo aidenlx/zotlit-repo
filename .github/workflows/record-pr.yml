@@ -1,18 +1,5 @@
-# The Vercel OIDC policy of the Remote Cache matches this name, not the file
-# path; a rename turns the Remote Cache off (docs/CI_SETUP.md).
 name: Record PR
 
-# `pnpm verify --pr` on the record PR of a land (ADR 0102); verify.ts names
-# its steps. `pnpm land` pushes the
-# task branch, opens or updates its record PR, waits for the check of this job
-# on the PR head while it holds its Land Turn, and pushes `main` to that head
-# only when the check passes. The land finds the check by the job's `name`,
-# LAND_CI_CHECK in packages/scripts/lib/land.ts, and waits for it a fixed
-# time after the job's `timeout-minutes` (LAND_CI_JOB_TIMEOUT_MINUTES).
-# The land ran `pnpm verify --local` in its Land Turn before the push.
-# `pnpm lint` (packages/scripts/lib/record-pr-workflow.ts) fails when the
-# job's name, its timeout or its run line differ from land.ts and
-# lib/gate-halves.ts.
 on:
   pull_request:
     branches: [main]
@@ -20,8 +7,6 @@ on:
 permissions:
   contents: read
 
-# A new head of the PR replaces the run of the old one; the land waits for
-# the check of the head it pushed.
 concurrency:
   group: record-pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
@@ -31,26 +16,16 @@ jobs:
     name: Record PR tests
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    # The OIDC token of the Vercel Remote Cache step.
     permissions:
       contents: read
       id-token: write
     steps:
-      # The PR head is the commit that `main` moves to, so the job checks it
-      # and not GitHub's merge commit. The full history gives `verify` its
-      # affected base, the merge base with origin/main; a blobless clone has
-      # every commit and tree and fetches only the blobs of the checkout.
       - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           filter: blob:none
 
-      # The docs tests read image bytes, which live in Git LFS (about 42 MB).
-      # The objects come from the cache that docs-deploy saves on main; a
-      # cache from main is readable by every PR, and a PR's own cache is not.
-      # `git lfs pull` then fetches only the objects the cache lacks, so a
-      # land spends LFS bandwidth only when an LFS file changed.
       - name: Key of the Git LFS objects
         id: lfs
         run: echo "key=lfs-$(git lfs ls-files --long | cut -d' ' -f1 | sort | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
@@ -62,14 +37,6 @@ jobs:
       - name: Git LFS objects
         run: git lfs pull
 
-      # Vercel Remote Cache, shared with the maintainer's Mac: the action
-      # exchanges the job's OIDC token for a Turborepo token and sets
-      # TURBO_TEAM and TURBO_TOKEN for the steps after it, so the turbo run
-      # of `mise run init` reads it too. The team is `remoteCache.teamSlug`
-      # of turbo.json, the one place that names it. The steps run only on a
-      # PR from this repository, because a fork's PR gets no OIDC token. A
-      # team without a matching OIDC policy fails the exchange; the job then
-      # goes on with the local cache only. docs/CI_SETUP.md has the setup.
       - name: Team of the Turborepo Remote Cache
         id: turbo-team
         if: github.event.pull_request.head.repo.full_name == github.repository
@@ -81,7 +48,6 @@ jobs:
         with:
           team: ${{ steps.turbo-team.outputs.slug }}
 
-      # It restores the pnpm store and the Turborepo cache.
       - uses: ./.github/actions/setup-workspace
 
       - name: pnpm verify --pr

@@ -1,5 +1,3 @@
-// Serialization of a Copied Bibliography: a complete bibliography rendering, written for a destination outside the vault.
-
 import type { Inlines } from "#core/pandoc/ast.ts";
 
 import {
@@ -11,35 +9,18 @@ import {
   WRAPPER_TAGS,
 } from "#obsidian/pandoc/inline-content.tsx";
 
-/** A named value: the guideline rule on inline styles matches a literal one. */
 const SMALL_CAPS = "small-caps";
 
-/** One entry of a completed bibliography, as the engine formatted it. */
 export interface CopiedBibliographyEntry {
-  /** The style's Entry Marker, or `undefined` when the style renders none. */
   readonly marker: Inlines | undefined;
-  /** The entry text as one inline flow. */
   readonly content: Inlines;
 }
 
-/** A Copied Bibliography in the representations the clipboard offers. */
 export interface CopiedBibliography {
-  /** For a destination that keeps inline formatting. */
   html: string;
-  /** For a destination that takes text alone. */
   text: string;
 }
 
-/**
- * Serialize a completed bibliography for the clipboard.
- *
- * Entries keep the order and the Entry Markers the style gave them, one entry
- * per paragraph and no heading, so the destination supplies the heading its own
- * document needs. Both representations answer for the same bibliography, so a
- * destination that takes either one shows the same entries.
- *
- * @param entries the completed bibliography, in the style's own order.
- */
 export function toCopiedBibliography(
   entries: readonly CopiedBibliographyEntry[],
 ): CopiedBibliography {
@@ -49,16 +30,6 @@ export function toCopiedBibliography(
   };
 }
 
-/**
- * One paragraph, holding the Entry Marker and the entry as portable markup.
- *
- * The entry is written from the formatted flow the engine handed over, and the
- * destination reads no stylesheet of ours, so what crosses over is what stands
- * on its own: the elements pandoc's own HTML writer names, a link's target
- * under a followable scheme, and the declarations small caps rides under. A
- * style writes whatever it likes into an entry; nothing else of it crosses
- * over.
- */
 function richEntry({ marker, content }: CopiedBibliographyEntry): string {
   const paragraph = createEl("p");
   const label = marker === undefined ? "" : collapse(inlineText(marker));
@@ -67,13 +38,6 @@ function richEntry({ marker, content }: CopiedBibliographyEntry): string {
   return paragraph.outerHTML;
 }
 
-/**
- * Write one formatted flow as the markup a destination outside the vault reads.
- *
- * The walk follows the one the surfaces render under: a constructor that stands
- * for an element becomes that element, and one that stands for a layout hands
- * its own content over, leaving a single space where a display span stood.
- */
 function portable(nodes: Inlines): DocumentFragment {
   const fragment = createFragment();
   const { separate, add, endPart } = flowWriter<Node>((node) => {
@@ -108,13 +72,7 @@ function portable(nodes: Inlines): DocumentFragment {
           add(wrap(WRAPPER_TAGS[inline.t], inline.c));
           break;
         case "SmallCaps": {
-          // The one CSL semantic no element stands for. It rides as inline
-          // style because the destination is another application, which has no
-          // stylesheet of ours to read a class against.
           const element = wrap("span", inline.c);
-          // The destination is another application, so a plugin CSS class
-          // carries no styling there; the inline declaration is the only one
-          // that survives the paste.
           element.style.setProperty("font-variant", SMALL_CAPS);
           add(element);
           break;
@@ -169,9 +127,6 @@ function portable(nodes: Inlines): DocumentFragment {
         case "LineBreak":
         case "Note":
         case "RawInline":
-          // A line break is layout the paragraph has no room for, a note is a
-          // document-scoped coordinate that travels with no document, and raw
-          // markup belongs to a format the destination is not reading.
           break;
       }
     }
@@ -187,12 +142,6 @@ function plainEntry({ marker, content }: CopiedBibliographyEntry): string {
   return [label, body].filter(Boolean).join(" ");
 }
 
-/**
- * An entry is formatted as markup, so its source line breaks and indentation
- * are layout rather than text. Only ASCII whitespace is collapsed: a style that
- * places a non-breaking or thin space between initials meant that space to
- * survive into the pasted result.
- */
 function collapse(text: string): string {
   return text.replaceAll(/[\t\n\r ]+/g, " ").trim();
 }

@@ -29,7 +29,6 @@ import type { QueryReply } from "./worker-protocol.ts";
 
 import { workerQuery } from "#__fixtures__/item-query/worker-query.ts";
 
-/** The driver call under every statement of the borrowed client. */
 // oxlint-disable-next-line typescript/unbound-method -- applied to its statement in the test.
 const readRows = StatementSync.prototype.all;
 
@@ -42,7 +41,6 @@ const IDENTITY = {
   source: { id: "source-1", databasePath: "/zotero/zotero.sqlite" },
 };
 
-/** The personal Library, most recently modified first, ties in key order. */
 const PERSONAL_BY_MODIFIED = [
   "ART2FULL",
   "UNI2CDE2",
@@ -56,19 +54,11 @@ const PERSONAL_BY_MODIFIED = [
   "CNF2TEXT",
 ];
 
-/**
- * The environment of an answer, the Library Scope of its job, and the client
- * of the database it reads.
- */
 type TestDeps = Partial<AnswerEnv> & {
   client?: NodeDatabaseClient;
   scope?: LibraryScope;
 };
 
-/**
- * An answer as a Query Job runs it: on the database of `client`, in the scope
- * of the job, on the time-budget scheduler.
- */
 function onJob<A>(
   client: NodeDatabaseClient,
   answer: Effect.Effect<A, never, ItemQueryDatabase | Scope.Scope>,
@@ -80,7 +70,6 @@ function onJob<A>(
   );
 }
 
-/** The query answer on `scenario`, as an Effect of the envelope text. */
 function queryOf(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   {
@@ -122,10 +111,6 @@ function setup(
   };
 }
 
-/**
- * Interrupts the run {@link exitOf} binds it to, as a cancel does, wherever
- * that run is. A call before the run is bound interrupts it before it starts.
- */
 interface Interrupt {
   (): void;
   bind(run: Fiber.Fiber<unknown>): void;
@@ -148,26 +133,22 @@ function interruptHandle(): Interrupt {
   );
 }
 
-/** Run `effect` to its exit; `interrupt` interrupts it wherever it is. */
 function exitOf<A>(
   effect: Effect.Effect<A>,
   interrupt: Interrupt,
 ): Effect.Effect<Exit.Exit<A>> {
   return Effect.gen(function* () {
-    // Scheduled, not started: the handle is bound before the run's first step.
     const run = yield* Effect.forkChild(effect, { startImmediately: false });
     interrupt.bind(run);
     return yield* Fiber.await(run);
   });
 }
 
-/** The scenario database, held for the case's scope. */
 const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
   Effect.acquireDisposable(
     Effect.sync(() => openScenarioDatabase(connectClient, options)),
   );
 
-/** The run ended by interruption alone. */
 function expectInterrupted<A, E>(exit: Exit.Exit<A, E>): void {
   expect(Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause)).toBe(
     true,
@@ -210,16 +191,11 @@ describe("zotlit:query without arguments", () => {
 });
 
 describe("zotlit:query answer", () => {
-  /**
-   * One tick per read leaves room for a resumed effect to make progress
-   * within the production slice budget.
-   */
   function fastClock() {
     let now = 0;
     vi.spyOn(performance, "now").mockImplementation(() => (now += 1));
   }
 
-  /** The bulk Library: more rows than the first chunk of an answer. */
   const BULK = { library: `group:${BULK_LIBRARY.groupID}`, limit: "all" };
 
   it.effect.each<CliData>([
@@ -260,7 +236,6 @@ describe("zotlit:query answer", () => {
           onAnswerStep: (ms) => steps.push(ms),
         })({ ...BULK, fields: '["title"]' });
 
-        // Each projection batch is encoded before the next batch is read.
         expect(JSON.parse(answer)).toMatchObject({ returnedCount: 600 });
         expect(steps.length).toBeGreaterThan(1);
       }),
@@ -325,7 +300,6 @@ describe("zotlit:query limit", () => {
   );
 });
 
-/** Both Libraries of the scenario, most recently modified first. */
 const BOTH_BY_MODIFIED = [
   "ART2FULLg4815",
   "ART2FULL",
@@ -444,7 +418,6 @@ describe("zotlit:query libraries", () => {
           fields: "[]",
         });
 
-        // My Library first, then the groups by ascending group ID.
         expect(answer.libraries).toEqual([
           PERSONAL_WIRE,
           BULK_GROUP_WIRE,
@@ -638,7 +611,6 @@ describe("zotlit:query default Libraries", () => {
     Effect.gen(function* () {
       const scenario = yield* scenarioOf();
       const { run } = setup(scenario, scoped(DEFAULT_LIBRARY_SCOPE));
-      // The group leaves the source: the borrowed copy decides.
       scenario.sqlite.exec("delete from groups where groupID = 4815");
 
       const answer = yield* run();
@@ -973,7 +945,6 @@ describe("zotlit:query cancellation", () => {
       const interrupt = interruptHandle();
       const { query } = setup(scenario);
 
-      // A named Library starts execution without awaiting the default scope.
       interrupt();
 
       expectInterrupted(
@@ -987,17 +958,14 @@ describe("zotlit:query cancellation", () => {
       const scenario = yield* scenarioOf();
       const interrupt = interruptHandle();
       const { run, query } = setup(scenario);
-      // Warm the copy, then count the reads of one complete run.
       yield* run({ fields: '["title"]' });
       const read = vi.spyOn(StatementSync.prototype, "all");
       yield* run({ fields: '["title"]' });
       const complete = read.mock.calls.length;
       expect(complete).toBeGreaterThan(3);
 
-      // One tick per clock read exercises cancellation across scheduler pauses.
       let now = 0;
       vi.spyOn(performance, "now").mockImplementation(() => (now += 1));
-      // Interrupt inside the third database read of the query.
       const events: string[] = [];
       read.mockImplementation(function (this: StatementSync, ...values) {
         if (events.push("read") === 3) interrupt();
@@ -1166,18 +1134,12 @@ it.effect(
 );
 
 describe("zotlit:query export writer", () => {
-  /** The bulk Library: more rows than the first chunk of an answer. */
   const BULK = {
     library: `group:${BULK_LIBRARY.groupID}`,
     limit: "all",
     fields: '["title","tags"]',
   };
 
-  /**
-   * The export of the bulk Library in the scope of a job, on its scheduler, to
-   * an in-memory writer. `events` records the life of the writer and the end of
-   * the scope.
-   */
   function memoryExport(
     scenario: ScenarioDatabase<NodeDatabaseClient>,
     write: (count: number) => Effect.Effect<void, QueryOutputError>,
@@ -1222,7 +1184,6 @@ describe("zotlit:query export writer", () => {
         const scenario = yield* scenarioOf();
         seedBulkLibrary(scenario.sqlite, 600);
         const interrupt = interruptHandle();
-        // The head, then the first chunk of rows: the interrupt comes there.
         const { events, run } = memoryExport(scenario, (count) =>
           Effect.sync(() => {
             if (count === 2) interrupt();
@@ -1377,7 +1338,6 @@ it.effect(
         sort: "key",
       };
       const found = yield* run(params);
-      // ART2FULL has the Tags methods, to-read, and To-Read; ALS2CNFL has methods.
       expect(found).toMatchObject({
         request: { group: "tags[].name" },
         totalCount: 2,

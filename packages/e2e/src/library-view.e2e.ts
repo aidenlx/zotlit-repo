@@ -43,7 +43,6 @@ import type { PagePdfReaderView } from "./page-notes-types.ts";
 import { verifyPdfReads } from "./pdf-reads.ts";
 import { verifyRecentUses } from "./recent-uses.ts";
 
-/** Wait for the saved `library.document` setting, compared as JSON limited to the keys the Library View writes. */
 async function waitForLibraryDocument(
   vaultId: string,
   expected: unknown,
@@ -106,7 +105,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { stored: stored, layout: layout },
       );
     });
-    // The view opens on My Library; a new view's Recent has a case of its own.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }, { myLibraryDocument }) => {
@@ -124,8 +122,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { myLibraryDocument: MY_LIBRARY_DOCUMENT },
     );
 
-    /** What the Library View shows once its query settled, or `null` while no tab holds it. */
-
     interface Library {
       leaves: number;
       active: string | null;
@@ -136,9 +132,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       rows: string[];
     }
 
-    // The seed's My Library Items. Items modified at the same moment may
-    // come in either order, so the rows are checked by key set and by the
-    // modification time at each place.
     const personal = ITEMS.filter(
       ({ libraryID }) =>
         libraryID === LIBRARIES.find(({ type }) => type === "user")!.libraryID,
@@ -160,8 +153,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     };
 
-    // The ribbon icon opens the view in a main-area tab, on My Library as
-    // Papers, newest change first. No Zotero answers this vault.
     await obRun(
       run.vaultId,
       async ({ page }, { value }) => {
@@ -175,7 +166,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         value: `.side-dock-ribbon-action[aria-label="${run.m.command_open_library_view_name()}"]`,
       },
     );
-    /** Whether the Layout drew every row the count names. */
     const drawn = (library: Library) =>
       library.phase === "ready" &&
       library.count !== null &&
@@ -226,8 +216,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       failure: null,
     });
     expectSeedOrder(opened!, -1);
-    // The ribbon icon and the tab draw the 16-unit mark, both inks in the
-    // icon's one color.
     const icons = (await obRun(
       run.vaultId,
       async ({ app }, { value }) => {
@@ -267,8 +255,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     };
     expect(icons).toEqual([mark, mark]);
 
-    // With another tab in front, the command and the ribbon icon each bring
-    // the one Library View tab back.
     for (const invoke of ["command", "ribbon"] as const) {
       await obRun(
         run.vaultId,
@@ -385,9 +371,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ).toMatchObject({ leaves: 1 });
     }
 
-    // The Sort popover turns the order to oldest change first, and plugin
-    // data keeps it as the Library View Document's sort.
-
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -474,7 +457,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // A plugin reload brings the tab back with the sort it kept.
     await obRunUntil(
       run.vaultId,
       async ({ app }) => {
@@ -671,8 +653,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
       );
     });
-    // No Library View Document yet; the Library Scope holds My Library and
-    // one group.
     const library = (type: "user" | number) =>
       LIBRARIES.find((entry) =>
         type === "user" ? entry.type === "user" : entry.groupID === type,
@@ -710,10 +690,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // The seed's oracle: the Items of the Libraries in scope, by Indexed
-    // Key. Items modified at the same moment may come in either order, so
-    // the rows are checked by key set and by the modification time at each
-    // place.
     const indexedKey = (item: FixtureItem) => {
       const { groupID } = LIBRARIES.find(
         (entry) => entry.libraryID === item.libraryID,
@@ -751,8 +727,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           .map((item) => activity.get(indexedKey(item))!)
           .toSorted((a, b) => direction * (a - b)),
       );
-      // A row holds two lines at most: the title, then creators, year and
-      // Venue. It has no reading-state line.
       expect(shown.lines.every((lines) => lines <= 2)).toBe(true);
     };
 
@@ -762,27 +736,20 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       recent: boolean;
       count: string | null;
       rows: string[];
-      /** The lines of each row's text. */
       lines: number[];
-      /** The Sort button: whether it shows a sort as set, and its text. */
       sort: { set: boolean; text: string | null };
     }
 
-    /** Whether the list drew every row it counted, `count` of them. */
     const listing = (count: number) => (shown: Shown) =>
       shown.phase === "ready" &&
       shown.count === String(count) &&
       shown.rows.length === count;
-
-    /** Press the tree node `key`; a narrow pane keeps the tree behind its button. */
 
     const size = (libraries: readonly (typeof personal)[]) =>
       ITEMS.filter((item) =>
         libraries.some(({ libraryID }) => libraryID === item.libraryID),
       ).length;
 
-    // The new view opens on Recent: every Item of the Library Scope, newest
-    // change first, under a heading that names Recent and counts its papers.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -875,13 +842,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // These seed signals are newer than their parent Item's addition.
     for (const [key, reason] of [
       ["SAKIMA22", "in Zotero"],
       ["AAAAAAAA", "notes edited in Zotero"],
       ["BBBB2222", "added to Zotero"],
     ]) {
-      // A preceding case can have used a paper in the shared Fixture vault.
       expect(reasons[key!]).toContain(
         uses[key!] === activity.get(key!) ? "in Obsidian" : reason,
       );
@@ -898,8 +863,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(emptySearch).toEqual(opened!.rows);
 
-    // On a pane too narrow for the tree beside the list, Recent's tree
-    // toggle sits beside the search box, not on a row of its own.
     const narrowRow = await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -931,7 +894,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(narrowRow).toEqual({ toggle: true, beside: true });
 
-    // Another Library Scope changes what Recent lists.
     await obRun(
       run.vaultId,
       async ({ zotlit }, { libraryScopeSettingKey, document }) => {
@@ -1010,8 +972,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expectRecent(narrowed!, [personal], -1);
 
-    // A sort change keeps Recent selected; selecting Recent again after a
-    // Library sorts newest activity first again.
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -1292,9 +1252,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ITEMS.map((item) => [indexedKey(item), item.dateModified]),
     );
 
-    // Leaving Recent clears its own sort: the seed's "Shared key" Collection
-    // of My Library lists in the default order, newest change first, and the
-    // Sort button shows no sort set.
     const sharedKey = COLLECTIONS.find(
       (entry) =>
         entry.libraryID === personal.libraryID && entry.key === "SHAREDCL",
@@ -1419,8 +1376,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       "the library.document setting after switching to a Collection",
     );
 
-    // A sort the researcher changed on Recent is theirs: it stays on the
-    // Collection, and the Sort button shows it as set.
     await obRun(
       run.vaultId,
       async ({ app, page }, { JSONStringifyResult, recent }) => {
@@ -1736,7 +1691,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { snapshot: snapshot },
       );
     });
-    // A new Library View opens on Recent, whose sort is last change first.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }) => {
@@ -1752,9 +1706,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // The heading draws the Sort control in a React root of its own; the
-    // property Select's popup opens its Chooser there, with its search and
-    // rows, and a pick shuts it.
     const picked = await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -1850,7 +1801,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
       );
     });
-    // The Library Scope holds My Library alone; the tree opens on My Library.
     await obRun(
       run.vaultId,
       async (
@@ -1880,8 +1830,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // The seed's oracle: each Library's Items, and the Items a Collection
-    // and its subcollections hold, each once.
     const library = (type: "user" | number) =>
       LIBRARIES.find((entry) =>
         type === "user" ? entry.type === "user" : entry.groupID === type,
@@ -1936,7 +1884,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       rows: string[];
     }
 
-    /** Whether the list drew every row it counted, for the selection `key`. */
     const listing = (key: string) => (shown: Shown) =>
       shown.phase === "ready" &&
       shown.tree.some((node) => node.key === key && node.selected) &&
@@ -1944,12 +1891,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       shown.rows.length === Number(shown.count);
     const node = (shown: Shown, key: string) =>
       shown.tree.find((entry) => entry.key === key);
-    /**
-     * Press the element `target` finds in the tree pane. A narrow pane keeps
-     * the tree behind its button, so the press opens it first.
-     */
 
-    /** Press the node `key`, or its element that `part` selects. */
     const press = (key: string, part: string, what: string) => {
       return obRun(
         run.vaultId,
@@ -1994,8 +1936,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // The tree shows the Library Scope: My Library and its Collections, each
-    // counted from the seed, a subcollection's Items inside its parent.
     const opened = await obRunUntil(
       run.vaultId,
       async ({ app }) => {
@@ -2062,7 +2002,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(
       opened!.tree.map(({ key, level, count }) => ({ key, level, count })),
     ).toEqual([
-      // Recent, above the Libraries, counts nothing.
       { key: JSON.stringify(["recent"]), level: 1, count: null },
       {
         key: nodeKey("personal"),
@@ -2154,8 +2093,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       count: String(filed(child.collectionID).length),
     });
 
-    // "All libraries" shows the group libraries outside the Library Scope;
-    // one lists its own Items.
     expect(opened!.all).toBe("off");
     await obRun(
       run.vaultId,
@@ -2320,8 +2257,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       inLibrary(shared.libraryID).map(indexedKey).toSorted(),
     );
 
-    // A Collection lists exactly its Items and its subcollection's, and the
-    // header names it with the count.
     await press(parentKey, "", "Collection");
     const expected = filed(parent.collectionID).map(indexedKey).toSorted();
     const chosen = await obRunUntil(
@@ -2388,7 +2323,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       suite.libraryHeader(parent.name, filed(parent.collectionID)),
     );
 
-    // A plugin reload comes back on the Collection.
     await obRunUntil(
       run.vaultId,
       async ({ app }) => {
@@ -2469,8 +2403,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(reloaded!.rows.toSorted()).toEqual(expected);
     expect(reloaded!.header).toBe(chosen!.header);
 
-    // Zotero files one more Item in the subcollection: the counts up the
-    // tree and the list take it after the database change.
     const added = inLibrary(personal.libraryID).find(
       ({ collectionIDs }) =>
         !collectionIDs.some((id) => subtree(parent.collectionID).includes(id)),
@@ -2560,14 +2492,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
   });
 
-  /**
-   * Reload the vault's window, as Obsidian's "Reload app without saving"
-   * does, and wait for ZotLit to load in the new page with plugin data read.
-   */
   async function reloadWindow(): Promise<void> {
-    // The page before the reload carries a mark the new page lacks. The
-    // workspace saves its layout a while after a change; a researcher
-    // reloads later than that, so the case saves it at once.
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -2594,8 +2519,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await prepareRunWindow(run.vaultId);
   }
-
-  /** What the Library View shows that a reload must keep, once it settled. */
 
   it("puts the researcher back where they were after a window reload: the Collection left open and the Welcome View banner they asked for, with no paper selected and the item details counting the papers beside a wide list and under a narrow one, with Zotero closed", async () => {
     const snapshot = await obRun(
@@ -2653,7 +2576,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // My Library alone, with the banner put away.
     await obRun(
       run.vaultId,
       async (
@@ -2753,7 +2675,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(first).toMatchObject({ banner: false, pressed: "false" });
     expect(first!.open).not.toContain(parentKey);
 
-    // Open the Collection, select the last paper, and ask for the banner.
     const last = await obRun(
       run.vaultId,
       async ({ app, page }, { parentkey, value }) => {
@@ -2868,9 +2789,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     expect(before!.card).not.toBeNull();
 
-    // A reload right after the changes keeps the open Collection and the
-    // banner. The selected paper is session state: the view opens with no
-    // paper selected, and the item details count the papers of each facet instead.
     await reloadWindow();
     const after = await obRunUntil(
       run.vaultId,
@@ -2938,8 +2856,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     expect(after!.counts).toBeTruthy();
 
-    // On a narrow pane a reload also opens with no paper selected, and the
-    // details under the tree and the list count the papers.
     await obRun(
       run.vaultId,
       async () => {
@@ -3052,8 +2968,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     const help = run.m.library_view_help_action();
 
-    // The banner shows, as "Open welcome view" shows it, then the researcher
-    // dismisses it from its dismiss button.
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -3216,7 +3130,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
     await suite.wideWindow(cleanup);
-    /** Save a picture of the window as `library-card-<name>.png`. */
     const screenshot = async (name: string) => {
       const folder = join(workspaceRoot, ".scratch/e2e-screenshots");
       await mkdir(folder, { recursive: true });
@@ -3226,9 +3139,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         `path=${join(folder, `library-${name}.png`)}`,
       ]);
     };
-    /** The card's width, its edge's values and the width plugin data keeps. */
 
-    // My Library with no width kept, and its first paper selected.
     await obRun(
       run.vaultId,
       async ({ app, zotlit, page }, { myLibraryDocument }) => {
@@ -3332,7 +3243,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ready: (value) => value !== null && ((shown) => shown.shown)(value),
       },
     );
-    // The default 24rem, said on its edge, which names what it does.
     expect(first).toMatchObject({
       width: 384,
       now: 384,
@@ -3343,7 +3253,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(first!.max).toBe(first!.width + first!.list - 320);
     await screenshot("card-default");
 
-    // Three presses toward the list widen it by 16px each.
     await obRun(
       run.vaultId,
       async ({ app }, { arrowLeft }) => {
@@ -3517,8 +3426,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           value !== null && ((shown) => shown.stored === 416)(value),
       },
     );
-    // Home and End take it to its narrowest and its widest, which leaves
-    // the list 20rem.
     await obRun(
       run.vaultId,
       async ({ app }, { home }) => {
@@ -3693,7 +3600,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(widest).toMatchObject({ width: first!.max, list: 320 });
 
-    // A drag of the edge 100px away from the list, back from the widest.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -3795,7 +3701,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(dragged).toMatchObject({ width: first!.max - 100 });
     await screenshot("card-resized");
 
-    // A reload keeps the width.
     await reloadWindow();
     const after = await obRunUntil(
       run.vaultId,
@@ -3864,7 +3769,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       stored: dragged!.width,
     });
 
-    // A double click puts the default back, and keeps no width.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -3952,10 +3856,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       now: 384,
     });
 
-    // Under a narrow pane the card spans the whole pane under the tree and
-    // the list, 16rem high, with its top edge to drag in place of its side
-    // edge; the list stays above it, and the width kept waits for a wide
-    // pane.
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -4068,7 +3968,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     await screenshot("card-narrow-below");
 
-    /** The card's height under a narrow pane, its edges, and the height plugin data keeps after a flush. */
     const cardHeight = async (
       what: string,
       ready: (value: {
@@ -4144,7 +4043,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ready: (value) => value !== null && ready(value),
         },
       );
-    /** Press `keys` on the card's top edge, one frame apart. */
     const pressTopEdge = async (keys: string[]) => {
       await obRun(
         run.vaultId,
@@ -4172,13 +4070,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     };
 
-    // The details with no paper selected keep the height they have with
-    // one, so the first click on a row moves nothing; the close button
-    // shows on them too.
     await obRun(
       run.vaultId,
       async ({ app }) => {
-        // The same tab opens the view again, with no paper selected.
         const leaf = app.workspace.getLeavesOfType("zotlit-library")[0]!;
         await leaf.setViewState({ type: "empty" });
         await leaf.setViewState({ type: "zotlit-library", active: true });
@@ -4231,14 +4125,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       (value) => value.shown && !value.empty,
     );
     expect(selected!.height).toBe(empty!.height);
-    // The top edge keeps the list 20rem above the card.
     expect(selected).toMatchObject({
       min: 128,
       max: selected!.room - 320,
       stored: null,
     });
 
-    // ArrowUp makes the card 16px taller, and plugin data keeps it.
     await pressTopEdge(["ArrowUp"]);
     expect(
       await cardHeight(
@@ -4247,7 +4139,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toMatchObject({ height: 272, now: 272, stored: 272 });
 
-    // A double click puts the default 16rem back, and keeps no height.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -4276,8 +4167,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toMatchObject({ height: 256, now: 256, stored: null });
 
-    // Home makes it 8rem; the close button sits outside what scrolls, so it
-    // keeps its place down the paper's details.
     await pressTopEdge(["Home"]);
     expect(
       await cardHeight(
@@ -4326,7 +4215,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       shown: true,
     });
 
-    // Beside a wide list the card keeps its side edge and no top edge.
     await obRun(
       run.vaultId,
       async () => {
@@ -4414,7 +4302,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
     await suite.wideWindow(cleanup);
-    /** Save a picture of the window as `library-card-close-<name>.png`. */
     const screenshot = async (name: string) => {
       const folder = join(workspaceRoot, ".scratch/e2e-screenshots");
       await mkdir(folder, { recursive: true });
@@ -4424,7 +4311,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         `path=${join(folder, `library-card-close-${name}.png`)}`,
       ]);
     };
-    /** Whether the card shows, its width, the list's, and what plugin data keeps. */
 
     const rowKey = async (index: number) =>
       await obRun(
@@ -4443,10 +4329,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { index: index },
       );
 
-    /**
-     * Drag the edge: press it, then move the pointer by each of `steps`
-     * pixels away from the list, a frame apiece, and let go where `release`.
-     */
     const drag = (steps: number[], { press = true, release = true } = {}) =>
       obRun(
         run.vaultId,
@@ -4492,7 +4374,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { press: press, steps: steps, release: release },
       );
-    // My Library with the card 400px wide, and its first paper selected.
     await obRun(
       run.vaultId,
       async ({ app, zotlit, page }, { document }) => {
@@ -4583,8 +4464,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(open).toMatchObject({ width: 400, selected: first, closed: null });
 
-    // The close button shows on the wide pane too; it hides the card, the
-    // list takes its room, and the row keeps the selection and the focus.
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -4654,7 +4533,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(closed!.list).toBe(open!.list + open!.width);
     await screenshot("wide-closed");
 
-    // The arrow keys move the selection and leave the card closed.
     await obRun(
       run.vaultId,
       async () => {
@@ -4715,7 +4593,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toMatchObject({ shown: false, closed: true });
 
-    // A reload keeps it closed; it opens with no paper selected.
     await reloadWindow();
     expect(
       await obRunUntil(
@@ -4769,7 +4646,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       selected: null,
     });
 
-    // The Details button turns it on again, at its width.
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -4837,7 +4713,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       width: 400,
       closed: null,
     });
-    // The researcher selects the second paper again.
     await obRun(
       run.vaultId,
       async ({ app, page }, { rowKey }) => {
@@ -4858,9 +4733,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { rowKey: second },
     );
 
-    // A drag 300px away from the list takes the card 156px under its
-    // 288px minimum, past the 144px that collapses it while the pointer
-    // stays; back within the threshold it shows again at the minimum.
     await drag([100, 200, 300], { release: false });
     expect(
       await obRunUntil(
@@ -4959,7 +4831,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toMatchObject({
       width: 288,
     });
-    // Let go past the threshold, it closes and keeps the width it had.
     await drag([300], { press: false });
     expect(
       await obRunUntil(
@@ -5079,7 +4950,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       closed: null,
     });
 
-    // Escape during a collapsed drag puts the card and its width back.
     await drag([100, 200, 300], { release: false });
     await obRunUntil(
       run.vaultId,
@@ -5218,8 +5088,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { stored: stored, layout: layout },
       );
     });
-    // My Library on the Papers Layout, which a new Library View opens on
-    // (the Recent case checks that default).
     await obRun(
       run.vaultId,
       async ({ app, zotlit }, { myLibraryDocument }) => {
@@ -5237,13 +5105,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { myLibraryDocument: MY_LIBRARY_DOCUMENT },
     );
 
-    /** What the Library View shows once its query settled, or `null` while no tab holds it. */
-
     interface Paper {
       key: string;
       title: string | null;
       meta: string | null;
-      /** The lines of the row's text. */
       lines: number;
       attachment: string | null;
       note: boolean;
@@ -5252,22 +5117,18 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     interface Papers {
       phase: string;
       layout: string | null;
-      /** The toolbar's buttons, by their hook. */
       toolbar: (string | null)[];
       count: string | null;
       papers: Paper[];
       tableRows: number;
     }
 
-    // The seed's My Library: each Item's Attachments, and the Literature
-    // Note the Fixture Vault holds for every Item but the demo papers.
     const userLibrary = LIBRARIES.find(({ type }) => type === "user")!;
     const personal = ITEMS.filter(
       ({ libraryID }) => libraryID === userLibrary.libraryID,
     );
     const attachmentsOf = (item: FixtureItem) =>
       ATTACHMENTS.filter(({ parentItemID }) => parentItemID === item.itemID);
-    /** The kind Zotero gives a file: a link to a page is a web page. */
     const kindOf = ({ linkMode, contentType }: (typeof ATTACHMENTS)[number]) =>
       linkMode === "linked_url"
         ? "web"
@@ -5281,7 +5142,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const expected = (item: FixtureItem) => {
       const kinds = new Set(attachmentsOf(item).map(kindOf));
       const note = !DEMO_ITEMS.includes(item);
-      // The Literature Note shows as the note icon, not on the line.
       return {
         key: item.key,
         title: item.title,
@@ -5373,8 +5233,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             papers.papers.length === Number(papers.count))(value),
       },
     );
-    // No view menu and no Properties menu: the full Query View is a
-    // "Save as query file" away.
     expect(opened).toMatchObject({
       layout: "papers",
       toolbar: ["sort", "data-query-save-as"],
@@ -5392,9 +5250,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toEqual(
       personal.map(expected).toSorted((a, b) => a.key.localeCompare(b.key)),
     );
-    // Each paper takes two lines at most, with no reading-state line.
     expect(opened!.papers.every(({ lines }) => lines <= 2)).toBe(true);
-    // The second line names the first creator, the year and the Venue.
     const missing = personal.flatMap((item) => {
       const meta = opened!.papers.find(({ key }) => key === item.key)!.meta;
       return [
@@ -5408,15 +5264,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     expect(missing).toEqual([]);
 
-    // A paper expands into its Attachments, its live Child Notes and its
-    // Literature Note, and its PDF into its Annotations.
     const paper = annotationItem;
     const pdf = annotationAttachment;
     const live = NOTES.filter(
       (note) => note.parentItemID === paper.itemID && !note.trashed,
     );
-    // Each gesture brings the Library View's tab to the front first: a link
-    // it opened may stand in front of it.
 
     await obRun(
       run.vaultId,
@@ -5440,7 +5292,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     const childrenOf = (papers: Papers) =>
       papers.papers.find(({ key }) => key === paper.key)!.children;
-    // The Literature Note row shows at once; the others once their query ran.
     const expanded = await obRunUntil(
       run.vaultId,
       async ({ app }) => {
@@ -5639,9 +5490,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         .toSorted((a, b) => a.localeCompare(b)),
     );
 
-    // The PDF opens in Obsidian's reader, an Annotation at its page, and the
-    // Literature Note in Obsidian.
-
     const pdfName = pdf.path!.split("/").pop()!;
     expect(
       await obRun(
@@ -5685,7 +5533,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const anchored = pdfAnnotations.find(
       (annotation) => "pageIndex" in annotation.position,
     )!;
-    // A middle click opens a new tab, as the Table case does.
     expect(
       await obRun(
         run.vaultId,
@@ -5750,8 +5597,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(true);
 
-    // An Item with Child Notes lists its live ones, and a Child Note opens
-    // in Zotero through its link.
     const noted = ITEMS.find(({ itemID }) => itemID === 1)!;
     const notes = NOTES.filter(
       (note) => note.parentItemID === noted.itemID && !note.trashed,
@@ -5924,7 +5769,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { snapshot: snapshot },
       );
     });
-    // My Library: more papers than the pane holds.
     await suite.wideWindow(cleanup);
     await obRun(
       run.vaultId,
@@ -5955,23 +5799,16 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
 
     interface Pane {
-      /** Whether the rows overflow the list, so there is a scroll to test. */
       overflows: boolean;
-      /** How far the list scrolled. */
       scrolled: number;
-      /** The on-screen tops of the search box and the heading, before and after the scroll. */
       tops: { before: number[]; after: number[] };
-      /** The room between the rows' rightmost icon and the list's edges, in px. */
       icon: { toClient: number; toEdge: number };
-      /** Obsidian's scrollbar width, in px. */
       scrollbar: number;
-      /** The row the arrow keys selected, against the list and the heading. */
       moved: {
         up: { selected: boolean; inList: boolean; underToolbar: boolean };
         down: { selected: boolean; inList: boolean; underToolbar: boolean };
       };
     }
-    /** Lay the tab out `width` px wide, scroll its list, and move the selection with the arrow keys. */
     const measure = async (width: number): Promise<Pane> =>
       await obRun(
         run.vaultId,
@@ -6097,18 +5934,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       const pane = await measure(width);
       expect(pane.overflows, `${width}px`).toBe(true);
       expect(pane.scrolled, `${width}px`).toBeGreaterThan(0);
-      // The search box and the heading keep their place as the rows scroll.
       expect(pane.tops.after, `${width}px`).toEqual(pane.tops.before);
-      // The rows' icons end inside the list's client box, and at least a
-      // scrollbar's width short of its edge, so neither an overlay
-      // scrollbar nor one that takes room draws over them.
       expect(pane.icon.toClient, `${width}px`).toBeGreaterThan(0);
       expect(pane.icon.toEdge, `${width}px`).toBeGreaterThanOrEqual(
         pane.scrollbar,
       );
-      // ArrowDown from a row scrolled off the top, and ArrowUp from one
-      // scrolled off the bottom, bring the row they select whole into the
-      // list, under the heading.
       const whole = { selected: true, inList: true, underToolbar: true };
       expect(pane.moved, `${width}px`).toEqual({ down: whole, up: whole });
     }
@@ -6149,8 +5979,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     await suite.wideWindow(cleanup);
 
-    // A book with a Literature Note and nothing in Zotero under it, and a
-    // paper with Attachments, a Child Note and its Literature Note.
     const noteOnly = ITEMS.find(({ key }) => key === "NW2CPDTC")!;
     expect(
       ATTACHMENTS.some(({ parentItemID }) => parentItemID === noteOnly.itemID),
@@ -6164,35 +5992,23 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const paper = annotationItem;
 
     interface Expansion {
-      /** The row's `aria-expanded` once the frames are taken. */
       expanded: string | null;
-      /** Per animation frame, from just before the click on: the Item rows, the next one's offset from the expanded one, the rows over another, the rows being read. */
       frames: {
         rows: number;
-        /** The height of the expanded row's own element: a Papers row holds its children. */
         height: number;
         next: number | null;
         overlaps: number;
         status: number;
-        /** The opacity of the "Loading…" text, while a row is read. */
         loading: string | null;
       }[];
-      /** The Item rows the expansion took out of the page. */
       removed: string[];
-      /** Attachment reads sent after the worker delay elapsed. */
       delayedReads: number;
     }
-    /** An Item row to expand: the view that shows it, its rows, and its key. */
     interface Target {
       view: { kind: "library" } | { kind: "query"; path: string };
       rowSelector: string;
       item: string;
     }
-    /**
-     * Click the expander of the target's Item, with its attachment request
-     * held at the worker boundary for `delay` ms, and read each frame until half
-     * a second after that.
-     */
     const expand = async (
       { view, rowSelector, item }: Target,
       delay: number,
@@ -6340,11 +6156,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ).toBe(delay > 0 && item !== noteOnly.key);
       return expansion;
     };
-    /**
-     * The expansion draws the closed row, then the open one: the rows under
-     * it move once, straight to where the open row puts them, and none is
-     * drawn again or over another.
-     */
     const oneStep = (what: string, expansion: Expansion) => {
       expect.soft(expansion.expanded, what).toBe("true");
       expect.soft(expansion.removed, what).toEqual([]);
@@ -6357,8 +6168,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         )
         .toEqual([]);
       expect.soft(frames[0]!.next, what).not.toBeNull();
-      // The row under it moves once: from under the closed row to under
-      // the open one.
       expect
         .soft([...new Set(frames.map(({ next }) => next))], what)
         .toHaveLength(2);
@@ -6367,11 +6176,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         .toBeLessThanOrEqual(2);
     };
 
-    /**
-     * Expand the target with ZotLit Query answering at once, then with it
-     * held 400 ms. A row with rows to read shows them being read in the
-     * late case, in the room they take; the note-only row reads nothing.
-     */
     const expandEach = async (what: string, target: Target) => {
       oneStep(`${what}, fast read`, await expand(target, 0));
       const late = await expand(target, 400);
@@ -6382,7 +6186,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           `${what}, slow read`,
         )
         .toBe(target.item !== noteOnly.key);
-      // Its "Loading…" text shows only once the read has taken a while.
       const loading = late.frames.flatMap(({ loading }) =>
         loading === null ? [] : [loading],
       );
@@ -6393,7 +6196,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         );
     };
 
-    // The Library View in a tab, on Papers.
     await obRun(
       run.vaultId,
       async ({ app, zotlit, page }, { myLibraryDocument }) => {
@@ -6435,7 +6237,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       item: paper.key,
     });
 
-    // The Library View in the sidebar.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -6463,7 +6264,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       item: paper.key,
     });
 
-    // A Query File tab on Papers, then on the Table.
     for (const layout of ["papers", "table"]) {
       await obRun(
         run.vaultId,

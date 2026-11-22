@@ -4,7 +4,6 @@ import type {
   WorkbenchInputSuggestionsRequest,
   WorkbenchRunner,
 } from "#obsidian/workbench-ui/index.tsx";
-// Native input suggestions, Markdown lifecycle and editor popups for the shared Template Workbench tree.
 import { Compartment } from "@codemirror/state";
 import { tooltips, ViewPlugin } from "@codemirror/view";
 import { Effect } from "effect";
@@ -80,19 +79,16 @@ class MatchInputSuggest extends AbstractInputSuggest<WorkbenchSuggesterOption> {
   }
 }
 
-/** A mount's own Effect as a host member: its failure becomes a host failure. */
 export const hostEffect = <A, E>(
   effect: Effect.Effect<A, E>,
 ): Effect.Effect<A, WorkbenchHostError> =>
   Effect.mapError(effect, (cause) => new WorkbenchHostError({ cause }));
 
-/** The render of a mount that renders no template: each one fails with `reason`. */
 export const refuseRender =
   (reason: string): WorkbenchHost["render"] =>
   () =>
     Effect.fail(new WorkbenchHostError({ cause: new Error(reason) }));
 
-/** Puts `text` on the system clipboard; the Template Data Explorer copies the same way. */
 export const copyToClipboard = (
   text: string,
 ): Effect.Effect<void, WorkbenchClipboardError> =>
@@ -101,7 +97,6 @@ export const copyToClipboard = (
     catch: (cause) => new WorkbenchClipboardError({ cause }),
   });
 
-/** A tag's syntax and example read in the docstring, not in a row cell. */
 const templateCompletionPresentation = nativeCompletion((completion) => {
   const suggestion = completionSuggestion(completion);
   return (
@@ -115,7 +110,6 @@ const templateCompletionPresentation = nativeCompletion((completion) => {
 export function createTemplateWorkbenchHost(
   app: App,
   ports: Pick<WorkbenchHost, "render" | "matchData" | "insertTarget"> & {
-    /** The leaf's runner, for the host's own popups. */
     readonly run: WorkbenchRunner;
   } & Partial<
       Pick<
@@ -123,13 +117,7 @@ export function createTemplateWorkbenchHost(
         "markdown" | "partials" | "openCitationEngineSettings" | "fieldsAction"
       >
     > & {
-      /** The view an editor hover popover belongs to; one popover shows at a time. */
       hoverParent?: HoverParent;
-      /**
-       * Moves a selection into a Shared Partial, which puts "Extract to
-       * partial…" on every Template editor's context menu. A host that writes
-       * no files supplies none and the menu stays away.
-       */
       extractPartial?: ExtractPartial;
     },
 ): WorkbenchHost & Disposable & { readonly run: WorkbenchRunner } {
@@ -169,7 +157,6 @@ export function createTemplateWorkbenchHost(
           }),
         })),
         templateCompletion(read, templateCompletionPresentation),
-        // The list's keys, on the keymap as Obsidian's suggesters take them.
         obsidianPopupKeys(app),
         templateHover(read, hoverParent),
         extractPartial

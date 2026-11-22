@@ -25,17 +25,12 @@ import { isInertTemplateError } from "#core/template/errors.ts";
 import { plainNoteError } from "#obsidian/note-feature/errors.ts";
 import { missingPartialNotice } from "#obsidian/template/workbench-recovery.ts";
 
-/** The progress notice of a single-note update, with its messages as functions. */
 export interface UpdateNoteCopy extends ProgressCopy<UpdateResult> {
   readonly loading: string;
   readonly success: (result: UpdateResult) => NoticeMessage;
-  /** The message for what the update failed with; a Note Feature failure shows what its render or rewrite threw. */
   readonly error: (error: unknown) => NoticeMessage;
 }
 
-/** Toast copy for a single-note update, framed by `scope`. A `metadata` update
- *  never touches the body, so it reports as "metadata updated" rather than the
- *  full update's region-aware messages. */
 export function updateNoteToast(
   scope: UpdateScope,
   options: { app?: App } = {},
@@ -77,27 +72,17 @@ export function updateNoteToast(
   };
 }
 
-/**
- * The notices a note update shows. The caller builds them over the `App` that
- * their recovery actions open, so the update itself holds no `App`.
- */
 export interface BatchUpdateNotices {
-  /** The single update's toast copy for `scope`. */
   readonly updateToast: (scope: UpdateScope) => UpdateNoteCopy;
-  /** The standard create notice of one note create. */
   readonly createToast: ProgressCopy<CreateNoteResult>;
-  /** The batch modal's notice when its run fails. */
   readonly runFailed: (error: unknown) => string | DocumentFragment;
 }
 
-/** The note update's notices, with recovery actions that open in `app`. */
 export function batchUpdateNotices(app: App): BatchUpdateNotices {
   return {
     updateToast: (scope) => updateNoteToast(scope, { app }),
     createToast: createNoteToast({ app }, plainNoteError),
     runFailed: (error) => {
-      // The modal hands back what the run failed with; a Note Feature
-      // failure carries what the render or the rewrite threw.
       const cause = plainNoteError(error);
       return (
         missingPartialNotice(cause, { app }) ??
@@ -109,10 +94,6 @@ export function batchUpdateNotices(app: App): BatchUpdateNotices {
   };
 }
 
-/**
- * Update `file` behind its progress notice. The notice tells the user how the
- * update went, so a typed failure ends here; a defect or an interrupt passes.
- */
 export const updateWithNotice = Effect.fnUntraced(function* (
   file: TFile,
   options: UpdateNoteOptions,
@@ -124,13 +105,6 @@ export const updateWithNotice = Effect.fnUntraced(function* (
   ).pipe(Effect.ignore);
 });
 
-/**
- * Run `create` behind the create notice, started only after the user's Profile
- * decision has settled. `created` replaces the plain success notice, e.g. to
- * name the Profile and path a resolved selection wrote to. Returns the created
- * file, or `null` when the create wrote nothing or failed: the notice already
- * told the user. An interrupt passes.
- */
 export const createWithNotice = Effect.fnUntraced(function* <E, R>(
   create: Effect.Effect<CreateNoteResult, E, R>,
   options: { app?: App; created?: (file: TFile) => string } = {},
@@ -142,10 +116,6 @@ export const createWithNotice = Effect.fnUntraced(function* <E, R>(
   return result?.outcome === "created" ? result.file : null;
 });
 
-/**
- * The create notice's messages. `plainError` gives what a failure threw, for
- * a caller that holds the failure around it.
- */
 export function createNoteToast(
   options: { app?: App; created?: (file: TFile) => string },
   plainError: (error: unknown) => unknown = (error) => error,
@@ -168,7 +138,6 @@ export function createNoteToast(
   };
 }
 
-/** The caller's words for a created note, a Profile recovery when the app can offer one, else the plain outcome. */
 function createNoteSuccessNotice(
   result: CreateNoteResult,
   options: { app?: App; created?: (file: TFile) => string },
@@ -234,7 +203,6 @@ export function noteOperationDiagnosticNotice(
   }
 }
 
-/** Actionable rendering stays at the UI seam; core errors keep plain text. */
 export function noteOperationDiagnosticContent(
   app: App,
   diagnostic: NoteOperationDiagnostic,

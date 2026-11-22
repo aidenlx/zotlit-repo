@@ -32,15 +32,10 @@ function mount(doc: string, language: Extension) {
     }),
     parent: document.body,
   });
-  // The editor's first parse stops after 20 ms, which a loaded machine
-  // overruns, and the tokens of the partial tree can carry the wrong class
-  // until a later idle callback. Finish the parse so the tokens read are the
-  // final ones.
   forceParsing(view, view.state.doc.length, Infinity);
   return view;
 }
 
-/** The text under each element of one hook class, in document order. */
 function texts(editor: EditorView, hook: string): string[] {
   return [...editor.contentDOM.querySelectorAll(`.${hook}`)].map(
     (element) => element.textContent,
@@ -134,10 +129,6 @@ describe("template token hooks", () => {
   });
 });
 
-/**
- * A code pane in `document.body`, closed when its scope ends. Declared after
- * the window-migration stub, it closes before the stub is restored.
- */
 function codePaneEditor(doc: string) {
   const editor = new EditorView({
     state: EditorState.create({ doc, extensions: [codePane] }),
@@ -169,8 +160,6 @@ describe("code panes", () => {
   });
 
   it("takes the document it stands in as its root when it takes focus, though no move was told", () => {
-    // Obsidian tells of a move when the element shows, which an editor in a
-    // closed popover does not.
     using _host = windowMigration();
     using pane = codePaneEditor("{{ zt.title }}");
     const { editor } = pane;

@@ -4,7 +4,6 @@ import type {
   SegmenterBinary,
   WorkLabelSource,
 } from "#contract/rpc.ts";
-// The ZoteroReads handler layer: each operation composes @zotlit/db query functions over a borrowed Connection.
 import { chunk } from "@std/collections/chunk";
 import {
   Cause,
@@ -84,20 +83,12 @@ import {
   ZoteroReads,
 } from "#contract/rpc.ts";
 
-/** The collection queries `ScopeItemIDs` runs, per kind. */
 const COLLECTION_SCOPE_QUERIES = {
   "literature-items": getIndexedItemIDsByCollection,
   notes: getNoteItemIDsByCollection,
 } as const;
 
-/** The host's Item Query adapter: it answers the Query Jobs of `ItemQuery`. */
 export interface QueryJobRunner {
-  /**
-   * Run one job to its answer on the client it borrowed. `databaseFile` is
-   * the file the client opened from, or null. The job writes its export and
-   * probes Attachment files through the `FileSystem`, and closes its files in
-   * the given scope, before the borrow ends. Interruption cancels the job.
-   */
   readonly run: (
     job: ItemQueryJob,
     read: {
@@ -109,61 +100,21 @@ export interface QueryJobRunner {
     never,
     FileSystem.FileSystem | Scope.Scope
   >;
-  /** The answer of a job that `CancelItemQuery` or the client interrupted. */
   readonly cancelled: (job: ItemQueryJob) => ItemQueryAnswer;
 }
 
-/** Items per stream slice: a cancel point about every 300 ms on a large library. */
 export const DEFAULT_SLICE_SIZE = 500;
 
 export interface HandlersOptions {
-  /**
-   * Items per stream slice; one slice is one emission and one cancel point.
-   * Tests shrink it to see several slices from a small fixture.
-   *
-   * @default {@link DEFAULT_SLICE_SIZE}
-   */
   sliceSize?: number;
-  /** ItemID span per citation read, across every Library. */
   citationWindowSize?: number;
-  /**
-   * The UI locale the Item Index formats creator names with, until
-   * `Configure` sends another.
-   *
-   * @default null
-   */
   locale?: string | null;
-  /**
-   * The installed Chinese Segmenter binary at start, until `Configure` sends
-   * another.
-   *
-   * @default null
-   */
   chineseSegmenter?: SegmenterBinary | null;
-  /**
-   * Reads the binary's bytes: the worker reads its entry in the Resource Pack; tests
-   * pass the bytes of the `jieba-wasm` dev dependency. Without it every pack
-   * reads as unreadable.
-   */
   readSegmenter?: ReadSegmenter;
-  /**
-   * Applies the log level `Configure` sends: the worker reconfigures the
-   * logger that forwards its records. Without it the level goes unused.
-   */
   applyLogLevel?: (level: ReadsConfig["logLevel"]) => Effect.Effect<void>;
-  /**
-   * Runs the Query Jobs of `ItemQuery`. Without it a Query Job dies: the host
-   * has no Item Query adapter.
-   */
   queryJobs?: QueryJobRunner;
 }
 
-/**
- * One slice per element: each slice is its own query and its own message, and
- * an interrupt lands between slices. The server reads the next slice only once
- * the client acknowledged the last, so other requests interleave with a long
- * stream.
- */
 function sliced<I, O>(
   client: ZoteroDatabase,
   slices: readonly I[][],
@@ -174,7 +125,6 @@ function sliced<I, O>(
   );
 }
 
-/** Live attachments for Indexed Keys, in request order; misses drop out. */
 function attachmentsByIndexedKeys(
   client: ZoteroDatabase,
   indexedKeys: readonly string[],
@@ -223,7 +173,6 @@ function workLabelSource(
   };
 }
 
-/** A host without an Item Query adapter: a Query Job is a defect. */
 const noQueryJobs: QueryJobRunner = {
   run: (job) =>
     Effect.die(new Error(`No Item Query adapter runs the Query Job ${job.id}`)),
@@ -232,12 +181,10 @@ const noQueryJobs: QueryJobRunner = {
   },
 };
 
-/** Lookup memos that stay valid for one database state. */
 interface NoteMemos {
   readonly collectionCache: CollectionCache;
   readonly tagMemo: TagMemo;
   readonly groupIdMemo: GroupIDMemo;
-  /** The signed-in account username; `undefined` until first read. */
   username?: string | null;
 }
 
@@ -249,12 +196,9 @@ function noteMemos(): NoteMemos {
   };
 }
 
-/** A connection a Snapshot pinned, with the reads using it right now. */
 interface Pinned {
   readonly client: ZoteroDatabase;
-  /** Shared by the Snapshot's reads: a batch resolves each tag and collection once. */
   readonly memos: NoteMemos;
-  /** Holds the borrow; closes after the Snapshot ends and its last read finishes. */
   readonly scope: Scope.Closeable;
   readonly counters: Ref.Ref<{
     readonly active: number;
@@ -264,15 +208,8 @@ interface Pinned {
 
 export function handlersLayer(options?: HandlersOptions) {
   const sliceSize = options?.sliceSize ?? DEFAULT_SLICE_SIZE;
-  /** Cut `inputs` into stream slices. */
   const slicesOf = <I>(inputs: readonly I[]): I[][] => chunk(inputs, sliceSize);
 
-  /**
-   * One entry per requested id, in request order, sliced. `lookup` reads a
-   * whole slice through batched `@zotlit/db` queries (one statement each, never
-   * one per id); `entry` builds each id's entry from that result without the
-   * database. The stream's lookups share one group-id memo.
-   */
   const idEntries = <L, E>(
     client: ZoteroDatabase,
     itemIDs: readonly number[],
@@ -295,7 +232,6 @@ export function handlersLayer(options?: HandlersOptions) {
     });
   };
 
-  /** The Item Index over the connection, with the start settings. */
   const itemIndexLayer = layerItemIndex({
     locale: options?.locale ?? null,
     segmenterBinary: options?.chineseSegmenter ?? null,
@@ -309,13 +245,11 @@ export function handlersLayer(options?: HandlersOptions) {
   const handlers = ZoteroReads.toLayer(
     Effect.gen(function* () {
       const connection = yield* Connection;
-      // The Query Jobs write their exports and probe Attachment files here.
       const fs = yield* FileSystem.FileSystem;
       const itemIndex = yield* Effect.flatMap(
         Layer.build(itemIndexLayer),
         (context) => Effect.provideContext(ItemIndex, context),
       );
-      // One Configure at a time, in arrival order, so the connection rebinds in the order the settings arrived.
       const configuring = yield* Semaphore.make(1);
       const configure = (config: ReadsConfig) =>
         itemIndex
@@ -337,8 +271,6 @@ export function handlersLayer(options?: HandlersOptions) {
         options?.citationWindowSize ?? CITEKEY_WINDOW,
       );
       const pinned = new Map<SnapshotId, Pinned>();
-      // The running Query Jobs by job id, from the wait for a slot to the
-      // answer. Interruption of a fiber is the cancel of its job.
       const queryJobs = yield* FiberMap.make<string>();
       const queryJobRunner = options?.queryJobs ?? noQueryJobs;
       const querySlots = yield* Semaphore.make(2);
@@ -353,10 +285,6 @@ export function handlersLayer(options?: HandlersOptions) {
           ),
         );
 
-      /**
-       * Borrow for the caller's scope: the Snapshot's pinned connection when
-       * one is named, the current connection otherwise.
-       */
       const borrow = (
         snapshot: SnapshotId | undefined,
       ): Effect.Effect<
@@ -379,7 +307,6 @@ export function handlersLayer(options?: HandlersOptions) {
         ).pipe(Effect.map((entry) => entry.client));
       };
 
-      /** Borrow for one request and run `f` on the client. */
       const withClient = <A>(
         snapshot: SnapshotId | undefined,
         f: (client: ZoteroDatabase) => A,
@@ -388,14 +315,9 @@ export function handlersLayer(options?: HandlersOptions) {
           Effect.flatMap(borrow(snapshot), (client) => read(client, f)),
         );
 
-      /**
-       * The memos a note read shares: the Snapshot's, so a batch under one
-       * Snapshot reads each item once, or fresh ones for an unpinned read.
-       */
       const memosOf = (snapshot: SnapshotId | undefined): NoteMemos =>
         (snapshot !== undefined && pinned.get(snapshot)?.memos) || noteMemos();
 
-      /** Borrow for a stream's whole life and build the stream on the client. */
       const withClientStream = <A>(
         snapshot: SnapshotId | undefined,
         f: (client: ZoteroDatabase) => Stream.Stream<A, DbUnavailable>,
@@ -420,8 +342,6 @@ export function handlersLayer(options?: HandlersOptions) {
                 ),
               ),
             );
-            // An interrupted request, such as from a closed client, ends the
-            // job before the request settles.
             const exit = yield* Fiber.await(fiber).pipe(
               Effect.onInterrupt(() => Fiber.interrupt(fiber)),
             );
@@ -463,7 +383,6 @@ export function handlersLayer(options?: HandlersOptions) {
               memo: memos.groupIdMemo,
             })[0];
             if (!item) return null;
-            // A batch under one Snapshot reads the account once.
             if (!("username" in payload) && memos.username === undefined)
               memos.username = getZoteroIdentity(client).username;
             return fetchNoteSource(client, item, {
@@ -567,7 +486,6 @@ export function handlersLayer(options?: HandlersOptions) {
             return labels;
           }),
 
-        // Keyset pages in itemID order: one statement per slice.
         AttachmentPathIndex: ({ snapshot }) =>
           withClientStream(snapshot, (client) => {
             const memo: GroupIDMemo = new Map();
@@ -592,8 +510,6 @@ export function handlersLayer(options?: HandlersOptions) {
 
         Snapshot: () =>
           Stream.unwrap(
-            // Uninterruptible from the borrow to the finalizer, so an
-            // interrupt cannot strand the pinned borrow outside every scope.
             Effect.uninterruptibleMask((restore) =>
               Effect.gen(function* () {
                 const scope = yield* Scope.make();
@@ -611,9 +527,6 @@ export function handlersLayer(options?: HandlersOptions) {
                   }),
                 };
                 pinned.set(id, entry);
-                // The Snapshot lives as long as its stream: the stream's scope
-                // ends when the caller ends the stream or its client goes
-                // away. The pinned borrow ends after the Snapshot's last read.
                 yield* Effect.addFinalizer(() =>
                   Effect.gen(function* () {
                     pinned.delete(id);
@@ -686,7 +599,6 @@ export function handlersLayer(options?: HandlersOptions) {
               : [];
           }),
 
-        // The numeric ids a push carries stop here.
         ReaderTargetKeys: ({ attachmentID, selected, snapshot }) =>
           withClient(snapshot, (client) => {
             const attachment = getAttachmentByItemId(client, attachmentID);

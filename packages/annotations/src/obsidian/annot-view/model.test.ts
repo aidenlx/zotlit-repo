@@ -62,7 +62,6 @@ describe("the Annotation View model", () => {
 
     registry.update(held.state, pinItem("ITEMAAAA"));
     registry.update(unheld.state, pinItem("ITEMAAAA"));
-    // An unread atom is removed on a later task and drops its state.
     await vi.waitFor(() =>
       expect(registry.getNodes().has(unheld.cards)).toBe(false),
     );

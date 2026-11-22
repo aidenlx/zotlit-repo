@@ -1,5 +1,3 @@
-// The Resource Pack's content: each Pack Entry from its installed upstream
-// package, checked against the pin in this app's package.json (`packEntries`).
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -13,18 +11,12 @@ const packageRoot = resolve(import.meta.dirname, "..");
 
 interface PinnedSource {
   readonly source: PackSource;
-  /** The binary's licence text and source link. */
   readonly notice: string;
 }
 
-/**
- * The web-target binary inside `jieba-wasm`. ZotLit loads it through the same
- * package's web glue.
- */
 const JIEBA_BINARY = "pkg/web/jieba_rs_wasm_bg.wasm";
 const JIEBA_SOURCE = "https://github.com/fengkx/jieba-wasm";
 
-/** @throws when package.json pins no entry `name`. */
 function pinOf(pins: PackPins, name: string): PackEntryPin {
   const pin = pins[name];
   if (!pin) throw new Error(`package.json has no pin for "${name}"`);
@@ -56,11 +48,8 @@ async function chineseSegmenter(
   };
 }
 
-/** The binary inside `pandoc-wasm`: the `pandoc.wasm` of the official Pandoc release. */
 const PANDOC_BINARY = "src/pandoc.wasm";
-/** The file of `pandoc-wasm` that states the Pandoc release its binary is. */
 const PANDOC_VERSION = "pandoc-version.txt";
-/** The GNU General Public License, version 2: `COPYING.md` of the Pandoc source. */
 const PANDOC_COPYING = join(packageRoot, "licences", "pandoc-COPYING.txt");
 
 async function pandocEngine(
@@ -94,27 +83,14 @@ async function pandocEngine(
   };
 }
 
-/**
- * The smallest gzip zlib writes. The pack is built once and downloaded by
- * each researcher, so the build takes the time.
- */
 const gzipSmallest = promisify(gzip);
 
 export interface ResourcePackOptions {
-  /** `packEntries` of package.json. */
   readonly pins: PackPins;
-  /** Root of the installed `jieba-wasm` package. */
   readonly jiebaWasm: string;
-  /** Root of the installed `pandoc-wasm` package. */
   readonly pandocWasm: string;
 }
 
-/**
- * The bytes of the pack's `main.js`.
- *
- * @throws when an entry has no pin, or when an installed package has another
- *   version than its pin or its binary another hash.
- */
 export async function buildResourcePack(
   options: ResourcePackOptions,
 ): Promise<Uint8Array<ArrayBuffer>> {

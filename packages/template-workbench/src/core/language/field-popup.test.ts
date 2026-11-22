@@ -24,10 +24,6 @@ const VOCABULARY: ExpressionVocabulary = {
 
 afterEach(() => document.body.replaceChildren());
 
-/**
- * A focused editor holding `doc` with the caret at its end, over `extension`.
- * @returns The view, the keys pressed into it and the list it shows.
- */
 function editor(doc: string, extension: Extension) {
   const focus = documentFocus();
   const view = new EditorView({
@@ -43,17 +39,14 @@ function editor(doc: string, extension: Extension) {
     view,
     text: () => view.state.doc.toString(),
     listOpen: () => selectedCompletionIndex(view.state) !== null,
-    /** Opens the list and waits until it takes keys. */
     async open() {
       startCompletion(view);
       await vi.waitFor(() => {
         if (selectedCompletionIndex(view.state) === null)
           throw new Error("no list yet");
       });
-      // CodeMirror ignores an accept key in the list's first moments.
       await new Promise((resolve) => setTimeout(resolve, 100));
     },
-    /** Presses `key` into the editor, reporting whether the editor took it. */
     press(key: string, init: KeyboardEventInit = {}) {
       const event = new KeyboardEvent("keydown", {
         key,
@@ -71,8 +64,6 @@ function editor(doc: string, extension: Extension) {
   };
 }
 
-// Template Completion opens through the same `syntaxCompletion`, so one
-// language proves the keys of both.
 const DOC = "titl";
 const COMPLETION = [
   filterExpressionLanguage,
@@ -95,7 +86,6 @@ describe("Expression Completion", () => {
     expect(field.press("Escape")).toBe(true);
     expect(field.listOpen()).toBe(false);
     expect(field.text()).toBe(DOC);
-    // With the list closed, Escape is the host's.
     expect(field.press("Escape")).toBe(false);
   });
 
@@ -127,7 +117,6 @@ describe("Expression Completion", () => {
 });
 
 describe("a host that owns the keys", () => {
-  /** A host adapter that records each hold and hands back its keys. */
   function fakeHost() {
     const holds: { keys: FieldPopupKeys; released: boolean }[] = [];
     return {
@@ -139,7 +128,6 @@ describe("a host that owns the keys", () => {
           hold.released = true;
         };
       }),
-      /** The holds standing. */
       standing: () => holds.filter((hold) => !hold.released),
     };
   }
@@ -153,8 +141,6 @@ describe("a host that owns the keys", () => {
     expect(host.holds[0]!.released).toBe(true);
   });
 
-  // The host gives the keys back on its own as the editor moves to another
-  // window; the list still stands when the field takes focus there.
   it("hands the keys over again as the field takes focus, after the host let go of them on its own", async () => {
     const host = fakeHost();
     using field = editor(DOC, [COMPLETION, host.extension]);

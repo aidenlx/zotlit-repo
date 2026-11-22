@@ -1,6 +1,3 @@
-// A test host's capability tags, over in-memory sources (`layerHost`) or over
-// the members of its `app` for a layer under test that still reads both
-// (`layerHostApp`). Each capability tag adds its layer here.
 import type { App } from "obsidian";
 
 import { Layer } from "effect";
@@ -31,7 +28,6 @@ import { MemoryMetadataCache } from "./obsidian-metadata-cache.ts";
 import { MemoryVault } from "./obsidian-vault.ts";
 import { MemoryWorkspace } from "./obsidian-workspace.ts";
 
-/** The Obsidian objects a test host gives the capability tags. */
 export interface HostSources {
   readonly deviceStorage?: DeviceStorageSource;
   readonly fileManager?: FileManagerSource;
@@ -40,7 +36,6 @@ export interface HostSources {
   readonly workspace?: WorkspaceSource;
 }
 
-/** The capability tags a test host gives. */
 export type HostTags =
   | DeviceStorage
   | FileManager
@@ -48,10 +43,6 @@ export type HostTags =
   | Vault
   | Workspace;
 
-/**
- * Each capability tag over its source in `sources`; a source the host leaves
- * out is an empty in-memory one.
- */
 export function layerHost(sources: HostSources = {}): Layer.Layer<HostTags> {
   const vault = layerVaultFrom(sources.vault ?? new MemoryVault());
   return Layer.mergeAll(
@@ -67,7 +58,6 @@ export function layerHost(sources: HostSources = {}): Layer.Layer<HostTags> {
   );
 }
 
-/** `ObsidianApp` as `app`, and each capability tag over its member of `app`. */
 export function layerHostApp(
   app: App,
 ): Layer.Layer<ObsidianApp | HostTags> {

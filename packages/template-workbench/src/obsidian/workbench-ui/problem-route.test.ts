@@ -11,7 +11,6 @@ import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
 
 const profile = () => new WorkbenchDocumentController(DEFAULT_PROFILE_SOURCE);
 
-/** The reader somewhere else: on Advanced, a row open, a field focused. */
 const AWAY: WorkbenchViewState = {
   ...INITIAL_VIEW,
   tab: "match",

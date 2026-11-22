@@ -40,20 +40,17 @@ const ATTACHMENTS: AnnotViewAttachment[] = [
   },
 ];
 
-/** An Item the header can name: its own title over its creators and year. */
 const PAPER: ItemSummary = {
   title: "A paper",
   subtitle: "Author (2024)",
   formatted: "Author (2024): A paper",
 };
 
-/** Editing is on, so no capability reaches the header or its menu. */
 const WRITABLE: EditingCapability = { kind: "writable" };
 
 const NOW = Temporal.Instant.from("2026-09-22T10:00:00Z");
 const RETRY_AFTER = deadlineAfter(NOW, 30);
 
-/** A view showing a Literature Note's Item with two attachments. */
 function state(overrides: Partial<AnnotState> = {}): AnnotState {
   return {
     ...initialAnnotState(),
@@ -81,7 +78,6 @@ function state(overrides: Partial<AnnotState> = {}): AnnotState {
   };
 }
 
-/** What the menu runs, in the order it offers it. */
 function entryActions(entries: FollowMenuEntry[]): FollowMenuAction[] {
   return entries.map((entry) => entry.action);
 }
@@ -105,7 +101,6 @@ describe("the Follow Mode menu", () => {
   });
 
   it("leaves out the pin while no Item stands to be pinned", () => {
-    // A standalone Attachment: an Attachment stands, but no Item owns it.
     const standalone = state({ itemKey: null, pinnable: null });
 
     expect(entryActions(followModeMenu(standalone))).toStrictEqual([
@@ -252,8 +247,6 @@ describe("what stands where the card list would", () => {
   });
 
   it("does not deny a pin it is still holding", () => {
-    // A pin whose library the database cannot name resolves to nothing, but
-    // the pin stands — telling the user to pin something would be a lie.
     expect(
       annotViewBody(
         state({
@@ -456,7 +449,6 @@ describe("the header's shape", () => {
   });
 });
 
-/** The rows one group offers, each as its text and what pressing it runs. */
 function rows(group: HeaderMenuEntry[]): (string | undefined)[][] {
   return group.map((entry) => [
     entry.label,

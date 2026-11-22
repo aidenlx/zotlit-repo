@@ -7,10 +7,6 @@ import { gunzipSync } from "node:zlib";
 
 import { seedScenario } from "./seed.ts";
 
-// Test helper: the Item Query scenario on a copy of the Fixture's pristine
-// Zotero 10 database. Separate from `createFixtureSchema` in `../fixtures.ts`,
-// which hand-writes a table subset for the existing query tests.
-
 export {
   BULK_FIFTH_TAG,
   BULK_LIBRARY,
@@ -31,42 +27,18 @@ export {
 export type ScenarioLayout = "highest" | "lowest";
 
 export interface ScenarioDatabaseOptions {
-  /** Add the Annotation Query scenario to the Item scenario. */
   annotations?: boolean;
-  /**
-   * `"memory"` (default) holds the copy in memory. `"temp-directory"` writes it
-   * to `zotero.sqlite` in a new temporary directory that `close` removes.
-   */
   storage?: "memory" | "temp-directory";
-  /**
-   * `"highest"` keeps the pristine Zotero 10 layout. `"lowest"` gives the
-   * lowest supported layout: the columns Zotero added after `userdata` 125 are
-   * dropped and the versions read `userdata` 125 / `compatibility` 7. The
-   * default is the `ZOTLIT_SCENARIO_LAYOUT` environment variable, so a test
-   * project can run a whole scenario on the lowest layout; else `"highest"`.
-   */
   layout?: ScenarioLayout;
 }
 
-/**
- * An open scenario copy. `db` is the client that the `connect` argument of
- * {@link openScenarioDatabase} made on `sqlite`, so a test reads the copy
- * through the driver it tests.
- */
 export interface ScenarioDatabase<Client> extends Disposable {
   db: Client;
   sqlite: DatabaseSync;
-  /** `":memory:"`, or the file path of the copy. */
   path: string;
   close(): void;
 }
 
-/**
- * Columns Zotero added after `userdata` 125: the normalized shadow columns of
- * migration 126 and the `clientVersion` columns of migration 129.
- *
- * @see https://github.com/zotero/zotero/blob/10.0.0/chrome/content/zotero/xpcom/schema.js
- */
 const COLUMNS_AFTER_USERDATA_125 = [
   ["items", "clientVersion"],
   ["itemDataValues", "valueNormalized"],
@@ -84,13 +56,6 @@ const LOWEST_VERSIONS = { userdata: 125, compatibility: 7 } as const;
 
 let pristineBytes: Buffer | undefined;
 
-/**
- * Open a copy of the Fixture's pristine Zotero 10 database with the Item Query
- * scenario inserted. Zotero's lookup tables, triggers, and foreign keys are the
- * ones Zotero made; address scenario rows through `SCENARIO_ITEMS`. `connect`
- * makes the client of the copy, such as `connectClient` from
- * `@zotlit/db/client/node`.
- */
 export function openScenarioDatabase<Client>(
   connect: (sqlite: DatabaseSync) => Client,
   options: ScenarioDatabaseOptions = {},
@@ -149,11 +114,6 @@ function toLowestLayout(sqlite: DatabaseSync): void {
   stamp.run(LOWEST_VERSIONS.compatibility, "compatibility");
 }
 
-/**
- * The committed template the Fixture build copies (ADR 0022). It lives in
- * `@zotlit/scripts`, which depends on `@zotlit/db`, so the path resolves from
- * this package's root instead of through an import.
- */
 function pristineTemplatePath(): string {
   const packageRoot = dirname(
     createRequire(import.meta.url).resolve("@zotlit/db-testing/package.json"),

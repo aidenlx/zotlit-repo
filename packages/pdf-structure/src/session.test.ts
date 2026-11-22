@@ -20,7 +20,6 @@ beforeEach(() => {
   records = [];
 });
 
-/** One 10 pt glyph per page, at a page-dependent height. */
 const glyphs = (pageIndex: number): ZoteroChar[] => [
   {
     c: "7",
@@ -99,7 +98,6 @@ describe("a Reader Session's Page Labels", () => {
   });
 
   it("answer the page's own number once the document closes before the pass ends", async () => {
-    // A closed PDF.js document never answers the reads it was asked.
     const { source } = stubSource({
       getCatalogPageLabels: () => new Promise(() => {}),
     });
@@ -217,7 +215,6 @@ describe("a Reader Session's range adjustment", () => {
 describe("the text rotation a Reader Session reads synchronously", () => {
   it("is unknown until the page is structured, then read from its characters", async () => {
     const structure = new PdfTextStructure(stubSource().source);
-    // Page zero's one glyph spans x 72–78 and y 695–707.
     const rect = [70, 690, 80, 710] as const;
 
     expect(structure.textRotation(0, rect)).toBeNull();

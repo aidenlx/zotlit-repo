@@ -4,8 +4,6 @@ import type { ValueShape } from "./fields.ts";
 import { planPath, readPath } from "./projection.ts";
 import type { ProjectionValue } from "./request.ts";
 
-// Projection vectors cover missing members, null positions, nested lists,
-// numeric indexes after [], quoted keys, and an exact empty-bracket token.
 const creators: ValueShape = {
   kind: "list",
   element: {

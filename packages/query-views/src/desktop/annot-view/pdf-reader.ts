@@ -1,4 +1,3 @@
-// The ZotLit PDF Reader, as the Target Opener opens a file in it.
 import { Effect } from "effect";
 
 import { obsidianAttachmentReader } from "@zotlit/annotations/desktop/attachment-open/obsidian-reader.ts";
@@ -11,12 +10,6 @@ import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/servic
 
 import { activateAnnotView } from "./register.ts";
 
-/**
- * The ZotLit PDF Reader as the Target Opener drives it: the file opens, and
- * the annotation view comes forward beside it so the Item's Annotations are on
- * screen. `reader.focus-annot-view` drops the second step for a user who
- * keeps the sidebar arranged their own way.
- */
 export const pdfReader: Effect.Effect<
   TargetReader<ReaderOpenFailed>,
   never,

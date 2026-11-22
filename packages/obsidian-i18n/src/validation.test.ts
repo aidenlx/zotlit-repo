@@ -1,5 +1,3 @@
-// Direct seam tests for validateLanguagePack against the bounded runtime contract.
-
 import { describe, expect, test } from "vitest";
 
 import {

@@ -111,12 +111,9 @@ function viewOf(
   }: {
     enabled?: boolean;
     formatted?: boolean;
-    /** The formatted citation the shared text holds for the document. */
     content?: RenderedCitation;
   } = {},
 ) {
-  // Held once, the way the service holds one document's answer: every ask
-  // gets the same value, which is what lets a widget compare by reference.
   const value: DocumentCitations = {
     entrySerials: false,
     formatted: new Map([
@@ -178,8 +175,6 @@ function viewOf(
           open: () => undefined,
           showPopover: () => undefined,
           hoverPreferences: () => hoverPreferences(defaults),
-          // Hover and click are this surface's own suite; here the Citation is
-          // only drawn.
           popoverHover: () => false,
           clickIntercepted: () => false,
         }),
@@ -302,8 +297,6 @@ describe("wikilinkEditorExtension citation rendering", () => {
       changes: { from: view.state.doc.length, insert: " more" },
     });
 
-    // The held text is unchanged, so CodeMirror keeps the element it already
-    // drew.
     expect(view.dom.querySelector(".zt-citation")).toBe(drawn);
   });
 });

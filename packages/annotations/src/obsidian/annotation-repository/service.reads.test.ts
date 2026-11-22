@@ -1,4 +1,3 @@
-// The Annotation Repository's reads and holds: both Annotation Sources, the database partition, source moves, and the Editing Capability.
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Fiber } from "effect";
 import { expect, vi } from "vitest";
@@ -42,7 +41,6 @@ import {
 } from "#__fixtures__/annotation-repository.ts";
 import { excerptFingerprint } from "#obsidian/excerpt-image/contract.ts";
 
-/** Each Annotation's lock, by key. */
 function locksOf(list: AnnotationList | null) {
   return Object.fromEntries(
     list?.annotations.map(({ key, lock }) => [key, lock]) ?? [],
@@ -122,8 +120,6 @@ it.effect(
         C94NJNYG: "pdf-rects",
         FDRFQ7C2: "pdf-rects",
       });
-      // The Annotation row carries no content type of its own, so a repository that
-      // skipped the join back to the attachment would read this as an unknown shape.
       expect(epub?.annotations.map(({ position }) => position)).toEqual([
         { kind: "epub-cfi", value: "epubcfi(/6/4!/4/2)" },
       ]);
@@ -240,7 +236,6 @@ it.effect("shares one refresh and publishes the canonical held result", () =>
 
     const refreshed = yield* Fiber.join(overlay);
     expect(yield* Fiber.join(view)).toBe(refreshed);
-    // One revalidation for both: it refreshes the Zotero database once.
     expect(reads.db.refresh).toHaveBeenCalledTimes(1);
     expect(batchReads(reads)).toBe(2);
     expect(refreshed).toBe(first);
@@ -282,7 +277,6 @@ it.effect(
         "update itemAnnotations set color = '#5fb236' where itemID = 48;",
       );
 
-      // A stale list stands until the database says it moved.
       const held = yield* service.peek("RGRPDF24");
       expect(held?.status).toBe("fresh");
       expect(colorOf(held?.value ?? null, "PUPR5FG5")).toBe("#2ea8e5");
@@ -337,10 +331,7 @@ it.effect(
       );
 
       const announced = yield* nextChangeOf(service);
-      // The first ask arms the Capability Probe and is answered meanwhile by the
-      // source that is known to stand.
       const first = yield* service.read("RGRPDF24");
-      // The keys the switch's step announced, before the next read adds its own.
       const switched = new Set(yield* announced);
       const second = yield* service.read("RGRPDF24");
 
@@ -372,8 +363,6 @@ it.effect(
       yield* announced;
       const fromLocalApi = yield* service.read("RGRPDF24");
 
-      // Each source carries its own committed revision, so compare the visible
-      // Annotation data independently from that handoff metadata.
       expect(
         fromLocalApi?.annotations.map(
           ({ templateMetadata: _metadata, ...record }) => ({
@@ -418,8 +407,6 @@ it.effect(
       yield* service.read("RGRPDF24");
 
       expect(refreshed).toEqual(["RGRPDF24"]);
-      // One Capability Probe, then one list read: the held answer was dropped
-      // rather than served again.
       expect(requests.slice(sent).map(({ url }) => url.pathname)).toEqual([
         "/api/",
         "/api/users/0/items/RGRPDF24/children",
@@ -462,7 +449,6 @@ it.effect(
         serverID: SERVER_ID,
       });
       expect(gone).toEqual(["RGRPDF24"]);
-      // The same marks are still on screen, from the source that can still answer.
       expect(fallback?.source).toEqual(DATABASE_SOURCE);
       expect(fallback?.annotations.map(({ key, type }) => [key, type])).toEqual(
         READING_ORDER,
@@ -652,7 +638,6 @@ it.effect(
       const failed = yield* service.read("EPUBBKS2");
       const fallback = yield* service.read("EPUBBKS2");
 
-      // The failed API candidate never publishes; the verified database answers.
       expect(failed?.source).toEqual(DATABASE_SOURCE);
       expect(yield* announced).toContain("EPUBBKS2");
       expect(fallback?.source).toEqual(DATABASE_SOURCE);
@@ -798,15 +783,10 @@ it.effect(
       const reading = yield* Effect.forkChild(service.read("RGRPDF24"), {
         startImmediately: true,
       });
-      // The read is in flight when the transport has been handed the request it
-      // will not answer.
       yield* Effect.promise(() => inFlight.promise);
       freshnessSignal(serverEvents);
       const list = yield* Fiber.join(reading);
 
-      // The superseded read never publishes: the ask that joined it is answered by
-      // the read the invalidation asked for, and the cancel leaves the Local API
-      // session standing.
       expect(list?.annotations).toHaveLength(7);
       expect(list?.source.kind).toBe("zotero-local-api");
       expect(
@@ -824,8 +804,6 @@ it.effect("keeps the locks a cancelled Local API read would have read", () =>
     const gate = Promise.withResolvers<void>();
     const entered = Promise.withResolvers<void>();
     const released = Promise.withResolvers<void>();
-    // The lock read of the next Local API list waits on its lease, and
-    // reads the database as it stands once the gate opens.
     acquireRead.mockImplementationOnce(async () => {
       entered.resolve();
       await gate.promise;
@@ -841,18 +819,12 @@ it.effect("keeps the locks a cancelled Local API read would have read", () =>
 
     freshnessSignal(serverEvents);
     yield* Effect.promise(() => entered.promise);
-    // The partition is dropped again under the read: its query is
-    // cancelled, and the read asked after it finds no lock.
     freshnessSignal(serverEvents);
     const reread = yield* service.read("RGRPDF24");
     expect(locksOf(reread).PUPR5FG5).toBeNull();
 
-    // Zotero imports the Annotation from the PDF file, and only then does
-    // the cancelled read's lease open.
     markExternal(client, "PUPR5FG5");
     gate.resolve();
-    // The batch answers its callers before it lets the lease go, so a lock
-    // read that outlived its query has kept its locks by now.
     yield* Effect.promise(() => released.promise);
 
     const held = yield* service.peek("RGRPDF24");
@@ -888,14 +860,11 @@ it.effect(
       yield* Effect.promise(() => repository[Symbol.asyncDispose]());
       const list = yield* Fiber.join(reading);
 
-      // The close ends the Local API read with an unknown outcome, so the
-      // read answers from the Zotero DB; the session it read through stands.
       expect(list?.source).toEqual(DATABASE_SOURCE);
       expect(list?.annotations.map(({ key, type }) => [key, type])).toEqual(
         READING_ORDER,
       );
       expect(yield* localApiService.demandSource).not.toBeNull();
-      // A read asked after the close finds no list to hold.
       expect(yield* service.read("EPUBBKS2")).toBeNull();
     }),
 );
@@ -911,7 +880,6 @@ it.effect(
       const readSnapshot = acquireRead.getMockImplementation()!;
       const started = yield* Deferred.make<void>();
       let released = false;
-      // The batch's query starts under its Snapshot and never answers.
       acquireRead.mockImplementation(async () => {
         const lease = await readSnapshot();
         return {
@@ -938,8 +906,6 @@ it.effect(
       yield* Deferred.await(started);
       yield* Effect.promise(() => repository[Symbol.asyncDispose]());
 
-      // The close ends the batch on the repository's Scope: its Snapshot is
-      // let go, and the read it served answers no list.
       expect(released).toBe(true);
       expect(yield* Fiber.join(reading)).toBeNull();
     }),
@@ -954,8 +920,6 @@ it.effect("lets a hold go after the repository closes", () =>
 
     yield* Effect.promise(() => repository[Symbol.asyncDispose]());
 
-    // A surface disposes its hold after the plugin unloaded: the release
-    // runs on the closed repository and asks nothing of it.
     expect(() => held[Symbol.dispose]()).not.toThrow();
     expect(yield* service.peek("RGRPDF24")).toBeNull();
   }),
@@ -1031,7 +995,6 @@ it.effect("answers the Editing Capability the Annotation Source leaves", () =>
     const disabled = yield* service.capabilityFor("RGRPDF24");
 
     expect(beforeProbe).toEqual({ kind: "read-only", reason: "probing" });
-    // Reads need no key, so a session that stands asks for one only to write.
     expect(disabled).toEqual({
       kind: "read-only",
       reason: "local-api-disabled",
@@ -1083,8 +1046,6 @@ it.effect(
       });
       yield* localApiService.probe;
 
-      // The settings row reads this one: it names no Attachment, so no library
-      // Zotero refused a write to is part of it.
       expect(yield* service.capability).toEqual({
         kind: "authorization-required",
       });
@@ -1112,14 +1073,8 @@ it.effect(
       yield* switchServiceToLocalApi(service);
       yield* service.read("RGRPDF24");
 
-      // The switch to the Local API answered the same pixels as the database did,
-      // so the read that published them said nothing.
       expect(announced).toEqual([]);
 
-      // Zotero saved an ink recolour and a crop resize of its own: both reach this
-      // repository through the Freshness Signal and the read after it, and neither
-      // is a write this repository made. A comment that moved with them is not a
-      // pixel input and says nothing.
       answering = ROUGIER_ANNOTATIONS.map((record) =>
         record.key === "TYY6Z6ZF"
           ? { ...record, color: "#2ea8e5" }
@@ -1141,15 +1096,11 @@ it.effect(
       expect(
         refreshed?.annotations.find(({ key }) => key === "FDRFQ7C2")?.position,
       ).toEqual({ kind: "pdf-rects", pageIndex: 1, rects: [[10, 20, 30, 40]] });
-      // The two Annotations whose pixels moved, in the Attachment's reading order,
-      // and only those: the five the read answered unchanged said nothing.
       expect(announced).toEqual([
         ["TYY6Z6ZF", "#2ea8e5", "zotero-local-api"],
         ["FDRFQ7C2", "#ffd400", "zotero-local-api"],
       ]);
 
-      // What stands now is the baseline the next read is compared against, so a
-      // surface re-reading the Attachment is not asked to replace anything again.
       yield* service.read("RGRPDF24");
       expect(announced).toEqual([
         ["TYY6Z6ZF", "#2ea8e5", "zotero-local-api"],
@@ -1176,19 +1127,12 @@ it.effect(
       yield* switchServiceToLocalApi(service);
       yield* service.read("RGRPDF24");
 
-      // A source change that answers the same pixels says nothing: what is announced
-      // is movement, not the change itself.
       const unchanged = yield* nextChangeOf(service);
       freshnessSignal(serverEvents);
       yield* unchanged;
       yield* service.read("RGRPDF24");
       expect(announced).toEqual([]);
 
-      // Zotero saved an ink recolour while nothing showed the Attachment at all: no
-      // Annotation View, reader, or binding asks again, so the read the repository
-      // runs itself after the change is the one that finds the pixels that moved.
-      // The consumer's stored-outcome gate is what decides which of them this device
-      // actually holds an image for.
       answering = ROUGIER_ANNOTATIONS.map((record) =>
         record.key === "TYY6Z6ZF" ? { ...record, color: "#2ea8e5" } : record,
       );
@@ -1208,20 +1152,12 @@ it.effect(
       const stack = yield* scopedStack;
       const { service, client } = yield* Effect.promise(() =>
         setup(stack, undefined, {
-          /**
-           * The pixels this device's persisted Excerpt Images were made from. The two
-           * ink strokes and the text Annotation are the ones it holds an image for.
-           */
           persistedExcerpt: async (annotation) => {
             switch (annotation.key) {
-              // The image this device last displayed, from the colour this ink stroke
-              // held before the edit Zotero saved while ZotLit was not running.
               case "TYY6Z6ZF":
                 return excerptFingerprint({ ...annotation, color: "#5fb236" });
-              // An image made from the pixels this read answers: nothing moved.
               case "HRK7BG32":
                 return excerptFingerprint(annotation);
-              // Every other Annotation this device never cached stays on demand.
               default:
                 return null;
             }
@@ -1236,15 +1172,11 @@ it.effect(
         "update itemAnnotations set color = '#2ea8e5' where itemID = 55",
       );
 
-      // The first read of the session: no list stood before it, so the image this
-      // device persists for the Annotation is the baseline it is compared against.
       const list = yield* service.read("RGRPDF24");
 
       expect(colorOf(list, "TYY6Z6ZF")).toBe("#2ea8e5");
       expect(announced).toEqual(["TYY6Z6ZF"]);
 
-      // The list that read published is the baseline from here on, so a second read
-      // of a record already announced says nothing again.
       yield* service.read("RGRPDF24");
       expect(announced).toEqual(["TYY6Z6ZF"]);
     }),
@@ -1259,7 +1191,6 @@ it.effect(
         setup(stack, undefined, {
           persistedExcerpt: async (annotation) => {
             switch (annotation.key) {
-              // The store cannot open this image: the stroke stays on demand.
               case "TYY6Z6ZF":
                 throw new Error("excerpt store unreadable");
               case "HRK7BG32":

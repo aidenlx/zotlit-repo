@@ -40,7 +40,6 @@ import { hasQuotedText } from "#obsidian/annot-view/card-controls.ts";
 const FIRST = annotation("PUPR5FG5", "highlight", { pageIndex: 0, rects: [] });
 const SECOND = annotation("K3JRFLFQ", "underline", { pageIndex: 0, rects: [] });
 const OUTSIDE = annotation("HRK7BG32", "text", { pageIndex: 0, rects: [] });
-/** Two cards with text, of two colours, and one with only a comment. */
 const QUOTED = {
   ...FIRST,
   color: "#ffd400",
@@ -73,7 +72,6 @@ afterEach(async () => {
   await hosts.disposeAsync();
   hosts = new AsyncDisposableStack();
 });
-/** The actions over a test host; disposing `view` closes the view's runner. */
 function testActions(deps: AnnotActionDeps, view = hosts) {
   const host = hosts.use(
     makeAnnotHost(layerUnreadViewServices, {
@@ -117,11 +115,6 @@ function inertActionDeps(): Partial<AnnotActionDeps> {
   };
 }
 
-/**
- * The actions over a Card Selection, with every other dependency inert. The
- * view's own seams are the fakes: what it holds selected, and the select a
- * menu on a card outside the selection runs.
- */
 function setup(
   selected: readonly AnnotationRecord[],
   control: CardControl = LIVE,
@@ -163,7 +156,6 @@ function setup(
       }),
     }),
     annotations,
-    // Only a highlight or underline has a Quoted Text, as `cardControls` rules.
     controls: (annot: AnnotationRecord) => ({
       ...controls,
       text: hasQuotedText(annot.type) ? control : null,
@@ -184,7 +176,6 @@ function setup(
   };
 }
 
-/** The menu a right-click on this card opens. */
 function openMenu(
   actions: ReturnType<typeof setup>["actions"],
   card: AnnotationRecord,
@@ -200,7 +191,6 @@ function openMenu(
   return Menu.instances[0]!;
 }
 
-/** The titles of the menu a right-click on this card opens. */
 function rightClick(
   actions: ReturnType<typeof setup>["actions"],
   card: AnnotationRecord,
@@ -208,7 +198,6 @@ function rightClick(
   return openMenu(actions, card).items.map((item) => item.title);
 }
 
-/** One entry of a menu, by its title. */
 function entry(menu: Menu, title: string) {
   return menu.items.find((item) => item.title === title)!;
 }
@@ -262,7 +251,6 @@ describe("the menu a card opens", () => {
 
   it("raises the menu for listeners with the cards it acts on, after its own entries", () => {
     const trigger = vi.fn((_name: string, menu: Menu) => {
-      // A listener sees ZotLit's entries already in place.
       expect(menu.items.length).toBeGreaterThan(0);
     });
     const { actions } = setup([FIRST, SECOND], LIVE, {
@@ -273,7 +261,6 @@ describe("the menu a card opens", () => {
 
     const menu = openMenu(actions, SECOND);
 
-    // The group's colour submenu is a colour menu of its own, raised as one.
     const colors = entry(menu, m.annot_view_card_color()).submenu;
     expect(trigger.mock.calls).toStrictEqual([
       [
@@ -498,7 +485,6 @@ describe("copying the text of cards", () => {
 });
 
 describe("copying a card's citation", () => {
-  /** The actions, whose citation read for each key waits on the test. */
   function citing() {
     const answers = new Map<
       string,
@@ -574,10 +560,6 @@ describe("copying a card's citation", () => {
 });
 
 describe("opening a card editor", () => {
-  /**
-   * The actions with the view's seams that an editor's open runs through, in
-   * the order they run. `draft` is what the repository's open answers.
-   */
   function opening(draft: object | null) {
     const calls: string[] = [];
     const deps = stubService<AnnotActionDeps>("AnnotActionDeps", {
@@ -628,16 +610,11 @@ describe("opening a card editor", () => {
 });
 
 describe("the verbs that end a text field's draft", () => {
-  /**
-   * The actions over one card, recording which repository verb each press
-   * reaches.
-   */
   function verbs() {
     const calls: string[] = [];
     const call =
       (name: string) =>
       (...args: string[]) => {
-        // A field's verb names its field first; a write's verb takes the key.
         calls.push(args.length > 1 ? `${name} ${args[0]} draft` : name);
         return Effect.succeed({ kind: "idle" as const });
       };

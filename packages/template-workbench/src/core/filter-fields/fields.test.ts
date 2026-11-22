@@ -58,7 +58,6 @@ describe("filterFields", () => {
     expect(type("items", "date")).toBe("date");
     expect(type("items", "filingDate")).toBe("date");
     expect(type("annotations", "item.issueDate")).toBe("date");
-    // A record is no condition of its own, though its parts are.
     expect(type("items", "firstAuthor")).toBeUndefined();
   });
 

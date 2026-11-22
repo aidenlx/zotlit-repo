@@ -1,9 +1,5 @@
 import type { FrontmatterMergeStrategy } from "./constants.ts";
 
-/**
- * Generated-field state that deletes an existing key under `replace` and
- * preserves it under `append` or `keep`. A create operation always omits it.
- */
 export const FRONTMATTER_ABSENT = Symbol("frontmatter absent");
 
 export interface FrontmatterFieldMergeSpec {
@@ -28,7 +24,6 @@ export type FrontmatterMergeConflictHandler = (
 ) => void;
 
 export interface MergeFrontmatterOptions {
-  /** Existing frontmatter values that strategies read against. @default {} */
   current?: Readonly<Record<string, unknown>>;
   onConflict?: FrontmatterMergeConflictHandler;
 }
@@ -46,7 +41,6 @@ export function mergeFrontmatterFields(
   );
 }
 
-/** Resolve each contribution against the note overlaid by the pending patch. */
 export function mergeManagedFrontmatterEntries(
   fields: readonly EvaluatedFrontmatterField[],
   { current = {}, onConflict }: MergeFrontmatterOptions = {},
@@ -110,11 +104,6 @@ export function mergeManagedFrontmatterEntries(
   return patch;
 }
 
-/**
- * Keep `existing` verbatim (including any pre-existing duplicates) and append
- * only generated items not already present. Unlike a plain union/distinct, this
- * never reorders or collapses what the user already wrote.
- */
 function appendDistinct(
   existing: readonly unknown[],
   generated: readonly unknown[],

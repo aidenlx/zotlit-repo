@@ -1,8 +1,3 @@
-// Uploads the recordings' videos the media store lacks, before a deploy that
-// plays them from there (see src/lib/media-store.ts). Each object key carries
-// the file's content hash, so a key in the bucket already holds these bytes:
-// a run sends only the missing keys, and a second run sends nothing.
-
 import { AwsClient } from "aws4fetch";
 import { resolve } from "node:path";
 import yargs from "yargs";

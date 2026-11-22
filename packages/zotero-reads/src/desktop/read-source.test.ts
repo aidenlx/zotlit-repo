@@ -43,13 +43,8 @@ const planMock = vi.mocked(planReadParents);
 const journalMagic = Buffer.from([
   0xd9, 0xd5, 0x05, 0xf9, 0x20, 0xa1, 0x63, 0xd7,
 ]);
-/** Overridable so one test can make a copy fail the way a full volume does. */
 let copyFile: typeof import("node:fs/promises").copyFile;
 
-/**
- * The Node file system, where a copy runs `copyFile` and the directory at
- * `mkdirFault.path` refuses to be created.
- */
 const testFileSystem = layerNodeFileSystemWith((fs) => ({
   copyFile: (from, to) =>
     nodeFileSystemCall("copyFile", to, () => copyFile(from, to)),

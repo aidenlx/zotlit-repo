@@ -1,6 +1,3 @@
-// The function registry of the Filter Expression evaluator. Validation,
-// execution, and the Query Schema read the same entries, so a function,
-// a method, or a property exists only here.
 import { compareStrings } from "./collation.ts";
 import {
   compareStarts,
@@ -33,7 +30,6 @@ import type {
 } from "./filter-values.ts";
 import type { QueryClock } from "./query-clock.ts";
 
-/** The type a parameter takes. `any` also takes null. */
 export type ParameterType =
   | "string"
   | "number"
@@ -44,50 +40,19 @@ export type ParameterType =
 
 export interface FunctionParameter {
   readonly name: string;
-  /** One type, or each type the parameter takes. */
   readonly type: ParameterType | readonly ParameterType[];
-  /** Present on a typed parameter that also takes null. */
   readonly nullable?: true;
-  /** Present on a string parameter that takes only these texts. */
   readonly values?: readonly string[];
 }
 
-/**
- * One function or method. A call with a wrong argument count, or with an
- * argument whose type is known before execution and differs from the
- * parameter, fails the query; so does a string literal outside the `values`
- * of its parameter. At execution, a null argument of a typed parameter gives
- * null, and a wrongly typed argument or a text outside its `values` gives an
- * Error Value; `call` does not run. An Error Value argument is the result.
- */
 export interface FunctionDefinition {
-  /**
-   * One English sentence, in the Query Schema vocabulary, that says what the
-   * call yields. The Query Schema publishes it.
-   */
   readonly description: string;
-  /** Semantic eligibility for a diagnostic correction, checked with the signature. */
   readonly diagnosticCorrection?: "membership" | "conversion";
-  /** The required parameters, in order. */
   readonly parameters: readonly FunctionParameter[];
-  /** Parameters after the required ones that a call can omit. */
   readonly optional?: readonly FunctionParameter[];
-  /** Present on a variadic function: the parameter of every further argument. */
   readonly rest?: FunctionParameter;
-  /** The type of the result when it is not null; `null` when it varies. */
   readonly returns: Exclude<FilterValueType, "null"> | null;
-  /**
-   * Present on an element-expression method, a special form of the
-   * evaluator: the names its first parameter can use. The evaluator runs the
-   * expression once for each element with these names bound, so `call` does
-   * not run.
-   */
   readonly scope?: readonly string[];
-  /**
-   * `subject` is the value the method is called on, and null for a global
-   * function. `clock` is the Query Clock of the query. A null result is
-   * missing data; an Error Value is a value that this Item cannot compute.
-   */
   readonly call: (
     subject: FilterValue,
     args: readonly FilterValue[],
@@ -95,11 +60,8 @@ export interface FunctionDefinition {
   ) => FilterValue;
 }
 
-/** A property of a value, read as `value.name`. */
 export interface PropertyDefinition {
-  /** One English sentence that says what the property reads. */
   readonly description: string;
-  /** The type of the result when it is not null. */
   readonly returns: Exclude<FilterValueType, "null">;
   readonly read: (subject: FilterValue, clock: QueryClock) => FilterValue;
 }
@@ -120,25 +82,16 @@ const string = (name: string): FunctionParameter => ({ name, type: "string" });
 const number = (name: string): FunctionParameter => ({ name, type: "number" });
 const any = (name: string): FunctionParameter => ({ name, type: "any" });
 
-/**
- * A number that `operation` gave; a result outside the finite numbers is an
- * Error Value.
- */
 export function finite(value: number, operation: string): number | ErrorValue {
   return Number.isFinite(value)
     ? value
     : errorValue({ code: "not-finite", operation });
 }
 
-/**
- * Whether a conversion function reads `text` as missing data: an empty text,
- * or one of spaces alone, gives null, as null does.
- */
 function blank(text: string): boolean {
   return text.trim() === "";
 }
 
-/** The Error Value of a text that a conversion function cannot read. */
 function unparseable(
   callee: "number" | "date" | "duration",
   text: string,
@@ -146,7 +99,6 @@ function unparseable(
   return errorValue({ code: "unparseable-text", callee, text });
 }
 
-/** The Error Value of an argument outside the values its parameter takes. */
 function outOfRange(
   callee: string,
   index: number,
@@ -161,19 +113,14 @@ function outOfRange(
   });
 }
 
-/** The largest count `repeat` takes: one query cannot exhaust the worker. */
 const MAX_REPEAT = 10_000;
 
-/** The longest text `repeat` gives, in UTF-16 code units. */
 const MAX_REPEAT_LENGTH = 1_000_000;
 
-/** The largest precision `toFixed` takes, as JavaScript's `toFixed`. */
 const MAX_PRECISION = 100;
 
-/** The largest `n` the native `split` takes: a larger one wraps to zero. */
 const MAX_SPLIT_LIMIT = 0xff_ff_ff_ff;
 
-/** Whether `value` is an integer from 0 to `max`. */
 function isCount(value: FilterValue | undefined, max: number): value is number {
   return (
     typeof value === "number" &&
@@ -183,12 +130,10 @@ function isCount(value: FilterValue | undefined, max: number): value is number {
   );
 }
 
-/** Whether `value` is a number from 0 to `max`. */
 function inRange(value: FilterValue | undefined, max: number): value is number {
   return typeof value === "number" && value >= 0 && value <= max;
 }
 
-/** `min` and `max`: the pick among the numbers; null without a number. */
 function extreme(
   pick: (...values: number[]) => number,
   description: string,
@@ -205,10 +150,6 @@ function extreme(
   };
 }
 
-/**
- * The global functions, called as `name(...)`. `if` is a special form of the
- * evaluator: it evaluates only the branch that the condition selects.
- */
 export const GLOBAL_FUNCTIONS: Registry<FunctionDefinition> = functions({
   number: {
     description:
@@ -293,7 +234,6 @@ export const GLOBAL_FUNCTIONS: Registry<FunctionDefinition> = functions({
   },
 });
 
-/** The parameters of the `if` special form: `if(condition, then, else?)`. */
 export const IF_FUNCTION = {
   description:
     "The `then` value when the condition is truthy, otherwise the `else` value or null; only the selected branch is evaluated.",
@@ -330,14 +270,9 @@ const includes = (
   clock: QueryClock,
 ): boolean => list.some((element) => equals(element, value, clock));
 
-/** One list argument means its elements; otherwise the arguments themselves. */
 const candidates = (args: readonly FilterValue[]): readonly FilterValue[] =>
   args.length === 1 && isList(args[0]!) ? args[0] : args;
 
-/**
- * The group of each value type in the order of `sort`; Error Values come
- * before null, which comes last.
- */
 const SORT_GROUPS: Readonly<Record<FilterValueType, number>> = {
   boolean: 0,
   number: 1,
@@ -351,12 +286,6 @@ const SORT_GROUPS: Readonly<Record<FilterValueType, number>> = {
   null: 9,
 };
 
-/**
- * The order of `sort`: numbers by value, texts in the Item Query string
- * order, dates by their start, booleans false first. Elements of different
- * types group in the order of {@link SORT_GROUPS}; durations, lists, and
- * regexps keep their order.
- */
 function sortOrder(a: FilterValue, b: FilterValue, clock: QueryClock): number {
   const group = SORT_GROUPS[typeOf(a)] - SORT_GROUPS[typeOf(b)];
   if (group !== 0) return group;
@@ -371,11 +300,6 @@ function sortOrder(a: FilterValue, b: FilterValue, clock: QueryClock): number {
   return 0;
 }
 
-/**
- * An element-expression method of a list: `filter(expression)`,
- * `map(expression)`, and `reduce(expression, initial)`. The evaluator binds
- * `value` and `index` for each element, and `acc` in `reduce`.
- */
 const elementMethod = (
   entry: Pick<FunctionDefinition, "description" | "returns" | "scope"> & {
     readonly after?: readonly FunctionParameter[];
@@ -390,7 +314,6 @@ const elementMethod = (
   },
 });
 
-/** The methods of each value type. A type also has {@link ANY_METHODS}. */
 const METHODS: Readonly<Record<FilterValueType, Registry<FunctionDefinition>>> =
   {
     null: functions({
@@ -406,8 +329,6 @@ const METHODS: Readonly<Record<FilterValueType, Registry<FunctionDefinition>>> =
         parameters: NONE,
         optional: [number("digits")],
         returns: "number",
-        // A digit count whose power of ten is zero or not finite is out of
-        // range.
         call: (subject, [digits]) => {
           const factor = typeof digits === "number" ? 10 ** digits : 1;
           if (factor === 0 || !Number.isFinite(factor)) {
@@ -534,9 +455,6 @@ const METHODS: Readonly<Record<FilterValueType, Registry<FunctionDefinition>>> =
         call: (subject, [start, end]) =>
           (subject as string).slice(start as number, end as number | undefined),
       },
-      // The replacement of a text pattern is literal text. Of a regexp
-      // pattern, `g` decides whether the first or every occurrence changes,
-      // and `$1` names a group.
       replace: {
         description:
           "The text with every occurrence of a text pattern replaced, or with the matches of a regexp pattern replaced as JavaScript does.",
@@ -626,7 +544,6 @@ const METHODS: Readonly<Record<FilterValueType, Registry<FunctionDefinition>>> =
             includes(subject as readonly FilterValue[], value, clock),
           ),
       },
-      // The list helpers of Bases that take no element expression.
       flat: {
         description:
           "The list with each element that is a list replaced by its elements, one level deep.",
@@ -687,7 +604,6 @@ const METHODS: Readonly<Record<FilterValueType, Registry<FunctionDefinition>>> =
             [],
           ),
       },
-      // The element expressions of Bases.
       filter: elementMethod({
         description:
           "The elements of the list for which the expression, with `value` and `index` bound, is truthy.",
@@ -707,7 +623,6 @@ const METHODS: Readonly<Record<FilterValueType, Registry<FunctionDefinition>>> =
         scope: ["value", "index", "acc"],
         after: [any("initial")],
       }),
-      // A Collection element is its root-first path.
       within: {
         description:
           "Whether the list of Collection paths holds the Collection at `path` or a Collection below it.",
@@ -756,8 +671,6 @@ const METHODS: Readonly<Record<FilterValueType, Registry<FunctionDefinition>>> =
     }),
     duration: functions({}),
     regexp: functions({
-      // The match position is reset before each test, so g and y stay
-      // deterministic.
       matches: {
         description:
           "Whether the regexp matches somewhere in `text`, or at its start for a regexp with the `y` flag.",
@@ -770,14 +683,11 @@ const METHODS: Readonly<Record<FilterValueType, Registry<FunctionDefinition>>> =
         },
       },
     }),
-    // An Error Value has only the methods of every value.
     error: functions({}),
   };
 
-/** The value types of the Filter Expression language. */
 export const VALUE_TYPES = Object.keys(METHODS) as FilterValueType[];
 
-/** The methods of every value, null included, called as `value.name(...)`. */
 const ANY_METHODS: Registry<FunctionDefinition> = new Map<
   string,
   FunctionDefinition
@@ -828,7 +738,6 @@ const datePartProperty = (
   read: (subject, clock) => datePart(subject as DateValue, part, clock),
 });
 
-/** The properties of each value type. */
 const PROPERTIES: Readonly<
   Record<FilterValueType, Registry<PropertyDefinition>>
 > = {
@@ -879,7 +788,6 @@ const PROPERTIES: Readonly<
   regexp: properties({}),
 };
 
-/** The method `name` of a value of `type`. */
 export function methodOf(
   type: FilterValueType,
   name: string,
@@ -887,17 +795,14 @@ export function methodOf(
   return METHODS[type].get(name) ?? ANY_METHODS.get(name);
 }
 
-/** A literal that a Set holds as {@link equals} compares it: by `===`. */
 type Member = null | boolean | number | string;
 
-/** NaN is the one scalar where `===` and a Set disagree. */
 const isMember = (value: FilterValue): value is Member =>
   value === null ||
   typeof value === "boolean" ||
   typeof value === "string" ||
   (typeof value === "number" && !Number.isNaN(value));
 
-/** The tests of each membership method, given the lookup of the list. */
 const MEMBERSHIP: Readonly<
   Record<
     string,
@@ -912,14 +817,6 @@ const MEMBERSHIP: Readonly<
   containsAll: (has) => (_subject, args) => candidates(args).every(has),
 };
 
-/**
- * `contains`, `containsAny`, or `containsAll` of a list whose elements are
- * these literals, with the Set of the elements built once: a test is then
- * one lookup, not a scan of the list. Undefined for another method or when
- * an element is not a scalar, such as a date, which compares by the Query
- * Clock. A value that is not a scalar equals no scalar, so the Set answers
- * it as the scan does.
- */
 export function literalMembership(
   name: string,
   elements: readonly FilterValue[],
@@ -931,7 +828,6 @@ export function literalMembership(
   return { ...method, call: test((value) => members.has(value)) };
 }
 
-/** Every method `name`, with the value type it belongs to. */
 export function methodsNamed(
   name: string,
 ): readonly (readonly [FilterValueType, FunctionDefinition])[] {
@@ -941,7 +837,6 @@ export function methodsNamed(
   });
 }
 
-/** The property `name` of a value of `type`. */
 export function propertyOf(
   type: FilterValueType,
   name: string,
@@ -949,7 +844,6 @@ export function propertyOf(
   return PROPERTIES[type].get(name);
 }
 
-/** Every property `name`, with the value type it belongs to. */
 export function propertiesNamed(
   name: string,
 ): readonly (readonly [FilterValueType, PropertyDefinition])[] {
@@ -959,13 +853,11 @@ export function propertiesNamed(
   });
 }
 
-/** The names of the global functions, `if` included. */
 export const GLOBAL_FUNCTION_NAMES: readonly string[] = [
   "if",
   ...GLOBAL_FUNCTIONS.keys(),
 ];
 
-/** The names of every method, each one once. */
 export const METHOD_NAMES: readonly string[] = [
   ...new Set([
     ...ANY_METHODS.keys(),
@@ -973,15 +865,10 @@ export const METHOD_NAMES: readonly string[] = [
   ]),
 ];
 
-/** The names of every property, each one once. */
 export const PROPERTY_NAMES: readonly string[] = [
   ...new Set(VALUE_TYPES.flatMap((type) => [...PROPERTIES[type].keys()])),
 ];
 
-/**
- * Every method with the value type it belongs to, for the Query Schema.
- * `any`: a method of every value, null included.
- */
 export const METHOD_ENTRIES: readonly (readonly [
   FilterValueType | "any",
   string,
@@ -993,7 +880,6 @@ export const METHOD_ENTRIES: readonly (readonly [
   ),
 ];
 
-/** Every property with the value type it belongs to, for the Query Schema. */
 export const PROPERTY_ENTRIES: readonly (readonly [
   FilterValueType,
   string,
@@ -1004,12 +890,6 @@ export const PROPERTY_ENTRIES: readonly (readonly [
   ),
 );
 
-/**
- * Call the function `name` with evaluated arguments. The first Error Value
- * among the arguments is the result. A null argument of a typed parameter
- * gives null; a wrongly typed argument, or a text outside the `values` of its
- * parameter, gives an Error Value.
- */
 export function invoke(
   definition: FunctionDefinition,
   {
@@ -1049,7 +929,6 @@ export function invoke(
   return typeof result === "number" ? finite(result, name) : result;
 }
 
-/** Whether the parameter takes a value of `type`. */
 export function takesType(
   parameter: FunctionParameter,
   type: FilterValueType,
@@ -1060,14 +939,12 @@ export function takesType(
   );
 }
 
-/** Each type the parameter takes. */
 export function parameterTypes(
   parameter: FunctionParameter,
 ): readonly ParameterType[] {
   return typeof parameter.type === "string" ? [parameter.type] : parameter.type;
 }
 
-/** The parameter that the argument at `index` fills. */
 export function parameterAt(
   definition: Pick<FunctionDefinition, "parameters" | "optional" | "rest">,
   index: number,

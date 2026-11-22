@@ -110,35 +110,19 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
 
     interface Frame {
-      /** The title's text; `null` with no title element. */
       title: string | null;
-      /** The top of the Open PDF button, from the card's top; `null` with no button. */
       top: number | null;
-      /** The keys of the Annotation Cards drawn. */
       cards: string[];
-      /** Whether the card shows at all. */
       shown: boolean;
-      /** Whether the card says what fills it with no row selected. */
       empty: boolean;
     }
     interface Switch {
       from: string;
       to: string;
-      /** The card just before the switch, then as each animation frame draws it. */
       frames: Frame[];
-      /** The title's text after each batch of mutations of the card. */
       mutations: (string | null)[];
-      /** Card item reads sent after the worker delay elapsed. */
       delayedCards: number;
     }
-    /**
-     * Select the row `from`, or none for `null`, wait for its card, then move
-     * the selection to the row `to` by `how`: the arrow key, a click, or the selection set
-     * as "Show in Library" sets it, with each ZotLit Query worker request held
-     * `delay` ms first. This reaches both native card reads and the embedded
-     * Query View. Read each frame the window draws until half a second after
-     * that.
-     */
     const switchCard = async (
       how: "key" | "click" | "show",
       [from, to]: readonly [string | null, string],
@@ -317,19 +301,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       return step;
     };
 
-    /**
-     * The card goes from the first paper to the second in one step: its
-     * title is never gone or empty and reads the old title, then the new
-     * one; its buttons move once, and not at all between headers of one
-     * height; and the Annotation Cards of one paper never show under the
-     * other's title.
-     */
     const oneStep = (what: string, step: Switch) => {
       const titles = [step.from, step.to];
       expect.soft(step.from, what).toBeTruthy();
       expect.soft(step.to, what).toBeTruthy();
       expect.soft(step.from, what).not.toBe(step.to);
-      // The card stays in view through the switch.
       const frames = step.frames;
       expect
         .soft(
@@ -360,8 +336,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       expect
         .soft(seen(frames.map(({ top }) => top)), what)
         .toEqual(top === settled ? [top] : [top, settled]);
-      // The old paper's Annotation Cards stay until its title goes, and
-      // only the new paper's come under its title, once read.
       const under = (title: string | null) =>
         frames.filter((frame) => frame.title === title);
       expect
@@ -385,11 +359,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         .toEqual([]);
     };
 
-    /**
-     * The card goes from what fills it with no selection to the paper whole:
-     * every frame shows it, either empty or with the paper's title, and its
-     * buttons stay where its header puts them.
-     */
     const opens = (what: string, step: Switch) => {
       const frames = step.frames;
       expect.soft(step.to, what).toBeTruthy();
@@ -415,7 +384,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         .toHaveLength(1);
     };
 
-    /** The keys of the first rows of the list, and the row of the paper with Annotations. */
     const { rows, listed } = await obRun(
       run.vaultId,
       async ({ app, page }, { annotationItemKey }) => {
@@ -449,12 +417,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const switches = async (where: string, how: "click" | "show") => {
       for (const delay of [0, 400]) {
         const pace = delay === 0 ? "fast read" : "slow read";
-        // From no selection, the card opens on the paper.
         opens(
           `${where}, opens on 3, ${pace}`,
           await switchCard(how, [null, rows[3]!], delay),
         );
-        // Down the first rows by the arrow keys, then by `how`.
         for (let at = 0; at + 1 < 5; at++)
           oneStep(
             `${where}, ↓ ${at}, ${pace}`,
@@ -472,10 +438,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       }
     };
 
-    // Beside a wide list, with the Annotations closed.
     await switches("wide", "click");
 
-    // With the Annotations open, to and from the paper that has some.
     const other = rows.find((key) => key !== listed)!;
 
     await obRun(
@@ -524,8 +488,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { enabled: false },
     );
 
-    // Under a narrow pane, where the card spans the tree and the list, the
-    // selection moves as "Show in Library" moves it.
     await obRun(
       run.vaultId,
       async ({ app, page }, { value }) => {
@@ -593,7 +555,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
     await suite.wideWindow(cleanup);
-    // Two Literature Notes of Items whose Annotations differ.
     const items = [annotationItem, positionDocumentItem];
     const notes = items.map(
       (item) => `literatures/${item.literatureNoteName ?? item.key}.md`,
@@ -612,28 +573,17 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
 
     interface Frame {
-      /** The Item the header names, `null` while it names none. */
       title: string | null;
-      /** The keys of the cards drawn. */
       cards: string[];
-      /** Whether the body says it is loading. */
       loading: boolean;
-      /** Milliseconds since the step began; none for the settled view before it. */
       at?: number;
     }
     interface Step {
-      /** The view settled before the step, then as each animation frame draws it. */
       frames: Frame[];
-      /** The view after each batch of mutations of it. */
       mutations: Frame[];
       delayedReads: number;
     }
 
-    /**
-     * Settle the view after `prepare`, then run `trigger`, with each ZotLit
-     * Query run held `delay` ms first, and read each frame the window draws
-     * until 600 ms after that and the view settles.
-     */
     const step = async ({
       mode,
       from,
@@ -807,12 +757,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { mode: mode, from: from, titleInput: title, to: to, delay: delay },
       );
 
-    /**
-     * The view goes from one Item to the next in one step: the last Item's
-     * cards stay until the next Item's are read, and never show under the
-     * next one's name; the next one's show whole. A read that takes longer
-     * than 150 ms may show the next Item's name over a loading body first.
-     */
     const oneStep = (
       what: string,
       { frames, mutations, delayedReads }: Step,
@@ -824,7 +768,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ).toBe(slow);
       const before = frames[0]!;
       const after = frames.at(-1)!;
-      // A read held past 150 ms shows the next Item over its cards loading.
       expect
         .soft(
           !slow ||
@@ -853,8 +796,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ["mutations", mutations],
       ] as const) {
         const where = `${what}, ${kind}`;
-        // The cards go from the last Item's to the next Item's, with at
-        // most a loading body between, once the read has taken 150 ms.
         expect
           .soft(
             [
@@ -876,8 +817,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           )
           .toEqual([]);
         if (!named) continue;
-        // The header names one Item at a time, never goes blank, and never
-        // names one Item over the other's cards.
         expect
           .soft(
             samples.filter(({ title }) => !title),
@@ -905,7 +844,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
 
     for (const delay of [0, 400]) {
       const pace = delay === 0 ? "fast read" : "slow read";
-      // Following the active tab from one Literature Note to the other.
       for (const [from, to] of [
         [notes[0]!, notes[1]!],
         [notes[1]!, notes[0]!],
@@ -921,11 +859,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           }),
           { named: false, slow: delay > 0 },
         );
-      // Pinned, the Item picker pins the other Item. The click must land on a
-      // row of the typed query's answer, which the picker shows once its
-      // results stop being aria-busy; it drops a click on an earlier row. The
-      // row is found by Indexed Key: another Item shares the title. This is
-      // selectItemSuggestion's rule, inside the one eval the step times.
       for (const [from, to] of [
         [items[0]!, items[1]!],
         [items[1]!, items[0]!],
@@ -992,9 +925,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
 
-    // The seed's "Shared key" Collection of My Library. A Collection of that
-    // name holds Items in other Libraries too, which the Library Scope
-    // reads, so the saved file has to keep to My Library.
     const personal = LIBRARIES.find(({ type }) => type === "user")!;
     const sharedKey = COLLECTIONS.find(
       (entry) =>
@@ -1024,8 +954,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       "another Library files Items in a Collection of the same name",
     ).toBeGreaterThan(0);
 
-    // The document as an earlier build stored it, with the Table and its
-    // Visible Properties, which this build ignores.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }, { sharedKeyName, libraryScopeSettingKey }) => {
@@ -1061,8 +989,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    /** What a view shows once its query settled: its Layout, rows and toolbar. */
-
     interface Rows {
       type: string;
       file: string | null;
@@ -1070,7 +996,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       layout: string | null;
       count: string | null;
       rows: string[];
-      /** The toolbar's controls, by their hook. */
       toolbar: (string | null)[];
     }
 
@@ -1138,8 +1063,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(papers!.rows.toSorted()).toEqual(expected);
 
-    // "Save as query file" sits in the heading beside Sort, and asks the
-    // name and the folder only.
     expect(papers!.toolbar).toEqual(["sort", "data-query-save-as"]);
     await obRun(
       run.vaultId,
@@ -1219,8 +1142,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
     );
 
-    // The file opens in a tab that lists the Library View's papers, in its
-    // order, and only those of My Library.
     const tab = "saved Query File";
     const saved = await obRunUntil(
       run.vaultId,
@@ -1281,7 +1202,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
     expect(saved!.rows).toEqual(papers!.rows);
-    // The Query File keeps every control the Library View leaves out.
     expect(saved!.toolbar).toEqual(
       expect.arrayContaining([
         "data-query-view-menu",
@@ -1333,7 +1253,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { snapshot: snapshot },
       );
     });
-    // A Library View on My Library, with no facet.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }, { myLibraryDocument }) => {
@@ -1372,7 +1291,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       rows: string[];
     }
 
-    /** What the view shows once it lists every row it counts with `facets` on. */
     const shownWith = async (
       facets: readonly string[],
       ready: (shown: Shown) => boolean = () => true,
@@ -1449,10 +1367,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       if (!settled) throw new Error(`Library View: ${JSON.stringify(shown)}`);
       return shown!;
     };
-    /**
-     * Press the element `target` finds in the tree pane. A narrow pane keeps
-     * the tree behind its button, so the press opens it first.
-     */
 
     await obRun(
       run.vaultId,
@@ -1464,7 +1378,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const opened = await shownWith([]);
     expect(opened.rows.toSorted()).toEqual(keys(personal));
 
-    // Each facet narrows My Library to the Items the seed gives it.
     const oracle: Record<string, (item: FixtureItem) => boolean> = {
       unread: (item) => unreadOf([item]).length === 1,
       annotated: readingState.annotated,
@@ -1533,7 +1446,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       await shownWith([]);
     }
 
-    // Facets combine with the Collection selected and with each other.
     await obRun(
       run.vaultId,
       async ({ app, page }, { sharednode, collection }) => {
@@ -1684,8 +1596,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await shownWith([]);
 
-    // The vault loses the Literature Note of an Item with no Annotation: the
-    // Item becomes unread, in the list and in the header's count.
     const reader = filed.find(
       (item) =>
         !readingState.read(item) &&
@@ -1705,7 +1615,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(notePath).not.toBe("");
 
-    // A paper already read in Zotero stays out of Unread after its note is removed.
     const readPaper = filed.find(
       (item) => readingState.read(item) && !readingState.annotated(item),
     )!;
@@ -1808,8 +1717,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(unread.rows.toSorted()).toEqual(keys(unreadOf(filed, noted)));
     expect(unread.rows).toContain(reader.key);
 
-    // A search keeps to the facets: in the Collection, then in every
-    // Library, each in the quick switcher's rank.
     const lookup = async (query: string, everywhere: boolean) =>
       await obRun(
         run.vaultId,
@@ -1826,11 +1733,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { everywhere: everywhere, query: query },
       );
-    /**
-     * Type `text` into the search box as a researcher does: the press into
-     * the box, on its part the tree leaves uncovered, puts away the tree a
-     * facet press left open over a narrow list.
-     */
 
     const indexedKey = (item: FixtureItem) => {
       const { groupID } = LIBRARIES.find(
@@ -1941,7 +1843,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           }),
     );
 
-    // A plugin reload comes back on the Collection with the facet on.
     await obRunUntil(
       run.vaultId,
       async ({ app }) => {
@@ -2003,8 +1904,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { snapshot: snapshot },
       );
     });
-    // A Library View on My Library, with no tag selected: a document of an
-    // earlier build, which stored none.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }, { myLibraryDocument }) => {
@@ -2039,13 +1938,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       header: string | null;
       tags: string[];
       pressed: string[];
-      /** The filter chips under the heading, by their hook. */
       chips: string[];
       count: string | null;
       rows: string[];
     }
 
-    /** What the view shows once it lists every row it counts with `pressed` selected. */
     const shownWith = async (
       pressed: readonly string[],
       ready: (shown: Shown) => boolean = () => true,
@@ -2111,9 +2008,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       if (!settled) throw new Error(`Library View: ${JSON.stringify(shown)}`);
       return shown!;
     };
-    /** Press `target` in the tree pane, opening the tree first on a narrow pane. */
 
-    /** The chips under the heading while `tags` are selected. */
     const tagged = (tags: readonly string[]) => tags.map((tag) => `tag:${tag}`);
 
     await obRun(
@@ -2123,12 +2018,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // The Tag Selector lists the tags of My Library's Items.
     const opened = await shownWith([], (shown) => shown.tags.length > 0);
     expect(opened.rows.toSorted()).toEqual(keys(personal));
     expect(opened.tags.toSorted()).toEqual(namesOf(personal));
 
-    // A tag narrows the list to its Items, and the tags to theirs.
     const first = "fixture-core";
     await obRun(
       run.vaultId,
@@ -2164,8 +2057,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(one.rows.toSorted()).toEqual(keys(withEvery([first])));
     expect(one.tags.toSorted()).toEqual(namesOf(withEvery([first])));
 
-    // A second tag narrows to the Items with both, the heading counts them
-    // of all My Library holds, and a chip under it names each tag.
     const second = one.tags.find((name) => name !== first)!;
     expect(second).toBeDefined();
     await obRun(
@@ -2211,7 +2102,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(withEvery(both).length).toBeGreaterThan(0);
     expect(two.rows.toSorted()).toEqual(keys(withEvery(both)));
 
-    // The "Filter tags" box narrows the names it shows, never the papers.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -2234,7 +2124,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(filtered.tags).toEqual(both);
     expect(filtered.rows).toEqual(two.rows);
 
-    // A plugin reload comes back with the tags selected.
     await obRunUntil(
       run.vaultId,
       async ({ app }) => {
@@ -2256,7 +2145,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const reloaded = await shownWith(both);
     expect(reloaded.rows).toEqual(two.rows);
 
-    // Deselect all lists every Item of My Library again.
     await obRun(
       run.vaultId,
       async ({ app, page }, { deselectAll }) => {
@@ -2344,7 +2232,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
       );
     });
-    // Every Library is in the Library Scope; the tab opens on My Library.
     await obRun(
       run.vaultId,
       async (
@@ -2371,7 +2258,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // The seed's oracle.
     const personal = LIBRARIES.find((entry) => entry.type === "user")!;
     const indexedKey = (item: FixtureItem) => {
       const { groupID } = LIBRARIES.find(
@@ -2401,7 +2287,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         )
         .map(indexedKey),
     );
-    /** The Indexed Keys the quick switcher's search answers, best first. */
     const lookup = async (query: string, everywhere: boolean) =>
       await obRun(
         run.vaultId,
@@ -2424,12 +2309,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       header: string | null;
       value: string;
       focused: boolean;
-      /** The offer beside the header to search all libraries, while it shows. */
       searchAll: string | null;
       rows: string[];
     }
-
-    /** Type `text` into the search box, as the keyboard sets an input's value. */
 
     const header = (shown: Shown) => shown.header;
 
@@ -2440,7 +2322,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // The search box has the cursor; the list shows My Library.
     const opened = await obRunUntil(
       run.vaultId,
       async ({ app }) => {
@@ -2497,8 +2378,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       inPersonal.map(indexedKey).toSorted(),
     );
 
-    // A seeded title ranks its Item first, and the rows keep the order of
-    // the quick switcher's search.
     const title = "Communicating with Slip Boxes";
     const wanted = inPersonal.find((item) => item.title.startsWith(title))!;
     await obRun(
@@ -2570,8 +2449,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(ranked!.rows[0]).toBe(indexedKey(wanted));
     expect(ranked!.rows).toEqual(await lookup(title, false));
 
-    // The search keeps to the selected Collection; Search all libraries
-    // widens it past the Collection, to every Library.
     await obRun(
       run.vaultId,
       async ({ app }, { duplicate }) => {
@@ -2803,7 +2680,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(widened!.rows).toEqual(everywhere);
 
-    // A tag: token narrows to the seeded Items with that tag.
     await obRun(
       run.vaultId,
       async ({ app, page }, { JSONStringifyResult }) => {
@@ -2902,7 +2778,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(byTag!.rows.toSorted()).toEqual(tagged.toSorted());
 
-    // Escape clears the search, and the list shows My Library again.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -3018,9 +2893,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
 
-    // The seed's oracle: an Item with its Literature Note and one PDF, an
-    // Item with no Literature Note that two Profiles fit, and an Item filed
-    // in one subcollection.
     const reading = annotationItem;
     const readingPdf = ATTACHMENTS.filter(
       ({ parentItemID }) => parentItemID === reading.itemID,
@@ -3033,9 +2905,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ({ libraryID }) => libraryID === unwritten.libraryID,
     )!.groupID!;
     const unwrittenKey = `${unwritten.key}g${unwrittenGroup}`;
-    // The Literature Note that Enter writes below goes when the test ends,
-    // whichever step fails first, and the test fails while one stays: by the
-    // Note Index or by its frontmatter.
     cleanup.defer(async () => {
       await obRun(
         run.vaultId,
@@ -3078,9 +2947,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         item.collectionIDs[0] === child.collectionID,
     )!;
 
-    // The Library View on My Library, and beside it a note to cite into, in
-    // a window wide enough that the Reading Card, which shows under the
-    // tree and the list on a narrow pane, leaves the rows above it in reach.
     await suite.wideWindow(cleanup);
     await obRun(
       run.vaultId,
@@ -3111,17 +2977,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { notepath: notePath },
     );
-    /**
-     * Run `script` with the Library View's tab active and `el` its content.
-     * `pressRow` presses a row near its start, where a reader clicks while
-     * the Reading Card under a narrow pane covers the rows below it: it
-     * presses what stands at that point, inside the row, through `press`.
-     */
 
     const active = () => activeTab(run.vaultId);
     const activeWhen = (ready: (shown: ActiveTab) => boolean) =>
       readUntil(active, ready, { what: "Active tab", tries: 60 });
-    /** The selected row's key, waiting until a row of the list is drawn. */
     const selected = () =>
       obRun(
         run.vaultId,
@@ -3153,8 +3012,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       );
 
-    // A click selects a row and opens nothing; ↓ moves the selection to the
-    // next row on screen.
     const { next } = (await obRun(
       run.vaultId,
       async ({ app, page }, { readingKey }) => {
@@ -3181,9 +3038,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const pressRow = async (el: HTMLElement | null, what: string) => {
           if (!el) throw new Error(`Missing: ${what}`);
           el.scrollIntoView({ block: "center", behavior: "instant" });
-          // A row scrolled into view draws its content at the next frame
-          // (`content-visibility: auto`); until then a hit lands on the
-          // row's list item.
           const hitAt = () => {
             const r = el.getBoundingClientRect();
             return el.ownerDocument.elementFromPoint(
@@ -3219,8 +3073,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { readingKey: reading.key },
     )) as { next: string };
-    // A row drawn moments before takes the selection to its markup a frame
-    // later.
     expect(
       await readUntil(selected, (key) => key === next, {
         what: "Selected row",
@@ -3228,8 +3080,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toBe(next);
     expect((await active()).type).toBe("zotlit-library");
 
-    // Enter opens the Item's Literature Note; Shift+Enter its PDF in
-    // Obsidian.
     await obRun(
       run.vaultId,
       async ({ app, page }, { readingKey }) => {
@@ -3256,9 +3106,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const pressRow = async (el: HTMLElement | null, what: string) => {
           if (!el) throw new Error(`Missing: ${what}`);
           el.scrollIntoView({ block: "center", behavior: "instant" });
-          // A row scrolled into view draws its content at the next frame
-          // (`content-visibility: auto`); until then a hit lands on the
-          // row's list item.
           const hitAt = () => {
             const r = el.getBoundingClientRect();
             return el.ownerDocument.elementFromPoint(
@@ -3289,8 +3136,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { readingKey: reading.key },
     );
-    // Shift+Enter opens the PDF in the tab the note opened in, once that
-    // open is done.
     expect(
       await activeWhen((shown) => shown.type === "markdown" && !shown.opening),
     ).toMatchObject({ key: reading.key });
@@ -3320,9 +3165,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const pressRow = async (el: HTMLElement | null, what: string) => {
           if (!el) throw new Error(`Missing: ${what}`);
           el.scrollIntoView({ block: "center", behavior: "instant" });
-          // A row scrolled into view draws its content at the next frame
-          // (`content-visibility: auto`); until then a hit lands on the
-          // row's list item.
           const hitAt = () => {
             const r = el.getBoundingClientRect();
             return el.ownerDocument.elementFromPoint(
@@ -3355,8 +3197,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await pdfOpened(run.vaultId, annotationAttachment.path!);
 
-    // On an Item with no Literature Note, Enter writes one through the
-    // Profile selection, as the quick switcher does.
     await obRun(
       run.vaultId,
       async ({ app, page }, { JSONStringifyResult, unwrittenkey }) => {
@@ -3383,9 +3223,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const pressRow = async (el: HTMLElement | null, what: string) => {
           if (!el) throw new Error(`Missing: ${what}`);
           el.scrollIntoView({ block: "center", behavior: "instant" });
-          // A row scrolled into view draws its content at the next frame
-          // (`content-visibility: auto`); until then a hit lands on the
-          // row's list item.
           const hitAt = () => {
             const r = el.getBoundingClientRect();
             return el.ownerDocument.elementFromPoint(
@@ -3438,7 +3275,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         unwrittenkey: unwrittenKey,
       },
     );
-    // The picker reads every Profile's preview before it shows.
     await obRunUntil(
       run.vaultId,
       async (_context, { booksProfileLabel }) => {
@@ -3463,11 +3299,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(written.path).toMatch(/^books\//);
 
-    // The row menu lists every action of the Item, and an entry another
-    // plugin adds through `zotlit:item-menu`. This Item holds no PDF, so the
-    // menu offers no Open PDF. The note to cite into is the
-    // one active last; the notes and the PDF opened above took the tab
-    // beside the view, so it opens again.
     await obRun(
       run.vaultId,
       async ({ app }, { notepath }) => {
@@ -3535,7 +3366,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       `Listener: library-view ${unwrittenKey}`,
     ]);
 
-    // Insert citation puts the Item's citation into the note last active.
     await obRun(
       run.vaultId,
       async ({ app, page }, { libraryViewMenuInsertCitationLabel }) => {
@@ -3586,7 +3416,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ) === 1,
       ),
     ).toBe(true);
-    // At the cursor, between the words.
     expect(
       await obRun(
         run.vaultId,
@@ -3603,8 +3432,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toMatch(/^LEFT .+RIGHT$/);
 
-    // A row dragged over the view is refused; dropped into the note, it
-    // inserts its citation where it lands.
     const drag = await obRun(
       run.vaultId,
       async ({ app }, { notepath, unwrittenkey }) => {
@@ -3683,7 +3510,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ) === 2,
       ),
     ).toBe(true);
-    // At the start, where it landed.
     expect(
       await obRun(
         run.vaultId,
@@ -3700,8 +3526,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).not.toMatch(/^LEFT/);
 
-    // "Show in Library" in the quick switcher opens the view on the Item's
-    // Collection, with its row selected.
     await obRun(
       run.vaultId,
       async ({ app }, { notepath }) => {
@@ -3800,10 +3624,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
 
-    /** Reload the plugin and wait for its release check to open what it opens. */
-
-    // A fresh install has no plugin data: the release check opens the
-    // Library View, once.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }) => {
@@ -3854,8 +3674,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the Library View tab to open",
       },
     );
-    // The release check recorded this launch in plugin data, which the next
-    // launch reads.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }) => {
@@ -3899,9 +3717,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(0);
 
-    // Setup is incomplete while the literature-notes folder is missing: the
-    // banner shows the checklist and the Help Links above the Library View,
-    // and names no Companion.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }) => {
@@ -3958,9 +3773,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               run.m.welcome_step_companion_title(),
               run.m.welcome_step_reader_title(),
             ],
-            // Zotero reads, so the folder is the one step still open.
             open: run.m.welcome_step_folder_title(),
-            // The Help Links show beside the checklist.
             help: [
               "https://zotlit.aidenlx.site/learn",
               "https://zotlit.aidenlx.site/community",
@@ -3977,8 +3790,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the Welcome banner in the Library View to show its five setup steps",
       },
     );
-    // Search your library puts the cursor in the Library View's own search
-    // box, just under the banner.
     expect(
       await obRun(
         run.vaultId,
@@ -4013,7 +3824,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { welcomeActionSearchLabel: run.m.welcome_action_search() },
       ),
     ).toBe(true);
-    // A notice over the tab's corner would cover the dismiss control.
     await clearNotices(run.vaultId);
     await obRun(
       run.vaultId,
@@ -4054,7 +3864,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       ),
     ).toBe(true);
-    // The Welcome command shows it again.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -4076,9 +3885,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
       { what: "the Welcome banner in the Library View to render" },
     );
-    // So does the Welcome & help view action in the tab header, with the
-    // setup steps, and focus moves to the banner; the action reads as
-    // pressed while the banner shows, and a second press dismisses it.
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -4261,10 +4067,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       }),
     );
 
-    // ZotLit reads a folder without Zotero's database: the tree and the
-    // list say so and offer to locate it, in place of the papers. A narrow
-    // pane keeps the tree out of view, and the list says it alone.
-
     const listed = (await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -4362,8 +4164,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // "Locate data folder" saves the folder the system dialog returns; the
-    // case sets the same folder, since no reader can press a native dialog.
     await obRun(
       run.vaultId,
       async ({ zotlit }, { dataDir }) => {
@@ -4373,7 +4173,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { dataDir: JSON.parse(snapshot).dataDir },
     );
-    // The papers the Library View listed before come back.
     await obRunUntil(
       run.vaultId,
       async ({ app }) => {
@@ -4410,7 +4209,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
 
   it("leaves the search box unfocused on a fresh install's first screen, under the Welcome View banner", async () => {
     const aside = "zotlit-e2e-literature-aside";
-    /** Start ZotLit as a fresh install, with no plugin data. */
 
     const snapshot = await obRun(
       run.vaultId,
@@ -4449,9 +4247,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { snapshot: snapshot, aside: aside },
       );
     });
-    // A fresh install whose literature-notes folder is missing: setup is
-    // incomplete, and the release check opens the Library View with the
-    // Welcome View banner above it.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }) => {
@@ -4498,7 +4293,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { aside: aside },
     );
-    // Once the banner settles, the cursor is not in the box right under it.
     expect(
       await obRun(
         run.vaultId,
@@ -4580,17 +4374,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { snapshot: snapshot },
       );
     });
-    /** Reload the plugin and wait for its release check to open what it opens. */
 
-    // The plugin data of a set-up vault that last ran an older release and
-    // put the banner away after setup.
     const seeded = {
       ...(JSON.parse(JSON.parse(snapshot).data) as Record<string, unknown>),
       "release.previous-version": "2.1.0",
       "release.notices-enabled": true,
       "welcome.dismissed": true,
     };
-    // The researcher has a note open in the active leaf.
     const note = await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -4629,7 +4419,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { JSONStringifyResult: JSON.stringify(seeded) },
     );
-    // The Library View opens in its own tab: the note's leaf keeps its note.
     expect(
       await obRun(
         run.vaultId,
@@ -4696,12 +4485,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             library: 1,
             banner: {
               badge: run.m.welcome_badge_updated(),
-              // The update alone: setup is done.
               headings: [run.m.welcome_update_title({ version })],
               buttons: [run.m.welcome_update_action()],
               help: 9,
             },
-            // The banner says it in place of the update notice.
             notices: 0,
           }),
         what: "the Welcome banner to announce the ZotLit update in the Library View",
@@ -4719,7 +4506,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(true);
 
-    // "What's new" opens the Release Note and acknowledges the update.
     expect(
       await obRun(
         run.vaultId,
@@ -4783,8 +4569,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       }),
     );
 
-    // The next launch announces nothing: no Library View opens, and the one
-    // the command opens shows no banner.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }) => {
@@ -4838,11 +4622,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(JSON.stringify({ opened: 0, banner: false }));
 
-    // An update beside the template conversion: the badge still says
-    // Updated, the done steps fold into one line, and the conversion's long
-    // explanation waits behind How it works. The vault holds converted
-    // templates, so the load clears a saved offer; the offer is armed after
-    // it, as the template service does.
     await obRun(
       run.vaultId,
       async ({ app, zotlit }, { JSONStringifyResult }) => {
@@ -4928,8 +4707,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // The dismiss button puts every combination away, and it stays away
-    // after a reload, until a later update.
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -5113,7 +4890,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
     );
 
-    /** The rects that carry the banner's edges, in CSS pixels. */
     interface Box {
       l: number;
       r: number;
@@ -5137,18 +4913,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       dismiss: Box;
       glyph: Box;
     }
-    /** The sections each case's banner renders, which the measure waits for. */
-
-    /**
-     * Measure the banner once the window is `width` wide, the banner's
-     * connection readout has landed and it renders `sections`.
-     */
 
     const shots = join(workspaceRoot, ".scratch/e2e-screenshots");
     await mkdir(shots, { recursive: true });
     const cases = {
-      // Setup is incomplete: the literature-notes folder is missing, so its
-      // step opens on the accent surface.
       setup: {
         settings: {
           "welcome.dismissed": false,
@@ -5159,8 +4927,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         sections: { open: 1, done: 0, callouts: 0 },
       },
-      // An update beside the template conversion, with the done steps
-      // folded into Setup done.
       update: {
         settings: {
           "welcome.dismissed": false,
@@ -5341,27 +5107,18 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       const edges = [at.lockup, ...at.marks, ...at.notices].map((n) => n.l);
       const check = {
         label,
-        // The banner keeps one inline margin at both of the pane's edges.
         margins: near(
           at.contentStart - at.banner.l,
           at.banner.r - at.contentEnd,
         ),
-        // The lockup, the step marks and the notices' text share one start
-        // edge, the centered column's.
         edge: edges.every((x) => near(x, at.column.l)),
-        // Each tinted surface hangs outside that edge, inside the banner and
-        // clear of the Help Links.
         hang: at.surfaces.every(
           (s) =>
             s.l < at.column.l &&
             s.l >= at.banner.l &&
             (stacked ? s.r <= at.banner.r : s.r <= at.help.l),
         ),
-        // The Help Links end at the banner's content end.
         helpEnd: near(at.help.r, at.contentEnd),
-        // Beside each other, the column is centered in the space before the
-        // Help Links, and the first section starts on their top line;
-        // stacked, the column takes the full width.
         column: stacked
           ? near(at.column.l, at.contentStart) &&
             near(at.column.r, at.contentEnd)
@@ -5370,8 +5127,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               at.help.l - at.gap - at.column.r,
             ),
         top: stacked || near(at.first.t, at.help.t),
-        // The dismiss button sits on the title's line, its glyph ending on
-        // the banner's content end, clear of every tile.
         dismiss:
           near(
             (at.glyph.t + at.glyph.b) / 2,
@@ -5391,7 +5146,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         dismiss: true,
       });
     }
-    // The narrow pane stacks the column, and the wide ones do not.
     expect(
       Object.entries(results).map(([label, at]) => [
         label,
@@ -5488,9 +5242,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
       { timeoutMs: 90000 },
     );
-    // A new tab opens on Recent, whose file holds every
-    // paper of the Library Scope; the dialog asks for a name of the
-    // researcher's own.
     expect(offered).toEqual({
       node: "recent",
       name: run.m.query_file_untitled(),

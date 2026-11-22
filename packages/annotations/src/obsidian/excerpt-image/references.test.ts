@@ -9,7 +9,6 @@ import { referencedExcerptPaths } from "./references.ts";
 
 const PATH = "Notes/Paper.md";
 
-/** A vault holding one note as `content`, whose metadata cache is stale. */
 function vaultWith(content: string) {
   const host = createObsidianHost({ [PATH]: content });
   const resolve = vi.fn((path: string, _source: string) => ({ path }));
@@ -22,7 +21,6 @@ function vaultWith(content: string) {
   return { host, resolve };
 }
 
-/** The referenced paths of the note at {@link PATH}, read through the host's tags. */
 const referenced = (host: ReturnType<typeof vaultWith>["host"]) =>
   referencedExcerptPaths(host.file(PATH)).pipe(
     Effect.provide(

@@ -14,11 +14,6 @@ import type {
 } from "./hit-test.ts";
 import type { MarkTarget } from "./render.ts";
 
-/**
- * A US Letter page laid out at 100 % zoom, offset inside the reader, so page
- * units and client pixels differ by the offset alone and every expectation
- * below can be read off the seeded rectangles.
- */
 const PAGE: PageBox = {
   left: 100,
   top: 50,
@@ -28,19 +23,15 @@ const PAGE: PageBox = {
   unitHeight: 792,
 };
 
-/** The same page at 200 % zoom: two client pixels are one page unit. */
 const ZOOMED: PageBox = { ...PAGE, width: 1224, height: 1584 };
 
-/** A paragraph-sized mark, and a word inside it. */
 const PARAGRAPH: MarkTarget = {
   key: "PARA1111",
   rects: [[100, 100, 500, 140]],
 };
 const WORD: MarkTarget = { key: "WORD2222", rects: [[200, 110, 240, 130]] };
-/** A second word inside the paragraph, of the same area as the first. */
 const OTHER: MarkTarget = { key: "WORD3333", rects: [[300, 110, 340, 130]] };
 
-/** A click on the page, before the modifiers and the gesture are described. */
 function click(
   point: { x: number; y: number },
   {
@@ -64,7 +55,6 @@ function click(
   });
 }
 
-/** Where the click that selected `key` fell, in page units. */
 function selectedAt(key: string, x: number, y: number): MarkSelectionPoint {
   return { key, pageIndex: 0, point: { x, y } };
 }
@@ -79,7 +69,6 @@ describe("marksAtPoint", () => {
   });
 
   it("forgives two pixels around a mark and no more", () => {
-    // The word's right edge is at 240 page units, which is client x 340.
     expect(
       marksAtPoint([WORD], pagePointOf(PAGE, { x: 342, y: 170 })!),
     ).toEqual(["WORD2222"]);
@@ -89,7 +78,6 @@ describe("marksAtPoint", () => {
   });
 
   it("measures the forgiveness in pixels, so zoom does not widen it", () => {
-    // At 200 %, the word's right edge is 480 pixels along the page box.
     const at = pagePointOf(ZOOMED, { x: 100 + 482, y: 50 + 240 })!;
     expect(marksAtPoint([WORD], at)).toEqual(["WORD2222"]);
     const past = pagePointOf(ZOOMED, { x: 100 + 485, y: 50 + 240 })!;

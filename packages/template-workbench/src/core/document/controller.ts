@@ -7,8 +7,6 @@ import {
   undoDepth,
 } from "@codemirror/commands";
 import { Annotation, ChangeSet, EditorState, Text } from "@codemirror/state";
-// Headless master state for one Profile document: the only undo history, the
-// slice ranges every pane edits through, and the validation Problems reads.
 import type {
   ChangeSpec,
   Transaction,
@@ -62,23 +60,10 @@ import type { SliceCodec } from "./slice-codec.ts";
 
 import { pairingState, pairingHistory } from "#core/language/pairing-state.ts";
 
-/** The pane that edits one Managed Frontmatter entry's expression. */
 export type WorkbenchEntrySliceId = `entry:${number}`;
 
-/**
- * The Template Document this controller holds. A Profile document carries the
- * manifest, the note body, and the Annotation Section that the six Profile
- * tabs edit; the Citation Template and a Shared Partial are plain documents —
- * an optional manifest naming the language, then one source — which one editor
- * holds whole.
- */
 export type WorkbenchDocumentKind = "profile" | "citation" | "partial";
 
-/**
- * A pane a problem is repaired in. Every id but `details` is an editor over one
- * region of the master document; `details` is the Name and folder form, which
- * writes the manifest scalars it shows through controls of its own.
- */
 export type WorkbenchSliceId =
   | "note"
   | "annotation"
@@ -88,52 +73,38 @@ export type WorkbenchSliceId =
   | "source"
   | WorkbenchEntrySliceId;
 
-/** The Annotation Section as its two panes address it, in master offsets. */
 export interface WorkbenchAnnotationSection {
-  /** The `--- zotlit:annotation ---` line, which Advanced highlights. */
   readonly header: WorkbenchSliceRange;
-  /** The source under it, which the highlight box edits. */
   readonly source: WorkbenchSliceRange;
 }
 
 export type { WorkbenchSliceRange } from "./manifest-patch.ts";
 
-/** The slice one Managed Frontmatter entry's expression is edited through. */
 export function entrySlice(position: number): WorkbenchEntrySliceId {
   return `entry:${position}`;
 }
 
-/** The entry a slice belongs to, or null when the slice is not a row. */
 export function entryPosition(id: WorkbenchSliceId): number | null {
   const [name, position] = id.split(":");
   return name === "entry" ? Number(position) : null;
 }
 
-/** Why a draft is refused: the parser's own codes, and the vault's one. */
 export type WorkbenchProblemCode =
   | LiteratureNoteTemplateErrorCode
   | "bundled-partial";
 
 export interface WorkbenchProblem {
-  /** One code is one sentence, which each host writes in the reader's own language. */
   readonly code: WorkbenchProblemCode;
-  /** The values a host's own message for `code` reads. */
   readonly params?: Readonly<Record<string, string>>;
-  /** The parser exception that supplied this validation problem, when one exists. */
   readonly error?: Error;
-  /** Where the reader repairs it. */
   readonly slice: WorkbenchSliceId;
-  /** The responsible text in master offsets, when the check can name it. */
   readonly range?: WorkbenchSliceRange;
 }
 
-/** The live editor over one slice, which owns that region while it has focus. */
 export interface WorkbenchSliceEditor {
-  /** Applies changes the master suppressed, in the slice's own offsets. */
   replay(changes: ChangeSpec, userEvent: string | undefined): void;
 }
 
-/** The editor holding one slice's live text, and the region it holds. */
 interface Quarantine {
   readonly id: WorkbenchSliceId;
   readonly editor: WorkbenchSliceEditor;
@@ -145,13 +116,8 @@ export interface WorkbenchUpdate {
   readonly docChanged: boolean;
 }
 
-/**
- * Marks a master transaction as one slice's own edit, so the change filter lets
- * the focused slice through and the other slices know where it came from.
- */
 export const sliceEdit = Annotation.define<WorkbenchSliceId>();
 
-/** A disk update: one undo step that the host does not write back to disk. */
 export const externalEdit = Annotation.define<boolean>();
 
 export class WorkbenchDocumentController {
@@ -172,7 +138,6 @@ export class WorkbenchDocumentController {
     ["note", { from: 0, to: 0 }],
     ["advanced", { from: 0, to: 0 }],
   ]);
-  /** The slices a pane shows other than as written: the manifest values. */
   readonly #codecs = new Map<WorkbenchSliceId, SliceCodec>();
   readonly #slices = new Map<WorkbenchSliceId, WorkbenchSliceEditor>();
   readonly #listeners = new Set<(update: WorkbenchUpdate) => void>();
@@ -182,10 +147,6 @@ export class WorkbenchDocumentController {
     options: {
       readOnly?: boolean;
       kind?: WorkbenchDocumentKind;
-      /**
-       * Reads the caller a Shared Partial is shown as called from, which the
-       * host's view state owns. @default "note"
-       */
       context?: () => PartialContext;
     } = {},
   ) {
@@ -195,18 +156,11 @@ export class WorkbenchDocumentController {
     this.#state = EditorState.create({
       doc: source,
       extensions: [
-        // Read as found: without this the state splits on any of the three
-        // break forms and joins them all back as LF, silently rewriting a CRLF
-        // document the first time it is edited.
         EditorState.lineSeparator.of(source.includes("\r\n") ? "\r\n" : "\n"),
         history(),
         pairingState,
         pairingHistory,
         jsonSliceHistory,
-        // The focused slice holds the reader's live text, so a form or
-        // structural edit computed elsewhere leaves that range alone and is
-        // replayed into the editor that owns it. Undo and redo are exempt:
-        // they are routed here from the slice on purpose.
         EditorState.changeFilter.of((transaction) => {
           const quarantine = this.#quarantine(transaction);
           if (quarantine === null) return true;
@@ -215,24 +169,16 @@ export class WorkbenchDocumentController {
         }),
       ],
     });
-    // The one editor a plain document opens holds this slice, so it exists
-    // from the start, including for a draft whose manifest never parsed.
     if (this.#kind !== "profile")
       this.#ranges.set("source", { from: 0, to: source.length });
     this.#analyze();
   }
 
-  /**
-   * The document's authored bytes, with the line break it was read with. The
-   * state stores every break as LF so the slice offsets stay one character
-   * wide; this is the text to render, save, or download.
-   */
   get source(): string {
     const { doc } = this.#state;
     return doc.sliceString(0, doc.length, this.#state.lineBreak);
   }
 
-  /** The offset space the slice ranges and the parser agree on. */
   get #text(): string {
     return this.#state.doc.toString();
   }
@@ -241,61 +187,36 @@ export class WorkbenchDocumentController {
     return this.#state;
   }
 
-  /** The Template Document kind this controller was opened for. */
   get kind(): WorkbenchDocumentKind {
     return this.#kind;
   }
 
-  /**
-   * The caller a Shared Partial's one editor reads its root data as, which
-   * completion and the preview alike follow.
-   *
-   * @see {@link PartialContext} for whose choice it is.
-   */
   get partialContext(): PartialContext {
     return this.#context();
   }
 
   #language: "liquid" | "eta" = "liquid";
 
-  /** The last valid engine remains available while the author repairs a draft. */
   get templateLanguage(): "liquid" | "eta" {
     return this.#language;
   }
 
-  /** The parsed document, or null while the draft does not parse. */
   get document(): LiteratureNoteTemplateDocument | null {
     return this.#document;
   }
 
-  /** Whether the draft parses as its kind's document, which alone a render reads. */
   get parsed(): boolean {
     return (this.#kind === "profile" ? this.#document : this.#plain) !== null;
   }
 
-  /**
-   * The last Profile manifest that parsed, which stands while the draft does
-   * not, so the header and the Name and folder form keep their values during
-   * a repair. Null on a plain document and until a manifest parses.
-   */
   get manifest(): LiteratureNoteTemplateDocument["manifest"] | null {
     return this.#manifest;
   }
 
-  /**
-   * The parsed plain document — the manifest and the source under it — or null
-   * on a Profile document and while a plain draft does not parse.
-   */
   get plainDocument(): PlainTemplateDocument | null {
     return this.#plain;
   }
 
-  /**
-   * The language the draft's manifest names, which every language-aware read
-   * of the source follows — the Partial Placeholder among them. A draft that
-   * stopped parsing keeps the last language that did, so a repair in progress
-   * keeps the boxes the reader is working in.
-   */
   get language(): TemplateLanguage {
     return (
       this.#document?.manifest.language ??
@@ -304,14 +225,6 @@ export class WorkbenchDocumentController {
     );
   }
 
-  /**
-   * Writes the manifest's `language`, adding the key to a manifest that omits
-   * it and the manifest itself to a document that carries none — an empty
-   * manifest is valid and names the Liquid default. The source is left as
-   * authored: a Template changes language by being rewritten, never by being
-   * converted.
-   * @returns false on a Profile document, whose language the Profile tab writes.
-   */
   setPlainLanguage(language: TemplateLanguage): boolean {
     if (this.#kind === "profile") return false;
     const plain = this.#plain;
@@ -335,60 +248,26 @@ export class WorkbenchDocumentController {
     return this.#problems;
   }
 
-  /**
-   * The Managed Frontmatter entries the manifest authors, in list order, or
-   * null while the list is one no form can patch — a flow list, an entry that
-   * is not a block mapping — which leaves it to Advanced. A draft whose
-   * manifest stopped parsing keeps the last list that did, so the rows stay on
-   * screen while the reader repairs the text inside one of them.
-   */
   get managedEntries(): readonly ManagedEntrySource[] | null {
     return this.#entries;
   }
 
-  /**
-   * Whether {@link managedEntries} is the last list that parsed, held while the
-   * manifest does not. No Properties action can patch a held list, so a form
-   * offers its list changes again only once the text is repaired.
-   */
   get managedEntriesHeld(): boolean {
     return this.#entriesHeld;
   }
 
-  /**
-   * The Shared Partial names this draft calls, sorted, which is what a Local
-   * Bridge bundles for the preview. A name no Shared Partial can be given is
-   * left out, so a pane that offers this list offers no call a partial file
-   * could never answer. A draft that does not parse keeps the last list that
-   * did, so a repair in progress never drops the bundle it needs.
-   * @see {@link RESERVED_CALL_NAMES}
-   */
   get dependencies(): readonly string[] {
     return this.#dependencies;
   }
 
-  /**
-   * The note-name template's own text, or null while the manifest writes it in
-   * a form one line cannot hold, which leaves that value to Advanced.
-   */
   get filenameSlice(): WorkbenchSliceRange | null {
     return this.#ranges.get("filename") ?? null;
   }
 
-  /**
-   * The boxes the note body carries: every annotation render call, and the
-   * Managed Block. Both are read from the source, so a draft mid-repair keeps
-   * the boxes the reader is working in.
-   */
   get noteRegions(): NoteRegions {
     return this.#regions;
   }
 
-  /**
-   * The Annotation Section's header line and the source under it, or null while
-   * the document has never carried a section. The header is the line the
-   * section's source starts after, so it survives a draft the parser refuses.
-   */
   get annotationSection(): WorkbenchAnnotationSection | null {
     const source = this.#ranges.get("annotation");
     if (!source) return null;
@@ -396,7 +275,6 @@ export class WorkbenchDocumentController {
     return { header: { from: line.from, to: line.to }, source };
   }
 
-  /** Render scopes in master offsets, shared by completion and embedded highlighting. */
   get templateRegions(): readonly (WorkbenchSliceRange & {
     root: "note" | "annotation" | "filename" | "citation";
     expression: boolean;
@@ -464,16 +342,10 @@ export class WorkbenchDocumentController {
     return this.#ranges.has(id);
   }
 
-  /**
-   * The region `id` covers. An entry removed while its editor is still mounted
-   * takes its range with it, so that editor reads an empty region for the one
-   * update it sees before the host drops the row.
-   */
   sliceRange(id: WorkbenchSliceId): WorkbenchSliceRange {
     return this.#ranges.get(id) ?? { from: 0, to: 0 };
   }
 
-  /** Every slice and the region it covers now, as a copy the next edit leaves alone. */
   get slices(): ReadonlyMap<WorkbenchSliceId, WorkbenchSliceRange> {
     return new Map(this.#ranges);
   }
@@ -483,32 +355,19 @@ export class WorkbenchDocumentController {
     return this.#state.doc.sliceString(from, to);
   }
 
-  /** The text before slice `id` on its first line, where a manifest value's key sits. */
   slicePrefix(id: WorkbenchSliceId): string {
     const { from } = this.sliceRange(id);
     return this.#state.doc.sliceString(this.#state.doc.lineAt(from).from, from);
   }
 
-  /**
-   * How a pane shows slice `id`. A manifest scalar shows the text YAML reads
-   * and stores the reader's text as YAML; a JSON-e rule shows laid-out JSON;
-   * every other slice shows its text as written.
-   */
   sliceCodec(id: WorkbenchSliceId): SliceCodec {
     return this.#codecs.get(id) ?? sourceCodec;
   }
 
-  /** Records which slice holds the caret, so the change filter can quarantine it. */
   setFocusedSlice(id: WorkbenchSliceId | null): void {
     this.#focused = id;
   }
 
-  /**
-   * Registers the editor holding `id`'s live text. While it is focused the
-   * master leaves that region to it, so registration is what makes a slice a
-   * quarantine.
-   * @returns the unregister function.
-   */
   registerSlice(
     id: WorkbenchSliceId,
     editor: WorkbenchSliceEditor,
@@ -526,7 +385,6 @@ export class WorkbenchDocumentController {
     };
   }
 
-  /** Reconciles disk text while retaining history and unchanged slice positions. */
   applyExternalSource(source: string): void {
     const next = EditorState.create({ doc: source }).doc.toString();
     if (next === this.#text) return;
@@ -561,8 +419,6 @@ export class WorkbenchDocumentController {
     const before = this.#state;
     let changes =
       spec.changes === undefined ? undefined : splitLineBreaks(spec.changes);
-    // An empty note can share the header's starting offset. Its first edit
-    // creates the structural line break that subsequent note edits leave out.
     if (
       changes !== undefined &&
       this.annotationSection?.header.from === this.sliceRange("note").to
@@ -593,8 +449,6 @@ export class WorkbenchDocumentController {
         ? null
         : suppressedChanges(before.changes(changes), quarantine.range);
     this.#apply(transaction);
-    // The master has moved on by the part the filter let through, so the
-    // suppressed changes are rebased onto the document the slice now holds.
     if (quarantine && suppressed) {
       this.#replay(
         quarantine,
@@ -612,11 +466,6 @@ export class WorkbenchDocumentController {
     return !this.#readOnly && redo(this.#target());
   }
 
-  /**
-   * Replaces one manifest value in place, preserving every other byte of the
-   * manifest — comments, key order, quoting, and line endings included.
-   * @returns false when the path names no node in the current draft.
-   */
   setManifestValue(
     path: readonly (string | number)[],
     value: ManifestScalar,
@@ -627,7 +476,6 @@ export class WorkbenchDocumentController {
     return true;
   }
 
-  /** Write only the Match region, with each form edit in the master undo history. */
   setMatch(match: MatchTree | undefined): boolean {
     let next: string;
     try {
@@ -639,13 +487,6 @@ export class WorkbenchDocumentController {
     return true;
   }
 
-  /**
-   * Drops the manifest's transport copy of each partial `names` holds, as one
-   * undo step: a file of the host's own answers each of those names now,
-   * whether the host just wrote it or the reader had written it already.
-   * @returns false on a document that does not parse, and on one whose
-   *   manifest carries none of those names — the state the caller wanted.
-   */
   dropBundledPartials(names: readonly string[]): boolean {
     let document;
     try {
@@ -668,11 +509,6 @@ export class WorkbenchDocumentController {
     return true;
   }
 
-  /**
-   * Replaces the document with `next` through the one changed span between
-   * them, so a whole-document rewrite lands as one undo step and leaves every
-   * byte the two share where the author put it.
-   */
   #rewrite(next: string): void {
     if (next === this.#text) return;
     let from = 0;
@@ -695,13 +531,6 @@ export class WorkbenchDocumentController {
     });
   }
 
-  /**
-   * Writes one top-level manifest key, or removes it when `value` is undefined.
-   * Override and Use default are the two calls, and each lands as its own undo
-   * step; every other manifest byte stays where the author put it.
-   * @returns false when the manifest does not parse, or the key holds a node no
-   * form can patch.
-   */
   setManifestKey(key: string, value: ManifestScalar | undefined): boolean {
     const edit = manifestKeyEdit(this.#text, key, value);
     if (!edit) return false;
@@ -713,13 +542,6 @@ export class WorkbenchDocumentController {
     return true;
   }
 
-  /**
-   * Writes the Annotation Section header a document without one is missing, as
-   * a line of its own at the end of the file. It inserts that header and the
-   * line break that ends it and nothing else, so the section it opens is empty
-   * until the reader writes in it.
-   * @returns false when the document is not missing its section.
-   */
   repairAnnotationSection(): boolean {
     if (
       !this.#problems.some(({ code }) => code === "missing-annotation-section")
@@ -727,8 +549,6 @@ export class WorkbenchDocumentController {
       return false;
     }
     const { doc } = this.#state;
-    // The header counts as one only on a line of its own, so a file whose last
-    // line still holds text is given the break that ends that line.
     const start = doc.line(doc.lines).length === 0 ? "" : "\n";
     this.dispatch({
       changes: { from: doc.length, insert: `${start}${ANNOTATION_HEADER}\n` },
@@ -738,18 +558,9 @@ export class WorkbenchDocumentController {
     return true;
   }
 
-  /**
-   * Applies one Properties action — add, remove, reorder, change language,
-   * change merge or key — as a targeted edit of the entry's own YAML lines, in
-   * one undo step.
-   * @returns false when the action names no entry the form can patch.
-   */
   editManagedEntry(action: ManagedEntryAction): boolean {
     const edit = managedEntryEdit(this.#text, action);
     if (!edit) return false;
-    // A structural action rewrites the very lines the focused row is editing,
-    // so it goes to the master whole instead of being quarantined and replayed;
-    // the row that survives it picks its focus back up from the DOM.
     this.setFocusedSlice(null);
     this.dispatch({
       changes: edit,
@@ -759,12 +570,6 @@ export class WorkbenchDocumentController {
     return true;
   }
 
-  /**
-   * The editor a transaction stays out of, with the region it holds right now,
-   * or null when the transaction may touch the whole document. A slice with no
-   * editor open holds no live text, so nothing is kept out of the master for
-   * it.
-   */
   #quarantine(transaction: Transaction): Quarantine | null {
     const focused = this.#focused;
     const editor = focused === null ? undefined : this.#slices.get(focused);
@@ -783,12 +588,6 @@ export class WorkbenchDocumentController {
     return { id: focused, editor, range };
   }
 
-  /**
-   * Hands the changes the filter kept out of the master to the editor that owns
-   * that text, addressed in its own offsets. The child applies them as one of
-   * its own edits, which comes straight back as a slice edit the filter lets
-   * through, so the edit lands once and in order.
-   */
   #replay(
     { id, editor }: Quarantine,
     changes: ChangeSet,
@@ -807,7 +606,6 @@ export class WorkbenchDocumentController {
     if (replay.length > 0) editor.replay(replay, userEvent);
   }
 
-  /** The line the offset sits on, so a problem selects the text it is about. */
   #lineAround(offset: number): WorkbenchSliceRange {
     const { doc } = this.#state;
     const line = doc.lineAt(clamp(offset, doc.length));
@@ -839,14 +637,6 @@ export class WorkbenchDocumentController {
     for (const listener of this.#listeners) listener(update);
   }
 
-  /**
-   * Re-reads the regions the manifest owns: the note-name value and the
-   * Managed Frontmatter rows, with the slice each one is edited through. A
-   * manifest that stopped parsing keeps the regions it had, whose ranges the
-   * change set already remapped, so the reader repairs the text in the editor
-   * they are already in; a list or a value that parses into a shape no form can
-   * patch takes its region with it, so nothing points at text no pane owns.
-   */
   #readManifest(source: string): void {
     const list = managedFrontmatterEntries(source);
     this.#entriesHeld = list.status === "unparsed";
@@ -870,11 +660,6 @@ export class WorkbenchDocumentController {
     }
   }
 
-  /**
-   * Re-derives the slice ranges and the Problems list from the current source.
-   * A draft that does not parse keeps the ranges the change set remapped, so
-   * the reader can repair the text in the editor they are already in.
-   */
   #analyze(): void {
     const source = this.#text;
     this.#ranges.set("advanced", { from: 0, to: source.length });
@@ -904,8 +689,6 @@ export class WorkbenchDocumentController {
       if (!(error instanceof LiteratureNoteTemplateError)) throw error;
       this.#document = null;
       const entry = error.manifestPath ? null : this.#unreadableEntry();
-      // A manifest field the parser can name beats the line its offset sits on,
-      // which for a schema failure is the manifest's first line.
       const range =
         entry?.range ??
         (error.manifestPath
@@ -924,8 +707,6 @@ export class WorkbenchDocumentController {
         },
       ];
     }
-    // The newline before the header belongs to the document structure. Keep
-    // it outside the note, including retained ranges in invalid drafts and redo.
     const section = this.annotationSection;
     const note = this.sliceRange("note");
     if (
@@ -940,11 +721,6 @@ export class WorkbenchDocumentController {
     this.#regions = noteRegions(source, this.sliceRange("note"));
   }
 
-  /**
-   * Re-derives the one source slice and the Problems list of a plain document.
-   * A draft whose manifest does not parse takes the whole document as its
-   * slice, so the one editor it opens holds the manifest the reader repairs.
-   */
   #analyzePlain(source: string): void {
     try {
       const plain = parsePlainTemplateDocument(source);
@@ -969,11 +745,6 @@ export class WorkbenchDocumentController {
     }
   }
 
-  /**
-   * The first row whose own text YAML cannot read. A draft typed into a row
-   * that stops the manifest parsing is repaired in that row, whose range the
-   * change set remapped.
-   */
   #unreadableEntry(): {
     id: WorkbenchSliceId;
     range: WorkbenchSliceRange;
@@ -986,13 +757,6 @@ export class WorkbenchDocumentController {
     return null;
   }
 
-  /**
-   * The pane a problem is repaired in: the row that owns the entry the parser
-   * named, the note name for the manifest value that holds it, the Name and
-   * folder form for the manifest fields it writes, the note body for a problem
-   * in the text that pane already shows, and Advanced for every error no pane
-   * can name.
-   */
   #sliceFor(error: LiteratureNoteTemplateError): WorkbenchSliceId {
     const path = error.manifestPath;
     const index = path?.[0] === "frontmatter" ? path[1] : undefined;
@@ -1009,26 +773,13 @@ export class WorkbenchDocumentController {
     return this.#inNoteBody(error) ? "note" : "advanced";
   }
 
-  /**
-   * Whether the note pane already holds the text the parser pointed at. The
-   * ranges belong to the last parse the change set remapped, so a code about
-   * the document's own structure — a missing or duplicated section header —
-   * stays with Advanced, where that structure is repaired.
-   */
   #inNoteBody({ code, offset }: LiteratureNoteTemplateError): boolean {
     if (offset === undefined || !NOTE_BODY_ERRORS.has(code)) return false;
     const note = this.#ranges.get("note");
-    // The note slice stops before the section header, so a problem sitting on
-    // that line is the document's own structure rather than the note's text.
     return note !== undefined && offset >= note.from && offset < note.to;
   }
 }
 
-/**
- * The manifest keys the Name and folder form writes, so an error the parser
- * pinned to one of them opens the field that holds it. The keys that form
- * shows read-only — `id`, `contract`, `minAppVersion` — stay with Advanced.
- */
 const DETAIL_KEYS = new Set([
   "name",
   "description",
@@ -1043,20 +794,12 @@ const DETAIL_KEYS = new Set([
   "sampleItemType",
 ]);
 
-/** The parser codes that name text the note pane owns rather than structure. */
 const NOTE_BODY_ERRORS = new Set<LiteratureNoteTemplateErrorCode>([
   "invalid-managed-block",
   "duplicate-managed-block",
   "unknown-section-header",
 ]);
 
-/**
- * The parts of `changes` the change filter keeps out of the master, in the
- * master's own offsets. It mirrors the filter's boundary rule: an insertion
- * sitting exactly on a slice boundary goes to the master, and a change reaching
- * in from outside is split at the boundary, with its inserted text staying on
- * the side the change starts on.
- */
 function suppressedChanges(
   changes: ChangeSet,
   { from, to }: WorkbenchSliceRange,
@@ -1076,12 +819,6 @@ function suppressedChanges(
   return ChangeSet.of(suppressed, changes.length);
 }
 
-/**
- * The vault's own restriction: a Profile edited beside the vault reads its
- * partials from `zotlit-partial.<name>.md` files, so the manifest's transport
- * copy is text with two homes until it is unpacked.
- * @see docs/adr/0055-the-citation-template-is-one-document-and-partials-are-files.md
- */
 function bundledPartialProblems(
   document: LiteratureNoteTemplateDocument,
   source: string,
@@ -1098,7 +835,6 @@ function bundledPartialProblems(
   ];
 }
 
-/** The manifest node's own text, so a problem points at the value it is about. */
 function at(
   source: string,
   path: readonly (string | number)[],
@@ -1107,10 +843,6 @@ function at(
   return range ? { range } : {};
 }
 
-/**
- * Splits every inserted string into lines, so a break written as LF lands as a
- * line break in a CRLF document instead of a literal character inside a line.
- */
 function splitLineBreaks(changes: ChangeSpec): ChangeSpec {
   if (Array.isArray(changes)) return changes.map(splitLineBreaks);
   if (

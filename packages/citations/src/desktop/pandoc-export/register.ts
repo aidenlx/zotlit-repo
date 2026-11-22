@@ -4,8 +4,6 @@ import type { ExportPorts } from "#desktop/pandoc/export.ts";
 import type { CitationEngine } from "#obsidian/pandoc/engine.ts";
 import { Cause, Effect, FileSystem, Schema } from "effect";
 import type { Context } from "effect";
-// Registers the built-in export command and drives one export end to end:
-// modal → resolution → bibliography → engine → chosen destination.
 import { basename, join } from "node:path";
 import type { App, FileSystemAdapter, Plugin, TFile } from "obsidian";
 
@@ -52,10 +50,6 @@ import {
 import { ProfileStyles } from "#obsidian/pandoc/profile-styles.ts";
 import { engineRefusal, PandocEngine } from "#obsidian/pandoc/service.ts";
 
-/**
- * The services an export reads. `ZoteroHttp` is the loopback client the
- * bibliography is fetched over.
- */
 export type PandocExportServices =
   | CitationLookup
   | CitationParse
@@ -72,7 +66,6 @@ export type PandocExportServices =
 export interface PandocExportDeps {
   app: App;
   bridge: Pick<EffectBridge, "runSync" | "runPromiseExit">;
-  /** The services the command callback runs each export with. */
   context: Context.Context<PandocExportServices>;
 }
 
@@ -93,12 +86,6 @@ export function registerPandocExport(
   });
 }
 
-/**
- * One export, from the dialog to the written file, with its outcome shown as
- * a notice. The engine is the one prerequisite the command cannot supply
- * itself, so its absence is answered with the page of the Resource Pack that
- * holds it.
- */
 class PandocExportError extends Schema.TaggedError<
   PandocExportError,
   { readonly brand: unique symbol }
@@ -159,15 +146,12 @@ export function runPandocExport(
   );
 }
 
-/** How one export ended. */
 export type PandocExportOutcome =
   | { kind: "engine-missing"; status: PackBinaryRefusal }
   | { kind: "failed"; problem: ExportProblem }
-  /** The user dismissed the dialog, or the plugin unloaded during the run. */
   | { kind: "stopped" }
   | { kind: "exported"; destination: string; styleTitle: string };
 
-/** One export, from the dialog to the written file. */
 export const exportWithCitations = Effect.fn(
   "PandocExport.exportWithCitations",
 )((file: TFile, deps: PandocExportDeps) =>
@@ -197,8 +181,6 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
     return {
       run: Effect.succeed({ kind: "engine-missing", status: refusal }),
     };
-  // A note whose own presentation property names nothing stops here: a vault
-  // selection never stands in for it, in the dialog or in the exported run.
   const profiles = yield* ProfileStyles;
   const declared = documentPresentation(
     app.metadataCache,
@@ -229,21 +211,10 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
       }),
     };
   }
-  // Where this export starts: the document's own effective Citation
-  // Presentation, read through the boundary every in-app surface reads it
-  // through, so the run opens on what Obsidian shows. The dialog holds the
-  // style for this run alone — nothing here is written back to the note — so a
-  // style the note names and Zotero cannot supply still opens the picker on
-  // that style, named as the missing one it is. The Citation Locale travels to
-  // citeproc through the effective CSL input; a Document Language reaches the
-  // writer through the note's own `lang` metadata as well, which is what makes
-  // it the exported document's language.
   const effective = effectivePresentation(
     declared.presentation,
     vaultPresentation(yield* settings.current, profiles),
   );
-  // A literal citation key resolves through the snapshot, so this export waits
-  // for its first rebuild the way every in-app surface does.
 
   const choices = yield* awaitModal<PandocExportChoices | null>((resolve) =>
     openPandocExportModal(
@@ -261,8 +232,6 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
   );
   if (!choices) return { run: Effect.succeed({ kind: "stopped" }) };
 
-  // A style Zotero cannot supply stops the run, whichever place selected it:
-  // the run never falls back to another style.
   const style = yield* exportPresentation(pref.dataDir, {
     styleId: choices.styleId,
     locale: effective.locale,
@@ -288,7 +257,6 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
   return {
     run: Effect.gen(function* (): Effect.fn.Return<PandocExportOutcome> {
       const conversion = yield* Effect.gen(function* () {
-        // An unread pack states its refusal at this first borrow.
         const borrowed = yield* Effect.result(pandocEngine.getEngine);
         if (borrowed._tag === "Failure")
           return { missing: borrowed.failure.status };
@@ -319,8 +287,6 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
         ).pipe(Effect.provideService(CitationParse, citationParse));
       }).pipe(
         Effect.scoped,
-        // This outcome keeps the engine's actual detail; its fallback depends
-        // on the cause rather than the fixed fallback that recover accepts.
         Effect.catchCause((cause) => {
           if (Cause.hasInterruptsOnly(cause)) return Effect.interrupt;
           return Effect.logError("The Pandoc export failed").pipe(
@@ -365,17 +331,6 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
   };
 });
 
-/**
- * What the engine formats the exported run with, read through the resolver the
- * app renders with, so an export formats a dependent style exactly as Obsidian
- * does, in the same effective Citation Locale. An installed style hands over its
- * content with that locale already applied; the embedded default style takes
- * the locale beside it.
- *
- * @returns what the engine formats with and the style's title, or `null` where
- *   the requested style is unusable — the document stops rather than exporting
- *   in another style.
- */
 const exportPresentation = Effect.fn("PandocExport.exportPresentation")(
   function* (dataDir: string, request: CslStyleRequest) {
     const style = yield* resolveInstalledStyle(dataDir, request);
@@ -393,10 +348,8 @@ function exportPorts(
     dataDir: string;
     httpPort: number | null;
     localApiEnabled: boolean;
-    /** Resolves the literal citation keys of the exported document. */
     citationLookup: CitationLookup["Service"];
     db: ZoteroReads["Service"];
-    /** The loopback client the bibliography is fetched over. */
     zoteroHttp: ZoteroHttp["Service"];
   },
 ): ExportPorts {
@@ -430,7 +383,6 @@ const readItemRefs = Effect.fn("PandocExport.readItemRefs")(
   Effect.orElseSucceed(() => null),
 );
 
-/** Both identities the two bibliography sources address one Item by. */
 function placeItem(
   libraries: readonly Library[],
   indexedKey: string,
@@ -446,7 +398,6 @@ function placeItem(
   return { itemKey, libraryID, groupID };
 }
 
-/** Desktop-only plugin: the adapter is always a `FileSystemAdapter`. */
 function absolutePath(app: App, file: TFile): string {
   return join(
     (app.vault.adapter as FileSystemAdapter).getBasePath(),

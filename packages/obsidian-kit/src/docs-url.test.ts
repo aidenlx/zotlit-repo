@@ -17,13 +17,11 @@ test("docs links open the edition in Obsidian's language", () => {
   expect(docsUrl("/docs/how-to/fix-stale-data")).toBe(
     `${DOCS_SITE_URL}/docs/how-to/fix-stale-data`,
   );
-  // Obsidian names Simplified Chinese `zh`; the docs site serves it under /zh-CN.
   language.current = "zh";
   expect(docsUrl("/docs/how-to/fix-stale-data")).toBe(
     `${DOCS_SITE_URL}/zh-CN/docs/how-to/fix-stale-data`,
   );
   expect(docsUrl("")).toBe(`${DOCS_SITE_URL}/zh-CN`);
-  // A language the site has no edition for keeps the English pages.
   language.current = "fr";
   expect(docsUrl("/learn")).toBe(`${DOCS_SITE_URL}/learn`);
 });

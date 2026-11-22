@@ -19,9 +19,6 @@ import type {
   WorkbenchPreviewSettings,
   WorkbenchViewState,
 } from "#obsidian/workbench-ui/index.tsx";
-// The per-leaf host model of the Template Workbench View: the Workbench view
-// state, the one read of the chosen Item, and the commands one leaf owns, as
-// atoms in the view registry. The reader's choices are the Workbench model's.
 import { Cause, Effect, Option, Schema } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -58,17 +55,11 @@ import {
   patchAt,
 } from "#obsidian/workbench-ui/index.tsx";
 
-/**
- * The Template Document the leaf holds, as the view last loaded it. Its kind
- * is the controller's.
- */
 export interface WorkbenchDocumentFacts {
   readonly path: string | null;
-  /** The Shared Partial's own name, or null for any other document. */
   readonly partialName: string | null;
 }
 
-/** The note the leaf was opened from, which Update writes. */
 export interface OriginatingNote {
   readonly file: TFile;
   readonly indexedKey: string;
@@ -76,16 +67,11 @@ export interface OriginatingNote {
   readonly profile: ProfileSelector;
 }
 
-/** The installed citation styles, and whether the last read of them failed. */
 export interface CitationStyles {
   readonly list: NameFolderPaneProps["citationStyles"];
   readonly unavailable: boolean;
 }
 
-/**
- * The chosen Item's read, as the surfaces show it. A finished read holds the
- * Item's data: an Item the read cannot find fails with `ItemUnavailable`.
- */
 export type WorkbenchItemRead =
   | {
       readonly status: "empty" | "loading";
@@ -94,7 +80,6 @@ export type WorkbenchItemRead =
     }
   | {
       readonly status: "error";
-      /** The read's own message. */
       readonly error: string;
       readonly snapshot: null;
     }
@@ -109,32 +94,22 @@ const NO_DOCUMENT: WorkbenchDocumentFacts = {
   partialName: null,
 };
 
-/** Progress of the explicit action that creates the built-in Profile document. */
 export type Customization = "idle" | "pending" | "failed";
 
 export const setPresentation = (
   value: Partial<WorkbenchViewState["presentation"]>,
 ) => patchAt<WorkbenchViewState, "presentation">("presentation", value);
 
-/** What a Shared Partial preview renders with: the Preview renderer's own. */
 export type PartialRender = (
   request: RenderRequest,
   partial: PartialPreviewSelection,
 ) => Effect.Effect<string, unknown, ViewServices>;
 
 export function makeTemplateWorkbenchModel() {
-  /**
-   * The editor's view state, and the root the reader moved the Fields panel
-   * to, or null while the panel shows the editor's root.
-   */
   const editor = Atom.make<{
     readonly view: WorkbenchViewState;
     readonly fieldsRoot: TemplateRoot | null;
   }>({ view: INITIAL_VIEW, fieldsRoot: null });
-  /**
-   * The editor's view state. A write that changes the Item or the root drops
-   * the Fields panel's own root in the same write.
-   */
   const view = Atom.writable(
     (get) => get(editor).view,
     (ctx, next: WorkbenchViewState) => {
@@ -148,7 +123,6 @@ export function makeTemplateWorkbenchModel() {
       });
     },
   );
-  /** The root the Fields panel shows instead of the editor's; null for the editor's. */
   const fieldsRoot = Atom.writable(
     (get) => get(editor).fieldsRoot,
     (ctx, root: TemplateRoot | null) => {
@@ -160,26 +134,14 @@ export function makeTemplateWorkbenchModel() {
     },
   );
   const document = Atom.make(NO_DOCUMENT);
-  /** Progress of Customize, which creates the built-in Profile document. */
   const customization = Atom.make<Customization>("idle");
-  /** Whether the leaf shows the built-in Default Profile rather than a file. */
   const defaultDraft = Atom.make(false);
-  /** The note the leaf was opened from, which Update writes. */
   const origin = Atom.make<OriginatingNote | null>(null);
-  /** Whether the originating note's update runs. */
   const updating = Atom.make(false);
-  /**
-   * The place a field insertion asks the editor to reveal, and whether the
-   * editor takes focus there.
-   */
   const insertRequest = Atom.make<
     (WorkbenchInsertTarget & { readonly focus: boolean }) | null
   >(null);
   const styles = Atom.make<CitationStyles>({ list: [], unavailable: false });
-  /**
-   * The Default Profile's bindings, which Name and folder shows where a
-   * Profile binds none.
-   */
   const bindingDefaults = Atom.map(
     defaultBindingsAtom,
     (bindings): typeof BUILT_IN_BINDING_DEFAULTS => ({
@@ -191,7 +153,6 @@ export function makeTemplateWorkbenchModel() {
         bindings["note.import-annotations-as-template"],
     }),
   );
-  /** What the leaf cannot read now, which the editor names. */
   const unavailable = Atom.make((get): readonly string[] => [
     ...(get(zoteroStateAtom).state === "degraded"
       ? [m.template_workbench_database_unavailable()]
@@ -200,20 +161,13 @@ export function makeTemplateWorkbenchModel() {
       ? [m.template_workbench_styles_unavailable()]
       : []),
   ]);
-  /** Counts the reader's refreshes; each one reads the chosen Item again. */
   const refresh = Atom.make(0);
   const item = Atom.map(view, (state) => state.item);
   const itemId = Atom.map(view, (state) => state.item?.id ?? null);
-  /**
-   * The one read of the chosen Item that every surface derives from. A new
-   * choice, a refresh, or a Zotero change interrupts the read it replaces.
-   */
-  // The leaf's close stops the read at once.
   const chosen = Atom.setIdleTTL(
     viewRuntime.atom((get) => {
       const id = get(itemId);
       get(refresh);
-      // Samples carry their data, so database changes reach connected Items alone.
       if (id && !id.startsWith("sample:")) get(zoteroRevisionAtom);
       return id === null ? Effect.succeed(null) : readChosenItem(id);
     }),
@@ -234,12 +188,10 @@ export function makeTemplateWorkbenchModel() {
         snapshot: null,
       };
     }
-    // The read answers no Item while none is chosen.
     return result.value === null
       ? { status: "empty", error: null, snapshot: null }
       : { status: "ready", error: null, snapshot: result.value.snapshot };
   });
-  /** The chosen Item's title: the read's, once it named one. */
   const title = Atom.make((get) => {
     const result = get(chosen);
     const named = AsyncResult.isSuccess(result) ? result.value?.title : null;
@@ -248,15 +200,9 @@ export function makeTemplateWorkbenchModel() {
   const itemData = ({ document: atoms }: WorkbenchItemDataInput) =>
     Atom.make((get): WorkbenchItemData => ({
       snapshot: get(read).snapshot,
-      // Output kept for another Template Document is another preview's.
       document: get(document).path ?? undefined,
-      // A document the parser refuses is a failure, not a wait.
       hold: !get(atoms.parsed) && "invalid",
     }));
-  /**
-   * Opens a chooser and answers what the reader chose. A newer chooser
-   * replaces it, and the leaf's close interrupts it.
-   */
   const chooserCommand = <A>() =>
     Atom.setIdleTTL(
       viewRuntime.fn(
@@ -288,12 +234,6 @@ export function makeTemplateWorkbenchModel() {
   };
 }
 
-/**
- * A Shared Partial's preview for one caller, keyed by the JSON of
- * `[name, context]`. It renders once the chosen Item is read, and again when
- * a partial is saved or the data it reads changes. A failed Item read is the
- * preview's failure.
- */
 export function makePartialPreviews({
   model,
   workbench,
@@ -303,7 +243,6 @@ export function makePartialPreviews({
   readonly model: TemplateWorkbenchModel;
   readonly workbench: WorkbenchModel;
   readonly renderPartial: PartialRender;
-  /** The document's source as the editor holds it now. */
   readonly source: () => string;
 }) {
   return Atom.family((key: string) =>
@@ -347,11 +286,6 @@ export type TemplateWorkbenchModel = ReturnType<
   typeof makeTemplateWorkbenchModel
 >;
 
-/**
- * Keeps the leaf's writable state, its Item read and its commands alive in
- * `registry`, from the view's constructor to its close.
- * @returns Releases them, which interrupts the read and every command.
- */
 export function holdTemplateWorkbenchModel(
   registry: ViewRegistryHandle,
   model: TemplateWorkbenchModel,
@@ -381,41 +315,30 @@ const decode = <A>(schema: Schema.Codec<A>, value: unknown): A | null =>
 const record = Schema.Record(Schema.String, Schema.Unknown);
 const roots = Schema.Literals(["note", "annotation", "filename", "citation"]);
 
-/** The saved view state of one leaf, as `getState` writes it. */
 export interface SavedWorkbench {
   readonly defaultDraft: boolean;
   readonly tab: WorkbenchViewState["tab"] | null;
   readonly root: TemplateRoot | null;
   readonly advanced: boolean | null;
-  /** The chosen Item; undefined when the state names none, null when it clears it. */
   readonly itemIndexedKey: string | null | undefined;
-  /** The chosen annotation; undefined when the state names none. */
   readonly annotationId: string | null | undefined;
   readonly partialContext: PartialContext | null;
   readonly partialProfile: string | null;
-  /**
-   * The panels the state names; a side it leaves out keeps the leaf's own,
-   * and so does a Preview height it leaves out.
-   */
   readonly panels: {
     readonly fields?: FieldsDock;
     readonly preview?: WorkbenchPanel & { readonly height?: number };
   };
-  /** The Preview's settings the state names; each one decodes alone. */
   readonly preview: Partial<WorkbenchPreviewSettings>;
-  /** The Citation Variant and example set the state names; each decodes alone. */
   readonly citation: Partial<
     Pick<WorkbenchChoices, "variant" | "citationExample">
   >;
 }
 
-/** What `getState` saves beside the file, from the leaf's state. */
 export function savedWorkbench(state: {
   readonly defaultDraft: boolean;
   readonly view: WorkbenchViewState;
   readonly choices: WorkbenchChoices;
   readonly panels: WorkbenchPanels;
-  /** A Shared Partial's caller and Profile; null for any other kind. */
   readonly partial: {
     readonly context: PartialContext;
     readonly profile: string | null;
@@ -432,9 +355,6 @@ export function savedWorkbench(state: {
     advanced,
     panels: state.panels,
     preview: state.choices.preview,
-    // A Shared Partial's caller is a choice nothing else can name, so the
-    // workspace carries it back with the file it belongs to. No other kind
-    // has one to carry.
     ...(state.partial
       ? {
           partialContext: state.partial.context,
@@ -444,7 +364,6 @@ export function savedWorkbench(state: {
   };
 }
 
-/** Each saved field decodes alone, so one bad field leaves the others. */
 export function readSavedWorkbench(input: unknown): SavedWorkbench | null {
   const value = decode(record, input);
   if (!value) return null;
@@ -470,7 +389,6 @@ export function readSavedWorkbench(input: unknown): SavedWorkbench | null {
   };
 }
 
-/** A null example set stands: the chosen Item supplies the set. */
 function readCitation(
   value: Record<string, unknown>,
 ): Partial<Pick<WorkbenchChoices, "variant" | "citationExample">> {
@@ -486,7 +404,6 @@ function readCitation(
   };
 }
 
-/** Each setting decodes alone, so one bad setting leaves the others. */
 function readPreview(input: unknown): Partial<WorkbenchPreviewSettings> {
   const value = decode(record, input) ?? {};
   const mode = decode(Schema.Literals(["create", "update"]), value.mode);
@@ -502,25 +419,18 @@ function readPreview(input: unknown): Partial<WorkbenchPreviewSettings> {
   };
 }
 
-/** The Preview's side, which also holds its height under the editor. */
 const savedPreview = Schema.Struct({
   shown: Schema.Boolean,
   width: Schema.Finite,
   height: Schema.optional(Schema.Finite),
 });
 
-/** The Fields Panel's pin, which docks it beside the editor. */
 const savedFields = Schema.Struct({
   pinned: Schema.Boolean,
   hidden: Schema.Boolean,
   width: Schema.Finite,
 });
 
-/**
- * Each panel decodes alone; its width and height are held within the limits.
- * A Fields column an older workspace saved has no pin, so it restores no
- * docked panel.
- */
 function readPanels(input: unknown): SavedWorkbench["panels"] {
   const value = decode(record, input) ?? {};
   const fields = decode(savedFields, value.fields);
@@ -565,9 +475,7 @@ const range = Schema.Struct({
 });
 const insertTarget = Schema.Struct({ slice: Schema.String, range });
 
-/** The ephemeral state of one leaf, as `getEphemeralState` writes it. */
 export interface EphemeralWorkbench {
-  /** The document and Item the presentation was saved for. */
   readonly context: string;
   readonly focus: boolean;
   readonly selection: typeof insertTarget.Type | null;
@@ -576,7 +484,6 @@ export interface EphemeralWorkbench {
   readonly scroll: Record<string, { top: number; left: number }>;
 }
 
-/** Each ephemeral field decodes alone; the record needs its context. */
 export function readEphemeralWorkbench(
   input: unknown,
 ): EphemeralWorkbench | null {

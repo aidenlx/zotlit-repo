@@ -7,14 +7,9 @@ export interface ToggleProps {
   disabled?: boolean;
   id?: string;
   "aria-label"?: string;
-  /**
-   * The id of the label shown beside the toggle. It names the toggle in
-   * place of `aria-label`, which Obsidian also shows as a hover tooltip.
-   */
   "aria-labelledby"?: string;
 }
 
-/** React state binding for Obsidian's native toggle. */
 export function Toggle({
   value,
   onChange,

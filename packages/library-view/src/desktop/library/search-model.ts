@@ -1,4 +1,3 @@
-// One Library search's controls, target and interruptible lookup.
 import { useAtomValue } from "@effect/atom-react";
 import { Effect, Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";

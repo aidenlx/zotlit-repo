@@ -30,7 +30,6 @@ beforeEach(() => {
 });
 afterEach(() => forwarding[Symbol.dispose]());
 
-/** A red the theme can be made to state, to tell a themed colour from the fallback. */
 const RED: GraphColor = { a: 1, rgb: 0xff0000 };
 
 const OTHER_GROUP = { query: "tag:#paper", color: { a: 1, rgb: 0x00ff00 } };
@@ -55,7 +54,6 @@ function fixture() {
     engine,
     section,
     setOptions,
-    /** ZotLit's button: the one in the last container, below the native control. */
     button: () =>
       section.childrenEl.querySelector<HTMLButtonElement>(
         ".graph-color-button-container:last-child button",
@@ -159,8 +157,6 @@ describe("installGroupsButton", () => {
     const { engine, section, button } = fixture();
     using _button = installGroupsButton(engine, new GraphNodeColors());
 
-    // What the option listener, a drag-reorder, and "Restore default settings"
-    // run through.
     section.setColorQueries([OTHER_GROUP]);
     section.setColorQueries([]);
 
@@ -183,8 +179,6 @@ describe("installGroupsButton", () => {
       ".graph-color-groups-container",
     )!;
 
-    // What the native "New group" and the per-row delete do: build a row into
-    // the rows container, and take one away again, with no rebuild.
     const row = rows.createDiv("graph-color-group");
     row.remove();
 

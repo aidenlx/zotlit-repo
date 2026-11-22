@@ -10,10 +10,6 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import { testAnnotHost } from "@zotlit/annotations/__fixtures__/annot-view/host.ts";
 import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
-// A Query File embed shows one view of the file in a note. These tests drive
-// it as Obsidian does: the creator, the component it returns added to the note
-// and loaded, and the file's text on disk changing under it. What it shares
-// with the Query Block is in `note-host.test.ts`.
 import {
   resetMockPlatform,
   setMockPlatform,
@@ -112,7 +108,6 @@ async function setup() {
     }),
     query: fakeQuery(run),
     cardFocus: new QueryCardFocus(app),
-    // Every embed stands on screen.
     nearScreen: (_el, near) => {
       near();
       return () => {};
@@ -125,7 +120,6 @@ async function setup() {
   );
   deps.registry = queryHost.registry;
 
-  /** Embed the Query File in `sourcePath` as Obsidian does, and load it. */
   async function embed(
     sourcePath: string,
     subpath = "",
@@ -153,7 +147,6 @@ async function setup() {
     return { el, view: viewOf(el) };
   }
 
-  /** Embed the Query File in a template's note preview, and load it. */
   async function preview(subpath = ""): Promise<HTMLElement> {
     const draft = document.body.createDiv();
     draft.dataset["zotlitDraft"] = "";
@@ -179,7 +172,6 @@ async function setup() {
   return { host, run, embed, preview };
 }
 
-/** The Query View the End-to-end Run reads from the embed's element. */
 const viewOf = (el: HTMLElement): QueryView =>
   (el as HTMLElement & { zotlitQueryView: QueryView }).zotlitQueryView;
 

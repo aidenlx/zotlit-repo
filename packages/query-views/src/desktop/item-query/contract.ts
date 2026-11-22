@@ -1,10 +1,3 @@
-// The names, parameters, and defaults of the ZotLit Query commands: the
-// constants that the handlers run and the guide prints.
-//
-// Command, flag, and diagnostic text is all hardcoded English: an
-// agent-facing contract surface, not localized UI. See
-// apps/obsidian/policies/cli-text.md.
-
 import type { CliFlag, CliFlags } from "obsidian";
 
 import type {
@@ -28,10 +21,6 @@ import type { WorkbenchIdentity } from "@zotlit/template-workbench/desktop/cli/e
 import contractVersion from "./contract-version.json" with { type: "json" };
 import type { QueryParam, QueryValuesParam } from "./decode.ts";
 
-/**
- * The wire format of the ZotLit Query commands, versioned on its own (ADR 0065):
- * it evolves independently from the Template Contract.
- */
 export const CONTRACT_VERSION = contractVersion.contractVersion;
 
 export const QUERY_COMMAND = "zotlit:query" as const;
@@ -47,21 +36,13 @@ export type QueryCliCommand =
   | typeof QUERY_SCHEMA_COMMAND
   | typeof QUERY_GUIDE_COMMAND;
 
-/** The rows a CLI query returns when the caller gives no limit. */
 export const DEFAULT_CLI_LIMIT = 100;
-/** Bounds the string transferred through Obsidian's renderer and CLI. */
 export const INLINE_MAX_BYTES = 1024 * 1024;
-/**
- * The formats of an output file: the JSON response, or one delimited line for
- * each row, which only a file holds.
- */
 export const QUERY_OUTPUT_FORMATS = ["json", ...DELIMITED_FORMATS] as const;
 export type QueryOutputFormat = (typeof QUERY_OUTPUT_FORMATS)[number];
 export const QUERY_ID_MAX_LENGTH = 128;
-/** The form of a query id, as the help, the guide, and the diagnostic state it. */
 export const QUERY_ID_FORM = `1 to ${QUERY_ID_MAX_LENGTH} ASCII letters, digits, ., _, or -`;
 
-/** The text a cancelled query rejects with; Obsidian prints it after "Error: ". */
 export function queryCancelledText(id: string): string {
   return `The query '${id}' was cancelled by ${QUERY_CANCEL_COMMAND}.`;
 }
@@ -159,11 +140,6 @@ export const queryCancelFlags: CliFlags = {
   },
 } satisfies Record<"id", CliFlag>;
 
-/**
- * The diagnostic codes this adapter raises itself, each defined with the
- * recovery action its diagnostic carries. An invalid query keeps the code and
- * hint of its `ItemQueryError`.
- */
 export const DIAGNOSTIC_HINTS = {
   "result-too-large":
     "Run the query with output=<absolute-path> to write the complete response to a new JSON file, or reduce the fields or limit.",
@@ -184,7 +160,6 @@ export const DIAGNOSTIC_HINTS = {
 
 type AdapterDiagnosticCode = keyof typeof DIAGNOSTIC_HINTS;
 
-/** The failure of an Item Query command, as its envelope carries it. */
 export interface Diagnostic extends QueryDiagnostic<
   AdapterDiagnosticCode | ItemQueryError["code"]
 > {
@@ -208,7 +183,6 @@ export function rejectionDiagnostic(rejection: CliRejection): Diagnostic {
   return base.rejectionDiagnostic(rejection);
 }
 
-/** A Target Library on the wire: local `libraryID` values stay inside. */
 export type LibraryWire =
   | { type: "personal" }
   | { type: "group"; groupID: number; name: string };
@@ -272,11 +246,9 @@ export type EnvelopeTail =
   | {
       ok: true;
       id: string;
-      /** `false`: no query with this id was running in this vault. */
       cancelRequested: boolean;
     };
 
-/** The pretty JSON of the versioned envelope of `command`. */
 export function envelope(command: QueryCliCommand, tail: EnvelopeTail): string {
   return JSON.stringify(
     { contractVersion: CONTRACT_VERSION, command, ...tail },
@@ -292,7 +264,6 @@ export function failure(
   return envelope(command, { ok: false, diagnostic });
 }
 
-/** The answer of a query whose id names a query that is still running. */
 export function queryIdInUseFailure(
   id: string,
   command: QueryCliCommand,

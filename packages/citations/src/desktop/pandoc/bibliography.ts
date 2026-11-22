@@ -1,10 +1,4 @@
 import { Duration, Effect, Option } from "effect";
-// Live bibliography data for the built-in export: Better BibTeX when its
-// endpoint answers, else Zotero's local HTTP API, else a guided error.
-//
-// Both sources speak to the same Zotero HTTP server, so a connection failure
-// stops the export rather than selecting another source. Failure codes name the
-// situation; the export UI owns the wording that guides the user out of it.
 
 import type { CslItemData } from "@zotlit/db";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
@@ -18,66 +12,36 @@ import type { ZoteroRequest } from "@zotlit/plugin-kernel/zotero-http.ts";
 import { ZOTERO_HTTP_PORT_PREF } from "@zotlit/plugin-services/desktop/zotero-pref/prefs-file.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-/** Pref that opens Zotero's local HTTP API; Zotero ships it off. */
 export const LOCAL_API_PREF = "httpServer.localAPI.enabled";
 
-/** Endpoint Better BibTeX registers on Zotero's HTTP server. */
 const JSON_RPC_PATH = "/better-bibtex/json-rpc";
 
-/**
- * How long one request waits for Zotero's answer. A Zotero that has just
- * started can leave a local API read of CSL JSON unanswered while Better BibTeX
- * starts, and the export would otherwise wait for it with no end.
- */
 const ZOTERO_ANSWER_TIMEOUT = Duration.seconds(30);
 
-/** Better BibTeX's Better CSL JSON translator, which writes `id` from the citation key. */
 const BETTER_CSL_JSON = "f4b52ab0-f878-4556-85a0-c7aeedd09dfc";
 
-/** Which source answered, or produced, a result. */
 export type BibliographySource = "better-bibtex" | "local-api";
 
-/** One Zotero Item to cite, in the identities the two sources address it by. */
 export interface BibliographyItemRef {
-  /** Bare Zotero item key. */
   itemKey: string;
-  /** Numeric Zotero library ID — how Better BibTeX names a library. */
   libraryID: number;
-  /** Group library ID, or `null` for the personal library — the local API route. */
   groupID: number | null;
 }
 
 export interface BibliographyPorts {
-  /** HTTP port read from the active Zotero profile. */
   httpPort: number | null;
-  /**
-   * Zotero's {@link LOCAL_API_PREF} pref, read from `prefs.js` before any
-   * request, so a disabled local API is reported as such instead of as a
-   * refused read.
-   */
   localApiEnabled: boolean;
 }
 
 export type BibliographyFailure =
-  /** Zotero selects a transient port that its profile cannot disclose. */
   | { code: "zotero-port-automatic"; pref: string }
-  /** Nothing answered on the active profile's Zotero HTTP port. */
   | { code: "zotero-unreachable"; port: number }
-  /** Zotero took the request and gave no answer within {@link ZOTERO_ANSWER_TIMEOUT}. */
   | { code: "zotero-timeout"; seconds: number }
-  /** Zotero runs with its local API off. Guidance: turn {@link pref} on. */
   | { code: "local-api-disabled"; pref: string }
-  /** The chosen source answered, and refused. */
   | { code: "source-failed"; source: BibliographySource; detail: string }
-  /** Items the source returned nothing for, as Indexed Keys. */
   | { code: "items-missing"; source: BibliographySource; indexedKeys: string[] }
-  /** Items Better BibTeX holds no citation key for, as Indexed Keys. */
   | { code: "citation-key-missing"; indexedKeys: string[] };
 
-/**
- * Every requested item as CSL-JSON, keyed by Indexed Key, or the one failure
- * that stopped the export. `source` is `null` only when nothing was requested.
- */
 export type BibliographyResult =
   | {
       source: BibliographySource | null;
@@ -85,17 +49,6 @@ export type BibliographyResult =
     }
   | { error: BibliographyFailure };
 
-/**
- * Fetch bibliographic data for the Items an export cites, live from Zotero.
- *
- * Better BibTeX wins when its endpoint answers, so its citation keys and Extra
- * overrides are honored; Zotero's local API is the baseline. Each item keeps
- * the CSL `id` its source gave it — the native citation key when populated, the
- * item URI otherwise — so a wikilink can cite an Item that has no citation key.
- *
- * All-or-nothing: one unresolved item fails the whole request, and no partial
- * bibliography is returned.
- */
 export const fetchBibliography = Effect.fn("Bibliography.fetchBibliography")(
   function* (
     refs: readonly BibliographyItemRef[],
@@ -126,12 +79,6 @@ export const fetchBibliography = Effect.fn("Bibliography.fetchBibliography")(
 
 type ResolvedBibliographyPorts = BibliographyPorts & { httpPort: number };
 
-/**
- * `item.citationkey` maps the item keys to citation keys, then one
- * `item.export` per library renders those keys as Better CSL JSON. The export
- * is indexed by library and citation key, which is the `id` Better CSL JSON
- * writes.
- */
 const fromBetterBibtex = Effect.fn("Bibliography.fromBetterBibtex")(
   function* (
     refs: readonly BibliographyItemRef[],
@@ -183,10 +130,6 @@ const fromBetterBibtex = Effect.fn("Bibliography.fromBetterBibtex")(
   withLogCategory("pandoc", "bibliography"),
 );
 
-/**
- * One multi-item read per library: `users/0` for the personal library, the
- * group route for a group library.
- */
 const fromLocalApi = Effect.fn("Bibliography.fromLocalApi")(
   function* (
     refs: readonly BibliographyItemRef[],
@@ -235,10 +178,6 @@ const fromLocalApi = Effect.fn("Bibliography.fromLocalApi")(
   withLogCategory("pandoc", "bibliography"),
 );
 
-/**
- * Re-index the source's answer by Indexed Key. An item the source returned
- * nothing for fails the whole request, so no partial bibliography escapes.
- */
 function join(
   source: BibliographySource,
   resolved: readonly (readonly [
@@ -259,18 +198,11 @@ function join(
 
 type RpcOutcome =
   | { ok: true; result: unknown }
-  /** Nothing answered on Zotero's port. */
   | { ok: false; reason: "unreachable" }
-  /** Zotero gave no answer in time. */
   | { ok: false; reason: "timeout" }
-  /** Zotero answered, but no JSON-RPC reply came back. */
   | { ok: false; reason: "absent" }
   | { ok: false; reason: "error"; message: string };
 
-/**
- * Better BibTeX answers 200 with a JSON-RPC error body for a call it refuses,
- * so the reply shape — not the status — tells the two apart.
- */
 const callJsonRpc = Effect.fn("Bibliography.callJsonRpc")(
   function* (
     ports: ResolvedBibliographyPorts,
@@ -317,11 +249,6 @@ function rpcFailure(
   };
 }
 
-/**
- * Zotero's answer; `"unreachable"` when the configured Zotero HTTP server
- * cannot be reached, and `"timeout"` when it gave no answer within
- * {@link ZOTERO_ANSWER_TIMEOUT}, which abandons the request.
- */
 const send = Effect.fnUntraced(function* (request: ZoteroRequest) {
   const http = yield* ZoteroHttp;
   const url = `${zoteroOrigin(request.port)}${request.path}`;
@@ -358,15 +285,10 @@ function localApiDisabled(): BibliographyFailure {
   return { code: "local-api-disabled", pref: LOCAL_API_PREF };
 }
 
-/** Better BibTeX's `[libraryID]:[itemKey]` item address. */
 function rpcItemKey(ref: BibliographyItemRef): string {
   return `${ref.libraryID}:${ref.itemKey}`;
 }
 
-/**
- * Better BibTeX keeps a citation key unique within its library, so two
- * libraries can hold the same one. Address an exported item by both.
- */
 function citationAddress(libraryID: number, citationKey: string): string {
   return `${libraryID}:${citationKey}`;
 }
@@ -375,7 +297,6 @@ function indexedKeyOf(ref: BibliographyItemRef): string {
   return formatIndexedKey(ref.itemKey, ref.groupID);
 }
 
-/** One entry per library, so each library takes exactly one request. */
 function groupBy<T, K>(items: readonly T[], key: (item: T) => K): Map<K, T[]> {
   const groups = new Map<K, T[]>();
   for (const item of items) {
@@ -386,11 +307,6 @@ function groupBy<T, K>(items: readonly T[], key: (item: T) => K): Map<K, T[]> {
   return groups;
 }
 
-/**
- * Both sources hand back a CSL translator's own output — the JSON array text it
- * wrote — so one helper covers `item.export`'s result and the local API's
- * `csljson` field.
- */
 function asCslItems(value: unknown): CslItemData[] {
   return typeof value === "string"
     ? asArray(parseJson(value)).filter(isCslItem)

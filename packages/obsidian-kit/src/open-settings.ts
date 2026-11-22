@@ -1,5 +1,3 @@
-// Deep links into the settings modal: select a tab, descend its sub-pages, and reveal one row.
-
 import { Effect } from "effect";
 import type {
   App,
@@ -13,12 +11,6 @@ import {
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 
-/**
- * A sub-page path: {@link SettingDefinitionPage#id} values, outermost first.
- *
- * Obsidian resolves each segment against a page's `id`, so a link survives a
- * reworded title and reads the same in every locale.
- */
 export type SettingPagePath = readonly SettingDefinitionPage["id"][];
 
 export function openSettingsTab(
@@ -32,13 +24,6 @@ export function openSettingsTab(
   app.setting.navigateToSearchResult({ tab, pagePath: [...pagePath] });
 }
 
-/**
- * Open the settings modal on `tabId`, descend to the row `settingId` names, and
- * flash it the way a settings search hit does.
- *
- * A row is addressed by its definition object, so the definition is resolved
- * from the rendered tab on each call: every render hands out fresh objects.
- */
 export function revealSetting(
   app: App,
   tabId: string,
@@ -59,15 +44,10 @@ export function revealSetting(
     );
     return;
   }
-  // The scroll reaches only the rendered page, so the sub-page opens first.
   app.setting.navigateToSearchResult({ tab, pagePath: hit.pagePath });
   app.setting.scrollToDefinition(tab, hit.definition);
 }
 
-/**
- * The first definition carrying `settingId`, with the sub-page path that
- * reaches it. Only a page names a step of the path; a group is stepped through.
- */
 function locateSetting(
   items: SettingDefinitionItem[],
   settingId: SettingDefinition["id"],

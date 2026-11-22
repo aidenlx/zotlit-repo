@@ -23,7 +23,6 @@ function note(extension = "md"): TFile {
   return file;
 }
 
-/** The command the layer adds, over `active` carrying `frontmatter`. */
 const harness = Effect.fnUntraced(function* (
   active: TFile | null,
   frontmatter: Record<string, unknown> = { "zotero-key": "ABCD2345g42" },

@@ -1,5 +1,3 @@
-// Draft editing and autosave: the comment, Quoted Text and tag drafts a surface edits, and how they are saved.
-
 import type {
   MutationState,
   TextField,
@@ -71,7 +69,6 @@ type TextWriteDecision =
   | { kind: "retain" }
   | { kind: "update"; draft: TextFieldDraft };
 
-/** Decide what one completed text field request leaves in repository memory. */
 function textDraftAfterWrite(
   current: TextFieldDraft,
   submittedText: string,
@@ -86,14 +83,11 @@ function textDraftAfterWrite(
             draft: {
               ...current,
               baseline: submittedText,
-              // A save that landed ends the hold, so newer text autosaves.
               manualSave: false,
               state: { kind: "editing" },
             },
           };
     case "conflict": {
-      // A text field's write conflicts over its text; only a Geometry Edit's
-      // conflict carries no text to hold.
       const { conflict } = outcome;
       const fresh = conflict.write === "geometry" ? "" : (conflict.fresh ?? "");
       return {
@@ -115,11 +109,6 @@ function textDraftAfterWrite(
   }
 }
 
-/**
- * Everything the repository holds about one Annotation beside its record.
- *
- * @param annotationKey the Annotation's Indexed Key.
- */
 const annotationState = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -140,10 +129,6 @@ const annotationState = Effect.fnUntraced(function* (
   };
 });
 
-/**
- * The active Zotero database's shared draft of one text field of an
- * Annotation: its comment or its Quoted Text.
- */
 function textDraftFor(
   core: CoreState,
   field: TextField,
@@ -152,13 +137,6 @@ function textDraftFor(
   return draftFor(core, field, annotationKey);
 }
 
-/**
- * Start or update one shared text field draft: a comment edit, or a Text
- * Edit on the Quoted Text. Without `text`, the draft starts from the
- * confirmed value, or stays as it stands.
- *
- * @returns the draft, or `null` where none can start.
- */
 const editTextField = Effect.fnUntraced(function* (
   core: CoreState,
   field: TextField,
@@ -173,7 +151,6 @@ const editTextField = Effect.fnUntraced(function* (
     standing?.attachmentKey ?? held!.attachmentKey,
   );
   if (capability.kind !== "writable") return standing ?? null;
-  // A lock takes no keystroke either: a draft already standing is held.
   if (yield* lockRefusal(core, annotationKey, field)) return standing ?? null;
   const baseline =
     standing?.baseline ?? TEXT_FIELD_SPECS[field].valueOf(held!.record) ?? "";
@@ -181,9 +158,6 @@ const editTextField = Effect.fnUntraced(function* (
     ? {
         ...standing,
         ...(text !== undefined && { text }),
-        // A new keystroke clears the last failure; re-sending the same
-        // text does not, so the reason stays on the card until the user
-        // writes something else or saves again.
         ...(text !== undefined &&
           text !== standing.text &&
           standing.state.kind === "failed" && {
@@ -219,7 +193,6 @@ const reviewedTextDraft = Effect.fnUntraced(function* (
   return yield* draftFor(core, field, annotationKey);
 });
 
-/** Submit one text field's current shared draft once. */
 const submitTextField = Effect.fnUntraced(function* (
   core: CoreState,
   field: TextField,
@@ -234,20 +207,13 @@ const submitTextField = Effect.fnUntraced(function* (
     return mutationFor(core, annotationKey);
   }
   const saving = savingText(core, field, annotationKey);
-  // A draft holding what Zotero already has is not a draft: it is dropped
-  // ahead of every other answer, so an editor the user opened and closed
-  // without typing leaves nothing behind for a card to announce. Manual-save
-  // mode does not hold it either — there is nothing there to save.
   if (!saving && sameText(draft.text, draft.baseline)) {
     yield* dropDraft(core, field, draft);
     return IDLE;
   }
-  // Text a save already carries needs no second one.
   if (saving && sameText(proposedText(field, saving), draft.text)) {
     return yield* answerOf(core, saving);
   }
-  // Text typed while a save is in flight queues behind it, even behind the
-  // Save comment pressed on a held draft, which that save's success ends.
   if (!saving) {
     if (automatic && !(yield* canAutosave(core, draft))) return IDLE;
     const capability = yield* capabilityFor(core, draft.attachmentKey);
@@ -257,7 +223,6 @@ const submitTextField = Effect.fnUntraced(function* (
         failure: (yield* writeBlocked(core, draft.attachmentKey))!,
       };
   }
-  // A lock refuses the draft before it turns pending, queued or not.
   const locked = yield* lockRefusal(core, annotationKey, field);
   if (locked) return { kind: "failed", failure: locked };
   const submittedText = draft.text;
@@ -278,8 +243,6 @@ const sendText = Effect.fnUntraced(function* (
   return yield* writeText(core, annotationKey, {
     field,
     value: submittedText,
-    // The draft takes the save's outcome before the next write on the
-    // Annotation starts, so a save queued behind a failed one is held.
     run: (send, own) =>
       Effect.gen(function* () {
         if (
@@ -311,12 +274,6 @@ const sendText = Effect.fnUntraced(function* (
   });
 });
 
-/**
- * Whether a text save that waited its turn is no longer needed: a later
- * save of the same field or a delete on the same Annotation replaces it, or
- * its draft ended, met a conflict, or was held by a failed save while it
- * waited. An automatic save also stands down where autosave is off.
- */
 const textSuperseded = Effect.fnUntraced(function* (
   core: CoreState,
   field: TextField,
@@ -348,7 +305,6 @@ const textSuperseded = Effect.fnUntraced(function* (
   });
 });
 
-/** Keep Zotero's reviewed value of one text field and discard the draft. */
 const discardTextDraft = Effect.fnUntraced(function* (
   core: CoreState,
   field: TextField,
@@ -361,7 +317,6 @@ const discardTextDraft = Effect.fnUntraced(function* (
   }
 });
 
-/** Apply one text field's shared draft again against the reviewed fresh record. */
 const retryTextDraft = Effect.fnUntraced(function* (
   core: CoreState,
   field: TextField,
@@ -371,7 +326,6 @@ const retryTextDraft = Effect.fnUntraced(function* (
   if (!draft) return IDLE;
   const saving = savingText(core, field, annotationKey);
   if (saving) return yield* answerOf(core, saving);
-  // The draft and its Write Conflict stay as they stand.
   const locked = yield* lockRefusal(core, annotationKey, field);
   if (locked) return { kind: "failed", failure: locked };
   return yield* resendText(core, field, draft);
@@ -446,13 +400,11 @@ const applyTextWriteDecision = Effect.fnUntraced(function* (
     current: TextFieldDraft;
     submittedText: string;
     outcome: MutationState;
-    /** The write that answered, while it still counts as in flight. */
     own?: AnnotationMutation;
   },
 ) {
   const decision = textDraftAfterWrite(current, submittedText, outcome);
   const later = savingText(core, field, annotationKey);
-  // A later save of the draft is still on its way.
   if (
     decision.kind === "update" &&
     decision.draft.state.kind === "editing" &&
@@ -469,15 +421,12 @@ const applyTextWriteDecision = Effect.fnUntraced(function* (
       decision.draft,
     );
     core.publish({ _tag: "annotation-changed", annotationKey });
-    // Text typed while the save was away, even behind a Save comment
-    // pressed on a held draft, whose success ends the hold, is sent now.
     if (outcome.kind === "idle" && decision.draft.state.kind === "editing") {
       yield* autosave(core, field, annotationKey);
     }
   }
 });
 
-/** The active Zotero database's shared tag draft for one Annotation. */
 function tagDraftFor(
   core: CoreState,
   annotationKey: string,
@@ -485,14 +434,6 @@ function tagDraftFor(
   return draftFor(core, "tags", annotationKey);
 }
 
-/**
- * Start or update one tag editing session. A session starts from the
- * confirmed names and only while editing is available. A draft whose save
- * is in flight stays as it is, because the editor is saving.
- *
- * @param names the editor's current names; left out, the session starts or
- *   stays as it is.
- */
 const editTags = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -505,9 +446,6 @@ const editTags = Effect.fnUntraced(function* (
   if (!standing && (!source || !held)) return null;
   const attachmentKey = standing?.attachmentKey ?? held!.attachmentKey;
   const capability = yield* capabilityFor(core, attachmentKey);
-  // While editing is unavailable no session starts, but a standing one
-  // still takes its editor's last names: the editor closing as editing goes
-  // adds the text still typed, which the held draft keeps for Save tags.
   const refused =
     capability.kind !== "writable" ||
     !!(yield* lockRefusal(core, annotationKey, "tags"));
@@ -533,21 +471,6 @@ const editTags = Effect.fnUntraced(function* (
   return draft;
 });
 
-/**
- * Save one tag editing session: one write that applies the session's added
- * and removed names to the tags Zotero holds now. A session that changed
- * nothing ends with no write. The draft stays, `pending`, until the
- * Annotation is read back, and then goes, so the editor closes onto the
- * confirmed tags.
- *
- * A draft that is not saved — held for Save tags, blocked, or failed — is
- * marked `held`, since its editor has closed.
- *
- * @param options.automatic whether the editor closing asks, rather than
- *   Save tags. A draft that needs Save tags — editing unavailable, or a
- *   failed save — is then held, unsaved.
- * @see apps/obsidian/docs/adr/0063-annotation-tags-save-once-per-editing-session-and-merge-by-name.md
- */
 const submitTags = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -618,7 +541,6 @@ const submitTags = Effect.fnUntraced(function* (
   return outcome;
 });
 
-/** Drop a held tag draft and keep the tags Zotero holds. */
 const discardTagDraft = Effect.fnUntraced(function* (
   core: CoreState,
   annotationKey: string,
@@ -636,10 +558,6 @@ const canAutosave = Effect.fnUntraced(function* (
   return !draft.manualSave && capability.kind === "writable";
 });
 
-/**
- * An automatic save that no caller waits on. It runs on the layer's
- * FiberSet, so the layer's close stops it, and a failure is logged.
- */
 function autosave(core: CoreState, field: TextField, annotationKey: string) {
   return FiberSet.run(
     core.fibers,
@@ -655,18 +573,11 @@ function autosave(core: CoreState, field: TextField, annotationKey: string) {
   );
 }
 
-/**
- * Arm a draft's autosave: the idle timer starts again with each keystroke,
- * and the burst timer runs from the first keystroke of a run of typing. A
- * timer that comes due leaves its map and starts the save on the layer's
- * FiberSet, so the save outlives the timer.
- */
 const scheduleTextSave = Effect.fnUntraced(function* (
   core: CoreState,
   field: TextField,
   draft: TextFieldDraft,
 ) {
-  // Text typed behind a save in flight is sent once that save lands.
   if (savingText(core, field, draft.annotationKey)) return;
   if (!(yield* canAutosave(core, draft))) return;
   if (sameText(draft.text, draft.baseline)) return;
@@ -685,11 +596,6 @@ const scheduleTextSave = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * Hold every draft that Zotero no longer lets ZotLit save, after the Editing
- * Capability changed: a text draft stops its autosave, and each held draft
- * waits for an explicit save.
- */
 const holdUnsavableDrafts = Effect.fnUntraced(function* (core: CoreState) {
   for (const field of TEXT_FIELDS) {
     const drafts = core.drafts[field];
@@ -704,8 +610,6 @@ const holdUnsavableDrafts = Effect.fnUntraced(function* (core: CoreState) {
       });
     }
   }
-  // A tag draft has no timer or queued save to cancel, unlike a text
-  // draft, so one already held needs no second event.
   for (const draft of core.drafts.tags.values()) {
     if (
       draft.manualSave ||

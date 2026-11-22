@@ -26,7 +26,6 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-/** The web-target binary the Resource Pack holds, read from the `jieba-wasm` dev dependency. */
 const JIEBA = new Uint8Array(
   await readFile(
     join(
@@ -36,7 +35,6 @@ const JIEBA = new Uint8Array(
   ),
 );
 
-/** The Chinese Segmenter row, shown on a device with the file `pack` installed as the pack, or on the device `pack`. */
 const segmenterRow = Effect.fnUntraced(function* (
   pack: Uint8Array | ReturnType<typeof packDevice> | null,
 ) {
@@ -47,7 +45,6 @@ const segmenterRow = Effect.fnUntraced(function* (
           ? packDevice(pack, "1.2.0")
           : pack,
       ),
-      // The plugin that reads the pack: the row opens its page by this id.
       testPluginHost({ manifest: { id: "zotlit" } }).layer,
     ),
   );
@@ -61,7 +58,6 @@ const segmenterRow = Effect.fnUntraced(function* (
     (setting.desc as unknown as DocumentFragment).querySelector("[role=status]")
       ?.textContent;
   const segmenter = Context.get(services, ChineseSegmenter);
-  /** Waits for the worker to start the binary, which takes more than a turn. */
   const ready = Stream.runHead(
     Stream.filter(segmenter.changes, ({ kind }) => kind === "ready"),
   );
@@ -210,7 +206,6 @@ describe("the Chinese Segmenter row", () => {
     Effect.scoped(
       Effect.gen(function* () {
         const notWasm = new Uint8Array(new TextEncoder().encode("not wasm"));
-        // The detail is what the host's compiler says of these bytes.
         const detail = yield* Effect.promise(() =>
           WebAssembly.compile(notWasm).then(
             () => "compiled",

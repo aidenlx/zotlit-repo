@@ -25,11 +25,9 @@ const DEFAULT_DOCUMENT = "templates/zotlit-profile.default.md";
 
 interface Options {
   activeNote?: { basename: string; itemKey: string | null } | null;
-  /** The Profiles the registry holds; the vault holds each one's file. */
   profiles?: readonly LiteratureNoteProfile[];
 }
 
-/** The flow over memory services, with the documents and papers it opened. */
 function harness({ activeNote = null, profiles = [] }: Options = {}) {
   const workspace = new MemoryWorkspace();
   const metadataCache = new MemoryMetadataCache();
@@ -90,7 +88,6 @@ describe("the Customize flow", () => {
       yield* local.customize({ profileId: books.id });
       yield* local.customize({ profileId: "Zz9Zz9Zz9Zz9" as ProfileId });
 
-      // A Profile the registry does not hold opens nothing.
       expect(local.openedFiles).toEqual([books.path]);
     }),
   );

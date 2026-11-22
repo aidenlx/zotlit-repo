@@ -73,7 +73,6 @@ const card: AnnotationRecord = {
   position: { kind: "pdf-rects", pageIndex: 2, rects: [[1, 2, 30, 40]] },
 };
 
-/** The link Zotero itself writes for {@link card}: attachment, key, page label. */
 const DURABLE_LINK =
   "zotero://open/library/items/RGRPDF24?annotation=FDRFQ7C2&page=3";
 
@@ -83,10 +82,6 @@ const zoteroPrefAt = (dataDir: string) =>
     baseAttachmentPath: null,
   });
 
-/**
- * The Node file system, except that the next temporary write, once armed,
- * waits for the test after it writes its bytes.
- */
 function pausingFileSystem() {
   let pause: Effect.Effect<void> | undefined;
   const layer = Layer.effect(
@@ -245,9 +240,7 @@ async function openFixture(mode: string) {
     resolver,
     render,
     zoteroPref,
-    /** Pause the next temporary write after its bytes, on `paused`. */
     pauseTemporaryWrite: fileSystem.arm,
-    /** The insert under test, over this fixture's services. */
     insert: () => prepareAnnotationInsert(options).pipe(Effect.provide(layer)),
     action: (commit: (text: string) => boolean) =>
       Effect.gen(function* () {
@@ -281,7 +274,6 @@ async function openFixture(mode: string) {
   };
 }
 
-/** The test's fixture, closed with its scope. */
 const fixture = (mode: string) =>
   Effect.acquireRelease(
     Effect.promise(() => openFixture(mode)),
@@ -328,8 +320,6 @@ it.effect.each([
       const f = yield* fixture(mode);
       const result = yield* f.insert();
       expect(f.render).toHaveBeenCalledTimes(1);
-      // Both the page label and the unavailable excerpt's source link name the
-      // Annotation durably; nothing in the note is a path on this computer.
       expect(result?.text).toContain(`Page [3](${DURABLE_LINK})`);
       expect(result?.text).toContain(`[Zotero](${DURABLE_LINK})`);
       expect(result?.text).not.toContain("file://");
@@ -364,8 +354,6 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const f = yield* fixture("success");
-      // The resolver stands in for a legacy Promise port, so it runs the
-      // Effect that moves the data directory on the test's context.
       const runPromise = Effect.runPromiseWith(yield* Effect.context<never>());
       f.resolver.resolve.mockImplementation(async () => {
         await runPromise(

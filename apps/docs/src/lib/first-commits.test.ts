@@ -11,7 +11,6 @@ import { describe, expect, it } from "vitest";
 
 import { scanFirstCommitDays } from "./first-commits.ts";
 
-/** Git in `root` with none of this machine's settings, such as commit signing. */
 function git(root: string, args: string[], env: Record<string, string> = {}) {
   execFileSync("git", args, {
     cwd: root,
@@ -29,7 +28,6 @@ function git(root: string, args: string[], env: Record<string, string> = {}) {
   });
 }
 
-/** Commits the working tree of `root` as of `day`. */
 function commitOn(root: string, day: string) {
   git(root, ["commit", "--quiet", "--all", "--message", day], {
     GIT_AUTHOR_DATE: `${day}T12:00:00Z`,
@@ -37,8 +35,6 @@ function commitOn(root: string, day: string) {
   });
 }
 
-// A page's publication day must not move when the page is edited or moved:
-// JSON-LD `datePublished` reads it.
 describe("scanFirstCommitDays", () => {
   it("keeps each page's first day through edits and renames", () => {
     using dir = mkdtempDisposableSync(join(tmpdir(), "first-commits-"));

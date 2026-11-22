@@ -50,7 +50,6 @@ describe("layerObsidianEnv", () => {
           basePath: "/Users/me/vault",
           appId: "0123456789abcdef",
         });
-        // The mock flags are reset: a later read of the env must not reach them.
         resetMockPlatform();
         expect(env.platform.isMacOS).toBe(true);
         expect(env.basePath).toBe("/Users/me/vault");

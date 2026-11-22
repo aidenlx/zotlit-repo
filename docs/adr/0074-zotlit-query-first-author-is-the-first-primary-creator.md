@@ -28,3 +28,5 @@ ZotLit already has one answer to "who is the author" in its templates and citati
 - **The first creator of the primary creator type, without fallback.** Rejected. An edited handbook with only editors has no first author, while its template `authors` shows the editors.
 - **The first creator of any role, as `creators[0]`.** Rejected. This is the behavior the issue reports.
 - **Record navigation over `creators`**, such as `creators.filter(value.role == "author")[0].family`. Deferred, not rejected. It answers questions about any role, but a caller still has to know the rule, and it is not sortable.
+
+Template data uses the first populated role in Zotero's creator display order. Share that role selection across all template contexts so the Primary Creators and the Author Summary describe the same Item.

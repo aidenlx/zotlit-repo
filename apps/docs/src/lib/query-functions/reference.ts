@@ -1,7 +1,3 @@
-// Renders the Functions and methods reference page body from the language
-// half of the published Query Schema, so the page cannot drift from the
-// registry that validates and runs a Filter Expression.
-
 import { signatureText } from "@zotlit/item-query";
 import type {
   ItemQuerySchema,
@@ -10,22 +6,13 @@ import type {
   SchemaProperty,
 } from "@zotlit/item-query";
 
-// A subpath import, so `node scripts/*.ts` resolves it as the bundler does.
 import { plainMdxText } from "#mdx-text";
 
-/** The language definitions of the Query Schema that the page lists. */
 export type LanguageVocabulary = Pick<
   ItemQuerySchema,
   "functions" | "methods" | "properties" | "types"
 >;
 
-/**
- * The page body: global functions, then methods and properties grouped by
- * receiver type in the schema's type order.
- * @returns The MDX of the page's sections, without frontmatter.
- * @throws When an entry has no description, or one that MDX would read as
- *   markup.
- */
 export function renderFunctionsReference(
   vocabulary: LanguageVocabulary,
 ): string {
@@ -53,7 +40,6 @@ export function renderFunctionsReference(
   ].join("\n\n");
 }
 
-/** One anchored heading and table per receiver type that has entries. */
 function receiverGroups<Entry extends { readonly on: string }>(
   kind: "methods" | "properties",
   receivers: readonly string[],
@@ -92,11 +78,9 @@ function propertyRow(entry: SchemaProperty): readonly [string, string] {
   return [`\`${name} → ${entry.returns}\``, description(name, entry)];
 }
 
-/** The entry's signature as a code span. */
 const functionSignature = (name: string, entry: SchemaFunction): string =>
   `\`${signatureText(name, entry)}\``;
 
-/** The entry's description, checked to be present and plain MDX text. */
 function description(
   name: string,
   entry: { readonly description?: string },
@@ -118,7 +102,6 @@ function table(rows: readonly (readonly [string, string])[]): string {
   ].join("\n");
 }
 
-/** A pipe ends a GFM table cell, even inside a code span, unless escaped. */
 const escapeCellPipes = (text: string): string => text.replaceAll("|", "\\|");
 
 const capitalize = (type: string): string =>

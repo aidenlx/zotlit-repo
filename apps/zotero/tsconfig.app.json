@@ -6,9 +6,6 @@
     "noEmit": true,
     "allowJs": true,
     "isolatedDeclarations": false,
-    // The checker reads @zotlit/db source, which types its dates with
-    // Temporal. Zotero code itself has no Temporal at runtime
-    // (policies/dates.md).
     "lib": [
       "es2025",
       "esnext.error",

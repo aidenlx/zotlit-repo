@@ -1,4 +1,3 @@
-// UI seam for the citekey editor service: one notice per event it reports.
 import { Effect, Layer } from "effect";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
@@ -7,7 +6,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { CitekeyEditor } from "./service.ts";
 
-/** Render citekey editor service events at the Obsidian UI seam. */
 export const layerCitekeyEditorNotices = Layer.effectDiscard(
   Effect.gen(function* () {
     const editor = yield* CitekeyEditor;

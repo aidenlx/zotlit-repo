@@ -5,7 +5,6 @@ import {
 } from "./describe-item-query.ts";
 import { ANNOTATIONS } from "./query-annotations.ts";
 
-/** Source-independent Annotation vocabulary; generated only at build time. */
 export function describeAnnotationQueryVocabulary() {
   return {
     ...describeDatasetVocabulary(ANNOTATIONS),

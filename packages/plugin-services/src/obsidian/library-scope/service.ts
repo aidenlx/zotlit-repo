@@ -1,5 +1,3 @@
-/** The live Library Scope, resolved against the Libraries held by QueryClients. */
-
 import type {} from "#core/library-scope/settings.ts";
 import type { Settings } from "#core/settings/schema.ts";
 import {
@@ -41,7 +39,6 @@ export interface LibraryScopeEvents {
   "libraries-changed": () => void;
 }
 
-/** A replayable snapshot, including an invalid saved value while the database is absent. */
 export interface LibraryScopeState {
   readonly current: ResolvedLibraryScope | null;
   readonly all: ResolvedLibraryScope | null;
@@ -73,10 +70,6 @@ declare module "@zotlit/obsidian-kit/view-atoms.ts" {
   }
 }
 
-/**
- * The states whose resolution or validity differs from the one before,
- * after the replayed state a subscriber starts from.
- */
 export function scopeChanges(
   changes: Stream.Stream<LibraryScopeState>,
 ): Stream.Stream<LibraryScopeState> {
@@ -191,7 +184,6 @@ export const layerLibraryScope = Layer.effect(
       return recover(
         Effect.gen(function* () {
           const held = yield* queries.peek<Library[]>(LIBRARIES_KEY);
-          // A queued settlement cannot restore rows that degradation removed.
           if (held?.value === change.held?.value)
             yield* recompute(held?.value ?? null);
         }),

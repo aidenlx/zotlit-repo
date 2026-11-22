@@ -10,14 +10,8 @@ import { processRecord } from "@zotlit/scripts/desktop-slot";
 import type { AppStorage } from "./pdf-sidebar-pin.ts";
 import { pinLocalStorage } from "./pdf-sidebar-pin.ts";
 
-// Failure modes: two overlapping runs, where the first to end would write the
-// saved value back under the other, or the second would save the pinned value
-// as the one to restore; a run killed before its release, whose saved value
-// must still come back; and a release whose write fails.
-
 const KEY = "pdfjs.sidebarView";
 
-/** The app's shared `localStorage`, one key of it. */
 type FakeStorage = AppStorage & { value: string | null; failWrites: boolean };
 
 function appStorage(initial: string | null): FakeStorage {
@@ -44,11 +38,9 @@ afterEach(async () => {
 const pin = (storage: AppStorage, holder?: { pid: number }) =>
   pinLocalStorage({ key: KEY, value: "0", storage, dir, holder });
 
-/** The state files left in the state dir; the mutex is gone by then. */
 const leftovers = async () =>
   (await readdir(dir)).filter((name) => name.endsWith(".json"));
 
-/** A run that pins the key and is then killed before its release. */
 async function pinInKilledRun(storage: AppStorage): Promise<void> {
   const child = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)"]);
   await once(child, "spawn");

@@ -1,8 +1,6 @@
 import { EventEmitter } from "node:events";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-// The run vault's CLI socket: each call either answers as a live window with
-// nothing left open, or never answers, as a window whose renderer is gone.
 const socketBoundary = vi.hoisted(() => ({
   calls: 0,
   answer: (_code: string): Promise<string> =>
@@ -34,9 +32,6 @@ vi.mock("node:net", () => ({
 import type * as ObsidianCli from "./obsidian-cli.ts";
 import type * as RunVaultGuard from "./run-vault-guard.ts";
 
-// The guard keeps its stops, and the CLI client its refusal, in module state
-// for the life of a test file. Each case imports both modules fresh, so a
-// stop of one case does not reach the next (policies/test-isolation.md).
 let obRun: typeof ObsidianCli.obRun;
 let obRunUntil: typeof ObsidianCli.obRunUntil;
 let createRunVaultGuard: typeof RunVaultGuard.createRunVaultGuard;
@@ -46,8 +41,6 @@ beforeEach(async () => {
   ({ createRunVaultGuard } = await import("./run-vault-guard.ts"));
 });
 
-// The cases break and read one file and one vault, so each case needs a guard
-// with no stop left from an earlier case.
 const FILE = "/suite/query-view.e2e.ts";
 
 const live = (): Promise<string> => Promise.resolve('=> {"value":[]}');
@@ -63,7 +56,6 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-/** A case's hook context as Vitest passes it, after the case body ran. */
 function caseContext(
   filepath: string,
   fullName: string,
@@ -78,7 +70,6 @@ function caseContext(
   };
 }
 
-/** The error an `await using` stack throws when its disposal fails after the body failed. */
 async function disposalSuppressed(): Promise<unknown> {
   try {
     await using cleanup = new AsyncDisposableStack();
@@ -91,7 +82,6 @@ async function disposalSuppressed(): Promise<unknown> {
   }
 }
 
-/** Settle `hook` while the clock runs past every CLI deadline. */
 async function settled(hook: Promise<void>): Promise<unknown> {
   const outcome = hook.then(
     () => undefined,
@@ -118,7 +108,6 @@ it("fails the remaining cases of the file at once, naming the first failed case 
 
   const callsAfterBreak = socketBoundary.calls;
   const later = caseContext(file, "Query View > the next case");
-  // No clock advance: the case fails without waiting on any deadline.
   expect(() => guard.before(later)).toThrow(
     /"Query View > draws past the edge in the popout"[\s\S]*Filter popover did not open[\s\S]*layout restore got no answer/,
   );
@@ -191,7 +180,6 @@ it("asks a vault without a leftovers check only after a failed case", async () =
 
 it("refuses at once a hook's call to the stopped vault from the same file", async () => {
   const guard = createRunVaultGuard(() => "hook-vault");
-  // The hooks of this test file call the vault, as a file's own afterEach does.
   const thisFile = expect.getState().testPath!;
   socketBoundary.answer = dead;
   await settled(
@@ -199,7 +187,6 @@ it("refuses at once a hook's call to the stopped vault from the same file", asyn
   );
   socketBoundary.answer = live;
   const calls = socketBoundary.calls;
-  // No clock advance: neither the call nor the poll waits on a deadline.
   await expect(obRun("hook-vault", () => true)).rejects.toThrow(
     /Not run[\s\S]*"breaks"[\s\S]*popout lost/,
   );
@@ -207,6 +194,5 @@ it("refuses at once a hook's call to the stopped vault from the same file", asyn
     obRunUntil("hook-vault", () => true, undefined, { what: "ready" }),
   ).rejects.toThrow(/Not run/);
   expect(socketBoundary.calls).toBe(calls);
-  // Another vault from the same file still answers.
   await expect(obRun("other-vault", () => true)).resolves.toEqual([]);
 });

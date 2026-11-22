@@ -1,4 +1,3 @@
-// Vendored from @fumadocs/base-ui (not a public export) for the ejected layout slots.
 import type * as React from "react";
 
 export function mergeRefs<T>(

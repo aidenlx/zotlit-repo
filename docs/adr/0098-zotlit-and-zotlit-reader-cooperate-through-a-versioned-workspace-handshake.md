@@ -31,3 +31,13 @@ The PDF reader left ZotLit: ZotLit Reader (`zotlit-reader`) ships the ZotLit PDF
 - The Reader calls the `onClose` listeners before it disposes its readers, so ZotLit drops the API and its patches first.
 - A contract probe, a third test plugin with no Zotero code, proves the contract apart from ZotLit, including a refused major.
 - A change of the contract is a change of `@zotlit/reader-api` and of both plugins in one tree; a release of one plugin keeps working with the other plugin's last release through N-1.
+
+The Obsidian feature composes the Annotation Repository, capability notices, Reader editor and settings. Its desktop extension adds Excerpt Images, the Target Opener and Attachment commands. Each Reader binding has a child scope and reaches Effect from PDF callbacks through the bridge. Install listeners before processing the layout. Run binding retirement in the service scope so an in-flight write can finish without blocking the caller. Excerpt services start before the editor and use a late-bound port for Reader borrowing. The port answers detached before acquisition and after the editor withdraws its bindings. [Binding service](../../packages/annotations/src/obsidian/pdf-annotation-editor/service.ts)
+
+Bind pages already painted at plugin reload because they may send no new render event. A page reset during zoom, rotation or recycling can discard the overlay. Rebuild it from records already held. A hidden tab can bind before the document opens. Key Structured Characters to the active document proxy because a vault modification or pop-out migration can replace it while the view stays. Keep unresolved file bindings distinct from pending ones: a pending database lookup can populate a view in place when the database becomes readable.
+
+The Reader's drag-out gesture delegates note insertion to the same Annotation actions as an Annotation View card.
+
+Snapshot the file path when creating a Reader binding so a later file replacement retires it. Get external paths from the external file and vault paths from the adapter. Prefer an Attachment explicitly identified by the open over path resolution, including when two Attachments share the file. A pending lookup can take the resolver's later answer. Once a file resolves or is unknown, retain that answer for its binding. Paint pages already open and rebuild their data-driven overlays on page render. Revalidate on Reader leaf activation.
+
+Expose Reader Sessions through the editor's session stream so the Annotation View sees a later binding without reopening. The editor fixture runs the actual layer with typed substitutes at its external service boundaries, including a no-op drag insertion.

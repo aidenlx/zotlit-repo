@@ -1,5 +1,3 @@
-// `obsidian://zotlit/show-in-library`: the link `zt.librarylink` writes into
-// a note, which shows its Item in the Library View.
 import { Effect } from "effect";
 import type { ObsidianProtocolData } from "obsidian";
 
@@ -13,11 +11,6 @@ import {
   showInLibraryProtocolActionId,
 } from "@zotlit/protocol";
 
-/**
- * Handle `obsidian://zotlit/show-in-library`. The link names the Item by its
- * Indexed Key and carries no `source-id`, so it opens on every device the
- * note syncs to.
- */
 const handleShowInLibraryProtocol = Effect.fn(
   "protocol.handleShowInLibraryProtocol",
 )(function* (data: ObsidianProtocolData) {
@@ -37,7 +30,6 @@ const handleShowInLibraryProtocol = Effect.fn(
   return LinkOutcome.Opened();
 });
 
-/** The `show-in-library` link. */
 export const showInLibraryLink = protocolHandler(
   showInLibraryProtocolActionId,
   (data) => handleShowInLibraryProtocol(data).pipe(Effect.tap(showLinkOutcome)),

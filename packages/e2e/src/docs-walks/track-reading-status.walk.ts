@@ -1,12 +1,3 @@
-// The walk of /learn Lesson 5, "Track what you have read": a researcher with
-// the Lesson 1 literature note on Sandve et al. 2013 saves the library as the
-// query file Reading plan, shows it as a Table, adds a reading-status column
-// of their own, marks each paper to-read, reading, or done, and filters the
-// plan to the papers still to read. Each `it` is one step of the lesson, in
-// the lesson's order, named after it, and asserts what the lesson says the
-// reader sees. Run it with `pnpm --filter @zotlit/e2e docs-walk`; see
-// AGENTS.md.
-
 import { obRun, obRunUntil } from "@e2e/obsidian-cli.ts";
 import { isObsidianReachable } from "@e2e/vault-script.ts";
 import type { WorkspaceLeaf } from "obsidian";
@@ -29,7 +20,6 @@ const reachable = await isObsidianReachable(root);
 const m = await import("@zotlit/plugin-messages/messages.ts");
 
 const SLUG = "track-reading-status";
-/** The five papers of the docs Vault Case, by Zotero key. */
 const PAPERS = {
   munafo: { key: "DCMNFART", citekey: "munafo2017" },
   wilson: { key: "DCWLSART", citekey: "wilson2014" },
@@ -45,7 +35,6 @@ const notePath = (paper: keyof typeof PAPERS) =>
 
 type LibraryLeaf = WorkspaceLeaf & { view: LibraryView };
 type PlanLeaf = WorkspaceLeaf & { view: QueryFileView };
-/** The text input of the window, as a reader types. */
 type Remote = {
   getCurrentWebContents(): { insertText(text: string): void };
 };
@@ -61,7 +50,6 @@ const STEP = { timeoutMs: 60000 };
 describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
   let walk: DocsWalk;
 
-  /** The plan's Table once `ready` holds. */
   const tableWhen = (what: string, ready: (table: Table) => boolean) =>
     obRunUntil(
       walk.vaultId,
@@ -97,11 +85,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
       { what, ready: (table) => table !== null && ready(table) },
     ) as Promise<Table>;
 
-  /**
-   * Mark `paper` with `value` in the plan's status cell, as a reader types
-   * it, and answer what the cell suggested before the typing. With `last`,
-   * the clip ends on the cell and the notice the mark shows.
-   */
   async function mark(
     paper: keyof typeof PAPERS,
     value: string,
@@ -126,9 +109,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
             `[data-query-key="${key}"] [data-query-vault-cell][data-query-vault-name="${property}"]`,
           )!
           .closest("td")!;
-        // The table keeps its sideways scroll from step 3, so the Title
-        // column stays whole: the status field's focus would scroll the table
-        // a few pixels further, and the walk holds it where the reader left it.
         let scroller = cell.closest("table")!.parentElement;
         while (
           scroller &&
@@ -163,7 +143,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
           require("@electron/remote") as Remote
         ).getCurrentWebContents();
         if (pointer) {
-          // The pointer moves off the cell, so the typing shows.
           const b = cell.getBoundingClientRect();
           await pointer.park(b.right + 30, b.bottom + 30);
           await pointer.keys(value, (ch) => contents.insertText(ch), {
@@ -203,7 +182,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
       collection: `learn/${SLUG}`,
       vaultCase: "docs",
     });
-    // The reader wrote the literature note on Sandve et al. 2013 in Lesson 1.
     await obRun(
       walk.vaultId,
       async ({ zotlit }, { key }) => {
@@ -221,7 +199,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
       STEP,
     );
     await watchNotices(walk.vaultId);
-    // The reader closed the setup section in Lesson 1.
     await closeWelcome(walk.vaultId);
   });
 
@@ -270,7 +247,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
             '[data-save-field="name"]',
           )!;
           const offered = name.value;
-          // The reader sees the offered name before typing over it.
           await new Promise((r) => setTimeout(r, pointer ? 700 : 0));
           const folder =
             modal.querySelector<HTMLInputElement>('[data-save-field="folder"]')
@@ -315,7 +291,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
             },
             10000,
           );
-          // The step ends on the new tab and its papers.
           await pointer?.look([
             (view.leaf as unknown as { tabHeaderEl: HTMLElement }).tabHeaderEl,
             ...view.contentEl.querySelectorAll("[data-query-papers-row]"),
@@ -398,7 +373,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
             () => !document.querySelector("[data-query-view-list]"),
           );
           await view.query.settled;
-          // The step ends on the table.
           const table = el.querySelector("table");
           if (table) await pointer?.look(table);
           return { options, name };
@@ -448,7 +422,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
           const input = popup.querySelector("input")!;
           input.focus();
           if (pointer) {
-            // The pointer moves beside the menu, off its list.
             const b = popup.getBoundingClientRect();
             await pointer.park(b.right + 30, b.top + 20);
             await pointer.keys(property, (ch) =>
@@ -481,7 +454,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
           const title = [
             ...el.querySelectorAll<HTMLTableCellElement>("th"),
           ].find((th) => th.textContent.trim() === titleLabel)!;
-          /** The box of the text in `cell`, without its padding and icon. */
           const text = (cell: Element) => {
             const range = document.createRange();
             const walker = document.createTreeWalker(
@@ -496,16 +468,12 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
             range.setEnd(last, last.textContent!.length);
             return range.getBoundingClientRect();
           };
-          // The text of the Title column: its name and each paper's title.
           const titles = [title, ...el.querySelectorAll("tbody tr")].map(
             (row) =>
               row === title
                 ? title
                 : (row as HTMLTableRowElement).cells[title.cellIndex]!,
           );
-          // The new column joins just past the tab's right edge; the reader
-          // scrolls the table until its name shows, and the Title column
-          // stays in view: the scroll splits the room between the two.
           await new Promise((r) => setTimeout(r, pointer ? 500 : 0));
           const pane = el.getBoundingClientRect();
           let scroller = column.closest("table")!.parentElement;
@@ -524,7 +492,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
             behavior: pointer ? "smooth" : "instant",
           });
           await new Promise((r) => setTimeout(r, pointer ? 800 : 100));
-          // The step ends on the titles and the new column's cells.
           await pointer?.look([
             column,
             ...titles,
@@ -532,7 +499,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
               `[data-query-vault-cell][data-query-vault-name="${property}"]`,
             ),
           ]);
-          // The Title column's text and the new column's name show whole.
           const within = (r: DOMRect) =>
             r.left >= pane.left - 1 && r.right <= pane.right + 1;
           return {
@@ -555,7 +521,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
     expect(entries.titleText).toContain(m.query_view_property_title());
     expect(entries.titleShown).toBe(true);
     expect(entries.columnNameShown).toBe(true);
-    // The first entry adds a Zotero field; the second, the reader's own property.
     expect(entries.options.slice(0, 2)).toEqual([
       m.query_view_properties_add({ name: PROPERTY }),
       m.query_view_properties_add_vault({ name: PROPERTY }),
@@ -568,8 +533,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
     expect(table.header).toContain(
       m.query_view_vault_property_label({ name: PROPERTY }),
     );
-    // Papers without a literature note read No note. Sandve et al. 2013 has
-    // the note from Lesson 1, so its cell is empty, ready for a value.
     for (const paper of ["munafo", "wilson", "rougier", "ioannidis"] as const)
       expect(table.cells[PAPERS[paper].key]).toBe(m.query_view_vault_no_note());
     expect(table.cells[PAPERS.sandve.key]).toBe("");
@@ -599,7 +562,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
       [PROPERTY]: "to-read",
     });
     expect(await readNotices(walk.vaultId)).toContain(m.notice_created_note());
-    // The note is made in the background: the plan stays the active tab.
     expect(
       await obRun(
         walk.vaultId,
@@ -614,7 +576,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
     const { started, finished } = await walk.record("step-5", async () => {
       const started = await mark("sandve", "reading");
       const finished = await mark("ioannidis", "done");
-      // The clip ends on the suggestions in a fourth cell, as the image.
       await openSuggestions();
       return { started, finished };
     });
@@ -638,7 +599,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
             )!
             .closest("td")!;
           const pointer = page.scratch.docsWalkPointer;
-          // As in `mark`, the table keeps its sideways scroll.
           let scroller = cell.closest("table")!.parentElement;
           while (
             scroller &&
@@ -661,8 +621,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
             ),
           );
           if (pointer) {
-            // The pointer moves off the cell and its suggestions, and the
-            // step ends on them.
             const b = cell.getBoundingClientRect();
             await pointer.park(b.left - 30, b.bottom + 30);
             await pointer.look([
@@ -713,7 +671,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
           const name = trigger.getAttribute("aria-label");
           await pointer?.point(trigger);
           const popup = await page.openToolbarPopover(el, "filter");
-          // This view holds one empty condition; the reader sets it, after the All views group.
           const row = await page.until("condition row", () =>
             [
               ...popup.querySelectorAll<HTMLElement>("[data-condition-row]"),
@@ -779,7 +736,6 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
               el.querySelectorAll('[data-query-table-row="item"]').length === 1,
             10000,
           );
-          // The step ends on the condition and the one paper left.
           const table = el.querySelector("table");
           await pointer?.look(table ? [row, table] : row);
           return { name, operators, text: await app.vault.read(view.file!) };

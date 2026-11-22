@@ -1,8 +1,4 @@
 #!/usr/bin/env node
-// Compares each format version at HEAD with the latest release tag. Both are
-// git objects, not working-tree files, so Turbo cannot hash them: the
-// `//#lint:format-versions` task in turbo.json stays uncached. A file that
-// moved since the release is read at the release under its old path.
 import { execFileSync } from "node:child_process";
 
 import {
@@ -26,7 +22,6 @@ try {
   const releasedFiles = new Set(
     git("ls-tree", "-r", "--name-only", "-z", release).split("\0"),
   );
-  // `R<score>\0<old>\0<new>\0` for each file renamed since the release.
   const renames = git(
     "diff",
     "--name-status",

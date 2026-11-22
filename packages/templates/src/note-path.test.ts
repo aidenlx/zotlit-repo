@@ -50,19 +50,16 @@ describe("truncateToByteLimit", () => {
   });
 
   it("truncates multi-byte characters without splitting", () => {
-    // "é" is U+00E9 → 2 UTF-8 bytes; "a" is 1 byte
     expect(truncateToByteLimit("aéb", 2)).toBe("a");
     expect(truncateToByteLimit("aéb", 3)).toBe("aé");
   });
 
   it("does not split a surrogate pair (emoji)", () => {
-    // "😀" is U+1F600 → 4 UTF-8 bytes, 2 UTF-16 code units
     expect(truncateToByteLimit("a😀b", 4)).toBe("a");
     expect(truncateToByteLimit("a😀b", 5)).toBe("a😀");
   });
 
   it("handles CJK characters (3 bytes each)", () => {
-    // "漢" is U+6F22 → 3 UTF-8 bytes
     expect(truncateToByteLimit("漢字テスト", 9)).toBe("漢字テ");
     expect(truncateToByteLimit("漢字テスト", 10)).toBe("漢字テ");
     expect(truncateToByteLimit("漢字テスト", 12)).toBe("漢字テス");
@@ -104,7 +101,6 @@ describe("resolveNoteRelPath", () => {
   });
 
   it("truncates multi-byte filename to 252 bytes without splitting", () => {
-    // 84 CJK chars × 3 bytes = 252 bytes; the 85th would be 255 → truncated
     const long = "漢".repeat(85);
     const result = resolveNoteRelPath(long) ?? "";
     expect(new TextEncoder().encode(result).length).toBe(252);

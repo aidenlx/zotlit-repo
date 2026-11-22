@@ -3,7 +3,6 @@ import { it } from "@effect/vitest";
 import { Effect, Exit, Fiber } from "effect";
 import type { FileSystem, Layer } from "effect";
 import { TestClock } from "effect/testing";
-// Host doubles measure resource ownership without allocating a browser canvas or a large PDF.
 import { open } from "node:fs/promises";
 import { expect, vi } from "vitest";
 
@@ -366,7 +365,6 @@ it("renders only after the resident document has been destroyed", async () => {
   vi.stubGlobal("document", { createElement: f.canvas });
   const destroying = Promise.withResolvers<void>();
   f.state.destroyGate = destroying.promise;
-  // Whatever this test asserts, the fixture's document must be allowed to close.
   cleanup.defer(() => destroying.resolve());
   const service = cleanup.use(
     new ExcerptImageService(
@@ -379,13 +377,9 @@ it("renders only after the resident document has been destroyed", async () => {
 
   const operation = service.operation();
   await operation.resolve(f.request);
-  // The operation ends, and its teardown holds the render slot until the
-  // resident document is destroyed.
   void operation[Symbol.asyncDispose]();
   await f.destroyStarted.promise;
   const second = service.resolve(f.request);
-  // Wait for the second resolution to reach the render queue: parked behind the
-  // teardown, or — without the serialization — already rendering.
   await vi.waitFor(() => {
     expect(service.queueDiagnostics.queued === 1 || f.tasks.length === 2).toBe(
       true,
@@ -395,9 +389,6 @@ it("renders only after the resident document has been destroyed", async () => {
 
   destroying.resolve();
   expect(await second).toMatchObject({ provenance: "rendered" });
-  // Nothing rendered while the resident document was being destroyed, and the
-  // render that waited loaded the file itself instead of reusing the closing
-  // session — which it could only do once the document was gone.
   expect(renderedWhileDestroying).toBe(1);
   expect(f.load).toHaveBeenCalledTimes(2);
   expect(f.tasks).toHaveLength(2);
@@ -436,8 +427,6 @@ it("keeps one resident document across the two representations of a database", a
     },
   });
   expect(f.load).toHaveBeenCalledTimes(1);
-  // The first request reads the file it loads; the second reads no bytes of its
-  // own, because the resident document already holds this revision.
   expect(f.files[0]!.read).toHaveBeenCalled();
   expect(f.files[1]!.read).not.toHaveBeenCalled();
   expect(f.destroys[0]).not.toHaveBeenCalled();

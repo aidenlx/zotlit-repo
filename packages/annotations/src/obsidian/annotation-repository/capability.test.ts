@@ -35,10 +35,6 @@ it("says it is checking while no probe has answered", () => {
   });
 });
 
-/**
- * The reasons the spec's degraded-states section names, against the failure
- * each one is reached by.
- */
 it.each<[LocalApiFailure, string]>([
   [{ kind: "unreachable" }, "zotero-unavailable"],
   [{ kind: "unknown-outcome" }, "zotero-unavailable"],
@@ -47,8 +43,6 @@ it.each<[LocalApiFailure, string]>([
   [{ kind: "server-changed" }, "server-changed"],
   [{ kind: "library-read-only" }, "library-read-only"],
   [{ kind: "invalid-response", issue: "server id absent" }, "invalid-response"],
-  // A read sends no version and no write token, so neither 412 answers a
-  // question this client asked; the write path owns them as mutation state.
   [{ kind: "conflict" }, "invalid-response"],
   [{ kind: "write-token-used" }, "invalid-response"],
 ])("reads %o as read-only with its own reason", (failure, reason) => {
@@ -76,7 +70,6 @@ it("turns Zotero's cooldown into the instant it ends", () => {
   });
 });
 
-/** A session the write path has learned nothing about yet. */
 const NO_WRITES: WriteAuthorizationState = {
   authorizing: false,
   libraryReadOnly: false,
@@ -102,8 +95,6 @@ it("says it is asking while a gesture stands at Zotero's dialog", () => {
 it("reads a library Zotero refuses writes to as read-only, whatever else holds", () => {
   const libraryReadOnly = { ...NO_WRITES, libraryReadOnly: true };
 
-  // It outranks the gesture and the grant alike: no key makes this library
-  // writable, so no surface should offer one.
   expect(
     capabilityOf(
       { kind: "available", source: SOURCE, authorized: true },
@@ -122,15 +113,12 @@ it("counts down Zotero's dialog cooldown only while it blocks the asking", () =>
       cooling,
     ),
   ).toEqual({ kind: "cooldown", retryAfter: cooldownUntil });
-  // A remembered authorization needs no dialog, so the rate limit is not in
-  // its way.
   expect(
     capabilityOf(
       { kind: "available", source: SOURCE, authorized: true },
       cooling,
     ),
   ).toEqual({ kind: "writable" });
-  // A deadline already past is not a cooldown.
   expect(
     capabilityOf(
       { kind: "available", source: SOURCE, authorized: false },

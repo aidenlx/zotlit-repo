@@ -12,7 +12,6 @@ import {
   buildAnnotationResolvers,
 } from "./annotation-render.ts";
 
-/** Stand-in decision port: every source blocks, so no test copies a file. */
 const blockedDecide = (
   path: string,
   origin: SourceOrigin,
@@ -70,15 +69,12 @@ describe("attachmentFileLink", () => {
       ctx,
       { page: 3 },
     );
-    // default anchors to the page
     expect(link()).toBe(
       "[paper.pdf](file:///data/storage/ATCH2345/paper.pdf#page=3)",
     );
-    // alias override keeps the default page anchor
     expect(link("The PDF")).toBe(
       "[The PDF](file:///data/storage/ATCH2345/paper.pdf#page=3)",
     );
-    // subpath override replaces the page anchor
     expect(link("The PDF", "#section")).toBe(
       "[The PDF](file:///data/storage/ATCH2345/paper.pdf#section)",
     );

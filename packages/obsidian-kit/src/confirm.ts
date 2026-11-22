@@ -16,19 +16,12 @@ export interface ConfirmOptions {
   cta?: boolean;
 }
 
-/** @returns `true` once the user takes the action; `false` when the modal closes. */
 export function confirm(options: ConfirmOptions, app: App): Promise<boolean> {
   return modalAnswer<boolean>((resolve) =>
     openConfirmation(options, app, resolve),
   );
 }
 
-/**
- * {@link confirm} for Effect code.
- *
- * @returns `true` once the user takes the action; `false` when the modal
- *   closes. An interrupt closes the modal.
- */
 export function awaitConfirm(
   options: ConfirmOptions,
   app: App,
@@ -38,7 +31,6 @@ export function awaitConfirm(
   );
 }
 
-/** Open the confirmation modal; `resolve` gets the user's answer. */
 function openConfirmation(
   options: ConfirmOptions,
   app: App,

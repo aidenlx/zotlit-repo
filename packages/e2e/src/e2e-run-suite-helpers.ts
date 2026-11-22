@@ -47,8 +47,6 @@ async function wideWindow(cleanup: AsyncDisposableStack): Promise<void> {
     },
     undefined,
   );
-  // The renderer lays out at the new width once its window has it and
-  // both sidebars have finished collapsing.
   await obRunUntil(
     run.vaultId,
     async ({ app }) => {
@@ -72,11 +70,6 @@ async function wideWindow(cleanup: AsyncDisposableStack): Promise<void> {
     },
   );
 }
-/**
- * The Library View heading, as {@link LIBRARY_HEADING} reads it: the
- * selection's name, then the papers it lists, "N of M" where a facet or a
- * tag leaves `shown` of them, and, where some are unread, its unread count.
- */
 function libraryHeader(
   selection: string,
   items: readonly FixtureItem[],
@@ -150,7 +143,6 @@ function conditionReady({
   );
 }
 
-/** Turns row `row` into a `kind` condition that is `value`. */
 async function shapeCondition(
   row: number,
   kind: "item-type" | "library",
@@ -202,7 +194,6 @@ async function shapeCondition(
   await conditionReady({ row, kind, operator: "is", value });
 }
 
-/** "Add condition" adds a placeholder row; it becomes a Library row. */
 async function addLibraryCondition(selector: string): Promise<void> {
   await obRun(
     run.vaultId,
@@ -273,9 +264,6 @@ async function openMatchEditor(): Promise<void> {
 }
 
 async function mainSettings() {
-  // A researcher's click in the dialog focuses the main window, and a sheet
-  // that click opens takes Obsidian's active window; a press moves no
-  // emulated focus, so move it from a popout before the dialog opens.
   await obRun(
     run.vaultId,
     async (_context) => {
@@ -358,7 +346,6 @@ async function saveMatch(match: unknown): Promise<void> {
   await openProfilesSettings(run.vaultId, "settings_page_profiles");
 }
 
-/** Hand-written Match trees exercise the same document boundary as external editors. */
 async function writeMatch(
   profile: { id: string; document: string },
   match: unknown,
@@ -434,8 +421,6 @@ async function quickSwitchCreate(
       undefined,
     ),
   ).toBe(true);
-  // Native layout completion can focus a companion leaf in the popout.
-  // Transfer emulated focus afterwards, before a modal chooses its document.
   await expect
     .poll(
       () =>
@@ -462,9 +447,6 @@ async function quickSwitchCreate(
     undefined,
     { what: "the zotlit:note-quick-switcher command to be registered" },
   );
-  // The picker and its backdrop stay transparent until the first answer
-  // settles, then show with rows, or with a loading row when that answer is
-  // slow; no visible frame holds an empty list.
   expect(
     await obRun(
       targetVaultId,

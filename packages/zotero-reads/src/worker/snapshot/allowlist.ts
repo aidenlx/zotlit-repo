@@ -1,5 +1,3 @@
-// Keeps an Item Snapshot to the fields the generated contract declares.
-
 import type { ContractRoot } from "@zotlit/db";
 import type {
   ContractIR,
@@ -11,27 +9,8 @@ import contractIRJson from "@zotlit/db/contract/ir.json" with { type: "json" };
 const contractIR = contractIRJson as ContractIR;
 const UNKNOWN_CONTRACT_TYPE: ContractType = { kind: "unknown" };
 
-/**
- * Serialized markers the walk carries through untouched: a cycle reference, an
- * inert placeholder, and a resolved helper. Each is a contract shape of its
- * own, never an Item record with fields to weigh.
- */
 export const MARKER_KEYS = ["$ref", "$inert", "$helper"] as const;
 
-/**
- * Drops every key an Item-shaped record carries that neither the contract type
- * nor the generated Zotero field schema for that Item's type declares. A key
- * the user declared as a custom field in their own Zotero database is kept.
- *
- * Item-shaped records are the ones the contract marks with an `item-fields`
- * index signature — the note, filename, related-Item, and parent-Item shapes —
- * and they are the only place an undeclared Zotero field can enter a snapshot.
- *
- * @param root a serialized Template root
- * @param contractRoot the Template root the value was serialized against
- * @param customFields custom field names declared by the Items in the snapshot
- * @returns a pruned copy; the input is left as it is
- */
 export function applyFieldAllowList(
   root: Record<string, unknown>,
   contractRoot: ContractRoot,
@@ -39,8 +18,6 @@ export function applyFieldAllowList(
 ): Record<string, unknown> {
   const rootType = contractIR.roots[contractRoot]?.type;
   if (!rootType) {
-    // The allow-list is a redaction gate: an unknown root fails the export
-    // rather than passing the snapshot through unpruned.
     throw new Error(
       `The Template contract declares no root '${contractRoot}'.`,
     );
@@ -89,7 +66,6 @@ function prune(
   return pruned;
 }
 
-/** The Zotero field names an Item of this record's type may carry. */
 function allowedItemFields(
   record: Record<string, unknown>,
   customFields: ReadonlySet<string>,
@@ -103,12 +79,6 @@ function allowedItemFields(
   return new Set([...(declared ?? []), ...customFields]);
 }
 
-/**
- * Every object shape a value of this type may take. A nullable member reads as
- * a union of one shape and `null`; a union of several shapes contributes all of
- * them, so a key is kept when any of the shapes declares it and the record is
- * pruned rather than passed through.
- */
 function objectShapes(
   type: ContractType,
   seen: ReadonlySet<string> = new Set(),
@@ -127,7 +97,6 @@ function objectShapes(
   return [];
 }
 
-/** The element type behind an array member, through refs and nullable unions. */
 function arrayItems(type: ContractType): ContractType {
   const resolved = resolveRef(type);
   if (resolved.kind === "array") return resolved.items;

@@ -1,15 +1,3 @@
-// The textarea a Text Draft is typed into, over its page.
-//
-// It is placed, sized and styled from the same box, font and line height the
-// saved text mark is drawn from, so the create that ends the draft moves no
-// line. A plain textarea, as Zotero's own text box is: the stored text is
-// plain.
-//
-// One residual stays: the textarea is `LINE_SLACK` wider than the box, so a
-// line whose width falls in `(width, width + 1]` points stays whole in the
-// textarea and wraps in the saved mark.
-//
-// @see https://github.com/zotero/reader/blob/df215c60334d2d0c7b1fbc9f3959b66afc1ced83/src/pdf/page.js#L860-L947
 import { Scope } from "obsidian";
 import type { App } from "obsidian";
 
@@ -23,39 +11,15 @@ import type { TextDraft } from "./reader-surface-state.ts";
 import { darken, pageUnitSize, unitPointOf, unitsPerPixel } from "./render.ts";
 import type { MeasuredFont, OverlayPageView } from "./render.ts";
 
-/**
- * The room a line gets past its fitted width, in PDF points. A box fitted to
- * lines its newlines split is exactly as wide as the widest of them, and the
- * textarea lays that line out up to a hundredth of a point wider than the
- * canvas measure does; one point keeps it on one line, and is narrower than
- * any word the measure could have wrapped.
- */
 const LINE_SLACK = 1;
 
-/** What the textarea hands back to the creation surfaces. */
 export interface TextDraftEvents {
-  /** The textarea now holds this text. */
   input: (text: string) => void;
-  /** Escape, or the focus left the textarea while it stood on its page. */
   finish: () => void;
 }
 
-/** The Scope each textarea holds while it has focus. */
 const holds = new WeakMap<HTMLTextAreaElement, FocusScope>();
 
-/**
- * Builds the textarea once for a draft. A press on it stays its own, so no
- * reader gesture under it acts; Escape finishes the draft and goes no
- * further. The page's own re-render takes the textarea off the page for a
- * moment, and a focus lost to that is no finish.
- *
- * The PDF view's Scope hears a key before the textarea does, and takes
- * Escape to close its find bar, so the textarea takes Escape on a Scope of
- * its own, on top while it holds focus.
- *
- * @param keys the keymap, and the Scope the textarea's goes under: the PDF
- *   view's, so every other key still reaches the view.
- */
 export function createTextDraftArea(
   document_: Document,
   { input, finish }: TextDraftEvents,
@@ -83,24 +47,11 @@ export function createTextDraftArea(
   return area;
 }
 
-/**
- * Places the textarea on its page from the draft's box: its top-left corner
- * where the box's is, turned as the page turns its text, in the font the
- * saved mark is drawn in and its colour darkened as Zotero's reader draws
- * text on screen.
- *
- * The textarea is laid out at one CSS pixel per PDF point, the size the
- * measure fits the box at, and scaled to the page as a whole, as the saved
- * mark is drawn at its stored size and scaled with the overlay. Laid out at
- * the page's own font size instead, a small zoom rounds each glyph's advance
- * and wraps a line the measure keeps whole.
- */
 export function placeTextDraft(
   area: HTMLTextAreaElement,
   page: OverlayPageView,
   { draft, font }: { draft: TextDraft; font: MeasuredFont },
 ): void {
-  // CSS pixels per PDF point.
   const scale = 1 / unitsPerPixel(page);
   const unit = pageUnitSize(page);
   const [left, bottom, right, top] = draft.box;
@@ -128,18 +79,10 @@ export function placeTextDraft(
   area.readOnly = draft.phase === "saving";
 }
 
-/**
- * Takes the textarea off its page. Where it held the focus, the focus goes to
- * the page's text layer, where a click on the page leaves it, so the next key
- * still reaches the reader: a second Escape after a finished draft closes the
- * Mark Popup on the saved mark. A focus the finish already moved elsewhere
- * stays there.
- */
 export function removeTextDraftArea(area: HTMLTextAreaElement): void {
   const focused = area.doc.activeElement === area;
   const textLayer =
     area.parentElement?.querySelector<HTMLElement>(".textLayer");
-  // A focused element taken off the page may hear no blur.
   holds.get(area)?.[Symbol.dispose]();
   holds.delete(area);
   area.remove();

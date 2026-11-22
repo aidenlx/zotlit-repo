@@ -1,4 +1,3 @@
-// Promise test hosts exercise the real scoped service through its bridge.
 import { Effect, FileSystem, Layer, Scope, Exit } from "effect";
 
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -76,7 +75,6 @@ export class ExcerptImageFixture implements AsyncDisposable {
   }
 }
 
-/** A Promise fake at a test host's boundary, expressed as the real tag shape. */
 export function effectImageResolver(source: Partial<Pick<ExcerptImageFixture, "resolve" | "operation">>) {
   return {
     resolve: (request: ExcerptRequest) => Effect.tryPromise((signal) => source.resolve!(request, signal)),

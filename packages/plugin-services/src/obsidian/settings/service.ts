@@ -1,80 +1,3 @@
-/**
- * `PluginSettings` — reactive, validated, single-flight settings store for
- * the Obsidian plugin. Owns a flat key→primitive map, persisted sparsely
- * through `Plugin.loadData/saveData`, reactive via Svelte-store-compatible
- * `subscribe`.
- *
- * ## Conventions
- *
- * The schema and defaults come from the host as one `SettingsDefinition`,
- * composed from the slices its features own (`#core/settings/schema.ts`).
- * Runtime key admission is derived from `schema.entries`, not `defaults`.
- * The type of each key comes from `SettingsRegistry`, which the same slices
- * fill; the service is intentionally concrete (no `<TSchema>` generic). The
- * migration hooks are the host's own history of its `data.json`; a host
- * without data of a version leaves its hook out, and that data loads as
- * defaults.
- *
- * `null` is a legal settings value (used by keys whose concrete default is
- * host-dependent and resolved at the consume site). The service surfaces
- * `null` verbatim and `update({ key: null })` creates a persistent explicit
- * null override. `RESET_SETTING` is the canonical "remove the override
- * entirely" path; both produce `null` in the snapshot but differ on disk.
- *
- * ## Disk format
- *
- * - `data.json` is sparse: `{ __VERSION__: 11, ...overrides }`. Never persist
- *   `{ __VERSION__: 11, ...current }` — defaults-filled output defeats the
- *   format and bloats user files.
- * - Default-equal override values are still explicit overrides and must
- *   persist; do not auto-delete a key because its value equals the default.
- * - V11 load is non-writing: non-schema keys are dropped in memory only and may
- *   disappear on the next explicit save, while a known key whose value fails
- *   validation keeps its raw value on disk (see Broken overrides).
- * - V1 data migrates to v2 (`migrateV1`): every `note.frontmatter-fields` item
- *   gains a required `language`, stamped `"javascript"` except for the three
- *   byte-exact v1 default exprs, which become their Liquid equivalents.
- * - Legacy through v10→v11 migration writes are best-effort
- *   cleanup; failures are logged but never tracked in `pendingWrite` and never
- *   block load.
- *
- * ## Validation
- *
- * Valibot is the single source of truth for settings validation. Do not layer
- * manual `isPrimitive` / `isFinite` / range guards around `safeParse` — fix
- * the schema instead.
- * - **Mutations:** one full-schema `safeParse` on the merged candidate. Do
- *   not per-key validate mutation values; the full parse covers everything.
- * - **Disk recovery:** per-key `safeParse(schema.entries[key], value)` first
- *   (drop failures), then one full-schema parse for cross-field constraints.
- * - Keep schemas validation-only unless normalization is intentional: mutation
- *   stores the candidate object, while disk recovery stores per-key
- *   `safeParse` output.
- *
- * ## Broken overrides
- *
- * A v11 override on a known key whose value fails per-key validation is a
- * *broken override*. Its effective value is that key's default in every
- * snapshot (`current`, `loaded`, subscribers), while the raw value stays in
- * `broken` and is written back on every save, so an unrelated mutation cannot
- * silently discard it. `diagnostics` names each broken key so a consumer can
- * report it. `update()` and `reset()` of that key clear the entry, which is the
- * only way the raw value leaves the file. Migration paths do not preserve
- * broken values: they rewrite the file as best-effort cleanup.
- *
- * ## Out of scope
- *
- * - Selectors / derived stores / deep-equality / no-op short-circuiting.
- * - Result-style returns from `update()` — invalid input throws.
- * - Async `migrateLegacy`/`migrateV1` hooks — Promise returns hit the
- *   non-plain branch.
- * - External `data.json` reload, file watchers, self-echo guards, Obsidian
- *   Sync conflict handling, retry-on-read.
- * - User-land save serialization chain — `FileSystemAdapter.write` already
- *   serializes; debouncing is here only because Obsidian doesn't debounce
- *   `saveData()`.
- */
-
 import type { HydrationOrigin } from "#core/settings/classify.ts";
 import type { Settings, SettingsDefinition } from "#core/settings/schema.ts";
 import {
@@ -106,96 +29,44 @@ import {
 } from "#core/settings/classify.ts";
 
 const SAVE_DEBOUNCE_MS = 200;
-// Persisted version: packages/scripts/lib/format-versions.ts.
 const CURRENT_VERSION = 11;
 
 type SettingsKey = keyof Settings;
 
-/** Re-export so consumers have one canonical import for the settings type. */
 export type { Settings } from "#core/settings/schema.ts";
 
-/**
- * Sentinel value for `update()` patches: assigning it to a key deletes that
- * key from the overrides map (i.e. reverts the runtime value to the default).
- * Exported as a unique symbol so callers cannot forge it.
- */
 export const RESET_SETTING: unique symbol = Symbol("RESET_SETTING");
 
 export type SettingsPatch = {
   [K in keyof Settings]?: Settings[K] | typeof RESET_SETTING;
 };
 
-/** One known settings key whose persisted override failed validation. */
 export interface SettingsDiagnostic {
   readonly key: keyof Settings;
-  /** The rejected value as persisted, kept until that key is updated or reset. */
   readonly value: unknown;
 }
 
-/** Raw values of broken overrides, keyed by the settings key they belong to. */
 type BrokenOverrides = ReadonlyMap<SettingsKey, unknown>;
 
-/** The host's steps from each older `data.json` version to the current one. */
 export interface SettingsMigrations {
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateLegacy: (raw: unknown) => unknown;
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateV1: (raw: unknown) => unknown;
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateV2: (raw: unknown) => unknown;
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateV3: (raw: unknown) => unknown;
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateV4: (raw: unknown) => unknown;
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateV5: (raw: unknown) => unknown;
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateV6: (raw: unknown) => unknown;
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateV7: (raw: unknown) => unknown;
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateV8: (raw: unknown) => unknown;
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateV9: (raw: unknown) => unknown;
-  /**
-   * Throwing or returning a non-plain value triggers the defaults fallback.
-   */
   migrateV10: (raw: unknown) => unknown;
 }
 
 export interface PluginSettingsOptions extends Partial<SettingsMigrations> {
-  /** The schema and defaults of every key this host keeps. */
   readonly definition: SettingsDefinition;
-  /**
-   * The object this plugin's instances share across a reload, such as the
-   * `App`. An instance leaves its last write on it as it unloads, and the next
-   * instance waits for that write before it reads the plugin data, so a change
-   * made just before a reload is neither lost nor overwritten.
-   */
   handoff?: object;
 }
 
-/** A hook a host leaves out: data of that version loads as defaults. */
 const noMigration = (): never => {
   throw new Error("This host has no migration for this data version");
 };
@@ -214,7 +85,6 @@ const noMigrations: SettingsMigrations = {
   migrateV10: noMigration,
 };
 
-/** Where an unloading instance leaves its last write for the next one. */
 const LAST_WRITE = Symbol.for("zotlit.settings.last-write");
 type Handoff = { [LAST_WRITE]?: Promise<void> };
 
@@ -245,7 +115,6 @@ const persistenceFailure = (cause: unknown) =>
     cause,
   });
 
-/** The settings store. Layer acquisition settles the first disk read. */
 export class PluginSettings extends Context.Service<
   PluginSettings,
   {
@@ -271,7 +140,6 @@ declare module "@zotlit/obsidian-kit/view-atoms.ts" {
   }
 }
 
-/** Native settings layer, below logging and every consumer in the plugin graph. */
 export function layerPluginSettings(
   plugin: Pick<Plugin, "loadData" | "saveData"> & Partial<Pick<Plugin, "app">>,
   options: PluginSettingsOptions,
@@ -282,7 +150,6 @@ export function layerPluginSettings(
   }).pipe(Layer.provide(layerPluginData(plugin)));
 }
 
-/** The settings layer over the plugin data a caller provides. */
 export function layerPluginSettingsOf(
   options: PluginSettingsOptions,
 ): Layer.Layer<PluginSettings, never, PluginData> {
@@ -322,7 +189,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
   let dirty = false;
   let pendingWrite: Fiber.Fiber<void, SettingsPersistenceError> | undefined;
   let timer: Fiber.Fiber<void> | undefined;
-  // Saves stay alive until the close finalizer has flushed the last edit.
   const writes = yield* Effect.acquireRelease(Scope.make(), (scope) =>
     Scope.close(scope, Exit.void),
   );
@@ -355,8 +221,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
       startImmediately: true,
     });
     pendingWrite = fiber;
-    // Observers also run for an already completed fiber: saveData can throw
-    // before forkIn returns, and that failed write must still leave the queue.
     fiber.addObserver(() => {
       if (pendingWrite === fiber) pendingWrite = undefined;
     });
@@ -374,8 +238,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     }
   }).pipe(Effect.uninterruptible, Effect.withSpan("PluginSettings.flush"));
 
-  // Obsidian unload is synchronous. The flush runs on `writes`, which scope
-  // close drains, and the reload handoff is a Promise that settles when it ends.
   const handOff = Effect.fn("PluginSettings.handOff")(function* () {
     const write = yield* Effect.forkIn(
       flush.pipe(
@@ -545,11 +407,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     }
   });
 
-  /**
-   * Permissive v11 load: drop non-schema keys, hold bad per-key values as
-   * broken overrides, then full-schema check for cross-field constraints.
-   * Whole-object failure → defaults fallback with no rewrite.
-   */
   const loadV11 = Effect.fn("PluginSettings.loadV11")(function* (
     raw: Record<string, unknown>,
   ) {
@@ -563,7 +420,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     }
   });
 
-  /** Run the v10→v11 compatibility migration and persist the cleaned result. */
   const loadV10Migration = Effect.fn("PluginSettings.loadV10Migration")(
     function* (raw: Record<string, unknown>) {
       const migrated = yield* runMigrationHook(
@@ -589,7 +445,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /** Run the v9→v10 compatibility migration and delegate to v10→v11. */
   const loadV9Migration = Effect.fn("PluginSettings.loadV9Migration")(
     function* (raw: Record<string, unknown>) {
       const migrated = yield* runMigrationHook(migrateV9, raw, "v9 migration");
@@ -603,7 +458,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /** Run the v8→v9 compatibility migration and delegate to v9→v10. */
   const loadV8Migration = Effect.fn("PluginSettings.loadV8Migration")(
     function* (raw: Record<string, unknown>) {
       const migrated = yield* runMigrationHook(migrateV8, raw, "v8 migration");
@@ -617,7 +471,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /** Run the v7→v8 compatibility migration and delegate to v8→v9. */
   const loadV7Migration = Effect.fn("PluginSettings.loadV7Migration")(
     function* (raw: Record<string, unknown>) {
       const migrated = yield* runMigrationHook(migrateV7, raw, "v7 migration");
@@ -631,7 +484,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /** Run the v6→v7 compatibility migration and delegate to v7→v8. */
   const loadV6Migration = Effect.fn("PluginSettings.loadV6Migration")(
     function* (raw: Record<string, unknown>) {
       const migrated = yield* runMigrationHook(migrateV6, raw, "v6 migration");
@@ -645,7 +497,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /** Run the v5→v6 compatibility migration and delegate to v6→v7. */
   const loadV5Migration = Effect.fn("PluginSettings.loadV5Migration")(
     function* (raw: Record<string, unknown>) {
       const migrated = yield* runMigrationHook(migrateV5, raw, "v5 migration");
@@ -659,7 +510,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /** Run the v4→v5 compatibility migration and delegate to v5→v6. */
   const loadV4Migration = Effect.fn("PluginSettings.loadV4Migration")(
     function* (raw: Record<string, unknown>) {
       const migrated = yield* runMigrationHook(migrateV4, raw, "v4 migration");
@@ -673,7 +523,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /** Run the v3→v4 compatibility migration and delegate to the v4 migration. */
   const loadV3Migration = Effect.fn("PluginSettings.loadV3Migration")(
     function* (raw: Record<string, unknown>) {
       const migrated = yield* runMigrationHook(migrateV3, raw, "v3 migration");
@@ -687,11 +536,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /**
-   * v2 → v3 → v4 → v5 → v6 → v7 → v8 → v9 → v10 → v11 migration. Runs the v2 hook, then delegates to the v3
-   * migration. A thrown error or non-plain result falls back to defaults.
-   * Persistence is best-effort cleanup: write errors never block load.
-   */
   const loadV2Migration = Effect.fn("PluginSettings.loadV2Migration")(
     function* (raw: Record<string, unknown>) {
       const migrated = yield* runMigrationHook(migrateV2, raw, "v2 migration");
@@ -705,11 +549,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /**
-   * v1 → v2 → v3 → v4 → v5 → v6 → v7 → v8 → v9 → v10 → v11 migration. Runs the v1 hook, then delegates to the
-   * v2 migration. A thrown error or non-plain result falls back to defaults.
-   * Persistence is best-effort cleanup: write errors never block load.
-   */
   const loadV1Migration = Effect.fn("PluginSettings.loadV1Migration")(
     function* (raw: Record<string, unknown>) {
       const migrated = yield* runMigrationHook(migrateV1, raw, "v1 migration");
@@ -723,15 +562,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /**
-   * v0 → v1 → v2 → v3 → v4 → v5 → v6 → v7 → v8 → v9 → v10 → v11 migration chain. Runs the legacy hook first
-   * (v0 had no frontmatter fields, so the v1→v2 stamp is a no-op there), then
-   * delegates to {@link #loadV1Migration} so the rest of the chain — running
-   * `migrateV1` and the permissive cleanup that follows — lives in one place.
-   * The legacy hook's own failure branch (defaults + best-effort
-   * `{ [VERSION_KEY]: 11 }` write) stays here; persistence beyond that point is
-   * `#loadV1Migration`'s.
-   */
   const loadLegacy = Effect.fn("PluginSettings.loadLegacy")(function* (
     raw: Record<string, unknown>,
   ) {
@@ -749,12 +579,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     yield* loadV1Migration(legacyMigrated);
   });
 
-  /**
-   * Shared disk-recovery tail: split known keys into cleaned and broken
-   * overrides, then full-schema check the effective object for cross-field
-   * constraints. Returns `null` when that check fails (callers fall back to
-   * defaults). Failures are logged with `context` as the source prefix.
-   */
   const validateOverrides = Effect.fn("PluginSettings.validateOverrides")(
     function* (
       raw: Record<string, unknown>,
@@ -775,7 +599,6 @@ const makePluginSettings = Effect.fn("PluginSettings.make")(function* (
     },
   );
 
-  /** Errors are logged but never bubble up — load continues with the already-chosen in-memory state. */
   const writeBestEffort = Effect.fn("PluginSettings.writeBestEffort")(
     function* (payload: Record<string, unknown>) {
       yield* data.save(payload).pipe(
@@ -850,11 +673,6 @@ const reportFailure = (message: string, error: unknown) =>
     withLogCategory("settings"),
   );
 
-/**
- * Drop non-schema keys (including reserved metadata), then per-key-validate
- * every schema-known override with `schema.entries[key]`. A rejected value is
- * returned as a broken override; the caller decides whether it survives.
- */
 function cleanKnownOverrides(
   raw: Record<string, unknown>,
   definition: SettingsDefinition,
@@ -878,11 +696,6 @@ function cleanKnownOverrides(
   return { cleaned, broken };
 }
 
-/**
- * Run a migration hook, normalizing a thrown error and a non-plain return
- * into a single failure signal (`null`) so callers share one fallback path.
- * Logs at the call site with `stage` naming which migration step failed.
- */
 const runMigrationHook = Effect.fn("PluginSettings.migrate")(function* (
   hook: (raw: unknown) => unknown,
   raw: unknown,
@@ -905,7 +718,6 @@ const runMigrationHook = Effect.fn("PluginSettings.migrate")(function* (
   return migrated;
 });
 
-/** `schema.entries` is the source of truth for the valid settings key set. */
 function settingsKeyGuard(
   definition: SettingsDefinition,
 ): (key: string) => key is SettingsKey {

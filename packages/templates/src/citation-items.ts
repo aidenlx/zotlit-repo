@@ -1,15 +1,8 @@
-// The Citation Item shape every citation source form reads, and its two boundary checks.
-
-/** A Locator as a citation source module receives it: a label and its value. */
 export interface CitationLocator {
   readonly label: string;
   readonly value: string;
 }
 
-/**
- * One Citation Item, narrowed onto the properties a citation source module
- * reads. Each source form renders these same properties into its own syntax.
- */
 export interface CitationItemInput {
   readonly citationKey: string | null;
   readonly prefix: string | null;
@@ -18,20 +11,11 @@ export interface CitationItemInput {
   readonly suppressAuthor: boolean;
 }
 
-/** Builds a source module's own error, so each filter reports in its own type. */
 export type InvalidCitationItems = (
   message: string,
   itemIndex: number | null,
 ) => Error;
 
-/**
- * Narrow a template's `zt.citations` value onto {@link CitationItemInput}s.
- * Template data reaches a filter untyped, so this is the one boundary check
- * between a template and the citation source modules.
- *
- * @param filterName the filter this runs for, which names it in the array error.
- * @throws whatever `invalid` returns, for a non-array or a malformed item.
- */
 export function mapCitationItems(
   value: unknown,
   filterName: string,
@@ -43,12 +27,6 @@ export function mapCitationItems(
   return value.map((entry, itemIndex) => mapItem(entry, itemIndex, invalid));
 }
 
-/**
- * Check already-narrowed Citation Items, for a serializer called directly
- * rather than through {@link mapCitationItems}.
- *
- * @throws whatever `invalid` returns, for a non-array or a malformed item.
- */
 export function assertCitationItems(
   items: readonly CitationItemInput[],
   invalid: InvalidCitationItems,

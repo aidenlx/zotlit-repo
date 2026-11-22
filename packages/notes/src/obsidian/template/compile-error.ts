@@ -1,5 +1,3 @@
-/** Append a styled compile-error block to a settings desc, with an optional
- *  explanatory heading above the raw error message. */
 export function appendCompileError(
   parent: DocumentFragment | HTMLElement,
   message: string,

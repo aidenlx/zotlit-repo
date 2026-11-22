@@ -96,12 +96,6 @@ function fileAt(path: string): TFile {
   return file;
 }
 
-/**
- * The tab context over typed fakes of the services the Profile rows read: a
- * loaded registry with no Profile and no saved Default document, unless a
- * case overrides a member. `rebuilt` takes one element per rebuild an action
- * asks for, which a successful action asks for when it ends.
- */
 const tabOver = Effect.fnUntraced(function* (
   fakes: {
     profile?: Partial<Profile["Service"]>;
@@ -143,8 +137,6 @@ const tabOver = Effect.fnUntraced(function* (
       Layer.mock(PluginSettings, settings),
     ),
   );
-  // The main page's document slot holds the row this package gives it; the
-  // host's tab binds the Profile control keys of every slot's rows.
   const ctx: SettingTabContext = stubService<SettingTabContext>(
     "SettingTabContext",
     {
@@ -159,26 +151,22 @@ const tabOver = Effect.fnUntraced(function* (
   return { ctx, rebuilt, customize };
 });
 
-/** A vault that holds every path, the saved Default document included. */
 const everyFile = {
   getFileByPath: (path: string) => Effect.succeed(fileAt(path)),
 };
 
-/** What a `render` row's buttons are labelled by, icon tooltip included. */
 function buttonLabels(row: SettingDefinitionItem): string[] {
   return renderRow(row)
     .components.filter((control) => control instanceof ButtonComponent)
     .map((button) => button.text || button.tooltip);
 }
 
-/** The icons a `render` row's buttons carry, in order. */
 function buttonIcons(row: SettingDefinitionItem): string[] {
   return renderRow(row)
     .components.filter((control) => control instanceof ButtonComponent)
     .map((button) => button.icon);
 }
 
-/** The list a page carries under `heading`. */
 function list(
   page: SettingDefinitionPage,
   heading: string,
@@ -191,7 +179,6 @@ function list(
   return found;
 }
 
-/** The Template document row of the main page. */
 function documentRow(ctx: SettingTabContext): SettingDefinitionItem {
   const row = literatureNoteItems(ctx).find(
     (item) =>
@@ -201,14 +188,12 @@ function documentRow(ctx: SettingTabContext): SettingDefinitionItem {
   return row;
 }
 
-/** The tooltips a `render` row's icon buttons carry, in order. */
 function extraButtonTooltips(row: SettingDefinitionItem): string[] {
   return renderRow(row)
     .components.filter((control) => control instanceof ExtraButtonComponent)
     .map((button) => button.tooltip);
 }
 
-/** The Profiles page's Default row and the row of its one other Profile. */
 function pageRows(ctx: SettingTabContext): {
   defaultRow: SettingDefinitionItem;
   profileRow: SettingDefinitionItem;
@@ -220,7 +205,6 @@ function pageRows(ctx: SettingTabContext): {
   };
 }
 
-/** The titles of the menu a row's More actions button opens. */
 function moreActions(row: SettingDefinitionItem): string[] {
   const more = renderRow(row)
     .components.filter((control) => control instanceof ExtraButtonComponent)
@@ -316,7 +300,6 @@ describe("Profile settings", () => {
         ]);
         expect(buttonLabels(defaultRow)).toContain(m.settings_profile_edit());
 
-        // The row opens its own Profile through the configured workbench launcher.
         customizeButton(profileRow).click();
         yield* Queue.take(rebuilt);
         expect(customize).toHaveBeenCalledWith({ profileId: books });
@@ -371,7 +354,6 @@ it.effect(
       );
       expect(banners).toHaveLength(1);
       const banner = banners[0]!;
-      // The guidance reads as a warning, so the fix is not mistaken for a setting.
       const desc = (banner as { desc: DocumentFragment }).desc;
       expect(desc.textContent).toBe(m.settings_profile_duplicate_banner());
       expect(
@@ -390,7 +372,6 @@ it.effect(
         expect.objectContaining({ path: paths[0] }),
       );
 
-      // Deleting is the list's own affordance, addressed by row index.
       excluded.onDelete!(1);
       yield* Queue.take(rebuilt);
       expect(trashFile).toHaveBeenCalledWith(
@@ -463,11 +444,6 @@ it.effect("asks the import flow for its own source", () =>
   }),
 );
 
-/**
- * The tab context over `template` and `vault`, for the Partials list, with a
- * settings window that closes through `close`. `rebuilt` takes one element
- * per definition rebuild an action asks for.
- */
 const partialsTabOver = Effect.fnUntraced(function* (
   template: Partial<Template["Service"]>,
   options: {
@@ -504,7 +480,6 @@ const VENUE = {
   language: "liquid",
 } as const;
 
-/** The Partials list of the Profiles page. */
 function partialList(
   ctx: SettingTabContext,
 ): SettingDefinitionList<SettingsKey> {

@@ -1,29 +1,5 @@
 name: Release
 
-# Publishes each product whose version on `main`, the one trunk, has no
-# release tag yet. The version picks the line: a pre-release is a beta, any
-# other version a stable release (ADR 0097). The products publish to the
-# publish repository, aidenlx/zotlit (RELEASE_REPOSITORY in
-# packages/config/repositories.ts); ZotLit Reader and the Resource Pack each
-# publish to their own (PUBLISHED_PLUGINS in
-# packages/scripts/lib/shell/plugins.ts):
-#
-#   obsidian  the npm bundle package, then the shell commit and the version
-#             tag in aidenlx/zotlit, whose own workflow builds and releases
-#             the plugin; then the same tag here
-#   zotero    the zt-<version> release and the rolling update channel in
-#             aidenlx/zotlit; then the same tag here
-#   reader    as obsidian, in aidenlx/zotlit-reader; then reader-<version>
-#             here
-#   resources as obsidian, in aidenlx/zotlit-resources, with main.js copied
-#             byte for byte; then resources-<version> here
-#   docs      after a stable version, the production docs site from its tag
-#             (docs-deploy.yml)
-#
-# The steps live in packages/scripts/lib/release/ and run the same way from
-# a machine (`pnpm release:publish`). Each skips what an earlier run did, so
-# a run that failed half way runs again with workflow_dispatch. See
-# CONTRIBUTING.md "Releasing".
 on:
   push:
     branches: [main]
@@ -37,9 +13,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # The release tags of this repository are the gate: a push whose versions
-  # are tagged stops here, before any dependency is installed. A dispatch
-  # publishes from main alone; a stable hotfix publishes from a machine.
   plan:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -60,8 +33,6 @@ jobs:
         id: plan
         run: node packages/scripts/scripts/release-plan.ts >> "$GITHUB_OUTPUT"
 
-  # The release gate on the tree that ships. Its desktop checks skip here;
-  # `pnpm release` ran them in its Land Turn.
   verify:
     needs: plan
     if: needs.plan.outputs.obsidian == 'true' || needs.plan.outputs.zotero == 'true' || needs.plan.outputs.reader == 'true' || needs.plan.outputs.resources == 'true'
@@ -82,12 +53,9 @@ jobs:
     if: needs.plan.outputs.obsidian == 'true'
     runs-on: ubuntu-latest
     permissions:
-      # The release tag of this repository.
       contents: write
-      # npm trusted publishing and its provenance statement.
       id-token: write
     steps:
-      # The full history: the run checks that it builds a commit of main.
       - uses: actions/checkout@v7
         with:
           lfs: true
@@ -123,8 +91,6 @@ jobs:
         env:
           RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
 
-      # The XPI and the channel manifests this run wrote
-      # (apps/zotero/scripts/build-update-json.ts).
       - name: Attest provenance
         uses: actions/attest@v4
         with:
@@ -170,9 +136,6 @@ jobs:
         env:
           RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
 
-  # A stable release deploys the production docs site from its release tag,
-  # once every product of the run published. A tag pushed with GITHUB_TOKEN
-  # starts no workflow, so this job calls the deploy itself.
   docs:
     needs: [plan, obsidian, zotero, reader, resources]
     if: >-

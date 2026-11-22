@@ -14,18 +14,8 @@ import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" 
 import { MARKER_KEYS } from "./allowlist.ts";
 import { exportItemSnapshot } from "./export.ts";
 
-/**
- * The three CSL-named aliases the Template contract adds beside the field names
- * Zotero's own schema declares.
- */
 const CONTRACT_FIELD_ALIASES = ["abstract", "containerTitle", "citekey"];
 
-/**
- * Per Zotero item type, the field names its own schema declares, under both the
- * field's own name and the base field it maps to. A key an Item-shaped record
- * carries outside its item type's set and its root's declared contract
- * properties is a field nobody declared.
- */
 const ZOTERO_FIELD_NAMES = new Map(
   zoteroSchema.itemTypes.map(({ itemType, fields }) => [
     itemType,
@@ -38,10 +28,6 @@ const ZOTERO_FIELD_NAMES = new Map(
   ]),
 );
 
-/**
- * A field the user declared in their own Zotero database, which reaches the
- * item as a custom field rather than through the shared Zotero schema.
- */
 const CUSTOM_FIELD_SEED = `
   insert into fieldsCombined (fieldID, fieldName, custom)
     values (13, 'shelfLocation', 1);
@@ -142,7 +128,6 @@ describe("exportItemSnapshot", () => {
         },
       ]),
     );
-    // A Child Note with no vault target still links to Zotero.
     expect(snapshot.unavailable.map(({ path }) => path)).not.toContain(
       "zt.notes[0].noteLink",
     );
@@ -162,7 +147,6 @@ describe("exportItemSnapshot", () => {
     expect(JSON.stringify(snapshot)).not.toContain(
       "A value only a future Zotero declares",
     );
-    // A field the user declared in their own Zotero database stays.
     expect(snapshot.roots.note).toMatchObject({ shelfLocation: "Shelf 4B" });
     expect(snapshot.roots.filename).toMatchObject({
       shelfLocation: "Shelf 4B",
@@ -354,12 +338,6 @@ describe("exportItemSnapshot", () => {
   });
 });
 
-/**
- * Walks an exported root beside its generated JSON Schema and reports the path
- * of every key the schema does not name and the Zotero schema does not declare
- * as a field. Marker shapes (`$helper`, `$inert`, `$ref`) and the closed
- * `oneOf` shapes carry no Item fields, so the walk stops there.
- */
 function undeclaredKeys(
   value: unknown,
   rootSchema: Record<string, unknown>,

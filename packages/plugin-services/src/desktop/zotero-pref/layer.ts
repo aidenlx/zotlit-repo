@@ -1,10 +1,3 @@
-/**
- * Zotero preferences and the per-vault, per-device directory overrides.
- * Reads prefs.js at startup and when the profile override changes. There is
- * no file watcher. Reads run on the layer Scope; failures publish degraded
- * state with empty preferences. Unset overrides restore automatic detection.
- */
-
 import type {
   ZoteroPrefSnapshot,
   ZoteroProfileInfo,
@@ -55,7 +48,6 @@ import {
   saveZoteroPathOverrides,
 } from "#obsidian/zotero-pref/device-paths.ts";
 
-/** The file-system boundary, replaced by controlled reads in lifecycle tests. */
 export class ZoteroPrefFiles extends Context.Service<
   ZoteroPrefFiles,
   {
@@ -79,7 +71,6 @@ export const layerZoteroPrefFiles = Layer.effect(
   }),
 );
 
-/** `profiles.ini` names no default profile; the prefs load degrades. */
 class NoDefaultZoteroProfile extends Schema.TaggedError<
   NoDefaultZoteroProfile,
   { readonly brand: unique symbol }
@@ -260,7 +251,6 @@ export const layerZoteroPref = Layer.effect(
             isDefault: p.isDefault,
           })),
         ),
-        // A setting row that closes mid-read interrupts the list: no failure.
         recover(
           (error) =>
             Effect.logWarning("Failed to list Zotero profiles").pipe(
@@ -275,7 +265,6 @@ export const layerZoteroPref = Layer.effect(
   }).pipe(withLogCategory("zotero-pref")),
 );
 
-/** The same path fallback Zotero uses, with Device Overrides taking priority. */
 function snapshot(
   input: Pick<
     ZoteroPrefSnapshot,

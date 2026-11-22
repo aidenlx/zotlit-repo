@@ -1,5 +1,3 @@
-// Shared companion reader state for views.
-
 import type { ReaderTarget } from "#core/local-server/service.ts";
 import { Effect, Stream } from "effect";
 

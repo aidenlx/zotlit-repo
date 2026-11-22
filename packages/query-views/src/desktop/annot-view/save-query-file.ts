@@ -1,9 +1,3 @@
-// "Save as query file…" in the sidebar's More options menu: a dialog asks the
-// name, the folder, and which records the file shows, then writes the
-// sidebar's view as a new Query File and opens it in a tab. The Library View
-// saves through the same dialog, which there asks the name and the folder.
-//
-// @see apps/obsidian/docs/adr/0069-the-annotation-view-is-the-annotations-layout-of-the-query-view.md
 import { Effect } from "effect";
 import {
   AbstractInputSuggest,
@@ -38,16 +32,13 @@ import {
   untitledName,
 } from "#core/query-view/query-file.ts";
 
-/** The characters a file name cannot hold on every desktop system. */
 const FORBIDDEN = /[*"\\/<>:|?]/;
 
-/** What the dialog gives back: where the file goes, and what it shows. */
 interface SaveChoice {
   readonly path: string;
   readonly records: SavedRecords;
 }
 
-/** The vault's folders, as the folder field suggests them. */
 class FolderSuggest extends AbstractInputSuggest<TFolder> {
   override getSuggestions(query: string): TFolder[] {
     const search = prepareSimpleSearch(query);
@@ -105,7 +96,6 @@ class SaveQueryFileModal extends Modal {
     const body = this.contentEl.createDiv({
       cls: "zt:flex zt:flex-col zt:gap-4",
     });
-    // The first `<name>`, `<name> 1`, … free in the folder.
     let name = untitledName(
       this.#name.replaceAll(new RegExp(FORBIDDEN, "g"), " ").trim() ||
         m.query_file_untitled(),
@@ -229,10 +219,6 @@ class SaveQueryFileModal extends Modal {
   }
 }
 
-/**
- * Ask where to save the sidebar's view and which records it shows, write the
- * Query File, and open it in a tab.
- */
 export function saveSidebarAsQueryFile(
   app: App,
   input: Omit<SaveQueryFileInput, "records">,
@@ -243,7 +229,6 @@ export function saveSidebarAsQueryFile(
   });
 }
 
-/** Ask where to save `text`, write it as a new Query File, and open it in a tab. */
 export function saveAsQueryFile(
   app: App,
   text: string,
@@ -251,12 +236,7 @@ export function saveAsQueryFile(
     leftOut = [],
     name,
   }: {
-    /**
-     * What the view shows that `text` cannot hold, one sentence each, for
-     * the dialog to say before the file is written.
-     */
     leftOut?: readonly string[];
-    /** The name the dialog offers first, in place of "Untitled". */
     name?: string;
   } = {},
 ): Promise<void> {
@@ -276,7 +256,6 @@ async function saveQueryFile(
     name = m.query_file_untitled(),
     text,
   }: {
-    /** Whether the dialog asks which records the file shows. */
     askRecords: boolean;
     leftOut?: readonly string[];
     name?: string;

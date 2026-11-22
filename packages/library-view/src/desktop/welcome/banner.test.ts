@@ -10,9 +10,6 @@ import {
   PluginStub,
 } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 // @vitest-environment happy-dom
-// The Welcome View as a banner above the Library View: it shows while setup
-// is incomplete, until the researcher dismisses it, and an upgrade from v1
-// keeps its Migration Prompt on screen until a dismissal acknowledges it.
 import {
   resetMockPlatform,
   setMockPlatform,
@@ -35,7 +32,6 @@ afterEach(async () => {
   document.body.replaceChildren();
 });
 
-/** A vault whose plugin data holds `data`, beside a Zotero database of 3 Items. */
 async function setup(
   data: Record<string, unknown> = {},
   files: Record<string, string> = {},
@@ -44,16 +40,11 @@ async function setup(
   cleanup.defer(resetMockPlatform);
   const host = createObsidianHost(files);
   const app = host.app as unknown as App;
-  // No Web Viewer: the Release Note opens in the browser.
   Object.assign(app, { internalPlugins: { getEnabledPluginById: () => null } });
   const plugin = new PluginStub(app, { __VERSION__: 10, ...data });
   const settings = await loadSettings(plugin);
   await settings.bridge.runPromise(settings.loaded);
   const deps = await bannerDeps(app, settings);
-  /**
-   * Obsidian reloads: plugin data, written to disk, is read again by a new
-   * instance of the plugin.
-   */
   let latest = settings;
   const reload = async () => {
     await latest.bridge.runPromise(latest.flush);
@@ -64,7 +55,6 @@ async function setup(
   return { deps, host, settings, reload };
 }
 
-/** The settings of plugin data that `plugin` holds. */
 async function loadSettings(plugin: PluginStub): Promise<SettingsFixture> {
   const identity = (raw: unknown) => raw;
   return cleanup.use(
@@ -85,7 +75,6 @@ async function loadSettings(plugin: PluginStub): Promise<SettingsFixture> {
   );
 }
 
-/** What the banner reads, over `settings`, beside a Zotero database of 3 Items. */
 async function bannerDeps(app: App, settings: SettingsFixture) {
   const release = cleanup.use(
     await buildRelease({
@@ -121,12 +110,10 @@ async function bannerDeps(app: App, settings: SettingsFixture) {
   return deps;
 }
 
-/** The banner, loaded into the page and settled on its connection readout. */
 async function open(deps: WelcomeBannerDeps) {
   return (await openBanner(deps)).el;
 }
 
-/** {@link open}, with the banner itself. */
 async function openBanner(deps: WelcomeBannerDeps) {
   const el = document.body.createDiv();
   const banner = new WelcomeBanner(deps, { searchLibrary: vi.fn() }, el);
@@ -143,7 +130,6 @@ const heading = (el: HTMLElement, text: string) =>
     (node) => node.textContent === text,
   );
 
-/** The Help Link the banner names `name`, the title its `aria-labelledby` points at. */
 const helpLink = (el: HTMLElement, name: string) =>
   [...el.querySelectorAll("a")].find(
     (a) =>
@@ -165,14 +151,11 @@ it("keeps the Migration Prompt of a v1 upgrade on screen until a dismissal ackno
     },
     { "literatures/Paper.md": "", "templates/zt-note.eta.md": "" },
   );
-  // A v1 upgrader's templates live in the folder their settings name.
   settings.bridge.runSync(settings.update({ "template.folder": "templates" }));
   const el = await open(deps);
   expect(heading(el, m.welcome_migration_title())).toBe(true);
-  // An upgrade from v1 on Zotero 10 needs ZotLit Companion to read recent changes.
   expect(heading(el, m.welcome_companion_title())).toBe(true);
   expect(el.textContent).toContain(m.companion_zotero_10_guidance());
-  // The Help Links show with the Migration Prompt once setup is done.
   expect(helpLink(el, "Star on GitHub")?.getAttribute("href")).toBe(
     "https://github.com/aidenlx/zotlit",
   );
@@ -186,7 +169,6 @@ it("keeps the Migration Prompt of a v1 upgrade on screen until a dismissal ackno
 it("announces an update until What's new acknowledges it, beside the Help Links", async () => {
   const { deps, host, settings } = await setup({
     "welcome.dismissed": true,
-    // The release check of this launch found the update.
     "release.previous-version": "2.2.0",
     "release.update-pending": true,
   });
@@ -212,7 +194,6 @@ it("announces an update until What's new acknowledges it, beside the Help Links"
 
 it("acknowledges an update on dismissal, so it stays away when the view opens again", async () => {
   const { deps, host, settings } = await setup({
-    // The release check of this launch found the update.
     "release.previous-version": "2.2.0",
     "release.update-pending": true,
   });
@@ -246,7 +227,6 @@ it("keeps the setup steps after What's new while setup is incomplete", async () 
 
 it("announces no update while release notices are off", async () => {
   const { deps, host } = await setup({
-    // The release check of this launch found the update.
     "release.previous-version": "2.2.0",
     "release.update-pending": true,
     "release.notices-enabled": false,
@@ -255,7 +235,6 @@ it("announces no update while release notices are off", async () => {
   expect((await open(deps)).textContent).toBe("");
 });
 
-/** The "Show steps" control of the folded "Setup done" line. */
 function stepsToggle(el: HTMLElement): HTMLElement {
   const button = el.querySelector<HTMLElement>(
     "[data-welcome-setup-done] button[aria-expanded]",
@@ -288,7 +267,6 @@ it("shows the banner it was asked for again after Obsidian reloads, and keeps it
 
 it("keeps Show steps open after Obsidian reloads, until the banner is dismissed", async () => {
   const { deps, host, reload } = await setup({
-    // A notice beside a complete setup folds the steps.
     "note.template-conversion-pending": true,
   });
   host.vault.addFile("literatures/Paper.md", "");
@@ -302,7 +280,6 @@ it("keeps Show steps open after Obsidian reloads, until the banner is dismissed"
   await act(() => dismissButton(again).click());
 
   const after = await reload();
-  // The conversion offer shows again, as a request would show it.
   after.bridge.runSync(after.settings.update({ "welcome.dismissed": false }));
   const last = await open(after);
   expect(stepsToggle(last).getAttribute("aria-expanded")).toBe("false");

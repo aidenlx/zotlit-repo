@@ -1,13 +1,6 @@
-// A bounded interrupt for the interactive flows' cases: a flow that holds out
-// past its interrupt fails its case instead of hanging it.
 import { Cause, Effect, Exit, Fiber, Option } from "effect";
 import { TestClock } from "effect/testing";
 
-/**
- * Interrupt `fiber` and answer whether the interrupt alone ended it within a
- * second of virtual time. Fork the flow with `Effect.forkDetach`, so a flow that
- * holds out leaves the case free to end.
- */
 export const interruptedWithin = Effect.fnUntraced(function* <A, E>(
   fiber: Fiber.Fiber<A, E>,
 ) {

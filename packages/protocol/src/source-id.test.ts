@@ -16,7 +16,7 @@ describe("normalizeFileUri", () => {
   });
 
   it("applies Unicode NFC", () => {
-    const nfd = "file:///Users/café"; // e + combining acute
+    const nfd = "file:///Users/café";
     expect(normalizeFileUri(nfd)).toBe("file:///Users/café".normalize("NFC"));
   });
 });
@@ -26,9 +26,6 @@ describe("sourceIdFromUris", () => {
     expect(sourceIdFromUris("file:///p", "file:///d")).toMatch(/^[0-9a-f]{8}$/);
   });
 
-  // The make-or-break guarantee: the Zotero side (Gecko `newFileURI`, which
-  // appends a trailing slash to existing dirs) and the Obsidian side (Node
-  // `pathToFileURL`, which does not) must produce the SAME id for one install.
   it("matches across Gecko-style and Node-style URIs for the same dirs", () => {
     const gecko = sourceIdFromUris(
       "file:///Users/me/Library/Zotero/Profiles/abcd.default/",
@@ -48,7 +45,6 @@ describe("sourceIdFromUris", () => {
   });
 
   it("does not collide across the profile/data boundary", () => {
-    // Without a separator, ("ab","c") and ("a","bc") would hash equal.
     expect(sourceIdFromUris("file:///ab", "file:///c")).not.toBe(
       sourceIdFromUris("file:///a", "file:///bc"),
     );

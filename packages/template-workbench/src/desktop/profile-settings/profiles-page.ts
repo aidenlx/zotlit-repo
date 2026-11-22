@@ -1,7 +1,3 @@
-// The Literature note profiles page: the default Profile, the Profile
-// documents, the Partials they share and the documents ZotLit refused to
-// load, each edited in the Template Workbench. It also gives the main page's
-// row of the default Profile's document.
 import { Effect, Schema } from "effect";
 import { Menu } from "obsidian";
 import type {
@@ -51,7 +47,6 @@ import { Customize } from "#desktop/view/customize.ts";
 import { openTemplateWorkbench } from "#desktop/view/open.ts";
 import { createSharedPartial } from "#desktop/view/partial-command.ts";
 
-/** The excluded document left the excluded list before its delete. */
 export class ExcludedDocumentChanged extends Schema.TaggedError<
   ExcludedDocumentChanged,
   { readonly brand: unique symbol }
@@ -61,10 +56,6 @@ export class ExcludedDocumentChanged extends Schema.TaggedError<
   }
 }
 
-/**
- * Profile file actions wait for the registry to load and stay locked while the
- * legacy template conversion is pending, so no document is written mid-flight.
- */
 function profileActionsLocked(ctx: SettingTabContext): boolean {
   return ctx.tab.sync(
     Effect.gen(function* () {
@@ -75,7 +66,6 @@ function profileActionsLocked(ctx: SettingTabContext): boolean {
   );
 }
 
-/** Whether the vault holds the saved Default document. */
 function defaultDocumentEjected(ctx: SettingTabContext): boolean {
   return ctx.tab.sync(
     Effect.gen(function* () {
@@ -85,10 +75,6 @@ function defaultDocumentEjected(ctx: SettingTabContext): boolean {
   );
 }
 
-/**
- * Start a Profile row's action. A failure shows the failure notice; the tab
- * rebuilds once the action ends, since it may have changed the Profiles.
- */
 function runAction<A, E>(
   ctx: SettingTabContext,
   action: Effect.Effect<A, E, SettingTabEnv>,
@@ -99,17 +85,10 @@ function runAction<A, E>(
   );
 }
 
-/** Open a Profile in the configured workbench. */
 function customize(profileId: ProfileId | typeof DEFAULT_PROFILE) {
   return Customize.use((flow) => flow.open({ profileId }));
 }
 
-/**
- * The "Literature note profiles" page: the default Profile as a row of its own,
- * then the Profile documents as a list, then the Partials every Profile shares,
- * then the documents ZotLit refused to load. Editing a Profile means editing
- * its document.
- */
 export function profilesPage(
   ctx: SettingTabContext,
 ): SettingDefinitionPage<SettingsControlKey> {
@@ -127,11 +106,6 @@ export function profilesPage(
   };
 }
 
-/**
- * The Profiles themselves, one row per document. Add and Import are the list
- * header's own affordances, so each row carries only what acts on that Profile:
- * edit opens the workbench; the menu holds duplicate, share, and delete.
- */
 function profilesList(
   ctx: SettingTabContext,
 ): SettingDefinitionList<SettingsControlKey> {
@@ -142,8 +116,6 @@ function profilesList(
     id: "settings_profile_other",
     heading: m.settings_profile_other_heading(),
     emptyState: m.settings_profile_empty_desc(),
-    // Both ways in stay out of the header while a document write would race the
-    // registry load or the pending template conversion.
     addItem: locked
       ? undefined
       : {
@@ -215,16 +187,9 @@ function profilesList(
   };
 }
 
-/**
- * The Profile documents ZotLit refused to load, listed apart from the working
- * Profiles so the two are never read as one collection. The section is absent
- * while every document loads.
- */
 function excludedDocumentItems(
   ctx: SettingTabContext,
 ): SettingDefinitionItem<SettingsControlKey>[] {
-  // One row per document: a repeated ID is the reason worth naming when a
-  // document carries more than one complaint.
   const diagnostics = [
     ...Map.groupBy(
       ctx.tab.sync(Profile.use((profile) => profile.diagnostics)),
@@ -282,7 +247,6 @@ function excludedDocumentItems(
   ];
 }
 
-/** A description that reads as a warning, as the Library scope rows do. */
 function warning(text: string): DocumentFragment {
   const desc = createFragment();
   desc.append(createSpan({ cls: "mod-warning", text }));
@@ -335,7 +299,6 @@ function deleteProfile(ctx: SettingTabContext, id: ProfileId) {
   });
 }
 
-/** Confirm before replacing the saved Default with the built-in template. */
 function restoreDefaultProfile(ctx: SettingTabContext) {
   return Effect.gen(function* () {
     const profile = yield* Profile;
@@ -353,10 +316,6 @@ function restoreDefaultProfile(ctx: SettingTabContext) {
   });
 }
 
-/**
- * Templates and properties share one workbench entry; a saved Default also
- * offers Restore built-in.
- */
 export function defaultDocumentItem(
   ctx: SettingTabContext,
 ): SettingDefinitionItem<SettingsControlKey> {
@@ -386,12 +345,6 @@ export function defaultDocumentItem(
   };
 }
 
-/**
- * The Default row of the Profiles page: named there, above the other Profiles.
- * Customize opens its effective source. Duplicating Default carries no bindings and copies
- * its document verbatim, so the copy differs from Default in nothing — the very
- * profile `prepareCreate` refuses to mint. Add profile is that path.
- */
 function defaultProfileItem(
   ctx: SettingTabContext,
 ): SettingDefinitionItem<SettingsControlKey> {
@@ -440,21 +393,8 @@ function defaultProfileItem(
   };
 }
 
-/** Rebuild the definitions once a row's action has run. */
 const rebuild = SettingTab.use((tab) => tab.update);
 
-/**
- * The Profiles page's Partials list, mirroring the Profile list: an Add
- * partial row on the header, one row per partial with Open and a menu holding
- * Delete, and one row per partial file whose name another Template already
- * answers to. Rename stays an Obsidian file operation.
- *
- * A vault shares a partial between Profiles, so it belongs beside them rather
- * than on the main page, which is the default Profile alone.
- *
- * Structural: the first `getSettingDefinitions()` runs before the Template
- * service finishes loading, and the tab rebuilds once it compiles.
- */
 export function partialItems(
   ctx: SettingTabContext,
 ): SettingDefinitionItem<SettingsKey>[] {
@@ -533,12 +473,6 @@ export function partialItems(
   ];
 }
 
-/**
- * Add partial: the shared create flow's name prompt opens over settings, and
- * settings closes only once the document exists, the way
- * `duplicateProfileToWorkbench` does. A dismissed prompt leaves the reader on
- * the page they started from.
- */
 function addPartial(ctx: SettingTabContext) {
   return Effect.gen(function* () {
     const created = yield* createSharedPartial(ctx.app);
@@ -576,7 +510,6 @@ function deletePartial(
 declare module "@zotlit/plugin-services/obsidian/setting-tab/effect-tab.ts" {
   interface SettingTabServiceRegistry {
     Customize: Customize;
-    // What the Profile dialogs read.
     LibraryScope: LibraryScope;
     NoteFeature: NoteFeature;
     NoteIndex: NoteIndex;

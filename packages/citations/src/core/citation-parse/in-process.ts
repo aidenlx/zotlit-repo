@@ -1,5 +1,3 @@
-// In-process adapter: the CitationParseRpc handler layer on the calling runtime, over an in-memory protocol pair.
-
 import { Effect } from "effect";
 import type { Scope } from "effect";
 import { RpcClient, RpcServer } from "effect/rpc";
@@ -12,17 +10,11 @@ import type { ParseClient } from "./client.ts";
 import { layerParseHandlers } from "./handlers.ts";
 import { CitationParseRpc } from "./rpc.ts";
 
-/** The client interface every CitationParseRpc caller holds. */
 export type ParseRpcClient = RpcClient.RpcClient<
   RpcGroup.Rpcs<typeof CitationParseRpc>,
   RpcClientError.RpcClientError
 >;
 
-/**
- * Build a CitationParseRpc client whose handlers run on this runtime against the
- * scanner. The server and client live for the caller's
- * scope.
- */
 export const makeInProcessClient = Effect.fnUntraced(
   function* (): Effect.fn.Return<ParseRpcClient, never, Scope.Scope> {
     const protocols = yield* makeInMemoryRpcProtocols;
@@ -37,7 +29,6 @@ export const makeInProcessClient = Effect.fnUntraced(
   },
 );
 
-/** Effect fixture adapter; each call closes its server and client together. */
 export const inProcessParseClient: ParseClient = {
   parse: (request) =>
     Effect.flatMap(makeInProcessClient(), (client) =>

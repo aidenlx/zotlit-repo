@@ -226,15 +226,12 @@ describe("item search engine", () => {
       "B",
       "A",
     ]);
-    // `seniorl` still fuzzy-matches `senior`; only the key it prefixes leads.
     expect(
       keys(await search([titleHit, longKey, shortKey], "@seniorl"))[0],
     ).toBe("B");
   });
 
   it("finds a citation key by its whole-query prefix across word boundaries", async () => {
-    // Word segmentation cuts this key into 研究 / 生命 / 起源 / 2020, so no
-    // single word of it starts with 研究生.
     const target = item({
       key: "A",
       title: "Other",
@@ -299,8 +296,6 @@ describe("item search engine", () => {
   it.each(["util", "utilz"])(
     "highlights the original glyphs across diacritic folding (%s)",
     async (query) => {
-      // `utilz` fuzzy-matches the indexed `util` (from `útil`); the highlight
-      // comes from the matched indexed term, not from the typed one.
       const title =
         "Estudio de la infraestructura para la bicicleta en Málaga . " +
         "Diseño , movilidad y mejoras para transformarlo en una " +
@@ -329,11 +324,6 @@ describe("item search engine", () => {
   });
 });
 
-/**
- * One composite corpus over several Libraries. Canonical Library order here is
- * `[1, 7, 3]`, against ascending local `libraryID`, so an ordering assertion
- * cannot pass on database row order.
- */
 describe("composite index over several libraries", () => {
   const libraries = [USER_LIBRARY_ID, 7, 3];
   const sameInstant = "2025-01-01T00:00:00Z";
@@ -445,8 +435,6 @@ describe("interruption", () => {
       const index = yield* buildEngineIndex(Stream.make(titled(10)), {
         libraries: LIBRARIES,
       });
-      // Started inline, the fiber runs until the search's first interruption
-      // point; a search with none would finish before the interrupt lands.
       const fiber = yield* Effect.forkChild(
         searchEngineIndex(index, "senior", { limit: 50 }),
         { startImmediately: true },

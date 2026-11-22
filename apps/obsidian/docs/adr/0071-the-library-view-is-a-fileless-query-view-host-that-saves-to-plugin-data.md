@@ -32,3 +32,104 @@ Proposed on 2026-10-17 with [#1544](https://github.com/aidenlx/zotlit/issues/154
 - The Library View Document dropped its Layout and Visible Properties (amended after the second interface review): no control writes them any more, and a stored `layout` or `order` from an earlier build is a field the module no longer reads, so it is ignored without resetting the rest.
 - The Reading Card shows what Zotero's item pane holds, laid out like the title page of a paper for researchers who are not technical (amended after the second interface review and the card redesign; Zotero's dense label-and-value table and its stack of accordions are not copied). From the top: the Item type as a small kicker with its icon; the title in the serif face, one step above the body text rather than a display size, so a long title stays a few lines in a narrow card (amended after the typography review); the creators in full; the Venue in italics with volume, issue, pages and year; one row of quiet chips for the DOI as a link and the citation key with a copy button; then the buttons. Then the abstract, cut to a few lines with "Show more". Then the info: where the Item sits, as Library › Collection paths, its tags as chips, its files and its Zotero notes as short lists, the date added, and "All fields", which opens the other fields the Item has a value for. Last, "Your annotations": the count of each colour and the first two Annotations as short colour-ruled quotes with their page, then "See all N annotations", which mounts the Annotation Cards; the preview reads only those two. Sections are parted by thin rules and space, not boxes. A part with nothing in it is left out. The card never writes to Zotero, so it has no add buttons. Whether "All fields" and the full Annotations are open is remembered for the Library View, not per Item.
 - The Library View Document also keeps where the researcher was in the tree, so reopening the tab or reloading Obsidian puts them back (amended after the persistence review): `expanded`, the keys of the Library Tree nodes left open. A node key the tree no longer has is dropped on read without resetting the rest; the tree still opens the ancestors of the selected node. The list's scroll position is not kept. The selected paper is session state, as ADR 0074 has it: a new tab opens with no paper selected, and the item details show what the list holds until the researcher selects one. A `selected` field an earlier build stored is ignored on read without resetting the rest (amended after the details review: a paper restored from the last session put the details on a paper the researcher had not asked for, and a list that restored one raced the selection a reveal made).
+
+## Document and Reading Card details
+
+Store the Library View Document as a plain JSON object in plugin data. Default an unreadable field independently so a newer or older document can retain its other fields. Ignore obsolete keys, unknown facets, and invalid tag and expansion entries. Restore the selected Collection's ancestor expansions. Both card disclosures start closed. Keep valid pane sizes as whole pixels with the minimum enforced on read. Apply the upper bound from the current pane at layout time. When the pane cannot hold both minimums, the card keeps its 18rem minimum width. Persist a collapse or dismissal only when its flag is true.
+
+Prepare the Reading Card's header from the row data before other card details arrive. Read every Zotero field because the card does not yet know the Item type when it makes the request. Use the first Creator's role in the header and truncate after ten names. Show the full Creator list under All fields when the header omits anyone. Use the Item type's own field and alias list to avoid showing an obsolete value left by a type change. For an unknown type, list base fields once. Omit fields the header or abstract already shows. Use Zotero field labels and order. Preserve bibliographic date precision and format timestamps for the researcher's locale. Only HTTP and HTTPS URLs become web links.
+
+Read Annotation keys and colors for counts and only the first two full preview excerpts. Present a highlight as a quote, a comment alone as a note, and an area or drawing by its kind. Order color counts by the Zotero palette. The no-selection details panel subscribes to its facet counts only while it is displayed.
+
+Use the 16-unit ZotLit mark scaled into Obsidian's 100-unit icon box. Draw both paths with `currentColor` for the ribbon and tab.
+
+## Pane styling and resize
+
+Use an unlayered pane rule to match Obsidian's specificity and place the tree and list at the pane edges. Each pane scrolls independently. Expose the Reading Card title's serif face as a custom property for themes. Keep its disclosures as native buttons and use `revert-layer` so plugin utilities can draw them.
+
+Clamp the rendered size to the current shell and retain the saved size when the shell temporarily shrinks. Place the tree, side card, and bottom card handles at the edge toward the list. Mirror side handles in right-to-left panes. Arrow keys move the edge 16px. The key toward the list enlarges the pane. Home and End select the bounds. Apply the resize cursor across the document during a drag. Moving half the minimum size below the minimum previews collapse. Releasing there keeps the old size and closes the pane. Escape, lost pointer, or closing the view restores the pre-drag state.
+
+The Annotation Cards use a fixed query scoped to the selected Item's own Library, including an Item outside the Library Scope. Mount them when the Annotations disclosure opens. Reuse the sidebar's Annotation Card editing and locking. Keep the height of the previous card body while loading the next Item's fields. Measure the four-line abstract clamp when layout is available and estimate by length before layout. Keep the close control outside the scroll area, and use inline padding to keep end-aligned content clear of an overlay scrollbar.
+
+## Host persistence and layout
+
+Keep one document in plugin data for each vault. Coalesce saves by yielding a turn before flushing. After a disk flush starts, allow it to finish even if the tab closes. The storage runner owns in-flight writes outside the view registry so it can finish during plugin unload. Stop view components that read the registry before awaiting the writes. Release pending read and write waiters on close. A restored tab can open before settings load, so read the persisted document after loading. If persisting a Reading Card disclosure fails, keep the current display and log the failure.
+
+Use an inner frame to respond to the shell's container query, and let the Reading Card provide a separate container for its contents. On a short tab, allow the whole view to scroll so the Welcome banner, list, and bottom details remain reachable. The tree toggle and Details button share the search row. Keep the tree toggle available when the tree contains the missing-data-folder message. When details open, scroll the selected row into view. When they close, return focus to that row.
+
+Test a toolbar change by reading the saved document back into a new host. Cover migration from an earlier document that had Layout and Visible Properties. During plugin reload, a view close must settle even if registry disposal precedes completion of its disk write. The tests hold the write open to check this ordering.
+
+### Reading Card proof
+
+With no row selected, show Reading State counts in tree order and
+omit empty facets. The compact card previews two Annotation quotes
+and color counts. Details show the full cards and the Item's fields.
+Without Zotero, show the same blocked editing controls as the
+sidebar. Reuse the row actions. Insert citation into the last active
+note and allow the PDF to use the note's tab after the note opens.
+The annotation action pins the paper in the sidebar.
+
+Check layout after the sidebar settles. A narrow pane places the
+card below the tree and list. In that placement, a width of at
+least 42rem allows two columns. At 56rem the card moves beside the
+list and uses one column. Switching layouts preserves selection.
+Closing Details restores row focus and keeps the row selected. A
+narrow list with Details off can select a row without showing the
+card. Arrow keys change the selected card. Space on the selected
+row toggles Details, and Escape leaves them as set. A double click
+opens the PDF after the first click selects the row. Entering the
+list by keyboard selects the first row. Selecting a tree node
+again clears the row. An unavailable data folder removes both the
+list and card.
+
+[Reading Card cases](../../../../packages/e2e/src/library-view-reading.e2e.ts)
+
+### Reading Card swaps and Query File export proof
+
+Delay Query worker requests to test the card's native and embedded
+reads. Sample animation frames and DOM mutation batches. A title
+changes once, stays visible, and never appears over the previous
+Item's Annotations. The buttons move at most once, and equal-height
+headers keep them in place. Test from the empty card and between
+Items, with Details open or closed, beside a wide list and under
+a narrow one.
+
+Use a saved Library View document from before the layout change to
+check that obsolete Table properties do not control the new view.
+Export the selected Collection and Library so a namesake Collection
+elsewhere cannot contribute Items. The exported Query File opens
+with the same row order and the full Query File control set. The
+command opens a new view on Recent and asks for the researcher's
+file name.
+
+[Navigation and export cases](../../../../packages/e2e/src/library-view-navigation.e2e.ts)
+
+### Library View persistence and Reading Card size
+
+Check a ribbon and command open brings forward the same main-area
+Library View tab. Use an equal-time-safe oracle for ordered Items by
+comparing Indexed Key membership and the timestamp at each position.
+Verify the sort survives reload. The heading has its own React root,
+so test selecting the sort property from its hosted Chooser.
+
+Save workspace layout before an immediate window reload. Use a marker
+to distinguish the old window from its replacement. Keep the selected
+Collection and banner state. A selected paper belongs to the current
+view session. After reload, the Reading Card shows facet totals without
+a selected paper, beside a wide list or under a narrow one.
+
+The wide card defaults to 24rem. Its side edge changes width by 16px on
+arrow keys and keeps at least 20rem for the list. The narrow card uses a
+separate 16rem default height and a top edge for resizing. It preserves
+its height when the first row is selected and keeps Close outside its
+scroll area. Persist size changes. A double click restores the default
+and clears the saved size.
+
+Closing the card returns its space to the list and restores row focus.
+Selection moves while Details stays closed, including after a reload.
+Reopening Details uses the saved size. A drag below the collapse
+threshold hides the card while the pointer is held. Moving back shows
+it at the minimum. Releasing below the threshold keeps it closed and
+retains the prior width. Escape restores both visibility and width.
+
+[Library View persistence and size cases](../../../../packages/e2e/src/library-view.e2e.ts)

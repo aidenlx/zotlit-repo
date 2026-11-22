@@ -1,5 +1,3 @@
-// Vendored WASI bridge to the official Pandoc WASM binary, over an in-memory virtual filesystem.
-
 import {
   ConsoleStdout,
   File as WasiFile,
@@ -15,44 +13,26 @@ import {
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 
-/** One record of Pandoc's structured log, as written to the `warnings` file. */
 export interface PandocLogMessage {
   type: string;
   verbosity: string;
   pretty: string;
 }
 
-/** Files a conversion reads, keyed by the name Pandoc opens them under. */
 export type VirtualFiles = Readonly<Record<string, string | Uint8Array>>;
 
-/**
- * Pandoc's defaults object, passed through as JSON. Only the keys this bridge
- * itself acts on are named; the rest reach Pandoc unread.
- *
- * @see https://pandoc.org/MANUAL.html#defaults-files
- */
 export interface PandocOptions {
-  /** Virtual file the conversion writes its output to, instead of stdout. */
   "output-file"?: string;
   [option: string]: unknown;
 }
 
 export interface PandocConvertResult {
   stdout: string;
-  /** Carries the failure reason; empty when the conversion succeeded. */
   stderr: string;
   messages: PandocLogMessage[];
-  /** Bytes of `options["output-file"]`, absent when the conversion wrote none. */
   outputFile?: Uint8Array;
 }
 
-/**
- * One instantiated Pandoc WASM module.
- *
- * The virtual filesystem is instance-wide mutable state that every conversion
- * resets, so `convert` runs to completion synchronously and callers must keep
- * it non-re-entrant.
- */
 export interface PandocRuntime {
   convert(
     options: PandocOptions,
@@ -61,12 +41,6 @@ export interface PandocRuntime {
   ): PandocConvertResult;
 }
 
-/**
- * The reactor-module exports the binary offers. `convert` and `query` take a
- * JSON defaults object; every other export belongs to the Haskell runtime.
- *
- * @see https://github.com/jgm/pandoc/blob/3.10/wasm/pandoc.js
- */
 interface PandocExports {
   memory: WebAssembly.Memory;
   __wasm_call_ctors: () => void;
@@ -75,7 +49,6 @@ interface PandocExports {
   convert: (optionsPtr: number, optionsLength: number) => void;
 }
 
-/** Reserve a 64 MiB nursery so citation processing does not thrash the GC. */
 const RTS_ARGS = ["pandoc.wasm", "+RTS", "-H64m", "-RTS"];
 
 const encoder = new TextEncoder();
@@ -121,8 +94,6 @@ export async function createPandocRuntime(
     { debug: false },
   );
 
-  // instantiateStreaming requires an `application/wasm` Content-Type, which
-  // bytes and a typeless Blob lack, so the header is set explicitly.
   const response = new Response(wasmBinary, {
     headers: { "Content-Type": "application/wasm" },
   });
@@ -176,11 +147,6 @@ export async function createPandocRuntime(
   };
 }
 
-/**
- * Hand the RTS its `argc`/`argv` pair so `+RTS` options apply. Every allocation
- * happens before the view is taken, because `malloc` can grow the memory and
- * detach an earlier one.
- */
 function initHaskellRuntime(exports: PandocExports): void {
   const argPtrs = RTS_ARGS.map((arg) => writeCString(exports, arg));
   const argv = exports.malloc(4 * (RTS_ARGS.length + 1));

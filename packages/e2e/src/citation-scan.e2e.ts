@@ -1,5 +1,4 @@
 import type { MarkdownView, WorkspaceLeaf } from "obsidian";
-// Citation scan smoke and renderer budget on the shared run Fixture.
 import { describe, expect, it } from "vitest";
 
 import type { ReferencesView } from "@zotlit/citations/desktop/references/view.tsx";
@@ -105,8 +104,6 @@ describe.skipIf(!reachable)("Citation scan pipeline", () => {
             });
           }
           await services.bridge.runPromise(services.template.refresh);
-          // Pin before any tab cites the Item: a pin that follows an active-tab load
-          // of the same Item stays "Loading…".
           s.annotations = cleanup.adopt(
             app.workspace.getRightLeaf(false)!,
             (leaf) => leaf.detach(),
@@ -305,7 +302,6 @@ describe.skipIf(!reachable)("Citation scan pipeline", () => {
         )
         .toBe(3);
       const before = await readAnswers();
-      // The error crosses the real worker boundary and starts production recovery.
       await obRun(
         vaultId,
         async ({ page }) => {
@@ -385,7 +381,6 @@ describe.skipIf(!reachable)("Citation scan pipeline", () => {
         { what: "the citation scan to record two distinct parse sessions" },
       );
       expect(await readAnswers()).toEqual(before);
-      // New offsets prove the replacement worker parsed a new edit, rather than serving held records alone.
       await obRun(
         vaultId,
         async ({ page }, { prependText }) => {
@@ -414,14 +409,6 @@ describe.skipIf(!reachable)("Citation scan pipeline", () => {
       ).toEqual(
         before.uses.map((occurrence) => occurrence.position.start.offset + 16),
       );
-      // Agreed budget: ADR 0080 aimed for 2 ms; the desktop renderer
-      // measured 4.9 ms dense and 2.2 ms sparse at max, harness IPC included.
-      // The aim is to bring both back to 2 ms. Until then the median of the 15 samples
-      // stays under 7 ms dense and 3.5 ms sparse. Release gates that shared the
-      // Obsidian main process with other vaults' runs measured a dense median of
-      // up to 6.06 ms. The 90th percentile is the second-slowest sample, and two
-      // garbage collection spikes in one run lift it to 3.9 ms sparse over a
-      // 1.8 ms median, so the report shows it beside the median.
       const measurements = await measureCitationScan(vaultId);
       for (const measurement of measurements) {
         console.info(

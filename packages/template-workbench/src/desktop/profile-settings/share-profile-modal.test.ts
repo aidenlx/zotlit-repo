@@ -1,6 +1,4 @@
 // @vitest-environment happy-dom
-// The Profiles page of the settings tab opens the Share dialog of the notes
-// feature from each Profile's row.
 import { it as effectIt } from "@effect/vitest";
 import { Effect } from "effect";
 import { expect, vi } from "vitest";
@@ -62,7 +60,6 @@ effectIt.effect.each(["default", id] as const)(
       );
       const label =
         selector === "default" ? m.settings_profile_default_name() : "Books";
-      // Default sits on the page itself; every other Profile is a list row.
       const rows = page.items!.flatMap((item) =>
         "type" in item && item.type === "list" ? (item.items ?? []) : [item],
       );

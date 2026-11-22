@@ -1,5 +1,3 @@
-// Public Item Snapshot contract shared by Node export and browser rendering.
-
 import type { SnapshotLibrarySelector, SnapshotProvenance } from "./schema.ts";
 
 export type {

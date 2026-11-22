@@ -10,7 +10,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { showNoteLinkOutcome } from "./notices.ts";
 import { NoteLinkOutcome } from "./outcome.ts";
 
-/** The notices `outcome` shows: each one's text and duration. */
 const noticesOf = Effect.fn("noticesOf")(function* (outcome: NoteLinkOutcome) {
   const notifier = testNotifier();
   yield* showNoteLinkOutcome(outcome, {}).pipe(
@@ -22,7 +21,6 @@ const noticesOf = Effect.fn("noticesOf")(function* (outcome: NoteLinkOutcome) {
   }));
 });
 
-/** A batch update run that ended with `outcome`. */
 const updated = (outcome: BatchUpdateResult["outcome"]) =>
   Exit.succeed<BatchUpdateResult>({ outcome });
 

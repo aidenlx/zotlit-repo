@@ -1,5 +1,3 @@
-// Shared rendering and accounting for prepared excerpt links.
-
 import type { ExcerptSummary } from "#obsidian/excerpt-image/contract.ts";
 import type { TFile } from "obsidian";
 
@@ -15,11 +13,6 @@ export interface PreparedExcerpt {
   used: boolean;
 }
 
-/**
- * The template helper of one prepared excerpt. `markdownLink` gives the link
- * to a file from the note, in the user's link format; it runs during the
- * synchronous template render.
- */
 export function createExcerptLink(
   markdownLink: (file: TFile, subpath?: string, alias?: string) => string,
   state: PreparedExcerpt,

@@ -37,11 +37,6 @@ function sizeLine(
     : { line };
 }
 
-/**
- * Checks the production build of `plugin` in `appDir`, its host app's folder:
- * the sizes of its built files, the modules its `main.js` requires, and the
- * checks its profile adds.
- */
 export async function checkBundle(
   name: string,
   plugin: Pick<PublishedPlugin, "profile" | "budget" | "allowedRequires">,

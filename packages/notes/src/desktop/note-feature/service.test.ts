@@ -36,7 +36,6 @@ function noteAt(path: string): TFile {
   return file;
 }
 
-/** What the gate reads to refuse a note created before the Note Index saw it. */
 const gateServices = Layer.mergeAll(
   Layer.mock(NoteIndex, { getNotesByItemKey: () => Effect.succeed([]) }),
   Layer.mock(Vault, { getAbstractFileByPath: () => Effect.succeed(null) }),
@@ -121,7 +120,6 @@ describe("the create gate", () => {
         );
         yield* Fiber.interrupt(first);
 
-        // The waiter did not ask to stop: it enters the gate again.
         expect(yield* Fiber.join(waiting)).toEqual({
           outcome: "created",
           file,

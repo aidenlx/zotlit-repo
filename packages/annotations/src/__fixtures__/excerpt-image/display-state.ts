@@ -1,15 +1,8 @@
-// How a harness waits for a card's display to change: the display's own Node
-// harness and the Chromium refresh trial watch the same demand, and both wait on
-// its notifications rather than on a clock.
 import type {
   ExcerptDisplayDemand,
   ExcerptImageDisplay,
 } from "#desktop/excerpt-image/display.ts";
 
-/**
- * The next snapshot that answers `matches`, resolved from the demand's own
- * notification, and unsubscribed as soon as it does.
- */
 export function settledDisplay(
   demand: ExcerptDisplayDemand,
   matches: (display: ExcerptImageDisplay) => boolean,

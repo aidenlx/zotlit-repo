@@ -1,6 +1,5 @@
 import type { App, Plugin } from "obsidian";
 
-// Registration and the explicit command for the Cited By Sidebar.
 import "./style.css";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";

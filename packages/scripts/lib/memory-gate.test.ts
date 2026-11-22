@@ -1,4 +1,3 @@
-// Runs use available memory and wait in arrival order while pressure is high.
 import { regex } from "arkregex";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
@@ -56,7 +55,6 @@ afterEach(async () => {
   await rm(join(dir, ".."), { recursive: true, force: true });
 });
 
-/** Start the gate around a command that appends `ran` to the journal. */
 function gated(env: NodeJS.ProcessEnv = {}, body?: string) {
   const command =
     body ??
@@ -88,7 +86,6 @@ function gated(env: NodeJS.ProcessEnv = {}, body?: string) {
   children.push(child);
   let stderr = "";
   const exit = once(child, "exit").then(([code]) => code as number | null);
-  /** Resolve once stderr matches, or with all of it at exit. */
   const until = (pattern: RegExp) =>
     new Promise<string>((resolve) => {
       child.stderr.on("data", (chunk: Buffer) => {
@@ -106,7 +103,6 @@ async function ran(): Promise<string> {
 
 const now = () => Temporal.Now.instant().toString();
 
-/** Another admitted run, this test process, is still running. */
 const anotherRunIsRunning = () => recordAdmittedRun(dir, process.pid);
 
 it("starts consecutive runs while pressure is normal, even after a recent start", async () => {
@@ -224,7 +220,6 @@ it("opens on each OS's reading up to its limit", () => {
   expect(macosVerdict(2)).toBe("macOS memory pressure is warning");
   expect(macosVerdict(4)).toBe("macOS memory pressure is critical");
 
-  // 16 GiB physical; Windows reports KiB.
   const windows = (committedGiB: number) => ({
     TotalVisibleMemorySize: 16 * GiB,
     TotalVirtualMemorySize: 40 * GiB,

@@ -1,19 +1,12 @@
-// Indexed Key derivation for Zotero objects.
 import { getLogger } from "@logtape/logtape";
 
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import type { ParsedIndexedKey } from "@zotlit/zotero-types/keys";
 
-// Rooted category rather than `@/lib/logger`, whose import chain reaches the
-// Zotero-only `Localization` global and would keep this module out of tests.
 const logger = getLogger(["zotlit", "zotero", "indexed-key"]);
 
 type KeyedObject = Pick<Zotero.Item, "key" | "libraryID">;
 
-/**
- * The object's Indexed Key identity, or `null` when its library cannot carry
- * one — a missing library, or a feed, which the format has no notation for.
- */
 export function identityForObject(
   object: KeyedObject,
 ): ParsedIndexedKey | null {
@@ -39,7 +32,6 @@ export function identityForObject(
   }
 }
 
-/** One Indexed Key per line, in the order given. */
 export function formatObjectKeys(identities: ParsedIndexedKey[]): string {
   return identities
     .map(({ key, groupID }) => formatIndexedKey(key, groupID))

@@ -38,10 +38,6 @@ const CAPTURED: SelectedText = {
   text: "this process",
 };
 
-/**
- * One variant as its owner hands it to the host: an anchor the test moves, and
- * a renderer that answers one labelled node and counts every call.
- */
 function variant(label: string, at: Point | null) {
   let anchor = at;
   const renders: HTMLElement[] = [];
@@ -82,7 +78,6 @@ function host() {
     selected,
     create,
     host: popupHost,
-    /** Another tab covers the PDF view, or uncovers it. */
     cover(covered: boolean) {
       shown = !covered;
     },
@@ -151,8 +146,6 @@ it("hides while the anchor is off screen, and shows again once it is back", () =
   expect(h.popup()?.hoverEl.textContent).toBe("selected row");
 });
 
-// A new tab (Cmd+T) left the popup of a new highlight over it (Lesson 2 of
-// the /learn course); a comment typed in the create popup survives the cover.
 it("hides while another tab covers the PDF, keeps its content mounted, and shows it again once the PDF is back", () => {
   using h = host();
   update(
@@ -192,7 +185,6 @@ it("shows what floats now once the PDF is back, after a change made while anothe
 
   h.cover(true);
   h.host.sync();
-  // A write that ends behind the cover selects the new mark.
   update(h.surface, selectMark("WORD2222"));
 
   h.cover(false);
@@ -225,8 +217,6 @@ it("moves on a sync without drawing the row again", () => {
   expect(h.selected.renders).toHaveLength(renders);
 });
 
-// A node that stays is what keeps an open editor's caret and a press that
-// spans the render.
 it("keeps the content's nodes through the editor and a draft, and mounts it anew for another mark", () => {
   using h = host();
   update(h.surface, selectMark("WORD2222"));
@@ -254,8 +244,6 @@ it("keeps the content's nodes through the editor and a draft, and mounts it anew
   expect(h.popup()!.hoverEl.querySelector("span")).not.toBe(row);
 });
 
-// A comment editor takes its draft as it mounts, which changes the state from
-// inside the popup's first render.
 it("draws a state change its first render makes in the popup it opens", () => {
   using h = host();
   const connected: boolean[] = [];
@@ -293,7 +281,6 @@ it("closes the popup once nothing floats, and with its own disposal", () => {
   h.host[Symbol.dispose]();
   expect(h.popup()).toBeNull();
 
-  // A disposed host hears the state no more.
   update(h.surface, selectMark("WORD2222", { stack: ["WORD2222"] }));
   expect(h.popup()).toBeNull();
 });

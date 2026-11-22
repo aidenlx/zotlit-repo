@@ -24,7 +24,6 @@ import {
 import { NoteIndex } from "./service.ts";
 import type { NoteIndexChange } from "./service.ts";
 
-// Recursive YAML aliases fail serialization at the real host boundary.
 it.effect(
   "a failed metadata update leaves the next valid update consumable",
   () =>
@@ -90,7 +89,6 @@ it.effect(
     }),
 );
 
-// Host callbacks publish; one consumer applies the ordered input.
 it.effect(
   "applies a burst of published metadata and vault events in arrival order",
   () =>
@@ -123,7 +121,6 @@ it.effect(
     }),
 );
 
-// Use the same graph barrier as plugin startup before reading the index.
 it.effect(
   "the built runtime exposes the first scan when layout and cache are ready",
   () =>
@@ -144,7 +141,6 @@ it.effect(
     }),
 );
 
-// Legacy ready completed listener registration; whenIndexed was the Full Scan barrier.
 it.effect(
   "cold acquisition registers listeners before layout and whenIndexed waits for the clean cache",
   () =>
@@ -167,7 +163,6 @@ it.effect(
     }),
 );
 
-// Completion covers every queued rename read, including key restoration.
 it.effect("whenSettled waits for queued renames to restore their keys", () =>
   Effect.gen(function* () {
     const host = createNoteHost(
@@ -214,8 +209,6 @@ it.effect(
     }),
 );
 
-// Failure modes: close leaves listeners active, or a pending Full Scan runs
-// after close and changes the index.
 it.effect("scope close stops metadata and vault updates", () =>
   Effect.gen(function* () {
     const host = createNoteHost(
@@ -286,9 +279,6 @@ it.effect.each(["layout", "clean-cache"] as const)(
     }),
 );
 
-// Failure mode: unload closes the Note Index under a plugin edge whose own
-// teardown still reads it, as a view saving its document on close does, or
-// leaves its listeners behind once that edge has finished.
 it.effect(
   "serves an edge above it on the startup stack until that edge's teardown ends",
   () =>

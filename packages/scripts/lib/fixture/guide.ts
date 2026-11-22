@@ -1,5 +1,3 @@
-// Man-page-style reference for the Fixture, built from the Fixture Spec.
-
 import {
   PINNED_BETTER_BIBTEX_VERSION,
   PINNED_ZOTERO_VERSION,
@@ -38,7 +36,6 @@ function libraryName(libraryID: number): string {
   return library ? (library.name ?? "My Library") : `libraryID ${libraryID}`;
 }
 
-/** Groups entries by a key, keeping only groups with more than one member. */
 function collisions<T>(
   entries: readonly T[],
   keyOf: (entry: T) => string,
@@ -431,10 +428,6 @@ The ${C.root.name} Collection holds the other three Collections and no Items of 
 
 The ordinary pnpm fixture command keeps the Fixture at its committed Fixture Spec size.`;
 
-/**
- * Renders the Fixture reference: data-derived Library, Collection, Item, and
- * Note tables plus the Paired Run and cancel-testing procedures.
- */
 export function renderGuide(): string {
   return [
     LIBRARIES_SECTION,

@@ -1,6 +1,3 @@
-// UI seam for the release check: the Notice that points a Zotero 10 upgrade
-// at the Release Note and the ZotLit Companion installation guide.
-
 import { Effect } from "effect";
 
 import { companionDocsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
@@ -15,11 +12,9 @@ interface CompanionNoticeAction {
 
 interface CompanionNoticeCopy {
   title: string;
-  /** The notice's buttons, in display order. */
   actions: readonly CompanionNoticeAction[];
 }
 
-/** The copy of the Companion notice, with each action bound to what it opens. */
 export function companionNotice(options: {
   openReleaseNote: () => void;
 }): CompanionNoticeCopy {
@@ -37,7 +32,6 @@ export function companionNotice(options: {
   };
 }
 
-/** Show the Companion notice until the user closes it. */
 export const showCompanionNotice = Effect.fn("Release.showCompanionNotice")(
   function* (copy: CompanionNoticeCopy) {
     const notifier = yield* Notifier;

@@ -12,7 +12,6 @@ it("writes a code span of a row's description as code", () => {
   )!;
   const cell = note.render(
     { label: "isType" },
-    // The state and the view: the cell reads neither.
     ...([undefined, undefined] as unknown as [never, never]),
   ) as HTMLElement;
   expect(cell.className).toBe("suggestion-note");

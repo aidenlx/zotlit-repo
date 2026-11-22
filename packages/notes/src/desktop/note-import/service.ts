@@ -3,7 +3,6 @@ import type {
   ResolvedProfile,
 } from "#obsidian/profile/bindings.ts";
 import type { ProfileOperationError } from "#obsidian/profile/service.ts";
-// Materializes Zotero Child Notes into flat Markdown mirrors on command.
 import { Context, Effect, Layer, Schema, Semaphore } from "effect";
 import { normalizePath, stringifyYaml } from "obsidian";
 import type { TFile } from "obsidian";
@@ -73,11 +72,9 @@ import { getProfileBinding } from "#obsidian/profile/bindings.ts";
 import { Profile } from "#obsidian/profile/service.ts";
 import { syncTemplate } from "#obsidian/template/sync-template.ts";
 
-/** Bounds concurrent vault writes across all batches. */
 const WRITE_CONCURRENCY = 16;
 
 const SUFFIX_LENGTH = 6;
-/** 255 − "_" (1) − SUFFIX_LENGTH (6) − ".md" (3) = 245 */
 const MAX_IMPORT_BASE_BYTES = MAX_SEGMENT_BYTES - 1 - SUFFIX_LENGTH - 3;
 
 export type WriteOutcome = "created" | "overwritten" | "skipped";
@@ -86,31 +83,21 @@ type WriteMode =
   | { action: "create"; path: string }
   | { action: "overwrite"; file: TFile };
 
-/** Shared per-run inputs threaded to the write of an `importNote` call. */
 interface RunContext {
-  /** Bound to the operation's Snapshot: every read of the run sees one database state. */
   reads: ZoteroReadsApi;
   settings: ProfileBindingSettings;
   attachmentFolderCache: Map<string, string>;
-  /** Profile every note this run writes belongs to. */
   profile: ResolvedProfile;
   reportExcerpts?: (summary: ExcerptSummary) => void;
-  /** The initiating batch's retained outcomes; this run's notes all share it. */
   outcomes: ExcerptOutcomeScope;
 }
 
 export interface ImportNoteOptions {
-  /** Bound to the calling operation's Snapshot. */
   reads: ZoteroReadsApi;
   settings: ProfileBindingSettings;
   attachmentFolderCache?: Map<string, string>;
-  /** Explicit overwrite target; omitted resolves by imported-note index. */
   targetFile?: TFile;
   reportExcerpts?: (summary: ExcerptSummary) => void;
-  /**
-   * The initiating batch's retained outcomes. Omitted, the write opens its own
-   * scope for the notes it writes and releases it when they settle.
-   */
   outcomes?: ExcerptOutcomeScope;
 }
 
@@ -119,12 +106,6 @@ interface PrepareExplicitImportOptions {
   orphanProfile?: ProfileSelector;
 }
 
-/**
- * What a note write fails with: the Profile it needs is unknown, its minted
- * path is taken, Attachment Import or the excerpt preparation failed, or a
- * read or vault write failed, or the note conversion threw. A Template throw
- * outside the conversion is a defect that carries what was thrown.
- */
 export type NoteImportError =
   | NoteImportProfileError
   | NoteImportMintError
@@ -140,32 +121,19 @@ export interface PreparedExplicitImport {
   source: "existing" | "parent" | "orphan";
   profile: ResolvedProfile;
   path: string;
-  /** Execute the previewed import using a fresh, caller-held database lease. */
   import(
     note: Note,
     options: ImportNoteOptions,
   ): Effect.Effect<WriteOutcome, NoteImportError>;
 }
 
-/**
- * The note-import write surface: explicit single-note writes through
- * `importNote`, previewed through `prepareExplicitImport`. One semaphore
- * bounds concurrent vault writes across all callers.
- */
 export class NoteImporter extends Context.Service<
   NoteImporter,
   {
-    /** Freeze the Profile and path for explicit-import confirmation without writing. */
     prepareExplicitImport(
       note: ChildNote,
       options: PrepareExplicitImportOptions,
     ): Effect.Effect<PreparedExplicitImport, NoteImportError>;
-    /**
-     * Explicitly import a single note (create or overwrite). Used by the batch
-     * runner and the single "Overwrite imported note" command. Holds one write
-     * permit for the whole write and locates an existing file via the note
-     * index; the import folder is minted and ensured only on the create branch.
-     */
     importNote(
       note: Note,
       options: ImportNoteOptions,
@@ -175,7 +143,6 @@ export class NoteImporter extends Context.Service<
 
 const logged = withLogCategory("note-import", "service");
 
-/** The services the note importer reads through their tags. */
 type NoteImporterServices =
   | AttachmentImport
   | ExcerptPreparation
@@ -185,7 +152,6 @@ type NoteImporterServices =
   | Workspace
   | ZoteroPref;
 
-/** The note importer over the graph's tags. */
 export const layerNoteImporter = Layer.effect(
   NoteImporter,
   Effect.gen(function* () {
@@ -217,7 +183,6 @@ export const layerNoteImporter = Layer.effect(
   }),
 );
 
-/** Per-layer values every write reads. */
 interface Ctx {
   readonly templates: Effect.Success<typeof syncTemplate>;
 }
@@ -244,11 +209,6 @@ const doImportNote = Effect.fnUntraced(function* (
   });
 });
 
-/**
- * Write `note` with the run inputs of `options`. The write is its own
- * initiating batch when `options` names no outcome scope; that scope is
- * released once the write settles.
- */
 const writeScoped = (
   ctx: Ctx,
   note: Note,
@@ -383,12 +343,6 @@ const explicitImportTarget = Effect.fnUntraced(function* (
   };
 });
 
-/**
- * Write (create or overwrite) a single imported-note file from a fully-fetched
- * {@link Note}. Steps: prepare attachment batch → parse note HTML (building the
- * cite + gated annotation-template renderers here) → build frontmatter → write
- * (create or live-text overwrite) → flush attachment copies.
- */
 const writeNote = Effect.fnUntraced(function* (
   ctx: Ctx,
   note: Note,
@@ -432,8 +386,6 @@ const writeNote = Effect.fnUntraced(function* (
     const { dataDir, baseAttachmentPath } = yield* (yield* ZoteroPref).current;
     const zoteroPref = { dataDir, baseAttachmentPath };
     const annotationImageLink = excerpts?.annotationImageLink;
-    // The prepass asks for the paragraphs `noteAnnotationKeys` selected, so
-    // the sources already hold every annotation it renders.
     const renderAnnotationParagraph = sources
       ? () =>
           renderAnnotationSources(sources, {
@@ -477,8 +429,6 @@ const writeNote = Effect.fnUntraced(function* (
   };
   const content = `---\n${stringifyYaml(frontmatter)}---\n${body}`;
 
-  // The write and its attachment copies run to the end: an interrupt never
-  // leaves a written note that names attachments not yet copied.
   return yield* Effect.uninterruptible(
     Effect.gen(function* () {
       let outcome: WriteOutcome;
@@ -496,7 +446,6 @@ const writeNote = Effect.fnUntraced(function* (
         }
         outcome = "created";
       } else {
-        // The rewrite returns a fixed text, so it cannot throw.
         yield* processLiveText(mode.file, () => content).pipe(
           Effect.catchTag("LiveTextRewriteFailed", (error) =>
             Effect.die(error),
@@ -523,7 +472,6 @@ const writeNote = Effect.fnUntraced(function* (
   );
 });
 
-/** The parent Literature Note an explicitly created note inherits its Profile from. */
 const parentLiteratureNote = Effect.fnUntraced(function* (
   note: ChildNote,
   options: Pick<ImportNoteOptions, "reads">,
@@ -535,11 +483,9 @@ const parentLiteratureNote = Effect.fnUntraced(function* (
   return notes[0];
 });
 
-/** The rows {@link parseNote} and the annotation prepass read for one note. */
 interface ParseInputs {
   citedItems: ReadonlyMap<string, Item>;
   attachments: ReadonlyMap<string, Attachment>;
-  /** Set when the note's annotation paragraphs render through the template. */
   annotations?: AnnotationSources;
 }
 
@@ -551,7 +497,6 @@ const NO_ANNOTATIONS: AnnotationSources = {
   username: null,
 };
 
-/** Read every row the conversion of `html` needs, before the synchronous parse. */
 const readParseInputs = Effect.fnUntraced(function* (
   reads: ZoteroReadsApi,
   note: Pick<Note, "libraryID" | "groupID">,
@@ -591,12 +536,10 @@ const readParseInputs = Effect.fnUntraced(function* (
   return inputs;
 });
 
-/** The Profile a note write needs is not installed. */
 export class NoteImportProfileError extends Schema.TaggedError<
   NoteImportProfileError,
   { readonly brand: unique symbol }
 >()("NoteImportProfileError", {
-  /** What the user can do: switch the note to an installed Profile. */
   diagnostic: Schema.Struct({
     code: Schema.Literal("unknown-literature-note-profile"),
     hint: Schema.String,
@@ -605,10 +548,8 @@ export class NoteImportProfileError extends Schema.TaggedError<
     path: Schema.optional(Schema.String),
     indexedKey: Schema.optional(Schema.String),
   }),
-  /** `false` when the note is the Literature Note the import reads from. */
   imported: Schema.Boolean,
 }) {
-  /** The error for the Profile `stamp` names, at the note `context` locates. */
   static unknown(
     stamp: string,
     context: { path?: string; indexedKey?: string; imported?: boolean },
@@ -631,15 +572,10 @@ export class NoteImportProfileError extends Schema.TaggedError<
   }
 }
 
-/**
- * The note conversion threw, for example when the Citation Template or the
- * annotation Template fails. The message is the throw's own.
- */
 export class NoteImportParseError extends Schema.TaggedError<
   NoteImportParseError,
   { readonly brand: unique symbol }
 >()("NoteImportParseError", {
-  /** What the conversion threw. */
   cause: Schema.Defect(),
 }) {
   override get message(): string {
@@ -647,11 +583,6 @@ export class NoteImportParseError extends Schema.TaggedError<
   }
 }
 
-/**
- * Mint a unique import path for a new imported note file. The path includes a
- * random suffix to guarantee uniqueness; a collision fails with
- * {@link NoteImportMintError}.
- */
 const mintImportPath = Effect.fnUntraced(function* (
   importFolder: string,
   note: Pick<Note, "title" | "indexedKey">,
@@ -669,11 +600,6 @@ const mintImportPath = Effect.fnUntraced(function* (
   return path;
 });
 
-/**
- * Ensure the import folder exists in the vault.
- *
- * @param importFolderSetting - raw setting value (normalized internally).
- */
 const ensureImportFolder = Effect.fnUntraced(function* (
   importFolderSetting: string,
 ) {
@@ -682,15 +608,10 @@ const ensureImportFolder = Effect.fnUntraced(function* (
   return folder;
 });
 
-/**
- * A minted import path collides with an existing vault file. The 6-char
- * suffix makes this near-impossible, so it is a hard error (no retry).
- */
 export class NoteImportMintError extends Schema.TaggedError<
   NoteImportMintError,
   { readonly brand: unique symbol }
 >()("NoteImportMintError", {
-  /** The minted vault path that is taken. */
   path: Schema.String,
 }) {
   override get message(): string {

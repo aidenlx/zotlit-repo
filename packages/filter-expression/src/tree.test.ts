@@ -1,4 +1,3 @@
-// The Filter Tree: reading a stored filter, folding it, and composing it.
 import { describe, expect, it } from "vitest";
 
 import {

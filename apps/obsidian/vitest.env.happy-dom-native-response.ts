@@ -1,10 +1,3 @@
-// These suites assert real rendered surfaces (References view, CitationPopover)
-// while instantiating the real Pandoc wasm binary. Node's
-// WebAssembly.instantiateStreaming brand-checks the native Response, and a
-// foreign Blob/File in its body is silently coerced via String() into
-// "[object Blob]" rather than read — so this environment is happy-dom with
-// the native Response, Blob, and File restored.
-
 import { builtinEnvironments } from "vitest/runtime";
 import type { Environment } from "vitest/runtime";
 

@@ -68,3 +68,49 @@ aidenlx/zotlit       the shell's plugin-release.yml on the tag (its own GITHUB_T
 - A stable version commit can stay on `next` without a release when its graduation fails; the fix lands into `next`, then `pnpm land --to main` graduates the new tip.
 - A version published to npm is final. A fix that changes the bundle after the npm step needs a new version.
 - `aidenlx/zotlit` runs only the shell's workflow on its tags; its old monorepo workflows on `main` and `next` are disabled by hand. GitHub keeps a workflow's disabled state by file path, so the shell's workflow is `plugin-release.yml`, not `release.yml`.
+
+## Hosted release and hook details
+
+The source repository's release tags gate the workflow before a
+dependency install. An untagged version runs the release checks on the
+tree that ships, with desktop tests in the local Land Turn. The
+Obsidian and Reader jobs request OIDC permissions for trusted
+publishing. Companion provenance covers the XPI and the rolling update
+manifests written by the same run. Release builds need full history to
+verify the commit belongs to main. A stable tag pushed with the
+workflow token starts no new workflow, so the release job calls the
+production docs deployment directly after the product jobs succeed.
+
+The setup action activates the root package manager version and
+restores its store. Each runner job writes an immutable Turborepo
+cache entry and can restore compatible tasks from other workflows on
+the same runner OS. The effective Node and pnpm versions enter Turbo's
+hash, so a changed Mise runtime invalidates the results even when
+package sources stay the same.
+
+The pre-commit tree check runs first because lint reads the working
+tree. The hook needs to reject files outside the staged commit before
+lint sees them. One pre-push command receives Git's ref list on stdin
+and applies the land-only main gate, agent-session push policy, and
+attribution checks. The commit message hook applies the attribution
+check at commit time. Agent branches stay local in agent sessions.
+
+## Companion update artifacts
+
+The rolling Companion release holds a stable manifest and a manifest for both stable and prerelease builds. Each entry names the versioned XPI and hashes the bytes that users download. Preserve the prerelease suffix in the Zotero manifest so its update comparator can order successive prereleases. Build the channel URL from the rolling release and the XPI URL from the version tag.
+
+The release publisher downloads the current manifests and passes them to the generator. The beta-channel file is a candidate for every version and the stable file is a candidate for stable versions only. The generator replaces an entry only if the version exceeds the downloaded version. A missing file can be initialized. Malformed JSON stops the build. The generated release notes name the channels this run wrote. CI attests the XPI and only the channel files rewritten by that run. Concurrent publishers can still re-upload an old copy because their comparisons use a downloaded snapshot. [Channel rollback follow-up](https://github.com/aidenlx/zotlit-repo/issues/96)
+
+### Release preparation and retries
+
+The dry run passes the same command definitions as a real run to the outward step runner. It logs environment variable names and keeps credential values out of logs. Read-only GitHub requests, including asset downloads, run in both modes. The local registry serves the packed bundle through npm metadata and tarball endpoints. Scope routing sends the bundle to that registry and leaves other dependencies on the public registry.
+
+The publisher waits for the registry to serve both the version metadata and the tarball after npm accepts a publish. Cache revalidation makes newly published versions visible to that check. On a retry, compare archives by path and file bytes because gzip encoding can differ for identical content.
+
+The shell fetch uses a blob filter because shell commits need the parents and trees of the publish history. Remote Git settings go through the environment to keep authentication headers out of command arguments and logs. The release flow controls the shell commit identity. Reuse an existing tag only when its tree matches the new shell. Reuse a matching branch tip when publication still needs to add the tag. An empty default branch can receive the first beta shell in the same atomic update as the beta branch. The publisher adds the source tag last so an interrupted release remains eligible for retry.
+
+For the Companion, create or recover the versioned XPI before updating the rolling prerelease. On retry, download the XPI already attached to that version and use its bytes for the manifest hash. Download the rolling manifests before editing the channel so a missing rolling release fails before a channel change.
+
+One publisher handles CI, local release recovery, dry runs, and tests through injected outward operations. It waits for the registry to serve the immutable bundle version and retries shell lockfile resolution because the registry used for dependency resolution may lag. Build the frozen shell install in a clean folder before moving publish refs. Compare the pack's `main.js` alone because its generated shell copies the container. The source tag points to the build commit and is the last write. Existing source tags need to resolve to their commits before comparison. [Annotated source tag follow-up](https://github.com/aidenlx/zotlit-repo/issues/184)
+
+Refresh the dry run's bare stand-in from the publish repository before each run. That removes changes from earlier dry runs. The stand-in receives the shell branch so the dry run can inspect the resulting tree. Tag writes stay outside the dry run. A dry-run version override saves the original package manifest bytes and restores them after success, failure, SIGINT, or SIGTERM.

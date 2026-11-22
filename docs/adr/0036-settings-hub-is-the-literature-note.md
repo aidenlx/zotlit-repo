@@ -23,3 +23,44 @@ After ADR 0031 the settings tab had eight page rows and no inline setting: the P
 - Message keys for moved rows keep their English text. New copy covers the Zotero and Advanced page names, the group headings, the Properties row, the Default row, the Profiles empty state, the per-Profile row summary, and the Highlight mappings suffix "Applies to all profiles." The `settings_frontmatter_*` field labels survive for the docs pages that still describe the fields until the template-docs rewrite.
 - `apps/docs/content/docs/reference/settings.mdx` is rewritten to mirror the tab; every docs page that named a removed page fixes its `SettingsPath` reference; the conceptual rewrite of the template docs for the Profile document model is a separate issue.
 - Issues [#878](https://github.com/aidenlx/zotlit/issues/878), [#902](https://github.com/aidenlx/zotlit/issues/902), and [#905](https://github.com/aidenlx/zotlit/issues/905) close on this decision.
+
+Keep the Default Profile's Literature Note rows on the main page, without a separate Default heading. Add its citation style and document through the host slots after its note folders. Leave the other Imported Note bindings on the Imported Notes page. A change to Default bindings can invalidate Workbench renders.
+
+The Imported Notes page edits Default's rendering bindings. Put highlight mappings one level deeper because all Profiles share them. [Imported Notes settings](../../packages/notes/src/obsidian/note-import/settings-page.ts)
+
+Read Template settings structure again after Template readiness, since the first settings definitions can run before the template folder scan. Build the Citation text row and unrecognized file rows only when the service is loaded. Blur actions that change a row before rebuilding because Obsidian preserves the row containing the focused element. Encode the auto-trim setting's false value as a string sentinel for the dropdown.
+
+Open the Default Profile through the Template Workbench port so the settings command and note actions share the editor route. [Portable Notes feature](../../packages/notes/src/obsidian/feature.ts)
+
+List the Citation and References Styles installed in the active Zotero data directory. Zotero controls installation. Read on mount, on Refresh, and when the directory changes, since Zotero can install styles while the tab stays open. Interrupt a stale read when a new one starts. Keep the current list if a read fails. Follow settings changes from vault sync so the selected value stays current. [References Style row](../../packages/notes/src/desktop/profile/references-style-row.ts)
+
+### Profile documents in settings
+
+The main page owns the Default Profile document row. The host binds Profile
+control keys across all slots. The Profiles page places the Default above
+the other Profiles, then lists Shared Partials and refused documents.
+Settings only lists refused documents while there are any. Show one reason
+per document and give a duplicate ID priority. Style this guidance as a
+warning so it reads as a fix. Recheck that a document is still refused
+before deleting it.
+
+Put Add and Import in the list header. Use row actions for editing,
+duplication, sharing, and deletion. Withhold document actions until the
+registry loads and any legacy conversion finishes so neither operation can
+race a write. An action displays any failure and rebuilds the settings
+definitions when it ends. The initial definitions can precede the registry,
+so rebuild them once it loads.
+
+Use the shared Workbench launcher to edit or duplicate a Profile. Customize
+opens the Default's effective source for templates and properties. Confirm
+before restoring the built-in source. Add Profile is the entry point for
+creating a new Profile from the Default. An identical copy with no
+bindings is equivalent to the Default and is refused.
+
+Place Partials on the Profiles page because all Profiles share them.
+Give each Partial row Open and Delete. Rename remains a vault file
+operation. Keep settings open for the new document's name prompt. Close
+settings after the document exists so cancellation leaves the reader on the
+same page.
+
+[Profile settings](../../packages/template-workbench/src/desktop/profile-settings/profiles-page.ts)

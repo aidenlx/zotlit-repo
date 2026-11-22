@@ -7,8 +7,6 @@ import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { chinesePagesPlugin } from "./chinese-pages-plugin.ts";
 
-// Development seam: adding, renaming, or deleting a Chinese edition updates
-// SSR locale metadata in the already-running Vite server.
 test("refreshes locale metadata when native Chinese files are added, renamed, and removed", async () => {
   const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
   await mkdir(join(workspaceRoot, ".scratch"), { recursive: true });
@@ -68,10 +66,8 @@ test("refreshes locale metadata when native Chinese files are added, renamed, an
     .poll(() => server.watcher.getWatched()[join(root, "content")])
     .toContain("docs");
   await writeFile(page, "---\ntitle: 新增中文页\n---\n中文正文\n");
-  // Deliver the filesystem event explicitly, as the collection watcher test does.
   server.watcher.emit("add", page);
   await restartConfigured.promise;
-  // Another translation can arrive while Vite is compiling the first restart.
   const latePage = join(root, "content/changelog/2.1.0.zh-CN.mdx");
   await writeFile(latePage, "---\nversion: 2.1.0\n---\n中文更新记录\n");
   server.watcher.emit("add", latePage);

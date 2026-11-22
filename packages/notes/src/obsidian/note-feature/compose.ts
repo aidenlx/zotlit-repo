@@ -7,10 +7,6 @@ import type {
   ResolvedLiteratureNoteTemplate,
   TemplateOperations,
 } from "#obsidian/template/service.ts";
-// The write-free create composition: the exact bytes a new Literature Note
-// carries, composed from an already-built template context. `operations.ts`
-// writes them; the Note Preview renders them, so what the preview shows is what
-// Create writes. Nothing here touches the vault or queues an import.
 import { stringifyYaml } from "obsidian";
 
 import type { NoteTemplateContext } from "@zotlit/db";
@@ -28,16 +24,13 @@ import {
   prepareManagedFrontmatter,
 } from "#core/note-feature/frontmatter.ts";
 
-/** Logs a warning the composition meets, with its annotations. */
 export type ComposeWarn = (
   message: string,
   annotations: Record<string, unknown>,
 ) => void;
 
-/** The template slice the composition renders through. */
 export interface ComposeNoteDeps {
   template: Pick<TemplateOperations, "render" | "frontmatterFields">;
-  /** Where the composition logs a skipped append or a failed expression. */
   warn?: ComposeWarn;
   events?: {
     emit: (
@@ -47,7 +40,6 @@ export interface ComposeNoteDeps {
   };
 }
 
-/** The Profile facts a written note stamps. */
 export type ComposeProfile = Pick<ResolvedProfile, "stamp" | "citationStyle">;
 
 export interface ComposeFrontmatterInput {
@@ -55,7 +47,6 @@ export interface ComposeFrontmatterInput {
   itemKey: string;
   profile: ComposeProfile;
   prepared: PreparedManagedFrontmatter;
-  /** Runs beside the logged warning, for a caller that reports conflicts. */
   onConflict?: FrontmatterMergeConflictHandler;
 }
 
@@ -64,7 +55,6 @@ export interface ComposeNoteInput extends Omit<
   "prepared"
 > {
   document: ResolvedLiteratureNoteTemplate | undefined;
-  /** The instant a Managed Frontmatter `now` reads. */
   now: Temporal.Instant;
 }
 
@@ -72,7 +62,6 @@ export interface ComposedNote {
   readonly outcome: "composed";
   readonly prepared: PreparedManagedFrontmatter;
   readonly frontmatter: Record<string, unknown>;
-  /** The Properties block alone, without its `---` fences. */
   readonly frontmatterBlock: string;
   readonly body: string;
   readonly content: string;
@@ -84,15 +73,7 @@ export interface ComposeRefusal {
     ManagedFrontmatterPreparationFailure,
     ...ManagedFrontmatterPreparationFailure[],
   ];
-  /**
-   * The evaluation the refusal already ran, so a lenient reader lists each
-   * field and its position without evaluating the entries a second time.
-   */
   readonly evaluation: ManagedFrontmatterEvaluation;
-  /**
-   * The lenient view of that evaluation, so a reader that keeps rendering
-   * lists each field with its position without assembling the shape itself.
-   */
   readonly prepared: PreparedManagedFrontmatter;
 }
 
@@ -102,15 +83,6 @@ export interface PreparedComposition {
   readonly body: string;
 }
 
-/**
- * Prepare one Literature Note's Managed Frontmatter and render its body. The
- * body renders after the preparation, as the write path has always ordered it:
- * a body render queues the attachment and child-note imports its caller
- * flushes after the write.
- *
- * @returns the preparation and the body, or the refusal a failing Managed
- *   Frontmatter field produces — for which Create writes nothing.
- */
 export function prepareLiteratureNote(
   deps: ComposeNoteDeps,
   input: Pick<ComposeNoteInput, "context" | "document" | "now">,
@@ -136,13 +108,6 @@ export function prepareLiteratureNote(
   return { outcome: "prepared", prepared: result.prepared, body };
 }
 
-/**
- * Compose one Literature Note for create: the preparation and body, then the
- * applied fields serialized into the Properties block the write carries.
- *
- * @returns the composed note, or the refusal a failing Managed Frontmatter
- *   field produces — for which Create writes nothing.
- */
 export function composeLiteratureNote(
   deps: ComposeNoteDeps,
   input: ComposeNoteInput,
@@ -172,12 +137,6 @@ export function composeLiteratureNote(
   };
 }
 
-/**
- * Apply one prepared document patch or the legacy settings-held field set, then
- * the Profile and citation-style stamps.
- *
- * @see docs/adr/0030-profile-stamp-carries-a-label-hint-beside-the-id.md
- */
 export function applyComposedFrontmatter(
   deps: {
     template: Pick<ComposeNoteDeps["template"], "frontmatterFields">;

@@ -1,4 +1,3 @@
-// The Item Index's ItemSource port over the worker's Connection.
 import { Effect, Layer, Stream } from "effect";
 
 import {
@@ -15,7 +14,6 @@ import { Connection, toDbUnavailable } from "./connection.ts";
 import { scanIndexedItems } from "./item-scan.ts";
 import { itemsByIndexedKeys } from "./items-by-indexed-keys.ts";
 
-/** Run a synchronous read; a throw becomes a {@link SourceUnavailable}. */
 function read<A>(
   client: ZoteroDatabase,
   f: (client: ZoteroDatabase) => A,
@@ -27,28 +25,14 @@ function read<A>(
   });
 }
 
-/**
- * Item IDs per signature read. A read is one synchronous task in the worker,
- * and a search waits for the task in progress: on the Stress Build of
- * 100,000 Items, a range of this size reads in a few milliseconds, far under
- * the 100 ms search limit, where the whole Library took 60–96 ms.
- */
 const SIGNATURE_RANGE = 10_000;
 
-/**
- * A Library's index signature on `client`, summed by
- * {@link sumSignatureRanges} with a yield before each range read, so a search
- * waits for one range at most.
- */
 const signatureOf = (client: ZoteroDatabase, libraryID: number) =>
   Effect.gen(function* () {
     const ranges = sumSignatureRanges(
       yield* read(client, (c) => getItemIDBounds(c, libraryID)),
       SIGNATURE_RANGE,
     );
-    // One statement per range, not the fixed count that
-    // packages/db/policies/query-authoring.md asks for: no worker task may
-    // come near the 100 ms search limit.
     let step = ranges.next();
     while (!step.done) {
       yield* Effect.yieldNow;
@@ -80,16 +64,6 @@ const itemsOf = (
     ),
   );
 
-/**
- * An {@link ItemSource} over {@link Connection}.
- *
- * - `pinned` borrows the current client for the caller's scope; every read of
- *   one build, and the hydration of the hits its index answers, goes to that
- *   client.
- * - The generation is the Connection's `databaseGeneration` of that client.
- * - `generation` emits on each `changed` and `degraded` event. The seed of
- *   the feed is a `state` event, so a new subscriber sees no emission.
- */
 export const layerConnectionItemSource: Layer.Layer<
   ItemSource,
   never,

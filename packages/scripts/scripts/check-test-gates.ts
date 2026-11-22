@@ -32,7 +32,6 @@ const packageFiles = gitFiles.filter((file) =>
 );
 const extensions = ["ts", "mts", "cts", "js", "mjs", "cjs"];
 
-/** Load configuration only; this starts no Vitest server and collects no tests. */
 async function collectVitest(cwd: string, args: string[]) {
   const require = createRequire(join(cwd, "package.json"));
   const vitestRequire = createRequire(require.resolve("vitest/package.json"));
@@ -117,8 +116,6 @@ async function collectVitest(cwd: string, args: string[]) {
       continue;
     }
     if (typeof project.extends === "string") {
-      // Vite resolves imported configuration; a project-level extends file is
-      // a separate configuration entry, with its inline fields merged on top.
       const loaded = await loadConfigFromFile(
         { command: "serve", mode: "test" },
         resolve(projectRoot, project.extends),
@@ -150,7 +147,6 @@ async function collectVitest(cwd: string, args: string[]) {
   }
 }
 
-// Package tests, the desktop e2e task and root eval-runtime are the test gates.
 for (const file of ["package.json", ...packageFiles]) {
   const manifest = JSON.parse(readFileSync(join(root, file), "utf8")) as {
     scripts?: Record<string, string>;

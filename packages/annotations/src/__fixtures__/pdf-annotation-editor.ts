@@ -1,4 +1,3 @@
-// Needs a DOM, so every consumer runs under `// @vitest-environment happy-dom`.
 import {
   DateTime,
   Effect,
@@ -373,12 +372,6 @@ export function pdfReader(page = pageView()) {
 
 export type FakeReader = ReturnType<typeof pdfReader>;
 
-/**
- * One Annotation as the repository answers it, from the Fixture's own rows on
- * `rougier-2014.pdf`.
- *
- * @see packages/scripts/lib/fixture/spec.ts — `ANNOTATIONS`
- */
 export function annotation(
   key: string,
   type: AnnotationRecord["type"],
@@ -403,13 +396,6 @@ export function annotation(
   };
 }
 
-/**
- * The attachment resolver, reduced to the lookup and the re-resolution a
- * binding takes.
- *
- * @param resolution what the resolver answers for every path, starting with
- *   `pending` — what a resolver whose database is still loading answers.
- */
 export function attachmentReads(
   resolution: AttachmentResolution = { kind: "pending" },
 ): AttachmentReads & {
@@ -423,7 +409,6 @@ export function attachmentReads(
       Effect.sync(() => current),
     ),
     resolutionsChanged: Stream.fromPubSub(changes),
-    /** What the resolver does once the database it waited on is readable. */
     answer(next: AttachmentResolution): void {
       current = next;
       PubSub.publishUnsafe(changes, undefined);
@@ -431,13 +416,6 @@ export function attachmentReads(
   };
 }
 
-/**
- * The annotation repository, reduced to the reads, the Editing Capability, and
- * the two changes a binding takes.
- *
- * @param records the Annotations every read answers with.
- * @param capability what every Attachment, and the session, may do.
- */
 export function annotationReads(
   records: readonly AnnotationRecord[] = [],
   capability: EditingCapability = { kind: "writable" },
@@ -454,10 +432,8 @@ export function annotationReads(
     annotations: records,
   };
   let current = capability;
-  /** How many PDF views hold each Attachment's Annotation History open. */
   const histories = new Map<string, number>();
   const eventStream = Stream.fromPubSub(events);
-  /** Called once per run of the `probe` Effect, so a test counts the probes. */
   const probeRuns = vi.fn(() => Effect.void);
   return {
     read: vi.fn(() => Effect.succeed(list)),
@@ -523,7 +499,6 @@ export function annotationReads(
     redo: vi.fn((_attachmentKey: string): Effect.Effect<HistoryOutcome> =>
       Effect.succeed({ kind: "idle" }),
     ),
-    /** The Attachments a history stands open for, and how many views hold each. */
     get histories(): ReadonlyMap<string, number> {
       return histories;
     },
@@ -560,12 +535,10 @@ export function annotationReads(
       ),
       Stream.as(undefined),
     ),
-    /** What a landed Capability Probe does: another capability, announced. */
     setCapability(next: EditingCapability): void {
       current = next;
       PubSub.publishUnsafe(events, { _tag: "capability-changed" });
     },
-    /** What a dropped Zotero DB partition does: a whole new list, announced. */
     replace(attachmentKey: string, next: readonly AnnotationRecord[]): void {
       list = { source: databaseSource, annotations: next };
       PubSub.publishUnsafe(events, {
@@ -576,7 +549,6 @@ export function annotationReads(
   };
 }
 
-/** The blocked-edit gesture the PDF reader hands to its UI seam. */
 export function capabilityGestures() {
   return {
     reportBlockedGesture: vi.fn(),
@@ -584,15 +556,10 @@ export function capabilityGestures() {
   };
 }
 
-/** The gestures the Mark Popup hands to its UI seam. */
 export function markGestures() {
   return { revealAnnotation: vi.fn(), blockedPress: vi.fn() };
 }
 
-/**
- * The settings the reader keeps each tool's colour in: the shipped defaults,
- * with a write held in memory the way a save holds it on disk.
- */
 export function readerSettings(): Pick<
   PluginSettings["Service"],
   "current" | "update"
@@ -612,7 +579,6 @@ export function readerSettings(): Pick<
   };
 }
 
-/** Each tool's colour, held the way the settings-backed store holds it. */
 export function toolColors(): ToolColorStore {
   let stored: AnnotationToolColors = {};
   let recent: readonly string[] = [];
@@ -640,7 +606,6 @@ export function toolColors(): ToolColorStore {
 
 export { dispatchKey };
 
-/** A Reader Surface over a registry of its own, as a binding holds one. */
 export function readerSurface(
   initial: Parameters<typeof initialReaderSurfaceState>[0],
 ): ReaderSurface {
@@ -650,10 +615,6 @@ export function readerSurface(
   };
 }
 
-/**
- * A selection of the state the model carries no atom for, as a derived atom
- * with `equals`.
- */
 export function selection<A>(
   { model }: ReaderSurface,
   select: (state: ReaderSurfaceState) => A,
@@ -663,17 +624,13 @@ export function selection<A>(
   return equals ? Atom.withEquality(selected, equals) : selected;
 }
 
-/** The instant the reader surfaces read their clock at. */
 export const READER_NOW = toInstant(
   DateTime.makeUnsafe("2026-09-17T10:00:00Z"),
 );
 
 export interface ReaderSurfacesOptions {
-  /** The PDF view's container, where the gestures are heard. */
   containerEl: HTMLElement;
-  /** The one page the reader holds, at page index 0. */
   page: OverlayPageView;
-  /** What the last read answered. */
   records: readonly AnnotationRecord[];
   capability?: EditingCapability;
   annotations: AnnotationEdits & AnnotationCreates & AnnotationFacts;
@@ -681,34 +638,15 @@ export interface ReaderSurfacesOptions {
     EffectBridge,
     "runSync" | "runPromise" | "runPromiseExit" | "subscribe"
   >;
-  /**
-   * This document's Structured Characters; `null` until one is open. As a
-   * function, read on each ask, as the viewer is.
-   */
   structure?: PdfTextStructure | null | (() => PdfTextStructure | null);
-  /** The Sort Index a Geometry Edit is saved with. */
   sortIndex?: (position: PdfPosition) => Promise<string | null>;
-  /** The range a text range's dragged end reaches. */
   adjustRange?: MarkSelectionDeps["adjustRange"];
-  /** The text rotation a range's handles lie across. */
   textRotation?: MarkSelectionDeps["textRotation"];
-  /** Each tool's colour and the ink width; held in memory unless given. */
   colors?: ToolColorStore;
-  /**
-   * The platform the Reader Keymap binds the Annotation History keys for.
-   *
-   * @default false
-   */
   isMacOS?: boolean;
-  /** Where the surfaces' notices go; a recording one unless given. */
   notifier?: ReturnType<typeof testNotifier>;
 }
 
-/**
- * The reader surfaces over one page, wired the way the binding wires them: one
- * Reader Surface State, the Mark Selection and the Mark Creation that draw from
- * it, and the one popup host over both.
- */
 export function readerSurfaces({
   containerEl,
   page,
@@ -725,10 +663,7 @@ export function readerSurfaces({
   notifier = testNotifier(),
 }: ReaderSurfacesOptions) {
   const parent: HoverParent = { hoverPopover: null };
-  /** Each drag of a selected mark out of the reader, as the selection started it. */
   const draggedOut = vi.fn<MarkSelectionDeps["dragOut"]>();
-  // The view's own Scope, which holds its registry and its writes, as the
-  // editor's does, and which the disposal closes.
   const scope = EffectScope.makeUnsafe();
   let closed = false;
   const { registry, writes } = Effect.runSync(
@@ -744,8 +679,6 @@ export function readerSurfaces({
       }),
     ),
   };
-  // The view holds its Attachment's list while it is open, as the binding
-  // does.
   const viewHold = bridge.runSync(annotations.hold(["RGRPDF24"]));
   let held = records;
   ingestAnnotations(surface, held, { annotations, bridge });
@@ -756,12 +689,9 @@ export function readerSurfaces({
     reportBlockedGesture: vi.fn(),
     allowEditing: vi.fn(),
   };
-  /** Why each create that made nothing said it made nothing, in order. */
   const reportCreateFailure = vi.fn<(reason: string) => void>();
-  /** Each time the toolbar handed the keyboard to the pages. */
   const focusReader = vi.fn();
   const reported: (readonly string[])[] = [];
-  /** The session a consumer names its selection surfaces on. */
   const session = new ReaderSessionHost({
     source: "obsidian-pdf",
     navigate: vi.fn(),
@@ -769,7 +699,6 @@ export function readerSurfaces({
   });
   const navigated: string[] = [];
   const revealed: string[] = [];
-  /** The options each reveal was asked with, in reveal order. */
   const revealedWith: { commenting?: boolean }[] = [];
   const popup = {
     contains: (node: Node | null) => host.contains(node),
@@ -833,7 +762,6 @@ export function readerSurfaces({
   });
   selection.load();
   const view: { scope: Scope | null; app: typeof app } = { scope: null, app };
-  /** Each press of the Annotation History keys this fixture answered, in order. */
   const stepped: HistoryVerb[] = [];
   const unmountKeymap = mountReaderKeymap(
     view,
@@ -875,7 +803,6 @@ export function readerSurfaces({
     gestures,
     reportCreateFailure,
     draggedOut,
-    /** Every notice the surfaces showed, in order. */
     notices: notifier.notices,
     focusReader,
     reported,
@@ -883,34 +810,17 @@ export function readerSurfaces({
     revealed,
     revealedWith,
     stepped,
-    /** The records the last read answered, kept past the reader's close. */
     drawn: (): readonly AnnotationRecord[] => held,
-    /**
-     * What a refresh does once the read answers: the records, replaced. A
-     * closed reader takes them into no state, as the binding's does.
-     */
     replace(next: readonly AnnotationRecord[]) {
       held = next;
       if (!closed) ingestAnnotations(surface, next, { annotations, bridge });
     },
-    /**
-     * What the binding does once a page re-rendered. A closed reader hears no
-     * page, as the binding's does.
-     */
     sync() {
       if (!closed) host.sync();
     },
-    /**
-     * One keystroke as Obsidian delivers it: the view's Scope hears it first,
-     * and the page hears it only when no handler there took it.
-     *
-     * @param target where the focus sits; the container when not given.
-     */
     key(init: KeyboardEventInit, target: EventTarget = containerEl) {
       return dispatchKey(view.scope!, init, target);
     },
-    // Once, as the binding's own disposer runs: the Scope it closes takes
-    // the registry with it.
     [Symbol.dispose]() {
       if (closed) return;
       closed = true;
@@ -926,7 +836,6 @@ export function readerSurfaces({
   };
 }
 
-/** One reader record as the Zotero Local API writes it. */
 export function wireOf(record: AnnotationRecord): WireAnnotation {
   return {
     key: record.key,
@@ -945,11 +854,6 @@ export function wireOf(record: AnnotationRecord): WireAnnotation {
   };
 }
 
-/**
- * The real Annotation Repository over a Zotero that holds `records` on
- * `RGRPDF24`, with Write Authorization already remembered and the list read.
- * What Zotero holds, through `zotero`, is the oracle a write is checked by.
- */
 export async function repositoryOver(
   stack: AsyncDisposableStack,
   records: readonly AnnotationRecord[],
@@ -977,25 +881,13 @@ export async function repositoryOver(
     requests,
     list,
     localApiService,
-    /**
-     * Move the repository's TestClock, which its autosave timers run on;
-     * Vitest's fake timers do not reach them.
-     */
     adjustRepositoryClock(duration: Duration.Input): Promise<void> {
       return runtime.runPromise(adjustLayerClock(duration));
     },
-    /**
-     * Zotero imports one Annotation from the PDF file, and a database refresh
-     * tells the repository, which locks it.
-     */
     importFromPdf(key: string): void {
       markExternal(client, key);
       dbEvents.emit("changed");
     },
-    /**
-     * Zotero quits, and the device's database turns out to be another one:
-     * the switch that hides every draft made against the first.
-     */
     async switchDatabase(): Promise<void> {
       zotero.quit();
       const lost = nextChange(repository);
@@ -1010,19 +902,12 @@ export async function repositoryOver(
   };
 }
 
-/**
- * The reader surfaces over {@link repositoryOver}. Every announcement is drawn
- * as the binding draws it: the list the repository holds at once, then the
- * list the read that follows answers. A test therefore sees the Pending
- * Proposals, failures and conflicts the repository itself produces.
- */
 export async function readerOverZotero(
   stack: AsyncDisposableStack,
   {
     external,
     ...options
   }: Omit<ReaderSurfacesOptions, "annotations" | "bridge"> & {
-    /** The Annotations Zotero imported from the PDF file, by key. */
     external?: readonly string[];
   },
 ) {

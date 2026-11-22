@@ -4,7 +4,6 @@ import { flow, learn, withPinned } from "./virtual-rows.ts";
 
 describe("flow", () => {
   it("leaves the room of the entries before, between and after the drawn ones", () => {
-    // The list starts 40 px into the scroller; rows are 10 px.
     expect(
       flow(
         [

@@ -16,10 +16,6 @@ type AnnotViewPlugin = Pick<
   "registerView" | "addCommand" | "addRibbonIcon" | "app"
 >;
 
-/**
- * The real services satisfy {@link AnnotViewDeps} as they are — every member is
- * a structural `Pick` — so registration takes the same bundle the view does.
- */
 export function registerAnnotView(
   plugin: AnnotViewPlugin,
   deps: AnnotViewDeps,
@@ -43,10 +39,6 @@ export function registerAnnotView(
   addFollowModeCommands(plugin, deps.registry, () => targetView(plugin.app));
 }
 
-/**
- * Opens the Annotation View and brings one Annotation's card forward — the Mark
- * Popup's reveal verb, and a notice's reveal.
- */
 export async function revealAnnotationInView(
   plugin: Pick<Plugin, "app">,
   annotationKey: string,
@@ -55,12 +47,6 @@ export async function revealAnnotationInView(
   targetView(plugin.app)?.revealAnnotation(annotationKey);
 }
 
-/**
- * Opens the Annotation View pinned to one Item, from a gesture on that Item
- * in another view: the Library View's Reading Card.
- *
- * @param itemKey the Item's Indexed Key.
- */
 export async function showItemInAnnotView(
   app: App,
   itemKey: string,
@@ -69,15 +55,6 @@ export async function showItemInAnnotView(
   targetView(app)?.pinItem(itemKey);
 }
 
-/**
- * Whether an Annotation View on screen already holds one Annotation's card.
- *
- * What it answers is whether the user can already see the card — so a Write
- * Conflict raises its notice only where nothing shows the two values it put
- * side by side.
- *
- * @param annotationKey the Annotation's Indexed Key.
- */
 export function annotationCardShown(app: App, annotationKey: string): boolean {
   return app.workspace
     .getLeavesOfType(ANNOT_VIEW_TYPE)
@@ -90,13 +67,6 @@ export function annotationCardShown(app: App, annotationKey: string): boolean {
     );
 }
 
-/**
- * What the five Follow Mode commands need of the view they act on: its model,
- * whose Follow Mode state the registry holds, the Item on screen it publishes,
- * and the gestures it publishes. The gestures are the ones its React tree and
- * its pane menu call, so a command is one more caller of them rather than a
- * set of delegates built for commands alone.
- */
 export interface FollowModeCommandTarget {
   readonly model: Pick<AnnotViewModel, "state">;
   readonly snapshot: Pick<AnnotState, "pinnable">;
@@ -106,14 +76,6 @@ export interface FollowModeCommandTarget {
   > | null;
 }
 
-/**
- * The five gestures that change an Annotation View's Follow Mode from the
- * command palette. Each one applies to the view `findView` names, and drops out
- * of the palette when that view is absent or the gesture cannot apply — so a
- * command never silently does nothing.
- *
- * @see apps/obsidian/docs/adr/0041-the-annotation-view-changes-its-follow-mode-only-on-a-user-gesture.md
- */
 export function addFollowModeCommands(
   plugin: Pick<AnnotViewPlugin, "addCommand">,
   registry: ViewRegistryHandle,
@@ -128,7 +90,6 @@ export function addFollowModeCommands(
   }: {
     id: string;
     name: string;
-    /** Whether the palette offers it against the view's Follow Mode state. */
     applies: (
       state: AnnotViewState & FollowModeCommandTarget["snapshot"],
     ) => boolean;
@@ -184,11 +145,6 @@ export function addFollowModeCommands(
   });
 }
 
-/**
- * The Annotation View a command acts on: the focused one, else the first open.
- * A vault with several keeps a mode per instance, and the focused one is the
- * instance the gesture belongs to.
- */
 function targetView(app: App): AnnotationView | null {
   const active = app.workspace.getActiveViewOfType(AnnotationView);
   if (active) return active;
@@ -197,10 +153,6 @@ function targetView(app: App): AnnotationView | null {
   return view instanceof AnnotationView ? view : null;
 }
 
-/**
- * Bring the Annotation View forward in the sidebar, opening one on the right
- * when the vault has none. A vault whose right sidebar is gone keeps none.
- */
 export async function activateAnnotView(app: App): Promise<void> {
   const { workspace } = app;
   let leaf = workspace.getLeavesOfType(ANNOT_VIEW_TYPE)[0];

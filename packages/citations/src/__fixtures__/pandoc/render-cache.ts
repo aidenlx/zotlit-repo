@@ -1,6 +1,5 @@
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
-/** The real bibliography layer over the dependency ports used by consumer fixtures. */
 import { Context, Effect, Layer, Stream } from "effect";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
@@ -26,11 +25,6 @@ import { layerBibliographyRender } from "#desktop/pandoc/render-cache-layer.ts";
 import { PandocEngine } from "#obsidian/pandoc/service.ts";
 import { ProfileStyles } from "#obsidian/pandoc/profile-styles.ts";
 
-/**
- * A render read's rejection as the real member fails: an abort and a
- * {@link BibliographyRenderError} keep their identity, and any other rejection
- * is the engine's, wrapped with its own message.
- */
 export function renderFailure(
   error: unknown,
 ): BibliographyRenderError | DOMException {
@@ -43,17 +37,12 @@ export function renderFailure(
 }
 
 export interface BibliographyRenderFixtureOptions {
-  /**
-   * The Profiles' changes, and the vault's style the default Profile binds;
-   * none unless the caller reads it from its settings.
-   */
   profile: Pick<ProfileStyles["Service"], "changes"> &
     Partial<Pick<ProfileStyles["Service"], "vaultStyleId">>;
   db: Pick<ZoteroReads["Service"], "events">;
   pandocEngine: Pick<BinaryHandle<PackBinaryApi<CitationEngine>>, "binary">;
   zoteroPref: {
     readonly dataDir: string;
-    /** Each move of the profile or data folder Zotero reads from. */
     readonly moves: Stream.Stream<void>;
   };
   settings: Pick<PluginSettings["Service"], "current" | "changes">;
@@ -69,7 +58,6 @@ export async function bibliographyRenderFixture(
 ) {
   await using stack = new AsyncDisposableStack();
 
-  /** The Profiles' state, which the layer compares by identity only. */
   const profileState = { loaded: true } as const;
   const prefs = new Map();
   const prefSnapshot = () => ({
@@ -153,7 +141,6 @@ export async function bibliographyRenderFixture(
   return Object.assign(cache, {
     runtime,
     bridge: effectBridge(runtime),
-    /** Each notice the layer showed, the first one first. */
     notices: notifier.notices,
     [Symbol.asyncDispose]: () => owned.disposeAsync(),
   });

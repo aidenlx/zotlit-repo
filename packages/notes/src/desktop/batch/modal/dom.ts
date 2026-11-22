@@ -1,5 +1,4 @@
 import type { BatchFailure } from "#obsidian/batch/batch-run.ts";
-// Shared DOM primitives for the batch-modal shell and its manifest bodies.
 import { setIcon, setTooltip } from "obsidian";
 import type { App } from "obsidian";
 
@@ -105,7 +104,6 @@ function profileChoiceLabel({ count = 0, scope }: BatchProfileChoice) {
   }
 }
 
-/** The control's own words: which rows it governs and where they go. */
 function profileChoiceText({ label, count = 0, scope }: BatchProfileChoice) {
   switch (scope) {
     case "unresolved":
@@ -126,7 +124,6 @@ function profileChoiceText({ label, count = 0, scope }: BatchProfileChoice) {
   }
 }
 
-/** One line telling a fallback apart from an override. */
 function profileChoiceHelp(
   scope: BatchProfileChoice["scope"],
 ): string | undefined {
@@ -160,30 +157,15 @@ export const ROW_ICON_CLASS: Record<RowStatus, string> = {
 
 export const ICON_CLS = "zt:flex zt:shrink-0";
 
-/**
- * Sticky group summary: it pins to the top of the scroll region so the current
- * group stays labeled while its rows scroll, over a modal-surface background
- * that hides them underneath.
- */
 export const GROUP_SUMMARY_CLS =
   "zt:sticky zt:top-0 zt:z-10 zt:mb-1 zt:cursor-pointer zt:select-none zt:bg-(--modal-background) zt:py-1";
 
-/** Category label on a {@link GROUP_SUMMARY_CLS} summary (Obsidian UI-smaller
- * scale, not an editor heading). */
 export const SECTION_SUMMARY_CLS = `${GROUP_SUMMARY_CLS} zt:text-xs zt:font-semibold zt:uppercase zt:tracking-wide zt:text-(--text-muted)`;
 
-/** Groups larger than this start collapsed, so the modal opens on a compact
- * overview of group headers and the user can collapse past a group of thousands
- * to reach the next one instead of scrolling through it. */
 const SECTION_OPEN_MAX = 50;
 
-/** Rows one task mounts when a collapsed group opens. */
 const MOUNT_CHUNK = 200;
 
-// `content-visibility: auto` lets the browser skip layout/paint for off-screen
-// rows in an expanded group while keeping every mounted <li> (and its updatable
-// status icon) live in the DOM; the intrinsic-size estimate keeps the scrollbar
-// steady.
 const ROW_CLS =
   "zt:flex zt:items-center zt:gap-2 zt:py-0.5 zt:min-w-0 zt:[content-visibility:auto] zt:[contain-intrinsic-size:auto_1.5rem]";
 const ROW_LABEL_CLS = "zt:truncate zt:text-sm zt:text-(--text-normal)";
@@ -191,18 +173,9 @@ const ROW_LABEL_CLS = "zt:truncate zt:text-sm zt:text-(--text-normal)";
 export interface RowGroupContent<T> {
   items: readonly T[];
   renderRow: (ul: HTMLElement, item: T) => void;
-  /** @default groups of at most {@link SECTION_OPEN_MAX} start open */
   open?: boolean;
 }
 
-/**
- * A collapsible group of `items`: a `<details>` whose `<ul>` holds one row per
- * item. A group mounts its rows when it first opens, {@link MOUNT_CHUNK} per
- * task, so the window keeps painting through a group of thousands; a group
- * that starts open mounts its first chunk at once.
- *
- * @returns the group's `<summary>`, for the caller to fill
- */
 export function rowGroup<T>(
   parent: HTMLElement,
   summaryCls: string,
@@ -222,7 +195,6 @@ export function rowGroup<T>(
     for (let start = 0; start < items.length; start += MOUNT_CHUNK) {
       if (start > 0) {
         await yieldToMain();
-        // A phase change discards the group; its remaining rows go with it.
         if (!ul.isConnected) return;
       }
       for (const item of items.slice(start, start + MOUNT_CHUNK))
@@ -242,11 +214,6 @@ export function rowGroup<T>(
   return summary;
 }
 
-/**
- * {@link rowGroup} under a sticky category label.
- *
- * @returns the group's `<summary>`
- */
 export function section<T>(
   parent: HTMLElement,
   header: string,
@@ -257,9 +224,6 @@ export function section<T>(
   return summary;
 }
 
-/** One checklist row: a leading icon span (returned for status styling) and a
- * truncated label whose full text shows as a hover tooltip. `indent` nests the
- * row under a parent header (the hierarchy tree). */
 export function row(
   ul: HTMLElement,
   label: string,
@@ -295,24 +259,16 @@ export function row(
   return icon;
 }
 
-/** Paint a status icon into a row's leading span. */
 function setRowIcon(icon: HTMLElement, status: RowStatus): void {
   icon.className = `${ICON_CLS} ${ROW_ICON_CLASS[status]}`;
   icon.dataset["rowStatus"] = status;
   setIcon(icon, ROW_ICON[status]);
 }
 
-/**
- * Each task row's status and, while the row is mounted, its icon. A run
- * records a status for any row; a row shows its status whenever it mounts.
- */
 export class RowStatusBoard {
-  /** Terminal status per task id; absent ids are pending. */
   readonly #status = new Map<number, RowStatus>();
-  /** Status icon of each mounted row, keyed by task id. */
   readonly #icons = new Map<number, HTMLElement>();
 
-  /** Mount one task row, painted with its recorded status. */
   mount(
     ul: HTMLElement,
     task: BatchRow & { id: number; indent?: boolean },
@@ -322,14 +278,12 @@ export class RowStatusBoard {
     this.#icons.set(task.id, icon);
   }
 
-  /** Record a row's status; a mounted row flips in place. */
   set(id: number, status: RowStatus): void {
     this.#status.set(id, status);
     const icon = this.#icons.get(id);
     if (icon) setRowIcon(icon, status);
   }
 
-  /** Forget the mounted icons once a phase discards their DOM. */
   unmount(): void {
     this.#icons.clear();
   }
@@ -342,7 +296,6 @@ export interface StaticGroup {
   colorCls: string;
 }
 
-/** A static (non-updating) section of icon + label rows, skipped when empty. */
 export function listGroup(parent: HTMLElement, group: StaticGroup): void {
   if (group.items.length === 0) return;
   section(parent, group.header, {
@@ -355,7 +308,6 @@ export function listGroup(parent: HTMLElement, group: StaticGroup): void {
   });
 }
 
-/** Completed rows retain their confirmed Profile in each summary group. */
 export function profileListGroup(
   parent: HTMLElement,
   group: StaticGroup & { profileHeader: (args: { count: number }) => string },
@@ -381,9 +333,6 @@ export function profileListGroup(
   }
 }
 
-/** A failed-item row: an x-icon + truncated label, with the error message on a
- * second muted line indented under the label. Shared by the live run-phase
- * panel and the summary's Failed group. */
 export function failureRow(
   ul: HTMLElement,
   failure: BatchFailure,

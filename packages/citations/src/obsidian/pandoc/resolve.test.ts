@@ -22,11 +22,8 @@ function link(target: string, line = 0): LinkCache {
 
 interface Fixture {
   links?: readonly LinkCache[];
-  /** Linkpath → Indexed Key of the Literature Note it names. */
   notes?: Record<string, string>;
-  /** Indexed Key → what the database holds for that Item. */
   items?: Record<string, ResolvedItem>;
-  /** Deny the read lease, as a degraded database does. */
   databaseUnavailable?: boolean;
   missingFile?: boolean;
 }

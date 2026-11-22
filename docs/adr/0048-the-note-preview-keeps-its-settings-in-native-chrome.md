@@ -77,3 +77,59 @@ and gains only the corrected stale wording.
   "Card in a pane" as recognizable design failures.
 - The web Workbench still shows "Live preview paused" in its own controls
   beside the new notice; retiring it is a web-side follow-up.
+
+### Preview selections
+
+Use the native suggester for Item and annotation selection. Interrupting a
+selection closes the chooser, and dismissal returns no choice. Offer Sample
+Items, up to three recently updated parent Items, and library search. Read
+the recent list once while it is visible and cancel the read if it closes.
+Search returns parent Items. Offer annotations from the selected Item and
+samples. Where the native header is hidden, show the selected data's own
+name. Use visible headings to label each group for assistive technology.
+
+[Chooser](../../packages/template-workbench/src/obsidian/editor/item-choice.ts) ·
+[Selection UI](../../packages/template-workbench/src/obsidian/editor/selection.tsx)
+
+### Preview rendering in the native pane
+
+Render Note Preview chrome in the interface type scale and use the note
+theme for Markdown. The sheet uses Obsidian's reading-view classes and file
+margins, with the panel as the only scroller. In the inline card the card
+owns the inset, so it adjusts native reading-view and block margins. Use
+the native active icon style for the preview toggle. Keep the disclosure
+title and summary inside its inset, and allow translated labels to wrap
+despite Obsidian's unlayered button rule. Keep the error role across color
+schemes and preserve the report's lines.
+
+The Markdown post-processor runs after Obsidian creates internal embed
+spans and before it loads them. In a preview, replace note embeds with
+placeholders that name the link and report whether the note exists. A
+missing link can name a note even without a file extension. This keeps
+embedded note contents and the create action out of the preview while
+leaving the native rendering of other existing files in place. Report
+Item read failures for an absent Item, a child Item, or an unavailable
+database.
+
+[Preview styles](../../packages/template-workbench/src/desktop/view/preview-panel.css) ·
+[Embed post-processor](../../packages/template-workbench/src/obsidian/view/embed-placeholder.ts)
+
+### Desktop rendering and presentation
+
+Use the leaf's scheduler and host model for Note, Annotation, Citation, and Shared Partial previews. Read selected example data from its caller's contract root. Built-in Citation examples carry their data directly, and connected Citation previews share the Explorer's live data read. Preserve the render metadata, source path, and Citation spans with retained output. The sticky header and body show the same render. Match scroll padding to the header height so a tab stop remains visible. The reading mode and settings controls use the native view chrome.
+
+Render the filename independently from the body. Assume an available name in Preview and leave collision resolution to the vault's save path. Use the runtime clock and the same preparation pipeline as a write. Consume the body already returned by preparation or composition. A second render can change a stateful JavaScript template's result. When composition refuses a failing property, show the property diagnostic and render the body the refused operation did not produce. In Update, apply the Managed Region and stamp Properties on the existing note in memory.
+
+Use Obsidian's Markdown renderer with a lifecycle per output. Unload the lifecycle and its children when the output is replaced. The native pusher and footer keep first- and last-section styling consistent with Reading view. Check for a blank result after native rendering as well as before. Retain source provenance for links and apply the saved-note Citation replacements using the draft's formatted occurrence positions. Show Properties regardless of the vault's document display preference. Open the block when the Properties tab requests it, then let the reader control the fold.
+
+Parse draft citations from the current draft and keep their presentation
+out of the saved-note cache. An empty link list identifies a literal
+citation. Use the render outcome to select the diagnostic and read the
+current formatted output after a successful hold, since invalidation may
+have replaced it. When the engine is absent, preserve the authored citation
+and show the setup hint appropriate to the engine status.
+
+Preview fixtures run each render on its own runner. Register vault
+Partials before Template starts so the first scan finds them. Open the
+test database before the view subscribes, as the plugin worker does.
+The fixture adapts Promise-based test inputs to the live service boundary.

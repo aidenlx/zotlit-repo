@@ -106,7 +106,6 @@ describe("getAttachmentsByParents", () => {
       return statements() - before;
     };
     cost([200]);
-    // Every parent is in the user library, so each read resolves one group.
     expect(cost([100, 200, 400, 999, 100])).toBe(cost([200]));
     const compiled = compiles();
     cost([100, 200, 400, 999, 100]);

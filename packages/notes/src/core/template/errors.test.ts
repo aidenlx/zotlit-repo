@@ -4,7 +4,6 @@ import { TemplateFacade } from "@zotlit/templates/facade";
 
 import { engineFaultSpan, reportedFaultSpan } from "./errors.ts";
 
-/** The error `define` throws for `source`. */
 function compileFault(source: string, language: "liquid" | "eta"): unknown {
   try {
     new TemplateFacade().define("note", source, language);

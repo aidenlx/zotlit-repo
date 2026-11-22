@@ -1,10 +1,5 @@
 #!/usr/bin/env node
 
-// Inspect a running Obsidian over the Chrome DevTools Protocol: list its
-// windows, evaluate like the DevTools console, send any CDP command, or open
-// full DevTools on one window or on the main process. Windows need Obsidian
-// started with `--remote-debugging-port`; see `--help`.
-
 import yargs from "yargs";
 import type { Argv } from "yargs";
 import { hideBin } from "yargs/helpers";
@@ -82,7 +77,6 @@ function withWindow<T>(y: Argv<T>) {
     });
 }
 
-/** The window or main process that `argv` selects. */
 async function resolveTarget(argv: {
   port: number;
   vault?: string;

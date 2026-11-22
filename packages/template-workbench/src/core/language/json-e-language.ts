@@ -1,5 +1,4 @@
 import { closeBrackets } from "@codemirror/autocomplete";
-// CodeMirror highlights JSON-e expressions inside JSON rules and embedded Profile values.
 import { json, jsonLanguage } from "@codemirror/lang-json";
 import { Prec } from "@codemirror/state";
 import type { Range } from "@codemirror/state";
@@ -26,7 +25,6 @@ export function embeddedJsonE(
           jsonLanguage.parser.parse(source),
           templateHighlighter,
           (from, to, classes) => {
-            // Keep the outer JSON styling around semantic JSON-e tokens.
             gapsAround({ from, to }, tokens, (start, end) =>
               marks.push(
                 Decoration.mark({ class: classes }).range(
@@ -47,6 +45,5 @@ export function embeddedJsonE(
     }
     return Decoration.set(marks, true);
   }
-  // Read regions after the document bridge updates; give only the marks precedence.
   return decorationLayer(decorations, { precedence: Prec.highest });
 }

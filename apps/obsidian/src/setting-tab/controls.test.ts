@@ -42,7 +42,6 @@ it.effect(
         }),
         { features, order: host.settingTab },
       );
-      // Obsidian awaits each write before it refreshes the DOM state.
       const write = (key: string, value: unknown) =>
         Effect.promise(() => settingTab.setControlValue(key, value));
 

@@ -1,5 +1,3 @@
-// Keeps one binding per open ZotLit reader view on the layer's Scope.
-
 import type { ReaderSession } from "#core/reader-session/session.ts";
 import type {
   BorrowedExcerptDocument,
@@ -68,7 +66,6 @@ export type {
 } from "./binding.ts";
 export type { MarkGestures } from "./selection.ts";
 
-/** UI gestures and the late-bound reader port that breaks the Excerpt dependency cycle. */
 export interface PdfAnnotationEditorPorts {
   revealAnnotation: MarkGestures["revealAnnotation"];
   blockedPress: (
@@ -78,7 +75,6 @@ export interface PdfAnnotationEditorPorts {
   readers: ExcerptReaderDocuments;
 }
 
-/** The live reader bindings and sessions owned by this plugin lifetime. */
 export class PdfAnnotationEditor extends Context.Service<
   PdfAnnotationEditor,
   {
@@ -98,7 +94,6 @@ export class PdfAnnotationEditor extends Context.Service<
   }
 >()("zotlit/pdf-annotation-editor/PdfAnnotationEditor") {}
 
-/** Acquires listeners before starting layout work; closing the Scope withdraws every binding. */
 export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
   Layer.effect(
     PdfAnnotationEditor,
@@ -127,12 +122,10 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
       yield* Effect.addFinalizer(() => PubSub.shutdown(sessions.pubsub));
       yield* Effect.addFinalizer(() => PubSub.shutdown(events));
       const bindings = new Map<View, PdfViewBinding>();
-      /** Each binding's own Scope, which its writes run on. */
       const scopes = new Map<PdfViewBinding, Scope.Closeable>();
       let trackOpens = false;
       let retired = false;
       const colors = toolColorStore(settings, bridge);
-      // PdfReads and the PDF.js bindings are callback edges that reach Effect through the bridge.
       const reads = new PdfReads({
         now,
         record: ({ attachmentKey, itemKey, serverID, instant }) => {
@@ -159,8 +152,6 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
           ),
         ),
       );
-      // Every binding's Scope is a child of this one, which closes right after
-      // the finalizer below retires the layer.
       const bindingScopes = yield* Scope.fork(layerScope);
       const connectionScopes = yield* Scope.fork(layerScope);
       yield* Effect.addFinalizer(() =>
@@ -170,11 +161,6 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
           scopes.clear();
         }),
       );
-      /**
-       * Closes a binding's Scope, which withdraws its surfaces and then ends
-       * its writes. The close waits on an uninterruptible write, so it runs on
-       * the layer's Scope rather than in the caller.
-       */
       const unbind = Effect.fnUntraced(function* (
         view: View,
         binding: PdfViewBinding,
@@ -249,9 +235,6 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
           },
           sourceScope: () => bridge.runSync(zoteroPref.current).dataDir,
         });
-        // The surfaces go before the writes end, so the writes a disposal
-        // starts, a typed Text Draft's create among them, run on an open
-        // Scope.
         yield* Scope.addFinalizer(
           scope,
           Effect.sync(() => binding[Symbol.dispose]()),
@@ -346,8 +329,6 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
             return null;
           }),
       );
-      // Excerpts start below this layer. Their callback answers detached until
-      // this layer acquires, and again once its bindings have been withdrawn.
       yield* Effect.acquireRelease(
         Effect.sync(() => {
           ports.readers.borrow = (path) => run(borrowDocument(path));

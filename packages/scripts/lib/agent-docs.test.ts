@@ -23,7 +23,6 @@ describe("isAgentDoc", () => {
   });
 
   it.each([
-    // Code reads these.
     "apps/obsidian/src/services/note-import/turndown/__snapshots__/zt-note-example.md",
     "packages/scripts/lib/fixture/vault-pages/Scan target.md",
     "apps/docs/content/docs/reference/templates/data.mdx",

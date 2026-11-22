@@ -35,7 +35,6 @@ const POE = {
   indexedKey: "POE00005",
 };
 
-/** The fixture's Zotero: three Items, one of them also in a group Library. */
 const RESOLUTIONS: Record<string, CitekeyResolution> = {
   doe2024: { kind: "unique", item: DOE },
   roe2025: { kind: "ambiguous", candidates: [ROE, ROE_GROUP] },
@@ -44,20 +43,17 @@ const RESOLUTIONS: Record<string, CitekeyResolution> = {
   poe2021: { kind: "unique", item: POE },
 };
 
-/** Doe has one Literature Note, Poe two; Roe (unique under `lee/2023`) has none. */
 const NOTES: Record<string, string[]> = {
   DOE00001: ["Literature/Doe 2024.md"],
   POE00005: ["Literature/Poe 2021.md", "Literature/Poe 2021 reread.md"],
 };
 
-/** Every Literature Note in the fixture's vault, in the order the Note Index holds them. */
 const ALL_NOTES = [
   "Literature/Doe 2024.md",
   "Literature/Poe 2021.md",
   "Literature/Poe 2021 reread.md",
 ];
 
-/** What each linkpath in the fixture's vault resolves to, as Obsidian answers it. */
 const LINK_TARGETS: Record<string, string> = {
   "Doe 2024": "Literature/Doe 2024.md",
   "Poe 2021": "Literature/Poe 2021.md",
@@ -79,7 +75,6 @@ function occurrence(
   };
 }
 
-/** The rows a first-time reader finds: both syntaxes drawn, every node kept. */
 const ROWS_AS_DEFAULT: GraphCitationFilters = {
   pandocCitations: true,
   wikilinkCitations: true,
@@ -375,8 +370,6 @@ describe("graphCitationAdditions under the Filters rows", () => {
   it("leaves an aliased link, a heading link, and a block link to a Literature Note alone: no Citation Index occurrence names them", () => {
     const additions = graphCitationAdditions(
       input(
-        // `[[Doe 2024|alias]]`, `[[Doe 2024#Notes]]`, and `[[Poe 2021#^a1]]`
-        // are no Wikilink Citations, so the index reports none of them.
         { "Draft.md": [occurrence("citekey", "doe2024")] },
         {
           resolvedLinks: {
@@ -389,15 +382,12 @@ describe("graphCitationAdditions under the Filters rows", () => {
     );
 
     expect(additions.hiddenLinks).toEqual({});
-    // The vault still draws the edge, so the citekey adds none of its own.
     expect(summary(additions).resolved).toEqual({});
   });
 
   it("keeps the ordinary link while taking away the Wikilink Citation beside it", () => {
     const additions = graphCitationAdditions(
       input(
-        // The note writes `[[Doe 2024]]` once and `[[Doe 2024|alias]]` once,
-        // so the vault counts two links and one of them is a Citation.
         { "Draft.md": [occurrence("wikilink", "Doe 2024")] },
         {
           resolvedLinks: { "Draft.md": { "Literature/Doe 2024.md": 2 } },
@@ -480,7 +470,6 @@ describe("graphCitationAdditions under the Filters rows", () => {
   it("drops a note that only links a Literature Note without citing it", () => {
     const additions = graphCitationAdditions(
       input(
-        // `Alias.md` writes `[[Poe 2021|that paper]]`, which is no Citation.
         { "Draft.md": [occurrence("citekey", "doe2024")] },
         {
           resolvedLinks: { "Alias.md": { "Literature/Poe 2021.md": 1 } },

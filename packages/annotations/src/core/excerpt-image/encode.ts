@@ -1,7 +1,4 @@
 import { Effect } from "effect";
-// The one encoder for generated Excerpt Images. The renderer draws a PDF crop
-// onto a canvas and hands it here; the encoded bytes are then reused unchanged by
-// the cache entry, the outcome, and the durable note asset.
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
@@ -11,13 +8,6 @@ import { usableExcerptWebp } from "./webp.ts";
 
 const logged = withLogCategory("excerpt-image");
 
-/**
- * Encodes the crop as lossless WebP. A literal quality of `1` makes Blink select
- * its lossless VP8L encoder, and the returned bytes are checked for that instead
- * of trusting the request: the payload, not the call, decides the format. A host
- * without a canvas WebP encoder hands back the PNG the canvas spec substitutes,
- * which stays PNG everywhere it is stored or displayed.
- */
 export const encodeExcerptImage = Effect.fn("ExcerptImage.encode")(function* (
   canvas: HTMLCanvasElement,
 ) {

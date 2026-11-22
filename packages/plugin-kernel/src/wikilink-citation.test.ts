@@ -114,12 +114,10 @@ describe("wikilinkCitation", () => {
 });
 
 describe("citationRuns", () => {
-  /** One link of a stand-in surface: its name, and the text before it. */
   const link = (name: string, separatorBefore: string | null) => ({
     name,
     separatorBefore,
   });
-  /** Every named link writes a Citation; a link named "plain" writes none. */
   const runs = (links: { name: string; separatorBefore: string | null }[]) =>
     citationRuns(
       links,
@@ -161,7 +159,6 @@ describe("citationRuns", () => {
 });
 
 describe("citationOfRun", () => {
-  /** One run member; the surface it came from is nothing this reads. */
   const member = (linktext: string) => ({
     source: linktext,
     citation: wikilinkCitation(linktext, context())!,

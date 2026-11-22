@@ -5,7 +5,6 @@ import type { E2eServices as ReaderServices } from "@zotlit/reader/e2e";
 import type { createPageHelpers } from "./page-helpers.ts";
 import type { PageApp } from "./page-host.ts";
 
-/** Values present in the receiving window. Imports here are type-only. */
 export interface ObsidianContext {
   app: PageApp;
   zotlit: { services: E2eServices };
@@ -13,7 +12,6 @@ export interface ObsidianContext {
   page: ReturnType<typeof createPageHelpers>;
 }
 
-/** JSON data, with undefined allowed for side-effect-only callbacks. */
 export type JsonCompatible<T> = T extends
   | string
   | number

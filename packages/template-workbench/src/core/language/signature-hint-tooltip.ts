@@ -1,8 +1,3 @@
-// The Signature Hint tooltip of a Filter Expression editor: above the bracket
-// of the call whose arguments hold the caret, the signature with the
-// parameter at the caret marked and the description beneath. The hint stands
-// still as the caret crosses the arguments: CodeMirror keeps one tooltip while
-// its `create` stays the same, and only the mark changes.
 import { StateEffect, StateField } from "@codemirror/state";
 import type { EditorState, Extension } from "@codemirror/state";
 import { showTooltip } from "@codemirror/view";
@@ -20,16 +15,10 @@ import type {
   SignatureHintResult,
 } from "./signature-hint.ts";
 
-/**
- * The public theme hook of the Signature Hint tooltip, which the plugin's
- * theme hooks own. A host styles it.
- */
 export const SIGNATURE_HINT_CLASS = themeHook.signatureHint;
 
-/** Closes the hint until the text or the caret changes. */
 const dismiss = StateEffect.define<null>();
 
-/** The tooltip CodeMirror places, with the hint it shows. */
 interface HintTooltip extends Tooltip {
   readonly hint: SignatureHintResult;
 }
@@ -54,13 +43,6 @@ function renderSignature(
   return block;
 }
 
-/**
- * The Signature Hint of a Filter Expression editor. It draws above the
- * call's opening bracket, so a completion list below the caret leaves it in
- * view.
- * @param options How the hint types a method call's receiver.
- * @returns The editor extension.
- */
 export function signatureHint(options: SignatureHintOptions = {}): Extension {
   const create = (view: EditorView): TooltipView => {
     const doc = view.dom.ownerDocument;
@@ -70,14 +52,11 @@ export function signatureHint(options: SignatureHintOptions = {}): Extension {
     const render = ({ callee, signatures }: SignatureHintResult) => {
       for (const block of blocks) block.remove();
       blocks = signatures.map((each) => renderSignature(doc, callee, each));
-      // Before the arrow, which CodeMirror adds to the tooltip.
       const fragment = doc.createDocumentFragment();
       fragment.append(...blocks);
       dom.insertBefore(fragment, dom.firstChild);
     };
     render(view.state.field(hint)!.hint);
-    // The hint shows while the editor has focus, as CodeMirror tells it. Out
-    // of sight it keeps its size, so CodeMirror places it right from the start.
     const show = (shown: EditorView) => {
       dom.style.visibility = shown.hasFocus ? "" : "hidden";
     };
@@ -118,7 +97,6 @@ export function signatureHint(options: SignatureHintOptions = {}): Extension {
   });
   return [
     hint,
-    // Escape closes the hint; a completion list standing with it closes first.
     fieldPopup.of((view) =>
       view.state.field(hint)
         ? {

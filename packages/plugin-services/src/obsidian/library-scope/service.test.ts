@@ -22,7 +22,6 @@ import { LIBRARY_SCOPE_KEY } from "./service.ts";
 
 import { platformSettings } from "#__fixtures__/platform-settings.ts";
 
-// Group-id order differs from local library-id order.
 const MY_LIBRARY: Library = {
   libraryID: 1,
   version: 0,

@@ -29,7 +29,6 @@ vi.mock("./copy-attachments.ts", () => ({
   ),
 }));
 
-/** Whether the temp file system finds a folder by a name in another letter case. */
 const TEMP_FOLDS_CASE = (() => {
   const probe = mkdtempSync(join(tmpdir(), "zotlit-case-probe-"));
   try {
@@ -40,14 +39,12 @@ const TEMP_FOLDS_CASE = (() => {
   }
 })();
 
-/** A Zotero data directory on disk; the canonical roots resolve against it. */
 let dataDir: string;
 let storageDir: string;
 let cacheDir: string;
 let baseDir: string;
 let outsideDir: string;
 
-/** Attachment Import over the temporary Zotero directory. */
 function makeService(options: Partial<AttachmentImportFixtureOptions> = {}) {
   return attachmentImportFixture({
     defaults: platformDefaults,
@@ -57,7 +54,6 @@ function makeService(options: Partial<AttachmentImportFixtureOptions> = {}) {
   });
 }
 
-/** An attachment file inside `dir`, returned as its absolute path. */
 function makeFile(dir: string, name: string) {
   return Effect.promise(async () => {
     const path = join(dir, name);
@@ -77,8 +73,6 @@ const NOTHING = {
 
 beforeEach(async () => {
   vi.clearAllMocks();
-  // Canonicalized up front (macOS hands out a symlinked temp dir), so a queued
-  // copy's declared path and its confirmed canonical path are the same string.
   dataDir = await realpath(
     await mkdtemp(join(tmpdir(), "zotlit-attachment-import-")),
   );
@@ -108,8 +102,6 @@ describe("AttachmentImport", () => {
           vaultName: "ANNOT.png",
         })(),
       ).toBe(`[ANNOT.png](file://${image})`);
-      // Nothing is written with import off, so nothing is judged and nothing
-      // is reported as skipped.
       expect(yield* batch.flush).toEqual(NOTHING);
       expect(copyAttachments).toHaveBeenCalledWith([]);
     }),
@@ -201,9 +193,6 @@ describe("AttachmentImport", () => {
         })();
 
         expect(yield* batch.flush).toEqual({ ...NOTHING, copied: 3 });
-        // The origin picks the copy strategy: a Zotero-managed source keeps its
-        // reflink-able path, a linked file arrives as the descriptor confirmed
-        // for it.
         expect(copyAttachments).toHaveBeenCalledWith([
           {
             source: { kind: "path", path: stored },
@@ -247,7 +236,6 @@ describe("AttachmentImport", () => {
           .approved,
       ).toBe(false);
 
-      // No change is announced: the next operation reads the new location.
       yield* moveZotero(
         { dataDir, baseAttachmentPath: movedBase },
         { announce: false },
@@ -273,9 +261,6 @@ describe("AttachmentImport", () => {
           movedDataDir,
           "storage/IMG12345/image.png",
         );
-        // The annot view holds one handle across every drag out of the active
-        // note, so the rebuild has to reach a batch prepared before the pref
-        // moved.
         const batch = yield* service.prepare("Notes/A.md");
 
         expect(batch.decide(stored, "storage").approved).toBe(false);
@@ -345,7 +330,6 @@ describe("AttachmentImport", () => {
           });
 
         yield* blockOne("a.pdf");
-        // Each flush restarts the window, so nothing is announced yet.
         yield* TestClock.adjust("1000 millis");
         yield* blockOne("b.pdf");
         yield* TestClock.adjust("1000 millis");
@@ -412,7 +396,6 @@ describe("AttachmentImport", () => {
         })();
 
         expect(yield* batch.flush).toMatchObject({ copied: 1 });
-        // The copy reads the confirmed canonical path, not the declared one.
         expect(copyAttachments).toHaveBeenCalledWith([
           {
             source: { kind: "path", path: stored },
@@ -428,7 +411,6 @@ describe("AttachmentImport", () => {
       const batch = yield* service.prepare("Notes/A.md");
       const stored = yield* makeFile(storageDir, "IMG12345/image.png");
 
-      // Resolve the link but never invoke it — the excerpt is never embedded.
       batch.resolveLink({
         source: batch.decide(stored, "storage"),
         vaultName: "IMG-image.png",
@@ -448,8 +430,6 @@ describe("AttachmentImport", () => {
         const batch = yield* service.prepare("Notes/A.md");
         const stored = yield* makeFile(storageDir, "IMG12345/image.png");
 
-        // Resolving a link or flushing with nothing embedded must not create a
-        // folder.
         const link = batch.resolveLink({
           source: batch.decide(stored, "storage"),
           vaultName: "IMG-image.png",
@@ -457,7 +437,6 @@ describe("AttachmentImport", () => {
         yield* batch.flush;
         expect(vault.folders.has("NewFolder")).toBe(false);
 
-        // Render the link, then flush: now the folder is created.
         link();
         yield* batch.flush;
         expect(vault.folders.has("NewFolder")).toBe(true);
@@ -601,7 +580,6 @@ describe("AttachmentImport approved folders", () => {
       ).pipe(Effect.forkChild({ startImmediately: true }));
 
       yield* service.approveFolder(outsideDir);
-      // Approving a folder already approved changes nothing.
       yield* service.approveFolder(outsideDir);
       yield* service.revokeFolder(outsideDir);
 
@@ -638,7 +616,6 @@ describe("AttachmentImport approved folders", () => {
         yield* granted.service.approveFolder(outsideDir);
         const linked = yield* makeFile(outsideDir, "scan.pdf");
 
-        // The same vault on the same device, restarted: the grant is still there.
         const restarted = yield* makeService({ storage });
         expect(yield* restarted.service.approvedFolders).toEqual([outsideDir]);
         expect(
@@ -648,7 +625,6 @@ describe("AttachmentImport approved folders", () => {
           ).approved,
         ).toBe(true);
 
-        // Another vault reads its own store, so nothing was granted there.
         const otherVault = yield* makeService({
           storage: new MemoryDeviceStorage(),
         });
@@ -677,8 +653,6 @@ describe("AttachmentImport approved folders", () => {
           await symlink(elsewhere, outsideDir);
         });
 
-        // The grant is gone rather than moved: neither the path the user
-        // approved nor the location the link now points at is a source.
         const batch = yield* service.prepare("Notes/A.md");
         expect(batch.decide(linked, "linked-absolute").approved).toBe(false);
         expect(batch.decide(inElsewhere, "linked-absolute").approved).toBe(
@@ -711,7 +685,6 @@ describe("AttachmentImport approved folders", () => {
         yield* Effect.promise(() =>
           mkdir(join(locked, "base"), { recursive: true }),
         );
-        // A folder whose parent the user may not search answers EACCES.
         yield* Effect.acquireRelease(
           Effect.promise(() => chmod(locked, 0o000)),
           () => Effect.promise(() => chmod(locked, 0o755)),

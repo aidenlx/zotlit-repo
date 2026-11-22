@@ -9,11 +9,6 @@ export interface AttachmentFile {
   readonly exists: boolean;
 }
 
-/**
- * Resolve Attachment files for one Query Job. One resolver belongs to one
- * query, so every Attachment is probed at most once across all of its rows.
- * A file the probe cannot reach reads as missing.
- */
 export const makeAttachmentFileResolver = Effect.fnUntraced(function* (
   paths: AttachmentPathContext,
 ): Effect.fn.Return<ResolveAttachmentFile, never, FileSystem.FileSystem> {
@@ -26,7 +21,6 @@ export const makeAttachmentFileResolver = Effect.fnUntraced(function* (
           Effect.orElseSucceed(() => false),
           Effect.map((exists) => ({ path, exists })),
         );
-  // Per Attachment row of a query: untraced.
   return Effect.fnUntraced(function* (attachment) {
     const cached = memo.get(attachment.itemID);
     if (cached) return yield* cached;

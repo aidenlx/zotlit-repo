@@ -7,7 +7,6 @@
     "isolatedDeclarations": false,
     "types": []
   },
-  // The generated facade, which the plugin's bundler compiles.
   "include": ["./generated/**/*.ts"],
   "exclude": ["./node_modules"]
 }

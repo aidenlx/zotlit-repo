@@ -7,13 +7,9 @@ import { parsePrefsFile } from "./parse-prefs.ts";
 
 export interface PrefsPluginOpts {
   root: string;
-  /** Required pref-key prefix, e.g. `"extensions.zotlit."`. Build fails if any key misses it. */
   prefix: string;
-  /** Path to the `pref(...)` defaults file, relative to `root`. */
   prefsFile: string;
-  /** Addon-staging source dir; every `.xhtml` underneath is scanned for `preference="..."` refs. */
   addonDir: string;
-  /** Codegen output path for the `PluginPrefKey` union, relative to `root`. */
   typesOutput: string;
 }
 

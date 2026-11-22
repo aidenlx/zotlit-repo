@@ -57,11 +57,9 @@ function dialogWith(
   });
 }
 
-/** A Share output that records what each button hands it. */
 function recordedOutput() {
   const share = vi.fn<ShareOutput>(async () => {});
   return Object.assign(share, {
-    /** The bundles handed to `destination`, in order. */
     sent: (destination: "clipboard" | "file") =>
       share.mock.calls
         .filter(([to]) => to === destination)
@@ -69,7 +67,6 @@ function recordedOutput() {
   });
 }
 
-/** `selector`'s Share plan, with `render` run as the Share dialog runs it. */
 const sharePlan = Effect.fnUntraced(function* (
   profile: Profile["Service"],
   selector: ProfileSelector,
@@ -287,7 +284,6 @@ effectIt.effect(
       expect(controls.toggle("authors").getValue()).toBe(true);
       expect(controls.toggle("venue-line").getValue()).toBe(false);
 
-      // Checked: the call is answered inside the one shared file.
       controls.toggle("venue-line").toggle(true);
       yield* Effect.promise(async () => controls.click(m.profile_share_copy()));
       expect(
@@ -296,7 +292,6 @@ effectIt.effect(
           .manifest.partials?.map(({ name }) => name),
       ).toEqual(["authors", "venue-line"]);
 
-      // Cleared: the recipient gets nothing for that name.
       controls.toggle("venue-line").toggle(false);
       controls.toggle("authors").toggle(false);
       yield* Effect.promise(async () => controls.click(m.profile_share_copy()));
@@ -342,8 +337,6 @@ effectIt.effect(
   "opens for a profile whose call no document answers, and names it",
   () =>
     Effect.gen(function* () {
-      // Story 43 leaves this behind: the reader renamed the partial file and the
-      // call in the profile still spells the old name.
       const f = yield* Effect.acquireDisposable(
         Effect.promise(() =>
           profileServiceFixture({
@@ -372,11 +365,6 @@ effectIt.effect(
     }),
 );
 
-/**
- * The Share dialog over a Profile service fixture, started as the settings
- * row starts it, and drawn. `answer` answers the save dialog with a path in
- * the case's own folder.
- */
 const sharing = Effect.fnUntraced(function* (
   answer: (
     folder: string,
@@ -431,13 +419,11 @@ const sharing = Effect.fnUntraced(function* (
   };
 });
 
-/** Press `label`, as the user does; the output it starts runs on. */
 const press = (
   s: { controls: ReturnType<typeof observeControls> },
   label: string,
 ) => Effect.sync(() => void s.controls.click(label));
 
-/** Press `label`, as the user does, and wait for the output it starts. */
 const output = (
   s: { controls: ReturnType<typeof observeControls> },
   label: string,
@@ -484,8 +470,6 @@ effectIt.effect(
       yield* press(s, m.profile_share_save());
       yield* until(() => s.showSaveDialog.mock.calls.length === 1);
       s.modal.onClose();
-      // The native save dialog holds the window until it answers; the closed
-      // sheet's Scope then stops the output before it writes.
       selection.resolve({
         canceled: false,
         filePath: join(s.folder, "Default.md"),

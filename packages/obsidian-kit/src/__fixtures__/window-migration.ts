@@ -1,10 +1,5 @@
-// A stand-in for Obsidian's `onWindowMigrated`, which happy-dom lacks: tests
-// move an element to a popout window by hand. Disposing it restores the
-// element prototype. Like Obsidian, which hears a move through the animation
-// a class it adds starts, it tells only an element that still has that class.
 import { vi } from "vitest";
 
-/** The class whose animation tells Obsidian an element shows. */
 const NODE_INSERT_CLASS = "node-insert-event";
 
 export function windowMigration() {
@@ -13,7 +8,6 @@ export function windowMigration() {
     "onWindowMigrated",
   );
   const listeners: [HTMLElement, (win: Window) => void][] = [];
-  /** Called when the element releases its listener. */
   const release = vi.fn();
   Object.defineProperty(HTMLElement.prototype, "onWindowMigrated", {
     configurable: true,
@@ -25,7 +19,6 @@ export function windowMigration() {
   });
   return {
     release,
-    /** Moves the elements that listen to `win`. */
     move: (win: Window) => {
       for (const [element, listener] of listeners)
         if (element.classList.contains(NODE_INSERT_CLASS)) listener(win);

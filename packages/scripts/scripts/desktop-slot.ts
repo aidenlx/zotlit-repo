@@ -1,9 +1,5 @@
 #!/usr/bin/env node
 
-// The Desktop Slots from the command line: hold one (or all) around a manual
-// session on the desktop Obsidian, show who holds them, or evict a holder.
-// `--help` prints the contract.
-
 import { spawn } from "node:child_process";
 import { constants } from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
@@ -93,7 +89,6 @@ async function run(
     manual: true,
     exclusive,
     waitMs: wait === undefined ? undefined : duration(wait),
-    // The command handles the signals; the slot is released after it exits.
     signals: false,
     onLeaseEnd: (owner) => {
       leaseOver = true;
@@ -106,7 +101,6 @@ async function run(
   });
 
   const posix = process.platform !== "win32";
-  // Its own process group, so the Lease can end the command's descendants too.
   const child = spawn(command[0]!, command.slice(1), {
     stdio: "inherit",
     detached: posix,
@@ -119,7 +113,6 @@ async function run(
       // The group is gone.
     }
   }
-  // The command no longer shares the terminal's group, so pass every signal on.
   for (const signal of ["SIGINT", "SIGTERM", "SIGHUP"] as const) {
     process.on(signal, () => signalGroup(signal));
   }
@@ -131,7 +124,6 @@ async function run(
   child.on("exit", (code, signal) => {
     void (async () => {
       if (leaseOver) {
-        // Give the rest of the group the same grace, then end it.
         const until = Temporal.Now.instant().add({
           milliseconds: KILL_AFTER_MS,
         });
@@ -152,8 +144,6 @@ async function run(
       );
     })();
   });
-  // After the listeners: a command that exits during this write still reports
-  // its exit code.
   if (posix && child.pid !== undefined) {
     await recordDesktopSlotGroup(slot.owner.token, child.pid);
   }
@@ -171,7 +161,6 @@ function groupAlive(pgid: number): boolean {
 async function status(json: boolean) {
   const now = Temporal.Now.instant().epochMilliseconds;
   const state = await readDesktopSlotStatus();
-  // The slots on disk are still listed.
   if (state.slotCountError)
     console.error(`Desktop Slot: ${state.slotCountError}`);
   if (json) {

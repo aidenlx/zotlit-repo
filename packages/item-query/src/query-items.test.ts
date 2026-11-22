@@ -51,7 +51,6 @@ async function result(
   return exit.value;
 }
 
-/** The typed failure of a run; a defect or an interruption fails the test. */
 async function failure(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   request: ItemQueryRequest,
@@ -82,10 +81,6 @@ it("reads a title text sweep without a scan page", async () => {
   expect(readers).not.toContain("scan-page");
 });
 
-/**
- * The hydrate statements of a run: `fields` loads the field values of a chunk,
- * `relation` loads one relation of a chunk.
- */
 function hydrates(
   events: readonly RunEvent[],
   kind: "fields" | "relation",
@@ -99,7 +94,6 @@ function hydrates(
   );
 }
 
-/** The statements that load the Attachment Relation List of a chunk. */
 function attachmentReads(events: readonly RunEvent[]): StatementRun[] {
   return events.flatMap((event) =>
     event.type === "statement" && event.statement.reader === "item-attachments"
@@ -108,8 +102,6 @@ function attachmentReads(events: readonly RunEvent[]): StatementRun[] {
   );
 }
 
-/** The Item IDs that the ID slots of one statement bind. */
-/** The Item IDs in the `id0`, `id1`, … slots; a page cursor is no Item. */
 function itemIDsBound(statement: StatementRun): number[] {
   return Object.entries(statement.params)
     .filter(([name]) => /^id\d+$/.test(name))
@@ -117,7 +109,6 @@ function itemIDsBound(statement: StatementRun): number[] {
     .filter((param): param is number => typeof param === "number");
 }
 
-/** Store a built-in field value on a personal Item of the scenario. */
 function setField(
   database: ScenarioDatabase<NodeDatabaseClient>,
   key: string,
@@ -148,7 +139,6 @@ function itemIDsOf(
   );
 }
 
-/** The personal Library, most recently modified first, ties in key order. */
 const PERSONAL_BY_MODIFIED = [
   "ART2FULL",
   "UNI2CDE2",
@@ -162,7 +152,6 @@ const PERSONAL_BY_MODIFIED = [
   "CNF2TEXT",
 ];
 
-/** Both Libraries, most recently modified first. */
 const BOTH_BY_MODIFIED = [
   "ART2FULLg4815",
   "ART2FULL",
@@ -192,8 +181,6 @@ describe("collectQuery(ITEMS) without a filter", () => {
     const insert = scenario.sqlite.prepare(
       "insert into items (itemTypeID, libraryID, key, dateModified) select itemTypeID, ?, ?, ? from itemTypesCombined where typeName = 'book'",
     );
-    // 1,200 more Items, modified one second apart from 2025-01-01 on, with keys
-    // in the reverse order of their modification times.
     const start = Temporal.Instant.from("2025-01-01T00:00:00Z");
     for (let i = 0; i < 1200; i++) {
       const modified = start.add({ seconds: i }).toString().slice(0, 19);
@@ -268,7 +255,6 @@ describe("collectQuery(ITEMS) projection", () => {
   });
 });
 
-/** The `values` of each row by Indexed Key. */
 const valuesByKey = (found: QueryResult) =>
   Object.fromEntries(found.rows!.map((row) => [row.indexedKey, row.values]));
 
@@ -404,7 +390,6 @@ describe("collectQuery(ITEMS) Projection Paths", () => {
     9007199254740993n,
     9223372036854775807n,
     -9223372036854775808n,
-    // A REAL whose JavaScript string denotes a different exact integer.
     1_000_000_000_000_000_100,
   ])(
     "preserves the stored number %s in projection and both filter plans",
@@ -573,7 +558,6 @@ describe("collectQuery(ITEMS) relation lists", () => {
     });
     const values = valuesByKey(found);
 
-    // The same person as author and as editor gives two elements.
     expect(values["BK2MNTH2"]).toEqual({
       creators: [
         {
@@ -649,9 +633,7 @@ describe("collectQuery(ITEMS) relation lists", () => {
       collections: ["Thesis", "Thesis/Methods"],
       "collections[1]": "Thesis/Methods",
     });
-    // Also filed in Archive/Old, below the trashed Archive.
     expect(values["ART2FULL"]?.["collections"]).toEqual(["Thesis/Methods"]);
-    // Also filed in the trashed Archive.
     expect(values["BK2MNTH2"]?.["collections"]).toEqual(["Teaching/Methods"]);
     expect(values["RPT2NDTE"]).toEqual({
       collections: [],
@@ -696,7 +678,6 @@ describe("collectQuery(ITEMS) relation lists", () => {
 
   it("projects an empty list for a paper with only trashed Attachments", async () => {
     using scenario = openScenarioDatabase(connectClient);
-    // ART2FULL keeps only its already trashed Attachment.
     scenario.sqlite.exec(
       "insert into deletedItems (itemID, dateDeleted) select itemID, '2024-01-01 00:00:00' from items where key = 'PDF2LIVE'",
     );
@@ -720,7 +701,6 @@ describe("collectQuery(ITEMS) relation lists", () => {
     if (!Exit.isSuccess(exit)) throw new Error(String(exit.cause));
     const byNumber = (a: number, b: number) => a - b;
     const returned = itemIDsOf(scenario, ["ART2FULL", "UNI2CDE2"]);
-    // Every relation statement binds the returned rows only; no field values.
     expect(hydrates(events, "fields")).toEqual([]);
     const relations = [
       ...hydrates(events, "relation"),
@@ -742,7 +722,6 @@ describe("collectQuery(ITEMS) relation lists", () => {
     });
 
     if (!Exit.isSuccess(exit)) throw new Error(String(exit.cause));
-    // The title and the Attachment Relation List each load once for each Item.
     const byNumber = (a: number, b: number) => a - b;
     const every = itemIDsOf(scenario, PERSONAL_BY_MODIFIED).toSorted(byNumber);
     const boundOnce = (statements: StatementRun[]) =>
@@ -774,7 +753,6 @@ describe("collectQuery(ITEMS) relation lists", () => {
 });
 
 describe("collectQuery(ITEMS) first author", () => {
-  /** Put the editor of the book chapter before its author. */
   function editorFirst(database: ScenarioDatabase<NodeDatabaseClient>): void {
     const itemID = itemIDsOf(database, ["CHP2YEAR"])[0]!;
     const reorder = database.sqlite.prepare(
@@ -825,7 +803,6 @@ describe("collectQuery(ITEMS) first author", () => {
     });
 
     expect(keys(filtered)).toEqual(["CHP2YEAR"]);
-    // Rows without a first author come last; the Indexed Key breaks ties.
     expect(keys(sorted)).toEqual([
       "BK2MNTH2",
       "ART2FULL",
@@ -858,7 +835,6 @@ describe("collectQuery(ITEMS) failures", () => {
 
   it("fails with the tagged database error when a statement fails", async () => {
     using scenario = openScenarioDatabase(connectClient);
-    // The copy passes the layout check first, so the statement itself fails.
     await result(scenario, { libraries: [personal], limit: 1 });
     scenario.sqlite.exec("drop table deletedItems");
 
@@ -1134,7 +1110,6 @@ describe("collectQuery(ITEMS) sort", () => {
       { indexedKey: "ALS2CNFL", values: { DOI: null } },
     ]);
     const byNumber = (a: number, b: number) => a - b;
-    // The Items each field-value statement reads, by the fields it reads.
     const itemsRead = (name: string) =>
       hydrates(events, "fields")
         .filter((statement) =>
@@ -1219,7 +1194,6 @@ describe("collectQuery(ITEMS) sort with a limit", () => {
 });
 
 describe("collectQuery(ITEMS) sort of a large Library", () => {
-  /** 1,200 more Items whose titles run against their key order. */
   function seedLargeLibrary(database: ScenarioDatabase<NodeDatabaseClient>) {
     const insertItem = database.sqlite.prepare(
       "insert into items (itemTypeID, libraryID, key) select itemTypeID, ?, ? from itemTypesCombined where typeName = 'book'",
@@ -1235,7 +1209,6 @@ describe("collectQuery(ITEMS) sort of a large Library", () => {
         personal.libraryID,
         `ZZ${String(i).padStart(6, "0")}`,
       ).lastInsertRowid;
-      // Every third Item shares its title with two others.
       const title = `zz ${String(9999 - Math.floor(i / 3)).padStart(4, "0")}`;
       const value =
         i % 3 === 0
@@ -1273,7 +1246,6 @@ describe("collectQuery(ITEMS) sort of a large Library", () => {
       "TIE2AAAA",
       "TIE2BBBB",
     ]);
-    // "zz 9600" is the least of the added titles, on the last three keys.
     expect(keys(found).slice(9, 15)).toEqual([
       "ZZ001197",
       "ZZ001198",
@@ -1292,9 +1264,6 @@ describe("collectQuery(ITEMS) sort of a large Library", () => {
 });
 
 describe("collectQuery(ITEMS) accessDate", () => {
-  // The scenario stores 2020-01-07 04:00:00 (UTC) on RPT2NDTE, the calendar
-  // day 2020-01-07 on CHP2YEAR, and "yesterday" on UNI2CDE2. New York is
-  // UTC-5 in January, so 7 January starts there at 05:00Z.
   const NEW_YORK = {
     now: "2020-01-08T02:00:00Z",
     timeZone: "America/New_York",
@@ -1309,7 +1278,6 @@ describe("collectQuery(ITEMS) accessDate", () => {
     "UNI2CDE2",
   ];
 
-  /** A later timestamp and an impossible date beside the scenario values. */
   function withAccessDates(
     scenario: ScenarioDatabase<NodeDatabaseClient>,
   ): void {
@@ -1368,7 +1336,6 @@ describe("collectQuery(ITEMS) accessDate", () => {
     using scenario = openScenarioDatabase(connectClient);
     withAccessDates(scenario);
 
-    // 04:00Z is 23:00 on 6 January in New York, before 7 January starts.
     expect(await sorted(scenario, "asc")).toEqual([
       "RPT2NDTE",
       "CHP2YEAR",
@@ -1398,7 +1365,6 @@ describe("collectQuery(ITEMS) accessDate", () => {
 
   it("starts a calendar day before a timestamp of the same date in a zone east of UTC", async () => {
     using scenario = openScenarioDatabase(connectClient);
-    // 7 January starts at 15:00Z on 6 January in Tokyo (UTC+9).
     const tokyo = { now: "2020-01-08T02:00:00Z", timeZone: "Asia/Tokyo" };
 
     expect(await sorted(scenario, "asc", tokyo)).toEqual([
@@ -1417,8 +1383,6 @@ describe("collectQuery(ITEMS) accessDate", () => {
 
   it("starts a calendar day after a daylight-saving change at the offset of that day", async () => {
     using scenario = openScenarioDatabase(connectClient);
-    // Daylight-saving time starts in New York on 8 March 2020: 9 March starts
-    // at 04:00Z (UTC-4), 8 March at 05:00Z (UTC-5).
     setField(scenario, "TIE2AAAA", ["accessDate", "2020-03-09"]);
     setField(scenario, "TIE2BBBB", ["accessDate", "2020-03-09 04:30:00"]);
     setField(scenario, "BK2MNTH2", ["accessDate", "2020-03-08 04:30:00"]);
@@ -1457,7 +1421,6 @@ describe("collectQuery(ITEMS) accessDate", () => {
 });
 
 describe("collectQuery(ITEMS) with a filter", () => {
-  /** The Indexed Keys the filter selects, in key order. */
   const matching = async (
     scenario: ScenarioDatabase<NodeDatabaseClient>,
     filter: string,
@@ -1565,7 +1528,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
     it("does not normalize Unicode and reads SQL wildcard characters as text", async () => {
       using scenario = openScenarioDatabase(connectClient);
-      // The scenario stores the Tag in its composed form.
       expect(await matching(scenario, 'tags.contains("Éclair")')).toEqual([
         "UNI2CDE2",
       ]);
@@ -1589,7 +1551,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
       expect(await matching(scenario, 'title.contains("🧪")')).toEqual([
         "UNI2CDE2",
       ]);
-      // `lower` gives the Turkish dotted capital I a combining dot.
       expect(
         await matching(scenario, 'title.lower().contains("istanbul")'),
       ).toEqual([]);
@@ -1633,13 +1594,11 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
     it("treats a null result as no match, and its negation as a match", async () => {
       using scenario = openScenarioDatabase(connectClient);
-      // Null for every Item without a volume.
       expect(await matching(scenario, 'volume < "2"')).toEqual([
         "ART2FULL",
         "TIE2AAAA",
         "TIE2BBBB",
       ]);
-      // `!` reads null as falsy.
       expect(await matching(scenario, '!(volume < "2")')).toEqual(
         EVERY_PERSONAL_ITEM.filter(
           (key) => !["ART2FULL", "TIE2AAAA", "TIE2BBBB"].includes(key),
@@ -1706,7 +1665,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
   });
 
   describe("dates and the Query Clock", () => {
-    /** The keys the filter selects at one instant in one time zone. */
     const matchingAt = async (
       scenario: ScenarioDatabase<NodeDatabaseClient>,
       filter: string,
@@ -1725,7 +1683,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
       return keys(exit.value);
     };
 
-    // 02:00Z on 2020-01-08 is still 2020-01-07 in New York (UTC-5).
     const NEW_YORK = {
       now: "2020-01-08T02:00:00Z",
       timeZone: "America/New_York",
@@ -1733,8 +1690,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
     it("compares a timestamp with today() on the calendar day of the query time zone", async () => {
       using scenario = openScenarioDatabase(connectClient);
-      // BK2MNTH2 was added at 06:00Z (01:00 local on 7 January), CNF2TEXT at
-      // 04:00Z (23:00 local on 6 January).
       expect(
         await matchingAt(scenario, "dateAdded >= today()", NEW_YORK),
       ).toEqual([
@@ -1754,7 +1709,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
     it("gives every call in one query the same instant", async () => {
       using scenario = openScenarioDatabase(connectClient);
-      // A clock that moves one day forward at every read.
       let reads = 0;
       const start = Temporal.Instant.from(NEW_YORK.now).epochMilliseconds;
       const moving = (): number => start + 86_400_000 * reads++;
@@ -1835,9 +1789,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
     it("compares partial dates as the interval of days each one covers", async () => {
       using scenario = openScenarioDatabase(connectClient);
-      // ART2FULL 2020-03-15, ALS2CNFL 2021-06-30, UNI2CDE2 2024-02-29,
-      // TIE2* 2021, BK2MNTH2 2019-11, CHP2YEAR 2018; CNF2TEXT has a text date
-      // without a year and RPT2NDTE no date.
       expect(
         await matchingAt(scenario, 'date >= date("2020")', NEW_YORK),
       ).toEqual([
@@ -1880,7 +1831,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
     it("reads a text date by the year in its text, and accessDate as a UTC timestamp", async () => {
       using scenario = openScenarioDatabase(connectClient);
       setField(scenario, "RPT2NDTE", ["date", "0000-00-00 circa 1850"]);
-      // 03:00Z on 16 March is 23:00 on 15 March in New York.
       setField(scenario, "ART2FULL", ["accessDate", "2020-03-16 03:00:00"]);
 
       expect(
@@ -1928,8 +1878,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
 
     it("reads the built-in field for a bare name that a custom field also has", async () => {
       using scenario = openScenarioDatabase(connectClient);
-      // The type-specific field wins over the stored base field; the custom
-      // field of the same name is reached only through custom[...].
       expect(
         await matching(scenario, 'publicationTitle == "Type-Specific Host"'),
       ).toEqual(["ALS2CNFL"]);
@@ -1966,7 +1914,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
     });
 
     it.each([
-      // Field lookup is case-sensitive.
       ['Mood == "calm"', [0, 4]],
       ['Title == "x"', [0, 5]],
       ['true && noSuchField == "x"', [8, 19]],
@@ -2007,7 +1954,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
         "BK2MNTH2",
         "CHP2YEAR",
       ]);
-      // The same person as author and as editor.
       expect(
         await matching(
           scenario,
@@ -2044,7 +1990,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
       expect(
         await matching(scenario, 'collections.contains("Teaching/Methods")'),
       ).toEqual(["BK2MNTH2"]);
-      // Two Collections share the leaf name; the leaf name alone is no path.
       expect(
         await matching(scenario, 'collections.contains("Methods")'),
       ).toEqual([]);
@@ -2129,12 +2074,6 @@ describe("collectQuery(ITEMS) with a filter", () => {
 });
 
 describe("collectQuery(ITEMS) candidate sets", () => {
-  /**
-   * Run a filter on the personal Library, and give its Indexed Keys in key
-   * order and the keys of the Items that the hydrate statements of `kind`
-   * loaded. A filter here reads one relation at most, so the relation
-   * statements load the Tags or the Collections that the filter reads.
-   */
   const hydratedReads =
     (kind: "fields" | "relation") =>
     async (filter: string, tuning?: RunOptions["tuning"]) => {
@@ -2174,12 +2113,10 @@ describe("collectQuery(ITEMS) candidate sets", () => {
   });
 
   it("reads the candidates that are outside the query universe from no further table, and returns none of them", async () => {
-    // The trashed Item TRS2SHED also carries the Tag.
     expect(await tagReads('tags.contains("to-read")')).toEqual({
       matched: ["ART2FULL", "BK2MNTH2"],
       read: ["ART2FULL", "BK2MNTH2"],
     });
-    // The key of an Attachment and of a trashed Item.
     expect(await tagReads('key == "PDF2LIVE" && tags.isEmpty()')).toEqual({
       matched: [],
       read: [],
@@ -2237,7 +2174,6 @@ describe("collectQuery(ITEMS) candidate sets", () => {
   });
 
   it("reads only the Items that store the value for a field-value filter", async () => {
-    // `volume` is the integer 12 on ART2FULL and TIE2AAAA, text on TIE2BBBB.
     expect(await fieldReads('volume == "12"')).toEqual({
       matched: ["ART2FULL", "TIE2AAAA", "TIE2BBBB"],
       read: ["ART2FULL", "TIE2AAAA", "TIE2BBBB"],
@@ -2256,7 +2192,6 @@ describe("collectQuery(ITEMS) candidate sets", () => {
       matched: ["RPT2NDTE"],
       read: ["RPT2NDTE"],
     });
-    // ALS2CNFL stores both: the type-specific value is the field's value.
     expect(await fieldReads('publicationTitle == "Base Field Host"')).toEqual({
       matched: [],
       read: ["ALS2CNFL"],
@@ -2264,7 +2199,6 @@ describe("collectQuery(ITEMS) candidate sets", () => {
   });
 
   it("reads only the Items filed in the Collection for a Collection filter", async () => {
-    // The trashed Item TRS2SHED is also filed in Thesis/Methods.
     expect(
       await collectionReads('collections.contains("Thesis/Methods")'),
     ).toEqual({
@@ -2315,7 +2249,6 @@ describe("collectQuery(ITEMS) candidate sets", () => {
     'volume.lower() == "12"',
     'custom["review.status"] == "done"',
     'mood == "calm"',
-    // accessDate is a date, not stored text.
     'accessDate == "2020-01-07"',
   ])("reads every Item's fields for %j", async (filter) => {
     expect((await fieldReads(filter)).read).toEqual(EVERY_PERSONAL_ITEM);
@@ -2356,8 +2289,6 @@ describe("collectQuery(ITEMS) candidate sets", () => {
   });
 
   it("uses a candidate set of at most 25% of the Library's `items` rows, and the scan for a larger one", async () => {
-    // The personal Library has 15 `items` rows: the cap is 3 Items. The Tag
-    // `tie` is on 3 Items; `tie` and `methods` together are on 5.
     const within = await tagReads('tags.contains("tie")');
     const above = await tagReads(
       'tags.contains("tie") || tags.contains("methods")',
@@ -2372,7 +2303,6 @@ describe("collectQuery(ITEMS) candidate sets", () => {
 
   it("uses the side of && within the cap when the other side is above it", async () => {
     using scenario = openScenarioDatabase(connectClient);
-    // The Tag `methods` on four more Items: five in total, above the cap of 3.
     scenario.sqlite.exec(
       `insert into itemTags (itemID, tagID, type)
        select itemID, (select tagID from tags where name = 'methods'), 0
@@ -2420,7 +2350,6 @@ describe("collectQuery(ITEMS) candidate sets", () => {
     ) =>
       keys(await result(scenario, { libraries, filter, fields: [], sort: [] }));
 
-    // `to-read` and the key ART2FULL exist in both Libraries.
     expect(
       await matching(scenario, 'tags.contains("to-read")', [group]),
     ).toEqual(["ART2FULLg4815"]);
@@ -2430,7 +2359,6 @@ describe("collectQuery(ITEMS) candidate sets", () => {
     expect(await matching(scenario, 'key == "ART2FULL"', [personal])).toEqual([
       "ART2FULL",
     ]);
-    // `group-only` and GRP2BK22 exist in the group Library only.
     expect(
       await matching(scenario, 'tags.contains("group-only")', [personal]),
     ).toEqual([]);
@@ -2454,7 +2382,6 @@ describe("collectQuery(ITEMS) candidate sets", () => {
     for (let i = 0; i < 3000; i++) {
       insert.run(personal.libraryID, `ZZ${String(i).padStart(6, "0")}`);
     }
-    // 700 of the 3,015 `items` rows carry the Tag: within the cap of 753.
     scenario.sqlite.exec(
       `insert into itemTags (itemID, tagID, type)
        select itemID, (select tagID from tags where name = 'group-only'), 0
@@ -2480,7 +2407,6 @@ describe("collectQuery(ITEMS) candidate sets", () => {
 
 describe("collectQuery(ITEMS) over several Libraries", () => {
   const both = [personal, group];
-  /** The Indexed Keys the filter selects in the Libraries, in key order. */
   const matching = async (
     scenario: ScenarioDatabase<NodeDatabaseClient>,
     filter: string,
@@ -2488,7 +2414,6 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   ) =>
     keys(await result(scenario, { libraries, filter, fields: [], sort: [] }));
 
-  /** File the personal Item RPT2NDTE in a top-level Collection `Methods`. */
   function filePersonalMethods(
     scenario: ScenarioDatabase<NodeDatabaseClient>,
   ): void {
@@ -2526,7 +2451,6 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
       fields: [],
       sort: [],
     });
-    // ART2FULL has the same date in both Libraries.
     const byDate = await result(scenario, {
       libraries: [group, personal],
       filter: 'date == date("2020-03-15")',
@@ -2650,7 +2574,6 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
     expect(await matching(scenario, filter, [group])).toEqual([
       "GRP2BK22g4815",
     ]);
-    // `Thesis/Methods` is a path of the personal Library only.
     expect(await matching(scenario, 'collections.within("Thesis")')).toEqual([
       "ART2FULL",
       "CHP2YEAR",
@@ -2705,8 +2628,6 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
 
   it("measures a candidate set against the cap of its own Library", async () => {
     using scenario = openScenarioDatabase(connectClient);
-    // `to-read`: 3 of the 15 personal `items` rows, within the cap of 3; 1 of
-    // the 3 group rows, above the cap of 0.
     const { exit, events } = await run(scenario, {
       libraries: both,
       filter: 'tags.contains("to-read")',
@@ -2716,7 +2637,6 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
 
     if (!Exit.isSuccess(exit)) throw new Error(String(exit.cause));
     expect(keys(exit.value)).toEqual(["ART2FULL", "ART2FULLg4815", "BK2MNTH2"]);
-    /** The Items that the statements of one reader read, by Library. */
     const itemsOf = (reader: string) =>
       events.flatMap((event) =>
         event.type === "statement" && event.statement.reader === reader
@@ -2725,14 +2645,12 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
             )
           : [],
       );
-    // The live personal candidates, and every live top-level group Item.
     expect(itemsOf("universe-rows")).toEqual(["1/ART2FULL", "1/BK2MNTH2"]);
     expect(itemsOf("scan-page")).toEqual(["2/ART2FULL", "2/GRP2BK22"]);
   });
 
   it("orders the same Zotero Key of two groups by the text of the Indexed Key", async () => {
     using scenario = openScenarioDatabase(connectClient);
-    // Two more groups that hold ART2FULL: the group IDs 9 and 10.
     const groups = [9, 10].map((groupID) => {
       const libraryID = 100 + groupID;
       scenario.sqlite.exec(
@@ -2743,7 +2661,6 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
       return { libraryID, groupID };
     });
 
-    // In text order, `g10` comes before `g4815` and `g9`.
     expect(
       await matching(scenario, 'key == "ART2FULL"', [...groups, ...both]),
     ).toEqual(["ART2FULL", "ART2FULLg10", "ART2FULLg4815", "ART2FULLg9"]);
@@ -2760,8 +2677,6 @@ describe("collectQuery(ITEMS) over several Libraries", () => {
   });
 });
 
-// Delivery failure modes: reordered/missing rows, shared state on rerun,
-// incorrect empty/truncated metadata, and reads continuing after a failed write.
 describe("incremental query consumption", () => {
   it.each([
     {
@@ -2788,7 +2703,6 @@ describe("incremental query consumption", () => {
       using scenario = openScenarioDatabase(connectClient);
       const operation = consumeQuery(ITEMS, request, (summary) =>
         Effect.sync(() => {
-          // The complete result leaves out the count of every match.
           const { matchedCount: _matched, ...metadata } = summary;
           const rows: QueryRow[] = [];
           return {
@@ -2817,7 +2731,6 @@ describe("incremental query consumption", () => {
 
   it("awaits a write and stops projection when that write fails", async () => {
     using scenario = openScenarioDatabase(connectClient);
-    // The Item IDs of the field-value statements, when each one runs.
     const ids: number[] = [];
     const hydrated = () => [...ids];
     const failed = { reason: "destination is full" };
@@ -2869,15 +2782,12 @@ describe("incremental query consumption", () => {
   });
 });
 
-/** The facts of a request that hold for each Query Dataset. */
 interface DatasetCase {
   readonly dataset: QueryDataset<ItemQueryRequest>;
   readonly scenario: { readonly annotations: boolean };
   readonly defaults: Pick<ItemQuery, "fields" | "sort">;
-  /** Two Projection Paths, and two Sortable Fields, of the dataset. */
   readonly fields: readonly string[];
   readonly sort: readonly SortSpec[];
-  /** The Indexed Keys of the personal Library in `sort` order. */
   readonly bySort: readonly string[];
 }
 
@@ -2894,18 +2804,15 @@ const DATASETS: readonly DatasetCase[] = [
       { field: "publicationTitle", direction: "desc" },
       { field: "date", direction: "asc" },
     ],
-    // Aliases resolve to publicationTitle (the type-specific bookTitle wins
-    // for ALS2CNFL); the Tie Journal group ties on the date too; BK2MNTH2 and
-    // RPT2NDTE have no venue and sort last, the undated one after.
     bySort: [
-      "ALS2CNFL", // Type-Specific Host
-      "TIE2AAAA", // Tie Journal
+      "ALS2CNFL",
+      "TIE2AAAA",
       "TIE2BBBB",
       "TIE2CCCC",
-      "UNI2CDE2", // Revue d'Études
-      "CNF2TEXT", // Proceedings of Testing
-      "ART2FULL", // Journal of Testing
-      "CHP2YEAR", // Handbook of Methods
+      "UNI2CDE2",
+      "CNF2TEXT",
+      "ART2FULL",
+      "CHP2YEAR",
       "BK2MNTH2",
       "RPT2NDTE",
     ],
@@ -2941,8 +2848,6 @@ const DATASETS: readonly DatasetCase[] = [
       { field: "type", direction: "desc" },
       { field: "attachment.indexedKey", direction: "asc" },
     ],
-    // The live Annotations of ART2FULL: type names descending, then PDF2LINK
-    // before PDF2LIVE.
     bySort: [
       "ANL2UNDR",
       "ANN2UNDR",
@@ -3123,8 +3028,6 @@ describe.each(DATASETS)(
   },
 );
 
-// Failure modes: an out-of-scope Indexed Key widens the read, loses its warning
-// on an empty result, or hides a warning when another branch matches.
 it.each([false, true])(
   "warns for an Indexed Key outside the Target Libraries (matching branch: %s)",
   async (matching) => {
@@ -3147,7 +3050,6 @@ it.each([false, true])(
   },
 );
 
-// Indexed Keys are Library-specific; bare Zotero keys are Library-local.
 it.each([
   ['indexedKey == "ART2FULL"', ["ART2FULL"]],
   ['indexedKey == "ART2FULLg4815"', ["ART2FULLg4815"]],
@@ -3491,7 +3393,6 @@ it("Last Activity follows child edits and additions and names its signal, with n
     "ART2FULL",
     "ART2FULLg4815",
   ]);
-  // A read on the note edit's instant keeps the read; a Use there wins.
   scenario.sqlite.exec(
     "UPDATE itemAttachments SET lastRead = 1704326400 WHERE itemID = (SELECT itemID FROM items WHERE key = 'PDF2LIVE')",
   );

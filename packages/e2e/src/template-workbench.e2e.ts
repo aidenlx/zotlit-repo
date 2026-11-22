@@ -19,8 +19,6 @@ import { withWorkbenchSurfaces } from "./workbench-surfaces.ts";
 describe.skipIf(!reachable)("End-to-end Run", () => {
   registerEndToEndRunHooks();
 
-  // Every route that opens the Workbench lands in its dedicated
-  // window, with the Preview shown, and a second open reveals that window.
   it("opens the Workbench in its own window from a Profile and a note, and reveals it again", async () => {
     const path = `templates/${booksProfile.document}`;
     const notePath = "Workbench entry.md";
@@ -30,8 +28,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         run.vaultId,
         async ({ app }, { path, notePath }) => {
           app.workspace.detachLeavesOfType("zotlit-template-workbench");
-          // The tabs this case opened in the main window, which would share
-          // the root split with the next case's leaf.
           for (const leaf of app.workspace.getLeavesOfType("markdown")) {
             const file = leaf.view.getState().file;
             if (file === path || file === notePath) leaf.detach();
@@ -42,7 +38,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { path, notePath },
       ),
     );
-    /** Where each Workbench leaf stands, and whether the first one is still it. */
     const surfaces = () =>
       obRun(
         run.vaultId,
@@ -56,7 +51,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             })),
         undefined,
       );
-    /** Waits until the Workbench of `file` shows its Preview in a popout. */
     const opened = (file: string, what: string) =>
       withWorkbenchSurfaces(
         run.vaultId,
@@ -75,7 +69,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ),
       );
 
-    // From a Profile's Markdown view in the main window.
     await obRun(
       run.vaultId,
       async ({ app }, { path }) => {
@@ -97,7 +90,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path },
     );
 
-    // A second open from the same Markdown view reveals that window.
     await obRun(
       run.vaultId,
       ({ app }, { path }) => {
@@ -114,7 +106,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       (await surfaces()).filter((surface) => surface.file === path),
     ).toEqual([{ file: path, window: "popout", marked: true }]);
 
-    // From a Literature Note: its Profile, with the note to update.
     await obRun(
       run.vaultId,
       async ({ app }, { notePath, key }) => {
@@ -131,7 +122,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     await obRunUntil(
       run.vaultId,
       ({ app }, { notePath }) => {
-        // The command waits for the note's Profile to resolve.
         if (app.workspace.getActiveFile()?.path !== notePath) return true;
         app.commands.executeCommandById("zotlit:open-template-workbench");
         return false;
@@ -156,7 +146,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     );
 
-    // Each document stands in one Workbench leaf, and none in the main window.
     const all = await surfaces();
     expect(all.every((surface) => surface.window === "popout")).toBe(true);
     expect(new Set(all.map((surface) => surface.file)).size).toBe(all.length);
@@ -175,7 +164,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             "zotlit-template-data-explorer",
           ])
             app.workspace.detachLeavesOfType(type);
-          // The Profile's tab this case opened in the main window.
           for (const leaf of app.workspace.getLeavesOfType("markdown"))
             if (leaf.view.getState().file === path) leaf.detach();
         },
@@ -194,7 +182,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { path: `templates/${booksProfile.document}` },
     );
-    // The Properties tab of the Books Profile, showing a real Item's values.
     await withWorkbenchSurfaces(
       run.vaultId,
       obRunUntil(
@@ -223,13 +210,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { what: "the Books Profile's Properties tab with the target Item" },
       ),
     );
-    /** Each row as the reader reads it: name, then example value. */
     const rowsShown = async () =>
       obRunUntil(
         run.vaultId,
         ({ page }, { path }) => {
           const el = page.workbench({ path })!.contentEl;
-          // The Properties list the reader sees; the editor keeps others hidden.
           const list = Array.from(
             el.querySelectorAll<HTMLElement>('[data-part="rows"]'),
           ).find((list) => list.checkVisibility());
@@ -237,7 +222,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             list?.querySelectorAll<HTMLElement>('[data-part="row-toggle"]') ??
               [],
           );
-          // A row shows its rule as code until the example reaches it.
           const settled =
             rows.length >= 2 &&
             rows.every((row) => !row.querySelector("code")) &&
@@ -252,8 +236,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     const before = (await rowsShown())!;
 
-    // Every state the rows pass through from the press until the render that
-    // follows it has landed.
     const seen = await obRun(
       run.vaultId,
       async ({ page }, { path, handleLabel }) => {
@@ -285,14 +267,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           characterData: true,
           attributes: true,
         });
-        // Alt+ArrowDown on the first row's drag handle moves it one place down.
         const handle = Array.from(
           list.querySelectorAll<HTMLElement>('[data-part="handle"]'),
         ).find((handle) => handle.getAttribute("aria-label") === handleLabel);
         if (!handle) throw new Error("No drag handle on the first row");
         handle.focus();
         await page.trusted(handle.win).key("Down", ["alt"]);
-        // The live refresh waits 300 ms after the edit, then renders.
         await new Promise((resolve) => setTimeout(resolve, 2000));
         observer.disconnect();
         return states;
@@ -304,18 +284,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
 
     const [title, second, ...rest] = before;
-    // One change: the two rows trade places, each with its own value. No frame
-    // shows a rule in place of a value or asks for a run.
     expect(seen.map((state) => JSON.parse(state) as unknown)).toEqual([
       { rows: [second, title, ...rest], rules: 0, status: null },
     ]);
     expect(await rowsShown()).toEqual([second, title, ...rest]);
   });
 
-  // Fields and Preview are panels of the one view, so the Item
-  // the editor's tabs read, the Item the Fields panel lists and the Item the
-  // Preview renders are one choice. The view names that Item once, in
-  // the item row above the panels, beside its one chooser.
   it("names one Item in every surface after each choice from the item row", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -332,12 +306,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       ),
     );
-    // Wide enough that the Preview stands beside the editor as a column.
     await suite.wideWindow(cleanup);
     await obRun(
       run.vaultId,
       async ({ app }, { path, showPreview }) => {
-        // A tab of the editor area's own, as wide as the window lets it be.
         const leaf = app.workspace.getLeaf("tab");
         await leaf.setViewState({
           type: "zotlit-template-workbench",
@@ -345,7 +317,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           active: true,
         });
         await app.workspace.revealLeaf(leaf);
-        // The reader shows the Preview from its view action.
         leaf.view.containerEl
           .querySelector<HTMLElement>(
             `.view-action[aria-label="${showPreview}"]`,
@@ -355,8 +326,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path, showPreview: run.m.workbench_show_preview() },
     );
 
-    // The item row holds the view's one Choose item; no panel and no view
-    // action repeats it.
     const choosers = await obRunUntil(
       run.vaultId,
       ({ page }, { path, label }) => {
@@ -380,14 +349,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     const { strip, ...counts } = choosers!;
     expect(counts).toEqual({ row: 1, view: 1, actions: 0 });
-    // The editor's tab strip keeps the same room above its tabs, under the
-    // item row's rule, as below them, above its own rule.
     expect(strip?.above).toBeGreaterThan(0);
     expect(strip?.above).toBe(strip?.below);
 
-    // Obsidian draws an element's `aria-label` as its hover tooltip.
-    // The Preview and the view's other containers name themselves through
-    // `aria-labelledby`, so the pointer passes over them with no tooltip.
     const quiet = await obRun(
       run.vaultId,
       ({ page }, { path }) => {
@@ -415,7 +379,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       labelledContainers: [],
     });
 
-    /** Opens Choose item from the item row, searches `title`, and picks it. */
     const choose = async (title: string) => {
       await obRunUntil(
         run.vaultId,
@@ -460,7 +423,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     };
 
-    /** Waits for the surface `where` to name `text`, opening its tab first. */
     const names = (where: string, text: string) =>
       withWorkbenchSurfaces(
         run.vaultId,
@@ -472,8 +434,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ) => {
             const view = page.workbench({ path });
             if (!view) return false;
-            // The Fields popover floats over the Preview while it is open:
-            // it opens for its own check and closes for the rest.
             const popover = page.fieldsPopover(view);
             const action = view.containerEl.querySelector<HTMLElement>(
               `.view-action[aria-label="${fieldsLabel}"]`,
@@ -531,9 +491,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       await names("Preview", `Book profile: ${item.title}`);
     }
 
-    // In the wide view, Choose item follows the Item's name rather
-    // than the far edge of the row, and a name too long for a narrow row
-    // ends in an ellipsis while Choose item stays beside it on its line.
     const layout = await obRun(
       run.vaultId,
       async ({ page }, { path, label }) => {
@@ -543,8 +500,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const trigger = Array.from(row.querySelectorAll("button")).find(
           (button) => button.textContent.trim() === label,
         )!;
-        // The name's text, not its box: a box that stretches across the row
-        // leaves its text at the start, a row away from the chooser.
         const text = name.ownerDocument.createRange();
         text.selectNodeContents(name);
         const measure = () => {
@@ -576,9 +531,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(layout.narrow.room).toBeGreaterThanOrEqual(0);
   });
 
-  // Obsidian opens a modal in the window that last took focus, and a
-  // pop-out the reader works in can leave that on the main window. A chooser
-  // opens in the window of the view that asked for it.
   it("opens Choose item in the pop-out window of its workbench", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -599,7 +551,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           state: { file: path },
           active: true,
         });
-        // Focus last named the main window.
         activeWindow = window;
         activeDocument = document;
       },
@@ -638,9 +589,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(opened).toBe("its own window");
   });
 
-  // The standalone Template Data Explorer keeps its own Item. The
-  // `explore` action opens it beside an editor on another Item, and a choice
-  // in either one leaves the other where it was.
   it("opens the standalone explorer from the explore action, independent of an open editor", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -661,7 +609,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     await obRun(
       run.vaultId,
       async ({ app }, { path, item, fields }) => {
-        // A tab of the editor area's own, as wide as the window lets it be.
         const leaf = app.workspace.getLeaf("tab");
         await leaf.setViewState({
           type: "zotlit-template-workbench",
@@ -669,7 +616,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           active: true,
         });
         await app.workspace.revealLeaf(leaf);
-        // The reader opens the Fields popover from its view action.
         leaf.view.containerEl
           .querySelector<HTMLElement>(`.view-action[aria-label="${fields}"]`)
           ?.click();
@@ -688,7 +634,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     await fieldsName(targetItem.title);
 
-    // The Companion's `explore` link, as Obsidian hands it to the plugin.
     await obRun(
       run.vaultId,
       ({ app, zotlit }, { item }) => {
@@ -726,7 +671,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(opened.itemIndexedKey).toEqual(
       expect.stringContaining(booksProfileTargetItem.key),
     );
-    // The editor keeps its own Item.
     await fieldsName(targetItem.title);
     expect(
       await obRun(
@@ -740,7 +684,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(targetItem.key);
 
-    // A new choice in the editor leaves the explorer on its Item.
     await obRun(
       run.vaultId,
       ({ page }, { path, item, title }) => {
@@ -752,9 +695,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(JSON.parse((await explorer())!)).toEqual(opened);
   });
 
-  // The Preview is part of the view's saved state, and its edge
-  // reports the width the view draws: the Preview column grows until the
-  // editor keeps its 360 px. The Fields popover is never saved.
   it("restores the Preview and its width with the workspace, and the Fields popover closed", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -766,7 +706,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       ),
     );
-    // Wide enough that the panels stand beside the editor, not under it.
     await suite.wideWindow(cleanup);
     interface Edge {
       readonly drawn: number;
@@ -788,8 +727,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             state: { ...(JSON.parse(state) as object), file: path },
             active: true,
           });
-          // The leaf takes most of the window beside the tab group already
-          // there, so the Preview stands as a column.
           type Sized = { setDimension(share: number): void };
           for (const child of (
             app.workspace.rootSplit as unknown as { children: unknown[] }
@@ -809,8 +746,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             const handle = Array.from(
               view.contentEl.querySelectorAll<HTMLElement>("[role=separator]"),
             ).find((element) => element.getAttribute("aria-label") === label);
-            // The panels' own container, which the share is of; the Preview
-            // stands in the editor's stack inside it.
             const container = panel?.closest<HTMLElement>(
               '[data-part="panels"]',
             );
@@ -835,7 +770,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         {
           what: "the Preview restored, its edge naming its drawn width",
-          // The edge has described its panel once it names the drawn width.
           ready: (value) =>
             value !== null &&
             Object.values(
@@ -850,10 +784,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       };
     };
     const panels = {
-      // Wider than 40% of the leaf: the Preview column has no share cap.
       preview: { shown: true, width: 700 },
     };
-    // A Fields column an older build saved has no place to restore to.
     const first = await read(
       JSON.stringify({
         panels: { ...panels, fields: { shown: true, width: 260 } },
@@ -862,11 +794,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const { preview } = first.edges;
     expect(preview.drawn).toBe(700);
     expect(preview.drawn).toBeGreaterThan(preview.container * 0.4);
-    // The Preview grows until the editor keeps only its 360 px beside the
-    // column and its handle's 1 px line.
     expect(preview.max).toBe(String(preview.container - 360 - 1));
     expect(first.popover).toBe(false);
-    // The reader opens the Fields popover; the saved state leaves it out.
     const saved = await obRun(
       run.vaultId,
       ({ page }, { path }) => {
@@ -876,20 +805,14 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { path },
     );
-    // The saved state of that leaf restores the Preview in a new leaf, with
-    // the Fields popover closed.
     const second = await read(saved);
     expect(second.edges.preview.now).toBe(String(preview.drawn));
     expect(second.popover).toBe(false);
-    // A state that names no Preview height leaves the leaf's own, 40%; the
-    // Fields Panel was never pinned.
     expect(second.saved).toEqual({
       fields: { pinned: false, hidden: false, width: 320 },
       preview: { ...panels.preview, height: 40 },
     });
 
-    // The View's More options holds the path to each size, for a reader who
-    // cannot drag the edge: Resize preview → Make narrower.
     const pickFromMenu = (title: string) =>
       obRunUntil(
         run.vaultId,
@@ -963,7 +886,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     };
     expect(sized.drawn).toBe(narrower);
     expect(sized.saved).toBe(narrower);
-    // The panels announce the size, as the menu moves no focus to the edge.
     expect(sized.statuses).toContain(
       run.m.workbench_panel_size_status({
         panel: run.m.workbench_view_preview(),
@@ -972,8 +894,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
   });
 
-  // The panel dividers look as Obsidian's own divider does, and take no room
-  // beyond its 1 px line, so each column keeps the width the reader set.
   it("draws the panel dividers as Obsidian's pane divider, at the panels' set widths", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -1019,7 +939,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ".workspace-split.mod-left-split > .workspace-leaf-resize-handle",
         );
         if (!view || !container || edges.length !== 2 || !own) return null;
-        // The divider's look, its line on whichever side it stands.
         const look = (element: HTMLElement) => {
           const style = getComputedStyle(element);
           const sides = ["Top", "Right", "Bottom", "Left"] as const;
@@ -1027,7 +946,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             (side) => style.getPropertyValue(`border-${side}-width`) !== "0px",
           )!;
           return {
-            // The style's width, which a collapsed sidebar's divider keeps.
             thickness: style.width,
             line: style.getPropertyValue(`border-${line}-width`),
             color: style.getPropertyValue(`border-${line}-color`),
@@ -1065,13 +983,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     };
     expect(edges).toEqual([own, own]);
     expect([fields, preview]).toEqual([300, 360]);
-    // Each divider's 1 px line is all the room it takes from the editor.
     expect(fields + 1 + editor + 1 + preview).toBeCloseTo(container, 1);
   });
 
-  // The leaf's width places the Preview: under the editor in a narrow
-  // leaf, at the right in a wide one. A resize never changes what the reader
-  // chose to show, and the Preview's height under the editor is saved state.
   it("puts the Preview under the editor in a narrow leaf, back at the right in a wide one, and restores its height", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -1087,15 +1001,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await suite.wideWindow(cleanup);
     const panels = {
-      // The Fields Panel was never pinned.
       fields: { pinned: false, hidden: false, width: 320 },
       preview: { shown: true, width: 400, height: 40 },
     };
-    /**
-     * Opens the editor in the leftmost tab group with `state`, and gives that
-     * group `share` percent of the window beside an empty tab, or the whole
-     * window when `share` is null.
-     */
     const open = (state: string, share: number | null) =>
       obRun(
         run.vaultId,
@@ -1114,7 +1022,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           if (share === null) return;
           const other = app.workspace.createLeafBySplit(leaf, "vertical");
           await other.setViewState({ type: "empty" });
-          // A tab group's share of the split, as dragging its edge sets it.
           type Sized = { setDimension(share: number): void };
           (leaf.parent as unknown as Sized).setDimension(share);
           (other.parent as unknown as Sized).setDimension(100 - share);
@@ -1126,12 +1033,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       readonly height: number;
       readonly orientation: string | null;
       readonly share: string | null;
-      /** Where the Preview stands against the editor. */
       readonly preview: "below" | "right" | "other";
       readonly previewHeight: number;
       readonly saved: unknown;
     }
-    /** Waits for the layout `ready` accepts, and reads it. */
     const layout = async (what: string, ready: (layout: Layout) => boolean) =>
       JSON.parse(
         (await obRunUntil(
@@ -1147,7 +1052,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
                 "[role=separator]",
               ) ?? [],
             ).find((element) => element.getAttribute("aria-label") === label);
-            // The box under the item row, which the panels and the editor share.
             const shared = view?.contentEl.querySelector<HTMLElement>(
               "[data-workbench-panels]",
             );
@@ -1178,8 +1082,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ))!,
       ) as Layout;
 
-    // A leaf narrower than 56rem (896 px) puts the Preview under the editor,
-    // at 40% of the height.
     await open(JSON.stringify({ panels }), 30);
     const narrow = await layout(
       "the Preview under the editor of a narrow leaf",
@@ -1190,7 +1092,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(narrow.share).toBe("40");
     expect(narrow.previewHeight).toBe(Math.round(narrow.height * 0.4));
 
-    // The arrows set its height: two presses up make it 50% of the leaf.
     await obRun(
       run.vaultId,
       ({ page }, { path, label }) => {
@@ -1216,8 +1117,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     };
     expect(taller.saved).toEqual(chosen);
 
-    // Widening the leaf puts the Preview back at the right, at its width,
-    // and leaves what the reader chose as it was.
     await obRun(
       run.vaultId,
       ({ app }) => app.workspace.detachLeavesOfType("empty"),
@@ -1231,7 +1130,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(wide.share).toBe("400");
     expect(wide.saved).toEqual(chosen);
 
-    // The workspace restores the height in a new narrow leaf.
     const saved = await obRun(
       run.vaultId,
       ({ page }, { path }) =>
@@ -1248,8 +1146,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(restored.saved).toEqual(chosen);
   });
 
-  // 56rem (896 px) of view width is where the Preview moves between
-  // the editor's side and under it, whatever room the editor would keep.
   it("puts the Preview under the editor below a 56rem view and beside it from 56rem", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -1277,8 +1173,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           type: "zotlit-template-workbench",
           state: {
             file: path,
-            // A narrow Preview: the editor keeps its 360 px beside it either side
-            // of the boundary, so the width alone moves it.
             panels: {
               preview: { shown: true, width: 240, height: 40 },
             },
@@ -1294,11 +1188,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       readonly width: number;
       readonly preview: "below" | "right" | "other";
     }
-    /**
-     * Gives the editor's tab group the share of the window that makes the
-     * panels' box about `target` px wide, and reads where the Preview stands
-     * once the box has that width.
-     */
     const placeAt = async (target: number) => {
       const resize = (share: number) =>
         obRun(
@@ -1306,7 +1195,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ({ app, page }, { path, share }) => {
             const leaf = page.workbench({ path })!.leaf;
             const other = app.workspace.getLeavesOfType("empty")[0]!;
-            // The share of the root split, on whichever item sits in it.
             type Sized = { setDimension(share: number): void; parent: unknown };
             const item = (sized: Sized) =>
               sized.parent === app.workspace.rootSplit
@@ -1355,7 +1243,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             .containerEl.clientWidth,
         undefined,
       );
-      // One correction for the dividers the split draws between the groups.
       const first = (target / total) * 100;
       await resize(first);
       const measured = await read(
@@ -1363,7 +1250,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ({ width }) => Math.abs(width - target) < 80,
       );
       await resize((first * target) / measured!.width);
-      // The placement follows the box's own width.
       return (await read(
         `the Preview placed for a box near ${target} px`,
         ({ width, preview }) =>
@@ -1379,8 +1265,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(wide.preview).toBe("right");
   });
 
-  // Help is a view action of its own, and opens the docs menu at the
-  // button.
   it("opens the docs from the Help view action", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -1405,7 +1289,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { path },
     );
-    // The menu closes whatever the case finds, before the leaf goes.
     cleanup.defer(() =>
       obRun(
         run.vaultId,
@@ -1461,7 +1344,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ]);
   });
 
-  // The Fields action opens the Fields popover at every width.
   it("inserts a field from the Fields popover of a narrow leaf with the keyboard, and closes it on Escape, a press outside and the action", async () => {
     const path = `templates/${booksProfile.document}`;
     const documentPath = join(e2eVaultPath, path);
@@ -1479,7 +1361,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       await writeFile(documentPath, original);
     });
     await suite.wideWindow(cleanup);
-    // A leaf too narrow for a side panel beside an editor of 360 px.
     await obRun(
       run.vaultId,
       async ({ app }, { path, key }) => {
@@ -1496,7 +1377,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         });
         const other = app.workspace.createLeafBySplit(leaf, "vertical");
         await other.setViewState({ type: "empty" });
-        // Each part's share of the split, as dragging its edge sets it.
         type Sized = { setDimension(share: number): void };
         for (const child of (
           app.workspace.rootSplit as unknown as { children: unknown[] }
@@ -1530,7 +1410,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
       ))!,
     ) as Record<string, unknown>;
-    // Narrowing opened no popover.
     expect(narrow).toEqual({
       popover: false,
       haspopup: "dialog",
@@ -1554,7 +1433,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const action = view.containerEl.querySelector<HTMLElement>(
           `.view-action[aria-label="${label}"]`,
         )!;
-        // The cursor at the end of the note body.
         const content = el.querySelector<CodeMirrorElement>(".cm-content")!;
         const editor = content.cmTile!.root.view;
         await input.click(content);
@@ -1567,7 +1445,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           popover()?.querySelector<HTMLElement>(
             `[data-workbench-field="DOI"] [role="button"][aria-label="${insert}"]`,
           ) ?? null;
-        /** Tabs from the search field to the DOI row's Insert button. */
         const tabToDoi = async () => {
           for (let step = 0; step < 12; step++) {
             if (el.doc.activeElement === doiInsert()) return true;
@@ -1581,8 +1458,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           () => search() !== null && el.doc.activeElement === search(),
         );
         const dialog = popover()!;
-        // The popover stands inset at the view's right edge, as tall as the
-        // view less Obsidian's gap on the top, right and bottom.
         const gap = Number.parseFloat(
           el.win.getComputedStyle(el).getPropertyValue("--size-4-2"),
         );
@@ -1599,7 +1474,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             near(at.top - box.top, gap) &&
             near(box.right - at.right, gap) &&
             near(box.bottom - at.bottom, gap),
-          // Not modal: nothing under it turns inert.
           inert: el.querySelector("[inert]") !== null,
         };
         await contents.insertText("doi");
@@ -1615,11 +1489,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         );
         const { head } = editor.state.selection.main;
         const inserted = {
-          // The cursor stands after the inserted field.
           cursorAfter: head === editor.state.doc.length,
           expanded: action.getAttribute("aria-expanded"),
         };
-        // Shift+Enter inserts and keeps the popover open for the next field.
         await input.click(action);
         await until(
           "the popover again",
@@ -1636,11 +1508,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           editor.state.doc.toString().endsWith("{{ zt.DOI }}{{ zt.DOI }}"),
         );
         const kept = popover() !== null;
-        // Focus stays on the row's Insert button for the next field.
         await new Promise((resolve) => el.win.setTimeout(resolve, 300));
         const keptFocus = el.doc.activeElement === doiInsert();
-        // Escape clears the search first, then closes the popover
-        // and hands focus to the action.
         await input.key("Escape");
         await until(
           "the search cleared by Escape",
@@ -1649,8 +1518,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         await input.key("Escape");
         await until("the popover closed by Escape", () => popover() === null);
         const escaped = el.doc.activeElement === action;
-        // A press on the editor, left of the popover that covers most of
-        // the narrow leaf, closes it.
         await input.click(action);
         await until(
           "the popover for the outside press",
@@ -1662,8 +1529,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           () => popover() === null,
         );
         const outside = action.getAttribute("aria-expanded");
-        // A press on a place that takes no focus, the item row's label,
-        // closes it and hands focus back to the action.
         await input.click(action);
         await until(
           "the popover for the press on the label",
@@ -1679,7 +1544,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           "focus on the action after the press on the label",
           () => popover() === null && el.doc.activeElement === action,
         );
-        // A second press on the action closes it.
         await input.click(action);
         await until("the popover for the press", () => popover() !== null);
         await input.click(action);
@@ -1721,7 +1585,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       pressed: "false",
     });
 
-    // Widening the leaf opens no popover.
     await obRun(
       run.vaultId,
       ({ app }) => app.workspace.detachLeavesOfType("empty"),
@@ -1745,9 +1608,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toBe(true);
   });
 
-  // A click on a row, or Enter on the row ↑/↓ selected, shows its
-  // details; never a hover. A wide leaf shows them beside the Fields
-  // popover, a narrow one in a bar at its foot.
   it("shows a field's details beside the Fields popover in a wide leaf and in a bar in a narrow one, and closes them on Copy, Insert, a press outside and Escape", async () => {
     const path = `templates/${booksProfile.document}`;
     const documentPath = join(e2eVaultPath, path);
@@ -1783,7 +1643,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path, key: targetItem.key },
     );
 
-    /** One walk over the open leaf; `wide` says which details it expects. */
     const walk = (wide: boolean) =>
       obRun(
         run.vaultId,
@@ -1842,7 +1701,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           await until("the Fields popover", () => search() !== null);
           const title = row("title")!;
           const where = title.getBoundingClientRect();
-          // Hover opens nothing and moves no row.
           const before = tops();
           contents.sendInputEvent({
             type: "mouseMove",
@@ -1854,7 +1712,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             details: details() !== null,
             moved: tops().some((top, at) => top !== before[at]),
           };
-          // A click on the row shows them, and focus stays in the search.
           await input.click(title, { x: 40, y: where.height / 2 });
           await until("the details", () => details() !== null);
           const shown = details()!;
@@ -1867,7 +1724,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               ? box.right <= panel.left &&
                 Math.abs(box.top - title.getBoundingClientRect().top) <= 1
               : (() => {
-                  // The bar of fixed height at the popover's foot.
                   const bar = shown
                     .closest("[data-part=details-bar]")!
                     .getBoundingClientRect();
@@ -1880,7 +1736,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             focusInSearch: el.doc.activeElement === search(),
             rowsMoved: wide && tops().some((top, at) => top !== before[at]),
           };
-          // Copy closes them and keeps the popover.
           await input.click(shown.querySelector("[data-part=copy]")!);
           await until("the details closed by Copy", () => details() === null);
           const copied = {
@@ -1891,7 +1746,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               () => notices().at(-1) === "Copied Title." && "Copied Title.",
             ),
           };
-          // A press outside them and their row closes them.
           await input.click(title, { x: 40, y: where.height / 2 });
           await until("the details again", () => details() !== null);
           await input.click(search()!);
@@ -1899,7 +1753,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             "the details closed by a press",
             () => details() === null,
           );
-          // Escape: the details, then the search text, then the popover.
           await contents.insertText("ti");
           await until("the search", () => row("title") !== null);
           await input.click(row("title")!, { x: 40, y: 8 });
@@ -1913,7 +1766,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           await input.key("Escape");
           await until("the popover closed", () => popover() === null);
           const third = el.doc.activeElement === action;
-          // Enter on the row ↑/↓ selected shows them; Mod+Enter inserts it.
           await input.click(content);
           editor.dispatch({ selection: { anchor: editor.state.doc.length } });
           await input.click(action);
@@ -1942,7 +1794,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               () => notices().at(-1) === "Inserted DOI." && "Inserted DOI.",
             ),
           };
-          // Insert in the details closes them and the popover.
           await input.click(action);
           await until("the popover for Insert", () => search() !== null);
           if (search()!.value) {
@@ -1991,7 +1842,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     expect(JSON.parse(await walk(true))).toEqual(expected(true));
 
-    // A leaf too narrow for the details beside the popover.
     await obRun(
       run.vaultId,
       async ({ app }) => {
@@ -2012,9 +1862,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(JSON.parse(await walk(false))).toEqual(expected(false));
 
-    // At 200% zoom the narrow leaf is short.
-    // The bar gives way, so the list keeps the field's whole row under its
-    // sticky section header, and the bar opens on its snippet.
     const zoomed = await obRun(
       run.vaultId,
       async ({ page }, { path, label }) => {
@@ -2080,16 +1927,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(zoomed).toEqual({ short: true, wholeRow: true, snippetShown: true });
   });
 
-  /** The creators of "Alpha of the personal library", from the Fixture Spec. */
   const ALPHA_CREATORS = [
     "Ada Personal",
     "Erin Editor",
     "ZotLit Research Collective",
   ];
 
-  // A list goes into the note for every item. Chosen as "Each item"
-  // in its details, it writes one Markdown list line per item, which the
-  // Preview shows as one list item each.
   it("inserts a list in the Each item form, and the Preview shows one list line per item", async () => {
     const path = `templates/${booksProfile.document}`;
     const documentPath = join(e2eVaultPath, path);
@@ -2152,7 +1995,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const content = el.querySelector<CodeMirrorElement>(".cm-content")!;
         const editor = content.cmTile!.root.view;
         await input.click(content);
-        // A list line of its own, under the note's text.
         const end = editor.state.doc.length;
         editor.dispatch({
           changes: { from: end, insert: "\n\n" },
@@ -2172,7 +2014,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         await input.click(action);
         await until("the creators row", () => row("creators") !== null);
         const creators = row("creators")!;
-        // The row: its count and every item, and no row for one item.
         const line = creators.textContent;
         const indexRows = [
           ...popover()!.querySelectorAll<HTMLElement>("[data-workbench-field]"),
@@ -2198,7 +2039,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           () =>
             popover() === null && editor.state.doc.toString().endsWith(snippet),
         );
-        // The Preview renders the loop as one list item per creator.
         const items = await until("the Preview's list items", () => {
           const texts = [
             ...page.previewPanel(view)!.querySelectorAll("li"),
@@ -2225,10 +2065,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(result.items).toEqual(expect.arrayContaining(ALPHA_CREATORS));
   });
 
-  // ZotLit Research Collective is a one-field
-  // name, with no family name. The details list all three creators and mark
-  // that one; both forms pass over it, and the Preview shows what each form's
-  // result says.
   it("passes over a creator with no family name in the details' results and in the Preview", async () => {
     const path = `templates/${booksProfile.document}`;
     const documentPath = join(e2eVaultPath, path);
@@ -2309,10 +2145,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           el.doc.querySelector<HTMLElement>("[data-part=details]");
         const text = (part: string) =>
           details()!.querySelector(`[data-part=${part}]`)!.textContent;
-        /** Opens the family details, in the form named `form` when given. */
         const openFamily = async (form?: string) => {
-          // The insert's notice stands over the view actions of a wide
-          // leaf; a press dismisses it, as a reader's would.
           for (const notice of el.doc.querySelectorAll(".notice"))
             await input.click(notice);
           await until(
@@ -2352,8 +2185,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ].map((value) => value.textContent);
         const joined = { snippet: text("snippet"), result: text("result") };
         await input.click(details()!.querySelector("[data-part=insert]")!);
-        // The Preview renders the edit after a moment; a family name alone,
-        // not a full name, marks the render of the inserted snippet.
         const line = await until("the joined family names in the Preview", () =>
           [...preview().querySelectorAll("p")]
             .map((p) => p.textContent.trim())
@@ -2370,8 +2201,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           );
           return listed(texts) && texts;
         });
-        // A Preview of an earlier case's loop may still list the full names;
-        // what stays are the lines this case's loop wrote.
         return {
           values,
           joined,
@@ -2394,22 +2223,16 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           '{{ zt.creators | map: "family" | where_exp: "value", "value != blank" | join: ", " }}',
         result: "Personal, Editor",
       },
-      // No separator after the last name.
       line: "Personal, Editor",
       loop: {
         snippet:
           "{% for creator in zt.creators %}{% if creator.family != blank %}\n- {{ creator.family }}{% endif %}{% endfor %}",
         result: "- Personal\n- Editor",
       },
-      // No empty list item for the third creator.
       items: ["Personal", "Editor"],
     });
   });
 
-  // Pinned in a wide leaf, the Fields Panel docks at the leading edge
-  // beside the editor. It stays while the reader inserts, the action hides
-  // and shows it without unpinning it, and the workspace keeps the pin, the
-  // hidden state and the width.
   it("pins the Fields Panel in a wide leaf, inserts while docked, hides and shows it, and restores the pin and width with the workspace", async () => {
     const path = `templates/${booksProfile.document}`;
     const documentPath = join(e2eVaultPath, path);
@@ -2425,7 +2248,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       await writeFile(documentPath, original);
     });
     await suite.wideWindow(cleanup);
-    /** Opens the Profile in a leaf that takes most of the window, from `state`. */
     const openLeaf = (state: string) =>
       obRun(
         run.vaultId,
@@ -2492,7 +2314,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           null;
         const pinOf = (surface: HTMLElement | null) =>
           surface?.querySelector<HTMLElement>('[data-part="pin"]') ?? null;
-        // The reader opens the Fields popover and pins it.
         await input.click(action);
         await until(
           "the Fields popover",
@@ -2515,18 +2336,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           label: pinOf(docked)?.getAttribute("aria-label"),
           state: pinOf(docked)?.dataset.state,
           expanded: action.getAttribute("aria-expanded"),
-          // The docked panel stands at the leading edge, before the editor,
-          // and the editor gives it the room.
           leading:
             docked.getBoundingClientRect().right <=
             editorPart.getBoundingClientRect().left,
           narrower: editorPart.offsetWidth < editorWidth,
           inert: el.querySelector("[inert]") !== null,
-          // Beside the docked panel, the tab strip keeps its room above
-          // the tabs, as it has without the panel.
           strip: page.tabStripInsets(view),
         };
-        // An insert while docked keeps the panel and hands the editor focus.
         await input.click(content);
         editor.dispatch({ selection: { anchor: editor.state.doc.length } });
         search(dock())!.focus();
@@ -2543,13 +2359,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             editor.state.doc.toString().endsWith("{{ zt.DOI }}") &&
             editor.hasFocus,
         );
-        // The reader types on, beside the docked panel.
         await contents.insertText(" ");
         const inserted = {
           docked: dock() !== null,
           typed: editor.state.doc.toString().endsWith("{{ zt.DOI }} "),
         };
-        // Its edge widens it from the keyboard: two steps of 16 px.
         const edge = Array.from(
           el.querySelectorAll<HTMLElement>("[role=separator]"),
         ).find((handle) => handle.getAttribute("aria-label") === resize)!;
@@ -2563,7 +2377,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           () => edge.getAttribute("aria-valuenow") === "352",
         );
         const width = dock()!.offsetWidth;
-        // The action hides the docked panel and keeps its pin.
         await input.click(action);
         await until("the hidden panel", () => dock() === null);
         const hidden = {
@@ -2621,7 +2434,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(strip?.above).toBeGreaterThan(0);
     expect(strip?.above).toBe(strip?.below);
 
-    // The saved state restores the docked panel at its width in a new leaf.
     await openLeaf(result.state);
     const restored = await obRunUntil(
       run.vaultId,
@@ -2652,9 +2464,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // In the docked panel no Scope of the panel's holds its keys
-  // there, and none is needed: a reader's hotkey on Mod+Enter, live in the
-  // editor, does not run while focus is in the panel's search.
   it("shows a field's details beside the docked Fields Panel with the focus in them, inserts with Mod+Enter and stays docked, and stops Escape after the search", async () => {
     const path = `templates/${booksProfile.document}`;
     const documentPath = join(e2eVaultPath, path);
@@ -2738,7 +2547,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ]
             .find((item) => item.dataset.workbenchField === key)
             ?.querySelector<HTMLElement>(":scope > [data-part=row]") ?? null;
-        // The reader pins the panel from the Fields popover.
         await input.click(content);
         editor.dispatch({ selection: { anchor: editor.state.doc.length } });
         await input.click(action);
@@ -2752,8 +2560,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           "the docked panel with focus in its search",
           () => dock() !== null && el.doc.activeElement === search(),
         );
-        // A reader's own hotkey on Mod+Enter, live outside the panel: in the
-        // editor it toggles the left sidebar.
         const hotkeys = (
           app as unknown as {
             hotkeyManager: {
@@ -2782,8 +2588,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           "the search focused",
           () => el.doc.activeElement === search(),
         );
-        // Enter on the row the arrows select shows its details, beside the
-        // column on its trailing side, level with the row.
         await contents.insertText("doi");
         await until("the DOI", () => row("DOI") !== null);
         await input.key("Down");
@@ -2800,8 +2604,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             ? (el.doc.activeElement as HTMLElement).dataset.part
             : "elsewhere",
         };
-        // Escape closes them and hands the focus back to the search; Enter
-        // opens them again on the same row.
         await input.key("Escape");
         await until("the details closed", () => details() === null);
         const back = {
@@ -2812,8 +2614,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         };
         await input.key("Return");
         await until("the DOI's details again", () => details() !== null);
-        // Mod+Enter in the details inserts the selected field, the panel
-        // stays docked, and the reader's hotkey does not run.
         const panelBefore = sidebar();
         await input.key("Return", [mod]);
         await new Promise((resolve) => el.win.setTimeout(resolve, 400));
@@ -2826,7 +2626,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         if (inserted.hotkeyRan) app.commands.executeCommandById(command);
         if (saved) hotkeys.setHotkeys(command, saved);
         else hotkeys.removeHotkeys(command);
-        // Escape: the details, then the search, then nothing more.
         search()!.focus();
         await until(
           "the search focused",
@@ -2882,9 +2681,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // With no place in the template to put a field, the Fields popover
-  // says so in its keys hint, beside a disabled Insert and in a notice for
-  // Mod+Enter; its search finds a field by the path the template writes.
   it("names the missing place before an insert, and finds a field by its template path", async () => {
     const path = `templates/${booksProfile.document}`;
     const documentPath = join(e2eVaultPath, path);
@@ -2960,7 +2756,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           [...el.doc.querySelectorAll(".notice")].map(
             (notice) => notice.textContent,
           );
-        // The reader opens the popover before placing the cursor anywhere.
         await input.click(
           view.containerEl.querySelector<HTMLElement>(
             `.view-action[aria-label="${label}"]`,
@@ -2995,7 +2790,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           "the notice that names the place",
           () => notices().includes(choose) && choose,
         );
-        // The search takes the path the template writes.
         const found: Record<string, unknown> = {};
         for (const query of ["zt.title", "authors.family"]) {
           search()!.select();
@@ -3031,10 +2825,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // A collapse or an expand keeps the section header the reader
-  // pressed where it stood in the list. A stuck header stays in view as its
-  // section closes, and an expand never scrolls to a selection it shows
-  // again.
   it("keeps a pressed section header in place in the Fields popover as its section collapses and expands", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -3111,12 +2901,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             ? true
             : undefined,
         );
-        // Every section open, as a reader who has opened them all.
         for (const id of ["common", "reference", "identifiers"]) {
           if (!expanded(id)) header(id).click();
           await until(`${id} open`, () => (expanded(id) ? true : undefined));
         }
-        /** Presses the header of `id` and says how far it moved. */
         const toggle = async (id: string) => {
           const before = at(id);
           const was = expanded(id);
@@ -3128,25 +2916,18 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           return { moved: at(id) - before, expanded: expanded(id) };
         };
 
-        // Common fields scrolled until its header sticks to the top.
         list().scrollTop = 0;
         list().scrollTop = at("common") + 120;
         await settle();
         const stuck = at("common");
         const collapseStuck = await toggle("common");
-        // A header the collapse moved out of view takes no second press.
         const expandAgain =
           at("common") >= 0 ? await toggle("common") : "out of view";
 
-        // The last Reference row selected, then hidden by a collapse. With
-        // Common fields open above, that row stands below the list's end once
-        // Reference opens again.
         if (!expanded("common")) header("common").click();
         await until("Common fields open", () =>
           expanded("common") ? true : undefined,
         );
-        // The section draws its rows again as it opens, so each read finds
-        // the row anew.
         const lastRow = () =>
           [
             ...section("reference").querySelectorAll<HTMLElement>(
@@ -3179,9 +2960,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             list().getBoundingClientRect().bottom,
         };
 
-        // At the end of the list, the section whose header is stuck at the
-        // top collapses with its header in place, though the list then
-        // needs room past its end. Scrolling back up gives that room back.
         const ids = [
           ...list().querySelectorAll<HTMLElement>("[data-workbench-section]"),
         ].map((element) => element.dataset.workbenchSection!);
@@ -3189,7 +2967,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           list().scrollTop = list().scrollHeight;
           await settle();
         };
-        /** The space under the last section with the list at its end. */
         const endSpace = () =>
           Math.round(
             list().getBoundingClientRect().bottom -
@@ -3228,9 +3005,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // A workbench in the right-hand leaf of a split keeps a field's
-  // details inside its own leaf, from the Fields popover and from the
-  // docked Fields Panel, so they never cover the note beside it.
   it("keeps a field's details inside a workbench leaf on the right of a split, popover and docked", async () => {
     const path = `templates/${booksProfile.document}`;
     const documentPath = join(e2eVaultPath, path);
@@ -3262,7 +3036,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           state: { file: path, itemIndexedKey: key },
           active: true,
         });
-        // A leaf before it, so the workbench is the right-hand leaf.
         const before = app.workspace.createLeafBySplit(leaf, "vertical", true);
         await before.setViewState({ type: "empty" });
         type Sized = { setDimension(share: number): void };
@@ -3353,8 +3126,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // The Preview's Show problem is the shared repair command, so the
-  // problem round trip is the same in a narrow and a wide leaf.
   it("reveals the call from the Preview's Show problem in a narrow and a wide leaf, keeping the Preview in place", async () => {
     const path = `templates/${booksProfile.document}`;
     const documentPath = join(e2eVaultPath, path);
@@ -3374,15 +3145,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     await suite.wideWindow(cleanup);
     const call = '{% render "missing-partial" %}';
     const panels = {
-      // The Fields Panel was never pinned.
       fields: { pinned: false, hidden: false, width: 320 },
       preview: { shown: true, width: 400, height: 40 },
     };
-    /**
-     * Opens the editor with the Preview in `share` percent of the window, or
-     * the whole window when `share` is null, with the call to a partial no
-     * vault holds in the note body and the cursor at its start.
-     */
     const open = async (share: number | null) => {
       await obRun(
         run.vaultId,
@@ -3401,7 +3166,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           if (share === null) return;
           const other = app.workspace.createLeafBySplit(leaf, "vertical");
           await other.setViewState({ type: "empty" });
-          // Each part's share of the split, as dragging its edge sets it.
           type Sized = { setDimension(share: number): void };
           for (const child of (
             app.workspace.rootSplit as unknown as { children: unknown[] }
@@ -3428,7 +3192,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               ),
             );
           if (!view || !editor) return false;
-          // The edit is made once, on the poll that first finds the editor.
           const text = editor.state.doc.toString();
           const from = text.indexOf('{% render "book-details"');
           if (from >= 0)
@@ -3456,7 +3219,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { what: "the Preview's Show problem on the missing partial" },
       );
     };
-    /** Presses Show problem in the Preview. */
     const showProblem = async () =>
       JSON.parse(
         await obRun(
@@ -3488,8 +3250,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               "the call selected in the editor",
               () => selected() === call,
             );
-            // The reveal scrolls the call into the edit region's view, at the
-            // editor's height floor too.
             const region = el.querySelector<HTMLElement>(
               '[data-workbench-scroll="editor"]',
             )!;
@@ -3500,7 +3260,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
                 at !== null && at.top >= box.top && at.bottom <= box.bottom
               );
             });
-            // Focus is on the call, so the area's status says why it fails.
             const announced =
               el.querySelector('[data-part="problems-announcement"]')
                 ?.textContent ?? "";
@@ -3519,7 +3278,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ),
       ) as Record<string, unknown>;
 
-    // A narrow leaf: the Preview under the editor.
     await open(30);
     expect(await showProblem()).toEqual({
       inView: true,
@@ -3528,7 +3286,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       samePreview: true,
       saved: panels,
     });
-    // A wide leaf: the Preview beside the editor, the same round trip.
     await open(null);
     expect(await showProblem()).toEqual({
       inView: true,
@@ -3539,9 +3296,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // The Preview's header row stays at the top of the panel while the
-  // preview scrolls, beside the editor and under it, and the editor's tabs
-  // stand above the template source only.
   it("keeps the Preview's header row in view while the preview scrolls, beside and under the editor", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -3556,11 +3310,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     );
     await suite.wideWindow(cleanup);
-    /**
-     * Opens the editor with the Preview shown in `share` percent of the
-     * window, or the whole window when `share` is null, scrolls the preview
-     * to its end, and reads where its header row and the editor's tabs stand.
-     */
     const scrolled = async (share: number | null) => {
       await obRun(
         run.vaultId,
@@ -3626,8 +3375,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           return {
             below: box.top >= source.bottom - 1,
             scrolled: scroller.scrollTop > 0,
-            // The header row sits at the top of the scroll area, painted over
-            // the note that scrolled under it.
             pinned:
               Math.abs(row.top - top) <= 1 &&
               header.contains(
@@ -3636,8 +3383,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
                   row.top + row.height / 2,
                 ),
               ),
-            // The tabs stand inside the editor's column, so the Preview
-            // beside it starts at the top of the panels' box.
             tabsInEditor:
               tabRow.left >= source.left - 1 &&
               tabRow.right <= source.right + 1 &&
@@ -3654,7 +3399,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
       );
     };
-    // A wide leaf: the Preview beside the editor, the full panels' height.
     expect(await scrolled(null)).toEqual({
       below: false,
       scrolled: true,
@@ -3662,7 +3406,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       tabsInEditor: true,
       fullHeight: true,
     });
-    // A narrow leaf: the Preview under the editor and its tabs.
     expect(await scrolled(30)).toEqual({
       below: true,
       scrolled: true,
@@ -3672,8 +3415,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // The Preview and Fields panes carry their own actions, as a small
-  // view header does.
   it("switches the Preview's mode and opens each pane's More options from its header", async () => {
     const path = `templates/${booksProfile.document}`;
     await using cleanup = new AsyncDisposableStack();
@@ -3708,10 +3449,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path, key: targetItem.key },
     );
     const { m } = run;
-    /**
-     * Presses the control labelled `label` inside the Preview panel, or
-     * inside the Fields popover, or among the view actions, once it stands.
-     */
     const press = (where: "preview" | "fields" | "view", label: string) =>
       obRunUntil(
         run.vaultId,
@@ -3733,7 +3470,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { path, where, label },
         { what: `${label} in the ${where}` },
       );
-    /** Waits for the Preview body in `body` mode, and names it. */
     const body = (mode: "markdown" | "reading") =>
       obRunUntil(
         run.vaultId,
@@ -3753,7 +3489,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ready: (shown) => shown === mode,
         },
       );
-    /** Reads the open menu's entries, and closes it. */
     const menu = async () => {
       const titles = await obRunUntil(
         run.vaultId,
@@ -3780,14 +3515,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       return titles;
     };
 
-    // The toggle names what a press shows, as Obsidian's own does.
     await body("reading");
     await press("preview", m.workbench_show_markdown());
     expect(await body("markdown")).toBe("markdown");
     await press("preview", m.workbench_show_reading_view());
     expect(await body("reading")).toBe("reading");
 
-    // The Preview's More options lists the view's Preview settings.
     await press("preview", m.workbench_pane_more_options());
     expect(await menu()).toEqual([
       m.workbench_preview_as_new_note(),
@@ -3798,7 +3531,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       m.workbench_refresh_item(),
     ]);
 
-    // The Fields pane's More options holds the Item and its Template data.
     await press("view", m.workbench_view_fields());
     await press("fields", m.workbench_pane_more_options());
     expect(await menu()).toEqual([

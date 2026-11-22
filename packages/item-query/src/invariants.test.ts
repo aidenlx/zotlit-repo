@@ -1,7 +1,3 @@
-// The deterministic invariants that keep the Obsidian window responsive. No
-// test reads wall time: each one counts the statements and the pauses that the
-// two observer services report. The rows a limited query retains are in
-// `retention.test.ts`.
 import { Cause, Exit } from "effect";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -26,11 +22,6 @@ import type { ItemQueryRequest, QueryResult } from "./index.ts";
 import { runEffect } from "./test-helpers.ts";
 import type { Run, RunEvent, RunOptions } from "./test-helpers.ts";
 
-/**
- * The bulk Library: 2,600 `items` rows, all of them top-level Items, so the
- * candidate cap of the production tuning is 650 Items. Every Item carries
- * `BULK_TAG` (above the cap); 520 Items carry `BULK_FIFTH_TAG` (within it).
- */
 const BULK_ITEMS = 2600;
 const BULK_CAP = 650;
 
@@ -40,13 +31,6 @@ afterAll(() => {
   databases.dispose();
 });
 
-/**
- * The copies of the scenario, each seeded on first use: the bulk Library
- * (`items`), with 4,501 Items and 6,001 Annotations (`bounded`), with an
- * Attachment for each Item (`attachments`), with an Annotation for each Item
- * (`annotations`); and the scenario with Annotations and no bulk Library
- * (`relations`). No test writes to them.
- */
 type Copy =
   | "sweep"
   | "items"
@@ -74,8 +58,6 @@ async function open(copy: Copy): Promise<ScenarioDatabase<NodeDatabaseClient>> {
   if (copy === "relations") return opened;
   seedBulkLibrary(sqlite, copy === "bounded" ? 4_501 : BULK_ITEMS);
   if (copy === "sweep") {
-    // Ten windows, still within the sparse ratio. All fifth-Tag matches are
-    // in the first two windows: after five, projection exceeds the cap.
     sqlite.exec(`update itemDataValues set value = value || ' common'
       where valueID in (select d.valueID from itemData d
         join itemTags it on it.itemID = d.itemID
@@ -86,8 +68,6 @@ async function open(copy: Copy): Promise<ScenarioDatabase<NodeDatabaseClient>> {
   if (copy === "bounded") seedBulkAnnotations(sqlite, 6_001);
   if (copy === "attachments") seedBulkAttachments(sqlite, BULK_ITEMS);
   if (copy === "annotations") seedBulkAnnotations(sqlite, BULK_ITEMS);
-  // The first statement on a copy runs the layout check. Its two statements
-  // are in the events of that run only, so each test starts after it.
   const dataset =
     copy === "attachments"
       ? ATTACHMENTS
@@ -161,21 +141,18 @@ function resultOf(of: Run<QueryResult, unknown>): QueryResult {
   return of.exit.value;
 }
 
-/** The Items each statement of one reader read, in statement order. */
 function itemsRead(events: readonly RunEvent[], reader: string): number[] {
   return events.flatMap((event) => {
     if (event.type !== "statement" || event.statement.reader !== reader) {
       return [];
     }
     const { rows } = event.statement;
-    // A hydrate statement returns one row for each value: count its Items.
     return reader.endsWith("hydrate-chunk")
       ? new Set(rows.map((row) => (row as { itemID: number }).itemID)).size
       : rows.length;
   });
 }
 
-/** First and last statement of each reader, in event order. */
 function statementCheckpoints(events: readonly RunEvent[]): number[] {
   const readers = new Map<string, { first: number; last: number }>();
   events.forEach((event, index) => {
@@ -192,7 +169,6 @@ function statementCheckpoints(events: readonly RunEvent[]): number[] {
   ].sort((a, b) => a - b);
 }
 
-/** Reader boundaries and the ends and middle of pause-only phases. */
 function pauseCheckpoints(events: readonly RunEvent[]): number[] {
   const pauses = events.flatMap((event, index) =>
     event.type === "pause" ? [index] : [],
@@ -222,10 +198,6 @@ function pauseCheckpoints(events: readonly RunEvent[]): number[] {
   return [...selected].sort((a, b) => a - b);
 }
 
-/**
- * The run options that cancel a run at its event at `index`: in the step of a
- * statement, or in the host task that ends a pause, while the fiber waits.
- */
 function cancelAt(
   index: number,
 ): Pick<RunOptions, "signal" | "onEvent" | "onResume"> {
@@ -247,7 +219,6 @@ function cancelAt(
 
 const byTitle = [{ field: "title", direction: "asc" }] as const;
 
-/** The readers of the layout, the Libraries, and the vocabularies: no Item rows. */
 const LOOKUP_READERS: ReadonlySet<string> = new Set([
   "layout",
   "libraries",
@@ -260,7 +231,6 @@ const LOOKUP_READERS: ReadonlySet<string> = new Set([
   "tag-values",
 ]);
 
-/** One query for each path of the plan, at the production tuning. */
 const PLAN_PATHS: readonly {
   name: string;
   category?: "text-sweep";
@@ -272,9 +242,7 @@ const PLAN_PATHS: readonly {
   bound?: boolean;
   sweep?: boolean;
   result?: Pick<QueryResult, "returnedCount" | "truncated">;
-  /** @default the bulk Library */
   libraries?: ItemQueryRequest["libraries"];
-  /** The Items that each statement of a reader reads, in order. */
   reads: Record<string, number[]>;
 }[] = [
   {
@@ -368,11 +336,8 @@ const PLAN_PATHS: readonly {
     result: { returnedCount: 1, truncated: false },
     reads: {
       "annotation-candidate-set": [501, 501, 501, 501, 501, 501, 501, 501],
-      // Each candidate page maps to one parent: bulk Item 0 holds the PDF.
       "relation-candidate-set": [1, 1, 1, 1, 1, 1, 1, 1],
       "scan-page": [500, 500, 500, 500, 500, 500, 500, 500, 500, 1],
-      // The Annotations of 4,501 Items in 19 chunks of 250: all 6,001 are on
-      // the PDF of bulk Item 0, in the first chunk, read in 13 pages of 500.
       "item-annotations": [
         ...Array<number>(12).fill(500),
         1,
@@ -411,7 +376,6 @@ const PLAN_PATHS: readonly {
     result: { returnedCount: 1, truncated: false },
     reads: {
       "attachment-candidate-set": [1],
-      // ATT22222 is the one Attachment of bulk Item 0.
       "relation-candidate-set": [1],
       "universe-rows": [1],
       "item-attachments": [1],
@@ -615,9 +579,7 @@ const PLAN_PATHS: readonly {
       "text-sweep-window": [651],
       "scan-page": [500, 500, 500, 500, 500, 100],
       "hydrate-chunk": [
-        250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 100,
-        // The projection: the title and the Tags of 300 rows.
-        250, 250, 50, 50,
+        250, 250, 250, 250, 250, 250, 250, 250, 250, 250, 100, 250, 250, 50, 50,
       ],
     },
   },
@@ -626,7 +588,6 @@ const PLAN_PATHS: readonly {
     request: { filter: "notes.isEmpty()", fields: [], limit: null },
     reads: {
       "scan-page": [500, 500, 500, 500, 500, 100],
-      // 2,600 parents in chunks of 250; the bulk Library has no Child Note.
       "item-notes": Array<number>(11).fill(0),
     },
   },
@@ -649,7 +610,6 @@ const PLAN_PATHS: readonly {
     reads: {
       "candidate-set": [520],
       "universe-rows": [500, 20],
-      // The Tags and the title of each chunk, then the title of each row.
       "hydrate-chunk": [250, 250, 250, 250, 20, 20, 250, 250, 20],
     },
   },
@@ -712,9 +672,7 @@ const PLAN_PATHS: readonly {
     libraries: [SCENARIO_LIBRARIES.personal, BULK_LIBRARY],
     request: { fields: ["title"], limit: 10 },
     reads: {
-      // The 10 Items of the personal Library, then the bulk Library.
       "scan-page": [10, 500, 500, 500, 500, 500, 100],
-      // The 10 newest Items are the personal ones; one of them has no title.
       "hydrate-chunk": [9],
     },
   },
@@ -727,10 +685,7 @@ const PLAN_PATHS: readonly {
       limit: 10,
     },
     reads: {
-      // The personal Library has 15 `items` rows and a cap of 3: its union of
-      // 3 and 0 Items is within it. The bulk union of 0 and 651 is above 650.
       "candidate-set": [3, 0, 0, BULK_CAP + 1],
-      // One of the three personal candidates is in the trash.
       "universe-rows": [2],
       "scan-page": [500, 500, 500, 500, 500, 100],
       "hydrate-chunk": [
@@ -743,7 +698,6 @@ const PLAN_PATHS: readonly {
     annotation: true,
     request: { fields: ["text"], limit: 10 },
     reads: {
-      // The scan pass reads the scan rows only; the projection loads details.
       "annotation-scan-page": [500, 500, 500, 500, 500, 100],
       "annotation-details": [10],
     },
@@ -807,8 +761,6 @@ describe("the Items one statement reads", () => {
         [...readers].map((reader) => [reader, itemsRead(events, reader)]),
       );
       expect(observed).toEqual(reads);
-      // A statement reads one page at most; a candidate statement reads Item
-      // IDs only, the cap plus one at most.
       for (const reader of readers) {
         if (reader.endsWith("candidate-set")) continue;
         expect(
@@ -865,8 +817,6 @@ describe("the pauses between two chunks", () => {
   );
 
   it("merges the sorted runs of an unlimited query in steps of the merge step size at most", async () => {
-    // 520 matches in runs of 250, 250, and 20 rows: one merge moves 500 rows
-    // and the next one 520.
     const request: Request = {
       filter: `tags.contains("${BULK_FIFTH_TAG}")`,
       fields: [],
@@ -879,7 +829,6 @@ describe("the pauses between two chunks", () => {
     const stepsOf100 = await run(request, { tuning: { mergeStepSize: 100 } });
     const stepsOfOne = await run(request, { tuning: { mergeStepSize: 1 } });
 
-    // Every fifth bulk Item, in title order, which is index order.
     const rows = Array.from({ length: 520 }, (_, i) => ({
       indexedKey: `${bulkItemKey(i * 5)}g${BULK_LIBRARY.groupID}`,
       values: {},
@@ -889,8 +838,6 @@ describe("the pauses between two chunks", () => {
       expect(result).toMatchObject({ returnedCount: 520, truncated: false });
       expect(result.rows).toEqual(rows);
     }
-    // Steps of 100 rows: 5 and 6 steps in place of 1 and 1. The test scheduler
-    // pauses after each step.
     expect(stepsOf100.pauses - oneStepEach.pauses).toBeGreaterThanOrEqual(9);
     expect(stepsOfOne.pauses - oneStepEach.pauses).toBeGreaterThanOrEqual(1018);
   });
@@ -918,7 +865,6 @@ describe("the rows a limited query projects", () => {
       "Bulk item 02591",
       "Bulk item 02590",
     ]);
-    // The sort reads the scan rows, so every hydrate statement is projection.
     const hydrated = limited.events.flatMap((event) =>
       event.type === "statement" && event.statement.reader === "hydrate-chunk"
         ? event.statement.rows.map((row) => (row as { value: string }).value)
@@ -939,14 +885,12 @@ describe("the rows a limited query projects", () => {
 
     const result = resultOf(limited);
     expect(result).toMatchObject({ returnedCount: 4, truncated: true });
-    // Two personal titles come before the bulk titles.
     expect(result.rows!.map((row) => row.values.title)).toEqual([
       "A Chapter on Sampling",
       "Alias Conflict",
       "Bulk item 00000",
       "Bulk item 00001",
     ]);
-    // The sort hydrates every Item; the last statement is the projection.
     const projected = limited.events
       .flatMap((event) =>
         event.type === "statement" && event.statement.reader === "hydrate-chunk"
@@ -963,7 +907,6 @@ describe("the rows a limited query projects", () => {
 
 describe("a cancel request", () => {
   const { personal, group } = SCENARIO_LIBRARIES;
-  /** Small chunks: many statements and pauses on the scenario Library. */
   const tuning = {
     capRatio: 1,
     scanPageSize: 3,
@@ -973,9 +916,7 @@ describe("a cancel request", () => {
   const QUERIES: readonly {
     name: string;
     request: Request;
-    /** The plan reads a candidate set in place of the Library scan. */
     candidates: boolean;
-    /** @default the personal Library */
     libraries?: ItemQueryRequest["libraries"];
   }[] = [
     {
@@ -992,7 +933,6 @@ describe("a cancel request", () => {
       name: "candidate sets",
       candidates: true,
       request: {
-        // Each branch lowers to a candidate set.
         filter:
           'tags.contains("methods") || collections.contains("Thesis/Methods")',
         fields: ["title", "tags"],
@@ -1011,7 +951,6 @@ describe("a cancel request", () => {
       candidates: true,
       libraries: [personal, group],
       request: {
-        // `to-read` and `Methods` are in both Libraries.
         filter: 'tags.contains("to-read") || collections.contains("Methods")',
         fields: ["title", "tags"],
         sort: byTitle,
@@ -1020,7 +959,6 @@ describe("a cancel request", () => {
     },
   ];
 
-  /** Run the query and cancel it at the event at `index`. */
   async function cancelQueryAt(
     { request, libraries = [personal] }: (typeof QUERIES)[number],
     index: number,
@@ -1072,7 +1010,6 @@ describe("a cancel request", () => {
         expect(
           Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause),
         ).toBe(true);
-        // The interrupted fiber can take one more pause before it settles.
         expect(after.filter((event) => event.type === "statement")).toEqual([]);
         expect(after.length).toBeLessThanOrEqual(1);
       }
@@ -1080,8 +1017,6 @@ describe("a cancel request", () => {
   );
 });
 
-// Annotation projection reads follow the full scan/filter pass. The final
-// details statement must contain exactly the rows returned to the caller.
 describe("Annotation projection and active cancellation", () => {
   const paths = PLAN_PATHS.filter((path) => path.annotation);
   it("returns every Annotation candidate across a full universe chunk", async () => {
@@ -1319,7 +1254,6 @@ it("reads a mark's sibling list once even when its paper has several hydrate chu
     { client: (await database("annotations")).db },
   );
   expect(exit._tag).toBe("Success");
-  // One read of the 2,600 marks on the one PDF, in pages of 500.
   expect(itemsRead(events, "attachment-annotations")).toEqual([
     ...Array<number>(5).fill(500),
     100,
@@ -1334,8 +1268,6 @@ it("reads a mark's sibling list once even when its paper has several hydrate chu
 }, 30000);
 
 describe("Relation List candidate bounds", () => {
-  // Failure modes: one parent materializes all of its children, the parent cap
-  // truncates a valid result, or the reader continues after cap fallback.
   it.each([0, 1])(
     "bounds matching child pages before the distinct-parent cap (ratio %s)",
     async (capRatio) => {
@@ -1391,7 +1323,6 @@ describe("Relation List candidate bounds", () => {
         client: source.db,
         tuning: { capRatio: 1, hydrateChunkSize: 2 },
       };
-      // Keep layout checks outside cancellation event indices.
       resultOf(await runEffect(query, options));
       const complete = await runEffect(query, options);
       expect(
@@ -1520,7 +1451,6 @@ it("reads fewer Annotation rows through a selective Parent Record Collection", a
   using source = openScenarioDatabase(connectClient, { annotations: true });
   seedBulkLibrary(source.sqlite, BULK_ITEMS);
   seedBulkAnnotations(source.sqlite, BULK_ITEMS);
-  // Add the bulk records to the personal Library so its candidate cap includes them.
   source.sqlite
     .prepare("update items set libraryID = ? where libraryID = ?")
     .run(SCENARIO_LIBRARIES.personal.libraryID, BULK_LIBRARY.libraryID);

@@ -5,9 +5,6 @@ import type {
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
 import { Effect, Layer } from "effect";
 import { MarkdownRenderChild } from "obsidian";
-// The reading-mode surface of annotation hover: a rendered Durable Annotation
-// Link shows the Annotation it names, and an Annotation Citation shows the
-// citation it is where the settings ask for it.
 import type { MarkdownPostProcessorContext, MarkdownView } from "obsidian";
 
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
@@ -41,62 +38,32 @@ import {
 } from "#obsidian/citekey-editor/service.ts";
 import "./style.css";
 
-/** Obsidian renders a link to another scheme as an external link. */
 const LINK_SELECTOR = 'a.external-link[href^="zotero://open/"]';
 
-/** The anchor an Annotation Citation shows its formatted text in. */
 const CITATION_CLASS = "zt-annotation-citation";
 
 export interface AnnotationLinkReadingDeps {
   host: Pick<PluginHostShape, "registerMarkdownPostProcessor">;
-  /** The open Markdown views, which a hovered link's popover hangs off. */
   markdownViews: () => readonly MarkdownView[];
-  /** What a hovered Durable Annotation Link shows. */
   show: (request: AnnotationHoverRequest) => void;
-  /**
-   * The citations held for the note at `path` while its Annotation Citations
-   * show as citations, or null while they show as the links they are: the
-   * settings ask for no citation, or no text is held yet.
-   */
   citations: (path: string) => DocumentCitations | null;
-  /** Opens the Literature Note of the Item `indexedKey`. */
   openItem: (indexedKey: string, pane: NavigationPane) => void;
 }
 
-/** One Durable Annotation Link a section renders. */
 interface RenderedLink {
   anchor: HTMLAnchorElement;
   link: AnnotationOpenUriOptions;
-  /** Whether the anchor shows the citation it is. */
   citation?: boolean;
 }
 
-/** One rendered section this surface holds, and how to rewrite it. */
 interface HeldSection {
   path: string;
   rewrite: () => void;
 }
 
-/**
- * Gives every Durable Annotation Link a reading view renders the Annotation
- * hover, and shows each Annotation Citation as the text a style formatted for
- * it once that text is held.
- *
- * Obsidian raises no `hover-link` for an external link, so a post-processor
- * puts the listener on the link itself. A render child of the section owns
- * the listener: Obsidian unloads it with the section, and this service
- * unloads every child it still holds when it goes, so a section that stays
- * rendered no longer reaches the service.
- *
- * An Annotation Citation keeps Obsidian's anchor, and with it the click that
- * follows the link; only its empty text gives way to the citation. A held
- * section rewrites that text in place when its document's citations change.
- */
 export class AnnotationLinkReadingCore implements Disposable {
   readonly #deps;
-  /** The render children holding a section's hover listeners. */
   readonly #sections = new Map<MarkdownRenderChild, HeldSection>();
-  /** Set once the service goes; the post-processor stays registered after. */
   #disposed = false;
 
   constructor(deps: AnnotationLinkReadingDeps) {
@@ -111,7 +78,6 @@ export class AnnotationLinkReadingCore implements Disposable {
     for (const section of [...this.#sections.keys()]) section.unload();
   }
 
-  /** Rewrites the held sections of one document, or of every document. */
   refresh(path?: string): void {
     for (const section of this.#sections.values()) {
       if (path === undefined || section.path === path) section.rewrite();
@@ -142,14 +108,6 @@ export class AnnotationLinkReadingCore implements Disposable {
     rewrite();
   }
 
-  /**
-   * Shows each Annotation Citation among `links` as its formatted text.
-   *
-   * The anchors carry no source position, so each one is matched to the next
-   * Annotation Citation of the section, in document order, that names the
-   * same Annotation. A section Obsidian places nowhere matches against the
-   * whole document.
-   */
   #showCitations(
     links: readonly RenderedLink[],
     citations: DocumentCitations,
@@ -158,7 +116,6 @@ export class AnnotationLinkReadingCore implements Disposable {
     const occurrences = annotationOccurrences(citations, range);
     let next = 0;
     for (const rendered of links) {
-      // A link with text of its own is no Annotation Citation.
       if (!rendered.citation && rendered.anchor.hasChildNodes()) continue;
       const index = occurrences.findIndex(
         ({ link }, at) => at >= next && sameAnnotation(link, rendered.link),
@@ -171,7 +128,6 @@ export class AnnotationLinkReadingCore implements Disposable {
     }
   }
 
-  /** A render child on the section, which its listeners go with. */
   #hold(
     el: HTMLElement,
     ctx: MarkdownPostProcessorContext,
@@ -189,8 +145,6 @@ export class AnnotationLinkReadingCore implements Disposable {
     { anchor, link }: RenderedLink,
     sourcePath: string,
   ): void {
-    // The re-entry guard Obsidian runs before its own `hover-link`: moving
-    // within one link hovers it once.
     const related = event.relatedTarget as Node | null;
     if (related?.instanceOf(Node) && anchor.contains(related)) return;
     const hoverParent = markdownViewOf(this.#deps.markdownViews(), anchor);
@@ -206,23 +160,17 @@ export class AnnotationLinkReadingCore implements Disposable {
   }
 }
 
-/** One Annotation Citation of a document, with the text formatted for it. */
 interface AnnotationOccurrence {
   link: AnnotationOpenUriOptions;
   occurrence: FormattedOccurrence;
 }
 
-/**
- * The Annotation Citations `citations` formatted inside `range`, or anywhere
- * in the document for no range, in document order.
- */
 function annotationOccurrences(
   citations: DocumentCitations,
   range: SectionRange | null,
 ): AnnotationOccurrence[] {
   const found: AnnotationOccurrence[] = [];
   for (const [source, occurrences] of citations.formatted) {
-    // Every other Citation is held under a source that never opens on `[](`.
     if (!source.startsWith("[](") || !source.endsWith(")")) continue;
     const link = parseAnnotationOpenUri(source.slice(3, -1));
     if (link === null) continue;
@@ -248,10 +196,6 @@ function sameAnnotation(
   );
 }
 
-/**
- * Annotation hover on every Durable Annotation Link a reading view renders,
- * and the Annotation Citations those views show as citations.
- */
 export const layerAnnotationLinkReading = Layer.effectDiscard(
   Effect.gen(function* () {
     const host = yield* PluginHost;
@@ -272,20 +216,16 @@ export const layerAnnotationLinkReading = Layer.effectDiscard(
           new AnnotationLinkReadingCore({
             host,
             markdownViews: () => bridge.runSync(workspace.markdownViews),
-            // Unload interrupts a pending popover.
             show: (request) => bridge.runAndForget(popover.show(request)),
             citations: (path) =>
               showCitations
                 ? (run(citationText.peek(path))?.value ?? null)
                 : null,
-            // Unload interrupts a pending open.
             openItem: (indexedKey, pane) =>
               bridge.runAndForget(editor.openIndexedKey(indexedKey, pane)),
           }),
       ),
     );
-    // Turning the citations off has to bring Obsidian's own links back, which
-    // only a new render does.
     yield* forkEach(settings.changes, (next) => {
       const wanted = citekeyTreatment(next).annotationCitations;
       if (wanted === showCitations) return Effect.void;
@@ -298,8 +238,6 @@ export const layerAnnotationLinkReading = Layer.effectDiscard(
         else if (event.type === "invalidated") core.refresh();
       }),
     );
-    // A reading view holds the citations this layer wrote, so the views
-    // render again without them once it is gone.
     yield* retireReadingSurface(workspace, () => {
       showCitations = false;
     });

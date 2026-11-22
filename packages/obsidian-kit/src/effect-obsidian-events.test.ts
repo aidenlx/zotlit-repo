@@ -16,7 +16,6 @@ import { LogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 
 import { obsidianEvents } from "#effect-obsidian-events.ts";
 
-// Each host event owns its failure; the next event still reaches the handler.
 it.effect.each(["failure", "defect", "throw"] as const)(
   "logs a handler %s and consumes the next event",
   (mode) =>
@@ -73,7 +72,6 @@ it.effect("interruption stops the consumer before the next event", () =>
   }),
 );
 
-// Host boundary: each registration has the same lifetime as its owning Scope.
 it.effect("unregisters the Obsidian event when its scope closes", () =>
   Effect.gen(function* () {
     const listeners = new Set<(...args: unknown[]) => void>();

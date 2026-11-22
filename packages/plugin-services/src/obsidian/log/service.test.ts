@@ -24,7 +24,6 @@ import { platformSettings } from "#__fixtures__/platform-settings.ts";
 import { settingsOf } from "#__fixtures__/settings.ts";
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
-/** The failure the fake log output answers a configure with. */
 class ConfigureFailed extends Schema.TaggedError<
   ConfigureFailed,
   { readonly brand: unique symbol }
@@ -32,16 +31,8 @@ class ConfigureFailed extends Schema.TaggedError<
 
 type LogConfig = LogOutputs;
 
-/**
- * Each `configure` the log output is asked for takes one second of the TestClock. A
- * case lets the last one finish: closing waits for a change being applied.
- */
 const CONFIGURE_TIME = "1 second";
 
-/**
- * The logging layer over saved settings `saved` (still loading when omitted),
- * driving a fake log output that records what happens in `events`.
- */
 const logging = Effect.fnUntraced(function* (
   saved: Record<string, unknown> = {},
   options: { failFirstConfigure?: boolean } = {},
@@ -92,7 +83,6 @@ const logging = Effect.fnUntraced(function* (
   return { layer, settings, events, configs, started };
 });
 
-/** The level and the sinks the plugin logger writes ZotLit records to under `config`. */
 const zotlitLogger = (config: LogConfig) => ({
   lowestLevel: config.level,
   sinks: config.sinks.map((sink) =>
@@ -100,8 +90,6 @@ const zotlitLogger = (config: LogConfig) => ({
   ),
 });
 
-// Failure mode: a service built after logging drops its startup records,
-// because the logger has no sinks until the settings load.
 it.effect("logs to the console as soon as it builds", () =>
   Effect.gen(function* () {
     const { layer, events, configs, started } = yield* logging();
@@ -117,8 +105,6 @@ it.effect("logs to the console as soon as it builds", () =>
   }),
 );
 
-// Failure modes: a changed level never reaches the logger, or the log file stays
-// open, undrained, after it is turned off.
 it.effect("applies each change, closing the log file it turns off", () =>
   Effect.gen(function* () {
     const { layer, settings, events, started } = yield* logging({
@@ -149,8 +135,6 @@ it.effect("applies each change, closing the log file it turns off", () =>
   }),
 );
 
-// Failure mode: logging turned off still writes ZotLit records, or opens
-// the log file.
 it.effect("routes nothing and opens no file when log.level is null", () =>
   Effect.gen(function* () {
     const { layer, events, started } = yield* logging({
@@ -165,8 +149,6 @@ it.effect("routes nothing and opens no file when log.level is null", () =>
   }),
 );
 
-// Failure mode: rapid changes are applied one by one, so the newest waits
-// behind every change before it.
 it.effect("applies only the newest of the changes made while one applies", () =>
   Effect.gen(function* () {
     const { layer, settings, started } = yield* logging({
@@ -185,8 +167,6 @@ it.effect("applies only the newest of the changes made while one applies", () =>
   }),
 );
 
-// Failure mode: unload resets the logger while a change still applies, and that
-// change then installs sinks nobody closes.
 it.effect(
   "closes after the change it is applying, then resets the logger",
   () =>
@@ -208,8 +188,6 @@ it.effect(
     }),
 );
 
-// Failure modes: a failed change goes unreported when ZotLit's own logging
-// is what failed, or is never applied again.
 it.effect("reports a change it cannot apply and applies it again later", () =>
   Effect.gen(function* () {
     const { layer, settings, started } = yield* logging(

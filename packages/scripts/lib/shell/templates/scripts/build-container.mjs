@@ -1,13 +1,3 @@
-// Writes `main.js`, the file Obsidian loads, at the root of this repository.
-//
-// The plugin comes from its bundle package, the one entry of `dependencies`
-// in package.json. That package's `main.js` is the finished file: a small
-// plugin class, and the data files as text inside comments. An index on its
-// first line names each data file by its byte offset from the start of the
-// file, so this build copies the file byte for byte and runs no bundler.
-//
-// ZotLit's source repository (README.md links it) runs this same file for its
-// own release build, so the two `main.js` files match byte for byte.
 import { copyFile, readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";

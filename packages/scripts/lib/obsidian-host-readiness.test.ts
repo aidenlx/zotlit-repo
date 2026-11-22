@@ -43,10 +43,6 @@ describe("Obsidian host readiness", () => {
     const sandbox = "/userData/Obsidian Sandbox";
     const sandboxHost = `=> ${JSON.stringify({ id: "sandbox-id", path: sandbox })}`;
 
-    /**
-     * A check where a call without `vault=` gets "Vault not found." and a call
-     * with `vault=<id>` gets `open(id)`. Records each call's first argument.
-     */
     function noWindowCheck({
       registry = {
         "notes-id": { path: "/vaults/notes", ts: 2 },
@@ -304,7 +300,6 @@ describe("Obsidian host readiness", () => {
       await expect(check()).rejects.toThrow(
         "ZT_HOST_VAULT=research names a vault that is not open.\n\nOpen vaults:\n  - drafts-id (drafts)\n  - notes-id (notes)\n\n",
       );
-      // A call with `vault=research-id` would open the closed vault.
       expect(calls.flat()).not.toContain("vault=research-id");
     });
 

@@ -1,8 +1,3 @@
-// A host without Node: the platform and every feature's Obsidian value, as
-// ZotLit Mobile would compose them, with a stub for each port those values
-// read and no Obsidian value fills. `host.check.ts` declares it as a host
-// in a program without the desktop files (`tsconfig.mobile.json`), and
-// `src/mobile-host.test.ts` builds its services.
 import { annotations } from "@zotlit/annotations/obsidian/feature.ts";
 import { citations } from "@zotlit/citations/obsidian/feature.ts";
 import { libraryView } from "@zotlit/library-view/obsidian/feature.ts";

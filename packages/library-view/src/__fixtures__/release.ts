@@ -1,4 +1,3 @@
-// A Release service built from its layer over fake settings and App.
 import { Context, Effect, Layer } from "effect";
 import type { Scope } from "effect";
 import { TFile, TFolder } from "obsidian";
@@ -41,7 +40,6 @@ export function obsidianEventMethods(source: EventSource) {
   };
 }
 
-/** An App with one template folder and a layout-ready callback the test fires. */
 export function releaseApp(
   templateFiles: readonly string[],
   folderPath: string = V1_TEMPLATE_FOLDER,
@@ -100,7 +98,6 @@ export interface ReleaseFixture {
   readonly layoutReady: () => void;
 }
 
-/** The Release service over its real layer, open for the current Scope. */
 export function releaseOf(
   options: ReleaseFixtureOptions,
 ): Effect.Effect<ReleaseFixture, never, Scope.Scope> {
@@ -112,7 +109,6 @@ export function releaseOf(
   }));
 }
 
-/** The same Release service for a test outside Effect; dispose it when done. */
 export async function buildRelease(options: ReleaseFixtureOptions): Promise<
   ReleaseFixture &
     AsyncDisposable & {

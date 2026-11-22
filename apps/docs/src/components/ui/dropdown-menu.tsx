@@ -1,5 +1,3 @@
-// shadcn Base UI Dropdown Menu. Match the editor's Hover Card surface.
-// @see https://ui.shadcn.com/docs/components/base/dropdown-menu
 import { Menu as MenuPrimitive } from "@base-ui/react/menu";
 import { Check } from "lucide-react";
 
@@ -58,7 +56,6 @@ export function DropdownMenuItem({
   );
 }
 
-/** An entry that opens a page, as a link the browser handles. */
 export function DropdownMenuLinkItem({
   className,
   ...props
@@ -72,7 +69,6 @@ export function DropdownMenuLinkItem({
   );
 }
 
-/** A choice the reader turns on and off; a check in the icon slot shows it on. */
 export function DropdownMenuCheckboxItem({
   className,
   children,

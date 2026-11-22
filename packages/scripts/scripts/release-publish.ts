@@ -1,10 +1,4 @@
 #!/usr/bin/env node
-// `pnpm release:publish <obsidian|zotero|reader|resources>`: publishes the checked-out
-// version of one product (lib/release/obsidian.ts for each Obsidian plugin,
-// lib/release/zotero.ts for the Companion).
-// release.yml runs it for each product its plan job names; the lead runs the
-// same command for a first publish, for a stable hotfix, or to finish a run
-// by hand. `--help` prints the contract.
 import type { Product } from "#release/lines";
 import type { PublishRepoOptions } from "#release/publish-repo";
 import type { PublishedPluginName } from "#shell/plugins";
@@ -146,10 +140,6 @@ if (source.ok && source.hotfix) {
   );
 }
 
-/**
- * Whether HEAD may publish `version`: a commit of origin/main, or a stable
- * hotfix (lib/release/source.ts).
- */
 async function checkSource(): Promise<
   { ok: true; hotfix: boolean } | { ok: false; reason: string }
 > {
@@ -214,8 +204,6 @@ async function obsidianPlugin(plugin: PublishedPluginName) {
       registry: new Registry(local?.url ?? NPM_REGISTRY),
       publishPackage: (tarball, distTag) =>
         outward.run({
-          // Trusted publishing makes the provenance statement in GitHub
-          // Actions; a publish from a machine has none to make.
           command: [
             "npm",
             "publish",
@@ -241,7 +229,6 @@ async function obsidianPlugin(plugin: PublishedPluginName) {
           ],
           ...(token ? { env: gitConfigEnv(githubTokenConfig(token)) } : {}),
           run: () => pushShellCommit(publishRepo, shell),
-          // The stand-in takes the branch; no tag goes anywhere in a dry run.
           standIn: () => pushShellCommit(publishRepo, shell, { tag: false }),
         }),
       sourceTags: gitSourceTags({ cwd: root, outward }),
@@ -290,11 +277,6 @@ async function zotero() {
   });
 }
 
-/**
- * The bare clone that stands in for the publish repository, with the
- * branches and tags the publish repository has now; a branch an earlier dry
- * run pushed is gone again.
- */
 async function refreshStandIn(
   remoteUrl: string,
   standIn: string,
@@ -335,10 +317,6 @@ async function reportDryRun(standIn: string, branch: string, commit: string) {
   );
 }
 
-/**
- * Runs `run` with `version` in `path` (a package.json), then writes back the
- * file's own bytes, also when `run` fails or the run is stopped.
- */
 async function withVersion(
   path: string,
   override: string | undefined,

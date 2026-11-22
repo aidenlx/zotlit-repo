@@ -9,7 +9,6 @@ afterEach(() => {
   document.body.empty();
 });
 
-/** A layer with two controls inside it, and one control outside it. */
 function layer() {
   const el = document.body.createDiv();
   const first = el.createEl("button");
@@ -49,7 +48,6 @@ it("stays above a Scope the surface around it pushes as the same focus comes dow
   const app = keymapApp();
   const { el, first, second } = layer();
   const surface = new Scope();
-  // A surface that pushes its own Scope on focus that is not in a field.
   document.body.addEventListener(
     "focusin",
     (event) => {

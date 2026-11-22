@@ -30,7 +30,6 @@ const DEFAULT_HTTP_PORT = 23_119;
 const ORIGIN = `http://127.0.0.1:${DEFAULT_HTTP_PORT}`;
 const RPC_URL = `${ORIGIN}/better-bibtex/json-rpc`;
 
-/** The library route a local API read addresses: `users/0` or `groups/<id>`. */
 const LIBRARY_ROUTE = regex("/api/(?<library>users/0|groups/\\d+)/");
 
 const DOE: BibliographyItemRef = {
@@ -49,28 +48,15 @@ function csl(id: string, title: string): CslItemData {
 }
 
 interface Fixture {
-  /**
-   * Better BibTeX's answers per JSON-RPC method; absent methods answer 404. A
-   * function answer is called with the call's params.
-   */
   rpc?: Record<string, unknown>;
-  /** Better BibTeX's JSON-RPC error message for `method`. */
   rpcError?: { method: string; message: string };
-  /** Local API items per library route (`users/0`, `groups/42`). */
   api?: Record<string, { key: string; csljson: CslItemData[] }[]>;
-  /** Status the local API answers with instead of `200`. */
   apiStatus?: number;
   localApiEnabled?: boolean;
-  /** Zotero closed: every request rejects, as a refused connection does. */
   zoteroClosed?: boolean;
-  /**
-   * The local API takes the request and never answers, as Zotero's CSL JSON
-   * read does while Better BibTeX starts. An abort ends the wait.
-   */
   apiStalls?: boolean;
 }
 
-/** One call as it would go on the wire. */
 interface Call {
   url: string;
   method: string;
@@ -86,7 +72,6 @@ function ports(
   const calls: Call[] = [];
   const rpcUrl = `http://127.0.0.1:${httpPort}/better-bibtex/json-rpc`;
   const fetch: typeof globalThis.fetch = async (input, init) => {
-    // A closed Zotero fails the connection.
     if (fixture.zoteroClosed) throw new Error("ECONNREFUSED");
     const url = String(input);
     const call: Call = {
@@ -163,7 +148,6 @@ function entries(result: BibliographyResult): [string, string][] {
   return [...result.items].map(([indexedKey, item]) => [indexedKey, item.id]);
 }
 
-/** Indexed Key to item title, for items whose `id` alone cannot tell them apart. */
 function titles(result: BibliographyResult): [string, unknown][] {
   if ("error" in result)
     throw new Error(`unexpected failure: ${result.error.code}`);
@@ -179,9 +163,6 @@ function failure(result: BibliographyResult) {
 }
 
 describe("fetchBibliography", () => {
-  // A docs walk exported right after Zotero started: Better BibTeX had not
-  // registered its endpoint yet, and Zotero never answered the local API's
-  // CSL JSON read, so the export notice stayed up for good.
   it.effect(
     "stops with zotero-timeout when Zotero takes the request and never answers",
     () =>

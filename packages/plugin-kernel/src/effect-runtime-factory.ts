@@ -1,12 +1,7 @@
 import * as Context from "effect/Context";
 import * as NativeEffect from "effect/Effect";
 
-/**
- * The `run*` surface of an Effect entry point, with `services` supplied to
- * every run. The renderer and worker entry points differ only in `services`.
- */
 export const makeRunSurface = (services: Context.Context<never>) => {
-  // The caller's context wins over the runtime services it overrides.
   const withRuntime = <R>(context: Context.Context<R>) =>
     Context.merge(services, context);
 
@@ -31,8 +26,6 @@ export const makeRunSurface = (services: Context.Context<never>) => {
     context,
   ) => NativeEffect.runPromiseExitWith(withRuntime(context));
 
-  // runSync installs its own synchronous scheduler. Provide inside the effect
-  // so runtime factories and forked work capture the browser scheduler too.
   const provideRuntime = <A, E, R>(
     effect: NativeEffect.Effect<A, E, R>,
     context?: Context.Context<R>,

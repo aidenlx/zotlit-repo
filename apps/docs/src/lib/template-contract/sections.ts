@@ -1,38 +1,16 @@
-// The page template for the generated template-data reference: which section
-// documents which contract type, in which order, under which anchor.
-//
-// Anchors equal the slugs the hand-written page generated, so inbound links keep
-// resolving. Rewording a title is safe; changing an `id` breaks shared links.
-
 export interface SectionSpec {
-  /** Explicit heading anchor. */
   id: string;
   title: string;
   level: 2 | 3;
-  /** Named IR types documented here, in table order. */
   types?: readonly string[];
-  /**
-   * The expression a template author writes to reach this shape. Helper usage
-   * examples are built from it, e.g. `{{ zt.noteLink }}`.
-   */
   sample?: string;
-  /** Rendered before every row name on this section's tables. */
   prefix?: string;
-  /** One caption per table, in order; required when a section holds several. */
   captions?: readonly string[];
-  /** Fixed prose under the heading, after the contract's own type description. */
   lead?: string;
-  /** Hand-written partial inlined here, relative to the generated page. */
   include?: string;
-  /** Emits the item-type → `zt` field map instead of contract tables. */
   itemTypes?: boolean;
 }
 
-/**
- * Every named type reachable from a Contract Root is listed here. Generation
- * fails on a type the registry does not place, so a new contract shape can never
- * land undocumented.
- */
 export const SECTIONS: readonly SectionSpec[] = [
   {
     id: "note-and-content-templates",

@@ -1,6 +1,3 @@
-// The plugin's excerpt store and the background sweep of stale CLI files,
-// over the excerpt service that renders, caches and reads Zotero's images.
-
 import type { ExcerptImage } from "#core/excerpt-image/format.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/contract.ts";
 import type { ExcerptOutcomeScope } from "#obsidian/excerpt-image/outcome-scope.ts";
@@ -60,12 +57,6 @@ export interface ExcerptDeps {
     request: ExcerptRequest,
     signal: AbortSignal,
   ) => Promise<ExcerptImage>;
-  /**
-   * Where a crop borrows an open reader's document instead of loading the
-   * file, when that document is proven to hold the file's current bytes.
-   *
-   * @see apps/obsidian/docs/adr/0054-reader-and-detached-excerpts-share-cache-publication.md
-   */
   readers?: ExcerptReaderDocuments;
 }
 
@@ -97,7 +88,6 @@ function validatedEntry({ pdf, cached }: ExcerptProbe) {
     : undefined;
 }
 
-/** The layer owns jobs, document cleanup, and the optional persistent store. */
 export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
   Layer.effect(
     ExcerptImageService,
@@ -147,8 +137,6 @@ export const layerExcerptImage = (deps: ExcerptDeps = {}) =>
         );
         if (store) cache = store;
       }
-      // Jobs are forked after this finalizer: scope close interrupts and awaits
-      // them before the queue drains and the resident document is released.
       yield* Effect.addFinalizer(() => queue.idle);
 
       const stamp = Effect.fnUntraced(function* (path: string, key: string) {

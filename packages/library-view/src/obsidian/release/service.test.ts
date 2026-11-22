@@ -19,7 +19,6 @@ import {
   releaseOf,
 } from "#__fixtures__/release.ts";
 
-/** The configured Literature Note template folder in the fixture settings. */
 const CONFIGURED_TEMPLATE_FOLDER = "templates";
 
 it.effect("Release.openReleaseNote succeeds when the view cannot open", () =>
@@ -147,7 +146,6 @@ it.each([
 function runCheck(opts: {
   origin: HydrationOrigin;
   templateFiles: string[];
-  /** Folder the fixture vault places `templateFiles` under. */
   folderPath?: string;
   migrationPending?: boolean;
   recordedVersion?: string | null;
@@ -389,8 +387,6 @@ it.effect(
         origin: "current",
         migrationPending: true,
         templateFiles: ["zt-note.eta.md"],
-        // Templates exist, but not under the configured folder, so it resolves
-        // to a missing folder from the service's perspective.
         folderPath: "some-other-folder",
       });
       expect(openFirstScreen).not.toHaveBeenCalled();

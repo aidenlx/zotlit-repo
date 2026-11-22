@@ -270,3 +270,9 @@ For a CI cache change:
 
 Hosted-runner durations are diagnostic data. They are not a fixed CI pass or
 fail threshold.
+
+## Cache inputs and CI checkouts
+
+The setup action exports the effective runtime in `ZOTLIT_TOOLCHAIN` with the same value format as Mise. Turbo includes that value in its global hash, so changing Node invalidates cache entries even if package source is unchanged. The root package uses path-based task inputs for scripts shared across workspaces. A root workspace dependency would instead hash that package's source for every task and widen the affected set.
+
+The record workflow checks out the PR head that the land can put on `main`. It uses the full commit history for the merge base and a blob filter to fetch the files needed by the checkout. The docs deployment seeds the Git LFS cache from its complete download. The object list supplies the shared cache key. PRs can restore the cache from `main`, and `git lfs pull` fetches the remaining objects. The job restores the pnpm and local Turborepo caches before initialization. Only repository-owned PRs exchange the workflow OIDC token. If the exchange fails, the job can still use its local cache.

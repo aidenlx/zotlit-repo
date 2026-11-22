@@ -1,5 +1,3 @@
-// Runtime mapping from template Citation Items to the Pandoc Citation Source Module.
-
 import { mapCitationItems } from "./citation-items.ts";
 import {
   formatPandocCitation,

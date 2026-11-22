@@ -1,8 +1,5 @@
 import type { FilterValues } from "#desktop/query-view/filter-popover.tsx";
 import type { QueryView } from "#desktop/query-view/view.tsx";
-// "Filter..." in the sidebar's More options menu: the Query View's Match
-// editor in a dialog, with the conditions of the sidebar's one view. The
-// filter that names the followed Attachment stays out of it.
 import { useAtomValue } from "@effect/atom-react";
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
@@ -51,11 +48,9 @@ function SidebarFilter({
   const filterIssue = failure?.filterIssue ?? null;
   const values = resultValue(useAtomValue(model.values)) ?? NO_VALUES;
   const properties = useViewProperties(query);
-  // The dialog stands while it is mounted, so it reads the custom fields once.
   const expressions = useFilterExpressions(query, properties, {
     reading: true,
   });
-  // The followed Attachment can go while the dialog is open.
   if (!file || !shown) return null;
   return (
     <FilterEditor

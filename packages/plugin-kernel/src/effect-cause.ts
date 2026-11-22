@@ -1,10 +1,5 @@
-// Failure boundaries over an Effect's Cause.
 import { Cause, Effect } from "effect";
 
-/**
- * A failure boundary: interrupts pass through, and any other cause is logged
- * by `logged` and answered by `fallback`.
- */
 export function recover<B>(
   logged: (cause: Cause.Cause<unknown>) => Effect.Effect<void>,
   fallback: Effect.Effect<B>,

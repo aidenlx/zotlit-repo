@@ -32,7 +32,6 @@ import {
   MetadataCache,
 } from "#obsidian-metadata-cache.ts";
 
-/** The failure a test handler answers an event with. */
 class HandlerFailed extends Schema.TaggedError<
   HandlerFailed,
   { readonly brand: unique symbol }
@@ -46,14 +45,12 @@ function file(path: string): TFile {
   return file;
 }
 
-/** The layer built on a Scope of its own, closed with the case's Scope. */
 const open = Effect.fnUntraced(function* (layer: Layer.Layer<MetadataCache>) {
   const scope = yield* Scope.fork(yield* Effect.scope);
   const context = yield* Layer.buildWithScope(layer, scope);
   return { scope, metadata: Context.get(context, MetadataCache) };
 });
 
-/** Every `changed` the tag streams, by path, from now on. */
 const changedPaths = Effect.fnUntraced(function* (
   metadata: MetadataCache["Service"],
 ) {
@@ -126,8 +123,6 @@ it.effect("streams the events of every name in Obsidian's order", () =>
   }),
 );
 
-// A consumer that joins these events with another source's relies on this:
-// the event reaches it before Obsidian's next callback runs.
 it.effect(
   "hands each event to an idle consumer inside Obsidian's callback",
   () =>

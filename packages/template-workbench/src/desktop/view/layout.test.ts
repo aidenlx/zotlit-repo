@@ -1,6 +1,4 @@
 import type { WorkbenchModel } from "#obsidian/workbench-ui/index.tsx";
-// The dedicated workbench window: "Open template workbench" and Customize show
-// the one editor with both side panels in a window of its own.
 import { describe, expect, it } from "@effect/vitest";
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
@@ -24,7 +22,6 @@ type Container = ReturnType<WorkspaceLeaf["getContainer"]>;
 const container = () =>
   stubService<Container>("WorkspaceContainer", { focus: vi.fn() });
 
-/** A workspace of editors and explorers, as the Workspace tag sees it. */
 function setup() {
   const rootSplit = container();
   const editors: WorkspaceLeaf[] = [];
@@ -46,7 +43,6 @@ function setup() {
     });
     return made;
   };
-  /** An editor of `file` in `at`; the main window's split when left out. */
   const editor = (
     file: string | null,
     at: Container = rootSplit,
@@ -55,7 +51,6 @@ function setup() {
     const view = Object.create(
       TemplateWorkbenchView.prototype,
     ) as TemplateWorkbenchView;
-    // The part of the Workbench model the layout reads: a new editor's panels.
     const workbench: Pick<WorkbenchModel, "panels"> = {
       panels: Atom.make(INITIAL_PANELS),
     };
@@ -73,7 +68,6 @@ function setup() {
   };
   const moveLeafToPopout = vi.fn((moved: WorkspaceLeaf) =>
     Effect.gen(function* () {
-      // A move takes a turn, so a second open starts while it runs.
       yield* Effect.yieldNow;
       (moved as unknown as { moveTo(next: Container): void }).moveTo(
         container(),
@@ -133,7 +127,6 @@ describe("the dedicated workbench window", () => {
           }),
         );
         expect(test.moveLeafToPopout).toHaveBeenCalledOnce();
-        // The Preview is a panel of the editor's own leaf.
         expect(test.createLeafBySplit).not.toHaveBeenCalled();
         expect(view.leaf.getContainer()).not.toBe(test.rootSplit);
         expect(test.panels(view)).toMatchObject({

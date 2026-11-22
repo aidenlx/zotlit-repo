@@ -1,13 +1,3 @@
-// Owned home-layout header slot: the site nav in the apparatus-label voice —
-// IBM Plex Mono uppercase links under the double-hairline signature.
-// Vendored from @fumadocs/base-ui `layouts/home/slots/header`; everything it
-// imports stays on package entry points. Re-diff on bumps.
-//
-// `MobileSearchTrigger` below is a local addition, not part of the vendored
-// original: it reproduces `fumadocs-ui`'s icon-variant `SearchTrigger`
-// because that component drops every prop but `className`, so it can't take
-// the `suppressHydrationWarning` this nav needs (see the note beside it).
-
 import { Dialog } from "@base-ui/react/dialog";
 import { NavigationMenu as Primitive } from "@base-ui/react/navigation-menu";
 import { cva } from "class-variance-authority";
@@ -43,7 +33,6 @@ import * as m from "@/paraglide/messages.js";
 export const navItemVariants = cva("[&_svg]:size-4", {
   variants: {
     variant: {
-      // Apparatus-label voice: IBM Plex Mono uppercase (the "Machine" register).
       main: "inline-flex items-center gap-1 p-2 font-mono text-[0.8125rem] font-medium uppercase tracking-[0.11em] zh:tracking-normal text-fd-muted-foreground transition-colors hover:text-fd-accent-foreground data-[active=true]:text-fd-primary",
       button: buttonVariants({
         color: "secondary",
@@ -115,15 +104,7 @@ export function Header(props: ComponentProps<"header">) {
         {slots.searchTrigger && (
           <slots.searchTrigger.full
             hideIfDisabled
-            // Chrome control, so it stays on the sans stack even though the
-            // (home) container voice is serif — matches the /docs sidebar trigger.
             className="w-full max-w-[240px] rounded-full ps-2.5 font-sans"
-            // Base UI's NavigationMenu.List wraps every descendant in a
-            // Composite roving-tabindex domain, even non-item children like
-            // this trigger. Its tabIndex/aria-disabled only settle once the
-            // Composite registers this button post-mount, so the very first
-            // client render disagrees with the SSR markup — self-corrects
-            // before paint, so this is a false-positive hydration warning.
             suppressHydrationWarning
           />
         )}
@@ -162,8 +143,6 @@ export function Header(props: ComponentProps<"header">) {
                 }
               : undefined
           }
-          // See the suppressHydrationWarning note on the full search
-          // trigger above — same Composite roving-tabindex false positive.
           suppressHydrationWarning
         >
           <ChevronDown
@@ -185,9 +164,6 @@ export function Header(props: ComponentProps<"header">) {
           ref={mergeRefs(headerRef, props.ref)}
           className={cn(
             "sticky top-0 z-40 h-14",
-            // Double-hairline signature: the nav's own border-b plus this offset
-            // 3px rule. Hidden while the mobile drawer is open — the drawer's
-            // rounded, shadowed edge closes the header instead.
             !open &&
               "after:absolute after:inset-x-0 after:-bottom-1 after:border-b-[3px] after:border-fd-border after:content-['']",
             props.className,
@@ -265,11 +241,6 @@ export function Header(props: ComponentProps<"header">) {
   );
 }
 
-// Vendored equivalent of fumadocs-ui's `SearchTrigger` (icon variant): its
-// packaged component only forwards `className`, dropping every other prop
-// before it reaches the rendered `<button>`. We need `suppressHydrationWarning`
-// to land there (see the note on the full search trigger above), so this
-// stays a thin, exact reproduction of the packaged markup.
 function MobileSearchTrigger() {
   const { enabled, dialogHandle } = useSearchContext();
   if (!enabled) return null;

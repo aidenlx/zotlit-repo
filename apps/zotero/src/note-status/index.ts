@@ -1,5 +1,3 @@
-// Zotero item-list "Obsidian Note" column, backed by an in-memory key set fetched from the Obsidian plugin.
-
 import * as v from "valibot";
 
 import {
@@ -22,22 +20,14 @@ const logger = appLogger.getChild(["note-status"]);
 const COLUMN_DATA_KEY = "obsidian-note";
 const MENU_ID = "zotlit-tools-menu";
 
-/** Minimum interval between background refresh attempts; `manual` bypasses it. */
 const BACKGROUND_REFRESH_MIN_MS = 5000;
 
 export interface NoteStatus extends Disposable {
-  /** Attach the focus-refresh listener to a (new) main window. */
   attachWindow(win: Window): void;
 }
 
 type ItemTreeColumnOptions = _ZoteroTypes.ItemTreeManager.ItemTreeColumnOptions;
 
-/**
- * Fetch outcome distinguishing an explicit protocol-version mismatch (426)
- * from any other failure (network error, non-ok status, or a body that
- * fails schema validation — which also covers the 204 source-id-mismatch
- * discard).
- */
 type FetchOutcome =
   | { ok: true; keys: string[] }
   | { ok: false; reason: "protocol-mismatch" | "failed"; error?: unknown };
@@ -52,8 +42,6 @@ async function fetchNoteStatus(base: string): Promise<FetchOutcome> {
     });
     if (response.status === 426)
       return { ok: false, reason: "protocol-mismatch" };
-    // The listener discards a source-id mismatch with a success-shaped bodyless
-    // 204 — never treat it as fresh (empty) status.
     if (response.status === 204) return { ok: false, reason: "failed" };
     if (!response.ok) return { ok: false, reason: "failed" };
     const body = v.parse(noteStatusResponseSchema, await response.json());
@@ -63,7 +51,6 @@ async function fetchNoteStatus(base: string): Promise<FetchOutcome> {
   }
 }
 
-/** Settle the manual-refresh progress window into its success/failure copy. */
 async function settleManualRefresh(
   progress: Zotero.ProgressWindow,
   outcome: FetchOutcome,
@@ -94,11 +81,6 @@ async function settleManualRefresh(
   progress.startCloseTimer(8000);
 }
 
-/**
- * Obsidian brand purple, light/dark scheme pair.
- *
- * @see https://obsidian.md/brand
- */
 const OBSIDIAN_PURPLE = "#9974F8";
 const OBSIDIAN_PURPLE_DARK = "#A88BFA";
 
@@ -108,8 +90,6 @@ function cellDot(doc: Document): HTMLSpanElement {
   dot.style.width = "6px";
   dot.style.height = "6px";
   dot.style.borderRadius = "50%";
-  // Scheme resolved per render via matchMedia, the same pattern Zotero uses
-  // for theme-dependent icon colors; rows re-render on theme change.
   dot.style.background = doc.defaultView?.matchMedia(
     "(prefers-color-scheme: dark)",
   )?.matches
@@ -143,7 +123,6 @@ export async function registerNoteStatus(
   let lastAttempt = 0;
   let inFlight = false;
 
-  /** Fetch, apply to the cache on success, and report the outcome. */
   async function fetchAndApply(): Promise<FetchOutcome> {
     const base = notifyUrl();
     if (!base) {
@@ -178,9 +157,6 @@ export async function registerNoteStatus(
     }
   }
 
-  // Skips the throttle and the in-flight skip: an explicit request always
-  // fetches and always settles the progress window (a concurrent background
-  // fetch is harmless — both writers replace the whole set).
   async function manualRefresh(): Promise<void> {
     const progress = new Zotero.ProgressWindow({
       window: Zotero.getMainWindow(),
@@ -192,11 +168,6 @@ export async function registerNoteStatus(
     await settleManualRefresh(progress, await fetchAndApply());
   }
 
-  // The label is pre-formatted because `Zotero.getString`'s sync Fluent
-  // lookup only covers core FTL files, not plugin ones (same approach
-  // Better BibTeX uses). The header shows the logo via `iconPath` (like the
-  // built-in attachment column); the label still names the column in the
-  // column picker.
   const registeredDataKey = Zotero.ItemTreeManager.registerColumn({
     dataKey: COLUMN_DATA_KEY,
     label:

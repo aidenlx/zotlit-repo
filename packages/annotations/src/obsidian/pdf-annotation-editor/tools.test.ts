@@ -11,7 +11,6 @@ import {
 import type { ClickTool, SelectionTool } from "./tools.ts";
 
 it("starts ink on Zotero's fourth swatch and every other tool on its first", () => {
-  // Zotero's reader: `ink: { color: ANNOTATION_COLORS[3][1] }`, the rest `[0]`.
   const colors = resolveToolColors();
 
   expect(colors.ink).toBe("#2ea8e5");

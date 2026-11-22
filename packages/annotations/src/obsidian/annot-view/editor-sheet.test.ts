@@ -26,7 +26,6 @@ const AUTOMATIC: EditorSheetStatus = {
   saveDisabled: false,
 };
 
-/** One mounted sheet, torn down with its node and the scope it pushed. */
 function sheet(
   props: Partial<Omit<EditorSheetProps, "app">> = {},
   status: EditorSheetStatus = AUTOMATIC,
@@ -68,7 +67,6 @@ it("submits on Mod+Enter through the scope it holds while focused, and lets it g
   expect(mounted.app.scopes).toEqual([]);
 });
 
-/** The sheet's button that reads `label`. */
 function button(el: HTMLElement, label: string): HTMLButtonElement {
   const found = [...el.querySelectorAll("button")].find(
     (b) => b.textContent === label,
@@ -80,8 +78,6 @@ function button(el: HTMLElement, label: string): HTMLButtonElement {
 it.each(TEXT_FIELDS)(
   "offers no button while the save is automatic and quiet, for the %s",
   (field: TextField) => {
-    // The field saves as the user types, and Escape or a click away ends
-    // it: a button would be one more way to say "stop" (ADR 0066).
     using mounted = sheet({ field: textFieldWording(field), onSave: vi.fn() });
 
     const shown = [...mounted.el.querySelectorAll("button")].filter(
@@ -122,7 +118,6 @@ it("names the Quoted Text in its placeholder, its accessible name and its Save b
       contentDOM.getAttribute("aria-labelledby") ?? "",
     )?.textContent,
   ).toBe(m.annot_view_card_text_label());
-  // A label Obsidian would show as a tooltip over the text being written.
   expect(contentDOM.hasAttribute("aria-label")).toBe(false);
   expect(dom.querySelector(".cm-placeholder")?.textContent).toBe(
     m.annot_view_card_text_placeholder(),
@@ -174,8 +169,6 @@ it.each([
 ] satisfies [EditorSurface, boolean][])(
   "promises the comment sheet's theme hook by its literal name on the %s",
   (surface, hooked) => {
-    // The name itself is the public surface, so the literal is the test.
-    // @see apps/obsidian/policies/theme-hooks.md
     using mounted = sheet({ surface });
 
     expect(mounted.el.classList.contains("zt-pdf-comment-sheet")).toBe(hooked);

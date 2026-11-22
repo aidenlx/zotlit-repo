@@ -2,13 +2,6 @@ import { basename } from "node:path";
 import { valid } from "semver";
 import * as v from "valibot";
 
-/**
- * Zotero WebExtension-style plugin manifest.
- *
- * Icons are referenced relative to the XPI root; `vite-zotero-plugin.ts`
- * stages the `zotero.icon` source there for the manifest to resolve at
- * runtime.
- */
 export const ZoteroManifestSchema = v.object({
   manifest_version: v.literal(2),
   name: v.string(),
@@ -32,32 +25,15 @@ export const ZoteroManifestSchema = v.object({
 
 export type ZoteroManifest = v.InferOutput<typeof ZoteroManifestSchema>;
 
-/** `zotero.icon` in package.json — the icon source, relative to the package. */
 const IconSourceSchema = v.pipe(
   v.string("`zotero.icon` must be a package-relative path to the icon file"),
   v.nonEmpty(),
 );
 
-/**
- * Where the build stages the icon inside the XPI. Both the staging step and
- * the manifest's `icons` map go through this, so the declared path and the
- * packed file cannot drift apart.
- */
 export function iconEntryPath(iconSource: string): string {
   return `icons/${basename(iconSource)}`;
 }
 
-/**
- * `version` is passed through verbatim (no `coerce()`) so prerelease
- * identifiers like `-alpha.1` survive into the manifest — Zotero's Mozilla
- * toolkit comparator orders them correctly, and stripping them would break
- * auto-update between prereleases. The schema still rejects non-semver garbage.
- *
- * @param updateUrl build-time `update_url` for `applications.zotero`, resolved
- *   from the publish repository (`RELEASE_REPOSITORY`) + prerelease status.
- * @see apps/obsidian/scripts/manifest.js — sibling manifest synthesizer.
- * @see release-constants.ts#updateUrl — derives the `updateUrl` argument.
- */
 export function parseManifest(data: any, updateUrl: string): ZoteroManifest {
   const {
     version,

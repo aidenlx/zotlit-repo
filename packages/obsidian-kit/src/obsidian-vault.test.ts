@@ -25,7 +25,6 @@ import { ensureVaultFolder, ensureVaultParentFolder } from "#vault-folder.ts";
 
 const NAMES = ["create", "modify", "rename", "delete"] as const;
 
-/** The layer built on a Scope of its own, closed with the case's Scope. */
 const open = Effect.fnUntraced(function* (layer: Layer.Layer<Vault>) {
   const scope = yield* Scope.fork(yield* Effect.scope);
   const context = yield* Layer.buildWithScope(layer, scope);
@@ -264,7 +263,6 @@ it.effect(
   () =>
     Effect.gen(function* () {
       const source = new MemoryVault();
-      // The cache does not hold `A.md`; a case-insensitive disk still refuses it.
       const refused = new Error("File already exists.");
       vi.spyOn(source, "create").mockRejectedValueOnce(refused);
       const { vault } = yield* open(layerVaultFrom(source));
@@ -301,8 +299,6 @@ it.effect("streams the events of every name in Obsidian's order", () =>
   }),
 );
 
-// A consumer that joins these events with another source's relies on this:
-// the event reaches it before Obsidian's next callback runs.
 it.effect(
   "hands each event to an idle consumer inside Obsidian's callback",
   () =>

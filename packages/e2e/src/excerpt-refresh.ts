@@ -24,7 +24,6 @@ declare module "./page-helpers.ts" {
   }
 }
 
-/** Exercise the real Refresh gesture and subscribed card after a resolver failure. */
 export async function verifyExcerptRefresh(vaultId: string): Promise<void> {
   assert.equal(
     await obRun(
@@ -45,10 +44,6 @@ export async function verifyExcerptRefresh(vaultId: string): Promise<void> {
       }
     });
   });
-  // The vault keeps its device-local excerpt store across tests, and an
-  // earlier test's card can still hold this Annotation's image. The trial
-  // starts from a device that holds nothing for it: no stored image, and no
-  // live display read.
   await obRun(
     vaultId,
     async ({ app, zotlit, page }, { effectPath }) => {

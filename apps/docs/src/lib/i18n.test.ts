@@ -76,7 +76,6 @@ describe("native locale infrastructure", () => {
   );
 });
 
-// Fumadocs uses the page-tree root name as the first search breadcrumb.
 describe("localized search breadcrumb roots", () => {
   it.each(["en", "zh-CN"])("uses available root metadata in %s", (locale) => {
     const contentRoot = join(
@@ -116,7 +115,6 @@ describe("localized search breadcrumb roots", () => {
   });
 });
 
-// Search seam: `/api/search` builds its index with the default options, as here.
 describe("locale search", () => {
   const fixture = loader({
     i18n,
@@ -175,7 +173,6 @@ it("dates a sitemap's Chinese entry only from a native Chinese file", () => {
   expect(nativeChinese(fixture, englishOnly!)).toBeUndefined();
 });
 
-// Published-route seam: each locale edition needs its own outage-safe asset.
 describe("prerendered locale editions", () => {
   it("prerenders native editions and leaves missing-file fallback to the Worker", () => {
     const packageRoot = getPackageRoot(import.meta.filename);
@@ -200,7 +197,6 @@ describe("prerendered locale editions", () => {
           ).toBe(native);
         }
       }
-      // The catalog pages have Chinese editions.
       for (const path of ["", "/community", "/learn", "/changelog", "/blog"]) {
         expect(paths.has(prefix + path || "/"), `HTML: ${prefix}${path}`).toBe(
           true,
@@ -223,8 +219,6 @@ describe("prerendered locale editions", () => {
   });
 });
 
-// Translation can change an automatic heading slug while incoming links keep
-// their original fragment. The compiled table of contents is the reader seam.
 describe("translated documentation links", () => {
   for (const { page, anchor } of [
     {
@@ -287,8 +281,6 @@ describe("translator-facing UI and formatting", () => {
   );
 });
 
-// Failure modes: a missing locale file must not hide a new English page from
-// Chinese navigation/search or mistake its fallback body for a native Chinese edition.
 describe("English-only documentation", () => {
   const path = "/docs/how-to/new-feature";
   const fallback = loader({
@@ -376,8 +368,6 @@ describe("English-only documentation", () => {
   });
 });
 
-// SEO consumer seam: native editions and missing-file fallback publish the same
-// canonical policy in head metadata and breadcrumbs under a real locale request.
 describe("locale page metadata", () => {
   const hasChineseHowTo = Boolean(docs.getPage("how-to/index.zh-CN.mdx"));
   const hasChineseRoot = Boolean(docs.getPage("(intro)/index.zh-CN.mdx"));

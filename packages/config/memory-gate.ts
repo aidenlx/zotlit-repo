@@ -1,23 +1,3 @@
-// The Memory Gate: admit a heavy run only while the machine has memory to spare.
-//
-// The gate admits runs in arrival order while the OS says memory may grow.
-// Memory pressure limits how many admitted runs go in parallel: under pressure
-// a run waits while another admitted run is still running, and starts with a
-// warning when none is, since the pressure then comes from other applications
-// and no wait of ours relieves it. Runs may take the machine a little past
-// physical memory, as far as compression and paging keep up:
-//
-// - macOS: the kernel's pressure level is normal. Swap and compressed idle
-//   pages linger long after memory frees up, so their size is no guide.
-// - Windows: the commit charge is at most 1.25x physical memory.
-// - Linux: used memory plus used swap is at most 1.25x physical memory.
-//
-// It admits once per top-level invocation: the caller marks what it starts
-// with MEMORY_GATE_ADMITTED_ENV, and a nested run that sees the mark skips the
-// gate. After it admits, the gate keeps one marker per admitted process, which
-// counts as running until that process exits. Ported from vattention/vatt-repo
-// `scripts/memory-gate.ts`.
-
 import { regex } from "arkregex";
 import { Clock, Config, Effect, Schema } from "effect";
 import { execFile } from "node:child_process";
@@ -34,22 +14,15 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-/** The per-user state directory of desktop admission. */
 export const DESKTOP_DIR_ENV = "ZOTLIT_DESKTOP_DIR";
-/** `off` skips the gate. */
 export const MEMORY_GATE_ENV = "ZOTLIT_MEMORY_GATE";
-/** Set on what the gate admitted; a nested run that sees it skips the gate. */
 export const MEMORY_GATE_ADMITTED_ENV = "ZOTLIT_MEMORY_GATE_ADMITTED";
 
-/** Overrides the Admission Deadline, as a duration. */
 export const DESKTOP_WAIT_ENV = "ZOTLIT_DESKTOP_WAIT";
-/** The Admission Deadline passed: blocked at admission, not a failure. */
 export const EXIT_ADMISSION_BLOCKED = 75;
-/** The default Admission Deadline, inside an agent's 10 min tool timeout. */
 export const ADMISSION_DEADLINE_MS = 9 * 60_000;
 
 const MAX_COMMIT = 1.25;
-/** A start lock this old belongs to a run killed while it held the lock. */
 const STALE_LOCK_MS = 10_000;
 const LAST_START = "last-start";
 const MEMORY_QUEUE = "memory-queue";
@@ -62,10 +35,6 @@ interface MemoryWaiter {
   path?: string;
 }
 
-/**
- * Desktop admission state, shared per user by every clone on the machine. A
- * fixed path: turbo's strict env mode and the shell may disagree on TMPDIR.
- */
 export function desktopStateDir(): string {
   const override = process.env[DESKTOP_DIR_ENV];
   if (override) return override;
@@ -81,11 +50,6 @@ function defaultDesktopStateDir(): string {
 const UNIT_MS = { ms: 1, s: 1000, m: 60_000, min: 60_000, h: 3_600_000 };
 const DURATION = regex("^(?<count>\\d+(?:\\.\\d+)?)(?<unit>ms|s|min|m|h)$");
 
-/**
- * @param text a duration such as `300ms`, `90s`, `20m`, or `2h`.
- * @returns the duration in milliseconds.
- * @throws {Error} when the text is not a duration.
- */
 export function parseDuration(text: string): number {
   const match = DURATION.exec(text.trim());
   if (!match) {
@@ -97,13 +61,11 @@ export function parseDuration(text: string): number {
   return Math.round(Number(count) * UNIT_MS[unit]);
 }
 
-/** The Admission Deadline wait: DESKTOP_WAIT_ENV, else ADMISSION_DEADLINE_MS. */
 export function admissionWaitMs(): number {
   const wait = process.env[DESKTOP_WAIT_ENV];
   return wait ? parseDuration(wait) : ADMISSION_DEADLINE_MS;
 }
 
-/** @returns why memory cannot take another run, or undefined when it can. */
 export function macosVerdict(level: number): string | undefined {
   if (level === 1) return undefined;
   return `macOS memory pressure is ${level === 2 ? "warning" : level === 4 ? "critical" : `level ${level}`}`;
@@ -116,7 +78,6 @@ function commitVerdict(committed: number, physical: number) {
     : `memory committed at ${ratio.toFixed(2)}x physical, above ${MAX_COMMIT}x`;
 }
 
-/** @param os `Win32_OperatingSystem` sizes, in KiB. */
 export function windowsVerdict(os: {
   TotalVisibleMemorySize: number;
   TotalVirtualMemorySize: number;
@@ -128,9 +89,7 @@ export function windowsVerdict(os: {
   );
 }
 
-/** @param meminfo the text of `/proc/meminfo`. */
 export function linuxVerdict(meminfo: string): string | undefined {
-  // Lines such as `MemTotal:       16303928 kB`.
   const sizes = new Map(
     meminfo.split("\n").map((line) => {
       const [name = "", size = ""] = line.split(":");
@@ -180,7 +139,6 @@ const memoryVerdict = Effect.fnUntraced(function* () {
       ),
     );
   if (process.platform === "win32") {
-    // -NoProfile: a profile's own output would precede the JSON.
     const output = yield* run("powershell.exe", [
       "-NoProfile",
       "-NonInteractive",
@@ -196,7 +154,6 @@ const memoryVerdict = Effect.fnUntraced(function* () {
   );
 });
 
-/** When the gate last admitted a run, from any clone on the machine. */
 export function lastGateStart(
   dir: string = desktopStateDir(),
 ): Temporal.Instant | undefined {
@@ -218,11 +175,6 @@ function isAlive(pid: number): boolean {
   }
 }
 
-/**
- * Mark a process as an admitted run. The marker counts until the process
- * exits; this process removes its own at exit, and a reader removes the marker
- * of a process that is gone.
- */
 export function recordAdmittedRun(dir: string, pid: number = process.pid) {
   const running = join(dir, MEMORY_RUNNING);
   mkdirSync(running, { recursive: true });
@@ -232,7 +184,6 @@ export function recordAdmittedRun(dir: string, pid: number = process.pid) {
     process.once("exit", () => rmSync(marker, { force: true }));
 }
 
-/** How many admitted runs of other processes are still running. */
 function otherAdmittedRuns(dir: string): number {
   const running = join(dir, MEMORY_RUNNING);
   let count = 0;
@@ -245,7 +196,6 @@ function otherAdmittedRuns(dir: string): number {
   return count;
 }
 
-/** Runs under the start lock, so ticket allocation and ordering are atomic. */
 function queueVerdict(dir: string, waiter: MemoryWaiter, now: number) {
   const queue = join(dir, MEMORY_QUEUE);
   mkdirSync(queue, { recursive: true });
@@ -270,7 +220,6 @@ function queueVerdict(dir: string, waiter: MemoryWaiter, now: number) {
     try {
       text = readFileSync(path, "utf8");
     } catch (error) {
-      // A waiter can reach its deadline and remove its ticket during this scan.
       if ((error as NodeJS.ErrnoException).code === "ENOENT") continue;
       throw error;
     }
@@ -285,13 +234,11 @@ function queueVerdict(dir: string, waiter: MemoryWaiter, now: number) {
   return undefined;
 }
 
-/** Why a run waits, or the warning it starts with; empty when memory is free. */
 interface StartVerdict {
   wait?: string;
   warning?: string;
 }
 
-/** Record this start if the gate is open; one caller at a time. */
 const tryStart = Effect.fnUntraced(function* (
   dir: string,
   waiter: MemoryWaiter,
@@ -304,7 +251,6 @@ const tryStart = Effect.fnUntraced(function* (
         mkdirSync(lock);
         return true;
       } catch {
-        // A run killed while holding the lock leaves it behind.
         const changed = statSync(lock, { throwIfNoEntry: false })?.mtimeMs;
         if (changed !== undefined && now - changed > STALE_LOCK_MS)
           rmSync(lock, { recursive: true, force: true });
@@ -353,7 +299,6 @@ const tryStart = Effect.fnUntraced(function* (
   );
 });
 
-/** The gate stayed shut until the Admission Deadline. */
 export class MemoryGateClosedError extends Error {
   readonly _tag = "MemoryGateClosedError";
   readonly reason: string;
@@ -364,23 +309,12 @@ export class MemoryGateClosedError extends Error {
 }
 
 export interface MemoryGateOptions {
-  /** @default desktopStateDir() */
   dir?: string;
-  /** Epoch milliseconds after which the wait gives up. @default now + admissionWaitMs() */
   deadline?: number;
-  /** @default 100 */
   pollMs?: number;
   log?: (message: string) => void;
 }
 
-/**
- * Wait until the gate admits this run. It returns at once when the gate is off
- * or an enclosing run was admitted; the caller marks what it starts with
- * MEMORY_GATE_ADMITTED_ENV.
- *
- * @returns an Effect that succeeds with true on admission, false when skipped,
- * and reports typed failures for deadlines, configuration, and OS I/O.
- */
 export const passMemoryGate = Effect.fnUntraced(function* (
   options: MemoryGateOptions = {},
 ) {
@@ -428,11 +362,9 @@ export const passMemoryGate = Effect.fnUntraced(function* (
           if (verdict.warning) log(`Memory Gate: warning: ${verdict.warning}.`);
           return true;
         }
-        // Report each kind of wait once, not every poll.
         const kind = wait.replace(/[\d.]+x physical|\d+ admitted runs?/, "");
         if (kind !== reported) log(`Memory Gate: waiting: ${wait}`);
         reported = kind;
-        // The last sleep ends at the deadline, not a poll after it.
         const left = deadline - (yield* Clock.currentTimeMillis);
         yield* Effect.sleep(Math.min(options.pollMs ?? 100, Math.max(0, left)));
       }
@@ -444,10 +376,6 @@ export const passMemoryGate = Effect.fnUntraced(function* (
   );
 });
 
-/**
- * {@link passMemoryGate} for a top-level run: at the Admission Deadline it
- * prints why and exits with EXIT_ADMISSION_BLOCKED.
- */
 export const passMemoryGateOrExit = (options: MemoryGateOptions = {}) =>
   passMemoryGate(options).pipe(
     Effect.catchTag("MemoryGateClosedError", (error) =>

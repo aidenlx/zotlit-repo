@@ -1,7 +1,4 @@
 // @vitest-environment happy-dom
-// The card list as a screen reader and the Tab key meet it: one multi-select
-// grid of rows, one tab stop, and `aria-selected` that follows the Card
-// Selection.
 
 import type { CardSelection } from "#core/annot-view/card-selection.ts";
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
@@ -53,7 +50,6 @@ function highlight(key: string, text: string): AnnotationRecord {
   };
 }
 
-/** Two cards share a word, so a search for it hides the first card alone. */
 const TEXTS = ["alpha", "beta shared", "gamma shared"];
 
 let root: Root | undefined;
@@ -81,7 +77,6 @@ async function mountList({
     selectedAttachmentKey: "PDF00001",
     annotations: KEYS.map((key, index) => highlight(key, TEXTS[index]!)),
   });
-  // The view's own prune: a filter change drops the cards it hides.
   store.subscribe(
     (s) => visibleOrder(s),
     () =>
@@ -117,7 +112,6 @@ async function mountList({
   return { host, select, store };
 }
 
-/** The card list, apart from the filter bar's own listboxes. */
 function cardGrid(host: HTMLElement): HTMLElement {
   const grid = host.querySelector<HTMLElement>(
     '.annots-container > [role="grid"]',
@@ -126,7 +120,6 @@ function cardGrid(host: HTMLElement): HTMLElement {
   return grid;
 }
 
-/** Each row's key, its `aria-selected`, and whether Tab reaches it. */
 function rows(host: HTMLElement) {
   return [...cardGrid(host).querySelectorAll<HTMLElement>('[role="row"]')].map(
     (row) => ({
@@ -137,10 +130,6 @@ function rows(host: HTMLElement) {
   );
 }
 
-/**
- * The Tab order through the grid, in document order: a row by its key, and a
- * control by the key of the row that holds it.
- */
 function tabOrder(host: HTMLElement): string[] {
   return [...cardGrid(host).querySelectorAll<HTMLElement>("*")]
     .filter((el) => el.tabIndex >= 0 && !el.hasAttribute("disabled"))
@@ -151,7 +140,6 @@ function tabOrder(host: HTMLElement): string[] {
     });
 }
 
-/** The Tab order when only one row and its controls are in it. */
 function onlyRow(host: HTMLElement, key: string): string[] {
   const row = cardGrid(host).querySelector<HTMLElement>(
     `[data-zotero-annotation-key="${key}"]`,
@@ -180,7 +168,6 @@ describe("the card list", () => {
     expect(cards.map((card) => card.parentElement)).toEqual(
       KEYS.map(() => grid),
     );
-    // Each row holds its content in one cell.
     expect(
       cards.map((card) =>
         [...card.children].map((child) => child.getAttribute("role")),
@@ -251,8 +238,6 @@ describe("the card list", () => {
   it("keeps one tab stop among the rows a filter leaves", async () => {
     const { host, select, store } = await mountList();
 
-    // The search hides the anchor; the rest of the group stays selected, and
-    // the tab stop goes to it.
     await select({
       selected: ["AAAA1111", "CCCC3333"],
       anchor: cardPlace("AAAA1111", null),
@@ -270,8 +255,6 @@ describe("the card list", () => {
     ]);
     expect(tabOrder(host)).toEqual(onlyRow(host, "CCCC3333"));
 
-    // The search hides every Selected Card; the first row it leaves is the
-    // tab stop.
     await act(() => store.setState({ filterQuery: "" }));
     await select({
       selected: ["AAAA1111"],
@@ -288,7 +271,6 @@ describe("the card list", () => {
   });
 });
 
-/** A press and its click on one element, as the browser delivers them. */
 async function press(
   el: Element,
   { release = el }: { release?: Element } = {},
@@ -316,9 +298,7 @@ describe("an open text field in the view", () => {
     const [first, second] = cardGrid(host).querySelectorAll('[role="row"]');
 
     await press(content);
-    // A drag that selected the field's text and let go on its card.
     await press(content, { release: first! });
-    // The empty list's own click closes the editor before it clears anything.
     await press(cardGrid(host));
     expect(onCloseEditors).not.toHaveBeenCalled();
 

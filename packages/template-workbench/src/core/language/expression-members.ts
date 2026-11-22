@@ -1,6 +1,3 @@
-// Expression Completion after the `.` of a value: a record's members, then
-// the properties and the methods of the receiver's type, as the planner of
-// `@zotlit/item-query` types the receiver where it stands.
 import type { SyntaxNode } from "@lezer/common";
 
 import { METHOD_ENTRIES, PROPERTY_ENTRIES } from "@zotlit/item-query";
@@ -40,7 +37,6 @@ const PROPERTIES_BY_NAME = Map.groupBy<string, Entry>(
 );
 const NAMESPACES = new Set(["this", "formula", "vault"]);
 
-/** One entry per member name, from the definitions of it that apply. */
 function memberOption(
   kind: "method" | "property",
   name: string,
@@ -66,11 +62,6 @@ function memberOption(
   };
 }
 
-/**
- * What a `.` after `receiver` offers. A property belongs to its own type and
- * a method also to every value; an unknown type offers every one, as the
- * planner's own candidate list does.
- */
 function memberEntries(
   receiver: ExpressionReceiver | undefined,
 ): ExpressionOption[] {
@@ -103,7 +94,6 @@ function memberEntries(
   ];
 }
 
-/** The `.` access whose member name the caret is on, or right after its dot. */
 function memberAccessAt({
   inner,
   pos,
@@ -126,10 +116,6 @@ function memberAccessAt({
   return null;
 }
 
-/**
- * The namespace path the caret is in, `formula.<name>` or `this.<name>`,
- * read from the parse tree, so spaces may stand around its dot.
- */
 export function namespaceAccessAt(caret: Caret): {
   namespace: string;
   typed: string;
@@ -153,11 +139,6 @@ export function namespaceAccessAt(caret: Caret): {
 const isNamespace = (receiver: SyntaxNode, text: string) =>
   receiver.name === "Identifier" && NAMESPACES.has(text);
 
-/**
- * The members offered with the caret after a `.` at `pos`.
- * @returns Undefined where the caret is not after the `.` of a value; a
- *   namespace path is the expression completion's.
- */
 export function memberCompletions(
   caret: Caret,
   vocabulary: ExpressionVocabulary,

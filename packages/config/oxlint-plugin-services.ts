@@ -1,8 +1,3 @@
-// zotlit-services: the mechanical part of the Obsidian service architecture
-// (policies/services.md, policies/events.md, policies/unload.md): Effect
-// services over legacy classes, tag ids, Scope-owned resources and runners,
-// CLI registration, workers on effect/rpc, Effect-native events and state, and
-// failure boundaries. Rule tests: apps/obsidian/src/lint/services.test.ts.
 import { dirname, resolve, sep } from "node:path";
 
 import { isEffectCode, isMemberOf } from "./oxlint-ast.ts";
@@ -14,7 +9,6 @@ const EFFECT = new Set(["Effect"]);
 const DATE = new Set(["Date"]);
 const PERFORMANCE = new Set(["performance"]);
 
-/** `Effect.<name>`, where `name` is one of `names`. */
 function isEffectMember(
   node: AstNode | undefined,
   names: ReadonlySet<string>,
@@ -22,10 +16,6 @@ function isEffectMember(
   return isMemberOf(node, EFFECT, (name) => names.has(name));
 }
 
-/**
- * A generator handed to `Effect.gen(…)`, `Effect.fnUntraced(…)`, or
- * `Effect.fn("name")(…)`: its body runs as Effect.
- */
 function isEffectGenerator(node: AstNode): boolean {
   if (node.type !== "FunctionExpression" || !node.generator) return false;
   const call = node.parent;
@@ -39,7 +29,6 @@ function isEffectGenerator(node: AstNode): boolean {
   );
 }
 
-/** `x[Symbol.dispose]` or `x[Symbol.asyncDispose]`. */
 function isDisposeKey(node: AstNode | undefined): boolean {
   const key = node?.computed ? node.property : undefined;
   return (
@@ -51,11 +40,6 @@ function isDisposeKey(node: AstNode | undefined): boolean {
   );
 }
 
-/**
- * Inside Effect, a resource's lifetime is its Scope (policies/resource-disposal.md
- * → Effect code). Checks the generator's own body; a callback nested in it,
- * such as the release of `Effect.acquireRelease`, is its own function.
- */
 export const effectNativeResources: Rule = {
   meta: {
     type: "problem",
@@ -109,10 +93,6 @@ export const effectNativeResources: Rule = {
   },
 };
 
-/**
- * Every plugin service is an Effect service (policies/services.md →
- * Conversion scope), so a class that extends `Service` is reported.
- */
 export const noLegacyService: Rule = {
   meta: {
     type: "problem",
@@ -136,11 +116,6 @@ export const noLegacyService: Rule = {
 
 const TAG_ID = /^zotlit\/[a-z0-9-]+\/[A-Z][A-Za-z0-9]*$/;
 
-/**
- * `Context.Service<…>()("id")`: the id names the module and the service. Tag
- * ids key the runtime's Context and show in spans and logs, so a reader can
- * go from an id in a trace to the file that declares it.
- */
 export const serviceTagId: Rule = {
   meta: {
     type: "problem",
@@ -178,11 +153,6 @@ export const serviceTagId: Rule = {
   },
 };
 
-/**
- * `<plugin>.registerCliHandler(…)`: a zotlit:* command registers an Effect
- * handler through `registerCliCommand`, which the plugin runs on its runtime.
- * The plugin's own `this`/`super` calls are the boundary itself.
- */
 export const cliCommandRegistration: Rule = {
   meta: {
     type: "problem",
@@ -235,12 +205,6 @@ function workerType(node: WorkerNode | undefined): boolean {
   );
 }
 
-/**
- * Worker transports follow ZoteroReads (docs/adr/0068): an effect/rpc group
- * gives typed operations and errors, interrupts reach the worker, and the
- * layer's Scope ends the worker. A raw `postMessage` protocol re-earns each of
- * those by hand. File exceptions live in oxlint.config.ts.
- */
 export const workerRpc: Rule = {
   meta: {
     type: "problem",
@@ -336,13 +300,6 @@ interface EventNode extends AstNode {
   readonly source?: AstNode | null;
 }
 
-/**
- * Events are Streams and state: a `SubscriptionRef` for what consumers watch,
- * a `PubSub` Stream for occurrences (policies/events.md). Tests are checked
- * too, since a fake emitter keeps the legacy shape alive in its consumers.
- * Legacy emitters stay on a backlog list in oxlint.config.ts until each
- * service converts.
- */
 export const noNanoevents: Rule = {
   meta: {
     type: "problem",
@@ -381,7 +338,6 @@ const CAPABILITY_TAGS: Readonly<Record<string, string>> = {
     "FileManager tag (@zotlit/obsidian-kit/obsidian-file-manager.ts)",
 };
 
-/** `app`, or a member named `app`: `this.app`, `plugin.app`, `this.#app`. */
 function isApp(node: AstNode | undefined): boolean {
   if (node?.type === "Identifier") return node.name === "app";
   return (
@@ -393,7 +349,6 @@ function isApp(node: AstNode | undefined): boolean {
   );
 }
 
-/** `<app>.<name>`, a non-computed member of the Obsidian `App`. */
 function appMember(node: AstNode | undefined): string | undefined {
   return node?.type === "MemberExpression" &&
     !node.computed &&
@@ -403,23 +358,6 @@ function appMember(node: AstNode | undefined): string | undefined {
     : undefined;
 }
 
-/**
- * A file that imports Effect reaches Obsidian through the capability tags
- * (policies/events.md → Obsidian events): `Vault`, `MetadataCache`,
- * `Workspace`, `FileManager` and `PluginHost`, each from `@zotlit/obsidian-kit/obsidian-*` or
- * `@zotlit/obsidian-kit/plugin-host.ts`. A tag's events are its `changes` Stream; an event with
- * no tag yet enters through `obsidianEvents` from
- * `@zotlit/obsidian-kit/effect-obsidian-events.ts`. Both register on the layer's Scope.
- * Reported: `app.vault`, `app.metadataCache`, `app.workspace` and
- * `app.fileManager`, a call to `registerEvent`,
- * and `.on(` on a member of `app` (`app.workspace.on(…)`). `app` is an `app`
- * identifier or any member named `app` (`this.app`, `plugin.app`,
- * `this.#app`).
- *
- * "Effect code" is `isEffectCode` (`./oxlint-ast.ts`), as for
- * `clock-time`. The tags themselves, and the backlog, are listed in
- * oxlint.config.ts.
- */
 export const obsidianCapabilities: Rule = {
   meta: {
     type: "problem",
@@ -439,7 +377,6 @@ export const obsidianCapabilities: Rule = {
   },
   create(context) {
     let effectNative = false;
-    /** `<app>.<name>.on`, the callee of an event registration. */
     const isAppOn = (node: AstNode | undefined) =>
       node?.type === "MemberExpression" &&
       !node.computed &&
@@ -456,7 +393,6 @@ export const obsidianCapabilities: Rule = {
         if (!effectNative) return;
         const name = appMember(node);
         const tag = name === undefined ? undefined : CAPABILITY_TAGS[name];
-        // `app.vault.on(…)` is reported once, as an event.
         if (!tag || isAppOn(node.parent)) return;
         context.report({
           node: node,
@@ -491,16 +427,6 @@ const FUNCTION_TYPES = new Set([
   "ArrowFunctionExpression",
 ]);
 
-/**
- * A layer consumes another service's Stream with `forkEach` from
- * `@zotlit/plugin-kernel/effect-stream.ts` (policies/events.md → Subscribing from plain code),
- * which forks the consumer on the layer's Scope.
- * `subscribe(runtime, stream, callback)` is the plain-code bridge: inside a
- * layer it hands back an unsubscribe no Scope owns, and it needs a hand-built
- * runner. Only a call whose nearest function is the layer's Effect generator
- * is reported; a nested plain function, such as a per-call observer that
- * returns its own unsubscribe to a plain caller, keeps `subscribe`.
- */
 export const layerStreamConsumer: Rule = {
   meta: {
     type: "problem",
@@ -534,11 +460,6 @@ export const layerStreamConsumer: Rule = {
 
 const CAUSE_OR_EXIT = new Set(["Cause", "Exit"]);
 
-/**
- * A failure boundary tells shutdown from failure with `hasInterruptsOnly`. A
- * cause holding both an interrupt and a failure carries a real failure, which
- * `hasInterrupts` would swallow as shutdown while a sibling boundary logs it.
- */
 export const interruptPredicate: Rule = {
   meta: {
     type: "problem",
@@ -566,7 +487,6 @@ export const interruptPredicate: Rule = {
   },
 };
 
-/** `<x>.state._tag`: a Scope's open or closed state, read by hand. */
 function isStateTag(node: AstNode | undefined): boolean {
   return (
     node?.type === "MemberExpression" &&
@@ -576,11 +496,6 @@ function isStateTag(node: AstNode | undefined): boolean {
   );
 }
 
-/**
- * Code that asks whether its Scope is released reads it through
- * `isScopeClosed` from `@zotlit/plugin-kernel/effect-scope.ts`, so every caller reads release the
- * same way.
- */
 export const scopeClosed: Rule = {
   meta: {
     type: "suggestion",
@@ -627,16 +542,6 @@ interface ImportNode extends AstNode {
   })[];
 }
 
-/**
- * `Effect.runSync`, `runPromise`, `runFork`, `runPromiseExit`, `runSyncExit`
- * and `runCallback` run an Effect with an empty context: its logs skip the
- * plugin logger and log level, and it gets none of the plugin's services.
- * Plugin code runs an Effect through the runtime bridge, a layer's own
- * context runner (`Effect.runSyncWith(yield* Effect.context())`), or a
- * runtime (`runtime.runSync`). Only the `Effect` imported from `effect` is
- * checked, so those calls stay valid. Files that create a
- * runtime, and the backlog, are listed in oxlint.config.ts.
- */
 export const noDefaultRuntime: Rule = {
   meta: {
     type: "problem",
@@ -670,7 +575,6 @@ export const noDefaultRuntime: Rule = {
   },
 };
 
-/** Adds each local name of `Effect` imported from `effect` to `names`. */
 function collectEffectNames(names: Set<string>) {
   return (node: AstNode): void => {
     const { source, specifiers } = node as unknown as ImportNode;
@@ -689,20 +593,6 @@ function collectEffectNames(names: Set<string>) {
 
 const CAPTURED_RUNNERS = new Set(["runPromiseWith", "runPromiseExitWith"]);
 
-/**
- * `Effect.runPromiseWith(context)` and `runPromiseExitWith(context)` build a
- * runner over a captured context that no Scope holds: unload leaves its
- * pending runs going, and a run after unload answers from the released
- * services. A service that keeps a runner for later callbacks builds it on a
- * Scope instead — `scopedBridge`, `forkedBridge` for a write runner, the
- * layer's `FiberSet.runtime`, or `effectBridge(runtime)` in `plugin-runtime.ts` —
- * so unload stops what is pending (`policies/unload.md`). oxlint.config.ts
- * turns the rule on for `src/services/**`, the source of
- * `@zotlit/plugin-services` and the services of `@zotlit/annotations` and
- * `@zotlit/citations`, which
- * leaves out the helpers that build those runners
- * (`@zotlit/plugin-kernel/effect-bridge.ts`, `effect-scope.ts`).
- */
 export const scopedRunner: Rule = {
   meta: {
     type: "problem",
@@ -735,7 +625,6 @@ export const scopedRunner: Rule = {
   },
 };
 
-/** The TypeScript fields `clockTime` reads. */
 interface TypeNode extends AstNode {
   readonly typeAnnotation?: TypeNode;
   readonly returnType?: TypeNode;
@@ -755,7 +644,6 @@ interface TypeNode extends AstNode {
   readonly expression?: TypeNode;
 }
 
-/** `Temporal.<name>` as a type name. */
 function isTemporalType(node: TypeNode | undefined, name: string): boolean {
   const type = node?.type === "TSTypeReference" ? node.typeName : undefined;
   return (
@@ -766,7 +654,6 @@ function isTemporalType(node: TypeNode | undefined, name: string): boolean {
   );
 }
 
-/** A function type that returns a `Temporal.Instant` or a `number`. */
 function isClockFunction(node: TypeNode | undefined): boolean {
   if (!node) return false;
   if (node.type === "TSUnionType")
@@ -778,7 +665,6 @@ function isClockFunction(node: TypeNode | undefined): boolean {
   );
 }
 
-/** A `now` member whose type is a function returning an instant or a number. */
 function isNowMember(member: TypeNode): boolean {
   const key = member.computed ? undefined : member.key;
   if (key?.type !== "Identifier" || key.name !== "now") return false;
@@ -795,32 +681,17 @@ function isNowMember(member: TypeNode): boolean {
   );
 }
 
-/** The folders of `@zotlit/annotations` that hold Effect services. */
 const ANNOTATION_SERVICES =
   /\/annotations\/src\/(core|obsidian|desktop)\/(annotation-repository|attachment-open|excerpt-image|pdf-annotation-editor|reader-session)\//;
 
-/** The folders of `@zotlit/citations` that hold Effect services. */
 const CITATION_SERVICES =
   /\/citations\/src\/(core|obsidian|desktop)\/(annotation-popover|citation-index|citation-parse|citation-popover|citation-text|citekey-editor|citekey-navigation|citekey-reading|graph-citations|pandoc|wikilink-editor|wikilink-reading)\//;
 
-/** The folders of `@zotlit/notes` and `@zotlit/template-workbench` that hold Effect services, and the one file of Customize. */
 const NOTES_SERVICES =
   /\/(notes\/src\/(core|obsidian|desktop)\/(note-feature|note-import|profile|profile-selection|template|batch)\/|template-workbench\/src\/((core|obsidian|desktop)\/cli\/|desktop\/view\/customize\.ts))/;
-/** The folders of `@zotlit/query-views` and `@zotlit/library-view` that hold Effect services. */
 const QUERY_SERVICES =
   /\/(query-views\/src\/(core|obsidian|desktop)\/item-query|library-view\/src\/(core|obsidian|desktop)\/release)\//;
 
-/**
- * In an Effect-native file time comes from `Clock`, so `TestClock` drives it
- * (CODING_STANDARDS.md → Effect → Time). A direct read of the system clock
- * (`Date.now()`, `new Date()`, `performance.now()`) skips the Clock service;
- * `temporal-in-effect` reports `Temporal.Now`. Under `src/services/**`, in
- * `@zotlit/plugin-services` and in the services of `@zotlit/annotations`,
- * `@zotlit/citations`, `@zotlit/notes` and `@zotlit/template-workbench`, a
- * layer constructor that takes a `now` function in its options asks its
- * caller for a second clock; the layer reads `Clock.Clock` instead. The file that converts the Clock for
- * a non-Effect core, and the backlog, are listed in oxlint.config.ts.
- */
 export const clockTime: Rule = {
   meta: {
     type: "problem",
@@ -847,7 +718,6 @@ export const clockTime: Rule = {
       NOTES_SERVICES.test(filename) ||
       QUERY_SERVICES.test(filename);
 
-    /** Members of a parameter type: a literal, or an interface or alias of this file. */
     const membersOf = (
       type: TypeNode | undefined,
       seen = new Set<TypeNode>(),
@@ -880,7 +750,6 @@ export const clockTime: Rule = {
       }
     };
 
-    /** A parameter named `now`, or an options parameter with a `now` member. */
     const hasNowOption = (param: TypeNode): boolean => {
       const target = param.type === "AssignmentPattern" ? param.left : param;
       if (
@@ -953,7 +822,6 @@ export const clockTime: Rule = {
   },
 };
 
-/** `Temporal` as the object of a member access or the left of a type name. */
 function isTemporalRoot(node: TypeNode): boolean {
   const parent: TypeNode | null | undefined = node.parent;
   return (
@@ -962,14 +830,6 @@ function isTemporalRoot(node: TypeNode): boolean {
   );
 }
 
-/**
- * Effect code holds dates as Effect's `DateTime` and durations as `Duration`,
- * and reads the current time through `Clock`, so `TestClock` drives every
- * date the code makes and one date type crosses each service interface
- * (CODING_STANDARDS.md → Effect → Time).
- * `Temporal` belongs to code outside Effect; the edge between the two
- * converts, and the files that hold that edge are listed in oxlint.config.ts.
- */
 export const temporalInEffect: Rule = {
   meta: {
     type: "problem",
@@ -1005,19 +865,6 @@ export const temporalInEffect: Rule = {
   },
 };
 
-/**
- * Rejects an import or re-export of a `<service>/plain` module under
- * `src/services/`, `@zotlit/plugin-services`, `@zotlit/annotations`,
- * `@zotlit/citations`, `@zotlit/notes`, `@zotlit/template-workbench`,
- * `@zotlit/query-views` or `@zotlit/library-view`, in
- * source, tests and fixtures alike. A caller reads the
- * service's Effect tag: Effect code `yield*`s it, and code outside Effect holds
- * the service that `plugin-runtime.ts` reads once and runs each call through
- * the runtime's `bridge`. Every run then lives in a Scope, so unload stops it and
- * the caller gets its released answer from one helper, where each per-service
- * adapter re-implemented that answer on its own runtime
- * (policies/services.md → Bridge, policies/unload.md).
- */
 export const noPlainServiceAdapters: Rule = {
   meta: {
     type: "problem",

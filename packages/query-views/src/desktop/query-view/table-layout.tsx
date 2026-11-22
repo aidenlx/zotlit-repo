@@ -6,11 +6,6 @@ import type {
   QueryViewValue,
 } from "#desktop/item-query/query-view.ts";
 import type { ItemQueryError } from "#desktop/item-query/service.ts";
-// The Table layout: the Items of a view as rows, like Zotero's item list, with
-// the visible properties as columns, the Literature Note Property among them. An Item
-// row expands into its Attachments and Child Notes, and an Attachment row
-// into its Annotations. Each kind of child row comes from one Table Child
-// Source, so a new kind joins the list without another branch.
 import { Effect, Schema } from "effect";
 import { Keymap } from "obsidian";
 import {
@@ -60,47 +55,32 @@ export const TABLE_LAYOUT: QueryLayout = {
   icon: "table",
 };
 
-/** The kinds of row the Table shows: an Item, and the records under it. */
 export type TableRowKind = "item" | "attachment" | "annotation" | "note";
 
-/** One row of the Table: a record of one kind and the values it was read with. */
 export interface TableRecord {
   readonly kind: TableRowKind;
   readonly key: string;
   readonly values: QueryViewRow["values"];
 }
 
-/** The query a Table Child Source reads its rows through. */
 export interface ChildQuery {
   run(
     request: QueryViewRequest,
   ): Effect.Effect<QueryViewOutcome, ItemQueryError, ViewServices>;
 }
 
-/** A query for the rows under a parent answered no rows: it failed or was cancelled. */
 export class ChildRowsUnread extends Schema.TaggedError<
   ChildRowsUnread,
   { readonly brand: unique symbol }
 >()("ChildRowsUnread", {
-  /** The kind of outcome the query answered. */
   outcome: Schema.Literals(["failed", "cancelled"]),
 }) {}
 
-/** The rows of one kind that a row of another kind expands into. */
 export interface TableChildSource {
-  /** The kind of row that expands into these rows. */
   readonly parent: TableRowKind;
   readonly kind: TableRowKind;
   readonly icon: string;
-  /**
-   * The Projection Path of the parent row whose list holds the keys of these
-   * rows; a parent with an empty list has no rows of this kind.
-   */
   readonly marker: string;
-  /**
-   * Read the rows under one parent: through a query of a Query Dataset, or
-   * from a list the parent row carries.
-   */
   load(
     parent: TableRecord,
     query: ChildQuery,
@@ -109,17 +89,11 @@ export interface TableChildSource {
     ItemQueryError | ChildRowsUnread,
     ViewServices
   >;
-  /**
-   * The text of one row, under the row it expands from. An Attachment or
-   * Annotation row puts its text in a `link` that opens it in its reader.
-   */
   render(record: TableRecord, row: ChildRowContext): ReactNode;
 }
 
-/** What one child row renders with beside its own values. */
 export interface ChildRowContext {
   readonly parent: TableRecord;
-  /** The text `children` as a link that opens `target` in its reader. */
   readonly link: (target: OpenTarget, children: ReactNode) => ReactNode;
 }
 
@@ -127,7 +101,6 @@ function text(value: QueryViewValue | undefined): string {
   return typeof value === "string" ? value : "";
 }
 
-/** A `load` that runs one query for the rows of `kind` under a parent. */
 function queried(
   kind: TableRowKind,
   request: (parentKey: string) => QueryViewRequest,
@@ -170,8 +143,6 @@ export const TABLE_CHILD_SOURCES: readonly TableChildSource[] = [
     parent: "item",
     kind: "note",
     icon: "sticky-note",
-    // The Item row's `notes` list holds the key and title of each live Child
-    // Note, so these rows need no query of their own.
     marker: "notes",
     load: (parent) =>
       Effect.sync(() => {
@@ -226,8 +197,6 @@ export const TABLE_CHILD_SOURCES: readonly TableChildSource[] = [
               typeof values.pageIndex === "number" ? values.pageIndex : null,
             pageLabel: text(values.pageLabel) || null,
           },
-          // The page stays in the link, so an Annotation with no text, such
-          // as an image, still has a link to open it by.
           <>
             <span className="zt:truncate">
               {text(values.text) || text(values.comment)}
@@ -246,20 +215,14 @@ export const TABLE_CHILD_SOURCES: readonly TableChildSource[] = [
   },
 ];
 
-/** The paths a row of `kind` is read with, so the Table knows what it expands into. */
 export function markers(kind: TableRowKind): string[] {
   return TABLE_CHILD_SOURCES.filter((source) => source.parent === kind).map(
     (source) => source.marker,
   );
 }
 
-/**
- * The Projection Paths each Item row carries beside the visible properties:
- * the lists that tell what the row expands into.
- */
 export const TABLE_FIELDS: readonly string[] = markers("item");
 
-/** The keys a marker list names: an Indexed Key, or a record that carries one. */
 function markerKeys(value: QueryViewValue | undefined): string[] {
   if (!Array.isArray(value)) return [];
   return value.map((entry) =>
@@ -269,10 +232,6 @@ function markerKeys(value: QueryViewValue | undefined): string[] {
   );
 }
 
-/**
- * The sources a row has rows of, each with the keys of those rows as the
- * row's marker lists them, before any is read.
- */
 function childSources(record: TableRecord) {
   return TABLE_CHILD_SOURCES.flatMap((source) => {
     if (source.parent !== record.kind) return [];
@@ -285,18 +244,12 @@ function expandable(record: TableRecord): boolean {
   return childSources(record).length > 0;
 }
 
-/** The source of the rows of `kind`. */
 export const childSource = (kind: TableRowKind) =>
   TABLE_CHILD_SOURCES.find((source) => source.kind === kind)!;
 
-/** A row under an expanded row, known by its marker while it is read. */
 export type PendingChild = Pick<TableRecord, "kind" | "key">;
 
 export type ChildState =
-  /**
-   * The rows are read. `pending` holds one entry per row the markers list,
-   * so the expansion takes the room its rows take from its first frame.
-   */
   | { readonly phase: "loading"; readonly pending: readonly PendingChild[] }
   | { readonly phase: "ready"; readonly rows: readonly TableRecord[] }
   | { readonly phase: "failed" };
@@ -304,15 +257,9 @@ export type ChildState =
 export const id = (record: Pick<TableRecord, "kind" | "key">) =>
   `${record.kind}:${record.key}`;
 
-/**
- * The text a row being read shows. It fades in after a short wait, so a
- * read that answers at once never shows it; the row's room is there
- * either way.
- */
 export const LOADING_TEXT =
   "zt:truncate zt:animate-in zt:fade-in zt:fill-mode-backwards zt:delay-150";
 
-/** The expanded rows and the rows under them, read when a row expands. */
 export function useChildren(view: QueryView) {
   const { query } = view.tableDeps;
   const [children, setChildren] = useState<ReadonlyMap<string, ChildState>>(
@@ -342,8 +289,6 @@ export function useChildren(view: QueryView) {
       set(key, null);
       return;
     }
-    // Only the sources the row's markers list rows of are read: a row with
-    // none, as a Papers row with a Literature Note alone, opens at once.
     const reads = childSources(record);
     if (reads.length === 0) {
       set(key, { phase: "ready", rows: [] });
@@ -387,11 +332,8 @@ export function Expander({
   record: TableRecord;
   open: boolean;
   onToggle: () => void;
-  /** Whether the row holds a child that Zotero does not, as Papers' Literature Note. */
   holdsMore?: boolean;
 }) {
-  // The chevron takes the icon button's own padding, and a row with nothing
-  // under it holds a hidden one, so every row's text starts at one edge.
   const chevron = (
     <Icon name={open ? "chevron-down" : "chevron-right"} size="xs" />
   );
@@ -440,8 +382,6 @@ function NoteCell({
         {note.basename}
       </a>
     );
-  // A text button in the style of an icon button, so it fits the row's
-  // height as a link does.
   return (
     <button
       type="button"
@@ -464,11 +404,6 @@ function NoteCell({
   );
 }
 
-/**
- * A link that shows a Child Note in Zotero, which holds it: Obsidian has no
- * view of a Zotero note. The system starts Zotero from the link where it is
- * closed.
- */
 export function ZoteroNoteLink({
   noteKey,
   children,
@@ -486,7 +421,6 @@ export function ZoteroNoteLink({
       data-query-open="note"
       onClick={(event) => {
         event.preventDefault();
-        // The window of the link, which may be a pop-out.
         event.currentTarget.win.open(uri);
       }}
     >
@@ -495,12 +429,6 @@ export function ZoteroNoteLink({
   );
 }
 
-/**
- * A link that opens an Attachment or Annotation in its reader, and takes a
- * click as an Obsidian link does: a Cmd/Ctrl press or a middle click opens
- * a new tab, and Cmd/Ctrl+Alt a split. Its address is the Zotero link of the
- * target, which a drag carries out.
- */
 export function ReaderLink({
   readers,
   target,
@@ -512,8 +440,6 @@ export function ReaderLink({
 }) {
   const open = (event: MouseEvent) => {
     event.preventDefault();
-    // Obsidian's own pane for a link click: a middle click or a Cmd/Ctrl
-    // press opens a new tab.
     readers.open(target, Keymap.isModEvent(event));
   };
   return (
@@ -531,77 +457,33 @@ export function ReaderLink({
   );
 }
 
-/** The inset of a row `depth` levels under its Item, for `zt:ps-(--zt-indent)`. */
 const indent = (depth: number) =>
   ({ "--zt-indent": `calc(${depth - 1} * var(--size-4-5))` }) as CSSProperties;
 
-/**
- * A cell's height, padding and row line: one line at the row height of a
- * Bases table, and Obsidian's table border, so a theme that restyles tables
- * restyles it. Every row is one line, so no value makes a row taller.
- */
 const CELL =
   "zt:h-(--bases-table-row-height) zt:border-b-(length:--border-width) zt:border-(--table-border-color) zt:px-2 zt:py-1 zt:whitespace-nowrap";
-/** The narrow first column that holds a row's expand button. */
 const GUTTER = cn(CELL, "zt:w-0 zt:py-0 zt:ps-1 zt:pe-0");
-/**
- * The empty column after the last, the one column without a width: it takes
- * the room the columns leave in a wide pane, so each column keeps the width
- * its header gives it (ADR 0083), and the rows' lines still reach the edge.
- */
 const FILLER = "zt:p-0";
-/**
- * A body cell takes no room of its own, so its header's width holds the
- * column (ADR 0083), and what does not fit is clipped, as in a Bases table.
- */
 const CLIP = "zt:max-w-0 zt:overflow-hidden zt:text-ellipsis";
-/**
- * The first column of properties. Its default width is the widest Bases
- * gives a column of its own accord, where a title reads.
- */
 const FIRST = cn("zt:ps-1", CLIP);
 const FIRST_HEADER = cn(
   FIRST,
   "zt:[--zt-column-width:calc(var(--bases-table-column-max-width)*1px)]",
 );
-/**
- * A column after the first: a line parts it from the one before it. Its
- * default width is half the first's.
- */
 const LATER = cn("zt:border-s-(length:--border-width)", CLIP);
 const LATER_HEADER = cn(
   LATER,
   "zt:[--zt-column-width:calc(var(--bases-table-column-max-width)*0.5px)]",
 );
-/** The line of a cell, which takes its header's width and ends in an ellipsis. */
 const LINE = "zt:block zt:w-0 zt:min-w-full zt:truncate";
-/**
- * A vault cell: its own line clips its value, so the table cell lets the
- * editor that opens over it grow down over the rows below.
- */
 const VAULT = "zt:relative zt:p-0 zt:overflow-visible";
-/**
- * A cell that spans the columns, a group's heading or a child row: it
- * clips too, so a long line never widens the columns it spans.
- */
 const SPANNING = cn(CELL, CLIP);
 const ROW = "zt:hover:bg-(--table-row-background-hover)";
-/**
- * A header cell, which stays at the top as the rows scroll under it. It
- * hides them: in a callout it draws the callout's tint over the page, as
- * the callout does, rather than the callout's see-through background.
- */
 const HEADER =
   "zt:sticky zt:top-0 zt:z-(--layer-cover) zt:bg-background zt:py-0 zt:font-(--font-weight) zt:whitespace-nowrap zt:text-muted-foreground zt:in-[.mod-sidedock]:bg-(--background-secondary) zt:in-[.callout]:bg-[image:linear-gradient(color-mix(in_oklch,var(--callout-color)_10%,transparent),color-mix(in_oklch,var(--callout-color)_10%,transparent))]";
 
-/**
- * The columns a child row's one cell spans beside the gutter: every column
- * of properties and the filler after them, which gives the row room for its
- * text where the view shows no property.
- */
 const childSpan = (columns: number) => columns + 1;
 
-/** The rows under one expanded row, and the rows under those that are expanded. */
 function ChildRows({
   parent,
   depth,
@@ -740,13 +622,11 @@ function ChildRow({
   );
 }
 
-/** The view's rows as a table of Items. */
 export function TableLayout({ view }: { view: QueryView }) {
   const rows = useQueryViewState(
     view,
     (s) => (s.results ?? NO_RESULTS).records,
   );
-  // The table draws these records in the same pass: a print waits for it.
   useLayoutEffect(() => view.drewRecords(rows), [view, rows]);
   const search = useAnnotStore((s) => s.filterQuery)
     .trim()
@@ -758,8 +638,6 @@ export function TableLayout({ view }: { view: QueryView }) {
   const columns = useMemo(() => properties?.visible ?? [], [properties]);
   const [scroller, setScroller] = useState<HTMLElement | null>(null);
   const sizes = useQueryViewState(view, (s) => s.view?.columnSize);
-  // The search reads the vault properties as the cells do, again on a
-  // change of the notes, as the List and Cards search them.
   const vaultVersion = useVaultVersion(literatureNotes);
   const visible = useMemo(() => {
     void vaultVersion;
@@ -773,7 +651,6 @@ export function TableLayout({ view }: { view: QueryView }) {
     );
   }, [rows, columns, search, literatureNotes, view, vaultVersion]);
   const gestures = view.rows;
-  /** One entry per row: a group's heading stands in the body of its first row. */
   const entries = useMemo(
     () =>
       visible.map(({ row, group }, index): WindowEntry => {
@@ -792,7 +669,6 @@ export function TableLayout({ view }: { view: QueryView }) {
   );
   if (rows.length === 0) return null;
   const span = childSpan(columns.length) + 1;
-  /** One body per Item, the unit a long table measures and mounts: its heading, its row and the rows under it. */
   const draw = (index: number): DrawnEntry => {
     const { row, group: placed } = visible[index]!;
     const record: TableRecord = {
@@ -835,7 +711,6 @@ export function TableLayout({ view }: { view: QueryView }) {
       view={view}
       entries={entries}
       estimates={ESTIMATES}
-      // A row's height follows its columns and their widths.
       shape={JSON.stringify([columns.map(({ path }) => path), sizes ?? null])}
       box={{ className: "zt-table-scroller zt:relative" }}
       boxRef={setScroller}
@@ -869,7 +744,6 @@ export function TableLayout({ view }: { view: QueryView }) {
   );
 }
 
-/** The height of a Table row, and of one under its group's heading, before it is measured. */
 const ESTIMATES = { row: 33, "heading-row": 66 };
 
 function ItemRow({
@@ -887,7 +761,6 @@ function ItemRow({
   record: TableRecord;
   columns: readonly PropertyEntry[];
   notes: LiteratureNotes;
-  /** The note that holds the view, where a note holds it. */
   host: VaultHost | null;
   expanded: ReadonlyMap<string, ChildState>;
   toggle: (record: TableRecord) => void;
@@ -925,7 +798,6 @@ function ItemRow({
                 CELL,
                 at === 0 ? FIRST : LATER,
                 note && "zt:py-0",
-                // A vault cell fills the cell, so the whole of it edits.
                 name !== null && VAULT,
               )}
             >

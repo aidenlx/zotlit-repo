@@ -1,6 +1,3 @@
-// The reading-mode surface of the Citekey Editor Treatment: literal citekey
-// citations show formatted in the reading view, navigate like links, and are
-// rewritten in place while Obsidian shows their section.
 import type { CitationLookupObservation } from "#obsidian/citation-index/service.ts";
 import type {
   CitationKeyState,
@@ -73,29 +70,19 @@ import {
 } from "#obsidian/citekey-navigation/index.ts";
 import "./style.css";
 
-/** One element standing in a citation's place, and what it was built from. */
 interface PlacedCitation {
   element: HTMLElement;
-  /** The content shown — the source where none was formatted for it. */
   shown: PresentedCitation | string;
-  /** The key states the element's theme hooks and handlers were chosen by. */
   states: readonly CitationKeyState[];
-  /** The navigation the element's handlers read, refreshed while it stays. */
   navigation: CitationNavigation;
 }
 
-/** One held section: its citations, and the elements standing in their place. */
 interface HeldSection {
   citations: readonly SectionCitation[];
   lookup: CitationLookupObservation;
-  /**
-   * The element standing in each citation's place. Empty until the first show
-   * puts elements in place.
-   */
   placed: PlacedCitation[];
 }
 
-/** Whether two placed answers show the same content. */
 function shownEqual(
   left: PresentedCitation | string,
   right: PresentedCitation | string,
@@ -106,32 +93,6 @@ function shownEqual(
   return presentedCitationEqual(left, right);
 }
 
-/**
- * Renders literal citekey citations in reading mode, so a shared or published
- * view of a note shows formatted citations.
- *
- * A citation is formatted from the shared citation text of its document, so
- * this surface, the editor's cluster widgets, and the References Sidebar agree
- * on the References Style and go stale together. With no engine installed the
- * citation keeps its native source text.
- *
- * Navigation is independent: when enabled, one work opens on click and several
- * works open a menu at the cursor. Wherever Citations stay closed as links, a
- * plain click on a rendered citation does nothing — it reads as the static text
- * it is — and Mod-click keeps opening the work. Hover belongs to the Hover
- * Action alone, so every citation this surface renders carries it. A citation
- * none of whose keys reaches a Zotero Item stays raw source text, inert but for
- * that hover.
- *
- * A post-processor stays registered for the plugin's lifetime, so the toggles
- * are read per render rather than by adding and removing it.
- *
- * A section this surface rendered into stays held while Obsidian shows it, and
- * its citations are rewritten in place — the same Held Read text, or the fresh
- * text that replaced it — so a change to what a citation says moves nothing
- * else in the view. A toggle that changes whether the surface touches a
- * citation at all still renders the views again.
- */
 export const layerCitekeyReading = Layer.effectDiscard(
   Effect.gen(function* () {
     const host = yield* PluginHost;
@@ -145,23 +106,17 @@ export const layerCitekeyReading = Layer.effectDiscard(
     const bridge = yield* scopedBridge;
     const run = Effect.runSyncWith(yield* Effect.context<never>());
 
-    /** `undefined` until the first settings snapshot decides the treatment. */
     let active: boolean | undefined;
     let showFormatted = false;
     let navigationEnabled = false;
     let hover: HoverPreferences = hoverPreferences(citationSettings.defaults);
-    /** The sections this surface rendered into and Obsidian still shows. */
     const sections = new LiveSections();
-    /** What a hover raises its `hover-link` on, and a recovery button its Profile switch. */
     const hoverWorkspace = workspaceTrigger(workspace, run);
-    /** A reading view holds what a post-processor produced until it renders again. */
     const rerender = rerenderReadingViewsIn(workspace);
 
     const applySettings = Effect.fnUntraced(function* (
       next: Readonly<Settings>,
     ) {
-      // Read straight through: hover answers from the newest snapshot, and
-      // nothing rendered depends on it.
       hover = hoverPreferences(next);
       const pandocCitations = next["citation.pandoc-citations"];
       const formatted = pandocCitations && next["citation.show-formatted"];
@@ -195,10 +150,6 @@ export const layerCitekeyReading = Layer.effectDiscard(
       yield* rerender;
     });
 
-    /**
-     * Builds the element one citation shows as, with its handlers attached,
-     * and the navigation those handlers read.
-     */
     const buildCitationElement = (
       doc: Document,
       sourcePath: string,
@@ -213,11 +164,8 @@ export const layerCitekeyReading = Layer.effectDiscard(
         content: PresentedCitation | string;
         states: readonly CitationKeyState[];
         works: CitationNavigation["works"];
-        /** The occurrence shown in the citation's place, where formatted text is. */
         at: CitationNavigation["shown"];
-        /** The Profile failure the document's presentation reports, if any. */
         failure: ProfilePresentationFailure | undefined;
-        /** The section-owned lookup used by hover while this element stays live. */
         lookup: CitationLookupAnswer | null;
       },
     ): { element: HTMLElement; navigation: CitationNavigation } => {
@@ -238,13 +186,8 @@ export const layerCitekeyReading = Layer.effectDiscard(
       }
       const navigation: CitationNavigation = {
         works,
-        // The occurrence this section shows in the citation's place, which is
-        // where a note-class style's own note text is read from, however often
-        // the popover reads it again. A citation left as source text shows
-        // none.
         shown: at,
         where: { surface: "reading" },
-        // Unload interrupts a pending open.
         open: (citekey, pane) => {
           bridge.runAndForget(citekeyEditor.openCitekey(citekey, pane));
         },
@@ -254,10 +197,6 @@ export const layerCitekeyReading = Layer.effectDiscard(
           run(citekeyEditor.hoverNotePath(citekey, lookup)),
         workspace: hoverWorkspace,
         hoverTarget: () => {
-          // The Markdown view a rendered citation sits in, which Obsidian
-          // hangs the popover off. Markdown rendered outside such a view — an
-          // export, a popover of its own — belongs to none, and hover stays
-          // silent there.
           const hoverParent = markdownViewOf(
             run(workspace.markdownViews),
             element,
@@ -267,14 +206,6 @@ export const layerCitekeyReading = Layer.effectDiscard(
             : { workspace: hoverWorkspace, hoverParent, sourcePath };
         },
       };
-      // Hover belongs to the Hover Action, so every rendered citation carries
-      // it. Click is Citekey Navigation's alone: it opens the work the
-      // citation names, and wherever Citations stay closed as links a plain
-      // click does nothing, the way it does on any other rendered text. A
-      // citation none of whose keys reaches a Zotero Item has nothing to open
-      // anyway; it stays wrapped so themes can style its error state, and its
-      // entries say as much. An Ambiguous Citation Key names no one Item
-      // either, so a citation resting on those alone opens nothing.
       if (navigationEnabled && states.includes("resolved")) {
         markCitationClick(element, "open");
         attachCitationNavigation(element, navigation);
@@ -289,18 +220,6 @@ export const layerCitekeyReading = Layer.effectDiscard(
       return { element, navigation };
     };
 
-    /**
-     * Shows every citation of a section what the document's Held Read holds
-     * for it. The first show splits the source text and puts an element in
-     * each citation's place. Every later one keeps an element whose content
-     * and key states the fresh answer equals, refreshing only the navigation
-     * its handlers read — so a hover or popover anchored on it stays anchored
-     * — and swaps a rebuilt element for one they differ from, so its theme
-     * hooks and handlers follow the current answer. A citation the fresh text
-     * holds nothing for keeps what it shows.
-     *
-     * `text` is the document's Held Read, as `CitationText.peek` reads it.
-     */
     const show = (
       el: HTMLElement,
       ctx: MarkdownPostProcessorContext,
@@ -313,8 +232,6 @@ export const layerCitekeyReading = Layer.effectDiscard(
     ): void => {
       const answer = text?.value.lookup ?? lookup.current?.value ?? null;
       const resolutionPending = answer === null;
-      // Source stays until a first answer: native text while the read
-      // settles, and what a placed element shows until fresh text replaces it.
       if (text === null && !resolutionPending) return;
       renderProfileRecovery(
         el,
@@ -327,15 +244,7 @@ export const layerCitekeyReading = Layer.effectDiscard(
         citekeyState(heldResolution(answer, citekey));
       const stateOf =
         text === null ? snapshotState : literalKeyStateOf(text.value);
-      // Which occurrence each citation of the section is, so a
-      // position-dependent style shows every one of them the text rendered
-      // for its own place.
       const coordinates = sectionCoordinates(citations, sectionRange(ctx, el));
-      /**
-       * The element citation `index` shows as: the one placed, where the
-       * fresh answer equals what it was built from, or a rebuilt one recorded
-       * in its place.
-       */
       const place = (citation: SectionCitation, index: number): HTMLElement => {
         const content = showFormatted
           ? text === null
@@ -384,10 +293,6 @@ export const layerCitekeyReading = Layer.effectDiscard(
       }
     };
 
-    /**
-     * Holds one rendered section and shows its citations, which are rewritten
-     * in place for as long as Obsidian shows the section.
-     */
     const process = (
       el: HTMLElement,
       ctx: MarkdownPostProcessorContext,
@@ -425,10 +330,6 @@ export const layerCitekeyReading = Layer.effectDiscard(
 
     host.registerMarkdownPostProcessor((el, ctx) => process(el, ctx));
     yield* forkEach(settings.changes, applySettings);
-    // What a placed citation says follows its document's Held Read: the live
-    // sections of that document rewrite on its change, and every live section
-    // rewrites when all text goes stale — which a citekey resolution snapshot
-    // rebuild counts as.
     yield* forkEach(citationText.events, (event) =>
       event.type === "changed"
         ? sections.refresh(event.path)
@@ -436,8 +337,6 @@ export const layerCitekeyReading = Layer.effectDiscard(
           ? sections.refresh()
           : undefined,
     );
-    // A rendered citation carries this layer's own click and hover handlers,
-    // so the reading views render again without it once it is gone.
     yield* retireReadingSurface(workspace, () => {
       active = false;
     });

@@ -12,22 +12,12 @@ import { buildPlugin } from "./templates/scripts/build.mjs";
 import { DEV_VAULT_CASE_ENV, getDevVaultDir } from "#dev-vault";
 import { parseManifest } from "#obsidian-manifest";
 
-/**
- * Dev Build version: the manifest of a development build marks itself as a
- * dev pre-release of the release in package.json, so it never reads as that
- * release. It derives from package.json alone, so a turbo cache hit on
- * `build:dev` always restores the correct version.
- *
- * Derive a semver version that ranks above `release` and below the next
- * release, e.g. `2.2.0-beta.1` → `2.2.0-beta.1.dev` and `2.2.0` → `2.2.1-dev`.
- */
 export function deriveDevVersion(release: string): string {
   return prerelease(release) === null
     ? `${inc(release, "patch")}-dev`
     : `${release}.dev`;
 }
 
-/** `obsidian-vault.ts create` seeds and registers this folder with Obsidian. */
 function getDevVaultPluginDir(workspaceRoot: string, pluginId: string) {
   return join(
     getDevVaultDir(workspaceRoot, process.env[DEV_VAULT_CASE_ENV]),
@@ -44,11 +34,6 @@ interface HostBuild {
   readonly stageResources?: (dir: string) => Promise<void>;
 }
 
-/**
- * Completes the bundle package in `bundleDir`, beside the main.js and
- * styles.css Vite wrote there, and builds `outDir`'s main.js and styles.css
- * from it with the publish repository's own build script.
- */
 async function buildFromBundlePackage(
   host: HostBuild & { readonly bundleDir: string; readonly outDir: string },
   packageJson: {
@@ -75,12 +60,6 @@ async function buildFromBundlePackage(
   });
 }
 
-/**
- * The production build of a Resource Pack: writes `main`, the container, into
- * the bundle package in `<packageRoot>/dist/package/`, completes that package,
- * and copies its main.js into `dist/` with the publish repository's own build
- * script. Every step after the pack writer is a plain copy.
- */
 export async function buildContainerFromBundlePackage(
   host: HostBuild & { readonly main: Uint8Array },
   packageJson: Parameters<typeof buildFromBundlePackage>[1],
@@ -106,9 +85,7 @@ export function obsidianBuildPlugin({
 }: HostBuild & {
   isDev: boolean;
   isProd: boolean;
-  /** The folder Obsidian loads the plugin from. */
   outDir: string;
-  /** The folder Vite writes this build's main.js and styles.css into. */
   bundleDir: string;
 }): Plugin {
   const { outDir } = host;

@@ -1,7 +1,5 @@
 import { effectImageResolver } from "@zotlit/annotations/__fixtures__/excerpt-image/service.ts";
 import type { ExcerptImageFixture } from "@zotlit/annotations/__fixtures__/excerpt-image/service.ts";
-// The real note importer layer over a test's Profile, Note Index, Template,
-// Zotero paths, Obsidian host and excerpt preparation.
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Context, Effect, Layer, Stream } from "effect";
 import type { TFile } from "obsidian";
@@ -34,10 +32,6 @@ import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts"
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { defaults } from "#__fixtures__/settings.ts";
 
-/**
- * The real Attachment Import over the importer's vault, with these settings,
- * the file manager's links, and the vault on disk at `basePath`.
- */
 export interface RealAttachmentImport {
   readonly settings: Pick<
     Settings,
@@ -47,26 +41,16 @@ export interface RealAttachmentImport {
   readonly basePath: string;
 }
 
-/**
- * The real excerpt preparation over the importer's vault and workspace, with
- * this resolver, the file manager's links and the metadata cache.
- */
 export interface RealExcerptPreparation {
   readonly resolver: Pick<ExcerptImageFixture, "operation" | "resolve">;
   readonly fileManager: FileManagerSource;
   readonly metadataCache?: MetadataCacheSource;
 }
 
-/** What a test gives the importer, in the plain shapes it states them in. */
 export interface ImporterFakes {
-  /**
-   * The excerpt preparation's `forNote`, faked, or the real preparation.
-   * Without it a note write prepares no excerpt.
-   */
   readonly excerptImages?:
     | ((options: NoteExcerptOptions) => PreparedExcerpts)
     | RealExcerptPreparation;
-  /** Attachment Import's `prepare`, faked, or the real layer. */
   readonly attachmentImport:
     | Pick<AttachmentImport["Service"], "prepare">
     | RealAttachmentImport;
@@ -87,7 +71,6 @@ export interface ImporterFakes {
   >;
 }
 
-/** {@link layerNoteImporter} over `fakes`, with the tags it reads. */
 export function layerNoteImporterOver(
   fakes: ImporterFakes,
 ): Layer.Layer<NoteImporter> {
@@ -139,13 +122,11 @@ export function layerNoteImporterOver(
   );
 }
 
-/** The importer service of {@link layerNoteImporterOver}, for the case's Scope. */
 export const noteImporterOver = (fakes: ImporterFakes) =>
   Effect.map(Layer.build(layerNoteImporterOver(fakes)), (context) =>
     Context.get(context, NoteImporter),
   );
 
-/** {@link ImporterFakes.excerptImages} as the preparation tag. */
 function layerExcerptPreparationOver(
   fakes: ImporterFakes,
   current: Effect.Effect<ZoteroPrefSnapshot>,

@@ -87,13 +87,9 @@ import { NoteFeature } from "#desktop/note-feature/service.ts";
 import { Profile } from "#obsidian/profile/service.ts";
 import { ProfileAnnotationError } from "#obsidian/template/service.ts";
 
-/** Captured options of every batch modal the runner opened via its view port. */
 const openedModals: BatchModalOptions[] = [];
-/** Stub for the view port's overwrite confirm; controlled per overwrite test. */
 const confirmMock = vi.fn();
 
-// Stub only the DOM-bound manifests so classify/run drive the real batch-run
-// mechanics (imported from @/services/batch-run, left unmocked) headlessly.
 vi.mock("#desktop/batch/modal/index.ts", () => {
   class FlatManifest {
     readonly options: unknown;
@@ -116,8 +112,6 @@ function classifyControls(): BatchClassifyControls {
   return { onProgress: vi.fn(), signal: new AbortController().signal };
 }
 
-/** Drive the last opened modal through its loading + run phases, returning the
- * built manifest's captured options and the per-item settle spy. */
 async function driveLastModal(): Promise<{
   manifest: { options: any };
   onItemSettled: ReturnType<typeof vi.fn>;
@@ -150,15 +144,8 @@ function makeRef(itemID: number, libraryID = USER_LIBRARY_ID): ChildNote {
   };
 }
 
-/**
- * The `:memory:` Zotero database every fixture reads: My Library, the
- * "Reading group" library (local id 12, group 7), and the regular item
- * {@link PARENT_ITEM_ID}, the parent {@link makeRef} names. Each test seeds
- * the notes it reads.
- */
 let db: NodeDatabaseClient;
 
-/** The regular item every seeded note hangs from unless a test says otherwise. */
 const PARENT_ITEM_ID = 900;
 
 const BASE_ROWS = `
@@ -173,10 +160,6 @@ const BASE_ROWS = `
   insert into itemData (itemID, fieldID, valueID) values (900, 10, 1);
 `;
 
-/**
- * Seed the live notes `itemIDs`, each as {@link makeNote} describes it: key
- * `NOTE<id>` (or `key`), title `Note <id>`, a child of `parentItemID`.
- */
 function seedNotes(
   itemIDs: readonly number[],
   {
@@ -205,7 +188,6 @@ function seedNotes(
   }
 }
 
-/** Seed a collection of `libraryID` holding the standalone notes `itemIDs`. */
 function seedCollection(
   key: string,
   libraryID: number,
@@ -255,7 +237,6 @@ const PERSONAL_LIBRARY: Library = {
   name: null,
 };
 
-/** A group whose local id sorts after the personal library's own row order. */
 const GROUP_LIBRARY: Library = {
   libraryID: 12,
   version: 0,
@@ -285,15 +266,12 @@ function scopeOf(
   };
 }
 
-/** The Library Scope every fixture resolves, unless a test replaces it. */
 let currentScope: ResolvedLibraryScope = scopeOf([PERSONAL_LIBRARY]);
 
-/** A prepared import whose write a case states as a Promise. */
 type PromisePreparedImport = Omit<PreparedExplicitImport, "import"> & {
   import(note: Note, options: ImportNoteOptions): Promise<WriteOutcome>;
 };
 
-/** The note importer as a case states it: its writes as Promises. */
 interface PromiseNoteImporter {
   prepareExplicitImport: (
     note: ChildNote,
@@ -302,7 +280,6 @@ interface PromiseNoteImporter {
   importNote: (note: Note, options: ImportNoteOptions) => Promise<WriteOutcome>;
 }
 
-/** What a case gives the batch import, in the plain shapes it states them in. */
 interface ImportDeps {
   noteFeature: {
     reportExcerptImages: (summary: ExcerptSummary) => void;
@@ -321,10 +298,6 @@ interface ImportDeps {
   metadataCache: { getFileCache(file: TFile): CachedMetadata | null };
 }
 
-/**
- * A case's Promise as the importer answers: a {@link NoteImportProfileError}
- * it rejects with is the importer's typed failure, anything else a defect.
- */
 const settled = <A>(call: () => Promise<A>) =>
   Effect.promise(() => call()).pipe(
     Effect.catchDefect((defect) =>
@@ -334,11 +307,6 @@ const settled = <A>(call: () => Promise<A>) =>
     ),
   );
 
-/**
- * The real {@link bindBatchImport}, as `plugin-runtime.ts` binds it, over services
- * that answer from `deps` at the time of each call. The case's resources
- * dispose the runtime.
- */
 function importOver(deps: ImportDeps): BatchImport {
   const runtime = buildRuntime(layerOver(deps), caseResources);
   return bindBatchImport(
@@ -348,10 +316,6 @@ function importOver(deps: ImportDeps): BatchImport {
   );
 }
 
-/**
- * {@link runBatchImportAll} over the services {@link importOver} binds, as
- * the Import all notes command runs it.
- */
 function importAllOver(
   deps: ImportDeps,
   target?: BatchTarget,
@@ -359,10 +323,6 @@ function importAllOver(
   return runOver(deps, (ports) => runBatchImportAll(ports, target));
 }
 
-/**
- * {@link runChildImportByKey} over the services {@link importOver} binds, as
- * the Import child notes command runs it.
- */
 function childImportOver(
   deps: ImportDeps,
   indexedKey: string,
@@ -370,7 +330,6 @@ function childImportOver(
   return runOver(deps, (ports) => runChildImportByKey(ports, indexedKey));
 }
 
-/** Run `effect` over `deps`; the case's resources dispose the runtime. */
 function runOver<A, E>(
   deps: ImportDeps,
   effect: (ports: BatchImportPorts) => Effect.Effect<A, E, BatchImportServices>,
@@ -385,12 +344,10 @@ function runOver<A, E>(
   );
 }
 
-/** The ports a batch import takes, from the case's `deps`. */
 function portsOf(deps: ImportDeps): Omit<BatchImportPorts, "bridge"> {
   return { view: deps.view };
 }
 
-/** The services a batch import reads, answering from `deps` at each call. */
 function layerOver(deps: ImportDeps): Layer.Layer<BatchImportServices> {
   return Layer.mergeAll(
     unimplementedProfileDialogServices,
@@ -434,7 +391,6 @@ function layerOver(deps: ImportDeps): Layer.Layer<BatchImportServices> {
       resolveProfile: (selector) =>
         Effect.sync(() => deps.profile.resolveProfile(selector)),
     }),
-    // Only the real Profile picker reads it; the fake view does not.
     Layer.mock(ZoteroPref, {}),
     Layer.mock(ZoteroReads, {
       current: Effect.sync(() =>
@@ -461,9 +417,7 @@ function makeDeps(
     dbState?: "loading" | "ready" | "degraded";
     importNoteResult?: "created" | "overwritten" | "skipped";
     existing?: TFile[];
-    /** Per-file frontmatter cache for metadataCache.getFileCache. */
     frontmatter?: Map<TFile, Record<string, unknown>>;
-    /** Observes or replaces operations at the ZoteroReads interface. */
     wrap?: (client: ZoteroReadsClient) => ZoteroReadsClient;
   } = {},
 ): {
@@ -712,7 +666,6 @@ it.each([true, false])(
   },
 );
 
-/** The database and the read services the current case opened over it. */
 let caseResources: AsyncDisposableStack;
 
 beforeEach(() => {
@@ -761,7 +714,6 @@ describe("classify through the NoteRefs stream", () => {
       "NoteBodies",
       "NoteBodies",
     ]);
-    // Classify reads its own Snapshot; the run's note loads share another.
     const [classifySnapshot, runSnapshot] = recorded.snapshots;
     expect(classify!.payload.snapshot).toBe(classifySnapshot);
     for (const load of loads) expect(load.payload.snapshot).toBe(runSnapshot);
@@ -775,7 +727,6 @@ describe("classify through the NoteRefs stream", () => {
       {
         wrap: (client) => ({
           ...client,
-          // The first slice arrives; the next one never does until interrupted.
           NoteRefs: ((payload: object, options?: object) =>
             Stream.concat(
               (
@@ -835,7 +786,6 @@ describe("classify through the NoteRefs stream", () => {
       },
     );
     seedNotes([1]);
-    // The plugin's runtime: unloading disposes it.
     const plugin = new AsyncDisposableStack();
     const runtime = buildRuntime(layerOver(deps), plugin);
     await bindBatchImport(
@@ -1009,7 +959,6 @@ describe("Import all notes (runBatchImportAll)", () => {
       });
 
       expect(result).toEqual({ outcome: "batch-modal" });
-      // One collection read, and no library-wide read.
       expect(recorded.calls).toMatchObject([
         {
           payload: {
@@ -1099,7 +1048,6 @@ describe("single note import (mode=note, 1 id)", () => {
 
     expect(openedModals).toHaveLength(0);
     expect(importNote).toHaveBeenCalledTimes(1);
-    // The write reads through the Snapshot its read opened.
     expect(importNote.mock.calls[0]![1]).toMatchObject({
       reads: expect.any(Object),
     });
@@ -1156,7 +1104,6 @@ describe("single note import (mode=note, 1 id)", () => {
           return { close };
         });
 
-      // The single-note path opens no batch modal, so it runs nothing on the bridge.
       const bridge = stubService<BatchImportPorts["bridge"]>(
         "EffectBridge",
         {},
@@ -1270,9 +1217,6 @@ describe("note-mode modal classify + run", () => {
     const onItemSettled = vi.fn();
     const running = options.onRun({ onItemSettled, stop });
     await started.promise;
-    // The modal's stop request is the only stop this run observes. The write
-    // it admitted keeps running: it is neither cancelled, nor settled, nor
-    // reported before it lands.
     Deferred.doneUnsafe(stop, Exit.void);
     expect(onItemSettled).not.toHaveBeenCalled();
     expect(deps.noteFeature.reportExcerptImages).not.toHaveBeenCalled();
@@ -1321,8 +1265,6 @@ describe("note-mode modal classify + run", () => {
     const { deps, importNote } = makeDeps({});
     await using probe = excerptReuseProbe();
     const scopes: (ExcerptOutcomeScope | undefined)[] = [];
-    // Each note resolves the probe's excerpt in turn, so only the run's own
-    // retention — not a shared in-flight request — can answer the repeats.
     let resolutions: Promise<unknown> = Promise.resolve();
     importNote.mockImplementation(async (_note, options) => {
       scopes.push(options.outcomes);
@@ -1334,14 +1276,10 @@ describe("note-mode modal classify + run", () => {
     await importOver(deps).runBatchImport("note", [50, 51, 52]);
     await driveLastModal();
 
-    // One run is one batch: every note resolves through one scope, and the
-    // repeats reuse the outcome the first note produced.
     expect(scopes).toHaveLength(3);
     expect(scopes[1]).toBe(scopes[0]);
     expect(scopes[2]).toBe(scopes[0]);
     expect(probe.renders()).toBe(1);
-    // Every note settled, so the run released what it retained: a later note
-    // driven through the same scope renders again.
     await probe.resolve(scopes[0]);
     expect(probe.renders()).toBe(2);
   });
@@ -1354,7 +1292,6 @@ describe("note-mode modal classify + run", () => {
     await driveLastModal();
 
     expect(importNote).toHaveBeenCalledTimes(2);
-    // Both writes read one Snapshot, held for the run.
     const reads = importNote.mock.calls[0]![1].reads;
     expect(reads).toEqual(expect.any(Object));
     for (const call of importNote.mock.calls) {
@@ -1389,7 +1326,6 @@ describe("note-mode modal classify + run", () => {
 
   it("labels a trashed note distinctly from a genuine non-note id", async () => {
     seedNotes([50]);
-    // 60 is a note that's in Zotero's trash; 99 isn't a note at all.
     seedNotes([60]);
     db.$client.exec("insert into deletedItems (itemID) values (60)");
     const { deps, importNote } = makeDeps({});
@@ -1429,7 +1365,6 @@ describe("note-mode modal classify + run", () => {
     await importOver(deps).runBatchImport("note", [50, 51]);
     const options = openedModals.at(-1)!;
     await options.onClassify(classifyControls());
-    // The note leaves Zotero between classify and the write.
     db.$client.exec(
       "delete from itemNotes where itemID = 50; delete from items where itemID = 50",
     );
@@ -1591,7 +1526,6 @@ describe("Import child notes (runChildImportByKey)", () => {
   });
 
   it("returns a rejected promise when synchronous key lookup throws", async () => {
-    // A read that fails inside SQLite answers with a tagged DbUnavailable.
     const { deps } = makeDeps(
       {},
       {

@@ -1,5 +1,3 @@
-// Per-window Database Status control in the library sidenav.
-
 import { getLogger } from "@logtape/logtape";
 
 import { requireMessage } from "@/lib/l10n.ts";
@@ -20,22 +18,11 @@ const logger = getLogger(["zotlit", "zotero", "database-status"]);
 const CONTROL_ID = "zotlit-database-status";
 const SIDENAV_ID = "zotero-view-item-sidenav";
 
-/**
- * A docs page in Zotero's language: the Chinese edition under `/zh-CN` while
- * Zotero runs in Simplified Chinese, the English page otherwise.
- */
 function docsUrl(path: string): string {
   const prefix = Zotero.locale === "zh-CN" ? "/zh-CN" : "";
   return `https://zotlit.aidenlx.site${prefix}${path}`;
 }
 
-/**
- * How each state appears. The tooltip carries the state too, so the tint is
- * never the only channel. Zotero defines both accent tokens per color scheme,
- * so neither needs light/dark handling here; an empty `stroke` drops the
- * inline declaration and lets Zotero's own `--fill-secondary` show through
- * (its `.btn[custom]` rule sets `fill` and `stroke` from that one token).
- */
 const ICON_APPEARANCE = {
   neutral: { stroke: "", tooltip: "zotlit-database-status" },
   off: {
@@ -143,11 +130,6 @@ function paintControl(checkpoint: WalCheckpoint, window: Window): void {
   const wrapper = document.getElementById(CONTROL_ID);
   const button = wrapper?.firstElementChild;
   if (!wrapper || !button) return;
-  // Visibility follows the Checkpoint itself, not the notify switch: the
-  // Checkpoint serves every companion user — the default install has no live
-  // updates and leans on it hardest. Only the expected no-WAL state hides
-  // the control (nothing to report or write); a failed probe is an error the
-  // model paints red, so it must stay visible.
   const status = checkpoint.status();
   const hidden = !status.active && status.reason === "not-wal";
   wrapper.toggleAttribute("hidden", hidden);
@@ -233,7 +215,6 @@ export function registerDatabaseStatus(
     for (const window of Zotero.getMainWindows()) detachWindow(window);
   });
   for (const window of Zotero.getMainWindows()) attachWindow(window);
-  // Checkpoint runs move the state; the automatic-writes pref moves the tint.
   stack.defer(checkpoint.onChange(repaintAll));
   stack.defer(prefs.onChange("extensions.zotlit.wal-checkpoint", repaintAll));
   const disposable = stack.move();

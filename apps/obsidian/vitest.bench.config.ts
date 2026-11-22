@@ -1,9 +1,3 @@
-// The benchmarks of the plugin: `src/**/*.bench.ts`, which build large
-// databases and take minutes, so `pnpm test` (vitest.config.ts) leaves them
-// out. Run with `pnpm --filter @zotlit/obsidian bench`.
-//
-// It repeats the `resolve`, `define` and `plugins` of vitest.config.ts rather
-// than merging that file: its `projects` would carry their `include` here.
 import preact from "@preact/preset-vite";
 import { join, resolve } from "node:path";
 import { defineConfig } from "vitest/config";
@@ -54,7 +48,6 @@ export default defineConfig({
     include: ["src/**/*.bench.ts"],
     environment: "node",
     setupFiles: [obsidianSetupFile],
-    // One grid runs for many minutes; the bench sets its own per-test timeout.
     testTimeout: 0,
     fileParallelism: false,
   },

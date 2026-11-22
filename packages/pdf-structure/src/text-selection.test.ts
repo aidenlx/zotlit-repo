@@ -10,11 +10,6 @@ import {
   textRange,
 } from "#text-selection.ts";
 
-/**
- * One line of Structured Characters as the line grouping leaves them: glyphs
- * 5 pt wide from `x`, a word break at every space of `text`, and a line break
- * after the last glyph. `inlineRect` is taller than `rect`, as a line's is.
- */
 function line(
   text: string,
   { x = 100, y = 700, last = {} } = {},
@@ -54,7 +49,6 @@ function page(
   };
 }
 
-/** A hyphen the line grouping marked as a discretionary line-end one. */
 const hyphenated = (text: string, y: number) =>
   line(text, { y, last: { ignorable: true } });
 
@@ -83,7 +77,6 @@ describe("a range of Structured Characters", () => {
   const { chars } = page(0, line("the quick"), line("brown fox", { y: 690 }));
 
   it("draws one rectangle per line, the union of the line boxes", () => {
-    // "quick" is chars 3–7, "brown" chars 8–12.
     expect(textRange(chars, 3, 13).rects).toEqual([
       [120, 699, 145, 709],
       [100, 689, 125, 699],
@@ -165,8 +158,6 @@ describe("a DOM text selection mapped onto the page's characters", () => {
   });
 
   it("puts the space back across a line break the text layer glued", () => {
-    // PDF.js puts a line's text in its own span with nothing between the
-    // spans, so the DOM reads "thisprocess".
     const pages = pagesOf(
       page(0, line("do this"), line("process", { y: 690 })),
     );
@@ -267,8 +258,6 @@ describe("a DOM text selection mapped onto the page's characters", () => {
   });
 
   it("falls back to the selection's boxes when the text layer disagrees", () => {
-    // A text layer that shares no run with the page's characters: the
-    // alignment walks it one for one, and the text check rejects the result.
     const pages = pagesOf(page(0, line("the quick brown fox")));
 
     const selected = selectText(
@@ -318,7 +307,6 @@ describe("a DOM text selection mapped onto the page's characters", () => {
 });
 
 describe("a highlight's range dragged by one end", () => {
-  // "the" is chars 0–2, "quick" 3–7, "brown" 8–12, "fox" 13–15.
   const twoLines = pagesOf(
     page(0, line("the quick"), line("brown fox", { y: 690 })),
   );
@@ -351,7 +339,6 @@ describe("a highlight's range dragged by one end", () => {
   });
 
   it("proposes the stored rects for a drag that lands on the same characters", () => {
-    // Rects a little wider than the characters', as another writer may store.
     const stored = { pageIndex: 0, rects: [[119, 698, 146, 710]] as const };
 
     expect(
@@ -426,7 +413,6 @@ describe("a highlight's range dragged by one end", () => {
   });
 
   it("takes a character once the point passes its middle", () => {
-    // "i" spans 130–135: short of 132.5 it stays out, past it it joins.
     const at = (x: number) =>
       adjustRange(
         { position: quick, end: "end", point: { pageIndex: 0, x, y: 704 } },
@@ -438,7 +424,6 @@ describe("a highlight's range dragged by one end", () => {
   });
 
   it("measures the middle along the text's direction on turned text", () => {
-    // Three glyphs running up the page, as a 90° text matrix lays them.
     const turned = pagesOf(
       page(
         0,
@@ -467,7 +452,6 @@ describe("a highlight's range dragged by one end", () => {
   });
 
   describe("over a page break", () => {
-    // Page 0: "end" 0–2, "of" 3–4, "one" 5–7. Page 1: "start" 0–4.
     const twoPages = pagesOf(
       page(0, line("end of one")),
       page(1, line("start of two")),
@@ -560,8 +544,6 @@ describe("a highlight's range dragged by one end", () => {
 });
 
 describe("a highlight's range stepped by one end", () => {
-  // "the" is chars 0–2, "quick" 3–7; "brown" 8–12, "fox" 13–15; "jumps"
-  // 16–20, "over" 21–24.
   const threeLines = pagesOf(
     page(
       0,
@@ -583,8 +565,6 @@ describe("a highlight's range stepped by one end", () => {
   });
 
   it("refuses a step up that would carry the end above the start", () => {
-    // The end stands before "f"; the closest character a line up lies
-    // before the start at "b".
     const brown = { pageIndex: 0, rects: [[100, 689, 125, 699]] as const };
     expect(
       adjustRange({ position: brown, end: "end", step: "up" }, threeLines),
@@ -628,8 +608,6 @@ describe("a highlight's range stepped by one end", () => {
   });
 
   it("moves the end down to the closest offset on the next line", () => {
-    // The end stands before "q". A line down, "w" and "n" both lie two points
-    // under it, and the first of them wins, as in Zotero's reader.
     const the = { pageIndex: 0, rects: [[100, 699, 115, 709]] as const };
     expect(
       adjustRange({ position: the, end: "end", step: "down" }, threeLines),
@@ -644,8 +622,6 @@ describe("a highlight's range stepped by one end", () => {
   });
 
   it("moves the end up to the closest offset on the previous line", () => {
-    // The end stands before "f". A line up, "u" and "i" both lie two points
-    // above it, and the first of them wins.
     const toFox = {
       pageIndex: 0,
       rects: [
@@ -659,7 +635,6 @@ describe("a highlight's range stepped by one end", () => {
   });
 
   describe("over a page break", () => {
-    // Page 0: "end" 0–2, "of" 3–4, "one" 5–7. Page 1: "start" 0–4.
     const twoPages = pagesOf(
       page(0, line("end of one")),
       page(1, line("start of two")),
@@ -694,7 +669,6 @@ describe("a highlight's range stepped by one end", () => {
 });
 
 describe("the text rotation under a rect", () => {
-  /** Three glyphs turned a quarter turn, running up the page from y 100. */
   const turned = page(
     0,
     [0, 1, 2].map((index) => ({
@@ -711,7 +685,6 @@ describe("the text rotation under a rect", () => {
 
   it("is upright over no character, and the greater rotation on a tie", () => {
     expect(rectRotation(turned, [0, 0, 10, 10])).toBe(0);
-    // One upright centre, (102.5, 704), and one turned, (304, 102.5).
     const both = [upright[0]!, turned[0]!];
     expect(rectRotation(both, [100, 100, 310, 710])).toBe(90);
   });

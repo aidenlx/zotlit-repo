@@ -1,7 +1,3 @@
-// The Item Snapshot as data: the one definition of its shape. The types are
-// read from these schemas, and a host that stores or receives a snapshot
-// validates it with them. Browser-safe.
-
 import * as v from "valibot";
 
 import { queryItemSeedSchema } from "@zotlit/item-query";
@@ -124,11 +120,6 @@ export const itemSnapshotSchema = v.pipe(
       v.readonly(),
     ),
     unavailable: readonlyArray(snapshotUnavailableValueSchema),
-    /**
-     * The Item as the Items filter reads it, so that a Profile Match can be
-     * tested on the snapshot. Absent in a snapshot exported before ZotLit
-     * wrote it, and for an Item that is not a live top-level Item.
-     */
     seed: v.optional(queryItemSeedSchema),
   }),
   v.readonly(),

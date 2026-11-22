@@ -1,6 +1,4 @@
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
-// `obsidian://zotlit/open-attachment`: the link that opens an Item's
-// Attachments, or the Attachment it names, from Zotero.
 import { Effect, Result } from "effect";
 import type { Scope } from "effect";
 import type { App, ObsidianProtocolData, PaneType } from "obsidian";
@@ -30,14 +28,11 @@ import { TargetOpener } from "./open-target.ts";
 
 import { toObsidianOpenable } from "#core/attachment-open/openable.ts";
 
-/** The legacy values the link still holds. */
 export interface AttachmentLinkPorts {
   readonly app: App;
-  /** Runs the Attachment picker's opens, which unload interrupts. */
   readonly bridge: Pick<EffectBridge, "runAndForget">;
 }
 
-/** The App, and a bridge over the plugin's Scope. */
 export const attachmentLinkPorts: Effect.Effect<
   AttachmentLinkPorts,
   never,
@@ -46,7 +41,6 @@ export const attachmentLinkPorts: Effect.Effect<
   return { app: yield* ObsidianApp, bridge: yield* scopedBridge };
 });
 
-/** The `open-attachment` link, running with the ports `ports` makes. */
 export function attachmentLink(
   ports: Effect.Effect<
     AttachmentLinkPorts,
@@ -63,11 +57,6 @@ export function attachmentLink(
   );
 }
 
-/**
- * Handle `obsidian://zotlit/open-attachment`. `query.item` may name either a
- * regular Item or an Attachment directly — `resolveProtocolItem` assumes a
- * regular item, so this branches for itself instead.
- */
 const handleOpenAttachmentProtocol = Effect.fn(
   "protocol.handleOpenAttachmentProtocol",
 )(function* (data: ObsidianProtocolData, deps: AttachmentLinkPorts) {
@@ -104,11 +93,6 @@ const handleOpenAttachmentProtocol = Effect.fn(
   return LinkOutcome.Opened();
 });
 
-/**
- * The Suggest modal's own click decides the pane (Mod-click/Mod-Enter) when
- * the link names none; a named `paneType` wins outright, since the link's own
- * request should not be second-guessed by how the picker was clicked.
- */
 function withPaneOverride(
   reader: AttachmentReader<ObsidianOpenableAttachment>,
   paneType: PaneType | undefined,

@@ -1,9 +1,5 @@
 import type { RenderCallerSource } from "#core/render/index.ts";
 import type { ProfileCheck } from "#obsidian/cli/check-profile.ts";
-// The check's Profile document branch: a saved Profile or a Profile draft,
-// checked against real item data and the baseline the entry module selected. The
-// entry module keeps request parsing, the flag guards, Check Attempt retention,
-// and answer assembly, and hands this branch every input it reads.
 import { Effect } from "effect";
 
 import type { NoteTemplateContext } from "@zotlit/db";
@@ -47,20 +43,15 @@ import {
   PROFILE_OUTPUTS,
 } from "#obsidian/cli/check-profile.ts";
 
-/** The refusal a Template Draft identity that fails the Profile ID rule carries. */
 export const INVALID_PROFILE_ID = "INVALID_PROFILE_ID";
 
-/** The refusal a Template Draft whose manifest ID names another Profile carries. */
 export const PROFILE_ID_MISMATCH = "PROFILE_ID_MISMATCH";
 
-/** The data of one root, failing with what failed to read or build it. */
 const loadRoot = (key: string, root: "note" | "filename" | "annotation") =>
   readTemplateData(key, root).pipe(Effect.mapError(({ cause }) => cause));
 
-/** A failure the check reports as what the source or a Template threw. */
 const threw = (cause: unknown) => new CheckSourceThrew({ cause });
 
-/** Checks a Profile document or Profile draft, and returns the answer. */
 export const checkProfileDocument = Effect.fn(
   "TemplateWorkbenchCli.checkProfileDocument",
 )(function* ({
@@ -82,8 +73,6 @@ export const checkProfileDocument = Effect.fn(
     ]),
   );
   let caller: RenderCallerSource = { source, language: "liquid" };
-  // A failure anywhere below is the check's answer, as the source or a
-  // Template it runs reported it.
   return yield* Effect.gen(function* (): Effect.fn.Return<
     CheckOutcome,
     unknown,
@@ -256,7 +245,6 @@ export const checkProfileDocument = Effect.fn(
     const selectedNote = baseline?.path
       ? withSelectedNote({ key: profileContext.itemKey, path: baseline.path })
       : <A, E, R>(effect: Effect.Effect<A, E, R>) => effect;
-    // Data reads the Profile's settings, and the baseline's note for its item.
     const load = (key: string, root: "note" | "filename" | "annotation") =>
       loadRoot(key, root).pipe(withSettings(profile.settings), selectedNote);
     const [note, filename] = yield* Effect.all(
@@ -287,8 +275,6 @@ export const checkProfileDocument = Effect.fn(
               key,
               error: new Error("The selected annotation is unavailable."),
             };
-          // Citation is derived from a separately verified Template source;
-          // fingerprint the loaded annotation data without invoking that getter.
           const { citation: _citation, ...descriptors } =
             Object.getOwnPropertyDescriptors(loaded.data);
           const revision = yield* attempt(() =>

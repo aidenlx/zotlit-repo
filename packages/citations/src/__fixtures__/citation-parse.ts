@@ -1,4 +1,3 @@
-// The real parse layer over a controllable Obsidian layout boundary.
 import { Effect, Layer } from "effect";
 
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
@@ -12,7 +11,6 @@ function openParseHarness(ready: boolean) {
   const stack = new AsyncDisposableStack();
   const workspace = new MemoryWorkspace({ layoutReady: ready });
   const runtime = buildRuntime(
-    // The worker boundary is the service layer's; no bundle stands behind it.
     layerCitationParse("").pipe(
       Layer.provide(layerWorkspaceFrom(workspace)),
     ),
@@ -29,7 +27,6 @@ function openParseHarness(ready: boolean) {
 
 export const makeParseHarness = Effect.fnUntraced(function* (ready = false) {
   const harness = openParseHarness(ready);
-  // boundary: ManagedRuntime exposes layer acquisition as a Promise.
   yield* Effect.tryPromise(() => harness.context());
   return yield* Effect.acquireRelease(
     Effect.succeed({
@@ -37,12 +34,10 @@ export const makeParseHarness = Effect.fnUntraced(function* (ready = false) {
       parser: harness.parser,
       layoutReady: harness.layoutReady,
     }),
-    // boundary: the test owns a runtime through AsyncDisposableStack.
     () => Effect.promise(() => harness.resources.disposeAsync()),
   );
 });
 
-/** A caller owns its parse fiber and can interrupt it without stopping the worker. */
 export const cancellableParse = Effect.fnUntraced(function* (
   parser: CitationParse["Service"],
   request: ParseRequest,

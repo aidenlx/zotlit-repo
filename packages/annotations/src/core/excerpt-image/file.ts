@@ -1,10 +1,8 @@
-// Bounded reads of the revision used by an excerpt or a reader proof.
 import { Effect, Fiber, FileSystem, Option, Scope } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 const logged = withLogCategory("excerpt-image", "file");
 
-/** The metadata used by the excerpt cache, from the platform's file stamp. */
 export function pdfStamp(info: FileSystem.File.Info) {
   return {
     size: Number(info.size),
@@ -15,7 +13,6 @@ export function pdfStamp(info: FileSystem.File.Info) {
   };
 }
 
-/** Read up to `size` bytes; the caller checks the revision before publication. */
 export const readBounded = Effect.fnUntraced(function* (
   file: FileSystem.File,
   size: number,
@@ -30,11 +27,6 @@ export const readBounded = Effect.fnUntraced(function* (
   return bytes.subarray(0, offset);
 });
 
-/**
- * The platform owns the handle even when its open or close outlasts a crop.
- * A private scope and detached cleanup keep late handles owned while the
- * caller waits at most five seconds, as the former Promise boundary did.
- */
 export const openExcerptFile = Effect.fnUntraced(function* (path: string) {
   const fs = yield* FileSystem.FileSystem;
   return yield* Effect.uninterruptibleMask((restore) =>

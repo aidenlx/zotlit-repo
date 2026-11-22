@@ -49,3 +49,7 @@ consent-gated, eval-free data, applied after restart.
   cache is version-scoped — until they upgrade. A fresh install of one of those
   older betas still offers the pack its catalog lists, the download 404s against
   a tag that carries no pack asset, and the plugin surfaces the failure notice.
+
+Development versions have no Resource Release. A desktop case verifies
+the artifact that release CI stages and the version-pinned location
+reported for it.

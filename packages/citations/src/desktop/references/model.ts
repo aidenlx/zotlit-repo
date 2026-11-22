@@ -1,4 +1,3 @@
-// Per-leaf References reads, retained entries, and copy snapshots in the view registry.
 import type { DocumentCitationSet } from "#obsidian/citation-index/service.ts";
 import type { DocumentPresentationFailure } from "#obsidian/pandoc/document-presentation.ts";
 import type { ReferencesSelection } from "#obsidian/references/atoms.ts";
@@ -204,8 +203,6 @@ export function holdReferencesModel(
     registry.mount(model.renderKey),
     registry.mount(model.state),
   ];
-  // The held key selects cache events. It is written at the registry boundary,
-  // so the read itself stays a pure dependency computation.
   releases.push(
     registry.subscribe(
       model.loaded,

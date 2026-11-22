@@ -3,10 +3,8 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { showMenuAtBox, showMenuAtButton } from "./menu.ts";
 
 // @vitest-environment happy-dom
-// The anchor is read off a real element's rect, so this needs a DOM.
 import { Menu } from "#__mocks__/obsidian.ts";
 
-/** A trigger whose box is known, the way layout would have measured it. */
 function trigger(rect: {
   x: number;
   y: number;
@@ -43,8 +41,6 @@ describe("showMenuAtButton", () => {
 
     showMenuAtButton(menu as never, el);
 
-    // `y` is the trigger's bottom edge, so the menu hangs below the control;
-    // Obsidian adds its own 2px gap from there.
     expect(menu.position).toStrictEqual({
       x: BUTTON.x,
       y: BUTTON.y + BUTTON.height,
@@ -73,8 +69,6 @@ describe("showMenuAtButton", () => {
 
   it("leaves a second press to close the menu, rather than reopening it", () => {
     const el = trigger(BUTTON);
-    // What `setParentElement` leaves while the menu stands; the press that
-    // reaches this handler is the one closing that menu.
     el.addClass("has-active-menu");
     const menu = new Menu();
 
@@ -110,7 +104,6 @@ describe("showMenuAtBox", () => {
       left: false,
     });
     expect(menu.positionDoc).toBe(doc);
-    // No live trigger is left to mark or to fold a second press into a toggle.
     expect(menu.parentEl).toBeNull();
   });
 });

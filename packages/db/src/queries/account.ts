@@ -1,34 +1,18 @@
-// Reads the signed-in Zotero account's identity from the `settings` table.
 import type { ZoteroDatabase } from "#client/database.ts";
 
 import { logLibrary } from "@zotlit/shared/logging";
 
 import { defineQuery } from "./_shared.ts";
 
-/**
- * How Zotero identifies the signed-in account. It writes `localUserKey` on
- * first run and `userID` once the account syncs, preferring the latter, so a
- * database Zotero has opened carries at least one — together they name the
- * personal library in an `itemUri`.
- *
- * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/users.js#L61
- */
 export interface ZoteroUserIdentity {
-  /** Numeric account id; `null` until the account syncs with zotero.org. */
   userID: number | null;
-  /** Random 8-character key Zotero writes on first run. */
   localUserKey: string | null;
-  /**
-   * Account username; `null` when the account never synced. Backs
-   * `zt.weblink`'s personal-library URL (`https://www.zotero.org/{username}/…`).
-   */
   username: string | null;
 }
 
 export interface ZoteroDatabaseIdentity {
   userID: number | null;
   localUserKey: string | null;
-  /** Exact Local API database id, or `null` before Zotero initializes it. */
   serverID: string | null;
 }
 
@@ -58,13 +42,6 @@ const localApiIdentityQuery = defineQuery<void>()((db) =>
   }),
 );
 
-/**
- * The `settings.value` column is loosely typed, so every raw value is checked
- * before use; Zotero stores `userID` as a positive integer and may hold it as
- * text.
- *
- * @see https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/users.js#L61
- */
 export function getZoteroIdentity(db: ZoteroDatabase): ZoteroUserIdentity {
   const rows = identityQuery.prepared(db).all();
   const text = (key: string): string | null => {
@@ -89,22 +66,15 @@ export function getZoteroIdentity(db: ZoteroDatabase): ZoteroUserIdentity {
   };
 }
 
-/**
- * The signed-in account's numeric user ID, or `null` until the account syncs.
- * A quiet read for a per-list caller: it logs nothing for a database that
- * never synced, where {@link getZoteroIdentity} warns.
- */
 export function getAccountUserID(db: ZoteroDatabase): number | null {
   return parseUserID(userIDQuery.prepared(db).all()[0]?.value);
 }
 
-/** Zotero stores `userID` as a positive integer and may hold it as text. */
 function parseUserID(raw: unknown): number | null {
   const userID = typeof raw === "number" ? raw : Number(raw);
   return Number.isInteger(userID) && userID > 0 ? userID : null;
 }
 
-/** Identity needed to bind a verified database snapshot to a Local API session. */
 export function getZoteroDatabaseIdentity(
   db: ZoteroDatabase,
 ): ZoteroDatabaseIdentity {

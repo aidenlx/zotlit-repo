@@ -6,54 +6,16 @@ import { renderColorMark, renderHighlight } from "./color-mark.ts";
 import type { HighlightOptions } from "./color-mark.ts";
 import { createObsidianTurndown } from "./obsidian-base.ts";
 
-/**
- * Attribute on the prepass sentinel `<div>` that carries an annotation
- * paragraph's pre-rendered callout Markdown (URI-encoded). The note-import
- * prepass replaces a qualifying `<p>` with such a sentinel; the
- * `annotationCallout` rule emits the decoded attribute verbatim rather than the
- * node's `textContent`, which Turndown's whitespace collapsing would mangle.
- * URI-encoding keeps the payload a single whitespace- and quote-free token.
- */
 export const ANNOTATION_CALLOUT_ATTR = "data-zt-callout";
 
-/** Encode callout Markdown into the sentinel attribute value. */
 export function encodeCalloutAttr(markdown: string): string {
   return encodeURIComponent(markdown);
 }
 
-/** Decode the sentinel attribute back to callout Markdown. */
 function decodeCalloutAttr(encoded: string): string {
   return decodeURIComponent(encoded);
 }
 
-/**
- * Add the rules for Zotero note HTML quirks that Obsidian's base config does
- * not cover, would silently corrupt, or would drop:
- *
- * - `span.math` / `pre.math` — Zotero's math nodes. Emit the already-delimited
- *   `$…$` / `$$…$$` text verbatim (escaping is off, so it survives).
- * - bare `<pre>` — Zotero serializes code blocks as a `<pre>` with no `<code>`
- *   child, which the default fenced-code rule ignores. Fence it from
- *   `textContent` so inner inline HTML (e.g. `<em>`) stays literal.
- * - `text-decoration: line-through` spans — Zotero's strikethrough is a styled
- *   span, not `<s>`/`<del>`, so the base strikethrough rule never sees it.
- * - `<sub>` / `<sup>` / `<u>` — kept as HTML; Obsidian renders these inline and
- *   Markdown has no equivalent.
- * - colored / highlighted spans — Zotero's note-editor text-color and highlight
- *   marks carry the color inline. Text colors and highlight fallbacks become
- *   HTML color marks; supported highlights can use opt-in Colored Highlight
- *   Syntax.
- * - `img[data-attachment-key]` — a Zotero embed with no `src`, both the plain
- *   attachment image and the image-excerpt annotation (`data-annotation` set).
- *   Keep the tag (and its key) so the shared Stage 9 import resolves it to a
- *   real embed.
- * - `span.citation[data-citation]` — Zotero's citation mark. Passes through as
- *   raw HTML by default; `createNoteTurndown`'s `citation` option lets the
- *   orchestrator inject the in-rule resolver that renders the user's cite syntax.
- * - `span[data-annotation]` (highlight / underline excerpt) — passes through as
- *   raw HTML by default; `createNoteTurndown`'s `annotationExcerpt` option lets
- *   the orchestrator inject the resolved highlight/underline rendering.
- */
 function addZoteroRules(
   td: TurndownService,
   options: NoteTurndownOptions,
@@ -155,9 +117,6 @@ function addZoteroRules(
       ((_content, node) => (node as Element).outerHTML),
   });
 
-  // The note-import prepass replaces a qualifying annotation `<p>` with this
-  // sentinel; emit its pre-rendered callout Markdown as a block, decoded from
-  // the attribute (collapse-proof) rather than the node's text.
   td.addRule("annotationCallout", {
     filter: (node) =>
       node.nodeName === "DIV" && node.hasAttribute(ANNOTATION_CALLOUT_ATTR),
@@ -169,35 +128,11 @@ function addZoteroRules(
 }
 
 interface NoteTurndownOptions extends Partial<HighlightOptions> {
-  /**
-   * Replacement for the highlight/underline excerpt span (`span[data-annotation]`).
-   * Defaults to raw-HTML passthrough — the standalone converter keeps the payload
-   * for a later stage. `parseNote` injects the resolver that renders linked marks.
-   */
   annotationExcerpt?: TurndownService.ReplacementFunction;
-  /**
-   * Replacement for Zotero note embedded images (`img[data-attachment-key]`).
-   * Defaults to raw-HTML passthrough so standalone conversion keeps the key.
-   */
   embeddedImage?: TurndownService.ReplacementFunction;
-  /**
-   * Replacement for Zotero citation marks (`span.citation[data-citation]`).
-   * Defaults to raw-HTML passthrough so standalone conversion keeps the payload.
-   * `parseNote` injects the resolver that renders the user's cite syntax.
-   */
   citation?: TurndownService.ReplacementFunction;
 }
 
-/**
- * Build a TurndownService that converts Zotero note HTML to Obsidian-flavored
- * Markdown. The base mirrors Obsidian's own `htmlToMarkdown`; the Zotero rules
- * layer on top. Built fresh per call (sub-millisecond), so `options` can inject
- * per-call rule replacements (e.g. annotation resolution) without shared state.
- *
- * `Turndown` is passed in rather than imported: at runtime Obsidian exposes
- * `TurndownService` as a global, and tests supply the npm package directly, so
- * the plugin bundle never pulls in turndown.
- */
 export function createNoteTurndown(
   Turndown: typeof TurndownService,
   options: NoteTurndownOptions = {},

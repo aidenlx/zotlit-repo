@@ -30,7 +30,6 @@ export interface ButtonProps
   ref?: Ref<HTMLButtonElement>;
 }
 
-/** @see {@link tooltipAttrs} for opting into Obsidian's hover tooltip. */
 export function Button({
   variant,
   loading,

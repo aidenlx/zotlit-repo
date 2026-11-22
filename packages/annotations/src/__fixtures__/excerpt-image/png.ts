@@ -1,4 +1,3 @@
-// Complete one-pixel PNG fixtures and corrupt variants for retention consumers.
 import { crc32 } from "node:zlib";
 
 export const redPng = Buffer.from(

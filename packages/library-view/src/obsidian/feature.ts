@@ -1,8 +1,3 @@
-// The Library View, as far as it loads on every Obsidian: its settings, the
-// Release and Show in Library actions, the `show-in-library` link and the
-// Advanced page's Update notices row. The Library View, the Welcome View,
-// the Release check and the quick switcher read Node, so the desktop feature
-// (`#desktop/feature.ts`) extends this one with them.
 import { Effect, Stream } from "effect";
 
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";

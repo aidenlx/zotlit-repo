@@ -177,7 +177,6 @@ describe("the static Item Query vocabulary", () => {
       group: true,
       sort: false,
     });
-    // A Tag element has fields, so only a field of each element can group.
     expect(vocabulary.fields).toContainEqual(
       expect.objectContaining({ path: "tags[]", group: false }),
     );
@@ -269,8 +268,6 @@ describe("describeItemQuery fields", () => {
       group: false,
       sort: false,
     });
-    // A filter has no property `kind` on a date and reads a list element by
-    // its index; the type of the element depends on the Item.
     expect(entry("date.kind")?.filter).toBeNull();
     expect(entry("creators[0]")?.filter).toBe("any");
     expect(entry("tags[0].name")).toMatchObject({
@@ -324,7 +321,6 @@ describe("describeItemQuery on the layout of the Zotero database", () => {
   });
 });
 
-/** A literal of each parameter type, for a call that validation accepts. */
 const ARGUMENT: Record<Extract<SchemaParameter["type"], string>, string> = {
   string: '"2024-01-02"',
   number: "1",
@@ -334,7 +330,6 @@ const ARGUMENT: Record<Extract<SchemaParameter["type"], string>, string> = {
   any: '"a"',
 };
 
-/** A filter value of each type that a method or a property is called on. */
 const SUBJECT: Record<string, string> = {
   any: "title",
   null: "null",
@@ -353,7 +348,6 @@ function argumentsOf(entry: Omit<SchemaFunction, "name">): string[] {
     ...entry.optional,
     ...(entry.rest ? [entry.rest] : []),
   ].map((parameter) =>
-    // A parameter with a closed set of values takes one of them.
     parameter.values
       ? JSON.stringify(parameter.values[0])
       : ARGUMENT[
@@ -369,7 +363,6 @@ function call(name: string, entry: Omit<SchemaFunction, "name">): string {
 }
 
 describe("the Item Query Schema and collectQuery", () => {
-  // Every test here only reads the scenario.
   let scenario: ScenarioDatabase<NodeDatabaseClient>;
 
   beforeAll(() => {
@@ -508,7 +501,6 @@ it("publishes one catalog of the executed dataset schemas and the shared languag
   expect(Object.keys(catalog.datasets)).toEqual(
     [ITEMS, ATTACHMENTS, ANNOTATIONS].map((dataset) => dataset.id),
   );
-  // The functions, methods, and properties that the call test runs.
   expect(catalog).toMatchObject({
     functions: items.functions,
     methods: items.methods,
@@ -524,7 +516,6 @@ it("publishes one catalog of the executed dataset schemas and the shared languag
     const byPath = new Map(dataset.fields.map((field) => [field.path, field]));
     paths[id] = new Set(byPath.keys());
 
-    // The fields that the capability tests of each dataset run.
     expect(dataset.fields, id).toEqual(exit.value.fields);
     for (const path of dataset.summary)
       expect(byPath.get(path), `${id} summary ${path}`).toMatchObject({
@@ -542,7 +533,6 @@ it("describes every function, method, and property in one sentence the registry 
   const { functions, methods, properties } = describeQueryVocabulary();
   for (const entry of [...functions, ...methods, ...properties]) {
     const label = "on" in entry ? `${entry.on}.${entry.name}` : entry.name;
-    // One line that ends in one period, with no sentence end before it.
     expect(entry.description, label).toMatch(
       /^[A-Z`](?:[^.!?\n]|[.!?](?=\S))*[^.!?\s]\.$/u,
     );

@@ -33,7 +33,6 @@ import { annotationColorsForName } from "#lib/zt-color.ts";
 const attachment = alias(items, "annotationAttachment");
 const parent = alias(items, "annotationParent");
 
-/** An Annotation identity and the parent values needed for reading order. */
 export interface AnnotationScanRow extends ScanRow {
   libraryID: number;
   attachmentID: number;
@@ -163,7 +162,6 @@ type RelationPageParams = Record<IdSlot, number | null> & {
   afterKey: string;
   afterItemID: number;
 };
-/** A Relation List uses the same universe as Annotation Query. */
 const relationStatement = (level: "item" | "attachment") =>
   defineStatement<RelationPageParams>(
     level === "item" ? "item-annotations" : "attachment-annotations",
@@ -192,11 +190,6 @@ const relationStatements = {
   attachment: relationStatement("attachment"),
 };
 
-/**
- * One page of the Annotations of at most {@link HYDRATE_CHUNK_SIZE} parents,
- * in reading order: at most {@link SCAN_PAGE_SIZE} rows after `after` (absent
- * for the first page). A shorter page is the last one.
- */
 function readRelationAnnotations(
   level: "item" | "attachment",
   itemIDs: readonly number[],
@@ -238,7 +231,6 @@ const details = defineStatement<Record<IdSlot, number | null>>(
       color: itemAnnotations.color,
       pageLabel: itemAnnotations.pageLabel,
       authorName: itemAnnotations.authorName,
-      // Read as text: a corrupt position must not make the whole query fail.
       position: sql<string>`${itemAnnotations.position}`,
       attachment: {
         itemID: attachment.itemID,
@@ -302,37 +294,22 @@ const attachmentTitles = defineStatement<Record<IdSlot, number | null>>(
     ),
 );
 
-/** The values of one Annotation row and its Attachment. */
 export type AnnotationDetails = Effect.Success<
   ReturnType<typeof details.all>
 >[number] & {
   readonly attachment: { readonly parentItemID: number };
 };
 
-/**
- * The loaded values of one Annotation. A load is present when the request
- * named it.
- */
 export interface HydratedAnnotation {
   readonly details?: AnnotationDetails;
-  /** The Tag names of the Annotation, in no defined order. */
   readonly tags?: readonly string[];
-  /** The title of the Annotation's Attachment. */
   readonly attachmentTitle?: string | null;
 }
 
-/**
- * Load the values of at most {@link HYDRATE_CHUNK_SIZE} Annotation rows that
- * the query needs. Every row has an entry. Each named load runs one statement
- * for the chunk; the parent Item loads through the Item hydrate reader.
- */
 export function readAnnotationHydrateChunk(chunk: {
   rows: readonly AnnotationScanRow[];
-  /** The Annotation values and the Attachment metadata. */
   details?: boolean;
-  /** The Tag names of each Annotation. */
   tags?: boolean;
-  /** The title of each Annotation's Attachment. */
   attachmentTitle?: boolean;
 }): Effect.Effect<
   ReadonlyMap<number, HydratedAnnotation>,
@@ -491,7 +468,6 @@ const annotationCandidateStatements = {
 
 const tagProbe = annotationCandidates("tag", true);
 
-/** Read one page of Annotation candidates in ascending Item ID order. */
 export const readAnnotationCandidateSet = Effect.fnUntraced(function* ({
   libraryID,
   leaf,

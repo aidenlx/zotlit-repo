@@ -1,24 +1,6 @@
-// Obsidian's renderer runs in a real browser window where `window` and
-// `globalThis` are the same object; the `node` test environment has no
-// `window` global, so source code that calls `window.setTimeout()` /
-// `window.clearInterval()` etc. (for popout-window compatibility, see
-// AGENTS.md → Obsidian guideline review) throws `ReferenceError: window is
-// not defined` under Vitest without this stub.
 globalThis.window ??= globalThis;
-// Obsidian's `activeWindow` names the window that last held focus and starts
-// out as the main window itself.
 globalThis.activeWindow ??= globalThis;
 globalThis.activeDocument ??= globalThis.document;
-
-// Obsidian patches every window (main and popout alike, each patched by its
-// own copy of this same runtime script) with a `createEl()`/`createDiv()`/
-// `createSpan()`/`createFragment()` global family and a `Node.prototype`
-// `createEl()`/`createDiv()`/`createSpan()` + `.doc`/`.win` pair — used over
-// `document.createElement()`/`ownerDocument` per AGENTS.md → Obsidian
-// guideline review. Ported from Obsidian 1.13.4's `enhance.js` (see
-// `/obsidian-asar-extract`), trimmed to the option keys this plugin passes.
-// `Node`/`Window` are undefined in the plain `node` test environment; each
-// guard below skips the patch there, since no DOM exists for it to attach to.
 
 globalThis.createEl ??= (tag, o, callback) => {
   const el = document.createElement(tag);
@@ -126,9 +108,6 @@ if (typeof Node !== "undefined") {
   };
 }
 
-// The same runtime script patches every element with the `addClass()` family
-// the plugin styles its own notices and views with, and with `empty()`, which
-// a suggestion renderer calls to clear a reused row before drawing it.
 if (typeof Element !== "undefined") {
   const proto = Element.prototype;
   proto.addClass ??= function (...classes) {
@@ -157,13 +136,10 @@ if (typeof Element !== "undefined") {
 }
 
 if (typeof HTMLElement !== "undefined") {
-  // Test windows stay in one realm; migration tests supply their own event source.
   HTMLElement.prototype.onWindowMigrated ??= () => () => {};
   HTMLElement.prototype.toggle ??= function (visible) {
     this.style.display = visible ? "" : "none";
   };
-  // Obsidian answers whether the element lays out; happy-dom lays nothing
-  // out, so an element shows unless it or an ancestor is `display: none`.
   HTMLElement.prototype.isShown ??= function () {
     for (let el = this; el; el = el.parentElement)
       if (el.style.display === "none") return false;
@@ -175,16 +151,10 @@ if (typeof HTMLElement !== "undefined") {
   };
 }
 
-// Electron's renderer carries `requestIdleCallback`/`cancelIdleCallback`;
-// neither the `node` environment nor happy-dom does. The PDF reader runs its
-// Page Label pass on one, so the stub puts the callback on the macrotask
-// queue — as close to "after the work in hand" as a test environment gets.
 globalThis.requestIdleCallback ??= (callback) =>
   setTimeout(() => callback({ didTimeout: false, timeRemaining: () => 0 }), 0);
 globalThis.cancelIdleCallback ??= (handle) => clearTimeout(handle);
 
-// Obsidian's renderer is Chromium, whose `document.fonts` tells the List
-// when a font loads; the test DOM has none.
 if (globalThis.document && !globalThis.document.fonts)
   Object.defineProperty(globalThis.document, "fonts", {
     value: new EventTarget(),

@@ -1,11 +1,3 @@
-// Real desktop input and screen recording on macOS, for the docs-walk shots
-// a page script cannot reach: a menu in the macOS menu bar and the macOS file
-// dialog. Each click first checks that the app it is meant for is in front,
-// so input never lands in another app. These shots need the desktop to
-// themselves: a recording run takes an Exclusive Hold of every Desktop Slot,
-// and runs only in an unattended window, with the other apps hidden (see
-// packages/e2e/AGENTS.md, "Docs walks").
-
 import { execFile, spawn } from "node:child_process";
 import { mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -16,7 +8,6 @@ import type { ClipSettings } from "./clip-settings.ts";
 
 const execFileAsync = promisify(execFile);
 
-/** No call to macOS waits longer than this. */
 const OSASCRIPT = { timeout: 20000 };
 const jxa = async (script: string): Promise<string> =>
   (
@@ -35,13 +26,8 @@ const applescript = async (...lines: string[]): Promise<string> =>
     )
   ).stdout.trim();
 
-/**
- * Another app came to the front while a desktop shot recorded: its frames
- * may show that app, so they are deleted, and the walk takes the shot again.
- */
 export class DesktopShotSpoiled extends Error {}
 
-/** The process id of the app in front. */
 export async function frontmostPid(): Promise<number> {
   return Number(
     await applescript(
@@ -50,7 +36,6 @@ export async function frontmostPid(): Promise<number> {
   );
 }
 
-/** Bring the app of process `pid` to the front, and check it is there. */
 export async function bringToFront(pid: number): Promise<void> {
   await jxa(
     `ObjC.import("AppKit"); $.NSRunningApplication.runningApplicationWithProcessIdentifier(${pid}).activateWithOptions(1); ""`,
@@ -62,10 +47,6 @@ export async function bringToFront(pid: number): Promise<void> {
   throw new Error(`process ${pid} did not come to the front`);
 }
 
-/**
- * Bring `pid` back to the front when another app took it, and check it is
- * there before any input is sent.
- */
 async function requireFront(pid: number): Promise<void> {
   if ((await frontmostPid()) !== pid) await bringToFront(pid);
   const front = await frontmostPid();
@@ -75,10 +56,6 @@ async function requireFront(pid: number): Promise<void> {
     );
 }
 
-/**
- * Hide or show the app named `name`, as Command-H does: its windows leave
- * the screen and come back as they were.
- */
 export async function setAppVisible(
   name: string,
   visible: boolean,
@@ -88,7 +65,6 @@ export async function setAppVisible(
   );
 }
 
-/** The centre of a menu bar item of `pid`, or of an item in its open menu, in screen points. */
 export async function menuPoint(
   pid: number,
   menu: string,
@@ -104,7 +80,6 @@ export async function menuPoint(
   return { x: x! + w! / 2, y: y! + h! / 2 };
 }
 
-/** One on-screen window, front to back: its id, layer, owner and bounds in points. */
 export interface ScreenWindow {
   id: number;
   layer: number;
@@ -114,7 +89,6 @@ export interface ScreenWindow {
   bounds: Rect;
 }
 
-/** The on-screen windows of the layers apps draw in, front to back. */
 export async function screenWindows(): Promise<ScreenWindow[]> {
   const out = await jxa(
     `ObjC.import("CoreGraphics"); const a = ObjC.castRefToObject($.CGWindowListCopyWindowInfo(1, 0)); const out = []; for (let i = 0; i < Number(a.count); i++) { const w = ObjC.deepUnwrap(a.objectAtIndex(i)); if (w.kCGWindowLayer >= 0 && w.kCGWindowLayer < 24) out.push({ id: w.kCGWindowNumber, layer: w.kCGWindowLayer, pid: w.kCGWindowOwnerPID, owner: w.kCGWindowOwnerName, name: w.kCGWindowName || "", bounds: { x: w.kCGWindowBounds.X, y: w.kCGWindowBounds.Y, w: w.kCGWindowBounds.Width, h: w.kCGWindowBounds.Height } }); } JSON.stringify(out)`,
@@ -125,11 +99,6 @@ export async function screenWindows(): Promise<ScreenWindow[]> {
 const meets = (a: Rect, b: Rect) =>
   a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
 
-/**
- * Throw unless no other app's window over `region` sits in front of any of
- * `pid`'s windows, apart from the Dock's full-screen layer: such a window
- * would be recorded.
- */
 export async function assertRegionClear(
   pid: number,
   region: Rect,
@@ -151,30 +120,14 @@ export async function assertRegionClear(
     );
 }
 
-/** What a desktop shot's actions can do while it records. */
 export interface DesktopShot {
-  /** Glide the real pointer to `x`, `y` and click there, once `pid` is checked in front. */
   click(x: number, y: number): Promise<void>;
-  /** Glide the real pointer to `x`, `y` without a click. */
   move(x: number, y: number): Promise<void>;
-  /** Frame `view` from now on: an eased move, or a cut. */
   frame(view: Rect, options?: { cut?: boolean }): void;
-  /** Wait `ms`. */
   wait(ms: number): Promise<void>;
-  /**
-   * End the shot now: the frames after it stay out of the clip, and it has
-   * no rest, for a shot whose next frames must not show.
-   */
   end(): void;
 }
 
-/**
- * Record the screen region `region` (points) into `dir` as a shot, while
- * `actions` click and type into the app of `pid` with the real pointer. The
- * shot's track is the views `actions` frame, from `start`; it lands in
- * `dir/track.json`, with the frames, `frames.json` and `camera.json`, as
- * `encodeClip` reads them. macOS draws its own pointer into the recording.
- */
 export async function recordDesktop<T>(
   dir: string,
   options: {
@@ -182,7 +135,6 @@ export async function recordDesktop<T>(
     region: Rect;
     start: Rect;
     settings: ClipSettings;
-    /** Parts of the screen (points) to blur in every frame of the shot. */
     blur?: Rect[];
   },
   actions: (shot: DesktopShot) => Promise<T>,
@@ -192,8 +144,6 @@ export async function recordDesktop<T>(
   await mkdir(dir, { recursive: true });
   await requireFront(pid);
   await assertRegionClear(pid, region);
-  // ffmpeg records the main screen with the pointer, and stamps each frame
-  // with the wall clock, so the frames and the actions share one clock.
   const scale = Number(
     await jxa(
       `ObjC.import("AppKit"); String($.NSScreen.mainScreen.backingScaleFactor)`,
@@ -217,9 +167,6 @@ export async function recordDesktop<T>(
     { stdio: ["pipe", "pipe", "ignore"] },
   );
   const ended = new Promise((r) => capture.once("exit", r));
-  // ffmpeg reports its progress about every 0.5 s; the first report with a
-  // frame shows that it records. The pipe is read to the end, so ffmpeg
-  // never blocks on it.
   const recording = new Promise<void>((resolve, reject) => {
     const timer = setTimeout(
       () => reject(new Error("ffmpeg recorded no frame of the screen in 10 s")),
@@ -280,7 +227,6 @@ export async function recordDesktop<T>(
       endAt ??= now();
     },
   };
-  // Whoever takes the front during the shot spoils it.
   let spoiled: number | undefined;
   let watching = true;
   const watch = (async () => {
@@ -307,8 +253,6 @@ export async function recordDesktop<T>(
     const timer = setTimeout(() => capture.kill("SIGKILL"), 15000);
     await ended;
     clearTimeout(timer);
-    // The first frame's wall-clock stamp is the shot's start. ffprobe fails
-    // on a movie that ffmpeg could not record.
     const stamps = (
       await execFileAsync("ffprobe", [
         ...["-v", "error", "-select_streams", "v"],
@@ -333,7 +277,6 @@ export async function recordDesktop<T>(
       `fps=${s.fps}`,
       join(dir, "f%05d.png"),
     ]);
-    // The frames ffmpeg wrote, up to the shot's end.
     const frames = (await readdir(dir))
       .filter((f) => /^f\d{5}\.png$/.test(f))
       .toSorted()
@@ -365,14 +308,12 @@ export async function recordDesktop<T>(
         2,
       ),
     );
-    // The views, in the region's points, from the start view on.
     const local = (v: Rect) => ({ ...v, x: v.x - region.x, y: v.y - region.y });
     const keyframes: CameraTrack["keyframes"] = [
       { t: 0, view: local(options.start) },
     ];
     let current = local(options.start);
     for (const v of views) {
-      // A move starts once the one before it has ended.
       const t = Math.max(keyframes.at(-1)!.t, v.t - t0);
       const next = local(v.view);
       keyframes.push({ t, view: current });
@@ -396,7 +337,6 @@ export async function recordDesktop<T>(
   return result.value;
 }
 
-/** Send `keys` to the app of `pid` through System Events, once it is checked in front. */
 export async function typeKeys(
   pid: number,
   steps: (

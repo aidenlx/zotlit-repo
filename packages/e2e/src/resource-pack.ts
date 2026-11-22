@@ -1,6 +1,3 @@
-// Host-side steps of the Resource Pack cases: the pack of the run vault that
-// a case takes away or replaces, the settings row of a Managed Binary, and
-// the device data of the versions that downloaded the binaries.
 import {
   OLD_BINARY_IDS,
   OLD_STORE_CLEANUP_KEY,
@@ -16,11 +13,6 @@ import type { OldStoreCleanupOutcome } from "@zotlit/plugin-services/obsidian/ma
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import { turnZotlitOff } from "./zotlit-restart.ts";
 
-/**
- * Keeps the installed pack of the run vault for {@link restoreRunPack}: its
- * manifest, and its file when the case writes another file in its place. The
- * vault starts with no record of a pack notice.
- */
 export async function keepRunPack(
   vaultId: string,
   { file }: { file: boolean },
@@ -41,12 +33,6 @@ export async function keepRunPack(
   );
 }
 
-/**
- * Puts the pack {@link keepRunPack} kept back the way Obsidian installs a
- * plugin (the file, the manifest read, the report of the change), closes the
- * settings and the pack notices, clears the vault's notice record, and waits
- * for the Chinese Segmenter's read of that pack.
- */
 export async function restoreRunPack(
   vaultId: string,
   noticeTitle: string,
@@ -77,7 +63,6 @@ export async function restoreRunPack(
   );
 }
 
-/** Waits until the open settings row `rowName` shows the status `expected`. */
 export async function settingRowShows(
   vaultId: string,
   {
@@ -99,10 +84,6 @@ export async function settingRowShows(
   );
 }
 
-/**
- * Presses the button `actionLabel` of the open settings row `rowName`, and
- * answers the row's button count and the URLs the press opened.
- */
 export async function pressSettingRowAction(
   vaultId: string,
   { rowName, actionLabel }: { rowName: string; actionLabel: string },
@@ -133,7 +114,6 @@ export async function pressSettingRowAction(
   );
 }
 
-/** The names of the device data of the versions that downloaded the binaries. */
 const OLD_DEVICE_DATA = {
   root: OLD_STORE_ROOT,
   folders: OLD_BINARY_IDS,
@@ -142,11 +122,6 @@ const OLD_DEVICE_DATA = {
   noticeKey: PACK_NOTICE_KEY,
 };
 
-/**
- * Puts on the device what a version that downloaded the Managed Binaries
- * left: a file in each binary's folder of the origin's private file system,
- * and the vault's records of two dismissed install offers.
- */
 export async function seedDownloadedBinaries(vaultId: string): Promise<void> {
   await obRun(
     vaultId,
@@ -168,13 +143,9 @@ export async function seedDownloadedBinaries(vaultId: string): Promise<void> {
   );
 }
 
-/** What the device and the vault hold of the downloaded Managed Binaries. */
 export interface DownloadedBinaries {
-  /** The entries of the binaries' root folder; `null` with no root folder. */
   folders: string[] | null;
-  /** The dismissed install offers the vault records, by their keys. */
   dismissed: string[];
-  /** Whether the vault records that the cleanup ran. */
   cleaned: boolean;
 }
 
@@ -206,10 +177,6 @@ export async function downloadedBinaries(
   );
 }
 
-/**
- * Removes what {@link seedDownloadedBinaries} put on the device, and leaves
- * the vault with the record that the cleanup ran.
- */
 export async function removeDownloadedBinaries(vaultId: string): Promise<void> {
   await obRun(
     vaultId,
@@ -229,13 +196,6 @@ export async function removeDownloadedBinaries(vaultId: string): Promise<void> {
   );
 }
 
-/**
- * Starts ZotLit again in the open vault, as a start of Obsidian does, and
- * answers how the cleanup of that start ended. `asUpdated` starts it as the
- * first start after the update from a version that downloaded the binaries:
- * the vault holds no record of the cleanup and none of a pack notice, which
- * those versions did not have.
- */
 export async function restartZotlit(
   vaultId: string,
   { asUpdated }: { asUpdated: boolean },

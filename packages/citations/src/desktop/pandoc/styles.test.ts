@@ -20,19 +20,12 @@ import {
 
 import { styleHasEntryMarkers } from "#core/pandoc/csl-style.ts";
 
-/**
- * Content reads left before the filesystem refuses, which puts a resolution in
- * front of a file that stopped being readable partway through.
- */
 let allowedReads = Number.POSITIVE_INFINITY;
 
-/** Filenames the filesystem refuses outright, as a file without read access is. */
 const deniedReads = new Set<string>();
 
-/** Directory names the filesystem refuses to list, as one without access is. */
 const deniedDirs = new Set<string>();
 
-/** A refusal shaped as the Node file system reports one. */
 const refused = (method: string, path: string) =>
   PlatformError.systemError({
     _tag: "PermissionDenied",
@@ -41,7 +34,6 @@ const refused = (method: string, path: string) =>
     pathOrDescriptor: path,
   });
 
-/** The Node file system, refusing the folders and files a case denies. */
 const deniedFileSystem = Layer.effect(
   FileSystem.FileSystem,
   Effect.map(FileSystem.FileSystem, (fs) =>
@@ -72,7 +64,6 @@ class InstalledStyleCache {
       .pipe(Effect.provide(deniedFileSystem));
   }
 }
-/** The installed-style list over the Node file system. */
 const listed = (dataDir: string) =>
   listInstalledStyles(dataDir).pipe(Effect.provide(deniedFileSystem));
 
@@ -84,23 +75,17 @@ interface StyleFixture {
   hidden?: boolean;
 }
 
-/** One Zotero data directory, holding the styles a test installs into it. */
 interface StyleLibrary extends AsyncDisposable {
-  /** The Zotero data directory the resolver reads. */
   dataDir: string;
-  /** Write a CSL file shaped like the ones Zotero installs. */
   writeStyle: (filename: string, fixture: StyleFixture) => Promise<void>;
-  /** Write a `.csl` file verbatim, as content no installed style describes. */
   writeCsl: (
     filename: string,
     xml: string,
     options?: { hidden?: boolean },
   ) => Promise<void>;
-  /** Where an installed file sits, for the timestamp a test pins on it. */
   pathOf: (filename: string, options?: { hidden?: boolean }) => string;
 }
 
-/** A Zotero install of its own, and a filesystem that refuses nothing yet. */
 async function installStyles(): Promise<StyleLibrary> {
   await using stack = new AsyncDisposableStack();
   const dataDir = stack.adopt(
@@ -134,7 +119,6 @@ async function installStyles(): Promise<StyleLibrary> {
   };
 }
 
-/** A CSL file shaped like the ones Zotero installs. */
 function styleXml({
   id,
   title,
@@ -159,7 +143,6 @@ function styleXml({
   ].join("\n");
 }
 
-/** The resolved CSL, with the assertion that there is any. */
 function installedXml(style: ResolvedCslStyle): string {
   expect(style.kind).toBe("installed");
   return style.kind === "installed" ? style.xml : "";
@@ -197,7 +180,6 @@ describe("listInstalledStyles", () => {
           title: "APA Style 7th edition",
         }),
       );
-      // Filename and style ID disagree: the ID is the identity that matters.
       yield* Effect.promise(() =>
         library.writeStyle("renamed.csl", {
           id: "http://www.zotero.org/styles/chicago-author-date",
@@ -461,7 +443,6 @@ describe("resolveInstalledStyle", () => {
           styleId: NATURE_NEUROSCIENCE,
           parentId: NATURE,
         });
-        // The parent's formatting, under the dependent style's own locale.
         expect(installedXml(style)).toContain(`<id>${NATURE}</id>`);
         expect(installedXml(style)).toContain('default-locale="de-DE"');
       }),
@@ -508,8 +489,6 @@ describe("resolveInstalledStyle", () => {
         const library = yield* Effect.acquireDisposable(
           Effect.promise(() => installStyles()),
         );
-        // Single-quoted values and spaces around `=`: XML a parser reads exactly as
-        // it reads the double-quoted, tightly written form Zotero usually installs.
         yield* Effect.promise(() =>
           library.writeCsl(
             "nature-neuroscience.csl",
@@ -555,8 +534,6 @@ describe("resolveInstalledStyle", () => {
         const library = yield* Effect.acquireDisposable(
           Effect.promise(() => installStyles()),
         );
-        // The CSL namespace bound to a prefix, which says what the unprefixed
-        // spelling says — a parser reads the two documents alike.
         yield* Effect.promise(() =>
           library.writeCsl(
             "nature-neuroscience.csl",
@@ -713,7 +690,6 @@ describe("resolveInstalledStyle", () => {
           parentId: "http://www.zotero.org/styles/uninstalled",
         }),
       );
-      // A parent that depends on a style of its own is one level too deep.
       yield* Effect.promise(() =>
         library.writeStyle("grandchild.csl", {
           id: "http://www.zotero.org/styles/grandchild",
@@ -724,14 +700,12 @@ describe("resolveInstalledStyle", () => {
       expect(
         yield* resolveInstalledStyle(library.dataDir, { styleId: null }),
       ).toEqual({ kind: "default" });
-      // Default renders in the Citation Locale a request names of its own.
       expect(
         yield* resolveInstalledStyle(library.dataDir, {
           styleId: null,
           locale: "de-DE",
         }),
       ).toEqual({ kind: "default", locale: "de-DE" });
-      // Style file removed or renamed since it was selected.
       expect(
         yield* resolveInstalledStyle(library.dataDir, {
           styleId: "http://www.zotero.org/styles/removed",
@@ -741,7 +715,6 @@ describe("resolveInstalledStyle", () => {
         styleId: "http://www.zotero.org/styles/removed",
         reason: "style-missing",
       });
-      // A missing parent keeps the provenance a diagnostic reports.
       expect(
         yield* resolveInstalledStyle(library.dataDir, {
           styleId: "http://www.zotero.org/styles/orphan",
@@ -773,7 +746,6 @@ describe("resolveInstalledStyle", () => {
       yield* Effect.promise(() =>
         library.writeStyle("apa.csl", { id: APA, title: "APA" }),
       );
-      // Discovery reads the file; the content read then finds it out of reach.
       allowedReads = 1;
 
       expect(
@@ -843,8 +815,6 @@ describe("resolveInstalledStyle", () => {
       yield* Effect.promise(() =>
         library.writeStyle("apa.csl", { id: APA, title: "APA" }),
       );
-      // A directory that lists nothing hides every style installed in it, which
-      // is a file to repair rather than a style to install.
       deniedDirs.add("styles");
 
       expect(
@@ -894,7 +864,6 @@ describe("resolveInstalledStyle", () => {
       yield* Effect.promise(() =>
         library.writeCsl("apa.csl", `<info><id>${APA}</id></info>`),
       );
-      // A dependent style is a style element of its own, whatever its parent says.
       yield* Effect.promise(() =>
         library.writeCsl(
           "dependent.csl",
@@ -904,7 +873,6 @@ describe("resolveInstalledStyle", () => {
       yield* Effect.promise(() =>
         library.writeStyle("nature.csl", { id: NATURE, hidden: true }),
       );
-      // A style element that renders nothing is no style to format with.
       yield* Effect.promise(() =>
         library.writeCsl(
           "ieee.csl",
@@ -944,9 +912,6 @@ describe("resolveInstalledStyle", () => {
       const library = yield* Effect.acquireDisposable(
         Effect.promise(() => installStyles()),
       );
-      // Well-formed XML rooted in a style element, carrying the bibliography and
-      // the citation that CSL requires a layout in. Such a style formats nothing
-      // at all, so it is a file to repair rather than content citeproc is handed.
       yield* Effect.promise(() =>
         library.writeCsl(
           "apa.csl",
@@ -982,23 +947,18 @@ describe("resolveInstalledStyle", () => {
       const library = yield* Effect.acquireDisposable(
         Effect.promise(() => installStyles()),
       );
-      // The citation element is left open. Such a style would otherwise reach
-      // citeproc and fail the render, instead of naming the file to repair.
       yield* Effect.promise(() =>
         library.writeCsl(
           "apa.csl",
           `<style version="1.0"><info><id>${APA}</id></info><citation><layout/></style>`,
         ),
       );
-      // The bibliography closes as an element it never opened.
       yield* Effect.promise(() =>
         library.writeCsl(
           "ieee.csl",
           `<style version="1.0"><info><id>${IEEE}</id></info><bibliography><layout/></citation></style>`,
         ),
       );
-      // A dependent style answers for its own markup: its parent stands in for
-      // the formatting it leaves out, never for markup it holds broken.
       yield* Effect.promise(() =>
         library.writeCsl(
           "nature-neuroscience.csl",
@@ -1064,7 +1024,6 @@ describe("InstalledStyleCache", () => {
   const APA = "http://www.zotero.org/styles/apa";
   const IEEE = "http://www.zotero.org/styles/ieee";
 
-  /** A whole-second timestamp, which every filesystem stores exactly. */
   const PINNED = 1_700_000_000;
 
   effectIt.live(
@@ -1088,8 +1047,6 @@ describe("InstalledStyleCache", () => {
           xml: expect.stringContaining("<title>APA</title>"),
         });
 
-        // A style edited in place under the timestamp the read already ran
-        // against is still the style the next resolution answers with.
         yield* Effect.promise(() =>
           library.writeStyle("apa.csl", { id: APA, title: "APA Revised" }),
         );
@@ -1233,7 +1190,6 @@ describe("InstalledStyleCache", () => {
           reason: "style-missing",
         });
 
-        // A style installed after the miss is still found.
         yield* Effect.promise(() =>
           library.writeStyle("apa.csl", { id: APA, title: "APA" }),
         );

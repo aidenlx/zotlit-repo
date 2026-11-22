@@ -22,7 +22,6 @@ const PANDOC_LICENSE =
 const sha256 = (bytes: Uint8Array) =>
   createHash("sha256").update(bytes).digest("hex");
 
-/** Writes the layout the pack build reads an installed `jieba-wasm` as. */
 async function installedPackage(version = VERSION) {
   const packageDir = await mkdtemp(join(tmpdir(), "zotlit-jieba-wasm-"));
   await mkdir(join(packageDir, "pkg", "web"), { recursive: true });
@@ -42,7 +41,6 @@ async function installedPackage(version = VERSION) {
   };
 }
 
-/** Writes the layout the pack build reads an installed `pandoc-wasm` as. */
 async function installedPandoc(version = PANDOC_VERSION) {
   const packageDir = await mkdtemp(join(tmpdir(), "zotlit-pandoc-wasm-"));
   await mkdir(join(packageDir, "src"), { recursive: true });
@@ -161,7 +159,6 @@ describe("buildResourcePack", () => {
   });
 
   it("compresses an entry at least as small as the writer's own gzip does", async () => {
-    // A real WebAssembly binary: a higher level finds more in it.
     const binary = new Uint8Array(
       await readFile(
         join(

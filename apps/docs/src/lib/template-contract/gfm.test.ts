@@ -27,7 +27,6 @@ describe("renderContractTableMarkdown", () => {
     const row = table.split("\n").find((line) => line.startsWith("| `kind`"))!;
 
     expect(row).toContain('"a" \\| "b" \\| "c" \\| "d"');
-    // Split on unescaped pipes alone: an unescaped pipe in a cell adds one.
     expect(row.split(/(?<!\\)\|/).slice(1, -1)).toHaveLength(3);
   });
 

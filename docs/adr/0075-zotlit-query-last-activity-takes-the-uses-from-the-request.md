@@ -24,3 +24,18 @@ Unlike vault properties ([apps/obsidian ADR 0070](../../apps/obsidian/docs/adr/0
 - The Use Ledger is per device ([apps/obsidian ADR 0079](../../apps/obsidian/docs/adr/0079-the-use-ledger-is-device-local.md)), so the same Query File sorted by `lastActivity` can order differently on two devices. The field description says so.
 - A new Use invalidates cached results as a database change does.
 - Item `dateModified` is no part of `lastActivity`; it stays a field of its own.
+
+Equal Zotero timestamps keep the signal encountered first. The order is Attachment read, Child Note edit, Annotation edit, then Item addition. An explicit Use wins a tie so the result identifies the Obsidian action. Only Item Query exposes fields that read Uses from the request.
+
+A new recorded Use invalidates open Query Views so a Last Activity sort reflects the current ledger. The subscription emits subsequent changes and skips its initial snapshot.
+
+Exercise Uses through note navigation, Recent, empty search, and the
+Query CLI. A dismissed chooser leaves typed input intact. A successful
+Citation insertion or Library row drag records a Use. Annotation follow,
+row selection, and the Reading Card do not. A document's cited Item
+leads the empty suggester even when another Item has a newer Use.
+Wait for the Document Citation Set before checking that priority.
+Invoke the registered Companion URI handlers to exercise its update
+navigation without activation. Verify that an already-open tab can
+be made active again without losing its order.
+[Recent Use cases](../../packages/e2e/src/recent-uses.ts)

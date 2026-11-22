@@ -21,7 +21,6 @@ import type { CitationPresentationModalOptions } from "./modal.ts";
 
 import { nodeFileSystem } from "#__fixtures__/pandoc/file-effects.ts";
 
-/** The styles Zotero has installed while one dialog is open. */
 const zotero = vi.hoisted(() => ({ styles: [] as InstalledCslStyle[] }));
 
 vi.mock("#desktop/pandoc/installed-styles.ts", () => ({
@@ -32,7 +31,6 @@ const APA = { id: "http://www.zotero.org/styles/apa", title: "APA 7th" };
 const IEEE = { id: "http://www.zotero.org/styles/ieee", title: "IEEE" };
 const UNINSTALLED = "http://www.zotero.org/styles/gone";
 
-/** One dialog on screen, read and driven the way the user reads and drives it. */
 async function openDialog(options: Partial<CitationPresentationModalOptions>) {
   const choice = modalAnswer<CitationPresentationChoice | null>((resolve) =>
     openCitationPresentationModal(
@@ -53,8 +51,6 @@ async function openDialog(options: Partial<CitationPresentationModalOptions>) {
   const modal = Modal.instances.at(-1)!;
   const rows = settingsOf(modal.contentEl);
   const style = componentOf(rows, DropdownComponent);
-  // The listing is read after the dialog is built, so the entries the user
-  // reads are the ones the resolved listing left in the picker.
   await vi.waitFor(() => expect(style.options.length).toBeGreaterThan(0));
 
   return {
@@ -62,9 +58,7 @@ async function openDialog(options: Partial<CitationPresentationModalOptions>) {
     style,
     language: componentOf(rows, TextComponent),
     isOpen: () => modal.isOpen,
-    /** Dismiss the dialog without answering, as closing its window does. */
     dismiss: () => modal.close(),
-    /** One button of the dialog, by the label the user reads on it. */
     button: (text: string) => {
       const button = rows
         .flatMap((row) => row.components)
@@ -75,7 +69,6 @@ async function openDialog(options: Partial<CitationPresentationModalOptions>) {
       if (!button) throw new Error(`the dialog offers no "${text}" button`);
       return button as ButtonComponent;
     },
-    /** One icon action of the dialog, by the label its tooltip carries. */
     iconButton: (tooltip: string) => {
       const button = rows
         .flatMap((row) => row.components)
@@ -90,7 +83,6 @@ async function openDialog(options: Partial<CitationPresentationModalOptions>) {
   };
 }
 
-/** The one component of its kind the dialog was built with. */
 function componentOf<T>(
   rows: readonly { components: readonly unknown[] }[],
   kind: new (...args: never) => T,
@@ -104,7 +96,6 @@ function componentOf<T>(
   return found[0]!;
 }
 
-/** The choice the dialog answered with, or `"pending"` while it has not. */
 function settled(
   choice: Promise<CitationPresentationChoice | null>,
 ): Promise<CitationPresentationChoice | null | "pending"> {
@@ -199,7 +190,6 @@ describe("the Citation presentation dialog", () => {
     const dialog = await openDialog({
       declared: { styleId: null, language: "de-DE" },
     });
-    // The reset says what emptying the field does, so the copy is part of it.
     const reset = dialog.iconButton(
       "Use vault citation locale and remove document language",
     );

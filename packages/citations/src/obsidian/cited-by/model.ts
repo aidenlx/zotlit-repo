@@ -1,7 +1,3 @@
-// Per-leaf state for one Cited By Sidebar, as atoms in the plugin's view
-// registry, and the pure transitions its controls apply. The followed note,
-// its Cited By and the previews are shared view atoms (`./atoms`,
-// `@zotlit/plugin-services/obsidian/note-index/atoms.ts`, `@/services/citation-index/atoms`).
 import type {
   CitationOccurrence,
   CitedByGroup,
@@ -28,25 +24,15 @@ import type {
   SourceRange,
 } from "./store.ts";
 
-/** The controls the workspace layout carries across a restart. */
 export interface CitedByLayout {
-  /** The applied filter query; empty while the search field stays closed. */
   readonly search: string;
   readonly searchVisible: boolean;
-  /** Whether every excerpt shows its enclosing block instead of its line. */
   readonly moreContext: boolean;
-  /** The order the source groups render in. */
   readonly sort: CitedBySortMode;
 }
 
-/** What the leaf holds for the followed note only; reset when its key changes. */
 export interface CitedByNoteState {
   readonly collapsed: readonly string[];
-  /**
-   * The manual chevron expansions in force, keyed by `excerptKey`. Held in
-   * memory only: they leave with the active Literature Note and never reach
-   * the workspace layout.
-   */
   readonly expansions: Readonly<Record<string, SourceRange>>;
 }
 
@@ -76,11 +62,6 @@ export function makeCitedByModel(
   };
 }
 
-/**
- * Holds every atom of `model` in `registry` until the returned release runs.
- * A leaf holds its model from construction to close: Obsidian sets its state
- * before it opens, while no component reads it yet.
- */
 export function holdCitedByModel(
   registry: AtomRegistry.AtomRegistry,
   model: CitedByModel,
@@ -91,7 +72,6 @@ export function holdCitedByModel(
   };
 }
 
-/** Each saved control, decoded on its own: one bad field leaves the others. */
 const SAVED_LAYOUT = {
   search: Schema.String,
   searchVisible: Schema.Boolean,
@@ -99,7 +79,6 @@ const SAVED_LAYOUT = {
   sort: Schema.Literals(CITED_BY_SORT_GROUPS.flat()),
 } satisfies { [K in keyof CitedByLayout]: Schema.Codec<CitedByLayout[K]> };
 
-/** The controls a workspace layout holds; anything else in `state` stays out. */
 export function readSavedLayout(state: unknown): Partial<CitedByLayout> {
   if (!state || typeof state !== "object") return {};
   const saved = state as Record<string, unknown>;
@@ -113,9 +92,6 @@ export function readSavedLayout(state: unknown): Partial<CitedByLayout> {
   );
 }
 
-// Transitions: each takes the state it changes and returns the next one.
-
-/** Show or hide the search field; hiding also drops the applied query. */
 export const toggleSearch = (layout: CitedByLayout): CitedByLayout =>
   layout.searchVisible
     ? { ...layout, searchVisible: false, search: "" }
@@ -137,7 +113,6 @@ export const collapseAll =
     collapsed: [...new Set([...note.collapsed, ...paths])],
   });
 
-/** Expand `paths`, or every group without them. */
 export const expandAll =
   (paths?: readonly string[]) =>
   (note: CitedByNoteState): CitedByNoteState => ({
@@ -147,7 +122,6 @@ export const expandAll =
       : [],
   });
 
-/** Reveal the logical chunk next to one excerpt on one of its sides. */
 export const expandExcerpt =
   (options: {
     readonly preview: ReadyPreview;
@@ -175,10 +149,6 @@ export const expandExcerpt =
     return { ...note, expansions: { ...note.expansions, [key]: range } };
   };
 
-/**
- * Drop the expansions of notes that changed: each holds offsets into a
- * source that is gone, so their excerpts start from their mode range again.
- */
 export const dropExpansions =
   (paths: readonly string[]) =>
   (note: CitedByNoteState): CitedByNoteState => {

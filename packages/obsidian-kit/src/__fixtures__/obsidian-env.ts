@@ -1,25 +1,18 @@
-// An Obsidian environment a test sets: desktop by default, or mobile.
 import { Effect, Layer } from "effect";
 import { ObsidianEnv } from "#obsidian-env.ts";
 import type { ObsidianPlatform } from "#obsidian-env.ts";
 
 export interface TestObsidianEnvOptions {
   readonly mobile?: boolean;
-  /** Flags to set over the desktop or mobile defaults, such as `isMacOS`. */
   readonly platform?: Partial<ObsidianPlatform>;
   readonly apiVersion?: string;
   readonly language?: string;
   readonly vaultName?: string;
   readonly basePath?: string;
   readonly appId?: string;
-  /**
-   * The ids of the enabled core plugins; none by default. A test that turns
-   * one on or off later passes a Set and changes it.
-   */
   readonly corePlugins?: ReadonlySet<string>;
 }
 
-/** The environment of a desktop app (or a phone app with `mobile`) on a neutral OS. */
 export function testObsidianEnv(
   options: TestObsidianEnvOptions = {},
 ): ObsidianEnv["Service"] {

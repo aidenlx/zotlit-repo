@@ -11,12 +11,6 @@ const logger = appLogger.getChild(["menus", "reader-page"]);
 
 type ViewEvent = _ZoteroTypes.Reader.EventParams<"createViewContextMenu">;
 
-/**
- * The attachment behind a reader tab — `reader.itemID` itself, per
- * {@link readerTopLevelItem}'s doc comment.
- *
- * @returns the attachment, or `null` when the reader has no associated item
- */
 function readerAttachment(
   reader: _ZoteroTypes.ReaderInstance,
 ): Zotero.Item | null {

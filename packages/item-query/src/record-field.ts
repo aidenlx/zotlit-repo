@@ -6,28 +6,21 @@ import type { PathSegment } from "./projection-path.ts";
 import { readSegments } from "./projection.ts";
 import type { ProjectionValue } from "./request.ts";
 
-/** A record uses its dataset's vocabulary at every depth. Callbacks allow cycles. */
 export interface RecordVocabulary<Row, Needs> {
   readonly id: "items" | "attachments" | "annotations" | "notes";
   readonly summary: readonly string[];
   readonly parents?: readonly ParentRecord<Row, Needs>[];
-  /** Representative fields listed below this record in the Query Schema. */
   readonly projectionFields: readonly string[];
   readonly field: (name: string) => FieldDefinition<Row, Needs> | undefined;
   readonly filter: FilterRegistry<Row, Needs>;
 }
 
-/** Static navigation carries element needs back to the root of the request. */
 export interface FilterNavigation<Needs> {
   readonly dataset?: RecordVocabulary<never, never>["id"];
   readonly equalityField?: FilterRegistry<never, Needs>["equalityField"];
   readonly member?: (
     name: string,
   ) => FilterField<FilterValue, Needs> | undefined;
-  /**
-   * Every name `member` answers, for a record of fixed keys; absent where
-   * the record is a Query Dataset's, whose names its dataset lists.
-   */
   readonly names?: readonly string[];
   readonly element?: FilterNavigation<Needs>;
 }
@@ -59,7 +52,6 @@ export function mapNavigation<A, B>(
   };
 }
 
-/** A single parent record or a Relation List of records. */
 export function recordField<Item, Needs, Row, ChildNeeds>(options: {
   readonly vocabulary: () => RecordVocabulary<Row, ChildNeeds>;
   readonly rows: (item: Item) => readonly Row[];

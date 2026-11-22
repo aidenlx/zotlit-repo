@@ -1,13 +1,3 @@
-// Broadsheet OG card: the "Journal" social image shared by every
-// page type. A takumi renderer (built once, its Google Fonts registered lazily)
-// draws a 1200×630 card — mono-uppercase category, serif headline, sans deck,
-// mark + wordmark footer. Styling is Tailwind via takumi's `tw` prop.
-//
-// Node-only: the native renderer runs during `vite build`, which emits every
-// card into the client output, so the Worker never renders an image.
-//
-// @see docs/brand.md
-
 import { regex } from "arkregex";
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
@@ -20,11 +10,6 @@ import { Renderer } from "takumi-js/node";
 
 import { cjkGlyph, textWidth } from "./cjk.ts";
 
-/**
- * `fonts.gstatic.com` drops connections and stalls during CI prerender, so a
- * single failed subset download would abort the whole build. Retry transient
- * network failures, but bail the moment takumi's own timeout signal fires.
- */
 const fetchFont: FetchLike = async (input, init) => {
   const attempts = 4;
   for (let attempt = 1; ; attempt++) {
@@ -37,20 +22,9 @@ const fetchFont: FetchLike = async (input, init) => {
   }
 };
 
-/**
- * The Simplified Chinese faces a Chinese card falls back to after each Latin
- * face, as the zh-CN site does: LXGW WenKai GB Screen under the Gelasio
- * title, Noto Sans SC under the sans and mono lines. Both are SIL OFL 1.1.
- */
 const CJK_SERIF = "LXGW WenKai GB Screen";
 const CJK_SANS = "Noto Sans SC";
 
-/**
- * WenKai's unicode-range slices, read from the package stylesheet that the
- * site links, each loading its bytes from disk on demand. Google Fonts
- * carries no GB edition of WenKai.
- */
-/** A slice file and its code points, from one `@font-face` rule of the WenKai stylesheet. */
 const faceUrl = regex(`url\\(["']?\\./(?<file>[^"')]+)`);
 const faceRange = regex("unicode-range:(?<range>[^;}]+)");
 
@@ -94,10 +68,6 @@ async function wenkaiSubsets(packageRoot: string): Promise<FontSubset[]> {
     });
 }
 
-/**
- * A CJK family is a hundred or more unicode-range subsets, so these load as a
- * list and each card reads only the subsets its own text needs.
- */
 async function cjkSubsets(packageRoot: string): Promise<FontSubset[]> {
   const [serif, sans] = await Promise.all([
     wenkaiSubsets(packageRoot),
@@ -110,7 +80,6 @@ async function cjkSubsets(packageRoot: string): Promise<FontSubset[]> {
   return [...serif, ...sans];
 }
 
-/** One renderer whose fonts (Google subsets + the vendored Archivo wordmark face) register once, then reuse. */
 async function createRenderer(packageRoot: string): Promise<Renderer> {
   const [subsets, archivo] = await Promise.all([
     googleFonts({
@@ -122,7 +91,6 @@ async function createRenderer(packageRoot: string): Promise<Renderer> {
       fetch: fetchFont,
       timeout: 30_000,
     }),
-    // Same Archivo SemiBold "ZotLit" subset the docs UI ships as --font-brand.
     readFile(resolve(packageRoot, "src/fonts/archivo-semibold-zotlit.woff2")),
   ]);
 
@@ -143,17 +111,13 @@ async function createRenderer(packageRoot: string): Promise<Renderer> {
 }
 
 export interface CardProps {
-  /** Small-caps apparatus label — page type or tagline. */
   kind: string;
   title: string;
   description?: string;
-  /** Mono footer line — domain, or author/version + date. */
   meta: string;
-  /** Landing hero: enlarge the title to a single-word display size. */
   hero?: boolean;
 }
 
-/** The brand mark, inlined so the card needs no SVG loader. @see assets/logo/ */
 function ZotLitMark() {
   return (
     <svg viewBox="0 0 24 24" width={28} height={28}>
@@ -166,15 +130,8 @@ function ZotLitMark() {
   );
 }
 
-/**
- * The title's type size. A title past about 44 Latin glyphs of width wraps to
- * three lines at the standard size, which pushes a four-line description off
- * the card, so it steps down to keep two.
- */
 function titleSize(title: string, hero?: boolean) {
   if (hero) return "text-[150px]";
-  // A Chinese title sits on a taller line and over a longer description, so it
-  // steps down sooner, and once more when it would still take three lines.
   const width = textWidth(title);
   if (cjkGlyph.test(title)) {
     if (width > 52) return "text-[64px]";
@@ -183,21 +140,18 @@ function titleSize(title: string, hero?: boolean) {
   return width > 44 ? "text-[72px]" : "text-[84px]";
 }
 
-/** Chinese lines need open leading and no negative tracking; Latin keeps the tight display setting. */
 function titleSetting(title: string) {
   return cjkGlyph.test(title)
     ? "leading-[1.2] tracking-[0px]"
     : "leading-[1.05] tracking-[-1px]";
 }
 
-/** A Chinese description wraps to more lines at the Latin measure, so it runs wider and a size smaller. */
 function descriptionSetting(description: string) {
   return cjkGlyph.test(description)
     ? "text-[32px] leading-[1.45] max-w-[1000px]"
     : "text-[35px] leading-[1.4] max-w-[820px]";
 }
 
-/** Spaced capitals suit Latin; a Chinese label keeps a light tracking. */
 function kindTracking(kind: string) {
   return cjkGlyph.test(kind) ? "tracking-[1px]" : "tracking-[5px]";
 }
@@ -245,17 +199,11 @@ function OGCard({ kind, title, description, meta, hero }: CardProps) {
   );
 }
 
-/** WebP bytes of the OG card, exactly as the `/og/…/image.webp` asset serves them. */
 export type OgCardRenderer = (props: CardProps) => Promise<Uint8Array>;
 
-/**
- * A renderer bound to one font set, reused across every card of a build.
- * @param packageRoot the app's own root, which `vite.config.ts` owns.
- */
 export function createOgCardRenderer(packageRoot: string): OgCardRenderer {
   let renderer: Promise<Renderer> | undefined;
   let cjk: Promise<FontSubset[]> | undefined;
-  /** Each CJK subset registers once, however many cards need it at the same time. */
   const registered = new Map<string, Promise<unknown>>();
 
   return async (props) => {

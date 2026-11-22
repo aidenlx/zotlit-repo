@@ -1,4 +1,3 @@
-// Owns scoped worker recovery and bounded requests across connection lifetimes.
 import { Deferred, Effect, Exit, Fiber, Ref, Schedule, Scope } from "effect";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
@@ -35,7 +34,6 @@ export const makeRecoveringParseClient = Effect.fnUntraced(function* (
       scope: connectionScope,
     });
     const death = yield* connection.died;
-    // Publish the new wait before releasing requests from the dead connection.
     yield* Ref.set(available, Deferred.makeUnsafe<Live>());
     yield* Deferred.succeed(replaced, undefined);
     yield* Scope.close(connectionScope, Exit.void);
@@ -83,7 +81,6 @@ export const makeRecoveringParseClient = Effect.fnUntraced(function* (
           Effect.andThen(Deferred.await(live.replaced), Effect.fail(error)),
         ),
       );
-      // The connection deadline belongs to its scope, not a caller that abandons the note.
       const fiber = yield* attempt.pipe(
         Effect.forkIn(lifetimeScope, { startImmediately: true }),
       );

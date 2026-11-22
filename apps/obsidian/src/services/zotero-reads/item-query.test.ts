@@ -44,7 +44,6 @@ const ATTACHMENT_PATHS = {
   baseAttachmentPath: null,
 };
 
-/** An Attachment file resolver over the Node file system, with `probe` spying on each probe. */
 function resolverWith(
   paths: Parameters<typeof makeAttachmentFileResolver>[0],
   probe: (path: string) => void,
@@ -99,7 +98,6 @@ function jobOf(
   };
 }
 
-/** An export of the bulk Library to the directory of the scenario. */
 function bulkExport(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   id: string,
@@ -112,10 +110,6 @@ function bulkExport(
   );
 }
 
-/**
- * The in-process client over the scenario, with a count of the connection
- * borrows that are open.
- */
 function clientOf(scenario: ScenarioDatabase<NodeDatabaseClient>) {
   let borrows = 0;
   const counted = Layer.effect(Connection)(
@@ -141,7 +135,6 @@ function clientOf(scenario: ScenarioDatabase<NodeDatabaseClient>) {
   };
 }
 
-/** The job writes its staging file. */
 const writing = (job: QueryJob) =>
   Effect.promise(() =>
     vi.waitFor(
@@ -201,7 +194,6 @@ describe("ZoteroReads ItemQuery", () => {
             reads.ItemQuery({ job: jobOf("waiting", { limit: "1" }) }),
           );
           yield* Effect.sleep("10 millis");
-          // Two jobs hold the two slots: the third waits for one.
           expect(borrows()).toBe(2);
           yield* reads.CancelItemQuery({ id: "waiting" });
           const cancelled = yield* Fiber.join(waiting);
@@ -243,7 +235,6 @@ describe("ZoteroReads ItemQuery", () => {
           const reads = yield* client;
           const request = yield* Effect.forkChild(reads.ItemQuery({ job }));
           yield* writing(job);
-          // The client settles when it sends the interrupt.
           yield* Fiber.interrupt(request);
           yield* Effect.promise(() =>
             vi.waitFor(() => expect(borrows()).toBe(0), {
@@ -256,7 +247,6 @@ describe("ZoteroReads ItemQuery", () => {
       ),
     );
 
-    // The job stopped inside its rows: the staging file holds no envelope.
     const staged = await readFile(job.stagePath!, "utf8");
     expect(() => JSON.parse(staged) as unknown).toThrow();
     expect(await readdir(dirname(job.stagePath!))).not.toContain(

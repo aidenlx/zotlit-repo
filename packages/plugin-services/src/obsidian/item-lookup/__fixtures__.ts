@@ -1,5 +1,3 @@
-// The Item search built from its layer over a test's reads client and Library Scope.
-
 import type { LibraryScopeState } from "#obsidian/library-scope/service.ts";
 import { Effect, Layer, Stream, SubscriptionRef } from "effect";
 import type { Scope } from "effect";
@@ -24,7 +22,6 @@ import { ChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";
 import { LibraryScope } from "#obsidian/library-scope/service.ts";
 import { UseLedger } from "#obsidian/use-ledger/service.ts";
 
-/** The Library Scope state that holds `libraries`, or an unresolved one for `null`. */
 export function scopeState(
   libraries: readonly AvailableLibrary[] | null,
 ): LibraryScopeState {
@@ -42,7 +39,6 @@ export function scopeState(
   };
 }
 
-/** A Library Scope whose Libraries the test sets through `state`. */
 export function layerLibraryScopeOf(
   state: SubscriptionRef.SubscriptionRef<LibraryScopeState>,
 ): Layer.Layer<LibraryScope> {
@@ -52,11 +48,6 @@ export function layerLibraryScopeOf(
   });
 }
 
-/**
- * The Item search over `reads`, the Library Scope `scope`, and no Uses. Its
- * Chinese Segmenter is ready unless the test gives `segmenter`, and its
- * notices go to `notifier`, or to a recorder that no test reads.
- */
 export function layerTestItemLookup(
   reads: Layer.Layer<ZoteroReads>,
   scope: Layer.Layer<LibraryScope>,
@@ -85,10 +76,6 @@ export function layerTestItemLookup(
   );
 }
 
-/**
- * The same search behind its Promise edge, for a test outside Effect, over
- * a scope that holds `libraries`; `stack` closes it.
- */
 export async function buildItemLookup(
   client: Effect.Effect<ZoteroReadsClient, never, Scope.Scope>,
   libraries: readonly AvailableLibrary[],

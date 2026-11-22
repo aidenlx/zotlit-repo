@@ -8,7 +8,6 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { resetLanguagePacks } from "./reset.ts";
 import { LanguagePack, LanguagePackStorageFailed } from "./service.ts";
 
-/** The user's confirmation, as `awaitConfirm` gives it. */
 const confirmed = Effect.succeed(true);
 
 describe("resetLanguagePacks", () => {

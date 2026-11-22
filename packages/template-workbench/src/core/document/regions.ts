@@ -1,9 +1,3 @@
-// The boxes a pane draws over its own source: the Managed Block the note
-// update rewrites, the annotation render calls the highlight editor opens at,
-// and the Shared Partial calls a Partial Placeholder stands in for. All three
-// are read from the source alone, so a draft the parser refuses keeps the
-// boxes the reader is working in.
-
 import type { LiquidRange } from "#core/language/liquid.ts";
 import type { SyntaxNode } from "@lezer/common";
 import { regex } from "arkregex";
@@ -16,102 +10,48 @@ import type { WorkbenchSliceRange } from "./manifest-patch.ts";
 import { etaParser } from "#core/language/eta-syntax.ts";
 import { liquidRanges } from "#core/language/liquid.ts";
 
-/** One annotation render call in the note body, in master offsets. */
 export interface AnnotationRenderSite {
-  /** The call's own text, which a box takes the place of. */
   readonly call: WorkbenchSliceRange;
-  /**
-   * The whole line the call sits on when only whitespace shares it, so a box
-   * can own that line; null when the call is written inside a line of prose.
-   * The end excludes the line break, which the line keeps.
-   */
   readonly line: WorkbenchSliceRange | null;
 }
 
-/** The Managed Block as a pane draws it, in master offsets. */
 export interface ManagedBlockRegion {
-  /**
-   * The marked box: the block with its line-owning tags, so the region reads
-   * as the lines a note update rewrites.
-   */
   readonly range: WorkbenchSliceRange;
-  /** The `{% managed %}` tag itself. */
   readonly open: WorkbenchSliceRange;
-  /** The `{% endmanaged %}` tag itself. */
   readonly close: WorkbenchSliceRange;
 }
 
-/**
- * One Shared Partial call — a `render` or `include` tag whose first argument
- * is a plain quoted name — in master offsets. Every other call form names its
- * target at render time, so it stays as source.
- */
 export interface PartialRenderSite {
-  /** The partial the call names, as written between its quotes. */
   readonly name: string;
-  /**
-   * What the call passes after the name, so a box summarizes the call it
-   * stands in for; the empty string when the call passes nothing.
-   */
   readonly arguments: string;
-  /** The call's own text, which a box takes the place of. */
   readonly call: WorkbenchSliceRange;
-  /**
-   * The name alone, between its quotes, so Pick another writes the chosen name
-   * over exactly the name — a search of the call text would find a short name
-   * inside the `render` or `include` keyword first.
-   */
   readonly nameRange: WorkbenchSliceRange;
 }
 
 export interface NoteRegions {
-  /** Every annotation render call, in source order. */
   readonly annotationCalls: readonly AnnotationRenderSite[];
   readonly managedBlock: ManagedBlockRegion | null;
 }
 
-/** The Liquid tag names that render one annotation through the section. */
 const ANNOTATION_CALL_TAGS: readonly string[] = ["render", "render_annotation"];
 
-/** The section the native call form names, in either quote the author wrote. */
 const ANNOTATION_PARTIALS: readonly string[] = ['"annotation"', "'annotation'"];
 
-/** The Liquid tag names that render a Shared Partial by name. */
 const PARTIAL_CALL_TAGS: readonly string[] = ["render", "include"];
 
-/** The Eta helper that renders a Shared Partial by name. */
 const ETA_PARTIAL_CALL = "include";
 
-/** Everything an Eta Shared Partial call spells before its name. */
 const ETA_CALL_OPEN = new RegExp(
   `^\\s*${RegExp.escape(ETA_PARTIAL_CALL)}\\s*\\(\\s*$`,
 );
 
-/**
- * The names a call may spell that no Shared Partial can be given: every
- * Legacy Template File slot — the Annotation Section's own name among them —
- * and the one the Citation Template registers under. A box over any of them
- * would offer Edit partial for a document that cannot exist.
- *
- * The host refuses the same five names; keep this list and the host's own
- * reserved set naming the same templates.
- * @see docs/adr/0035-profile-annotation-section.md
- * @see docs/adr/0055-the-citation-template-is-one-document-and-partials-are-files.md
- */
 export const RESERVED_CALL_NAMES: readonly string[] = [
   ...Object.keys(TEMPLATE_SLOT_ROOTS),
-  // The Citation Template is a Template Document, so it is in no slot registry.
   "citation",
 ];
 
 const FENCE = regex("^ {0,3}(?<marker>`{3,}|~{3,})");
 
-/**
- * The boxes the note body carries, in master offsets. `note` is the body's own
- * range, so a call spelled inside the manifest or the Annotation Section is
- * out of scope by construction.
- * @see docs/adr/0034-template-rendering-shortcut-is-annotation-specific.md
- */
 export function noteRegions(
   source: string,
   note: WorkbenchSliceRange,
@@ -126,16 +66,6 @@ export function noteRegions(
   return { annotationCalls, managedBlock: managedBlock(source, note, tags) };
 }
 
-/**
- * Every Shared Partial call inside `region`, in source order and in the
- * offsets `source` is read in. A pane over any region — the note body, the
- * Annotation Section, or the one editor a plain document opens — reads its own
- * calls through this.
- *
- * `language` picks the call form: a Liquid `render` or `include` tag, or an
- * Eta `include("name", …)` call. Both are what the completion offers and what
- * Extract to partial writes, so both draw the same box.
- */
 export function partialCalls(
   source: string,
   region: WorkbenchSliceRange,
@@ -146,14 +76,6 @@ export function partialCalls(
   );
 }
 
-/**
- * Every call inside `region` naming the template it renders, in source order
- * and in the offsets `source` is read in — {@link RESERVED_CALL_NAMES} included,
- * because a call to the Citation Template or to a Legacy Template File slot is
- * a real call even though no Shared Partial may take those names. A render
- * failure the engine attributes to a named template is repaired at whichever
- * of these calls reached it.
- */
 export function templateCalls(
   source: string,
   region: WorkbenchSliceRange,
@@ -184,11 +106,6 @@ export function templateCalls(
   });
 }
 
-/**
- * The closed Liquid tags of `body` a box may stand in for. `liquidRanges`
- * skips a `raw` or `comment` body whole; a Markdown code region is prose about
- * a call rather than a call, so it is skipped here.
- */
 function callTags(body: string): readonly LiquidRange[] {
   const code = codeRanges(body);
   return liquidRanges(body).filter(
@@ -198,11 +115,6 @@ function callTags(body: string): readonly LiquidRange[] {
   );
 }
 
-/**
- * The template one tag names, and the arguments it passes it, or null when the
- * tag renders something else: another tag name, or a name held in a variable.
- * {@link partialCalls} drops the reserved names from what this reads.
- */
 function partialCall(
   body: string,
   { from, to, kind, name }: LiquidRange,
@@ -216,8 +128,6 @@ function partialCall(
   if (end === -1) return null;
   const partial = argument.slice(1, end);
   if (partial.length === 0) return null;
-  // The opening quote sits where the trimmed argument starts, so the name
-  // begins one character after it.
   const open = from + tag.length - argument.length;
   return {
     name: partial,
@@ -226,14 +136,6 @@ function partialCall(
   };
 }
 
-/**
- * Every Eta template call in `body`, in source order and in `body`'s own
- * offsets. The Eta parser splices the tag's JavaScript in, so the tree names
- * the callee and its first argument outright: a name held in a variable, a
- * member call such as `it.include(…)`, a tag the author has not closed, and a
- * tag doing anything besides the one call are all left as source, the way the
- * Liquid scan leaves their tag equivalents.
- */
 function etaPartialCalls(body: string): PartialRenderSite[] {
   const code = codeRanges(body);
   const sites: PartialRenderSite[] = [];
@@ -254,15 +156,6 @@ function etaPartialCalls(body: string): PartialRenderSite[] {
   return sites;
 }
 
-/**
- * The template one Eta tag's content names, and what the call passes after it,
- * or null when the tag holds anything but a single `include("name", …)` call.
- * The grammar tokenizes a tag's quoted strings and block comments, so the name
- * and the paren that closes the call are read off the tag's own nodes: a name
- * held in a variable, a member call such as `it.include(…)`, and a tag doing
- * anything besides the one call are all left as source, the way the Liquid
- * scan leaves their tag equivalents.
- */
 function etaIncludeCall(
   body: string,
   content: SyntaxNode | null,
@@ -288,11 +181,6 @@ function etaIncludeCall(
   };
 }
 
-/**
- * The offset of the paren that closes a call already open at `range.from`, or
- * null when the tag leaves it open. A paren a string or a block comment holds
- * is that token's own, so `shielded` spans are stepped over whole.
- */
 function etaCallClose(
   body: string,
   range: WorkbenchSliceRange,
@@ -311,17 +199,12 @@ function etaCallClose(
   return null;
 }
 
-/** What a tag passes after the partial name, without the tag's own closer. */
 function tagRest(rest: string): string {
   const close = rest.lastIndexOf("%}");
   const text = (close === -1 ? rest : rest.slice(0, close)).trimEnd();
   return (text.endsWith("-") ? text.slice(0, -1) : text).trim();
 }
 
-/**
- * True for the annotation shortcut, and for the native call that renders the
- * `annotation` section under a variable name the author chose.
- */
 function isAnnotationCall(body: string, { from, to, name }: LiquidRange) {
   if (!ANNOTATION_CALL_TAGS.includes(name)) return false;
   if (name === "render_annotation") return true;
@@ -330,7 +213,6 @@ function isAnnotationCall(body: string, { from, to, name }: LiquidRange) {
   return ANNOTATION_PARTIALS.some((partial) => argument.startsWith(partial));
 }
 
-/** The first complete `{% managed %}` block, which is the one the parser keeps. */
 function managedBlock(
   source: string,
   note: WorkbenchSliceRange,
@@ -358,10 +240,6 @@ function managedBlock(
   };
 }
 
-/**
- * The line `range` sits on when only whitespace shares it, with the line break
- * left outside so the line keeps it. A carriage return belongs to the break.
- */
 function ownedLine(
   source: string,
   range: WorkbenchSliceRange,
@@ -376,10 +254,6 @@ function ownedLine(
     : null;
 }
 
-/**
- * The Markdown code regions of `text`: fenced blocks, and the code spans inside
- * one line. A call written in one is documentation about the call.
- */
 function codeRanges(text: string): WorkbenchSliceRange[] {
   const ranges: WorkbenchSliceRange[] = [];
   let fence: { marker: string; from: number } | undefined;
@@ -404,7 +278,6 @@ function codeRanges(text: string): WorkbenchSliceRange[] {
   return ranges;
 }
 
-/** Every line of `text` as a range, with its line break left outside. */
 function* lineRanges(text: string): Generator<WorkbenchSliceRange> {
   let from = 0;
   while (from <= text.length) {
@@ -416,7 +289,6 @@ function* lineRanges(text: string): Generator<WorkbenchSliceRange> {
   }
 }
 
-/** The code spans on one line: a run of backticks closed by a run as long. */
 function codeSpans(
   text: string,
   line: WorkbenchSliceRange,
@@ -431,8 +303,6 @@ function codeSpans(
     }
     let close = index + open;
     while (close < line.to) {
-      // A run of another length is not the closer, and none of its backticks
-      // can be: the span closes on a run of exactly the opening length.
       const run = backtickRun(text, close, line.to);
       if (run === open) break;
       close += run === 0 ? 1 : run;
@@ -444,7 +314,6 @@ function codeSpans(
   return spans;
 }
 
-/** The length of the backtick run starting at `index`, or 0 when none does. */
 function backtickRun(text: string, index: number, end: number): number {
   let length = 0;
   while (index + length < end && text[index + length] === "`") length += 1;

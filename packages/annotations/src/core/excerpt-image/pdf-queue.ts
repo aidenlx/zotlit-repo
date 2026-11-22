@@ -1,12 +1,8 @@
 import { Deferred, Effect, Fiber, Scope, Semaphore } from "effect";
 
-/** Jobs admitted — reserved, queued, or rendering — at once (ADR 0052). */
 export const EXCERPT_JOB_LIMIT = 128;
-/** One resident PDF document: the renderer renders one crop at a time. */
 export const EXCERPT_RENDER_CONCURRENCY = 1;
-/** Freshness and cache checks that may run beside a crop render. */
 export const EXCERPT_PREFLIGHT_CONCURRENCY = 4;
-/** Consecutive jobs one PDF may keep before another waiting PDF gets a turn. */
 export const EXCERPT_PDF_AFFINITY = 4;
 
 interface Ticket {
@@ -16,7 +12,6 @@ interface Ticket {
   selected: boolean;
 }
 
-/** A permit goes directly to the next ticket, before a new arrival can take it. */
 function makeLane(
   concurrency: number,
   affinity: boolean,
@@ -105,7 +100,6 @@ export type ExcerptPdfQueue = Effect.Success<
   ReturnType<typeof makeExcerptPdfQueue>
 >;
 
-/** Admission, preflight, and ordered rendering share the owner's Scope. */
 export const makeExcerptPdfQueue = Effect.fn("ExcerptPdfQueue.make")(function* (
   options: { limit?: number; render?: number; preflight?: number } = {},
 ) {

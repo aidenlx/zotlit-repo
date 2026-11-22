@@ -1,9 +1,4 @@
 // @vitest-environment happy-dom
-// What a hovered link shows is proven in the running app
-// (`packages/e2e/src/annotation-links.e2e.ts`). These cases cover what the
-// End-to-end Run cannot time or observe: a popover held open across a change
-// in the repository, two reads that land out of order, the Excerpt Image read
-// a hidden popover lets go, and image bytes that fail to decode.
 import type { WorkHoverRequest } from "#obsidian/citation-popover/service.ts";
 import { it } from "@effect/vitest";
 import { Context, Deferred, Effect, Exit, Layer, Scope, Stream } from "effect";
@@ -42,10 +37,6 @@ import { AnnotationPopoverCore } from "#desktop/annotation-popover/popover.tsx";
 import { CitationPopover } from "#obsidian/citation-popover/service.ts";
 import { HoverVisits } from "#obsidian/citation-popover/visits.ts";
 
-/**
- * The Citation Popover's part of a hover: it opens the visit and starts the
- * lead, and reads no entry.
- */
 function leadOnlyPopover(): Partial<CitationPopover["Service"]> {
   const visits = new HoverVisits(() => ({}));
   return {
@@ -64,10 +55,6 @@ function leadOnlyPopover(): Partial<CitationPopover["Service"]> {
   };
 }
 
-/**
- * Hovers `targetEl` as the Citation Popover does: a visit of its own, which the
- * core draws into.
- */
 function hover(
   core: AnnotationPopoverCore,
   visits: HoverVisits<object>,
@@ -88,18 +75,11 @@ function hover(
   );
 }
 
-/** The card a hover parent shows, once Obsidian's opening delay has passed. */
 async function shownUnder(parent: HoverParent): Promise<HTMLElement> {
   await vi.waitFor(() => expect(parent.hoverPopover).not.toBeNull());
   return parent.hoverPopover!.hoverEl;
 }
 
-/**
- * The popover over the real Annotation repository, reading the Fixture's
- * Annotations from an in-memory Zotero database. A comment renders through
- * Obsidian's Markdown renderer, which stands outside the test: it is drawn as
- * text. No case here hovers an Annotation with an Excerpt Image.
- */
 async function harness(stack: AsyncDisposableStack) {
   const {
     repository,
@@ -134,7 +114,6 @@ async function harness(stack: AsyncDisposableStack) {
     repository,
     client,
     hoverParent,
-    /** Hovers a link over a target of its own; settles once its read drew. */
     show(
       link: Partial<AnnotationHoverRequest["link"]> & { annotationKey: string },
     ): Promise<void> {
@@ -153,20 +132,14 @@ async function harness(stack: AsyncDisposableStack) {
         },
       });
     },
-    /** What the popover draws now. */
     shown: () => shownUnder(hoverParent),
   };
 }
 
-/** The note Annotation's comment, as the Fixture holds it. */
 const COMMENT = "Making figures is hard :(";
 const EDITED =
   "update itemAnnotations set comment = 'Figures are easier now' where itemID = 51";
 
-/**
- * The popover's Effect layer over one stored Annotation, `LAYER001`, with the
- * Citation Popover a hover opens.
- */
 async function layerHarness(
   stack: AsyncDisposableStack,
   citationPopover: Partial<CitationPopover["Service"]> = leadOnlyPopover(),
@@ -503,11 +476,6 @@ describe("AnnotationPopover", () => {
     expect((await run.shown()).textContent).toContain("Figures are easier now");
   });
 
-  // The pointer moves on to a second link before the first link's read
-  // answers, and the first read lands last. Holding the first hover's
-  // database read under the real repository held the second hover's read
-  // too, so the order is not reversed there: the reads are held here, each
-  // answering with the list the repository read for its Attachment.
   it("keeps the newer link when the first hover's read lands after it", async () => {
     await using stack = new AsyncDisposableStack();
     const { repository, bridge } = await setup(stack);
@@ -577,18 +545,9 @@ describe("AnnotationPopover", () => {
   });
 });
 
-// Whether a real Excerpt Image shows in the popover is proven in the running
-// app. These cases cover what it cannot observe: the display read a hidden
-// popover lets go, and bytes the browser fails to decode.
 describe("AnnotationPopover with an Excerpt Image", () => {
   const DATA_DIR = "/zotero";
 
-  /**
-   * The Fixture's image Annotation in a popover, over the real repository and
-   * the real Excerpt Image display. Every file the image service reads answers
-   * with one red pixel, which the browser never decodes here: a case fires
-   * the decode failure itself.
-   */
   async function harness(stack: AsyncDisposableStack) {
     const {
       service: annotations,
@@ -666,7 +625,6 @@ describe("AnnotationPopover with an Excerpt Image", () => {
       card,
       img,
       hoverParent,
-      /** The display reads the query client holds now. */
       displayReads: () =>
         queryClient.client
           .getQueryCache()

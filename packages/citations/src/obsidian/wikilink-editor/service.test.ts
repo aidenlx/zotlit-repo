@@ -23,10 +23,6 @@ import { CitationPopover } from "#obsidian/citation-popover/service.ts";
 import { CitationText } from "#obsidian/citation-text/service.ts";
 import { CitekeyEditor } from "#obsidian/citekey-editor/service.ts";
 
-/**
- * The Wikilink Editor over settings seeded with `overrides`, and a workspace
- * with editors open on `note.md` and `other.md`. `unload` closes it.
- */
 const openEditor = Effect.fnUntraced(function* (
   overrides: Partial<Settings> = {},
 ) {
@@ -130,8 +126,6 @@ describe("WikilinkEditor redraw", () => {
       h.settings.update({ "citation.hover-action": "off" });
       expect(h.workspace.dispatched).toEqual(["note.md", "other.md"]);
 
-      // Which mode holds a hover back for a modifier is read at hover time, so
-      // nothing drawn depends on it.
       h.workspace.dispatched.length = 0;
       h.settings.update({ "citation.hover-require-mod-live-preview": true });
       expect(h.workspace.dispatched).toEqual([]);

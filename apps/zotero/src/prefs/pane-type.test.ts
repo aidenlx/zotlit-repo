@@ -1,14 +1,11 @@
 import { afterEach, expect, it, vi } from "vitest";
 
-// `./index` pulls in `@/lib/l10n`, which constructs a `Localization` at module
-// scope. Hoisted so the stub exists before the import graph is evaluated.
 vi.hoisted(() => {
   (globalThis as { Localization?: unknown }).Localization = class {};
 });
 
 import { preferredPaneType } from "./pane-type.ts";
 
-/** Stand in for the Zotero global the `prefs` wrapper reads through. */
 function storePref(value: unknown): void {
   Object.assign(globalThis, {
     Zotero: { Prefs: { get: () => value } },

@@ -1,4 +1,3 @@
-// Live orchestration for the Welcome View quick-start step actions: open settings, pick the literature-note folder and locate the Zotero data directory.
 import { FuzzySuggestModal } from "obsidian";
 import type { App, TFolder } from "obsidian";
 
@@ -27,7 +26,6 @@ export interface SetupActions {
 export interface SetupActionsDeps {
   app: App;
   registry: ViewRegistryHandle;
-  /** Plugin id — identifies the settings tab. */
   pluginId: string;
 }
 
@@ -47,7 +45,6 @@ export function createSetupActions(deps: SetupActionsDeps): SetupActions {
   };
 }
 
-/** Vault-folder fuzzy picker; the chosen folder becomes `note.literature-folder`. */
 class LiteratureFolderModal extends FuzzySuggestModal<TFolder> {
   readonly #onChoose: (folder: TFolder) => void;
 

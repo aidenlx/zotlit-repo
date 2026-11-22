@@ -9,7 +9,6 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 
 import { popupScope } from "./field-popup.ts";
 
-/** A keymap that records its stack, and the keys a popup hands it. */
 function setup() {
   const stack: Scope[] = [];
   const keymap = stubService<Keymap>("Keymap", {
@@ -34,7 +33,6 @@ function setup() {
   return { stack, keys, migrated };
 }
 
-/** The test double's Scope, which records its handlers. */
 type MockScope = {
   handlers: {
     modifiers: string[] | null;
@@ -43,7 +41,6 @@ type MockScope = {
   }[];
 };
 
-/** What the Scope's handler of Shift-Tab answers. */
 function pressShiftTab(scope: Scope) {
   const event = new KeyboardEvent("keydown", { key: "Tab", shiftKey: true });
   const handler = (scope as unknown as MockScope).handlers.find(

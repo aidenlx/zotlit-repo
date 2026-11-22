@@ -1,4 +1,3 @@
-// JSON-e expression regions and field facts, independent of the editor host.
 import { regex } from "arkregex";
 import { findNodeAtOffset, getLocation, parseTree } from "jsonc-parser";
 import type { Node } from "jsonc-parser";
@@ -32,7 +31,6 @@ export interface JsonExpression {
   delimiters?: { from: number; to: number }[];
 }
 
-/** Preserve original JSON escape offsets while examining decoded expression text. */
 function stringSource(source: string, node: Node) {
   let text = "";
   const offsets = [node.offset + 1];
@@ -54,7 +52,6 @@ function stringSource(source: string, node: Node) {
   return { text, offsets };
 }
 
-/** Tokens retain string boundaries so braces and dots inside literals stay inert. */
 export function jsonExpressionTokens(text: string) {
   return [
     ...text.matchAll(
@@ -210,7 +207,6 @@ function localScope(node: Node, key: string, outer: Scope): Scope {
   return scope;
 }
 
-/** Locate expressions using the recovered JSON tree, including unfinished strings. */
 export function jsonExpressions(
   source: string,
   config: SuggestionConfig,
@@ -295,7 +291,6 @@ export function jsonExpressions(
   return result;
 }
 
-/** The role of each JSON-e token that its text alone names. */
 const EXPRESSION_ROLES: Readonly<Record<string, ExpressionRole>> = {
   true: "literal",
   false: "literal",
@@ -308,18 +303,12 @@ const EXPRESSION_ROLES: Readonly<Record<string, ExpressionRole>> = {
   ".": "punctuation",
 };
 
-/** The role of the other tokens, by how they start; an operator otherwise. */
 const EXPRESSION_STARTS: readonly (readonly [RegExp, ExpressionRole])[] = [
   [regex("^['\"]"), "string"],
   [regex("^[0-9]"), "number"],
   [regex("^[A-Za-z_]"), "name"],
 ];
 
-/**
- * The theme hooks of a token of a JSON-e expression, by the role the Filter
- * Expression gives it; `in`, a word operator, reads as a keyword, and a
- * name before `(` is a callee.
- */
 function expressionToken(
   tokens: readonly { text: string }[],
   index: number,
@@ -335,10 +324,6 @@ function expressionToken(
   );
 }
 
-/**
- * Semantic token ranges in source coordinates, with the theme hooks of each,
- * reusable by each editor host.
- */
 export function jsonSyntaxTokens(source: string) {
   const result: { from: number; to: number; classes: string }[] = [];
   for (const expression of jsonExpressions(source, {
@@ -525,7 +510,6 @@ export function jsonSuggestions(
   };
 }
 
-/** Schema-shaped operator metadata supplies only structural keys, without evaluating drafts. */
 function structuralSuggestions(
   source: string,
   position: number,

@@ -4,12 +4,6 @@ import type { KeyboardEvent, PointerEvent, ReactNode, RefObject } from "react";
 
 import { paneDivider } from "@zotlit/plugin-kernel/pane-divider.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-// The side panels around the editor: the pinned Fields Panel docked at the
-// leading edge, the Preview Panel at the trailing edge or under the editor,
-// each a labelled region the reader sizes with its handle, and the Fields
-// Panel in the host's Fields popover while the reader has it open unpinned.
-// The model says which panels show and where they go; each part's classes
-// read its drawn size from a custom property.
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
 import { useUniqueId } from "@zotlit/ui";
 
@@ -38,32 +32,19 @@ import type {
 const panelsPanel =
   "zt:flex zt:min-h-0 zt:shrink-0 zt:flex-col zt:overflow-auto zt:data-[state=fields]:w-(--zt-panel-width) zt:data-[state=preview]:w-(--zt-panel-width) zt:data-[state=below]:h-(--zt-panel-height)";
 const panelsStatus = "zt:sr-only";
-// Each divider stands on the end or bottom edge of the pane before
-// it, the Fields column or the editor, as Obsidian's between panes.
 const panelsEdge = paneDivider({ flow: "inline", edge: "end" });
 const panelsSplit = paneDivider({ flow: "inline", edge: "bottom" });
 
-/** What one side panel shows, and what names it to a screen reader. */
 export interface SidePanel {
-  /** The region's name. */
   readonly label: string;
-  /** The resize handle's name. */
   readonly resizeLabel: string;
   readonly content: ReactNode;
 }
 
-/** The Fields Panel's side panel, with the host's own actions for its header. */
 interface FieldsSidePanel extends SidePanel {
   readonly actions?: ReactNode;
 }
 
-/**
- * The editor beside or above the Preview the reader shows, the docked Fields
- * Panel before both, and the Fields Panel in the host's Fields popover over
- * them while it stands open. Document order is docked Fields Panel, editor,
- * Preview Panel, Fields popover at every placement, so the layout needs no
- * visual reordering.
- */
 export function SidePanels({
   panels,
   children,
@@ -75,18 +56,10 @@ export function SidePanels({
   const state = useAtomValue(model.panels);
   const placement = useAtomValue(model.placement);
   const preview = panels.preview && state.preview.shown ? panels.preview : null;
-  // The Preview stands at one place in the tree, after the editor, whether
-  // it is a column beside it or under it: the stack lays the two out in a
-  // row or a column, so a resize across the boundary moves the region
-  // without mounting it again, and what the reader was doing in it stays.
   const below = placement.preview === "below";
   const host = useWorkbenchHost();
   const popoverId = host.fieldsAction?.popoverId;
   const fieldsTitle = useUniqueId();
-  // A resize or a hide that takes the docked column away hands the focus it
-  // held to the Fields action, which brings it back. The column's removal
-  // marks that it held focus; the placement decides, so a column that still
-  // stands, as through a development replay of its effects, keeps it.
   const dockHeldFocus = useRef(false);
   useLayoutEffect(() => {
     if (dockHeldFocus.current && placement.fields !== "docked")
@@ -133,32 +106,17 @@ export function SidePanels({
   );
 }
 
-/** Whether `element` reads right to left, where the leading edge is the right. */
 const rightToLeft = (element: Element) =>
   element.ownerDocument.defaultView?.getComputedStyle(element).direction ===
   "rtl";
 
-/**
- * The handlers of one window splitter, over the handle's
- * {@link PANEL_HANDLES} sizing. The arrows grow and shrink the panel the way
- * they point; Home and End set its smallest and largest size. Each press
- * reads the panels as they are, so presses faster than a render each count.
- * A drag writes the size to the region's own style while it moves, and to
- * the model once, where the reader lets go. A double-click resets the panel
- * to its default size.
- */
 function useSizing(
   handle: PanelHandle,
   {
     outward,
     property,
   }: {
-    /**
-     * 1 where moving a column's edge to the right widens the column, -1
-     * where it narrows it: the edge's side and the reading direction set it.
-     */
     readonly outward: (handle: Element) => number;
-    /** The custom property the region draws its size from. */
     readonly property: string;
   },
   region: RefObject<HTMLElement | null>,
@@ -166,29 +124,23 @@ function useSizing(
   const { model, registry } = useWorkbenchEditor();
   const panelsUpdate = useAtomSet(model.panels);
   const sizing: HandleSizing = PANEL_HANDLES[handle];
-  // The handle's own value is what a screen reader reads now.
   const update = (change: (panels: WorkbenchPanels) => WorkbenchPanels) => {
     registry.set(model.sizedFromMenu, null);
     panelsUpdate(change);
   };
-  // Each event reads the view as it is now.
   const viewSize = () => registry.get(model.viewSize);
   const bounds = () => ({ size: viewSize(), defaults: model.panelDefaults });
-  // The keys that grow and shrink the panel: up gives the Preview under the
-  // editor more height, and an edge grows the way it moves away from the editor.
   const keys = (element: Element) =>
     sizing.axis === "vertical"
       ? { grow: "ArrowUp", shrink: "ArrowDown" }
       : outward(element) > 0
         ? { grow: "ArrowRight", shrink: "ArrowLeft" }
         : { grow: "ArrowLeft", shrink: "ArrowRight" };
-  // How far the pointer moved toward growth, in pixels.
   const moved = (element: Element, from: PointerEvent, to: PointerEvent) =>
     sizing.axis === "vertical"
       ? from.clientY - to.clientY
       : outward(element) * (to.clientX - from.clientX);
   const drag = useRef<{ from: PointerEvent; size: number } | null>(null);
-  // The handle says it is dragged, so the host can draw it as held.
   const [dragging, setDragging] = useState(false);
   const dragged = (event: PointerEvent<HTMLDivElement>) => {
     const start = drag.current;
@@ -257,11 +209,6 @@ function useSizing(
   };
 }
 
-/**
- * One side panel and its handle: a column beside the editor, or the Preview
- * under it. The Preview is the same component in either place, so moving it
- * across the boundary keeps the region and its contents mounted.
- */
 function Panel({
   side,
   below,
@@ -273,17 +220,9 @@ function Panel({
   onLeave,
 }: {
   side: PanelSide;
-  /** The Preview stands under the editor rather than beside it. */
   below: boolean;
-  /**
-   * The id of a title the region shows, which names it in place of `label`:
-   * a host that draws `aria-label` as a hover tooltip then shows none over
-   * the region.
-   */
   labelledBy?: string;
-  /** The region's id, where another control names it. */
   id?: string;
-  /** Takes the focus the region or its handle holds as the panel goes. */
   onLeave?: () => void;
 } & SidePanel) {
   const model = useWorkbenchModel();
@@ -298,7 +237,6 @@ function Panel({
   useLayoutEffect(() => {
     leave.current = onLeave;
   });
-  // The cleanup runs while the panel still holds the focus it had.
   useLayoutEffect(() => {
     const parts = [region.current, edge.current];
     return () => {
@@ -315,9 +253,6 @@ function Panel({
   const handlers = useSizing(
     handle,
     {
-      // Moving the edge away from the editor widens the panel: a leading
-      // column's edge toward the trailing side, a trailing column's toward
-      // the leading side.
       outward: (element) =>
         (standsAt === "leading" ? 1 : -1) * (rightToLeft(element) ? -1 : 1),
       property,
@@ -325,9 +260,6 @@ function Panel({
     region,
   );
   const sizeText = useSizeText();
-  // The handle describes the panel as drawn: the view holds a saved size
-  // within its own room, and a short view draws less than the saved share
-  // to keep the editor's height.
   const separator = (
     <div
       ref={edge}
@@ -335,7 +267,6 @@ function Panel({
       tabIndex={0}
       aria-label={resizeLabel}
       aria-controls={id}
-      // A separator's orientation is the line it draws, across the way it moves.
       aria-orientation={vertical ? "horizontal" : "vertical"}
       aria-valuemin={sizing.min}
       aria-valuemax={drawnMax(handle, panels, size)}
@@ -371,7 +302,6 @@ function Panel({
   );
 }
 
-/** What a handle's panel measures as drawn, in words a screen reader reads. */
 function useSizeText(): (
   handle: PanelHandle,
   panels: WorkbenchPanels,
@@ -389,12 +319,6 @@ function useSizeText(): (
   };
 }
 
-/**
- * The polite status that says what the Fields Panel last did, such as
- * "Inserted Title.", in either presentation. It stands outside the Fields
- * popover, so an insert that closes the popover is still heard. Each new
- * status is a new node, so a repeat is heard again.
- */
 function FieldsStatusRegion() {
   const model = useWorkbenchModel();
   const status = useAtomValue(model.fieldsStatus);
@@ -405,17 +329,7 @@ function FieldsStatusRegion() {
   );
 }
 
-/**
- * The polite status that says the size a menu entry gave, such as
- * "Preview: 50%": a menu entry moves no focus to the handle, whose own value
- * a screen reader would read. It stands empty otherwise.
- */
-function SizeStatus({
-  labels,
-}: {
-  /** Each panel's name, as its region reads it. */
-  labels: Record<PanelSide, string>;
-}) {
+function SizeStatus({ labels }: { labels: Record<PanelSide, string> }) {
   const model = useWorkbenchModel();
   const sized = useAtomValue(model.sizedFromMenu);
   const panels = useAtomValue(model.panels);

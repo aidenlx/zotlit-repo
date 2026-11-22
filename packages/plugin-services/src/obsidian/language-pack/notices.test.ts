@@ -19,7 +19,6 @@ import { layerLanguagePackNotices } from "./notices.ts";
 import { LanguagePack } from "./service.ts";
 import type { LanguagePackSituation } from "./service.ts";
 
-/** Start on `device` and register the startup notices, as plugin load does. */
 const loadOn = Effect.fn("test.loadOn")(function* (
   device: FakeDevice,
   options: { language: string; pluginVersion?: string },
@@ -28,7 +27,6 @@ const loadOn = Effect.fn("test.loadOn")(function* (
   return { pack, notices: yield* registerNotices(pack) };
 });
 
-/** Register the startup notices over `pack`, as the service graph does. */
 const registerNotices = Effect.fn("test.registerNotices")(function* (
   pack: LanguagePack["Service"],
 ) {
@@ -42,7 +40,6 @@ const registerNotices = Effect.fn("test.registerNotices")(function* (
   return notifier.notices;
 });
 
-/** The first situation that is not `kind`, once the pack reaches it. */
 const leaving = (
   pack: LanguagePack["Service"],
   kind: LanguagePackSituation["kind"],
@@ -56,7 +53,6 @@ function textOf(message: RecordedNotice["messages"][number]): string | null {
   return typeof message === "string" ? message : message.textContent;
 }
 
-/** The consent notice's buttons, by label. */
 function buttonsOf(notice: RecordedNotice | undefined): ButtonComponent[] {
   const message = notice?.messages[0];
   if (message === undefined || typeof message === "string") return [];

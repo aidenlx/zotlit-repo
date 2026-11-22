@@ -6,7 +6,6 @@ import { describe, expect, vi } from "vitest";
 
 import { requestUrlHttpClient } from "#http-client.ts";
 
-/** A `requestUrl` that answers `status` with `body`, and records each call. */
 function fakeRequestUrl(status: number, body = "") {
   const bytes = new TextEncoder().encode(body);
   return vi.fn((): Promise<RequestUrlResponse> =>

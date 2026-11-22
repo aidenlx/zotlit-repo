@@ -1,10 +1,3 @@
-// The CodeMirror machinery a pane paints its boxes with: the host element one
-// box is portalled into, the full-width block a preview opens in, the click
-// that hands the reader back the source the box stands in for, and the
-// decoration field that redraws all of it. Every pane that replaces calls with
-// boxes — the note body's annotation calls, any slice's Shared Partial calls —
-// draws through this; only what counts as a call differs.
-
 import type { WorkbenchSliceRange } from "#core/document/index.ts";
 import { StateField } from "@codemirror/state";
 import type {
@@ -16,7 +9,6 @@ import type {
 import { Decoration, EditorView, WidgetType } from "@codemirror/view";
 import type { DecorationSet } from "@codemirror/view";
 
-/** The place one box is painted into, held across every redraw. */
 export class BoxWidget extends WidgetType {
   readonly box: HTMLElement;
   readonly range: WorkbenchSliceRange;
@@ -41,7 +33,6 @@ export class BoxWidget extends WidgetType {
   }
 }
 
-/** One full-width block, placed after the line containing the open call. */
 export class PreviewWidget extends WidgetType {
   readonly host: HTMLElement;
 
@@ -59,7 +50,6 @@ export class PreviewWidget extends WidgetType {
   }
 }
 
-/** The place box `index` is painted into, made on first use and held after. */
 export function boxAt(
   boxes: Map<number, HTMLElement>,
   index: number,
@@ -72,11 +62,6 @@ export function boxAt(
   return box;
 }
 
-/**
- * Replace each call in `calls` with the box that stands in for it, skipping
- * the ones the selection touches — the raw call reappears there, which is how
- * a reader in Basic mode edits a call.
- */
 export function boxRanges(
   calls: readonly WorkbenchSliceRange[],
   boxes: Map<number, HTMLElement>,
@@ -95,11 +80,6 @@ export function boxRanges(
   );
 }
 
-/**
- * One pane's box decorations, rebuilt whenever the text, the selection, or the
- * open preview moves. `expand` carries the line the preview sits under, in
- * this pane's own offsets; `build` says which boxes that state draws.
- */
 export function boxField(
   expand: StateEffectType<number | null>,
   build: (state: EditorState, expanded: number | null) => DecorationSet,
@@ -125,13 +105,8 @@ export function boxField(
   });
 }
 
-/** The parts of a box that act on their own rather than reveal the source. */
 const INTERACTIVE = "button, [data-annotation-preview], [data-partial-preview]";
 
-/**
- * Selecting the box shows the call it stands in for, which is the one way
- * back to the source a reader in Basic mode has.
- */
 export function revealSourceOnClick(
   element: HTMLElement,
   view: EditorView,

@@ -1,9 +1,6 @@
 import { expect } from "vitest";
 
 import { ATTACHMENTS } from "@zotlit/scripts/fixture";
-// The lock on an External Annotation, walked end to end: Zotero imports the
-// highlight a Fixture PDF embeds, and ZotLit then refuses every edit of it on
-// the Annotation Card and in the reader, as Zotero's own reader does.
 
 import { obRunUntil, obRun } from "./obsidian-cli.ts";
 import { clearNotices, waitFor } from "./obsidian-cli.ts";
@@ -18,22 +15,14 @@ import {
 
 type Messages = typeof import("@zotlit/plugin-messages/messages.ts");
 
-/** The Fixture Attachment whose PDF embeds one highlight and seeds nothing. */
 const attachment = ATTACHMENTS.find(({ key }) => key === "EXTPDF25")!;
-/** Its vault-relative path: the Fixture declares it as a `vault`-rooted link. */
 const attachmentPath = attachment.path!;
 
-/**
- * What the embedded highlight covers and says, as
- * `packages/scripts/lib/fixture/assets/external-annotation/generate.ts` writes
- * the PDF.
- */
 const QUOTED_TEXT = "Another PDF reader highlighted this sentence.";
 const COMMENT = "Noted in another PDF reader.";
 
 const ATTACHMENT_ITEM = `Zotero.Items.getByLibraryAndKey(Zotero.Libraries.userLibraryID, ${JSON.stringify(attachment.key)})`;
 
-/** One Annotation as Zotero holds it: every field an edit or a delete moves. */
 interface HeldAnnotation {
   isExternal: boolean;
   version: number;
@@ -48,25 +37,6 @@ interface HeldAnnotation {
   tags: { tag: string; type?: number }[];
 }
 
-/**
- * Opens the External Annotation PDF in Zotero's reader, which imports its
- * embedded highlight, and walks the lock ZotLit puts on it:
- *
- * - the card quotes the imported text and shows the lock;
- * - on the card selected alone, "Edit quoted text", the comment field, colour
- *   and tags are dimmed, and a press gives the Lock Reason with no Allow
- *   editing;
- * - a press on the delete entry of the card menu gives the Lock Reason, and
- *   asks nothing;
- * - the Mark Popup dims colour, tags and delete with the Lock Reason as
- *   tooltip, and draws no Mark Handles;
- * - in an Annotation View moved to a pop-out window, the card shows the lock,
- *   its colour is dimmed, and a press gives the Lock Reason;
- * - Zotero keeps the Annotation unchanged.
- *
- * Every write refused here is a lock refusal only while the Attachment is
- * otherwise writable, so the caller seeds the Write Authorization first.
- */
 export async function verifyExternalAnnotationLock({
   vaultId,
   rdp,
@@ -78,10 +48,6 @@ export async function verifyExternalAnnotationLock({
 }): Promise<void> {
   await using cleanup = new AsyncDisposableStack();
 
-  // ── The import ────────────────────────────────────────────────────────────
-  // The Fixture seeds no Annotation on this Attachment and leaves its PDF
-  // unprocessed, so opening it in Zotero's reader imports the embedded
-  // highlight, as it does for a researcher who opens the PDF.
   expect(
     await rdp.json<number>(`${ATTACHMENT_ITEM}.getAnnotations().length`),
   ).toBe(0);
@@ -90,8 +56,6 @@ export async function verifyExternalAnnotationLock({
     return reader.tabID;
   })()`);
   cleanup.defer(async () => {
-    // Puts the Attachment back as the Fixture seeds it: no Annotation, and a
-    // PDF Zotero has not processed, so its next open imports again.
     await rdp.json(`(async () => {
       const attachment = ${ATTACHMENT_ITEM};
       for (const annotation of attachment.getAnnotations()) {
@@ -153,11 +117,8 @@ export async function verifyExternalAnnotationLock({
     },
   });
 
-  // ── The PDF and its card in Obsidian ──────────────────────────────────────
   await raiseWindow(vaultId);
   await openPdfWithAnnotationView(vaultId, { attachmentPath, cleanup });
-  // The lock is the only thing in the way: the Attachment is writable, so a
-  // press that says the Lock Reason says it for the lock alone.
   await obRunUntil(
     vaultId,
     async ({ zotlit }, { attachmentKey }) => {
@@ -176,10 +137,7 @@ export async function verifyExternalAnnotationLock({
   );
 
   const reason = m.annot_view_lock_external();
-  /** Selects the card alone, in whichever window its view stands. */
   const selectCardAlone = async () => {
-    // Setup inside a poll that retries until the card shows, not the press
-    // under test.
     await obRunUntil(
       vaultId,
       async ({ app }, { annotationKey }) => {
@@ -200,7 +158,6 @@ export async function verifyExternalAnnotationLock({
       { what: "the annotation card to be marked alone in the Annotation View" },
     );
   };
-  /** Whether the node that takes a verb's press is dimmed, or `absent`. */
   const dimmed = (node: string) =>
     obRun(
       vaultId,
@@ -221,8 +178,6 @@ export async function verifyExternalAnnotationLock({
       { annotationKey, nodeSelector: node },
     );
 
-  // The card quotes the text Zotero took from the page, and shows the lock
-  // with the Lock Reason as its name.
   await obRunUntil(
     vaultId,
     async ({ app }, { annotationKey }) => {
@@ -267,12 +222,10 @@ export async function verifyExternalAnnotationLock({
     lock: m.annot_view_lock_label({ reason }),
   });
 
-  // ── The card selected alone ───────────────────────────────────────────────
   await selectCardAlone();
 
   const buttonByLabel = (label: string) =>
     `[role=button][aria-label=${JSON.stringify(label)}]`;
-  /** Each verb the lock refuses on the card, by the node that takes its press. */
   const cardVerbs = {
     "Edit quoted text": buttonByLabel(m.annot_view_menu_edit_text()),
     comment: ".zt-annot-comment-field",
@@ -304,8 +257,6 @@ export async function verifyExternalAnnotationLock({
       },
       { annotationKey, node, verb },
     );
-    // The press says the Lock Reason, and offers nothing to press: a lock
-    // is not lifted from here.
     await obRunUntil(
       vaultId,
       async ({ page }, { reason }) => {
@@ -335,7 +286,6 @@ export async function verifyExternalAnnotationLock({
       `a press on ${verb} offers a button`,
     ).toBe(0);
   }
-  // No press opened an editor on the card!.
   expect(
     await obRun(
       vaultId,
@@ -354,8 +304,6 @@ export async function verifyExternalAnnotationLock({
     ),
   ).toBe(false);
 
-  // A press on the card menu's delete entry gives the Lock Reason, and asks
-  // nothing.
   await clearNotices(vaultId);
   await obRun(
     vaultId,
@@ -456,9 +404,6 @@ export async function verifyExternalAnnotationLock({
     { ready: (value) => value === 0, what: "the open menus to close" },
   );
 
-  // ── The Mark Popup ────────────────────────────────────────────────────────
-  // A fresh binding holds no selection, so the mark click below opens the
-  // popup on this mark.
   await reopenPdfView(vaultId, attachmentPath);
 
   await obRunUntil(
@@ -543,7 +488,6 @@ export async function verifyExternalAnnotationLock({
     tags: { dimmed: true, tooltip: reason },
     delete: { dimmed: true, tooltip: reason },
   });
-  // The popup stands on the selected mark, so its handles would stand too.
   expect(
     await obRun(
       vaultId,
@@ -557,9 +501,6 @@ export async function verifyExternalAnnotationLock({
       { attachmentPath },
     ),
   ).toBe(0);
-  // Each dimmed verb takes its press and runs nothing: it opens no menu, no
-  // tag section and no confirmation, and it shows no notice, since its
-  // tooltip already names the Lock Reason. The popup stays on the mark.
   for (const verb of ["color", "tags", "delete"]) {
     await clearNotices(vaultId);
     await obRun(
@@ -575,7 +516,6 @@ export async function verifyExternalAnnotationLock({
       },
       { verb },
     );
-    // The press and whatever it would open are done: the gesture settles.
     await settledGesture(vaultId, attachmentPath);
     expect(
       await obRun(
@@ -603,8 +543,6 @@ export async function verifyExternalAnnotationLock({
     });
   }
 
-  // ── The Annotation View in a pop-out window ───────────────────────────────
-  // The view keeps the Attachment it shows, and moves to a window of its own.
   expect(
     await obRun(
       vaultId,
@@ -738,6 +676,5 @@ export async function verifyExternalAnnotationLock({
     ),
   ).toEqual({ buttons: 0, menus: 0 });
 
-  // ── Zotero ────────────────────────────────────────────────────────────────
   expect(await readHeldAnnotation()).toEqual(imported);
 }

@@ -9,7 +9,6 @@ import type {
   ContractStringified,
   ContractType,
 } from "#contract/ir.ts";
-// Walks the `zt` contract types with ts-morph and records their serialized form as contract IR.
 import { regex } from "arkregex";
 import { Node } from "ts-morph";
 import type {
@@ -21,49 +20,27 @@ import type {
   Type,
 } from "ts-morph";
 
-/** ts-morph's in-memory path for the lib file declaring the `Temporal` namespace. */
 const TEMPORAL_LIB = "lib.esnext.temporal.d.ts";
 
-/**
- * Non-enumerable on every contract shape that defines it, so it never reaches
- * serialized output.
- *
- * @see src/lib/to-string.ts
- */
 const DROPPED_MEMBER = "toString";
 
-/** Namespaced doc tag naming the Liquid filter that passes a helper its arguments. */
 const FILTER_TAG = "ztFilter";
 
-/** Namespaced doc tag marking a helper the resolver is free to leave inert. Must be empty. */
 const INERT_TAG = "ztInert";
 
-/**
- * Interface name marking a type's index signature as item-fields, not a plain
- * open record. Exported so the driver's startup guard checks the same name
- * `extendsInterface` resolves against below.
- */
 export const TEMPLATE_ITEM_BASE_DATA = "TemplateItemBaseData";
 
-/**
- * Every filter of the Liquid vocabulary is snake_case.
- *
- * @see `packages/templates/src/liquid.ts` for the registered filters
- */
 const FILTER_NAME = /^[a-z][a-z0-9_]*$/;
 
 const FENCE = "```";
 
-/** An `@example` holds exactly one fenced block, so an emitter renders it as code without re-parsing prose. */
 const EXAMPLE_FENCE = regex(
   `^${FENCE}(?<lang>[a-z0-9-]*)\n(?<code>.*?)\n?${FENCE}$`,
   "s",
 );
 
-/** Held by a named type while its own members are still being walked, so a cycle back to it resolves to a ref. */
 const WALKING: ContractNamedType = { kind: "object", members: [] };
 
-/** A named type together with the declaration its doc comment and member types resolve against. */
 interface NamedType {
   name: string;
   declaration: Node;
@@ -74,17 +51,14 @@ export class ContractExtractor {
   readonly #types = new Map<string, ContractNamedType>();
   readonly #registered = new Map<string, string>();
 
-  /** @param srcDir Absolute path below which a declaration counts as part of the contract. */
   constructor(srcDir: string) {
     this.#srcDir = srcDir;
   }
 
-  /** Every named type reached so far, keyed by its TypeScript name. */
   get types(): Record<string, ContractNamedType> {
     return Object.fromEntries(this.#types);
   }
 
-  /** Record `declaration` as a contract root and return its {@link types} key. */
   addRoot(declaration: InterfaceDeclaration): string {
     return this.#register(declaration.getType(), {
       name: declaration.getName(),
@@ -92,11 +66,6 @@ export class ContractExtractor {
     }).name;
   }
 
-  /**
-   * A `$defs` key is the bare TypeScript name, so two same-named declarations —
-   * or two instantiations of one generic — would silently collapse into
-   * whichever arrived first. Fail instead, per ADR 0015.
-   */
   #register(type: Type, named: NamedType): ContractRef {
     const identity = type.getText();
     const registered = this.#registered.get(named.name);
@@ -145,8 +114,6 @@ export class ContractExtractor {
     return {
       name,
       description: jsDocOf(declaration),
-      // A member that can hold `undefined` disappears from JSON output, which
-      // is what an absent property means to a schema.
       optional: property.isOptional() || carriesUndefined(type),
       type: this.#memberType({
         name,
@@ -159,7 +126,6 @@ export class ContractExtractor {
     };
   }
 
-  /** A function-valued member serializes as a helper marker; every other member as its own value. */
   #memberType({
     name,
     type,
@@ -170,9 +136,7 @@ export class ContractExtractor {
     name: string;
     type: Type;
     location: Node;
-    /** The member's `@ztFilter`, which only a helper can carry. */
     filter: string | undefined;
-    /** The member's `@ztInert`, which only a helper can carry. */
     inert: true | undefined;
   }): ContractType {
     const options = type.isUnion() ? type.getUnionTypes() : [type];
@@ -245,8 +209,6 @@ export class ContractExtractor {
     const stringified = temporalOf(type);
     if (stringified) return stringified;
 
-    // A helper marker needs the member name, which only #memberType holds, so a
-    // function reached any deeper has no truthful serialized form.
     if (type.getCallSignatures().length > 0) {
       throw new Error(
         `A function is only a contract helper as a direct member: ${type.getText()}`,
@@ -258,7 +220,6 @@ export class ContractExtractor {
 
     if (type.isUnion()) {
       const options = this.#options(type, location);
-      // Dropping `undefined` can leave one option; that is no longer a union.
       return options.length === 1 ? options[0]! : { kind: "union", options };
     }
     if (type.isObject() || type.isIntersection()) {
@@ -271,7 +232,6 @@ export class ContractExtractor {
     throw new Error(`Unsupported contract type: ${type.getText()}`);
   }
 
-  /** `undefined` never survives JSON serialization. */
   #options(type: Type, location: Node): ContractType[] {
     const options = type
       .getUnionTypes()
@@ -295,7 +255,6 @@ export class ContractExtractor {
     };
   }
 
-  /** A type earns a named IR entry when it is declared inside this package; anonymous shapes inline. */
   #nameOf(type: Type): NamedType | undefined {
     const symbol = type.getAliasSymbol() ?? type.getSymbol();
     const name = symbol?.getName();
@@ -307,12 +266,6 @@ export class ContractExtractor {
   }
 }
 
-/**
- * A union alias written out as literal members reads back in declaration order,
- * each option carrying the doc comment written above it. The checker normalizes
- * union member order, so the declaration is the only faithful source for both.
- * Any other union shape returns `undefined` and extracts from the checker type.
- */
 function declaredLiteralOptions(
   declaration: Node,
 ): ContractLiteral[] | undefined {
@@ -328,8 +281,6 @@ function declaredLiteralOptions(
     if (!Node.isStringLiteral(literal) && !Node.isNumericLiteral(literal)) {
       return undefined;
     }
-    // The option's doc comment precedes its `|`, which owns that trivia — so
-    // read the raw text between the previous option and this one.
     const description = blockDocIn(text.slice(cursor, member.getStart()));
     cursor = member.getEnd();
     options.push({
@@ -343,7 +294,6 @@ function declaredLiteralOptions(
 
 const BLOCK_DOC = regex(`/\\*\\*(?<body>.*?)\\*/`, "gs");
 
-/** The last doc block in a slice of source text, unwrapped to its prose. */
 function blockDocIn(slice: string): string | undefined {
   const bodies = [...slice.matchAll(BLOCK_DOC)];
   const body = bodies.at(-1)?.groups?.body;
@@ -361,7 +311,6 @@ function isNullOption(option: ContractType): boolean {
   return option.kind === "primitive" && option.type === "null";
 }
 
-/** A nullable union reads best with `null` last. */
 function sortNullsLast(options: ContractType[]): ContractType[] {
   const nulls = options.filter(isNullOption);
   return [...options.filter((option) => !isNullOption(option)), ...nulls];
@@ -384,7 +333,6 @@ function carriesUndefined(type: Type): boolean {
   );
 }
 
-/** The block description and every tag come from this one doc comment, so they can never disagree. */
 function docOf(declaration: Node | undefined): JSDoc | undefined {
   if (!declaration || !Node.isJSDocable(declaration)) return undefined;
   return declaration.getJsDocs().at(-1);
@@ -399,13 +347,6 @@ function tagsOf(declaration: Node | undefined, name: string): JSDocTag[] {
   return tags.filter((tag) => tag.getTagName() === name);
 }
 
-/**
- * The trimmed content of a member's single occurrence of `tagName` (`""` when
- * the tag carries no comment), or `undefined` when the member declares no
- * such tag.
- *
- * @throws when the member declares the tag more than once.
- */
 function singleTagContent(
   declaration: Node | undefined,
   tagName: string,
@@ -419,12 +360,6 @@ function singleTagContent(
   return tags[0]!.getCommentText()?.trim() ?? "";
 }
 
-/**
- * The Liquid filter a helper member names with `@ztFilter`.
- *
- * @throws when the member declares the tag more than once, or the tag holds
- *   anything but one filter name.
- */
 function filterOf(
   declaration: Node | undefined,
   member: string,
@@ -439,11 +374,6 @@ function filterOf(
   return filter;
 }
 
-/**
- * Whether the member's `@ztInert` tag marks it a helper the resolver may leave inert.
- *
- * @throws when the member declares the tag more than once, or the tag holds any content.
- */
 function inertOf(
   declaration: Node | undefined,
   member: string,
@@ -458,11 +388,6 @@ function inertOf(
   return true;
 }
 
-/**
- * The member's `@example` blocks as code samples; `undefined` when it declares none.
- *
- * @throws when a tag holds anything but one fenced code block.
- */
 function examplesOf(
   declaration: Node | undefined,
   member: string,
@@ -472,8 +397,6 @@ function examplesOf(
   return tags.map((tag) => {
     const text = tag.getCommentText()?.trim() ?? "";
     const groups = EXAMPLE_FENCE.exec(text)?.groups;
-    // A lazy body still spans a closing and a reopening fence, so a second
-    // block reads as one block with fences inside it.
     if (!groups || groups.code.includes(FENCE)) {
       throw new Error(
         `@example on ${member} holds no single fenced code block: ${text}`,
@@ -483,7 +406,6 @@ function examplesOf(
   });
 }
 
-/** The doc comment on the index signature `type` carries, searched own-declaration first then up the `extends` chain. */
 function indexSignatureDoc(type: Type): string | undefined {
   for (const declaration of type.getSymbol()?.getDeclarations() ?? []) {
     if (!Node.isInterfaceDeclaration(declaration)) continue;
@@ -518,7 +440,6 @@ function temporalOf(type: Type): ContractStringified | undefined {
   return { kind: "stringified", type: `Temporal.${symbol.getName()}` };
 }
 
-/** Reads the written syntax rather than the checker's text, so optional parameters keep their `?`. */
 function renderSignature(signature: Signature): string {
   const declaration = signature.getDeclaration();
   if (!Node.isSignaturedDeclaration(declaration)) {

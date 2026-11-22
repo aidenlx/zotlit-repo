@@ -1,8 +1,4 @@
 #!/usr/bin/env node
-// The Node-free host's program holds no desktop file: no `desktop/` layer of
-// a package, no `@zotlit/obsidian-desktop`, no `@effect/platform-node`, no
-// Electron. tsconfig.mobile.json type-checks the host; this reads the files
-// tsc puts in that program.
 import { execFileSync } from "node:child_process";
 
 const DESKTOP = [

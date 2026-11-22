@@ -3,11 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import { notifyEventSchema } from "./notify.ts";
 
-/**
- * The reader events the Obsidian listener validates bodies against. The
- * variant discriminates on `event`, so a body is accepted only when its own
- * option accepts it.
- */
 describe("reader/inactive", () => {
   it("accepts a body carrying only the event name", () => {
     expect(v.parse(notifyEventSchema, { event: "reader/inactive" })).toEqual({

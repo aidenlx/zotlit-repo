@@ -1,15 +1,3 @@
-// The landing page's five workflow clips: find a paper, read and highlight,
-// write the literature note, cite as you draft, and send the chapter to Word.
-// Each `it` sets up its own scene on the docs Vault Case, so one case can be
-// recorded again alone with `-t '<case>: '`, and records one action that starts
-// on a calm frame and ends on its result. The window's content area is
-// 1024 × 640 CSS px, 16:10, so a clip shown about 720 px wide keeps its text
-// readable. With `DOCS_WALK_RECORD=1 DOCS_WALK_CAPTURE=1`, each case writes
-// `<case>.mp4` and the poster `<case>.webp` (1600 × 1000) to
-// `apps/docs/public/img/landing/`; `word` writes only the poster, the
-// exported document's first page. Run it with
-// `pnpm --filter @zotlit/e2e docs-walk src/docs-walks/landing.walk.ts`.
-
 import { obRun } from "@e2e/obsidian-cli.ts";
 import type { PagePdfReaderView } from "@e2e/page-notes-types.ts";
 import { raiseWindow } from "@e2e/reader-gestures.ts";
@@ -45,28 +33,19 @@ const reachable = await isObsidianReachable(root);
 const m = await import("@zotlit/plugin-messages/messages.ts");
 
 const SLUG = "landing";
-/** The window's content area in CSS px: 16:10. */
 const WINDOW = { width: 1024, height: 640 };
-/** The poster's size in px. */
 const POSTER = { width: 1600, height: 1000 };
 const IMAGES = join(root, "apps", "docs", "public", "img", "landing");
 const CAPTURES = join(root, ".scratch", "docs-walks", SLUG);
 
-/** Sandve et al. 2013 in the docs Vault Case: a PDF in Zotero storage, five annotations. */
 const SANDVE = {
   key: "DCSNDART",
   attachmentKey: "DCSNDPDF",
   citekey: "sandve2013",
   title: "Ten Simple Rules for Reproducible Computational Research",
   annotations: 5,
-  /** Its five highlights in Zotero, before the clip adds one. */
   annotationKeys: ["SV4QMR7A", "SV8KTW3C", "SV2HXN6E", "SV9PLD5G", "SV6RZB2J"],
 };
-/**
- * The sentence the reader highlights in Sandve et al. 2013: on page 1, with
- * no highlight in the Fixture, as its text layer holds it, and how far past
- * page width the PDF zooms so it reads at the clip's size.
- */
 const SENTENCE_READ = {
   page: 1,
   from: "We further note",
@@ -74,7 +53,6 @@ const SENTENCE_READ = {
   words: "just as much about the habits",
   zoom: 1.8,
 };
-/** Wilson et al. 2014: a PDF not yet read, in Reproducibility. */
 const WILSON = {
   key: "DCWLSART",
   title: "Best Practices for Scientific Computing",
@@ -100,18 +78,12 @@ type DraftLeaf = WorkspaceLeaf & {
   };
 };
 
-/** One step's calls into the apps can wait on Zotero: up to a minute. */
 const STEP = { timeoutMs: 60000 };
-/** How long a clip holds its opening frame before the first action, in ms. */
 const OPENING = 900;
 
 describe.skipIf(!reachable)("Landing page clips", () => {
   let walk: DocsWalk;
 
-  /**
-   * Save the window as the poster `<name>.webp`, exactly 1600 × 1000, without
-   * notices. Does nothing unless the run captures.
-   */
   async function poster(name: string): Promise<void> {
     if (!captureRequested()) return;
     await walk.capture(name);
@@ -129,17 +101,11 @@ describe.skipIf(!reachable)("Landing page clips", () => {
     ]);
   }
 
-  /**
-   * Close every other tab and both sidebars, and show the Zotero library tab
-   * alone on the collection `node`, or on My Library for `null`, with no
-   * Reading State facet on.
-   */
   async function libraryAlone(node: string | null): Promise<void> {
     await obRun(
       walk.vaultId,
       async ({ app, page }, { node }) => {
         page.closePopovers(document);
-        // The library tab opens before the other tabs close.
         let leaf = app.workspace.getLeavesOfType("zotlit-library")[0] as
           | LibraryLeaf
           | undefined;
@@ -149,7 +115,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
           leaf = opened as LibraryLeaf;
         }
         const keep = leaf;
-        // A leaf closed while the workspace walks its leaves skips the next one.
         const others: WorkspaceLeaf[] = [];
         app.workspace.iterateRootLeaves((l) => {
           if (l !== keep) others.push(l);
@@ -166,8 +131,7 @@ describe.skipIf(!reachable)("Landing page clips", () => {
             "tree node",
             () =>
               node === null
-                ? // The first Library, under Recent.
-                  el.querySelectorAll<HTMLElement>(
+                ? el.querySelectorAll<HTMLElement>(
                     '[data-library-node][aria-level="1"]',
                   )[1]
                 : [
@@ -209,8 +173,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
       collection: SLUG,
       vaultCase: "docs",
       window: WINDOW,
-      // The landing clips keep the whole window, their short still start, and
-      // their encode quality, with no pads.
       clip: {
         camera: false,
         opening: 0.3,
@@ -219,7 +181,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
         h264Crf: 20,
       },
     });
-    // `setSize` sets the outer size; the clip needs the content area itself.
     const size = await obRun(
       walk.vaultId,
       async (_, size) => {
@@ -247,7 +208,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
       walk.vaultId,
       async ({ zotlit, page }, { apa }) => {
         const s = zotlit.services;
-        // The chapter's style is APA, as the journal asks.
         await s.bridge.runPromise(
           s.settings.update((current) => ({
             "note.default-profile": {
@@ -261,23 +221,18 @@ describe.skipIf(!reachable)("Landing page clips", () => {
         );
         await s.bridge.runPromise(s.settings.flush);
         await s.bridge.runPromise(s.attachmentResolver.indexed);
-        // The PDF tab's path runs through the Fixture's folders; notices and
-        // the status bar are not part of any clip.
         const style = document.head.createEl("style");
         style.textContent = `.workspace-leaf-content[data-type="${page.reader.viewType}"] .view-header-title-parent{display:none} .notice-container{visibility:hidden} .status-bar{display:none}`;
       },
       { apa: APA },
       STEP,
     );
-    // The engine comes with the Resource Pack, which the walk's vault holds.
     expect(
       await obRun(walk.vaultId, async ({ zotlit }) => {
         const h = zotlit.services.pandocEngine;
         return (await h.runPromise(h.binary.check)).kind;
       }),
     ).toBe("ready");
-    // Obsidian's PDF view reopens a PDF where it last was; the clips open
-    // Sandve et al. 2013 at page 1, as on a first read.
     const pdfPath = await walk.zotero.json<string>(
       `Zotero.Items.getByLibraryAndKey(1,${JSON.stringify(SANDVE.attachmentKey)}).getFilePath()`,
     );
@@ -403,7 +358,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
           );
           await leaf.view.card.settled;
           if (pointer) {
-            // The pointer leaves the card and the list for the tab's corner.
             const b = el.getBoundingClientRect();
             await pointer.park(b.right - 14, b.bottom - 20);
           }
@@ -437,8 +391,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
   it("read: open Sandve et al. 2013, select a sentence and pick a colour; the sentence highlighted and its new card beside the PDF", async () => {
     await libraryAlone(COLLECTION);
     await raiseWindow(walk.vaultId);
-    // The reader opens the PDF from its card: the PDF with its highlights,
-    // and the paper's highlights and comments in the sidebar beside it.
     await obRun(
       walk.vaultId,
       async ({ app, page }, { key, attachmentKey, title }) => {
@@ -512,8 +464,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
       },
       STEP,
     );
-    // The reader zooms in on the first page, so the sentence they are about
-    // to highlight reads at the clip's size.
     await obRun(
       walk.vaultId,
       async ({ app, page }, { from, pageNumber, zoom }) => {
@@ -532,7 +482,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
             ),
           10000,
         );
-        /** The text node where the sentence starts, in the page's current text layer. */
         const startOf = () => {
           const layer = pageEl.querySelector<HTMLElement>(".textLayer");
           const at = layer?.textContent.indexOf(from) ?? -1;
@@ -546,9 +495,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
           }
           return null;
         };
-        // The sentence's column comes whole into the tab, its first line a
-        // third of the way down. The PDF view redraws its pages after the
-        // zoom, so the walk scrolls until the sentence stays in place.
         let placed = false;
         for (let tries = 0; tries < 20 && !placed; tries++) {
           await new Promise((r) => setTimeout(r, 400));
@@ -585,7 +531,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
             await pointer.park(view.right - 40, view.top + view.height * 0.7);
             await new Promise((r) => setTimeout(r, opening));
           }
-          // The reader drags across a sentence that has no highlight yet.
           const layer = pdf.view.containerEl.querySelector<HTMLElement>(
             `.page[data-page-number="${pageNumber}"] .textLayer`,
           )!;
@@ -599,8 +544,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
             all += t.data;
             return at;
           });
-          // The start lies in the node that holds its first character, the
-          // end in the node that holds its last.
           const at = (k: number, end: boolean): [Text, number] => {
             const x = nodes.findIndex((t, n) =>
               end
@@ -638,7 +581,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
             5000,
           );
           await new Promise((r) => setTimeout(r, pointer ? 700 : 0));
-          // Then picks green, or yellow when the popup offers no green.
           const swatch = await page.stands(
             popup.querySelector<HTMLElement>('[data-zt-verb="color-3"]') ??
               popup.querySelector<HTMLElement>('[data-zt-verb="color-1"]'),
@@ -673,7 +615,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
             10000,
           );
           getSelection()!.removeAllRanges();
-          // The popup of the new highlight closes, so the highlight shows whole.
           await new Promise((r) => setTimeout(r, pointer ? 500 : 0));
           await page.trusted(window).key("Escape");
           await page.until(
@@ -682,14 +623,12 @@ describe.skipIf(!reachable)("Landing page clips", () => {
               !document.querySelector(".zt-pdf-mark-popup")?.checkVisibility(),
             5000,
           );
-          // The new card shows in the list beside the PDF.
           card.scrollIntoView({
             block: "center",
             behavior: pointer ? "smooth" : "instant",
           });
           await new Promise((r) => setTimeout(r, pointer ? 900 : 100));
           if (pointer) {
-            // The pointer rests in the tab's margin, off the sentence.
             await pointer.park(view.right - 14, view.bottom - 24);
           }
           const painted = mark.matches("[fill],[stroke]")
@@ -729,7 +668,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
     expect(made.text).toContain(SENTENCE_READ.words);
     expect(made.cardShown).toBe(true);
     await poster("read");
-    // The library loses the new highlight again, as the Fixture had it.
     await walk.zotero.json<boolean>(
       `(async()=>{await Zotero.Items.getByLibraryAndKey(1,${JSON.stringify(made.key)}).eraseTx();return true;})()`,
     );
@@ -740,7 +678,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
     await obRun(
       walk.vaultId,
       async ({ app, page }, { key, note, title }) => {
-        // No note from an earlier attempt: the clip writes it new.
         const old = app.vault.getFileByPath(note);
         if (old) await app.vault.delete(old);
         const leaf = app.workspace.getLeavesOfType(
@@ -804,7 +741,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
           );
           const noteLeaf = app.workspace.getMostRecentLeaf()!;
           const content = (noteLeaf.view as MarkdownView).contentEl;
-          // The note's own Annotations section shows the highlights.
           await page.until(
             "the highlights in the note",
             () =>
@@ -813,12 +749,9 @@ describe.skipIf(!reachable)("Landing page clips", () => {
               ).length > 0,
             20000,
           );
-          // The sidebar would crowd the note: the note shows the highlights.
           app.workspace.rightSplit.collapse();
-          // The reader reads: the note shows without its Markdown.
           (noteLeaf.view as MarkdownView).editor.blur();
           await new Promise((r) => setTimeout(r, 900));
-          // The reader scrolls down to the highlights.
           const scroller = content.querySelector<HTMLElement>(".cm-scroller");
           const heading = [
             ...content.querySelectorAll<HTMLElement>(".HyperMD-header-2"),
@@ -871,7 +804,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
       ) => {
         page.closePopovers(document);
         const file = app.vault.getFileByPath(draftPath)!;
-        // The draft as it was before any earlier attempt of this clip.
         await app.vault.process(file, (text) => {
           const from = text.indexOf(section);
           const to = text.indexOf(before, from);
@@ -879,10 +811,8 @@ describe.skipIf(!reachable)("Landing page clips", () => {
             ? text
             : text.slice(0, from) + text.slice(to);
         });
-        // The draft opens before the other tabs close.
         const leaf = app.workspace.getLeaf("tab") as DraftLeaf;
         await leaf.openFile(file);
-        // A leaf closed while the workspace walks its leaves skips the next one.
         const others: WorkspaceLeaf[] = [];
         app.workspace.iterateRootLeaves((l) => {
           if (l !== leaf) others.push(l);
@@ -891,7 +821,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
         app.workspace.setActiveLeaf(leaf, { focus: true });
         app.workspace.leftSplit.collapse();
         app.workspace.rightSplit.collapse();
-        // The reader has written a new section, up to where the citation goes.
         const editor = leaf.view.editor;
         const line = editor
           .getValue()
@@ -902,7 +831,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
         editor.setCursor({ line: line + 2, ch: sentence.length });
         editor.focus();
         await new Promise((r) => setTimeout(r, 300));
-        // The new section sits mid-tab, with room for the list under it.
         editor.scrollIntoView(
           { from: { line, ch: 0 }, to: { line: line + 2, ch: 0 } },
           true,
@@ -932,7 +860,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
           const cm = editor.cm;
           const at = cm.coordsAtPos(cm.state.selection.main.head)!;
           if (pointer) {
-            // The pointer rests above the line, off the text and the list.
             await pointer.park(at.right + 120, at.top - 60);
             await new Promise((r) => setTimeout(r, opening));
           }
@@ -966,8 +893,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
             () => editor.getValue().includes("[@sandve2013]"),
             5000,
           );
-          // The reader clicks on the empty line under the paragraph: the
-          // citation shows formatted.
           const line =
             editor
               .getValue()
@@ -990,7 +915,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
             20000,
           );
           await new Promise((r) => setTimeout(r, pointer ? 600 : 0));
-          // Then points at it: the paper's full reference.
           const b = cite.getClientRects()[0]!;
           const last = [...cite.getClientRects()].at(-1)!;
           await pointer?.park(last.right - 3, last.bottom - 3);
@@ -1044,8 +968,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
       (app.vault.adapter as FileSystemAdapter).getBasePath(),
     );
     await watchNotices(walk.vaultId);
-    // The chapter, without the notes meant only for its writer, exported as
-    // the reader does: Export note with citations, then Export.
     const notices = await obRun(
       walk.vaultId,
       async (
@@ -1054,8 +976,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
       ) => {
         page.closePopovers(document);
         const file = app.vault.getFileByPath(draftPath)!;
-        // The draft as Lesson 3 leaves it, with its section citing Sandve et
-        // al. 2013 at page 2, less the notes to self.
         await app.vault.process(file, (text) => {
           const from = text.indexOf(section);
           const at = text.indexOf(notes);
@@ -1066,14 +986,12 @@ describe.skipIf(!reachable)("Landing page clips", () => {
         });
         const leaf = app.workspace.getLeaf("tab");
         await leaf.openFile(file);
-        // A leaf closed while the workspace walks its leaves skips the next one.
         const others: WorkspaceLeaf[] = [];
         app.workspace.iterateRootLeaves((l) => {
           if (l !== leaf) others.push(l);
         });
         for (const l of others) l.detach();
         app.workspace.setActiveLeaf(leaf, { focus: true });
-        // Export note with citations.
         app.commands.executeCommandById(command);
         const dialog = await page.until(
           "export dialog",
@@ -1121,9 +1039,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
     expect(text).toContain("(Sandve et al., 2013, p. 2)");
     expect(text).toContain("\nReferences\n");
     if (!captureRequested()) return;
-    // Obsidian opens no Word file and no Word app is at hand: the poster is
-    // the document's first page as macOS Quick Look draws it, on Word's grey
-    // page canvas.
     await mkdir(CAPTURES, { recursive: true });
     const page = join(CAPTURES, `${EXPORTED_NAME}.png`);
     await rm(page, { force: true });
@@ -1141,11 +1056,6 @@ describe.skipIf(!reachable)("Landing page clips", () => {
   });
 });
 
-/**
- * Lay the first page `page` on a grey canvas, 1600 × 1000: the page's top
- * edge shows, and its text from the first heading to the end of the
- * References fills the frame's height.
- */
 async function wordPoster(page: string, out: string): Promise<void> {
   const { stdout } = await execFileAsync("ffprobe", [
     "-v",
@@ -1159,10 +1069,7 @@ async function wordPoster(page: string, out: string): Promise<void> {
     page,
   ]);
   const [w, h] = stdout.trim().split(",").map(Number) as [number, number];
-  // The page down to where its text ends: the fraction of the page's height
-  // the text reaches, measured on this chapter.
   const shown = Math.round(h * WORD_TEXT_END);
-  // The canvas: 16:10, with the page's top edge 5 % under its top.
   const top = Math.round(shown * 0.05);
   const height = shown + top;
   const width = Math.round((height * 16) / 10);
@@ -1181,5 +1088,4 @@ async function wordPoster(page: string, out: string): Promise<void> {
   ]);
 }
 
-/** Where the chapter's References end on its first page, as a fraction of the page's height. */
 const WORD_TEXT_END = 0.5;

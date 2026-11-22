@@ -3,16 +3,6 @@ import type {
   FilterSection,
   QueryFileDataset,
 } from "#core/query-view/query-file.ts";
-// The Query View's Filter: the shared Match editor with the conditions of the
-// view's Query Dataset, once for the filters for all views and once for the
-// view's own. `FilterEditor` holds both sections and reads nothing from a
-// host, so the toolbar popover here and the sidebar's "Filter..." mount the
-// same part.
-//
-// The popover is a toolbar popover, which stands at the menu layer (apps/obsidian
-// ADR 0044).
-// Obsidian's typing suggestions draw under that layer, so the value fields
-// take the browser's own suggestion list instead.
 import { useAtomValue } from "@effect/atom-react";
 import { Option } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -74,29 +64,21 @@ export type { FilterValues };
 const NO_VALUES: FilterValues = { tags: [], collections: [], libraries: [] };
 const noValuesAtom = Atom.make(AsyncResult.success(NO_VALUES));
 
-/** The issue of one condition, as the Query View last found it. */
 export type FilterIssue = ConditionIssue | null;
 
-/** How a condition tests a vault property of each type. */
 const VAULT_FIELD_TYPES: Record<VaultPropertyType, FilterField["type"]> = {
   text: "text",
   multitext: "list",
   number: "number",
   checkbox: "boolean",
-  // A date, or a date and time, compares as the text the frontmatter holds.
   date: "text",
   datetime: "text",
   tags: "list",
   aliases: "list",
 };
 
-/** The kind of the condition on the vault property at `path`. */
 const VAULT_KIND_PREFIX = "custom:";
 
-/**
- * The conditions on the vault properties `names`. Each reads its property by
- * bracket access, `vault["reading-status"]`, which a name with a hyphen needs.
- */
 export function vaultFilterFields(
   names: readonly string[],
   notes: Pick<LiteratureNotes, "propertyType">,
@@ -117,17 +99,8 @@ function samePath(a: readonly number[], b: readonly number[]): boolean {
   return a.length === b.length && a.every((value, at) => value === b[at]);
 }
 
-/**
- * The Match editor as the Bases filter menu draws it: the form field
- * background for a condition's fields, the
- * table border on a nested group, a borderless conjunction select, and text
- * actions in the toolbar button's `.text-icon-button` look. The Template
- * Workbench draws the Match editor in its own look.
- */
 const filterRows = matchRows({ look: "filter" });
 const filterLook: MatchLook = {
-  // A condition's actions are bare `<button>`s in the popover, rolled
-  // back as its action rows are (see `toolbar-button.css`).
   button: cn("zt-query-popover-action", toolbarButtonLook),
   fieldset: cn(
     "zt:m-0 zt:flex zt:min-w-0 zt:flex-col zt:border-0 zt:p-0 zt:text-sm",
@@ -138,8 +111,6 @@ const filterLook: MatchLook = {
     "zt:data-[state=nested]:rounded-md zt:data-[state=nested]:border-(length:--table-border-width) zt:data-[state=nested]:border-(--table-border-color) zt:data-[state=nested]:bg-(--background-primary-alt) zt:data-[state=nested]:p-(--size-2-3)",
     filterRows.group(),
   ),
-  // The header holds the conjunction, a select drawn without its box, as
-  // Bases draws it; the footer holds the text actions.
   actions: cn(
     "zt:flex zt:flex-wrap zt:items-center",
     "zt:data-[state=header]:justify-between zt:data-[state=header]:gap-(--size-2-1) zt:data-[state=header]:pb-(--size-2-1)",
@@ -155,16 +126,9 @@ const filterLook: MatchLook = {
     "zt:flex zt:min-w-0 zt:items-start zt:overflow-hidden zt:rounded-(--metadata-property-radius) zt:bg-input zt:[corner-shape:var(--metadata-property-corner-shape)]",
     "zt:shadow-[0_0_0_var(--border-width)_var(--background-modifier-border-hover)] zt:focus-within:shadow-(--metadata-property-box-shadow-focus) zt:data-[state=error]:shadow-[0_0_0_var(--border-width)_var(--background-modifier-error)] zt:[&:has([aria-invalid=true])]:shadow-[0_0_0_var(--border-width)_var(--background-modifier-error)]",
     "zt:[--dropdown-background-hover:var(--background-modifier-form-field-hover)] zt:[--dropdown-background:var(--background-modifier-form-field)] zt:[--input-border-width-focus:0px] zt:[--input-border-width:0px] zt:[--input-radius:0px] zt:[--input-shadow:none]",
-    // The native selects, the operator and a short value list, fit their
-    // text.
     "zt:[&_[data-part=wrapper]>select]:[field-sizing:content] zt:[&_[data-part=wrapper]>select]:w-full",
     "zt:[&>[data-part=actions]]:h-(--input-height) zt:[&>[data-part=actions]]:shrink-0 zt:[&>[data-part=actions]]:flex-nowrap zt:[&>[data-part=actions]]:px-(--size-2-1)",
   ),
-  // The row's layout is the Workbench's: the property select keeps
-  // its name, and the value yields or takes a line of its own. The
-  // property select carries the icon of the property's type, as the
-  // Bases property picker does, and is capped as Bases caps it; the
-  // native operator after it stands behind a rule.
   predicate: cn(
     matchPredicate,
     "zt:[&>[role=combobox]~[data-part=wrapper]]:border-s-(length:--border-width)",
@@ -177,35 +141,21 @@ const filterLook: MatchLook = {
 };
 
 export interface FilterEditorProps {
-  /** The runner of the view the filters belong to, for the host's Effects. */
   run: ViewRun;
-  /** The dataset of the view whose filters show. */
   dataset: QueryFileDataset;
-  /** The dataset the filters for all views are written for. */
   allViewsDataset: QueryFileDataset;
   allViews: MatchFilter | undefined;
   thisView: MatchFilter | undefined;
   values: FilterValues;
   issue: FilterIssue;
-  /** The Properties of the view, whose Display Names name the conditions. */
   properties: ViewProperties | null;
-  /** The sections that show; both by default. */
   sections?: readonly FilterSection[];
-  /** The conditions on vault properties, which a section of Items offers. */
   vaultFields?: readonly FilterField[];
-  /** The type of the vault property `name`, for the icon of its condition. */
   vaultType?: (name: string) => VaultPropertyType;
-  /**
-   * What an expression condition on a dataset can read. By default it reads
-   * the dataset's fields, labelled by `properties`, and no Formula, Query
-   * Context or vault property.
-   */
   expressions?: (dataset: QueryFileDataset) => ExpressionVocabulary;
-  /** Save one section's filters; answers whether they were kept. */
   onChange: (section: FilterSection, next: MatchTree | undefined) => boolean;
 }
 
-/** The two sections of a view's filters: for all views, and for this view. */
 export function FilterEditor({
   run,
   dataset,
@@ -226,16 +176,12 @@ export function FilterEditor({
     const created = createTemplateWorkbenchHost(app, {
       run,
       render: refuseRender("The Query View filter renders no template."),
-      // The Filter offers its own values and tests no Item.
       matchData: NO_MATCH_DATA,
       insertTarget: () => null,
     });
-    // The popover stands over Obsidian's suggestion popups.
     return { ...created, inputSuggestions: undefined };
   }, [app, run]);
   useEffect(() => () => host[Symbol.dispose](), [host]);
-  // Per section, and kept while the issue stays, so a row underlines again
-  // only when the issue changes.
   const faultsOf = useMemo(() => {
     const issueAt = (section: FilterSection, path: readonly number[]) =>
       issue && issue.section === section && samePath(issue.path, path)
@@ -251,8 +197,6 @@ export function FilterEditor({
       values,
       issue: (_, path) => faultsOf.issueAt(section, path)?.message ?? null,
       fault: faultsOf[section],
-      // A condition shows the Display Name of its field in the view's
-      // Properties, and the icon the view's property list shows.
       label: (field) =>
         field.label ??
         properties?.entry(field.path).displayName ??
@@ -304,9 +248,6 @@ export function FilterEditor({
               section={section}
               heading={heading}
               count={conditionCount(value)}
-              // The filters for all views start folded while they hold none,
-              // as in Bases. A section with conditions shows them, unlike
-              // Bases, so every filter that narrows the results is in sight.
               initiallyOpen={section === "view" || value !== undefined}
             >
               {body(section, value)}
@@ -326,11 +267,6 @@ export function FilterEditor({
   );
 }
 
-/**
- * One section of the Filter popover, "All views" or "This view": a heading
- * that folds the section, as Bases folds them, and the count of its
- * conditions. A folded section keeps its editor mounted.
- */
 function FoldSection({
   section,
   heading,
@@ -378,7 +314,6 @@ function FoldSection({
   );
 }
 
-/** How many conditions a filter holds, groups not counted. */
 function conditionCount(tree: MatchFilter | undefined): number {
   return tree === undefined
     ? 0
@@ -388,7 +323,6 @@ function conditionCount(tree: MatchFilter | undefined): number {
       });
 }
 
-/** The toolbar's Filter control: a button and the popover it opens. */
 export function FilterButton({ view }: { view: QueryView }) {
   const file = useQueryViewState(view, (s) => s.file);
   const shown = useQueryViewState(view, (s) => s.view);
@@ -399,7 +333,6 @@ export function FilterButton({ view }: { view: QueryView }) {
   const { literatureNotes } = view.tableDeps;
   const names = useVaultPropertyNames(literatureNotes);
   const properties = useViewProperties(view, names);
-  // A change of a property's type changes no name, so it is read apart.
   const vaultVersion = useVaultVersion(literatureNotes);
   const vaultFields = useMemo(
     () => vaultFilterFields(names, literatureNotes, properties),
@@ -407,7 +340,6 @@ export function FilterButton({ view }: { view: QueryView }) {
     [names, literatureNotes, properties, vaultVersion],
   );
   const [open, setOpen] = useState(false);
-  // Read while the popover is open; each opening after a pause reads again.
   const read = useAtomValue(open ? filterValuesAtom : noValuesAtom);
   const values = Option.getOrElse(AsyncResult.value(read), () => NO_VALUES);
   const expressions = useFilterExpressions(view, properties, {

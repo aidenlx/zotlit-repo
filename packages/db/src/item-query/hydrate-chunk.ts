@@ -29,21 +29,10 @@ import {
 } from "#drizzle/schema.ts";
 import { buildTable } from "#queries/_base-fields.ts";
 
-/** The Items one hydrate statement reads at most. */
 export const HYDRATE_CHUNK_SIZE = 250;
 
-/**
- * The fields of the source: built-in fields, custom fields, and Zotero's
- * base-field mapping. Read it once for each query with
- * {@link readFieldVocabulary}.
- */
 export interface FieldVocabulary {
-  /** Exact source names of the custom fields (`fieldsCombined.custom = 1`). */
   readonly customFieldNames: readonly string[];
-  /**
-   * Every field ID that stores a value of one built-in field: the field itself
-   * and each type-specific field that aliases it. Empty for an unknown name.
-   */
   readonly fieldIDsOf: (name: string) => readonly number[];
   /** @internal The base-field table of one built-in field name. */
   readonly tableOf: (name: string) => BaseFieldTable<string>;
@@ -53,62 +42,31 @@ export interface FieldVocabulary {
   readonly customID: ReadonlyMap<string, number>;
 }
 
-/** The field values a query needs, by name. */
 export interface HydrateFields {
-  /**
-   * Built-in field names. A base field resolves through the type-specific field
-   * of each Item's type (`publicationTitle` reads `bookTitle` of a book section);
-   * when an Item stores both, the type-specific field wins.
-   */
   readonly builtIn: readonly string[];
-  /** Exact source names of custom fields. */
   readonly custom: readonly string[];
 }
 
-/** A relation of an Item that the hydrate reader can load. */
 export type HydrateRelation = "creators" | "tags" | "collections";
 
-/** One `itemCreators` row of an Item, with its creator and creator type. */
 export interface HydratedCreator {
-  /** Empty for a one-field (institutional) name. */
   readonly firstName: string;
-  /** The complete name of a one-field creator. */
   readonly lastName: string;
-  /** Raw `creators.fieldMode`; resolve it with `creatorFieldModeToName`. */
   readonly fieldMode: CreatorFieldMode;
-  /** Zotero creator type: `"author"`, `"editor"`, … */
   readonly creatorType: string;
-  /**
-   * The creator type is the primary creator type of the item type: `author`
-   * for a journal article, `director` for a film, `programmer` for software.
-   */
   readonly primary: boolean;
 }
 
-/** One `itemTags` row of an Item. */
 export interface HydratedTag {
   readonly name: string;
-  /** Raw `itemTags.type`; resolve it with `tagTypeToName`. */
   readonly type: TagType;
 }
 
-/**
- * The loaded values of one Item. A field with no value has no entry. A
- * relation is present when the request named it.
- */
 export interface HydratedItem {
-  /** Values by requested built-in name, as strings. */
   readonly fields: ReadonlyMap<string, string>;
-  /** Values by custom field name, as strings. */
   readonly custom: ReadonlyMap<string, string>;
-  /** One element for each `itemCreators` row, in Zotero's creator order. */
   readonly creators?: readonly HydratedCreator[];
-  /** One element for each `itemTags` row, in no defined order. */
   readonly tags?: readonly HydratedTag[];
-  /**
-   * The root-first name path of each live Collection the Item is filed in
-   * directly, in no defined order. See {@link readCollectionPaths}.
-   */
   readonly collections?: readonly (readonly string[])[];
 }
 
@@ -143,10 +101,6 @@ const baseFieldMappingsStatement = defineStatement<Record<string, never>>(
     ),
 );
 
-/**
- * Read the field vocabulary of the source: its custom fields and the base-field
- * mapping that resolves built-in field names for each item type.
- */
 export function readFieldVocabulary(): Effect.Effect<
   FieldVocabulary,
   ItemQueryReaderError,
@@ -159,10 +113,6 @@ export function readFieldVocabulary(): Effect.Effect<
       const builtIn = fields.filter((row) => row.custom === 0);
       const custom = fields.filter((row) => row.custom !== 0);
       const tables = new Map<string, BaseFieldTable<string>>();
-      /**
-       * The table of one built-in field, from the mapping rows of that field
-       * alone: its field IDs are the field and the fields that alias it.
-       */
       const tableOf = (name: string) => {
         let table = tables.get(name);
         if (!table) {
@@ -194,7 +144,6 @@ export function readFieldVocabulary(): Effect.Effect<
 
 const ID_SLOTS = idSlots(HYDRATE_CHUNK_SIZE);
 
-/** The values of one Item while the reader loads them. */
 interface LoadingItem {
   fields: Map<string, string>;
   custom: Map<string, string>;
@@ -211,9 +160,6 @@ const fieldValuesStatement = defineStatement<
       itemID: itemData.itemID,
       itemTypeID: items.itemTypeID,
       fieldID: itemData.fieldID,
-      // SQLite INTEGER has 64 bits; node:sqlite otherwise converts it to a
-      // Number before hydration can preserve it as text. REAL keeps the
-      // existing JavaScript string form (for example, 1.0 becomes "1").
       value: sql<
         string | number | null
       >`case typeof(${itemDataValues.value}) when 'integer' then cast(${itemDataValues.value} as text) else ${itemDataValues.value} end`,
@@ -299,23 +245,11 @@ const membershipsStatement = defineStatement<Record<IdSlot, number | null>>(
     ),
 );
 
-/**
- * Load the field values and relations of at most {@link HYDRATE_CHUNK_SIZE}
- * Items, restricted to the fields and relations the query needs. Every
- * requested Item has an entry. A value is a string whether SQLite stores it as
- * text or as a number. A requested relation that an Item lacks is an empty
- * list.
- */
 export function readHydrateChunk(chunk: {
   vocabulary: FieldVocabulary;
   itemIDs: readonly number[];
   fields: HydrateFields;
-  /** The relations to load. Each one runs one statement for the chunk. */
   relations?: readonly HydrateRelation[];
-  /**
-   * The Collection paths of the Library, from {@link readCollectionPaths}.
-   * Required when `relations` names `"collections"`.
-   */
   collectionPaths?: CollectionPaths;
 }): Effect.Effect<
   ReadonlyMap<number, HydratedItem>,
@@ -368,8 +302,6 @@ export function readHydrateChunk(chunk: {
           if (custom !== undefined) item.custom.set(custom, value);
           for (const [name, table] of tables) {
             if (table.resolve(row.itemTypeID, row.fieldID) !== name) continue;
-            // The type-specific field of the item type wins over a stored value
-            // of the base field itself.
             const isOwnField = vocabulary.builtInID.get(name) === row.fieldID;
             if (isOwnField && item.fields.has(name)) continue;
             item.fields.set(name, value);

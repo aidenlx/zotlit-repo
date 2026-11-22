@@ -1,20 +1,9 @@
-// Where a pane's render and include completion reads its partial names.
-
 import type { ResolveStart, SuggestionConfig } from "#core/language/index.ts";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import type { WorkbenchHost } from "./host.tsx";
 
-/**
- * The partial half of one pane's suggestion config.
- *
- * A host that registers partials owns the list: the vault's names, whether or
- * not this draft calls any of them, ending with the entry that creates one.
- * Where the host registers none, the draft's own dependency scan answers
- * instead, naming the partials its manifest bundles.
- * @param host.start Starts the create flow as the pane's command.
- */
 export function partialSuggestions(
   dependencies: readonly string[],
   {

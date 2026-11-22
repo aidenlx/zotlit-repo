@@ -18,7 +18,6 @@ function note(path: string, mtime: number): TFile {
   return file;
 }
 
-/** The parse worker's answer, scanned in process. */
 const scanned = (request: ParseRequest) =>
   Effect.succeed({ ...request, record: scanNote(request.text) });
 
@@ -75,7 +74,6 @@ describe("readParsedNote", () => {
           }),
           Layer.mock(CitationParse, {
             parse: (request) => {
-              // The first parse sees the note saved under it.
               if (reads.length === 1) file.stat = { ...file.stat, mtime: 2 };
               return scanned(request);
             },

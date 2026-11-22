@@ -1,4 +1,3 @@
-// Liquid editor language and the tag-range scanner that bounds suggestions.
 import { liquidTagLanguage } from "@codemirror/lang-liquid";
 import { LanguageSupport, syntaxTree } from "@codemirror/language";
 import type { Range } from "@codemirror/state";
@@ -18,11 +17,6 @@ const delimiter = Decoration.mark({ class: templateToken.delimiter });
 const keyword = Decoration.mark({ class: templateToken.keyword });
 const TAG_NAME = regex("^\\s*(?<name>[\\w#]+)");
 
-/**
- * The tags the upstream parser refuses — the closer of a ZotLit block such as
- * `{% endbq %}` — read as plain text, so the scanner colors their
- * delimiters and name the way the parser colors the tags it knows.
- */
 export function refusedLiquidMarks(
   source: string,
   tree: Tree,
@@ -32,8 +26,6 @@ export function refusedLiquidMarks(
     let owner = tree.resolve(range.from, 1);
     while (owner.parent && !owner.type.isTop) owner = owner.parent;
     if (owner.name !== "Template") continue;
-    // A tag the parser read has syntax nodes for both delimiters. A refused
-    // closer can still have an error node for its opening delimiter.
     const parsedOpen = tree.resolveInner(range.from, 1).name;
     const parsedClose = tree.resolveInner(range.to, -1).name;
     const parserReadOpen = parsedOpen.startsWith("{");
@@ -82,12 +74,10 @@ const refusedTagHighlight = ViewPlugin.define(
   { decorations: (plugin) => plugin.decorations },
 );
 
-/** Liquid over plain text: the prose between tags carries no syntax of its own. */
 export const liquidTemplate = new LanguageSupport(liquidTagLanguage, [
   refusedTagHighlight,
 ]);
 
-/** Liquid owns template syntax, with Markdown parsed across the host text. */
 export const liquidBody = new LanguageSupport(
   liquidTagLanguage.configure({
     wrap: parseMixed((node) =>

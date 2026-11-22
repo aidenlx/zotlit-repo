@@ -25,7 +25,6 @@ import type { InspectionNote } from "./inspect.ts";
 
 type Deps = Parameters<typeof createHandlers>[0];
 
-/** The handlers' ports, each faked as the plain call it reads. */
 interface PlainDeps extends Omit<
   Deps,
   "getIdentity" | "selectNote" | "templates"
@@ -40,10 +39,6 @@ interface PlainDeps extends Omit<
   };
 }
 
-/**
- * The handlers over plain fakes, each lifted to the Effect port it fakes: a
- * sync fake runs when the port runs, and an async one is awaited.
- */
 function createTemplateWorkbenchHandlers(deps: PlainDeps) {
   const { templates } = deps;
   return createHandlers({
@@ -153,8 +148,6 @@ describe("Template Workbench CLI", () => {
 
       expect(callOrder).toEqual(["settled", "identity", "status"]);
       expect(JSON.parse(output)).toEqual({
-        // The Workbench's own CLI Contract stamps the envelope (ADR 0026); the
-        // sibling cases pin its value.
         contractVersion: CONTRACT_VERSION,
         command: "zotlit:template-status",
         ok: true,

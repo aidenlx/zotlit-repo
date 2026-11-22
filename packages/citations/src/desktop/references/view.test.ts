@@ -45,7 +45,6 @@ vi.mock(
   },
 );
 
-/** The one cited work: a book in My Library, signed in as user 1. */
 const SEED = `
   insert into libraries (libraryID, type, version, clientVersion)
     values (1, 'user', 1, 1);
@@ -58,7 +57,6 @@ const SEED = `
   insert into itemData (itemID, fieldID, valueID) values (1, 1, 1);
 `;
 
-/** The CSL id the book's citation data carries. */
 const BOOK_CSL_ID = "http://zotero.org/users/1/items/BKRV2345";
 
 class TestReferencesView extends ReferencesView {
@@ -104,7 +102,6 @@ const citationSet: DocumentCitationSet = {
   errors: [],
 };
 
-/** One flow of plain words, the way pandoc splits text into Str and Space. */
 function words(text: string): Inlines {
   return text
     .split(" ")
@@ -147,7 +144,6 @@ function failedHeldOutcome(): RenderedBibliography {
 
 let view: TestReferencesView | undefined;
 let renders: PromiseWithResolvers<BibliographyRenderOutcome>[] = [];
-/** The render requests a test has answered. */
 let answered = new Set<PromiseWithResolvers<BibliographyRenderOutcome>>();
 let scans: PromiseWithResolvers<DocumentCitationSet>[] = [];
 let activeFile: TFile;
@@ -172,12 +168,9 @@ function copyAction(): HTMLElement {
   )!;
 }
 
-/** The newest render request, once it arrived and is still unanswered. */
 async function pendingRender(): Promise<
   PromiseWithResolvers<BibliographyRenderOutcome>
 > {
-  // A reload reads the database before it asks for the render, and the test
-  // cannot name when that read lands.
   return await vi.waitFor(() => {
     const render = renders.at(-1);
     if (!render || answered.has(render))
@@ -186,7 +179,6 @@ async function pendingRender(): Promise<
   });
 }
 
-/** Answer the newest render request and let the pane paint its answer. */
 async function finishRender(
   outcome: RenderedBibliography = renderedOutcome(),
 ): Promise<void> {
@@ -201,11 +193,6 @@ async function finishRender(
   });
 }
 
-/**
- * Answer the citation-set read the newest rescan is waiting on. A new set
- * reloads the list, which ends in a render request; that request is the
- * completion signal.
- */
 async function finishScan(
   set: DocumentCitationSet = citationSet,
 ): Promise<void> {
@@ -229,7 +216,6 @@ async function finishScan(
   });
 }
 
-/** Follow another note, which the pane learns of before its rescan answers. */
 async function followOtherNote(): Promise<void> {
   activeFile = otherFile;
   const previous = scans.at(-1);
@@ -314,8 +300,6 @@ describe("ReferencesView copy readiness", () => {
     await act(() => onInvalidated());
     await pendingRender();
 
-    // Stale entries stay on screen while the fresh render replaces them, so
-    // a Zotero refresh that changes nothing never flashes the minimal list.
     expect(view!.contentEl.textContent).toContain("Rivers, A. (2020).");
     expect(copyAction().hasAttribute("disabled")).toBe(true);
 
@@ -367,8 +351,6 @@ describe("ReferencesView copy readiness", () => {
     await finishRender();
     await followOtherNote();
 
-    // The note cites the same works, which leaves the list on screen as it is
-    // and still hands copy over to the note that now owns it.
     await finishScan();
     expect(copyAction().hasAttribute("disabled")).toBe(true);
 
@@ -387,7 +369,6 @@ describe("ReferencesView copy readiness", () => {
 });
 
 describe("ReferencesView citekey resolution", () => {
-  /** One citation whose key the resolution snapshot answers nothing for. */
   const unresolvedSet: DocumentCitationSet = {
     sources: new Map(),
     presentKeys: new Set(),
@@ -448,7 +429,6 @@ describe("ReferencesView citekey resolution", () => {
     await vi.waitFor(() => expect(scans.at(-1)).not.toBe(previous));
     await finishScan(unresolvedSet);
 
-    // No snapshot has settled before this reload reads it.
     citekeyResolution = null;
     host.setLookup("pending");
     await act(() => onDbChanged());
@@ -457,8 +437,6 @@ describe("ReferencesView citekey resolution", () => {
       m.references_citekey_pending({ citekey: "ghost2024" }),
     );
 
-    // The rebuild settles with the maps unchanged, so no resolution-changed
-    // event follows — only the state flip the settle announces.
     citekeyResolution = "fresh";
     await act(() => onCitedByInvalidated());
     await vi.waitFor(() =>

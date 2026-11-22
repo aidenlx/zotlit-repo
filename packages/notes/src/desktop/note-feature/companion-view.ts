@@ -1,4 +1,3 @@
-// Companion navigation decides whether to open, update, or ask before creation.
 import { Effect } from "effect";
 import type { App, PaneType } from "obsidian";
 
@@ -16,7 +15,6 @@ export type { LiteratureNoteOutcome as CompanionLinkOutcome } from "./navigation
 import type { LiteratureNoteOutcome as CompanionLinkOutcome } from "./navigation.ts";
 import { openLiteratureNote } from "./navigation.ts";
 
-/** Open or update the Companion link's note, and tell the outcome on a notice. */
 export const openCompanionNote = Effect.fn("openCompanionNote")(function* (
   deps: InteractiveCreationPorts,
   ref: ItemRef,
@@ -27,19 +25,13 @@ export const openCompanionNote = Effect.fn("openCompanionNote")(function* (
   if (notice) yield* (yield* Notifier).show(notice);
 });
 
-/** What a Companion link asks for. */
 export interface CompanionLinkOptions {
   action: ProtocolAction;
   profile?: ProfileSelector;
   scope?: UpdateScope;
-  /** Absent replaces the last active tab, as an Obsidian URI without one does. */
   paneType?: PaneType;
 }
 
-/**
- * Open the Companion link's existing note, updating it when the link asks, or
- * create one through the Profile selection. Returns how it ended.
- */
 export const followCompanionLink = Effect.fn("CompanionLink.follow")(
   (
     deps: InteractiveCreationPorts,
@@ -52,7 +44,6 @@ export const followCompanionLink = Effect.fn("CompanionLink.follow")(
     }),
 );
 
-/** The notice a Companion link's outcome shows, or none. */
 export function companionLinkNotice(
   app: App,
   outcome: CompanionLinkOutcome,

@@ -1,7 +1,3 @@
-// The Query File tab: a `TextFileView` that hands the file's text to the one
-// Query View. In its own tab a Query File has no Query Context, so `this` has
-// no value and a filter that reads it shows the engine's diagnostic, under a
-// hint at where the record gets bound.
 import { Scope, TextFileView } from "obsidian";
 import type { TFile, ViewStateResult, WorkspaceLeaf } from "obsidian";
 
@@ -15,7 +11,6 @@ export const QUERY_FILE_VIEW_TYPE = "zotlit-query-file";
 export class QueryFileView extends TextFileView {
   override scope: Scope;
   readonly query: QueryView;
-  /** The tab's last write of a toolbar change, which settles once it is done. Never rejects. */
   #writing: Promise<void> = Promise.resolve();
 
   constructor(leaf: WorkspaceLeaf, deps: QueryViewDeps) {
@@ -26,9 +21,6 @@ export class QueryFileView extends TextFileView {
       scope: this.scope,
       sourcePath: () => this.file?.path ?? "",
       context: () => undefined,
-      // Each change writes at once, after the write before it: Obsidian's
-      // own save returns early while a write runs, and would not report
-      // whether the later text was written.
       save: (text) => {
         const write = this.#writing.then(() => {
           this.data = text;
@@ -70,8 +62,6 @@ export class QueryFileView extends TextFileView {
   }
 
   override async onUnloadFile(file: TFile): Promise<void> {
-    // A typed change that waits for its delay belongs to this file, which the
-    // tab saves as it lets the file go.
     await this.query.flush();
     await super.onUnloadFile(file);
   }

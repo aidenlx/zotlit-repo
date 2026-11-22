@@ -20,7 +20,6 @@ import type {
 import type { Loader } from "./record-loader.ts";
 import type { TargetLibrary } from "./request.ts";
 
-/** Raw Relation Lists live only for one root hydrate chunk, including its nested loads. */
 export interface RelationChunk {
   readonly values: WeakMap<object, Map<number, readonly unknown[]>>;
   readonly attachments: Map<number, readonly AttachmentScanRow[]>;
@@ -45,7 +44,6 @@ const readCached = Effect.fnUntraced(function* <Row>(
     parentID,
   }: {
     readonly ids: readonly number[];
-    /** One page of at most `SCAN_PAGE_SIZE` rows after `after`. */
     readonly read: (
       ids: readonly number[],
       after?: Row,
@@ -56,9 +54,6 @@ const readCached = Effect.fnUntraced(function* <Row>(
   const missing = [...new Set(ids)].filter((id) => !cache.has(id));
   if (missing.length) {
     const groups = new Map<number, Row[]>(missing.map((id) => [id, []]));
-    // No page budget: a candidate read may over-approximate, but a Relation
-    // List feeds the evaluator and must be complete. Each page is one
-    // statement, so the scheduler can end a slice between two pages.
     let after: Row | undefined;
     for (;;) {
       const page = yield* read(missing, after);
@@ -109,7 +104,6 @@ export const relatedItemNotes = (
     parentID: (row) => row.parent.itemID,
   });
 
-/** Child lists can exceed the parent chunk; hydrate them with the existing bounded readers. */
 export const loadRelation = Effect.fnUntraced(function* <
   Row extends ScanRow & { libraryID: number },
   Value,
@@ -129,8 +123,6 @@ export const loadRelation = Effect.fnUntraced(function* <
   const byLibrary = new Map(
     libraries.map((library) => [library.libraryID, library]),
   );
-  // Each loader has one fixed set of needs, so its values can be reused by
-  // parent within this root chunk, even across several child hydrate chunks.
   let cached = relations.values.get(loader) as
     | Map<number, readonly Value[]>
     | undefined;

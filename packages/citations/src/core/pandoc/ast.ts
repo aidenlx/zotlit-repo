@@ -1,21 +1,7 @@
-// The pandoc JSON AST as pandoc-types encodes it, as types alone — no runtime code.
-
-/**
- * Pandoc's `-t json` output follows the `ToJSON` instances of pandoc-types, and
- * the plugin pins the binary that writes them (pandoc 3.10.1, pandoc-types
- * 1.23.1.2), so the encoding is a fixed contract rather than something to
- * validate. Every constructor is tagged by `t`, and one that takes arguments
- * carries them in `c` — a tuple when it takes several.
- *
- * @see https://github.com/jgm/pandoc-types/blob/1.23.1.2/src/Text/Pandoc/Definition.hs
- */
-
-/** A constructor that takes no arguments, written as its tag alone. */
 export interface Tag<T extends string> {
   readonly t: T;
 }
 
-/** A constructor that takes arguments, written as its tag and its payload. */
 export interface Node<T extends string, C> extends Tag<T> {
   readonly c: C;
 }
@@ -23,7 +9,6 @@ export interface Node<T extends string, C> extends Tag<T> {
 export type Inlines = readonly Inline[];
 export type Blocks = readonly Block[];
 
-/** Identifier, classes, and key-value pairs of an element that carries them. */
 export type Attr = readonly [
   id: string,
   classes: readonly string[],
@@ -32,7 +17,6 @@ export type Attr = readonly [
 
 export type Target = readonly [url: string, title: string];
 
-/** The name of a raw block's or raw inline's output format, such as `html`. */
 export type Format = string;
 
 export type QuoteType = Tag<"SingleQuote" | "DoubleQuote">;
@@ -63,7 +47,6 @@ export type ListAttributes = readonly [
 ];
 
 export interface Citation {
-  /** The CSL id the source cites the work by — a citekey spelling. */
   readonly citationId: string;
   readonly citationPrefix: Inlines;
   readonly citationSuffix: Inlines;
@@ -150,7 +133,6 @@ export type MetaValue =
 
 export type Meta = Readonly<Record<string, MetaValue>>;
 
-/** One converted document. The array's length varies across API families. */
 export interface Pandoc {
   readonly "pandoc-api-version": readonly number[];
   readonly meta: Meta;

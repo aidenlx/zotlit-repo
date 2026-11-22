@@ -3,7 +3,6 @@ import type { CSSProperties, InputHTMLAttributes, Ref } from "react";
 
 import { cn } from "#utils.ts";
 
-/** 2-decimal format for fractional/`"any"` steps, integer string otherwise. */
 function getValuePretty(value: number, step: number | "any"): string {
   return step === "any" || step < 1 ? value.toFixed(2) : value.toString();
 }
@@ -16,32 +15,14 @@ export interface SliderProps extends Omit<
   onChange: (next: number) => void;
   min: number;
   max: number;
-  /**
-   * Native range step; `"any"` disables snapping.
-   * @default 1
-   */
   step?: number | "any";
-  /**
-   * Fire `onChange` continuously while dragging instead of on release.
-   * @default false
-   */
   instant?: boolean;
-  /**
-   * Show the current value as a tooltip on hover/drag. When enabled,
-   * `aria-label` is owned by this component and any consumer-supplied
-   * value is overridden.
-   */
   dynamicTooltip?: boolean;
-  /** @default {@link getValuePretty} */
   formatValue?: (value: number) => string;
   "data-tooltip-position"?: string;
   ref?: Ref<HTMLInputElement>;
 }
 
-/**
- * @see {@link tooltipAttrs} for static tooltips. Use `dynamicTooltip` for
- *      the live-value hover tooltip.
- */
 export function Slider({
   value,
   onChange,
@@ -83,7 +64,6 @@ export function Slider({
       {...rest}
       aria-label={ariaLabel}
       className={cn("slider", className)}
-      // How far the track fills, which Obsidian's own slider sets as well.
       style={
         {
           "--slider-fill-ratio": max > min ? (draft - min) / (max - min) : 0,

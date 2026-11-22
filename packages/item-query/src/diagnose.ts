@@ -41,7 +41,6 @@ import type { QueryContext } from "./request.ts";
 
 interface DiagnosisContext extends ItemQueryErrorLocation {
   readonly dataset: QueryDataset<any>;
-  /** The Query Context of the request: a correction is planned with it. */
   readonly context?: QueryContext | undefined;
 }
 import type { CollectionWarning } from "./collection-warnings.ts";
@@ -76,14 +75,12 @@ export interface Diagnostic<Code extends string = string> {
   readonly suggestions: readonly string[];
 }
 
-/** Render the faults produced by the engine during the v2 migration. */
 export function diagnose(
   fault: ItemQueryFault,
   text: string,
   context: DiagnosisContext,
 ): Diagnostic<ItemQueryErrorCode> {
   const diagnostic = diagnoseFault(fault, text, context);
-  // A fault inside the text of a Formula names the Formula.
   if (
     context.argument !== "formulas" ||
     context.path === undefined ||
@@ -230,8 +227,6 @@ function diagnoseFault(
       );
     }
     case "reads-faulted-formula": {
-      // The reader names the Formula it reads; the note states the mistake at
-      // the root of the reads.
       const root = diagnose(fault.root.fault, fault.root.argumentText, {
         ...fault.root.location,
         dataset,
@@ -460,7 +455,6 @@ function diagnoseUnknown(
   };
 }
 
-/** `formula.<name>` names no Formula of the request. */
 function diagnoseUnknownFormula(
   fault: Extract<Fault, { readonly kind: "unknown" }>,
   text: string,
@@ -527,7 +521,6 @@ function diagnoseUnknownFormula(
   };
 }
 
-/** A Formula that the request names and never reads: planned and run never. */
 export function diagnoseUnusedFormula(
   name: string,
 ): Diagnostic<"unused-formula"> {
@@ -565,11 +558,6 @@ function projectionCandidates(dataset: QueryDataset<any>): readonly string[] {
   );
 }
 
-/**
- * A group path that gives no scalar per record or per element. A list path
- * and a path to a list element with fields get their element paths as the
- * correction.
- */
 function diagnoseGroup(
   fault: Extract<Fault, { readonly kind: "group" }>,
   text: string,
@@ -591,7 +579,6 @@ function diagnoseGroup(
   }
   const path = planPath(fault.name, dataset.resolvePath);
   const shape = "kind" in path ? undefined : path.shape;
-  // A list gets its first []; a path that already expands a list keeps it.
   const each =
     shape?.kind === "list" && !("kind" in path) && path.each === 0
       ? { prefix: `${fault.name}[]`, element: shape.element }
@@ -641,7 +628,6 @@ function diagnoseGroup(
   };
 }
 
-/** The scalar fields of a list element with fields, in schema order. */
 function scalarFields(shape: ValueShape): readonly string[] | undefined {
   if (shape.kind === "object")
     return Object.entries(shape.keys)
@@ -1172,8 +1158,6 @@ function signature(
   return `${name}(${parts.join(", ")})`;
 }
 
-/** Shared rendering for engine faults and adapter rejections or operational failures. */
-/** The operand types that each arithmetic operator takes. */
 const OPERAND_TYPES: Readonly<Record<string, string>> = {
   "+": "two numbers, two lists, a string and any value, or a date and a duration",
   "-": "two numbers, or a date and a duration",
@@ -1261,8 +1245,6 @@ function diagnoseSyntax(
   if (fault.opened) {
     const start = Math.max(0, fault.from - 40);
     const opener = fault.opened;
-    // A distant opener gets its own bounded excerpt. Nearby openers share the
-    // fault excerpt, with a second marker under the opening delimiter.
     const markerStart =
       opener.from < start ? Math.max(0, opener.from - 40) : start;
     const notes: string[] = [];
@@ -1278,7 +1260,6 @@ function diagnoseSyntax(
   return { ...diagnostic, suggestions, report };
 }
 
-/** A diagnostic of the text of the Formula `name`, which its message names. */
 function inFormula<D extends Diagnostic<string>>(
   diagnostic: D,
   name: string,
@@ -1291,19 +1272,11 @@ function inFormula<D extends Diagnostic<string>>(
   };
 }
 
-/**
- * A Filter Expression of the request that a warning marks: the filter, or
- * the text of the Formula `formula`.
- */
 export interface WarningSource {
   readonly text: string;
   readonly formula?: string;
 }
 
-/**
- * Warnings describe the marked comparison; they never replace its evaluation.
- * A warning in the text of a Formula is located at the Formula and names it.
- */
 export function diagnoseWarning(
   fault:
     | Extract<Fault, { kind: "constant" }>
@@ -1422,7 +1395,6 @@ function diagnoseExpressionWarning(
   };
 }
 
-/** Whether a conversion gave a value: neither null nor an Error Value. */
 function converts(value: FilterValue): boolean {
   return value !== null && !isError(value);
 }
@@ -1502,7 +1474,6 @@ function constantCorrection(
     : corrected;
 }
 
-/** Decoder facts are independent of the Obsidian adapter and validation library. */
 export interface DecodeFault {
   readonly parameter: string;
   readonly message: string;
@@ -1521,7 +1492,6 @@ export interface DecodeFault {
   readonly accepted?: readonly string[];
 }
 
-/** Render an argument decoder's structured rejection through the same report. */
 export function diagnoseDecode(
   fault: DecodeFault,
   action: string,

@@ -23,3 +23,38 @@ A long Table mounts only the rows near the screen (PR [#2023](https://github.com
 - **Grow only**: keep the widest width each column reached. The width then depends on the scroll history, `min-w-full` stretching in a wide pane becomes the floor, and it needs resets on pane width and on a change of columns.
 - **Hold the widths of the first window, long Tables only.** Later, longer text is cut, it needs a new measurement on pane resize and on a change of columns, and short and long Tables follow different rules.
 - **Measure each column's longest value, as Bases does.** Bases measures the header and the value with the most characters across all rows, clamped to 40–300 px. For a Query View that means rendering a measuring row for every column after each result and each change of columns, and the widest-looking value is not always the one with the most characters.
+
+### Table column gesture proof
+
+Keep the drop guide above the sticky header and draw it at the
+target edge. Read the current column order on drop because the
+file can save an order change mid-drag. During resize, apply
+the live width and page-wide cursor without moving the header
+or opening its menu. Save on pointer release. A double click or
+Reset column width removes the saved value. Width can be
+narrower than its content, down to the Bases minimum, and
+clipping handles the extra text. The native header menu exposes
+the drag operations and disables unavailable actions.
+
+Escape, capture loss, and tab closure cancel without saving.
+A drop outside the Table does not reorder. Clear the temporary
+guide and cursor when any drag ends.
+
+[Column gesture cases](../../../../packages/e2e/src/query-view-properties.e2e.ts)
+
+Measure the default gutter from the header's expand-button space, so virtualization cannot move it. Reserve an unlabelled filler instead of exposing it as a sortable header. Draw the header over an opaque host surface, including the callout tint, so rows scrolling beneath it stay hidden.
+
+Move a column with a native drag, using a transparent drag image and a drop line above the sticky header. Follow the drag in the source window so it can leave the Table and still clean up. Accept only drops inside the Table with an on-screen order that still matches the live view. Keep move and resize gestures separate. Resize with pointer capture and the Bases minimum width. Show the width while dragging, save it on release, and restore the old width on cancellation. Suppress the click from the release so a mobile resize cannot open the column menu. Start the desktop scrollbar track below the header and enable the browser's styled scrollbar parts so the track cannot take a press from the resize handle.
+
+Show the sort direction on every sorted column, but expose the first sort through `aria-sort`. Use a mask to leave space for the sort mark when the header label is long. When rows follow host rank, leave header sorting unavailable and hide sort marks. Open the column menu on desktop context click or mobile tap.
+
+### Virtual Table geometry proof
+
+Sample header width and position during a rapid scrollbar drag and
+a slow drag, including scroll events before rows mount at their new
+positions. The widths stay fixed in a spacer-only frame. The
+header stays at the top and keeps one set of cells throughout the
+drag. Verify that unused width goes to the trailing filler and the
+scrollbar occupies its own column beside the header and rows.
+
+[Virtual Table geometry cases](../../../../packages/e2e/src/library-view-long-list.e2e.ts)

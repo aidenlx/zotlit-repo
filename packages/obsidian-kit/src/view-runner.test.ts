@@ -87,7 +87,6 @@ it.effect(
     }).pipe(Effect.scoped),
 );
 
-/** A runner over the test services, closed with the test's Scope. */
 const scopedRunner = Effect.flatMap(
   Effect.flatMap(Layer.build(layerServices), (context) =>
     scopedViewRegistry(context),
@@ -163,10 +162,8 @@ it.effect("shares one run between the callers that join while it runs", () =>
     expect(yield* Fiber.join(first)).toBe("done");
     expect(yield* Fiber.join(second)).toBe("done");
     expect(runs).toBe(1);
-    // onChange fires once when the run starts and once when it ends.
     expect(changes).toEqual([true, false]);
     expect(slot.running()).toBe(false);
-    // A join after the run ended starts a new run.
     yield* Effect.forkChild(slot.join);
     yield* Effect.yieldNow;
     expect(runs).toBe(2);
@@ -248,7 +245,6 @@ it.effect("answers the released value to the caller of a superseded run", () =>
       ),
     );
     yield* Deferred.await(started);
-    // The newer run starts once the older one waits, as a later gesture does.
     yield* Effect.yieldNow;
     expect(yield* slot.join(Effect.succeed("newer"), "released")).toBe("newer");
     expect(yield* Fiber.join(older)).toBe("released");

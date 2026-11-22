@@ -20,7 +20,6 @@ import {
 
 import { makeWelcomeHost, waitFor } from "#__fixtures__/welcome.ts";
 
-/** One regular item per row in `libraryItems`, as [libraryID, count] pairs. */
 function itemsSql(libraryItems: [libraryID: number, count: number][]): string {
   let itemID = 0;
   return libraryItems
@@ -162,7 +161,6 @@ describe("readConnectionSync", () => {
         yield* deps.read;
 
         yield* deps.reads.refresh;
-        // Invalidation is delivered before the revision changes in the view registry.
         yield* Effect.promise(() =>
           waitFor(() =>
             expect(

@@ -44,7 +44,6 @@ describe("pane menu — copy key", () => {
 
     expect(actions.addCopyKeyMenuItem(menu as never)).toBe(true);
     expect(menu.items[0]!.title).toBe("Copy annotation key");
-    // The pane menu groups by section, alongside Obsidian's own entries.
     expect(menu.items[0]!.section).toBe("info");
 
     menu.items[0]!.click();

@@ -2,7 +2,6 @@ import type {
   SettingsKey,
   SettingTabContext,
 } from "#obsidian/setting-tab/context.ts";
-// The Logging group's Open log file row: the log file in the system's app.
 import { Effect } from "effect";
 import type { SettingGroupItem } from "obsidian";
 
@@ -15,7 +14,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { logFileDisabled, logPath } from "#obsidian/log/settings-rows.ts";
 
-/** The Open log file row. */
 export function openLogFileItem(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey> {
@@ -28,13 +26,8 @@ export function openLogFileItem(
   };
 }
 
-/**
- * Open the log file at the vault path `path` in the system's default app. It
- * fails with a `LegacyPortError` when the system names a reason it cannot.
- */
 export const openLogFileInSystem = Effect.fnUntraced(function* (path: string) {
   const fullPath = yield* (yield* Vault).fullPath(path);
-  // Desktop-only plugin: the vault is always on a file system.
   if (fullPath === null)
     return yield* Effect.die(new Error("The vault is not on disk"));
   const refused = yield* portCall("open-log-file", () =>
@@ -47,10 +40,6 @@ export const openLogFileInSystem = Effect.fnUntraced(function* (path: string) {
     });
 });
 
-/**
- * {@link openLogFileInSystem} for the settings row. A failure is logged and a
- * notice tells the user.
- */
 const openLogFile = Effect.fn("SettingTab.openLogFile")(
   function* (path: string) {
     yield* reportOutcome(openLogFileInSystem(path), {

@@ -41,7 +41,6 @@ const captureLogger = (captured: Queue.Queue<CapturedLog>) =>
     });
   });
 
-/** A time no wall clock reads, so only the Effect Clock can produce it. */
 const LIBRARY_LOG_TIME = DateTime.toEpochMillis(
   DateTime.makeUnsafe("2001-02-03T04:05:06Z"),
 );

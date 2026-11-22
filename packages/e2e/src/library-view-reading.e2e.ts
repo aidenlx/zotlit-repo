@@ -69,7 +69,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
 
-    // The seed's oracle: the paper, its one PDF, and the Annotations on it.
     const paper = annotationItem;
     const abstract = paper.fields?.abstractNote;
     expect(abstract).toBeTruthy();
@@ -89,8 +88,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       .filter(({ creatorType }) => creatorType === "author")
       .map(({ firstName, lastName }) => `${firstName} ${lastName}`);
 
-    // The Library View on My Library, wide enough for the card, and a note
-    // to cite into that was active last.
     await suite.wideWindow(cleanup);
     await obRun(
       run.vaultId,
@@ -129,13 +126,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { myLibraryDocument: MY_LIBRARY_DOCUMENT, notepath: notePath },
     );
-    /** Run `script` with the Library View's tab active, `el` its content and `card` its Reading Card pane. */
 
-    /** What the card shows, `null` while it is out of view. */
-
-    // No row is selected: the card asks for a paper over one quiet line
-    // that counts the node's papers passing each Reading State facet, in
-    // the tree's order, and leaves out a facet no paper passes.
     const noPaper = await obRun(
       run.vaultId,
       async ({ app, page }, { paperKey }) => {
@@ -191,9 +182,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     for (const count of noPaper.counts) expect(count).toBeGreaterThan(0);
 
-    // A click on the paper's row shows its card with a preview of its
-    // Annotations: the first two quoted, the count of each colour, and "See
-    // all", with no Annotation Card drawn.
     expect(
       await obRun(
         run.vaultId,
@@ -251,8 +239,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       quotes: Math.min(2, seededCards.length),
       colours: seededCards.length,
     });
-    // Opened, the card shows the seeded fields and abstract, the row menu's
-    // actions, and its Annotations as cards.
     const shown = (await obRun(
       run.vaultId,
       async ({ app, page }, { seededCardsLength }) => {
@@ -333,13 +319,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       actions: shown.actions,
     }).toEqual({
       title: paper.title,
-      // The authors in full, and the Venue with the year.
       creators: authors.join(", "),
       venue: `${paper.venue} · ${paper.date}`,
       citationKey: paper.citationKey,
       abstract,
-      // Two buttons; the rest of the row menu under More, and the sidebar
-      // as an icon.
       actions: [
         run.m.library_view_menu_open_pdf(),
         run.m.library_view_menu_open_note(),
@@ -352,7 +335,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toEqual(
       seededCards.map(({ key, color, page }) => ({ key, color, page })),
     );
-    // Each card shows its seeded comment.
     const commented = seededCards.filter(({ comment }) => comment);
     expect(commented.length).toBeGreaterThan(0);
     expect(
@@ -361,9 +343,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toEqual(commented.map(() => true));
 
-    // With Zotero closed the Editing Capability is read-only: each card's
-    // colour and tag verbs, and any comment field it shows, say they are
-    // blocked, as in the sidebar.
     expect(
       JSON.parse(
         await obRun(
@@ -410,8 +389,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       blocked: true,
     });
 
-    // The buttons do what the row menu does: Insert citation, from the More
-    // menu, into the note active last, Open literature note, Open PDF.
     const active = () => activeTab(run.vaultId);
     const activeWhen = (ready: (shown: ActiveTab) => boolean) =>
       readUntil(active, ready, { what: "Active tab", tries: 60 });
@@ -491,7 +468,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       undefined,
     );
-    // Open PDF opens in the tab the note opened in, once that open is done.
     expect(
       await activeWhen(
         (state) =>
@@ -524,8 +500,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await pdfOpened(run.vaultId, annotationAttachment.path!);
 
-    // "Open in the annotation view" pins the paper in the sidebar Annotation View, which
-    // lists its cards.
     await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -583,8 +557,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // A narrow pane shows the card under the tree and the list, across the
-    // whole pane, and a wide one beside the list; the row stays selected.
     cleanup.defer(async () => {
       await obRun(
         run.vaultId,
@@ -594,7 +566,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       );
     });
-    /** Give the Library View's tab `share` percent of the window; report where its card shows. */
     const placeCard = (share: number, below: boolean) =>
       obRun(
         run.vaultId,
@@ -611,15 +582,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const el = leaf!.view.contentEl;
           const card = el.querySelector<HTMLElement>("[data-library-card]");
           const shell = el.querySelector<HTMLElement>("[data-library-shell]");
-          // Under a narrow list the card spans the whole shell, under the
-          // tree and the list together.
           const spans = () =>
             Math.abs(
               card!.getBoundingClientRect().width -
                 shell!.getBoundingClientRect().width,
             ) < 2;
-          // The sidebar closes over a moment; the tab's share of the window
-          // sets the shell's width once it has closed.
           app.workspace.rightSplit.collapse();
           await until(
             "the right sidebar closed",
@@ -658,7 +625,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       below: true,
       selected: paper.key,
     });
-    /** How the card lays out its parts: its width, and whether its first two sit side by side. */
     const cardColumns = () =>
       obRun(
         run.vaultId,
@@ -686,15 +652,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         undefined,
       );
-    // Under the list at 42rem wide or more, the card sets its parts in two
-    // columns, side by side: half of the 1600px window is that wide and
-    // still under 56rem, where the card moves beside the list.
     expect(await placeCard(50, true)).toMatchObject({ below: true });
     const twoColumns = await cardColumns();
     expect(twoColumns.width).toBeGreaterThanOrEqual(672);
     expect(twoColumns).toMatchObject({ display: "grid", sideBySide: true });
     expect(await placeCard(30, true)).toMatchObject({ below: true });
-    /** Press the Details button; report once the card is `shown` and the button says so. */
     const pressDetails = (shown: boolean) =>
       obRun(
         run.vaultId,
@@ -732,7 +694,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { enabled: shown },
       );
-    /** Click the row `key`; report once it is selected and the card is `shown`. */
     const clickRow = (key: string, shown: boolean) =>
       obRun(
         run.vaultId,
@@ -770,7 +731,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { rowKey: key, enabled: shown },
       );
-    /** Press `key` where the focus is; report once `selected` is the selected row and the card is `shown`. */
     const keyOnList = (key: string, selected: string, shown: boolean) =>
       obRun(
         run.vaultId,
@@ -816,7 +776,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { keyName: key, selectedKey: selected, enabled: shown },
       );
-    /** The row after `key` on screen. */
     const rowAfter = async (key: string) =>
       (await obRun(
         run.vaultId,
@@ -840,8 +799,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const next = await rowAfter(paper.key);
     expect(next).not.toBeNull();
 
-    // Its close button turns the details off; the row stays selected and
-    // takes the focus back, and the Details button is released.
     expect(
       await obRun(
         run.vaultId,
@@ -884,9 +841,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toEqual({ selected: paper.key, focused: paper.key, pressed: "false" });
 
-    // On a narrow pane the Details button turns the card on and off, pressed
-    // while it shows; with the details off a click on a row selects it and
-    // shows no card.
     expect(await pressDetails(true)).toEqual({
       card: true,
       pressed: "true",
@@ -907,10 +861,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       selected: next,
     });
 
-    // With the details on, a click on a row shows its card, and the arrow
-    // keys move the selection with the card still showing. Space on the
-    // selected row turns the details off and on; Escape leaves them as
-    // they are.
     expect(await clickRow(paper.key, true)).toEqual({
       card: true,
       selected: paper.key,
@@ -935,9 +885,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       selected: next,
       focused: next,
     });
-    // A double click on the paper's row, by the pointer, while the card
-    // shows under the list, opens its PDF: the first click selects the row
-    // and moves nothing.
     expect(
       await obRun(
         run.vaultId,
@@ -980,8 +927,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe("double-clicked");
     await pdfOpened(run.vaultId, annotationAttachment.path!);
-    // The keyboard that enters the list at its first row selects it, and
-    // the card shows it. Selecting the node again lets go of the selection.
     const entered = await obRun(
       run.vaultId,
       async ({ app, page }) => {
@@ -1046,8 +991,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       focused: entered.first,
       first: entered.first,
     });
-    // ↑ from the row after the paper goes back to the paper with its card;
-    // a wide pane shows the card of the selected row beside the list.
     expect(await clickRow(next, true)).toEqual({
       card: true,
       selected: next,
@@ -1062,19 +1005,16 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       below: false,
       selected: paper.key,
     });
-    // Beside the list the card keeps one column.
     expect(await cardColumns()).toMatchObject({
       display: "flex",
       sideBySide: false,
     });
-    // Beside a wide list the card follows the arrow keys.
     expect(await keyOnList("ArrowDown", next, true)).toEqual({
       card: true,
       selected: next,
       focused: next,
     });
 
-    // While Zotero's data folder is missing the card goes with the list.
     const emptyDir = join(e2eFixture.root, "reading-card-not-found");
     await mkdir(emptyDir, { recursive: true });
     cleanup.defer(() => rm(emptyDir, { recursive: true, force: true }));
@@ -1121,8 +1061,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { dataDir: JSON.parse(snapshot).dataDir },
     );
 
-    // Picking another node in the tree leaves no row selected, and the card
-    // shows what fills it.
     expect(
       await obRun(
         run.vaultId,
@@ -1207,7 +1145,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     const paper = annotationItem;
     const notePath = "literatures/rougierTenSimpleRules2014.md";
-    /** Close the Library View, and open the note in the active tab. */
     const openNote = () =>
       obRun(
         run.vaultId,
@@ -1222,7 +1159,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { notepath: notePath },
       );
-    /** Wait until the Library View selects the paper's row. */
     const shownInLibrary = (what: string) =>
       obRunUntil(
         run.vaultId,
@@ -1242,7 +1178,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { what },
       );
 
-    // The command, on the active Literature Note.
     await openNote();
     expect(
       await obRun(run.vaultId, ({ app }) =>
@@ -1251,7 +1186,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toBe(true);
     await shownInLibrary("the command shows the paper");
 
-    // The Cited By toolbar, for the same note, open in the sidebar.
     await obRun(run.vaultId, async ({ app }) => {
       let leaf = app.workspace.getLeavesOfType("zotlit-cited-by")[0];
       if (!leaf) {
@@ -1281,7 +1215,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await shownInLibrary("Cited By shows the paper");
 
-    // The Library Link `zt.librarylink` writes, through Obsidian's handler.
     await openNote();
     await obRun(
       run.vaultId,
@@ -1295,7 +1228,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     await shownInLibrary("the Library Link shows the paper");
 
-    // A link to an Item no Library holds keeps the search and says so.
     await obRun(run.vaultId, async ({ app }) => {
       const view = (
         app.workspace.getLeavesOfType("zotlit-library") as (WorkspaceLeaf & {
@@ -1390,8 +1322,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { snapshot },
       );
     });
-    // A first run: the setup steps show above a new
-    // Library View, in the window the /learn course is recorded in.
     await obRun(
       run.vaultId,
       async ({ zotlit }) => {
@@ -1493,20 +1423,17 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(shown).toEqual({
       width: 1440,
       height: 860,
-      // The tab is narrow, so the card sits under the list.
       stacked: true,
       inView: { pdf: true, note: true },
     });
   }, 180000);
 
   it("offers a PDF view's literature note only where its Zotero Attachment has a parent Item, writes the note from the header action through Profile selection for a PDF in Zotero storage, opens it beside the PDF, then names the action Open literature note, brings the same tab forward from the action, the command and More options, and names it Write literature note again once the note is gone", async () => {
-    // A PDF in Zotero's storage folder, outside the vault, as a new user's are.
     const pdf = ATTACHMENTS.find(({ key }) => key === "IANPDF25")!;
     expect(pdf.linkMode).toBe("imported_file");
     const itemKey = ITEMS.find(
       ({ itemID }) => itemID === pdf.parentItemID,
     )!.key;
-    // A PDF in the vault that no Zotero Attachment keeps.
     const loosePdf = "attachments/excerpt-acceptance/excerpt-rendering.pdf";
     const write = run.m.library_view_menu_write_note();
     const open = run.m.library_view_menu_open_note();
@@ -1550,7 +1477,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
 
-    // The PDF no Attachment keeps carries no control once it has resolved.
     await obRun(
       run.vaultId,
       async ({ app, page }, { path }) => {
@@ -1585,7 +1511,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               labels.includes(el.getAttribute("aria-label") ?? "") &&
               el.style.display !== "none",
           ).length;
-          // What the command palette asks before it lists the command.
           const command =
             app.commands.commands["zotlit:open-pdf-literature-note"]!
               .checkCallback!(true);
@@ -1599,7 +1524,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toEqual({ kind: "unresolved", shown: 0, command: false });
 
-    // The paper has no literature note yet, and its PDF is the only tab.
     await obRun(
       run.vaultId,
       async ({ app, zotlit, page }, { path, attachmentKey }) => {
@@ -1611,7 +1535,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ...app.workspace.getLeavesOfType("markdown"),
         ])
           leaf.detach();
-        // The PDF takes the empty tab, the active leaf.
         return await zotlit.services.bridge.runPromise(
           zotlit.services.targetOpener.open(
             { kind: "attachment", attachmentKey },
@@ -1622,7 +1545,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { path: saved.path, attachmentKey: pdf.key },
     ).then((outcome) => expect(outcome).toEqual({ kind: "reader" }));
 
-    /** The header action's label once it reads `expected`. */
     const actionLabel = (expected: string) =>
       actionLabelUntil(expected).catch(async (error: unknown) => {
         const state = await obRun(
@@ -1680,10 +1602,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           tries: 120,
         },
       );
-    /**
-     * Makes the PDF view active, then runs `gesture` on it: a press of the
-     * header action, the command, or the More options entry.
-     */
     const onPdf = (gesture: "action" | "command" | "menu", label: string) =>
       obRun(
         run.vaultId,
@@ -1737,10 +1655,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
         { attachmentKey: pdf.key, gesture, label },
       );
-    /**
-     * The tabs that show the paper's note once one of them is active, which
-     * the gesture before it causes: the PDF was active as it ran.
-     */
     const panes = (what: string) =>
       obRunUntil(
         run.vaultId,
@@ -1788,7 +1702,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(await actionLabel(open)).toBe(open);
 
-    // Each gesture brings the same tab forward and opens no other.
     expect(await onPdf("action", open)).toBe(true);
     expect(await panes("the action to bring the note forward")).toEqual(
       oneNoteBeside,
@@ -1802,7 +1715,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       oneNoteBeside,
     );
 
-    // Once the note is gone, the action offers to write it again.
     await obRun(
       run.vaultId,
       async ({ app }, { key }) => {

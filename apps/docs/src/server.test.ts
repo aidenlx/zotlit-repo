@@ -71,11 +71,7 @@ describe("global machine endpoint locale aliases", () => {
   );
 });
 
-// A Markdown answer repeats its HTML page, so search engines must neither
-// index it nor treat it as a page of its own; and a cache in front of a page
-// whose answer follows the Accept header must keep the two answers apart.
 describe("Markdown answers", () => {
-  // A generated reference page: it has no Chinese edition, so its /zh-CN copy is a fallback.
   const page = "/docs/reference/functions-and-methods";
   const canonical = `<https://zotlit.aidenlx.site${page}>; rel="canonical"`;
 
@@ -141,8 +137,6 @@ describe("Markdown answers", () => {
   );
 });
 
-// Pre-release Docs repeats the production pages; search engines list the
-// production line alone.
 describe("beta line", () => {
   it.each(["/docs/how-to/insert-citations", "/zh-CN/learn"])(
     "keeps the Worker's answer for %s out of the index",

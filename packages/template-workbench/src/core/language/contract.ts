@@ -1,4 +1,3 @@
-// Template Contract traversal shared by completion and local-variable inference.
 import type { ContractMember, ContractType } from "@zotlit/db/contract/ir";
 import type { ContractIR } from "@zotlit/db/contract/ir";
 import contractJson from "@zotlit/db/contract/ir.json";
@@ -48,16 +47,6 @@ export function child(
     return value.items;
   return members(value).find((member) => member.name === key)?.type;
 }
-/**
- * Formats the value at `path` for a `Sample:` hint.
- * @param sample - The data graph a template reads: link helpers are functions
- * and an annotation links back to its parent Item.
- * @param path - Keys from `zt` to the value, read the way `sampleValue` reads
- * them.
- * @returns JSON where a link helper is the text it outputs and a value that
- * refers to one of its ancestors is a `$ref` to that ancestor's `zt` accessor;
- * undefined when the path resolves to nothing.
- */
 export function sampleJson(
   sample: unknown,
   path: readonly string[],
@@ -97,7 +86,6 @@ export function sampleValue(sample: unknown, path: readonly string[]): unknown {
   for (const key of path) value = sampleStep(value, key);
   return value;
 }
-/** One key read on a Sample: `first` and `last` address an array's ends. */
 function sampleStep(value: unknown, key: string): unknown {
   if (Array.isArray(value) && (key === "first" || key === "last"))
     return key === "first" ? value[0] : value.at(-1);

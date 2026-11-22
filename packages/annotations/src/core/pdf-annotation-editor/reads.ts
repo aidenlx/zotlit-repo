@@ -6,7 +6,6 @@ import {
   logLevelEnabled,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 
-/** A live read, retaining the Attachment and the exact instant for write-back. */
 export interface PdfRead {
   attachmentKey: string;
   serverID: string | null;
@@ -19,7 +18,6 @@ interface PdfReadsDeps {
   now: () => Temporal.Instant;
 }
 
-/** One throttle shared by every view of an Attachment in this workspace. */
 export class PdfReads {
   readonly #last = new Map<string, Temporal.Instant>();
   readonly #record;

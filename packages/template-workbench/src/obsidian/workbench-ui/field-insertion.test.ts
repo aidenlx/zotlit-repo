@@ -28,7 +28,6 @@ function shapeNodes(): { authors: DisplayNode; family: DisplayNode } {
   return { authors, family: authors.children[0]! };
 }
 
-/** The text an insert of `node` writes at a place of `mode`, in the form `kind`. */
 const text = (
   node: DisplayNode,
   mode: FieldInsertionContext["mode"],
@@ -54,9 +53,6 @@ describe("fieldForm", () => {
     );
   });
 
-  // A creator with no family name, as Zotero keeps a one-field name:
-  // the template context gives it an empty family name. A missing value and
-  // a value that is false read as no value too.
   describe.each(["liquid", "eta"] as const)(
     "a list property with an item that has no value, in %s",
     (engine) => {
@@ -94,7 +90,6 @@ describe("fieldForm", () => {
           const form = fieldForm(family(), { engine, mode: "template" }, kind);
           const rendered = await render(form.snippet);
           expect(rendered).toBe(note);
-          // The result is the note's text, less the line break before the first line.
           expect(form.result).toBe(rendered.replace(/^\n/, ""));
         },
       );

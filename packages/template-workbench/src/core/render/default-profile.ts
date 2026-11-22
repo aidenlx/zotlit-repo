@@ -1,5 +1,3 @@
-// Built-in Profile used by standalone Workbench previews and Sample Item checks.
-
 import { CONTRACT_VERSION } from "@zotlit/db";
 import { DEFAULT_ANNOTATION_LIQUID } from "@zotlit/templates/facade";
 

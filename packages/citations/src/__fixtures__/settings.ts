@@ -1,7 +1,3 @@
-// The settings the citations read, for their tests: the platform slices, the
-// reader slice and the citation slice. A host's program registers more keys,
-// which these tests never read, so this definition stands in for its whole
-// map.
 import type { Layer } from "effect";
 import type { Plugin } from "obsidian";
 import * as v from "valibot";
@@ -45,8 +41,6 @@ export const defaults = Object.freeze({
   ...readerSettings.defaults,
 }) as Readonly<Settings>;
 
-// A host's program registers more keys than these slices hold, so the schema
-// stands in for the whole registry, as `defaults` does.
 const schema = v.object({
   ...logSettings.entries,
   ...citationSettings.entries,
@@ -64,7 +58,6 @@ export type SettingsFixtureOptions = Partial<PluginSettingsOptions> & {
   plugin: Pick<Plugin, "loadData" | "saveData">;
 };
 
-/** The settings store under this package's definition. */
 export function layerSettings(
   plugin: Pick<Plugin, "loadData" | "saveData">,
   options: Partial<PluginSettingsOptions> = {},
@@ -75,11 +68,9 @@ export function layerSettings(
 export const settingsOf = ({ plugin, ...options }: SettingsFixtureOptions) =>
   definedSettingsOf({ plugin, definition, ...options });
 
-/** Settings whose changes the test publishes, over this package's defaults. */
 export const settingsFeed = (overrides: Partial<Settings> = {}) =>
   definedSettingsFeed(defaults, overrides);
 
-/** The real store over empty plugin data, seeded with `overrides`. */
 export async function buildSeededSettings(
   overrides: Partial<Settings> = {},
 ): Promise<SettingsFixture> {

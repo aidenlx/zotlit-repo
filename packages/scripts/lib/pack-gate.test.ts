@@ -8,7 +8,6 @@ import { checkPack } from "./pack-gate.ts";
 const sha256 = (bytes: Uint8Array) =>
   createHash("sha256").update(bytes).digest("hex");
 
-/** The pin of `bytes`, as package.json states one. */
 const pin = (bytes: Uint8Array) => ({
   version: "1.0.0",
   sha256: sha256(bytes),

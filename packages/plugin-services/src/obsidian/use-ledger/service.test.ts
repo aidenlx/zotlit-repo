@@ -29,14 +29,12 @@ const itemKey = (n: number) =>
     .join("")
     .padStart(8, "A");
 
-/** Device storage whose read throws, as a corrupt saved ledger would. */
 class UnreadableStorage extends MemoryDeviceStorage {
   override loadLocalStorage(): unknown {
     throw new SyntaxError("Unexpected token");
   }
 }
 
-/** Device storage whose write throws, as a full quota would. */
 class FullStorage extends MemoryDeviceStorage {
   override saveLocalStorage(): void {
     throw new DOMException(
@@ -46,8 +44,6 @@ class FullStorage extends MemoryDeviceStorage {
   }
 }
 
-// Failure modes: the cap drops a recently used Item, an update consumes a
-// second slot, or reloading restores entries already dropped by the cap.
 it.effect("keeps the 300 most recently used Items across reloads", () =>
   Effect.gen(function* () {
     const host = ledgerHost();
@@ -82,8 +78,6 @@ it.effect("keeps the 300 most recently used Items across reloads", () =>
   }),
 );
 
-// Failure mode: the saved instants change form, so a stored ledger differs
-// from the one earlier versions wrote.
 it.effect("saves each instant in the ISO form it has always had", () =>
   Effect.gen(function* () {
     const host = ledgerHost();
@@ -97,7 +91,6 @@ it.effect("saves each instant in the ISO form it has always had", () =>
         yield* ledger.record("AAAAAAAB", "cited");
       }),
     );
-    // Earlier versions saved under this key; a renamed key loses every Use.
     expect([...storage.values.keys()]).toEqual(["zotlit-use-ledger"]);
     expect(storage.loadLocalStorage("zotlit-use-ledger")).toEqual({
       AAAAAAAA: { instant: "1970-01-01T00:00:01Z", kind: "opened" },
@@ -111,8 +104,6 @@ it.effect("saves each instant in the ISO form it has always had", () =>
   }),
 );
 
-// Failure modes: an Item note opened after unload still records a Use, or
-// the ledger leaves its workspace listeners behind.
 it.effect(
   "stops recording and releases its listeners when its scope closes",
   () =>
@@ -124,8 +115,6 @@ it.effect(
       const ledger = yield* Effect.scoped(useLedgerOf(host));
       yield* ledger.record("AAAAAAAA", "opened");
 
-      // The workspace and metadata cache listeners close with the ledger and
-      // with the tags it reads, which close with it here.
       expect(workspace.listenerCount("file-open")).toBe(0);
       expect(metadataCache.listenerCount("changed")).toBe(0);
       expect(yield* ledger.current).toEqual({});
@@ -133,8 +122,6 @@ it.effect(
     }),
 );
 
-// Failure modes: a corrupt saved ledger stops plugin load, or the fallback
-// to an empty ledger leaves no trace in the log.
 it.effect(
   "starts empty and logs a warning when the saved Uses cannot be read",
   () =>
@@ -154,8 +141,6 @@ it.effect(
     }),
 );
 
-// Failure modes: a failed save kills the caller as a defect, so no caller
-// can recover from it, or the failed Use stays in the ledger.
 it.effect(
   "fails a record whose save throws with the storage failure and keeps the ledger",
   () =>
@@ -173,8 +158,6 @@ it.effect(
     }),
 );
 
-// Failure modes: a note Obsidian restores at startup counts as opened, or a
-// note opened once the layout is ready records no Use.
 it.effect("records an opened Item note only once the layout is ready", () =>
   Effect.gen(function* () {
     const metadataCache = new MemoryMetadataCache();
@@ -196,8 +179,6 @@ it.effect("records an opened Item note only once the layout is ready", () =>
   }),
 );
 
-// Failure modes: an open Obsidian deferred from before a Companion update is
-// dropped as the update's own, or the update's own navigation counts as a Use.
 it.effect(
   "counts a deferred open before an update and not the update's own",
   () =>
@@ -230,8 +211,6 @@ it.effect(
     }),
 );
 
-// A state subscriber sees the current value, then each update, and its
-// stream ends when the service stops.
 it.effect(
   "changes replays the current Uses, delivers updates and ends when the scope closes",
   () =>

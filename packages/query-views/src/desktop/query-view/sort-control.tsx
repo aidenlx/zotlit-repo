@@ -2,14 +2,6 @@ import type {
   QueryFileDirection,
   QueryFileSort,
 } from "#core/query-view/query-file.ts";
-// The Sort control: the sort properties of a view, the first one first. The
-// researcher adds a property, sets its direction, drags it to set its
-// priority, and removes it. It is host-neutral: it reads the sort and reports
-// the next one, and the host saves it.
-//
-// It lays out as the Bases Sort menu: a "Sort by" section of rows, each a
-// drag handle, one joined [property | direction] box and a delete button,
-// then an "Add sort" footer. The Group control reuses the row parts.
 import { useState } from "react";
 import type { ReactNode } from "react";
 
@@ -36,20 +28,12 @@ import {
 
 export interface SortEditorProps {
   value: readonly QueryFileSort[];
-  /** The properties ZotLit Query can sort the view's dataset by. */
   options: readonly PropertyOption[];
-  /** The sort properties the view's dataset lacks, which the view does not use. */
   unused?: readonly string[];
-  /** The name the view gives a property, for one the options do not list. */
   labelOf?: (path: string) => string;
   onChange: (next: QueryFileSort[]) => void;
 }
 
-/**
- * A property the file names that the options do not, as a saved sort on a
- * Vault Property no Literature Note holds now: the name the view gives it,
- * with the icon of a property it cannot place.
- */
 export function unlistedOption(
   path: string,
   labelOf: (path: string) => string = (named) => named,
@@ -68,11 +52,6 @@ function optionOf(
   );
 }
 
-/**
- * A property as the property select offers it: its type icon before its
- * name, and its path after it where the name is not the path, as the Bases
- * property picker shows a property's id.
- */
 export function propertySelectOption(option: PropertyOption): SelectOption {
   return {
     value: option.path,
@@ -83,22 +62,11 @@ export function propertySelectOption(option: PropertyOption): SelectOption {
   };
 }
 
-/**
- * The rows of a Sort or Group section, spaced as the Bases menu spaces its
- * sort rows.
- */
 export const sortRowsClass =
   "zt:flex zt:flex-col zt:gap-(--size-2-3) zt:px-(--size-4-1) zt:pt-(--size-4-1) zt:pb-(--size-4-2)";
 
-/** One row: handle, joined selects, delete button and marks. */
 export const sortRowClass = "zt:flex zt:items-center zt:gap-(--size-4-1)";
 
-/**
- * A property select and its direction select, joined in one box as Bases
- * joins them. The selects stay bare: the box sets the input variables they
- * read (no radius, no shadow, the form-field fill), draws the ring, and
- * takes the focus ring for the select inside it.
- */
 export function JoinedSelects({
   property,
   direction,
@@ -126,7 +94,6 @@ export function JoinedSelects({
   );
 }
 
-/** The delete button at the end of a row: a trash icon, as in Bases. */
 export function RemoveButton({
   label,
   disabled,
@@ -152,7 +119,6 @@ export function RemoveButton({
   );
 }
 
-/** The mark of a setting the view keeps but does not use. */
 export function NotUsed() {
   return (
     <span className="zt:shrink-0 zt:text-xs zt:text-(--text-faint)">
@@ -161,12 +127,6 @@ export function NotUsed() {
   );
 }
 
-/**
- * The row the Sort menu shows while the view sorts by nothing, as Bases
- * shows it: its property select holds the placeholder, and the property it
- * takes becomes the first sort, in the direction chosen beside it. It has
- * nothing to drag or to remove.
- */
 function EmptySortRow({
   options,
   onChange,

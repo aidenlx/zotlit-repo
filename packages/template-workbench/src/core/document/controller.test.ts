@@ -5,11 +5,6 @@ import { synthesizeLegacyLiteratureNoteTemplate } from "@zotlit/templates/facade
 import { entrySlice, WorkbenchDocumentController } from "./controller.ts";
 import { scalarCodec } from "./slice-codec.ts";
 
-/**
- * A hand-written Profile: an out-of-order manifest with a comment, a single-
- * quoted filename, and a double-quoted description, so an edit that
- * re-serializes the manifest is visible byte for byte.
- */
 const HAND_WRITTEN = `---
 # my own profile, do not reformat
 name: Reading notes
@@ -44,7 +39,6 @@ function noteEdit(
   });
 }
 
-/** A Profile document carrying two partials in its manifest's transport list. */
 const BUNDLED = HAND_WRITTEN.replace(
   "language: liquid",
   [
@@ -287,8 +281,6 @@ describe("WorkbenchDocumentController", () => {
   it("reports the transport copy as a problem", () => {
     const native = new WorkbenchDocumentController(BUNDLED);
 
-    // A Profile edited beside the vault reads its partials from files, so the
-    // manifest copy is text with two homes until Unpack partials runs.
     expect(native.problems).toEqual([
       expect.objectContaining({
         code: "bundled-partial",
@@ -308,16 +300,13 @@ describe("WorkbenchDocumentController", () => {
     expect(controller.document!.manifest.partials).toEqual([
       { name: "venue-line", language: "liquid", source: "Venue" },
     ]);
-    // The reader's own manifest bytes survive the edit.
     expect(controller.source).toContain("# my own profile, do not reformat");
     expect(controller.source).toContain("filename: '{{ zt.citationKey }}'");
 
-    // The last entry goes with its key, so the problem goes with it.
     expect(controller.dropBundledPartials(["venue-line"])).toBe(true);
     expect(controller.source).not.toContain("partials:");
     expect(controller.problems).toEqual([]);
 
-    // One undo step each, so the reader gets the bundle back as it was.
     expect(controller.undo()).toBe(true);
     expect(controller.undo()).toBe(true);
     expect(controller.source).toBe(bundled);
@@ -406,8 +395,6 @@ describe("WorkbenchDocumentController", () => {
     const controller = new WorkbenchDocumentController(HAND_WRITTEN);
 
     expect(controller.setManifestKey("folder", "literatures")).toBe(true);
-    // A key the manifest never wrote lands at its foot, so no line the author
-    // ordered has to move.
     expect(controller.source).toBe(
       HAND_WRITTEN.replace(
         "---\n# {{ zt.title }}",
@@ -487,7 +474,6 @@ describe("WorkbenchDocumentController", () => {
 });
 
 describe("WorkbenchDocumentController and the Annotation Section", () => {
-  /** A Profile whose note body calls the section twice, around a Managed Block. */
   const TWO_CALLS = HAND_WRITTEN.replace(
     "Read on {{ zt.dateAdded }}.",
     `{% managed %}
@@ -640,9 +626,6 @@ it("keeps a broken manifest line outside the rules in Advanced", () => {
   ]);
 });
 
-// A rule copied from the docs, a shared Profile, or an assistant is often YAML
-// rather than the one-line JSON the rule editor writes. The note renders it, so
-// the Workbench reads it too.
 it.each([
   [
     "a block mapping",
@@ -692,8 +675,6 @@ language: liquid
     });
     expect(controller.kind).toBe("citation");
     expect(controller.plainDocument?.manifest.language).toBe("liquid");
-    // The manifest is three lines of 4, 16 and 4 characters, each with its
-    // break, so the source starts at offset 25.
     expect(controller.sliceRange("source")).toEqual({
       from: 25,
       to: CITATION.length,
@@ -756,8 +737,6 @@ language: liquid
     controller.applyExternalSource(broken);
 
     expect(controller.plainDocument).toBeNull();
-    // The manifest sits inside the slice the reader repairs it in, as it does
-    // for a document whose manifest never parsed.
     expect(controller.sliceRange("source")).toEqual({
       from: 0,
       to: broken.length,
@@ -769,7 +748,6 @@ language: liquid
       "---\n# the set this renders\n---\nx\n",
       { kind: "citation" },
     );
-    // An empty or comment-only manifest is valid and names the Liquid default.
     expect(controller.plainDocument?.manifest.language).toBe("liquid");
 
     expect(controller.setPlainLanguage("eta")).toBe(true);

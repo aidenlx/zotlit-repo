@@ -12,7 +12,6 @@ import { languagePackSettingCopy } from "./setting-copy.ts";
 const PACK_URL =
   "https://github.com/aidenlx/zotlit/releases/download/res-2.0.0/zh-CN.json";
 
-/** The kinds the pack moves through after the current one. */
 const watchKinds = Effect.fn("test.watchKinds")(function* (
   pack: LanguagePack["Service"],
 ) {
@@ -30,7 +29,6 @@ const watchKinds = Effect.fn("test.watchKinds")(function* (
 const kindOf = (pack: LanguagePack["Service"]) =>
   Effect.map(pack.situation, (situation) => situation.kind);
 
-/** The setting row for `pack` as it stands now. */
 const settingCopy = Effect.fn("test.settingCopy")(function* (
   pack: LanguagePack["Service"],
 ) {
@@ -88,7 +86,6 @@ describe("Language Pack startup", () => {
           label: "安装",
           disabled: false,
         });
-        // Every other Message reads the bundled base pack until a pack applies.
         expect(m.hello()).toBe("world");
         expect(m.workbench_tab_match()).toBe("Match");
       }),
@@ -185,7 +182,6 @@ describe("Language Pack install", () => {
 
       expect(yield* pack.install).toEqual({ fileName: "zh-CN.json" });
 
-      // Downloaded from the Resource Release of the running plugin version.
       expect(device.requests).toEqual([PACK_URL]);
       expect(kinds).toEqual(["downloading", "restart-pending"]);
       const downloaded = yield* settingCopy(pack);
@@ -193,7 +189,6 @@ describe("Language Pack install", () => {
         m.notice_language_pack_restart({ plugin: "ZotLit" }),
       );
       expect(downloaded?.install).toBeUndefined();
-      // Cached, not applied: the facade still reads the bundled base pack.
       expect(m.hello()).toBe("world");
       expect([...device.storage.keys()].toSorted()).toEqual([
         "zotlit:i18n:consent:zh-CN",
@@ -204,7 +199,6 @@ describe("Language Pack install", () => {
       expect(restarted.locale).toBe("zh-CN");
       expect(yield* kindOf(restarted)).toBe("active");
       expect(yield* settingCopy(restarted)).toBeUndefined();
-      // The pack applied to the very runtime the facade reads.
       expect(m.hello()).toBe("世界（测试）");
       expect(m.workbench_tab_match()).toBe("匹配（测试包）");
       expect(m.workbench_explorer_section_common()).toBe("Common fields");
@@ -243,7 +237,6 @@ describe("Language Pack install", () => {
           language: "zh",
           pluginVersion: "3.0.0",
         });
-        // Consent was answered, so this is `installable`, not the initial `offered`.
         expect(yield* kindOf(restarted)).toBe("installable");
         expect(device.requests).toEqual([]);
 
@@ -278,7 +271,6 @@ describe("Language Pack install", () => {
 
         expect(yield* kindOf(updated)).toBe("downloading");
         expect(m.hello()).toBe("world");
-        // Labelled but inert: dropping the button collapses the row's control slot.
         expect((yield* settingCopy(updated))?.install).toMatchObject({
           label: m.notice_language_pack_install_action(),
           disabled: true,
@@ -347,7 +339,6 @@ describe("Language Pack install", () => {
 
         expect(failed._tag).toBe("LanguagePackDownloadFailed");
         expect(failed.message).not.toBe("");
-        // Consent was answered by the failed attempt, so this is `installable`.
         expect(yield* kindOf(pack)).toBe("installable");
         expect(m.hello()).toBe("world");
       }),
@@ -459,7 +450,6 @@ describe("Language Pack reset", () => {
         yield* pack.reset;
 
         expect([...device.storage.keys()]).toEqual([]);
-        // Nothing was applied this session, so the pending restart is gone too.
         expect(kinds).toEqual(["installable"]);
 
         const restarted = yield* startOn(device, { language: "zh" });
@@ -480,7 +470,6 @@ describe("Language Pack reset", () => {
         yield* restarted.reset;
 
         expect([...device.storage.keys()]).toEqual([]);
-        // The applied pack keeps running until the app restarts.
         expect(yield* kindOf(restarted)).toBe("active");
         expect(m.workbench_tab_match()).toBe("匹配（测试包）");
 

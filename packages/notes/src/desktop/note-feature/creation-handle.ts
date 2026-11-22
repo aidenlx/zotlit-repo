@@ -1,5 +1,4 @@
 import type { ProfileDialogServices } from "#desktop/profile/dialogs.ts";
-// The interactive note creation for callers outside Effect: the Note Feature's views.
 import type { Context } from "effect";
 import type { TFile } from "obsidian";
 
@@ -16,7 +15,6 @@ import type {
 } from "./creation-view.ts";
 import type { NoteFeature } from "./service.ts";
 
-/** The services the interactive creation and the Profile dialogs it opens read. */
 export type NoteCreationServices =
   | NoteFeature
   | Notifier
@@ -24,19 +22,12 @@ export type NoteCreationServices =
   | ProfileDialogServices;
 
 export interface NoteCreation {
-  /** @see createNoteInteractively */
   createNoteInteractively(
     item: Item,
     options?: InteractiveCreationOptions,
   ): Promise<TFile | null>;
 }
 
-/**
- * The interactive creation over `context` and `ports`, run through `bridge`.
- * It resolves with the created file, or `null`, and rejects with what the
- * plan failed with. Unload interrupts it: the picker closes, and it resolves
- * `null`, as a cancelled creation does.
- */
 export function bindNoteCreation(
   bridge: Pick<EffectBridge, "runPromiseExit">,
   context: Context.Context<NoteCreationServices>,

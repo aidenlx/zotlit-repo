@@ -1,9 +1,3 @@
-// The Citation text entry points: the command, the Citations settings row and
-// the Template Workbench View all open the citation text through
-// `openCitationTemplate`. It materializes `zotlit-citation.md` from the
-// built-in citation text when the vault holds none, so a first edit starts
-// from the text ZotLit actually renders.
-
 import { Effect, Layer } from "effect";
 import type { Context, Scope } from "effect";
 import type { WorkspaceLeaf } from "obsidian";
@@ -20,14 +14,7 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { Template } from "./service.ts";
 import { TemplateWorkbenchLauncher } from "./workbench-launcher.ts";
 
-/** The services the Citation Template open runs with. */
 type CitationTemplateServices = Template | Notifier | TemplateWorkbenchLauncher;
-
-/**
- * The "Customize citation text" command. Its callback is a plain Obsidian
- * entry point, so it runs the open on the layer's own bridge, over the
- * services the layer was built with.
- */
 
 export const layerCitationTemplateActions: Layer.Layer<
   never,
@@ -63,12 +50,6 @@ export function addCitationTemplateActions(
   );
 }
 
-/**
- * Open the Citation Template in the Template Workbench View, creating its
- * document from the built-in citation text when the vault holds none. The
- * "profile uses Eta" notice belongs to a Profile document, so it is not
- * offered here. An open from a Workbench leaf opens in a new tab of its window.
- */
 export const openCitationTemplate = (from?: WorkspaceLeaf) =>
   Effect.gen(function* () {
     const file = yield* (yield* Template).materializeCitationTemplate;
@@ -78,10 +59,6 @@ export const openCitationTemplate = (from?: WorkspaceLeaf) =>
     );
   }).pipe(Effect.withSpan("openCitationTemplate"));
 
-/**
- * {@link openCitationTemplate} for an entry point: a failure is logged and a
- * notice tells the user; an interrupt passes on with no notice.
- */
 export const reportCitationTemplateOpen = (from?: WorkspaceLeaf) =>
   reportOutcome(openCitationTemplate(from), {
     success: () => undefined,

@@ -1,6 +1,5 @@
 import { afterAll, beforeAll, beforeEach } from "vitest";
 
-// The End-to-end vault holds the Resource Pack installed and not enabled.
 import { RESOURCE_PACK_ID } from "@zotlit/plugin-services/core/managed-binary/resource-pack.ts";
 import { pluginsOption } from "@zotlit/scripts/vault-plugins";
 
@@ -20,7 +19,6 @@ import {
   installWithoutEnabling,
 } from "./vault-script.ts";
 
-/** Shared End-to-end Run vault state for every area file. */
 export const run = {
   vaultId: "",
   m: undefined as unknown as typeof import("@zotlit/plugin-messages/messages.ts"),
@@ -48,8 +46,6 @@ async function bootstrap(): Promise<void> {
     e2eVaultPath,
     RUN_PLUGINS.join(","),
   );
-  // The Resource Pack works installed and not enabled, the state Obsidian
-  // leaves it in after an install from the community plugin browser.
   const pack = await installWithoutEnabling(
     workspaceRoot,
     e2eVaultPath,
@@ -140,7 +136,6 @@ async function teardown(): Promise<void> {
   }
 }
 
-/** One vault per run: area files share bootstrap and teardown. */
 export function registerEndToEndRunHooks(): void {
   beforeAll(async () => {
     refCount++;

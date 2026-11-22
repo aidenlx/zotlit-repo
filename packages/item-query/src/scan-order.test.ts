@@ -21,7 +21,6 @@ const RECORDS = [
   { key: "ORD2CCCC", title: "Last title", type: "book" },
 ] as const;
 
-/** Keep each key's data fixed while changing its place in the Item ID scan. */
 function seedOrder(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   itemIDs: readonly number[],
@@ -79,8 +78,6 @@ const REQUESTS = [
   keys: readonly string[];
 }[];
 
-// Failure modes: scan order decides a sort tie, a limited selection, or a group;
-// an OR candidate plan encounters the same records in a different order.
 it.each(REQUESTS)(
   "keeps the complete $name Query Result when keys move between Item IDs",
   async ({ request: query, keys }) => {
@@ -125,7 +122,6 @@ it.each(REQUESTS)(
   },
 );
 
-// Failure mode: two group values collate as equal, so read order decides them.
 it("keeps the order of groups whose values collate as equal", async () => {
   const records = [
     { key: "ORD2DDDD", title: "Éclairs", type: "book" },

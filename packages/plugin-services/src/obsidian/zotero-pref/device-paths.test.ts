@@ -8,7 +8,6 @@ import type { ZoteroPathOverrides } from "./device-paths.ts";
 
 const KEY = "zotlit-zotero-paths";
 
-/** Map-backed stand-in for Obsidian's vault-scoped localStorage. */
 class AppStub {
   readonly store = new Map<string, unknown>();
 

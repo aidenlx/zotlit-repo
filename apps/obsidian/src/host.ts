@@ -1,5 +1,3 @@
-// Desktop ZotLit as a host of the shell: its features, its settings history,
-// and the order of its setting tab and its file menu.
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 import { catalog } from "@zotlit/plugin-messages/catalog.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
@@ -19,7 +17,6 @@ export const host = defineHost({
   },
   settingTab: {
     top: ["resources", "literature-notes"],
-    // Profiles leads because it extends the default Profile's rows above it.
     pages: [
       "profiles",
       "note-import",
@@ -30,8 +27,6 @@ export const host = defineHost({
       "advanced",
     ],
   },
-  // Each entry names its own section; this order is the order of the rows
-  // inside each section.
   fileMenu: [
     "attachment-open",
     "pdf-note",

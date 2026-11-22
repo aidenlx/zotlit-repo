@@ -1,31 +1,17 @@
-// The Effect `HttpClient` over Obsidian's `requestUrl`, for remote calls.
-
 import { Effect, Layer, Option } from "effect";
 import { HttpClient, HttpClientError, HttpClientResponse } from "effect/http";
 import type { HttpClientRequest } from "effect/http";
 import { requestUrl } from "obsidian";
 import type { RequestUrlParam, RequestUrlResponse } from "obsidian";
 
-/** Statuses the `Response` constructor refuses a body for. */
 const NULL_BODY_STATUS: ReadonlySet<number> = new Set([
   101, 103, 204, 205, 304,
 ]);
 
-/** The `requestUrl` call the client makes; a test hands in its own. */
 export type RequestUrl = (
   request: RequestUrlParam,
 ) => Promise<RequestUrlResponse>;
 
-/**
- * An `HttpClient` over Obsidian's `requestUrl`, for remote calls. The request
- * leaves through Obsidian's own network stack, past the renderer's CORS check.
- *
- * Any status is an answer, as with every `HttpClient`: `throw: false` keeps
- * `requestUrl` from rejecting at `400` and up. Only a failed connection fails.
- * `requestUrl` takes no signal, so an interrupt stops the wait but not the
- * transfer. It sends only a text or byte body; a form or stream body is a
- * defect.
- */
 export function requestUrlHttpClient(
   send: RequestUrl = requestUrl,
 ): HttpClient.HttpClient {
@@ -55,7 +41,6 @@ export function requestUrlHttpClient(
   );
 }
 
-/** {@link requestUrlHttpClient} as the plugin's remote `HttpClient`. */
 export const layerRequestUrlHttpClient: Layer.Layer<HttpClient.HttpClient> =
   Layer.sync(HttpClient.HttpClient, () => requestUrlHttpClient());
 
@@ -67,7 +52,6 @@ function requestBody(
     case "Empty":
       return Effect.succeedNone;
     case "Uint8Array":
-      // A copy: a text body is a view into Node's shared Buffer pool.
       return Effect.succeedSome(new Uint8Array(body.body).buffer);
     case "Raw":
       if (typeof body.body === "string") return Effect.succeedSome(body.body);

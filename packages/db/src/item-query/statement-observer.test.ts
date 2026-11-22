@@ -26,7 +26,6 @@ import { connectClient } from "#client/node.ts";
 
 const { personal } = SCENARIO_LIBRARIES;
 
-/** Run a reader and collect the statements it runs. */
 function observe<A, E>(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   effect: Effect.Effect<A, E, ItemQueryDatabase>,
@@ -52,7 +51,6 @@ describe("ItemQueryStatementObserver", () => {
       readScanPage({ libraryID: personal.libraryID, afterItemID: 0, size: 4 }),
     );
 
-    // The first statement on a copy follows the layout check.
     expect(runs.map((run) => run.reader)).toEqual([
       "layout",
       "layout",

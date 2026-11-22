@@ -1,6 +1,3 @@
-// The Advanced page's Clear excerpt image cache action: it asks first, then
-// empties the Excerpt Image store the plugin can always fill again, and names
-// the outcome in a notice.
 import { Effect } from "effect";
 import type { SettingGroupItem } from "obsidian";
 
@@ -17,14 +14,11 @@ import { ExcerptDisplays } from "./display.ts";
 
 import { ExcerptImageService } from "#obsidian/excerpt-image/service.ts";
 
-/** Empty the Excerpt Image store and release every display that paints from it. */
 export const clearExcerptCache = Effect.fn("SettingTab.clearExcerptCache")(
   function* (confirm: Effect.Effect<boolean>) {
     if (!(yield* confirm)) return "cancelled" as const;
     const displays = yield* ExcerptDisplays;
     const images = yield* ExcerptImageService;
-    // The Held Reads go first: a card that repainted from the store while
-    // it emptied would hold an image the clear removed.
     yield* displays.clear;
     yield* images.clear;
     return "completed" as const;
@@ -32,7 +26,6 @@ export const clearExcerptCache = Effect.fn("SettingTab.clearExcerptCache")(
   withLogCategory("setting-tab", "advanced"),
 );
 
-/** Report a confirmed cache clear, preserving silence on cancellation. */
 export const reportClearExcerptCache = (confirm: Effect.Effect<boolean>) =>
   reportOutcome(clearExcerptCache(confirm), {
     success: (outcome) =>
@@ -40,7 +33,6 @@ export const reportClearExcerptCache = (confirm: Effect.Effect<boolean>) =>
     error: () => m.notice_excerpt_cache_clear_failed(),
   });
 
-/** The Recovery group's Clear excerpt image cache row. */
 export function excerptCacheClearItem(
   ctx: SettingTabContext,
 ): SettingGroupItem<SettingsKey> {

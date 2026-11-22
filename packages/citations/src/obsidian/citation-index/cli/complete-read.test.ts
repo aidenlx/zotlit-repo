@@ -1,4 +1,3 @@
-// Complete CLI reads over the real index, worker boundary and in-memory Zotero database.
 import type { CitationIndexHarness } from "#__fixtures__/citation-index/test-harness.ts";
 import { it } from "@effect/vitest";
 import { Effect, Fiber } from "effect";
@@ -83,7 +82,6 @@ it.effect.each(["annotation-uses", "cited-by"])(
           key: command === "annotation-uses" ? "ANN23456" : "ABCD2345",
         })
         .pipe(Effect.forkChild);
-      // The worker reply is the completion boundary, released after the command starts.
       yield* TestClock.adjust(100);
       release.resolve();
       const answer = JSON.parse(yield* Fiber.join(fiber));

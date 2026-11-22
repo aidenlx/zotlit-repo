@@ -27,7 +27,6 @@ beforeEach(() => {
   Modal.instances.length = 0;
 });
 
-// A stopped create is silent; a write failure keeps its log and notice.
 it.effect.each(["interrupt", "failure"] as const)(
   "reports a Shared Partial write stopped by %s",
   (reason) =>

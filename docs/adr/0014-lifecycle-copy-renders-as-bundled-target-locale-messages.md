@@ -17,3 +17,17 @@ full Language Packs.
 - Deriving language names via `Intl.DisplayNames` or a reserved message key —
   rejected: Obsidian's display-language set is closed, so a dedicated static
   table is simpler and deterministic across platforms.
+
+A Target-Locale Message keeps its generated wrapper name and input
+signature. Only its runtime dispatch changes. The compiler bundles the
+selected subset for each remote locale and omits the base locale,
+which the fallback already bundles. The runtime reads the target
+subset, then the base and Message ID. It can use the subset before any
+remote pack exists. Ordinary Messages use the active pack's locale,
+which a caller can also use for adjacent formatting. The lifecycle
+uses the resolved locale code when the Endonym table has no entry.
+Its host owns pack consent, download, and cache. Consumers render one
+lifecycle state at a time.
+
+Embed lifecycle copy that must be readable before a Language Pack
+loads.

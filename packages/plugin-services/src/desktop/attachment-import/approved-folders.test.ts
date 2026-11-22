@@ -18,7 +18,6 @@ import { AttachmentImport } from "./service.ts";
 import { failureOf, recordingRuns } from "#__fixtures__/setting-tab-harness.ts";
 import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";
 
-/** The approved-folder list of the page over `service`, with the runs it started. */
 const folderList = Effect.fnUntraced(function* (
   service: AttachmentImport["Service"],
 ) {

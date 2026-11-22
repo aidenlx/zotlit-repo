@@ -16,7 +16,6 @@ const RESOLVED: AttachmentResolution = {
   openable: true,
 };
 
-/** A highlight on page four, and one that spills over the break onto page six. */
 const HIGHLIGHT = annotation("HIGHL234", "highlight", {
   pageIndex: 3,
   rects: [[100, 600, 500, 640]],
@@ -26,13 +25,8 @@ const SPILLED = annotation("SPILL234", "highlight", {
   rects: [[100, 80, 500, 120]],
   nextPageRects: [[100, 700, 500, 740]],
 });
-/** An Annotation whose position this build draws nowhere. */
 const UNPLACED = annotation("UNPLC234", "highlight", {});
 
-/**
- * The pages those two draw on, written out rather than grouped, so the page
- * this module answers is pinned by the fixture and not by the grouping.
- */
 const MARKS = new Map<number, PdfPageAnnotation[]>([
   [3, [placement(HIGHLIGHT)]],
   [4, [placement(SPILLED)]],
@@ -96,8 +90,6 @@ describe("decideMarkLanding", () => {
     ).toEqual({ kind: "wait", annotationKey: "SPILL234", pageIndex: 4 });
   });
 
-  // The Indexed Key is the durable identity and the page number is a hint, so
-  // a link written before the PDF was replaced still lands on its Annotation.
   it("lands on the Annotation's own page when the link's page disagrees", () => {
     expect(landing({ page: 1, annotation: "HIGHL234" })).toMatchObject({
       kind: "select",
@@ -134,8 +126,6 @@ describe("decideMarkLanding", () => {
     });
   });
 
-  // An Attachment with no Annotations and an Annotation Source still loading
-  // both answer an empty list, and only one of them is final.
   it("leaves the page to Obsidian while the Annotations are still being read", () => {
     expect(
       landing(

@@ -14,11 +14,6 @@ import {
 } from "./library-scope.ts";
 import type { LibraryScope, ResolvedLibraryScope } from "./library-scope.ts";
 
-/**
- * Local library ids deliberately run against group-id order: group 200 sits at
- * libraryID 3 and group 100 at libraryID 7, so a canonical-order assertion
- * cannot pass by accident on database row order.
- */
 const MY_LIBRARY: Library = {
   libraryID: 1,
   version: 0,

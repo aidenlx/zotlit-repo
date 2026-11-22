@@ -251,6 +251,9 @@ catalogs:
     jieba-wasm:
       specifier: 2.4.0
       version: 2.4.0
+    jsonc-parser:
+      specifier: ^3.3.1
+      version: 3.3.1
     monkey-around:
       specifier: 3.0.0
       version: 3.0.0
@@ -1298,6 +1301,9 @@ importers:
       arkregex:
         specifier: 'catalog:'
         version: 0.0.5
+      jsonc-parser:
+        specifier: 'catalog:'
+        version: 3.3.1
       oxc-parser:
         specifier: 'catalog:'
         version: 0.158.0
@@ -1313,6 +1319,9 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
+      yaml:
+        specifier: 'catalog:'
+        version: 2.9.1
 
   packages/db:
     dependencies:

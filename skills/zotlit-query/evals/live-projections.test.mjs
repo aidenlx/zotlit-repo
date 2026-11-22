@@ -5,7 +5,6 @@ import test from "node:test";
 import { validate } from "./check.mjs";
 import { checkAnswer } from "./run.mjs";
 
-// Saved live responses and explicitly labelled, corpus-verified contract examples.
 const live = JSON.parse(
   await readFile(new URL("./live-projections.json", import.meta.url), "utf8"),
 );

@@ -1,41 +1,3 @@
-// The End-to-end Run after a land. Each land onto `main` writes a request for
-// its new tip and starts a detached runner; the land does not wait for it.
-//
-//   land ─▶ request.json (the newest tip; each land overwrites it)
-//        └▶ runner process ─▶ waits in the End-to-end Queue (one turn)
-//                              └▶ at its turn: reads the newest request
-//                                   already run? ─▶ exit
-//                                   desktop cannot paint? ─▶ record "not-run"
-//                                   else check out the tip in its own
-//                                   checkout, bootstrap, run `pnpm e2e`
-//                                   under a Desktop Slot, record the result
-//                                   failed? ─▶ comment on the open issue of
-//                                              failures, or open one
-//                                   passed after a failure? ─▶ comment so
-//
-// Runs coalesce: a runner that waited behind another takes the newest tip, so
-// a burst of lands costs one run after the current one. The commit range of a
-// failure starts at the last tip that passed. A failure reverts nothing.
-//
-// Failures share one issue: the open issue whose title is E2E_ISSUE_TITLE. A
-// failure adds a comment to it, or opens it with the `needs-triage` label when
-// none is open. The first pass after a failure adds a comment and leaves the
-// issue open; a person closes it.
-//
-// A run needs a painted desktop window (lib/desktop-paint.ts). When the
-// desktop cannot paint, before the run or at the end of a run that failed, the
-// tip is recorded as "not-run" with the machine state: nothing was tested, so
-// no issue opens, and the next land's run covers the newer tip.
-//
-// The state lives in `landE2eDir()`:
-//
-//   queue/          the End-to-end Queue
-//   request.json    the newest tip to run
-//   state.json      the last tip run, and the last tip that passed
-//   runs.jsonl      one line per run: its tip, range, outcome, and log
-//   logs/           the full log of each run
-//   checkout/       the runner's own worktree, detached at the tip it runs
-
 import type { DesktopPaint } from "#desktop-paint";
 import type { Admission } from "#desktop-slot";
 import { regex } from "arkregex";
@@ -62,17 +24,11 @@ import { landStateDir } from "#land-queue";
 
 const HOUR = 3_600_000;
 
-/**
- * The evidence of a failed run (the runner's `evidence`): the text of its
- * log, and the one-line commits of the range, which are then appended to the
- * log.
- */
 export const readLandE2eEvidence: LandE2eDeps["evidence"] = async ({
   run,
   range,
 }) => {
   const { logPath, checkout } = run;
-  // Read the log before `git log` writes to it, so its end is the run's.
   const log = stripVTControlCharacters(await readFile(logPath, "utf8"));
   const args = ["log", "--oneline", "--no-decorate", "-n", "50", range];
   const { stdout: commits, stderr } = await promisify(execFile)("git", args, {
@@ -85,25 +41,16 @@ export const readLandE2eEvidence: LandE2eDeps["evidence"] = async ({
   return { commits, log };
 };
 
-/** How long a runner waits behind the run before it. */
 export const LAND_E2E_WAIT_MS = 3 * HOUR;
 
-/** The tip of `main` to run, as the land that pushed it wrote it. */
 export interface LandE2eRequest {
   commit: string;
-  /** The tip of `main` before the land. */
   previous: string;
-  /** The primary worktree of the repository, where the checkout is made. */
   repository: string;
-  /** The GitHub repository that takes the issue, as `owner/name`. */
   issueRepository: string | undefined;
   requestedAt: string;
 }
 
-/**
- * How one run ended. `failed` names the stage that failed. `not-run` says
- * why the desktop could not paint a window, so nothing was tested.
- */
 export type LandE2eOutcome =
   | { outcome: "passed" }
   | { outcome: "skipped"; reason: string }
@@ -113,12 +60,10 @@ export type LandE2eOutcome =
 
 export interface LandE2eRecord {
   commit: string;
-  /** `<last passed>..<commit>`, or the commit alone when none passed yet. */
   range: string;
   startedAt: string;
   finishedAt: string;
   log: string;
-  /** The URL of the issue that a failure, or a pass after one, wrote to. */
   issue?: string;
   result: LandE2eOutcome;
 }
@@ -126,11 +71,9 @@ export interface LandE2eRecord {
 interface LandE2eState {
   lastRun?: string;
   lastPassed?: string;
-  /** The last tip that failed, until a tip passes. */
   lastFailed?: string;
 }
 
-/** The title of the one open issue of End-to-end Run failures. */
 export const E2E_ISSUE_TITLE = "End-to-end Run fails on main";
 const E2E_ISSUE_LABEL = "needs-triage";
 const EXCERPT_LINES = 80;
@@ -141,11 +84,8 @@ export interface LandE2eIssue {
   url: string;
 }
 
-/** The issues of a GitHub repository, given as `owner/name`. */
 export interface LandE2eIssues {
-  /** The open issues whose title holds `title`; it may return near matches. */
   listOpen: (repository: string, title: string) => Promise<LandE2eIssue[]>;
-  /** Open an issue; returns its URL. */
   create: (
     repository: string,
     issue: { title: string; body: string; label: string },
@@ -155,30 +95,19 @@ export interface LandE2eIssues {
 
 export interface LandE2eRun {
   request: LandE2eRequest;
-  /** The full log of this run. */
   logPath: string;
-  /** The runner's own checkout. */
   checkout: string;
-  /** Record a sign of progress, such as output of a command; it renews the turn. */
   progress: (what: string) => void;
-  /**
-   * Aborts when the Lease of the End-to-end Turn ends; its reason says why.
-   * The run then stops its command.
-   */
   leaseEnded: AbortSignal;
 }
 
 export interface LandE2eDeps {
-  /** Check out, bootstrap, and run the End-to-end Run of the request. */
   run: (run: LandE2eRun) => Promise<LandE2eOutcome>;
-  /** Whether the desktop can paint a window now (`readDesktopPaint`). */
   paint: () => Promise<DesktopPaint>;
-  /** The one-line commits of the range, and the text of the run's log. */
   evidence: (failure: {
     run: LandE2eRun;
     range: string;
   }) => Promise<{ commits: string; log: string }>;
-  /** The issues that take failures and the pass after them. */
   issues: LandE2eIssues;
 }
 
@@ -186,7 +115,6 @@ const GITHUB_REMOTE = regex(
   "github\\.com[:/](?<repository>[^/]+/[^/]+?)(?:\\.git)?/?$",
 );
 
-/** `owner/name` of a GitHub remote URL; undefined for another host. */
 export function githubRepository(url: string): string | undefined {
   return GITHUB_REMOTE.exec(url.trim())?.groups.repository;
 }
@@ -207,7 +135,6 @@ function landE2eAdmission(dir: string): Admission {
   };
 }
 
-/** Make `request` the newest tip to run; a waiting runner takes it. */
 export async function requestLandE2e(
   request: LandE2eRequest,
   dir: string = landE2eDir(),
@@ -216,11 +143,6 @@ export async function requestLandE2e(
   await writeJsonAtomic(join(dir, "request.json"), request);
 }
 
-/**
- * Wait for the End-to-end Turn, then run the newest requested tip unless it
- * has run already.
- * @returns the record of the run, or undefined when there was nothing to run.
- */
 export async function runLandE2e(
   deps: LandE2eDeps,
   options: {
@@ -244,9 +166,6 @@ export async function runLandE2e(
       waitMs: options.waitMs ?? LAND_E2E_WAIT_MS,
       ...(options.pollMs ? { pollMs: options.pollMs } : {}),
       log,
-      // The run stops its command and records the failure. A runner still
-      // here past the grace is hung, and the next runner evicts it as a
-      // Desktop Queue waiter evicts an overdue holder.
       onLeaseEnd: (owner) => {
         const reason = describeLeaseEnd(
           owner,
@@ -305,8 +224,6 @@ export async function runLandE2e(
       result,
     };
     await appendFile(join(dir, "runs.jsonl"), `${JSON.stringify(record)}\n`);
-    // A blocked run and a run that did not run leave the tip to the next
-    // runner.
     if (result.outcome !== "blocked" && result.outcome !== "not-run") {
       await writeJsonAtomic(join(dir, "state.json"), {
         lastRun: request.commit,
@@ -329,11 +246,6 @@ export async function runLandE2e(
   }
 }
 
-/**
- * Run the request unless the desktop cannot paint. A run that failed or was
- * blocked while the desktop cannot paint at its end did not test the code:
- * it is recorded as not run, and its log keeps the test output.
- */
 async function runUnlessDesktopIsDark(
   deps: LandE2eDeps,
   run: LandE2eRun,
@@ -363,11 +275,6 @@ async function runUnlessDesktopIsDark(
     : result;
 }
 
-/**
- * Write a failure, or the first pass after one, to the open issue of
- * End-to-end Run failures. A failure opens that issue when none is open.
- * @returns the URL of the issue written to.
- */
 async function reportToIssue(
   { evidence, issues }: LandE2eDeps,
   {
@@ -377,7 +284,6 @@ async function reportToIssue(
     result,
     lastFailed,
   }: {
-    /** The state directory, which holds the run's log. */
     dir: string;
     run: LandE2eRun;
     range: string;
@@ -393,7 +299,6 @@ async function reportToIssue(
     !(result.outcome === "passed" && lastFailed)
   )
     return undefined;
-  // The newest open issue whose title is the title exactly.
   const open = (await issues.listOpen(repository, E2E_ISSUE_TITLE))
     .filter(({ title }) => title === E2E_ISSUE_TITLE)
     .toSorted((a, b) => b.number - a.number)[0];
@@ -422,8 +327,6 @@ async function reportToIssue(
       ? `Failed cases:\n\n${cases.map((name) => `- \`${name}\``).join("\n")}`
       : `The log names no failed case; the run failed at the ${result.stage} stage.`,
     "",
-    // The issue is public, so it names the log in the state directory and
-    // not the absolute path, which holds the local user name.
     `The full log is on the machine that ran it: \`${relative(dir, logPath)}\` in the End-to-end state directory (\`pnpm land --help\` names it). The last ${EXCERPT_LINES} lines:`,
     "",
     "```text",
@@ -441,10 +344,8 @@ async function reportToIssue(
   });
 }
 
-// Vitest names a failed case as ` FAIL  |project| file > suite > case`.
 const FAILED_CASE = regex(" FAIL +(?<name>\\S.*)$");
 
-/** The failed cases that a Vitest log names, each once, in log order. */
 function failedCases(lines: readonly string[]): string[] {
   return [
     ...new Set(
@@ -456,7 +357,6 @@ function failedCases(lines: readonly string[]): string[] {
   ];
 }
 
-/** The last `limit` records of `runs.jsonl`, oldest first. */
 export async function readLandE2eRecords(
   limit: number,
   dir: string = landE2eDir(),

@@ -5,7 +5,6 @@ import {
   highlightFilterExpression,
 } from "./filter-expression.ts";
 
-/** Each highlighted token of `source` with the hooks it carries. */
 function hooks(source: string): [string, string][] {
   const tokens: [string, string][] = [];
   highlightFilterExpression(

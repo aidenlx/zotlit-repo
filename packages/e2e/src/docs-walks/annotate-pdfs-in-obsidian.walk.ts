@@ -1,12 +1,3 @@
-// The walk of /learn Lesson 2, "Read and annotate a paper in Obsidian": a
-// researcher with the Lesson 1 literature note on Sandve et al. 2013 opens
-// its PDF in Obsidian, allows ZotLit to edit Zotero, highlights a passage
-// with a comment, finds the same highlight in Zotero, and sees it in the
-// literature note without an update. Each `it` is one step of the lesson, in
-// the lesson's order, named after it, and asserts what the lesson says the
-// reader sees. Run it with `pnpm --filter @zotlit/e2e docs-walk`; see
-// AGENTS.md.
-
 import { obRun, obRunUntil } from "@e2e/obsidian-cli.ts";
 import type { PagePdfReaderView } from "@e2e/page-notes-types.ts";
 import {
@@ -50,7 +41,6 @@ const m = await import("@zotlit/plugin-messages/messages.ts");
 
 const SLUG = "annotate-pdfs-in-obsidian";
 
-/** Sandve et al. 2013 in the docs Vault Case: a PDF in Zotero storage, five annotations. */
 const PAPER = {
   key: "DCSNDART",
   attachmentKey: "DCSNDPDF",
@@ -58,7 +48,6 @@ const PAPER = {
   file: "Sandve et al. - 2013 - Ten Simple Rules for Reproducible Computational Research.pdf",
   annotations: 5,
 };
-/** The passage the reader highlights on page 2, as the PDF's text layer holds it. */
 const PASSAGE = {
   page: 2,
   from: "Such manual",
@@ -66,23 +55,10 @@ const PASSAGE = {
   words: "difficult to reproduce.",
 };
 const COMMENT = "Why I script every change to the survey data.";
-/** The literature note Lesson 1 wrote. */
 const NOTE = `literatures/${PAPER.citekey}.md`;
-/** Zotero's yellow, the highlight colour a new highlight takes. */
 const YELLOW = "#ffd400";
-/**
- * Step 2's Zotero shot presses Always Allow with the real macOS pointer under
- * `DOCS_WALK_NATIVE=1`, in an unattended window with the other apps hidden.
- * Without it, the shot records the dialog and presses the button through RDP.
- */
 const NATIVE = process.env.DOCS_WALK_NATIVE === "1";
-/**
- * The private part of that shot, blurred in the encode, in screen points:
- * the menu bar right of `menuBarFrom` (other apps' status items, the clock).
- * The camera keeps it out of view as well.
- */
 const PRIVATE = { menuBarFrom: 600 };
-/** The closest a view of the Zotero shot comes in: the clip's own zoom. */
 const ZOOM = clipSettings().zoom;
 
 type PdfLeaf = WorkspaceLeaf & { view: PagePdfReaderView };
@@ -90,7 +66,6 @@ type AnnotationLeaf = WorkspaceLeaf & { view: AnnotationView };
 type LibraryLeaf = WorkspaceLeaf & { view: LibraryView };
 type NoteLeaf = WorkspaceLeaf & { view: MarkdownView };
 
-/** The `zotero:` links ZotLit handed to the system handler. */
 interface ZoteroLinks {
   native: Window["open"];
   passed: string[];
@@ -101,27 +76,18 @@ declare module "../page-helpers.ts" {
   }
 }
 
-/** A reader's step in Obsidian may wait on the apps for up to a minute. */
 const STEP = { timeoutMs: 60000 };
 
-/** The Zotero expression for the open authorization dialog, or `null`. */
 const FIND_DIALOG = `(()=>{const all=Services.wm.getEnumerator(null);while(all.hasMoreElements()){const w=all.getNext();if(w.location?.href==='chrome://global/content/commonDialog.xhtml'&&w.document.getElementById('commonDialog'))return w;}return null;})()`;
 
 describe.skipIf(!reachable)(
   "Lesson 2: Read and annotate a paper in Obsidian",
   () => {
     let walk: DocsWalk;
-    /** The literature note as Lesson 1 left it on disk. */
     let noteBefore: string;
-    /** The annotation keys of the PDF before the reader highlights. */
     let keysBefore: string[];
     let annotationKey: string;
 
-    /**
-     * Save a Zotero window as the layer `layer` beside the Obsidian captures.
-     * Gecko draws its own window to a canvas, which needs no screen-recording
-     * permission. Does nothing unless the run captures.
-     */
     async function captureZotero(
       layer: string,
       window: "dialog" | "main",
@@ -146,16 +112,10 @@ describe.skipIf(!reachable)(
         collection: `learn/${SLUG}`,
         vaultCase: "docs",
       });
-      // The Paired Run grants ZotLit editing ahead of the walk; the reader
-      // starts without that grant. The walk also records every `zotero:`
-      // link ZotLit hands to the system, which would otherwise reach the
-      // real Zotero on this computer. ZotLit patches `window.open` as it
-      // loads, so it loads again over the recorder.
       await obRun(
         walk.vaultId,
         async ({ app, zotlit, page }) => {
           await app.plugins.disablePlugin("zotlit");
-          // Obsidian's runtime removes a secret; the public typings list no remover.
           (
             app.secretStorage as SecretStorage & {
               deleteSecret(id: string): void;
@@ -177,16 +137,13 @@ describe.skipIf(!reachable)(
           const services = zotlit.services;
           await services.bridge.runPromise(services.attachmentResolver.indexed);
           app.workspace.leftSplit.collapse();
-          // The PDF tab's path runs through the Fixture's folders; the images show the file name alone.
           const style = document.head.createEl("style");
           style.textContent = `.workspace-leaf-content[data-type="${page.reader.viewType}"] .view-header-title-parent{display:none}`;
         },
         undefined,
         STEP,
       );
-      // The reader closed the setup section in Lesson 1.
       await closeWelcome(walk.vaultId);
-      // The reader wrote the literature note on this paper in Lesson 1.
       noteBefore = await obRun(
         walk.vaultId,
         async ({ app, zotlit }, { key }) => {
@@ -213,8 +170,6 @@ describe.skipIf(!reachable)(
     });
 
     afterAll(async () => {
-      // A failure between the request and the answer leaves Zotero's dialog
-      // up, which blocks every later RDP call.
       if (walk) await denyAnyAuthorizationDialog(walk.zotero).catch(() => {});
       await walk?.[Symbol.asyncDispose]();
     });
@@ -296,14 +251,12 @@ describe.skipIf(!reachable)(
             );
             const view = pdf.view.containerEl.getBoundingClientRect();
             const box = tools[0]!.getBoundingClientRect();
-            // The step ends on the dimmed tools and the sidebar's heading.
             await pointer?.look([...tools, header]);
             return {
               tools: tools.map((t) => t.dataset.ztTool),
               disabled: tools.map((t) => t.getAttribute("aria-disabled")),
               tooltip: tools[0]!.getAttribute("aria-label"),
               header: header.innerText,
-              // How far the first tool sits from the tab's top-right corner.
               fromRight: Math.round(view.right - box.right),
               fromTop: Math.round(box.top - view.top),
               tabWidth: Math.round(view.width),
@@ -318,7 +271,6 @@ describe.skipIf(!reachable)(
         ),
       );
       console.log("[walk] tools", JSON.stringify(opened));
-      // Every drawing tool is dimmed; the show-annotations toggle stays on.
       opened.tools.forEach((tool, i) =>
         expect([tool, opened.disabled[i]]).toEqual([
           tool,
@@ -329,7 +281,6 @@ describe.skipIf(!reachable)(
         m.capability_authorization_required_detail(),
       );
       expect(opened.header).toContain(m.annot_view_header_reading_only());
-      // The tools sit in the right half of the tab's top bar.
       expect(opened.fromRight).toBeLessThan(opened.tabWidth / 2);
       expect(opened.fromTop).toBeLessThan(80);
       await walk.capture("step-1");
@@ -338,7 +289,6 @@ describe.skipIf(!reachable)(
 
     it("step 2: select the sidebar heading and choose Allow editing, then Always Allow in Zotero's dialog; a notice that editing is on, and the tools are in colour", async () => {
       await raiseWindow(walk.vaultId);
-      /** Obsidian: the sidebar heading, Allow editing; the toolbar waits for Zotero. */
       const ask = () =>
         obRun(
           walk.vaultId,
@@ -379,8 +329,6 @@ describe.skipIf(!reachable)(
                 )?.innerText,
               10000,
             );
-            // The shot ends on the toolbar's status, and rests on it as long
-            // as a shot holds (the shot's own rest is shorter).
             const shown =
               pdf.view.containerEl.querySelector(".zt-pdf-capability");
             if (shown && pointer) {
@@ -392,7 +340,6 @@ describe.skipIf(!reachable)(
           { file: PAPER.file, enable: m.capability_enable_editing() },
           STEP,
         );
-      /** Back in Obsidian: the notice, and the tools in colour. */
       const granted = () =>
         obRun(
           walk.vaultId,
@@ -416,7 +363,6 @@ describe.skipIf(!reachable)(
               },
               20000,
             );
-            // The step ends on the tools in colour and the notice.
             const notice = document.querySelector(".notice");
             await page.scratch.docsWalkPointer?.look(
               notice ? [...tools, notice] : tools,
@@ -426,7 +372,6 @@ describe.skipIf(!reachable)(
           { file: PAPER.file },
           STEP,
         );
-      /** Zotero's authorization dialog: its text, buttons, and place on screen. */
       const readDialog = () =>
         walk.zotero.json<{
           text: string;
@@ -451,14 +396,11 @@ describe.skipIf(!reachable)(
         const pid = await walk.zotero.json<number>(
           "Services.appinfo.processID",
         );
-        // Zotero's main window fills the recorded region under the menu bar,
-        // and the dialog opens over it.
         const tools = await bringToFront(pid).then(() =>
           menuPoint(pid, "Tools"),
         );
         const bar = Math.round(tools.y * 2);
         const region: Rect = { x: 0, y: 0, w: 1456, h: 870 };
-        // The menu bar right of Zotero's menus: its status items and clock.
         const menuBarStatus: Rect = {
           x: PRIVATE.menuBarFrom,
           y: 0,
@@ -479,7 +421,6 @@ describe.skipIf(!reachable)(
             return true;
           })()`,
         );
-        /** A view of the region's ratio about `r`, inside `within`, at most the clip's zoom. */
         const view = (r: Rect, within: Rect): Rect => {
           const ratio = region.w / region.h;
           const w = Math.min(
@@ -500,31 +441,22 @@ describe.skipIf(!reachable)(
         await raiseWindow(walk.vaultId);
         try {
           result = await walk.recordClip("step-2", async (shots) => {
-            // Obsidian: the heading, Allow editing, Waiting for approval.
             const asked = await shots.obsidian(ask);
             if (!(await waitForAuthorizationDialog(walk.zotero)))
               throw new Error("Zotero showed no authorization dialog");
-            // The dialog sits in the middle of Zotero's window.
             await walk.zotero.json<boolean>(
               `(()=>{const w=${FIND_DIALOG};w.moveTo(Math.round(${below.x + below.w / 2}-w.outerWidth/2),Math.round(${below.y + below.h / 2}-w.outerHeight/2));return true;})()`,
             );
             await new Promise((r) => setTimeout(r, 400));
             const dialog = await readDialog();
-            // The reader presses Always Allow, the dialog's second button.
             if (dialog.buttons[1] !== "Always Allow")
               throw new Error(`the dialog's buttons: ${dialog.buttons.join()}`);
-            // The notice lasts 3 s and shows while Zotero is in front: it
-            // stays on screen to the end of the clip.
             await holdNotices(walk.vaultId);
-            // Obsidian, with the computer's other vaults, is hidden behind
-            // Zotero meanwhile, so no window of it can come between.
             await setAppVisible("Obsidian", false);
             const button = {
               x: dialog.alwaysAllow.x + dialog.alwaysAllow.w / 2,
               y: dialog.alwaysAllow.y + dialog.alwaysAllow.h / 2,
             };
-            // The Zotero shot is taken again, up to three times, when another
-            // app comes to the front before the press.
             for (let attempt = 1; ; attempt++) {
               const mark = shots.mark();
               try {
@@ -532,18 +464,14 @@ describe.skipIf(!reachable)(
                 await shots.desktop(
                   { pid, region, start: below, blur: [menuBarStatus] },
                   async (shot) => {
-                    // The whole Zotero window first, then in on its dialog.
                     await shot.wait(clipSettings().openHold * 1000);
                     shot.frame(view(dialog.window, below));
-                    // The move takes 1 s; the view holds 2.5 s from there,
-                    // with the glide and the press.
                     await shot.wait(2400);
                     if (NATIVE) await shot.click(button.x, button.y);
                     else {
                       await shot.wait(600);
                       await clickAuthorizationDialog(walk.zotero, "cancel");
                     }
-                    // The dialog closes: the shot ends on the press.
                     await shot.wait(500);
                     shot.end();
                   },
@@ -563,7 +491,6 @@ describe.skipIf(!reachable)(
                 await shots.rollback(mark);
               }
             }
-            // Back in Obsidian: the notice and the tools in colour.
             await setAppVisible("Obsidian", true);
             await raiseWindow(walk.vaultId);
             await new Promise((r) => setTimeout(r, 800));
@@ -571,11 +498,8 @@ describe.skipIf(!reachable)(
             return { asked, dialog, tools };
           });
         } finally {
-          // Obsidian comes back even when a shot fails.
           await setAppVisible("Obsidian", true);
         }
-        // The last shot captured the image while the notice showed; this
-        // keeps it.
         await walk.capture("step-2", { notices: true });
       } else {
         const asked = await ask();
@@ -584,7 +508,6 @@ describe.skipIf(!reachable)(
         const dialog = await readDialog();
         await clickAuthorizationDialog(walk.zotero, "cancel");
         const tools = await granted();
-        // The image is taken while the notice shows: it lasts 3 s.
         await walk.capture("step-2", { notices: true });
         result = { asked, dialog, tools };
       }
@@ -657,7 +580,6 @@ describe.skipIf(!reachable)(
             const y = first.top + first.height / 2;
             const last = rects.at(-1)!;
             if (pointer) {
-              // The reader presses at the passage's start and drags to its end.
               await pointer.drag(
                 { x, y },
                 { x: last.right, y: last.top + last.height / 2 },
@@ -676,7 +598,6 @@ describe.skipIf(!reachable)(
               5000,
             );
             const box = row.getBoundingClientRect();
-            // The step ends on the passage and the toolbar under it.
             await pointer?.look([...rects, row]);
             return {
               verbs: [...row.querySelectorAll("[data-zt-verb]")].map((b) =>
@@ -809,7 +730,6 @@ describe.skipIf(!reachable)(
               : mark.querySelector("[fill],[stroke]");
             card.scrollIntoView({ block: "center" });
             await new Promise((r) => setTimeout(r, 500));
-            // The step ends on the yellow passage and its new card.
             await pointer?.look([mark, card]);
             return {
               key,
@@ -835,7 +755,6 @@ describe.skipIf(!reachable)(
       expect(created.colour?.toLowerCase()).toBe(YELLOW);
       expect(created.text.replaceAll(/\s+/g, " ")).toContain(PASSAGE.words);
       expect(created.text).toContain(COMMENT);
-      // Zotero holds the highlight the moment it appears.
       const stored = await walk.zotero.json<{
         text: string;
         comment: string;
@@ -890,10 +809,7 @@ describe.skipIf(!reachable)(
             );
             const popup = () =>
               document.querySelector<HTMLElement>(".zt-pdf-mark-popup");
-            // The new highlight's popup is open over the PDF.
             const before = popup()?.checkVisibility() ?? false;
-            // The reader opens a new tab (⌘T) and finds the note with the
-            // quick switcher (⌘O).
             app.commands.executeCommandById("workspace:new-tab");
             await page.until(
               "empty tab",
@@ -928,7 +844,6 @@ describe.skipIf(!reachable)(
               () => app.workspace.getActiveFile()?.path === note,
               10000,
             );
-            // The popup hides while the note's tab covers the PDF.
             return {
               before,
               after: {
@@ -954,7 +869,6 @@ describe.skipIf(!reachable)(
               | NoteLeaf
               | undefined;
             if (!leaf) {
-              // The reader opens the note from the file explorer, as any note.
               leaf = app.workspace.getLeaf("tab") as NoteLeaf;
               await leaf.openFile(app.vault.getFileByPath(note)!);
             }
@@ -969,7 +883,6 @@ describe.skipIf(!reachable)(
             });
             await new Promise((r) => setTimeout(r, 900));
             await page.until("settled", () => true);
-            // The step ends on the new card in the Annotations section.
             await page.scratch.docsWalkPointer?.look(card);
             return {
               cards: leaf.view.contentEl.querySelectorAll(
@@ -983,11 +896,9 @@ describe.skipIf(!reachable)(
           { what: "the new highlight in the note", ready: (v) => v !== null },
         );
       });
-      // No update: the note on disk is as Lesson 1 left it.
       expect(note!.body).toBe(noteBefore);
       expect(note!.cards).toBe(PAPER.annotations + 1);
       expect(note!.text).toContain(COMMENT);
-      // Nothing was handed to the Zotero app on the way.
       expect(
         await obRun(
           walk.vaultId,
@@ -1000,7 +911,6 @@ describe.skipIf(!reachable)(
   },
 );
 
-/** A RegExp that matches the window title `title` and nothing longer. */
 function exactly(title: string): RegExp {
   return new RegExp(`^${title.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`);
 }

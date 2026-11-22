@@ -45,11 +45,6 @@ const USE_MESSAGES: Readonly<Record<UseKind, Message>> = {
   cited: m.library_recent_cited,
 };
 
-/**
- * The Last Activity of a row, worded. Item Query picks the signal; the
- * ledger only names the kind of a Use, and only when it is the one the query
- * saw.
- */
 export function recentReason(
   values: Readonly<Record<string, QueryViewValue>>,
   use: Use | undefined,
@@ -63,8 +58,6 @@ export function recentReason(
   } catch {
     return null;
   }
-  // A Use the ledger replaced since the query ran waits for the rerun the
-  // change starts.
   const message =
     source === "use"
       ? use?.instant.epochMilliseconds === instant

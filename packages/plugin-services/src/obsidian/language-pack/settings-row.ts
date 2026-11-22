@@ -1,5 +1,3 @@
-// Declarative Language Pack status and installation setting for Obsidian 1.13+.
-
 import type { SettingsKey } from "#obsidian/setting-tab/context.ts";
 import type { SettingDefinition } from "obsidian";
 

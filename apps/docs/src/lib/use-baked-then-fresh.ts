@@ -1,16 +1,6 @@
-// The bake-then-refresh behaviour behind every GitHub fact the site shows.
-//
-// The pages that show a fact prerender, so the value in their HTML — and in
-// the first client render — is the one their build saw. This hook fetches the
-// fact's endpoint after mount and swaps in the latest; until the response
-// lands, and when the lookup fails, the baked value stands. A caller never
-// sees a loading or an error state.
-
 import { useEffect, useState } from "react";
 
-/** The latest fact over the baked one. */
 export function useBakedThenFresh<T>(endpoint: string, baked: T): T;
-/** A null baked value means the page carries no such fact: nothing is fetched. */
 export function useBakedThenFresh<T>(
   endpoint: string,
   baked: T | null,

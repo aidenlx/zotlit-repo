@@ -11,16 +11,13 @@ import { citationPopoverBlocks } from "./blocks.ts";
 
 import { ambiguousCandidates } from "#__fixtures__/citation-index/ambiguous-candidates.ts";
 
-/** One work a citation names, with the Item its entry is built under. */
 const work = (citekey: string): HoveredWork => ({
   citekey,
   indexedKey: `KEY${citekey}`,
 });
 
-/** One work whose citekey reaches no Zotero Item at all. */
 const unknown = (citekey: string): HoveredWork => ({ citekey });
 
-/** A document whose citekeys name at most one Item apiece. */
 const none: AmbiguousCandidatesOf = () => null;
 
 const occurrence = (raw: string): CitationOccurrence => ({
@@ -219,8 +216,6 @@ describe("citationPopoverBlocks", () => {
 
   it("reaches an entry the work's own citekey spelling never names", () => {
     const blocks = citationPopoverBlocks(
-      // What a wikilink Citation names: the Item its Literature Note carries,
-      // under a citekey the document never writes as text.
       [{ citekey: "Wang 2020", indexedKey: "KEYdoe2024" }],
       [renderedEntry("doe2024")],
       { serials: false, ambiguous: none },

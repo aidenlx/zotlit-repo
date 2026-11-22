@@ -8,7 +8,6 @@ import { layerZoteroReads, ZoteroReads } from "./service.ts";
 import { inProcessClient, memoryOpener } from "#__fixtures__/in-process.ts";
 import { layerRcRef } from "#worker/connection.ts";
 
-// Startup waits for the feed seed; database progress remains state.
 it.effect("publishes the first database connection through state", () =>
   Effect.gen(function* () {
     const { open } = memoryOpener(

@@ -1,4 +1,3 @@
-// Read cancellation, selective reloads and leaf-owned commands on the real view registry.
 import { it } from "@effect/vitest";
 import { Effect, Layer, Option, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
@@ -46,7 +45,6 @@ const EMPTY: QueryViewOutcome = {
     rows: [],
   },
 };
-/** One Item that the Library holds, filed in no Collection. */
 const FILED_NOWHERE: QueryViewOutcome = {
   kind: "result",
   result: {
@@ -210,7 +208,6 @@ it.live(
           }),
         ),
       );
-      // Supply only the CollectionPaths member read by this model; the host owns database events.
       const reads = host.context;
       const original = yield* Effect.provideContext(ZoteroReads, reads);
       Object.assign(original, { snapshot: Effect.succeed(original.reads) });
@@ -289,7 +286,6 @@ it.live(
                     const key = request.filter ?? "";
                     started.push(key);
                     return new Promise<QueryViewOutcome>((resolve) => {
-                      // The Item lands filed in no Collection.
                       land.set(key, () => resolve(FILED_NOWHERE));
                       signal.addEventListener(
                         "abort",

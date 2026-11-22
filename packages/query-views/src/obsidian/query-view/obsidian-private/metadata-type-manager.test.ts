@@ -17,7 +17,6 @@ afterEach(() => forwarding[Symbol.dispose]());
 
 beforeEach(() => warn.mockClear());
 
-/** A type manager as Obsidian 1.14.4 keeps it, with `types.json` as given. */
 function manager(types: Record<string, string>) {
   const listeners = new Set<(name: string) => void>();
   return {
@@ -37,7 +36,6 @@ function manager(types: Record<string, string>) {
         .cb;
       if (callback) listeners.delete(callback);
     }),
-    /** Assign a type, as `setType` does. */
     setType(name: string, widget: string) {
       types[name] = widget;
       for (const cb of listeners) cb(name.toLowerCase());

@@ -118,7 +118,6 @@ describe("reportOutcome", () => {
     }),
   );
 
-  // The user's cancel is a typed reason, and it is not a failure.
   it.effect("shows nothing when the user cancels the task", () =>
     Effect.gen(function* () {
       const notifier = testNotifier();
@@ -129,8 +128,6 @@ describe("reportOutcome", () => {
     }),
   );
 
-  // A typed failure keeps its notice when its cause is an abort, such
-  // as a Zotero transport abort; unload reaches Effect as an interrupt.
   it.effect("shows the error message when a typed failure wraps an abort", () =>
     Effect.gen(function* () {
       const notifier = testNotifier();
@@ -185,7 +182,6 @@ describe("withProgress", () => {
 
         expect(yield* Fiber.join(fiber)).toBe("Paper");
         yield* Effect.yieldNow;
-        // The notice outlives the task: it shows the result for 2 s.
         expect(notifier.notices).toEqual([
           {
             messages: ["Creating", "Created Paper"],
@@ -193,7 +189,6 @@ describe("withProgress", () => {
             hidden: false,
           },
         ]);
-        // Unload closes the layer, which ends the notice before its 2 s.
         yield* Scope.close(scope, Exit.void);
         expect(notifier.notices[0]?.hidden).toBe(true);
       }),
@@ -212,7 +207,6 @@ describe("withProgress", () => {
       ]);
 
       yield* Fiber.interrupt(fiber);
-      // Past the success message's 2 s, so the notice has ended either way.
       yield* TestClock.adjust("2 seconds");
 
       expect(notifier.notices).toEqual([
@@ -252,7 +246,6 @@ describe("withProgress", () => {
     }),
   );
 
-  // A cancellable task that the user cancels ends its notice quietly.
   it.effect("shows no error message for a task the user cancels", () =>
     Effect.gen(function* () {
       const notifier = testNotifier();

@@ -1,4 +1,3 @@
-// Eta v4 tag delimiters with plain tag bodies.
 import { LanguageSupport, LRLanguage } from "@codemirror/language";
 import { parseMixed } from "@lezer/common";
 

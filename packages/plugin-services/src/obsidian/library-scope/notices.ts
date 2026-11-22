@@ -1,4 +1,3 @@
-// UI seam for Library Scope: the warn-once notice for a broken saved value.
 import { Effect, Layer } from "effect";
 import type { Scope } from "effect";
 
@@ -19,12 +18,6 @@ interface LibraryScopeNoticeCopy {
   openSettings: () => void;
 }
 
-/**
- * Show one notice while the saved Library Scope is broken, and arm it again
- * once the value is repaired. The Settings warning is the persistent half of
- * the pair; this is the one-off half. The notice's action reveals the Library
- * scope row so the user can repair it.
- */
 export const layerLibraryScopeNotices = Layer.effectDiscard(
   Effect.gen(function* () {
     const host = yield* PluginHost;
@@ -40,12 +33,6 @@ export const layerLibraryScopeNotices = Layer.effectDiscard(
   }),
 );
 
-/**
- * Watch the notice lifecycle without coupling its trigger to rendering. One
- * notice per broken spell: a repair hides it and re-arms the next one, so a
- * user who breaks the value again is told again. The open notice hides when
- * the Scope closes.
- */
 export function watchLibraryScopeInvalid<R>(
   scope: Pick<LibraryScope["Service"], "invalid" | "changes">,
   showNotice: Effect.Effect<NoticeHandle, never, R>,

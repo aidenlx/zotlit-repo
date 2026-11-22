@@ -1,4 +1,3 @@
-// Focused field definitions, live values, and expressions from the Template contract.
 import type { ContractRoot } from "@zotlit/db";
 import type {
   ContractIR,
@@ -17,7 +16,6 @@ const ir = irJson as ContractIR;
 export const DISCOVERY_LIMIT = 8;
 export const DISCOVERY_HELP = `Field discovery is optional during authoring. Use query=<words> to get up to ${DISCOVERY_LIMIT} matching definitions, actual values, and Liquid/Eta expressions. Use path=zt.creators[0].family for an exact nested field. Use full for the complete zt object. Without a mode, the response lists root fields. Note, Annotation, and Citation roots describe different caller contexts; a Shared Partial reads the caller root you select. Values marked absent are unavailable on the selected object; empty strings and arrays remain present.`;
 
-/** Parse property access only; this never evaluates a caller's expression. */
 export function parseDiscoveryPath(text: string): TemplatePathSegment[] | null {
   let rest = text.startsWith("zt.")
     ? text.slice(3)

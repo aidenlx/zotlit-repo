@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MPL-2.0
-//
 // Derived from Mozilla web-ext `src/firefox/rdp-client.js`.
 
 import { EventEmitter } from "node:events";

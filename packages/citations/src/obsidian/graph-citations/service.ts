@@ -1,4 +1,3 @@
-// The Graph Citations service: installs the render facade and the click, right-click and hover wraps on every graph leaf, re-renders on index changes, and restores every swapped member on feature-off and unload.
 import type { CitationLookupObservation } from "#obsidian/citation-index/lookup-service.ts";
 import type { CitationSyntax } from "#obsidian/citation-index/scan.ts";
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
@@ -73,62 +72,34 @@ import { CitationIndex } from "#obsidian/citation-index/service.ts";
 import { CitationPopover } from "#obsidian/citation-popover/service.ts";
 import { CitekeyEditor } from "#obsidian/citekey-editor/service.ts";
 
-/**
- * How long a burst of index events settles before one re-render. The
- * backfill emits `changed` once per file whose scan changed, so a first run
- * over a vault fires hundreds in a row; one render per event would rebuild
- * the whole graph that many times.
- */
 const RENDER_SETTLE = "150 millis";
 
-/** What one installed leaf holds. */
 interface GraphInstallation {
   members: GraphLeafMembers;
   restores: DisposableStack;
-  /**
-   * The Filters rows, held apart from {@link restores} because the vault-wide
-   * Wikilink Citations choice replaces them on their own, leaving the render
-   * facade and the click wrap in place.
-   */
   rows: Disposable;
-  /** What the last facaded render drew; the click wrap answers node ids from it. */
   additions: GraphCitationAdditions;
   drawn: GraphData["nodes"];
   labels: Map<string, WorkLabel>;
   graphics: WorkLabelGraphics;
 }
 
-/** What one installation starts from. */
 interface AttachOptions {
-  /** The options the leaf saved before ZotLit's rows existed. */
   saved: GraphOptions | null;
-  /** The view whose unload ends the installation. */
   view: View;
-  /** Whether the vault-wide setting admits wikilink citations. */
   wikilinks: boolean;
 }
 
-/** A held Work Label, with the Library its work lives in. */
 interface HeldLabel {
   readonly libraryID: number;
   readonly label: WorkLabel;
 }
 
-/** The label a work's label inputs format to; `null` where they give none. */
 function heldLabel(source: WorkLabelSource | undefined): HeldLabel | null {
   const label = source ? workLabel(source, source) : null;
   return source && label ? { libraryID: source.libraryID, label } : null;
 }
 
-/**
- * Runs `callback` when `view` unloads, and no longer once the returned
- * Disposable is disposed.
- *
- * The registration itself cannot be taken back, so what it holds is let go of
- * instead: the callback the view keeps is a stand-in that answers nothing
- * after disposal, and the one that holds anything is reachable only through a
- * reference this scope drops.
- */
 function releasedOnDispose(view: View, callback: () => void): Disposable {
   let held: (() => void) | null = callback;
   view.register(() => held?.());
@@ -137,41 +108,14 @@ function releasedOnDispose(view: View, callback: () => void): Disposable {
   });
 }
 
-/**
- * Graph Citations: what the Citation Graph commands read and apply.
- *
- * @see apps/obsidian/docs/adr/0029-graph-citations-extend-obsidian-graph-through-a-per-render-metadata-facade.md
- */
 export class GraphCitations extends Context.Service<
   GraphCitations,
   {
-    /**
-     * Whether the vault-wide "Show citations in graph view" setting is on.
-     * The first settings snapshot lands while the layer builds, so it reads
-     * the user's own choice.
-     */
     readonly enabled: Effect.Effect<boolean>;
-    /**
-     * Turns a graph leaf one of the Citation Graph commands just opened into
-     * a Citation Graph. Installing first is what makes ZotLit's keys land: a
-     * controls-panel section writes only the keys its own rows answer, so the
-     * rows have to stand before the preset names them.
-     *
-     * The preset persists with this view and native global graph bookmarks.
-     * Other graph views keep their own choices.
-     */
     applyPreset(leaf: WorkspaceLeaf): Effect.Effect<void>;
   }
 >()("zotlit/graph-citations/GraphCitations") {}
 
-/**
- * Installs the render facade and the node wraps on every graph leaf while the
- * vault-wide setting is on, re-renders on index changes, and restores every
- * swapped member on feature-off and on unload. The graph view hooks are the
- * edge: each runs the layer's Effects with the layer's own context.
- *
- * @see apps/obsidian/docs/adr/0029-graph-citations-extend-obsidian-graph-through-a-per-render-metadata-facade.md
- */
 export const layerGraphCitations = Layer.effect(
   GraphCitations,
   Effect.gen(function* () {
@@ -189,12 +133,8 @@ export const layerGraphCitations = Layer.effect(
     const citationPopover = yield* CitationPopover;
     const settings = yield* PluginSettings;
     const bridge = yield* scopedBridge;
-    /** The runner of the graph view hooks, which Obsidian calls synchronously. */
     const run = Effect.runSyncWith(yield* Effect.context<never>());
 
-    // Read before layout-ready where startup allows it: Obsidian saves the
-    // layout no earlier, and a save made while ZotLit's rows are absent
-    // writes their keys out of the file.
     const savedLeaves = yield* Ref.make(
       yield* workspace.readWorkspaceFile.pipe(
         Effect.map((layout) => savedLeafOptions(layout)),
@@ -209,81 +149,46 @@ export const layerGraphCitations = Layer.effect(
       ),
     );
 
-    /**
-     * The Work Labels of the drawn works by Indexed Key, a Held Read: a work
-     * with no label holds `null`, and a label stays on screen while a fresh
-     * read replaces it.
-     */
     const labels = new Map<string, HeldLabel | null>();
-    /** Held labels an invalidation marked stale; a fresh read replaces each. */
     const staleLabels = new Set<string>();
-    /** The running `WorkLabels` read and the keys it answers. */
     const labelRead = yield* Ref.make<{
       readonly keys: ReadonlySet<string>;
     } | null>(null);
     const labelReads = yield* FiberHandle.make<void>();
-    /**
-     * The exact forward answers needed by the current graph facts. The render
-     * wrap and the node wraps read it synchronously, inside Obsidian's calls.
-     */
     let lookup: CitationLookupObservation | null = null;
     const installationCount = yield* Ref.make(0);
-    /**
-     * Keyed by renderer, which its view owns for life and destroys on close,
-     * so a closed leaf's installation is collected with it and nothing is
-     * stored on the plugin. Teardown restores what the live graph leaves hold.
-     */
     const installations = new WeakMap<GraphRenderer, GraphInstallation>();
-    /** Views that failed the member check, so each is reported once. */
     const leftNative = new WeakSet<View>();
-    /** The node colours the theme states, shared by every installed leaf. */
     const nodeColors = new GraphNodeColors();
-    /** The citation edge colour the theme states, shared by every installed leaf. */
     const linkColor = new GraphLinkColor();
-    /**
-     * What a still-deferred graph leaf carries, so a row installed after the
-     * leaf loads starts where the user left it: the load applies the saved
-     * state before any row exists to hear it.
-     */
     const deferredOptions = new WeakMap<WorkspaceLeaf, GraphOptions>();
     const enabled = yield* Ref.make(true);
-    /** Whether the vault-wide setting admits wikilink citations. */
     const wikilinkCitations = yield* Ref.make(false);
     const stopped = yield* Ref.make(false);
     const renderPending = yield* Ref.make(false);
     const renderTimer = yield* FiberHandle.make<void>();
 
-    /** Whether the graph is to be drawn: the setting is on and the layer is open. */
     const active = Effect.gen(function* () {
       return (yield* Ref.get(enabled)) && !(yield* Ref.get(stopped));
     });
 
-    /** What a hover or a right-click raises its workspace events on. */
     const triggerWorkspace = workspaceTrigger(workspace, run);
-    /** The cache entry of a node's note, which a Literature Note is told by. */
     const cacheOf = (path: string) => run(metadata.cache(path));
     const resolveCitekey = (citekey: string) =>
       heldResolution(lookup?.current?.value ?? null, citekey);
-    /**
-     * The Citekey Navigation open action, which every node surface runs.
-     * Unload interrupts a pending open.
-     */
     const open = (citekey: string, pane: NavigationPane): void => {
       bridge.runAndForget(citekeyEditor.openCitekey(citekey, pane));
     };
 
-    /** Lets go of the lookup once no installation reads it. */
     const releaseLookup = (): void => {
       lookup?.[Symbol.dispose]();
       lookup = null;
     };
 
-    /** Every graph leaf in every window; `getLeavesOfType` walks the popouts too. */
     const graphLeaves = Effect.forEach(GRAPH_VIEW_TYPES, (type) =>
       workspace.leavesOfType(type),
     ).pipe(Effect.map((found) => found.flat()));
 
-    /** The installations the live graph leaves hold, each with its leaf, in leaf order. */
     const installed = graphLeaves.pipe(
       Effect.map((leaves) =>
         leaves.flatMap((leaf) => {
@@ -306,20 +211,10 @@ export const layerGraphCitations = Layer.effect(
         }
       });
 
-    /**
-     * One walk per render answers every node the graph draws, the citing
-     * sources a hover reads a work's entry out of among them; the hover itself
-     * walks nothing. Only the render wrap runs it, inside Obsidian's render:
-     * it reads every input first, then builds the additions from them.
-     */
     const additionsOf = Effect.fnUntraced(function* (
       engine: GraphLeafMembers["engine"],
     ) {
       const wikilinks = yield* Ref.get(wikilinkCitations);
-      // Wikilink occurrences derive from the link cache on every call, so they
-      // are asked for only while the vault-wide setting admits the syntax — the
-      // one state in which a wikilink is a Citation at all, so also the one in
-      // which it names a citing source or the row can take its edges away.
       const syntaxes: CitationSyntax[] = wikilinks
         ? ["citekey", "wikilink"]
         : ["citekey"];
@@ -335,7 +230,6 @@ export const layerGraphCitations = Layer.effect(
           ),
         ],
       });
-      /** The path each wikilink reaches from its source, keyed by `linkKey`. */
       const linkKey = (linkpath: string, sourcePath: string) =>
         `${sourcePath}\0${linkpath}`;
       const linkTargets = new Map<string, string | null>();
@@ -347,7 +241,6 @@ export const layerGraphCitations = Layer.effect(
           linkTargets.set(key, target?.path ?? null);
         }
       }
-      /** The Literature Note paths of each Indexed Key, in Note Index order. */
       const notePaths = new Map<string, string[]>();
       for (const indexedKey of yield* noteIndex.getIndexedItemKeys) {
         const files = yield* noteIndex.getNotesByItemKey(indexedKey);
@@ -369,10 +262,6 @@ export const layerGraphCitations = Layer.effect(
       });
     });
 
-    /**
-     * Coalesces a burst of index events into one re-render of every installed
-     * leaf. Untraced: the backfill runs it once per changed file.
-     */
     const requestRender = Effect.fnUntraced(function* (withRender: boolean) {
       if (!(yield* active)) return;
       if (withRender) yield* Ref.set(renderPending, true);
@@ -384,11 +273,6 @@ export const layerGraphCitations = Layer.effect(
       );
     });
 
-    /**
-     * The settled render. Uninterruptible: a node hand-off inside the render
-     * asks for the next one, which replaces this fiber, and this render still
-     * shows its labels.
-     */
     const flushRender: Effect.Effect<void> = Effect.gen(function* () {
       const rerender = yield* Ref.getAndSet(renderPending, false);
       const live = yield* installed;
@@ -403,22 +287,12 @@ export const layerGraphCitations = Layer.effect(
       yield* FiberHandle.clear(labelReads);
     });
 
-    /**
-     * Marks every held label stale: each stays on screen until the fresh read
-     * the next fill starts replaces it.
-     */
     const invalidateLabels = Effect.gen(function* () {
       for (const key of labels.keys()) staleLabels.add(key);
       yield* cancelLabelRead;
       yield* requestRender(true);
     });
 
-    /**
-     * Reads the labels of `keys` off the main thread. When the read settles,
-     * the labels it answered replace what was held and the graphics redraw; a
-     * failed read keeps what was held and leaves the rest native. A new read
-     * replaces the running one.
-     */
     const readLabels: (keys: ReadonlySet<string>) => Effect.Effect<void> =
       Effect.fnUntraced(function* (keys) {
         if (yield* Ref.get(stopped)) return;
@@ -429,8 +303,6 @@ export const layerGraphCitations = Layer.effect(
             const exit = yield* Effect.exit(
               reads.reads.WorkLabels({ indexedKeys: [...keys] }),
             );
-            // Uninterruptible: the fill below can start the next read, which
-            // replaces this fiber, and these labels still show.
             yield* Effect.uninterruptible(
               Effect.gen(function* () {
                 if ((yield* Ref.get(labelRead)) !== read) return;
@@ -458,11 +330,6 @@ export const layerGraphCitations = Layer.effect(
         );
       });
 
-    /**
-     * Runs outside the synchronous hand-off and frame: in the render debounce,
-     * and when a label read settles. Reads only held labels; the keys it holds
-     * nothing fresh for start one read.
-     */
     const fillLabels: Effect.Effect<void> = Effect.gen(function* () {
       const needed = new Set<string>();
       const pending: {
@@ -491,7 +358,6 @@ export const layerGraphCitations = Layer.effect(
         }
         pending.push({ installation, keys });
       }
-      // Only drawn works are retained.
       for (const key of labels.keys()) {
         if (needed.has(key)) continue;
         labels.delete(key);
@@ -522,14 +388,12 @@ export const layerGraphCitations = Layer.effect(
       }
     });
 
-    /** Fills the labels of every installed leaf and hands them to its graphics. */
     const showLabels: Effect.Effect<void> = Effect.gen(function* () {
       yield* fillLabels;
       for (const { installation } of yield* installed)
         installation.graphics.update(installation.labels);
     });
 
-    /** Puts one leaf's swapped members back and lets go of its installation. */
     const uninstall = Effect.fnUntraced(function* (
       installation: GraphInstallation,
     ) {
@@ -544,23 +408,17 @@ export const layerGraphCitations = Layer.effect(
       yield* fillLabels;
     });
 
-    /** What a hovered node is read as a citation through. */
     const hoverDeps = (): NodeHoverDeps => ({
       workspace: triggerWorkspace,
       metadataCache: { getCache: cacheOf },
       settings,
       citationPopover,
       bridge,
-      // Unload interrupts a pending open.
       open: (indexedKey, pane) => {
         bridge.runAndForget(citekeyEditor.openIndexedKey(indexedKey, pane));
       },
     });
 
-    /**
-     * Puts in new Filters rows for one installation, in place of the ones it
-     * holds. The rows belong to the installation, so it releases them.
-     */
     const replaceRows = (
       installation: GraphInstallation,
       saved: GraphOptions | null,
@@ -573,10 +431,6 @@ export const layerGraphCitations = Layer.effect(
       });
     };
 
-    /**
-     * Startup options that arrived before ZotLit's controls existed. Consumed
-     * after the first installation; later installations use the live choices.
-     */
     const savedOptions = (leaf: WorkspaceLeaf) =>
       Ref.get(savedLeaves).pipe(
         Effect.map(
@@ -584,12 +438,6 @@ export const layerGraphCitations = Layer.effect(
         ),
       );
 
-    /**
-     * Swaps the members of one graph leaf. The installation holds what it
-     * swapped in a stack of its own, not on the layer Scope: it ends when its
-     * view unloads or the setting turns off, and the layer's finalizer ends
-     * every one that is left.
-     */
     const attach = (
       members: GraphLeafMembers,
       { saved, view, wikilinks }: AttachOptions,
@@ -667,14 +515,6 @@ export const layerGraphCitations = Layer.effect(
       restores.use(
         wrapNodeHover(members, hoverDeps(), () => installation.additions),
       );
-      // The view closing is one of the two things that end this installation: a
-      // closed leaf is gone from the walk the service tears down through, and
-      // nothing native unhovers a node on the way out — so a hold left standing
-      // would keep its popover on screen and its engine alive for as long as it
-      // ran. The other is the feature turning off, which is why the callback is
-      // released rather than left to the leaf: `Component.register` pushes onto
-      // a list only `unload` drains and takes nothing back (`app.js` 1.14.1),
-      // so a callback still holding this installation would outlive it.
       restores.use(releasedOnDispose(view, () => run(uninstall(installation))));
       return installation;
     };
@@ -685,9 +525,6 @@ export const layerGraphCitations = Layer.effect(
       { saved, view = leaf.view }: { saved: GraphOptions | null; view?: View },
     ) {
       const { engine, renderer, viewType } = members;
-      // Every yield comes before `attach`: an interrupt between the wrappers
-      // and `installations.set` would leave wrappers no uninstall can find.
-      // Unload interrupts a pending invalidation.
       lookup ??= yield* citationLookup.observe(() => {
         bridge.runAndForget(invalidateLabels);
       });
@@ -707,7 +544,6 @@ export const layerGraphCitations = Layer.effect(
       );
     });
 
-    /** Installs on every loaded graph leaf not yet installed, then draws each. */
     const refresh = Effect.gen(function* () {
       if (!(yield* active)) return;
       if (!(yield* env.corePluginEnabled(GRAPH_CORE_PLUGIN_ID))) {
@@ -717,9 +553,6 @@ export const layerGraphCitations = Layer.effect(
         return;
       }
       for (const leaf of yield* graphLeaves) {
-        // A background tab holds a deferred placeholder with no engine
-        // (Obsidian 1.7.2+). Loading it replaces the view and fires
-        // `layout-change`, which lands here again with the real members.
         if (leaf.isDeferred) {
           const saved = deferredLeafOptions(leaf);
           if (saved) deferredOptions.set(leaf, saved);
@@ -741,10 +574,6 @@ export const layerGraphCitations = Layer.effect(
       }
     });
 
-    /**
-     * Replaces the Filters rows of every installed leaf, keeping the render
-     * facade: one render per leaf, and none of it drawn natively in between.
-     */
     const rebuildRows = Effect.gen(function* () {
       const wikilinks = yield* Ref.get(wikilinkCitations);
       for (const { leaf, installation } of yield* installed) {
@@ -758,7 +587,6 @@ export const layerGraphCitations = Layer.effect(
       );
     });
 
-    /** Restores every installed leaf and draws each natively once. */
     const uninstallAll = Effect.gen(function* () {
       for (const { installation } of yield* installed) {
         const { members } = installation;
@@ -779,8 +607,6 @@ export const layerGraphCitations = Layer.effect(
         (yield* Ref.getAndSet(wikilinkCitations, nextWikilinks)) !==
         nextWikilinks;
       if (nextEnabled === (yield* Ref.get(enabled))) {
-        // The "Wikilink citations" row is absent while the syntax is excluded,
-        // so that choice rebuilds the rows of every installed leaf.
         if (nextEnabled && rowsChanged) yield* rebuildRows;
         return;
       }
@@ -792,7 +618,6 @@ export const layerGraphCitations = Layer.effect(
     });
 
     yield* Effect.addFinalizer(() => Effect.sync(releaseLookup));
-    // Installs before `load` / `setState`, so bookmark options find their controls.
     const viewCreationHooked = yield* host.onViewCreated(
       GRAPH_VIEW_TYPES,
       (leaf, view) =>
@@ -822,8 +647,6 @@ export const layerGraphCitations = Layer.effect(
       (event) =>
         event._tag === "css-change"
           ? Effect.gen(function* () {
-              // A node holds the colour it was stamped with until the next
-              // hand-off, so a theme change is read again and drawn again.
               nodeColors.invalidate();
               linkColor.invalidate();
               yield* requestRender(true);
@@ -857,13 +680,10 @@ export const layerGraphCitations = Layer.effect(
     );
     yield* forkEach(readsChanged(reads), () => invalidateLabels);
     yield* forkEach(settings.changes, applySettings);
-    // The graph leaves exist only after layout-ready.
     yield* workspace.layoutReady.pipe(
       Effect.andThen(refresh),
       Effect.forkScoped({ startImmediately: true }),
     );
-    // Registered last, so it runs first on close: no re-render queued by an
-    // event during teardown lands on a restored leaf.
     yield* Effect.addFinalizer(() =>
       Effect.gen(function* () {
         yield* Ref.set(stopped, true);

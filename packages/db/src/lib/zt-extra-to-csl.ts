@@ -1,4 +1,3 @@
-// Normalize Zotero Extra field syntax for CSL processors.
 import {
   CSL_DATE_FIELD_MAP,
   CSL_TEXT_FIELD_CANDIDATES,
@@ -83,11 +82,6 @@ const ZOTERO_FIELD_TO_CSL_FIELD = new Map<string, string>([
   ),
 ]);
 
-/**
- * Normalize Extra's citeproc-js cheater syntax before export.
- *
- * @see https://github.com/zotero/utilities/blob/1dd38e27edf81e9d9c4161c957b7efb7f5681ac3/utilities_item.js#L661
- */
 export function extraToCsl(extra: string): string {
   return extra
     .split("\n")

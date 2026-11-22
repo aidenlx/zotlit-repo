@@ -13,7 +13,6 @@ import { describe, expect, it } from "vitest";
 
 import { unregisterVaultFile } from "./obsidian-vault-registry.ts";
 
-/** A temporary Obsidian user data folder, removed when the test leaves scope. */
 async function userDataFolder() {
   const path = await mkdtemp(join(tmpdir(), "zt-obsidian-registry-"));
   return {
@@ -62,7 +61,6 @@ describe("unregisterVaultFile", () => {
     expect(await exists(join(userData.path, "Partitions", "vault-aaaa"))).toBe(
       false,
     );
-    // The staging file is renamed into place, so none is left beside it.
     expect((await readdir(userData.path)).sort()).toEqual([
       "Partitions",
       "bbbb.json",

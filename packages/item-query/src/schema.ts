@@ -1,4 +1,3 @@
-/** Build-only access to the registry-derived Query Schema catalog. */
 import { describeAnnotationQueryVocabulary } from "./describe-annotation-query.ts";
 import { describeAttachmentQueryVocabulary } from "./describe-attachment-query.ts";
 import { describeItemQueryVocabulary } from "./describe-item-query.ts";
@@ -19,7 +18,6 @@ export {
   describeAnnotationQueryVocabulary,
 } from "./describe-annotation-query.ts";
 
-/** One static catalog per plugin version, with shared language definitions. */
 export function describeQueryVocabulary() {
   const { context, functions, methods, properties, types, ...items } =
     describeItemQueryVocabulary();

@@ -14,8 +14,6 @@ const filename = join(import.meta.dirname, "__fixtures__/build/config.ts");
 const tester = new RuleTester({
   languageOptions: { parserOptions: { lang: "ts" } },
 });
-// Failure modes: constant and quoted bracket reads, one missing task, quoted
-// define keys, authentication tokens, writes, and modules outside the build.
 tester.run(
   "no-undeclared-env",
   undeclaredEnvRule({
@@ -85,9 +83,6 @@ tester.run(
 
 const workspace = join(import.meta.dirname, "__fixtures__/build/workspace");
 const packageFile = join(workspace, "packages/kit/src/module.ts");
-// Failure modes: a module of the host, by import, re-export or dynamic
-// import, and a stylesheet that references the host's; a host file and a
-// package's own stylesheet pass.
 tester.run("no-app-path", appPathRule({ root: workspace }), {
   valid: [
     { filename: packageFile, code: 'import "./own.css";' },

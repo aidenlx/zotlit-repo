@@ -31,7 +31,6 @@ type PromiseMethods<T> = {
     ? (...args: P) => Promise<A> : never;
 };
 
-/** The old Promise boundaries that existing behavior tests drive through the host. */
 interface PreviewHostDeps extends TemplateDataDeps {
   runtime: SubscriptionRuntime;
   app: App;
@@ -57,7 +56,6 @@ import { Stream } from "effect";
 import { buildSettings } from "@zotlit/notes/__fixtures__/settings.ts";
 import { inProcessParseClient } from "@zotlit/citations/core/citation-parse/in-process.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
-// Live database and TemplateService boundaries for Preview tests.
 import type { App, Events } from "obsidian";
 import { Effect } from "effect";
 import { expect, vi } from "vitest";
@@ -147,8 +145,6 @@ export async function createRenderFixture(options: { existing?: string; javascri
   const host = createObsidianHost();
   const { vault } = host;
   const file = options.existing === undefined ? null : vault.addFile("notes/paper.md", options.existing);
-  // Registered before `TemplateService` starts, so its initial folder scan
-  // discovers the Shared Partial the way a saved vault would.
   for (const [name, source] of Object.entries(options.partials ?? {}))
     vault.addFile(`templates/zotlit-partial.${name}.md`, source);
   const memory = new Map<string, unknown>(options.javascript ? [["zotlit-javascript-templates", "1"]] : []);
@@ -219,8 +215,6 @@ export async function createRenderFixture(options: { existing?: string; javascri
     return outcome.kind === "held" ? outcome.record.value : null;
   });
   const zoteroReads = inProcessReadsService(sharedClientOpener(client));
-  // The plugin's worker opens the database at start; open it here too, so its
-  // first `changed` lands before a view subscribes.
   await Effect.runPromise(zoteroReads.reads.Libraries({}));
   await vi.waitFor(() => expect(zoteroReads.bridge.runSync(zoteroReads.current).state).toBe("ready"));
   const notesOf = (key: string) => (file && key === "MAIN2345" ? [file] : []);
@@ -289,12 +283,10 @@ export async function createRenderFixture(options: { existing?: string; javascri
   return { cancelled, deps: previewDeps, settings, templates, client, snapshot, host, vault, zoteroReads, renderCitations, writes, async [Symbol.asyncDispose]() { await handles.disposeAsync(); await templates[Symbol.asyncDispose](); await settings[Symbol.asyncDispose](); await zoteroReads[Symbol.asyncDispose](); sqlite.close(); } };
 }
 
-/** One Preview render, run on a view runner the render alone owns. */
 export function renderPreviewTemplate(deps: PreviewRenderDeps, request: RenderRequest): Promise<PreviewRenderResult> {
   return runOnView(deps.registry, makePreviewRenderer(deps).render(request));
 }
 export const renderPreviewProfile = renderPreviewTemplate;
-/** One registered Shared Partial render, run as {@link renderPreviewTemplate} runs. */
 export function renderRegisteredPartial(deps: PreviewRenderDeps, request: RenderRequest, partial: PartialPreviewSelection): Promise<string> {
   return runOnView(deps.registry, makePreviewRenderer(deps).partial(request, partial));
 }

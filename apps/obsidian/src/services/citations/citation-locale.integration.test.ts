@@ -1,6 +1,3 @@
-// One vault Citation Locale, as every Citation Presentation surface renders it.
-// Runs in the happy-dom-native-response vitest project (vitest.config.ts).
-
 import { describe, expect, it } from "vitest";
 
 import {
@@ -10,10 +7,6 @@ import {
 
 const STYLE_ID = "http://www.zotero.org/styles/localized";
 
-/**
- * Both layouts render one localized term and nothing else, so an in-text
- * citation and a bibliography entry each say which locale formatted it.
- */
 const STYLE = `<?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0">
   <info>
@@ -25,10 +18,8 @@ const STYLE = `<?xml version="1.0" encoding="utf-8"?>
   <bibliography><layout><text term="editor" form="long"/></layout></bibliography>
 </style>`;
 
-/** The term the style renders, per Citation Locale. */
 const EDITOR = { en: "editor", "de-DE": "Herausgeber" };
 
-/** @param locale the vault Citation Locale; `null` leaves it at Style default. */
 function openVault(locale: string | null) {
   return openCitationVault({
     styles: { "localized.csl": STYLE },
@@ -52,7 +43,6 @@ describe("vault Citation Locale", { timeout: TIMEOUT }, () => {
 
     const exported = await vault.exportNote();
     expect(exported.html).toContain(EDITOR["de-DE"]);
-    // The locale controls citeproc without becoming the document's language.
     expect(exported.html).not.toMatch(/<html[^>]*lang=/);
   });
 
@@ -70,14 +60,12 @@ describe("vault Citation Locale", { timeout: TIMEOUT }, () => {
   it("moves every surface together when the setting changes", async () => {
     await using vault = await openVault(null);
     await expect(vault.sidebarText()).resolves.toContain(EDITOR.en);
-    // This popover stays open across the change, as a hovered one would.
     using popover = vault.showPopover();
     const shown = await popover.text();
     expect(shown).toContain(EDITOR.en);
 
     await vault.setSettings({ "citation.locale": "de-DE" });
 
-    // Copy stays out of reach until the new locale's render lands.
     expect(vault.copyOffered()).toBe(false);
     await expect(vault.citationText()).resolves.toBe(EDITOR["de-DE"]);
     await expect(vault.sidebarText()).resolves.toContain(EDITOR["de-DE"]);

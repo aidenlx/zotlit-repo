@@ -18,7 +18,6 @@ import {
 import type { PanelMove, PanelStep, WorkbenchPanels } from "./panel-layout.ts";
 import { panelSizeMenus } from "./panel-menu.ts";
 
-/** The panels at their initial sizes, with the Preview shown as `preview` says. */
 const shown = (preview: boolean): WorkbenchPanels => ({
   ...INITIAL_PANELS,
   preview: { ...INITIAL_PANELS.preview, shown: preview },
@@ -27,9 +26,6 @@ const shown = (preview: boolean): WorkbenchPanels => ({
 const at = (width: number) => ({ width, height: 800 });
 
 describe("panel placement", () => {
-  // The Preview is a column from 896 px (56rem) and goes under the editor in
-  // a narrower view. The Fields Panel opens as a popover over the editor at
-  // every width while it is not pinned, and only the Fields action opens it.
   it.each([320, 560, 760, 960, 1200])(
     "opens the unpinned Fields Panel as a popover over a %i px view only while it stands open",
     (width) => {
@@ -47,8 +43,6 @@ describe("panel placement", () => {
   it("puts the Preview at the side from a 56rem (896 px) view", () => {
     expect(placePanels(shown(true), at(896), false).preview).toBe("side");
     expect(placePanels(shown(true), at(895), false).preview).toBe("below");
-    // A narrow Preview goes under the editor too, though the editor would
-    // keep its 360 px beside it.
     const narrow: WorkbenchPanels = {
       ...shown(true),
       preview: { ...INITIAL_PANELS.preview, shown: true, width: 240 },
@@ -61,7 +55,6 @@ describe("panel placement", () => {
       ...shown(true),
       preview: { ...INITIAL_PANELS.preview, shown: true, width: 1400 },
     };
-    // 896 - 360 leaves the Preview 536 px; it stays a column.
     expect(placePanels(wide, at(896), false).preview).toBe("side");
     expect(columnLimit(wide, "preview", at(896))).toBe(536);
   });
@@ -75,7 +68,6 @@ describe("panel placement", () => {
   });
 });
 
-/** The panels with the Fields Panel pinned, `hidden` and `width` wide. */
 const pinned = (
   preview: boolean,
   {
@@ -88,18 +80,14 @@ const pinned = (
 });
 
 describe("the pinned Fields Panel", () => {
-  // The editor keeps 360 px beside a docked panel of at least 240 px, so a
-  // pin needs 600 px of room past the Preview column (400 px at 960 and up).
   it.each([
     { width: 320, preview: false, canPin: false },
     { width: 320, preview: true, canPin: false },
     { width: 560, preview: false, canPin: false },
     { width: 560, preview: true, canPin: false },
-    // At 760 px the Preview stands under the editor and takes no room.
     { width: 760, preview: false, canPin: true },
     { width: 760, preview: true, canPin: true },
     { width: 960, preview: false, canPin: true },
-    // 960 - 400 leaves 560 px beside the Preview column.
     { width: 960, preview: true, canPin: false },
     { width: 1200, preview: false, canPin: true },
     { width: 1200, preview: true, canPin: true },
@@ -112,18 +100,15 @@ describe("the pinned Fields Panel", () => {
           fields: canPin ? "docked" : "closed",
           canPin,
         });
-        // A pin that cannot dock leaves the Fields action its popover.
         expect(placePanels(panels, at(width), true).fields).toBe(
           canPin ? "docked" : "popover",
         );
-        // Hidden, it waits for the Fields action at every width.
         const hidden = pinned(preview, { hidden: true, width: saved });
         expect(placePanels(hidden, at(width), false)).toMatchObject({
           fields: "closed",
           canPin,
         });
         expect(placePanels(hidden, at(width), true).fields).toBe("popover");
-        // Unpinned, the panel never docks.
         expect(placePanels(shown(preview), at(width), false)).toMatchObject({
           fields: "closed",
           canPin,
@@ -135,7 +120,6 @@ describe("the pinned Fields Panel", () => {
   it("needs 600 px of room to dock", () => {
     expect(placePanels(pinned(false), at(600), false).fields).toBe("docked");
     expect(placePanels(pinned(false), at(599), false).fields).toBe("closed");
-    // A host may draw a 12 px handle beside the docked column.
     expect(
       placePanels(pinned(false), { ...at(612), handle: 12 }, false).fields,
     ).toBe("docked");
@@ -155,13 +139,11 @@ describe("the pinned Fields Panel", () => {
   it("draws its saved width within 240 to 480 px, and as wide as the editor's 360 px allows", () => {
     expect(columnLimit(pinned(false), "fields", at(1200))).toBe(480);
     expect(columnLimit(pinned(false), "fields", at(760))).toBe(400);
-    // 1200 - 400 (Preview) - 360 leaves the docked panel 440 px.
     expect(columnLimit(pinned(true), "fields", at(1200))).toBe(440);
     expect(columnLimit(pinned(false), "fields", null)).toBe(480);
   });
 
   it("keeps its place as the Preview column grows", () => {
-    // 1200 - 360 - 320 (docked) leaves the Preview 520 px.
     expect(columnLimit(pinned(true), "preview", at(1200))).toBe(520);
     const grow = resizePanel("preview", "grow", {
       size: at(1200),
@@ -212,11 +194,7 @@ describe("Preview height under the editor", () => {
   });
 
   it("gives up height first, so the editor keeps its toolbar, tabs, task and five source lines", () => {
-    // A 320 x 800 view lays its panels out 585 px tall. At the
-    // largest share, 80 %, the Preview would leave the editor 117 px: less
-    // than its toolbar and tabs. It takes 265 px and leaves the editor 320.
     expect(previewBelowHeight(80, 585)).toBe(265);
-    // 40 % of 700 px leaves the editor 420 px, past its floor.
     expect(previewBelowHeight(40, 700)).toBe(280);
   });
 
@@ -234,7 +212,6 @@ describe("sizing a panel without its handle", () => {
 
   it("offers the handles the view draws", () => {
     expect(panelHandles(preview, at(1200))).toEqual(["preview"]);
-    // At 560 px the Preview stands under the editor; the Fields Panel popover has no edge.
     expect(panelHandles(preview, at(560))).toEqual(["split"]);
     expect(panelHandles(shown(false), at(1200))).toEqual([]);
   });
@@ -246,7 +223,6 @@ describe("sizing a panel without its handle", () => {
   });
 
   it("widens the Preview column until the editor keeps only its 360 px", () => {
-    // 1600 - 360 leaves the Preview 1240 px.
     const grow = resizePanel("preview", "grow", bounds(1600));
     let panels = preview;
     for (let press = 0; press < 20; press++) panels = grow(panels);
@@ -279,8 +255,6 @@ describe("sizing a panel without its handle", () => {
   });
 
   it("offers a taller or shorter Preview only where the drawn height changes", () => {
-    // A 578 px view keeps the editor 320 px: the Preview draws at most 258
-    // px, which 45 % of the view already reaches.
     const short = {
       size: { width: 560, height: 578 },
       defaults: INITIAL_PANELS,
@@ -288,7 +262,6 @@ describe("sizing a panel without its handle", () => {
     const taller = resizePanel("split", "grow", short)(preview);
     expect(previewBelowHeight(taller.preview.height, 578)).toBe(258);
     expect(canResizePanel("split", "grow", short)(taller)).toBe(false);
-    // A saved 80 % draws as 45 %; one step shorter draws shorter.
     const tallest: WorkbenchPanels = {
       ...preview,
       preview: { ...preview.preview, height: 80 },
@@ -321,12 +294,9 @@ describe("sizing a panel without its handle", () => {
   });
 });
 
-// Keys, menu entries and a double-click size every handle through one path,
-// from the size the reader sees, within the handle's limits.
 describe.each([
   {
     handle: "fields",
-    // The docked Fields Panel at 320 px in a 1200 px view, which holds it to 480.
     panels: pinned(false),
     size: at(1200),
     axis: "horizontal",
@@ -341,7 +311,6 @@ describe.each([
   },
   {
     handle: "preview",
-    // The Preview column at 400 px in a 1600 px view, which holds it to 1240.
     panels: shown(true),
     size: at(1600),
     axis: "horizontal",
@@ -356,7 +325,6 @@ describe.each([
   },
   {
     handle: "split",
-    // The Preview under the editor at 40 % of a 560 x 800 view.
     panels: shown(true),
     size: at(560),
     axis: "vertical",
@@ -366,8 +334,6 @@ describe.each([
     menu: 50,
     min: 20,
     max: 80,
-    // A saved 80 % leaves the editor 160 px of an 800 px view; the Preview
-    // gives up height until the editor keeps 320, and draws at 60 %.
     drawnLargest: 60,
     read: (panels: WorkbenchPanels) => panels.preview.height,
   },
@@ -402,7 +368,6 @@ describe.each([
       );
       expect(sizeMenu?.axis).toBe(axis);
       const [grow, shrink, reset] = sizeMenu!.items;
-      // At its default size the panel grows and shrinks, and has nothing to reset.
       expect([grow!.disabled, shrink!.disabled, reset!.disabled]).toEqual([
         false,
         false,
@@ -428,7 +393,6 @@ describe.each([
       expect(sizing.drawn(largest, size)).toBe(drawnLargest);
       expect(drawnMax(handle, panels, size)).toBe(drawnLargest);
       expect(canResizePanel(handle, "grow", bounds)(largest)).toBe(false);
-      // A key past the largest size draws the panel no larger.
       expect(
         sizing.drawn(
           resizePanel(handle, "grow", { ...bounds, step: "key" })(largest),
@@ -450,7 +414,6 @@ describe.each([
   },
 );
 
-// A host may draw a 12 px handle beside each column, which the editor's room counts.
 describe("panel placement with handles", () => {
   it("holds the Preview column to the width that leaves the editor 360 px past its handle", () => {
     expect(

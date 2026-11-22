@@ -1,6 +1,4 @@
 import type { Feature } from "#obsidian/feature.ts";
-// The setting tab as a scoped layer: it registers the tab, keeps its
-// definitions current, and removes it when its Scope closes.
 import { Duration, Effect, Layer, Stream } from "effect";
 
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
@@ -14,14 +12,8 @@ import type {
 import { ShellSettingTab } from "./tab.ts";
 import type { SettingTabOrder } from "./tab.ts";
 
-/**
- * How long the tab waits for changes to settle before it rebuilds. Obsidian
- * re-renders every `render` row on a rebuild, and startup moves several
- * services at once.
- */
 const REBUILD_SETTLE = Duration.millis(50);
 
-/** The tab of `features` in `order`. */
 export function layerSettingTab(
   features: readonly Feature<any, any, any>[],
   order: SettingTabOrder,
@@ -36,10 +28,6 @@ export function layerSettingTab(
           new ShellSettingTab(plugin, { tab: service }, { features, order }),
       );
 
-      // Rows that are included or left out, not toggled through `visible`,
-      // follow what the features name. A scalar `control` edit is read on
-      // Obsidian's own render cycle, so it never rebuilds and never steals
-      // focus from an input.
       const signals = yield* Effect.forEach(
         features.flatMap((feature) => feature.settingTab.rebuild ?? []),
         (signal) => signal,

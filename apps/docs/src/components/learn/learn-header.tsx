@@ -1,6 +1,3 @@
-// The `/learn` top bar: the wordmark, a mono "Learn" label, then "All
-// lessons" and "Docs" as muted links, over a hairline. See DESIGN.md → Learn.
-
 import { Link } from "@tanstack/react-router";
 
 import { Logo } from "@/components/logo.tsx";

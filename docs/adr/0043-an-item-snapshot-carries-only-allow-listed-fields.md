@@ -7,3 +7,29 @@ The Item Snapshot exporter spreads every Zotero field and custom field of the se
 - Sample Items are regenerated from the allow-listed exporter; the snapshot test that fails on a contract bump also fails on an undeclared field.
 - The `unavailable` list covers every root in the snapshot, including standalone annotation roots, and a citation style whose CSL carries no title falls back to its id rather than its file name.
 - A template that prints `zt.weblink` previews it as unavailable for a personal library; the note written in Obsidian is unchanged.
+
+## Snapshot export boundary
+
+Use the generated contract to identify roots and Item-shaped records.
+Fail export when the root is unknown so a snapshot cannot pass through
+unpruned. Preserve serializer markers as their own shapes. When a field
+can be one of several object shapes, combine their declared properties
+and still prune the record. On Item-shaped records, also keep the
+Zotero fields for the actual Item type, their base-field aliases, and
+fields declared by the user's Custom Item Fields. Include declarations
+from related Items because they can contribute fields to the note root.
+
+Suppress personal-library web links because the account name is part of
+the public URL. A group link uses its public group ID and remains. Report
+redacted values as unavailable. A Child Note without a vault target
+still links to Zotero. Reject disallowed provenance and vault paths.
+
+Share browser-safe snapshot schemas between hosts. Keep the Item's
+filter row optional so older exports and Items outside the live
+top-level dataset can still load.
+[Allowlist](../../packages/workbench/src/snapshot/allowlist.ts) · [Snapshot schema](../../packages/workbench/src/snapshot/schema.ts)
+
+When serializing a selected field, keep helper metadata at its original
+path. A missing contract entry reports a stale build artifact
+separately from an error while evaluating data.
+[Field serialization](../../packages/workbench/src/explorer/serialize.ts)

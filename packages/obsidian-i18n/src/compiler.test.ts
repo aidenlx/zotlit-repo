@@ -1,5 +1,3 @@
-// Compiler-seam tests for generated message wrappers and Language Packs.
-
 import { loadProjectFromDirectory } from "@inlang/sdk";
 import { execFile } from "node:child_process";
 import fs from "node:fs";
@@ -333,8 +331,6 @@ describe("generateLanguagePacks", () => {
     const runtime = await readFile(join(outputDirectory, "runtime.ts"), "utf8");
     await using generated = await loadGeneratedModules(outputDirectory);
     expect(generated.targetLocaleMessages).toEqual({
-      // The base locale ships as the bundled base pack the ladder already
-      // falls back to, so it carries no subset of its own.
       "zh-CN": {
         notice_pack_offer: {
           declarations: [{ type: "input", name: "language" }],
@@ -393,8 +389,6 @@ describe("generateLanguagePacks", () => {
       plugin_example(): string;
     }>(outputDirectory);
     generated.runtime.setTargetLocale("zh-CN");
-    // An installed pack must not reach a Target-Locale Message, and must still
-    // serve everything else.
     generated.runtime.install({
       schemaVersion: 1,
       locale: "zh-CN",
@@ -407,7 +401,6 @@ describe("generateLanguagePacks", () => {
     expect(generated.messages.notice_pack_offer({ language: "简体中文" })).toBe(
       "简体中文 语言包可用。",
     );
-    // Untranslated in the subset: this one message degrades to the base locale.
     expect(generated.messages.notice_pack_untranslated()).toBe(
       "Restart to apply.",
     );
@@ -812,8 +805,6 @@ describe("generateLanguagePacks", () => {
     await generateLanguagePacks({ projectPath, outputDirectory });
 
     const facade = await readFile(join(outputDirectory, "messages.ts"), "utf8");
-    // "9007199254740993" is not a safe integer, so it behaves as a plain
-    // string literal consistently with the runtime's selector matching.
     expect(facade).toContain(
       "export const unsafe_numeric_selector = (inputs: { count: string | number }): string",
     );
@@ -931,13 +922,10 @@ describe("generateLanguagePacks", () => {
     const chinesePack = JSON.parse(
       await readFile(join(outputDirectory, "zh-CN.json"), "utf8"),
     );
-    // A translation without placeholders collapses even though the base
-    // Message takes an input.
     expect(chinesePack.messages.item_count).toBe("很多项");
     expect(basePack.messages.item_count.declarations).toEqual([
       { type: "input", name: "count" },
     ]);
-    // A translation using fewer inputs carries only the ones it references.
     expect(chinesePack.messages.item_range.declarations).toEqual([
       { type: "input", name: "shown" },
     ]);
@@ -1058,8 +1046,6 @@ async function typecheckGeneratedOutput(
   { include = [] }: { include?: readonly string[] } = {},
 ): Promise<void> {
   const configPath = join(outputDirectory, "tsconfig.json");
-  // The emitted catalog is a bare object literal, so compiling it alone proves
-  // nothing. This binds it to the type the lifecycle consumes it as.
   await writeFile(
     join(outputDirectory, "locale-catalog-check.ts"),
     [
@@ -1082,7 +1068,6 @@ async function typecheckGeneratedOutput(
           module: "preserve",
           moduleResolution: "bundler",
           target: "ES2025",
-          // The runtime source types its date inputs with Temporal.
           lib: ["ES2025", "DOM", "ESNext.Temporal"],
           resolveJsonModule: true,
           allowImportingTsExtensions: true,
@@ -1378,11 +1363,6 @@ async function generateLanguagePacks(options: {
   });
 }
 
-/**
- * Loads the emitted modules as a consumer's bundler would, so a test asserts
- * what the wrappers render rather than what the generator wrote. Requires a
- * compile with configured target-locale prefixes, which emits the subsets.
- */
 async function loadGeneratedModules<Messages = Record<string, never>>(
   outputDirectory: string,
 ): Promise<{

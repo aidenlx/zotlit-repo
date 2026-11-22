@@ -54,7 +54,6 @@ import {
   layerTestQueryService,
 } from "#__fixtures__/item-query.ts";
 
-/** The scenario database, held for the case's scope. */
 const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
   Effect.acquireDisposable(
     Effect.sync(() => openScenarioDatabase(connectClient, options)),
@@ -67,10 +66,6 @@ const SOURCE = (scenario: ScenarioDatabase<NodeDatabaseClient>) => ({
   baseAttachmentPath: join(dirname(scenario.path), "linked"),
 });
 
-/**
- * A wrap of the reads client that records each ItemQuery job in `jobs` and
- * counts the calls in flight as `leases`.
- */
 function counter() {
   const state = { leases: 0, jobs: [] as QueryJob[] };
   const wrap = (client: ZoteroReadsClient): ZoteroReadsClient => ({
@@ -92,11 +87,6 @@ function counter() {
   return { state, wrap };
 }
 
-/**
- * ZotLit Query over `scenario`, for the case's scope: the jobs the worker
- * received, the leases the jobs hold now, and `unload`, which closes the
- * service as the plugin's unload does.
- */
 const harness = Effect.fnUntraced(function* (
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   opener: ConnectionOpener = sharedClientOpener(scenario.db),
@@ -130,15 +120,12 @@ const harness = Effect.fnUntraced(function* (
   };
 });
 
-/** The parsed answer of a CLI call. */
 const json = <E>(answer: Effect.Effect<string, E>) =>
   Effect.map(answer, (text) => JSON.parse(text));
 
-/** A call started now, so its job claims its id before the next step. */
 const started = <A, E>(call: Effect.Effect<A, E>) =>
   Effect.forkChild(call, { startImmediately: true });
 
-/** The call ended by an interrupt alone, as an abort of its caller does. */
 const interruptedOnly = (exit: Exit.Exit<unknown, unknown>) =>
   Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause);
 
@@ -149,7 +136,6 @@ const readText = (path: string) => Effect.promise(() => readFile(path, "utf8"));
 const nextTurn = Effect.promise(
   () => new Promise((resolve) => setTimeout(resolve, 0)),
 );
-/** Wait until the export has written its private file. */
 const exportStarted = (directory: string) =>
   Effect.promise(() =>
     vi.waitFor(
@@ -166,7 +152,6 @@ const bulk = {
   fields: '["title","tags"]',
 };
 
-/** One CLI dataset as the service seam sees it, with its expected wire. */
 const DATASETS = [
   {
     dataset: "items",
@@ -414,7 +399,6 @@ describe.each(DATASETS)("$dataset CLI dataset through the service", (cli) => {
             command: schemaCommand,
           }),
         ]);
-        // The renderer rejects a parameter, without a lease.
         expect(
           yield* json(service.schema({ from: dataset, library: "personal" })),
         ).toMatchObject({
@@ -546,7 +530,6 @@ describe("Item Query worker jobs", () => {
             ),
           );
         }
-        // CSV opens in a spreadsheet as UTF-8 text; TSV is plain lines.
         const csv = yield* Effect.promise(() =>
           readFile(join(dirname(scenario.path), "items.csv")),
         );
@@ -606,7 +589,6 @@ describe("Item Query worker jobs", () => {
           },
         });
         expect(yield* files(dirname(output))).not.toContain("items.xlsx");
-        // format=json is the default, as given or omitted.
         expect(
           yield* json(service.query({ from: "items", format: "json" })),
         ).toMatchObject({ ok: true });
@@ -638,7 +620,6 @@ describe("Item Query worker jobs", () => {
           file: { bytes: Buffer.byteLength(text) },
         });
         expect(JSON.parse(text).rows).toHaveLength(6000);
-        // A CSV export writes the same rows in chunks, one line each.
         const csvOutput = join(dirname(scenario.path), "large.csv");
         expect(
           yield* json(
@@ -719,7 +700,6 @@ describe("Item Query worker jobs", () => {
         const unnamed = yield* started(
           service.query({ from: "items", ...bulk, limit: "100" }),
         );
-        // The private file exists from the first row the export writes.
         yield* exportStarted(dirname(output));
 
         expect(yield* service.cancel("export")).toBe(true);
@@ -738,7 +718,6 @@ describe("Item Query worker jobs", () => {
         const names = yield* files(dirname(output));
         expect(names).not.toContain("named.json");
         expect(temporary(names)).toEqual([]);
-        // Each ID is free once its query settles.
         expect(yield* service.cancel("export")).toBe(false);
         expect(yield* service.cancel("other")).toBe(false);
         expect(yield* service.runningJobs).toBe(0);
@@ -790,8 +769,6 @@ describe("Item Query worker jobs", () => {
         const scenario = yield* scenarioOf({ storage: "temp-directory" });
         const { service, leases } = yield* harness(scenario);
         const outcomes = new Set<string>();
-        // Cancel after a growing number of timer turns, from before the lease
-        // until completion wins.
         for (const turns of [0, 1, 2, 4, 8, 16, 32, 64, 128, 256]) {
           if (outcomes.has("answered")) break;
           const output = join(dirname(scenario.path), `race-${turns}.json`);
@@ -808,7 +785,6 @@ describe("Item Query worker jobs", () => {
           expect(temporary(names)).toEqual([]);
           const published = names.includes(`race-${turns}.json`);
           if (Exit.isSuccess(settled)) {
-            // Completion won: the export is published, also after a cancel request.
             expect({
               ok: (JSON.parse(settled.value) as { ok: boolean }).ok,
               published,
@@ -894,7 +870,6 @@ describe("Item Query worker jobs", () => {
           service.query({ from: "items", ...bulk }),
         );
 
-        // Unload closes the scope of the jobs: it interrupts each job and waits.
         yield* unload;
 
         expect(yield* Effect.flip(Fiber.join(running))).toMatchObject({
@@ -1202,7 +1177,6 @@ describe("typed Query View call", () => {
         expect(result).toMatchObject({ returnedCount: 6000, truncated: false });
         expect(result.groups).toBeUndefined();
         expect(result.rows).toHaveLength(6000);
-        // The Items default sort: the last modified first.
         expect(result.rows?.[0]).toEqual({
           indexedKey: `${bulkItemKey(5999)}g${BULK_LIBRARY.groupID}`,
           values: {
@@ -1391,7 +1365,6 @@ describe("typed Query View call", () => {
   );
 });
 
-// The Promise edge of a Query View: an abort or the unload gives `cancelled`.
 describe("QueryHandle", () => {
   const request = {
     from: "items",
@@ -1437,7 +1410,6 @@ describe("QueryHandle", () => {
 
     const running = h.handle.run(request, cancel.signal);
     const other = h.handle.run({ ...request, limit: 100 }, signal());
-    // Two worker slots: the third call waits for one.
     const waiting = h.handle.run({ ...request, limit: 1 }, queued.signal);
     await vi.waitFor(() => expect(h.jobs()).toHaveLength(3), { interval: 1 });
     queued.abort();
@@ -1469,8 +1441,6 @@ describe("QueryHandle", () => {
   });
 });
 
-// Failure mode: an open Query View keeps showing results ordered by stale
-// Uses after a new one is recorded.
 it.effect("tells a Query View of a Use recorded after it subscribes", () =>
   Effect.gen(function* () {
     const ledger = yield* SubscriptionRef.make<Ledger>({});
@@ -1491,7 +1461,6 @@ it.effect("tells a Query View of a Use recorded after it subscribes", () =>
       const changed = yield* Effect.forkChild(Stream.runHead(service.changed), {
         startImmediately: true,
       });
-      // The ledger at subscription is no change.
       expect(changed.pollUnsafe()).toBeUndefined();
 
       yield* SubscriptionRef.set(ledger, {

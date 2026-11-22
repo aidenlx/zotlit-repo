@@ -163,9 +163,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       ),
     ).toBe(0);
-    // A default Profile that lists the Annotations in the note puts one
-    // callout for each of them in the body, where the customized callout
-    // must arrive.
     await useListingProfile(freshId);
     await suite.quickSwitchCreate(annotatedItem, freshId);
     await obRunUntil(
@@ -186,10 +183,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const note = await indexedNote(freshId, annotatedItem.itemID);
     expect(note.path).not.toBeNull();
     const personal = "\nMy own research question stays here.\n";
-    // Customize is offered only on a note whose metadata cache names a paper.
-    // Obsidian drops a note's cache when a write lands and restores it once
-    // the worker has parsed the new content, so the command waits for that
-    // `changed` event rather than racing the parse.
     await obRun(
       freshId,
       async ({ app }, { notePath, personal }) => {
@@ -243,8 +236,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the Template Workbench to open a file for the originating note",
       },
     );
-    // The Default document already exists, so the workbench shows its file
-    // before Customize sets the note it came from.
     await obRunUntil(
       freshId,
       async ({ app }, { notePath, expectedTemplateText }) => {
@@ -280,8 +271,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       vaultPath: freshPath,
       tabLabel: run.m.workbench_tab_annotation(),
       beforeEdit: async () => {
-        // The tab opens on its lede, the one line that says where the
-        // template applies, beside the shared-template banner.
         await obRunUntil(
           freshId,
           async ({ app }, { notePath, lede, bannerText }) => {
@@ -323,7 +312,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         );
       },
     });
-    // The linked Preview belongs to the editor's native window, which can differ from the CLI window.
     await obRunUntil(
       freshId,
       async ({ app }, { notePath }) => {
@@ -439,8 +427,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the Template Workbench Update button to take focus and be enabled",
       },
     );
-    // The first click after an edit writes the Managed Frontmatter with the
-    // body: a managed Property removed now comes back with this one update.
     await obRun(
       freshId,
       async ({ app }, { notePath }) => {
@@ -509,8 +495,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         ),
       ),
     ).toBe(true);
-    // The update puts the customized callout in the body, one for each
-    // Annotation.
     expect(
       await waitFor(
         async () =>
@@ -638,8 +622,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
       { what: "the default Profile to resolve without a document" },
     );
-    // Set the Item's seeded notes aside, so the default Profile writes a new
-    // one; the cleanup puts them back.
     await using cleanup = new AsyncDisposableStack();
     const seeded = (await obRun(
       run.vaultId,
@@ -705,12 +687,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(noteBody(text)).toContain("## Annotations\n\n```zotquery\n");
     expect(text).not.toContain("%%zt-managed%%");
     expect(text).not.toContain("## Notes");
-    // Rendering the note wrote one file: the note. The Child Note stays in
-    // Zotero until an import command brings it in.
     expect(await markdownFiles()).toBe(String(Number(filesBefore) + 1));
     expect(await importedNotes()).toBe(importedBefore);
 
-    // A full Update refreshes the Properties and leaves the body as written.
     const personal = "\nMy own reading of this paper.\n";
     await obRun(
       run.vaultId,
@@ -782,8 +761,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
       { what: "the open-citekey command to run and report success" },
     );
-    // Without an explicit input the picker preselects Default; the Books
-    // choice below belongs to this operation alone.
     const preselected = await selectSuggestion(
       run.vaultId,
       run.m.modal_profile_preselected(),
@@ -866,8 +843,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(original).toContain(stampLine);
     const edited = original.replace(stampLine, "");
     await clearNotices(run.vaultId);
-    // The stamp leaves the editor's text only; the metadata cache still names
-    // Books when the update chooses its Profile, a moment later.
     await obRun(
       run.vaultId,
       async ({ app }, { booksNotePath, edited }) => {
@@ -908,7 +883,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { edited },
       ),
     ).toBe(true);
-    // Put the stamp back, so the scenarios below find the note as it was.
     await obRun(
       run.vaultId,
       async ({ app }, { original }) => {
@@ -1037,10 +1011,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
   });
 
-  // Covers both the "rendered literature note" and "batch operation"
-  // acceptance-criteria bullets together — a deliberate simplification, not
-  // an oversight: update-all-notes is itself a batch write of Literature
-  // Notes, so exercising it also exercises rendering one.
   it("renders a Literature Note via the update-all-notes batch operation", async () => {
     const noteName = targetItem.literatureNoteName ?? targetItem.key;
     const notePath = join(e2eVaultPath, "literatures", `${noteName}.md`);
@@ -1069,9 +1039,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the Books note front matter to be seeded with stale fixture values",
       },
     );
-    // The batch reads each note's Profile stamp from the metadata cache, and
-    // the write above sends the Books note back through the parser. Until the
-    // cache holds the rewritten frontmatter, the note reads as unstamped.
     await obRunUntil(
       run.vaultId,
       async ({ app }, { booksNotePath }) => {
@@ -1101,12 +1068,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // The Fixture's My Library carries more than one Literature Note, so
-    // `runBatchUpdateAll` (apps/obsidian/src/services/note-feature/update-batch.ts)
-    // takes its multi-item path: a confirmation `BatchModal`, not an
-    // immediate write — the same modal a person clicking the command would
-    // see. Confirming it is an ordinary user action, not a bypass; the modal
-    // classifies items asynchronously, so this polls for the button first.
     await clickModalButton(run.vaultId, run.m.batch_update_confirm_button());
     await obRunUntil(
       run.vaultId,
@@ -1118,12 +1079,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { closeButtonText: run.m.batch_update_close() },
       { what: "the update-all-notes result modal to show its Close button" },
     );
-    // All seeded personal notes now use Default, plus the new group note;
-    // the citekey-created note is the one existing Books note. The
-    // remaining group items (8, 9, 10, 79, 97) are created under Default, the batch's
-    // fallback: the Books choice made in the citekey picker stayed with that
-    // operation. The demo items have no seeded note: the demo book matches
-    // Books and is created there, the demo papers are created under Default.
     const defaultCount =
       ITEMS.filter((item) => item.libraryID === 1 && !DEMO_ITEMS.includes(item))
         .length + 1;
@@ -1163,20 +1118,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       }),
     );
     await clickModalButton(run.vaultId, run.m.batch_update_close());
-    // The batch's database reads run in the worker: the window kept painting
-    // from the command to the summary.
     const painted = await frames.read();
     console.info("update-all frame gaps", painted);
     expect(painted.frames).toBeGreaterThan(1);
     expect(painted.maxFrameGapMs).toBeLessThan(250);
     expect(painted.longestTaskMs).toBeLessThan(250);
 
-    // The seed file the Fixture Vault ships already carries the title
-    // heading and the `zotero-key`/`citekey` frontmatter, so polling for
-    // those alone would pass even if the batch update silently no-oped.
-    // `related`/`collections` frontmatter come only from a genuine re-render
-    // against the Fixture's Zotero data — `targetItem` (see above) has both,
-    // per the Fixture Spec (`relatedKeys: ["EEEE5555"]`, `collectionIDs: [1, 4]`).
     let content = "";
     const rendered = await waitFor(async () => {
       content = await readFile(notePath, "utf-8").catch(() => "");
@@ -1245,7 +1192,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     await cli([`vault=${run.vaultId}`, "delete", `path=${seededPath}`]);
     await waitForIndexedNotes(run.vaultId, bookItem.key, 0);
     await suite.openMatchEditor();
-    // A Profile with no Match shows one placeholder row.
     await suite.shapeCondition(0, "item-type", "book");
     await suite.addLibraryCondition("personal");
     await suite.saveMatch(suite.bookMatch);
@@ -1396,7 +1342,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     await suite.writeMatch(booksProfile, suite.bookMatch);
     await suite.openMatchEditor();
-    /** The Match tab's result once it tests the Item `key` and settles. */
     const resultFor = async (key: string) => {
       let text = "";
       await waitFor(async () => {
@@ -1423,15 +1368,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       });
       return text;
     };
-    // ZotLit Query tests a real Item, as creation does.
     expect(await resultFor(bookItem.key)).toBe(
       run.m.workbench_match_result_yes(),
     );
     expect(await resultFor(articleItem.key)).toBe(
       run.m.workbench_match_result_no(),
     );
-    // A mistake in one condition shows on that row, with the reason ZotLit
-    // Query gives.
     await suite.writeMatch(booksProfile, {
       and: ['itemType == "book"', 'tags.contain("Read")'],
     });
@@ -1460,11 +1402,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toBe(true);
     expect(rows[0]).toBeNull();
     expect(rows[1]).toContain("contain");
-    /**
-     * The text each condition row underlines, once the second row's is
-     * `expected` or the wait ends: the editor draws its marks after the
-     * frame that shows the row.
-     */
     const underlines = async (expected: string) => {
       let marks: string[][] = [];
       await waitFor(async () => {
@@ -1489,16 +1426,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       });
       return marks;
     };
-    // The row underlines the name ZotLit Query found wrong.
     expect(await underlines("contain")).toEqual([[], ["contain"]]);
-    // A Syntax Fault is underlined in its row, with no test to wait for.
     await suite.writeMatch(booksProfile, {
       and: ['itemType == "book"', "title =="],
     });
     expect(await underlines("==")).toEqual([[], ["=="]]);
-    // Mod+Z in the expression field is its own history's, and the Match
-    // follows the text it undoes; in a select's search field it undoes the
-    // typed text and leaves the Match alone.
     expect(
       await obRun(
         run.vaultId,
@@ -1974,7 +1906,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       join(e2eVaultPath, run.booksNotePath),
       "utf-8",
     );
-    // Profile management lives in the row's More actions menu.
     await obRunUntil(
       run.vaultId,
       async ({ app, page }, { booksProfileLabel, moreActionsLabel }) => {
@@ -2289,8 +2220,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(true);
 
-    // Live updates answer the Companion, so their switch sits on the Zotero
-    // page beside it rather than with the server that carries them.
     await openProfilesSettings(run.vaultId, "settings_page_zotero");
     expect(
       await obRun(

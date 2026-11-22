@@ -1,17 +1,13 @@
-// An in-memory Notifier: records each notice in place of drawing it.
 import { Effect, Layer, Queue } from "effect";
 import { noticeFibers, Notifier } from "#notifier.ts";
 import type { NoticeMessage } from "#notifier.ts";
 
 export interface RecordedNotice {
-  /** Every message the notice showed, the first one first. */
   readonly messages: NoticeMessage[];
-  /** `0` for a progress notice, which stays until its Scope closes. */
   readonly duration: number | undefined;
   hidden: boolean;
 }
 
-/** A Notifier that records its notices, with the layer that provides it. */
 export function testNotifier() {
   const notices: RecordedNotice[] = [];
   const record = (message: NoticeMessage, duration: number | undefined) => {
@@ -53,21 +49,15 @@ export function testNotifier() {
   };
   return {
     notices: notices as readonly RecordedNotice[],
-    /** The notices without a layer Scope: a tracked notice needs `layer`. */
     service: Notifier.of({
       ...base,
       track: () =>
         Effect.die(new Error("A tracked notice needs testNotifier().layer")),
     }),
-    /** The notices, with tracked notices on a FiberSet of the layer's Scope. */
     layer: Layer.effect(Notifier, noticeFibers(base)),
   };
 }
 
-/**
- * The Notifier `service` as a layer that offers to `shown` after each notice
- * it shows: the completion signal of a case that waits for a notice.
- */
 export function layerSignalling(
   service: Notifier["Service"],
   shown: Queue.Queue<void>,

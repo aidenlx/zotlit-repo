@@ -14,14 +14,6 @@ import type {
 import type { LayoutRows } from "#desktop/query-view/rows.ts";
 import type { VaultHost, VaultValue } from "#desktop/query-view/table-notes.ts";
 
-// The View Plan: what ZotLit Query runs for one view of a Query File, and
-// apart from it the sort keys and the conditions that read a vault property,
-// which the vault answers. `limit` counts the rows the researcher sees, so
-// the plan is made before ZotLit Query runs and lays out the rows it returns,
-// never filtering them after. The Query View and the mixed-query bench both
-// plan through it; the order of the steps lives here alone.
-//
-// @see apps/obsidian/docs/adr/0070-vault-properties-are-answered-outside-zotlit-query.md
 import type { QueryContext } from "@zotlit/item-query";
 import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import type { Span } from "@zotlit/template-workbench/core/language/index.ts";
@@ -47,95 +39,49 @@ import {
   viewProperties,
 } from "#desktop/query-view/view-properties.ts";
 
-/** The Literature Notes a plan reads, as the Query View's reader gives them. */
 export interface ViewPlanNotes {
-  /** The Indexed Keys of the Items that have a Literature Note. */
   itemKeys(): Iterable<string>;
-  /** The vault property `name` of an Item, read as the note that holds the view, `host`, reads it. */
   read(itemKey: string, name: string, host: VaultHost | null): VaultValue;
 }
 
-/** What a plan reads beside the file and the view. */
 export interface ViewPlanSources {
-  /** The Query Context `this` reads; `undefined` where it has no value. */
   context(): QueryContext | undefined;
-  /**
-   * The Libraries the query reads, as the Library View gives its selected
-   * Library; absent or `undefined`: the Library Scope in force.
-   */
   libraries?(): LibraryScope | undefined;
-  /** Extra projection paths the host reads for the shown layout. */
   fields?(view: QueryFileView): readonly string[];
-  /** The note that holds the view and the Item it names; `null` elsewhere. */
   host(): VaultHost | null;
   notes: ViewPlanNotes;
 }
 
-/** A vault condition the vault cannot answer, which keeps the view from running. */
 export interface ViewPlanFault {
   readonly at: FilterLocation;
   readonly diagnostic: ReaderDiagnosticSource;
 }
 
-/** The plan of one view. */
 export interface ViewPlan {
-  /**
-   * What tells one run from another: the request, what the vault answers
-   * apart from it, the limit, and the grouping the rows are gathered by.
-   */
   readonly key: string;
-  /** What ZotLit Query runs. It never reads a vault property. */
   readonly request: QueryViewRequest;
-  /** What keeps the view from running; `null` where it runs. */
   readonly fault: ViewPlanFault | null;
-  /**
-   * The condition on the Indexed Key that stands for the vault conditions on
-   * the last line of the request's filter; `null` where it needs none.
-   */
   readonly keys: string | null;
-  /**
-   * The rows ZotLit Query returned, as the view lays them out: sorted by its
-   * vault sort keys and cut to its `limit` where it has any. `dropped` says
-   * whether the limit left any out.
-   */
   layout<R extends QueryViewRow>(
     rows: readonly R[],
   ): LayoutRows & { dropped: boolean };
-  /**
-   * The condition that a fault at `span` of the request's filter marks, with
-   * the fault's place in the condition's text, or `null` when the span falls
-   * inside no one condition.
-   */
   locate(span: Span): ConditionFault | null;
 }
 
-/**
- * Plans the views of a Query File. It reads every Literature Note only for
- * a plan whose vault conditions, Query Dataset or host note differ from
- * the last one, or once {@link notesChanged} says the notes did: a new Query
- * Context alone plans without them.
- */
 export class ViewPlanner {
   readonly #sources: ViewPlanSources;
-  /** The filters of the last view planned. */
   #split: { file: QueryFile; view: QueryFileView; split: FilterSplit } | null =
     null;
-  /** The vault filter of the last plan, by what it was planned from. */
   #vaultFilter: { key: string; filter: VaultFilter } | null = null;
 
   constructor(sources: ViewPlanSources) {
     this.#sources = sources;
   }
 
-  /** The Literature Notes changed: the next plan reads them again. */
   notesChanged(): void {
     this.#vaultFilter = null;
   }
 
-  /**
-   * The plan of one view of the file. It sends every Formula of the file:
-   * ZotLit Query plans only those that the view reads.
-   */
   plan(file: QueryFile, view: QueryFileView): ViewPlan {
     const split = this.#splitOf(file, view);
     const host = this.#sources.host();
@@ -179,7 +125,6 @@ export class ViewPlanner {
     return {
       key: JSON.stringify([
         planned,
-        // A vault sort keeps the view's limit out of the request.
         {
           sort: vaultSort,
           conditions: split.vault.map(({ section, path, text }) => ({
@@ -207,14 +152,12 @@ export class ViewPlanner {
     };
   }
 
-  /** The split of the view's filters, made once for each file and view. */
   #splitOf(file: QueryFile, view: QueryFileView): FilterSplit {
     if (this.#split?.file !== file || this.#split.view !== view)
       this.#split = { file, view, split: splitFilters(file, view) };
     return this.#split.split;
   }
 
-  /** The vault conditions of a view, planned against its Literature Notes. */
   #vaultFilterOf(
     { vault, stranded }: FilterSplit,
     view: QueryFileView,
@@ -241,7 +184,6 @@ export class ViewPlanner {
   }
 }
 
-/** The paths the view's Layout reads from each row beside the visible properties. */
 function layoutFields(view: QueryFileView): readonly string[] {
   switch (layoutOf(view)?.type) {
     case "table":

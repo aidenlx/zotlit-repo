@@ -12,7 +12,6 @@ import {
 import type { TargetLibrary } from "./request.ts";
 import type { Tuning } from "./tuning.ts";
 
-/** Choose the candidate set or the scan independently for each Target Library. */
 export const runCandidatePass = Effect.fnUntraced(function* ({
   dataset,
   filter,

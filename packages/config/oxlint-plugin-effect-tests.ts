@@ -1,16 +1,8 @@
-// zotlit-effect-tests: Effect tests run inside the test runtime
-// (policies/testing-strategy.md, policies/test-timing.md). Rejects running an
-// Effect by hand in a test, real timers in an Effect case, and fake services
-// cast to `Tag["Service"]` instead of built with stubService, and notice
-// modules mocked instead of observed through the Notifier. Rule tests:
-// apps/obsidian/src/lint/effect-tests.test.ts.
 import { isMemberOf } from "./oxlint-ast.ts";
 import type { AstNode, Rule } from "./oxlint-ast.ts";
 
 const TEST_FUNCTIONS = new Set(["it", "test"]);
-/** `it.<name>` forms whose body is an Effect, run by @effect/vitest. */
 const EFFECT_TESTERS = new Set(["effect", "live", "layer", "prop"]);
-/** Waits on the event loop's real time. */
 const REAL_TIMERS = new Set([
   "setTimeout",
   "setInterval",
@@ -20,13 +12,10 @@ const REAL_TIMERS = new Set([
   "yieldToMain",
 ]);
 const REAL_TIME_HOSTS = new Set(["globalThis", "window", "activeWindow"]);
-/** Vitest's fake timers, which the TestClock replaces. */
 const isViTimer = (name: string) => /Timers|SystemTime/.test(name);
 const VI = new Set(["vi"]);
 
-/** Modules exporting the `Effect` namespace by that name. */
 const EFFECT_NAMESPACE_MODULES = new Set(["effect"]);
-/** Modules that are the `Effect` namespace, run entry points included. */
 const EFFECT_MODULES = new Set([
   "effect/Effect",
   "@zotlit/plugin-kernel/effect-runtime.ts",
@@ -35,10 +24,6 @@ const EFFECT_MODULES = new Set([
 
 const isRun = (name: string) => name.startsWith("run");
 
-/**
- * The names a file runs an Effect through: namespaces whose `run…` members
- * run one, and `run…` functions imported on their own.
- */
 interface RunNames {
   readonly namespaces: Set<string>;
   readonly functions: Set<string>;
@@ -77,7 +62,6 @@ function collectRunNames(
   }
 }
 
-/** `Effect.run…(…)` or an imported `run…(…)`: a run entry point. */
 function isEffectRun(callee: AstNode | undefined, names: RunNames): boolean {
   return (
     isMemberOf(callee, names.namespaces, isRun) ||
@@ -86,11 +70,6 @@ function isEffectRun(callee: AstNode | undefined, names: RunNames): boolean {
   );
 }
 
-/**
- * How a Vitest case runs its body: `it(…)`, `test.only(…)`, `it.each(…)(…)`
- * are plain; `it.effect(…)` and the other Effect testers run an Effect, on
- * the TestClock unless `live`. `undefined` when `callee` is no case.
- */
 function caseKind(
   callee: AstNode | undefined,
 ): "plain" | "effect" | "live" | undefined {
@@ -110,7 +89,6 @@ function caseKind(
   return undefined;
 }
 
-/** How the innermost test case around `node` runs, if any. */
 function enclosingCase(node: AstNode): ReturnType<typeof caseKind> {
   for (let child = node, parent = node.parent; parent;) {
     if (parent.type === "CallExpression" && parent.arguments?.includes(child)) {
@@ -123,13 +101,6 @@ function enclosingCase(node: AstNode): ReturnType<typeof caseKind> {
   return undefined;
 }
 
-/**
- * An Effect test runs through `it.effect` from `@effect/vitest`
- * (policies/testing-strategy.md → Effect code), which supplies the plugin's
- * runtime services and the test services such as TestClock. A
- * `ManagedRuntime`'s own `run…` stays allowed: a test of a Promise edge drives
- * the service through its runtime.
- */
 export const noEffectRunInTest: Rule = {
   meta: {
     type: "suggestion",
@@ -156,7 +127,6 @@ export const noEffectRunInTest: Rule = {
   },
 };
 
-/** A call that waits on, or fakes, the event loop's real time. */
 function isRealTimer(callee: AstNode | undefined): boolean {
   return (
     (callee?.type === "Identifier" && REAL_TIMERS.has(callee.name as string)) ||
@@ -165,11 +135,6 @@ function isRealTimer(callee: AstNode | undefined): boolean {
   );
 }
 
-/**
- * An Effect case's time is the TestClock (policies/test-timing.md → Effect):
- * a real timer makes it slow and flaky, and Vitest's fake timers do not move
- * Effect's clock. `it.live` keeps real time for real external async.
- */
 export const noRealTimerInEffectTest: Rule = {
   meta: {
     type: "problem",
@@ -192,7 +157,6 @@ export const noRealTimerInEffectTest: Rule = {
   },
 };
 
-/** The TypeScript cast and type nodes the service-stub rule walks. */
 type TsNode = AstNode & {
   readonly expression?: TsNode;
   readonly typeAnnotation?: TsNode;
@@ -200,14 +164,12 @@ type TsNode = AstNode & {
   readonly literal?: TsNode;
 };
 
-/** `Tag["Service"]`: the implementation type of an Effect service tag. */
 function isServiceType(node: TsNode | undefined): boolean {
   if (node?.type !== "TSIndexedAccessType") return false;
   const index = node.indexType;
   return index?.type === "TSLiteralType" && index.literal?.value === "Service";
 }
 
-/** Whether an object literal sits under any `as` / `satisfies` wrapping. */
 function castObject(node: TsNode | undefined): boolean {
   let at = node;
   while (at?.type === "TSAsExpression" || at?.type === "TSSatisfiesExpression")
@@ -215,13 +177,6 @@ function castObject(node: TsNode | undefined): boolean {
   return at?.type === "ObjectExpression";
 }
 
-/**
- * A fake service built as `{ … } as Tag["Service"]` compiles while it lacks
- * members, and a consumer that reads a missing one fails as `undefined` far
- * from the stub, or not at all until an adapter reads it eagerly. The
- * `stubService` helper from `@zotlit/plugin-kernel/__fixtures__/service-stub.ts` type-checks
- * each member it is given and names any other member a consumer reads.
- */
 export const serviceStub: Rule = {
   meta: {
     type: "problem",
@@ -238,7 +193,6 @@ export const serviceStub: Rule = {
     return {
       TSAsExpression(node) {
         const cast = node as unknown as TsNode;
-        // Report the outermost cast once, not each layer of `as unknown as`.
         if (cast.parent?.type === "TSAsExpression") return;
         if (isServiceType(cast.typeAnnotation) && castObject(cast.expression))
           context.report({ node, messageId: "stub" });
@@ -247,18 +201,15 @@ export const serviceStub: Rule = {
   },
 };
 
-/** Whether service-stub reports this cast: a literal cast to `Tag["Service"]`. */
 function isServiceStubCase(cast: TsNode): boolean {
   return isServiceType(cast.typeAnnotation) && castObject(cast.expression);
 }
 
-/** Modules whose exports are Obsidian's host types and capability tags. */
 const isHostModule = (source: string) =>
   source === "obsidian" ||
   source.startsWith("@zotlit/obsidian-kit/obsidian-") ||
   source.startsWith("#obsidian-");
 
-/** Calls that take a service implementation or a capability's source. */
 function takesFake(
   callee: AstNode | undefined,
   names: { readonly layer: Set<string>; readonly effect: Set<string> },
@@ -287,7 +238,6 @@ function takesFake(
   );
 }
 
-/** The innermost value under `as` / `satisfies` / parentheses. */
 function castValue(node: TsNode | undefined): TsNode | undefined {
   let at = node;
   while (
@@ -299,7 +249,6 @@ function castValue(node: TsNode | undefined): TsNode | undefined {
   return at;
 }
 
-/** Every type name a type annotation references, `Pick<A["Service"], …>` included. */
 function typeNames(node: unknown, names: string[] = []): string[] {
   if (!node || typeof node !== "object") return names;
   if (Array.isArray(node)) {
@@ -334,20 +283,6 @@ function hasServiceIndex(node: unknown): boolean {
   );
 }
 
-/**
- * A test fake built as `{ … } as never`, `{ … } as unknown as App` or
- * `reads as never` given to `Layer.succeed` compiles whatever the real API
- * becomes: when a member turns from a method into an `Effect` value,
- * the fake still compiles and the test runs against a shape no code has. A
- * typed fake keeps typecheck on it (policies/testing-strategy.md → Effect
- * code): `Layer.mock(Tag, { … })` or `Layer.succeed(Tag, Tag.of({ … }))` for
- * a layer, `stubService<T>(name, { … })` for a value that a legacy consumer
- * takes, the capability test layers for Obsidian's host, and a type
- * annotation for plain Obsidian data. Reports a cast given to a call that
- * takes a fake, or in a property of its object argument, and an object
- * literal cast to a type from `obsidian` or `@zotlit/obsidian-kit/obsidian-*`, a service
- * type, a `…Deps` type, or `never`.
- */
 export const typedFake: Rule = {
   meta: {
     type: "problem",
@@ -390,7 +325,6 @@ export const typedFake: Rule = {
       },
       TSAsExpression(node) {
         const cast = node as unknown as TsNode;
-        // Report the outermost cast once, not each layer of `as unknown as`.
         if (cast.parent?.type === "TSAsExpression") return;
         const target = cast.typeAnnotation;
         if (
@@ -411,7 +345,6 @@ export const typedFake: Rule = {
           argument = parent;
           parent = parent.parent;
         }
-        // A cast in a property of the argument, as `layerHost({ vault: … })`.
         if (
           parent?.type === "Property" &&
           parent.value === argument &&
@@ -442,7 +375,6 @@ export const typedFake: Rule = {
   },
 };
 
-/** The notice modules a test reaches only by mocking them. */
 const NOTICE_MODULES = new Set([
   "@zotlit/obsidian-kit/notice.ts",
   "@zotlit/obsidian-kit/toast.ts",
@@ -450,11 +382,6 @@ const NOTICE_MODULES = new Set([
   "#toast.ts",
 ]);
 
-/**
- * A test that mocks a notice module asserts what the seam renders, not what
- * the core returns (policies/ui-seams.md): the module behind it moves behind
- * the Notifier, and the test reads its calls through `testNotifier()`.
- */
 export const noNoticeMock: Rule = {
   meta: {
     type: "suggestion",

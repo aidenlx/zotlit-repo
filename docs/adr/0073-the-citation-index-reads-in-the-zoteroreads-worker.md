@@ -111,3 +111,13 @@ The table records that second query. Times are milliseconds from each refresh st
 The pooled 539 engine slices had p99 **5.50 ms** and maximum **5.70 ms**, within the 16/32 ms limits. The historical two-worker Query result in ADR 0072 was 10.1 / 15.1 ms, but its unbounded-page isolation workload differs from this bounded sparse-Library workload. The [#1441](https://github.com/aidenlx/zotlit/issues/1441) baseline measured Item search and citation lookup, not ZotLit Query.
 
 The raw slice arrays, epoch timestamps, command logs, and test reports are under `.scratch/acceptance-1443/`; the measurement summary is posted on [#1443](https://github.com/aidenlx/zotlit/issues/1443). The temporary merge branch was deleted and was never pushed.
+
+## Snapshot ownership and resolution
+
+The worker scope owns the shared citation build and its connection borrow. A lookup caller owns only its wait, so interrupting the first caller does not discard a build other callers still need. Publish complete snapshots without mutating them after publication. Forward resolution follows Library Scope and orders candidates by canonical Library order then item id. Narrowing the scope can make an ambiguous key unique. Reverse resolution takes an exact Indexed Key and covers all local Libraries.
+
+Construction and comparison share a 4 ms cooperative work budget. The loops check the deadline every 128 steps so they can yield without creating an Effect per row. A rebuild on the same database that answers both lookup directions identically retains the previous snapshot and revision.
+
+The interruption test advances the budget clock by more than one slice on each clock read, so it can interrupt during construction and comparison independently of machine speed. It uses a seeded connection sequence to distinguish a first open from later refreshes.
+
+Read native citation keys in ascending Item ID order so duplicate keys resolve consistently across rebuilds. For a bounded read, apply the citation-key field predicate outside the indexes with unary plus so SQLite uses the Item ID range and avoids a page sort.

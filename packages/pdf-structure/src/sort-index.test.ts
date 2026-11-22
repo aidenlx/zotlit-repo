@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 
 import { computeSortIndex, sortIndexRect } from "#sort-index.ts";
 
-/** Letter-sized page, origin at zero, so `top` is 792 minus the rect's `y2`. */
 const page = (chars: readonly Partial<StructuredChar>[]): StructuredPage => ({
   pageIndex: 0,
   viewBox: [0, 0, 612, 792],
@@ -27,7 +26,6 @@ describe("the Sort Index", () => {
   });
 
   it("measures a highlight from the rectangle with the largest x2", () => {
-    // Zotero's comment says y2; its code sorts on index 2, which is x2.
     expect(
       sortIndexRect({
         pageIndex: 0,

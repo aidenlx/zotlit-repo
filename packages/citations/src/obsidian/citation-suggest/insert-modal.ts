@@ -14,11 +14,6 @@ import {
 } from "./editor-suggest.ts";
 import type { CitationSuggestDeps } from "./register.ts";
 
-/**
- * Command-driven citation picker: search the library in a popup and insert the
- * rendered citation at the editor cursor. The inline `[@` flow lives in
- * {@link CitationEditorSuggest}; both render through `renderCitation`.
- */
 export class InsertCitationModal extends ItemSearchModal {
   readonly #deps: CitationSuggestDeps;
   readonly #editor: Editor;
@@ -37,9 +32,6 @@ export class InsertCitationModal extends ItemSearchModal {
       { command: "⇧↵", purpose: m.instruction_insert_alternate_citation() },
       { command: "esc", purpose: m.instruction_dismiss() },
     ]);
-    // The suggestion popup registers `Enter` with no modifiers and matches
-    // them exactly, so Shift+Enter reaches no handler unless the modal claims
-    // the chord itself.
     this.scope.register(["Shift"], "Enter", (evt) => {
       this.selectActiveSuggestion(evt);
       return false;

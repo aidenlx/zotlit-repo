@@ -1,5 +1,3 @@
-// The features of desktop ZotLit, in the order their services, registrations
-// and start-up hooks run.
 import { annotations } from "@zotlit/annotations/desktop/feature.ts";
 import { citations } from "@zotlit/citations/desktop/feature.ts";
 import { libraryView } from "@zotlit/library-view/desktop/feature.ts";

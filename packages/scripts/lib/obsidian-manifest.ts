@@ -6,10 +6,6 @@ const semverSchema = v.pipe(
   v.check((s) => valid(s) !== null, "must be a valid semver version"),
 );
 
-/**
- * Obsidian plugin manifest
- * @see https://docs.obsidian.md/Reference/Manifest
- */
 export const PluginManifestSchema = v.object({
   id: v.string(),
   name: v.string(),
@@ -24,12 +20,6 @@ export const PluginManifestSchema = v.object({
   isDesktopOnly: v.boolean(),
 });
 
-/**
- * Minimum Electron version ZotLit's runtime requires. Lives under the
- * `obsidian` block in package.json; not part of the Obsidian manifest, so it is
- * validated separately and injected at build time rather than emitted to
- * manifest.json.
- */
 export function parseMinElectronVersion(data: any): string {
   return v.parse(semverSchema, data?.obsidian?.minElectronVersion);
 }

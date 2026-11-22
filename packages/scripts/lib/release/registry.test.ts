@@ -10,8 +10,6 @@ import type { LocalRegistry } from "./local-registry.ts";
 import { Registry } from "./registry.ts";
 import { tarballDifferences } from "./tarball.ts";
 
-// npm tarballs of a small package, packed by `tar` the way npm lays them out,
-// served by the local registry over HTTP.
 const run = promisify(execFile);
 const scratch = await mkdtemp(join(tmpdir(), "zt-registry-"));
 afterAll(() => rm(scratch, { recursive: true, force: true }));
@@ -22,7 +20,6 @@ beforeEach(async () => {
 });
 afterEach(() => registry.close());
 
-/** Packs `files` as `@zotlit/sample@<version>`; `level` is the gzip level. */
 async function pack(
   version: string,
   files: Record<string, string> = {},

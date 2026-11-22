@@ -51,14 +51,12 @@ describe("navigationIntent", () => {
   });
 
   it("honors the shell-supplied pane from the public keymap", () => {
-    // Source-mode Mod-click reports "tab" and downgrades to the current pane.
     expect(
       navigationIntent(
         editorGesture({ editorMode: "source", mod: true, pane: "tab" }),
         directTarget,
       ),
     ).toEqual({ kind: "open", citekey: "doe2024", pane: false });
-    // Mod+Alt stays a split and Mod+Shift stays a new tab.
     expect(
       navigationIntent(
         editorGesture({

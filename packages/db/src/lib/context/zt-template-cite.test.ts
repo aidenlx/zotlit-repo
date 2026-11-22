@@ -34,8 +34,6 @@ describe("citekeysToCiteTemplateData", () => {
   });
 
   it("carries the Citation Variant the caller named onto the root", () => {
-    // The variant names the gesture only; the Citation Template decides what
-    // each one renders, so the data hands it through untouched.
     expect(
       citekeysToCiteTemplateData([{ citationKey: "smith2024" }], "alt").variant,
     ).toBe("alt");

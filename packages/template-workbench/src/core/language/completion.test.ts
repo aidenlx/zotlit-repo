@@ -10,7 +10,6 @@ import type { Suggestion } from "./suggestions.ts";
 
 const CALL = '{% render "';
 
-/** The editor, the pinned "New partial…" option, and the flow's resolver. */
 function newPartialCompletion(name: string | null) {
   const view = new EditorView({
     state: EditorState.create({
@@ -20,7 +19,6 @@ function newPartialCompletion(name: string | null) {
     parent: document.body,
   });
   const { promise, resolve } = Promise.withResolvers<string | null>();
-  // Settles once the flow's answer has been handed to the completion.
   const answered = Promise.withResolvers<void>();
   const result = suggestions(CALL, CALL.length, {
     root: "note",

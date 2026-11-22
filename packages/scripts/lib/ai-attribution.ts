@@ -1,10 +1,5 @@
-// Commits here carry no AI-agent attribution: no `Co-Authored-By` trailer for
-// an agent, no session link, no agent as author or committer. The agent
-// branch namespaces stay local. The commit-msg and pre-push hooks call this,
-// and the pre-push hook tells an agent session apart by its environment.
 import { regex } from "arkregex";
 
-// Patterns are lowercase; callers match against lowercased text.
 const ATTRIBUTION_LINES = [
   regex("^\\s*co-authored-by:.*(claude|cursor|anthropic|copilot)"),
   regex("^\\s*claude-session:"),
@@ -20,7 +15,6 @@ const AGENT_IDENTITIES = [
 
 const AGENT_BRANCH = regex("^refs/heads/(claude|codex|cursor)/");
 
-/** The lines of a commit message that credit an AI agent. */
 export function attributionLines(message: string): string[] {
   return message
     .split("\n")
@@ -29,22 +23,16 @@ export function attributionLines(message: string): string[] {
     );
 }
 
-/** Whether an author or committer is an AI agent, by name or by email. */
 export function isAgentIdentity(name: string, email: string): boolean {
   return AGENT_IDENTITIES.some(
     (re) => re.test(name.toLowerCase()) || re.test(email.toLowerCase()),
   );
 }
 
-/** Whether a pushed ref lives in an agent branch namespace. */
 export function isAgentBranch(ref: string): boolean {
   return AGENT_BRANCH.test(ref);
 }
 
-/**
- * The variables an agent session sets. `turbo.json` passes the same names
- * through to tasks.
- */
 const AGENT_ENV = [
   "AI_AGENT",
   "CLAUDE_CODE",
@@ -53,7 +41,6 @@ const AGENT_ENV = [
   "CODEX_THREAD_ID",
 ] as const;
 
-/** Whether the process runs in an agent session. */
 export function isAgentEnvironment(env: NodeJS.ProcessEnv): boolean {
   return AGENT_ENV.some((name) => Boolean(env[name]));
 }

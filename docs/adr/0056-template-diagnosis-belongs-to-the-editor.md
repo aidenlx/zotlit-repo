@@ -232,3 +232,180 @@ shared behavior and host styling boundary in
 [ADR 0044](0044-workbench-ui-is-headless-and-hosts-own-the-look.md).
 Implementation scope and acceptance criteria live in
 [spec #1078](https://github.com/aidenlx/zotlit/issues/1078).
+
+A missing Shared Partial found during a Profile render carries that Profile document's path so the recovery action opens the call site. Keep it a subtype of the missing-template error so existing preview, notice, and CLI readers can handle it. Prefer the engine's structured source span when present. For Eta and other errors that report only line and column, locate the character in the source passed to the engine. Leave the span absent when there is no position. Unwrap Template service errors at plain call sites so their readers keep the external exception and diagnostic shape.
+
+Carry the captured refusal diagnostic and report with a recovery request. Open the document that contains the unresolved call, or the Default Profile when the failure names no document. Explain the captured failure on arrival because a later check can report a different problem. At the synchronous Template and Profile edges, preserve the original cause so plain callers can still read the engine's diagnostics.
+
+Use structured template names when attributing an engine error. Lazy template data can throw an application error whose message mentions a path, so a path in the message cannot identify the failing template. Traverse error causes, LiquidJS original errors, and arrays of errors nearest-first. Preserve a typed inert failure. Use the recorded compile error for a named template whether it was called directly or reached through an include. Keep the message, engine excerpt, and source span when available.
+
+## Attribution and retained repair marks
+
+Treat the engine location, the document that contains the call, and
+the call's source range as separate facts. Use the Liquid token to locate
+the failure within the template the engine named. A named Template
+error can supply the template identity alone. Keep Eta's message as
+diagnostic text without inferring a structured offset. A synthetic
+document reference supplies no vault path. Use a verified unique call
+for a failure in a named template. If the named partial is missing,
+use the first call because each call needs the same repair. Citation
+input mismatch requires runtime evidence and a verified caller. When
+two attempts report a failure, deduplicate by structured cause, never
+by equal message text.
+
+Find a retained mark in the author's current text only while it still
+holds the failed value. A Liquid token's source text must occur
+uniquely. A single-line block scalar can omit the trailing newline YAML
+added for the engine. A JSON-e mark requires both the reported path
+and the same value at that path. Narrow a single-operator fault to an
+unknown operator key or its lone expression when that gives sufficient
+evidence. Missing required branches and ambiguous paths keep the
+whole node because a sibling with the same key may have succeeded.
+[Render attribution](../../packages/workbench/src/render/attribution.ts) · [Repair marks](../../packages/workbench/src/render/locate.ts)
+
+### Report capture and preview retention
+
+Capture the failure and context from the same attempt. Technical details
+and Copy error report use one serializer. Walk causes breadth-first
+through `cause`, Liquid's non-enumerable `originalError`, and aggregate
+`errors`. A plain wrapper can lead to an Error, so follow its links and
+record only the Errors. Capture source excerpts and raw engine text
+before reducing the failure to a diagnostic code. Keep host copy in
+the localized code and parameters. For a parser problem, use the same
+report with its source revision and diagnostic range. No render attempt
+or Item appears if the parser stopped the run. Preserve multiline
+evidence as separate text blocks.
+
+Give attempt sequence its own identity because two attempts can read
+identical bytes. A source hash tracks the revision, while preview
+retention matches the selected data, caller and mode across edits.
+Keep the newest output for each surface. The note's Properties and
+Annotation marks stay with its body. A successful empty string is
+output. A complete result keeps its object identity so subscribers
+can recognize it as the same publication.
+
+Render the note name and Annotation Section independently before the
+note body. Keep a failure on its own surface and let the other
+surfaces finish. A note-name repair offset refers to the decoded scalar
+text the pane shows. A whole-document search could find the same
+partial in an unrelated body call, so it cannot supply that repair mark.
+Use verified call text to identify a repair independently of its offset.
+For a Properties row, show the innermost engine message because the
+row already identifies the entry.
+[Error report](../../packages/workbench/src/render/report.ts) · [Render result](../../packages/workbench/src/render/result.ts)
+
+When a host explains diagnostics in its own status line, use the shared
+underline-only extension. CodeMirror suppresses the hover tooltip when
+the filter returns no list. An empty list still creates the tooltip.
+[Underline-only diagnostics](../../packages/workbench/src/ui/underline-lint.ts)
+
+If Copy error report fails, open Technical details so the existing
+report can be selected and copied manually. Keep the action controls
+outside the scrolling explanation so they remain reachable.
+[Problems area tests](../../packages/workbench/src/ui/ui.test.tsx)
+
+### Problem reading and source navigation
+
+Present parser and renderer findings through one Problems area. Count
+only findings the checks reported because a parser can stop at the
+first error. Localize the condition and recovery from the finding code
+and parameters. Keep the engine's wording as evidence. A finding tied
+to a preview surface uses that surface as its subject before the
+input root. Group occurrences only when the problem and repair identity
+agree. Grouping an engine failure also requires a reported source
+location and captured cause. Retain each occurrence's own evidence.
+
+Keep the selected identity stable while the open area receives new
+checks. If that problem goes away while another remains, offer
+Next problem without selecting it. Closing the area returns focus
+and space to the editor. Automatic checks keep the current disclosure.
+Open on an explicit failed attempt, source marker, or Show problem.
+The explanation scrolls separately from its controls.
+
+Capture parser reports only when the clock is available. In the browser
+a first check can precede the Temporal polyfill. Keep the first report
+for each current parser problem and discard its entry when it is no
+longer found. Retain at most the last inspected report after repair,
+so it remains available for copying. The selected problem's report
+takes priority. Use the same report text for Technical details and
+the clipboard.
+
+Route a problem to the editable field, Properties row, or source pane
+that can repair it. A verified call takes priority over the reported
+render surface. When its source location is gone, keep the current
+editor position and explain that the location is unavailable. Close
+the explanation before moving the caret if it obscures source. Close
+the Fields popup on a reveal so focus reaches the editing pane. A
+repeat reveal uses a new selection request.
+
+Source marks are available whether the Problems area is open or closed.
+Convert verified locations to the pane's shown offsets and remove
+trailing layout whitespace for JSON-e. Attach a property or filename
+failure only to the pane that owns its expression. Mount a keyboard
+control next to affected lines and drop that gutter when the pane
+becomes clean.
+[Problems area](../../packages/workbench/src/ui/problems-footer.tsx) · [Problem grouping](../../packages/workbench/src/ui/problems.ts) · [Repair routing](../../packages/workbench/src/ui/problem-route.ts) · [Source diagnostics](../../packages/workbench/src/ui/source-diagnostics.tsx)
+
+### Workbench core render evidence
+
+The core renders a Profile against an Item Snapshot without CSL processing. The view handles Citation Template and Shared Partial previews, and synthesizes a note for Update when the host has none. The result and scheduler share a source and snapshot identity stamp so the editor can discard stale output. Attribute errors against the exact source supplied to that render. The Workbench scans the caller's template calls to name a missing Partial and locate the call that reached it. On a later edit, find the source again and verify that the target still identifies the same call. For a missing Partial, use the first matching call. Use the JSON-e operator catalog to verify whether a JSON field identifies an operator. Locate a filename error in the note-name template shown by that pane, independent of how the manifest quoted it.
+
+Capture document parser failures using the same report shape as render failures. Record the source revision and exception evidence once. The parser runs automatically on each edit, before a render has read an Item Snapshot, so the record carries no snapshot or engine location unless it has direct evidence.
+
+### Problems layout and navigation
+
+Keep the explanation scroll surface keyboard-focusable and draw its focus ring inside because Obsidian suppresses outlines. Put disclosure and reporting controls below that surface. The divider serves as the open area's top border and crosses its error mark. Allow long translated control labels and engine template names to wrap. Keep the report itself preformatted and scrollable in both directions so the caret in a source excerpt stays aligned.
+
+Use the problem selector as the object heading when several problems exist. Keep the user's chosen pane size through checks, repairs, and reopening. Show each occurrence's engine location separately from the verified repair site. An unclassified failure shows the first line of its evidence while the full report retains stack and excerpt data. If a parser check runs before Temporal is available, capture its report on the next eligible render.
+
+Repair routing closes Fields and preserves the current panel choices. It offers textual repair instructions, with the explicit Add to template action inserting the Annotation loop. Navigate only to an insertion caret the user placed in a slice that still exists. When focus moves to a source call, announce the condition through the Problems status.
+
+When a diagnosed field is inside collapsed Profile details, open the disclosure before revealing and focusing the control. Keep Show problem in the failure sentence as a link-style action.
+
+The desktop renderer captures exception evidence before turning it into a diagnostic code and message. Keep the stack and source excerpt for the copied report. Share call attribution with the core renderer so both use the exact draft the failure read. A plain template declares its own language. An unparseable Profile uses Liquid for call scanning.
+
+When a note operation refuses, offer to open the Template Document that supplied the failing call. Use the built-in Default if no document is named and present the arriving problem in that Workbench session.
+
+Capture the Workbench report context once for each failure. A linked, pinned preview reports the Item it actually rendered. Keep a refused note operation's arriving report even when the editor's own check differs. Consume the arrival once and open its explanation. A deliberate request foregrounds the editor, while an attempt result leaves the reader in the current pane. When the manifest has no parsed field pane, route problems to available source. Keep form values from the last parsed manifest during repair. A new applicable success clears the active failure while the last inspected report remains readable. Measure the source and Problems region itself to place its explanation.
+
+Use one native hover popup per host view and route its work through the leaf
+runner. Native completion follows Obsidian's suggester keymap. Put a tag's
+syntax and example in its documentation popup so completion rows stay
+compact. The Workbench and Template Data Explorer share the native clipboard
+operation.
+
+Without an insertion target, Fields keeps path search available and
+explains the disabled insert in its key hint and Mod+Enter notice.
+Preview's Show problem uses the shared repair command. In both
+panel layouts it focuses the failing Partial call, scrolls it into
+view at the editor height floor, and announces the failure in the
+editor status.
+
+### Diagnostic identity and recovery
+
+Use the same diagnostic record for Workbench renders and refused note
+operations. Hosts localize the diagnostic code and parameters, while
+preserving engine or host text when those fields cannot describe it.
+Keep engine locations in the named template's own one-based coordinates.
+A repair location identifies a verified call in the source that was
+actually read. Keep the same call recognizable across offset changes.
+An unknown call stays unknown. A missing Shared Partial is a typed
+diagnostic. A Citation input mismatch requires runtime evidence of a
+direct root read and a verified caller.
+
+Name the failed pane so other surfaces keep their previous results.
+Resolve JSON-e paths, Liquid spans and entry positions only against
+matching authored text. A Managed Frontmatter diagnostic without a
+responsible entry goes to Advanced. Preserve the caught engine evidence
+and the failed render's source identity, Citation Variant, example,
+Partial context and Profile. The source revision uses FNV-1a. Freeze
+the attempt so later edits and selection changes cannot change its
+report. Technical details and Copy error report use one serializer.
+Capture parser refusals with the same record and mark missing values
+unavailable.
+
+Share the recovery notice across note operations. Give the Workbench
+the captured refusal so it can explain a failure that a later check
+does not reproduce. Open beside the originating leaf when it is supplied.
+[Diagnostic](../../packages/notes/src/core/template/render-diagnostic.ts) ·
+[Error report](../../packages/notes/src/core/template/render-report.ts)

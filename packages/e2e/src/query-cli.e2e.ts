@@ -65,7 +65,6 @@ import {
 } from "./resource-pack.ts";
 import { clearVault, e2eVaultDir, vaultScript } from "./vault-script.ts";
 
-/** The Fixture's Item with a Chinese title of several words. */
 const CHINESE_TITLE_ITEM = ITEMS.find(({ key }) => key === "CHNSEG5A")!;
 
 describe.skipIf(!reachable)("End-to-end Run", () => {
@@ -176,9 +175,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const selectorOf = (library: (typeof LIBRARIES)[number]) =>
       library.groupID === null ? "personal" : `group:${library.groupID}`;
 
-    // Dispatched as a registered CLI command with arguments, the way an agent
-    // calls it. Without a Library argument, the query reads the available
-    // Libraries of the Library Scope, which `zotlit:library-scope` reports.
     const scope = JSON.parse(
       await cliCommand(run.vaultId, "zotlit:library-scope"),
     ) as LibraryScopeReport;
@@ -214,7 +210,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       itemsByModified(inScope).slice(0, 3),
     );
 
-    // A named range, in another order than the canonical one.
     const range = JSON.parse(
       await cliCommand(run.vaultId, "zotlit:query", {
         args: {
@@ -260,8 +255,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       itemsByModified([sharedReading!]),
     );
 
-    // The Bases helpers through the shipped plugin: a regular expression and
-    // an element expression over the Creators, each against My Library.
     const personalKeys = (
       predicate: (item: (typeof ITEMS)[number]) => boolean,
     ) => {
@@ -309,7 +302,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       expect(helpers.rows!.map((row) => row.indexedKey)).toEqual(expected);
     }
 
-    // The production command exports the same response and keeps an existing file.
     const exportPath = join(e2eFixture.root, "query-export.json");
     await using exportCleanup = new AsyncDisposableStack();
     exportCleanup.defer(() => rm(exportPath, { force: true }));
@@ -343,8 +335,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     expect(await readFile(exportPath, "utf8")).toBe(exportedText);
 
-    // A held Snapshot leaves new queries free to read a changed source. The
-    // new copy carries a numeric field beyond JavaScript's exact integer range.
     const otherDir = join(e2eFixture.root, "query-other-source");
     await using cleanup = new AsyncDisposableStack();
     cleanup.defer(() => rm(otherDir, { recursive: true, force: true }));
@@ -598,7 +588,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       text.includes(separator) || /["\n]/.test(text)
         ? `"${text.replaceAll('"', '""')}"`
         : text;
-    // Each cell here is a scalar: a title, a year, or an Indexed Key.
     const line = (cells: unknown[], separator: string) =>
       cells
         .map((value) =>
@@ -618,7 +607,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     cleanup.defer(() => rm(csvPath, { force: true }));
     cleanup.defer(() => rm(tsvPath, { force: true }));
 
-    // A grouped CSV export: the group value first, a byte order mark, CRLF.
     const receipt = JSON.parse(
       await cliCommand(run.vaultId, "zotlit:query", {
         args: { ...args, format: "csv", output: csvPath },
@@ -653,7 +641,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           .join(""),
     );
 
-    // A TSV export of every paper: no byte order mark, LF.
     const papers = JSON.parse(
       await cliCommand(run.vaultId, "zotlit:query", {
         args: { library: "personal", fields: "title", limit: "all" },
@@ -679,7 +666,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         .join(""),
     );
 
-    // The answer itself is JSON: CSV without a file is refused.
     expect(
       JSON.parse(
         await cliCommand(run.vaultId, "zotlit:query", {
@@ -741,8 +727,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ],
     });
 
-    // A value that the Item cannot compute is an Error Value cell; a filter
-    // that meets one excludes the Item.
     const failed = await query({
       filter: `indexedKey == "${annotationItem.key}"`,
       formulas: JSON.stringify({ volumes: "number(title)" }),
@@ -854,7 +838,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
 
   it("groups papers per tag and per Collection through zotlit:query", async () => {
     const papers = ITEMS.filter((item) => item.libraryID === 1);
-    /** Each group value with the keys of its papers, from the Fixture Spec. */
     const expectedGroups = (values: (paper: FixtureItem) => string[]) => {
       const groups = new Map<string | null, string[]>();
       for (const paper of papers) {
@@ -898,7 +881,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     );
     expect(byTag.groups!.at(-1)!.value).toBeNull();
-    // A paper with two Tags is in two groups, so the counts add up to more.
     expect(byTag.returnedCount).toBe(
       [...tags.values()].reduce((sum, keys) => sum + keys.length, 0),
     );
@@ -941,8 +923,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   });
 
   it("queries an Item's reading record through zotlit:query from=annotations", async () => {
-    // Own the Fixture and vault so earlier cases cannot leave this query's
-    // linked Attachment paths pointing at a vault they have removed.
     const queryFixture = getFixtureLayout(
       join(workspaceRoot, ".scratch", "e2e-annotation-query-fixture"),
     );
@@ -1095,8 +1075,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     expect(examples.length).toBeGreaterThan(10);
     for (const line of examples) {
-      // Guide examples quote whole values with single quotes; the unit test
-      // verifies that their values contain no single quote themselves.
       const tokens: string[] = [];
       let token = "";
       let quoted = false;
@@ -1167,8 +1145,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     expect(answer.customFields).toEqual(expect.any(Array));
     expect(Object.keys(answer.schema!)).toEqual(["url", "fileName"]);
-    // Dev versions have no Resource Release; inspect the same build artifact
-    // that release CI stages and verifies at the reported version-pinned URL.
     const catalog = JSON.parse(
       await readFile(
         join(workspaceRoot, "packages/item-query/generated/query.schema.json"),
@@ -1277,8 +1253,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
   });
 
-  // Failure modes: CLI serialization must preserve syntax corrections, ranked
-  // names, and successful warnings; report boundaries must match legacy fields.
   it("reports zotlit:query syntax, unknown names, and never-true warnings", async () => {
     const query = async (filter: string) =>
       JSON.parse(
@@ -1507,8 +1481,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   });
 
   it("answers a -- token on a required or format parameter with the zotlit decoder's diagnostic", async () => {
-    // Obsidian itself checks a required flag and turns a format alias into
-    // format=<value>; each token here must still reach the zotlit decoder.
     const resolved = JSON.parse(
       await cliCommand(run.vaultId, "zotlit:resolve", {
         args: { "--file": "/tmp/a.md" },
@@ -1540,8 +1512,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   });
 
   it("sorts titles in the pinned ZotLit Query string order", async () => {
-    // The order Node gives in the package tests; this run proves that the
-    // collator of Obsidian's Electron gives the same.
     const answer = JSON.parse(
       await cliCommand(run.vaultId, "zotlit:query", {
         args: {
@@ -1577,7 +1547,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       undefined,
     );
     await using cleanup = new AsyncDisposableStack();
-    // Only the signal may refresh: the file watchers stay unbound.
     await obRun(
       run.vaultId,
       async ({ zotlit }) => {
@@ -1626,7 +1595,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       );
     });
-    // The annotation sidebar keeps its cards while the refresh reads again.
     cleanup.defer(async () => {
       await obRun(
         run.vaultId,
@@ -1680,7 +1648,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(attachmentAnnotations.length);
     const signal = () => signalDatabaseUpdated(run.vaultId);
-    // A Zotero edit moves the Item's title and its modification time.
     const edit = (title: string, dateModified: string) => {
       using database = new DatabaseSync(e2eFixture.databasePath);
       database
@@ -1748,7 +1715,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   });
 
   it("rebuilds the worker's Item Index off the renderer, then inserts a citation from it", async () => {
-    // An empty index answers fast; it fails the run here, before any timing.
     expect(
       await obRun(
         run.vaultId,
@@ -1766,8 +1732,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ).toBe(true);
     await using cleanup = new AsyncDisposableStack();
 
-    // A sync lands a large Library: the worker builds its index while the
-    // renderer keeps painting.
     const corpus = syntheticTitles(SYNTHETIC_CORPUS_SIZE);
     const lastTitleQuery = `${SYNTHETIC_MARKER} ${corpus.at(-1)!.split(" ").at(-1)!}`;
     const heapBefore = await rendererHeap(run.vaultId);
@@ -1793,9 +1757,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
     await signalDatabaseUpdated(run.vaultId);
-    // Until the build completes, the held index answers: a known Item stays
-    // found. The new Items show once it completes. The 10 ms pause is the
-    // sampling cadence of the measurement, not a wait for a state.
     const rebuild = (await obRun(
       run.vaultId,
       async ({ zotlit }, { lastTitleQuery, lastItemID, annotationItemId }) => {
@@ -1849,20 +1810,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       rendererHeapGrowthMB: Math.round(heapGrowth / 1e5) / 10,
     });
     expect(rebuild.builtMs).not.toBeNull();
-    // A search that misses the new Items answered before the build ended, so
-    // the held index answered at least once.
     expect(rebuild.polls).toBeGreaterThan(0);
     expect(rebuild.staleMisses).toBe(0);
     expect(painted.frames).toBeGreaterThan(1);
-    // The renderer may take a short long task of its own; none blocks it
-    // for more than 100 ms while the worker builds.
     expect(painted.longestTaskMs).toBeLessThanOrEqual(100);
-    // ADR 0069 measured about 1 MB of index per 1,000 Items; the renderer
-    // keeps less than a quarter of that.
     expect(heapGrowth).toBeLessThan((corpus.length * 1000) / 4);
 
-    // Query cost through the shipped adapter, for ADR 0069's Measurements.
-    // Each query must find Items, so its time includes the hydration.
     const words = corpus[123]!.split(" ");
     const queries = [
       "k",
@@ -1905,8 +1858,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     for (const query of queries)
       expect(timings[query]!.hits).toBeGreaterThan(0);
 
-    // A large classification bounds renderer request encoding as well as
-    // worker replies, while every request uses the same Snapshot.
     await obRun(
       run.vaultId,
       async ({ page: pageHelpers }) => {
@@ -1978,9 +1929,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     }
 
-    // The Citation Suggester over that Library. It comes after the
-    // measurement: a rendered citation can start the Pandoc engine, and that
-    // start is renderer work of its own.
     const source = "Citation suggester source.md";
     await obRun(
       run.vaultId,
@@ -2006,9 +1954,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     });
 
-    // One key every 70 ms, past Obsidian's 50 ms suggester delay, so each
-    // keystroke sends its own search. The popup opens at `[@` and stays
-    // open through every answer after it.
     expect(
       await obRun(
         run.vaultId,
@@ -2059,8 +2004,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       ),
     ).toBe(JSON.stringify({ opened: true, closed: false }));
 
-    // The list matches the final query: its Item comes first. The popup is
-    // `aria-busy` while its rows answer an earlier query.
     await obRunUntil(
       run.vaultId,
       async (_context, { annotationItemTitle }) => {
@@ -2134,8 +2077,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   }, 180_000);
 
   it("finds a word inside a Chinese title with the Chinese Segmenter of the installed Resource Pack, with no download", async () => {
-    // The pack is in the vault's plugin folder and Obsidian did not load it:
-    // the state an install from the community plugin browser leaves.
     const pack = await obRun(
       run.vaultId,
       async ({ app }, { RESOURCE_PACK_ID }) => {
@@ -2155,9 +2096,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(pack.loaded).toBe(false);
     expect(pack.enabledList).not.toContain(RESOURCE_PACK_ID);
 
-    // The Fixture holds `长江流域的城市化研究`. `Intl.Segmenter` keeps `长江流域`
-    // one word, so the word inside hits only when the worker cuts the title
-    // with the binary it read from the pack.
     await obRunUntil(
       run.vaultId,
       async ({ zotlit }, { searchTerm, firstItemID }) => {
@@ -2171,8 +2109,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         what: "the first item to appear in lookup results for a word inside its Chinese title",
       },
     );
-    // The status is the worker's own: it read the pack again and cuts with
-    // the binary.
     expect(
       await obRun(
         run.vaultId,
@@ -2203,9 +2139,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // Obsidian lists no Resource Pack, as before its install. The pack comes
-    // back at the end. The searches below need the Segmenter, so the vault
-    // shows the notice of the missing pack; the next case starts without it.
     await keepRunPack(run.vaultId, { file: false });
     cleanup.defer(() =>
       restoreRunPack(run.vaultId, run.m.notice_resource_pack()),
@@ -2218,7 +2151,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       { RESOURCE_PACK_ID },
     );
 
-    // The row reads the pack when it is shown.
     await openProfilesSettings(run.vaultId, "settings_page_zotero");
     await settingRowShows(run.vaultId, {
       rowName: segmenterRow,
@@ -2226,7 +2158,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       what: "the Chinese segmenter row to show that no pack is installed",
     });
 
-    // The one action opens the pack's page in the community plugin browser.
     expect(
       await pressSettingRowAction(run.vaultId, {
         rowName: segmenterRow,
@@ -2237,8 +2168,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       opened: [`obsidian://show-plugin?id=${RESOURCE_PACK_ID}`],
     });
 
-    // With no pack the worker cuts with `Intl.Segmenter`, which keeps
-    // `长江流域` one word: the word inside misses, the whole word hits.
     await obRunUntil(
       run.vaultId,
       async ({ zotlit }, { searchTerm, firstItemID }) => {
@@ -2276,10 +2205,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         app.plugins.manifests[RESOURCE_PACK_ID]!.version,
       { RESOURCE_PACK_ID },
     );
-    /** The status the open Chinese segmenter row shows. */
     const rowShows = (expected: string, what: string) =>
       settingRowShows(run.vaultId, { rowName: segmenterRow, expected, what });
-    /** Whether a word inside the Chinese title finds its Item. */
     const wordInsideHits = async (expected: boolean, what: string) => {
       await obRunUntil(
         run.vaultId,
@@ -2293,10 +2220,8 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { ready: (value) => value === expected, what },
       );
     };
-    /** What a Resource Pack notice says after its title: the sentence, then its action. */
     const noticeOf = (sentence: string) =>
       sentence + run.m.settings_resource_pack_open();
-    /** The Resource Pack notices on screen, by their text after the title. */
     const packNotices = async (count: number, what: string) =>
       await obRunUntil(
         run.vaultId,
@@ -2309,13 +2234,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { title: run.m.notice_resource_pack() },
         { ready: (value) => value.length === count, what },
       );
-    /**
-     * Writes the kept pack file with one change in its place, then makes
-     * Obsidian read the manifest again and report the change: the two steps
-     * that end its own install of a plugin. A file copy alone raises no
-     * report. `compat` raises the compatibility integer of the index by one;
-     * `segmenter` changes one character of the Chinese Segmenter's entry.
-     */
     const installPack = async (change: "none" | "compat" | "segmenter") => {
       await obRun(
         run.vaultId,
@@ -2324,7 +2242,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           const file = new Uint8Array(
             pageHelpers.scratch.zotlitE2EPackFile!.slice(0),
           );
-          // The index is the first line of the file.
           const head = new TextDecoder().decode(file.subarray(0, 4096));
           if (change === "compat") {
             const field = '"compat":';
@@ -2336,7 +2253,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             const at = index.entries.find(
               (entry) => entry.name === "chinese-segmenter",
             )!.offset;
-            // Another letter of the base64 alphabet.
             file[at] = file[at] === 0x41 ? 0x42 : 0x41;
           }
           await app.vault.adapter.writeBinary(`${dir}/main.js`, file.buffer);
@@ -2348,7 +2264,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
     };
 
-    // The vault has shown no notice of the pack, and holds the built pack.
     await keepRunPack(run.vaultId, { file: true });
     cleanup.defer(() =>
       restoreRunPack(run.vaultId, run.m.notice_resource_pack()),
@@ -2364,13 +2279,11 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       "a word inside the Chinese title to find its item with the installed pack",
     );
 
-    // Update: a pack that this ZotLit is too old to read.
     await installPack("compat");
     await rowShows(
       `${run.m.settings_resource_pack_status_plugin_outdated()} ${run.m.settings_chinese_segmenter_fallback()}`,
       "the open Chinese segmenter row to name ZotLit as the plugin to update, with no restart",
     );
-    // The Pandoc engine stands on the same pack.
     expect(
       await obRunUntil(
         run.vaultId,
@@ -2387,7 +2300,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
       ),
     ).toBe("plugin-outdated");
-    // The row's action opens ZotLit's page, the plugin to update.
     expect(
       (
         await pressSettingRowAction(run.vaultId, {
@@ -2396,9 +2308,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         })
       ).opened,
     ).toEqual(["obsidian://show-plugin?id=zotlit"]);
-    // The row states the Segmenter of the worker: the worker read the pack
-    // again, and left the binary it had started from the pack before. Two
-    // searches of Chinese text need the Segmenter: one notice.
     await wordInsideHits(
       false,
       "the word inside the Chinese title to stop matching while the pack is too new",
@@ -2413,7 +2322,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       noticeOf(run.m.settings_resource_pack_status_plugin_outdated()),
     ]);
 
-    // Uninstall: Obsidian drops the manifest and reports the change.
     await obRun(
       run.vaultId,
       async ({ app }, { RESOURCE_PACK_ID }) => {
@@ -2437,8 +2345,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       noticeOf(run.m.settings_resource_pack_status_absent()),
     ]);
 
-    // Install of a damaged pack: the worker's read of the entry fails, and
-    // search stays on the browser's word segmentation.
     await installPack("segmenter");
     await rowShows(
       `${run.m.settings_resource_pack_status_damaged()} ${run.m.settings_chinese_segmenter_fallback()}`,
@@ -2452,8 +2358,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       await packNotices(3, "a third notice, for the damaged pack"),
     ).toHaveLength(3);
 
-    // Repair: the same version, installed again. The worker reads the entry
-    // of the repaired pack.
     await installPack("none");
     await rowShows(
       run.m.settings_resource_pack_status_ready({ version: packVersion }),
@@ -2463,7 +2367,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       true,
       "a word inside the Chinese title to find its item again with the repaired pack",
     );
-    // A ready pack shows no notice, and each state showed its notice once.
     expect(
       await obRun(
         run.vaultId,
@@ -2477,8 +2380,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
 
   it("removes the downloaded Managed Binaries and the dismissed install offers on the first start after the update, one time, and leaves the researcher with the Resource Pack to install", async () => {
     await using cleanup = new AsyncDisposableStack();
-    // A device and a vault as a version that downloaded the binaries left
-    // them, with no Resource Pack installed.
     await keepRunPack(run.vaultId, { file: false });
     cleanup.defer(() =>
       restoreRunPack(run.vaultId, run.m.notice_resource_pack()),
@@ -2509,9 +2410,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       dismissed: [],
       cleaned: true,
     });
-    // The binary that was installed is gone with its folder: the status
-    // names the pack to install, and the first need of a binary shows the
-    // notice.
     expect(
       await obRun(
         run.vaultId,
@@ -2526,8 +2424,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       ),
     ).toEqual(["pack-absent", "pack-absent"]);
-    // The search answers once the database of the new start is open, so the
-    // case searches until the notice is there.
     await obRunUntil(
       run.vaultId,
       async ({ zotlit }, { searchTerm, title }) => {
@@ -2548,7 +2444,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
     );
 
-    // A later start reads the vault's record and leaves the device alone.
     await seedDownloadedBinaries(run.vaultId);
     expect(await restartZotlit(run.vaultId, { asUpdated: false })).toBe(
       "skipped",
@@ -2565,15 +2460,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   }, 300_000);
 
   it("writes the database worker's log records to the plugin's log file at the configured level", async () => {
-    /** Note where the log file ends, then refresh the database. */
-
-    /**
-     * Once the refresh's `Opened Zotero database` record is in the file, the
-     * count of `DEBUG` records the refresh added under categories only the
-     * database worker logs to; `pending` before.
-     */
-
-    /** Refresh, and count its worker `DEBUG` records once they are written. */
     const workerDebugRecordsOfARefresh = async () => {
       await obRun(
         run.vaultId,
@@ -2667,16 +2553,12 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           what: "the zotlit.log.jsonl log file to exist in the plugin folder",
         },
       );
-      // At `debug`, the worker's read snapshot and Item Index records reach the file.
       expect(
         await waitFor(
           async () => Number(await workerDebugRecordsOfARefresh()) > 0,
           10,
         ),
       ).toBe(true);
-      // At `info`, the worker forwards its `Opened Zotero database` record and
-      // none of them. The level reaches the worker after the settings change,
-      // so a refresh repeats until it does.
       await obRun(
         run.vaultId,
         async ({ zotlit }) => {
@@ -2706,8 +2588,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
   }, 180_000);
 
   it("removes every ZotLit vault and metadata cache handler as ZotLit is disabled, while its database worker still closes", async () => {
-    // ZotLit's handlers are the entries its enable adds to the listener
-    // lists. The worker may take seconds to close; the handlers go at once.
     const survivors = await obRun(
       run.vaultId,
       async ({ app }) => {

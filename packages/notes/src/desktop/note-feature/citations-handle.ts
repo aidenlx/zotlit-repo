@@ -1,6 +1,5 @@
 import type { Profile } from "#obsidian/profile/service.ts";
 import type { Template } from "#obsidian/template/service.ts";
-// Citations for callers outside Effect: the Note Feature's views.
 import { Effect } from "effect";
 import type { Context } from "effect";
 
@@ -17,7 +16,6 @@ import { renderAnnotationCitation } from "./annotation-citation.ts";
 import { plainTemplateError } from "#core/template/errors.ts";
 import { renderCitation } from "#obsidian/note-feature/citation.ts";
 
-/** The services the citations and the annotation insert read. */
 export type NoteCitationServices =
   | ExcerptPreparation
   | Template
@@ -28,13 +26,10 @@ export type NoteCitationServices =
   | NoteIndex;
 
 export interface NoteCitations {
-  /** @see renderCitation */
   renderCitation(...args: Parameters<typeof renderCitation>): string | null;
-  /** @see renderAnnotationCitation */
   renderAnnotationCitation(annotationKey: string): Promise<AnnotationCitation>;
 }
 
-/** Citation renders over `context`, preserving the Template's original failures. */
 export function bindNoteCitations(
   bridge: Pick<EffectBridge, "runSync" | "runPromise">,
   context: Context.Context<NoteCitationServices>,

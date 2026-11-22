@@ -17,7 +17,6 @@ export interface CollectionWarning {
   readonly suggestions: readonly string[];
 }
 
-/** Inspect every branch, including the predicates of Relation Lists. */
 export const collectionWarnings = Effect.fnUntraced(function* <Item>(
   root: FilterNode<Item> | undefined,
   libraries: readonly TargetLibrary[],

@@ -2,8 +2,6 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
-    // The typed Message facade and the Language Packs every plugin package
-    // and the plugin's build read.
     "generate:language-packs": {
       "inputs": [
         "scripts/generate-language-packs.ts",

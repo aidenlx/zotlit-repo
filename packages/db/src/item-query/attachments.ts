@@ -29,7 +29,6 @@ import {
 
 const parent = alias(items, "attachmentParent");
 
-/** An Attachment identity and the parent values needed for reading order. */
 export interface AttachmentScanRow extends ScanRow {
   libraryID: number;
   lastRead: number | null;
@@ -132,7 +131,6 @@ export function readAttachmentUniverseRows(chunk: {
 }
 
 const slots = idSlots(HYDRATE_CHUNK_SIZE);
-/** The live Attachments of a chunk of parent Items, in Attachment key order. */
 const itemAttachmentsStatement = defineStatement<
   Record<IdSlot, number | null> & { afterKey: string; afterItemID: number }
 >("item-attachments")((db, { placeholder }) =>
@@ -151,11 +149,6 @@ const itemAttachmentsStatement = defineStatement<
     .limit(SCAN_PAGE_SIZE),
 );
 
-/**
- * One page of the Attachments of at most {@link HYDRATE_CHUNK_SIZE} parent
- * Items: at most {@link SCAN_PAGE_SIZE} rows after `after` (absent for the
- * first page). A shorter page is the last one.
- */
 export function readItemAttachments(
   itemIDs: readonly number[],
   after?: AttachmentScanRow,
@@ -247,7 +240,6 @@ export interface HydratedAttachment {
   readonly tags?: readonly string[];
 }
 
-/** Each requested read is one statement for the chunk. */
 export function readAttachmentHydrateChunk(chunk: {
   rows: readonly AttachmentScanRow[];
   details?: boolean;
@@ -379,7 +371,6 @@ const attachmentCandidateStatements = {
 
 const tagProbe = attachmentCandidates("tag", true);
 
-/** Read one page of Attachment candidates in ascending Item ID order. */
 export const readAttachmentCandidateSet = Effect.fnUntraced(function* ({
   libraryID,
   leaf,

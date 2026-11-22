@@ -1,10 +1,3 @@
-// The open of an Obsidian PDF view whose subpath carries an Annotation Anchor,
-// sent to the ZotLit reader at the one place every open crosses: the leaf's
-// `setViewState`. The reader view hands the subpath to its reader, and the
-// binding takes the Anchor from there.
-//
-// @see apps/obsidian/docs/adr/0046-landing-on-a-mark-is-an-ephemeral-state-contract-read-at-the-leaf.md
-
 import { around } from "monkey-around";
 import { WorkspaceLeaf } from "obsidian";
 import type { ViewState } from "obsidian";
@@ -19,11 +12,6 @@ import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
 
 const OBSIDIAN_PDF_VIEW_TYPE = "pdf";
 
-/**
- * Patch `WorkspaceLeaf.prototype.setViewState` to send an Obsidian PDF view
- * open whose subpath carries an Anchor to the ZotLit reader instead. A plain
- * `#page=N` open keeps Obsidian's view.
- */
 export function registerAnnotationAnchorCapture(viewType: string): Disposable {
   const host = WorkspaceLeaf.prototype as unknown as {
     setViewState: (viewState: ViewState, eState?: unknown) => Promise<void>;
@@ -46,14 +34,6 @@ export function registerAnnotationAnchorCapture(viewType: string): Disposable {
   );
 }
 
-/**
- * The subpath one ephemeral state navigates to, and `null` for a state that is
- * no navigation at all.
- *
- * Obsidian sets an ephemeral state for a focus, a scroll and a rename as well
- * as for an open — `focusLeaf` sends `{ focus: true }` every time a leaf takes
- * focus. Only a state carrying a subpath says where the leaf is aimed.
- */
 function navigationSubpathOf(state: unknown): string | null {
   const subpath =
     typeof state === "object" && state !== null
@@ -73,10 +53,6 @@ function routedViewState(
   return { ...viewState, type: viewType };
 }
 
-/**
- * The Anchor one subpath carries, for a view showing a PDF: an Annotation to
- * land on, the Attachment the open named, or both.
- */
 export function anchorIn(subpath: string): ParsedAnnotationSubpath | null {
   if (
     !(

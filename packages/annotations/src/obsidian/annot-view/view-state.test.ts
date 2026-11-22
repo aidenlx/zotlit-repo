@@ -38,8 +38,6 @@ describe("parseAnnotViewState — the names before ADR 0041", () => {
   });
 
   it("restores Zotero Reader even though its source may not answer", () => {
-    // The mode is the user's choice, so the restore keeps it and the view says
-    // in place why the source is silent.
     expect(parseAnnotViewState({ followMode: "reader" })).toEqual({
       followMode: "zotero-reader",
       previousMode: "active-tab",

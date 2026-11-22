@@ -1,4 +1,3 @@
-// Runs editor transactions without mounting CodeMirror's rendered view.
 import { EditorState, Transaction } from "@codemirror/state";
 import type { EditorStateConfig, TransactionSpec } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";

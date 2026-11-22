@@ -19,7 +19,6 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-/** The open dialog: its buttons by label, and its checkbox's change handler. */
 const openDialog = Effect.fnUntraced(function* (note?: ActiveNote) {
   const shown = Deferred.makeUnsafe<void>();
   const labels = vi.spyOn(ButtonComponent.prototype, "setButtonText");

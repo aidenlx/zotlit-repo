@@ -1,6 +1,3 @@
-// The canonical cache key of an excerpt request: a SHA-256 over the pixel
-// inputs, which Node's crypto computes.
-
 import type { ExcerptRequest } from "#obsidian/excerpt-image/contract.ts";
 import { createHash } from "node:crypto";
 
@@ -22,7 +19,6 @@ function pixelInputs(request: ExcerptRequest): unknown[] {
   ];
 }
 
-/** Excludes source revision and record versions, which cannot change the pixels. */
 export function excerptKey(request: ExcerptRequest, engine: string): string {
   return createHash("sha256")
     .update(

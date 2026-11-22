@@ -4,7 +4,6 @@ import type {
   ProfilePreview,
 } from "#desktop/note-feature/index.ts";
 import type { ProfilePick } from "#desktop/profile/profile-picker.ts";
-// The batch confirmation delegates its optional Profile decision to the shared picker.
 import { Effect } from "effect";
 
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
@@ -24,15 +23,9 @@ export interface BatchProfilePickerOptions {
   indexedKey?: string;
   selection: CreationProfileSelection;
   previews: readonly ProfilePreview[];
-  /** Why automatic selection stopped for the rows the choice governs. */
   problem?: string;
 }
 
-/**
- * The user's Profile for the rows a batch choice governs, or `undefined` when
- * the picker closes. An interrupt closes the picker, or the Profile dialog
- * opened from it.
- */
 export const chooseBatchProfile = Effect.fnUntraced(function* (
   deps: BatchProfilePickerDeps,
   options: BatchProfilePickerOptions,

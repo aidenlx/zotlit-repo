@@ -1,4 +1,3 @@
-// The Citation Popover: document citation entries and source-less works under the vault presentation.
 import type { Inlines } from "#core/pandoc/ast.ts";
 import type { CitationPopoverBlock } from "#obsidian/citation-popover/blocks.ts";
 import type { WorkHoverRequest } from "#obsidian/citation-popover/service.ts";
@@ -63,7 +62,6 @@ import {
 } from "#obsidian/pandoc/render-cache.ts";
 import { buildReferenceEntries } from "#obsidian/references/entries.ts";
 
-/** The services one popover read yields. */
 type PopoverServices =
   | Vault
   | MetadataCache
@@ -75,16 +73,9 @@ type PopoverServices =
   | BibliographyRender
   | ProfileStyles;
 
-/** What the plain code a read hands its entries to reaches outside the read. */
 interface PopoverEdges {
-  /** The workspace the popover raises its menu and Profile switch events on. */
   host: WorkspaceEventHost;
-  /**
-   * Runs an entry action's fresh Item read on the visit's Scope, so the read
-   * ends with the visit. Resolves `null` once the visit ended under it.
-   */
   runAction<A, E>(effect: Effect.Effect<A, E>): Promise<A | null>;
-  /** Open the Library View on the Item `indexedKey`. */
   showInLibrary: (indexedKey: string) => void;
   log: (
     level: "debug" | "warn",
@@ -95,30 +86,19 @@ interface PopoverEdges {
 
 type PopoverRequest = CitationHoverRequest | WorkHoverRequest;
 
-/** What one hovered target's popover reads and shows. */
 interface CitationVisitState {
   content: ReactNode;
-  /** The part a request's `lead` draws above the entries. */
   lead: ReactNode;
-  /** What the popover shows below the lead now. */
   painted: ReactNode;
 }
 
 type PopoverVisit = HoverVisit<CitationVisitState>;
 
-/** What one read of a hovered citation puts on screen. */
 interface PopoverRead {
-  /** One block per work the hover carries, in the order it names them. */
   blocks: CitationPopoverBlock[];
-  /** The note a note-class style wrote for the hovered occurrence. */
   note: Inlines | undefined;
   profileFailure: ProfilePresentationFailure | undefined;
-  /**
-   * The citekey resolution snapshot could not answer when this read ran, so
-   * an unresolved block is a lookup in progress rather than a missing Item.
-   */
   pending: boolean;
-  /** Exact identity of the single source-less entry. */
   indexedKey?: string;
   unavailable?: "database" | "item";
 }
@@ -166,13 +146,6 @@ export const layerCitationPopover: Layer.Layer<
     const log: PopoverEdges["log"] = (level, message, fields) =>
       logs[level](message, fields);
 
-    /**
-     * Opens the visit `request` hovers, with a Scope of its own that hiding or
-     * moving the popover closes. Each read of the visit is a fiber on that
-     * Scope, and the next read interrupts the one before it.
-     *
-     * @returns the fiber of the visit's first read; none after release.
-     */
     const showVisit = Effect.fn("CitationPopover.showVisit")(function* (
       request: PopoverRequest,
     ) {
@@ -216,8 +189,6 @@ export const layerCitationPopover: Layer.Layer<
       const read = FiberHandle.run(
         reading,
         fill(edges, currentVisit, request).pipe(
-          // A read that fails after its entries were read, such as a draw
-          // that throws, still reaches the log.
           Effect.tapCause((cause) =>
             Cause.hasInterruptsOnly(cause)
               ? Effect.void
@@ -273,8 +244,6 @@ export const layerCitationPopover: Layer.Layer<
       showWork: Effect.fn("CitationPopover.showWork")(function* (request) {
         const first = yield* showVisit(request);
         if (!first) return;
-        // A later hover or hide dropping the first read completes the show; any
-        // other failure is the caller's.
         const exit = yield* Fiber.await(first);
         if (Exit.isFailure(exit) && !Cause.hasInterruptsOnly(exit.cause))
           return yield* Effect.failCause(exit.cause);
@@ -286,17 +255,11 @@ export const layerCitationPopover: Layer.Layer<
   }).pipe(withLogCategory("citation-popover")),
 );
 
-/** What a failed read carries, unwrapped from the `tryPromise` it came through. */
 function failureOf(cause: Cause.Cause<unknown>): unknown {
   const error = Cause.squash(cause);
   return Cause.isUnknownError(error) ? error.cause : error;
 }
 
-/**
- * Reads the hover's entries and draws them. An interrupted read draws nothing
- * and hides nothing: the next read of the visit, the hidden popover, or the
- * released plugin ended it.
- */
 const fill = Effect.fn("CitationPopover.fill")(function* (
   edges: PopoverEdges,
   visit: PopoverVisit,
@@ -325,9 +288,6 @@ const fill = Effect.fn("CitationPopover.fill")(function* (
     return;
   }
   const { blocks, note, profileFailure, pending, unavailable } = read;
-  // Every work the hover carries becomes a block, so an empty stack means
-  // the document itself could not be read — nothing the popover can say,
-  // beyond the lead it holds.
   if (blocks.length === 0 && !unavailable) {
     if ("work" in request && request.lead) paint(visit, null);
     else popover.hide();
@@ -350,8 +310,6 @@ const fill = Effect.fn("CitationPopover.fill")(function* (
                 { indexedKey: read.indexedKey!, linkpath: null },
               ]),
             );
-            // The popover moved on to another visit while the read ran: this
-            // action neither runs nor touches what the popover shows now.
             if (join === null) return null;
             const { sources, database } = join;
             const source = sources.get(read.indexedKey!);
@@ -430,7 +388,6 @@ const readWork = Effect.fn("CitationPopover.readWork")(function* (
       .pipe(recover(() => Effect.void, Effect.succeed(null)));
     if (answer === null) return { ...empty, unavailable: "database" };
     const parent = answer.parentOfAnnotation(work.annotationKey);
-    // The library holds no such Annotation, which the lead says.
     if (parent === null) return empty;
     indexedKey = parent.indexedKey;
   } else if (work.kind === "citekey") {
@@ -470,11 +427,8 @@ const readWork = Effect.fn("CitationPopover.readWork")(function* (
   ]);
   if (database === "unreadable") return { ...empty, unavailable: "database" };
   const source = sources.get(indexedKey);
-  // An Annotation on a standalone PDF has no Item to reference.
   if (!source && work.kind === "annotation") return empty;
   if (!source) return { ...empty, unavailable: "item" };
-  // Read through to the render that stands: the popover shows one entry and
-  // has no stale list of its own to keep on screen meanwhile.
   const bibliography = yield* render
     .readBibliography([source.csl])
     .pipe(
@@ -536,14 +490,7 @@ const readBlocks = Effect.fn("CitationPopover.readBlocks")(function* (
     file,
     { include: { citekeys } },
   );
-  // Read beside the citations it qualifies: this read resolved against the
-  // snapshot as it stood here, and the popover redraws on the next hover.
   const pending = (yield* lookupService.current).status === "pending";
-  // The hovered note's own Citation Presentation, so the popover shows what the
-  // References Sidebar of that note shows — including nothing formatted at all
-  // where the note's declared style or language cannot be rendered with.
-  // `documentPresentation` is synchronous plain code: it reads the note's
-  // metadata and Profile through this read's own services.
   const run = Effect.runSyncWith(yield* Effect.context<never>());
   const presented = documentCitationPresentation(
     documentPresentation(
@@ -567,9 +514,6 @@ const readBlocks = Effect.fn("CitationPopover.readBlocks")(function* (
           }
         : undefined,
   });
-  // The document's own citations as they stand now, rather than as the hover
-  // found them: a Citation Presentation change drops what was held for this
-  // note, and this read is what puts the note text and the serials back.
   const documentText = yield* text.read(file.path);
   const libraries = new Map(
     ((yield* libraryScope.current)?.available ?? []).map((library) => [
@@ -583,10 +527,6 @@ const readBlocks = Effect.fn("CitationPopover.readBlocks")(function* (
       ? describeJoinedCandidates(resolution.candidates, sources, libraries)
       : null;
   };
-  // A note-class style writes its citation as a note the surfaces stand serials
-  // in place of, so the popover is where that text is read — taken from the
-  // formatted text of the very occurrence the pointer is on, and from no other
-  // occurrence once an edit has moved the one the hover stands on.
   const formatted =
     request.shown && documentText
       ? shownCitationContent(request.shown, documentText)
@@ -605,7 +545,6 @@ const readBlocks = Effect.fn("CitationPopover.readBlocks")(function* (
   };
 });
 
-/** The formatted entries by CSL id, which is the item identity they are joined under. */
 function renderedEntries(
   entries: readonly BibliographyEntry[],
 ): Map<string, RenderedReference> {
@@ -614,12 +553,6 @@ function renderedEntries(
   );
 }
 
-/**
- * Draws `reference` below the visit's lead, which is everything the popover
- * shows of a citation that carries none.
- *
- * @returns whether the popover was still live to draw it.
- */
 function paint(visit: PopoverVisit, reference: ReactNode): boolean {
   visit.state.painted = reference;
   const { lead } = visit.state;
@@ -635,7 +568,6 @@ function paint(visit: PopoverVisit, reference: ReactNode): boolean {
   );
 }
 
-/** Failed freshness keeps the content delivered for this visit. */
 function showFailure(visit: PopoverVisit): void {
   paint(
     visit,

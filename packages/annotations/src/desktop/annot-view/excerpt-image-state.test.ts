@@ -1,5 +1,3 @@
-// The demand one Annotation card states, and the object URL it owns.
-
 import type { ExcerptImage } from "#core/excerpt-image/format.ts";
 import type { ExcerptImageDisplay } from "#desktop/excerpt-image/display.ts";
 import type {
@@ -46,7 +44,6 @@ function annotation(
   };
 }
 
-/** One card's stated demand, as the Annotation and source it is showing. */
 function stated(
   previous: ExcerptImageTarget | null,
   options: {
@@ -67,7 +64,6 @@ const image = (byte: number): ExcerptImage => ({
   format: PNG_FORMAT,
 });
 
-/** What the shared display read reports; the cards here paint what it holds. */
 function display(
   held: ExcerptImage | null,
   status: ExcerptImageDisplay["status"] = "settled",
@@ -75,7 +71,6 @@ function display(
   return { image: held, current: true, status };
 }
 
-/** An object URL that names the image it was made from, so a test sees the swaps. */
 const create = (one: ExcerptImage): string => `blob:${one.bytes[0]}`;
 
 describe("Annotation Card image lifecycle", () => {
@@ -91,8 +86,6 @@ describe("Annotation Card image lifecycle", () => {
     expect(stated(first, { annotation: annotation({ tags: ["tag"] }) })).toBe(
       first,
     );
-    // The same Zotero database reached through its Local API representation
-    // demands the same pixels; another database demands a new image.
     expect(
       stated(first, {
         source: { kind: "zotero-local-api", serverID: "server" },
@@ -140,7 +133,6 @@ describe("Annotation Card image lifecycle", () => {
         }),
       ).toEqual({ owned: held, release: [] });
     }
-    // One committed image is one object, so the URL that paints it stands.
     expect(
       excerptImageOwnership({
         held,
@@ -181,10 +173,6 @@ describe("Annotation Card image lifecycle", () => {
       url: "blob:1",
     };
 
-    // A clear removed the image together with the bytes behind it: the card owns
-    // nothing and paints the established unavailable output, so the URL it was
-    // painted from goes rather than standing for an image the clear deleted.
-    // A replacement that failed is the other case, and keeps its image above.
     expect(
       excerptImageOwnership({
         held,
@@ -205,8 +193,6 @@ describe("Annotation Card image lifecycle", () => {
       annotation: annotation({ key: "INK2" }),
     }).identity;
 
-    // Another Annotation the display holds nothing for yet: the URL of the
-    // previous one goes rather than standing in for it.
     expect(
       excerptImageOwnership({
         held,

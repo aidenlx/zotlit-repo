@@ -1,4 +1,3 @@
-// Native selection semantics: Obsidian's dropdown surface and a chevron glyph.
 import type { ComponentProps } from "react";
 
 import { Dropdown } from "@zotlit/obsidian-kit/components/obsidian/dropdown.tsx";

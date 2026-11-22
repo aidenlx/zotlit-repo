@@ -1,5 +1,3 @@
-// Paraglide compilation completes before Vite creates environments and scans dependencies.
-
 import { compile } from "@inlang/paraglide-js";
 import type { CompilerOptions } from "@inlang/paraglide-js";
 import { createHash } from "node:crypto";
@@ -12,7 +10,6 @@ export type { CompilerOptions } from "@inlang/paraglide-js";
 
 const defaultIsServer = "import.meta.env?.SSR ?? typeof window === 'undefined'";
 
-/** Compile a Paraglide facade without starting Vite. */
 export async function generateParaglide(
   options: CompilerOptions,
 ): Promise<void> {
@@ -22,12 +19,6 @@ export async function generateParaglide(
   });
 }
 
-/**
- * Uses Paraglide's compiler and incremental output cache with Vite-owned watching.
- * Initial generation runs in `config`: framework plugins can scan dependencies
- * before `buildStart`, including when their generated imports do not yet exist.
- * @see https://github.com/opral/paraglide-js/blob/abeba5009e22761518964dcfc1ec8f49d4551f41/src/bundler-plugins/unplugin.ts
- */
 export function paraglideVitePlugin(options: CompilerOptions): Plugin {
   let previous: Awaited<ReturnType<typeof compile>> | undefined;
   let compilation: Promise<void> = Promise.resolve();
@@ -101,7 +92,6 @@ export function paraglideVitePlugin(options: CompilerOptions): Plugin {
       if (!entry.isFile()) continue;
       const path = resolve(entry.parentPath, entry.name);
       const content = await sourceFs.promises.readFile(path, "utf8");
-      // Paraglide's writer hashes content plus its absolute destination.
       hashes[relative(paths.outdir, path).split(sep).join("/")] = createHash(
         "sha256",
       )
@@ -150,7 +140,6 @@ export function paraglideVitePlugin(options: CompilerOptions): Plugin {
       outputStructure =
         options.outputStructure ??
         (production ? "message-modules" : "locale-modules");
-      // Awaited config hooks precede every environment's dependency scanner.
       if (!options.cleanOutdir)
         previous = { outputHashes: await existingOutputHashes() };
       await generate();
@@ -168,7 +157,6 @@ export function paraglideVitePlugin(options: CompilerOptions): Plugin {
         )
       )
         return;
-      // Vite can report several edits while the compiler is still writing.
       const next = compilation.then(() => generate());
       compilation = next.catch(() => {});
       try {

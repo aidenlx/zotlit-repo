@@ -1,6 +1,3 @@
-// The live display read of one Annotation's Excerpt Image: the one Held Read
-// every card that shows that Annotation is painted from.
-
 import type { ExcerptImage } from "#core/excerpt-image/format.ts";
 import type { ExcerptRequest } from "#obsidian/excerpt-image/contract.ts";
 import type { AvailableExcerpt } from "#obsidian/excerpt-image/service.ts";
@@ -19,65 +16,25 @@ import {
 import { ExcerptImageService } from "#obsidian/excerpt-image/service.ts";
 import { supersedes } from "#obsidian/excerpt-image/service.ts";
 
-/** The key prefix every live display read lives under. */
 export const EXCERPT_DISPLAY = "excerpt-image-display";
 
-/**
- * The one key a live Annotation is displayed under: the Annotation's stable
- * verified identity, never its pixels. A saved pixel-affecting edit replaces
- * what the key holds while every card keeps painting the previous image, and the
- * pixels one result answers for travel with the result itself, in the
- * `identity.key` ({@link excerptKey}) it was resolved under.
- *
- * @see apps/obsidian/docs/adr/0055-reader-edits-revalidate-excerpt-images.md
- */
 export function excerptDisplayKey(request: ExcerptRequest): QueryKey {
   return [EXCERPT_DISPLAY, ...excerptAnnotationIdentity(request)];
 }
 
-/**
- * What one card paints, and what the Held Read behind it is doing.
- *
- * `image` is the latest image resolved for the Annotation. It stays while a
- * replacement runs and after one fails, so the card shows the last useful image
- * rather than dropping to nothing; `current` says whether those exact pixels are
- * the ones the saved Annotation demands now.
- */
 export interface ExcerptImageDisplay {
   readonly image: ExcerptImage | null;
   readonly current: boolean;
-  /**
-   * - `reading`: a read is answering the demand.
-   * - `failed`: no read stands for the demand — the last one answered nothing,
-   *   so a previous image still paints.
-   * - `cleared`: a manual clear released the display — the clear removed the
-   *   Held Read and the bytes it was painted from, so nothing paints, not even
-   *   the image the clear removed.
-   * - `settled`: the read committed.
-   * - `absent`: the card demands nothing — no source, no scope.
-   */
   readonly status: "reading" | "failed" | "cleared" | "settled" | "absent";
 }
 
-/**
- * One card's demand on the live image of the Annotation it shows.
- *
- * The card re-states the demand as the record it paints moves. Releasing it
- * stops this card's demand alone: a read another card still wants runs on, and
- * the last demand going is what releases the read.
- */
 export interface ExcerptDisplayDemand {
-  /** State what this card shows now; `null` paints the established unavailable output. */
   readonly demand: (request: ExcerptRequest | null) => void;
-  /** Stop demanding. */
   readonly release: () => void;
-  /** Listen for every change that moves {@link snapshot}. */
   readonly subscribe: (onChange: () => void) => () => void;
-  /** The display at one instant, as one object until it moves. */
   readonly snapshot: () => ExcerptImageDisplay;
 }
 
-/** One live display read per Annotation, shared by every card that shows it. */
 interface Slot {
   readonly hash: string;
   readonly key: QueryKey;
@@ -85,7 +42,6 @@ interface Slot {
 }
 
 interface SlotState {
-  /** The latest saved request: what the next read resolves. */
   readonly latest: ExcerptRequest;
   readonly read: {
     readonly excerpt: string;
@@ -94,19 +50,15 @@ interface SlotState {
   readonly cards: ReadonlySet<Card>;
 }
 
-/** One card's demand, cached snapshot, and subscribed view callbacks. */
 interface CardState {
   readonly slot: Slot | null;
   readonly demand: ExcerptRequest | null;
-  /** An unstated demand is still loading. */
   readonly stated: boolean;
-  /** One object until publication moves the snapshot. */
   readonly held: ExcerptImageDisplay | null;
   readonly listeners: ReadonlySet<() => void>;
 }
 type Card = Ref.Ref<CardState>;
 
-/** An Annotation whose pixels have no available image. */
 export class ExcerptUnavailable extends Schema.TaggedError<
   ExcerptUnavailable,
   { readonly brand: unique symbol }
@@ -116,7 +68,6 @@ export class ExcerptUnavailable extends Schema.TaggedError<
   }
 }
 
-/** The plugin's live display reads, shared across cards and saved edits. */
 export class ExcerptDisplays extends Context.Service<
   ExcerptDisplays,
   {
@@ -133,7 +84,6 @@ export const layerExcerptDisplays = Layer.effect(
     const images = yield* ExcerptImageService;
     const queries = yield* QueryClients;
     const jobs = yield* FiberSet.make<void, never>();
-    // Card callbacks and Query Core's Promise query function are execution edges.
     const bridge = yield* scopedBridge;
     const slots = yield* Ref.make<ReadonlyMap<string, Slot>>(new Map());
     const refreshes = yield* Ref.make<ReadonlyMap<string, Fiber.Fiber<void>>>(
@@ -193,7 +143,6 @@ export const layerExcerptDisplays = Layer.effect(
         state.read,
         { ...state, read: null },
       ]);
-      // Query Core cancels publication before interruption waits for finalizers.
       queries.client.removeQueries({ queryKey: slot.key });
       if (reading) yield* Fiber.interrupt(reading.fiber);
     });
@@ -248,12 +197,9 @@ export const layerExcerptDisplays = Layer.effect(
       yield* queries.invalidate(slot.key);
       if (previous.read) yield* Fiber.interrupt(previous.read.fiber);
 
-      // The read owns both jobs. A stored fallback can arrive after the
-      // fresh resolution fails, so both finish before this work settles.
       const work: Effect.Effect<void> = Effect.all(
         [
           seed(slot),
-          // The TanStack edge: QueryClients reads through a QueryFunction alone.
           queries.read<AvailableExcerpt>(slot.key, ({ signal }) =>
             bridge.runPromise(resolve(request), { signal }),
           ),

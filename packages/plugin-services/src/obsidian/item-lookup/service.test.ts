@@ -50,12 +50,10 @@ import {
 import { ChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";
 import { packDevice, packFile } from "#obsidian/managed-binary/test-utils.ts";
 
-/** A turn of the event loop, as between two keystrokes. */
 const nextTurn = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
 const keys = (hits: readonly SearchHit[]) => hits.map((hit) => hit.item.key);
 
-/** The web-target binary the Resource Pack holds, read from the `jieba-wasm` dev dependency. */
 const JIEBA = new Uint8Array(
   await readFile(
     join(
@@ -65,16 +63,9 @@ const JIEBA = new Uint8Array(
   ),
 );
 
-/**
- * `Intl.Segmenter` keeps `长江流域` one word; jieba also cuts `流域` out of
- * it. So `流域` finds the title only through the binary.
- */
 const CHINESE_TITLE = "长江流域的城市化研究";
 
 describe("ItemLookup", () => {
-  // Regression: the settings row said "ready" from this thread's own read of
-  // the pack while the worker, which could not read it, cut Chinese text with
-  // Intl.Segmenter.
   it.effect(
     "states the Chinese Segmenter that the worker runs when the worker cannot read the pack",
     () =>
@@ -102,8 +93,6 @@ describe("ItemLookup", () => {
           device,
         );
 
-        // The search runs on Intl.Segmenter: the whole word finds the title,
-        // and the word that only jieba cuts out of it does not.
         expect(keys(yield* lookup.search("长江流域"))).toEqual(["LIBRARY2"]);
         expect(keys(yield* lookup.search("流域"))).toEqual([]);
         expect(yield* segmenter!.check).toEqual({ kind: "pack-damaged" });
@@ -130,7 +119,6 @@ describe("ItemLookup", () => {
           kind: "ready",
           version: "1.0.0",
         });
-        // The index that cuts with the binary replaces the first one.
         expect(keys(yield* lookup.search("长江流域"))).toEqual(["LIBRARY2"]);
         while (keys(yield* lookup.search("流域")).length === 0)
           yield* Effect.promise(() => nextTurn());
@@ -221,8 +209,6 @@ describe("ItemLookup", () => {
             ["长", "长江", "长江流"],
             (query) =>
               Effect.forkChild(session.search(query)).pipe(
-                // The search before starts, and asks for the Segmenter, before
-                // the next keystroke interrupts it.
                 Effect.tap(() => Effect.promise(() => nextTurn())),
               ),
           );
@@ -239,7 +225,6 @@ describe("ItemLookup", () => {
               packFile({ "chinese-segmenter": JIEBA }),
             ),
           );
-          /** Holds each read of the pack file until the searches are out. */
           const held = Promise.withResolvers<void>();
           let packReads = 0;
           const device = {
@@ -247,7 +232,6 @@ describe("ItemLookup", () => {
             open: (url: string): ReadRange => {
               const range = installed.open(url);
               return async (offset, length) => {
-                // One read of an entry reads the index first.
                 if (offset === 0) packReads += 1;
                 await held.promise;
                 return range(offset, length);
@@ -267,7 +251,6 @@ describe("ItemLookup", () => {
           yield* searches(lookup);
           held.resolve();
 
-          // The read that the searches share ends with the Segmenter ready.
           yield* Stream.runHead(
             Stream.filter(
               segmenter!.changes,
@@ -460,7 +443,6 @@ describe("ItemLookup", () => {
         const second = yield* session.search("LIBRARY3");
 
         expect(keys(second)).toEqual(["LIBRARY3"]);
-        // A list drawn from the interrupted answer still matches the box.
         expect(keys(yield* Fiber.join(first))).toEqual(["LIBRARY3"]);
         expect(reads.interrupted).toEqual(["Alpha"]);
       }),
@@ -702,12 +684,6 @@ describe("ItemLookup", () => {
   );
 });
 
-/**
- * The Item search over `reads`, with a Library Scope that holds `libraries`
- * (unresolved for `null`), open for the case's Scope. `setLibraries` changes
- * the scope, and returns once the search has seen the change: after the
- * prewarm of a non-empty list.
- */
 const lookupOver = Effect.fnUntraced(function* (
   reads: ObservedReads,
   libraries: readonly AvailableLibrary[] | null = [library(USER_LIBRARY_ID)],
@@ -715,7 +691,6 @@ const lookupOver = Effect.fnUntraced(function* (
 ) {
   const state = yield* SubscriptionRef.make(scopeState(libraries));
   const notifier = testNotifier();
-  // One worker answers the search and states the Segmenter.
   const zoteroReads = Layer.succeedContext(
     yield* Layer.build(layerZoteroReads(reads.client)),
   );
@@ -729,13 +704,11 @@ const lookupOver = Effect.fnUntraced(function* (
     }),
   );
   return {
-    /** The text of each notice shown, the first one first. */
     notices: () =>
       notifier.notices.map(
         ({ messages }) => (messages[0] as DocumentFragment).textContent,
       ),
     lookup: Context.get(context, ItemLookup),
-    /** The Chinese Segmenter over `pack`. */
     segmenter: segmenter && Context.get(segmenter, ChineseSegmenter),
     setLibraries: (next: readonly AvailableLibrary[]) =>
       Effect.gen(function* () {
@@ -760,7 +733,6 @@ interface SearchPayload {
   limit: number;
 }
 
-/** A held `SearchItems` call: `entered` once it waits, `open` lets it run. */
 interface Gate {
   readonly entered: Effect.Effect<void>;
   readonly open: Effect.Effect<void>;
@@ -768,21 +740,12 @@ interface Gate {
 
 interface ObservedReads {
   readonly client: Effect.Effect<ZoteroReadsClient, never, Scope.Scope>;
-  /** The payload of each `SearchItems` call, in call order. */
   readonly searches: SearchPayload[];
-  /** Each `SearchItems` call's payload, as it is made. */
   readonly calls: Queue.Queue<SearchPayload>;
-  /** The query of each `SearchItems` call that ended interrupted. */
   readonly interrupted: string[];
-  /** Hold the next `SearchItems` call until its gate opens. */
   readonly gateSearch: Effect.Effect<Gate>;
 }
 
-/**
- * A reads client on the in-process adapter over seeded `:memory:` databases;
- * open #N runs `seedFor(N)`, and a `null` seed fails the open. `SearchItems`
- * is observed: each call is recorded, and a test can hold the next one.
- */
 const readsOver = Effect.fnUntraced(function* (
   seedFor: (open: number) => string | null,
   handlers?: HandlersOptions,
@@ -845,7 +808,6 @@ const readsOver = Effect.fnUntraced(function* (
   return reads;
 });
 
-/** One "Alpha" journal article per Library, keyed `LIBRARY<libraryID + 1>`. */
 function perLibraryRows(): {
   key: string;
   itemID: number;
@@ -858,10 +820,6 @@ function perLibraryRows(): {
   }));
 }
 
-/**
- * SQL for a user library (1) and a group library (2, group 2) holding `rows`
- * as journal articles titled `title`; the user library's row is the newer.
- */
 function seed(
   rows: readonly { key: string; itemID: number; libraryID: number }[],
   title = "Alpha",
@@ -886,7 +844,6 @@ function seed(
   `;
 }
 
-/** An available Library named by its local id; group ids mirror it for brevity. */
 function library(libraryID: number): AvailableLibrary {
   return libraryID === USER_LIBRARY_ID
     ? { selector: { type: "personal" }, libraryID, name: null }

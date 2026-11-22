@@ -1,6 +1,3 @@
-// Real-filesystem coverage for the attachment-import service seam: the
-// copy-time confirmation that resolves each approved source before a byte
-// moves, and the destination-containment guarantees around the write itself.
 import { it } from "@effect/vitest";
 import { Effect, Logger, References } from "effect";
 import {
@@ -26,7 +23,6 @@ import type { SourceOrigin } from "./source.ts";
 
 import { platformDefaults } from "#__fixtures__/platform-settings.ts";
 
-/** Lets a test act in the window between the confirmation and the copy. */
 const hooks = vi.hoisted(() => ({
   beforeCopy: null as (() => Promise<void>) | null,
 }));
@@ -42,8 +38,6 @@ vi.mock("./copy-attachments.ts", async (importOriginal) => {
   };
 });
 
-// Spied rather than stubbed: whether a copy reflinks is the observable
-// difference between the two strategies, and the real call still runs.
 vi.mock("@zotlit/obsidian-desktop/reflink.ts", async (importOriginal) => {
   const actual =
     await importOriginal<
@@ -57,9 +51,7 @@ let vaultDir: string;
 let attachmentsDir: string;
 let dataDir: string;
 let storageDir: string;
-/** Zotero's base attachment directory, outside its data directory. */
 let baseDir: string;
-/** A folder the user approved on this device, outside Zotero's control. */
 let approvedDir: string;
 
 function makeService() {
@@ -71,7 +63,6 @@ function makeService() {
   }).pipe(Effect.map(({ service }) => service));
 }
 
-/** Queue one copy of `source` and settle the batch. */
 const importSource = Effect.fnUntraced(function* (
   service: AttachmentImport["Service"],
   source: string,
@@ -128,8 +119,6 @@ describe("AttachmentImport copy-time confirmation", () => {
       }),
   );
 
-  // The refusal record is the support signal for a user who cannot reproduce
-  // the problem, so its fields — and what they leave out — are asserted here.
   it.effect(
     "logs a refusal with its origin and reason, and without the location",
     () =>
@@ -381,11 +370,9 @@ describe("AttachmentImport destination protection", () => {
         );
 
         expect(error._tag).toBe("AttachmentCopyError");
-        // The symlink's target is never opened for writing...
         expect(yield* fsStep(() => readFile(outsideTarget, "utf8"))).toBe(
           "untouched",
         );
-        // ...and the symlink itself is left in place, not followed.
         expect((yield* fsStep(() => lstat(dest))).isSymbolicLink()).toBe(true);
       }),
   );
@@ -395,8 +382,6 @@ describe("AttachmentImport destination protection", () => {
       const source = join(storageDir, "image.png");
       yield* fsStep(async () => {
         await writeFile(source, "image");
-        // A directory at the destination makes the final rename fail, after
-        // the temp file has already been written.
         await mkdir(join(attachmentsDir, "IMG-image.png"));
       });
 

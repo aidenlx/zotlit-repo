@@ -278,7 +278,6 @@ describe("scenario seed", () => {
           : n.collectionName;
       })
       .toSorted();
-    // "Archive" is trashed, so its live child "Old" has no live parent.
     expect(paths).toEqual([
       "Old",
       "Teaching",
@@ -366,7 +365,6 @@ describe("openScenarioDatabase lowest layout", () => {
       }[]
     ).map((c) => c.name);
 
-  // Migrations 126 (normalized shadow columns) and 129 (clientVersion).
   const added = [
     ["items", "clientVersion"],
     ["itemDataValues", "valueNormalized"],

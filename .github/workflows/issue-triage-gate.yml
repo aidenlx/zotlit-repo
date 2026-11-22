@@ -1,8 +1,5 @@
 name: Issue triage gate
 
-# GitHub Issues are reserved for defects a maintainer has already confirmed
-# (see notes on the community feedback loop). Issues opened directly by
-# non-maintainers are redirected to Bug reports on the ZotLit forum.
 on:
   issues:
     types: [opened]

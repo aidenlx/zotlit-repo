@@ -1,5 +1,3 @@
-// One Ink Stroke under the pointer: its raw samples in PDF points on the page
-// it was pressed on, and its smoothed path published once per animation frame.
 import type { ReaderPage } from "./creation.ts";
 import type { Point } from "./hit-test.ts";
 import { clampToViewBox, StrokeSamples } from "./ink-path.ts";
@@ -9,35 +7,20 @@ import { clearLiveStroke, publishLiveStroke } from "./reader-surface-state.ts";
 import { pdfPointAt } from "./surface.ts";
 
 export interface InkStrokeOptions {
-  /** The pointer that pressed, which alone moves and ends the stroke. */
   pointerId: number;
-  /** The page the press fell on, which holds the whole stroke. */
   page: ReaderPage;
-  /** Where the press fell, in client coordinates. */
   at: Point;
   width: number;
   color: string;
   surface: ReaderSurface;
-  /** The reader's own window, whose frames the stroke is published on. */
   win: Window;
-  /**
-   * The stroke reached the position ceiling: the part drawn so far, smoothed
-   * and rounded, is finished, and the stroke goes on from the next sample.
-   */
   onSplit: (path: number[]) => void;
 }
 
-/**
- * The stroke from press to release. The press point is published at once, so
- * a tap shows its dot; every later sample is published with the next frame,
- * smoothed over the whole stroke as the release will store it.
- */
 export class InkStroke implements Disposable {
   readonly pointerId: number;
   readonly page: ReaderPage;
-  /** The pen width the stroke is drawn at, fixed at the press. */
   readonly width: number;
-  /** The colour the stroke is drawn in, fixed at the press. */
   readonly color: string;
   readonly #options;
   readonly #samples: StrokeSamples;
@@ -57,11 +40,6 @@ export class InkStroke implements Disposable {
     this.#publish();
   }
 
-  /**
-   * Takes one move's samples. The browser batches the moves between two
-   * events as coalesced events; a move it built by hand lists none, and then
-   * the move itself is the sample.
-   */
   move(event: PointerEvent): void {
     const coalesced = event.getCoalescedEvents?.() ?? [];
     for (const sample of coalesced.length > 0 ? coalesced : [event])
@@ -72,18 +50,11 @@ export class InkStroke implements Disposable {
     });
   }
 
-  /**
-   * Ends the stroke and takes it off the page.
-   *
-   * @returns the stroke as Zotero stores it: smoothed, and rounded to three
-   *   decimals. A stroke that never moved is its one press point.
-   */
   finish(): number[] {
     this[Symbol.dispose]();
     return this.#samples.finish();
   }
 
-  /** Discards the stroke: no more frames, and nothing drawn. */
   [Symbol.dispose](): void {
     if (this.#frame !== null)
       this.#options.win.cancelAnimationFrame(this.#frame);
@@ -91,13 +62,6 @@ export class InkStroke implements Disposable {
     update(this.#options.surface, clearLiveStroke);
   }
 
-  /**
-   * One sample on the press page, measured against the page as it stands now,
-   * so a scroll or a zoom mid-stroke keeps it under the pointer. It is pulled
-   * onto the page, then kept only a PDF point or more from the last one kept.
-   * A sample that parts the stroke at the ceiling hands the finished part on
-   * and shows the new part at once, so no frame draws the finished part twice.
-   */
   #take(client: Point): void {
     const { view } = this.page;
     const finished = this.#samples.take(

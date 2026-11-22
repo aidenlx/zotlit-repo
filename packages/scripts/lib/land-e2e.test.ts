@@ -20,10 +20,6 @@ import type {
   LandE2eOutcome,
 } from "./land-e2e.ts";
 
-// The runner's run, evidence, issues, and paint probe are the process,
-// network, and OS boundaries: the real ones check out, bootstrap, drive the
-// desktop, read git and the log, call `gh`, and ask macOS whether the desktop
-// can paint.
 let dir: string;
 beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), "land-e2e-"));
@@ -52,14 +48,11 @@ const LID_CLOSED: DesktopPaint = {
 
 type FakeIssue = LandE2eIssue & { state: "open" | "closed" };
 
-/** A fake of the issues of a GitHub repository, held in memory. */
 function fakeIssues(existing: FakeIssue[] = []) {
   const issues = [...existing];
   const created: { title: string; body: string; label: string }[] = [];
   const comments: { number: number; body: string }[] = [];
   const client: LandE2eIssues = {
-    // Like GitHub's search, it returns each open issue whose title holds the
-    // words, not only the exact title.
     listOpen: (_repository, title) =>
       Promise.resolve(
         issues
@@ -85,7 +78,6 @@ function fakeIssues(existing: FakeIssue[] = []) {
 
 const FAILED_CASE =
   "|desktop| src/literature-notes.e2e.ts > End-to-end Run > renders a Literature Note";
-// Vitest names a failed case twice: as it runs, and in the summary.
 const FAILED_LOG = [
   "@zotlit/e2e:e2e:  ✓ |desktop| src/follow-mode.e2e.ts (2 tests) 9103ms",
   `@zotlit/e2e:e2e:  FAIL  ${FAILED_CASE}`,
@@ -94,10 +86,6 @@ const FAILED_LOG = [
   "@zotlit/e2e:e2e: AssertionError: expected 6 to be 7",
 ].join("\n");
 
-/**
- * Fakes of the runner's boundaries. `paints` answers the probes in order;
- * the last answer repeats.
- */
 function deps(
   outcomes: Record<string, LandE2eOutcome> = {},
   paints: DesktopPaint[] = [PAINTS],
@@ -136,7 +124,6 @@ describe("the End-to-end Run after a land", () => {
     await request("c3");
 
     await runner(fake);
-    // The runners of the later lands find their tip already run.
     await runner(fake);
     await runner(fake);
 
@@ -177,8 +164,6 @@ describe("the issue of End-to-end Run failures", () => {
     expect(body).toContain("abc1234 the commits of c1..c2");
     expect(body).toContain("AssertionError: expected 6 to be 7");
     expect(body.split(`- \`${FAILED_CASE}\``)).toHaveLength(2);
-    // The issue is public: it names the log under the state directory, not
-    // its absolute path on the machine.
     expect(body).not.toContain(dir);
     expect(body).toMatch(/`logs\/[^`]+-c2\.log` in the End-to-end state/);
     expect(await records()).toMatchObject([
@@ -202,8 +187,6 @@ describe("the issue of End-to-end Run failures", () => {
       { c1: FAILED, c2: FAILED },
       [PAINTS],
       fakeIssues([
-        // None is the open issue of End-to-end Run failures: one is closed,
-        // one is older than the newest open one, one has a longer title.
         { ...open, number: 3, url: "u3", state: "closed" },
         { ...open, number: 5, url: "u5" },
         {
@@ -238,7 +221,6 @@ describe("the issue of End-to-end Run failures", () => {
     await runner(fake);
     await request("c2", "c1");
     await runner(fake);
-    // A later pass adds nothing.
     await request("c3", "c2");
     await runner(fake);
 
@@ -297,8 +279,6 @@ describe("the End-to-end Run after a land on a desktop that cannot paint", () =>
           reason: `the desktop cannot paint a window: ${LID_CLOSED.machine}`,
         },
       },
-      // The range of the newer tip starts at the last tip that passed, so it
-      // holds the commits of the tip that did not run.
       { commit: "c2", range: "c0..c2", result: { outcome: "passed" } },
     ]);
   });
@@ -327,8 +307,6 @@ describe("the End-to-end Run after a land on a desktop that cannot paint", () =>
   });
 });
 
-// The excerpt of the issue is the end of the log, so the log must be read
-// before the commit list of the range is appended to it.
 describe("the evidence of a failed run", () => {
   it("takes the log as the run left it, then appends the commits of the range", async () => {
     const repos = await makeGitRepos();

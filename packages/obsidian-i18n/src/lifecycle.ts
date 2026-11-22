@@ -1,12 +1,7 @@
-// The vocabulary of the Language Pack Lifecycle: which locale a host language
-// resolves to, where packs come from, and where a pack's install stands. The
-// lifecycle itself (consent, device cache, download) belongs to the host.
-
 export type RemoteLanguagePack = {
   fileName: string;
 };
 
-/** Where a namespace's Language Packs are downloaded from and attributed to. */
 export type PackSource = {
   baseUrl: string;
   origin: string;
@@ -35,11 +30,6 @@ export type RemotePackInfo = {
   origin: string;
 };
 
-/**
- * Where the Language Pack Lifecycle currently stands for the resolved locale.
- * Arms are mutually exclusive; a consumer renders one of them, never derives
- * its own combination of flags.
- */
 export type LanguagePackSituation =
   | { kind: "unavailable" }
   | { kind: "offered"; pack: RemotePackInfo }

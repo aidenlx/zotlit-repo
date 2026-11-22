@@ -1,24 +1,6 @@
-// Reloads a vault's whole Obsidian window, so the plugin loads the way it does
-// at Obsidian startup.
-
 import { prepareRunWindow } from "./background-throttling.ts";
 import { cli, obRun, obRunUntil, waitFor } from "./obsidian-cli.ts";
 
-/**
- * Reloads `vaultId`'s window (`app:reload`) and resolves when the new window
- * has its layout ready, each plugin of the vault's `community-plugins.json`
- * loaded with its services, and its CLI commands registered.
- *
- * Use it for bugs that only appear when the plugin loads during Obsidian
- * startup. A plugin loaded then subscribes to vault events before Obsidian's
- * metadata cache does, so its `rename` handlers run before the cache moves the
- * renamed path. A plugin reload (`plugin:reload`, the plugin toggle) subscribes
- * after the cache and hides such bugs.
- *
- * Pending ZotLit settings and the workspace layout are written first, as a
- * plugin unload and an Obsidian quit do. The window's {@link prepareRunWindow} hooks die with it, so they are
- * taken down before the reload and put back after it.
- */
 export async function reloadWindow(vaultId: string): Promise<void> {
   const plugins = await obRun(vaultId, async ({ app, zotlit }) => {
     if (app.plugins.plugins.zotlit)
@@ -30,8 +12,6 @@ export async function reloadWindow(vaultId: string): Promise<void> {
       ),
     ) as string[];
   });
-  // The reload goes after the reply, so this call is answered by the old
-  // window; the marker tells that window from the new one.
   const scheduled = await obRun(vaultId, ({ app, page }) => {
     window.__ztRestoreBackgroundThrottling?.();
     page.scratch.windowBeforeReload = true;
@@ -43,8 +23,6 @@ export async function reloadWindow(vaultId: string): Promise<void> {
       `could not reload the window of ${vaultId}: ${String(scheduled)}`,
     );
   }
-  // Mid-reload calls go unanswered or answer the old window; obRunUntil
-  // counts both as "not ready yet".
   await obRunUntil(
     vaultId,
     ({ app, page }, { plugins }) =>
@@ -68,7 +46,6 @@ export async function reloadWindow(vaultId: string): Promise<void> {
       tries: 120,
     },
   );
-  // A window answers `eval` before its command registry is built.
   const commands = await waitFor(async () => {
     const state = await cli([`vault=${vaultId}`, "plugins:restrict"]).catch(
       () => "",

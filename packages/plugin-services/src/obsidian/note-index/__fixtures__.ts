@@ -1,4 +1,3 @@
-// The real Note Index layer over a test's Obsidian host.
 import { Context, Effect, Layer } from "effect";
 import { basename } from "node:path/posix";
 import { TFile } from "obsidian";
@@ -33,13 +32,6 @@ export function buildNoteIndex(host: HostSources, stack: AsyncDisposableStack) {
   });
 }
 
-/**
- * The real Note Index for a consumer suite, over a host of its own. The plugin
- * was enabled at runtime, so the Full Scan is done once this resolves.
- *
- * @param notes each Literature Note's path, and the Item key it carries.
- * @param stack owns the index's runtime.
- */
 export async function openNoteVault(
   notes: Record<string, string>,
   stack: AsyncDisposableStack,
@@ -58,10 +50,6 @@ export async function openNoteVault(
   return {
     ...host,
     noteIndex,
-    /**
-     * The note at `path`, created when the vault holds none, now carries
-     * `itemKey`, or no key; resolves once the Note Index has read the edit.
-     */
     writeNote: async (
       path: string,
       itemKey: string | undefined,
@@ -73,14 +61,7 @@ export async function openNoteVault(
   };
 }
 
-/** The in-memory metadata cache, following the vault as Obsidian's does. */
 class MockMetadataCache extends MemoryMetadataCache {
-  /**
-   * Obsidian's `watchVaultChanges()`: the cache follows a rename or delete as
-   * one more vault listener, in registration order. It subscribes once its
-   * initial load is done, so a plugin loaded during startup hears a rename
-   * before the cache rekeys; one enabled at runtime hears it after.
-   */
   watchVault(vault: MockVault): void {
     vault.on("rename", (...args) => {
       const [file, oldPath] = args as [TFile, string];
@@ -95,9 +76,7 @@ class MockMetadataCache extends MemoryMetadataCache {
   }
 }
 
-/** The in-memory vault, whose files carry the name, extension and mtime the index reads. */
 class MockVault extends MemoryVault {
-  /** Hold a file at `path`, without `create`: a file the vault loaded with. */
   addFile(path: string, mtime = 0): TFile {
     const file = makeFile(path, mtime);
     this.files.set(path, file);
@@ -135,11 +114,6 @@ export interface Harness {
   vault: MockVault;
 }
 
-/**
- * `enabledAtRuntime: true` is the runtime-enable shape: layout ready, cache
- * clean. The default is plugin load during startup: neither yet, both settle
- * on `startup()`.
- */
 export const makeHarness = Effect.fn("fixture.makeHarness")(function* (
   files: Record<string, CachedMetadata>,
   options: { enabledAtRuntime?: boolean } = {},
@@ -155,10 +129,6 @@ export const makeHarness = Effect.fn("fixture.makeHarness")(function* (
   };
 });
 
-/**
- * Obsidian's startup order: the cache finishes its initial load and starts
- * following the vault, drains, then layout is ready.
- */
 export function startup(
   harness: Pick<Harness, "metadataCache" | "workspace" | "vault">,
 ): void {
@@ -208,7 +178,6 @@ function makeResource(host: HostSources) {
   };
 }
 
-/** The vault, metadata cache and workspace of a test host holding `files`. */
 export function createNoteHost(
   files: Record<string, CachedMetadata>,
   options: { enabledAtRuntime?: boolean } = {},

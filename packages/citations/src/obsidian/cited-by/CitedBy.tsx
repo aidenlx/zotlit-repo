@@ -1,4 +1,3 @@
-// The rendered Cited By Sidebar list.
 import type {
   CitationOccurrence,
   CitedByGroup,
@@ -54,10 +53,8 @@ import type {
 
 import { activeCitedByAtom } from "#obsidian/citation-index/atoms.ts";
 
-/** Milliseconds between the last input change and the query it applies. */
 export const SEARCH_DEBOUNCE = 300;
 
-/** What an excerpt end that leaves out source text shows. */
 const ELLIPSIS = "…";
 
 export function CitedBy() {
@@ -107,12 +104,6 @@ export function CitedBy() {
   );
 }
 
-/**
- * The results region: a Literature Note prompt, the final or in-progress
- * empty state, or the source list, in that priority order. Keys on the raw
- * `groups` emptiness (not `visibleGroups`) so a query that filters every
- * group out still shows the (empty) results list rather than an empty state.
- */
 function Results({
   activePath,
   coverage,
@@ -172,11 +163,6 @@ function Results({
   );
 }
 
-/**
- * The native-looking nav header that carries the view-wide actions and the
- * counts. Both counts describe the groups it receives, so a query narrows them
- * with the list below.
- */
 function Toolbar({
   occurrenceCount,
   paths,
@@ -204,10 +190,6 @@ function Toolbar({
     paths.length > 0 && paths.every((path) => collapsed.includes(path));
 
   return (
-    // Below the width where the icon row and both counts fit together, the
-    // counts take a row of their own at the end of it, under an icon row that
-    // centers itself the way the native header centers actions that stand
-    // alone.
     <SidebarToolbar className="zt:@container zt:flex-wrap zt:items-center">
       <SidebarToolbar.Actions className="zt:w-full zt:@3xs:w-auto zt:@3xs:flex-1 zt:@3xs:justify-start">
         <IconButton
@@ -273,7 +255,6 @@ function Toolbar({
   );
 }
 
-/** The hidden-by-default query field: focused on open, debounced on input. */
 function SearchFilter() {
   const setLayout = useAtomSet(useCitedByModel().layout);
   const search = useAtomValue(
@@ -282,8 +263,6 @@ function SearchFilter() {
   );
   const [text, setText] = useState(search);
   const field = useRef<HTMLDivElement>(null);
-  // The placeholder shows the name, so a hidden element carries it and the
-  // field takes no tooltip.
   const nameId = useUniqueId();
 
   useEffect(() => {
@@ -501,11 +480,6 @@ function CitedBySource({
   );
 }
 
-/**
- * One Citation Occurrence as a search-result card: the Citation Context with
- * the citation highlighted inside it, selected on hover and on keyboard focus.
- * A chevron on each clipped end reveals more of the citing note.
- */
 function OccurrenceCard({
   context,
   group,
@@ -591,11 +565,6 @@ function OccurrenceCard({
   );
 }
 
-/**
- * The chevron that reveals the logical chunk next to one excerpt. It rides the
- * end edge of its card, out of view until the pointer or keyboard focus
- * reaches the card, the way Obsidian's own search results present it.
- */
 function ExpandContext({
   direction,
   group,
@@ -619,8 +588,6 @@ function ExpandContext({
     <span
       className={cn(
         "zt:absolute zt:end-0.5 zt:z-1 zt:flex zt:cursor-clickable zt:rounded-sm zt:px-[3px] zt:py-px zt:text-faint zt:opacity-0 zt:hover:bg-(--background-modifier-hover) zt:hover:text-(--text-normal)",
-        // Out of reach as well as out of view, so a card click stays a card
-        // click until the chevron shows itself.
         "zt:pointer-events-none zt:group-focus-within:pointer-events-auto zt:group-focus-within:opacity-100 zt:group-hover:pointer-events-auto zt:group-hover:opacity-100",
         before ? "zt:top-0.5" : "zt:bottom-0.5",
       )}
@@ -652,19 +619,12 @@ function activateWithKeyboard(event: KeyboardEvent<HTMLElement>): void {
   event.currentTarget.click();
 }
 
-/** Activation that stays with the control, leaving its card's own alone. */
 function activateNestedWithKeyboard(event: KeyboardEvent<HTMLElement>): void {
   if (event.key !== "Enter" && event.key !== " ") return;
   event.stopPropagation();
   activateWithKeyboard(event);
 }
 
-/**
- * The groups one query keeps: a matching note path keeps the group whole,
- * otherwise the group keeps only occurrences whose Citation Context matches.
- * Every group is tested, collapsed ones included, because their text is
- * already loaded; filtering never reads a file itself.
- */
 function filterGroups(
   groups: readonly CitedByGroup[],
   options: {

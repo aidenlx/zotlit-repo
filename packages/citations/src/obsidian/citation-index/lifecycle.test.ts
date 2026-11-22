@@ -281,7 +281,6 @@ it.effect(
       release();
       await waiting;
       await scan;
-      // A later whenIndexed finds the index stopped and settles at once.
       expect(h.index.bridge.runSync(h.index.whenIndexed)).toBeUndefined();
       await expect(
         h.index.bridge.runPromise(h.index.getDocumentCitationSet(h.draft)),
@@ -400,7 +399,6 @@ it.effect(
         ),
       );
       await started.promise;
-      // Unload stops the waiting caller; the reset itself runs on.
       const reset = expect(
         effectBridge(h.runtime).runPromise(
           h.runtime.runSync(CitationIndex).reset,
@@ -410,7 +408,6 @@ it.effect(
       const closing = h.runtime.dispose();
       await stopping.promise;
       clear.resolve();
-      // The original reset can start its backfill while the other finalizer is held.
       await parsed.promise;
       stop.resolve();
       await closing;

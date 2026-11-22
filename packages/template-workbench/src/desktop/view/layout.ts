@@ -1,7 +1,3 @@
-// The dedicated workbench window, as Effects over the Workspace tag: "Open
-// template workbench" and Customize show the editor with both side panels, in
-// a window of its own. A leaf stays outside the tag: its view state is set
-// through the leaf itself.
 import { Deferred, Effect } from "effect";
 import type { Cause } from "effect";
 import type { ViewState, WorkspaceLeaf } from "obsidian";
@@ -18,24 +14,16 @@ import { showPreview } from "#obsidian/workbench-ui/index.tsx";
 
 type ProfileSource = { file: string | null; defaultProfile: boolean };
 
-/** The layout open in progress for each editor, which a second open joins. */
 const editorOpenings = new WeakMap<
   TemplateWorkbenchView,
   Deferred.Deferred<void, Cause.UnknownError>
 >();
 
-/** Sets `leaf`'s view state through the leaf, which the Workspace tag does not wrap. */
 export const setLeafState = (leaf: WorkspaceLeaf, state: ViewState) =>
   Effect.tryPromise(() => leaf.setViewState(state));
 
-/** The size of the window a workbench opens in or moves into. */
 export const WORKBENCH_WINDOW = { width: 1440, height: 900 } as const;
 
-/**
- * The editor of this Profile in a window of its own, which is where a saved
- * dedicated workbench window restores. Restored leaves load first, so a
- * deferred one is read before it is passed over.
- */
 export const findWorkbenchLayout = Effect.fn(
   "TemplateWorkbench.findWorkbenchLayout",
 )(function* (source: ProfileSource, requesting?: TemplateWorkbenchView) {
@@ -66,16 +54,9 @@ export const findWorkbenchLayout = Effect.fn(
   return null;
 });
 
-/**
- * Reveal the Profile's workbench window, or move this editor into one, and
- * show both side panels there. A second open of the same editor joins the one
- * in progress.
- */
 export const openWorkbenchLayout = (
   editor: TemplateWorkbenchView,
 ): Effect.Effect<void, Cause.UnknownError, Workspace> =>
-  // The entry and its release are set up before an interrupt can land, so an
-  // open interrupted as it starts still frees the editor for the next open.
   Effect.uninterruptibleMask((restore) => {
     const pending = editorOpenings.get(editor);
     if (pending) return restore(Deferred.await(pending));
@@ -131,7 +112,6 @@ const arrangeWorkbench = Effect.fn("TemplateWorkbench.arrangeWorkbench")(
   },
 );
 
-/** Show the Preview of `editor`, reveal its leaf and give it the focus. */
 const showWorkbench = Effect.fn("TemplateWorkbench.showWorkbench")(function* (
   editor: TemplateWorkbenchView,
 ) {

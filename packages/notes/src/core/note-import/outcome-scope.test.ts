@@ -1,6 +1,5 @@
 import type { ImporterFakes } from "#__fixtures__/note-import/importer.ts";
 // @vitest-environment happy-dom
-// One initiating import batch reusing one retention, through the real writer.
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import {
@@ -50,7 +49,6 @@ import { noteImporterOver } from "#__fixtures__/note-import/importer.ts";
 import { profileReader } from "#__fixtures__/profile/reader.ts";
 import { defaults } from "#__fixtures__/settings.ts";
 
-/** One paragraph naming the Shared Annotation both Child Notes quote. */
 const paragraph = `<p><img data-attachment-key="SNAP2345" data-annotation="${encodeURIComponent(
   JSON.stringify({
     attachmentURI: "http://zotero.org/users/local/LOCAL/items/RGRPDF24",
@@ -164,7 +162,6 @@ async function setupFixture(
       language: "liquid",
     }),
   );
-  /** Every scope the import writer handed to its excerpt preparation. */
   const scopes: (ExcerptOutcomeScope | undefined)[] = [];
   const fakes: ImporterFakes = {
     vault: host.app.vault,
@@ -227,7 +224,6 @@ async function setupFixture(
     scopes,
     reports,
     entries,
-    /** The imported-note files the run created, keyed by their note key. */
     notes: () =>
       host.vault
         .getMarkdownFiles()
@@ -239,7 +235,6 @@ async function setupFixture(
   };
 }
 
-/** {@link setupFixture} for the case's Scope, with the real importer over its fakes. */
 const fixture = Effect.fnUntraced(function* (
   options: Parameters<typeof setupFixture>[0] = {},
 ) {
@@ -275,8 +270,6 @@ it.effect(
       );
       yield* f.importNote("NTES2345", outcomes);
       yield* f.importNote("NTES3456", outcomes);
-      // Both notes quote the same Annotation, so the batch renders it once and the
-      // second note reaches the bytes the first one produced.
       expect(f.render).toHaveBeenCalledTimes(1);
       expect(f.entries.size).toBe(0);
       const [asset] = yield* Effect.promise(() => f.imageNames());
@@ -294,7 +287,6 @@ it.effect(
           readFile(join(f.vaultRoot, "Images", asset!)),
         ),
       ).toEqual(bluePng);
-      // The template still runs once per note, and each note accounts its own use.
       expect(f.renderAnnotation).toHaveBeenCalledTimes(2);
       expect(f.reports.map((report) => report.at(-1))).toEqual([
         { zotero: 0, unchecked: 1, unavailable: 0 },
@@ -318,7 +310,6 @@ it.effect("reuses the bytes a store whose write failed never kept", () =>
     yield* f.importNote("NTES2345", outcomes);
     yield* f.importNote("NTES3456", outcomes);
     expect(f.notes()).toHaveLength(2);
-    // The store kept nothing, and the batch still rendered the excerpt once.
     expect(f.entries.size).toBe(0);
     expect(f.render).toHaveBeenCalledTimes(1);
     expect(yield* Effect.promise(() => f.imageNames())).toHaveLength(1);
@@ -333,7 +324,6 @@ it.effect(
       yield* Effect.all([f.importNote("NTES2345"), f.importNote("NTES3456")], {
         concurrency: "unbounded",
       });
-      // Separate imports are separate batches: each resolves its own excerpt.
       expect(f.render).toHaveBeenCalledTimes(2);
       expect(f.scopes).toHaveLength(2);
       expect(f.scopes[0]).not.toBe(f.scopes[1]);

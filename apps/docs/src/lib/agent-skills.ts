@@ -1,11 +1,3 @@
-// The ZotLit Agent Skill archives and their discovery index, built from the
-// checked-out repository.
-//
-// Node-only: `vite build` writes these into the client output, so the asset
-// layer answers `/.well-known/agent-skills/…` without a Worker invocation. The
-// index and the archives render from the same bytes in the same pass, so a
-// published digest always matches the archive it names.
-
 import { zipSync } from "fflate";
 import { frontmatter } from "fumadocs-core/content/md/frontmatter";
 import { execFileSync } from "node:child_process";
@@ -29,19 +21,13 @@ const SKILL_NAMES = [
 ] as const;
 type AgentSkillName = (typeof SKILL_NAMES)[number];
 
-/** The URL prefix every agent-skills asset answers under. */
 const AGENT_SKILLS_ROUTE = "/.well-known/agent-skills";
 
-/** The SKILL.md frontmatter fields the discovery index publishes. */
 const skillMetadata = v.object({
   name: v.string(),
   description: v.string(),
 });
 
-/**
- * A fixed archive timestamp in epoch milliseconds (2000-01-01T00:00:00Z), so
- * the archive bytes carry no build clock.
- */
 const ARCHIVE_MTIME = 946_684_800_000;
 
 interface AgentSkillFiles {
@@ -49,7 +35,6 @@ interface AgentSkillFiles {
   openAiMetadata: Uint8Array;
 }
 
-/** The commit this build publishes, which every archive URL is pinned to. */
 function resolvePinnedCommitSha(workspaceRoot: string): string {
   if (process.env.GITHUB_SHA) return process.env.GITHUB_SHA;
 
@@ -80,11 +65,6 @@ function archiveUrl(name: AgentSkillName, commitSha: string): string {
   return `${AGENT_SKILLS_ROUTE}/${name}/${commitSha}/archive.zip`;
 }
 
-/**
- * The discovery index and the skill archives, keyed by the URL each answers at.
- * @param packageRoot the app's own root, which `vite.config.ts` owns.
- * @see https://schemas.agentskills.io/discovery/0.2.0/schema.json
- */
 export async function agentSkillAssets(
   packageRoot: string,
   docsLine: DocsLine,

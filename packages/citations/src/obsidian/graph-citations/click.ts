@@ -1,5 +1,3 @@
-// The node-click wrap: a Cited Work Node runs the Citekey Navigation open action; every other node stays native.
-
 import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
 import { Effect } from "effect";
 import { around } from "monkey-around";
@@ -14,17 +12,10 @@ import {
 import type { GraphLeafMembers } from "./install.ts";
 
 export interface NodeClickDeps {
-  /** The citekey a Cited Work Node id stands for, from the last render; `undefined` for any other node. */
   citekeyOf: (id: string) => string | undefined;
-  /** The Citekey Navigation open action. */
   open: (citekey: string, pane: NavigationPane) => void;
 }
 
-/**
- * The native click opens the node id as a link text, which creates an empty
- * note for an id no file answers to — so a Cited Work Node never reaches it.
- * The pane follows the same modifier rule the native click uses.
- */
 export function wrapNodeClick(
   renderer: GraphLeafMembers["renderer"],
   deps: NodeClickDeps,

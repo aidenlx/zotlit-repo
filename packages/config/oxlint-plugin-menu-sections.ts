@@ -1,16 +1,7 @@
-// zotlit-menu: menu entries land in a registered section (the obsidian-actions
-// skill). no-literal-section reads section names from the menu's own list.
-// Rule tests: apps/obsidian/src/lint/menu-sections.test.ts.
 import type { RuleTester } from "oxlint/plugins-dev";
 
 type Rule = Parameters<RuleTester["run"]>[1];
 
-/**
- * A menu shows a section it never registered after every registered one —
- * below "Delete" — so a section name is read from the list its menu
- * registered: `MENU_SECTION` for Obsidian's menus, `menuSections(…)` for a
- * menu ZotLit raises.
- */
 export const noLiteralMenuSection: Rule = {
   meta: {
     type: "problem",

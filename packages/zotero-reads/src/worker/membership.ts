@@ -1,16 +1,10 @@
-// The Collection paths the Match editor offers.
 import { getCollectionNodesByLibrary } from "@zotlit/db";
 import type { CollectionNode, ZoteroDatabase } from "@zotlit/db";
 
-/** One Collection the editor offers, with the words it is shown by. */
 export interface CollectionChoice {
-  /** Root-to-leaf Collection names, this Collection last. */
   path: readonly string[];
 }
 
-/**
- * Every distinct live Collection path across the given Libraries, sorted.
- */
 export function listCollectionChoices(
   client: ZoteroDatabase,
   libraries: readonly { readonly libraryID: number }[],
@@ -42,10 +36,6 @@ function nodeMap(
   return new Map(rows.map((row) => [row.collectionID, row]));
 }
 
-/**
- * The live ancestors of a node, nearest first. A parent absent from `nodes`
- * (trashed) ends the chain, as Zotero's Collection tree hides it.
- */
 function ancestorsOf(
   node: CollectionNode,
   nodes: ReadonlyMap<number, CollectionNode>,

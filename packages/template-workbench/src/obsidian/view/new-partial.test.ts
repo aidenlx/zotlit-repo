@@ -28,7 +28,6 @@ vi.mock("#desktop/view/open.ts", () => ({
   openTemplateWorkbench: vi.fn(() => Effect.void),
 }));
 
-/** The Workbench leaf a create starts from. */
 const origin = stubService<WorkspaceLeaf>("WorkspaceLeaf", {
   updateHeader: vi.fn(),
 });
@@ -76,7 +75,6 @@ const createSharedPartial = (
   options: CreateSharedPartialOptions = {},
 ) => partialFlow(app, template, options).result;
 
-/** The prompt the flow opened, with its body built. */
 async function prompt(): Promise<Modal> {
   await vi.waitFor(() => expect(Modal.instances).toHaveLength(1));
   const modal = Modal.instances[0]!;
@@ -111,7 +109,6 @@ it("folds the typed name, names the file, and opens the partial in a split", asy
   });
   const modal = await prompt();
 
-  // The completion's query arrives folded, and the row names the file it makes.
   expect(nameField(modal).getValue()).toBe("Venue line");
   expect(modal.contentEl.textContent).toContain(
     m.partial_new_file({ file: "zotlit-partial.venue-line.md" }),
@@ -141,7 +138,6 @@ it.each([
   nameField(modal).type(typed);
   expect(modal.contentEl.textContent).toContain(message(typed));
 
-  // Create is refused, so the prompt stays up for a correction.
   button(modal, m.partial_new_action()).click();
   expect(template.createPartial).not.toHaveBeenCalled();
   expect(modal.isOpen).toBe(true);

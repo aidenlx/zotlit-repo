@@ -1,8 +1,3 @@
-// A recording in a Video.js player: play, seek, time and fullscreen, and no volume control because the clips are silent.
-// It plays in the middle of the viewport one at a time, in a loop or once, obeys the reader once they play or pause, and rests under reduced motion.
-// A clip that plays once ends on its last frame, dimmed, under a replay button and any actions its page adds.
-// @see apps/docs/DESIGN.md → Illustration (The recording player)
-
 import {
   bufferFeature,
   Container,
@@ -51,34 +46,21 @@ const { Player } = createPlayer({
 });
 
 export interface RecordingPlayerProps {
-  /** The path of the clip's MP4 without its extension. */
   base: string;
   poster: string;
-  /** What the recording shows, which names the player. */
   alt: string;
-  /** How the clip fills its frame. */
   fit: "contain" | "cover";
-  /** How much of the clip loads before it plays, with motion on. */
   preload: "auto" | "metadata";
-  /**
-   * Plays the clip in a loop; false plays it once, then rests it on its last
-   * frame, dimmed, under a replay button, until the reader plays it again.
-   * @default true
-   */
   loop?: boolean;
-  /** Controls the dimmed last frame shows before the replay button, for a clip that plays once. */
   endActions?: ReactNode;
-  /** The reader asked for this clip with a press elsewhere, so it plays at once, as if they had pressed play (not under reduced motion). */
   playNow?: boolean;
 }
 
-/** The URL a clip plays from: the media store's in a deployed build, the site path otherwise. @see src/lib/media-store.ts */
 const videoSrc = (path: string) => __MEDIA_URLS__[path] ?? path;
 
 const buttonClass =
   "group/button grid size-9 shrink-0 cursor-pointer place-items-center rounded-full text-fd-foreground transition-[background-color,scale] duration-150 ease-out hover:bg-fd-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fd-ring motion-safe:active:scale-[0.96]";
 
-/** One icon of a pair that share a place and swap on a state attribute. */
 const iconClass =
   "col-start-1 row-start-1 size-4 motion-safe:transition-opacity motion-safe:duration-150";
 
@@ -94,25 +76,17 @@ export default function RecordingPlayer({
 }: RecordingPlayerProps) {
   const video = useRef<HTMLVideoElement>(null);
   const frame = useRef<HTMLDivElement>(null);
-  // This mounts after hydration only, so the preference is safe to read here.
   const [reduced] = useState(
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
-  // The reader's choice for this clip, a play or pause here or a press elsewhere (`playNow`).
   const [chosen, setChosen] = useState<"manual" | "paused" | null>(() =>
     playNow && !reduced ? "manual" : null,
   );
-  // A clip that plays once has reached its end, and rests there until the reader plays it again.
   const [ended, setEnded] = useState(false);
-  // "auto" plays mid-viewport, "manual" plays from the reader's press until it leaves view, "paused" stays still.
   const mode = ended ? "paused" : (chosen ?? (reduced ? "paused" : "auto"));
-  // The reader has played or paused the clip, so its changes are announced.
   const [touched, setTouched] = useState(false);
-  // The plays and pauses this player asked for itself, which the reader did not, whose events have not arrived yet.
-  // The browser fires each event in a later task, so two requests can come before the first event.
   const askedPlay = useRef(0);
   const askedPause = useRef(0);
-  // A clip asked for by a press elsewhere (`playNow`) that has not yet been in view: it plays once it comes into view.
   const owedView = useRef(playNow && !reduced);
   const [me] = useState(() => Symbol(base));
 
@@ -128,16 +102,13 @@ export default function RecordingPlayer({
     if (!v) return;
     askedPlay.current += 1;
     void v.play().catch((error: unknown) => {
-      // A pause that cuts the play short rejects it after its `play` event; any other refusal fires no event.
       if (!(error instanceof DOMException && error.name === "AbortError")) {
         askedPlay.current -= 1;
       }
     });
   }, []);
 
-  // How the clip plays again once a loop that rested it in view rests, while its mode lets it play.
   const resume = useRef<(() => void) | null>(null);
-  // Rests the clip for a loop that takes the turn, and queues it to play again when that loop rests.
   const yieldTurn = useCallback(() => {
     rest();
     if (resume.current) awaitTurn(me, resume.current);
@@ -147,8 +118,6 @@ export default function RecordingPlayer({
     const v = video.current;
     if (!v) return;
     if (mode === "paused") {
-      // A clip at rest (paused by the reader, ended, or under reduced motion) ends its turn when it leaves view;
-      // one the reader paused holds the turn until then (`holdTurn`), so no waiting loop starts behind the pause.
       const held = new IntersectionObserver(([entry]) => {
         if (!entry?.isIntersecting) endTurn(me);
       });
@@ -158,9 +127,7 @@ export default function RecordingPlayer({
     function play() {
       if (!v) return;
       stopWaiting(me);
-      // A loop that takes the turn while this clip is in view leaves it waiting to play again.
       const started = askTurn(me, yieldTurn);
-      // A clip the reader paused in view holds the turn, so this one waits for it to leave.
       if (!started) {
         awaitTurn(me, play);
         return;
@@ -197,7 +164,6 @@ export default function RecordingPlayer({
     [me, rest],
   );
 
-  // A clip asked for by a press plays once it mounts, and takes the turn; a loop that rests it in view hands it back.
   useEffect(() => {
     if (!playNow || reduced) return;
     takeTurn(me, yieldTurn);
@@ -220,16 +186,13 @@ export default function RecordingPlayer({
       askedPause.current -= 1;
       return;
     }
-    // The browser pauses a clip that reaches its end; `onEnded` follows.
     if (video.current?.ended) return;
     holdTurn(me);
     setTouched(true);
     setChosen("paused");
   }
 
-  // A clip that plays once gives its turn back at its end, so a waiting loop can start.
   function onEnded() {
-    // The control bar leaves with the end, so focus on one of its buttons moves to the player.
     const f = frame.current;
     if (
       f &&
@@ -279,11 +242,9 @@ export default function RecordingPlayer({
               <button
                 type="button"
                 onClick={() => {
-                  // The button leaves with the end, so focus stays on the player, where Space pauses.
                   frame.current?.focus({ preventScroll: true });
                   void video.current?.play().catch(() => {});
                 }}
-                // Under 20rem the page's action and Replay share one row, so Replay keeps its icon and a 44px square.
                 className={cn(
                   secondaryButtonClass,
                   "@max-[20rem]:size-11 @max-[20rem]:justify-center @max-[20rem]:px-0",
@@ -296,7 +257,6 @@ export default function RecordingPlayer({
               </button>
             </div>
           )}
-          {/* The bar's play button reads "Replay" at the end too; the centred Replay stands alone there. */}
           {!ended && (
             <Controls.Root>
               <Controls.Content className="pointer-events-none absolute inset-x-2.5 bottom-2.5 transition-opacity duration-150 ease-out not-data-visible:not-has-focus-visible:opacity-0">

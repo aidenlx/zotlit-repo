@@ -1,8 +1,3 @@
-// A second host for the shell: the platform and the annotations only, as a
-// PDF reader app would compose them, with a stub for each port the
-// annotations read and no other feature fills. The host type-checks only
-// while that stub list is complete, so a new port the annotations start to
-// read shows here first.
 import { Effect, FileSystem, Layer, Stream } from "effect";
 import type { Context } from "effect";
 
@@ -29,7 +24,6 @@ import { PdfTargetReader } from "#desktop/attachment-open/open-target.ts";
 import { AnnotationNoteActions } from "#obsidian/annot-view/note-actions.ts";
 import { AnnotationViewReveal } from "#obsidian/annot-view/view-reveal.ts";
 
-/** A Zotero data directory that is still loading. */
 const LOADING: ZoteroPrefSnapshot = {
   state: "loading",
   prefs: new Map(),
@@ -43,7 +37,6 @@ const LOADING: ZoteroPrefSnapshot = {
   httpPort: null,
 };
 
-/** A group that fills `tag` with a stub holding only `members`. */
 const stub = <I, S extends object>(
   tag: Context.Key<I, S>,
   members: Partial<S> = {},
@@ -54,12 +47,6 @@ const stub = <I, S extends object>(
     Layer.succeed(tag, stubService<S>(tag.key, members)),
   );
 
-/**
- * What a reader host supplies itself. The Zotero reads stand for the
- * ZoteroReads client contract; the desktop platform's Zotero and file
- * capabilities and the ports of the notes, the query views and the Library
- * View stand for what such a host would build in their place.
- */
 export const readerCapabilities = defineFeature({
   name: "reader capabilities",
   services: [
@@ -74,7 +61,6 @@ export const readerCapabilities = defineFeature({
       changes: Stream.never,
     }),
     stub(ZoteroHttp),
-    // A port that is never open: no reader, no Zotero pushes.
     stub(LocalServer, {
       available: Effect.succeed(false),
       availableChanges: Stream.never,
@@ -89,7 +75,6 @@ export const readerCapabilities = defineFeature({
       importNotesRequests: Stream.never,
     }),
     stub(AnnotationNoteActions),
-    // No Annotation View: a card is never shown, and a reveal does nothing.
     stub(AnnotationViewReveal, {
       cardShown: () => false,
       revealAnnotation: () => {},

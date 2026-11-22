@@ -74,11 +74,6 @@ const READS: ZoteroReadsState = {
   activeReadMode: "copy",
 };
 
-/**
- * The Zotero location rows over a preference store and reads the test drives.
- * A folder write moves the override and keeps the preferences until they are
- * read again, as the real service does.
- */
 const setup = Effect.fn("setup")(function* (
   refresh: ZoteroReads["Service"]["refresh"] = Effect.void,
   update: PluginSettings["Service"]["update"] = () =>
@@ -129,10 +124,6 @@ const setup = Effect.fn("setup")(function* (
   return { ctx, pref, reads, events, writes, runs };
 });
 
-/**
- * The rendered row with the given id, so a test reads what the user gets. The
- * row's cleanup runs when the case ends.
- */
 const render = Effect.fnUntraced(function* (
   ctx: SettingTabContext,
   id: string,
@@ -156,7 +147,6 @@ const render = Effect.fnUntraced(function* (
   };
 });
 
-/** Let the row fibers take what is queued for them; no time passes. */
 const settle = TestClock.adjust("0 millis");
 
 it.effect(
@@ -192,8 +182,6 @@ it.effect(
   "keeps the profile the user chose over a snapshot queued before the choice",
   () =>
     Effect.gen(function* () {
-      // Snapshots wait in a queue until the row's fiber takes them, as they do
-      // while the renderer is busy.
       let current = SNAPSHOT;
       const changes = yield* Queue.unbounded<ZoteroPrefSnapshot>();
       const publish = (next: ZoteroPrefSnapshot) => {
@@ -215,8 +203,6 @@ it.effect(
       });
       const row = yield* render(ctx, "settings_db_profile_dir");
 
-      // Profile A's preferences finish reading, then the user picks B before
-      // the row paints A. B moves the override and keeps A's preferences.
       publish({
         ...current,
         prefs: new Map(),
@@ -238,7 +224,6 @@ it.effect(
       yield* settle;
       expect(row.text()).toContain("/home/ada/Zotero");
 
-      // A folder chosen elsewhere joins the dropdown as the selected entry.
       yield* SubscriptionRef.update(pref, (current) => ({
         ...current,
         dataDirOverride: "/mnt/library",
@@ -290,7 +275,6 @@ it.effect("names the read mode again after the reads change", () =>
   }),
 );
 
-/** A refresh that counts its runs and ends with `outcome`. */
 const countedRefresh = (outcome: ZoteroReads["Service"]["refresh"]) => {
   let runs = 0;
   return {
@@ -307,7 +291,6 @@ it.effect("refreshes the reads from the database row", () =>
     const refresh = countedRefresh(Effect.void);
     const { ctx } = yield* setup(refresh.refresh);
     const row = yield* render(ctx, "settings_db_file");
-    // The path paints once the row's fiber has wired the button.
     yield* settle;
     expect(row.text()).toContain("/home/ada/Zotero/zotero.sqlite");
 
@@ -357,7 +340,6 @@ it.effect("runs one refresh when the refresh fails", () =>
   }),
 );
 
-/** How `refreshReads` ends over `refresh`, with a recording Notifier. */
 const refreshExit = <E>(refresh: Effect.Effect<void, E>) =>
   refreshReads(refresh).pipe(Effect.provide(testNotifier().layer), Effect.exit);
 

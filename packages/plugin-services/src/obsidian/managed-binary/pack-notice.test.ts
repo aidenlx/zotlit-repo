@@ -23,7 +23,6 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-/** One session of a vault: the notices it shows for each status a feature met. */
 const session = Effect.fnUntraced(function* (
   storage: MemoryDeviceStorage,
   statuses: readonly (PackBinaryStatus | null)[],

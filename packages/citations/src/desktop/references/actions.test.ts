@@ -24,7 +24,6 @@ import type {
 
 import { ambiguousCandidates } from "#__fixtures__/citation-index/ambiguous-candidates.ts";
 
-/** What the toolbar offered when the copy action was clicked. */
 const offered: ReferencesCopyTarget = {
   path: "notes/tidal.md",
   generation: 7,
@@ -71,7 +70,6 @@ beforeEach(() => {
 });
 
 describe("onOpenNote", () => {
-  /** One occurrence of the citekey, which is what a row would open by. */
   const occurrence: CitationOccurrence = {
     kind: "citekey",
     raw: "doe2024",
@@ -108,8 +106,6 @@ describe("onOpenNote", () => {
     return { openIndexedKey, openLinkText };
   }
 
-  // The key names several Items, so no one note is this row's to open — and
-  // creating one would put the wrong Item's note in the vault.
   it("reaches no note for an Ambiguous Citation Key", () => {
     const { openIndexedKey, openLinkText } = openNote({
       id: "@doe2024",

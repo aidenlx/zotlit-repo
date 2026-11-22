@@ -1,4 +1,3 @@
-// Best-effort key-value parse of Zotero's free-text Extra field.
 import { regex } from "arkregex";
 
 import { defineToString } from "./to-string.ts";
@@ -31,7 +30,6 @@ export type ExtraLine = (
       readonly key: null;
     }
 ) & {
-  /** The line's `raw` text verbatim. */
   toString(): string;
 };
 
@@ -58,11 +56,6 @@ export interface ItemExtra {
    * derives from. Scan it to recover every value of a repeated key.
    */
   readonly lines: readonly ExtraLine[];
-  /**
-   * The stored {@link ItemExtra.raw} text — never a reconstruction from pairs
-   * — so bare interpolation (`{{ zt.extra }}`) prints the field as the user
-   * typed it and the Template Data Explorer shows a raw preview.
-   */
   toString(): string;
 }
 
@@ -72,17 +65,8 @@ function toRaw(this: { raw: string }): string {
 
 const LINE_RE = /\r?\n/;
 
-/**
- * A line is a pair when it matches, on the first `:` or `=`, a key that starts
- * with a letter and otherwise contains only letters, digits, spaces, dots,
- * hyphens, or underscores. The value keeps any later `:` / `=`.
- */
 const PAIR_RE = regex("^(?<key>[A-Za-z][\\w .-]*?)\\s*[:=]\\s*(?<value>.+)$");
 
-/**
- * @returns `null` for nullish / empty / whitespace-only input, matching
- * `parseItemDate` / `parseItemLanguage`.
- */
 export function parseItemExtra(
   raw: string | null | undefined,
 ): ItemExtra | null {

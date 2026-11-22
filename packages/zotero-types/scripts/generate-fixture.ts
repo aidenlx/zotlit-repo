@@ -1,4 +1,3 @@
-// Merges Zotero's pinned native-item and CSL-JSON corpora into one fixture.
 import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
@@ -6,22 +5,16 @@ import { join, resolve } from "node:path";
 // oxlint-disable-next-line no-restricted-imports
 import schema from "../zotero-schema/schema.json" with { type: "json" };
 
-/** Zotero release the native items and the expected CSL-JSON come from. */
 const ZOTERO_VERSION = "9.0.3";
 
-/** Zotero application commit that owns the native `allTypesAndFields` corpus. */
 const APPLICATION_COMMIT = "451d96a8240bbb607a220f949673d6bc704bb58d";
 
-/** Zotero utilities commit that owns `itemToCSLJSON()` and its golden output. */
 const UTILITIES_COMMIT = "1dd38e27edf81e9d9c4161c957b7efb7f5681ac3";
 
-/** Schema version the pinned corpus and `zotero-schema/` must agree on. */
 const SCHEMA_VERSION = 42;
 
-/** Calendar day of the last reviewed fixture upgrade. */
 const MODIFIED = "2026-08-04";
 
-/** Zotero child item types, which carry no reference metadata of their own. */
 const CHILD_ITEM_TYPES: ReadonlySet<string> = new Set([
   "note",
   "attachment",
@@ -29,11 +22,8 @@ const CHILD_ITEM_TYPES: ReadonlySet<string> = new Set([
 ]);
 
 interface PinnedSource {
-  /** Immutable commit URL, so a re-run reads the same bytes. */
   readonly url: string;
-  /** SHA-256 of the downloaded bytes, verified before parsing. */
   readonly sha256: string;
-  /** Upstream commit the URL pins. */
   readonly commit: string;
 }
 
@@ -88,7 +78,6 @@ await writeFile(
   )}\n`,
 );
 
-/** Download one pinned source and parse it once its digest matches. */
 async function fetchPinned(source: PinnedSource): Promise<UpstreamCorpus> {
   const response = await fetch(source.url);
   if (!response.ok) {
@@ -106,10 +95,6 @@ async function fetchPinned(source: PinnedSource): Promise<UpstreamCorpus> {
   return JSON.parse(body.toString("utf8")) as UpstreamCorpus;
 }
 
-/**
- * Pair each native item with its Zotero CSL-JSON counterpart, both kept in
- * their upstream shape. Every case key is one Zotero item type.
- */
 function mergeCases(
   items: UpstreamCorpus,
   csl: UpstreamCorpus,

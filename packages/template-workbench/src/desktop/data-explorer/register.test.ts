@@ -17,7 +17,6 @@ vi.mock("./view.tsx", () => ({
   TemplateDataExplorerView: class {},
 }));
 
-/** The Workspace tag over `members`, each one a plain Obsidian call. */
 function workspace(members: {
   leaves?: (type: string) => WorkspaceLeaf[];
   getLeaf?: (pane: unknown) => WorkspaceLeaf;
@@ -47,7 +46,6 @@ describe("Explorer entry point", () => {
     "opens the standalone Explorer in the sidebar, never an editor's panel",
     () =>
       Effect.gen(function* () {
-        // An editor is open and active, linked with a tab group.
         const editorSetViewState = vi.fn();
         const editor = stubService<WorkspaceLeaf>("WorkspaceLeaf", {
           group: "native-group",
@@ -159,7 +157,6 @@ it.effect(
 it.effect("opens one Explorer when two opens run at once", () =>
   Effect.gen(function* () {
     const leaves: WorkspaceLeaf[] = [];
-    // The new pane takes its view only once Obsidian has loaded it.
     const loaded = Promise.withResolvers<void>();
     const getRightLeaf = vi.fn(() => {
       const leaf = stubService<WorkspaceLeaf>("WorkspaceLeaf", {

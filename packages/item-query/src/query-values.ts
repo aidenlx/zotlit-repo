@@ -25,7 +25,6 @@ export interface QueryValues {
   readonly truncated: boolean;
 }
 
-/** Sorted Collection paths or Tag names and types of one Target Library. */
 export const listQueryValues = Effect.fnUntraced(function* (
   library: { libraryID: number },
   request: QueryValuesRequest,

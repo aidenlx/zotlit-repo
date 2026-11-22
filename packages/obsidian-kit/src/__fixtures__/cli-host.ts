@@ -1,5 +1,3 @@
-// A CliHost for tests: it keeps each command a namespace registers, so a
-// case reads its help and runs its handler as an Effect.
 import type { CliCommand, CliHost } from "#cli-command.ts";
 
 export function fakeCliHost() {
@@ -9,7 +7,6 @@ export function fakeCliHost() {
       commands.set(name, command);
     },
   };
-  /** The command registered as `name`; throws when none is. */
   const command = (name: string): CliCommand => {
     const registered = commands.get(name);
     if (!registered) throw new Error(`${name} is not registered`);

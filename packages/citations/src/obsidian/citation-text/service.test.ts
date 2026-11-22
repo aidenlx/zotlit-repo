@@ -84,36 +84,21 @@ import { readReferenceSources } from "#obsidian/citation-index/sources.ts";
 
 const NOTE = Object.assign(new TFile(), { path: "note.md" });
 
-/**
- * The Indexed Key a Literature Note stand-in carries. It names an Item of its
- * own, so a wikilink and a literal citekey are told apart by what they reach.
- */
 const LIT_KEY = "BETA5678";
 
 interface Harness {
   service: CitationText;
   citationRequests: { citations: readonly string[] }[];
-  /** The CSL ids of every bibliography render the read asked for, in order. */
   bibliographyRequests: string[][];
-  /** Fires the Citation Index's own event for one document. */
   indexChanged: (path: string) => void;
-  /** Fires the render cache's wholesale drop. */
   rendersInvalidated: () => void;
-  /** Fires the Note Index's report that a Literature Note moved. */
   resolutionChanged: () => void;
-  /** Fires the Citation Index's report that the resolution snapshot rebuilt. */
   citekeyResolutionChanged: () => void;
-  /** Fires Obsidian's own metadata event for one file. */
   metadataChanged: (path: string) => void;
-  /** Deletes the document, as Obsidian reports a file the vault no longer has. */
   deleteNote: () => void;
-  /** The client the text is held on, for reading what one path holds. */
   queryClient: QueryClients["Service"] & AsyncDisposable;
-  /** How many cited-item reads the database answered or failed. */
   readonly itemReads: number;
-  /** Fails the next cited-item read, as a locked database would. */
   failNextItemRead: () => void;
-  /** The vault the document lives in, for a case that moves it. */
   vault: MemoryVault;
   dispose: () => Promise<void>;
 }
@@ -137,24 +122,14 @@ async function makeHarness({
 }: {
   body: string;
   cited?: Citation[];
-  /** Whether an engine is installed, which is what the cache answers for. */
   formats?: boolean;
-  /** A render-cache answer used when a test needs generation control. */
   formatCitations?: (
     citations: readonly string[],
     signal?: AbortSignal,
   ) => Promise<readonly RenderedCitation[] | null>;
-  /**
-   * The works the bibliography renders an entry for, in bibliography order,
-   * out of the works it was asked for. Defaults to all of them in that same
-   * order; `null` for a render that cannot answer at all.
-   */
   bibliography?: (ids: readonly string[]) => readonly string[] | null;
-  /** The wikilinks Obsidian's metadata cache reports for the document. */
   links?: LinkCache[];
-  /** The Literature Note each linkpath names, by linkpath. */
   notes?: Record<string, { citekey: string | undefined }>;
-  /** The document properties read by its Citation Presentation. */
   frontmatter?: Record<string, unknown>;
   settings?: Partial<Settings>;
   documentCitationSet?: Pick<
@@ -163,7 +138,6 @@ async function makeHarness({
   >;
   bibliographyRender?: CitationTextDeps["bibliographyRender"];
   queryClient?: QueryClients["Service"] & AsyncDisposable;
-  /** The workspace whose Markdown leaves are the open documents, in place of `openDocuments`. */
   workspace?: MemoryWorkspace;
   openDocuments?: OpenDocumentsStub;
   context?: Context.Context<never>;
@@ -236,7 +210,6 @@ async function makeHarness({
   let present = true;
   let itemReads = 0;
   let failNextItemRead = false;
-  // The cited work and the Literature Note stand-in are two copies of one work.
   const reads = inProcessReadsService(
     memoryOpener(() => citedWorkSeed([ALPHA_KEY, LIT_KEY])).open,
     {
@@ -565,7 +538,6 @@ describe("CitationText", () => {
         expect(service.bridge.runSync(service.peek(h.draft.path))?.status).toBe(
           "fresh",
         );
-        // The retry reads each Library in the scope once.
         expect(h.citekeys.calls.slice(reads)).toEqual([
           MY_LIBRARY_ID,
           GROUP_LIBRARY_ID,
@@ -816,8 +788,6 @@ describe("CitationText", () => {
         const body = "First [@alpha]. Then [@alpha].";
         const { service, dispose } = await makeHarness({
           body,
-          // Stands in for a position-dependent style, which renders the second
-          // occurrence of a source as the subsequent form.
           formatCitations: (sources) =>
             Promise.resolve(
               sources.map((source, index) =>
@@ -856,15 +826,12 @@ describe("CitationText", () => {
 });
 
 describe("CitationText over wikilink Citations", () => {
-  /** The Literature Note the wikilink suites cite, and its citekey. */
   const LIT = "literatures/alpha";
   const notes: Record<string, { citekey: string | undefined }> = {
     [LIT]: { citekey: "alpha" },
   };
-  /** Wikilink Citations, which a fragment-less link needs to be a Citation. */
   const WIKILINK_CITATIONS = { "citation.wikilink-citations": true } as const;
 
-  /** One `[[…]]` of the document, as Obsidian's metadata cache reports it. */
   function link(target: string, start: number, original?: string): LinkCache {
     const raw = original ?? `[[${target}]]`;
     return {
@@ -982,8 +949,6 @@ describe("CitationText over wikilink Citations", () => {
     }),
   );
 
-  // An Item with no native citation key falls back to its note's filename,
-  // and no Pandoc key carries the space in one.
   it.effect(
     "keeps a Citation no Pandoc source can name out of the render",
     () =>
@@ -1024,8 +989,6 @@ describe("CitationText over wikilink Citations", () => {
     }),
   );
 
-  // A wikilink names its own works, so its citekey must not answer for a
-  // literal key of the same spelling that reaches no Item at all.
   it.effect("keeps a derived citekey out of the literal join", () =>
     Effect.promise(async () => {
       const body = `Claim [[${LIT}]], and @alpha reaches nothing.`;
@@ -1129,7 +1092,6 @@ describe("CitationText staleness", () => {
         indexChanged(NOTE.path);
 
         expect(changed).toEqual([NOTE.path]);
-        // The peek that serves the stale text is also what starts the fresh read.
         expect(
           service.bridge
             .runSync(service.peek(NOTE.path))
@@ -1199,7 +1161,6 @@ describe("CitationText staleness", () => {
       );
 
       rendersInvalidated();
-      // The peek that serves the stale text is also what starts the fresh read.
       expect(
         firstText(
           service.bridge
@@ -1270,9 +1231,6 @@ describe("CitationText staleness", () => {
       }),
   );
 
-  // The second invalidation cancels the fresh read: what that read would have
-  // committed already predates it, and the stale mark it leaves is what makes
-  // the next peek read once more. The last read is the one that stands.
   it.effect("discards a read a second invalidation landed on", () =>
     Effect.promise(async () => {
       let generation = 0;
@@ -1366,12 +1324,6 @@ describe("CitationText staleness", () => {
     }),
   );
 
-  // A locator or a prefix belongs to the source a render is keyed by, and
-  // editing one moves no citekey occurrence, so the metadata event is what
-  // catches it.
-  // An editor saving the document it shows lands here after every burst of
-  // typing, so the text it holds stays on screen until the fresh read replaces
-  // it; a peek that read nothing would put the raw source back for that long.
   it.effect(
     "keeps the one document whose own file changed until its fresh read lands",
     () =>
@@ -1501,8 +1453,6 @@ describe("CitationText staleness", () => {
     }),
   );
 
-  // Which Literature Note a wikilink resolves to decides what a citekey here
-  // reaches, so a moved mapping makes every document's text stale.
   it.effect(
     "keeps every document's text when a Literature Note moves, and says so",
     () =>
@@ -1529,9 +1479,6 @@ describe("CitationText staleness", () => {
       }),
   );
 
-  // The citekey resolution snapshot decides what a literal `@citekey` reaches
-  // and whether a wikilink's Item carries a native citation key, so a rebuild
-  // makes every document's text stale.
   it.effect("invalidates held text on lookup changes until disposed", () =>
     Effect.promise(async () => {
       await using cleanup = new AsyncDisposableStack();
@@ -1578,7 +1525,6 @@ describe("CitationText staleness", () => {
         gate.resolve([rendered("gone")]);
 
         expect(await reading).toBeNull();
-        // Not even the failed read the deletion left behind stays on the client.
         expect(
           queryClient.client.getQueryState(["citation-text", NOTE.path]),
         ).toBeUndefined();
@@ -1603,16 +1549,11 @@ describe("CitationText staleness", () => {
   );
 
   describe("retention", () => {
-    // Query Core owns these host timers; its retention cases use the live
-    // runtime with a controlled host clock. Held Read cooldowns use TestClock.
     const GC_MS = 5 * 60 * 1000;
     const held = (h: Harness) =>
       h.queryClient.client.getQueryState(["citation-text", NOTE.path]);
 
-    /** A harness whose garbage-collection clock the test advances. */
     async function retained(open: (docs: OpenDocumentsStub) => void) {
-      // The clock is faked before the read, which schedules the collection of
-      // a document nothing pins; it still advances, so the read runs.
       vi.useFakeTimers({
         toFake: ["setTimeout", "clearTimeout"],
         shouldAdvanceTime: true,
@@ -1779,7 +1720,6 @@ describe("CitationText staleness", () => {
           workspace.trigger("layout-change");
           await vi.waitFor(() => expect(observers()).toBe(1));
 
-          // The rename alone tells the layer: Obsidian sends no layout change for it.
           h.vault.rename(view.file!, "renamed.md");
           await vi.waitFor(() => expect(observers()).toBe(0));
         }),
@@ -1787,10 +1727,6 @@ describe("CitationText staleness", () => {
   });
 });
 
-/**
- * The Entry Serial standing for each work of one held Citation's first
- * occurrence.
- */
 function firstSerials(
   held: readonly FormattedOccurrence[] = [],
 ): readonly (number | undefined)[] | undefined {
@@ -1798,7 +1734,6 @@ function firstSerials(
 }
 
 describe("CitationText Entry Serials", () => {
-  /** `Both [@alpha; @beta].` under a style whose citations are footnotes. */
   const CLUSTER = "[@alpha; @beta]";
   const TWO_WORKS = [citation("alpha", ALPHA_KEY), citation("beta", LIT_KEY)];
 
@@ -1816,15 +1751,11 @@ describe("CitationText Entry Serials", () => {
 
         expect(entrySerials).toBe(true);
         expect(firstSerials(formatted.get(CLUSTER))).toEqual([1, 2]);
-        // The bibliography is read for the works the document cites, in the order
-        // the References Sidebar lists them.
         expect(bibliographyRequests).toHaveLength(1);
         await dispose();
       }),
   );
 
-  // Author-in-text and author-suppressed members are the same works in the
-  // same order, so the digits they show are the same digits.
   it.effect("numbers the works of a citation however it names them", () =>
     Effect.promise(async () => {
       const { service, dispose } = await makeHarness({
@@ -1855,8 +1786,6 @@ describe("CitationText Entry Serials", () => {
         body: `Both ${CLUSTER}.`,
         cited: TWO_WORKS,
         formatCitations: (sources) => Promise.resolve(sources.map(noted)),
-        // The render answers with the second work alone, which leaves the first
-        // one no row to point at.
         bibliography: (ids) => ids.slice(1),
       });
 
@@ -1889,8 +1818,6 @@ describe("CitationText Entry Serials", () => {
       }),
   );
 
-  // An in-text style writes no note, so nothing stands in for one and the
-  // document pays for no bibliography of its own.
   it.effect("keeps an in-text style's document off serials", () =>
     Effect.promise(async () => {
       const { service, bibliographyRequests, dispose } = await makeHarness({
@@ -2015,7 +1942,6 @@ it.effect("replays a failed startup and recovers the next host event", () =>
       );
       h.rendersInvalidated();
       expect(invalidations).toBe(1);
-      // A failed host delivery must leave intake attached for the next event.
       documents.open("other.md");
       failed = false;
       documents.open(NOTE.path);

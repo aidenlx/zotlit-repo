@@ -7,7 +7,6 @@ import { it as effectIt } from "@effect/vitest";
 import { Effect } from "effect";
 
 import "#__fixtures__/dom-parser.ts";
-// The Resolved CSL Style as citeproc reads it: what an installed style actually renders.
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
@@ -26,16 +25,11 @@ const WASM_PATH = join(
   "pandoc.wasm",
 );
 
-/** Instantiating the Haskell runtime dominates every timing here. */
 const TIMEOUT = 60_000;
 
 const PARENT = "http://www.zotero.org/styles/journal";
 const DEPENDENT = "http://www.zotero.org/styles/journal-german";
 
-/**
- * Renders a fixed word and the issue month, so one rendered entry says both
- * which style formatted it and which locale it was formatted in.
- */
 const PARENT_STYLE = `<?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0">
   <info>
@@ -54,7 +48,6 @@ const PARENT_STYLE = `<?xml version="1.0" encoding="utf-8"?>
   </bibliography>
 </style>`;
 
-/** A dependent style: an alias for its parent, save for the locale it sets. */
 const DEPENDENT_STYLE = `<?xml version="1.0" encoding="utf-8"?>
 <style xmlns="http://purl.org/net/xbiblio/csl" class="in-text" version="1.0" default-locale="de-DE">
   <info>
@@ -65,7 +58,6 @@ const DEPENDENT_STYLE = `<?xml version="1.0" encoding="utf-8"?>
   </info>
 </style>`;
 
-/** Two authors, so a style that joins them says a word the locale translates. */
 const ITEM: CslItemData = {
   id: "1/ZETA1234",
   type: "article-journal",
@@ -131,8 +123,6 @@ describe("Resolved CSL Style", () => {
           Effect.promise(() => installStyles()),
         );
 
-        // The embedded style carries no CSL of its own, so the locale reaches the
-        // processor beside it: "and" between two authors turns into "und".
         expect(
           yield* library.entryFor({ styleId: null, locale: "de-DE" }),
         ).toContain("und Bob Smith");
@@ -141,9 +131,7 @@ describe("Resolved CSL Style", () => {
   );
 });
 
-/** The Zotero library these renders read their styles from, engine included. */
 interface StyleLibrary extends AsyncDisposable {
-  /** The one bibliography entry `request` renders {@link ITEM} as, as plain text. */
   entryFor(request: CslStyleRequest): Effect.Effect<string>;
 }
 
@@ -180,7 +168,6 @@ async function installStyles(): Promise<StyleLibrary> {
   };
 }
 
-/** What the engine renders one resolved style with, asserting the resolution stood. */
 function requested(style: ResolvedCslStyle): {
   styleXml?: string;
   locale?: string;

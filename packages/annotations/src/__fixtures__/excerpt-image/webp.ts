@@ -1,12 +1,3 @@
-// Real Chromium canvas output for lossless WebP validation. No Node globals: the
-// Electron renderer trial loads this module too.
-
-/**
- * Captured from `canvas.toBlob(callback, "image/webp", 1)` in Electron 43.3.0
- * (Chromium 150.0.7871.212) by `encode.browser-test.ts`: an 8x8 crop whose pixels
- * use the alpha values 0, 17, 128, 200, 254, and 255. The extended header carries
- * the ICC profile Chromium writes next to its lossless payload.
- */
 export const chromiumLosslessWebp = decodeBase64(
   "UklGRroCAABXRUJQVlA4WAoAAAAwAAAABwAABwAASUNDUMgBAAAAAAHIAAAAAAQwAABtbnRyUkdC" +
   "IFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAA" +
@@ -23,15 +14,10 @@ export const chromiumLosslessWebp = decodeBase64(
   "tW7gnXL5wdnF/IGa2fhA1ZP+ghxEAA==",
 );
 
-/** `atob` rather than `Buffer`, so the Electron renderer trial can load this too. */
 function decodeBase64(text: string): Uint8Array {
   return Uint8Array.from(atob(text), (character) => character.charCodeAt(0));
 }
 
-/**
- * A structurally complete lossless WebP of the given dimensions, with an extended
- * header and no pixel data: the validator reads headers and chunks, never pixels.
- */
 export function sizedWebp(width: number, height: number): Uint8Array {
   const extended = chunk("VP8X", [
     0x10,
@@ -53,10 +39,6 @@ function chunk(fourcc: string, payload: number[]): number[] {
   return bytes;
 }
 
-/**
- * The same container with a `JUNK` chunk of `filler` bytes: still a lossless file
- * of that geometry, only larger, for the encoded-size bound.
- */
 export function paddedWebp(
   width: number,
   height: number,

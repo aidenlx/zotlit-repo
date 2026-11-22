@@ -3,8 +3,6 @@ import type {
   QueryFileView,
 } from "#core/query-view/query-file.ts";
 
-// The Layouts a Query View can draw, the Query Dataset each one shows, and
-// the options of the Annotations layout as a view's keys hold them.
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { CARDS_LAYOUT } from "./cards-layout.tsx";
@@ -13,15 +11,12 @@ import { PAPERS_LAYOUT } from "./papers-layout.tsx";
 import { TABLE_LAYOUT } from "./table-layout.tsx";
 
 export interface QueryLayout {
-  /** The view's `type`. */
   readonly type: string;
-  /** The Query Datasets the layout can show. */
   readonly datasets: readonly QueryFileDataset[];
   readonly name: () => string;
   readonly icon: string;
 }
 
-/** The Layouts built so far. A Layout joins this list once it can draw. */
 export const QUERY_LAYOUTS: readonly QueryLayout[] = [
   {
     type: "annotations",
@@ -32,22 +27,14 @@ export const QUERY_LAYOUTS: readonly QueryLayout[] = [
   TABLE_LAYOUT,
   LIST_LAYOUT,
   CARDS_LAYOUT,
-  // Last, so a new view of Items opens on the Table.
   PAPERS_LAYOUT,
 ];
 
-/** The Layout that draws a view; a view with no `type` takes the Annotations layout. */
 export function layoutOf(view: QueryFileView): QueryLayout | undefined {
   const type = view.type || "annotations";
   return QUERY_LAYOUTS.find((layout) => layout.type === type);
 }
 
-/**
- * The Layouts that can show the view's dataset, as the Layout picker offers
- * them.
- * @param offered the Layout types the host offers, in its order; absent, the
- * host offers every Layout.
- */
 export function layoutsFor(
   view: Pick<QueryFileView, "from">,
   offered?: readonly string[],
@@ -62,9 +49,7 @@ export function layoutsFor(
   );
 }
 
-/** The Annotations layout's options, with their defaults filled in. */
 export interface AnnotationsLayoutOptions {
-  /** The narrowest a card is drawn, in pixels; cards fill the row from there. */
   readonly cardWidth: number;
   readonly showComment: boolean;
   readonly showTags: boolean;
@@ -80,7 +65,6 @@ export const ANNOTATIONS_LAYOUT_DEFAULTS: AnnotationsLayoutOptions = {
   showPage: true,
 };
 
-/** The Annotations layout's options a view holds; a key it lacks or cannot hold takes its default. */
 export function annotationsLayoutOptions(
   view: QueryFileView | null,
 ): AnnotationsLayoutOptions {

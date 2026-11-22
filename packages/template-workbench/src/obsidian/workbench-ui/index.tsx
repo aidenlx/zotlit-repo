@@ -8,13 +8,6 @@ export type { FilterValues } from "./match.fields.tsx";
 export { isDatasetFieldKind } from "#core/filter-fields/fields.ts";
 export type { FilterField } from "#core/filter-fields/fields.ts";
 export type { MatchFilter } from "./match.tsx";
-// The Workbench UI: the component tree the Template Workbench View mounts
-// over one Template Document (ADR 0044). The components wear their own look;
-// the host answers what only it knows through
-// `WorkbenchHostProvider`, and each editor instance keeps its view state in
-// the Workbench model `WorkbenchEditorProvider` puts in context: the
-// document controller in use, the reader's choices, and the one Render
-// Scheduler its result surfaces share.
 
 export { createWorkbenchEditor, WorkbenchEditorProvider } from "./editor.tsx";
 export type { WorkbenchEditorInstance } from "./editor.tsx";

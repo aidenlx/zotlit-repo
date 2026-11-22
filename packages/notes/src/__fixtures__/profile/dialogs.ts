@@ -1,4 +1,3 @@
-// The services a Profile dialog reads, for a test whose dialogs are fakes.
 import { FileSystem, Layer } from "effect";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
@@ -17,11 +16,6 @@ import { Profile } from "#obsidian/profile/service.ts";
 import { Template } from "#obsidian/template/service.ts";
 import type { ProfileDialogServices } from "#desktop/profile/dialogs.ts";
 
-/**
- * Every service a Profile dialog reads, with no member implemented, for a
- * caller's test whose dialogs are fakes: merge it before the test's own
- * services, which replace these.
- */
 export const unimplementedProfileDialogServices = Layer.mergeAll(
   Layer.mock(Profile)({}),
   Layer.mock(Template)({}),

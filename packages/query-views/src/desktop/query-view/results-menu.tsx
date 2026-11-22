@@ -1,9 +1,3 @@
-// The result count of the Query View toolbar, and the Results menu it opens:
-// a limit that saves to the view, and "Copy to clipboard" and "Export CSV…"
-// for the rows on screen, with one column for each visible property.
-//
-// The menu is a `PinnedPopover` rather than a Chooser: its limit field takes
-// the arrow keys and Enter, which a Chooser's key scope would hold.
 import { Effect } from "effect";
 import { useLayoutEffect, useRef, useState } from "react";
 
@@ -37,7 +31,6 @@ import {
   toolbarPopoverClass,
 } from "#obsidian/query-view/toolbar-popover.tsx";
 
-/** Copy the rows on screen as a table: tab-separated text and HTML. */
 export async function copyResults(view: QueryView): Promise<void> {
   const table = view.table();
   try {
@@ -54,7 +47,6 @@ export async function copyResults(view: QueryView): Promise<void> {
   }
 }
 
-/** Save the rows on screen as a CSV file named after the view. */
 export function exportResults(view: QueryView): void {
   const name = view.state.getState().view?.name || m.query_view_results_menu();
   saveFile(
@@ -65,7 +57,6 @@ export function exportResults(view: QueryView): void {
 
 function CountText({ view }: { view: QueryView }) {
   const phase = useQueryViewState(view, (s) => s.phase);
-  // A failed run that keeps the last rows keeps their count too.
   const results = useQueryViewState(view, (s) => s.results);
   if (phase === "loading")
     return <span data-query-count="">{m.query_view_loading()}</span>;
@@ -89,9 +80,6 @@ function LimitField({ view, close }: { view: QueryView; close: () => void }) {
   const [text, setText] = useState(limit === undefined ? "" : String(limit));
   const [invalid, setInvalid] = useState(false);
   const id = useUniqueId();
-  // The form a Bases results menu opens with: the label over a field that
-  // takes the menu's width. An invalid number turns the field's own border
-  // and focus ring to the error colour, through the variables they read.
   return (
     <PopoverSection className="zt:px-(--size-4-2) zt:pt-(--size-4-1) zt:pb-(--size-4-2) zt:text-sm">
       <label htmlFor={id} className="zt:px-(--size-2-1) zt:py-(--size-2-2)">
@@ -134,14 +122,12 @@ export function ResultsMenu({ view }: { view: QueryView }) {
   const current = useQueryViewState(view, (s) => s.view);
   const phase = useQueryViewState(view, (s) => s.phase);
   const matched = useQueryViewState(view, (s) => s.results?.matched ?? 0);
-  // A limit the host writes itself shows as not set.
   useQueryViewState(view, (s) => s.defaults);
   const [open, setOpen] = useState(false);
   const button = useRef<HTMLButtonElement>(null);
   const handle = useRef<PinnedPopoverHandle>(null);
   const popup = useRef<HTMLDivElement>(null);
   const close = () => handle.current?.hide();
-  // The limit field takes focus once the open menu has drawn it.
   useLayoutEffect(() => {
     if (open)
       popup.current
@@ -151,16 +137,12 @@ export function ResultsMenu({ view }: { view: QueryView }) {
   if (!current) return null;
   return (
     <>
-      {/* The count is plain muted text, and takes the free room after it,
-          so the controls after it sit at the toolbar's end. */}
       <button
         ref={button}
         type="button"
         onClick={() => handle.current?.toggle()}
         aria-expanded={open}
         data-query-results=""
-        // A limit the host writes itself, as the Library View does, shows
-        // as not set.
         data-active={
           view.setByResearcher(current).limit !== undefined ? "" : undefined
         }
@@ -189,8 +171,6 @@ export function ResultsMenu({ view }: { view: QueryView }) {
           <>
             {view.can.limit && <LimitField view={view} close={close} />}
             <PopoverActions>
-              {/* The row stays in place while no limit is set, dimmed as Bases
-                  dims it, so the rows under it hold still as a limit is typed. */}
               {view.can.limit && (
                 <PopoverAction
                   icon="rotate-ccw"

@@ -1,19 +1,5 @@
-// Shared variant recipe for the annotation view's tag data chips (card + bar + drawer).
-
 import { tv } from "@zotlit/plugin-kernel/tw.ts";
 
-/**
- * One look for every tag data chip in the view, driven by Obsidian's `--tag-*`
- * theme tokens so all surfaces read as native tags. Avoids Obsidian's `.tag`
- * class (unlayered — forces `!important`, and only styles `a.tag`).
- * - `state` — resting native tag (with `--tag-*-hover`), `selected` (vault accent,
- *   signalling an active filter), or `disabled` (zero-hit: dimmed, non-interactive).
- * - `density` — orthogonal to color: `dense` for the drawer cloud, else the tag's
- *   own padding. Both take the view's own `text-xs` step rather than
- *   `--tag-size`: the chip is filter-bar chrome, and the count and the
- *   vocabulary trigger beside it are on that step.
- * - `truncate` — clips a long name so the bar's first chip fits one line.
- */
 export const tagChipVariants = tv({
   base: "zt:rounded-(--tag-radius) zt:border-(length:--tag-border-width) zt:font-(--tag-weight) zt:focus-visible:ring-2 zt:focus-visible:ring-border-focus zt:motion-safe:transition-colors",
   variants: {

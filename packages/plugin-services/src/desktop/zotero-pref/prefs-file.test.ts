@@ -95,8 +95,6 @@ describe("selectDefaultProfile", () => {
   });
 
   it("falls back to the last profile when none is Default=1, even with [General] last", () => {
-    // Real Zotero ordering: the profile section precedes a trailing [General]
-    // (which has no Path). The fallback must pick the profile, not [General].
     const profiles = parseZoteroProfiles(
       [
         "[Profile0]",

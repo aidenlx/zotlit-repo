@@ -3,12 +3,6 @@ import { Effect } from "effect";
 
 import { EXCERPT_JOB_LIMIT } from "./pdf-queue.ts";
 
-// Runs the production PDF queue in a disposable Electron renderer, so the crop
-// work it schedules is real Chromium canvas encoding and the one window it runs
-// in is hidden — the background-throttled state a minimized Obsidian is in.
-// Nothing here parses a PDF: the renderer's own document load and rasterizer
-// run on the PDF engine, which crop.browser-test.ts drives (see
-// docs/excerpt-image-queue-measurements.md).
 import { check } from "#__fixtures__/excerpt-image/check.ts";
 import { encodeExcerptImage } from "#__fixtures__/excerpt-image/encode.ts";
 import { queueFixture } from "#__fixtures__/excerpt-image/queue.ts";
@@ -16,9 +10,7 @@ import { queueFixture } from "#__fixtures__/excerpt-image/queue.ts";
 export interface ChromiumQueueReport {
   passed: string[];
   userAgent: string;
-  /** `hidden` for the fixture's `show: false` window. */
   visibility: string;
-  /** 130 producers over 5 PDFs, each encoding a real Chromium canvas crop. */
   cold: {
     excerpts: number;
     renders: number;
@@ -28,19 +20,14 @@ export interface ChromiumQueueReport {
     awaitingAtBurst: number;
     totalMs: number;
   };
-  /** A cache hit answers on the preflight queue while a render holds the slot. */
   cacheHitWhileBlocked: { hitMs: number; answeredWhileBlocked: boolean };
-  /** `idle` resolves only after an admitted job's teardown ran. */
   teardown: { order: string[] };
-  /** How a 200 ms timer and a 200 ms `Effect.timeout` actually fired here. */
   throttledTimers: { timerMs: number; deadlineMs: number };
 }
 
-/** The crop every job encodes: the full-width page crop an excerpt shows. */
 const CROP_WIDTH = 600;
 const CROP_HEIGHT = 200;
 
-/** One deterministic crop, drawn and encoded in this renderer. */
 async function crop(seed: number, signal: AbortSignal): Promise<Uint8Array> {
   const canvas = document.createElement("canvas");
   canvas.width = CROP_WIDTH;
@@ -62,11 +49,6 @@ async function crop(seed: number, signal: AbortSignal): Promise<Uint8Array> {
   return image.bytes;
 }
 
-/** A cold batch: no reader, no vault, no warm state — every excerpt draws and
- * encodes its crop from scratch while the bound is under pressure, so the
- * second producer past the bound has to wait for a slot rather than be refused.
- * Returns the first crop alongside the counts, as the bytes a later request
- * would find in the cache. */
 async function cold(queue: QueueFixture): Promise<{
   counts: ChromiumQueueReport["cold"];
   stored: Uint8Array;
@@ -107,8 +89,6 @@ async function cold(queue: QueueFixture): Promise<{
       admission.release();
     }
   });
-  // Every producer reserves in this one synchronous burst, so the counts read
-  // here are the bound's own decision before any crop has finished.
   const awaitingAtBurst = queue.diagnostics.awaiting;
   await Promise.all(producers);
   return {
@@ -125,7 +105,6 @@ async function cold(queue: QueueFixture): Promise<{
   };
 }
 
-/** The stored crop's bytes answer a request while a render holds the slot. */
 async function cacheHitWhileBlocked(
   queue: QueueFixture,
   stored: Uint8Array,
@@ -161,7 +140,6 @@ async function cacheHitWhileBlocked(
   return { hitMs, answeredWhileBlocked };
 }
 
-/** Teardown owns the slot: `idle` may not resolve before it ran. */
 async function teardown(
   queue: QueueFixture,
 ): Promise<ChromiumQueueReport["teardown"]> {
@@ -193,7 +171,6 @@ async function teardown(
   return { order };
 }
 
-/** What a scheduled 200 ms really costs in this window. */
 async function throttledTimers(): Promise<
   ChromiumQueueReport["throttledTimers"]
 > {
@@ -226,9 +203,7 @@ export function run(): Promise<ChromiumQueueReport> {
             counts.renders === counts.excerpts,
             "a crop settled per excerpt",
           );
-          // One PDF crop at a time, in a hidden window, with real encoding behind it.
           check(counts.peakRenders === 1, "never two crop renders at once");
-          // The bound decides for in-app work: it is reached, and the overflow waits.
           check(
             counts.peakAdmitted === EXCERPT_JOB_LIMIT,
             `the bound of ${EXCERPT_JOB_LIMIT} was reached, not crossed`,

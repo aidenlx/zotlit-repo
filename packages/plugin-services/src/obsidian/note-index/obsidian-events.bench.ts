@@ -1,6 +1,3 @@
-// A 50,000-event probe, through the real NoteIndex.
-// Run on an idle host: pnpm --filter @zotlit/plugin-services bench src/obsidian/note-index/obsidian-events.bench.ts
-// Three warm-ups, nine measured bursts; acquisition and assertions are untimed.
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
 import { mkdir, writeFile } from "node:fs/promises";

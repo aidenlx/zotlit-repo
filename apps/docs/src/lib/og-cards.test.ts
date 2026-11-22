@@ -26,8 +26,6 @@ describe("docs OG cards", () => {
     }
   });
 
-  // A native Chinese page advertises its own card; a page with no Chinese
-  // file falls back to the English card, so the build renders no zh one.
   it("give each Chinese edition a card with its own title", async () => {
     const packageRoot = getPackageRoot(import.meta.filename);
     const cards = await ogCards(packageRoot);

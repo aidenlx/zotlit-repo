@@ -1,6 +1,3 @@
-// One Query Job inside the ZoteroReads worker, on its borrowed connection: one
-// Effect on the fiber of the job, with the time-budget scheduler and the
-// database of the job. Interruption of that fiber is the cancel of the job.
 import { Cause, Effect, Exit, FileSystem, PlatformError, Scope } from "effect";
 // oxlint-disable-next-line no-restricted-imports -- ItemQueryScheduler uses MessageChannel and adds a per-query time budget.
 import { Scheduler } from "effect";
@@ -26,20 +23,12 @@ import type { QueryAnswer, QueryJob } from "./worker-protocol.ts";
 
 import { makeAttachmentFileResolver } from "#core/item-query/attachment-files.ts";
 
-/** The connection of one Query Job and the identity its envelope reports. */
 export interface QueryJobEnv {
   client: ZoteroDatabase;
   identity: WorkbenchIdentity;
   attachmentFiles: ResolveAttachmentFile;
 }
 
-/**
- * Run one Query Job to its answer. The staging file of an export closes in the
- * scope of the job, before the returned Effect ends, so it closes before the
- * caller ends its borrow of the connection. A failed close makes the answer
- * `output-error`: the file is then not a complete export. Interruption cancels
- * the job.
- */
 export function runQueryJob(
   job: QueryJob,
   env: QueryJobEnv,
@@ -79,7 +68,6 @@ export function runQueryJob(
     Effect.flatMap((answer) => {
       const { closeError } = stage;
       if (closeError === undefined) return Effect.succeed(answer);
-      // Only a system error is the export's failure; any other defect is a bug.
       if (!PlatformError.isPlatformError(closeError))
         return Effect.die(closeError);
       return Effect.succeed<QueryAnswer>({
@@ -93,12 +81,6 @@ export function runQueryJob(
   );
 }
 
-/**
- * The Item Query adapter of the ZoteroReads worker: a job on the client it
- * borrowed, with an Attachment file resolver of its own. The envelope names
- * the copy the job reads; it keeps the source id only when that copy is the
- * configured database.
- */
 export const queryJobRunner: QueryJobRunner = {
   run: (job, { client, databaseFile }) =>
     Effect.gen(function* () {
@@ -123,21 +105,12 @@ export const queryJobRunner: QueryJobRunner = {
   }),
 };
 
-/** The close of the staging file, which the release of the writer records. */
 interface StageState {
   closeError?: unknown;
 }
 
 const encoder = new TextEncoder();
 
-/**
- * Open the staging file of the job in its scope: exclusive, and readable by
- * this user only. Only the write of one chunk is uninterruptible: native I/O
- * settles before the scope closes the file. `FileSystem` closes the file in
- * the scope that opened it and makes a failed close a defect of that scope's
- * close, so the file gets a scope of its own, and the release records that
- * defect in `stage`.
- */
 function openStage(
   fs: FileSystem.FileSystem,
   stagePath: string | undefined,
@@ -170,14 +143,12 @@ function openStage(
   });
 }
 
-/** A file operation: a system error is the `output-error` of the envelope. */
 function fileStep<A>(
   step: Effect.Effect<A, PlatformError.PlatformError>,
 ): Effect.Effect<A, QueryOutputError> {
   return step.pipe(Effect.mapError((error) => outputError(error)));
 }
 
-/** The diagnostic quotes the system's own message, which names the errno. */
 function outputError(error: PlatformError.PlatformError): QueryOutputError {
   return new QueryOutputError({
     diagnostic: diagnostic(

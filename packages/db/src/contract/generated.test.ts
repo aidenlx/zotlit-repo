@@ -127,7 +127,6 @@ describe("serialized forms", () => {
       required: ["$helper", "signature", "value"],
       additionalProperties: false,
     });
-    // TemplateFilenameItemData.noteLink carries no @ztInert tag.
     expect(properties.noteLink.oneOf).toHaveLength(1);
   });
 
@@ -145,7 +144,6 @@ describe("serialized forms", () => {
       required: ["$inert"],
       additionalProperties: false,
     });
-    // A child note's noteLink always renders a link, so it has no inert branch.
     expect(
       noteSchema.$defs.TemplateNoteLink.properties.noteLink.oneOf,
     ).toHaveLength(1);
@@ -188,7 +186,6 @@ describe("inert precision", () => {
     members?: { name: string; type: HelperLike }[];
   }
 
-  /** Every (owner, member) helper occurrence in the IR, with whether it carries `inert`. */
   function helperOccurrences(): {
     owner: string;
     member: string;
@@ -218,7 +215,6 @@ describe("inert precision", () => {
     return results;
   }
 
-  /** The `oneOf` array holding a helper's evaluated (and maybe inert) branches. */
   function findHelperOneOf(node: unknown): unknown[] | undefined {
     if (!node || typeof node !== "object") return undefined;
     const record = node as { oneOf?: unknown[] };
@@ -273,9 +269,6 @@ describe("no orphan $defs", () => {
     for (const schema of Object.values(schemas)) {
       const defs = schema.$defs as Record<string, unknown>;
       for (const name of Object.keys(defs)) {
-        // Exclude the def's own subtree so a self-reference can't count as
-        // its own referrer — only the top-level `$ref` or another `$defs`
-        // entry proves this def is actually reached.
         const { [name]: _own, ...otherDefs } = defs;
         const text = JSON.stringify({ ...schema, $defs: otherDefs });
         const refToken = `"#/$defs/${name}"`;
@@ -385,7 +378,6 @@ describe("docs data", () => {
   });
 });
 
-/** Every object node of the IR, so one assertion can hold across the whole tree. */
 function* walkIR(value: unknown): Generator<Record<string, unknown>> {
   if (Array.isArray(value)) {
     for (const item of value) yield* walkIR(item);

@@ -19,7 +19,6 @@ const directive = regex(
 const rule = regex(
   "\\bzotlit-tests/(?:no-source-text|no-internal-mock|no-markup-assertion)\\b",
 );
-/** The fake rule, held like the three test rules (policies/testing-strategy.md → Baseline). */
 const fakeRule = regex("\\bzotlit-effect-tests/typed-fake\\b");
 const disabledRule = regex(
   "['\"](zotlit-tests/(?:no-source-text|no-internal-mock|no-markup-assertion))['\"]\\s*\\]?\\s*:",
@@ -33,10 +32,8 @@ const disabledSeverity = regex(
   "^\\s*(?:\\[\\s*)?(?:['\"](?:off|allow)['\"]|0\\b)",
 );
 
-/** Each baselined test file and the rules it is exempt from. */
 type Baseline = Record<string, string[]>;
 
-/** The rules every entry of the earlier flat list of paths was exempt from. */
 const flatBaselineRules = [
   "zotlit-tests/no-internal-mock",
   "zotlit-tests/no-source-text",
@@ -49,7 +46,6 @@ function parseBaseline(source: string): Baseline {
     : parsed;
 }
 
-/** Each file the branch moved since `base`, mapped to the path it had there. */
 async function renamesSince(
   root: string,
   base: string,
@@ -67,7 +63,6 @@ async function renamesSince(
   return moved;
 }
 
-/** Check the shrinking baseline and the places that can bypass the test rules. */
 export async function checkTestPolicy(
   root: string,
   files: string[],
@@ -92,7 +87,6 @@ export async function checkTestPolicy(
     for (const [file, rules] of Object.entries(baseline))
       for (const exempt of rules)
         if (!knownRules.has(exempt)) newRules.add(exempt);
-        // A file that moved keeps the exemptions it had at the base.
         else if (
           !allowed[file]?.includes(exempt) &&
           !allowed[movedFrom.get(file) ?? ""]?.includes(exempt)
@@ -100,15 +94,11 @@ export async function checkTestPolicy(
           errors.push(
             `${baselineFile}: added baseline entry ${file} (${exempt})`,
           );
-    // A rule's first entries are its adoption: the files that break it when
-    // it lands. From then on they may be deleted, never added.
     for (const adopted of newRules)
       console.log(
         `check-test-gates: ${adopted} is new to the baseline; skipping its growth check.`,
       );
   } else {
-    // A shallow clone has no base; the branch that introduces the baseline
-    // has nothing to compare against.
     console.log(
       `check-test-gates: ${base ? "no baseline at the merge base" : "no merge base"}; skipping baseline growth check.`,
     );
@@ -124,7 +114,6 @@ export async function checkTestPolicy(
       maxBuffer: 1 << 26,
     }).split("\0"),
   );
-  // Use the parser already installed for the config package's lint rules.
   const require = createRequire(import.meta.url);
   const configRequire = createRequire(require.resolve("@zotlit/config/oxlint"));
   const { parseSync } = (await import(
@@ -142,7 +131,6 @@ export async function checkTestPolicy(
     const comments = parseSync(file, source).comments;
     if (tracked.has(file)) {
       for (const comment of comments) {
-        // The optional -- suffix is a reason, not part of the rule list.
         const rules = comment.value.split("--")[0] ?? "";
         if (
           directive.test(rules) &&
@@ -154,7 +142,6 @@ export async function checkTestPolicy(
       }
     }
     if (config) {
-      // Keep whitespace in place so comments cannot join unrelated tokens.
       let code = source;
       for (const comment of comments.toReversed())
         code =

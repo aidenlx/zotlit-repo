@@ -1,7 +1,6 @@
 import { obRun } from "./obsidian-cli.ts";
 import type { WorkerDebugger, WorkerTimerGlobal } from "./page-query-types.ts";
 
-/** Measure the real worker's task queue independently of sequential RPC calls. */
 export async function measureWorkerResponsiveness<T>(
   vault: string,
   measure: () => Promise<T>,

@@ -1,8 +1,3 @@
-// The Workbench model: what one editor shows, as atoms that pure transitions change.
-// The document controller stays the authority on the document's text; the model
-// holds the controller in use, the reader's choices, the side panels, and the
-// render scheduler.
-
 import type { WorkbenchDocumentAtoms } from "#core/document/atoms.ts";
 import type { WorkbenchDocumentController } from "#core/document/controller.ts";
 import type { WorkbenchItemChoice } from "#core/editor/selection-data.ts";
@@ -70,16 +65,13 @@ import { workbenchDocumentAtoms } from "#core/document/atoms.ts";
 
 export type { WorkbenchItemChoice };
 
-/** The template root a pane edits, which the Explorer and the preview follow. */
 export type TemplateRoot = "note" | "annotation" | "filename" | "citation";
 
-/** One thing the Fields Panel tells a screen reader; `count` grows with each. */
 export interface FieldsStatus {
   readonly text: string;
   readonly count: number;
 }
 
-/** Tells a screen reader `text` through the panels' live region. */
 export const announceFields =
   (text: string) =>
   (last: FieldsStatus | null): FieldsStatus => ({
@@ -87,7 +79,6 @@ export const announceFields =
     count: (last?.count ?? 0) + 1,
   });
 
-/** What the preview shows: a new note, or an existing note after Update. */
 export type PreviewMode = "create" | "update";
 
 export interface EditorPresentation {
@@ -104,57 +95,35 @@ export interface EditorPresentation {
   scroll: Record<string, { top: number; left: number }>;
 }
 
-/** The view state of one editor instance: what is shown, not what the document says. */
 export interface WorkbenchViewState {
   readonly presentation: EditorPresentation;
   readonly tab: WorkbenchTab;
   readonly item: WorkbenchItemChoice | null;
-  /** The root the focused editor writes. */
   readonly root: TemplateRoot;
-  /** Whether the whole document is open in the Advanced editor. */
   readonly advanced: boolean;
 }
 
-/** How the preview renders and shows its result. */
 export interface WorkbenchPreviewSettings {
   readonly mode: PreviewMode;
-  /** Renders after the quiet time when on; only on Run when off. */
   readonly live: boolean;
   readonly showMarkdown: boolean;
   readonly showManaged: boolean;
 }
 
-/**
- * What the reader chose to render the document against, beside the Item. The model derives the example, the Citation set, and
- * the partial selection from these and the chosen Item's data.
- */
 export interface WorkbenchChoices {
-  /** The annotation the examples render, by id; null for the first one. */
   readonly annotationId: string | null;
-  /** The Citation Variant a Citation set renders under. */
   readonly variant: CitationVariant;
-  /**
-   * The built-in Citation example set, or null while the chosen Item supplies
-   * the set. It outranks the Item: a reader who picks an example looks at it.
-   */
   readonly citationExample: CitationExampleId | null;
-  /** The Profile a Shared Partial preview reads bindings from; null is the default one. */
   readonly partialProfile: string | null;
   readonly preview: WorkbenchPreviewSettings;
 }
 
-/**
- * The chosen Item's data. A host derives it from its read of the chosen Item
- * through `itemData`; otherwise it is a writable atom of the model.
- */
 export interface WorkbenchItemData {
-  /** The chosen Item's own data, as the host's read answers it. */
   readonly snapshot: ItemSnapshot | null;
   readonly document?: string | undefined;
   readonly hold?: boolean | "invalid" | undefined;
 }
 
-/** The document in use, which a host's derived Item data reads beside its own read. */
 export interface WorkbenchItemDataInput {
   readonly controller: Atom.Atom<WorkbenchDocumentController>;
   readonly document: WorkbenchDocumentAtoms;
@@ -208,7 +177,6 @@ export const choosePartialProfile = (partialProfile: string | null) =>
 export const setPreview = (settings: Partial<WorkbenchPreviewSettings>) =>
   patchAt<WorkbenchChoices, "preview">("preview", settings);
 
-/** Whether two flat selections name the same thing, so a re-derived one keeps its readers still. */
 function sameFields<A extends object>(a: A | null, b: A | null): boolean {
   if (a === b) return true;
   if (a === null || b === null) return false;
@@ -219,7 +187,6 @@ function sameFields<A extends object>(a: A | null, b: A | null): boolean {
   );
 }
 
-/** An example re-derived from the same data is the same example. */
 function sameExample(
   a: AnnotationExample | null,
   b: AnnotationExample | null,
@@ -227,36 +194,20 @@ function sameExample(
   return a === b || (a?.id === b?.id && a?.revision === b?.revision);
 }
 
-/** The runtime every read, render, and command of one host runs on. */
 export type WorkbenchRuntime = Atom.AtomRuntime<never, unknown>;
 
 export interface WorkbenchModelOptions<R extends TemplateRenderResult> {
   readonly controller: WorkbenchDocumentController;
-  /** The view state to start from. */
   readonly initial?: Partial<WorkbenchViewState>;
-  /** The view state, when a host keeps it in an atom of its own. */
   readonly view?: Atom.Writable<WorkbenchViewState>;
-  /** The choices to start from. */
   readonly choices?: Partial<WorkbenchChoices>;
-  /** A Shared Partial's own name, which its preview renders; null for any other document. */
   readonly partialName?: Atom.Atom<string | null>;
-  /**
-   * The chosen Item's data, when the host derives it from its own read and
-   * from the document in use.
-   */
   readonly itemData?: (
     input: WorkbenchItemDataInput,
   ) => Atom.Atom<WorkbenchItemData>;
-  /** The panels to start from; a new editor shows neither. */
   readonly panels?: WorkbenchPanels;
-  /**
-   * The size of the view the panels and the editor share, which the host
-   * measures from its own container; null until it has.
-   */
   readonly viewSize?: Atom.Atom<ViewSize | null>;
-  /** The host's one runtime; a host never builds one per editor. */
   readonly runtime: WorkbenchRuntime;
-  /** The host whose Match reads the model runs, read at each read. */
   readonly host: { readonly matchData: WorkbenchMatchData };
   readonly render: (
     request: RenderRequest,
@@ -267,7 +218,6 @@ export interface WorkbenchModelOptions<R extends TemplateRenderResult> {
   readonly debounceMs?: number;
 }
 
-/** The vocabulary a Match condition offers, as the host read it. */
 export interface WorkbenchMatchVocabulary {
   readonly tags: readonly string[];
   readonly collections: readonly string[];
@@ -277,20 +227,17 @@ export interface WorkbenchMatchVocabulary {
   }[];
 }
 
-/** A copy a reader asked for, and what the surface shows when it ends. */
 export interface CopyJob {
   readonly copy: Effect.Effect<void, WorkbenchClipboardError>;
   readonly copied: () => void;
   readonly failed: () => void;
 }
 
-/** A chooser a reader opened, and what takes the choice. */
 export interface ChooseJob {
   readonly choose: Effect.Effect<string | null>;
   readonly chosen: (id: string) => void;
 }
 
-/** A Shared Partial the reader names and creates from a completion. */
 export interface CreatePartialJob {
   readonly create: Effect.Effect<string | null, WorkbenchHostError>;
   readonly created: (insert: string | null) => void;
@@ -302,74 +249,24 @@ export interface WorkbenchModel<
   readonly runtime: WorkbenchRuntime;
   readonly view: Atom.Writable<WorkbenchViewState>;
   readonly choices: Atom.Writable<WorkbenchChoices>;
-  /** Which side panels the editor shows, and how wide and tall; the host saves them. */
   readonly panels: Atom.Writable<WorkbenchPanels>;
-  /** The panels the editor started from, whose sizes a reset returns to. */
   readonly panelDefaults: WorkbenchPanels;
-  /**
-   * The handle a size menu entry last sized, whose new size the panels
-   * announce; null once the reader sizes a panel with its handle, whose own
-   * value a screen reader reads. Never saved.
-   */
   readonly sizedFromMenu: Atom.Writable<PanelHandle | null>;
-  /** The size of the view the host measured, or null until it has. */
   readonly viewSize: Atom.Atom<ViewSize | null>;
-  /** Where each panel goes in the view as it is now; never saved. */
   readonly placement: Atom.Atom<PanelPlacement>;
-  /**
-   * Whether the Fields Panel's popover stands open over the editor, and where
-   * focus goes as it closes. Only the reader opens it, at every width; never
-   * saved.
-   */
   readonly fieldsPanel: Atom.Writable<FieldsPanelState>;
-  /**
-   * Whether the Fields Panel the action opens stands open, and where. A
-   * write presses the action: it opens or closes the Fields popover, or
-   * hides or shows the docked panel, which keeps its pin.
-   */
   readonly fieldsAction: Atom.Writable<FieldsPlacement, void>;
-  /**
-   * Whether the Fields Panel is pinned, and whether the view has room to
-   * dock it. A write presses the pin: it docks the panel, or unpins it into
-   * the Fields popover. A view with no room leaves the pin as it is.
-   */
   readonly fieldsPin: Atom.Writable<FieldsPin, void>;
-  /**
-   * Whether the docked Fields Panel takes focus in its search as it next
-   * draws: after the reader pins or shows it, not as a wider view docks it.
-   * Never saved.
-   */
   readonly fieldsFocus: Atom.Writable<boolean>;
-  /**
-   * What the Fields Panel last told a screen reader, such as "Inserted
-   * Title.", with a count that tells a repeat from the last one. The panels
-   * read it out in a live region that outlasts the Fields popover. Never
-   * saved.
-   */
   readonly fieldsStatus: Atom.Writable<FieldsStatus | null>;
-  /**
-   * Makes an Item the choice. An Item the reader picked is the Citation set
-   * they asked to see, so the built-in example that outranks it stands down.
-   */
   readonly pick: Atom.Writable<WorkbenchItemChoice | null, WorkbenchItemChoice>;
-  /** Writable unless the host derives it. */
   readonly itemData: Atom.Atom<WorkbenchItemData>;
-  /** The chosen Item's annotations, and the one the examples render. */
   readonly examples: Atom.Atom<AnnotationExamples>;
-  /** The Citation set the render reads, when the document reads one. */
   readonly citation: Atom.Atom<CitationPreviewSelection | null>;
-  /** The Shared Partial the render draws, under its caller and Profile. */
   readonly partial: Atom.Atom<PartialPreviewSelection | null>;
-  /**
-   * The paper one render reads. A chosen Citation example carries its own
-   * data and outranks the Item; otherwise the Item's data stands, and with
-   * no Item at all the Sample Annotation's own parent does.
-   */
   readonly snapshot: Atom.Atom<ItemSnapshot | null>;
-  /** The controller in use; a host that loads another document sets it. */
   readonly controller: Atom.Writable<WorkbenchDocumentController>;
   readonly document: WorkbenchDocumentAtoms;
-  /** The last Match filter that parsed, which stands while the draft does not. */
   readonly match: Atom.Atom<MatchTree | undefined>;
   readonly tab: Atom.Atom<WorkbenchTab>;
   readonly item: Atom.Atom<WorkbenchItemChoice | null>;
@@ -378,34 +275,23 @@ export interface WorkbenchModel<
   readonly preview: Atom.Atom<WorkbenchPreviewSettings>;
   readonly input: Atom.Atom<RenderSchedulerInput>;
   readonly scheduler: RenderSchedulerAtoms<R>;
-  /** The render's result when it is for the chosen annotation example, or null. */
   readonly annotationResult: Atom.Atom<R | null>;
-  /** Counts the reader's retries of the Match reads; each one reads again. */
   readonly matchRetry: Atom.Writable<number>;
-  /** The Match vocabulary, read again for each host vocabulary revision. */
   readonly matchVocabulary: (
     revision: string,
   ) => Atom.Atom<AsyncResult.AsyncResult<WorkbenchMatchVocabulary, unknown>>;
-  /** The source's custom field names, read again for each revision. */
   readonly customFields: (
     revision: string,
   ) => Atom.Atom<AsyncResult.AsyncResult<readonly string[], unknown>>;
-  /**
-   * The Match test of one Item against one filter. The key is the JSON of
-   * `[indexedKey, filter, revision]`; a failure or defect answers `failed`.
-   */
   readonly matchTest: (
     key: string,
   ) => Atom.Atom<
     AsyncResult.AsyncResult<WorkbenchMatchResult | "failed", unknown>
   >;
-  /** Copies for one surface; the surface's unmount interrupts its copy. */
   readonly copy: (surface: string) => Atom.AtomResultFn<CopyJob, void, unknown>;
-  /** A chooser for one surface; it is open while the command runs. */
   readonly choose: (
     surface: string,
   ) => Atom.AtomResultFn<ChooseJob, void, unknown>;
-  /** "New partial…" for one pane; the pane's unmount interrupts it. */
   readonly createPartial: (
     surface: string,
   ) => Atom.AtomResultFn<CreatePartialJob, void, unknown>;
@@ -439,7 +325,6 @@ export function makeWorkbenchModel<R extends TemplateRenderResult>({
     ...INITIAL_CHOICES,
     ...initialChoices,
   });
-  // Narrow reads, so a change to one choice re-runs only what reads it.
   const pick = <K extends keyof WorkbenchChoices>(key: K) =>
     Atom.map(choices, (state) => state[key]);
   const preview = pick("preview");
@@ -561,7 +446,6 @@ export function makeWorkbenchModel<R extends TemplateRenderResult>({
           ctx.set(fieldsPanel, "open");
           return;
         }
-        // The popover closes into the docked panel, which takes its focus.
         ctx.set(fieldsFocus, true);
         ctx.set(fieldsPanel, "to-editor");
         ctx.set(panels, pinFields(true)(ctx.get(panels)));
@@ -633,10 +517,9 @@ export function makeWorkbenchModel<R extends TemplateRenderResult>({
       runtime.atom((get) => {
         get(matchRetry);
         const [indexedKey, filter] = JSON.parse(key) as [string, string];
-        return host.matchData.matches(indexedKey, filter).pipe(
-          // A defect fails the test as a failure does.
-          Effect.catchCause(() => Effect.succeed("failed" as const)),
-        );
+        return host.matchData
+          .matches(indexedKey, filter)
+          .pipe(Effect.catchCause(() => Effect.succeed("failed" as const)));
       }),
     ),
     copy: Atom.family((_surface: string) =>
@@ -655,7 +538,6 @@ export function makeWorkbenchModel<R extends TemplateRenderResult>({
           Effect.flatMap((id) =>
             id === null ? Effect.void : Effect.sync(() => job.chosen(id)),
           ),
-          // A chooser the host could not open closes as a dismissal does.
           Effect.catchCause((cause) =>
             Cause.hasInterruptsOnly(cause)
               ? Effect.failCause(cause)
@@ -668,7 +550,6 @@ export function makeWorkbenchModel<R extends TemplateRenderResult>({
       runtime.fn((job: CreatePartialJob) =>
         job.create.pipe(
           Effect.flatMap((insert) => Effect.sync(() => job.created(insert))),
-          // A flow that fails writes nothing.
           Effect.catchCause((cause) =>
             Cause.hasInterruptsOnly(cause)
               ? Effect.failCause(cause)
@@ -680,10 +561,6 @@ export function makeWorkbenchModel<R extends TemplateRenderResult>({
   };
 }
 
-/**
- * Presses the Fields action: opens or closes the Fields Panel. The view
- * action and the pane menu each press it.
- */
 export function pressFieldsAction(
   registry: AtomRegistry.AtomRegistry,
   model: Pick<WorkbenchModel, "fieldsAction">,
@@ -691,10 +568,6 @@ export function pressFieldsAction(
   registry.set(model.fieldsAction, undefined);
 }
 
-/**
- * Presses the Fields Panel's pin: docks the panel, or unpins it into the
- * Fields popover.
- */
 export function pressFieldsPin(
   registry: AtomRegistry.AtomRegistry,
   model: Pick<WorkbenchModel, "fieldsPin">,
@@ -702,13 +575,6 @@ export function pressFieldsPin(
   registry.set(model.fieldsPin, undefined);
 }
 
-/**
- * Keeps the model's writable state and its render alive in `registry`. A
- * Fields popover that stands open as a wider view docks the pinned panel
- * closes, so a view that narrows again opens no popover by itself; the
- * docked panel takes the focus it held.
- * @returns Releases them.
- */
 export function holdWorkbenchModel<R extends TemplateRenderResult>(
   registry: AtomRegistry.AtomRegistry,
   model: WorkbenchModel<R>,

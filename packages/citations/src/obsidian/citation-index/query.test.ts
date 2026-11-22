@@ -7,7 +7,6 @@ import type { CitationOccurrence } from "./scan.ts";
 const KEY_A = "ABCD2345";
 const KEY_B = "ZZZ99999g7";
 
-/** Resolves either syntax's raw text through one plain lookup table. */
 function resolver(table: Record<string, ResolvedNote>) {
   return (occurrence: CitationOccurrence): ResolvedNote | null =>
     table[occurrence.raw] ?? null;
@@ -117,8 +116,6 @@ describe("groupCitations", () => {
     expect(citations.map((c) => c.linkpath)).toEqual(["Doe 2024"]);
   });
 
-  // Pandoc warns on an undefined citation rather than dropping it, so a typo
-  // stays visible instead of vanishing from the reference list.
   it("keeps a citekey no Literature Note carries as its own citation", () => {
     const citations = groupCitations(
       [citekey("doe2024", 0), citekey("typo2024", 20), citekey("typo2024", 40)],
@@ -183,8 +180,6 @@ describe("citationsEqual", () => {
     ).toBe(false);
   });
 
-  // A note that becomes a Literature Note leaves the occurrences where they
-  // were and only changes what they cite.
   it("rejects a citation that now cites another Item", () => {
     const occurrences = [wikilink("Doe 2024", 0)];
 

@@ -196,8 +196,6 @@ describe("Explorer sample data", () => {
         error: null,
         data: { type: "note" },
       });
-      // The conference-paper sample's own two Annotations, and nothing the
-      // discarded read carried.
       expect(session.state().annotations?.map(({ id }) => id)).toEqual([
         '["sample:conference-paper","CNPAN26A"]',
         '["sample:conference-paper","CNPVL26A"]',
@@ -214,8 +212,6 @@ describe("the citation root", () => {
 
     const state = session.state();
     expect(state.status).toBe("ready");
-    // The Citation root's own three fields, which the Explorer's Common
-    // section shows; the cited item's fields sit under `citations` and `items`.
     expect(Object.keys(state.data!)).toEqual(["variant", "items", "citations"]);
     expect(state.data!["variant"]).toBe("main");
     expect(read).not.toHaveBeenCalled();
@@ -277,7 +273,6 @@ describe("when the Explorer reads its data again", () => {
   });
 });
 
-// Permissions change while each Explorer keeps its own navigation.
 it("updates permitted snippet actions in open Explorers and stops watching after the last leaf closes", async () => {
   const first = host.openSession();
   const second = host.openSession();

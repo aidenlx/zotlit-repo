@@ -1,4 +1,3 @@
-// Profile import has one shared UI entry from the command palette.
 import { Effect, Layer } from "effect";
 
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
@@ -8,10 +7,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { importProfileDialog } from "./dialogs.ts";
 import type { ProfileDialogServices } from "./dialogs.ts";
 
-/**
- * Register Import profile. The import dialog runs on the layer's Scope and
- * reports its own outcome; unload closes a dialog still open.
- */
 export const layerProfileActions: Layer.Layer<
   never,
   never,

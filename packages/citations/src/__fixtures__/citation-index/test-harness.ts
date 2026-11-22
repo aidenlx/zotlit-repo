@@ -63,7 +63,6 @@ import type { CitekeyRecord, CitekeyStore } from "#obsidian/citation-index/servi
 export const KEY_A = "ABCD2345";
 export const KEY_B = "ZZZ99999g7";
 
-/** Local ids of the two Libraries the multi-Library fixtures use. */
 export const MY_LIBRARY_ID = 1;
 export const GROUP_LIBRARY_ID = 4;
 
@@ -73,8 +72,6 @@ export function personalLibrary(
   return { selector: { type: "personal" }, libraryID, name: null };
 }
 
-/** @param overrides the facts one fixture varies; the rest keep the defaults
- *   the multi-Library fixtures share. */
 export function groupLibrary({
   groupID = 7,
   libraryID = GROUP_LIBRARY_ID,
@@ -110,7 +107,6 @@ export class MockMetadataCache implements MetadataCacheSource {
     return this.fileCache.get(path) ?? null;
   }
 
-  /** The cache holds every file the harness added, so it is already clean. */
   onCleanCache(callback: () => void): void {
     callback();
   }
@@ -140,7 +136,6 @@ export class MockMetadataCache implements MetadataCacheSource {
     this.#emit("changed", file, body, cache);
   }
 
-  /** Rewrite one note's properties, leaving the body and its links as they are. */
   setFrontmatter(
     file: TFile,
     frontmatter: Record<string, unknown> | undefined,
@@ -174,10 +169,6 @@ export class MockMetadataCache implements MetadataCacheSource {
 
 type VaultEventName = "create" | "modify" | "rename" | "delete";
 
-/**
- * The vault the harness drives: notes and their bodies, held by the metadata
- * cache's file map. The Citation Index only reads it; a write rejects.
- */
 export class MockVault implements VaultSource {
   readonly bodies = new Map<string, string>();
   readonly reads: string[] = [];
@@ -216,12 +207,10 @@ export class MockVault implements VaultSource {
     return this.getFileByPath(path);
   }
 
-  /** The body, without counting a read as {@link cachedRead} does. */
   read(file: TFile): Promise<string> {
     return Promise.resolve(this.bodies.get(file.path) ?? "");
   }
 
-  /** The Citation Index reads no path through the adapter. */
   readonly adapter = {
     read: (path: string): Promise<string> =>
       Promise.reject(new Error(`The harness reads no path: ${path}`)),
@@ -259,8 +248,6 @@ export class MockVault implements VaultSource {
     const gate = this.#held.get(file.path);
     if (!gate) return Promise.resolve(body);
     this.#held.delete(file.path);
-    // Capture the body before the gate settles, so a later write makes this
-    // held read stale and exercises superseded-backfill handling.
     return gate.promise.then(() => body);
   }
 
@@ -311,20 +298,11 @@ export class MockVault implements VaultSource {
   }
 }
 
-/**
- * The ZoteroReads stand-in. The test drives its lifecycle (`state`, `ready`,
- * the `changed` event); its reads run through the in-process adapter over a
- * `:memory:` fixture database. With no `seed`, that database is empty and the
- * citation-key read answers from {@link citekeys}; with `seed`, it holds the
- * seeded rows and every read, the citation-key read included, answers from
- * them.
- */
 export class DatabaseStub implements AsyncDisposable {
   state: "loading" | "ready" | "degraded" = "ready";
   readonly citekeys = new CitekeysStub(defaultCitekeys());
   itemReads = 0;
   libraries = () => [personalLibrary(), groupLibrary()];
-  /** When set, every snapshot read fails with this error. */
   snapshotError: DbUnavailable | null = null;
   readonly #service: TestReads;
   readonly #changed = testEvent<void>();
@@ -477,7 +455,6 @@ export class DatabaseStub implements AsyncDisposable {
   }
 
   get reads() {
-    // The worker client's lookup, under the read's generic signature.
     const CitationLookup = ((
       ...args: Parameters<ZoteroReadsClient["CitationLookup"]>
     ) =>
@@ -532,7 +509,6 @@ export class DatabaseStub implements AsyncDisposable {
   }
 }
 
-/** The citation-key rows the {@link DatabaseStub} answers, with each read it served. */
 export class CitekeysStub {
   rows: LibraryCitekey[];
   error: unknown = null;
@@ -543,10 +519,6 @@ export class CitekeysStub {
   }
 }
 
-/**
- * The Libraries the active database holds and the scope resolved over them —
- * the scenario source the Citation Index resolves against.
- */
 export class LibraryScopeStub {
   libraries: AvailableLibrary[];
   ready = Promise.resolve();
@@ -594,16 +566,11 @@ export class LibraryScopeStub {
     return this.#current;
   }
 
-  /**
-   * The database now holds `libraries`, and the saved scope resolves as it
-   * did: only `libraries-changed` reports it.
-   */
   holdLibraries(libraries: AvailableLibrary[]): void {
     this.libraries = libraries;
     this.#emit("libraries-changed");
   }
 
-  /** Narrow or widen the scope over the Libraries the database already holds. */
   select(available: AvailableLibrary[]): void {
     this.#current = {
       mode: "selected",
@@ -614,7 +581,6 @@ export class LibraryScopeStub {
     this.#emit();
   }
 
-  /** Every local Library joins the scope, as All Libraries does. */
   selectAll(libraries: AvailableLibrary[] = this.libraries): void {
     this.libraries = libraries;
     this.#current = allOf(libraries);
@@ -678,7 +644,6 @@ export class MemoryStore implements CitekeyStore {
 }
 
 export interface CitationIndexHarness extends AsyncDisposable {
-  /** The vault, metadata cache and workspace the index reads. */
   host: HostSources & {
     metadataCache: MockMetadataCache;
     vault: MockVault;
@@ -703,9 +668,7 @@ export interface CitationIndexHarness extends AsyncDisposable {
   db: DatabaseStub;
   citekeys: CitekeysStub;
   libraryScope: LibraryScopeStub;
-  /** The one client the owners built on this harness share. */
   queryClient: QueryClients["Service"];
-  /** Moves the client's clock one step past the failure cooldown deadline. */
   passCooldown: () => void;
 }
 
@@ -717,10 +680,6 @@ export interface CitationIndexHarnessOptions {
   store?: MemoryStore;
   citekeys?: LibraryCitekey[];
   db?: DatabaseStub;
-  /**
-   * SQL for the rows the default {@link DatabaseStub}'s database holds; its
-   * citation-key read then answers from them too.
-   */
   zoteroRows?: string;
   notes?: boolean;
   settingsService?: SettingsFixture;
@@ -742,7 +701,6 @@ export async function createCitationIndexHarness(
   );
   const { citekeys } = db;
   if (options.citekeys) citekeys.rows = options.citekeys;
-  // The default rows hold an Item of My Library and one of group 7's Library.
   const libraryScope =
     options.libraryScope ??
     new LibraryScopeStub([personalLibrary(), groupLibrary()]);
@@ -776,9 +734,6 @@ export async function createCitationIndexHarness(
   }
 
   const host = { metadataCache, vault, workspace };
-  // The Note Index runs as it does once enabled at runtime: layout is ready
-  // and the cache clean, so its Full Scan finishes before the harness returns.
-  // The Citation Index keeps the deferred layout the test releases.
   const noteIndex = buildNoteIndex(
     {
       metadataCache,
@@ -856,7 +811,6 @@ export async function createCitationIndexHarness(
 
 type Listener = (...data: never[]) => unknown;
 
-/** `source.on`, typed for an Obsidian object whose `on` overloads name each event. */
 function listenOn(source: Pick<Events, "on">) {
   return (name: string, callback: Listener): EventRef =>
     source.on(name, (...data: unknown[]) =>
@@ -864,10 +818,6 @@ function listenOn(source: Pick<Events, "on">) {
     );
 }
 
-/**
- * An App over the harness's vault and metadata cache, with `workspace`, for a
- * view under test that still reads the App.
- */
 export function harnessApp(
   { metadataCache, vault }: CitationIndexHarness["host"],
   workspace: App["workspace"],

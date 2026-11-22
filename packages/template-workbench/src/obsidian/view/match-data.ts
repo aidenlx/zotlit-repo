@@ -3,7 +3,6 @@ import type {
   WorkbenchLibrary,
   WorkbenchMatchResult,
 } from "#obsidian/workbench-ui/index.tsx";
-// Match vocabulary spans every Library in the pinned live database.
 import { Effect } from "effect";
 
 import { planItemFilter, testItemSeed } from "@zotlit/item-query";
@@ -21,11 +20,6 @@ import { formatIndexedKey, parseIndexedKey } from "@zotlit/zotero-types/keys";
 import { getSampleItem } from "#core/editor/selection-data.ts";
 import { hostEffect } from "#obsidian/editor/host.tsx";
 
-/**
- * The Match vocabulary and test, each forked on the runner of the mount that
- * reads it: its interrupt stops the read under it. The Workbench shows the
- * Match pane twice, and each copy reads at once.
- */
 export function createMatchData(
   provide: ViewRunner["provide"],
 ): WorkbenchHost["matchData"] {
@@ -83,10 +77,6 @@ export function createMatchData(
   };
 }
 
-/**
- * Whether the Item matches `filter`, as Profile selection tests it: a sample
- * Item in memory, from its seed, and a real Item through ZotLit Query.
- */
 const testMatch = Effect.fn("TemplateWorkbench.testMatch")(function* (
   indexedKey: string,
   filter: string,
@@ -112,7 +102,6 @@ const testMatch = Effect.fn("TemplateWorkbench.testMatch")(function* (
     : { kind: "result", matched: row.matched[0] === true };
 });
 
-/** A Diagnostic as the Match tab shows it, on its condition where it has one. */
 function problem(
   diagnostic: ReaderDiagnosticSource & {
     location?: { span?: { from: number; to: number } };

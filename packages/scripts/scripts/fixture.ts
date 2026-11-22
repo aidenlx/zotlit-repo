@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-// Builds, re-scopes, stops, and discards the Fixture.
-
 import type { DesktopSlot } from "#desktop-slot";
 import type { VaultPlugin } from "#vault-plugins";
 import { access } from "node:fs/promises";
@@ -111,11 +109,6 @@ function pairedRunBuilder(y: Argv) {
     );
 }
 
-/**
- * Hold the Desktop Slot for a Paired Run until this process exits, as a
- * manual hold. When a waiter's notice ends, the session stops its watchers
- * and Paired Zotero as on SIGTERM, then exits 76.
- */
 async function holdDesktopSlot(mode: "open" | "dev"): Promise<DesktopSlot> {
   return await acquireDesktopSlotOrExit({
     cwd: workspaceRoot,
@@ -126,7 +119,6 @@ async function holdDesktopSlot(mode: "open" | "dev"): Promise<DesktopSlot> {
         `Desktop Slot: ${describeLeaseEnd(owner, Temporal.Now.instant().epochMilliseconds)}; stopping the Paired Run (exit ${EXIT_LEASE_ENDED}).`,
       );
       process.exitCode = EXIT_LEASE_ENDED;
-      // The slot's own handler is one listener; a running session adds another.
       if (process.listenerCount("SIGTERM") < 2) process.exit(EXIT_LEASE_ENDED);
       process.emit("SIGTERM", "SIGTERM");
       setTimeout(() => process.exit(EXIT_LEASE_ENDED), KILL_AFTER_MS).unref();
@@ -134,10 +126,6 @@ async function holdDesktopSlot(mode: "open" | "dev"): Promise<DesktopSlot> {
   });
 }
 
-/**
- * The dev build of each plugin. `pnpm fixture` builds them first, so one is
- * missing only when this script runs on its own.
- */
 async function findPluginBundles(
   plugins: readonly VaultPlugin[],
 ): Promise<{ id: string; bundleDir: string }[]> {
@@ -196,9 +184,6 @@ async function build({
     requestedPlugins ??
     (await resolveVaultPlugins(workspaceRoot, pluginsOption.default));
   const bundles = await findPluginBundles(plugins);
-  // The Local API needs one port both sides name, and the shipped 23119 belongs
-  // to whatever Zotero the machine already runs. The profile carries this one,
-  // so Paired Zotero serves on it and ZotLit reads it back from the same file.
   const zoteroHttpPort = localApi
     ? await pairedRunPorts.allocateZoteroHttpPort()
     : undefined;
@@ -418,9 +403,6 @@ const cli = yargs(hideBin(process.argv))
         layout,
         companionDir,
       );
-      // This instance holds `zotero.sqlite` exactly as a Paired Run's does, so
-      // it is reported the same way — anything that would rebuild the Fixture
-      // has to see it. It carries no debugging port, and the report says so.
       await writePairedRunState(layout, { pid });
       console.log(
         `Launched the Paired Zotero from ${applicationDir} (pid ${pid})`,
@@ -479,8 +461,6 @@ const cli = yargs(hideBin(process.argv))
     "close the Paired Zotero that holds this Fixture, then delete the whole Fixture",
     () => {},
     async () => {
-      // Deleting the root under a live Zotero leaves it running on a profile
-      // that no longer exists, where no later stop can find it.
       await pairedRunPorts.stopLivePairedZotero();
       await discardFixture(layout);
       console.log(`Deleted ${layout.root}`);
@@ -495,8 +475,6 @@ const cli = yargs(hideBin(process.argv))
       `fixture: ${error instanceof Error ? error.message : (message ?? String(error))}`,
     );
     process.exitCode = 1;
-    // Throwing stops yargs from invoking the command handler after a
-    // validation failure (unknown argument, missing positional, and so on).
     throw error instanceof Error ? error : new Error(String(message));
   });
 

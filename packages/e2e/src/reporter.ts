@@ -24,15 +24,8 @@ import {
 
 import { E2E_RESULTS_ROOT, e2eResultsDir } from "./results-dir.ts";
 
-/** Run folders kept under the results root, this run's included. */
 const KEPT_RUNS = 10;
 
-/**
- * Keep console evidence on disk while terminal output follows suite progress.
- * Each test file, test case, and hook that starts or ends renews the Lease of
- * the run's Desktop Slot. A failed run whose desktop cannot paint at its end
- * says so after the summary.
- */
 export default class E2eReporter extends DefaultReporter {
   readonly #directory = e2eResultsDir();
   readonly #log = resolve(this.#directory, "console.log");
@@ -46,7 +39,6 @@ export default class E2eReporter extends DefaultReporter {
     this.log(`E2E evidence: ${this.#directory}`);
   }
 
-  /** `latest` names the run that started last. */
   #pointLatest(): void {
     const draft = resolve(E2E_RESULTS_ROOT, `latest.${process.pid}`);
     rmSync(draft, { force: true });
@@ -54,9 +46,7 @@ export default class E2eReporter extends DefaultReporter {
     renameSync(draft, resolve(E2E_RESULTS_ROOT, "latest"));
   }
 
-  /** Remove the oldest run folders. A run folder name starts with its time. */
   #pruneRuns(): void {
-    // Results of the runs from before the run folders.
     for (const file of ["results.json", "console.log", "paired-startup.log"]) {
       rmSync(resolve(E2E_RESULTS_ROOT, file), { force: true });
     }
@@ -121,8 +111,6 @@ export default class E2eReporter extends DefaultReporter {
   ) {
     super.onTestRunEnd(testModules, unhandledErrors, reason);
     if (reason !== "failed") return;
-    // A display that slept or a screen that locked during the run fails the
-    // cases that read a painted window.
     const line = await paintAfterFailure();
     if (line) this.error(line);
   }

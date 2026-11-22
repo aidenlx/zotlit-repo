@@ -1,23 +1,3 @@
-// The renderer's Item search facade over the ZoteroReads SearchItems operation.
-/**
- * The renderer's Item search: a thin facade over the ZoteroReads `SearchItems`
- * operation. The worker owns the Item Index (building, refresh, scope
- * identity); this facade only
- *
- * - resolves the current Library Scope to local `libraryIDs`, in canonical
- *   order, and asks `SearchItems`; a search may name its own Libraries;
- * - labels each hit with its Library from the scope it asked with, when two
- *   or more Libraries are in scope, so a group rename shows without a rebuild;
- * - runs the searches of each Search Session in one `FiberHandle`, so the
- *   next keystroke on a search surface interrupts the request before it, and
- *   that interrupt reaches the worker; one-shot searches run beside them;
- * - prewarms the index once on start and on each Library Scope change;
- * - tells the Chinese Segmenter of each search of Chinese text, which shows
- *   the Resource Pack notice when the pack gives no Segmenter.
- *
- * It answers empty while the scope is unresolved and when the database is
- * unavailable.
- */
 import {
   Clock,
   Context,
@@ -51,29 +31,16 @@ import { UseLedger } from "#obsidian/use-ledger/service.ts";
 export const DEFAULT_LIMIT = 50;
 
 export interface SearchOptions {
-  /** The most hits; {@link DEFAULT_LIMIT} where absent. */
   limit?: number;
-  /** The Libraries to search in place of the Library Scope in force. */
   libraries?: readonly AvailableLibrary[];
-  /** Indexed Keys to label as cited and put first in empty queries. */
   cited?: readonly string[];
 }
 
 export interface SearchHit extends ReadsSearchHit {
-  /**
-   * The Library this hit came from, for a muted label on the result row, or
-   * `null` when one Library is available and the label would say nothing.
-   */
   library: AvailableLibrary | null;
   cited: boolean;
 }
 
-/**
- * The searches of one search surface, such as a picker or the Citation
- * Suggester. A later `search` interrupts the one before, which then answers
- * with the later search's list. Closing the session's Scope interrupts the
- * pending search, and every later `search` answers empty.
- */
 export interface ItemLookupSession {
   search(query: string, opts?: SearchOptions): Effect.Effect<SearchHit[]>;
 }
@@ -81,17 +48,7 @@ export interface ItemLookupSession {
 export class ItemLookup extends Context.Service<
   ItemLookup,
   {
-    /**
-     * The Items in Library Scope, or in the Libraries `opts` names, that
-     * match `query`, best first, at most `limit`: a one-shot search, which
-     * runs beside every other search. A Library Scope change that changes
-     * the Libraries interrupts it, and it then answers empty.
-     */
     search(query: string, opts?: SearchOptions): Effect.Effect<SearchHit[]>;
-    /**
-     * A Search Session for one search surface, open until the caller's Scope
-     * closes. Searches of other sessions and one-shot searches run beside it.
-     */
     readonly openSession: Effect.Effect<ItemLookupSession, never, Scope.Scope>;
   }
 >()("zotlit/item-lookup/ItemLookup") {}
@@ -107,17 +64,8 @@ const logInterrupted = (query: string) =>
     Effect.annotateLogs({ queryLength: query.length }),
   );
 
-/**
- * A search fiber starts on the next turn, once its set or handle holds it: a
- * fiber that starts at once can wake a caller that searches again before the
- * handle knows the fiber to interrupt.
- */
 const deferredStart = { startImmediately: false } as const;
 
-/**
- * How the search that `fork` starts ended. No interrupt lands between the
- * fork and the wait; interrupting the caller interrupts the search.
- */
 const runSearch = (fork: Effect.Effect<Fiber.Fiber<SearchHit[]>>) =>
   Effect.uninterruptibleMask((restore) =>
     Effect.flatMap(fork, (fiber) => awaitOwned(fiber, restore)),
@@ -135,20 +83,17 @@ export const layerItemLookup = Layer.effect(
     const prewarms = yield* FiberSet.make<void>();
     const sessions = new Set<FiberHandle.FiberHandle<SearchHit[]>>();
 
-    /** One `SearchItems` request over `libraries`, labelled from them. */
     const searchItems = (
       libraries: readonly AvailableLibrary[],
       query: string,
       { limit, cited }: { limit: number; cited?: readonly string[] },
     ): Effect.Effect<SearchHit[]> =>
       Effect.gen(function* () {
-        // One available Library makes every label identical, so the rows carry none.
         const labels =
           libraries.length > 1
             ? new Map(libraries.map((library) => [library.libraryID, library]))
             : null;
         const citedKeys = new Set(cited);
-        // The search does not wait for the Segmenter's status or its notice.
         if (hasChineseRun(query)) yield* Effect.forkIn(needSegmenter, scope);
         const t0 = yield* Clock.currentTimeMillis;
         const hits = yield* reads.SearchItems({
@@ -179,16 +124,11 @@ export const layerItemLookup = Layer.effect(
             Effect.as([]),
           ),
         ),
-        // A search answers; a failure of any other kind is logged, not thrown.
         Effect.catch((error) => logFailure(error)),
         Effect.catchDefect((defect) => logFailure(defect)),
         withLogCategory("item-lookup"),
       );
 
-    /**
-     * The request of a search, or none when the limit or the scope leaves
-     * nothing to ask: the search then answers empty.
-     */
     const requestOf = (
       query: string,
       opts: SearchOptions | undefined,
@@ -219,7 +159,6 @@ export const layerItemLookup = Layer.effect(
         FiberSet.run(oneShots, request, deferredStart),
       );
       if (Exit.isSuccess(exit)) return exit.value;
-      // A scope change interrupted this search, or the service closed.
       yield* logInterrupted(query);
       return [];
     }, withLogCategory("item-lookup"));
@@ -235,7 +174,6 @@ export const layerItemLookup = Layer.effect(
         sessionScope,
         Effect.sync(() => sessions.delete(handle)),
       );
-      /** The answer of the newest search the session runs. */
       let latest: Deferred.Deferred<SearchHit[]> | undefined;
       const session: ItemLookupSession = {
         search: Effect.fn("ItemLookup.session.search")(function* (
@@ -252,7 +190,6 @@ export const layerItemLookup = Layer.effect(
               FiberHandle.run(handle, request, deferredStart),
             );
             if (Exit.isSuccess(exit)) return exit.value;
-            // A newer search interrupted this one, or the session closed.
             yield* logInterrupted(query);
             const newest = latest;
             return newest === answer || newest === undefined
@@ -269,12 +206,9 @@ export const layerItemLookup = Layer.effect(
     let scopeKey = scopeKeyOf(yield* libraryScope.current);
     yield* forkEach(scopeChanges(libraryScope.changes), ({ current }) =>
       Effect.gen(function* () {
-        // A pending answer covers the Libraries it asked with; once those
-        // change, it must not reach a picker. A rename keeps it.
         const next = scopeKeyOf(current);
         if (next !== scopeKey) {
           scopeKey = next;
-          // The interrupts go out now; their cleanup does not hold the prewarm.
           yield* Effect.forkIn(
             Effect.all(
               [
@@ -304,11 +238,6 @@ function logFailure(error: unknown): Effect.Effect<SearchHit[]> {
   );
 }
 
-/**
- * The Libraries `resolved` covers, as one comparable value: each stable
- * selector with its local id, since a database switch can give a local id to
- * another group.
- */
 function scopeKeyOf(resolved: ResolvedLibraryScope | null): string {
   return (resolved?.available ?? [])
     .map((library) => `${selectorKey(library.selector)}@${library.libraryID}`)

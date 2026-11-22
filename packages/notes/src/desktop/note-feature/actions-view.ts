@@ -7,8 +7,6 @@ import type {
   ActiveNote,
   UpdateNotesChoice,
 } from "#obsidian/note-feature/update-notes-view.ts";
-// The note commands and menu entries as Effect code: each asks what it must,
-// runs, and reports on a notice.
 import { Effect } from "effect";
 import type { App, TFile } from "obsidian";
 
@@ -42,7 +40,6 @@ import { reimportNoteByKey } from "#desktop/note-import/batch-import.ts";
 import { plainNoteError } from "#obsidian/note-feature/errors.ts";
 import { missingPartialNotice } from "#obsidian/template/workbench-recovery.ts";
 
-/** The services the note actions read. */
 export type NoteActionServices =
   | BatchImportServices
   | BatchUpdateServices
@@ -50,20 +47,16 @@ export type NoteActionServices =
   | Notifier
   | ZoteroPref;
 
-/** The legacy values the note actions call: the dialogs and the import and update modals. */
 export interface NoteActionPorts extends InteractiveCreationPorts {
   readonly batchImport: BatchImportPorts;
   readonly batchUpdate: BatchUpdatePorts;
-  /** Ask which notes to update; `null` when the user closes the dialog. */
   readonly chooseNotes: (
     note?: ActiveNote,
   ) => Effect.Effect<UpdateNotesChoice | null>;
 }
 
-/** The notice tells the user how the task went, so a failure ends here; an interrupt passes. */
 const reported = recover(() => Effect.void, Effect.void);
 
-/** Change `file`'s Profile after the user picks one and consents. */
 export const switchProfile = Effect.fn("NoteActions.switchProfile")(function* (
   ports: NoteActionPorts,
   file: TFile,
@@ -71,7 +64,6 @@ export const switchProfile = Effect.fn("NoteActions.switchProfile")(function* (
   yield* switchNoteProfileInteractively(ports, file);
 });
 
-/** Update `file` at `scope` behind its progress notice. */
 export const updateNote = Effect.fn("NoteActions.updateNote")(function* (
   ports: NoteActionPorts,
   file: TFile,
@@ -86,7 +78,6 @@ export const updateNote = Effect.fn("NoteActions.updateNote")(function* (
   );
 });
 
-/** Overwrite `file` from its Item after the user confirms it. */
 export const overwriteNote = Effect.fn("NoteActions.overwriteNote")(function* (
   ports: NoteActionPorts,
   file: TFile,
@@ -110,7 +101,6 @@ export const overwriteNote = Effect.fn("NoteActions.overwriteNote")(function* (
   );
 });
 
-/** Reimport the Imported Note `file` from its Zotero note after the user confirms it. */
 export const reimportNote = Effect.fn("NoteActions.reimportNote")(function* (
   ports: NoteActionPorts,
   file: TFile,
@@ -134,10 +124,6 @@ export const reimportNote = Effect.fn("NoteActions.reimportNote")(function* (
   );
 });
 
-/**
- * Run the Update all notes flow and report its outcome: the batch confirm
- * modal the command opens, reused wherever else that flow is offered.
- */
 export const updateAll = Effect.fn("NoteActions.updateAll")(function* (
   ports: NoteActionPorts,
   options: Pick<BatchUpdateOptions, "create"> = {},
@@ -148,11 +134,6 @@ export const updateAll = Effect.fn("NoteActions.updateAll")(function* (
   });
 });
 
-/**
- * Ask which notes to update, then update them.
- *
- * @param active the active literature note, when there is one
- */
 export const updateNotes = Effect.fn("NoteActions.updateNotes")(function* (
   ports: NoteActionPorts,
   active?: ActiveNote,
@@ -167,7 +148,6 @@ export const updateNotes = Effect.fn("NoteActions.updateNotes")(function* (
   yield* updateAll(ports, { create: choice.create });
 });
 
-/** The copy one Reimport note reports with. */
 export function reimportNoteToast(options: {
   app: App;
   path: string;
@@ -198,10 +178,6 @@ function reimportNoteNotice(result: ReimportResult): string {
   }
 }
 
-/**
- * The copy one Overwrite note reports with. A Note Feature failure shows what
- * its render or rewrite threw.
- */
 export function overwriteNoteToast(options: { app: App }): ProgressCopy<{
   diagnostic?: NoteOperationDiagnostic;
 }> {
@@ -221,7 +197,6 @@ export function overwriteNoteToast(options: { app: App }): ProgressCopy<{
   };
 }
 
-/** The notice an Update all notes outcome reports with, or none. */
 export function batchUpdateAllNotice(
   result: BatchUpdateResult,
 ): string | undefined {

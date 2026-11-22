@@ -29,7 +29,6 @@ import {
 
 type ManagedProcess = ChildProcessByStdio<null, Readable, Readable>;
 
-/** A Paired Zotero a Paired Run started, which always reports its RDP port. */
 type ReadyPairedZotero = PairedZotero & { debuggerPort: number };
 
 interface ReadyDevelopmentSession extends DevelopmentSession {
@@ -38,7 +37,6 @@ interface ReadyDevelopmentSession extends DevelopmentSession {
 
 const ZOTERO_READY_EVENT = "paired-zotero-ready";
 
-/** How long a Paired Zotero gets to close its database after each signal. */
 const ZOTERO_QUIT_TIMEOUT_MS = 20_000;
 const ZOTERO_KILL_TIMEOUT_MS = 5_000;
 const ZOTERO_EXIT_POLL_INTERVAL_MS = 250;
@@ -87,16 +85,11 @@ export function createNodePairedRunPorts({
       const findLive = (): Promise<LivePairedZotero[]> =>
         findLivePairedZotero(layout, workspaceRoot);
       let live = await findLive();
-      // The report may not outlive the process it names, whether or not one
-      // was found: a Paired Zotero that already exited leaves its report here.
       await clearPairedRunState(layout);
       if (live.length === 0) return [];
       const closed = live;
 
       console.log(`Closing the live Paired Zotero: ${describeLive(live)}`);
-      // SIGTERM lets Zotero close its database. SIGKILL is the fallback for an
-      // instance that never answers, because the rebuild that follows deletes
-      // the whole Fixture root under it.
       for (const [signal, timeoutMs] of [
         ["SIGTERM", ZOTERO_QUIT_TIMEOUT_MS],
         ["SIGKILL", ZOTERO_KILL_TIMEOUT_MS],
@@ -193,9 +186,6 @@ export function createNodePairedRunPorts({
       });
       return {
         ...session,
-        // Both launch paths report the same instance to the same file, so a
-        // process attaching to this Fixture reads one place whichever command
-        // opened it.
         ready: session.ready.then(async (zotero) => {
           await writePairedRunState(layout, zotero);
           return zotero;
@@ -209,11 +199,6 @@ export function createNodePairedRunPorts({
   };
 }
 
-/**
- * A free port on the loopback host used by both servers. The result stays free
- * only until something claims it, so the Paired Run writes it to the generated
- * configuration before it starts the corresponding server.
- */
 function allocatePort(): Promise<number> {
   return getPort({ host: LIVE_UPDATE_HOSTNAME });
 }
@@ -238,7 +223,6 @@ async function findWindowsFixtureZoteroProcesses(
   return findWindowsPairedZoteroProcesses(result.stdout);
 }
 
-/** Reads the `<pid> <name>` rows the Windows scan above writes. */
 export function findWindowsPairedZoteroProcesses(
   output: string,
 ): LivePairedZotero[] {
@@ -253,10 +237,6 @@ export function findWindowsPairedZoteroProcesses(
   return processes;
 }
 
-/**
- * The Zotero processes that hold this Fixture's database open, or none when the
- * Fixture has no database yet.
- */
 async function findLivePairedZotero(
   layout: FixtureLayout,
   cwd: string,
@@ -276,11 +256,9 @@ async function findLivePairedZotero(
     ["-Fpc", "--", layout.databasePath],
     { acceptExitCodes: [0, 1], cwd },
   );
-  // lsof answers 1 when nothing holds the file open.
   return result.code === 0 ? findPairedZoteroProcesses(result.stdout) : [];
 }
 
-/** Polls until nothing holds the Fixture database, or the deadline passes. */
 async function waitForFixtureRelease(
   findLive: () => Promise<LivePairedZotero[]>,
   timeoutMs: number,
@@ -311,8 +289,6 @@ function startDevelopmentSession({
   workspaceRoot: string;
   vaultCase?: string;
 }): ReadyDevelopmentSession {
-  // The Vite dev build copies each bundle into the Development Vault of this
-  // run's Vault Case, so hot reload reaches a case vault too.
   const obsidian = spawnWatcher(
     "Obsidian watcher",
     ["--filter", "@zotlit/obsidian", "dev"],
@@ -422,7 +398,6 @@ function spawnWatcher(
   };
 }
 
-/** Directly spawning the pnpm.cmd shim fails with ENOENT on Windows. */
 export function getWatcherCommand(
   args: string[],
   options: { platform?: NodeJS.Platform; comspec?: string } = {},

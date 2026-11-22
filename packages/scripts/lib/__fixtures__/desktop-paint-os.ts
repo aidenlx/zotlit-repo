@@ -1,8 +1,3 @@
-// OS boundary for the paint tests, loaded with `--import`: macOS answers the
-// probe with the desktop state named in the file ZOTLIT_TEST_DESKTOP, read at
-// each probe so that a test can change it during a run. `caffeinate` is a
-// stand-in that appends `<pid> <args>` to ZOTLIT_TEST_CAFFEINATE and runs
-// until it is killed.
 import type { DesktopState } from "./desktop-states.ts";
 import childProcess from "node:child_process";
 import { readFileSync } from "node:fs";

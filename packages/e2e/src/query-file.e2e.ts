@@ -43,16 +43,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { paths: scratchFiles },
       );
     });
-    /** What the active Query File tab shows, once its query settled. */
     interface Tab {
       file: string;
       view: string | null;
       count: string | null;
       cards: string[];
       headings: string[];
-      /** The Indexed Key of each Item row of the Table. */
       rows: string[];
-      /** The Table's columns: each property path and its header text. */
       columns: {
         path: string;
         label: string;
@@ -112,7 +109,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       if (!settled) throw new Error(`Query File tab: ${JSON.stringify(tab)}`);
       return tab!;
     };
-    /** The rows ZotLit Query gives for a view, through the CLI. */
     const queryRows = async (filter?: string) => {
       const report = JSON.parse(
         await cliCommand(run.vaultId, "zotlit:query", {
@@ -127,8 +123,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       expect(report.ok).toBe(true);
       return report.rows!;
     };
-    // "New query file" from the command palette writes a Table of the
-    // library's Items, newest first, and opens it in a tab.
     const before = await obRun(run.vaultId, ({ app }) => {
       return app.vault.getFiles().map((f) => f.path);
     });
@@ -140,7 +134,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     expect(before).not.toContain(created.file);
     scratchFiles.push(created.file);
     expect(created.file).toMatch(/\.zotquery$/);
-    // The Items of the Libraries of the Library Scope, from the seed.
     const scope = JSON.parse(
       await cliCommand(run.vaultId, "zotlit:library-scope"),
     ) as LibraryScopeReport;
@@ -155,7 +148,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       count: String(newest.length),
       rows: newest,
       columns: [
-        // Zotero's own label for the title field.
         { path: "title", label: expect.stringContaining("Title") },
         {
           path: "creators",
@@ -176,9 +168,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       problems: null,
       unresolved: null,
     });
-    // Its second view is the Annotations of the whole library: the cards
-    // come grouped by Item under its title, in query order inside a group,
-    // and the count is the query's own. No Zotero answers this vault.
     const annotationsView = run.m.query_file_annotations_view_name();
     await obRun(
       run.vaultId,
@@ -204,7 +193,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       problems: null,
       unresolved: null,
     });
-    // The view menu of the Fixture's Query File lists its views and switches.
     await obRun(run.vaultId, async ({ app }) => {
       const leaf = app.workspace.getLeaf("tab");
       await leaf.openFile(
@@ -257,8 +245,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         undefined,
       ),
     ).toBe("Figures");
-    // A filter that reads `this` shows the diagnostic: a tab has no Query
-    // Context. A bad expression and an unknown field open and say so too.
     for (const [name, filter, code] of [
       ["this", "item == this.item", "unbound-context"],
       ["bad", "colorName ==", "invalid-filter"],
@@ -289,7 +275,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         count: null,
       });
     }
-    // "New query file" stands in a folder's menu in the file explorer.
     const folderMenu = await obRun(run.vaultId, async ({ app, page }) => {
       const { until } = page;
       app.workspace.leftSplit.expand();
@@ -323,8 +308,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     expect(folderMenu).toContain(run.m.query_file_new());
   }, 180000);
-  // The pill patches Obsidian's internal empty view and copies its pills'
-  // markup, so an Obsidian upgrade that moves either shows up here.
   it("shows New Zotero query table with its hotkey after Obsidian's New pills on a new tab, and creates a Query File there ready to rename", async () => {
     const command = "zotlit:new-query-file";
     const layout = await obRun(run.vaultId, ({ app }) => {
@@ -388,7 +371,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       app.commands.executeCommandById("workspace:new-tab");
       return true;
     });
-    /** Each pill of the active empty tab: its icon, label, hotkey and classes. */
     interface Pill {
       icon: string | null;
       label: string | null;
@@ -424,7 +406,6 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       return pills.some((pill) => pill.ours);
     });
     expect(shown, JSON.stringify(pills)).toBe(true);
-    // Right after New note, New base and New canvas, before Go to file.
     expect(pills.map((pill) => pill.icon)).toEqual([
       "lucide-square-pen",
       "lucide-layout-list",
@@ -436,12 +417,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const newNote = pills[0]!;
     expect(ours).toMatchObject({
       label: run.m.empty_state_new_query(),
-      // Printed the way Obsidian prints New note's own hotkey.
       hotkey: ` ${printed}`,
       classes: newNote.classes,
     });
     expect(newNote.hotkey).toMatch(/^ \S/);
-    // A click opens a new Query File in this tab, its title selected to rename.
     const created = await obRun(run.vaultId, async ({ app, page }) => {
       const { press, until } = page;
       const leaf = app.workspace.getMostRecentLeaf()!;

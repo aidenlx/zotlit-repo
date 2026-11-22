@@ -278,8 +278,6 @@ describe("creatorSummary", () => {
   });
 
   it("joins two primary creators in the locale the messages render in", () => {
-    // A pack that translates nothing still names the locale every message
-    // renders in, which is the locale the pair joins by.
     runtime.install({ schemaVersion: 1, locale: "zh-CN", messages: {} });
     onTestFinished(() => runtime.reset());
 

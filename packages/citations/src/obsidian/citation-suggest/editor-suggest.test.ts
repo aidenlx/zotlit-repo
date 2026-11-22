@@ -85,9 +85,6 @@ function searchHit(
   });
 }
 
-/** The two decisions an insert runs on: how a citation renders, and whether
- *  its Citation Key names one Zotero Item or several — the second only once
- *  the resolution snapshot has an answer at all. */
 function insertDeps(
   renderCitation: CitationSuggestDeps["citationTemplate"]["renderCitation"],
   resolved: CitekeyResolution = { kind: "unique", item: UNIQUE_ITEM },
@@ -164,10 +161,6 @@ describe("resolveCitationInsert", async () => {
     "resolves to a not-ready notice when the template isn't loaded yet",
     () =>
       Effect.promise(async () => {
-        // Regression for the C3 readiness gap: renderCitation returns null instead
-        // of throwing when `template.loaded` is false, so the handler (which can't
-        // await) must resolve to a notice rather than inserting an empty string
-        // into the editor.
         const renderCitation = vi.fn().mockReturnValue(null);
         const hit = makeHit("abc2024");
 
@@ -270,8 +263,6 @@ describe("resolveCitationInsert", async () => {
           "main",
         );
 
-        // The inserted text carries the key alone, so inserting it would lose the
-        // Item the user picked here.
         expect(renderCitation).not.toHaveBeenCalled();
         expect(outcome).toEqual({
           kind: "notice",
@@ -286,8 +277,6 @@ describe("resolveCitationInsert", async () => {
       Effect.promise(async () => {
         const renderCitation = vi.fn();
 
-        // A snapshot still resolving answers every key as missing, so an ambiguous
-        // key would slip through the refusal above and lose its Item identity.
         const outcome = await resolveCitationInsert(
           insertDeps(renderCitation, { kind: "missing" }, null),
           makeHit("abc2024"),
@@ -385,8 +374,6 @@ describe("resolveCitationTrigger", () => {
   });
 
   it("does not extend `end` when the adjacent char is a bracket but the trigger isn't", () => {
-    // "(@foo]" — no Bracket Trigger match here ("(" isn't an opener for it),
-    // and the At Trigger never swallows a following bracket.
     const line = "(@foo]";
     expect(resolveCitationTrigger(line, 5, { atTrigger: true })).toEqual({
       start: 1,
@@ -512,7 +499,6 @@ describe("resolveCitationTrigger", () => {
 });
 
 describe("a placed citation and the triggers", () => {
-  /** The line after `citation` lands at the end of `line`, and the cursor ch. */
   const placeAtEnd = (line: string, citation: string) => {
     const { insert, cursor } = placeInsertion(citation, {
       kind: "citation",
@@ -685,7 +671,6 @@ describe("Citation Suggester document citations", () => {
         );
         using _close = { [Symbol.dispose]: () => suggest.close() };
         const close = vi.spyOn(suggest, "close");
-        // Obsidian consumes every answer and closes the dropdown for an empty list.
         const showSuggestions = (hits: SearchHit[]) => {
           if (hits.length === 0) suggest.close();
           return hits.map((hit) => hit.item.indexedKey);
@@ -785,11 +770,7 @@ describe("Citation Suggester document citations", () => {
   );
 });
 
-// Regression tests: the dropdown kept an earlier query's rows on
-// screen until the typed query's answer arrived, and Enter or a click chose
-// from them.
 describe("Citation Suggester choices while the typed query's answer is pending", () => {
-  /** Two Items with one title: their rows read the same. */
   const figures = titled("DMRGRART", "rougier2014");
   const rules = titled("RUGIER24", "rougier2024");
 
@@ -864,7 +845,6 @@ describe("Citation Suggester choices while the typed query's answer is pending",
       suggest,
       note: () => note,
       record,
-      /** Types `query` after the trigger; Obsidian asks for its answer. */
       type: (query: string) => {
         note = `[@${query}`;
         const context = stubService<EditorSuggestContext>(
@@ -880,7 +860,6 @@ describe("Citation Suggester choices while the typed query's answer is pending",
         suggest.context = context;
         shown.set(query, suggest.getSuggestions(context));
       },
-      /** Answers `query` and waits until its rows show. */
       answer: async (query: string, hits: SearchHit[]) => {
         answerTo(query).resolve(hits);
         await shown.get(query);
@@ -898,7 +877,6 @@ describe("Citation Suggester choices while the typed query's answer is pending",
         await h.answer("", [figures, rules]);
         h.type("ten simple");
 
-        // The empty query's rows are still on screen, DMRGRART first.
         h.suggest.selectSuggestion(figures, enter);
         expect(h.note()).toBe("[@ten simple");
 

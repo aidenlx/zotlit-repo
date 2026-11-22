@@ -1,11 +1,5 @@
-/* The plugin's stylesheet: the plugins' Tailwind theme, over the sources this
-   plugin bundles. */
 @import "@zotlit/obsidian-kit/theme.css";
 
-/* The plugin packages draw with zt: classes too; Tailwind scans only this
-   package's own files unless a source names them. The list is every plugin
-   package this host bundles (`@zotlit/scripts/plugin-packages`), which
-   src/plugin-packages.test.ts holds it to. */
 @source "../../../packages/annotations/src";
 @source "../../../packages/citations/src";
 @source "../../../packages/library-view/src";

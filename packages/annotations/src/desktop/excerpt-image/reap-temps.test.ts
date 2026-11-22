@@ -30,13 +30,11 @@ afterEach(async () => {
   await rm(parent, { recursive: true, force: true });
 });
 
-/** The test's now, in seconds since the epoch: every entry ages against it. */
 const NOW = 1_000_000_000;
 
 const HOUR = 60 * 60;
 const DAY = 24 * HOUR;
 
-/** An entry stamped `seconds` before {@link NOW}, with the Clock at NOW. */
 const entry = (name: string, seconds: number) =>
   Effect.gen(function* () {
     const path = join(directory, name);

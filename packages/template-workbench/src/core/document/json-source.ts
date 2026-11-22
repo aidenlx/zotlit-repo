@@ -1,4 +1,3 @@
-// JSON layout changes preserve token spelling and map between editor and Profile offsets.
 import { invertedEffects } from "@codemirror/commands";
 import { ChangeSet, StateEffect } from "@codemirror/state";
 import { applyEdits, createScanner, format, parse } from "jsonc-parser";
@@ -6,10 +5,8 @@ import type { ParseError, Edit } from "jsonc-parser";
 
 import { yamlValue } from "./scalar-source.ts";
 
-// The library declares ambient const enums, which verbatimModuleSyntax cannot import.
 const tokenKind = { eof: 17, whitespace: 15, lineBreak: 14 };
 
-/** Format for display, or remove insignificant whitespace for inline YAML storage. */
 export function jsonLayout(source: string, pretty: boolean) {
   let edits: Edit[];
   if (pretty) {
@@ -32,7 +29,6 @@ export function jsonLayout(source: string, pretty: boolean) {
       token = scanner.scan()
     ) {
       if (token === tokenKind.whitespace || token === tokenKind.lineBreak) {
-        // Retain separators in unfinished input: `1 2` must not turn into `12`.
         const previous = edits.at(-1);
         if (
           previous &&
@@ -61,11 +57,6 @@ export function jsonLayout(source: string, pretty: boolean) {
   };
 }
 
-/**
- * The JSON a rule editor shows for `source`, a `value` written after `prefix`
- * on its line. JSON keeps its own spelling. A rule in another YAML form shows
- * the value it reads as, and the first edit stores that value as compact JSON.
- */
 export function ruleDisplay(source: string, prefix: string): string {
   if (!isJson(source)) {
     const value = yamlValue(source, prefix);
@@ -74,7 +65,6 @@ export function ruleDisplay(source: string, prefix: string): string {
   return jsonLayout(source, true).text;
 }
 
-/** Whether `source` is JSON as the rule editor writes it. */
 export function isJson(source: string): boolean {
   try {
     JSON.parse(source);
@@ -84,11 +74,6 @@ export function isJson(source: string): boolean {
   }
 }
 
-/**
- * Map a caret between two whitespace layouts of the same JSON token stream. A
- * rule written in YAML is shown as JSON with other tokens, so its caret is
- * kept inside the target text.
- */
 export function jsonPosition(source: string, target: string, position: number) {
   const compact = jsonLayout(source, false);
   const expanded = jsonLayout(target, false);
@@ -105,7 +90,6 @@ export const jsonSliceEdit = StateEffect.define<{
   after: JsonDraft;
 }>();
 
-// Formatting-only edits and exact draft selections share the master's undo history.
 export const jsonSliceHistory = invertedEffects.of((transaction) =>
   transaction.effects.toReversed().flatMap((effect) =>
     effect.is(jsonSliceEdit)

@@ -1,16 +1,9 @@
-// Per-device Zotero profile/data-directory overrides, stored in Obsidian's vault-scoped localStorage (never synced).
 import type { App } from "obsidian";
 
-/** localStorage surface these helpers need — the vault-scoped store. */
 export type DeviceStorage = Pick<App, "loadLocalStorage" | "saveLocalStorage">;
 
 const STORAGE_KEY = "zotlit-zotero-paths";
 
-/**
- * A device's Zotero path overrides. `null` for either means "auto-detect" — the
- * happy path on a default install. These are machine-specific absolute paths, so
- * they live per vault × device and never sync.
- */
 export interface ZoteroPathOverrides {
   profileDir: string | null;
   dataDir: string | null;
@@ -26,7 +19,6 @@ export function loadZoteroPathOverrides(
   };
 }
 
-/** Persist the overrides as a sparse record, clearing the entry when both are unset. */
 export function saveZoteroPathOverrides(
   app: DeviceStorage,
   overrides: ZoteroPathOverrides,

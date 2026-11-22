@@ -21,29 +21,6 @@ import {
 import { releaseLine } from "#release/lines";
 import { PUBLISHED_PLUGINS } from "#shell/plugins";
 
-/**
- * `pnpm release`: the version commit of a release, landed onto `main` through
- * the Land Queue. It bumps `apps/{app}/package.json#version` (the one version
- * source), syncs the root manifest of a stable plugin release, refreshes the
- * lockfile, commits on a local release branch, and lands that commit. It tags
- * nothing and publishes nothing: `release.yml` publishes each version that
- * `main` gains (lib/release/plan.ts). The version picks the line: a
- * pre-release version is a beta, any other version a stable release.
- *
- * The release gate (`pnpm verify --release`) runs once per release, in a Land
- * Turn, on the tree that is pushed. `--obsidian <bump|version>`,
- * `--zotero <bump|version>`, `--reader <bump|version>` and
- * `--resources <bump|version>` name the apps and versions and run without
- * prompts. The Resource Pack has its own version line, and its release line
- * follows the ZotLit release that builds it: a release of both takes the pack
- * on ZotLit's line. On a failure the release branch goes
- * away and the checkout is back on its branch; nothing reached the remote
- * unless the output says so.
- *
- * @see CONTRIBUTING.md "Releasing"
- * @see docs/adr/0097-main-is-the-one-trunk.md
- */
-
 const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
 
 type AppName = "obsidian" | "zotero" | "reader" | "resources";
@@ -92,7 +69,6 @@ const { values: flags } = parseArgs({
   },
 });
 
-/** Version specs named on the command line, by app. Any one of them turns prompts off. */
 const requested: Partial<Record<AppName, string>> = {
   ...(flags.obsidian !== undefined && { obsidian: flags.obsidian }),
   ...(flags.zotero !== undefined && { zotero: flags.zotero }),
@@ -104,8 +80,6 @@ const git = $({ cwd: workspaceRoot, quiet: true });
 
 p.intro(interactive ? "ZotLit release" : "ZotLit release (non-interactive)");
 
-// Every release runs the release gate, whose End-to-end Run needs a painted
-// desktop window: stop now, before the version commit and the gate.
 await exitUnlessDesktopPaints();
 await assertCleanWorkingTree();
 const branch = (await git`git branch --show-current`).stdout.trim();
@@ -125,7 +99,6 @@ const bumps: Bump[] = [];
 for (const app of targets) {
   const current = (await readPackageJson(app.pkgPath)).version;
   const spec = requested[app.name];
-  // ZotLit comes before the pack in `targets`, so its version is picked.
   const zotlit = bumps.find((b) => b.app.name === "obsidian")?.next;
   const line =
     app.name === "resources" && zotlit !== undefined
@@ -198,7 +171,6 @@ async function completeRelease(): Promise<void> {
   );
 }
 
-/** Lands the release branch; on a failure, explains, returns to the branch, and exits. */
 async function landOrFail(releaseRef: string): Promise<void> {
   const result = await land({
     cwd: workspaceRoot,
@@ -216,14 +188,12 @@ async function landOrFail(releaseRef: string): Promise<void> {
   );
 }
 
-/** Back to the branch the release started on, which the land moved; the release branch goes. */
 async function returnTo(releaseRef: string): Promise<void> {
   await git`git switch -q ${releaseBranch}`;
   await git`git merge -q --ff-only ${`origin/${releaseBranch}`}`;
   await git`git branch -q -D ${releaseRef}`;
 }
 
-/** Drops the release branch and its version commit; the checkout is clean on its branch. */
 async function abandon(releaseRef: string): Promise<void> {
   await git({ nothrow: true })`git reset -q --hard`;
   await git({ nothrow: true })`git switch -q ${releaseBranch}`;
@@ -248,12 +218,6 @@ async function pickApps(): Promise<AppMeta[]> {
   return [APPS[selection]];
 }
 
-/**
- * Interactive semver picker over {@link bumpOptions}, with `custom` as the
- * escape hatch. With `line`, it offers the bumps onto that release line.
- *
- * @returns the chosen version, or `null` if cancelled.
- */
 async function pickVersion(
   app: AppMeta,
   current: string,
@@ -277,11 +241,9 @@ async function pickVersion(
     validate: (val) => (valid(val) ? undefined : "Invalid semver version"),
   });
   if (p.isCancel(custom)) return null;
-  // Normalize: `valid()` also accepts noncanonical input like `v2.0.0`.
   return valid(custom);
 }
 
-/** A command-line version spec, resolved; exits on anything else. */
 function resolveSpec(app: AppMeta, current: string, spec: string): string {
   const next = resolveVersionSpec(current, spec);
   if (next === null) {
@@ -294,7 +256,6 @@ function resolveSpec(app: AppMeta, current: string, spec: string): string {
   return next;
 }
 
-/** Asks `message`; without prompts, logs it and answers yes. */
 async function confirm(message: string): Promise<boolean> {
   if (!interactive) {
     p.log.info(`${message} Yes (non-interactive).`);
@@ -304,11 +265,6 @@ async function confirm(message: string): Promise<boolean> {
   return !p.isCancel(answer) && answer;
 }
 
-/**
- * Obsidian community-store sync, applied on **stable** Obsidian releases only:
- * the root `manifest.json` and `versions.json`, which the shell generator
- * reads. Pre-releases leave both as they are.
- */
 async function syncObsidian(
   releases: Bump[],
   staged: Set<string>,
@@ -334,10 +290,6 @@ async function syncObsidian(
   staged.add(versionsPath);
 }
 
-/**
- * On a stable release of ZotLit Reader or the Resource Pack: the plugin's own
- * `versions.json`, which the shell generator reads.
- */
 async function syncVersions(
   name: "reader" | "resources",
   releases: Bump[],
@@ -379,11 +331,6 @@ async function assertCleanWorkingTree(): Promise<void> {
   fail(`Working tree is not clean. Commit or stash changes first:\n${status}`);
 }
 
-/**
- * The release starts from the tip of `origin/${branch}`: a branch behind it
- * would bump a stale version, and commits only this checkout has reach the
- * remote through `pnpm land`, not inside a release.
- */
 async function assertInSyncWithOrigin(branch: string): Promise<void> {
   await git`git fetch -q origin ${`+refs/heads/${branch}:refs/remotes/origin/${branch}`}`;
   const counts = (

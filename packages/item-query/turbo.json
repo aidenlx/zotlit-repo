@@ -2,8 +2,6 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
-    // The Query Schema file: the docs reference page reads it, and the
-    // release attaches it as a resource.
     "generate:schema": {
       "dependsOn": ["transit"],
       "inputs": ["$TURBO_DEFAULT$", "!**/*.test.ts"],
@@ -11,7 +9,6 @@
       "outputLogs": "errors-only"
     },
     "test": {
-      // The scenario database copies the Fixture's pristine Zotero template.
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/packages/scripts/lib/fixture/pristine-zotero.sqlite.gz"

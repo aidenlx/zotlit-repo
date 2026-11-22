@@ -14,15 +14,6 @@ import {
   withPatterns,
 } from "@zotlit/config/oxlint-plugin-code";
 
-// Each layer of the shell has one home and one boundary, by what a file needs
-// from its host. `core/` is host-free: the build order and the start-up
-// failure. `obsidian/` loads on Obsidian Mobile: the plugin class, the
-// runtime, the setting tab shell and the platform feature, with no Node or
-// Electron, so every host, ZotLit Mobile included, starts through it.
-// `desktop/` alone reads Node and Electron: the desktop half of the platform.
-// A layer imports the layers below it only: core <- obsidian <- desktop.
-
-/** The plugin layers above the host-free base. */
 const pluginLayers = {
   group: [
     "@zotlit/obsidian-kit",
@@ -103,7 +94,6 @@ export default defineConfig({
       rules: { "no-restricted-imports": ["error", obsidianImports] },
     },
     {
-      // The desktop half of the platform: Node and Electron.
       files: ["src/desktop/**"],
       excludeFiles: NOT_TESTS,
       rules: {
@@ -117,8 +107,6 @@ export default defineConfig({
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
     {
-      // Background work that stands in no window, which lives as long as the
-      // plugin and so as the main window.
       files: ["src/obsidian/lifecycle.ts"],
       rules: { "zotlit-obsidian/no-global-timer": "off" },
     },

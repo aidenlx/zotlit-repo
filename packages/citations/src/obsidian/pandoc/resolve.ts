@@ -1,13 +1,9 @@
-// Resolves one document's Literature Note links to the citation keys Pandoc cites.
-
 import { Effect } from "effect";
 import { parseLinktext } from "obsidian";
 import type { LinkCache } from "obsidian";
 
-/** Fragment prefix that declares citation intent on a link. */
 const CITE_FRAGMENT_PREFIX = "#cite:";
 
-/** Runs of well-formed `%XX` triples; a lone `%` stays literal. */
 const PERCENT_RUN = /(?:%[0-9A-Fa-f]{2})+/g;
 
 export type ResolveErrorCode =
@@ -17,79 +13,50 @@ export type ResolveErrorCode =
   | "citation-key-missing"
   | "duplicate-citation-key"
   | "unresolved-citation-intent"
-  /** The command was given a parameter it does not take, or no `file`. */
   | "flags-invalid";
 
 export interface ResolveError {
   code: ResolveErrorCode;
-  /** Bare decoded linkpath the error belongs to, absent for whole-run failures. */
   linkpath?: string;
   indexedKey?: string;
   message: string;
 }
 
-/**
- * Either every Literature Note link of the document as `linkpath → citation
- * key`, or every discoverable failure. The two never appear together: any
- * error stops all citations.
- */
 export type ResolveResponse =
   | { citations: Record<string, string> }
   | { errors: ResolveError[] };
 
-/** The document being resolved, as Obsidian's caches see it. */
 export interface ResolveDocument {
-  /** Vault-relative path, the source Obsidian resolves links against. */
   sourcePath: string;
   links: readonly LinkCache[];
 }
 
-/** What the database knows about one linked Zotero Item. */
 export interface ResolvedItem {
   citationKey: string | null;
-  /** Identifies the Item in the `citation-key-missing` message. */
   title: string;
 }
 
-/** Names the Zotero database the `database-unavailable` message reports on. */
 export interface DatabaseDescription {
   dataDir: string;
-  /** Effective read mode, `null` when the database never opened. */
   readMode: string | null;
 }
 
 export interface ResolvePorts {
-  /** The vault file at an absolute path; `null` when the path names none. */
   readDocument: (absolutePath: string) => ResolveDocument | null;
-  /**
-   * Indexed Key of the Literature Note `linkpath` names, resolved from
-   * `sourcePath`; `null` for a missing target or an ordinary note.
-   */
   resolveIndexedKey: (linkpath: string, sourcePath: string) => string | null;
   database: {
     describe: () => Effect.Effect<DatabaseDescription>;
-    /**
-     * Every lookup under one read lease, keyed by Indexed Key. A key the
-     * database has no live Item for is absent; `null` means no read lease.
-     */
     read: (
       indexedKeys: readonly string[],
     ) => Effect.Effect<ReadonlyMap<string, ResolvedItem> | null>;
   };
 }
 
-/** One Literature Note link of a document, in the identities a resolve map uses. */
 export interface CitationLink {
-  /** Bare decoded linkpath — the key both filter variants look up. */
   linkpath: string;
   indexedKey: string;
 }
 
-/**
- * Resolve the Literature Note links of the file at `absolutePath`, the whole
- * `zotlit:resolve` contract. All-or-nothing: one error suppresses every
- * citation, and every discoverable error is reported together.
- */
 export const resolveCitations = Effect.fn("Pandoc.resolveCitations")(function* (
   absolutePath: string,
   ports: ResolvePorts,
@@ -166,12 +133,6 @@ export const resolveCitations = Effect.fn("Pandoc.resolveCitations")(function* (
   return errors.length > 0 ? { errors } : { citations };
 });
 
-/**
- * The Literature Note links of one document, one entry per unique decoded bare
- * linkpath, so a note linked ten times costs one lookup. Links to ordinary
- * notes drop out silently; only a `#cite:` fragment turns an unresolved target
- * into an error.
- */
 export function collectCitationLinks(
   document: ResolveDocument,
   resolveIndexedKey: ResolvePorts["resolveIndexedKey"],
@@ -207,7 +168,6 @@ export function collectCitationLinks(
   return { links, errors };
 }
 
-/** Lenient, matching the filter: malformed percent escapes survive as written. */
 function decodeLinkpath(path: string): string {
   return path.replaceAll(PERCENT_RUN, (run) => {
     try {

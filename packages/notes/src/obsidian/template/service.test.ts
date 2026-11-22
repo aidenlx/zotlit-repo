@@ -109,7 +109,6 @@ describe("TemplateService", () => {
       const { service } = yield* Effect.promise(() =>
         makeHarness({ vault }, context),
       );
-      // Obsidian populates a late inventory without create events.
       vault.addFile(
         "templates/zotlit-profile.books.md",
         literatureNoteDocument("Books"),
@@ -255,8 +254,6 @@ filename: "{{ zt.title }}"
             profile: resolveProfile(converted, profiles[0]!.id)!,
           }),
         ).toBe("PROFILE Excerpt");
-        // plain.md has no Annotation Section: the document is invalid, and the
-        // render refuses instead of substituting the embedded default.
         expect(
           plainTemplateError(
             yield* Effect.flip(
@@ -268,8 +265,6 @@ filename: "{{ zt.title }}"
         ).toEqual(
           expect.objectContaining({ code: "missing-annotation-section" }),
         );
-        // A documentless Profile predates the required-block rule and keeps the
-        // embedded default through the legacy machinery.
         expect(
           yield* service.templateService.renderProfileAnnotation(data, {
             profile: resolveProfile(converted, profiles[2]!.id)!,
@@ -975,8 +970,6 @@ partials:
 
         const failure = yield* Effect.flip(service.render("note", data));
 
-        // The native boundary retains liquidjs's wrapped application error in
-        // TemplateRenderError.cause, including the original thrown object.
         expect(failure).not.toBeInstanceOf(InertTemplateError);
         expect(failure).not.toBeInstanceOf(TemplateError);
         expect(failure).toMatchObject({ _tag: "TemplateRenderError" });
@@ -1101,8 +1094,6 @@ partials:
             service.bridge.runSync(service.compileErrors).get("note"),
           ).toBeDefined();
         }).pipe(
-          // A JS `finally` around `yield*` does not run when the yielded
-          // Effect fails; `ensuring` restores the default on every exit.
           Effect.ensuring(
             Effect.sync(() => {
               DEFAULT_TEMPLATES.note = original;
@@ -1543,8 +1534,6 @@ partials:
       }),
   );
 
-  // Obsidian fires a rename and the edit that follows it in one tick; the
-  // vault tag hands both to the template intake in that order.
   it.effect("keeps a rename before the edit that follows it in one tick", () =>
     Effect.gen(function* () {
       const context = yield* Effect.context<never>();
@@ -1776,8 +1765,6 @@ partials:
         settings.update({ "note.template-conversion-pending": false }),
       );
 
-      // Nothing remains: Profile documents own the note sources and the Citation
-      // Template owns the citation text.
       expect(service.bridge.runSync(service.getTemplateFileStatuses)).toEqual(
         [],
       );
@@ -1787,8 +1774,6 @@ partials:
   it.effect("renders both Citation Variants from the built-in text", () =>
     Effect.gen(function* () {
       const context = yield* Effect.context<never>();
-      // A vault holding no zotlit-citation.md still inserts what 2.1.x's cite
-      // and cite2 wrote: bracketed on Enter, Author-in-text on Shift+Enter.
       const { service } = yield* Effect.promise(() =>
         makeHarness(undefined, context),
       );
@@ -1839,10 +1824,6 @@ partials:
     () =>
       Effect.gen(function* () {
         const context = yield* Effect.context<never>();
-        // A Citation is an in-text token, and a vault document ends with a
-        // newline: whatever whitespace the document renders, line-break runs
-        // collapse to one space and the ends are trimmed, so nothing breaks the
-        // line the citation is inserted into.
         const vault = new MockVault();
         vault.addFile(
           "templates/zotlit-citation.md",
@@ -1999,7 +1980,6 @@ partials:
           (yield* service.templateService.getCitationTemplateStatus).customized,
         ).toBe(true);
 
-        // Opening an existing document hands it back rather than overwriting it.
         vault.modifyFile(file.path, "EDITED {{ zt.variant }}");
         yield* TestClock.adjust(500);
         expect(
@@ -2038,8 +2018,6 @@ partials:
     () =>
       Effect.gen(function* () {
         const context = yield* Effect.context<never>();
-        // The web bridge names it whether the draft calls it or not, because the
-        // page renders each annotation's citation through it.
         const vault = new MockVault();
         vault.addFile("templates/zotlit-citation.md", "[[{{ zt.variant }}]]");
         const { service } = yield* Effect.promise(() =>
@@ -2874,7 +2852,6 @@ describe("Template Document kinds", () => {
         path: "templates/zotlit-partial.authors.md",
         language: "liquid",
       });
-      // The gate keeps this one inert, but the document still owns the name.
       expect(
         service.bridge.runSync(service.getPartialDocument("venue")),
       ).toEqual({
@@ -2882,7 +2859,6 @@ describe("Template Document kinds", () => {
         path: "templates/zotlit-partial.venue.md",
         language: "eta",
       });
-      // A manifest the parser refused names no language, so Liquid stands in.
       expect(
         service.bridge.runSync(service.getPartialDocument("broken")),
       ).toEqual({
@@ -2923,8 +2899,6 @@ describe("Template Document kinds", () => {
           expect.objectContaining<Partial<MissingPartialError>>({
             name: "MissingTemplateError",
             templateName: "venue-line",
-            // The refusal notice opens the Workbench here, not on the Default
-            // Profile, so the reader lands on the call to repair.
             documentPath: "templates/zotlit-profile.books.md",
           }),
         );
@@ -3027,8 +3001,6 @@ describe("Template Document kinds", () => {
         );
         const data = { authors: "Ada Lovelace" };
 
-        // The conversion writes the partial document first and trashes the legacy
-        // file after, so the two events can land in separate debounce windows.
         vault.createFile(
           "templates/zotlit-partial.authors.md",
           "---\nlanguage: liquid\n---\nBy {{ zt.authors }}",
@@ -3119,15 +3091,11 @@ describe("Template Document kinds", () => {
             },
           ],
         });
-        // A legacy partial still answers by its bare name, the way 2.1.x
-        // registered it, so a note template that calls it keeps rendering.
         expect(
           service.bridge.runSync(
             service.render("authors", { authors: "Ada Lovelace" }),
           ),
         ).toBe("By Ada Lovelace");
-        // `citation` is the Citation Template's name; the extension-named file
-        // claiming it is reported instead of registered.
         expect(yield* service.templateService.getUnrecognizedFiles).toEqual([
           "templates/zotlit-citation.liquid.md",
         ]);
@@ -3144,8 +3112,6 @@ describe("Template Document kinds", () => {
           "templates/zotlit-cite.liquid.md",
           '[{% render "filename" with zt as zt %}]',
         );
-        // The reader's own slot files, which this one pass folds into the default
-        // Profile document and trashes: after it, `filename` is the built-in again.
         vault.addFile("templates/zotlit-filename.liquid.md", "my-own-filename");
         vault.addFile("templates/zotlit-note.liquid.md", "# {{ zt.title }}");
         const { service } = yield* Effect.promise(() =>
@@ -3176,7 +3142,6 @@ describe("Template Document kinds", () => {
       const vault = new MockVault();
       vault.addFile("templates/zotlit-partial.venue-line.md", "{{ zt.venue }}");
       vault.addFile("templates/zotlit-partial.authors.md", "{{ zt.authors }}");
-      // A document the parser refuses still owns its name: the file exists.
       vault.addFile(
         "templates/zotlit-partial.broken.md",
         "---\nlanguage: liquid\n",
@@ -3228,8 +3193,6 @@ describe("Template Document kinds", () => {
           { name: "summary", language: "liquid", source: "Shared body" },
           { name: "authors", language: "liquid", source: "Theirs" },
           { name: "venue-line", language: "liquid", source: "{{ zt.venue }}" },
-          // The Citation Template travels under its own name and has a document of
-          // its own, so nothing is written for it and its entry can go.
           { name: "citation", language: "liquid", source: "Their citation" },
         ] as const;
 
@@ -3244,8 +3207,6 @@ describe("Template Document kinds", () => {
         const outcome = service.bridge.runPromise(service.unpackPartials(plan));
         yield* TestClock.adjust(500);
 
-        // Nothing was approved, so the reader's own authors stands — and its entry
-        // goes with the rest, because their document answers that name from here.
         expect(yield* Effect.promise(() => outcome)).toEqual({
           written: ["venue-line"],
           kept: ["authors"],
@@ -3268,7 +3229,6 @@ describe("Template Document kinds", () => {
           ),
         ).toBe("JMLR");
 
-        // Re-planned against the folder as it stands now, with authors approved.
         const replaced = service.bridge.runPromise(
           service.unpackPartials(
             service.bridge.runSync(service.planPartialUnpack(bundled)),
@@ -3322,13 +3282,9 @@ describe("Template Document kinds", () => {
           refused: [],
           otherCase: ["Authors"],
         });
-        // One file answers both names on a case-insensitive filesystem, so nothing
-        // is written — and the vault's own document is left exactly as it is.
         expect([...vault.contents.keys()]).toEqual([
           "templates/zotlit-partial.authors.md",
         ]);
-        // A Shared Partial resolves by exact name, so the manifest copy is all
-        // that answers `{% render "Authors" %}`: its entry has to stay.
         expect(() =>
           service.bridge.runSync(
             service.render("Authors", { authors: "Ada Lovelace" }),
@@ -3356,14 +3312,11 @@ describe("Template Document kinds", () => {
             { name: "../../../escape", language: "liquid", source: "Escaped" },
           ]),
         );
-        // The plan says up front that the escaping name reaches no file, so an
-        // import never announces it as one it will write.
         expect(plan.map(({ name, verdict }) => `${name}:${verdict}`)).toEqual([
           "authors:write",
           "../../../escape:refused",
         ]);
 
-        // The reader writes their own authors between the plan and the write.
         vault.createFile("templates/zotlit-partial.authors.md", "Mine");
         const outcome = service.bridge.runPromise(service.unpackPartials(plan));
         yield* TestClock.adjust(500);
@@ -3371,12 +3324,9 @@ describe("Template Document kinds", () => {
         expect(vault.contents.get("templates/zotlit-partial.authors.md")).toBe(
           "Mine",
         );
-        // Nothing else was written: no second document, and none outside the folder.
         expect([...vault.contents.keys()]).toEqual([
           "templates/zotlit-partial.authors.md",
         ]);
-        // The refused name keeps its manifest entry, and the outcome names it, so
-        // the caller can say why Unpack partials left the bundle carrying it.
         expect(yield* Effect.promise(() => outcome)).toEqual({
           written: [],
           kept: ["authors"],
@@ -3405,7 +3355,6 @@ describe("Template Document kinds", () => {
           "templates/zotlit-partial.broken.md",
           "---\nlanguage: liquid\n",
         );
-        // The gate is off, so `scripted` renders nothing on this device.
         const { service } = yield* Effect.promise(() =>
           makeHarness({ vault }, context),
         );
@@ -3415,9 +3364,6 @@ describe("Template Document kinds", () => {
             service.render("authors", { authors: "Rougier" }),
           ),
         ).toBe("Rougier");
-        // The reader can still share the text they wrote; the recipient's own gate
-        // decides whether it runs there. A document with no readable source cannot
-        // travel at all.
         expect(service.bridge.runSync(service.getPartialEntries)).toEqual([
           { name: "authors", language: "liquid", source: "{{ zt.authors }}" },
           { name: "scripted", language: "eta", source: "<%= it.title %>" },
@@ -3551,7 +3497,6 @@ describe("Template Document kinds", () => {
           { name: "citation", path: "templates/zotlit-partial.citation.md" },
         ]);
         expect(service.bridge.runSync(service.getPartialNames)).toEqual([]);
-        // The Citation Template still renders its own built-in text.
         expect(
           service.bridge.runSync(
             service.renderCitation([{ citationKey: "smith2024" }], "main"),
@@ -3581,7 +3526,6 @@ describe("Template Document kinds", () => {
           makeHarness({ vault }, context),
         );
 
-        // One namespace: registering this file would name every Literature Note.
         expect(
           yield* service.templateService.renderFilename({
             citationKey: "smith2024",
@@ -3603,8 +3547,6 @@ async function makeHarness(
     settings?: Record<string, unknown>;
     vault?: MockVault;
     javascriptTemplates?: boolean;
-    /** Hand the service back mid-startup, the way a command invoked during the
-     *  initial folder scan reaches it. */
   },
   context = Context.empty(),
 ): Promise<Harness> {

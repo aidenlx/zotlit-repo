@@ -1,4 +1,3 @@
-// A Query View test registry over in-memory host services and controlled query reads.
 import { Effect, Layer, Queue, Stream } from "effect";
 import type { QueryHandle } from "#desktop/item-query/handle.ts";
 import type { ResolvedLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
@@ -45,11 +44,6 @@ export interface QueryHostDeps extends Pick<QueryViewDeps, "app"> {
   };
 }
 
-/**
- * The view services a Query View test registry holds beside the ones this host
- * builds. A test passes them as `unread`: a consumer's program registers more
- * view services than this package does.
- */
 export type UnreadQueryViewServices = Exclude<
   ViewServices,
   | Layer.Success<ReturnType<typeof layerHost>>

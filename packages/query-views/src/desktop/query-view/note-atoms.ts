@@ -1,4 +1,3 @@
-// The Profile-managed keys of one Literature Note, shared by every table cell.
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 
@@ -16,7 +15,6 @@ const noteRevisionAtom = Atom.family((path: string) =>
   Atom.map(noteIndexSnapshotAtom, (snapshot) => snapshot.paths[path] ?? 0),
 );
 
-/** Keyed by path: a family hashes an object key by structure, and a TFile links back to itself. */
 export const replacedKeysAtom = Atom.family((path: string) =>
   viewRuntime.atom((get) => {
     get(noteRevisionAtom(path));

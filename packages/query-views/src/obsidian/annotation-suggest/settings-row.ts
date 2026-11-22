@@ -1,5 +1,3 @@
-// The Citations page's Annotation trigger row, in a build with the
-// Annotation Suggester.
 import type { SettingGroupItem } from "obsidian";
 
 import { citationSettings } from "@zotlit/citations/core/citation-index/settings.ts";

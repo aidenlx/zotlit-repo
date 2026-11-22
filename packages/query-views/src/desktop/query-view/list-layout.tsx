@@ -1,8 +1,4 @@
 import type { QueryFileView } from "#core/query-view/query-file.ts";
-// The List layout: one line for each row of any Query Dataset, its visible
-// properties in the view's order, as the List layout of Bases draws a note.
-// Its options are those of Bases 1.14.4: `markers`, `indentProperties` and
-// `separator`.
 import { useMemo, useState } from "react";
 
 import { Chooser } from "@zotlit/obsidian-kit/components/chooser.tsx";
@@ -41,11 +37,8 @@ export const LIST_MARKERS = ["bullet", "number", "none"] as const;
 export type ListMarker = (typeof LIST_MARKERS)[number];
 
 export interface ListLayoutOptions {
-  /** What opens each line. */
   readonly markers: ListMarker;
-  /** Whether the properties after the first stand on lines of their own, below it. */
   readonly indentProperties: boolean;
-  /** What stands between two properties on one line. */
   readonly separator: string;
 }
 
@@ -55,7 +48,6 @@ export const LIST_LAYOUT_DEFAULTS: ListLayoutOptions = {
   separator: ", ",
 };
 
-/** The List layout's options a view holds; a key it lacks or cannot hold takes its default. */
 export function listLayoutOptions(
   view: QueryFileView | null,
 ): ListLayoutOptions {
@@ -76,7 +68,6 @@ export function listLayoutOptions(
   };
 }
 
-/** The List layout's options in "Configure view". */
 export function ListLayoutFields({
   options,
   set,
@@ -123,7 +114,6 @@ export function ListLayoutFields({
           />
         </span>
       </Chooser.PageField>
-      {/* The separator shows only where the properties share one line. */}
       {!options.indentProperties && (
         <Chooser.PageField label={m.query_view_list_property_separator()}>
           <input
@@ -142,22 +132,14 @@ export function ListLayoutFields({
   );
 }
 
-/** The height of a List entry of each kind, before it is measured. */
 const ESTIMATES = { heading: HEADING_ESTIMATE, row: 28 };
 
-/**
- * The rows of the shown view under their group headings, each wrapping to
- * the lines its text takes. The groups share one list: numbers count each
- * group's rows from one.
- */
 export function ListLayout({ view }: { view: QueryView }) {
   const { properties, groups } = useRecordGroups(view);
   const options = listLayoutOptions(useQueryViewState(view, (s) => s.view));
   const { markers, indentProperties, separator } = options;
   const entries = useMemo(() => groupEntries(groups), [groups]);
 
-  // A row's height before it is drawn, from its text, at the font and width
-  // its drawn rows show.
   const [box, setBox] = useState<HTMLElement | null>(null);
   const { heights, metrics, read } = useListRowHeights(box, entries, {
     properties,
@@ -183,8 +165,6 @@ export function ListLayout({ view }: { view: QueryView }) {
     const entry = entries[index]!;
     if (entry.kind === "heading")
       return {
-        // The heading stands at the list's start edge, out of the indent
-        // the markers take.
         props: {
           className: cn(
             "zt:list-none",
@@ -201,8 +181,6 @@ export function ListLayout({ view }: { view: QueryView }) {
       view={view}
       entries={windowEntries}
       estimates={ESTIMATES}
-      // A row's lines follow the options, the properties it shows, and the
-      // width and font it wraps at.
       shape={JSON.stringify([
         [markers, indentProperties, separator],
         properties.map(({ path }) => path),
@@ -215,10 +193,7 @@ export function ListLayout({ view }: { view: QueryView }) {
       boxRef={setBox}
       flow={{
         kind: "list",
-        // Numbers count the rows of a list; bullets and none mark no order.
         as: markers === "number" ? "ol" : "ul",
-        // A word too long for the line breaks, as `list-heights.ts` lays it
-        // out.
         props: {
           className: cn(
             "zt:my-0 zt:py-1 zt:text-(length:--font-smaller) zt:wrap-break-word zt:marker:text-(--list-marker-color)",
@@ -231,7 +206,6 @@ export function ListLayout({ view }: { view: QueryView }) {
         ghost: LIST_GHOST,
       }}
       draw={draw}
-      // Read the drawn rows after each draw of the window.
       drew={read}
     />
   );

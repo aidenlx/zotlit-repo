@@ -1,4 +1,3 @@
-// The `items` case family: Item Query evidence, answers, prompt, and answer schema.
 import { indexedKeyLibrary, librarySelector } from "./libraries.mjs";
 import { commonChecks, resultRows } from "./result-rows.mjs";
 
@@ -16,9 +15,6 @@ function projectedCreators(values) {
   return names.map((fullName, index) => ({ fullName, role: roles[index] }));
 }
 
-// The first author is the first Primary Creator (ADR 0074): the first creator
-// of the item type's primary creator type, then editor, director, and
-// contributor. Every item type of the corpus has `author` as its primary type.
 const PRIMARY_CREATOR_CHAIN = ["author", "editor", "director", "contributor"];
 
 function firstPrimaryCreator(creators) {
@@ -29,7 +25,6 @@ function firstPrimaryCreator(creators) {
   return null;
 }
 
-/** The projected first author: `firstAuthor`, or one of its members. */
 function projectedFirstAuthor(values) {
   if ("firstAuthor" in values)
     return { found: true, value: values.firstAuthor };
@@ -142,8 +137,6 @@ function sortedLibraries(libraries) {
   );
 }
 
-// An editor answer is required only where the first author is an editor;
-// otherwise null is accepted, since the request asks for the first author.
 function wrongEditor(found, item) {
   return item.editorRequired
     ? found.editor !== item.editor
@@ -288,7 +281,6 @@ export function answerSchema() {
   return outputSchema;
 }
 
-/** Item answers need no evidence beyond the saved envelope. */
 export async function retainEvidence() {}
 export async function loadEvidence() {
   return {};

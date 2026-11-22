@@ -1,4 +1,3 @@
-// Liquid locals resolve within one render scope; Managed Blocks render separately.
 import { regex } from "arkregex";
 
 import type { ContractType } from "@zotlit/db/contract/ir";
@@ -7,7 +6,6 @@ import { ANNOTATION_HEADER } from "@zotlit/templates/constants";
 import { child, resolve } from "./contract.ts";
 import { liquidRanges } from "./liquid-ranges.ts";
 
-/** Known variable names survive even when their member type is unknown. */
 export function localsAt(
   input: string,
   cursor: number,

@@ -1,20 +1,8 @@
--- Turns Obsidian Literature Note links into Pandoc Cite nodes, per the resolution
--- map produced by `zotlit:resolve`.
---
--- One source, two built variants: the cli region shells out to a live Obsidian
--- process, the sandbox region reads a pre-written resolve map. The build keeps
--- exactly one of them; there is no runtime fallback between the two.
---
--- The cli variant also resolves the style a document renders with in Obsidian
--- to the CSL file citeproc opens, through `zotlit:csl`, and names that style on
--- stderr.
-
 PANDOC_VERSION:must_be_at_least(
   "3.1.1",
   "zotlit-cite needs Pandoc 3.1.1 or newer, which is where pandoc.json arrived"
 )
 
---- Collected before anything aborts, so one run reports every problem.
 local errors = {}
 
 --@variant sandbox
@@ -26,7 +14,6 @@ local function add_error(code, message, context)
   errors[#errors + 1] = { code = code, message = message, context = context }
 end
 
---- Writes every collected error to stderr and stops the Pandoc run.
 local function report_errors()
   local input = PANDOC_STATE.input_files[1] or "(stdin)"
   for _, err in ipairs(errors) do
@@ -39,8 +26,6 @@ local function report_errors()
   error(string.format("zotlit-cite: stopped on %d error(s)", #errors), 0)
 end
 
---- Decodes one JSON response from a `zotlit:*` command.
---- @return table payload
 local function decode_payload(response, code, source)
   local ok, payload = pcall(pandoc.json.decode, response, false)
   if not ok or type(payload) ~= "table" then
@@ -54,8 +39,6 @@ local function decode_payload(response, code, source)
 end
 
 --@variant cli
---- The absolute path of the Markdown input, which names the vault the Obsidian
---- CLI answers for.
 local input_absolute
 local function input_path()
   if input_absolute then
@@ -78,8 +61,6 @@ local function input_path()
   return input_absolute
 end
 
---- Calls one `zotlit:*` handler, from the input file's directory so the Obsidian
---- CLI targets the vault that holds the input instead of the active vault.
 local function call_obsidian(code, arguments)
   local response
   local ok, err = pcall(function()
@@ -108,7 +89,6 @@ local function read_resolve_payload()
   )
 end
 
---- One `zotlit:csl` answer that names a style, or stops the run.
 local function csl_payload(arguments, context)
   local payload = decode_payload(
     call_obsidian("csl-call-failed", arguments),
@@ -128,7 +108,6 @@ local function csl_payload(arguments, context)
   return payload
 end
 
---- The absolute CSL file a `zotlit:csl` answer carries.
 local function payload_path(payload, context)
   if type(payload.path) ~= "string" then
     add_error(
@@ -141,12 +120,10 @@ local function payload_path(payload, context)
   return payload.path
 end
 
---- Tells the reader which style the run cites with, and where it came from.
 local function announce(style, origin)
   io.stderr:write(string.format("ZotLit: citations use %s (%s).\n", style, origin))
 end
 
---- Where a `file` answer found its style, in the words the run reports.
 local function origin_of(source)
   local kind = type(source) == "table" and source.kind or nil
   if kind == "note" then
@@ -157,10 +134,6 @@ local function origin_of(source)
   return "from your vault settings"
 end
 
---- Sets the CSL file citeproc opens to the style the note renders with in
---- Obsidian: its sole `zotlit-csl`, or else the style ZotLit selects for it. A
---- standard `csl` or `citation-style` stays Pandoc's own, and `lang` is left as
---- the document declares it.
 local function resolve_style(meta)
   local requested = meta["zotlit-csl"]
   if requested ~= nil then
@@ -202,11 +175,8 @@ end
 --@end
 
 --@variant sandbox
---- Read relative to the Pandoc working directory, so the sandbox host writes the
---- map next to the input it converts.
 local RESOLVE_MAP_FILE = "zotlit-resolve-map.json"
 
---- Reads the resolve map an external producer captured beforehand.
 local function read_resolve_payload()
   local handle = io.open(RESOLVE_MAP_FILE, "r")
   if not handle then
@@ -224,17 +194,11 @@ local function read_resolve_payload()
   return response
 end
 
---- The sandbox host renders with the style it hands the engine, so document
---- metadata reaches Pandoc as the document wrote it.
 local function resolve_style(meta)
   return meta
 end
 --@end
 
---- The `linkpath -> cited key` map, keyed by decoded bare linkpath. The cli
---- variant is given citation keys; the sandbox host names each Item by an id of
---- its own, which it resolves after Pandoc has read the document.
---- @return table<string, string>
 local function load_citations()
   local payload = decode_payload(
     read_resolve_payload(),
@@ -258,15 +222,12 @@ local function load_citations()
   return payload.citations or {}
 end
 
---- Lenient: only well-formed `%XX` triples decode, a bare `%` stays literal.
 local function decode_linkpath(target)
   return (target:gsub("%%(%x%x)", function(hex)
     return string.char(tonumber(hex, 16))
   end))
 end
 
---- Strict counterpart for Citation Fragment values.
---- @return string|nil value, string|nil reason
 local function decode_value(raw)
   local out, index = {}, 1
   while index <= #raw do
@@ -290,7 +251,6 @@ local function decode_value(raw)
   return value
 end
 
---- @return string|nil reason
 local function text_defect(value)
   if value == "" then
     return "an empty value"
@@ -328,11 +288,6 @@ local CITATION_MODES = {
   ["suppress-author"] = "SuppressAuthor",
 }
 
---- CSL Locator labels, mapped to the citeproc locale term citeproc parses out of a
---- Citation suffix. This is the whole set citeproc parses: the labels CSL 1.0.2
---- added (appendix, table, elocation, article-locator, ...) stay out, because
---- citeproc leaves them in the suffix as literal text instead of reading them as a
---- locator.
 local LOCATOR_TERMS = {
   book = "book",
   chapter = "chapter",
@@ -352,9 +307,6 @@ local LOCATOR_TERMS = {
   volume = "volume",
 }
 
---- Parses the text after `#cite:` into Citation details. Parsing is strict: every
---- defect stops the run.
---- @return table|nil details, string|nil reason
 local function parse_fragment(fragment)
   if fragment == "" then
     return nil, "the Citation Fragment is empty"
@@ -415,7 +367,6 @@ local function to_inlines(text)
   return inlines
 end
 
---- Locator and label ride in the suffix, which is how citeproc reads them.
 local function build_suffix(details)
   local suffix = pandoc.Inlines({})
   if details.locator then
@@ -433,7 +384,6 @@ local function build_suffix(details)
   return suffix
 end
 
---- One Cite per standalone Citation or Citation Run.
 local function build_cite(items)
   local entries, keys = {}, {}
   for position, item in ipairs(items) do
@@ -494,10 +444,6 @@ local function classify_target(target)
   return { key = key, details = details, context = context, intent = true }
 end
 
---- Classifies one Link against the resolution map. Cached by target, because a
---- broken Citation Run classifies the link that broke it a second time and one
---- defective link must report one error.
---- @return table|nil item `nil` when the Link is not a Citation.
 local classified = {}
 local function classify(link)
   local cached = classified[link.target]
@@ -508,10 +454,6 @@ local function classify(link)
   return cached or nil
 end
 
---- Rewrites one inline list, grouping same-line semicolon-separated Citations into
---- one Cite. Only `Space` may sit around the separator: a `SoftBreak` ends the run.
---- Every inline list in the document runs through this, so Citations convert in
---- paragraphs, headings, table cells, captions, and inside inline containers alike.
 local function process_inlines(inlines)
   local result = pandoc.Inlines({})
   local index = 1
@@ -552,14 +494,8 @@ local function process_inlines(inlines)
   return result
 end
 
---- The works a Citation names inside another Citation's prefix or suffix, by the
---- id the bibliography knows them by. citeproc renders a nested Cite in place of
---- the one that holds it, so a nested Citation exports as its text, and its work
---- reaches the bibliography through `nocite` (ADR-0081).
 local nested_ids = {}
 
---- A nested literal Citation as its source spells it, from the ids it names:
---- the sandbox reads each key behind an injected id of its own.
 local function literal_text(cite)
   local keys = {}
   for position, citation in ipairs(cite.citations) do
@@ -597,7 +533,6 @@ local NESTED = {
   end,
 }
 
---- Turns every Citation inside one Cite's prefixes and suffixes into text.
 local function flatten_nested(cite)
   local citations = pandoc.List({})
   for _, citation in ipairs(cite.citations) do
@@ -609,7 +544,6 @@ local function flatten_nested(cite)
   return cite
 end
 
---- Adds the nested Citations' works to `nocite`, after any the document names.
 local function add_nocite(meta)
   if #nested_ids == 0 then
     return meta
@@ -631,10 +565,8 @@ local function add_nocite(meta)
   return meta
 end
 
---- An Obsidian callout type, `[!note]`, with the fold sign a foldable one adds.
 local CALLOUT_MARKER = "^%[![^%]]+%][+-]?$"
 
---- Drops the Space runs that open and close `inlines`.
 local function trim(inlines)
   while inlines[1] and inlines[1].t == "Space" do
     inlines:remove(1)
@@ -645,9 +577,6 @@ local function trim(inlines)
   return inlines
 end
 
---- Writes an Obsidian callout as the block quote any other reader sees: the
---- `[!type]` marker goes, and a custom title stays as a bold first line. A
---- block quote that opens with no callout marker is left as it is.
 local function convert_callout(quote)
   local first = quote.content[1]
   if not (first and (first.t == "Para" or first.t == "Plain")) then
@@ -657,8 +586,6 @@ local function convert_callout(quote)
   if not (marker and marker.t == "Str" and marker.text:match(CALLOUT_MARKER)) then
     return nil
   end
-  -- The title runs to the end of the marker's line; the rest of the paragraph
-  -- is the callout's first body text.
   local title, body = pandoc.Inlines({}), pandoc.Inlines({})
   local target = title
   for index = 2, #first.content do
@@ -682,8 +609,6 @@ local function convert_callout(quote)
   return pandoc.BlockQuote(blocks)
 end
 
---- Reads Markdown as the first parse did. pandoc.read ignores
---- reader_options.extensions, so the format names them.
 local function read_markdown(text, extensions)
   return pandoc.read(text, {
     format = "markdown", extensions = extensions or PANDOC_READER_OPTIONS.extensions
@@ -691,11 +616,6 @@ local function read_markdown(text, extensions)
 end
 
 --@variant cli
---- Obsidian 1.14.2's Properties boundary, as `getFrontMatterInfo` scans it: an
---- opening `---` line, then the first line that starts with `---` and ends
---- there. The mock in `packages/obsidian-kit/src/__mocks__/obsidian.ts` models the same rule.
---- @return string|nil properties the YAML between the fences
---- @return string body the text after the closing fence
 local function split_properties(source)
   local from = source:match("^%-%-%-\r?\n()")
   if not from then
@@ -718,10 +638,6 @@ local function split_properties(source)
   end
 end
 
---- Obsidian has one Properties block, at the start of the note, while Pandoc's
---- YAML extension also reads body separators as metadata. `zotlit.yaml` turns
---- that extension off, so this reads the opening Properties as metadata and the
---- rest as the body. Metadata already set, such as `-M`, keeps its value.
 local function read_properties(doc)
   local input = io.open(input_path(), "r")
   if not input then
@@ -733,7 +649,6 @@ local function read_properties(doc)
     return doc
   end
   local meta = pandoc.Meta({})
-  -- Pandoc reads no metadata block whose opening fence a blank line follows.
   local yaml = properties:gsub("^%s*\n", "")
   if yaml:match("%S") then
     local extensions = pandoc.List({ "yaml_metadata_block" })
@@ -755,8 +670,6 @@ function Pandoc(doc)
   citations = load_citations()
 --@variant sandbox
   if selected_literals then
-    -- The sandbox keeps its Markdown in stdin. Let the same reader assign IDs
-    -- without the citation markers, including collisions with explicit IDs.
     local input = assert(io.open("stdin", "r"))
     local unmarked = input:read("a"):gsub(literal_marker .. "%d+", "")
     input:close()

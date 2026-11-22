@@ -1,9 +1,3 @@
-// Citations, as far as they load on every Obsidian: citation parsing and the
-// Citation Index, the Document Citation Text, citekey reading and editing,
-// Graph Citations, the Pandoc Engine, and the Citations settings page. The
-// desktop feature (`#desktop/feature.ts`) extends it with the bibliography
-// render, the popovers, the References view, Pandoc export and the Citation
-// Presentation.
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
@@ -98,7 +92,6 @@ export const citations = defineFeature({
       },
       layerCitationText(),
     ),
-    // The citekey editor creates notes through the notes feature's port.
     serviceGroup(
       "CitekeyEditor",
       {

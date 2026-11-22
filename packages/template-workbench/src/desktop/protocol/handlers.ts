@@ -1,5 +1,3 @@
-// The Template Workbench link: `obsidian://zotlit/explore`, which opens the
-// Template Data Explorer on an Item.
 import { Effect, Result } from "effect";
 import type { ObsidianProtocolData } from "obsidian";
 
@@ -18,7 +16,6 @@ import { showWorkbenchLinkOutcome } from "./notices.ts";
 
 import { openTemplateDataExplorer } from "#desktop/data-explorer/register.ts";
 
-/** The Template Workbench links. */
 export function workbenchLinks() {
   return [
     protocolHandler(exploreProtocolActionId, (data) =>

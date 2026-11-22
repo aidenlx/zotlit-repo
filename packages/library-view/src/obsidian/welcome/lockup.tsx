@@ -1,13 +1,3 @@
-// The ZotLit lockup of docs/brand.md: the two-ink mark and the wordmark, in
-// the brand's inks for the theme, drawn from the canonical SVGs. The mark is
-// `assets/logo/zotlit-mark-16.svg`, the 16-unit cut, drawn 1:1 so every edge
-// sits on a whole pixel; the glyphs are the outlined Archivo SemiBold paths
-// of `assets/logo/zotlit-wordmark.svg`, scaled to a 12px cap height on a
-// baseline at y=14. That keeps the lockup's proportions: the 14px mark stands
-// about 1.2 cap heights, overshooting the caps by 1px each side, and the gap
-// to the Z is 0.28 of its width. The viewBox starts at the mark's ink, so the
-// SVG's start edge is the mark's.
-
 import markSvg from "@brand/zotlit-mark-16.svg?raw";
 import wordmarkSvg from "@brand/zotlit-wordmark.svg?raw";
 
@@ -15,23 +5,16 @@ import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import { brandPaths } from "@zotlit/plugin-kernel/brand.ts";
 import type { BrandPaths } from "@zotlit/plugin-kernel/brand.ts";
 
-/** The wordmark's scale: a 686-unit cap height to 12px. */
 const GLYPH_SCALE = 12 / 686;
-/** The Z's ink starts 29 units in; it lands 4px after the mark's ink at x=15. */
 const GLYPH_X = 19 - 29 * GLYPH_SCALE;
 
 let paths: { mark: BrandPaths; glyphs: BrandPaths } | undefined;
 
-/**
- * The mark's paths and the wordmark's glyphs, the second of its top-level
- * groups after its own 24-unit mark, read once.
- */
 function lockupPaths() {
   paths ??= { mark: brandPaths(markSvg), glyphs: brandPaths(wordmarkSvg, 1) };
   return paths;
 }
 
-/** The fill of each ink, from the theme's brand variables. */
 const INK_FILL = {
   ink: "zt:fill-(--zt-brand-ink)",
   accent: "zt:fill-(--zt-brand-accent)",

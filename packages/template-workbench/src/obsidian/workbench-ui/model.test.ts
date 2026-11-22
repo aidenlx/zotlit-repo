@@ -37,10 +37,8 @@ import {
 const PAPER = SAMPLE_ITEMS[0]!;
 const CHOICE = { id: "1:ABCDEFGH", title: "A paper" } as const;
 
-/** The chosen Item's data, which a host derives from its read of the Item. */
 const itemData = () => Atom.make<WorkbenchItemData>({ snapshot: null });
 
-/** Puts the chosen Item's data in the model, as the host's read of it does. */
 function load(opened: ReturnType<typeof open>) {
   opened.registry.update(opened.itemData, (data) => ({
     ...data,
@@ -89,7 +87,6 @@ function open(
   };
 }
 
-/** Takes the start signal of the next render `host` was asked for. */
 const started = (host: ReturnType<typeof fakeHost>) =>
   Effect.runPromise(Queue.take(host.started));
 
@@ -258,7 +255,6 @@ describe("the side panels", () => {
       fields: "closed",
       canPin: false,
     });
-    // Resizing the view moves the panels; what the reader chose stands.
     expect(registry.get(model.panels)).toBe(panels);
   });
 

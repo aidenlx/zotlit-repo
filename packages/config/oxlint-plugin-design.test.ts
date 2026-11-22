@@ -14,8 +14,6 @@ const tester = new RuleTester({
   languageOptions: { parserOptions: { lang: "tsx" } },
 });
 const design = [{ messageId: "design" }];
-// Failure modes: each Annotation authoring constraint, per-element clamp
-// pairing, and CSS comments/selectors/strings versus actual declarations.
 tester.run("annotation-view", annotationDesign, {
   valid: [
     '<div className="zt:ms-2 zt:text-xs zt:line-clamp-2 zt:leading-normal" aria-label="Open" />',

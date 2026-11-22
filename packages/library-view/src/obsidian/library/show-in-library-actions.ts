@@ -1,6 +1,3 @@
-// Show in Library on a Literature Note: the command for the active note, and
-// the entry on the note's file menu. Both open the Library View on the Item the
-// note is about.
 import { Effect, Layer } from "effect";
 import { TFile } from "obsidian";
 
@@ -14,7 +11,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { FileMenuSegment } from "@zotlit/plugin-services/obsidian/file-menu.ts";
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/parse.ts";
 
-/** The "Show item in Zotero library" command, on the active Literature Note. */
 export const layerShowInLibraryActions: Layer.Layer<
   never,
   never,
@@ -44,7 +40,6 @@ export const layerShowInLibraryActions: Layer.Layer<
   }),
 );
 
-/** "Show in Zotero library" on a Literature Note's file menu. */
 export function showInLibraryFileMenu(
   show: (indexedKey: string) => void,
 ): FileMenuSegment {

@@ -1,15 +1,3 @@
-// The answer of one Query Job inside the ZoteroReads worker: the versioned
-// envelope of ADR 0065 for the schema or the query of a CLI dataset. A query
-// answer resolves the Target Libraries on the database of the job, runs the
-// engine, and encodes the envelope in chunks, inline or to the export writer;
-// a CSV or TSV export writes delimited rows to the file in its place.
-// Every typed failure is the envelope of the command of the job. The Query Job
-// (`job.ts`) provides the database, the scheduler and the scope.
-//
-// Command, flag, and diagnostic text is all hardcoded English: an
-// agent-facing contract surface, not localized UI. See
-// apps/obsidian/policies/cli-text.md.
-
 import { Cause, Data, Effect } from "effect";
 import type { Scope } from "effect";
 
@@ -79,82 +67,40 @@ import type {
   QueryViewReply,
 } from "./worker-protocol.ts";
 
-/** What the answer reads of a Query Job. */
 export type AnswerJob = QueryCommand & {
-  /**
-   * The Library Scope in force: the default Target Libraries of a query are
-   * its available Libraries.
-   */
   scope: LibraryScope;
   uses?: Readonly<Record<string, number>>;
 };
 
-/** The environment of one answer inside its Query Job. */
 export interface AnswerEnv {
-  /** The identity of the source the job leased. */
   identity: WorkbenchIdentity;
-  /** Resolves the file of an Attachment that an Annotation Query projects. */
   attachmentFiles?: ResolveAttachmentFile;
-  /** Observes the engine of each query run; the measurement command sets it. */
   instrument?: QueryInstrument;
-  /**
-   * Receives the duration of each step of the answer of a query, in
-   * milliseconds; the measurement command sets it.
-   */
   onAnswerStep?: (ms: number) => void;
-  /**
-   * Opens the job-owned output writer after validation. The scope of the job
-   * closes it.
-   */
   openOutput?: (
     path: string,
   ) => Effect.Effect<QueryWriter, QueryOutputError, Scope.Scope>;
 }
 
-/**
- * Wraps the operation of one run before it starts, to provide the observer
- * references of the engine. Only the dev-build measurement command passes one.
- */
 export type QueryInstrument = <A, E, R>(
   operation: Effect.Effect<A, E, R>,
 ) => Effect.Effect<A, E, R>;
 
-/** The output file of an export: each write finishes before the next. */
 export interface QueryWriter {
   write(text: string): Effect.Effect<void, QueryOutputError>;
 }
 
-/** The output of the answer failed: the envelope carries `diagnostic`. */
 export class QueryOutputError extends Data.TaggedError("QueryOutputError")<{
   diagnostic: Diagnostic;
 }> {}
 
-/**
- * The source holds no Target Library for the run, so the run reads no record.
- */
 export class TargetLibrariesUnavailable extends Data.TaggedError(
   "TargetLibrariesUnavailable",
 )<{
-  /**
-   * - `named-missing`: the caller named a Library that the source does not
-   *   hold.
-   * - `named-none`: the caller named the Libraries, such as all of them, and
-   *   the source holds none.
-   * - `scope-none`: the source holds no Library of the Library Scope in force.
-   */
   readonly reason: "named-missing" | "named-none" | "scope-none";
-  /**
-   * For `named-missing`: the first named Library that the source does not
-   * hold, in the canonical order.
-   */
   readonly missing?: LibrarySelector;
 }> {}
 
-/**
- * The answer of a job is the envelope for a result and for every typed
- * failure, under the command of the job. Cancellation interrupts it, and an
- * implementation defect dies with an `Error`.
- */
 export function answer(
   job: AnswerJob,
   env: AnswerEnv,
@@ -236,7 +182,6 @@ function answerQuery(
         groupID: selector.type === "group" ? selector.groupID : null,
       })),
     };
-    // The Query Clock is the system clock and zone.
     return yield* consumeQuery(
       CLI_DATASETS[decoded.from].engine,
       request,
@@ -267,10 +212,6 @@ function answerQuery(
   );
 }
 
-/**
- * The names of the custom fields of the active source, as data in
- * `customFields`. A typed failure is the envelope of the schema command.
- */
 export function answerCustomFields(
   command: QueryCustomFieldsCommand["command"],
 ): Effect.Effect<QueryAnswer, never, ItemQueryDatabase> {
@@ -283,19 +224,11 @@ export function answerCustomFields(
   );
 }
 
-/** What the answer of a typed query reads of its job. */
 export type AnswerViewJob = QueryViewCommand & {
-  /** The Library Scope in force: the default Target Libraries. */
   scope: LibraryScope;
   uses?: Readonly<Record<string, number>>;
 };
 
-/**
- * The answer of the typed query of a Query View: every row up to the limit
- * of the request, as JSON data. A typed failure is the diagnostic that the
- * envelope of the same query carries. Cancellation interrupts it, and an
- * implementation defect dies with an `Error`.
- */
 export function answerView(
   job: AnswerViewJob,
   env: Pick<AnswerEnv, "attachmentFiles">,
@@ -313,7 +246,6 @@ export function answerView(
       group: view.group,
       fields: view.fields,
       formulas: view.formulas,
-      // A Formula with a mistake leaves out only itself and its readers.
       onFormulaFault: "leave-out",
       sort: view.sort,
       limit: view.limit ?? null,
@@ -364,15 +296,8 @@ const viewReply = (
   view,
 });
 
-/**
- * Collect the rows of a typed query in their groups. Each chunk becomes JSON
- * as it arrives, as the envelope writes it, so the result crosses the worker
- * seam.
- */
 function collectView(summary: QuerySummary, libraries: readonly LibraryWire[]) {
   const { groups: summaries, totalCount, ...metadata } = summary;
-  // `metadata` carries `matchedCount`: the count of every match before the
-  // limit, grouped or not.
   const rows: QueryViewRow[] = [];
   const groups = summaries?.map(
     (group): QueryViewGroup & { rows: QueryViewRow[] } => ({
@@ -397,14 +322,11 @@ function collectView(summary: QuerySummary, libraries: readonly LibraryWire[]) {
   };
 }
 
-/** Resolve the same Target Libraries for queries and value discovery. */
 const targetLibraries = Effect.fnUntraced(function* (
   named: NamedLibraries | null,
   scope: LibraryScope,
 ) {
   const requireEach = named !== null;
-  // The resolution of the Library Scope service, on the rows of the one
-  // Library reader of `getLibraries`, read on the borrowed client.
   const libraries = resolveLibraryScope(
     yield* readLibraries(),
     named ? named.scope : scope,
@@ -482,7 +404,6 @@ const inline = (command: QueryCliCommand, text: string): QueryReply => ({
   receipt: { kind: "inline" },
 });
 
-/** The time of one step of the answer that `onAnswerStep` reports. */
 const ANSWER_STEP_BUDGET_MS = SLICE_BUDGET_MS / 2;
 const NO_ROWS = "[]\n}";
 const CHUNK_START = '{\n  "rows": [';
@@ -493,30 +414,21 @@ const CHUNK_TEXT_LENGTH = 256 * 1024;
 interface AnswerContext {
   from: DecodedQuery["from"];
   command: QueryCliCommand;
-  /** The identity of the source the run leased. */
   identity: WorkbenchIdentity;
-  /** The Target Libraries of the run, in the canonical order. */
   libraries: readonly LibraryWire[];
   onAnswerStep?: (ms: number) => void;
   output?: string;
-  /** The format of the output file; omitted, the JSON response. */
   format?: DelimitedFormat;
   openOutput?: AnswerEnv["openOutput"];
 }
 
-/** How the answer writes its rows: the JSON envelope, or delimited lines. */
 interface RowsEncoder {
-  /** The text before the first row. */
   readonly start: string;
-  /** The text that closes the group `previous`, if any, and opens `groupIndex`. */
   group(groupIndex: number, previous: number | undefined): string;
-  /** The text of one chunk of the rows of the group open now, if any. */
   rows(chunk: readonly QueryRow[], groupIndex: number | undefined): string;
-  /** The text after the last row, with `lastGroup` open, if any. */
   end(lastGroup: number | undefined): string;
 }
 
-/** Byte-identical pretty JSON of the envelope that `head` begins. */
 function jsonRows(result: QuerySummary, head: string): RowsEncoder {
   const grouped = result.groups !== undefined;
   let first = true;
@@ -544,12 +456,6 @@ function jsonRows(result: QuerySummary, head: string): RowsEncoder {
   };
 }
 
-/**
- * One delimited line for each row: its group value when the query groups,
- * its Indexed Key, and the text of each field, under a header line of their
- * names. A row in two groups is a line in each. Each value reads as the Query
- * View writes it, from the JSON the envelope would hold.
- */
 function delimitedRows(
   result: QuerySummary,
   format: DelimitedFormat,
@@ -564,7 +470,6 @@ function delimitedRows(
       const group = grouped
         ? [valueText(result.groups[groupIndex!]!.value)]
         : [];
-      // A date is its ISO text in JSON, as the envelope writes it.
       const wire = JSON.parse(JSON.stringify(chunk)) as readonly {
         indexedKey: string;
         values: Readonly<Record<string, ProjectionJson>>;
@@ -582,11 +487,6 @@ function delimitedRows(
   };
 }
 
-/**
- * The answer in chunks: only the current projection chunk is retained. Each
- * chunk is one step of the job fiber, so the scheduler of the job can end a
- * slice and an interrupt can land between two chunks.
- */
 const createAnswer = Effect.fnUntraced(function* (
   result: QuerySummary,
   context: AnswerContext,
@@ -609,7 +509,6 @@ const createAnswer = Effect.fnUntraced(function* (
   };
   const grouped = result.groups !== undefined;
   const { output, openOutput, format } = context;
-  // Only a file holds CSV or TSV: the decoder asks for output with them.
   if (format !== undefined && output === undefined)
     return yield* Effect.die(
       new Error(`ZotLit Query ${format} export has no output path`),
@@ -628,7 +527,6 @@ const createAnswer = Effect.fnUntraced(function* (
   let text = "";
   let bytes = 0;
   let chunkRows = FIRST_CHUNK_ROWS;
-  // Open only after query validation and Library resolution succeed.
   let file: QueryWriter | undefined;
   if (output !== undefined) {
     if (!openOutput)
@@ -696,7 +594,6 @@ const createAnswer = Effect.fnUntraced(function* (
   };
 });
 
-/** Every typed failure of one run. */
 type AnswerFailure =
   | ItemQueryError
   | ItemQueryLayoutError
@@ -704,14 +601,8 @@ type AnswerFailure =
   | QueryOutputError
   | TargetLibrariesUnavailable;
 
-/**
- * Map the failure of one run to the answer of `command`: every typed failure
- * becomes the envelope, and a defect dies with an `Error`. Cancellation stays
- * an interruption.
- */
 function answerFailure(
   command: QueryCliCommand,
-  /** The argument that named the Target Libraries, if the caller named them. */
   parameter?: NamedLibraries["parameter"],
 ) {
   return <R>(
@@ -727,7 +618,6 @@ function answerFailure(
     );
 }
 
-/** Log a defect of one run and die with an `Error` that wraps it. */
 const dieOfDefect = (defect: unknown): Effect.Effect<never> =>
   Effect.logError("ZotLit Query failed with a defect").pipe(
     Effect.annotateLogs({
@@ -754,7 +644,6 @@ function failureDiagnostic(
   if (failed._tag === "ItemQueryError")
     return Effect.succeed(failed.diagnostic);
   if (failed._tag === "ItemQueryLayoutError") {
-    // `@zotlit/db` logs the missing layout and the versions once per copy.
     return Effect.succeed(
       diagnostic("unsupported-database-layout", failed.message),
     );
@@ -773,7 +662,6 @@ function failureDiagnostic(
   );
 }
 
-/** The diagnostic of a run that has no Target Library. */
 function targetLibrariesFailure(
   { reason, missing }: TargetLibrariesUnavailable,
   parameter: NamedLibraries["parameter"] | undefined,

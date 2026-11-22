@@ -19,7 +19,6 @@ const REFINED_BY: ValueShape = {
   keys: { start: NUMBER, end: NUMBER },
 };
 
-/** Exact Projection Path shapes for each stored position kind. */
 export const ANNOTATION_POSITION_SHAPES = {
   "pdf-rects": {
     kind: "object",
@@ -62,7 +61,6 @@ export const ANNOTATION_POSITION_SHAPES = {
   },
 } as const satisfies Readonly<Record<AnnotationPosition["kind"], ValueShape>>;
 
-/** Every Projection Path that can occur below a position. */
 export const ANNOTATION_POSITION_SHAPE: ValueShape = {
   kind: "object",
   keys: Object.fromEntries(
@@ -72,7 +70,6 @@ export const ANNOTATION_POSITION_SHAPE: ValueShape = {
   ),
 };
 
-/** Parse at the query boundary, preserving an unreadable stored position. */
 export function readAnnotationPosition(
   annotation: AnnotationDetails,
 ): AnnotationPosition {
@@ -82,8 +79,6 @@ export function readAnnotationPosition(
   } catch {
     return { kind: "unknown", raw: annotation.position };
   }
-  // The database's parser validates the unknown JSON against the document
-  // kind before it returns a typed position.
   return parseAnnotationPosition(
     raw as AnnotationPositionRaw,
     annotation.attachment.contentType ?? "",

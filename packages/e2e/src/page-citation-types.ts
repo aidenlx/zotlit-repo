@@ -13,7 +13,6 @@ export type DebugListener = (
   params: WorkerAttached,
 ) => void;
 
-/** Electron's debugger boundary; result overloads cover the protocols this case reads. */
 export interface PageDebugger {
   isAttached(): boolean;
   attach(version: string): void;

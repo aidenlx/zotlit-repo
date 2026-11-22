@@ -1,5 +1,3 @@
-// In-memory parsing and validation for one Literature Note Template document.
-
 import * as v from "valibot";
 import { stringify as stringifyYaml } from "yaml";
 
@@ -89,10 +87,8 @@ const profileBindingEntries = {
   importAnnotationsAsTemplate: v.optional(v.boolean()),
 };
 
-/** A Profile Match: a Filter Tree over the Items it selects. */
 export type MatchTree = FilterTree;
 
-// The Filter Tree's own guard decides the shape, so it has one definition.
 const matchTreeSchema = v.custom<MatchTree>(
   isFilterTree,
   "A match is a Filter Expression or one and, or, or not group of matches",
@@ -165,17 +161,11 @@ export interface ManagedBlock {
   source: string;
   start: number;
   end: number;
-  /**
-   * The line break a line-owning close tag took with it, or the empty string.
-   * The Managed Block is replaced rather than removed, so the create path puts
-   * this back after the Managed Region to terminate the region's last line.
-   */
   trailingLineBreak: string;
 }
 
 export interface AnnotationSection {
   source: string;
-  /** UTF-16 offsets into the original document; end is exclusive. */
   start: number;
   end: number;
   headerStart: number;
@@ -184,7 +174,6 @@ export interface AnnotationSection {
 export interface LiteratureNoteTemplateDocument {
   manifest: LiteratureNoteTemplateManifest;
   body: string;
-  /** Offset of the implicit note source in the original document. */
   bodyStart: number;
   managedBlock: ManagedBlock | null;
   annotationSection: AnnotationSection;
@@ -247,15 +236,9 @@ export interface SynthesizedLiteratureNoteTemplateManifest {
   readonly name?: string;
   readonly description?: string;
   readonly frontmatter?: readonly FrontmatterField[];
-  /**
-   * Whether the content insertion becomes a Managed Block. `false` writes the
-   * content source in place, so the body renders once at creation.
-   * @default true
-   */
   readonly managed?: boolean;
 }
 
-/** Map legacy settings fields without parsing or rewriting their expressions. */
 export function convertLegacyFrontmatterFields(
   fields: readonly FrontmatterField[],
 ): ManagedFrontmatterEntry[] {
@@ -264,15 +247,8 @@ export function convertLegacyFrontmatterFields(
   );
 }
 
-/**
- * The `zt` contract a synthesized manifest stamps. It is the same number as
- * `CONTRACT_VERSION` in `@zotlit/db`, which the engine layer does not depend
- * on, so the two move together.
- */
-// Persisted version: packages/scripts/lib/format-versions.ts.
 const SYNTHESIZED_CONTRACT_VERSION = 3;
 
-/** Synthesize one document from the three legacy Literature Note slots. */
 export function synthesizeLegacyLiteratureNoteTemplate(
   legacy: LegacyLiteratureNoteTemplates,
   manifestOverrides: SynthesizedLiteratureNoteTemplateManifest = {},
@@ -315,8 +291,6 @@ export function synthesizeLegacyLiteratureNoteTemplate(
     (language === "liquid"
       ? DEFAULT_ANNOTATION_LIQUID
       : DEFAULT_ANNOTATION_ETA);
-  // An indented insertion keeps the glued open tag: a line-owning open tag would
-  // take the author's indentation with it and lose those bytes.
   const insertionIndex = legacy.note.source.indexOf(insertion);
   const openManaged =
     insertionIndex === 0 || legacy.note.source[insertionIndex - 1] === "\n"
@@ -381,14 +355,8 @@ export class LiteratureNoteTemplateError extends Error {
   readonly _tag = "LiteratureNoteTemplateError";
   readonly code: LiteratureNoteTemplateErrorCode;
   readonly recovery: string;
-  /** Readable manifest identity for diagnostics, even when the document is invalid. */
   readonly manifestId?: string;
-  /** UTF-16 offset of the responsible text, so a host can point at it. */
   readonly offset?: number;
-  /**
-   * Path of the responsible manifest node, so a host that reads the manifest
-   * YAML can point at the field itself rather than the manifest's first line.
-   */
   readonly manifestPath?: readonly (string | number)[];
 
   constructor(
@@ -499,10 +467,6 @@ export function parseLiteratureNoteTemplate(
   }
 }
 
-/**
- * The manifest node a validation issue is about, in the shape a YAML lookup
- * takes. An issue that names no node keeps the whole manifest as its subject.
- */
 function manifestNodePath(issue: {
   path?: readonly { key: unknown }[];
 }): readonly (string | number)[] | undefined {
@@ -567,12 +531,6 @@ function splitDocument(source: string): {
   return split;
 }
 
-/**
- * UTF-16 offsets of the manifest YAML between the document's two fence lines,
- * so a host can patch one manifest node in place instead of re-serializing the
- * whole manifest.
- * @throws LiteratureNoteTemplateError when the document carries no closed manifest.
- */
 export function literatureNoteTemplateManifestRange(source: string): {
   from: number;
   to: number;
@@ -581,7 +539,6 @@ export function literatureNoteTemplateManifestRange(source: string): {
   return { from: manifestStart, to: manifestStart + manifestSource.length };
 }
 
-/** The document boundary is independent of Markdown and template syntax. */
 function findAnnotationSection(
   source: string,
   bodyStart: number,
@@ -718,25 +675,15 @@ function findManagedBlock(
   };
 }
 
-/** @returns the index just after the line break preceding `index`. */
 function lineStartIndex(body: string, index: number): number {
   return body.lastIndexOf("\n", index - 1) + 1;
 }
 
-/** @returns the length of the line break at `index`, or 0 when none starts there. */
 function lineBreakLength(body: string, index: number): number {
   if (body.startsWith("\r\n", index)) return 2;
   return body[index] === "\n" ? 1 : 0;
 }
 
-/**
- * A Line-Owning Tag's indentation and trailing line break belong to the tag, so
- * they leave the block source and travel with the block when it is removed.
- *
- * @returns true when only whitespace stands between the line start and the tag,
- * and a line break (or the document end) follows it.
- * @see docs/adr/0028-structural-block-tags-trim-by-line-ownership.md
- */
 function tagOwnsLine(body: string, start: number, end: number): boolean {
   if (!/^[ \t]*$/.test(body.slice(lineStartIndex(body, start), start))) {
     return false;

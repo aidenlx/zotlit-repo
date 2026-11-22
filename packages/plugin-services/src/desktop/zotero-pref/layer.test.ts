@@ -16,7 +16,6 @@ import { expect } from "vitest";
 
 import { zoteroPrefFixture } from "./__fixtures__.ts";
 
-/** The failure `FileSystem` gives for a file the process may not read. */
 const unreadable = (path: string) =>
   PlatformError.systemError({
     _tag: "PermissionDenied",
@@ -25,7 +24,6 @@ const unreadable = (path: string) =>
     pathOrDescriptor: path,
   });
 
-// Stalled external I/O releases startup and still publishes a late read.
 it.effect(
   "bounds the first preference read and publishes its late result",
   () =>
@@ -70,8 +68,6 @@ it.effect(
     }),
 );
 
-// Cancellation at the storage boundary must leave the published override
-// equal to the saved one, and a profile change must still start its reload.
 for (const kind of ["data", "profile"] as const) {
   it.effect(
     `finishes the ${kind} directory commit when interrupted after persistence`,
@@ -92,7 +88,6 @@ for (const kind of ["data", "profile"] as const) {
           { onSave: () => interrupt() },
         );
         const commit = yield* Effect.withFiber((fiber) => {
-          // The synchronous OS callback interrupts exactly after persistence.
           interrupt = () => fiber.interruptUnsafe();
           return kind === "data"
             ? f.pref.setDataDir("/new-data")
@@ -117,8 +112,6 @@ for (const kind of ["data", "profile"] as const) {
   );
 }
 
-// Every consumer's first read needs the settled profile, including
-// the worker database, the CLI source identity, and Template Workbench styles.
 it.effect("builds with settled preferences before the first read", () =>
   Effect.gen(function* () {
     const started = yield* Queue.unbounded<void>();
@@ -145,8 +138,6 @@ it.effect("builds with settled preferences before the first read", () =>
   }),
 );
 
-// Failure modes: a Device Override is not persisted, or observers retain the
-// old database path after the setting changes.
 it.effect("publishes and persists the data directory Device Override", () =>
   Effect.gen(function* () {
     const f = yield* zoteroPrefFixture();
@@ -166,8 +157,6 @@ it.effect("publishes and persists the data directory Device Override", () =>
   }),
 );
 
-// Failure modes: a late read replaces a newer profile, or closing the service
-// leaves its profile reads running and able to change state.
 it.effect("keeps the latest profile and interrupts reads on scope close", () =>
   Effect.gen(function* () {
     const started = yield* Queue.unbounded<string>();
@@ -207,8 +196,6 @@ it.effect("keeps the latest profile and interrupts reads on scope close", () =>
   }),
 );
 
-// Failure modes: automatic detection ignores profiles.ini, clearing a Device
-// Override retains it, or an unreadable profile leaves old preferences active.
 it.effect(
   "detects the default profile and degrades on an unreadable replacement",
   () =>
@@ -253,7 +240,6 @@ it.effect(
     }),
 );
 
-// Failure mode: an observer remains blocked on the state Stream after unload.
 it.effect("ends its changes Stream when the layer scope closes", () =>
   Effect.gen(function* () {
     const f = yield* zoteroPrefFixture();
@@ -267,7 +253,6 @@ it.effect("ends its changes Stream when the layer scope closes", () =>
   }),
 );
 
-// A setting row that closes mid-read interrupts the profile list: no failure.
 it.effect("passes an interrupted profile list through without a warning", () =>
   Effect.gen(function* () {
     const f = yield* zoteroPrefFixture((path) =>
@@ -287,7 +272,6 @@ it.effect("passes an interrupted profile list through without a warning", () =>
   }),
 );
 
-// A slow Linux directory lookup belongs inside the existing startup I/O bound.
 it.effect("bounds profile-root discovery and publishes its late result", () =>
   Effect.gen(function* () {
     const started = yield* Deferred.make<void>();

@@ -1,4 +1,3 @@
-// Action bindings for the Template Data Explorer, exposed to the presentational tree via context.
 import type { Menu } from "obsidian";
 import { createContext } from "react";
 
@@ -10,7 +9,6 @@ import { addCopyIndexedKeyMenuItem } from "@zotlit/plugin-services/obsidian/inde
 export interface ExplorerActions {
   onChooseItem(): void;
   onBackToNoteRoot(): void;
-  /** Closes every section, or opens every section once all are closed. */
   onToggleSections(): void;
   onRefresh(): void;
   addCopyKeyMenuItem(menu: Menu): boolean;
@@ -38,8 +36,6 @@ export function createExplorerActions(deps: {
       });
     },
     addExportMenuItem(menu) {
-      // The pane's other states already show their own call to action, so the
-      // entry stays absent rather than present-and-dead.
       if (!deps.canExport()) return;
       menu.addItem((item) => {
         item

@@ -70,8 +70,6 @@ layer(NodeFileSystem.layer)("copyAttachments", (it) => {
         const source = join(dir, "source.png");
         const dest = join(dir, "dest.png");
         yield* Effect.promise(() => writeFile(source, "image"));
-        // Half a millisecond past 2024-01-01T00:00:00Z: a file the system
-        // stamps, not one Zotero sync stamped to whole milliseconds.
         const mtime = 1_704_067_200.0005;
         yield* Effect.promise(() => utimes(source, mtime, mtime));
         const item = { source: { kind: "path", path: source }, dest } as const;
@@ -115,8 +113,6 @@ layer(NodeFileSystem.layer)("copyAttachments", (it) => {
         const source = join(dir, "source.png");
         const dest = join(dir, "dest.png");
         yield* Effect.promise(() => writeFile(source, "image"));
-        // Seconds since the epoch (2024-01-01T00:00:00Z), the form `utimes`
-        // takes alongside a `Date`.
         const mtimeSeconds = 1_704_067_200;
         yield* Effect.promise(() => utimes(source, mtimeSeconds, mtimeSeconds));
         const handle = yield* (yield* FileSystem.FileSystem).open(source);

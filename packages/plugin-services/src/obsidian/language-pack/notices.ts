@@ -1,5 +1,3 @@
-// UI seam for the Language Pack: the startup consent notice and the download
-// toast shared by every Install button.
 import { Effect, Fiber, Layer, Option, Schema, Stream } from "effect";
 import type { Exit } from "effect";
 
@@ -15,13 +13,8 @@ import type {
   LanguagePackRestartNotice,
 } from "./service.ts";
 
-/** The restart notice matters more than a transient toast, so it lingers. */
 const RESTART_NOTICE_DURATION = "10 seconds";
 
-/**
- * An install failure with the copy its toast shows; `cause` is the failure,
- * which the toast logs.
- */
 class LanguagePackInstallCopy extends Schema.TaggedError<
   LanguagePackInstallCopy,
   { readonly brand: unique symbol }
@@ -39,10 +32,6 @@ const downloadFailedCopy = (plugin: string, cause: LanguagePackInstallError) =>
     cause,
   );
 
-/**
- * Report an install behind the download toast: loading while the download
- * runs, then the restart notice or the failure.
- */
 const reportInstall = (
   plugin: string,
   outcome: Effect.Effect<
@@ -53,9 +42,6 @@ const reportInstall = (
     Effect.flatten(outcome).pipe(
       Effect.catchTag(
         "LanguagePackDownloadFailed",
-        // A pack from a newer lineage than this build reads is a
-        // plugin-version problem, not a transport one, so it names the fix
-        // instead of the error.
         (error) =>
           error.updateNeeded
             ? failWithCopy(
@@ -75,22 +61,12 @@ const reportInstall = (
     },
   );
 
-/**
- * Install the Language Pack behind the download toast. A call while a
- * download is in flight reports that download.
- */
 export const toastLanguagePackInstall = Effect.gen(function* () {
   const pack = yield* LanguagePack;
-  // Started once: the toast awaits it again after its loading delay.
   const install = yield* Effect.forkChild(pack.install);
   yield* reportInstall(pack.plugin, Fiber.await(install));
 }).pipe(Effect.withSpan("LanguagePackNotices.toastInstall"));
 
-/**
- * What startup shows: the consent notice while the pack is offered, or the
- * toast of the consented refresh startup began, also when that refresh ended
- * before this layer built. The toast and the notice end with the layer.
- */
 export const layerLanguagePackNotices: Layer.Layer<
   never,
   never,
@@ -106,11 +82,6 @@ export const layerLanguagePackNotices: Layer.Layer<
   }),
 );
 
-/**
- * The startup consent notice. It hides once the pack leaves `offered`, so
- * installing from the settings tab hides it too and the two entry points onto
- * the same download never disagree about whether it is still offered.
- */
 const showInstallOffer = Effect.gen(function* () {
   const pack = yield* LanguagePack;
   const notifier = yield* Notifier;

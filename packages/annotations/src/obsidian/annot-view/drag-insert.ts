@@ -1,5 +1,3 @@
-// Asynchronous annotation insertion for the menu action and ZotLit-owned drops.
-
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
 import { nanoid } from "nanoid";
 import { MarkdownView } from "obsidian";
@@ -22,14 +20,12 @@ import type { InsertFiber, InsertRunner } from "./insert-run.ts";
 
 const SOURCE_TAG = "application/x-zotlit-annotation";
 
-/** What an insert needs; `R` is the services its Effects run with. */
 export interface InsertDeps<R> extends InsertRunner<R> {
   app: App;
   snapshot: (annotation: AnnotationRecord) => AnnotationSnapshot;
   notify: (message: string | DocumentFragment) => void;
 }
 
-/** The function that shows the notice of an outcome. */
 const reporter =
   (deps: Pick<InsertDeps<never>, "app" | "notify">) =>
   (outcome: AnnotationInsertOutcome): void => {
@@ -37,11 +33,6 @@ const reporter =
     if (message !== null) deps.notify(message);
   };
 
-/**
- * The one insert a handler has in flight: starting a newer one interrupts it.
- * The outcome of an insert that finishes is shown; an interrupted one shows
- * nothing.
- */
 function insertSlot<R>(
   deps: InsertDeps<R>,
   report: (outcome: AnnotationInsertOutcome) => void,
@@ -50,7 +41,6 @@ function insertSlot<R>(
   const runner: InsertDeps<R> = { ...deps, run: latest.run };
   return {
     cancel: latest.interrupt,
-    /** Starts the insert `start` makes on the slot's runner. */
     hold(start: (runner: InsertDeps<R>) => InsertFiber): InsertFiber {
       const fiber = start(runner);
       observeExit(fiber, { onSuccess: report });
@@ -59,11 +49,6 @@ function insertSlot<R>(
   };
 }
 
-/**
- * The notice for an insert's outcome, or `null` for none: an Excerpt Image
- * summary where an image is not refreshed, a Profile error by its own
- * message, and a failure as the generic message.
- */
 export function insertOutcomeMessage(
   app: App,
   outcome: AnnotationInsertOutcome,
@@ -99,10 +84,6 @@ export function insertOutcomeMessage(
   }
 }
 
-/**
- * Sidebar focus leaves the most recently used note and its cursor in place. A
- * note in Reading view shows no editor, so nothing is inserted into it.
- */
 export function getInsertionEditor(app: App): MarkdownFileInfo | null {
   const active = app.workspace.activeEditor;
   if (active instanceof MarkdownView && active.getMode() !== "source")
@@ -118,7 +99,6 @@ export function createInsertHandler<R>(deps: InsertDeps<R>) {
   const report = reporter(deps);
   const slot = insertSlot(deps, report);
   const { cancel } = slot;
-  /** The insert in flight, or `null` where it ended at once with its notice. */
   const insertInto = (
     annotation: AnnotationRecord,
     info: MarkdownFileInfo | null,
@@ -179,15 +159,9 @@ interface ActiveDrag {
   cancel(): void;
 }
 
-/**
- * The start of an Annotation's drag: a card's chip in the Annotation View, or
- * the selected Annotation Mark in the PDF reader. The drag runs in the window
- * of `currentTarget`.
- */
 export interface AnnotationDragStart {
   readonly dataTransfer: DataTransfer;
   readonly currentTarget: HTMLElement;
-  /** Calls off the drag before it begins. */
   preventDefault(): void;
 }
 
@@ -268,8 +242,6 @@ function insertDrop<R>(
   },
 ): InsertFiber {
   const { editor, info, file } = options;
-  // The nearest position, as CodeMirror's own drop handler asks for: the
-  // exact form is null over an empty active line.
   const position = editor.cm.posAtCoords(
     { x: options.dropEvent.clientX, y: options.dropEvent.clientY },
     false,

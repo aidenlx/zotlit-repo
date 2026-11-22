@@ -1,4 +1,3 @@
-/** Title opacity over the octave after native text reaches full opacity. */
 export function workLabelTitleAlpha(
   scale: number,
   textFadeMultiplier: number | undefined,

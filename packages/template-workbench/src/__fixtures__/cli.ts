@@ -28,7 +28,6 @@ import type { TemplateDataLoader } from "@zotlit/notes/desktop/template/data.ts"
 import type { WorkbenchServices } from "#desktop/cli/register.ts";
 import { serviceStubs } from "@zotlit/notes/__fixtures__/service-stubs.ts";
 
-/** The services a Profile fixture's runtime holds for the Workbench. */
 export type FixtureServices =
   | Profile
   | Template
@@ -39,25 +38,16 @@ export type FixtureServices =
   | Workspace
   | FileManager;
 
-/**
- * The Workbench's services: a stub for each, which throws on a member the
- * test leaves unread, under `overrides`, a later one over an earlier one.
- */
 export const workbenchContext: (
   ...overrides: readonly Context.Context<never>[]
 ) => Context.Context<WorkbenchServices> = serviceStubs;
 
-/**
- * The real Template, Profile, Note Index, settings and capability tags of a
- * Profile fixture's runtime.
- */
 export function fixtureServices(
   runtime: ManagedRuntime.ManagedRuntime<FixtureServices, never>,
 ): Context.Context<FixtureServices> {
   return runtime.runSync(Effect.context<FixtureServices>());
 }
 
-/** The vault and the Zotero source an envelope names. */
 export function workbenchIdentity(identity: {
   vaultName?: string;
   basePath?: string;
@@ -87,11 +77,6 @@ export function workbenchIdentity(identity: {
   );
 }
 
-/**
- * A Template data handle, as `plugin-runtime.ts` binds it, for a view or dialog test:
- * over `services`, and the Vault and FileManager tags over `app`'s members.
- * The tags close with `stack`.
- */
 export function templateDataHandle(
   stack: AsyncDisposableStack,
   services: {

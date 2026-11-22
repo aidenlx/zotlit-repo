@@ -1,7 +1,3 @@
-// Obsidian's closed set of display languages, each mapped to its Endonym.
-// Copy that names a Language Pack's language reads this table instead of
-// restating per-locale display names or deriving them at runtime.
-
 const OBSIDIAN_LANGUAGE_ENDONYMS: Readonly<Record<string, string>> = {
   am: "አማርኛ",
   ar: "اَلْعَرَبِيَّةُ",
@@ -49,11 +45,6 @@ const OBSIDIAN_LANGUAGE_ENDONYMS: Readonly<Record<string, string>> = {
   "zh-TW": "繁體中文",
 };
 
-/**
- * The Endonym for an Obsidian display-language code, or `undefined` for a code
- * outside Obsidian's set. Callers name what to show instead — the Language
- * Pack Lifecycle falls back to the resolved locale code.
- */
 export function languageEndonym(language: string): string | undefined {
   return OBSIDIAN_LANGUAGE_ENDONYMS[language];
 }

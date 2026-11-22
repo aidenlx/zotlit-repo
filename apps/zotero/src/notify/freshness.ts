@@ -1,6 +1,3 @@
-// The freshness pipeline: after Zotero write activity settles, checkpoint the
-// WAL where one exists, then send the Freshness Signal to the Obsidian side.
-
 import { debounce } from "@std/async";
 
 import { registerApplicationBlur } from "@/lib/application-blur.ts";
@@ -11,19 +8,9 @@ import type { Send } from "./send.ts";
 
 const logger = appLogger.getChild(["notify", "freshness"]);
 
-/** Trailing debounce: one pipeline run per quiet period. */
 const DEBOUNCE_MS = 500;
-/**
- * Cap on how long a burst may push the trailing timer forward, so runs keep
- * flowing through a sustained write storm such as a batch import.
- */
 const MAX_WAIT_MS = 10_000;
 
-/**
- * Notifier types whose events mean the database was written in a way the
- * Obsidian side reads. `item-tag` and `tag` are independent triggers: Zotero's
- * bulk tag operations bypass the item save path and fire no `item` event.
- */
 const TRIGGER_TYPES: _ZoteroTypes.Notifier.Type[] = [
   "item",
   "item-tag",
@@ -55,42 +42,9 @@ export type ManualCheckpointOutcome =
 export interface WalCheckpoint extends Disposable {
   status(): WalCheckpointStatus;
   writeNow(): Promise<ManualCheckpointOutcome>;
-  /**
-   * Subscribe to {@link status} changes, so a reader repaints instead of
-   * polling. Fires after a checkpoint attempt settles. A run the preference
-   * skipped moves nothing, and an inactive checkpoint never runs at all, so
-   * neither reports.
-   *
-   * @returns Teardown that unsubscribes.
-   */
   onChange(listener: () => void): () => void;
 }
 
-/**
- * Register the freshness pipeline over Zotero write activity: a debounced run
- * that moves recent writes out of the WAL sidecar into `zotero.sqlite` itself
- * (the Checkpoint), then tells the Obsidian side the file is as current as
- * this pipeline can make it (the Freshness Signal, `db/updated`).
- *
- * On a WAL database Zotero appends changes to `zotero.sqlite-wal` and may leave
- * them there for a long time, so the main file the Obsidian watcher fingerprints
- * stays stale and ZotLit reads old data. A `PASSIVE` checkpoint copies the
- * committed WAL frames into the main file, which makes that fingerprint move and
- * the next read return current rows. `PASSIVE` never blocks: it copies whatever
- * frames no reader or writer is holding and returns, never invoking SQLite's
- * busy handler. It is the same operation Zotero 10 runs on itself at idle and at
- * shutdown.
- *
- * The checkpoint step is probe-gated on `PRAGMA journal_mode`, so it arms on
- * Zotero 10 and on an inherited-WAL Zotero 9 alike, and stays inactive on a
- * rollback-journal database — where commits land in the main file directly. The
- * signal is not gated: it follows every settled run, because the main file is
- * then as current as this pipeline can make it — also when the preference
- * skipped the checkpoint or the checkpoint failed, where a clone-mode reader
- * still sees the change (fail open).
- *
- * @see https://www.sqlite.org/pragma.html#pragma_wal_checkpoint
- */
 export async function registerFreshness(send: Send): Promise<WalCheckpoint> {
   let inactiveReason: "not-wal" | "probe-failed" | undefined;
   try {
@@ -114,7 +68,6 @@ export async function registerFreshness(send: Send): Promise<WalCheckpoint> {
   const listeners = new Set<() => void>();
   const emitChange = () => {
     for (const listener of listeners) {
-      // A repaint is a notification, never part of the checkpoint outcome.
       try {
         listener();
       } catch (error) {
@@ -144,8 +97,6 @@ export async function registerFreshness(send: Send): Promise<WalCheckpoint> {
       });
       lastRun = { at: new Date(), result: "done" };
     } catch (error) {
-      // Stay armed: the next notifier event schedules another attempt, and the
-      // debounce already caps how often that can happen.
       logger.warning("wal checkpoint failed", { error });
       lastRun = { at: new Date(), result: "failed" };
     }
@@ -160,8 +111,6 @@ export async function registerFreshness(send: Send): Promise<WalCheckpoint> {
         "PRAGMA wal_checkpoint(TRUNCATE)",
       );
       outcome = rows?.[0]?.busy ? "in-use" : "done";
-      // A busy database neither wrote nor failed, so the last run stands: a
-      // retry that finds the WAL held must not clear an earlier failure.
       if (outcome === "done") lastRun = { at: new Date(), result: "done" };
       logger.debug("manual wal checkpoint finished", { outcome });
     } catch (error) {
@@ -170,16 +119,12 @@ export async function registerFreshness(send: Send): Promise<WalCheckpoint> {
       logger.warning("manual wal checkpoint failed", { error });
     }
     emitChange();
-    // An `in-use` truncation may still have moved frames, so signal for it
-    // too; a failed one moved nothing, so a refresh would find nothing new.
     if (outcome !== "failed") signal();
     return outcome;
   };
 
   const runPipeline = async () => {
     if (inactiveReason === undefined) await checkpoint();
-    // A run whose checkpoint was in flight while the pipeline was disposed
-    // must not signal from beyond teardown.
     if (disposed) return;
     signal();
   };

@@ -153,8 +153,6 @@ describe("registered field discovery", () => {
     Effect.gen(function* () {
       const fixture = yield* scopedFixture();
       const run = registeredData(fixture.deps);
-      // A resolved note makes the excerpt-image context read the attachment
-      // folder, which the base fixture's FileManager does not answer.
       Object.assign(fixture.deps.app.fileManager, {
         getAvailablePathForAttachment: async (name: string) =>
           `attachments/${name}`,
@@ -842,11 +840,9 @@ interface FixtureDeps {
   readonly app: App;
   readonly noteIndex: NoteIndex["Service"];
   readonly template: Template["Service"];
-  /** The services the data reads, over the fixture database and `app`. */
   readonly context: Context.Context<TemplateDataServices>;
 }
 
-/** {@link createFixture}, closed when the test's scope closes. */
 const scopedFixture = (options?: Parameters<typeof createFixture>[0]) =>
   Effect.acquireDisposable(
     Effect.tryPromise(async () => createFixture(options)),
@@ -867,7 +863,6 @@ async function createFixture(options?: {
   try {
     seed(sqlite);
     sqlite.exec("PRAGMA query_only = ON");
-    // The service closes before the database it reads.
     const resources = new AsyncDisposableStack();
     resources.adopt(sqlite, (database) => database.close());
     const zoteroReads = resources.use(
@@ -882,7 +877,6 @@ async function createFixture(options?: {
         },
       }),
       vault: stubService<App["vault"]>("Vault", {
-        // The Vault tag listens for changes; nothing here emits one.
         on: () => stubService<EventRef>("EventRef", {}),
         offref: () => {},
         getFileByPath: () => null,
@@ -916,7 +910,6 @@ async function createFixture(options?: {
       getImportedNoteByNoteKey: () => Effect.succeed([]),
       whenIndexed: Effect.void,
     });
-    // A Template call fails as the plain Template threw.
     const thrown = <A>(evaluate: () => A) => Effect.sync(evaluate);
     const template = stubService<Template["Service"]>("Template", {
       compileErrors: Effect.succeed(
@@ -1095,7 +1088,6 @@ function seed(sqlite: DatabaseSync): void {
 describe("excerptImageContext", () => {
   const NOTE_PATH = "Literature/Smith 2024.md";
   const VAULT_FOLDER = "attachments/zotero";
-  /** A file manager whose default attachment folder sits beside `sourcePath`. */
   const fileManager = Layer.mock(FileManager, {
     getAvailablePathForAttachment: (filename, sourcePath) =>
       Effect.succeed(`${sourcePath ? "Literature/" : ""}${filename}`),
@@ -1133,8 +1125,6 @@ describe("excerptImageContext", () => {
 
   it.effect("uses the set folder even without a Literature Note", () =>
     Effect.gen(function* () {
-      // A set attachment.folder-path does not depend on a note path, so an
-      // excerpt image imported before still resolves.
       expect(yield* contextOf(true, VAULT_FOLDER, null)).toEqual({
         kind: "vault",
         folderPath: VAULT_FOLDER,

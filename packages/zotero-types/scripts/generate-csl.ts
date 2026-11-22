@@ -16,10 +16,6 @@ interface ZoteroCslSchema {
   };
 }
 
-/**
- * Two Zotero schema field names are exposed to templates under a
- * CSL-inspired zt vocabulary name instead of their raw schema name.
- */
 const ZT_FIELD_RENAMES: Readonly<Record<string, string>> = {
   abstractNote: "abstract",
   publicationTitle: "containerTitle",
@@ -29,7 +25,6 @@ const outputFile = join("src", "csl.ts");
 
 await writeFile(outputFile, render(schema));
 
-/** Object-literal body, one `"key": value,` line per entry. */
 function renderEntries(entries: Iterable<readonly [string, unknown]>): string {
   return Array.from(
     entries,

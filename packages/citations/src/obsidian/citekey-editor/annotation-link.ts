@@ -1,7 +1,3 @@
-// The CodeMirror side of annotation hover: the Durable Annotation Link under
-// the pointer, the hover that shows the Annotation it names, and the
-// Annotation Citation shown in Live Preview as the citation it is.
-
 import type { AnnotationHoverRequest } from "#obsidian/annotation-popover/service.ts";
 import type {
   DocumentCitations,
@@ -48,63 +44,29 @@ import {
   presentedCitationEqual,
 } from "#obsidian/citation-text/present.ts";
 
-/** The Annotation one Durable Annotation Link names, by bare keys. */
 export type DurableAnnotationLink = AnnotationOpenUriOptions;
 
 export interface AnnotationLinkHoverHandlers {
-  /** Show the popover of one hovered Durable Annotation Link. */
   showAnnotation: (request: AnnotationHoverRequest) => void;
-  /**
-   * Whether Live Preview shows an Annotation Citation as its formatted text.
-   * Read per decoration build.
-   */
   showCitations: () => boolean;
-  /**
-   * The formatted citations held for one document, or null while none are —
-   * decorations are built synchronously, so a link can only show text that is
-   * already there, and until then it stays the link it is.
-   */
   citationText: (path: string) => Held<DocumentCitations> | null;
-  /** Opens the Literature Note of the Item `indexedKey`. */
   openItem: (indexedKey: string, pane: NavigationPane) => void;
 }
 
-/**
- * Obsidian's classes for a Markdown link's text and its URL. A link written in
- * code, math, or a comment carries neither, so only a link Obsidian itself
- * draws as one is hovered.
- */
 const LINK_SELECTOR = ".cm-link, .cm-url";
 
-/** The one element wrapping a whole Durable Annotation Link, `[` to `)`. */
 const LINK_CLASS = "zt-annotation-link";
 
-/** The element an Annotation Citation shows its formatted text in. */
 const CITATION_CLASS = "zt-annotation-citation";
 
 const linkMark = Decoration.mark({ class: LINK_CLASS });
 
-/**
- * Shows the Annotation a hovered Durable Annotation Link names, in Live
- * Preview and Source mode alike.
- *
- * Obsidian raises no `hover-link` for an external link, so the hover is read
- * here, off the link Obsidian draws, and goes straight to the popover.
- *
- * The popover hangs off one element and follows the pointer in and out of it,
- * while Obsidian draws one link as several — Source mode shows its text and
- * its URL as spans of their own. Each link is therefore wrapped whole in one
- * mark, which the popover anchors on wherever in the link the pointer sits.
- */
 export function annotationLinkHoverExtension(
   handlers: AnnotationLinkHoverHandlers,
 ): Extension {
   return [
     annotationCitationWidgets(handlers),
     annotationLinkMarks,
-    // A lower-precedence mark draws the outer element, and Obsidian's token
-    // highlighter already sits at `Prec.lowest`, after every plugin. Only an
-    // outer decoration wraps its spans whole rather than being split by them.
     EditorView.outerDecorations.of(
       (view) =>
         view.plugin(annotationLinkMarks)?.decorations ?? Decoration.none,
@@ -118,7 +80,6 @@ export function annotationLinkHoverExtension(
   ];
 }
 
-/** Wraps every Durable Annotation Link in the visible lines in one mark. */
 const annotationLinkMarks = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
@@ -149,15 +110,6 @@ function markLinks(view: EditorView): DecorationSet {
   return builder.finish();
 }
 
-/**
- * Shows each Annotation Citation in the visible lines of a Live Preview editor
- * as the text a style formatted for it — the parent Item's citation, located
- * by the Annotation's page — where the settings ask for it.
- *
- * A link the selection touches shows its Markdown, as every replaced
- * Citation does, and so does a link with no text held for it yet. A click on
- * the citation follows the link, as a click on the link itself does.
- */
 function annotationCitationWidgets(handlers: AnnotationLinkHoverHandlers) {
   return ViewPlugin.fromClass(
     class {
@@ -169,8 +121,6 @@ function annotationCitationWidgets(handlers: AnnotationLinkHoverHandlers) {
 
       update(update: ViewUpdate): void {
         const tree = syntaxTree(update.state);
-        // As for the Pandoc Citation widgets: a short tree, a composition, or
-        // a held mouse keeps the mapped set until the next update.
         if (
           tree.length < update.view.viewport.to ||
           update.view.composing ||
@@ -197,8 +147,6 @@ function annotationCitationWidgets(handlers: AnnotationLinkHoverHandlers) {
     },
     {
       decorations: (plugin) => plugin.decorations,
-      // Cursor motion steps over a citation in one go, and backspace removes
-      // the link it shows whole.
       provide: (plugin) =>
         EditorView.atomicRanges.of(
           (view) => view.plugin(plugin)?.decorations ?? Decoration.none,
@@ -214,8 +162,6 @@ function citationWidgets(
   const held = heldCitations(view, handlers);
   if (held === null) return Decoration.none;
   const builder = new RangeSetBuilder<Decoration>();
-  // A blurred editor conceals everything, the way Obsidian's own live preview
-  // reads its selection.
   const selection = view.hasFocus ? view.state.selection.ranges : [];
   for (const range of visibleLineRanges(view)) {
     for (const span of annotationLinksIn(view.state, range)) {
@@ -234,11 +180,6 @@ function citationWidgets(
   return builder.finish();
 }
 
-/**
- * The citations held for the document a Live Preview editor shows, or null
- * where no Annotation Citation shows as one: the setting is off, the editor
- * shows Source mode, or no text is held yet.
- */
 function heldCitations(
   view: EditorView,
   handlers: AnnotationLinkHoverHandlers,
@@ -249,11 +190,6 @@ function heldCitations(
   return handlers.citationText(file.path)?.value ?? null;
 }
 
-/**
- * The text formatted for the Annotation Citation `span` writes, or null where
- * the link is no Annotation Citation: it has text, or the Document Citation
- * Set leaves it out.
- */
 function annotationCitationContent(
   state: EditorState,
   span: AnnotationLinkSpan,
@@ -267,14 +203,6 @@ function annotationCitationContent(
   );
 }
 
-/**
- * One Annotation Citation shown as the text a style formatted for it.
- *
- * The widget carries the link's wrapper class, so the hover reads it as the
- * link it stands for. CodeMirror ignores every event in it but that hover; a
- * click follows the link the way Obsidian follows one it draws, through
- * `window.open`.
- */
 class AnnotationCitationWidget extends WidgetType {
   readonly #url;
   readonly #content;
@@ -293,8 +221,6 @@ class AnnotationCitationWidget extends WidgetType {
   }
 
   toDOM(view: EditorView): HTMLElement {
-    // Drawn as a rendered Pandoc Citation is: the citation key hook carries
-    // the link appearance.
     const element = citationElement(view.dom.ownerDocument, this.#content, [
       themeHook.citationKey,
       LINK_CLASS,
@@ -354,15 +280,6 @@ function hoverAt(
   });
 }
 
-/**
- * Applies the re-entry guard Obsidian runs before its own `hover-link`, so
- * moving within one link — from its text to its URL too — fires a single
- * hover.
- *
- * @returns the element wrapping the whole link the pointer entered, or null
- *   when the event lands on nothing Obsidian draws as a link, or moves within
- *   the link it is already inside.
- */
 function linkElementAt(event: MouseEvent): HTMLElement | null {
   const target = event.target as Node | null;
   const relatedTarget = event.relatedTarget as Node | null;
@@ -380,16 +297,6 @@ function linkElementAt(event: MouseEvent): HTMLElement | null {
   return targetEl;
 }
 
-/**
- * The Durable Annotation Link covering document position `pos`, in its text
- * or in its URL. `pos` counts as inside at either boundary, the range test
- * {@link citekeyAtPos} runs too. Where one link ends as the next begins, the
- * position answers the one beginning there — the start a hovered link's
- * wrapper reports.
- *
- * @returns the Annotation the link names, or null where `pos` sits in no
- *   inline link to a Zotero Annotation.
- */
 export function annotationLinkAtPos(
   state: EditorState,
   pos: number,
@@ -397,7 +304,6 @@ export function annotationLinkAtPos(
   return annotationLinkSpanAt(state, pos)?.link ?? null;
 }
 
-/** {@link annotationLinkAtPos}, with the whole span of the link it finds. */
 function annotationLinkSpanAt(
   state: EditorState,
   pos: number,
@@ -410,16 +316,12 @@ function annotationLinkSpanAt(
   );
 }
 
-/** One Durable Annotation Link, spanning `[` to `)`. */
 interface AnnotationLinkSpan extends DocRange {
   link: DurableAnnotationLink;
-  /** The URL the link follows. */
   url: string;
-  /** Whether the link has no text, which is what an Annotation Citation writes. */
   empty: boolean;
 }
 
-/** The Durable Annotation Links among the inline Markdown links of `range`. */
 function annotationLinksIn(
   state: EditorState,
   range: DocRange,
@@ -432,42 +334,20 @@ function annotationLinksIn(
   );
 }
 
-/**
- * The token classes Obsidian's HyperMD mode gives an inline `[text](url)`:
- * `formatting formatting-link link` on each bracket, `link` on the text,
- * `formatting formatting-link-string string url` on each parenthesis and
- * `string url` on the URL. Like the wikilink vocabulary it is a fork internal
- * with no compatibility contract, so an unknown one finds no links.
- *
- * @see ../wikilink-editor/scan.ts
- */
 const TOKEN_LINK = "link";
 const TOKEN_LINK_BRACKET = "formatting-link";
 const TOKEN_URL_PAREN = "formatting-link-string";
 const TOKEN_URL = "url";
 
-/**
- * Finds every inline `[text](url)` among `nodes` the way Obsidian's own
- * `getClickableTokenAt` reads one: a run of `link` nodes opened by `[`
- * and closed by `]`, met at once by `(`, the URL and `)`. Nodes must
- * touch, so plain text anywhere in between ends the run. Code, math and
- * frontmatter never carry the link classes, so they need no exclusion list.
- * Empty text leaves the two brackets touching, which the parser merges into
- * one `[]` node.
- *
- * @param nodes the token nodes of whole lines, so no link is cut by an edge.
- */
 function markdownLinks(
   nodes: readonly TokenNode[],
 ): { from: number; to: number; url: string; empty: boolean }[] {
   const links: { from: number; to: number; url: string; empty: boolean }[] = [];
   let run: {
     from: number;
-    /** Where the next node of the run must start. */
     at: number;
     phase: "text" | "closed" | "url";
     url: string;
-    /** Whether the run opened on `[]`, which has no text. */
     empty: boolean;
   } | null = null;
 

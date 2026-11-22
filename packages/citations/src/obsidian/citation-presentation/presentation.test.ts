@@ -94,8 +94,6 @@ describe("the styles a note is offered", () => {
       vaultStyleId: VAULT_STYLE_ID,
     });
 
-    // Shown as the selection it stands for, and out of reach as a choice: the
-    // dialog writes a style Zotero owns or none at all.
     expect(options.at(-1)).toEqual({
       value: missing,
       label: m.settings_citation_references_style_missing({ id: missing }),
@@ -105,7 +103,6 @@ describe("the styles a note is offered", () => {
 });
 
 describe("the update a confirmed choice writes", () => {
-  /** One note as text: its Properties block over an empty body. */
   function noteProperties(properties: Record<string, unknown>) {
     const host = createObsidianHost({
       "Draft.md": `---\n${stringifyYaml(properties)}---\n`,
@@ -115,7 +112,6 @@ describe("the update a confirmed choice writes", () => {
       app: host.app,
       file,
       process: vi.spyOn(host.vault, "process"),
-      /** The Properties the note carries now. */
       frontmatter: () => host.metadataCache.getFileCache(file)?.frontmatter,
     };
   }

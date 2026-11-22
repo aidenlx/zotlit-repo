@@ -1,15 +1,8 @@
-// Profile sources for tests that render Annotations into the note body.
-
 import { DEFAULT_PROFILE_SOURCE } from "./default-profile.ts";
 
 const QUERY_BLOCK_START = "## Annotations\n\n```zotquery\n";
 const FENCE_END = "```\n";
 
-/**
- * The default Profile with a static annotation listing in place of its Query
- * Block: each Annotation of the item renders through the annotation template.
- * The listing sits in a Managed Block, so an update refills it.
- */
 export const ANNOTATION_LIST_PROFILE_SOURCE = ((): string => {
   const start = DEFAULT_PROFILE_SOURCE.indexOf(QUERY_BLOCK_START);
   if (start < 0) throw new Error("The default Profile has no Query Block");

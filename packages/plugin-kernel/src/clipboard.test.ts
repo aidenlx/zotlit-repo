@@ -12,7 +12,6 @@ const payload = {
 let write: MockInstance<Clipboard["write"]>;
 let writeText: MockInstance<Clipboard["writeText"]>;
 
-/** What the one clipboard item carries, as a paste-time reader would find it. */
 async function written(): Promise<Record<string, string>> {
   const [items] = write.mock.calls[0]!;
   const [item] = items;

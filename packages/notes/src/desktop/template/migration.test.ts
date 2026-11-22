@@ -60,11 +60,6 @@ async function makeHarness(
     defaultDocument?: string;
     ejectedAnnotation?: boolean;
     verificationAnnotation?: object | null;
-    /**
-     * The 2.1.x documents the folder holds. Supplying them makes this a vault
-     * with no Legacy Template File slots at all, which the prompt still arms
-     * for: a `cite` or a bare partial is a legacy file like any other.
-     */
     legacyDocuments?: LegacyTemplateDocuments;
   },
   context = Context.empty(),
@@ -123,9 +118,7 @@ async function makeHarness(
         return snapshot();
       }),
   );
-  /** Called once per run of the `flush` Effect, so a test orders the flushes. */
   const flushRuns = vi.fn(() => Effect.void);
-  // `update` stays the spy, so a case reads its calls.
   const settings = Object.assign(
     stubService<PluginSettings["Service"]>("PluginSettings", {
       current: Effect.sync(snapshot),
@@ -407,10 +400,8 @@ describe("LiteratureNoteTemplateMigrationService", () => {
           return write(path, source);
         });
 
-        // A flush that yields runs past unload's start, as a real save does.
         harness.flushRuns.mockImplementation(() => Effect.yieldNow);
 
-        // Unload stops the waiting caller; the conversion itself finishes.
         const converting = expect(
           harness.service.bridge.runPromise(harness.service.convert),
         ).rejects.toMatchObject({ name: "AbortError" });
@@ -420,8 +411,6 @@ describe("LiteratureNoteTemplateMigrationService", () => {
         yield* Effect.promise(() => unloading);
         yield* Effect.promise(() => converting);
 
-        // The document stands, the legacy files are gone, and the result is
-        // recorded, so no retry meets a half-done conversion.
         expect(harness.files.has("templates/zotlit-profile.default.md")).toBe(
           true,
         );
@@ -435,7 +424,6 @@ describe("LiteratureNoteTemplateMigrationService", () => {
           trashed: 3,
           pendingCleanup: [],
         });
-        // The settings flush is the conversion's last step; unload waits for it.
         expect(
           harness.flushRuns.mock.invocationCallOrder.at(-1),
         ).toBeGreaterThan(harness.trashFile.mock.invocationCallOrder.at(-1)!);
@@ -486,7 +474,6 @@ describe("LiteratureNoteTemplateMigrationService", () => {
           outcome: "converted",
           pendingCleanup: ["templates/zotlit-filename.liquid.md"],
         });
-        // The documents stay active and the file that resisted is recorded.
         expect(
           failed.bridge.runSync(failed.settings.current)[
             "note.template-conversion-pending"
@@ -599,7 +586,6 @@ describe("LiteratureNoteTemplateMigrationService", () => {
           diagnostic: { code: "conversion-failed", message: "Disk full" },
         });
 
-        // Only the document this pass created goes back; every legacy file stays.
         expect(harness.trashFile).toHaveBeenCalledTimes(1);
         expect(harness.files.has("templates/zotlit-profile.default.md")).toBe(
           false,
@@ -868,10 +854,6 @@ const CITE2_LIQUID =
 const AUTHORS_LIQUID = "{{ zt.creators | join: ', ' }}\n";
 const SUMMARY_LIQUID = "> {{ zt.abstract }}\n";
 
-/**
- * The migration service over a real {@link TemplateService} and a fixture
- * vault, so the pass runs its own byte verification and writes real files.
- */
 async function makeVaultHarness(
   files: Record<string, string>,
   options?: { javascriptTemplates?: boolean; storedSettings?: unknown },
@@ -921,8 +903,6 @@ async function makeVaultHarness(
     options?.storedSettings ?? { __VERSION__: 1 },
   );
   const noMigration = (raw: unknown) => raw;
-  // Each service is owned from the moment it is constructed, so a startup that
-  // fails halfway still disposes what it already built.
   await using stack = new AsyncDisposableStack();
   const settings = stack.use(
     await buildSettings({
@@ -1445,7 +1425,6 @@ describe("layout-ready legacy conversion detection", () => {
             "note.template-conversion-pending"
           ],
         ).toBe(false);
-        // Obsidian populates its initial inventory without create events.
         for (const [path, source] of Object.entries(original))
           harness.vault.addFile(path, source);
 
@@ -1491,7 +1470,6 @@ describe("layout-ready legacy conversion detection", () => {
             "note.template-conversion-pending"
           ],
         ).toBe(true);
-        // The late inventory still renders through the legacy files.
         expect(
           resumed.template.bridge.runSync(
             resumed.template.render(

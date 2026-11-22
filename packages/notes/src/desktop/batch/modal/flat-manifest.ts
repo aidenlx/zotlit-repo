@@ -1,4 +1,3 @@
-// Flat grouped-checklist body for the batch modal (update/create, create/overwrite).
 import {
   listGroup,
   ROW_ICON,
@@ -18,11 +17,9 @@ import type {
 
 export interface FlatTask extends BatchRow {
   id: number;
-  /** Group key; one of the {@link FlatManifestOptions.groups} kinds. */
   kind: string;
 }
 
-/** One confirm/summary group, in render order. */
 export interface FlatGroupDef {
   kind: string;
   header: (args: { count: number }) => string;
@@ -32,27 +29,17 @@ export interface FlatGroupDef {
 export interface FlatManifestOptions {
   tasks: readonly FlatTask[];
   notFound: readonly { label: string }[];
-  /** Ordered group definitions; tasks are bucketed by `kind`. */
   groups: readonly FlatGroupDef[];
-  /** Choices for the whole batch, above its per-Library groups. */
   profileChoices?: readonly BatchProfileChoice[];
-  /** Items classified as up-to-date; shown as a static informational group. */
   upToDate?: readonly BatchRow[];
   upToDateHeader?: (args: { count: number }) => string;
   kept?: readonly BatchRow[];
   keptHeader?: (args: { count: number }) => string;
   notFoundHeader: (args: { count: number }) => string;
-  /** Header for items that ran but had nothing to write (e.g. vanished note). */
   skippedHeader?: (args: { count: number }) => string;
-  /** Header for items that never ran (cancelled before executing). */
   abortedHeader: (args: { count: number }) => string;
 }
 
-/**
- * Flat checklist: ordered groups of tasks (each a leading status icon + label)
- * plus a static not-found group. Rows mount on {@link #rows}, so a run can
- * flip them in place; the summary regroups by terminal status.
- */
 export class FlatManifest implements BatchManifest {
   readonly #options: FlatManifestOptions;
   readonly #rows = new RowStatusBoard();

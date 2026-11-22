@@ -1,5 +1,3 @@
-// Side-effect-free NoteResolvers shared by Template data inspection surfaces (ADR 0005).
-
 import type {
   Annotation,
   Attachment,
@@ -14,7 +12,6 @@ import type {
 import { zoteroNoteLink } from "@zotlit/db";
 import { markInertPlaceholder } from "@zotlit/db/template-data";
 
-/** Which side-effect-free excerpt-image rendering path applies for the current item. */
 export type ExcerptImageContext =
   | { kind: "file-url" }
   | { kind: "not-imported" }
@@ -38,7 +35,6 @@ export interface GenerateMarkdownLinkOptions<
   alias?: string;
 }
 
-/** Look up an item's existing Literature Note by its authoritative Indexed Key. */
 export function findExistingLitNote<File extends InertNoteFile>(
   noteIndex: Pick<InertNoteIndex<File>, "getNotesByItemKey">,
   item: { indexedKey: string },
@@ -144,7 +140,6 @@ export function buildInertNoteResolvers<File extends InertNoteFile>(
   };
 }
 
-/** Join a child name onto a normalized folder path, treating `/` as the vault root. */
 function joinFolderPath(folder: string, name: string): string {
   return folder === "/" ? name : `${folder}/${name}`;
 }

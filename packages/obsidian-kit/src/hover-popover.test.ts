@@ -6,10 +6,6 @@ import { HoverPopover } from "./hover-popover.ts";
 
 const mainWindow = activeWindow;
 
-/**
- * A popout window's timers: ids the main window's `clearTimeout` cannot reach,
- * the way Chromium keeps one timer table per window.
- */
 function popoutWindow(): Window {
   const handles = new Map<number, ReturnType<typeof setTimeout>>();
   let next = 1;

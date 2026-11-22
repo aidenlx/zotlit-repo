@@ -26,3 +26,45 @@ The Anchor rides the subpath rather than a field beside it. Obsidian parses a PD
 - Emission changes for one field. `zt.annotations[].fileLink` writes `#page=N&zt-annotation=KEY` by default, an explicit `fileLink(alias, subpath)` override still wins, and `zt.attachments[].fileLink` is untouched. The default annotation template starts rendering that link on the page label, because it rendered nothing clickable before and the capability would otherwise ship invisible. Per-annotation output lives inside the managed region, so Update Note refreshes it.
 - Claiming Zotero's own `zotero://open/...?annotation=<key>` marks is the deliberate next step, not a rejected one. Those links already sit in every imported Zotero Child Note, they reach the same patched `window.open` Capture stands on, and the Anchor's contract is wide enough for a caller that arrives with a bare key and a library segment. `zotero://select` stays Zotero's. The step is now taken: ADR 0045's consequences record how Capture claims these Durable Annotation Links.
 - Landing stands on two undocumented behaviours: that `WorkspaceLeaf.setEphemeralState` is the only path the ephemeral state takes to a view, and that an unknown key in a PDF fragment is inert. Both are re-verified when `minAppVersion` moves. Where each one is read in the bundle is in `git show 452c5b598^:docs/pdf-annotation-probes.md`.
+
+## Routing to ZotLit Reader
+
+`anchor-capture.ts` routes a native PDF `setViewState` call to ZotLit Reader
+when its subpath contains a usable Annotation or Attachment Anchor. The
+Reader passes the original subpath to the binding. A plain page link keeps
+its original view type. Obsidian also sends ephemeral state for focus,
+scrolling, and rename, so routing requires a string subpath.
+
+Use one fragment codec for Attachment File Links and Mark Landing. The page is independently valid, so keep it if an Annotation Indexed Key is invalid. A caller that writes the fragment separator gets the body alone. An open that identifies its Attachment can also carry `zt-attachment`, because multiple Attachments can share one file. The codec reads its recognized keys while leaving Obsidian's own fragment keys available to Obsidian.
+
+Use the Reader's navigation first when a requested Mark Landing needs an unpainted page. A record with no mark on that Reader does not move the page. Escape cancels a pending landing. Undo and redo can request the same landing for the changed Annotation. [Reader integration tests](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/service.test.ts)
+
+A Mark Landing selects without opening the popup. Page paints preserve that choice until the next selection. A new note can select directly into its comment editor.
+
+A quiet selection retains its popup choice in the Reader Surface State so a paint cannot reopen it.
+
+Decide Mark Landing from data. Distinguish a complete empty list from a source that has not answered. The latter and an unresolved Attachment lookup can leave the Anchor pending. A terminal miss uses the page fallback and writes a debug record. Wait for the document before deciding its first placement. If the Attachment cannot resolve, handle the Anchor without waiting on an Annotation read that will never start. Use the first page a mark draws on when a range spans pages.
+
+An explicit Card Selection supersedes a landing that awaited a read or paint. A navigation to a mark already in the selected group scrolls without reducing the group. A history deletion clears selection, cancels an older pending landing, and uses the Reader's page navigation to return to the removed mark's page. Scroll to the mark on the frame after selection so the native page jump does not scroll it away. [Landing decision](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/mark-landing.ts) · [Reader binding](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/binding.ts)
+
+Pin the pages in the landing fixture independently of the grouping function so the test can detect a landing on the later page of a split range.
+
+Check the parsed ephemeral state keys when proving an Annotation open.
+The PDF view acts on those keys and can accept different spellings of
+the same subpath.
+
+[Annotation subpath proof](../../../../packages/e2e/src/annotation-open-subpath.ts)
+
+Wait for the latest binding read used to decide a Landing. Another
+read can replace the pending promise. PDF.js can clear Marks while
+rendering the page, and the binding paints them again on the render
+event. Check the page and the selected Marks after that paint. A
+page-only Landing has no selected Marks.
+
+[Landing proof](../../../../packages/e2e/src/annotation-links.e2e.ts)
+
+Start with the PDF pages away from the target when proving a
+card-triggered Landing. The target mark becomes visible
+through the Landing's own scroll.
+
+[Paired scroll proof](../../../../packages/e2e/src/paired-run.e2e.ts)

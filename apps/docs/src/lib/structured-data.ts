@@ -1,5 +1,3 @@
-// The schema.org objects the pages publish as JSON-LD.
-
 import type {
   Article,
   BlogPosting,
@@ -22,7 +20,6 @@ import { appName, baseURL, gitConfig, repoUrl } from "./shared.ts";
 const logoUrl = `${baseURL}/logo/zotlit-logo-512.png`;
 const obsidianDirectoryUrl = "https://community.obsidian.md/plugins/zotlit";
 
-/** Absolutizes a fumadocs page url (e.g. `/blog/foo`) against `baseURL`. */
 export function absoluteUrl(path: string): string {
   if (path.startsWith("http")) return path;
   return path.startsWith("/") ? baseURL + path : `${baseURL}/${path}`;
@@ -65,17 +62,12 @@ function personSchema(author: string): Person {
   return {
     "@type": "Person",
     name: author,
-    // Only the maintainer's handle maps to a GitHub profile; other authors are display names.
     ...(author === gitConfig.user && {
       url: `https://github.com/${author}`,
     }),
   };
 }
 
-/**
- * @param date publication day in ISO form, as `source.config.ts` normalizes it.
- * @param modified last commit day in ISO form, when git knows one.
- */
 export function blogPostingSchema(input: {
   title: string;
   description?: string;
@@ -83,9 +75,7 @@ export function blogPostingSchema(input: {
   date: string;
   modified?: string;
   url: string;
-  /** The language of the edition the page shows. */
   inLanguage: string;
-  /** Root-relative path of the post's social card. */
   image?: string;
 }): WithContext<BlogPosting> {
   return {
@@ -105,17 +95,12 @@ export function blogPostingSchema(input: {
   };
 }
 
-/**
- * @param date publication day in ISO form, as `source.config.ts` normalizes it.
- */
 export function changelogArticleSchema(input: {
   title?: string;
   version: string;
   date: string;
   url: string;
-  /** The language of the edition the page shows. */
   inLanguage: string;
-  /** Root-relative path of the release's social card. */
   image: string;
 }): WithContext<Article> {
   return {
@@ -131,7 +116,6 @@ export function changelogArticleSchema(input: {
   };
 }
 
-/** The git days of a docs page or lesson, each when git knows it. */
 function commitDates({
   published,
   modified,
@@ -145,20 +129,12 @@ function commitDates({
   };
 }
 
-/**
- * A docs page as a TechArticle, the Article type schema.org gives technical
- * documentation and how-to guides.
- *
- * @param published first commit day in ISO form, followed through renames.
- * @param modified last commit day in ISO form, the sitemap's `lastmod`.
- */
 export function docsArticleSchema(input: {
   title: string;
   description?: string;
   published?: string;
   modified?: string;
   url: string;
-  /** Root-relative path of the page's social card. */
   image: string;
 }): WithContext<TechArticle> {
   const localeState = getPageLocaleState(input.url, getLocale());
@@ -182,7 +158,6 @@ export function docsArticleSchema(input: {
 
 export interface FaqEntry {
   question: string;
-  /** Plain text, the same words the page shows under the question. */
   answer: string;
 }
 
@@ -204,18 +179,12 @@ export function faqPageSchema(input: {
   };
 }
 
-/**
- * A `/learn` lesson.
- * @param published first commit day in ISO form, followed through renames.
- * @param modified last commit day in ISO form, the sitemap's `lastmod`.
- */
 export function lessonArticleSchema(input: {
   title: string;
   description: string;
   published?: string;
   modified?: string;
   url: string;
-  /** Root-relative path of the lesson's social card. */
   image: string;
 }): WithContext<Article> {
   const { contentLocale } = getPageLocaleState(input.url, getLocale());
@@ -261,7 +230,6 @@ export function breadcrumbListSchema(
   };
 }
 
-/** Serialize for a `<script type="application/ld+json">` body, neutralizing `<` so a `</script>` payload cannot break out of the tag. */
 export function serializeJsonLd(schema: WithContext<Thing>): string {
   return JSON.stringify(schema).replaceAll("<", "\\u003c");
 }

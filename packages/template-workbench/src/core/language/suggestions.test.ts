@@ -208,7 +208,6 @@ describe("suggestions: contract roots", () => {
     expect(afterHeader).toContain("pageLabel");
     expect(afterHeader).toContain("text");
     expect(afterHeader).not.toContain("annotations");
-    // Contrast: a position before the header still uses the configured root.
     const beforeHeader = labels(source, eta, before.indexOf("zt.") + 3);
     expect(beforeHeader).toContain("title");
     expect(beforeHeader).not.toContain("pageLabel");
@@ -379,13 +378,11 @@ describe("suggestions: filters, tags, and partials", () => {
         start: () => {},
       },
     };
-    // No call names either partial yet, and the list still holds both.
     expect(labels('{% render "', vault)).toEqual([
       "authors",
       "venue-line",
       "New partial…",
     ]);
-    // A query no partial matches leaves the create entry reachable.
     expect(labels('{% render "ven', vault)).toEqual([
       "venue-line",
       "New partial…",
@@ -425,7 +422,6 @@ describe("suggestions: filters, tags, and partials", () => {
   );
 
   describe("an accepted name finishes the call it was opened on", () => {
-    /** The source an accepted `venue-line` leaves behind; `|` is the caret. */
     const accept = (source: string, config: SuggestionConfig = note) => {
       const plain = source.replace("|", "");
       const result = suggestions(plain, source.indexOf("|"), {
@@ -438,13 +434,10 @@ describe("suggestions: filters, tags, and partials", () => {
     };
 
     it.each([
-      // Liquid's render opens an isolated scope, so zt travels by name.
       ['{% render "|', '{% render "venue-line" with zt as zt %}'],
       ['{% render "| %}', '{% render "venue-line" with zt as zt %}'],
       ['{% render "ven|" %}', '{% render "venue-line" with zt as zt %}'],
-      // include shares the caller's scope, so it needs no clause.
       ['{% include "|" %}', '{% include "venue-line" %}'],
-      // A single-quoted call keeps its own quote.
       ["{% include '|' %}", "{% include 'venue-line' %}"],
     ])("writes %s as %s", (source, expected) => {
       expect(accept(source)).toBe(expected);
@@ -494,7 +487,6 @@ describe("suggestions: annotation shortcut", () => {
       example:
         "{% for annotation in zt.annotations %}{% render_annotation annotation %}{% endfor %}",
     });
-    // An existing argument keeps the tag name alone.
     expect(shortcut("{% ren a %}").insert).toBe("render_annotation");
   });
 

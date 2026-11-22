@@ -32,12 +32,9 @@ const getPost = createServerFn({ method: "GET" })
   .handler(async ({ data: { slug, locale } }) => {
     const page = blog.getPage([slug], locale);
     if (!page) throw notFound();
-    // The git date rides with the compiled body, not the frontmatter head.
     const modified = (await page.data.load()).lastModified
       ?.toISOString()
       .slice(0, 10);
-    // getBlogPages() runs newest-first, so the neighbour after this post in
-    // the list is the older one and the neighbour before it is the newer one.
     const pages = getBlogPages({ locale });
     const index = pages.findIndex((entry) => entry.url === page.url);
     const neighbour = (entry: (typeof pages)[number] | undefined) =>
@@ -51,7 +48,6 @@ const getPost = createServerFn({ method: "GET" })
       description: page.data.description,
       author: page.data.author,
       date: page.data.date,
-      // Only a revision after publication is worth telling readers and crawlers.
       modified:
         modified !== undefined && modified > page.data.date
           ? modified
@@ -89,7 +85,6 @@ export const Route = createFileRoute("/_home/blog/$slug")({
     if (post === undefined) return {};
     const localeState = getPageLocaleState(post.url, getLocale());
     return pageHead({
-      // A title that names the site needs no " | ZotLit" after it.
       ...(post.title.includes(appName)
         ? { fullTitle: post.title }
         : { title: post.title }),
@@ -166,7 +161,6 @@ function BlogPost() {
               next={post.newer}
             />
           )}
-          {/* `mapping="specific"` keyed on the path, so a thread stays with its post. */}
           <Comments
             term={unlocalizedPath(post.url).replace("/", "")}
             className="mt-10"

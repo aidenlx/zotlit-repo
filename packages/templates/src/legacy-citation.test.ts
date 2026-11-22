@@ -6,7 +6,6 @@ import {
   TemplateFacade,
 } from "./facade.ts";
 
-/** The citation-template data root for one Citation Variant, from citekeys. */
 function data(variant: "main" | "alt", ...citationKeys: string[]) {
   const citations = citationKeys.map((citationKey) => ({
     item: { citationKey },
@@ -123,9 +122,6 @@ describe("TemplateFacade.convertLegacyCitationTemplates", () => {
       alt: '{% render "cite" with zt as zt %}!\n',
     } as const;
 
-    // The `cite` slot still renders now, so verifying against the live
-    // registry would accept a fold that fails on the first insert after the
-    // pass trashes the file behind it.
     expect(
       facade.convertLegacyCitationTemplates(legacy, both).rendered.alt,
     ).toBe("@smith2024!");
@@ -143,9 +139,6 @@ describe("TemplateFacade.convertLegacyCitationTemplates", () => {
 
   it("names the differing variant when a folded branch drifts", () => {
     const facade = new TemplateFacade();
-    // A legacy source that reads the Citation Variant itself renders one way
-    // standalone and the other through the fold, which is the drift the
-    // byte verification exists to catch.
     const drift = () =>
       facade.convertLegacyCitationTemplates(
         { language: "liquid", alt: "{{ zt.variant }}\n" },

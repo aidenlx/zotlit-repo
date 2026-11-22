@@ -9,8 +9,6 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
-  // The build constants the kernel reads (src/typings/build-env.d.ts), as
-  // the plugin's own test config defines them.
   define: {
     __PLUGIN_ID__: JSON.stringify("zotlit"),
     __ANNOTATION_SUGGESTER_ENABLED__: JSON.stringify(true),

@@ -19,7 +19,6 @@ import {
   section,
 } from "#__fixtures__/wikilink-reading/internal-link.ts";
 
-/** The scan and the swap together, which is how one section renders. */
 const renderWikilinkCitations = (
   root: HTMLElement,
   citations: (linktext: string) => WikilinkCitation | null,
@@ -28,7 +27,6 @@ const renderWikilinkCitations = (
   ) => PresentedCitation | null,
 ): number => renderCitationRuns(sectionCitationRuns(root, citations), format);
 
-/** Every `literatures/…` link names a Literature Note; nothing else does. */
 const citationOf = (linktext: string): WikilinkCitation | null =>
   wikilinkCitation(linktext, {
     literatureNote: (linkpath) =>
@@ -42,7 +40,6 @@ const citationOf = (linktext: string): WikilinkCitation | null =>
     enabled: true,
   });
 
-/** Stand-in formatted text used to exercise the generic DOM swap. */
 const display = (
   run: readonly RunMember<HTMLAnchorElement>[],
 ): PresentedCitation => {
@@ -136,7 +133,6 @@ describe("renderWikilinkCitations", () => {
 });
 
 describe("renderWikilinkCitations over a Citation Run", () => {
-  /** The formatted text of a run, which names the works it groups. */
   const grouped = (
     run: readonly RunMember<HTMLAnchorElement>[],
   ): PresentedCitation =>

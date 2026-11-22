@@ -1,4 +1,3 @@
-// Measurement lives in the worker; these observers never transfer Query Rows.
 import { Effect } from "effect";
 import { createHook } from "node:async_hooks";
 
@@ -22,7 +21,6 @@ export interface CancellationEvent {
     | "stop-requested"
     | "exit"
     | "cleanup-finished";
-  /** Wall clock across processes; acceptance timings use the renderer's monotonic clock. */
   atEpochMs: number;
 }
 
@@ -54,9 +52,6 @@ export function createTrace(sampleHeap: boolean): Trace {
   const endWork = () => {
     if (currentSlice) currentSlice.end = now();
   };
-  // A worker runs one query at a time. Measure its host callbacks, including
-  // native Promise continuations outside Effect. Microtasks extend the same
-  // task; a later host callback starts a new slice and excludes the I/O wait.
   const hook = createHook({
     init: (id, type) => {
       resources.set(
@@ -99,8 +94,6 @@ export function createTrace(sampleHeap: boolean): Trace {
         const tracer = yield* Effect.tracer;
         return yield* Effect.withTracer(operation, {
           span: (options) => tracer.span(options),
-          // The hook starts inside an existing callback. Cover its initial
-          // synchronous work too, before the first observed host callback.
           context: (primitive, fiber) => {
             try {
               return tracer.context
@@ -122,10 +115,6 @@ export function createTrace(sampleHeap: boolean): Trace {
             resources.clear();
           }),
         ),
-        // A scheduler pause ends the slice too. In the Obsidian worker the
-        // resume is a Chromium MessageChannel task, which async_hooks does not
-        // report, so the resume starts the next slice unless a host callback
-        // started it already.
         Effect.provideService(ItemQuerySliceObserver, {
           paused: (at) => {
             trace.paused.push(performance.timeOrigin + at);
@@ -153,7 +142,6 @@ export function createTrace(sampleHeap: boolean): Trace {
 export interface WorkerMeasurement {
   workerMs: number;
   engineMs?: number;
-  /** Time spent in synchronous JSON encoding steps, within engineMs. */
   answerMs?: number;
   channels?: { created: number; closed: number; open: number };
   answerSteps: number[];
@@ -179,7 +167,6 @@ export interface WorkerMeasurement {
   };
 }
 
-/** Aggregate inside the worker; raw statement events and heap samples stay there. */
 export function finishTrace(
   trace: Trace,
   context: { startedAt: number; answerSteps: number[]; heapBefore?: number },

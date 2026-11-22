@@ -41,7 +41,6 @@ it("rejects a 60,000-character LIKE pattern on the real database", () => {
   ).toThrow("LIKE or GLOB pattern too complex");
 });
 
-/** The keys of the `items` rows with these IDs, in key order. */
 function keysOf(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   itemIDs: readonly number[],
@@ -55,10 +54,7 @@ function keysOf(
 describe("readLibraryRowCount", () => {
   it("counts every `items` row of one Library: top-level, child, and trashed", () => {
     using scenario = openScenarioDatabase(connectClient);
-    // 10 live top-level Items, 1 trashed Item, 2 Attachments, 1 Annotation,
-    // and 1 Child Note.
     expect(runOk(scenario, readLibraryRowCount(personal.libraryID))).toBe(15);
-    // 2 live Items and 1 trashed Item.
     expect(runOk(scenario, readLibraryRowCount(group.libraryID))).toBe(3);
   });
 
@@ -150,13 +146,11 @@ describe("readCandidateSet", () => {
     expect(
       candidates(scenario)(personal, { kind: "key", key: "GRP2BK22" }),
     ).toEqual([]);
-    // A child row is a candidate; the universe restriction removes it.
     expect(
       candidates(scenario)(personal, { kind: "key", key: "PDF2LIVE" }),
     ).toEqual(["PDF2LIVE"]);
   });
 
-  // Failure modes: list selection crosses Libraries, duplicates IDs, or exceeds its cap.
   it("reads a bounded set of keys inside one Target Library", () => {
     using scenario = openScenarioDatabase(connectClient);
     const leaf = {
@@ -210,7 +204,6 @@ describe("readCandidateSet for a field value", () => {
 
   it("gives the Items that store the value as text and as a number", () => {
     using scenario = openScenarioDatabase(connectClient);
-    // ART2FULL and TIE2AAAA store `volume` as the integer 12, TIE2BBBB as text.
     expect(fieldCandidates(scenario)(personal, ["volume", "12"])).toEqual([
       "ART2FULL",
       "TIE2AAAA",
@@ -223,8 +216,6 @@ describe("readCandidateSet for a field value", () => {
 
   it("covers every field ID of the field's aliases", () => {
     using scenario = openScenarioDatabase(connectClient);
-    // CHP2YEAR stores `bookTitle`, CNF2TEXT `proceedingsTitle`, and
-    // RPT2NDTE `institution`.
     expect(
       fieldCandidates(scenario)(personal, [
         "publicationTitle",
@@ -240,7 +231,6 @@ describe("readCandidateSet for a field value", () => {
     expect(
       fieldCandidates(scenario)(personal, ["publisher", "Lab Institute"]),
     ).toEqual(["RPT2NDTE"]);
-    // ALS2CNFL stores both the base field and its type-specific variant.
     expect(
       fieldCandidates(scenario)(personal, [
         "publicationTitle",
@@ -257,7 +247,6 @@ describe("readCandidateSet for a field value", () => {
 
   it("reads only the fields of the name and its aliases, not custom fields", () => {
     using scenario = openScenarioDatabase(connectClient);
-    // `title` stores "Custom Title Value" as a custom field of ART2FULL.
     expect(
       fieldCandidates(scenario)(personal, ["title", "Custom Title Value"]),
     ).toEqual([]);
@@ -303,7 +292,6 @@ describe("readCandidateSet for a field value", () => {
 });
 
 describe("readCandidateSet for Collections", () => {
-  /** The live Collection IDs of a Library whose joined path passes `test`. */
   const collectionIDs = (
     scenario: ScenarioDatabase<NodeDatabaseClient>,
     library: { libraryID: number },

@@ -1,13 +1,3 @@
-// The landing's first screen: the headline, the supporting line and actions
-// on a research desk (see ./desk). The text and the desk render as static
-// HTML in their final state; the objects drop onto the desk once on load
-// (CSS, motion on only), and from 1280px they drift with a fine pointer.
-//
-// The drift writes `translate` on each object's own layer in one animation
-// frame, and reads the hero's box in the pointer handler, so a frame lays out
-// once and no inherited property changes under the hero.
-// @see apps/docs/DESIGN.md → Landing (Hero)
-
 import { useEffect, useRef } from "react";
 
 import { Message } from "@/components/message.tsx";
@@ -63,10 +53,6 @@ export function Hero() {
     <section
       ref={ref}
       aria-labelledby="landing-title"
-      // The desk is designed at 1440 × 832 and scales in steps with the
-      // window; the text scales with it. The hero fills the viewport below
-      // the nav and the banner, between 720px and the desk's height, and
-      // grows with its text when a larger font needs the room.
       className="relative overflow-hidden [--desk-s:1] min-[1280px]:max-[1360px]:[--desk-s:0.88] min-[1360px]:max-[1440px]:[--desk-s:0.94] min-[1800px]:[--desk-s:1.08] xl:flex xl:min-h-[max(720px,min(calc(100svh-56px-var(--fd-banner-height,0px)),calc(832px*var(--desk-s))))] xl:flex-col"
     >
       <Desk />

@@ -1,5 +1,4 @@
 import type { LiteratureNotes } from "#desktop/query-view/table-notes.ts";
-// The literature note controls of a PDF view bound to a Zotero Attachment with a parent Item.
 import { FileView, setIcon, setTooltip } from "obsidian";
 import type { App, Plugin, View, WorkspaceLeaf } from "obsidian";
 
@@ -29,23 +28,15 @@ interface HeaderAction {
   readonly off: () => void;
 }
 
-/**
- * Add the PDF view's literature note controls: the header action on each
- * bound PDF view and the `open-pdf-literature-note` command.
- *
- * @returns the "More options" entry, for the file menu's ordered list.
- */
 export function registerPdfNote(
   plugin: Pick<Plugin, "addCommand" | "register">,
   deps: PdfNoteDeps,
 ): FileMenuSegment {
   const { app } = deps;
-  // An open can outlive the PDF view that started it.
   plugin.register(deps.registry.mount(pdfNoteOpens));
   let sessions: ReadonlyMap<View, ReaderSession> = new Map();
   const actions = new Map<View, HeaderAction>();
 
-  /** The parent Item of the Attachment `view` shows; `null` where it has none. */
   const itemKeyOf = (view: View | null | undefined): string | null =>
     (view && sessions.get(view)?.target?.itemKey) ?? null;
 

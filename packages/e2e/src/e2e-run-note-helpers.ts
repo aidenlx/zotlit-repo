@@ -39,10 +39,6 @@ async function createFixtureNote(
   );
 }
 
-/**
- * Watch the window's frames from now on: the longest gap between two
- * animation frames, and the long tasks the renderer reported.
- */
 async function recordFrames(vaultId: string): Promise<
   AsyncDisposable & {
     read(): Promise<{
@@ -141,7 +137,6 @@ async function waitForIndexedNotes(
   );
 }
 
-/** A Fixture Item's Indexed Key and its current Literature Note, if any. */
 async function indexedNote(
   vaultId: string,
   itemID: number,
@@ -161,7 +156,6 @@ async function indexedNote(
   );
 }
 
-/** Maps the Scope Case's stable selectors to the Fixture's libraryIDs. */
 function expectedLibraryIDs(selectors: readonly LibrarySelector[]): number[] {
   return selectors
     .map((selector) => {
@@ -181,7 +175,6 @@ function expectedLibraryIDs(selectors: readonly LibrarySelector[]): number[] {
     .toSorted((a, b) => a - b);
 }
 
-/** Reads the user-visible Managed Region, including its boundary markers. */
 function managedRegion(source: string): string {
   const start = source.indexOf("%%zt-managed%%");
   const end = source.indexOf("%%/zt-managed%%", start);
@@ -196,10 +189,6 @@ function noteBody(source: string): string {
   return source.slice(end + 4);
 }
 
-/**
- * The chooser selects on hover, and the physical cursor can reselect a row after
- * a rerender. Repeat mousemove until the desired row stays selected.
- */
 async function hoverSuggestion(
   vaultId: string,
   match: { text: string } | { key: string },
@@ -235,18 +224,6 @@ function selectSuggestion(vaultId: string, needle: string): Promise<string> {
   return hoverSuggestion(vaultId, { text: needle });
 }
 
-/**
- * Types `query` into the last prompt, an Item search, and selects the row of
- * the Item whose Indexed Key is `key`. The prompt marks its results
- * `aria-busy` until the answer to the typed query shows; the rows before it
- * answer an earlier query. Rows of Items that share a title read the same, so
- * the row is found by its `data-indexed-key`.
- *
- * @param vaultId - The vault whose window holds the prompt.
- * @param query - The text typed into the prompt.
- * @param key - The Indexed Key of the Item to select.
- * @returns The selected row's text.
- */
 async function selectItemSuggestion(
   vaultId: string,
   query: string,
@@ -268,13 +245,6 @@ async function selectItemSuggestion(
   return hoverSuggestion(vaultId, { key });
 }
 
-/**
- * Presses `key` in the last prompt's input.
- *
- * @param vaultId - The vault whose window holds the prompt.
- * @param key - The key pressed.
- * @param modifiers - The modifier keys held with it.
- */
 async function pressPromptKey(
   vaultId: string,
   key: "Enter" | "Escape",
@@ -334,8 +304,6 @@ function clickModalButton(
   );
 }
 
-/** Captures notices across the vault's open documents, including a window
- * whose closure moves the next notice to the main window. */
 async function observeNotices(vaultId: string) {
   await obRun(
     vaultId,
@@ -382,15 +350,9 @@ async function observeNotices(vaultId: string) {
   };
 }
 
-/** Items a synthetic sync adds: the scale ADR 0069 measured at. */
 const SYNTHETIC_CORPUS_SIZE = 10_000;
-/** A word only synthetic Items carry. */
 const SYNTHETIC_MARKER = "zqsynth";
 
-/**
- * Deterministic synthetic titles, each with {@link SYNTHETIC_MARKER} and a
- * last word no other title has.
- */
 function syntheticTitles(count: number): string[] {
   let seed = 42;
   const random = () => (seed = (seed * 1103515245 + 12345) % 2147483648);
@@ -415,11 +377,6 @@ function syntheticTitles(count: number): string[] {
   );
 }
 
-/**
- * Writes journal articles into the Fixture's My Library the way Zotero stores
- * them: a title, a journal, and one to three authors each. Disposing deletes
- * every row it wrote.
- */
 function addMyLibraryItems(
   databasePath: string,
   titles: readonly string[],
@@ -446,14 +403,12 @@ function addMyLibraryItems(
     ({ groupID }) => groupID === null,
   )!.libraryID;
 
-  // One transaction: a failed write leaves no row behind.
   database.exec("begin");
   using rollback = new DisposableStack();
   rollback.defer(() => database.exec("rollback"));
   const value = database.prepare(
     "insert into itemDataValues (valueID, value) values (?, ?)",
   );
-  // Names carry the first new itemID, so a second call writes new rows too.
   const journals = Array.from({ length: 40 }, (_, index) => {
     value.run(
       firstValueID + index,
@@ -521,7 +476,6 @@ function addMyLibraryItems(
   };
 }
 
-/** A Zotero Item key, `ZQ` and six more of Zotero's key characters, one per `itemID`. */
 function zoteroKey(itemID: number): string {
   const alphabet = "23456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
   let key = "";
@@ -532,7 +486,6 @@ function zoteroKey(itemID: number): string {
   return `ZQ${key}`;
 }
 
-/** Tells the plugin the Zotero database changed, as the Companion's Freshness Signal does. */
 async function signalDatabaseUpdated(vaultId: string): Promise<void> {
   const server = (await obRun(
     vaultId,
@@ -562,10 +515,6 @@ async function signalDatabaseUpdated(vaultId: string): Promise<void> {
   expect(response.status).toBe(204);
 }
 
-/**
- * The renderer's used JavaScript heap, in bytes, after a full garbage
- * collection. A Web Worker's heap is its own and stays out of this figure.
- */
 async function rendererHeap(vaultId: string): Promise<number> {
   return await obRun(
     vaultId,

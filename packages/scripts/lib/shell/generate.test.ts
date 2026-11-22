@@ -105,11 +105,8 @@ describe("generateShell", () => {
     expect(manifest.dependencies).toEqual({
       "@zotlit/resources-plugin": "1.0.0-beta.0",
     });
-    // No bundler: a bundler would move the bytes that the pack's index names.
     expect(manifest.devDependencies).toBeUndefined();
     expect(manifest.scripts.build).toBe("node scripts/build.mjs");
-    // The shell's build gives the bundle package's main.js back unchanged:
-    // a comment, a source-map line and a missing final line feed all stay.
     const container = Buffer.from(
       "/*index*/\nmodule.exports = class {};\n/*\r\nAGFzbQ==\n*/\n//# sourceMappingURL=x",
     );

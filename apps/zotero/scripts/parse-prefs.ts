@@ -40,15 +40,6 @@ function isPrefValueLiteral(node: unknown): boolean {
   return false;
 }
 
-/**
- * Parse a Zotero default-prefs file (`pref("key", literal); …`) and return the
- * declared entries. Anything other than a top-level `pref(string-literal,
- * boolean|number|string|-number)` call is reported in `errors`.
- *
- * @param source     Full text of the prefs file.
- * @param filename   Absolute path passed to oxc (used for parser diagnostics).
- * @param displayPath Path string used in error messages (typically relative to repo root).
- */
 export function parsePrefsFile(
   source: string,
   filename: string,

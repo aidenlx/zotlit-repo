@@ -1,6 +1,3 @@
-// Note placement: editable loops and Managed Blocks, with an example disclosure
-// and a route to the shared format at every recognized annotation call.
-
 import type {
   WorkbenchDocumentController,
   WorkbenchSliceRange,
@@ -52,15 +49,10 @@ export interface NotePaneProps {
   onSelection?: (selection: WorkbenchSliceRange) => void;
   suggest?: SuggestionSource;
   preview: string | null;
-  /**
-   * The choice the reader owes before a preview exists, which the example
-   * region names in place of "Rendering…"; `null` while a render is on its way.
-   */
   previewHint?: string | null;
   formatProblem: string | null;
   annotationSelector?: ReactNode;
   onOpenAnnotation: () => void;
-  /** The Shared Partials this note's calls name; absent leaves them as source. */
   partials?: PartialPlaceholderHost;
 }
 
@@ -82,8 +74,6 @@ export function NotePane({
   const expanded = opened?.controller === controller ? opened.line : null;
   const localLine =
     expanded === null ? null : expanded - controller.sliceRange("note").from;
-  // Stable portal hosts let CodeMirror move the shared preview below its call
-  // while React keeps the selector and rendered example alive.
   const boxes = useMemo(
     () =>
       new Map<number, HTMLElement>(
@@ -109,8 +99,6 @@ export function NotePane({
     () => [noteExtensions, partialBoxes.extensions],
     [noteExtensions, partialBoxes.extensions],
   );
-  // The active line lives in master offsets so both Note and Source edits move
-  // it with the text. Every call on that line reads this one selection.
   useEffect(
     () =>
       controller.subscribe(({ transaction, docChanged }) => {
@@ -365,7 +353,6 @@ const MANAGED_LABEL = cn(
   "zt:inline-block zt:cursor-(--cursor-clickable) zt:px-2 zt:py-0.5 zt:select-none",
 );
 
-/** A beginner name in place of a raw tag the reader does not have to read. */
 class LabelWidget extends WidgetType {
   readonly label: string;
   readonly range: WorkbenchSliceRange;

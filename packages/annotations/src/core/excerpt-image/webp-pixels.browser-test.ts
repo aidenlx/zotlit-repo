@@ -1,8 +1,3 @@
-// Proves the vault read's WebP pixel check against the decoder the plugin
-// actually draws with: a durable asset link is rendered by Chromium, so the
-// renderer is where "these bytes have no pixels" has to be observable. A Node
-// process has no WebP decoder, which is why this trial exists.
-
 import { usableExcerptWebpPixels } from "./webp-pixels.ts";
 import { usableExcerptWebp } from "./webp.ts";
 
@@ -18,8 +13,6 @@ export interface WebpPixelsReport {
 
 export async function run(): Promise<WebpPixelsReport> {
   const passed: string[] = [];
-  // The committed fixture the container walk accepts on its own: headers that
-  // declare an 8 × 8 image, and not one sample of its pixel data.
   const headerOnly = sizedWebp(8, 8);
   check(
     usableExcerptWebp(headerOnly),
@@ -31,7 +24,6 @@ export async function run(): Promise<WebpPixelsReport> {
   );
   passed.push("header-only payload refused");
 
-  // The positive control: the same check must not refuse lossless output.
   check(
     await usableExcerptWebpPixels(chromiumLosslessWebp),
     "The renderer's decoder refused real lossless WebP output",

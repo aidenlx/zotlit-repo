@@ -1,9 +1,5 @@
 #!/usr/bin/env node
 
-// Lint: fails when a message key in `messages/en.json` has no reader. Tests,
-// generated code, and the catalogs themselves read no key. The keys unused
-// before this check existed sit in `unused-messages.json`; that list only
-// shrinks.
 import { globSync, readFileSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 

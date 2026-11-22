@@ -1,4 +1,3 @@
-// The plugin-wide cache of whole-bibliography renders every consumer of rendered citation text reads.
 import { Context, Schema, Stream } from "effect";
 import type { Effect } from "effect";
 
@@ -8,10 +7,6 @@ import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts"
 import type { EffectivePresentation } from "./document-presentation.ts";
 import type { BibliographyEntry, RenderedCitation } from "./engine.ts";
 
-/**
- * The style cache or the citation engine rejected. `message` is the
- * original's, which the held read and its notice show; `cause` holds it.
- */
 export class BibliographyRenderError extends Schema.TaggedError<
   BibliographyRenderError,
   { readonly brand: unique symbol }
@@ -30,25 +25,13 @@ export type BibliographyRenderEvent =
   | { readonly _tag: "invalidated" };
 export interface BibliographyRenderState {
   readonly vaultPresentation: EffectivePresentation;
-  /** The first unavailable selected style found in this plugin lifecycle. */
   readonly missingStyle: string | null;
 }
-/**
- * The Citation Presentation one render asks for. An omitted member inherits the
- * vault selection, which is what a caller that renders the vault default asks
- * for by passing nothing at all.
- */
 export interface RenderPresentation {
-  /**
-   * Installed CSL ID to render with, or `null` for the engine's embedded
-   * default style.
-   */
   styleId?: string | null;
-  /** Citation Locale to render in, overriding the style's own default locale. */
   locale?: string | null;
 }
 
-/** A completed bibliography and whether its style supplies Entry Markers. */
 export interface BibliographyRenderResult {
   entries: readonly BibliographyEntry[];
   hasEntryMarkers: boolean;
@@ -63,7 +46,6 @@ export type HeldRenderOutcome<T> =
   | { kind: "unavailable"; reason: RenderUnavailableReason }
   | { kind: "held"; key: string; record: Held<T> };
 
-/** What the References Sidebar needs to replace or preserve its current list. */
 export type BibliographyRenderOutcome =
   HeldRenderOutcome<BibliographyRenderResult>;
 
@@ -108,7 +90,6 @@ export interface ReadOptions {
   presentation?: RenderPresentation;
 }
 
-/** Each bibliography render invalidation. */
 export function renderInvalidated(
   render: Pick<BibliographyRender["Service"], "events">,
 ): Stream.Stream<void> {
@@ -118,7 +99,6 @@ export function renderInvalidated(
   );
 }
 
-/** The style IDs a render finds unavailable, each once until it clears. */
 export function missingStyleChanges(
   changes: Stream.Stream<BibliographyRenderState>,
 ): Stream.Stream<string> {

@@ -24,21 +24,13 @@ import {
 } from "./geometry-edit.ts";
 import type { Grip } from "./geometry-edit.ts";
 
-/** A US Letter page seen from a non-zero origin, as a PDF may describe it. */
 const VIEW_BOX = [10, 20, 622, 812] as const;
 
-/**
- * A free-text box 100 × 20 points at font size 10, and a fixed-width measure:
- * every character is half the font size wide, so "hello" is 25 points and a
- * line is 12 points high. A box is laid out at its own width once it is 20
- * points high.
- */
 const TEXT_CONTENT = {
   comment: "hello",
   measure: (text: string, fontSize: number) => text.length * fontSize * 0.5,
 };
 
-/** An image region well inside that page, `[x1, y1, x2, y2]` in PDF points. */
 const IMAGE = rects([[100, 300, 300, 500]]);
 
 function rects(value: number[][]): PdfRectsPosition {
@@ -48,7 +40,6 @@ function rects(value: number[][]): PdfRectsPosition {
   ) as PdfRectsPosition;
 }
 
-/** The one rect the image drag proposes, for a held grip moved by a delta. */
 function drag(grip: Grip, [dx, dy]: [number, number], confirmed = IMAGE) {
   const from = [200, 400] as const;
   const proposed = proposePosition({
@@ -63,12 +54,10 @@ function drag(grip: Grip, [dx, dy]: [number, number], confirmed = IMAGE) {
 }
 
 it("never lets a resize shrink the image below ten points, from any edge", () => {
-  // Each edge dragged far past the opposite one stops ten points short of it.
   expect(drag("l", [500, 0])).toEqual([290, 300, 300, 500]);
   expect(drag("r", [-500, 0])).toEqual([100, 300, 110, 500]);
   expect(drag("b", [0, 500])).toEqual([100, 490, 300, 500]);
   expect(drag("t", [0, -500])).toEqual([100, 300, 300, 310]);
-  // A corner holds both of its edges to the minimum at once.
   expect(drag("tr", [-500, -500])).toEqual([100, 300, 110, 310]);
   expect(drag("bl", [500, 500])).toEqual([290, 490, 300, 500]);
 });
@@ -84,15 +73,12 @@ it("clamps each dragged edge to the page's view box", () => {
 it("moves only the edges a grip holds, by the pointer's travel", () => {
   expect(drag("br", [40, -25])).toEqual([100, 275, 340, 500]);
   expect(drag("tl", [-15, 5])).toEqual([85, 300, 300, 505]);
-  // An edge midpoint moves one edge and ignores travel along it.
   expect(drag("r", [30, 70])).toEqual([100, 300, 330, 500]);
   expect(drag("t", [30, 70])).toEqual([100, 300, 300, 570]);
 });
 
 it("moves the whole rect by its body and keeps every edge on the page", () => {
   expect(drag("body", [12.5, -40])).toEqual([112.5, 260, 312.5, 460]);
-  // Pushed past the page's right and bottom edges, the rect stops flush with
-  // them and keeps its own size.
   expect(drag("body", [900, -900])).toEqual([422, 20, 622, 220]);
   expect(drag("body", [-900, 900])).toEqual([10, 612, 210, 812]);
 });
@@ -153,7 +139,6 @@ it("lays no handle on a mark this build cannot yet adjust", () => {
   expect(handleLayout({ type: "highlight", position: IMAGE })).toEqual([]);
 });
 
-/** An ink position on page index 1, from flat `[x, y, x, y, …]` strokes. */
 function ink(paths: number[][], width = 2): PdfInkPosition {
   return parseAnnotationPosition(
     { pageIndex: 1, width, paths },
@@ -161,17 +146,13 @@ function ink(paths: number[][], width = 2): PdfInkPosition {
   ) as PdfInkPosition;
 }
 
-/** A square stroke box, `[100, 300, 200, 400]`, drawn as its diagonal. */
 const SQUARE = ink([[100, 300, 150, 350, 200, 400]]);
 
-/** Two strokes spanning `[100, 300, 300, 400]`: twice as wide as high. */
 const WIDE = ink([
   [100, 300, 200, 350],
   [250, 380, 300, 400],
 ]);
 
-/** The ink a drag proposes, for a held grip moved by a delta, with float
- * noise past the sixth decimal cut off. */
 function dragInk(
   grip: Grip,
   [dx, dy]: [number, number],
@@ -195,8 +176,6 @@ function dragInk(
 }
 
 it("gives ink with no area no scale handles, whatever its strokes", () => {
-  // A dot, a flat line, and an upright line: each box lacks a dimension a
-  // proportional scale could keep.
   expect(handleLayout({ type: "ink", position: ink([[5, 5]]) })).toEqual([]);
   expect(handleLayout({ type: "ink", position: ink([[0, 5, 40, 5]]) })).toEqual(
     [],
@@ -216,7 +195,6 @@ it("translates every point of every stroke by the body's travel, width kept", ()
 });
 
 it("moves ink by its body only as far as its strokes stay on the page", () => {
-  // The strokes span [100, 300, 300, 400]; the view box is [10, 20, 622, 812].
   expect(dragInk("body", [900, -900], WIDE)).toEqual(
     ink([
       [422, 20, 522, 70],
@@ -232,8 +210,6 @@ it("moves ink by its body only as far as its strokes stay on the page", () => {
 });
 
 it("scales ink from each corner with its proportions held, the opposite corner fixed", () => {
-  // Pulled 100 points outward along x, the square doubles to 200 points a
-  // side, anchored at the corner opposite the one held.
   expect(dragInk("br", [100, 0], SQUARE).paths).toEqual([
     [100, 200, 200, 300, 300, 400],
   ]);
@@ -249,7 +225,6 @@ it("scales ink from each corner with its proportions held, the opposite corner f
 });
 
 it("scales the stroke width by the square root of the area scale", () => {
-  // Twice as wide and twice as high is four times the area: the pen doubles.
   expect(dragInk("tr", [200, 0], WIDE)).toEqual(
     ink(
       [
@@ -259,7 +234,6 @@ it("scales the stroke width by the square root of the area scale", () => {
       4,
     ),
   );
-  // Halved on each side, a quarter of the area: the pen halves.
   expect(dragInk("br", [-50, 0], SQUARE).width).toBe(1);
 });
 
@@ -268,8 +242,6 @@ it("lets the horizontal travel alone set an ink corner's scale, as Zotero does",
 });
 
 it("never scales ink below one point on either side", () => {
-  // The wide strokes are 200 by 100 points: dragged far past the opposite
-  // edge, the scale stops where the shorter side reaches one point.
   const shrunk = dragInk("br", [-900, 0], WIDE);
   expect(shrunk.paths).toEqual([
     [100, 399, 101, 399.5],
@@ -298,7 +270,6 @@ it("takes the body of image and ink by its box, and of no other mark", () => {
   expect(bodyRect({ type: "ink", position: WIDE })).toEqual([
     95, 295, 305, 405,
   ]);
-  // A dot can still be moved by the box padded round it.
   expect(bodyRect({ type: "ink", position: ink([[5, 5]]) })).toEqual([
     0, 0, 10, 10,
   ]);
@@ -306,9 +277,6 @@ it("takes the body of image and ink by its box, and of no other mark", () => {
 });
 
 it("gives a corner priority over an edge whose handle covers the same point", () => {
-  // A ten-point image at a zoom where each handle's reach overlaps its
-  // neighbours': the point sits inside the top-right corner's square and the
-  // top and right midpoints' squares at once.
   const handles = [
     { grip: "t", at: { x: 5, y: 0 } },
     { grip: "r", at: { x: 10, y: 5 } },
@@ -319,7 +287,6 @@ it("gives a corner priority over an edge whose handle covers the same point", ()
   expect(
     gripAt({ handles, body: null, point: { x: 7, y: 2 }, radius: 5 }),
   ).toBe("tr");
-  // Between two corners, the one Zotero tries first wins.
   expect(
     gripAt({ handles, body: null, point: { x: 5, y: 1 }, radius: 5 }),
   ).toBe("tr");
@@ -349,7 +316,6 @@ it("points the cursor along the edge a handle moves, as the page is turned", () 
       gripCursor(grip, 0),
     ),
   ).toEqual(["ew-resize", "ns-resize", "nwse-resize", "nesw-resize", "move"]);
-  // A quarter turn lays the page's horizontal edges upright.
   expect(
     (["l", "t", "tl", "tr", "body"] as const).map((grip) =>
       gripCursor(grip, 90),
@@ -358,7 +324,6 @@ it("points the cursor along the edge a handle moves, as the page is turned", () 
   expect(gripCursor("tr", 180)).toBe("nesw-resize");
 });
 
-/** A highlight's staircase: two lines on page 1, spilling onto page 2. */
 const STAIRCASE = parseAnnotationPosition(
   {
     pageIndex: 1,
@@ -371,7 +336,6 @@ const STAIRCASE = parseAnnotationPosition(
   "application/pdf",
 ) as PdfRectsPosition;
 
-/** Upright text under every rect. */
 const upright = () => 0;
 
 it("lays a range's handles on the leading edge of its first line and the trailing edge of its last", () => {
@@ -388,15 +352,12 @@ it("lays a range's handles on the leading edge of its first line and the trailin
     { grip: "start", pageIndex: 1, rect: [98, 300, 102, 312], rotation: 0 },
     { grip: "end", pageIndex: 1, rect: [158, 300, 162, 312], rotation: 0 },
   ]);
-  // An image or ink is resized by its own handles.
   expect(rangeHandles({ type: "image", position: IMAGE }, 3, upright)).toEqual(
     [],
   );
 });
 
 it("lays a range's handles across text turned a quarter turn, which reads up the page", () => {
-  // One column of text from y 300 up to y 360, x 100 to 112: the start
-  // stands on its foot and the end on its head.
   const column = rects([[100, 300, 112, 360]]);
   const asked: unknown[] = [];
   const turned = (pageIndex: number, rect: readonly number[]) => {
@@ -410,7 +371,6 @@ it("lays a range's handles across text turned a quarter turn, which reads up the
     { grip: "start", pageIndex: 1, rect: [100, 297, 112, 303], rotation: 90 },
     { grip: "end", pageIndex: 1, rect: [100, 357, 112, 363], rotation: 90 },
   ]);
-  // Each end asks for the text under its own rect.
   expect(asked).toEqual([
     [1, [100, 300, 112, 360]],
     [1, [100, 300, 112, 360]],
@@ -429,9 +389,7 @@ it("takes a range's handle from the page it is drawn on, and never its body", ()
 
   expect(rangeGripAt(handles, at(1, [199, 705]))).toBe("start");
   expect(rangeGripAt(handles, at(2, [152, 745]))).toBe("end");
-  // The end's strip on page 2 is not reached by the same point on page 1.
   expect(rangeGripAt(handles, at(1, [152, 745]))).toBeNull();
-  // Inside the highlight, text selection keeps the press.
   expect(rangeGripAt(handles, at(1, [300, 705]))).toBeNull();
 });
 
@@ -450,7 +408,6 @@ it("points a range handle's cursor along the text, as the page is turned", () =>
   expect(gripCursor("start", 90)).toBe("ns-resize");
 });
 
-/** The one rect a key press proposes for the image, or `null` if refused. */
 function keyImage(
   edit: "resize" | "nudge",
   arrow: "left" | "right" | "up" | "down",
@@ -480,7 +437,6 @@ it("reads which Geometry Edit a modified arrow asks of each kind of mark", () =>
     kind: "resize",
   });
   expect(keyEdit("ink", { ...plain, alt: true })).toEqual({ kind: "nudge" });
-  // Plain arrows walk the reading order, and the other chords are no edit.
   expect(keyEdit("image", plain)).toBeNull();
   expect(keyEdit("highlight", plain)).toBeNull();
   expect(keyEdit("highlight", { ...plain, alt: true })).toBeNull();
@@ -490,8 +446,6 @@ it("reads which Geometry Edit a modified arrow asks of each kind of mark", () =>
 });
 
 it("resizes an image by five points on its right edge, or its bottom, as Zotero's keys do", () => {
-  // The image is [100, 300, 300, 500]: Right and Left move x2, Down and Up
-  // move y1, the foot of the rect in PDF space.
   expect(keyImage("resize", "right")).toEqual([100, 300, 305, 500]);
   expect(keyImage("resize", "left")).toEqual([100, 300, 295, 500]);
   expect(keyImage("resize", "down")).toEqual([100, 295, 300, 500]);
@@ -502,7 +456,6 @@ it("stops a keyed resize at ten points and at the page's view box", () => {
   const small = rects([[100, 300, 112, 312]]);
   expect(keyImage("resize", "left", small)).toEqual([100, 300, 110, 312]);
   expect(keyImage("resize", "up", small)).toEqual([100, 302, 112, 312]);
-  // The view box is [10, 20, 622, 812].
   const edge = rects([[100, 22, 620, 500]]);
   expect(keyImage("resize", "right", edge)).toEqual([100, 22, 622, 500]);
   expect(keyImage("resize", "down", edge)).toEqual([100, 20, 620, 500]);
@@ -516,8 +469,6 @@ it("nudges an image by five points each way", () => {
 });
 
 it("refuses a nudge that would bring the mark within five points of the page's edge", () => {
-  // Zotero moves a mark only while it stands a step and a padding, ten
-  // points, inside the view box [10, 20, 622, 812] on the side it moves to.
   const nearLeft = rects([[19.9, 300, 100, 400]]);
   expect(keyImage("nudge", "left", nearLeft)).toBeNull();
   expect(keyImage("nudge", "left", rects([[20, 300, 100, 400]]))).toEqual([
@@ -528,7 +479,6 @@ it("refuses a nudge that would bring the mark within five points of the page's e
   ).toBeNull();
   expect(keyImage("nudge", "down", rects([[100, 29.9, 200, 400]]))).toBeNull();
   expect(keyImage("nudge", "up", rects([[100, 300, 200, 802.1]]))).toBeNull();
-  // The far side is no bar.
   expect(keyImage("nudge", "right", nearLeft)).toEqual([24.9, 300, 105, 400]);
 });
 
@@ -547,18 +497,14 @@ it("scales ink by five points with its proportions held, about its top-left corn
       paths: keyed.paths.map((path) => path.map(round)),
     };
   };
-  // The strokes span [100, 300, 300, 400], twice as wide as high. Right
-  // makes them five points wider, 205 by 102.5, the top-left (100, 400) held.
   expect(key("right").paths).toEqual([
     [100, 297.5, 202.5, 348.75],
     [253.75, 379.5, 305, 400],
   ]);
-  // Down makes them five points higher, so ten points wider: 210 by 105.
   expect(key("down").paths).toEqual([
     [100, 295, 205, 347.5],
     [257.5, 379, 310, 400],
   ]);
-  // Left and Up shrink them the same way, the pen following the scale.
   expect(key("left").paths[0]).toEqual([100, 302.5, 197.5, 351.25]);
   expect(key("up").paths[0]).toEqual([100, 305, 195, 352.5]);
   expect(key("down").width).toBe(2.1);
@@ -594,13 +540,11 @@ it("keeps no image from a rectangle under ten points on either side", () => {
   expect(capturesImage([100, 300, 109.999, 500])).toBe(false);
   expect(capturesImage([100, 300, 300, 309.999])).toBe(false);
   expect(capturesImage([100, 300, 100, 300])).toBe(false);
-  // Ten points exactly is big enough, as Zotero's own `>=` reads it.
   expect(capturesImage([100, 300, 110, 310])).toBe(true);
 });
 
 it("normalises the capture from whichever corner the drag started", () => {
   const box = [100, 300, 300, 500];
-  // Down-right, up-right, down-left and up-left on screen, in PDF points.
   const drags = [
     [
       [100, 500],
@@ -625,7 +569,6 @@ it("normalises the capture from whichever corner the drag started", () => {
 });
 
 it("clamps the capture to the press page's view box, on every edge", () => {
-  // The view box runs from (10, 20) to (622, 812).
   expect(
     captureRect({ from: [100, 300], to: [-50, -40], viewBox: VIEW_BOX }),
   ).toEqual([10, 20, 100, 300]);
@@ -646,7 +589,6 @@ function textAt(rotation = 0, rect = [100, 700, 200, 720]): PdfTextPosition {
   ) as PdfTextPosition;
 }
 
-/** The text position a drag proposes, for a held grip moved by a delta. */
 function dragText(
   grip: Grip,
   [dx, dy]: [number, number],
@@ -672,7 +614,6 @@ function roundAll<T>(value: T): T {
   ) as T;
 }
 
-/** Each handle's centre by its grip, rounded. */
 function handlesOf(record: Parameters<typeof handleLayout>[0]) {
   return Object.fromEntries(
     handleLayout(record).map(({ grip, at }) => [grip, roundAll(at)]),
@@ -691,9 +632,6 @@ it("lays a free-text box's corner and side handles on its padded rect, with none
 });
 
 it("turns a free-text box's handles with the box, about its centre", () => {
-  // A quarter turn counter-clockwise about (150, 710): the top-left corner,
-  // (-55, 15) from the centre, goes to (-15, -55); the right side's middle,
-  // (55, 0), goes to (0, 55).
   const handles = handlesOf({ type: "text", position: textAt(90) });
   expect(handles.tl).toEqual([135, 655]);
   expect(handles.r).toEqual([150, 765]);
@@ -713,7 +651,6 @@ it("takes a note's body by its stored rect, and a free-text box's by its padded 
   expect(bodyRect({ type: "text", position: textAt() })).toEqual([
     95, 695, 205, 725,
   ]);
-  // Turned a quarter, the 110 × 30 padded rect sweeps 30 × 110 about (150, 710).
   expect(roundAll(bodyRect({ type: "text", position: textAt(90) }))).toEqual([
     135, 655, 165, 765,
   ]);
@@ -733,17 +670,12 @@ it("moves a free-text box by its body with its font size and turn kept", () => {
 });
 
 it("stops a turned free-text box flush with the page by the box it sweeps out", () => {
-  // Turned a quarter, the box sweeps [140, 660, 160, 760]; its left side
-  // meets the view box's 10 after 130 points, while the stored rect runs
-  // off the page.
   expect(dragText("body", [-500, 0], textAt(90)).rects).toEqual([
     [-30, 700, 70, 720],
   ]);
 });
 
 it("widens a free-text box from its right side, font kept, height fitted to its text", () => {
-  // 130 points wide holds "hello" on one 12-point line, hung from the
-  // top-left corner.
   expect(dragText("r", [30, 70])).toEqual({
     ...textAt(),
     rects: [[100, 708, 230, 720]],
@@ -751,35 +683,25 @@ it("widens a free-text box from its right side, font kept, height fitted to its 
 });
 
 it("never narrows a free-text box below ten points, and fits its text into what is left", () => {
-  // The left side stops 10 short of the right; 10 points hold two letters,
-  // so "hello" takes three lines, 36 high, from the top-left corner.
   expect(dragText("l", [500, 0]).rects).toEqual([[190, 684, 200, 720]]);
 });
 
 it("moves a widened free-text box back five points inside the page", () => {
-  // The left side reaches -400; one line of "hello" 600 wide reaches past
-  // the inset at 15 by 415, and the box moves right by that.
   expect(dragText("l", [-500, 0]).rects).toEqual([[15, 708, 615, 720]]);
 });
 
 it("resizes a turned free-text box along its own width", () => {
-  // Turned a quarter, the box's width runs up the page: 30 points up widens
-  // it to 130. Its top-left corner, turned, stays at (140, 660): the 130 × 12
-  // box's top-left, (-65, 6) from its centre, turns to (-6, -65).
   expect(dragText("r", [0, 30], textAt(90)).rects).toEqual([
     [81, 719, 211, 731],
   ]);
 });
 
 it("scales a free-text box from a corner with its proportions held, the opposite corner fixed", () => {
-  // 150 wide at 5:1 is 30 high; the top-left corner (100, 720) stays. The
-  // font scales by 1.5.
   expect(dragText("br", [50, -300])).toEqual({
     ...textAt(),
     fontSize: 15,
     rects: [[100, 690, 250, 720]],
   });
-  // 120 wide is 24 high; the bottom-right corner (200, 700) stays.
   expect(dragText("tl", [-20, 0])).toEqual({
     ...textAt(),
     fontSize: 12,
@@ -788,11 +710,6 @@ it("scales a free-text box from a corner with its proportions held, the opposite
 });
 
 it("scales a turned free-text box from a corner about the opposite corner as turned", () => {
-  // Turned a quarter, the box's width runs up the page: 50 points up is 50
-  // along its width, so 150 × 30 at 15 points. The top-left corner, opposite
-  // the held one, stood at (140, 660): (-50, 10) from the centre (150, 710)
-  // turns to (-10, -50). The new box's top-left, (-75, 15) from its centre,
-  // turns to (-15, -75), so its centre is (155, 735).
   expect(dragText("br", [0, 50], textAt(90))).toEqual({
     ...textAt(90),
     fontSize: 15,
@@ -801,9 +718,7 @@ it("scales a turned free-text box from a corner about the opposite corner as tur
 });
 
 it("rounds a scaled font size down to the half point, as Zotero's drag does", () => {
-  // 108 wide scales 10 points to 10.8, which rounds down to 10.5.
   expect(dragText("br", [8, 0]).fontSize).toBe(10.5);
-  // The corner stops at ten points wide: 2 high, and the font 1 point.
   expect(dragText("br", [-500, 0])).toEqual({
     ...textAt(),
     fontSize: 1,
@@ -813,7 +728,6 @@ it("rounds a scaled font size down to the half point, as Zotero's drag does", ()
 
 it("fits a free-text box to its line when a side drag ends, and leaves a corner's as it is", () => {
   const proposal = dragText("r", [30, 0]);
-  // One 12-point line: the box takes "hello" and 5 points, 30 wide.
   expect(
     roundAll(
       releasedPosition({
@@ -852,7 +766,6 @@ it("reads the Geometry Edit a modified arrow asks of a note or a free-text box",
   });
 });
 
-/** What a key press proposes for the free-text box, or `null` if refused. */
 function keyText(
   edit: "resize" | "nudge",
   arrow: "left" | "right" | "up" | "down",
@@ -879,12 +792,10 @@ it("resizes a free-text box by five points of its right side, fitted to its text
 });
 
 it("scales a free-text box by five points of width about its top-left corner, font rounded to the half point", () => {
-  // 105 wide at 5:1 is 21 high, and 10.5 points of font.
   expect(keyText("resize", "down")).toEqual({
     grip: "br",
     proposal: { ...textAt(), fontSize: 10.5, rects: [[100, 699, 205, 720]] },
   });
-  // 95 wide is 19 high; 9.5 points of font.
   expect(keyText("resize", "up")).toEqual({
     grip: "br",
     proposal: { ...textAt(), fontSize: 9.5, rects: [[100, 701, 195, 720]] },

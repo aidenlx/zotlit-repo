@@ -392,7 +392,6 @@ it.effect("serves an older scanner revision until backfill replaces it", () =>
       ).occurrences.map(({ raw }) => raw),
     ).toEqual(["roe2025"]);
     harness.workspace.layoutReady();
-    // A completed pass also releases the wait, so a skipped stale record fails below.
     await Promise.race([
       entered.promise,
       harness.index.bridge.runPromise(harness.index.whenIndexed),

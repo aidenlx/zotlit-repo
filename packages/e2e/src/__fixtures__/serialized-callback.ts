@@ -1,6 +1,5 @@
 import { runInNewContext } from "node:vm";
 
-/** Contains syntax that transforms have historically rewritten with captured helpers. */
 export async function serializationProbe() {
   const callback = async ({ value }: { value: number }) => {
     function increment(input: number): number { return input + 1; }

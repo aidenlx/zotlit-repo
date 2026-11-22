@@ -1,5 +1,3 @@
-// One Managed Binary that ships in the Resource Pack: its status, read from
-// the installed pack, and the engine it starts from the verified bytes.
 import { Cause, Duration, Effect, Layer, RcRef, Schema, Stream } from "effect";
 import type { Context, Scope } from "effect";
 
@@ -15,13 +13,6 @@ import { ResourcePackPlatform } from "./pack-platform.ts";
 import { makePackStatus } from "./pack-status.ts";
 import type { PackStatusApi } from "./pack-status.ts";
 
-/**
- * A Managed Binary gave no engine: the Resource Pack gave no binary, or the
- * engine did not start. `status` is where the binary stands by the read that
- * refused, which is also the status the service states. `message` is the
- * original's, which the logs show; `cause` holds the original where there is
- * one.
- */
 export class ManagedBinaryError extends Schema.TaggedError<
   ManagedBinaryError,
   { readonly brand: unique symbol }
@@ -31,7 +22,6 @@ export class ManagedBinaryError extends Schema.TaggedError<
   cause: Schema.optional(Schema.Defect()),
 }) {}
 
-/** An engine did not release. The layer logs it; no borrower sees it. */
 class EngineReleaseError extends Schema.TaggedError<
   EngineReleaseError,
   { readonly brand: unique symbol }
@@ -40,7 +30,6 @@ class EngineReleaseError extends Schema.TaggedError<
   cause: Schema.Defect(),
 }) {}
 
-/** What a start of the engine threw, as the refusal `failed` with its message. */
 function startError(cause: unknown): ManagedBinaryError {
   const message = Error.isError(cause) ? cause.message : String(cause);
   return new ManagedBinaryError({
@@ -50,36 +39,17 @@ function startError(cause: unknown): ManagedBinaryError {
   });
 }
 
-/** One Managed Binary of the Resource Pack, and what it starts once verified. */
 export interface PackBinary<Engine extends AsyncDisposable | Disposable> {
-  /** Names the binary; its Pack Entry has the same name. */
   readonly id: string;
-  /** The binary's name in logs and error messages, e.g. `Chinese segmenter`. */
   readonly label: string;
   readonly logCategory: readonly [string, ...string[]];
-  /** Starts the engine over the verified binary. */
   readonly createEngine: (binary: Uint8Array<ArrayBuffer>) => Promise<Engine>;
 }
 
-/** Effect-native operations; the layer owns the reads and the shared engine. */
 export interface PackBinaryApi<
   Engine extends Disposable | AsyncDisposable,
 > extends PackStatusApi {
-  /**
-   * Reads the pack and answers where the binary stands, as
-   * {@link PackStatusApi.check} does. A verified binary that did not start
-   * stays `failed` until the pack gives other bytes or a start of those bytes
-   * succeeds.
-   */
   readonly check: Effect.Effect<PackBinaryStatus>;
-  /**
-   * Borrow the shared engine for the caller's Scope. The first borrower reads
-   * the pack and starts the engine; a pack that gives no binary, or a binary
-   * that does not start, fails the borrow with the status of the refusal and
-   * sets that status. The first
-   * borrower after Obsidian installs, updates or removes the pack reads that
-   * pack; an engine borrowed before then stays with its borrower.
-   */
   readonly getEngine: Effect.Effect<
     Engine | null,
     ManagedBinaryError,
@@ -87,7 +57,6 @@ export interface PackBinaryApi<
   >;
 }
 
-/** One descriptor becomes one independently scoped service under its own tag. */
 export function layerPackBinary<
   Id,
   Engine extends Disposable | AsyncDisposable,
@@ -103,7 +72,6 @@ type Loaded =
       ok: true;
       bytes: Uint8Array<ArrayBuffer>;
       version: string;
-      /** The SHA-256 of the entry text: the identity of `bytes`. */
       sha256: string;
     }
   | { ok: false; status: PackBinaryRefusal };
@@ -112,10 +80,6 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
   Engine extends Disposable | AsyncDisposable,
 >(binary: PackBinary<Engine>) {
   const platform = yield* ResourcePackPlatform;
-  /**
-   * The start that failed last, by the SHA-256 of the entry it started from:
-   * a status read of the same bytes states it, with no start.
-   */
   let failedStart: { readonly sha256: string; readonly detail: string } | null =
     null;
   let closed = false;
@@ -133,12 +97,9 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
       Effect.annotateLogs({ binary: binary.id, ...fields }),
       withLogCategory(...binary.logCategory),
     );
-  /** The verified binary of the installed pack, or the status of the refusal. */
   const load = Effect.fn("PackBinary.load")(function* () {
     const location = yield* platform.locate;
     if (!location) {
-      // No pack is the state before its install, read each time the row is
-      // shown: a decision branch, not a degraded state.
       yield* log(
         "The Resource Pack gave no binary",
         { reason: "pack-absent" },
@@ -219,8 +180,6 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
           : ({ kind: "ready", version: loaded.version } as const);
       }),
     );
-  // One engine shared by every borrower. It stays after its last borrower
-  // leaves, until the layer closes.
   const sharedEngine = yield* RcRef.make({
     acquire: Effect.gen(function* () {
       const loaded = yield* load();
@@ -237,8 +196,6 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
     }),
     idleTimeToLive: Duration.infinity,
   });
-  // The engine of the pack before the change goes, and each watcher learns
-  // where the binary stands in the pack that is there now.
   yield* platform.changes.pipe(
     Stream.runForEach(() =>
       Effect.andThen(RcRef.invalidate(sharedEngine), checkChanged),
@@ -248,9 +205,7 @@ const makePackBinary = Effect.fn("PackBinary.make")(function* <
   const getEngine = Effect.suspend(() =>
     closed
       ? Effect.succeed(null)
-      : // A borrower that leaves while the engine starts would abandon the start,
-        // and the next borrower would start the engine again; it waits for it.
-        Effect.uninterruptible(RcRef.get(sharedEngine)),
+      : Effect.uninterruptible(RcRef.get(sharedEngine)),
   ).pipe(Effect.withSpan("PackBinary.getEngine"));
   yield* Effect.addFinalizer(() =>
     Effect.sync(() => {

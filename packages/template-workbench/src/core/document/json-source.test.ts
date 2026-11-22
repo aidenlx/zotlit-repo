@@ -30,7 +30,6 @@ it("keeps invalid-draft normalization stable and maps its token positions", () =
 });
 
 it("keeps a caret inside the text in both directions for a YAML rule", () => {
-  // Block YAML keeps a separator per key where its JSON form has none.
   const yaml = "a: 1\n      b: 2\n      c: 3\n      d: 4\n      e: 5";
   const shown = JSON.stringify({ a: 1, b: 2, c: 3, d: 4, e: 5 }, null, 2);
   for (const [from, to] of [

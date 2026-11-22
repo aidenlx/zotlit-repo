@@ -1,8 +1,3 @@
-// Registers the citation commands with Obsidian's CLI.
-//
-// Command, flag, and diagnostic text is all hardcoded English: an
-// agent-facing contract surface, not localized UI. See
-// apps/obsidian/policies/cli-text.md.
 import { Effect, Layer } from "effect";
 import type { App, CliFlag, CliFlags } from "obsidian";
 
@@ -29,7 +24,6 @@ import { CitationIndex } from "#obsidian/citation-index/service.ts";
 
 interface CitationsCliRegistrationDeps {
   app: App;
-  /** The vault's folder on disk. */
   basePath: string;
   citationIndex: Pick<
     CitationIndex["Service"],
@@ -42,7 +36,6 @@ interface CitationsCliRegistrationDeps {
   };
 }
 
-/** The `zotlit:cited-by`, `zotlit:references` and `zotlit:annotation-uses` commands. */
 export const layerCitationsCli: Layer.Layer<
   never,
   never,
@@ -59,7 +52,6 @@ export const layerCitationsCli: Layer.Layer<
   }),
 );
 
-/** Neither selector is `required`: the command takes exactly one. */
 function citedByFlags(): CliFlags {
   return {
     key: {

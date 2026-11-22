@@ -1,5 +1,4 @@
 import type { PreviewHint, RenderDiagnostic } from "#core/render/index.ts";
-// Draft citations use their own source and presentation, without entering the saved-note cache.
 import { Effect } from "effect";
 
 import { CitationLookup } from "@zotlit/citations/obsidian/citation-index/lookup-service.ts";
@@ -28,7 +27,6 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 export interface PreviewCitation extends PresentedCitation {
   source: string;
   start: number;
-  /** An empty list identifies a literal Citation. */
   links: readonly { target: string; citation: WikilinkCitation }[];
 }
 interface DraftCitation extends CitationSource {
@@ -172,15 +170,11 @@ export const renderDraftCitations = Effect.fn(
   if (complete.length === 0) return { citations: [], diagnostics: [] };
   const sources = complete.map(namedSource);
   const presentation = { styleId: input.styleId, locale: input.locale };
-  // The outcome says which of the three reasons a preview shows; the read that
-  // follows it answers with the render that stands, rather than with one an
-  // invalidation superseded halfway.
   const outcome = yield* bibliographyRender.renderCitations(
     sources,
     [...items.values()],
     presentation,
   );
-  // Citations stay as the author wrote them, which the engine only improves.
   if (outcome.kind === "unavailable" && outcome.reason === "engine-absent") {
     const hint = engineHint(yield* (yield* PandocEngine).current);
     return { citations: [], diagnostics: [], ...(hint ? { hint } : {}) };
@@ -227,7 +221,6 @@ export const renderDraftCitations = Effect.fn(
     diagnostics: [],
   };
 });
-/** What a preview suggests for each status that gives no engine. */
 function engineHint(
   status: PandocEngineStatus,
 ): Omit<PreviewHint, "part"> | null {

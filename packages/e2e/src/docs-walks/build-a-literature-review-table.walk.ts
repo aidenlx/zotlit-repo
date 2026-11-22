@@ -1,12 +1,3 @@
-// The walk of /learn Lesson 6, "Build a literature review table": a
-// researcher with the Lesson 1 literature note on Sandve et al. 2013 saves
-// the Zotero collection Reproducibility as a table in Thesis/, picks its
-// columns, rates each paper in a column of their own, sorts the papers by
-// year, and pastes the table into `Chapter 3 - Presenting the results`. Each
-// `it` is one step of the lesson, in the lesson's order, named after it, and
-// asserts what the lesson says the reader sees. Run it with
-// `pnpm --filter @zotlit/e2e docs-walk`; see AGENTS.md.
-
 import { obRun, obRunUntil } from "@e2e/obsidian-cli.ts";
 import { isObsidianReachable } from "@e2e/vault-script.ts";
 import type { MarkdownView, WorkspaceLeaf } from "obsidian";
@@ -29,7 +20,6 @@ const reachable = await isObsidianReachable(root);
 const m = await import("@zotlit/plugin-messages/messages.ts");
 
 const SLUG = "build-a-literature-review-table";
-/** The Reproducibility collection of the docs Vault Case, and its papers. */
 const COLLECTION = { key: "DCRPRDCB", name: "Reproducibility" };
 const PAPERS = {
   ioannidis: { key: "DMIANART", citekey: "ioannidis2005", year: "2005" },
@@ -37,7 +27,6 @@ const PAPERS = {
   wilson: { key: "DCWLSART", citekey: "wilson2014", year: "2014" },
   munafo: { key: "DCMNFART", citekey: "munafo2017", year: "2017" },
 };
-/** The reader's rating of each paper, out of 5. */
 const RATINGS: [keyof typeof PAPERS, string][] = [
   ["sandve", "5"],
   ["ioannidis", "5"],
@@ -50,11 +39,9 @@ const DRAFT = "Thesis/Chapter 3 - Presenting the results.md";
 const PROPERTY = "rating";
 
 type LibraryLeaf = WorkspaceLeaf & { view: LibraryView };
-/** The table's Query File tab. */
 type TableLeaf = WorkspaceLeaf & { view: QueryFileView };
 type DraftLeaf = WorkspaceLeaf & { view: MarkdownView };
 
-/** The table in its tab: its header, its rows by key, and each rating cell. */
 interface Table {
   header: string[];
   rows: string[];
@@ -62,19 +49,16 @@ interface Table {
   cells: Record<string, string[]>;
 }
 
-/** The text a Results menu copy put on the clipboard. */
 interface Clipboard {
   readText(): string;
   readHTML(): string;
 }
-/** The window's Electron remote, for typing. */
 interface Remote {
   getCurrentWebContents(): { insertText(text: string): void };
 }
 
 const STEP = { timeoutMs: 60000 };
 
-/** The table in its tab once `ready` holds. */
 function tableWhen(
   vaultId: string,
   what: string,
@@ -123,11 +107,6 @@ function tableWhen(
   ) as Promise<Table>;
 }
 
-/**
- * Whether the table shows the text of the Title column (its name and each
- * paper's title) and of the rating column (its name and each rating) whole
- * inside its tab.
- */
 function columnsWhole(
   vaultId: string,
 ): Promise<{ title: boolean; rating: boolean }> {
@@ -141,7 +120,6 @@ function columnsWhole(
         ) as TableLeaf;
       const el = leaf.view.contentEl;
       const pane = el.getBoundingClientRect();
-      /** Each box of the text in `cell`, without its padding and icon. */
       const whole = (cell: Element) => {
         const walker = document.createTreeWalker(cell, NodeFilter.SHOW_TEXT);
         const boxes: DOMRect[] = [];
@@ -150,7 +128,6 @@ function columnsWhole(
           const range = document.createRange();
           range.selectNodeContents(n);
           const box = range.getBoundingClientRect();
-          // Text that does not render has an empty box.
           if (box.width > 0 && box.height > 0) boxes.push(box);
         }
         return (
@@ -179,10 +156,6 @@ function columnsWhole(
   );
 }
 
-/**
- * Ends a recorded clip on the table's header row, or on the header and cells
- * of the column `label` names.
- */
 async function lookAtTable(vaultId: string, label = ""): Promise<void> {
   await obRun(
     vaultId,
@@ -196,7 +169,6 @@ async function lookAtTable(vaultId: string, label = ""): Promise<void> {
             (l) => (l.view as QueryFileView).file?.path === file,
           ) as TableLeaf
       ).view.contentEl;
-      // The first header cell, over the row toggles, has no name.
       const head = label
         ? [...el.querySelectorAll<HTMLTableCellElement>("th")].find(
             (th) => th.textContent.trim() === label,
@@ -216,7 +188,6 @@ async function lookAtTable(vaultId: string, label = ""): Promise<void> {
   );
 }
 
-/** Opens the Properties menu of the table and answers once its search shows. */
 async function openProperties(vaultId: string): Promise<void> {
   await obRun(
     vaultId,
@@ -243,11 +214,6 @@ async function openProperties(vaultId: string): Promise<void> {
   );
 }
 
-/**
- * Types `search` into the open Properties menu and answers its entries; with
- * `choose`, then selects the entry `choose` names by its property path or its
- * action.
- */
 function searchProperties(
   vaultId: string,
   search: string,
@@ -264,7 +230,6 @@ function searchProperties(
       input.focus();
       input.select();
       if (pointer) {
-        // The pointer waits beside the menu, off its list.
         const b = popup.getBoundingClientRect();
         await pointer.park(b.right + 30, b.top + 20);
         await pointer.keys(
@@ -304,7 +269,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
       collection: `learn/${SLUG}`,
       vaultCase: "docs",
     });
-    // The reader wrote the literature note on Sandve et al. 2013 in Lesson 1.
     await obRun(
       walk.vaultId,
       async ({ zotlit }, { key }) => {
@@ -322,7 +286,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
       STEP,
     );
     await watchNotices(walk.vaultId);
-    // The reader closed the setup section in Lesson 1.
     await closeWelcome(walk.vaultId);
   });
 
@@ -352,8 +315,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
             [...el.querySelectorAll<HTMLElement>("[data-library-label]")].find(
               (n) => n.textContent === name,
             );
-          // Fact d: whether the collection tree shows by default, once the
-          // tab has its width.
           await page.until(
             "the tree",
             () =>
@@ -361,7 +322,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
               el.querySelector("[data-library-label]"),
             20000,
           );
-          // The tree's toggle for this pane width says whether it shows.
           await page.until(
             "the tree toggle that agrees with the tree",
             () => {
@@ -450,10 +410,8 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
             const t = modal.querySelector("[role=status]")!.textContent;
             return t.includes(file) && t;
           });
-          // The camera shows the file the dialog will create.
           await pointer?.look(modal.querySelector("[role=status]")!);
           const title = modal.querySelector(".modal-title")!.textContent;
-          // The folder field suggests folders as the reader types.
           const suggestions = document.querySelectorAll(
             ".suggestion-container",
           ).length;
@@ -467,7 +425,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
           );
           if (pointer) {
             await new Promise((r) => setTimeout(r, 500));
-            // The step ends on the new tab and its papers.
             const opened = app.workspace.getMostRecentLeaf()!;
             await pointer.look([
               (opened as unknown as { tabHeaderEl: HTMLElement }).tabHeaderEl,
@@ -494,7 +451,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
     expect(shown.heading).toContain(COLLECTION.name);
     expect(shown.rows).toBe(4);
     console.log("[walk] saved", JSON.stringify(saved));
-    // The dialog offers the collection's name, so only the folder changes.
     expect(saved).toMatchObject({
       title: m.annot_view_save_title(),
       name: COLLECTION.name,
@@ -551,7 +507,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
             () => !document.querySelector("[data-query-view-list]"),
           );
           await view.query.settled;
-          // The step ends on the table.
           const table = el.querySelector("table");
           if (table) await pointer?.look(table);
         },
@@ -582,7 +537,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
       await searchProperties(walk.vaultId, "publication", {
         path: "publicationTitle",
       });
-      // The menu does not list Creators: typing its name offers to add it.
       const offered = await searchProperties(walk.vaultId, "creators", {
         action: "add-property",
       });
@@ -591,7 +545,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
         path: "dateModified",
       });
       await closeMenus(walk.vaultId);
-      // The step ends on the columns.
       await lookAtTable(walk.vaultId);
       return offered;
     });
@@ -626,9 +579,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
       );
     const before = await modified();
     const { entries, added } = await walk.record("step-4", async () => {
-      // The new column takes the table past the tab's width, so the reader
-      // first closes both sidebars with their buttons: then every column fits
-      // beside the titles. The sidebars stay closed for the rest of the lesson.
       await obRun(
         walk.vaultId,
         async ({ app, page }) => {
@@ -690,7 +640,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
             );
             await new Promise((r) => setTimeout(r, pointer ? 100 : 300));
             if (pointer) {
-              // The pointer moves off the cell, so the rating shows.
               const b = cell.getBoundingClientRect();
               await pointer.park(b.right + 30, b.bottom + 20);
             }
@@ -709,7 +658,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
           (t) => t.ratings[key] === value,
         );
       }
-      // The step ends on the rating column.
       await lookAtTable(
         walk.vaultId,
         m.query_view_vault_property_label({ name: PROPERTY }),
@@ -722,7 +670,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
     expect(added.header).toContain(
       m.query_view_vault_property_label({ name: PROPERTY }),
     );
-    // A rating is written to the notes alone: Zotero changed none of the papers.
     expect(await modified()).toEqual(before);
     const table = await tableWhen(walk.vaultId, "every rating", () => true);
     expect(table.ratings).toEqual(
@@ -730,7 +677,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
         RATINGS.map(([paper, value]) => [PAPERS[paper].key, value]),
       ),
     );
-    // The first rating of a paper without a note creates its literature note.
     expect(await readNotices(walk.vaultId)).toContain(m.notice_created_note());
     await obRun(walk.vaultId, () => {
       (activeDocument.activeElement as HTMLElement | null)?.blur();
@@ -790,7 +736,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
               ? (shown.selectedOptions[0]?.text ?? "")
               : (shown?.innerText.trim() ?? "");
           await page.closeToolbarPopover(el, "sort");
-          // The step ends on the titles and years in their new order.
           const heads = [...el.querySelectorAll<HTMLTableCellElement>("th")];
           const columns = heads.filter((th) =>
             [titleLabel, yearLabel].includes(th.textContent.trim()),
@@ -892,7 +837,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
         },
         STEP,
       );
-      // Pasted into the draft, the copy becomes a Markdown table.
       const pasted = await obRun(
         walk.vaultId,
         async ({ app, page }, { draftPath }) => {
@@ -934,7 +878,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
           heading?.scrollIntoView({ block: "start", behavior: "instant" });
           editor.setCursor({ line: 0, ch: 0 });
           await new Promise((r) => setTimeout(r, 500));
-          // The step ends on the heading and the pasted table.
           const table = leaf.view.contentEl.querySelector("table");
           await pointer?.look(
             [heading, table].filter((e) => e !== null && e !== undefined),
@@ -949,7 +892,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
     console.log("[walk] copied", JSON.stringify(copied));
     expect(copied.label).toContain("4");
     expect(copied.menu).toContain(m.query_view_copy());
-    // Obsidian may pad the cells; the walk reads the table without the padding.
     const rows = pasted
       .split("\n")
       .filter((line) => line.startsWith("|"))
@@ -961,7 +903,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
     expect(rows).toContain(
       "|Why Most Published Research Findings Are False|2005|PLoS Medicine|John P. A. Ioannidis|5|",
     );
-    // The header, its rule, and one row for each paper.
     expect(rows).toHaveLength(6);
     expect(pasted.indexOf("\n|")).toBeGreaterThan(
       pasted.indexOf("## 3.3 The papers behind the method"),
@@ -974,7 +915,6 @@ describe.skipIf(!reachable)("Lesson 6: Build a literature review table", () => {
   });
 });
 
-/** Closes the open toolbar menus, as a press outside them does. */
 async function closeMenus(vaultId: string): Promise<void> {
   await obRun(vaultId, async ({ page }) => {
     page.closePopovers(document);

@@ -1,4 +1,3 @@
-// Owns the parse worker from layout-ready until the layer's Scope closes.
 import type {
   ParseFailed,
   ParseRequest,
@@ -28,7 +27,6 @@ declare module "@zotlit/obsidian-kit/view-atoms.ts" {
   }
 }
 
-/** @param workerSource the parse worker's bundle, which the host builds. */
 export const layerCitationParse = (workerSource: string) =>
   Layer.effect(
     CitationParse,
@@ -46,7 +44,6 @@ export const layerCitationParse = (workerSource: string) =>
         .consume(() => client.start)
         .pipe(Effect.forkScoped({ startImmediately: true }));
       return CitationParse.of({
-        // Untraced: a citation scan sends one request per note.
         parse: Effect.fnUntraced(function* (request) {
           return yield* client.parse(request);
         }),

@@ -6,11 +6,6 @@ import type { ItemQueryDatabase, ItemQueryReaderError } from "./database.ts";
 
 import { collections, deletedCollections } from "#drizzle/schema.ts";
 
-/**
- * The root-first name path of each live Collection of one Library, by
- * `collectionID`. A trashed Collection and every Collection below a trashed
- * ancestor have no entry, as Zotero's Collection tree hides them.
- */
 export type CollectionPaths = ReadonlyMap<number, readonly string[]>;
 
 const liveCollectionsStatement = defineStatement<{ libraryID: number }>(
@@ -38,11 +33,6 @@ const liveCollectionsStatement = defineStatement<{ libraryID: number }>(
     ),
 );
 
-/**
- * Read the Collection paths of one Library. Read them once for each Target
- * Library of a query and pass them to every hydrate chunk that loads
- * `collections`.
- */
 export function readCollectionPaths(library: {
   libraryID: number;
 }): Effect.Effect<CollectionPaths, ItemQueryReaderError, ItemQueryDatabase> {
@@ -50,7 +40,6 @@ export function readCollectionPaths(library: {
     const rows = yield* liveCollectionsStatement.all(library);
     return yield* Effect.sync(() => {
       const nodes = new Map(rows.map((row) => [row.collectionID, row]));
-      // `null`: the Collection is below a trashed ancestor.
       const paths = new Map<number, readonly string[] | null>();
       const pathOf = (collectionID: number): readonly string[] | null => {
         const known = paths.get(collectionID);
@@ -58,7 +47,6 @@ export function readCollectionPaths(library: {
         const node = nodes.get(collectionID);
         let path: readonly string[] | null = null;
         if (node) {
-          // Zotero keeps the Collection tree acyclic, so the walk ends.
           const parent = node.parentID === null ? [] : pathOf(node.parentID);
           path = parent && [...parent, node.name];
         }

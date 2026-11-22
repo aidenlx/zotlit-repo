@@ -10,21 +10,14 @@ import { parseProjectionPath } from "./projection-path.ts";
 import type { PathSegment } from "./projection-path.ts";
 import type { ProjectionValue } from "./request.ts";
 
-/** A validated Projection Path. */
 export interface PlannedPath<Item = QueryItem, Needs = FieldNeeds> {
-  /** The path as the caller wrote it: the key of the value in a Query Row. */
   readonly text: string;
-  /** The wire value is scalar and the path does not traverse `[]`. */
   readonly scalar: boolean;
-  /** The shape at the end of the path; below a `[]`, the shape of one element. */
   readonly shape: ValueShape;
-  /** The number of `[]` steps in the path. */
   readonly each: number;
   readonly field: FieldDefinition<Item, Needs>;
-  /** The segments after the field name. */
   readonly rest: readonly PathSegment[];
   readonly needs: Needs;
-  /** The custom field the path names, checked against the source later. */
   readonly customField: string | null;
 }
 
@@ -33,7 +26,6 @@ export type PathProblem = Extract<
   { kind: "plain" | "unknown" }
 >;
 
-/** The field that the leading segments of a path name, and the segments after it. */
 export type PathResolver<Item = QueryItem, Needs = FieldNeeds> = (
   segments: readonly PathSegment[],
 ) =>
@@ -43,13 +35,11 @@ export type PathResolver<Item = QueryItem, Needs = FieldNeeds> = (
     }
   | undefined;
 
-/** The Item Query resolver: the first segment names a field of the registry. */
 export const resolveItemPath: PathResolver = ([root, ...rest]) => {
   const field = typeof root === "string" ? fieldDefinition(root) : undefined;
   return field && { field, rest };
 };
 
-/** Check a Projection Path against the field registry of its dataset. */
 export function planPath<Item = QueryItem, Needs = FieldNeeds>(
   text: string,
   resolve: PathResolver<Item, Needs>,
@@ -115,10 +105,6 @@ export function planPath<Item = QueryItem, Needs = FieldNeeds>(
   };
 }
 
-/**
- * A group path gives one scalar for each record, or one scalar for each
- * element of one Relation List through exactly one `[]`.
- */
 export function canGroup(shape: ValueShape, each: number): boolean {
   return shape.kind === "scalar" && each <= 1;
 }
@@ -146,10 +132,6 @@ function step(shape: ValueShape, segment: PathSegment): ValueShape | null {
   }
 }
 
-/**
- * The value of a planned path for one Item. A missing key or array element is
- * null. An explicit `[]` maps the remaining path over each list element.
- */
 export function readPath<Item>(
   path: PlannedPath<Item, unknown>,
   item: Item,

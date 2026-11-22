@@ -30,7 +30,6 @@ import { defaults } from "@/services/settings/schema.ts";
 
 const APA = "http://www.zotero.org/styles/apa";
 
-/** The Profile service, answering from a fixture reader. */
 const effectProfile = (reader: ProfileReader) => ({
   ...stubService<PandocResolveDeps["profile"]>("Profile", {
     loaded: Effect.sync(() => reader.loaded),
@@ -42,7 +41,6 @@ const effectProfile = (reader: ProfileReader) => ({
 const UNINSTALLED = "http://www.zotero.org/styles/uninstalled";
 const NOTE_PATH = "/vault/draft.md";
 
-/** One vault whose `zotlit:csl` handler answers for one note, over real style files. */
 async function cslVault({
   note,
   vaultStyle,
@@ -69,7 +67,6 @@ async function cslVault({
       "</style>",
     ].join("\n"),
   );
-  // The materialized style lands under the temporary root, not the device store.
   vi.stubEnv("TMPDIR", root);
   stack.defer(() => {
     vi.unstubAllEnvs();
@@ -144,7 +141,6 @@ async function cslVault({
   };
 }
 
-/** {@link cslVault}, removed when the test's scope closes. */
 const scopedCslVault = (options: Parameters<typeof cslVault>[0]) =>
   Effect.acquireDisposable(Effect.tryPromise(() => cslVault(options)));
 

@@ -12,13 +12,10 @@ runs:
   steps:
     - uses: jdx/mise-action@v4
 
-    # Mise activates the packageManager version. This action restores its store.
     - uses: pnpm/action-setup@v6
       with:
         cache: true
 
-    # Each job writes its own immutable entry and can restore compatible task
-    # results written by any workflow on the same runner OS.
     - name: Restore Turborepo cache
       uses: actions/cache@v5
       with:
@@ -28,10 +25,6 @@ runs:
           turbo-${{ runner.os }}-${{ github.workflow }}-${{ github.job }}-
           turbo-${{ runner.os }}-
 
-    # The effective runtime participates in Turbo's global hash (globalEnv).
-    # mise.toml can select a newer Node release without changing a package
-    # source file. The value matches ZOTLIT_TOOLCHAIN in mise.toml's [env], so
-    # the Mac and CI share Remote Cache entries.
     - name: Record toolchain identity
       shell: bash
       run: echo "ZOTLIT_TOOLCHAIN=node-$(node --version)" >> "$GITHUB_ENV"

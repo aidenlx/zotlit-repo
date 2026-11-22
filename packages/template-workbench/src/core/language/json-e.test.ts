@@ -226,7 +226,6 @@ it("replaces the actual dot when a non-identifier key follows whitespace", () =>
   ).toBe("obj['paper-title']");
 });
 
-/** The kind of template token whose theme hooks are `classes`. */
 const kindOf = (classes: string) =>
   (Object.keys(templateToken) as TemplateToken[]).find(
     (kind) => templateToken[kind] === classes,

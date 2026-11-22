@@ -50,7 +50,6 @@ vi.mock("@zotlit/notes/desktop/template/data.ts", async (original) => ({
 
 const PATH = "templates/zotlit-profile.books.md";
 
-/** The settings each mocked data load read, in order. */
 const loadedSettings: Readonly<Settings>[] = [];
 function annotationOf(
   members: Partial<TemplateAnnotation>,
@@ -59,7 +58,6 @@ function annotationOf(
     "TemplateAnnotation",
     members,
   );
-  // A template root must read as non-iterable while the rest stays strict.
   Object.defineProperty(annotation, "next", { value: undefined });
   Object.defineProperty(annotation, "toLiquid", { value: undefined });
   return annotation;
@@ -118,7 +116,6 @@ async function fixture(
       Effect.succeed(key === "ABCD2345" ? noteFiles : []),
     getImportedNoteByNoteKey: () => Effect.succeed([]),
   });
-  // A test changes the source this reports between reads.
   const zoteroPref: {
     sourceId: string | null;
     databasePath: string;
@@ -161,7 +158,6 @@ async function fixture(
   const cleanup = stack.move();
   return {
     ...f,
-    /** The Template service the commands read. */
     templates: Context.get(services, Template),
     zoteroPref,
     draft: (text: string) =>
@@ -178,15 +174,11 @@ async function fixture(
   };
 }
 
-/** {@link fixture}, closed when the test's scope closes. */
 const scopedFixture = (...args: Parameters<typeof fixture>) =>
   Effect.acquireDisposable(Effect.tryPromise(() => fixture(...args)));
 
-/** The parsed answer, once it holds that every refusal carries a hint. */
 function assertRefusalsHint(output: string) {
   const answer = JSON.parse(output);
-  // The Workbench Guide tells a caller that a failed check answers with
-  // `diagnostic.hint`, so every refusal this suite reaches carries one.
   const refusals = [answer].filter(
     (entry) => entry.ok === false && entry.diagnostic,
   );
@@ -797,7 +789,6 @@ describe("registered template-check", () => {
       const draft = yield* f.draft(SOURCE);
       const entered = yield* Deferred.make<void>();
       const released = yield* Deferred.make<void>();
-      // The load never answers, so the check is still waiting on it.
       vi.mocked(readTemplateData).mockImplementation(() =>
         Deferred.succeed(entered, undefined).pipe(
           Effect.andThen(Effect.never),
@@ -964,7 +955,6 @@ describe("registered template-check", () => {
           input: { origin: "draft", path: missing, revision: null },
           diagnostic: {
             code: "DRAFT_READ_FAILED",
-            // Node's own message for the failed read.
             message: `ENOENT: no such file or directory, open '${missing}'`,
             hint: expect.any(String),
           },

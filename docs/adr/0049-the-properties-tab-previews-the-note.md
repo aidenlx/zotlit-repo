@@ -45,3 +45,14 @@ above the body, so one writer produces the YAML the reader sees.
 - WORKBENCH-DESIGN.md records the rule under "Native chrome carries rare
   choices"; ADR 0048's
   "Final properties" heading is superseded here.
+
+The fidelity test renders one fixture Item and Profile through Preview and the actual create path over an in-memory vault. It checks the property order from the manifest and preparation stamps. A deliberately invalid draft Profile ID verifies that Preview still uses that draft's bindings even when the Workbench check refuses it.
+
+Allow native Obsidian Properties classes in the reading Preview, rendered
+frontmatter, and Match list values. This draws rows and value pills with
+the same styling as a note's Properties.
+
+The desktop reorder test tracks each intermediate frame through the
+debounced render. Moving a property with its keyboard handle moves its
+example value with it. The edit must neither flash the rule in place
+of the value nor ask for a manual Run.

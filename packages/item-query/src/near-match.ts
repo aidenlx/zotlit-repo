@@ -1,4 +1,3 @@
-/** Rank the registered names close enough to a name that was not found. */
 export function nearMatches(
   name: string,
   candidates: readonly string[],
@@ -55,7 +54,6 @@ function editDistance(left: string, right: string): number {
   return previous[right.length]!;
 }
 
-/** Collection paths rank by exact case, then whole-path and leaf distance. */
 export function nearCollectionMatches(
   name: string,
   candidates: readonly string[],

@@ -44,11 +44,6 @@ export interface TemplateAttachment {
   fileLink: FallibleTemplateLink;
 }
 
-/**
- * Map a DB {@link Attachment} to its template shape. `filePath` / `fileLink`
- * are omitted — they depend on vault/storage resolution held by the
- * Obsidian-side service.
- */
 export function attachmentToTemplateData(
   attachment: Attachment,
 ): Omit<TemplateAttachment, "filePath" | "fileLink"> {
@@ -67,10 +62,6 @@ export function attachmentToTemplateData(
   };
 }
 
-/**
- * Apply after `filePath` and `fileLink` are attached because a spread drops
- * the non-enumerable string form.
- */
 export function withAttachmentPreview(
   attachment: TemplateAttachment,
 ): TemplateAttachment {
@@ -79,9 +70,6 @@ export function withAttachmentPreview(
   });
 }
 
-/** Assemble an {@link Attachment} into its full template shape: base data plus
- *  the app-layer `filePath`/`fileLink` resolvers, with the preview attached.
- *  The single seam both the note and annotation paths call. */
 export function resolveTemplateAttachment(
   attachment: Attachment,
   resolvers: {

@@ -35,7 +35,6 @@ export interface IndexedItem {
   key: string;
   indexedKey: string;
   dateModified: Temporal.Instant;
-  /** Zotero Last Activity as epoch milliseconds, before request Uses. */
   lastActivity: number | null;
   itemType: string;
   primaryCreator: IndexedCreator | null;
@@ -61,11 +60,6 @@ const INDEXED_FIELD_NAMES = [
 
 type IndexedFieldName = (typeof INDEXED_FIELD_NAMES)[number];
 
-/**
- * Shared `columns` + `with` projection for the indexed-item queries (by library
- * and by id). The `itemData` relation filters to `indexedFieldIDs`, so the
- * projection is parameterized rather than a module-level constant.
- */
 function indexedItemRelations(indexedFieldIDs: readonly number[]) {
   return {
     columns: {
@@ -119,7 +113,6 @@ const indexedItemsQuery = defineQuery<{ libraryID: number }>()(
     }),
 );
 
-/** Lightweight id-only pass: ordered ids for a library's indexed items. */
 const indexedItemIDsByLibraryQuery = defineQuery<{ libraryID: number }>()(
   (db, { placeholder }) =>
     db.query.items.findMany({
@@ -133,10 +126,6 @@ const indexedItemIDsByLibraryQuery = defineQuery<{ libraryID: number }>()(
     }),
 );
 
-/**
- * One bounded rowid window of a Library scan: the Item Index build and the
- * whole-Library batch selection both read through it.
- */
 const indexedItemRowsRangeQuery = defineQuery<{
   libraryID: number;
   from: number;
@@ -159,13 +148,6 @@ const indexedItemRowsRangeQuery = defineQuery<{
 
 export type IndexedItemScanRow = QueryRow<typeof indexedItemRowsRangeQuery>;
 
-/**
- * Lightweight indexed Item rows in a half-open rowid range, in Item ID order. The unary
- * plus on Library membership keeps the scan bounded by the range, including
- * for sparse Libraries and random keys. Each caller orders the rows as it
- * needs: the Item Index ranks them, and the batch selection sorts them
- * newest first.
- */
 export function getIndexedItemRowsRange(
   db: ZoteroDatabase,
   libraryID: number,
@@ -174,7 +156,6 @@ export function getIndexedItemRowsRange(
   return indexedItemRowsRangeQuery.prepared(db).all({ libraryID, from, to });
 }
 
-/** Hydration of a chunk of ids, matching {@link indexedItemsQuery}'s projection. */
 const indexedItemsByIdsQuery = defineKeyedQuery<number>()(
   (
     db,
@@ -194,9 +175,6 @@ const indexedItemsByIdsQuery = defineKeyedQuery<number>()(
   { keyOf: (row) => row.itemID },
 );
 
-// Each subquery starts from a parent-indexed relation, keeping a build chunk bounded.
-// Match Item Query's live relations: readable Attachments, Child Notes, and
-// Annotations whose Attachment and Annotation are both outside the trash.
 const zoteroActivity = sql<number | null>`(select max(activity) from (
   select unixepoch(${items}."dateAdded") * 1000 as activity
   union all
@@ -250,11 +228,6 @@ export function getIndexedItemsByLibrary(
   );
 }
 
-/**
- * Ordered (dateModified desc) item ids for a library, in one statement. Tests
- * read it as the reference list; the app scans through
- * {@link getIndexedItemRowsRange}.
- */
 export function getIndexedItemIDsByLibrary(
   db: ZoteroDatabase,
   libraryID: number,
@@ -265,11 +238,6 @@ export function getIndexedItemIDsByLibrary(
     .map((row) => row.itemID);
 }
 
-/**
- * Hydrate {@link IndexedItem}s through one cached keyed read, in
- * `itemIDs` order. Item ids are unique across libraries, so each row resolves
- * its own `groupID`/`indexedKey`.
- */
 export function getIndexedItemsByID(
   db: ZoteroDatabase,
   itemIDs: readonly number[],
@@ -292,7 +260,6 @@ export function getIndexedItemsByID(
   );
 }
 
-/** Count the live top-level Items in the user and group Libraries. */
 const indexedItemCountQuery = defineQuery<void>()((db) =>
   db
     .select({ count: count() })
@@ -313,30 +280,13 @@ export function getIndexedItemCount(db: ZoteroDatabase): number {
   return indexedItemCountQuery.prepared(db).get()?.count ?? 0;
 }
 
-/** Cheap change-detection signature for a library's indexed items. */
 export interface IndexSignature {
   count: number;
-  /**
-   * Sum of parent modification seconds, Item IDs, and an ID-weighted activity
-   * hash. Weighting ties activity to its parent, so moving a child invalidates
-   * the index even when the sum of parent activities stays equal. The modulus
-   * bounds each contribution below 2^31 and the library sum stays a safe integer.
-   * Like any checksum, collisions and same-second edits remain possible.
-   */
   checksum: number;
 }
 
-/** One indexed row's term of {@link IndexSignature.checksum}. */
 const checksumTerm = sql<number>`unixepoch(${items.dateModified}) + ${items.itemID} + (coalesce(${zoteroActivity} / 1000, 0) * ((${items.itemID} % 997) + 1) % 2147483647)`;
 
-/**
- * Aggregate over the same row set as {@link indexedItemsQuery} (library, non-child
- * type, not deleted) whose Item IDs fall in `[from, to)`, yielding the
- * {@link IndexSignature} fields of that range. Both fields are sums over rows,
- * so the parts of disjoint ranges add up to the Library's signature.
- *
- * @see unixepoch — https://www.sqlite.org/lang_datefunc.html
- */
 const indexSignatureRangeQuery = defineQuery<{
   libraryID: number;
   from: number;
@@ -352,9 +302,6 @@ const indexSignatureRangeQuery = defineQuery<{
     .leftJoin(deletedItems, eq(deletedItems.itemID, items.itemID))
     .where(
       and(
-        // The unary plus keeps the (libraryID, key) index out of the plan, so
-        // SQLite searches the itemID (rowid) range, and each range reads only
-        // its own rows instead of the whole Library's index entries.
         sql`+${items.libraryID} = ${placeholder("libraryID")}`,
         gte(items.itemID, placeholder("from")),
         lt(items.itemID, placeholder("to")),
@@ -375,10 +322,6 @@ const itemIDBoundsQuery = defineQuery<{ libraryID: number }>()(
       .where(eq(items.libraryID, placeholder("libraryID"))),
 );
 
-/**
- * The lowest and highest Item ID in a Library, of any type, or null when it
- * has no Items. The ranges of {@link getIndexSignatureRange} cover this span.
- */
 export function getItemIDBounds(
   db: ZoteroDatabase,
   libraryID: number,
@@ -388,12 +331,6 @@ export function getItemIDBounds(
   return { min: row.min, max: row.max };
 }
 
-/**
- * The part of a Library's {@link IndexSignature} from the Items whose IDs fall
- * in `[from, to)`. The gate that lets the item-lookup service skip a rebuild
- * when nothing indexed changed sums these parts over the Library's Item ID
- * span, one range per task, so no single read holds the worker for long.
- */
 export function getIndexSignatureRange(
   db: ZoteroDatabase,
   libraryID: number,
@@ -408,24 +345,11 @@ export function getIndexSignatureRange(
   };
 }
 
-/** A half-open range `[from, to)` of Item IDs. */
 export interface ItemIDRange {
   from: number;
   to: number;
 }
 
-/**
- * The loop that sums a Library's {@link IndexSignature} over ranges of `size`
- * Item IDs across `bounds`. It yields each range and takes back that range's
- * part, read with {@link getIndexSignatureRange}; it returns the sum. The
- * caller does each read, so it can give the event loop a turn between them.
- *
- * This departs from `policies/query-authoring.md`: the statement count grows
- * with the Item ID span instead of staying fixed. Each statement is one task
- * in the database worker, and a search waits for the task in progress, so no
- * task may come near the 100 ms search limit; the whole Library in one
- * statement took 60–96 ms on the Stress Build of 100,000 Items.
- */
 export function* sumSignatureRanges(
   bounds: { min: number; max: number } | null,
   size: number,
@@ -440,11 +364,6 @@ export function* sumSignatureRanges(
   return total;
 }
 
-/**
- * A Library's whole {@link IndexSignature} in one statement. It searches the
- * (libraryID, key) index, so a small Library beside a large one reads only its
- * own rows.
- */
 const indexSignatureQuery = defineQuery<{ libraryID: number }>()(
   (db, { placeholder }) =>
     db
@@ -464,11 +383,6 @@ const indexSignatureQuery = defineQuery<{ libraryID: number }>()(
       ),
 );
 
-/**
- * A Library's whole {@link IndexSignature} in one statement, equal to the sum
- * of {@link sumSignatureRanges}. The Item Index reads the ranges instead, so
- * no read holds the database worker for long.
- */
 export function getIndexSignature(
   db: ZoteroDatabase,
   libraryID: number,

@@ -41,7 +41,6 @@ it.effect("filterTag keeps the events of several tags in their order", () =>
   }),
 );
 
-// A callback defect belongs to one delivery, not the subscription.
 it.effect(
   "logs a throwing listener's cause and still delivers the next value",
   () =>
@@ -85,7 +84,6 @@ it.effect(
     }),
 );
 
-// `interruptWhen` starts an upstream fiber; latest-value replay loses earlier edits.
 it.effect(
   "attaches before two immediate changes and stops on unsubscribe",
   () =>
@@ -131,7 +129,6 @@ it.effect("subscribe after runtime disposal is a no-op", () =>
     yield* runtime.disposeEffect;
     let started = false;
     let called = false;
-    // A closed runtime must not even start a subscription fiber.
     const closedRuntime: Pick<typeof runtime, "scope" | "runFork"> = {
       scope: runtime.scope,
       runFork: (effect, options) => {
@@ -180,8 +177,6 @@ it.effect("runtime interruption closes an active subscription", () =>
   }),
 );
 
-// A layer's consumer attaches before acquisition returns, so changes
-// published right after it are all delivered.
 it.effect("forkEach attaches before returning and isolates failures", () =>
   Effect.gen(function* () {
     const logs: Cause.Cause<unknown>[] = [];

@@ -24,3 +24,11 @@ All existing callers move directly to this Interface in the same change. The pre
 
 - **Reproduce the existing default loops**: preserves their output, but keeps Citation Prefix and Citation Suffix data-only and creates a weaker serializer beside ZotLit's complete Pandoc source builder.
 - **Add citation formatting to the Template Contract**: gives the operation one `zt` surface, but couples this focused template-ergonomics change to the larger citation-root design.
+
+The formatter omits items with null keys. Prefer author-in-text syntax only when it can preserve the first keyed item. The scanner returns source-ordered, half-open UTF-16 offsets for supported single-line citations. The scaling test batches scans, alternates size order, and compares minimum CPU times for inputs eight times apart. Its upper bound leaves room for overhead and distinguishes linear from quadratic growth.
+
+Set the WASM Content-Type explicitly for streaming instantiation from
+bytes or a Blob without a MIME type. Fetch bibliography data over the
+Zotero HTTP service. A note whose own presentation property is empty
+cannot export via a vault fallback. A refused first borrow of an unread
+pack explains which plugin to install or update.

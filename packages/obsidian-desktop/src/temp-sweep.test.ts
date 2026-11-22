@@ -37,7 +37,6 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  // A case may leave a directory it made unremovable.
   for (const name of await readdir(directory)) {
     await chmod(join(directory, name), 0o700).catch(() => undefined);
   }
@@ -49,7 +48,6 @@ const names = Effect.promise(async () => (await readdir(directory)).sort());
 const write = (name: string) =>
   Effect.promise(() => writeFile(join(directory, name), "x"));
 
-/** A failure a residue rule can report, as the file system reports one. */
 const denied = PlatformError.systemError({
   _tag: "PermissionDenied",
   module: "FileSystem",
@@ -63,7 +61,6 @@ interface LogRecord {
   readonly annotations: Readonly<Record<string, unknown>>;
 }
 
-/** A logger layer that records every log, at every level, into `records`. */
 function capture(records: LogRecord[]) {
   return Logger.layer([
     Logger.make(({ logLevel, message, fiber }) => {
@@ -77,7 +74,6 @@ function capture(records: LogRecord[]) {
   ]);
 }
 
-/** Run the sweep over the Node file system and return what it logged. */
 const logsOf = Effect.fnUntraced(function* (
   sweepOptions: TempSweepOptions<never>,
 ) {
@@ -88,10 +84,6 @@ const logsOf = Effect.fnUntraced(function* (
   return records;
 });
 
-/**
- * Run the sweep in its own fiber and return what it logged and how it ended.
- * `early` interrupts the fiber before it starts.
- */
 const interruptedLogsOf = Effect.fnUntraced(function* (
   sweepOptions: TempSweepOptions<never>,
   { early = false }: { early?: boolean } = {},
@@ -105,7 +97,6 @@ const interruptedLogsOf = Effect.fnUntraced(function* (
   return { records, exit: yield* Fiber.await(run) };
 });
 
-/** `self` over the real Node file system, in the case's temp directory. */
 const onDisk = <A, E>(self: Effect.Effect<A, E, FileSystem.FileSystem>) =>
   Effect.provide(self, NodeFileSystem.layer);
 
@@ -261,7 +252,6 @@ describe("sweepTempDirectory", () => {
     ),
   );
 
-  // Removing the entry inside a read-only directory fails; root ignores modes.
   it.effect.skipIf(process.platform === "win32" || process.getuid?.() === 0)(
     "logs a failed removal and keeps walking",
     () =>
@@ -279,7 +269,6 @@ describe("sweepTempDirectory", () => {
             kind: "test entry",
             isResidue: () => Effect.succeed(true),
           });
-          // The walk order is the filesystem's, so compare by path.
           expect(byPath(records)).toEqual([
             ["Debug", join(directory, "a-drop")],
             ["Warn", join(directory, "b-locked")],
@@ -299,7 +288,6 @@ describe("sweepTempDirectory", () => {
 });
 
 describe("isOlderThan", () => {
-  /** The entry's mtime, in seconds since the epoch, as `utimes` takes it. */
   const STAMP = 1_000_000;
 
   it.effect("ages an entry from its mtime against the Clock", () =>

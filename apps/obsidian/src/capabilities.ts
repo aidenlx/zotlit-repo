@@ -5,9 +5,6 @@ import {
   CitationParse,
   layerCitationParse,
 } from "@zotlit/citations/obsidian/citation-parse/service.ts";
-// What only this host supplies: its two Worker bundles, built and embedded by
-// its Vite config, and the ZoteroReads client that opens the Zotero database
-// through one of them.
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { ResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import {

@@ -1,4 +1,3 @@
-// References reads and commands, shared where they need no leaf state.
 import type { CitationOccurrence } from "#obsidian/citation-index/service.ts";
 import type { DocumentPresentation } from "#obsidian/pandoc/document-presentation.ts";
 import { Effect, Option, Stream } from "effect";
@@ -82,7 +81,6 @@ const selectionRead = viewRuntime.atom((get) => {
   });
 });
 
-/** Equal presentation reads leave the current scan and render standing. */
 export const referencesSelectionAtom = Atom.make((get): ReferencesSelection => {
   const result = get(selectionRead);
   const previous = Option.getOrElse(
@@ -98,7 +96,6 @@ export const referencesSelectionAtom = Atom.make((get): ReferencesSelection => {
     : next;
 });
 
-/** A note open can finish after its source pane closes or another pane opens a note. */
 export const openIndexedKeyCommand = Atom.keepAlive(
   viewRuntime.fn(
     (key: string) =>
@@ -108,10 +105,6 @@ export const openIndexedKeyCommand = Atom.keepAlive(
     { concurrent: true },
   ),
 );
-/**
- * The reader closed the hint that offers the Resource Pack. It stays closed
- * in every References pane until the plugin loads again.
- */
 export const engineHintDismissedAtom = Atom.keepAlive(Atom.make(false));
 
 export const openReferenceLinkCommand = viewRuntime.fn(

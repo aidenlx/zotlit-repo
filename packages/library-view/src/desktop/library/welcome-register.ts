@@ -1,9 +1,4 @@
 import type { NotFoundSignal } from "#core/welcome/not-found-notice.ts";
-// The Welcome View's entry points: the command that shows its banner above
-// the Library View again, the held connection readout, and the notice of a
-// Zotero data directory this device does not have.
-//
-// @see apps/obsidian/docs/adr/0077-the-library-view-is-the-first-screen.md
 import { Effect } from "effect";
 import type { App, Plugin } from "obsidian";
 
@@ -54,8 +49,6 @@ export function registerWelcomeView(
     callback: () => registry.set(openWelcomeCommand, plugin.app),
   });
 
-  // The missing-file state survives startup, so a view registered after the
-  // first database load still offers to locate Zotero on this device.
   let notice: BaseNotice | null = null;
   const hide = () => {
     notice?.hide();
@@ -77,7 +70,6 @@ export function registerWelcomeView(
   watchNotFound(plugin, deps, apply);
 }
 
-/** Publish the current missing-folder state and subsequent workspace changes. */
 export function watchNotFound(
   plugin: Pick<Plugin, "app" | "register">,
   { registry }: WelcomeRegistrationDeps,
@@ -101,10 +93,6 @@ export function watchNotFound(
   plugin.register(() => plugin.app.workspace.offref(layout));
 }
 
-/**
- * The notice that Zotero's data folder is not on this device, whose action
- * runs `locate`; it stays until dismissed.
- */
 function notFoundNotice(locate: () => void): BaseNotice {
   return new BaseNotice(
     BaseNotice.render((renderer) => {
@@ -117,7 +105,6 @@ function notFoundNotice(locate: () => void): BaseNotice {
   );
 }
 
-/** Show the Welcome View banner again, above the Library View brought forward. */
 export async function openWelcomeView(app: App): Promise<void> {
   const view = await openLibraryView(app);
   view?.welcome.request();

@@ -1,6 +1,3 @@
-// UI seam for the attachment-import service: one persistent summary notice per
-// operation, naming the folders blocked from reads and explaining how approval
-// changes the next import.
 import { Effect, Layer } from "effect";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
@@ -15,15 +12,9 @@ import type { AttachmentSkipSummary } from "./service.ts";
 const ATTACHMENT_SKIP_NOTICE_DURATION_MS = 30_000;
 
 export interface AttachmentSkipNoticePorts {
-  /** Open the plugin's settings tab, which holds the approved folders list. */
   readonly openSettings: () => void;
 }
 
-/**
- * Show one summary notice whenever an import operation settles having skipped
- * sources — blocked by the decision or refused by the copy-time confirmation.
- * The subscription ends when the layer's Scope closes.
- */
 export const layerAttachmentSkipNotice = (
   ports: AttachmentSkipNoticePorts,
 ): Layer.Layer<never, never, AttachmentImport | Notifier> =>
@@ -31,7 +22,6 @@ export const layerAttachmentSkipNotice = (
     Effect.gen(function* () {
       const { skipped } = yield* AttachmentImport;
       const notifier = yield* Notifier;
-      // The notice's button is a DOM callback: it hides the notice in place.
       const run = Effect.runSyncWith(yield* Effect.context<never>());
       yield* forkEach(skipped, (summary) =>
         Effect.gen(function* () {

@@ -1,9 +1,3 @@
-// Registers the `zotlit:library-scope` commands with Obsidian's CLI.
-//
-// Command, guide, and diagnostic text is all hardcoded English: an
-// agent-facing contract surface, not localized UI. See
-// apps/obsidian/policies/cli-text.md.
-
 import { Effect, Layer } from "effect";
 import type { CliData } from "obsidian";
 
@@ -25,11 +19,6 @@ import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 
 import { LibraryScope } from "./service.ts";
 
-/**
- * The wire format of the `zotlit:library-scope` commands, versioned on its
- * own (ADR 0026): a change to this namespace leaves the citations and
- * Template Workbench contracts untouched.
- */
 export const CONTRACT_VERSION = 1;
 
 export const LIBRARY_SCOPE_COMMAND = "zotlit:library-scope" as const;
@@ -40,10 +29,6 @@ type LibraryScopeCommand =
   | typeof LIBRARY_SCOPE_COMMAND
   | typeof LIBRARY_SCOPE_GUIDE_COMMAND;
 
-/**
- * The documented diagnostic codes of this CLI Contract, each defined with
- * the recovery action its diagnostic carries.
- */
 const DIAGNOSTIC_HINTS = {
   INVALID_SELECTOR: INVALID_ARGUMENT_HINT,
   DATABASE_UNREADABLE:
@@ -55,7 +40,6 @@ type DiagnosticCode = keyof typeof DIAGNOSTIC_HINTS;
 interface Diagnostic {
   code: DiagnosticCode;
   message: string;
-  /** The recovery action for `code`, taken from `DIAGNOSTIC_HINTS`. */
   hint: string;
   details?: { parameter: string };
 }
@@ -77,12 +61,6 @@ interface LibraryScopeCliDeps {
   libraryScope: Pick<LibraryScope["Service"], "current" | "settled">;
 }
 
-/**
- * The `zotlit:library-scope` commands, for e2e: they read the resolved
- * Library Scope after a Scope Case switch through the plugin's own CLI
- * Contract surface rather than an internal eval. A dev-build diagnostic port,
- * never registered in a production build.
- */
 export const layerLibraryScopeCli: Layer.Layer<
   never,
   never,
@@ -138,7 +116,6 @@ function createLibraryScopeHandler(
       ok: true,
       mode: current.mode,
       invalid: current.invalid,
-      // `AvailableLibrary` already reports exactly `selector`/`libraryID`/`name`.
       available: current.available,
       unavailable: current.unavailable,
     });
@@ -153,7 +130,6 @@ const guideHandler: CliCommandHandler = (params) =>
     answerRejection(LIBRARY_SCOPE_GUIDE_COMMAND),
   );
 
-/** A rejected request answers its diagnostic envelope. */
 const answerRejection = (command: LibraryScopeCommand) =>
   catchRejection((rejected) => invalidRequest(command, rejected));
 

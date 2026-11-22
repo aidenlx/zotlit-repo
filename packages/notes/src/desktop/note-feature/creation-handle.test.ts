@@ -1,5 +1,3 @@
-// The edge handle is a Promise API on purpose: these cases call it as the
-// Quick Switch, the Library View and the Query View do.
 import { Effect, Layer, ManagedRuntime } from "effect";
 import { TFile } from "obsidian";
 import type { App } from "obsidian";
@@ -22,7 +20,6 @@ import { unimplementedProfileDialogServices } from "#__fixtures__/profile/dialog
 const ITEM = { indexedKey: "ABCD2345" } as Item;
 const FILE = Object.assign(new TFile(), { path: "Literature/Paper.md" });
 
-/** The handle over a Note Feature whose plan is `plan`, bound as `plugin-runtime.ts` binds it. */
 function handleOver(planCreations: NoteFeature["Service"]["planCreations"]) {
   const runtime = ManagedRuntime.make(
     Layer.mergeAll(
@@ -53,7 +50,6 @@ function handleOver(planCreations: NoteFeature["Service"]["planCreations"]) {
   return { runtime, handle };
 }
 
-/** A plan that creates under the bound Profile with no question. */
 const bound: NoteFeature["Service"]["planCreations"] = (keys) =>
   Effect.succeed(
     new Map(
@@ -68,7 +64,6 @@ const bound: NoteFeature["Service"]["planCreations"] = (keys) =>
     ),
   );
 
-/** How a Promise settled, so two settlements compare. */
 function settled(promise: Promise<unknown>) {
   return promise.then(
     (value) => ({ status: "fulfilled", value }),

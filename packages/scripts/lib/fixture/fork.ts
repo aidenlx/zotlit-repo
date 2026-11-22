@@ -19,7 +19,6 @@ async function forkPath(layout: FixtureLayout, name: string): Promise<string> {
   return join(parent, name);
 }
 
-/** Copy owned assets and a consistent SQLite snapshot, including committed WAL data. */
 export async function forkFixtureData(
   layout: FixtureLayout,
   name: string,
@@ -33,7 +32,6 @@ export async function forkFixtureData(
     );
   }
   const destination = await forkPath(layout, name);
-  // Exclusive creation keeps an existing fork and its edits intact.
   await mkdir(destination);
   try {
     const databaseFiles = new Set(
@@ -58,7 +56,6 @@ export async function forkFixtureData(
   }
 }
 
-/** Remove only the named fork; the built data and committed template stay intact. */
 export async function removeFixtureFork(
   layout: FixtureLayout,
   name: string,

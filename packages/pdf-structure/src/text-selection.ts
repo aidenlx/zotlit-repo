@@ -1,7 +1,3 @@
-// Zotero's reader-side text selection: a DOM Selection mapped onto a page's
-// Structured Characters, and the rectangles and text a highlight or an
-// underline stores for the characters it covers.
-//
 // Ported from zotero/reader `src/pdf/selection.js`, `pdf-view.js` and
 // `native-text-selection.js` at 132bb787937a540a09513415fd507654eb0e88f9.
 // pdf-reader is copyright © 2020–2021 Corporation for Digital Scholarship,
@@ -19,53 +15,31 @@ import {
   selectionTextMatches,
 } from "#vendor/native-text-selection-map.js";
 
-/** The rectangles and the text of a run of characters on one page. */
 export interface TextRange {
-  /** One rectangle per line, rounded to three decimals. */
   readonly rects: Rect[];
   readonly text: string;
 }
 
-/**
- * One page a DOM text selection reaches, read off that page's text layer.
- * Offsets count UTF-16 code units into `layerText`.
- */
 export interface TextLayerSelection {
   readonly pageIndex: number;
-  /** The text layer's whole text, in document order. */
   readonly layerText: string;
-  /** Where the selection starts, or `null` when it starts on an earlier page. */
   readonly start: number | null;
-  /** Where the selection ends, or `null` when it ends on a later page. */
   readonly end: number | null;
-  /**
-   * The selection's boxes on this page in PDF points, taken from its text
-   * nodes alone. Only the fallback reads them.
-   */
   readonly rects: readonly Rect[];
 }
 
-/** A DOM text selection, page by page. */
 export interface TextSelection {
-  /** `Selection.toString()`, which the text check compares against. */
   readonly text: string;
   readonly pages: readonly TextLayerSelection[];
 }
 
-/** What a text selection creates: a Zotero position and its quoted text. */
 export interface SelectedText {
   readonly pageIndex: number;
   readonly rects: Rect[];
-  /** The second page's rectangles, for a quote that ran over a page break. */
   readonly nextPageRects?: Rect[];
   readonly text: string;
 }
 
-/**
- * One rectangle per line: the union of the line's `inlineRect`s.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js#L197-L219
- */
 function rectsFromChars(chars: readonly StructuredChar[]): Rect[] {
   const lineRects: Rect[] = [];
   let current: [number, number, number, number] | null = null;
@@ -86,30 +60,17 @@ function rectsFromChars(chars: readonly StructuredChar[]): Rect[] {
   return lineRects;
 }
 
-/**
- * The characters' text: a space after a word, a line and a paragraph, and no
- * discretionary hyphen.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js#L221-L237
- */
 function textFromChars(chars: readonly StructuredChar[]): string {
   const text: string[] = [];
   for (const char of chars) {
     if (char.ignorable) continue;
     text.push(char.c);
     if (char.spaceAfter || char.lineBreakAfter) text.push(" ");
-    // OCRed PDFs can make every line a paragraph of its own.
     if (char.paragraphBreakAfter) text.push(" ");
   }
   return text.join("").trim();
 }
 
-/**
- * The range between two character boundaries, from either end. Offsets run
- * from `0` to `chars.length`: a boundary can sit after the last character.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js#L239-L259
- */
 export function textRange(
   chars: readonly StructuredChar[],
   anchorOffset: number,
@@ -139,13 +100,6 @@ const centreOf = ([x1, y1, x2, y2]: Rect): Rect => {
   return [x, y, x, y];
 };
 
-/**
- * The characters a highlight's rectangles cover: from the first character
- * whose centre falls in the first rectangle to the last whose centre falls in
- * the last. `null` where that leaves no character.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js#L140-L175
- */
 export function offsetsByRects(
   chars: readonly StructuredChar[],
   rects: readonly Rect[],
@@ -160,12 +114,6 @@ export function offsetsByRects(
   return from > to ? null : { from, to };
 }
 
-/**
- * For every code-unit boundary of `text`, the count of normalised units
- * before it. A boundary inside a surrogate pair counts as the one before it.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/native-text-selection.js#L60-L90
- */
 function normalizedPrefix(text: string): { units: string[]; prefix: number[] } {
   const units: string[] = [];
   const prefix = Array.from<number>({ length: text.length + 1 }).fill(0);
@@ -180,7 +128,6 @@ function normalizedPrefix(text: string): { units: string[]; prefix: number[] } {
   return { units, prefix };
 }
 
-/** A page's part of a selection, as character offsets on that page. */
 interface PageRange {
   readonly pageIndex: number;
   readonly chars: readonly StructuredChar[];
@@ -188,13 +135,6 @@ interface PageRange {
   readonly to: number;
 }
 
-/**
- * The selection's ends on one page, found by aligning the text layer's text
- * with the page's characters. A page the selection runs through keeps every
- * character. `null` where an end falls outside the alignment.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/native-text-selection.js#L45-L57
- */
 function mappedRange(
   layer: TextLayerSelection,
   chars: readonly StructuredChar[],
@@ -202,8 +142,6 @@ function mappedRange(
   const dom = normalizedPrefix(layer.layerText);
   const reader = buildReaderUnitMap(chars);
   const toReader = alignTextUnits(dom.units, reader.readerUnits);
-  // `at` indexes `layerText`, so its prefix entry always exists; the
-  // alignment's own entry may not, and then no offset stands for it.
   const offset = (at: number, ends: readonly number[]) => {
     const unit = toReader[dom.prefix[at]!];
     return unit === undefined ? undefined : ends[unit];
@@ -218,12 +156,6 @@ function mappedRange(
   return { pageIndex: layer.pageIndex, chars, from, to };
 }
 
-/**
- * The selection placed by its text-node boxes instead: from the first
- * character of the first page they cover to the last of the last page.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/native-text-selection.js#L492-L530
- */
 function rangesByRects(
   layers: readonly {
     layer: TextLayerSelection;
@@ -252,25 +184,6 @@ function rangesByRects(
     }));
 }
 
-/**
- * What a DOM text selection creates, or `null` for one the page's characters
- * cannot place.
- *
- * The text layer's text is aligned with the characters first, and the result
- * must quote what the DOM selected; else the selection's own boxes place it,
- * under the same check. Zotero's mobile reader drops a selection that fails
- * both, and so does this.
- *
- * Zotero keeps at most two pages: the second one's rectangles become
- * `nextPageRects` and its text joins the first's with one space. A page the
- * selection covers no character of is left out, and a second page that is not
- * the next one is dropped.
- *
- * @param selection the DOM selection, read page by page off the text layers.
- * @param pages the Structured Characters of every page the selection reaches.
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/native-text-selection.js#L184-L240
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/pdf-view.js — `_getAnnotationFromSelectionRanges`
- */
 export function selectText(
   selection: TextSelection,
   pages: ReadonlyMap<number, StructuredPage>,
@@ -309,43 +222,26 @@ export function selectText(
   };
 }
 
-/** Which end of a highlight's range a drag moves; the other is the anchor. */
 export type RangeEnd = "start" | "end";
 
-/** A point in PDF page space on one page. */
 export interface PagePoint {
   readonly pageIndex: number;
   readonly x: number;
   readonly y: number;
 }
 
-/**
- * One key press on an end of a highlight's range: a character back or on, or
- * a line up or down.
- */
 export type RangeStep = "left" | "right" | "up" | "down";
 
-/**
- * One end of a highlight's range dragged to a point, or stepped from the
- * keyboard.
- */
 export type RangeAdjustment = {
-  /** The highlight or underline position as stored. */
   readonly position: PdfRectsPosition;
   readonly end: RangeEnd;
 } & (
   | {
-      /** Where the pointer is, on the position's page or the one after it. */
       readonly point: PagePoint;
     }
   | { readonly step: RangeStep }
 );
 
-/**
- * The distance between two rects, zero where they touch or overlap.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js#L3-L37
- */
 function rectsDist(
   [ax1, ay1, ax2, ay2]: Rect,
   [bx1, by1, bx2, by2]: Rect,
@@ -365,13 +261,6 @@ function rectsDist(
   return 0;
 }
 
-/**
- * The character boundary nearest a point: before the closest character, or
- * after it once the point passes its middle along the text's direction.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js#L39-L51
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js#L80-L140 — `getRangeBySelection`, the `head` branch
- */
 function offsetAtPoint(
   chars: readonly StructuredChar[],
   { x, y }: PagePoint,
@@ -396,12 +285,6 @@ function offsetAtPoint(
   return past ? closest + 1 : closest;
 }
 
-/**
- * The offset a line down from `offset`: the character on the next line
- * closest to the one at `offset`, or the page's end from its last line.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js — `getNextLineClosestOffset`
- */
 function nextLineOffset(
   chars: readonly StructuredChar[],
   offset: number,
@@ -416,12 +299,6 @@ function nextLineOffset(
   return closestOnLine(chars, chars[offset]!.rect, [lineEnd + 1, nextEnd]);
 }
 
-/**
- * The offset a line up from `offset`: the character on the previous line
- * closest to the one at `offset`, or the page's start from its first line.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js — `getPrevLineClosestOffset`
- */
 function previousLineOffset(
   chars: readonly StructuredChar[],
   offset: number,
@@ -438,7 +315,6 @@ function previousLineOffset(
   return closestOnLine(chars, chars[at]!.rect, [previousStart, previousEnd]);
 }
 
-/** The first offset in `start`–`end`, inclusive, closest to a rect. */
 function closestOnLine(
   chars: readonly StructuredChar[],
   rect: Rect,
@@ -456,15 +332,6 @@ function closestOnLine(
   return closest;
 }
 
-/**
- * The boundary one key press moves a range's head to, counted through both
- * pages as {@link adjustRange} counts them. Past a page's end, the head lands
- * after the next page's first character, and before a page's start, before
- * the previous page's last, as Zotero's reader steps across a page.
- *
- * @param pages the Annotation's page and the one after it.
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js — `getModifiedSelectionRanges`
- */
 function steppedHead(
   head: number,
   step: RangeStep,
@@ -483,7 +350,6 @@ function steppedHead(
     return moved === null ? head : base + moved;
   }
   if (local === chars.length) {
-    // Onto the next page's first character, from the first page only.
     return !onNext && next.length ? head + 1 : head;
   }
   if (step === "right") return head + 1;
@@ -491,34 +357,6 @@ function steppedHead(
   return moved === null ? head : base + moved;
 }
 
-/**
- * A highlight or underline with one end dragged to a point, or stepped from
- * the keyboard; `null` where no range can be placed.
- *
- * The ends are read off the stored rects as Zotero's reader reads them: the
- * start at the first character whose centre falls in the first rect, the end
- * after the last whose centre falls in the last rect, on the next page when
- * the range spilled onto it. The other end stays where it is. A dragged end
- * moves to the character boundary nearest the point; a stepped one moves one
- * character back or on, or to the closest character a line up or down.
- *
- * Where Zotero's reader differs, this keeps the stored shape:
- * - An end dragged onto or past the anchor stops one character short of it,
- *   so the range keeps one character; Zotero turns the range round instead.
- *   A step that would leave no character is refused, as Zotero refuses it.
- * - The range stays on the Annotation's page and the page after it, and the
- *   start stays on the Annotation's page, so `pageIndex` never changes. A
- *   point on any other page, a start moved onto the next page, and an end or
- *   a start stepped off the pair, are `null`.
- * - An end before the next page's first character stores no `nextPageRects`.
- * - An end that lands on the characters the stored rects cover proposes
- *   those rects, so it changes nothing.
- *
- * @param pages the Structured Characters of the Annotation's page and, where
- *   the range, the point, or a step reaches it, the page after.
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js — `getSelectionRangesByPosition`, `getModifiedSelectionRanges`, `getSelectionRanges`
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/pdf-view.js — `_getAnnotationFromSelectionRanges`, `_handleKeyDown`
- */
 export function adjustRange(
   adjustment: RangeAdjustment,
   pages: ReadonlyMap<number, StructuredPage>,
@@ -540,8 +378,6 @@ export function adjustRange(
     ? offsetsByRects(next, position.nextPageRects)
     : null;
 
-  // Boundaries count through both pages: the next page's offset `k` is
-  // `first.length + k`.
   const from = onFirst.from;
   const to = onNext ? first.length + onNext.to : onFirst.to;
   let start = from;
@@ -570,8 +406,6 @@ export function adjustRange(
     }
   }
 
-  // The same characters keep the rects as stored, which may be drawn a hair
-  // off the characters' own, so a still drag proposes no change.
   const stored =
     start === from && stop === to
       ? { rects: [...position.rects], nextPageRects: position.nextPageRects }
@@ -592,13 +426,6 @@ export function adjustRange(
     : { pageIndex, rects: stored?.rects ?? onPage.rects, text: onPage.text };
 }
 
-/**
- * The text rotation under a rect: the most common rotation of the characters
- * whose centres it covers, and `0` where it covers none. A tie goes to the
- * greater rotation, as Zotero's count over object keys leaves it.
- *
- * @see https://github.com/zotero/reader/blob/132bb787937a540a09513415fd507654eb0e88f9/src/pdf/selection.js#L842-L859 — `getRectRotationOnText`
- */
 export function rectRotation(
   chars: readonly StructuredChar[],
   rect: Rect,

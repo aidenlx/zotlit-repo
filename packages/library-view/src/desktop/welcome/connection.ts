@@ -1,4 +1,3 @@
-// The Welcome connection readout, held across leaves and refreshed on database events.
 import { Effect, Option, Stream } from "effect";
 import * as AsyncResult from "effect/reactivity/AsyncResult";
 import * as Atom from "effect/reactivity/Atom";
@@ -39,7 +38,6 @@ const connected = (dataDir: string, itemCount: number): ConnectionReadout => ({
   itemCount,
 });
 
-/** Marks the held count stale before a changed event can start its next read. */
 export const connectionLifecycleAtom = held(
   Stream.unwrap(
     Effect.gen(function* () {
@@ -69,7 +67,6 @@ export const connectionLifecycleAtom = held(
   { revision: 0, refreshing: false },
 );
 
-/** The cached count seeds a reopened banner before its first paint. */
 export const readConnectionSync = Effect.gen(function* () {
   const reads = yield* (yield* ZoteroReads).current;
   if (reads.state === "loading") return null;
@@ -100,7 +97,6 @@ export const readConnectionStatus = Effect.gen(function* () {
     : connected((yield* (yield* ZoteroPref).current).dataDir, value.itemCount);
 });
 
-/** A refresh replaces and interrupts the old wait; a held count stays visible. */
 export const connectionLoadAtom = viewRuntime.atom((get) => {
   const lifecycle = get(connectionLifecycleAtom);
   const previous = get
@@ -114,8 +110,6 @@ export const connectionLoadAtom = viewRuntime.atom((get) => {
         Option.getOrElse(previous, (): ConnectionReadout => ({
           status: "checking",
         }));
-      // This shared atom owns the Welcome query across all its leaves. Its
-      // interruption cancels the cached read as well as the caller's wait.
       const read = lifecycle.refreshing
         ? Effect.never
         : readConnectionStatus.pipe(
@@ -123,8 +117,6 @@ export const connectionLoadAtom = viewRuntime.atom((get) => {
               QueryClients.use((queries) => queries.invalidate(ITEM_COUNT_KEY)),
             ),
           );
-      // With no cached answer, a slow refresh shows checking after the same grace
-      // period as the former banner timer. Losing a reader interrupts the timer.
       const pending =
         seed === null && first.status !== "checking"
           ? Stream.merge(
@@ -152,8 +144,6 @@ export const connectionAtom: Atom.Atom<ConnectionReadout> = Atom.map(
         })),
 );
 
-// The Query Clients tag lives in the host-free layer of the platform services,
-// which names no view atom, so its reader registers it.
 declare module "@zotlit/obsidian-kit/view-atoms.ts" {
   interface ViewServiceRegistry {
     QueryClients: QueryClients;

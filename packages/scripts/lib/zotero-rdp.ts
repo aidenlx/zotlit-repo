@@ -1,26 +1,15 @@
-// Minimal Firefox Remote Debugging Protocol client for evaluating JS in
-// Zotero's parent (chrome) process over the remote debugging port a Paired Run
-// enables. The expression runs in that process's console scope, so `Zotero`,
-// `Services`, etc. are in scope.
-//
-// Every wait on the socket is bounded: a Zotero that stops answering fails the
-// call instead of holding its caller forever.
-
 import { randomUUID } from "node:crypto";
 import { createConnection } from "node:net";
 import type { Socket } from "node:net";
 
 const BYTE_COLON = 0x3a;
 
-/** How long a listener gets to prove it speaks RDP before we give up on it. */
 const GREETING_TIMEOUT_MS = 5000;
 
-/** Default deadline for one request's reply. */
 export const RDP_CALL_TIMEOUT_MS = 30_000;
 
 const ASYNC_POLL_MS = 100;
 const ASYNC_POLL_ATTEMPTS = 100;
-/** How long {@link evalAsync} polls for an async result by default. */
 export const ASYNC_EVAL_TIMEOUT_MS = ASYNC_POLL_MS * ASYNC_POLL_ATTEMPTS;
 
 export interface Packet {
@@ -46,7 +35,6 @@ class Rdp {
       this.#buf = Buffer.concat([this.#buf, chunk]);
       this.#drain();
     });
-    // A closed socket answers nothing more; fail what still waits at once.
     socket.on("close", () => {
       for (const waiter of this.#waiters) {
         waiter.reject(new Error("Zotero closed the RDP connection"));
@@ -79,7 +67,6 @@ class Rdp {
     this.#socket.write(`${Buffer.byteLength(json)}:${json}`);
   }
 
-  /** Resolve with the next packet matching `match`, or reject at the deadline. */
   next(match: (p: Packet) => boolean, timeoutMs: number): Promise<Packet> {
     const { promise, resolve, reject } = Promise.withResolvers<Packet>();
     const waiter: Waiter = {
@@ -119,15 +106,10 @@ function connect(port: number, host: string): Promise<Rdp> {
   return new Promise((resolve, reject) => {
     const socket = createConnection({ port, host });
     const rdp = new Rdp(socket);
-    // Something else may be listening on a port a previous Zotero used. It
-    // will never send the root greeting, so the greeting deadline turns that
-    // into a failed connect, and a caller probing for a live Zotero gets its
-    // answer.
     socket.once("error", (error: Error) => {
       rdp.close();
       reject(error);
     });
-    // Root actor greets us first.
     rdp
       .next((p) => p.from === "root", GREETING_TIMEOUT_MS)
       .then(
@@ -171,8 +153,6 @@ function evalJS(
   text: string,
   { consoleActor, timeoutMs }: { consoleActor: string; timeoutMs: number },
 ): Promise<Packet> {
-  // evaluateJSAsync replies with { resultID }, then emits a separate
-  // evaluationResult packet carrying the actual value.
   const resultEvent = rdp.next(
     (p) => p.from === consoleActor && p.type === "evaluationResult",
     timeoutMs,
@@ -193,13 +173,6 @@ interface AsyncEvalOptions {
   resultTtlMs?: number;
 }
 
-/**
- * Evaluate an `async` expression. The webconsole actor here won't transform
- * top-level `await`, so the body is run inside an async function that stashes
- * its JSON result on a global; we then poll that global synchronously. A
- * rejection stores "ERR:" and the error with its stack — Gecko's `stack`
- * leaves out the message.
- */
 export async function evalAsync(
   evaluate: Evaluate,
   body: string,
@@ -235,24 +208,11 @@ export async function evalAsync(
   }
 }
 
-/**
- * One connection to a running Zotero's parent process, already attached to its
- * console actor. Disposing it closes the socket.
- */
 export interface RdpSession extends Disposable {
-  /** Evaluate a synchronous expression and return the reply packet. */
   evaluate: Evaluate;
-  /** Evaluate an `async` expression through {@link evalAsync}. */
   evaluateAsync(body: string): Promise<Packet>;
 }
 
-/**
- * Attach to the debugging port a Paired Run's Zotero listens on. Rejects when
- * nothing answers there, so a caller probing for a live Zotero treats the
- * rejection as "no Zotero", not as a failure of its own.
- *
- * `timeoutMs` bounds each reply; {@link evalAsync} bounds its own polling.
- */
 export async function openRdpSession(
   port: number,
   {

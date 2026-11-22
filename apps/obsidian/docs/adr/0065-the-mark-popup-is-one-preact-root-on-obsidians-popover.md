@@ -23,3 +23,54 @@ The Mark Popup stays Obsidian's `HoverPopover` on the plugin's popout-aware base
 ## Amendment: the selected-mode row has no comment verb
 
 Accepted 2026-09-26 ([#1242](https://github.com/aidenlx/zotlit/issues/1242)), revised by [ADR 0066](0066-the-comment-is-an-editable-field-on-a-card-selected-alone-and-in-the-mark-popup.md). The comment under the popup's row is an editable field, as on an Annotation Card selected alone: a click on it, or on "Add a comment…" where there is none, is the one way into the popup's comment editor. So the selected-mode row no longer carries `data-zt-verb="comment"`; the field carries `zt-annot-comment-field`. The creation row keeps its `data-zt-verb="comment"`. Every other theme hook above keeps its name and place.
+
+## Popup width and visibility
+
+The mark popup overrides Obsidian's hover-popover child width at the
+host rule's specificity. The action row determines the popup width.
+The comment sheet and the comment slot use a minimum width for editing
+and allow their contents to fit the row. The slot applies the width
+override to the shared sheet and held-draft builders in `editor-sheet.ts`
+without changing their layout in the Annotation Card. When another tab
+covers the view, the popup hides through its covered attribute and
+remains mounted so it can restore the typed comment when the view shows
+again.
+
+Treat presses in the Mark Popup, its tag suggestion popup and delegated selection surfaces as inside the interaction. Recompute the popup anchor on scrolling and repaint. An offscreen mark can keep its selection without a popup. Repeated clicks over overlapping marks retarget the same popup through the stack. Keep the row and held draft controls mounted across equivalent updates because the browser uses the shared press and release target for the click. Obsidian can close a menu if its trigger leaves the document.
+
+Close the editor when its selection episode ends. End a tag session before submitting it and ignore a delayed edit when both its session and draft have gone. Escape outside the tag field closes that editor before clearing the selection. During a drag, Escape cancels the adjustment before clearing the selection. Toggling tags submits the comment editor's text first. The comment sheet places the caret on mount, using the click point once and the end on a later mount. A move to a verb on its own row stays within the editor. The popup edits the shared draft in place and revealing the card leaves its editors as they are. [Mark Selection](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/selection.ts)
+
+Taking focus for the create-mode comment sheet can collapse the browser selection. Use geometry already captured at release. Keep comment text across popup renders. Closing its selection episode releases the sheet's keys and prevents a late commit from reading its old text.
+
+The comment and tag editors are mutually exclusive. Image capture, a Text Draft and a selected group do not use the Mark Popup.
+
+## Position, visibility, and refresh
+
+The variant owners supply current anchor geometry and content. Use a virtual point because a PDF page repaint replaces any mark node available as a target. Pin the popup with focus state and show it immediately because the create gesture's trailing click can dismiss a popup still waiting to show. Use the binding as hover parent to keep Obsidian's Page Preview separate. Mount the container before drawing the first editor so it can take focus. Position once to attach it to the document, then center over the point after measurement and apply Obsidian's viewport clamp. Reposition on content resize with an observer from the current window.
+
+Retarget on scroll or paint without rendering the row. When both are needed, redraw before measuring width. Hide during a held Mark Handle adjustment and rehang on release. Hide a covered PDF's popup while keeping its editor mounted. When the cover lifts, draw the latest state, including any new selection made by a write that settled while covered. A missing anchor hides the popup and lets the variant decide whether its selection can stay. Presses in a menu opened by the popup belong to that interaction.
+
+Store the popup before mounting it and clear its reference before unmounting. Session changes triggered during a render can request another refresh or dismiss the popup. Run any refresh after the current diff and check that the root remains mounted before rendering. The content key uses the variant kind and selected Annotation, so an equivalent update preserves the focused control and the node under a press. The comment slot owns width across editor states and the row stays centered. [Popup host](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/mark-popup-host.ts) · [Popup](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/mark-popup.tsx) · [Popup host tests](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/mark-popup-host.test.ts)
+
+Copy and reveal remain available because they do not write to Zotero. Color, tags, delete and comment use the Annotation Card's capability and write rules. A blocked verb keeps its tab order, accessible state, and reason tooltip. Use the pressed control as the menu anchor for keyboard and pointer activation. Assign the palette color to its glyph because Obsidian's unlayered control style wins over a color utility on the button. The stepper cycles overlapping marks. Add tags after creation, when the selected mark's popup replaces the create popup.
+
+Recompute the popup anchor after repaint because PDF.js can replace the target geometry. Subscribe the editor owners before the popup host so they release an editor before its popup redraws or hides.
+
+The create variant shares the popup host and offers copy during a blocked create. A swatch ID follows its position in the shared palette so a keyboard shortcut names the same color when a row shows only some swatches. Use highlight for a color commit unless a selection tool is armed. Align the tag section with the comment and keep its suggestions within the interaction even when their popup extends outside. Resting chips display names without applying a filter.
+
+### Paired selection and tab changes
+
+Drive the press, browser selection, and release to open the
+create popup. Pressing outside discards the waiting selection
+and draft without writing. After a real Highlight click, wait
+for the new mark and its selected popup and let write-related
+reads finish. Switch tabs and check that the tab change alone
+hides the popup. Returning to the PDF retains the highlight
+selection. A newly opened tab can become the most recent
+leaf before its active-leaf notification places the popup.
+
+Check that a pending comment stays as entered when revisiting
+the PDF. Escape closes the editor first and then the selection,
+with no write for a cancelled draft.
+
+[Paired popup cases](../../../../packages/e2e/src/paired-run.e2e.ts)

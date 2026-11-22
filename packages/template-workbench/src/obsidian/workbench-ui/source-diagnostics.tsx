@@ -1,5 +1,3 @@
-// Every source pane reads the editor's current findings, independent of whether
-// the Problems explanation is open. Only verified locations become marks.
 import type {
   WorkbenchDocumentController,
   WorkbenchSliceId,
@@ -41,7 +39,6 @@ interface SourceDiagnostic extends Diagnostic {
   diagnosisId: string;
 }
 
-/** Convert verified master offsets into the text this pane displays. */
 export function sourceDiagnostics({
   controller,
   slice,
@@ -57,7 +54,6 @@ export function sourceDiagnostics({
 }): SourceDiagnostic[] {
   const bounds = controller.sliceRange(slice);
   const offsets = sliceOffsets(controller, slice, source);
-  // A range in master offsets, in the text the pane shows, when the pane holds it.
   const shown = (range: { from: number; to: number } | undefined) =>
     range && range.from >= bounds.from && range.to <= bounds.to
       ? {
@@ -65,12 +61,7 @@ export function sourceDiagnostics({
           to: offsets.toShown(range.to - bounds.from),
         }
       : undefined;
-  // The row this pane edits, when it edits one. A property failure names the
-  // place inside that row's own expression, which no other pane can place.
   const position = entryPosition(slice);
-  // Whether a failure's own place is one this pane holds. A site is read
-  // against the text the pane shows, so one fault marks one place: the row it
-  // names, or the note-name pane a note-name failure names.
   const ownSite = (diagnostic: { part?: string; position?: number }) =>
     position !== null
       ? diagnostic.position === position
@@ -91,9 +82,6 @@ export function sourceDiagnostics({
       return [
         {
           from,
-          // A laid-out pane holds whitespace the stored text never had, and
-          // the mapping through it lands past the marked text. A pane that
-          // shows the stored text carries the range the failure verified.
           to: json ? trimmedEnd(source, from, to) : to,
           severity: "error",
           diagnosisId: diagnosis.id,
@@ -104,19 +92,12 @@ export function sourceDiagnostics({
   });
 }
 
-/** Where a mark ends once the whitespace after the marked text is left out. */
 function trimmedEnd(source: string, from: number, to: number): number {
   let end = to;
   while (end > from + 1 && /\s/.test(source[end - 1] ?? "")) end -= 1;
   return end;
 }
 
-/**
- * An explicit, keyboard-accessible control beside each affected source line.
- * The column is mounted while the pane holds a problem and dropped once it is
- * clean, so a pane with nothing wrong keeps its full width. The pane owns that
- * switch: it calls `show` whenever it sets the diagnostics the column reads.
- */
 export function sourceProblemGutter(
   reveal: (id: string) => void,
   label: () => string,
@@ -204,7 +185,6 @@ export function sourceProblemGutter(
   ];
   return {
     extension: slot.of([]),
-    /** Mount the column while `present`, and drop it once nothing is wrong. */
     show: (present: boolean) => slot.reconfigure(present ? column : []),
   };
 }

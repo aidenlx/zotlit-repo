@@ -221,9 +221,6 @@ for (const name of ["title", "contentType", "fileType", "linkMode"]) {
   });
 }
 
-/**
- * The Sortable Fields of Attachment Query, including its parent scalar paths.
- */
 export const ATTACHMENT_SORT_FIELDS = parentSortFields(
   [
     "indexedKey",

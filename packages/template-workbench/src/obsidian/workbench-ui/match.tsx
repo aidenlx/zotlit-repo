@@ -59,7 +59,6 @@ import {
 } from "./match.look.ts";
 import type { MatchLook } from "./match.look.ts";
 import { MatchSelect } from "./match.rows.tsx";
-// One Match tree over the document controller; rows write through the master history.
 import { useReorder } from "./reorder.ts";
 import type { Reorder } from "./reorder.ts";
 import { TabDocsLink } from "./tab-bar.tsx";
@@ -92,12 +91,6 @@ const matchStatement = cn(
   "zt:[&_[data-part=wrapper]>select]:[field-sizing:content] zt:[&_[data-part=wrapper]>select]:w-full zt:[&:has([aria-invalid=true])]:ring-(--background-modifier-error)",
   "zt:[&>[data-part=actions]]:h-(--input-height) zt:[&>[data-part=actions]]:shrink-0 zt:[&>[data-part=actions]]:flex-nowrap zt:[&>[data-part=actions]]:gap-0 zt:[&>[data-part=actions]]:px-0.5",
 );
-// A condition's layout: the kind's Select keeps its whole name, and the
-// value is what yields. The value stays beside the predicate while its
-// narrowest form fits there (its widest chip or word, an input's
-// width), and otherwise takes a line of its own; it grows into what is
-// left either way. Only a predicate wider than the whole line shrinks,
-// and then the operator gives up width before the kind's name does.
 const matchFields =
   "zt:flex zt:min-w-0 zt:flex-1 zt:flex-wrap zt:items-stretch zt:overflow-hidden";
 const matchValue = cn(
@@ -113,16 +106,10 @@ export type {
 
 const NO_VALUES: FilterValues = { tags: [], collections: [], libraries: [] };
 
-/** What a Match test reads while there is no Item or no filter to test. */
 const NO_TEST = Atom.make(
   AsyncResult.initial<WorkbenchMatchResult | "failed", unknown>(),
 );
 
-/**
- * The Match of the open Profile document: the Match editor with the
- * conditions of the Items dataset, and whether the example Item matches, as
- * the host tests it.
- */
 export function MatchPane({
   controller,
   vocabularyRevision,
@@ -131,7 +118,6 @@ export function MatchPane({
   onChooseItem,
 }: {
   controller: WorkbenchDocumentController;
-  /** Changes when the host has a new snapshot or database vocabulary. */
   vocabularyRevision?: string | number;
   exampleMessage?: string | null;
   onRetry?: () => void;
@@ -141,7 +127,6 @@ export function MatchPane({
   const item = useAtomValue(model.item);
   useAtomValue(model.document.revision);
   const readable = controller.document !== null;
-  // The last filter that parsed, which stands while the draft does not.
   const match = useAtomValue(model.match);
   const [writeProblem, setWriteProblem] = useState<string | null>(null);
   const retry = useAtomSet(model.matchRetry);
@@ -161,12 +146,10 @@ export function MatchPane({
   );
   const test = useMatchTest(item?.id ?? null, filter?.text ?? null, revision);
   const answer = typeof test === "object" ? test : null;
-  // A mistake shows on the condition it is in, where it has a place.
   const span = answer?.kind === "problem" ? answer.span : undefined;
   const faulty = span
     ? filter?.leaves.find(({ from, to }) => span.from >= from && span.to <= to)
     : undefined;
-  // The test's Fault, in the text of the condition it is in.
   const placed = useMemo(
     () =>
       filter && faulty && span
@@ -185,9 +168,6 @@ export function MatchPane({
   );
   const locale = runtime.getLocale();
   const custom = useCustomFieldNames(revision);
-  // What a condition reads: the fields of an Item, labelled as Zotero labels
-  // them, and the source's custom fields. A Profile binds no Query Context,
-  // has no Formulas and reads no vault property.
   const schema = schemaLocale(locale);
   const expression = useMemo(() => {
     const labels = FIELD_LABELS[schema];
@@ -264,11 +244,6 @@ export function MatchPane({
       data-part="pane"
       className={matchPane}
       onKeyDown={(event) => {
-        // A popup the host draws in the pane, such as a select's search
-        // field, keeps its own text editing by stopping the key at its edge.
-        // A field with a history of its own, such as the expression field's
-        // CodeMirror, takes the key as it undoes, and the pane leaves it:
-        // stepping the Match too would put back the text the field undid.
         if (event.defaultPrevented) return;
         if (!(event.metaKey || event.ctrlKey) || event.altKey) return;
         if (
@@ -321,12 +296,6 @@ export function MatchPane({
   );
 }
 
-/**
- * The host's test of the Item `indexedKey` against `filter`: `undefined`
- * while it runs, and `failed` when the host could not answer, by a failure
- * or a defect. A filter or an
- * Item of `null` is not tested. A new `revision` tests again.
- */
 function useMatchTest(
   indexedKey: string | null,
   filter: string | null,
@@ -341,13 +310,6 @@ function useMatchTest(
   return AsyncResult.isSuccess(answer) ? answer.value : undefined;
 }
 
-/**
- * A Match tree as "All" / "Any" / "None of the following are true" groups of
- * condition rows. The caller owns the stored filter and the conditions it
- * offers; `onChange` answers whether the caller kept the new filter, and a
- * kept filter comes back as `value` in the render the change causes. A
- * `value` the rows on screen do not store replaces them.
- */
 const NO_LOOK: MatchLook = {};
 
 export function MatchEditor<Row extends LabelledRow>({
@@ -358,18 +320,14 @@ export function MatchEditor<Row extends LabelledRow>({
   look = NO_LOOK,
 }: {
   value: MatchFilter | undefined;
-  /** `undefined` when the author clears every condition. */
   onChange: (next: MatchTree | undefined) => boolean;
   vocabulary: MatchVocabulary<Row>;
   disabled?: boolean;
-  /** The classes of the parts this surface draws in a look of its own. */
   look?: MatchLook;
 }) {
   const [root, setRootState] = useState<ConditionGroup<Row>>(() =>
     fromFilter(value, vocabulary),
   );
-  // The tree as last shown: a value it already stores is the editor's own
-  // edit coming back, so an expression row the author is typing stays one.
   const shown = useRef(root);
   function setRoot(next: ConditionGroup<Row>) {
     shown.current = next;
@@ -377,10 +335,6 @@ export function MatchEditor<Row extends LabelledRow>({
   }
   const latest = useRef(vocabulary);
   latest.current = vocabulary;
-  // Read as the caller's render commits, before the next key: an effect
-  // waits for paint, and the author may type again before it runs, so the
-  // caller's echo of the editor's own edit would read as an older filter
-  // than the tree on screen and rebuild the rows under the caret.
   useLayoutEffect(() => {
     if (
       fitsVocabulary(shown.current, latest.current) &&
@@ -389,15 +343,11 @@ export function MatchEditor<Row extends LabelledRow>({
       return;
     setRoot(fromFilter(value, latest.current));
   }, [value]);
-  // A new vocabulary — a view's dataset changed — may not offer the kinds
-  // of the rows on screen; the stored filter then reads again under it.
   const fits = fitsVocabulary(root, vocabulary);
   const tree = fits ? root : fromFilter(value, vocabulary);
   useEffect(() => {
     if (!fits) setRoot(tree);
   });
-  // A change that stores what the caller holds — a placeholder row, a row
-  // with no value yet — stays on screen without a write.
   function change(next: ConditionGroup<Row>) {
     const settled = settle(next, vocabulary);
     setRoot(settled);
@@ -452,14 +402,12 @@ function Group<Row extends LabelledRow>({
   root: ConditionGroup<Row>;
   group: ConditionGroup<Row>;
   path: ConditionPath;
-  /** Where each row sits in the stored filter, as {@link storedFilter} finds it. */
   places: ReadonlyMap<string, FilterPath>;
   vocabulary: MatchVocabulary<Row>;
   reorder: Reorder;
   onChange: (root: ConditionGroup<Row>) => void;
 }) {
   const look = useMatchLook();
-  // "Add condition" hands the focus to the new row's condition type.
   const rows = useRef<HTMLUListElement>(null);
   const focusAdded = useRef(false);
   useEffect(() => {
@@ -467,7 +415,6 @@ function Group<Row extends LabelledRow>({
     focusAdded.current = false;
     rows.current
       ?.querySelector<HTMLElement>(
-        // The kind picker is a native select, or the host's own trigger.
         ":scope > li:last-child [data-condition-row] :is(select, button[aria-label])",
       )
       ?.focus();
@@ -615,7 +562,6 @@ function Row<Row extends LabelledRow>({
   onRemove,
 }: {
   condition: RowCondition<Row>;
-  /** The row's place in the stored filter; `null` while it stores nothing. */
   stored: FilterPath | null;
   vocabulary: MatchVocabulary<Row>;
   onChange: (condition: RowCondition<Row>) => void;
@@ -631,7 +577,6 @@ function Row<Row extends LabelledRow>({
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- `place` stands for `stored`, a new array on each render
     [findFault, place],
   );
-  // A blank expression stores nothing, as a placeholder row does.
   const labelled = isExpression(condition)
     ? condition.text.trim() === ""
       ? placeholderRow(vocabulary)
@@ -702,7 +647,6 @@ function Row<Row extends LabelledRow>({
               data-part="icon-button"
               className={matchIconButton}
               type="button"
-              // Stays hoverable and focusable, so its tooltip gives the reason.
               aria-disabled={labelled === null || undefined}
               {...tooltipAttrs(editVisually)}
               onClick={() => {

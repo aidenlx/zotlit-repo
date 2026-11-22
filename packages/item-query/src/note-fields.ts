@@ -1,5 +1,3 @@
-// The record vocabulary of a Child Note, an element of the `notes` Relation
-// List of an Item. Child Notes are not a Query Dataset.
 import type { NoteScanRow } from "@zotlit/db/item-query";
 
 import { ACTIVITY_FIELDS, BUILT_IN_NAMES } from "./fields.ts";

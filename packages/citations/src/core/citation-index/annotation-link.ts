@@ -1,4 +1,3 @@
-// Shared Annotation Occurrence classification for the scanner and note renderers.
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
 
@@ -17,7 +16,6 @@ export type ClassifiedAnnotationLink =
   | AnnotationLink
   | { form: "malformed"; destination: string };
 
-/** @param destination The Markdown destination, with angle brackets and escapes decoded by the caller. */
 export function classifyAnnotationLink(
   destination: string,
   shape: AnnotationLinkShape,

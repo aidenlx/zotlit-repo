@@ -16,7 +16,6 @@ import { watchNotFound } from "./welcome-register.ts";
 
 import { makeWelcomeHost, waitFor } from "#__fixtures__/welcome.ts";
 
-// The missing-file condition must survive layer acquisition.
 it.effect(
   "signals the missing database to a welcome view that subscribes late",
   () =>

@@ -1,5 +1,3 @@
-// The Query Context: a caller binds `this` to one Item (and one Attachment),
-// and a Filter Expression reads it as `this.item` / `this.attachment`.
 import { Cause, Exit } from "effect";
 import { afterAll, beforeAll, beforeEach, expect, it } from "vitest";
 
@@ -39,7 +37,6 @@ async function run(
       fields: [],
       ...request,
     }),
-    // A cap of the whole Library: a key selection plans a candidate set.
     { client: scenario.db, tuning: { capRatio: 1 }, logs },
   );
   return exit;

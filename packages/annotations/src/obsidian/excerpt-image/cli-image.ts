@@ -1,5 +1,3 @@
-// The renderer-side answer of the local Annotation image command.
-
 import type { ExcerptImage } from "#core/excerpt-image/format.ts";
 import { Cause, Data, Effect, Result, Schema } from "effect";
 import type { PlatformError } from "effect";
@@ -22,15 +20,10 @@ import type { ExcerptRequest } from "./contract.ts";
 import type { ExcerptSourceUnavailable } from "./request.ts";
 import type { ExcerptOutcome } from "./service.ts";
 
-// Annotation Image keeps its existing envelope independently of Query v3.
 const contractVersion = 2;
 
 export const ANNOTATION_IMAGE_COMMAND = "zotlit:annotation-image";
 
-/**
- * The failures of the command's source and parameters, which it reports with
- * the codes and recovery actions of the Item Query commands.
- */
 const { diagnostic, rejectionDiagnostic } = createRenderedCliDiagnostics<
   {
     "invalid-argument": string;
@@ -55,26 +48,21 @@ const imageParams = cliParams(
 );
 
 export interface AnnotationImagePorts {
-  /** The request of the Annotation `key` names; `null` where none has it. */
   read(
     key: string,
   ): Effect.Effect<ExcerptRequest | null, ExcerptSourceUnavailable>;
   resolve(request: ExcerptRequest): Effect.Effect<ExcerptOutcome, unknown>;
-  /** The path the PNG store publishes `bytes` at. */
   publish(
     fingerprint: string,
     bytes: Uint8Array,
   ): Effect.Effect<string, PlatformError.PlatformError>;
-  /** Whether a file stands at `path` on this device. */
   exists(path: string): Effect.Effect<boolean>;
 }
 
-/** A step of the image answer failed; `cause` is what it threw. */
 class ImageAnswerError extends Data.TaggedError("ImageAnswerError")<{
   readonly cause: unknown;
 }> {}
 
-/** The Promise `run` gives, failing with what it rejects with. */
 const attempt = <A>(run: (signal: AbortSignal) => PromiseLike<A>) =>
   Effect.tryPromise({
     try: run,
@@ -89,10 +77,6 @@ function envelope(tail: object): string {
   );
 }
 
-/**
- * The answer to one call of the command. Interrupting it aborts the signal
- * each Promise port receives.
- */
 export const answerAnnotationImage = Effect.fn("AnnotationImageCli.answer")(
   function* (params: CliData, ports: AnnotationImagePorts) {
     const { key } = yield* decodeCliParams(params, imageParams, {
@@ -140,7 +124,6 @@ export const answerAnnotationImage = Effect.fn("AnnotationImageCli.answer")(
   ),
 );
 
-/** The answer for the image or ink Annotation that `request` reads. */
 const imageAnswer = Effect.fn("AnnotationImageCli.image")(function* ({
   key,
   request,
@@ -212,7 +195,6 @@ function imageFailure(code: keyof typeof IMAGE_HINTS, message: string): string {
   });
 }
 
-/** The CLI publishes PNG while the shared renderer and cache keep their format. */
 function pngBytes(
   image: ExcerptImage,
 ): Effect.Effect<Uint8Array, ImageAnswerError> {
@@ -226,7 +208,6 @@ function pngBytes(
       ),
       (bitmap) => Effect.sync(() => bitmap.close()),
     );
-    // Runs in the CLI renderer, outside any Obsidian window.
     const canvas = document.createElement("canvas");
     canvas.width = bitmap.width;
     canvas.height = bitmap.height;

@@ -1,8 +1,3 @@
-// Typed errors the template service raises: an inert JavaScript-Templates
-// artifact an operation requires, a refused Shared Partial name, and a call to
-// a Shared Partial the vault holds no document for. Also where an engine says
-// a Template failed, as offsets into the source it read.
-
 import { regex } from "arkregex";
 import { Predicate, Schema } from "effect";
 
@@ -11,21 +6,8 @@ import { MissingTemplateError } from "@zotlit/templates/facade";
 import type { PartialNameRefusal } from "./defaults.ts";
 import { renderFailureCause, renderFailureSpan } from "./render-failure.ts";
 
-/**
- * Thrown when an operation requires an artifact the JavaScript Templates gate
- * keeps inert: dispatching a render to a name whose winning file is an inert
- * `.eta.md`, or consuming the compiled frontmatter set while it excludes
- * `javascript`-language fields. The message is a localized user message naming
- * the artifact, ready to surface verbatim in operation failure toasts.
- */
 export class InertTemplateError extends Error {
   readonly _tag = "InertTemplateError";
-  /**
-   * The inert Template's name. Absent in exactly one case: the inert artifact
-   * is the managed-frontmatter field set, which is a field list rather than a
-   * named Template (see `TemplateService.frontmatterFields`). Every failure
-   * raised on a render path carries a name.
-   */
   readonly templateName: string | undefined;
 
   constructor(message: string, templateName?: string, options?: ErrorOptions) {
@@ -35,19 +17,11 @@ export class InertTemplateError extends Error {
   }
 }
 
-/** Whether `error` is an inert Template's refusal, by its tag. */
 export const isInertTemplateError = (
   error: unknown,
 ): error is InertTemplateError =>
   Predicate.isTagged(error, "InertTemplateError");
 
-/**
- * Thrown when a name breaks the Shared Partial rule every entry point shares:
- * letters, digits, and hyphens, free of the reserved names, and unique in the
- * vault. Every entry point judges the name with `partialNameRefusal` before it
- * calls, so this is the service's last guard: the message reads in a log, and
- * `refusal` names the clause that refused.
- */
 export class PartialNameError extends Error {
   readonly _tag = "PartialNameError";
   readonly partialName: string;
@@ -61,16 +35,6 @@ export class PartialNameError extends Error {
   }
 }
 
-/**
- * A {@link MissingTemplateError} raised while a Profile document rendered,
- * carrying the vault path of the document whose call named the partial. The
- * refusal notice routes Open template workbench there, so the reader lands on
- * the call to repair rather than on the Default Profile.
- *
- * Subclasses rather than wraps, so every `instanceof MissingTemplateError`
- * reader — the Workbench diagnostic envelope, the preview, the notice — keeps
- * seeing the failure it already handles.
- */
 export class MissingPartialError extends MissingTemplateError {
   readonly documentPath: string;
 
@@ -80,27 +44,17 @@ export class MissingPartialError extends MissingTemplateError {
   }
 }
 
-/** Where in a Template's source an engine stopped; `to` is exclusive. */
 export interface EngineFaultSpan {
   readonly source: string;
-  /** The registered Template name the engine named, when it named one. */
   readonly template?: string;
   readonly from: number;
   readonly to: number;
 }
 
-/** Eta writes `at line L col C`; liquidjs writes `line:L, col:C`. */
 const ENGINE_POSITION = regex(
   "(?:at line (?<etaLine>\\d+) col (?<etaColumn>\\d+)|line:(?<liquidLine>\\d+), col:(?<liquidColumn>\\d+))",
 );
 
-/**
- * The span an engine reported for `error`. liquidjs carries the token it
- * stopped on, with the source it tokenized; Eta writes the line and column
- * into its message alone, so that position addresses `source`, the text the
- * caller compiled. Undefined where the engine named no position, such as a
- * JavaScript syntax error inside an Eta tag.
- */
 export function engineFaultSpan(
   error: unknown,
   source?: string,
@@ -119,10 +73,6 @@ export function engineFaultSpan(
   return reportedFaultSpan(error.message, source);
 }
 
-/**
- * The position an engine wrote into `message`, as a one-character span in
- * `source`, the text it compiled. Undefined where the message names none.
- */
 export function reportedFaultSpan(
   message: string,
   source: string,
@@ -140,7 +90,6 @@ export function reportedFaultSpan(
   return { source, from, to: Math.min(from + 1, source.length) };
 }
 
-/** A host operation failed at the Template service boundary. */
 export class TemplateOperationError extends Schema.TaggedError<
   TemplateOperationError,
   { readonly brand: unique symbol }
@@ -149,7 +98,6 @@ export class TemplateOperationError extends Schema.TaggedError<
   cause: Schema.Defect(),
 }) {}
 
-/** A template engine or a lazy render-data getter failed. */
 export class TemplateRenderError extends Schema.TaggedError<
   TemplateRenderError,
   { readonly brand: unique symbol }
@@ -158,7 +106,6 @@ export class TemplateRenderError extends Schema.TaggedError<
   cause: Schema.Defect(),
 }) {}
 
-/** Plain callers keep the original external exception and its diagnostic shape. */
 export function plainTemplateError(error: unknown): unknown {
   return error instanceof TemplateOperationError ||
     error instanceof TemplateRenderError

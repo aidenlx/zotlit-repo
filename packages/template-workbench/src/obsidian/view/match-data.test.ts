@@ -1,6 +1,5 @@
 import type { WorkbenchHostDeps } from "#__fixtures__/view.ts";
 import { expect, it } from "@effect/vitest";
-// The Match editor's reads stop with the mount that started them.
 import { Effect, Exit, Fiber } from "effect";
 import { vi } from "vitest";
 
@@ -39,7 +38,6 @@ it.effect(
     }),
 );
 
-// Concurrent reads stop when the view closes, before the registry's idle expiry.
 it.effect("stops every concurrent read when its view closes", () =>
   Effect.gen(function* () {
     const signals: AbortSignal[] = [];

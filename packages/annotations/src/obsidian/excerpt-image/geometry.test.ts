@@ -67,8 +67,6 @@ describe("ink excerpt geometry", () => {
       }),
     ).toThrow();
   });
-  // Worked 200x300 page transforms: x'=x,y'=300-y; x'=y,y'=x;
-  // x'=200-x,y'=y; x'=300-y,y'=200-x. No production transform is reused.
   it.each([
     [0, (x: number, y: number) => [x, 300 - y], [18, 198, 84, 64]],
     [90, (x: number, y: number) => [y, x], [38, 18, 64, 84]],

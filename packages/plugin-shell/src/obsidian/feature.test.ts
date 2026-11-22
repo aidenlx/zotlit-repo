@@ -55,7 +55,6 @@ const desktop = extendFeature(base, {
 
 declare module "@zotlit/plugin-services/obsidian/setting-tab/context.ts" {
   interface SettingTabSlots {
-    /** A slot of these tests alone. */
     "test.rows": unknown;
   }
 }

@@ -1,32 +1,3 @@
-// One land: the only path by which a change reaches `main`, the trunk
-// (ADR 0097), with a record PR on GitHub (ADR 0102).
-//
-//   land (from a task branch, clean tree, a record file, a GitHub login)
-//     preflight ─▶ wait in the Land Queue ─▶ the Land Turn:
-//       fetch origin/main ─▶ rebase the branch onto it ─▶ gate
-//         ─▶ record: push the branch, open or update its record PR
-//         ─▶ ci: wait for the LAND_CI_CHECK check of the PR head
-//         ─▶ push HEAD:main
-//         ▲          │ main moved
-//         └──────────┘
-//       update the local main ─▶ read the PR state ─▶ merged: delete the
-//       task branch on the remote
-//     after the turn: request the End-to-end Run of the new tip (lib/land-e2e.ts)
-//
-// A change lands with `pnpm verify --local` as its gate and a record PR on
-// GitHub, whose body is the record file that the agent wrote
-// (LAND_RECORD_PATH). The PR runs `pnpm verify --pr` in CI
-// (.github/workflows/record-pr.yml), and `main` moves only when that check
-// passes. scripts/verify.ts names the steps of each flag.
-// GitHub shows the PR as merged when `main` moves to its head. The version
-// commit of a release (`pnpm release`) lands with the release gate and no
-// record PR.
-//
-// The gate runs once, in the turn, on the tree that is pushed. On a failure
-// the worktree stays on its branch with a clean tree: a rebase conflict
-// restores the branch as it was, and a gate or push failure leaves it rebased
-// onto the fetched `main`, which is the tree to fix.
-
 import type { DesktopSlot } from "#desktop-slot";
 import type { LandCiRun } from "#land-queue";
 import { regex } from "arkregex";
@@ -61,25 +32,16 @@ import {
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 
-/** How long a land waits for its turn by default. */
 export const LAND_WAIT_MS = HOUR;
-/** How many times one turn fetches and gates again after `main` moved. */
 export const LAND_ATTEMPTS = 3;
 
-/** The branch every land pushes to. */
 const TRUNK = SOURCE_BRANCH;
 
-/**
- * The quality gate of a change, and of the version commit of a release. The
- * record PR of a change runs the other half of `pnpm verify` (LAND_CI_CHECK,
- * lib/gate-halves.ts).
- */
 export const LAND_GATES = {
   change: verifyHalf("local"),
   release: ["pnpm", "verify", "--release"],
 } as const satisfies Record<string, readonly [string, ...string[]]>;
 
-/** The steps of a land, as a failure names them. */
 export type LandStep =
   | "preflight"
   | "queue"
@@ -91,10 +53,8 @@ export type LandStep =
   | "push"
   | "lease";
 
-/** The record file of a land, relative to the root of the worktree. */
 export const LAND_RECORD_PATH = ".scratch/land-record.md";
 
-/** The sections of a record, each a `## <name>` heading. */
 export const LAND_RECORD_SECTIONS = [
   "Summary",
   "Testing",
@@ -105,42 +65,14 @@ export const LAND_RECORD_SECTIONS = [
   "e2e",
 ] as const;
 
-/**
- * The name of the CI job that a record PR runs, the job `name` in
- * .github/workflows/record-pr.yml. GitHub shows it as a check on the PR head.
- * `pnpm lint` holds the workflow to it (lib/record-pr-workflow.ts).
- */
 export const LAND_CI_CHECK = "Record PR tests";
-/** The `timeout-minutes` of the job in record-pr.yml. */
 export const LAND_CI_JOB_TIMEOUT_MINUTES = 40;
-/**
- * How long a land waits for the check of its PR head by default: the job's
- * timeout plus 5 min for the wait for a runner and for GitHub to show the
- * check, so a job that hangs ends on GitHub's side first, and the land
- * reports its failure with the link. While one land waits, the other lands
- * wait in the Land Queue: a land that waits behind it can reach its own 1 h
- * wait (LAND_WAIT_MS) and exit 75.
- */
 export const LAND_CI_WAIT_MS = (LAND_CI_JOB_TIMEOUT_MINUTES + 5) * MINUTE;
-/**
- * How often the land reads the check by default: two reads a minute, each
- * of two or three GitHub API calls (the check runs, the workflow runs, and
- * the job of a finished check), well inside the rate limit. Each read renews
- * the Lease of the Land Turn long before its silence limit
- * (SILENCE_LIMIT_MS.childOutput).
- */
 const LAND_CI_POLL_MS = 30_000;
-/**
- * How long the land reads the record PR's state after the push of `main`.
- * GitHub marks the PR as merged a few seconds after the push, so one read
- * right after it can still see the PR open.
- */
 const LAND_MERGED_WAIT_MS = 30_000;
 const LAND_MERGED_POLL_MS = 2_000;
 
-/** A run of a CI job, as GitHub shows it as a check of a commit. */
 export interface CiCheck {
-  /** The check run, which is also the id of the Actions job. */
   id: number;
   status:
     | "queued"
@@ -149,13 +81,9 @@ export interface CiCheck {
     | "waiting"
     | "requested"
     | "pending";
-  /** `success` once the job passed; set when the status is `completed`. */
   conclusion: string | null;
-  /** The page of the job and its log. */
   url: string;
-  /** When the job joined the queue for a runner. */
   queuedAt?: string;
-  /** When a runner took the job. */
   startedAt?: string;
   completedAt?: string;
 }
@@ -165,9 +93,7 @@ export interface RecordPullRequest {
   url: string;
 }
 
-/** The GitHub side of a land: the record PR of its branch. */
 export interface LandGitHub {
-  /** The open PR from `head` into `base`, if there is one. */
   findOpenPullRequest: (query: {
     head: string;
     base: string;
@@ -183,10 +109,6 @@ export interface LandGitHub {
     pull: { title: string; body: string },
   ) => Promise<void>;
   pullRequestState: (number: number) => Promise<"OPEN" | "CLOSED" | "MERGED">;
-  /**
-   * The newest check named `name` of `commit` that the record PR's workflow
-   * ran for `branch` of this repository, if GitHub shows one.
-   */
   readCheck: (query: {
     commit: string;
     name: string;
@@ -195,33 +117,16 @@ export interface LandGitHub {
 }
 
 export interface LandOptions {
-  /** The worktree to land from. */
   cwd: string;
-  /** The quality gate, run in `cwd` on the tree that is pushed. */
   gate: readonly [string, ...string[]];
-  /**
-   * The GitHub client of the record PR. With it, the land needs the record
-   * file at LAND_RECORD_PATH; without it, the land opens no PR.
-   */
   github?: LandGitHub;
-  /** @default "origin" */
   remote?: string;
-  /** @default the Land Queue */
   queueDir?: string;
-  /** @default `logs/` in landStateDir() */
   logDir?: string;
-  /** @default landWaitLog() */
   waitLog?: string;
-  /** The Admission Deadline. @default LAND_WAIT_MS */
   waitMs?: number;
-  /**
-   * How long the commands of the turn may print nothing before the Lease of
-   * the turn ends. @default SILENCE_LIMIT_MS.childOutput
-   */
   silenceMs?: number;
-  /** How often the land reads the Land Queue. */
   pollMs?: number;
-  /** @default LAND_ATTEMPTS */
   attempts?: number;
   /** How long the land waits for the CI check. @default LAND_CI_WAIT_MS */
   ciWaitMs?: number;
@@ -234,21 +139,17 @@ export interface LandOptions {
   mergedWaitMs?: number;
   /** How often it reads the state in that time. @default LAND_MERGED_POLL_MS */
   mergedPollMs?: number;
-  /** Progress lines for the caller; the full output goes to the log. */
   say?: (line: string) => void;
 }
 
 export type LandResult =
   | {
       ok: true;
-      /** The tip that was pushed. */
       commit: string;
-      /** The tip of the trunk before the push. */
       previous: string;
       attempts: number;
       waitMs: number;
       logPath: string;
-      /** The record PR, and whether GitHub showed it as merged. */
       record?: RecordPullRequest & { merged: boolean };
     }
   | {
@@ -256,7 +157,6 @@ export type LandResult =
       step: LandStep;
       message: string;
       logPath: string;
-      /** EXIT_ADMISSION_BLOCKED when the turn never came, else 1. */
       exitCode: number;
     };
 
@@ -277,17 +177,10 @@ interface RunResult {
   stderr: string;
 }
 
-/**
- * Runs commands in the worktree, with their output in the land log. Each
- * command leads its own process group, so the end of a Lease or a signal stops
- * the whole command, such as the gate and every Vitest worker under it. Each
- * output of a command is a sign of progress of the Land Turn.
- */
 class Shell {
   #current: ChildProcess | undefined;
   readonly #cwd: string;
   readonly #log: WriteStream;
-  /** Set once the Land Turn is taken. */
   progress: ((what: string) => void) | undefined;
 
   constructor(cwd: string, log: WriteStream) {
@@ -326,7 +219,6 @@ class Shell {
     });
   }
 
-  /** Stdout, trimmed; throws a LandFailure of `step` on a non-zero exit. */
   async git(step: LandStep, ...args: string[]): Promise<string> {
     const result = await this.run("git", args);
     if (result.code !== 0) {
@@ -338,7 +230,6 @@ class Shell {
     return result.stdout.trim();
   }
 
-  /** Whether `git ...args` exits 0. */
   async test(...args: string[]): Promise<boolean> {
     return (await this.run("git", args)).code === 0;
   }
@@ -359,7 +250,6 @@ class Shell {
 
 const SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
 
-/** Land the worktree at `options.cwd` onto the trunk. */
 export async function land(options: LandOptions): Promise<LandResult> {
   const { cwd } = options;
   const to = TRUNK;
@@ -375,12 +265,10 @@ export async function land(options: LandOptions): Promise<LandResult> {
   say(`Land log: ${logPath}`);
 
   let slot: DesktopSlot | undefined;
-  /** Why the Lease of the turn ended, once it has. */
   let leaseOver: string | undefined;
   let source = "";
   let attempts = 0;
   let current: LandStep = "preflight";
-  /** Each CI check that the land waited for to its end. */
   const ciRuns: LandCiRun[] = [];
   let enqueuedAt = Temporal.Now.instant();
   const onSignal = (signal: NodeJS.Signals) => {
@@ -393,7 +281,6 @@ export async function land(options: LandOptions): Promise<LandResult> {
 
   try {
     const pre = await preflight(sh, remote);
-    // A refused record, like the other preflight checks, writes no wait line.
     const record = options.github ? await readRecord(sh) : undefined;
     if (options.github) await checkGitHub(options.github, pre.branch);
     source = pre.branch;
@@ -429,7 +316,6 @@ export async function land(options: LandOptions): Promise<LandResult> {
       throw new LandFailure("queue", error.message, EXIT_ADMISSION_BLOCKED);
     }
     const turn = slot;
-    // A write at most every 5 s, and at least ten in each silence limit.
     sh.progress = throttledProgress(
       (what) => turn.progress(what),
       Math.min(5_000, silenceMs / 10),
@@ -447,7 +333,6 @@ export async function land(options: LandOptions): Promise<LandResult> {
       try {
         value = await run();
       } catch (error) {
-        // The end of the Lease stopped the command, which then failed.
         if (leaseOver) throw leaseEnded(leaseOver);
         throw error;
       }
@@ -508,7 +393,6 @@ export async function land(options: LandOptions): Promise<LandResult> {
     }
     const commit = await sh.git("push", "rev-parse", "HEAD");
     await updateLocalRef(sh, say, { to, commit });
-    // Main has moved: from here, a GitHub error is a report, not a failure.
     const merged =
       pull && options.github
         ? await readMerged(options.github, pull, {
@@ -592,7 +476,6 @@ function leaseEnded(reason: string): LandFailure {
   );
 }
 
-/** The checks that need no turn: a clean tree on a task branch. */
 async function preflight(
   sh: Shell,
   remote: string,
@@ -620,9 +503,6 @@ async function preflight(
       `Land from a task branch, not from ${TRUNK}.`,
     );
   }
-  // The land pushes the branch by its name (the record step) and deletes it
-  // after the push, and the pre-push hook refuses every ref in an agent
-  // namespace, also in a Land Turn.
   if (isAgentBranch(`refs/heads/${branch}`)) {
     throw new LandFailure(
       "preflight",
@@ -641,11 +521,6 @@ interface LandRecord {
 const RECORD_TITLE = regex("^# (?<title>.+)$");
 const RECORD_SECTION = regex("^## (?<name>.+)$");
 
-/**
- * The record file of the worktree. Its first line, `# <title>`, is the title
- * of the PR; the rest is the PR body, with a heading for each of
- * LAND_RECORD_SECTIONS.
- */
 async function readRecord(sh: Shell): Promise<LandRecord> {
   const root = await sh.git("preflight", "rev-parse", "--show-toplevel");
   const text = await readFile(join(root, LAND_RECORD_PATH), "utf8").catch(
@@ -683,10 +558,6 @@ async function readRecord(sh: Shell): Promise<LandRecord> {
   return { title, body: rest.join("\n").trim() };
 }
 
-/**
- * A read through the GitHub client, before the turn: a land with a login that
- * GitHub refuses fails before the gate, not after it.
- */
 async function checkGitHub(github: LandGitHub, branch: string): Promise<void> {
   try {
     await github.findOpenPullRequest({ head: branch, base: TRUNK });
@@ -698,10 +569,6 @@ async function checkGitHub(github: LandGitHub, branch: string): Promise<void> {
   }
 }
 
-/**
- * Push HEAD to the task branch on the remote, then open its record PR, or
- * update the PR that an earlier land of the branch opened.
- */
 async function openRecord(
   sh: Shell,
   github: LandGitHub,
@@ -744,17 +611,10 @@ async function openRecord(
   }
 }
 
-/**
- * Wait for the LAND_CI_CHECK check of `commit` to finish, and fail unless it
- * passed. Each read prints the state of the check and renews the Lease of the
- * Land Turn. A land again on a head whose check failed reads that failure,
- * unless someone ran the job again from its link.
- */
 async function waitForCi(
   github: LandGitHub,
   options: {
     commit: string;
-    /** The head branch of the record PR. */
     branch: string;
     waitMs: number;
     pollMs: number;
@@ -808,7 +668,6 @@ async function waitForCi(
   }
 }
 
-/** The wait-log entry of a finished check. */
 function ciRun(check: CiCheck, commit: string, waitMs: number): LandCiRun {
   const queueMs = between(check.queuedAt, check.startedAt);
   const runMs = between(check.startedAt, check.completedAt);
@@ -829,7 +688,6 @@ function between(from?: string, to?: string): number | undefined {
     : undefined;
 }
 
-/** How long the job waited for a runner, when GitHub shows it. */
 function queueNote(check: CiCheck): string {
   const ms = between(check.queuedAt, check.startedAt);
   return ms === undefined ? "" : `; the job waited ${seconds(ms)} for a runner`;
@@ -839,12 +697,6 @@ function seconds(ms: number): string {
   return `${Math.round(ms / 1000)} s`;
 }
 
-/**
- * Whether GitHub shows `pull` as merged after the push of `main`. GitHub marks
- * the PR a few seconds after the push, so the land reads the state every
- * `pollMs` until it is merged, the PR is closed, or `waitMs` passes. A read
- * that fails counts as not merged.
- */
 async function readMerged(
   github: LandGitHub,
   pull: RecordPullRequest,
@@ -868,7 +720,6 @@ async function readMerged(
   }
 }
 
-/** Fetch the trunk; returns its tip. */
 async function fetchTarget(
   sh: Shell,
   remote: string,
@@ -884,10 +735,6 @@ async function fetchTarget(
   return await sh.git("fetch", "rev-parse", `${remote}/${to}`);
 }
 
-/**
- * Rebase HEAD onto `base`. On a conflict, abort and put the branch back at
- * `original`, so the worktree is as the caller left it.
- */
 async function rebaseOnto(
   sh: Shell,
   base: string,
@@ -900,8 +747,6 @@ async function rebaseOnto(
     ).stdout.trim();
     await sh.run("git", ["rebase", "--abort"]);
     await sh.git("rebase", "reset", "--hard", original);
-    // With no conflicted file, Git refused before it replayed a commit, for
-    // example over an untracked file that the new base would overwrite.
     throw new LandFailure(
       "rebase",
       conflicts
@@ -920,10 +765,6 @@ async function rebaseOnto(
   }
 }
 
-/**
- * Push HEAD to the trunk as a fast-forward.
- * @returns false when the trunk moved since the fetch.
- */
 async function push(sh: Shell, remote: string, to: string): Promise<boolean> {
   const result = await sh.run("git", [
     "push",
@@ -946,11 +787,6 @@ async function push(sh: Shell, remote: string, to: string): Promise<boolean> {
   );
 }
 
-/**
- * Move the local branch `to` to `commit`. Where a worktree has it checked out,
- * fast-forward that worktree when its tree is clean; otherwise leave it and
- * say so, since the land itself is done.
- */
 async function updateLocalRef(
   sh: Shell,
   say: (line: string) => void,

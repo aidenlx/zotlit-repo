@@ -15,15 +15,8 @@ const TARGET = { library: "users/0", key: "FDRFQ7C2", version: 12 };
 
 const NOW = Temporal.Instant.from("2026-09-16T15:52:21Z");
 
-/** A stand-in token, so a request's own shape is what an assertion reads. */
 const TOKEN = "0123456789abcdef0123456789abcdef";
 
-/**
- * The Fixture's own underline on `rougier-2014.pdf`, with a fourth decimal on
- * each corner so the rounding the write applies is visible.
- *
- * @see packages/scripts/lib/fixture/spec.ts — `ANNOTATIONS`
- */
 const UNROUNDED = [
   [67.011_4, 612.638_4, 211.485_4, 620.770_4],
   [58.054_4, 601.980_4, 211.489_4, 610.112_4],
@@ -43,7 +36,6 @@ function draft(overrides: Partial<AnnotationDraft> = {}): AnnotationDraft {
   };
 }
 
-/** The one object a create's body carries, with its keys in wire order. */
 function created(request: { body?: string }): Record<string, unknown> {
   const [object] = JSON.parse(request.body!) as Record<string, unknown>[];
   return object!;
@@ -62,8 +54,6 @@ it("borrows the Editing Capability's own words where a failure has one", () => {
 });
 
 it("reads a replayed write token as the same thing a stale version is", () => {
-  // A patch and a delete both send a version and no write token, so a token
-  // refusal reaches this path only as "Zotero's copy moved".
   expect(writeFailureMessage({ kind: "write-token-used" }, NOW)).toBe(
     writeFailureMessage({ kind: "conflict" }, NOW),
   );
@@ -83,9 +73,6 @@ it("sends one object to the library's own items route, with a write token", () =
 });
 
 it("puts annotationType first, because Zotero's own mapper walks the body", () => {
-  // Every other `annotation*` setter asserts the type is already set, so a
-  // later type is a `400`.
-  // @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/data/item.js#L5677
   expect(
     Object.keys(created(createRequest("users/0", draft(), TOKEN)))[0],
   ).toBe("annotationType");
@@ -99,7 +86,6 @@ it("carries no client key and no version, because Zotero generates the key", () 
 });
 
 it("sends the colour in lower case, which is the only form Zotero matches", () => {
-  // @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/data/item.js#L4512-L4518
   expect(
     created(createRequest("users/0", draft({ color: "#FF6666" }), TOKEN))
       .annotationColor,
@@ -178,8 +164,6 @@ it("sends a text draft's font size and rotation as given, rounding only its box"
 
   expect(object.annotationType).toBe("text");
   expect(object).not.toHaveProperty("annotationText");
-  // Zotero's reader rounds the rects before a save and nothing else, so a
-  // fractional size or turn reaches Zotero as the reader computed it.
   expect(JSON.parse(object.annotationPosition as string)).toEqual({
     pageIndex: 0,
     fontSize: 10.123_45,
@@ -213,7 +197,6 @@ it.each([
 ] satisfies ResolvedAnnotationTypeName[])(
   "sends no text for a %s, which Zotero refuses it on",
   (type) => {
-    // @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/data/item.js#L4506-L4510
     expect(
       created(createRequest("users/0", draft({ type }), TOKEN)),
     ).not.toHaveProperty("annotationText");
@@ -226,14 +209,11 @@ it("names the group library in the route a group Attachment's create takes", () 
   );
 });
 
-/** The one object a patch's body carries. */
 function patched(request: { body?: string }): Record<string, unknown> {
   return JSON.parse(request.body!) as Record<string, unknown>;
 }
 
 it("sends a Geometry Edit as one patch, the position a JSON string", () => {
-  // Zotero's `annotationPosition` setter throws on anything but a string.
-  // @see https://github.com/zotero/zotero/blob/22f08d1ceddc8bad5718b3bc6eee9d3ae5dccc2c/chrome/content/zotero/xpcom/data/item.js#L4586-L4605
   const request = geometryPatch(TARGET, "image", {
     position: {
       pageIndex: 1,
@@ -313,8 +293,6 @@ it("sends a tag change as the whole list, each tag with its type, beside the ver
     "PATCH",
     "/api/users/0/items/FDRFQ7C2",
   ]);
-  // The body the paired probe sent, which Zotero answered `204` and stored as
-  // this list exactly.
   expect(JSON.parse(request.body!)).toEqual({
     version: 12,
     tags: [

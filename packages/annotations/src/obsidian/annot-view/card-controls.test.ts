@@ -35,10 +35,8 @@ import { IDLE } from "#obsidian/annotation-repository/write.ts";
 
 const NOW = Temporal.Instant.from("2026-09-16T15:52:21Z");
 
-/** The one capability that enables mutation controls. */
 const LIVE: EditingCapability = { kind: "writable" };
 
-/** Every other capability, each with a reason a surface can show in place. */
 const BLOCKED: EditingCapability[] = [
   { kind: "authorization-required" },
   { kind: "authorizing" },
@@ -56,7 +54,6 @@ const BLOCKED: EditingCapability[] = [
   ).map((reason): EditingCapability => ({ kind: "read-only", reason })),
 ];
 
-/** The controls of a highlight's card, which offers every one of them. */
 function controlsOf(
   capability: EditingCapability,
   mutation: MutationState = { kind: "idle" },
@@ -93,7 +90,6 @@ it("keeps every verb live where a gesture reaches Zotero, each naming itself", (
 
   expect(states(controls)).toEqual([false, false, false]);
   expect(blocks(controls)).toEqual([null, null, null]);
-  // Three verbs, three names: a live control's tooltip is what it does.
   expect(new Set(tooltips(controls)).size).toBe(3);
   expect(tooltips(controls).every((text) => text.length > 0)).toBe(true);
 });
@@ -106,14 +102,12 @@ it("keeps a verb the capability blocks pressable, so its press reaches the reaso
     const action =
       capability.kind === "authorization-required" ? "allow-editing" : null;
 
-    // Not disabled: the press is what raises the notice holding the reason.
     expect(states(controls)).toEqual([false, false, false]);
     expect(blocks(controls)).toEqual([
       { reason, action, source: "capability" },
       { reason, action, source: "capability" },
       { reason, action, source: "capability" },
     ]);
-    // The verb keeps its own name; the notice is what states the reason.
     expect(tooltips(controls)).toEqual(
       tooltips(controlsOf({ kind: "writable" })),
     );
@@ -131,7 +125,6 @@ it("offers Allow editing to the one capability a gesture can change", () => {
     action: null,
     source: "capability",
   });
-  // A label stands in where the table has no detail sentence.
   expect(
     capabilityBlock({ kind: "read-only", reason: "probing" }, NOW),
   ).toEqual({
@@ -143,8 +136,6 @@ it("offers Allow editing to the one capability a gesture can change", () => {
 });
 
 it("counts a cooldown down each time the sentence is read again", () => {
-  // The sentence is derived at the instant it is read, so the seconds it names
-  // have to follow that instant.
   const capability: EditingCapability = {
     kind: "cooldown",
     retryAfter: deadlineAfter(NOW, 30),
@@ -157,7 +148,6 @@ it("counts a cooldown down each time the sentence is read again", () => {
 });
 
 it("answers every reader surface with the same reason string", () => {
-  // The Mark Popup reads this export, so its answer stays a plain string.
   expect(
     editingBlockedReason({ kind: "authorization-required" }, IDLE, NOW),
   ).toBe(m.capability_authorization_required_detail());
@@ -179,9 +169,7 @@ it("shows a write in flight as disabled verbs, whatever the capability says", ()
   const idle = controlsOf({ kind: "writable" });
 
   expect(states(pending)).toEqual([true, true, true]);
-  // A write in flight is the one case that truly cannot be pressed.
   expect(blocks(pending)).toEqual([null, null, null]);
-  // One reason, and it is the write rather than the capability.
   expect(new Set(tooltips(pending)).size).toBe(1);
   expect(tooltips(pending)[0]).not.toBe(tooltips(idle)[0]);
 });
@@ -249,8 +237,6 @@ it("leaves a settled write's verbs to the capability, so the user can try again"
 
 it("dims the comment field with each capability's reason", () => {
   for (const capability of [LIVE, ...BLOCKED]) {
-    // The field is pressable and carries the block the notice states, as
-    // every other verb does.
     expect(controlsOf(capability).comment).toEqual({
       disabled: false,
       blocked: capabilityBlock(capability, NOW),
@@ -267,7 +253,6 @@ it("gives the tag toggle the comment toggle's enabled state and blocked reason",
   });
   for (const capability of BLOCKED) {
     const copy = editingCapabilityCopy(capability, NOW);
-    // Pressable, so the press raises the notice that states the reason.
     expect(controlsOf(capability).tags).toEqual({
       disabled: false,
       blocked: {
@@ -416,7 +401,6 @@ it("shows the current save outcome and preserves a manual recovery action", () =
       NOW,
     ).detail,
   });
-  // A draft waiting on a manual save states nothing: its button does.
   expect(
     fieldEditorControls(
       capabilityBlock({ kind: "writable" }, NOW),
@@ -429,7 +413,6 @@ it("shows the current save outcome and preserves a manual recovery action", () =
     manual: true,
     hint: null,
   });
-  // A refused write answers in the capability's own words.
   expect(
     fieldEditorControls(
       capabilityBlock({ kind: "authorization-required" }, NOW),
@@ -464,7 +447,6 @@ describe("the held-draft panel", () => {
         now: NOW,
       }),
     ).toBeNull();
-    // An editor opened and closed without typing holds what Zotero already has.
     expect(
       heldTextDraft(
         "comment",
@@ -472,7 +454,6 @@ describe("the held-draft panel", () => {
         { block: capabilityBlock({ kind: "writable" }, NOW), now: NOW },
       ),
     ).toBeNull();
-    // A write settles by itself, and the Conflict panel owns its own two verbs.
     expect(
       heldTextDraft(
         "comment",
@@ -487,7 +468,6 @@ describe("the held-draft panel", () => {
         { block: capabilityBlock({ kind: "writable" }, NOW), now: NOW },
       ),
     ).toBeNull();
-    // An automatic save is already on its way.
     expect(
       heldTextDraft("comment", draft, {
         block: capabilityBlock({ kind: "writable" }, NOW),
@@ -504,7 +484,6 @@ describe("the held-draft panel", () => {
         { block: capabilityBlock(capability, NOW), now: NOW },
       )?.actions.find((action) => action.primary)?.kind ?? null;
     expect(accent({ kind: "writable" })).toBe("save");
-    // Saving is refused, so the grant that ends the refusal takes the accent.
     expect(accent({ kind: "authorization-required" })).toBe("allow-editing");
     expect(
       accent({ kind: "read-only", reason: "zotero-unavailable" }),
@@ -554,14 +533,12 @@ describe("the held-draft panel", () => {
       now: NOW,
     });
     expect(held?.text).toBe("Research note");
-    // The capability's own sentence, not the editor's generic paused line.
     expect(held?.reason).toBe(
       editingCapabilityCopy(
         { kind: "read-only", reason: "zotero-unavailable" },
         NOW,
       ).detail,
     );
-    // Nothing can act but Discard, and Discard never wears the accent.
     expect(held?.actions).toEqual([
       {
         kind: "save",
@@ -592,7 +569,6 @@ describe("the held tags panel", () => {
   };
 
   it("stays quiet while a session is open, a save is in flight, or nothing changed", () => {
-    // A session open on either surface: Save tags there would cut it short.
     expect(
       heldTagDraft(
         capabilityBlock({ kind: "writable" }, NOW),
@@ -753,7 +729,6 @@ describe("a verb over a group of cards", () => {
       disabled: false,
       blocked: lockBlock(m.annot_view_lock_another_user()),
     });
-    // Another user's Annotation allows the delete, so the External one names it.
     expect(groupControl(cards.map((controls) => controls.delete))).toEqual({
       disabled: false,
       blocked: lockBlock(m.annot_view_lock_external()),

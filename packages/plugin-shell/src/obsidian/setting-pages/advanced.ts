@@ -1,7 +1,3 @@
-// The "Advanced" page: the rows a user touches once — update notices, the
-// template engine, the local server, logging, and recovery actions. The page
-// holds the logging rows and the Language Pack reset; the features that own
-// another row give it through the page's slots.
 import type {
   SettingDefinitionItem,
   SettingDefinitionPage,
@@ -18,17 +14,13 @@ import type {
 
 declare module "@zotlit/plugin-services/obsidian/setting-tab/context.ts" {
   interface SettingTabSlots {
-    /** The Advanced page's lead rows, above the groups. */
     "advanced.general": unknown;
-    /** The Advanced page, after the lead rows: the template engine group. */
     "advanced.template-engine": unknown;
     "advanced.local-server": unknown;
-    /** The Recovery group, above the Language Pack reset. */
     "advanced.recovery": unknown;
   }
 }
 
-/** The slots the Advanced page holds. */
 export const advancedPageSlots = {
   general: "advanced.general",
   templateEngine: "advanced.template-engine",

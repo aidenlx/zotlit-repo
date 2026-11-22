@@ -22,10 +22,6 @@ const ATTACHMENT: ObsidianOpenableAttachment = {
   absolutePath: "/vault/Doe 2024.pdf",
 };
 
-/**
- * An App that opens every file in a fresh leaf and holds one Annotation View
- * in the sidebar; `revealed` records the leaves the workspace brought forward.
- */
 function appWithSidebar() {
   const sidebar = stubService<WorkspaceLeaf>("WorkspaceLeaf", {});
   const revealed: WorkspaceLeaf[] = [];
@@ -46,7 +42,6 @@ function appWithSidebar() {
 }
 
 describe("pdfReader", () => {
-  /** Open one Attachment through the reader the settings configure. */
   async function openWith(app: App, settings: Settings = defaults) {
     const outcome = await Effect.runPromise(
       Effect.gen(function* () {

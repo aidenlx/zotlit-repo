@@ -1,6 +1,3 @@
-// Targeted YAML edits into the Profile manifest, so a form control changes one
-// node instead of re-serializing the manifest and losing the author's bytes.
-
 import type { ChangeSpec } from "@codemirror/state";
 import { isMap, isNode, isScalar, isSeq, parseDocument, stringify } from "yaml";
 import type { Document, Node, Pair, YAMLMap } from "yaml";
@@ -9,60 +6,40 @@ import { literatureNoteTemplateManifestRange } from "@zotlit/templates/facade";
 
 import { scalarSource, scalarStyle } from "./scalar-source.ts";
 
-/**
- * The value kinds a form control writes into the manifest. A multi-line YAML
- * value would land with its continuation lines at column 0, so patching one
- * node in place stays with the scalars the form owns.
- */
 export type ManifestScalar = string | number | boolean | null;
 
-/**
- * Source offsets one region covers; `to` is exclusive. A manifest node's own
- * range and the slice a pane edits it through are the same span, so both sides
- * read it under this one name.
- */
 export interface WorkbenchSliceRange {
   readonly from: number;
   readonly to: number;
 }
 
-/** The field a Managed Frontmatter entry writes its expression in. */
 export type ManagedEntryLanguage = "expr" | "value" | "js";
 
-/** One authored Managed Frontmatter entry, as the source holds it. */
 export interface ManagedEntrySource {
-  /** 1-based list position, the number every entry diagnostic names. */
   readonly position: number;
-  /** The static entry's property name; absent on a Spread Entry. */
   readonly key?: string;
   readonly language: ManagedEntryLanguage;
   readonly merge: string;
-  /** The whole authored entry in whole lines, so it can move or go. */
   readonly block: WorkbenchSliceRange;
-  /** The expression's own text — the region a slice editor owns. */
   readonly expression: WorkbenchSliceRange;
 }
 
-/** A structural change to the Managed Frontmatter list. */
 export type ManagedEntryAction =
   | {
       readonly action: "add";
       readonly kind: "property" | "spread";
-      /** Position to insert after; the foot of the list when absent. */
       readonly after?: number;
     }
   | { readonly action: "remove"; readonly position: number }
   | {
       readonly action: "move";
       readonly position: number;
-      /** The position the entry holds once it has moved. */
       readonly to: number;
     }
   | {
       readonly action: "language";
       readonly position: number;
       readonly language: "expr" | "value";
-      /** Start a value entry with literal text instead of the example rule. */
       readonly text?: string;
     }
   | {
@@ -72,22 +49,11 @@ export type ManagedEntryAction =
       readonly value: string;
     };
 
-/**
- * What a fresh entry starts with. A language change writes the same text, which
- * is what keeps it a new expression rather than a silent translation of the old
- * one — the author's own text stays one undo away.
- */
 const NEW_EXPRESSION = "zt.title";
 const NEW_RULE = '{"$eval":"zt.title"}';
 const NEW_SPREAD =
   '{"kind":{"$eval":"zt.itemType"},"tags":{"$eval":"zt.tags"}}';
 
-/**
- * The document change that replaces the manifest node at `path` with `value`.
- * A replaced string keeps the scalar style it had, so an author's quoting
- * survives a form edit.
- * @returns null when the draft has no closed manifest or the path names no node.
- */
 export function manifestValueEdit(
   source: string,
   path: readonly (string | number)[],
@@ -100,14 +66,6 @@ export function manifestValueEdit(
   return { from, to, insert: scalarText(value, source.slice(from, to)) };
 }
 
-/**
- * The document change that writes one top-level manifest key, or removes the
- * key with its own line when `value` is undefined — the two halves of Override
- * and Use default. A key the manifest never wrote is added at its foot.
- * @returns null when the manifest does not parse, when the key holds a value no
- * form can patch — anything but a scalar — and when a removal is asked of a key
- * the manifest never wrote, which is the state the caller wanted.
- */
 export function manifestKeyEdit(
   source: string,
   key: string,
@@ -126,8 +84,6 @@ export function manifestKeyEdit(
           insert: `${key}: ${scalarText(value, "")}\n`,
         };
   }
-  // A block mapping or a sequence under this key spans lines the removal below
-  // would leave behind, so a key that holds one keeps the value it has.
   if (
     !isScalar(pair.key) ||
     !pair.key.range ||
@@ -147,31 +103,16 @@ export function manifestKeyEdit(
       ),
     };
   }
-  // The key goes with the line it was written on, so the manifest keeps the
-  // shape it had rather than gaining a blank line where the binding was.
   return {
     from: lineStart(source, manifest.offset + pair.key.range[0]),
     to: blockEnd(source, manifest.offset + to),
   };
 }
 
-/** The region a pane edits a manifest scalar through. */
 export interface ManifestScalarSlice extends WorkbenchSliceRange {
-  /**
-   * The region is a block scalar's one content line, which YAML holds as
-   * written. Otherwise it is the whole scalar, quotes included, which a pane
-   * shows as the text YAML reads.
-   */
   readonly literal: boolean;
 }
 
-/**
- * The region a slice editor owns for a manifest scalar, so the note-name
- * template is edited as template source rather than as YAML. A block scalar's
- * single content line leaves its header, indentation, and trailing line breaks
- * outside the slice.
- * @returns null for a value that is not a scalar, or a value of several lines.
- */
 export function manifestScalarSlice(
   source: string,
   path: readonly (string | number)[],
@@ -203,11 +144,6 @@ export function manifestScalarSlice(
   return { from, to: contentEnd(source, from, to), literal: false };
 }
 
-/**
- * Document offsets of the manifest node at `path`, so a problem can point at
- * the text that caused it.
- * @returns null when the draft has no closed manifest or the path names no node.
- */
 export function manifestNodeRange(
   source: string,
   path: readonly (string | number)[],
@@ -216,19 +152,11 @@ export function manifestNodeRange(
   return found && { from: found.from, to: found.to };
 }
 
-/** What the manifest's `frontmatter` list offers a form right now. */
 export type ManagedFrontmatterList =
-  /** The authored entries, in list order: the list is one a form can patch. */
   | { readonly status: "rows"; readonly entries: readonly ManagedEntrySource[] }
-  /**
-   * The manifest parses and its list does not: a flow list, or an entry that is
-   * not a block mapping. Advanced owns that list.
-   */
   | { readonly status: "source-only" }
-  /** The manifest text does not parse, so the source names no entry at all. */
   | { readonly status: "unparsed" };
 
-/** Every Managed Frontmatter entry the manifest authors, in list order. */
 export function managedFrontmatterEntries(
   source: string,
 ): ManagedFrontmatterList {
@@ -238,18 +166,6 @@ export function managedFrontmatterEntries(
     : read;
 }
 
-/**
- * Where each Managed Frontmatter entry of `from` stands in `to`, by 1-based
- * position. Output rendered from one draft names its entries by position, and
- * an edit that moves, adds, or removes an entry shifts every position after
- * it, so output that stands across the edit is read through this map. An
- * entry whose whole text survives is found wherever it went, the first copy
- * before a second; an entry the reader is typing in keeps the position it had
- * when that position's entry is gone as well. An entry the edit removed maps
- * to nothing.
- * @returns null when every entry keeps its position, or either draft names no
- *   list to compare.
- */
 export function followEntries(
   from: string,
   to: string,
@@ -267,9 +183,6 @@ export function followEntries(
   const target = before.entries.map(
     (entry) => unclaimed.get(text(from, entry))?.shift()?.index,
   );
-  // An entry whose text changed is one the reader edited in place. When as
-  // many entries changed as are left over, they pair in list order; otherwise
-  // only a leftover still at its own position is known to be the same entry.
   const claimed = new Set(target);
   const left = target.flatMap((found, index) =>
     found === undefined ? [index] : [],
@@ -292,12 +205,6 @@ export function followEntries(
   };
 }
 
-/**
- * The document change one Properties action makes. Every action rewrites whole
- * lines of the entry it names and leaves every other byte — comments, key
- * order, quoting — where the author put it.
- * @returns null when the action names no entry, or the list is not patchable.
- */
 export function managedEntryEdit(
   source: string,
   action: ManagedEntryAction,
@@ -319,36 +226,27 @@ export function managedEntryEdit(
   }
 }
 
-/** One entry, with the mapping node the structural actions patch through. */
 interface ManagedEntryNode {
   readonly entry: ManagedEntrySource;
   readonly node: YAMLMap;
-  /** Column the entry's own keys sit at, where a missing one is written. */
   readonly column: number;
 }
 
-/** The `frontmatter` list as the source holds it, ready to patch. */
 interface ManagedList {
   readonly manifest: ManifestYaml;
   readonly entries: readonly ManagedEntryNode[];
-  /** Column the `-` markers sit at. */
   readonly indent: number;
-  /** Offset just past `frontmatter:`, or null when the manifest omits the key. */
   readonly keyEnd: number | null;
-  /** The list value's own range, or null when the manifest omits the key. */
   readonly value: WorkbenchSliceRange | null;
 }
 
-/** The list ready to patch, or the reason a form cannot have it. */
 type ReadList =
   | { readonly status: "rows"; readonly list: ManagedList }
   | Exclude<ManagedFrontmatterList, { status: "rows" }>;
 
 interface ManifestYaml {
   readonly doc: Document;
-  /** Where the manifest starts in the document, added to every node offset. */
   readonly offset: number;
-  /** The closing `---` line, where a missing manifest key is written. */
   readonly end: number;
 }
 
@@ -412,8 +310,6 @@ function readList(source: string): ReadList {
     to: manifest.offset + node.range[1],
   };
   const empty = { manifest, entries: [], keyEnd, value };
-  // An unwritten list is still a list a first entry can be added to; anything
-  // other than a block sequence of block mappings belongs to Advanced.
   if (isScalar(node) && node.value === null)
     return rows({ ...empty, indent: 2 });
   if (!isSeq(node)) return { status: "source-only" };
@@ -464,8 +360,6 @@ function readEntry(
       ...(typeof key === "string" ? { key } : {}),
       language,
       merge: typeof merge === "string" ? merge : "replace",
-      // The `-` marker introduces the entry, and an entry may write its first
-      // key on the line under it, so the block starts at the marker's own line.
       block: {
         from: lineStart(source, marker),
         to: blockEnd(source, manifest.offset + item.range[1]),
@@ -499,8 +393,6 @@ function addEntry(
         : entryAt(list, after)?.entry.block.to;
     return at === undefined ? null : { from: at, to: at, insert: text };
   }
-  // The first entry writes the list itself: over an empty or unwritten value
-  // when the key is there, and over the manifest's foot when it is not.
   if (list.keyEnd === null || !list.value) {
     return {
       from: list.manifest.end,
@@ -520,11 +412,6 @@ function removeEntry(list: ManagedList, position: number): ChangeSpec | null {
   if (!target) return null;
   const { block } = target.entry;
   if (list.entries.length > 1) return { from: block.from, to: block.to };
-  // A `frontmatter:` with nothing under it reads as null, which the manifest
-  // schema refuses, so the last removal writes an empty list beside the key and
-  // takes the entry's own lines alone, leaving the rest of the key's line and
-  // every comment the list carries. An entry only exists under a written key,
-  // so the key end is there.
   return [
     { from: list.keyEnd!, to: list.keyEnd!, insert: " []" },
     { from: block.from, to: block.to },
@@ -538,7 +425,6 @@ function moveEntry(
 ): ChangeSpec | null {
   if (position === to || !entryAt(list, position) || !entryAt(list, to))
     return null;
-  // The entries from the one that moves to the place it takes, in order.
   const run = list.entries
     .slice(Math.min(position, to) - 1, Math.max(position, to))
     .map(({ entry }) => entry.block);
@@ -550,8 +436,6 @@ function moveEntry(
   return {
     from: run[0]!.from,
     to: run.at(-1)!.to,
-    // Whatever the author wrote between two entries — a comment, a blank
-    // line — stays in its own place between the entries that now stand there.
     insert: order
       .map((block, index) =>
         index === 0
@@ -572,7 +456,6 @@ function changeLanguage(
 ): ChangeSpec | null {
   const target = entryAt(list, position);
   if (!target) return null;
-  // A keyless entry spreads a mapping over the note, which only a rule writes.
   if (
     (language === "expr" || text !== undefined) &&
     target.entry.key === undefined
@@ -616,7 +499,6 @@ function setField(
   const pair = mapPair(target.node, field);
   if (pair && isNode(pair.value) && pair.value.range) {
     const from = list.manifest.offset + pair.value.range[0];
-    // A block scalar ends on the line under it, whose break the entry keeps.
     const to = contentEnd(
       source,
       from,
@@ -624,8 +506,6 @@ function setField(
     );
     return { from, to, insert: scalarText(value, source.slice(from, to)) };
   }
-  // An entry that never wrote the key gains it as its own line, at the column
-  // its siblings sit at.
   const { block } = target.entry;
   return {
     from: block.to,
@@ -638,7 +518,6 @@ function entryAt(list: ManagedList, position: number): ManagedEntryNode | null {
   return list.entries[position - 1] ?? null;
 }
 
-/** The next `property`, `property2`, … the list has no entry for. */
 function freshKey(list: ManagedList): string {
   const taken = new Set(list.entries.map(({ entry }) => entry.key));
   let key = "property";
@@ -646,7 +525,6 @@ function freshKey(list: ManagedList): string {
   return key;
 }
 
-/** A scalar written in the quoting of `previous`, the text it replaces, while that quoting holds it. */
 function scalarText(value: ManifestScalar, previous: string): string {
   if (typeof value !== "string") return stringify(value).trimEnd();
   return scalarSource(value, scalarStyle(previous));
@@ -664,20 +542,10 @@ function lineStart(source: string, at: number): number {
   return source.lastIndexOf("\n", at - 1) + 1;
 }
 
-/**
- * The end of the region's last content line. A block mapping's own end and a
- * block scalar's sit on the line under the value, so a slice bounded there
- * would carry the line break that starts the entry's next key.
- */
 function contentEnd(source: string, from: number, to: number): number {
   return from + source.slice(from, to).trimEnd().length;
 }
 
-/**
- * The start of the line after `at`. A block mapping's own end already sits
- * there, so this only has to travel when a trailing comment holds the rest of
- * the entry's last line.
- */
 function blockEnd(source: string, at: number): number {
   const next = source.indexOf("\n", Math.max(at - 1, 0));
   return next === -1 ? source.length : next + 1;

@@ -1,6 +1,3 @@
-// The annotation popover's body: what one Durable Annotation Link names, as
-// the Annotation repository holds it now.
-
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 
@@ -22,18 +19,11 @@ export type AnnotationPopoverContentProps =
       kind: "annotation";
       annotation: AnnotationRecord;
       renderComment: CommentRenderer;
-      /** The live Excerpt Image of an image or ink Annotation. */
       excerpt: ExcerptDisplayDemand | null;
     };
 
 const blockClass = "zt:flex zt:flex-col zt:gap-2 zt:px-3 zt:py-2";
 
-/**
- * One Annotation: its page label and colour, the quoted text, the Excerpt
- * Image of an image or ink Annotation, and the comment — or a short note that
- * the link names an Annotation that is gone. The text, the image, and the
- * locator render as the Annotation View's card renders them.
- */
 export function AnnotationPopoverContent(props: AnnotationPopoverContentProps) {
   if (props.kind === "unavailable") {
     return (
@@ -51,12 +41,10 @@ export function AnnotationPopoverContent(props: AnnotationPopoverContentProps) {
         "zt:border-l-4",
         color ? "zt:border-(--zt-annot-color)" : "zt:border-border",
       )}
-      // Zotero stores the colour, so it rides in a property the utilities read.
       style={color ? ({ "--zt-annot-color": color } as CSSProperties) : {}}
       data-annotation-key={annotation.key}
     >
       {pageLabel !== null && (
-        // The locator the Annotation View's card wears, on the same fill.
         <span
           className={cn(
             "zt:self-start zt:rounded-sm zt:px-1 zt:font-mono zt:text-xs zt:font-medium zt:tracking-tight zt:tabular-nums",

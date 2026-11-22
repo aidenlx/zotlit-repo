@@ -1,10 +1,7 @@
-// Oxlint rules for the Workbench, loaded by this package's oxlint.config.ts.
-
 import type { RuleTester } from "oxlint/plugins-dev";
 
 type Rule = Parameters<RuleTester["run"]>[1];
 
-/** The fields these rules read; every ESTree node fits it. */
 interface AstNode {
   readonly type: string;
   readonly name?: unknown;
@@ -14,7 +11,6 @@ interface AstNode {
   readonly callee?: AstNode;
 }
 
-/** The name after the dot in `a.name`, or null for anything else. */
 function memberName(node: AstNode | undefined): string | null {
   return node?.type === "MemberExpression" &&
     !node.computed &&
@@ -23,7 +19,6 @@ function memberName(node: AstNode | undefined): string | null {
     : null;
 }
 
-/** `controller` or `<anything>.controller`, the name every pane gives the document controller. */
 function isController(node: AstNode | undefined): boolean {
   return node?.type === "Identifier"
     ? node.name === "controller"

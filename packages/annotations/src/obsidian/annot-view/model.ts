@@ -1,5 +1,3 @@
-// Per-leaf card, Follow Mode and query atoms, their transitions and UI access.
-
 import type { MutationState } from "#obsidian/annotation-repository/service.ts";
 import { useAtomValue } from "@effect/atom-react";
 import * as Atom from "effect/reactivity/Atom";
@@ -35,7 +33,6 @@ import type { AnnotViewState } from "./view-state.ts";
 import { IDLE } from "#obsidian/annotation-repository/write.ts";
 
 export interface AnnotViewModel {
-  /** The Follow Mode, the mode a pin interrupted, and the pinned Item. */
   readonly state: Atom.Writable<AnnotViewState>;
   readonly cards: Atom.Writable<AnnotState>;
   readonly query: Atom.Writable<string | null>;
@@ -56,11 +53,6 @@ export function makeAnnotViewModel(
   return { state: follow, cards, query: Atom.make<string | null>(null) };
 }
 
-/**
- * Holds every atom of `model` in `registry` until the returned release runs.
- * A leaf holds its model from construction to close: an unmounted writable
- * atom drops its state.
- */
 export function holdAnnotViewModel(
   registry: AtomRegistry.AtomRegistry,
   model: AnnotViewModel,
@@ -75,10 +67,6 @@ export function holdAnnotViewModel(
   };
 }
 
-// Transitions: each takes the state it changes and returns the next one, or
-// the same state when the gesture changes nothing.
-
-/** Follow a source; a pin it ends forgets its Item. */
 export const setFollowMode =
   (mode: Exclude<FollowMode, "pinned">) =>
   (state: AnnotViewState): AnnotViewState =>
@@ -90,7 +78,6 @@ export const setFollowMode =
           pinnedItemKey: null,
         };
 
-/** Pin the Item `itemKey`; Unpin returns to the mode this pin interrupts. */
 export const pinItem =
   (itemKey: string) =>
   (state: AnnotViewState): AnnotViewState => ({
@@ -99,20 +86,17 @@ export const pinItem =
     pinnedItemKey: itemKey,
   });
 
-/** Pin the Item on screen; with none on screen nothing changes. */
 export const pinCurrentItem =
   (pinnable: string | null) =>
   (state: AnnotViewState): AnnotViewState =>
     pinnable === null ? state : pinItem(pinnable)(state);
 
-/** Return to the mode the pin interrupted. */
 export const unpin = (state: AnnotViewState): AnnotViewState => ({
   followMode: unpinnedMode(state.previousMode),
   previousMode: DEFAULT_FOLLOW_MODE,
   pinnedItemKey: null,
 });
 
-/** Whether two states carry the same saved fields. */
 export function sameAnnotViewState(
   a: AnnotViewState,
   b: AnnotViewState,
@@ -124,7 +108,6 @@ export function sameAnnotViewState(
   );
 }
 
-/** The Query View's existing layout interface, backed by this leaf's atoms. */
 export interface AnnotStore extends Disposable {
   readonly registry: ViewRegistryHandle;
   readonly model: AnnotViewModel;
@@ -208,20 +191,10 @@ export function useAnnotStore<A>(selector: (state: AnnotState) => A): A {
   const { model } = useAnnotStoreApi();
   return useAtomValue(model.cards, selector);
 }
-/**
- * What the last write left on one Annotation. The stored states are stable
- * objects and {@link IDLE} is a constant, so this selector never builds one —
- * a fresh object would never compare equal to the last snapshot.
- */
 export function useMutation(annotationKey: string): MutationState {
   return useAnnotStore((s) => s.mutations.get(annotationKey) ?? IDLE);
 }
 
-/**
- * One Annotation field's editor: `open` makes it the editing target, in place
- * of any other, and `close` clears the target while it is still this one, so
- * an editor that unmounts after another opened leaves that one open.
- */
 export function useEditingTarget(
   annotationKey: string,
   field: EditingField,
@@ -241,10 +214,6 @@ export function useEditingTarget(
   };
 }
 
-/**
- * Toggle the search row. Closing must also clear the query so a hidden row
- * never keeps filtering the list.
- */
 export function useToggleSearchOpen(): () => void {
   const store = useAnnotStoreApi();
   return () => {
@@ -257,7 +226,6 @@ export function useToggleSearchOpen(): () => void {
   };
 }
 
-/** Collapse a group heading, or expand it again. */
 export function useToggleGroupCollapsed(): (groupKey: string) => void {
   const store = useAnnotStoreApi();
   return (groupKey) => {
@@ -272,18 +240,12 @@ export function useSetFilterQuery(): (query: string) => void {
   return (query) => store.setState({ filterQuery: query });
 }
 
-/** Clears filterQuery/selectedColors/selectedTags; leaves searchOpen untouched. */
 export function useClearFilters(): () => void {
   const store = useAnnotStoreApi();
   return () =>
     store.setState({ filterQuery: "", selectedColors: [], selectedTags: [] });
 }
 
-/**
- * The colour filter after one colour is toggled. Unchanged by the Chooser
- * migration: this action is reused as it stands, so the filter bar names the one colour that moved rather than the
- * store taking a whole selection.
- */
 export function useToggleSelectedColor(): (color: string) => void {
   const store = useAnnotStoreApi();
   return (color) => {
@@ -296,11 +258,6 @@ export function useToggleSelectedColor(): (color: string) => void {
   };
 }
 
-/**
- * Takes a whole colour selection, for the Chooser's own action row: clearing
- * names no single colour, so {@link useToggleSelectedColor} has nothing to be
- * handed. Memoised on the store, as {@link useSetSelectedTags} is.
- */
 export function useSetSelectedColors(): (colors: string[]) => void {
   const store = useAnnotStoreApi();
   return useCallback(
@@ -309,7 +266,6 @@ export function useSetSelectedColors(): (colors: string[]) => void {
   );
 }
 
-/** The {@link AnnotFilter} on screen, held while its slices are unchanged. */
 export function useAnnotFilter(): AnnotFilter {
   const filterQuery = useAnnotStore((s) => s.filterQuery);
   const selectedColors = useAnnotStore((s) => s.selectedColors);
@@ -320,7 +276,6 @@ export function useAnnotFilter(): AnnotFilter {
   );
 }
 
-/** Memoised on the store, as {@link useSetSelectedTags} is. */
 export function useToggleSelectedTag(): (tag: string) => void {
   const store = useAnnotStoreApi();
   return useCallback(
@@ -332,20 +287,11 @@ export function useToggleSelectedTag(): (tag: string) => void {
   );
 }
 
-/**
- * Takes a whole tag selection, for a surface that decides the next one itself
- * — the Chooser reports what a tick leaves behind rather than which tag moved.
- *
- * Memoised on the store: the Chooser's row groups are built in a memo over it,
- * and a fresh closure per render would rebuild them on every render of the
- * filter bar.
- */
 export function useSetSelectedTags(): (tags: string[]) => void {
   const store = useAnnotStoreApi();
   return useCallback((tags) => store.setState({ selectedTags: tags }), [store]);
 }
 
-/** A held read resolves to null when its owner releases it. */
 export function observeRead<A, E>(
   registry: ViewRegistryHandle,
   atom: Atom.Atom<import("effect/reactivity/AsyncResult").AsyncResult<A, E>>,

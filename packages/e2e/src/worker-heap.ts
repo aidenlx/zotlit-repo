@@ -15,7 +15,6 @@ interface HeapReading {
 
 export type WorkerHeap = Record<string, HeapReading>;
 
-/** Sample used JS heap in this vault's workers; CDP is optional and never enabled here. */
 export async function measureWorkerHeap<T>(
   vault: string,
   measure: () => Promise<T>,

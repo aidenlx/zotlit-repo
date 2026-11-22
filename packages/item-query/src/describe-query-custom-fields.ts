@@ -17,10 +17,6 @@ import type { ValueShape } from "./fields.ts";
 import { hasBareForm } from "./filter-plan.ts";
 import { openQuerySources } from "./query-sources.ts";
 
-/**
- * The custom fields supplied by the active Zotero source, at the paths the
- * Query Dataset reads them.
- */
 export const describeQueryCustomFields = Effect.fnUntraced(function* (
   dataset: QueryDataset<any>,
 ): Effect.fn.Return<

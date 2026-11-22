@@ -2,41 +2,30 @@ import { asMarkdown, md } from "fumadocs-core/server";
 import { Terminal } from "lucide-react";
 
 import { toast } from "@/components/ui/toast.tsx";
-// "Run this Obsidian command" mark for docs prose: a terminal rubric with the
-// command-palette name in the serif display voice. The block form adds a
-// copy-to-clipboard link; the inline form stays minimal — glyph + name only.
 import * as m from "@/paraglide/messages.js";
 import type { LocalizedString } from "@/paraglide/runtime.js";
 
 interface CommandOptions {
-  /** Render mid-sentence instead of as a standalone block directive. */
   inline?: boolean;
 }
 
 export type CommandProps = CommandOptions &
   (
     | {
-        /** ZotLit command name rendered from the product Message catalog. */
         name: LocalizedString;
         children?: never;
       }
     | {
-        /** Exact command-palette name owned by another product. */
         children: string;
         name?: never;
       }
   );
 
-/** Catalog names receive the ZotLit prefix; children preserve external command names. */
 export function Command(props: CommandProps) {
   const inline = props.inline ?? false;
   const commandName =
     props.name === undefined ? props.children : `ZotLit: ${props.name}`;
 
-  // The Markdown edition carries the command name as code. The inline form
-  // stays mid-sentence; the block form keeps its standalone rubric as a
-  // blockquote, where the terminal glyph becomes the word it stands for and
-  // the copy affordance drops — a reader of Markdown already has the text.
   if (asMarkdown()) {
     return inline
       ? md`\`${commandName}\``

@@ -9,12 +9,10 @@ import { recordUniverse } from "./record-universe.ts";
 import { SCAN_PAGE_SIZE } from "./scan-page.ts";
 import type { ScanRow } from "./scan-page.ts";
 
-// The Child Notes of Items: the Relation List reader of Item Query.
 import { itemNotes, items, itemTypesCombined } from "#drizzle/schema.ts";
 
 const parent = alias(items, "noteParent");
 
-/** A Child Note identity, its title, and its parent Item. */
 export interface NoteScanRow extends ScanRow {
   libraryID: number;
   title: string | null;
@@ -22,10 +20,6 @@ export interface NoteScanRow extends ScanRow {
 }
 
 const slots = idSlots(HYDRATE_CHUNK_SIZE);
-/**
- * The live Child Notes of a chunk of parent Items, in note key order. An
- * Attachment's own note has no parent in `itemNotes`, so it is not a Child Note.
- */
 const itemNotesStatement = defineStatement<
   Record<IdSlot, number | null> & { afterKey: string; afterItemID: number }
 >("item-notes")((db, { placeholder }) =>
@@ -69,11 +63,6 @@ const itemNotesStatement = defineStatement<
     .limit(SCAN_PAGE_SIZE),
 );
 
-/**
- * One page of the Child Notes of at most {@link HYDRATE_CHUNK_SIZE} parent
- * Items: at most {@link SCAN_PAGE_SIZE} rows after `after` (absent for the
- * first page). A shorter page is the last one.
- */
 export function readItemNotes(itemIDs: readonly number[], after?: NoteScanRow) {
   if (itemIDs.length > HYDRATE_CHUNK_SIZE)
     return Effect.die(

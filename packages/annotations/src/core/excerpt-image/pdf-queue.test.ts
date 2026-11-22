@@ -10,7 +10,6 @@ import {
 
 import { queueFixture } from "#__fixtures__/excerpt-image/queue.ts";
 
-/** A signal nothing cancels, for jobs a test drives to completion. */
 const running = () => new AbortController().signal;
 
 describe("Excerpt PDF queue admission", () => {
@@ -22,8 +21,6 @@ describe("Excerpt PDF queue admission", () => {
         const first = await queue.reserve(running());
         const second = await queue.reserve(running());
         const waiting = queue.reserve(running());
-        // Producers that call together cannot both take the last slot, and the
-        // third waits instead of being refused.
         expect(queue.diagnostics.admitted).toBe(2);
         expect(queue.diagnostics.awaiting).toBe(1);
         await Promise.all(
@@ -36,7 +33,6 @@ describe("Excerpt PDF queue admission", () => {
             ),
           ),
         );
-        // Only the two admitted jobs reached the PDF slot.
         expect(ran).toEqual(["reserved 1", "reserved 2"]);
         first.release();
         const resumed = await waiting;
@@ -46,8 +42,6 @@ describe("Excerpt PDF queue admission", () => {
           },
           { pdf: "PDF", sequence: queue.nextSequence(), signal: running() },
         );
-        // The settling job's slot moved to the waiting producer, not freed, so its
-        // work runs while the bound stays full.
         expect(ran).toEqual(["reserved 1", "reserved 2", "waiting"]);
         expect(queue.diagnostics.admitted).toBe(2);
         expect(queue.diagnostics.awaiting).toBe(0);
@@ -69,8 +63,6 @@ describe("Excerpt PDF queue admission", () => {
           const producers = Array.from({ length: 4 }, () =>
             queue.reserve(running()),
           );
-          // The check and the reservation are one synchronous step, so a burst of
-          // producers starting together cannot over-admit.
           expect(queue.diagnostics.admitted).toBe(4);
           const overflow = Array.from({ length: 3 }, () =>
             queue.reserve(running()),
@@ -92,7 +84,6 @@ describe("Excerpt PDF queue admission", () => {
               ),
             ),
           );
-          // Four jobs — and only four — reached the PDF slot while the bound held.
           expect(ran).toEqual([
             "admitted 1",
             "admitted 2",
@@ -134,7 +125,6 @@ describe("Excerpt PDF queue admission", () => {
         await expect(waiting).rejects.toMatchObject({ name: "AbortError" });
         expect(queue.diagnostics.admitted).toBe(1);
         expect(queue.diagnostics.awaiting).toBe(0);
-        // The cancelled producer left no slot behind: the next one still waits.
         const next = queue.reserve(running());
         expect(queue.diagnostics.awaiting).toBe(1);
         held.release();
@@ -154,7 +144,6 @@ describe("Excerpt PDF queue admission", () => {
         const waiting = [1, 2, 3].map((index) =>
           queue.reserve(running()).then((admission) => {
             order.push(index);
-            // Handing the slot on is what wakes the next oldest producer.
             admission.release();
           }),
         );
@@ -206,8 +195,6 @@ describe("Excerpt PDF queue rendering", () => {
           const order: string[] = [];
           const blockerRelease = Promise.withResolvers<void>();
           const blockerStarted = Promise.withResolvers<void>();
-          // Both jobs are enqueued while the first render holds the slot, and the
-          // later-arriving job reaches the queue first.
           const blocker = await queue.reserve(running());
           const blocking = blocker.render(
             async () => {
@@ -275,8 +262,6 @@ describe("Excerpt PDF queue rendering", () => {
               ),
             ),
           );
-          // The fifth job of the loaded document yields to the waiting one, which
-          // then leaves the remaining job its turn.
           expect(order).toEqual([
             "SAME",
             "SAME",
@@ -320,8 +305,6 @@ describe("Excerpt PDF queue rendering", () => {
           queued.abort();
           await expect(abandoned).rejects.toMatchObject({ name: "AbortError" });
           expect(dropped).not.toHaveBeenCalled();
-          // The running job keeps the slot, so nothing else started; its own
-          // completion is what moves the queue on.
           expect(queue.diagnostics.rendering).toBe(1);
           expect(queue.diagnostics.queued).toBe(0);
           release.resolve();
@@ -395,7 +378,6 @@ describe("Excerpt PDF queue rendering", () => {
             { pdf: "PDF", sequence: queue.nextSequence(), signal: running() },
           );
           await started.promise;
-          // A cache hit completes while the render holds both the slot and the bound.
           await expect(
             queue.preflight(async () => "cache", running()),
           ).resolves.toBe("cache");
@@ -429,8 +411,6 @@ describe("Excerpt PDF queue rendering", () => {
             signal: running(),
           });
           await started.promise;
-          // One render is already waiting, and another is admitted after the teardown
-          // is asked for.
           const second = await queue.reserve(running());
           const queued = second.render(job("second"), {
             pdf: "PDF",
@@ -447,8 +427,6 @@ describe("Excerpt PDF queue rendering", () => {
 
           release.resolve();
           await Promise.all([rendering, queued, teardown, later]);
-          // Teardown keeps its place among the renders already admitted, and the
-          // render admitted after it waits for the document to be destroyed.
           expect(order).toEqual(["first", "second", "teardown", "later"]);
           first.release();
           second.release();
@@ -464,13 +442,11 @@ describe("Excerpt PDF queue rendering", () => {
         const gate = Promise.withResolvers<void>();
         const started = Promise.withResolvers<void>();
         const hold = () => gate.promise;
-        // A previous operation's document teardown holds the render slot.
         const teardown = queue.teardown(async () => {
           started.resolve();
           await hold();
         });
         await started.promise;
-        // The producers take what is left of the bound and queue for that slot.
         const producers = await Promise.all(
           Array.from({ length: EXCERPT_JOB_LIMIT - 1 }, () =>
             queue.reserve(running()),
@@ -483,8 +459,6 @@ describe("Excerpt PDF queue rendering", () => {
             signal: running(),
           }),
         );
-        // The job that would be the 129th waits for capacity rather than filling
-        // the bound beside the teardown.
         const overflow = queue.reserve(running());
         const counts = queue.diagnostics;
         expect(counts.admitted).toBe(EXCERPT_JOB_LIMIT);
@@ -521,8 +495,6 @@ describe("Excerpt PDF queue rendering", () => {
             { pdf: "PDF", sequence: queue.nextSequence(), signal: running() },
           );
           await started.promise;
-          // The bound is full, so the teardown is not a 129th job: it waits for the
-          // slot the render hands over, then destroys the document behind it.
           const teardown = queue.teardown(async () => {
             ran.push("teardown");
           });
@@ -553,9 +525,6 @@ describe("Excerpt PDF queue rendering", () => {
             return "checked";
           }, cancelled.signal);
           await started.promise;
-          // The check has started against a store that has not answered yet: its
-          // demand going does not hand the lane's one slot to the next check, because
-          // the work behind it is still running.
           cancelled.abort(new Error("cancelled"));
           const next = queue.preflight(async () => "next", running());
           expect(queue.diagnostics.checking).toBe(1);

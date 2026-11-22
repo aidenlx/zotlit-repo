@@ -68,10 +68,6 @@ export function diffContributions(
   };
 }
 
-/**
- * Handles ISO strings with offset/Z suffix (parsed directly), offset-less
- * local datetimes (assumed local timezone), and YAML 1.1 `Date` objects.
- */
 export function lastmodFromFrontmatter(
   cache: CachedMetadata | null | undefined,
 ): Temporal.Instant | null {

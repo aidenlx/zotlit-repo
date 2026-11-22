@@ -1,4 +1,3 @@
-// Evaluator vectors: a Filter Expression, one Item, and the value. No database.
 import { describe, expect, it } from "vitest";
 
 import type { HydratedItem } from "@zotlit/db/item-query";
@@ -22,7 +21,6 @@ interface ItemSpec {
   tags?: readonly string[];
   collections?: readonly (readonly string[])[];
   attachments?: readonly string[];
-  /** An ISO instant; defaults to 2020-01-01T00:00:00Z. */
   dateAdded?: string;
 }
 
@@ -68,7 +66,6 @@ function item(spec: ItemSpec = {}): QueryItem {
   };
 }
 
-/** A journal article with a value of every kind; `publisher` is missing. */
 const ARTICLE = item({
   key: "ART2FULL",
   fields: {
@@ -123,7 +120,6 @@ function problem(expression: string): FilterProblem {
   return planned;
 }
 
-/** The Query Clock of the vectors: noon UTC, 15 July 2024. */
 const CLOCK: QueryClock = {
   now: Temporal.Instant.from(TEST_NOW),
   timeZone: "UTC",
@@ -135,14 +131,12 @@ const valueOf = (
   clock: QueryClock = CLOCK,
 ): FilterValue => evaluate(plan(expression).root, of, clock);
 
-/** The Error Value of an evaluation that fails with `code`. */
 const error = (code: string) =>
   expect.objectContaining({
     type: "error",
     fault: expect.objectContaining({ code }),
   });
 
-/** Run each `[expression, value]` vector against the article. */
 function vectors(
   cases: readonly (readonly [string, FilterValue])[],
   clock: QueryClock = CLOCK,
@@ -161,9 +155,7 @@ describe("literals and field values", () => {
     ['[1, "a", null]', [1, "a", null]],
     ["(1)", 1],
     ["title", "Ecology of Éclairs"],
-    // A Zotero field value is a string, also when it holds digits.
     ["volume", "12"],
-    // A known field that the Item lacks is null.
     ["publisher", null],
     ["itemType", "journalArticle"],
     ["key", "ART2FULL"],
@@ -172,9 +164,7 @@ describe("literals and field values", () => {
     ["attachments.unique().length", 1],
     ["attachments.reverse()[0].key", "PDF2LIVE"],
     ["attachments.reduce(acc, 0)", 0],
-    // One element for each source row, in Zotero's creator order.
     ["creators", ["Ada Lovelace", "World Health Organization", "Ada Lovelace"]],
-    // Tags and Collections follow the Item Query string order.
     ["tags", ["methods", "to-read", "To-Read"]],
     ["collections", ["Course/Methods", "Thesis/Methods"]],
     ['custom["review.status"]', "done"],
@@ -196,10 +186,8 @@ describe("literals and field values", () => {
 describe("equality", () => {
   vectors([
     ['title == "Ecology of Éclairs"', true],
-    // Exact: case-sensitive.
     ['title == "ecology of éclairs"', false],
     ['title != "ecology of éclairs"', true],
-    // No coercion between types.
     ['1 == "1"', false],
     ['volume == "12"', true],
     ["volume == 12", false],
@@ -208,13 +196,11 @@ describe("equality", () => {
     ["0 == false", false],
     ["0 == null", false],
     ["[] == null", false],
-    // Null equals only null.
     ["null == null", true],
     ["publisher == null", true],
     ["publisher != null", false],
     ['publisher != "x"', true],
     ["title != null", true],
-    // Lists compare position by position; a list is not its one element.
     ['["a", "b"] == ["a", "b"]', true],
     ['["a", "b"] == ["b", "a"]', false],
     ['["a"] == "a"', false],
@@ -243,19 +229,15 @@ describe("ordered comparison", () => {
     ["2 <= 2", true],
     ["3 > 4", false],
     ["4 >= 5", false],
-    // Strings use the Item Query string order: digits lexically, then letters
-    // with case and accents as the last difference.
     ['"10" < "9"', true],
     ['"apple" < "Zebra"', true],
     ['"eclair" < "Éclair"', true],
     ['"Éclair" < "Zebra"', true],
     ['"a" >= "a"', true],
-    // Different types have no order: an Error Value.
     ['1 < "2"', error("wrong-operand-type")],
     ["volume > 3", error("wrong-operand-type")],
     ["true > false", error("wrong-operand-type")],
     ["[1] < [2]", error("wrong-operand-type")],
-    // Null on either side.
     ["null < 1", null],
     ['publisher >= "a"', null],
     ["1 <= null", null],
@@ -269,7 +251,6 @@ describe("logic and truthiness", () => {
     ["true && false", false],
     ["false || true", true],
     ["false || false", false],
-    // Null, zero, the empty string, and the empty list are falsy.
     ["null || false", false],
     ["null && true", false],
     ['"" || 0', false],
@@ -281,12 +262,10 @@ describe("logic and truthiness", () => {
     ["![]", true],
     ['!"a"', false],
     ["!0", true],
-    // Null is falsy, so `!` of null is true.
     ["!null", true],
     ["!publisher", true],
     ['!(publisher > "a")', true],
     ["!attachments", false],
-    // The right side does not run when the left side decides.
     ["false && (1 / 0) > 0", false],
   ]);
 
@@ -307,25 +286,20 @@ describe("arithmetic", () => {
     ["7 % 4", 3],
     ["-(2 + 3)", -5],
     ["1 + 2 * 3", 7],
-    // `+` joins text and joins lists.
     ['"a" + "b"', "ab"],
     ['"a" + 1', "a1"],
     ['1 + "a"', "1a"],
     ['"a" + null', "a"],
     ['title + " (" + volume + ")"', "Ecology of Éclairs (12)"],
     ["[1] + [2, 3]", [1, 2, 3]],
-    // Null is missing data: arithmetic with null gives null.
     ["1 + null", null],
     ["null - 1", null],
     ["null * null", null],
     ["publisher + 1", null],
     ["-null", null],
-    // A type that depends on the Item and that the operator does not take
-    // gives an Error Value.
     ["[true][0] + 1", error("wrong-operand-type")],
     ['[1][0] - "a"', error("wrong-operand-type")],
     ['-["a"][0]', error("wrong-operand-type")],
-    // A result outside the finite numbers is an Error Value.
     ["1 / 0", error("not-finite")],
     ["0 / 0", error("not-finite")],
     ["1 % 0", error("not-finite")],
@@ -335,7 +309,6 @@ describe("arithmetic", () => {
 describe("Error Values", () => {
   vectors([
     ['number("abc")', error("unparseable-text")],
-    // isType(), isTruthy(), and toString() answer on an Error Value.
     ['number("abc").isType("error")', true],
     ['number("abc").isType("number")', false],
     ['number("abc").isType("any")', true],
@@ -350,21 +323,18 @@ describe("Error Values", () => {
     ],
     ['(1).isType("error")', false],
     ['publisher.isType("error")', false],
-    // False where a truth is read.
     ['number("abc") && true', false],
     ['number("abc") || false', false],
     ['true && number("abc")', false],
     ['!number("abc")', true],
     ['if(number("abc"), "yes", "no")', "no"],
     ['["1", "x", "2"].filter(number(value) > 0)', ["1", "2"]],
-    // Equal to no value, itself included.
     ['number("abc") == number("abc")', false],
     ['number("abc") != number("abc")', true],
     ['number("abc") == null', false],
     ['number("abc") != null', true],
     ['[number("abc")].map(value == value)', [false]],
     ['[number("abc"), number("abc")].unique().length', 2],
-    // Passes through every other operator, method, function, and property.
     ['number("abc") + 1', error("unparseable-text")],
     ['1 - number("abc")', error("unparseable-text")],
     ['"a" + number("abc")', error("unparseable-text")],
@@ -386,21 +356,16 @@ describe("Error Values", () => {
     ['number(number("abc"))', error("unparseable-text")],
     ['["1", "x"].map(number(value))', [1, error("unparseable-text")]],
     ['["1", "x"].reduce(acc + number(value), 0)', error("unparseable-text")],
-    // An Error Value among the arguments of an element method is its result,
-    // whether the expression reads the argument or not.
     ['[1].reduce(value, number("bad"))', error("unparseable-text")],
     ['[].reduce(acc, number("bad"))', error("unparseable-text")],
     ['if(true, date("x"), tags).filter(value)', error("unparseable-text")],
     ['[number("abc")].length', 1],
     ['[number("abc")].isTruthy()', true],
-    // Missing data stays null: a method or argument on null, null
-    // arithmetic, a date part the precision lacks, an index past the end.
     ["publisher.lower()", null],
     ["title.contains(publisher)", null],
     ["tags[9] * 2", null],
     ['date("2020").month', null],
     ["tags[9]", null],
-    // Error Values sort after every other value and before null.
     ['[null, number("abc"), 1].sort()', [1, error("unparseable-text"), null]],
   ]);
 
@@ -421,7 +386,6 @@ describe("if", () => {
     ['if(null, "a", "b")', "b"],
     ['if(publisher, publisher, "none")', "none"],
     ['if(title, title.lower(), "none")', "ecology of éclairs"],
-    // Only the selected branch runs.
     ["if(true, 1, 1 / 0)", 1],
     ['if(tags.contains("methods"), volume, pages)', "12"],
   ]);
@@ -436,15 +400,12 @@ describe("global functions", () => {
     ["number(volume) > 3", true],
     ["number(true)", 1],
     ["number(false)", 0],
-    // A text that is not a number, or a value of another type, is an Error
-    // Value; null stays null.
     ['number("abc")', error("unparseable-text")],
     ["number(pages)", error("unparseable-text")],
     ["number(pages) > 3", error("unparseable-text")],
     ["number(null)", null],
     ["number(publisher)", null],
     ["number([1])", error("wrong-argument-type")],
-    // Empty text is missing data, as null is.
     ['number("")', null],
     ['number("  ")', null],
     ['date("")', null],
@@ -455,23 +416,18 @@ describe("global functions", () => {
     ["max(3, 1, 2)", 3],
     ["min(5)", 5],
     ["max(number(volume), 20)", 20],
-    // min and max take the numbers among their arguments.
     ["min(1, null)", 1],
     ["max(number(pages), 1)", error("unparseable-text")],
     ["min(null, 4, 2)", 2],
     ["min()", null],
     ["max(null)", null],
     ["max(number(pages))", error("unparseable-text")],
-    // A date as its Unix time in milliseconds.
     ['number(date("2020-01-15T10:30:00Z"))', 1_579_084_200_000],
     ['number(date("2020-01-15"))', 1_579_046_400_000],
     ["number(dateAdded)", 1_577_836_800_000],
-    // date() gives a date as it is.
     ["date(dateAdded) == dateAdded", true],
     ['date(date("2020-01")).toString()', "2020-01"],
     ["date(publisher)", null],
-    // list() wraps a value: a list stays, null is the empty list, any other
-    // value is a one-element list.
     ["list(tags)", ["methods", "to-read", "To-Read"]],
     ['list(["a"])', ["a"]],
     ["list([])", []],
@@ -506,10 +462,7 @@ describe("methods of every value", () => {
     ['publisher.isType("string")', false],
     ['publisher.isType("any")', true],
     ["title.isType(publisher)", null],
-    // A type name that comes from the Item's data and names no type.
     ["title.isType(title)", error("argument-out-of-range")],
-    // isTruthy() is the truthiness of a filter: null, false, zero, the empty
-    // text, the empty list, and a zero duration are false.
     ["title.isTruthy()", true],
     ["shortTitle.isTruthy()", false],
     ["publisher.isTruthy()", false],
@@ -531,7 +484,6 @@ describe("methods of every value", () => {
 describe("string methods", () => {
   vectors([
     ['title.contains("Ecology")', true],
-    // Exact: `contains` does not ignore case.
     ['title.contains("ecology")', false],
     ['title.icontains("ecology")', true],
     ['title.icontains("éclairs")', true],
@@ -565,31 +517,25 @@ describe("string methods", () => {
     ["title[0]", "E"],
     ["title[-1]", "s"],
     ["title[99]", null],
-    // A method on a missing value is null; `isEmpty` of null is true.
     ['publisher.contains("a")', null],
     ["publisher.lower()", null],
     ["publisher.length", null],
     ["publisher.isEmpty()", true],
     ["publisher[0]", null],
-    // A null argument gives null.
     ["title.contains(publisher)", null],
     ["title.startsWith(null)", null],
     ['title.containsAny("of", publisher)', null],
   ]);
 
   it.each([
-    // Turkish dotted capital I: `lower` gives `i` and a combining dot.
     ["İstanbul", 'title.lower() == "i̇stanbul"', true],
     ["İstanbul", 'title.lower() == "istanbul"', false],
-    // The Kelvin sign is not the letter K, and `lower` folds it to `k`.
     ["K 50", 'title.contains("K")', false],
     ["K 50", 'title.lower().startsWith("k")', true],
-    // SQL wildcard characters are plain text.
     ["50%_off \\ x", 'title.contains("%_")', true],
     ["50%_off \\ x", 'title.contains("5_%")', false],
     ["50%_off \\ x", 'title.contains("\\\\")', true],
     ["50 off", 'title.contains("%")', false],
-    // An emoji is two code units.
     ["a 🧪 b", 'title.contains("🧪")', true],
     ["a 🧪 b", "title.length", 6],
   ])("on the title %j, %s gives %j", (title, expression, expected) => {
@@ -603,8 +549,6 @@ describe("text helpers", () => {
     ["title.trim()", "Ecology of Éclairs"],
     ['"\\t\\n x \\n".trim()', "x"],
     ["publisher.trim()", null],
-    // title() upper-cases the first code point of each word that starts the
-    // text or follows whitespace, and leaves the rest as it is.
     ['"hello wORLD".title()', "Hello WORLD"],
     ['"  two  spaces ".title()', "  Two  Spaces "],
     ['"a\\tb\\nc".title()', "A\tB\nC"],
@@ -617,8 +561,6 @@ describe("text helpers", () => {
     ['"-".repeat(3)', "---"],
     ['"ab".repeat(0)', ""],
     ['"ab".repeat(1)', "ab"],
-    // A count that is negative, not an integer, or above 10 000 is out of
-    // range; so is a count that gives a result above 1 000 000 code units.
     ['"ab".repeat(-1)', error("argument-out-of-range")],
     ['"ab".repeat(1.5)', error("argument-out-of-range")],
     ['"ab".repeat(10000).length', 20_000],
@@ -626,16 +568,13 @@ describe("text helpers", () => {
     ['"a".repeat(10000).repeat(100).length', 1_000_000],
     ['"a".repeat(10000).repeat(101)', error("argument-out-of-range")],
     ['"ab".repeat(null)', null],
-    // A count that comes from the Item and is not a number.
     ['"ab".repeat(tags[0])', error("wrong-argument-type")],
     ["publisher.repeat(2)", null],
-    // reverse() works by code point, so an emoji survives.
     ['"abc".reverse()', "cba"],
     ['"a🧪b".reverse()', "b🧪a"],
     ['"".reverse()', ""],
     ["title.reverse()", "srialcÉ fo ygolocE"],
     ["publisher.reverse()", null],
-    // slice() counts code units, as length and index access do.
     ["title.slice(0, 7)", "Ecology"],
     ["title.slice(11)", "Éclairs"],
     ["title.slice(-7)", "Éclairs"],
@@ -647,8 +586,6 @@ describe("text helpers", () => {
     ["title.slice(0, null)", null],
     ["title.slice(tags[0])", error("wrong-argument-type")],
     ["publisher.slice(0, 1)", null],
-    // replace() with a text pattern replaces every occurrence, with the
-    // replacement as literal text.
     ['"a  b  c".replace("  ", " ")', "a b c"],
     ['"aaa".replace("a", "b")', "bbb"],
     ['"abc".replace("x", "y")', "abc"],
@@ -660,7 +597,6 @@ describe("text helpers", () => {
     ['title.replace("a", null)', null],
     ['title.replace([1][0], "a")', error("wrong-argument-type")],
     ['publisher.replace("a", "b")', null],
-    // split() gives the parts as a list of texts; n keeps the first n parts.
     ['"a:b:c".split(":")', ["a", "b", "c"]],
     ['"a:b:c".split(":")[0]', "a"],
     ['"a:b:c".split(":", 2)', ["a", "b"]],
@@ -671,7 +607,6 @@ describe("text helpers", () => {
     ['"abc".split("")', ["a", "b", "c"]],
     ['"".split(":")', [""]],
     ['"a::b".split("::")', ["a", "b"]],
-    // The captures of a regexp separator are elements, and count toward n.
     ['"a-b".split(/(-)|(,)/)', ["a", "-", null, "b"]],
     ['"a-b-c".split(/(-)/, 2)', ["a", "-"]],
     ['"a:b:c".split(":", -1)', error("argument-out-of-range")],
@@ -687,7 +622,6 @@ describe("text helpers", () => {
 
 describe("regular expressions", () => {
   vectors([
-    // A /pattern/flags literal is a regexp value; matches(text) tests a text.
     ["/^Eco/.matches(title)", true],
     ["/^eco/.matches(title)", false],
     ["/^eco/i.matches(title)", true],
@@ -696,28 +630,21 @@ describe("regular expressions", () => {
     ["/\\d+/.matches(volume)", true],
     ["/\\d+/.matches(pages)", false],
     ['/to-read/i.matches("TO-READ")', true],
-    // g and y stay deterministic: the match position is reset before each test.
     ["/o/g.matches(title) && /o/g.matches(title)", true],
     [
       "[/o/g.matches(title), /o/g.matches(title), /o/g.matches(title)]",
       [true, true, true],
     ],
     ["/Eco/y.matches(title) && /Eco/y.matches(title)", true],
-    // A sticky regexp matches only at the start of the text.
     ['/a/y.matches("ba")', false],
     ['/a/.matches("ba")', true],
-    // One literal, tested once for each element.
     ['["a", "a"].map(/a/g.matches(value))', [true, true]],
     ['["a", "a"].map(/a/y.matches(value))', [true, true]],
     ['["a", "a"].map(value.replace(/a/y, "b"))', ["b", "b"]],
-    // A null argument gives null; a wrongly typed argument an Error Value.
     ["/a/.matches(publisher)", null],
     ["/a/.matches(null)", null],
     ["/a/.matches([1][0])", error("wrong-argument-type")],
-    // An argument whose type depends on the Item.
     ["/e/.matches(tags[0])", true],
-    // replace() with a regexp follows JavaScript: g decides whether the
-    // first or every occurrence changes, and $1 names a group.
     ['"a  b   c".replace(/\\s+/g, " ")', "a b c"],
     ['"a  b   c".replace(/\\s+/, " ")', "a b   c"],
     ['"Ada Lovelace".replace(/(\\w+) (\\w+)/, "$2, $1")', "Lovelace, Ada"],
@@ -727,19 +654,16 @@ describe("regular expressions", () => {
     ['title.replace(/o/g, "0")', "Ec0l0gy 0f Éclairs"],
     ["title.replace(/o/g, null)", null],
     ['publisher.replace(/o/, "0")', null],
-    // split() with a regexp: n keeps the first n parts.
     ['"a:b—c".split(/[:—]/)', ["a", "b", "c"]],
     ['"a:b—c".split(/[:—]/, 2)', ["a", "b"]],
     ['"a1b22c".split(/\\d+/)', ["a", "b", "c"]],
     ['"abc".split(/x/)', ["abc"]],
     ["title.split(/\\s+/)[2]", "Éclairs"],
     ['"a:b:c".split(/:/, 4294967296)', ["a", "b", "c"]],
-    // A group that does not take part in the match is null.
     ['"a-b".split(/(-)|(,)/)', ["a", "-", null, "b"]],
     ['"a-b".split(/(-)|(,)/).join("|")', "a|-||b"],
     ["title.split(/ /, -1)", error("argument-out-of-range")],
     ["publisher.split(/ /)", null],
-    // Equality by source and flags; toString() gives /source/flags.
     ["/a/ == /a/", true],
     ["/a/i == /a/i", true],
     ["/a/ == /a/i", false],
@@ -752,7 +676,6 @@ describe("regular expressions", () => {
     ["/a\\/b/.toString()", "/a\\/b/"],
     ['"x" + /a/g', "x/a/g"],
     ['[/a/, /b/].join("|")', "/a/|/b/"],
-    // A regexp is truthy, has no order, and names its type.
     ["/a/.isTruthy()", true],
     ["!/a/", false],
     ["/a/ < /b/", error("wrong-operand-type")],
@@ -771,7 +694,6 @@ describe("regular expressions", () => {
     ["[/a/, /a/, /a/i].unique().length", 2],
     ["[/a/].contains(/a/)", true],
     ["list(/a/).length", 1],
-    // A regexp inside an element expression.
     ["tags.filter(/read/i.matches(value)).length", 2],
     ["creators.map(/^Ada/.matches(value)).contains(false)", true],
   ]);
@@ -788,14 +710,10 @@ describe("number methods", () => {
     ["(-3).abs()", 3],
     ["(0).isEmpty()", false],
     ["number(volume).round()", 12],
-    // The text of this Item is not a number: the Error Value passes through.
     ["number(pages).round()", error("unparseable-text")],
     ["(2.5).round(null)", null],
-    // A digit count whose power of ten is zero or not finite is out of range.
     ["(1).round(400)", error("argument-out-of-range")],
     ["(1).round(-400)", error("argument-out-of-range")],
-    // toFixed gives a text with that many decimals; a precision outside 0 to
-    // 100 is out of range.
     ["(1.005).toFixed(2)", "1.00"],
     ["(2).toFixed(1)", "2.0"],
     ["(2.567).toFixed(0)", "3"],
@@ -845,18 +763,11 @@ describe("list methods", () => {
     ['tags["0"]', error("invalid-index")],
     ["tags[null]", null],
     ['tags[0].startsWith("meth")', true],
-    // The type of an element depends on the Item: another type gives an
-    // Error Value.
     ["[1][0].lower()", error("wrong-subject-type")],
     ['[1][0].contains("a")', error("wrong-subject-type")],
   ]);
 });
 
-/**
- * A literal list answers membership as the evaluator's linear scan of
- * `equals` does. `.filter(true)` gives the same list through a node that is
- * not a literal, so it is the reference.
- */
 describe("membership in a literal list", () => {
   const lists = [
     ['["ART2FULL", "B", "B", "C"]', ['"B"', '"art2full"']],
@@ -864,7 +775,6 @@ describe("membership in a literal list", () => {
     ["[0, -0, 12]", ["0", "-1"]],
     ['["12", 12, null, null]', ['"12"', '""']],
     ["[]", ["null", "1"]],
-    // Not literal elements only: the existing path.
     ['[volume, "x", 1]', ["volume", "publisher"]],
     ["[-1, 1]", ["-1", "0"]],
     ['[date("2024-07-15"), "2024-07-15"]', ['date("2024-07-15")', "null"]],
@@ -917,8 +827,6 @@ describe("membership in a literal list", () => {
     ['!["ART2FULL"].contains("ART2FULL")', false],
   ]);
 
-  // Speed is measured by `pnpm --filter @zotlit/obsidian bench`
-  // (mixed-query.bench.ts), not bounded here: a wall-clock bound flakes on a loaded machine.
   it("finds the Items whose key is in a long key list", () => {
     const keys = Array.from({ length: 200_000 }, (_, i) => `K${i}`);
     const { root } = plan(`${JSON.stringify(keys)}.contains(volume)`);
@@ -932,16 +840,13 @@ describe("membership in a literal list", () => {
 
 describe("list helpers", () => {
   vectors([
-    // flat opens one level of nested lists.
     ["[1, [2, 3]].flat()", [1, 2, 3]],
     ["[1, [2, [3]]].flat()", [1, 2, [3]]],
     ["[[], [null]].flat()", [null]],
     ["tags.flat()", ["methods", "to-read", "To-Read"]],
     ["[].flat()", []],
-    // A null subject gives null.
     ["null.flat()", null],
     ["if(attachments, null, tags).flat()", null],
-    // join writes each element as toString() does, and null as empty text.
     ['tags.join("; ")', "methods; to-read; To-Read"],
     [
       'creators.join(", ")',
@@ -955,14 +860,12 @@ describe("list helpers", () => {
     ['tags.join("")', "methodsto-readTo-Read"],
     ["tags.join(publisher)", null],
     ['null.join(",")', null],
-    // reverse and slice give a new list; the subject stays as it is.
     ["tags.reverse()", ["To-Read", "to-read", "methods"]],
     ["[1, [2, 3], null].reverse()", [null, [2, 3], 1]],
     ["[].reverse()", []],
     ["tags.reverse() == tags", false],
     ["tags.reverse().reverse() == tags", true],
     ["null.reverse()", null],
-    // slice follows the index rules of JavaScript, negative indexes included.
     ["tags.slice(0, 2)", ["methods", "to-read"]],
     ["tags.slice(1)", ["to-read", "To-Read"]],
     ["tags.slice(-1)", ["To-Read"]],
@@ -978,10 +881,8 @@ describe("list helpers", () => {
     ["tags.slice(null)", null],
     ["tags.slice(0, null)", null],
     ["null.slice(0)", null],
-    // unique keeps the first of the elements that == makes equal.
     ['["b", "a", "b", "a"].unique()', ["b", "a"]],
     ["creators.unique()", ["Ada Lovelace", "World Health Organization"]],
-    // Exact equality: case counts, and no coercion between types.
     ['["a", "A"].unique()', ["a", "A"]],
     ['[1, "1", true].unique()', [1, "1", true]],
     ["[null, null, 1].unique()", [null, 1]],
@@ -992,7 +893,6 @@ describe("list helpers", () => {
         [2, 1],
       ],
     ],
-    // Two dates are equal when they share a calendar day; the first stays.
     [
       '[date("2020-01-15 10:30"), date("2020-01-15"), date("2020")].unique().toString()',
       "2020-01-15T10:30:00Z",
@@ -1001,12 +901,9 @@ describe("list helpers", () => {
     ['[duration("1d"), duration("24h"), duration("P1D")].unique().length', 2],
     ["[].unique()", []],
     ["null.unique()", null],
-    // sort: numbers by value, texts in the Item Query string order, dates by
-    // their start, booleans false first.
     ["[3, 1, 2].sort()", [1, 2, 3]],
     ["[1.5, -2, 0].sort()", [-2, 0, 1.5]],
     ['["b", "a", "c"].sort()', ["a", "b", "c"]],
-    // Digits compare digit by digit, so 10 comes before 9.
     [
       '["9", "10", "Zebra", "Éclair", "eclair"].sort()',
       ["10", "9", "eclair", "Éclair", "Zebra"],
@@ -1017,22 +914,18 @@ describe("list helpers", () => {
       '[date("2020-06"), date("2020-01-15 10:30"), date("2020"), date("2020-01-15")].sort().toString()',
       "2020, 2020-01-15, 2020-01-15T10:30:00Z, 2020-06",
     ],
-    // Elements of different types group in the order boolean, number, text,
-    // date, duration, list; null comes last.
     [
       '[null, [1], duration("1d"), today(), "a", 2, true].sort().toString()',
       "true, 2, a, 2024-07-15, P1D, 1, null",
     ],
     ['[null, "b", null, "a"].sort()', ["a", "b", null, null]],
     ['[2, "1", 1, "2"].sort()', [1, 2, "1", "2"]],
-    // Stable: equal elements, durations, and lists keep their order.
     ['[duration("2d"), duration("1d")].sort().toString()', "P2D, P1D"],
     ["[[2], [1]].sort()", [[2], [1]]],
     [
       '[date("2020-01-15"), date("2020-01-15 00:00")].sort().toString()',
       "2020-01-15, 2020-01-15T00:00:00Z",
     ],
-    // Dates sort by their start at full precision.
     [
       '[date("2020-01-15 10:30:00.0000002Z"), date("2020-01-15 10:30:00.0000001Z")].sort().toString()',
       "2020-01-15T10:30:00.0000001Z, 2020-01-15T10:30:00.0000002Z",
@@ -1045,7 +938,6 @@ describe("list helpers", () => {
 
 describe("element expressions", () => {
   vectors([
-    // filter keeps the elements for which the expression is truthy.
     ['tags.filter(value.contains("read"))', ["to-read"]],
     ['tags.filter(value.lower() == "to-read")', ["to-read", "To-Read"]],
     ['creators.filter(value.contains("Lovelace")).length', 2],
@@ -1053,36 +945,28 @@ describe("element expressions", () => {
     ["[1, 2, 3].filter(value > 1)", [2, 3]],
     ["tags.filter(true)", ["methods", "to-read", "To-Read"]],
     ["tags.filter(null)", []],
-    // map collects the value of the expression for each element.
     ["tags.map(value.lower())", ["methods", "to-read", "to-read"]],
     ["tags.map(index)", [0, 1, 2]],
     ["[1, 2].map(value * 2)", [2, 4]],
     ["[1, null].map(value.isEmpty())", [false, true]],
-    // A built-in field keeps its meaning inside the expression.
     ["[1, 2].map(title)", ["Ecology of Éclairs", "Ecology of Éclairs"]],
-    // reduce folds the list: acc starts at initial.
     ["tags.reduce(acc + value.length, 0)", 21],
     ["[1, 2, 3].reduce(acc + value, 0)", 6],
     ["[1, 2, 3].reduce(acc * value, 1)", 6],
     ['tags.reduce(acc + ", " + value, "")', ", methods, to-read, To-Read"],
     ["[1, 2].reduce(index, null)", 1],
-    // A null initial: null adds no text and gives null in arithmetic.
     ["tags.reduce(acc + value, null)", "methodsto-readTo-Read"],
     ["[1, 2].reduce(acc + value, null)", null],
     ["[].reduce(acc, null)", null],
-    // An empty list gives an empty list, or initial.
     ["[].filter(value)", []],
     ["[].map(value)", []],
     ["[].reduce(acc + value, 0)", 0],
-    // A null subject gives null; a subject that is not a list an Error Value.
     ["tags[9].filter(value)", null],
     ["if(false, tags).map(value)", null],
     ["tags[9].reduce(acc, 0)", null],
     ["tags[0].filter(value)", error("wrong-subject-type")],
     ["tags[0].map(value)", error("wrong-subject-type")],
     ["tags[0].reduce(acc, 0)", error("wrong-subject-type")],
-    // A nested element expression binds the innermost names; the outer
-    // names stay bound.
     ["[[1, 2], [3]].map(value.map(value * 10))", [[10, 20], [30]]],
     ['[["a"], ["b", "c"]].map(value.filter(index == 0))', [["a"], ["b"]]],
     ["[[1, 2], [3]].reduce(acc + value.filter(value > acc).length, 0)", 3],
@@ -1105,7 +989,6 @@ describe("element expressions", () => {
       "field",
     ]);
     expect(valueOf("tags.reduce(acc + value, index)", named)).toBe("5ab");
-    // acc is bound in reduce alone.
     expect(valueOf("tags.map(acc)", named)).toEqual(["sum", "sum"]);
     expect(valueOf("tags.filter(acc)", named)).toEqual(["a", "b"]);
     expect(valueOf("tags.map(acc)")).toEqual([null, null, null]);
@@ -1123,7 +1006,6 @@ describe("element expressions", () => {
 
 describe("relation lists", () => {
   vectors([
-    // The same person as author and as editor is two elements.
     ["creators.length", 3],
     ['creators.contains("Ada Lovelace")', true],
     ['creators.contains("World Health Organization")', true],
@@ -1134,12 +1016,10 @@ describe("relation lists", () => {
       true,
     ],
     ['creators == ["Ada Lovelace", "World Health Organization"]', false],
-    // A Collection element is its root-first path.
     ['collections.contains("Thesis/Methods")', true],
     ['collections.contains("Methods")', false],
     ['collections.contains("Thesis")', false],
     ["collections.length", 2],
-    // `within` matches the Collection and every Collection below it.
     ['collections.within("Thesis")', true],
     ['collections.within("Thesis/Methods")', true],
     ['collections.within("Course")', true],
@@ -1151,8 +1031,6 @@ describe("relation lists", () => {
   ]);
 });
 
-// The vectors assert primitive values: a date is read through its text, its
-// parts, or a comparison.
 describe("first author", () => {
   const creator = (
     lastName: string,
@@ -1166,7 +1044,6 @@ describe("first author", () => {
     primary: options.primary ?? false,
   });
 
-  // An edited handbook: a chapter author in Zotero's order after its editors.
   const HANDBOOK = item({
     itemType: "book",
     creators: [
@@ -1243,7 +1120,6 @@ describe("now() and today()", () => {
     ["now().timestamp", 1_721_044_800_000],
     ["today().toString()", "2024-07-15"],
     ["today().hour", 0],
-    // Every call sees the same instant.
     ["now() == now()", true],
     ["today() == now().date()", true],
     ["now() >= today()", true],
@@ -1266,12 +1142,10 @@ describe("date()", () => {
     ['date("2020-01-15 10:30").hour', 10],
     ['date("2020-01-15T10:30:00Z").timestamp', 1_579_084_200_000],
     ['date("2020-01-15T10:30:00.123Z").millisecond', 123],
-    // An explicit offset fixes the instant.
     ['date("2020-01-15 10:30+02:00").hour', 8],
     ['date("20200115") == date("2020-01-15")', true],
     ['date("202001151030").hour', 10],
     ['date("2024-02-29").day', 29],
-    // Unparseable text and impossible dates are Error Values.
     ['date("banana")', error("unparseable-text")],
     ['date("2020-13-01")', error("unparseable-text")],
     ['date("2021-02-29")', error("unparseable-text")],
@@ -1285,16 +1159,13 @@ describe("duration()", () => {
   vectors([
     ['duration("P1Y") == duration("1 year")', true],
     ['duration("-2 weeks") == duration("-P2W")', true],
-    // Weeks fold into days.
     ['duration("2 weeks") == duration("14 days")', true],
     ['duration("P2W") == duration("14 days")', true],
     ['duration("90m") == duration("PT90M")', true],
-    // `M` is months, `m` minutes.
     ['duration("1M") == duration("1 month")', true],
     ['duration("1M") == duration("1m")', false],
     ['duration("nonsense")', error("unparseable-text")],
     ["duration(publisher)", null],
-    // A zero duration is falsy.
     ['duration("1 day") && true', true],
     ['duration("0 days") || false', false],
   ]);
@@ -1314,7 +1185,6 @@ describe("date text", () => {
 
 describe("date comparison", () => {
   vectors([
-    // A partial date is the interval of days it covers.
     ['date("2020") == date("2020-06-15")', true],
     ['date("2020") != date("2021-01-01")', true],
     ['date("2020") > date("2019-12-31")', true],
@@ -1325,25 +1195,20 @@ describe("date comparison", () => {
     ['date("2020") < date("2021")', true],
     ['date("2020-05") < date("2020-06")', true],
     ['date("2020-05") <= date("2020-05-31")', true],
-    // Month ends, a leap day, and the year end.
     ['date("2020-02") == date("2020-02-29")', true],
     ['date("2021-02") == date("2021-02-28")', true],
     ['date("2021-02") < date("2021-03-01")', true],
     ['date("2020-12-31") < date("2021")', true],
     ['date("2020") < date("2021-01-01")', true],
-    // Two timestamps compare as instants.
     ['date("2020-01-15 10:30") < date("2020-01-15 10:31")', true],
     ['date("2020-01-15 10:30") == date("2020-01-15 10:31")', false],
     ['date("2020-01-15 10:30:00.5") > date("2020-01-15 10:30")', true],
-    // A timestamp and a calendar date compare by calendar day, in both orders.
     ['date("2020-01-15 10:30") == date("2020-01-15")', true],
     ['date("2020-01-15") == date("2020-01-15 10:30")', true],
     ['date("2020-01-15") < date("2020-01-15 23:59")', false],
     ['date("2020-01-15") <= date("2020-01-15 23:59")', true],
     ['date("2020") >= date("2020-12-31 23:59")', true],
-    // An offset that crosses the UTC day boundary.
     ['date("2020-01-15T23:30:00-05:00") == date("2020-01-16")', true],
-    // No coercion between types.
     ['date("2020") == "2020"', false],
     ['date("2020") > "2019"', error("wrong-operand-type")],
     ['date("2020") > 5', error("wrong-operand-type")],
@@ -1358,13 +1223,9 @@ describe("date arithmetic", () => {
   vectors([
     ['(date("2020-01-15") + duration("1 month")).toString()', "2020-02-15"],
     ['(duration("1 year") + date("2020-01-15")).toString()', "2021-01-15"],
-    // The calendar clamps a day past the end of the month.
     ['(date("2020-01-31") + duration("1M")).toString()', "2020-02-29"],
-    // A partial date keeps its precision.
     ['(date("2020") + duration("1M")).toString()', "2020"],
     ['(date("2020-01") - duration("1M")).toString()', "2019-12"],
-    // A partial date is the whole year or month that holds the day the
-    // arithmetic gives.
     ['(date("2020") + duration("1M")) == date("2020-01-15")', true],
     ['(date("2020") + duration("1M")) == date("2020-12-31")', true],
     ['(date("2020") + duration("1M")) < date("2021-01-01")', true],
@@ -1373,16 +1234,13 @@ describe("date arithmetic", () => {
     ['(date("2020-03") + duration("10d")) == date("2020-03-05")', true],
     ['(date("2020-03") + duration("10d")) == date("2020-04-05")', false],
     ['(date("2020-03") + duration("31d")) == date("2020-04-30")', true],
-    // A time of day gives a timestamp from the start of the first day.
     [
       '(date("2020-01-15") - duration("12h")).toString()',
       "2020-01-14T12:00:00Z",
     ],
     ['(now() - duration("1d")).toString()', "2024-07-14T12:00:00Z"],
     ['now() - duration("7 days") < now()', true],
-    // A missing date gives null.
     ['publisher + duration("1d")', null],
-    // A result outside the range of dates is an Error Value.
     ['date("2020") + duration("P300000Y")', error("date-out-of-range")],
     ['[now()][0] - duration("P300000Y")', error("date-out-of-range")],
   ]);
@@ -1420,15 +1278,12 @@ describe("date fields", () => {
     ["2019-11-00 November 2019", "date.toString()", "2019-11"],
     ["2019-11-00 November 2019", 'date == date("2019-11-30")', true],
     ["2018-00-00 2018", 'date > date("2017-12-31")', true],
-    // A text date takes the year the date parser finds in it.
     ["0000-00-00 circa 1850", "date.toString()", "1850"],
     ["0000-00-00 circa 1850", 'date == date("1850-06")', true],
     ["0000-00-00 1990-1991", "date.year", 1990],
-    // A text date without a year in 1000-2999 is null.
     ["0000-00-00 forthcoming", "date", null],
     ["0000-00-00 0999", "date", null],
     ["0000-00-00 3000", "date", null],
-    // An impossible day falls back to the month.
     ["2021-02-30 2021-02-30", "date.toString()", "2021-02"],
   ])("reads the date %j: %s gives %j", (stored, expression, expected) => {
     expect(valueOf(expression, dated({ date: stored }))).toEqual(expected);
@@ -1455,7 +1310,6 @@ describe("date fields", () => {
   });
 
   it.each([
-    // Zotero stores a UTC timestamp.
     ["2020-01-07 04:00:00", "accessDate.toString()", "2020-01-07T04:00:00Z"],
     ["2020-01-07 04:00:00", "accessDate < dateAdded", true],
     ["2020-01-07", "accessDate.toString()", "2020-01-07"],
@@ -1471,7 +1325,6 @@ describe("date fields", () => {
 });
 
 describe("the query time zone", () => {
-  // 02:00Z on 8 January is 21:00 on 7 January in New York.
   const NEW_YORK: QueryClock = {
     now: Temporal.Instant.from("2020-01-08T02:00:00Z"),
     timeZone: "America/New_York",
@@ -1509,7 +1362,6 @@ describe("the query time zone", () => {
     expect(inNewYork('now().format("YYYY-MM-DD HH:mm")')).toBe(
       "2020-01-07 21:00",
     );
-    // The timestamp of a calendar date is the start of its first day.
     expect(inNewYork('date("2020-01-08").timestamp')).toBe(1_578_459_600_000);
   });
 
@@ -1532,7 +1384,6 @@ describe("the query time zone", () => {
   });
 
   it("adds calendar days by the wall clock of the zone, across a change of offset", () => {
-    // New York moves to daylight saving time on 8 March 2020.
     expect(inNewYork('(date("2020-03-08 00:00") + duration("1d")).hour')).toBe(
       0,
     );
@@ -1657,8 +1508,6 @@ describe("validation", () => {
   );
 
   it.each([
-    // Null, a type that depends on the Item, and the operand types each
-    // operator takes plan without a fault.
     "null + 1",
     "-null",
     "tags[0] * 2",
@@ -1802,13 +1651,10 @@ describe("validation", () => {
     ["custom[mood]", "invalid-filter", [7, 11]],
     ['noSuchFunction("a")', "unknown-function", [0, 14]],
     ['title.noSuchMethod("a")', "unknown-function", [6, 18]],
-    // Function names are case-sensitive.
     ['title.startswith("a")', "unknown-function", [6, 16]],
-    // A method that exists for another type than the subject has.
     ['tags.startsWith("a")', "unknown-function", [5, 15]],
     ["title.round()", "unknown-function", [6, 11]],
     ['title.within("a")', "unknown-function", [6, 12]],
-    // A list helper on a subject of a definite non-list type.
     ["title.sort()", "unknown-function", [6, 10]],
     ['title.join(",")', "unknown-function", [6, 10]],
     ["title.flat()", "unknown-function", [6, 10]],
@@ -1824,8 +1670,6 @@ describe("validation", () => {
     ["tags.unique(1)", "wrong-argument-count", [0, 14]],
     ["tags.flat(1)", "wrong-argument-count", [0, 12]],
     ["tags.reverse(1)", "wrong-argument-count", [0, 15]],
-    // An element expression is validated like every other part, also on an
-    // empty list; value and acc have no known type, index is a number.
     ["tags.filter(noSuchFunction(value))", "unknown-function", [12, 26]],
     ["[].map(value.noSuchMethod())", "unknown-function", [13, 25]],
     ["[].reduce(acc.lenght, 0)", "unknown-property", [14, 20]],
@@ -1836,13 +1680,10 @@ describe("validation", () => {
     ["tags.map(value, 1)", "wrong-argument-count", [0, 18]],
     ["tags.reduce(acc)", "wrong-argument-count", [0, 16]],
     ["tags.reduce(acc, 0, 1)", "wrong-argument-count", [0, 22]],
-    // An element method on a subject of a definite non-list type.
     ["title.filter(value)", "unknown-function", [6, 12]],
     ["(1).map(value)", "unknown-function", [4, 7]],
     ["dateAdded.map(value)", "unknown-function", [10, 13]],
-    // The names are bound inside the expression alone.
     ["value.filter(value)", "unknown-function", [6, 12]],
-    // A global function called as a method, and a method called as a global.
     ["title.number()", "unknown-function", [6, 12]],
     ['contains(title, "a")', "unknown-function", [0, 8]],
     ["title.startsWith()", "wrong-argument-count", [0, 18]],
@@ -1864,14 +1705,12 @@ describe("validation", () => {
     ["title.isType(1)", "wrong-argument-type", [13, 14]],
     ['title.isType("strng")', "wrong-argument-type", [13, 20]],
     ["collections.within(1)", "wrong-argument-type", [19, 20]],
-    // The type of the argument is known from the field it reads.
     ["title.startsWith(tags)", "wrong-argument-type", [17, 21]],
     ["tags[0].startsWith(1)", "wrong-argument-type", [19, 20]],
     ["title.lenght", "unknown-property", [6, 12]],
     ["title.Length", "unknown-property", [6, 12]],
     ["attachments.size", "unknown-property", [12, 16]],
     ["(1).length", "unknown-property", [4, 10]],
-    // Date functions, methods, and properties.
     ["date(5)", "wrong-argument-type", [5, 6]],
     ["date(tags)", "wrong-argument-type", [5, 9]],
     ['duration(["1d"])', "wrong-argument-type", [9, 15]],
@@ -1888,7 +1727,6 @@ describe("validation", () => {
     ["title.year", "unknown-property", [6, 10]],
     ['duration("1d").days', "unknown-property", [15, 19]],
     ['(now() - duration("1d")).length', "unknown-property", [25, 31]],
-    // Text, number, and wrapping helpers.
     ["tags.trim()", "unknown-function", [5, 9]],
     ["(1).title()", "unknown-function", [4, 9]],
     ["attachments.repeat(2)", "unknown-function", [12, 18]],
@@ -1918,12 +1756,9 @@ describe("validation", () => {
     ["list()", "wrong-argument-count", [0, 6]],
     ["list(1, 2)", "wrong-argument-count", [0, 10]],
     ["title.list()", "unknown-function", [6, 10]],
-    // Regular expressions: a pattern or flag the engine rejects fails at the
-    // literal; a regexp where a text is required is a wrong argument type.
     ["/(/.matches(title)", "invalid-filter", [0, 3]],
     ["title == /[/", "invalid-filter", [9, 12]],
     ["/a/gg.matches(title)", "invalid-filter", [0, 5]],
-    // A letter outside the flags of the grammar is a syntax error at the letter.
     ["/a/x.matches(title)", "invalid-filter", [3, 4]],
     ["/a/uv.matches(title)", "invalid-filter", [0, 5]],
     ["/\\p{Letter/u.matches(title)", "invalid-filter", [0, 12]],
@@ -1950,7 +1785,6 @@ describe("validation", () => {
     ["custom.isEmpty()", "unfilterable-field", [0, 6]],
     ["min == 1", "unknown-field", [0, 3]],
     ['if == "a"', "unknown-field", [0, 2]],
-    // An unknown member of a creator spans its name, as title.year does.
     ["firstAuthor.surname", "unknown-property", [12, 19]],
   ] as const)("rejects %j with %s at %j", (expression, code, [from, to]) => {
     const fault = problem(expression);
@@ -1961,7 +1795,6 @@ describe("validation", () => {
     });
   });
 
-  // A branch that never runs is validated like every other part.
   it.each([
     ["false && noSuchFunction()", "unknown-function"],
     ["true || title.startsWith(1)", "wrong-argument-type"],
@@ -1977,7 +1810,6 @@ describe("validation", () => {
   });
 
   it.each([
-    // The subject or the argument has a type that depends on the Item.
     'tags[0].contains("a")',
     'if(attachments, title, tags).contains("a")',
     "title.startsWith(tags[0])",
@@ -1986,8 +1818,6 @@ describe("validation", () => {
     "null.isEmpty()",
     "null.lower()",
     "null.isTruthy()",
-    // A regexp where a text or a regexp pattern is taken, and a subject
-    // whose type depends on the Item.
     "/a/.matches(tags[0])",
     "/a/.matches(publisher)",
     'title.replace(/a/, "b")',
@@ -2002,12 +1832,9 @@ describe("validation", () => {
     'list(tags[0]).contains("a")',
     "list(publisher).isEmpty()",
     "min(number(volume), 3)",
-    // A list helper on a subject whose type depends on the Item, and on the
-    // list another list helper gives.
     "tags[0].sort()",
     'if(attachments, title, tags).join(",")',
     "tags.sort().unique().reverse().slice(0, 1).flat().length",
-    // A date before and after date arithmetic keeps its methods.
     '(now() - duration("1d")).format("YYYY")',
     '(duration("1d") + today()).relative()',
     "date.date().year",
@@ -2049,7 +1876,6 @@ describe("names", () => {
     ["Title", true],
     ["my_field$2", true],
     ["étude", true],
-    // A built-in field, a base field, a type-specific field, a reserved name.
     ["title", false],
     ["publicationTitle", false],
     ["bookTitle", false],
@@ -2062,7 +1888,6 @@ describe("names", () => {
     ["creators", false],
     ["attachments", false],
     ["custom", false],
-    // A global function and a keyword.
     ["number", false],
     ["if", false],
     ["min", false],
@@ -2070,7 +1895,6 @@ describe("names", () => {
     ["null", false],
     ["true", false],
     ["false", false],
-    // Outside the identifier rule of the grammar.
     ["review.status", false],
     ["my field", false],
     ["2fast", false],
@@ -2108,15 +1932,11 @@ describe("hydration needs", () => {
   });
 });
 
-// Failure modes: nullable cross-type values can both be null; an unknown
-// value can match; ordering gives an Error Value; a warning never changes
-// evaluation.
 it.each([
   ['tags == "bulk"', false, false],
   ['tags != "bulk"', true, true],
   ['date.year == "2019"', false, false],
   ['dateAdded > "2020-01-01"', error("wrong-operand-type"), false],
-  // An Error Value equals no value, itself included.
   ['number("bad") == date("bad")', false, undefined],
   ['number("bad") != date("bad")', true, undefined],
   ['number("bad") > date("bad")', error("unparseable-text"), false],
@@ -2129,7 +1949,6 @@ it.each([
   (text, value, warning) => {
     const planned = plan(text);
     expect(evaluate(planned.root, ARTICLE, CLOCK)).toEqual(value);
-    // An array matches only an array of the same length.
     expect(planned.warnings).toMatchObject(
       warning === undefined ? [] : [{ kind: "constant", value: warning }],
     );
@@ -2139,7 +1958,6 @@ it.each([
 it("keeps the Error Value of a warned ordering inside a larger expression", () => {
   const planned = plan('(number("bad") > date("bad")) == null');
   expect(evaluate(planned.root, ARTICLE, CLOCK)).toBe(false);
-  // Only the ordering warns: `== null` compares with a null literal.
   expect(planned.warnings).toEqual([
     expect.objectContaining({
       kind: "constant",

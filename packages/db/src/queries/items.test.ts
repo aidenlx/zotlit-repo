@@ -138,9 +138,6 @@ describe("getItemsByLibrary", () => {
   it("parses dateModified as a UTC instant", () => {
     const [recent, older] = getItemsByLibrary(db, USER_LIBRARY_ID);
 
-    // Fixture timestamps are '2024-07-01 00:00:00' (UTC) and
-    // '2024-02-01 00:00:00' (UTC) — assert via epoch ms to confirm the UTC
-    // interpretation without depending on the runner's local timezone.
     expect(recent?.dateModified.epochMilliseconds).toBe(
       Temporal.Instant.from("2024-07-01T00:00:00Z").epochMilliseconds,
     );
@@ -194,8 +191,6 @@ describe("getItemsByLibrary", () => {
   it("resolves the primary creator type per item type via itemTypeCreatorTypes", () => {
     const [book, journal] = getItemsByLibrary(db, USER_LIBRARY_ID);
 
-    // Both fixture item types (book/journalArticle) have `author` as their
-    // primaryField=1 entry, so the extras subquery should pick it for both.
     expect(book?.primaryCreatorType).toBe("author");
     expect(journal?.primaryCreatorType).toBe("author");
   });
@@ -203,8 +198,6 @@ describe("getItemsByLibrary", () => {
   it("resolves itemType via the extras subquery to the typeName string", () => {
     const result = getItemsByLibrary(db, USER_LIBRARY_ID);
 
-    // Scalar correlated subquery — each row.itemType must be the raw
-    // typeName string, not an array/object from a non-scalar select.
     for (const item of result) {
       expect(typeof item.fields.itemType).toBe("string");
     }
@@ -215,18 +208,12 @@ describe("getItemsByLibrary", () => {
   });
 
   it("reuses the prepared statement across libraryID values", () => {
-    // Regression: the prepared-statement cache previously baked in the
-    // first caller's libraryID as a literal, so subsequent calls with a
-    // different libraryID silently returned the original library's rows.
-    // sql.placeholder("libraryID") makes the cached statement parametric.
     const lib1 = getItemsByLibrary(db, USER_LIBRARY_ID);
     const lib2 = getItemsByLibrary(db, 2);
 
     expect(lib1.map((item) => item.key)).toEqual(["USER2", "USER1"]);
     expect(lib2.map((item) => item.key)).toEqual(["GRP1"]);
 
-    // Calling lib 1 again after lib 2 must still return lib 1's rows —
-    // proves the placeholder rebinds per call rather than being frozen.
     expect(
       getItemsByLibrary(db, USER_LIBRARY_ID).map((item) => item.key),
     ).toEqual(["USER2", "USER1"]);
@@ -255,8 +242,6 @@ describe("getItemsByID", () => {
     const result = getItemsByID(db, [1, 6, 2, 3, 7]);
     const byID = new Map(result.map((item) => [item.itemID, item]));
 
-    // Item 7 lives in a group library; with no caller-supplied scope it is
-    // included alongside the user-library items in a single batch.
     expect([...byID.keys()].sort((a, b) => a - b)).toEqual([1, 6, 7]);
     expect(byID.get(1)).toMatchObject({
       key: "USER1",
@@ -268,8 +253,8 @@ describe("getItemsByID", () => {
       libraryID: USER_LIBRARY_ID,
       fields: { itemType: "book" },
     });
-    expect(byID.has(2)).toBe(false); // deleted
-    expect(byID.has(3)).toBe(false); // attachment (child) item type
+    expect(byID.has(2)).toBe(false);
+    expect(byID.has(3)).toBe(false);
   });
 
   it("resolves each row's groupID from its own library within one batch", () => {
@@ -277,13 +262,10 @@ describe("getItemsByID", () => {
       getItemsByID(db, [1, 7]).map((item) => [item.itemID, item]),
     );
 
-    // User-library item: bare key, no group suffix.
     expect(byID.get(1)).toMatchObject({
       libraryID: USER_LIBRARY_ID,
       indexedKey: "USER1",
     });
-    // Group-library item in the same call: key + 'g' + groupID, proving the
-    // per-library memo does not smear one library's group across all rows.
     expect(byID.get(7)).toMatchObject({
       libraryID: 2,
       indexedKey: "GRP1g17",
@@ -312,7 +294,6 @@ describe("getItemsByID", () => {
       return statements() - before;
     };
     cost([1]);
-    // Every id is in the user library, so each read resolves one group.
     expect(cost([1, 6, 2, 3, 999, 6])).toBe(cost([1]));
     const compiled = compiles();
     cost([1, 6, 2, 3, 999, 6]);
