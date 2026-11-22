@@ -39,6 +39,7 @@
 import type { DesktopPaint } from "#desktop-paint";
 import type { Admission } from "#desktop-slot";
 import { regex } from "arkregex";
+import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import {
   appendFile,
@@ -48,6 +49,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { promisify, stripVTControlCharacters } from "node:util";
 
 import {
   acquireDesktopSlot,
@@ -59,6 +61,29 @@ import {
 import { landStateDir } from "#land-queue";
 
 const HOUR = 3_600_000;
+
+/**
+ * The evidence of a failed run (the runner's `evidence`): the text of its
+ * log, and the one-line commits of the range, which are then appended to the
+ * log.
+ */
+export const readLandE2eEvidence: LandE2eDeps["evidence"] = async ({
+  run,
+  range,
+}) => {
+  const { logPath, checkout } = run;
+  // Read the log before `git log` writes to it, so its end is the run's.
+  const log = stripVTControlCharacters(await readFile(logPath, "utf8"));
+  const args = ["log", "--oneline", "--no-decorate", "-n", "50", range];
+  const { stdout: commits, stderr } = await promisify(execFile)("git", args, {
+    cwd: checkout,
+  }).catch((error: { stdout?: string; stderr?: string }) => ({
+    stdout: error.stdout ?? "",
+    stderr: error.stderr ?? "",
+  }));
+  await appendFile(logPath, `\n$ git ${args.join(" ")}\n${commits}${stderr}`);
+  return { commits, log };
+};
 
 /** How long a runner waits behind the run before it. */
 export const LAND_E2E_WAIT_MS = 3 * HOUR;

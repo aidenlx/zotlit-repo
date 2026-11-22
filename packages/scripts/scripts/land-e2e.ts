@@ -14,13 +14,12 @@ import type {
 } from "#land-e2e";
 import { spawn } from "node:child_process";
 import { createWriteStream, existsSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { stripVTControlCharacters } from "node:util";
 
 import { readDesktopPaint } from "#desktop-paint";
 import { EXIT_ADMISSION_BLOCKED, EXIT_LEASE_ENDED } from "#desktop-slot";
-import { landE2eDir, runLandE2e } from "#land-e2e";
+import { landE2eDir, readLandE2eEvidence, runLandE2e } from "#land-e2e";
 
 /** How long `pnpm e2e` waits for its Desktop Slot. */
 const DESKTOP_WAIT = "1h";
@@ -187,19 +186,6 @@ async function run({
   }
 }
 
-const evidence: LandE2eDeps["evidence"] = async ({ run, range }) => {
-  const { logPath, checkout } = run;
-  // Read the log before `git log` writes to it, so its end is the run's.
-  const log = stripVTControlCharacters(await readFile(logPath, "utf8"));
-  const sink = createWriteStream(logPath, { flags: "a" });
-  const commits = await command(sink, {
-    cwd: checkout,
-    argv: ["git", "log", "--oneline", "--no-decorate", "-n", "50", range],
-  });
-  await new Promise((resolve) => sink.end(resolve));
-  return { commits: commits.stdout, log };
-};
-
 /** Run `gh` in the state directory; its output goes to the runner's log. */
 async function gh(...args: [string, ...string[]]): Promise<string> {
   const { code, stdout } = await command(process.stderr, {
@@ -265,4 +251,9 @@ const issues: LandE2eDeps["issues"] = {
   },
 };
 
-await runLandE2e({ run, evidence, issues, paint: readDesktopPaint });
+await runLandE2e({
+  run,
+  evidence: readLandE2eEvidence,
+  issues,
+  paint: readDesktopPaint,
+});

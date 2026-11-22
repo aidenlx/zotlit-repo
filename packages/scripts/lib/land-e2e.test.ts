@@ -1,12 +1,14 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { DesktopPaint } from "./desktop-paint.ts";
 import {
   E2E_ISSUE_TITLE,
   githubRepository,
+  readLandE2eEvidence,
   readLandE2eRecords,
   requestLandE2e,
   runLandE2e,
@@ -322,6 +324,48 @@ describe("the End-to-end Run after a land on a desktop that cannot paint", () =>
         },
       },
     ]);
+  });
+});
+
+// The excerpt of the issue is the end of the log, so the log must be read
+// before the commit list of the range is appended to it.
+describe("the evidence of a failed run", () => {
+  it("takes the log as the run left it, then appends the commits of the range", async () => {
+    const repos = await makeGitRepos();
+    try {
+      const checkout = await repos.clone("checkout");
+      await repos.commit(checkout, "a.txt", {
+        text: "a\n",
+        message: "the subject of the landed commit",
+      });
+      const logPath = join(dir, "run.log");
+      await writeFile(logPath, " FAIL  src/a.e2e.ts > a case\n");
+
+      const { commits, log } = await readLandE2eEvidence({
+        run: {
+          request: {
+            commit: "HEAD",
+            previous: "",
+            repository: checkout,
+            issueRepository: undefined,
+            requestedAt: Temporal.Now.instant().toString(),
+          },
+          logPath,
+          checkout,
+          progress: () => {},
+          leaseEnded: new AbortController().signal,
+        },
+        range: "HEAD~1..HEAD",
+      });
+
+      expect(log).toBe(" FAIL  src/a.e2e.ts > a case\n");
+      expect(commits).toContain("the subject of the landed commit");
+      expect(await readFile(logPath, "utf8")).toContain(
+        "the subject of the landed commit",
+      );
+    } finally {
+      await repos.dispose();
+    }
   });
 });
 
