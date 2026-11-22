@@ -170,10 +170,14 @@ export interface LandGitHub {
     pull: { title: string; body: string },
   ) => Promise<void>;
   pullRequestState: (number: number) => Promise<"OPEN" | "CLOSED" | "MERGED">;
-  /** The newest check named `name` of `commit`, if GitHub shows one. */
+  /**
+   * The newest check named `name` of `commit` that the record PR's workflow
+   * ran for `branch` of this repository, if GitHub shows one.
+   */
   readCheck: (query: {
     commit: string;
     name: string;
+    branch: string;
   }) => Promise<CiCheck | undefined>;
 }
 
@@ -462,6 +466,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
         await step("ci", () =>
           waitForCi(github, {
             commit: head,
+            branch: pre.branch,
             waitMs: options.ciWaitMs ?? LAND_CI_WAIT_MS,
             pollMs: options.ciPollMs ?? LAND_CI_POLL_MS,
             say,
@@ -727,6 +732,8 @@ async function waitForCi(
   github: LandGitHub,
   options: {
     commit: string;
+    /** The head branch of the record PR. */
+    branch: string;
     waitMs: number;
     pollMs: number;
     say: (line: string) => void;
@@ -735,7 +742,7 @@ async function waitForCi(
     runs: LandCiRun[];
   },
 ): Promise<void> {
-  const { commit, say } = options;
+  const { commit, branch, say } = options;
   const name = LAND_CI_CHECK;
   const short = commit.slice(0, 12);
   const started = Temporal.Now.instant().epochMilliseconds;
@@ -744,7 +751,7 @@ async function waitForCi(
     if (reason) throw leaseEnded(reason);
     let check: CiCheck | undefined;
     try {
-      check = await github.readCheck({ commit, name });
+      check = await github.readCheck({ commit, name, branch });
     } catch (error) {
       throw new LandFailure(
         "ci",
