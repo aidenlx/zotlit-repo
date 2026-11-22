@@ -6,8 +6,14 @@ import { describe, expect, it } from "vitest";
 import type { ReferencesView } from "@zotlit/citations/desktop/references/view.tsx";
 import type { CitedByView } from "@zotlit/citations/obsidian/cited-by/view.tsx";
 
-import { annotationItem, e2eFixture, reachable } from "./e2e-run-fixture.ts";
+import {
+  annotationItem,
+  e2eFixture,
+  positionDocumentItem,
+  reachable,
+} from "./e2e-run-fixture.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";
+import { EFFECT_MODULE_PATH } from "./effect-module.ts";
 import { obRun } from "./obsidian-cli.ts";
 
 describe.skipIf(!reachable)("Citation layout", () => {
@@ -218,5 +224,144 @@ describe.skipIf(!reachable)("Citation layout", () => {
       hovered: "1",
       expanded: true,
     });
+  });
+
+  it("draws a muted Cited By status while indexing and uses the error color when a preview fails", async () => {
+    const m = await import("@zotlit/plugin-messages/messages.ts");
+    const drawing = await obRun(
+      run.vaultId,
+      async (
+        { app, page, zotlit },
+        { citekey, indexedKey, indexingText, errorText, effectModulePath },
+      ) => {
+        await using cleanup = new AsyncDisposableStack();
+        const { Stream } = require(
+          effectModulePath,
+        ) as typeof import("@zotlit/plugin-kernel/effect.ts");
+        const { bridge, citationIndex } = zotlit.services;
+        const literature = cleanup.adopt(
+          await app.vault.create(
+            "Status literature.md",
+            `---\nzotero-key: ${indexedKey}\n---\n`,
+          ),
+          (file) => app.vault.delete(file),
+        );
+        const source = cleanup.adopt(
+          await app.vault.create(
+            "Status source.md",
+            `This note cites [@${citekey}].`,
+          ),
+          (file) => app.vault.delete(file),
+        );
+        await page.until(
+          "the index to include the citing note",
+          async () =>
+            (
+              await bridge.runPromise(citationIndex.getCitedBy(indexedKey))
+            ).groups.some((group) => group.path === source.path),
+          15_000,
+        );
+
+        const citedBy = citationIndex.citedBy;
+        citationIndex.citedBy = (key) =>
+          citedBy(key).pipe(
+            Stream.map((snapshot) =>
+              key === indexedKey
+                ? { ...snapshot, coverage: "indexing" as const }
+                : snapshot,
+            ),
+          );
+        cleanup.defer(() => {
+          citationIndex.citedBy = citedBy;
+        });
+        const ownCachedRead = Object.getOwnPropertyDescriptor(
+          app.vault,
+          "cachedRead",
+        );
+        const cachedRead = app.vault.cachedRead.bind(app.vault);
+        app.vault.cachedRead = (file) =>
+          file === source
+            ? Promise.reject(new Error("Preview source cannot be read"))
+            : cachedRead(file);
+        cleanup.defer(() => {
+          if (ownCachedRead)
+            Object.defineProperty(app.vault, "cachedRead", ownCachedRead);
+          else Reflect.deleteProperty(app.vault, "cachedRead");
+        });
+
+        const leaf = cleanup.adopt(app.workspace.getLeaf("tab"), (leaf) =>
+          leaf.detach(),
+        );
+        await page.until(
+          "the literature note metadata",
+          () =>
+            app.metadataCache.getFileCache(literature)?.frontmatter?.[
+              "zotero-key"
+            ] === indexedKey,
+        );
+        await leaf.openFile(literature);
+        const sidebar = cleanup.adopt(
+          app.workspace.getRightLeaf(false)!,
+          (leaf) => leaf.detach(),
+        );
+        await sidebar.setViewState({ type: "zotlit-cited-by" });
+        await app.workspace.revealLeaf(sidebar);
+        app.workspace.setActiveLeaf(leaf, { focus: true });
+        const content = (sidebar.view as CitedByView).contentEl;
+        const status = await page.until(
+          "the Cited By indexing status",
+          () => {
+            const strip = content.querySelector<HTMLElement>('[role="status"]');
+            const message = [...(strip?.children ?? [])].find(
+              (element) => element.textContent === indexingText,
+            );
+            return strip && message ? { strip, message } : null;
+          },
+          15_000,
+        );
+        const warning = await page.until(
+          "the citing note's preview error",
+          () => {
+            const group = content
+              .querySelector(`[data-source="${source.path}"]`)
+              ?.closest("li");
+            return [...(group?.querySelectorAll("span") ?? [])].find(
+              (element) => element.textContent === errorText,
+            );
+          },
+          15_000,
+        );
+
+        const probe = content.ownerDocument.createElement("span");
+        probe.style.backgroundColor = "var(--background-modifier-hover)";
+        probe.style.color = "var(--text-normal)";
+        content.append(probe);
+        cleanup.defer(() => probe.remove());
+        const mutedBackground = getComputedStyle(probe).backgroundColor;
+        const normalColor = getComputedStyle(probe).color;
+        probe.style.color = "var(--text-error)";
+        return {
+          mutedBackground,
+          normalColor,
+          errorColor: getComputedStyle(probe).color,
+          statusBackground: getComputedStyle(status.strip).backgroundColor,
+          statusColor: getComputedStyle(status.message).color,
+          previewColor: getComputedStyle(warning).color,
+        };
+      },
+      {
+        citekey: positionDocumentItem.citationKey,
+        indexedKey: positionDocumentItem.key,
+        indexingText: m.cited_by_indexing(),
+        errorText: m.cited_by_preview_unavailable(),
+        effectModulePath: EFFECT_MODULE_PATH,
+      },
+      { timeoutMs: 60_000 },
+    );
+    expect(drawing.mutedBackground).not.toBe("rgba(0, 0, 0, 0)");
+    expect(drawing.errorColor).not.toBe(drawing.normalColor);
+    expect(drawing.statusBackground).toBe(drawing.mutedBackground);
+    expect(drawing.statusColor).toBe(drawing.normalColor);
+    expect(drawing.previewColor).toBe(drawing.errorColor);
   });
 });
