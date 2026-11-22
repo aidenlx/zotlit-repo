@@ -23,6 +23,7 @@ const HOST_VAULT = "0123456789abcdef";
 
 export default async function setup() {
   if (!process.env.ZOTLIT_RUN_CONTAINER) return;
+  if (process.env.ZOTLIT_E2E_OBSIDIAN_READY) return;
   const root = await getWorkspaceRoot(import.meta.dirname);
   const profile = join(process.env.XDG_CONFIG_HOME!, "obsidian");
   const vault = join(profile, "bootstrap-vault");
@@ -83,6 +84,7 @@ export default async function setup() {
       `code=localStorage.setItem("most-recently-installed-version", ${JSON.stringify(OBSIDIAN_VERSION)});localStorage.setItem("enable-plugin-${HOST_VAULT}", "true");true`,
     ]);
     await checkPaint(root);
+    process.env.ZOTLIT_E2E_OBSIDIAN_READY = "1";
   } catch (cause) {
     throw new Error(`Obsidian setup failed. See ${log}`, { cause });
   }

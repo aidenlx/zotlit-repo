@@ -10,7 +10,6 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
-    globalSetup: ["./src/container-obsidian.ts"],
     projects: [
       {
         extends: true,
@@ -18,7 +17,10 @@ export default defineConfig({
           name: "desktop",
           include: ["src/**/*.e2e.ts"],
           exclude: ["src/paired-run.e2e.ts"],
-          globalSetup: ["./src/desktop-slot-setup.ts"],
+          globalSetup: [
+            "./src/container-obsidian.ts",
+            "./src/desktop-slot-setup.ts",
+          ],
         },
       },
       {
@@ -26,7 +28,11 @@ export default defineConfig({
         test: {
           name: "paired",
           include: ["src/paired-run.e2e.ts"],
-          globalSetup: ["./src/desktop-slot-setup.ts", "./src/paired-setup.ts"],
+          globalSetup: [
+            "./src/container-obsidian.ts",
+            "./src/desktop-slot-setup.ts",
+            "./src/paired-setup.ts",
+          ],
         },
       },
     ],
