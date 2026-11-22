@@ -15,11 +15,8 @@ import { dirname, join } from "node:path";
 import type {
   App,
   EventRef,
-  FileSystemAdapter,
   HoverParent,
   LinkCache,
-  TFile,
-  Vault,
   Workspace,
   WorkspaceLeaf,
 } from "obsidian";
@@ -31,6 +28,7 @@ import { createObsidianHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-h
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { layerUnreadViewServices } from "@/services/__fixtures__/view-atoms.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
@@ -655,14 +653,8 @@ function exportAdapter({
   profileSettings: () => Settings;
 }): PandocExportDeps {
   return {
-    app: stubService<App>("App", {
-      vault: stubService<Vault>("Vault", {
-        adapter: stubService<FileSystemAdapter>("FileSystemAdapter", {
-          getBasePath: () => dataDir,
-        }),
-        cachedRead: (file: TFile) => harness.vault.cachedRead(file),
-      }),
-    }),
+    app: stubService<App>("App", {}),
+    vault: { basePath: dataDir, vaultName: "Test Vault" },
     bridge: settings.bridge,
     context: Context.make(
       ZoteroPref,
@@ -688,6 +680,12 @@ function exportAdapter({
         Effect.runSync(FileSystem.FileSystem.pipe(Effect.provide(NodeFileSystem.layer))),
       ),
       Context.add(Notifier, notifier),
+      Context.add(
+        Vault,
+        stubService<Vault["Service"]>("Vault", {
+          cachedRead: (file) => Effect.promise(() => harness.vault.cachedRead(file)),
+        }),
+      ),
       Context.add(
         MetadataCache,
         stubService<MetadataCache["Service"]>("MetadataCache", {

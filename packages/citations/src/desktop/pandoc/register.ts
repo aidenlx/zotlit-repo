@@ -7,7 +7,7 @@ import type {
 import { Effect, FileSystem, Layer } from "effect";
 import { isAbsolute, relative } from "node:path";
 import { normalizePath } from "obsidian";
-import type { App, CliData, CliFlag, CliFlags, TFile } from "obsidian";
+import type { CliData, CliFlag, CliFlags, TFile } from "obsidian";
 
 import type { VersionedCliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import {
@@ -23,6 +23,7 @@ import {
 import type { CliParamName } from "@zotlit/obsidian-kit/cli-params.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
@@ -63,7 +64,7 @@ export { CSL_COMMAND };
 
 export interface PandocResolveDeps {
   fileSystem: FileSystem.FileSystem;
-  app: App;
+  vault: Pick<Vault["Service"], "getFileByPath">;
   metadata: Pick<MetadataCache["Service"], "fileCache" | "firstLinkpathDest">;
   basePath: string;
   reads: Pick<ZoteroReads["Service"], "current" | "reads">;
@@ -81,6 +82,7 @@ export const layerPandocResolve: Layer.Layer<
   | PluginHost
   | ObsidianEnv
   | MetadataCache
+  | Vault
   | ZoteroReads
   | ZoteroPref
   | PluginSettings
@@ -91,7 +93,7 @@ export const layerPandocResolve: Layer.Layer<
     yield* reapCslStore().pipe(Effect.forkScoped);
     const host = yield* PluginHost;
     registerPandocResolve(host, {
-      app: host.app,
+      vault: yield* Vault,
       metadata: yield* MetadataCache,
       basePath: (yield* ObsidianEnv).basePath,
       fileSystem: yield* FileSystem.FileSystem,
@@ -236,7 +238,7 @@ export function registerPandocResolve(
               readStyle: (absolutePath) =>
                 readDocumentStyle(
                   {
-                    app: deps.app,
+                    vault: deps.vault,
                     metadata: deps.metadata,
                     basePath: deps.basePath,
                     settings,
@@ -267,7 +269,7 @@ export function registerPandocResolve(
 
 const readDocumentStyle = Effect.fn("PandocCli.readDocumentStyle")(function* (
   {
-    app,
+    vault,
     metadata,
     basePath,
     settings,
@@ -275,7 +277,7 @@ const readDocumentStyle = Effect.fn("PandocCli.readDocumentStyle")(function* (
     profiles,
   }: {
     metadata: Pick<MetadataCache["Service"], "fileCache">;
-    app: App;
+    vault: Pick<Vault["Service"], "getFileByPath">;
     basePath: string;
     settings: Readonly<Settings>;
     profile: ProfileStyleReader;
@@ -283,7 +285,7 @@ const readDocumentStyle = Effect.fn("PandocCli.readDocumentStyle")(function* (
   },
   absolutePath: string,
 ): Effect.fn.Return<DocumentStyleRead> {
-  const file = vaultFile(app, basePath, absolutePath);
+  const file = yield* vaultFile(vault, basePath, absolutePath);
   if (!file) return { kind: "file-not-found" };
   const cache = yield* metadata.fileCache(file);
   const declared = documentPresentation(
@@ -301,13 +303,13 @@ const readDocumentStyle = Effect.fn("PandocCli.readDocumentStyle")(function* (
 
 const readDocument = Effect.fn("PandocCli.readDocument")(function* (
   {
-    app,
+    vault,
     basePath,
     metadata,
-  }: Pick<PandocResolveDeps, "app" | "basePath" | "metadata">,
+  }: Pick<PandocResolveDeps, "vault" | "basePath" | "metadata">,
   absolutePath: string,
 ): Effect.fn.Return<ResolveDocument | null> {
-  const file = vaultFile(app, basePath, absolutePath);
+  const file = yield* vaultFile(vault, basePath, absolutePath);
   if (!file) return null;
   return {
     sourcePath: file.path,
@@ -316,14 +318,12 @@ const readDocument = Effect.fn("PandocCli.readDocument")(function* (
 });
 
 function vaultFile(
-  app: App,
+  vault: PandocResolveDeps["vault"],
   basePath: string,
   absolutePath: string,
-): TFile | null {
-  if (!isAbsolute(absolutePath)) return null;
-  return app.vault.getFileByPath(
-    normalizePath(relative(basePath, absolutePath)),
-  );
+): Effect.Effect<TFile | null> {
+  if (!isAbsolute(absolutePath)) return Effect.succeed(null);
+  return vault.getFileByPath(normalizePath(relative(basePath, absolutePath)));
 }
 
 const readItems = Effect.fn("PandocCli.readItems")(function* (

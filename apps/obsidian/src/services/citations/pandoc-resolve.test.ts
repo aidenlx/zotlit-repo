@@ -7,7 +7,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { TFile } from "obsidian";
-import type { App, FileSystemAdapter, MetadataCache, Vault } from "obsidian";
+import type { MetadataCache } from "obsidian";
 import { describe, expect, vi } from "vitest";
 
 import { runFileEffect } from "@zotlit/citations/__fixtures__/pandoc/file-effects.ts";
@@ -103,15 +103,9 @@ async function cslVault({
             ),
         })
       : fs,
-    app: stubService<App>("App", {
-      vault: stubService<Vault>("Vault", {
-        adapter: stubService<FileSystemAdapter>("FileSystemAdapter", {
-          getBasePath: () => "/vault",
-        }),
-        getFileByPath: (path: string) => (path === file.path ? file : null),
-      }),
-      metadataCache,
-    }),
+    vault: {
+      getFileByPath: (path) => Effect.succeed(path === file.path ? file : null),
+    },
     metadata: {
       fileCache: (file) => Effect.sync(() => metadataCache.getFileCache(file)),
       firstLinkpathDest: () => Effect.succeed(null),

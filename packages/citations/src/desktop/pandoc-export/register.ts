@@ -5,14 +5,16 @@ import type { CitationEngine } from "#obsidian/pandoc/engine.ts";
 import { Cause, Effect, FileSystem, Schema } from "effect";
 import type { Context } from "effect";
 import { basename, join } from "node:path";
-import type { App, FileSystemAdapter, Plugin, TFile } from "obsidian";
+import type { App, Plugin, TFile } from "obsidian";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { requestProfileSwitch } from "@zotlit/obsidian-kit/profile-recovery.ts";
@@ -62,12 +64,14 @@ export type PandocExportServices =
   | PluginHost
   | PluginSettings
   | ProfileStyles
+  | Vault
   | ZoteroHttp
   | ZoteroPref
   | ZoteroReads;
 
 export interface PandocExportDeps {
   app: App;
+  vault: Pick<ObsidianEnv["Service"], "basePath" | "vaultName">;
   bridge: Pick<EffectBridge, "runSync" | "runPromiseExit">;
   context: Context.Context<PandocExportServices>;
 }
@@ -180,6 +184,7 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
   const zoteroPref = yield* ZoteroPref;
   const citationLookup = yield* CitationLookup;
   const db = yield* ZoteroReads;
+  const vault = yield* Vault;
   const pref = yield* zoteroPref.current;
   const refusal = engineRefusal(yield* pandocEngine.current);
   if (refusal)
@@ -232,7 +237,8 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
         bridge,
         referencesStyleId: effective.styleId,
         styleSource: styleSourceOf(declared),
-        notePath: absolutePath(app, file),
+        notePath: join(deps.vault.basePath, file.path),
+        vault: deps.vault,
       },
       resolve,
     ),
@@ -269,9 +275,7 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
           return { missing: borrowed.failure.status };
         const engine = borrowed.success;
         if (!engine) return yield* Effect.interrupt;
-        const markdown = yield* Effect.promise(() =>
-          app.vault.cachedRead(file),
-        );
+        const markdown = yield* vault.cachedRead(file);
         const localApiEnabled =
           (yield* zoteroPref.get(LOCAL_API_PREF)) === true;
         return yield* exportCitedDocument(
@@ -405,11 +409,4 @@ function placeItem(
       : libraries.find((library) => library.groupID === groupID)?.libraryID;
   if (libraryID === undefined) return null;
   return { itemKey, libraryID, groupID };
-}
-
-function absolutePath(app: App, file: TFile): string {
-  return join(
-    (app.vault.adapter as FileSystemAdapter).getBasePath(),
-    file.path,
-  );
 }

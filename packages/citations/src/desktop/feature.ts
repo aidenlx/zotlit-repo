@@ -3,6 +3,7 @@ import { Effect, FileSystem } from "effect";
 import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
@@ -112,6 +113,7 @@ export const citations = extendFeature(obsidianCitations, {
     const workspace = read(Workspace);
     registerPandocExport(plugin, {
       app,
+      vault: read(ObsidianEnv),
       workspace,
       context: read(Effect.context<PandocExportServices>()),
       bridge,

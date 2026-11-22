@@ -11,7 +11,7 @@ import { mkdtemp, readdir, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { TFile } from "obsidian";
-import type { App, Command, FileSystemAdapter, Plugin } from "obsidian";
+import type { App, Command, Plugin } from "obsidian";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { nodeFileSystem } from "@zotlit/citations/__fixtures__/pandoc/file-effects.ts";
@@ -45,6 +45,7 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -164,16 +165,6 @@ function openVault({
     },
   };
 
-  const app = stubService<App>("App", {
-    vault: stubService<App["vault"]>("Vault", {
-      adapter: stubService<FileSystemAdapter>("FileSystemAdapter", {
-        getBasePath: () => basePath,
-      }),
-      getName: () => "Research",
-      cachedRead: () => Promise.resolve("[[Doe 2020]]\n"),
-    }),
-  });
-
   const reader = profileReader(resolvedSettings, {
     getFileCache: () => ({ frontmatter }),
   });
@@ -212,6 +203,12 @@ function openVault({
       }),
     ),
     Context.add(FileSystem.FileSystem, fileSystem),
+    Context.add(
+      Vault,
+      stubService<Vault["Service"]>("Vault", {
+        cachedRead: () => Effect.succeed("[[Doe 2020]]\n"),
+      }),
+    ),
     Context.add(
       MetadataCache,
       stubService<MetadataCache["Service"]>("MetadataCache", {
@@ -274,7 +271,8 @@ function openVault({
     ),
   );
   const deps: PandocExportDeps = {
-    app,
+    app: stubService<App>("App", {}),
+    vault: { basePath, vaultName: "Research" },
     bridge,
     context,
   };

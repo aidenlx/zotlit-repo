@@ -6,9 +6,10 @@ import { Effect } from "effect";
 import { homedir } from "node:os";
 import { extname } from "node:path";
 import { Modal, Setting } from "obsidian";
-import type { App, FileSystemAdapter } from "obsidian";
+import type { App } from "obsidian";
 
 import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
+import type { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import {
   logServices,
   withLogCategory,
@@ -42,6 +43,7 @@ export interface PandocExportModalOptions extends Pick<
   referencesStyleId: string | null;
   styleSource: StyleSource;
   notePath: string;
+  vault: Pick<ObsidianEnv["Service"], "basePath" | "vaultName">;
 }
 
 export function openPandocExportModal(
@@ -53,6 +55,7 @@ export function openPandocExportModal(
     referencesStyleId,
     styleSource,
     notePath,
+    vault,
   }: PandocExportModalOptions,
   resolve: (choices: PandocExportChoices | null) => void,
 ): Modal {
@@ -116,14 +119,14 @@ export function openPandocExportModal(
     );
   const showDestination = (): void => {
     const location = exportDestinationLocation(destination(), {
-      vaultPath: (app.vault.adapter as FileSystemAdapter).getBasePath(),
+      vaultPath: vault.basePath,
       homePath: homedir(),
     });
     destinationSetting.setDesc(
       location.kind === "vault"
         ? m.pandoc_export_destination_in_vault({
             path: location.path,
-            vault: app.vault.getName(),
+            vault: vault.vaultName,
           })
         : location.path,
     );
