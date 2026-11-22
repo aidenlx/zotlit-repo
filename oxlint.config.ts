@@ -54,10 +54,6 @@ export default defineConfig({
       rules: { "zotlit-tests/no-class-assertion": "off" },
     },
     {
-      files: ["packages/e2e/src/walkthrough.e2e.ts"],
-      rules: { "zotlit-tests/no-class-assertion": "off" },
-    },
-    {
       files: ["scripts/**"],
       rules: {
         "no-restricted-imports": ["error", { patterns: [datePattern] }],

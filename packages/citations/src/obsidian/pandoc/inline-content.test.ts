@@ -73,14 +73,13 @@ describe("InlineContent element vocabulary", () => {
     expect(container.innerHTML).toBe(`<${tag}>title</${tag}>`);
   });
 
-  it("renders small caps as a span that asks for them", () => {
+  it("preserves the text of a small-caps inline", () => {
     const container = attached({
       nodes: [{ t: "SmallCaps", c: [str("ii")] }],
     });
 
     const rendered = container.querySelector("span")!;
     expect(rendered.textContent).toBe("ii");
-    expect(rendered.classList).toContain("zt:[font-variant:small-caps]");
   });
 
   it("renders a quotation as its quote characters, in no element", () => {

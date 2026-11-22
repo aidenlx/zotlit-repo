@@ -127,13 +127,6 @@ export default defineConfig({
       files: ["src/desktop/template/migration.ts"],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
-    {
-      files: [
-        "src/desktop/profile/create-profile-modal.test.ts",
-        "src/obsidian/profile/profile-destination-modal.test.ts",
-      ],
-      rules: { "zotlit-tests/no-class-assertion": "off" },
-    },
     ...testBaselineOverrides("packages/notes"),
   ],
 });

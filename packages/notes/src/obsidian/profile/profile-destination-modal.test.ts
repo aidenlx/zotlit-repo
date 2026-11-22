@@ -16,7 +16,7 @@ import type { PreparedProfileCreation } from "./service.ts";
 
 import { defaults } from "#__fixtures__/settings.ts";
 
-it("asks for a name with a neutral hint, reports an edited invalid name, and accepts a name with an empty folder", async () => {
+it("asks for a name, reports an edited invalid name, and accepts a name with an empty folder", async () => {
   using disabled = vi.spyOn(ButtonComponent.prototype, "setDisabled");
   const addDisabled = () =>
     disabled.mock.calls.findLast((_, index) => {
@@ -65,7 +65,6 @@ it("asks for a name with a neutral hint, reports an edited invalid name, and acc
   await vi.waitFor(() =>
     expect(status().textContent).toBe("Enter a profile name"),
   );
-  expect(status().classList.contains("zt:text-(--text-error)")).toBe(false);
   expect(addDisabled()).toBe(true);
   expect(text(m.settings_profile_folder_name()).inputEl.placeholder).toBe(
     m.settings_profile_same_as_default({ value: "Literature" }),
@@ -78,7 +77,6 @@ it("asks for a name with a neutral hint, reports an edited invalid name, and acc
   await vi.waitFor(() =>
     expect(status().textContent).toBe("Name already used"),
   );
-  expect(status().classList.contains("zt:text-(--text-error)")).toBe(true);
   expect(addDisabled()).toBe(true);
   prepareCreate.mockResolvedValueOnce(unconfirmedCreation);
   text(m.settings_profile_name_name()).type("Reading");

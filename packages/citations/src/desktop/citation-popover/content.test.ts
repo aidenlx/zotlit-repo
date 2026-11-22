@@ -257,7 +257,7 @@ describe("CitationPopoverContent", () => {
     expect(block!.textContent).toBe(
       m.references_citekey_pending({ citekey: "doe2024" }),
     );
-    expect(block!.querySelector(".zt\\:text-destructive")).toBeNull();
+    expect(iconsOf(block!)).toEqual([]);
   });
 
   it("explains an ambiguous citekey by the candidates it names", async () => {

@@ -173,17 +173,6 @@ export default defineConfig({
       },
     },
     {
-      files: [
-        "src/desktop/citation-popover/content.test.ts",
-        "src/obsidian/citekey-navigation/citation.test.ts",
-        "src/obsidian/pandoc/inline-content.test.ts",
-        "src/obsidian/cited-by/CitedBy.test.ts",
-        "src/desktop/references/References.test.ts",
-        "src/desktop/references/view.test.ts",
-      ],
-      rules: { "zotlit-tests/no-class-assertion": "off" },
-    },
-    {
       files: ["src/obsidian/references/copied-bibliography.ts"],
       rules: { "obsidianmd/no-static-styles-assignment": "off" },
     },

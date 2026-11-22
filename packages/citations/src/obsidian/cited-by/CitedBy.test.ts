@@ -476,8 +476,8 @@ describe("CitedBy", () => {
     });
     expect(container.textContent).toContain("Indexing citations…");
     expect(container.textContent).toContain("draft");
-    expect(container.querySelector('[role="status"]')?.classList).toContain(
-      "zt:bg-muted",
+    expect(container.querySelector('[role="status"]')?.textContent).toContain(
+      "Indexing citations…",
     );
     expect(container.querySelector("[data-cited-by-empty]")).toBeNull();
   });
@@ -695,10 +695,9 @@ describe("CitedBy", () => {
     });
     expect(container.textContent).toContain("draft");
     expect(container.textContent).toContain("Preview unavailable");
-    const warning = container.querySelector(
-      '[class~="zt:text-(--text-error)"]',
-    );
-    expect(warning?.textContent).toContain("Preview unavailable");
+    expect(
+      container.querySelector("[data-source]")?.getAttribute("aria-label"),
+    ).toBe(m.cited_by_open_source());
   });
 
   it("highlights the citation inside its surrounding context", async () => {
@@ -1175,9 +1174,11 @@ describe("CitedBy", () => {
     const chevron = container.querySelector(
       '[data-cited-by-expand="after"]',
     ) as HTMLElement;
-    expect(chevron.classList).toContain("zt:opacity-0");
-    expect(chevron.classList).toContain("zt:group-hover:opacity-100");
-    expect(chevron.classList).toContain("zt:group-focus-within:opacity-100");
+    expect(chevron.getAttribute("role")).toBe("button");
+    expect(chevron.tabIndex).toBe(0);
+    expect(chevron.getAttribute("aria-label")).toBe(
+      m.cited_by_show_context_below(),
+    );
 
     await expandContext(container, "after");
     expect(card()?.textContent).toBe(

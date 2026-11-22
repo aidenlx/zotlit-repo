@@ -741,6 +741,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           await measure(editor.cm);
           const element =
             view.contentEl.querySelector<HTMLElement>(".zt-citation");
+          const drawingCursor = getComputedStyle(element!).cursor;
           const box = element!.getBoundingClientRect();
           const start = {
             x: box.x + box.width / 2,
@@ -772,6 +773,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           });
           await measure(editor.cm);
           return {
+            drawingCursor,
             cursor: editor.getCursor(),
             selection: editor.getSelection(),
             source: editor.getValue(),
@@ -787,6 +789,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       },
       undefined,
     );
+    expect(result.plain.drawingCursor).toBe("text");
     expect(result.plain.cursor.line).toBe(0);
     expect(result.plain.cursor.ch).toBeGreaterThan(source.indexOf("["));
     expect(result.plain.cursor.ch).toBeLessThan(source.indexOf("]") + 1);
@@ -1969,7 +1972,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       await obRun(
         vaultId,
         async ({ zotlit, page }) => {
-          return Array.from(
+          const paragraphs = Array.from(
             page
               .previewPanel(
                 page
@@ -1983,11 +1986,17 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
                   )?.view,
               )!
               .querySelectorAll<HTMLElement>(".callout p"),
-          ).some((p) => p.classList.contains("zt:bg-accent"));
+          );
+          return (
+            paragraphs.length > 0 &&
+            paragraphs.every(
+              (p) => getComputedStyle(p).backgroundColor === "rgba(0, 0, 0, 0)",
+            )
+          );
         },
         undefined,
       ),
-    ).toBe(false);
+    ).toBe(true);
   });
   it("stores a typed property rule and note name that YAML has to quote as the text the reader typed", async () => {
     const m = await import("@zotlit/plugin-messages/messages.ts");
@@ -2608,8 +2617,8 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
         },
         { hint: m.profile_preview_citation_engine_absent() },
         {
-          what: "the preview to suggest the Resource Pack",
-          ready: (value) => value !== null,
+          what: "the preview to suggest the Resource Pack and show a native citation",
+          ready: (value) => value?.citationStaysNative === true,
         },
       ),
     );
@@ -3021,7 +3030,7 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
       await obRun(
         vaultId,
         async (_context, { addProfileLabel }) => {
-          return Array.from(
+          const status = Array.from(
             activeDocument.querySelectorAll<HTMLElement>(".modal"),
           )
             .find(
@@ -3029,12 +3038,18 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
                 el.querySelector<HTMLElement>(".modal-title")?.textContent ===
                 addProfileLabel,
             )!
-            .querySelector<HTMLElement>('p[role="status"]')!
-            .classList.contains("zt:text-(--text-error)");
+            .querySelector<HTMLElement>('p[role="status"]')!;
+          const expected = status.ownerDocument.createElement("span");
+          expected.style.color = "var(--text-muted)";
+          status.append(expected);
+          const muted =
+            getComputedStyle(status).color === getComputedStyle(expected).color;
+          expected.remove();
+          return muted;
         },
         { addProfileLabel: m.settings_profile_add() },
       ),
-    ).toBe(false);
+    ).toBe(true);
 
     expect(
       await obRun(
@@ -3053,6 +3068,46 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
           ).find((el) => el.textContent === addProfileLabel)!.disabled;
         },
         { addProfileLabel: m.settings_profile_add() },
+      ),
+    ).toBe(true);
+    expect(
+      await obRun(
+        vaultId,
+        async ({ page }, { addProfileLabel, profileNameText }) => {
+          const modal = [
+            ...activeDocument.querySelectorAll<HTMLElement>(".modal"),
+          ].find(
+            (el) =>
+              el.querySelector(".modal-title")?.textContent === addProfileLabel,
+          )!;
+          const input = [...modal.querySelectorAll("label")]
+            .find((el) => el.firstChild?.textContent === profileNameText)!
+            .querySelector("input")!;
+          input.value = "Default";
+          input.dispatchEvent(
+            new input.ownerDocument.defaultView!.Event("input", {
+              bubbles: true,
+            }),
+          );
+          const status = modal.querySelector<HTMLElement>('p[role="status"]')!;
+          const expected = status.ownerDocument.createElement("span");
+          expected.style.color = "var(--text-error)";
+          modal.append(expected);
+          try {
+            return await page.until(
+              "the edited invalid name to use the error color",
+              () =>
+                getComputedStyle(status).color ===
+                getComputedStyle(expected).color,
+            );
+          } finally {
+            expected.remove();
+          }
+        },
+        {
+          addProfileLabel: m.settings_profile_add(),
+          profileNameText: m.settings_profile_name_name(),
+        },
       ),
     ).toBe(true);
     await obRun(

@@ -336,15 +336,12 @@ describe("attachClosedCitationGestures", () => {
 });
 
 describe("markCitationClick", () => {
-  it("states what a plain click does, and takes the cursor from it", () => {
+  it("states what a plain click does", () => {
     const element = document.createElement("span");
 
     markCitationClick(element, "edit");
 
     expect(element.dataset.ztClick).toBe("edit");
-    expect(
-      element.classList.contains("zt:data-[zt-click=edit]:cursor-text"),
-    ).toBe(true);
   });
 
   it("leaves the cursor to a stylesheet where the caller asks", () => {

@@ -169,16 +169,14 @@ describe("References", () => {
     );
 
     const list = container.querySelector("ul")!;
-    expect(list.classList).toContain(
-      "zt:grid-cols-[minmax(0,1fr)_max-content]",
-    );
     const rows = [...list.children];
     expect(container.textContent).not.toContain("⚠");
-    expect(
-      [...rows[0]!.querySelectorAll(".zt\\:text-destructive")].some((el) =>
-        el.classList.contains("zt:break-words"),
-      ),
-    ).toBe(true);
+    expect(rows[0]!.textContent).toContain(
+      "notes/aVeryLongCitekeyWithoutBreaks00000000000000000002",
+    );
+    expect(rows[1]!.textContent).toContain(
+      "aVeryLongCitekeyWithoutBreaks00000000000000000003",
+    );
   });
 
   it("reads an unresolved row as a lookup in progress while resolution is pending", async () => {
@@ -239,9 +237,7 @@ describe("References", () => {
     expect(rows[0]!.children[0]!.textContent).toBe("[1]");
     const row = rows[1]!;
     expect(row.children[0]!.textContent).toBe("⚠");
-    expect(row.querySelector(".zt\\:text-foreground")!.textContent).toBe(
-      source.summary,
-    );
+    expect(row.textContent).toContain(source.summary);
     expect(
       [...row.querySelectorAll("[data-icon]")].map((el) =>
         el.getAttribute("data-icon"),
@@ -308,9 +304,6 @@ describe("References", () => {
       { kind: "bibliography", hasEntryMarkers: true, entrySerials: false },
     );
 
-    expect(container.querySelector("ul")!.classList).toContain(
-      "zt:grid-cols-[max-content_minmax(0,1fr)_max-content]",
-    );
     expect(container.querySelector("li")!.children[0]!.textContent).toBe("⚠");
   });
 
@@ -351,9 +344,6 @@ describe("References", () => {
     );
 
     const rows = container.querySelectorAll("li");
-    expect(container.querySelector("ul")!.classList).toContain(
-      "zt:grid-cols-[max-content_minmax(0,1fr)_max-content]",
-    );
     expect([...rows].map((row) => row.children[0]!.textContent)).toEqual([
       "1",
       "2",

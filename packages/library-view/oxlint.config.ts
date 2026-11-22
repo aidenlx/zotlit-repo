@@ -125,10 +125,6 @@ export default defineConfig({
       services: SERVICES,
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
-    {
-      files: ["src/desktop/welcome/Welcome.test.ts"],
-      rules: { "zotlit-tests/no-class-assertion": "off" },
-    },
     ...testBaselineOverrides("packages/library-view"),
   ],
 });

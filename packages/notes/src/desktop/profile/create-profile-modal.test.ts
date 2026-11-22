@@ -98,7 +98,6 @@ it("shows the preview while asking for a name, refuses a colliding label, then e
   modal.onOpen();
   const status = () => modal.contentEl.querySelector('[role="status"]')!;
   await vi.waitFor(() => expect(status().textContent).toBe("ASK_FOR_NAME"));
-  expect(status().classList.contains("zt:text-(--text-error)")).toBe(false);
   expect(saveDisabled()).toBe(true);
   expect(modal.contentEl.textContent).toContain("Reading/Paper-7cx.md");
   expect(modal.contentEl.textContent).toContain("Reading (Bk3Qn7XvT2Lp)");
@@ -116,7 +115,6 @@ it("shows the preview while asking for a name, refuses a colliding label, then e
   await vi.waitFor(() =>
     expect(status().textContent).toBe("REFUSED_INVALID_NAME"),
   );
-  expect(status().classList.contains("zt:text-(--text-error)")).toBe(true);
   expect(saveDisabled()).toBe(true);
   f.prepareCreate.mockResolvedValueOnce(inheritsAll);
   text(m.settings_profile_name_name()).type("Books");
