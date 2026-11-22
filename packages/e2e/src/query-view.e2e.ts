@@ -8,6 +8,7 @@ import { annotationItem, workspaceRoot } from "./e2e-run-fixture.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";
 import { byItem } from "./e2e-run-query-types.ts";
 import type { ItemQueryReport } from "./e2e-run-query-types.ts";
+import { wideWindow } from "./e2e-run-suite-helpers.ts";
 import { readQueryViewUntil, revealQueryView } from "./note-query-view.ts";
 import type { NoteQueryView, QueryViewTarget } from "./note-query-view.ts";
 import { obRun } from "./obsidian-cli.ts";
@@ -773,21 +774,30 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             marks.push(first.querySelector("mark")?.textContent ?? null);
           }
           sampling = false;
-          const near = first.getBoundingClientRect();
+          const placement = () => {
+            const arrow = first
+              .querySelector(".cm-tooltip-arrow")!
+              .getBoundingClientRect();
+            return {
+              anchor: arrow.left + arrow.width / 2,
+              width: first.getBoundingClientRect().width,
+            };
+          };
+          const near = placement();
           view.dispatch({
             changes: { from: 0, to: view.state.doc.length, insert: nested },
             selection: { anchor: nested.lastIndexOf('"') },
           });
           await new Promise((settle) => setTimeout(settle, 200));
-          const far = first.getBoundingClientRect();
+          const far = placement();
           return {
             frames: frames.length,
             replaced: frames.filter((frame) => !frame.same).length,
             places: [...new Set(frames.map((frame) => frame.place))],
             marks: [...new Set(marks)],
             arrow: first.querySelector(".cm-tooltip-arrow") !== null,
-            near: { left: near.left, width: near.width },
-            far: { left: far.left, width: far.width },
+            near,
+            far,
           };
         } finally {
           await pageHelpers.closeToolbarPopover(el, "filter");
@@ -814,7 +824,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     );
     expect(steady.frames).toBeGreaterThan(0);
     expect(steady.places).toHaveLength(1);
-    expect(steady.far.left).toBeGreaterThan(steady.near.left);
+    expect(steady.far.anchor).toBeGreaterThan(steady.near.anchor);
     expect(steady.far.width).toBe(steady.near.width);
     expect(steady).toMatchObject({
       replaced: 0,
@@ -5343,6 +5353,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { layout, queryPath, original },
       );
     });
+    await wideWindow(cleanup);
 
     await obRun(
       run.vaultId,
