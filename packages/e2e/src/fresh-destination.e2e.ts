@@ -101,8 +101,8 @@ describe.skipIf(!reachable)("Fresh destination flow", () => {
     });
     expect(await readFile(join(vaultPath, first.path), "utf-8")).toBe(original);
 
-    const openAdd = async () => {
-      await obRun(
+    const returnToFirstNote = async () => {
+      const main = await obRun(
         vaultId,
         async ({ app, page }, { firstPath }) => {
           const leaf = app.workspace
@@ -114,9 +114,14 @@ describe.skipIf(!reachable)("Fresh destination flow", () => {
             );
           await app.workspace.revealLeaf(leaf!);
           await page.activateLeafWindow(leaf!);
+          return activeWindow === window;
         },
         { firstPath: first.path },
       );
+      expect(main).toBe(true);
+    };
+    const openAdd = async () => {
+      await returnToFirstNote();
       await openProfilesSettings(vaultId, "settings_page_profiles");
       await obRunUntil(
         vaultId,
@@ -281,29 +286,7 @@ describe.skipIf(!reachable)("Fresh destination flow", () => {
       },
     );
 
-    await obRun(
-      vaultId,
-      async ({ app }, { firstPath }) => {
-        const leaf = app.workspace
-          .getLeavesOfType("markdown")
-          .find(
-            (leaf) =>
-              (leaf.view as import("obsidian").FileView).file?.path ===
-              firstPath,
-          );
-        await app.workspace.revealLeaf(leaf!);
-        leaf!.getContainer().focus();
-      },
-      { firstPath: first.path },
-    );
-    await obRunUntil(
-      vaultId,
-      async (_context) => {
-        return activeWindow === window;
-      },
-      undefined,
-      { what: "the main Obsidian window to regain focus" },
-    );
+    await returnToFirstNote();
     await obRun(
       vaultId,
       async ({ app }) => {
