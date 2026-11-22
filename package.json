@@ -65,7 +65,7 @@
     "oxlint": "catalog:",
     "oxlint-tsgolint": "7.0.2006",
     "sharp": "^0.35.2",
-    "turbo": "^2.11.7",
+    "turbo": "^2.11.13",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "typescript-eslint": "^8.65.0"
   },
