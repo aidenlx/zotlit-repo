@@ -19,6 +19,8 @@ tester.run("no-tacit", noTacit, {
     `${effect}effect.pipe(Effect.map((x) => fn(x)))`,
     `${effect}Effect.map(effect, (x) => fn(x))`,
     `${effect}Effect.forEach(items, (item, i) => save(item, i), { concurrency: 2 })`,
+    `${effect}const options = { concurrency: 2 }; Effect.forEach(items, (item) => save(item), options)`,
+    `${effect}const options = { concurrency: 2 }; Effect.forEach((item) => save(item), options)`,
     `${effect}Stream.filter(service.changes, (event) => isReady(event))`,
     `${effect}effect.pipe(Effect.andThen(next))`,
     `${effect}effect.pipe(Effect.tap(log))`,
@@ -58,6 +60,15 @@ tester.run("no-tacit", noTacit, {
       errors: tacit,
     },
     { code: `${effect}Effect.forEach(save, { discard: true })`, errors: tacit },
+    {
+      code: `${effect}const opts = { discard: true }; Effect.forEach(save, opts)`,
+      errors: [{ messageId: "tacit", column: 47, endColumn: 51 }],
+    },
+    {
+      code: `${effect}Effect.forEach(items, save, opts)`,
+      errors: [{ messageId: "tacit", column: 22, endColumn: 26 }],
+    },
+    { code: `${effect}Effect.forEach(items, save)`, errors: tacit },
     {
       code: `${effect}effect.pipe(Effect.catchTag("NotFound", recover))`,
       errors: tacit,

@@ -241,31 +241,29 @@ const CALLBACK_LAST: Readonly<Record<string, ReadonlySet<string>>> = {
   ]),
 };
 
-const OPTIONS_AFTER = new Set([
-  "Effect.acquireRelease",
-  "Effect.filter",
-  "Effect.filterMapEffect",
-  "Effect.forEach",
-  "Effect.partition",
-  "Effect.zipWith",
-  "Stream.bind",
-  "Stream.bindEffect",
-  "Stream.callback",
-  "Stream.flatMap",
-  "Stream.groupBy",
-  "Stream.groupByKey",
-  "Stream.mapAccum",
-  "Stream.mapAccumArray",
-  "Stream.mapAccumArrayEffect",
-  "Stream.mapAccumEffect",
-  "Stream.mapEffect",
-  "Stream.partition",
-  "Stream.partitionEffect",
-  "Stream.switchMap",
-  "Stream.takeUntil",
-  "Stream.takeUntilEffect",
-  "Stream.tap",
-]);
+const DATA_FIRST_CALLBACK: Readonly<Record<string, number>> = {
+  "Effect.filter": 1,
+  "Effect.filterMapEffect": 1,
+  "Effect.forEach": 1,
+  "Effect.partition": 1,
+  "Effect.zipWith": 2,
+  "Stream.bind": 2,
+  "Stream.bindEffect": 2,
+  "Stream.flatMap": 1,
+  "Stream.groupBy": 1,
+  "Stream.groupByKey": 1,
+  "Stream.mapAccum": 2,
+  "Stream.mapAccumArray": 2,
+  "Stream.mapAccumArrayEffect": 2,
+  "Stream.mapAccumEffect": 2,
+  "Stream.mapEffect": 1,
+  "Stream.partition": 1,
+  "Stream.partitionEffect": 1,
+  "Stream.switchMap": 1,
+  "Stream.takeUntil": 1,
+  "Stream.takeUntilEffect": 1,
+  "Stream.tap": 1,
+};
 
 const FUNCTION_MODULE = "Function";
 
@@ -326,11 +324,52 @@ function combinator(
 
 function callbackArgument(
   name: string,
-  args: readonly AstNode[],
+  call: AstNode,
+  context: Parameters<NonNullable<Rule["create"]>>[0],
 ): AstNode | undefined {
-  const last = args.at(-1);
-  if (last?.type === "ObjectExpression" && OPTIONS_AFTER.has(name))
-    return args.at(-2);
+  const args = call.arguments ?? [];
+  if (name === "Effect.acquireRelease") return args[1];
+  if (name === "Stream.callback") return args[0];
+  const index = DATA_FIRST_CALLBACK[name];
+  if (index === undefined) return args.at(-1);
+  if (args.length > index + 1) return args[index];
+  if (args.length <= index) return args[index - 1];
+
+  const last = args[index];
+  const preceding = args[index - 1];
+  if (
+    last?.type === "ObjectExpression" ||
+    preceding?.type === "ArrowFunctionExpression" ||
+    preceding?.type === "FunctionExpression"
+  )
+    return preceding;
+  const parent = call.parent;
+  if (
+    parent?.type === "CallExpression" &&
+    (parent.callee === call ||
+      parent.callee?.property?.name === "pipe" ||
+      (parent.callee?.name === "pipe" && parent.arguments?.[0] !== call))
+  )
+    return preceding;
+  if (last?.type === "Identifier" && typeof last.name === "string") {
+    for (
+      let scope = context.sourceCode.getScope(last as never);
+      scope;
+      scope = scope.upper!
+    ) {
+      const variable = scope.set.get(last.name);
+      if (!variable) continue;
+      if (
+        variable.defs.some(
+          ({ node }) =>
+            node.type === "VariableDeclarator" &&
+            node.init?.type === "ObjectExpression",
+        )
+      )
+        return preceding;
+      break;
+    }
+  }
   return last;
 }
 
@@ -373,7 +412,7 @@ export const noTacit: Rule = {
         if (!name) return;
         const [module, member] = name.split(".") as [string, string];
         if (!CALLBACK_LAST[module]?.has(member)) return;
-        const argument = callbackArgument(name, node.arguments);
+        const argument = callbackArgument(name, node, context);
         if (!argument || !isReference(argument)) return;
         context.report({
           node: argument as never,
