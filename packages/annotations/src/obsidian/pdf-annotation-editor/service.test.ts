@@ -88,7 +88,8 @@ function PdfAnnotationEditor(
 }
 
 function workspace(views: { view: ReaderView }[]) {
-  const offref = vi.fn();
+  const offref = vi.fn<(ref: EventRef) => void>();
+  const registered: EventRef[] = [];
   const handlers = new Map<string, ((leaf?: { view: unknown }) => void)[]>();
   const app = stubService<App>("App", {
     vault: stubService<Vault>("Vault", {
@@ -110,9 +111,11 @@ function workspace(views: { view: ReaderView }[]) {
         const eventHandlers = handlers.get(name) ?? [];
         eventHandlers.push(callback);
         handlers.set(name, eventHandlers);
-        return stubService<EventRef>("EventRef", {
+        const ref = stubService<EventRef>("EventRef", {
           e: stubService<App["workspace"]>("WorkspaceEvents", { offref }),
         });
+        registered.push(ref);
+        return ref;
       }) as Workspace["on"],
     }),
   });
@@ -124,6 +127,7 @@ function workspace(views: { view: ReaderView }[]) {
   return {
     app,
     offref,
+    registered,
     activate: (view: unknown) => {
       for (const handler of handlers.get("active-leaf-change") ?? []) {
         handler({ view });
@@ -191,7 +195,7 @@ it("binds an open PDF view, resolves its vault path, and unbinds on unload", asy
   const view = pdfView("attachments/rougier-2014.pdf", reader);
   const attachments = attachmentReads(RESOLVED);
   const annotations = annotationReads();
-  const { app, offref } = workspace([{ view }]);
+  const { app, offref, registered } = workspace([{ view }]);
   const service = await PdfAnnotationEditor({
     app,
     attachments,
@@ -215,11 +219,18 @@ it("binds an open PDF view, resolves its vault path, and unbinds on unload", asy
     expect(affordanceIn(reader.toolbarEl)).toBeNull();
     expect(reader.toolbarEl.childElementCount).toBe(1);
     expect(reader.page.div.childElementCount).toBe(0);
+    expect(registered.length).toBeGreaterThan(0);
+    expect(offref).not.toHaveBeenCalled();
   }
 
   expect(reader.toolbarEl.childElementCount).toBe(0);
   expect(reader.listening).toBe(0);
-  expect(offref).toHaveBeenCalledTimes(4);
+  const released = offref.mock.calls.map(([ref]) => ref);
+  expect(released).toHaveLength(registered.length);
+  for (const ref of registered)
+    expect(released.filter((releasedRef) => releasedRef === ref)).toHaveLength(
+      1,
+    );
 });
 
 it("refreshes the repository when an open PDF leaf becomes active", async () => {
