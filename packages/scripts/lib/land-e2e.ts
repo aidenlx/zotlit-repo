@@ -47,7 +47,7 @@ import {
   rename,
   writeFile,
 } from "node:fs/promises";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 
 import {
   acquireDesktopSlot,
@@ -261,6 +261,7 @@ export async function runLandE2e(
     log(`End-to-end Run of ${request.commit.slice(0, 12)}: log ${logPath}`);
     const result = await runUnlessDesktopIsDark(deps, run);
     const issue = await reportToIssue(deps, {
+      dir,
       run,
       range,
       result,
@@ -345,11 +346,14 @@ async function runUnlessDesktopIsDark(
 async function reportToIssue(
   { evidence, issues }: LandE2eDeps,
   {
+    dir,
     run,
     range,
     result,
     lastFailed,
   }: {
+    /** The state directory, which holds the run's log. */
+    dir: string;
     run: LandE2eRun;
     range: string;
     result: LandE2eOutcome;
@@ -393,7 +397,9 @@ async function reportToIssue(
       ? `Failed cases:\n\n${cases.map((name) => `- \`${name}\``).join("\n")}`
       : `The log names no failed case; the run failed at the ${result.stage} stage.`,
     "",
-    `The full log is on the machine that ran it: \`${logPath}\`. The last ${EXCERPT_LINES} lines:`,
+    // The issue is public, so it names the log in the state directory and
+    // not the absolute path, which holds the local user name.
+    `The full log is on the machine that ran it: \`${relative(dir, logPath)}\` in the End-to-end state directory (\`pnpm land --help\` names it). The last ${EXCERPT_LINES} lines:`,
     "",
     "```text",
     lines.slice(-EXCERPT_LINES).join("\n"),

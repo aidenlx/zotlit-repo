@@ -175,6 +175,10 @@ describe("the issue of End-to-end Run failures", () => {
     expect(body).toContain("abc1234 the commits of c1..c2");
     expect(body).toContain("AssertionError: expected 6 to be 7");
     expect(body.split(`- \`${FAILED_CASE}\``)).toHaveLength(2);
+    // The issue is public: it names the log under the state directory, not
+    // its absolute path on the machine.
+    expect(body).not.toContain(dir);
+    expect(body).toMatch(/`logs\/[^`]+-c2\.log` in the End-to-end state/);
     expect(await records()).toMatchObject([
       { commit: "c1", range: "c0..c1", result: { outcome: "passed" } },
       {
