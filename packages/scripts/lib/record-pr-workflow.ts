@@ -2,13 +2,7 @@ import { parse } from "yaml";
 
 import { verifyHalf } from "#gate-halves";
 import { GATE_SHARD_FLAG } from "#gate-shards";
-import {
-  LAND_CI_CHECK,
-  LAND_CI_JOB_TIMEOUT_MINUTES,
-  LAND_CI_WAIT_MS,
-} from "#land";
-
-export const RECORD_PR_WORKFLOW = ".github/workflows/record-pr.yml";
+import { LAND_CI_CHECK, LAND_CI_TIMEOUT_MINUTES, LAND_CI_WAIT_MS } from "#land";
 
 const MINUTE = 60_000;
 const CHECK_MARGIN_MS = 5 * MINUTE;
@@ -19,7 +13,7 @@ interface WorkflowJob {
   name?: string;
   needs?: string | string[];
   if?: string;
-  strategy?: { matrix?: { shard?: number[] } };
+  strategy?: { "fail-fast"?: boolean; matrix?: { shard?: number[] } };
   "timeout-minutes"?: number;
   steps?: { env?: Record<string, string>; run?: string }[];
 }
@@ -56,20 +50,22 @@ export function recordPrProblems(text: string): string[] {
       `its shards must count from 1 without a gap; they are ${indexes.join(", ") || "not set"}`,
     );
   }
+  if (job.strategy?.["fail-fast"] !== false) {
+    problems.push(
+      "its shards must set `fail-fast: false`, so that a rerun of the failed shard is enough",
+    );
+  }
   const timeouts = [job["timeout-minutes"], gate["timeout-minutes"]];
   const timeout = timeouts.reduce<number>(
     (sum, each) => sum + (each ?? Number.NaN),
     0,
   );
-  if (timeout !== LAND_CI_JOB_TIMEOUT_MINUTES) {
+  if (timeout !== LAND_CI_TIMEOUT_MINUTES) {
     problems.push(
-      `its jobs' timeout-minutes are ${timeouts.map((each) => each ?? "not set").join(" + ")}, which do not add up to ${LAND_CI_JOB_TIMEOUT_MINUTES} (LAND_CI_JOB_TIMEOUT_MINUTES in lib/land.ts)`,
+      `its jobs' timeout-minutes are ${timeouts.map((each) => each ?? "not set").join(" + ")}, which do not add up to ${LAND_CI_TIMEOUT_MINUTES} (LAND_CI_TIMEOUT_MINUTES in lib/land.ts)`,
     );
   }
-  if (
-    LAND_CI_WAIT_MS - LAND_CI_JOB_TIMEOUT_MINUTES * MINUTE <
-    CHECK_MARGIN_MS
-  ) {
+  if (LAND_CI_WAIT_MS - LAND_CI_TIMEOUT_MINUTES * MINUTE < CHECK_MARGIN_MS) {
     problems.push(
       "LAND_CI_WAIT_MS in lib/land.ts must be at least 5 min longer than the jobs' timeouts",
     );

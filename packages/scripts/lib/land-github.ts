@@ -1,7 +1,8 @@
 import type { CiCheck, LandGitHub, RecordPullRequest } from "#land";
+import { basename } from "node:path";
 import { $ } from "zx";
 
-const RECORD_PR_WORKFLOW_FILE = "record-pr.yml";
+import { RECORD_PR_WORKFLOW } from "#land";
 
 export type GhRun = (args: string[], input?: string) => Promise<string>;
 
@@ -97,7 +98,7 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
       const { workflow_runs: workflows } = JSON.parse(
         await run([
           "api",
-          `repos/${repo}/actions/workflows/${RECORD_PR_WORKFLOW_FILE}/runs?head_sha=${commit}&event=pull_request&per_page=100`,
+          `repos/${repo}/actions/workflows/${basename(RECORD_PR_WORKFLOW)}/runs?head_sha=${commit}&event=pull_request&per_page=100`,
         ]),
       ) as { workflow_runs: GitHubWorkflowRun[] };
       const workflow = workflows
@@ -129,10 +130,8 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
         .filter(({ started_at }) => started_at)
         .toSorted((a, b) => runnerWait(b) - runnerWait(a))[0];
       const failed =
-        gate.conclusion === "success"
-          ? undefined
-          : (shards.find(({ conclusion }) => conclusion === "failure") ??
-            shards.find(({ conclusion }) => conclusion !== "success"));
+        shards.find(({ conclusion }) => conclusion === "failure") ??
+        shards.find(({ conclusion }) => conclusion !== "success");
       return {
         id: gate.id,
         status: gate.status,

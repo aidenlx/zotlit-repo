@@ -66,8 +66,9 @@ export const LAND_RECORD_SECTIONS = [
 ] as const;
 
 export const LAND_CI_CHECK = "Record PR tests";
-export const LAND_CI_JOB_TIMEOUT_MINUTES = 40;
-export const LAND_CI_WAIT_MS = (LAND_CI_JOB_TIMEOUT_MINUTES + 5) * MINUTE;
+export const RECORD_PR_WORKFLOW = ".github/workflows/record-pr.yml";
+export const LAND_CI_TIMEOUT_MINUTES = 40;
+export const LAND_CI_WAIT_MS = (LAND_CI_TIMEOUT_MINUTES + 5) * MINUTE;
 const LAND_CI_POLL_MS = 30_000;
 const LAND_MERGED_WAIT_MS = 30_000;
 const LAND_MERGED_POLL_MS = 2_000;
@@ -649,7 +650,7 @@ async function waitForCi(
       if (check.conclusion === "success") return;
       throw new LandFailure(
         "ci",
-        `The CI job "${name}" ended ${check.conclusion} on ${short}. Its log: ${check.url}\n${TRUNK} is unchanged. Fix the failure on this branch, commit, and land again; when the failure is not in the change, run the job again from its log page, then land again.`,
+        `The CI check "${name}" ended ${check.conclusion} on ${short}. The log of the job that failed: ${check.url}\n${TRUNK} is unchanged. Fix the failure on this branch, commit, and land again; when the failure is not in the change, run the job again from its log page, then land again.`,
       );
     } else {
       const state = check ? check.status.replace("_", " ") : "not started";
@@ -661,7 +662,7 @@ async function waitForCi(
         "ci",
         check
           ? `The "${name}" check of ${short} did not finish within ${formatDuration(options.waitMs)}: ${check.url}\n${TRUNK} is unchanged. Land again.`
-          : `GitHub shows no "${name}" check for ${short} within ${formatDuration(options.waitMs)}. ${TRUNK} is unchanged. Check that the workflow of the record PR runs (.github/workflows/record-pr.yml), then land again.`,
+          : `GitHub shows no "${name}" check for ${short} within ${formatDuration(options.waitMs)}. ${TRUNK} is unchanged. Check that the workflow of the record PR runs (${RECORD_PR_WORKFLOW}), then land again.`,
       );
     }
     await delay(options.pollMs);
@@ -690,7 +691,9 @@ function between(from?: string, to?: string): number | undefined {
 
 function queueNote(check: CiCheck): string {
   const ms = between(check.queuedAt, check.startedAt);
-  return ms === undefined ? "" : `; the job waited ${seconds(ms)} for a runner`;
+  return ms === undefined
+    ? ""
+    : `; a shard waited up to ${seconds(ms)} for a runner`;
 }
 
 function seconds(ms: number): string {

@@ -15,6 +15,7 @@ jobs:
   shard:
     name: Record PR shard ${{ matrix.shard }}
     strategy:
+      fail-fast: false
       matrix:
         shard: [1, 2, 3]
     runs-on: ubuntu-latest

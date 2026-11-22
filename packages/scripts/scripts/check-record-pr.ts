@@ -2,8 +2,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { RECORD_PR_WORKFLOW } from "#land";
 import { getWorkspaceRoot } from "#package-roots";
-import { RECORD_PR_WORKFLOW, recordPrProblems } from "#record-pr-workflow";
+import { recordPrProblems } from "#record-pr-workflow";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
 const problems = recordPrProblems(

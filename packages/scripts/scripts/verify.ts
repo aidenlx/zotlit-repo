@@ -5,6 +5,8 @@ import { Effect } from "effect";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
 import { $ } from "zx";
 
 import {
@@ -16,37 +18,68 @@ import {
 import { affectedBase } from "#affected-base";
 import { isAgentDocsOnly } from "#agent-docs";
 import { EXIT_LEASE_ENDED } from "#desktop-slot";
-import { GATE_HALF_FLAGS, halfOf } from "#gate-halves";
+import { gateSteps, halfOf } from "#gate-halves";
 import {
   GATE_SHARD_FLAG,
   isLastShard,
   parseGateShard,
-  shardFilters,
+  shardTestArgs,
 } from "#gate-shards";
 import { getWorkspaceRoot } from "#package-roots";
 
-const release = process.argv.includes("--release");
-const localHalf = process.argv.includes(GATE_HALF_FLAGS.local);
-const prHalf = process.argv.includes(GATE_HALF_FLAGS.pr);
-if ([release, localHalf, prHalf].filter(Boolean).length > 1) {
-  console.error(
-    `verify: pass one of --release, ${GATE_HALF_FLAGS.local} and ${GATE_HALF_FLAGS.pr}.`,
-  );
-  process.exit(2);
-}
-const shardArg = process.argv
-  .find((arg) => arg.startsWith(`${GATE_SHARD_FLAG}=`))
-  ?.slice(GATE_SHARD_FLAG.length + 1);
-const shard = shardArg === undefined ? undefined : parseGateShard(shardArg);
-if (shardArg !== undefined && (!shard || !prHalf)) {
-  console.error(
-    `verify: pass ${GATE_SHARD_FLAG}=<index>/<total> with ${GATE_HALF_FLAGS.pr}.`,
-  );
-  process.exit(2);
-}
-const halves: readonly GateHalf[] = localHalf
+const EXIT_USAGE = 2;
+const { release, local, pr, shard } = await yargs(hideBin(process.argv))
+  .scriptName("pnpm verify")
+  .usage("$0 [--local | --pr [--shard <index>/<total>] | --release]")
+  .version(false)
+  .option("local", {
+    type: "boolean",
+    describe: `Only the half that runs before a push: ${gateSteps("local").join(", ")}`,
+  })
+  .option("pr", {
+    type: "boolean",
+    describe: `Only the half that runs on the record PR: ${gateSteps("pr").join(", ")}`,
+  })
+  .option("shard", {
+    type: "string",
+    describe: `With --pr: the tests of one shard, such as 1/3`,
+    coerce: (value: string) => {
+      const parsed = parseGateShard(value);
+      if (!parsed)
+        throw new Error(
+          `${GATE_SHARD_FLAG} takes <index>/<total>, such as 1/3; it got ${JSON.stringify(value)}.`,
+        );
+      return parsed;
+    },
+  })
+  .option("release", {
+    type: "boolean",
+    describe: "Every package, and the release checks",
+  })
+  .conflicts("local", ["pr", "release"])
+  .conflicts("pr", "release")
+  .implies("shard", "pr")
+  .strict()
+  .epilogue(
+    `Without --release, the gate covers the packages that differ from the merge base with origin/main, and their dependents. A branch that changes only agent docs runs Format only.
+
+A package's test task joins a shard before the last through the task tag ci-shard-<index> in its turbo.json. The last shard runs every other test task, the root test tasks and Bundle.
+
+Exit codes:
+  0    passed
+  1    a step failed
+  ${EXIT_USAGE}    usage error
+  ${EXIT_ADMISSION_BLOCKED}   the Memory Gate did not admit the tests; blocked, not a failure
+  ${EXIT_LEASE_ENDED}   the Lease of a run ended`,
+  )
+  .fail((message, error) => {
+    console.error(`verify: ${message || error.message}`);
+    process.exit(EXIT_USAGE);
+  })
+  .parseAsync();
+const halves: readonly GateHalf[] = local
   ? ["local"]
-  : prHalf
+  : pr
     ? ["pr"]
     : ["local", "pr"];
 const ci = process.env.GITHUB_ACTIONS === "true";
@@ -124,7 +157,7 @@ async function ciSteps(): Promise<void> {
         ...(admitted ? { [MEMORY_GATE_ADMITTED_ENV]: "1" } : {}),
       },
     });
-    await gated`pnpm exec turbo run test ${last ? ["//#test:eval-runtime"] : []} ${scope} ${shard ? shardFilters(shard) : []} --concurrency=${ci ? 1 : 2}`;
+    await gated`pnpm exec turbo run ${shardTestArgs(shard ?? { index: 1, total: 1 })} ${scope} --concurrency=${ci ? 1 : 2}`;
   });
 
   if (last) {

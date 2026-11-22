@@ -8,11 +8,13 @@ const SHARD_RUN =
 function workflow({
   name = "Record PR tests",
   shards = "[1, 2, 3]",
+  failFast = "false",
   timeout = 35,
   run = SHARD_RUN,
   condition = "always()",
   needs = "shard",
   result = 'test "$RESULT" = success',
+  from = "${{ needs.shard.result }}",
 } = {}): string {
   return `name: Record PR
 on:
@@ -22,6 +24,7 @@ jobs:
   shard:
     name: Record PR shard
     strategy:
+      fail-fast: ${failFast}
       matrix:
         shard: ${shards}
     runs-on: ubuntu-latest
@@ -39,7 +42,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - env:
-          RESULT: \${{ needs.shard.result }}
+          RESULT: ${from}
         run: ${result}
 `;
 }
@@ -78,6 +81,29 @@ describe("recordPrProblems", () => {
       ]);
     },
   );
+
+  it("reports shards that cancel each other", () => {
+    expect(recordPrProblems(workflow({ failFast: "true" }))).toEqual([
+      expect.stringContaining("fail-fast: false"),
+    ]);
+  });
+
+  it("reports a check that takes its result from somewhere else", () => {
+    expect(recordPrProblems(workflow({ from: "success" }))).toEqual([
+      expect.stringContaining('"Record PR tests" must need "shard"'),
+    ]);
+  });
+
+  it("reports a job beside the shards and the check", () => {
+    const extra = `${workflow()}  other:
+    name: Other
+    runs-on: ubuntu-latest
+`;
+
+    expect(recordPrProblems(extra)).toEqual([
+      expect.stringContaining('one named "Record PR tests"'),
+    ]);
+  });
 
   it.each([
     ["does not need the shards", { needs: "[]" }],

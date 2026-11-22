@@ -21,12 +21,16 @@ export function isLastShard({ index, total }: GateShard): boolean {
   return index === total;
 }
 
-export function shardFilters(shard: GateShard): string[] {
-  if (!isLastShard(shard)) return [`--filter=${shardTag(shard.index)}`];
-  return Array.from(
-    { length: shard.total - 1 },
-    (_, at) => `--filter=!${shardTag(at + 1)}`,
-  );
+export function shardTestArgs(shard: GateShard): string[] {
+  if (!isLastShard(shard)) return ["test", `--filter=${shardTag(shard.index)}`];
+  return [
+    "test",
+    "//#test:eval-runtime",
+    ...Array.from(
+      { length: shard.total - 1 },
+      (_, at) => `--filter=!${shardTag(at + 1)}`,
+    ),
+  ];
 }
 
 function shardTag(index: number): string {

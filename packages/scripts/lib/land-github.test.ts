@@ -62,12 +62,13 @@ const workflow = (
   {
     repo = REPO,
     status = "completed",
-  }: { repo?: string; status?: string } = {},
+    branch = "feat/a",
+  }: { repo?: string; status?: string; branch?: string } = {},
 ) => ({
   id,
   status,
   html_url: `https://github.com/${REPO}/actions/runs/${id}`,
-  head_branch: "feat/a",
+  head_branch: branch,
   head_repository: { full_name: repo },
 });
 
@@ -76,18 +77,43 @@ const job = (
   name: string,
   {
     conclusion,
-    startedAt = "2026-11-22T10:00:05Z",
-  }: { conclusion: string; startedAt?: string },
+    created,
+    started,
+    completed,
+  }: {
+    conclusion: string;
+    created: string;
+    started: string;
+    completed: string;
+  },
 ) => ({
   id,
   name,
   status: "completed",
   conclusion,
   html_url: `https://github.com/${REPO}/actions/runs/1/job/${id}`,
-  created_at: "2026-11-22T10:00:00Z",
-  started_at: startedAt,
-  completed_at: "2026-11-22T10:04:00Z",
+  created_at: `2026-11-22T10:${created}Z`,
+  started_at: `2026-11-22T10:${started}Z`,
+  completed_at: `2026-11-22T10:${completed}Z`,
 });
+
+const shard = (index: number, conclusion: string) =>
+  job(index, `Record PR shard ${index}`, {
+    conclusion,
+    ...[
+      { created: "00:00", started: "00:30", completed: "04:00" },
+      { created: "00:01", started: "00:41", completed: "05:00" },
+      { created: "00:20", started: "00:50", completed: "06:00" },
+    ][index - 1]!,
+  });
+
+const gate = (conclusion: string) =>
+  job(4, "Record PR tests", {
+    conclusion,
+    created: "06:01",
+    started: "09:00",
+    completed: "09:10",
+  });
 
 async function readCheck(replies: Record<string, unknown>) {
   return ghLandGitHub(REPO, fakeGh(replies)).readCheck({
@@ -97,13 +123,21 @@ async function readCheck(replies: Record<string, unknown>) {
   });
 }
 
+const readJobs = (...jobs: ReturnType<typeof job>[]) =>
+  readCheck({
+    [RUNS]: { workflow_runs: [workflow(10)] },
+    [`api repos/${REPO}/actions/runs/10/jobs`]: { jobs },
+  });
+
 describe("readCheck", () => {
-  it("reads only the run of the record PR's branch in this repository", async () => {
+  it("reads only the newest run of the record PR's branch in this repository", async () => {
     expect(
       await readCheck({
         [RUNS]: {
           workflow_runs: [
             workflow(30, { repo: "mallory/zotlit-repo" }),
+            workflow(20, { branch: "feat/b" }),
+            workflow(9, { status: "queued" }),
             workflow(10, { status: "in_progress" }),
           ],
         },
@@ -125,9 +159,7 @@ describe("readCheck", () => {
     expect(
       await readCheck({
         [RUNS]: { workflow_runs: [workflow(10, { status: "queued" })] },
-        [`api repos/${REPO}/actions/runs/10/jobs`]: {
-          jobs: [job(4, "Record PR tests", { conclusion: "failure" })],
-        },
+        [`api repos/${REPO}/actions/runs/10/jobs`]: { jobs: [gate("failure")] },
       }),
     ).toEqual({
       id: 10,
@@ -137,44 +169,47 @@ describe("readCheck", () => {
     });
   });
 
-  it("names the failed shard, not the one that its failure cancelled, and the longest wait for a runner", async () => {
+  it("names the failed shard before a cancelled one, and the longest wait of a shard for a runner", async () => {
     expect(
-      await readCheck({
-        [RUNS]: { workflow_runs: [workflow(10)] },
-        [`api repos/${REPO}/actions/runs/10/jobs`]: {
-          jobs: [
-            job(1, "Record PR shard 1", { conclusion: "cancelled" }),
-            job(2, "Record PR shard 2", {
-              conclusion: "failure",
-              startedAt: "2026-11-22T10:00:40Z",
-            }),
-            job(3, "Record PR shard 3", { conclusion: "success" }),
-            job(4, "Record PR tests", { conclusion: "failure" }),
-          ],
-        },
-      }),
+      await readJobs(
+        gate("failure"),
+        shard(1, "cancelled"),
+        shard(2, "success"),
+        shard(3, "failure"),
+      ),
     ).toEqual({
       id: 4,
       status: "completed",
       conclusion: "failure",
-      url: `https://github.com/${REPO}/actions/runs/1/job/2`,
-      queuedAt: "2026-11-22T10:00:00Z",
-      startedAt: "2026-11-22T10:00:40Z",
-      completedAt: "2026-11-22T10:04:00Z",
+      url: `https://github.com/${REPO}/actions/runs/1/job/3`,
+      queuedAt: "2026-11-22T10:00:01Z",
+      startedAt: "2026-11-22T10:00:41Z",
+      completedAt: "2026-11-22T10:09:10Z",
     });
   });
 
-  it("names the gate's own log when it passed", async () => {
+  it("names the shard that ran past its time limit, which GitHub cancels", async () => {
     expect(
-      await readCheck({
-        [RUNS]: { workflow_runs: [workflow(10)] },
-        [`api repos/${REPO}/actions/runs/10/jobs`]: {
-          jobs: [
-            job(1, "Record PR shard 1", { conclusion: "success" }),
-            job(4, "Record PR tests", { conclusion: "success" }),
-          ],
-        },
-      }),
+      await readJobs(
+        shard(1, "success"),
+        shard(2, "cancelled"),
+        shard(3, "success"),
+        gate("failure"),
+      ),
+    ).toMatchObject({
+      conclusion: "failure",
+      url: `https://github.com/${REPO}/actions/runs/1/job/2`,
+    });
+  });
+
+  it("names the check's own log when every shard passed", async () => {
+    expect(
+      await readJobs(
+        shard(1, "success"),
+        shard(2, "success"),
+        shard(3, "success"),
+        gate("success"),
+      ),
     ).toMatchObject({
       conclusion: "success",
       url: `https://github.com/${REPO}/actions/runs/1/job/4`,
