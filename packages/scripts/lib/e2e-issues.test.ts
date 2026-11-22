@@ -5,10 +5,13 @@ import { afterEach, beforeEach, expect, it } from "vitest";
 
 import { githubE2eIssues } from "./e2e-issues.ts";
 
-const STORED = [
-  { number: 1, title: "a", url: "u1", body: "the marker", state: "open" },
-  { number: 2, title: "b", url: "u2", body: "other", state: "closed" },
-];
+const STORED = Array.from({ length: 120 }, (_, at) => ({
+  number: at + 1,
+  title: `title ${at}`,
+  url: `u${at}`,
+  body: `body ${at}`,
+  state: at === 1 ? "closed" : "open",
+}));
 
 let directory: string;
 beforeEach(async () => {
@@ -27,26 +30,35 @@ it("lists the open issues of the repository with what the report matches on", as
     const fields = option(args, "--json").split(",");
     const state = option(args, "--state");
     if (option(args, "--repo") !== "owner/repo") return "[]";
+    const limit = args.includes("--limit")
+      ? Number(option(args, "--limit"))
+      : 30;
     return JSON.stringify(
-      STORED.filter((issue) => state === "all" || issue.state === state).map(
-        (issue) =>
+      STORED.filter((issue) => state === "all" || issue.state === state)
+        .slice(0, limit)
+        .map((issue) =>
           Object.fromEntries(
             Object.entries(issue).filter(([field]) => fields.includes(field)),
           ),
-      ),
+        ),
     );
   });
 
-  expect(await issues.listOpen("owner/repo")).toEqual([
-    { number: 1, title: "a", url: "u1", body: "the marker" },
-  ]);
+  expect(await issues.listOpen("owner/repo")).toEqual(
+    STORED.filter(({ state }) => state === "open").map(
+      ({ number, title, url, body }) => ({ number, title, url, body }),
+    ),
+  );
 });
 
-it("passes the body of a new issue and of a comment through a file", async () => {
-  const bodies: string[] = [];
+it("creates an issue with its title, label and body, and comments on the issue of that number", async () => {
+  const calls: { args: string[]; body: string }[] = [];
   const issues = githubE2eIssues(directory, async (args) => {
-    bodies.push(await readFile(option(args, "--body-file"), "utf8"));
-    return `https://github.com/${option(args, "--repo")}/issues/${args[2]}\n`;
+    calls.push({
+      args: args.filter((arg) => !arg.startsWith(directory)),
+      body: await readFile(option(args, "--body-file"), "utf8"),
+    });
+    return "https://github.com/owner/repo/issues/9\n";
   });
 
   expect(
@@ -55,8 +67,15 @@ it("passes the body of a new issue and of a comment through a file", async () =>
       body: "a new body",
       label: "needs-triage",
     }),
-  ).toMatch(/^https:\/\/github\.com\/owner\/repo\/issues\/\S+$/);
+  ).toBe("https://github.com/owner/repo/issues/9");
   await issues.comment("owner/repo", 7, "a comment");
 
-  expect(bodies).toEqual(["a new body", "a comment"]);
+  const [create, comment] = calls;
+  expect(option(create!.args, "--title")).toBe("a title");
+  expect(option(create!.args, "--label")).toBe("needs-triage");
+  expect(option(create!.args, "--repo")).toBe("owner/repo");
+  expect(create!.body).toBe("a new body");
+  expect(comment!.args.slice(0, 3)).toEqual(["issue", "comment", "7"]);
+  expect(option(comment!.args, "--repo")).toBe("owner/repo");
+  expect(comment!.body).toBe("a comment");
 });
