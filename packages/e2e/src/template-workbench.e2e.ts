@@ -1433,9 +1433,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         const action = view.containerEl.querySelector<HTMLElement>(
           `.view-action[aria-label="${label}"]`,
         )!;
-        const content = el.querySelector<CodeMirrorElement>(".cm-content")!;
-        const editor = content.cmTile!.root.view;
-        await input.click(content);
+        const editor = await until(
+          "the editor",
+          () =>
+            el.querySelector<CodeMirrorElement>(".cm-content")?.cmTile?.root
+              .view,
+        );
+        await input.click(editor.contentDOM);
         editor.dispatch({ selection: { anchor: editor.state.doc.length } });
         const popover = () => page.fieldsPopover(view);
         const search = () =>
@@ -1523,7 +1527,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           "the popover for the outside press",
           () => popover() !== null,
         );
-        await input.click(content, { x: 8, y: 8 });
+        await input.click(editor.contentDOM, { x: 8, y: 8 });
         await until(
           "the popover closed by the outside press",
           () => popover() === null,
