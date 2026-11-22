@@ -1,3 +1,5 @@
+# The Vercel OIDC policy of the Remote Cache matches this name, not the file
+# path; a rename turns the Remote Cache off (docs/CI_SETUP.md).
 name: Record PR
 
 # `pnpm verify --pr` on the record PR of a land (ADR 0102); verify.ts names

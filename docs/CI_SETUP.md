@@ -39,9 +39,10 @@ To set it up:
 
 1. On vercel.com, open the team's Settings → Build and Deployment → OIDC
    Policies for CLI Access, and add a Turborepo CLI policy for the GitHub
-   repository `aidenlx/zotlit-repo`, restricted to the workflow
-   `.github/workflows/record-pr.yml`. Set no branch restriction, because the
-   job runs on the ref of each pull request. Keep the default audience.
+   repository `aidenlx/zotlit-repo`, restricted to the workflow `Record PR`.
+   The policy matches the workflow's `name:` field, not its file path. Set no
+   branch restriction, because the job runs on the ref of each pull request.
+   Keep the default audience.
 2. On each machine, run `pnpm exec turbo login` once; it keeps the token in
    the user's Turborepo configuration. A turbo run in any worktree then logs
    `Remote caching enabled`.
