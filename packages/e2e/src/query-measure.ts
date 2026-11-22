@@ -365,17 +365,17 @@ const log = (message: string): void => {
   reportDesktopProgress(message.trim().split("\n")[0]!);
 };
 
+using _desktopSlot = await acquireDesktopSlotOrExit({
+  cwd: workspaceRoot,
+  command: "measure:query",
+  silenceMs: SILENCE_LIMIT_MS.measureQuery,
+});
 if (!(await isObsidianReachable(workspaceRoot))) {
   log(
     "No desktop Obsidian answers the CLI. Start Obsidian with the command line interface enabled, then run the script again. Nothing was measured.",
   );
   process.exit(1);
 }
-using _desktopSlot = await acquireDesktopSlotOrExit({
-  cwd: workspaceRoot,
-  command: "measure:query",
-  silenceMs: SILENCE_LIMIT_MS.measureQuery,
-});
 
 let vaultId = "";
 

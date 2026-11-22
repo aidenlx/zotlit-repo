@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import type { DesktopSlot } from "#desktop-slot";
 import type { VaultEntry } from "#obsidian-vault-registry";
 import type { VaultPlugin } from "#vault-plugins";
 import { execFile } from "node:child_process";
@@ -15,7 +16,7 @@ import { hideBin } from "yargs/helpers";
 import { frontmatterFieldSchema } from "@zotlit/templates/constants";
 import type { FrontmatterField } from "@zotlit/templates/constants";
 
-import { holdDesktopMutex } from "#desktop-slot";
+import { acquireDesktopSlotOrExit } from "#desktop-slot";
 import {
   DEV_VAULT_CASE_ENV,
   getDevVaultDir,
@@ -135,11 +136,6 @@ function vaultOpenCode(abs: string): string {
   const open = `require('electron').ipcRenderer.sendSync('vault-open',${JSON.stringify(abs)},false)`;
   if (!inactive) return open;
   return `(()=>{const remote=require('@electron/remote');const off=remote.require('vm').runInThisContext('(app)=>{const hook=(_event,win)=>{win.webContents.setBackgroundThrottling(false);win.show=()=>{win.showInactive();if(process.platform==="darwin")win.blur();};win.focus=()=>{};};app.on("browser-window-created",hook);return ()=>app.off("browser-window-created",hook);}')(remote.app);try{return ${open};}finally{off();}})()`;
-}
-
-async function withVaultRegistry<T>(call: () => Promise<T>): Promise<T> {
-  using _registry = await holdDesktopMutex("vault-registry.lock");
-  return await call();
 }
 
 function isObsidianRunning(): Promise<boolean> {
@@ -280,9 +276,7 @@ async function create(
     });
   }
 
-  const opened = await withVaultRegistry(() =>
-    obEval(vaultOpenCode(abs), host),
-  );
+  const opened = await obEval(vaultOpenCode(abs), host);
   if (opened !== "true") {
     throw new Error(`vault-open refused: ${opened || "unknown error"}`);
   }
@@ -535,11 +529,10 @@ async function open(
   }
 
   await sync(abs, seed);
-  const opened = await withVaultRegistry(async () =>
+  const opened =
     (await vaultList(host))[registered]?.open === true
       ? undefined
-      : await obEval(vaultOpenCode(abs), host),
-  );
+      : await obEval(vaultOpenCode(abs), host);
   if (opened !== undefined) {
     if (opened !== "true") {
       throw new Error(`vault-open refused: ${opened || "unknown error"}`);
@@ -720,11 +713,9 @@ async function unregisterThrough(
     host,
   ).catch(() => undefined);
 
-  const removed = await withVaultRegistry(() =>
-    obEval(
-      `require('electron').ipcRenderer.sendSync('vault-remove',${JSON.stringify(abs)})`,
-      host,
-    ),
+  const removed = await obEval(
+    `require('electron').ipcRenderer.sendSync('vault-remove',${JSON.stringify(abs)})`,
+    host,
   );
   if (removed !== "true") {
     throw new Error(`vault-remove refused for ${abs} (window still open?)`);
@@ -932,6 +923,7 @@ Environment:
 
 ${hostReadinessReference}`;
 
+let desktopSlot: DesktopSlot | undefined;
 const vaultCli = yargs(hideBin(process.argv))
   .scriptName("obsidian-vault.ts")
   .option("fixture-root", {
@@ -945,7 +937,14 @@ const vaultCli = yargs(hideBin(process.argv))
     type: "boolean",
     global: true,
   })
-  .middleware((argv) => {
+  .middleware(async (argv) => {
+    if (!process.env.ZOTLIT_RUN_CONTAINER) {
+      desktopSlot = await acquireDesktopSlotOrExit({
+        cwd: workspaceRoot,
+        command: `obsidian-vault ${String(argv._[0])}`,
+        manual: true,
+      });
+    }
     inactive = argv.inactive === true;
     if (argv["fixture-root"] === undefined) return;
     fixtureLayout = getFixtureLayout(resolve(argv["fixture-root"]));
@@ -1104,4 +1103,6 @@ try {
   await vaultCli.parseAsync();
 } catch {
   // The fail handler reported the error and set the exit code.
+} finally {
+  desktopSlot?.release();
 }

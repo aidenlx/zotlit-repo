@@ -13,16 +13,22 @@ export default async function setup() {
     const sidebar = await pinPdfSidebar();
     return () => sidebar[Symbol.asyncDispose]();
   }
-  if (!(await isObsidianReachable(cwd))) return;
   const slot = await acquireDesktopSlotOrExit({
     cwd,
     command: "pnpm e2e",
     silenceMs: SILENCE_LIMIT_MS.e2e,
   });
-  const pdfSidebar = await pinPdfSidebar().catch((error: unknown) => {
+  const pdfSidebar = await (async () => {
+    if (!(await isObsidianReachable(cwd))) return;
+    return await pinPdfSidebar();
+  })().catch((error: unknown) => {
     slot.release();
     throw error;
   });
+  if (!pdfSidebar) {
+    slot.release();
+    return;
+  }
   return async () => {
     try {
       await pdfSidebar[Symbol.asyncDispose]();
