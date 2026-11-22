@@ -1,6 +1,5 @@
 import type { Scope } from "effect";
 import { Effect, Exit } from "effect";
-import { MarkdownView } from "obsidian";
 import type { Editor, MarkdownFileInfo, PaneType } from "obsidian";
 
 import type { AttachmentOpenDeps } from "@zotlit/annotations/desktop/attachment-open/actions.ts";
@@ -222,25 +221,13 @@ export function itemActions(deps: ItemActionsDeps): ItemActions {
 const editorTarget = Effect.fnUntraced(function* (
   workspace: Workspace["Service"],
 ): Effect.fn.Return<CitationTarget | null> {
-  const active = yield* workspace.activeEditor;
-  const current =
-    active instanceof MarkdownView && active.getMode() !== "source"
-      ? null
-      : active;
-  if (current)
-    return current.file && current.editor
-      ? { editor: current.editor, info: current }
-      : null;
-  const views = yield* workspace.markdownViews;
-  const file = yield* workspace.getActiveFile;
-  const recent = yield* workspace.lastOpenFiles;
-  const info = lastEditor({
-    getActiveFile: () => file,
-    getLastOpenFiles: () => [...recent],
-    iterateAllLeaves: (visit) => {
-      for (const view of views) visit(view.leaf);
-    },
-  });
+  const info =
+    (yield* workspace.insertionEditor) ??
+    lastEditor(
+      yield* workspace.markdownViews,
+      (yield* workspace.getActiveFile)?.path,
+      yield* workspace.lastOpenFiles,
+    );
   if (!info?.file || !info.editor) return null;
   return { editor: info.editor, info };
 });

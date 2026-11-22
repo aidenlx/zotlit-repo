@@ -49,6 +49,7 @@ interface Tab {
 function workspaceFixture() {
   const open: WorkspaceLeaf[] = [];
   let active: WorkspaceLeaf | null = null;
+  let recentEditor: WorkspaceLeaf | null = null;
   let activeFile: string | null = null;
   const lastOpen: string[] = [];
   const fileOpen = (leaf: WorkspaceLeaf) => {
@@ -76,7 +77,7 @@ function workspaceFixture() {
     get activeEditor() {
       return active?.view instanceof MarkdownView ? active.view : null;
     },
-    getMostRecentLeaf: () => active,
+    getMostRecentLeaf: () => recentEditor ?? active,
     iterateAllLeaves: (callback: (leaf: WorkspaceLeaf) => unknown) =>
       open.some((leaf) => callback(leaf)),
     on: () => ({}),
@@ -119,7 +120,10 @@ function workspaceFixture() {
   const close = (tab: Tab) => {
     open.splice(open.indexOf(tab.leaf), 1);
   };
-  return { workspace, activate, show, note, library, close };
+  const remember = (tab: Tab) => {
+    recentEditor = tab.leaf;
+  };
+  return { workspace, activate, show, note, library, close, remember };
 }
 
 async function setup(
@@ -233,6 +237,19 @@ it("inserts a row's citation into the note active last before the Library View, 
   await env.actions.insertCitation(KEY);
   expect(first.text()).toBe("[@vaswani2017]LEFT RIGHT");
   expect(env.record).toHaveBeenCalledTimes(2);
+});
+
+it("prefers the most recent editing tab when there is no active editor", async () => {
+  const env = await setup();
+  const recent = env.note("Recent.md");
+  const activeFile = env.note("Active file.md");
+  env.activate(activeFile);
+  env.activate(env.library);
+  env.remember(recent);
+
+  await env.actions.insertCitation(KEY);
+  expect(recent.text()).toBe("[@vaswani2017]LEFT RIGHT");
+  expect(activeFile.text()).toBe("LEFT RIGHT");
 });
 
 it("inserts into the note that was active last before the plugin loaded", async () => {

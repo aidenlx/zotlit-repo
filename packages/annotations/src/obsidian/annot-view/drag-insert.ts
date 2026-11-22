@@ -1,8 +1,8 @@
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
 import { nanoid } from "nanoid";
-import { MarkdownView } from "obsidian";
 import type { App, Editor, MarkdownFileInfo, TFile } from "obsidian";
 
+import { insertionEditor } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { profileRecoveryNotice } from "@zotlit/obsidian-kit/profile-recovery.ts";
 import { latestSlot } from "@zotlit/obsidian-kit/view-runner.ts";
 import { observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
@@ -84,17 +84,6 @@ export function insertOutcomeMessage(
   }
 }
 
-export function getInsertionEditor(app: App): MarkdownFileInfo | null {
-  const active = app.workspace.activeEditor;
-  if (active instanceof MarkdownView && active.getMode() !== "source")
-    return null;
-  if (active) return active;
-  const view = app.workspace.getMostRecentLeaf()?.view;
-  return view instanceof MarkdownView && view.getMode() === "source"
-    ? view
-    : null;
-}
-
 export function createInsertHandler<R>(deps: InsertDeps<R>) {
   const report = reporter(deps);
   const slot = insertSlot(deps, report);
@@ -125,7 +114,7 @@ export function createInsertHandler<R>(deps: InsertDeps<R>) {
             editor,
             info,
             isCurrent: () => {
-              const current = getInsertionEditor(deps.app);
+              const current = insertionEditor(deps.app.workspace);
               return current?.editor === editor && current.file === info.file;
             },
             watchChanges: watchInsertionWorkspace(deps.app.workspace),
@@ -134,12 +123,12 @@ export function createInsertHandler<R>(deps: InsertDeps<R>) {
     );
   };
   const offer = () => {
-    const info = getInsertionEditor(deps.app);
+    const info = insertionEditor(deps.app.workspace);
     const file = info?.file;
     const editor = info?.editor;
     if (!info || !file || !editor) return null;
     return (annotation: AnnotationRecord) => {
-      const current = getInsertionEditor(deps.app);
+      const current = insertionEditor(deps.app.workspace);
       if (
         current?.file !== file ||
         current.editor !== editor ||
@@ -151,7 +140,7 @@ export function createInsertHandler<R>(deps: InsertDeps<R>) {
     };
   };
   const insert = (annotation: AnnotationRecord) =>
-    insertInto(annotation, getInsertionEditor(deps.app));
+    insertInto(annotation, insertionEditor(deps.app.workspace));
   return Object.assign(insert, { cancel, offer });
 }
 

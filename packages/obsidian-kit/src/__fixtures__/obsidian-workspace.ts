@@ -23,6 +23,11 @@ type Callback = (...args: unknown[]) => unknown;
 export class MemoryWorkspace implements WorkspaceSource {
   activeFile: TFile | null = null;
   activeEditor: MarkdownFileInfo | null = null;
+  mostRecentLeaf: WorkspaceLeaf | null = null;
+
+  getMostRecentLeaf(): WorkspaceLeaf | null {
+    return this.mostRecentLeaf;
+  }
   readonly leftSplit = stubService<WorkspaceSidedock>("WorkspaceSidedock", {});
   readonly rightSplit = stubService<WorkspaceSidedock>("WorkspaceSidedock", {});
   lastOpenFiles: string[] = [];

@@ -41,6 +41,7 @@ export type WorkspaceSource = Pick<
   | "leftSplit"
   | "rightSplit"
   | "getLastOpenFiles"
+  | "getMostRecentLeaf"
   | "onLayoutReady"
   | "getActiveFile"
   | "getActiveViewOfType"
@@ -61,6 +62,19 @@ export type WorkspaceSource = Pick<
   | "readWorkspaceFile"
 > &
   ObsidianEventEmitter & { requestSaveLayout(): void };
+
+export function insertionEditor(
+  source: Pick<WorkspaceSource, "activeEditor" | "getMostRecentLeaf">,
+): MarkdownFileInfo | null {
+  const active = source.activeEditor;
+  if (active instanceof MarkdownView && active.getMode() !== "source")
+    return null;
+  if (active) return active;
+  const view = source.getMostRecentLeaf()?.view;
+  return view instanceof MarkdownView && view.getMode() === "source"
+    ? view
+    : null;
+}
 
 export type WorkspaceEvent =
   | {
@@ -84,6 +98,7 @@ export interface FileMenuOrigin {
 export interface WorkspaceShape {
   readonly activeView: Effect.Effect<View | null>;
   readonly activeEditor: Effect.Effect<MarkdownFileInfo | null>;
+  readonly insertionEditor: Effect.Effect<MarkdownFileInfo | null>;
   readonly sidebarRoots: Effect.Effect<
     Pick<WorkspaceSource, "leftSplit" | "rightSplit">
   >;
@@ -95,7 +110,10 @@ export interface WorkspaceShape {
   readonly activeMarkdownView: Effect.Effect<MarkdownView | null>;
   readonly markdownViews: Effect.Effect<readonly MarkdownView[]>;
   leavesOfType(type: string): Effect.Effect<readonly WorkspaceLeaf[]>;
-  loadedTextView(file: TFile): Effect.Effect<TextFileView | null>;
+  loadedTextView(
+    file: TFile,
+    exclude?: TextFileView,
+  ): Effect.Effect<TextFileView | null>;
   readonly readWorkspaceFile: Effect.Effect<unknown, Cause.UnknownError>;
   readonly updateOptions: Effect.Effect<void>;
   readonly requestActiveLeafEvents: Effect.Effect<void>;
@@ -199,6 +217,9 @@ export const makeWorkspace = Effect.fnUntraced(function* (
     activeEditor: Effect.sync(() => source.activeEditor).pipe(
       Effect.withSpan("Workspace.activeEditor"),
     ),
+    insertionEditor: Effect.sync(() => insertionEditor(source)).pipe(
+      Effect.withSpan("Workspace.insertionEditor"),
+    ),
     sidebarRoots: Effect.sync(() => ({
       leftSplit: source.leftSplit,
       rightSplit: source.rightSplit,
@@ -225,8 +246,10 @@ export const makeWorkspace = Effect.fnUntraced(function* (
     leavesOfType: Effect.fn("Workspace.leavesOfType")((type) =>
       Effect.sync(() => source.getLeavesOfType(type)),
     ),
-    loadedTextView: Effect.fn("Workspace.loadedTextView")((file) =>
-      Effect.sync(() => loadedTextFileView({ workspace: source }, file)),
+    loadedTextView: Effect.fn("Workspace.loadedTextView")((file, exclude) =>
+      Effect.sync(() =>
+        loadedTextFileView({ workspace: source }, file, exclude),
+      ),
     ),
     readWorkspaceFile: Effect.suspend(() => {
       const read = source.readWorkspaceFile?.bind(source);
