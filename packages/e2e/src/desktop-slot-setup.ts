@@ -4,14 +4,12 @@ import {
 } from "@zotlit/scripts/desktop-slot";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { startContainerObsidian } from "./container-obsidian.ts";
 import { pinPdfSidebar } from "./pdf-sidebar-pin.ts";
 import { isObsidianReachable } from "./vault-script.ts";
 
 export default async function setup() {
   const cwd = await getWorkspaceRoot(import.meta.dirname);
   if (process.env.ZOTLIT_RUN_CONTAINER) {
-    await startContainerObsidian();
     const sidebar = await pinPdfSidebar();
     return () => sidebar[Symbol.asyncDispose]();
   }

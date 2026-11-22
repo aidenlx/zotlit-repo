@@ -1,11 +1,5 @@
-import {
-  appendFileSync,
-  mkdirSync,
-  readdirSync,
-  rmSync,
-  writeFileSync,
-} from "node:fs";
-import { basename, resolve } from "node:path";
+import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { DefaultReporter } from "vitest/node";
 import type {
   ReportedHookContext,
@@ -20,41 +14,21 @@ import {
   reportDesktopProgress,
 } from "@zotlit/scripts/desktop-slot";
 
-import {
-  E2E_RESULTS_ROOT,
-  e2eResultsDir,
-  pointLatestResult,
-} from "./results-dir.ts";
-
-const KEPT_RUNS = 10;
+import { captureContainerWindows } from "./container-screenshot.ts";
+import { e2eResultsDir, publishE2eResultsDir } from "./results-dir.ts";
 
 export default class E2eReporter extends DefaultReporter {
   readonly #directory = e2eResultsDir();
   readonly #log = resolve(this.#directory, "console.log");
+  readonly #captures: Promise<void>[] = [];
 
   override onInit(...args: Parameters<DefaultReporter["onInit"]>): void {
     super.onInit(...args);
     mkdirSync(this.#directory, { recursive: true });
     writeFileSync(this.#log, "");
-    if (!process.env.ZOTLIT_RUN_CONTAINER) {
-      pointLatestResult(this.#directory);
-      this.#pruneRuns();
-    }
+    if (!process.env.ZOTLIT_RUN_CONTAINER)
+      publishE2eResultsDir(this.#directory);
     this.log(`E2E evidence: ${this.#directory}`);
-  }
-
-  #pruneRuns(): void {
-    for (const file of ["results.json", "console.log", "paired-startup.log"]) {
-      rmSync(resolve(E2E_RESULTS_ROOT, file), { force: true });
-    }
-    const runs = readdirSync(E2E_RESULTS_ROOT, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory() && /^\d{4}-/.test(entry.name))
-      .map((entry) => entry.name)
-      .toSorted();
-    for (const run of runs.slice(0, -KEPT_RUNS)) {
-      if (run === basename(this.#directory)) continue;
-      rmSync(resolve(E2E_RESULTS_ROOT, run), { recursive: true, force: true });
-    }
   }
 
   override onUserConsoleLog(
@@ -88,6 +62,17 @@ export default class E2eReporter extends DefaultReporter {
   override onTestCaseResult(test: TestCase): void {
     super.onTestCaseResult(test);
     reportDesktopProgress(`finished test "${test.fullName}"`);
+    if (process.env.ZOTLIT_RUN_CONTAINER && test.result().state === "failed") {
+      this.#captures.push(
+        captureContainerWindows(this.#directory, test.id).catch(
+          (error: unknown) => {
+            this.log(
+              `Could not capture a Run Container window: ${String(error)}`,
+            );
+          },
+        ),
+      );
+    }
   }
 
   override onHookStart(hook: ReportedHookContext): void {
@@ -106,6 +91,7 @@ export default class E2eReporter extends DefaultReporter {
     unhandledErrors: Parameters<DefaultReporter["onTestRunEnd"]>[1],
     reason: TestRunEndReason,
   ) {
+    await Promise.all(this.#captures);
     super.onTestRunEnd(testModules, unhandledErrors, reason);
     if (reason !== "failed" || process.env.ZOTLIT_RUN_CONTAINER) return;
     const line = await paintAfterFailure();

@@ -7,6 +7,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 import { PINNED_ZOTERO_VERSION } from "@zotlit/scripts/fixture/paired-zotero";
+import { admitMemoryRun } from "@zotlit/scripts/memory-admission";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { runImageTag } from "./container-image.ts";
@@ -14,7 +15,7 @@ import { OBSIDIAN_VERSION } from "./obsidian-version.ts";
 import {
   E2E_RESULTS_ENV,
   e2eResultsDir,
-  pointLatestResult,
+  publishE2eResultsDir,
 } from "./results-dir.ts";
 
 const VNC_ENV = "ZOTLIT_E2E_VNC";
@@ -142,6 +143,8 @@ if (
 )
   throw new Error(`Set ${VNC_ENV} to a local TCP port (1–65535).`);
 
+await admitMemoryRun();
+
 const worktree = createHash("sha256")
   .update(JSON.stringify([hostname(), workspaceRoot]))
   .digest("hex");
@@ -150,7 +153,7 @@ const tag = image();
 const files = worktreeFiles();
 const results = resolve(e2eResultsDir());
 mkdirSync(results, { recursive: true });
-pointLatestResult(results);
+publishE2eResultsDir(results);
 console.log(`E2E evidence: ${results}`);
 
 const child = spawn(

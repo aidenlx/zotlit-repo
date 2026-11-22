@@ -21,13 +21,8 @@ import { e2eResultsDir } from "./results-dir.ts";
 const execFileAsync = promisify(execFile);
 const HOST_VAULT = "0123456789abcdef";
 
-let started: Promise<void> | undefined;
-
-export function startContainerObsidian(): Promise<void> {
-  return (started ??= launchObsidian());
-}
-
-async function launchObsidian(): Promise<void> {
+export default async function setup() {
+  if (!process.env.ZOTLIT_RUN_CONTAINER) return;
   const root = await getWorkspaceRoot(import.meta.dirname);
   const profile = join(process.env.XDG_CONFIG_HOME!, "obsidian");
   const vault = join(profile, "bootstrap-vault");

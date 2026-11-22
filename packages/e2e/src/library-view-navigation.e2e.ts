@@ -26,7 +26,6 @@ import {
   e2eFixture,
   positionDocumentItem,
   readingState,
-  workspaceRoot,
 } from "./e2e-run-fixture.ts";
 import { activeTab, pdfOpened, unreadOf } from "./e2e-run-helpers.ts";
 import type { ActiveTab } from "./e2e-run-helpers.ts";
@@ -44,6 +43,7 @@ import type {
   LibraryWorkerMessage,
 } from "./page-library-types.ts";
 import type {} from "./page-library-types.ts";
+import { e2eResultsDir } from "./results-dir.ts";
 
 describe.skipIf(!reachable)("End-to-end Run", () => {
   registerEndToEndRunHooks();
@@ -4914,7 +4914,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       glyph: Box;
     }
 
-    const shots = join(workspaceRoot, ".scratch/e2e-screenshots");
+    const shots = join(e2eResultsDir(), "screenshots");
     await mkdir(shots, { recursive: true });
     const cases = {
       setup: {

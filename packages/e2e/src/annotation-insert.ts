@@ -2,8 +2,6 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { expect } from "vitest";
 
-import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
-
 import { annotationPreparationModule } from "./annotation-preparation.ts";
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import { cli } from "./obsidian-cli.ts";
@@ -12,6 +10,7 @@ import type {
   MarkdownLeaf,
   AnnotationLeaf,
 } from "./page-notes-types.ts";
+import { e2eResultsDir } from "./results-dir.ts";
 
 export async function verifyAnnotationInsert(
   vaultId: string,
@@ -360,10 +359,7 @@ export async function verifyAnnotationInsert(
           text.startsWith(mode === "edit" ? "user before " : "before "),
         ).toBe(true);
         if (mode === "success") {
-          const folder = join(
-            await getWorkspaceRoot(import.meta.dirname),
-            ".scratch/e2e-screenshots",
-          );
+          const folder = join(e2eResultsDir(), "screenshots");
           await mkdir(folder, { recursive: true });
           await cli([
             `vault=${vaultId}`,

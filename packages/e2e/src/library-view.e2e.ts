@@ -29,7 +29,6 @@ import {
   e2eFixture,
   e2eVaultPath,
   fixtureActivity,
-  workspaceRoot,
 } from "./e2e-run-fixture.ts";
 import { registerEndToEndRunHooks, run } from "./e2e-run-lifecycle.ts";
 import { signalDatabaseUpdated } from "./e2e-run-note-helpers.ts";
@@ -42,6 +41,7 @@ import type {} from "./page-library-types.ts";
 import type { PagePdfReaderView } from "./page-notes-types.ts";
 import { verifyPdfReads } from "./pdf-reads.ts";
 import { verifyRecentUses } from "./recent-uses.ts";
+import { e2eResultsDir } from "./results-dir.ts";
 
 async function waitForLibraryDocument(
   vaultId: string,
@@ -3131,7 +3131,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     await suite.wideWindow(cleanup);
     const screenshot = async (name: string) => {
-      const folder = join(workspaceRoot, ".scratch/e2e-screenshots");
+      const folder = join(e2eResultsDir(), "screenshots");
       await mkdir(folder, { recursive: true });
       await cli([
         `vault=${run.vaultId}`,
@@ -4303,7 +4303,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     });
     await suite.wideWindow(cleanup);
     const screenshot = async (name: string) => {
-      const folder = join(workspaceRoot, ".scratch/e2e-screenshots");
+      const folder = join(e2eResultsDir(), "screenshots");
       await mkdir(folder, { recursive: true });
       await cli([
         `vault=${run.vaultId}`,

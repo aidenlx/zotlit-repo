@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import { Effect } from "effect";
 import { spawn } from "node:child_process";
 import { constants } from "node:os";
 import yargs from "yargs";
@@ -14,8 +13,9 @@ import {
   EXIT_ADMISSION_BLOCKED,
   MEMORY_GATE_ADMITTED_ENV,
   MEMORY_GATE_ENV,
-  passMemoryGateOrExit,
 } from "@zotlit/config/memory-gate";
+
+import { admitMemoryRun } from "#memory-admission";
 
 const EXIT_USAGE = 2;
 
@@ -62,7 +62,7 @@ const [command, ...args] = ((argv["--"] as unknown[] | undefined) ?? []).map(
 );
 if (!command) usage("name the command after: -- <command> [args...]");
 
-const admitted = await Effect.runPromise(passMemoryGateOrExit());
+const admitted = await admitMemoryRun();
 const options = {
   stdio: "inherit",
   env: admitted

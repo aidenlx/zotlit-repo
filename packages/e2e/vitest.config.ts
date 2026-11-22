@@ -10,6 +10,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
+    globalSetup: ["./src/container-obsidian.ts"],
     projects: [
       {
         extends: true,
