@@ -39,6 +39,7 @@ host: pnpm e2e [vitest args]
 - **Linux CI.** A GitHub Actions job on `ubuntu-24.04-arm` runs the same image, at first nightly on `main` and on dispatch. It does not gate a land until it is stable.
 - **The host desktop stays for the work that needs the real macOS app.** These are a docs walk that captures or records, `measure:startup`, `pnpm fixture open|dev` and `/obsidian-debug`. Each takes the whole desktop: the Desktop Slot pool shrinks to one Exclusive Hold, and the Paint Check and `caffeinate` stay for these holders only.
 - **The workarounds for a shared app go.** These are the pool of N vaults, the vault-registry mutex, the open-behind window code, the app-wide sidebar pin and CDP focus emulation. Each goes only after the suite is green in the Run Container without it. A removal that changes the result of a passing case stays out.
+- **The nightly is the regression net.** The run that `pnpm land` started on the Mac after each land is retired (#132), with its End-to-end Queue. A report names the failed tip; the tip of the last nightly that passed gives the range.
 - **The release gate.** It runs the End-to-end Run in a Run Container. `measure:startup --check` stays on the host desktop.
 
 ## Considered options

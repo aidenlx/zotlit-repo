@@ -143,7 +143,7 @@ A change reaches `main`, the one long-lived branch, only through `pnpm land`. Ru
 - **Queue:** lands on this machine run one at a time, in the order they started. A land waits up to 1 h for its turn and exits 75 when the turn does not come: blocked, not a failure. `pnpm land status` shows the holder and the waiters.
 - **Failure:** a non-zero exit names the failed step and prints the path of the full log. The worktree stays on its branch with a clean tree. After a rebase conflict the branch is as it was: rebase onto `origin/main`, resolve, and land again. After a failed gate the branch is rebased onto `origin/main`: fix it there, commit, and land again. After a failure at the `record` or `ci` step, `main` is unchanged and the branch is on origin: follow the row of that step in `/land` "A failed land".
 - **Pushes:** the pre-push hook lets only `pnpm land` push `main`, and in an agent session it refuses every other push. A person can push a task branch to share it; that push runs no gate.
-- **After the land:** the End-to-end Run of the new `main` tip starts a Run Container in the background. A failure adds a comment with the commit range and the error to the open issue of each failed case in `aidenlx/zotlit-repo`, or opens it with the `needs-triage` label; a failure of the run as a whole goes to the issue `End-to-end Run fails on main` (see `/land`).
+- **Full End-to-end Run:** the nightly workflow runs it on `main` in GitHub Actions, and `pnpm verify --release` runs it before a release. Each case that fails in the nightly has one open issue in `aidenlx/zotlit-repo` with the `needs-triage` label; a failure of the run as a whole goes to the issue `End-to-end Run fails on main` (see `/land`).
 
 ## Agent skills
 

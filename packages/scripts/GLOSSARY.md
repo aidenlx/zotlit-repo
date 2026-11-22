@@ -156,11 +156,6 @@ pushes, and the pre-push hook lets only a push from the Land Turn reach
 `main`.
 _Avoid_: land lock, push lock
 
-**End-to-end Queue**:
-The line of End-to-end Runs after lands. Each land asks for a run of its new
-`main` tip; a run that waited takes the newest tip, so runs coalesce.
-_Avoid_: post-merge CI
-
 ## Releasing
 
 **Version Commit**:

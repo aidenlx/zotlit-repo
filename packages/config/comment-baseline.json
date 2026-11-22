@@ -307,7 +307,6 @@
   "packages/scripts/lib/shell/templates/scripts/build.mjs": "5630d07b2bda8173 73d20966c496ad4d a70f3137be52d0a6 aa6ee4dc8eb1d818 b54c4b83e4371f6f",
   "packages/scripts/scripts/desktop-slot.ts": "d896dfca906cc44a",
   "packages/scripts/scripts/fixture.ts": "1a131c867f147d8a 35313883e86aee8c d882fe31f7180125",
-  "packages/scripts/scripts/land-e2e.ts": "d896dfca906cc44a",
   "packages/scripts/scripts/obsidian-vault.ts": "111101c372d01072",
   "packages/shared/src/delimited.ts": "4030f9ca90f5f7fa d17e28144f201470",
   "packages/shared/src/nanoevents.ts": "9bf8497c99a04947",

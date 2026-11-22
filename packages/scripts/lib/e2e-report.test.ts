@@ -10,7 +10,6 @@ import {
   MAX_CASE_ISSUES,
   readFailedE2eCases,
   reportE2eFailure,
-  reportE2ePass,
 } from "./e2e-report.ts";
 import type { E2eCase } from "./e2e-report.ts";
 
@@ -299,24 +298,5 @@ describe("reportE2eFailure", () => {
 
     const { body } = issues.created[0]!;
     expect(body).toContain("~~~~~~text\n```\n@someone\n```\n~~~~~~");
-  });
-});
-
-describe("reportE2ePass", () => {
-  it("comments on the issues that are still open, and opens none", async () => {
-    const issues = fakeIssues([
-      runIssue(1),
-      { ...runIssue(2), state: "closed" },
-      runIssue(3),
-    ]);
-
-    const urls = await reportE2ePass(issues.client, REPO, {
-      urls: ["u1", "u2"],
-      body: "It passed.",
-    });
-
-    expect(issues.comments).toEqual([{ number: 1, body: "It passed." }]);
-    expect(issues.created).toEqual([]);
-    expect(urls).toEqual(["u1"]);
   });
 });

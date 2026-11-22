@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn } from "node:child_process";
-import { openSync, readFileSync } from "node:fs";
-import { mkdir } from "node:fs/promises";
-import { join } from "node:path";
+import { readFileSync } from "node:fs";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { $ } from "zx";
@@ -31,23 +28,16 @@ import {
   LAND_WAIT_MS,
   RECORD_PR_WORKFLOW,
 } from "#land";
-import {
-  githubRepository,
-  landE2eDir,
-  readLandE2eRecords,
-  requestLandE2e,
-} from "#land-e2e";
-import { ghLandGitHub } from "#land-github";
+import { ghLandGitHub, githubRepository } from "#land-github";
 import { landAdmission, landStateDir, landWaitLog } from "#land-queue";
 
 const EXIT_USAGE = 2;
 const GATE_TAIL = 40;
-const STATUS_RUNS = 5;
 
 const epilogue = `A land holds the Land Turn while it fetches, rebases, runs the gate, and pushes, so one land at a time reaches ${SOURCE_BRANCH} on this machine, in the order the lands started. The gate cannot be skipped.
 
 From a task branch with a clean tree, a record file, and a gh login that GitHub accepts (checked before the turn):
-  fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_GATES.change.join(" ")}, push the branch to origin and open its record PR (or update the open one), wait for the "${LAND_CI_CHECK}" check of the PR head (pnpm verify --pr, ${RECORD_PR_WORKFLOW}), push HEAD to ${SOURCE_BRANCH} as a fast-forward. The wait prints the state of the check at each read and ends after ${formatDuration(LAND_CI_WAIT_MS)}; a check that does not pass fails the land with the link to the job, and ${SOURCE_BRANCH} stays as it was. A land again on the same head reads the same result, unless the job ran again from its link. When ${SOURCE_BRANCH} moved during the gate or the CI wait, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves; when GitHub shows the PR as merged, the task branch is deleted on origin. The End-to-end Run of the new tip starts in the background.
+  fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_GATES.change.join(" ")}, push the branch to origin and open its record PR (or update the open one), wait for the "${LAND_CI_CHECK}" check of the PR head (pnpm verify --pr, ${RECORD_PR_WORKFLOW}), push HEAD to ${SOURCE_BRANCH} as a fast-forward. The wait prints the state of the check at each read and ends after ${formatDuration(LAND_CI_WAIT_MS)}; a check that does not pass fails the land with the link to the job, and ${SOURCE_BRANCH} stays as it was. A land again on the same head reads the same result, unless the job ran again from its link. When ${SOURCE_BRANCH} moved during the gate or the CI wait, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves; when GitHub shows the PR as merged, the task branch is deleted on origin.
 
 Record file: ${LAND_RECORD_PATH} in the worktree. Its first line is "# <title>", the title of the PR; the rest is the PR body, with the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}.
 
@@ -60,7 +50,7 @@ Exit codes:
   ${EXIT_ADMISSION_BLOCKED}   the turn did not come within --wait; blocked, not a failure
 
 Lease: each output of a step renews the Land Turn. A turn whose commands print nothing for ${formatDuration(SILENCE_LIMIT_MS.childOutput)} ends, and so does one past ${formatDuration(MAX_LEASE_MS)} in total. Default wait: ${formatDuration(LAND_WAIT_MS)}.
-State and logs: ${landStateDir()} (wait log ${landWaitLog()}, End-to-end Runs ${join(landE2eDir(), "runs.jsonl")}).`;
+State and logs: ${landStateDir()} (wait log ${landWaitLog()}).`;
 
 function usage(message: string): never {
   console.error(`land: ${message}`);
@@ -103,43 +93,6 @@ async function landCommand(wait: string | undefined) {
     console.error(`Full log: ${result.logPath}`);
     process.exit(result.exitCode);
   }
-  await startE2e(cwd, result.commit, result.previous);
-}
-
-async function startE2e(cwd: string, commit: string, previous: string) {
-  const git = $({ cwd, quiet: true, nothrow: true });
-  const origin = (await git`git remote get-url origin`).stdout;
-  const primary = (await git`git worktree list --porcelain`).stdout
-    .split("\n")[0]
-    ?.slice("worktree ".length);
-  if (!primary) {
-    console.error(
-      "End-to-end Run: no primary worktree found; it does not start.",
-    );
-    return;
-  }
-  const dir = landE2eDir();
-  await requestLandE2e(
-    {
-      commit,
-      previous,
-      repository: primary,
-      issueRepository: githubRepository(origin),
-      requestedAt: Temporal.Now.instant().toString(),
-    },
-    dir,
-  );
-  await mkdir(dir, { recursive: true });
-  const out = openSync(join(dir, "runner.log"), "a");
-  const child = spawn(
-    process.execPath,
-    [join(import.meta.dirname, "land-e2e.ts")],
-    { cwd: dir, detached: true, stdio: ["ignore", out, out] },
-  );
-  child.unref();
-  console.error(
-    `End-to-end Run of ${commit.slice(0, 12)} starts in the background; results in ${join(dir, "runs.jsonl")}.`,
-  );
 }
 
 async function status() {
@@ -151,22 +104,6 @@ async function status() {
     state.waiters.length > 0
       ? `Land Queue:\n${describeWaiters(state.waiters)}`
       : "Land Queue: empty.",
-  );
-  const runs = await readLandE2eRecords(STATUS_RUNS);
-  console.log(
-    runs.length > 0
-      ? `End-to-end Runs after lands, newest last:\n${runs
-          .map(({ commit, finishedAt, result }) => {
-            const detail =
-              "reason" in result
-                ? `: ${result.reason}`
-                : "stage" in result
-                  ? ` at the ${result.stage} stage`
-                  : "";
-            return `  ${commit.slice(0, 12)} ${result.outcome}${detail} (${finishedAt})`;
-          })
-          .join("\n")}`
-      : "End-to-end Runs after lands: none recorded.",
   );
 }
 
@@ -187,7 +124,7 @@ await yargs(hideBin(process.argv))
   )
   .command(
     "status",
-    "show the holder of the Land Turn, the lands that wait, and the last End-to-end Runs after lands",
+    "show the holder of the Land Turn and the lands that wait",
     () => {},
     async () => {
       await status();

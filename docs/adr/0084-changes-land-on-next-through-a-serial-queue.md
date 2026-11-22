@@ -4,7 +4,7 @@ status: superseded in part by ADR-0097
 
 # Changes land on next through a serial queue
 
-> **Superseded in part by [ADR 0097](0097-main-is-the-one-trunk.md).** Changes land on `main`, the one trunk, through one Land Queue; `pnpm land --to main` and the graduation are gone. The queue, the Land Turn, the gate in the turn, the hook and the End-to-end Run after each land remain.
+> **Superseded in part by [ADR 0097](0097-main-is-the-one-trunk.md).** Changes land on `main`, the one trunk, through one Land Queue; `pnpm land --to main` and the graduation are gone. The queue, the Land Turn, the gate in the turn and the hook remain. [ADR 0115](0115-the-end-to-end-run-runs-in-a-container-of-its-own.md) retires the End-to-end Run after each land.
 
 Amends [ADR 0076](0076-checks-run-before-push-and-ci-runs-only-to-release.md): the quality gate moves from the pre-push hook into `pnpm land`, and pull requests into `next` go away. Amends [ADR 0021](0021-next-is-the-primary-branch.md): a change reaches `next` through `pnpm land`, and `main` takes a stable graduation as a fast-forward to a commit of `next` through `pnpm land --to main`.
 

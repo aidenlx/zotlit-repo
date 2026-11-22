@@ -1,8 +1,17 @@
 import type { CiCheck, LandGitHub, RecordPullRequest } from "#land";
+import { regex } from "arkregex";
 import { basename } from "node:path";
 import { $ } from "zx";
 
 import { RECORD_PR_WORKFLOW } from "#land";
+
+const GITHUB_REMOTE = regex(
+  "github\\.com[:/](?<repository>[^/]+/[^/]+?)(?:\\.git)?/?$",
+);
+
+export function githubRepository(url: string): string | undefined {
+  return GITHUB_REMOTE.exec(url.trim())?.groups.repository;
+}
 
 export type GhRun = (args: string[], input?: string) => Promise<string>;
 

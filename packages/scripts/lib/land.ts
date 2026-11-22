@@ -147,7 +147,6 @@ export type LandResult =
   | {
       ok: true;
       commit: string;
-      previous: string;
       attempts: number;
       waitMs: number;
       logPath: string;
@@ -341,11 +340,10 @@ export async function land(options: LandOptions): Promise<LandResult> {
       return value;
     };
     const maxAttempts = options.attempts ?? LAND_ATTEMPTS;
-    let previous = "";
     let pull: RecordPullRequest | undefined;
     for (;;) {
       attempts += 1;
-      previous = await step("fetch", () => fetchTarget(sh, remote, to));
+      await step("fetch", () => fetchTarget(sh, remote, to));
       await step("rebase", () => rebaseOnto(sh, `${remote}/${to}`, pre.head));
       await step("gate", async () => {
         const [command, ...args] = options.gate;
@@ -414,7 +412,6 @@ export async function land(options: LandOptions): Promise<LandResult> {
     return {
       ok: true,
       commit,
-      previous,
       attempts,
       waitMs,
       logPath,
@@ -727,7 +724,7 @@ async function fetchTarget(
   sh: Shell,
   remote: string,
   to: string,
-): Promise<string> {
+): Promise<void> {
   await sh.git(
     "fetch",
     "fetch",
@@ -735,7 +732,6 @@ async function fetchTarget(
     remote,
     `+refs/heads/${to}:refs/remotes/${remote}/${to}`,
   );
-  return await sh.git("fetch", "rev-parse", `${remote}/${to}`);
 }
 
 async function rebaseOnto(

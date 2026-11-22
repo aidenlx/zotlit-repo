@@ -108,18 +108,6 @@ export async function reportE2eFailure(
   return urls;
 }
 
-export async function reportE2ePass(
-  issues: E2eIssues,
-  repository: string,
-  { urls, body }: { urls: readonly string[]; body: string },
-): Promise<string[]> {
-  const open = (await issues.listOpen(repository)).filter(({ url }) =>
-    urls.includes(url),
-  );
-  for (const { number } of open) await issues.comment(repository, number, body);
-  return open.map(({ url }) => url);
-}
-
 async function publish(
   issues: E2eIssues,
   repository: string,

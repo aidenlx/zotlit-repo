@@ -14,8 +14,7 @@ fetch origin/main ─▶ rebase the branch onto it ─▶ pnpm verify --local
    │                                                      │ main moved
    └──────────────────────────────────────────────────────┘
 then: move the local main, read the PR state; when GitHub shows it as merged,
-      delete the task branch on origin; start the End-to-end Run of the new tip
-      in the background
+      delete the task branch on origin
 ```
 
 1. Commit every change on the task branch. `land` refuses a tree with uncommitted or untracked files.
@@ -64,9 +63,11 @@ The worktree stays on its branch with a clean tree.
 | `push`      | rebased; `main` moved in each attempt       | Land again.                                                                                  |
 | `lease`     | as the step left it; the step went silent   | Land again; when it repeats, report the step and the last progress that the message names.   |
 
-## After the land
+## The full End-to-end Run
 
-The End-to-end Run of the new tip starts a Run Container in the background from its own checkout. It uses the Memory Gate and its own End-to-end Turn. Host tools use the Desktop Slot. A later run takes the newest tip. Each failed case has one open issue in `aidenlx/zotlit-repo`, which the nightly End-to-end Run shares: a failure opens it with the `needs-triage` label, and a repeat adds a comment. A report of the run after a land has the commit range since the last passing tip and the error. The issue keeps its case when you rename it, so keep the HTML comment at the end of its body. A run with no failed case (checkout, bootstrap, a run that ended early), or with more failed cases than `MAX_CASE_ISSUES` in `packages/scripts/lib/e2e-report.ts`, goes to the open issue whose title is exactly `End-to-end Run fails on main` (the newest one, if several are open), with a log excerpt. The first pass after a failure adds a comment to each of these issues that is still open and leaves it open: close it when the cause is fixed, and the next failure opens a new one. If the Memory Gate reaches its deadline, the run records a blocked outcome and leaves the tip eligible for a later run. `pnpm land status` lists the last runs with their outcome; the results are in `runs.jsonl` under the state directory that `pnpm land --help` prints.
+The nightly workflow (`.github/workflows/nightly-e2e.yml`) runs the full End-to-end Run on `main` each night and on dispatch, and `pnpm verify --release` runs it before a release. Before you land a change to shared startup or lifecycle behavior, run `pnpm e2e` yourself (root `AGENTS.md`, Testing).
+
+Each case that fails in the nightly has one open issue in `aidenlx/zotlit-repo`: a failure opens it with the `needs-triage` label, and a repeat adds a comment. The issue keeps its case when you rename it, so keep the HTML comment at the end of its body. A run with no failed case (a run that ended early), or with more failed cases than `MAX_CASE_ISSUES` in `packages/scripts/lib/e2e-report.ts`, goes to the open issue whose title is exactly `End-to-end Run fails on main` (the newest one, if several are open), with a log excerpt. Close an issue when its cause is fixed; the next failure opens a new one. To find the change that caused a failure, compare the tip that the report names with the tip of the last nightly that passed.
 
 ## Releases
 

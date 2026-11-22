@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ghLandGitHub } from "./land-github.ts";
+import { ghLandGitHub, githubRepository } from "./land-github.ts";
 import type { GhRun } from "./land-github.ts";
 
 const REPO = "aidenlx/zotlit-repo";
@@ -214,5 +214,15 @@ describe("readCheck", () => {
       conclusion: "success",
       url: `https://github.com/${REPO}/actions/runs/1/job/4`,
     });
+  });
+});
+
+describe("githubRepository", () => {
+  it.each([
+    ["git@github.com:aidenlx/zotlit-repo.git", "aidenlx/zotlit-repo"],
+    ["https://github.com/aidenlx/zotlit-repo", "aidenlx/zotlit-repo"],
+    ["/srv/git/zotlit.git", undefined],
+  ])("reads %s", (url, expected) => {
+    expect(githubRepository(url)).toBe(expected);
   });
 });

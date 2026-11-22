@@ -25,7 +25,6 @@
     "#land": "./lib/land.ts",
     "#e2e-issues": "./lib/e2e-issues.ts",
     "#e2e-report": "./lib/e2e-report.ts",
-    "#land-e2e": "./lib/land-e2e.ts",
     "#gate-halves": "./lib/gate-halves.ts",
     "#gate-shards": "./lib/gate-shards.ts",
     "#land-github": "./lib/land-github.ts",
