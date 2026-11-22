@@ -23,7 +23,7 @@ Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so th
 
 Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here, not inside two parallel sub-agents.
 
-In a later round of a review loop (`implement-spec` step 5), the fixed point is the head that the previous round read, so the round reads only the new diff.
+In a later round of a review loop (`implement-spec` step 5), the fixed point is the head that the previous round read, so the round reads only the new diff. A review loop runs 3 rounds at most, and a round with no Important finding left ends it. After round 3, each finding that is still open gets the outcome `open point` ([Finding lines](#finding-lines)), and the record of the land lists it under Open points.
 
 ### 2. Identify the spec source
 
@@ -83,6 +83,7 @@ If the spec is missing, skip the Spec sub-agent and note this in the final repor
 - the Zotero connection: `packages/protocol`, and `zotero-local-api`, `local-server` and `zotero-pref` under `packages/plugin-services/src/`;
 - the database: `packages/db`, `packages/zotero-reads`, and `database` under `packages/plugin-services/src/`;
 - the release scripts: `packages/scripts/lib/release`, `packages/scripts/lib/shell`, `.github/workflows/release.yml`;
+- the CI and the land's GitHub client: `.github/workflows/record-pr.yml` (it holds an OIDC token), `.github/actions/setup-workspace`, `packages/scripts/lib/land-github.ts`;
 - the Companion: `apps/zotero`.
 
 Its prompt holds the diff command, the commit list, the finding line format, and the brief: "Report each way the diff lets untrusted input, a credential, or a published artifact do harm, as one finding line with the axis `Security`, and say how it can be exploited. Under 400 words."

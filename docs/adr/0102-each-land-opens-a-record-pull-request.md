@@ -32,4 +32,5 @@ ADR 0097 kept one branch on the source repository, and ADR 0096 removed pull req
 - The source repository has pull requests again, one per land, each opened and merged by the land.
 - A land needs a `gh` login that GitHub accepts. The land checks it before its turn, so a bad login fails before the gate.
 - Open point, answered by the first real land: whether GitHub marks the PR as merged when `main` moves to its head. Until then, a land whose PR does not show as merged keeps the branch and says so.
-- Later tickets of #122 build on the record PR: the CI result on it before `main` moves, the `land-approved` label for the blocking paths, and the release summary of the record PRs since the last tag.
+- The CI result on the record PR gates `main`: the land waits for its check before it pushes (#129).
+- Deferred work builds on the record PR: the `land-approved` label for the blocking paths, and the release summary of the record PRs since the last tag (#127).

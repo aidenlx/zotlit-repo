@@ -56,7 +56,7 @@ The worktree stays on its branch with a clean tree.
 
 | Step        | State of the branch                         | Next action                                                                                  |
 | ----------- | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `preflight` | as it was                                   | Commit the changes, switch to the task branch, complete the record file, or fix the `gh` login. |
+| `preflight` | as it was                                   | Commit the changes, switch to the task branch, rename an agent branch (`claude/*`, `codex/*`, `cursor/*`), complete the record file, or fix the `gh` login. |
 | `rebase`    | as it was                                   | `git rebase origin/main`, resolve the conflicts, run the affected tests, commit, land again. |
 | `gate`      | rebased onto the fetched `origin/main`      | Fix the failure on this branch, commit, land again. The tail of the gate output is printed.  |
 | `record`    | rebased; pushed to origin; `main` unchanged | Read the `gh` error in the message. Fix its cause, then land again.                          |
