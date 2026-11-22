@@ -15,7 +15,14 @@ interface WorkflowJob {
   if?: string;
   strategy?: { "fail-fast"?: boolean; matrix?: { shard?: number[] } };
   "timeout-minutes"?: number;
-  steps?: { env?: Record<string, string>; run?: string }[];
+  "continue-on-error"?: unknown;
+  steps?: WorkflowStep[];
+}
+
+interface WorkflowStep {
+  env?: Record<string, string>;
+  run?: string;
+  "continue-on-error"?: unknown;
 }
 
 export function recordPrProblems(text: string): string[] {
@@ -70,9 +77,19 @@ export function recordPrProblems(text: string): string[] {
       "LAND_CI_WAIT_MS in lib/land.ts must be at least 5 min longer than the jobs' timeouts",
     );
   }
-  const runs = (job.steps ?? []).flatMap((step) =>
-    step.run?.includes("pnpm verify") ? [step.run.trim()] : [],
+  const verifySteps = (job.steps ?? []).filter((step) =>
+    step.run?.includes("pnpm verify"),
   );
+  if (
+    [job, gate, ...verifySteps, ...steps].some(
+      (each) => each["continue-on-error"] !== undefined,
+    )
+  ) {
+    problems.push(
+      "its jobs, their verify step and the check's step must not set `continue-on-error`, which hides a failed test",
+    );
+  }
+  const runs = verifySteps.map((step) => step.run!.trim());
   if (runs.length !== 1 || runs[0] !== SHARD_RUN) {
     problems.push(
       `each shard must run \`${SHARD_RUN}\` once (lib/gate-shards.ts); it runs ${runs.map((each) => `\`${each}\``).join(", ") || "no pnpm verify"}`,

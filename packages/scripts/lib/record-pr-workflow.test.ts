@@ -88,6 +88,38 @@ describe("recordPrProblems", () => {
     ]);
   });
 
+  it.each([
+    ["the shard job", "    timeout-minutes: 35\n", "    "],
+    ["the verify step", "      - name: verify\n", "        "],
+    ["the check's job", "    timeout-minutes: 5\n", "    "],
+    [
+      "the check's step",
+      "          RESULT: ${{ needs.shard.result }}\n",
+      "        ",
+    ],
+  ])(
+    "reports continue-on-error on %s, which hides a failure",
+    (_, line, indent) => {
+      const text = workflow().replace(
+        line,
+        `${line}${indent}continue-on-error: true\n`,
+      );
+
+      expect(recordPrProblems(text)).toEqual([
+        expect.stringContaining("continue-on-error"),
+      ]);
+    },
+  );
+
+  it("accepts continue-on-error on a step beside the verify step", () => {
+    const text = workflow().replace(
+      "      - uses: ./.github/actions/setup-workspace\n",
+      "      - uses: ./.github/actions/setup-workspace\n        continue-on-error: true\n",
+    );
+
+    expect(recordPrProblems(text)).toEqual([]);
+  });
+
   it("reports a check that takes its result from somewhere else", () => {
     expect(recordPrProblems(workflow({ from: "success" }))).toEqual([
       expect.stringContaining('"Record PR tests" must need "shard"'),
