@@ -630,17 +630,38 @@ export function createPageHelpers(
   function pageContainer(view: PagePdfReaderView) {
     return view.reader!.container;
   }
+  function x11WindowId(win: BackgroundWindow) {
+    return `0x${  win.getNativeWindowHandle().readUInt32LE(0).toString(16)}`;
+  }
+  function herbstclient(...args: string[]) {
+    const { execFileSync } =
+      require("node:child_process") as typeof import("node:child_process");
+    execFileSync("herbstclient", args);
+  }
+  async function activateLeafWindow(leaf: WorkspaceLeaf) {
+    const owner = leaf.getContainer();
+    if (process.env.ZOTLIT_RUN_CONTAINER) {
+      const win = owner.win as Window & typeof globalThis;
+      const remote = win.require(
+        "@electron/remote",
+      ) as typeof import("@electron/remote");
+      herbstclient("jumpto", x11WindowId(remote.getCurrentWindow()));
+    } else {
+      owner.focus();
+    }
+    await until(
+      "the selected window to receive focus",
+      () => owner.doc.hasFocus() && activeWindow === owner.win,
+    );
+  }
   function showBehind(win: BackgroundWindow) {
     if (process.env.ZOTLIT_RUN_CONTAINER) {
       if (win.isMinimized()) {
-        const { execFileSync } =
-          require("child_process") as typeof import("node:child_process");
-        const id = win.getNativeWindowHandle().readUInt32LE(0).toString(16);
-        execFileSync("herbstclient", [
+        herbstclient(
           "set_attr",
-          `clients.0x${id}.minimized`,
+          `clients.${x11WindowId(win)}.minimized`,
           "false",
-        ]);
+        );
       } else {
         win.show();
       }
@@ -1080,6 +1101,7 @@ export function createPageHelpers(
     clientOfFirstPage,
     toolButton,
     pageContainer,
+    activateLeafWindow,
     showBehind,
     press,
     until,

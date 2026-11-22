@@ -45,6 +45,16 @@ describe.skipIf(!reachable)("Walkthrough regressions", () => {
     ]);
     vaultId = opened.stdout.trim().split("\n")[0]!.trim();
     await prepareRunWindow(vaultId);
+    await obRun(
+      vaultId,
+      async () => {
+        const { debugger: input } = (
+          require("@electron/remote") as typeof import("@electron/remote")
+        ).getCurrentWebContents();
+        if (!input.isAttached()) input.attach("1.3");
+      },
+      undefined,
+    );
   }, 180_000);
 
   afterAll(async () => {

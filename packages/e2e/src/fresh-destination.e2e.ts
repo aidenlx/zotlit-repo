@@ -104,7 +104,7 @@ describe.skipIf(!reachable)("Fresh destination flow", () => {
     const openAdd = async () => {
       await obRun(
         vaultId,
-        async ({ app }, { firstPath }) => {
+        async ({ app, page }, { firstPath }) => {
           const leaf = app.workspace
             .getLeavesOfType("markdown")
             .find(
@@ -113,7 +113,7 @@ describe.skipIf(!reachable)("Fresh destination flow", () => {
                 firstPath,
             );
           await app.workspace.revealLeaf(leaf!);
-          leaf!.getContainer().focus();
+          await page.activateLeafWindow(leaf!);
         },
         { firstPath: first.path },
       );

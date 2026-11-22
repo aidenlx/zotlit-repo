@@ -118,7 +118,7 @@ export async function verifyAnnotationDrag(
         s.assetsBeforeStart = app.vault
           .getFiles()
           .filter((f) => f.name.startsWith("zotlit-excerpt-")).length;
-        s.sourceWin.focus();
+        await page.activateLeafWindow(s.viewLeaf);
         app.workspace.setActiveLeaf(s.viewLeaf, { focus: true });
         s.button.dispatchEvent(start);
         s.assetsAfterStart = app.vault
@@ -158,8 +158,6 @@ export async function verifyAnnotationDrag(
         };
         s.editor.undo();
         result.afterUndo = s.editor.getValue();
-        s.sourceWin.focus();
-        app.workspace.setActiveLeaf(s.viewLeaf, { focus: true });
         return result;
       },
       undefined,
@@ -182,7 +180,7 @@ export async function verifyAnnotationDrag(
       vaultId,
       async ({ app, page }) => {
         const s = page.scratch.__zotlitDragTrial!;
-        s.sourceWin.focus();
+        await page.activateLeafWindow(s.viewLeaf);
         app.workspace.setActiveLeaf(s.viewLeaf, { focus: true });
       },
       undefined,
