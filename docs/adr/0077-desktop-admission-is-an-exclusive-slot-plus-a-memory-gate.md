@@ -25,7 +25,7 @@ anything that drives the desktop Obsidian
 
 Each holder enforces its own Lease by ending its process group. When a Lease plus a grace period has passed and the holder is still there, the head waiter evicts it, after checking the pid's start time. Default Leases: `pnpm e2e` 20 min, `e2e:worker` 10 min, `measure:query` 2 h. Manual holds and `pnpm fixture open|dev` must state `--for`, capped at 60 min. A holder may extend its Lease only while nobody is waiting. A child that reuses its parent's hold lives inside the parent's Lease.
 
-The desktop admission rules below apply to host-desktop runs. [ADR 0115](0115-the-end-to-end-run-runs-in-a-container-of-its-own.md) defines admission for the opt-in Run Container.
+The desktop admission rules below apply to host-desktop runs. [ADR 0115](0115-the-end-to-end-run-runs-in-a-container-of-its-own.md) defines admission for the Run Container, which `pnpm e2e` uses by default.
 
 ## Considered options
 

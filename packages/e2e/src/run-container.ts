@@ -6,6 +6,11 @@ import { resolve } from "node:path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
+import {
+  ADMISSION_DEADLINE_MS,
+  DESKTOP_WAIT_ENV,
+  EXIT_ADMISSION_BLOCKED,
+} from "@zotlit/config/memory-gate";
 import { PINNED_ZOTERO_VERSION } from "@zotlit/scripts/fixture/paired-zotero";
 import { admitMemoryRun } from "@zotlit/scripts/memory-admission";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
@@ -20,6 +25,7 @@ import {
 } from "./results-dir.ts";
 
 const VNC_ENV = "ZOTLIT_E2E_VNC";
+const IMAGE_ARCHIVE_ENV = "ZOTLIT_E2E_IMAGE_ARCHIVE";
 const vitestArgs = hideBin(process.argv);
 const help = yargs([])
   .scriptName("pnpm e2e")
@@ -27,7 +33,13 @@ const help = yargs([])
   .version(false)
   .help()
   .epilogue(
-    `The Run Container builds a pinned image when needed and runs Vitest in an isolated desktop. The guest copies tracked and unignored worktree files, including local changes. Pass Vitest file filters, --project, or -t directly. Use ${VNC_ENV}=<port> to watch over VNC at 127.0.0.1. Evidence goes to .scratch/e2e-results or the folder named in ${E2E_RESULTS_ENV}.`,
+    `The Run Container builds a pinned image when needed and runs Vitest in an isolated desktop. The guest copies tracked and unignored worktree files, including local changes. Pass Vitest file filters, --project, or -t directly.
+
+Set ${VNC_ENV}=<port> to watch over VNC at 127.0.0.1. Evidence goes to .scratch/e2e-results or the folder named in ${E2E_RESULTS_ENV}.
+
+Set ${IMAGE_ARCHIVE_ENV}=<path> to load a saved image when the local image is absent and save the pinned image when the archive is absent or the loaded archive did not contain it.
+
+Set ${DESKTOP_WAIT_ENV}=<duration> to change the Memory Gate admission deadline (default ${ADMISSION_DEADLINE_MS / 60_000} min). Exit ${EXIT_ADMISSION_BLOCKED} means blocked at admission. The launcher returns the run's exit status.`,
   );
 if (vitestArgs.length === 1 && ["--help", "-h"].includes(vitestArgs[0]!)) {
   help.showHelp("log");
@@ -69,15 +81,13 @@ function image(): string {
   const pnpm = packageManager.slice("pnpm@".length);
   const arch = process.arch === "arm64" ? "arm64" : "amd64";
   const platform = `linux/${arch}`;
-  const tag = runImageTag([
+  const tag = runImageTag(context, {
     platform,
     pnpm,
-    OBSIDIAN_VERSION,
-    PINNED_ZOTERO_VERSION,
-    readFileSync(resolve(context, "Dockerfile"), "utf8"),
-    readFileSync(resolve(context, "entry.sh"), "utf8"),
-  ]);
-  const archive = process.env.ZOTLIT_E2E_IMAGE_ARCHIVE;
+    obsidian: OBSIDIAN_VERSION,
+    zotero: PINNED_ZOTERO_VERSION,
+  });
+  const archive = process.env[IMAGE_ARCHIVE_ENV];
   const hasImage = () => docker(["image", "ls", "--quiet", tag]) !== "";
   let available = hasImage();
   let archived = archive !== undefined && existsSync(archive);
@@ -180,6 +190,8 @@ const child = spawn(
     `type=volume,source=zotlit-e2e-pnpm-${process.arch},target=/pnpm-store`,
     "--env",
     "ZOTLIT_E2E_RESULTS=/results",
+    "--env",
+    `ZOTLIT_E2E_HOST_RESULTS=${results}`,
     "--env",
     "ANNOTATION_SUGGESTER_ENABLED",
     "--env",

@@ -4392,56 +4392,63 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           await eraseAnnotations(rdp, await madeSince(held));
         });
 
-        it("draws the seeded free text inside its box at the display font's line breaks", async () => {
+        it("wraps seeded free text to its box width using the display font", async () => {
           await raiseWindow(vaultId!);
-          const { position } = seededMark("HRK7BG32", { image: false }).seeded;
-          if (!("fontSize" in position)) throw new Error("HRK7BG32 is text");
+          const { position, comment } = seededMark("HRK7BG32", {
+            image: false,
+          }).seeded;
+          if (!("fontSize" in position) || !comment)
+            throw new Error("HRK7BG32 is text");
           const [left, , right] = position.rects[0]!;
-          let lines: [string, string, number][] = [];
-          expect(
-            await waitFor(async () => {
-              const answer = await obRun(
-                vaultId!,
-                async (
-                  { page: pageHelpers },
-                  {
-                    attachmentPath,
-                    annotationKey,
-                  }: { attachmentPath: string; annotationKey: "HRK7BG32" },
-                ) => {
-                  const view = pageHelpers.pdfView(attachmentPath)!;
-                  if (!view) return "no view";
-                  void view.reader!.navigate({ pageIndex: 0 });
-                  const mark =
-                    view.containerEl.querySelector<SVGGraphicsElement>(
-                      `.zt-pdf-annotation-mark[data-zotero-annotation-key=${JSON.stringify(annotationKey)}]`,
-                    );
-                  if (!mark) return "none";
-                  return JSON.stringify(
-                    [...mark.children].map((line) => [
-                      line.textContent,
-                      Number(line.getAttribute("y")).toFixed(3),
-                      Number(
-                        (line as SVGTextContentElement)
-                          .getComputedTextLength()
-                          .toFixed(3),
-                      ),
-                    ]),
-                  );
-                },
-                { attachmentPath, annotationKey: "HRK7BG32" },
+          const width = right - left;
+          const evidence = await obRunUntil(
+            vaultId!,
+            async ({ page }, { attachmentPath, width, fontSize }) => {
+              const view = page.pdfView(attachmentPath);
+              if (!view) return null;
+              void view.reader!.navigate({ pageIndex: 0 });
+              const mark = view.containerEl.querySelector<SVGTextElement>(
+                '.zt-pdf-annotation-mark[data-zotero-annotation-key="HRK7BG32"]',
               );
-              if (!answer.startsWith("[")) return false;
-              lines = JSON.parse(answer) as typeof lines;
-              return lines.every(([, , length]) => length > 0);
-            }),
-          ).toBe(true);
-          const expected = process.env.ZOTLIT_RUN_CONTAINER
-            ? ["Making figures is hard", ":("]
-            : ["Making figures is hard :("];
-          expect(lines.map(([line]) => line)).toEqual(expected);
-          for (const [, , width] of lines)
-            expect(width).toBeLessThanOrEqual(right - left);
+              if (!mark) return null;
+              const lines = [...mark.querySelectorAll("tspan")].map((line) => ({
+                text: line.textContent,
+                width: line.getComputedTextLength(),
+              }));
+              if (lines.length === 0 || lines.some((line) => line.width === 0))
+                return null;
+
+              const document = mark.ownerDocument;
+              const family = getComputedStyle(document.body).fontFamily;
+              const font = getComputedStyle(mark);
+              const canvas = document.createElement("canvas").getContext("2d")!;
+              canvas.font = `${fontSize}px ${family}`;
+              const earlyBreaks = lines
+                .slice(0, -1)
+                .filter(({ text }, index) => {
+                  const nextWord = lines[index + 1]!.text.split(" ")[0];
+                  return (
+                    canvas.measureText(`${text} ${nextWord}`).width <= width
+                  );
+                });
+              return {
+                lines,
+                earlyBreaks,
+                fontSize: Number.parseFloat(font.fontSize),
+                usesDisplayFont: font.fontFamily === family,
+              };
+            },
+            { attachmentPath, width, fontSize: position.fontSize },
+            { ready: (value) => value !== null, what: "the seeded text mark" },
+          );
+          expect(evidence!.usesDisplayFont).toBe(true);
+          expect(evidence!.fontSize).toBe(position.fontSize);
+          expect(evidence!.lines.map(({ text }) => text).join(" ")).toBe(
+            comment,
+          );
+          expect(evidence!.earlyBreaks).toEqual([]);
+          for (const line of evidence!.lines)
+            expect(line.width).toBeLessThanOrEqual(width);
         }, 120000);
 
         it("draws a two-line text Annotation from Zotero as two lines", async () => {

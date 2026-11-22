@@ -120,19 +120,23 @@ describe("the End-to-end Run after a land", () => {
     expect(ran).toEqual(["c3"]);
   });
 
-  it("records a skip on a machine with no desktop, and opens no issue", async () => {
-    const { fake, created, comments } = deps({
-      c1: { outcome: "skipped", reason: "no desktop" },
-    });
-    await request("c1");
-
-    await runner(fake);
-
-    expect(created).toEqual([]);
-    expect(comments).toEqual([]);
-    expect(await records()).toMatchObject([
+  it("reads the historical outcomes from host-desktop runs", async () => {
+    const history = [
       { commit: "c1", result: { outcome: "skipped", reason: "no desktop" } },
-    ]);
+      { commit: "c2", result: { outcome: "not-run", reason: "lid closed" } },
+    ];
+    const runs = history.map((record) =>
+      JSON.stringify({
+        ...record,
+        range: `p0..${record.commit}`,
+        startedAt: "2026-11-22T09:00:00Z",
+        finishedAt: "2026-11-22T09:00:01Z",
+        log: `${record.commit}.log`,
+      }),
+    );
+    await writeFile(join(dir, "runs.jsonl"), `${runs.join("\n")}\n`);
+
+    expect(await records()).toMatchObject(history);
   });
 });
 

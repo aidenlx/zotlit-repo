@@ -56,7 +56,11 @@ afterEach(async () => {
   await rm(join(dir, ".."), { recursive: true, force: true });
 });
 
-function gated(env: NodeJS.ProcessEnv = {}, body?: string) {
+function gated(
+  env: NodeJS.ProcessEnv = {},
+  body?: string,
+  fixture = "memory-pressure.ts",
+) {
   const command =
     body ??
     `require("node:fs").appendFileSync(${JSON.stringify(journal)}, "ran\\n")`;
@@ -64,7 +68,7 @@ function gated(env: NodeJS.ProcessEnv = {}, body?: string) {
     process.execPath,
     [
       "--import",
-      new URL("./__fixtures__/memory-pressure.ts", import.meta.url).href,
+      new URL(`./__fixtures__/${fixture}`, import.meta.url).href,
       SCRIPT,
       "--",
       process.execPath,
@@ -276,6 +280,24 @@ it("accepts a limited cgroup with memory to spare", () => {
   expect(linuxCgroupVerdict("4294967296", "2147483648")).toEqual({});
 });
 
-it("falls back to the host memory check for an unlimited cgroup", () => {
-  expect(linuxCgroupVerdict("max\n", "4294967296")).toBeUndefined();
-});
+it.each(["unlimited", "missing"])(
+  "falls back to the host memory check when the cgroup limit is %s",
+  async (limit) => {
+    const root = join(dir, "..");
+    if (limit === "unlimited")
+      await writeFile(join(root, "memory.max"), "max\n");
+    await writeFile(join(root, "memory.current"), "0\n");
+    await writeFile(
+      join(root, "meminfo"),
+      "MemTotal: 16777216 kB\nMemAvailable: 0 kB\nSwapTotal: 8388608 kB\nSwapFree: 0 kB\n",
+    );
+    anotherRunIsRunning();
+    const blocked = gated(
+      { [DESKTOP_WAIT_ENV]: "1s", ZOTLIT_TEST_LINUX_MEMORY: root },
+      undefined,
+      "linux-memory.ts",
+    );
+    expect(await blocked.exit).toBe(EXIT_ADMISSION_BLOCKED);
+    expect(await ran()).toBe("");
+  },
+);

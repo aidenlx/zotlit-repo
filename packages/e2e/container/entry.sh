@@ -2,8 +2,14 @@
 set -euo pipefail
 
 step=source
+host_results=${ZOTLIT_E2E_HOST_RESULTS:-$ZOTLIT_E2E_RESULTS}
+exec 3>&2
 trap 'if [[ -r /sys/fs/cgroup/memory.peak ]]; then cat /sys/fs/cgroup/memory.peak >"$ZOTLIT_E2E_RESULTS/memory-peak.bytes"; fi' EXIT
-trap 'code=$?; printf "Run Container failed at %s (exit %s). See %s/%s.log\n" "$step" "$code" "$ZOTLIT_E2E_RESULTS" "$step" >&2; exit "$code"' ERR
+trap 'code=$?
+  if [[ $step != run || ! -f "$ZOTLIT_E2E_RESULTS/results.json" ]]; then
+    printf "Run Container failed at %s (exit %s). See %s/%s.log\n" "$step" "$code" "$host_results" "$step" >&3
+  fi
+  exit "$code"' ERR
 
 {
   tar --create --directory=/source --no-recursion --null --files-from=- |

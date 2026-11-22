@@ -1769,6 +1769,7 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           const host = leaf.view.containerEl
             .querySelector(root)!
             .querySelector<HTMLElement>(".zt-query-note")!;
+          const scrolled = host.querySelector<HTMLElement>(box)!;
           const frame = () =>
             new Promise((resolve) => requestAnimationFrame(resolve));
           const saved = note.scrollTop;
@@ -1777,7 +1778,10 @@ describe.skipIf(!reachable)("Library View long lists", () => {
           while (performance.now() - start < 4000) {
             note.scrollTop = note.scrollHeight;
             await frame();
-            if (!host.isConnected) gone = true;
+            if (!gone && !host.isConnected) {
+              gone = true;
+              scrolled.dispatchEvent(new Event("scroll"));
+            }
             if (gone && performance.now() - start > 600) break;
           }
           note.scrollTop = saved;

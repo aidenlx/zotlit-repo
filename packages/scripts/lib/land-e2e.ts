@@ -52,9 +52,7 @@ export interface LandE2eRequest {
 
 export type LandE2eOutcome =
   | { outcome: "passed" }
-  | { outcome: "skipped"; reason: string }
   | { outcome: "blocked"; reason: string }
-  | { outcome: "not-run"; reason: string }
   | { outcome: "failed"; stage: string };
 
 export interface LandE2eRecord {
@@ -64,7 +62,7 @@ export interface LandE2eRecord {
   finishedAt: string;
   log: string;
   issue?: string;
-  result: LandE2eOutcome;
+  result: LandE2eOutcome | { outcome: "skipped" | "not-run"; reason: string };
 }
 
 interface LandE2eState {
@@ -227,7 +225,7 @@ export async function runLandE2e(
       result,
     };
     await appendFile(join(dir, "runs.jsonl"), `${JSON.stringify(record)}\n`);
-    if (result.outcome !== "blocked" && result.outcome !== "not-run") {
+    if (result.outcome !== "blocked") {
       await writeJsonAtomic(join(dir, "state.json"), {
         lastRun: request.commit,
         lastPassed:
@@ -240,9 +238,7 @@ export async function runLandE2e(
               : state.lastFailed,
       } satisfies LandE2eState);
     }
-    log(
-      `End-to-end Run of ${request.commit.slice(0, 12)}: ${result.outcome}${result.outcome === "not-run" ? `: ${result.reason}` : ""}.`,
-    );
+    log(`End-to-end Run of ${request.commit.slice(0, 12)}: ${result.outcome}.`);
     return record;
   } finally {
     slot.release();

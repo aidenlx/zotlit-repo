@@ -36,7 +36,7 @@ Desktop Queue (FIFO, no overtaking)
 - **The vault registry and the window-created hook:** `obsidian-vault open|remove` runs under a short machine-wide mutex.
 - **The clipboard:** each run replaces `electron.clipboard` and `navigator.clipboard` with an in-memory clipboard in its own vault windows. The plugin's copy paths run there, so they are still exercised.
 
-The desktop admission rules below apply to host-desktop runs. [ADR 0115](0115-the-end-to-end-run-runs-in-a-container-of-its-own.md) defines admission for the opt-in Run Container.
+The desktop admission rules below apply to host-desktop runs. [ADR 0115](0115-the-end-to-end-run-runs-in-a-container-of-its-own.md) defines admission for the Run Container, which `pnpm e2e` uses by default.
 
 ## Considered options
 
