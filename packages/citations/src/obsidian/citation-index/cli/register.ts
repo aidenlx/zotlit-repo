@@ -1,5 +1,5 @@
 import { Effect, Layer } from "effect";
-import type { App, CliFlag, CliFlags } from "obsidian";
+import type { CliFlag, CliFlags } from "obsidian";
 
 import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
@@ -23,7 +23,7 @@ import type {
 import { CitationIndex } from "#obsidian/citation-index/service.ts";
 
 interface CitationsCliRegistrationDeps {
-  app: App;
+  vaultName: string;
   basePath: string;
   citationIndex: Pick<
     CitationIndex["Service"],
@@ -43,9 +43,10 @@ export const layerCitationsCli: Layer.Layer<
 > = Layer.effectDiscard(
   Effect.gen(function* () {
     const host = yield* PluginHost;
+    const { vaultName, basePath } = yield* ObsidianEnv;
     registerCitationsCli(host, {
-      app: host.app,
-      basePath: (yield* ObsidianEnv).basePath,
+      vaultName,
+      basePath,
       citationIndex: yield* CitationIndex,
       zoteroPref: yield* ZoteroPref,
     });
@@ -91,7 +92,7 @@ export function registerCitationsCli(
     getIdentity: () =>
       Effect.map(deps.zoteroPref.current, ({ sourceId, databasePath }) => ({
         vault: {
-          name: deps.app.vault.getName(),
+          name: deps.vaultName,
           path: deps.basePath,
         },
         source: { id: sourceId, databasePath },

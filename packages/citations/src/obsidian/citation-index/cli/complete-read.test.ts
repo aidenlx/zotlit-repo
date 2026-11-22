@@ -2,11 +2,9 @@ import type { CitationIndexHarness } from "#__fixtures__/citation-index/test-har
 import { it } from "@effect/vitest";
 import { Effect, Fiber } from "effect";
 import { TestClock } from "effect/testing";
-import type { App, Vault } from "obsidian";
 import { expect } from "vitest";
 
 import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
-import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { registerCitationsCli } from "./register.ts";
 
@@ -21,9 +19,7 @@ import { inProcessParseClient } from "#core/citation-parse/in-process.ts";
 function commands(h: CitationIndexHarness) {
   const cli = fakeCliHost();
   registerCitationsCli(cli.host, {
-    app: stubService<App>("App", {
-      vault: stubService<Vault>("Vault", { getName: () => "Test" }),
-    }),
+    vaultName: "Test",
     basePath: "/test",
     citationIndex: h.index,
     zoteroPref: {

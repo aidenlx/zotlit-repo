@@ -12,7 +12,7 @@ it.effect("publishes all citation commands and their parameter help", () =>
     const { host, command, commands } = fakeCliHost();
     type RegistrationDeps = Parameters<typeof registerCitationsCli>[1];
     registerCitationsCli(host, {
-      app: stubService<RegistrationDeps["app"]>("App", {}),
+      vaultName: "Test Vault",
       basePath: "/vault",
       citationIndex: stubService<RegistrationDeps["citationIndex"]>(
         "CitationIndex",

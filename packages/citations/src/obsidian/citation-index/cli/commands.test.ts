@@ -1,11 +1,9 @@
 import type { CitationIndexHarnessOptions } from "#__fixtures__/citation-index/test-harness.ts";
 import { it } from "@effect/vitest";
 import { Effect } from "effect";
-import type { App, Vault } from "obsidian";
 import { expect } from "vitest";
 
 import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
-import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { seedWorksSql } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
@@ -16,12 +14,6 @@ import {
   annotationUri,
 } from "#__fixtures__/citation-index/annotations.ts";
 import { createCitationIndexHarness } from "#__fixtures__/citation-index/test-harness.ts";
-
-function cliApp(): App {
-  return stubService<App>("App", {
-    vault: stubService<Vault>("Vault", { getName: () => "Test Vault" }),
-  });
-}
 
 const setup = Effect.fn("CitationsCliTest.setup")(function* (
   body = `[@doe2024] [](${annotationUri})`,
@@ -40,7 +32,7 @@ const setup = Effect.fn("CitationsCliTest.setup")(function* (
 
   const cli = fakeCliHost();
   registerCitationsCli(cli.host, {
-    app: cliApp(),
+    vaultName: "Test Vault",
     basePath: "/test",
     citationIndex: h.index,
     zoteroPref: {

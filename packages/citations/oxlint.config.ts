@@ -154,10 +154,6 @@ export default defineConfig({
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
-      files: ["src/obsidian/citation-index/cli/register.ts"],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
       files: ["src/desktop/pandoc-export/register.ts"],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
