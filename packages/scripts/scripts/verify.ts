@@ -144,8 +144,8 @@ async function ciSteps(): Promise<void> {
         ...(admitted ? { [MEMORY_GATE_ADMITTED_ENV]: "1" } : {}),
       },
     });
-    await gated`pnpm exec turbo run test ${scope} --concurrency=${ci ? 1 : 2}`;
-    await gated`pnpm test:eval-runtime`;
+    // `//#test:eval-runtime` is `pnpm test:eval-runtime` as a cached task.
+    await gated`pnpm exec turbo run test //#test:eval-runtime ${scope} --concurrency=${ci ? 1 : 2}`;
   });
 
   await step("Bundle", () => sh`pnpm check:bundle`);

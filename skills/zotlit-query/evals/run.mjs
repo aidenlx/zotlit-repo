@@ -14,10 +14,11 @@ import { measureEvents, parseEvents } from "./events.mjs";
 export { measureEvents } from "./events.mjs";
 
 const repo = resolve(fileURLToPath(new URL("../../../", import.meta.url)));
+const requireScripts = createRequire(
+  join(repo, "packages/scripts/package.json"),
+);
 const { obsidianCliSocketPath } = await import(
-  createRequire(join(repo, "packages/scripts/package.json")).resolve(
-    "@zotlit/scripts/obsidian-cli",
-  )
+  requireScripts.resolve("@zotlit/scripts/obsidian-cli")
 );
 const cases = JSON.parse(
   await readFile(new URL("./cases.json", import.meta.url), "utf8"),

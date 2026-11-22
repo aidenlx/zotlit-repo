@@ -10,6 +10,11 @@ idiomatic_version_file_enable_tools = ["pnpm"]
 
 [env]
 _.path = ['{{config_root}}/node_modules/.bin']
+# Turbo's globalEnv: `node = "26"` can resolve to a newer release without a
+# change to this file, and the Mac and CI share one Remote Cache. The root
+# package.json, also in the global hash, pins pnpm. The setup-workspace action
+# writes the same value in CI.
+ZOTLIT_TOOLCHAIN = { value = "node-{{ exec(command='node --version') }}", tools = true }
 
 [tasks.init]
 description = "Bootstrap a fresh clone: trust mise, install deps; pass a primary-worktree path to also copy .env* files"

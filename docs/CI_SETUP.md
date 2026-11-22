@@ -15,10 +15,14 @@ same workflow and job, then allow compatible entries from other workflows on
 the same runner operating system. Turbo task hashes remain the authority for
 whether an individual result is reusable.
 
-The setup action records the effective Node and pnpm versions in
-`ZOTLIT_TOOLCHAIN`. The root Turbo configuration includes that value and
-`mise.toml` in its global hash. A toolchain change therefore invalidates cached
-tasks even when package source files are unchanged.
+The effective Node version is in `ZOTLIT_TOOLCHAIN` (`node-v26.9.0`): the
+`[env]` of `mise.toml` sets it on the Mac, and the setup action writes the same
+value in CI. The root `turbo.json` puts it in the global hash (`globalEnv`),
+with `mise.toml` (`globalDependencies`); the root `package.json`, which pins
+pnpm, is in the global hash by default. A toolchain change therefore
+invalidates cached tasks even when package source files are unchanged. A shell
+that mise did not activate in the repository has no `ZOTLIT_TOOLCHAIN`, so its
+turbo runs hash apart from the others; run them under `mise exec --`.
 
 ## Turborepo Remote Cache
 
@@ -41,8 +45,8 @@ To set it up:
    `gh variable set TURBO_TEAM --repo aidenlx/zotlit-repo --body <slug>`.
 3. On the Mac, run `pnpm exec turbo login` once; it keeps the token in the
    user's Turborepo configuration. Then set `TURBO_TEAM` to the same slug in
-   the user's environment (for example `~/.zshenv`), so that each `wt`
-   worktree reads it. A turbo run in a worktree then logs
+   the user's environment (in fish, `set -Ux TURBO_TEAM <slug>`), so that
+   each `wt` worktree reads it. A turbo run in a worktree then logs
    `Remote caching enabled`.
 
 A run with the Remote Cache logs `Remote caching enabled`. The `test` task

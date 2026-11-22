@@ -2,6 +2,8 @@
   "$schema": "https://turborepo.dev/schema.json",
   "cacheMaxAge": "7d",
   "cacheMaxSize": "10GB",
+  "globalDependencies": ["mise.toml"],
+  "globalEnv": ["ZOTLIT_TOOLCHAIN"],
   "futureFlags": {
     "affectedUsingTaskInputs": true
   },
@@ -83,6 +85,15 @@
     },
     "//#lint:repo": {
       "dependsOn": ["//#lint:repo:deps"]
+    },
+    "//#test:eval-runtime": {
+      "dependsOn": [
+        "@zotlit/db#transit",
+        "@zotlit/item-query#transit",
+        "@zotlit/scripts#transit",
+        "@zotlit/zotero-types#transit"
+      ],
+      "inputs": ["skills/zotlit-query/**"]
     },
     "//#lint:format-versions": {
       "cache": false

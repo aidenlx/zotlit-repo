@@ -13,6 +13,7 @@
         "src/**/*.css",
         "!src/generated/**",
         "$TURBO_ROOT$/packages/scripts/lib/package-roots.ts",
+        "$TURBO_ROOT$/packages/scripts/package.json",
         "$TURBO_ROOT$/packages/pdfjs/provenance.json",
         "$TURBO_ROOT$/packages/pdfjs/dist/pdf.worker.mjs",
         "$TURBO_ROOT$/packages/pdfjs/dist/wasm/*.wasm",
