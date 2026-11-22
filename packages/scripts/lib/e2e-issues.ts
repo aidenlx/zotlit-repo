@@ -3,13 +3,18 @@ import { writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { promisify } from "node:util";
 
-import type { LandE2eIssue, LandE2eIssues } from "./land-e2e.ts";
+import type { E2eIssue, E2eIssues } from "./e2e-report.ts";
 
 const execFileAsync = promisify(execFile);
 
-export function githubE2eIssues(directory: string): LandE2eIssues {
+export function githubE2eIssues(directory: string): E2eIssues {
   const gh = async (...args: string[]) =>
-    (await execFileAsync("gh", args, { cwd: directory })).stdout.trim();
+    (
+      await execFileAsync("gh", args, {
+        cwd: directory,
+        maxBuffer: 64 * 1024 * 1024,
+      })
+    ).stdout.trim();
   const bodyFile = async (body: string) => {
     const path = join(directory, "issue-body.md");
     await writeFile(path, body);
@@ -17,7 +22,7 @@ export function githubE2eIssues(directory: string): LandE2eIssues {
   };
 
   return {
-    listOpen: async (repository, title) =>
+    listOpen: async (repository) =>
       JSON.parse(
         await gh(
           "issue",
@@ -26,14 +31,12 @@ export function githubE2eIssues(directory: string): LandE2eIssues {
           repository,
           "--state",
           "open",
-          "--search",
-          `"${title}" in:title`,
           "--json",
-          "number,title,url",
+          "number,title,url,body",
           "--limit",
-          "100",
+          "1000",
         ),
-      ) as LandE2eIssue[],
+      ) as E2eIssue[],
     create: async (repository, { title, body, label }) =>
       gh(
         "issue",

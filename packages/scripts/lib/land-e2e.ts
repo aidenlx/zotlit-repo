@@ -1,4 +1,5 @@
 import type { Admission } from "#desktop-slot";
+import type { E2eCase, E2eIssues } from "#e2e-report";
 import { regex } from "arkregex";
 import { execFile } from "node:child_process";
 import { randomUUID } from "node:crypto";
@@ -9,7 +10,7 @@ import {
   rename,
   writeFile,
 } from "node:fs/promises";
-import { join, relative } from "node:path";
+import { basename, join, relative } from "node:path";
 import { promisify, stripVTControlCharacters } from "node:util";
 
 import {
@@ -19,6 +20,11 @@ import {
   SILENCE_LIMIT_MS,
   throttledProgress,
 } from "#desktop-slot";
+import {
+  readFailedE2eCases,
+  reportE2eFailure,
+  reportE2ePass,
+} from "#e2e-report";
 import { landStateDir } from "#land-queue";
 
 const HOUR = 3_600_000;
@@ -27,7 +33,7 @@ export const readLandE2eEvidence: LandE2eDeps["evidence"] = async ({
   run,
   range,
 }) => {
-  const { logPath, checkout } = run;
+  const { logPath, checkout, resultsDir } = run;
   const log = stripVTControlCharacters(await readFile(logPath, "utf8"));
   const args = ["log", "--oneline", "--no-decorate", "-n", "50", range];
   const { stdout: commits, stderr } = await promisify(execFile)("git", args, {
@@ -37,7 +43,7 @@ export const readLandE2eEvidence: LandE2eDeps["evidence"] = async ({
     stderr: error.stderr ?? "",
   }));
   await appendFile(logPath, `\n$ git ${args.join(" ")}\n${commits}${stderr}`);
-  return { commits, log };
+  return { commits, log, cases: await readFailedE2eCases(resultsDir) };
 };
 
 export const LAND_E2E_WAIT_MS = 3 * HOUR;
@@ -61,7 +67,7 @@ export interface LandE2eRecord {
   startedAt: string;
   finishedAt: string;
   log: string;
-  issue?: string;
+  issues?: string[];
   result: LandE2eOutcome | { outcome: "skipped" | "not-run"; reason: string };
 }
 
@@ -69,31 +75,14 @@ interface LandE2eState {
   lastRun?: string;
   lastPassed?: string;
   lastFailed?: string;
-}
-
-export const E2E_ISSUE_TITLE = "End-to-end Run fails on main";
-const E2E_ISSUE_LABEL = "needs-triage";
-const EXCERPT_LINES = 80;
-
-export interface LandE2eIssue {
-  number: number;
-  title: string;
-  url: string;
-}
-
-export interface LandE2eIssues {
-  listOpen: (repository: string, title: string) => Promise<LandE2eIssue[]>;
-  create: (
-    repository: string,
-    issue: { title: string; body: string; label: string },
-  ) => Promise<string>;
-  comment: (repository: string, number: number, body: string) => Promise<void>;
+  lastFailedIssues?: string[];
 }
 
 export interface LandE2eRun {
   request: LandE2eRequest;
   logPath: string;
   checkout: string;
+  resultsDir: string;
   progress: (what: string) => void;
   leaseEnded: AbortSignal;
 }
@@ -103,8 +92,8 @@ export interface LandE2eDeps {
   evidence: (failure: {
     run: LandE2eRun;
     range: string;
-  }) => Promise<{ commits: string; log: string }>;
-  issues: LandE2eIssues;
+  }) => Promise<{ commits: string; log: string; cases: E2eCase[] }>;
+  issues: E2eIssues;
 }
 
 const GITHUB_REMOTE = regex(
@@ -189,10 +178,16 @@ export async function runLandE2e(
     );
     await mkdir(join(dir, "logs"), { recursive: true });
     const turn = slot;
+    const checkout = join(dir, "checkout");
     const run: LandE2eRun = {
       request,
       logPath,
-      checkout: join(dir, "checkout"),
+      checkout,
+      resultsDir: join(
+        checkout,
+        ".scratch/e2e-results",
+        basename(logPath, ".log"),
+      ),
       progress: throttledProgress((what) => turn.progress(what)),
       leaseEnded: lease.signal,
     };
@@ -205,15 +200,15 @@ export async function runLandE2e(
         outcome: "failed",
         stage: `runner: ${(error as Error).message}`,
       }));
-    const issue = await reportToIssue(deps, {
+    const issues = await reportToIssues(deps, {
       dir,
       run,
       range,
       result,
-      lastFailed: state.lastFailed,
+      state,
     }).catch((error: unknown) => {
-      log(`End-to-end Run: the issue was not written: ${String(error)}`);
-      return undefined;
+      log(`End-to-end Run: the issues were not written: ${String(error)}`);
+      return [];
     });
     const record: LandE2eRecord = {
       commit: request.commit,
@@ -221,7 +216,7 @@ export async function runLandE2e(
       startedAt,
       finishedAt: Temporal.Now.instant().toString(),
       log: logPath,
-      ...(issue ? { issue } : {}),
+      ...(issues.length > 0 ? { issues } : {}),
       result,
     };
     await appendFile(join(dir, "runs.jsonl"), `${JSON.stringify(record)}\n`);
@@ -236,6 +231,12 @@ export async function runLandE2e(
             : result.outcome === "passed"
               ? undefined
               : state.lastFailed,
+        lastFailedIssues:
+          result.outcome === "failed"
+            ? [...new Set([...(state.lastFailedIssues ?? []), ...issues])]
+            : result.outcome === "passed"
+              ? undefined
+              : state.lastFailedIssues,
       } satisfies LandE2eState);
     }
     log(`End-to-end Run of ${request.commit.slice(0, 12)}: ${result.outcome}.`);
@@ -245,44 +246,35 @@ export async function runLandE2e(
   }
 }
 
-async function reportToIssue(
+async function reportToIssues(
   { evidence, issues }: LandE2eDeps,
   {
     dir,
     run,
     range,
     result,
-    lastFailed,
+    state,
   }: {
     dir: string;
     run: LandE2eRun;
     range: string;
     result: LandE2eOutcome;
-    lastFailed: string | undefined;
+    state: LandE2eState;
   },
-): Promise<string | undefined> {
+): Promise<string[]> {
   const { request, logPath } = run;
   const repository = request.issueRepository;
-  if (!repository) return undefined;
-  if (
-    result.outcome !== "failed" &&
-    !(result.outcome === "passed" && lastFailed)
-  )
-    return undefined;
-  const open = await findOpenE2eIssue(issues, repository);
-  if (result.outcome !== "failed") {
-    if (!open) return undefined;
-    await issues.comment(
-      repository,
-      open.number,
-      `The End-to-end Run after a land passed on \`main\` at ${request.commit}, after the failure at ${lastFailed}. Commit range: \`${range}\`. This issue stays open until a person closes it.`,
-    );
-    return open.url;
+  if (!repository) return [];
+  if (result.outcome === "passed" && state.lastFailedIssues?.length) {
+    return reportE2ePass(issues, repository, {
+      urls: state.lastFailedIssues,
+      body: `The End-to-end Run after a land passed on \`main\` at ${request.commit}, after the failure at ${state.lastFailed}. Commit range: \`${range}\`. This issue stays open until a person closes it.`,
+    });
   }
-  const { commits, log } = await evidence({ run, range });
-  const body = formatE2eFailure(
-    log,
-    [
+  if (result.outcome !== "failed") return [];
+  const { commits, log, cases } = await evidence({ run, range });
+  return reportE2eFailure(issues, repository, {
+    introduction: [
       `The End-to-end Run after a land failed at the ${result.stage} stage, on \`main\` at ${request.commit}.`,
       "",
       `Commit range: \`${range}\` (from the last tip that passed).`,
@@ -292,71 +284,11 @@ async function reportToIssue(
       "```",
       "",
     ],
-    {
-      stage: result.stage,
-      evidence: `The full log is on the machine that ran it: \`${relative(dir, logPath)}\` in the End-to-end state directory (\`pnpm land --help\` names it).`,
-    },
-  );
-  return publishE2eFailure(issues, repository, { body, open });
-}
-
-export async function findOpenE2eIssue(
-  issues: LandE2eIssues,
-  repository: string,
-): Promise<LandE2eIssue | undefined> {
-  return (await issues.listOpen(repository, E2E_ISSUE_TITLE))
-    .filter(({ title }) => title === E2E_ISSUE_TITLE)
-    .toSorted((a, b) => b.number - a.number)[0];
-}
-
-export function formatE2eFailure(
-  log: string,
-  introduction: readonly string[],
-  { stage, evidence }: { stage: string; evidence: string },
-): string {
-  const lines = stripVTControlCharacters(log).trimEnd().split("\n");
-  const cases = failedCases(lines);
-  return [
-    ...introduction,
-    cases.length > 0
-      ? `Failed cases:\n\n${cases.map((name) => `- \`${name}\``).join("\n")}`
-      : `The log names no failed case; the run failed at the ${stage} stage.`,
-    "",
-    `${evidence} The last ${EXCERPT_LINES} lines:`,
-    "",
-    "```text",
-    lines.slice(-EXCERPT_LINES).join("\n"),
-    "```",
-  ].join("\n");
-}
-
-export async function publishE2eFailure(
-  issues: LandE2eIssues,
-  repository: string,
-  { body, open }: { body: string; open: LandE2eIssue | undefined },
-): Promise<string> {
-  if (open) {
-    await issues.comment(repository, open.number, body);
-    return open.url;
-  }
-  return issues.create(repository, {
-    title: E2E_ISSUE_TITLE,
-    body,
-    label: E2E_ISSUE_LABEL,
+    stage: result.stage,
+    evidence: `The full log is on the machine that ran it: \`${relative(dir, logPath)}\` in the End-to-end state directory (\`pnpm land --help\` names it).`,
+    log,
+    cases,
   });
-}
-
-const FAILED_CASE = regex(" FAIL +(?<name>\\S.*)$");
-
-function failedCases(lines: readonly string[]): string[] {
-  return [
-    ...new Set(
-      lines.flatMap((line) => {
-        const name = FAILED_CASE.exec(line)?.groups.name.trim();
-        return name ? [name] : [];
-      }),
-    ),
-  ];
 }
 
 export async function readLandE2eRecords(

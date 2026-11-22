@@ -78,6 +78,7 @@ async function run({
   request,
   logPath,
   checkout,
+  resultsDir,
   progress,
   leaseEnded,
 }: LandE2eRun): Promise<LandE2eOutcome> {
@@ -124,7 +125,10 @@ async function run({
     const code = await command(log, {
       cwd: checkout,
       argv: ["pnpm", "e2e"],
-      env: { [DESKTOP_WAIT_ENV]: `${ADMISSION_DEADLINE_MS}ms` },
+      env: {
+        [DESKTOP_WAIT_ENV]: `${ADMISSION_DEADLINE_MS}ms`,
+        ZOTLIT_E2E_RESULTS: resultsDir,
+      },
       progress,
       leaseEnded,
     });

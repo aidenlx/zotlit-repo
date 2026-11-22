@@ -2,11 +2,7 @@ import { mkdir, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 
 import { githubE2eIssues } from "#e2e-issues";
-import {
-  findOpenE2eIssue,
-  formatE2eFailure,
-  publishE2eFailure,
-} from "#land-e2e";
+import { readFailedE2eCases, reportE2eFailure } from "#e2e-report";
 
 const {
   GITHUB_REPOSITORY: repository,
@@ -22,18 +18,19 @@ if (!repository || !commit || !server || !run || !temp) {
 const directory = join(temp, "nightly-e2e");
 await mkdir(directory, { recursive: true });
 const log = await readFile(join(directory, "console.log"), "utf8");
-const body = formatE2eFailure(
-  log,
-  [`The nightly End-to-end Run failed on \`main\` at ${commit}.`, ""],
-  {
-    stage: "End-to-end Run",
-    evidence: `The [Actions run](${server}/${repository}/actions/runs/${run}) contains the log and evidence.`,
-  },
-);
 const issues = githubE2eIssues(directory);
 try {
-  const open = await findOpenE2eIssue(issues, repository);
-  console.log(await publishE2eFailure(issues, repository, { body, open }));
+  const urls = await reportE2eFailure(issues, repository, {
+    introduction: [
+      `The nightly End-to-end Run failed on \`main\` at ${commit}.`,
+      "",
+    ],
+    stage: "End-to-end Run",
+    evidence: `The [Actions run](${server}/${repository}/actions/runs/${run}) contains the log and evidence.`,
+    log,
+    cases: await readFailedE2eCases(join(directory, "evidence")),
+  });
+  console.log(urls.join("\n"));
 } finally {
   await rm(join(directory, "issue-body.md"), { force: true });
 }

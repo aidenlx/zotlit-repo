@@ -3,21 +3,18 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { fakeIssues } from "./__fixtures__/e2e-issues.ts";
 import { makeGitRepos } from "./__fixtures__/git-repos.ts";
+import { E2E_ISSUE_TITLE } from "./e2e-report.ts";
+import type { E2eCase } from "./e2e-report.ts";
 import {
-  E2E_ISSUE_TITLE,
   githubRepository,
   readLandE2eEvidence,
   readLandE2eRecords,
   requestLandE2e,
   runLandE2e,
 } from "./land-e2e.ts";
-import type {
-  LandE2eDeps,
-  LandE2eIssue,
-  LandE2eIssues,
-  LandE2eOutcome,
-} from "./land-e2e.ts";
+import type { LandE2eDeps, LandE2eOutcome } from "./land-e2e.ts";
 
 let dir: string;
 beforeEach(async () => {
@@ -39,49 +36,26 @@ const request = (commit: string, previous = "p0") =>
     dir,
   );
 
-type FakeIssue = LandE2eIssue & { state: "open" | "closed" };
-
-function fakeIssues(existing: FakeIssue[] = []) {
-  const issues = [...existing];
-  const created: { title: string; body: string; label: string }[] = [];
-  const comments: { number: number; body: string }[] = [];
-  const client: LandE2eIssues = {
-    listOpen: (_repository, title) =>
-      Promise.resolve(
-        issues
-          .filter(
-            (issue) => issue.state === "open" && issue.title.includes(title),
-          )
-          .map(({ number, title, url }) => ({ number, title, url })),
-      ),
-    create: (repository, issue) => {
-      created.push(issue);
-      const number = 100 + created.length;
-      const url = `https://github.com/${repository}/issues/${number}`;
-      issues.push({ number, title: issue.title, url, state: "open" });
-      return Promise.resolve(url);
-    },
-    comment: (_repository, number, body) => {
-      comments.push({ number, body });
-      return Promise.resolve();
-    },
-  };
-  return { client, created, comments };
-}
-
-const FAILED_CASE =
-  "|desktop| src/literature-notes.e2e.ts > End-to-end Run > renders a Literature Note";
-const FAILED_LOG = [
-  "@zotlit/e2e:e2e:  ✓ |desktop| src/follow-mode.e2e.ts (2 tests) 9103ms",
-  `@zotlit/e2e:e2e:  FAIL  ${FAILED_CASE}`,
-  "@zotlit/e2e:e2e: ⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯",
-  `@zotlit/e2e:e2e:  FAIL  ${FAILED_CASE}`,
-  "@zotlit/e2e:e2e: AssertionError: expected 6 to be 7",
-].join("\n");
+const CASE: E2eCase = {
+  id: "src/literature-notes.e2e.ts > End-to-end Run > renders a Literature Note",
+  title: "src/literature-notes.e2e.ts > renders a Literature Note",
+  message: "AssertionError: expected 6 to be 7",
+};
+const OTHER_CASE: E2eCase = {
+  id: "src/reader.e2e.ts > End-to-end Run > opens a PDF",
+  title: "src/reader.e2e.ts > opens a PDF",
+  message: "AssertionError: expected 1 to be 2",
+};
 
 function deps(
   outcomes: Record<string, LandE2eOutcome> = {},
-  issues = fakeIssues(),
+  {
+    issues = fakeIssues(),
+    cases = {},
+  }: {
+    issues?: ReturnType<typeof fakeIssues>;
+    cases?: Record<string, E2eCase[]>;
+  } = {},
 ) {
   const ran: string[] = [];
   const fake: LandE2eDeps = {
@@ -89,10 +63,16 @@ function deps(
       ran.push(commit);
       return Promise.resolve(outcomes[commit] ?? { outcome: "passed" });
     },
-    evidence: ({ range }) =>
+    evidence: ({
+      range,
+      run: {
+        request: { commit },
+      },
+    }) =>
       Promise.resolve({
         commits: `abc1234 the commits of ${range}`,
-        log: FAILED_LOG,
+        log: "the last line of the log",
+        cases: cases[commit] ?? [CASE],
       }),
     issues: issues.client,
   };
@@ -140,8 +120,8 @@ describe("the End-to-end Run after a land", () => {
   });
 });
 
-describe("the issue of End-to-end Run failures", () => {
-  it("opens one needs-triage issue when none is open, for the range since the last tip that passed", async () => {
+describe("the issues of End-to-end Run failures", () => {
+  it("reports the failed case, for the range since the last tip that passed", async () => {
     const { fake, created, comments } = deps({ c2: FAILED });
     await request("c1", "c0");
     await runner(fake);
@@ -150,99 +130,102 @@ describe("the issue of End-to-end Run failures", () => {
     await runner(fake);
 
     expect(comments).toEqual([]);
-    expect(created).toMatchObject([
-      { title: E2E_ISSUE_TITLE, label: "needs-triage" },
-    ]);
+    expect(created).toMatchObject([{ title: `e2e: ${CASE.title}` }]);
     const { body } = created[0]!;
     expect(body).toContain("`c1..c2`");
     expect(body).toContain("abc1234 the commits of c1..c2");
-    expect(body).toContain("AssertionError: expected 6 to be 7");
-    expect(body.split(`- \`${FAILED_CASE}\``)).toHaveLength(2);
+    expect(body).toContain(CASE.message);
     expect(body).not.toContain(dir);
     expect(body).toMatch(/`logs\/[^`]+-c2\.log` in the End-to-end state/);
     expect(await records()).toMatchObject([
       { commit: "c1", range: "c0..c1", result: { outcome: "passed" } },
       {
         commit: "c2",
-        issue: "https://github.com/owner/repo/issues/101",
+        issues: ["https://github.com/owner/repo/issues/101"],
         result: { outcome: "failed" },
       },
     ]);
   });
 
-  it("comments on the open issue of End-to-end Run failures, and opens no new one", async () => {
-    const open = {
-      number: 7,
-      title: E2E_ISSUE_TITLE,
-      url: "https://github.com/owner/repo/issues/7",
-      state: "open" as const,
-    };
-    const { fake, created, comments } = deps(
-      { c1: FAILED, c2: FAILED },
-      fakeIssues([
-        { ...open, number: 3, url: "u3", state: "closed" },
-        { ...open, number: 5, url: "u5" },
-        {
-          ...open,
-          number: 9,
-          url: "u9",
-          title: `${E2E_ISSUE_TITLE} under machine load`,
-        },
-        open,
-      ]),
+  it("reports a failure before the run started to the issue of the run", async () => {
+    const { fake, created } = deps(
+      { c1: { outcome: "failed", stage: "checkout" } },
+      { cases: { c1: [] } },
     );
-    await request("c1", "c0");
-    await runner(fake);
-    await request("c2", "c1");
+    await request("c1");
     await runner(fake);
 
-    expect(created).toEqual([]);
-    expect(comments.map(({ number }) => number)).toEqual([7, 7]);
-    const { body } = comments[1]!;
-    expect(body).toContain("`c1..c2`");
-    expect(body).toContain(`- \`${FAILED_CASE}\``);
-    expect(body).toContain("AssertionError: expected 6 to be 7");
-    expect(await records()).toMatchObject([
-      { commit: "c1", issue: open.url },
-      { commit: "c2", issue: open.url },
+    expect(created).toMatchObject([
+      {
+        title: E2E_ISSUE_TITLE,
+        body: expect.stringContaining("failed at the checkout stage") as string,
+      },
     ]);
   });
 
-  it("comments once on the open issue when a run passes after a failure, and leaves it open", async () => {
-    const { fake, created, comments } = deps({ c1: FAILED });
+  it("comments once on the issue of each case that failed since the last pass, and leaves it open", async () => {
+    const { fake, created, comments } = deps(
+      { c1: FAILED, c2: FAILED },
+      { cases: { c1: [CASE], c2: [OTHER_CASE] } },
+    );
     await request("c1", "c0");
     await runner(fake);
     await request("c2", "c1");
     await runner(fake);
     await request("c3", "c2");
     await runner(fake);
+    await request("c4", "c3");
+    await runner(fake);
 
-    expect(created).toHaveLength(1);
-    expect(comments).toMatchObject([{ number: 101 }]);
-    expect(comments[0]!.body).toContain("passed");
-    expect(comments[0]!.body).toContain("c2");
-    expect(await records()).toMatchObject([
+    expect(created).toHaveLength(2);
+    expect(comments.map(({ number }) => number)).toEqual([101, 102]);
+    for (const { body } of comments) {
+      expect(body).toContain("passed");
+      expect(body).toContain("c3");
+    }
+    const all = await records();
+    expect(all).toMatchObject([
       { commit: "c1", result: { outcome: "failed" } },
+      { commit: "c2", result: { outcome: "failed" } },
       {
-        commit: "c2",
-        issue: "https://github.com/owner/repo/issues/101",
+        commit: "c3",
+        issues: [
+          "https://github.com/owner/repo/issues/101",
+          "https://github.com/owner/repo/issues/102",
+        ],
         result: { outcome: "passed" },
       },
-      { commit: "c3", result: { outcome: "passed" } },
+      { commit: "c4", result: { outcome: "passed" } },
     ]);
-    expect((await records())[2]).not.toHaveProperty("issue");
+    expect(all[3]).not.toHaveProperty("issues");
   });
 
   it("records the run when GitHub does not answer", async () => {
     const issues = fakeIssues();
     issues.client.listOpen = () => Promise.reject(new Error("offline"));
-    const { fake } = deps({ c1: FAILED }, issues);
+    const { fake } = deps({ c1: FAILED }, { issues });
     await request("c1");
     await runner(fake);
 
     const [record] = await records();
     expect(record).toMatchObject({ commit: "c1", result: FAILED });
-    expect(record).not.toHaveProperty("issue");
+    expect(record).not.toHaveProperty("issues");
+  });
+
+  it("gives each run a results folder of its own", async () => {
+    const folders: string[] = [];
+    const { fake } = deps();
+    const run = fake.run;
+    fake.run = (options) => {
+      folders.push(options.resultsDir);
+      return run(options);
+    };
+    await request("c1");
+    await runner(fake);
+    await request("c2", "c1");
+    await runner(fake);
+
+    expect(new Set(folders).size).toBe(2);
   });
 });
 
@@ -278,7 +261,7 @@ describe("the evidence of a failed run", () => {
       const logPath = join(dir, "run.log");
       await writeFile(logPath, " FAIL  src/a.e2e.ts > a case\n");
 
-      const { commits, log } = await readLandE2eEvidence({
+      const { commits, log, cases } = await readLandE2eEvidence({
         run: {
           request: {
             commit: "HEAD",
@@ -289,6 +272,7 @@ describe("the evidence of a failed run", () => {
           },
           logPath,
           checkout,
+          resultsDir: join(dir, "no-results"),
           progress: () => {},
           leaseEnded: new AbortController().signal,
         },
@@ -296,6 +280,7 @@ describe("the evidence of a failed run", () => {
       });
 
       expect(log).toBe(" FAIL  src/a.e2e.ts > a case\n");
+      expect(cases).toEqual([]);
       expect(commits).toContain("the subject of the landed commit");
       expect(await readFile(logPath, "utf8")).toContain(
         "the subject of the landed commit",
