@@ -2,7 +2,7 @@
 // App-level configs (apps/*, packages/*) shadow this file for their subtrees.
 import { defineConfig } from "oxfmt";
 
-import baseConfig from "@zotlit/config/oxfmt";
+import baseConfig from "./packages/config/oxfmt.base.ts";
 
 export default defineConfig({
   ...baseConfig,

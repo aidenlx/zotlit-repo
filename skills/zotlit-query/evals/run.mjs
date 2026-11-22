@@ -3,11 +3,10 @@
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
-
-import { obsidianCliSocketPath } from "@zotlit/scripts/obsidian-cli";
 
 import { caseFamily, validate } from "./check.mjs";
 import { startCliWrapper } from "./cli-wrapper.mjs";
@@ -15,6 +14,11 @@ import { measureEvents, parseEvents } from "./events.mjs";
 export { measureEvents } from "./events.mjs";
 
 const repo = resolve(fileURLToPath(new URL("../../../", import.meta.url)));
+const { obsidianCliSocketPath } = await import(
+  createRequire(join(repo, "packages/scripts/package.json")).resolve(
+    "@zotlit/scripts/obsidian-cli",
+  )
+);
 const cases = JSON.parse(
   await readFile(new URL("./cases.json", import.meta.url), "utf8"),
 );

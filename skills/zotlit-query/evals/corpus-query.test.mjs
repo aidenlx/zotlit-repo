@@ -7,11 +7,15 @@ import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import test from "node:test";
 
-import { buildFixture, getFixtureLayout } from "@zotlit/scripts/fixture";
-
 import { validate } from "./check.mjs";
 
 const repo = resolve(import.meta.dirname, "../../..");
+const requireScripts = createRequire(
+  join(repo, "packages/scripts/package.json"),
+);
+const { buildFixture, getFixtureLayout } = await import(
+  requireScripts.resolve("@zotlit/scripts/fixture")
+);
 const requireQuery = createRequire(
   join(repo, "packages/item-query/package.json"),
 );

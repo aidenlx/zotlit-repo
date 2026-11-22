@@ -5,11 +5,11 @@ import { readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import tseslint from "typescript-eslint";
 
-import { reviewedPluginPackages } from "@zotlit/scripts/plugin-packages";
+import { reviewedPluginPackages } from "./packages/scripts/lib/plugin-packages.ts";
 import {
   reviewedPlugin,
   SCANNER_IGNORES,
-} from "@zotlit/scripts/scanner-eslint";
+} from "./packages/scripts/lib/scanner-eslint.ts";
 
 const plugin = reviewedPlugin();
 const pkg = JSON.parse(

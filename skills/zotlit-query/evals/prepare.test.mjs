@@ -8,9 +8,13 @@ import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
 
-import { buildFixture, getFixtureLayout } from "@zotlit/scripts/fixture";
-
 const repo = resolve(import.meta.dirname, "../../..");
+const requireScripts = createRequire(
+  join(repo, "packages/scripts/package.json"),
+);
+const { buildFixture, getFixtureLayout } = await import(
+  requireScripts.resolve("@zotlit/scripts/fixture")
+);
 const requireKeys = createRequire(
   join(repo, "packages/zotero-types/package.json"),
 );

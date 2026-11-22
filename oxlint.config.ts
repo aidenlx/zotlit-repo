@@ -3,7 +3,7 @@ import { defineConfig } from "oxlint";
 import baseConfig, {
   datePattern,
   testBaselineOverrides,
-} from "@zotlit/config/oxlint";
+} from "./packages/config/oxlint.base.ts";
 
 export default defineConfig({
   extends: [baseConfig],
