@@ -2,9 +2,7 @@ import {
   appendFileSync,
   mkdirSync,
   readdirSync,
-  renameSync,
   rmSync,
-  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { basename, resolve } from "node:path";
@@ -22,7 +20,11 @@ import {
   reportDesktopProgress,
 } from "@zotlit/scripts/desktop-slot";
 
-import { E2E_RESULTS_ROOT, e2eResultsDir } from "./results-dir.ts";
+import {
+  E2E_RESULTS_ROOT,
+  e2eResultsDir,
+  pointLatestResult,
+} from "./results-dir.ts";
 
 const KEPT_RUNS = 10;
 
@@ -34,16 +36,11 @@ export default class E2eReporter extends DefaultReporter {
     super.onInit(...args);
     mkdirSync(this.#directory, { recursive: true });
     writeFileSync(this.#log, "");
-    this.#pointLatest();
-    this.#pruneRuns();
+    if (!process.env.ZOTLIT_RUN_CONTAINER) {
+      pointLatestResult(this.#directory);
+      this.#pruneRuns();
+    }
     this.log(`E2E evidence: ${this.#directory}`);
-  }
-
-  #pointLatest(): void {
-    const draft = resolve(E2E_RESULTS_ROOT, `latest.${process.pid}`);
-    rmSync(draft, { force: true });
-    symlinkSync(basename(this.#directory), draft, "junction");
-    renameSync(draft, resolve(E2E_RESULTS_ROOT, "latest"));
   }
 
   #pruneRuns(): void {
@@ -110,7 +107,7 @@ export default class E2eReporter extends DefaultReporter {
     reason: TestRunEndReason,
   ) {
     super.onTestRunEnd(testModules, unhandledErrors, reason);
-    if (reason !== "failed") return;
+    if (reason !== "failed" || process.env.ZOTLIT_RUN_CONTAINER) return;
     const line = await paintAfterFailure();
     if (line) this.error(line);
   }

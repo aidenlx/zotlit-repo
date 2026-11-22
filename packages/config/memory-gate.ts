@@ -23,6 +23,7 @@ export const EXIT_ADMISSION_BLOCKED = 75;
 export const ADMISSION_DEADLINE_MS = 9 * 60_000;
 
 const MAX_COMMIT = 1.25;
+const MAX_CGROUP_USAGE = 0.9;
 const STALE_LOCK_MS = 10_000;
 const LAST_START = "last-start";
 const MEMORY_QUEUE = "memory-queue";
@@ -104,6 +105,29 @@ export function linuxVerdict(meminfo: string): string | undefined {
   );
 }
 
+export function linuxCgroupVerdict(
+  limitText: string,
+  usageText: string,
+): { reason?: string } | undefined {
+  const limit = Number(limitText.trim());
+  if (!Number.isFinite(limit) || limit <= 0) return undefined;
+  const ratio = Number(usageText.trim()) / limit;
+  return ratio > MAX_CGROUP_USAGE
+    ? {
+        reason: `cgroup memory use is ${Math.round(ratio * 100)}% of its limit`,
+      }
+    : {};
+}
+
+function readCgroupMemory(file: string): string {
+  try {
+    return readFileSync(join("/sys/fs/cgroup", file), "utf8");
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return "";
+    throw error;
+  }
+}
+
 class MemoryGateIoError extends Schema.TaggedError<
   MemoryGateIoError,
   { readonly brand: unique symbol }
@@ -149,9 +173,15 @@ const memoryVerdict = Effect.fnUntraced(function* () {
       windowsVerdict(JSON.parse(output)),
     );
   }
-  return yield* io("read Linux memory", () =>
-    linuxVerdict(readFileSync("/proc/meminfo", "utf8")),
-  );
+  return yield* io("read Linux memory", () => {
+    const cgroup = linuxCgroupVerdict(
+      readCgroupMemory("memory.max"),
+      readCgroupMemory("memory.current"),
+    );
+    return cgroup
+      ? cgroup.reason
+      : linuxVerdict(readFileSync("/proc/meminfo", "utf8"));
+  });
 });
 
 export function lastGateStart(

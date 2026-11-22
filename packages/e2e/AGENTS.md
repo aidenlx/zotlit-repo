@@ -5,6 +5,7 @@ The End-to-end Run suite — the plugin running in a real desktop Obsidian windo
 ## Commands
 
 - `pnpm e2e` (root) or `pnpm --filter @zotlit/e2e e2e` — runs the suite.
+- `pnpm e2e:container --project=desktop reader.e2e.ts` (root) — runs the Reader cases in an isolated Linux desktop through Docker. See `pnpm e2e:container --help` for filters, VNC, and evidence.
 - `pnpm e2e:query` (root) — builds dependencies and runs only the ZotLit Query CLI cases, including cancellation.
 - For another focused desktop run, pass a file and test name: `pnpm e2e --project=desktop src/<area>.e2e.ts -t '<test name>'`. Add the paired project only when the changed behavior needs Zotero. `pnpm --filter @zotlit/e2e exec vitest run` accepts the same selection for an inner loop; it installs the dev plugin bundle on disk and fails, naming the rebuild command, when that bundle is older than its sources.
 - `pnpm --filter @zotlit/e2e typecheck` — type-checks the suite.

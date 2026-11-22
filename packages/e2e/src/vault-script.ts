@@ -8,9 +8,9 @@ import { resolveVaultPlugins } from "@zotlit/scripts/vault-plugins";
 
 import { assertDevBundleFresh } from "./bundle-freshness.ts";
 import { cli } from "./obsidian-cli.ts";
+import { OBSIDIAN_VERSION_PAIR } from "./obsidian-version.ts";
 
 const execFileAsync = promisify(execFile);
-const OBSIDIAN_VERSION = "1.15.1 (installer 1.15.1)";
 
 function scriptPath(workspaceRoot: string): string {
   return join(workspaceRoot, "packages/scripts/scripts/obsidian-vault.ts");
@@ -42,9 +42,9 @@ export async function isObsidianReachable(
     return false;
   }
   const version = (await cli(["version"])).trim();
-  if (version !== OBSIDIAN_VERSION) {
+  if (version !== OBSIDIAN_VERSION_PAIR) {
     throw new Error(
-      `End-to-end Run requires Obsidian ${OBSIDIAN_VERSION}; running ${version}. Install the pinned installer and app versions before running the suite.`,
+      `End-to-end Run requires Obsidian ${OBSIDIAN_VERSION_PAIR}; running ${version}. Install the pinned installer and app versions before running the suite.`,
     );
   }
   return true;

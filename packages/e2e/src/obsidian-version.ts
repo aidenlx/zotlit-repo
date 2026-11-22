@@ -1,0 +1,2 @@
+export const OBSIDIAN_VERSION = "1.15.1";
+export const OBSIDIAN_VERSION_PAIR = `${OBSIDIAN_VERSION} (installer ${OBSIDIAN_VERSION})`;

@@ -36,6 +36,8 @@ Desktop Queue (FIFO, no overtaking)
 - **The vault registry and the window-created hook:** `obsidian-vault open|remove` runs under a short machine-wide mutex.
 - **The clipboard:** each run replaces `electron.clipboard` and `navigator.clipboard` with an in-memory clipboard in its own vault windows. The plugin's copy paths run there, so they are still exercised.
 
+The desktop admission rules below apply to host-desktop runs. [ADR 0115](0115-the-end-to-end-run-runs-in-a-container-of-its-own.md) defines admission for the opt-in Run Container.
+
 ## Considered options
 
 - **One Obsidian app per run** (`--user-data-dir`): this isolates all app state, but every run would need its own launch, its own login and its own memory. It would also stop attaching to the developer's running app. The app state that remains shared is small enough to close directly.

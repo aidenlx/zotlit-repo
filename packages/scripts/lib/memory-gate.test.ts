@@ -17,6 +17,7 @@ import {
   DESKTOP_DIR_ENV,
   DESKTOP_WAIT_ENV,
   EXIT_ADMISSION_BLOCKED,
+  linuxCgroupVerdict,
   linuxVerdict,
   macosVerdict,
   MEMORY_GATE_ADMITTED_ENV,
@@ -263,4 +264,18 @@ it("documents itself under --help and rejects a missing command with exit 2", as
   const missing = await cli();
   expect(missing.code).toBe(2);
   expect(missing.output).toContain("-- <command>");
+});
+
+it("reports pressure near the cgroup memory limit", () => {
+  expect(linuxCgroupVerdict("4294967296\n", "4026531840\n")).toEqual({
+    reason: "cgroup memory use is 94% of its limit",
+  });
+});
+
+it("accepts a limited cgroup with memory to spare", () => {
+  expect(linuxCgroupVerdict("4294967296", "2147483648")).toEqual({});
+});
+
+it("falls back to the host memory check for an unlimited cgroup", () => {
+  expect(linuxCgroupVerdict("max\n", "4294967296")).toBeUndefined();
 });
