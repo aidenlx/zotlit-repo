@@ -30,18 +30,24 @@ jobs:
           bootstrap: "false"
       - run: pnpm install --frozen-lockfile
 
+      - name: Compute Run Container image tag
+        id: image
+        run: |
+          tag=$(node packages/e2e/src/run-container.ts --image-tag)
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
       - uses: actions/cache/restore@v5
         id: image-cache
         with:
           path: ${{ runner.temp }}/zotlit-e2e-image.tar
-          key: run-container-image-${{ runner.arch }}-${{ hashFiles('packages/e2e/container/*', 'packages/e2e/src/obsidian-version.ts', 'packages/scripts/lib/fixture/paired-zotero.ts', 'package.json') }}
+          key: run-container-image-${{ steps.image.outputs.tag }}
 
       - uses: actions/cache/restore@v5
         id: store-cache
         with:
           path: ${{ runner.temp }}/zotlit-e2e-pnpm
-          key: run-container-store-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: run-container-store-${{ runner.arch }}-
+          key: run-container-user-store-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: run-container-user-store-${{ runner.arch }}-
 
       - name: Run desktop and paired projects
         id: e2e
@@ -53,7 +59,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/nightly-e2e"
           {
             mkdir -p "$RUNNER_TEMP/zotlit-e2e-pnpm" &&
-            docker volume create zotlit-e2e-pnpm-arm64 --opt type=none --opt o=bind --opt "device=$RUNNER_TEMP/zotlit-e2e-pnpm" &&
+            docker volume create "zotlit-e2e-pnpm-arm64-u$(id -u)" --opt type=none --opt o=bind --opt "device=$RUNNER_TEMP/zotlit-e2e-pnpm" &&
             timeout --verbose --kill-after=30s 35m pnpm e2e
           } 2>&1 | tee "$RUNNER_TEMP/nightly-e2e/console.log"
 

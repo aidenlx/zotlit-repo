@@ -1,6 +1,12 @@
 import { execFileSync, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import {
+  chownSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  statSync,
+} from "node:fs";
 import { constants, hostname } from "node:os";
 import { resolve } from "node:path";
 import yargs from "yargs";
@@ -31,6 +37,10 @@ const help = yargs([])
   .scriptName("pnpm e2e")
   .usage("$0 [Vitest arguments]")
   .version(false)
+  .option("image-tag", {
+    type: "boolean",
+    description: "Print the pinned image tag and exit",
+  })
   .help()
   .epilogue(
     `The Run Container builds a pinned image when needed and runs Vitest in an isolated desktop. The guest copies tracked and unignored worktree files, including local changes. Pass Vitest file filters, --project, or -t directly.
@@ -74,19 +84,24 @@ function worktreeFiles(): string {
     .join("");
 }
 
-function image(): string {
-  const { packageManager } = JSON.parse(
-    readFileSync(resolve(workspaceRoot, "package.json"), "utf8"),
-  ) as { packageManager: string };
-  const pnpm = packageManager.slice("pnpm@".length);
-  const arch = process.arch === "arm64" ? "arm64" : "amd64";
-  const platform = `linux/${arch}`;
-  const tag = runImageTag(context, {
-    platform,
-    pnpm,
-    obsidian: OBSIDIAN_VERSION,
-    zotero: PINNED_ZOTERO_VERSION,
-  });
+const { packageManager } = JSON.parse(
+  readFileSync(resolve(workspaceRoot, "package.json"), "utf8"),
+) as { packageManager: string };
+const pnpm = packageManager.slice("pnpm@".length);
+const arch = process.arch === "arm64" ? "arm64" : "amd64";
+const platform = `linux/${arch}`;
+const imageTag = runImageTag(context, {
+  platform,
+  pnpm,
+  obsidian: OBSIDIAN_VERSION,
+  zotero: PINNED_ZOTERO_VERSION,
+});
+if (vitestArgs.length === 1 && vitestArgs[0] === "--image-tag") {
+  console.log(imageTag);
+  process.exit(0);
+}
+
+function ensureImage(tag: string): void {
   const archive = process.env[IMAGE_ARCHIVE_ENV];
   const hasImage = () => docker(["image", "ls", "--quiet", tag]) !== "";
   let available = hasImage();
@@ -121,7 +136,6 @@ function image(): string {
       stdio: "inherit",
     });
   }
-  return tag;
 }
 
 function removeStaleRuns(worktree: string): void {
@@ -160,12 +174,18 @@ const worktree = createHash("sha256")
   .update(JSON.stringify([hostname(), workspaceRoot]))
   .digest("hex");
 removeStaleRuns(worktree);
-const tag = image();
+ensureImage(imageTag);
 const files = worktreeFiles();
 const results = resolve(e2eResultsDir());
-mkdirSync(results, { recursive: true });
+const createdResults = mkdirSync(results, { recursive: true });
 publishE2eResultsDir(results);
 console.log(`E2E evidence: ${results}`);
+
+const uid = process.getuid?.() ?? 1000;
+const runtimeUid = uid || statSync(results).uid || 1000;
+const runtimeGid =
+  (process.getgid?.() ?? 1000) || statSync(results).gid || 1000;
+if (uid === 0 && createdResults) chownSync(results, runtimeUid, runtimeGid);
 
 const child = spawn(
   "docker",
@@ -173,6 +193,10 @@ const child = spawn(
     "run",
     "--rm",
     "--init",
+    "--user",
+    `${runtimeUid}:${runtimeGid}`,
+    "--group-add",
+    "1000",
     "--interactive",
     "--memory=4g",
     "--shm-size=1g",
@@ -187,7 +211,7 @@ const child = spawn(
     "--mount",
     `type=bind,source=${results},target=/results`,
     "--mount",
-    `type=volume,source=zotlit-e2e-pnpm-${process.arch},target=/pnpm-store`,
+    `type=volume,source=zotlit-e2e-pnpm-${process.arch}-u${runtimeUid},target=/pnpm-store`,
     "--env",
     "ZOTLIT_E2E_RESULTS=/results",
     "--env",
@@ -197,7 +221,7 @@ const child = spawn(
     "--env",
     E2E_PERFORMANCE_ENV,
     ...(vnc ? ["--publish", `127.0.0.1:${vnc}:5900`, "--env", VNC_ENV] : []),
-    tag,
+    imageTag,
     ...vitestArgs,
   ],
   { stdio: ["pipe", "inherit", "inherit"] },

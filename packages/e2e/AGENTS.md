@@ -134,7 +134,11 @@ The default reporter prints suite progress, the run's evidence folder, and the f
 
 The End-to-end Run requires a running Docker daemon. Each Run Container starts its own pinned Obsidian, verifies the app and installer pair, and uses its own CLI socket. The paired project also starts its own Zotero.
 
-Each Run Container has a 4 GiB limit. Read `memory-peak.bytes` in the run evidence for its peak cgroup charge, which includes the filesystem cache. In the two-run trial on the reference MacBook, the 7.75 GiB Docker Desktop VM nearly filled its 1 GiB swap, and one container recorded an out-of-memory kill. Run one full suite at a time with that VM size. Allow at least 10 GiB for the Docker VM if you plan to start two full runs. This estimate includes both limits and VM overhead.
+Refresh the Node base digest and dated Debian snapshot together in `container/Dockerfile`. A release update to Obsidian or Zotero also needs the matching archive checksums for both architectures. Check the resulting image with the full desktop and paired projects. `pnpm e2e --image-tag` prints the image identity used by the launcher and the nightly cache.
+
+The image runs as the non-root `node` user by default. The launcher uses the host user’s numeric identity for bind mounts and keeps the shared pnpm store in a volume for that UID. Give that identity read access to the source and write access to the evidence directory. On Linux with user namespace remapping, use the mapped host identity for those permissions.
+
+Each Run Container has a 4 GiB limit. Read `memory-peak.bytes` in the run evidence for its peak cgroup charge, which includes the filesystem cache. In the two-run trial on the reference MacBook, the 7.75 GiB Docker Desktop VM nearly filled its 1 GiB swap, and one container recorded an out-of-memory kill. Run one full suite at a time with that VM size. At 10 GiB configured, two full runs completed with no recorded OOM kill. Their combined sampled charge reached 7.93 GiB and the VM used almost all its swap. One suite passed, and one had a Resource Pack preview assertion failure. See the [sizing trials](https://github.com/aidenlx/zotlit-repo/issues/197#issuecomment-7081075509).
 
 Host tools such as docs walks and measurements use the host Obsidian with its command line interface enabled. Run `packages/scripts/scripts/obsidian-cli.ts version` to check the host connection.
 

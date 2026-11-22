@@ -4,13 +4,29 @@ FROM node:26-trixie-slim@sha256:e6bedef217677b276c591795e169840edd9096dbf13f29df
 RUN rm /etc/apt/sources.list.d/debian.sources \
     && printf '%s\n' 'deb [check-valid-until=no] http://snapshot.debian.org/archive/debian/20261112T000000Z/ trixie main' > /etc/apt/sources.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl dbus-x11 fonts-dejavu-core fonts-liberation git herbstluftwm libasound2t64 libdbus-glib-1-2 libgbm1 libglib2.0-bin libgtk-3-0t64 libnss3 libxt6t64 lsof x11-apps x11vnc xvfb xz-utils \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        curl \
+        dbus-x11 \
+        fonts-dejavu-core \
+        fonts-liberation \
+        git \
+        herbstluftwm \
+        libasound2t64 \
+        libdbus-glib-1-2 \
+        libgbm1 \
+        libglib2.0-bin \
+        libgtk-3-0t64 \
+        libnss3 \
+        libxt6t64 \
+        lsof \
+        x11-apps \
+        x11vnc \
+        xvfb \
+        xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH
-ARG PNPM_VERSION
-RUN npm install --global "pnpm@${PNPM_VERSION}"
-
 ARG OBSIDIAN_VERSION
 RUN set -eu; \
     case "$TARGETARCH" in \
@@ -40,6 +56,11 @@ RUN set -eu; \
     rm /tmp/zotero.tar.xz
 ENV ZOTERO_APP=/opt/zotero
 
+ARG PNPM_VERSION
+RUN --mount=type=cache,target=/root/.npm npm install --global "pnpm@${PNPM_VERSION}"
+RUN install -d -o node -g node -m 0775 /workspace /pnpm-store
+
+USER node
 WORKDIR /workspace
 COPY --chmod=755 entry.sh /opt/run-e2e
 ENTRYPOINT ["/opt/run-e2e"]
