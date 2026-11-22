@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded in part by ADR-0115
 ---
 
 # Desktop Slots are a pool of N vaults

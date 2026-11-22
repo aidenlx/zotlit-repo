@@ -54,6 +54,12 @@ Development Vault for manual work, or a vault the End-to-end Run opens and
 disposes.
 _Avoid_: smoke run, manual End-to-end Run
 
+**Run Container**:
+The container that holds one End-to-end Run: its own display, Obsidian, Paired
+Zotero, vault and copy of the worktree, from the one pinned image that the Mac
+and Linux CI share. Only the run's evidence leaves it.
+_Avoid_: e2e sandbox, test VM, Docker run
+
 **Stress Build**:
 An on-demand Fixture build scaled to a large synthetic item count for
 performance testing.

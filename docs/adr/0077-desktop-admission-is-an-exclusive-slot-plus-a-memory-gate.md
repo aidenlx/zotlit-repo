@@ -1,5 +1,5 @@
 ---
-status: superseded in part by ADR-0078
+status: superseded in part by ADR-0078 and ADR-0115
 ---
 
 # Desktop admission is an exclusive slot plus a memory gate, with leases
