@@ -22,7 +22,10 @@ it.each([
     const sources = counts.map(source);
     const samples = sources.map(() => [] as number[]);
     const sampleCount = 21;
-    const scansPerSample = 3;
+    // The thread CPU clock can tick in whole milliseconds or coarser (Linux
+    // CI runners), so a scan of the smallest size can read as 0 ms. Each
+    // sample repeats the scan until it has used this much CPU time.
+    const sampleMs = 40;
     for (const source of sources) {
       for (let warmup = 0; warmup < 10; warmup++) {
         expect(scanNote(source).wikilinks.map((link) => link.raw)).toEqual(
@@ -35,12 +38,17 @@ it.each([
     for (let sample = 0; sample < sampleCount; sample++) {
       for (const index of indices) {
         let linkCount = 0;
+        let scans = 0;
+        let elapsedMs = 0;
         const start = process.threadCpuUsage();
-        for (let scan = 0; scan < scansPerSample; scan++)
+        while (elapsedMs < sampleMs) {
           linkCount += scanNote(sources[index]!).wikilinks.length;
-        const { user, system } = process.threadCpuUsage(start);
-        samples[index]!.push((user + system) / 1000 / scansPerSample);
-        expect(linkCount).toBe(links.length * scansPerSample);
+          scans++;
+          const { user, system } = process.threadCpuUsage(start);
+          elapsedMs = (user + system) / 1000;
+        }
+        samples[index]!.push(elapsedMs / scans);
+        expect(linkCount).toBe(links.length * scans);
       }
       indices.reverse();
     }
