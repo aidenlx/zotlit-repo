@@ -4,6 +4,8 @@ status: accepted
 
 # Package edges before the Obsidian plugin is divided
 
+> **Superseded in part by spec [#122](https://github.com/aidenlx/zotlit-repo/issues/122) ([#188](https://github.com/aidenlx/zotlit-repo/issues/188)).** The root package.json has no workspace dependencies. The root config files and the zotlit-query evals reach `@zotlit/config` and `@zotlit/scripts` by path, so a change to one package selects that package and its dependents only. The root-dependency points under "Considered options" and "Consequences" no longer hold.
+
 ## Context
 
 The next step divides `apps/obsidian` into shared packages and gives `@zotlit/db` a driver-neutral SQLite client, so that a mobile host (SQLite-WASM in a Worker, no Node) can run the same read engine. Three edges stood in the way:

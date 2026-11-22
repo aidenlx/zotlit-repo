@@ -20,6 +20,32 @@ The setup action records the effective Node and pnpm versions in
 `mise.toml` in its global hash. A toolchain change therefore invalidates cached
 tasks even when package source files are unchanged.
 
+## Turborepo Remote Cache
+
+The `Record PR tests` job of `.github/workflows/record-pr.yml` reads and writes
+the Vercel Remote Cache of the maintainer's Vercel account, which the
+maintainer's Mac also uses. Its `vercel/setup-turborepo-remote-cache-action`
+step exchanges the job's OIDC token for a short-lived Turborepo token. Without
+the `TURBO_TEAM` variable, on a PR from a fork, or when the exchange fails, the
+job runs with the local `.turbo` cache only.
+
+To set it up:
+
+1. On vercel.com, open the account's Settings → Build and Deployment → OIDC
+   Policies for CLI Access, and add a Turborepo CLI policy for the GitHub
+   repository `aidenlx/zotlit-repo`, restricted to the workflow
+   `.github/workflows/record-pr.yml`. Keep the default audience.
+2. Set the repository variable `TURBO_TEAM` to the account's team slug (General
+   settings on vercel.com):
+   `gh variable set TURBO_TEAM --repo aidenlx/zotlit-repo --body <slug>`.
+3. On the Mac, run `pnpm exec turbo login`, then `pnpm exec turbo link` in the
+   main checkout and select the same team.
+
+A run with the Remote Cache logs `Remote caching enabled`. The `test` task
+hashes `GITHUB_ACTIONS` and `ZOTLIT_TEST_ELECTRON_PATH`, so a test result of the
+Mac does not serve the CI job, and the CI job's test results come from earlier
+CI runs. Build, generate and typecheck results are shared both ways.
+
 ## Release workflow
 
 The checks of a change run in `pnpm land`: it runs `pnpm verify --local` on

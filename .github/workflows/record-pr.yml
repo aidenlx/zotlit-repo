@@ -26,6 +26,10 @@ jobs:
     name: Record PR tests
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    # The OIDC token of the Vercel Remote Cache step.
+    permissions:
+      contents: read
+      id-token: write
     steps:
       # The PR head is the commit that `main` moves to, so the job checks it
       # and not GitHub's merge commit. The full history gives `verify` its
@@ -36,6 +40,21 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           filter: blob:none
+
+      # Vercel Remote Cache, shared with the maintainer's Mac: the action
+      # exchanges the job's OIDC token for a Turborepo token and sets
+      # TURBO_TEAM and TURBO_TOKEN for the steps after it, so the turbo run
+      # of `mise run init` reads it too. The step runs only with the
+      # TURBO_TEAM repository variable and on a PR from this repository,
+      # because a fork's PR gets no OIDC token. A team without a matching OIDC
+      # policy fails the exchange; the job then goes on with the local cache
+      # only. docs/CI_SETUP.md has the setup.
+      - name: Set up Turborepo Remote Cache
+        if: vars.TURBO_TEAM != '' && github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: vercel/setup-turborepo-remote-cache-action@v1.1.0
+        with:
+          team: ${{ vars.TURBO_TEAM }}
 
       # It restores the pnpm store and the Turborepo cache.
       - uses: ./.github/actions/setup-workspace
