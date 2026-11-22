@@ -44,6 +44,22 @@ jobs:
           fetch-depth: 0
           filter: blob:none
 
+      # The docs tests read image bytes, which live in Git LFS (about 42 MB).
+      # The objects come from the cache that docs-deploy saves on main; a
+      # cache from main is readable by every PR, and a PR's own cache is not.
+      # `git lfs pull` then fetches only the objects the cache lacks, so a
+      # land spends LFS bandwidth only when an LFS file changed.
+      - name: Key of the Git LFS objects
+        id: lfs
+        run: echo "key=lfs-$(git lfs ls-files --long | cut -d' ' -f1 | sort | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache/restore@v5
+        with:
+          path: .git/lfs
+          key: ${{ steps.lfs.outputs.key }}
+          restore-keys: lfs-
+      - name: Git LFS objects
+        run: git lfs pull
+
       # Vercel Remote Cache, shared with the maintainer's Mac: the action
       # exchanges the job's OIDC token for a Turborepo token and sets
       # TURBO_TEAM and TURBO_TOKEN for the steps after it, so the turbo run

@@ -153,6 +153,20 @@ jobs:
           fetch-depth: 0
           lfs: true
 
+      # Seeds the Git LFS cache that the record-PR job restores (see
+      # record-pr.yml): this checkout has already downloaded every object,
+      # and a cache saved on main is readable by every PR. The key is the
+      # same hash of the LFS object list; an existing key is kept.
+      - name: Key of the Git LFS objects
+        if: github.ref == 'refs/heads/main'
+        id: lfs
+        run: echo "key=lfs-$(git lfs ls-files --long | cut -d' ' -f1 | sort | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      - if: github.ref == 'refs/heads/main'
+        uses: actions/cache/save@v5
+        with:
+          path: .git/lfs
+          key: ${{ steps.lfs.outputs.key }}
+
       # The docs build installs its own dependency closure below, so the
       # workspace-wide bootstrap stays off.
       - uses: ./.github/actions/setup-workspace
