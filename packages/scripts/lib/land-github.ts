@@ -37,17 +37,12 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
           "--state",
           "open",
           "--json",
-          "number,url,headRepository,headRepositoryOwner",
+          "number,url,isCrossRepository",
         ]),
       ) as GitHubPullRequest[];
       // `--head` matches the branch name alone, also on a fork's PR; the
       // record PR's head is a branch of this repository.
-      const own = listed.find((pull) =>
-        sameRepository(
-          `${pull.headRepositoryOwner.login}/${pull.headRepository.name}`,
-          repo,
-        ),
-      );
+      const own = listed.find((pull) => !pull.isCrossRepository);
       return own && { number: own.number, url: own.url };
     },
     async createPullRequest({ head, base, title, body }) {
@@ -109,28 +104,29 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
       const { check_runs: runs } = JSON.parse(
         await run([
           "api",
-          `repos/${repo}/commits/${commit}/check-runs?check_name=${encodeURIComponent(name)}&filter=latest&per_page=100`,
+          `repos/${repo}/commits/${commit}/check-runs?check_name=${encodeURIComponent(name)}&filter=all&per_page=100`,
         ]),
       ) as { check_runs: GitHubCheckRun[] };
       if (runs.length === 0) return undefined;
       // Any workflow on the commit can name a job the same, also the
       // workflow of a fork's PR on that head. The check counts only when its
-      // check suite is an Actions run of `branch` in this repository.
-      const { check_suites: suites } = JSON.parse(
+      // check suite is the workflow run of a PR from `branch` of this
+      // repository. A check suite does not name its head repository; the
+      // workflow run of the suite does.
+      const { workflow_runs: workflows } = JSON.parse(
         await run([
           "api",
-          `repos/${repo}/commits/${commit}/check-suites?per_page=100`,
+          `repos/${repo}/actions/runs?head_sha=${commit}&event=pull_request&per_page=100`,
         ]),
-      ) as { check_suites: GitHubCheckSuite[] };
+      ) as { workflow_runs: GitHubWorkflowRun[] };
       const record = new Set(
-        suites
+        workflows
           .filter(
-            (suite) =>
-              suite.app?.slug === "github-actions" &&
-              suite.head_branch === branch &&
-              sameRepository(suite.head_repository?.full_name ?? "", repo),
+            (workflow) =>
+              workflow.head_branch === branch &&
+              sameRepository(workflow.head_repository?.full_name ?? "", repo),
           )
-          .map((suite) => suite.id),
+          .map((workflow) => workflow.check_suite_id),
       );
       const latest = runs
         .filter((each) => record.has(each.check_suite.id))
@@ -162,16 +158,15 @@ function sameRepository(a: string, b: string): boolean {
 
 /** The fields of a `gh pr list` entry that the land reads. */
 interface GitHubPullRequest extends RecordPullRequest {
-  headRepository: { name: string };
-  headRepositoryOwner: { login: string };
+  /** Whether the head branch is in another repository, a fork. */
+  isCrossRepository: boolean;
 }
 
-/** The fields of a GitHub check suite that the land reads. */
-interface GitHubCheckSuite {
-  id: number;
+/** The fields of a GitHub Actions workflow run that the land reads. */
+interface GitHubWorkflowRun {
   head_branch: string | null;
   head_repository: { full_name: string } | null;
-  app: { slug: string } | null;
+  check_suite_id: number;
 }
 
 /** The fields of a GitHub check run that the land reads. */

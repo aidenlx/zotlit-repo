@@ -5,9 +5,12 @@ name: Record PR
 # task branch, opens or updates its record PR, waits for the check of this job
 # on the PR head while it holds its Land Turn, and pushes `main` to that head
 # only when the check passes. The land finds the check by the job's `name`,
-# LAND_CI_CHECK in packages/scripts/lib/land.ts: keep the two the same.
-# The land ran `pnpm verify --local` in its Land Turn before the push. The
-# job's `timeout-minutes` and LAND_CI_WAIT_MS in land.ts change together.
+# LAND_CI_CHECK in packages/scripts/lib/land.ts, and waits for it a fixed
+# time after the job's `timeout-minutes` (LAND_CI_JOB_TIMEOUT_MINUTES).
+# The land ran `pnpm verify --local` in its Land Turn before the push.
+# `pnpm lint` (packages/scripts/lib/record-pr-workflow.ts) fails when the
+# job's name, its timeout or its run line differ from land.ts and
+# lib/gate-halves.ts.
 on:
   pull_request:
     branches: [main]

@@ -4,7 +4,8 @@ import { ghLandGitHub } from "./land-github.ts";
 import type { GhRun } from "./land-github.ts";
 
 // The gh client against a fake `gh`: each test gives the JSON that GitHub
-// returns for one call, keyed by the call's first arguments.
+// returns for one call, keyed by the call's first arguments. The shapes are
+// trimmed from real responses of aidenlx/zotlit-repo (2026-11-22).
 const REPO = "aidenlx/zotlit-repo";
 
 function fakeGh(replies: Record<string, unknown>): GhRun {
@@ -19,11 +20,17 @@ function fakeGh(replies: Record<string, unknown>): GhRun {
   };
 }
 
+/** A `gh pr list` entry; a fork's PR names the fork as its head repository. */
 const pull = (number: number, owner: string) => ({
   number,
   url: `https://github.com/${REPO}/pull/${number}`,
-  headRepository: { name: "zotlit-repo" },
-  headRepositoryOwner: { login: owner },
+  headRepository: {
+    id: "R_1",
+    name: "zotlit-repo",
+    nameWithOwner: `${owner}/zotlit-repo`,
+  },
+  headRepositoryOwner: { id: "U_1", login: owner },
+  isCrossRepository: owner !== "aidenlx",
 });
 
 describe("findOpenPullRequest", () => {
@@ -55,20 +62,24 @@ const SHA = "a".repeat(40);
 /** A check run of check suite `suite`: one that passed, or one that runs. */
 const run = (id: number, suite: number, passed: boolean) => ({
   id,
+  name: "Record PR tests",
   status: passed ? "completed" : "in_progress",
   conclusion: passed ? "success" : null,
   html_url: `https://github.com/${REPO}/actions/runs/1/job/${id}`,
   started_at: "2026-11-22T10:00:20Z",
   completed_at: null,
   check_suite: { id: suite },
+  app: { slug: "github-actions" },
 });
 
-/** A check suite of `repo`'s branch feat/a, the record PR's head branch. */
-const suite = (id: number, repo: string, app = "github-actions") => ({
-  id,
+/** The workflow run of check suite `suite`, for a PR from `repo`'s feat/a. */
+const workflow = (suite: number, repo: string) => ({
+  id: suite * 10,
+  name: "Record PR",
+  event: "pull_request",
   head_branch: "feat/a",
+  check_suite_id: suite,
   head_repository: { full_name: repo },
-  app: { slug: app },
 });
 
 describe("readCheck", () => {
@@ -77,15 +88,14 @@ describe("readCheck", () => {
       REPO,
       fakeGh({
         [`api repos/${REPO}/commits/${SHA}/check-runs`]: {
+          // Suite 2 is another app's, with no workflow run.
           check_runs: [run(30, 3, true), run(20, 2, true), run(10, 1, false)],
         },
-        [`api repos/${REPO}/commits/${SHA}/check-suites`]: {
-          check_suites: [
+        [`api repos/${REPO}/actions/runs`]: {
+          workflow_runs: [
             // A fork's PR on the same head, from a branch of the same name.
-            suite(3, "mallory/zotlit-repo"),
-            // Another app that names its check the same.
-            suite(2, REPO, "some-app"),
-            suite(1, REPO),
+            workflow(3, "mallory/zotlit-repo"),
+            workflow(1, REPO),
           ],
         },
       }),
@@ -107,8 +117,8 @@ describe("readCheck", () => {
         [`api repos/${REPO}/commits/${SHA}/check-runs`]: {
           check_runs: [run(30, 3, true)],
         },
-        [`api repos/${REPO}/commits/${SHA}/check-suites`]: {
-          check_suites: [suite(3, "mallory/zotlit-repo")],
+        [`api repos/${REPO}/actions/runs`]: {
+          workflow_runs: [workflow(3, "mallory/zotlit-repo")],
         },
       }),
     );

@@ -50,6 +50,7 @@ import {
   SILENCE_LIMIT_MS,
   throttledProgress,
 } from "#desktop-slot";
+import { verifyHalf } from "#gate-halves";
 import {
   landAdmission,
   landStateDir,
@@ -70,10 +71,11 @@ const TRUNK = SOURCE_BRANCH;
 
 /**
  * The quality gate of a change, and of the version commit of a release. The
- * record PR of a change runs the rest of `pnpm verify` (LAND_CI_CHECK).
+ * record PR of a change runs the other half of `pnpm verify` (LAND_CI_CHECK,
+ * lib/gate-halves.ts).
  */
 export const LAND_GATES = {
-  change: ["pnpm", "verify", "--local"],
+  change: verifyHalf("local"),
   release: ["pnpm", "verify", "--release"],
 } as const satisfies Record<string, readonly [string, ...string[]]>;
 
@@ -106,18 +108,20 @@ export const LAND_RECORD_SECTIONS = [
 /**
  * The name of the CI job that a record PR runs, the job `name` in
  * .github/workflows/record-pr.yml. GitHub shows it as a check on the PR head.
+ * `pnpm lint` holds the workflow to it (lib/record-pr-workflow.ts).
  */
 export const LAND_CI_CHECK = "Record PR tests";
+/** The `timeout-minutes` of the job in record-pr.yml. */
+export const LAND_CI_JOB_TIMEOUT_MINUTES = 40;
 /**
- * How long a land waits for the check of its PR head by default. It is the
- * `timeout-minutes: 40` of the job in record-pr.yml plus 5 min for the wait
- * for a runner and for GitHub to show the check, so a job that hangs ends
- * on GitHub's side first, and the land reports its failure with the link.
- * Change the two together. While one land waits, the other lands wait in the
- * Land Queue: a land that waits behind it can reach its own 1 h wait
- * (LAND_WAIT_MS) and exit 75.
+ * How long a land waits for the check of its PR head by default: the job's
+ * timeout plus 5 min for the wait for a runner and for GitHub to show the
+ * check, so a job that hangs ends on GitHub's side first, and the land
+ * reports its failure with the link. While one land waits, the other lands
+ * wait in the Land Queue: a land that waits behind it can reach its own 1 h
+ * wait (LAND_WAIT_MS) and exit 75.
  */
-export const LAND_CI_WAIT_MS = 45 * MINUTE;
+export const LAND_CI_WAIT_MS = (LAND_CI_JOB_TIMEOUT_MINUTES + 5) * MINUTE;
 /**
  * How often the land reads the check by default: two GitHub API reads a
  * minute, well inside the rate limit, and each read renews the Lease of the

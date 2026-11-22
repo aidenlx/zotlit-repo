@@ -24,9 +24,11 @@
     "#package-roots": "./lib/package-roots.ts",
     "#land": "./lib/land.ts",
     "#land-e2e": "./lib/land-e2e.ts",
+    "#gate-halves": "./lib/gate-halves.ts",
     "#land-github": "./lib/land-github.ts",
     "#land-queue": "./lib/land-queue.ts",
     "#push-refs": "./lib/push-refs.ts",
+    "#record-pr-workflow": "./lib/record-pr-workflow.ts",
     "#test-gates": "./lib/test-gates.ts",
     "#test-policy": "./lib/test-policy.ts",
     "#snapshot-size": "./lib/snapshot-size.ts",
@@ -93,6 +95,7 @@
     "valibot": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:",
+    "yaml": "catalog:",
     "yargs": "catalog:",
     "zx": "catalog:"
   }

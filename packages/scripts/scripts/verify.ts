@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
+import type { GateHalf, GateStep } from "#gate-halves";
 import { Effect } from "effect";
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
-// The one quality gate, in two halves: the local half (Format, Generated
-// artifacts, Lint, Typecheck, Snapshot size) and the CI half (Test, Bundle).
-// `pnpm land` runs the local half on the rebased result, and the record PR
-// runs the CI half before `main` moves (ADR 0102, record-pr.yml).
+// The one quality gate, in two halves: lib/gate-halves.ts names the half of
+// each step. `pnpm land` runs the local half on the rebased result, and the
+// record PR runs the PR half before `main` moves (ADR 0102, record-pr.yml).
 //   (no flag)   both halves, for the packages the branch changed since it
 //               left `main`, and their dependents.
 //   --local     the local half alone; `pnpm land` passes it.
-//   --pr        the CI half alone; the record PR workflow passes it.
+//   --pr        the PR half alone; the record PR workflow passes it.
 //   --release   every package, the desktop End-to-end Run and worker check,
 //               the start-up gate (measure:startup --check), plus the
 //               Obsidian guideline review (ADR 0020) and the check of the
@@ -38,15 +38,24 @@ import {
   EXIT_LEASE_ENDED,
   SILENCE_LIMIT_MS,
 } from "#desktop-slot";
+import { GATE_HALF_FLAGS, halfOf } from "#gate-halves";
 import { getWorkspaceRoot } from "#package-roots";
 
 const release = process.argv.includes("--release");
-const localHalf = process.argv.includes("--local");
-const prHalf = process.argv.includes("--pr");
+const localHalf = process.argv.includes(GATE_HALF_FLAGS.local);
+const prHalf = process.argv.includes(GATE_HALF_FLAGS.pr);
 if ([release, localHalf, prHalf].filter(Boolean).length > 1) {
-  console.error("verify: pass one of --release, --local and --pr.");
+  console.error(
+    `verify: pass one of --release, ${GATE_HALF_FLAGS.local} and ${GATE_HALF_FLAGS.pr}.`,
+  );
   process.exit(2);
 }
+/** The halves this run checks: one with its flag, else both. */
+const halves: readonly GateHalf[] = localHalf
+  ? ["local"]
+  : prHalf
+    ? ["pr"]
+    : ["local", "pr"];
 const ci = process.env.GITHUB_ACTIONS === "true";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
@@ -62,7 +71,7 @@ const sh = $({ cwd: root, stdio: "inherit", env });
 // paint stops the release gate now (exit 75), not after the other steps.
 if (release && !ci) await exitUnlessDesktopPaints();
 
-if (!prHalf) await step("Format", () => sh`pnpm exec oxfmt --check`);
+await gateStep("Format", () => sh`pnpm exec oxfmt --check`);
 
 // A branch that changes only agent docs stops here. The root lint and
 // generated-artifact tasks run for every change, so a one-line doc fix would
@@ -79,8 +88,8 @@ if (base) {
   }
 }
 
-if (!prHalf) await localSteps();
-if (!localHalf) await ciSteps();
+await localSteps();
+await ciSteps();
 
 if (release) {
   await desktopChecks();
@@ -90,7 +99,7 @@ if (release) {
   await step("Publish shell", () => sh`pnpm release:check-shell`);
 }
 
-/** The local half after Format. */
+/** The steps of the local half after Format. */
 async function localSteps(): Promise<void> {
   // The `zt` template contract and the template data page generate from TS
   // sources (ADR 0015), and the Functions and methods page from the Query
@@ -98,7 +107,7 @@ async function localSteps(): Promise<void> {
   // without the regenerated output fails here. Each generator is a Turbo task
   // with declared inputs and outputs, so an unchanged source restores its
   // output from the cache.
-  await step("Generated artifacts", async () => {
+  await gateStep("Generated artifacts", async () => {
     await sh`pnpm exec turbo run @zotlit/db#generate:contract @zotlit/docs#generate:template-data @zotlit/docs#generate:query-functions`;
     const stale = (
       await $({
@@ -113,28 +122,31 @@ async function localSteps(): Promise<void> {
   });
 
   // `-f github` turns oxlint errors into inline annotations on the run.
-  await step("Lint", () => sh`pnpm lint ${ci ? ["--", "-f", "github"] : []}`);
+  await gateStep(
+    "Lint",
+    () => sh`pnpm lint ${ci ? ["--", "-f", "github"] : []}`,
+  );
 
   // @zotlit/e2e stays out with the rest of the End-to-end Run.
-  await step(
+  await gateStep(
     "Typecheck",
     () =>
       sh`pnpm exec turbo run typecheck typecheck:test typecheck:node --filter=!@zotlit/e2e ${scope}`,
   );
 
-  await step(
+  await gateStep(
     "Snapshot size",
     () => sh`node packages/scripts/scripts/snapshot-size.ts`,
   );
 }
 
-/** The CI half, which the record PR runs. */
+/** The steps of the PR half, which the record PR runs. */
 async function ciSteps(): Promise<void> {
   // Each Vitest package runs its own worker pool, so a few packages at a time
   // keep a starved worker from tripping its wall-clock timeout. The hosted
   // runner has 4 vCPU: one package at a time there.
   // The step passes the Memory Gate once; each package's Vitest then skips it.
-  await step("Test", async () => {
+  await gateStep("Test", async () => {
     const admitted = await Effect.runPromise(passMemoryGateOrExit());
     const electron = ci ? {} : { ZOTLIT_TEST_ELECTRON_PATH: electronPath() };
     const gated = sh({
@@ -148,7 +160,7 @@ async function ciSteps(): Promise<void> {
     await gated`pnpm exec turbo run test //#test:eval-runtime ${scope} --concurrency=${ci ? 1 : 2}`;
   });
 
-  await step("Bundle", () => sh`pnpm check:bundle`);
+  await gateStep("Bundle", () => sh`pnpm check:bundle`);
 }
 
 /**
@@ -207,6 +219,14 @@ function installedElectron(): string | null {
   } catch {
     return null;
   }
+}
+
+/** A step of the gate, run when this run checks its half. */
+async function gateStep(
+  name: GateStep,
+  run: () => Promise<unknown>,
+): Promise<void> {
+  if (halves.includes(halfOf(name))) await step(name, run);
 }
 
 async function step(name: string, run: () => Promise<unknown>): Promise<void> {
