@@ -28,25 +28,22 @@ turbo runs hash apart from the others; run them under `mise exec --`.
 
 The `Record PR tests` job of `.github/workflows/record-pr.yml` reads and writes
 the Vercel Remote Cache of the maintainer's Vercel account, which the
-maintainer's Mac also uses. Its `vercel/setup-turborepo-remote-cache-action`
-step exchanges the job's OIDC token for a short-lived Turborepo token. Without
-the `TURBO_TEAM` variable, on a PR from a fork, or when the exchange fails, the
-job runs with the local `.turbo` cache only.
+maintainer's Mac also uses. The team is `remoteCache.teamSlug` in
+`turbo.json` (`aidenlxs-projects`), so every checkout and worktree, and the
+CI job, name the same team. Its `vercel/setup-turborepo-remote-cache-action`
+step exchanges the job's OIDC token for a short-lived Turborepo token. On a
+PR from a fork, or when the exchange fails, the job runs with the local
+`.turbo` cache only.
 
 To set it up:
 
-1. On vercel.com, open the account's Settings → Build and Deployment → OIDC
+1. On vercel.com, open the team's Settings → Build and Deployment → OIDC
    Policies for CLI Access, and add a Turborepo CLI policy for the GitHub
    repository `aidenlx/zotlit-repo`, restricted to the workflow
    `.github/workflows/record-pr.yml`. Set no branch restriction, because the
    job runs on the ref of each pull request. Keep the default audience.
-2. Set the repository variable `TURBO_TEAM` to the account's team slug (General
-   settings on vercel.com):
-   `gh variable set TURBO_TEAM --repo aidenlx/zotlit-repo --body <slug>`.
-3. On the Mac, run `pnpm exec turbo login` once; it keeps the token in the
-   user's Turborepo configuration. Then set `TURBO_TEAM` to the same slug in
-   the user's environment (in fish, `set -Ux TURBO_TEAM <slug>`), so that
-   each `wt` worktree reads it. A turbo run in a worktree then logs
+2. On each machine, run `pnpm exec turbo login` once; it keeps the token in
+   the user's Turborepo configuration. A turbo run in any worktree then logs
    `Remote caching enabled`.
 
 A run with the Remote Cache logs `Remote caching enabled`. The `test` task

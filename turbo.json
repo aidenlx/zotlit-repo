@@ -7,6 +7,9 @@
   "futureFlags": {
     "affectedUsingTaskInputs": true
   },
+  "remoteCache": {
+    "teamSlug": "aidenlxs-projects"
+  },
   "globalPassThroughEnv": [
     "AI_AGENT",
     "CLAUDE_CODE",

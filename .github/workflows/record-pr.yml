@@ -63,17 +63,21 @@ jobs:
       # Vercel Remote Cache, shared with the maintainer's Mac: the action
       # exchanges the job's OIDC token for a Turborepo token and sets
       # TURBO_TEAM and TURBO_TOKEN for the steps after it, so the turbo run
-      # of `mise run init` reads it too. The step runs only with the
-      # TURBO_TEAM repository variable and on a PR from this repository,
-      # because a fork's PR gets no OIDC token. A team without a matching OIDC
-      # policy fails the exchange; the job then goes on with the local cache
-      # only. docs/CI_SETUP.md has the setup.
+      # of `mise run init` reads it too. The team is `remoteCache.teamSlug`
+      # of turbo.json, the one place that names it. The steps run only on a
+      # PR from this repository, because a fork's PR gets no OIDC token. A
+      # team without a matching OIDC policy fails the exchange; the job then
+      # goes on with the local cache only. docs/CI_SETUP.md has the setup.
+      - name: Team of the Turborepo Remote Cache
+        id: turbo-team
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        run: echo "slug=$(jq -r '.remoteCache.teamSlug // empty' turbo.json)" >> "$GITHUB_OUTPUT"
       - name: Set up Turborepo Remote Cache
-        if: vars.TURBO_TEAM != '' && github.event.pull_request.head.repo.full_name == github.repository
+        if: steps.turbo-team.outputs.slug != ''
         continue-on-error: true
         uses: vercel/setup-turborepo-remote-cache-action@49d7b1b46ba4c9251e1977986bfe18336feabc8f # v1.1.0
         with:
-          team: ${{ vars.TURBO_TEAM }}
+          team: ${{ steps.turbo-team.outputs.slug }}
 
       # It restores the pnpm store and the Turborepo cache.
       - uses: ./.github/actions/setup-workspace
