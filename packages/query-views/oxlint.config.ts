@@ -156,13 +156,6 @@ export default defineConfig({
       rules: { "zotlit-private/no-unknown-cast": "off" },
     },
     {
-      files: [
-        "src/desktop/query-view/sort-control.tsx",
-        "src/desktop/query-view/table-layout.tsx",
-      ],
-      rules: { "zotlit-css/no-obsidian-class": "off" },
-    },
-    {
       files: ["src/desktop/item-query/measure.ts"],
       rules: { "zotlit-obsidian/no-global-timer": "off" },
     },

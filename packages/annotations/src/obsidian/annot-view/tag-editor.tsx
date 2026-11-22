@@ -11,6 +11,7 @@ import type { RefObject } from "react";
 
 import { tagTypeToName } from "@zotlit/db";
 import { useObsidianApp } from "@zotlit/obsidian-kit/app-context.ts";
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { holdScopeWhileFocused } from "@zotlit/obsidian-kit/focus-scope.ts";
 import { tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
@@ -93,7 +94,7 @@ export function TagEditor({
             )}
             <TagsInput.ItemText className="zt:block zt:truncate" />
             <TagsInput.ItemRemove
-              className="zt-annot-tag-remove clickable-icon"
+              className={iconButton({ className: "zt-annot-tag-remove" })}
               disabled={saving}
               {...tooltipAttrs(m.annot_view_card_tag_remove({ name }))}
             >

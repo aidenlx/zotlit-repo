@@ -177,14 +177,6 @@ export default defineConfig({
       "src/obsidian/excerpt-image/store.browser-test.ts",
       runtimeImports,
     ),
-    {
-      files: [
-        "src/desktop/annot-view/AnnotView.tsx",
-        "src/obsidian/annot-view/FilterBar.tsx",
-        "src/obsidian/annot-view/tag-editor.tsx",
-      ],
-      rules: { "zotlit-css/no-obsidian-class": "off" },
-    },
     ...testBaselineOverrides("packages/annotations"),
   ],
 });

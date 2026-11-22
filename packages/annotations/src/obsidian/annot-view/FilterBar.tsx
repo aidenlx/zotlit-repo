@@ -6,7 +6,10 @@ import type {
   ChooserRow,
 } from "@zotlit/obsidian-kit/components/chooser-logic.ts";
 import { Chooser } from "@zotlit/obsidian-kit/components/chooser.tsx";
-import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import {
+  iconButton,
+  IconButton,
+} from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn, tooltipAttrs } from "@zotlit/obsidian-kit/utils.ts";
 import { annotationColorLabel } from "@zotlit/plugin-kernel/annotation-colors.ts";
@@ -125,8 +128,10 @@ export function FilterBar({
   );
 }
 
-const filterTrigger =
-  "clickable-icon zt:inline-flex zt:min-w-0 zt:items-center zt:gap-1 zt:rounded-(--clickable-icon-radius) zt:px-1.5 zt:py-1 zt:text-muted-foreground zt:hover:bg-muted zt:hover:text-foreground zt:focus-visible:ring-2 zt:focus-visible:ring-border-focus zt:focus-visible:outline-none zt:data-open:bg-muted zt:data-open:text-foreground zt:aria-disabled:bg-transparent zt:aria-disabled:text-muted-foreground";
+const filterTrigger = iconButton({
+  className:
+    "zt:inline-flex zt:min-w-0 zt:items-center zt:gap-1 zt:rounded-(--clickable-icon-radius) zt:px-1.5 zt:py-1 zt:text-muted-foreground zt:hover:bg-muted zt:hover:text-foreground zt:focus-visible:ring-2 zt:focus-visible:ring-border-focus zt:focus-visible:outline-none zt:data-open:bg-muted zt:data-open:text-foreground zt:aria-disabled:bg-transparent zt:aria-disabled:text-muted-foreground",
+});
 
 function TriggerChevron() {
   return (

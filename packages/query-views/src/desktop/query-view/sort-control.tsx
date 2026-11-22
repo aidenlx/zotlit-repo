@@ -9,6 +9,7 @@ import {
   Dropdown,
   DropdownItem,
 } from "@zotlit/obsidian-kit/components/obsidian/dropdown.tsx";
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { Select } from "@zotlit/obsidian-kit/components/select.tsx";
 import type { SelectOption } from "@zotlit/obsidian-kit/components/select.tsx";
@@ -108,7 +109,7 @@ export function RemoveButton({
   return (
     <button
       type="button"
-      className="clickable-icon zt:shrink-0"
+      className={iconButton({ className: "zt:shrink-0" })}
       aria-label={label}
       disabled={disabled}
       onClick={onClick}

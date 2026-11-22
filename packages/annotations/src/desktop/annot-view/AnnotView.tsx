@@ -15,7 +15,10 @@ import {
 } from "react";
 import type { CSSProperties, RefObject } from "react";
 
-import { IconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
+import {
+  iconButton,
+  IconButton,
+} from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { SearchInput } from "@zotlit/obsidian-kit/components/obsidian/search-input.tsx";
 import { PaneState } from "@zotlit/obsidian-kit/components/pane-state.tsx";
@@ -503,7 +506,10 @@ function GroupHeading({
         <button
           type="button"
           aria-expanded={expanded}
-          className="clickable-icon zt:-ms-(--size-2-3) zt:flex zt:min-w-0 zt:items-center zt:gap-1"
+          className={iconButton({
+            className:
+              "zt:-ms-(--size-2-3) zt:flex zt:min-w-0 zt:items-center zt:gap-1",
+          })}
           onClick={onToggle}
         >
           <Icon

@@ -187,6 +187,10 @@ export default defineConfig({
       ],
       rules: { "zotlit-tests/no-class-assertion": "off" },
     },
+    {
+      files: ["src/obsidian/references/copied-bibliography.ts"],
+      rules: { "obsidianmd/no-static-styles-assignment": "off" },
+    },
     ...testBaselineOverrides("packages/citations"),
   ],
 });

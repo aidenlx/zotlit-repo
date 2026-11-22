@@ -23,6 +23,7 @@ import { zoteroUri } from "@zotlit/annotations/desktop/attachment-open/open-targ
 import type { OpenTarget } from "@zotlit/annotations/desktop/attachment-open/open-target.ts";
 import { useAnnotStore } from "@zotlit/annotations/obsidian/annot-view/store.ts";
 import { isPageNumber } from "@zotlit/db";
+import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
 import type { ViewServices } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -341,7 +342,7 @@ export function Expander({
   return (
     <button
       type="button"
-      className="clickable-icon zt:shrink-0"
+      className={iconButton({ className: "zt:shrink-0" })}
       aria-expanded={open}
       aria-label={
         open ? m.query_view_table_collapse() : m.query_view_table_expand()
@@ -385,7 +386,7 @@ function NoteCell({
   return (
     <button
       type="button"
-      className="clickable-icon zt:gap-1"
+      className={iconButton({ className: "zt:gap-1" })}
       disabled={creating}
       data-query-create-note={itemKey}
       onClick={() => {

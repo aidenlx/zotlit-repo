@@ -9,8 +9,6 @@ import {
   WRAPPER_TAGS,
 } from "#obsidian/pandoc/inline-content.tsx";
 
-const SMALL_CAPS = "small-caps";
-
 export interface CopiedBibliographyEntry {
   readonly marker: Inlines | undefined;
   readonly content: Inlines;
@@ -73,7 +71,7 @@ function portable(nodes: Inlines): DocumentFragment {
           break;
         case "SmallCaps": {
           const element = wrap("span", inline.c);
-          element.style.setProperty("font-variant", SMALL_CAPS);
+          element.style.setProperty("font-variant", "small-caps");
           add(element);
           break;
         }
