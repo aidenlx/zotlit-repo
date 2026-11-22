@@ -15,12 +15,7 @@ import {
 
 import { affectedBase } from "#affected-base";
 import { isAgentDocsOnly } from "#agent-docs";
-import { exitUnlessDesktopPaints } from "#desktop-paint";
-import {
-  acquireDesktopSlotOrExit,
-  EXIT_LEASE_ENDED,
-  SILENCE_LIMIT_MS,
-} from "#desktop-slot";
+import { EXIT_LEASE_ENDED } from "#desktop-slot";
 import { GATE_HALF_FLAGS, halfOf } from "#gate-halves";
 import { getWorkspaceRoot } from "#package-roots";
 
@@ -46,8 +41,6 @@ const scope = base ? ["--affected"] : [];
 const env = base ? { ...process.env, TURBO_SCM_BASE: base } : process.env;
 const sh = $({ cwd: root, stdio: "inherit", env });
 
-if (release && !ci) await exitUnlessDesktopPaints();
-
 await gateStep("Format", () => sh`pnpm exec oxfmt --check`);
 
 if (base) {
@@ -66,7 +59,7 @@ await localSteps();
 await ciSteps();
 
 if (release) {
-  await desktopChecks();
+  await releaseRuns();
   await step("Obsidian guideline review", () => sh`pnpm review`);
   await step("Publish shell", () => sh`pnpm release:check-shell`);
 }
@@ -120,34 +113,21 @@ async function ciSteps(): Promise<void> {
   await gateStep("Bundle", () => sh`pnpm check:bundle`);
 }
 
-async function desktopChecks(): Promise<void> {
-  await desktopRuns();
+async function releaseRuns(): Promise<void> {
+  await step("End-to-end Run", async () => {
+    if (ci) {
+      console.log("The End-to-end Run ran before publishing in pnpm release.");
+      return;
+    }
+    await sh`pnpm e2e`;
+    await sh`pnpm e2e:worker`;
+  });
   await step("Start-up", async () => {
     if (ci) {
       console.log("The start-up gate is desktop-only and ran in pnpm release.");
       return;
     }
     await sh`pnpm --filter @zotlit/e2e measure:startup --check`;
-  });
-}
-
-async function desktopRuns(): Promise<void> {
-  using slot = ci
-    ? undefined
-    : await acquireDesktopSlotOrExit({
-        cwd: root,
-        command: "pnpm verify --release",
-        silenceMs: SILENCE_LIMIT_MS.e2e,
-      });
-  await step("End-to-end Run", async () => {
-    if (ci) {
-      console.log("End-to-end Run is desktop-only and ran in pnpm release.");
-      return;
-    }
-    slot?.progress("pnpm e2e starts");
-    await sh({ env: { ...process.env, ZOTLIT_E2E_REQUIRED: "1" } })`pnpm e2e`;
-    slot?.progress("pnpm e2e:worker starts");
-    await sh({ env: { ...process.env } })`pnpm e2e:worker`;
   });
 }
 

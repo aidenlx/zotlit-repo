@@ -54,7 +54,7 @@ jobs:
           {
             mkdir -p "$RUNNER_TEMP/zotlit-e2e-pnpm" &&
             docker volume create zotlit-e2e-pnpm-arm64 --opt type=none --opt o=bind --opt "device=$RUNNER_TEMP/zotlit-e2e-pnpm" &&
-            pnpm e2e:container --project=desktop
+            pnpm e2e --project=desktop
           } 2>&1 | tee "$RUNNER_TEMP/nightly-e2e/console.log"
 
       - uses: actions/cache/save@v5

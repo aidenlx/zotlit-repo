@@ -2,34 +2,18 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { $ } from "zx";
 
-import {
-  acquireDesktopSlotOrExit,
-  SILENCE_LIMIT_MS,
-} from "@zotlit/scripts/desktop-slot";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { E2E_RESULTS_ENV, newE2eResultsDir } from "./results-dir.ts";
-import { isObsidianReachable } from "./vault-script.ts";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
-if (!(await isObsidianReachable(root))) {
-  throw new Error(
-    "Worker responsiveness requires a running desktop Obsidian with its CLI enabled. Open a host vault, then run pnpm e2e:worker again.",
-  );
-}
-using slot = await acquireDesktopSlotOrExit({
-  cwd: root,
-  command: "pnpm e2e:worker",
-  silenceMs: SILENCE_LIMIT_MS.e2e,
-});
 const results = newE2eResultsDir();
 const report = join(results, "results.json");
-slot.progress("pnpm e2e citation-index starts");
 await $({
   cwd: root,
   stdio: "inherit",
   env: { ...process.env, [E2E_RESULTS_ENV]: results },
-})`pnpm e2e citation-index`;
+})`pnpm e2e --project=desktop citation-index`;
 const result = JSON.parse(await readFile(report, "utf8")) as {
   numPassedTests: number;
   numPendingTests: number;

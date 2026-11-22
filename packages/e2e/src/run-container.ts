@@ -21,7 +21,7 @@ import {
 const VNC_ENV = "ZOTLIT_E2E_VNC";
 const vitestArgs = hideBin(process.argv);
 const help = yargs([])
-  .scriptName("pnpm e2e:container")
+  .scriptName("pnpm e2e")
   .usage("$0 [Vitest arguments]")
   .version(false)
   .help()

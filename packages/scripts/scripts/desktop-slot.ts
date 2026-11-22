@@ -42,7 +42,7 @@ const EXIT_USAGE = 2;
 
 const epilogue = `The one desktop Obsidian app has a pool of Desktop Slots, ${DEFAULT_DESKTOP_SLOTS} by default, shared by every clone and session on this machine (ADR 0077, ADR 0078). Each holder drives its own vault. A holder joins the Desktop Queue (first in, first out, no overtaking) and claims a slot at its head, once a slot is free and no holder from its own worktree (git toplevel) has one. An Exclusive Hold (run --exclusive; measure:query) claims every slot, once all are free, for work that needs the whole app, such as a screen capture. The holder then passes the Memory Gate, and its Lease starts.
 
-Paint Check: before it joins the queue, a holder asks macOS whether the desktop can paint a window (an awake display and an unlocked session). An automated run (pnpm e2e, e2e:worker, pnpm verify --release, measure:query, a docs walk) does not start without one and exits ${EXIT_ADMISSION_BLOCKED}; a manual hold (run, pnpm fixture open|dev) starts with a warning. While a hold lasts, caffeinate -d -i keeps the display and the system awake.
+Paint Check: before it joins the queue, a holder asks macOS whether the desktop can paint a window (an awake display and an unlocked session). An automated host run (host Vitest, measure:startup, measure:query, a docs walk) does not start without one and exits ${EXIT_ADMISSION_BLOCKED}; a manual hold (run, pnpm fixture open|dev) starts with a warning. While a hold lasts, caffeinate -d -i keeps the display and the system awake.
 
 Exit codes:
   ${EXIT_ADMISSION_BLOCKED}   the Admission Deadline passed; blocked at admission, not a failure.
@@ -52,7 +52,7 @@ Exit codes:
   run otherwise exits with the command's code, or 128 plus the signal number.
 
 Admission Deadline: ${formatDuration(ADMISSION_DEADLINE_MS)} by default, for the queue, a slot, and the Memory Gate together.
-Lease of an automated holder: each sign of progress (a test case or hook of pnpm e2e, a step of measure:query, output of a Land Turn's gate) moves its end to now plus a silence limit: pnpm e2e, e2e:worker, and the desktop runs of pnpm verify --release ${formatDuration(SILENCE_LIMIT_MS.e2e)}; a docs walk ${formatDuration(SILENCE_LIMIT_MS.docsWalk)}; measure:query ${formatDuration(SILENCE_LIMIT_MS.measureQuery)}; a Land Turn and the End-to-end Run after a land ${formatDuration(SILENCE_LIMIT_MS.childOutput)}. A healthy run is never ended; a silent one ends with exit ${EXIT_LEASE_ENDED} and says how long it was silent and what its last progress was. No automated holder keeps a slot more than ${formatDuration(MAX_LEASE_MS)} after admission.
+Lease of an automated holder: each sign of progress (a test case or hook of host Vitest, a measurement step, output of a Land Turn's gate) moves its end to now plus a silence limit: host Vitest and measure:startup ${formatDuration(SILENCE_LIMIT_MS.e2e)}; a docs walk ${formatDuration(SILENCE_LIMIT_MS.docsWalk)}; measure:query ${formatDuration(SILENCE_LIMIT_MS.measureQuery)}; a Land Turn and the End-to-end Run after a land ${formatDuration(SILENCE_LIMIT_MS.childOutput)}. A healthy run is never ended; a silent one ends with exit ${EXIT_LEASE_ENDED} and says how long it was silent and what its last progress was. No automated holder keeps a slot more than ${formatDuration(MAX_LEASE_MS)} after admission.
 Lease of a manual hold (run, pnpm fixture open|dev): no end while no run waits. When the head waiter cannot get a slot because manual holds have them, the manual hold that has held longest gets ${formatDuration(NOTICE_MS)} of notice: it prints who waits and when it ends, then ends its command's process group with exit ${EXIT_LEASE_ENDED}. If no run waits at the end of the notice, the hold goes on. An automated holder never yields.
 A holder that outlives its Lease end by ${formatDuration(EVICTION_GRACE_MS)} is evicted by the head waiter: SIGTERM to its process group, SIGKILL after ${formatDuration(KILL_AFTER_MS)}. An Exclusive Hold's Lease, notice, and eviction cover all its slots.
 Durations: 300ms, 90s, 20m, 2h.
@@ -60,7 +60,7 @@ Durations: 300ms, 90s, 20m, 2h.
 Environment:
   ${DESKTOP_SLOT_ENV}     the holder's token; a ZotLit tool the command starts reuses the hold, inside its Lease
   ${DESKTOP_SLOTS_ENV}    the number of Desktop Slots, a positive integer (default ${DEFAULT_DESKTOP_SLOTS})
-  ${DESKTOP_WAIT_ENV}     the Admission Deadline of an in-process holder (pnpm e2e, e2e:worker, measure:query)
+  ${DESKTOP_WAIT_ENV}     the Admission Deadline of an in-process holder (host Vitest, host measurements, and Run Container memory admission)
   ${DESKTOP_DIR_ENV}      the state directory (now ${desktopStateDir()})
   ${MEMORY_GATE_ENV}=off  skip the Memory Gate
   ${DESKTOP_PAINT_ENV}=off  skip the Paint Check and the display assertion`;

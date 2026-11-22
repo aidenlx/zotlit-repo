@@ -145,9 +145,9 @@ aidenlx/zotlit-resources  plugin-release.yml of the shell, on the tag:
    root `manifest.json` and `versions.json` for a stable plugin release,
    refreshes the lockfile, commits on a local release branch, and lands that
    commit onto `main` through the Land Queue. The release gate
-   (`pnpm verify --release`, which includes the End-to-end Run, so desktop
-   Obsidian must be running) runs once, in a Land Turn, on the tree that is
-   pushed.
+   (`pnpm verify --release`) runs once in the Land Turn on the tree that is
+   pushed. The End-to-end Run needs Docker. The start-up measurement uses
+   the host Obsidian and an awake, unlocked display.
 
    To release without prompts, name each app and its version: a bump that the
    current version offers, or an explicit version.

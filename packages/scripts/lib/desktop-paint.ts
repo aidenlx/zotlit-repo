@@ -127,13 +127,6 @@ export function cannotPaintMessage(machine: string): string {
   return `Desktop: this run needs a window that macOS paints, and macOS cannot paint one now: ${machine}. ${REMEDY}, then run the command again. Nothing was tested. Report this as blocked at admission, not as a test failure. Exit ${EXIT_ADMISSION_BLOCKED}.`;
 }
 
-export async function exitUnlessDesktopPaints(): Promise<void> {
-  const paint = await readDesktopPaint();
-  if (paint.state !== "cannot paint") return;
-  console.error(cannotPaintMessage(paint.machine));
-  process.exit(EXIT_ADMISSION_BLOCKED);
-}
-
 export function cannotPaintWarning(machine: string): string {
   return `Desktop: warning: macOS cannot paint a window now: ${machine}. Obsidian draws nothing until then. ${REMEDY} if this session needs a window.`;
 }

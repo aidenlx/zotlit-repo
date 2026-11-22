@@ -73,7 +73,6 @@ const SLOT = new URL("./desktop-slot.ts", import.meta.url).href;
 const PAINT = new URL("./desktop-paint.ts", import.meta.url).href;
 const SLOT_CLI = new URL("../scripts/desktop-slot.ts", import.meta.url)
   .pathname;
-const VERIFY = new URL("../scripts/verify.ts", import.meta.url).pathname;
 
 let root: string;
 let stateDir: string;
@@ -197,16 +196,6 @@ held.release();`),
     expect(stdout.trim()).toBe("ran");
     expect(stderr).toContain(
       "Desktop: warning: macOS cannot paint a window now: the screen is locked.",
-    );
-  });
-
-  it("stops pnpm verify --release before its first step", async () => {
-    await setDesktop("display asleep");
-    const { code, stdout, stderr } = await node([VERIFY, "--release"]);
-    expect(code).toBe(EXIT_ADMISSION_BLOCKED);
-    expect(stdout).not.toContain("Format");
-    expect(stderr).toContain(
-      "macOS cannot paint one now: no display is awake (Color LCD: asleep).",
     );
   });
 

@@ -5,12 +5,15 @@ import { spawn } from "node:child_process";
 import { createWriteStream, existsSync } from "node:fs";
 import { join } from "node:path";
 
-import { readDesktopPaint } from "#desktop-paint";
-import { EXIT_ADMISSION_BLOCKED, EXIT_LEASE_ENDED } from "#desktop-slot";
+import {
+  ADMISSION_DEADLINE_MS,
+  DESKTOP_WAIT_ENV,
+  EXIT_ADMISSION_BLOCKED,
+} from "@zotlit/config/memory-gate";
+
+import { EXIT_LEASE_ENDED } from "#desktop-slot";
 import { githubE2eIssues } from "#e2e-issues";
 import { landE2eDir, readLandE2eEvidence, runLandE2e } from "#land-e2e";
-
-const DESKTOP_WAIT = "1h";
 
 function command(
   log: NodeJS.WritableStream,
@@ -27,12 +30,12 @@ function command(
     progress?: (what: string) => void;
     leaseEnded?: AbortSignal;
   },
-): Promise<{ code: number; stdout: string }> {
+): Promise<number> {
   log.write(`\n$ ${[name, ...args].join(" ")}\n`);
   const what = `output of ${[name, ...args].slice(0, 2).join(" ")}`;
   return new Promise((resolve) => {
     if (leaseEnded?.aborted) {
-      resolve({ code: EXIT_LEASE_ENDED, stdout: "" });
+      resolve(EXIT_LEASE_ENDED);
       return;
     }
     const posix = process.platform !== "win32";
@@ -52,9 +55,7 @@ function command(
       }
     };
     leaseEnded?.addEventListener("abort", stop, { once: true });
-    let stdout = "";
     child.stdout.on("data", (chunk: Buffer) => {
-      stdout += chunk;
       log.write(chunk);
       progress?.(what);
     });
@@ -64,11 +65,11 @@ function command(
     });
     child.on("error", (error) => {
       log.write(`${error.message}\n`);
-      resolve({ code: 127, stdout });
+      resolve(127);
     });
     child.on("close", (code) => {
       leaseEnded?.removeEventListener("abort", stop);
-      resolve({ code: code ?? 128, stdout });
+      resolve(code ?? 128);
     });
   });
 }
@@ -89,77 +90,50 @@ async function run({
       stage: `${stage} (the End-to-end Turn ended: ${String(leaseEnded.reason)})`,
     });
     const checkedOut = existsSync(join(checkout, ".git"))
-      ? (
-          await at(
-            checkout,
-            "git",
-            "checkout",
-            "--detach",
-            "--force",
-            request.commit,
-          )
-        ).code === 0 && (await at(checkout, "git", "clean", "-ffd")).code === 0
-      : (await at(request.repository, "git", "worktree", "prune")).code === 0 &&
-        (
-          await at(
-            request.repository,
-            "git",
-            "worktree",
-            "add",
-            "--detach",
-            "--force",
-            checkout,
-            request.commit,
-          )
-        ).code === 0;
+      ? (await at(
+          checkout,
+          "git",
+          "checkout",
+          "--detach",
+          "--force",
+          request.commit,
+        )) === 0 && (await at(checkout, "git", "clean", "-ffd")) === 0
+      : (await at(request.repository, "git", "worktree", "prune")) === 0 &&
+        (await at(
+          request.repository,
+          "git",
+          "worktree",
+          "add",
+          "--detach",
+          "--force",
+          checkout,
+          request.commit,
+        )) === 0;
     if (leaseEnded.aborted) return stopped("checkout");
     if (!checkedOut) return { outcome: "failed", stage: "checkout" };
 
     if (
-      (await at(checkout, "mise", "trust")).code !== 0 ||
-      (await at(checkout, "mise", "run", "init", request.repository)).code !== 0
+      (await at(checkout, "mise", "trust")) !== 0 ||
+      (await at(checkout, "mise", "run", "init", request.repository)) !== 0
     ) {
       return leaseEnded.aborted
         ? stopped("bootstrap")
         : { outcome: "failed", stage: "bootstrap" };
     }
 
-    const status = await at(
-      checkout,
-      process.execPath,
-      "packages/scripts/scripts/obsidian-vault.ts",
-      "status",
-    );
-    if (!status.stdout.trim().startsWith("ready ")) {
-      return {
-        outcome: "skipped",
-        reason: "no desktop Obsidian with the CLI answers on this machine",
-      };
-    }
-
-    const e2e = await command(log, {
+    const code = await command(log, {
       cwd: checkout,
       argv: ["pnpm", "e2e"],
-      env: {
-        ZOTLIT_E2E_REQUIRED: "1",
-        ZOTLIT_DESKTOP_WAIT: DESKTOP_WAIT,
-      },
+      env: { [DESKTOP_WAIT_ENV]: `${ADMISSION_DEADLINE_MS}ms` },
       progress,
       leaseEnded,
     });
     if (leaseEnded.aborted) return stopped("End-to-end Run");
-    if (e2e.code === 0) return { outcome: "passed" };
-    if (e2e.code === EXIT_ADMISSION_BLOCKED) {
+    if (code === 0) return { outcome: "passed" };
+    if (code === EXIT_ADMISSION_BLOCKED) {
       return {
         outcome: "blocked",
-        reason: `no Desktop Slot within ${DESKTOP_WAIT}`,
-      };
-    }
-    if (e2e.code === EXIT_LEASE_ENDED) {
-      return {
-        outcome: "failed",
-        stage:
-          "End-to-end Run (its Desktop Slot Lease ended; the log names how long the run was silent and its last progress)",
+        reason: "the Memory Gate reached its Admission Deadline",
       };
     }
     return { outcome: "failed", stage: "End-to-end Run" };
@@ -172,5 +146,4 @@ await runLandE2e({
   run,
   evidence: readLandE2eEvidence,
   issues: githubE2eIssues(landE2eDir()),
-  paint: readDesktopPaint,
 });

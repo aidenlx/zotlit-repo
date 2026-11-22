@@ -8,7 +8,6 @@ import { $ } from "zx";
 
 import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
-import { exitUnlessDesktopPaints } from "#desktop-paint";
 import { land, LAND_GATES } from "#land";
 import { parseManifest as parseObsidianManifest } from "#obsidian-manifest";
 import { getWorkspaceRoot } from "#package-roots";
@@ -80,7 +79,6 @@ const git = $({ cwd: workspaceRoot, quiet: true });
 
 p.intro(interactive ? "ZotLit release" : "ZotLit release (non-interactive)");
 
-await exitUnlessDesktopPaints();
 await assertCleanWorkingTree();
 const branch = (await git`git branch --show-current`).stdout.trim();
 if (branch !== SOURCE_BRANCH) {

@@ -568,13 +568,9 @@ Run the suite from the workspace root:
 pnpm e2e
 ```
 
-Requirements:
+Start Docker before running the suite. The Run Container starts its own pinned Obsidian and starts Zotero for the paired project. It builds the development plugin bundle and uses its development-only `zotlit:library-scope` command.
 
-- Obsidian 1.13.4 or later is running on the desktop.
-- **Settings → General → Advanced → Command line interface** is enabled.
-- The development plugin bundle can be built. The suite uses its development-only `zotlit:library-scope` command.
-
-Each suite file builds its own Fixture and vaults under `.scratch/`. `.scratch/acceptance-fixture`, the Development Vault, and a Paired Run that you started stay as they are, so you can keep them open during a run.
+Each suite file builds its own Fixture and vaults under the guest's `.scratch/`. Run evidence is under the host's `.scratch/e2e-results/latest/`. See [Edit a journey](../packages/e2e/AGENTS.md#edit-a-journey) for the focused development loop.
 
 | Suite                                                                                                                        | Fixture                       | Vault                                                                                                                                                       | Zotero                                          |
 | ---------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |

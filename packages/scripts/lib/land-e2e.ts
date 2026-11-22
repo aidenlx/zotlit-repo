@@ -1,4 +1,3 @@
-import type { DesktopPaint } from "#desktop-paint";
 import type { Admission } from "#desktop-slot";
 import { regex } from "arkregex";
 import { execFile } from "node:child_process";
@@ -103,7 +102,6 @@ export interface LandE2eRun {
 
 export interface LandE2eDeps {
   run: (run: LandE2eRun) => Promise<LandE2eOutcome>;
-  paint: () => Promise<DesktopPaint>;
   evidence: (failure: {
     run: LandE2eRun;
     range: string;
@@ -203,7 +201,12 @@ export async function runLandE2e(
     const base = state.lastPassed ?? request.previous;
     const range = base ? `${base}..${request.commit}` : request.commit;
     log(`End-to-end Run of ${request.commit.slice(0, 12)}: log ${logPath}`);
-    const result = await runUnlessDesktopIsDark(deps, run);
+    const result = await deps
+      .run(run)
+      .catch((error: unknown): LandE2eOutcome => ({
+        outcome: "failed",
+        stage: `runner: ${(error as Error).message}`,
+      }));
     const issue = await reportToIssue(deps, {
       dir,
       run,
@@ -244,35 +247,6 @@ export async function runLandE2e(
   } finally {
     slot.release();
   }
-}
-
-async function runUnlessDesktopIsDark(
-  deps: LandE2eDeps,
-  run: LandE2eRun,
-): Promise<LandE2eOutcome> {
-  const before = await deps.paint();
-  if (before.state === "cannot paint") {
-    return {
-      outcome: "not-run",
-      reason: `the desktop cannot paint a window: ${before.machine}`,
-    };
-  }
-  const result = await deps
-    .run(run)
-    .catch((error: unknown): LandE2eOutcome => ({
-      outcome: "failed",
-      stage: `runner: ${(error as Error).message}`,
-    }));
-  if (result.outcome !== "failed" && result.outcome !== "blocked") {
-    return result;
-  }
-  const after = await deps.paint();
-  return after.state === "cannot paint"
-    ? {
-        outcome: "not-run",
-        reason: `the desktop stopped painting during the run: ${after.machine}`,
-      }
-    : result;
 }
 
 async function reportToIssue(

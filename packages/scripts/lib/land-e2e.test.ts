@@ -4,7 +4,6 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { makeGitRepos } from "./__fixtures__/git-repos.ts";
-import type { DesktopPaint } from "./desktop-paint.ts";
 import {
   E2E_ISSUE_TITLE,
   githubRepository,
@@ -39,12 +38,6 @@ const request = (commit: string, previous = "p0") =>
     },
     dir,
   );
-
-const PAINTS: DesktopPaint = { state: "paints" };
-const LID_CLOSED: DesktopPaint = {
-  state: "cannot paint",
-  machine: "no display is awake (Color LCD: asleep), and the screen is locked",
-};
 
 type FakeIssue = LandE2eIssue & { state: "open" | "closed" };
 
@@ -88,7 +81,6 @@ const FAILED_LOG = [
 
 function deps(
   outcomes: Record<string, LandE2eOutcome> = {},
-  paints: DesktopPaint[] = [PAINTS],
   issues = fakeIssues(),
 ) {
   const ran: string[] = [];
@@ -103,8 +95,6 @@ function deps(
         log: FAILED_LOG,
       }),
     issues: issues.client,
-    paint: () =>
-      Promise.resolve(paints.length > 1 ? paints.shift()! : paints[0]!),
   };
   return { fake, ran, created: issues.created, comments: issues.comments };
 }
@@ -185,7 +175,6 @@ describe("the issue of End-to-end Run failures", () => {
     };
     const { fake, created, comments } = deps(
       { c1: FAILED, c2: FAILED },
-      [PAINTS],
       fakeIssues([
         { ...open, number: 3, url: "u3", state: "closed" },
         { ...open, number: 5, url: "u5" },
@@ -243,7 +232,7 @@ describe("the issue of End-to-end Run failures", () => {
   it("records the run when GitHub does not answer", async () => {
     const issues = fakeIssues();
     issues.client.listOpen = () => Promise.reject(new Error("offline"));
-    const { fake } = deps({ c1: FAILED }, [PAINTS], issues);
+    const { fake } = deps({ c1: FAILED }, issues);
     await request("c1");
     await runner(fake);
 
@@ -253,58 +242,24 @@ describe("the issue of End-to-end Run failures", () => {
   });
 });
 
-describe("the End-to-end Run after a land on a desktop that cannot paint", () => {
-  it("records the tip as not run with the machine state, opens no issue, and runs the newer tip next", async () => {
-    const { fake, ran, created, comments } = deps({}, [
-      PAINTS,
-      LID_CLOSED,
-      PAINTS,
-    ]);
-    await request("c0");
-    await runner(fake);
-    await request("c1", "c0");
-    await runner(fake);
-    await request("c2", "c1");
-    await runner(fake);
+it("retries the same tip after the Memory Gate blocks the run", async () => {
+  const blocked: LandE2eOutcome = {
+    outcome: "blocked",
+    reason: "the Memory Gate did not admit the run",
+  };
+  const outcomes: Record<string, LandE2eOutcome> = { c1: blocked };
+  const { fake, ran, created } = deps(outcomes);
+  await request("c1");
+  await runner(fake);
+  outcomes.c1 = { outcome: "passed" };
+  await runner(fake);
 
-    expect(ran).toEqual(["c0", "c2"]);
-    expect(created).toEqual([]);
-    expect(comments).toEqual([]);
-    expect(await records()).toMatchObject([
-      { commit: "c0", result: { outcome: "passed" } },
-      {
-        commit: "c1",
-        result: {
-          outcome: "not-run",
-          reason: `the desktop cannot paint a window: ${LID_CLOSED.machine}`,
-        },
-      },
-      { commit: "c2", range: "c0..c2", result: { outcome: "passed" } },
-    ]);
-  });
-
-  it("records a failed run as not run when the desktop stopped painting during it", async () => {
-    const { fake, ran, created, comments } = deps({ c1: FAILED }, [
-      PAINTS,
-      LID_CLOSED,
-    ]);
-    await request("c1");
-
-    await runner(fake);
-
-    expect(ran).toEqual(["c1"]);
-    expect(created).toEqual([]);
-    expect(comments).toEqual([]);
-    expect(await records()).toMatchObject([
-      {
-        commit: "c1",
-        result: {
-          outcome: "not-run",
-          reason: `the desktop stopped painting during the run: ${LID_CLOSED.machine}`,
-        },
-      },
-    ]);
-  });
+  expect(ran).toEqual(["c1", "c1"]);
+  expect(created).toEqual([]);
+  expect(await records()).toMatchObject([
+    { commit: "c1", result: blocked },
+    { commit: "c1", result: { outcome: "passed" } },
+  ]);
 });
 
 describe("the evidence of a failed run", () => {
