@@ -109,13 +109,15 @@ export const citations = extendFeature(obsidianCitations, {
     const registry = read(ViewRegistry);
     registerReferencesView(plugin, { app, registry });
     registerCitedByView(plugin, { app, registry });
+    const workspace = read(Workspace);
     registerPandocExport(plugin, {
       app,
+      workspace,
       context: read(Effect.context<PandocExportServices>()),
       bridge,
     });
     const presentation = {
-      workspace: read(Workspace),
+      workspace,
       metadataCache: read(MetadataCache),
       fileSystem: read(FileSystem.FileSystem),
       app,

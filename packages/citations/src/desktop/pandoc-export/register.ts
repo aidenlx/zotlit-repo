@@ -12,6 +12,7 @@ import type { Library } from "@zotlit/db";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
 import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { requestProfileSwitch } from "@zotlit/obsidian-kit/profile-recovery.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -70,14 +71,16 @@ export interface PandocExportDeps {
 }
 
 export function registerPandocExport(
-  plugin: Pick<Plugin, "addCommand" | "app">,
-  deps: PandocExportDeps,
+  plugin: Pick<Plugin, "addCommand">,
+  deps: PandocExportDeps & {
+    workspace: Pick<Workspace["Service"], "getActiveFile">;
+  },
 ): void {
   plugin.addCommand({
     id: "pandoc-export",
     name: m.command_pandoc_export_name(),
     checkCallback: (checking) => {
-      const file = plugin.app.workspace.getActiveFile();
+      const file = deps.bridge.runSync(deps.workspace.getActiveFile);
       if (file?.extension !== "md") return false;
       if (checking) return true;
       void runPandocExport(file, deps);

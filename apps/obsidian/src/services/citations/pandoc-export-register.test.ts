@@ -164,9 +164,6 @@ function openVault({
   };
 
   const app = stubService<App>("App", {
-    workspace: stubService<App["workspace"]>("Workspace", {
-      getActiveFile: () => (note ? file : null),
-    }),
     metadataCache: stubService<App["metadataCache"]>("MetadataCache", {
       getFileCache: () => ({ frontmatter }),
     }),
@@ -278,14 +275,16 @@ function openVault({
     context,
   };
   registerPandocExport(
-    stubService<Pick<Plugin, "addCommand" | "app">>("Plugin", {
-      app,
+    stubService<Pick<Plugin, "addCommand">>("Plugin", {
       addCommand: (added: Command) => {
         command = added;
         return added;
       },
     }),
-    deps,
+    {
+      ...deps,
+      workspace: { getActiveFile: Effect.succeed(note ? file : null) },
+    },
   );
 
   if (!command) throw new Error("the export registered no command");
