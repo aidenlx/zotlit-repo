@@ -158,7 +158,9 @@ describe("the issues of End-to-end Run failures", () => {
     expect(created).toMatchObject([
       {
         title: E2E_ISSUE_TITLE,
-        body: expect.stringContaining("failed at the checkout stage") as string,
+        body: expect.stringContaining(
+          "the run failed at the checkout stage",
+        ) as string,
       },
     ]);
   });
@@ -260,6 +262,26 @@ describe("the evidence of a failed run", () => {
       });
       const logPath = join(dir, "run.log");
       await writeFile(logPath, " FAIL  src/a.e2e.ts > a case\n");
+      await writeFile(
+        join(dir, "results.json"),
+        JSON.stringify({
+          testResults: [
+            {
+              name: "/workspace/packages/e2e/src/a.e2e.ts",
+              status: "failed",
+              message: "",
+              assertionResults: [
+                {
+                  ancestorTitles: ["block"],
+                  title: "a case",
+                  status: "failed",
+                  failureMessages: ["AssertionError"],
+                },
+              ],
+            },
+          ],
+        }),
+      );
 
       const { commits, log, cases } = await readLandE2eEvidence({
         run: {
@@ -272,7 +294,7 @@ describe("the evidence of a failed run", () => {
           },
           logPath,
           checkout,
-          resultsDir: join(dir, "no-results"),
+          resultsDir: dir,
           progress: () => {},
           leaseEnded: new AbortController().signal,
         },
@@ -280,7 +302,13 @@ describe("the evidence of a failed run", () => {
       });
 
       expect(log).toBe(" FAIL  src/a.e2e.ts > a case\n");
-      expect(cases).toEqual([]);
+      expect(cases).toEqual([
+        {
+          id: "src/a.e2e.ts > block > a case",
+          title: "src/a.e2e.ts > a case",
+          message: "AssertionError",
+        },
+      ]);
       expect(commits).toContain("the subject of the landed commit");
       expect(await readFile(logPath, "utf8")).toContain(
         "the subject of the landed commit",

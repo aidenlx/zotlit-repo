@@ -2,12 +2,15 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { stripVTControlCharacters } from "node:util";
+import type { JsonTestResults } from "vitest/node";
 
 export const E2E_ISSUE_TITLE = "End-to-end Run fails on main";
 export const MAX_CASE_ISSUES = 5;
 const E2E_ISSUE_LABEL = "needs-triage";
 const EXCERPT_LINES = 80;
+const EXCERPT_LENGTH = 20_000;
 const LISTED_CASES = 50;
+const LISTED_LENGTH = 30_000;
 const MESSAGE_LENGTH = 4000;
 const TITLE_LENGTH = 200;
 
@@ -41,24 +44,13 @@ export interface E2eFailure {
   cases: readonly E2eCase[];
 }
 
-interface VitestResults {
-  testResults: {
-    name: string;
-    status: string;
-    message: string;
-    assertionResults: {
-      ancestorTitles: string[];
-      title: string;
-      status: string;
-      failureMessages?: string[];
-    }[];
-  }[];
-}
-
 const E2E_PACKAGE = "packages/e2e/";
 
 export function failedE2eCases(results: string): E2eCase[] {
-  const { testResults } = JSON.parse(results) as VitestResults;
+  const { testResults } = JSON.parse(results) as Pick<
+    JsonTestResults,
+    "testResults"
+  >;
   return testResults.flatMap(({ name, status, message, assertionResults }) => {
     const file = name.slice(name.lastIndexOf(E2E_PACKAGE) + E2E_PACKAGE.length);
     const failed = assertionResults.filter((each) => each.status === "failed");
@@ -76,13 +68,9 @@ export function failedE2eCases(results: string): E2eCase[] {
 export async function readFailedE2eCases(
   directory: string,
 ): Promise<E2eCase[]> {
-  const results = await readFile(join(directory, "results.json"), "utf8").catch(
-    (error: NodeJS.ErrnoException) => {
-      if (error.code === "ENOENT") return undefined;
-      throw error;
-    },
-  );
-  return results === undefined ? [] : failedE2eCases(results);
+  return readFile(join(directory, "results.json"), "utf8")
+    .then(failedE2eCases)
+    .catch(() => []);
 }
 
 export async function reportE2eFailure(
@@ -168,33 +156,29 @@ function caseTitle(title: string): string {
     : full;
 }
 
-function caseBody(
-  { introduction, evidence }: E2eFailure,
-  { id, message }: E2eCase,
-): string {
+function caseBody(failure: E2eFailure, { id, message }: E2eCase): string {
   return [
-    ...introduction,
+    ...failure.introduction,
     "Failed case:",
     "",
     ...fenced(id),
     "",
-    ...fenced(
-      stripVTControlCharacters(message).slice(0, MESSAGE_LENGTH) ||
-        "The file failed outside its cases. See the log.",
-    ),
-    "",
-    evidence,
+    ...(message
+      ? [
+          ...fenced(stripVTControlCharacters(message).slice(0, MESSAGE_LENGTH)),
+          "",
+          failure.evidence,
+        ]
+      : [
+          "A hook failed outside the cases of this file.",
+          "",
+          ...logExcerpt(failure),
+        ]),
   ].join("\n");
 }
 
-function runBody({
-  introduction,
-  stage,
-  evidence,
-  log,
-  cases,
-}: E2eFailure): string {
-  const lines = stripVTControlCharacters(log).trimEnd().split("\n");
+function runBody(failure: E2eFailure): string {
+  const { introduction, stage, cases } = failure;
   return [
     ...introduction,
     ...(cases.length > 0
@@ -205,7 +189,8 @@ function runBody({
             cases
               .slice(0, LISTED_CASES)
               .map(({ id }) => id)
-              .join("\n"),
+              .join("\n")
+              .slice(0, LISTED_LENGTH),
           ),
           ...(cases.length > LISTED_CASES
             ? [`And ${cases.length - LISTED_CASES} more.`]
@@ -215,10 +200,17 @@ function runBody({
           `The results name no failed case; the run failed at the ${stage} stage.`,
         ]),
     "",
+    ...logExcerpt(failure),
+  ].join("\n");
+}
+
+function logExcerpt({ evidence, log }: E2eFailure): string[] {
+  const lines = stripVTControlCharacters(log).trimEnd().split("\n");
+  return [
     `${evidence} The last ${EXCERPT_LINES} lines:`,
     "",
-    ...fenced(lines.slice(-EXCERPT_LINES).join("\n")),
-  ].join("\n");
+    ...fenced(lines.slice(-EXCERPT_LINES).join("\n").slice(-EXCERPT_LENGTH)),
+  ];
 }
 
 function fenced(text: string): string[] {

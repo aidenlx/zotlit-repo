@@ -7,14 +7,14 @@ import type { E2eIssue, E2eIssues } from "./e2e-report.ts";
 
 const execFileAsync = promisify(execFile);
 
-export function githubE2eIssues(directory: string): E2eIssues {
-  const gh = async (...args: string[]) =>
-    (
-      await execFileAsync("gh", args, {
-        cwd: directory,
-        maxBuffer: 64 * 1024 * 1024,
-      })
-    ).stdout.trim();
+export type Gh = (args: string[], cwd: string) => Promise<string>;
+
+const ghCli: Gh = async (args, cwd) =>
+  (await execFileAsync("gh", args, { cwd, maxBuffer: 64 * 1024 * 1024 }))
+    .stdout;
+
+export function githubE2eIssues(directory: string, run: Gh = ghCli): E2eIssues {
+  const gh = async (...args: string[]) => (await run(args, directory)).trim();
   const bodyFile = async (body: string) => {
     const path = join(directory, "issue-body.md");
     await writeFile(path, body);

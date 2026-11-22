@@ -78,9 +78,11 @@ describe("failedE2eCases", () => {
 });
 
 describe("readFailedE2eCases", () => {
-  it("names no case when the run ended before it wrote its results", async () => {
+  it("names no case when the run wrote no results, or only a part of them", async () => {
     const directory = await mkdtemp(join(tmpdir(), "e2e-results-"));
     try {
+      expect(await readFailedE2eCases(directory)).toEqual([]);
+      await writeFile(join(directory, "results.json"), '{"testResults": [');
       expect(await readFailedE2eCases(directory)).toEqual([]);
       await writeFile(join(directory, "results.json"), results("/workspace"));
       expect(await readFailedE2eCases(directory)).toHaveLength(2);
@@ -96,15 +98,23 @@ const failedCase = (name: string): E2eCase => ({
   message: `AssertionError of ${name}`,
 });
 
+const ESC = "\u001B";
+const LOG = [
+  "first line",
+  ...Array.from({ length: 79 }, (_, at) => `line ${at}`),
+  `${ESC}[31mlast line${ESC}[39m`,
+].join("\n");
+
 const report = (
   issues: ReturnType<typeof fakeIssues>,
   cases: readonly E2eCase[],
+  log = LOG,
 ) =>
   reportE2eFailure(issues.client, REPO, {
-    introduction: ["The run failed.", ""],
-    stage: "End-to-end Run",
+    introduction: ["The introduction.", ""],
+    stage: "named",
     evidence: "The evidence is there.",
-    log: "first line\nlast line",
+    log,
     cases,
   });
 
@@ -130,7 +140,10 @@ describe("reportE2eFailure", () => {
     expect(body).toContain("src/a.e2e.ts > block > one");
     expect(body).toContain("AssertionError of one");
     expect(body).not.toContain("AssertionError of two");
+    expect(body).toContain("The introduction.");
     expect(body).toContain("The evidence is there.");
+    expect(body).not.toContain("last line");
+    expect(issues.repositories).toEqual(new Set([REPO]));
     expect(urls).toEqual([
       "https://github.com/owner/repo/issues/101",
       "https://github.com/owner/repo/issues/102",
@@ -200,8 +213,11 @@ describe("reportE2eFailure", () => {
     expect(issues.created).toEqual([]);
     expect(issues.comments.map(({ number }) => number)).toEqual([7]);
     const { body } = issues.comments[0]!;
-    expect(body).toContain("failed at the End-to-end Run stage");
-    expect(body).toContain("last line");
+    expect(body).toContain("The introduction.");
+    expect(body).toContain("The evidence is there.");
+    expect(body).toContain("failed at the named stage");
+    expect(body).toContain("\nlast line\n");
+    expect(body).not.toContain("first line");
     expect(urls).toEqual(["u7"]);
   });
 
@@ -228,14 +244,50 @@ describe("reportE2eFailure", () => {
     await report(
       issues,
       Array.from({ length: 400 }, (_, at) =>
-        failedCase(`${at} ${"x".repeat(600)}`),
+        failedCase(`${at} ${"x".repeat(1500)}`),
       ),
+      Array.from({ length: 80 }, () => "y".repeat(2000)).join("\n"),
     );
 
     const { body } = issues.created[0]!;
     expect(body.length).toBeLessThan(65_536);
     expect(body).toContain("400 cases failed");
     expect(body).toContain("And 350 more.");
+  });
+
+  it("keeps the report of a case with a long message within the body limit of GitHub", async () => {
+    const issues = fakeIssues();
+
+    await report(issues, [
+      { ...failedCase("one"), message: `${ESC}[31m${"z".repeat(100_000)}` },
+    ]);
+
+    const { body } = issues.created[0]!;
+    expect(body.length).toBeLessThan(65_536);
+    expect(body).not.toContain(ESC);
+  });
+
+  it("shows the end of the log for a hook that failed outside the cases, whose error the results do not hold", async () => {
+    const issues = fakeIssues();
+
+    await report(issues, [{ ...failedCase("one"), message: "" }]);
+
+    expect(issues.created[0]!.body).toContain("\nlast line\n");
+  });
+
+  it("comments on the newest of several open issues of one case", async () => {
+    const issues = fakeIssues();
+    await report(issues, [failedCase("one")]);
+    const { body } = issues.created[0]!;
+    const twins = fakeIssues([
+      { ...runIssue(4, "older"), body },
+      { ...runIssue(8, "newer"), body },
+      { ...runIssue(6, "middle"), body },
+    ]);
+
+    await report(twins, [failedCase("one")]);
+
+    expect(twins.comments.map(({ number }) => number)).toEqual([8]);
   });
 
   it("keeps a message with a code fence inside its block", async () => {
