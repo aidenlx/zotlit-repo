@@ -123,9 +123,11 @@ export const LAND_CI_JOB_TIMEOUT_MINUTES = 40;
  */
 export const LAND_CI_WAIT_MS = (LAND_CI_JOB_TIMEOUT_MINUTES + 5) * MINUTE;
 /**
- * How often the land reads the check by default: two GitHub API reads a
- * minute, well inside the rate limit, and each read renews the Lease of the
- * Land Turn long before its silence limit (SILENCE_LIMIT_MS.childOutput).
+ * How often the land reads the check by default: two reads a minute, each
+ * of two or three GitHub API calls (the check runs, the workflow runs, and
+ * the job of a finished check), well inside the rate limit. Each read renews
+ * the Lease of the Land Turn long before its silence limit
+ * (SILENCE_LIMIT_MS.childOutput).
  */
 const LAND_CI_POLL_MS = 30_000;
 
