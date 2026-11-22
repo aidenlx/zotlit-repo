@@ -123,10 +123,6 @@ export default defineConfig({
       services: SERVICES,
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
-    {
-      files: ["src/desktop/template/migration.ts"],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
     ...testBaselineOverrides("packages/notes"),
   ],
 });

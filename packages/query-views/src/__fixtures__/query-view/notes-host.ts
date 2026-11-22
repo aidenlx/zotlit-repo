@@ -140,6 +140,7 @@ export async function makeNotesHost(deps: NotesHostDeps) {
     app: deps.app,
     registry,
     bridge: runtime,
+    vault: runtime.runSync(Vault),
     metadata: {
       cache: (path) => Effect.sync(() => deps.app.metadataCache.getCache(path)),
       firstLinkpathDest: (path, sourcePath) =>

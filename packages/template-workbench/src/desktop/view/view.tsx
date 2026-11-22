@@ -508,12 +508,15 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       const origin = this.registry.get(this.model.origin);
       if (!origin) return { outcome: "no-target" } as const;
       const name = origin.file.basename;
-      const available = () =>
-        this.registry.get(this.model.origin) === origin &&
-        this.file === origin.template &&
-        this.app.vault.getFileByPath(origin.file.path) === origin.file;
-      if (!available()) return { outcome: "unavailable", name } as const;
       const vault = yield* Vault;
+      const available = Effect.gen({ self: this }, function* () {
+        return (
+          this.registry.get(this.model.origin) === origin &&
+          this.file === origin.template &&
+          (yield* vault.getFileByPath(origin.file.path)) === origin.file
+        );
+      });
+      if (!(yield* available)) return { outcome: "unavailable", name } as const;
       const saved = Effect.gen({ self: this }, function* () {
         const file = this.file;
         return (
@@ -542,13 +545,14 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       const settled = yield* (yield* Template).waitUntilSettled(10_000);
       if (settled !== "settled") return { outcome: "not-ready", name } as const;
       if (!(yield* saved)) return { outcome: "save-failed", name } as const;
-      const refusal = () =>
-        !available()
-          ? ({ outcome: "unavailable", name } as const)
-          : this.#sourceRevision !== revision
-            ? ({ outcome: "not-ready", name } as const)
-            : null;
-      const before = refusal();
+      const refusal = Effect.gen({ self: this }, function* () {
+        if (!(yield* available))
+          return { outcome: "unavailable", name } as const;
+        return this.#sourceRevision !== revision
+          ? ({ outcome: "not-ready", name } as const)
+          : null;
+      });
+      const before = yield* refusal;
       if (before) return before;
       return yield* (yield* NoteFeature)
         .updateNote(origin.file, {
@@ -556,7 +560,8 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
           scope: "full",
           profile: origin.profile,
           beforeWrite: () => {
-            if (refusal()) throw new Error("The originating note moved on");
+            if (this.#runner.runSync(refusal))
+              throw new Error("The originating note moved on");
           },
         })
         .pipe(
@@ -569,17 +574,18 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
                   result,
                 },
           ),
-          Effect.catch((error) => {
-            const refused = refusal();
-            return refused
-              ? Effect.succeed(refused)
-              : Effect.fail(
-                  new OriginatingNoteUpdateError({
-                    note: name,
-                    cause: plainNoteError(error),
-                  }),
-                );
-          }),
+          Effect.catch((error) =>
+            Effect.flatMap(refusal, (refused) =>
+              refused
+                ? Effect.succeed(refused)
+                : Effect.fail(
+                    new OriginatingNoteUpdateError({
+                      note: name,
+                      cause: plainNoteError(error),
+                    }),
+                  ),
+            ),
+          ),
         );
     }).pipe(withLogCategory("template-workbench"));
   }
@@ -820,14 +826,19 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
           if (next !== previous) this.#invalidate();
         }),
       );
-    this.registerEvent(
-      previewRender.app.vault.on("modify", (file) => {
-        if (
-          file.path ===
-          this.registry.get(this.workbench.scheduler.state).result?.sourcePath
-        )
-          this.#invalidate();
-      }),
+    stops.push(
+      this.#runner.subscribe(
+        Stream.unwrap(Effect.map(Vault, (vault) => vault.changes)),
+        (event) => {
+          if (
+            event._tag === "modify" &&
+            event.file.path ===
+              this.registry.get(this.workbench.scheduler.state).result
+                ?.sourcePath
+          )
+            this.#invalidate();
+        },
+      ),
     );
     return () => {
       for (const stop of stops.reverse()) stop();

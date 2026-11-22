@@ -16,6 +16,7 @@ import type { TemplateFailure } from "@zotlit/notes/obsidian/template/service.ts
 import { processLiveFrontMatter } from "@zotlit/obsidian-kit/live-text.ts";
 import type { LiveTextApp } from "@zotlit/obsidian-kit/live-text.ts";
 import type { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { OpenLinkFailed } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type {
@@ -136,6 +137,7 @@ export interface LiteratureNotesDeps {
   app: App & LiveTextApp;
   creation: InteractiveCreationPorts;
   bridge: Pick<EffectBridge, "runSync">;
+  vault: Pick<Vault["Service"], "getFileByPath">;
   metadata: Pick<MetadataCache["Service"], "cache" | "firstLinkpathDest">;
 }
 
@@ -147,7 +149,7 @@ interface VaultMemo {
 const freshMemo = (): VaultMemo => ({});
 
 export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
-  const { registry, bridge, metadata } = deps;
+  const { registry, bridge, vault, metadata } = deps;
   const memoAtom = Atom.map(noteIndexSnapshotAtom, () => freshMemo());
   const revisions = {
     changed: Atom.make(0),
@@ -243,7 +245,9 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
     host?.itemKey === itemKey ? host.path : firstNote(itemKey)?.path;
   const fileOf = (itemKey: string, host: VaultHost | null) => {
     const path = pathOf(itemKey, host);
-    return path === undefined ? null : deps.app.vault.getFileByPath(path);
+    return path === undefined
+      ? Effect.succeed(null)
+      : vault.getFileByPath(path);
   };
   const createNote = Effect.fn("QueryView.createNote")(function* (
     itemKey: string,
@@ -289,7 +293,7 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
       return { note: true, value: frontmatterOf(path)[name] ?? null };
     },
     managed: (itemKey, name, host) => {
-      const file = fileOf(itemKey, host);
+      const file = bridge.runSync(fileOf(itemKey, host));
       if (file === null) return false;
       const keys = replacedOf(file);
       return (
@@ -302,7 +306,7 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
     write: (edit) =>
       Effect.gen(function* () {
         const { itemKey, name, value, host } = edit;
-        const found = fileOf(itemKey, host);
+        const found = yield* fileOf(itemKey, host);
         const file = found ?? (yield* createNote(itemKey));
         if (file === null) return "cancelled" as const;
         const keys = yield* AtomRegistry.getResult(

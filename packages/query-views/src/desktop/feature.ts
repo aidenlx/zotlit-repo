@@ -83,6 +83,7 @@ function queryViewDeps(
       app,
       creation,
       bridge: ctx.bridge,
+      vault: read(Vault),
       metadata: read(MetadataCache),
     }),
     opener: read(TargetOpener),

@@ -1,6 +1,6 @@
 import { Context, Effect, Layer, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
-import type { App, TFile } from "obsidian";
+import type { App, TAbstractFile, TFile } from "obsidian";
 import { onTestFinished } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
@@ -361,6 +361,18 @@ export function makeWorkbenchHost<Unread = never>(
     Context.add(
       Vault,
       stubService<Vault["Service"]>("Vault", {
+        changes: deps.previewRender
+          ? Stream.unwrap(
+              Effect.gen(function* () {
+                const events = yield* obsidianEvents<{ modify: [TAbstractFile] }>();
+                yield* events.on("modify", deps.previewRender!.app.vault, "modify");
+                return Stream.map(events.stream, ({ args: [file] }) => ({
+                  _tag: "modify" as const,
+                  file,
+                }));
+              }),
+            )
+          : Stream.empty,
         getFileByPath: (path) =>
           Effect.sync(() => deps.app!.vault.getFileByPath(path)),
         read: (file) =>

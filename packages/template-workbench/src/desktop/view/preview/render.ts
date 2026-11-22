@@ -39,7 +39,7 @@ import {
   syncTemplate,
   profileCall,
 } from "@zotlit/notes/obsidian/template/sync-template.ts";
-import { readLiveText } from "@zotlit/obsidian-kit/live-text.ts";
+import { readLiveText } from "@zotlit/obsidian-kit/effect-live-text.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { DEFAULT_PROFILE } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
@@ -541,12 +541,7 @@ const renderPreviewProfileEffect = Effect.fn(
       ? yield* (yield* Vault).getFileByPath(sourcePath)
       : null;
     const original =
-      request.mode === "update" && file
-        ? yield* Effect.promise((signal) => {
-            void signal;
-            return readLiveText(deps.app, file);
-          })
-        : null;
+      request.mode === "update" && file ? yield* readLiveText(file) : null;
     let frontmatter: Record<string, unknown>;
     let body: string;
     let frontmatterBlock: string;

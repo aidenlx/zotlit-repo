@@ -123,10 +123,6 @@ export default defineConfig({
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
     {
-      files: ["src/desktop/query-view/table-notes.ts"],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
       files: ["src/*/annot-view/*.{ts,tsx}"],
       excludeFiles: ["**/*.test.{ts,tsx}"],
       rules: { "zotlit-design/annotation-view": "error" },

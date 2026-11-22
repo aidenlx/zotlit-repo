@@ -121,14 +121,6 @@ export default defineConfig({
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
     {
-      files: ["src/desktop/view/view.tsx"],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
-      files: ["src/desktop/view/preview/render.ts"],
-      rules: { "zotlit-services/obsidian-capabilities": "off" },
-    },
-    {
       files: ["src/desktop/view/preview/markdown.tsx"],
       rules: { "zotlit-css/no-obsidian-class": "off" },
     },
