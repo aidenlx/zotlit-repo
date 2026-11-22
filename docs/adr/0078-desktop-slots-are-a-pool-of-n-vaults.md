@@ -1,8 +1,10 @@
 ---
-status: superseded in part by ADR-0115
+status: superseded by ADR-0115
 ---
 
 # Desktop Slots are a pool of N vaults
+
+[ADR 0115](0115-the-end-to-end-run-runs-in-a-container-of-its-own.md) replaces the pool with one Exclusive Hold for host tools. This record describes the former pool.
 
 Supersedes the "one slot" part of ADR 0077. The rest of 0077 still stands: the Desktop Queue, the Memory Gate, Leases and the Admission Deadline.
 

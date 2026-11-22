@@ -159,10 +159,6 @@ export function recordRequested(name?: string): boolean {
   return !name || !only || only.split(",").includes(name);
 }
 
-export function exclusiveHoldRequested(): boolean {
-  return captureRequested() || recordRequested();
-}
-
 export interface DocsWalkOptions {
   slug: string;
   collection: string;

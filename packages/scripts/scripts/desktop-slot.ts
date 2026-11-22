@@ -17,8 +17,6 @@ import {
   acquireDesktopSlotOrExit,
   ADMISSION_DEADLINE_MS,
   DESKTOP_SLOT_ENV,
-  DESKTOP_SLOTS_ENV,
-  DEFAULT_DESKTOP_SLOTS,
   DESKTOP_WAIT_ENV,
   describeHolder,
   describeLeaseEnd,
@@ -40,7 +38,7 @@ import {
 
 const EXIT_USAGE = 2;
 
-const epilogue = `The one desktop Obsidian app has a pool of Desktop Slots, ${DEFAULT_DESKTOP_SLOTS} by default, shared by every clone and session on this machine (ADR 0077, ADR 0078). Each holder drives its own vault. A holder joins the Desktop Queue (first in, first out, no overtaking) and claims a slot at its head, once a slot is free and no holder from its own worktree (git toplevel) has one. An Exclusive Hold (run --exclusive; measure:query) claims every slot, once all are free, for work that needs the whole app, such as a screen capture. The holder then passes the Memory Gate, and its Lease starts.
+const epilogue = `Host tools share one Desktop Slot across all clones, worktrees, and sessions. A holder joins the Desktop Queue in first-in, first-out order and takes an Exclusive Hold when the slot is free. The holder then passes the Memory Gate, and its Lease starts. The End-to-end Run uses its own container and takes no Desktop Slot.
 
 Paint Check: before it joins the queue, a holder asks macOS whether the desktop can paint a window (an awake display and an unlocked session). An automated host run (host Vitest, measure:startup, measure:query, a docs walk) does not start without one and exits ${EXIT_ADMISSION_BLOCKED}; a manual hold (run, pnpm fixture open|dev) starts with a warning. While a hold lasts, caffeinate -d -i keeps the display and the system awake.
 
@@ -53,13 +51,12 @@ Exit codes:
 
 Admission Deadline: ${formatDuration(ADMISSION_DEADLINE_MS)} by default, for the queue, a slot, and the Memory Gate together.
 Lease of an automated holder: each sign of progress (a test case or hook of host Vitest, a measurement step, output of a Land Turn's gate) moves its end to now plus a silence limit: host Vitest and measure:startup ${formatDuration(SILENCE_LIMIT_MS.e2e)}; a docs walk ${formatDuration(SILENCE_LIMIT_MS.docsWalk)}; measure:query ${formatDuration(SILENCE_LIMIT_MS.measureQuery)}; a Land Turn and the End-to-end Run after a land ${formatDuration(SILENCE_LIMIT_MS.childOutput)}. A healthy run is never ended; a silent one ends with exit ${EXIT_LEASE_ENDED} and says how long it was silent and what its last progress was. No automated holder keeps a slot more than ${formatDuration(MAX_LEASE_MS)} after admission.
-Lease of a manual hold (run, pnpm fixture open|dev): no end while no run waits. When the head waiter cannot get a slot because manual holds have them, the manual hold that has held longest gets ${formatDuration(NOTICE_MS)} of notice: it prints who waits and when it ends, then ends its command's process group with exit ${EXIT_LEASE_ENDED}. If no run waits at the end of the notice, the hold goes on. An automated holder never yields.
-A holder that outlives its Lease end by ${formatDuration(EVICTION_GRACE_MS)} is evicted by the head waiter: SIGTERM to its process group, SIGKILL after ${formatDuration(KILL_AFTER_MS)}. An Exclusive Hold's Lease, notice, and eviction cover all its slots.
+Lease of a manual hold (run, pnpm fixture open|dev): no end while no run waits. When the head waiter cannot get the Desktop Slot because a manual holder has it, that holder gets ${formatDuration(NOTICE_MS)} of notice: it prints who waits and when it ends, then ends its command's process group with exit ${EXIT_LEASE_ENDED}. If no run waits at the end of the notice, the hold goes on. An automated holder never yields.
+A holder that outlives its Lease end by ${formatDuration(EVICTION_GRACE_MS)} is evicted by the head waiter: SIGTERM to its process group, SIGKILL after ${formatDuration(KILL_AFTER_MS)}.
 Durations: 300ms, 90s, 20m, 2h.
 
 Environment:
   ${DESKTOP_SLOT_ENV}     the holder's token; a ZotLit tool the command starts reuses the hold, inside its Lease
-  ${DESKTOP_SLOTS_ENV}    the number of Desktop Slots, a positive integer (default ${DEFAULT_DESKTOP_SLOTS})
   ${DESKTOP_WAIT_ENV}     the Admission Deadline of an in-process holder (host Vitest, host measurements, and Run Container memory admission)
   ${DESKTOP_DIR_ENV}      the state directory (now ${desktopStateDir()})
   ${MEMORY_GATE_ENV}=off  skip the Memory Gate
@@ -78,16 +75,12 @@ function duration(text: string): number {
   }
 }
 
-async function run(
-  command: string[],
-  { wait, exclusive }: { wait?: string; exclusive: boolean },
-) {
+async function run(command: string[], wait?: string) {
   if (command.length === 0) usage("name the command after --.");
   let leaseOver = false;
   const slot = await acquireDesktopSlotOrExit({
     command: command.join(" "),
     manual: true,
-    exclusive,
     waitMs: wait === undefined ? undefined : duration(wait),
     signals: false,
     onLeaseEnd: (owner) => {
@@ -161,8 +154,6 @@ function groupAlive(pgid: number): boolean {
 async function status(json: boolean) {
   const now = Temporal.Now.instant().epochMilliseconds;
   const state = await readDesktopSlotStatus();
-  if (state.slotCountError)
-    console.error(`Desktop Slot: ${state.slotCountError}`);
   if (json) {
     console.log(JSON.stringify(state, null, 2));
     return;
@@ -196,7 +187,7 @@ await yargs(hideBin(process.argv))
   .usage("pnpm desktop-slot <command>")
   .command(
     "run",
-    `hold a Desktop Slot around a command, as a manual hold that yields with ${formatDuration(NOTICE_MS)} of notice when a run waits: run [--wait <dur>] [--exclusive] -- <command...>`,
+    `hold a Desktop Slot around a command, as a manual hold that yields with ${formatDuration(NOTICE_MS)} of notice when a run waits: run [--wait <dur>] -- <command...>`,
     (y) =>
       y
         .option("wait", {
@@ -207,19 +198,16 @@ await yargs(hideBin(process.argv))
           type: "boolean",
           default: false,
           describe:
-            "an Exclusive Hold: wait until every slot is free and hold them all, for a walk that needs the whole app, such as a screen capture",
+            "compatibility option; every Desktop Slot hold is exclusive",
         }),
     async (argv) => {
       const command = (argv["--"] as unknown[] | undefined) ?? [];
-      await run(command.map(String), {
-        wait: argv.wait,
-        exclusive: argv.exclusive,
-      });
+      await run(command.map(String), argv.wait);
     },
   )
   .command(
     "status",
-    "show each slot with its holder, worktree, and whether it is an Exclusive Hold; for an automated holder its last progress, silence limit, and Lease end; for a manual hold whether it is on notice; then the Desktop Queue and the Memory Gate's last start",
+    "show the Desktop Slot with its holder and worktree; for an automated holder its last progress, silence limit, and Lease end; for a manual hold whether it is on notice; then the Desktop Queue and the Memory Gate's last start",
     (y) =>
       y.option("json", {
         type: "boolean",

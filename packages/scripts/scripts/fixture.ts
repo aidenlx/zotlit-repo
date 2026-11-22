@@ -105,7 +105,7 @@ function pairedRunBuilder(y: Argv) {
     .option("local-api", localApiOption)
     .option("grant-local-api-writes", grantLocalApiWritesOption)
     .epilogue(
-      `The Paired Run holds a Desktop Slot as a manual hold, with no duration, until this process exits. When a run waits for the slot, the hold gets ${formatDuration(NOTICE_MS)} of notice on stderr and then stops the Paired Run with exit ${EXIT_LEASE_ENDED}; see pnpm desktop-slot --help.`,
+      `The Paired Run takes the Desktop Slot as a manual Exclusive Hold, with no duration, until this process exits. When a run waits for the slot, the hold gets ${formatDuration(NOTICE_MS)} of notice on stderr and then stops the Paired Run with exit ${EXIT_LEASE_ENDED}; see pnpm desktop-slot --help.`,
     );
 }
 

@@ -375,7 +375,6 @@ using _desktopSlot = await acquireDesktopSlotOrExit({
   cwd: workspaceRoot,
   command: "measure:query",
   silenceMs: SILENCE_LIMIT_MS.measureQuery,
-  exclusive: true,
 });
 
 let vaultId = "";

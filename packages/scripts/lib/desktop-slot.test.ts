@@ -5,6 +5,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  rename,
   rm,
   stat,
   utimes,
@@ -25,7 +26,6 @@ import {
   acquireDesktopSlot,
   ADMISSION_DEADLINE_MS,
   DESKTOP_SLOT_ENV,
-  DESKTOP_SLOTS_ENV,
   DesktopSlotBlockedError,
   EVICTION_GRACE_MS,
   EXIT_ADMISSION_BLOCKED,
@@ -42,7 +42,6 @@ const MINUTE = 60_000;
 const ENV_KEYS = [
   DESKTOP_DIR_ENV,
   DESKTOP_SLOT_ENV,
-  DESKTOP_SLOTS_ENV,
   MEMORY_GATE_ENV,
   MEMORY_GATE_ADMITTED_ENV,
   DESKTOP_PAINT_ENV,
@@ -89,7 +88,6 @@ beforeEach(async () => {
   process.env[DESKTOP_DIR_ENV] = dir;
   process.env[MEMORY_GATE_ENV] = "off";
   process.env[DESKTOP_PAINT_ENV] = "off";
-  process.env[DESKTOP_SLOTS_ENV] = "1";
   delete process.env[DESKTOP_SLOT_ENV];
   delete process.env[MEMORY_GATE_ADMITTED_ENV];
 });
@@ -199,15 +197,12 @@ function holderIn(
   worktree: string,
   {
     detached = false,
-    slots,
     ...options
   }: {
     command?: string;
-    exclusive?: boolean;
     silenceMs?: number;
     manual?: boolean;
     detached?: boolean;
-    slots?: number;
   } = {},
 ): ChildProcess {
   return child(
@@ -216,7 +211,6 @@ console.log("held");
 setInterval(() => {}, 1000);`,
     {
       [DESKTOP_SLOT_ENV]: "",
-      ...(slots === undefined ? {} : { [DESKTOP_SLOTS_ENV]: String(slots) }),
     },
     detached,
   );
@@ -224,7 +218,6 @@ setInterval(() => {}, 1000);`,
 
 async function blocked(options: {
   worktree: string;
-  exclusive?: boolean;
   now?: () => number;
 }): Promise<DesktopSlotBlockedError> {
   const error = await acquireDesktopSlot({
@@ -242,10 +235,7 @@ async function blocked(options: {
 function waiter(
   name: string,
   trace: string,
-  {
-    pollMs = 10,
-    ...options
-  }: { pollMs?: number; worktree?: string; exclusive?: boolean } = {},
+  { pollMs = 10, ...options }: { pollMs?: number; worktree?: string } = {},
 ): ChildProcess {
   return child(
     `const { appendFileSync } = await import("node:fs");
@@ -416,142 +406,42 @@ desktopOnly("the Desktop Queue", () => {
   });
 });
 
-desktopOnly("a pool of two Desktop Slots", () => {
-  beforeEach(() => {
-    process.env[DESKTOP_SLOTS_ENV] = "2";
-  });
-
-  it("admits holders from two worktrees at once, and a third once one releases", async () => {
-    const first = holderIn("/a");
-    await printed(first, "held");
-    const second = holderIn("/b");
-    await printed(second, "held");
-    expect(await holderPids()).toEqual([first.pid, second.pid]);
-
-    const trace = join(dir, "trace");
-    await writeFile(trace, "");
-    const third = waiter("third", trace, { worktree: "/c" });
-    await printed(third, /position 1 of/);
-    first.kill("SIGTERM");
-    expect((await once(third, "exit"))[0]).toBe(0);
-    expect(await readFile(trace, "utf8")).toBe("third\n");
-  });
-
-  it("makes a holder wait while another from its worktree holds a slot", async () => {
-    const same = holderIn("/a");
-    await printed(same, "held");
-    const error = await blocked({ worktree: "/a" });
-    expect(error.message).toContain(`pid ${same.pid} (holder)`);
-    expect(await holderPids()).toEqual([same.pid]);
-  });
-
-  it("lets no later waiter take a free slot past an Exclusive Hold at the head", async () => {
-    const holder = holderIn("/a");
-    await printed(holder, "held");
-    const trace = join(dir, "trace");
-    await writeFile(trace, "");
-    const exclusive = waiter("exclusive", trace, {
-      worktree: "/x",
-      exclusive: true,
-    });
-    await printed(exclusive, /position 1 of/);
-
-    const error = await blocked({ worktree: "/b" });
-    expect(error.message).toContain(`pid ${exclusive.pid} (exclusive)`);
-    expect(await holderPids()).toEqual([holder.pid]);
-
-    holder.kill("SIGTERM");
-    expect((await once(exclusive, "exit"))[0]).toBe(0);
-    expect(await readFile(trace, "utf8")).toBe("exclusive\n");
-  });
-
-  it("admits an Exclusive Hold once every slot is free, and it then keeps out single holders", async () => {
-    const holder = holderIn("/a");
-    await printed(holder, "held");
-    const exclusive = holderIn("/x", {
-      command: "exclusive",
-      exclusive: true,
-    });
-    await printed(exclusive, /position 1 of/);
-    expect(await holderPids()).toEqual([holder.pid]);
-
-    holder.kill("SIGTERM");
-    await printed(exclusive, "held");
-    const status = await readDesktopSlotStatus();
-    expect(status.holders).toMatchObject([
-      { pid: exclusive.pid, exclusive: true, slots: [0, 1] },
-    ]);
-    expect(status.slots.map((each) => each.holder?.pid)).toEqual([
-      exclusive.pid,
-      exclusive.pid,
-    ]);
-
-    const error = await blocked({ worktree: "/b" });
-    expect(error.message).toContain(`pid ${exclusive.pid} (exclusive)`);
-  });
-
-  it("evicts the overdue holder and leaves the other holder alone", async () => {
-    const overdue = holderIn("/a", { command: "overdue", detached: true });
-    const evicted = once(overdue, "exit");
-    await printed(overdue, "held");
-    const current = holderIn("/b", {
-      silenceMs: 2 * 60 * MINUTE,
-      detached: true,
-    });
-    await printed(current, "held");
-    const messages: string[] = [];
-    using slot = await acquireDesktopSlot({
-      ...IN_TEST,
-      worktree: "/c",
-      now: () => Temporal.Now.instant().add({ minutes: 33 }).epochMilliseconds,
-      log: (message) => messages.push(message),
-    });
-    expect((await evicted)[1]).toBe("SIGTERM");
-    expect(messages.join("\n")).toContain(`evicting pid ${overdue.pid}`);
-    expect(isAlive(current.pid!)).toBe(true);
-    const ascending = (a: number, b: number) => a - b;
-    expect((await holderPids()).toSorted(ascending)).toEqual(
-      [current.pid!, slot.owner.pid].toSorted(ascending),
-    );
-  });
-
-  it("keeps a holder that sees more slots out of an Exclusive Hold", async () => {
-    const exclusive = holderIn("/x", {
-      command: "exclusive",
-      exclusive: true,
-    });
-    await printed(exclusive, "held");
-    process.env[DESKTOP_SLOTS_ENV] = "3";
-    const error = await blocked({ worktree: "/b" });
-    expect(error.message).toContain(`pid ${exclusive.pid} (exclusive)`);
-    expect(await holderPids()).toEqual([exclusive.pid]);
-  });
-
-  it("makes an Exclusive Hold wait for a slot beyond the slots it sees", async () => {
-    const holders: ChildProcess[] = [];
-    for (const worktree of ["/a", "/b", "/c"]) {
-      const each = holderIn(worktree, { slots: 3 });
-      await printed(each, "held");
-      holders.push(each);
-    }
-    const [first, second, third] = holders;
-    first!.kill("SIGTERM");
-    second!.kill("SIGTERM");
-    await Promise.all([once(first!, "exit"), once(second!, "exit")]);
-    expect(
-      (await readDesktopSlotStatus()).slots.map((each) => each.holder?.pid),
-    ).toEqual([undefined, undefined, third!.pid]);
-
-    const error = await blocked({ worktree: "/x", exclusive: true });
-    expect(error.message).toContain(`pid ${third!.pid} (holder)`);
-  });
-});
-
 desktopOnly("one Desktop Slot", () => {
-  it("makes a holder from another worktree wait", async () => {
+  it("serializes worktrees and writes an exclusive hold for older clients", async () => {
     const holder = holderIn("/a");
     await printed(holder, "held");
-    await blocked({ worktree: "/b" });
+    const trace = join(dir, "trace");
+    const second = waiter("second", trace, { worktree: "/b" });
+    await printed(second, /position 1 of/);
+    expect((await readDesktopSlotStatus()).holders).toMatchObject([
+      { pid: holder.pid, exclusive: true, slots: [0] },
+    ]);
+    const exited = once(second, "exit");
+    holder.kill("SIGTERM");
+    expect((await exited)[0]).toBe(0);
+    expect(await readFile(trace, "utf8")).toBe("second\n");
+  });
+
+  it("waits for a legacy holder beyond slot zero and refuses to reuse a legacy non-exclusive hold", async () => {
+    const holder = holderIn("/old");
+    await printed(holder, "held");
+    const old = JSON.parse(await readFile(OWNER(), "utf8")) as {
+      token: string;
+      exclusive?: boolean;
+      slots: number[];
+    };
+    delete old.exclusive;
+    old.slots = [2];
+    const path = join(dir, "slot-2");
+    await rename(join(dir, "slot-0"), path);
+    await writeFile(join(path, "owner.json"), JSON.stringify(old));
+    const error = await blocked({ worktree: "/new" });
+    expect(error.message).toContain(`pid ${holder.pid} (holder)`);
+
+    process.env[DESKTOP_SLOT_ENV] = old.token;
+    await expect(acquireDesktopSlot(IN_TEST)).rejects.toThrow(
+      "old Desktop Slot pool",
+    );
     expect(await holderPids()).toEqual([holder.pid]);
   });
 });
@@ -881,85 +771,24 @@ setInterval(() => {}, 1000);`,
     );
   });
 
-  describe("with a pool of two slots", () => {
-    beforeEach(() => {
-      process.env[DESKTOP_SLOTS_ENV] = "2";
+  it("gives its holder notice and admits the waiting run after the hold ends", async () => {
+    const holder = holderIn("/a", { command: "manual", manual: true });
+    await printed(holder, "held");
+    const said = collect(holder);
+    const exited = once(holder, "exit");
+    const messages: string[] = [];
+    using slot = await acquireDesktopSlot({
+      ...IN_TEST,
+      worktree: "/b",
+      now: behindByNotice(500),
+      log: (message) => messages.push(message),
     });
-
-    it("gives the longest-held one notice, which ends it, so a waiter with the default deadline is admitted", async () => {
-      const older = holderIn("/a", { command: "older", manual: true });
-      await printed(older, "held");
-      const said = collect(older);
-      const olderExited = once(older, "exit");
-      const newer = holderIn("/b", { command: "newer", manual: true });
-      await printed(newer, "held");
-      const messages: string[] = [];
-      using slot = await acquireDesktopSlot({
-        ...IN_TEST,
-        worktree: "/c",
-        now: behindByNotice(500),
-        log: (message) => messages.push(message),
-      });
-      expect(slot.owner.pid).toBe(process.pid);
-      expect(messages.join("\n")).toContain(
-        `gave the manual hold of pid ${older.pid} (older) 5 min of notice`,
-      );
-      expect((await olderExited)[0]).toBe(EXIT_LEASE_ENDED);
-      expect(said()).toMatch(
-        new RegExp(
-          `pid ${process.pid} \\(.*\\) in /c waits for a slot\\. This manual hold ends at`,
-        ),
-      );
-      expect(said()).toContain("the notice for");
-      expect(isAlive(newer.pid!)).toBe(true);
-    });
-
-    it("ends an Exclusive Hold on notice, for all its slots", async () => {
-      const exclusive = holderIn("/x", {
-        command: "exclusive",
-        exclusive: true,
-        manual: true,
-      });
-      await printed(exclusive, "held");
-      const exited = once(exclusive, "exit");
-      const waiting = acquireDesktopSlot({
-        ...IN_TEST,
-        worktree: "/c",
-        now: behindByNotice(1000),
-      });
-      await printed(exclusive, /waits for a slot/);
-      const notices = await Promise.all(
-        [0, 1].map(async (index) => {
-          const owner = JSON.parse(
-            await readFile(join(dir, `slot-${index}`, "owner.json"), "utf8"),
-          ) as { notice?: { endsAt: string } };
-          return owner.notice?.endsAt;
-        }),
-      );
-      expect(notices[0]).toBeDefined();
-      expect(notices[1]).toBe(notices[0]);
-      using slot = await waiting;
-      expect(slot.owner.pid).toBe(process.pid);
-      expect((await exited)[0]).toBe(EXIT_LEASE_ENDED);
-    });
-
-    it("renews an automated Exclusive Hold on all its slots", async () => {
-      using slot = await acquireDesktopSlot({ ...IN_TEST, exclusive: true });
-      slot.progress("a timed query");
-      const owners = await Promise.all(
-        [0, 1].map(
-          async (index) =>
-            JSON.parse(
-              await readFile(join(dir, `slot-${index}`, "owner.json"), "utf8"),
-            ) as { progress?: { what: string }; leaseEndsAt?: string },
-        ),
-      );
-      expect(owners.map((owner) => owner.progress?.what)).toEqual([
-        "a timed query",
-        "a timed query",
-      ]);
-      expect(owners[1]?.leaseEndsAt).toBe(owners[0]?.leaseEndsAt);
-    });
+    expect(slot.owner.pid).toBe(process.pid);
+    expect(messages.join("\n")).toContain(
+      `gave the manual hold of pid ${holder.pid} (manual) 5 min of notice`,
+    );
+    expect((await exited)[0]).toBe(EXIT_LEASE_ENDED);
+    expect(said()).toContain("waits for a slot. This manual hold ends at");
   });
 
   it("goes on when no run waits at the end of its notice", async () => {
@@ -1083,35 +912,20 @@ process.exit(7);`,
     await once(holder, "exit");
   });
 
-  it("lists the slots on disk and names the error when the slot count is malformed", async () => {
+  it("lists the desktop hold on disk", async () => {
     using _slot = await acquireDesktopSlot(IN_TEST);
-    process.env[DESKTOP_SLOTS_ENV] = "zero";
-    const { code, stdout, stderr } = await cli("status");
+    const { code, stdout } = await cli("status");
     expect(code).toBe(0);
     expect(stdout).toMatch(
       new RegExp(
         `Slot 1: pid ${process.pid} .*automated, last progress .* \\(admitted\\), silence limit 30 min, Lease ends`,
       ),
     );
-    expect(stderr).toContain(`${DESKTOP_SLOTS_ENV}=zero`);
   });
 
-  it("takes every slot with --exclusive, so it waits while one slot is held", async () => {
-    process.env[DESKTOP_SLOTS_ENV] = "2";
-    const holder = holderIn("/a");
-    await printed(holder, "held");
-    const single = await cli("run", "--wait", "300ms", "--", "true");
-    expect(single.code).toBe(0);
-    const exclusive = await cli(
-      "run",
-      "--exclusive",
-      "--wait",
-      "300ms",
-      "--",
-      "true",
-    );
-    expect(exclusive.code).toBe(EXIT_ADMISSION_BLOCKED);
-    expect(exclusive.stderr).toContain(`pid ${holder.pid} (holder)`);
+  it("accepts --exclusive as an alias for a normal hold", async () => {
+    const { code } = await cli("run", "--exclusive", "--", "true");
+    expect(code).toBe(0);
   });
 
   it("ends the command's whole process group at the end of a notice, exits 76, and admits the waiter", async () => {

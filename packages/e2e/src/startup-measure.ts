@@ -187,7 +187,6 @@ using _desktopSlot = await acquireDesktopSlotOrExit({
   cwd: workspaceRoot,
   command: "measure:startup",
   silenceMs: SILENCE_LIMIT_MS.e2e,
-  exclusive: true,
 });
 refuseWhenBusy();
 

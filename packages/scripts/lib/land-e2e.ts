@@ -111,7 +111,6 @@ export function landE2eDir(): string {
 function landE2eAdmission(dir: string): Admission {
   return {
     dir: () => join(dir, "queue"),
-    slots: () => 1,
     tokenEnv: "ZOTLIT_LAND_E2E_TURN",
     memoryGate: false,
     display: false,

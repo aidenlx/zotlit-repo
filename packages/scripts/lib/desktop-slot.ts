@@ -48,12 +48,9 @@ export {
 } from "@zotlit/config/memory-gate";
 
 export const DESKTOP_SLOT_ENV = "ZOTLIT_DESKTOP_SLOT";
-export const DESKTOP_SLOTS_ENV = "ZOTLIT_DESKTOP_SLOTS";
-export const DEFAULT_DESKTOP_SLOTS = 2;
 
 export interface Admission {
   dir: () => string;
-  slots: () => number;
   tokenEnv: string;
   memoryGate: boolean;
   display: boolean;
@@ -75,7 +72,6 @@ export const SILENCE_LIMIT_MS = {
 } as const;
 export const DESKTOP_ADMISSION: Admission = {
   dir: desktopStateDir,
-  slots: desktopSlotCount,
   tokenEnv: DESKTOP_SLOT_ENV,
   memoryGate: true,
   display: true,
@@ -95,16 +91,6 @@ const ORPHAN_MS = 10 * SECOND;
 const STALE_TAKEOVER_MS = 30 * SECOND;
 const STALE_QUEUE_LOCK_MS = 10 * SECOND;
 const SIGNALS = ["SIGINT", "SIGTERM", "SIGHUP"] as const;
-
-export function desktopSlotCount(): number {
-  const text = process.env[DESKTOP_SLOTS_ENV];
-  if (!text) return DEFAULT_DESKTOP_SLOTS;
-  const count = Number(text);
-  if (!Number.isInteger(count) || count < 1) {
-    throw new Error(`${DESKTOP_SLOTS_ENV}=${text} is not a positive integer.`);
-  }
-  return count;
-}
 
 export function formatDuration(ms: number): string {
   if (ms >= 2 * HOUR && ms % HOUR === 0) return `${ms / HOUR} h`;
@@ -173,7 +159,6 @@ export type DesktopSlotOptions = HoldKind & {
   cwd?: string;
   command?: string;
   worktree?: string;
-  exclusive?: boolean;
   waitMs?: number;
   pollMs?: number;
   remindMs?: number;
@@ -210,7 +195,6 @@ export async function acquireDesktopSlot(
     : Math.min(options.silenceMs, MAX_LEASE_MS);
   const waitMs = options.waitMs ?? admissionWaitMs();
   const cwd = options.cwd ?? process.cwd();
-  const count = admission.slots();
   const watch: LeaseWatch = {
     dir,
     now,
@@ -223,7 +207,14 @@ export async function acquireDesktopSlot(
   const inherited = process.env[admission.tokenEnv];
   if (inherited) {
     const holder = await findLiveHolder(inherited, { dir, now });
-    if (holder) return reusedSlot(watch, holder);
+    if (holder) {
+      if (admission.display && !holder.exclusive) {
+        throw new DesktopSlotBlockedError(
+          `Desktop Slot: pid ${holder.pid} (${holder.command}) has a hold from the old Desktop Slot pool. End that command and start it again with the current pnpm desktop-slot run.`,
+        );
+      }
+      return reusedSlot(watch, holder);
+    }
   }
 
   if (admission.display) {
@@ -248,7 +239,7 @@ export async function acquireDesktopSlot(
     worktree: options.worktree ?? (await gitToplevel(cwd)),
     enqueuedAt: isoOf(start),
     deadline: isoOf(deadline),
-    ...(options.exclusive ? { exclusive: true } : {}),
+    ...(admission.display ? { exclusive: true } : {}),
   });
   const { seq: _seq, ...record } = ticket;
   const dropTicket = () => rmSync(ticketPath(dir, ticket), { force: true });
@@ -283,7 +274,7 @@ export async function acquireDesktopSlot(
               ? { pgid: self.pgid, pgidStart: self.start }
               : {}),
           },
-          { slots, count },
+          slots.taken,
         );
         if (claimed) {
           owner = claimed;
@@ -331,7 +322,8 @@ export async function acquireDesktopSlot(
         }
         if (cleared) continue;
         let noticed = false;
-        for (const holder of noticeTargets(record, alive)) {
+        for (const holder of alive) {
+          if (!holder.manual || holder.notice) continue;
           const notice: HoldNotice = {
             startedAt: isoOf(now()),
             endsAt: isoOf(now() + NOTICE_MS),
@@ -456,7 +448,6 @@ export interface DesktopSlotStatus {
   holders: HolderStatus[];
   waiters: QueueTicket[];
   lastGateStart?: string;
-  slotCountError?: string;
 }
 
 export async function readDesktopSlotStatus(
@@ -475,14 +466,7 @@ export async function readDesktopSlotStatus(
       overdue: now() > epochOf(owner.leaseEndsAt),
     });
   }
-  let configured = 0;
-  let slotCountError: string | undefined;
-  try {
-    configured = admission.slots();
-  } catch (error) {
-    slotCountError = (error as Error).message;
-  }
-  const count = Math.max(configured, ...[...taken].map((i) => i + 1));
+  const count = Math.max(1, ...[...taken].map((index) => index + 1));
   return {
     slots: Array.from({ length: count }, (_, index) => ({
       index,
@@ -491,7 +475,6 @@ export async function readDesktopSlotStatus(
     holders,
     waiters: await liveTickets(dir, undefined, false),
     lastGateStart: lastGateStart(dir)?.toString(),
-    ...(slotCountError ? { slotCountError } : {}),
   };
 }
 
@@ -511,7 +494,7 @@ export async function evictDesktopSlot(options: {
   );
   if (!owner) {
     throw new Error(
-      `Desktop Slot: ${options.target} names no holder${holders.length > 0 ? ` (${holders.map((holder) => `pid ${holder.pid}, token ${holder.token}`).join("; ")})` : "; every slot is free"}.`,
+      `Desktop Slot: ${options.target} names no holder${holders.length > 0 ? ` (${holders.map((holder) => `pid ${holder.pid}, token ${holder.token}`).join("; ")})` : "; the slot is free"}.`,
     );
   }
   const self = await processInfo(process.pid);
@@ -547,7 +530,7 @@ export async function recordDesktopSlotGroup(
 
 export function describeHolder(owner: SlotOwner, now: number): string {
   const overdue = now > epochOf(owner.leaseEndsAt) ? " (overdue)" : "";
-  const exclusive = owner.exclusive ? ", an Exclusive Hold of every slot" : "";
+  const exclusive = owner.exclusive ? ", an Exclusive Hold" : "";
   const progress = owner.progress
     ? `last progress ${owner.progress.at} (${owner.progress.what})`
     : "no progress yet";
@@ -616,25 +599,6 @@ export function throttledProgress(
   };
 }
 
-function noticeTargets(
-  waiter: Omit<QueueTicket, "seq">,
-  holders: readonly SlotOwner[],
-): SlotOwner[] {
-  const blockers = waiter.exclusive
-    ? holders
-    : holders.filter(
-        (holder) => holder.exclusive || holder.worktree === waiter.worktree,
-      );
-  if (waiter.exclusive || blockers.length > 0) {
-    return blockers.filter((holder) => holder.manual && !holder.notice);
-  }
-  if (holders.some((holder) => holder.notice)) return [];
-  const longest = holders
-    .filter((holder) => holder.manual)
-    .toSorted((a, b) => epochOf(a.admittedAt) - epochOf(b.admittedAt))[0];
-  return longest ? [longest] : [];
-}
-
 function describeHolders(holders: readonly SlotOwner[], now: number): string {
   return holders
     .map((holder) => `  - ${describeHolder(holder, now)}`)
@@ -670,8 +634,7 @@ function waitingMessage({
   deadline: number;
 }): string {
   const place = `position ${position + 1} of ${waiters.length} in the ${admission.queueName}`;
-  const held =
-    heldBy(holders) ?? "every slot is free for the head of the queue.";
+  const held = heldBy(holders) ?? "the slot is free for the head of the queue.";
   return `${admission.slotName}: waiting at ${place}, Admission Deadline ${isoOf(deadline)}; ${held}`;
 }
 
@@ -694,7 +657,7 @@ function blockedMessage({
     heldBy(holders) ??
     (gate
       ? `this run held a slot, but the Memory Gate stayed closed: ${gate}.`
-      : "the slots changed hands as the deadline passed.");
+      : "the slot changed hands as the deadline passed.");
   const named = holders
     .map((holder) => `pid ${holder.pid} (${holder.command})`)
     .join(", ");
@@ -845,39 +808,16 @@ async function liveTickets(
 async function tryClaim(
   dir: string,
   owner: Omit<SlotOwner, "slots">,
-  { slots: { holders, taken }, count }: { slots: SlotState; count: number },
+  taken: ReadonlySet<number>,
 ): Promise<SlotOwner | undefined> {
-  const all = Array.from({ length: count }, (_, index) => index);
-  let wanted: number[];
-  if (owner.exclusive) {
-    if (taken.size > 0) return undefined;
-    wanted = all;
-  } else {
-    if (
-      holders.some(
-        (holder) => holder.exclusive || holder.worktree === owner.worktree,
-      )
-    ) {
-      return undefined;
-    }
-    const free = all.find((index) => !taken.has(index));
-    if (free === undefined) return undefined;
-    wanted = [free];
-  }
-  const slots: number[] = [];
+  if (taken.size > 0) return undefined;
   try {
-    for (const index of wanted) {
-      await mkdir(slotPath(dir, index));
-      slots.push(index);
-    }
+    await mkdir(slotPath(dir, 0));
   } catch (error) {
-    for (const index of slots) {
-      await rm(slotPath(dir, index), { recursive: true, force: true });
-    }
     if ((error as NodeJS.ErrnoException).code === "EEXIST") return undefined;
     throw error;
   }
-  const claimed = { ...owner, slots };
+  const claimed = { ...owner, slots: [0] };
   await writeOwner(dir, claimed);
   return claimed;
 }

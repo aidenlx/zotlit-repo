@@ -21,7 +21,7 @@ import {
   parseLocked,
   readDesktopPaint,
 } from "./desktop-paint.ts";
-import { DESKTOP_SLOT_ENV, DESKTOP_SLOTS_ENV } from "./desktop-slot.ts";
+import { DESKTOP_SLOT_ENV } from "./desktop-slot.ts";
 
 const desktopOnly = describe.skipIf(process.env.GITHUB_ACTIONS === "true");
 
@@ -116,7 +116,6 @@ async function node(
     env: {
       ...process.env,
       [DESKTOP_DIR_ENV]: stateDir,
-      [DESKTOP_SLOTS_ENV]: "1",
       [DESKTOP_SLOT_ENV]: "",
       [MEMORY_GATE_ENV]: "off",
       [MEMORY_GATE_ADMITTED_ENV]: "",

@@ -15,7 +15,6 @@ export function landStateDir(): string {
 export function landAdmission(): Admission {
   return {
     dir: () => join(landStateDir(), "queue"),
-    slots: () => 1,
     tokenEnv: LAND_TURN_ENV,
     memoryGate: false,
     display: false,
