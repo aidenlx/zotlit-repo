@@ -10,19 +10,28 @@ import { getWorkspaceRoot } from "./package-roots.ts";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
 
-/** The tasks with a command that `turbo run <tasks>` schedules. */
-function scheduled(tasks: readonly string[]): Set<string> {
-  const plan = JSON.parse(
+interface Plan {
+  globalCacheInputs: { hashOfInternalDependencies: string };
+  tasks: { taskId: string; command: string }[];
+}
+
+/** The plan of `turbo run <tasks>`. */
+function plan(tasks: readonly string[]): Plan {
+  return JSON.parse(
     execFileSync("pnpm", ["exec", "turbo", "run", ...tasks, "--dry=json"], {
       cwd: root,
       encoding: "utf8",
       // The plan lists the input files of every task.
       maxBuffer: 256 * 1024 * 1024,
     }),
-  ) as { tasks: { taskId: string; command: string }[] };
+  ) as Plan;
+}
+
+/** The tasks with a command that `turbo run <tasks>` schedules. */
+function scheduled(tasks: readonly string[]): Set<string> {
   return new Set(
-    plan.tasks
-      .filter(({ command }) => command !== "<NONEXISTENT>")
+    plan(tasks)
+      .tasks.filter(({ command }) => command !== "<NONEXISTENT>")
       .map(({ taskId }) => taskId),
   );
 }
@@ -48,4 +57,15 @@ describe("turbo.json root task dependencies", () => {
       expect(missing, `add these to the dependsOn of ${task}`).toEqual([]);
     },
   );
+
+  // Turbo puts the source of each workspace package that the root
+  // package.json reaches in the global hash, so an edit to one of them misses
+  // the cache of every task and `--affected` selects every package. A root
+  // file reaches a workspace package by path instead.
+  it("the global hash holds no workspace package source", () => {
+    expect(
+      plan(["test"]).globalCacheInputs.hashOfInternalDependencies,
+      "remove the workspace dependencies of the root package.json",
+    ).toBe("");
+  });
 });
