@@ -31,8 +31,24 @@ vi.mock("node:net", () => ({
   },
 }));
 
-import { obRun, obRunUntil } from "./obsidian-cli.ts";
-import { createRunVaultGuard } from "./run-vault-guard.ts";
+import type * as ObsidianCli from "./obsidian-cli.ts";
+import type * as RunVaultGuard from "./run-vault-guard.ts";
+
+// The guard keeps its stops, and the CLI client its refusal, in module state
+// for the life of a test file. Each case imports both modules fresh, so a
+// stop of one case does not reach the next (policies/test-isolation.md).
+let obRun: typeof ObsidianCli.obRun;
+let obRunUntil: typeof ObsidianCli.obRunUntil;
+let createRunVaultGuard: typeof RunVaultGuard.createRunVaultGuard;
+beforeEach(async () => {
+  vi.resetModules();
+  ({ obRun, obRunUntil } = await import("./obsidian-cli.ts"));
+  ({ createRunVaultGuard } = await import("./run-vault-guard.ts"));
+});
+
+// The cases break and read one file and one vault, so each case needs a guard
+// with no stop left from an earlier case.
+const FILE = "/suite/query-view.e2e.ts";
 
 const live = (): Promise<string> => Promise.resolve('=> {"value":[]}');
 const dead = (): Promise<string> => new Promise<string>(() => {});
@@ -87,7 +103,7 @@ async function settled(hook: Promise<void>): Promise<unknown> {
 
 it("fails the remaining cases of the file at once, naming the first failed case and its inner errors", async () => {
   const guard = createRunVaultGuard(() => "run-vault");
-  const file = "/suite/query-view.e2e.ts";
+  const file = FILE;
   socketBoundary.answer = dead;
   const first = await settled(
     guard.after(
@@ -112,7 +128,7 @@ it("fails the remaining cases of the file at once, naming the first failed case 
 
 it("names the leftovers check when it is the only failure of the case", async () => {
   const guard = createRunVaultGuard(() => "run-vault");
-  const file = "/suite/library-view.e2e.ts";
+  const file = FILE;
   socketBoundary.answer = dead;
   expect(
     String(await settled(guard.after(caseContext(file, "passing case")))),
@@ -125,9 +141,7 @@ it("names the leftovers check when it is the only failure of the case", async ()
 it("still runs the cases of another file", async () => {
   const guard = createRunVaultGuard(() => "run-vault");
   socketBoundary.answer = dead;
-  await settled(
-    guard.after(caseContext("/suite/a.e2e.ts", "breaks", [new Error("x")])),
-  );
+  await settled(guard.after(caseContext(FILE, "breaks", [new Error("x")])));
   socketBoundary.answer = live;
   const other = caseContext("/suite/b.e2e.ts", "runs");
   expect(() => guard.before(other)).not.toThrow();
@@ -138,14 +152,14 @@ it("still runs the cases of another file", async () => {
 
 it("keeps a case's own failure when the vault still answers", async () => {
   const guard = createRunVaultGuard(() => "run-vault");
-  const file = "/suite/annotations.e2e.ts";
+  const file = FILE;
   await guard.after(caseContext(file, "fails", [new Error("assertion")]));
   expect(() => guard.before(caseContext(file, "next case"))).not.toThrow();
 });
 
 it("reports a stalled leftovers check without failing the file when the vault answers again", async () => {
   const guard = createRunVaultGuard(() => "run-vault");
-  const file = "/suite/query-file.e2e.ts";
+  const file = FILE;
   let stalls = 1;
   socketBoundary.answer = () => (stalls-- > 0 ? dead() : live());
   const outcome = await settled(guard.after(caseContext(file, "stalls once")));
@@ -158,8 +172,8 @@ it("reports a stalled leftovers check without failing the file when the vault an
 });
 
 it("asks a vault without a leftovers check only after a failed case", async () => {
-  const guard = createRunVaultGuard(() => "own-vault", { leftovers: false });
-  const file = "/suite/walkthrough.e2e.ts";
+  const guard = createRunVaultGuard(() => "run-vault", { leftovers: false });
+  const file = FILE;
   socketBoundary.answer = dead;
   await guard.after(caseContext(file, "passes"));
   expect(socketBoundary.calls).toBe(0);
