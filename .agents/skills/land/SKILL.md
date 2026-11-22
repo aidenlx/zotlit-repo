@@ -28,7 +28,7 @@ then: move the local main, read the PR state; when GitHub shows it as merged,
 
 ## The record file
 
-The record PR holds the record of the change, so the maintainer reads the change and its evidence on GitHub. Its title and body come from the record file, in the git-ignored scratch folder of the task worktree, so the tree stays clean. `pnpm land --help` names the path of the file, its title line, and its sections; `land` refuses a record that lacks one of them. Each section holds:
+The record PR holds the record of the change, so the maintainer reads the change and its evidence on GitHub. Its title and body come from the record file, in the git-ignored scratch folder of the task worktree, so the tree stays clean. `pnpm land --help` names the path of the file, its title line, and its sections; `land` refuses a record that lacks one of them. Write it with the `pr` skill, which gives the format of each section. Each section holds:
 
 - **Summary:** what the change does for its users.
 - **Testing:** the suites and commands that ran, with their results.
