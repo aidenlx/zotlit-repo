@@ -46,7 +46,7 @@ A land of a branch that has an open record PR, such as a land again after a fail
 
 ## The CI wait
 
-The local gate is `pnpm verify --local`: Format, Generated artifacts, Lint, Typecheck and Snapshot size. The tests of the affected packages and the bundle budget run in CI on the record PR (`.github/workflows/record-pr.yml`, `pnpm verify --pr`). The land holds its Land Turn while CI runs, and prints the state of the check at each read (`queued`, `in progress`, then the result and how long the job waited for a runner). It pushes `main` only when the check passes. `pnpm land --help` names the check and how long the land waits for it.
+The local gate is `pnpm verify --local`: Format, Generated artifacts, Lint, Typecheck and Snapshot size. The tests of the affected packages and the bundle budget run in CI on the record PR (`.github/workflows/record-pr.yml`, `pnpm verify --pr` in parallel shards). The land holds its Land Turn while CI runs, and prints the state of the check at each read (`queued`, `in progress`, then the result and the longest time a shard waited for a runner). It pushes `main` only when the check passes. `pnpm land --help` names the check and how long the land waits for it.
 
 A plain `pnpm verify` runs both halves on your machine. Run it, or the tests of the package you changed, before you land: a CI failure costs a round trip of minutes.
 

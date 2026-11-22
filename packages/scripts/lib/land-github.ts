@@ -1,6 +1,8 @@
 import type { CiCheck, LandGitHub, RecordPullRequest } from "#land";
 import { $ } from "zx";
 
+const RECORD_PR_WORKFLOW_FILE = "record-pr.yml";
+
 export type GhRun = (args: string[], input?: string) => Promise<string>;
 
 const ghCli: GhRun = async (args, input) => {
@@ -92,45 +94,55 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
       return state;
     },
     async readCheck({ commit, name, branch }) {
-      const { check_runs: runs } = JSON.parse(
-        await run([
-          "api",
-          `repos/${repo}/commits/${commit}/check-runs?check_name=${encodeURIComponent(name)}&filter=all&per_page=100`,
-        ]),
-      ) as { check_runs: GitHubCheckRun[] };
-      if (runs.length === 0) return undefined;
       const { workflow_runs: workflows } = JSON.parse(
         await run([
           "api",
-          `repos/${repo}/actions/runs?head_sha=${commit}&event=pull_request&per_page=100`,
+          `repos/${repo}/actions/workflows/${RECORD_PR_WORKFLOW_FILE}/runs?head_sha=${commit}&event=pull_request&per_page=100`,
         ]),
       ) as { workflow_runs: GitHubWorkflowRun[] };
-      const record = new Set(
-        workflows
-          .filter(
-            (workflow) =>
-              workflow.head_branch === branch &&
-              sameRepository(workflow.head_repository?.full_name ?? "", repo),
-          )
-          .map((workflow) => workflow.check_suite_id),
-      );
-      const latest = runs
-        .filter((each) => record.has(each.check_suite.id))
+      const workflow = workflows
+        .filter(
+          (each) =>
+            each.head_branch === branch &&
+            sameRepository(each.head_repository?.full_name ?? "", repo),
+        )
         .toSorted((a, b) => b.id - a.id)[0];
-      if (!latest) return undefined;
-      const check: CiCheck = {
-        id: latest.id,
-        status: latest.status,
-        conclusion: latest.conclusion,
-        url: latest.html_url,
-        ...(latest.started_at ? { startedAt: latest.started_at } : {}),
-        ...(latest.completed_at ? { completedAt: latest.completed_at } : {}),
+      if (!workflow) return undefined;
+      if (workflow.status !== "completed") {
+        return {
+          id: workflow.id,
+          status: workflow.status,
+          conclusion: null,
+          url: workflow.html_url,
+        };
+      }
+      const { jobs } = JSON.parse(
+        await run([
+          "api",
+          `repos/${repo}/actions/runs/${workflow.id}/jobs?per_page=100`,
+        ]),
+      ) as { jobs: GitHubJob[] };
+      const gate = jobs.find((job) => job.name === name);
+      if (!gate) return undefined;
+      const shards = jobs.filter((job) => job !== gate);
+      const longest = shards
+        .filter(({ started_at }) => started_at)
+        .toSorted((a, b) => runnerWait(b) - runnerWait(a))[0];
+      const failed =
+        gate.conclusion === "success"
+          ? undefined
+          : (shards.find(({ conclusion }) => conclusion === "failure") ??
+            shards.find(({ conclusion }) => conclusion !== "success"));
+      return {
+        id: gate.id,
+        status: gate.status,
+        conclusion: gate.conclusion,
+        url: (failed ?? gate).html_url,
+        ...(longest?.started_at
+          ? { queuedAt: longest.created_at, startedAt: longest.started_at }
+          : {}),
+        ...(gate.completed_at ? { completedAt: gate.completed_at } : {}),
       };
-      if (latest.status !== "completed") return check;
-      const job = JSON.parse(
-        await run(["api", `repos/${repo}/actions/jobs/${latest.id}`]),
-      ) as { created_at: string };
-      return { ...check, queuedAt: job.created_at };
     },
   };
 }
@@ -143,18 +155,28 @@ interface GitHubPullRequest extends RecordPullRequest {
   isCrossRepository: boolean;
 }
 
-interface GitHubWorkflowRun {
-  head_branch: string | null;
-  head_repository: { full_name: string } | null;
-  check_suite_id: number;
+function runnerWait({ created_at, started_at }: GitHubJob): number {
+  return started_at
+    ? Temporal.Instant.from(started_at).epochMilliseconds -
+        Temporal.Instant.from(created_at).epochMilliseconds
+    : 0;
 }
 
-interface GitHubCheckRun {
+interface GitHubJob {
   id: number;
+  name: string;
   status: CiCheck["status"];
   conclusion: string | null;
   html_url: string;
+  created_at: string;
   started_at: string | null;
   completed_at: string | null;
-  check_suite: { id: number };
+}
+
+interface GitHubWorkflowRun {
+  id: number;
+  status: CiCheck["status"];
+  html_url: string;
+  head_branch: string | null;
+  head_repository: { full_name: string } | null;
 }

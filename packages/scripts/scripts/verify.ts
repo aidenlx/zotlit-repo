@@ -17,6 +17,12 @@ import { affectedBase } from "#affected-base";
 import { isAgentDocsOnly } from "#agent-docs";
 import { EXIT_LEASE_ENDED } from "#desktop-slot";
 import { GATE_HALF_FLAGS, halfOf } from "#gate-halves";
+import {
+  GATE_SHARD_FLAG,
+  isLastShard,
+  parseGateShard,
+  shardFilters,
+} from "#gate-shards";
 import { getWorkspaceRoot } from "#package-roots";
 
 const release = process.argv.includes("--release");
@@ -25,6 +31,16 @@ const prHalf = process.argv.includes(GATE_HALF_FLAGS.pr);
 if ([release, localHalf, prHalf].filter(Boolean).length > 1) {
   console.error(
     `verify: pass one of --release, ${GATE_HALF_FLAGS.local} and ${GATE_HALF_FLAGS.pr}.`,
+  );
+  process.exit(2);
+}
+const shardArg = process.argv
+  .find((arg) => arg.startsWith(`${GATE_SHARD_FLAG}=`))
+  ?.slice(GATE_SHARD_FLAG.length + 1);
+const shard = shardArg === undefined ? undefined : parseGateShard(shardArg);
+if (shardArg !== undefined && (!shard || !prHalf)) {
+  console.error(
+    `verify: pass ${GATE_SHARD_FLAG}=<index>/<total> with ${GATE_HALF_FLAGS.pr}.`,
   );
   process.exit(2);
 }
@@ -97,6 +113,7 @@ async function localSteps(): Promise<void> {
 }
 
 async function ciSteps(): Promise<void> {
+  const last = !shard || isLastShard(shard);
   await gateStep("Test", async () => {
     const admitted = await Effect.runPromise(passMemoryGateOrExit());
     const electron = ci ? {} : { ZOTLIT_TEST_ELECTRON_PATH: electronPath() };
@@ -107,10 +124,12 @@ async function ciSteps(): Promise<void> {
         ...(admitted ? { [MEMORY_GATE_ADMITTED_ENV]: "1" } : {}),
       },
     });
-    await gated`pnpm exec turbo run test //#test:eval-runtime ${scope} --concurrency=${ci ? 1 : 2}`;
+    await gated`pnpm exec turbo run test ${last ? ["//#test:eval-runtime"] : []} ${scope} ${shard ? shardFilters(shard) : []} --concurrency=${ci ? 1 : 2}`;
   });
 
-  await gateStep("Bundle", () => sh`pnpm check:bundle`);
+  if (last) {
+    await gateStep("Bundle", () => sh`pnpm check:bundle`);
+  }
 }
 
 async function releaseRuns(): Promise<void> {

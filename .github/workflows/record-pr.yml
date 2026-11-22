@@ -12,10 +12,13 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  tests:
-    name: Record PR tests
+  shard:
+    name: Record PR shard ${{ matrix.shard }}
+    strategy:
+      matrix:
+        shard: [1, 2, 3]
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 35
     permissions:
       contents: read
       id-token: write
@@ -51,4 +54,17 @@ jobs:
       - uses: ./.github/actions/setup-workspace
 
       - name: pnpm verify --pr
-        run: pnpm verify --pr
+        run: pnpm verify --pr --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+
+  tests:
+    name: Record PR tests
+    needs: shard
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: Every shard passed
+        env:
+          RESULT: ${{ needs.shard.result }}
+        run: test "$RESULT" = success

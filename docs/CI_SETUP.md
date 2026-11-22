@@ -26,11 +26,11 @@ turbo runs hash apart from the others; run them under `mise exec --`.
 
 ## Turborepo Remote Cache
 
-The `Record PR tests` job of `.github/workflows/record-pr.yml` reads and writes
+The shard jobs of `.github/workflows/record-pr.yml` read and write
 the Vercel Remote Cache of the maintainer's Vercel account, which the
 maintainer's Mac also uses. The team is `remoteCache.teamSlug` in
 `turbo.json` (`aidenlxs-projects`), so every checkout and worktree, and the
-CI job, name the same team. Its `vercel/setup-turborepo-remote-cache-action`
+CI jobs, name the same team. Its `vercel/setup-turborepo-remote-cache-action`
 step exchanges the job's OIDC token for a short-lived Turborepo token. On a
 PR from a fork, or when the exchange fails, the job runs with the local
 `.turbo` cache only.
@@ -56,7 +56,8 @@ CI runs. Build, generate and typecheck results are shared both ways.
 
 The checks of a change run in `pnpm land`: it runs `pnpm verify --local` on
 the rebased result, and `.github/workflows/record-pr.yml` runs
-`pnpm verify --pr` on its record pull request. The land
+`pnpm verify --pr` on its record pull request, in three parallel shards
+([ADR 0102](adr/0102-each-land-opens-a-record-pull-request.md)). The land
 pushes to `main`, the one long-lived branch, only when that check passes, and
 the Lefthook pre-push hook lets only `pnpm land` push `main`
 ([ADR 0076](adr/0076-checks-run-before-push-and-ci-runs-only-to-release.md),

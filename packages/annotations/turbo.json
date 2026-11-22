@@ -17,6 +17,7 @@
       ]
     },
     "test": {
+      "tags": ["ci-shard-1"],
       "dependsOn": [
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs",

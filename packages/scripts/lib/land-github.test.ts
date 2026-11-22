@@ -55,72 +55,129 @@ describe("findOpenPullRequest", () => {
 
 const SHA = "a".repeat(40);
 
-const run = (id: number, suite: number, passed: boolean) => ({
-  id,
-  name: "Record PR tests",
-  status: passed ? "completed" : "in_progress",
-  conclusion: passed ? "success" : null,
-  html_url: `https://github.com/${REPO}/actions/runs/1/job/${id}`,
-  started_at: "2026-11-22T10:00:20Z",
-  completed_at: null,
-  check_suite: { id: suite },
-  app: { slug: "github-actions" },
-});
+const RUNS = `api repos/${REPO}/actions/workflows/record-pr.yml/runs?head_sha=${SHA}`;
 
-const workflow = (suite: number, repo: string) => ({
-  id: suite * 10,
-  name: "Record PR",
-  event: "pull_request",
+const workflow = (
+  id: number,
+  {
+    repo = REPO,
+    status = "completed",
+  }: { repo?: string; status?: string } = {},
+) => ({
+  id,
+  status,
+  html_url: `https://github.com/${REPO}/actions/runs/${id}`,
   head_branch: "feat/a",
-  check_suite_id: suite,
   head_repository: { full_name: repo },
 });
 
+const job = (
+  id: number,
+  name: string,
+  {
+    conclusion,
+    startedAt = "2026-11-22T10:00:05Z",
+  }: { conclusion: string; startedAt?: string },
+) => ({
+  id,
+  name,
+  status: "completed",
+  conclusion,
+  html_url: `https://github.com/${REPO}/actions/runs/1/job/${id}`,
+  created_at: "2026-11-22T10:00:00Z",
+  started_at: startedAt,
+  completed_at: "2026-11-22T10:04:00Z",
+});
+
+async function readCheck(replies: Record<string, unknown>) {
+  return ghLandGitHub(REPO, fakeGh(replies)).readCheck({
+    commit: SHA,
+    name: "Record PR tests",
+    branch: "feat/a",
+  });
+}
+
 describe("readCheck", () => {
-  it("reads only the check of the record PR's branch in this repository", async () => {
-    const github = ghLandGitHub(
-      REPO,
-      fakeGh({
-        [`api repos/${REPO}/commits/${SHA}/check-runs`]: {
-          check_runs: [run(30, 3, true), run(20, 2, true), run(10, 1, false)],
-        },
-        [`api repos/${REPO}/actions/runs`]: {
+  it("reads only the run of the record PR's branch in this repository", async () => {
+    expect(
+      await readCheck({
+        [RUNS]: {
           workflow_runs: [
-            workflow(3, "mallory/zotlit-repo"),
-            workflow(1, REPO),
+            workflow(30, { repo: "mallory/zotlit-repo" }),
+            workflow(10, { status: "in_progress" }),
           ],
         },
-      }),
-    );
-
-    expect(
-      await github.readCheck({
-        commit: SHA,
-        name: "Record PR tests",
-        branch: "feat/a",
       }),
     ).toMatchObject({ id: 10, status: "in_progress" });
   });
 
-  it("shows no check when only a fork's PR posted one", async () => {
-    const github = ghLandGitHub(
-      REPO,
-      fakeGh({
-        [`api repos/${REPO}/commits/${SHA}/check-runs`]: {
-          check_runs: [run(30, 3, true)],
-        },
-        [`api repos/${REPO}/actions/runs`]: {
-          workflow_runs: [workflow(3, "mallory/zotlit-repo")],
-        },
-      }),
-    );
-
+  it("shows no check when only a fork's PR ran one", async () => {
     expect(
-      await github.readCheck({
-        commit: SHA,
-        name: "Record PR tests",
-        branch: "feat/a",
+      await readCheck({
+        [RUNS]: {
+          workflow_runs: [workflow(30, { repo: "mallory/zotlit-repo" })],
+        },
       }),
     ).toBeUndefined();
+  });
+
+  it("waits for a rerun, whose earlier attempt failed", async () => {
+    expect(
+      await readCheck({
+        [RUNS]: { workflow_runs: [workflow(10, { status: "queued" })] },
+        [`api repos/${REPO}/actions/runs/10/jobs`]: {
+          jobs: [job(4, "Record PR tests", { conclusion: "failure" })],
+        },
+      }),
+    ).toEqual({
+      id: 10,
+      status: "queued",
+      conclusion: null,
+      url: `https://github.com/${REPO}/actions/runs/10`,
+    });
+  });
+
+  it("names the failed shard, not the one that its failure cancelled, and the longest wait for a runner", async () => {
+    expect(
+      await readCheck({
+        [RUNS]: { workflow_runs: [workflow(10)] },
+        [`api repos/${REPO}/actions/runs/10/jobs`]: {
+          jobs: [
+            job(1, "Record PR shard 1", { conclusion: "cancelled" }),
+            job(2, "Record PR shard 2", {
+              conclusion: "failure",
+              startedAt: "2026-11-22T10:00:40Z",
+            }),
+            job(3, "Record PR shard 3", { conclusion: "success" }),
+            job(4, "Record PR tests", { conclusion: "failure" }),
+          ],
+        },
+      }),
+    ).toEqual({
+      id: 4,
+      status: "completed",
+      conclusion: "failure",
+      url: `https://github.com/${REPO}/actions/runs/1/job/2`,
+      queuedAt: "2026-11-22T10:00:00Z",
+      startedAt: "2026-11-22T10:00:40Z",
+      completedAt: "2026-11-22T10:04:00Z",
+    });
+  });
+
+  it("names the gate's own log when it passed", async () => {
+    expect(
+      await readCheck({
+        [RUNS]: { workflow_runs: [workflow(10)] },
+        [`api repos/${REPO}/actions/runs/10/jobs`]: {
+          jobs: [
+            job(1, "Record PR shard 1", { conclusion: "success" }),
+            job(4, "Record PR tests", { conclusion: "success" }),
+          ],
+        },
+      }),
+    ).toMatchObject({
+      conclusion: "success",
+      url: `https://github.com/${REPO}/actions/runs/1/job/4`,
+    });
   });
 });

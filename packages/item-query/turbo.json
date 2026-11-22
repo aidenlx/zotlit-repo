@@ -9,6 +9,7 @@
       "outputLogs": "errors-only"
     },
     "test": {
+      "tags": ["ci-shard-2"],
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/packages/scripts/lib/fixture/pristine-zotero.sqlite.gz"
