@@ -3550,7 +3550,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     const own = await itemAnnotations("SAKIMA22");
     expect(own.length).toBeGreaterThan(1);
     const liveView = await open(notePath, "live");
-    const live = await shownWhen(liveView, (shown) => shown.count !== null);
+    const live = await shownWhen(liveView, (shown) => Boolean(shown.count));
     expect(live).toMatchObject({
       file: notePath,
       count: String(own.length),
@@ -4931,7 +4931,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         { selector, value },
       );
 
-    await tabWhen((tab) => tab.count !== null);
+    await tabWhen((tab) => Boolean(tab.count));
     const report = JSON.parse(
       await cliCommand(run.vaultId, "zotlit:query", {
         args: { from: "annotations", fields: "colorName", limit: "100" },
@@ -5016,7 +5016,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       },
       { path },
     );
-    const reopened = await tabWhen((tab) => tab.count !== null);
+    const reopened = await tabWhen((tab) => Boolean(tab.count));
     expect(reopened.headings).toEqual(after.headings);
     expect(reopened.count).toBe(after.count);
   }, 180000);
