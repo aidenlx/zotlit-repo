@@ -35,7 +35,12 @@ afterEach(async () => {
   await repos.dispose();
 });
 
-const quiet = { say: () => {}, pollMs: 20 } satisfies Partial<LandOptions>;
+const quiet = {
+  say: () => {},
+  pollMs: 20,
+  mergedWaitMs: 100,
+  mergedPollMs: 10,
+} satisfies Partial<LandOptions>;
 
 /** A clone on branch `branch` with one commit of its own. */
 async function taskClone(name: string, branch = `feat/${name}`) {
@@ -524,6 +529,27 @@ describe("the record PR", () => {
       expect(existsSync(marker)).toBe(false);
       expect(pulls).toEqual([]);
       expect(await git(repos.remote, "branch", "--list")).toBe("* main");
+    },
+    SLOW,
+  );
+
+  it(
+    "deletes the branch when GitHub shows the PR as merged only on a later read",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const { github } = fakeGitHub({ merges: false });
+      // GitHub marks the PR as merged a moment after the push of main.
+      const reads = ["OPEN", "MERGED"] as const;
+      let read = 0;
+      github.pullRequestState = async () =>
+        reads[Math.min(read++, reads.length - 1)]!;
+
+      const result = await land({ ...quiet, cwd, gate: ["true"], github });
+
+      expect(result).toMatchObject({ ok: true, record: { merged: true } });
+      expect(read).toBe(2);
+      expect(await git(repos.remote, "branch", "--list", "feat/a")).toBe("");
     },
     SLOW,
   );

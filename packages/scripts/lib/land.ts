@@ -130,6 +130,13 @@ export const LAND_CI_WAIT_MS = (LAND_CI_JOB_TIMEOUT_MINUTES + 5) * MINUTE;
  * (SILENCE_LIMIT_MS.childOutput).
  */
 const LAND_CI_POLL_MS = 30_000;
+/**
+ * How long the land reads the record PR's state after the push of `main`.
+ * GitHub marks the PR as merged a few seconds after the push, so one read
+ * right after it can still see the PR open.
+ */
+const LAND_MERGED_WAIT_MS = 30_000;
+const LAND_MERGED_POLL_MS = 2_000;
 
 /** A run of a CI job, as GitHub shows it as a check of a commit. */
 export interface CiCheck {
@@ -220,6 +227,13 @@ export interface LandOptions {
   ciWaitMs?: number;
   /** How often the land reads the CI check. @default 30 s */
   ciPollMs?: number;
+  /**
+   * How long the land reads the record PR's state after the push of `main`.
+   * @default LAND_MERGED_WAIT_MS
+   */
+  mergedWaitMs?: number;
+  /** How often it reads the state in that time. @default LAND_MERGED_POLL_MS */
+  mergedPollMs?: number;
   /** Progress lines for the caller; the full output goes to the log. */
   say?: (line: string) => void;
 }
@@ -497,9 +511,11 @@ export async function land(options: LandOptions): Promise<LandResult> {
     // Main has moved: from here, a GitHub error is a report, not a failure.
     const merged =
       pull && options.github
-        ? await readMerged(options.github, pull, (line) =>
-            log.write(`${line}\n`),
-          )
+        ? await readMerged(options.github, pull, {
+            waitMs: options.mergedWaitMs ?? LAND_MERGED_WAIT_MS,
+            pollMs: options.mergedPollMs ?? LAND_MERGED_POLL_MS,
+            log: (line) => log.write(`${line}\n`),
+          })
         : true;
     if (merged) {
       await deleteRemoteBranch(sh, say, { remote, branch: pre.branch });
@@ -824,22 +840,32 @@ function seconds(ms: number): string {
 }
 
 /**
- * Whether GitHub shows `pull` as merged, read once after the push of `main`.
- * A read that fails counts as not merged.
+ * Whether GitHub shows `pull` as merged after the push of `main`. GitHub marks
+ * the PR a few seconds after the push, so the land reads the state every
+ * `pollMs` until it is merged, the PR is closed, or `waitMs` passes. A read
+ * that fails counts as not merged.
  */
 async function readMerged(
   github: LandGitHub,
   pull: RecordPullRequest,
-  log: (line: string) => void,
+  options: { waitMs: number; pollMs: number; log: (line: string) => void },
 ): Promise<boolean> {
-  const state = await github
-    .pullRequestState(pull.number)
-    .catch((error: unknown) => {
-      log(`Reading ${pull.url} failed: ${(error as Error).message}`);
-      return undefined;
-    });
-  log(`${pull.url}: ${state ?? "unknown"}`);
-  return state === "MERGED";
+  const now = () => Temporal.Now.instant().epochMilliseconds;
+  const deadline = now() + options.waitMs;
+  for (;;) {
+    const state = await github
+      .pullRequestState(pull.number)
+      .catch((error: unknown) => {
+        options.log(`Reading ${pull.url} failed: ${(error as Error).message}`);
+        return undefined;
+      });
+    options.log(`${pull.url}: ${state ?? "unknown"}`);
+    if (state === "MERGED") return true;
+    if (state === "CLOSED") return false;
+    const left = deadline - now();
+    if (left <= 0) return false;
+    await delay(Math.min(options.pollMs, left));
+  }
 }
 
 /** Fetch the trunk; returns its tip. */
