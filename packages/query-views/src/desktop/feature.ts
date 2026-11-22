@@ -16,6 +16,7 @@ import { ZotlitPdfReader } from "@zotlit/annotations/obsidian/pdf-reader/service
 import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
 import { interactiveCreation } from "@zotlit/notes/desktop/profile/dialogs.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
@@ -77,7 +78,13 @@ function queryViewDeps(
     app,
     cardFocus: new QueryCardFocus(app),
     nearScreen: whenNear,
-    literatureNotes: literatureNotes({ registry, app, creation }),
+    literatureNotes: literatureNotes({
+      registry,
+      app,
+      creation,
+      bridge: ctx.bridge,
+      metadata: read(MetadataCache),
+    }),
     opener: read(TargetOpener),
   };
 }

@@ -354,6 +354,8 @@ export function makeWorkbenchHost<Unread = never>(
       MetadataCache,
       stubService<MetadataCache["Service"]>("MetadataCache", {
         changes: options.metadata ?? Stream.empty,
+        fileCache: (file) =>
+          Effect.sync(() => deps.app!.metadataCache.getFileCache(file)),
       }),
     ),
     Context.add(

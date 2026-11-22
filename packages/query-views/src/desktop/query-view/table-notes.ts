@@ -15,12 +15,14 @@ import { templateRevisionAtom } from "@zotlit/notes/obsidian/template/atoms.ts";
 import type { TemplateFailure } from "@zotlit/notes/obsidian/template/service.ts";
 import { processLiveFrontMatter } from "@zotlit/obsidian-kit/live-text.ts";
 import type { LiveTextApp } from "@zotlit/obsidian-kit/live-text.ts";
+import type { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { OpenLinkFailed } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type {
   ViewRegistryHandle,
   ViewServices,
 } from "@zotlit/obsidian-kit/view-atoms.ts";
+import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { noteIndexSnapshotAtom } from "@zotlit/plugin-services/obsidian/note-index/atoms.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
@@ -133,6 +135,8 @@ export interface LiteratureNotesDeps {
   registry: ViewRegistryHandle;
   app: App & LiveTextApp;
   creation: InteractiveCreationPorts;
+  bridge: Pick<EffectBridge, "runSync">;
+  metadata: Pick<MetadataCache["Service"], "cache" | "firstLinkpathDest">;
 }
 
 interface VaultMemo {
@@ -143,7 +147,7 @@ interface VaultMemo {
 const freshMemo = (): VaultMemo => ({});
 
 export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
-  const { registry } = deps;
+  const { registry, bridge, metadata } = deps;
   const memoAtom = Atom.map(noteIndexSnapshotAtom, () => freshMemo());
   const revisions = {
     changed: Atom.make(0),
@@ -227,7 +231,7 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
     return inferred;
   };
   const frontmatterOf = (path: string): Readonly<Record<string, unknown>> =>
-    deps.app.metadataCache.getCache(path)?.frontmatter ?? {};
+    bridge.runSync(metadata.cache(path))?.frontmatter ?? {};
   const firstNote = (itemKey: string) =>
     registry
       .get(noteIndexSnapshotAtom)
@@ -317,9 +321,11 @@ export function literatureNotes(deps: LiteratureNotesDeps): LiteratureNotes {
     suggestions: (name, type) =>
       type === "tags" ? vaultTags(deps.app) : propertyValues(deps.app, name),
     resolves: ({ target, itemKey, host }) =>
-      deps.app.metadataCache.getFirstLinkpathDest(
-        parseLinktext(target).path,
-        pathOf(itemKey, host) ?? "",
+      bridge.runSync(
+        metadata.firstLinkpathDest(
+          parseLinktext(target).path,
+          pathOf(itemKey, host) ?? "",
+        ),
       ) !== null,
     openLink: ({ target, itemKey, host }, event) =>
       Effect.flatMap(Workspace, (workspace) =>

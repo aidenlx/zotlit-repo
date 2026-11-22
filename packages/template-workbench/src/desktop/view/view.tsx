@@ -79,6 +79,7 @@ import { communityUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import { Notifier, withOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import type { NoticeMessage } from "@zotlit/obsidian-kit/notifier.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import {
@@ -433,7 +434,9 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       Effect.gen({ self: this }, function* () {
         const indexedKey =
           file &&
-          itemKeyFromFrontmatter(this.app.metadataCache.getFileCache(file));
+          itemKeyFromFrontmatter(
+            yield* MetadataCache.use((metadata) => metadata.fileCache(file)),
+          );
         const resolved = file ? yield* profileOfFile(file) : null;
         this.registry.set(
           this.model.origin,

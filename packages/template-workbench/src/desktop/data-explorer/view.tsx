@@ -14,6 +14,7 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
+import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type {
@@ -406,12 +407,20 @@ export class TemplateDataExplorerView extends ItemView {
     updateSelectionTitle(this);
     if (this.#closed) return;
     if (!this.#state().item) {
-      const file = this.#runner.runSync(
-        Workspace.use((workspace) => workspace.getActiveFile),
+      const key = this.#runner.runSync(
+        Effect.gen(function* () {
+          const file = yield* Workspace.use(
+            (workspace) => workspace.getActiveFile,
+          );
+          return file
+            ? itemKeyFromFrontmatter(
+                yield* MetadataCache.use((metadata) =>
+                  metadata.fileCache(file),
+                ),
+              )
+            : null;
+        }),
       );
-      const key = file
-        ? itemKeyFromFrontmatter(this.app.metadataCache.getFileCache(file))
-        : null;
       if (key) this.#setTarget({ id: key, title: key }, "note");
     } else this.#update(refresh);
   }

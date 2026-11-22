@@ -139,6 +139,12 @@ export async function makeNotesHost(deps: NotesHostDeps) {
   const notes = literatureNotes({
     app: deps.app,
     registry,
+    bridge: runtime,
+    metadata: {
+      cache: (path) => Effect.sync(() => deps.app.metadataCache.getCache(path)),
+      firstLinkpathDest: (path, sourcePath) =>
+        Effect.sync(() => deps.app.metadataCache.getFirstLinkpathDest(path, sourcePath)),
+    },
     creation: {
       app: deps.app,
       createProfile: () => Effect.undefined,

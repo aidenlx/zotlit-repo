@@ -121,10 +121,7 @@ export default defineConfig({
     }),
     engineNodeOnlyOverride(["src/__fixtures__/**"]),
     {
-      files: [
-        "src/desktop/data-explorer/view.tsx",
-        "src/desktop/view/view.tsx",
-      ],
+      files: ["src/desktop/view/view.tsx"],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
