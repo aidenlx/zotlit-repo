@@ -21,7 +21,7 @@ The End-to-end Run suite — the plugin running in a real desktop Obsidian windo
 
 Use `pnpm e2e --help` for launcher options. The package's Vitest task is the entry point inside the container.
 
-`pnpm verify --release` runs the full End-to-end Run in a container, then measures start-up on the host desktop. The GitHub release workflow relies on the Land Turn for these checks. The nightly workflow runs the desktop project in a Run Container.
+`pnpm verify --release` runs the full End-to-end Run in a container, then measures start-up on the host desktop. The GitHub release workflow relies on the Land Turn for these checks. The nightly workflow runs the desktop and paired projects in one Run Container on a GitHub ARM64 runner.
 
 The ordinary suite checks correctness and saves timing measurements to `console.log` in the run evidence. Citation Scan also saves `citation-scan-renderer.json`. GitHub uploads these reports in `e2e-evidence`. When adding or changing timing assertions, follow the performance budgets rule in the [testing policy](../../policies/testing-strategy.md).
 

@@ -12,7 +12,7 @@ concurrency:
   group: nightly-e2e-main
 
 jobs:
-  desktop:
+  e2e:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 50
@@ -43,7 +43,7 @@ jobs:
           key: run-container-store-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: run-container-store-${{ runner.arch }}-
 
-      - name: Run desktop project
+      - name: Run desktop and paired projects
         id: e2e
         env:
           ZOTLIT_E2E_IMAGE_ARCHIVE: ${{ runner.temp }}/zotlit-e2e-image.tar
@@ -54,7 +54,7 @@ jobs:
           {
             mkdir -p "$RUNNER_TEMP/zotlit-e2e-pnpm" &&
             docker volume create zotlit-e2e-pnpm-arm64 --opt type=none --opt o=bind --opt "device=$RUNNER_TEMP/zotlit-e2e-pnpm" &&
-            timeout --verbose --kill-after=30s 35m pnpm e2e --project=desktop
+            timeout --verbose --kill-after=30s 35m pnpm e2e
           } 2>&1 | tee "$RUNNER_TEMP/nightly-e2e/console.log"
 
       - uses: actions/cache/save@v5
