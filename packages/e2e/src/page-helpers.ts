@@ -97,14 +97,15 @@ export function createPageHelpers(
   }
   const readerHandle = createReader(app, until);
   function stands<T extends HTMLElement>(
-    el: T | null | undefined,
+    target: T | null | undefined | (() => T | null | undefined),
     what: string,
     timeout = 5000,
   ) {
     return until(
       `${what} stands`,
       () => {
-        if (!el) return false;
+        const el = typeof target === "function" ? target() : target;
+        if (!el?.isConnected || !el.checkVisibility()) return false;
         const split = el.closest(".workspace-split") ?? el;
         const r = el.getBoundingClientRect();
         const hit = el.ownerDocument.elementFromPoint(

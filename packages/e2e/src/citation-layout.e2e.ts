@@ -145,26 +145,21 @@ describe.skipIf(!reachable)("Citation layout", () => {
         await app.workspace.revealLeaf(sidebar);
         app.workspace.setActiveLeaf(leaf, { focus: true });
         const content = (sidebar.view as CitedByView).contentEl;
-        const chevron = await page
-          .until(
-            "the source card to offer more context",
-            () => {
-              const group = content
-                .querySelector(`[data-source="${source.path}"]`)
-                ?.closest("li");
-              return group?.querySelector<HTMLElement>(
-                '[data-cited-by-expand="after"]',
-              );
-            },
-            15_000,
-          )
-          .catch((error: unknown) => {
-            throw new Error(
-              `${String(error)}; sidebar: ${content.textContent}`,
-              { cause: error },
-            );
-          });
-        const card = chevron.closest<HTMLElement>("[data-occurrence]")!;
+        const currentCard = () =>
+          content
+            .querySelector(`[data-source="${source.path}"]`)
+            ?.closest("li")
+            ?.querySelector<HTMLElement>("[data-occurrence]");
+        const currentChevron = () =>
+          currentCard()?.querySelector<HTMLElement>(
+            '[data-cited-by-expand="after"]',
+          );
+        const scrollToCard = () => {
+          const card =
+            currentChevron()?.closest<HTMLElement>("[data-occurrence]");
+          card?.scrollIntoView({ block: "center", behavior: "instant" });
+          return card;
+        };
         const input = (
           require("@electron/remote") as typeof import("@electron/remote")
         ).getCurrentWebContents().debugger;
@@ -173,47 +168,66 @@ describe.skipIf(!reachable)("Citation layout", () => {
           cleanup.defer(() => input.detach());
         }
         await page.activateLeafWindow(leaf);
-        card.scrollIntoView({ block: "center", behavior: "instant" });
-        await page.stands(card, "the Cited By card");
         await input.sendCommand("Input.dispatchMouseEvent", {
           type: "mouseMoved",
           x: 1,
           y: 1,
         });
         (leaf.view as MarkdownView).editor.focus();
-        await page.until(
-          "the inactive expand button to be hidden",
-          () => getComputedStyle(chevron).opacity === "0",
+
+        const chevron = await page.until(
+          "the inactive expand button to render with zero opacity",
+          () => {
+            const button = currentChevron();
+            return (
+              button?.checkVisibility() &&
+              getComputedStyle(button).opacity === "0" &&
+              button
+            );
+          },
+          15_000,
         );
         const hidden = getComputedStyle(chevron).opacity;
         chevron.focus();
-        await page.until(
+        const focused = await page.until(
           "the focused expand button to be visible",
-          () => getComputedStyle(chevron).opacity === "1",
+          () => {
+            const button = currentChevron();
+            return (
+              button?.matches(":focus") &&
+              getComputedStyle(button).opacity === "1" &&
+              getComputedStyle(button).opacity
+            );
+          },
         );
-        const focused = getComputedStyle(chevron).opacity;
-        chevron.blur();
+        (leaf.view as MarkdownView).editor.focus();
+
+        const card = await page.stands(scrollToCard, "the Cited By card");
         const box = card.getBoundingClientRect();
         await input.sendCommand("Input.dispatchMouseEvent", {
           type: "mouseMoved",
           x: box.left + box.width / 2,
           y: box.top + box.height / 2,
         });
-        await page.until(
-          "the hovered expand button to be visible",
-          () => getComputedStyle(chevron).opacity === "1",
+        const hovered = await page.until(
+          "the hovered card to show its expand button",
+          () => {
+            const button = currentChevron();
+            return (
+              currentCard()?.matches(":hover") &&
+              button &&
+              getComputedStyle(button).opacity === "1" &&
+              getComputedStyle(button).opacity
+            );
+          },
         );
-        const hovered = getComputedStyle(chevron).opacity;
-        chevron.click();
-        await page.until("the card to show the next paragraph", () =>
-          card.textContent?.includes("More context follows."),
+        const button = await page.stands(currentChevron, "the expand button");
+        button.click();
+        const expanded = await page.until(
+          "the card to show the next paragraph",
+          () => currentCard()?.textContent?.includes("More context follows."),
         );
-        return {
-          hidden,
-          focused,
-          hovered,
-          expanded: card.textContent?.includes("More context follows."),
-        };
+        return { hidden, focused, hovered, expanded };
       },
       { citekey: annotationItem.citationKey },
       { timeoutMs: 60_000 },
