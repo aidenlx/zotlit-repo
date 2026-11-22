@@ -237,6 +237,21 @@ describe("land", () => {
     expect(result).toMatchObject({ ok: false, step: "preflight" });
   });
 
+  it("refuses an agent branch before the gate, since its push to origin is refused", async () => {
+    const cwd = await taskClone("a", "claude/a");
+    const marker = join(repos.root, "gated");
+
+    const result = await land({
+      ...quiet,
+      cwd,
+      gate: ["touch", marker],
+    });
+
+    expect(result).toMatchObject({ ok: false, step: "preflight" });
+    expect(result.ok || result.message).toContain("Rename the branch");
+    expect(existsSync(marker)).toBe(false);
+  });
+
   it("refuses a detached HEAD, which names no branch to rebase", async () => {
     const cwd = await repos.clone("detached");
     await git(cwd, "switch", "-q", "--detach", "origin/main");

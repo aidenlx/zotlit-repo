@@ -40,6 +40,7 @@ import { setTimeout as delay } from "node:timers/promises";
 
 import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
+import { isAgentBranch } from "#ai-attribution";
 import {
   acquireDesktopSlot,
   describeLeaseEnd,
@@ -590,6 +591,15 @@ async function preflight(
     throw new LandFailure(
       "preflight",
       `Land from a task branch, not from ${TRUNK}.`,
+    );
+  }
+  // The land pushes the branch by its name (the record step) and deletes it
+  // after the push, and the pre-push hook refuses every ref in an agent
+  // namespace, also in a Land Turn.
+  if (isAgentBranch(`refs/heads/${branch}`)) {
+    throw new LandFailure(
+      "preflight",
+      `${branch} is an agent branch, which stays local: the push of the record PR would be refused after the gate. Rename the branch (git branch -m <type>/<topic>, such as feat/<topic>), then land again.`,
     );
   }
   await sh.git("preflight", "remote", "get-url", remote);
