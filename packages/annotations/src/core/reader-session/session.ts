@@ -90,7 +90,13 @@ export class ReaderSessionHost implements ReaderSession, Disposable {
     event: K,
     cb: ReaderSessionEvents[K],
   ): () => void {
-    return this.#registry.subscribe(reported[event], cb);
+    const atom = reported[event];
+    let last = this.#registry.get(atom);
+    return this.#registry.subscribe(atom, (value) => {
+      if (Object.is(value, last)) return;
+      last = value;
+      cb(value);
+    });
   }
 
   setTarget(target: ReaderSessionTarget | null): void {

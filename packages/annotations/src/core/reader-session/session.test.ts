@@ -56,9 +56,30 @@ describe("ReaderSessionHost", () => {
     session.setTarget({ ...PAPER });
     session.setTarget(STANDALONE);
     session.setTarget(null);
+    session.setTarget(null);
+    session.setTarget(PAPER);
+    session.setTarget(null);
 
-    expect(seen.targets).toEqual([PAPER, STANDALONE, null]);
+    expect(seen.targets).toEqual([PAPER, STANDALONE, null, PAPER, null]);
     expect(session.target).toBe(null);
+  });
+
+  it("starts a replacement subscription on the next target change", () => {
+    const { session } = host();
+    const targets: (ReaderSessionTarget | null)[] = [];
+    const listener = (target: ReaderSessionTarget | null) => {
+      targets.push(target);
+      if (targets.length !== 1) return;
+      unsubscribe();
+      unsubscribe = session.on("target-changed", listener);
+    };
+    let unsubscribe = session.on("target-changed", listener);
+
+    session.setTarget(PAPER);
+    expect(targets).toEqual([PAPER]);
+    session.setTarget(STANDALONE);
+    expect(targets).toEqual([PAPER, STANDALONE]);
+    unsubscribe();
   });
 
   it("drops the selection when the Attachment changes", () => {
@@ -81,10 +102,17 @@ describe("ReaderSessionHost", () => {
     session.reportSelection(["A2345678", "B2345678"]);
     session.reportSelection(["A2345678", "B2345678"]);
     session.reportSelection(["B2345678", "A2345678"]);
+    session.reportSelection([]);
+    session.reportSelection([]);
+    session.reportSelection(["A2345678"]);
+    session.reportSelection([]);
 
     expect(seen.selections).toEqual([
       ["A2345678", "B2345678"],
       ["B2345678", "A2345678"],
+      [],
+      ["A2345678"],
+      [],
     ]);
   });
 
