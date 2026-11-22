@@ -14,6 +14,7 @@ import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { ViewRegistryProvider } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type {
   ViewRegistryHandle,
@@ -356,7 +357,9 @@ export class TemplateDataExplorerView extends ItemView {
           state.annotationId !== saved.annotationId ||
           state.collapsedSections !== saved.collapsedSections
         )
-          this.app.workspace.requestSaveLayout();
+          this.#runner.runSync(
+            Workspace.use((workspace) => workspace.requestSaveLayout),
+          );
       }),
     );
     const runner = this.#runner;
@@ -403,7 +406,9 @@ export class TemplateDataExplorerView extends ItemView {
     updateSelectionTitle(this);
     if (this.#closed) return;
     if (!this.#state().item) {
-      const file = this.app.workspace.getActiveFile();
+      const file = this.#runner.runSync(
+        Workspace.use((workspace) => workspace.getActiveFile),
+      );
       const key = file
         ? itemKeyFromFrontmatter(this.app.metadataCache.getFileCache(file))
         : null;

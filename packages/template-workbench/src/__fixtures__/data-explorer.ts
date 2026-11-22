@@ -2,6 +2,7 @@ import { Effect, Layer, Queue, Stream } from "effect";
 import type * as AtomRegistry from "effect/reactivity/AtomRegistry";
 
 import type { ContractRoot } from "@zotlit/db";
+import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { makeViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -71,6 +72,7 @@ const fromPromise = <A>(evaluate: (signal: AbortSignal) => Promise<A>) =>
 
 export async function makeExplorerHost(
   reads: ExplorerReads = {},
+  sources: HostSources = {},
 ): Promise<ExplorerHost> {
   const stack = new AsyncDisposableStack();
   const zotero = new Set<() => void>();
@@ -80,7 +82,7 @@ export async function makeExplorerHost(
   const runtime = buildRuntime(
     Layer.mergeAll(
       layerUnreadViewServices,
-      layerHost(),
+      layerHost(sources),
       Layer.mock(ItemLookup, {
         search: () =>
           Effect.suspend(() => reads.recent?.() ?? Effect.succeed([])),

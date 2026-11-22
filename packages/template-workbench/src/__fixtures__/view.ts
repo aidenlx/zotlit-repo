@@ -1,9 +1,11 @@
 import { Context, Effect, Layer, Stream } from "effect";
 import * as Atom from "effect/reactivity/Atom";
-import type { App } from "obsidian";
+import type { App, TFile } from "obsidian";
 import { onTestFinished } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { obsidianEvents } from "@zotlit/obsidian-kit/effect-obsidian-events.ts";
+import { loadedTextFileView } from "@zotlit/obsidian-kit/live-text.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { MetadataEvent } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
@@ -382,6 +384,28 @@ export function makeWorkbenchHost<Unread = never>(
     Context.add(
       Workspace,
       stubService<Workspace["Service"]>("Workspace", {
+        requestSaveLayout: Effect.sync(() => {
+          deps.app!.workspace.requestSaveLayout();
+        }),
+        trigger: (name, ...args) =>
+          Effect.sync(() => deps.app!.workspace.trigger(name, ...args)),
+        revealLeaf: (leaf) =>
+          Effect.tryPromise(() => deps.app!.workspace.revealLeaf(leaf)),
+        setActiveLeaf: (leaf, options) =>
+          Effect.sync(() => deps.app!.workspace.setActiveLeaf(leaf, options)),
+        changes: Stream.unwrap(
+          Effect.gen(function* () {
+            const events = yield* obsidianEvents<{ preview: [TFile, string] }>();
+            yield* events.on("preview", deps.app!.workspace, "quick-preview");
+            return Stream.map(events.stream, ({ args: [file, source] }) => ({
+              _tag: "quick-preview" as const,
+              file,
+              source,
+            }));
+          }),
+        ),
+        loadedTextView: (file, exclude) =>
+          Effect.sync(() => loadedTextFileView(deps.app!, file, exclude)),
         getLeaf: (pane) => Effect.sync(() => deps.app!.workspace.getLeaf(pane)),
       }),
     ),

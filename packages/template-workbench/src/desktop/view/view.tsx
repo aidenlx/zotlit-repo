@@ -76,11 +76,11 @@ import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import { Icon } from "@zotlit/obsidian-kit/components/obsidian/icon.tsx";
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { communityUrl, docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
-import { loadedTextFileView } from "@zotlit/obsidian-kit/live-text.ts";
 import { showMenuAtButton } from "@zotlit/obsidian-kit/menu.ts";
 import { Notifier, withOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import type { NoticeMessage } from "@zotlit/obsidian-kit/notifier.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import {
   ViewRegistryProvider,
   viewRuntime,
@@ -684,28 +684,33 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     );
     this.scope.register(["Mod"], "y", (event) => this.#history(event, true));
     this.#subscribe();
-    this.registerEvent(
-      this.app.workspace.on("quick-preview", (file, source) => {
-        if (
-          this.#closed ||
-          this.#defaultDraft ||
-          this.#bindingDraft ||
-          file !== this.file
-        )
-          return;
-        if (this.#initialRead !== null) {
-          this.#pendingSource = source;
-          return;
-        }
-        if (source === this.#controller.source) return;
-        this.#receivingSource = true;
-        try {
-          this.#controller.applyExternalSource(source);
-          this.dirty = true;
-        } finally {
-          this.#receivingSource = false;
-        }
-      }),
+    this.#cleanup.defer(
+      this.#runner.subscribe(
+        Stream.unwrap(Effect.map(Workspace, (workspace) => workspace.changes)),
+        (event) => {
+          if (event._tag !== "quick-preview") return;
+          const { file, source } = event;
+          if (
+            this.#closed ||
+            this.#defaultDraft ||
+            this.#bindingDraft ||
+            file !== this.file
+          )
+            return;
+          if (this.#initialRead !== null) {
+            this.#pendingSource = source;
+            return;
+          }
+          if (source === this.#controller.source) return;
+          this.#receivingSource = true;
+          try {
+            this.#controller.applyExternalSource(source);
+            this.dirty = true;
+          } finally {
+            this.#receivingSource = false;
+          }
+        },
+      ),
     );
     this.#cleanup.defer(
       watch(deps.registry, this.model.bindingDefaults, () =>
@@ -763,16 +768,22 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
           next.advanced !== previous.advanced ||
           next.item?.id !== previous.item?.id
         )
-          this.app.workspace.requestSaveLayout();
+          this.#runner.runSync(
+            Workspace.use((workspace) => workspace.requestSaveLayout),
+          );
       }),
     );
     stops.push(
       registry.subscribe(this.workbench.choices, () =>
-        this.app.workspace.requestSaveLayout(),
+        this.#runner.runSync(
+          Workspace.use((workspace) => workspace.requestSaveLayout),
+        ),
       ),
       registry.subscribe(this.workbench.panels, () => {
         this.#updateActions();
-        this.app.workspace.requestSaveLayout();
+        this.#runner.runSync(
+          Workspace.use((workspace) => workspace.requestSaveLayout),
+        );
       }),
       registry.subscribe(this.workbench.fieldsAction, () =>
         this.#updateActions(),
@@ -919,7 +930,10 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
   }
   openProblems(reveal = true): void {
     for (const listener of this.#openProblemsListeners) listener();
-    if (reveal) void this.app.workspace.revealLeaf(this.leaf);
+    if (reveal)
+      this.#runner.run(
+        Workspace.use((workspace) => workspace.revealLeaf(this.leaf)),
+      );
   }
   subscribeOpenProblems(listener: () => void): () => void {
     this.#openProblemsListeners.add(listener);
@@ -943,7 +957,9 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     const range = this.#controller.sliceRange(slice);
     for (const listener of this.#revealListeners)
       listener({ slice, ...(range ? { range } : {}) });
-    void this.app.workspace.revealLeaf(this.leaf);
+    this.#runner.run(
+      Workspace.use((workspace) => workspace.revealLeaf(this.leaf)),
+    );
   }
   get controller(): WorkbenchDocumentController {
     return this.#controller;
@@ -1036,7 +1052,11 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
           target.range.from >= region.from && target.range.to <= region.to,
       )?.root ?? this.#defaultRoot,
     );
-    this.app.workspace.setActiveLeaf(this.leaf, { focus: false });
+    this.#runner.runSync(
+      Workspace.use((workspace) =>
+        workspace.setActiveLeaf(this.leaf, { focus: false }),
+      ),
+    );
   }
 
   override getViewType(): string {
@@ -1072,10 +1092,15 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
       this.data = source;
       return;
     }
-    if (clear && this.file && !this.#clearing) {
+    const file = this.file;
+    if (clear && file && !this.#clearing) {
       source =
         this.#pendingSource ??
-        loadedTextFileView(this.app, this.file, this)?.getViewData() ??
+        this.#runner
+          .runSync(
+            Workspace.use((workspace) => workspace.loadedTextView(file, this)),
+          )
+          ?.getViewData() ??
         source;
       this.#pendingSource = null;
     }
@@ -1113,7 +1138,11 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
     this.data = this.#controller.source;
     if (clear && this.file && !this.#clearing) {
       if (this.data !== this.lastSavedData) this.dirty = true;
-      this.app.workspace.trigger("quick-preview", this.file, this.data);
+      this.#runner.runSync(
+        Workspace.use((workspace) =>
+          workspace.trigger("quick-preview", this.file, this.data),
+        ),
+      );
     }
   }
   override loadFileInternal(file: TFile, clear: boolean): Promise<void> {
@@ -2121,9 +2150,10 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
             state: { ...this.getState(), defaultDraft: false, file: file.path },
             active: true,
           });
-          const source =
-            loadedTextFileView(this.app, file, this)?.getViewData() ??
-            this.data;
+          const peer = yield* Workspace.use((workspace) =>
+            workspace.loadedTextView(file, this),
+          );
+          const source = peer?.getViewData() ?? this.data;
           this.#bindingDraft = false;
           this.#defaultDraft = false;
           controller.setReadOnly(false);
@@ -2350,7 +2380,11 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
         this.#sourceRevision++;
         this.data = this.#controller.source;
         if (this.file && !this.#receivingSource)
-          this.app.workspace.trigger("quick-preview", this.file, this.data);
+          this.#runner.runSync(
+            Workspace.use((workspace) =>
+              workspace.trigger("quick-preview", this.file, this.data),
+            ),
+          );
         if (transaction.annotation(externalEdit) !== true) {
           if (!this.#defaultDraft) this.requestSave();
         }

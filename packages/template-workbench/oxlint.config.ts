@@ -132,14 +132,6 @@ export default defineConfig({
       rules: { "zotlit-services/obsidian-capabilities": "off" },
     },
     {
-      files: [
-        "src/obsidian/view/preview/citations.ts",
-        "src/obsidian/view/match-data.ts",
-        "src/desktop/view/view.tsx",
-      ],
-      rules: { "zotlit-services/no-default-runtime": "off" },
-    },
-    {
       files: ["src/desktop/view/preview/markdown.tsx"],
       rules: { "zotlit-css/no-obsidian-class": "off" },
     },

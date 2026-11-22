@@ -4,13 +4,14 @@ import type {
 } from "#__fixtures__/data-explorer.ts";
 import type { WorkbenchItemChoice } from "#obsidian/workbench-ui/index.tsx";
 import { Deferred, Effect } from "effect";
-import type { App, Workspace, WorkspaceLeaf } from "obsidian";
+import type { App, WorkspaceLeaf } from "obsidian";
 import { act } from "preact/test-utils";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { defaults } from "@zotlit/notes/__fixtures__/settings.ts";
 import type { TemplateDataLoadResult } from "@zotlit/notes/desktop/template/data.ts";
 // @vitest-environment happy-dom
+import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import type { ItemView as MockItemView } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { waitFor } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -39,9 +40,11 @@ vi.mock("#obsidian/editor/item-choice.ts", async (importOriginal) => {
 });
 const read = vi.fn<NonNullable<ExplorerReads["read"]>>();
 let explorerHost: ExplorerHost;
+let workspace: MemoryWorkspace;
 beforeEach(async () => {
   read.mockReset();
-  explorerHost = await makeExplorerHost({ read });
+  workspace = new MemoryWorkspace();
+  explorerHost = await makeExplorerHost({ read }, { workspace });
 });
 afterEach(() => explorerHost.close());
 
@@ -55,18 +58,7 @@ class ExplorerView extends TemplateDataExplorerView {
 }
 
 function host() {
-  const requestSaveLayout: Workspace["requestSaveLayout"] = Object.assign(
-    vi.fn(() => requestSaveLayout),
-    {
-      cancel: () => requestSaveLayout,
-      run: () => undefined,
-    },
-  );
   const app = stubService<App>("App", {
-    workspace: stubService<Workspace>("Workspace", {
-      getActiveFile: () => null,
-      requestSaveLayout,
-    }),
     loadLocalStorage: () => null,
   });
   const leaf = () => {
@@ -188,8 +180,7 @@ it("restores independent Explorer navigation after delayed data and keeps search
     field: "details.answer",
   };
   await act(async () => view.setEphemeralState(saved));
-  const saves = vi.mocked(app.workspace.requestSaveLayout);
-  saves.mockClear();
+  const layoutSaves = workspace.layoutSaves;
   await act(async () =>
     release({
       kind: "data",
@@ -204,7 +195,7 @@ it("restores independent Explorer navigation after delayed data and keeps search
   expect(body.scrollTop).toBe(34);
   expect(body.scrollLeft).toBe(2);
   expect(document.activeElement).toBe(typing);
-  expect(saves).not.toHaveBeenCalled();
+  expect(workspace.layoutSaves).toBe(layoutSaves);
   expect(view.getState()).toEqual(descriptor);
   expect(view.getState()).not.toHaveProperty("sourceFile");
   expect(
@@ -224,7 +215,7 @@ it("restores independent Explorer navigation after delayed data and keeps search
       ?.getAttribute("aria-expanded"),
   ).toBe("true");
   expect(view.contentEl.textContent).toContain("42");
-  expect(saves).not.toHaveBeenCalled();
+  expect(workspace.layoutSaves).toBe(layoutSaves);
   const recreated = new ExplorerView(leaf(), viewDeps());
   Object.defineProperty(recreated, "app", { value: app });
   cleanup.defer(() => act(async () => recreated.close()));
