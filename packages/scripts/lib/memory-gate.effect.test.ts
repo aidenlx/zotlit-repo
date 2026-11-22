@@ -79,6 +79,30 @@ it.effect("expires at the Admission Deadline on the Effect clock", () =>
 );
 
 it.effect(
+  "ends its last sleep at the Admission Deadline, not a poll later",
+  () =>
+    Effect.gen(function* () {
+      const logs = yield* Queue.unbounded<string>();
+      const fiber = yield* Effect.forkChild(
+        Effect.exit(
+          passMemoryGate({
+            dir,
+            deadline: 100,
+            pollMs: 2000,
+            log: (message) => {
+              Queue.offerUnsafe(logs, message);
+            },
+          }),
+        ),
+      );
+      yield* Queue.take(logs);
+      yield* TestClock.adjust(100);
+      expect(fiber.pollUnsafe()).toBeDefined();
+      expect(Exit.isFailure(yield* Fiber.join(fiber))).toBe(true);
+    }),
+);
+
+it.effect(
   "starts under pressure, with a warning, when no other admitted run is running",
   () =>
     Effect.gen(function* () {

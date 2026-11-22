@@ -432,7 +432,9 @@ export const passMemoryGate = Effect.fnUntraced(function* (
         const kind = wait.replace(/[\d.]+x physical|\d+ admitted runs?/, "");
         if (kind !== reported) log(`Memory Gate: waiting: ${wait}`);
         reported = kind;
-        yield* Effect.sleep(options.pollMs ?? 100);
+        // The last sleep ends at the deadline, not a poll after it.
+        const left = deadline - (yield* Clock.currentTimeMillis);
+        yield* Effect.sleep(Math.min(options.pollMs ?? 100, Math.max(0, left)));
       }
     }),
     (waiter) =>
