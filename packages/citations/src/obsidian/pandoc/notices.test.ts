@@ -26,7 +26,8 @@ function styleEvents(existing = false) {
         ),
       ),
     },
-    emit: () => event.emit(stateOf(style)),
+    emit: (missingStyle: string | null = style) =>
+      event.emit(stateOf(missingStyle)),
     hasListener: () => event.subscribers > 0,
   };
 }
@@ -93,5 +94,58 @@ describe("watchCitationStyleMissing", () => {
         expect(notifier.notices).toMatchObject([{ hidden: true }]);
         expect(events.hasListener()).toBe(false);
       }),
+  );
+
+  it.effect("hides the superseded notice before the watcher closes", () =>
+    Effect.gen(function* () {
+      const events = styleEvents();
+      const notifier = testNotifier();
+      const showNotice = notifier.service.show("Style missing", {
+        duration: 0,
+      });
+      const watched = yield* Scope.fork(yield* Scope.Scope);
+      yield* watchCitationStyleMissing(events.cache, showNotice).pipe(
+        Scope.provide(watched),
+      );
+
+      events.emit("http://www.zotero.org/styles/missing-a");
+      expect(notifier.notices).toMatchObject([{ hidden: false }]);
+      events.emit("http://www.zotero.org/styles/missing-b");
+      expect
+        .soft(notifier.notices)
+        .toMatchObject([{ hidden: true }, { hidden: false }]);
+
+      yield* Scope.close(watched, Exit.void);
+      expect(notifier.notices).toMatchObject([
+        { hidden: true },
+        { hidden: true },
+      ]);
+    }),
+  );
+
+  it.effect("hides its notice when the missing style is repaired", () =>
+    Effect.gen(function* () {
+      const events = styleEvents();
+      const notifier = testNotifier();
+      const showNotice = notifier.service.show("Style missing", {
+        duration: 0,
+      });
+      const watched = yield* Scope.fork(yield* Scope.Scope);
+      yield* watchCitationStyleMissing(events.cache, showNotice).pipe(
+        Scope.provide(watched),
+      );
+
+      events.emit();
+      expect(notifier.notices).toMatchObject([{ hidden: false }]);
+      events.emit(null);
+      expect(notifier.notices).toMatchObject([{ hidden: true }]);
+      events.emit();
+      expect(notifier.notices).toMatchObject([
+        { hidden: true },
+        { hidden: false },
+      ]);
+
+      yield* Scope.close(watched, Exit.void);
+    }),
   );
 });

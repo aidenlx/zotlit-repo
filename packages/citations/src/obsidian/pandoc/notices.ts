@@ -1,5 +1,5 @@
-import { Effect, Layer } from "effect";
-import type { Scope, Stream } from "effect";
+import { Effect, Layer, Stream } from "effect";
+import type { Scope } from "effect";
 
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
@@ -9,7 +9,7 @@ import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { BibliographyRender, missingStyleChanges } from "./render-cache.ts";
+import { BibliographyRender } from "./render-cache.ts";
 import type { BibliographyRenderState } from "./render-cache.ts";
 
 interface CitationStyleNoticeCopy {
@@ -46,9 +46,14 @@ export function watchCitationStyleMissing<R>(
     yield* Effect.addFinalizer(() =>
       Effect.suspend(() => notice?.hide ?? Effect.void),
     );
-    yield* forkEach(missingStyleChanges(renders.changes), () =>
-      Effect.map(showNotice, (shown) => {
-        notice = shown;
+    const missingStyles = renders.changes.pipe(
+      Stream.map((state) => state.missingStyle),
+      Stream.changes,
+    );
+    yield* forkEach(missingStyles, (missingStyle) =>
+      Effect.gen(function* () {
+        if (notice !== null) yield* notice.hide;
+        notice = missingStyle === null ? null : yield* showNotice;
       }),
     );
   });
