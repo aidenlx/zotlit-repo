@@ -1,5 +1,6 @@
 import { unzipSync } from "fflate";
 import { frontmatter } from "fumadocs-core/content/md/frontmatter";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -80,5 +81,39 @@ describe("agentSkillAssets", () => {
     expect(
       index.skills.map(({ url }) => new URL(url).pathname.split("/").at(-2)),
     ).toEqual([commitSha, commitSha, commitSha, commitSha]);
+  });
+
+  it("publishes identical archives and discovery digests across time zones", () => {
+    const build = (timeZone: string) =>
+      execFileSync(
+        process.execPath,
+        [
+          "--input-type=module",
+          "--eval",
+          `
+            import { createHash } from "node:crypto";
+            import { agentSkillAssets } from "./src/lib/agent-skills.ts";
+
+            const assets = await agentSkillAssets(process.cwd(), "production");
+            const index = JSON.parse(new TextDecoder().decode(assets.get(${JSON.stringify(indexRoute)})));
+            console.log(JSON.stringify(index.skills.map(({ name, url, digest }) => ({
+              name,
+              discoveryDigest: digest,
+              archiveDigest: "sha256:" + createHash("sha256")
+                .update(assets.get(new URL(url).pathname)).digest("hex"),
+            }))));
+          `,
+        ],
+        {
+          cwd: packageRoot,
+          encoding: "utf8",
+          env: { ...process.env, TZ: timeZone },
+        },
+      );
+
+    const utc = JSON.parse(build("UTC"));
+    for (const timeZone of ["Asia/Shanghai", "America/Los_Angeles"]) {
+      expect.soft(JSON.parse(build(timeZone)), timeZone).toEqual(utc);
+    }
   });
 });

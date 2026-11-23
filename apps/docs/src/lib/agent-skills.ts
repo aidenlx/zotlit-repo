@@ -28,7 +28,7 @@ const skillMetadata = v.object({
   description: v.string(),
 });
 
-const ARCHIVE_MTIME = 946_684_800_000;
+const ARCHIVE_LOCAL_MTIME = "2000-01-01T00:00:00";
 
 interface AgentSkillFiles {
   skill: Uint8Array;
@@ -53,7 +53,7 @@ function createArchive({
       "SKILL.md": skill,
       "agents/openai.yaml": openAiMetadata,
     },
-    { level: 9, mtime: ARCHIVE_MTIME },
+    { level: 9, mtime: ARCHIVE_LOCAL_MTIME },
   );
 }
 
