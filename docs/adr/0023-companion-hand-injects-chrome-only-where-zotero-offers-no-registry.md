@@ -68,7 +68,7 @@ Menu registration returns per-surface teardown for development reloads. Format l
 
 ## Literature Note column
 
-The item list holds an in-memory set of Indexed Keys. On successful status fetch, replace the set and repaint the registered column. A focus-triggered fetch has a five-second minimum interval and avoids overlapping background fetches. A manual refresh bypasses the throttle and reports its outcome in a progress window. A late earlier response can currently overwrite a newer manual result. [Note status response order](https://github.com/aidenlx/zotlit-repo/issues/94)
+The item list holds an in-memory set of Indexed Keys. On successful status fetch, replace the set and repaint the registered column. A focus-triggered fetch has a five-second minimum interval and avoids overlapping background fetches. A manual refresh bypasses the throttle and reports its outcome in a progress window. Each successful reply replaces the set in the order the replies arrive, as the 2026-11-23 amendment states. [Note status response order](https://github.com/aidenlx/zotlit-repo/issues/94)
 
 The header uses the Obsidian logo and the column picker uses the formatted label. The row indicator uses the Obsidian purple for the window's color scheme. Resolve the scheme during render so repaint can reflect a theme change. [Obsidian brand colors](https://obsidian.md/brand)
 
@@ -79,3 +79,11 @@ Visibility follows the Checkpoint independently of Live Updates. Hide the contro
 ## Sandbox types
 
 The runtime and its type package expose different surfaces. Local declarations cover the sandbox's profile directory, script loader, focus and window mediator, and per-window Fluent attachment. A null mediator type means any window. The collection context uses an optional plural field so both Zotero versions type-check. The dynamic menu method takes serialized strings because it writes directly to `dataset.l10nArgs`, whereas the static field can take structured arguments. The reader type also exposes the internal selection reducer used by ADR 0106. [Zotero menu manager](https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/pluginAPI/menuManager.js) · [Window mediator interface](https://searchfox.org/mozilla-esr140/source/xpcom/ds/nsIWindowMediator.idl)
+
+## Amendment (2026-11-23): note status replies apply in arrival order
+
+Each successful status reply replaces the key set when it arrives. A background reply that started before a manual refresh and arrives after it can replace the manual result. The receiver reads the keys at answer time, after `whenIndexed`, so the requests that one scan releases get the same keys. A stale replacement needs an index change between the two answers and a reversed completion order over loopback. No normal workflow causes this.
+
+Rejected: a request counter that applies only the newest request. It is small, but it adds an order rule: an older success is lost when the newer refresh fails.
+
+The maintainer closed the issue with no change on 2026-11-23. [Issue 94](https://github.com/aidenlx/zotlit-repo/issues/94)

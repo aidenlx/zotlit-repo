@@ -155,11 +155,11 @@ A worker SQLite statement is synchronous. A search can wait behind the current s
 
 The whole-Library batch selector shares the bounded scan with indexing. It reads spans of 500 ids, sorts each run, and merges at most 500 rows per step to keep newest-first order. Its caller keeps the client borrowed through the scan. The merge runs on the Item Query scheduler so its yields return to the browser's MessageChannel queue.
 
-The search-handler tests distinguish a signature check from a rebuild by counting their statements. A rename that preserves the modification time leaves the signature equal, while a new local user key distinguishes another database even with the same ids and signatures. The equal-signature case reuses the built index with a new hydration connection and keeps the list active between refreshes. The Configure tests can replace the rebind with a no-op to isolate the locale and Segmenter. The Segmenter fixture searches for a substring that jieba emits from a larger word but Intl keeps whole.
+The search-handler tests distinguish a signature check from a rebuild by counting their statements. A rename that preserves both modification times leaves the signature equal, while a new local user key distinguishes another database even with the same ids and signatures. The equal-signature case reuses the built index with a new hydration connection and keeps the list active between refreshes. The Configure tests can replace the rebind with a no-op to isolate the locale and Segmenter. The Segmenter fixture searches for a substring that jieba emits from a larger word but Intl keeps whole.
 
 The Chinese Segmenter pin tracks the installed `jieba-wasm` web build. Fetch its bare WASM file from the versioned npm CDN path and compare its SHA-256 with the installed package bytes. Keep the glue and binary from the same package build. The Vite transform prevents library mode from inlining the default WASM URL because the worker uses `initSync` with the installed Managed Binary. A changed upstream loader path fails the transform so the asset cannot enter the worker silently.
 
-The signature sums a contribution for each indexed Item. Weight child activity by the parent Item ID so moving a child between Items changes the signature even when the Library's total activity is stable. Apply a modulus to bound each activity term. Sum disjoint Item ID ranges to get the Library signature. Use the Library index for the whole-Library reference read and a rowid range for each worker slice, so sparse Libraries do not make each slice scan the Library index. [Same-second search refresh follow-up](https://github.com/aidenlx/zotlit-repo/issues/146)
+The signature sums a contribution for each indexed Item. Weight child activity by the parent Item ID so moving a child between Items changes the signature even when the Library's total activity is stable. Apply a modulus to bound each activity term. Sum disjoint Item ID ranges to get the Library signature. Use the Library index for the whole-Library reference read and a rowid range for each worker slice, so sparse Libraries do not make each slice scan the Library index. The 2026-11-23 amendment states which modification times the contribution reads and the accepted same-second limit. [Same-second search refresh](https://github.com/aidenlx/zotlit-repo/issues/146)
 
 The Chinese Segmenter uses the pinned web build of `jieba-wasm`. The
 renderer compiles it during install to verify the binary, with no instance
@@ -221,3 +221,13 @@ so the same location can be retried. Apply a resolved switch before
 requesting another. Test configuration and source changes together so
 the configuration rebuild can publish first.
 [Segmenter switch](../../packages/item-lookup/src/segmenter-switch.ts)
+
+## Amendment (2026-11-23): the signature reads both modification times
+
+Each Item contribution also sums `clientDateModified` in seconds, from the same `items` row. Zotero saves with `skipDateModifiedUpdate` keep `dateModified` and still write `clientDateModified`: Better BibTeX citation-key fills, sync downloads with an unchanged remote date, and clean-up scripts. A refresh after those edits rebuilds the Item Index. On 100,000 Items, the median signature scan went from 63.0 ms to 66.3 ms, and search during the refresh stayed under the 100 ms budget.
+
+Accepted limit: both columns have second precision. The old search terms stay until the Item's next save or the next session in two cases: two saves of one Item inside one second with a refresh between them, and a save with `skipAll`, which writes neither column. The first case needs a refresh to land inside that second.
+
+Rejected: a signature over the indexed field values. It adds field reads for every Item to each refresh scan.
+
+The maintainer accepted the limit on 2026-11-23. The change is landing from branch `fix/item-search-56-57-146-177`. [Issue 146](https://github.com/aidenlx/zotlit-repo/issues/146)

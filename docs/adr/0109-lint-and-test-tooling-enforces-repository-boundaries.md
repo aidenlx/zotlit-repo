@@ -114,7 +114,7 @@ enum, which the workspace's verbatim module syntax cannot import.
 
 The Diagnosing Bugs and Wizard shell templates match the v1.3.1 upstream skill blobs recorded by `skills-lock.json`. Keep the pinned copies reproducible when auditing local comments. Make changes to a working copy of a template when using it, and take fixes to the pinned template through a source update.
 
-The diagnostic loop pauses for a human action and then prints captured observations as key-value pairs for the agent. Use the action prompt for sign-in and reserve printed captures for observations. The Wizard keeps a reusable helper section above the authoring marker. It avoids clearing piped output, offers previously saved values as defaults, and separates visible from hidden entry. It lets a human configure values during the procedure and reports actions that still need manual work. [Environment update follow-up](https://github.com/aidenlx/zotlit-repo/issues/77) · [GitHub write follow-up](https://github.com/aidenlx/zotlit-repo/issues/78)
+The diagnostic loop pauses for a human action and then prints captured observations as key-value pairs for the agent. Use the action prompt for sign-in and reserve printed captures for observations. The Wizard keeps a reusable helper section above the authoring marker. It avoids clearing piped output, offers previously saved values as defaults, and separates visible from hidden entry. It lets a human configure values during the procedure and reports actions that still need manual work. The 2026-11-23 amendment records two upstream Wizard defects. [Environment update defect](https://github.com/aidenlx/zotlit-repo/issues/77) · [GitHub write message](https://github.com/aidenlx/zotlit-repo/issues/78)
 
 The template engine's Date lint exceptions cover conversions at the LiquidJS date filter and template output boundary. A template can return a JavaScript Date from its data or from user-authored code. Coerce it at the adapter before writing its output.
 
@@ -419,3 +419,11 @@ A basename-style pattern matched host-free imports and an exception
 could let real host modules through. The current pattern anchors
 module names, while the follow-up covers dependency graph enforcement.
 [Issue 121](https://github.com/aidenlx/zotlit-repo/issues/121)
+
+## Amendment (2026-11-23): Wizard defects are fixed upstream
+
+Two Wizard defects occur in the pinned template (v1.3.1) and on upstream main (v1.3.2). `write_env` can replace `.env` with only the new key when it cannot read the file. `set_secret` and `set_var` report "gh not ready" when GitHub refuses the write. The pinned copy stays identical to the blob that `skills-lock.json` records, and the fixes arrive with a source update.
+
+Rejected: a local patch. It makes the lock hash wrong and moves the copy away from its pinned source.
+
+The maintainer decided on 2026-11-23 that these defects belong upstream and closed both issues with no change. [Issue 77](https://github.com/aidenlx/zotlit-repo/issues/77) · [Issue 78](https://github.com/aidenlx/zotlit-repo/issues/78)

@@ -99,7 +99,7 @@ check at commit time. Agent branches stay local in agent sessions.
 
 The rolling Companion release holds a stable manifest and a manifest for both stable and prerelease builds. Each entry names the versioned XPI and hashes the bytes that users download. Preserve the prerelease suffix in the Zotero manifest so its update comparator can order successive prereleases. Build the channel URL from the rolling release and the XPI URL from the version tag.
 
-The release publisher downloads the current manifests and passes them to the generator. The beta-channel file is a candidate for every version and the stable file is a candidate for stable versions only. The generator replaces an entry only if the version exceeds the downloaded version. A missing file can be initialized. Malformed JSON stops the build. The generated release notes name the channels this run wrote. CI attests the XPI and only the channel files rewritten by that run. Concurrent publishers can still re-upload an old copy because their comparisons use a downloaded snapshot. [Channel rollback follow-up](https://github.com/aidenlx/zotlit-repo/issues/96)
+The release publisher downloads the current manifests and passes them to the generator. The beta-channel file is a candidate for every version and the stable file is a candidate for stable versions only. The generator replaces an entry only if the version exceeds the downloaded version. A missing file can be initialized. Malformed JSON stops the build. The generated release notes name the channels this run wrote. CI attests the XPI and only the channel files rewritten by that run. The publisher uploads only the channel files whose bytes changed and checks each channel again before its upload, as the 2026-11-23 amendment states. [Channel rollback fix](https://github.com/aidenlx/zotlit-repo/issues/96)
 
 ### Release preparation and retries
 
@@ -114,3 +114,19 @@ For the Companion, create or recover the versioned XPI before updating the rolli
 One publisher handles CI, local release recovery, dry runs, and tests through injected outward operations. It waits for the registry to serve the immutable bundle version and retries shell lockfile resolution because the registry used for dependency resolution may lag. Build the frozen shell install in a clean folder before moving publish refs. Compare the pack's `main.js` alone because its generated shell copies the container. The source tag points to the build commit and is the last write. Existing source tags need to resolve to their commits before comparison. [Annotated source tag follow-up](https://github.com/aidenlx/zotlit-repo/issues/184)
 
 Refresh the dry run's bare stand-in from the publish repository before each run. That removes changes from earlier dry runs. The stand-in receives the shell branch so the dry run can inspect the resulting tree. Tag writes stay outside the dry run. A dry-run version override saves the original package manifest bytes and restores them after success, failure, SIGINT, or SIGTERM.
+
+## Amendment (2026-11-23): a Companion publish writes only the channels it changed
+
+A Companion publish uploads only the manifests whose bytes differ from the snapshot it downloaded. Before each upload it downloads that channel file again. When the host holds a higher version, the run stops and asks for a new publish. The check is per channel file, so a stable hotfix still writes `update.json` while beta is ahead. A stable hotfix can still publish from the maintainer's machine, outside the hosted `release` concurrency group.
+
+Accepted limits:
+
+- Two publishes can both pass the check before either uploads. The later upload wins. This needs two publishes of one channel file to overlap between the check and the upload.
+- `editHost` refreshes the rolling release notes before the check. A stopped run leaves those notes until the next publish corrects them.
+
+Rejected:
+
+- **Every Companion publish in the hosted `release` group:** a medium change (an off-main ref input, checkout and plan changes, a new hotfix procedure), and a direct CLI publish still goes around it.
+- **A Git ref as a lock:** a high cost. A crash leaves a stale lock, and a writer can go around it.
+
+The maintainer chose "changed-only + version guard" on 2026-11-23. [Issue 96](https://github.com/aidenlx/zotlit-repo/issues/96) · [PR 221](https://github.com/aidenlx/zotlit-repo/pull/221) (`72a51fb92`)

@@ -28,7 +28,7 @@ Three Obsidian plugins (desktop ZotLit, ZotLit Reader, ZotLit Mobile) will be th
 
 ## Contract codecs
 
-The contract checks that decoded row types are mutually assignable with their database types. The codecs pass database-owned JSON shapes through and accept numbers for mapped Zotero integers, so a new upstream value can reach the database layer's unknown-name fallback. Encode Temporal instants as ISO strings because the worker's structured clone cannot carry a Temporal Instant. [Invalid instant follow-up](https://github.com/aidenlx/zotlit-repo/issues/84)
+The contract checks that decoded row types are mutually assignable with their database types. The codecs pass database-owned JSON shapes through and accept numbers for mapped Zotero integers, so a new upstream value can reach the database layer's unknown-name fallback. Encode Temporal instants as ISO strings because the worker's structured clone cannot carry a Temporal Instant. The 2026-11-23 amendment states how a malformed instant fails. [Malformed instant](https://github.com/aidenlx/zotlit-repo/issues/84)
 
 The host supplies full Query Job and answer types through declaration merging. The job envelope keeps ordinary data and encodes the decoded query or values listing through its own codec. Omitted arguments stay absent. A null Library argument uses the current Library Scope. The formula map crosses as a record and becomes a dictionary without a prototype, so names such as `__proto__` remain ordinary formula names. CLI answers are JSON. CSV and TSV apply to file output. The cancellation operation uses the job id, and the Query Context can supply the current item and attachment.
 
@@ -74,3 +74,11 @@ selections and disallowed vault paths. Report redaction as explicit
 unavailable values. A personal Library's public link reveals the
 Zotero account name, so suppress it. Retain a group link derived
 from its public group ID.
+
+## Amendment (2026-11-23): a malformed instant is a defect
+
+The Instant codec gives the wire string to `Temporal.Instant.from` in a synchronous transform. A malformed string fails the decode as a defect, not as a `SchemaError`. Only the ZoteroReads RPC row schemas carry an Instant, and the bundled worker encodes those fields with the same codec. A malformed value therefore means a broken contract between the worker and the renderer.
+
+Rejected: a typed schema issue through `SchemaGetter.transformEffect`. The change is small, but it guards a path that the bundled pair cannot reach.
+
+The maintainer closed the issue with no change on 2026-11-23. [Issue 84](https://github.com/aidenlx/zotlit-repo/issues/84)

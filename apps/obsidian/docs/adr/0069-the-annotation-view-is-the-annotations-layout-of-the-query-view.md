@@ -18,7 +18,7 @@ Proposed on 2026-10-14 with [#1459](https://github.com/aidenlx/zotlit/issues/145
 
 The Annotation Suggester reserves triggers that overlap the Citation Suggester or Obsidian's link suggester. Whitespace and the At Trigger marker are also unavailable. Match the last usable trigger before the cursor and consume the paired closing bracket when the editor inserts one. An empty setting disables the suggester.
 
-Search the readable content of Zotero annotation text and comments. Paired inline formatting contributes its contents, and ordinary angle brackets remain searchable. The known unmatched-tag discrepancy is tracked in [issue 149](https://github.com/aidenlx/zotlit-repo/issues/149).
+Search the readable content of Zotero annotation text and comments. Paired inline formatting contributes its contents, and ordinary angle brackets remain searchable. The amendment "three rules read annotation formatting" states how search treats an unmatched tag. [Issue 149](https://github.com/aidenlx/zotlit-repo/issues/149)
 
 ## Sidebar filters, export, and reveal
 
@@ -127,3 +127,18 @@ context for `this`. Embed it in the Item's Literature Note to check
 the contextual filter.
 
 [Sidebar query cases](../../../../packages/e2e/src/annotations.e2e.ts)
+
+## Amendment: three rules read annotation formatting
+
+Accepted 2026-11-23 with [#149](https://github.com/aidenlx/zotlit-repo/issues/149). Each surface reads Zotero's stored formatting by its own rule:
+
+- **Display.** The resting card converts the comment through Turndown with an HTML DOM, and the Quoted Text goes through `sanitizeHTMLToDom`. An unmatched tag becomes formatting.
+- **Editor and comment copy.** They use Zotero's paired-tag rule ([ADR 0066](0066-the-comment-is-an-editable-field-on-a-card-selected-alone-and-in-the-mark-popup.md)). An unmatched or crossing tag stays literal text.
+- **Search.** The sidebar search and the Annotation Suggester remove each recognized `b`, `i`, `sub` and `sup` tag on its own ([visible text](../../../../packages/query-views/src/core/item-query/visible-text.ts)). A search for a literal unmatched tag, such as `<sub>`, finds nothing.
+
+Accepted limit: the three surfaces disagree on a literal unmatched formatting tag, and a change to search alone cannot make them agree. Literal formatting tags in comments and Quoted Text are rare.
+
+Rejected:
+
+- **The paired-tag rule as a filter expression:** one backreference pass keeps the inner markup of nested formats, and the exact form writes about 845 characters into each saved Query File.
+- **A new Item Query method that uses the parser:** it adds to the query language, and saved Query Files then need a plugin version that knows the method.

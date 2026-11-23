@@ -53,7 +53,7 @@ A text editing session groups saves across surfaces and keeps the original basel
 
 The record of the top text step supplies the session baseline because each settled save can remove and recreate its draft. Join a save to that step when its field, record key and starting text agree with what the top step left. An intervening step of another kind or a changed value from Zotero starts a new step. Grouped records use the Card Selection order. A write that produced a different edit kind does not enter the group step and is logged. Restore suppression uses the Attachment because the new key is unknown before Zotero replies.
 
-Check all group members against their expected values before sending any history write. After preflight, each write still uses the normal repository rules. A refusal after an earlier success can leave a partially applied step. [Issue 174](https://github.com/aidenlx/zotlit-repo/issues/174) tracks recovery. Remove an existence step before sending its writes because a restore rewrites the key in both stacks, which would replace the identity needed to remove the step later. [Step recording](../../../../packages/annotations/src/obsidian/annotation-repository/core/history-record.ts) · [Step execution](../../../../packages/annotations/src/obsidian/annotation-repository/core/history-steps.ts)
+Check all group members against their expected values before sending any history write. After preflight, each write still uses the normal repository rules. A refusal after an earlier success keeps the confirmed part of the step, as the amendment "a grouped step keeps its confirmed part" states. [Issue 174](https://github.com/aidenlx/zotlit-repo/issues/174) Remove an existence step before sending its writes because a restore rewrites the key in both stacks, which would replace the identity needed to remove the step later. [Step recording](../../../../packages/annotations/src/obsidian/annotation-repository/core/history-record.ts) · [Step execution](../../../../packages/annotations/src/obsidian/annotation-repository/core/history-steps.ts)
 
 The Reader Keymap uses Command+Z and Command+Shift+Z on macOS. On Windows and Linux it uses Ctrl+Z, Ctrl+Shift+Z, and Ctrl+Y. Compare all modifiers and let native text controls keep their own history. A held key takes at most one step. Serialize Reader history presses through their landings. Once a step starts, view closure waits for its writes and stack update. Landing and notices can stop after the step settles. [Reader Keymap](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/reader-keymap.ts) · [Reader operations](../../../../packages/annotations/src/obsidian/pdf-annotation-editor/operations.ts)
 
@@ -120,3 +120,11 @@ editor. Observe that no write reaches Zotero. With a card
 focused, the chord instead undoes its Annotation edit.
 
 [Paired grouped and embedded history](../../../../packages/e2e/src/paired-run.e2e.ts)
+
+## Amendment: a grouped step keeps its confirmed part
+
+Accepted 2026-11-23 with [#174](https://github.com/aidenlx/zotlit-repo/issues/174) and [PR 224](https://github.com/aidenlx/zotlit-repo/pull/224) (`51028aaf6`). A grouped undo or redo writes its members in order and stops at the first write that fails, such as a 400, 404, 412 or 429 reply or a lost connection. The members that Zotero acknowledged go onto the opposite stack as one History Step. The failed member and the members after it leave the history. The notice reads "Undid {done} of {total} annotations." or "Redid …", followed by the failure, in the PDF reader and in the Annotation View.
+
+Accepted limit: the researcher cannot retry the members that left the history, and repeats that edit by hand. The count in the notice tells how many members changed.
+
+Rejected: a retry step for the members that did not land. The maintainer chose "drop + count in notice". The failure is rare: it needs a sync version change, a missing record, a rate limit or a lost connection in the middle of a group.

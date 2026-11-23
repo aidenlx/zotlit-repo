@@ -147,3 +147,13 @@ links use a synced Indexed Key, with no source identity. Decimal wire
 values carry a numeric Zotero Item ID. Collection keys use the same
 object-key format as Item keys.
 [Action constants](../../packages/protocol/src/actions.ts)
+
+## Amendment (2026-11-23): a discarded batch PUT answers 409 in protocol version 9
+
+The listener answers a batch PUT that the Source Id gate discards with a bodyless HTTP 409 (`SOURCE_MISMATCH_STATUS` in `@zotlit/protocol`). The Companion then shows a source-mismatch message. A Literature Note status GET and a `/notify` POST with a different Source Id keep the bodyless 204. Request bodies and headers stay the same, so `PROTOCOL_VERSION` stays 9.
+
+Accepted limit: an older Companion reads the 409 as a failed response and shows its generic failure message, with no mismatch reason. In all four pairings of old and new versions, an accepted batch returns 204 and shows the handoff.
+
+Rejected: a `PROTOCOL_VERSION` bump. No request body or header changes, and no pairing loses a result it had before. A bump would also make the version gate answer HTTP 426 to every request from an older Companion.
+
+The change is landing from branch `fix/companion-ops-92-94-95-154`. [Issue 95](https://github.com/aidenlx/zotlit-repo/issues/95)

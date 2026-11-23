@@ -387,7 +387,7 @@ Allow namespaced element prefixes in discovery and preserve the original root sp
 
 Read the Zotero data directory's `styles/` and `styles/hidden/` folders. An absent folder contributes no entries. List dialogs retain readable results if a directory refuses listing, while the strict list reports that failure to its caller. Skip files that cannot be read or that declare no style ID. If resolution misses while a folder or file was unreadable, report the access problem because it could hide the requested style or parent. Validate the dependent document's own XML before using its parent's formatting. Reject a parent that is itself dependent. [Zotero style discovery](https://github.com/zotero/zotero/blob/9.0.3/chrome/content/zotero/xpcom/style.js#L94-L155) · [Installed style resolver](../../packages/citations/src/desktop/pandoc/styles.ts)
 
-Share installed style resolution between in-app rendering and export so dependent styles use the same parent and locale. Hold one successful resolution to avoid scanning every installed file on repeat renders. Recheck the exact contents of the requested and parent files so edits under an unchanged modification time are visible. Keep Default and misses outside the cache. A newly installed visible parent can still leave the old hidden parent cached. [Issue 157](https://github.com/aidenlx/zotlit-repo/issues/157)
+Share installed style resolution between in-app rendering and export so dependent styles use the same parent and locale. Hold one successful resolution to avoid scanning every installed file on repeat renders. Recheck the exact contents of the requested and parent files so edits under an unchanged modification time are visible. Keep Default and misses outside the cache. The cache follows Zotero's style install and update order, as the 2026-11-23 amendment states. [Issue 157](https://github.com/aidenlx/zotlit-repo/issues/157)
 
 Populate a dialog's picker immediately, then add the installed styles when discovery finishes. Retain the current selection, including changes made while discovery was running. Let callers keep unavailable choices visible as disabled entries. The style tests cover same-timestamp edits, read failures before and after discovery, and malformed dependent documents. The citeproc integration fixture prints a marker and an issue month to distinguish style and locale, and uses two authors to verify the locale of the embedded style. Its timeout includes Haskell startup. [Style picker](../../packages/citations/src/desktop/pandoc/style-dropdown.ts) · [Resolver tests](../../packages/citations/src/desktop/pandoc/styles.test.ts) · [citeproc tests](../../packages/citations/src/desktop/pandoc/styles.integration.test.ts)
 
@@ -526,3 +526,13 @@ text, editing, Graph Citations, the engine and settings. The desktop
 Feature adds bibliography rendering, popovers, References, export, and
 Citation Presentation. Preserve view registration order so Cited By
 follows References.
+
+## Amendment (2026-11-23): the style cache follows Zotero's install order
+
+A held style resolution rechecks the exact contents of the files it selected. Zotero's style install, its bundled-style update and its repository update remove the existing file for a style ID before they write the replacement. The held read then fails and the cache refreshes. [Zotero style install](https://github.com/zotero/zotero/blob/4a8a88dd41222dbb955c5d34663623c0c63e4fda/chrome/content/zotero/xpcom/style.js) · [Zotero style updates](https://github.com/zotero/zotero/blob/4a8a88dd41222dbb955c5d34663623c0c63e4fda/chrome/content/zotero/xpcom/schema.js)
+
+Accepted limit: a `.csl` file copied by hand into `styles/`, while the hidden copy with the same ID stays, leaves the hidden parent in use until the plugin reloads.
+
+ZotLit writes no style files, and no other path to this state was found, so the resolver keeps its behavior.
+
+The maintainer closed the issue with no change on 2026-11-23. [Issue 157](https://github.com/aidenlx/zotlit-repo/issues/157)

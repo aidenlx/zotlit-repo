@@ -35,7 +35,7 @@ status: accepted
 ## Desktop helper boundaries
 
 - `packages/obsidian-desktop/src/markdown-link.ts` uses a path-only object on the `TFile` prototype to generate Markdown links to attachments before the vault indexes them. The helper fills in the path, name, base name, and extension. The object is only for link generation. An external target instead uses an absolute file URL with optional alias and subpath overrides.
-- `reflink.ts` uses the Node exclusive clone flags on Linux and invokes `cp -c -n` on macOS because the Node flags do not provide a dependable clone primitive there. On macOS, an existing regular-file target is left intact. The command has different semantics for directory targets. The process gives the helper an exit code and stderr. The helper recognizes the `clonefile failed` text to allow the caller to choose a fallback. Other errors propagate. [Directory-target follow-up](https://github.com/aidenlx/zotlit-repo/issues/55)
+- `reflink.ts` uses the Node exclusive clone flags on Linux and invokes `cp -c -n` on macOS because the Node flags do not provide a dependable clone primitive there. On macOS, an existing regular-file target is left intact. The caller passes a target path that does not exist yet, as the amendment "reflink takes a new target path" states. The process gives the helper an exit code and stderr. The helper recognizes the `clonefile failed` text to allow the caller to choose a fallback. Other errors propagate. [New-path contract](https://github.com/aidenlx/zotlit-repo/issues/55)
 - Each producer owns its rule for identifying residue. `temp-sweep.ts` owns traversal, removal, and logging through Effect's FileSystem, so worker and renderer can use the same sweep. A missing directory is normal before first use. A vanished entry or one without a modification time fails the age check. Read, check, and removal errors produce warnings. An interrupt stops the walk. Import Effect through its package specifier so the worker build can select its logger instead of importing the renderer logger.
 - The sweep tests restore permissions before removing their test directory. The failed-removal case requires effective POSIX mode checks and skips Windows and root. The tests sort records by path because the file system supplies traversal order.
 - `zotero-http-node.ts` uses a dedicated Node HTTP client for desktop loopback. It sends no browser origin or user agent and does not use proxy environment variables. The test verifies its real wire headers and framing. The client keeps connections alive and destroys a request on interruption. A known byte length avoids chunked framing, which Zotero rejects. Tests close open connections during teardown so listener shutdown can finish.
@@ -346,3 +346,29 @@ automatic Chromium Origin or user-agent headers, CORS checks, or
 environment proxy. Interrupting a request destroys it. Keep connections
 alive to preserve the previous transport's Connection behavior.
 [Zotero HTTP](../../packages/obsidian-desktop/src/zotero-http-node.ts)
+
+## Amendment (2026-11-23): reflink takes a new target path
+
+`reflink` and `reflinkMac` take `newTargetPath`. On macOS, `cp -c -n` treats an existing directory target as a container and clones into it. The contract is therefore a target path that does not exist yet. A macOS test checks that a reflink into a new path creates a file with the source bytes at that path. Both callers pass fresh unique paths: ZoteroReads makes a new temporary folder for each snapshot, and Attachment Import writes to a hidden `.<uuid>.zotlit-tmp` path.
+
+Rejected:
+
+- **An atomic guard:** clone into a staging folder beside the target, then `link()` the clone to the target path, which refuses an occupied path with `EEXIST`. It adds one folder create, one hard link and one recursive remove to each macOS database snapshot, and it brings `mkdtempDisposable` (Node 24.4 or later) into production code. No caller can reach the failure.
+- **An `lstat` check before `cp`:** cheaper, but not atomic.
+
+The maintainer chose the documented contract on 2026-11-23. The change is landing from branch `fix/host-errors-55-72-73-74-75`. [Issue 55](https://github.com/aidenlx/zotlit-repo/issues/55)
+
+## Amendment (2026-11-23): host-edge failures go to the plugin log
+
+`runAndForget` logs a failed run with its cause at Error level under the `bridge` category. An interrupt-only cause, such as unload, stays silent. In Vite mode `test` (Vitest), the bridge also rejects the failure as an unhandled rejection, so a test that triggers it fails. `effectBridge(runtime, { rejectsForgottenFailures })` sets the mode explicitly, and the production build sets it to off. The [unload policy](../../apps/obsidian/policies/unload.md) states the same outcome.
+
+Accepted limit: in production, a forgotten failure shows only in the developer console and the optional vault log file. A failure that the researcher must see belongs to the service or the caller, which shows a notice.
+
+Rejected:
+
+- **The unhandled rejection in production, as before:** the failure goes around the plugin's log sinks and the `bridge` category.
+- **The log alone, also under Vitest:** a consumer test then passes while its forgotten Effect fails, unless it asserts on logs.
+
+The maintainer chose "log + keep test tripwire" on 2026-11-23. The change is landing from branch `fix/host-errors-55-72-73-74-75`. [Issue 72](https://github.com/aidenlx/zotlit-repo/issues/72)
+
+`openScope().close()` runs through the kernel's `Effect.runPromise`, which supplies the runtime services: the plugin logger, the log level, the browser scheduler and the tracer setting. The view's captured context adds no logger, annotation, span or category, and a finalizer registered with `acquireRelease` or `addFinalizer` captures its own context. A cleanup failure therefore reaches the plugin log. Accepted limit: a capture logger that a test supplies to the caller gets no record of that failure, and `effect-scope.ts` keeps its lint exception for the default runner. Rejected: a close runner from each `openScope` caller (the view runner, the ZoteroReads lease, the item-lookup session, the worker bundle scanner and tests). The lease can close after unload through `FinalizationRegistry`, where a disposed bridge returns an interrupt Exit. The maintainer closed the issue with no change on 2026-11-23. [Issue 74](https://github.com/aidenlx/zotlit-repo/issues/74)
