@@ -203,9 +203,7 @@ const makeHarness = Effect.fnUntraced(function* ({
       citationTextFixture({
         openDocuments: new OpenDocumentsStub(),
         citationLookup,
-        profile: profileReader(defaults, {
-          getFileCache: () => ({ frontmatter }),
-        }),
+        profile: profileReader(defaults, metadata),
         host: { vault, metadataCache: metadata },
         citationIndex: {
           getParsedDocument: () =>
@@ -350,8 +348,10 @@ const makeHarness = Effect.fnUntraced(function* ({
     stopFormatting: () => {
       formatting = false;
     },
-    changeFile: (path: string) => {
-      metadata.change(vault.getFileByPath(path)!, { frontmatter });
+    changeFile: (path: string, nextFrontmatter = frontmatter) => {
+      metadata.change(vault.getFileByPath(path)!, {
+        frontmatter: nextFrontmatter,
+      });
     },
     rebuildResolution: (keys: readonly string[]) => {
       ambiguous = keys;
@@ -473,6 +473,72 @@ describe("CitekeyReading", () => {
         recovery?.click();
         expect(h.switchRequests).toEqual(["note.md"]);
         expect(citation?.title).toBe("");
+      }),
+  );
+
+  it.live(
+    "updates and clears the Profile diagnostic on the same citation",
+    () =>
+      Effect.gen(function* () {
+        const imported = { "zotero-note-key": "1/NOTE1234" };
+        const h = yield* makeHarness({
+          body: "Cited @alpha.",
+          formats: false,
+          frontmatter: { ...imported, "zotlit-profile": "missing-a" },
+        });
+        const el = section("<p>Cited @alpha.</p>");
+        h.process(el, h.ctx);
+        const citation = el.querySelector("p span")!;
+        expect(citation.getAttribute("aria-label")).toContain("missing-a");
+
+        const changed = yield* h.settles("note.md");
+        h.changeFile("note.md", { ...imported, "zotlit-profile": "missing-b" });
+        yield* changed;
+
+        expect(el.querySelector("p span")).toBe(citation);
+        expect.soft(citation.getAttribute("aria-label")).toContain("missing-b");
+
+        const repaired = yield* h.settles("note.md");
+        h.changeFile("note.md", imported);
+        yield* repaired;
+
+        expect(el.querySelector("p span")).toBe(citation);
+        expect.soft(citation.hasAttribute("aria-label")).toBe(false);
+        expect(citation.hasAttribute("data-citation-presentation-error")).toBe(
+          false,
+        );
+      }),
+  );
+
+  it.live(
+    "adds a Profile diagnostic to a citation first rendered without one",
+    () =>
+      Effect.gen(function* () {
+        const imported = { "zotero-note-key": "1/NOTE1234" };
+        const h = yield* makeHarness({
+          body: "Cited @alpha.",
+          formats: false,
+          frontmatter: imported,
+        });
+        const el = section("<p>Cited @alpha.</p>");
+        h.process(el, h.ctx);
+        const citation = el.querySelector("p span")!;
+        expect(citation.hasAttribute("aria-label")).toBe(false);
+
+        const changed = yield* h.settles("note.md");
+        h.changeFile("note.md", { ...imported, "zotlit-profile": "missing-a" });
+        yield* changed;
+
+        expect(el.querySelector("p span")).toBe(citation);
+        expect.soft(citation.getAttribute("aria-label")).toBe(
+          m.notice_imported_note_profile_unknown({
+            stamp: "missing-a",
+            target: "note.md",
+          }),
+        );
+        expect(citation.getAttribute("data-citation-presentation-error")).toBe(
+          "profile",
+        );
       }),
   );
 

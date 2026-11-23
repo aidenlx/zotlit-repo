@@ -8,7 +8,6 @@ import type {
   CitationNavigation,
   HoverPreferences,
 } from "#obsidian/citekey-navigation/index.ts";
-import type { ProfilePresentationFailure } from "#obsidian/pandoc/document-presentation.ts";
 import { Effect, Layer } from "effect";
 import { MarkdownRenderChild, setTooltip } from "obsidian";
 import type { MarkdownPostProcessorContext } from "obsidian";
@@ -75,6 +74,7 @@ interface PlacedCitation {
   shown: PresentedCitation | string;
   states: readonly CitationKeyState[];
   navigation: CitationNavigation;
+  diagnostic: string | undefined;
 }
 
 interface HeldSection {
@@ -91,6 +91,19 @@ function shownEqual(
     return left === right;
   }
   return presentedCitationEqual(left, right);
+}
+
+function setProfileDiagnostic(
+  element: HTMLElement,
+  diagnostic: string | undefined,
+): void {
+  if (diagnostic === undefined) {
+    element.removeAttribute("aria-label");
+    delete element.dataset["citationPresentationError"];
+    return;
+  }
+  element.dataset["citationPresentationError"] = "profile";
+  setTooltip(element, diagnostic);
 }
 
 export const layerCitekeyReading = Layer.effectDiscard(
@@ -158,14 +171,12 @@ export const layerCitekeyReading = Layer.effectDiscard(
         states,
         works,
         at,
-        failure,
         lookup,
       }: {
         content: PresentedCitation | string;
         states: readonly CitationKeyState[];
         works: CitationNavigation["works"];
         at: CitationNavigation["shown"];
-        failure: ProfilePresentationFailure | undefined;
         lookup: CitationLookupAnswer | null;
       },
     ): { element: HTMLElement; navigation: CitationNavigation } => {
@@ -174,16 +185,6 @@ export const layerCitekeyReading = Layer.effectDiscard(
         ...citationStateHooks(citationState(states)),
       ];
       const element = citationElement(doc, content, themeClasses);
-      if (failure) {
-        element.dataset["citationPresentationError"] = "profile";
-        setTooltip(
-          element,
-          m.notice_imported_note_profile_unknown({
-            stamp: failure.diagnostic.stamp,
-            target: failure.target,
-          }),
-        );
-      }
       const navigation: CitationNavigation = {
         works,
         shown: at,
@@ -233,11 +234,18 @@ export const layerCitekeyReading = Layer.effectDiscard(
       const answer = text?.value.lookup ?? lookup.current?.value ?? null;
       const resolutionPending = answer === null;
       if (text === null && !resolutionPending) return;
+      const failure = text?.value.presentationFailure;
+      const diagnostic =
+        failure &&
+        m.notice_imported_note_profile_unknown({
+          stamp: failure.diagnostic.stamp,
+          target: failure.target,
+        });
       renderProfileRecovery(
         el,
         { workspace: hoverWorkspace },
         {
-          path: text?.value.presentationFailure?.target,
+          path: failure?.target,
         },
       );
       const snapshotState = (citekey: string) =>
@@ -253,6 +261,8 @@ export const layerCitekeyReading = Layer.effectDiscard(
           : null;
         const previous = placed[index];
         const shown = content ?? previous?.shown ?? citation.source;
+        const nextDiagnostic =
+          text === null ? previous?.diagnostic : diagnostic;
         const states = citationKeyStates(citation, stateOf);
         const works = text === null ? [] : citedWorks(citation, text.value);
         const at =
@@ -263,6 +273,10 @@ export const layerCitekeyReading = Layer.effectDiscard(
           previous.states.length === states.length &&
           previous.states.every((state, i) => state === states[i])
         ) {
+          if (nextDiagnostic !== previous.diagnostic) {
+            setProfileDiagnostic(previous.element, nextDiagnostic);
+            previous.diagnostic = nextDiagnostic;
+          }
           Object.assign(previous.navigation, {
             works,
             shown: at,
@@ -276,10 +290,11 @@ export const layerCitekeyReading = Layer.effectDiscard(
           states,
           works,
           at,
-          failure: text?.value.presentationFailure,
           lookup: answer,
         });
-        placed[index] = { ...built, shown, states };
+        if (nextDiagnostic !== undefined)
+          setProfileDiagnostic(built.element, nextDiagnostic);
+        placed[index] = { ...built, shown, states, diagnostic: nextDiagnostic };
         return built.element;
       };
       if (placed.length === 0) {
