@@ -504,9 +504,14 @@ closing call. Sections run 1152px wide (`max-w-6xl`) with 32px side gutters
   knows.", "What you decided.", "What you have not read yet.".
 - **The demo's timing.** One cycle runs 19.8 s and fades out over its last
   650 ms. The page prerenders the finished frame, which reduced motion
-  keeps. With motion on, the demo waits at the collection while it is off
+  keeps, also off screen; a switch to reduced motion stops the demo on it.
+  With motion on, the demo waits at the collection while it is off
   screen, plays while at least half of it is on screen, and starts again
-  from the collection once it has left. A pause button sits at the end of
+  from the collection once it has left. Under half on screen after it
+  played, it rests on its finished frame. While a paused recording holds
+  the turn, the demo waits at the collection and plays once the turn is
+  free. Rested by another loop while still half on screen, it plays
+  again once that loop rests or cannot start. A pause button sits at the end of
   the caption trail; pausing rests the demo on its finished frame, and play
   starts it again from the collection. Rows and cells move by FLIP
   (transform and opacity); the tree collapses by width.

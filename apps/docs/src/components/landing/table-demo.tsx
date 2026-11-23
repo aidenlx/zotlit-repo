@@ -9,6 +9,7 @@ import {
 import { askTurn, endTurn, takeTurn } from "@/components/recording-turn.ts";
 import { m } from "@/paraglide/messages.js";
 
+import { demoMotion } from "./demo-motion.ts";
 import { LessonLink, LoopToggle } from "./parts.tsx";
 import { DemoWindow, FINAL, Trail, makeFlip } from "./table-window.tsx";
 
@@ -64,24 +65,19 @@ function Demo() {
     return true;
   };
   const updateEligibility = (readerPaused: boolean, byReader = false) => {
-    const wasEligible = eligible.current;
-    const playbackAllowed = !reduced.current && !readerPaused;
-    eligible.current = playbackAllowed && (visibleRatio.current ?? 0) >= 0.5;
-    if (eligible.current) {
-      if (!wasEligible) {
-        if (byReader) takeTurn(me, { rest, start });
-        else {
-          showCollection();
-          askTurn(me, { rest, start });
-        }
-      }
-      return;
-    }
-
-    if (wasEligible) endTurn(me);
-    if (!playbackAllowed || wasEligible) rest();
-    if (playbackAllowed && (visibleRatio.current === 0 || byReader))
-      showCollection();
+    const next = demoMotion({
+      wasEligible: eligible.current,
+      visibleRatio: visibleRatio.current,
+      reduced: reduced.current,
+      paused: readerPaused,
+      byReader,
+    });
+    eligible.current = next.eligible;
+    if (next.turn === "end") endTurn(me);
+    if (next.turn === "end" || next.frame === "finished") rest();
+    if (next.frame === "collection") showCollection();
+    if (next.turn === "ask") askTurn(me, { rest, start });
+    if (next.turn === "take") takeTurn(me, { rest, start });
   };
   const toggle = () => {
     setPaused(!paused);
