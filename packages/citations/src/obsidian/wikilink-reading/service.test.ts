@@ -650,6 +650,93 @@ describe("WikilinkReading refresh", () => {
   const after = { [held("[@wang2020, {p. 7}]")]: "(Wang 2020, 7)" };
 
   it.effect(
+    "restores a wikilink after its Imported Note Profile is repaired",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* harness({
+          "citation.wikilink-citations": true,
+          presentationFailure: {
+            kind: "unusable",
+            property: "profile",
+            diagnostic: unknownProfileDiagnostic("missing-a"),
+            target: "note.md",
+          },
+        });
+        const root = h.renderSection(CITE);
+        const anchor = root.querySelector("a")!;
+        expect(anchor.getAttribute("aria-label")).toContain("missing-a");
+
+        h.citationText.repairProfile();
+        h.citationText.hold(before);
+        h.citationText.emit("changed", "note.md");
+
+        expect(root.querySelector("a")).toBe(anchor);
+        expect.soft(anchor.hasAttribute("aria-label")).toBe(false);
+        expect
+          .soft(anchor.hasAttribute("data-citation-presentation-error"))
+          .toBe(false);
+        expect(anchor.textContent).toBe("(Wang et al. 2020, p. 7)");
+      }),
+  );
+
+  it.effect(
+    "preserves a native alias through a Profile failure and repair",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* harness({ "citation.wikilink-citations": true });
+        h.citationText.failProfile("missing-a");
+        const breadcrumb = `${WANG} > cite:locator=7`;
+        const root = h.renderHtml(
+          `<p>${internalLink(CITE)} and ${internalLink(CITE, breadcrumb)}</p>`,
+        );
+        const [citation, alias] = root.querySelectorAll("a");
+        expect(citation?.getAttribute("aria-label")).toContain("missing-a");
+        expect(alias?.getAttribute("aria-label")).toBe(breadcrumb);
+
+        h.citationText.repairProfile();
+        h.citationText.hold(before);
+        h.citationText.emit("changed", "note.md");
+
+        expect(citation?.textContent).toBe("(Wang et al. 2020, p. 7)");
+        expect(root.querySelectorAll("a")[1]).toBe(alias);
+        expect(alias?.textContent).toBe(breadcrumb);
+        expect(alias?.getAttribute("aria-label")).toBe(breadcrumb);
+        expect(alias?.getAttribute("data-tooltip-position")).toBe("top");
+      }),
+  );
+
+  it.effect(
+    "updates a changed Profile stamp on the same formatted wikilink",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* harness({
+          "citation.wikilink-citations": true,
+          formatted: before,
+        });
+        const root = h.renderSection(CITE);
+        const anchor = root.querySelector("a")!;
+        expect(anchor.textContent).toBe("(Wang et al. 2020, p. 7)");
+
+        h.citationText.hold({});
+        h.citationText.failProfile("missing-a");
+        h.citationText.emit("changed", "note.md");
+        expect(anchor.getAttribute("aria-label")).toContain("missing-a");
+
+        h.citationText.failProfile("missing-b");
+        h.citationText.emit("changed", "note.md");
+
+        expect(root.querySelector("a")).toBe(anchor);
+        expect(anchor.textContent).toBe("(Wang et al. 2020, p. 7)");
+        expect(anchor.getAttribute("aria-label")).toBe(
+          m.notice_imported_note_profile_unknown({
+            stamp: "missing-b",
+            target: "note.md",
+          }),
+        );
+      }),
+  );
+
+  it.effect(
     "refreshes a rendered Citation in place when its document's text changes",
     () =>
       Effect.gen(function* () {
@@ -845,6 +932,33 @@ describe("WikilinkReading refresh", () => {
     }),
   );
 
+  it.effect(
+    "answers each hover once when the citation text matches the native link",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* harness({
+          "citation.wikilink-citations": true,
+          "citation.hover-action": "popover",
+          formatted: { [held("[@wang2020]")]: WANG },
+        });
+        const root = h.renderSection(WANG);
+        const anchor = root.querySelector("a")!;
+        expect(anchor.textContent).toBe(WANG);
+
+        const requestsPerHover: number[] = [];
+        for (const refresh of [false, true, true]) {
+          if (refresh) h.citationText.emit("changed", "note.md");
+          const previous = h.requests.length;
+          anchor.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
+          requestsPerHover.push(h.requests.length - previous);
+          expect(root.querySelectorAll("a")).toHaveLength(1);
+          expect(root.querySelector("a")).toBe(anchor);
+        }
+
+        expect(requestsPerHover).toEqual([1, 1, 1]);
+      }),
+  );
+
   it.effect("leaves a section Obsidian tore down alone", () =>
     Effect.gen(function* () {
       const h = yield* harness({
@@ -876,7 +990,7 @@ class CitationTextStub {
   #citekeys: Record<string, string>;
   #formatted: Record<string, string>;
   #pending: boolean;
-  readonly #presentationFailure: ProfilePresentationFailure | undefined;
+  #presentationFailure: ProfilePresentationFailure | undefined;
 
   constructor(
     formatted: Record<string, string>,
@@ -898,6 +1012,19 @@ class CitationTextStub {
   resolve(citekeys: Record<string, string>): void {
     this.#citekeys = citekeys;
     this.emit();
+  }
+
+  repairProfile(): void {
+    this.#presentationFailure = undefined;
+  }
+
+  failProfile(stamp: string): void {
+    this.#presentationFailure = {
+      kind: "unusable",
+      property: "profile",
+      diagnostic: unknownProfileDiagnostic(stamp),
+      target: "note.md",
+    };
   }
 
   hold(formatted: Record<string, string>): void {

@@ -93,18 +93,25 @@ export const layerWikilinkReading = Layer.effectDiscard(
 
     const literatureNoteTargets = Effect.fnUntraced(function* (
       el: HTMLElement,
-      ctx: MarkdownPostProcessorContext,
-      lookup: CitationLookupAnswer | null,
+      {
+        sourcePath,
+        lookup,
+        renderedAnchors,
+      }: {
+        sourcePath: string;
+        lookup: CitationLookupAnswer | null;
+        renderedAnchors: ReadonlySet<HTMLAnchorElement>;
+      },
     ) {
       const targets = new Map<string, LiteratureNoteTarget | null>();
       if (!display.enabled) return targets;
-      for (const linktext of sectionLinktexts(el)) {
+      for (const linktext of sectionLinktexts(el, renderedAnchors)) {
         const target = citationTarget(linktext);
         if (target === null || targets.has(target.linkpath)) continue;
         targets.set(
           target.linkpath,
           yield* literatureNoteTargetIn(metadata, target.linkpath, {
-            sourcePath: ctx.sourcePath,
+            sourcePath,
             lookup,
           }),
         );
@@ -115,12 +122,16 @@ export const layerWikilinkReading = Layer.effectDiscard(
     const sectionRuns = (
       el: HTMLElement,
       targets: ReadonlyMap<string, LiteratureNoteTarget | null>,
+      renderedAnchors: ReadonlySet<HTMLAnchorElement>,
     ): SectionRuns =>
-      sectionCitationRuns(el, (linktext) =>
-        wikilinkCitation(linktext, {
-          literatureNote: (linkpath) => targets.get(linkpath) ?? null,
-          enabled: display.enabled,
-        }),
+      sectionCitationRuns(
+        el,
+        (linktext) =>
+          wikilinkCitation(linktext, {
+            literatureNote: (linkpath) => targets.get(linkpath) ?? null,
+            enabled: display.enabled,
+          }),
+        renderedAnchors,
       );
 
     const attachPopover = (
@@ -176,18 +187,20 @@ export const layerWikilinkReading = Layer.effectDiscard(
       el: HTMLElement,
       ctx: MarkdownPostProcessorContext,
       {
+        candidates,
+        diagnosedAnchors,
         rendered,
         signal,
         text,
-        targets,
       }: {
+        candidates: SectionRuns;
+        diagnosedAnchors: Set<HTMLAnchorElement>;
         rendered: SectionRuns;
         signal: AbortSignal;
         text: Held<DocumentCitations>;
-        targets: ReadonlyMap<string, LiteratureNoteTarget | null>;
       },
     ): number => {
-      const runs = [...rendered, ...sectionRuns(el, targets)].sort((a, b) =>
+      const runs = [...rendered, ...candidates].sort((a, b) =>
         documentOrder(a[0]!.source, b[0]!.source),
       );
       const citations = runs.map((members) => citationOfRun(members));
@@ -205,6 +218,7 @@ export const layerWikilinkReading = Layer.effectDiscard(
         for (const { source } of runs.flat()) {
           source.dataset["citationPresentationError"] = "profile";
           setTooltip(source, diagnostic);
+          diagnosedAnchors.add(source);
         }
       }
       const coordinates = sectionCoordinates(citations, sectionRange(ctx, el));
@@ -242,6 +256,7 @@ export const layerWikilinkReading = Layer.effectDiscard(
       if (retired) return;
       if (!hasInternalLink(el)) return;
       const rendered: SectionRuns = [];
+      const diagnosedAnchors = new Set<HTMLAnchorElement>();
       let gestures = new AbortController();
       const rewrite = Effect.gen(function* () {
         if (retired) return;
@@ -251,12 +266,27 @@ export const layerWikilinkReading = Layer.effectDiscard(
         const file = yield* vault.getFileByPath(ctx.sourcePath);
         const text = file === null ? null : yield* citationText.peek(file.path);
         if (text === null) return;
-        const targets = yield* literatureNoteTargets(
-          el,
-          ctx,
-          text.value.lookup,
+        for (const anchor of diagnosedAnchors) {
+          anchor.removeAttribute("aria-label");
+          delete anchor.dataset["citationPresentationError"];
+        }
+        diagnosedAnchors.clear();
+        const renderedAnchors = new Set(
+          rendered.flatMap((members) => members.map(({ source }) => source)),
         );
-        const shown = show(el, ctx, { rendered, signal, text, targets });
+        const targets = yield* literatureNoteTargets(el, {
+          sourcePath: ctx.sourcePath,
+          lookup: text.value.lookup,
+          renderedAnchors,
+        });
+        const candidates = sectionRuns(el, targets, renderedAnchors);
+        const shown = show(el, ctx, {
+          candidates,
+          diagnosedAnchors,
+          rendered,
+          signal,
+          text,
+        });
         if (shown > 0) {
           yield* Effect.logTrace("Rendered wikilink citations").pipe(
             Effect.annotateLogs({ path: ctx.sourcePath, count: shown }),

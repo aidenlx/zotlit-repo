@@ -37,10 +37,14 @@ export function hasInternalLink(root: HTMLElement): boolean {
 export function sectionCitationRuns(
   root: HTMLElement,
   citationOf: WikilinkCitationOf,
+  renderedAnchors?: ReadonlySet<HTMLAnchorElement>,
 ): SectionRuns {
   return citationRuns(
     [...root.querySelectorAll<HTMLAnchorElement>(INTERNAL_LINK)],
-    (anchor) => citationRendered(anchor, citationOf),
+    (anchor) => {
+      const linktext = citationLinktext(anchor, renderedAnchors);
+      return linktext === null ? null : citationOf(linktext);
+    },
     textBetween,
   );
 }
@@ -65,26 +69,25 @@ export function renderCitationRuns(
   return rendered;
 }
 
-export function sectionLinktexts(root: HTMLElement): string[] {
+export function sectionLinktexts(
+  root: HTMLElement,
+  renderedAnchors: ReadonlySet<HTMLAnchorElement>,
+): string[] {
   const linktexts: string[] = [];
   for (const anchor of root.querySelectorAll<HTMLAnchorElement>(
     INTERNAL_LINK,
   )) {
-    const linktext = citationLinktext(anchor);
+    const linktext = citationLinktext(anchor, renderedAnchors);
     if (linktext !== null) linktexts.push(linktext);
   }
   return linktexts;
 }
 
-function citationRendered(
+function citationLinktext(
   anchor: HTMLAnchorElement,
-  citationOf: WikilinkCitationOf,
-): WikilinkCitation | null {
-  const linktext = citationLinktext(anchor);
-  return linktext === null ? null : citationOf(linktext);
-}
-
-function citationLinktext(anchor: HTMLAnchorElement): string | null {
+  renderedAnchors: ReadonlySet<HTMLAnchorElement> | undefined,
+): string | null {
+  if (renderedAnchors?.has(anchor)) return null;
   const linktext = anchor.dataset["href"];
   if (linktext === undefined) return null;
   if (anchor.hasAttribute(ALIAS_MARKER)) return null;
