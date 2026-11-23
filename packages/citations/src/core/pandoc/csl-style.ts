@@ -96,7 +96,10 @@ const BIBLIOGRAPHY_WITH_ENTRY_MARKERS = regex(
   `<${PREFIX}bibliography(?=[\\s/>])[^>]*\\bsecond-field-align\\s*=`,
 );
 const LINK_TAG = regex(`<${PREFIX}link(?=[\\s/>])[^>]*>`, "g");
-const HREF = regex("href\\s*=\\s*[\"'](?<href>[^\"']*)[\"']");
+const HREF = regex(
+  "href\\s*=\\s*(?<quote>[\"'])(?<href>(?:(?!\\k<quote>).)*)\\k<quote>",
+  "s",
+);
 const REL = regex("rel\\s*=\\s*[\"'](?<rel>[^\"']*)[\"']");
 const STYLE_ROOT = regex(`<(?<name>${PREFIX}style)(?=[\\s/>])[^>]*>`);
 const STYLE_ELEMENT = "style";
@@ -117,14 +120,14 @@ export function cslStyleRoot(xml: string): Element | null {
 
 export function isStandaloneCslStyle(xml: string): boolean {
   const root = cslStyleRoot(xml);
+  if (root === null) return false;
+  const renderingElements = [...root.children].filter((child) =>
+    RENDERING_ELEMENTS.has(child.localName),
+  );
   return (
-    root !== null &&
-    [...root.children].some(
-      (child) =>
-        RENDERING_ELEMENTS.has(child.localName) &&
-        [...child.children].some(
-          (grandchild) => grandchild.localName === LAYOUT_ELEMENT,
-        ),
+    renderingElements.length > 0 &&
+    renderingElements.every((element) =>
+      [...element.children].some((child) => child.localName === LAYOUT_ELEMENT),
     )
   );
 }
