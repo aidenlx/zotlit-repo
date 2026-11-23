@@ -2,8 +2,9 @@ import { useMemo } from "react";
 import type { Ref } from "react";
 
 import type {
+  ChooserActionRow,
   ChooserGroup,
-  ChooserRow,
+  ChooserItemRow,
 } from "@zotlit/obsidian-kit/components/chooser-logic.ts";
 import { Chooser } from "@zotlit/obsidian-kit/components/chooser.tsx";
 import {
@@ -173,15 +174,7 @@ function changedColor(
   );
 }
 
-interface ActionRow extends ChooserRow {
-  action: (close: () => void) => void;
-}
-
-function clearRowValue(kind: "colors" | "tags"): string {
-  return `zt:clear-${kind}`;
-}
-
-type ColorRow = (ChooserRow & { action?: undefined }) | ActionRow;
+type ColorRow = ChooserItemRow | ChooserActionRow;
 
 function ColorChooser({
   colors,
@@ -222,7 +215,7 @@ function ColorChooser({
       {
         items: [
           {
-            value: clearRowValue("colors"),
+            id: "clear",
             label: m.annot_view_filter_color_clear(),
             action: () => onClear(),
           },
@@ -262,7 +255,7 @@ function ColorChooser({
         <Chooser.List groups={groups} label={m.annot_view_filter_color_list()}>
           {(row) =>
             row.action ? (
-              <Chooser.Action key={row.value} value={row.value} icon="x">
+              <Chooser.Action key={row.id} id={row.id} icon="x">
                 {row.label}
               </Chooser.Action>
             ) : (
@@ -278,12 +271,11 @@ function ColorChooser({
   );
 }
 
-interface TagEntryRow extends ChooserRow {
+interface TagEntryRow extends ChooserItemRow {
   hitCount: number;
-  action?: undefined;
 }
 
-type TagRow = TagEntryRow | ActionRow;
+type TagRow = TagEntryRow | ChooserActionRow;
 
 function TagChooser({
   chips,
@@ -324,7 +316,7 @@ function TagChooser({
       {
         items: [
           {
-            value: clearRowValue("tags"),
+            id: "clear",
             label: m.annot_view_filter_tag_clear(),
             action: () => onChange([]),
           },
@@ -363,7 +355,7 @@ function TagChooser({
         >
           {(row) =>
             row.action ? (
-              <Chooser.Action key={row.value} value={row.value} icon="x">
+              <Chooser.Action key={row.id} id={row.id} icon="x">
                 {row.label}
               </Chooser.Action>
             ) : (

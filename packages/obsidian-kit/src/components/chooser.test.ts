@@ -6,6 +6,7 @@ import { createElement as h } from "react";
 import type { ReactNode } from "react";
 import { afterEach, expect, it, vi } from "vitest";
 
+import { chooserRowKey } from "./chooser-logic.ts";
 import type { ChooserRow } from "./chooser-logic.ts";
 import { Chooser } from "./chooser.tsx";
 
@@ -31,21 +32,38 @@ afterEach(() => {
   host = null;
 });
 
-function mount(app: App, trigger: { blocked?: boolean } = {}) {
+function mount(
+  app: App,
+  {
+    blocked,
+    rows = ROWS,
+    onValueChange = () => {},
+  }: {
+    blocked?: boolean;
+    rows?: ChooserRow[];
+    onValueChange?: (values: string[]) => void;
+  } = {},
+) {
   host = document.body.appendChild(document.createElement("div"));
   const list = h(Chooser.List<ChooserRow>, {
-    groups: [{ items: ROWS }],
+    groups: [{ items: rows }],
     label: "Tags",
     children: (row: ChooserRow) =>
-      h(Chooser.Item, { key: row.value, value: row.value }, row.label),
+      row.action
+        ? h(Chooser.Action, { key: chooserRowKey(row), id: row.id }, row.label)
+        : h(
+            Chooser.Item,
+            { key: chooserRowKey(row), value: row.value },
+            row.label,
+          ),
   });
   const ui: ReactNode = h(AppContext, {
     value: app,
     children: h(Chooser, {
       value: [],
-      onValueChange: () => {},
+      onValueChange,
       children: [
-        h(Chooser.Trigger, { key: "trigger", ...trigger }, "Tags"),
+        h(Chooser.Trigger, { key: "trigger", blocked }, "Tags"),
         h(Chooser.Popup, {
           key: "popup",
           children: [
@@ -144,6 +162,34 @@ it("opens again with an empty search, every row and no highlight", async () => {
     pressKey(app.scopes.at(-1)!, "ArrowDown");
   });
   expect(highlighted()).toBe("method");
+});
+
+it("selects an item and runs an action through distinct options", async () => {
+  const action = vi.fn();
+  const onValueChange = vi.fn();
+  const { popup, toggle } = mount(editorApp(), {
+    rows: [
+      { value: "action:clear", label: "Tagged item" },
+      { value: "clear", label: "Other item" },
+      { id: "clear", label: "Clear selection", action },
+    ],
+    onValueChange,
+  });
+  await toggle("open");
+  const options = popup()!.querySelectorAll<HTMLElement>('[role="option"]');
+  const item = options[0]!;
+  const clear = options[2]!;
+
+  await act(() => item.click());
+  expect(onValueChange).toHaveBeenCalledWith(["action:clear"]);
+  expect(action).not.toHaveBeenCalled();
+
+  await act(() => clear.click());
+  expect(action).toHaveBeenCalledOnce();
+  expect(onValueChange).toHaveBeenCalledOnce();
+  expect(item.id).toBeTruthy();
+  expect(clear.id).toBeTruthy();
+  expect(item.id).not.toBe(clear.id);
 });
 
 function pressKey(scope: unknown, key: string): unknown {

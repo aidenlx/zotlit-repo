@@ -269,6 +269,36 @@ describe("the card list", () => {
     ]);
     expect(tabOrder(host)).toEqual(onlyRow(host, "BBBB2222"));
   });
+
+  it("selects a tag named zt:clear-tags while the Clear action is available", async () => {
+    const tagName = "zt:clear-tags";
+    const { host, store } = await mountList({ app: editorApp() });
+    await act(() =>
+      store.setState({
+        annotations: [
+          { ...highlight("AAAA1111", "Methods"), tags: ["method"] },
+          { ...highlight("BBBB2222", "Notes"), tags: [tagName] },
+        ],
+        selectedTags: ["method"],
+      }),
+    );
+
+    const triggerLabel = m.annot_view_filter_tag_trigger_active({
+      tags: "method",
+    });
+    const trigger = host.querySelector<HTMLButtonElement>(
+      `button[aria-label="${triggerLabel}"]`,
+    );
+    expect(trigger).not.toBeNull();
+    await act(() => trigger!.click());
+
+    const tag = [
+      ...document.querySelectorAll<HTMLElement>('[role="option"]'),
+    ].find((option) => option.textContent === tagName);
+    expect(tag).toBeDefined();
+    await act(() => tag!.click());
+    expect(store.getState().selectedTags).toEqual(["method", tagName]);
+  });
 });
 
 async function press(

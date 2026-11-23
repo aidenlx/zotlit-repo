@@ -12,7 +12,7 @@ import type {
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { composing } from "@zotlit/ui";
 
-import type { ChooserRow } from "./chooser-logic.ts";
+import type { ChooserItemRow } from "./chooser-logic.ts";
 import { Chooser, useChooserOpenSearch } from "./chooser.tsx";
 import type { PinnedPopoverHandle } from "./pinned-popover.tsx";
 
@@ -39,7 +39,7 @@ export interface SelectProps extends Omit<
   ref?: Ref<HTMLButtonElement>;
 }
 
-interface SelectRow extends ChooserRow {
+interface SelectRow extends ChooserItemRow {
   option: SelectOption;
 }
 

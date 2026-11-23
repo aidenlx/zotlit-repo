@@ -3,7 +3,9 @@ import { useLayoutEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 import type {
+  ChooserActionRow,
   ChooserGroup,
+  ChooserItemRow,
   ChooserRow,
 } from "@zotlit/obsidian-kit/components/chooser-logic.ts";
 import {
@@ -168,11 +170,11 @@ function PropertyList({
   const keys = useRef({ order, setOrder, page });
   keys.current = { order, setOrder, page };
   const groups = useMemo<ChooserGroup<ChooserRow>[]>(() => {
-    const items = rows.map((entry): ChooserRow => ({
+    const items = rows.map((entry): ChooserItemRow => ({
       ...propertyRow(entry),
       ...(pages && { next: () => openPage(entry.path) }),
     }));
-    const actions: ChooserRow[] = [];
+    const actions: ChooserActionRow[] = [];
     const typedVault = vaultName(query);
     if (
       query !== "" &&
@@ -180,7 +182,7 @@ function PropertyList({
       (typedVault === null || isVaultPropertyName(typedVault))
     )
       actions.push({
-        value: "zt:add-property",
+        id: "add-property",
         label: m.query_view_properties_add({ name: query }),
         action: () => setOrder([...order, query]),
       });
@@ -192,18 +194,18 @@ function PropertyList({
       !byPath.has(vault)
     )
       actions.push({
-        value: "zt:add-vault-property",
+        id: "add-vault-property",
         label: m.query_view_properties_add_vault({ name: query }),
         action: () => setOrder([...order, vault]),
       });
     if (pages)
       actions.push({
-        value: "zt:add-formula",
+        id: "add-formula",
         label: m.query_view_formula_add(),
         action: () => openPage(NEW_FORMULA_PAGE),
       });
     actions.push({
-      value: "zt:hide-all",
+      id: "hide-all",
       label: m.query_view_properties_hide_all(),
       action: () => {
         setOrder([]);
@@ -242,20 +244,19 @@ function PropertyList({
       emptyLabel={m.query_view_properties_empty()}
     >
       {(row) => {
-        const entry = byPath.get(row.value);
-        if (row.action || !entry)
+        if (row.action)
           return (
             <Chooser.Action
-              key={row.value}
-              value={row.value}
-              data-query-properties-action={row.value.slice("zt:".length)}
+              key={row.id}
+              id={row.id}
+              data-query-properties-action={row.id}
               leading={
                 <RowIcon
                   className="zt:text-(--icon-color)"
                   name={
-                    row.value === "zt:hide-all"
+                    row.id === "hide-all"
                       ? "eye-off"
-                      : row.value === "zt:add-formula"
+                      : row.id === "add-formula"
                         ? "square-function"
                         : "plus"
                   }
@@ -265,6 +266,8 @@ function PropertyList({
               {row.label}
             </Chooser.Action>
           );
+        const entry = byPath.get(row.value);
+        if (!entry) return null;
         const shown = order.includes(row.value);
         return (
           <Chooser.Item
@@ -374,7 +377,7 @@ export function propertyRow({
   path,
   label,
   searchTerms,
-}: Pick<PropertyEntry, "path" | "label" | "searchTerms">): ChooserRow {
+}: Pick<PropertyEntry, "path" | "label" | "searchTerms">): ChooserItemRow {
   return {
     value: path,
     label: label === path ? path : `${label} ${path}`,

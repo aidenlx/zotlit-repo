@@ -8,7 +8,6 @@
     "./delimited": "./src/delimited.ts",
     "./log-formatter": "./src/log-formatter.ts",
     "./logging": "./src/logging.ts",
-    "./nanoevents": "./src/nanoevents.ts",
     "./sorted-runs": "./src/sorted-runs.ts",
     "./package.json": "./package.json"
   },

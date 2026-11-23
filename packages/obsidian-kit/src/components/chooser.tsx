@@ -27,7 +27,10 @@ import { composing } from "@zotlit/ui";
 
 import {
   activatedRow,
+  chooserActionKey,
+  chooserItemKey,
   chooserLayout,
+  chooserRowKey,
   clampedHighlight,
   movedHighlight,
   rehomedHighlight,
@@ -277,10 +280,12 @@ function ChooserSession({ children }: { children: ReactNode }) {
 
   const publishRows = useCallback((next: readonly ChooserRow[]) => {
     const { rows: previous, highlight: at } = latest.current;
-    const held = previous[clampedHighlight(at, previous.length)]?.value ?? null;
+    const held = previous[clampedHighlight(at, previous.length)];
     setRows(next);
     setHighlight(
-      previous.length === 0 && at >= 0 ? 0 : rehomedHighlight(held, next),
+      previous.length === 0 && at >= 0
+        ? 0
+        : rehomedHighlight(held ? chooserRowKey(held) : null, next),
     );
   }, []);
 
@@ -621,7 +626,7 @@ function List<Row extends ChooserRow>({
 
   const list = useMemo<ChooserListState>(
     () => ({
-      indexOf: new Map(rows.map((row, index) => [row.value, index])),
+      indexOf: new Map(rows.map((row, index) => [chooserRowKey(row), index])),
       rows,
       active,
       optionId,
@@ -699,13 +704,13 @@ function Separator() {
   );
 }
 
-function useRowSlot(value: string) {
+function useRowSlot(rowKey: string) {
   const { selected, onValueChange, close } = useChooser();
   const { highlightRow } = useChooserSession();
   const { indexOf, rows, active, optionId } = useChooserList();
   const ref = useRef<HTMLDivElement>(null);
 
-  const index = indexOf.get(value) ?? -1;
+  const index = indexOf.get(rowKey) ?? -1;
   const row = rows[index];
   const highlighted = index >= 0 && index === active;
 
@@ -734,7 +739,7 @@ const rowBox = (disabled: boolean, className?: string) =>
   );
 
 interface RowShellProps extends HTMLAttributes<HTMLDivElement> {
-  value: string;
+  rowKey: string;
   selected: boolean;
   icon?: IconName;
   leading?: ReactNode;
@@ -742,7 +747,7 @@ interface RowShellProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 function RowShell({
-  value,
+  rowKey,
   selected,
   icon,
   leading,
@@ -751,7 +756,7 @@ function RowShell({
   children,
   ...rest
 }: RowShellProps) {
-  const { ref, id, highlighted, disabled, activate } = useRowSlot(value);
+  const { ref, id, highlighted, disabled, activate } = useRowSlot(rowKey);
 
   return (
     <div
@@ -793,7 +798,7 @@ function Item({ value, icon, ...rest }: ChooserItemProps) {
 
   return (
     <RowShell
-      value={value}
+      rowKey={chooserItemKey(value)}
       selected={ticked}
       icon={icon ?? (ticked ? "check" : undefined)}
       data-selected={ticked ? "" : undefined}
@@ -803,13 +808,22 @@ function Item({ value, icon, ...rest }: ChooserItemProps) {
 }
 
 export interface ChooserActionProps
-  extends HTMLAttributes<HTMLDivElement>, Pick<RowShellProps, "leading"> {
-  value: string;
+  extends
+    Omit<HTMLAttributes<HTMLDivElement>, "id">,
+    Pick<RowShellProps, "leading"> {
+  id: string;
   icon?: IconName;
 }
 
-function Action({ value, icon, ...rest }: ChooserActionProps) {
-  return <RowShell value={value} selected={false} icon={icon} {...rest} />;
+function Action({ id, icon, ...rest }: ChooserActionProps) {
+  return (
+    <RowShell
+      rowKey={chooserActionKey(id)}
+      selected={false}
+      icon={icon}
+      {...rest}
+    />
+  );
 }
 
 export interface ChooserPageProps extends Omit<

@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 
 import type {
   ChooserGroup,
+  ChooserItemRow,
   ChooserRow,
 } from "@zotlit/obsidian-kit/components/chooser-logic.ts";
 import {
@@ -27,7 +28,7 @@ import {
 
 const VIEW_ROW_DRAG_TYPE = "application/x-zotlit-query-view";
 
-const ADD_ROW = "action:add";
+const ADD_ROW = "add";
 
 export function ViewMenu({ view }: { view: QueryView }) {
   return view.can.views ? (
@@ -84,7 +85,7 @@ function LayoutSwitch({ view }: { view: QueryView }) {
     () => (current ? layoutsFor(current, offered) : []),
     [current, offered],
   );
-  const groups = useMemo<ChooserGroup<ChooserRow>[]>(
+  const groups = useMemo<ChooserGroup<ChooserItemRow>[]>(
     () => [
       {
         items: layouts.map((layout) => ({
@@ -185,7 +186,7 @@ function ViewList({ view }: { view: QueryView }) {
         pinned: true,
         items: [
           {
-            value: ADD_ROW,
+            id: ADD_ROW,
             label: m.query_view_add_view(),
             action: () => {
               view.document.addView();
@@ -209,10 +210,10 @@ function ViewList({ view }: { view: QueryView }) {
         if (row.action)
           return (
             <Chooser.Action
-              key={row.value}
-              value={row.value}
+              key={row.id}
+              id={row.id}
               icon="plus"
-              data-query-view-action={row.value.slice("action:".length)}
+              data-query-view-action={row.id}
             >
               {row.label}
             </Chooser.Action>

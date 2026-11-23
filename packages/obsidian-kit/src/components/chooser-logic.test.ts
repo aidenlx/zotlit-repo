@@ -2,7 +2,9 @@ import { expect, it } from "vitest";
 
 import {
   activatedRow,
+  chooserItemKey,
   chooserLayout,
+  chooserRowKey,
   clampedHighlight,
   movedHighlight,
   rehomedHighlight,
@@ -44,7 +46,7 @@ it("finds a row by a Search Term, which its label does not show", () => {
 });
 
 const CLEAR: ChooserRow = {
-  value: "zt:clear-tags",
+  id: "clear",
   label: "Clear selected tags",
   action: () => {},
 };
@@ -238,11 +240,16 @@ it("brings a highlight past the end of a shrunken list back to its last row", ()
 });
 
 it("keeps the highlight on its own row when the list is rebuilt around it", () => {
-  expect(rehomedHighlight("review", ROWS)).toBe(2);
+  expect(rehomedHighlight(chooserItemKey("review"), ROWS)).toBe(2);
+});
+
+it("keeps the highlight on an action when the rebuilt list contains an item with its key as a value", () => {
+  const rows = [{ value: "action:clear", label: "Tagged item" }, { ...CLEAR }];
+  expect(rehomedHighlight(chooserRowKey(CLEAR), rows)).toBe(1);
 });
 
 it("takes the highlight back to the first row when its row is gone", () => {
-  expect(rehomedHighlight("review", ROWS.slice(0, 2))).toBe(0);
+  expect(rehomedHighlight(chooserItemKey("review"), ROWS.slice(0, 2))).toBe(0);
 });
 
 it("leaves the highlight off when none was held", () => {
@@ -250,5 +257,5 @@ it("leaves the highlight off when none was held", () => {
 });
 
 it("highlights no row when the rebuilt list is empty", () => {
-  expect(rehomedHighlight("review", [])).toBe(-1);
+  expect(rehomedHighlight(chooserItemKey("review"), [])).toBe(-1);
 });

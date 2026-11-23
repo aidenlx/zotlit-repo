@@ -309,7 +309,6 @@
   "packages/scripts/scripts/fixture.ts": "1a131c867f147d8a 35313883e86aee8c d882fe31f7180125",
   "packages/scripts/scripts/obsidian-vault.ts": "111101c372d01072",
   "packages/shared/src/delimited.ts": "4030f9ca90f5f7fa d17e28144f201470",
-  "packages/shared/src/nanoevents.ts": "9bf8497c99a04947",
   "packages/template-workbench/src/core/document/controller.ts": "ebbfbe7c55fc732b ebbfbe7c55fc732b",
   "packages/template-workbench/src/core/document/slice.test.ts": "4bb8b2f0d2b72cdf",
   "packages/template-workbench/src/core/document/slice.ts": "ebbfbe7c55fc732b ebbfbe7c55fc732b",

@@ -1,12 +1,36 @@
 import { matchesSearchTerm } from "@zotlit/item-query";
 
-export interface ChooserRow {
-  value: string;
+interface ChooserRowBase {
   label: string;
   searchTerms?: readonly string[];
   disabled?: boolean;
-  action?: (close: () => void) => void;
+}
+
+export interface ChooserItemRow extends ChooserRowBase {
+  value: string;
+  action?: undefined;
   next?: (close: () => void) => void;
+}
+
+export interface ChooserActionRow extends ChooserRowBase {
+  id: string;
+  action: (close: () => void) => void;
+  value?: undefined;
+  next?: undefined;
+}
+
+export type ChooserRow = ChooserItemRow | ChooserActionRow;
+
+export function chooserItemKey(value: string): string {
+  return `item:${value}`;
+}
+
+export function chooserActionKey(id: string): string {
+  return `action:${id}`;
+}
+
+export function chooserRowKey(row: ChooserRow): string {
+  return row.action ? chooserActionKey(row.id) : chooserItemKey(row.value);
 }
 
 export interface ChooserGroup<Row extends ChooserRow> {
@@ -128,10 +152,10 @@ export function clampedHighlight(index: number, count: number): number {
 }
 
 export function rehomedHighlight(
-  value: string | null,
+  rowKey: string | null,
   rows: readonly ChooserRow[],
 ): number {
-  if (rows.length === 0 || value === null) return -1;
-  const at = rows.findIndex((row) => row.value === value);
+  if (rows.length === 0 || rowKey === null) return -1;
+  const at = rows.findIndex((row) => chooserRowKey(row) === rowKey);
   return at < 0 ? 0 : at;
 }
