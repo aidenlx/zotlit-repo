@@ -833,6 +833,7 @@ const vaultCli = yargs(hideBin(process.argv))
         cwd: workspaceRoot,
         command: `obsidian-vault ${String(argv._[0])}`,
         manual: true,
+        insideOwnHold: true,
       });
     }
     inactive = argv.inactive === true;

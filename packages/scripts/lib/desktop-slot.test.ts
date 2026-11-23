@@ -791,6 +791,41 @@ setInterval(() => {}, 1000);`,
     expect(said()).toContain("waits for a slot. This manual hold ends at");
   });
 
+  it("turns away a manual hold from its own worktree at once, naming the token that runs inside it", async () => {
+    const holder = holderIn("/a", { command: "sleep 86400", manual: true });
+    await printed(holder, "held");
+    const started = Temporal.Now.instant().epochMilliseconds;
+    const options = {
+      manual: true,
+      insideOwnHold: true,
+      command: "obsidian-vault open",
+      worktree: "/a",
+      pollMs: 10,
+      waitMs: 2000,
+      log: () => {},
+      onLeaseEnd: () => {},
+    } as const;
+
+    const error = await acquireDesktopSlot(options).then(
+      (slot) => slot.release(),
+      (error: unknown) => error,
+    );
+
+    expect(Temporal.Now.instant().epochMilliseconds - started).toBeLessThan(
+      1000,
+    );
+    const [status] = (await readDesktopSlotStatus()).holders;
+    expect(error).toBeInstanceOf(DesktopSlotBlockedError);
+    expect((error as Error).message).toContain(
+      `the manual hold of pid ${holder.pid} (sleep 86400) in this worktree has the Desktop Slot, so obsidian-vault open would wait behind it. Run the command inside that hold: prefix it with ${DESKTOP_SLOT_ENV}=${status?.token}.`,
+    );
+    expect(status?.notice).toBeUndefined();
+    expect(isAlive(holder.pid!)).toBe(true);
+    process.env[DESKTOP_SLOT_ENV] = status?.token;
+    using inside = await acquireDesktopSlot(options);
+    expect(inside.reused).toBe(true);
+  });
+
   it("goes on when no run waits at the end of its notice", async () => {
     const holder = holderIn("/a", { command: "manual", manual: true });
     await printed(holder, "held");

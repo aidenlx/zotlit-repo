@@ -147,10 +147,12 @@ type HoldKind =
   | {
       silenceMs: number;
       manual?: false;
+      insideOwnHold?: never;
     }
   | {
       manual: true;
       silenceMs?: never;
+      insideOwnHold?: boolean;
     };
 
 export type DesktopSlotOptions = HoldKind & {
@@ -321,6 +323,18 @@ export async function acquireDesktopSlot(
           }
         }
         if (cleared) continue;
+        const own = alive[0];
+        if (
+          options.insideOwnHold &&
+          own &&
+          alive.every(
+            (holder) => holder.manual && holder.worktree === record.worktree,
+          )
+        ) {
+          throw new DesktopSlotBlockedError(
+            `${slotName}: the manual hold of pid ${own.pid} (${own.command}) in this worktree has the ${slotName}, so ${record.command} would wait behind it. Run the command inside that hold: prefix it with ${admission.tokenEnv}=${own.token}.`,
+          );
+        }
         let noticed = false;
         for (const holder of alive) {
           if (!holder.manual || holder.notice) continue;
