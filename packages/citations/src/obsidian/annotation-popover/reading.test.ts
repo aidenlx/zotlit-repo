@@ -16,6 +16,7 @@ import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-work
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
 
@@ -39,16 +40,22 @@ async function harness(
   {
     html = `<p><a class="external-link" href="${HREF}"><strong>p. 1</strong></a></p>`,
     citations = () => null,
+    held = (path) => {
+      const value = citations(path);
+      return value === null ? null : { value, status: "fresh" };
+    },
     show,
-    section: sectionInfo = null,
+    section: initialSection = null,
   }: {
     html?: string;
-    citations?: AnnotationLinkReadingDeps["citations"];
+    citations?: (path: string) => DocumentCitations | null;
+    held?: AnnotationLinkReadingDeps["citations"];
     show?: AnnotationLinkReadingDeps["show"];
     section?: MarkdownSectionInformation | null;
   } = {},
 ) {
   const hovers: AnnotationHoverRequest[] = [];
+  let sectionInfo = initialSection;
   let process: MarkdownPostProcessor | undefined;
   const container = document.body.appendChild(document.createElement("div"));
   stack.defer(() => container.remove());
@@ -71,7 +78,7 @@ async function harness(
         },
       },
       show: show ?? ((request) => hovers.push(request)),
-      citations,
+      citations: held,
       openItem: () => {
         throw new Error("Nothing opens a Literature Note here");
       },
@@ -96,6 +103,9 @@ async function harness(
     el,
     service,
     section,
+    moveSection: (next: MarkdownSectionInformation | null) => {
+      sectionInfo = next;
+    },
     opened: () => hovers.length > 0,
   };
 }
@@ -302,6 +312,105 @@ describe("Annotation Citations in reading view", () => {
     citations = citationsOf([0]);
     run.service.refresh("drafts/chapter.md");
 
+    expect(run.anchor.textContent).toBe("(Rougier 2014, 1)");
+  });
+
+  it("restores the native annotation link when formatting disappears", async () => {
+    await using stack = new AsyncDisposableStack();
+    let citations: DocumentCitations | null = null;
+    const run = await harness(stack, {
+      html: `<p><a class="external-link" href="${HREF}"></a></p>`,
+      citations: () => citations,
+    });
+    const native = run.anchor.cloneNode(true);
+    citations = citationsOf([0]);
+    run.service.refresh("drafts/chapter.md");
+    expect(run.anchor.textContent).toBe("(Rougier 2014, 1)");
+
+    citations = { ...citations, formatted: new Map() };
+    run.service.refresh("drafts/chapter.md");
+
+    expect.soft(run.anchor.hasChildNodes()).toBe(false);
+    expect.soft(run.anchor.isEqualNode(native)).toBe(true);
+    expect(run.el.querySelector("a")).toBe(run.anchor);
+    expect(run.anchor.getAttribute("href")).toBe(HREF);
+    enter(run.anchor);
+    expect(run.opened()).toBe(true);
+
+    citations = citationsOf([0]);
+    run.service.refresh("drafts/chapter.md");
+    expect(run.anchor.textContent).toBe("(Rougier 2014, 1)");
+  });
+
+  it("keeps the formatted annotation citation while its replacement read is pending", async () => {
+    await using stack = new AsyncDisposableStack();
+    const queries = stack.use(queryClientsFixture());
+    const path = "drafts/chapter.md";
+    const key = ["citations", path];
+    const initial = citationsOf([0]);
+    const replacement = { ...initial, formatted: new Map() };
+    await queries.bridge.runPromise(queries.ask(key, async () => initial));
+    const run = await harness(stack, {
+      html: `<p><a class="external-link" href="${HREF}"></a></p>`,
+      held: (sourcePath) =>
+        queries.bridge.runSync(
+          queries.peek<DocumentCitations>(["citations", sourcePath]),
+        ),
+    });
+    expect(run.anchor.textContent).toBe("(Rougier 2014, 1)");
+
+    queries.bridge.runSync(queries.invalidate(key));
+    const gate = Promise.withResolvers<DocumentCitations>();
+    const reading = queries.bridge.runPromise(
+      queries.ask(key, () => gate.promise),
+    );
+    try {
+      expect(queries.bridge.runSync(queries.peek(key))?.status).toBe(
+        "revalidating",
+      );
+      run.service.refresh(path);
+      expect(run.anchor.textContent).toBe("(Rougier 2014, 1)");
+    } finally {
+      gate.resolve(replacement);
+      await reading;
+    }
+  });
+
+  it("keeps the formatted annotation citation while a read is pending after an edit above it", async () => {
+    await using stack = new AsyncDisposableStack();
+    const queries = stack.use(queryClientsFixture());
+    const path = "drafts/chapter.md";
+    const key = ["citations", path];
+    const initial = citationsOf([0]);
+    await queries.bridge.runPromise(queries.ask(key, async () => initial));
+    const run = await harness(stack, {
+      html: `<p><a class="external-link" href="${HREF}"></a></p>`,
+      held: (sourcePath) =>
+        queries.bridge.runSync(
+          queries.peek<DocumentCitations>(["citations", sourcePath]),
+        ),
+      section: { text: CITATION, lineStart: 0, lineEnd: 0 },
+    });
+    expect(run.anchor.textContent).toBe("(Rougier 2014, 1)");
+
+    queries.bridge.runSync(queries.invalidate(key));
+    const gate = Promise.withResolvers<DocumentCitations>();
+    const reading = queries.bridge.runPromise(
+      queries.ask(key, () => gate.promise),
+    );
+    try {
+      run.moveSection({
+        text: `Added line\n${CITATION}`,
+        lineStart: 1,
+        lineEnd: 1,
+      });
+      run.service.refresh(path);
+      expect(run.anchor.textContent).toBe("(Rougier 2014, 1)");
+    } finally {
+      gate.resolve(citationsOf(["Added line\n".length]));
+      await reading;
+    }
+    run.service.refresh(path);
     expect(run.anchor.textContent).toBe("(Rougier 2014, 1)");
   });
 });

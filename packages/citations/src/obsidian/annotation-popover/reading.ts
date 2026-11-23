@@ -6,6 +6,7 @@ import type { NavigationPane } from "#obsidian/citekey-navigation/index.ts";
 import { Effect, Layer } from "effect";
 import { MarkdownRenderChild } from "obsidian";
 import type { MarkdownPostProcessorContext, MarkdownView } from "obsidian";
+import { createRoot } from "react-dom/client";
 
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
@@ -23,6 +24,7 @@ import type { SectionRange } from "@zotlit/obsidian-kit/reading-view.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { parseAnnotationOpenUri } from "@zotlit/zotero-types/uri";
 import type { AnnotationOpenUriOptions } from "@zotlit/zotero-types/uri";
@@ -46,7 +48,9 @@ export interface AnnotationLinkReadingDeps {
   host: Pick<PluginHostShape, "registerMarkdownPostProcessor">;
   markdownViews: () => readonly MarkdownView[];
   show: (request: AnnotationHoverRequest) => void;
-  citations: (path: string) => DocumentCitations | null;
+  citations: (
+    path: string,
+  ) => Pick<Held<DocumentCitations>, "value" | "status"> | null;
   openItem: (indexedKey: string, pane: NavigationPane) => void;
 }
 
@@ -95,9 +99,9 @@ export class AnnotationLinkReadingCore implements Disposable {
     }
     if (links.length === 0) return;
     const rewrite = () => {
-      const citations = this.#deps.citations(ctx.sourcePath);
-      if (citations !== null)
-        this.#showCitations(links, citations, sectionRange(ctx, el));
+      const held = this.#deps.citations(ctx.sourcePath);
+      if (held !== null)
+        this.#showCitations(links, held, sectionRange(ctx, el));
     };
     const section = this.#hold(el, ctx, rewrite);
     for (const rendered of links) {
@@ -110,17 +114,24 @@ export class AnnotationLinkReadingCore implements Disposable {
 
   #showCitations(
     links: readonly RenderedLink[],
-    citations: DocumentCitations,
+    { value, status }: Pick<Held<DocumentCitations>, "value" | "status">,
     range: SectionRange | null,
   ): void {
-    const occurrences = annotationOccurrences(citations, range);
+    const occurrences = annotationOccurrences(value, range);
     let next = 0;
     for (const rendered of links) {
       if (!rendered.citation && rendered.anchor.hasChildNodes()) continue;
       const index = occurrences.findIndex(
         ({ link }, at) => at >= next && sameAnnotation(link, rendered.link),
       );
-      if (index === -1) continue;
+      if (index === -1) {
+        if (rendered.citation && status === "fresh") {
+          createRoot(rendered.anchor).unmount();
+          rendered.anchor.classList.remove(themeHook.citation, CITATION_CLASS);
+          rendered.citation = false;
+        }
+        continue;
+      }
       next = index + 1;
       showCitation(rendered.anchor, occurrences[index]!.occurrence, "suppress");
       rendered.anchor.classList.add(themeHook.citation, CITATION_CLASS);
@@ -218,9 +229,7 @@ export const layerAnnotationLinkReading = Layer.effectDiscard(
             markdownViews: () => bridge.runSync(workspace.markdownViews),
             show: (request) => bridge.runAndForget(popover.show(request)),
             citations: (path) =>
-              showCitations
-                ? (run(citationText.peek(path))?.value ?? null)
-                : null,
+              showCitations ? run(citationText.peek(path)) : null,
             openItem: (indexedKey, pane) =>
               bridge.runAndForget(editor.openIndexedKey(indexedKey, pane)),
           }),
