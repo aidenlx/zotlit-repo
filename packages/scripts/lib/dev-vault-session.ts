@@ -190,6 +190,16 @@ export async function openRegisteredVault(
     }
   }
 
+  const manifests = await evaluate(
+    "(async()=>{await app.plugins.loadManifests();return 'loaded'})()",
+    registered,
+  );
+  if (manifests !== "loaded") {
+    throw new Error(
+      `could not read the plugin manifests in ${registered}: ${manifests}`,
+    );
+  }
+
   for (const { id, app } of plugins) {
     const recovery = `Run ${buildCommands([{ id, app }])}, then run '${retry}'.`;
     let reloaded = "";

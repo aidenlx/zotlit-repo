@@ -253,6 +253,24 @@ describe("a registered Development Vault opened again", () => {
   });
 });
 
+describe("a registered Development Vault given an installed plugin", () => {
+  it("registers the plugin that the sync copied in", async () => {
+    const specs = vaults({ open: true, onDisk: ["zotlit-reader", "zotlit"] });
+    const obsidian = fakeObsidian(specs);
+
+    await openRegisteredVault(obsidian.session, {
+      ...start,
+      plugins: PLUGINS,
+      openCode: "false",
+      sync: async () => {
+        specs[DEV]!.onDisk!.push("zotlit-resources");
+      },
+    });
+
+    expect(obsidian.manifests(DEV)).toContain("zotlit-resources");
+  });
+});
+
 describe("the Development Vault check", () => {
   const check = { host: HOST, vaultPath: DEV_PATH, fixtureRoot: FIXTURE_ROOT };
 

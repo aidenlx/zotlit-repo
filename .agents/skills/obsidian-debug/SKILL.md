@@ -36,17 +36,18 @@ breakpoints, popout or settings windows, the main process), follow [devtools.md]
 4. Run `packages/scripts/scripts/obsidian-vault.ts check`. Vault setup is
    complete when the command succeeds. Follow its recovery instructions when
    it fails.
-5. Build the plugin, then use the live `open` command to prepare this
+5. Build the plugins, then use the live `open` command to prepare this
    worktree's Development Vault:
 
 ```bash
 pnpm exec turbo run build --filter='@zotlit/obsidian^...'
 pnpm --filter @zotlit/obsidian build:dev
+pnpm --filter ./apps/reader build:dev
 ```
 
 The first command runs the build tasks of the workspace packages the plugin
-bundles. The second builds the plugin and
-copies it into the vault.
+bundles. The second and third build ZotLit and the reader and
+copy them into the vault.
 
 Editing the Fixture Spec or its committed vault-page assets changes the next
 Fixture build, not the open Development Vault. Use the live `open` command
@@ -81,10 +82,10 @@ Write each call as one plain command with literal values: `<id>` is the vault ID
 
 ## Loop
 
-Take the host desktop’s Exclusive Hold for the walk: wrap it in `pnpm desktop-slot run -- …` (a script of the walk, or `sleep 86400` in the background while you make the calls, ended when the walk is done). Exit 75 means blocked by the holder it names, not a failure. When another run waits, the hold prints a notice and ends 5 min later with exit 76; report that the walk yielded, and hold the slot again after that run.
+Take the host desktop’s Exclusive Hold for the walk: wrap it in `pnpm desktop-slot run -- …` (a script of the walk, or `sleep 86400` in the background while you make the calls, ended when the walk is done). Run Vault setup before you take the hold, and Teardown after you release it. Each `obsidian-vault.ts` command takes the slot itself: while your hold from this worktree has it, the command exits 75 and prints the `ZOTLIT_DESKTOP_SLOT=<token>` prefix that runs it inside your hold. Exit 75 means blocked by the holder it names, not a failure. When another run waits, the hold prints a notice and ends 5 min later with exit 76; report that the walk yielded, and hold the slot again after that run.
 
-1. **Build** — the two build commands from Vault setup step 5. The second copies the
-   bundle into this worktree's Development Vault; prefix it with `ZT_VAULT_CASE=<case>`
+1. **Build** — the build commands from Vault setup step 5. The `build:dev` commands copy the
+   bundles into this worktree's Development Vault; prefix them with `ZT_VAULT_CASE=<case>`
    to copy into a Vault Case vault, such as the `upgrader` vault.
 2. **Reload** — `obsidian-cli.ts vault=<id> plugin:reload id=zotlit`. A leaf or embed open
    across the reload keeps the old build's DOM: run `leaf.rebuildView()` on each ZotLit leaf,
