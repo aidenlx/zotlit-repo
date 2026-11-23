@@ -18,7 +18,7 @@ export interface CommentEdit {
 }
 
 export function parseComment(text: string): FormatSpan[] {
-  const lower = text.toLowerCase();
+  const lower = text.replaceAll(/[A-Z]/g, (letter) => letter.toLowerCase());
   const spans: FormatSpan[] = [];
   const walk = (from: number, to: number): void => {
     let pos = from;

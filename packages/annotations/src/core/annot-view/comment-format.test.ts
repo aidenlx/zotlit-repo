@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
   activeFormats,
   clearFormatting,
+  commentPlainText,
   htmlToComment,
   parseComment,
   toggleFormat,
@@ -52,6 +53,25 @@ describe("parseComment", () => {
 
   it("matches tags in any case", () => {
     expect(parseComment("<B>x</B>").map((s) => s.format)).toEqual(["b"]);
+  });
+
+  it("returns offsets into the original text when casing expands span content", () => {
+    const text = "<b>İstanbul</b> tail";
+    expect(
+      parseComment(text).map((span) =>
+        text.slice(span.contentFrom, span.contentTo),
+      ),
+    ).toEqual(["İstanbul"]);
+  });
+});
+
+describe("commentPlainText", () => {
+  it("preserves text when casing expands a character before a pair", () => {
+    expect(commentPlainText("İ <b>book</b> tail")).toBe("İ book tail");
+  });
+
+  it("preserves text when casing expands a character inside a pair", () => {
+    expect(commentPlainText("<b>İstanbul</b> tail")).toBe("İstanbul tail");
   });
 });
 
@@ -109,6 +129,13 @@ describe("clearFormatting", () => {
 });
 
 describe("activeFormats", () => {
+  it("finds the format at the first character after a casing expansion", () => {
+    const { text, selection } = sel("İ <b>|book</b>");
+    expect([...activeFormats(text, selection.anchor, selection.head)]).toEqual([
+      "b",
+    ]);
+  });
+
   it("names formats every selected character carries", () => {
     const { text, selection } = sel("<b>[a<i>b</i>]</b>");
     expect([...activeFormats(text, selection.anchor, selection.head)]).toEqual([
