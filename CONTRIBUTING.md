@@ -361,6 +361,11 @@ first action is to run the same publish again: re-run the failed job, or run
 | Companion `release`, `update channel` | `zt-<v>` may exist                                       | Run again. The run reuses the XPI on `zt-<v>`, so the update manifests hash the file users download.                  |
 | shell workflow in `aidenlx/zotlit`    | the tag exists there; the release may be a draft         | Re-run that workflow. When the official action stops on the draft it made, delete the draft (not the tag) and re-run. |
 
+The Companion `update channel` step uploads only the update manifests it
+changed. It stops before an upload when another publish put a newer version on
+that channel after this run downloaded it. Run the publish again: the new run
+builds on the current channel.
+
 A release whose fix needs a new version can leave an orphan `res-<version>`
 or a draft in `aidenlx/zotlit`, and a version on npm that no release uses
 (`npm deprecate` it). Delete the orphan release by hand.

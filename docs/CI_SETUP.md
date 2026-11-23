@@ -121,7 +121,7 @@ release, so the community directory reads the stable `manifest.json` there.
 | build            | `turbo run build --filter=@zotlit/zotero`                             | builds again                                                   |
 | release          | `gh release create zt-<v>` with the XPI                               | the release has the XPI: download it, so the manifests hash it |
 | update manifests | download `update*.json` from `zotero-release`, `build-update-json.ts` | the same version is not newer: the manifests stay              |
-| update channel   | `gh release edit` and `upload --clobber` on `zotero-release`          | uploads the same files                                         |
+| update channel   | `gh release edit`, then `upload --clobber` of each changed manifest   | no manifest changed: no upload; a newer channel version: stop  |
 | source tag       | `git push origin <sha>:refs/tags/zt-<v>`                              | as for the plugin                                              |
 
 `pnpm release:publish <product>` runs the same steps on a machine, with the npm

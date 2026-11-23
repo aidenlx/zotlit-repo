@@ -1,11 +1,23 @@
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import {
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
+import { promisify } from "node:util";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { SourceTags } from "./obsidian.ts";
 import { publishZotero, UPDATE_HOST_TAG } from "./zotero.ts";
 import type { ReleaseHost } from "./zotero.ts";
+
+import { getWorkspaceRoot } from "#package-roots";
 
 let root: string;
 let dist: string;
@@ -109,6 +121,7 @@ describe("publishZotero", () => {
       "create zt-2.3.0-beta.0 pre-release",
       `download ${UPDATE_HOST_TAG} update*.json`,
       `edit ${UPDATE_HOST_TAG}`,
+      `download ${UPDATE_HOST_TAG} update*.json`,
       `upload ${UPDATE_HOST_TAG} update-beta.json`,
     ]);
     expect(releases.get(UPDATE_HOST_TAG)!.get("update-beta.json")).toBe(
@@ -132,6 +145,19 @@ describe("publishZotero", () => {
     );
   });
 
+  it("skips channel uploads when the generated manifests have the same bytes", async () => {
+    const releases = withHost();
+    releases
+      .get(UPDATE_HOST_TAG)!
+      .set("update-beta.json", '{"hash":"same build"}');
+
+    const calls = await publish(releases, new Map(), "same build");
+
+    expect(
+      calls.some((call) => call.startsWith(`upload ${UPDATE_HOST_TAG} `)),
+    ).toBe(false);
+  });
+
   it("stops before any channel changes when the rolling release is missing", async () => {
     const releases: Releases = new Map();
 
@@ -146,5 +172,191 @@ describe("publishZotero", () => {
     await expect(publish(withHost(), tags, "build")).rejects.toThrow(
       /not on c0ffee/,
     );
+  });
+});
+
+describe("overlapping Companion publishes", () => {
+  const run = promisify(execFile);
+  const addonId = "companion@example.test";
+  const stableManifest = "update.json";
+  const betaManifest = "update-beta.json";
+  const stableVersion = "2.2.1";
+
+  function seedChannels(betaVersion: string): Releases {
+    const manifest = (version: string) =>
+      JSON.stringify({ addons: { [addonId]: { updates: [{ version }] } } });
+    return new Map([
+      [
+        UPDATE_HOST_TAG,
+        new Map([
+          [stableManifest, manifest("2.2.0")],
+          [betaManifest, manifest(betaVersion)],
+        ]),
+      ],
+    ]);
+  }
+
+  function manifestVersion(body: string) {
+    const manifest = JSON.parse(body) as {
+      addons: Record<string, { updates: { version: string }[] }>;
+    };
+    return manifest.addons[addonId]!.updates[0]!.version;
+  }
+
+  async function publishWithGenerator(options: {
+    workspaceRoot: string;
+    version: string;
+    host: ReleaseHost;
+    sourceTags: SourceTags;
+  }) {
+    const { version, workspaceRoot } = options;
+    const sourceRoot = await getWorkspaceRoot(import.meta.dirname);
+    const source = join(sourceRoot, "apps/zotero");
+    const companion = join(workspaceRoot, "apps/zotero");
+    const scripts = join(companion, "scripts");
+    const targetDist = join(companion, "dist");
+    await mkdir(scripts, { recursive: true });
+    await mkdir(targetDist, { recursive: true });
+    for (const file of [
+      "build-update-json.ts",
+      "release-constants.ts",
+      "release-host-notes.eta",
+    ]) {
+      await cp(join(source, "scripts", file), join(scripts, file));
+    }
+    await symlink(
+      join(source, "node_modules"),
+      join(companion, "node_modules"),
+    );
+    await writeFile(
+      join(companion, "package.json"),
+      JSON.stringify({ type: "module", version, zotero: { id: addonId } }),
+    );
+    await publishZotero({
+      ...options,
+      changelogVersion: version,
+      sourceCommit: `commit-${version}`,
+      build: () =>
+        writeFile(join(targetDist, `zotlit-zotero-${version}.xpi`), version),
+      buildUpdateManifests: async () => {
+        await run(process.execPath, [join(scripts, "build-update-json.ts")], {
+          cwd: workspaceRoot,
+          env: { ...process.env, GITHUB_OUTPUT: "" },
+        });
+      },
+      say: () => {},
+    });
+  }
+
+  it("keeps the hosted beta update when the local stable hotfix resumes", async () => {
+    const releases = seedChannels("2.3.0-beta.0");
+    const channels = releases.get(UPDATE_HOST_TAG)!;
+    const betaBefore = channels.get(betaManifest)!;
+    const stableCalls: string[] = [];
+    const host = fakeHost(releases, stableCalls);
+    const sourceTags = memoryTags(new Map());
+    const stableGenerated = Promise.withResolvers<void>();
+    const resumeStable = Promise.withResolvers<void>();
+    const stable = publishWithGenerator({
+      workspaceRoot: root,
+      version: stableVersion,
+      sourceTags,
+      host: {
+        ...host,
+        editHost: async (tag, metadata) => {
+          stableGenerated.resolve();
+          await resumeStable.promise;
+          await host.editHost(tag, metadata);
+        },
+      },
+    });
+    try {
+      await Promise.race([stableGenerated.promise, stable]);
+      expect(await readFile(join(dist, betaManifest), "utf8")).toBe(betaBefore);
+      expect(
+        manifestVersion(await readFile(join(dist, stableManifest), "utf8")),
+      ).toBe(stableVersion);
+
+      await publishWithGenerator({
+        workspaceRoot: join(root, "beta"),
+        version: "2.3.0-beta.1",
+        sourceTags,
+        host: fakeHost(releases, []),
+      });
+      expect(manifestVersion(channels.get(betaManifest)!)).toBe("2.3.0-beta.1");
+    } finally {
+      resumeStable.resolve();
+      await stable;
+    }
+    expect(manifestVersion(channels.get(betaManifest)!)).toBe("2.3.0-beta.1");
+    expect(
+      stableCalls.some(
+        (call) =>
+          call.startsWith(`upload ${UPDATE_HOST_TAG} `) &&
+          call.split(" ").includes(betaManifest),
+      ),
+    ).toBe(false);
+  });
+
+  it("carries a stable release into the beta channel when it is newer", async () => {
+    const releases = seedChannels("2.2.1-beta.0");
+
+    await publishWithGenerator({
+      workspaceRoot: root,
+      version: stableVersion,
+      sourceTags: memoryTags(new Map()),
+      host: fakeHost(releases, []),
+    });
+
+    const channels = releases.get(UPDATE_HOST_TAG)!;
+    expect(manifestVersion(channels.get(stableManifest)!)).toBe(stableVersion);
+    expect(manifestVersion(channels.get(betaManifest)!)).toBe(stableVersion);
+  });
+
+  it("stops an earlier beta publish when a newer beta reaches the host", async () => {
+    const releases = seedChannels("2.3.0-beta.0");
+    const calls: string[] = [];
+    const host = fakeHost(releases, calls);
+    const sourceTags = memoryTags(new Map());
+    const earlierGenerated = Promise.withResolvers<void>();
+    const resumeEarlier = Promise.withResolvers<void>();
+    const earlier = publishWithGenerator({
+      workspaceRoot: root,
+      version: "2.3.0-beta.1",
+      sourceTags,
+      host: {
+        ...host,
+        editHost: async (tag, metadata) => {
+          earlierGenerated.resolve();
+          await resumeEarlier.promise;
+          await host.editHost(tag, metadata);
+        },
+      },
+    });
+    try {
+      await Promise.race([earlierGenerated.promise, earlier]);
+      await publishWithGenerator({
+        workspaceRoot: join(root, "newer"),
+        version: "2.3.0-beta.2",
+        sourceTags,
+        host: fakeHost(releases, []),
+      });
+    } finally {
+      resumeEarlier.resolve();
+      await Promise.allSettled([earlier]);
+    }
+
+    await expect
+      .soft(earlier)
+      .rejects.toThrow(
+        "Another publish updated update-beta.json to 2.3.0-beta.2 after this run downloaded it. This run has 2.3.0-beta.1. Run the publish again.",
+      );
+    const channels = releases.get(UPDATE_HOST_TAG)!;
+    expect
+      .soft(manifestVersion(channels.get(betaManifest)!))
+      .toBe("2.3.0-beta.2");
+    expect(
+      calls.some((call) => call.startsWith(`upload ${UPDATE_HOST_TAG} `)),
+    ).toBe(false);
   });
 });
