@@ -46,7 +46,8 @@ results for synchronous text rotation. The close signal releases pending
 Sort Index and Page Label requests when PDF.js stops answering. A blocked
 Sort Index read rejects and a blocked label read can use the page number.
 The host starts one shared Page Label pass when idle. A failed extraction
-currently stays in the memo for that session.
+leaves the memo so the next request reads the page again, as the amendment
+"a failed page read is read again" states.
 [Failed read retry](https://github.com/aidenlx/zotlit-repo/issues/68)
 
 Structured characters use PDF page coordinates. The upstream grouping
@@ -159,3 +160,15 @@ the text structure. Recompute the Sort Index from the
 resulting rectangle or range in all geometry cases.
 
 [Range and geometry proof](../../../../packages/e2e/src/paired-run.e2e.ts)
+
+## Amendment: a failed page read is read again
+
+Accepted 2026-11-23 with [#68](https://github.com/aidenlx/zotlit-repo/issues/68) and [PR 241](https://github.com/aidenlx/zotlit-repo/pull/241) (`79ba097d0`). Two caches hold a page's text: the page memo of the text structure session and the Reader's per-document text map, which the session reads through. Each cache deletes an entry when its read rejects. A pending read stays shared, and a successful read stays cached. The session eviction alone retries no real read, because the Reader's map would return the same rejection, so both caches evict. The eviction has no identity guard: no path replaces a pending entry, and no read starts after the Reader clears its map at retirement.
+
+Accepted limits:
+
+- The page-proxy cache of the vendored pdf.js build keeps a rejected `getPage`. A failure there still blocks a retry of that page until the document reopens.
+- Each cache holds its own copy of the eviction rule, about three lines. A shared helper would add a workspace dependency to the Reader package.
+- The Page Label heuristic, a verbatim copy of Zotero's code, catches a page failure and returns no labels. The session then uses physical page numbers until it ends.
+
+The maintainer kept the fix on 2026-11-23. The failure is rare and unmeasured: it needs a temporary extraction error in the PDF worker on a live document.

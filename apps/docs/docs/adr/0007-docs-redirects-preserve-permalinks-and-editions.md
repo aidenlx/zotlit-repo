@@ -26,6 +26,14 @@ The plugin can link directly to any released tag. The earliest 2.0.0 alphas pred
 
 Apply `noindex` and the HTML canonical link to the static Markdown editions, and mirror that policy on Worker responses. A placeholder matches one path segment, so generate one content-route rule per depth. Use the native locale path for an edition that the build emits in Chinese. The Pre-release Docs copy applies one site-wide `noindex` and removes narrower copies of that header because the asset layer joins values from matching rules. It preserves other headers when removing the duplicates. [Cloudflare asset headers](https://developers.cloudflare.com/workers/static-assets/headers/)
 
-Use the asset header rules for Chinese content language, giscus stylesheet CORS, and the RSS content type. Missing Chinese pages fall through to the Worker, which labels the English response. The bare Chinese home path is now native but misses the nested path's asset header. [Home header follow-up](https://github.com/aidenlx/zotlit-repo/issues/111)
+Use the asset header rules for Chinese content language, giscus stylesheet CORS, and the RSS content type. Missing Chinese pages fall through to the Worker, which labels the English response. The bare Chinese home path has its own rule beside the nested paths' rule, as the 2026-11-23 amendment states. [Home header](https://github.com/aidenlx/zotlit-repo/issues/111)
 
 Cache commit-pinned archives and hash-named assets as immutable because new bytes get new URLs. Keep the chunks crawlable so a search engine can render the page. Exclude the chunks from search results with the response header.
+
+## Amendment (2026-11-23): the bare Chinese home path has its own header rule
+
+A `/zh-CN/*` rule does not match `/zh-CN`, so the prerendered Chinese home page had no `Content-Language`. The asset headers now hold a `/zh-CN` rule beside the `/zh-CN/*` rule. A unit test checks the rule table against every prerendered Chinese path outside the `run_worker_first` patterns, on the production line and on the Pre-release Docs line.
+
+Accepted limit: no automated test reads the built `_headers` file against the asset layer. One local `vite preview` checked by hand that `/zh-CN` and `/zh-CN/docs` answer `content-language: zh-CN` and that a missing Chinese page answers 404 with `content-language: en`.
+
+[Issue 111](https://github.com/aidenlx/zotlit-repo/issues/111) · [PR 247](https://github.com/aidenlx/zotlit-repo/pull/247) (`727c8263a`)

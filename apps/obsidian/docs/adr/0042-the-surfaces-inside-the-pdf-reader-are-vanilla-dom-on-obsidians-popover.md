@@ -137,7 +137,8 @@ overlay with the page, and the renderer can reuse the same coordinates at
 every zoom. The renderer maps the two diagonal PDF corners and normalizes
 the result for all four page rotations. It prefers `clone` to avoid
 division roundoff. A viewport without `clone` requires a fallback that
-undoes zoom. [Preserving the page unit in the fallback](https://github.com/aidenlx/zotlit-repo/issues/61)
+undoes zoom. Lengths in PDF points scale by the page's UserUnit, as the
+amendment "PDF-point lengths scale by UserUnit" states. [UserUnit sizes](https://github.com/aidenlx/zotlit-repo/issues/61)
 
 The renderer paints pending strokes below marks. Selection leaves the
 mark's own colour intact. A rectangle-based mark gets a separate
@@ -251,3 +252,14 @@ on each placement. Open the popup with a click, move focus, and scroll
 the popout so its popup is placed again without a click.
 
 [Popout placement proof](../../../../packages/e2e/src/mark-popup-window.ts)
+
+## Amendment: PDF-point lengths scale by UserUnit
+
+Accepted 2026-11-23 with [#61](https://github.com/aidenlx/zotlit-repo/issues/61) and [PR 241](https://github.com/aidenlx/zotlit-repo/pull/241) (`e300e898d`). On the `clone` path a page unit is a PDF user-space unit times the page's UserUnit, so a length stored in PDF points needs the same factor. `toPageUnits` returns `unitsPerPdfPoint`: the UserUnit on the `clone` path and 1 on the fallback, whose units are already PDF points. The saved text's font size and line advance, the ink stroke width (saved, pending and live), the ink casing, the ink hit reach and the Text Draft's display scale use it. On a UserUnit 2 page, text, ink and the Text Draft keep the size relative to the page that they have on a UserUnit 1 page. Every Reader viewport has `clone`, so only test fixtures reach the fallback.
+
+Accepted limits:
+
+- The interaction tolerances (handle radius, ring padding, click slop and the minimum ink reach) keep their current sizes and do not scale with UserUnit.
+- The range-strip padding is in page units inside a rectangle in PDF space, so it grows with UserUnit. This was so before the change.
+
+UserUnit pages are rare in research PDFs; they occur in large-format drawings. The maintainer retitled the issue to this defect on 2026-11-23.

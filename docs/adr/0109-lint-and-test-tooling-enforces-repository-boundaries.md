@@ -112,7 +112,7 @@ enum, which the workspace's verbatim module syntax cannot import.
 
 ## Pinned maintenance templates
 
-The Diagnosing Bugs and Wizard shell templates match the v1.3.1 upstream skill blobs recorded by `skills-lock.json`. Keep the pinned copies reproducible when auditing local comments. Make changes to a working copy of a template when using it, and take fixes to the pinned template through a source update.
+The Diagnosing Bugs and Wizard shell templates match the v1.3.1 upstream skill blobs recorded by `skills-lock.json`. Keep the pinned copies reproducible when auditing local comments. Make changes to a working copy of a template when using it, and take fixes to the pinned template through a source update. The same rule covers every upstream skill copy that `skills-lock.json` records by hash, such as Skill Creator, as the amendment "lock-recorded upstream skills are fixed upstream" states.
 
 The diagnostic loop pauses for a human action and then prints captured observations as key-value pairs for the agent. Use the action prompt for sign-in and reserve printed captures for observations. The Wizard keeps a reusable helper section above the authoring marker. It avoids clearing piped output, offers previously saved values as defaults, and separates visible from hidden entry. It lets a human configure values during the procedure and reports actions that still need manual work. The 2026-11-23 amendment records two upstream Wizard defects. [Environment update defect](https://github.com/aidenlx/zotlit-repo/issues/77) · [GitHub write message](https://github.com/aidenlx/zotlit-repo/issues/78)
 
@@ -427,3 +427,17 @@ Two Wizard defects occur in the pinned template (v1.3.1) and on upstream main (v
 Rejected: a local patch. It makes the lock hash wrong and moves the copy away from its pinned source.
 
 The maintainer decided on 2026-11-23 that these defects belong upstream and closed both issues with no change. [Issue 77](https://github.com/aidenlx/zotlit-repo/issues/77) · [Issue 78](https://github.com/aidenlx/zotlit-repo/issues/78)
+
+## Amendment (2026-11-23): lock-recorded upstream skills are fixed upstream
+
+Skill Creator is an upstream copy that `skills-lock.json` records by hash. It tracks the main branch of `anthropics/skills`, and its files are identical to upstream main. The pinned-template rule of this ADR covers it, as it covers Diagnosing Bugs and Wizard: the copy stays identical to the source that the lock records, and fixes arrive with a source update. Three defects occur in the copy and on upstream main, and upstream has no fix for them:
+
+- The review viewer sends SIGTERM to every process that holds its port before it binds, also to a process that is not a viewer.
+- The description optimizer returns a rewrite longer than 1,024 characters after its one shorten call.
+- The viewer shows "Saved" or the completion screen when the server answers a feedback save with an error, and offers no download.
+
+Accepted limit: the review viewer can stop another local service that uses its port (3117 by default, or the `--port` value). Choose a free port when another service runs on it.
+
+Rejected: a local patch. It makes the lock hash wrong and moves the copy away from its source.
+
+The maintainer closed the three issues with no change on 2026-11-23, by the rule of the Wizard amendment above. These are maintainer tools, so researchers are not affected. [Issue 62](https://github.com/aidenlx/zotlit-repo/issues/62) · [Issue 63](https://github.com/aidenlx/zotlit-repo/issues/63) · [Issue 65](https://github.com/aidenlx/zotlit-repo/issues/65)

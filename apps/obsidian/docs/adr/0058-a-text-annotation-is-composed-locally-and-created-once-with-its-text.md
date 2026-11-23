@@ -136,3 +136,20 @@ its size, including after the time a late resize would
 have landed.
 
 [Text and note geometry cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+
+## Amendment: the draft and the saved mark wrap at one width
+
+Accepted 2026-11-23 with [#58](https://github.com/aidenlx/zotlit-repo/issues/58) and [PR 241](https://github.com/aidenlx/zotlit-repo/pull/241) (`c3f3a9744`). The textarea of the Text Draft uses the exact width of the fitted box, and the saved mark wraps at that same width. The fit adds one point only when it sizes a multiline box to its widest line. When a page edge, a kept user width or the 300-point cap sets the width, the fit adds no point. The draft has no minimum width, so a narrow fitted box shows at its own width. Saved lines stay inside the stored box, as the paired run checks.
+
+Accepted limits:
+
+- A box that the fit sizes to its widest line is one point wider than Zotero's fit of the same text.
+- The DOM measures the textarea and the canvas measures the saved mark. A line whose two measures fall on different sides of the box width can wrap differently after save. The difference is below one pixel.
+
+Rejected:
+
+- **One wrap budget of the box width plus one point for the textarea, the fit and the saved mark:** saved text can then pass the stored box by one point, which breaks the paired run's check that each saved line fits in the box.
+- **The saved-mark renderer draws the draft's text, and the textarea only takes input:** one wrap decision, but the caret and the selection can sit on another line than the drawn text near the box edge.
+- **No change:** a line that measures within one point above the box width wraps at save, which a long word broken into characters makes common.
+
+The maintainer chose "fit adds 1 pt, textarea at the exact width" on 2026-11-23.

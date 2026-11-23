@@ -31,7 +31,7 @@ This decision keeps the export's own membership contract, which ADR-0022 leaves 
 
 The Lua filter in `packages/citations/src/core/pandoc/filter/zotlit-cite.lua` and the TypeScript parser in `packages/plugin-kernel/src/citation-fragment.ts` apply the same validation rules in the same order. A rejected value gets the same reason in both paths. Live Preview leaves the link as raw text when export would reject it.
 
-Both parsers percent-decode each value byte by byte, then validate UTF-8. This gives malformed escapes and invalid UTF-8 distinct errors. Each parameter is recorded only after its value passes validation, so duplicate checks mirror the Lua filter's `seen` table. Both parsers currently use byte classes to check whitespace and controls. This maintains parity and can reject printable characters that contain a byte in one of those classes. [Unicode validation follow-up](https://github.com/aidenlx/zotlit-repo/issues/41)
+Both parsers percent-decode each value byte by byte, then validate UTF-8. This gives malformed escapes and invalid UTF-8 distinct errors. Each parameter is recorded only after its value passes validation, so duplicate checks mirror the Lua filter's `seen` table. Both parsers check whitespace, line breaks and controls on code points, as the amendment "one code-point contract for Citation Fragments" states. [Unicode validation](https://github.com/aidenlx/zotlit-repo/issues/41)
 
 A resolved Literature Note uses the native Zotero citation key from the Citation Index. If the key is absent or empty, Live Preview derives one from the note's filename without the extension. A link without a fragment uses normal mode. The caller handles subpaths outside the `cite:` syntax.
 
@@ -72,3 +72,20 @@ The wikilink derivation starts from the note target and checks the same Literatu
 The preview builds each Citation Run from the surface's links in document order. A link that produces no citation ends the run. The surface can also end the run at a paragraph or container boundary. Match the Pandoc separator by allowing spaces or tabs around the semicolon and ending the run at a line break.
 
 The vault's Citation Locale and a document's Language use the same BCP 47 grammar. It accepts case-insensitive grandfathered, extended, and private-use forms, as well as extension sequences such as a Unicode collation preference. The grammar checks subtag shape first. A second pass rejects duplicate variant subtags and extension singletons. Private-use subtags may repeat. The Document Language is standard Pandoc `lang` metadata and also supplies the document's citation locale. The document's Zotero CSL ID takes precedence over the vault style. [BCP 47 grammar and constraints](https://www.rfc-editor.org/rfc/rfc5646#section-2.1) · [CSL locale fallback](https://docs.citationstyles.org/en/v1.0.2/specification.html#locale-fallback)
+
+## Amendment: one code-point contract for Citation Fragments
+
+Accepted 2026-11-23 with [#41](https://github.com/aidenlx/zotlit-repo/issues/41) and [PR 249](https://github.com/aidenlx/zotlit-repo/pull/249) (`2f60e7583`). The byte classes of Lua (`%s`, `%c`, `%S+`) depend on the C locale: native Pandoc under `C.UTF-8` rejected values that the Resource Pack's pandoc-wasm accepted, and the TypeScript parser checked UTF-8 bytes. After percent decoding and strict UTF-8 validation (U+FEFF stays, surrogates are rejected), the TypeScript parser and the Lua filter now check code points in this order:
+
+1. An empty value.
+2. A first or last code point in Unicode White_Space: edge whitespace.
+3. U+000A, U+000D, U+0085, U+2028 or U+2029: a line break.
+4. A Cc code point (U+0000 to U+001F, U+007F to U+009F): a control character.
+
+The Lua filter splits values into Pandoc words on ASCII whitespace only, on every path that converts text to inlines. Values such as `voil%C3%A0`, a euro sign or an ideographic space parse the same way in the TypeScript parser, native Pandoc and pandoc-wasm. The shared Citation Fragment fixture defines the cases, and both suites run it.
+
+Accepted limits:
+
+- Each language holds the code-point lists as literals in its own file. The shared fixture keeps the two lists in agreement.
+- Live Preview was checked at the data level only, through the wikilink citation parser, with no desktop run.
+- The editor and the note scanner trim and NFC-normalize a raw link target before the parser receives it. A raw edge space and an encoded edge space can therefore give different results at those entry points.

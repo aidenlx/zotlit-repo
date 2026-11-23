@@ -129,7 +129,7 @@ queries. A failed binary read or initialization falls back to
 `Intl.Segmenter`. The next request can try that binary again. Jieba receives
 whole CJK runs so it can return compound words and their parts. The web
 binding reuses the first live instance in a realm. Uninstall switches back
-to Intl without unloading that instance. [Binary replacement follow-up](https://github.com/aidenlx/zotlit-repo/issues/57)
+to Intl without unloading that instance. The Segmenter refuses a binary built for another jieba-wasm version before it starts it, as the 2026-11-23 amendment of [ADR 0101](0101-managed-binaries-ship-in-the-resource-pack.md) states. [Binary version pin](https://github.com/aidenlx/zotlit-repo/issues/57)
 
 ## Test seams
 

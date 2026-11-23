@@ -64,7 +64,7 @@ The root route supplies page metadata defaults. A route's head overrides individ
 
 Inject the public Cloudflare Web Analytics site token at build time. A build without a token omits the beacon. The token selects the analytics property.
 
-The sidebar server function currently relies on plain content without resolved icon elements. A future tree contract should keep the wire value in the serializer's supported types. [Sidebar serialization follow-up](https://github.com/aidenlx/zotlit-repo/issues/104)
+The sidebar server function sends a typed page tree that holds icon names, and the layout resolves the names to icons, as the 2026-11-23 amendment states. [Sidebar serialization](https://github.com/aidenlx/zotlit-repo/issues/104)
 
 ## Shared page components
 
@@ -74,7 +74,7 @@ Give Fumadocs its public, localized path while the router matches its unprefixed
 
 Use one banner to explain a missing Chinese body and a different banner to offer a Chinese edition to a Chinese-first browser. The latter renders hidden until the head script marks the reader and leaves no reserved gap on other pages. Keep it off full-height app shells so their footer still fits. The fallback uses the banner offset for sticky chrome. Use native anchors for locale changes so the router does not apply its outgoing locale rewrite. Preserve the query and hash when switching editions. Fragments are absent on the server, so use the browser snapshot after hydration and refresh on both history and router location changes.
 
-The legacy notice uses the redirect's `from=v1` and `src` query values. Treat a locale hint alone as insufficient to show it. Validate the source as a path before appending it to the fixed archive origin. Preserve the original archive locale when a reader chooses the English edition of the new page. The prerender has no arrival query, so the notice must read it in the browser. The current mount-only read can leave the previous notice visible on a client navigation. [Redirect notice follow-up](https://github.com/aidenlx/zotlit-repo/issues/105)
+The legacy notice uses the redirect's `from=v1` and `src` query values. Treat a locale hint alone as insufficient to show it. Validate the source as a path before appending it to the fixed archive origin. Preserve the original archive locale when a reader chooses the English edition of the new page. The prerender has no arrival query, so the notice reads it in the browser from the router location after hydration, as the 2026-11-23 amendment states. [Redirect notice](https://github.com/aidenlx/zotlit-repo/issues/105)
 
 Page loaders supply initial release data only for the install pages and the install lesson. Pass it through context because the consumers sit inside MDX bodies below the route. Refresh after mount, and keep the baked facts on a failed lookup. An ineligible page should have a null snapshot even when the preceding page fetched one. [Snapshot follow-up](https://github.com/aidenlx/zotlit-repo/issues/106)
 
@@ -110,13 +110,13 @@ The four content sections share a pure URL scheme across the router, content rou
 
 Serve both `llms*.txt` inventories as plain text. The short index preserves folder labels and takes each page entry's own title, then lists lessons. The full index concatenates docs and lessons. The asset rule and Worker share the Markdown canonical and noindex headers.
 
-Rewrite localized Markdown link destinations by source offset to preserve code, image destinations, labels, titles, and unrelated URLs. A definition used by an image remains in its authored form. HTML and JSX links keep their authored destinations, except components such as ActionLink that render ordinary Markdown. The current source check skips a valid escaped leading slash. [Link rewriting follow-up](https://github.com/aidenlx/zotlit-repo/issues/113)
+Rewrite localized Markdown link destinations by source offset to preserve code, image destinations, labels, titles, and unrelated URLs. A definition used by an image remains in its authored form. HTML and JSX links keep their authored destinations, except components such as ActionLink that render ordinary Markdown. A destination that starts with an escaped slash is localized too, as the 2026-11-23 amendment states. [Link rewriting](https://github.com/aidenlx/zotlit-repo/issues/113)
 
 Adapt translations from the root message catalog to Fumadocs' native registry. Pass its URL and query placeholders through so the provider can interpolate them at the point of use.
 
 ## Release-data boundary
 
-Release API calls run in the Worker and use its GitHub token only for the API host. The client-safe module holds the public release URLs and the pages and lessons that carry those facts. Send a named User-Agent. Raw files and GitHub assets that redirect to storage use unauthenticated requests. Bound each lookup with a short timeout and cache successful facts for one hour at the edge and browser. Compose the install snapshot in one pass. An unavailable lookup omits its affected facts. The current Companion manifest reader can still throw on unexpected JSON and reject the whole snapshot. [Release snapshot validation follow-up](https://github.com/aidenlx/zotlit-repo/issues/117)
+Release API calls run in the Worker and use its GitHub token only for the API host. The client-safe module holds the public release URLs and the pages and lessons that carry those facts. Send a named User-Agent. Raw files and GitHub assets that redirect to storage use unauthenticated requests. Bound each lookup with a short timeout and cache successful facts for one hour at the edge and browser. Compose the install snapshot in one pass. An unavailable lookup omits its affected facts. Each response is checked against its shape, and a response of the wrong shape counts as unavailable, as the 2026-11-23 amendment states. [Release snapshot validation](https://github.com/aidenlx/zotlit-repo/issues/117)
 
 The stable plugin ledger follows the publish repository's manifest. Choose the highest semver pre-release rather than relying on GitHub creation order, which a re-cut tag can change. Drafts and tags for other products stay out of that choice. Read the pre-release compatibility manifest from the tagged asset. Companion data comes from Mozilla-format auto-update manifests, including the bounds and the tag used for the direct XPI. Treat a pre-release as dormant when its version is at or below stable. Format an absent maximum as open-ended and a trailing wildcard as its whole version line. When available, the GitHub release supplies the publication instant. Fetch stars and downloads independently so a missing count cannot take the repository link away.
 
@@ -162,3 +162,21 @@ environment and media origin. The Query function reference reads the
 generated Query Schema and checks every registry entry for its
 description during the build. The docs compiler includes RegExp.escape
 and Temporal types for dynamic text and imported Query source.
+
+## Amendment (2026-11-23): the docs routes send serializable state and check release data
+
+- **Sidebar tree.** The docs loader has no icon plugin. `lib/sidebar-tree.ts` projects the page tree to a typed shape that the server function can serialize, with icon names in place of React elements. The layout route resolves the names through one closed map. The content schemas accept only the names in that map. An icon resolved at build time prerenders with the sidebar.
+- **Redirect notice.** The legacy notice reads the router location after hydration, so the prerendered HTML shows no notice and a client navigation removes it. Dismissal applies to the arrival URL, its path and query.
+- **Escaped slash.** A Markdown destination that starts with `\/` is localized as one that starts with `/`. The English direction decodes backslash escapes to find the `/zh-CN` prefix before it removes it.
+- **Release data.** Each fetch checks its response against a valibot schema and returns null when the shape does not match: releases, plugin manifests, Companion manifests, repository stars and plugin statistics. A malformed Companion manifest then removes only the Companion facts.
+
+Accepted limits:
+
+- The icon map holds only `Book`. An author who wants another icon adds it to the map. The projection keeps only text labels, so a label that is a React element would be lost. No loader makes one.
+- Dismissal is kept in memory only. A return to the same arrival URL in the same session keeps the notice dismissed, and a reload shows it again.
+- A character reference such as `&#47;` or `&sol;` at the start of a destination stays as written.
+- Validation is per response. One malformed entry in the GitHub release list drops the whole list, so the release dates and the Obsidian pre-release ledger are unavailable until the entry is corrected. A manifest `version` must be valid SemVer, because the channel comparison needs it.
+
+Rejected: any Lucide icon name, loaded in the browser through `lucide-react/dynamic`. The prerendered HTML then has no icon, and the icon appears late.
+
+[Issue 104](https://github.com/aidenlx/zotlit-repo/issues/104) · [Issue 105](https://github.com/aidenlx/zotlit-repo/issues/105) · [Issue 117](https://github.com/aidenlx/zotlit-repo/issues/117) · [PR 247](https://github.com/aidenlx/zotlit-repo/pull/247) · [Issue 113](https://github.com/aidenlx/zotlit-repo/issues/113) · [PR 243](https://github.com/aidenlx/zotlit-repo/pull/243)

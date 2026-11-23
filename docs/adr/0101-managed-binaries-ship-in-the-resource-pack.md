@@ -228,3 +228,20 @@ the web-target binary through that reader port.
 The worker reads the installed Segmenter entry and reports the binary that actually cuts text. The renderer locates the pack and reads the worker's status again after ZoteroReads recovers, including when no pack is installed. A refused location can be tried again. After a successful `jieba-wasm` start, the JavaScript realm keeps that instance through pack replacement and removal until it restarts. Status names the version whose bytes are active. The fallback segments with `Intl.Segmenter`; the service tests distinguish it using the compound `长江流域` and the substring `流域`.
 
 A status check joins a read already in progress. The read belongs to the service Scope, so cancellation of a waiter leaves the remaining waiters served. An installed pack is unread until the check completes. A verified binary that failed to start stays failed until bytes change or an engine start succeeds. The first borrower starts the shared engine, the borrowing Scope controls its lease, and a refusal includes the status from that read so callers need no second lookup. Release failures go to logs. A missing Pack Entry in a compatible file is reported as older pack content. The ZoteroReads contract owns the wire Schema for the status types.
+
+## Amendment (2026-11-23): the Chinese Segmenter entry records its jieba-wasm version
+
+The Resources build writes `upstreamVersion`, the jieba-wasm version of the pin, into the index entry of each Pack Entry. ZotLit compares the version of the `chinese-segmenter` entry with the jieba-wasm glue that it bundles (`JIEBA_WASM_VERSION`) before it compiles the binary or calls `initSync`. An older entry gives `pack-outdated` and a newer entry gives `plugin-outdated`, so the settings row, the notice and the update button work with no new status or message. The Segmenter then uses `Intl.Segmenter`. A refused entry never reaches `initSync`, so it cannot leave a broken instance in the realm for a later valid pack. A known-mismatched pack that arrives after a working one is also refused.
+
+Accepted limits:
+
+- A pack without the field counts as jieba-wasm 2.4.0 (`LEGACY_PACK_JIEBA_VERSION`). The only released pack, `resources-1.0.0-beta.0`, has no field, and the SHA-256 of its `chinese-segmenter` entry equals the jieba-wasm 2.4.0 binary. This constant stays 2.4.0 when jieba-wasm is upgraded.
+- The field is additive, so the compatibility integer stays 1. Readers that do not know the field ignore it.
+- A mismatch shows the "too old" or "too new" sentence of the existing statuses, not a sentence that names a version mismatch.
+
+Rejected:
+
+- **A check of the module's exports before `initSync`:** about 25 lines that compare the exports with a hard-coded list of names, and the list must follow each jieba-wasm upgrade.
+- **A release rule that changes the compatibility integer at each jieba-wasm upgrade:** no code holds the rule, and a forgotten change lets a mismatched binary reach the Segmenter.
+
+The maintainer chose "pin the jieba version" on 2026-11-23. [Issue 57](https://github.com/aidenlx/zotlit-repo/issues/57) · [PR 239](https://github.com/aidenlx/zotlit-repo/pull/239) (`fbab6f637`, `3245bdc64`)

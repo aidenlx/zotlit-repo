@@ -10,7 +10,7 @@ Author a numbered `<Step n={1}>` with the action, a `<Check>`, an optional `<Fig
 
 Prerender the outcome above a complete checklist and keep all its instructions and stills accessible without scripts. An inline marker lets CSS show only the hash target before hydration when JavaScript will run. A layout effect sets the same marker for client navigations before paint. Once the page is ready, a numeric hash opens that step, and `#done` names the end. With no step hash, resume the first unticked step for a reader with progress. A new reader sees the outcome with every row closed. Ignore a hash the view wrote itself. Defer scroll and focus movement until the new row has rendered. The end is represented by one position past the last step.
 
-Load saved progress after mount and keep a lesson marked done once every step has been ticked. If storage denies access, allow the checklist to continue in memory. Hash navigation currently rereads storage and can lose the resume target in that case. [Resume position follow-up](https://github.com/aidenlx/zotlit-repo/issues/107)
+Load saved progress after mount and keep a lesson marked done once every step has been ticked. If storage denies access, allow the checklist to continue in memory. Hash navigation reads the ticks from memory, as the 2026-11-23 amendment states. [Resume position](https://github.com/aidenlx/zotlit-repo/issues/107)
 
 Start opens the first unticked step and requests immediate playback. A row's tick action and the ended clip's tick action share the same behavior. Once checked, advance to the next unticked step, wrapping if necessary, and bring the end into view if no steps remain. Offer two further lessons, prioritizing unfinished Lesson 1, then the remaining unfinished lessons in course order from the current position.
 
@@ -92,3 +92,11 @@ walk did not hand a PDF open to the system's Zotero handler.
 
 [Connection walk](../../../../packages/e2e/src/docs-walks/connect-zotero-to-obsidian.walk.ts) ·
 [Annotation walk](../../../../packages/e2e/src/docs-walks/annotate-pdfs-in-obsidian.walk.ts)
+
+## Amendment (2026-11-23): hash navigation reads the ticks from memory
+
+The hash effect of the lesson view picks the row from the ticks in memory, through a ref that the lesson load and each tick set. Blocked storage therefore keeps the resume target. A lesson switch resets the guard that skips a hash the view wrote, so the first row of the new lesson opens.
+
+Accepted limit: the effect wiring has no automated test, because the docs tests are pure-logic unit tests with no component render tests. A browser check on `vite preview` with storage that throws covered it: a tick on step 1 opened step 2, `#1` opened step 1, and the bare URL opened step 2 again with step 1 still ticked.
+
+[Issue 107](https://github.com/aidenlx/zotlit-repo/issues/107) · [PR 247](https://github.com/aidenlx/zotlit-repo/pull/247) (`ec6b29c8f`)

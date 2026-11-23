@@ -75,8 +75,8 @@ the layer's Scope and let callers join it. Serialize download start and reset
 admission, and commit the cache write with the corresponding lifecycle state.
 A reset interrupts the download and its waiters. The active pack stays
 applied until restart. A pack cached this session but never applied loses
-its pending restart when cleared. See [issue 178](https://github.com/aidenlx/zotlit-repo/issues/178)
-for caches retained by prior builds.
+its pending restart when cleared. A reset removes the packs and consents
+of every build, as the 2026-11-23 amendment states. [Issue 178](https://github.com/aidenlx/zotlit-repo/issues/178)
 
 Use the same download toast from Settings and the consent notice. Start
 the work once and let the toast await the result before and after the
@@ -88,3 +88,17 @@ so the Settings row retains its control area. Hide the setting when the pack
 is active or no pack exists. When a restart is pending, show the status
 without an install action. Use the language name in the row and log the
 artifact identity and origin. [Language Pack lifecycle](../../packages/plugin-services/src/obsidian/language-pack/service.ts) · [Notices](../../packages/plugin-services/src/obsidian/language-pack/notices.ts) · [Settings copy](../../packages/plugin-services/src/obsidian/language-pack/setting-copy.ts)
+
+## Amendment (2026-11-23): a reset removes the Language Packs of every build
+
+Reset Language Packs deletes every key under `<namespace>:i18n:pack:` and `<namespace>:i18n:consent:` in the vault's device storage, so it removes the packs and consents of each plugin version, not only of the running build. A reset and a downgrade then offer the pack again in both builds. The other plugin's keys and the language preference stay. `DeviceStorage` lists the keys of this vault. Obsidian documents only `App#loadLocalStorage` and `App#saveLocalStorage`, so `appDeviceStorageSource` lists the `window.localStorage` keys under Obsidian's `${appId}-` prefix, beside the load and save calls whose keys it mirrors. A desktop check in Obsidian 1.15.1 confirmed the prefix and that a reset keeps the keys of other vaults.
+
+Accepted limits:
+
+- The listing depends on Obsidian's undocumented `${appId}-` key prefix. A change to that format in Obsidian stops Reset from finding the keys. Read the prefix again from the extracted `app.js` after an Obsidian update.
+- A reset in a build released before this change still removes only that build's pack.
+- Startup leaves the packs that earlier versions cached in localStorage. They stay until the next reset.
+
+Rejected: reading the prefix through the documented API. It needs a probe write on each listing.
+
+[Issue 178](https://github.com/aidenlx/zotlit-repo/issues/178) · [PR 240](https://github.com/aidenlx/zotlit-repo/pull/240) (`f12822019`)

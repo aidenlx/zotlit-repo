@@ -24,4 +24,15 @@ The Citation Item shape and its two boundary checks live in one module both seri
 - **Escape every TeX special in an affix**: removes the `%` failure, but also breaks the `\emph{see}` affixes this source form exists to carry.
 - **Reject a `]` in an affix**: matches the Pandoc serializer's affix round-trip, but fails an import over a bracket that `{]}` carries losslessly.
 
-Affix validation must account for TeX control symbols when deciding whether a percent starts a comment or a bracket closes an optional argument. A preceding backslash alone is insufficient because a pair of backslashes is itself a complete control symbol. [Affix escaping follow-up](https://github.com/aidenlx/zotlit-repo/issues/83)
+Affix validation must account for TeX control symbols when deciding whether a percent starts a comment or a bracket closes an optional argument. A preceding backslash alone is insufficient because a pair of backslashes is itself a complete control symbol. The 2026-11-23 amendment states the scanner that applies this rule. [Affix escaping](https://github.com/aidenlx/zotlit-repo/issues/83)
+
+## Amendment (2026-11-23): one scanner checks the affix text as emitted
+
+One scanner checks braces, `%` and `]` with the rule "a backslash consumes the next character". It runs on the text that the formatter emits, with the locator and the suffix joined, and each error names the field that gave the character. The scanner rejects an affix that ends in a backslash, because that backslash would escape the closing `]` of the optional argument. A brace group that spans the locator and the suffix is accepted, and so is a locator that ends in a backslash before a suffix that starts with `%`.
+
+Accepted limits:
+
+- The scanner reads a backslash and any one character as a control symbol. Control words do not change how `%`, `]` and braces are read.
+- No TeX engine runs in the tests. They check the emitted text against the rule.
+
+[Issue 83](https://github.com/aidenlx/zotlit-repo/issues/83) · [PR 249](https://github.com/aidenlx/zotlit-repo/pull/249) (`2f60e7583`)
