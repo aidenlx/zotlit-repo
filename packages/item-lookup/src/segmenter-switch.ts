@@ -23,6 +23,18 @@ interface SegmenterBinaryBytes {
 
 export type SegmenterStatus = PackBinaryStatus;
 
+export const LEGACY_PACK_JIEBA_VERSION = "2.4.0";
+
+export function jiebaVersionRefusal(
+  upstreamVersion: string | undefined,
+  bundled: string = JIEBA_WASM_VERSION,
+): SegmenterStatus | undefined {
+  const packed = upstreamVersion ?? LEGACY_PACK_JIEBA_VERSION;
+  if (packed === bundled) return undefined;
+  const older = packed.localeCompare(bundled, "en", { numeric: true }) < 0;
+  return { kind: older ? "pack-outdated" : "plugin-outdated" };
+}
+
 export const sameSegmenterBinary = (
   a: SegmenterBinary | null,
   b: SegmenterBinary | null,
@@ -103,19 +115,12 @@ export function makeSegmenterSwitch(
           refused(binary, refusalStatus(failure), { failure }),
         onSuccess: ({ bytes, upstreamVersion }) =>
           Effect.gen(function* () {
-            if (
-              upstreamVersion !== undefined &&
-              upstreamVersion !== JIEBA_WASM_VERSION
-            ) {
-              const older =
-                upstreamVersion.localeCompare(JIEBA_WASM_VERSION, "en", {
-                  numeric: true,
-                }) < 0;
-              return yield* refused(
-                binary,
-                { kind: older ? "pack-outdated" : "plugin-outdated" },
-                { upstreamVersion, bundled: JIEBA_WASM_VERSION },
-              );
+            const mismatch = jiebaVersionRefusal(upstreamVersion);
+            if (mismatch) {
+              return yield* refused(binary, mismatch, {
+                upstreamVersion,
+                bundled: JIEBA_WASM_VERSION,
+              });
             }
             if (loaded !== null && loaded !== binary.version) {
               yield* log(

@@ -2,7 +2,11 @@ import { Effect } from "effect";
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 
-import { makeSegmenterSwitch } from "./segmenter-switch.ts";
+import {
+  jiebaVersionRefusal,
+  LEGACY_PACK_JIEBA_VERSION,
+  makeSegmenterSwitch,
+} from "./segmenter-switch.ts";
 import { JIEBA_WASM_VERSION } from "./segmenter.ts";
 
 const TITLE = "中华人民共和国宪法研究";
@@ -116,4 +120,13 @@ it("a mismatched pack after a working one falls back to Intl.Segmenter", async (
   });
   expect(fallback).toBeDefined();
   expect(fallback?.words(TITLE)).not.toContain("华人");
+});
+
+it("a pack without a recorded version counts as the jieba-wasm version of the first Resource Pack", () => {
+  expect(jiebaVersionRefusal(undefined, LEGACY_PACK_JIEBA_VERSION)).toBe(
+    undefined,
+  );
+  expect(jiebaVersionRefusal(undefined, "2.5.0")).toEqual({
+    kind: "pack-outdated",
+  });
 });
