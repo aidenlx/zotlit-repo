@@ -20,6 +20,7 @@ export type PackRead =
       readonly ok: true;
       readonly bytes: Uint8Array<ArrayBuffer>;
       readonly sha256: string;
+      readonly upstreamVersion: string | undefined;
     }
   | { readonly ok: false; readonly failure: PackFailure };
 
@@ -87,7 +88,12 @@ export async function readPackEntry(
     });
   }
   try {
-    return { ok: true, bytes: await decodeEntry(text), sha256: entry.sha256 };
+    return {
+      ok: true,
+      bytes: await decodeEntry(text),
+      sha256: entry.sha256,
+      upstreamVersion: entry.upstreamVersion,
+    };
   } catch (error) {
     return refused({ kind: "entry-damaged", name, detail: detailOf(error) });
   }

@@ -10,6 +10,7 @@ export interface PackIndexEntry {
   readonly offset: number;
   readonly length: number;
   readonly sha256: string;
+  readonly upstreamVersion?: string;
 }
 
 export interface PackIndex {
@@ -53,12 +54,16 @@ export function encodeIndex(index: PackIndex): Uint8Array<ArrayBuffer> {
 
 function isIndexEntry(value: unknown): value is PackIndexEntry {
   if (typeof value !== "object" || value === null) return false;
-  const { name, offset, length, sha256 } = value as Record<string, unknown>;
+  const { name, offset, length, sha256, upstreamVersion } = value as Record<
+    string,
+    unknown
+  >;
   return (
     typeof name === "string" &&
     Number.isSafeInteger(offset) &&
     Number.isSafeInteger(length) &&
-    typeof sha256 === "string"
+    typeof sha256 === "string" &&
+    (upstreamVersion === undefined || typeof upstreamVersion === "string")
   );
 }
 

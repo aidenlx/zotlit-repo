@@ -8,12 +8,18 @@ import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 import { withLogCategory } from "@zotlit/shared/logging";
 
 import {
+  JIEBA_WASM_VERSION,
   layerSegmenterJieba,
   layerSegmenterNone,
   Segmenter,
 } from "./segmenter.ts";
 
 export type SegmenterBinary = PackEntryLocation;
+
+interface SegmenterBinaryBytes {
+  readonly bytes: BufferSource;
+  readonly upstreamVersion: string | undefined;
+}
 
 export type SegmenterStatus = PackBinaryStatus;
 
@@ -33,7 +39,7 @@ export class SegmenterBinaryReader extends Context.Service<
   {
     readonly read: (
       binary: SegmenterBinary,
-    ) => Effect.Effect<BufferSource, PackFailure>;
+    ) => Effect.Effect<SegmenterBinaryBytes, PackFailure>;
   }
 >()("zotlit/item-lookup/SegmenterBinaryReader") {}
 
@@ -95,8 +101,22 @@ export function makeSegmenterSwitch(
       Effect.matchEffect({
         onFailure: (failure) =>
           refused(binary, refusalStatus(failure), { failure }),
-        onSuccess: (bytes) =>
+        onSuccess: ({ bytes, upstreamVersion }) =>
           Effect.gen(function* () {
+            if (
+              upstreamVersion !== undefined &&
+              upstreamVersion !== JIEBA_WASM_VERSION
+            ) {
+              const older =
+                upstreamVersion.localeCompare(JIEBA_WASM_VERSION, "en", {
+                  numeric: true,
+                }) < 0;
+              return yield* refused(
+                binary,
+                { kind: older ? "pack-outdated" : "plugin-outdated" },
+                { upstreamVersion, bundled: JIEBA_WASM_VERSION },
+              );
+            }
             if (loaded !== null && loaded !== binary.version) {
               yield* log(
                 "warn",

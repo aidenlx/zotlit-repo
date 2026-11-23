@@ -71,6 +71,9 @@ describe("buildResourcePack", () => {
 
     const read = await readPackEntry(bytesRange(pack), "chinese-segmenter");
     expect(read.ok && Array.from(read.bytes)).toEqual(Array.from(BINARY));
+    expect(read.ok && read.upstreamVersion).toBe(
+      PINS["chinese-segmenter"].version,
+    );
     const text = new TextDecoder().decode(pack);
     expect(text).toContain("Copyright (c) 2018 fengkx");
     expect(text).toContain("https://github.com/fengkx/jieba-wasm");

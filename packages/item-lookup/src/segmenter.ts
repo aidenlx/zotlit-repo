@@ -3,6 +3,8 @@ import { cut_for_search, initSync } from "jieba-wasm/web";
 
 import { tokenize } from "./tokenizer.ts";
 
+export const JIEBA_WASM_VERSION = "2.4.0";
+
 export class Segmenter extends Context.Service<
   Segmenter,
   {

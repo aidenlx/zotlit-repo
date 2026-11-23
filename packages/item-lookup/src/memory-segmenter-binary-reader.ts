@@ -33,7 +33,7 @@ export const makeMemorySegmenterBinaryReader = (
                     kind: "entry-missing",
                     name: binary.entry,
                   } as const)
-                : Effect.succeed(bytes);
+                : Effect.succeed({ bytes, upstreamVersion: undefined });
             }),
           ),
         ),

@@ -29,7 +29,12 @@ async function fixturePack(compat?: number): Promise<Uint8Array<ArrayBuffer>> {
     compat,
     notice: "alpha: MIT, https://example.invalid/alpha",
     entries: [
-      { name: "alpha", bytes: ALPHA, sha256: await sha256Hex(ALPHA) },
+      {
+        name: "alpha",
+        bytes: ALPHA,
+        sha256: await sha256Hex(ALPHA),
+        upstreamVersion: "2.4.0",
+      },
       { name: "beta", bytes: BETA, sha256: await sha256Hex(BETA) },
     ],
   });
@@ -117,6 +122,19 @@ export const cases: readonly ContainerCase[] = [
       };
     },
     expected: { tail: true, sourceMapLine: false, alpha: "same", beta: "same" },
+  },
+  {
+    name: "reads entries with and without a recorded upstream version",
+    run: async () => {
+      const read = bytesRange(await fixturePack());
+      const alpha = await readPackEntry(read, "alpha");
+      const beta = await readPackEntry(read, "beta");
+      return {
+        alpha: alpha.ok && alpha.upstreamVersion,
+        beta: beta.ok && beta.upstreamVersion,
+      };
+    },
+    expected: { alpha: "2.4.0", beta: undefined },
   },
   {
     name: "states the compatibility integer and each entry's name, offset, length and SHA-256 on line 1",

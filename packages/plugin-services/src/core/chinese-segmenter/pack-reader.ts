@@ -10,7 +10,9 @@ export const readSegmenterOver = (
 ): ReadSegmenter =>
   Effect.fn("readSegmenterOver")(function* ({ url, entry }) {
     const read = yield* Effect.promise(() => readPackEntry(open(url), entry));
-    return read.ok ? read.bytes : yield* Effect.fail(read.failure);
+    return read.ok
+      ? { bytes: read.bytes, upstreamVersion: read.upstreamVersion }
+      : yield* Effect.fail(read.failure);
   });
 
 export const readSegmenterFromPack: ReadSegmenter =

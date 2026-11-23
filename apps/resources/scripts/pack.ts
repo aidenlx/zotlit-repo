@@ -43,6 +43,7 @@ async function chineseSegmenter(
       name,
       bytes: new Uint8Array(await readFile(join(packageDir, JIEBA_BINARY))),
       sha256: pin.sha256,
+      upstreamVersion: pin.version,
     },
     notice: `${name}: jieba-wasm ${version}, ${JIEBA_SOURCE}\n\n${licence.trim()}`,
   };
@@ -73,6 +74,7 @@ async function pandocEngine(
       name,
       bytes: new Uint8Array(await readFile(join(packageDir, PANDOC_BINARY))),
       sha256: pin.sha256,
+      upstreamVersion: pin.version,
     },
     notice: [
       `${name}: Pandoc ${version}, GPL-2.0-or-later. Source code: https://github.com/jgm/pandoc/tree/${version}`,

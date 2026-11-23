@@ -148,7 +148,10 @@ describe("Chinese Segmenter", () => {
               inProcessClient(layerRcRef(memoryOpener(() => "").open), {
                 readSegmenter: () =>
                   readable
-                    ? Effect.succeed(BINARY)
+                    ? Effect.succeed({
+                        bytes: BINARY,
+                        upstreamVersion: undefined,
+                      })
                     : Effect.fail({
                         kind: "pack-unreadable",
                         detail: "The request for the pack file failed",

@@ -9,6 +9,7 @@ import { USER_LIBRARY_ID } from "@zotlit/db";
 import { buildEngineIndex, searchEngineIndex } from "./engine.ts";
 import { makeIndexedItem as item } from "./fixtures.ts";
 import {
+  JIEBA_WASM_VERSION,
   layerSegmenterJieba,
   layerSegmenterNone,
   Segmenter,
@@ -22,6 +23,17 @@ const JIEBA_WASM = readFileSync(
 );
 
 const TITLE = "中华人民共和国宪法研究";
+
+it("pins the bundled jieba-wasm version to the installed package version", () => {
+  const manifest = new URL(
+    "../../package.json",
+    import.meta.resolve("jieba-wasm/web"),
+  );
+  const { version } = JSON.parse(readFileSync(manifest, "utf8")) as {
+    version: string;
+  };
+  expect(JIEBA_WASM_VERSION).toBe(version);
+});
 
 describe("segmenter layers", () => {
   it("cut a CJK title differently", async () => {

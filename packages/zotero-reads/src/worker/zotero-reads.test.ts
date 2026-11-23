@@ -2257,7 +2257,7 @@ describe("ZoteroReads SearchItems", () => {
               chineseSegmenter: INSTALLED,
               readSegmenter: (binary) => {
                 asked.push(binary);
-                return Effect.succeed(bytes);
+                return Effect.succeed({ bytes, upstreamVersion: undefined });
               },
             },
             (reads) => reads.SearchItems(JIEBA_ONLY),
@@ -2278,7 +2278,7 @@ describe("ZoteroReads SearchItems", () => {
               chineseSegmenter: INSTALLED,
               readSegmenter: () =>
                 readable
-                  ? Effect.succeed(bytes)
+                  ? Effect.succeed({ bytes, upstreamVersion: undefined })
                   : Effect.fail({
                       kind: "pack-unreadable",
                       detail: "The request for the pack file failed",
@@ -2319,7 +2319,10 @@ describe("ZoteroReads SearchItems", () => {
         Effect.gen(function* () {
           const bytes = yield* Effect.promise(() => jiebaBytes());
           const result = yield* withSegmenter(
-            { readSegmenter: () => Effect.succeed(bytes) },
+            {
+              readSegmenter: () =>
+                Effect.succeed({ bytes, upstreamVersion: undefined }),
+            },
             (reads, ran) =>
               Effect.gen(function* () {
                 yield* reads.SearchItems(JIEBA_ONLY);

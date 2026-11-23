@@ -31,6 +31,8 @@ The pack is the product `resources` (`PRODUCTS`, `packages/scripts/lib/release/l
 
 Update the upstream package in the catalog, then set the entry's `version` and `sha256` in `packEntries` to the new package's. The version of `pandoc-engine` is the Pandoc release that `pandoc-wasm/pandoc-version.txt` states; the README names it too. The build prints the hash of the installed binary when it differs from the pin.
 
+When you update `jieba-wasm`, also set `JIEBA_WASM_VERSION` in `packages/item-lookup/src/segmenter.ts` to the new version. A test checks it against the installed package.
+
 ## Tests
 
 `pnpm exec vitest run scripts/pack.test.ts` runs one file. `pnpm check:bundle` checks the built pack: its size budget, that `main.js` is valid JavaScript, and that each entry reads back as its pin after the text changes Obsidian makes on install.

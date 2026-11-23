@@ -7,6 +7,7 @@ export interface PackSource {
   readonly name: string;
   readonly bytes: Uint8Array<ArrayBuffer>;
   readonly sha256: string;
+  readonly upstreamVersion?: string;
 }
 
 export interface PackOptions {
@@ -64,7 +65,7 @@ export async function writePack(
   const index: PackIndexEntry[] = [];
   const lines: Uint8Array<ArrayBuffer>[] = [];
   let offset = PACK_INDEX_BYTES + before.length;
-  for (const { name, bytes, sha256 } of entries) {
+  for (const { name, bytes, sha256, upstreamVersion } of entries) {
     if (!ENTRY_NAME.test(name)) {
       throw new Error(`"${name}" is not an entry name`);
     }
@@ -80,6 +81,7 @@ export async function writePack(
       offset,
       length: text.length,
       sha256: await sha256Hex(text),
+      ...(upstreamVersion === undefined ? {} : { upstreamVersion }),
     });
     lines.push(text, encoder.encode("\n"));
     offset += text.length + 1;
