@@ -61,10 +61,12 @@ export function manageDocument(
   const text = (pageIndex: number): Promise<TextContent> => {
     let cached = texts.get(pageIndex);
     if (!cached) {
-      cached = proxy
+      const read = proxy
         .getPage(pageIndex + 1)
         .then((page) => page.getTextContent({ includeChars: true }));
-      texts.set(pageIndex, cached);
+      void read.catch(() => texts.delete(pageIndex));
+      texts.set(pageIndex, read);
+      cached = read;
     }
     return cached;
   };

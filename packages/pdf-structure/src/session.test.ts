@@ -1,7 +1,15 @@
 import type { ZoteroChar } from "#chars.ts";
 import type { PdfPageSource } from "#session.ts";
 import type { PdfPosition } from "#sort-index.ts";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { setLibraryLogSink } from "@zotlit/shared/logging";
 import type { LibraryLogRecord } from "@zotlit/shared/logging";
@@ -61,6 +69,20 @@ describe("a Reader Session's Structured Characters", () => {
     expect(textCalls).toEqual([1]);
     expect(first).toBe(second);
     expect(first.chars.map(({ c }) => c)).toEqual(["7"]);
+  });
+
+  it("retry a page read after a failure", async () => {
+    const failure = new Error("Page read failed");
+    const getChars = vi.fn<PdfPageSource["getChars"]>().mockResolvedValue([]);
+    getChars.mockImplementationOnce(() => {
+      throw failure;
+    });
+    const { source } = stubSource({ getChars });
+    const structure = new PdfTextStructure(source);
+
+    await expect(structure.page(0)).rejects.toBe(failure);
+    await expect(structure.page(0)).resolves.toMatchObject({ chars: [] });
+    expect(getChars.mock.calls).toEqual([[0], [0]]);
   });
 });
 

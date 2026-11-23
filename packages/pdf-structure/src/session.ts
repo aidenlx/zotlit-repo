@@ -43,7 +43,7 @@ export class PdfTextStructure {
     this.#cache.set(pageIndex, page);
     void page.then(
       (structured) => this.#settled.set(pageIndex, structured),
-      () => undefined,
+      () => this.#cache.delete(pageIndex),
     );
     return page;
   }
