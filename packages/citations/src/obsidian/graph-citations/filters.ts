@@ -9,7 +9,7 @@ export const PANDOC_CITATIONS = "zotlit-pandoc-citations";
 export const WIKILINK_CITATIONS = "zotlit-wikilink-citations";
 export const CITATION_CONNECTED_ONLY = "zotlit-citation-connected-only";
 
-const DEFAULTS = {
+export const FILTER_DEFAULTS = {
   [PANDOC_CITATIONS]: true,
   [WIKILINK_CITATIONS]: true,
   [CITATION_CONNECTED_ONLY]: false,
@@ -35,7 +35,7 @@ export function installFilterRows(
       key: PANDOC_CITATIONS,
       name: m.graph_option_pandoc_citations_name(),
       tooltip: m.graph_option_pandoc_citations_desc(),
-      defaultValue: DEFAULTS[PANDOC_CITATIONS],
+      defaultValue: FILTER_DEFAULTS[PANDOC_CITATIONS],
     }),
   );
   if (options.wikilinkCitations) {
@@ -44,7 +44,7 @@ export function installFilterRows(
         key: WIKILINK_CITATIONS,
         name: m.graph_option_wikilink_citations_name(),
         tooltip: m.graph_option_wikilink_citations_desc(),
-        defaultValue: DEFAULTS[WIKILINK_CITATIONS],
+        defaultValue: FILTER_DEFAULTS[WIKILINK_CITATIONS],
       }),
     );
   }
@@ -53,7 +53,7 @@ export function installFilterRows(
       key: CITATION_CONNECTED_ONLY,
       name: m.graph_option_citation_connected_only_name(),
       tooltip: m.graph_option_citation_connected_only_desc(),
-      defaultValue: DEFAULTS[CITATION_CONNECTED_ONLY],
+      defaultValue: FILTER_DEFAULTS[CITATION_CONNECTED_ONLY],
     }),
   );
   return rows;
@@ -78,7 +78,7 @@ export function graphCitationFilters(
 
 function flag(
   engine: { options?: GraphOptions },
-  key: keyof typeof DEFAULTS,
+  key: keyof typeof FILTER_DEFAULTS,
 ): boolean {
-  return rowFlag(engine, key, DEFAULTS[key]);
+  return rowFlag(engine, key, FILTER_DEFAULTS[key]);
 }

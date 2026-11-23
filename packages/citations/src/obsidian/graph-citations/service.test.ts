@@ -1065,6 +1065,36 @@ describe("GraphCitations installation", () => {
   );
 
   it.effect(
+    "uses Filter defaults omitted from an older global graph bookmark",
+    () =>
+      Effect.gen(function* () {
+        const fixture = yield* makeFixture({ wikilinkCitations: true });
+        const graph = fixture.addLeaf("graph", "bookmark");
+        yield* fixture.layoutReady;
+        graph.setOptions({
+          "zotlit-pandoc-citations": false,
+          "zotlit-wikilink-citations": false,
+          "zotlit-citation-connected-only": true,
+        });
+
+        yield* Effect.promise(() =>
+          fixture
+            .leaf("bookmark")
+            .view.setState(
+              { options: { showArrow: true } },
+              { history: false },
+            ),
+        );
+
+        expect(graph.getOptions()).toMatchObject({
+          "zotlit-pandoc-citations": true,
+          "zotlit-wikilink-citations": true,
+          "zotlit-citation-connected-only": false,
+        });
+      }),
+  );
+
+  it.effect(
     "restores both saved Work Labels values from global graph bookmarks",
     () =>
       Effect.gen(function* () {

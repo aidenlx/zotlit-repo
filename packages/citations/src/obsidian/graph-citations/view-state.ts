@@ -8,12 +8,10 @@ import {
   COLOR_CITATION_LINKS,
   DISPLAY_DEFAULTS,
 } from "./display.ts";
-import {
-  CITATION_CONNECTED_ONLY,
-  PANDOC_CITATIONS,
-  WIKILINK_CITATIONS,
-} from "./filters.ts";
+import { FILTER_DEFAULTS } from "./filters.ts";
 import { membersPresent } from "./install.ts";
+
+const VIEW_STATE_DEFAULTS = { ...DISPLAY_DEFAULTS, ...FILTER_DEFAULTS };
 
 export function installGraphViewState(
   view: View,
@@ -51,7 +49,7 @@ export function installGraphViewState(
           const options = (state as { options?: GraphOptions } | null)?.options;
           if (options)
             engine.setOptions!({
-              ...DISPLAY_DEFAULTS,
+              ...VIEW_STATE_DEFAULTS,
               ...options,
             });
           return native.call(this, state, result);
@@ -60,11 +58,9 @@ export function installGraphViewState(
         function (this: GraphView) {
           native.call(this);
           engine.setOptions!({
-            [COLOR_CITATION_LINKS]: false,
-            [CITATION_POPOVER]: false,
-            [CITATION_CONNECTED_ONLY]: false,
-            [PANDOC_CITATIONS]: true,
-            [WIKILINK_CITATIONS]: true,
+            [COLOR_CITATION_LINKS]: DISPLAY_DEFAULTS[COLOR_CITATION_LINKS],
+            [CITATION_POPOVER]: DISPLAY_DEFAULTS[CITATION_POPOVER],
+            ...FILTER_DEFAULTS,
           });
         },
       onOptionsChange: () =>
