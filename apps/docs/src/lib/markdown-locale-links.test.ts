@@ -100,4 +100,57 @@ describe("Markdown document links", () => {
       "[x](/docs/foo?x=1#bar)",
     );
   });
+
+  it.each([
+    {
+      name: "inline destinations with an escaped slash",
+      input: "[x](\\/docs/foo)",
+      expected: "[x](/zh-CN\\/docs/foo)",
+    },
+    {
+      name: "reference destinations with an escaped slash",
+      input: "[ref]: \\/docs/foo\n\n[ref]",
+      expected: "[ref]: /zh-CN\\/docs/foo\n\n[ref]",
+    },
+    {
+      name: "angle destinations with an escaped slash",
+      input: "[x](<\\/docs/foo>)",
+      expected: "[x](</zh-CN\\/docs/foo>)",
+    },
+    {
+      name: "surrounding text and links",
+      input: 'Before [a **label**](\\/docs/foo "A title") and [b](/img/x).',
+      expected:
+        'Before [a **label**](/zh-CN\\/docs/foo "A title") and [b](/img/x).',
+    },
+  ])("localizes $name", ({ input, expected }) => {
+    expect(localizeMarkdownLinks(input, "zh-CN")).toBe(expected);
+  });
+
+  it.each([
+    {
+      name: "an escaped slash in the prefix",
+      input: "[x](\\/zh-CN/docs/foo)",
+      expected: "[x](/docs/foo)",
+    },
+    {
+      name: "an escaped hyphen in the prefix",
+      input: "[x](/zh\\-CN/docs/foo)",
+      expected: "[x](/docs/foo)",
+    },
+    {
+      name: "an escaped slash after the prefix",
+      input: "[x](/zh-CN\\/docs/foo)",
+      expected: "[x](\\/docs/foo)",
+    },
+  ])("unlocalizes a link with $name", ({ input, expected }) => {
+    expect(localizeMarkdownLinks(input, "en")).toBe(expected);
+  });
+
+  it("leaves character references in the destination prefix as written", () => {
+    const root = "[a](&#47;docs/foo) [b](&sol;docs/foo)";
+    const localized = "[a](&#47;zh-CN/docs/foo) [b](&sol;zh-CN/docs/foo)";
+    expect(localizeMarkdownLinks(root, "zh-CN")).toBe(root);
+    expect(localizeMarkdownLinks(localized, "en")).toBe(localized);
+  });
 });

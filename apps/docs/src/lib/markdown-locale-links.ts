@@ -32,6 +32,21 @@ function destinationStart(markdown: string, node: MarkdownLink | Definition) {
   return prefix ? start + prefix[0].length : undefined;
 }
 
+function localePrefixEnd(markdown: string, start: number) {
+  let end = start;
+  let decoded = "";
+  while (decoded.length < chinesePrefix.length && end < markdown.length) {
+    if (
+      markdown[end] === "\\" &&
+      /[!-/:-@[-`{-~]/.test(markdown.charAt(end + 1))
+    ) {
+      end++;
+    }
+    decoded += markdown.charAt(end++);
+  }
+  return decoded === chinesePrefix ? end : undefined;
+}
+
 export function localizeMarkdownLinks(markdown: string, locale: SiteLocale) {
   const tree = markdownParser.parse(markdown);
   const links: (MarkdownLink | Definition)[] = [];
@@ -67,10 +82,17 @@ export function localizeMarkdownLinks(markdown: string, locale: SiteLocale) {
     const hasPrefix = pathname !== canonical;
     if (hasPrefix === (locale === "zh-CN")) continue;
     const start = destinationStart(markdown, node);
-    if (start === undefined || markdown[start] !== "/") continue;
+    if (
+      start === undefined ||
+      (markdown[start] !== "/" && !markdown.startsWith("\\/", start))
+    ) {
+      continue;
+    }
+    const end = hasPrefix ? localePrefixEnd(markdown, start) : start;
+    if (end === undefined) continue;
     edits.push({
       start,
-      remove: hasPrefix ? chinesePrefix.length : 0,
+      remove: end - start,
       value: locale === "zh-CN" ? chinesePrefix : "",
     });
   }
