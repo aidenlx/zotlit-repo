@@ -96,29 +96,32 @@ const rejectedText = (value: unknown): string => {
 
 const cloneSafe = (
   value: unknown,
-  seen: WeakSet<object> = new WeakSet(),
+  ancestors: WeakSet<object> = new WeakSet(),
 ): unknown => {
   try {
     structuredClone(value);
     return value;
   } catch {
-    if (Array.isArray(value)) {
-      if (seen.has(value)) return "[Circular]";
-      seen.add(value);
-      return value.map((item) => cloneSafe(item, seen));
-    }
-    if (value !== null && typeof value === "object") {
-      if (value instanceof Map || value instanceof Set)
-        return rejectedText(value);
-      if (seen.has(value)) return "[Circular]";
-      seen.add(value);
+    if (
+      value === null ||
+      typeof value !== "object" ||
+      value instanceof Map ||
+      value instanceof Set
+    )
+      return rejectedText(value);
+    if (ancestors.has(value)) return "[Circular]";
+    ancestors.add(value);
+    try {
+      if (Array.isArray(value))
+        return value.map((item) => cloneSafe(item, ancestors));
       const entries = Object.entries(value).map(([key, item]) => [
         key,
-        cloneSafe(item, seen),
+        cloneSafe(item, ancestors),
       ]);
       return Object.fromEntries(entries);
+    } finally {
+      ancestors.delete(value);
     }
-    return rejectedText(value);
   }
 };
 

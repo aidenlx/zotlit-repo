@@ -195,6 +195,54 @@ describe("Effect log port", () => {
   );
 
   it.effect(
+    "preserves fields in each reference to a shared uncloneable detail",
+    () =>
+      Effect.gen(function* () {
+        const worker = new FakePort();
+        const level = yield* Ref.make<PortLogLevel | null>("trace");
+        const workerLayer = Logger.layer([makePortLogger(worker, level)]);
+        const shared = { kept: 42, fn: () => 0 };
+
+        yield* logThrough(
+          workerLayer,
+          "zotero-reads",
+          Effect.logInfo("shared detail", { first: shared, second: shared }),
+        );
+
+        expect(worker.posted).toMatchObject([
+          { details: [{ first: { kept: 42 }, second: { kept: 42 } }] },
+        ]);
+      }),
+  );
+
+  it.effect("marks a cycle in an uncloneable detail", () =>
+    Effect.gen(function* () {
+      const worker = new FakePort();
+      const level = yield* Ref.make<PortLogLevel | null>("trace");
+      const workerLayer = Logger.layer([makePortLogger(worker, level)]);
+      const detail: { kept: number; loop: unknown[] } = { kept: 42, loop: [] };
+      detail.loop.push(detail, detail.loop, () => 0);
+
+      yield* logThrough(
+        workerLayer,
+        "zotero-reads",
+        Effect.logInfo("cyclic detail", detail),
+      );
+
+      expect(worker.posted).toMatchObject([
+        {
+          details: [
+            {
+              kept: 42,
+              loop: ["[Circular]", "[Circular]", expect.any(String)],
+            },
+          ],
+        },
+      ]);
+    }),
+  );
+
+  it.effect(
     "replaces an uncloneable annotation instead of failing to post",
     () =>
       Effect.gen(function* () {
