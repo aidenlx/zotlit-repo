@@ -40,15 +40,13 @@ breakpoints, popout or settings windows, the main process), follow [devtools.md]
    worktree's Development Vault:
 
 ```bash
-pnpm exec turbo run build --filter='@zotlit/obsidian^...'
 pnpm --filter @zotlit/obsidian build:dev
 pnpm exec turbo run build:dev --filter=@zotlit/reader
 ```
 
-The first command runs the build tasks of the workspace packages the plugin
-bundles. The second and third build ZotLit and the reader and
-copy them into the vault. The reader's `build:dev` task runs its generators first, so
-the turbo command works on a fresh worktree.
+The commands build ZotLit and the reader and copy them into the vault. Workspace packages
+export TypeScript source, so ZotLit's bundle needs no prerequisite build. The reader's
+`build:dev` task runs its generators first, so the turbo command works on a fresh worktree.
 
 Formatted citations read the Resource Pack. Build it, then make the open vault read its
 manifest:
@@ -94,7 +92,7 @@ Write each call as one plain command with literal values: `<id>` is the vault ID
 
 ## Loop
 
-Take the host desktop’s Exclusive Hold for the walk: wrap it in `pnpm desktop-slot run -- …` (a script of the walk, or `sleep 86400` in the background while you make the calls, ended when the walk is done). Run Vault setup before you take the hold, and Teardown after you release it. Each `obsidian-vault.ts` command takes the slot itself: while your hold from this worktree has it, the command exits 75 and prints the `ZOTLIT_DESKTOP_SLOT=<token>` prefix that runs it inside your hold. Exit 75 means blocked by the holder it names, not a failure. When another run waits, the hold prints a notice and ends 5 min later with exit 76; report that the walk yielded, and hold the slot again after that run.
+Take the host desktop’s Exclusive Hold for the walk: wrap it in `pnpm desktop-slot run -- …` (a script of the walk, or `sleep 86400` as a background task while you make the calls). End the walk with `pnpm desktop-slot status`, which prints each holder as `pid <pid> (<command>) in <worktree>`, then `pnpm desktop-slot evict <pid>` with the pid of the line that names this worktree. The hold stops its command's process group and releases the slot; a script of the walk ends by itself. Run Vault setup before you take the hold, and Teardown after you release it. Each `obsidian-vault.ts` command takes the slot itself: while your hold from this worktree has it, the command exits 75 and prints the `ZOTLIT_DESKTOP_SLOT=<token>` prefix that runs it inside your hold. Exit 75 means blocked by the holder it names, not a failure. When another run waits, the hold prints a notice and ends 5 min later with exit 76; report that the walk yielded, and hold the slot again after that run.
 
 1. **Build** — the build commands from Vault setup step 5. The `build:dev` commands copy the
    bundles into this worktree's Development Vault; prefix them with `ZT_VAULT_CASE=<case>`
@@ -122,7 +120,7 @@ Values change through code, and DOM ops check how the UI looks and behaves.
 | Target | Expression |
 |---|---|
 | Obsidian app config | `app.vault.setConfig(key, value)` |
-| Fixture database write | Fork the built data, save `zoteroPref.dataDirOverride`, call `zoteroPref.setDataDir(<fork>)`, write to the fork, restore the saved override, then remove the fork. Follow [Write to a data fork](../../../docs/fixture.md#write-to-a-data-fork). |
+| Fixture database write | Fork the built data, save `dataDirOverride` from [the active Zotero paths](#read-the-active-zotero-paths), point the plugin at the fork with `setDataDir`, write to the fork, restore the saved override, then remove the fork. Follow [Write to a data fork](../../../docs/fixture.md#write-to-a-data-fork). |
 | ZotLit setting | `app.plugins.plugins.zotlit.settingTab.setControlValue("citation.at-trigger", false)` |
 
 `setControlValue` runs the same `SettingsService` path the rendered control does and persists to
@@ -226,22 +224,30 @@ return document.hasFocus();})()
 
 Send `{enabled:false}` when the check is done.
 
+### Read the active Zotero paths
+
+`zoteroPref` is an Effect service: read it through the plugin's bridge. The supported check is
+`packages/scripts/scripts/obsidian-vault.ts check`: it reports whether ZotLit in the open
+Development Vault reads the Fixture's profile and database. For the values themselves:
+
+```bash
+packages/scripts/scripts/obsidian-cli.ts \
+  --code '{const s=app.plugins.plugins.zotlit.services;const p=s.bridge.runSync(s.zoteroPref.current);JSON.stringify({profileDir:p.resolvedProfileDir,databasePath:p.databasePath,dataDirOverride:p.dataDirOverride})}' vault=<id>
+```
+
+Change the data directory with `s.bridge.runSync(s.zoteroPref.setDataDir("<absolute path>"))`, and
+call it again with the saved `dataDirOverride`, or `null` when it was empty, to restore it.
+
 ### Full-scale Fixture data
 
-Build a Stress Build with `pnpm fixture stress`. Read the current Device Override before you
-change it:
+Build a Stress Build with `pnpm fixture stress`. Read the current Device Override with the
+snippet in [Read the active Zotero paths](#read-the-active-zotero-paths), then point the live
+plugin at the absolute `.scratch/acceptance-fixture/zotero-data` path:
 
 ```bash
 packages/scripts/scripts/obsidian-cli.ts \
-  --code 'app.plugins.plugins.zotlit.services.zoteroPref.dataDirOverride' vault=<id>
+  --code '{const s=app.plugins.plugins.zotlit.services;s.bridge.runSync(s.zoteroPref.setDataDir("<absolute path>"));"set"}' vault=<id>
 ```
 
-Point the live plugin at the absolute `.scratch/acceptance-fixture/zotero-data` path:
-
-```bash
-packages/scripts/scripts/obsidian-cli.ts \
-  --code 'app.plugins.plugins.zotlit.services.zoteroPref.setDataDir("<absolute path>")' vault=<id>
-```
-
-Afterwards, call `setDataDir` again with the previous value, or `null` when it was empty. This
-restores the vault-scoped Device Override and reconnects the database service.
+Afterwards, restore the saved override as that section describes. This restores the vault-scoped
+Device Override and reconnects the database service.
