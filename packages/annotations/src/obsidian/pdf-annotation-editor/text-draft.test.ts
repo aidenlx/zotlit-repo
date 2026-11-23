@@ -67,6 +67,17 @@ it("wraps the draft at the same box width as the saved text", () => {
   });
 });
 
+it("scales the draft to its PDF box and font size at double-size user units", () => {
+  const view = viewport({ box: [24, 36, 588, 756], scale: 3, userUnit: 2 });
+  const css = placedDraft([100, 660, 200, 700], view);
+  const scale = css("scale");
+  expect({
+    width: css("width") * scale,
+    height: css("height") * scale,
+    fontSize: css("font-size") * scale,
+  }).toEqual({ width: 600, height: 240, fontSize: 60 });
+});
+
 it("leaves the focus where the finish moved it", () => {
   const { area } = draftPage();
   const elsewhere = document.body.createEl("input");

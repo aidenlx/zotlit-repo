@@ -8,7 +8,12 @@ import { composing } from "@zotlit/ui";
 
 import { readingAngle } from "./free-text-layout.ts";
 import type { TextDraft } from "./reader-surface-state.ts";
-import { darken, pageUnitSize, unitPointOf, unitsPerPixel } from "./render.ts";
+import {
+  darken,
+  pageUnitSize,
+  pixelsPerPdfPoint,
+  unitPointOf,
+} from "./render.ts";
 import type { MeasuredFont, OverlayPageView } from "./render.ts";
 
 export interface TextDraftEvents {
@@ -50,7 +55,7 @@ export function placeTextDraft(
   page: OverlayPageView,
   { draft, font }: { draft: TextDraft; font: MeasuredFont },
 ): void {
-  const scale = 1 / unitsPerPixel(page);
+  const scale = pixelsPerPdfPoint(page);
   const unit = pageUnitSize(page);
   const [left, bottom, right, top] = draft.box;
   const corner = unitPointOf(page, [left, top]);

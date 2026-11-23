@@ -1,10 +1,14 @@
 // @vitest-environment happy-dom
 
 import type { AnnotationRecord } from "#obsidian/annotation-repository/service.ts";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { parseAnnotationPosition } from "@zotlit/db";
+import { getDocument } from "@zotlit/pdfjs/lib";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { fitFreeTextBox } from "./free-text-layout.ts";
 import { HANDLE_RADIUS } from "./geometry-edit.ts";
@@ -15,6 +19,7 @@ import {
   markTargets,
   patchSelectedMark,
   renderAnnotationOverlay,
+  renderLiveStroke,
   unitPointOf,
   unitsPerPixel,
   withPosition,
@@ -24,6 +29,8 @@ import type { MeasuredFont, OverlayPageView } from "./render.ts";
 import { annotation, viewport } from "#__fixtures__/pdf-annotation-editor.ts";
 
 const OFFSET_BOX = [10, 20, 622, 812] as const;
+
+const EXCERPT_CROP_BOX = [24, 36, 588, 756] as const;
 
 const FIXTURE_COLORS: Record<string, string> = {
   PUPR5FG5: "#2ea8e5",
@@ -75,6 +82,50 @@ it("carries the page's own `/UserUnit` into the page-unit box", () => {
   expect(overlayIn(page).getAttribute("viewBox")).toBe("0 0 306 396");
   expect(rectOf(page, "PUPR5FG5")).toEqual(["50", "36", "50", "10"]);
 });
+
+it.each([
+  {
+    userUnit: 2,
+    box: [152, 112, 352, 192],
+    fontSize: "20",
+    baselines: ["132", "156"],
+  },
+  {
+    userUnit: 1,
+    box: [76, 56, 176, 96],
+    fontSize: "10",
+    baselines: ["66", "78"],
+  },
+])(
+  "sizes saved text and its line spacing to the box at user unit $userUnit",
+  ({ userUnit, box, fontSize, baselines }) => {
+    const page = pageView(
+      viewport({ box: EXCERPT_CROP_BOX, scale: 3, userUnit }),
+    );
+    const annotations = pageAnnotations([
+      {
+        ...record("HRK7BG32", "text", {
+          pageIndex: 0,
+          rects: [[100, 660, 200, 700]],
+          fontSize: 10,
+          rotation: 0,
+        }),
+        comment: "first\nsecond",
+      },
+    ]);
+
+    renderAnnotationOverlay(page, { font: MONO, annotations });
+
+    const mark = markIn(page, "HRK7BG32");
+    expect({
+      box: markTargets(page, annotations)[0]?.rects[0],
+      fontSize: mark.getAttribute("font-size"),
+      baselines: [...mark.querySelectorAll("tspan")].map((line) =>
+        line.getAttribute("y"),
+      ),
+    }).toEqual({ box, fontSize, baselines });
+  },
+);
 
 it("draws each part of an overlong word on its own line inside the fitted box", () => {
   const page = pageView();
@@ -206,6 +257,63 @@ it("casts a selected ink stroke's own path under it, wider, rather than framing 
   expect(casing.compareDocumentPosition(stroke)).toBe(
     Node.DOCUMENT_POSITION_FOLLOWING,
   );
+});
+
+it("sizes saved, pending, and live ink and its hit area on a double-size PDF page", async () => {
+  const path = resolve(
+    await getWorkspaceRoot(import.meta.dirname),
+    "packages/scripts/lib/fixture/assets/excerpt-rendering/excerpt-rendering.pdf",
+  );
+  await using stack = new AsyncDisposableStack();
+  const loading = stack.adopt(
+    getDocument({ data: new Uint8Array(await readFile(path)) }),
+    (task) => task.destroy(),
+  );
+  const pdfPage = await (await loading.promise).getPage(1);
+  const page = pageView(pdfPage.getViewport({ scale: 3 }));
+  const stroke = {
+    pageIndex: 0,
+    width: 6,
+    paths: [[100, 700, 200, 700]],
+    color: "#5fb236",
+  };
+  const annotations = pageAnnotations([record("TYY6Z6ZF", "ink", stroke)]);
+
+  renderAnnotationOverlay(page, {
+    font: MONO,
+    annotations,
+    pending: [{ ...stroke, id: 1 }],
+    selected: new Set(["TYY6Z6ZF"]),
+  });
+  renderLiveStroke(page, stroke);
+
+  const overlay = overlayIn(page);
+  const casing = overlay.querySelector<SVGElement>(
+    `.${themeHook.pdfAnnotationSelectionOutline}`,
+  );
+  const pending = overlay.querySelector(`.${themeHook.pdfPendingStroke}`);
+  const live = overlay.querySelector(`.${themeHook.pdfLiveStroke}`);
+  const saved = markIn(page, "TYY6Z6ZF");
+  const targets = markTargets(page, annotations);
+  expect({
+    viewBox: overlay.getAttribute("viewBox"),
+    path: saved.getAttribute("d"),
+    savedWidth: saved.getAttribute("stroke-width"),
+    pendingWidth: pending?.getAttribute("stroke-width"),
+    liveWidth: live?.getAttribute("stroke-width"),
+    casingWidth: casing?.style.strokeWidth,
+    bounds: targets[0]?.rects[0],
+    hits: marksAtPoint(targets, { point: { x: 252, y: 122 }, pad: 0 }),
+  }).toEqual({
+    viewBox: "0 0 1128 1440",
+    path: "M 152 112 L 152 112 L 352 112",
+    savedWidth: "12",
+    pendingWidth: "12",
+    liveWidth: "12",
+    casingWidth: "15",
+    bounds: [146, 106, 358, 118],
+    hits: ["TYY6Z6ZF"],
+  });
 });
 
 it("draws a single-point ink stroke as a round dot, in the page's colour when none is stored", () => {

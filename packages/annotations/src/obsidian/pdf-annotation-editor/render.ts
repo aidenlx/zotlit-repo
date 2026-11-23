@@ -407,7 +407,8 @@ function inkTarget(
   if (points.length === 0) return null;
   const xs = points.map(([x]) => x);
   const ys = points.map(([, y]) => y);
-  const spill = position.width / 2;
+  const width = position.width * page.unitsPerPdfPoint;
+  const spill = width / 2;
   return {
     key: annotation.key,
     rects: [
@@ -418,7 +419,7 @@ function inkTarget(
         Math.max(...ys) + spill,
       ],
     ],
-    ink: { paths, reach: inkReach(position.width) },
+    ink: { paths, reach: inkReach(width) },
   };
 }
 
@@ -429,6 +430,11 @@ export function unitPointOf(view: OverlayPageView, [x, y]: PdfPoint): Point {
 
 export function unitsPerPixel(view: OverlayPageView): number {
   return pageUnitSize(view).width / view.viewport.width;
+}
+
+export function pixelsPerPdfPoint(view: OverlayPageView): number {
+  const page = toPageUnits(view);
+  return (view.viewport.width / page.viewport.width) * page.unitsPerPdfPoint;
 }
 
 export function pageUnitSize(page: OverlayPageView): {
@@ -477,7 +483,7 @@ function renderInkCasing(
   element.setAttribute("stroke-linecap", "round");
   element.setAttribute("stroke-linejoin", "round");
   element.style.strokeWidth = String(
-    position.width + 2 * SELECTION_OUTLINE_PADDING,
+    position.width * page.unitsPerPdfPoint + 2 * SELECTION_OUTLINE_PADDING,
   );
   element.classList.add(themeHook.pdfAnnotationSelectionOutline);
   return element;
@@ -643,7 +649,7 @@ function inkStroke(
   element.setAttribute("d", inkPathOf(page, { paths }));
   element.setAttribute("fill", "none");
   element.setAttribute("stroke", darken(color));
-  element.setAttribute("stroke-width", String(width));
+  element.setAttribute("stroke-width", String(width * page.unitsPerPdfPoint));
   element.setAttribute("stroke-linecap", "round");
   element.setAttribute("stroke-linejoin", "round");
   return element;
@@ -690,10 +696,11 @@ function renderText(
     fontSize: position.fontSize,
     measure,
   });
+  const fontSize = position.fontSize * page.unitsPerPdfPoint;
   element.setAttribute("x", String(baseline[0]));
   element.setAttribute("y", String(baseline[1]));
   element.setAttribute("fill", darken(colorOf(annotation)));
-  element.setAttribute("font-size", String(position.fontSize));
+  element.setAttribute("font-size", String(fontSize));
   element.setAttribute("font-family", family);
   element.setAttribute("font-weight", "normal");
   element.setAttribute("font-style", "normal");
@@ -706,7 +713,7 @@ function renderText(
       tspan.setAttribute("x", String(baseline[0]));
       tspan.setAttribute(
         "y",
-        String(baseline[1] + index * LINE_HEIGHT * position.fontSize),
+        String(baseline[1] + index * LINE_HEIGHT * fontSize),
       );
       tspan.textContent = line;
       return tspan;
@@ -784,6 +791,7 @@ function viewportPoint(
 
 interface OverlayPage {
   document: Document;
+  unitsPerPdfPoint: number;
   viewport: Pick<
     PageViewport,
     "width" | "height" | "rotation" | "convertToViewportPoint"
@@ -802,11 +810,17 @@ function toPageUnits(page: OverlayPageView): OverlayPage {
   const document_ = page.div.ownerDocument;
   const { viewport } = page;
   const base = viewport.clone?.({ scale: 1 });
-  if (base) return { document: document_, viewport: base };
+  if (base)
+    return {
+      document: document_,
+      viewport: base,
+      unitsPerPdfPoint: base.userUnit,
+    };
 
   const total = viewport.scale * viewport.userUnit;
   return {
     document: document_,
+    unitsPerPdfPoint: 1,
     viewport: {
       width: viewport.width / total,
       height: viewport.height / total,
