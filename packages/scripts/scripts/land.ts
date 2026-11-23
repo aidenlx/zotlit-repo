@@ -34,7 +34,7 @@ import { landAdmission, landStateDir, landWaitLog } from "#land-queue";
 const EXIT_USAGE = 2;
 const GATE_TAIL = 40;
 
-const epilogue = `A land holds the Land Turn while it fetches, rebases, runs the gate, and pushes, so one land at a time reaches ${SOURCE_BRANCH} on this machine, in the order the lands started. The gate cannot be skipped.
+const epilogue = `A land holds the Land Turn while it fetches, rebases, runs the gate, and pushes, so one land at a time reaches ${SOURCE_BRANCH} on this machine, in the order the lands started. --no-verify skips the gate; the CI check of the record PR still runs.
 
 From a task branch with a clean tree, a record file, and a gh login that GitHub accepts (checked before the turn):
   fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_GATES.change.join(" ")}, push the branch to origin and open its record PR (or update the open one), wait for the "${LAND_CI_CHECK}" check of the PR head (pnpm verify --pr, ${RECORD_PR_WORKFLOW}), push HEAD to ${SOURCE_BRANCH} as a fast-forward. The wait prints the state of the check at each read and ends after ${formatDuration(LAND_CI_WAIT_MS)}; a check that does not pass fails the land with the link to the job, and ${SOURCE_BRANCH} stays as it was. A land again on the same head reads the same result, unless the job ran again from its link. When ${SOURCE_BRANCH} moved during the gate or the CI wait, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves; when GitHub shows the PR as merged, the task branch is deleted on origin.
@@ -57,7 +57,7 @@ function usage(message: string): never {
   process.exit(EXIT_USAGE);
 }
 
-async function landCommand(wait: string | undefined) {
+async function landCommand(wait: string | undefined, verify: boolean) {
   let waitMs: number | undefined;
   if (wait !== undefined) {
     try {
@@ -74,7 +74,7 @@ async function landCommand(wait: string | undefined) {
   if (!repository) usage(`origin is not a GitHub repository: ${origin.trim()}`);
   const result = await land({
     cwd,
-    gate: LAND_GATES.change,
+    ...(verify ? { gate: LAND_GATES.change } : {}),
     github: ghLandGitHub(repository),
     ...(waitMs === undefined ? {} : { waitMs }),
   });
@@ -109,17 +109,23 @@ async function status() {
 
 await yargs(hideBin(process.argv))
   .scriptName("land")
-  .usage("pnpm land [--wait <duration>]\npnpm land status")
+  .usage("pnpm land [--wait <duration>] [--no-verify]\npnpm land status")
   .command(
     "$0",
     `land the current worktree onto ${SOURCE_BRANCH}`,
     (y) =>
-      y.option("wait", {
-        type: "string",
-        describe: `how long to wait for the Land Turn (default ${formatDuration(LAND_WAIT_MS)})`,
-      }),
+      y
+        .option("wait", {
+          type: "string",
+          describe: `how long to wait for the Land Turn (default ${formatDuration(LAND_WAIT_MS)})`,
+        })
+        .option("verify", {
+          type: "boolean",
+          default: true,
+          describe: `run the gate (${LAND_GATES.change.join(" ")}); --no-verify skips it, and the CI check still runs`,
+        }),
     async (argv) => {
-      await landCommand(argv.wait);
+      await landCommand(argv.wait, argv.verify);
     },
   )
   .command(

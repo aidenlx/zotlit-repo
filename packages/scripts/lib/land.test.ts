@@ -185,6 +185,26 @@ describe("land", () => {
   );
 
   it(
+    "skips the gate step of a land without a gate, and pushes the rebased tree",
+    async () => {
+      const cwd = await taskClone("a");
+      await moveMain("upstream.txt", "upstream\n");
+
+      const result = await land({ ...quiet, cwd });
+
+      expect(result).toMatchObject({ ok: true, attempts: 1 });
+      if (!result.ok) return;
+      expect(await readFile(result.logPath, "utf8")).not.toContain("▸ gate");
+      expect(await subjects("main")).toEqual([
+        "a",
+        "main upstream.txt",
+        "seed",
+      ]);
+    },
+    SLOW,
+  );
+
+  it(
     "keeps the Land Turn of a gate that runs longer than its silence limit while it prints",
     async () => {
       const cwd = await taskClone("a");

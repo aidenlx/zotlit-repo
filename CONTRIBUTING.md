@@ -72,8 +72,8 @@ updates its record pull request from the record file, waits for the CI check
 of the PR (`pnpm verify --pr`), and pushes the tree to `main` as a
 fast-forward. A failed check fails the land, and `main` stays as it was.
 GitHub then shows the PR as merged. `pnpm land --help` names the record file
-and its sections. The gate cannot be skipped. The pre-push hook lets only
-`pnpm land` push `main`.
+and its sections. `pnpm land --no-verify` skips the gate; the CI check
+still runs. The pre-push hook lets only `pnpm land` push `main`.
 
 ## Releasing
 

@@ -119,7 +119,7 @@ export interface LandGitHub {
 
 export interface LandOptions {
   cwd: string;
-  gate: readonly [string, ...string[]];
+  gate?: readonly [string, ...string[]];
   github?: LandGitHub;
   remote?: string;
   queueDir?: string;
@@ -344,16 +344,21 @@ export async function land(options: LandOptions): Promise<LandResult> {
       attempts += 1;
       await step("fetch", () => fetchTarget(sh, remote, to));
       await step("rebase", () => rebaseOnto(sh, `${remote}/${to}`, pre.head));
-      await step("gate", async () => {
-        const [command, ...args] = options.gate;
-        const result = await sh.run(command, args);
-        if (result.code !== 0) {
-          throw new LandFailure(
-            "gate",
-            `${options.gate.join(" ")} exited ${result.code}.`,
-          );
-        }
-      });
+      const gate = options.gate;
+      if (gate) {
+        await step("gate", async () => {
+          const [command, ...args] = gate;
+          const result = await sh.run(command, args);
+          if (result.code !== 0) {
+            throw new LandFailure(
+              "gate",
+              `${gate.join(" ")} exited ${result.code}.`,
+            );
+          }
+        });
+      } else {
+        say("The gate is skipped; the CI check still runs.");
+      }
       const github = options.github;
       if (github && record) {
         pull = await step("record", () =>
