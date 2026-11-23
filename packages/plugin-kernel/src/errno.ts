@@ -20,7 +20,8 @@ export function isPlatformErrno(error: unknown, code: string): boolean {
 
 function errnoReason(cause: unknown): PlatformError.SystemErrorTag {
   if (isErrno(cause, "ENOENT")) return "NotFound";
-  if (isErrno(cause, "EACCES")) return "PermissionDenied";
+  if (isErrno(cause, "EACCES") || isErrno(cause, "EPERM"))
+    return "PermissionDenied";
   if (isErrno(cause, "EEXIST")) return "AlreadyExists";
   if (
     isErrno(cause, "EISDIR") ||
