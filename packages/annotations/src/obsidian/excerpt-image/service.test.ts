@@ -477,13 +477,23 @@ describe("Excerpt Image resolution", () => {
   );
 
   it.effect(
-    "captures each rapid saved edit before waiting for an older render",
+    "renders rapid saved edits in call order after their checks finish out of order",
     () =>
       Effect.gen(function* () {
         const started = Promise.withResolvers<void>();
         const old = Promise.withResolvers<ExcerptImage>();
+        const secondCheck = Promise.withResolvers<void>();
         const colors: (string | null)[] = [];
+        let secondKey: string;
         const service = yield* excerptImageFixture({
+          stamp: async () => ({ size: 100, mtimeMs: 10 }),
+          cache: {
+            get: async (key) => {
+              if (key === secondKey) await secondCheck.promise;
+              return undefined;
+            },
+            put: () => Effect.void,
+          },
           render: async (snapshot) => {
             colors.push(snapshot.annotation.color);
             if (colors.length === 1) {
@@ -493,15 +503,17 @@ describe("Excerpt Image resolution", () => {
             return rendered;
           },
         });
+        const secondRequest: ExcerptRequest = {
+          ...inkRequest,
+          annotation: { ...inkRequest.annotation, color: "#00ff00" },
+        };
+        secondKey = yield* service.key(secondRequest);
         const first = yield* service
           .resolve(inkRequest)
           .pipe(Effect.forkChild({ startImmediately: true }));
         yield* Effect.promise(() => started.promise);
         const second = yield* service
-          .resolve({
-            ...inkRequest,
-            annotation: { ...inkRequest.annotation, color: "#00ff00" },
-          })
+          .resolve(secondRequest)
           .pipe(Effect.forkChild({ startImmediately: true }));
         const third = yield* service
           .resolve({
@@ -509,10 +521,20 @@ describe("Excerpt Image resolution", () => {
             annotation: { ...inkRequest.annotation, color: "#0000ff" },
           })
           .pipe(Effect.forkChild({ startImmediately: true }));
-        old.resolve(rendered);
-        yield* Effect.forEach([first, second, third], (fiber) =>
-          Fiber.join(fiber),
+        yield* Effect.promise(() =>
+          vi.waitFor(() => expect(service.queueDiagnostics.queued).toBe(1)),
         );
+        secondCheck.resolve();
+        yield* Effect.promise(() =>
+          vi.waitFor(() => expect(service.queueDiagnostics.queued).toBe(2)),
+        );
+        old.resolve(rendered);
+        for (const fiber of [first, second, third]) {
+          expect(yield* Fiber.join(fiber)).toMatchObject({
+            kind: "available",
+            provenance: "rendered",
+          });
+        }
         expect(colors).toEqual(["#ff0000", "#00ff00", "#0000ff"]);
       }),
   );
