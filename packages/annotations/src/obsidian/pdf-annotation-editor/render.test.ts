@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { parseAnnotationPosition } from "@zotlit/db";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
+import { fitFreeTextBox } from "./free-text-layout.ts";
 import { HANDLE_RADIUS } from "./geometry-edit.ts";
 import { markAnchor, marksAtPoint, pagePointOf } from "./hit-test.ts";
 import type { PageBox } from "./hit-test.ts";
@@ -73,6 +74,42 @@ it("carries the page's own `/UserUnit` into the page-unit box", () => {
 
   expect(overlayIn(page).getAttribute("viewBox")).toBe("0 0 306 396");
   expect(rectOf(page, "PUPR5FG5")).toEqual(["50", "36", "50", "10"]);
+});
+
+it("draws each part of an overlong word on its own line inside the fitted box", () => {
+  const page = pageView();
+  const text = "aa abcdef";
+  const position = { fontSize: 12.5, rotation: 0 };
+  const box = fitFreeTextBox(
+    text,
+    { ...position, rects: [[100, 680, 120, 710]] },
+    { measure: MONO.measure, pageBox: page.viewport.viewBox },
+  );
+
+  renderAnnotationOverlay(page, {
+    font: MONO,
+    annotations: pageAnnotations([
+      {
+        ...record("HRK7BG32", "text", {
+          ...position,
+          pageIndex: 0,
+          rects: [box],
+        }),
+        comment: text,
+      },
+    ]),
+  });
+
+  expect(
+    [...markIn(page, "HRK7BG32").querySelectorAll("tspan")].map((line) => [
+      line.textContent,
+      line.getAttribute("y"),
+    ]),
+  ).toEqual([
+    ["aa", "94.5"],
+    ["abcd", "109.5"],
+    ["ef", "124.5"],
+  ]);
 });
 
 it("measures from the page box's own origin rather than from zero", () => {

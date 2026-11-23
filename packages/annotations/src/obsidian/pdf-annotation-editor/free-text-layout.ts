@@ -131,21 +131,24 @@ export function freeTextLines(
     for (const word of paragraph.split(" ")) {
       if (fits(line + word)) {
         line += `${word} `;
-      } else if (line.trim() === "") {
-        let part = "";
-        for (const char of word) {
-          if (fits(part + char)) {
-            part += char;
-          } else {
-            lines.push(part);
-            part = char;
-          }
-        }
-        line = `${part} `;
-      } else {
-        lines.push(line.trim());
-        line = `${word} `;
+        continue;
       }
+      const finished = line.trim();
+      if (finished) lines.push(finished);
+      if (fits(word)) {
+        line = `${word} `;
+        continue;
+      }
+      let part = "";
+      for (const char of word) {
+        if (fits(part + char)) {
+          part += char;
+        } else {
+          lines.push(part);
+          part = char;
+        }
+      }
+      line = `${part} `;
     }
     lines.push(line.trim());
     return lines;

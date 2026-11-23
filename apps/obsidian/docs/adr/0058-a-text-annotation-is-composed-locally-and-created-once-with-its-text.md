@@ -52,8 +52,8 @@ rotations and expected corners independently from the layout code.
 
 The line height is 1.2 times the font size. Layout first preserves explicit
 newlines. It measures candidate lines without their trailing space to match
-the textarea. A too-wide word can break into characters.
-[Long-word follow-up](https://github.com/aidenlx/zotlit-repo/issues/59)
+the textarea. A word too wide for a line of its own breaks into characters,
+also when it follows another word, as the textarea's `break-word` does.
 
 With the normal comment-edit mode, a box at least two font sizes high
 keeps its width. A shorter box fits its widest line and adds five points

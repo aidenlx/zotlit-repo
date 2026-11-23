@@ -152,6 +152,10 @@ describe("breaking free text into lines as Zotero's canvas render does, but not 
     expect(at("abcdefghij", 22)).toEqual(["abcd", "efgh", "ij"]);
   });
 
+  it("breaks an overlong word after moving it to a fresh line", () => {
+    expect(at("aa abcdef", 20)).toEqual(["aa", "abcd", "ef"]);
+  });
+
   it("starts a line at every newline, an empty one included", () => {
     expect(at("ab cd\nef", 100)).toEqual(["ab cd", "ef"]);
     expect(at("a\n\nb", 100)).toEqual(["a", "", "b"]);
@@ -195,6 +199,12 @@ describe("fitting a free-text box, as Zotero's reader fits it", () => {
   it("keeps the width of a box two font sizes high and lays the text out in it", () => {
     expect(fit("aaaa bbbb cccc", [100, 680, 150, 710])).toEqual([
       100, 686, 150, 710,
+    ]);
+  });
+
+  it("fits a fixed-width box to all lines of an overlong word after a short word", () => {
+    expect(fit("aa abcdef", [100, 680, 120, 710])).toEqual([
+      100, 674, 120, 710,
     ]);
   });
 
