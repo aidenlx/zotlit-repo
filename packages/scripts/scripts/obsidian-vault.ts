@@ -6,7 +6,6 @@ import type { VaultPlugin } from "#vault-plugins";
 import { access, cp, mkdir, readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, join, resolve } from "node:path";
-import { setTimeout as delay } from "node:timers/promises";
 import * as v from "valibot";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
@@ -21,6 +20,14 @@ import {
   getFixtureVaultDir,
 } from "#dev-vault";
 import {
+  checkFixtureLink,
+  createVaultSession,
+  openRegisteredVault,
+  rethrowUnreachable,
+  seedFixturePaths,
+  trustVault,
+} from "#dev-vault-session";
+import {
   buildFixture,
   DEFAULT_SCOPE_CASE,
   DEFAULT_VAULT_CASE,
@@ -32,7 +39,7 @@ import {
   VAULT_CASES,
 } from "#fixture";
 import { holdsZotLit } from "#fixture/layout";
-import { createObsidianCall, isObsidianUnreachable } from "#obsidian-cli";
+import { createObsidianCall } from "#obsidian-cli";
 import {
   createObsidianHostReadiness,
   OBSIDIAN_HOST_TIMEOUT_MS,
@@ -83,11 +90,8 @@ function obsidianUserData(): string {
 }
 
 const cli = createObsidianCall();
-
-function rethrowUnreachable(error: unknown): undefined {
-  if (isObsidianUnreachable(error)) throw error;
-  return undefined;
-}
+const session = createVaultSession(cli);
+const { evaluate: obEval, waitFor, vaultList } = session;
 
 async function readVaultRegistry(): Promise<Record<string, VaultEntry>> {
   const configPath = join(obsidianUserData(), "obsidian.json");
@@ -116,19 +120,6 @@ const checkObsidianHost = createObsidianHostReadiness(
   { sandboxVaultPath: join(obsidianUserData(), sandboxFolder) },
 );
 
-async function obEval(code: string, target?: string): Promise<string> {
-  const text = await cli([
-    ...(target ? [`vault=${target}`] : []),
-    "eval",
-    `code=${code}`,
-  ]);
-  if (text === "") return "";
-  if (!text.startsWith("=> ")) {
-    throw new Error(`obsidian eval failed: ${text}`);
-  }
-  return text.slice(3);
-}
-
 function vaultOpenCode(abs: string): string {
   const open = `require('electron').ipcRenderer.sendSync('vault-open',${JSON.stringify(abs)},false)`;
   if (!inactive) return open;
@@ -143,25 +134,6 @@ function isObsidianRunning(): Promise<boolean> {
       return false;
     },
   );
-}
-
-async function vaultList(host?: string): Promise<Record<string, VaultEntry>> {
-  const raw = await obEval(
-    `require('electron').ipcRenderer.sendSync('vault-list')`,
-    host,
-  );
-  return JSON.parse(raw) as Record<string, VaultEntry>;
-}
-
-async function waitFor(
-  check: () => Promise<boolean>,
-  tries = 40,
-): Promise<boolean> {
-  for (let attempt = 0; attempt < tries; attempt++) {
-    if (await check()) return true;
-    await delay(250);
-  }
-  return false;
 }
 
 async function resolveHost(avoidPath?: string): Promise<string> {
@@ -193,6 +165,15 @@ async function resolveRemovalHost(
 
   const vaults = await vaultList(focused);
   return Object.keys(vaults).find((id) => id !== exclude && vaults[id]!.open);
+}
+
+function openCommand(): string {
+  const args = hideBin(process.argv);
+  const at = args.findIndex((arg) => arg === "create" || arg === "open");
+  return [
+    "node packages/scripts/scripts/obsidian-vault.ts",
+    ...args.map((arg, index) => (index === at ? "open" : arg)),
+  ].join(" ");
 }
 
 interface SeedOptions {
@@ -297,43 +278,13 @@ async function create(
   console.log(id);
   console.error(`created vault ${id} at ${abs}`);
 
-  const answered = await waitFor(async () => {
-    const state = await cli([`vault=${id}`, "plugins:restrict"]);
-    return state === "on" || state === "off";
+  await trustVault(session, {
+    host,
+    vaultId: id,
+    plugins,
+    fixture: holdsZotLit(plugins) ? fixtureLayout : undefined,
+    retry: openCommand(),
   });
-  if (!answered) {
-    throw new Error(`vault ${id} opened but never answered plugins:restrict`);
-  }
-
-  const trustedPage = await obEval("String(performance.timeOrigin)", id);
-  const trusted = await cli([`vault=${id}`, "plugins:restrict", "off"]);
-  if (!/disabled|^off$/i.test(trusted)) {
-    throw new Error(`could not leave Restricted Mode in ${id}: ${trusted}`);
-  }
-  const reloads = /reloading/i.test(trusted);
-
-  let reloaded = !reloads;
-  const ids = JSON.stringify(plugins.map((plugin) => plugin.id));
-  const loaded = await waitFor(async () => {
-    const answer = await obEval(
-      `JSON.stringify([String(performance.timeOrigin),${ids}.every(function(id){return id in app.plugins.plugins})])`,
-      id,
-    ).catch(rethrowUnreachable);
-    if (!answer) return false;
-    const [page, present] = JSON.parse(answer) as [string, boolean];
-    reloaded ||= page !== trustedPage;
-    return reloaded && present;
-  });
-  if (!reloaded) {
-    throw new Error(
-      `vault ${id} left Restricted Mode but its window never reloaded`,
-    );
-  }
-  if (!loaded) {
-    throw new Error(
-      `${plugins.map((plugin) => plugin.id).join(", ")} did not load in ${id}. Run ${plugins.map((plugin) => `'pnpm --filter ./${plugin.app} build:dev'`).join(" and ")} and create again.`,
-    );
-  }
   if (holdsZotLit(plugins)) await linkFixture(id);
   if (localApi) {
     await setFixtureWriteAuthorization(id, grantLocalApiWrites ?? true);
@@ -430,6 +381,13 @@ async function sync(
       await purgeVault(abs);
       if (registered) {
         await clearVaultStorage(registered, host, { keyPrefix: pluginId });
+        if (holdsZotLit(plugins)) {
+          await seedFixturePaths(session, {
+            host,
+            vaultId: registered,
+            fixture: fixtureLayout,
+          });
+        }
       }
       await mkdir(abs, { recursive: true });
     }
@@ -525,51 +483,15 @@ async function open(
     return;
   }
 
-  await sync(abs, seed);
-  const opened =
-    (await vaultList(host))[registered]?.open === true
-      ? undefined
-      : await obEval(vaultOpenCode(abs), host);
-  if (opened !== undefined) {
-    if (opened !== "true") {
-      throw new Error(`vault-open refused: ${opened || "unknown error"}`);
-    }
-    const windowOpen = await waitFor(
-      async () => (await vaultList(host))[registered]?.open === true,
-    );
-    if (!windowOpen) {
-      throw new Error(
-        `vault ${registered} registered but its window never opened`,
-      );
-    }
-  }
-
-  for (const { id } of plugins) {
-    let reloaded = "";
-    for (let attempt = 0; attempt < 4; attempt++) {
-      reloaded = await cli([
-        `vault=${registered}`,
-        "plugin:reload",
-        `id=${id}`,
-      ]);
-      if (reloaded.toLowerCase().startsWith("reloaded:")) break;
-      await delay(250);
-    }
-    if (!reloaded.toLowerCase().startsWith("reloaded:")) {
-      throw new Error(`could not reload ${id} in ${registered}: ${reloaded}`);
-    }
-
-    const loaded = await waitFor(async () => {
-      const answer = await obEval(
-        `String(${JSON.stringify(id)} in app.plugins.plugins)`,
-        registered,
-      ).catch(rethrowUnreachable);
-      return answer === "true";
-    });
-    if (!loaded) {
-      throw new Error(`${id} did not load in ${registered}`);
-    }
-  }
+  await openRegisteredVault(session, {
+    host,
+    vaultId: registered,
+    plugins,
+    fixture: holdsZotLit(plugins) ? fixtureLayout : undefined,
+    retry: openCommand(),
+    openCode: vaultOpenCode(abs),
+    sync: () => sync(abs, seed),
+  });
   if (holdsZotLit(plugins)) {
     await linkFixture(registered);
   }
@@ -920,12 +842,23 @@ const vaultCli = yargs(hideBin(process.argv))
   })
   .command(
     "check",
-    "verify that a live Obsidian vault can host CLI calls, opening one when no vault window is open",
+    "verify that a live Obsidian vault can host CLI calls, opening one when no vault window is open, and that ZotLit in an open Development Vault reads the Fixture",
     (y) => y.epilogue(hostReadinessReference),
     async () => {
       const host = await checkObsidianHost();
       console.log(host.id);
       console.error(`host vault ready at ${host.path}`);
+      const linked = await checkFixtureLink(session, {
+        host: host.id,
+        vaultPath: getDevVaultDir(
+          workspaceRoot,
+          process.env[DEV_VAULT_CASE_ENV] || undefined,
+        ),
+        fixtureRoot: fixtureLayout.root,
+      });
+      if (linked) {
+        console.error(`Development Vault ${linked} reads the Fixture`);
+      }
     },
   )
   .command(

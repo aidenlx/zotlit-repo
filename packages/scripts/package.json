@@ -37,6 +37,7 @@
     "#snapshot-size": "./lib/snapshot-size.ts",
     "#zotero-rdp": "./lib/zotero-rdp.ts",
     "#dev-vault": "./lib/dev-vault.ts",
+    "#dev-vault-session": "./lib/dev-vault-session.ts",
     "#vault-plugins": "./lib/vault-plugins.ts",
     "#vault-purge": "./lib/vault-purge.ts",
     "#message-usage": "./lib/message-usage.ts",
