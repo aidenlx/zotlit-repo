@@ -107,6 +107,7 @@ export function LessonView({
   const [launched, setLaunched] = useState<number | null>(null);
   const [progress, setProgress] = useState<Record<string, LessonProgress>>({});
   const [say, setSay] = useState("");
+  const currentTicks = useRef<ReadonlySet<number>>(new Set());
   const written = useRef<string | null>(null);
   const reveal = useRef<number | null>(null);
 
@@ -116,9 +117,11 @@ export function LessonView({
 
   useLayoutEffect(() => {
     const all = readProgress();
-    const saved = all[lesson.slug]?.ticks ?? [];
+    const saved = new Set(all[lesson.slug]?.ticks);
+    currentTicks.current = saved;
+    written.current = null;
     setProgress(all);
-    setTicks(new Set(saved));
+    setTicks(saved);
     setReady(true);
   }, [lesson.slug]);
 
@@ -126,8 +129,7 @@ export function LessonView({
     if (!ready) return;
     if (written.current === hash) return;
     written.current = null;
-    const saved = readProgress()[lesson.slug]?.ticks ?? [];
-    setOpen(openOnLoad(hash, saved, total));
+    setOpen(openOnLoad(hash, [...currentTicks.current], total));
   }, [hash, total, ready, lesson.slug]);
 
   useEffect(() => {
@@ -166,6 +168,7 @@ export function LessonView({
     const next = new Set(ticks);
     if (done) next.add(n);
     else next.delete(n);
+    currentTicks.current = next;
     setTicks(next);
     saveTicks(lesson.slug, next, total);
     if (!done) {
