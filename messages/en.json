@@ -1065,6 +1065,8 @@
   "notice_pandoc_integration_copy_backup_path": "Copy path",
   "notice_pandoc_integration_backup_path_copied": "Backup folder path copied.",
   "notice_pandoc_integration_backup_path_copy_failed": "Failed to copy the backup folder path.",
+  "notice_pandoc_integration_open_backup_folder": "Open folder",
+  "notice_pandoc_integration_backup_folder_open_failed": "Failed to open the backup folder.",
   "command_open_references_view_name": "Open references",
   "command_show_cited_by_name": "Show cited by",
   "cited_by_view_name": "Cited by",

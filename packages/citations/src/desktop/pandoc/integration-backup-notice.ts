@@ -1,5 +1,6 @@
 import { dirname } from "node:path";
 
+import { requireElectron } from "@zotlit/obsidian-desktop/require.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import * as toast from "@zotlit/obsidian-kit/toast.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -16,6 +17,19 @@ export function copyBackupFolderPath(
   return done;
 }
 
+export function openBackupFolder(backups: readonly string[]): Promise<void> {
+  const folder = dirname(backups[0]!);
+  const done = requireElectron()
+    .shell.openPath(folder)
+    .then((refused) => {
+      if (refused) throw new Error(refused);
+    });
+  void toast.promise(done, {
+    error: m.notice_pandoc_integration_backup_folder_open_failed(),
+  });
+  return done;
+}
+
 export function renderPandocIntegrationBackupNotice(
   backups: readonly string[],
 ): DocumentFragment {
@@ -27,6 +41,11 @@ export function renderPandocIntegrationBackupNotice(
         button
           .setButtonText(m.notice_pandoc_integration_copy_backup_path())
           .onClick(() => void copyBackupFolderPath(backups));
+      })
+      .addAction((button) => {
+        button
+          .setButtonText(m.notice_pandoc_integration_open_backup_folder())
+          .onClick(() => void openBackupFolder(backups));
       });
   });
 }

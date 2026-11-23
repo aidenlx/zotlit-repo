@@ -893,6 +893,8 @@
   "notice_pandoc_integration_copy_backup_path": "复制路径",
   "notice_pandoc_integration_backup_path_copied": "备份文件夹路径已复制。",
   "notice_pandoc_integration_backup_path_copy_failed": "无法复制备份文件夹路径。",
+  "notice_pandoc_integration_open_backup_folder": "打开文件夹",
+  "notice_pandoc_integration_backup_folder_open_failed": "无法打开备份文件夹。",
   "command_open_references_view_name": "打开参考文献",
   "command_show_cited_by_name": "显示被引用",
   "cited_by_view_name": "被引用",
