@@ -30,12 +30,12 @@ export function createSender(): Send {
     const base = notifyUrl();
     if (!base) return;
 
-    logger.info("dispatching notify event", { event: event.event, base });
-    const body = JSON.stringify({
-      ...event,
-      ...sourceDebugDirs(),
-    } satisfies NotifyEvent);
     try {
+      logger.info("dispatching notify event", { event: event.event, base });
+      const body = JSON.stringify({
+        ...event,
+        ...sourceDebugDirs(),
+      } satisfies NotifyEvent);
       await fetch(new URL("/notify", base), {
         method: "POST",
         headers: {
