@@ -1990,6 +1990,35 @@ describe("ZoteroReads SearchItems", () => {
   );
 
   it.effect(
+    "a refresh finds a renamed Item whose client modification time changed",
+    () =>
+      Effect.gen(function* () {
+        const { open, closed } = fixtureOpener((id) =>
+          id === 1
+            ? "update items set clientDateModified = '2024-02-01 00:00:00' where itemID = 1;"
+            : `
+              update items set clientDateModified = '2024-02-02 00:00:00'
+                where itemID = 1;
+              insert into itemDataValues (valueID, value) values (8, 'Quagga Study');
+              update itemData set valueID = 8 where itemID = 1 and fieldID = 10;
+            `,
+        );
+        const renamed = yield* withReads(open, (reads) =>
+          Effect.gen(function* () {
+            yield* reads.SearchItems(inLibrary(1));
+            yield* reads.Refresh();
+            yield* closed(1);
+            return yield* reads.SearchItems(inLibrary(1, "quagga"));
+          }),
+        );
+        expect(keysOf(renamed)).toEqual(["MAIN2345"]);
+        expect(renamed[0]!.item.fields).toMatchObject({
+          title: "Quagga Study",
+        });
+      }),
+  );
+
+  it.effect(
     "a refresh to another database file whose Libraries have equal local ids rebuilds",
     () =>
       Effect.gen(function* () {

@@ -285,7 +285,10 @@ export interface IndexSignature {
   checksum: number;
 }
 
-const checksumTerm = sql<number>`unixepoch(${items.dateModified}) + ${items.itemID} + (coalesce(${zoteroActivity} / 1000, 0) * ((${items.itemID} % 997) + 1) % 2147483647)`;
+const checksumTerm = sql<number>`unixepoch(${items.dateModified})
+  + coalesce(unixepoch(${items.clientDateModified}), 0)
+  + ${items.itemID}
+  + (coalesce(${zoteroActivity} / 1000, 0) * ((${items.itemID} % 997) + 1) % 2147483647)`;
 
 const indexSignatureRangeQuery = defineQuery<{
   libraryID: number;
