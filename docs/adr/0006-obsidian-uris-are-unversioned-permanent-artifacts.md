@@ -105,7 +105,7 @@ Validate the source hash at the URI boundary. Give `update-many` its own action 
 
 Run pushes through the same flows as their URI counterparts. Give each push a fiber in the host Scope so a long batch leaves the next request free to run. Unload closes the streams, interrupts work in progress, and stops modal callbacks through the scoped bridge. Report the stream as idle when intake has ended and all admitted work has settled. Publish outcomes after the notice step. Interruption has no outcome.
 
-Use the common Notifier timing for preflight results and errors. A successful open presents the note directly. A foreign-source request is silent. The batch update notice mapping currently leaves preflight failures without a notice. [Note link handlers](../../packages/notes/src/desktop/protocol/handlers.ts) · [Batch update notice follow-up](https://github.com/aidenlx/zotlit-repo/issues/154)
+Use the common Notifier timing for preflight results and errors. A successful open presents the note directly. A foreign-source request is silent. The batch update notice shows the diagnostic for a preflight refusal or a general failure message for other preflight errors. [Note link handlers](../../packages/notes/src/desktop/protocol/handlers.ts) · [Batch update notice follow-up](https://github.com/aidenlx/zotlit-repo/issues/154)
 
 For an action that opens one Item, parse the query and validate its Source
 ID, wait until the database leaves loading, and resolve the Item while the

@@ -13,6 +13,7 @@ import { linkOutcomeNotices } from "@zotlit/plugin-services/obsidian/protocol/no
 
 import { NoteLinkOutcome } from "./outcome.ts";
 
+import { BatchUpdateRefusedError } from "#desktop/note-feature/update-batch.ts";
 import { noteOperationDiagnosticNotice } from "#desktop/note-feature/update-single.ts";
 import {
   batchImportAllToast,
@@ -41,8 +42,14 @@ export const showNoteLinkOutcome = Effect.fn("protocol.showNoteLinkOutcome")(
 
 const batchUpdateToast: OutcomeCopy<BatchUpdateResult> = {
   success: batchUpdateNotice,
-  error: () => undefined,
+  error: batchUpdateErrorNotice,
 };
+
+function batchUpdateErrorNotice(error: unknown): string {
+  return error instanceof BatchUpdateRefusedError
+    ? error.message
+    : m.batch_update_run_failed();
+}
 
 function batchUpdateNotice(result: BatchUpdateResult): string | undefined {
   switch (result.outcome) {
@@ -75,5 +82,5 @@ function updateAllNotice(result: BatchUpdateResult): string | undefined {
 
 const updateAllToast: OutcomeCopy<BatchUpdateResult> = {
   success: updateAllNotice,
-  error: () => undefined,
+  error: batchUpdateErrorNotice,
 };

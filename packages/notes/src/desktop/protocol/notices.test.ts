@@ -1,14 +1,17 @@
 import type { BatchUpdateResult } from "#desktop/note-feature/update-batch.ts";
 import { it } from "@effect/vitest";
-import { Effect, Exit } from "effect";
+import { Cause, Effect, Exit } from "effect";
 import { describe, expect } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
+import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { showNoteLinkOutcome } from "./notices.ts";
 import { NoteLinkOutcome } from "./outcome.ts";
+
+import { BatchUpdateRefusedError } from "#desktop/note-feature/update-batch.ts";
 
 const noticesOf = Effect.fn("noticesOf")(function* (outcome: NoteLinkOutcome) {
   const notifier = testNotifier();
@@ -106,15 +109,52 @@ describe("showNoteLinkOutcome", () => {
       }),
   );
 
-  it.effect("shows nothing for an update run that failed", () =>
-    Effect.gen(function* () {
-      const exit = Exit.die(new Error("classify failed"));
-      expect(yield* noticesOf(NoteLinkOutcome.UpdateMany({ exit }))).toEqual(
-        [],
-      );
-      expect(yield* noticesOf(NoteLinkOutcome.UpdateAll({ exit }))).toEqual([]);
-    }),
-  );
+  describe.each(["UpdateMany", "UpdateAll"] as const)("%s preflight", (tag) => {
+    const update = NoteLinkOutcome[tag];
+
+    it.effect("names the requested Profile when it no longer exists", () =>
+      Effect.gen(function* () {
+        const profile = "Bk3Qn7XvT2Lp";
+        const exit = Exit.fail(
+          new BatchUpdateRefusedError({
+            diagnostic: unknownProfileDiagnostic(profile),
+          }),
+        );
+
+        const notices = yield* noticesOf(update({ exit }));
+
+        expect(notices).toHaveLength(1);
+        expect(notices[0]?.message).toContain(profile);
+      }),
+    );
+
+    it.effect("reports a failure before confirmation", () =>
+      Effect.gen(function* () {
+        const exit = Exit.die(new Error("preflight failed"));
+
+        expect(yield* noticesOf(update({ exit }))).toEqual([
+          { message: m.batch_update_run_failed(), duration: 4000 },
+        ]);
+      }),
+    );
+
+    it.effect("propagates interruption without showing a notice", () =>
+      Effect.gen(function* () {
+        const notifier = testNotifier();
+        const outcome = update({ exit: Exit.failCause(Cause.interrupt()) });
+
+        const exit = yield* showNoteLinkOutcome(outcome, {}).pipe(
+          Effect.provideService(Notifier, notifier.service),
+          Effect.exit,
+        );
+
+        expect(
+          Exit.isFailure(exit) && Cause.hasInterruptsOnly(exit.cause),
+        ).toBe(true);
+        expect(notifier.notices).toEqual([]);
+      }),
+    );
+  });
 
   it.effect("tells an import run's failure for 4 s", () =>
     Effect.gen(function* () {
