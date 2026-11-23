@@ -175,16 +175,14 @@ function renderTruncatedHighlight(
   if (windowEnd < text.length) el.appendText("…");
 }
 
-let cachedTitleMaxChars: number | null = null;
+let lastTitleMaxChars = TITLE_MAX_CHARS_FALLBACK;
 
 function readTitleMaxChars(el: HTMLElement): number {
-  if (cachedTitleMaxChars !== null) return cachedTitleMaxChars;
   if (typeof window === "undefined") return TITLE_MAX_CHARS_FALLBACK;
+  if (!el.isConnected) return lastTitleMaxChars;
   const raw = getComputedStyle(el).getPropertyValue(TITLE_MAX_CHARS_VAR).trim();
   const parsed = Number.parseInt(raw, 10);
-  if (Number.isFinite(parsed) && parsed > 0) {
-    cachedTitleMaxChars = parsed;
-    return parsed;
-  }
-  return TITLE_MAX_CHARS_FALLBACK;
+  lastTitleMaxChars =
+    Number.isFinite(parsed) && parsed > 0 ? parsed : TITLE_MAX_CHARS_FALLBACK;
+  return lastTitleMaxChars;
 }

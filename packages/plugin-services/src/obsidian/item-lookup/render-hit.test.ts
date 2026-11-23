@@ -2,7 +2,7 @@
 
 import type { PluginSettings } from "#obsidian/settings/service.ts";
 import { Effect } from "effect";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
 import { makeCreator, makeItem } from "@zotlit/item-lookup/fixtures";
 import type {
@@ -22,6 +22,79 @@ const settings = {
   current: Effect.succeed(defaults),
 } satisfies Pick<PluginSettings["Service"], "current">;
 const bridge = { runSync: Effect.runSync };
+
+describe("renderSuggestion title", () => {
+  const title = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const result = {
+    ...hit(null),
+    item: makeItem({ key: "AAAAAAAA", title }),
+  };
+  let el: HTMLDivElement;
+  let style: HTMLStyleElement;
+
+  beforeEach(() => {
+    el = document.body.createDiv();
+    style = document.head.createEl("style");
+    HTMLElement.prototype.appendText = function (this: HTMLElement, text) {
+      this.append(text);
+    };
+    return () => {
+      el.remove();
+      style.remove();
+      Reflect.deleteProperty(HTMLElement.prototype, "appendText");
+    };
+  });
+
+  it("uses the new title budget after the CSS property changes", () => {
+    style.textContent = titleBudgetRule("30");
+    renderSuggestion(settings, bridge, result, el);
+    expect(el.querySelector(".suggestion-title > span")?.textContent).toBe(
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123…",
+    );
+
+    style.textContent = titleBudgetRule("12");
+    renderSuggestion(settings, bridge, result, el);
+    expect(el.querySelector(".suggestion-title > span")?.textContent).toBe(
+      "ABCDEFGHIJKL…",
+    );
+  });
+
+  it("uses the last connected title budget for a detached row", () => {
+    style.textContent = titleBudgetRule("12");
+    renderSuggestion(settings, bridge, result, el);
+    const detached = createDiv();
+    renderSuggestion(settings, bridge, result, detached);
+    expect(
+      detached.querySelector(".suggestion-title > span")?.textContent,
+    ).toBe("ABCDEFGHIJKL…");
+  });
+
+  it.each(["", "invalid", "0"])(
+    "uses 60 characters for the CSS value %j",
+    (value) => {
+      if (value) style.textContent = titleBudgetRule(value);
+      const prefix = "A".repeat(60);
+      const item = makeItem({ key: "AAAAAAAA", title: `${prefix}B` });
+      renderSuggestion(settings, bridge, { ...result, item }, el);
+      expect(el.querySelector(".suggestion-title > span")?.textContent).toBe(
+        `${prefix}…`,
+      );
+    },
+  );
+
+  it("keeps the window and highlight around the first match", () => {
+    style.textContent = titleBudgetRule("12");
+    renderSuggestion(settings, bridge, { ...result, matches: [[17, 20]] }, el);
+    expect(el.querySelector(".suggestion-title > span")?.textContent).toBe(
+      "…OPQRSTUVWXYZ…",
+    );
+    expect(el.querySelector(".suggestion-highlight")?.textContent).toBe("RST");
+  });
+});
+
+function titleBudgetRule(value: string): string {
+  return `.suggestion-title > span { --zt-citation-title-max-chars: ${value}; }`;
+}
 
 describe("renderSuggestion library label", () => {
   it.each([null, group(100, "Shared A")])(
