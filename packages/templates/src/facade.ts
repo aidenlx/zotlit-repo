@@ -398,26 +398,6 @@ export class TemplateFacade {
     };
   }
 
-  compileLiteratureNoteTemplate(
-    document: LiteratureNoteTemplateDocument,
-  ): void {
-    const { language } = document.manifest;
-    const block = document.managedBlock;
-    const sources = [
-      block
-        ? document.body.slice(0, block.start) + document.body.slice(block.end)
-        : document.body,
-      ...(block ? [block.source] : []),
-      document.annotationSection.source,
-      document.manifest.filename,
-    ];
-    sources.forEach((source, index) => {
-      const name = `${document.manifest.id}:compile:${index}`;
-      this.define(name, source, language);
-      this.remove(name, language);
-    });
-  }
-
   renderLiteratureNoteTemplateForCreate<T extends object>(
     document: LiteratureNoteTemplateDocument,
     data: T,
