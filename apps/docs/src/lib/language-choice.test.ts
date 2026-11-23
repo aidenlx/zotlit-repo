@@ -5,6 +5,7 @@ import {
   CHINESE_READER_ATTR,
   LANGUAGE_CHOICE_KEY,
   chineseReaderScript,
+  rememberLanguageChoice,
 } from "./language-choice.ts";
 
 function runHeadScript(languages: string[]) {
@@ -34,4 +35,24 @@ describe("chineseReaderScript", () => {
     localStorage.setItem(LANGUAGE_CHOICE_KEY, "en");
     expect(runHeadScript(["zh-CN"])).toBe(false);
   });
+
+  it("marks a Chinese reader when the storage read is blocked", () => {
+    vi.spyOn(localStorage, "getItem").mockImplementation(() => {
+      throw new DOMException("Storage blocked", "SecurityError");
+    });
+    expect(runHeadScript(["zh-TW"])).toBe(true);
+  });
+});
+
+it("dismisses the suggestion for this page when saving English is blocked", () => {
+  document.documentElement.setAttribute(CHINESE_READER_ATTR, "");
+  vi.spyOn(localStorage, "setItem").mockImplementation(() => {
+    throw new DOMException("Storage blocked", "SecurityError");
+  });
+
+  rememberLanguageChoice("en");
+
+  expect(document.documentElement.hasAttribute(CHINESE_READER_ATTR)).toBe(
+    false,
+  );
 });

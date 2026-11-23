@@ -2,7 +2,7 @@ export const LANGUAGE_CHOICE_KEY = "zotlit:language";
 
 export const CHINESE_READER_ATTR = "data-chinese-reader";
 
-export const chineseReaderScript = `try{var l=(navigator.languages&&navigator.languages[0])||navigator.language||"";if(localStorage.getItem(${JSON.stringify(LANGUAGE_CHOICE_KEY)})!=="en"&&/^zh(-|$)/i.test(l))document.documentElement.setAttribute(${JSON.stringify(CHINESE_READER_ATTR)},"")}catch(e){}`;
+export const chineseReaderScript = `try{var c;try{c=localStorage.getItem(${JSON.stringify(LANGUAGE_CHOICE_KEY)})}catch(e){}var l=(navigator.languages&&navigator.languages[0])||navigator.language||"";if(c!=="en"&&/^zh(-|$)/i.test(l))document.documentElement.setAttribute(${JSON.stringify(CHINESE_READER_ATTR)},"")}catch(e){}`;
 
 export function rememberLanguageChoice(locale: string) {
   try {
