@@ -347,8 +347,10 @@ export function layerSource(
         path: string,
       ) {
         const current = yield* Ref.get(state);
-        const exists = yield* fileExists(path);
-        if (current.missingDbSignalled || exists) return;
+        const exists = yield* fs
+          .exists(path)
+          .pipe(Effect.orElseSucceed(() => undefined));
+        if (current.missingDbSignalled || exists !== false) return;
         yield* Ref.update(state, (previous) => ({
           ...previous,
           missingDbSignalled: true,

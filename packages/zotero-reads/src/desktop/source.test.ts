@@ -95,8 +95,8 @@ const fakeWatch = (
 
 const testFileSystem = layerNodeFileSystemWith(() => ({ watch: fakeWatch }));
 
-const testSource = (options?: SourceOptions) =>
-  layerSource(options).pipe(Layer.provideMerge(testFileSystem));
+const testSource = (options?: SourceOptions, fileSystem = testFileSystem) =>
+  layerSource(options).pipe(Layer.provideMerge(fileSystem));
 
 let dir: string;
 let dbPath: string;
@@ -192,9 +192,13 @@ const waitFor = (assertion: () => void) =>
 const startSource = Effect.fnUntraced(function* (
   initial: ReadsConfig | null,
   ports: Partial<SourcePorts>,
+  fileSystem = testFileSystem,
 ) {
   const scope = yield* Scope.fork(yield* Effect.scope, "sequential");
-  const context = yield* Layer.buildWithScope(testSource({ ports }), scope);
+  const context = yield* Layer.buildWithScope(
+    testSource({ ports }, fileSystem),
+    scope,
+  );
   const reads: ZoteroReadsClient = yield* makeInProcessClient().pipe(
     Effect.provideContext(context),
     Scope.provide(scope),
@@ -1584,6 +1588,46 @@ describe("ZoteroReads source", () => {
           "degraded",
           "refreshing",
         ]);
+      }),
+    );
+
+    it.effect("reports access denial as a source error", () =>
+      Effect.gen(function* () {
+        const denied = PlatformError.systemError({
+          _tag: "PermissionDenied",
+          module: "FileSystem",
+          method: "access",
+          pathOrDescriptor: dbPath,
+        });
+        const fileSystem = layerNodeFileSystemWith((fs) => ({
+          watch: fakeWatch,
+          exists: (path) =>
+            path === dbPath ? Effect.fail(denied) : fs.exists(path),
+        }));
+        const source = yield* startSource(
+          config(),
+          {
+            prepareRead: () =>
+              Effect.fail(new DbUnavailable({ message: "Permission denied" })),
+          },
+          fileSystem,
+        );
+        yield* source.idle();
+        const late = yield* Stream.toPull(source.reads.Changes());
+
+        expect(
+          source.events.find((event) => event._tag === "refresh-failed"),
+        ).toMatchObject({ error: { message: "Permission denied" } });
+        expect({ live: source.tags(), seed: yield* late }).toMatchObject({
+          live: ["refreshing", "refresh-failed", "degraded", "refreshing"],
+          seed: [
+            {
+              _tag: "state",
+              state: "degraded",
+              error: { message: "Permission denied" },
+            },
+          ],
+        });
       }),
     );
 
