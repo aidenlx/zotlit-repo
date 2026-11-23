@@ -441,6 +441,52 @@ describe("generateLanguagePacks", () => {
     expect(generated.messages.plugin_example()).toBe("来自语言包");
   });
 
+  test("typechecks and renders messages with IDs that match facade imports", async () => {
+    const projectPath = await createFixtureProject({
+      translate: "Translate this text.",
+      "translate-1": "Translate the next line.",
+      translateTarget: "Target locale text.",
+      DatetimeInput: [
+        {
+          declarations: [
+            "input when",
+            "local day = when: datetime dateStyle=long timeZone=UTC",
+          ],
+          match: { "*": "Date: {day}" },
+        },
+      ],
+    });
+    await addLocale(projectPath, "zh-CN", {
+      translateTarget: "目标语言文本。",
+    });
+    const outputDirectory = await createTemporaryDirectory();
+
+    await compile({
+      root: dirname(projectPath),
+      project: projectPath,
+      output: outputDirectory,
+      includeMessages: ["translate-1"],
+      targetLocaleMessagePrefixes: ["translateTarget"],
+    });
+
+    await typecheckGeneratedOutput(outputDirectory);
+    await using generated = await loadGeneratedModules<{
+      translate(): string;
+      "translate-1"(): string;
+      translateTarget(): string;
+      DatetimeInput(inputs: { when: number }): string;
+    }>(outputDirectory);
+    generated.runtime.setTargetLocale("zh-CN");
+    expect(generated.messages.translate()).toBe("Translate this text.");
+    expect(generated.messages["translate-1"]()).toBe(
+      "Translate the next line.",
+    );
+    expect(generated.messages.translateTarget()).toBe("目标语言文本。");
+    expect(generated.messages.DatetimeInput({ when: 0 })).toBe(
+      "Date: January 1, 1970",
+    );
+  });
+
   test("emits no target-locale artifact without configured prefixes", async () => {
     const projectPath = await createFixtureProject({
       notice_pack_offer: "A pack is available.",
