@@ -6,7 +6,7 @@ import {
   screen,
 } from "@testing-library/react";
 import { useState } from "react";
-import type { ComponentProps } from "react";
+import type { ComponentProps, FocusEvent as ReactFocusEvent } from "react";
 import { afterEach, expect, it } from "vitest";
 
 import { TagsInput } from "./tags-input.tsx";
@@ -141,4 +141,63 @@ it("skips its key and blur rules when a consumer handler prevents the default", 
   fireEvent.focusOut(input());
   expect(names()).toEqual(["Read"]);
   expect(input().value).toBe("Later");
+});
+
+it("preserves the blur event's inherited preventDefault after dispatch", () => {
+  const native = new FocusEvent("focusout", { bubbles: true });
+  let delivered: ReactFocusEvent<HTMLInputElement> | undefined;
+  render(
+    <Tags
+      onBlur={(event) => {
+        delivered = event;
+        event.preventDefault();
+      }}
+    />,
+  );
+
+  act(() => input().dispatchEvent(native));
+
+  expect(delivered?.nativeEvent).toBe(native);
+  expect(native.defaultPrevented).toBe(false);
+  expect(Object.hasOwn(native, "preventDefault")).toBe(false);
+  expect(Object.hasOwn(delivered!, "preventDefault")).toBe(false);
+});
+
+it("preserves an own native preventDefault when the blur handler throws", () => {
+  const native = new FocusEvent("focusout", { bubbles: true });
+  const original = native.preventDefault.bind(native);
+  native.preventDefault = original;
+  const failure = new Error("Blur handler failed");
+  const errors: unknown[] = [];
+  const onError = (event: ErrorEvent) => {
+    errors.push(event.error);
+    event.preventDefault();
+  };
+  let delivered: ReactFocusEvent<HTMLInputElement> | undefined;
+  render(
+    <Tags
+      onBlur={(event) => {
+        delivered = event;
+        throw failure;
+      }}
+    />,
+  );
+
+  window.addEventListener("error", onError);
+  try {
+    act(() => input().dispatchEvent(native));
+  } catch (error) {
+    errors.push(error);
+  } finally {
+    window.removeEventListener("error", onError);
+  }
+
+  expect(errors).toEqual([failure]);
+  expect(delivered?.nativeEvent).toBe(native);
+  expect(Object.getOwnPropertyDescriptor(native, "preventDefault")?.value).toBe(
+    original,
+  );
+  expect(Object.hasOwn(delivered!, "preventDefault")).toBe(
+    Object.is(delivered, native),
+  );
 });

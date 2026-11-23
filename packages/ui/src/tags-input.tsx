@@ -168,13 +168,19 @@ function prevented<
   E extends { preventDefault(): void; defaultPrevented: boolean },
 >(event: E, handler: ((event: E) => void) | undefined): boolean {
   if (!handler) return false;
+  const own = Object.getOwnPropertyDescriptor(event, "preventDefault");
   const preventDefault = event.preventDefault.bind(event);
   let called = false;
   event.preventDefault = () => {
     called = true;
     preventDefault();
   };
-  handler(event);
+  try {
+    handler(event);
+  } finally {
+    if (own) Object.defineProperty(event, "preventDefault", own);
+    else Reflect.deleteProperty(event, "preventDefault");
+  }
   return called || event.defaultPrevented;
 }
 
