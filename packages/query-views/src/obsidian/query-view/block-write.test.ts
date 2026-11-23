@@ -49,6 +49,27 @@ describe("writeBlockCode", () => {
     expect(host.text(PATH)).toBe(NOTE.replace(OLD, NEW));
   });
 
+  it("uses the opening fence's marker and length to find the closing fence", async () => {
+    const previous = "example\n```\n~~~";
+    const note = NOTE.replace("```zotquery", "~~~~zotquery")
+      .replace("\n```\n", "\n   ~~~~~ \t\n")
+      .replace(OLD, previous);
+    const host = createObsidianHost({ [PATH]: note });
+    const block = { ctx: context(note), el };
+    await writeBlockCode(host.app, block, { previous, next: NEW });
+    expect(host.text(PATH)).toBe(note.replace(previous, NEW));
+  });
+
+  it("inserts new code between adjacent fences in an empty Query Block", async () => {
+    const empty = NOTE.replace(`${OLD}\n`, "");
+    const host = createObsidianHost({ [PATH]: empty });
+    const ctx = context(empty, {
+      getSectionInfo: () => ({ text: empty, lineStart: 5, lineEnd: 6 }),
+    });
+    await writeBlockCode(host.app, { ctx, el }, { previous: "", next: NEW });
+    expect(host.text(PATH)).toBe(NOTE.replace(OLD, NEW));
+  });
+
   it("without replaceCode, rewrites the open note's unsaved text", async () => {
     const host = createObsidianHost({ [PATH]: NOTE });
     const view = openTextFileView(host, host.file(PATH));
@@ -67,6 +88,15 @@ describe("writeBlockCode", () => {
       writeBlockCode(host.app, { ctx: context(NOTE), el }, EDIT),
     ).rejects.toThrow();
     expect(host.text(PATH)).toBe(NOTE.replace("name: All", "name: Mine"));
+  });
+
+  it("refuses when a line was added inside the Query Block after it rendered", async () => {
+    const grown = NOTE.replace(OLD, `${OLD}\n    sort: [title]`);
+    const host = createObsidianHost({ [PATH]: grown });
+    await expect(
+      writeBlockCode(host.app, { ctx: context(NOTE), el }, EDIT),
+    ).rejects.toThrow();
+    expect(host.text(PATH)).toBe(grown);
   });
 
   it("without replaceCode, refuses when lines above the block moved it", async () => {

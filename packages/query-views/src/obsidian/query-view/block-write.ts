@@ -1,3 +1,4 @@
+import { regex } from "arkregex";
 import type { MarkdownPostProcessorContext, Vault } from "obsidian";
 
 import { processLiveText } from "@zotlit/obsidian-kit/live-text.ts";
@@ -16,6 +17,8 @@ export interface BlockEdit {
   readonly previous: string;
   readonly next: string;
 }
+
+const OPENING_FENCE = regex("^ {0,3}(?<fence>`{3,}(?=[^`]*$)|~{3,})");
 
 function lineOffset(text: string, line: number): number {
   let offset = 0;
@@ -59,9 +62,28 @@ export async function writeBlockAt(
   const file = app.vault.getFileByPath(sourcePath);
   if (file === null) throw new Error(`No note at ${sourcePath}`);
   await processLiveText(app, file, (text) => {
-    const start = lineOffset(text, lineStart + 1);
-    if (start === -1 || text.slice(start, start + previous.length) !== previous)
-      throw new Error("The Query Block text changed since it rendered");
-    return text.slice(0, start) + next + text.slice(start + previous.length);
+    const changed = () =>
+      new Error("The Query Block text changed since it rendered");
+    const opening = lineOffset(text, lineStart);
+    if (opening === -1) throw changed();
+    const openingEnd = text.indexOf("\n", opening);
+    if (openingEnd === -1) throw changed();
+    const opener = text.slice(opening, openingEnd);
+    const fence = OPENING_FENCE.exec(opener)?.groups.fence;
+    if (fence === undefined) throw changed();
+
+    const start = openingEnd + 1;
+    const marker = RegExp.escape(fence.charAt(0));
+    const closing = new RegExp(
+      `(?<=^|\\n) {0,3}${RegExp.escape(fence)}${marker}*[ \\t]*(?=\\r?\\n|$)`,
+    ).exec(text.slice(start));
+    if (closing === null) throw changed();
+    const close = start + closing.index;
+    const newline = text[close - 2] === "\r" ? "\r\n" : "\n";
+    const end = close === start ? start : close - newline.length;
+    if (text.slice(start, end) !== previous) throw changed();
+
+    const separator = close === start && next !== "" ? newline : "";
+    return text.slice(0, start) + next + separator + text.slice(end);
   });
 }
