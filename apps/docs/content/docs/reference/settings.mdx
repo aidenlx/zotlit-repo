@@ -59,7 +59,7 @@ The dropdown stores the CSL style ID. Default uses ZotLit's embedded style. ZotL
 
 An unavailable style remains selected. In-text citations stay native, and the References Sidebar shows its minimal list. The row then reads <UiLabel name={m.settings_citation_references_style_warning()} />.
 
-The first formatting attempt shows <UiLabel name={m.notice_citation_style_missing()} /> once per plugin lifecycle. Its <UiLabel name={m.notice_citation_style_missing_action()} /> action opens ZotLit settings.
+When formatting finds the selected style unavailable, ZotLit shows <UiLabel name={m.notice_citation_style_missing()} />. The notice closes when the style becomes available. Its <UiLabel name={m.notice_citation_style_missing_action()} /> action opens ZotLit settings.
 
 Built-in export with an unavailable style stops and shows <UiLabel name={m.pandoc_export_error_style({ style: "…" })} /> A native Pandoc run of a note that uses the unavailable style stops with `style-missing`. Neither export uses another style.
 

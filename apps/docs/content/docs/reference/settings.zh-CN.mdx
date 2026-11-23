@@ -59,7 +59,7 @@ ZotLit 保存从 Zotero 导入笔记的位置。配置方案可以指定自己�
 
 不可用的样式仍会保持选中状态。文内引用将保持原生状态，参考文献侧栏则显示其精简列表。此时该行显示为 <UiLabel name={m.settings_citation_references_style_warning()} />。
 
-首次排版尝试会在每个插件生命周期中显示一次 <UiLabel name={m.notice_citation_style_missing()} />。其 <UiLabel name={m.notice_citation_style_missing_action()} /> 操作可打开 ZotLit 设置。
+排版发现所选样式不可用时，ZotLit 会显示 <UiLabel name={m.notice_citation_style_missing()} />。样式恢复可用后，该提示会关闭。其 <UiLabel name={m.notice_citation_style_missing_action()} /> 操作可打开 ZotLit 设置。
 
 在样式不可用时使用内置导出将停止并显示 <UiLabel name={m.pandoc_export_error_style({ style: "…" })} />。若某篇笔记使用的样式不可用，在原生 Pandoc 运行中会因 `style-missing` 中止。两种导出方式均不会退回使用其他样式。
 
