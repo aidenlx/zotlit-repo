@@ -649,20 +649,20 @@ For a check that needs database writes, use a named copy of the built Zotero dat
 
    The command prints the absolute `.scratch/acceptance-fixture/forks/scan-check` path. An existing name fails and keeps its contents. `pnpm fixture fork scan-check` runs the same command through Turbo.
 
-2. Hold a Desktop Slot for the app check as `/obsidian-debug` describes. Read and save the current Device Override:
+2. Hold a Desktop Slot for the app check as `/obsidian-debug` describes. `zoteroPref` is an Effect service, so read it through the plugin's bridge. Read and save the current Device Override (`packages/scripts/scripts/obsidian-vault.ts check` reports whether ZotLit reads the Fixture):
 
    ```sh
-   packages/scripts/scripts/obsidian-cli.ts --code 'app.plugins.plugins.zotlit.services.zoteroPref.dataDirOverride' vault=<id>
+   packages/scripts/scripts/obsidian-cli.ts --code '{const s=app.plugins.plugins.zotlit.services;s.bridge.runSync(s.zoteroPref.current).dataDirOverride}' vault=<id>
    ```
 
 3. Point the plugin at the printed fork path:
 
    ```sh
-   packages/scripts/scripts/obsidian-cli.ts --code 'app.plugins.plugins.zotlit.services.zoteroPref.setDataDir("<absolute fork path>")' vault=<id>
+   packages/scripts/scripts/obsidian-cli.ts --code '{const s=app.plugins.plugins.zotlit.services;s.bridge.runSync(s.zoteroPref.setDataDir("<absolute fork path>"));"set"}' vault=<id>
    ```
 
 4. Write to `<absolute fork path>/zotero.sqlite` and run the app check. Keep the database handle closed between writes and plugin reads.
-5. Restore the saved override with `zoteroPref.setDataDir(<previous value>)`, using `null` if that was the saved value. Restore it in the cleanup path even when the check fails.
+5. Restore the saved override with `s.bridge.runSync(s.zoteroPref.setDataDir(<previous value>))`, using `null` if that was the saved value. Restore it in the cleanup path even when the check fails.
 6. Close any database handle on the fork and remove it:
 
    ```sh
