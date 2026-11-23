@@ -252,20 +252,49 @@ local function decode_value(raw)
   if not utf8.len(value) then
     return nil, "invalid UTF-8 after decoding"
   end
+  for _, code_point in utf8.codes(value) do
+    if code_point >= 0xD800 and code_point <= 0xDFFF then
+      return nil, "invalid UTF-8 after decoding"
+    end
+  end
   return value
+end
+
+local EDGE_WHITESPACE = {
+  [0x0009] = true, [0x000A] = true, [0x000B] = true, [0x000C] = true,
+  [0x000D] = true, [0x0020] = true, [0x0085] = true, [0x00A0] = true,
+  [0x1680] = true, [0x2000] = true, [0x2001] = true, [0x2002] = true,
+  [0x2003] = true, [0x2004] = true, [0x2005] = true, [0x2006] = true,
+  [0x2007] = true, [0x2008] = true, [0x2009] = true, [0x200A] = true,
+  [0x2028] = true, [0x2029] = true, [0x202F] = true, [0x205F] = true,
+  [0x3000] = true,
+}
+local LINE_BREAK = {
+  [0x000A] = true, [0x000D] = true, [0x0085] = true, [0x2028] = true, [0x2029] = true,
+}
+local function is_control(code_point)
+  return code_point <= 0x1F or (code_point >= 0x7F and code_point <= 0x9F)
 end
 
 local function text_defect(value)
   if value == "" then
     return "an empty value"
   end
-  if value:match("^%s") or value:match("%s$") then
+  local first = utf8.codepoint(value)
+  local last = first
+  local has_line_break, has_control = false, false
+  for _, code_point in utf8.codes(value) do
+    last = code_point
+    has_line_break = has_line_break or LINE_BREAK[code_point]
+    has_control = has_control or is_control(code_point)
+  end
+  if EDGE_WHITESPACE[first] or EDGE_WHITESPACE[last] then
     return "leading or trailing whitespace"
   end
-  if value:find("[\n\r]") then
+  if has_line_break then
     return "a line break"
   end
-  if value:find("%c") then
+  if has_control then
     return "a control character"
   end
   return nil
@@ -362,7 +391,7 @@ end
 
 local function to_inlines(text)
   local inlines = pandoc.Inlines({})
-  for word in text:gmatch("%S+") do
+  for word in text:gmatch("[^ \t\n\v\f\r]+") do
     if #inlines > 0 then
       inlines:insert(pandoc.Space())
     end

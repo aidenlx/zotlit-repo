@@ -5,8 +5,6 @@ const CONTROL_WORD = /^[A-Za-z]+\*?$/u;
 
 const UNSAFE_KEY = /[\s,\\{}%#~$^&]/u;
 
-const UNESCAPED_COMMENT = /(?<!\\)%/u;
-
 export type TexCitationErrorCode =
   | "invalid-input"
   | "unrepresentable-value"
@@ -103,12 +101,16 @@ export function formatTexCitation(
   }
 
   const first = keyed[0]!;
-  for (const [property, read] of AFFIX_PARTS) {
-    assertSafeAffix(read(first.item), property, first.itemIndex);
-  }
-  const prenote = protect((first.item.prefix ?? "").trim());
-  const postnote = protect(
-    `${locatorText(first.item.locator) ?? ""}${first.item.suffix ?? ""}`.trim(),
+  const prenote = formatAffix(
+    (first.item.prefix ?? "").trim(),
+    () => "prefix",
+    first.itemIndex,
+  );
+  const locator = (locatorText(first.item.locator) ?? "").trimStart();
+  const postnote = formatAffix(
+    `${locator}${first.item.suffix ?? ""}`.trim(),
+    (index) => (index < locator.length ? "locator" : "suffix"),
+    first.itemIndex,
   );
   const keys = keyed.map(({ item }) => item.citationKey).join(",");
   const notes =
@@ -145,37 +147,51 @@ function unrepresentable(
   );
 }
 
-function assertSafeAffix(
-  value: string | null,
-  property: TexCitationProperty,
+function formatAffix(
+  value: string,
+  propertyAt: (index: number) => TexCitationProperty,
   itemIndex: number,
-): void {
-  if (value === null) return;
-  const reason = !balanced(value)
-    ? "braces that do not balance"
-    : UNESCAPED_COMMENT.test(value)
-      ? "an unescaped % that would comment out the citation"
-      : null;
-  if (reason === null) return;
-  throw new TexCitationError(
-    "unsafe-affix",
-    `Citation Item ${itemIndex + 1} has a ${property} with ${reason}`,
-    { itemIndex, property },
-  );
-}
-
-function balanced(value: string): boolean {
+): string {
+  const fail = (index: number, reason: string): never => {
+    const property = propertyAt(index);
+    throw new TexCitationError(
+      "unsafe-affix",
+      `Citation Item ${itemIndex + 1} has a ${property} with ${reason}`,
+      { itemIndex, property },
+    );
+  };
+  let protectedText = "";
+  let copiedUntil = 0;
+  let index = 0;
   let depth = 0;
+  let groupStart = 0;
+  let commentStart: number | undefined;
   let escaped = false;
   for (const char of value) {
-    if (escaped) escaped = false;
-    else if (char === "\\") escaped = true;
-    else if (char === "{") depth += 1;
-    else if (char === "}" && (depth -= 1) < 0) return false;
+    if (escaped) {
+      escaped = false;
+    } else if (char === "\\") {
+      escaped = true;
+    } else if (char === "{") {
+      if (depth === 0) groupStart = index;
+      depth += 1;
+    } else if (char === "}") {
+      depth -= 1;
+      if (depth < 0) fail(index, "braces that do not balance");
+    } else if (char === "%") {
+      commentStart ??= index;
+    } else if (char === "]") {
+      protectedText += `${value.slice(copiedUntil, index)}{]}`;
+      copiedUntil = index + 1;
+    }
+    index += char.length;
   }
-  return depth === 0;
-}
-
-function protect(value: string): string {
-  return value.replaceAll(/(?<!\\)\]/gu, "{]}");
+  if (depth !== 0) fail(groupStart, "braces that do not balance");
+  if (commentStart !== undefined) {
+    fail(commentStart, "an unescaped % that would comment out the citation");
+  }
+  if (escaped) {
+    fail(index - 1, "a trailing backslash that would escape the closing ]");
+  }
+  return protectedText + value.slice(copiedUntil);
 }

@@ -135,6 +135,42 @@ describe("formatTexCitation", () => {
         "\\cite[\\[x\\]]{doe2024}",
       );
     });
+
+    it.each([
+      { count: 1, expected: "\\]" },
+      { count: 2, expected: "\\\\{]}" },
+      { count: 3, expected: "\\\\\\]" },
+    ])(
+      "protects brackets according to $count preceding backslashes",
+      ({ count, expected }) => {
+        const suffix = `${"\\".repeat(count)}]`;
+        expect(formatTexCitation([item("doe2024", { suffix })])).toBe(
+          `\\cite[${expected}]{doe2024}`,
+        );
+      },
+    );
+
+    it("keeps a suffix percent escaped by the end of the Locator", () => {
+      expect(
+        formatTexCitation([
+          item("doe2024", {
+            locator: { label: "p.", value: "3\\" },
+            suffix: "%",
+          }),
+        ]),
+      ).toBe("\\cite[p. 3\\%]{doe2024}");
+    });
+
+    it("counts braces on both sides of the Locator and Suffix boundary", () => {
+      expect(
+        formatTexCitation([
+          item("doe2024", {
+            locator: { label: "p.", value: "{3" },
+            suffix: "}",
+          }),
+        ]),
+      ).toBe("\\cite[p. {3}]{doe2024}");
+    });
   });
 
   describe("unrepresentable input", () => {
@@ -213,6 +249,56 @@ describe("formatTexCitation", () => {
       expect(
         formatTexCitation([item("doe2024", { suffix: ", 50\\% more" })]),
       ).toBe("\\cite[, 50\\% more]{doe2024}");
+    });
+
+    it.each([1, 3])("keeps a percent after %i backslashes", (count) => {
+      const backslashes = "\\".repeat(count);
+      expect(
+        formatTexCitation([item("doe2024", { prefix: `${backslashes}%` })]),
+      ).toBe(`\\cite[${backslashes}%][]{doe2024}`);
+    });
+
+    it("rejects a percent after an escaped backslash", () => {
+      const error = errorOf(() =>
+        formatTexCitation([item("doe2024", { prefix: "\\\\%" })]),
+      );
+      expect(error.code).toBe("unsafe-affix");
+      expect(error.property).toBe("prefix");
+      expect(error.itemIndex).toBe(0);
+    });
+
+    it.each([
+      { property: "prefix", overrides: { prefix: "foo\\" } },
+      { property: "prefix", overrides: { prefix: "foo\\ " } },
+      { property: "suffix", overrides: { suffix: "foo\\ " } },
+      {
+        property: "locator",
+        overrides: { locator: { label: "p.", value: "3\\" }, suffix: " " },
+      },
+    ] as const)(
+      "rejects $overrides when the $property would escape the optional argument delimiter",
+      ({ property, overrides }) => {
+        const error = errorOf(() =>
+          formatTexCitation([item(null), item("doe2024", overrides)]),
+        );
+        expect(error.code).toBe("unsafe-affix");
+        expect(error.property).toBe(property);
+        expect(error.itemIndex).toBe(1);
+      },
+    );
+
+    it("attributes a percent made unescaped by the Locator to the Suffix", () => {
+      const error = errorOf(() =>
+        formatTexCitation([
+          item("doe2024", {
+            locator: { label: "p.", value: "3\\" },
+            suffix: "\\%",
+          }),
+        ]),
+      );
+      expect(error.code).toBe("unsafe-affix");
+      expect(error.property).toBe("suffix");
+      expect(error.itemIndex).toBe(0);
     });
   });
 

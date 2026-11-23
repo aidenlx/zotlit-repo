@@ -60,6 +60,13 @@ const REFERENCES = [
     author: [{ family: "Smith", given: "Ann" }],
     issued: { "date-parts": [[2021]] },
   },
+  {
+    id: "voilà2022",
+    type: "book",
+    title: "A Third Book",
+    author: [{ family: "Roe", given: "Alex" }],
+    issued: { "date-parts": [[2022]] },
+  },
 ];
 
 const RESOLVE_MAP = {
@@ -265,6 +272,11 @@ const CASES: Case[] = [
     name: "a literal citation in a citation suffix reaches the bibliography",
     markdown: "[@doe2020 with @smith2021]",
     plain: "Smith, Ann. 2021. Another Book.",
+  },
+  {
+    name: "a literal citation with a non-ASCII key in a citation suffix keeps its key",
+    markdown: "[@doe2020 with @voilà2022]",
+    plain: "(Doe 2020 with @voilà2022)",
   },
   {
     name: "a cite intent inside a citation suffix",

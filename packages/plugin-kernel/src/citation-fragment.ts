@@ -157,9 +157,10 @@ function decodeValue(raw: string): DecodeResult {
   try {
     return {
       ok: true,
-      value: new TextDecoder("utf-8", { fatal: true }).decode(
-        new Uint8Array(decoded),
-      ),
+      value: new TextDecoder("utf-8", {
+        fatal: true,
+        ignoreBOM: true,
+      }).decode(new Uint8Array(decoded)),
     };
   } catch {
     return { ok: false, reason: "invalid UTF-8 after decoding" };
@@ -182,25 +183,35 @@ function hexValue(byte: number): number {
   return byte - 0x61 + 10;
 }
 
+const EDGE_WHITESPACE = new Set([
+  0x0009, 0x000a, 0x000b, 0x000c, 0x000d, 0x0020, 0x0085, 0x00a0, 0x1680,
+  0x2000, 0x2001, 0x2002, 0x2003, 0x2004, 0x2005, 0x2006, 0x2007, 0x2008,
+  0x2009, 0x200a, 0x2028, 0x2029, 0x202f, 0x205f, 0x3000,
+]);
+const LINE_BREAK = new Set([0x000a, 0x000d, 0x0085, 0x2028, 0x2029]);
+
 function textDefect(value: string): string | null {
   if (value === "") return "an empty value";
-  const bytes = new TextEncoder().encode(value);
-  if (isSpaceByte(bytes[0]!) || isSpaceByte(bytes.at(-1)!)) {
+  const first = value.codePointAt(0)!;
+  let last = first;
+  let hasLineBreak = false;
+  let hasControl = false;
+  for (const character of value) {
+    const codePoint = character.codePointAt(0)!;
+    last = codePoint;
+    hasLineBreak ||= LINE_BREAK.has(codePoint);
+    hasControl ||= isControl(codePoint);
+  }
+  if (EDGE_WHITESPACE.has(first) || EDGE_WHITESPACE.has(last)) {
     return "leading or trailing whitespace";
   }
-  if (bytes.some((byte) => byte === 0x0a || byte === 0x0d)) {
-    return "a line break";
-  }
-  if (bytes.some(isControlByte)) return "a control character";
+  if (hasLineBreak) return "a line break";
+  if (hasControl) return "a control character";
   return null;
 }
 
-function isSpaceByte(byte: number): boolean {
-  return (byte >= 0x09 && byte <= 0x0d) || byte === 0x20 || byte === 0xa0;
-}
-
-function isControlByte(byte: number): boolean {
-  return byte <= 0x1f || byte === 0x7f || (byte >= 0x80 && byte <= 0x9f);
+function isControl(codePoint: number): boolean {
+  return codePoint <= 0x1f || (codePoint >= 0x7f && codePoint <= 0x9f);
 }
 
 export interface CitationRunItemSource {
