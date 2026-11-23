@@ -6,6 +6,7 @@ import {
   matchesNodeTest,
   projectCollection,
 } from "./test-gates.ts";
+import { domTestErrors } from "./test-policy.ts";
 
 const cwd = resolve("fixture/package");
 const defaults = {
@@ -95,4 +96,65 @@ describe("gate collection matcher", () => {
       );
     },
   );
+});
+
+describe("DOM test placement", () => {
+  const baseline = {
+    "apps/docs/src/lib/language-choice.test.ts": [
+      "test-policy/dom-environment",
+    ],
+  };
+  const empty = { projects: [], directives: [], files: [] };
+
+  it("rejects a DOM Vitest project in the docs site", () => {
+    const projects = [
+      {
+        config: "apps/docs/vitest.config.ts",
+        name: "dom",
+        environment: "happy-dom",
+      },
+    ];
+    expect(domTestErrors({ ...empty, projects }, baseline)).toEqual([
+      expect.stringContaining("apps/docs/vitest.config.ts: Vitest project dom"),
+    ]);
+  });
+
+  it.each(["happy-dom", "./vitest.env.happy-dom-native-response.ts"])(
+    "accepts a %s Vitest project in a UI workspace",
+    (environment) => {
+      const projects = [
+        { config: "packages/ui/vitest.config.ts", environment },
+      ];
+      expect(domTestErrors({ ...empty, projects }, baseline)).toEqual([]);
+    },
+  );
+
+  it("accepts the baselined docs DOM test", () => {
+    const file = "apps/docs/src/lib/language-choice.test.ts";
+    const tree = {
+      projects: [{ config: "apps/docs/vitest.config.ts" }],
+      directives: [{ file, line: 1, environment: "happy-dom" }],
+      files: [file],
+    };
+    expect(domTestErrors(tree, baseline)).toEqual([]);
+  });
+
+  it("rejects a DOM environment directive in a new docs test", () => {
+    const file = "apps/docs/src/lib/menu.test.ts";
+    const tree = {
+      projects: [],
+      directives: [{ file, line: 1, environment: "jsdom" }],
+      files: [file],
+    };
+    expect(domTestErrors(tree, baseline)).toEqual([
+      expect.stringContaining(`${file}:1: jsdom environment`),
+    ]);
+  });
+
+  it("rejects a component test file in the docs site", () => {
+    const file = "apps/docs/src/components/sidebar.test.tsx";
+    expect(domTestErrors({ ...empty, files: [file] }, baseline)).toEqual([
+      expect.stringContaining(`${file}: docs component test`),
+    ]);
+  });
 });

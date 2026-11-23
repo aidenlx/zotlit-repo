@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import type { CollectionConfig } from "#test-gates";
+import type { VitestProject } from "#test-policy";
 import { regex } from "arkregex";
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
@@ -27,6 +28,7 @@ const tests = [
   ...new Set(gitFiles.filter((file) => testFile.test(file))),
 ].sort();
 const collected = new Set<string>();
+const vitestProjects: VitestProject[] = [];
 const packageFiles = gitFiles.filter((file) =>
   regex("^(?:apps|packages)/[^/]+/package\\.json$").test(file),
 );
@@ -68,6 +70,7 @@ async function collectVitest(cwd: string, args: string[]) {
         extensions.map((extension) => `${name}.config.${extension}`),
       )
       .find((file) => existsSync(join(cwd, file)));
+  const configPath = relative(root, selected ? resolve(cwd, selected) : cwd);
   const previous = process.cwd();
   let config: CollectionConfig;
   try {
@@ -138,6 +141,11 @@ async function collectVitest(cwd: string, args: string[]) {
       );
   }
   function collect(project: CollectionConfig, cwd: string) {
+    vitestProjects.push({
+      config: configPath,
+      name: project.test?.name,
+      environment: project.test?.environment,
+    });
     const collection = {
       ...projectCollection(project, cwd, configDefaults),
       filters,
@@ -195,7 +203,7 @@ if (ungated.length) {
     `check-test-gates: ${tests.length} test files, all collected by a gate.`,
   );
 
-const policyErrors = await checkTestPolicy(root, gitFiles);
+const policyErrors = await checkTestPolicy(root, gitFiles, vitestProjects);
 if (policyErrors.length) {
   console.error(
     `Test policy violations (policies/testing-strategy.md):\n${policyErrors.map((error) => `  ${error}`).join("\n")}`,

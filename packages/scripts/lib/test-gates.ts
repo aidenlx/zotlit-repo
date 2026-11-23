@@ -21,6 +21,8 @@ export interface CollectionConfig {
   extends?: boolean | string;
   test?: {
     dir?: string;
+    name?: string;
+    environment?: string;
     include?: string[];
     exclude?: string[];
     projects?: (string | CollectionConfig)[];

@@ -28,11 +28,79 @@ const disabledFakeRule = regex(
   "['\"](zotlit-effect-tests/typed-fake)['\"]\\s*\\]?\\s*:",
   "g",
 );
+const environmentDirective = regex(
+  "^\\s*\\*?\\s*@vitest-environment\\s+(\\S+)",
+);
+const testSource = regex("\\.test\\.[cm]?[jt]sx?$");
 const disabledSeverity = regex(
   "^\\s*(?:\\[\\s*)?(?:['\"](?:off|allow)['\"]|0\\b)",
 );
 
-type Baseline = Record<string, string[]>;
+export type Baseline = Record<string, string[]>;
+
+export interface VitestProject {
+  config: string;
+  name?: string;
+  environment?: string;
+}
+
+export interface EnvironmentDirective {
+  file: string;
+  line: number;
+  environment: string;
+}
+
+const domEnvironment = regex("happy-dom|jsdom");
+const docsComponentTest = regex("^apps/docs/.*\\.test\\.tsx$");
+const domBaselineRule = "test-policy/dom-environment";
+const domWorkspaces = new Set([
+  "apps/obsidian",
+  "apps/reader",
+  "packages/annotations",
+  "packages/citations",
+  "packages/library-view",
+  "packages/notes",
+  "packages/obsidian-kit",
+  "packages/plugin-kernel",
+  "packages/plugin-services",
+  "packages/plugin-shell",
+  "packages/query-views",
+  "packages/template-workbench",
+  "packages/ui",
+]);
+const domFix = `Prove UI behaviour with a pure function in a *.test.ts file plus the e2e journey or a browser check (policies/testing-strategy.md). DOM environments run only in ${[...domWorkspaces].join(", ")}.`;
+
+function workspaceOf(file: string) {
+  return file.split("/").slice(0, 2).join("/");
+}
+
+export interface DomTestTree {
+  projects: VitestProject[];
+  directives: EnvironmentDirective[];
+  files: string[];
+}
+
+export function domTestErrors(
+  { projects, directives, files }: DomTestTree,
+  baseline: Baseline,
+): string[] {
+  const errors: string[] = [];
+  const exempt = (file: string) =>
+    domWorkspaces.has(workspaceOf(file)) ||
+    baseline[file]?.includes(domBaselineRule);
+  for (const { config, name, environment } of projects)
+    if (environment && domEnvironment.test(environment) && !exempt(config))
+      errors.push(
+        `${config}: Vitest project ${name ?? "(default)"} runs in ${environment}. ${domFix}`,
+      );
+  for (const { file, line, environment } of directives)
+    if (domEnvironment.test(environment) && !exempt(file))
+      errors.push(`${file}:${line}: ${environment} environment. ${domFix}`);
+  for (const file of files)
+    if (docsComponentTest.test(file))
+      errors.push(`${file}: docs component test. ${domFix}`);
+  return errors;
+}
 
 const flatBaselineRules = [
   "zotlit-tests/no-internal-mock",
@@ -66,6 +134,7 @@ async function renamesSince(
 export async function checkTestPolicy(
   root: string,
   files: string[],
+  projects: VitestProject[],
 ): Promise<string[]> {
   const errors: string[] = [];
   const baseline = parseBaseline(
@@ -124,11 +193,24 @@ export async function checkTestPolicy(
       source: string,
     ) => { comments: { value: string; start: number; end: number }[] };
   };
+  const directives: EnvironmentDirective[] = [];
   for (const file of files) {
     const config = file !== "oxlint.config.ts" && configFile.test(file);
-    if (!config && !(tracked.has(file) && sourceFile.test(file))) continue;
+    const test = testSource.test(file);
+    if (!config && !test && !(tracked.has(file) && sourceFile.test(file)))
+      continue;
     const source = readFileSync(join(root, file), "utf8");
     const comments = parseSync(file, source).comments;
+    if (test)
+      for (const comment of comments) {
+        const environment = environmentDirective.exec(comment.value)?.[1];
+        if (environment)
+          directives.push({
+            file,
+            line: source.slice(0, comment.start).split("\n").length,
+            environment,
+          });
+      }
     if (tracked.has(file)) {
       for (const comment of comments) {
         const rules = comment.value.split("--")[0] ?? "";
@@ -156,5 +238,6 @@ export async function checkTestPolicy(
           errors.push(`${file}: ${match[1]} must stay enabled`);
     }
   }
+  errors.push(...domTestErrors({ projects, directives, files }, baseline));
   return errors;
 }

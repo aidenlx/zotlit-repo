@@ -13,11 +13,12 @@ Put it in `.scratch/<task>/SPEC.md`, so Codex reads it from the shared temp dir.
 
 - what to change and why, with the files to read first;
 - **out of scope**: files the lead edits;
+- **base**: when the spec builds on held or cherry-picked work, name the base commit and diff the held tree against it before launch;
 - **commits**: "do not commit", or the branch Codex commits on when the work is a ticket in its own worktree (`implement-spec`);
 - **done when**: a checkable criterion per item, ideally a probe that goes red then green, and the commands to run;
 - **report**: files changed, each command with its result, choices the lead should check;
 - **checklist** (repo gates Codex's code meets before it reports):
-  - rationale goes in the commit body or an ADR, in place of code comments: `pnpm comments check` rejects new ones, tooling directives such as `// @vitest-environment` included. A test that needs a DOM uses the package's DOM Vitest project;
+  - rationale goes in the commit body or an ADR, in place of code comments: `pnpm comments check` rejects new ones, tooling directives such as `// @vitest-environment` included. Prove UI behaviour with a pure function plus the e2e journey or a browser check ([testing strategy](../../../policies/testing-strategy.md));
   - name tests by behaviour: the `no-tracker-reference` lint rule rejects `#<n>` in a test name;
   - run the package's `typecheck` and `typecheck:test` (a separate project) plus `pnpm exec oxlint <changed dirs>` once, at the end;
   - limit runs to unit checks: e2e, desktop journeys, a running Obsidian or Zotero, and network downloads or tool builds need the spec's explicit permission;

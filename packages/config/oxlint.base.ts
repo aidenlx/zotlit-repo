@@ -73,6 +73,7 @@ export function testBaselineOverrides(directory?: string) {
   )) {
     if (!file.startsWith(prefix)) continue;
     for (const rule of rules) {
+      if (rule.startsWith("test-policy/")) continue;
       if (
         rule.startsWith("zotlit-effect-tests/") &&
         !EFFECT_TESTS_CONFIGS.has(directory ?? "")

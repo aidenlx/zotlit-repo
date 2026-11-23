@@ -3,6 +3,7 @@
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
   ],
+  "apps/docs/src/lib/language-choice.test.ts": ["test-policy/dom-environment"],
   "packages/plugin-kernel/src/brand.test.ts": [
     "zotlit-tests/no-internal-mock",
     "zotlit-tests/no-source-text"
