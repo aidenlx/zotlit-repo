@@ -1,4 +1,5 @@
 export const SOURCE_ID_HEADER = "X-Zotlit-Source-Id";
+export const SOURCE_MISMATCH_STATUS = 409;
 
 const DJB2A_SEED = 5381;
 

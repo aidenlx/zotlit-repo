@@ -1408,6 +1408,8 @@
     ],
     "protocol_incompatible_title": "需要更新",
     "protocol_incompatible_message": "ZotLit Obsidian 插件版本不兼容。请将 Zotero 和 Obsidian 插件都更新到匹配的版本后重试。",
+    "source_mismatch_title": "Obsidian 已配置为连接另一个 Zotero",
+    "source_mismatch_message": "Obsidian 中的 ZotLit 仅接受来自设置中指定的 Zotero 配置目录和数据目录的请求。请在 Obsidian 中检查这两个目录，然后重试。",
     "batch_import_sending_title": "正在请求 Obsidian 导入笔记…",
     "batch_import_failed_title": "无法连接到 Obsidian",
     "batch_import_failed_message": "请确认 Obsidian 正在运行且已启用 ZotLit 服务器，然后重试。",

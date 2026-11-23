@@ -2065,6 +2065,8 @@
     ],
     "protocol_incompatible_title": "Update required",
     "protocol_incompatible_message": "The ZotLit Obsidian plugin is on an incompatible version. Update both the Zotero and Obsidian plugins to matching versions and try again.",
+    "source_mismatch_title": "Obsidian is set up for another Zotero",
+    "source_mismatch_message": "ZotLit in Obsidian accepts requests only from the Zotero profile and data directory in its settings. Check those folders in Obsidian, then try again.",
     "batch_import_sending_title": "Asking Obsidian to import notes…",
     "batch_import_failed_title": "Couldn't reach Obsidian",
     "batch_import_failed_message": "Make sure Obsidian is running with the ZotLit server enabled, then try again.",

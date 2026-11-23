@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import {
   PROTOCOL_VERSION,
   PROTOCOL_VERSION_HEADER,
   SOURCE_ID_HEADER,
+  SOURCE_MISMATCH_STATUS,
 } from "@zotlit/protocol";
 
 import { createLiveUpdateApp } from "./live-update-app.ts";
@@ -142,6 +144,24 @@ describe("GET /literature-notes", () => {
 });
 
 describe("POST /notify", () => {
+  it("discards a foreign notification via 204", async () => {
+    const onNotify = vi.fn();
+    const app = createLiveUpdateApp(makeDeps({ onNotify }));
+
+    const res = await app.request("/notify", {
+      method: "POST",
+      headers: {
+        ...headers({ [SOURCE_ID_HEADER]: "deadbeef" }),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ event: "db/updated" }),
+    });
+
+    expect(res.status).toBe(204);
+    expect(res.body).toBeNull();
+    expect(onNotify).not.toHaveBeenCalled();
+  });
+
   it("dispatches a valid db/updated event and acks 204", async () => {
     const onNotify = vi.fn();
     const app = createLiveUpdateApp(makeDeps({ onNotify }));
@@ -169,6 +189,41 @@ describe("POST /notify", () => {
 
     expect(res.status).toBe(400);
     expect(onNotify).not.toHaveBeenCalled();
+  });
+});
+
+describe.each([
+  { path: "/literature-notes", body: { items: [1, 2], scope: "full" } },
+  { path: "/zotero-notes", body: { items: [1, 2], mode: "note" } },
+])("PUT $path source gate", ({ path, body }) => {
+  it.each([
+    {
+      scenario: "a different source",
+      expected: SOURCE_ID,
+      received: "deadbeef",
+    },
+    { scenario: "no configured source", expected: null, received: SOURCE_ID },
+  ])("discards a batch with $scenario", async ({ expected, received }) => {
+    const onUpdateMany = vi.fn();
+    const onImportNotes = vi.fn();
+    const app = createLiveUpdateApp(
+      makeDeps({ sourceId: () => expected, onUpdateMany, onImportNotes }),
+    );
+
+    const res = await app.request(path, {
+      method: "PUT",
+      headers: {
+        ...headers({ [SOURCE_ID_HEADER]: received }),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    await yieldToMain();
+    expect(onUpdateMany).not.toHaveBeenCalled();
+    expect(onImportNotes).not.toHaveBeenCalled();
+    expect(res.body).toBeNull();
+    expect(res.status).toBe(SOURCE_MISMATCH_STATUS);
   });
 });
 

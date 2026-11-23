@@ -14,6 +14,7 @@ import {
   notifyEventSchema,
   PROTOCOL_VERSION_HEADER,
   SOURCE_ID_HEADER,
+  SOURCE_MISMATCH_STATUS,
 } from "@zotlit/protocol";
 import type {
   ImportMode,
@@ -98,7 +99,10 @@ export function createLiveUpdateApp(deps: LiveUpdateAppDeps): Hono {
           withLogCategory("live-update"),
         ),
       );
-      return c.body(null, 204);
+      return c.body(
+        null,
+        c.req.method === "PUT" ? SOURCE_MISMATCH_STATUS : 204,
+      );
     }
     await next();
   };

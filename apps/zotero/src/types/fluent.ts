@@ -81,6 +81,8 @@ export type FluentMessages = {
   "zotlit-prefs-wal-checkpoint-description": never;
   "zotlit-protocol-incompatible-message": never;
   "zotlit-protocol-incompatible-title": never;
+  "zotlit-source-mismatch-message": never;
+  "zotlit-source-mismatch-title": never;
 };
 
 export type FluentMessageId = keyof FluentMessages;

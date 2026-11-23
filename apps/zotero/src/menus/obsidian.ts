@@ -10,6 +10,7 @@ import {
   PROTOCOL_VERSION,
   PROTOCOL_VERSION_HEADER,
   SOURCE_ID_HEADER,
+  SOURCE_MISMATCH_STATUS,
 } from "@zotlit/protocol";
 import type {
   BatchUpdateRequest,
@@ -162,6 +163,14 @@ async function launchOrPut(
     if (response.status === 426) {
       logger.warn("obsidian rejected protocol version", { base });
       await settleProtocolMismatch(progress);
+      return;
+    }
+    if (response.status === SOURCE_MISMATCH_STATUS) {
+      logger.warn("obsidian rejected source id", { base });
+      await settleProgress(progress, {
+        titleId: "zotlit-source-mismatch-title",
+        messageId: "zotlit-source-mismatch-message",
+      });
       return;
     }
     if (!response.ok) {

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { noteStatusResponseSchema } from "./note-status.ts";
 import { notifyEventSchema } from "./notify.ts";
-import { SOURCE_ID_HEADER } from "./source-id.ts";
+import { SOURCE_ID_HEADER, SOURCE_MISMATCH_STATUS } from "./source-id.ts";
 import {
   batchUpdateRequestSchema,
   buildBatchProtocolUrl,
@@ -132,6 +132,7 @@ function literatureNotesWireSurface(): unknown {
   return {
     method: "PUT",
     sourceHeader: SOURCE_ID_HEADER,
+    sourceMismatchStatus: SOURCE_MISMATCH_STATUS,
     body: Object.keys(schema.entries).sort(),
   };
 }
@@ -150,6 +151,7 @@ function zoteroNotesWireSurface(): unknown {
   return {
     method: "PUT",
     sourceHeader: SOURCE_ID_HEADER,
+    sourceMismatchStatus: SOURCE_MISMATCH_STATUS,
     body: Object.keys(schema.entries).sort(),
   };
 }
@@ -214,6 +216,7 @@ describe("wire format", () => {
           ],
           "method": "PUT",
           "sourceHeader": "X-Zotlit-Source-Id",
+          "sourceMismatchStatus": 409,
         },
         "noteStatus": {
           "body": [
@@ -310,6 +313,7 @@ describe("wire format", () => {
           ],
           "method": "PUT",
           "sourceHeader": "X-Zotlit-Source-Id",
+          "sourceMismatchStatus": 409,
         },
       }
     `);

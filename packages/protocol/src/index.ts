@@ -10,7 +10,11 @@ export {
   type NoteStatusResponse,
   noteStatusResponseSchema,
 } from "./note-status.ts";
-export { SOURCE_ID_HEADER, sourceIdFromUris } from "./source-id.ts";
+export {
+  SOURCE_ID_HEADER,
+  SOURCE_MISMATCH_STATUS,
+  sourceIdFromUris,
+} from "./source-id.ts";
 export {
   batchProtocolActionId,
   type BatchUpdateRequest,
