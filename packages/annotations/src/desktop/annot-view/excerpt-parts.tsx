@@ -98,7 +98,11 @@ export function ExcerptPicture({
     return <span>{m.annot_view_image_unavailable()}</span>;
   return (
     <img
-      className={className}
+      className={cn("zt:max-w-full", className)}
+      style={{
+        width: "var(--zt-excerpt-image-width, auto)",
+        height: "var(--zt-excerpt-image-height, auto)",
+      }}
       src={url}
       onError={() => {
         setUndecodable(display.image);

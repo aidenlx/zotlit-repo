@@ -61,7 +61,7 @@ export function AnnotationPopoverContent(props: AnnotationPopoverContentProps) {
           demand={excerpt}
           identity={annotation.key}
           alt={excerptImageAlt(annotation)}
-          className="zt:max-h-60 zt:max-w-full zt:self-start zt:ring-1 zt:ring-foreground/10 zt:ring-inset"
+          className="zt:max-h-60 zt:self-start zt:ring-1 zt:ring-foreground/10 zt:ring-inset"
         />
       )}
       {text && <ExcerptText text={text} className="zt:m-0" />}

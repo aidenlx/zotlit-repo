@@ -804,8 +804,8 @@ function ExcerptImage({ annot, collapsed }: AnnotationProps) {
       identity={target.identity}
       alt={excerptImageAlt(annot)}
       className={cn(
-        "zt:max-w-full zt:ring-1 zt:ring-foreground/10 zt:ring-inset",
-        collapsed ? "zt:max-h-20" : "zt:w-full",
+        "zt:ring-1 zt:ring-foreground/10 zt:ring-inset",
+        collapsed && "zt:max-h-20",
       )}
     />
   );
