@@ -2,24 +2,22 @@ import Link from "fumadocs-core/link";
 import { asMarkdown } from "fumadocs-core/server";
 import type { ReactNode } from "react";
 
-import { CONTRACT_IR } from "@/lib/template-contract/contract.ts";
+import pageModel from "@/lib/template-contract/generated/page-model.json" with { type: "json" };
 import { renderContractTableMarkdown } from "@/lib/template-contract/gfm.ts";
-import {
-  buildPageModel,
-  sectionOf,
-} from "@/lib/template-contract/page-model.ts";
+import { sectionOf } from "@/lib/template-contract/model.ts";
 import type {
   Doc,
   ItemTypeRow,
+  PageModel,
   RowModel,
   TableModel,
-} from "@/lib/template-contract/page-model.ts";
+} from "@/lib/template-contract/model.ts";
 import * as m from "@/paraglide/messages.js";
 
 import { TypeTable } from "./type-table.tsx";
 import type { DetailNode, TypeNode } from "./type-table.tsx";
 
-const model = buildPageModel(CONTRACT_IR);
+const model = pageModel as unknown as Pick<PageModel, "sections">;
 
 export function ContractTable({ section }: { section: string }) {
   if (asMarkdown()) return renderContractTableMarkdown(model, section);

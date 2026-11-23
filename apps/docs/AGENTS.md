@@ -83,6 +83,8 @@ The site wears the "Journal" design. Its spec — theme and tokens, the four-fac
 
 [`src/lib/template-contract/sections.ts`](src/lib/template-contract/sections.ts) owns the section structure. The `_*.mdx` partials beside the generated page own supplementary prose.
 
+The same task writes the page model to `src/lib/template-contract/generated/page-model.json`. Commit it with the page. `<ContractTable>` reads that file with the types in [`model.ts`](src/lib/template-contract/model.ts), so readers get precomputed rows. The builder, [`page-model.ts`](src/lib/template-contract/page-model.ts), and its parsers run only in the generator and in tests.
+
 The page's Markdown edition renders each `<ContractTable>` as a GFM table: the component returns [`renderContractTableMarkdown()`](src/lib/template-contract/gfm.ts) when `asMarkdown()` is set, through the components map in [`src/lib/markdown-editions.tsx`](src/lib/markdown-editions.tsx).
 
 ## Generated Functions and methods reference

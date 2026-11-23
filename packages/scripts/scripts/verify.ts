@@ -122,7 +122,7 @@ async function localSteps(): Promise<void> {
     const stale = (
       await $({
         cwd: root,
-      })`git status --porcelain -- packages/db/src/contract/generated apps/docs/content/docs/reference/templates/data.mdx apps/docs/content/docs/reference/functions-and-methods.mdx`
+      })`git status --porcelain -- packages/db/src/contract/generated apps/docs/content/docs/reference/templates/data.mdx apps/docs/src/lib/template-contract/generated/page-model.json apps/docs/content/docs/reference/functions-and-methods.mdx`
     ).stdout.trim();
     if (stale) {
       throw new Error(

@@ -1,14 +1,14 @@
-import { sectionOf } from "./page-model.ts";
+import { sectionOf } from "./model.ts";
 import type {
   Doc,
   ItemTypeRow,
   PageModel,
   RowModel,
   TableModel,
-} from "./page-model.ts";
+} from "./model.ts";
 
 export function renderContractTableMarkdown(
-  model: PageModel,
+  model: Pick<PageModel, "sections">,
   section: string,
 ): string {
   const page = sectionOf(model, section);

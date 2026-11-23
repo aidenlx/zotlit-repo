@@ -61,8 +61,15 @@
     },
     "generate:template-data": {
       "dependsOn": ["transit", "@zotlit/db#generate:contract"],
-      "inputs": ["$TURBO_DEFAULT$", "!content/**"],
-      "outputs": ["content/docs/reference/templates/data.mdx"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "!content/**",
+        "!src/lib/template-contract/generated/**"
+      ],
+      "outputs": [
+        "content/docs/reference/templates/data.mdx",
+        "src/lib/template-contract/generated/page-model.json"
+      ],
       "outputLogs": "errors-only"
     },
     "test": {

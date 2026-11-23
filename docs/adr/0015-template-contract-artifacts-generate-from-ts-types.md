@@ -59,7 +59,7 @@ Generated prose may include literal Markdown code spans. Validate prose so the M
 
 ## Shared reference model
 
-The Template Contract page model is framework-free. MDX, React, and GFM derive their sections, rows, examples, and links from the same contract IR. The section registry supplies fixed and included prose after the contract description. Its anchors preserve the handwritten page's public links. Fail generation when a reachable named type has no section. A section can list literal options, an Item Type field map, or tables for multiple object types and object union variants. Multiple tables use ordered captions. Link targets and rows share the same table ids, and inherited references can point back to the already emitted root section.
+The Template Contract page model is framework-free. MDX, React, and GFM derive their sections, rows, examples, and links from the same contract IR. The generator builds the model and commits its sections as JSON, and the React and GFM tables read that JSON. The 2026-11-23 amendment gives the reason. The section registry supplies fixed and included prose after the contract description. Its anchors preserve the handwritten page's public links. Fail generation when a reachable named type has no section. A section can list literal options, an Item Type field map, or tables for multiple object types and object union variants. Multiple tables use ordered captions. Link targets and rows share the same table ids, and inherited references can point back to the already emitted root section.
 
 Flatten wrapped JSDoc lines within each paragraph and preserve paragraph breaks. Keep code spans as code. Resolve type links to their sections, named members to their rows, and bare members relative to the owning type. Leave unresolved targets as code. The collapsed row shows a compact type, and the expanded row has the complete type and helper details. See referenced types through arrays and nullable unions. Put parentheses around a function signature in a union to preserve the return type. Derive sample access, calls, and Liquid filters from the section sample and helper signature. Retarget only the intended example accessor for inherited members. The current substitution also changes matching literals. [Template example follow-up](https://github.com/aidenlx/zotlit-repo/issues/115)
 
@@ -83,7 +83,7 @@ A declared reference substitutes only its reference arm on the owner's immediate
 
 Check that the source declares the Item Base type and that the extracted contract still has an item-fields index signature. Clear the generated directory before writing the new roots so retired schemas disappear from the diff. The Template Contract version appears in schema identifiers and has its own persisted-version entry. CLI response envelopes version their own contracts. Legacy Template slots use the registry while a Citation Template Document names its root directly.
 
-The verification gate regenerates the template contract and reference page, and the Query schema supplies the generated functions and methods page. Fail the gate if these committed outputs differ after generation. Turbo declares the generation inputs and outputs so identical inputs can restore the artifacts from its cache.
+The verification gate regenerates the template contract, the reference page and its page model, and the Query schema supplies the generated functions and methods page. Fail the gate if these committed outputs differ after generation. Turbo declares the generation inputs and outputs so identical inputs can restore the artifacts from its cache.
 
 The Template Data Export serializes the active Item or Annotation against its contract root. It shares the CLI's `pluginVersion`, `request`, and `zt` fields so the request identifies a reproducible command. Its `templateContractVersion` names the schema of the exported `zt` data. The CLI Contract has its own version. Serialization stops if the committed contract metadata cannot describe the data.
 
@@ -100,3 +100,9 @@ Template Contract IR.
 Keep the synthesized Literature Note manifest's Template Data version
 in step with the Database contract version. The Template engine does
 not import the Database package to read it.
+
+## Amendment (2026-11-23): the page model is built at generation time
+
+The Template data generator builds the page model from the contract IR and writes its sections to `apps/docs/src/lib/template-contract/generated/page-model.json`. `ContractTable` reads that file for the HTML table and for the GFM edition. The reader's page chunk therefore holds precomputed rows, and the builder and the contract IR stay out of it. The browser does no model work at page load. The verification gate checks the JSON with the other generated artifacts. The model repeats inherited rows that the IR shares, so the page chunk grew from 25.9 kB to 26.7 kB gzip.
+
+Rejected: building the model in the browser with syntax-aware parsers, which adds about 35 kB gzip to the page and parses at page load; small hand-written scanners for code spans and Liquid markup, which copy two grammars into the docs app.
