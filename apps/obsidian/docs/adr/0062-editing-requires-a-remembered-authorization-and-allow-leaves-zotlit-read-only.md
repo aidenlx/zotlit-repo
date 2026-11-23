@@ -45,6 +45,14 @@ Zotero records that answer as Always Allow and sends a remembered grant.
 ZotLit asks for confirmation in Obsidian and saves the grant after the
 researcher selects **Turn on editing**.
 
+A saved grant records that confirmation. A grant saved before the
+confirmation existed has no record of it and can come from a dismissed
+dialog. ZotLit keeps its key and reports authorization required. The
+next **Allow editing** asks the same confirmation without Zotero's
+dialog. **Turn on editing** records the confirmation; **Keep read-only**
+leaves the key stored and unused.
+[Authorization store](../../../../packages/plugin-services/src/obsidian/zotero-local-api/write-authorization.ts)
+
 Paired Zotero 10.0 supplied the fixture replies for Allow, Always Allow,
 Deny, and dismissal. Two dismissal methods returned the same remembered
 grant shape. Keep those captures distinct from contract-derived cases.

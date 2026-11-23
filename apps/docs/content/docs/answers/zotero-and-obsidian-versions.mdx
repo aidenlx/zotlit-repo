@@ -15,15 +15,17 @@ faq:
 ---
 
 import { LessonLink } from "@/components/lesson-link";
+import { UiLabel } from "@/components/ui-label";
+import { m } from "@/paraglide/messages.js";
 
 ZotLit 2.2.3 works with Zotero 9 and Zotero 10, and needs Obsidian 1.15.1 or later on Windows, macOS or Linux. Editing highlights and comments from Obsidian needs Zotero 10; on Zotero 9 you can read PDFs and their annotations but not edit them.
 
-| Part                                                   | Obsidian                                        | Zotero                            | Other needs                                                                                                                                                  |
-| ------------------------------------------------------ | ----------------------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| ZotLit plugin (reading your library, notes, citations) | 1.15.1 or later, with installer 1.13.4 or later | 9 or 10                           | Windows, macOS or Linux. No phone or tablet.                                                                                                                 |
-| ZotLit Companion (optional Zotero add-on)              | —                                               | 9.0 up to 10.x                    | Its version must match the plugin: ZotLit 2.2 needs Companion 2.2.                                                                                           |
-| Editing annotations from Obsidian                      | 1.15.1 or later                                 | 10 or later, running              | In Zotero, "Allow other applications on this computer to communicate with Zotero" on (Settings → Advanced), and "Always Allow" chosen once when Zotero asks. |
-| Citation formatting and Word export                    | 1.15.1 or later                                 | 9 or 10; running while you export | The ZotLit Resource Pack plugin, which holds the Pandoc engine. Install it once per vault from Obsidian's community plugins.                                 |
+| Part                                                   | Obsidian                                        | Zotero                            | Other needs                                                                                                                                                                                                                               |
+| ------------------------------------------------------ | ----------------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ZotLit plugin (reading your library, notes, citations) | 1.15.1 or later, with installer 1.13.4 or later | 9 or 10                           | Windows, macOS or Linux. No phone or tablet.                                                                                                                                                                                              |
+| ZotLit Companion (optional Zotero add-on)              | —                                               | 9.0 up to 10.x                    | Its version must match the plugin: ZotLit 2.2 needs Companion 2.2.                                                                                                                                                                        |
+| Editing annotations from Obsidian                      | 1.15.1 or later                                 | 10 or later, running              | In Zotero, "Allow other applications on this computer to communicate with Zotero" on (Settings → Advanced), and "Always Allow" chosen once when Zotero asks, then <UiLabel name={m.modal_zotero_editing_confirm_action()} /> in Obsidian. |
+| Citation formatting and Word export                    | 1.15.1 or later                                 | 9 or 10; running while you export | The ZotLit Resource Pack plugin, which holds the Pandoc engine. Install it once per vault from Obsidian's community plugins.                                                                                                              |
 
 ## With Zotero closed
 

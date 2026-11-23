@@ -4,6 +4,7 @@ description: "ZotLit 是否会修改 Zotero 文库、是否需要打开 Zotero�
 ---
 
 import { Command } from "@/components/command";
+import { UiLabel } from "@/components/ui-label";
 import { m } from "@/paraglide/messages.js";
 
 ZotLit 不会损坏你的 Zotero 文库，不会影响你在笔记中写下的内容，也绝不会将你的文献发送到外部服务器。它直接读取你的本地数据库，仅在你主动编辑标注或更新笔记时才会执行写入操作。
@@ -33,7 +34,7 @@ ZotLit 不会损坏你的 Zotero 文库，不会影响你在笔记中写下的�
 
 ### 在 Obsidian 中编辑标注会改变什么？ [#what-does-editing-an-annotation-in-obsidian-change]
 
-它会直接更新 Zotero 文库中的标注，效果与在 Zotero 自带的 PDF 阅读器中编辑完全一致。在首次编辑之前，请确保已在 Zotero 的**设置 > 高级**（Settings > Advanced）中开启**允许此计算机上的其他应用程序与 Zotero 通信**（Allow other applications on this computer to communicate with Zotero），并在出现提示时选择**总是允许**（Always Allow）。参见[如何在 Obsidian 中编辑 PDF 标注](/docs/how-to/edit-pdf-annotations)。
+它会直接更新 Zotero 文库中的标注，效果与在 Zotero 自带的 PDF 阅读器中编辑完全一致。在首次编辑之前，请确保已在 Zotero 的**设置 > 高级**（Settings > Advanced）中开启**允许此计算机上的其他应用程序与 Zotero 通信**（Allow other applications on this computer to communicate with Zotero），并在出现提示时选择**总是允许**（Always Allow），然后在 Obsidian 中选择 <UiLabel name={m.modal_zotero_editing_confirm_action()} />。参见[如何在 Obsidian 中编辑 PDF 标注](/docs/how-to/edit-pdf-annotations)。
 
 ### 更新笔记会抹掉我写的内容吗？ [#can-an-update-wipe-what-i-wrote-in-a-note]
 

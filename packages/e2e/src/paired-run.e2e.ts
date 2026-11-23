@@ -14291,6 +14291,69 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
         await clearNotices(vaultId!);
         await expectEditing("authorization-required");
 
+        const earlierKey = await grantRememberedKey(api, rdp, {
+          serverID,
+          appName: APP_NAME,
+        });
+        await obRun(
+          vaultId!,
+          ({ app }, { serverID, key }) => {
+            app.secretStorage.setSecret(
+              "zotlit-zotero-write-authorization",
+              JSON.stringify({ version: 1, serverID, key }),
+            );
+          },
+          { serverID, key: earlierKey },
+        );
+        const earlierGrant = () =>
+          obRun(
+            vaultId!,
+            async ({ app, zotlit }, { attachmentKey }) => {
+              const { annotationRepository: repository, bridge } =
+                zotlit.services;
+              await bridge.runPromise(repository.probe);
+              const record = JSON.parse(
+                app.secretStorage.getSecret(
+                  "zotlit-zotero-write-authorization",
+                ) ?? "{}",
+              );
+              return {
+                kind: bridge.runSync(repository.capabilityFor(attachmentKey))
+                  .kind,
+                hasKey: Object.hasOwn(record, "key"),
+                confirmed: record.confirmed === true,
+              };
+            },
+            { attachmentKey: attachment.key },
+          );
+        expect(await earlierGrant()).toEqual({
+          kind: "authorization-required",
+          hasKey: true,
+          confirmed: false,
+        });
+        await ask();
+        await answerEditingConfirmation(false);
+        expect(await earlierGrant()).toEqual({
+          kind: "authorization-required",
+          hasKey: true,
+          confirmed: false,
+        });
+        await ask();
+        await answerEditingConfirmation(true);
+        await noticeShows(m.notice_zotero_editing_enabled());
+        expect(await earlierGrant()).toEqual({
+          kind: "writable",
+          hasKey: true,
+          confirmed: true,
+        });
+        expect(await waitForAuthorizationDialog(rdp, 4)).toBe(false);
+        expect(await authorizationCount(rdp)).toBe(1);
+
+        await resetAuthorizations(rdp);
+        await forget();
+        await clearNotices(vaultId!);
+        await expectEditing("authorization-required");
+
         await ask();
         expect(await waitForAuthorizationDialog(rdp)).toBe(true);
         await dismissAuthorizationDialog(rdp);

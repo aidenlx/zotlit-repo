@@ -96,7 +96,7 @@ The database connection only reads. When you edit an annotation in Obsidian, Zot
 ZotLit sends these changes through Zotero's local API, a connection that Zotero provides for other applications on the same computer. Two things must be in place:
 
 - **In Zotero:** **Allow other applications on this computer to communicate with Zotero** is on, under Settings → Advanced.
-- **Your permission:** the first time you allow editing, Zotero shows a permission dialog. You choose **Always Allow** once. ZotLit saves this permission for the current vault on the current device only, so you give it once for each vault on each computer.
+- **Your permission:** the first time you allow editing, Zotero shows a permission dialog. You choose **Always Allow** once, then select <UiLabel name={m.modal_zotero_editing_confirm_action()} /> in Obsidian. ZotLit saves this permission for the current vault on the current device only, so you give it once for each vault on each computer.
 
 This connection does not use protocol links or the ZotLit server. For the steps, see [Edit PDF annotations in Obsidian](/docs/how-to/edit-pdf-annotations).
 

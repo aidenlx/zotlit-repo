@@ -16,14 +16,17 @@ const recordSchema = v.object({
   version: v.pipe(v.number(), v.safeInteger()),
   serverID: v.string(),
   key: v.optional(v.string()),
+  confirmed: v.optional(v.literal(true)),
 });
 
 type StoredRecord = v.InferOutput<typeof recordSchema>;
 
 export interface WriteAuthorizationStore {
   read(serverID: string): Promise<string | null>;
+  holdsUnconfirmed(serverID: string): Promise<boolean>;
   has(): Promise<boolean>;
   remember(serverID: string, key: string): Promise<void>;
+  confirm(serverID: string): Promise<void>;
   forget(): Promise<void>;
 }
 
@@ -59,7 +62,18 @@ export class SecretWriteAuthorizationStore implements WriteAuthorizationStore {
       );
       return Promise.resolve(null);
     }
+    if (record.confirmed !== true) return Promise.resolve(null);
     return Promise.resolve(record.key);
+  }
+
+  holdsUnconfirmed(serverID: string): Promise<boolean> {
+    const record = this.#record();
+    return Promise.resolve(
+      record !== null &&
+        record.key !== undefined &&
+        record.serverID === serverID &&
+        record.confirmed !== true,
+    );
   }
 
   has(): Promise<boolean> {
@@ -69,10 +83,40 @@ export class SecretWriteAuthorizationStore implements WriteAuthorizationStore {
   remember(serverID: string, key: string): Promise<void> {
     this.#secrets.setSecret(
       RECORD_ID,
-      JSON.stringify({ version: RECORD_VERSION, serverID, key }),
+      JSON.stringify({
+        version: RECORD_VERSION,
+        serverID,
+        key,
+        confirmed: true,
+      }),
     );
     Effect.runSyncWith(logServices)(
       Effect.logDebug("Remembered a Zotero write authorization").pipe(
+        Effect.annotateLogs({ serverID }),
+        withLogCategory("zotero-local-api", "write-authorization"),
+      ),
+    );
+    return Promise.resolve();
+  }
+
+  confirm(serverID: string): Promise<void> {
+    const record = this.#record();
+    if (record?.key === undefined || record.serverID !== serverID) {
+      return Promise.resolve();
+    }
+    this.#secrets.setSecret(
+      RECORD_ID,
+      JSON.stringify({
+        version: RECORD_VERSION,
+        serverID,
+        key: record.key,
+        confirmed: true,
+      }),
+    );
+    Effect.runSyncWith(logServices)(
+      Effect.logDebug(
+        "Confirmed the remembered Zotero write authorization",
+      ).pipe(
         Effect.annotateLogs({ serverID }),
         withLogCategory("zotero-local-api", "write-authorization"),
       ),

@@ -413,13 +413,13 @@ export function writeTokenUsed(): Response {
   });
 }
 
-export function inMemoryCredentials(
-  initial: { serverID: string; key: string } | null = null,
-) {
-  let record: { serverID: string; key?: string } | null = initial && {
+type InMemoryRecord = { serverID: string; key?: string; unconfirmed?: true };
+
+export function inMemoryCredentials(initial: InMemoryRecord | null = null) {
+  let record: InMemoryRecord | null = initial && {
     ...initial,
   };
-  const writes: ({ serverID: string; key?: string } | null)[] = [];
+  const writes: (InMemoryRecord | null)[] = [];
   return {
     get record() {
       return record;
@@ -427,9 +427,26 @@ export function inMemoryCredentials(
     writes,
     read: vi.fn((serverID: string) =>
       Promise.resolve(
-        record && record.serverID === serverID ? (record.key ?? null) : null,
+        record && record.serverID === serverID && !record.unconfirmed
+          ? (record.key ?? null)
+          : null,
       ),
     ),
+    holdsUnconfirmed: vi.fn((serverID: string) =>
+      Promise.resolve(
+        record !== null &&
+          record.serverID === serverID &&
+          record.key !== undefined &&
+          record.unconfirmed === true,
+      ),
+    ),
+    confirm: vi.fn((serverID: string) => {
+      if (record?.key !== undefined && record.serverID === serverID) {
+        record = { serverID, key: record.key };
+        writes.push({ ...record });
+      }
+      return Promise.resolve();
+    }),
     has: vi.fn(() => Promise.resolve(record?.key !== undefined)),
     remember: vi.fn((serverID: string, key: string) => {
       record = { serverID, key };
@@ -480,6 +497,7 @@ export function unreachable(): never {
 
 export interface ClientOptions {
   key?: string;
+  unconfirmed?: true;
   credentials?: ReturnType<typeof inMemoryCredentials>;
   confirmGrant?: () => boolean | Promise<boolean>;
 }
@@ -515,7 +533,11 @@ export async function localApiClient(
     inMemoryCredentials(
       options.key === undefined
         ? null
-        : { serverID: SERVER_ID, key: options.key },
+        : {
+            serverID: SERVER_ID,
+            key: options.key,
+            ...(options.unconfirmed ? { unconfirmed: true as const } : {}),
+          },
     );
   let snapshot: ZoteroPrefSnapshot = {
     state: "ready",

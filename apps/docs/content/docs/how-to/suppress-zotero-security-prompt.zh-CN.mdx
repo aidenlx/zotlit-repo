@@ -6,10 +6,12 @@ description: "阻止 Zotero 每次打开 obsidian:// 链接时弹出确认对话
 import { Steps, Step } from "fumadocs-ui/components/steps";
 import { Card, Cards } from "fumadocs-ui/components/card";
 import { Callout } from "@/components/callout";
+import { UiLabel } from "@/components/ui-label";
+import { m } from "@/paraglide/messages.js";
 
 每当 Zotero 打开 `obsidian://` URI 时（例如，在 Zotero 中点击指向 Obsidian 笔记的反向链接），都会弹出一个安全确认对话框。你可以通过在 Zotero 的 Config Editor 中添加首选项来关闭此对话框。
 
-该提示不同于标注编辑时的 Zotero 权限对话框。如[在 Obsidian 中编辑 PDF 标注](/docs/how-to/edit-pdf-annotations)所述，请在该对话框中选择 **Always Allow**。
+该提示不同于标注编辑时的 Zotero 权限对话框。如[在 Obsidian 中编辑 PDF 标注](/docs/how-to/edit-pdf-annotations)所述，请在该对话框中选择 **Always Allow**，然后在 Obsidian 中选择 <UiLabel name={m.modal_zotero_editing_confirm_action()} />。
 
 ![询问是否打开 obsidian 链接的 Zotero 安全确认对话框](/img/how-to/protocol-choose-app.webp)
 

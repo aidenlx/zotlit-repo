@@ -271,6 +271,88 @@ it.each([
   },
 );
 
+it("asks to confirm an earlier saved grant once, without a Zotero dialog", async () => {
+  await using stack = new AsyncDisposableStack();
+  const confirmGrant = vi.fn(() => true);
+  const { service, bridge, requests, credentials } = await setup(
+    stack,
+    {},
+    {
+      key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf",
+      unconfirmed: true,
+      confirmGrant,
+    },
+  );
+  await bridge.runPromise(service.probe);
+  expect(capabilityInput(service, bridge).authorized).toBe(false);
+
+  const grant = await bridge.runPromise(service.authorize);
+  const again = await bridge.runPromise(service.authorize);
+
+  expect(grant).toEqual({ value: undefined });
+  expect(again).toEqual({ value: undefined });
+  expect(confirmGrant).toHaveBeenCalledOnce();
+  expect(credentials.writes).toEqual([
+    { serverID: SERVER_ID, key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf" },
+  ]);
+  expect(capabilityInput(service, bridge).authorized).toBe(true);
+  expect(
+    requests.filter(({ url }) => url.pathname === "/api/local/authorize"),
+  ).toEqual([]);
+});
+
+it("keeps editing off and the earlier key unused when the researcher declines it", async () => {
+  await using stack = new AsyncDisposableStack();
+  const confirmGrant = vi.fn(() => false);
+  const { service, bridge, requests, credentials } = await setup(
+    stack,
+    {},
+    {
+      key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf",
+      unconfirmed: true,
+      confirmGrant,
+    },
+  );
+
+  const grant = await bridge.runPromise(service.authorize);
+  const sent = requests.length;
+  const write = await bridge.runPromise(
+    service.authorizedSend(ITEM_PATH, { library: PERSONAL, method: "PATCH" }),
+  );
+
+  expect(grant).toEqual({ failure: { kind: "not-confirmed" } });
+  expect(credentials.writes).toEqual([]);
+  expect(credentials.record).toEqual({
+    serverID: SERVER_ID,
+    key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf",
+    unconfirmed: true,
+  });
+  expect(capabilityInput(service, bridge).authorized).toBe(false);
+  expect(write).toEqual({ failure: { kind: "unauthorized" } });
+  expect(requests.slice(sent)).toEqual([]);
+  expect(
+    requests.filter(({ url }) => url.pathname === "/api/local/authorize"),
+  ).toEqual([]);
+});
+
+it("asks no second confirmation for a grant confirmed when it was saved", async () => {
+  await using stack = new AsyncDisposableStack();
+  const confirmGrant = vi.fn(() => true);
+  const { service, bridge, credentials } = await setup(
+    stack,
+    {},
+    { confirmGrant },
+  );
+
+  await bridge.runPromise(service.authorize);
+  await bridge.runPromise(service.probe);
+  const again = await bridge.runPromise(service.authorize);
+
+  expect(again).toEqual({ value: undefined });
+  expect(confirmGrant).toHaveBeenCalledOnce();
+  expect(await credentials.holdsUnconfirmed(SERVER_ID)).toBe(false);
+});
+
 it("takes Deny as a refusal, and asks again only on the next gesture", async () => {
   await using stack = new AsyncDisposableStack();
   const confirmGrant = vi.fn(() => true);

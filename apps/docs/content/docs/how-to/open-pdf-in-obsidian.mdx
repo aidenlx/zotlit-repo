@@ -75,7 +75,7 @@ To keep your sidebar as it is, turn off <SettingsPath page={m.settings_page_read
 
 ## Keep the read time in Zotero [#recently-read]
 
-If you already granted Write Authorization with <UiLabel name={m.capability_enable_editing()} /> and **Always Allow**, reading a PDF from My Library in Obsidian updates its last-read time in Zotero. The paper then appears in Zotero's Recently Read list, and the read time syncs through Zotero.
+If you already granted Write Authorization with <UiLabel name={m.capability_enable_editing()} /> and **Always Allow**, then confirmed with <UiLabel name={m.modal_zotero_editing_confirm_action()} />, reading a PDF from My Library in Obsidian updates its last-read time in Zotero. The paper then appears in Zotero's Recently Read list, and the read time syncs through Zotero.
 
 ZotLit does not ask for Write Authorization while you read. Without it, with
 Zotero closed, or if the update fails, the read still counts on this device and

@@ -639,7 +639,7 @@ async function setFixtureWriteAuthorization(
   const stored = JSON.stringify({
     version: 1,
     serverID: FIXTURE_LOCAL_API_SERVER_ID,
-    ...(grant ? { key: FIXTURE_LOCAL_API_WRITE_KEY } : {}),
+    ...(grant ? { key: FIXTURE_LOCAL_API_WRITE_KEY, confirmed: true } : {}),
   });
   const answer = await obEval(
     `{app.secretStorage.setSecret("zotlit-zotero-write-authorization",${JSON.stringify(stored)});"configured"}`,

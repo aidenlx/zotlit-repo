@@ -161,6 +161,10 @@ export const makeLocalApiSession = Effect.fnUntraced(function* ({
   );
   const hasKey = (serverID: string) =>
     Effect.map(storedKey(serverID), (key) => key !== null);
+  const holdsUnconfirmedKey = (serverID: string) =>
+    Effect.tryPromise(() => credentials.holdsUnconfirmed(serverID)).pipe(
+      Effect.orDie,
+    );
 
   const heldServerID = Effect.map(Ref.get(state), (current) =>
     serverIDOf(current),
@@ -417,25 +421,17 @@ export const makeLocalApiSession = Effect.fnUntraced(function* ({
     return failure;
   });
 
-  const granted = Effect.fnUntraced(function* (
+  const confirmedAndSaved = Effect.fnUntraced(function* (
     serverID: string,
-    grant: AuthorizationGrant,
+    save: () => Promise<void>,
   ): Effect.fn.Return<LocalApiResult<void>> {
-    if (!grant.remember) {
-      yield* Effect.logDebug(
-        "Zotero answered Allow, which ZotLit does not keep",
-      ).pipe(Effect.annotateLogs({ serverID }));
-      return { failure: { kind: "not-remembered" } };
-    }
     if (!(yield* confirmGrant)) {
       yield* Effect.logDebug(
         "The researcher did not confirm the write authorization",
       ).pipe(Effect.annotateLogs({ serverID }));
       return { failure: { kind: "not-confirmed" } };
     }
-    const saved = yield* Effect.tryPromise(() =>
-      credentials.remember(serverID, grant.key),
-    ).pipe(
+    const saved = yield* Effect.tryPromise(() => save()).pipe(
       Effect.as(true),
       Effect.catch((failure) =>
         Effect.logWarning("The write authorization could not be saved").pipe(
@@ -449,6 +445,21 @@ export const makeLocalApiSession = Effect.fnUntraced(function* ({
     return { value: undefined };
   });
 
+  const granted = Effect.fnUntraced(function* (
+    serverID: string,
+    grant: AuthorizationGrant,
+  ): Effect.fn.Return<LocalApiResult<void>> {
+    if (!grant.remember) {
+      yield* Effect.logDebug(
+        "Zotero answered Allow, which ZotLit does not keep",
+      ).pipe(Effect.annotateLogs({ serverID }));
+      return { failure: { kind: "not-remembered" } };
+    }
+    return yield* confirmedAndSaved(serverID, () =>
+      credentials.remember(serverID, grant.key),
+    );
+  });
+
   const authorizeBody: Effect.Effect<LocalApiResult<void>> = Effect.gen(
     function* () {
       const probing = yield* startProbe("authorization gesture");
@@ -459,10 +470,19 @@ export const makeLocalApiSession = Effect.fnUntraced(function* ({
       }
       if (current.authorized) return { value: undefined };
 
+      const { serverID } = current.source;
+      if (yield* holdsUnconfirmedKey(serverID)) {
+        yield* Effect.logDebug(
+          "Asking the researcher to confirm an earlier write authorization",
+        ).pipe(Effect.annotateLogs({ serverID }));
+        return yield* confirmedAndSaved(serverID, () =>
+          credentials.confirm(serverID),
+        );
+      }
+
       const cooldown = yield* cooling;
       if (cooldown) return { failure: cooldown };
 
-      const { serverID } = current.source;
       yield* Effect.logDebug("Asking Zotero for a write authorization").pipe(
         Effect.annotateLogs({ serverID }),
       );

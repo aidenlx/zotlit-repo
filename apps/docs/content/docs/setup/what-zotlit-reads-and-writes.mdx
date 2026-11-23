@@ -4,6 +4,7 @@ description: "Does ZotLit change your Zotero library, need Zotero open, or send 
 ---
 
 import { Command } from "@/components/command";
+import { UiLabel } from "@/components/ui-label";
 import { m } from "@/paraglide/messages.js";
 
 ZotLit cannot break your Zotero library, leaves your own writing in a note alone, and never sends your papers to an outside server. It reads your local database directly and writes only when you deliberately edit an annotation or update a note.
@@ -33,7 +34,7 @@ No. Browsing and reading your literature notes require nothing installed in Zote
 
 ### What does editing an annotation in Obsidian change?
 
-It updates the annotation directly in your Zotero library, exactly like editing it inside Zotero's own PDF reader. Before your first edit, make sure **Allow other applications on this computer to communicate with Zotero** is on under **Settings** → **Advanced** in Zotero, and choose **Always Allow** when prompted. See [How to edit PDF annotations in Obsidian](/docs/how-to/edit-pdf-annotations).
+It updates the annotation directly in your Zotero library, exactly like editing it inside Zotero's own PDF reader. Before your first edit, make sure **Allow other applications on this computer to communicate with Zotero** is on under **Settings** → **Advanced** in Zotero, and choose **Always Allow** when prompted. Then select <UiLabel name={m.modal_zotero_editing_confirm_action()} /> in Obsidian. See [How to edit PDF annotations in Obsidian](/docs/how-to/edit-pdf-annotations).
 
 ### Can an update wipe what I wrote in a note?
 

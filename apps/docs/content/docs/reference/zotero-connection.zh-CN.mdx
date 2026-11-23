@@ -96,7 +96,7 @@ ZotLit 在 Zotero 和 Obsidian 之间使用两种传输机制。它们服务于�
 ZotLit 通过 Zotero 本地 API 发送这些更改，这是 Zotero 为同一台电脑上的其他应用程序提供的连接接口。需要满足两个条件：
 
 - **在 Zotero 中**：在**设置 > 高级**（Settings > Advanced）下，开启**允许本计算机上的其他应用程序与 Zotero 通信**（Allow other applications on this computer to communicate with Zotero）。
-- **用户授权**：首次允许编辑时，Zotero 会弹出授权对话框。选择一次**总是允许**（Always Allow）。ZotLit 仅为当前设备上的当前仓库保存此授权，因此在每台电脑上的每个仓库只需授权一次。
+- **用户授权**：首次允许编辑时，Zotero 会弹出授权对话框。选择一次**总是允许**（Always Allow），然后在 Obsidian 中选择 <UiLabel name={m.modal_zotero_editing_confirm_action()} />。ZotLit 仅为当前设备上的当前仓库保存此授权，因此在每台电脑上的每个仓库只需授权一次。
 
 该连接不使用协议链接或 ZotLit 服务器。具体步骤请参阅[在 Obsidian 中编辑 PDF 标注](/docs/how-to/edit-pdf-annotations)。
 

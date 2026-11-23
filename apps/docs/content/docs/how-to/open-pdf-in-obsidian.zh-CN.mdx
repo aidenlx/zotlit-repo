@@ -75,7 +75,7 @@ ZotLit 写入笔记的每条标注都带有一个指向 Zotero 的持久链接�
 
 ## 在 Zotero 中记录阅读时间 [#recently-read]
 
-如果你已通过 <UiLabel name={m.capability_enable_editing()} /> 并选择 **Always Allow** 授予了写入授权，在 Obsidian 中阅读“我的文库”中的 PDF 将同步更新其在 Zotero 中的上次阅读时间。该文献随后会出现在 Zotero 的“最近阅读”列表中，阅读时间也会通过 Zotero 进行同步。
+如果你已通过 <UiLabel name={m.capability_enable_editing()} /> 、选择 **Always Allow** 并在 Obsidian 中选择 <UiLabel name={m.modal_zotero_editing_confirm_action()} /> 授予了写入授权，在 Obsidian 中阅读“我的文库”中的 PDF 将同步更新其在 Zotero 中的上次阅读时间。该文献随后会出现在 Zotero 的“最近阅读”列表中，阅读时间也会通过 Zotero 进行同步。
 
 阅读时，ZotLit 不会主动索取写入授权。在没有授权、Zotero 已关闭或更新失败的情况下，阅读记录仍会计入当前设备，且不会弹出提示。在 Obsidian 中阅读群组文库的 PDF 也仅在当前设备上生效。
 
