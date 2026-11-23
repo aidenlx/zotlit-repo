@@ -254,6 +254,9 @@ catalogs:
     jsonc-parser:
       specifier: ^3.3.1
       version: 3.3.1
+    liquidjs:
+      specifier: ^10.27.2
+      version: 10.29.0
     monkey-around:
       specifier: 3.0.0
       version: 3.0.0
@@ -572,6 +575,9 @@ importers:
       happy-dom:
         specifier: 'catalog:'
         version: 20.9.0
+      liquidjs:
+        specifier: 'catalog:'
+        version: 10.29.0
       oxlint:
         specifier: 'catalog:'
         version: 1.93.0(oxlint-tsgolint@7.0.2006)
@@ -3019,7 +3025,7 @@ importers:
         specifier: ^4.8.4
         version: 4.8.4
       liquidjs:
-        specifier: ^10.27.2
+        specifier: 'catalog:'
         version: 10.29.0
       valibot:
         specifier: 'catalog:'

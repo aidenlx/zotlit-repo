@@ -1,4 +1,6 @@
 import { regex } from "arkregex";
+import { Tokenizer, TypeGuards } from "liquidjs";
+import type { Token } from "liquidjs";
 
 import type {
   ContractExample,
@@ -262,8 +264,74 @@ function retarget(
   if (sample === "zt") return examples;
   return examples.map((example) => ({
     ...example,
-    code: example.code.replaceAll(`zt.${name}`, `${sample}.${name}`),
+    code: retargetLiquidExample(example.code, name, sample),
   }));
+}
+
+function retargetLiquidExample(code: string, member: string, sample: string) {
+  const edits: Token[] = [];
+
+  function collectAccesses(token: Token | undefined) {
+    if (TypeGuards.isPropertyAccessToken(token)) {
+      const [root, field] = token.props;
+      if (
+        token.variable === undefined &&
+        TypeGuards.isWordToken(root) &&
+        root.getText() === "zt" &&
+        TypeGuards.isWordToken(field) &&
+        field.getText() === member
+      ) {
+        edits.push(root);
+      }
+      collectAccesses(token.variable);
+      token.props.forEach(collectAccesses);
+    } else if (TypeGuards.isFilteredValueToken(token)) {
+      token.initial.postfix.forEach(collectAccesses);
+      for (const filter of token.filters) {
+        for (const arg of filter.args) {
+          collectAccesses(Array.isArray(arg) ? arg[1] : arg);
+        }
+      }
+    } else if (TypeGuards.isRangeToken(token)) {
+      collectAccesses(token.lhs);
+      collectAccesses(token.rhs);
+    }
+  }
+
+  for (const token of new Tokenizer(code).readTopLevelTokens()) {
+    if (TypeGuards.isTagToken(token)) {
+      const tags =
+        token.name === "liquid"
+          ? token.tokenizer.readLiquidTagTokens()
+          : [token];
+      for (const { tokenizer } of tags) {
+        while (!tokenizer.end()) {
+          if (tokenizer.readOperator()) continue;
+          const value = tokenizer.readValue();
+          if (value) {
+            tokenizer.skipBlank();
+            if (tokenizer.peek() !== ":") collectAccesses(value);
+          } else {
+            tokenizer.advance();
+          }
+        }
+      }
+    } else if (TypeGuards.isOutputToken(token)) {
+      const output = new Tokenizer(
+        code,
+        undefined,
+        undefined,
+        token.contentRange,
+      );
+      collectAccesses(output.readFilteredValue());
+    }
+  }
+
+  let retargeted = code;
+  for (const { begin, end } of edits.toSorted((a, b) => b.begin - a.begin)) {
+    retargeted = retargeted.slice(0, begin) + sample + retargeted.slice(end);
+  }
+  return retargeted;
 }
 
 function findHelper(type: ContractType): ContractHelper | undefined {
