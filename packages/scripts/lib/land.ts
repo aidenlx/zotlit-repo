@@ -42,11 +42,19 @@ export const LAND_GATES = {
   release: ["pnpm", "verify", "--release"],
 } as const satisfies Record<string, readonly [string, ...string[]]>;
 
+export const LAND_INSTALL = [
+  "pnpm",
+  "install",
+  "--frozen-lockfile",
+  "--prefer-offline",
+] as const satisfies readonly [string, ...string[]];
+
 export type LandStep =
   | "preflight"
   | "queue"
   | "fetch"
   | "rebase"
+  | "install"
   | "gate"
   | "record"
   | "ci"
@@ -120,6 +128,7 @@ export interface LandGitHub {
 export interface LandOptions {
   cwd: string;
   gate?: readonly [string, ...string[]];
+  install?: readonly [string, ...string[]];
   github?: LandGitHub;
   remote?: string;
   queueDir?: string;
@@ -343,7 +352,24 @@ export async function land(options: LandOptions): Promise<LandResult> {
     for (;;) {
       attempts += 1;
       await step("fetch", () => fetchTarget(sh, remote, to));
-      await step("rebase", () => rebaseOnto(sh, `${remote}/${to}`, pre.head));
+      const reinstall = await step("rebase", async () => {
+        const before = await sh.git("rebase", "rev-parse", "HEAD");
+        await rebaseOnto(sh, `${remote}/${to}`, pre.head);
+        return changesInstallInputs(sh, before);
+      });
+      const install = options.install ?? LAND_INSTALL;
+      if (reinstall) {
+        await step("install", async () => {
+          const [command, ...args] = install;
+          const result = await sh.run(command, args);
+          if (result.code !== 0) {
+            throw new LandFailure(
+              "install",
+              `${install.join(" ")} exited ${result.code}. The branch is rebased onto ${remote}/${to}, whose dependency files differ from the ones installed here. Run ${install.join(" ")}, fix what it names, and land again.`,
+            );
+          }
+        });
+      }
       const gate = options.gate;
       if (gate) {
         await step("gate", async () => {
@@ -765,6 +791,23 @@ async function rebaseOnto(
       `The branch has no commits that ${base} lacks; there is nothing to land.`,
     );
   }
+}
+
+const INSTALL_INPUTS = new Set(["pnpm-lock.yaml", "pnpm-workspace.yaml"]);
+
+async function changesInstallInputs(
+  sh: Shell,
+  before: string,
+): Promise<boolean> {
+  const changed = await sh.git("rebase", "diff", "--name-only", before, "HEAD");
+  return changed
+    .split("\n")
+    .some(
+      (path) =>
+        INSTALL_INPUTS.has(path) ||
+        path === "package.json" ||
+        path.endsWith("/package.json"),
+    );
 }
 
 async function push(sh: Shell, remote: string, to: string): Promise<boolean> {

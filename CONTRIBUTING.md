@@ -66,7 +66,8 @@ merged. See
 
 A change reaches `main` through `pnpm land`, run from the task worktree on its
 branch with a clean tree. Lands on one machine run one at a time, in a queue:
-each fetches `origin/main`, rebases the branch onto it, runs
+each fetches `origin/main`, rebases the branch onto it, installs the
+dependencies when the rebase changed a lockfile or manifest, runs
 `pnpm verify --local` on the rebased tree, pushes the branch and opens or
 updates its record pull request from the record file, waits for the CI check
 of the PR (`pnpm verify --pr`), and pushes the tree to `main` as a

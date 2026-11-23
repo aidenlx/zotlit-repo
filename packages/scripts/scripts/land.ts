@@ -23,6 +23,7 @@ import {
   LAND_CI_CHECK,
   LAND_CI_WAIT_MS,
   LAND_GATES,
+  LAND_INSTALL,
   LAND_RECORD_PATH,
   LAND_RECORD_SECTIONS,
   LAND_WAIT_MS,
@@ -34,14 +35,14 @@ import { landAdmission, landStateDir, landWaitLog } from "#land-queue";
 const EXIT_USAGE = 2;
 const GATE_TAIL = 40;
 
-const epilogue = `A land holds the Land Turn while it fetches, rebases, runs the gate, and pushes, so one land at a time reaches ${SOURCE_BRANCH} on this machine, in the order the lands started. --no-verify skips the gate; the CI check of the record PR still runs.
+const epilogue = `A land holds the Land Turn while it fetches, rebases, installs, runs the gate, and pushes, so one land at a time reaches ${SOURCE_BRANCH} on this machine, in the order the lands started. --no-verify skips the gate; the CI check of the record PR still runs.
 
 From a task branch with a clean tree, a record file, and a gh login that GitHub accepts (checked before the turn):
-  fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_GATES.change.join(" ")}, push the branch to origin and open its record PR (or update the open one), wait for the "${LAND_CI_CHECK}" check of the PR head (pnpm verify --pr, ${RECORD_PR_WORKFLOW}), push HEAD to ${SOURCE_BRANCH} as a fast-forward. The wait prints the state of the check at each read and ends after ${formatDuration(LAND_CI_WAIT_MS)}; a check that does not pass fails the land with the link to the job, and ${SOURCE_BRANCH} stays as it was. A land again on the same head reads the same result, unless the job ran again from its link. When ${SOURCE_BRANCH} moved during the gate or the CI wait, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves; when GitHub shows the PR as merged, the task branch is deleted on origin.
+  fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_INSTALL.join(" ")} when the rebase changed pnpm-lock.yaml, pnpm-workspace.yaml, or a package.json, run ${LAND_GATES.change.join(" ")}, push the branch to origin and open its record PR (or update the open one), wait for the "${LAND_CI_CHECK}" check of the PR head (pnpm verify --pr, ${RECORD_PR_WORKFLOW}), push HEAD to ${SOURCE_BRANCH} as a fast-forward. The wait prints the state of the check at each read and ends after ${formatDuration(LAND_CI_WAIT_MS)}; a check that does not pass fails the land with the link to the job, and ${SOURCE_BRANCH} stays as it was. A land again on the same head reads the same result, unless the job ran again from its link. When ${SOURCE_BRANCH} moved during the gate or the CI wait, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves; when GitHub shows the PR as merged, the task branch is deleted on origin.
 
 Record file: ${LAND_RECORD_PATH} in the worktree. Its first line is "# <title>", the title of the PR; the rest is the PR body, with the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}.
 
-On a failure, land exits non-zero, names the failed step, and prints the path of the full log. The worktree stays on its branch with a clean tree: after a rebase conflict the branch is as it was; after a failed gate it is rebased onto the fetched ${SOURCE_BRANCH}, the tree to fix.
+On a failure, land exits non-zero, names the failed step, and prints the path of the full log. The worktree stays on its branch with a clean tree: after a rebase conflict the branch is as it was; after a failed install or gate it is rebased onto the fetched ${SOURCE_BRANCH}, the tree to fix.
 
 Exit codes:
   0    landed
@@ -79,7 +80,7 @@ async function landCommand(wait: string | undefined, verify: boolean) {
     ...(waitMs === undefined ? {} : { waitMs }),
   });
   if (!result.ok) {
-    if (result.step === "gate") {
+    if (result.step === "install" || result.step === "gate") {
       const tail = readFileSync(result.logPath, "utf8")
         .trimEnd()
         .split("\n")

@@ -205,6 +205,82 @@ describe("land", () => {
   );
 
   it(
+    "installs the dependencies before the gate when the rebase brings a new lockfile",
+    async () => {
+      const cwd = await taskClone("a");
+      await moveMain("pnpm-lock.yaml", "lockfileVersion: '9.0'\n");
+      const installed = join(repos.root, "installed");
+
+      const result = await land({
+        ...quiet,
+        cwd,
+        install: ["touch", installed],
+        gate: ["test", "-e", installed],
+      });
+
+      expect(result).toMatchObject({ ok: true, attempts: 1 });
+      if (!result.ok) return;
+      expect(await readFile(result.logPath, "utf8")).toMatch(
+        /▸ rebase[\s\S]*▸ install[\s\S]*▸ gate/,
+      );
+    },
+    SLOW,
+  );
+
+  it(
+    "runs no install when the rebase leaves the dependency files as they were",
+    async () => {
+      const cwd = await taskClone("a");
+      await moveMain("upstream.txt", "upstream\n");
+      const installed = join(repos.root, "installed");
+
+      const result = await land({
+        ...quiet,
+        cwd,
+        install: ["touch", installed],
+        gate: ["true"],
+      });
+
+      expect(result).toMatchObject({ ok: true, attempts: 1 });
+      if (!result.ok) return;
+      expect(existsSync(installed)).toBe(false);
+      expect(await readFile(result.logPath, "utf8")).not.toContain("▸ install");
+    },
+    SLOW,
+  );
+
+  it(
+    "on a failed install, stops before the gate and leaves the branch rebased",
+    async () => {
+      const cwd = await taskClone("a");
+      const upstream = await moveMain("package.json", "{}\n");
+      const gated = join(repos.root, "gated");
+
+      const result = await land({
+        ...quiet,
+        cwd,
+        install: ["sh", "-c", "echo the install says no; exit 1"],
+        gate: ["touch", gated],
+      });
+
+      expect(result).toMatchObject({ ok: false, step: "install", exitCode: 1 });
+      if (result.ok) return;
+      expect(await readFile(result.logPath, "utf8")).toContain(
+        "the install says no",
+      );
+      expect(existsSync(gated)).toBe(false);
+      expect(await git(repos.remote, "rev-parse", "main")).toBe(upstream);
+      expect(await git(cwd, "symbolic-ref", "--short", "HEAD")).toBe("feat/a");
+      expect(await git(cwd, "status", "--porcelain")).toBe("");
+      expect(await git(cwd, "rev-parse", "HEAD~1")).toBe(upstream);
+      expect(await waits()).toMatchObject([
+        { outcome: "failed", step: "install" },
+      ]);
+    },
+    SLOW,
+  );
+
+  it(
     "keeps the Land Turn of a gate that runs longer than its silence limit while it prints",
     async () => {
       const cwd = await taskClone("a");

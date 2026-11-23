@@ -8,11 +8,13 @@ description: "Use when a change is done and should reach main, when a land fails
 A change reaches `main`, the one long-lived branch, only through `pnpm land`. One land at a time per machine holds the Land Turn, in the order the lands started, and in that turn it:
 
 ```text
-fetch origin/main ─▶ rebase the branch onto it ─▶ pnpm verify --local
+fetch origin/main ─▶ rebase the branch onto it ─▶ install ─▶ pnpm verify --local
    ▲   ─▶ record: push the branch, open or update its record PR
    │   ─▶ ci: wait for the CI check of the PR head ─▶ push HEAD to main
    │                                                      │ main moved
    └──────────────────────────────────────────────────────┘
+install: pnpm install --frozen-lockfile --prefer-offline, only when the rebase
+         changed pnpm-lock.yaml, pnpm-workspace.yaml, or a package.json
 then: move the local main, read the PR state; when GitHub shows it as merged,
       delete the task branch on origin
 ```
@@ -59,6 +61,7 @@ The worktree stays on its branch with a clean tree.
 | ----------- | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `preflight` | as it was                                   | Commit the changes, switch to the task branch, rename an agent branch (`claude/*`, `codex/*`, `cursor/*`), complete the record file, or fix the `gh` login. |
 | `rebase`    | as it was                                   | `git rebase origin/main`, resolve the conflicts, run the affected tests, commit, land again. |
+| `install`   | rebased onto the fetched `origin/main`      | Run `pnpm install --frozen-lockfile --prefer-offline`, fix what it names on this branch, commit, land again. The tail of the install output is printed. |
 | `gate`      | rebased onto the fetched `origin/main`      | Fix the failure on this branch, commit, land again. The tail of the gate output is printed.  |
 | `record`    | rebased; pushed to origin; `main` unchanged | Read the `gh` error in the message. Fix its cause, then land again.                          |
 | `ci`        | rebased; pushed to origin; `main` unchanged | Open the job link in the message and read its log. When the failure is in the change, fix it on this branch, run the failed tests locally, commit, and land again. When it is not (a flaky test or a runner fault), run the job again from that link, then land again: the land waits for the new run. When no check showed, check that the workflow ran on the PR. |
