@@ -2679,6 +2679,8 @@
   "annot_view_write_reason_conflict": "This annotation changed in Zotero since ZotLit read it. Refresh data and try again.",
   "annot_view_write_reason_unknown_outcome": "ZotLit did not learn whether Zotero saved the edit. Refresh data to see what Zotero holds.",
   "annot_history_changed_in_zotero": "This annotation changed in Zotero, so ZotLit left it as it is.",
+  "annot_history_partial_undo": "Undid {done} of {total} annotations. {failure}",
+  "annot_history_partial_redo": "Redid {done} of {total} annotations. {failure}",
   "annot_history_restored_new_creator": [
     {
       "declarations": ["input count", "local countPlural = count: plural"],

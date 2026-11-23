@@ -30,8 +30,19 @@ export function historyOutcomeNotice(
   switch (outcome.kind) {
     case "changed":
       return m.annot_history_changed_in_zotero();
-    case "failed":
-      return writeFailureMessage(outcome.failure, now);
+    case "failed": {
+      const failure = writeFailureMessage(outcome.failure, now);
+      const { partial } = outcome;
+      if (!partial) return failure;
+      const counts = {
+        done: partial.annotationKeys.length,
+        total: partial.total,
+        failure,
+      };
+      return partial.direction === "undo"
+        ? m.annot_history_partial_undo(counts)
+        : m.annot_history_partial_redo(counts);
+    }
     case "locked":
       return lockReasonText(outcome.reason);
     case "stepped":

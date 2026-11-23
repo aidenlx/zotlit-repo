@@ -2390,6 +2390,8 @@
   "annot_view_write_reason_conflict": "自 ZotLit 读取后，此标注已在 Zotero 中发生变化。请刷新数据后重试。",
   "annot_view_write_reason_unknown_outcome": "ZotLit 未能确认 Zotero 是否保存了此次编辑。请刷新数据以查看 Zotero 中的内容。",
   "annot_history_changed_in_zotero": "此标注已在 Zotero 中更改，因此 ZotLit 未对其作任何改动。",
+  "annot_history_partial_undo": "已撤销 {total} 条标注中的 {done} 条。{failure}",
+  "annot_history_partial_redo": "已重做 {total} 条标注中的 {done} 条。{failure}",
   "annot_view_conflict_title": "已在 Zotero 中更改",
   "annot_view_conflict_fresh": "Zotero 中的值",
   "annot_view_conflict_attempted": "您的编辑",

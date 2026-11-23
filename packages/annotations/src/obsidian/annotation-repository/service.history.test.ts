@@ -695,7 +695,11 @@ it.effect.each([
     outcome: {
       kind: "failed",
       failure: { kind: "invalid-response", issue: "400 Bad request" },
-      partial: { annotationKeys: ["MADE2345"] },
+      partial: {
+        direction: "undo",
+        annotationKeys: ["MADE2345"],
+        total: 2,
+      },
     },
   },
   {
@@ -856,7 +860,11 @@ it.effect("redoes only the restore that landed before a write failure", () =>
     expect(undone).toEqual({
       kind: "failed",
       failure: { kind: "invalid-response", issue: "400 Bad request" },
-      partial: { annotationKeys: ["MADE2345"] },
+      partial: {
+        direction: "undo",
+        annotationKeys: ["MADE2345"],
+        total: 2,
+      },
     });
     expect(yield* service.canUndo("RGRPDF24")).toBe(false);
     expect(yield* service.canRedo("RGRPDF24")).toBe(true);
@@ -1064,7 +1072,11 @@ it.effect(
       expect(undone).toEqual({
         kind: "failed",
         failure: { kind: "invalid-response", issue: "400 Bad request" },
-        partial: { annotationKeys: ["PUPR5FG5"] },
+        partial: {
+          direction: "undo",
+          annotationKeys: ["PUPR5FG5"],
+          total: 2,
+        },
       });
       expect(yield* service.canUndo("RGRPDF24")).toBe(false);
       expect(yield* service.canRedo("RGRPDF24")).toBe(true);

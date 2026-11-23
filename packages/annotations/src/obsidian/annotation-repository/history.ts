@@ -233,7 +233,11 @@ export type HistoryOutcome =
   | {
       kind: "failed";
       failure: WriteFailure;
-      partial?: { annotationKeys: readonly string[] };
+      partial?: {
+        direction: HistoryDirection;
+        annotationKeys: readonly string[];
+        total: number;
+      };
     }
   | { kind: "blocked" }
   | { kind: "locked"; reason: LockReason };

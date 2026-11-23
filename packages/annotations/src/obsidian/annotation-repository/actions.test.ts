@@ -9,10 +9,12 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import {
   addAnnotationHistoryActions,
+  HISTORY_DIRECTIONS,
   historyOutcomeNotice,
 } from "./actions.ts";
 import type { HistorySurface } from "./actions.ts";
 import type { HistoryDirection } from "./history.ts";
+import { writeFailureMessage } from "./write.ts";
 
 const bridge = openTestBridge();
 afterAll(() => bridge[Symbol.asyncDispose]());
@@ -146,6 +148,44 @@ describe("the notice of one undo or redo press", () => {
         toInstant(NOW),
       ),
     ).toBe(m.annot_history_restored_new_creator({ count: 2 }));
+  });
+
+  it("counts the Annotations Zotero changed before a grouped step failed", () => {
+    const failure = { kind: "not-found" } as const;
+    const reason = writeFailureMessage(failure, toInstant(NOW));
+    for (const direction of HISTORY_DIRECTIONS) {
+      const notice = historyOutcomeNotice(
+        {
+          kind: "failed",
+          failure,
+          partial: { direction, annotationKeys: ["PUPR5FG5"], total: 3 },
+        },
+        toInstant(NOW),
+      );
+      const counts = { done: 1, total: 3, failure: reason };
+      expect(notice).toBe(
+        direction === "undo"
+          ? m.annot_history_partial_undo(counts)
+          : m.annot_history_partial_redo(counts),
+      );
+    }
+    expect(
+      historyOutcomeNotice(
+        {
+          kind: "failed",
+          failure,
+          partial: {
+            direction: "redo",
+            annotationKeys: ["PUPR5FG5"],
+            total: 3,
+          },
+        },
+        toInstant(NOW),
+      ),
+    ).toBe(`Redid 1 of 3 annotations. ${reason}`);
+    expect(
+      historyOutcomeNotice({ kind: "failed", failure }, toInstant(NOW)),
+    ).toBe(reason);
   });
 
   it("gives no notice for a step it took", () => {

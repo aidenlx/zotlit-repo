@@ -224,7 +224,10 @@ const takeStep = Effect.fnUntraced(function* (
       outcome = yield* stepWrite(core, annotationKey, change.before);
     }
     if (outcome.kind === "failed") {
-      stopped = failedStep(outcome.failure, left);
+      stopped = failedStep(outcome.failure, left, {
+        direction,
+        total: step.changes.length,
+      });
       break;
     }
     if (outcome.kind !== "idle") {
@@ -252,13 +255,16 @@ const takeStep = Effect.fnUntraced(function* (
 function failedStep(
   failure: WriteFailure,
   confirmed: readonly HistoryChange[],
+  { direction, total }: { direction: HistoryDirection; total: number },
 ): HistoryOutcome {
   return {
     kind: "failed",
     failure,
     ...(confirmed.length > 0 && {
       partial: {
+        direction,
         annotationKeys: confirmed.map(({ annotationKey }) => annotationKey),
+        total,
       },
     }),
   };
@@ -417,7 +423,10 @@ const takeExistenceStep = Effect.fnUntraced(function* (
       if (!standing) continue;
       const erased = yield* deleteAnnotation(core, change.annotationKey);
       if (erased.kind === "failed") {
-        stopped = failedStep(erased.failure, left);
+        stopped = failedStep(erased.failure, left, {
+          direction,
+          total: step.changes.length,
+        });
         break;
       }
       if (erased.kind !== "idle") {
@@ -440,7 +449,10 @@ const takeExistenceStep = Effect.fnUntraced(function* (
       draft: wanted,
     });
     if (made.kind === "failed") {
-      stopped = failedStep(made.failure, left);
+      stopped = failedStep(made.failure, left, {
+        direction,
+        total: step.changes.length,
+      });
       break;
     }
     history.rename(change.annotationKey, made.annotationKey);
