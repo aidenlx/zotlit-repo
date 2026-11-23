@@ -12,6 +12,7 @@ import type {
   SettingTabContext,
 } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 
+import { renderPandocIntegrationBackupNotice } from "./integration-backup-notice.ts";
 import {
   pandocIntegrationFiles,
   renderPandocGuide,
@@ -119,14 +120,7 @@ async function selectAndSave(ctx: SettingTabContext): Promise<void> {
           );
           if (result.backups.length > 0) {
             new BaseNotice(
-              BaseNotice.render((renderer) => {
-                renderer
-                  .setTitle(m.notice_pandoc_integration_restore_failed())
-                  .addList(
-                    m.notice_pandoc_integration_backups_kept(),
-                    result.backups,
-                  );
-              }),
+              renderPandocIntegrationBackupNotice(result.backups),
               0,
             );
           } else {
