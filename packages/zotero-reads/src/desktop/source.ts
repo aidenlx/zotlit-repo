@@ -414,6 +414,7 @@ export function layerSource(
                   state: "ready" as const,
                   lastError: null,
                   moved: false,
+                  missingDbSignalled: false,
                 }));
               }),
             ),

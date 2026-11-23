@@ -46,6 +46,7 @@ function fakeWorkers(
     readMode?: (n: number) => EffectiveReadMode;
     unanswered?: (n: number) => number;
     closeWait?: (n: number) => Duration.Input | undefined;
+    changes?: Stream.Stream<ChangeEvent>;
   } = {},
 ) {
   let spawned = 0;
@@ -105,7 +106,11 @@ function fakeWorkers(
         ...answering,
         Changes: ((...args: Parameters<typeof answering.Changes>) =>
           Stream.interruptWhen(
-            answering.Changes(...args) as Stream.Stream<ChangeEvent, unknown>,
+            options.changes ??
+              (answering.Changes(...args) as Stream.Stream<
+                ChangeEvent,
+                unknown
+              >),
             Deferred.await(cut),
           )) as typeof answering.Changes,
         Ping: (...args: Parameters<typeof answering.Ping>) =>
@@ -188,6 +193,60 @@ describe("ZoteroReads worker adapter", () => {
         });
         expect(result.read).toMatchObject({ _tag: "RpcClientError" });
         expect(result.ended).toBe(true);
+      }),
+  );
+
+  it.effect(
+    "seeds only the current worker crash after a missing database recovers",
+    () =>
+      Effect.gen(function* () {
+        const feed = yield* Queue.unbounded<ChangeEvent>();
+        const workers = fakeWorkers({ changes: Stream.fromQueue(feed) });
+        const reads = yield* makeWorkerReads(workers.connect);
+        const live = yield* Stream.toPull(reads.Changes());
+
+        yield* Queue.offer(feed, { _tag: "db-file-missing" });
+        yield* until(live, "db-file-missing");
+        yield* Queue.offer(feed, { _tag: "changed" });
+        yield* until(live, "changed");
+        yield* workers.kill(1);
+        yield* until(live, "degraded");
+
+        const late = yield* Stream.toPull(reads.Changes());
+        expect(yield* late).toEqual([
+          {
+            _tag: "state",
+            state: "degraded",
+            error: expect.objectContaining({ message: "worker #1 crashed" }),
+          },
+        ]);
+      }),
+  );
+
+  it.effect.each([
+    { _tag: "changed" },
+    { _tag: "state", state: "ready", error: null },
+  ] satisfies ChangeEvent[])(
+    "emits a new missing database event after a $_tag recovery",
+    (ready) =>
+      Effect.gen(function* () {
+        const feed = yield* Queue.unbounded<ChangeEvent>();
+        const workers = fakeWorkers({ changes: Stream.fromQueue(feed) });
+        const reads = yield* makeWorkerReads(workers.connect);
+        const live = yield* Stream.toPull(reads.Changes());
+
+        yield* Queue.offer(feed, { _tag: "db-file-missing" });
+        yield* until(live, "db-file-missing");
+        yield* Queue.offer(feed, ready);
+        yield* until(live, "changed");
+
+        yield* Queue.offer(feed, { _tag: "db-file-missing" });
+        yield* Queue.offer(feed, { _tag: "refreshing", active: false });
+        const events = yield* until(live, "refreshing");
+        expect(events.map((event) => event._tag)).toEqual([
+          "db-file-missing",
+          "refreshing",
+        ]);
       }),
   );
 

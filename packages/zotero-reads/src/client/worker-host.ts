@@ -290,6 +290,8 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
             lastError: event.error,
             readMode: event.readMode,
             moved: event.moved ?? false,
+            missingSignalled:
+              event.state === "ready" ? false : before.missingSignalled,
           }));
           if (event.state === "ready")
             return yield* publish({
@@ -306,6 +308,7 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
             state: "ready" as const,
             lastError: null,
             moved: false,
+            missingSignalled: false,
             readMode: event.readMode,
           }));
           break;

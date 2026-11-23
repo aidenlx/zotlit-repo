@@ -1515,6 +1515,46 @@ describe("ZoteroReads source", () => {
         }),
     );
 
+    it.effect("emits again when the database goes missing after recovery", () =>
+      Effect.gen(function* () {
+        const { ports } = testPorts();
+        const source = yield* startSource(
+          config({ databasePath: missing() }),
+          ports,
+        );
+        yield* source.sawTags([
+          "refreshing",
+          "refresh-failed",
+          "db-file-missing",
+          "degraded",
+          "refreshing",
+        ]);
+
+        const beforeRecovery = source.events.length;
+        yield* source.reads.Configure(config());
+        yield* source.sawTags(
+          ["refreshing", "changed", "refreshing"],
+          beforeRecovery,
+        );
+        expect(yield* source.version()).toBe(1);
+
+        const before = source.events.length;
+        yield* source.reads.Configure(config({ databasePath: missing() }));
+        yield* waitFor(() =>
+          expect(source.events.slice(before).at(-1)).toEqual({
+            _tag: "refreshing",
+            active: false,
+          }),
+        );
+        expect(tagsSince(source.events, before)).toEqual([
+          "refreshing",
+          "refresh-failed",
+          "db-file-missing",
+          "refreshing",
+        ]);
+      }),
+    );
+
     it.effect("does not emit when the file exists but cannot be read", () =>
       Effect.gen(function* () {
         yield* Effect.promise(() => writeFile(dbPath, "not a database"));
