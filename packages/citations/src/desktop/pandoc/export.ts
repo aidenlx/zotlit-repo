@@ -264,9 +264,25 @@ const readCitations = Effect.fn("readCitations")(function* (
         : `@${citekey}`;
     },
     canonicalIds: (items) => {
-      const byIndexedKey = new Map<string, string>();
-      for (const [indexedKey, item] of items) {
-        byIndexedKey.set(indexedKey, citekeyOf.get(indexedKey) ?? item.id);
+      const byIndexedKey = new Map(citekeyOf);
+      const usedIds = new Set(byIndexedKey.values());
+      const collisions = new Map<string, string>();
+      for (const indexedKey of cited) {
+        const item = items.get(indexedKey);
+        if (item === undefined || byIndexedKey.has(indexedKey)) continue;
+        if (usedIds.has(item.id)) {
+          collisions.set(indexedKey, item.id);
+        } else {
+          byIndexedKey.set(indexedKey, item.id);
+          usedIds.add(item.id);
+        }
+      }
+      for (const [indexedKey, id] of collisions) {
+        let suffix = 2;
+        while (usedIds.has(`${id}-${suffix}`)) suffix++;
+        const renderId = `${id}-${suffix}`;
+        byIndexedKey.set(indexedKey, renderId);
+        usedIds.add(renderId);
       }
       const bySpelling = new Map<string, string>();
       for (const [spelling, indexedKey] of injected) {

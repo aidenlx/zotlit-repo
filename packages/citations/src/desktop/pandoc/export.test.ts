@@ -199,6 +199,11 @@ const CITED: Fixture = {
   items: { ZETA1234: ZETA, ADAM5678g5: ADAMS },
 };
 
+const COLLIDING_ITEMS = {
+  ZETA1234: { ...ZETA, id: "k" },
+  ADAM5678g5: { ...ADAMS, id: "k" },
+};
+
 describe("exportCitedDocument", () => {
   it.effect("interrupts a pending citation read before rendering", () =>
     Effect.gen(function* () {
@@ -256,6 +261,97 @@ describe("exportCitedDocument", () => {
         expect(request.document.citedIds).toEqual([ZETA.id, ADAMS.id]);
         expect(request.format).toBe("docx");
       }),
+  );
+
+  it.effect("gives wikilinked Items with the same CSL ID distinct IDs", () =>
+    Effect.gen(function* () {
+      const running = yield* run({ ...CITED, items: COLLIDING_ITEMS });
+      expect(running.result).toHaveProperty("output");
+
+      const [request] = running.ports.renderPrepared.mock.calls[0] as [
+        RenderRequest,
+      ];
+      expect(request.document.citedIds).toEqual(["k", "k-2"]);
+      expect(request.bibliography).toEqual([
+        COLLIDING_ITEMS.ZETA1234,
+        { ...COLLIDING_ITEMS.ADAM5678g5, id: "k-2" },
+      ]);
+    }),
+  );
+
+  it.effect(
+    "keeps a literal citekey when an earlier wikilink shares its ID",
+    () =>
+      Effect.gen(function* () {
+        const running = yield* run(
+          {
+            ...CITED,
+            items: {
+              ADAM5678g5: COLLIDING_ITEMS.ADAM5678g5,
+              ZETA1234: ZETA_URI,
+            },
+            citekeys: { k: "ZETA1234" },
+            citedIds: ["#ADAM5678g5", "k"],
+          },
+          { markdown: "[[Adams 2018]] and @k." },
+        );
+        expect(running.result).toHaveProperty("output");
+
+        const [request] = running.ports.renderPrepared.mock.calls[0] as [
+          RenderRequest,
+        ];
+        expect(request.document.citedIds).toEqual(["k-2", "k"]);
+        expect(request.bibliography).toEqual([
+          { ...ADAMS, id: "k-2" },
+          { ...ZETA_URI, id: "k" },
+        ]);
+      }),
+  );
+
+  it.effect(
+    "shares one render ID and entry for both spellings of one Item",
+    () =>
+      Effect.gen(function* () {
+        const running = yield* run(
+          {
+            ...CITED,
+            items: { ZETA1234: ZETA_URI },
+            citekeys: { k: "ZETA1234" },
+            citedIds: ["#ZETA1234", "k"],
+          },
+          { markdown: "[[Zeta 2020]] and @k." },
+        );
+        expect(running.result).toHaveProperty("output");
+
+        const [request] = running.ports.renderPrepared.mock.calls[0] as [
+          RenderRequest,
+        ];
+        expect(request.document.citedIds).toEqual(["k", "k"]);
+        expect(request.bibliography).toEqual([{ ...ZETA_URI, id: "k" }]);
+      }),
+  );
+
+  it.effect("skips a suffix reserved by a later Item's CSL ID", () =>
+    Effect.gen(function* () {
+      const third = { ...ZETA, id: "k-2", title: "A third work" };
+      const running = yield* run({
+        links: [...(CITED.links ?? []), link("Third 2021")],
+        notes: { ...CITED.notes, "Third 2021": "THIRD123" },
+        placed: { ...CITED.placed, THIRD123: ref("THIRD123") },
+        items: { ...COLLIDING_ITEMS, THIRD123: third },
+      });
+      expect(running.result).toHaveProperty("output");
+
+      const [request] = running.ports.renderPrepared.mock.calls[0] as [
+        RenderRequest,
+      ];
+      expect(request.document.citedIds).toEqual(["k", "k-3", "k-2"]);
+      expect(request.bibliography).toEqual([
+        COLLIDING_ITEMS.ZETA1234,
+        { ...COLLIDING_ITEMS.ADAM5678g5, id: "k-3" },
+        third,
+      ]);
+    }),
   );
 
   it.effect("cites an Item named only by a literal citation key", () =>
@@ -962,6 +1058,29 @@ describe(
         expect(html).toContain(`id="ref-${ZETA.id}"`);
         expect(html).toContain(`id="ref-${ADAMS.id}"`);
         expect(html).not.toContain(ZETA_URI.id);
+      }),
+    );
+
+    it.effect("renders both works when their CSL IDs collide", () =>
+      Effect.gen(function* () {
+        const engine = yield* realEngine;
+        const result = yield* exportParsed(
+          {
+            document: { sourcePath: SOURCE, links: CITED.links ?? [] },
+            markdown: "First [[Zeta 2020]]. Then [[Adams 2018]].",
+            format: "html",
+          },
+          { ...ports({ ...CITED, items: COLLIDING_ITEMS }), engine },
+        );
+
+        expect(result).toHaveProperty("output");
+        const html = new TextDecoder().decode(
+          (result as { output: Uint8Array }).output,
+        );
+        expect(html).toContain('data-cites="k">(Zeta 2020)');
+        expect(html).toContain('data-cites="k-2">(Adams 2018)');
+        expect(html).toContain('id="ref-k"');
+        expect(html).toContain('id="ref-k-2"');
       }),
     );
 
