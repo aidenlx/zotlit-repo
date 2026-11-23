@@ -12,6 +12,7 @@ import {
 import { describe, expect } from "vitest";
 
 import { openTestBridge } from "./__fixtures__/effect-bridge.ts";
+import { captureLogRecords } from "./__fixtures__/log-capture.ts";
 import { AbortError } from "./abort-error.ts";
 import { scopedBridge, valueOr } from "./effect-bridge.ts";
 
@@ -42,6 +43,47 @@ it.effect("runPromiseExit resolves with a failure Exit", () =>
     const exit = await bridge.runPromiseExit(Effect.fail(error));
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(Cause.squash(exit.cause)).toBe(error);
+  }),
+);
+
+it.effect("runAndForget logs a failed Effect once with its cause", () =>
+  Effect.promise(async () => {
+    using logs = captureLogRecords();
+    const bridge = openTestBridge();
+    const error = new BridgeError({ message: "callback failed" });
+
+    bridge.runAndForget(Effect.fail(error));
+    await bridge[Symbol.asyncDispose]();
+
+    expect(logs.records).toHaveLength(1);
+    const record = logs.records[0];
+    expect(record?.level).toBe("error");
+    expect(record?.properties["error"]).toBe(error);
+  }),
+);
+
+it.effect("runAndForget interrupts a pending Effect silently on unload", () =>
+  Effect.promise(async () => {
+    using logs = captureLogRecords();
+    const bridge = openTestBridge();
+    const started = Promise.withResolvers<void>();
+    let interrupted = false;
+    bridge.runAndForget(
+      Effect.sync(() => started.resolve()).pipe(
+        Effect.andThen(Effect.never),
+        Effect.onInterrupt(() =>
+          Effect.sync(() => {
+            interrupted = true;
+          }),
+        ),
+      ),
+    );
+
+    await started.promise;
+    await bridge[Symbol.asyncDispose]();
+
+    expect(interrupted).toBe(true);
+    expect(logs.records).toEqual([]);
   }),
 );
 

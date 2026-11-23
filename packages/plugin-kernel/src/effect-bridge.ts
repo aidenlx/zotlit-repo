@@ -2,6 +2,7 @@ import { Cause, Context, Effect, Exit, Fiber, Scope } from "effect";
 import type { ManagedRuntime, Stream } from "effect";
 
 import { AbortError } from "./abort-error.ts";
+import { logAndContinue } from "./effect-log.ts";
 import { isScopeClosed } from "./effect-scope.ts";
 import { subscribe } from "./effect-stream.ts";
 
@@ -62,8 +63,10 @@ function bridgeOver(
     },
     runPromiseExit,
     runAndForget: (effect) => {
-      void runPromiseExit(Effect.asVoid(effect)).then((exit) =>
-        valueOr(exit, undefined),
+      void runPromiseExit(
+        effect.pipe(
+          logAndContinue("A fire-and-forget Effect failed", "bridge"),
+        ),
       );
     },
     subscribe: (stream, callback) => subscribe(host, stream, callback),
