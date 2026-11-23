@@ -28,7 +28,7 @@ export interface ReferenceSource {
   groupID: number | null;
   citekey: string | null;
   linkpath: string | null;
-  attachments: readonly ZoteroOpenableAttachment[];
+  attachments: readonly ZoteroOpenableAttachment[] | "unreadable";
 }
 
 export function toZoteroOpenableAttachments(
@@ -133,14 +133,16 @@ export const readReferenceSources = Effect.fn("readReferenceSources")(
                   "Cannot read the attachments of the cited items",
                   cause,
                 ),
-              Effect.succeed([]),
+              Effect.succeed("unreadable" as const),
             ),
           );
-        for (const [itemID, group] of Map.groupBy(
-          rows,
-          (row) => row.parentItemID,
-        )) {
-          attachments.set(itemID, toZoteroOpenableAttachments(group));
+        if (rows !== "unreadable") {
+          for (const [itemID, group] of Map.groupBy(
+            rows,
+            (row) => row.parentItemID,
+          )) {
+            attachments.set(itemID, toZoteroOpenableAttachments(group));
+          }
         }
 
         for (const {
@@ -160,7 +162,10 @@ export const readReferenceSources = Effect.fn("readReferenceSources")(
             groupID: item.groupID,
             citekey,
             linkpath,
-            attachments: attachments.get(item.itemID) ?? [],
+            attachments:
+              rows === "unreadable"
+                ? rows
+                : (attachments.get(item.itemID) ?? []),
           });
         }
         return { sources, presentKeys, database: "ready" as const };

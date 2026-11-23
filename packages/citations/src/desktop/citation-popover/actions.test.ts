@@ -1,13 +1,17 @@
 // @vitest-environment happy-dom
 import type { CitationEntryBlock } from "#obsidian/citation-popover/blocks.ts";
+import { Effect } from "effect";
 import { Keymap, Menu } from "obsidian";
 import type { Workspace } from "obsidian";
 import type { MouseEvent } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { createCitationPopoverActions } from "./actions.ts";
+import type { CitationPopoverActionDeps } from "./actions.ts";
 
 const menuMock = Menu as typeof Menu & {
   instances: {
@@ -45,14 +49,16 @@ function click({
   } as unknown as MouseEvent;
 }
 
-function actions() {
+function actions(prepare?: CitationPopoverActionDeps["prepare"]) {
   const opened: [citekey: string, pane: unknown][] = [];
   const hide = vi.fn();
   const showInLibrary = vi.fn();
+  const notifier = testNotifier();
   return {
     opened,
     hide,
     showInLibrary,
+    notices: notifier.notices,
     ...createCitationPopoverActions({
       host: {
         workspace: stubService<Workspace>("Workspace", { trigger: vi.fn() }),
@@ -61,6 +67,10 @@ function actions() {
       hide,
       showInLibrary,
       switchProfile: vi.fn(),
+      prepare,
+      showNotice: (message: string) => {
+        Effect.runSync(notifier.service.show(message));
+      },
       log: vi.fn(),
     }),
   };
@@ -122,6 +132,56 @@ describe("createCitationPopoverActions", () => {
     );
     expect(menuMock.instances).toEqual([]);
   });
+
+  it("keeps the popover open when the last Attachment disappears before opening", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const { onOpenAttachment, onDone, hide } = actions(async (current) => ({
+      ...current,
+      attachments: [],
+    }));
+
+    onOpenAttachment(
+      block({
+        attachments: [{ key: "ATT1", groupID: null, label: "paper.pdf" }],
+      }),
+      click(),
+    );
+    onDone();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(menuMock.instances).toEqual([]);
+    expect(open).not.toHaveBeenCalled();
+    expect(hide).not.toHaveBeenCalled();
+  });
+
+  it.each(["fresh", "displayed"])(
+    "keeps the popover open and shows a notice when the %s Attachments are unreadable",
+    async (read) => {
+      const open = vi.spyOn(window, "open").mockReturnValue(null);
+      const fresh = read === "fresh";
+      const attachment = { key: "ATT1", groupID: null, label: "paper.pdf" };
+      const { onOpenAttachment, onDone, hide, notices } = actions(
+        fresh
+          ? async (current) => ({ ...current, attachments: "unreadable" })
+          : undefined,
+      );
+
+      onOpenAttachment(
+        block({ attachments: fresh ? [attachment] : "unreadable" }),
+        click(),
+      );
+      onDone();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(hide).not.toHaveBeenCalled();
+      expect(menuMock.instances).toEqual([]);
+      expect(open).not.toHaveBeenCalled();
+      expect(notices).toHaveLength(1);
+      expect(notices[0]?.messages).toEqual([m.notice_attachment_read_failed()]);
+    },
+  );
 
   it("offers a menu when the Item carries several Attachments", () => {
     const open = vi.spyOn(window, "open").mockReturnValue(null);

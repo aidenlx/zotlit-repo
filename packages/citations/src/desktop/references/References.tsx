@@ -253,15 +253,16 @@ function Reference({
                     label={m.library_view_show_in_library()}
                     onClick={() => actions.onShowInLibrary(source)}
                   />
-                  {source.attachments.length > 0 && (
-                    <EntryAction
-                      icon="paperclip"
-                      label={m.references_open_attachment()}
-                      onClick={(event) =>
-                        actions.onOpenAttachment(source, event)
-                      }
-                    />
-                  )}
+                  {source.attachments !== "unreadable" &&
+                    source.attachments.length > 0 && (
+                      <EntryAction
+                        icon="paperclip"
+                        label={m.references_open_attachment()}
+                        onClick={(event) =>
+                          actions.onOpenAttachment(source, event)
+                        }
+                      />
+                    )}
                 </>
               )}
             </div>

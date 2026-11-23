@@ -281,7 +281,7 @@ function EntryActions({
           actions.onDone();
         }}
       />
-      {block.attachments.length > 0 && (
+      {(block.attachments === "unreadable" || block.attachments.length > 0) && (
         <EntryAction
           icon="paperclip"
           label={m.references_open_attachment()}

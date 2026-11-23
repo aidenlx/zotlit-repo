@@ -3,10 +3,9 @@ import type {
   AmbiguousCandidate,
   AmbiguousCandidatesOf,
 } from "#obsidian/citation-index/ambiguity.ts";
+import type { ReferenceSource } from "#obsidian/citation-index/sources.ts";
 import type { HoveredWork } from "#obsidian/citekey-navigation/index.ts";
 import type { ReferenceEntry } from "#obsidian/references/entries.ts";
-
-import type { ZoteroOpenableAttachment } from "@zotlit/plugin-services/core/attachment-resolver/zotero-openable.ts";
 
 export interface CitationEntryBlock {
   kind: "entry";
@@ -17,7 +16,7 @@ export interface CitationEntryBlock {
   summary: string;
   itemKey: string;
   groupID: number | null;
-  attachments: readonly ZoteroOpenableAttachment[];
+  attachments: ReferenceSource["attachments"];
 }
 
 export interface UnresolvedCitationBlock {

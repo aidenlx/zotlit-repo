@@ -9,6 +9,7 @@ import type { RenderedReference } from "#obsidian/references/entries.ts";
 import { Cause, Effect, Exit, Fiber, FiberHandle, Layer, Scope } from "effect";
 import type { ReactNode } from "react";
 
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import {
@@ -77,6 +78,7 @@ interface PopoverEdges {
   host: WorkspaceEventHost;
   runAction<A, E>(effect: Effect.Effect<A, E>): Promise<A | null>;
   showInLibrary: (indexedKey: string) => void;
+  showNotice: (message: string) => void;
   log: (
     level: "debug" | "warn",
     message: string,
@@ -117,6 +119,7 @@ export const layerCitationPopover: Layer.Layer<
   | BibliographyRender
   | ProfileStyles
   | ShowInLibrary
+  | Notifier
 > = Layer.effect(
   CitationPopover,
   Effect.gen(function* () {
@@ -125,6 +128,7 @@ export const layerCitationPopover: Layer.Layer<
     const lookup = yield* CitationLookup;
     const render = yield* BibliographyRender;
     const showInLibrary = yield* ShowInLibrary;
+    const notifier = yield* Notifier;
     const bridge = yield* scopedBridge;
     const layerScope = yield* Effect.scope;
     const context = yield* Effect.context<PopoverServices>();
@@ -174,6 +178,7 @@ export const layerCitationPopover: Layer.Layer<
         log,
         showInLibrary: (indexedKey) =>
           bridge.runAndForget(showInLibrary.show(indexedKey)),
+        showNotice: (message) => bridge.runAndForget(notifier.show(message)),
         runAction: (effect) =>
           bridge.runPromise(
             Effect.forkIn(effect, scope).pipe(
@@ -332,22 +337,31 @@ const fill = Effect.fn("CitationPopover.fill")(function* (
             };
           }
         : undefined,
+    onAttachmentsEmpty: (displayed, current) => {
+      paintContent(
+        blocks.map((block) => (block === displayed ? current : block)),
+      );
+    },
     hide: () => popover.hide(),
     showInLibrary: edges.showInLibrary,
+    showNotice: edges.showNotice,
     switchProfile: (path) => requestProfileSwitch(edges.host, path),
     log: edges.log,
   });
-  visit.state.content = (
-    <CitationPopoverContent
-      blocks={blocks}
-      note={note}
-      profileFailure={profileFailure}
-      actions={actions}
-      pending={pending}
-      unavailable={unavailable}
-    />
-  );
-  const shown = paint(visit, visit.state.content);
+  const paintContent = (currentBlocks: readonly CitationPopoverBlock[]) => {
+    visit.state.content = (
+      <CitationPopoverContent
+        blocks={currentBlocks}
+        note={note}
+        profileFailure={profileFailure}
+        actions={actions}
+        pending={pending}
+        unavailable={unavailable}
+      />
+    );
+    return paint(visit, visit.state.content);
+  };
+  const shown = paintContent(blocks);
   yield* Effect.logDebug("Citation popover entries read").pipe(
     Effect.annotateLogs({
       path: "sourcePath" in request ? request.sourcePath : undefined,

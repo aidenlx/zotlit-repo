@@ -6,19 +6,30 @@ import type {
   CitationPopoverBlock,
 } from "#obsidian/citation-popover/blocks.ts";
 import type { ProfilePresentationFailure } from "#obsidian/pandoc/document-presentation.ts";
+import type { HoverParent } from "obsidian";
 import { act } from "preact/test-utils";
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { createFixtureSchema } from "@zotlit/db-testing";
+import { createClient } from "@zotlit/db/client/node";
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import {
+  inProcessReadsService,
+  seedWorksSql,
+  sharedClientOpener,
+} from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 
 import type { CitationPopoverActions } from "./actions.ts";
 import { CitationPopoverContent } from "./content.tsx";
 
 import { ambiguousCandidates } from "#__fixtures__/citation-index/ambiguous-candidates.ts";
+import { citationPopoverFixture } from "#__fixtures__/citation-popover.ts";
+import { profileReader } from "#__fixtures__/profiles.ts";
 
 vi.mock(
   "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx",
@@ -180,7 +191,7 @@ describe("CitationPopoverContent", () => {
     ]);
   });
 
-  it("offers the attachment action only where the Item has one to open", async () => {
+  it("offers the Attachment control for an Item with an Attachment", async () => {
     const container = await render([
       entry("doe2024", {
         attachments: [{ key: "ATT1", groupID: null, label: "paper.pdf" }],
@@ -189,6 +200,97 @@ describe("CitationPopoverContent", () => {
 
     expect(iconsOf(blocksOf(container)[0]!)).toContain("paperclip");
   });
+
+  it("offers the Attachment control when an Item's Attachments are unreadable", async () => {
+    const container = await render([
+      entry("doe2024", { attachments: "unreadable" }),
+    ]);
+
+    expect(
+      container.querySelector(
+        `button[aria-label="${m.references_open_attachment()}"]`,
+      ),
+    ).not.toBeNull();
+  });
+
+  it.each([
+    {
+      name: "removes the Attachment control when the fresh read finds none",
+      mutation:
+        "delete from itemAttachments where itemID = 2; delete from items where itemID = 2;",
+      unreadable: false,
+    },
+    {
+      name: "keeps the Attachment control and shows a notice when the fresh read fails",
+      mutation: "drop table itemAttachments;",
+      unreadable: true,
+    },
+  ])(
+    "$name while keeping the popover open",
+    async ({ mutation, unreadable }) => {
+      using cleanup = new DisposableStack();
+      const client = createClient(":memory:");
+      cleanup.defer(() => client.$client.close());
+      createFixtureSchema(client.$client);
+      client.$client.exec(
+        seedWorksSql(
+          [{ itemID: 1, key: "ABCD2345", title: "Alpha kernels" }],
+          [
+            {
+              itemID: 2,
+              key: "ATTACH23",
+              parentItemID: 1,
+              linkMode: 0,
+              path: "storage:paper.pdf",
+            },
+          ],
+        ),
+      );
+      await using reads = inProcessReadsService(sharedClientOpener(client));
+      const notifier = testNotifier();
+      await using popover = citationPopoverFixture(
+        {
+          host: {},
+          db: reads,
+          libraryScope: { current: [] },
+          profile: profileReader(),
+        },
+        {
+          notifier: notifier.layer,
+        },
+      );
+      const hoverParent: HoverParent = { hoverPopover: null };
+      const targetEl = document.body.createSpan();
+      await popover.runtime.runPromise(
+        popover.service.showWork({
+          event: new MouseEvent("mouseover"),
+          hoverParent,
+          targetEl,
+          work: { kind: "item", indexedKey: "ABCD2345" },
+          open: vi.fn(),
+        }),
+      );
+      const attachment = () =>
+        document.querySelector<HTMLButtonElement>(
+          `button[aria-label="${m.references_open_attachment()}"]`,
+        );
+      await vi.waitFor(() => expect(attachment()).not.toBeNull());
+      const shown = hoverParent.hoverPopover;
+      client.$client.exec(mutation);
+
+      await act(() => attachment()!.click());
+
+      const messages = unreadable ? [[m.notice_attachment_read_failed()]] : [];
+      await vi.waitFor(() => {
+        expect(notifier.notices.map((notice) => notice.messages)).toEqual(
+          messages,
+        );
+        expect(attachment() !== null).toBe(unreadable);
+        expect(hoverParent.hoverPopover).toBe(shown);
+        expect(document.body.textContent).toContain("Alpha kernels");
+      });
+    },
+  );
 
   it("names its actions with the labels the References Sidebar uses", async () => {
     const container = await render([

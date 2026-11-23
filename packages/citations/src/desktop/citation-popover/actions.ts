@@ -9,6 +9,7 @@ import {
 } from "@zotlit/annotations/desktop/attachment-open/open-attachments.ts";
 import type { MenuAnchor } from "@zotlit/obsidian-kit/menu.ts";
 import type { WorkspaceEventHost } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import { itemSelectUri } from "@zotlit/zotero-types/uri";
 
@@ -26,8 +27,13 @@ export interface CitationPopoverActionDeps {
   open: (block: CitationEntryBlock, pane: NavigationPane) => void;
   hide: () => void;
   showInLibrary: (indexedKey: string) => void;
+  showNotice: (message: string) => void;
   switchProfile: (path: string) => void;
   prepare?: (block: CitationEntryBlock) => Promise<CitationEntryBlock | null>;
+  onAttachmentsEmpty?: (
+    displayed: CitationEntryBlock,
+    current: CitationEntryBlock,
+  ) => void;
   log: (
     level: "debug",
     message: string,
@@ -40,24 +46,24 @@ export function createCitationPopoverActions({
   open,
   hide,
   showInLibrary,
+  showNotice,
   switchProfile,
   prepare,
+  onAttachmentsEmpty,
   log,
 }: CitationPopoverActionDeps): CitationPopoverActions {
   let completed: boolean | Promise<boolean> = true;
   const act = (
     block: CitationEntryBlock,
-    action: (current: CitationEntryBlock) => void,
+    action: (current: CitationEntryBlock) => boolean | void,
   ): void => {
     if (!prepare) {
-      action(block);
-      completed = true;
+      completed = action(block) !== false;
       return;
     }
-    completed = prepare(block).then((current) => {
-      if (current) action(current);
-      return current !== null;
-    });
+    completed = prepare(block).then(
+      (current) => current !== null && action(current) !== false,
+    );
   };
   return {
     onOpenNote(block, event) {
@@ -92,9 +98,17 @@ export function createCitationPopoverActions({
         ? { rect: button.getBoundingClientRect(), doc: button.ownerDocument }
         : undefined;
       act(block, (current) => {
+        if (current.attachments === "unreadable") {
+          showNotice(m.notice_attachment_read_failed());
+          return false;
+        }
+        if (current.attachments.length === 0) {
+          onAttachmentsEmpty?.(block, current);
+          return false;
+        }
         log("debug", "Citation popover opens an attachment", {
           itemKey: block.itemKey,
-          attachments: block.attachments.length,
+          attachments: current.attachments.length,
         });
         openAttachments(current.attachments, {
           reader: zoteroAttachmentReader,

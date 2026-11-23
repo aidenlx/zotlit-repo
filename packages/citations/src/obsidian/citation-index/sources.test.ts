@@ -197,11 +197,25 @@ describe("readReferenceSources", () => {
   );
 
   it.effect(
-    "keeps the cited Items when the attachment table cannot be read",
+    "reports an empty list after a successful read with no Attachments",
+    () =>
+      Effect.gen(function* () {
+        yield* Effect.promise(() => readsOver(seedWorksSql([CITED])));
+
+        const { sources } = yield* readSources(ready, [citation(KEY, null)]);
+
+        expect(sources.get(KEY)?.attachments).toStrictEqual([]);
+      }),
+  );
+
+  it.effect(
+    "keeps every cited Item and marks its Attachments unreadable after the query fails",
     () =>
       Effect.gen(function* () {
         ready = inProcessReadsService(
-          memoryOpener(() => seedWorksSql([CITED])).open,
+          memoryOpener(() =>
+            seedWorksSql([CITED, { itemID: 2, key: OTHER_KEY }]),
+          ).open,
           {
             wrap: (client) => ({
               ...client,
@@ -214,13 +228,21 @@ describe("readReferenceSources", () => {
         );
         yield* Effect.promise(() => ready.ready);
 
-        const { sources } = yield* readSources(ready, [citation(KEY, null)]);
+        const { sources, database } = yield* readSources(ready, [
+          citation(KEY, null),
+          citation(OTHER_KEY, null),
+        ]);
 
+        expect(database).toBe("ready");
         expect(sources.get(KEY)).toMatchObject({
           itemKey: KEY,
           itemID: CITED.itemID,
+          attachments: "unreadable",
         });
-        expect(sources.get(KEY)?.attachments).toStrictEqual([]);
+        expect(sources.get(OTHER_KEY)).toMatchObject({
+          itemKey: OTHER_KEY,
+          attachments: "unreadable",
+        });
       }),
   );
 

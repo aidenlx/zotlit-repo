@@ -2,8 +2,10 @@ import { Effect, Layer, Stream } from "effect";
 import type { ManagedRuntime } from "effect";
 import type { TFile } from "obsidian";
 
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
@@ -100,7 +102,7 @@ export interface CitationPopoverFixture extends AsyncDisposable {
 
 export function citationPopoverFixture(
   deps: CitationPopoverFixtureDeps,
-  options: { logs?: Layer.Layer<never> } = {},
+  options: { logs?: Layer.Layer<never>; notifier?: Layer.Layer<Notifier> } = {},
 ): CitationPopoverFixture {
   const stack = new AsyncDisposableStack();
   const citationLookup = deps.citationLookup ?? { status: "fresh" as const };
@@ -115,6 +117,7 @@ export function citationPopoverFixture(
     Layer.provide(
       Layer.mergeAll(
         options.logs ?? Layer.empty,
+        options.notifier ?? testNotifier().layer,
         layerHost(deps.host),
         Layer.succeed(
           ShowInLibrary,

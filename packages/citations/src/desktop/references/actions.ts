@@ -101,6 +101,7 @@ export function createReferenceActions(
       deps.showInLibrary(formatIndexedKey(source.itemKey, source.groupID));
     },
     onOpenAttachment(source, event) {
+      if (source.attachments === "unreadable") return;
       openAttachments(source.attachments, {
         reader: zoteroAttachmentReader,
         host: deps.app,
