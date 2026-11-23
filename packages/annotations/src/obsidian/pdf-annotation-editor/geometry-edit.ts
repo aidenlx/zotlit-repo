@@ -254,6 +254,12 @@ export function gripAt({
   return inside ? "body" : null;
 }
 
+function bodyMoveBounds(position: EditablePosition, box: Readonly<PdfRect>) {
+  return position.kind === "pdf-text"
+    ? turnedBounds(box, position.rotation)
+    : box;
+}
+
 export function proposePosition({
   confirmed,
   grip,
@@ -279,10 +285,7 @@ export function proposePosition({
   const [left = 0, bottom = 0, right = 0, top = 0] = viewBox;
   const [x1, y1, x2, y2] = rect;
   if (grip === "body") {
-    const [bx1, by1, bx2, by2] =
-      confirmed.kind === "pdf-text"
-        ? turnedBounds([x1, y1, x2, y2], confirmed.rotation)
-        : rect;
+    const [bx1, by1, bx2, by2] = bodyMoveBounds(confirmed, rect);
     const mx = clamp(dx, left - bx1, right - bx2);
     const my = clamp(dy, bottom - by1, top - by2);
     return { ...confirmed, rects: [[x1 + mx, y1 + my, x2 + mx, y2 + my]] };
@@ -394,7 +397,6 @@ export function keyedPosition({
       ? inkBox(confirmed)
       : (confirmed.rects[0] ?? null);
   if (!box) return null;
-  const [x1, y1, x2, y2] = box;
   const step = KEY_STEP;
   const propose = (grip: Grip, [dx, dy]: PdfPoint) => ({
     grip,
@@ -408,6 +410,7 @@ export function keyedPosition({
     }),
   });
   if (edit === "nudge") {
+    const [x1, y1, x2, y2] = bodyMoveBounds(confirmed, box);
     const [left = 0, bottom = 0, right = 0, top = 0] = viewBox;
     const room = step + KEY_PADDING;
     const allowed =
@@ -437,6 +440,7 @@ export function keyedPosition({
     };
   }
   if (confirmed.kind === "pdf-ink") {
+    const [x1, y1, x2, y2] = box;
     const ratio = (x2 - x1) / (y2 - y1);
     const width =
       arrow === "right"

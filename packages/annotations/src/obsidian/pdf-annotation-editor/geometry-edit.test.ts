@@ -810,3 +810,31 @@ it("nudges a free-text box and a note by five points", () => {
   const note = rects([[100, 300, 122, 322]]);
   expect(keyImage("nudge", "up", note)).toEqual([100, 305, 122, 327]);
 });
+
+it("nudges a turned free-text box when its visible right edge has room", () => {
+  const confirmed = textAt(90, [100, 100, 200, 120]);
+  expect(
+    keyedPosition({
+      confirmed,
+      edit: "nudge",
+      arrow: "right",
+      viewBox: [0, 0, 205, 250],
+      text: TEXT_CONTENT,
+    }),
+  ).toEqual({
+    grip: "body",
+    proposal: { ...confirmed, rects: [[105, 100, 205, 120]] },
+  });
+});
+
+it("stops a right nudge when a turned free-text box would enter the page margin", () => {
+  expect(
+    keyedPosition({
+      confirmed: textAt(90, [140, 60, 160, 160]),
+      edit: "nudge",
+      arrow: "right",
+      viewBox: [0, 0, 205, 250],
+      text: TEXT_CONTENT,
+    }),
+  ).toBeNull();
+});
