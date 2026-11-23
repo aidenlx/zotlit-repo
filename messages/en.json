@@ -1061,6 +1061,7 @@
   "notice_pandoc_integration_saved": "Saved the Pandoc integration pair to {folder}.",
   "notice_pandoc_integration_save_failed": "Could not save the Pandoc integration pair. The prior pair was restored.",
   "notice_pandoc_integration_restore_failed": "Could not save or restore the Pandoc integration pair. Check both files before use.",
+  "notice_pandoc_integration_backups_kept": "Recover the original files from these backups in the hidden folder.",
   "command_open_references_view_name": "Open references",
   "command_show_cited_by_name": "Show cited by",
   "cited_by_view_name": "Cited by",

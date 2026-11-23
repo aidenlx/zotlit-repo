@@ -24,16 +24,20 @@ import {
 const FOLDER = "/project/pandoc";
 const FILTER_PATH = posix.join(FOLDER, PANDOC_FILTER_FILENAME);
 const DEFAULTS_PATH = posix.join(FOLDER, PANDOC_DEFAULTS_FILENAME);
+const STAGING_FOLDER = posix.join(FOLDER, ".zotlit-pandoc-test");
 
 class MemoryFileSystem {
   readonly files = new Map<string, string>();
   failRenameTo: string | null = null;
+  readonly denyRenameTo = new Set<string>();
   readonly rename = vi.fn((from: string, to: string) =>
     Effect.suspend(() => {
       if (to === this.failRenameTo) {
         this.failRenameTo = null;
         return Effect.fail(failure("PermissionDenied", `Cannot replace ${to}`));
       }
+      if (this.denyRenameTo.has(to))
+        return Effect.fail(failure("PermissionDenied", `Cannot replace ${to}`));
       const value = this.files.get(from);
       if (value === undefined) return Effect.fail(failure("NotFound", from));
       this.files.delete(from);
@@ -57,8 +61,7 @@ class MemoryFileSystem {
           ? Effect.fail(failure("NotFound", path))
           : Effect.succeed(value);
       }),
-    makeTempDirectory: () =>
-      Effect.succeed(posix.join(FOLDER, ".zotlit-pandoc-test")),
+    makeTempDirectory: () => Effect.succeed(STAGING_FOLDER),
     writeFileString: this.writeFileString,
     rename: this.rename,
     remove: (path, options) =>
@@ -219,6 +222,38 @@ describe("savePandocIntegrationFiles", () => {
       expect([...fileSystem.files.keys()].sort()).toEqual(
         [DEFAULTS_PATH, FILTER_PATH].sort(),
       );
+    }),
+  );
+
+  it.effect("keeps the original defaults when restoration fails", () =>
+    Effect.gen(function* () {
+      const fileSystem = new MemoryFileSystem();
+      fileSystem.files.set(FILTER_PATH, "old filter");
+      fileSystem.files.set(DEFAULTS_PATH, "old defaults");
+      fileSystem.denyRenameTo.add(DEFAULTS_PATH);
+      const backupPath = posix.join(
+        STAGING_FOLDER,
+        `.previous-${PANDOC_DEFAULTS_FILENAME}`,
+      );
+
+      const result = yield* save(fileSystem);
+
+      expect(fileSystem.files.get(FILTER_PATH)).toBe("old filter");
+      expect(
+        [...fileSystem.files].filter(([path]) =>
+          path.startsWith(`${STAGING_FOLDER}/`),
+        ),
+      ).toEqual([[backupPath, "old defaults"]]);
+      expect(result).toMatchObject({
+        kind: "failed",
+        restored: false,
+        backups: [backupPath],
+      });
+      if (result.kind === "failed") {
+        for (const path of result.backups) {
+          expect(fileSystem.files.get(path)).toBe("old defaults");
+        }
+      }
     }),
   );
 });

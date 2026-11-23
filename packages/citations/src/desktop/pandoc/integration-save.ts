@@ -5,7 +5,12 @@ import { join } from "node:path";
 export type SavePandocIntegrationResult =
   | { kind: "cancelled" }
   | { kind: "saved"; folder: string }
-  | { kind: "failed"; error: unknown; restored: boolean };
+  | {
+      kind: "failed";
+      error: unknown;
+      restored: boolean;
+      backups: readonly string[];
+    };
 
 export interface SavePandocIntegrationOptions {
   folder: string;
@@ -56,15 +61,27 @@ export const savePandocIntegrationFiles = Effect.fn("PandocIntegration.save")(
         if (existing.length > 0 && !(yield* confirmReplacement(existing)))
           return { kind: "cancelled" };
 
+        const backups: string[] = [];
         const temp = yield* Effect.acquireRelease(
           fs.makeTempDirectory({
             directory: folder,
             prefix: ".zotlit-pandoc-",
           }),
-          (path) =>
-            fs
-              .remove(path, { recursive: true, force: true })
-              .pipe(Effect.ignore),
+          (path) => {
+            if (backups.length === 0) {
+              return fs
+                .remove(path, { recursive: true, force: true })
+                .pipe(Effect.ignore);
+            }
+            return Effect.forEach(
+              entries,
+              (entry) =>
+                fs
+                  .remove(join(path, entry.filename), { force: true })
+                  .pipe(Effect.ignore),
+              { discard: true },
+            );
+          },
         );
         for (const entry of entries) {
           yield* fs.writeFileString(
@@ -118,16 +135,19 @@ export const savePandocIntegrationFiles = Effect.fn("PandocIntegration.save")(
               );
             }
             for (const entry of backedUp.toReversed()) {
-              yield* collect(
-                fs.rename(
-                  join(temp, `.previous-${entry.filename}`),
-                  entry.target,
-                ),
-              );
+              const backup = join(temp, `.previous-${entry.filename}`);
+              const restore = yield* fs
+                .rename(backup, entry.target)
+                .pipe(Effect.result);
+              if (restore._tag === "Failure") {
+                errors.push(restore.failure);
+                backups.push(backup);
+              }
             }
             return {
               kind: "failed",
               restored: errors.length === 0,
+              backups,
               error:
                 errors.length === 0
                   ? install.failure
@@ -145,6 +165,7 @@ export const savePandocIntegrationFiles = Effect.fn("PandocIntegration.save")(
           kind: "failed",
           error,
           restored: true,
+          backups: [],
         }),
       ),
     );

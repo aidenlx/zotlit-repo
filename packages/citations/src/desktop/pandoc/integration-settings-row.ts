@@ -114,13 +114,28 @@ async function selectAndSave(ctx: SettingTabContext): Promise<void> {
               folder: selected.filePaths[0]!,
               error: result.error,
               restored: result.restored,
+              backups: result.backups,
             }),
           );
-          new BaseNotice(
-            result.restored
-              ? m.notice_pandoc_integration_save_failed()
-              : m.notice_pandoc_integration_restore_failed(),
-          );
+          if (result.backups.length > 0) {
+            new BaseNotice(
+              BaseNotice.render((renderer) => {
+                renderer
+                  .setTitle(m.notice_pandoc_integration_restore_failed())
+                  .addList(
+                    m.notice_pandoc_integration_backups_kept(),
+                    result.backups,
+                  );
+              }),
+              0,
+            );
+          } else {
+            new BaseNotice(
+              result.restored
+                ? m.notice_pandoc_integration_save_failed()
+                : m.notice_pandoc_integration_restore_failed(),
+            );
+          }
         }
       }).pipe(withLogCategory("setting-tab", "pandoc-integration")),
     );
