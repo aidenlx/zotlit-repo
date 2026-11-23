@@ -93,15 +93,17 @@ export function gitSourceTags(options: {
   const { cwd, outward, remote = "origin" } = options;
   return {
     async get(tag) {
+      const ref = `refs/tags/${tag}`;
+      const peeledRef = `${ref}^{}`;
       const listed = (
         await $({
           cwd,
           quiet: true,
-        })`git ls-remote --tags ${remote} ${`refs/tags/${tag}`}`
+        })`git ls-remote --tags ${remote} ${ref} ${peeledRef}`
       ).stdout;
       if (!parseRemoteTags(listed).has(tag)) return undefined;
       const lines = listed.split("\n").filter(Boolean);
-      const peeled = lines.find((line) => line.endsWith(`refs/tags/${tag}^{}`));
+      const peeled = lines.find((line) => line.endsWith(`\t${peeledRef}`));
       return (peeled ?? lines[0])!.split("\t")[0];
     },
     push: (tag, commit) =>
