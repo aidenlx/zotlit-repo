@@ -216,7 +216,13 @@ export function exportLiteratureNotePack(
   const reported = new Set<string>();
   const pending = [
     ...(options.include ?? []),
-    ...literatureNoteTemplateDependencies(document),
+    ...[
+      document.body,
+      document.annotationSection.source,
+      document.manifest.filename,
+    ].flatMap((source) =>
+      referencedPartialNames(source, document.manifest.language),
+    ),
   ];
   while (pending.length > 0) {
     const name = pending.pop()!;

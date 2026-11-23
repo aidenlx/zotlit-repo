@@ -76,6 +76,40 @@ describe("Literature Note Pack export", () => {
     const source = exportLiteratureNotePack(document, [
       {
         name: "summary",
+        language: "liquid",
+        source: 'Summary: {% render "authors" with zt as zt %}',
+      },
+      {
+        name: "authors",
+        language: "liquid",
+        source: "Authors: {{ zt.creators }}",
+      },
+      {
+        name: "unused",
+        language: "liquid",
+        source: "Unused",
+      },
+    ]);
+
+    expect(parseLiteratureNoteTemplate(source).manifest.partials).toEqual([
+      {
+        name: "authors",
+        language: "liquid",
+        source: "Authors: {{ zt.creators }}",
+      },
+      {
+        name: "summary",
+        language: "liquid",
+        source: 'Summary: {% render "authors" with zt as zt %}',
+      },
+    ]);
+  });
+
+  it("follows an Eta partial's calls by its own language and ignores its prose", () => {
+    const document = `${DOCUMENT}\n--- zotlit:annotation ---\n{{ zt.text }}`;
+    const source = exportLiteratureNotePack(document, [
+      {
+        name: "summary",
         language: "eta",
         source:
           'Summary: <%~ include("authors", zt) %>\nRemember to include "prose".',
