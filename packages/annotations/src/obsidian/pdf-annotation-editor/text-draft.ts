@@ -11,8 +11,6 @@ import type { TextDraft } from "./reader-surface-state.ts";
 import { darken, pageUnitSize, unitPointOf, unitsPerPixel } from "./render.ts";
 import type { MeasuredFont, OverlayPageView } from "./render.ts";
 
-const LINE_SLACK = 1;
-
 export interface TextDraftEvents {
   input: (text: string) => void;
   finish: () => void;
@@ -67,7 +65,7 @@ export function placeTextDraft(
   area.setCssProps({
     "--zt-text-draft-left": `${(corner.x / unit.width) * 100}%`,
     "--zt-text-draft-top": `${(corner.y / unit.height) * 100}%`,
-    "--zt-text-draft-width": `${right - left + LINE_SLACK}px`,
+    "--zt-text-draft-width": `${right - left}px`,
     "--zt-text-draft-height": `${top - bottom}px`,
     "--zt-text-draft-angle": `${angle}deg`,
     "--zt-text-draft-scale": String(scale),

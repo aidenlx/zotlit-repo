@@ -22,10 +22,9 @@ Zotero's reader works the other way: it creates an empty text Annotation at the 
 `text-draft.ts` uses a plain textarea at one CSS pixel per PDF point and
 scales the whole box to the page. This avoids per-glyph rounding at small
 zoom. The same box, font, rotation, and darkened color guide the saved
-mark. The textarea adds one point of width to absorb small differences
-from canvas measurement. This leaves a near-boundary case where the saved
-mark wraps a line that fit in the textarea.
-[Line wrapping follow-up](https://github.com/aidenlx/zotlit-repo/issues/58)
+mark. The textarea uses the exact width of the fitted box. When the fit
+sets the width from the widest line of multiline text, it adds one point.
+This allowance absorbs small differences between DOM and canvas measurement.
 [Zotero textarea](https://github.com/zotero/reader/blob/df215c60334d2d0c7b1fbc9f3959b66afc1ced83/src/pdf/page.js#L860-L947)
 
 While focused, the textarea holds its own Scope above the PDF view. Escape
@@ -56,12 +55,13 @@ the textarea. A word too wide for a line of its own breaks into characters,
 also when it follows another word, as the textarea's `break-word` does.
 
 With the normal comment-edit mode, a box at least two font sizes high
-keeps its width. A shorter box fits its widest line and adds five points
-when the result is a single line. The normal single-line width caps at
-300 points. The calculation measures an empty text as one letter. It
-keeps the turned top-left corner fixed as the box grows. The page inset is
-five points. A width-preserving fit can move the box to stay inside it,
-while the other fit changes width to address horizontal overflow.
+keeps its width. A shorter box fits to its widest line. The fit adds five
+points for a single line and one point for multiple lines. The normal
+single-line width caps at 300 points. The calculation measures an empty
+text as one letter. It keeps the turned top-left corner fixed as the box
+grows. The page inset is five points. A width-preserving fit can move the
+box to stay inside it, while the other fit changes width to address
+horizontal overflow.
 A resize across an edge preserves width during the edit. The finished
 edge drag can fit one line without the 300-point cap. Fits use exact
 measurements, and the stored fit widens to the next thousandth of a point

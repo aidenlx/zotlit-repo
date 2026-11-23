@@ -161,6 +161,8 @@ const MAX_LINE_WIDTH = 300;
 
 const LINE_PADDING = 5;
 
+const MULTILINE_PADDING = 1;
+
 export function fitFreeTextBox(
   text: string,
   {
@@ -196,6 +198,8 @@ export function fitFreeTextBox(
       width = MAX_LINE_WIDTH;
       height = heightAt(width);
     }
+  } else if (!keepsWidth) {
+    width += MULTILINE_PADDING;
   }
 
   const anchored = anchorCorner(old, [width, height], {

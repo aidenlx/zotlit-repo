@@ -208,8 +208,8 @@ describe("fitting a free-text box, as Zotero's reader fits it", () => {
     ]);
   });
 
-  it("fits text its newlines make two lines tall to its widest line, with no padding", () => {
-    expect(fit("aa\nbbbb")).toEqual([100, 686, 120, 710]);
+  it("fits text with newlines one point wider than its widest line", () => {
+    expect(fit("aa\nbbbb")).toEqual([100, 686, 121, 710]);
   });
 
   it("widens a box sized to its text by what it reaches past the page's left inset", () => {

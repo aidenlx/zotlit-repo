@@ -219,7 +219,7 @@ textarea.zt-pdf-text-draft:active {
   top: var(--zt-text-draft-top);
   width: var(--zt-text-draft-width);
   height: var(--zt-text-draft-height);
-  min-width: var(--zt-text-draft-font-size);
+  min-width: 0;
   min-height: var(--zt-text-draft-font-size);
   transform: rotate(var(--zt-text-draft-angle))
     scale(var(--zt-text-draft-scale));

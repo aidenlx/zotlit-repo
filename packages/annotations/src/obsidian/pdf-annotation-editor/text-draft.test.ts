@@ -3,9 +3,20 @@ import { afterEach, expect, it, vi } from "vitest";
 
 import { editorApp } from "@zotlit/obsidian-kit/__fixtures__/editor-app.ts";
 
-import { createTextDraftArea, removeTextDraftArea } from "./text-draft.ts";
+import { freeTextLines } from "./free-text-layout.ts";
+import type { PdfRect } from "./geometry-edit.ts";
+import {
+  createTextDraftArea,
+  placeTextDraft,
+  removeTextDraftArea,
+} from "./text-draft.ts";
 
-import { dispatchKey } from "#__fixtures__/pdf-annotation-editor.ts";
+import { dispatchKey, viewport } from "#__fixtures__/pdf-annotation-editor.ts";
+
+const MONO = {
+  family: "monospace",
+  measure: (text: string, fontSize: number) => (text.length * fontSize) / 2,
+};
 
 afterEach(() => {
   document.body.empty();
@@ -18,6 +29,43 @@ function draftPage() {
   const area = page.createEl("textarea");
   return { page, textLayer, area };
 }
+
+function placedDraft(box: PdfRect, view = viewport()) {
+  const { area, page } = draftPage();
+  placeTextDraft(
+    area,
+    { div: page, viewport: view },
+    {
+      font: MONO,
+      draft: {
+        kind: "text-draft",
+        pageIndex: 0,
+        fontSize: 10,
+        color: "#ffd400",
+        rotation: 0,
+        box,
+        text: "aa b",
+        phase: "typing",
+      },
+    },
+  );
+  return (name: string) =>
+    Number.parseFloat(area.style.getPropertyValue(`--zt-text-draft-${name}`));
+}
+
+it("wraps the draft at the same box width as the saved text", () => {
+  const box: PdfRect = [100, 698, 119.5, 710];
+  const css = placedDraft(box);
+  const width = box[2] - box[0];
+  const sizing = { fontSize: 10, measure: MONO.measure };
+  expect({
+    width: css("width"),
+    lines: freeTextLines("aa b", css("width"), sizing),
+  }).toEqual({
+    width,
+    lines: freeTextLines("aa b", width, sizing),
+  });
+});
 
 it("leaves the focus where the finish moved it", () => {
   const { area } = draftPage();
