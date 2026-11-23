@@ -46,20 +46,60 @@ it.effect("runPromiseExit resolves with a failure Exit", () =>
   }),
 );
 
-it.effect("runAndForget logs a failed Effect once with its cause", () =>
-  Effect.promise(async () => {
-    using logs = captureLogRecords();
-    const bridge = openTestBridge();
-    const error = new BridgeError({ message: "callback failed" });
+async function nextUnhandledRejection(
+  run: () => Promise<void>,
+): Promise<unknown> {
+  const runnerListeners = process.listeners("unhandledRejection");
+  process.removeAllListeners("unhandledRejection");
+  const rejected = Promise.withResolvers<unknown>();
+  process.once("unhandledRejection", rejected.resolve);
+  try {
+    await run();
+    return await rejected.promise;
+  } finally {
+    process.removeAllListeners("unhandledRejection");
+    for (const listener of runnerListeners)
+      process.on("unhandledRejection", listener);
+  }
+}
 
-    bridge.runAndForget(Effect.fail(error));
-    await bridge[Symbol.asyncDispose]();
+it.effect(
+  "runAndForget logs a failed Effect and rejects it under the test runner",
+  () =>
+    Effect.promise(async () => {
+      using logs = captureLogRecords();
+      const bridge = openTestBridge();
+      const error = new BridgeError({ message: "callback failed" });
 
-    expect(logs.records).toHaveLength(1);
-    const record = logs.records[0];
-    expect(record?.level).toBe("error");
-    expect(record?.properties["error"]).toBe(error);
-  }),
+      const unhandled = await nextUnhandledRejection(async () => {
+        bridge.runAndForget(Effect.fail(error));
+        await bridge[Symbol.asyncDispose]();
+      });
+
+      expect(unhandled).toBe(error);
+      expect(logs.records).toHaveLength(1);
+      const record = logs.records[0];
+      expect(record?.level).toBe("error");
+      expect(record?.properties["error"]).toBe(error);
+    }),
+);
+
+it.effect(
+  "runAndForget only logs a failed Effect outside the test runner",
+  () =>
+    Effect.promise(async () => {
+      using logs = captureLogRecords();
+      const bridge = openTestBridge({ rejectsForgottenFailures: false });
+      const error = new BridgeError({ message: "callback failed" });
+
+      bridge.runAndForget(Effect.fail(error));
+      await bridge[Symbol.asyncDispose]();
+
+      expect(logs.records).toHaveLength(1);
+      const record = logs.records[0];
+      expect(record?.level).toBe("error");
+      expect(record?.properties["error"]).toBe(error);
+    }),
 );
 
 it.effect("runAndForget interrupts a pending Effect silently on unload", () =>

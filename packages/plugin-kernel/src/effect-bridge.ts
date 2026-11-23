@@ -2,7 +2,7 @@ import { Cause, Context, Effect, Exit, Fiber, Scope } from "effect";
 import type { ManagedRuntime, Stream } from "effect";
 
 import { AbortError } from "./abort-error.ts";
-import { logAndContinue } from "./effect-log.ts";
+import { withLogCategory } from "./effect-log.ts";
 import { isScopeClosed } from "./effect-scope.ts";
 import { subscribe } from "./effect-stream.ts";
 
@@ -41,13 +41,32 @@ export function exitOver<R>(
     bridge.runPromiseExit(Effect.provideContext(effect, context), options);
 }
 
+const logForgottenFailure = (cause: Cause.Cause<unknown>) =>
+  Cause.hasInterruptsOnly(cause)
+    ? Effect.void
+    : Effect.logError("A fire-and-forget Effect failed", cause).pipe(
+        withLogCategory("bridge"),
+      );
+
+const underTestRunner = (): boolean =>
+  (
+    import.meta as {
+      readonly env?: Readonly<Record<string, string | boolean | undefined>>;
+    }
+  ).env?.["MODE"] === "test";
+
+export interface BridgeOptions {
+  readonly rejectsForgottenFailures?: boolean;
+}
+
 function bridgeOver(
   context: Context.Context<never>,
-  scope: Scope.Scope,
   host: Pick<ManagedRuntime.ManagedRuntime<never, never>, "runFork"> & {
     readonly scope: Scope.Scope;
   },
+  { rejectsForgottenFailures = underTestRunner() }: BridgeOptions = {},
 ): EffectBridge {
+  const { scope } = host;
   const runExit = Effect.runPromiseExitWith(context);
   const onFiberStart = Fiber.runIn(scope);
   const runPromiseExit: EffectBridge["runPromiseExit"] = (effect, options) =>
@@ -63,11 +82,12 @@ function bridgeOver(
     },
     runPromiseExit,
     runAndForget: (effect) => {
-      void runPromiseExit(
-        effect.pipe(
-          logAndContinue("A fire-and-forget Effect failed", "bridge"),
-        ),
+      const run = runPromiseExit(
+        effect.pipe(Effect.tapCause((cause) => logForgottenFailure(cause))),
       );
+      void (rejectsForgottenFailures
+        ? run.then((exit) => valueOr(exit, undefined))
+        : run);
     },
     subscribe: (stream, callback) => subscribe(host, stream, callback),
     closed: () => isScopeClosed(scope),
@@ -79,19 +99,16 @@ export function effectBridge<R>(
     ManagedRuntime.ManagedRuntime<R, never>,
     "runSync" | "runFork" | "scope"
   >,
+  options?: BridgeOptions,
 ): EffectBridge {
-  return bridgeOver(
-    runtime.runSync(Effect.context<R>()),
-    runtime.scope,
-    runtime,
-  );
+  return bridgeOver(runtime.runSync(Effect.context<R>()), runtime, options);
 }
 
 export const scopedBridge: Effect.Effect<EffectBridge, never, Scope.Scope> =
   Effect.gen(function* () {
     const context = yield* Effect.context<Scope.Scope>();
     const scope = Context.get(context, Scope.Scope);
-    return bridgeOver(context, scope, {
+    return bridgeOver(context, {
       runFork: Effect.runForkWith(context),
       scope,
     });
