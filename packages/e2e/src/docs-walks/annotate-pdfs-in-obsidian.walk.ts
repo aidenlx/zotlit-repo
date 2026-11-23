@@ -288,6 +288,7 @@ describe.skipIf(!reachable)(
     });
 
     it("step 2: select the sidebar heading and choose Allow editing, then Always Allow in Zotero's dialog; a notice that editing is on, and the tools are in colour", async () => {
+      const notice = m.notice_zotero_editing_enabled();
       await raiseWindow(walk.vaultId);
       const ask = () =>
         obRun(
@@ -494,13 +495,13 @@ describe.skipIf(!reachable)(
             await setAppVisible("Obsidian", true);
             await raiseWindow(walk.vaultId);
             await new Promise((r) => setTimeout(r, 800));
-            const tools = await shots.obsidian(granted, { notices: true });
+            const tools = await shots.obsidian(granted, { notice });
             return { asked, dialog, tools };
           });
         } finally {
           await setAppVisible("Obsidian", true);
         }
-        await walk.capture("step-2", { notices: true });
+        await walk.capture("step-2", { notice });
       } else {
         const asked = await ask();
         if (!(await waitForAuthorizationDialog(walk.zotero)))
@@ -508,7 +509,7 @@ describe.skipIf(!reachable)(
         const dialog = await readDialog();
         await clickAuthorizationDialog(walk.zotero, "cancel");
         const tools = await granted();
-        await walk.capture("step-2", { notices: true });
+        await walk.capture("step-2", { notice });
         result = { asked, dialog, tools };
       }
       expect(result.asked.menu).toContain(m.capability_enable_editing());
@@ -518,9 +519,7 @@ describe.skipIf(!reachable)(
       );
       expect(result.dialog.buttons).toEqual(["Allow", "Always Allow", "Deny"]);
       expect(result.tools).not.toContain("true");
-      expect(await readNotices(walk.vaultId)).toContain(
-        m.notice_zotero_editing_enabled(),
-      );
+      expect(await readNotices(walk.vaultId)).toContain(notice);
       await walk.compose("step-2");
     });
 

@@ -17,9 +17,6 @@ export interface PageDebugger {
   isAttached(): boolean;
   attach(version: string): void;
   detach(): void;
-  sendCommand(
-    method: "Performance.getMetrics",
-  ): Promise<{ metrics: { name: string; value: number }[] }>;
   sendCommand(method: "Profiler.stop"): Promise<{ profile: Profiler.Profile }>;
   sendCommand(
     method: string,

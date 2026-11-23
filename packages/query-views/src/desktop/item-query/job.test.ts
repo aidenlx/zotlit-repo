@@ -3,7 +3,7 @@ import { Deferred, Effect, Fiber, PlatformError } from "effect";
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { CliData } from "obsidian";
-import { describe, expect } from "vitest";
+import { describe, expect, vi } from "vitest";
 
 import {
   BULK_LIBRARY,
@@ -56,11 +56,12 @@ const ATTACHMENT_PATHS = {
 };
 
 function jobOf(params: CliData, stagePath?: string): QueryJob {
+  const query = workerQuery(params);
   return {
     schema: false,
-    dataset: "items",
+    dataset: query.from,
     command: QUERY_COMMAND,
-    query: workerQuery(params),
+    query,
     id: "job-1",
     ...IDENTITY,
     scope: MY_LIBRARY_SCOPE,
@@ -219,6 +220,90 @@ describe("Query Job", () => {
           diagnostic: { code: "output-error" },
         });
         expect(yield* textOf(stagePath)).toBe("keep this content");
+      }),
+  );
+
+  it.live(
+    "reports only each job's work when two measured jobs overlap",
+    ({ annotate }) =>
+      Effect.gen(function* () {
+        yield* Effect.promise(() =>
+          annotate(
+            "https://github.com/aidenlx/zotlit-repo/issues/150",
+            "issue",
+          ),
+        );
+        const scenario = yield* scenarioOf();
+        let now = 0;
+        yield* Effect.acquireDisposable(
+          Effect.sync(() =>
+            vi.spyOn(performance, "now").mockImplementation(() => now),
+          ),
+        );
+        const release = Promise.withResolvers<void>();
+        const start = (id: string, fields: string, workMs: number) =>
+          Effect.gen(function* () {
+            const waiting = yield* Deferred.make<void>();
+            const job = jobOf({
+              from: "attachments",
+              filter: 'linkMode == "imported_file"',
+              limit: "1",
+              fields,
+            });
+            const fiber = yield* Effect.forkChild(
+              runQueryJob(
+                { ...job, id, measure: true },
+                {
+                  client: scenario.db,
+                  identity: IDENTITY,
+                  attachmentFiles: () =>
+                    Effect.promise(async () => {
+                      Deferred.doneUnsafe(waiting, Effect.void);
+                      await release.promise;
+                      now += workMs;
+                      return { path: "/paper.pdf", exists: true };
+                    }),
+                },
+              ).pipe(Effect.provide(testFileSystem)),
+            );
+            return { fiber, waiting };
+          });
+        const first = yield* start("job-1", "exists", 7);
+        const second = yield* start("job-2", "exists,tags", 23);
+        yield* Deferred.await(first.waiting);
+        yield* Deferred.await(second.waiting);
+
+        yield* Effect.promise(
+          () =>
+            new Promise<void>((resolve) => {
+              setImmediate(() => {
+                now += 70;
+                release.resolve();
+                resolve();
+              });
+            }),
+        );
+        const answerA = yield* Fiber.join(first.fiber);
+        const answerB = yield* Fiber.join(second.fiber);
+
+        expect(JSON.parse(answerA.answer)).toMatchObject({
+          ok: true,
+          returnedCount: 1,
+        });
+        expect(JSON.parse(answerB.answer)).toMatchObject({
+          ok: true,
+          returnedCount: 1,
+        });
+        expect(answerA.measurement?.slices.filter((ms) => ms > 0)).toEqual([7]);
+        expect(answerB.measurement?.slices.filter((ms) => ms > 0)).toEqual([
+          23,
+        ]);
+        expect(
+          answerA.measurement?.statements["attachment-tags"],
+        ).toBeUndefined();
+        expect(answerB.measurement?.statements["attachment-tags"]?.count).toBe(
+          1,
+        );
       }),
   );
 

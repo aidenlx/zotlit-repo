@@ -4,6 +4,7 @@ import { join } from "node:path";
 
 // oxlint-disable-next-line no-restricted-imports -- share the host benchmark's fixture without importing its Vitest suite.
 import { syntheticNote } from "@zotlit/citations/__fixtures__/citation-index/scan-pipeline-note.ts";
+import type { ScanTimings } from "@zotlit/citations/core/citation-parse/scan-timings.ts";
 
 import { obRun } from "./obsidian-cli.ts";
 import type { PageDebugger, FileScan } from "./page-citation-types.ts";
@@ -32,12 +33,6 @@ export async function measureCitationScan(vaultId: string) {
         const attached = client.isAttached();
         if (!attached) client.attach("1.3");
         if (!attached) cleanup.defer(() => client.detach());
-        await client.sendCommand("Performance.enable", {
-          timeDomain: "threadTicks",
-        });
-        cleanup.defer(async () => {
-          await client.sendCommand("Performance.disable");
-        });
         const db = await new Promise<IDBDatabase>((resolve, reject) => {
           const request = indexedDB.open(`${app.appId}-zotlit-citation-index`);
           request.onsuccess = () => resolve(request.result);
@@ -64,34 +59,39 @@ export async function measureCitationScan(vaultId: string) {
         clearTimeout(timer);
         let previousScan = await bridge.runPromise(index.getFileScan(file));
         const cache = app.metadataCache.getFileCache(file);
-        const taskCpu = async () => {
-          const { metrics } = await client.sendCommand(
-            "Performance.getMetrics",
-          );
-          const value = metrics.find(
-            (metric) => metric.name === "TaskDuration",
-          )?.value;
-          if (!Number.isFinite(value))
-            throw Error("Renderer TaskDuration unavailable");
-          return value!;
-        };
-        const barrier = () =>
-          new Promise<void>((resolve, reject) => {
-            const transaction = db.transaction("scans", "readonly");
-            transaction.objectStore("scans").count(file.path);
-            transaction.oncomplete = () => resolve();
-            transaction.onabort = () => reject(transaction.error!);
-          });
-        const samples = [];
-        const floorSamples = [];
+        let deliver: ((timings: ScanTimings) => void) | undefined;
+        if (!index.observeScanTimings)
+          throw Error("The development Citation Index must expose scan timing");
+        using _observation = index.observeScanTimings(
+          file.path,
+          () => performance.now(),
+          (sample) => deliver?.(sample),
+        );
         const edit = async (n: number, unchanged = false) => {
           const key = `r${String(n + 1).padStart(4, "0")}`;
           const body = text.replace("[@work1]", `[@${key}]`);
-          const start = await taskCpu();
+          const measured = Promise.withResolvers<ScanTimings>();
+          deliver = measured.resolve;
           app.metadataCache.trigger("changed", file, body, cache);
+          const deadline = setTimeout(
+            () =>
+              measured.reject(
+                Error(`Renderer timings did not arrive for ${key}`),
+              ),
+            15000,
+          );
+          let timings: ScanTimings;
+          try {
+            timings = await measured.promise;
+          } finally {
+            clearTimeout(deadline);
+            deliver = undefined;
+          }
           const scan = await bridge.runPromise(index.getFileScan(file));
-          await barrier();
-          const cpuMs = ((await taskCpu()) - start) * 1000;
+          if (timings.applyMs < timings.persistMs)
+            throw Error(
+              `Invalid renderer timings for ${key}: ${JSON.stringify(timings)}`,
+            );
           if (
             body.length !== 100000 ||
             scan?.citekeys[0]?.raw !== key ||
@@ -113,17 +113,17 @@ export async function measureCitationScan(vaultId: string) {
           );
           if (persisted?.citekeys[0]?.raw !== key)
             throw Error("Edited scan did not reach IndexedDB");
-          return cpuMs;
+          return timings;
         };
-        await barrier();
-        for (let n = 0; n < 18; n++) {
-          const cpuMs = await edit(n);
-          const floorMs = await edit(n, true);
-          if (n >= 3) {
-            samples.push(cpuMs);
-            floorSamples.push(floorMs);
-          }
+        const warmups = 3;
+        const measuredEdits = 15;
+        const profileEdits = 15;
+        const samples: ScanTimings[] = [];
+        for (let n = 0; n < warmups + measuredEdits; n++) {
+          const timings = await edit(n);
+          if (n >= warmups) samples.push(timings);
         }
+        const sameText = await edit(warmups + measuredEdits - 1, true);
         await client.sendCommand("Profiler.enable");
         cleanup.defer(async () => {
           await client.sendCommand("Profiler.disable");
@@ -134,24 +134,43 @@ export async function measureCitationScan(vaultId: string) {
         await client.sendCommand("Profiler.start");
         let profile!: Profiler.Profile;
         try {
-          for (let n = 18; n < 21; n++) await edit(n);
+          const first = warmups + measuredEdits;
+          for (let n = first; n < first + profileEdits; n++) await edit(n);
         } finally {
           ({ profile } = await client.sendCommand("Profiler.stop"));
         }
         return {
           samples,
-          floorSamples,
+          sameText,
           profile,
           characters: 100000,
-          warmups: 3,
-          profileEdits: 3,
+          warmups,
+          profileEdits,
         };
       },
       { text: syntheticNote(100_000, dense, true) },
       { timeoutMs: 120_000 },
     );
-    const sorted = evidence.samples.toSorted((a, b) => a - b);
-    const floorSorted = evidence.floorSamples.toSorted((a, b) => a - b);
+    const samples = evidence.samples.map((timings) => {
+      const post = timings.intakeMs + timings.requestMs;
+      const apply = timings.applyMs - timings.persistMs;
+      return {
+        ...timings,
+        rendererPostMs: post,
+        rendererApplyMs: apply,
+        rendererMs: post + apply,
+      };
+    });
+    const summarize = (phase: keyof (typeof samples)[number]) => {
+      const sorted = samples
+        .map((sample) => sample[phase])
+        .sort((a, b) => a - b);
+      return {
+        medianMs: sorted[Math.floor(sorted.length / 2)]!,
+        p90Ms: sorted[Math.ceil(sorted.length * 0.9) - 1]!,
+        maxMs: sorted.at(-1)!,
+      };
+    };
     const nodes = new Map(
       evidence.profile.nodes.map((node) => [node.id, node]),
     );
@@ -167,14 +186,18 @@ export async function measureCitationScan(vaultId: string) {
     }
     const summary = {
       density,
-      medianMs: sorted[Math.floor(sorted.length / 2)]!,
-      p90Ms: sorted[Math.floor(sorted.length * 0.9)]!,
-      maxMs: sorted.at(-1)!,
-      samples: evidence.samples,
-      harnessFloor: {
-        medianMs: floorSorted[Math.floor(floorSorted.length / 2)]!,
-        maxMs: floorSorted.at(-1)!,
-        samples: evidence.floorSamples,
+      ...summarize("rendererMs"),
+      phases: {
+        post: summarize("rendererPostMs"),
+        apply: summarize("rendererApplyMs"),
+        intake: summarize("intakeMs"),
+        requestEncoding: summarize("encodeMs"),
+        workerPost: summarize("postMs"),
+        workerReceive: summarize("receiveMs"),
+        replyDecoding: summarize("decodeMs"),
+        scanComparison: summarize("compareMs"),
+        reverseMapUpdates: summarize("updateMs"),
+        persistence: summarize("persistMs"),
       },
       topFrames: [...frames.entries()]
         .toSorted((a, b) => b[1] - a[1])
@@ -184,7 +207,7 @@ export async function measureCitationScan(vaultId: string) {
     summaries.push(summary);
     await writeFile(
       join(directory, `citation-scan-renderer-${density}.json`),
-      JSON.stringify({ ...evidence, ...summary }, null, 2),
+      JSON.stringify({ ...evidence, ...summary, samples }, null, 2),
     );
     await writeFile(
       join(directory, `citation-scan-renderer-${density}.cpuprofile`),

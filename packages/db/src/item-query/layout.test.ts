@@ -1,5 +1,7 @@
 import type { NodeDatabaseClient } from "#client/node.ts";
 import { Cause, Effect, Exit } from "effect";
+import { existsSync, rmSync } from "node:fs";
+import { dirname } from "node:path";
 import { constants } from "node:sqlite";
 import type { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
@@ -28,6 +30,32 @@ import { ITEM_QUERY_LAYOUT, OPTIONAL_LAYOUT_COLUMNS } from "#layout/index.ts";
 
 afterEach(() => {
   setLibraryLogSink(undefined);
+});
+
+it("releases the scenario connection and directory when the client factory fails", async ({
+  annotate,
+}) => {
+  await annotate("https://github.com/aidenlx/zotlit-repo/issues/71", "issue");
+  let connection: DatabaseSync | undefined;
+  let directory: string | undefined;
+  const failure = new Error("client setup failed");
+  try {
+    expect(() =>
+      openScenarioDatabase(
+        (sqlite) => {
+          connection = sqlite;
+          directory = dirname(sqlite.location()!);
+          throw failure;
+        },
+        { storage: "temp-directory" },
+      ),
+    ).toThrow(failure);
+    expect(connection?.isOpen).toBe(false);
+    expect(existsSync(directory!)).toBe(false);
+  } finally {
+    if (connection?.isOpen) connection.close();
+    if (directory) rmSync(directory, { recursive: true, force: true });
+  }
 });
 
 function openCopy(

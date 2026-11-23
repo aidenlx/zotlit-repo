@@ -1,5 +1,5 @@
 import { Effect } from "effect";
-import { createHook } from "node:async_hooks";
+import { AsyncLocalStorage, createHook } from "node:async_hooks";
 
 import { ItemQueryStatementObserver } from "@zotlit/db/item-query";
 import type { ItemQueryReader } from "@zotlit/db/item-query";
@@ -29,51 +29,71 @@ export interface QueryObserver {
   cancelled?: (event: CancellationEvent) => void;
 }
 
+interface ExecutionSlice {
+  ms: number;
+  statements: { reader: ItemQueryReader; rows: number }[];
+}
+
 export interface Trace {
   instrument: QueryInstrument;
   engineStart: number | undefined;
   engineEnd: number | undefined;
   paused: number[];
   resumed: number[];
-  slices: { start: number; end: number }[];
-  statements: { reader: ItemQueryReader; rows: number; at: number }[];
+  slices: ExecutionSlice[];
   heapSamples: number[];
 }
 
+const asyncJob = new AsyncLocalStorage<symbol>();
+const running = new Map<symbol, () => ExecutionSlice>();
+const hostCallbacks = new Set<number>();
+const callbacks: { id: number; previousJob: symbol | undefined }[] = [];
+let hostTurn = 0;
+let active: { job: symbol; start: number; slice: ExecutionSlice } | undefined;
+
+function switchJob(job: symbol | undefined): symbol | undefined {
+  const previousJob = active?.job;
+  if (previousJob === job) return previousJob;
+  const at = performance.now();
+  if (active) active.slice.ms += at - active.start;
+  const slice = job === undefined ? undefined : running.get(job);
+  active =
+    job !== undefined && slice ? { job, start: at, slice: slice() } : undefined;
+  return previousJob;
+}
+
+const hook = createHook({
+  init: (id, type) => {
+    if (type !== "PROMISE" && type !== "Microtask" && type !== "TickObject")
+      hostCallbacks.add(id);
+  },
+  before: (id) => {
+    if (callbacks.length === 0 && hostCallbacks.has(id)) hostTurn++;
+    callbacks.push({ id, previousJob: switchJob(asyncJob.getStore()) });
+  },
+  after: (id) => {
+    const callback = callbacks.at(-1);
+    if (callback?.id !== id) return;
+    callbacks.pop();
+    switchJob(callback.previousJob);
+  },
+  destroy: (id) => {
+    hostCallbacks.delete(id);
+  },
+});
+
 export function createTrace(sampleHeap: boolean): Trace {
-  let currentSlice: { start: number; end: number } | undefined;
-  const resources = new Map<number, boolean>();
-  const callbacks: number[] = [];
-  const startSlice = () => {
-    const start = now();
-    currentSlice = { start, end: start };
-    trace.slices.push(currentSlice);
+  const job = Symbol();
+  let currentSlice: ExecutionSlice | undefined;
+  let sliceTurn = hostTurn;
+  const jobSlice = () => {
+    if (!currentSlice || sliceTurn !== hostTurn) {
+      currentSlice = { ms: 0, statements: [] };
+      sliceTurn = hostTurn;
+      trace.slices.push(currentSlice);
+    }
+    return currentSlice;
   };
-  const endWork = () => {
-    if (currentSlice) currentSlice.end = now();
-  };
-  const hook = createHook({
-    init: (id, type) => {
-      resources.set(
-        id,
-        type === "PROMISE" || type === "Microtask" || type === "TickObject",
-      );
-    },
-    before: (id) => {
-      const microtask = resources.get(id);
-      if (microtask === undefined) return;
-      if (callbacks.length === 0 && !microtask) startSlice();
-      callbacks.push(id);
-    },
-    after: (id) => {
-      if (!resources.has(id)) return;
-      endWork();
-      if (callbacks.at(-1) === id) callbacks.pop();
-    },
-    destroy: (id) => {
-      resources.delete(id);
-    },
-  });
   const sample = sampleHeap
     ? () => trace.heapSamples.push(process.memoryUsage().heapUsed)
     : () => {};
@@ -83,24 +103,28 @@ export function createTrace(sampleHeap: boolean): Trace {
     paused: [],
     resumed: [],
     slices: [],
-    statements: [],
     heapSamples: [],
     instrument: (operation) =>
       Effect.gen(function* () {
         trace.engineStart = now();
         sample();
-        startSlice();
-        hook.enable();
+        if (running.size === 0) hook.enable();
+        running.set(job, jobSlice);
         const tracer = yield* Effect.tracer;
         return yield* Effect.withTracer(operation, {
           span: (options) => tracer.span(options),
           context: (primitive, fiber) => {
-            try {
-              return tracer.context
+            const evaluate = () =>
+              tracer.context
                 ? tracer.context(primitive, fiber)
                 : primitive["~effect/Effect/evaluate"](fiber);
+            const previousJob = switchJob(job);
+            try {
+              return asyncJob.getStore() === job
+                ? evaluate()
+                : asyncJob.run(job, evaluate);
             } finally {
-              endWork();
+              switchJob(previousJob);
             }
           },
         });
@@ -109,29 +133,32 @@ export function createTrace(sampleHeap: boolean): Trace {
           Effect.sync(() => {
             trace.engineEnd = now();
             sample();
-            endWork();
-            hook.disable();
-            callbacks.length = 0;
-            resources.clear();
+            if (active?.job === job) switchJob(undefined);
+            running.delete(job);
+            if (running.size === 0) {
+              hook.disable();
+              callbacks.length = 0;
+              hostCallbacks.clear();
+            }
           }),
         ),
         Effect.provideService(ItemQuerySliceObserver, {
           paused: (at) => {
             trace.paused.push(performance.timeOrigin + at);
             sample();
-            endWork();
-            currentSlice = undefined;
           },
           resumed: (at) => {
             trace.resumed.push(performance.timeOrigin + at);
-            if (!currentSlice) startSlice();
+            const insideJob = active?.job === job;
+            if (insideJob) switchJob(undefined);
+            currentSlice = undefined;
+            if (insideJob) switchJob(job);
           },
         }),
         Effect.provideService(ItemQueryStatementObserver, (run) => {
-          trace.statements.push({
+          jobSlice().statements.push({
             reader: run.reader,
             rows: run.rows.length,
-            at: now(),
           });
         }),
       ),
@@ -173,31 +200,24 @@ export function finishTrace(
 ): WorkerMeasurement {
   const finishedAt = now();
   const { slices } = trace;
-  const durations = slices.map(({ start, end }) => end - start);
   let worstIndex = -1;
-  for (const [index, ms] of durations.entries()) {
-    if (worstIndex < 0 || ms > durations[worstIndex]!) worstIndex = index;
+  const statements: WorkerMeasurement["statements"] = {};
+  for (const [index, slice] of slices.entries()) {
+    if (worstIndex < 0 || slice.ms > slices[worstIndex]!.ms) worstIndex = index;
+    for (const { reader, rows } of slice.statements) {
+      const total = (statements[reader] ??= {
+        count: 0,
+        rows: 0,
+        maxRows: 0,
+        longestSliceMs: 0,
+      });
+      total.count++;
+      total.rows += rows;
+      total.maxRows = Math.max(total.maxRows, rows);
+      total.longestSliceMs = Math.max(total.longestSliceMs, slice.ms);
+    }
   }
   const worst = slices[worstIndex];
-  const statements: WorkerMeasurement["statements"] = {};
-  let sliceIndex = 0;
-  for (const { reader, rows, at } of trace.statements) {
-    while (sliceIndex < slices.length - 1 && at > slices[sliceIndex]!.end)
-      sliceIndex++;
-    const total = (statements[reader] ??= {
-      count: 0,
-      rows: 0,
-      maxRows: 0,
-      longestSliceMs: 0,
-    });
-    total.count++;
-    total.rows += rows;
-    total.maxRows = Math.max(total.maxRows, rows);
-    total.longestSliceMs = Math.max(
-      total.longestSliceMs,
-      durations[sliceIndex] ?? 0,
-    );
-  }
   const measured: WorkerMeasurement = {
     workerMs: finishedAt - context.startedAt,
     engineMs:
@@ -206,14 +226,12 @@ export function finishTrace(
         : trace.engineEnd - trace.engineStart,
     answerMs: context.answerSteps.reduce((total, ms) => total + ms, 0),
     answerSteps: context.answerSteps,
-    slices: durations,
+    slices: slices.map(({ ms }) => ms),
     worstSlice: worst
       ? {
-          ms: durations[worstIndex]!,
+          ms: worst.ms,
           index: worstIndex,
-          statements: trace.statements
-            .filter(({ at }) => at >= worst.start && at <= worst.end)
-            .map(({ reader, rows }) => ({ reader, rows })),
+          statements: worst.statements,
         }
       : undefined,
     pauses: trace.paused.length,

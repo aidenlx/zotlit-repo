@@ -13,6 +13,7 @@ const execFileAsync = promisify(execFile);
 const RECORDER = [
   "packages/e2e/src/docs-walks/docs-walk.ts",
   "packages/e2e/src/docs-walks/camera.ts",
+  "packages/e2e/src/docs-walks/capture.ts",
   "packages/e2e/src/docs-walks/clip-encode.ts",
   "packages/e2e/src/docs-walks/docs-browser.ts",
   "packages/e2e/src/docs-walks/macos-desktop.ts",

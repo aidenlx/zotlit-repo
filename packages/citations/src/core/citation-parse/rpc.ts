@@ -14,6 +14,7 @@ export const CitationParseRpc = RpcGroup.make(
       path: Schema.String,
       generation: Schema.Int,
       text: Schema.String,
+      indexOnly: Schema.optionalKey(Schema.Literal(true)),
     },
     success: Schema.String,
     error: ParseError,

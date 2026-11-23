@@ -227,6 +227,19 @@ describe("document Citation Presentation", { timeout: TIMEOUT }, () => {
     expect(copied).toContain(SECOND_MARKER);
   });
 
+  it("returns no artifact when an export fails after a successful export", async ({
+    annotate,
+  }) => {
+    await annotate(
+      "https://github.com/aidenlx/zotlit-repo/issues/100",
+      "issue",
+    );
+    await using vault = await openVault(NOTE_STYLE_ID);
+    expect((await vault.exportNote()).html).toContain(NOTE_WORD);
+    await vault.setNoteStyle(UNINSTALLED_STYLE_ID);
+    await expect(vault.exportNote()).resolves.toMatchObject({ html: null });
+  });
+
   it("keeps a per-run export style off the note", async () => {
     await using vault = await openVault(NOTE_STYLE_ID);
 

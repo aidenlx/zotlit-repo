@@ -520,6 +520,7 @@ export async function openCitationVault({
     });
   };
 
+  let exportAttempts = 0;
   const held = stack.move();
   return {
     async citationText(citekey = CITATION_KEY) {
@@ -558,7 +559,7 @@ export async function openCitationVault({
     },
     copyOffered,
     async exportNote(override) {
-      const destination = join(dataDir, "exported.html");
+      const destination = join(dataDir, `exported-${++exportAttempts}.html`);
       exportRun.destination = destination;
       exportRun.referencesStyleId = null;
       exportRun.override = override?.styleId;

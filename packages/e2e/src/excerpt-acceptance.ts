@@ -15,6 +15,11 @@ import {
 } from "@zotlit/scripts/fixture";
 import type { FixtureAnnotation } from "@zotlit/scripts/fixture";
 
+import {
+  deferExcerptCleanup,
+  deferExcerptImportCleanup,
+  withExcerptCleanup,
+} from "./excerpt-cleanup.ts";
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 import type { ExcerptImportState } from "./page-excerpt-types.ts";
 import type { PagePdfReaderView } from "./page-notes-types.ts";
@@ -68,20 +73,6 @@ function loadsBetween(
   };
 }
 
-async function cleanupStep(step: () => Promise<void>): Promise<void> {
-  try {
-    await step();
-  } catch {
-    try {
-      await step();
-    } catch (error) {
-      console.warn(
-        `Excerpt acceptance cleanup step failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-}
-
 async function importState(vaultId: string): Promise<string> {
   return obRun(
     vaultId,
@@ -119,11 +110,13 @@ async function settleImport(vaultId: string): Promise<void> {
     await obRunUntil(
       vaultId,
       async ({ page: helpers }) => {
+        const state = helpers.scratch.__zotlitExcerptImport;
+        if (!state || state.settled) return true;
         const button = document.querySelector<HTMLButtonElement>(
           ".modal-container .modal .modal-button-container button.mod-destructive",
         );
         if (button) button.click();
-        return !!helpers.scratch.__zotlitExcerptImport?.settled;
+        return false;
       },
       undefined,
       {
@@ -188,8 +181,15 @@ async function removeUrlProbe(vaultId: string): Promise<void> {
   );
 }
 
-export async function verifyReaderBackedExcerpts(
+export function verifyReaderBackedExcerpts(vaultId: string): Promise<void> {
+  return withExcerptCleanup((cleanup) =>
+    verifyReaderBackedExcerptsInVault(vaultId, cleanup),
+  );
+}
+
+async function verifyReaderBackedExcerptsInVault(
   vaultId: string,
+  cleanup: AsyncDisposableStack,
 ): Promise<void> {
   const m = await import("@zotlit/plugin-messages/messages.ts");
   const layout = await obRun(
@@ -236,32 +236,27 @@ export async function verifyReaderBackedExcerpts(
     },
     { storageKey: JSON.parse(filterKey) },
   );
-  await using cleanup = new AsyncDisposableStack();
-  cleanup.defer(() =>
-    cleanupStep(async () => {
-      await obRun(
-        vaultId,
-        async ({ app }, { storageKey, storageValue }) => {
-          app.saveLocalStorage(storageKey, storageValue);
-        },
-        {
-          storageKey: JSON.parse(filterKey),
-          storageValue: JSON.parse(savedFilter),
-        },
-      );
-    }),
-  );
-  cleanup.defer(() =>
-    cleanupStep(async () => {
-      await obRun(
-        vaultId,
-        async ({ app }, { layout }) => {
-          await app.workspace.changeLayout(JSON.parse(layout));
-        },
-        { layout },
-      );
-    }),
-  );
+  deferExcerptCleanup(cleanup, "restore the saved color filter", async () => {
+    await obRun(
+      vaultId,
+      async ({ app }, { storageKey, storageValue }) => {
+        app.saveLocalStorage(storageKey, storageValue);
+      },
+      {
+        storageKey: JSON.parse(filterKey),
+        storageValue: JSON.parse(savedFilter),
+      },
+    );
+  });
+  deferExcerptCleanup(cleanup, "restore the workspace layout", async () => {
+    await obRun(
+      vaultId,
+      async ({ app }, { layout }) => {
+        await app.workspace.changeLayout(JSON.parse(layout));
+      },
+      { layout },
+    );
+  });
 
   expect(
     await obRun(
@@ -558,22 +553,23 @@ export async function verifyReaderBackedExcerpts(
     undefined,
   );
   const settleImport = importSettlement(vaultId);
-  cleanup.defer(() =>
-    cleanupStep(async () => {
-      await settleImport();
-      await obRun(
-        vaultId,
-        async ({ app }, { importedNotePath, source }) => {
-          const file = app.vault.getFileByPath(importedNotePath);
-          if (file) await app.vault.modify(file, source);
-        },
-        { importedNotePath: importedNote.path, source: importedNote.source },
-      );
-    }),
-  );
-  cleanup.defer(() =>
-    cleanupStep(async () => {
-      await settleImport();
+  const importCleanup = deferExcerptImportCleanup(cleanup, settleImport);
+  deferExcerptCleanup(importCleanup, "restore the Imported Note", async () => {
+    await obRun(
+      vaultId,
+      async ({ app }, { importedNotePath, source }) => {
+        const file = app.vault.getFileByPath(importedNotePath);
+        if (!file)
+          throw new Error(`The Imported Note is missing: ${importedNotePath}`);
+        await app.vault.modify(file, source);
+      },
+      { importedNotePath: importedNote.path, source: importedNote.source },
+    );
+  });
+  deferExcerptCleanup(
+    importCleanup,
+    "restore the Profile setting",
+    async () => {
       await obRun(
         vaultId,
         async ({ zotlit }, { enabled }) => {
@@ -591,25 +587,22 @@ export async function verifyReaderBackedExcerpts(
         },
         { enabled: templateBinding.enabled },
       );
-    }),
+    },
   );
 
-  cleanup.defer(() =>
-    cleanupStep(async () => {
-      await settleImport();
-      const known = JSON.stringify([...existingFiles]);
-      await obRun(
-        vaultId,
-        async ({ app }, { knownKeys }) => {
-          const known = new Set(knownKeys);
-          for (const file of app.vault.getFiles()) {
-            if (!known.has(file.path)) await app.vault.delete(file);
-          }
-        },
-        { knownKeys: JSON.parse(known) },
-      );
-    }),
-  );
+  deferExcerptCleanup(importCleanup, "remove new assets", async () => {
+    const known = JSON.stringify([...existingFiles]);
+    await obRun(
+      vaultId,
+      async ({ app }, { knownKeys }) => {
+        const known = new Set(knownKeys);
+        for (const file of app.vault.getFiles()) {
+          if (!known.has(file.path)) await app.vault.delete(file);
+        }
+      },
+      { knownKeys: JSON.parse(known) },
+    );
+  });
 
   const prepared = await obRun(
     vaultId,
@@ -685,9 +678,10 @@ export async function verifyReaderBackedExcerpts(
     borrowed.outcome.sha256,
   );
 
-  cleanup.defer(() =>
-    cleanupStep(async () => {
-      await settleImport();
+  deferExcerptCleanup(
+    importCleanup,
+    "clear the import state and close its dialogs",
+    async () => {
       await obRun(
         vaultId,
         async ({ page: helpers }) => {
@@ -699,7 +693,7 @@ export async function verifyReaderBackedExcerpts(
         },
         undefined,
       );
-    }),
+    },
   );
   expect(
     await obRun(
@@ -752,9 +746,9 @@ export async function verifyReaderBackedExcerpts(
             result: null,
             error: null,
           });
-        await services.bridge.runPromise(services.noteIndex.whenIndexed);
-        void services.batchImport
-          .runBatchImport("note", [itemID])
+        void services.bridge
+          .runPromise(services.noteIndex.whenIndexed)
+          .then(() => services.batchImport.runBatchImport("note", [itemID]))
           .then(
             (result) => {
               state.after = (() => {
@@ -1004,8 +998,10 @@ export async function verifyReaderBackedExcerpts(
     },
   );
 
-  cleanup.defer(() =>
-    cleanupStep(async () => {
+  deferExcerptCleanup(
+    cleanup,
+    "release the Excerpt Image renderer",
+    async () => {
       await obRun(
         vaultId,
         async ({ zotlit }) => {
@@ -1013,9 +1009,11 @@ export async function verifyReaderBackedExcerpts(
         },
         undefined,
       );
-    }),
+    },
   );
-  cleanup.defer(() => removeUrlProbe(vaultId));
+  deferExcerptCleanup(cleanup, "remove the object URL probe", () =>
+    removeUrlProbe(vaultId),
+  );
   await installUrlProbe(vaultId);
   const demand = await obRun(
     vaultId,
@@ -1667,9 +1665,19 @@ export async function verifyMultiPdfExcerptBatch(
   expect(batch.memory.node.rss).toBeGreaterThan(0);
 }
 
-export async function verifySavedEditDisplay(
+export function verifySavedEditDisplay(
   vaultId: string,
   context: { skip: (note?: string) => void },
+): Promise<void> {
+  return withExcerptCleanup((cleanup) =>
+    verifySavedEditDisplayInVault(vaultId, context, cleanup),
+  );
+}
+
+async function verifySavedEditDisplayInVault(
+  vaultId: string,
+  context: { skip: (note?: string) => void },
+  cleanup: AsyncDisposableStack,
 ): Promise<void> {
   const card = await obRun(
     vaultId,
@@ -1737,9 +1745,10 @@ export async function verifySavedEditDisplay(
     undefined,
   );
 
-  await using cleanup = new AsyncDisposableStack();
-  cleanup.defer(() =>
-    cleanupStep(async () => {
+  deferExcerptCleanup(
+    cleanup,
+    "release the Excerpt Image renderer",
+    async () => {
       await obRun(
         vaultId,
         async ({ zotlit }) => {
@@ -1747,11 +1756,15 @@ export async function verifySavedEditDisplay(
         },
         undefined,
       );
-    }),
+    },
   );
-  cleanup.defer(() => removeUrlProbe(vaultId));
-  cleanup.defer(() =>
-    cleanupStep(async () => {
+  deferExcerptCleanup(cleanup, "remove the object URL probe", () =>
+    removeUrlProbe(vaultId),
+  );
+  deferExcerptCleanup(
+    cleanup,
+    "restore the saved Annotation edit",
+    async () => {
       await obRun(
         vaultId,
         async ({ zotlit }, { targetKey, commentText, colorValue }) => {
@@ -1774,7 +1787,7 @@ export async function verifySavedEditDisplay(
           colorValue: card.record!.color ?? editedColor,
         },
       );
-    }),
+    },
   );
   await installUrlProbe(vaultId);
   const before = await obRun(

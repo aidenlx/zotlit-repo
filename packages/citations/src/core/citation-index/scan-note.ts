@@ -412,7 +412,10 @@ const MARKDOWN_ESCAPE_OR_REFERENCE = regex(
   "gi",
 );
 
-export function scanNote(text: string): NoteScanRecord {
+export function scanNote(
+  text: string,
+  { indexOnly = false }: { indexOnly?: boolean } = {},
+): NoteScanRecord {
   const record: NoteScanRecord = {
     ranges: [],
     links: [],
@@ -439,7 +442,7 @@ export function scanNote(text: string): NoteScanRecord {
       if (
         ["FencedCode", "CodeBlock", "InlineCode", "Frontmatter"].includes(name)
       ) {
-        if (name === "FencedCode") {
+        if (!indexOnly && name === "FencedCode") {
           const line = location(starts, from).line;
           const lineStart = starts[line]!;
           record.ranges.push({
@@ -465,7 +468,7 @@ export function scanNote(text: string): NoteScanRecord {
     const close = commentText.indexOf("%%", from + 2);
     const to = close < 0 ? text.length : close + 2;
     comments.push({ from, to });
-    record.ranges.push({ kind: "comment", from, to });
+    if (!indexOnly) record.ranges.push({ kind: "comment", from, to });
     mask(body, from, to);
     from = commentText.indexOf("%%", to);
   }
@@ -518,12 +521,13 @@ export function scanNote(text: string): NoteScanRecord {
         let target = raw.slice(embedded ? 3 : 2, -2).split("|")[0]!;
         if (target.endsWith("\\")) target = target.slice(0, -1);
         target = target.replaceAll("\u00a0", " ").trim();
-        record.links.push({
-          kind: "wikilink",
-          embedded,
-          target,
-          position: position(from, to),
-        });
+        if (!indexOnly)
+          record.links.push({
+            kind: "wikilink",
+            embedded,
+            target,
+            position: position(from, to),
+          });
         if (raw.startsWith("[[") && !raw.includes("|")) {
           const link = target;
           const hash = link.indexOf("#");
@@ -569,6 +573,7 @@ export function scanNote(text: string): NoteScanRecord {
             (match, escaped) => escaped ?? decodeHTMLStrict(match),
           );
         if (
+          !indexOnly &&
           name !== "Autolink" &&
           destination &&
           (!destination.includes(":") ||
@@ -612,20 +617,22 @@ export function scanNote(text: string): NoteScanRecord {
     },
   });
   const visible = maskedText(text, body);
-  for (let at = 0; at < visible.length; at++) {
-    if (visible[at] === "\\") at++;
-    else if (visible[at] === "$")
-      record.ranges.push({ kind: "text-dollar", from: at, to: at + 1 });
-  }
+  if (!indexOnly)
+    for (let at = 0; at < visible.length; at++) {
+      if (visible[at] === "\\") at++;
+      else if (visible[at] === "$")
+        record.ranges.push({ kind: "text-dollar", from: at, to: at + 1 });
+    }
   for (const citation of scanPandocCitations(visible)) {
-    record.citations.push({
-      ...citation,
-      keys: citation.items.map(({ citationKey, start, end }) => ({
-        citekey: citationKey,
-        start,
-        end,
-      })),
-    });
+    if (!indexOnly)
+      record.citations.push({
+        ...citation,
+        keys: citation.items.map(({ citationKey, start, end }) => ({
+          citekey: citationKey,
+          start,
+          end,
+        })),
+      });
     for (const item of citation.items)
       record.citekeys.push({
         kind: "citekey",

@@ -327,6 +327,10 @@ describe.skipIf(!reachable)(
     });
 
     it("step 4: select Export; a notice with the file name and the style", async () => {
+      const notice = m.notice_pandoc_export_done({
+        file: EXPORTED_NAME,
+        style: APA_TITLE,
+      });
       const notices = await walk.record(
         "step-4",
         () =>
@@ -377,16 +381,12 @@ describe.skipIf(!reachable)(
             },
             { timeoutMs: 90000 },
           ),
-        { notices: true },
+        { notice },
       );
-      expect(notices).toContain(
-        m.notice_pandoc_export_done({ file: EXPORTED_NAME, style: APA_TITLE }),
-      );
+      expect(notices).toContain(notice);
       expect((await stat(join(vaultPath, EXPORTED))).size).toBeGreaterThan(0);
-      expect(await readNotices(walk.vaultId)).toContain(
-        m.notice_pandoc_export_done({ file: EXPORTED_NAME, style: APA_TITLE }),
-      );
-      await walk.capture("step-4", { notices: true });
+      expect(await readNotices(walk.vaultId)).toContain(notice);
+      await walk.capture("step-4", { notice });
       await walk.compose("step-4");
     });
 

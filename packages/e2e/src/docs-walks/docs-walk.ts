@@ -1,5 +1,6 @@
 import { prepareRunWindow } from "@e2e/background-throttling.ts";
 import type { CameraEvent, Rect } from "@e2e/docs-walks/camera.ts";
+import { captureObsidianLayer } from "@e2e/docs-walks/capture.ts";
 import {
   encodeClip,
   encodeMovie,
@@ -33,7 +34,7 @@ import {
   writeTake,
 } from "@e2e/docs-walks/takes.ts";
 import type { TakeRun } from "@e2e/docs-walks/takes.ts";
-import { clearNotices, cli, obRun } from "@e2e/obsidian-cli.ts";
+import { cli, obRun } from "@e2e/obsidian-cli.ts";
 import { openPairedEnvironment } from "@e2e/paired-environment.ts";
 import { openZoteroRdp } from "@e2e/paired-zotero.ts";
 import type { ZoteroRdp } from "@e2e/paired-zotero.ts";
@@ -170,12 +171,12 @@ export interface DocsWalkOptions {
 export interface DocsWalk extends AsyncDisposable {
   vaultId: string;
   zotero: ZoteroRdp;
-  capture(layer: string, options?: { notices?: boolean }): Promise<void>;
+  capture(layer: string, options?: { notice?: string }): Promise<void>;
   compose(name: string): Promise<void>;
   record<T>(
     name: string,
     actions: () => Promise<T>,
-    options?: { notices?: boolean },
+    options?: { notice?: string },
   ): Promise<T>;
   recordClip<T>(
     name: string,
@@ -194,7 +195,7 @@ export interface DocsWalk extends AsyncDisposable {
 export interface ClipShots {
   obsidian<T>(
     actions: () => Promise<T>,
-    options?: { notices?: boolean },
+    options?: { notice?: string },
   ): Promise<T>;
   browser<T>(
     browser: DocsBrowser,
@@ -268,38 +269,18 @@ export async function openDocsWalk(
     options.collection,
   );
 
-  const taken = new Set<string>();
-  const shoot = async (layer: string, notices: boolean) => {
+  const taken = new Map<string, string>();
+  const shoot = async (layer: string, notice?: string) => {
     await mkdir(captures, { recursive: true });
-    if (!notices) await clearNotices(vaultId);
-    else
-      await obRun(vaultId, async ({ page }) => {
-        await page
-          .until(
-            "notices in place",
-            () =>
-              [...document.querySelectorAll(".notice")].every(
-                (n) => n.getBoundingClientRect().right <= window.innerWidth,
-              ),
-            2000,
-          )
-          .catch(() => undefined);
-      });
-    await obRun(
-      vaultId,
-      () =>
-        new Promise<void>((r) =>
-          requestAnimationFrame(() => requestAnimationFrame(() => r())),
-        ),
-    );
-    await cli([
-      `vault=${vaultId}`,
-      "dev:screenshot",
-      `path=${join(captures, `${layer}.png`)}`,
-    ]);
+    await captureObsidianLayer(vaultId, {
+      lesson: options.slug,
+      layer,
+      path: join(captures, `${layer}.png`),
+      notice,
+    });
   };
 
-  const shootNotices = async (name: string) => {
+  const shootNotice = async (name: string, notice: string) => {
     if (!captureRequested()) return;
     await obRun(vaultId, () => {
       for (const el of document.querySelectorAll<HTMLElement>(
@@ -307,24 +288,29 @@ export async function openDocsWalk(
       ))
         el.style.visibility = "hidden";
     });
-    await shoot(name, true);
-    taken.add(name);
-    await obRun(vaultId, () => {
-      for (const el of document.querySelectorAll<HTMLElement>(
-        "[data-docs-walk-pointer]",
-      ))
-        el.style.visibility = "";
-    });
+    try {
+      await shoot(name, notice);
+    } finally {
+      await obRun(vaultId, () => {
+        for (const el of document.querySelectorAll<HTMLElement>(
+          "[data-docs-walk-pointer]",
+        ))
+          el.style.visibility = "";
+      });
+    }
+    taken.set(name, notice);
   };
 
   const owned = stack.move();
   return {
     vaultId,
     zotero,
-    async capture(layer, { notices = false } = {}) {
+    async capture(layer, { notice } = {}) {
       if (!captureRequested()) return;
-      if (taken.delete(layer)) return;
-      await shoot(layer, notices);
+      const recordedNotice = taken.get(layer);
+      taken.delete(layer);
+      if (recordedNotice !== undefined && recordedNotice === notice) return;
+      await shoot(layer, notice);
     },
     async compose(name) {
       if (!captureRequested()) return;
@@ -349,16 +335,16 @@ export async function openDocsWalk(
         { windowsHide: true },
       );
     },
-    async record(name, actions, { notices = false } = {}) {
+    async record(name, actions, { notice } = {}) {
       if (!recordRequested(name)) return actions();
       const frames = join(captures, `${name}.frames`);
       await rm(frames, { recursive: true, force: true });
       await startRecording(vaultId, frames, settings);
-      if (notices) await holdNotices(vaultId);
+      if (notice !== undefined) await holdNotices(vaultId);
       let result: Awaited<ReturnType<typeof actions>>;
       try {
         result = await actions();
-        if (notices) await shootNotices(name);
+        if (notice !== undefined) await shootNotice(name, notice);
         await new Promise((r) => setTimeout(r, settings.rest * 1000));
       } finally {
         await stopRecording(vaultId, frames, settings);
@@ -405,13 +391,13 @@ export async function openDocsWalk(
         return join(frames, dir);
       };
       const result = await run({
-        async obsidian(actions, { notices = false } = {}) {
+        async obsidian(actions, { notice } = {}) {
           const dir = shot("obsidian");
           await mkdir(dir, { recursive: true });
           await startRecording(vaultId, dir, settings);
           try {
             const value = await actions();
-            if (notices) await shootNotices(name);
+            if (notice !== undefined) await shootNotice(name, notice);
             await new Promise((r) => setTimeout(r, settings.rest * 1000));
             return value;
           } finally {

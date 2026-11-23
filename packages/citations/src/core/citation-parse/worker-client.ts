@@ -1,5 +1,5 @@
 import * as BrowserWorker from "@effect/platform-browser/BrowserWorker";
-import { Cause, Context, Effect, Layer, Schema } from "effect";
+import { Cause, Context, Effect, Layer, Option, Schema } from "effect";
 import { RpcClient, RpcClientError } from "effect/rpc";
 import type { RpcMessage } from "effect/rpc";
 import { Worker } from "effect/workers";
@@ -52,7 +52,7 @@ const singleWorkerProtocol = RpcClient.Protocol.make(
 
 export const makeParseWorkerClient = Effect.fnUntraced(function* (
   spawn: () => Worker | MessagePort,
-  measureEncoding?: () => () => void,
+  measureEncoding?: () => ((payload: unknown) => void) | undefined,
 ) {
   const protocol = yield* Layer.build(
     Layer.effect(RpcClient.Protocol, singleWorkerProtocol).pipe(
@@ -68,7 +68,13 @@ export const makeParseWorkerClient = Effect.fnUntraced(function* (
             Schema.middlewareEncoding((encode) =>
               Effect.suspend(() => {
                 const end = measureEncoding();
-                return encode.pipe(Effect.tap(() => Effect.sync(end)));
+                return end
+                  ? encode.pipe(
+                      Effect.tap((payload) =>
+                        Effect.sync(() => end(Option.getOrUndefined(payload))),
+                      ),
+                    )
+                  : encode;
               }),
             ),
           ),

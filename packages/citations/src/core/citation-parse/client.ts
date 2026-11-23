@@ -20,6 +20,7 @@ export interface ParseRequest {
   path: string;
   generation: number;
   text: string;
+  indexOnly?: true;
 }
 
 export interface ParseReply {

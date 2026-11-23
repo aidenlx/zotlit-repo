@@ -115,13 +115,13 @@ Use one IndexedDB database per Obsidian app ID and update one path record at a t
 
 The worker serves the same stateless RPC parse handler as the in-process path. Keep the service span and skip transport spans because the latter add work during backfill. Launch the server at the worker lifetime boundary.
 
-Encode the scanner's record once as JSON. RPC carries the string in its success envelope, and the plain client decodes it once. The in-process fixture uses the real handlers on an in-memory protocol pair and closes both ends with the call's Scope.
+Encode the scanner's record once as JSON. RPC carries the string in its success envelope, and the plain client decodes it once. Citation Index requests collect and return citekeys, Wikilink Citations, Annotation Occurrences, and malformed Citations. Full parse requests also collect links, source ranges, and Pandoc citation details. The in-process fixture uses the real handlers on an in-memory protocol pair and closes both ends with the call's Scope.
 
 Each connection owns one worker and one RPC client. RPC owns request IDs, replies, and interruption. Parse requests transfer no owned buffers. The connection Scope revokes its object URL and terminates the dedicated worker, since the platform layer only sends a port close message. Observe worker errors and message errors as connection death even when no parse is waiting. Buffer early messages until the RPC listener is attached.
 
 On death, publish the new availability wait before releasing requests from the old connection so retries join the replacement. Keep the attempt and its deadline in the client lifetime Scope, so a caller that abandons a note cannot prevent recovery from a stalled worker. Instrument codec encoding in the send fiber for benchmarks. Leave the unobserved codec on the production path. [Parse RPC client](../../packages/citations/src/core/citation-parse/worker-client.ts) · [Worker connection](../../packages/citations/src/core/citation-parse/worker-host.ts) · [Recovery](../../packages/citations/src/core/citation-parse/recovering-client.ts)
 
-The Node harness builds the RPC client through Vite as well as the embedded worker. The synthetic client entry sits under the script scope so it receives the Effect renderer entry. Start the Node worker inside the RPC spawner so its ready message cannot run ahead of listener attachment. Test malformed input through the RPC decoder and then send valid input to check recovery. Warm the worker before measuring reply posting to avoid counting readiness buffering. The clock fixture separates client encoding from the actual post. [Production worker entry parity](https://github.com/aidenlx/zotlit-repo/issues/98)
+The Node harness builds the RPC client through Vite as well as the embedded worker. The synthetic client receives the Effect renderer entry. The embedded worker receives the production Effect worker entry. The build checks both entries. Start the Node worker inside the RPC spawner so its ready message cannot run ahead of listener attachment. Test malformed input through the RPC decoder and then send valid input to check recovery. Warm the worker before measuring reply posting to avoid counting readiness buffering. The clock fixture separates client encoding from the actual post. [Production worker entry parity](https://github.com/aidenlx/zotlit-repo/issues/98)
 
 Run the host benchmark on an idle machine with `mise exec -- pnpm --filter @zotlit/obsidian bench src/services/citation-parse/scan-pipeline.bench.ts`. Each cell uses three warm-ups and 15 measured samples. A 10x increase in note size permits a 15x increase in median parse time. The benchmark writes each sample, hardware and Node details, and gate outcomes to `.scratch/scan-pipeline-bench/results.json` before reporting a failure. Dense and sparse paragraphs repeat the same sentence two or 30 times, with a citation per paragraph, a callout every fifth paragraph, and a fence every 25th. The stated sizes count UTF-16 code units.
 
@@ -152,23 +152,18 @@ Check legacy syntax cases to preserve Citations that should keep working. Assert
 
 ### Desktop renderer measurement
 
-Measure the production changed event through renderer task CPU.
-Include reply deserialization, recovery, occurrence map updates,
-and IndexedDB serialization. Worker CPU, disk work, and idle waits
-are outside it. Synchronous IPC and the harness add renderer work.
-Report the same-text floor without subtracting an estimated
-baseline. A readonly transaction queued behind the write bounds
-the persistence interval. Check its record after timing, and
-profile separately to avoid sampling overhead in the gate.
-Replace a citation with a same-width citation so the benchmark
-changes membership without shifting later positions. Send the
-public intake event to exclude editor and Obsidian Markdown work.
+Measure the Citation Index's changed event intake. Start the request timer when the parse fiber starts and end it after the native Worker post. Start the apply timer before the renderer reads the reply and end it after the Citation Index publishes the change. Measure IndexedDB write scheduling and serialization inside that interval and remove their measured duration from the gate. The post and apply intervals include the RPC and recovery code that runs there. The timers stop while the worker parses the note. DevTools IPC, the test harness, and disk work happen outside the gate.
 
-The current gate uses the median of 15 samples and reports the
-90th percentile separately. Shared-process release runs observed
-dense medians up to 6.06 ms. Two garbage collection spikes raised
-one sparse 90th percentile to 3.9 ms over a 1.8 ms median. The
-original renderer target is tracked in [issue 181](https://github.com/aidenlx/zotlit-repo/issues/181).
+Replace a citation with a same-width citation so the benchmark changes membership with stable offsets. Trigger the public metadata event and confirm the updated scan in the index and in IndexedDB. Save per-edit timings for intake, request encoding, Worker post and receipt, JSON decoding, scan comparison, reverse map updates, and persistence. Run the CPU profiler on separate edits.
+
+The reference machine gate uses the median of 15 samples after three warm-ups. Dense and sparse 100,000-character notes must each have a median below 2 ms. Record the 90th percentile and maximum to show the effect of garbage collection and other outliers. [Renderer timing issue](https://github.com/aidenlx/zotlit-repo/issues/181)
+
+On the reference M4 Pro, both densities pass with index-only requests. Dense reply decoding took 0.80 ms at the median, down from 1.40 ms before the projection. Dense persistence took 1.70 ms at the median, outside the gate.
+
+| 100,000-character note | Before projection median | Median  | 90th percentile | Maximum |
+| ---------------------- | ------------------------ | ------- | --------------- | ------- |
+| Dense                  | 2.20 ms                  | 1.60 ms | 1.80 ms         | 2.00 ms |
+| Sparse                 | 0.50 ms                  | 0.20 ms | 0.50 ms         | 0.60 ms |
 
 Test recovery by crossing the real worker boundary. After restart,
 check shifted occurrence offsets to prove that the new worker

@@ -19,7 +19,13 @@ import { checkPerformanceBudgets } from "./performance-mode.ts";
 describe.skipIf(!reachable)("Citation scan pipeline", () => {
   registerEndToEndRunHooks();
 
-  it("keeps all citation syntaxes and annotation embeds across a parse worker restart", async () => {
+  it("keeps all citation syntaxes and annotation embeds across a parse worker restart", async ({
+    annotate,
+  }) => {
+    await annotate(
+      "https://github.com/aidenlx/zotlit-repo/issues/181",
+      "issue",
+    );
     const { vaultId } = run;
     const note = "Scan pipeline smoke.md";
     const literature = "Scan pipeline source.md";
@@ -413,13 +419,13 @@ describe.skipIf(!reachable)("Citation scan pipeline", () => {
       const measurements = await measureCitationScan(vaultId);
       for (const measurement of measurements) {
         console.info(
-          "Citation scan renderer CPU, 100k characters",
+          "Citation scan renderer post and apply, 100k characters",
           measurement,
         );
         checkPerformanceBudgets(() => {
           expect
             .soft(measurement.medianMs, measurement.density)
-            .toBeLessThan(measurement.density === "dense" ? 7 : 3.5);
+            .toBeLessThan(2);
         });
       }
     } finally {

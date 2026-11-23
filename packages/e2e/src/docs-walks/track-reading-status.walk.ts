@@ -541,10 +541,11 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
   });
 
   it("step 4: select a cell, type to-read, and press Enter; the notice Literature note created. and the cell shows to-read", async () => {
+    const notice = m.notice_created_note();
     const suggested = await walk.record(
       "step-4",
       () => mark("wilson", "to-read", true),
-      { notices: true },
+      { notice },
     );
     expect(suggested).toEqual([]);
     const note = await obRunUntil(
@@ -561,14 +562,14 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
       "zotero-key": PAPERS.wilson.key,
       [PROPERTY]: "to-read",
     });
-    expect(await readNotices(walk.vaultId)).toContain(m.notice_created_note());
+    expect(await readNotices(walk.vaultId)).toContain(notice);
     expect(
       await obRun(
         walk.vaultId,
         ({ app }) => app.workspace.getActiveFile()?.path ?? null,
       ),
     ).toBe(PLAN_FILE);
-    await walk.capture("step-4", { notices: true });
+    await walk.capture("step-4", { notice });
     await walk.compose("step-4");
   });
 

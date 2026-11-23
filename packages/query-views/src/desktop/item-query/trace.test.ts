@@ -3,6 +3,8 @@ import { Effect, Exit, Fiber, Scheduler } from "effect";
 import { createHook } from "node:async_hooks";
 import { describe, expect, vi } from "vitest";
 
+import { ItemQueryStatementObserver } from "@zotlit/db/item-query";
+import type { ItemQueryReader } from "@zotlit/db/item-query";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 
 import { createTrace, finishTrace } from "./trace.ts";
@@ -110,6 +112,102 @@ describe("Item Query execution slices", () => {
         const report = reportOf(trace);
         expect(report.engineMs).toBe(660);
         expect(report.slices.filter((ms) => ms > 0)).toEqual([60]);
+      }),
+  );
+
+  it.live(
+    "measures each overlapping job's work and statements",
+    ({ annotate }) =>
+      Effect.gen(function* () {
+        yield* Effect.promise(() =>
+          annotate(
+            "https://github.com/aidenlx/zotlit-repo/issues/150",
+            "issue",
+          ),
+        );
+        const time = yield* Effect.acquireDisposable(Effect.sync(clock));
+        const gateA = Promise.withResolvers<void>();
+        const gateB = Promise.withResolvers<void>();
+        const start = (
+          trace: ReturnType<typeof createTrace>,
+          gate: Promise<void>,
+          work: {
+            reader: ItemQueryReader;
+            beforeWait: number;
+            continuation: number;
+            afterWait: number;
+          },
+        ) =>
+          trace
+            .instrument(
+              Effect.gen(function* () {
+                const observe = yield* ItemQueryStatementObserver;
+                yield* Effect.sync(() => time.work(work.beforeWait));
+                yield* Effect.promise(async () => {
+                  await gate;
+                  time.work(work.continuation);
+                });
+                yield* Effect.sync(() => {
+                  time.work(work.afterWait);
+                  observe({ reader: work.reader, params: {}, rows: [1] });
+                });
+              }),
+            )
+            .pipe(
+              onScheduler({ budgetMs: Infinity }),
+              Effect.forkChild({ startImmediately: true }),
+            );
+        const traceA = createTrace(false);
+        const traceB = createTrace(false);
+        const jobA = yield* start(traceA, gateA.promise, {
+          reader: "scan-page",
+          beforeWait: 2,
+          continuation: 7,
+          afterWait: 3,
+        });
+        const jobB = yield* start(traceB, gateB.promise, {
+          reader: "hydrate-chunk",
+          beforeWait: 5,
+          continuation: 17,
+          afterWait: 4,
+        });
+
+        yield* Effect.promise(
+          () =>
+            new Promise<void>((resolve) => {
+              setImmediate(() => {
+                time.work(70);
+                gateA.resolve();
+                queueMicrotask(() => time.work(40));
+                gateB.resolve();
+                resolve();
+              });
+            }),
+        );
+        yield* Fiber.join(jobA);
+        yield* Fiber.join(jobB);
+
+        const reportA = reportOf(traceA);
+        const reportB = reportOf(traceB);
+        expect(reportA.slices.filter((ms) => ms > 0)).toEqual([2, 10]);
+        expect(reportB.slices.filter((ms) => ms > 0)).toEqual([5, 21]);
+        expect(reportA.worstSlice?.statements).toEqual([
+          { reader: "scan-page", rows: 1 },
+        ]);
+        expect(reportB.worstSlice?.statements).toEqual([
+          { reader: "hydrate-chunk", rows: 1 },
+        ]);
+        expect(reportA.statements).toEqual({
+          "scan-page": { count: 1, rows: 1, maxRows: 1, longestSliceMs: 10 },
+        });
+        expect(reportB.statements).toEqual({
+          "hydrate-chunk": {
+            count: 1,
+            rows: 1,
+            maxRows: 1,
+            longestSliceMs: 21,
+          },
+        });
       }),
   );
 

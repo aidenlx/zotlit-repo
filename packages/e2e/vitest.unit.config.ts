@@ -6,6 +6,9 @@ import { pageTransform } from "./page-transform.ts";
 
 export default defineConfig({
   oxc: pageTransform,
+  resolve: {
+    tsconfigPaths: true,
+  },
   test: {
     include: ["src/**/*.test.ts"],
     globalSetup: testDefaults.globalSetup,

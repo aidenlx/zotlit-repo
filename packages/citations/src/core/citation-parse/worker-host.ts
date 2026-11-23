@@ -1,13 +1,23 @@
 import { Deferred, Effect } from "effect";
 import type { Scope } from "effect";
+import type { RpcMessage } from "effect/rpc";
+import type { Worker as EffectWorker } from "effect/workers";
 
 import { decodeParseReply, ParseFailed, ParseWorkerDied } from "./client.ts";
 import type { ParseRequest, ParseReply } from "./client.ts";
+import {
+  isMeasuringScans,
+  measuredScan,
+  scanMeasurementClock,
+} from "./scan-timings.ts";
 import { makeParseWorkerClient } from "./worker-client.ts";
 
 class EarlyMessageWorker extends EventTarget {
   readonly #worker: Worker;
   readonly #earlyMessages: unknown[] = [];
+  readonly #measurements = __DEV__
+    ? new Map<string | number, NonNullable<ReturnType<typeof measuredScan>>>()
+    : undefined;
   #listening = false;
 
   constructor(worker: Worker) {
@@ -18,7 +28,23 @@ class EarlyMessageWorker extends EventTarget {
         this.#earlyMessages.push(event.data);
         return;
       }
-      this.dispatchEvent(new MessageEvent("message", { data: event.data }));
+      const measurements = __DEV__ ? this.#measurements : undefined;
+      const now = measurements?.size ? scanMeasurementClock() : undefined;
+      const receivedAt = now?.();
+      const data = event.data as EffectWorker.PlatformMessage;
+      const forwarded = new MessageEvent("message", { data });
+      if (measurements && receivedAt !== undefined && data[0] === 1) {
+        const reply = data[1] as RpcMessage.FromServerEncoded;
+        if (reply._tag === "Exit") {
+          const scan = measurements.get(reply.requestId);
+          if (scan) {
+            measurements.delete(reply.requestId);
+            scan.replyAt = receivedAt;
+            scan.timings.receiveMs = scan.now() - receivedAt;
+          }
+        }
+      }
+      this.dispatchEvent(forwarded);
     });
     worker.addEventListener("error", (event) => {
       this.dispatchEvent(
@@ -43,6 +69,26 @@ class EarlyMessageWorker extends EventTarget {
   }
 
   postMessage(message: unknown, options?: StructuredSerializeOptions): void {
+    if (__DEV__ && this.#measurements && isMeasuringScans()) {
+      const [, request] = message as readonly [
+        number,
+        RpcMessage.FromClientEncoded?,
+      ];
+      if (request?._tag === "Interrupt") {
+        this.#measurements.delete(request.requestId);
+      } else if (request?._tag === "Request") {
+        const scan = measuredScan(request.payload as ParseRequest);
+        if (scan) {
+          this.#measurements.set(request.id, scan);
+          const start = scan.now();
+          this.#worker.postMessage(message, options);
+          const end = scan.now();
+          scan.timings.postMs = end - start;
+          scan.timings.requestMs = end - scan.requestAt;
+          return;
+        }
+      }
+    }
     this.#worker.postMessage(message, options);
   }
 
@@ -92,6 +138,18 @@ export const connectParseWorker = Effect.fnUntraced(function* (
   const workerPort = new EarlyMessageWorker(worker);
   const client = yield* makeParseWorkerClient(
     () => workerPort as unknown as Worker,
+    __DEV__
+      ? () => {
+          const now = scanMeasurementClock();
+          if (!now) return undefined;
+          const start = now();
+          return (payload) => {
+            if (payload === undefined) return;
+            const scan = measuredScan(payload as ParseRequest);
+            if (scan) scan.timings.encodeMs = now() - start;
+          };
+        }
+      : undefined,
   ).pipe(
     Effect.mapError((error) => new ParseWorkerDied({ message: String(error) })),
   );
@@ -108,7 +166,13 @@ export const connectParseWorker = Effect.fnUntraced(function* (
           ),
           Effect.flatMap((json) =>
             Effect.try({
-              try: () => decodeParseReply(json),
+              try: () => {
+                const scan = __DEV__ ? measuredScan(request) : undefined;
+                const start = scan?.now() ?? 0;
+                const reply = decodeParseReply(json);
+                if (scan) scan.timings.decodeMs = scan.now() - start;
+                return reply;
+              },
               catch: (error) => new ParseFailed({ message: String(error) }),
             }),
           ),

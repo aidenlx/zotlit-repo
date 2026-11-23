@@ -2,24 +2,15 @@ import { resolve } from "node:path";
 import type { MessagePort } from "node:worker_threads";
 import { build } from "vite";
 
+import type { ParseRequest } from "@zotlit/citations/core/citation-parse/client.ts";
 import { packageSource } from "@zotlit/obsidian-kit/vitest";
-import { effectEntry } from "@zotlit/plugin-kernel/vite";
+import { effectEntry, effectEntryCheck } from "@zotlit/plugin-kernel/vite";
 
 import packageJson from "../package.json" with { type: "json" };
 import { embeddedWorker } from "./embedded-worker.ts";
 
-export interface BenchmarkParseRequest {
-  path: string;
-  generation: number;
-  text: string;
-}
-
 export interface BenchmarkParseClient<Reply> extends AsyncDisposable {
-  parse(
-    this: void,
-    request: BenchmarkParseRequest,
-    signal: AbortSignal,
-  ): Promise<Reply>;
+  parse(this: void, request: ParseRequest, signal: AbortSignal): Promise<Reply>;
 }
 
 const CLIENT_ENTRY_ID = resolve(import.meta.dirname, "scan-benchmark-entry.js");
@@ -83,13 +74,17 @@ export async function scanWorkerBundle<Reply>(): Promise<{
         load: (id) => (id === CLIENT_ENTRY_ID ? CLIENT_ENTRY : null),
       },
       effectEntry("renderer", { scopes }),
+      effectEntryCheck("renderer"),
       embeddedWorker({
         id: "virtual:scan-worker",
         entry: resolve(packageRoot, "src/services/citation-parse/worker.ts"),
         config: {
           define,
           resolve: resolveConfig,
-          plugins: [effectEntry("renderer", { scopes })],
+          plugins: [
+            effectEntry("worker", { scopes }),
+            effectEntryCheck("worker"),
+          ],
           external: [],
           minify: false,
           sourcemap: false,

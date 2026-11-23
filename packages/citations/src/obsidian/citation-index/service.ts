@@ -77,6 +77,12 @@ import {
   openCitekeyStore,
   SCANNER_REVISION,
 } from "#core/citation-index/store.ts";
+import {
+  beginMeasuredScan,
+  observedScan,
+  observeScanTimings,
+  scanMeasurementClock,
+} from "#core/citation-parse/scan-timings.ts";
 
 export {
   citationsEqual,
@@ -988,10 +994,16 @@ function makeCitationIndex(
       return stopped || build !== activeBuildNumber;
     }
 
-    const scan = Effect.fnUntraced(function* (file: TFile, body: string) {
+    const scan = Effect.fnUntraced(function* (
+      file: TFile,
+      body: string,
+      measure = false,
+    ) {
       const { path } = file;
       const { mtime, size } = file.stat;
       const generation = ++nextGeneration;
+      const measurement =
+        __DEV__ && measure ? beginMeasuredScan(path, generation) : undefined;
       const activeBuild = activeBuildNumber;
       const previous = pendingScans.get(path);
       generations.set(path, generation);
@@ -1005,11 +1017,17 @@ function makeCitationIndex(
         generation,
         fiber: yield* Effect.forkIn(
           Effect.gen(function* () {
+            if (measurement) measurement.requestAt = measurement.now();
             const {
               record,
               path: replyPath,
               generation: replyGeneration,
-            } = yield* parser.parse({ path, generation, text: body });
+            } = yield* parser.parse({
+              path,
+              generation,
+              text: body,
+              indexOnly: true,
+            });
             const currentPath = pending.path;
             if (
               stale(activeBuild) ||
@@ -1029,7 +1047,10 @@ function makeCitationIndex(
               malformedAnnotationCitations: record.malformedAnnotationCitations,
             };
             const prev = scans.get(currentPath);
+            const compareAt = measurement?.now() ?? 0;
             const same = scanContentEqual(prev, scan);
+            if (measurement)
+              measurement.timings.compareMs = measurement.now() - compareAt;
             if (
               same &&
               prev?.mtime === mtime &&
@@ -1037,12 +1058,20 @@ function makeCitationIndex(
               prev.scannerRevision === SCANNER_REVISION
             ) {
               yield* setFailed(currentPath, false);
+              measurement?.finish();
               return prev;
             }
+            const updateAt = measurement?.now() ?? 0;
             setScan(currentPath, scan);
+            const persistAt = measurement?.now() ?? 0;
+            if (measurement)
+              measurement.timings.updateMs = persistAt - updateAt;
             yield* persist({ path: currentPath, ...scan });
+            if (measurement)
+              measurement.timings.persistMs = measurement.now() - persistAt;
             yield* setFailed(currentPath, false);
             if (!same) yield* emit("changed", currentPath);
+            measurement?.finish();
             return scan;
           }).pipe(
             Effect.catch((error) =>
@@ -1464,15 +1493,22 @@ function makeCitationIndex(
           switch (event.type) {
             case "metadata": {
               const [change] = event.args;
+              let start: number | undefined;
               if (change._tag === "changed") {
                 if (!isMarkdownFile(change.file)) return;
-                yield* scan(change.file, change.data).pipe(
+                if (__DEV__) start = scanMeasurementClock(change.file.path)?.();
+                yield* scan(change.file, change.data, start !== undefined).pipe(
                   recover,
                   Effect.forkIn(scope, { startImmediately: true }),
                 );
               } else if (change._tag === "deleted")
                 yield* drop(change.file.path);
               yield* emit("cited-by-invalidated");
+              if (start !== undefined && change._tag === "changed") {
+                const measurement = observedScan(change.file.path);
+                if (measurement)
+                  measurement.timings.intakeMs = measurement.now() - start;
+              }
               break;
             }
             case "rename": {
@@ -1535,6 +1571,7 @@ function makeCitationIndex(
       Effect.forkIn(scope, { startImmediately: true }),
     );
     return {
+      ...(__DEV__ ? { observeScanTimings } : {}),
       current,
       changes,
       events,

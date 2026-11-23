@@ -1447,6 +1447,7 @@ describe.skipIf(!reachable)(
     });
 
     it("step 6: at the top right of the PDF tab, select Write literature note; the notice Literature note created. and the note beside the PDF", async () => {
+      const notice = m.notice_created_note();
       const written = await walk.record(
         "step-6",
         () =>
@@ -1523,7 +1524,7 @@ describe.skipIf(!reachable)(
             },
             STEP,
           ),
-        { notices: true },
+        { notice },
       );
       expect(written).toEqual({
         label: m.library_view_menu_write_note(),
@@ -1531,10 +1532,8 @@ describe.skipIf(!reachable)(
         besidePdf: true,
         prompt: false,
       });
-      expect(await readNotices(walk.vaultId)).toContain(
-        m.notice_created_note(),
-      );
-      await walk.capture("step-6", { notices: true });
+      expect(await readNotices(walk.vaultId)).toContain(notice);
+      await walk.capture("step-6", { notice });
       await walk.compose("step-6");
     });
 

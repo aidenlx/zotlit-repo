@@ -64,38 +64,26 @@ export function openScenarioDatabase<Client>(
     readFileSync(pristineTemplatePath()),
   ));
 
-  let sqlite: DatabaseSync;
-  let path: string;
-  let directory: string | null = null;
+  using resources = new DisposableStack();
+  let path = ":memory:";
   if (options.storage === "temp-directory") {
-    directory = mkdtempSync(join(tmpdir(), "zotlit-scenario-"));
+    const directory = mkdtempSync(join(tmpdir(), "zotlit-scenario-"));
+    resources.defer(() => rmSync(directory, { recursive: true, force: true }));
     path = join(directory, "zotero.sqlite");
     writeFileSync(path, pristine);
-    sqlite = new DatabaseSync(path);
-  } else {
-    path = ":memory:";
-    sqlite = new DatabaseSync(path);
-    sqlite.deserialize(pristine);
   }
-
-  try {
-    seedScenario(sqlite, options.annotations);
-    const layout =
-      options.layout ??
-      (process.env.ZOTLIT_SCENARIO_LAYOUT as ScenarioLayout | undefined);
-    if (layout === "lowest") toLowestLayout(sqlite);
-  } catch (error) {
-    sqlite.close();
-    if (directory) rmSync(directory, { recursive: true, force: true });
-    throw error;
-  }
-
-  const close = () => {
-    if (sqlite.isOpen) sqlite.close();
-    if (directory) rmSync(directory, { recursive: true, force: true });
-  };
+  const sqlite = resources.use(new DatabaseSync(path));
+  if (path === ":memory:") sqlite.deserialize(pristine);
+  seedScenario(sqlite, options.annotations);
+  const layout =
+    options.layout ??
+    (process.env.ZOTLIT_SCENARIO_LAYOUT as ScenarioLayout | undefined);
+  if (layout === "lowest") toLowestLayout(sqlite);
+  const db = connect(sqlite);
+  const held = resources.move();
+  const close = () => held.dispose();
   return {
-    db: connect(sqlite),
+    db,
     sqlite,
     path,
     close,
