@@ -52,7 +52,7 @@ import {
   sectionCitationRuns,
   sectionLinktexts,
 } from "./render.ts";
-import type { SectionRuns } from "./render.ts";
+import type { RenderedRuns, SectionRuns } from "./render.ts";
 
 import { CitationPopover } from "#obsidian/citation-popover/service.ts";
 import {
@@ -195,12 +195,12 @@ export const layerWikilinkReading = Layer.effectDiscard(
       }: {
         candidates: SectionRuns;
         diagnosedAnchors: Set<HTMLAnchorElement>;
-        rendered: SectionRuns;
+        rendered: RenderedRuns;
         signal: AbortSignal;
         text: Held<DocumentCitations>;
       },
     ): number => {
-      const runs = [...rendered, ...candidates].sort((a, b) =>
+      const runs = [...rendered.keys(), ...candidates].sort((a, b) =>
         documentOrder(a[0]!.source, b[0]!.source),
       );
       const citations = runs.map((members) => citationOfRun(members));
@@ -225,20 +225,25 @@ export const layerWikilinkReading = Layer.effectDiscard(
       const contents = citations.map((citation, index) =>
         citationContent(citation, text.value, coordinates[index]),
       );
-      const collapsed = new Set(rendered);
-      const shown = renderCitationRuns(runs, (members, index) => {
-        const content = contents[index] ?? null;
-        if (!collapsed.has(members)) {
-          if (content !== null) rendered.push(members);
-          return content;
-        }
-        if (content !== null)
-          showCitation(members[0]!.source, content, "suppress");
-        return null;
-      });
+      const shown = renderCitationRuns(
+        runs,
+        (members, index) => {
+          const content = contents[index] ?? null;
+          const restore = rendered.get(members);
+          if (restore === undefined) return content;
+          if (content !== null) {
+            showCitation(members[0]!.source, content, "suppress");
+          } else if (text.status === "fresh") {
+            restore();
+            rendered.delete(members);
+          }
+          return null;
+        },
+        rendered,
+      );
       if (!display.popoverHover && !display.clickIntercepted) return shown;
       for (const [index, members] of runs.entries()) {
-        if (!rendered.includes(members)) continue;
+        if (!rendered.has(members)) continue;
         attachPopover(
           members,
           { citation: citations[index]!, at: coordinates[index] },
@@ -255,7 +260,7 @@ export const layerWikilinkReading = Layer.effectDiscard(
       if (isDraftMarkdown(el)) return;
       if (retired) return;
       if (!hasInternalLink(el)) return;
-      const rendered: SectionRuns = [];
+      const rendered: RenderedRuns = new Map();
       const diagnosedAnchors = new Set<HTMLAnchorElement>();
       let gestures = new AbortController();
       const rewrite = Effect.gen(function* () {
@@ -272,7 +277,9 @@ export const layerWikilinkReading = Layer.effectDiscard(
         }
         diagnosedAnchors.clear();
         const renderedAnchors = new Set(
-          rendered.flatMap((members) => members.map(({ source }) => source)),
+          [...rendered.keys()].flatMap((members) =>
+            members.map(({ source }) => source),
+          ),
         );
         const targets = yield* literatureNoteTargets(el, {
           sourcePath: ctx.sourcePath,

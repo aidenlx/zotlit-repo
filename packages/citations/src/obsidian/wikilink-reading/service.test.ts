@@ -162,9 +162,11 @@ const harness = Effect.fnUntraced(function* ({
     ),
     scope,
   );
+  const processSection = (root: HTMLElement) =>
+    process!(containerEl.appendChild(root), ctx);
   const processHtml = (html: string) => {
-    const root = containerEl.appendChild(section(html));
-    return { root, result: process!(root, ctx) };
+    const root = section(html);
+    return { root, result: processSection(root) };
   };
   return {
     settings,
@@ -186,6 +188,7 @@ const harness = Effect.fnUntraced(function* ({
       processHtml(`<p>${internalLink(linktext, alias)}</p>`).root,
     renderHtml: (html: string) => processHtml(html).root,
     processHtml,
+    processSection,
     rerenders: () => rerenders,
     unloadSections: () => {
       for (const child of children.splice(0)) child.unload();
@@ -726,7 +729,7 @@ describe("WikilinkReading refresh", () => {
         h.citationText.emit("changed", "note.md");
 
         expect(root.querySelector("a")).toBe(anchor);
-        expect(anchor.textContent).toBe("(Wang et al. 2020, p. 7)");
+        expect(anchor.textContent).toBe(`${WANG} > cite:locator=7`);
         expect(anchor.getAttribute("aria-label")).toBe(
           m.notice_imported_note_profile_unknown({
             stamp: "missing-b",
@@ -793,7 +796,7 @@ describe("WikilinkReading refresh", () => {
   );
 
   it.effect(
-    "keeps the current text when the fresh text holds nothing for a rendered Citation",
+    "keeps the formatted Citation when a read with no matching text is pending or failed",
     () =>
       Effect.gen(function* () {
         const h = yield* harness({
@@ -802,12 +805,46 @@ describe("WikilinkReading refresh", () => {
         });
         const root = h.renderSection(CITE);
 
+        for (const status of ["revalidating", "failed"] as const) {
+          h.citationText.hold({}, status);
+          h.citationText.emit("changed", "note.md");
+
+          expect(root.textContent).toBe("(Wang et al. 2020, p. 7)");
+        }
+        expect(h.rerenders()).toBe(0);
+      }),
+  );
+
+  it.effect(
+    "restores the native link and hover when fresh citation text is missing",
+    () =>
+      Effect.gen(function* () {
+        const h = yield* harness({
+          "citation.wikilink-citations": true,
+          "citation.hover-action": "popover",
+          formatted: before,
+        });
+        const root = section(`<p>${internalLink(CITE)}</p>`);
+        const native = root.cloneNode(true);
+        const anchor = root.querySelector("a")!;
+        void h.processSection(root);
+        expect(anchor.textContent).toBe("(Wang et al. 2020, p. 7)");
+
         h.citationText.hold({});
         h.citationText.emit("changed", "note.md");
 
-        expect(root.textContent).toBe("(Wang et al. 2020, p. 7)");
-        expect(root.querySelector(".zt-citation")).not.toBeNull();
-        expect(h.rerenders()).toBe(0);
+        expect.soft(root.isEqualNode(native)).toBe(true);
+        expect(root.querySelector("a")).toBe(anchor);
+        expect(anchor.dataset["href"]).toBe(CITE);
+        const hover = new MouseEvent("mouseover", { bubbles: true });
+        anchor.dispatchEvent(hover);
+        expect.soft(h.native).toEqual([hover]);
+        expect.soft(h.requests).toHaveLength(0);
+
+        h.citationText.hold(after);
+        h.citationText.emit("changed", "note.md");
+
+        expect(anchor.textContent).toBe("(Wang 2020, 7)");
       }),
   );
 
@@ -834,6 +871,39 @@ describe("WikilinkReading refresh", () => {
         expect(root.textContent).toBe("See (Wang 2020, 7, 9) here.");
         expect(root.querySelectorAll("a")).toHaveLength(1);
         expect(root.querySelector("a")?.dataset["href"]).toBe(CITE);
+      }),
+  );
+
+  it.effect(
+    "restores every native link and separator when fresh text for a Citation Run is missing",
+    () =>
+      Effect.gen(function* () {
+        const source = held("[@wang2020, {p. 7}; @wang2020, {p. 9}]", [
+          WANG_KEY,
+          WANG_KEY,
+        ]);
+        const h = yield* harness({
+          "citation.wikilink-citations": true,
+          formatted: { [source]: "(Wang et al. 2020, pp. 7, 9)" },
+        });
+        const root = section(
+          `<p>See ${internalLink(CITE)}; ${internalLink(`${WANG}#cite:locator=9`)} here.</p>`,
+        );
+        const native = root.cloneNode(true);
+        const [first, second] = root.querySelectorAll("a");
+        const separator = first!.nextSibling;
+        void h.processSection(root);
+        expect(root.textContent).toBe("See (Wang et al. 2020, pp. 7, 9) here.");
+        expect(root.querySelectorAll("a")).toHaveLength(1);
+
+        h.citationText.hold({});
+        h.citationText.emit("changed", "note.md");
+
+        expect.soft(root.isEqualNode(native)).toBe(true);
+        const [restoredFirst, restoredSecond] = root.querySelectorAll("a");
+        expect(restoredFirst).toBe(first);
+        expect.soft(restoredSecond).toBe(second);
+        expect(restoredFirst!.nextSibling).toBe(separator);
       }),
   );
 
@@ -990,6 +1060,7 @@ class CitationTextStub {
   #citekeys: Record<string, string>;
   #formatted: Record<string, string>;
   #pending: boolean;
+  #status: Held<HeldText>["status"] = "fresh";
   #presentationFailure: ProfilePresentationFailure | undefined;
 
   constructor(
@@ -1027,15 +1098,19 @@ class CitationTextStub {
     };
   }
 
-  hold(formatted: Record<string, string>): void {
+  hold(
+    formatted: Record<string, string>,
+    status: Held<HeldText>["status"] = "fresh",
+  ): void {
     this.#formatted = formatted;
     this.#pending = false;
+    this.#status = status;
   }
 
   peek(): Held<HeldText> | null {
     if (this.#pending) return null;
     const value = this.#text();
-    return { value, status: "fresh", settled: Promise.resolve(value) };
+    return { value, status: this.#status, settled: Promise.resolve(value) };
   }
 
   #text(): HeldText {

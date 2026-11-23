@@ -1,4 +1,5 @@
 import type { PresentedCitation } from "#obsidian/citation-text/present.ts";
+import { createRoot } from "react-dom/client";
 
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import { citationRuns } from "@zotlit/plugin-kernel/wikilink-citation.ts";
@@ -23,12 +24,16 @@ function breadcrumb(linktext: string): string {
 
 export type WikilinkCitationOf = (linktext: string) => WikilinkCitation | null;
 
+type CitationRun = readonly RunMember<HTMLAnchorElement>[];
+
 export type FormatWikilinkRun = (
-  run: readonly RunMember<HTMLAnchorElement>[],
+  run: CitationRun,
   index: number,
 ) => PresentedCitation | null;
 
-export type SectionRuns = (readonly RunMember<HTMLAnchorElement>[])[];
+export type SectionRuns = CitationRun[];
+
+export type RenderedRuns = Map<CitationRun, () => void>;
 
 export function hasInternalLink(root: HTMLElement): boolean {
   return root.querySelector(INTERNAL_LINK) !== null;
@@ -52,15 +57,34 @@ export function sectionCitationRuns(
 export function renderCitationRuns(
   runs: SectionRuns,
   format: FormatWikilinkRun,
+  renderedRuns?: RenderedRuns,
 ): number {
   let rendered = 0;
   for (const [index, run] of runs.entries()) {
     const content = format(run, index);
     if (content === null) continue;
     const first = run[0]!.source;
+    const original = renderedRuns && {
+      children: [...first.childNodes],
+      siblings: [] as ChildNode[],
+    };
     for (const { source } of run.slice(1)) {
-      removeBetween(first, source);
+      removeBetween(first, source, original?.siblings);
+      original?.siblings.push(source);
       source.remove();
+    }
+    if (original) {
+      first.replaceChildren();
+      renderedRuns?.set(run, () => {
+        createRoot(first).unmount();
+        first.replaceChildren(...original.children);
+        first.after(...original.siblings);
+        first.classList.remove(
+          themeHook.citation,
+          themeHook.literatureNoteLink,
+        );
+        delete first.dataset["ztClick"];
+      });
     }
     showCitation(first, content, "suppress");
     first.classList.add(themeHook.citation, themeHook.literatureNoteLink);
@@ -112,9 +136,14 @@ function textBetween(
   return text;
 }
 
-function removeBetween(from: ChildNode, to: ChildNode): void {
+function removeBetween(
+  from: ChildNode,
+  to: ChildNode,
+  removed?: ChildNode[],
+): void {
   for (let node = from.nextSibling; node !== null && node !== to;) {
     const next = node.nextSibling;
+    removed?.push(node);
     node.remove();
     node = next;
   }
