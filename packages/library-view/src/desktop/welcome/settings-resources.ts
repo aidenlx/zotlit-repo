@@ -1,3 +1,4 @@
+import { Effect } from "effect";
 import type {
   Setting,
   SettingDefinition,
@@ -67,13 +68,35 @@ function renderMigrationReminderButtons(
   );
   setting.addButton((btn) =>
     btn.setButtonText(m.settings_migration_reminder_mark_done()).onClick(() => {
-      btn.buttonEl.blur();
       void ctx.tab.run(
-        Release.use((release) => release.acknowledgeMigration),
+        Release.use((release) => release.acknowledgeMigration).pipe(
+          Effect.tap(() =>
+            Effect.sync(() =>
+              focusNextResource(setting.settingEl, btn.buttonEl),
+            ),
+          ),
+        ),
         m.settings_failed_migration_done(),
       );
     }),
   );
+}
+
+function focusNextResource(row: HTMLElement, action: HTMLElement): void {
+  if (action.doc.activeElement !== action) return;
+  for (
+    let next = row.nextElementSibling;
+    next;
+    next = next.nextElementSibling
+  ) {
+    const button = next.querySelector<HTMLButtonElement>(
+      "button:not(:disabled)",
+    );
+    if (button?.isShown()) {
+      button.focus();
+      return;
+    }
+  }
 }
 
 export function resourcesGroup(
