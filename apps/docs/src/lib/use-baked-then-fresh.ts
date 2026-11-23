@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 
+export function currentFact<T>(baked: T | null, fresh: T | null): T | null {
+  return baked === null ? null : (fresh ?? baked);
+}
+
 export function useBakedThenFresh<T>(endpoint: string, baked: T): T;
 export function useBakedThenFresh<T>(
   endpoint: string,
@@ -11,6 +15,7 @@ export function useBakedThenFresh<T>(
 ): T | null {
   const [fresh, setFresh] = useState<T | null>(null);
   const carriesFact = baked !== null;
+  if (!carriesFact && fresh !== null) setFresh(null);
 
   useEffect(() => {
     if (!carriesFact) return;
@@ -24,5 +29,5 @@ export function useBakedThenFresh<T>(
     return () => controller.abort();
   }, [endpoint, carriesFact]);
 
-  return fresh ?? baked;
+  return currentFact(baked, fresh);
 }
