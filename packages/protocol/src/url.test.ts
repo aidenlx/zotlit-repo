@@ -539,16 +539,16 @@ describe.each([
 describe("protocolSourceMatches", () => {
   const query = { item: 1, sourceId: SOURCE };
 
-  it("accepts when ids match", () => {
-    expect(protocolSourceMatches(query, SOURCE)).toBe(true);
+  it("accepts when an accepted id matches", () => {
+    expect(protocolSourceMatches(query, ["00000000", SOURCE])).toBe(true);
   });
 
-  it("rejects when ids differ", () => {
-    expect(protocolSourceMatches(query, "00000000")).toBe(false);
+  it("rejects when no accepted id matches", () => {
+    expect(protocolSourceMatches(query, ["00000000"])).toBe(false);
   });
 
-  it("rejects when expected is null", () => {
-    expect(protocolSourceMatches(query, null)).toBe(false);
+  it("rejects when the install accepts no id", () => {
+    expect(protocolSourceMatches(query, [])).toBe(false);
   });
 });
 

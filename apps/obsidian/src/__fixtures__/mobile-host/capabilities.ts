@@ -31,6 +31,7 @@ const LOADING: ZoteroPrefSnapshot = {
   dataDir: "/fixture/zotero",
   databasePath: "/fixture/zotero/zotero.sqlite",
   sourceId: null,
+  acceptedSourceIds: [],
   baseAttachmentPath: null,
   httpPort: null,
 };

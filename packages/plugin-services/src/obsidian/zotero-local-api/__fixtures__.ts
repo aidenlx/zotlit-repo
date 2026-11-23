@@ -522,6 +522,7 @@ export async function localApiClient(
     dataDir: "/Zotero",
     databasePath: "/Zotero/zotero.sqlite",
     sourceId: "fixture-source",
+    acceptedSourceIds: ["fixture-source"],
     baseAttachmentPath: null,
     httpPort: PORT,
   };

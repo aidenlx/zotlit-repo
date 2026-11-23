@@ -158,6 +158,7 @@ describe("References style row", () => {
       dataDir,
       databasePath: join(dataDir, "zotero.sqlite"),
       sourceId: null,
+      acceptedSourceIds: [],
       baseAttachmentPath: null,
       httpPort: null,
     };

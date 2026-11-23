@@ -2,10 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import {
+  acceptedSourceIds,
   PROTOCOL_VERSION,
   PROTOCOL_VERSION_HEADER,
   SOURCE_ID_HEADER,
   SOURCE_MISMATCH_STATUS,
+  sourceIdFromUris,
 } from "@zotlit/protocol";
 
 import { createLiveUpdateApp } from "./live-update-app.ts";
@@ -28,7 +30,7 @@ function makeDeps(
 ): LiveUpdateAppDeps {
   return {
     enabled: () => true,
-    sourceId: () => SOURCE_ID,
+    acceptedSourceIds: () => [SOURCE_ID],
     noteIndex: {
       whenIndexed: () => Promise.resolve(true),
       getIndexedItemKeys: () => ["ABCD2345", "ZZZ99999g17"],
@@ -94,7 +96,7 @@ describe("GET /literature-notes", () => {
   });
 
   it("discards a request when the install has no configured source id", async () => {
-    const app = createLiveUpdateApp(makeDeps({ sourceId: () => null }));
+    const app = createLiveUpdateApp(makeDeps({ acceptedSourceIds: () => [] }));
 
     const res = await app.request("/literature-notes", {
       headers: headers(),
@@ -199,15 +201,19 @@ describe.each([
   it.each([
     {
       scenario: "a different source",
-      expected: SOURCE_ID,
+      accepted: [SOURCE_ID],
       received: "deadbeef",
     },
-    { scenario: "no configured source", expected: null, received: SOURCE_ID },
-  ])("discards a batch with $scenario", async ({ expected, received }) => {
+    { scenario: "no configured source", accepted: [], received: SOURCE_ID },
+  ])("discards a batch with $scenario", async ({ accepted, received }) => {
     const onUpdateMany = vi.fn();
     const onImportNotes = vi.fn();
     const app = createLiveUpdateApp(
-      makeDeps({ sourceId: () => expected, onUpdateMany, onImportNotes }),
+      makeDeps({
+        acceptedSourceIds: () => accepted,
+        onUpdateMany,
+        onImportNotes,
+      }),
     );
 
     const res = await app.request(path, {
@@ -246,5 +252,74 @@ describe("PUT /literature-notes", () => {
         scope: "full",
       }),
     );
+  });
+});
+
+describe("PUT /literature-notes from an install with an accented folder name", () => {
+  const toFileUri = (path: string) => `file://${encodeURI(path)}`;
+  const profile =
+    "/Users/me/Library/Application Support/Zotero/Profiles/abcd.default";
+  const composed = "/Users/me/Caf\u00e9/Zotero";
+  const decomposed = "/Users/me/Cafe\u0301/Zotero";
+  const writer = (dataPath: string) =>
+    sourceIdFromUris(toFileUri(profile), toFileUri(dataPath));
+
+  it.each([
+    {
+      scenario: "a composed folder and a decomposed sender",
+      local: composed,
+      sender: decomposed,
+    },
+    {
+      scenario: "a decomposed folder and a composed sender",
+      local: decomposed,
+      sender: composed,
+    },
+  ])("accepts the batch for $scenario", async ({ local, sender }) => {
+    const onUpdateMany = vi.fn();
+    const app = createLiveUpdateApp(
+      makeDeps({
+        acceptedSourceIds: () => acceptedSourceIds(profile, local, toFileUri),
+        onUpdateMany,
+      }),
+    );
+
+    const res = await app.request("/literature-notes", {
+      method: "PUT",
+      headers: {
+        ...headers({ [SOURCE_ID_HEADER]: writer(sender) }),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ items: [1], scope: "full" }),
+    });
+
+    expect(res.status).toBe(204);
+    await vi.waitFor(() =>
+      expect(onUpdateMany).toHaveBeenCalledWith({ items: [1], scope: "full" }),
+    );
+  });
+
+  it("answers a sender from an unrelated folder with the source mismatch status", async () => {
+    const onUpdateMany = vi.fn();
+    const app = createLiveUpdateApp(
+      makeDeps({
+        acceptedSourceIds: () =>
+          acceptedSourceIds(profile, composed, toFileUri),
+        onUpdateMany,
+      }),
+    );
+
+    const res = await app.request("/literature-notes", {
+      method: "PUT",
+      headers: {
+        ...headers({ [SOURCE_ID_HEADER]: writer("/Users/me/Other/Zotero") }),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ items: [1], scope: "full" }),
+    });
+
+    await yieldToMain();
+    expect(onUpdateMany).not.toHaveBeenCalled();
+    expect(res.status).toBe(SOURCE_MISMATCH_STATUS);
   });
 });

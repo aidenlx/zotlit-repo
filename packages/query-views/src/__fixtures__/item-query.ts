@@ -42,6 +42,7 @@ function prefSnapshot(source: QuerySource): ZoteroPrefSnapshot {
     dataDir: source.dataDir,
     databasePath: source.databasePath,
     sourceId: source.sourceId,
+    acceptedSourceIds: [source.sourceId],
     baseAttachmentPath: source.baseAttachmentPath,
     httpPort: null,
   };

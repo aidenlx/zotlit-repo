@@ -273,6 +273,7 @@ function servicesFor(setup: Setup = {}) {
       current: Effect.succeed(
         stubService<ZoteroPrefSnapshot>("ZoteroPrefSnapshot", {
           sourceId: SOURCE_ID,
+          acceptedSourceIds: [SOURCE_ID],
           dataDir: "/data",
           baseAttachmentPath: null,
         }),

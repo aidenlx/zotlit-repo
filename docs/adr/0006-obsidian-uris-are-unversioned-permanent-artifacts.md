@@ -157,3 +157,30 @@ Accepted limit: an older Companion reads the 409 as a failed response and shows 
 Rejected: a `PROTOCOL_VERSION` bump. No request body or header changes, and no pairing loses a result it had before. A bump would also make the version gate answer HTTP 426 to every request from an older Companion.
 
 The change is landing from branch `fix/companion-ops-92-94-95-154`. [Issue 95](https://github.com/aidenlx/zotlit-repo/issues/95)
+
+## Amendment (2026-11-23): the receiver accepts both Unicode spellings of its paths
+
+The Source Id writer stays as it is, so every Source Id already in a link
+keeps its value. The Companion and the plugin hash the serialized file URI.
+A file URI escapes each UTF-8 byte, so NFC on the URI string cannot join a
+composed folder name (`Caf%C3%A9`) and a decomposed one (`Cafe%CC%81`). The
+two runtimes can read the same folder in different forms, for example when
+one side gets the home folder from the platform and the other from `HOME`.
+
+The Obsidian receiver therefore accepts a set of Source Ids. It computes
+the current algorithm over its profile and data paths as given, over both
+paths in NFC, and over both paths in NFD. `acceptedSourceIds` in
+`packages/protocol/src/source-id.ts` defines the set, the Zotero
+preference snapshot holds it, and the link gate and the Live Update HTTP
+gate both match against it. A Source Id outside the set gets the answers
+in the amendment above: 409 for a batch PUT, 204 otherwise. The first entry
+is the Id the writer computes, and the settings and command-line output
+show that Id.
+
+Changing the writer was rejected because it would change the Id of an
+install whose two runtimes already agree on a decomposed path, and every
+saved link from that install would stop working.
+
+Limit: a path that mixes both forms in one string, or a profile path and a
+data path in different forms, matches only when one of the three spellings
+equals the sender's. [Normalization follow-up](https://github.com/aidenlx/zotlit-repo/issues/54)

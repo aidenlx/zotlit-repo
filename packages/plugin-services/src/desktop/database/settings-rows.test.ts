@@ -57,6 +57,7 @@ const SNAPSHOT: ZoteroPrefSnapshot = {
   dataDir: "/home/ada/Zotero",
   databasePath: "/home/ada/Zotero/zotero.sqlite",
   sourceId: "source-1",
+  acceptedSourceIds: ["source-1"],
   baseAttachmentPath: null,
   httpPort: null,
 };

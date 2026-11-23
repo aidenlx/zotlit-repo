@@ -18,6 +18,7 @@ export interface ZoteroPrefSnapshot {
   readonly dataDir: string;
   readonly databasePath: string;
   readonly sourceId: string | null;
+  readonly acceptedSourceIds: readonly string[];
   readonly baseAttachmentPath: string | null;
   readonly httpPort: number | null;
 }

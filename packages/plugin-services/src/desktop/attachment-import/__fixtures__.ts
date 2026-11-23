@@ -31,6 +31,7 @@ export function snapshotAt(location: ZoteroLocation): ZoteroPrefSnapshot {
     dataDir: location.dataDir,
     databasePath: join(location.dataDir, "zotero.sqlite"),
     sourceId: null,
+    acceptedSourceIds: [],
     baseAttachmentPath: location.baseAttachmentPath,
     httpPort: null,
   };

@@ -227,7 +227,7 @@ export const layerLocalServer: Layer.Layer<
       "/",
       createLiveUpdateApp({
         enabled: () => liveUpdateEnabled,
-        sourceId: () => run(zoteroPref.current).sourceId,
+        acceptedSourceIds: () => run(zoteroPref.current).acceptedSourceIds,
         noteIndex: noteStatus,
         onNotify: dispatch,
         onUpdateMany: (event) => void PubSub.publishUnsafe(updateMany, event),

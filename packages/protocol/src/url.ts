@@ -75,9 +75,9 @@ export type ProtocolQuery = v.InferOutput<typeof protocolQuerySchema>;
 
 export function protocolSourceMatches(
   query: { sourceId: string },
-  expected: string | null,
+  accepted: readonly string[],
 ): boolean {
-  return expected !== null && query.sourceId === expected;
+  return accepted.includes(query.sourceId);
 }
 
 export function buildProtocolUrl(

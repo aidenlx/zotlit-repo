@@ -69,6 +69,7 @@ export async function bibliographyRenderFixture(
     profileDirOverride: null,
     databasePath: "",
     sourceId: null,
+    acceptedSourceIds: [],
     baseAttachmentPath: null,
     httpPort: null,
   });

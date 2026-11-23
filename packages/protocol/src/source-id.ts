@@ -24,3 +24,22 @@ export function sourceIdFromUris(profileUri: string, dataUri: string): string {
   const input = `${normalizeFileUri(profileUri)}\0${normalizeFileUri(dataUri)}`;
   return djb2a(input).toString(16).padStart(8, "0");
 }
+
+export function acceptedSourceIds(
+  profilePath: string,
+  dataPath: string,
+  toFileUri: (path: string) => string,
+): readonly string[] {
+  const ids = [
+    sourceIdFromUris(toFileUri(profilePath), toFileUri(dataPath)),
+    ...UNICODE_FORMS.map((form) =>
+      sourceIdFromUris(
+        toFileUri(profilePath.normalize(form)),
+        toFileUri(dataPath.normalize(form)),
+      ),
+    ),
+  ];
+  return [...new Set(ids)];
+}
+
+const UNICODE_FORMS = ["NFC", "NFD"] as const;

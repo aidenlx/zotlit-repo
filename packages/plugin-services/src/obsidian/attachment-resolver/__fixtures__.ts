@@ -50,6 +50,7 @@ function prefSnapshot(
     dataDir,
     databasePath: `${dataDir}/zotero.sqlite`,
     sourceId: null,
+    acceptedSourceIds: [],
     baseAttachmentPath,
     httpPort: null,
   };

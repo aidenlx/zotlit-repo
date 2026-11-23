@@ -39,7 +39,7 @@ export interface NoteStatusSource {
 
 export interface LiveUpdateAppDeps {
   enabled(): boolean;
-  sourceId(): string | null;
+  acceptedSourceIds(): readonly string[];
   noteIndex: NoteStatusSource;
   onNotify(event: NotifyEvent): void;
   onUpdateMany(event: {
@@ -87,9 +87,9 @@ export function createLiveUpdateApp(deps: LiveUpdateAppDeps): Hono {
     c: Context,
     next: Next,
   ): Promise<Response | void> => {
-    const expected = deps.sourceId();
+    const expected = deps.acceptedSourceIds();
     const received = c.req.header(SOURCE_ID_HEADER);
-    if (expected === null || received !== expected) {
+    if (received === undefined || !expected.includes(received)) {
       Effect.runSyncWith(logServices)(
         Effect.logWarning("Discarded request: source id mismatch").pipe(
           Effect.annotateLogs({

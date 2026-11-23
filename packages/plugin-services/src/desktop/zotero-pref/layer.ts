@@ -25,7 +25,7 @@ import {
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { startupBarrier } from "@zotlit/plugin-kernel/effect-startup.ts";
-import { sourceIdFromUris } from "@zotlit/protocol";
+import { acceptedSourceIds, sourceIdFromUris } from "@zotlit/protocol";
 
 import {
   EXTENSIONS_FILENAME,
@@ -293,6 +293,13 @@ function snapshot(
           pathToFileURL(dataDir).href,
         )
       : null,
+    acceptedSourceIds: input.resolvedProfileDir
+      ? acceptedSourceIds(
+          input.resolvedProfileDir,
+          dataDir,
+          (path) => pathToFileURL(path).href,
+        )
+      : [],
     baseAttachmentPath: typeof base === "string" ? base : null,
     httpPort: resolveZoteroHttpPort(get(ZOTERO_HTTP_PORT_PREF)),
   };

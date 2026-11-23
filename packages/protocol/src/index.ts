@@ -11,6 +11,7 @@ export {
   noteStatusResponseSchema,
 } from "./note-status.ts";
 export {
+  acceptedSourceIds,
   SOURCE_ID_HEADER,
   SOURCE_MISMATCH_STATUS,
   sourceIdFromUris,

@@ -40,6 +40,7 @@ export const ANNOT_PATHS: ZoteroPrefSnapshot = {
   dataDir: "/zotero",
   databasePath: "/zotero/zotero.sqlite",
   sourceId: null,
+  acceptedSourceIds: [],
   baseAttachmentPath: null,
   httpPort: null,
 };

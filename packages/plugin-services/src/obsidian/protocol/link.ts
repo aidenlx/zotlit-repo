@@ -30,13 +30,13 @@ export function parseProtocolData<Query extends { sourceId: string }>(
     );
     if (!parsed) return refuse(LinkOutcome.InvalidLink());
 
-    const { sourceId } = yield* (yield* ZoteroPref).current;
-    if (!protocolSourceMatches(parsed, sourceId)) {
+    const { acceptedSourceIds } = yield* (yield* ZoteroPref).current;
+    if (!protocolSourceMatches(parsed, acceptedSourceIds)) {
       yield* Effect.logWarning("Protocol source id mismatch").pipe(
         Effect.annotateLogs({
           action,
           received: parsed.sourceId,
-          expected: sourceId,
+          expected: acceptedSourceIds,
         }),
       );
       return refuse(LinkOutcome.ForeignSource());

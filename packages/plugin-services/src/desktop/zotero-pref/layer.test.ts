@@ -128,13 +128,15 @@ it.effect("builds with settled preferences before the first read", () =>
     );
     yield* Queue.take(started);
     yield* TestClock.adjust("1 second");
-    expect(yield* Fiber.join(first)).toMatchObject({
+    const snapshot = yield* Fiber.join(first);
+    expect(snapshot).toMatchObject({
       state: "ready",
       resolvedProfileDir: "/profile",
       dataDir: "/research-data",
       databasePath: "/research-data/zotero.sqlite",
       sourceId: expect.any(String),
     });
+    expect(snapshot.acceptedSourceIds).toEqual([snapshot.sourceId]);
   }),
 );
 

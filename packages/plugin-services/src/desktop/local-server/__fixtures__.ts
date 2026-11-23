@@ -39,8 +39,8 @@ export async function buildLocalServer(
     ZoteroPref,
     stubService<ZoteroPref["Service"]>("ZoteroPref", {
       current: Effect.succeed({
-        sourceId: "a1b2c3d4",
-      } as ZoteroPrefSnapshot),
+        acceptedSourceIds: ["a1b2c3d4"],
+      } as Partial<ZoteroPrefSnapshot> as ZoteroPrefSnapshot),
     }),
   );
   const noteIndexLayer = Layer.succeed(
