@@ -433,6 +433,7 @@ export function layerSource(
               {
                 ...previous,
                 lastError: error,
+                moved,
                 ...(!previous.hasClient && {
                   state: "degraded" as const,
                 }),

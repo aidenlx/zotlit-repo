@@ -430,7 +430,7 @@ describe("ZoteroReads source", () => {
   );
 
   it.effect(
-    "keeps the active client when the new source is not a Zotero database",
+    "keeps the active client and reports a failed move to new subscribers",
     () =>
       Effect.gen(function* () {
         const { ports } = testPorts();
@@ -441,7 +441,7 @@ describe("ZoteroReads source", () => {
         const other = join(dir, "other", "zotero.sqlite");
         new DatabaseSync(other).close();
         yield* source.reads.Configure(config({ databasePath: other }));
-        yield* Effect.ignore(source.reads.Refresh());
+        const failure = yield* Effect.flip(source.reads.Refresh());
 
         expect(yield* source.version()).toBe(1);
         yield* waitFor(() =>
@@ -455,6 +455,24 @@ describe("ZoteroReads source", () => {
         expect(
           source.events.find((e) => e._tag === "refresh-failed"),
         ).toMatchObject({ moved: true });
+
+        const seed = Stream.runHead(source.reads.Changes());
+        expect(Option.getOrThrow(yield* seed)).toMatchObject({
+          _tag: "state",
+          state: "ready",
+          error: { message: failure.message },
+          moved: true,
+        });
+
+        writeLibrary(other, 2);
+        yield* source.reads.Refresh();
+        expect(yield* source.version()).toBe(2);
+        expect(Option.getOrThrow(yield* seed)).toEqual({
+          _tag: "state",
+          state: "ready",
+          error: null,
+          readMode: "copy",
+        });
       }),
   );
 
