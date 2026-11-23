@@ -6,13 +6,7 @@ import {
   useState,
 } from "react";
 
-import {
-  askTurn,
-  awaitTurn,
-  endTurn,
-  stopWaiting,
-  takeTurn,
-} from "@/components/recording-turn.ts";
+import { askTurn, endTurn, takeTurn } from "@/components/recording-turn.ts";
 import { m } from "@/paraglide/messages.js";
 
 import { LessonLink, LoopToggle } from "./parts.tsx";
@@ -47,69 +41,78 @@ function Demo() {
   const [paused, setPaused] = useState(false);
   const figure = useRef<HTMLElement>(null);
   const stage = useRef<HTMLDivElement>(null);
-  const inView = useRef(false);
+  const visibleRatio = useRef<number | null>(null);
+  const reduced = useRef(false);
+  const eligible = useRef(false);
   const [flip] = useState(makeFlip);
   const [me] = useState(() => Symbol("table demo"));
 
   const rest = () => {
+    flip.stop(stage.current);
     setActive(false);
     setStep(FINAL);
     setFading(false);
   };
-  const play = (byReader = false) => {
-    if (byReader) takeTurn(me, rest);
-    else if (!askTurn(me, rest)) {
-      awaitTurn(me, () => play());
-      return;
-    }
+  const showCollection = () => {
     setStep(0);
     setFading(false);
+  };
+  const start = () => {
+    showCollection();
     setCycle((c) => c + 1);
     setActive(true);
+    return true;
+  };
+  const updateEligibility = (readerPaused: boolean, byReader = false) => {
+    const wasEligible = eligible.current;
+    const playbackAllowed = !reduced.current && !readerPaused;
+    eligible.current = playbackAllowed && (visibleRatio.current ?? 0) >= 0.5;
+    if (eligible.current) {
+      if (!wasEligible) {
+        if (byReader) takeTurn(me, { rest, start });
+        else {
+          showCollection();
+          askTurn(me, { rest, start });
+        }
+      }
+      return;
+    }
+
+    if (wasEligible) endTurn(me);
+    if (!playbackAllowed || wasEligible) rest();
+    if (playbackAllowed && (visibleRatio.current === 0 || byReader))
+      showCollection();
   };
   const toggle = () => {
-    if (paused) {
-      setPaused(false);
-      if (inView.current) play(true);
-      else setStep(0);
-    } else {
-      setPaused(true);
-      stopWaiting(me);
-      endTurn(me);
-      rest();
-    }
+    setPaused(!paused);
+    updateEligibility(!paused, true);
   };
 
   const onView = useEffectEvent((entry: IntersectionObserverEntry) => {
-    if (entry.intersectionRatio >= 0.5) {
-      if (inView.current) return;
-      inView.current = true;
-      if (!paused) play();
-    } else if (!entry.isIntersecting) {
-      if (inView.current) {
-        inView.current = false;
-        stopWaiting(me);
-        endTurn(me);
-        setActive(false);
-      }
-      if (!paused) {
-        setStep(0);
-        setFading(false);
-      }
-    }
+    visibleRatio.current = entry.intersectionRatio;
+    updateEligibility(paused);
+  });
+  const onMotion = useEffectEvent((matches: boolean) => {
+    reduced.current = matches;
+    updateEligibility(paused);
   });
 
   useEffect(() => {
     const el = figure.current;
     if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const onChange = (event: MediaQueryListEvent) => onMotion(event.matches);
+    onMotion(preference.matches);
+    preference.addEventListener("change", onChange);
     const io = new IntersectionObserver(([entry]) => entry && onView(entry), {
       threshold: [0, 0.5],
     });
     io.observe(el);
     return () => {
       io.disconnect();
-      stopWaiting(me);
+      preference.removeEventListener("change", onChange);
+      visibleRatio.current = null;
+      eligible.current = false;
       endTurn(me);
     };
   }, [me]);

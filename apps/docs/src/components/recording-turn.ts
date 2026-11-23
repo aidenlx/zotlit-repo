@@ -1,43 +1,52 @@
-let holder: symbol | null = null;
-let held = false;
-const rests = new Map<symbol, () => void>();
-const waiting = new Map<symbol, () => void>();
+type Start = () => boolean | PromiseLike<boolean>;
 
-export function takeTurn(me: symbol, rest: () => void) {
-  if (holder && holder !== me) rests.get(holder)?.();
-  holder = me;
-  held = false;
-  rests.set(me, rest);
+interface Loop {
+  rest(): void;
+  start?: Start;
 }
 
-export function askTurn(me: symbol, rest: () => void) {
-  if (held && holder !== me) return false;
-  takeTurn(me, rest);
-  return true;
+interface Turn {
+  me: symbol;
+  loop: Loop;
 }
 
-export function holdTurn(me: symbol) {
-  if (holder !== me) return;
-  held = true;
-  rests.delete(me);
+let holder: Turn | { me: symbol; loop: null } | null = null;
+const waiting = new Map<symbol, Turn>();
+
+export function takeTurn(me: symbol, loop: Loop) {
+  const previous = holder;
+  waiting.delete(me);
+  holder = { me, loop };
+  if (previous?.loop && previous.me !== me) {
+    if (previous.loop.start) waiting.set(previous.me, previous);
+    previous.loop.rest();
+  }
+
+  const finishStart = (started: boolean) => {
+    if (!started) endTurn(me);
+  };
+  const started = loop.start?.();
+  if (typeof started === "boolean") finishStart(started);
+  else if (started) void Promise.resolve(started).then(finishStart);
 }
 
-export function endTurn(me: symbol) {
-  rests.delete(me);
-  if (holder !== me) return;
-  holder = null;
-  held = false;
-  const [next] = waiting.entries();
-  if (next) {
-    waiting.delete(next[0]);
-    next[1]();
+export function askTurn(me: symbol, loop: Loop & { start: Start }) {
+  if (holder?.loop === null && holder.me !== me) {
+    waiting.set(me, { me, loop });
+  } else {
+    takeTurn(me, loop);
   }
 }
 
-export function awaitTurn(me: symbol, resume: () => void) {
-  waiting.set(me, resume);
+export function holdTurn(me: symbol) {
+  waiting.delete(me);
+  if (holder?.me === me) holder = { me, loop: null };
 }
 
-export function stopWaiting(me: symbol) {
+export function endTurn(me: symbol) {
   waiting.delete(me);
+  if (holder?.me !== me) return;
+  holder = null;
+  const next = waiting.values().next().value;
+  if (next) takeTurn(next.me, next.loop);
 }

@@ -60,6 +60,14 @@ const two = (n: number) => String(n).padStart(2, "0");
 
 export function makeFlip() {
   let prev: Map<string, DOMRect> | null = null;
+  const cancel = (elements: Iterable<HTMLElement>) => {
+    for (const el of elements)
+      for (const animation of el.getAnimations()) animation.cancel();
+  };
+  const stop = (root: HTMLElement | null) => {
+    prev = null;
+    if (root) cancel(root.querySelectorAll<HTMLElement>("[data-flip]"));
+  };
   const snap = (root: HTMLElement | null) => {
     if (!root) return;
     const map = new Map<string, DOMRect>();
@@ -72,7 +80,7 @@ export function makeFlip() {
     prev = null;
     if (!root || !map) return;
     const els = [...root.querySelectorAll<HTMLElement>("[data-flip]")];
-    for (const el of els) for (const a of el.getAnimations()) a.cancel();
+    cancel(els);
     const delta = new Map<HTMLElement, { dx: number; dy: number }>();
     for (const el of els) {
       const from = map.get(el.dataset["flip"]!);
@@ -108,7 +116,7 @@ export function makeFlip() {
       );
     }
   };
-  return { snap, play };
+  return { snap, play, stop };
 }
 
 function Icon({

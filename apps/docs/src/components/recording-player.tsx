@@ -24,10 +24,8 @@ import type { CSSProperties, ReactNode } from "react";
 import { secondaryButtonClass } from "@/components/learn/action-classes.ts";
 import {
   askTurn,
-  awaitTurn,
   endTurn,
   holdTurn,
-  stopWaiting,
   takeTurn,
 } from "@/components/recording-turn.ts";
 import { cn } from "@/lib/cn.ts";
@@ -97,22 +95,21 @@ export default function RecordingPlayer({
     v.pause();
   }, []);
 
-  const askPlay = useCallback(() => {
+  const start = useCallback(async () => {
     const v = video.current;
-    if (!v) return;
+    if (!v) return false;
+    if (!v.paused) return true;
     askedPlay.current += 1;
-    void v.play().catch((error: unknown) => {
-      if (!(error instanceof DOMException && error.name === "AbortError")) {
-        askedPlay.current -= 1;
-      }
-    });
+    try {
+      await v.play();
+      return true;
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError")
+        return true;
+      askedPlay.current -= 1;
+      return false;
+    }
   }, []);
-
-  const resume = useRef<(() => void) | null>(null);
-  const yieldTurn = useCallback(() => {
-    rest();
-    if (resume.current) awaitTurn(me, resume.current);
-  }, [me, rest]);
 
   useEffect(() => {
     const v = video.current;
@@ -124,37 +121,21 @@ export default function RecordingPlayer({
       held.observe(v);
       return () => held.disconnect();
     }
-    function play() {
-      if (!v) return;
-      stopWaiting(me);
-      const started = askTurn(me, yieldTurn);
-      if (!started) {
-        awaitTurn(me, play);
-        return;
-      }
-      if (v.paused) askPlay();
-    }
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry?.isIntersecting) {
           rest();
-          stopWaiting(me);
           endTurn(me);
         } else if (mode === "auto" || owedView.current) {
           owedView.current = false;
-          play();
+          askTurn(me, { rest, start });
         }
       },
       mode === "auto" ? { rootMargin: "-40% 0px -40% 0px" } : undefined,
     );
     observer.observe(v);
-    resume.current = play;
-    return () => {
-      resume.current = null;
-      observer.disconnect();
-      stopWaiting(me);
-    };
-  }, [mode, me, rest, askPlay, yieldTurn]);
+    return () => observer.disconnect();
+  }, [mode, me, rest, start]);
 
   useEffect(
     () => () => {
@@ -166,9 +147,8 @@ export default function RecordingPlayer({
 
   useEffect(() => {
     if (!playNow || reduced) return;
-    takeTurn(me, yieldTurn);
-    askPlay();
-  }, [playNow, reduced, me, yieldTurn, askPlay]);
+    takeTurn(me, { rest, start });
+  }, [playNow, reduced, me, rest, start]);
 
   function onPlay() {
     setEnded(false);
@@ -176,7 +156,7 @@ export default function RecordingPlayer({
       askedPlay.current -= 1;
       return;
     }
-    takeTurn(me, rest);
+    takeTurn(me, { rest });
     setTouched(true);
     setChosen("manual");
   }
@@ -202,7 +182,6 @@ export default function RecordingPlayer({
       f.focus({ preventScroll: true });
     }
     setEnded(true);
-    stopWaiting(me);
     endTurn(me);
   }
 
