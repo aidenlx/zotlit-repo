@@ -73,19 +73,21 @@ writes the file into the current directory and will clobber a same-named file.
 ## Run it
 
 ```bash
-node .agents/skills/obsidian-asar-extract/extract.mjs --asar <path-to-archive> [--force]
+node .agents/skills/obsidian-asar-extract/extract.mjs --asar <path-to-archive> [--out <directory>] [--force]
 ```
 
 - `--asar` (required) — path to the archive. The script does **not** search your disk; you
   point it at the file. Run with no `--asar` to print the common per-OS locations.
-- `--out` (optional) — override the output directory (default `node_modules/.ob-rev-<version>/`).
-- `--force` — re-extract even if `node_modules/.ob-rev-<version>/app.js` already exists.
+- `--out` (optional) — use a new or empty directory or reuse an owned output directory.
+- `--force` — replace the contents of an owned directory with a fresh extraction.
 
-The version is read from the archive's internal `package.json` — the single source of truth —
-so the output directory always matches the runtime.
+The default path is `node_modules/.ob-rev-<version>/`, using the version from the archive's
+`package.json`. The script treats that path as owned, including older extractions. For any other
+nonempty directory, the script requires the `.obsidian-asar-extract.json` marker it writes after
+successful extraction. This requirement applies with and without `--force`.
 
-The script prints the resolved output directory as the final stdout line, so a caller can
-capture it. Re-runs are idempotent (skip unless `--force`).
+If an owned directory already contains `app.js`, the script reuses it unless you pass `--force`.
+The script prints the resolved output directory as the final stdout line on success.
 
 ## Get an archive
 
@@ -130,8 +132,6 @@ the full analysis workflow.
 - Only top-level `*.js` files are formatted; `lib/` (vendored deps) is left raw since the RE
   workflow rarely needs it.
 - Reading from an archive uses the in-memory `extractFile`/`extractAll` APIs, never the
-  `asar extract-file` CLI (which writes into the current directory). `extract.mjs` also refuses
-  to delete an `--out` directory unless it is empty or a prior extraction (carries `app.js`),
-  so a misaimed `--out` can't wipe real files.
+  `asar extract-file` CLI (which writes into the current directory).
 - Minified variable names drift between Obsidian versions — always re-derive mappings from the
   `app.js` of the version you extracted.

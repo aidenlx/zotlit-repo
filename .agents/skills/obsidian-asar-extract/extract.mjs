@@ -2,7 +2,7 @@
 
 import { extractAll, extractFile, listPackage } from "@electron/asar";
 import { format } from "oxfmt";
-import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 
@@ -67,20 +67,23 @@ try {
 }
 if (!version) fail("could not read version from the archive's package.json");
 
-const outDir = values.out
-  ? resolve(values.out)
-  : join(process.cwd(), "node_modules", `.ob-rev-${version}`);
-
-if (existsSync(join(outDir, "app.js")) && !values.force) {
-  console.error(`already extracted (use --force to redo): ${outDir}`);
-  console.log(outDir);
-  process.exit(0);
-}
+const defaultOutDir = join(process.cwd(), "node_modules", `.ob-rev-${version}`);
+const outDir = values.out ? resolve(values.out) : defaultOutDir;
+const markerPath = join(outDir, ".obsidian-asar-extract.json");
 
 if (existsSync(outDir)) {
-  const isPriorExtraction = existsSync(join(outDir, "app.js"));
-  if (!isPriorExtraction && readdirSync(outDir).length > 0) {
-    fail(`refusing to delete ${outDir}: not empty and not a prior extraction (no app.js).`);
+  const outputEntries = readdirSync(outDir);
+  const ownsOutput =
+    outDir === defaultOutDir || lstatSync(markerPath, { throwIfNoEntry: false })?.isFile();
+  if (!ownsOutput && outputEntries.length > 0) {
+    fail(
+      `refusing to use ${outDir}: nonempty directory without an extraction marker. Choose an empty output directory.`,
+    );
+  }
+  if (ownsOutput && !values.force && existsSync(join(outDir, "app.js"))) {
+    console.error(`already extracted (use --force to redo): ${outDir}`);
+    console.log(outDir);
+    process.exit(0);
   }
   rmSync(outDir, { recursive: true, force: true });
 }
@@ -107,5 +110,6 @@ for (const name of topLevelJs) {
   }
 }
 
+writeFileSync(markerPath, `${JSON.stringify({ archive, version })}\n`);
 console.error(`done. obsidian ${version} source ready.`);
 console.log(outDir);
