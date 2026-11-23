@@ -75,6 +75,13 @@ describe("authorization notice lifetime", () => {
       expect(notice).not.toHaveProperty("durationMs");
     },
   );
+
+  it.each(["denied", "not-confirmed"] as const)(
+    "gives no authorization notice after %s",
+    (kind) => {
+      expect(allowEditingNotice({ failure: { kind } })).toBeNull();
+    },
+  );
 });
 
 describe("a blocked keyboard gesture", () => {
@@ -183,6 +190,7 @@ describe("a write Zotero refused", () => {
     const answered = [
       { kind: "unauthorized" },
       { kind: "denied" },
+      { kind: "not-confirmed" },
       { kind: "conflict" },
       { kind: "write-token-used" },
       { kind: "unreachable" },

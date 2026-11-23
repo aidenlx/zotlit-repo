@@ -56,14 +56,17 @@ import { m } from "@/paraglide/messages.js";
 
 <Step n={2}>
 
-点击侧边栏标题，然后点击 <UiLabel name={m.capability_enable_editing()} />。切换到 Zotero，在对话框中选择 **Always Allow**。
+点击侧边栏标题，然后点击 <UiLabel name={m.capability_enable_editing()} />。切换到 Zotero，在对话框中选择 **Always Allow**。回到 Obsidian，选择 <UiLabel name={m.modal_zotero_editing_confirm_action()} />。
 
 <Check>
   返回 Obsidian，会弹出提示：{" "}
   <UiLabel name={m.notice_zotero_editing_enabled()} /> 工具栏变为彩色。
 </Check>
 
-<Fix title="工具仍呈暗淡状态">重新执行此步骤并选择 **Always Allow**。</Fix>
+<Fix title="工具仍呈暗淡状态">
+  重新执行此步骤，在 Zotero 中选择 **Always Allow**，然后在 Obsidian 中选择{" "}
+  <UiLabel name={m.modal_zotero_editing_confirm_action()} />。
+</Fix>
 
 </Step>
 

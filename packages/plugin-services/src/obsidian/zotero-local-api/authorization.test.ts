@@ -50,10 +50,15 @@ it("asks Zotero under the one Client Name, and only when a gesture asks", async 
 
 it("refuses an Allow, and keeps no key to send", async () => {
   await using stack = new AsyncDisposableStack();
-  const { service, bridge, requests, credentials } = await setup(stack, {
-    authorize: () => authorized({ remember: false }),
-    write: () => writeAccepted(),
-  });
+  const confirmGrant = vi.fn(() => true);
+  const { service, bridge, requests, credentials } = await setup(
+    stack,
+    {
+      authorize: () => authorized({ remember: false }),
+      write: () => writeAccepted(),
+    },
+    { confirmGrant },
+  );
 
   const grant = await bridge.runPromise(service.authorize);
   const sent = requests.length;
@@ -66,6 +71,7 @@ it("refuses an Allow, and keeps no key to send", async () => {
   );
 
   expect(grant).toEqual({ failure: { kind: "not-remembered" } });
+  expect(confirmGrant).not.toHaveBeenCalled();
   expect(credentials.writes).toEqual([]);
   expect(await bridge.runPromise(service.remembered)).toBe(false);
   expect(capabilityInput(service, bridge).authorized).toBe(false);
@@ -146,32 +152,138 @@ it("raises no second dialog once an authorization is remembered", async () => {
   expect(requests.map(({ url }) => url.pathname)).toEqual(["/api/"]);
 });
 
-it.each<[string, () => Response]>([
+const rememberedGrants: [string, () => Response][] = [
   ["Always Allow", () => authorized({ remember: true })],
   [
     "a dismissed dialog",
     () =>
       authorized({ remember: true, key: "4zQONVs9iqR87qvc4istHwfQ3oUp1Ygi" }),
   ],
-])("reads %s as a grant", async (_outcome, answer) => {
+];
+
+it.each(rememberedGrants)(
+  "keeps editing off when the researcher declines the grant from %s",
+  async (_outcome, answer) => {
+    await using stack = new AsyncDisposableStack();
+    const confirmGrant = vi.fn(() => false);
+    const { service, bridge, requests, credentials } = await setup(
+      stack,
+      { authorize: answer },
+      { confirmGrant },
+    );
+
+    const grant = await bridge.runPromise(service.authorize);
+    const sent = requests.length;
+    const write = await bridge.runPromise(
+      service.authorizedSend(ITEM_PATH, { library: PERSONAL, method: "PATCH" }),
+    );
+
+    expect(grant).toEqual({ failure: { kind: "not-confirmed" } });
+    expect(confirmGrant).toHaveBeenCalledOnce();
+    expect(credentials.writes).toEqual([]);
+    expect(await bridge.runPromise(service.remembered)).toBe(false);
+    expect(capabilityInput(service, bridge).authorized).toBe(false);
+    expect(write).toEqual({ failure: { kind: "unauthorized" } });
+    expect(requests.slice(sent)).toEqual([]);
+  },
+);
+
+it.each(rememberedGrants)(
+  "saves the grant from %s when the researcher confirms it",
+  async (_outcome, answer) => {
+    await using stack = new AsyncDisposableStack();
+    const confirmGrant = vi.fn(() => true);
+    const { service, bridge, credentials } = await setup(
+      stack,
+      { authorize: answer },
+      { confirmGrant },
+    );
+
+    expect(await bridge.runPromise(service.authorize)).toEqual({
+      value: undefined,
+    });
+    expect(confirmGrant).toHaveBeenCalledOnce();
+    expect(credentials.writes).toEqual([
+      { serverID: SERVER_ID, key: expect.any(String) },
+    ]);
+    expect(await bridge.runPromise(service.remembered)).toBe(true);
+    expect(capabilityInput(service, bridge).authorized).toBe(true);
+  },
+);
+
+it("keeps one authorization request in flight while the confirmation waits", async () => {
   await using stack = new AsyncDisposableStack();
-  const { service, bridge } = await setup(stack, { authorize: answer });
+  const pending = Promise.withResolvers<boolean>();
+  const confirmGrant = vi.fn(() => pending.promise);
+  const { service, bridge, requests, credentials } = await setup(
+    stack,
+    {},
+    { confirmGrant },
+  );
 
-  const grant = await bridge.runPromise(service.authorize);
+  const first = bridge.runPromise(service.authorize);
+  await vi.waitFor(() => expect(confirmGrant).toHaveBeenCalledOnce());
+  expect(credentials.writes).toEqual([]);
+  expect(bridge.runSync(service.writeStateFor(null)).authorizing).toBe(true);
+  const second = bridge.runPromise(service.authorize);
+  pending.resolve(true);
 
-  expect(grant).toEqual({ value: undefined });
-  expect(capabilityInput(service, bridge).authorized).toBe(true);
+  expect(await first).toEqual({ value: undefined });
+  expect(await second).toEqual({ value: undefined });
+  expect(confirmGrant).toHaveBeenCalledOnce();
+  expect(
+    requests.filter(({ url }) => url.pathname === "/api/local/authorize"),
+  ).toHaveLength(1);
+  expect(credentials.writes).toHaveLength(1);
+  expect(bridge.runSync(service.writeStateFor(null)).authorizing).toBe(false);
 });
+
+it.each([
+  { decision: "declined", confirmed: false },
+  { decision: "accepted", confirmed: true },
+])(
+  "restores the editing state after a $decision confirmation",
+  async ({ confirmed }) => {
+    await using stack = new AsyncDisposableStack();
+    const credentials = await (async () => {
+      await using firstSession = new AsyncDisposableStack();
+      const client = await setup(
+        firstSession,
+        {},
+        { confirmGrant: () => confirmed },
+      );
+      await client.bridge.runPromise(client.service.authorize);
+      return client.credentials;
+    })();
+
+    const confirmGrant = vi.fn(() => true);
+    const { service, bridge, requests } = await setup(
+      stack,
+      {},
+      { credentials, confirmGrant },
+    );
+    await bridge.runPromise(service.probe);
+
+    expect(capabilityInput(service, bridge).authorized).toBe(confirmed);
+    expect(await bridge.runPromise(service.remembered)).toBe(confirmed);
+    expect(confirmGrant).not.toHaveBeenCalled();
+    expect(requests.map(({ url }) => url.pathname)).toEqual(["/api/"]);
+  },
+);
 
 it("takes Deny as a refusal, and asks again only on the next gesture", async () => {
   await using stack = new AsyncDisposableStack();
-  const { requests, credentials, service, bridge } = await setup(stack, {
-    authorize: () => denied(),
-  });
+  const confirmGrant = vi.fn(() => true);
+  const { requests, credentials, service, bridge } = await setup(
+    stack,
+    { authorize: () => denied() },
+    { confirmGrant },
+  );
 
   const refused = await bridge.runPromise(service.authorize);
 
   expect(refused).toEqual({ failure: { kind: "denied" } });
+  expect(confirmGrant).not.toHaveBeenCalled();
   expect(capabilityInput(service, bridge).authorized).toBe(false);
   expect(credentials.writes).toEqual([]);
   expect(

@@ -85,6 +85,7 @@ import {
 } from "./reader-gestures.ts";
 import { READER_VIEW_TYPE } from "./reader-handle.ts";
 import { registerRunVaultGuard } from "./run-vault-guard.ts";
+import { reloadWindow } from "./window-reload.ts";
 
 const effectPath = createRequire(
   join(
@@ -13932,20 +13933,54 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           expect(await readFile(join(vaultPath, target))).toEqual(bytes);
       }, 120000);
 
+      const noticeShows = (title: string) =>
+        obRunUntil(
+          vaultId!,
+          async (_context, { title }: { title: string }) => {
+            return [
+              ...document.querySelectorAll<HTMLElement>(
+                ".zt-notice .zt-notice-text",
+              ),
+            ].some((node) => node.textContent === title);
+          },
+          { title },
+          { what: `the notice "${title}" to appear` },
+        );
+
+      const answerEditingConfirmation = (confirm: boolean) => {
+        const title = m.modal_zotero_editing_confirm_title();
+        const action = confirm ? m.modal_zotero_editing_confirm_action() : null;
+        return obRunUntil(
+          vaultId!,
+          ({ page }, { title, action }) => {
+            const modal = [
+              ...activeDocument.querySelectorAll(".modal-container .modal"),
+            ].find(
+              (el) => el.querySelector(".modal-title")?.textContent === title,
+            );
+            if (!modal) return false;
+            if (action === null) {
+              modal.ownerDocument.body.dispatchEvent(
+                new KeyboardEvent("keydown", {
+                  key: "Escape",
+                  bubbles: true,
+                  cancelable: true,
+                }),
+              );
+              return true;
+            }
+            const button = [
+              ...modal.querySelectorAll<HTMLButtonElement>("button"),
+            ].find((el) => el.textContent.trim() === action);
+            page.press(button, action);
+            return true;
+          },
+          { title, action },
+          { what: `the "${title}" modal to accept a press` },
+        );
+      };
+
       it("Allow leaves ZotLit read-only, and says so", async () => {
-        const noticeShows = (title: string) =>
-          obRunUntil(
-            vaultId!,
-            async (_context, { title }: { title: string }) => {
-              return [
-                ...document.querySelectorAll<HTMLElement>(
-                  ".zt-notice .zt-notice-text",
-                ),
-              ].some((node) => node.textContent === title);
-            },
-            { title },
-            { what: "the read-only notice with its title text to appear" },
-          );
         const notAllowed =
           "To edit annotations, choose Always Allow in Zotero.";
 
@@ -14096,6 +14131,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           ),
         ).toBe("true");
 
+        await answerEditingConfirmation(true);
         await noticeShows("Zotero editing is enabled.");
         expect(
           await obRun(
@@ -14166,6 +14202,122 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             undefined,
           ),
         ).toBe(true);
+      }, 120000);
+
+      it("a dismissed Zotero dialog leaves ZotLit read-only until the researcher confirms in ZotLit", async () => {
+        const title = m.modal_zotero_editing_confirm_title();
+        await using restore = new AsyncDisposableStack();
+        restore.defer(async () => {
+          await obRun(
+            vaultId!,
+            ({ page }, { title }) => {
+              for (const doc of page.windowDocuments()) {
+                const modal = [
+                  ...doc.querySelectorAll(".modal-container .modal"),
+                ].find(
+                  (el) =>
+                    el.querySelector(".modal-title")?.textContent === title,
+                );
+                if (modal)
+                  doc.body.dispatchEvent(
+                    new KeyboardEvent("keydown", {
+                      key: "Escape",
+                      bubbles: true,
+                      cancelable: true,
+                    }),
+                  );
+              }
+            },
+            { title },
+          );
+        });
+        restore.defer(async () => {
+          await denyAnyAuthorizationDialog(rdp);
+        });
+
+        const forget = () =>
+          obRun(vaultId!, async ({ zotlit }) => {
+            const { bridge, zoteroLocalApi } = zotlit.services;
+            await bridge.runPromise(zoteroLocalApi.forgetAuthorization);
+          });
+        const ask = () =>
+          obRun(vaultId!, ({ zotlit }) => {
+            void zotlit.services.capabilityNotices.allowEditing();
+          });
+        const expectEditing = async (
+          kind: "authorization-required" | "writable",
+        ) => {
+          const state = await obRunUntil(
+            vaultId!,
+            async ({ app, zotlit }, { attachmentKey, title }) => {
+              const { annotationRepository: repository, bridge } =
+                zotlit.services;
+              await bridge.runPromise(repository.probe);
+              const capability = bridge.runSync(
+                repository.capabilityFor(attachmentKey),
+              );
+              const record = JSON.parse(
+                app.secretStorage.getSecret(
+                  "zotlit-zotero-write-authorization",
+                ) ?? "{}",
+              );
+              const confirmationOpen = [
+                ...activeDocument.querySelectorAll(
+                  ".modal-container .modal-title",
+                ),
+              ].some((el) => el.textContent === title);
+              return {
+                kind: capability.kind,
+                hasKey: Object.hasOwn(record, "key"),
+                confirmationOpen,
+              };
+            },
+            { attachmentKey: attachment.key, title },
+            {
+              ready: (state) => state.kind === kind,
+              what: `the annotation capability to be ${kind}`,
+            },
+          );
+          expect(state).toEqual({
+            kind,
+            hasKey: kind === "writable",
+            confirmationOpen: false,
+          });
+        };
+
+        await restorePrompt(rdp);
+        await resetAuthorizations(rdp);
+        await forget();
+        await clearNotices(vaultId!);
+        await expectEditing("authorization-required");
+
+        await ask();
+        expect(await waitForAuthorizationDialog(rdp)).toBe(true);
+        await dismissAuthorizationDialog(rdp);
+        await answerEditingConfirmation(false);
+        await expectEditing("authorization-required");
+        expect(await authorizationCount(rdp)).toBe(1);
+
+        await reloadWindow(vaultId!);
+        await expectEditing("authorization-required");
+
+        await ask();
+        expect(await waitForAuthorizationDialog(rdp)).toBe(true);
+        await clickAuthorizationDialog(rdp, "cancel");
+        await answerEditingConfirmation(true);
+        await noticeShows(m.notice_zotero_editing_enabled());
+        await expectEditing("writable");
+
+        await reloadWindow(vaultId!);
+        await expectEditing("writable");
+        expect(await waitForAuthorizationDialog(rdp, 4)).toBe(false);
+
+        await forget();
+        await resetAuthorizations(rdp);
+        await ask();
+        expect(await waitForAuthorizationDialog(rdp)).toBe(true);
+        await clickAuthorizationDialog(rdp, "extra1");
+        await expectEditing("authorization-required");
       }, 120000);
 
       it("leaves the Attachment's PDF byte-identical", async () => {

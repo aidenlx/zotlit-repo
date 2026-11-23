@@ -76,6 +76,7 @@ export function capabilityOfFailure(
       return { kind: "read-only", reason: "library-read-only" };
     case "unauthorized":
     case "denied":
+    case "not-confirmed":
     case "not-remembered":
     case "not-saved":
       return { kind: "authorization-required" };

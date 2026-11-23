@@ -287,7 +287,7 @@ describe.skipIf(!reachable)(
       await walk.compose("step-1");
     });
 
-    it("step 2: select the sidebar heading and choose Allow editing, then Always Allow in Zotero's dialog; a notice that editing is on, and the tools are in colour", async () => {
+    it("step 2: choose Allow editing, then Always Allow in Zotero, and confirm in Obsidian to enable the tools", async () => {
       const notice = m.notice_zotero_editing_enabled();
       await raiseWindow(walk.vaultId);
       const ask = () =>
@@ -341,6 +341,31 @@ describe.skipIf(!reachable)(
           { file: PAPER.file, enable: m.capability_enable_editing() },
           STEP,
         );
+      const confirmEditing = () => {
+        const title = m.modal_zotero_editing_confirm_title();
+        const action = m.modal_zotero_editing_confirm_action();
+        return obRunUntil(
+          walk.vaultId,
+          async ({ page }, { title, action }) => {
+            const modal = [
+              ...activeDocument.querySelectorAll(".modal-container .modal"),
+            ].find(
+              (el) => el.querySelector(".modal-title")?.textContent === title,
+            );
+            const button =
+              modal &&
+              [...modal.querySelectorAll<HTMLButtonElement>("button")].find(
+                (el) => el.textContent.trim() === action,
+              );
+            if (!button) return false;
+            await page.scratch.docsWalkPointer?.point(button);
+            page.press(button, action);
+            return true;
+          },
+          { title, action },
+          { what: `the "${title}" modal to accept a press` },
+        );
+      };
       const granted = () =>
         obRun(
           walk.vaultId,
@@ -495,7 +520,13 @@ describe.skipIf(!reachable)(
             await setAppVisible("Obsidian", true);
             await raiseWindow(walk.vaultId);
             await new Promise((r) => setTimeout(r, 800));
-            const tools = await shots.obsidian(granted, { notice });
+            const tools = await shots.obsidian(
+              async () => {
+                await confirmEditing();
+                return granted();
+              },
+              { notice },
+            );
             return { asked, dialog, tools };
           });
         } finally {
@@ -508,6 +539,7 @@ describe.skipIf(!reachable)(
           throw new Error("Zotero showed no authorization dialog");
         const dialog = await readDialog();
         await clickAuthorizationDialog(walk.zotero, "cancel");
+        await confirmEditing();
         const tools = await granted();
         await walk.capture("step-2", { notice });
         result = { asked, dialog, tools };

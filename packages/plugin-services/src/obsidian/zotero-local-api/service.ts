@@ -83,6 +83,7 @@ export class ZoteroLocalApi extends Context.Service<
 
 export function layerZoteroLocalApi(options: {
   readonly credentials: WriteAuthorizationStore;
+  readonly confirmGrant: Effect.Effect<boolean>;
 }): Layer.Layer<ZoteroLocalApi, never, ZoteroPref | LocalServer | ZoteroHttp> {
   return Layer.effect(
     ZoteroLocalApi,
@@ -98,6 +99,7 @@ export function layerZoteroLocalApi(options: {
           httpPort: Effect.map(pref.current, ({ httpPort }) => httpPort),
           bus,
           credentials: options.credentials,
+          confirmGrant: options.confirmGrant,
         });
       yield* forkEach(server.dbUpdated, () => freshnessSignal);
       yield* forkEach(resolvedChanged(pref), () => resolvedPathsMoved);

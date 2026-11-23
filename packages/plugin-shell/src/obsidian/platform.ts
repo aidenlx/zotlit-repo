@@ -1,5 +1,6 @@
 import { Effect, Layer } from "effect";
 
+import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -116,6 +117,18 @@ export const platform = extendFeature(platformBase, {
             credentials: new SecretWriteAuthorizationStore({
               secrets: app.secretStorage,
             }),
+            confirmGrant: Effect.suspend(() =>
+              awaitConfirm(
+                {
+                  title: m.modal_zotero_editing_confirm_title(),
+                  content: m.modal_zotero_editing_confirm_content(),
+                  action: m.modal_zotero_editing_confirm_action(),
+                  cancel: m.modal_zotero_editing_confirm_cancel(),
+                  cta: true,
+                },
+                app,
+              ),
+            ),
           });
         }),
       ),

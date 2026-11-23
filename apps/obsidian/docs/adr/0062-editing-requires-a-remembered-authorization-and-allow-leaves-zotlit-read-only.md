@@ -1,6 +1,6 @@
 # Editing requires a Remembered Authorization; Zotero's Allow leaves ZotLit read-only
 
-Zotero's write dialog offers Allow, Always Allow, and Deny. Allow issues a key that Zotero spends on the first authenticated write, whether or not that write succeeds. ZotLit edits only with a key from Always Allow. When Zotero answers `remember: false`, ZotLit discards the key, the Editing Capability stays at authorization required, and a notice says **To edit annotations, choose Always Allow in Zotero.** with an **Allow editing** button that asks again. While the dialog is open, ZotLit's waiting state already says **In Zotero, choose Always Allow. ZotLit cannot edit with Allow. To decline, choose Deny.**
+Zotero's write dialog offers Allow, Always Allow, and Deny. Allow issues a key that Zotero spends on the first authenticated write, whether or not that write succeeds. ZotLit edits only after the researcher confirms a remembered grant in Obsidian. When Zotero answers `remember: false`, ZotLit discards the key, the Editing Capability stays at authorization required, and a notice says **To edit annotations, choose Always Allow in Zotero.** with an **Allow editing** button that asks again. The waiting state says **In Zotero, choose Always Allow, then confirm in Obsidian. ZotLit cannot edit with Allow. To decline, choose Deny.**
 
 A single-use key pays for one write request. Supporting it took its own capability state, a manual-save rule for comment drafts, and special cases in the card controls and the creation toolbar. It cannot serve a group action, which sends one request per Annotation and fails from the second. Zotero always shows Allow and gives the client no way to hide it, so ZotLit cannot prevent the choice; it refuses the key and says what to choose instead.
 
@@ -12,16 +12,19 @@ Accepted on 2026-09-25 with [#1243](https://github.com/aidenlx/zotlit/issues/124
 - **Ask Zotero again at once after Allow** (rejected): opens Zotero's dialog with no action in Obsidian, against ADR 0038, and Zotero allows five prompts a minute.
 - **Spend the refused key with a write built to fail** (rejected): removes the key from Zotero's store, but depends on the order of Zotero's internal checks.
 - **Refuse Allow's key and say to choose Always Allow** (chosen).
+- **Trust `remember: true`** (previous): enables editing for any remembered grant, including the grant Zotero issues on dismissal.
+- **Ask Zotero to move Always Allow off the cancel slot** (upstream): Zotero controls button placement and dismissal behavior.
+- **Ask in Obsidian after a remembered grant** (chosen): save the grant only after the researcher confirms it.
 
 ## Consequences
 
 - Allow's key stays in Zotero's key store. An unused single-use key has no expiry, and the Local API has no revoke; Zotero's **Clear** removes it. The key permits only writes to a database every local process can already read, the reasoning of [ADR 0037](0037-a-remembered-authorization-is-a-per-device-secret-bound-to-the-zotero-server-id.md).
 - When the key from Always Allow cannot be saved to SecretStorage, ZotLit discards it too and says **ZotLit could not save the permission on this device.** Zotero keeps that remembered key until it is cleared.
-- Every **Allow editing** entry reports the answer the same way: a grant, an Allow, or a failed save each show their notice. A Deny stays silent; the capability returns to **Allow editing**.
+- Every **Allow editing** entry reports the answer the same way: a saved grant, an Allow, or a failed save each show their notice. When the researcher denies or declines a grant, the capability returns to **Allow editing** without a notice.
 - Comment drafts always save automatically. A held draft still waits for an explicit **Save comment** (ADR 0048).
-- Closing Zotero's dialog reports Always Allow, so only a press of the Allow button reaches this path.
+- Closing ZotLit's confirmation keeps ZotLit read-only and leaves Zotero's remembered key unused. The Local API has no revoke route. Zotero's **Clear** removes this key as it does an unused Allow key.
 
-A grant received from Zotero but discarded because it was not remembered or saved leaves the capability at authorization required, as a denial does. [Capability mapping](../../../../packages/annotations/src/obsidian/annotation-repository/capability.ts)
+A grant requires confirmation and a successful save. A grant discarded at either step leaves the capability at authorization required, as a denial or an Allow does. [Capability mapping](../../../../packages/annotations/src/obsidian/annotation-repository/capability.ts)
 
 Show a brief confirmation when the grant is saved. An unremembered Allow response offers another user-initiated authorization attempt. A grant the device could not save has its own notice. Other refusals are shown by the capability status. [Authorization notices](../../../../packages/annotations/src/obsidian/annotation-repository/capability-notices.ts)
 
@@ -37,9 +40,10 @@ The Reader toolbar's status affordance shows authorizing and cooldown. Direct ap
 
 If editing already works, let the gesture act without a blocked notice. Otherwise probe and send a report for the Attachment. A report never invokes authorization. Allow editing remains an explicit action in settings.
 
-The current Zotero response does not distinguish dialog dismissal from an
-explicit remembered grant. A recorded test preserves that response shape.
-[Consent follow-up](https://github.com/aidenlx/zotlit-repo/issues/180)
+When the researcher closes Zotero's dialog, Gecko returns button index 1.
+Zotero records that answer as Always Allow and sends a remembered grant.
+ZotLit asks for confirmation in Obsidian and saves the grant after the
+researcher selects **Turn on editing**.
 
 Paired Zotero 10.0 supplied the fixture replies for Allow, Always Allow,
 Deny, and dismissal. Two dismissal methods returned the same remembered
@@ -77,7 +81,7 @@ using Obsidian's runtime API. Reload ZotLit over a recorder so
 its startup patch wraps the recorder instead of letting a link
 open the computer's Zotero. Arrange teardown so an unanswered
 approval dialog cannot block the next run. Always Allow is the
-second dialog button.
+second dialog button. Confirm the remembered grant in Obsidian.
 
 [Annotation authorization lesson](../../../../packages/e2e/src/docs-walks/annotate-pdfs-in-obsidian.walk.ts)
 
@@ -97,7 +101,7 @@ controls its labels. Confirm the window actually opened.
 On failure, press Deny so the outstanding request can finish.
 Gecko's dismissal selects the second slot and can persist an
 Always Allow grant. The proof records that Zotero behavior.
-The client handling follow-up remains in the source tracker.
+ZotLit waits for confirmation in Obsidian before it uses that grant.
 [Issue 180](https://github.com/aidenlx/zotlit-repo/issues/180)
 
 Stub Always Allow for the ZotLit write cases so they can focus

@@ -52,14 +52,15 @@ it.each<[LocalApiFailure, string]>([
   });
 });
 
-it.each<LocalApiFailure>([{ kind: "unauthorized" }, { kind: "denied" }])(
-  "keeps the controls live when Zotero refused the key, not the read",
-  (failure) => {
-    expect(capabilityOf({ kind: "unavailable", failure })).toEqual({
-      kind: "authorization-required",
-    });
-  },
-);
+it.each<LocalApiFailure>([
+  { kind: "unauthorized" },
+  { kind: "denied" },
+  { kind: "not-confirmed" },
+])("keeps authorization available after %o", (failure) => {
+  expect(capabilityOf({ kind: "unavailable", failure })).toEqual({
+    kind: "authorization-required",
+  });
+});
 
 it("turns Zotero's cooldown into the instant it ends", () => {
   const failure: LocalApiFailure = cooldownFailureOf(97);

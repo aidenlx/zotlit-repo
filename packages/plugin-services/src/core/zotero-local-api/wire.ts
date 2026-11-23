@@ -44,6 +44,7 @@ export type LocalApiFailure =
   | { kind: "unauthorized" }
   | { kind: "denied" }
   | { kind: "not-remembered" }
+  | { kind: "not-confirmed" }
   | { kind: "not-saved" }
   | { kind: "library-read-only" }
   | { kind: "conflict" }

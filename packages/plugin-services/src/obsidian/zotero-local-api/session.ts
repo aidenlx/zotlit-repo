@@ -111,6 +111,7 @@ export interface LocalApiSessionDeps {
   httpPort: Effect.Effect<number | null>;
   bus: PubSub.PubSub<LocalApiEvent>;
   credentials: WriteAuthorizationStore;
+  confirmGrant: Effect.Effect<boolean>;
 }
 
 type ProbeState = LocalApiState | { kind: "unprobed" };
@@ -133,6 +134,7 @@ export const makeLocalApiSession = Effect.fnUntraced(function* ({
   httpPort,
   bus,
   credentials,
+  confirmGrant,
 }: LocalApiSessionDeps) {
   const scope = yield* Effect.scope;
   const state = yield* Ref.make<ProbeState>({ kind: "unprobed" });
@@ -424,6 +426,12 @@ export const makeLocalApiSession = Effect.fnUntraced(function* ({
         "Zotero answered Allow, which ZotLit does not keep",
       ).pipe(Effect.annotateLogs({ serverID }));
       return { failure: { kind: "not-remembered" } };
+    }
+    if (!(yield* confirmGrant)) {
+      yield* Effect.logDebug(
+        "The researcher did not confirm the write authorization",
+      ).pipe(Effect.annotateLogs({ serverID }));
+      return { failure: { kind: "not-confirmed" } };
     }
     const saved = yield* Effect.tryPromise(() =>
       credentials.remember(serverID, grant.key),

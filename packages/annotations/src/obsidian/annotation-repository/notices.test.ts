@@ -217,12 +217,12 @@ it.effect(
     }).pipe(Effect.scoped),
 );
 
-it.effect(
-  "stays silent after Deny, which the capability's own status reports",
-  () =>
+it.effect.each(["denied", "not-confirmed"] as const)(
+  "stays silent after %s, which the capability status reports",
+  (kind) =>
     Effect.gen(function* () {
       const { notices, shown } = yield* answering({
-        failure: { kind: "denied" },
+        failure: { kind },
       });
 
       yield* notices.allowEditing;

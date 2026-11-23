@@ -34,6 +34,8 @@ To give ZotLit permission to change annotations in Zotero, select <UiLabel name=
 
 Zotero opens its permission dialog at once. In the dialog, choose **Always Allow**. ZotLit edits only with a permission that Zotero remembers, so **Allow** leaves editing off. To decline, choose **Deny**.
 
+After you choose **Always Allow**, ZotLit asks you to confirm in Obsidian. Select <UiLabel name={m.modal_zotero_editing_confirm_action()} />. Zotero reports a closed dialog as **Always Allow**, so if you closed Zotero's dialog, select <UiLabel name={m.modal_zotero_editing_confirm_cancel()} /> and editing stays off.
+
 While Zotero waits for your answer, the PDF reader toolbar shows <UiLabel name={m.capability_authorizing()} />.
 
 <Callout type="warn" title="Edit one annotation in one application at a time">

@@ -56,7 +56,7 @@ In <UiLabel name={m.library_view_name()} />, select your paper from Lesson 1 (he
 
 <Step n={2}>
 
-Select the sidebar heading, then <UiLabel name={m.capability_enable_editing()} />. Switch to Zotero. In the dialog, select **Always Allow**.
+Select the sidebar heading, then <UiLabel name={m.capability_enable_editing()} />. Switch to Zotero. In the dialog, select **Always Allow**. Back in Obsidian, select <UiLabel name={m.modal_zotero_editing_confirm_action()} />.
 
 <Check>
   Back in Obsidian, the notice appears:{" "}
@@ -65,7 +65,8 @@ Select the sidebar heading, then <UiLabel name={m.capability_enable_editing()} /
 </Check>
 
 <Fix title="The tools stay dimmed">
-  Do this step again and select **Always Allow**.
+  Do this step again, select **Always Allow** in Zotero, then select{" "}
+  <UiLabel name={m.modal_zotero_editing_confirm_action()} /> in Obsidian.
 </Fix>
 
 </Step>

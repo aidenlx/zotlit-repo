@@ -480,6 +480,8 @@ export function unreachable(): never {
 
 export interface ClientOptions {
   key?: string;
+  credentials?: ReturnType<typeof inMemoryCredentials>;
+  confirmGrant?: () => boolean | Promise<boolean>;
 }
 
 export const NOW = DateTime.makeUnsafe("2026-09-16T15:52:21Z");
@@ -508,11 +510,13 @@ export async function localApiClient(
   stack.defer(() => {
     Effect.runSync(PubSub.shutdown(prefChanges));
   });
-  const credentials = inMemoryCredentials(
-    options.key === undefined
-      ? null
-      : { serverID: SERVER_ID, key: options.key },
-  );
+  const credentials =
+    options.credentials ??
+    inMemoryCredentials(
+      options.key === undefined
+        ? null
+        : { serverID: SERVER_ID, key: options.key },
+    );
   let snapshot: ZoteroPrefSnapshot = {
     state: "ready",
     prefs: new Map(),
@@ -550,7 +554,10 @@ export async function localApiClient(
   const server = stubService<LocalServer["Service"]>("LocalServer", {
     dbUpdated: Stream.fromPubSub(dbUpdated),
   });
-  const localApiLayer = layerZoteroLocalApi({ credentials }).pipe(
+  const localApiLayer = layerZoteroLocalApi({
+    credentials,
+    confirmGrant: Effect.promise(async () => options.confirmGrant?.() ?? true),
+  }).pipe(
     Layer.provideMerge(testClockAtNow),
     Layer.provide(
       Layer.mergeAll(

@@ -34,6 +34,8 @@ import { m } from "@/paraglide/messages.js";
 
 Zotero 会立即打开权限对话框。在对话框中选择 **Always Allow**。ZotLit 仅在 Zotero 记住权限的情况下才能进行编辑，因此选择 **Allow** 仍会保持编辑功能关闭。若要拒绝，请选择 **Deny**。
 
+选择 **Always Allow** 后，ZotLit 会请你在 Obsidian 中确认。选择 <UiLabel name={m.modal_zotero_editing_confirm_action()} />。Zotero 会把关闭对话框也报告为 **Always Allow**，因此如果你关闭了 Zotero 的对话框，请选择 <UiLabel name={m.modal_zotero_editing_confirm_cancel()} />，编辑功能会保持关闭。
+
 在 Zotero 等待你响应期间，PDF 阅读器工具栏会显示 <UiLabel name={m.capability_authorizing()} />。
 
 <Callout type="warn" title="同一时间仅在一个应用程序中编辑同一个标注">
