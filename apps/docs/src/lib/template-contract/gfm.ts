@@ -83,6 +83,19 @@ function cell(text: string): string {
   return text.replaceAll("|", "\\|").replaceAll(/\s+/g, " ").trim();
 }
 
+function renderCodeSpan(value: string): string {
+  let fenceLength = 1;
+  for (const run of value.match(/`+/g) ?? []) {
+    fenceLength = Math.max(fenceLength, run.length + 1);
+  }
+  const fence = "`".repeat(fenceLength);
+  const pad =
+    value.startsWith("`") ||
+    value.endsWith("`") ||
+    (value.startsWith(" ") && value.endsWith(" ") && /[^ ]/.test(value));
+  return pad ? `${fence} ${value} ${fence}` : `${fence}${value}${fence}`;
+}
+
 export function renderDocMarkdown(
   doc: Doc,
   onText?: (text: string) => string,
@@ -94,7 +107,7 @@ export function renderDocMarkdown(
           case "text":
             return onText ? onText(node.value) : node.value;
           case "code":
-            return `\`${node.value}\``;
+            return renderCodeSpan(node.value);
           case "link":
             return `[${node.code ? `\`${node.text}\`` : node.text}](${node.href})`;
         }

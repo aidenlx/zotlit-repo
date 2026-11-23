@@ -26,6 +26,8 @@ import type {
 import { SECTIONS } from "./sections.ts";
 import type { SectionSpec } from "./sections.ts";
 
+import { inlineCodeSpans } from "#mdx-text";
+
 interface ReferenceTarget {
   path: string;
   href: string;
@@ -445,7 +447,7 @@ function renderType(type: ContractType, short: boolean): string {
   }
 }
 
-const INLINE = regex("`(?<span>[^`]+)`|\\{@link\\s+(?<target>[^}\\s]+)}", "g");
+const DOC_LINK = regex("\\{@link\\s+(?<target>[^}\\s]+)}", "g");
 
 export function normalizeDoc(
   text: string | undefined,
@@ -467,19 +469,26 @@ function splitInline(
   context: Pick<BuildContext, "ir" | "specs">,
 ): InlineNode[] {
   const nodes: InlineNode[] = [];
-  let cursor = 0;
-  for (const match of paragraph.matchAll(INLINE)) {
-    const start = match.index;
-    if (start > cursor) {
-      nodes.push({ kind: "text", value: paragraph.slice(cursor, start) });
+  function appendProse(text: string) {
+    let cursor = 0;
+    for (let match = DOC_LINK.exec(text); match; match = DOC_LINK.exec(text)) {
+      if (match.index > cursor) {
+        nodes.push({ kind: "text", value: text.slice(cursor, match.index) });
+      }
+      nodes.push(resolveLink(match.groups.target, owner, context));
+      cursor = match.index + match[0].length;
     }
-    const { span, target } = match.groups ?? {};
-    nodes.push(span ? code(span) : resolveLink(target!, owner, context));
-    cursor = start + match[0].length;
+    if (cursor < text.length) {
+      nodes.push({ kind: "text", value: text.slice(cursor) });
+    }
   }
-  if (cursor < paragraph.length) {
-    nodes.push({ kind: "text", value: paragraph.slice(cursor) });
+  let cursor = 0;
+  for (const { start, end, value } of inlineCodeSpans(paragraph)) {
+    appendProse(paragraph.slice(cursor, start));
+    nodes.push(code(value));
+    cursor = end;
   }
+  appendProse(paragraph.slice(cursor));
   return nodes;
 }
 

@@ -91,7 +91,8 @@ export const IR: ContractIR = {
         },
         {
           name: "link",
-          description: "Wiki-link to the leaf.",
+          description:
+            "See {@link Leaf} for ``a `{b}` c`` and {@link Root.name}.",
           optional: false,
           examples: [{ lang: "liquid", code: "{{ zt.link }}" }],
           type: {

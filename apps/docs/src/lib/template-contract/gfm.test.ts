@@ -2,12 +2,55 @@ import { describe, expect, it } from "vitest";
 
 import type { ContractExample } from "@zotlit/db/contract/ir";
 
-import { renderContractTableMarkdown } from "./gfm.ts";
+import { renderContractTableMarkdown, renderDocMarkdown } from "./gfm.ts";
 import { sectionOf } from "./model.ts";
 import { buildPageModel } from "./page-model.ts";
 import { IR, SPECS } from "./test-fixtures.ts";
 
+import { plainMdxText } from "#mdx-text";
+
 const model = buildPageModel(IR, SPECS);
+const linkRow = sectionOf(model, "leaf").tables[0]!.rows.find(
+  (row) => row.name === "link",
+)!;
+
+describe("template doc comments", () => {
+  it("keeps the full code span between contract links in a row description", () => {
+    expect(linkRow.description).toEqual([
+      [
+        { kind: "text", value: "See " },
+        { kind: "link", href: "#leaf", text: "Leaf", code: true },
+        { kind: "text", value: " for " },
+        { kind: "code", value: "a `{b}` c" },
+        { kind: "text", value: " and " },
+        { kind: "link", href: "#root-name", text: "name", code: true },
+        { kind: "text", value: "." },
+      ],
+    ]);
+  });
+
+  it("renders a validated code span with a longer backtick fence", () => {
+    expect(
+      renderDocMarkdown(linkRow.description, (text) =>
+        plainMdxText(text, "Doc comment prose"),
+      ),
+    ).toEqual([
+      "See [`Leaf`](#leaf) for ``a `{b}` c`` and [`name`](#root-name).",
+    ]);
+  });
+
+  it("pads code that begins and ends with a backtick", () => {
+    expect(renderDocMarkdown([[{ kind: "code", value: "`value`" }]])).toEqual([
+      "`` `value` ``",
+    ]);
+  });
+
+  it("preserves code spans and contract links in table cells", () => {
+    expect(renderContractTableMarkdown(model, "leaf")).toContain(
+      "See [`Leaf`](#leaf) for ``a `{b}` c`` and [`name`](#root-name).",
+    );
+  });
+});
 
 function modelWithLinkExample(example: ContractExample, sample = "leaf") {
   const ir = structuredClone(IR);
