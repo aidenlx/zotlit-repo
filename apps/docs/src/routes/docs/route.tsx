@@ -1,6 +1,5 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import type { Root } from "fumadocs-core/page-tree";
 import { DocsLayout } from "fumadocs-ui/layouts/docs";
 
 import { DocsSubnav } from "@/components/docs-subnav.tsx";
@@ -12,12 +11,13 @@ import {
 } from "@/layouts/docs/slots/sidebar.tsx";
 import { validateSiteLocale } from "@/lib/i18n.ts";
 import { baseOptions } from "@/lib/layout.shared.tsx";
+import { renderSidebarTree, sidebarTreeData } from "@/lib/sidebar-tree.ts";
 import { source } from "@/lib/source.ts";
 import { getLocale } from "@/paraglide/runtime.js";
 
 const getPageTree = createServerFn({ method: "GET" })
   .validator(validateSiteLocale)
-  .handler(({ data: locale }) => source.getPageTree(locale) as object);
+  .handler(({ data: locale }) => sidebarTreeData(source.getPageTree(locale)));
 
 export const Route = createFileRoute("/docs")({
   component: DocsShell,
@@ -25,8 +25,7 @@ export const Route = createFileRoute("/docs")({
 });
 
 function DocsShell() {
-  // oxlint-disable-next-line typescript/no-unnecessary-type-assertion -- the loader type is `object` to tsc; the cast narrows it to the page tree
-  const tree = Route.useLoaderData() as Root;
+  const tree = renderSidebarTree(Route.useLoaderData());
 
   return (
     <DocsLayout

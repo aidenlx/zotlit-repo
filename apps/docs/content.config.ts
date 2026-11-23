@@ -3,6 +3,7 @@ import { valid as isValidSemVer } from "semver";
 import * as v from "valibot";
 
 import { publishedOn } from "./src/lib/shared.ts";
+import { sidebarIconSchema } from "./src/lib/sidebar-tree.ts";
 
 export const metaSchema = v.object({
   title: v.optional(v.string()),
@@ -12,13 +13,13 @@ export const metaSchema = v.object({
   root: v.optional(v.boolean()),
   defaultOpen: v.optional(v.boolean()),
   collapsible: v.optional(v.boolean()),
-  icon: v.optional(v.string()),
+  icon: v.optional(sidebarIconSchema),
 });
 
 const pageSchema = v.object({
   title: v.string(),
   description: v.optional(v.string()),
-  icon: v.optional(v.string()),
+  icon: v.optional(sidebarIconSchema),
   full: v.optional(v.boolean()),
   _openapi: v.optional(v.record(v.string(), v.unknown())),
 });

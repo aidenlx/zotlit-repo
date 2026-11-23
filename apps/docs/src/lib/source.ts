@@ -1,5 +1,5 @@
 import { loader } from "fumadocs-core/source";
-import { lucideIconsPlugin } from "fumadocs-core/source/lucide-icons";
+import type { Source } from "fumadocs-core/source";
 import { rcompare } from "semver";
 
 import { blogs, changelogs, docs, lessons } from "./collections.ts";
@@ -7,12 +7,11 @@ import { i18n } from "./i18n.ts";
 import type { SiteLocale } from "./i18n.ts";
 import { docsPageTitle } from "./shared.ts";
 
-export const source = loader({
-  i18n,
-  baseUrl: "/docs",
-  source: docs.toFumadocsSource(),
-  plugins: [lucideIconsPlugin()],
-});
+export function createDocsLoader<T extends Source>(input: T) {
+  return loader({ i18n, baseUrl: "/docs", source: input });
+}
+
+export const source = createDocsLoader(docs.toFumadocsSource());
 
 export const changelog = loader({
   i18n,

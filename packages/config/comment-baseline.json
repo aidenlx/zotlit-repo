@@ -9,7 +9,6 @@
   "apps/docs/src/lib/language-choice.test.ts": "4bb8b2f0d2b72cdf 88a601ff4ae1e343",
   "apps/docs/src/lib/language-choice.ts": "742f5063520cb158",
   "apps/docs/src/routeTree.gen.ts": "17b5b01c5411c5ed 3def351a8c506481 555ca26139cfb6ab b6724011d8407b35 de46e63a77f1dce8 f41fc2ab973675e0",
-  "apps/docs/src/routes/docs/route.tsx": "bb57558b8096c2c8",
   "apps/obsidian/scripts/scan-note-worker.test.ts": "d90e5c9697c1d254",
   "apps/obsidian/src/host.test.ts": "4bb8b2f0d2b72cdf",
   "apps/obsidian/src/mobile-host.test.ts": "4bb8b2f0d2b72cdf",
