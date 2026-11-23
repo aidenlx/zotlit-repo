@@ -9,10 +9,13 @@ import { Effect } from "effect";
 import { Keymap } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import * as confirmation from "@zotlit/obsidian-kit/confirm.ts";
 import type { RangeAdjustment, SelectedText } from "@zotlit/pdf-structure";
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
+import { yieldToMain } from "@zotlit/plugin-kernel/yield-to-main.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   libraryReadOnly,
@@ -73,7 +76,13 @@ function rect({
 async function setup(
   records: readonly AnnotationRecord[] = [PARAGRAPH, WORD],
   capability: EditingCapability = { kind: "writable" },
-  { external }: { external?: readonly string[] } = {},
+  {
+    external,
+    notifier,
+  }: {
+    external?: readonly string[];
+    notifier?: ReturnType<typeof testNotifier>;
+  } = {},
 ) {
   useFakeTimers();
   const stack = new AsyncDisposableStack();
@@ -106,6 +115,7 @@ async function setup(
     sortIndex,
     adjustRange,
     external,
+    notifier,
   });
 
   return {
@@ -1772,6 +1782,70 @@ it("says why a colour key's recolour did not land", async () => {
   await vi.waitFor(() =>
     expect(h.notices.map(({ messages }) => messages)).toEqual([[LOST_REPLY]]),
   );
+});
+
+it("logs a grouped recolour report defect without an unhandled rejection", async () => {
+  const notifier = testNotifier();
+  const defect = new Error("The write notice could not open");
+  const showing = Promise.withResolvers<void>();
+  using _show = vi.spyOn(notifier.service, "show").mockImplementationOnce(() =>
+    Effect.sync(() => {
+      showing.resolve();
+      throw defect;
+    }),
+  );
+  await using h = await setup(undefined, undefined, { notifier });
+  h.selection.selectMarks(["PARA7777", "WRDS2222"]);
+  loseNextReply(h);
+
+  using logs = captureLogRecords("warning");
+  using listeners = new DisposableStack();
+  const unhandled = vi.fn();
+  process.on("unhandledRejection", unhandled);
+  listeners.defer(() => process.off("unhandledRejection", unhandled));
+
+  key(h, "3");
+  await showing.promise;
+  await yieldToMain();
+
+  expect.soft(unhandled).not.toHaveBeenCalled();
+  expect(logs.records).toContainEqual(
+    expect.objectContaining({
+      level: "warning",
+      category: ["zotlit", "obsidian", "pdf-annotation-editor"],
+      properties: expect.objectContaining({ error: defect }),
+    }),
+  );
+});
+
+it("keeps a grouped recolour report silent when the runtime closes", async () => {
+  const notifier = testNotifier();
+  const showing = Promise.withResolvers<void>();
+  const interrupted = vi.fn();
+  using _show = vi.spyOn(notifier.service, "show").mockImplementationOnce(() =>
+    Effect.sync(() => showing.resolve()).pipe(
+      Effect.andThen(Effect.never),
+      Effect.onInterrupt(() => Effect.sync(interrupted)),
+    ),
+  );
+  await using h = await setup(undefined, undefined, { notifier });
+  h.selection.selectMarks(["PARA7777", "WRDS2222"]);
+  loseNextReply(h);
+
+  using listeners = new DisposableStack();
+  const unhandled = vi.fn();
+  process.on("unhandledRejection", unhandled);
+  listeners.defer(() => process.off("unhandledRejection", unhandled));
+
+  key(h, "3");
+  await showing.promise;
+  using logs = captureLogRecords();
+  await h.closeRuntime();
+  await yieldToMain();
+
+  expect(interrupted).toHaveBeenCalledOnce();
+  expect(unhandled).not.toHaveBeenCalled();
+  expect(logs.records).toEqual([]);
 });
 
 it("says why once for a group Delete that did not land", async () => {

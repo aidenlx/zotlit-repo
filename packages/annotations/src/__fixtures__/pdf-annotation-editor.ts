@@ -636,7 +636,7 @@ export interface ReaderSurfacesOptions {
   annotations: AnnotationEdits & AnnotationCreates & AnnotationFacts;
   bridge: Pick<
     EffectBridge,
-    "runSync" | "runPromise" | "runPromiseExit" | "subscribe"
+    "runSync" | "runPromiseExit" | "runAndForget" | "subscribe"
   >;
   structure?: PdfTextStructure | null | (() => PdfTextStructure | null);
   sortIndex?: (position: PdfPosition) => Promise<string | null>;

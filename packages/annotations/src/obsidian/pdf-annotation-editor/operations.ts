@@ -359,6 +359,17 @@ export const reportWrite = <E>(
     options,
   );
 
+export const logReportFailure = <A, E>(report: Effect.Effect<A, E>) =>
+  report.pipe(
+    Effect.catchCauseIf(
+      (cause) => !Cause.hasInterruptsOnly(cause),
+      (cause) =>
+        Effect.logWarning("An Annotation write report failed", cause).pipe(
+          withLogCategory("pdf-annotation-editor"),
+        ),
+    ),
+  );
+
 export const recolorMarks = (
   annotations: Pick<
     AnnotationRepository["Service"],

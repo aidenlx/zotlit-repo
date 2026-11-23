@@ -41,7 +41,6 @@ import type {
   RangeAdjustment,
   SelectedText,
 } from "@zotlit/pdf-structure";
-import { passAborted } from "@zotlit/plugin-kernel/abort-error.ts";
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
@@ -99,6 +98,7 @@ import type {
 } from "./mark-popup.tsx";
 import {
   eraseMarks,
+  logReportFailure,
   recolorMarks,
   reportWrite,
   reportWrites,
@@ -226,7 +226,7 @@ export interface MarkSelectionDeps {
   navigate: (annotationKey: string) => void;
   report: (annotationKeys: readonly string[]) => void;
   annotations: AnnotationEdits;
-  bridge: Pick<EffectBridge, "runSync" | "runPromise" | "runPromiseExit">;
+  bridge: Pick<EffectBridge, "runSync" | "runPromiseExit" | "runAndForget">;
   writes: BindingWrites;
   notifier: Notifier["Service"];
   colors: ToolColorStore;
@@ -960,7 +960,7 @@ export class MarkSelection implements Disposable {
   }
 
   #submitTags(annotationKey: string): void {
-    void this.#write(
+    this.#write(
       this.#deps.annotations.submitTags(annotationKey, { automatic: true }),
     );
   }
@@ -1037,13 +1037,11 @@ export class MarkSelection implements Disposable {
       );
     return {
       save: () =>
-        void this.#write(
-          annotations.submitTextField("comment", annotation.key),
-        ),
+        this.#write(annotations.submitTextField("comment", annotation.key)),
       allowEditing: () => gestures.allowEditing(),
       discard,
       applyAgain: () =>
-        void this.#write(annotations.retryTextDraft("comment", annotation.key)),
+        this.#write(annotations.retryTextDraft("comment", annotation.key)),
       discardConflict: discard,
     };
   }
@@ -1051,7 +1049,7 @@ export class MarkSelection implements Disposable {
   #heldTagsActions(annotation: AnnotationRecord): HeldDraftActions {
     const { annotations, gestures } = this.#deps;
     return {
-      save: () => void this.#write(annotations.submitTags(annotation.key)),
+      save: () => this.#write(annotations.submitTags(annotation.key)),
       allowEditing: () => gestures.allowEditing(),
       discard: () =>
         this.#deps.bridge.runSync(annotations.discardTagDraft(annotation.key)),
@@ -1127,7 +1125,7 @@ export class MarkSelection implements Disposable {
         editor.text(),
       ),
     );
-    void this.#write(
+    this.#write(
       this.#deps.annotations.submitTextField("comment", annotation.key, {
         automatic,
       }),
@@ -1231,8 +1229,8 @@ export class MarkSelection implements Disposable {
   #write(
     write: Parameters<typeof reportWrite>[1],
     message?: (failure: WriteFailure, now: CopyInstant) => string,
-  ): Promise<void> {
-    return this.#runReport(
+  ): void {
+    this.#runReport(
       reportWrite(this.#deps.notifier, write, {
         verb: "edit",
         now: () => this.#deps.now(),
@@ -1242,7 +1240,7 @@ export class MarkSelection implements Disposable {
   }
 
   #writes(writes: Parameters<typeof reportWrites>[1], verb: string): void {
-    void this.#runReport(
+    this.#runReport(
       reportWrites(this.#deps.notifier, writes, {
         verb,
         now: () => this.#deps.now(),
@@ -1251,11 +1249,9 @@ export class MarkSelection implements Disposable {
   }
 
   #runReport(
-    report: Parameters<MarkSelectionDeps["bridge"]["runPromise"]>[0],
-  ): Promise<void> {
-    return this.#deps.bridge
-      .runPromise(report)
-      .then(() => undefined, passAborted);
+    report: Parameters<MarkSelectionDeps["bridge"]["runAndForget"]>[0],
+  ): void {
+    this.#deps.bridge.runAndForget(logReportFailure(report));
   }
 
   #live(): boolean {
