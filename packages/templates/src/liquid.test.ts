@@ -731,6 +731,49 @@ describe("date filter", () => {
     ).toBe("2023-06-15");
   });
 
+  it.each([
+    {
+      type: "Temporal.PlainDate",
+      value: Temporal.PlainDate.from("0044-03-15"),
+      format: "%Y / %Y-%m-%d",
+      expected: "44 / 44-03-15",
+    },
+    {
+      type: "Temporal.PlainYearMonth",
+      value: Temporal.PlainYearMonth.from("0044-03"),
+      format: "%Y-%m",
+      expected: "44-03",
+    },
+    {
+      type: "full ItemDate",
+      value: { kind: "date", year: 44, month: 3, day: 15 },
+      format: "%Y / %Y-%m-%d",
+      expected: "44 / 44-03-15",
+    },
+    {
+      type: "year and month ItemDate",
+      value: { kind: "yearMonth", year: 44, month: 3 },
+      format: "%Y-%m",
+      expected: "44-03",
+    },
+    {
+      type: "year-only ItemDate",
+      value: { kind: "year", year: 44 },
+      format: "%Y",
+      expected: "44",
+    },
+  ])(
+    "preserves the year below 100 for a $type",
+    ({ value, format, expected }) => {
+      const engine = createLiquidEngine();
+      expect(
+        engine.parseAndRenderSync("{{ zt.value | date: zt.format }}", {
+          zt: { value, format },
+        }),
+      ).toBe(expected);
+    },
+  );
+
   it("formats a plain date string via the builtin filter", () => {
     const engine = createLiquidEngine();
     expect(

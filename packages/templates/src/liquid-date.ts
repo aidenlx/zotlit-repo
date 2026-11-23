@@ -26,20 +26,26 @@ export function toLiquidDate(v: unknown): unknown {
     return new Date(v.epochMilliseconds);
   }
   if (v instanceof Temporal.PlainDate) {
-    return new Date(v.year, v.month - 1, v.day);
+    return localDate(v.year, v.month, v.day);
   }
   if (v instanceof Temporal.PlainYearMonth) {
-    return new Date(v.year, v.month - 1, 1);
+    return localDate(v.year, v.month, 1);
   }
   if (isItemDateLike(v)) {
     switch (v.kind) {
       case "date":
-        return new Date(v.year!, v.month! - 1, v.day!);
+        return localDate(v.year!, v.month!, v.day!);
       case "yearMonth":
-        return new Date(v.year!, v.month! - 1, 1);
+        return localDate(v.year!, v.month!, 1);
       case "year":
-        return new Date(v.year!, 0, 1);
+        return localDate(v.year!, 1, 1);
     }
   }
   return v;
+}
+
+function localDate(year: number, month: number, day: number): Date {
+  const date = new Date(2000, 0, 1);
+  date.setFullYear(year, month - 1, day);
+  return date;
 }
