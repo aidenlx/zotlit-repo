@@ -230,7 +230,11 @@ export type HistoryOutcome =
     }
   | { kind: "removed"; annotationKey: string; pageIndex: number }
   | { kind: "changed"; annotationKey: string }
-  | { kind: "failed"; failure: WriteFailure }
+  | {
+      kind: "failed";
+      failure: WriteFailure;
+      partial?: { annotationKeys: readonly string[] };
+    }
   | { kind: "blocked" }
   | { kind: "locked"; reason: LockReason };
 

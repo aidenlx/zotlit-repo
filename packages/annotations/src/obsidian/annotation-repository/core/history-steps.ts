@@ -11,6 +11,7 @@ import type {
   AnnotationTag,
   MutationState,
   TagChange,
+  WriteFailure,
 } from "#obsidian/annotation-repository/write.ts";
 import { Effect } from "effect";
 
@@ -211,6 +212,7 @@ const takeStep = Effect.fnUntraced(function* (
   }
 
   const left: HistoryChange[] = [];
+  let stopped: HistoryOutcome | undefined;
   for (const { change, record } of checked) {
     const { annotationKey } = change;
     const before = historyFieldsOf(step.kind, record) ?? change.after;
@@ -222,13 +224,13 @@ const takeStep = Effect.fnUntraced(function* (
       outcome = yield* stepWrite(core, annotationKey, change.before);
     }
     if (outcome.kind === "failed") {
-      history.drop(direction, step);
-      return { kind: "failed", failure: outcome.failure };
+      stopped = failedStep(outcome.failure, left);
+      break;
     }
     if (outcome.kind !== "idle") {
       yield* discardConflict(core, annotationKey);
-      history.drop(direction, step);
-      return { kind: "changed", annotationKey };
+      stopped = { kind: "changed", annotationKey };
+      break;
     }
     const settled = (yield* holding(core, annotationKey))?.record;
     left.push({
@@ -240,9 +242,27 @@ const takeStep = Effect.fnUntraced(function* (
   }
 
   history.drop(direction, step);
-  history.push(opposite(direction), { kind: step.kind, changes: left });
+  if (!stopped || left.length > 0) {
+    history.push(opposite(direction), { kind: step.kind, changes: left });
+  }
+  if (stopped) return stopped;
   return { kind: "stepped", annotationKey: left[0]!.annotationKey };
 });
+
+function failedStep(
+  failure: WriteFailure,
+  confirmed: readonly HistoryChange[],
+): HistoryOutcome {
+  return {
+    kind: "failed",
+    failure,
+    ...(confirmed.length > 0 && {
+      partial: {
+        annotationKeys: confirmed.map(({ annotationKey }) => annotationKey),
+      },
+    }),
+  };
+}
 
 const heldRecord = Effect.fnUntraced(function* (
   core: CoreState,
@@ -388,6 +408,7 @@ const takeExistenceStep = Effect.fnUntraced(function* (
   history.drop(direction, step);
 
   const left: HistoryChange[] = [];
+  let stopped: HistoryOutcome | undefined;
   let removed: { annotationKey: string; pageIndex: number } | null = null;
   for (const change of step.changes) {
     const wanted = change.before.content ?? null;
@@ -396,11 +417,13 @@ const takeExistenceStep = Effect.fnUntraced(function* (
       if (!standing) continue;
       const erased = yield* deleteAnnotation(core, change.annotationKey);
       if (erased.kind === "failed") {
-        return { kind: "failed", failure: erased.failure };
+        stopped = failedStep(erased.failure, left);
+        break;
       }
       if (erased.kind !== "idle") {
         yield* discardConflict(core, change.annotationKey);
-        return { kind: "changed", annotationKey: change.annotationKey };
+        stopped = { kind: "changed", annotationKey: change.annotationKey };
+        break;
       }
       removed ??= {
         annotationKey: change.annotationKey,
@@ -417,7 +440,8 @@ const takeExistenceStep = Effect.fnUntraced(function* (
       draft: wanted,
     });
     if (made.kind === "failed") {
-      return { kind: "failed", failure: made.failure };
+      stopped = failedStep(made.failure, left);
+      break;
     }
     history.rename(change.annotationKey, made.annotationKey);
     const settled = (yield* holding(core, made.annotationKey))?.record ?? null;
@@ -428,7 +452,10 @@ const takeExistenceStep = Effect.fnUntraced(function* (
     });
   }
 
-  history.push(opposite(direction), { ...step, changes: left });
+  if (!stopped || left.length > 0) {
+    history.push(opposite(direction), { ...step, changes: left });
+  }
+  if (stopped) return stopped;
   if (removed) return { kind: "removed", ...removed };
   const count = step.changes.filter(
     (change) => isRestore(change) && change.lock === "another-user",

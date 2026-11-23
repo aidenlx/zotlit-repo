@@ -684,6 +684,81 @@ it.effect("takes every Annotation of one gesture in a single step", () =>
   }),
 );
 
+function badRequest(): Response {
+  return new Response("Bad request", { status: 400 });
+}
+
+it.effect.each([
+  {
+    stop: "a write failure",
+    conflict: false,
+    outcome: {
+      kind: "failed",
+      failure: { kind: "invalid-response", issue: "400 Bad request" },
+      partial: { annotationKeys: ["MADE2345"] },
+    },
+  },
+  {
+    stop: "a write conflict",
+    conflict: true,
+    outcome: { kind: "changed", annotationKey: "MADE2346" },
+  },
+])(
+  "redoes only the deletion that landed before $stop",
+  ({ conflict, outcome }) =>
+    Effect.gen(function* () {
+      const stack = yield* scopedStack;
+      const zotero = zoteroLibrary();
+      const { service, requests } = yield* Effect.promise(() =>
+        writable(stack, {
+          ...zotero.answers,
+          write: (request) => {
+            if (
+              request.method !== "DELETE" ||
+              !request.url.pathname.endsWith("/MADE2346")
+            )
+              return zotero.answers.write(request);
+            if (!conflict) return badRequest();
+            zotero.changeInZotero("MADE2346", { color: "#a28ae5" });
+            return staleVersion();
+          },
+        }),
+      );
+      yield* service.openHistory("RGRPDF24");
+      yield* service.createAnnotation("RGRPDF24", INK_DRAFT, {
+        group: "ink-1",
+      });
+      yield* service.createAnnotation(
+        "RGRPDF24",
+        { ...INK_DRAFT, sortIndex: "00000|000040|00101" },
+        { group: "ink-1" },
+      );
+
+      const undone = yield* service.undo("RGRPDF24");
+      expect(zotero.at("MADE2345")).toBeNull();
+      const remaining = zotero.at("MADE2346");
+      expect(remaining?.color).toBe(conflict ? "#a28ae5" : "#5fb236");
+      expect(undone).toEqual(outcome);
+      expect(yield* service.canUndo("RGRPDF24")).toBe(false);
+      expect(yield* service.canRedo("RGRPDF24")).toBe(true);
+
+      const sent = requests.length;
+      expect(yield* service.redo("RGRPDF24")).toEqual({
+        kind: "stepped",
+        annotationKey: "MADE2347",
+      });
+      expect(
+        requests.slice(sent).filter(({ method }) => method === "POST"),
+      ).toHaveLength(1);
+      expect(zotero.at("MADE2347")).toMatchObject({
+        type: INK_DRAFT.type,
+        position: INK_DRAFT.position,
+        sortIndex: INK_DRAFT.sortIndex,
+      });
+      expect(zotero.at("MADE2346")).toEqual(remaining);
+    }),
+);
+
 it.effect(
   "writes nothing where one Annotation of a gesture moved in Zotero",
   () =>
@@ -753,6 +828,49 @@ it.effect(
       }
       expect(yield* service.canUndo("RGRPDF24")).toBe(false);
     }),
+);
+
+it.effect("redoes only the restore that landed before a write failure", () =>
+  Effect.gen(function* () {
+    const stack = yield* scopedStack;
+    const zotero = zoteroLibrary();
+    let posts = 0;
+    let deny = false;
+    const { service, requests } = yield* Effect.promise(() =>
+      writable(stack, {
+        ...zotero.answers,
+        write: (request) => {
+          if (deny && request.method === "POST" && ++posts === 2)
+            return badRequest();
+          return zotero.answers.write(request);
+        },
+      }),
+    );
+    yield* service.openHistory("RGRPDF24");
+    yield* service.deleteAnnotations(["HRK7BG32", "C94NJNYG"]);
+
+    deny = true;
+    const undone = yield* service.undo("RGRPDF24");
+    expect(zotero.at("MADE2345")).not.toBeNull();
+    expect(zotero.at("C94NJNYG")).toBeNull();
+    expect(undone).toEqual({
+      kind: "failed",
+      failure: { kind: "invalid-response", issue: "400 Bad request" },
+      partial: { annotationKeys: ["MADE2345"] },
+    });
+    expect(yield* service.canUndo("RGRPDF24")).toBe(false);
+    expect(yield* service.canRedo("RGRPDF24")).toBe(true);
+
+    const sent = requests.length;
+    yield* service.redo("RGRPDF24");
+    expect(
+      requests
+        .slice(sent)
+        .filter(({ method }) => method === "DELETE")
+        .map(({ url }) => url.pathname.split("/").at(-1)),
+    ).toEqual(["MADE2345"]);
+    expect(zotero.at("MADE2345")).toBeNull();
+  }),
 );
 
 it.effect(
@@ -915,6 +1033,55 @@ it.effect(
       });
       expect(keys.map((key) => zotero.at(key)?.color)).toEqual(before);
       expect(yield* service.canUndo("RGRPDF24")).toBe(false);
+    }),
+);
+
+it.effect(
+  "redoes only the colour change that landed before a write failure",
+  () =>
+    Effect.gen(function* () {
+      const stack = yield* scopedStack;
+      const zotero = zoteroLibrary();
+      let deny = false;
+      const { service, requests } = yield* Effect.promise(() =>
+        writable(stack, {
+          ...zotero.answers,
+          write: (request) =>
+            deny &&
+            request.method === "PATCH" &&
+            request.url.pathname.endsWith("/C94NJNYG")
+              ? badRequest()
+              : zotero.answers.write(request),
+        }),
+      );
+      yield* service.openHistory("RGRPDF24");
+      yield* service.patchColors(["PUPR5FG5", "C94NJNYG"], "#5fb236");
+
+      deny = true;
+      const undone = yield* service.undo("RGRPDF24");
+      expect(zotero.at("PUPR5FG5")?.color).toBe("#2ea8e5");
+      expect(zotero.at("C94NJNYG")?.color).toBe("#5fb236");
+      expect(undone).toEqual({
+        kind: "failed",
+        failure: { kind: "invalid-response", issue: "400 Bad request" },
+        partial: { annotationKeys: ["PUPR5FG5"] },
+      });
+      expect(yield* service.canUndo("RGRPDF24")).toBe(false);
+      expect(yield* service.canRedo("RGRPDF24")).toBe(true);
+
+      const sent = requests.length;
+      expect(yield* service.redo("RGRPDF24")).toEqual({
+        kind: "stepped",
+        annotationKey: "PUPR5FG5",
+      });
+      expect(
+        requests
+          .slice(sent)
+          .filter(({ method }) => method === "PATCH")
+          .map(({ url }) => url.pathname.split("/").at(-1)),
+      ).toEqual(["PUPR5FG5"]);
+      expect(zotero.at("PUPR5FG5")?.color).toBe("#5fb236");
+      expect(zotero.at("C94NJNYG")?.color).toBe("#5fb236");
     }),
 );
 
