@@ -61,6 +61,7 @@ export function buildHeaderRules(
 
 function siteRules(pages: readonly string[]): HeaderRule[] {
   return [
+    { source: "/zh-CN", headers: { "Content-Language": "zh-CN" } },
     { source: "/zh-CN/*", headers: { "Content-Language": "zh-CN" } },
     {
       source: "/giscus/*",

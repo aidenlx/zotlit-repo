@@ -1,6 +1,68 @@
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { unstable_readConfig } from "wrangler";
+
+import { getPackageRoot } from "@zotlit/scripts/package-roots";
 
 import { buildHeaderRules, renderHeadersFile } from "./headers.ts";
+import { chinesePrefix, unlocalizedPath } from "./i18n.ts";
+import { prerenderPages } from "./prerender-pages.ts";
+
+function matchesPath(
+  pattern: string,
+  path: string,
+  minimumSplatLength: number,
+) {
+  const [prefix = "", suffix] = pattern.split("*");
+  if (suffix === undefined) return pattern === path;
+  return (
+    path.startsWith(prefix) &&
+    path.endsWith(suffix) &&
+    path.length >= prefix.length + suffix.length + minimumSplatLength
+  );
+}
+
+describe("prerendered Chinese assets", () => {
+  const packageRoot = getPackageRoot(import.meta.filename);
+  const config = resolve(packageRoot, "wrangler.jsonc");
+  const pages = prerenderPages(packageRoot).map(({ path }) => path);
+
+  it.each(["production", "beta"] as const)(
+    "sets the content language on every Chinese asset on the %s line",
+    (docsLine) => {
+      const workerFirst = unstable_readConfig({
+        config,
+        env: docsLine === "beta" ? "beta" : undefined,
+      }).assets?.run_worker_first;
+      if (!Array.isArray(workerFirst)) {
+        throw new Error("Expected the Worker's route patterns");
+      }
+      const workerPatterns = workerFirst.filter(
+        (path) => !path.startsWith("!"),
+      );
+      const assetPatterns = workerFirst
+        .filter((path) => path.startsWith("!"))
+        .map((path) => path.slice(1));
+      const chineseAssets = pages.filter(
+        (path) =>
+          unlocalizedPath(path) !== path &&
+          (assetPatterns.some((pattern) => matchesPath(pattern, path, 0)) ||
+            !workerPatterns.some((pattern) => matchesPath(pattern, path, 0))),
+      );
+      const languageRules = buildHeaderRules(pages, { docsLine }).filter(
+        ({ headers }) => headers["Content-Language"] === "zh-CN",
+      );
+
+      expect(chineseAssets).toContain(chinesePrefix);
+      expect(
+        chineseAssets.filter(
+          (path) =>
+            !languageRules.some(({ source }) => matchesPath(source, path, 1)),
+        ),
+      ).toEqual([]);
+    },
+  );
+});
 
 describe("renderHeadersFile", () => {
   const file = renderHeadersFile();
