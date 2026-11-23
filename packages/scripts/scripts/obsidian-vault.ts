@@ -3,12 +3,10 @@
 import type { DesktopSlot } from "#desktop-slot";
 import type { VaultEntry } from "#obsidian-vault-registry";
 import type { VaultPlugin } from "#vault-plugins";
-import { execFile } from "node:child_process";
-import { access, cp, mkdir, readFile, rm } from "node:fs/promises";
+import { access, cp, mkdir, readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
-import { promisify } from "node:util";
 import * as v from "valibot";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
@@ -48,8 +46,7 @@ import {
   pluginsOption,
   resolveVaultPlugins,
 } from "#vault-plugins";
-
-const execFileAsync = promisify(execFile);
+import { purgeVault } from "#vault-purge";
 
 const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
 
@@ -758,35 +755,6 @@ async function removeOnline(abs: string): Promise<string | undefined> {
   }
   await unregisterThrough(host, abs, id);
   return id;
-}
-
-async function purgeVault(abs: string): Promise<void> {
-  await access(join(abs, ".obsidian")).catch(() => {
-    throw new Error(`refusing to purge a folder with no .obsidian: ${abs}`);
-  });
-
-  let tracked = "";
-  try {
-    ({ stdout: tracked } = await execFileAsync("git", ["ls-files", "--", "."], {
-      cwd: abs,
-      windowsHide: true,
-    }));
-  } catch (error) {
-    const result = error as { code?: unknown; stderr?: string };
-    if (!/not a git repository/i.test(result.stderr ?? "")) {
-      throw new Error(
-        `could not check tracked files in ${abs}: ${result.stderr?.trim() || `git exited ${String(result.code)}`}`,
-      );
-    }
-  }
-  if (tracked.trim()) {
-    throw new Error(
-      `refusing to purge a folder holding git-tracked files: ${abs}`,
-    );
-  }
-
-  await rm(abs, { recursive: true, force: true });
-  console.error(`deleted folder ${abs}`);
 }
 
 async function remove(vaultPath: string, purge: boolean): Promise<void> {
