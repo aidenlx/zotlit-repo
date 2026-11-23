@@ -1,35 +1,20 @@
+import { useHydrated, useLocation } from "@tanstack/react-router";
 import { ArrowUpRight, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { cn } from "@/lib/cn.ts";
+import { legacyArrival } from "@/lib/legacy-arrival.ts";
 import { zotlitLegacyUrl } from "@/lib/shared.ts";
 import * as m from "@/paraglide/messages.js";
 
-interface Arrival {
-  isZh: boolean;
-  v1Src: string;
-}
-
-function readArrival(search: string): Arrival | null {
-  const params = new URLSearchParams(search);
-  const isZh = params.get("lang") === "zh-CN";
-  const src = params.get("src");
-  const v1Src =
-    params.get("from") === "v1" && src?.startsWith("/") && !src.startsWith("//")
-      ? src
-      : null;
-
-  return v1Src ? { isZh, v1Src } : null;
-}
-
 export function RedirectNotice({ className }: { className?: string }) {
-  const [arrival, setArrival] = useState<Arrival | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+  const hydrated = useHydrated();
+  const location = useLocation();
+  const [dismissed, setDismissed] = useState<string | null>(null);
+  const arrival = hydrated ? legacyArrival(location, dismissed) : null;
 
-  useEffect(() => setArrival(readArrival(window.location.search)), []);
-
-  if (!arrival || dismissed) return null;
-  const { isZh, v1Src } = arrival;
+  if (!arrival) return null;
+  const { key, isZh, v1Src } = arrival;
 
   return (
     <div
@@ -62,7 +47,7 @@ export function RedirectNotice({ className }: { className?: string }) {
           {},
           isZh ? { locale: "zh-CN" } : undefined,
         )}
-        onClick={() => setDismissed(true)}
+        onClick={() => setDismissed(key)}
         className="absolute inset-e-2 top-2 text-fd-muted-foreground/60 hover:text-fd-foreground"
       >
         <X className="size-4" />
