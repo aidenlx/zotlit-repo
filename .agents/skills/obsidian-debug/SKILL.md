@@ -42,12 +42,24 @@ breakpoints, popout or settings windows, the main process), follow [devtools.md]
 ```bash
 pnpm exec turbo run build --filter='@zotlit/obsidian^...'
 pnpm --filter @zotlit/obsidian build:dev
-pnpm --filter ./apps/reader build:dev
+pnpm exec turbo run build:dev --filter=@zotlit/reader
 ```
 
 The first command runs the build tasks of the workspace packages the plugin
 bundles. The second and third build ZotLit and the reader and
-copy them into the vault.
+copy them into the vault. The reader's `build:dev` task runs its generators first, so
+the turbo command works on a fresh worktree.
+
+Formatted citations read the Resource Pack. Build it, then make the open vault read its
+manifest:
+
+```bash
+pnpm --filter @zotlit/resources build:dev
+packages/scripts/scripts/obsidian-cli.ts \
+  --code '(async()=>{await app.plugins.loadManifests();return "loaded"})()' vault=<id>
+```
+
+`obsidian-vault.ts open --install zotlit-resources` loads the manifests as part of the open.
 
 Editing the Fixture Spec or its committed vault-page assets changes the next
 Fixture build, not the open Development Vault. Use the live `open` command
@@ -86,7 +98,9 @@ Take the host desktop’s Exclusive Hold for the walk: wrap it in `pnpm desktop-
 
 1. **Build** — the build commands from Vault setup step 5. The `build:dev` commands copy the
    bundles into this worktree's Development Vault; prefix them with `ZT_VAULT_CASE=<case>`
-   to copy into a Vault Case vault, such as the `upgrader` vault.
+   to copy into a Vault Case vault, such as the `upgrader` vault. The Hot Reload plugin
+   loads each bundle the moment it lands, so run a check of the base build before the first
+   rebuild.
 2. **Reload** — `obsidian-cli.ts vault=<id> plugin:reload id=zotlit`. A leaf or embed open
    across the reload keeps the old build's DOM: run `leaf.rebuildView()` on each ZotLit leaf,
    or the note holding the embed, or open a fresh one, before you probe.
@@ -195,6 +209,22 @@ probe that awaits one never answers; scroll events never dispatch; and screensho
 behind the DOM. Pass `--no-throttle` to every call that probes, scrolls, or captures: it lifts
 throttling from the main window and its popouts for that call and puts it back after.
 `document.visibilityState` can still read `hidden` — judge by frames and events.
+
+### Focus without the OS
+
+A window the user has not focused reports `document.hasFocus()` false, and so does a CodeMirror
+`view.hasFocus`: Live Preview reveal and other focus-dependent editor behaviour stay off.
+Emulate focus through the window's debugger. The window keeps its place and the user's app keeps focus
+(`packages/e2e/src/background-throttling.ts` does the same):
+
+```js
+(async()=>{const wc=require("@electron/remote").getCurrentWebContents();
+if(!wc.debugger.isAttached())wc.debugger.attach("1.3");
+await wc.debugger.sendCommand("Emulation.setFocusEmulationEnabled",{enabled:true});
+return document.hasFocus();})()
+```
+
+Send `{enabled:false}` when the check is done.
 
 ### Full-scale Fixture data
 
