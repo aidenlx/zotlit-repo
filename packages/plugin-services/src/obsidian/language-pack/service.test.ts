@@ -1,5 +1,5 @@
 import { it } from "@effect/vitest";
-import { Cause, Effect, Exit, Fiber, Stream } from "effect";
+import { Cause, Effect, Exit, Fiber, Option, Stream } from "effect";
 import { describe, expect } from "vitest";
 
 import { createLanguagePackRuntime } from "@zotlit/obsidian-i18n";
@@ -481,6 +481,36 @@ describe("Language Pack reset", () => {
   );
 
   it.effect(
+    "offers the pack again in both builds after a reset and downgrade",
+    () =>
+      Effect.gen(function* () {
+        const device = fakeDevice();
+        const older = { language: "zh-CN", pluginVersion: "2.0.0" };
+        const newer = { language: "zh-CN", pluginVersion: "2.0.1" };
+
+        yield* (yield* startOn(device, older)).install;
+        expect(yield* kindOf(yield* startOn(device, older))).toBe("active");
+
+        const updated = yield* startOn(device, newer);
+        expect(yield* Option.getOrThrow(updated.refresh)).toEqual(
+          Exit.succeed({ fileName: "zh-CN.json" }),
+        );
+        const restarted = yield* startOn(device, newer);
+        expect(yield* kindOf(restarted)).toBe("active");
+        expect(m.hello()).toBe("世界（测试）");
+
+        yield* restarted.reset;
+        expect(yield* kindOf(restarted)).toBe("active");
+        expect(m.hello()).toBe("世界（测试）");
+
+        const downgraded = yield* startOn(device, older);
+        expect(yield* kindOf(downgraded)).toBe("offered");
+        const upgraded = yield* startOn(device, newer);
+        expect(yield* kindOf(upgraded)).toBe("offered");
+      }),
+  );
+
+  it.effect(
     "interrupts a download in flight before it is cached, and every install joined to it",
     () =>
       Effect.gen(function* () {
@@ -505,6 +535,8 @@ describe("Language Pack reset", () => {
     Effect.gen(function* () {
       const device = fakeDevice();
       yield* (yield* startOn(device, { language: "zh" })).install;
+      device.storage.set("zotlit:i18n:pack:1.0.0:es", "old pack");
+      device.storage.set("zotlit:i18n:consent:es", "declined");
 
       const english = yield* startOn(device, { language: "en" });
       yield* english.reset;
@@ -528,6 +560,49 @@ describe("Language Packs of two plugins on one device", () => {
     namespace: "zotlit-reader",
     repository: "aidenlx/zotlit-reader",
   } as const;
+
+  it.effect(
+    "clears every version for either plugin and preserves the other plugin's data",
+    () =>
+      Effect.gen(function* () {
+        const zotlitData = {
+          "zotlit:i18n:pack:2.0.0:zh-CN": CHINESE_PACK,
+          "zotlit:i18n:pack:2.0.1:zh-CN": CHINESE_PACK,
+          "zotlit:i18n:consent:zh-CN": "accepted",
+        };
+        const readerData = {
+          "zotlit-reader:i18n:pack:2.0.0:zh-CN": CHINESE_PACK,
+          "zotlit-reader:i18n:pack:2.0.1:zh-CN": CHINESE_PACK,
+          "zotlit-reader:i18n:consent:zh-CN": "accepted",
+        };
+        const otherData = { "zotlit:i18n:preferences": "other data" };
+        const startingData = { ...zotlitData, ...readerData, ...otherData };
+        const device = fakeDevice();
+        for (const [key, value] of Object.entries(startingData)) {
+          device.storage.set(key, value);
+        }
+
+        const zotlit = yield* startOn(device, { language: "zh-CN" });
+        yield* zotlit.reset;
+        expect(Object.fromEntries(device.storage)).toEqual({
+          ...readerData,
+          ...otherData,
+        });
+
+        for (const [key, value] of Object.entries(zotlitData)) {
+          device.storage.set(key, value);
+        }
+        const readerPack = yield* startOn(device, {
+          language: "zh-CN",
+          identity: reader,
+        });
+        yield* readerPack.reset;
+        expect(Object.fromEntries(device.storage)).toEqual({
+          ...zotlitData,
+          ...otherData,
+        });
+      }),
+  );
 
   it.effect(
     "keeps each plugin's pack cache and consent under its own namespace at one version",

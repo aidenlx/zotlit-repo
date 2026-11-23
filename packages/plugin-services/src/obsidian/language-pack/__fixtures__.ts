@@ -1,7 +1,7 @@
 import { Context, Effect, Layer } from "effect";
-import type { App } from "obsidian";
 
 import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
+import type { DeviceStorageSource } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { layerFakeFetch } from "@zotlit/plugin-kernel/__fixtures__/fake-fetch.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -28,11 +28,9 @@ export const CHINESE_PACK = JSON.stringify({
   messages: { hello: "世界（测试）", workbench_tab_match: "匹配（测试包）" },
 });
 
-export interface FakeDevice {
+export interface FakeDevice extends DeviceStorageSource {
   readonly storage: Map<string, unknown>;
   readonly requests: string[];
-  loadLocalStorage: App["loadLocalStorage"];
-  saveLocalStorage: App["saveLocalStorage"];
   answer: string | { status: number; text: string } | Error;
   held?: Promise<unknown>;
 }
@@ -45,6 +43,7 @@ export function fakeDevice(
     storage,
     requests: [],
     answer,
+    keys: () => [...storage.keys()],
     loadLocalStorage: (key) => storage.get(key) ?? null,
     saveLocalStorage: (key, value) => {
       if (value === null) storage.delete(key);

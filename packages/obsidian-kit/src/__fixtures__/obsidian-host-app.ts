@@ -2,7 +2,10 @@ import type { App } from "obsidian";
 
 import { Layer } from "effect";
 import { ObsidianApp } from "#obsidian-app.ts";
-import { layerDeviceStorageFrom } from "#obsidian-device-storage.ts";
+import {
+  appDeviceStorageSource,
+  layerDeviceStorageFrom,
+} from "#obsidian-device-storage.ts";
 import type {
   DeviceStorage,
   DeviceStorageSource,
@@ -62,7 +65,7 @@ export function layerHostApp(
   app: App,
 ): Layer.Layer<ObsidianApp | HostTags> {
   return layerHost({
-    deviceStorage: app,
+    deviceStorage: appDeviceStorageSource(app),
     fileManager: app.fileManager,
     metadataCache: app.metadataCache,
     vault: app.vault,

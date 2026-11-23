@@ -6,14 +6,31 @@ import { ObsidianApp } from "#obsidian-app.ts";
 export type DeviceStorageSource = Pick<
   App,
   "loadLocalStorage" | "saveLocalStorage"
->;
+> & {
+  keys(): readonly string[];
+};
+
+export function appDeviceStorageSource(
+  app: Pick<App, "appId" | "loadLocalStorage" | "saveLocalStorage">,
+): DeviceStorageSource {
+  return {
+    loadLocalStorage: (key) => app.loadLocalStorage(key),
+    saveLocalStorage: (key, value) => app.saveLocalStorage(key, value),
+    keys: () => {
+      const vaultPrefix = `${app.appId}-`;
+      return Object.keys(window.localStorage)
+        .filter((key) => key.startsWith(vaultPrefix))
+        .map((key) => key.slice(vaultPrefix.length));
+    },
+  };
+}
 
 export class DeviceStorageError extends Schema.TaggedError<
   DeviceStorageError,
   { readonly brand: unique symbol }
 >()("DeviceStorageError", {
-  operation: Schema.Literals(["loadLocalStorage", "saveLocalStorage"]),
-  key: Schema.String,
+  operation: Schema.Literals(["loadLocalStorage", "saveLocalStorage", "keys"]),
+  key: Schema.optional(Schema.String),
   message: Schema.String,
   cause: Schema.Defect(),
 }) {}
@@ -21,6 +38,7 @@ export class DeviceStorageError extends Schema.TaggedError<
 export interface DeviceStorageShape {
   load(key: string): Effect.Effect<unknown, DeviceStorageError>;
   save(key: string, value: unknown): Effect.Effect<void, DeviceStorageError>;
+  readonly keys: Effect.Effect<readonly string[], DeviceStorageError>;
 }
 
 export class DeviceStorage extends Context.Service<
@@ -29,7 +47,7 @@ export class DeviceStorage extends Context.Service<
 >()("zotlit/obsidian/DeviceStorage") {}
 
 const storageError =
-  (operation: DeviceStorageError["operation"], key: string) =>
+  (operation: DeviceStorageError["operation"], key?: string) =>
   (cause: unknown): DeviceStorageError =>
     new DeviceStorageError({
       operation,
@@ -54,6 +72,10 @@ export function makeDeviceStorage(
         catch: storageError("saveLocalStorage", key),
       }),
     ),
+    keys: Effect.try({
+      try: () => source.keys(),
+      catch: storageError("keys"),
+    }).pipe(Effect.withSpan("DeviceStorage.keys")),
   });
 }
 
@@ -69,6 +91,6 @@ export const layerDeviceStorage: Layer.Layer<
 > = Layer.effect(
   DeviceStorage,
   Effect.gen(function* () {
-    return makeDeviceStorage(yield* ObsidianApp);
+    return makeDeviceStorage(appDeviceStorageSource(yield* ObsidianApp));
   }),
 );

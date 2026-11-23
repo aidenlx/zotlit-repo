@@ -3,6 +3,10 @@ import type { DeviceStorageSource } from "#obsidian-device-storage.ts";
 export class MemoryDeviceStorage implements DeviceStorageSource {
   readonly values = new Map<string, string>();
 
+  keys(): readonly string[] {
+    return [...this.values.keys()];
+  }
+
   loadLocalStorage(key: string): unknown {
     const text = this.values.get(key);
     if (!text) return null;

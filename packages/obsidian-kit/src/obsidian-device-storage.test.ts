@@ -1,7 +1,7 @@
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import type { App } from "obsidian";
-import { expect } from "vitest";
+import { expect, onTestFinished, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
@@ -28,6 +28,27 @@ it.effect("saves a value and loads it back", () =>
     expect(yield* storage.load("key")).toEqual({ count: 1 });
     yield* storage.save("key", null);
     expect(source.values.has("key")).toBe(false);
+  }),
+);
+
+it.effect("lists only this vault's keys without the vault prefix", () =>
+  Effect.gen(function* () {
+    vi.stubGlobal("localStorage", {
+      "research-pack": "pack contents",
+      "research-consent": "accepted",
+      "research2-pack": "another vault's pack contents",
+      consent: "unscoped consent",
+    });
+    onTestFinished(() => {
+      vi.unstubAllGlobals();
+    });
+    const app = stubService<App>("App", { appId: "research" });
+    const storage = yield* DeviceStorage.pipe(
+      Effect.provide(
+        layerDeviceStorage.pipe(Layer.provide(Layer.succeed(ObsidianApp, app))),
+      ),
+    );
+    expect(yield* storage.keys).toEqual(["pack", "consent"]);
   }),
 );
 

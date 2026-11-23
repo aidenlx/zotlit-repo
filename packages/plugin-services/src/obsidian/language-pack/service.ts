@@ -52,13 +52,17 @@ export interface LanguagePackIdentity {
 const CONSENT_ACCEPTED = "accepted";
 const CONSENT_DECLINED = "declined";
 
+const packCacheKeyPrefix = (namespace: string): string =>
+  `${namespace}:i18n:pack:`;
+const consentKeyPrefix = (namespace: string): string =>
+  `${namespace}:i18n:consent:`;
 const packCacheKey = (
   namespace: string,
   pluginVersion: string,
   locale: string,
-): string => `${namespace}:i18n:pack:${pluginVersion}:${locale}`;
+): string => `${packCacheKeyPrefix(namespace)}${pluginVersion}:${locale}`;
 const consentKey = (namespace: string, locale: string): string =>
-  `${namespace}:i18n:consent:${locale}`;
+  `${consentKeyPrefix(namespace)}${locale}`;
 
 export class NoLanguagePack extends Schema.TaggedError<
   NoLanguagePack,
@@ -134,6 +138,7 @@ const packSource = (repository: string, pluginVersion: string): PackSource =>
       };
 
 const deviceStorage = (storage: DeviceStorage["Service"]) => ({
+  keys: Effect.mapError(storage.keys, ({ cause }) => storageFailed(cause)),
   load: (key: string) =>
     Effect.mapError(storage.load(key), ({ cause }) => storageFailed(cause)),
   save: (key: string, value: unknown) =>
@@ -279,20 +284,20 @@ export function layerLanguagePack(
       const http = yield* HttpClient.HttpClient;
       const { identity, pluginVersion, plugin, locale, endonym, remote } =
         startup;
-      const { catalog, namespace } = identity;
+      const { namespace } = identity;
 
       const clearStoredPacks = Effect.gen(function* () {
-        const locales = Object.keys(catalog.packs);
-        for (const packLocale of locales) {
-          yield* storage.save(
-            packCacheKey(namespace, pluginVersion, packLocale),
-            null,
-          );
-          yield* storage.save(consentKey(namespace, packLocale), null);
+        const packPrefix = packCacheKeyPrefix(namespace);
+        const consentPrefix = consentKeyPrefix(namespace);
+        const removedKeys = (yield* storage.keys).filter(
+          (key) => key.startsWith(packPrefix) || key.startsWith(consentPrefix),
+        );
+        for (const key of removedKeys) {
+          yield* storage.save(key, null);
         }
         yield* Effect.logInfo(
-          "Reset Language Packs: cleared the cache and consent of every locale",
-        ).pipe(Effect.annotateLogs({ namespace, locales, pluginVersion }));
+          "Reset Language Packs: cleared stored packs and consent",
+        ).pipe(Effect.annotateLogs({ namespace, removedKeys }));
       });
       const asReset = <E>(effect: Effect.Effect<void, E>) =>
         effect.pipe(
