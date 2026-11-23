@@ -710,6 +710,17 @@ describe.skipIf(noPandoc)("zotlit-cite.lua under native Pandoc", () => {
       expectStopped(run, "[csl-ambiguous]", '"csl"', '"zotlit-csl"');
     });
 
+    it("stops on citation-style and zotlit-csl together", async () => {
+      await writeStyledInput(cli, [
+        `citation-style: ${join(cli.workspace, "pandoc-owned.csl")}`,
+        `zotlit-csl: ${CSL_DEPENDENT}`,
+      ]);
+      await installCslResponse(cli, CSL_DEPENDENT);
+
+      const run = await runCli(cli, { bibliography: "csl-references.json" });
+      expectStopped(run, "[csl-ambiguous]", '"citation-style"', '"zotlit-csl"');
+    });
+
     it("stops on a --csl option and zotlit-csl together", async () => {
       await writeStyledInput(cli, [`zotlit-csl: ${CSL_DEPENDENT}`]);
       await installCslResponse(cli, CSL_DEPENDENT);

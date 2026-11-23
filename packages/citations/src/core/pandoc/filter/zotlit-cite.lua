@@ -137,10 +137,14 @@ end
 local function resolve_style(meta)
   local requested = meta["zotlit-csl"]
   if requested ~= nil then
-    if meta.csl ~= nil then
+    local standard_field = meta.csl ~= nil and "csl" or "citation-style"
+    if meta[standard_field] ~= nil then
       add_error(
         "csl-ambiguous",
-        'The document declares its Citation and References Style twice: "csl" names a style file Pandoc opens, "zotlit-csl" names the Zotero-installed style ID ZotLit resolves. Keep one of them.'
+        string.format(
+          'The document declares its Citation and References Style twice: "%s" names a style file Pandoc opens, "zotlit-csl" names the Zotero-installed style ID ZotLit resolves. Keep one of them.',
+          standard_field
+        )
       )
       report_errors()
     end
