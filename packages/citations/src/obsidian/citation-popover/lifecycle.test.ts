@@ -28,7 +28,10 @@ import type { WorkHoverRequest } from "./service.ts";
 import { citationPopoverFixture } from "#__fixtures__/citation-popover.ts";
 import { profileReader } from "#__fixtures__/profiles.ts";
 import { defaults } from "#__fixtures__/settings.ts";
-import { NO_ADDITIONS } from "#obsidian/graph-citations/adapter.ts";
+import {
+  citedWorkNodeId,
+  NO_ADDITIONS,
+} from "#obsidian/graph-citations/adapter.ts";
 import { wrapNodeHover } from "#obsidian/graph-citations/hover.ts";
 
 const opened: AsyncDisposable[] = [];
@@ -182,11 +185,14 @@ describe("Citation Popover visits", () => {
     await using run = harness();
     await run.show("alpha");
     await vi.advanceTimersByTimeAsync(300);
-    const card = run.parent.hoverPopover!.hoverEl;
+    const popover = run.parent.hoverPopover!;
+    const card = popover.hoverEl;
 
     await run.show("beta", run.second);
 
-    expect(run.parent.hoverPopover!.hoverEl).toBe(card);
+    expect(run.parent.hoverPopover).toBe(popover);
+    expect(popover.targetEl).toBe(run.second);
+    expect(popover.hoverEl).toBe(card);
     expect(card.isConnected).toBe(true);
     expect(card.textContent).toBe(
       m.references_citekey_unresolved({ citekey: "beta" }),
@@ -462,12 +468,13 @@ describe("Citation Popover visits", () => {
     "closes a graph visit on %s after %i ms",
     async (action, wait, shown) => {
       await using run = harness();
+      const workId = citedWorkNodeId("alpha");
       const engine = Object.assign(run.parent, {
         options: { "zotlit-citation-popover": true },
       });
       const renderer = {
         containerEl: run.targets,
-        nodeLookup: { alpha: { x: 20, y: 30 } },
+        nodeLookup: { [workId]: { x: 20, y: 30 } },
         scale: 1,
         panX: 0,
         panY: 0,
@@ -502,15 +509,11 @@ describe("Citation Popover visits", () => {
         },
         () => ({
           ...NO_ADDITIONS,
-          citedWorkNodes: new Map([["alpha", "alpha"]]),
+          citedWorkNodes: new Map([[workId, "alpha"]]),
         }),
       );
       await act(() =>
-        renderer.onNodeHover(
-          new MouseEvent("mouseover"),
-          "alpha",
-          "unresolved",
-        ),
+        renderer.onNodeHover(new MouseEvent("mouseover"), workId, "unresolved"),
       );
       await vi.advanceTimersByTimeAsync(wait);
       const card = engine.hoverPopover?.hoverEl;
@@ -521,7 +524,8 @@ describe("Citation Popover visits", () => {
         if (action === "disable")
           engine.options["zotlit-citation-popover"] = false;
         renderer.setData({
-          nodes: action === "remove" ? {} : { alpha: { type: "unresolved" } },
+          nodes:
+            action === "remove" ? {} : { [workId]: { type: "unresolved" } },
           links: {},
         });
       }

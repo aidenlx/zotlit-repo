@@ -1,6 +1,8 @@
 import type { CitationOccurrence } from "#obsidian/citation-index/scan.ts";
+import type { App, MetadataCache } from "obsidian";
 import { describe, expect, it } from "vitest";
 
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
 import { citedWorkNodeId, graphCitationAdditions } from "./adapter.ts";
@@ -9,6 +11,7 @@ import type {
   GraphCitationInput,
   LinkMap,
 } from "./adapter.ts";
+import { facadeApp } from "./facade.ts";
 
 const DOE = {
   itemID: 1,
@@ -206,8 +209,8 @@ describe("graphCitationAdditions", () => {
 
     expect(summary(additions)).toEqual({
       resolved: {},
-      unresolved: { "Draft.md": { "@roe2025": 1 } },
-      nodes: [["@roe2025", "roe2025"]],
+      unresolved: { "Draft.md": { [citedWorkNodeId("roe2025")]: 1 } },
+      nodes: [[citedWorkNodeId("roe2025"), "roe2025"]],
       notes: ALL_NOTES,
     });
   });
@@ -224,10 +227,15 @@ describe("graphCitationAdditions", () => {
 
     expect(summary(additions)).toEqual({
       resolved: {},
-      unresolved: { "Draft.md": { "@typo2024": 1, "@unknown2020": 1 } },
+      unresolved: {
+        "Draft.md": {
+          [citedWorkNodeId("typo2024")]: 1,
+          [citedWorkNodeId("unknown2020")]: 1,
+        },
+      },
       nodes: [
-        ["@typo2024", "typo2024"],
-        ["@unknown2020", "unknown2020"],
+        [citedWorkNodeId("typo2024"), "typo2024"],
+        [citedWorkNodeId("unknown2020"), "unknown2020"],
       ],
       notes: ALL_NOTES,
     });
@@ -240,15 +248,28 @@ describe("graphCitationAdditions", () => {
 
     expect(summary(additions)).toEqual({
       resolved: {},
-      unresolved: { "Draft.md": { "@lee∕2023": 1 } },
-      nodes: [["@lee∕2023", "lee/2023"]],
+      unresolved: { "Draft.md": { [citedWorkNodeId("lee/2023")]: 1 } },
+      nodes: [[citedWorkNodeId("lee/2023"), "lee/2023"]],
       notes: ALL_NOTES,
     });
   });
 
-  it("gives a Cited Work Node an id with no slash", () => {
-    expect(citedWorkNodeId("smith/2020/a")).toBe("@smith∕2020∕a");
-    expect(citedWorkNodeId("smith2020")).toBe("@smith2020");
+  it("gives a Cited Work Node its own namespace", () => {
+    expect(citedWorkNodeId("doe2024")).toBe("zotlit#cited-work/@doe2024");
+  });
+
+  it.each([
+    ["doe2024", "@doe2024"],
+    ["doe/2024", "@doe∕2024"],
+    ["smith/2020/a", "@smith∕2020∕a"],
+  ])("keeps the host's citekey label for %s", (citekey, label) => {
+    const id = citedWorkNodeId(citekey);
+    const basename = id.slice(id.lastIndexOf("/") + 1);
+    const displayText = basename.toLowerCase().endsWith(".md")
+      ? basename.slice(0, -3)
+      : basename;
+
+    expect(displayText).toBe(label);
   });
 
   it("collapses repeated citations of one work into one edge per note", () => {
@@ -267,10 +288,10 @@ describe("graphCitationAdditions", () => {
     expect(summary(additions)).toEqual({
       resolved: { "Draft.md": { "Literature/Doe 2024.md": 1 } },
       unresolved: {
-        "Draft.md": { "@typo2024": 1 },
-        "Other.md": { "@typo2024": 1 },
+        "Draft.md": { [citedWorkNodeId("typo2024")]: 1 },
+        "Other.md": { [citedWorkNodeId("typo2024")]: 1 },
       },
-      nodes: [["@typo2024", "typo2024"]],
+      nodes: [[citedWorkNodeId("typo2024"), "typo2024"]],
       notes: ALL_NOTES,
     });
   });
@@ -297,6 +318,52 @@ describe("graphCitationAdditions", () => {
     });
     expect(resolvedLinks).toEqual({
       "Draft.md": { "Literature/Doe 2024.md": 2, "Other.md": 1 },
+    });
+  });
+});
+
+describe("Cited Work Nodes in the render facade", () => {
+  const workId = citedWorkNodeId("doe2024");
+  const app = stubService<App>("App", {
+    metadataCache: stubService<MetadataCache>("MetadataCache", {
+      resolvedLinks: {},
+      unresolvedLinks: { "Todo.md": { "@doe2024": 1 } },
+      getCachedFiles: () => ["Draft.md", "Todo.md"],
+    }),
+  });
+
+  function additions(citationConnectedOnly: boolean) {
+    return graphCitationAdditions(
+      input(
+        { "Draft.md": [occurrence("citekey", "doe2024")] },
+        {
+          notePathsOf: () => [],
+          literatureNotes: [],
+          filters: filters({ citationConnectedOnly }),
+        },
+      ),
+    );
+  }
+
+  it("gives an unresolved Wikilink and a Cited Work Node separate targets", () => {
+    const graph = additions(false);
+    const facade = facadeApp(app, graph);
+
+    expect(facade.metadataCache.unresolvedLinks).toEqual({
+      "Todo.md": { "@doe2024": 1 },
+      "Draft.md": { [workId]: 1 },
+    });
+    expect(graph.citedWorkNodes.has("@doe2024")).toBe(false);
+    expect(graph.citedWorkNodes.get(workId)).toBe("doe2024");
+  });
+
+  it("keeps the work and drops the unresolved Wikilink in Citation-connected only mode", () => {
+    const facade = facadeApp(app, additions(true));
+
+    expect(facade.metadataCache.getCachedFiles!()).toEqual(["Draft.md"]);
+    expect(facade.metadataCache.unresolvedLinks).toEqual({
+      "Todo.md": {},
+      "Draft.md": { [workId]: 1 },
     });
   });
 });
@@ -540,7 +607,10 @@ describe("graphCitationAdditions citation edges", () => {
     );
 
     expect(additions.citationLinks).toEqual({
-      "Draft.md": { "Literature/Doe 2024.md": 1, "@typo2024": 1 },
+      "Draft.md": {
+        "Literature/Doe 2024.md": 1,
+        [citedWorkNodeId("typo2024")]: 1,
+      },
     });
   });
 

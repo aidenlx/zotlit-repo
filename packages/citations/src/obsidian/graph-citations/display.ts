@@ -5,12 +5,14 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { installToggleRow, rowFlag, toggleRowTarget } from "./rows.ts";
 
 export const COLOR_CITATION_LINKS = "zotlit-color-citation-links";
-
-const DEFAULT = false;
-
 export const AUTHOR_TITLE_LABELS = "zotlit-author-title-labels";
-
 export const CITATION_POPOVER = "zotlit-citation-popover";
+
+export const DISPLAY_DEFAULTS = {
+  [COLOR_CITATION_LINKS]: false,
+  [AUTHOR_TITLE_LABELS]: false,
+  [CITATION_POPOVER]: false,
+} as const;
 
 export interface DisplayRowsOptions {
   saved: GraphOptions | null;
@@ -33,7 +35,7 @@ export function installDisplayRows(
       key: COLOR_CITATION_LINKS,
       name: m.graph_option_color_citation_links_name(),
       tooltip: m.graph_option_color_citation_links_desc(),
-      defaultValue: DEFAULT,
+      defaultValue: DISPLAY_DEFAULTS[COLOR_CITATION_LINKS],
     }),
   );
   rows.use(
@@ -41,7 +43,7 @@ export function installDisplayRows(
       key: CITATION_POPOVER,
       name: m.graph_option_citation_popover_name(),
       tooltip: m.graph_option_citation_popover_desc(),
-      defaultValue: false,
+      defaultValue: DISPLAY_DEFAULTS[CITATION_POPOVER],
     }),
   );
   rows.use(
@@ -49,7 +51,7 @@ export function installDisplayRows(
       key: AUTHOR_TITLE_LABELS,
       name: m.graph_option_author_title_labels_name(),
       tooltip: m.graph_option_author_title_labels_desc(),
-      defaultValue: false,
+      defaultValue: DISPLAY_DEFAULTS[AUTHOR_TITLE_LABELS],
     }),
   );
   childrenEl.prepend(...Array.from(childrenEl.children).slice(nativeRowCount));
@@ -59,5 +61,9 @@ export function installDisplayRows(
 export function colorCitationLinks(engine: {
   options?: GraphOptions;
 }): boolean {
-  return rowFlag(engine, COLOR_CITATION_LINKS, DEFAULT);
+  return rowFlag(
+    engine,
+    COLOR_CITATION_LINKS,
+    DISPLAY_DEFAULTS[COLOR_CITATION_LINKS],
+  );
 }

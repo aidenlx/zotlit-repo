@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
+import { citedWorkNodeId } from "./adapter.ts";
 import type { GraphCitationAdditions } from "./adapter.ts";
 import {
   facadeApp,
@@ -70,7 +71,7 @@ describe("facadeApp", () => {
       app,
       additionsOf({
         resolvedLinks: { "Draft.md": { "Literature/Doe 2024.md": 1 } },
-        unresolvedLinks: { "Other.md": { "@typo2024": 1 } },
+        unresolvedLinks: { "Other.md": { [citedWorkNodeId("typo2024")]: 1 } },
       }),
     );
 
@@ -79,7 +80,7 @@ describe("facadeApp", () => {
     });
     expect(facade.metadataCache.unresolvedLinks).toEqual({
       "Draft.md": { missing: 1 },
-      "Other.md": { "@typo2024": 1 },
+      "Other.md": { [citedWorkNodeId("typo2024")]: 1 },
     });
     expect(
       (
@@ -106,11 +107,15 @@ describe("renderWithFacade", () => {
     const result = renderWithFacade(
       engine,
       render,
-      additionsOf({ unresolvedLinks: { "Draft.md": { "@typo2024": 1 } } }),
+      additionsOf({
+        unresolvedLinks: { "Draft.md": { [citedWorkNodeId("typo2024")]: 1 } },
+      }),
     );
 
     expect(result).toBe(7);
-    expect(seen).toEqual([{ "Draft.md": { "@typo2024": 1 } }]);
+    expect(seen).toEqual([
+      { "Draft.md": { [citedWorkNodeId("typo2024")]: 1 } },
+    ]);
     expect(engine.app).toBe(app);
   });
 
@@ -231,8 +236,8 @@ describe("facadeApp under the Filters rows", () => {
       app,
       additionsOf({
         resolvedLinks: { "Draft.md": { "Literature/Doe 2024.md": 1 } },
-        unresolvedLinks: { "Draft.md": { "@typo2024": 1 } },
-        citedWorkNodes: new Map([["@typo2024", "typo2024"]]),
+        unresolvedLinks: { "Draft.md": { [citedWorkNodeId("typo2024")]: 1 } },
+        citedWorkNodes: new Map([[citedWorkNodeId("typo2024"), "typo2024"]]),
         survivingPaths: new Set(["Draft.md", "Literature/Doe 2024.md"]),
       }),
     );
@@ -241,7 +246,7 @@ describe("facadeApp under the Filters rows", () => {
       "Draft.md": { "Literature/Doe 2024.md": 1 },
     });
     expect(facade.metadataCache.unresolvedLinks).toEqual({
-      "Draft.md": { "@typo2024": 1 },
+      "Draft.md": { [citedWorkNodeId("typo2024")]: 1 },
     });
   });
 });

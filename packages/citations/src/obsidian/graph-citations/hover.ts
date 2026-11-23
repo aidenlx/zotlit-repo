@@ -284,7 +284,11 @@ class NodeStand implements Disposable {
         this.release();
         return;
       }
-      if (!popover || popover.state === PopoverState.Hidden) {
+      if (
+        !popover ||
+        popover.targetEl !== anchor ||
+        popover.state === PopoverState.Hidden
+      ) {
         waited += HOLD_INTERVAL_MS;
         if (stood || waited > HOLD_WAIT_MS) this.release();
         return;

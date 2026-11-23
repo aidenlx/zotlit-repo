@@ -40,8 +40,10 @@ export const NO_ADDITIONS: GraphCitationAdditions = {
   survivingPaths: null,
 };
 
+const CITED_WORK_NODE_PREFIX = "zotlit#cited-work/";
+
 export function citedWorkNodeId(citekey: string): string {
-  return `@${citekey.replaceAll("/", "∕")}`;
+  return `${CITED_WORK_NODE_PREFIX}@${citekey.replaceAll("/", "∕")}`;
 }
 
 export function graphCitationAdditions(

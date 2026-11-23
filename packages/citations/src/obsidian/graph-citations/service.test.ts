@@ -68,6 +68,7 @@ import type { CitekeyResolution } from "@zotlit/zotero-reads/contract/citation-l
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 import type { WorkLabelSource } from "@zotlit/zotero-reads/contract/rpc.ts";
 
+import { citedWorkNodeId } from "./adapter.ts";
 import type { LinkMap } from "./adapter.ts";
 import { GRAPH_CORE_PLUGIN_ID } from "./install.ts";
 import { GraphCitations, layerGraphCitations } from "./service.ts";
@@ -183,7 +184,11 @@ const EXPECTED_RESOLVED = {
   "Draft.md": { "Other.md": 1, "Literature/Doe 2024.md": 1 },
 };
 const EXPECTED_UNRESOLVED = {
-  "Draft.md": { "@pine2023": 1, "@roe2025": 1, "@typo2024": 1 },
+  "Draft.md": {
+    [citedWorkNodeId("pine2023")]: 1,
+    [citedWorkNodeId("roe2025")]: 1,
+    [citedWorkNodeId("typo2024")]: 1,
+  },
 };
 
 function rightClick(
@@ -311,7 +316,7 @@ class FakeEngine {
 }
 
 const NODE_POSITIONS: Record<string, { x: number; y: number }> = {
-  "@typo2024": { x: 10, y: 20 },
+  [citedWorkNodeId("typo2024")]: { x: 10, y: 20 },
   "Literature/Doe 2024.md": { x: -5, y: 5 },
   "Literature/Lee 2019.md": { x: 0, y: 0 },
   "Literature/Kay 2020.md": { x: 1, y: 1 },
@@ -579,6 +584,7 @@ interface FixtureOptions {
   wikilinkCitations?: boolean;
   links?: LinkMap;
   unresolved?: LinkMap;
+  cachedFiles?: string[];
   notes?: Record<string, string>;
   savedLayout?: unknown;
   workspaceFileError?: Error;
@@ -645,7 +651,7 @@ const makeFixture = Effect.fnUntraced(function* (options: FixtureOptions = {}) {
     metadataCache: stubService<App["metadataCache"]>("MetadataCache", {
       resolvedLinks: options.links ?? VAULT_LINKS,
       unresolvedLinks: options.unresolved ?? {},
-      getCachedFiles: () => [...CACHED_FILES],
+      getCachedFiles: () => [...(options.cachedFiles ?? CACHED_FILES)],
       getFirstLinkpathDest: (linkpath: string, _sourcePath: string) => {
         const path = LINK_TARGETS[linkpath];
         if (!path) return null;
@@ -1029,6 +1035,61 @@ describe("GraphCitations installation", () => {
   );
 
   it.effect(
+    "uses Display defaults omitted from an older global graph bookmark",
+    () =>
+      Effect.gen(function* () {
+        const fixture = yield* makeFixture();
+        const graph = fixture.addLeaf("graph", "bookmark");
+        yield* fixture.layoutReady;
+        graph.setOptions({
+          "zotlit-author-title-labels": true,
+          "zotlit-color-citation-links": true,
+          "zotlit-citation-popover": true,
+        });
+
+        yield* Effect.promise(() =>
+          fixture
+            .leaf("bookmark")
+            .view.setState(
+              { options: { showArrow: true } },
+              { history: false },
+            ),
+        );
+
+        expect(graph.getOptions()).toMatchObject({
+          "zotlit-author-title-labels": false,
+          "zotlit-color-citation-links": false,
+          "zotlit-citation-popover": false,
+        });
+      }),
+  );
+
+  it.effect(
+    "restores both saved Work Labels values from global graph bookmarks",
+    () =>
+      Effect.gen(function* () {
+        const fixture = yield* makeFixture();
+        const graph = fixture.addLeaf("graph", "bookmark");
+        yield* fixture.layoutReady;
+        graph.setOptions({ "zotlit-author-title-labels": false });
+
+        for (const enabled of [true, false]) {
+          yield* Effect.promise(() =>
+            fixture
+              .leaf("bookmark")
+              .view.setState(
+                { options: { "zotlit-author-title-labels": enabled } },
+                { history: false },
+              ),
+          );
+          expect(graph.getOptions()["zotlit-author-title-labels"]).toBe(
+            enabled,
+          );
+        }
+      }),
+  );
+
+  it.effect(
     "keeps ordinary graphs native until presentation controls are enabled",
     () =>
       Effect.gen(function* () {
@@ -1200,7 +1261,7 @@ describe("GraphCitations clicks", () => {
 
       engine.renderer.onNodeClick(
         new MouseEvent("click"),
-        "@typo2024",
+        citedWorkNodeId("typo2024"),
         "unresolved",
       );
       expect(fixture.openCitekey).toHaveBeenCalledOnce();
@@ -1220,7 +1281,7 @@ describe("GraphCitations clicks", () => {
 
         engine.renderer.onNodeClick(
           new MouseEvent("click"),
-          "@typo2024",
+          citedWorkNodeId("typo2024"),
           "unresolved",
         );
 
@@ -1242,7 +1303,7 @@ describe("GraphCitations clicks", () => {
 
         engine.renderer.onNodeClick(
           new MouseEvent("click"),
-          "@roe2025",
+          citedWorkNodeId("roe2025"),
           "unresolved",
         );
 
@@ -1262,10 +1323,10 @@ describe("GraphCitations clicks", () => {
         const engine = fixture.addLeaf("graph");
         yield* fixture.layoutReady;
         const { renderer } = engine;
-        renderer.nodeLookup["@doe2024"] = { x: 2, y: 3 };
+        renderer.nodeLookup[citedWorkNodeId("doe2024")] = { x: 2, y: 3 };
         renderer.onNodeHover(
           new MouseEvent("mouseover"),
-          "@doe2024",
+          citedWorkNodeId("doe2024"),
           "unresolved",
         );
         const initial = fixture.citationPopover.showWork.mock.lastCall![0];
@@ -1277,7 +1338,7 @@ describe("GraphCitations clicks", () => {
         if (inPopover) renderer.onNodeUnhover();
         engine.renderer.onNodeClick(
           new MouseEvent("click"),
-          "@doe2024",
+          citedWorkNodeId("doe2024"),
           "unresolved",
         );
         expect(fixture.openCitekey).toHaveBeenCalledExactlyOnceWith(
@@ -1285,7 +1346,7 @@ describe("GraphCitations clicks", () => {
           false,
         );
 
-        delete renderer.nodeLookup["@doe2024"];
+        delete renderer.nodeLookup[citedWorkNodeId("doe2024")];
         yield* fixture.writeNote("Literature/Doe 2024.md", "DEE23456");
         yield* fixture.advance(400);
         expect(hide).toHaveBeenCalledOnce();
@@ -1308,13 +1369,13 @@ describe("GraphCitations clicks", () => {
         if (inPopover) renderer.onNodeUnhover();
 
         delete renderer.nodeLookup["Literature/Doe 2024.md"];
-        renderer.nodeLookup["@doe2024"] = { x: 2, y: 3 };
+        renderer.nodeLookup[citedWorkNodeId("doe2024")] = { x: 2, y: 3 };
         yield* fixture.writeNote("Literature/Doe 2024.md", undefined);
         yield* fixture.advance(400);
         expect(hideNote).toHaveBeenCalledOnce();
         renderer.onNodeHover(
           new MouseEvent("mouseover"),
-          "@doe2024",
+          citedWorkNodeId("doe2024"),
           "unresolved",
         );
         expect(fixture.citationPopover.showWork.mock.lastCall![0].work).toEqual(
@@ -1352,6 +1413,88 @@ describe("GraphCitations clicks", () => {
   );
 });
 
+describe("GraphCitations node identity", () => {
+  it.effect(
+    "keeps native actions and color on an unresolved Wikilink that shares a work's label",
+    () =>
+      Effect.gen(function* () {
+        const nativeId = "@doe2024";
+        const workId = citedWorkNodeId("doe2024");
+        themeStates("rgb(120, 82, 238)", "rgb(136, 136, 136)");
+        const fixture = yield* makePresentationFixture({
+          notes: {},
+          cachedFiles: ["Draft.md", "Todo.md"],
+          links: {},
+          unresolved: { "Todo.md": { [nativeId]: 1 } },
+        });
+        fixture.citationIndex.citationsByPath.mockReturnValue(
+          new Map([["Draft.md", [occurrence("doe2024")]]]),
+        );
+        const engine = fixture.addLeaf("graph");
+        engine.nodes = () => ({
+          [nativeId]: graphNode("unresolved"),
+          [workId]: graphNode("unresolved"),
+        });
+        const { renderer } = engine;
+        renderer.nodeLookup[nativeId] = { x: 1, y: 2 };
+        renderer.nodeLookup[workId] = { x: 2, y: 3 };
+        yield* fixture.layoutReady;
+
+        renderer.onNodeHover(
+          new MouseEvent("mouseover"),
+          nativeId,
+          "unresolved",
+        );
+        renderer.onNodeClick(new MouseEvent("click"), nativeId, "unresolved");
+        const nativeMenu = rightClick(engine, nativeId);
+
+        expect({
+          hovers: engine.nativeHovers,
+          clicks: engine.nativeClicks,
+          rightClicks: engine.nativeRightClicks,
+          openedWork: fixture.openCitekey.mock.calls.length,
+          showedWork: fixture.citationPopover.showWork.mock.calls.length,
+          hasCitedWorkMenu: nativeMenu !== null,
+          color: engine.handedOff[nativeId]!.color,
+        }).toEqual({
+          hovers: [[nativeId, "unresolved"]],
+          clicks: [[nativeId, "unresolved"]],
+          rightClicks: [[nativeId, "unresolved"]],
+          openedWork: 0,
+          showedWork: 0,
+          hasCitedWorkMenu: false,
+          color: undefined,
+        });
+
+        renderer.onNodeHover(new MouseEvent("mouseover"), workId, "unresolved");
+        renderer.onNodeClick(new MouseEvent("click"), workId, "unresolved");
+        const workMenu = rightClick(engine, workId);
+
+        expect(
+          fixture.citationPopover.showWork,
+        ).toHaveBeenCalledExactlyOnceWith(
+          expect.objectContaining({
+            work: { kind: "citekey", citekey: "doe2024" },
+          }),
+        );
+        expect(fixture.openCitekey).toHaveBeenCalledExactlyOnceWith(
+          "doe2024",
+          false,
+        );
+        expect(workMenu?.items.map((item) => item.title)).toEqual([
+          m.graph_citations_menu_create_note(),
+          m.references_open_in_zotero(),
+          m.library_view_show_in_library(),
+          m.graph_citations_menu_copy_citekey(),
+        ]);
+        expect(engine.handedOff[workId]!.color).toEqual({
+          a: 1,
+          rgb: 0x888888,
+        });
+      }),
+  );
+});
+
 describe("GraphCitations right-clicks", () => {
   it.effect(
     "offers every action for a Cited Work Node whose key names one item",
@@ -1361,7 +1504,7 @@ describe("GraphCitations right-clicks", () => {
         const engine = fixture.addLeaf("graph");
         yield* fixture.layoutReady;
 
-        const menu = rightClick(engine, "@pine2023");
+        const menu = rightClick(engine, citedWorkNodeId("pine2023"));
 
         expect(menu?.items.map((item) => item.title)).toEqual([
           m.graph_citations_menu_create_note(),
@@ -1404,7 +1547,7 @@ describe("GraphCitations right-clicks", () => {
         const engine = fixture.addLeaf("localgraph");
         yield* fixture.layoutReady;
 
-        const menu = rightClick(engine, "@roe2025");
+        const menu = rightClick(engine, citedWorkNodeId("roe2025"));
 
         expect(menu?.items.map((item) => item.title)).toEqual([
           m.graph_citations_menu_create_note(),
@@ -1424,7 +1567,7 @@ describe("GraphCitations right-clicks", () => {
       const engine = fixture.addLeaf("graph");
       yield* fixture.layoutReady;
 
-      const menu = rightClick(engine, "@typo2024");
+      const menu = rightClick(engine, citedWorkNodeId("typo2024"));
 
       expect(menu?.items.map((item) => item.title)).toEqual([
         m.graph_citations_menu_copy_citekey(),
@@ -1448,7 +1591,7 @@ describe("GraphCitations right-clicks", () => {
         const engine = fixture.addLeaf("graph");
         yield* fixture.layoutReady;
 
-        const menu = rightClick(engine, "@doe2024");
+        const menu = rightClick(engine, citedWorkNodeId("doe2024"));
 
         expect(menu?.items.map((item) => item.title)).toEqual([
           m.graph_citations_menu_create_note(),
@@ -1475,13 +1618,17 @@ describe("GraphCitations right-clicks", () => {
 
         engine.renderer.onNodeClick(
           new MouseEvent("click"),
-          "@pine2023",
+          citedWorkNodeId("pine2023"),
           "unresolved",
         );
 
-        expect(rightClick(engine, "@pine2023")).toBeNull();
-        expect(engine.nativeClicks).toEqual([["@pine2023", "unresolved"]]);
-        expect(engine.nativeRightClicks).toEqual([["@pine2023", "unresolved"]]);
+        expect(rightClick(engine, citedWorkNodeId("pine2023"))).toBeNull();
+        expect(engine.nativeClicks).toEqual([
+          [citedWorkNodeId("pine2023"), "unresolved"],
+        ]);
+        expect(engine.nativeRightClicks).toEqual([
+          [citedWorkNodeId("pine2023"), "unresolved"],
+        ]);
         expect(fixture.openCitekey).not.toHaveBeenCalled();
       }),
   );
@@ -1561,7 +1708,7 @@ describe("GraphCitations hovers", () => {
         );
         engine.renderer.onNodeHover(
           new MouseEvent("mouseover", { metaKey: true }),
-          "@typo2024",
+          citedWorkNodeId("typo2024"),
           "unresolved",
         );
         expect(fixture.citationPopover.showWork).toHaveBeenCalledTimes(2);
@@ -1583,7 +1730,7 @@ describe("GraphCitations hovers", () => {
 
         engine.renderer.onNodeHover(
           new MouseEvent("mouseover"),
-          "@typo2024",
+          citedWorkNodeId("typo2024"),
           "unresolved",
         );
 
@@ -1619,7 +1766,7 @@ describe("GraphCitations hovers", () => {
 
       engine.renderer.onNodeHover(
         new MouseEvent("mouseover"),
-        "@typo2024",
+        citedWorkNodeId("typo2024"),
         "unresolved",
       );
       expect(fixture.citationPopover.showWork).toHaveBeenCalledOnce();
@@ -1671,7 +1818,7 @@ describe("GraphCitations hovers", () => {
 
         expect(fixture.citationPopover.showWork).not.toHaveBeenCalled();
         expect(engine.nativeHovers).toEqual([
-          ["@typo2024", "unresolved"],
+          [citedWorkNodeId("typo2024"), "unresolved"],
           ["Literature/Doe 2024.md", ""],
         ]);
       }),
@@ -1804,7 +1951,7 @@ describe("GraphCitations hovers", () => {
 
         engine.renderer.onNodeHover(
           new MouseEvent("mouseover"),
-          "@typo2024",
+          citedWorkNodeId("typo2024"),
           "unresolved",
         );
         expect(containerEl.children).toHaveLength(1);
@@ -1833,7 +1980,7 @@ describe("GraphCitations hovers", () => {
         yield* fixture.layoutReady;
         engine.renderer.onNodeHover(
           new MouseEvent("mouseover"),
-          "@typo2024",
+          citedWorkNodeId("typo2024"),
           "unresolved",
         );
         const first = containerEl.children[0] as HTMLElement;
@@ -1852,6 +1999,44 @@ describe("GraphCitations hovers", () => {
       }),
   );
 
+  it.effect(
+    "holds a Citation Popover only after it moves to the new node's anchor",
+    () =>
+      Effect.gen(function* () {
+        const fixture = yield* makePresentationFixture();
+        const engine = fixture.addLeaf("graph");
+        yield* fixture.layoutReady;
+        engine.renderer.onNodeHover(
+          new MouseEvent("mouseover"),
+          citedWorkNodeId("typo2024"),
+          "unresolved",
+        );
+        const first = fixture.citationPopover.showWork.mock.lastCall![0];
+        const popover = fakePopover(first.targetEl);
+        engine.hoverPopover = popover;
+        engine.renderer.onNodeUnhover();
+        popover.onTarget = false;
+
+        engine.renderer.onNodeHover(
+          new MouseEvent("mouseover"),
+          "Literature/Doe 2024.md",
+          "",
+        );
+        const next = fixture.citationPopover.showWork.mock.lastCall![0];
+        expect(next.targetEl).not.toBe(first.targetEl);
+        yield* fixture.advance(200);
+
+        expect(popover.onTarget).toBe(false);
+        expect(popover.transition).not.toHaveBeenCalled();
+
+        popover.targetEl = next.targetEl;
+        yield* fixture.advance(200);
+
+        expect(popover.onTarget).toBe(true);
+        expect(popover.transition).toHaveBeenCalledOnce();
+      }),
+  );
+
   it.effect("lets go of a hold when the hovered graph closes", () =>
     Effect.gen(function* () {
       const fixture = yield* makePresentationFixture();
@@ -1861,10 +2046,10 @@ describe("GraphCitations hovers", () => {
       yield* fixture.layoutReady;
       engine.renderer.onNodeHover(
         new MouseEvent("mouseover"),
-        "@typo2024",
+        citedWorkNodeId("typo2024"),
         "unresolved",
       );
-      const popover = fakePopover();
+      const popover = fakePopover(containerEl.children[0] as HTMLElement);
       engine.hoverPopover = popover;
       yield* fixture.advance(200);
       expect(popover.transition).toHaveBeenCalledOnce();
@@ -1894,10 +2079,10 @@ describe("GraphCitations hovers", () => {
         yield* fixture.layoutReady;
         engine.renderer.onNodeHover(
           new MouseEvent("mouseover"),
-          "@typo2024",
+          citedWorkNodeId("typo2024"),
           "unresolved",
         );
-        const popover = fakePopover();
+        const popover = fakePopover(containerEl.children[0] as HTMLElement);
         engine.hoverPopover = popover;
         yield* fixture.advance(200);
         expect(popover.transition).toHaveBeenCalledOnce();
@@ -1927,10 +2112,12 @@ describe("GraphCitations hovers", () => {
 
         engine.renderer.onNodeHover(
           new MouseEvent("mouseover"),
-          "@typo2024",
+          citedWorkNodeId("typo2024"),
           "unresolved",
         );
-        const popover = fakePopover();
+        const target =
+          fixture.citationPopover.showWork.mock.lastCall![0].targetEl;
+        const popover = fakePopover(target);
         engine.hoverPopover = popover;
         popover.onTarget = false;
         yield* fixture.advance(200);
@@ -1957,10 +2144,12 @@ describe("GraphCitations hovers", () => {
 
         engine.renderer.onNodeHover(
           new MouseEvent("mouseover"),
-          "@typo2024",
+          citedWorkNodeId("typo2024"),
           "unresolved",
         );
-        const popover = fakePopover();
+        const target =
+          fixture.citationPopover.showWork.mock.lastCall![0].targetEl;
+        const popover = fakePopover(target);
         engine.hoverPopover = popover;
         yield* fixture.advance(200);
         expect(popover.transition).toHaveBeenCalledOnce();
@@ -1977,7 +2166,7 @@ describe("GraphCitations hovers", () => {
   );
 
   it.effect(
-    "waits for a page preview that opens on Obsidian's own delay, then holds it",
+    "waits for the new node's page preview through Obsidian's opening delay",
     () =>
       Effect.gen(function* () {
         const fixture = yield* makePresentationFixture({
@@ -1991,11 +2180,32 @@ describe("GraphCitations hovers", () => {
 
         engine.renderer.onNodeHover(
           new MouseEvent("mouseover"),
+          "Literature/Lee 2019.md",
+          "",
+        );
+        const first = fixture.trigger.mock.lastCall![1] as {
+          targetEl: HTMLElement;
+        };
+        const previous = fakePopover(first.targetEl);
+        engine.hoverPopover = previous;
+        engine.renderer.onNodeUnhover();
+        previous.onTarget = false;
+
+        engine.renderer.onNodeHover(
+          new MouseEvent("mouseover"),
           "Literature/Doe 2024.md",
           "",
         );
+        const next = fixture.trigger.mock.lastCall![1] as {
+          targetEl: HTMLElement;
+        };
+        expect(next.targetEl).not.toBe(first.targetEl);
         yield* fixture.advance(400);
-        const popover = fakePopover();
+
+        expect(previous.onTarget).toBe(false);
+        expect(previous.transition).not.toHaveBeenCalled();
+
+        const popover = fakePopover(next.targetEl);
         popover.onTarget = false;
         engine.hoverPopover = popover;
         yield* fixture.advance(200);
@@ -2022,7 +2232,10 @@ describe("GraphCitations hovers", () => {
         "",
       );
       yield* fixture.advance(2200);
-      const popover = fakePopover();
+      const preview = fixture.trigger.mock.lastCall![1] as {
+        targetEl: HTMLElement;
+      };
+      const popover = fakePopover(preview.targetEl);
       popover.onTarget = false;
       engine.hoverPopover = popover;
       yield* fixture.advance(600);
@@ -2063,7 +2276,7 @@ describe("GraphCitations hovers", () => {
         yield* fixture.layoutReady;
         engine.renderer.onNodeHover(
           new MouseEvent("mouseover"),
-          "@typo2024",
+          citedWorkNodeId("typo2024"),
           "unresolved",
         );
 
@@ -2076,7 +2289,7 @@ describe("GraphCitations hovers", () => {
   );
 });
 
-function fakePopover(targetEl: HTMLElement | null = null): HoverPopover & {
+function fakePopover(targetEl: HTMLElement): HoverPopover & {
   onTarget: boolean;
   transition: Mock<(...args: unknown[]) => void>;
 } {
@@ -2100,7 +2313,7 @@ function fakePopover(targetEl: HTMLElement | null = null): HoverPopover & {
 function hoverEach(engine: FakeEngine): void {
   engine.renderer.onNodeHover(
     new MouseEvent("mouseover"),
-    "@typo2024",
+    citedWorkNodeId("typo2024"),
     "unresolved",
   );
   engine.renderer.onNodeHover(
@@ -2159,8 +2372,8 @@ describe("GraphCitations re-rendering", () => {
 describe("GraphCitations node colours", () => {
   const nodes = () => ({
     "Literature/Doe 2024.md": graphNode(""),
-    "@typo2024": graphNode("unresolved"),
-    "@roe2025": graphNode("unresolved"),
+    [citedWorkNodeId("typo2024")]: graphNode("unresolved"),
+    [citedWorkNodeId("roe2025")]: graphNode("unresolved"),
     "Draft.md": graphNode(""),
   });
   const GROUP = { a: 1, rgb: 0x00ff00 };
@@ -2180,8 +2393,8 @@ describe("GraphCitations node colours", () => {
 
       expect(colorsOf(engine.handedOff)).toEqual({
         "Literature/Doe 2024.md": undefined,
-        "@typo2024": { a: 1, rgb: 0x888888 },
-        "@roe2025": { a: 1, rgb: 0x888888 },
+        [citedWorkNodeId("typo2024")]: { a: 1, rgb: 0x888888 },
+        [citedWorkNodeId("roe2025")]: { a: 1, rgb: 0x888888 },
         "Draft.md": undefined,
       });
     }),
@@ -2201,8 +2414,8 @@ describe("GraphCitations node colours", () => {
 
         expect(colorsOf(engine.handedOff)).toEqual({
           "Literature/Doe 2024.md": undefined,
-          "@typo2024": undefined,
-          "@roe2025": undefined,
+          [citedWorkNodeId("typo2024")]: undefined,
+          [citedWorkNodeId("roe2025")]: undefined,
           "Draft.md": undefined,
         });
       }),
@@ -2238,8 +2451,8 @@ describe("GraphCitations node colours", () => {
         expect(colorsOf(engine.handedOff)).toEqual({
           "Literature/Doe 2024.md": undefined,
           "Literature/Roe 2025.md": undefined,
-          "@typo2024": { a: 1, rgb: 0x888888 },
-          "@roe2025": { a: 1, rgb: 0x888888 },
+          [citedWorkNodeId("typo2024")]: { a: 1, rgb: 0x888888 },
+          [citedWorkNodeId("roe2025")]: { a: 1, rgb: 0x888888 },
           "Draft.md": undefined,
         });
       }),
@@ -2265,8 +2478,8 @@ describe("GraphCitations node colours", () => {
         expect(engine.renders).toHaveLength(2);
         expect(colorsOf(engine.handedOff)).toEqual({
           "Literature/Doe 2024.md": undefined,
-          "@typo2024": { a: 1, rgb: 0x888888 },
-          "@roe2025": { a: 1, rgb: 0x888888 },
+          [citedWorkNodeId("typo2024")]: { a: 1, rgb: 0x888888 },
+          [citedWorkNodeId("roe2025")]: { a: 1, rgb: 0x888888 },
           "Draft.md": undefined,
         });
       }),
@@ -2284,8 +2497,8 @@ describe("GraphCitations node colours", () => {
 
       expect(colorsOf(engine.handedOff)).toEqual({
         "Literature/Doe 2024.md": GROUP,
-        "@typo2024": undefined,
-        "@roe2025": undefined,
+        [citedWorkNodeId("typo2024")]: undefined,
+        [citedWorkNodeId("roe2025")]: undefined,
         "Draft.md": undefined,
       });
     }),
@@ -2581,7 +2794,9 @@ describe("GraphCitations Filters rows", () => {
         expect(engine.renders.at(-1)).toMatchObject({
           facaded: true,
           unresolved: {
-            "Draft.md": expect.objectContaining({ "@pine2023": 1 }),
+            "Draft.md": expect.objectContaining({
+              [citedWorkNodeId("pine2023")]: 1,
+            }),
           },
         });
       }),
@@ -2903,10 +3118,11 @@ describe("GraphCitations Display row", () => {
 });
 
 describe("GraphCitations citation edge colour", () => {
+  const CITED_WORK_EDGE = `Draft.md -> ${citedWorkNodeId("typo2024")}`;
   const EDGES = [
     ["Draft.md", "Other.md"],
     ["Draft.md", "Literature/Doe 2024.md"],
-    ["Draft.md", "@typo2024"],
+    ["Draft.md", citedWorkNodeId("typo2024")],
   ] as const;
 
   const drawn = Effect.fnUntraced(function* (options: FixtureOptions = {}) {
@@ -2927,7 +3143,7 @@ describe("GraphCitations citation edge colour", () => {
         expect(paint(engine.renderer)).toEqual({
           "Draft.md -> Other.md": NATIVE_LINE,
           "Draft.md -> Literature/Doe 2024.md": CITATION_LINK,
-          "Draft.md -> @typo2024": CITATION_LINK,
+          [CITED_WORK_EDGE]: CITATION_LINK,
         });
       }),
   );
@@ -3059,7 +3275,7 @@ describe("GraphCitations citation edge colour", () => {
         expect(paint(engine.renderer)).toEqual({
           "Draft.md -> Other.md": NATIVE_LINE,
           "Draft.md -> Literature/Doe 2024.md": NATIVE_HIGHLIGHT,
-          "Draft.md -> @typo2024": CITATION_LINK,
+          [CITED_WORK_EDGE]: CITATION_LINK,
         });
       }),
   );
@@ -3108,7 +3324,7 @@ describe("GraphCitations citation edge colour", () => {
       expect(paint(engine.renderer)).toEqual({
         "Draft.md -> Other.md": NATIVE_LINE,
         "Draft.md -> Literature/Doe 2024.md": NATIVE_LINE,
-        "Draft.md -> @typo2024": NATIVE_LINE,
+        [CITED_WORK_EDGE]: NATIVE_LINE,
       });
     }),
   );
@@ -3122,7 +3338,7 @@ describe("GraphCitations citation edge colour", () => {
       expect(paint(engine.renderer)).toEqual({
         "Draft.md -> Other.md": NATIVE_LINE,
         "Draft.md -> Literature/Doe 2024.md": NATIVE_LINE,
-        "Draft.md -> @typo2024": NATIVE_LINE,
+        [CITED_WORK_EDGE]: NATIVE_LINE,
       });
     }),
   );
@@ -3179,7 +3395,7 @@ describe("GraphCitations citation edge colour", () => {
       expect(paint(engine.renderer)).toEqual({
         "Draft.md -> Other.md": NATIVE_LINE,
         "Draft.md -> Literature/Doe 2024.md": NATIVE_LINE,
-        "Draft.md -> @typo2024": NATIVE_LINE,
+        [CITED_WORK_EDGE]: NATIVE_LINE,
       });
     }),
   );
@@ -3529,9 +3745,9 @@ describe("Graph Work Labels", () => {
       const engine = fixture.addLeaf("graph");
       engine.nodes = () => ({
         "Literature/Doe 2024.md": graphNode(""),
-        "@pine2023": graphNode("unresolved"),
-        "@roe2025": graphNode("unresolved"),
-        "@typo2024": graphNode("unresolved"),
+        [citedWorkNodeId("pine2023")]: graphNode("unresolved"),
+        [citedWorkNodeId("roe2025")]: graphNode("unresolved"),
+        [citedWorkNodeId("typo2024")]: graphNode("unresolved"),
         "Other.md": graphNode(""),
       });
       yield* fixture.layoutReady;
@@ -3555,9 +3771,9 @@ describe("Graph Work Labels", () => {
         const engine = fixture.addLeaf("graph");
         engine.nodes = () => ({
           "Literature/Doe 2024.md": graphNode(""),
-          "@pine2023": graphNode("unresolved"),
-          "@roe2025": graphNode("unresolved"),
-          "@typo2024": graphNode("unresolved"),
+          [citedWorkNodeId("pine2023")]: graphNode("unresolved"),
+          [citedWorkNodeId("roe2025")]: graphNode("unresolved"),
+          [citedWorkNodeId("typo2024")]: graphNode("unresolved"),
           "Other.md": graphNode(""),
         });
         yield* fixture.layoutReady;
@@ -3571,7 +3787,7 @@ describe("Graph Work Labels", () => {
           (node) => node.id === "Literature/Doe 2024.md",
         )!;
         const pine = engine.renderer.nodes.find(
-          (node) => node.id === "@pine2023",
+          (node) => node.id === citedWorkNodeId("pine2023"),
         )!;
         const init = Reflect.get(doe, "initGraphics");
         doe.initGraphics();
@@ -3613,7 +3829,11 @@ describe("Graph Work Labels", () => {
         expect(oldLines.every((line) => line.destroyed)).toBe(true);
         doe.initGraphics();
         expect(labelLines(doe)[0]!.text).toBe("Doe 2024");
-        for (const id of ["@roe2025", "@typo2024", "Other.md"]) {
+        for (const id of [
+          citedWorkNodeId("roe2025"),
+          citedWorkNodeId("typo2024"),
+          "Other.md",
+        ]) {
           const node = engine.renderer.nodes.find(
             (candidate) => candidate.id === id,
           )!;
@@ -3704,9 +3924,9 @@ describe("Graph Work Labels", () => {
       const engine = fixture.addLeaf("graph");
       engine.nodes = () => ({
         "Literature/Doe 2024.md": graphNode(""),
-        "@pine2023": graphNode("unresolved"),
-        "@roe2025": graphNode("unresolved"),
-        "@typo2024": graphNode("unresolved"),
+        [citedWorkNodeId("pine2023")]: graphNode("unresolved"),
+        [citedWorkNodeId("roe2025")]: graphNode("unresolved"),
+        [citedWorkNodeId("typo2024")]: graphNode("unresolved"),
         "Other.md": graphNode(""),
       });
       yield* fixture.layoutReady;

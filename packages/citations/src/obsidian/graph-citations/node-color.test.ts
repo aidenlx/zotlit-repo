@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { themeProperty } from "@zotlit/plugin-kernel/theme-hooks.ts";
 
-import { NO_ADDITIONS } from "./adapter.ts";
+import { citedWorkNodeId, NO_ADDITIONS } from "./adapter.ts";
 import type { GraphCitationAdditions } from "./adapter.ts";
 import type { GraphLeafMembers } from "./install.ts";
 import {
@@ -32,7 +32,7 @@ afterEach(() => {
 function additions(): GraphCitationAdditions {
   return {
     ...NO_ADDITIONS,
-    citedWorkNodes: new Map([["@typo2024", "typo2024"]]),
+    citedWorkNodes: new Map([[citedWorkNodeId("typo2024"), "typo2024"]]),
     literatureNotes: new Set(["Literature/Doe 2024.md"]),
   };
 }
@@ -192,7 +192,7 @@ describe("stampNodeColors", () => {
     const data: GraphData = {
       nodes: {
         "Literature/Doe 2024.md": graphNode(""),
-        "@typo2024": graphNode("unresolved"),
+        [citedWorkNodeId("typo2024")]: graphNode("unresolved"),
         "Draft.md": graphNode(""),
         missing: graphNode("unresolved"),
       },
@@ -201,7 +201,9 @@ describe("stampNodeColors", () => {
     stampNodeColors(data, additions(), colors);
 
     expect(data.nodes["Literature/Doe 2024.md"]!.color).toBeUndefined();
-    expect(data.nodes["@typo2024"]!.color).toBe(colors.citedWorkNode);
+    expect(data.nodes[citedWorkNodeId("typo2024")]!.color).toBe(
+      colors.citedWorkNode,
+    );
     expect(data.nodes["Draft.md"]!.color).toBeUndefined();
     expect(data.nodes["missing"]!.color).toBeUndefined();
   });
@@ -279,13 +281,16 @@ describe("installNodeColors", () => {
       nodes: {
         "Literature/Doe 2024.md": graphNode(""),
         "Draft.md": graphNode(""),
-        "@typo2024": graphNode("unresolved"),
+        [citedWorkNodeId("typo2024")]: graphNode("unresolved"),
       },
     };
     expect(renderer.setData(data)).toBe("native");
 
     expect(handedOff).toEqual([data]);
-    expect(data.nodes["@typo2024"]!.color).toEqual({ a: 1, rgb: 0x888888 });
+    expect(data.nodes[citedWorkNodeId("typo2024")]!.color).toEqual({
+      a: 1,
+      rgb: 0x888888,
+    });
     expect(data.nodes["Literature/Doe 2024.md"]!.color).toBeUndefined();
     expect(data.nodes["Draft.md"]!.color).toBeUndefined();
 

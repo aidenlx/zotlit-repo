@@ -3,7 +3,11 @@ import type { GraphEngine, GraphOptions, GraphView, View } from "obsidian";
 
 import { disposable } from "@zotlit/obsidian-kit/disposables.ts";
 
-import { CITATION_POPOVER, COLOR_CITATION_LINKS } from "./display.ts";
+import {
+  CITATION_POPOVER,
+  COLOR_CITATION_LINKS,
+  DISPLAY_DEFAULTS,
+} from "./display.ts";
 import {
   CITATION_CONNECTED_ONLY,
   PANDOC_CITATIONS,
@@ -47,8 +51,7 @@ export function installGraphViewState(
           const options = (state as { options?: GraphOptions } | null)?.options;
           if (options)
             engine.setOptions!({
-              [COLOR_CITATION_LINKS]: false,
-              [CITATION_POPOVER]: false,
+              ...DISPLAY_DEFAULTS,
               ...options,
             });
           return native.call(this, state, result);
