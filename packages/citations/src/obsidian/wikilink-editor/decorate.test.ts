@@ -1,8 +1,9 @@
+import { Decoration } from "@codemirror/view";
 import { describe, expect, it } from "vitest";
 
 import type { LiteratureNoteTarget } from "@zotlit/plugin-kernel/wikilink-citation.ts";
 
-import { wikilinkDecorations } from "./decorate.ts";
+import { searchMatchHighlights, wikilinkDecorations } from "./decorate.ts";
 import type { WikilinkDisplayContext } from "./decorate.ts";
 import type { WikilinkSpan } from "./scan.ts";
 
@@ -62,6 +63,7 @@ function context(
       linkpath.startsWith("literatures/wang") ? WANG : null,
     enabled: true,
     selection: [],
+    searchHighlights: [],
     textBetween: () => "",
     ...overrides,
   };
@@ -132,6 +134,31 @@ describe("wikilinkDecorations", () => {
         ),
       ).toEqual([]);
     }
+  });
+
+  it("reveals the whole Citation Run when a search match touches its boundary", () => {
+    const { spans, textBetween } = line([WANG_LINK, WANG_LINK]);
+    const { to } = spans[1]!.group;
+    const searchHighlights = [{ from: to, to: to + 1 }];
+
+    expect(
+      wikilinkDecorations(spans, context({ textBetween, searchHighlights })),
+    ).toEqual([]);
+  });
+
+  it("keeps the formatted Citation when a flashing mark touches the group", () => {
+    const link = span(WANG_LINK);
+    const { to } = link.group;
+    const flash = Decoration.set(
+      Decoration.mark({ class: "is-flashing" }).range(to, to + 1),
+    );
+
+    expect(
+      wikilinkDecorations(
+        [link],
+        context({ searchHighlights: searchMatchHighlights([flash]) }),
+      ),
+    ).toHaveLength(1);
   });
 
   it("keeps the display when the selection stops short of the group", () => {

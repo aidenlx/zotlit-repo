@@ -1,3 +1,6 @@
+import { RangeSet } from "@codemirror/state";
+import type { DecorationSet, EditorView } from "@codemirror/view";
+
 import { overlapsSelection } from "@zotlit/obsidian-kit/editor-decoration.ts";
 import type { DocRange } from "@zotlit/obsidian-kit/editor-decoration.ts";
 import {
@@ -12,9 +15,28 @@ import type {
 
 import type { WikilinkSpan } from "./scan.ts";
 
+const SEARCH_MATCH_HIGHLIGHT = "obsidian-search-match-highlight";
+
 export interface WikilinkDisplayContext extends WikilinkCitationContext {
   selection: readonly DocRange[];
+  searchHighlights: readonly DocRange[];
   textBetween: (from: number, to: number) => string;
+}
+
+export function searchMatchHighlights(
+  sources: readonly (DecorationSet | ((view: EditorView) => DecorationSet))[],
+): DocRange[] {
+  const sets = sources.filter((source) => typeof source !== "function");
+  const matches: DocRange[] = [];
+  for (const range = RangeSet.iter(sets); range.value !== null; range.next()) {
+    if (
+      !range.value.point &&
+      range.value.spec.class === SEARCH_MATCH_HIGHLIGHT
+    ) {
+      matches.push({ from: range.from, to: range.to });
+    }
+  }
+  return matches;
 }
 
 export interface WikilinkDecoration extends DocRange {
@@ -40,7 +62,12 @@ export function wikilinkDecorations(
   for (const run of runs) {
     const first = run[0]!.source;
     const last = run.at(-1)!.source;
-    if (overlapsSelection(context.selection, first.group.from, last.group.to)) {
+    const { from } = first.group;
+    const { to } = last.group;
+    if (
+      overlapsSelection(context.selection, from, to) ||
+      overlapsSelection(context.searchHighlights, from, to)
+    ) {
       continue;
     }
     const citation = citationOfRun(run);

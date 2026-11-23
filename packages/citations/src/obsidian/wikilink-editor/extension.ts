@@ -15,9 +15,14 @@ import type {
 } from "#obsidian/citekey-navigation/index.ts";
 import { syntaxTree } from "@codemirror/language";
 import { RangeSetBuilder, StateEffect } from "@codemirror/state";
-import type { Extension } from "@codemirror/state";
-import { Decoration, ViewPlugin, WidgetType } from "@codemirror/view";
-import type { DecorationSet, EditorView, ViewUpdate } from "@codemirror/view";
+import type { EditorState, Extension } from "@codemirror/state";
+import {
+  Decoration,
+  EditorView,
+  ViewPlugin,
+  WidgetType,
+} from "@codemirror/view";
+import type { DecorationSet, ViewUpdate } from "@codemirror/view";
 import { editorInfoField, livePreviewState } from "obsidian";
 
 import {
@@ -30,7 +35,7 @@ import type { LiteratureNoteTarget } from "@zotlit/plugin-kernel/wikilink-citati
 import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts";
 import type { CitationLookupAnswer } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
-import { wikilinkDecorations } from "./decorate.ts";
+import { searchMatchHighlights, wikilinkDecorations } from "./decorate.ts";
 import type { WikilinkDecoration } from "./decorate.ts";
 import { scanWikilinks } from "./scan.ts";
 
@@ -158,7 +163,8 @@ export function wikilinkEditorExtension(
           livePreviewOf(update.state) !== livePreviewOf(update.startState) ||
           update.transactions.some((tr) =>
             tr.effects.some((effect) => effect.is(wikilinkDecorationsChanged)),
-          )
+          ) ||
+          searchHighlightsChanged(update.startState, update.state)
         ) {
           this.#tree = tree;
           this.#rebuild(update.view);
@@ -176,6 +182,24 @@ export function wikilinkEditorExtension(
       }
     },
     { decorations: (plugin) => plugin.decorations },
+  );
+}
+
+function searchHighlightsChanged(
+  before: EditorState,
+  after: EditorState,
+): boolean {
+  const previous = before.facet(EditorView.decorations);
+  const current = after.facet(EditorView.decorations);
+  if (previous === current) return false;
+  const oldRanges = searchMatchHighlights(previous);
+  const newRanges = searchMatchHighlights(current);
+  return (
+    oldRanges.length !== newRanges.length ||
+    oldRanges.some(
+      ({ from, to }, index) =>
+        from !== newRanges[index]!.from || to !== newRanges[index]!.to,
+    )
   );
 }
 
@@ -345,6 +369,9 @@ function buildDecorations(
     },
     enabled: handlers.enabled(),
     selection: view.hasFocus ? state.selection.ranges : [],
+    searchHighlights: searchMatchHighlights(
+      state.facet(EditorView.decorations),
+    ),
     textBetween: (from: number, to: number) => state.doc.sliceString(from, to),
   };
 

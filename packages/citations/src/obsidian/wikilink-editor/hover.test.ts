@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
-import { EditorState } from "@codemirror/state";
-import { EditorView } from "@codemirror/view";
+import { EditorState, StateEffect, StateField } from "@codemirror/state";
+import type { EditorStateConfig, Text } from "@codemirror/state";
+import { Decoration, EditorView } from "@codemirror/view";
+import type { DecorationSet } from "@codemirror/view";
 import { describe, expect, it, vi } from "vitest";
 
 import { lookupAnswer } from "@zotlit/zotero-reads/__fixtures__/citation-lookup.ts";
@@ -22,41 +24,49 @@ vi.mock(
 
 vi.mock("@codemirror/language", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@codemirror/language")>();
+  const treeOf = (state: EditorState) => ({
+    length: state.doc.length,
+    iterate: ({ enter }: { enter: (node: object) => void }) => {
+      const text = state.doc.toString();
+      const nodes = [];
+      for (let at = text.indexOf("[["); at !== -1;) {
+        const closing = text.indexOf("]]", at);
+        if (closing === -1) break;
+        nodes.push(
+          { from: at, to: at + 2, classes: ["formatting-link-start"] },
+          { from: at + 2, to: closing, classes: ["hmd-internal-link"] },
+          {
+            from: closing,
+            to: closing + 2,
+            classes: ["formatting-link-end"],
+          },
+        );
+        at = text.indexOf("[[", closing);
+      }
+      for (const node of nodes) {
+        enter({
+          ...node,
+          type: {
+            prop: (property: unknown) =>
+              property === tokenClassNodeProp
+                ? node.classes.join(" ")
+                : undefined,
+          },
+        });
+      }
+    },
+  });
+  const trees = new WeakMap<Text, ReturnType<typeof treeOf>>();
   return {
     ...actual,
     tokenClassNodeProp,
-    syntaxTree: (state: EditorState) => ({
-      length: state.doc.length,
-      iterate: ({ enter }: { enter: (node: object) => void }) => {
-        const text = state.doc.toString();
-        const nodes = [];
-        for (let at = text.indexOf("[["); at !== -1;) {
-          const closing = text.indexOf("]]", at);
-          if (closing === -1) break;
-          nodes.push(
-            { from: at, to: at + 2, classes: ["formatting-link-start"] },
-            { from: at + 2, to: closing, classes: ["hmd-internal-link"] },
-            {
-              from: closing,
-              to: closing + 2,
-              classes: ["formatting-link-end"],
-            },
-          );
-          at = text.indexOf("[[", closing);
-        }
-        for (const node of nodes) {
-          enter({
-            ...node,
-            type: {
-              prop: (property: unknown) =>
-                property === tokenClassNodeProp
-                  ? node.classes.join(" ")
-                  : undefined,
-            },
-          });
-        }
-      },
-    }),
+    syntaxTree: (state: EditorState) => {
+      const prior = trees.get(state.doc);
+      if (prior) return prior;
+      const tree = treeOf(state);
+      trees.set(state.doc, tree);
+      return tree;
+    },
   };
 });
 
@@ -84,7 +94,10 @@ import type { Held } from "@zotlit/plugin-services/core/query-client/service.ts"
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { heldCitekeyOf } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
 
-import { wikilinkEditorExtension } from "./extension.ts";
+import {
+  wikilinkDecorationsChanged,
+  wikilinkEditorExtension,
+} from "./extension.ts";
 
 import { lookupObservation } from "#__fixtures__/citation-index/citation-lookup.ts";
 import { occurrences, rendered } from "#__fixtures__/citation-text.ts";
@@ -115,7 +128,11 @@ function heldText(
   ] as const;
 }
 
-function harness(doc: string, overrides: Partial<Settings> = {}) {
+function harness(
+  doc: string,
+  overrides: Partial<Settings> = {},
+  editor: Pick<EditorStateConfig, "extensions" | "selection"> = {},
+) {
   const requests: CitationHoverRequest[] = [];
   const native: MouseEvent[] = [];
   const opened: [citekey: string, pane: unknown][] = [];
@@ -160,8 +177,10 @@ function harness(doc: string, overrides: Partial<Settings> = {}) {
     parent: document.body,
     state: EditorState.create({
       doc,
+      selection: editor.selection,
       extensions: [
         editorInfoField,
+        editor.extensions ?? [],
         wikilinkEditorExtension({
           literatureNote: (linkpath, _sourcePath, lookup) => {
             const note =
@@ -211,6 +230,7 @@ function harness(doc: string, overrides: Partial<Settings> = {}) {
   vi.spyOn(view, "posAtCoords").mockReturnValue(2);
 
   return {
+    view,
     requests,
     native,
     opened,
@@ -233,7 +253,7 @@ function harness(doc: string, overrides: Partial<Settings> = {}) {
     setSettings: (next: Partial<Settings>) => {
       settings = { ...defaults, ...next };
       hover = hoverPreferences(settings);
-      view.dispatch({});
+      view.dispatch({ effects: wikilinkDecorationsChanged.of(undefined) });
     },
     redraw: () => {
       held = hold(citations(7));
@@ -242,6 +262,55 @@ function harness(doc: string, overrides: Partial<Settings> = {}) {
     [Symbol.dispose]: () => view.destroy(),
   };
 }
+
+describe("wikilinkEditorExtension search reveal", () => {
+  it("reveals source while search highlights an unfocused Citation and restores its display when cleared", () => {
+    const link = "[[literatures/example#cite:locator=7]]";
+    const doc = `${link} after`;
+    const match = Decoration.set(
+      Decoration.mark({ class: "obsidian-search-match-highlight" }).range(
+        2,
+        13,
+      ),
+    );
+    const setHighlights = StateEffect.define<DecorationSet>();
+    const highlights = StateField.define({
+      create: () => match,
+      update: (value, transaction) => {
+        for (const effect of transaction.effects) {
+          if (effect.is(setHighlights)) return effect.value;
+        }
+        return value;
+      },
+      provide: (field) => EditorView.decorations.from(field),
+    });
+    using editor = harness(
+      doc,
+      {},
+      {
+        extensions: highlights,
+        selection: { anchor: doc.length },
+      },
+    );
+    const { view } = editor;
+    const text = () => view.contentDOM.textContent;
+
+    expect(view.hasFocus).toBe(false);
+    expect(text()).toBe(doc);
+
+    view.dispatch({ effects: setHighlights.of(Decoration.none) });
+    expect(text()).toContain("(Example 2020, p. 7)");
+
+    view.dispatch({ effects: setHighlights.of(match) });
+    expect(text()).toBe(doc);
+
+    const flash = Decoration.set(
+      Decoration.mark({ class: "is-flashing" }).range(2, 13),
+    );
+    view.dispatch({ effects: setHighlights.of(flash) });
+    expect(text()).toContain("(Example 2020, p. 7)");
+  });
+});
 
 describe("wikilinkEditorExtension hover under the Citation Popover", () => {
   it("shows the popover of the work the Citation names", () => {
