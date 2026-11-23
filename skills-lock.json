@@ -62,6 +62,13 @@
       "skillPath": "skills/break/SKILL.md",
       "computedHash": "044d70413a0961625cf05de247da12d9177a4c4d109cf7e5d0cd9bd3712ffc64"
     },
+    "chief-of-staff": {
+      "source": "mattpocock/skills",
+      "commit": "abeeaf95660ba9e8b7c753eb38f441ca707a8823",
+      "sourceType": "github",
+      "skillPath": "skills/in-progress/chief-of-staff/SKILL.md",
+      "computedHash": "dc3348d0f641956ea78dafa037aea745154c516a286ed4156b0c2ec0cbcf581b"
+    },
     "code-review": {
       "source": "mattpocock/skills",
       "ref": "v1.3.1",
