@@ -1,4 +1,6 @@
 import { Effect, Exit, Fiber, Stream } from "effect";
+import type { Layer } from "effect";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -13,7 +15,8 @@ import { connectClient } from "@zotlit/db/client/node";
 import { buildEngineIndex, cleanQuery, searchEngineIndex } from "./engine.ts";
 import type { ItemHit } from "./engine.ts";
 import { makeCreator as creator, makeIndexedItem as item } from "./fixtures.ts";
-import { layerSegmenterNone } from "./segmenter.ts";
+import { layerSegmenterJieba, layerSegmenterNone } from "./segmenter.ts";
+import type { Segmenter, SegmenterUnavailable } from "./segmenter.ts";
 
 describe("item search engine", () => {
   it("ranks empty searches by Last Activity and request Uses before the limit", async () => {
@@ -309,6 +312,56 @@ describe("item search engine", () => {
     },
   );
 
+  it("highlights a Chinese term inside a compound with jieba", async () => {
+    const wasm = readFileSync(
+      new URL("jieba_rs_wasm_bg.wasm", import.meta.resolve("jieba-wasm/web")),
+    );
+    const target = item({ key: "A", title: "长江流域" });
+    const other = item({
+      key: "B",
+      title: "一流域名",
+      publicationTitle: "流域",
+    });
+    const hits = await search([target, other], "流域", {
+      segmenter: layerSegmenterJieba(wasm),
+    });
+
+    expect(hits.find((hit) => hit.indexedKey === "B")?.matches).toEqual([]);
+    expect(hits.find((hit) => hit.indexedKey === "A")?.matches).toEqual([
+      [2, 4],
+    ]);
+  });
+
+  it("highlights a Chinese term at its original UTF-16 offsets with Intl", async () => {
+    const hits = await search(
+      [item({ key: "A", title: "📚 Cafe\u0301 珠江流域" })],
+      "流域",
+    );
+
+    expect(hits[0]?.matches).toEqual([[11, 13]]);
+  });
+
+  it.each([
+    ["機械学習によるテキスト分類", "テキスト", [[7, 11]]],
+    ["การเรียนรู้ของเครื่อง", "ของ", [[11, 14]]],
+  ])(
+    "highlights a word inside an unspaced %s title",
+    async (title, query, expected) => {
+      const hits = await search([item({ key: "A", title })], query);
+
+      expect(hits[0]?.matches).toEqual(expected);
+    },
+  );
+
+  it("highlights a title word after a Greek prefix search", async () => {
+    const hits = await search(
+      [item({ key: "A", title: "Πολιτική ιστορία" })],
+      "ιστορ",
+    );
+
+    expect(hits[0]?.matches).toEqual([[9, 16]]);
+  });
+
   it("cleans bracketed citation queries without collapsing tokens", () => {
     expect(cleanQuery("[@Smith,2020; et al.]")).toBe("Smith 2020");
     expect(cleanQuery("Smith and Doe. 2020")).toBe("Smith Doe 2020");
@@ -466,7 +519,11 @@ const LIBRARIES = [USER_LIBRARY_ID];
 function search(
   items: readonly IndexedItem[],
   query: string,
-  options: { limit?: number; libraries?: readonly number[] } = {},
+  options: {
+    limit?: number;
+    libraries?: readonly number[];
+    segmenter?: Layer.Layer<Segmenter, SegmenterUnavailable>;
+  } = {},
 ): Promise<readonly ItemHit[]> {
   return Effect.gen(function* () {
     const index = yield* buildEngineIndex(Stream.make(items), {
@@ -475,7 +532,10 @@ function search(
     return yield* searchEngineIndex(index, query, {
       limit: options.limit ?? 50,
     });
-  }).pipe(Effect.provide(layerSegmenterNone), Effect.runPromise);
+  }).pipe(
+    Effect.provide(options.segmenter ?? layerSegmenterNone),
+    Effect.runPromise,
+  );
 }
 
 function keys(hits: readonly ItemHit[]): string[] {

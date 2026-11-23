@@ -377,20 +377,11 @@ function rankResults(
     })),
   );
   ranked.sort(compareRanked);
-  const top = ranked.slice(0, limit);
-
-  const terms = new Set<string>();
-  for (const result of top) for (const term of result.terms) terms.add(term);
-  const highlightRe = buildHighlightRegex(terms);
-
-  return top.map(({ record }) =>
-    hitOf(
-      record,
-      highlightRe && record.title
-        ? highlightRanges(highlightRe, record.title)
-        : [],
-    ),
-  );
+  return ranked
+    .slice(0, limit)
+    .map(({ record, terms }) =>
+      hitOf(record, highlightRanges(record.title, terms, index.words)),
+    );
 }
 
 function compareRanked(a: RankedResult, b: RankedResult): number {
@@ -457,25 +448,48 @@ function processTerm(term: string): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
-function buildHighlightRegex(terms: ReadonlySet<string>): RegExp | null {
-  if (terms.size === 0) return null;
-  const escaped = [...terms]
-    .sort((a, b) => b.length - a.length)
-    .map((v) => RegExp.escape(v));
-  return new RegExp(`\\b(${escaped.join("|")})`, "giu");
-}
+const UNSPACED =
+  /[\p{scx=Han}\p{scx=Hiragana}\p{scx=Katakana}\p{scx=Thai}\p{scx=Lao}\p{scx=Khmer}\p{scx=Myanmar}]/u;
+const WORD_START =
+  /(?:^|[^\p{L}\p{M}\p{N}_]|[\p{scx=Han}\p{scx=Hiragana}\p{scx=Katakana}\p{scx=Thai}\p{scx=Lao}\p{scx=Khmer}\p{scx=Myanmar}])$/u;
 
-function highlightRanges(re: RegExp, title: string): SearchMatches {
+function highlightRanges(
+  title: string,
+  terms: readonly string[],
+  words: EngineIndex["words"],
+): SearchMatches {
   if (!title) return [];
 
-  const { normalized, indexMap } = normalizeWithIndexMap(title);
+  const matched = new Set(terms);
+  const titleTerms = new Set<string>();
+  for (const word of words(title)) {
+    if (matched.has(normalize(word))) {
+      titleTerms.add(normalizeWithIndexMap(word).normalized);
+    }
+  }
+  if (titleTerms.size === 0) return [];
 
+  const { normalized, indexMap } = normalizeWithIndexMap(title);
+  const candidates: SearchMatches = [];
+  for (const term of titleTerms) {
+    const unspaced = UNSPACED.test(term);
+    for (
+      let start = normalized.indexOf(term);
+      start !== -1;
+      start = normalized.indexOf(term, start + 1)
+    ) {
+      if (unspaced || WORD_START.test(normalized.slice(0, start))) {
+        candidates.push([indexMap[start]!, indexMap[start + term.length]!]);
+      }
+    }
+  }
+
+  candidates.sort(
+    ([startA, endA], [startB, endB]) => startA - startB || endB - endA,
+  );
   const ranges: SearchMatches = [];
-  for (const match of normalized.matchAll(re)) {
-    ranges.push([
-      indexMap[match.index]!,
-      indexMap[match.index + match[0].length]!,
-    ]);
+  for (const range of candidates) {
+    if (range[0] >= (ranges.at(-1)?.[1] ?? 0)) ranges.push(range);
   }
   return ranges;
 }
