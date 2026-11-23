@@ -263,6 +263,60 @@ function harness(
   };
 }
 
+describe("wikilinkEditorExtension reveal in a freshly opened note", () => {
+  const link = "[[literatures/example#cite:locator=7]]";
+
+  it("keeps the first Citation formatted until a transaction sets the selection", () => {
+    using editor = harness(link, {}, { selection: { anchor: 0 } });
+    const { view } = editor;
+    view.focus();
+    expect(view.hasFocus).toBe(true);
+    expect(editor.selection().anchor).toBe(0);
+    view.dispatch({});
+
+    expect.soft(view.contentDOM.textContent).toContain("(Example 2020, p. 7)");
+    expect.soft(view.contentDOM.textContent).not.toContain(link);
+
+    view.dispatch({ selection: { anchor: 0 } });
+
+    expect(view.contentDOM.textContent).toBe(link);
+  });
+
+  it("keeps the first Citation formatted after a set edit and reveals it after typing", () => {
+    const doc = `${link} after`;
+    using editor = harness(doc, {}, { selection: { anchor: 0 } });
+    const { view } = editor;
+    view.focus();
+    expect(view.hasFocus).toBe(true);
+
+    view.dispatch({
+      changes: { from: doc.length, insert: "!" },
+      userEvent: "set",
+    });
+
+    expect.soft(view.contentDOM.textContent).toContain("(Example 2020, p. 7)");
+    expect.soft(view.contentDOM.textContent).not.toContain(link);
+    expect(view.contentDOM.textContent).toContain(" after!");
+
+    view.dispatch({
+      changes: { from: view.state.doc.length, insert: "?" },
+      userEvent: "input.type",
+    });
+
+    expect(view.contentDOM.textContent).toBe(`${doc}!?`);
+  });
+
+  it("shows source when the editor starts with the caret inside the Citation", () => {
+    using editor = harness(link, {}, { selection: { anchor: 2 } });
+    const { view } = editor;
+    view.focus();
+    expect(view.hasFocus).toBe(true);
+    view.dispatch({});
+
+    expect(view.contentDOM.textContent).toBe(link);
+  });
+});
+
 describe("wikilinkEditorExtension search reveal", () => {
   it("reveals source while search highlights an unfocused Citation and restores its display when cleared", () => {
     const link = "[[literatures/example#cite:locator=7]]";

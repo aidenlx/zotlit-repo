@@ -14,7 +14,12 @@ import type {
   NavigationPane,
 } from "#obsidian/citekey-navigation/index.ts";
 import { syntaxTree } from "@codemirror/language";
-import { RangeSetBuilder, StateEffect } from "@codemirror/state";
+import {
+  RangeSetBuilder,
+  StateEffect,
+  StateField,
+  Transaction,
+} from "@codemirror/state";
 import type { EditorState, Extension } from "@codemirror/state";
 import {
   Decoration,
@@ -82,10 +87,26 @@ interface RenderedWikilinkCitation {
 
 export const wikilinkDecorationsChanged = StateEffect.define<void>();
 
+const freshFileOpen = StateField.define<boolean>({
+  create(state) {
+    const { main, ranges } = state.selection;
+    return main.empty && main.head === 0 && ranges.length === 1;
+  },
+  update(value, tr) {
+    if (
+      tr.selection ||
+      (tr.docChanged && tr.annotation(Transaction.userEvent) !== "set")
+    ) {
+      return false;
+    }
+    return value;
+  },
+});
+
 export function wikilinkEditorExtension(
   handlers: WikilinkEditorHandlers,
 ): Extension {
-  return ViewPlugin.fromClass(
+  const plugin = ViewPlugin.fromClass(
     class WikilinkEditorPlugin {
       decorations: DecorationSet = Decoration.none;
       #tree;
@@ -183,6 +204,7 @@ export function wikilinkEditorExtension(
     },
     { decorations: (plugin) => plugin.decorations },
   );
+  return [freshFileOpen, plugin];
 }
 
 function searchHighlightsChanged(
@@ -368,7 +390,10 @@ function buildDecorations(
       return note;
     },
     enabled: handlers.enabled(),
-    selection: view.hasFocus ? state.selection.ranges : [],
+    selection:
+      view.hasFocus && !state.field(freshFileOpen, false)
+        ? state.selection.ranges
+        : [],
     searchHighlights: searchMatchHighlights(
       state.facet(EditorView.decorations),
     ),
