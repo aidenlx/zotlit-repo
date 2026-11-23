@@ -163,6 +163,7 @@ export type DesktopSlotOptions = HoldKind & {
   worktree?: string;
   waitMs?: number;
   pollMs?: number;
+  whileWaiting?: () => Promise<void>;
   remindMs?: number;
   graceMs?: number;
   killAfterMs?: number;
@@ -375,6 +376,7 @@ export async function acquireDesktopSlot(
         );
         reported = { key, at: now() };
       }
+      await options.whileWaiting?.();
       await delay(Math.min(pollMs, deadline - now()));
     }
   } finally {

@@ -4,12 +4,13 @@ import { once } from "node:events";
 import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { text } from "node:stream/consumers";
 import { setTimeout as delay } from "node:timers/promises";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { GitRepos } from "./__fixtures__/git-repos.ts";
-import { landAdmission, landWaitLog } from "./land-queue.ts";
+import { landAdmission, landStateDir, landWaitLog } from "./land-queue.ts";
 import type { LandWaitRecord } from "./land-queue.ts";
 import { land, LAND_CI_CHECK, LAND_RECORD_PATH } from "./land.ts";
 import type { CiCheck, LandGitHub, LandOptions } from "./land.ts";
@@ -843,10 +844,16 @@ describe("the Land Queue", () => {
     return each;
   }
 
-  function landChild(cwd: string): ChildProcess {
+  function landChild(
+    cwd: string,
+    extraOptions: {
+      conflictCheckMs?: number;
+      conflictFetchTimeoutMs?: number;
+    } = {},
+  ): ChildProcess {
     return child(
       `const { land } = await import(${JSON.stringify(MODULE)});
-const result = await land({ cwd: ${JSON.stringify(cwd)}, gate: ["true"], pollMs: 20, say: () => {} });
+const result = await land({ cwd: ${JSON.stringify(cwd)}, gate: ["true"], pollMs: 20, say: () => {}, ...${JSON.stringify(extraOptions)} });
 console.log(JSON.stringify(result));`,
     );
   }
@@ -858,18 +865,23 @@ console.log(JSON.stringify(result));`,
     ).length;
   }
 
-  it(
-    "lands in the order the lands joined the queue",
-    async () => {
-      const holder = child(
-        `const slot = await import(${JSON.stringify(SLOT)});
+  async function holdTurn(): Promise<ChildProcess> {
+    const holder = child(
+      `const slot = await import(${JSON.stringify(SLOT)});
 const { landAdmission } = await import(${JSON.stringify(QUEUE)});
 const held = await slot.acquireDesktopSlot({ admission: landAdmission(), silenceMs: 600000, pollMs: 20, log: () => {} });
 console.log("held");
 process.stdin.resume();
 process.stdin.on("end", () => { held.release(); process.exit(0); });`,
-      );
-      await once(holder.stdout!, "data");
+    );
+    await once(holder.stdout!, "data");
+    return holder;
+  }
+
+  it(
+    "lands in the order the lands joined the queue",
+    async () => {
+      const holder = await holdTurn();
       const first = landChild(await taskClone("a"));
       await until(async () => (await tickets()) === 1, "the first ticket");
       const second = landChild(await taskClone("b"));
@@ -890,6 +902,159 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
       expect(a).toMatchObject({ source: "feat/a", outcome: "landed" });
       expect(b).toMatchObject({ source: "feat/b", outcome: "landed" });
       expect(b!.waitMs).toBeGreaterThan(0);
+    },
+    SLOW,
+  );
+
+  it(
+    "reports a conflict and leaves the queue while the holder still has the turn",
+    async () => {
+      const holder = await holdTurn();
+      const cwd = await taskClone("a");
+      const original = await repos.commit(cwd, "README.md", { text: "task\n" });
+      const waiter = landChild(cwd, { conflictCheckMs: 50 });
+      const result = text(waiter.stdout!);
+      await until(async () => (await tickets()) === 1, "the land ticket");
+      const upstream = await moveMain("README.md", "upstream\n");
+
+      await until(
+        async () => waiter.exitCode !== null,
+        "the queued land to exit",
+      );
+      expect(holder.exitCode).toBeNull();
+      expect(JSON.parse(await result)).toMatchObject({
+        ok: false,
+        step: "rebase",
+        exitCode: 1,
+        message: expect.stringContaining("README.md"),
+      });
+      expect(await git(cwd, "rev-parse", "HEAD")).toBe(original);
+      expect(await git(cwd, "symbolic-ref", "--short", "HEAD")).toBe("feat/a");
+      expect(await git(cwd, "status", "--porcelain")).toBe("");
+      expect(await tickets()).toBe(0);
+      expect(await waits()).toMatchObject([
+        { source: "feat/a", outcome: "failed", step: "rebase" },
+      ]);
+      expect(await git(repos.remote, "rev-parse", "main")).toBe(upstream);
+      holder.stdin!.end();
+      await once(holder, "exit");
+    },
+    SLOW,
+  );
+
+  it(
+    "stays in the queue when main moves cleanly and lands when the turn is free",
+    async () => {
+      const holder = await holdTurn();
+      const cwd = await taskClone("a");
+      const waiter = landChild(cwd, { conflictCheckMs: 50 });
+      const result = text(waiter.stdout!);
+      await until(async () => (await tickets()) === 1, "the land ticket");
+      const upstream = await moveMain("upstream.txt", "upstream\n");
+
+      await until(
+        async () =>
+          (await git(cwd, "rev-parse", "--verify", "FETCH_HEAD").catch(
+            () => "",
+          )) === upstream,
+        "the queued land to fetch the moved main",
+      );
+      expect(holder.exitCode).toBeNull();
+      expect(waiter.exitCode).toBeNull();
+      expect(await tickets()).toBe(1);
+
+      holder.stdin!.end();
+      await once(holder, "exit");
+      expect(JSON.parse(await result)).toMatchObject({ ok: true });
+    },
+    SLOW,
+  );
+
+  async function landLog(): Promise<string> {
+    const dir = join(landStateDir(), "logs");
+    const names = await readdir(dir).catch(() => []);
+    const texts = await Promise.all(
+      names.map((name) => readFile(join(dir, name), "utf8")),
+    );
+    return texts.join("\n");
+  }
+
+  it(
+    "keeps waiting when the conflict is with a landed copy of a branch commit, and lands",
+    async () => {
+      const holder = await holdTurn();
+      const cwd = await taskClone("a");
+      const first = await repos.commit(cwd, "README.md", {
+        text: "first\n",
+        message: "first",
+      });
+      await repos.commit(cwd, "README.md", {
+        text: "second\n",
+        message: "second",
+      });
+      await git(cwd, "push", "-q", "origin", `${first}:refs/heads/first`);
+      const other = await repos.clone("other");
+      await repos.commit(other, "upstream.txt", {
+        text: "upstream\n",
+        message: "main upstream.txt",
+      });
+      await git(other, "fetch", "-q", "origin", "first");
+      await git(other, "cherry-pick", "FETCH_HEAD");
+      await git(other, "push", "-q", "origin", "HEAD:refs/heads/main");
+      const waiter = landChild(cwd, { conflictCheckMs: 50 });
+      const result = text(waiter.stdout!);
+
+      await until(
+        async () => (await landLog()).includes("copies of branch commits"),
+        "the queued land to leave the decision to the rebase",
+      );
+      expect(waiter.exitCode).toBeNull();
+      expect(await tickets()).toBe(1);
+
+      holder.stdin!.end();
+      await once(holder, "exit");
+      expect(JSON.parse(await result)).toMatchObject({ ok: true });
+      expect(await subjects("main")).toEqual([
+        "second",
+        "a",
+        "first",
+        "main upstream.txt",
+        "seed",
+      ]);
+    },
+    SLOW,
+  );
+
+  it(
+    "skips a conflict check whose fetch hangs, and takes the turn when it is free",
+    async () => {
+      const holder = await holdTurn();
+      const cwd = await taskClone("a");
+      await git(
+        cwd,
+        "config",
+        "remote.origin.uploadpack",
+        "sleep 120; git-upload-pack",
+      );
+      const waiter = landChild(cwd, {
+        conflictCheckMs: 50,
+        conflictFetchTimeoutMs: 200,
+      });
+      const result = text(waiter.stdout!);
+
+      await until(
+        async () => (await landLog()).includes("Conflict check skipped"),
+        "the queued land to skip the hung fetch",
+      );
+      await git(cwd, "config", "--unset", "remote.origin.uploadpack");
+      holder.stdin!.end();
+      await once(holder, "exit");
+
+      await until(
+        async () => waiter.exitCode !== null,
+        "the queued land to finish",
+      );
+      expect(JSON.parse(await result)).toMatchObject({ ok: true });
     },
     SLOW,
   );

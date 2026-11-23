@@ -33,6 +33,8 @@ const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
 
 export const LAND_WAIT_MS = HOUR;
+export const LAND_CONFLICT_CHECK_MS = MINUTE;
+export const LAND_CONFLICT_FETCH_TIMEOUT_MS = 30_000;
 export const LAND_ATTEMPTS = 3;
 
 const TRUNK = SOURCE_BRANCH;
@@ -135,6 +137,8 @@ export interface LandOptions {
   logDir?: string;
   waitLog?: string;
   waitMs?: number;
+  conflictCheckMs?: number;
+  conflictFetchTimeoutMs?: number;
   silenceMs?: number;
   pollMs?: number;
   attempts?: number;
@@ -196,7 +200,11 @@ class Shell {
     this.#log = log;
   }
 
-  run(command: string, args: readonly string[]): Promise<RunResult> {
+  run(
+    command: string,
+    args: readonly string[],
+    timeoutMs?: number,
+  ): Promise<RunResult> {
     this.#log.write(`\n$ ${[command, ...args].join(" ")}\n`);
     return new Promise((resolve, reject) => {
       const child = spawn(command, args, {
@@ -205,6 +213,13 @@ class Shell {
         detached: process.platform !== "win32",
       });
       this.#current = child;
+      const timer =
+        timeoutMs === undefined
+          ? undefined
+          : setTimeout(() => {
+              this.#log.write(`(timed out after ${timeoutMs} ms)\n`);
+              this.stop("SIGTERM");
+            }, timeoutMs);
       let stdout = "";
       let stderr = "";
       const what = `output of ${command} ${args[0] ?? ""}`.trim();
@@ -220,6 +235,7 @@ class Shell {
       });
       child.on("error", reject);
       child.on("close", (code, signal) => {
+        clearTimeout(timer);
         if (this.#current === child) this.#current = undefined;
         if (signal) this.#log.write(`(ended by ${signal})\n`);
         resolve({ code: code ?? 128, stdout, stderr });
@@ -306,6 +322,13 @@ export async function land(options: LandOptions): Promise<LandResult> {
         waitMs: options.waitMs ?? LAND_WAIT_MS,
         ...(options.pollMs ? { pollMs: options.pollMs } : {}),
         signals: false,
+        whileWaiting: conflictWatch(sh, log, {
+          remote,
+          to,
+          everyMs: options.conflictCheckMs ?? LAND_CONFLICT_CHECK_MS,
+          fetchTimeoutMs:
+            options.conflictFetchTimeoutMs ?? LAND_CONFLICT_FETCH_TIMEOUT_MS,
+        }),
         log: (line) => {
           say(line);
           log.write(`${line}\n`);
@@ -747,6 +770,66 @@ async function readMerged(
     if (left <= 0) return false;
     await delay(Math.min(options.pollMs, left));
   }
+}
+
+function conflictWatch(
+  sh: Shell,
+  log: WriteStream,
+  {
+    remote,
+    to,
+    everyMs,
+    fetchTimeoutMs,
+  }: { remote: string; to: string; everyMs: number; fetchTimeoutMs: number },
+): () => Promise<void> {
+  let checkedAt = -Infinity;
+  let checked: string | undefined;
+  return async () => {
+    const now = Temporal.Now.instant().epochMilliseconds;
+    if (now - checkedAt < everyMs) return;
+    checkedAt = now;
+    let conflicts: string;
+    try {
+      const fetched = await sh.run(
+        "git",
+        ["fetch", "--no-tags", "--refmap=", remote, `refs/heads/${to}`],
+        fetchTimeoutMs,
+      );
+      if (fetched.code !== 0) {
+        throw new Error(`git fetch exited ${fetched.code}`);
+      }
+      const sha = await sh.git("queue", "rev-parse", "FETCH_HEAD");
+      if (sha === checked) return;
+      checked = sha;
+      const merged = await sh.run("git", [
+        "merge-tree",
+        "--write-tree",
+        "--name-only",
+        "--no-messages",
+        "HEAD",
+        sha,
+      ]);
+      if (merged.code === 0) return;
+      if (merged.code !== 1) {
+        throw new Error(`git merge-tree exited ${merged.code}`);
+      }
+      conflicts = merged.stdout.trimEnd().split("\n").slice(1).join("\n");
+      const cherry = await sh.git("queue", "cherry", sha, "HEAD");
+      if (cherry.split("\n").some((line) => line.startsWith("- "))) {
+        log.write(
+          `Conflict check deferred: ${remote}/${to} holds copies of branch commits, so the rebase in the Land Turn decides.\n`,
+        );
+        return;
+      }
+    } catch (error) {
+      log.write(`Conflict check skipped: ${String(error).split("\n", 1)[0]}\n`);
+      return;
+    }
+    throw new LandFailure(
+      "rebase",
+      `While the land waited for the Land Turn, the branch does not merge with ${remote}/${to} without conflicts in:\n${conflicts}\nThe branch is as it was. Run git fetch ${remote}, merge or rebase onto ${remote}/${to} yourself, resolve the conflicts, and land again.`,
+    );
+  };
 }
 
 async function fetchTarget(
