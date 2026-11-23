@@ -281,7 +281,7 @@ Keep one Markdown post-processor for the plugin lifetime. Determine formatting a
 
 Read literal citations from rendered text nodes. Leave code, math, metadata, and links to their own rendering paths. Swap spans from the last occurrence to the first so splits preserve the earlier offsets. Keep the enclosing block in place so sidebar navigation can flash it. Use section coordinates to select the occurrence-specific text for position-dependent styles.
 
-Use the shared Document Citation Text so Reading view, Live Preview, and References agree on presentation. Keep raw source before the first answer and retain the visible text while its replacement is pending. Scope lookup to its rendered section. Rewrite the live sections for a changed document, or all live sections on global invalidation. Retain equal citation elements so an active popover keeps its anchor, and refresh the navigation state it reads. A retained element refreshes its Imported Note Profile diagnostic, as the amendment "citation presentation follows state changes" states. [Reading service](../../packages/citations/src/obsidian/citekey-reading/service.ts) · [Issue 162](https://github.com/aidenlx/zotlit-repo/issues/162)
+Use the shared Document Citation Text so Reading view, Live Preview, and References agree on presentation. Keep raw source before the first answer and retain the visible text while its replacement is pending. Scope lookup to its rendered section. Rewrite the live sections for a changed document, or all live sections on global invalidation. Retain equal citation elements so an active popover keeps its anchor, and refresh the navigation state it reads. A retained element refreshes its Imported Note Profile diagnostic, as the amendment "citation presentation follows state changes" states. A fresh settled result with no formatted text for a citation restores its source text, as the amendment "Reading view citations return to source text" states. [Reading service](../../packages/citations/src/obsidian/citekey-reading/service.ts) · [Issue 162](https://github.com/aidenlx/zotlit-repo/issues/162) · [Issue 258](https://github.com/aidenlx/zotlit-repo/issues/258)
 
 Keep unresolved and ambiguous citations wrapped for styling even when they have no direct click action. Use the host's internal-link variables, with unresolved decoration on ambiguous citations and hover colour reserved for ordinary open affordances. [Renderer](../../packages/citations/src/obsidian/citekey-reading/render.ts) · [Reading style](../../packages/citations/src/obsidian/citekey-reading/style.css)
 
@@ -552,3 +552,18 @@ Accepted limits:
 - The References Sidebar shows an unreadable attachment list as no attachments, with no Open attachment button.
 
 [Issue 162](https://github.com/aidenlx/zotlit-repo/issues/162) · [Issue 164](https://github.com/aidenlx/zotlit-repo/issues/164) · [Issue 165](https://github.com/aidenlx/zotlit-repo/issues/165) · [Issue 166](https://github.com/aidenlx/zotlit-repo/issues/166) · [PR 245](https://github.com/aidenlx/zotlit-repo/pull/245)
+
+## Amendment (2026-11-23): Reading view citations return to source text
+
+The citekey, Wikilink, and Annotation Citation Reading views use one rule when they rewrite a held section:
+
+- A fresh settled Citation Text result with formatted text for a citation shows that text.
+- A fresh settled result with no formatted text for a citation restores its source presentation. This occurs, for example, when the note's Imported Note Profile is unavailable. A citekey citation shows its source text in an element equal to the one that a first render gives in that state, with its key state and Profile diagnostic. A Wikilink Citation Run gets back its native anchors and separators. An Annotation link gets back its native link.
+- A revalidating or failed read keeps the current text, as the Held Read rule of ADR 0054 states.
+- When there is no Citation Text result, the citation keeps its current text and diagnostic. This is the accepted limit "A refresh with no Citation Text result keeps the previous diagnostic" above.
+
+Before this change the citekey Reading view kept the last formatted text for a fresh result with no text. That behaviour came from the in-place refresh of 2026-09-06, which applied the Held Read rule to every result. The Held Read rule covers only revalidating and failed reads, so a fresh result now restores the source text. A researcher who switches to a Profile that cannot format the citation then sees the citekey source and the Profile diagnostic, as with a Wikilink Citation.
+
+The three views apply the same status check. The steps that restore the presentation are different for each view: the citekey view builds its element from the source text again, and the other two views restore the native anchors that Obsidian rendered.
+
+[Issue 238](https://github.com/aidenlx/zotlit-repo/issues/238) · [Issue 258](https://github.com/aidenlx/zotlit-repo/issues/258) · [PR 260](https://github.com/aidenlx/zotlit-repo/pull/260)

@@ -348,6 +348,9 @@ const makeHarness = Effect.fnUntraced(function* ({
     stopFormatting: () => {
       formatting = false;
     },
+    startFormatting: () => {
+      formatting = true;
+    },
     changeFile: (path: string, nextFrontmatter = frontmatter) => {
       metadata.change(vault.getFileByPath(path)!, {
         frontmatter: nextFrontmatter,
@@ -1012,20 +1015,114 @@ describe("CitekeyReading refresh", () => {
   );
 
   it.live(
-    "keeps the current text when the fresh text holds nothing for a citation",
+    "restores the source when a fresh read has no formatted citation",
     () =>
       Effect.gen(function* () {
         const h = yield* makeHarness({ body: "Blah [@alpha]." });
         const el = section("<p>Blah [@alpha].</p>");
         h.process(el, h.viewedCtx(el));
+        expect(el.textContent).toBe(`Blah «[@${ALPHA_KEY}]».`);
 
         h.stopFormatting();
         const settled = yield* h.settles("note.md");
         h.changeFile("note.md");
         yield* settled;
 
+        expect(el.textContent).toBe("Blah [@alpha].");
+        expect(el.querySelector("p span")?.textContent).toBe("[@alpha]");
+
+        h.startFormatting();
+        const formatted = yield* h.settles("note.md");
+        h.changeFile("note.md");
+        yield* formatted;
+
         expect(el.textContent).toBe(`Blah «[@${ALPHA_KEY}]».`);
       }),
+  );
+
+  it.live(
+    "restores the source and names the Profile when an Imported Note loses its Profile",
+    () =>
+      Effect.gen(function* () {
+        const imported = { "zotero-note-key": "1/NOTE1234" };
+        const h = yield* makeHarness({
+          body: "Cited @alpha.",
+          formats: true,
+          frontmatter: imported,
+        });
+        const el = section("<p>Cited @alpha.</p>");
+        h.process(el, h.ctx);
+        const formatted = el.querySelector("p span")!.textContent;
+        expect(formatted).toBe(`«@${ALPHA_KEY}»`);
+
+        const changed = yield* h.settles("note.md");
+        h.changeFile("note.md", {
+          ...imported,
+          "zotlit-profile": "deleted-profile",
+        });
+        yield* changed;
+
+        const raw = el.querySelector("p span")!;
+        expect(raw.textContent).toBe("@alpha");
+        expect(raw.getAttribute("data-citation-presentation-error")).toBe(
+          "profile",
+        );
+        expect(raw.getAttribute("aria-label")).toBe(
+          m.notice_imported_note_profile_unknown({
+            stamp: "deleted-profile",
+            target: "note.md",
+          }),
+        );
+
+        const firstRender = section("<p>Cited @alpha.</p>");
+        h.process(firstRender, h.ctx);
+        const firstRaw = firstRender.querySelector("p span")!;
+        expect(raw.textContent).toBe(firstRaw.textContent);
+        expect(raw.getAttribute("data-citation-presentation-error")).toBe(
+          firstRaw.getAttribute("data-citation-presentation-error"),
+        );
+        expect(raw.getAttribute("aria-label")).toBe(
+          firstRaw.getAttribute("aria-label"),
+        );
+
+        const repaired = yield* h.settles("note.md");
+        h.changeFile("note.md", imported);
+        yield* repaired;
+
+        const restored = el.querySelector("p span")!;
+        expect(restored.textContent).toBe(formatted);
+        expect(
+          restored.getAttribute("data-citation-presentation-error"),
+        ).toBeNull();
+        expect(restored.getAttribute("aria-label")).toBeNull();
+      }),
+  );
+
+  it.live("keeps the formatted citation when a document read fails", () =>
+    Effect.gen(function* () {
+      let fail = false;
+      const h = yield* makeHarness({
+        body: "Blah [@alpha].",
+        formatCitations: (sources) =>
+          fail
+            ? Promise.reject(new Error("render failed"))
+            : Promise.resolve(sources.map((source) => rendered(`«${source}»`))),
+      });
+      yield* h.read("note.md");
+      const el = section("<p>Blah [@alpha].</p>");
+      h.process(el, h.viewedCtx(el));
+      expect(el.textContent).toBe(`Blah «[@${ALPHA_KEY}]».`);
+
+      fail = true;
+      const settled = yield* h.settles("note.md");
+      h.changeFile("note.md");
+
+      expect(yield* settled).toMatchObject({
+        _tag: "Some",
+        value: { held: { status: "failed" } },
+      });
+      expect(el.textContent).toBe(`Blah «[@${ALPHA_KEY}]».`);
+    }),
   );
 
   it.live(

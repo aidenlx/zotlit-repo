@@ -260,7 +260,10 @@ export const layerCitekeyReading = Layer.effectDiscard(
             : citationContent(citation, text.value, coordinates[index])
           : null;
         const previous = placed[index];
-        const shown = content ?? previous?.shown ?? citation.source;
+        const shown =
+          content ??
+          (text?.status === "fresh" ? citation.source : previous?.shown) ??
+          citation.source;
         const nextDiagnostic =
           text === null ? previous?.diagnostic : diagnostic;
         const states = citationKeyStates(citation, stateOf);
