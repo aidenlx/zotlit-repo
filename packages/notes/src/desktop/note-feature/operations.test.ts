@@ -3847,11 +3847,12 @@ describe("updateNote", () => {
   );
 
   it.effect(
-    "restores all note stamps and the original path when one family write fails",
+    "restores all live note stamps and the original path when one family write fails",
     () =>
       Effect.gen(function* () {
         const oldProfileId = "Bk3Qn7XvT2Lp" as ProfileId;
         const newProfileId = "Rz9Wm4YfH6Kd" as ProfileId;
+        const editedStamp = "Aa2Wm4YfH6Kd";
         stubIndexedKeyUpdate(updateContext());
         const harness = makeUpdateHarness({
           content: formatManagedRegion("OLD"),
@@ -3871,15 +3872,22 @@ describe("updateNote", () => {
         const imported = [
           harness.file("Imported/First.md"),
           harness.file("Imported/Second.md"),
-        ];
-        const { vault } = harness.host;
+        ] as const;
+        const { metadataCache, vault } = harness.host;
+        const view = harness.host.openInEditor(imported[0]);
+        view.edit(view.getViewData().replace(oldProfileId, editedStamp));
+        expect(
+          metadataCache.getFileCache(imported[0])?.frontmatter,
+        ).toMatchObject({
+          [FIELD_LITERATURE_NOTE_PROFILE]: oldProfileId,
+        });
         const properties = (file: TFile) =>
           parseFrontMatter(vault.contents.get(file.path)!);
         const write = vault.modifyFile.bind(vault);
         let failed = false;
         vi.spyOn(vault, "modifyFile").mockImplementation((path, content) => {
           write(path, content);
-          if (path === imported[1]!.path && !failed) {
+          if (path === imported[1].path && !failed) {
             failed = true;
             throw new Error("frontmatter write failed");
           }
@@ -3911,11 +3919,15 @@ describe("updateNote", () => {
         expect(properties(literature)).toMatchObject({
           [FIELD_LITERATURE_NOTE_PROFILE]: oldProfileId,
         });
-        for (const file of imported) {
-          expect(properties(file)).toMatchObject({
-            [FIELD_LITERATURE_NOTE_PROFILE]: oldProfileId,
-          });
-        }
+        expect(parseFrontMatter(view.getViewData())).toMatchObject({
+          [FIELD_LITERATURE_NOTE_PROFILE]: editedStamp,
+        });
+        expect(properties(imported[0])).toMatchObject({
+          [FIELD_LITERATURE_NOTE_PROFILE]: editedStamp,
+        });
+        expect(properties(imported[1])).toMatchObject({
+          [FIELD_LITERATURE_NOTE_PROFILE]: oldProfileId,
+        });
       }),
   );
 

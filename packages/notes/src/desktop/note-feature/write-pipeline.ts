@@ -35,7 +35,6 @@ import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import {
   DEFAULT_PROFILE,
   parseProfileStamp,
-  profileStampOf,
 } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type {
   ProfileId,
@@ -588,27 +587,20 @@ const stampNoteFamily = Effect.fnUntraced(function* (
   files: readonly TFile[],
   stamp: string | undefined,
 ) {
-  const metadata = yield* MetadataCache;
-  const previous = yield* Effect.forEach(files, (file) =>
-    Effect.map(
-      metadata.fileCache(file),
-      (cache) => [file, profileStampOf(cache)?.stamp] as const,
-    ),
-  );
+  const previous: { file: TFile; stamp: unknown }[] = [];
   yield* Effect.forEach(
-    previous,
-    ([file], index) =>
-      stampNoteProfile(file, stamp).pipe(
-        Effect.mapError((error) => ({ error, index })),
-      ),
+    files,
+    (file, index) =>
+      stampNoteProfile(file, stamp, (previousStamp) => {
+        previous[index] = { file, stamp: previousStamp };
+      }),
     { discard: true },
   ).pipe(
-    Effect.catch(({ error, index }) =>
+    Effect.catch((error) =>
       Effect.gen(function* () {
         const rollbacks = yield* Effect.forEach(
-          previous.slice(0, index + 1).toReversed(),
-          ([file, previousStamp]) =>
-            Effect.result(stampNoteProfile(file, previousStamp)),
+          previous.toReversed(),
+          ({ file, stamp }) => Effect.result(stampNoteProfile(file, stamp)),
         );
         const rollbackErrors = rollbacks.flatMap((rollback) =>
           Result.isFailure(rollback) ? [rollback.failure] : [],
@@ -624,9 +616,14 @@ const stampNoteFamily = Effect.fnUntraced(function* (
   );
 });
 
-const stampNoteProfile = (file: TFile, stamp: string | undefined) =>
+const stampNoteProfile = (
+  file: TFile,
+  stamp: unknown,
+  capturePrevious?: (stamp: unknown) => void,
+) =>
   rewriteLiveText(file, (text) => {
     const fm = parseFrontMatter(text);
+    capturePrevious?.(fm[FIELD_LITERATURE_NOTE_PROFILE]);
     if (stamp === undefined) delete fm[FIELD_LITERATURE_NOTE_PROFILE];
     else fm[FIELD_LITERATURE_NOTE_PROFILE] = stamp;
     return spliceFrontMatter(text, fm);
