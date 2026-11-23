@@ -14,7 +14,7 @@ export interface SuffixSpec {
 }
 
 export function filenameSuffix(length = 6, prepend = "_", append = ""): string {
-  if (!Number.isInteger(length) || length < 1 || length > MAX_SUFFIX_LENGTH) {
+  if (!isSuffixLength(length)) {
     throw new Error(
       `suffix() length must be an integer in 1..${MAX_SUFFIX_LENGTH}, got ${length}`,
     );
@@ -33,26 +33,47 @@ export function filenameSuffix(length = 6, prepend = "_", append = ""): string {
 }
 
 export function hasSuffixMarker(rendered: string): boolean {
-  return rendered.search(MARKER_RE) !== -1;
+  return suffixMarkers(rendered).length > 0;
 }
 
 export function replaceSuffixMarkers(
   rendered: string,
   fill: (spec: SuffixSpec) => string,
 ): string {
-  MARKER_RE.lastIndex = 0;
   let out = "";
   let last = 0;
+  for (const { start, end, spec } of suffixMarkers(rendered)) {
+    out += rendered.slice(last, start) + fill(spec);
+    last = end;
+  }
+  return out + rendered.slice(last);
+}
+
+function isSuffixLength(length: number): boolean {
+  return Number.isInteger(length) && length >= 1 && length <= MAX_SUFFIX_LENGTH;
+}
+
+function suffixMarkers(
+  rendered: string,
+): Array<{ start: number; end: number; spec: SuffixSpec }> {
+  const markers: Array<{ start: number; end: number; spec: SuffixSpec }> = [];
+  MARKER_RE.lastIndex = 0;
   for (
     let match = MARKER_RE.exec(rendered);
     match;
     match = MARKER_RE.exec(rendered)
   ) {
-    const { length, prepend, append } = match.groups;
-    out +=
-      rendered.slice(last, match.index) +
-      fill({ length: Number(length), prepend, append });
-    last = match.index + match[0].length;
+    const { prepend, append } = match.groups;
+    const length = Number(match.groups.length);
+    if (!isSuffixLength(length)) {
+      MARKER_RE.lastIndex = match.index + 1;
+      continue;
+    }
+    markers.push({
+      start: match.index,
+      end: match.index + match[0].length,
+      spec: { length, prepend, append },
+    });
   }
-  return out + rendered.slice(last);
+  return markers;
 }

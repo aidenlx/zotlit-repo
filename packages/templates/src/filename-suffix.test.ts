@@ -51,6 +51,17 @@ describe("hasSuffixMarker", () => {
     expect(hasSuffixMarker("smith2020%zt-suffix:foo%")).toBe(false);
     expect(hasSuffixMarker("smith2020%zt-suffix:%")).toBe(false);
   });
+
+  it.each([0, 65, 999999999])(
+    "is false for a marker whose length is out of range (%s)",
+    (length) => {
+      expect(hasSuffixMarker(`smith2020%zt-suffix:${length}:_:%`)).toBe(false);
+    },
+  );
+
+  it.each([1, 64])("detects a marker at the length limit %s", (length) => {
+    expect(hasSuffixMarker(`smith2020%zt-suffix:${length}:_:%`)).toBe(true);
+  });
 });
 
 describe("replaceSuffixMarkers", () => {
@@ -72,6 +83,30 @@ describe("replaceSuffixMarkers", () => {
     expect(replaceSuffixMarkers(`smith2020${filenameSuffix()}`, () => "")).toBe(
       "smith2020",
     );
+  });
+
+  it.each([0, 65, 999999999])(
+    "leaves a marker whose length is out of range (%s) as literal text",
+    (length) => {
+      const rendered = `a%zt-suffix:${length}:_:%b${filenameSuffix(4)}`;
+      const seen: number[] = [];
+      const out = replaceSuffixMarkers(rendered, (spec) => {
+        seen.push(spec.length);
+        return "<filled>";
+      });
+      expect(out).toBe(`a%zt-suffix:${length}:_:%b<filled>`);
+      expect(seen).toEqual([4]);
+    },
+  );
+
+  it("fills a marker that directly follows an out-of-range marker", () => {
+    expect(
+      replaceSuffixMarkers(
+        "%zt-suffix:0:_:%zt-suffix:6:_:%",
+        (spec) => `<${spec.length}>`,
+      ),
+    ).toBe("%zt-suffix:0:_:<6>");
+    expect(hasSuffixMarker("%zt-suffix:0:_:%zt-suffix:6:_:%")).toBe(true);
   });
 
   it("leaves marker-free text untouched", () => {
