@@ -76,7 +76,7 @@ Use one banner to explain a missing Chinese body and a different banner to offer
 
 The legacy notice uses the redirect's `from=v1` and `src` query values. Treat a locale hint alone as insufficient to show it. Validate the source as a path before appending it to the fixed archive origin. Preserve the original archive locale when a reader chooses the English edition of the new page. The prerender has no arrival query, so the notice reads it in the browser from the router location after hydration, as the 2026-11-23 amendment states. [Redirect notice](https://github.com/aidenlx/zotlit-repo/issues/105)
 
-Page loaders supply initial release data only for the install pages and the install lesson. Pass it through context because the consumers sit inside MDX bodies below the route. Refresh after mount, and keep the baked facts on a failed lookup. An ineligible page should have a null snapshot even when the preceding page fetched one. [Snapshot follow-up](https://github.com/aidenlx/zotlit-repo/issues/106)
+Page loaders supply initial release data only for the install pages and the install lesson. Pass it through context because the consumers sit inside MDX bodies below the route. Refresh after mount, and keep the baked facts on a failed lookup. An ineligible page has a null snapshot even when the preceding page fetched one. This was fixed on 2026-11-23 in [PR 247](https://github.com/aidenlx/zotlit-repo/pull/247). [Snapshot](https://github.com/aidenlx/zotlit-repo/issues/106)
 
 The ledger uses a status row when a channel has no active release and omits the ledger when the facts are unavailable. The Companion download links directly to its latest XPI and falls back to its releases page. Since the Companion has no separate changelog entry here, share the Companion version aside between the changelog list and detail routes. Keep the repository link usable and omit only the counters that were unavailable.
 
@@ -94,7 +94,7 @@ Build the prerender list from the content scan plus named catalog routes. The fu
 
 Keep English paths unprefixed, Chinese paths under the v1-compatible `/zh-CN` prefix, and English as the fallback for missing content. Derive locale alternates from native files and named catalog pages, and identify the HTML canonical for both HTML and Markdown requests.
 
-Use the first browser language at the pre-paint head script and let any Chinese locale, including Traditional Chinese, trigger the published Chinese edition suggestion. The head marker shows the strip in the already rendered page. A saved English choice suppresses that suggestion, and choosing English or closing the strip clears its marker immediately. Persist the choice when browser storage is available. A blocked read currently skips the suggestion as well as persistence. [Browser storage follow-up](https://github.com/aidenlx/zotlit-repo/issues/112)
+Use the first browser language at the pre-paint head script and let any Chinese locale, including Traditional Chinese, trigger the published Chinese edition suggestion. The head marker shows the strip in the already rendered page. A saved English choice suppresses that suggestion, and choosing English or closing the strip clears its marker immediately. Persist the choice when browser storage is available. A blocked read skips only persistence, and the suggestion and the language choice still work. This was fixed on 2026-11-23 in [PR 247](https://github.com/aidenlx/zotlit-repo/pull/247). [Browser storage](https://github.com/aidenlx/zotlit-repo/issues/112)
 
 ## Content inputs and publication dates
 
