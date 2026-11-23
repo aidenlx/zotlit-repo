@@ -18,16 +18,16 @@ export class ReflinkUnsupportedError extends Schema.TaggedError<
 
 export async function reflink(
   sourcePath: string,
-  targetPath: string,
+  newTargetPath: string,
 ): Promise<void> {
   if (process.platform === "darwin") {
-    await reflinkMac(sourcePath, targetPath);
+    await reflinkMac(sourcePath, newTargetPath);
     return;
   }
   if (process.platform === "linux") {
     await copyFile(
       sourcePath,
-      targetPath,
+      newTargetPath,
       constants.COPYFILE_FICLONE_FORCE | constants.COPYFILE_EXCL,
     );
     return;
@@ -37,10 +37,10 @@ export async function reflink(
 
 async function reflinkMac(
   sourcePath: string,
-  targetPath: string,
+  newTargetPath: string,
 ): Promise<void> {
   try {
-    await execFileAsync("cp", ["-c", "-n", sourcePath, targetPath]);
+    await execFileAsync("cp", ["-c", "-n", sourcePath, newTargetPath]);
   } catch (error) {
     if (isClonefileUnsupported(error))
       throw new ReflinkUnsupportedError({ cause: error });

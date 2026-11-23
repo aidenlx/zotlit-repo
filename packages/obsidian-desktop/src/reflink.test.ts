@@ -1,6 +1,25 @@
+import { mkdtempDisposable, readFile, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { isClonefileUnsupported } from "./reflink.ts";
+import { isClonefileUnsupported, reflink } from "./reflink.ts";
+
+describe.skipIf(process.platform !== "darwin")("reflink", () => {
+  it("creates a file with the source bytes at a new path", async () => {
+    await using dir = await mkdtempDisposable(
+      join(tmpdir(), "zotlit-reflink-"),
+    );
+    const source = join(dir.path, "source.pdf");
+    const newPath = join(dir.path, "copy.pdf");
+    const bytes = Uint8Array.of(0, 42, 255);
+    await writeFile(source, bytes);
+
+    await reflink(source, newPath);
+
+    expect(await readFile(newPath)).toEqual(Buffer.from(bytes));
+  });
+});
 
 function execFailure(stderr: string): Error {
   return Object.assign(new Error("Command failed: cp -c -n src dest"), {
