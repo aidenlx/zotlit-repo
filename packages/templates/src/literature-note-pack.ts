@@ -1,3 +1,6 @@
+import { regex } from "arkregex";
+
+import type { TemplateLanguage } from "./constants.ts";
 import { updateLiteratureNoteTemplateManifestKeys } from "./literature-note-template-manifest-edit.ts";
 import { parseLiteratureNoteTemplate } from "./literature-note-template.ts";
 import type {
@@ -138,7 +141,9 @@ export function literatureNoteTemplateDependencies(
     document.body,
     document.annotationSection.source,
     document.manifest.filename,
-  ].flatMap(referencedPartialNames);
+  ].flatMap((source) =>
+    referencedPartialNames(source, document.manifest.language),
+  );
   return [...new Set(names)].sort();
 }
 
@@ -211,11 +216,7 @@ export function exportLiteratureNotePack(
   const reported = new Set<string>();
   const pending = [
     ...(options.include ?? []),
-    ...[
-      document.body,
-      document.annotationSection.source,
-      document.manifest.filename,
-    ].flatMap(referencedPartialNames),
+    ...literatureNoteTemplateDependencies(document),
   ];
   while (pending.length > 0) {
     const name = pending.pop()!;
@@ -238,7 +239,7 @@ export function exportLiteratureNotePack(
       );
     }
     bundled.set(name, partial);
-    pending.push(...referencedPartialNames(partial.source));
+    pending.push(...referencedPartialNames(partial.source, partial.language));
   }
   const stripFolders =
     !options.includeFolders &&
@@ -369,31 +370,53 @@ export function planLiteratureNotePackRevert(
   });
 }
 
-function referencedPartialNames(source: string): string[] {
-  return [
-    ...quotedNamesAfter(source, "render"),
-    ...quotedNamesAfter(source, "include"),
-  ];
-}
+const LIQUID_TOKEN =
+  /{%-?\s*comment\s*-?%}[\s\S]*?(?:{%-?\s*endcomment\s*-?%}|$)|{%-?\s*raw\s*-?%}[\s\S]*?(?:{%-?\s*endraw\s*-?%}|$)|{{[\s\S]*?}}|{%[\s\S]*?%}/g;
+const QUOTED_NAME = "(?<name>\"[^\"\\r\\n]*\"|'[^'\\r\\n]*')";
+const LIQUID_PARTIAL = regex(`^{%-?\\s*(?:render|include)\\s+${QUOTED_NAME}`);
+const LIQUID_BLOCK = /^{%-?\s*liquid\s/;
+const LIQUID_BLOCK_PARTIAL = regex(
+  `^\\s*(?:render|include)\\s+${QUOTED_NAME}`,
+  "gm",
+);
+const ETA_TAG = /<%[\s\S]*?%>/g;
+const ETA_PARTIAL = regex(
+  `\\binclude\\s*\\(\\s*${QUOTED_NAME}\\s*(?=[,)])`,
+  "g",
+);
 
-function quotedNamesAfter(source: string, keyword: string): string[] {
+function referencedPartialNames(
+  source: string,
+  language: TemplateLanguage,
+): string[] {
+  if (language === "liquid") {
+    return (source.match(LIQUID_TOKEN) ?? []).flatMap((token) => {
+      if (LIQUID_BLOCK.test(token)) {
+        const block = token.replace(LIQUID_BLOCK, "");
+        const names: string[] = [];
+        for (
+          let match = LIQUID_BLOCK_PARTIAL.exec(block);
+          match;
+          match = LIQUID_BLOCK_PARTIAL.exec(block)
+        ) {
+          names.push(match.groups.name.slice(1, -1));
+        }
+        return names;
+      }
+      const match = LIQUID_PARTIAL.exec(token);
+      return match ? [match.groups.name.slice(1, -1)] : [];
+    });
+  }
+
   const names: string[] = [];
-  let from = 0;
-  while (from < source.length) {
-    const start = source.indexOf(keyword, from);
-    if (start === -1) break;
-    let cursor = start + keyword.length;
-    while (source[cursor] === " " || source[cursor] === "\t") cursor += 1;
-    if (source[cursor] === "(") {
-      cursor += 1;
-      while (source[cursor] === " " || source[cursor] === "\t") cursor += 1;
+  for (const tag of source.match(ETA_TAG) ?? []) {
+    for (
+      let match = ETA_PARTIAL.exec(tag);
+      match;
+      match = ETA_PARTIAL.exec(tag)
+    ) {
+      names.push(match.groups.name.slice(1, -1));
     }
-    const quote = source[cursor];
-    if (quote === '"' || quote === "'") {
-      const end = source.indexOf(quote, cursor + 1);
-      if (end !== -1) names.push(source.slice(cursor + 1, end));
-    }
-    from = start + keyword.length;
   }
   return names;
 }

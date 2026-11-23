@@ -31,6 +31,16 @@ filename: "{{ zt.citationKey }}"
 `;
 
 describe("Literature Note Pack export", () => {
+  it("exports a Profile that mentions rendering a diagram without a partial", () => {
+    const body = DOCUMENT.replace(
+      '{% managed %}{% render "summary" with zt as zt %}{% endmanaged %}',
+      'The instructions say to render "diagram" before saving.',
+    );
+    const source = `${body}--- zotlit:annotation ---\n`;
+
+    expect(exportLiteratureNotePack(source, [])).toBe(source);
+  });
+
   it("keeps a partial-free document as one unchanged file", () => {
     const source = `${DOCUMENT.replace(
       '{% render "summary" with zt as zt %}',
@@ -66,8 +76,9 @@ describe("Literature Note Pack export", () => {
     const source = exportLiteratureNotePack(document, [
       {
         name: "summary",
-        language: "liquid",
-        source: 'Summary: {% render "authors" with zt as zt %}',
+        language: "eta",
+        source:
+          'Summary: <%~ include("authors", zt) %>\nRemember to include "prose".',
       },
       {
         name: "authors",
@@ -89,8 +100,9 @@ describe("Literature Note Pack export", () => {
       },
       {
         name: "summary",
-        language: "liquid",
-        source: 'Summary: {% render "authors" with zt as zt %}',
+        language: "eta",
+        source:
+          'Summary: <%~ include("authors", zt) %>\nRemember to include "prose".',
       },
     ]);
   });
@@ -404,6 +416,90 @@ describe("Literature Note Pack install lifecycle", () => {
 });
 
 describe("literatureNoteTemplateDependencies", () => {
+  const profile = (language: "liquid" | "eta", body: string) =>
+    `---
+id: draft
+name: Draft
+version: 1.0.0
+contract: 2
+language: ${language}
+filename: note
+---
+${body}
+--- zotlit:annotation ---
+`;
+
+  it.each(["liquid", "eta"] as const)(
+    "ignores prose in a %s Profile",
+    (language) => {
+      const source = profile(
+        language,
+        'The instructions say to render "diagram" before saving.',
+      );
+      expect(
+        literatureNoteTemplateDependencies(parseLiteratureNoteTemplate(source)),
+      ).toEqual([]);
+    },
+  );
+
+  it("finds only static Liquid render and include tags in sorted order", () => {
+    const source = profile(
+      "liquid",
+      [
+        '{% render "diagram" %}',
+        "{%- include 'appendix' -%}",
+        "{% render partialName %}",
+        '{% include "diagram" %}',
+        '{% ztinclude "bridge" %}',
+      ].join("\n"),
+    );
+    expect(
+      literatureNoteTemplateDependencies(parseLiteratureNoteTemplate(source)),
+    ).toEqual(["appendix", "diagram"]);
+  });
+
+  it("finds static render and include lines inside a Liquid block", () => {
+    const source = profile(
+      "liquid",
+      [
+        "{% liquid",
+        '  render "diagram" with zt as zt',
+        "  include 'appendix'",
+        "  echo \"render 'prose'\"",
+        "%}",
+        '{% liquid render "inline" %}',
+      ].join("\n"),
+    );
+    expect(
+      literatureNoteTemplateDependencies(parseLiteratureNoteTemplate(source)),
+    ).toEqual(["appendix", "diagram", "inline"]);
+  });
+
+  it("ignores Liquid comments, raw blocks, and output strings", () => {
+    const source = profile(
+      "liquid",
+      [
+        '{% comment %}render "x" {% render "commented" %}{% endcomment %}',
+        '{%- raw -%}{% include "raw" %}{%- endraw -%}',
+        "{{ '{% render \"example\" %}' }}",
+        '{% render "diagram" %}',
+      ].join("\n"),
+    );
+    expect(
+      literatureNoteTemplateDependencies(parseLiteratureNoteTemplate(source)),
+    ).toEqual(["diagram"]);
+  });
+
+  it("finds a literal Eta include and skips a dynamic name", () => {
+    const source = profile(
+      "eta",
+      '<%~ include("diagram", it) %><%~ include(partialName, it) %>',
+    );
+    expect(
+      literatureNoteTemplateDependencies(parseLiteratureNoteTemplate(source)),
+    ).toEqual(["diagram"]);
+  });
+
   it.each([
     {
       language: "liquid",
@@ -416,17 +512,7 @@ describe("literatureNoteTemplateDependencies", () => {
   ] as const)(
     "keeps the names a $language draft with an unfinished tag calls",
     ({ language, body }) => {
-      const source = `---
-id: draft
-name: Draft
-version: 1.0.0
-contract: 2
-language: ${language}
-filename: note
----
-${body}
---- zotlit:annotation ---
-`;
+      const source = profile(language, body);
       expect(
         literatureNoteTemplateDependencies(parseLiteratureNoteTemplate(source)),
       ).toEqual(["summary"]);
