@@ -6,6 +6,9 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/.github/workflows/record-pr.yml",
+        "$TURBO_ROOT$/apps/zotero/scripts/build-update-json.ts",
+        "$TURBO_ROOT$/apps/zotero/scripts/release-constants.ts",
+        "$TURBO_ROOT$/apps/zotero/scripts/release-host-notes.eta",
         "$TURBO_ROOT$/apps/*/turbo.json",
         "$TURBO_ROOT$/packages/*/turbo.json"
       ]

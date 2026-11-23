@@ -7,7 +7,7 @@ const root = await getWorkspaceRoot(import.meta.dirname);
 
 interface Plan {
   globalCacheInputs: { hashOfInternalDependencies: string };
-  tasks: { taskId: string; command: string }[];
+  tasks: { taskId: string; command: string; inputs: Record<string, string> }[];
 }
 
 function plan(tasks: readonly string[]): Plan {
@@ -52,5 +52,20 @@ describe("turbo.json root task dependencies", () => {
       plan(["test"]).globalCacheInputs.hashOfInternalDependencies,
       "remove the workspace dependencies of the root package.json",
     ).toBe("");
+  });
+
+  it("the @zotlit/scripts tests hash the Companion files its publish tests run", () => {
+    const task = plan(["@zotlit/scripts#test"]).tasks.find(
+      ({ taskId }) => taskId === "@zotlit/scripts#test",
+    );
+    const companion = [
+      "build-update-json.ts",
+      "release-constants.ts",
+      "release-host-notes.eta",
+    ].map((file) => `../../apps/zotero/scripts/${file}`);
+    expect(
+      companion.filter((path) => !(path in task!.inputs)),
+      "add these to the test inputs in packages/scripts/turbo.json",
+    ).toEqual([]);
   });
 });
