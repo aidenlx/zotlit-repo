@@ -41,7 +41,7 @@ So `main` beside `next` only duplicated that state, and it cost a graduation ste
   - The source release tag is the gate of a publish (ADR 0096): a re-run skips what is done.
   - The hotfix guard below.
 - **Stable hotfix.** When `main` holds unfinished work and a stable patch must ship, the fix goes on a local branch cut from the latest stable release tag. That branch takes a patch version commit, passes `pnpm verify --release`, and publishes with `pnpm release:publish` from that commit. `release:publish` accepts a commit that `origin/main` lacks for a stable version only, when the version is greater than the latest stable release and a patch of it, and HEAD descends from that release's tag. The hotfix commits reach `aidenlx/zotlit-repo` through the release tag alone. The fix lands on `main` separately through `pnpm land`, with the hotfix version added to the root `versions.json`.
-- **Docs sites.** A push to `main` deploys Pre-release Docs (the `beta` wrangler environment, zotlit-beta.aidenlx.site). The production site (zotlit.aidenlx.site) deploys from the commit of a stable release: `release.yml` calls `docs-deploy.yml` with the release tag after it publishes a stable version, and a `workflow_dispatch` takes a site and a ref (for production, the default is the latest stable release tag). A push never deploys the production site. Both sites link to `main` to edit a page.
+- **Docs sites.** A push to `main` deploys Pre-release Docs (the `beta` wrangler environment, zotlit-beta.aidenlx.site). The production site (zotlit.aidenlx.site) serves a site release, the tag `site-<N>`, independent of the plugin releases: `pnpm site:release` makes the tag from landed changes, `site-release.yml` uploads it, and the maintainer approves its deploy. Each release commit descends from the live release, and the deploy job refuses a tag that does not, so a stale job or an old tag cannot replace newer pages. A push never deploys the production site. Both sites link to `main` to edit a page.
 
 ## Considered options
 
@@ -61,10 +61,9 @@ So `main` beside `next` only duplicated that state, and it cost a graduation ste
 
 `docs-deploy.yml` deploys the pre-release site from an affected push to
 main, using the Wrangler `beta` environment for the build and deploy.
-The release workflow calls it for production after a stable publish.
-A manual production deploy without a ref uses the latest stable tag.
-Each site serializes its deployments and cancels superseded runs so an
-older run cannot overwrite newer pages.
+It serializes its deployments and cancels superseded runs so an older
+run cannot overwrite newer pages. `site-release.yml` deploys production
+from a `site-*` tag.
 
 The push gate compares the whole dependency closure of the docs against
 the push base. It needs full history and the pinned tools but can skip
@@ -72,7 +71,7 @@ workspace installation before it decides. It deploys when the base is
 unavailable, history was rewritten, the deploy setup changed, or the
 Turbo dry run fails. The root message catalogs and their Inlang project
 also trigger deploys because they live outside the package closure.
-Calls and dispatches always deploy.
+Dispatches always deploy.
 
 The build checks out history for page dates and LFS objects for media.
 It installs just the docs dependency closure. Cloudflare bindings and

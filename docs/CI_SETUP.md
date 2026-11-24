@@ -70,14 +70,13 @@ repository `aidenlx/zotlit` (`RELEASE_REPOSITORY`) and ZotLit Reader to
 `aidenlx/zotlit-reader` (`PUBLISHED_PLUGINS.reader`), and keeps its steps in
 `packages/scripts/lib/release/`:
 
-| Job        | Runs                                                     | Credential                                                                                                         |
-| ---------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `plan`     | `release-plan.ts`: which products the push ships         | none (reads the tags of `origin`)                                                                                  |
-| `verify`   | `pnpm verify --release`, the desktop checks skipped      | none                                                                                                               |
-| `obsidian` | `pnpm release:publish obsidian`                          | npm trusted publishing (`id-token: write`), `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, the tag here) |
-| `zotero`   | `pnpm release:publish zotero`, then the attestation      | `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, attestations)                                             |
-| `reader`   | `pnpm release:publish reader`                            | npm trusted publishing (`id-token: write`), `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, the tag here) |
-| `docs`     | `docs-deploy.yml` for production, after a stable version | the Cloudflare secrets (`secrets: inherit`)                                                                        |
+| Job        | Runs                                                | Credential                                                                                                         |
+| ---------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `plan`     | `release-plan.ts`: which products the push ships    | none (reads the tags of `origin`)                                                                                  |
+| `verify`   | `pnpm verify --release`, the desktop checks skipped | none                                                                                                               |
+| `obsidian` | `pnpm release:publish obsidian`                     | npm trusted publishing (`id-token: write`), `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, the tag here) |
+| `zotero`   | `pnpm release:publish zotero`, then the attestation | `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, attestations)                                             |
+| `reader`   | `pnpm release:publish reader`                       | npm trusted publishing (`id-token: write`), `RELEASE_REPO_TOKEN`, `GITHUB_TOKEN` (`contents: write`, the tag here) |
 
 The `plan` job installs no dependencies. A product publishes when
 `aidenlx/zotlit-repo` has no release tag for its version; the version picks the
@@ -85,9 +84,8 @@ line, a pre-release for the beta line and any other version for the stable
 line. That tag is the
 last step of each publish, so a run that failed half way publishes again, and
 each earlier step skips what is done. Workflow permissions are read-only; each
-publish job grants itself the write permissions it needs. When the push
-publishes a stable version, the `docs` job deploys the production docs site
-from its release tag, after every publish job of the run passed.
+publish job grants itself the write permissions it needs. A release deploys
+no docs site: the production site takes site releases (see Docs deployment).
 
 The `obsidian` job pushes the shell commit and the version tag to
 `aidenlx/zotlit` with `RELEASE_REPO_TOKEN`, and the `reader` job pushes them
@@ -132,31 +130,35 @@ the commands a real run executes.
 
 ## Docs deployment
 
-`.github/workflows/docs-deploy.yml` deploys two sites
+Two workflows deploy the two sites
 ([ADR 0097](adr/0097-main-is-the-one-trunk.md)):
 
-| Site        | Wrangler environment | Deploys                                                                                  |
-| ----------- | -------------------- | ---------------------------------------------------------------------------------------- |
-| pre-release | `beta`               | each push to `main` that changes the docs; a dispatch with `site: pre-release`           |
-| production  | top-level config     | the tag of a stable release, called by `release.yml`; a dispatch with `site: production` |
+| Site        | Wrangler environment | Workflow           | Deploys                                                                        |
+| ----------- | -------------------- | ------------------ | ------------------------------------------------------------------------------ |
+| pre-release | `beta`               | `docs-deploy.yml`  | each push to `main` that changes the docs; a dispatch, with an optional `ref`  |
+| production  | top-level config     | `site-release.yml` | a `site-*` tag from `pnpm site:release`, after the maintainer approves the job |
 
-A dispatch takes `site` and `ref`. Without a `ref`, production builds the
-latest stable release tag and pre-release builds `main`:
+`site-release.yml` builds the tag, uploads it with `wrangler versions upload`
+(tag, message, and version URL `site-<N>-zotlit-docs.<subdomain>.workers.dev`),
+and writes a summary with the live release and the compare link. Its
+`approve` job runs in the `production` environment, so it waits for the
+maintainer. The `deploy` job after it runs one at a time, reads the live
+version from the Cloudflare API, and deploys only a tag that descends from the
+live release (`packages/scripts/scripts/site-deploy.ts`). The
+`site-release` skill gives the procedure.
 
 ```sh
-gh workflow run docs-deploy.yml -f site=production            # latest stable release tag
-gh workflow run docs-deploy.yml -f site=production -f ref=2.3.1
-gh workflow run docs-deploy.yml -f site=pre-release
+gh workflow run docs-deploy.yml                    # Pre-release Docs from main
+gh workflow run docs-deploy.yml -f ref=<commit>
 ```
 
-A call or a dispatch always deploys. For a push, the gate job asks Turbo whether the push changed `@zotlit/docs` or its dependency
+A dispatch always deploys. For a push, the gate job asks Turbo whether the push changed `@zotlit/docs` or its dependency
 closure. An unavailable base commit, a force push, a change to the deploy
 workflow or to the setup action, or a failed Turbo query deploys instead of
 skipping.
 
 The gate job checks out the full history, which the base-commit comparison
-and the latest stable release tag need, and stops before dependency
-installation. The deploy job runs only when the gate reports a deployment, and
+needs, and stops before dependency installation. The deploy job runs only when the gate reports a deployment, and
 starts from its own checkout of the ref the gate picked.
 
 The deploy job installs
@@ -173,7 +175,8 @@ generated URLs correct when an earlier `.turbo` directory is restored.
 The docs deployment needs these values in `aidenlx/zotlit-repo`, the repository
 that runs it:
 
-- Secret `CLOUDFLARE_API_TOKEN` — `wrangler deploy`
+- Secret `CLOUDFLARE_API_TOKEN` — `wrangler deploy`, `wrangler versions
+  upload`, and the deployment reads and writes of `site-deploy.ts`
 - Secret `CLOUDFLARE_ACCOUNT_ID` — `wrangler deploy` and the media upload
 - Secrets `R2_ACCESS_KEY_ID` and `R2_SECRET_ACCESS_KEY` — the S3 key pair of
   the media upload (`pnpm --filter @zotlit/docs upload:media`)
@@ -193,6 +196,21 @@ updates a release channel, and a missing host fails the release before it
 changes a channel.
 
 ## Settings outside the repository
+
+The production docs site needs two settings before its first site release:
+
+- [ ] **`production` environment.** In the repository settings, create the
+      environment `production`, add the maintainer as a required reviewer,
+      leave "Prevent self-review" off, and limit its deployment tags to
+      `site-*`. A job that names a missing environment creates it without
+      protection, so create it before the first `site-*` tag.
+- [ ] **Version URLs.** In the Cloudflare dashboard, open the `zotlit-docs`
+      Worker, Settings > Domains & Routes, and enable Version URLs. Only
+      `wrangler deploy` applies `preview_urls` from `wrangler.jsonc`, and
+      production takes `wrangler versions upload` alone.
+
+Then release once with `pnpm site:release --bootstrap --to`, and approve its
+deploy.
 
 Before the first release of a plugin. For the desktop plugin (`aidenlx/zotlit`,
 `@zotlit/obsidian-plugin`) they are done. Each item names its state for ZotLit

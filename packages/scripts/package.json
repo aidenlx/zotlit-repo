@@ -44,6 +44,7 @@
     "#plugin-packages": "./lib/plugin-packages.ts",
     "#scanner-eslint": "./lib/scanner-eslint.ts",
     "#shell/*": "./lib/shell/*.ts",
+    "#site-release": "./lib/site-release.ts",
     "#release/*": "./lib/release/*.ts",
     "#git-repos": "./lib/__fixtures__/git-repos.ts",
     "#pack-gate": "./lib/pack-gate.ts"

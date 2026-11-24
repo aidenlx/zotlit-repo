@@ -5,23 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      site:
-        description: The site to deploy
-        type: choice
-        options: [production, pre-release]
-        default: production
       ref:
-        description: "The commit, tag or branch to build (default: the latest stable release tag for production, main for pre-release)"
+        description: "The commit, tag or branch to build (default: main)"
         type: string
         default: ""
-  workflow_call:
-    inputs:
-      site:
-        type: string
-        required: true
-      ref:
-        type: string
-        required: true
 
 permissions:
   contents: read
@@ -31,7 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       deploy: ${{ steps.check.outputs.deploy }}
-      site: ${{ steps.target.outputs.site }}
       ref: ${{ steps.target.outputs.ref }}
     steps:
       - uses: actions/checkout@v7
@@ -42,26 +28,13 @@ jobs:
         with:
           bootstrap: "false"
 
-      - name: Pick the site and the ref
+      - name: Pick the ref
         id: target
         env:
-          SITE: ${{ inputs.site || 'pre-release' }}
-          REF: ${{ inputs.ref }}
+          REF: ${{ inputs.ref || github.sha }}
         run: |
-          if [ -z "$REF" ]; then
-            if [ "$SITE" = "production" ]; then
-              REF=$(git tag --list | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
-              if [ -z "$REF" ]; then
-                echo "No stable release tag to deploy the production site from." >&2
-                exit 1
-              fi
-            else
-              REF="$GITHUB_SHA"
-            fi
-          fi
-          echo "site=$SITE" >> "$GITHUB_OUTPUT"
           echo "ref=$REF" >> "$GITHUB_OUTPUT"
-          echo "target: the $SITE site from $REF"
+          echo "target: Pre-release Docs from $REF"
 
       - name: Check whether the docs closure changed
         id: check
@@ -71,8 +44,8 @@ jobs:
           deploy() { echo "deploy=true" >> "$GITHUB_OUTPUT"; echo "gate: deploy — $1"; exit 0; }
           skip()   { echo "deploy=false" >> "$GITHUB_OUTPUT"; echo "gate: skip — $1"; exit 0; }
 
-          if [ -n "${{ inputs.site }}" ]; then
-            deploy "call or manual dispatch"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            deploy "manual dispatch"
           fi
           if [ -z "$BEFORE" ] || ! git cat-file -e "$BEFORE" 2>/dev/null; then
             deploy "base commit unavailable"
@@ -111,10 +84,8 @@ jobs:
     if: needs.gate.outputs.deploy == 'true'
     runs-on: ubuntu-latest
     concurrency:
-      group: docs-deploy-${{ needs.gate.outputs.site }}
+      group: docs-deploy-pre-release
       cancel-in-progress: true
-    env:
-      WRANGLER_ENV: ${{ needs.gate.outputs.site == 'pre-release' && 'beta' || '' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -140,14 +111,9 @@ jobs:
         run: pnpm install --frozen-lockfile --filter @zotlit/docs...
 
       - name: Build
-        run: |
-          if [ -n "$WRANGLER_ENV" ]; then
-            export CLOUDFLARE_ENV="$WRANGLER_ENV"
-          fi
-          pnpm turbo run build --filter=@zotlit/docs
+        run: pnpm turbo run build --filter=@zotlit/docs
         env:
-          VITE_UMAMI_WEBSITE_ID: ${{ needs.gate.outputs.site == 'production' && 'bbeb5193-2d48-4b23-8933-157e29beb87d' || '' }}
-          VITE_CF_BEACON_TOKEN: ${{ needs.gate.outputs.site == 'production' && vars.CF_BEACON_TOKEN || '' }}
+          CLOUDFLARE_ENV: beta
           VITE_MEDIA_ORIGIN: https://zotlit-media.aidenlx.site
 
       - name: Upload media
@@ -158,12 +124,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy
-        run: |
-          if [ -n "$WRANGLER_ENV" ]; then
-            pnpm --filter @zotlit/docs exec wrangler deploy --env "$WRANGLER_ENV"
-          else
-            pnpm --filter @zotlit/docs exec wrangler deploy
-          fi
+        run: pnpm --filter @zotlit/docs exec wrangler deploy --env beta
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

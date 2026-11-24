@@ -135,7 +135,6 @@ aidenlx/zotlit-repo  release.yml on the push to main:
                                ├▶ zotero:   zt-<v> release ─▶ update channel ─▶ tag here
                                ├▶ reader:   npm ─▶ shell commit + tag ─▶ reader-<v> here
                                └▶ resources: npm ─▶ shell commit + tag ─▶ resources-<v> here
-                stable version ─▶ docs: production docs site from the tag
 aidenlx/zotlit, aidenlx/zotlit-reader  plugin-release.yml of the shell, on the tag:
                 official Obsidian action ─▶ res-<v> ─▶ publish the release
 aidenlx/zotlit-resources  plugin-release.yml of the shell, on the tag:
@@ -193,8 +192,8 @@ aidenlx/zotlit-resources  plugin-release.yml of the shell, on the tag:
      `apps/resources/versions.json` in step 2.
    - **Companion:** the XPI on the release `zt-<version>`, the update
      manifests on `zotero-release`, and the tag in `aidenlx/zotlit-repo`.
-   - **Docs:** after a stable version, the `docs` job deploys the production
-     docs site from the release tag (`docs-deploy.yml`).
+   - **Docs:** no job deploys the production docs site. After the release
+     lands, run `pnpm site:release --to` (the `site-release` skill).
 4. The tag starts the shell's own `plugin-release.yml` in the publish
    repository (`aidenlx/zotlit`, `aidenlx/zotlit-reader` or
    `aidenlx/zotlit-resources`). It runs
@@ -255,14 +254,14 @@ the fix from the latest stable release instead. The hotfix commits reach
    it, on a commit that descends from that release's tag. The release tag it
    pushes to `aidenlx/zotlit-repo` carries the hotfix commits.
 
-5. Deploy the production docs site from the new tag; no workflow runs for a
-   publish from a machine:
-   `gh workflow run docs-deploy.yml -f site=production`.
-6. Land the fix onto `main` separately: on a task branch off `origin/main`,
+5. Land the fix onto `main` separately: on a task branch off `origin/main`,
    cherry-pick the fix commits (not the version commit), add the hotfix
    version to the root `versions.json`, so the next stable shell lists it, and
    run `pnpm land`. Then remove the hotfix worktree with
    `wt remove hotfix/2.3.1`.
+6. Land the changelog entry of the hotfix as a record PR of its own, and put
+   it on the production docs site with `pnpm site:release --pick <record PR>`
+   (the `site-release` skill). The site never builds from the hotfix tag.
 
 ### ZotLit and ZotLit Reader
 

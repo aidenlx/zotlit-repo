@@ -5,7 +5,15 @@ const { assetsFetch, ssrFetch, workerEnv } = vi.hoisted(() => {
   return {
     assetsFetch,
     ssrFetch: vi.fn(),
-    workerEnv: { ASSETS: { fetch: assetsFetch }, DOCS_LINE: "production" },
+    workerEnv: {
+      ASSETS: { fetch: assetsFetch },
+      DOCS_LINE: "production",
+      CF_VERSION_METADATA: {
+        id: "v-1",
+        tag: "site-3",
+        timestamp: "2026-11-24T00:00:00Z",
+      },
+    },
   };
 });
 
@@ -148,4 +156,37 @@ describe("beta line", () => {
       expect(response.headers.get("x-robots-tag")).toBe("noindex");
     },
   );
+});
+
+describe("version document", () => {
+  it("names the live site release without caching it", async () => {
+    const response = await server.fetch(
+      new Request("https://zotlit.aidenlx.site/version.json"),
+    );
+    expect(await response.json()).toEqual({
+      tag: "site-3",
+      versionId: "v-1",
+      uploadedAt: "2026-11-24T00:00:00Z",
+    });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(assetsFetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("version URLs", () => {
+  it("keeps a page served on a version URL out of the index", async () => {
+    const response = await server.fetch(
+      new Request(
+        "https://site-3-zotlit-docs.aidenlx.workers.dev/docs/how-to/insert-citations",
+      ),
+    );
+    expect(response.headers.get("x-robots-tag")).toBe("noindex");
+  });
+
+  it("lets the production host be indexed", async () => {
+    const response = await server.fetch(
+      new Request("https://zotlit.aidenlx.site/docs/how-to/insert-citations"),
+    );
+    expect(response.headers.get("x-robots-tag")).toBeNull();
+  });
 });

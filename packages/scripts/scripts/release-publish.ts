@@ -136,7 +136,7 @@ say(
 for (const command of outward.commands) say(`  ${command}`);
 if (source.ok && source.hotfix) {
   say(
-    "\nA stable hotfix publishes from this machine, so no workflow deploys its docs. Deploy the production docs site from its tag: gh workflow run docs-deploy.yml -f site=production",
+    "\nA stable hotfix publishes from this machine. Land its changelog entry on main as a commit of its own, then put it on the production docs site with pnpm site:release --pick <record PR>.",
   );
 }
 

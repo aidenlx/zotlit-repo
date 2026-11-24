@@ -16,7 +16,7 @@
     "build:plugin": "turbo run build --filter=@zotlit/obsidian --output-logs=full",
     "desktop-slot": "node packages/scripts/scripts/desktop-slot.ts",
     "land": "node packages/scripts/scripts/land.ts",
-    "deploy:docs": "pnpm --filter @zotlit/docs deploy",
+    "site:release": "node packages/scripts/scripts/site-release.ts",
     "dev": "turbo run dev",
     "fixture": "turbo run fixture --output-logs=full --",
     "e2e": "node packages/e2e/src/run-container.ts",

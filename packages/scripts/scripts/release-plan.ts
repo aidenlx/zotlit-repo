@@ -4,7 +4,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { PRODUCTS, releaseLine } from "#release/lines";
+import { PRODUCTS } from "#release/lines";
 import { parseRemoteTags, planProduct } from "#release/plan";
 
 const root = join(import.meta.dirname, "../../..");
@@ -14,7 +14,6 @@ const tags = parseRemoteTags(
     encoding: "utf8",
   }),
 );
-let docsTag = "";
 for (const product of Object.keys(PRODUCTS) as Product[]) {
   const { version } = JSON.parse(
     readFileSync(join(root, PRODUCTS[product].app, "package.json"), "utf8"),
@@ -22,8 +21,4 @@ for (const product of Object.keys(PRODUCTS) as Product[]) {
   const plan = planProduct({ product, version, tags });
   console.error(`${product}: ${plan.reason}`);
   console.log(`${product}=${plan.publish}`);
-  if (plan.publish && releaseLine(version) === "stable" && !docsTag) {
-    docsTag = plan.tag;
-  }
 }
-console.log(`docs-tag=${docsTag}`);

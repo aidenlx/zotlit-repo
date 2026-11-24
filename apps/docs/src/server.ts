@@ -6,7 +6,7 @@ import { localizedPath } from "./lib/i18n.ts";
 import type { SiteLocale } from "./lib/i18n.ts";
 import { getPageLocaleState } from "./lib/locale-state.ts";
 import { negotiatedContentRoute } from "./lib/markdown-routes.ts";
-import { markdownEditionHeaders } from "./lib/shared.ts";
+import { baseURL, markdownEditionHeaders } from "./lib/shared.ts";
 import { buildV1Redirects } from "./lib/v1-redirects.ts";
 import { deLocalizeUrl } from "./paraglide/runtime.js";
 import { paraglideMiddleware } from "./paraglide/server.js";
@@ -43,11 +43,21 @@ const globalMachinePaths = new Set([
 ]);
 
 const legacyPaths = new Set(buildV1Redirects().map((rule) => rule.source));
+const canonicalHost = new URL(baseURL).host;
+
+function versionDocument(): Response {
+  const { id, tag, timestamp } = env.CF_VERSION_METADATA;
+  return Response.json(
+    { tag: tag || null, versionId: id, uploadedAt: timestamp },
+    { headers: { "cache-control": "no-store", "x-robots-tag": "noindex" } },
+  );
+}
 
 export default createServerEntry({
   async fetch(request) {
     const url = new URL(request.url);
     const pathname = url.pathname;
+    if (pathname === "/version.json") return versionDocument();
     const unprefixedPath = deLocalizeUrl(url).pathname;
     const machinePath = unprefixedPath.replace(/\/+$/, "");
     if (
@@ -82,7 +92,8 @@ export default createServerEntry({
         ))
           headers.set(name, value);
       }
-      if (env.DOCS_LINE === "beta") headers.set("x-robots-tag", "noindex");
+      if (env.DOCS_LINE === "beta" || url.host !== canonicalHost)
+        headers.set("x-robots-tag", "noindex");
       return new Response(response.body, {
         status: response.status,
         statusText: response.statusText,

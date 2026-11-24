@@ -1,0 +1,3 @@
+interface:
+  display_name: "Site release"
+  short_description: "Release landed changes to the production docs site"

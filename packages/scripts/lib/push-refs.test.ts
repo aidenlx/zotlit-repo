@@ -112,6 +112,19 @@ describe("the pre-push hook", () => {
   );
 
   it(
+    "lets an agent session push a site release tag, which pnpm site:release makes",
+    async () => {
+      expect(
+        await push("HEAD:refs/tags/site-7", { CLAUDECODE: "1" }),
+      ).toMatchObject({ ok: true });
+      expect(
+        (await push("HEAD:refs/tags/site-x", { CLAUDECODE: "1" })).ok,
+      ).toBe(false);
+    },
+    SLOW,
+  );
+
+  it(
     "refuses a commit that credits an agent",
     async () => {
       await repos.commit(cwd, "b.txt", {

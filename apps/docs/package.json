@@ -12,7 +12,6 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "vite build && wrangler deploy",
     "deploy:beta": "cross-env CLOUDFLARE_ENV=beta vite build && wrangler deploy --env beta",
     "cf-typegen": "wrangler types",
     "cf-typegen:check": "wrangler types --check",

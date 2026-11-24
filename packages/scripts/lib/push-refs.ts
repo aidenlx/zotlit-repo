@@ -19,11 +19,13 @@ export function parsePushRefs(input: string): PushRef[] {
 }
 
 const LANDED_REF = `refs/heads/${SOURCE_BRANCH}`;
+const SITE_RELEASE_REF = /^refs\/tags\/site-[1-9]\d*$/;
 
 export function pushProblems(
-  refs: readonly PushRef[],
+  pushed: readonly PushRef[],
   context: { agent: boolean; land: boolean },
 ): string[] {
+  const refs = pushed.filter((ref) => !SITE_RELEASE_REF.test(ref.remoteRef));
   if (context.land || refs.length === 0) return [];
   if (context.agent) {
     return [

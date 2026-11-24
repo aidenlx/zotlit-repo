@@ -21,7 +21,6 @@ jobs:
       zotero: ${{ steps.plan.outputs.zotero }}
       reader: ${{ steps.plan.outputs.reader }}
       resources: ${{ steps.plan.outputs.resources }}
-      docs-tag: ${{ steps.plan.outputs.docs-tag }}
     steps:
       - uses: actions/checkout@v7
 
@@ -135,17 +134,3 @@ jobs:
         run: pnpm release:publish resources
         env:
           RELEASE_REPO_TOKEN: ${{ secrets.RELEASE_REPO_TOKEN }}
-
-  docs:
-    needs: [plan, obsidian, zotero, reader, resources]
-    if: >-
-      always() && needs.plan.outputs.docs-tag != '' &&
-      !contains(needs.*.result, 'failure') &&
-      !contains(needs.*.result, 'cancelled')
-    permissions:
-      contents: read
-    uses: ./.github/workflows/docs-deploy.yml
-    with:
-      site: production
-      ref: ${{ needs.plan.outputs.docs-tag }}
-    secrets: inherit

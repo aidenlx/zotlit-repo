@@ -5,6 +5,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "./src/server.ts",
   "workers_dev": false,
+  "preview_urls": true,
   "routes": [{ "pattern": "zotlit.aidenlx.site", "custom_domain": true }],
   "assets": {
     "binding": "ASSETS",
@@ -32,6 +33,9 @@
   "vars": {
     "DOCS_LINE": "production",
   },
+  "version_metadata": {
+    "binding": "CF_VERSION_METADATA",
+  },
   "secrets": {
     "required": ["GITHUB_TOKEN"],
   },
@@ -41,11 +45,15 @@
   "env": {
     "beta": {
       "name": "zotlit-docs-beta",
+      "preview_urls": false,
       "routes": [
         { "pattern": "zotlit-beta.aidenlx.site", "custom_domain": true },
       ],
       "vars": {
         "DOCS_LINE": "beta",
+      },
+      "version_metadata": {
+        "binding": "CF_VERSION_METADATA",
       },
       "secrets": {
         "required": ["GITHUB_TOKEN"],

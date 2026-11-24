@@ -1,0 +1,121 @@
+name: Site Release
+
+on:
+  push:
+    tags: ["site-*"]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    outputs:
+      version-id: ${{ steps.upload.outputs.version-id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          lfs: false
+
+      - name: Fetch the annotated tag
+        run: git fetch --force origin "refs/tags/${{ github.ref_name }}:refs/tags/${{ github.ref_name }}"
+
+      - name: Key of the Git LFS objects
+        id: lfs
+        run: echo "key=lfs-$(git lfs ls-files --long | cut -d' ' -f1 | sort | sha256sum | cut -c1-16)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache/restore@v5
+        with:
+          path: .git/lfs
+          key: ${{ steps.lfs.outputs.key }}
+          restore-keys: lfs-
+      - name: Git LFS objects
+        run: git lfs pull
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          bootstrap: "false"
+
+      - name: Install docs and release dependencies
+        run: pnpm install --frozen-lockfile --filter @zotlit/docs... --filter @zotlit/scripts
+
+      - name: Build
+        run: pnpm turbo run build --filter=@zotlit/docs
+        env:
+          VITE_UMAMI_WEBSITE_ID: bbeb5193-2d48-4b23-8933-157e29beb87d
+          VITE_CF_BEACON_TOKEN: ${{ vars.CF_BEACON_TOKEN }}
+          VITE_MEDIA_ORIGIN: https://zotlit-media.aidenlx.site
+
+      - name: Upload media
+        run: pnpm --filter @zotlit/docs upload:media
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Upload the Worker version
+        id: upload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TAG: ${{ github.ref_name }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.ndjson
+        run: |
+          pnpm --filter @zotlit/docs exec wrangler versions upload \
+            --tag "$TAG" --message "$TAG $GITHUB_SHA" --preview-alias "$TAG"
+          upload=$(jq -c 'select(.type == "version-upload")' "$WRANGLER_OUTPUT_FILE_PATH" | tail -n 1)
+          echo "version-id=$(jq -r '.version_id' <<<"$upload")" >> "$GITHUB_OUTPUT"
+          echo "preview-url=$(jq -r '.preview_alias_url // .preview_url // ""' <<<"$upload")" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node packages/scripts/scripts/site-deploy.ts summary \
+            --tag "${{ github.ref_name }}" \
+            --version-id "${{ steps.upload.outputs.version-id }}" \
+            --preview-url "${{ steps.upload.outputs.preview-url }}" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
+
+  approve:
+    needs: upload
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - run: echo "The maintainer approved ${{ github.ref_name }}."
+
+  deploy:
+    needs: [upload, approve]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: site-release-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Fetch the annotated tag
+        run: git fetch --force origin "refs/tags/${{ github.ref_name }}:refs/tags/${{ github.ref_name }}"
+
+      - uses: ./.github/actions/setup-workspace
+        with:
+          bootstrap: "false"
+
+      - name: Install release dependencies
+        run: pnpm install --frozen-lockfile --filter @zotlit/scripts
+
+      - name: Deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node packages/scripts/scripts/site-deploy.ts deploy \
+            --tag "${{ github.ref_name }}" \
+            --version-id "${{ needs.upload.outputs.version-id }}" \
+            | tee -a "$GITHUB_STEP_SUMMARY"
