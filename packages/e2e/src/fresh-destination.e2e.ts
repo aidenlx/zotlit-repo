@@ -120,43 +120,54 @@ describe.skipIf(!reachable)("Fresh destination flow", () => {
       );
       expect(main).toBe(true);
     };
+    await returnToFirstNote();
+    await openProfilesSettings(vaultId, "settings_page_profiles");
     const openAdd = async () => {
-      await returnToFirstNote();
-      await openProfilesSettings(vaultId, "settings_page_profiles");
-      await obRunUntil(
+      await obRun(
         vaultId,
-        async ({ app, page }, { addButtonLabel }) => {
-          const { press } = page;
+        async ({ app, page }, { listHeading, addLabel }) => {
           const settings = app.setting.containerEl;
-          const button = Array.from(
-            settings.querySelectorAll<HTMLButtonElement>("[aria-label],button"),
-          ).find(
-            (el) =>
-              el.getAttribute("aria-label") === addButtonLabel ||
-              el.textContent.trim() === addButtonLabel,
+          await page.until("the Profiles list to be visible", () =>
+            settings.innerText.includes(listHeading),
           );
-          if (!button || button.disabled) return false;
-          press(button, "Add profile");
-          return true;
+          const findAdd = () =>
+            Array.from(
+              settings.querySelectorAll<HTMLElement>("[aria-label],button"),
+            ).find(
+              (el) =>
+                el.checkVisibility() &&
+                (el.getAttribute("aria-label") === addLabel ||
+                  (el.matches("button") && el.textContent.trim() === addLabel)),
+            );
+          await page.until("Add profile to appear in Profiles", findAdd);
+          const button = await page.until("Add profile to be enabled", () => {
+            const el = findAdd();
+            return el && !el.matches(':disabled,[aria-disabled="true"]') && el;
+          });
+          page.press(button, addLabel);
+          await page.until("the Add profile dialog to open", () =>
+            Array.from(activeDocument.querySelectorAll(".modal-title")).some(
+              (el) => el.checkVisibility() && el.textContent === addLabel,
+            ),
+          );
         },
-        { addButtonLabel: m.settings_profile_add() },
         {
-          what: "the Add profile button in the settings tab to become enabled",
+          listHeading: m.settings_profile_other_heading(),
+          addLabel: m.settings_profile_add(),
         },
-      );
-      await obRunUntil(
-        vaultId,
-        async (_context, { addButtonText }) => {
-          return Array.from(document.querySelectorAll(".modal-title")).some(
-            (el) => el.textContent === addButtonText,
-          );
-        },
-        { addButtonText: m.settings_profile_add() },
-        { what: "the Add profile modal to open with its title" },
       );
     };
     await openAdd();
     await clickModalButton(vaultId, m.modal_cancel());
+    await obRunUntil(
+      vaultId,
+      (_context, { addLabel }) =>
+        !Array.from(activeDocument.querySelectorAll(".modal-title")).some(
+          (el) => el.checkVisibility() && el.textContent === addLabel,
+        ),
+      { addLabel: m.settings_profile_add() },
+      { what: "Cancel to dismiss the Add profile dialog" },
+    );
     expect(
       await obRun(
         vaultId,
