@@ -231,7 +231,7 @@ await yargs(hideBin(process.argv))
   })
   .option("to", { type: "string", describe: `a commit of ${MAIN}` })
   .option("revert-to", { type: "string", describe: "an earlier site tag" })
-  .option("bootstrap", { type: "boolean", default: false })
+  .option("bootstrap", { type: "boolean" })
   .option("dry-run", { type: "boolean", default: false })
   .conflicts("pick", ["to", "revert-to", "bootstrap"])
   .conflicts("revert-to", ["to", "bootstrap"])
@@ -258,7 +258,7 @@ await yargs(hideBin(process.argv))
         pick: argv.pick,
         to: argv.to === "" ? undefined : argv.to,
         revertTo: argv.revertTo,
-        bootstrap: argv.bootstrap,
+        bootstrap: argv.bootstrap ?? false,
         dryRun: argv.dryRun,
       });
     },
