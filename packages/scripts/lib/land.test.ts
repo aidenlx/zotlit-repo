@@ -387,6 +387,9 @@ function fakeGitHub({
   const branchTip = (branch: string) =>
     git(repos.remote, "rev-parse", "--verify", `refs/heads/${branch}`);
   const github: LandGitHub = {
+    advanceMain: async ({ head, base }) => {
+      await git(repos.remote, "update-ref", "refs/heads/main", head, base);
+    },
     findOpenPullRequest: async ({ head, base }) =>
       pulls.find(
         (pull) => pull.head === head && pull.base === base && !pull.merged,
@@ -461,6 +464,42 @@ async function writeRecord(
 
 describe("the record PR", () => {
   it(
+    "squashes by default and lands the commit checked by CI",
+    async () => {
+      const cwd = await taskClone("a");
+      await repos.commit(cwd, "b.txt", { text: "b", message: "b" });
+      const tree = await git(cwd, "rev-parse", "HEAD^{tree}");
+      await writeRecord(cwd);
+      const { github, checkReads } = fakeGitHub();
+      expect(await land({ ...quiet, cwd, github })).toMatchObject({ ok: true });
+      const head = await git(repos.remote, "rev-parse", "main");
+      expect(checkReads.map((read) => read.commit)).toEqual([head]);
+      expect(await subjects("main")).toEqual(["Add a", "seed"]);
+      expect(
+        await git(repos.remote, "show", "-s", "--format=%B", head),
+      ).toContain("## Summary");
+      expect(await git(repos.remote, "rev-parse", "main^{tree}")).toBe(tree);
+    },
+    SLOW,
+  );
+
+  it(
+    "rejects attribution in the squash record before updating the task ref",
+    async () => {
+      const cwd = await taskClone("a");
+      const before = await git(cwd, "rev-parse", "HEAD");
+      await writeRecord(cwd, { text: "Made with Cursor" });
+      const { github, pulls } = fakeGitHub();
+      expect(await land({ ...quiet, cwd, squash: true, github })).toMatchObject(
+        { ok: false, step: "rebase" },
+      );
+      expect(await git(cwd, "rev-parse", "HEAD")).toBe(before);
+      expect(pulls).toEqual([]);
+    },
+    SLOW,
+  );
+
+  it(
     "opens a PR whose body is the record, pushes main to its head, and deletes the branch once it shows as merged",
     async () => {
       const cwd = await taskClone("a");
@@ -504,6 +543,7 @@ describe("the record PR", () => {
 
       const first = await land({
         ...quiet,
+        squash: false,
         cwd,
         gate: ["sh", "-c", gate],
         attempts: 1,
@@ -515,6 +555,7 @@ describe("the record PR", () => {
       await writeRecord(cwd, { title: "Add a, again", text: "second" });
       const second = await land({
         ...quiet,
+        squash: false,
         cwd,
         gate: ["sh", "-c", gate],
         github,
@@ -821,7 +862,7 @@ describe("the CI check of the record PR", () => {
       const result = await land({ ...fast, cwd, gate: ["true"], github });
 
       expect(result).toMatchObject({ ok: true, attempts: 2 });
-      expect(await subjects("main")).toEqual(["a", "moved", "seed"]);
+      expect(await subjects("main")).toEqual(["Add a", "moved", "seed"]);
       const commits = [...new Set(checkReads.map((read) => read.commit))];
       expect(commits).toHaveLength(2);
       expect(commits[1]).toBe(await git(repos.remote, "rev-parse", "main"));

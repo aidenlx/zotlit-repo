@@ -50,7 +50,7 @@ Closes #<n>
 <the e2e files that ran, and their result>
 ```
 
-Start the body at the title line, with no preamble. Keep the prose short. Use the domain terms of the `GLOSSARY.md` of the package the change is in. The repository is public: write paths relative to the repository, and no local absolute paths or scratch log locations.
+Write the title as a commit subject. A default land uses this title and the full record body as the squash commit message. Keep the prose short. Use the domain terms of the `GLOSSARY.md` of the package the change is in. The repository is public: write paths relative to the repository, and no local absolute paths or scratch log locations.
 
 ## Summary
 
@@ -184,4 +184,4 @@ State whether the change is a one-way or a two-way door. A two-way door is cheap
 
 The blast radius is what breaks, and for whom, if the change is wrong: the users of one setting, every vault at startup, the consumers of a package, layout on mobile. Consider all of them.
 
-How to revert names the commits to revert, or the steps that undo a one-way door.
+For a squash land, identify the commit to revert as the merged record PR head. Its SHA exists after the record is written. For a land that preserves commits, identify the landed changes to revert. Give the recovery steps for a one-way door.

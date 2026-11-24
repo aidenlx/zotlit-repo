@@ -29,6 +29,44 @@ const pull = (number: number, owner: string) => ({
   isCrossRepository: owner !== "aidenlx",
 });
 
+describe("advanceMain", () => {
+  it.each(["success", "failure"])(
+    "reports the dispatched landing run's %s",
+    async (conclusion) => {
+      const calls: { args: string[]; input?: unknown }[] = [];
+      const github = ghLandGitHub(REPO, async (args, input) => {
+        calls.push({ args, input: input && JSON.parse(input) });
+        return JSON.stringify(
+          input ? { workflow_run_id: 12 } : { status: "completed", conclusion },
+        );
+      });
+      const diagnostic = await github
+        .advanceMain({ number: 2, head: "head", base: "base" }, () => {})
+        .then(
+          () => "",
+          (error: Error) => error.message,
+        );
+      expect(calls).toMatchObject([
+        {
+          args: expect.arrayContaining([
+            `repos/${REPO}/actions/workflows/land.yml/dispatches`,
+          ]),
+          input: {
+            ref: "main",
+            inputs: { pull: "2", head: "head", base: "base" },
+          },
+        },
+        { args: ["api", `repos/${REPO}/actions/runs/12`] },
+      ]);
+      expect(diagnostic).toBe(
+        conclusion === "success"
+          ? ""
+          : `Land workflow failure: https://github.com/${REPO}/actions/runs/12`,
+      );
+    },
+  );
+});
+
 describe("findOpenPullRequest", () => {
   it("skips a fork's PR whose branch has the same name", async () => {
     const github = ghLandGitHub(

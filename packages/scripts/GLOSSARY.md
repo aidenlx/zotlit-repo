@@ -131,17 +131,15 @@ PR shows as merged; a person may push one to share it.
 _Avoid_: next, primary branch, stable branch
 
 **Land**:
-The one way a change reaches the Trunk: rebase the task branch onto the newest
-`main`, pass the local quality gate on the rebased tree, open or update the
-Record PR, wait for its CI check, and push the tree to `main` as a
-fast-forward. GitHub then shows the
-Record PR as merged; no one merges it.
+The process that delivers a task branch to the Trunk. The default Land creates
+one commit from the record before verification. The landing App fast-forwards
+`main` to the verified Record PR head.
 _Avoid_: merge, PR merge, graduation
 
 **Record PR**:
 The pull request that a land opens from the record file of the task branch,
-so that the maintainer reads the change and its evidence on GitHub. It is a
-record, not a review gate: the land pushes `main` to its head.
+so that the maintainer reads the change and its evidence on GitHub. GitHub marks it
+merged when its verified head reaches `main`.
 _Avoid_: review PR, merge request
 
 **Land Queue**:
@@ -151,9 +149,8 @@ turn the next land takes over.
 _Avoid_: merge queue, land lock
 
 **Land Turn**:
-The one slot of a Land Queue. Its holder alone fetches, rebases, gates, and
-pushes, and the pre-push hook lets only a push from the Land Turn reach
-`main`.
+The one slot of a Land Queue. Its holder keeps the slot through preparation,
+verification, and the landing App’s update of `main`.
 _Avoid_: land lock, push lock
 
 ## Releasing
