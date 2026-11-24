@@ -7,18 +7,11 @@ import { getLocale } from "@/paraglide/runtime.js";
 
 type PolicyKind = "privacy" | "terms";
 
-const betaDocs = import.meta.env.VITE_BETA_DOCS;
-const effectiveDate = betaDocs ? "2026-11-24" : "2026-11-17";
+const effectiveDate = "2026-11-17";
 const contact = "aiden.lx@outlook.com";
 
 function getPolicy(kind: PolicyKind) {
-  const locale = getLocale() === "zh-CN" ? "zh-CN" : "en";
-  const policy = policies[locale][kind];
-  if (!betaDocs) return policy;
-  return {
-    ...policy,
-    sections: [...policy.sections, policies[locale].betaDocs[kind]],
-  };
+  return policies[getLocale() === "zh-CN" ? "zh-CN" : "en"][kind];
 }
 
 export function servicePolicyHead(kind: PolicyKind) {

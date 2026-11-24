@@ -146,11 +146,6 @@ function machineAssets(): Plugin {
 }
 
 export default defineConfig(({ command }) => ({
-  define: {
-    "import.meta.env.VITE_BETA_DOCS": JSON.stringify(
-      process.env.CLOUDFLARE_ENV === "beta",
-    ),
-  },
   optimizeDeps: {
     include: ["@base-ui/react > use-sync-external-store/shim/with-selector"],
   },
