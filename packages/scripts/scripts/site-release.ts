@@ -1,8 +1,7 @@
 #!/usr/bin/env node
-import type { Pick, SiteMode } from "#site-release";
+import type { Pick, ReleaseRequest, SiteMode } from "#site-release";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 import { SOURCE_BRANCH, SOURCE_REPOSITORY } from "@zotlit/config/repositories";
@@ -17,6 +16,8 @@ import {
   pickOnto,
   planPicks,
   PRODUCTION_ORIGIN,
+  releaseCli,
+  releaseRequest,
   revertTo,
   siteTagNumber,
   syncTo,
@@ -69,14 +70,6 @@ async function prCommits(pr: number): Promise<string[]> {
   return stdout.split("\n").filter(Boolean);
 }
 
-interface Request {
-  pick?: number[];
-  to?: string;
-  revertTo?: string;
-  bootstrap: boolean;
-  dryRun: boolean;
-}
-
 interface Plan {
   mode: SiteMode;
   commit: string;
@@ -85,7 +78,7 @@ interface Plan {
 }
 
 async function plan(
-  request: Request,
+  request: ReleaseRequest,
   live: string | undefined,
   main: string,
 ): Promise<Plan> {
@@ -166,7 +159,7 @@ async function plan(
   };
 }
 
-async function release(request: Request): Promise<void> {
+async function release(request: ReleaseRequest): Promise<void> {
   await run(["fetch", "--quiet", "--tags", "--force", "origin", SOURCE_BRANCH]);
   const live = await liveTag();
   const main = await commitOf(git, MAIN);
@@ -219,53 +212,11 @@ The live release is the tag that ${PRODUCTION_ORIGIN}${VERSION_PATH} names. Mode
 
 The command fetches ${MAIN} and the tags, pushes the new tag, and prints the compare link. The Site Release workflow (.github/workflows/site-release.yml) builds the tag, uploads it as a Worker version with a version URL, and deploys it after the maintainer approves the approve job of the production environment. --dry-run prints the tag message and pushes nothing.`;
 
-await yargs(hideBin(process.argv))
-  .scriptName("site:release")
+const argv = await releaseCli(hideBin(process.argv), MAIN)
   .usage(
     "pnpm site:release --pick <pr...> | --to [commit] | --revert-to <site-tag> [--bootstrap] [--dry-run]",
   )
-  .option("pick", {
-    type: "number",
-    array: true,
-    describe: "record PR numbers",
-  })
-  .option("to", { type: "string", describe: `a commit of ${MAIN}` })
-  .option("revert-to", { type: "string", describe: "an earlier site tag" })
-  .option("bootstrap", { type: "boolean" })
-  .option("dry-run", { type: "boolean", default: false })
-  .conflicts("pick", ["to", "revert-to", "bootstrap"])
-  .conflicts("revert-to", ["to", "bootstrap"])
-  .check((argv) => {
-    if (
-      argv.pick === undefined &&
-      argv.revertTo === undefined &&
-      argv.to === undefined &&
-      !argv.bootstrap
-    ) {
-      throw new Error("Name a mode: --pick, --to, or --revert-to.");
-    }
-    if (argv.pick !== undefined && argv.pick.length === 0) {
-      throw new Error("--pick takes at least one record PR number.");
-    }
-    return true;
-  })
-  .command(
-    "$0",
-    "release the production docs site",
-    () => {},
-    async (argv) => {
-      await release({
-        pick: argv.pick,
-        to: argv.to === "" ? undefined : argv.to,
-        revertTo: argv.revertTo,
-        bootstrap: argv.bootstrap ?? false,
-        dryRun: argv.dryRun,
-      });
-    },
-  )
   .epilogue(epilogue)
-  .strict()
-  .version(false)
   .wrap(null)
   .fail((message, error) => {
     console.error(error instanceof Error ? error.message : message);
@@ -273,3 +224,4 @@ await yargs(hideBin(process.argv))
   })
   .help()
   .parseAsync();
+await release(releaseRequest(argv));
