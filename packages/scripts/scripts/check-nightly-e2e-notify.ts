@@ -4,12 +4,12 @@ import { join } from "node:path";
 
 import {
   NIGHTLY_E2E_NOTIFY_WORKFLOW,
-  nightlyE2eNotifyReport,
+  nightlyE2eNotifyProblems,
 } from "#nightly-e2e-notify";
 import { getWorkspaceRoot } from "#package-roots";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
-const problems = await nightlyE2eNotifyReport(
+const problems = nightlyE2eNotifyProblems(
   readFileSync(join(root, NIGHTLY_E2E_NOTIFY_WORKFLOW), "utf8"),
 );
 if (problems.length > 0) {
