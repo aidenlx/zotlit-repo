@@ -118,7 +118,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         {umamiWebsiteId && (
           <script
             defer
-            src="https://zotlit-umami.vercel.app/script.js"
+            src="https://umami.aidenlx.site/script.js"
             data-website-id={umamiWebsiteId}
             data-domains="zotlit.aidenlx.site"
           />
