@@ -41,6 +41,7 @@
     "#vault-plugins": "./lib/vault-plugins.ts",
     "#vault-purge": "./lib/vault-purge.ts",
     "#message-usage": "./lib/message-usage.ts",
+    "#nightly-e2e-notify": "./lib/nightly-e2e-notify.ts",
     "#plugin-packages": "./lib/plugin-packages.ts",
     "#scanner-eslint": "./lib/scanner-eslint.ts",
     "#shell/*": "./lib/shell/*.ts",
