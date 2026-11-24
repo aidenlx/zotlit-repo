@@ -17,7 +17,7 @@ import { m } from "@/paraglide/messages.js";
 
 - 新的 <Command inline name={m.command_update_notes_name()} /> 命令会打开一个对话框。<UiLabel name={m.modal_update_notes_all()} /> 会更新所有现有笔记。打开文献笔记时会显示 <UiLabel name={m.modal_update_notes_active()} />。
 - 除非你主动勾选，否则该对话框不会创建新笔记。复选框 <UiLabel name={m.modal_update_notes_create()} /> 默认处于未选中状态。
-- 在网页版模板工作台中保存模板后，提示栏中的操作按钮现在显示为 <UiLabel name={m.notice_workbench_profile_saved_action()} />。它仅修改你现有的笔记。之前此处显示为“Update all notes”。
+- 保存模板后，提示栏中的操作按钮现在显示为 <UiLabel name={m.notice_workbench_profile_saved_action()} />。它仅修改你现有的笔记。之前此处显示为“Update all notes”。
 - 当你更新整个文库或分类时，即使其中只有一个条目，ZotLit 现在也会显示确认提示。
 - 旧版更新命令仍然保留，可继续用于快捷键绑定。
 - “Update imported note from Zotero”现已更名为 <Command inline name={m.command_reimport_note_name()} />，名称与其实际功能保持一致。你之前设置的快捷键仍然有效。
