@@ -102,6 +102,21 @@
           ]
         }
       ]
+    },
+    "betaDocs": {
+      "privacy": {
+        "heading": "Analytics on the documentation sites",
+        "paragraphs": [
+          "The pre-release documentation at zotlit-beta.aidenlx.site runs without Umami or the Cloudflare Web Analytics beacon. Cloudflare still handles requests to deliver and secure the site.",
+          "The stable documentation at zotlit.aidenlx.site uses Cloudflare Web Analytics to measure page performance. It sends pageviews to the maintainer’s Umami service at umami.aidenlx.site, hosted on Vercel with a Neon database. Umami records the page, referrer, browser and device information. It uses the site ID, IP address, browser user agent and a rotating salt to estimate distinct visitors without analytics cookies. The IP address is not stored in the Umami session record."
+        ]
+      },
+      "terms": {
+        "heading": "Pre-release documentation",
+        "paragraphs": [
+          "The pre-release documentation describes features under development. Check the stable documentation for the version you use. The Privacy Policy explains how the stable and pre-release sites handle website analytics."
+        ]
+      }
     }
   },
   "zh-CN": {
@@ -207,6 +222,21 @@
           ]
         }
       ]
+    },
+    "betaDocs": {
+      "privacy": {
+        "heading": "文档网站的访问统计",
+        "paragraphs": [
+          "预发布文档 zotlit-beta.aidenlx.site 不加载 Umami 或 Cloudflare Web Analytics 的统计脚本。Cloudflare 仍负责处理请求、分发页面并保护网站安全。",
+          "稳定版文档 zotlit.aidenlx.site 使用 Cloudflare Web Analytics 衡量页面性能，并向维护者在 umami.aidenlx.site 运行的 Umami 服务发送页面浏览记录。该服务由 Vercel 托管，使用 Neon 数据库。Umami 记录访问页面、来源、浏览器和设备信息，并结合站点 ID、IP 地址、浏览器用户代理和定期轮换的盐值估算独立访客数。此过程不使用统计 Cookie，Umami 的会话记录中不保存 IP 地址。"
+        ]
+      },
+      "terms": {
+        "heading": "预发布文档",
+        "paragraphs": [
+          "预发布文档介绍开发中的功能。请查阅稳定版文档，确认所用版本支持的功能。两套文档网站的访问统计方式见隐私政策。"
+        ]
+      }
     }
   }
 }
