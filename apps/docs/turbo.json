@@ -17,6 +17,7 @@
       "outputs": ["dist/**", ".tanstack/**", ".wrangler/deploy/**"],
       "env": [
         "VITE_CF_BEACON_TOKEN",
+        "VITE_UMAMI_WEBSITE_ID",
         "VITE_MEDIA_ORIGIN",
         "CLOUDFLARE_ENV",
         "GITHUB_SHA"

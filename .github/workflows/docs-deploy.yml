@@ -144,16 +144,10 @@ jobs:
           if [ -n "$WRANGLER_ENV" ]; then
             export CLOUDFLARE_ENV="$WRANGLER_ENV"
           fi
-          if [ "$SITE" = pre-release ]; then
-            export VITE_CF_BEACON_TOKEN="$CF_BEACON_TOKEN_BETA"
-          else
-            export VITE_CF_BEACON_TOKEN="$CF_BEACON_TOKEN"
-          fi
           pnpm turbo run build --filter=@zotlit/docs
         env:
-          SITE: ${{ needs.gate.outputs.site }}
-          CF_BEACON_TOKEN: ${{ vars.CF_BEACON_TOKEN }}
-          CF_BEACON_TOKEN_BETA: ${{ vars.CF_BEACON_TOKEN_BETA }}
+          VITE_UMAMI_WEBSITE_ID: ${{ needs.gate.outputs.site == 'production' && 'bbeb5193-2d48-4b23-8933-157e29beb87d' || '' }}
+          VITE_CF_BEACON_TOKEN: ${{ needs.gate.outputs.site == 'production' && vars.CF_BEACON_TOKEN || '' }}
           VITE_MEDIA_ORIGIN: https://zotlit-media.aidenlx.site
 
       - name: Upload media

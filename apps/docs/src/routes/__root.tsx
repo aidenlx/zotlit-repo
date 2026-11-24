@@ -26,6 +26,7 @@ import { getLocale, localizeHref } from "@/paraglide/runtime.js";
 import appCss from "@/styles.css?url";
 
 const analyticsToken: string | undefined = import.meta.env.VITE_CF_BEACON_TOKEN;
+const umamiWebsiteId: string | undefined = import.meta.env.VITE_UMAMI_WEBSITE_ID;
 
 export const Route = createRootRoute({
   head: () => ({
@@ -88,6 +89,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             defer
             src="https://static.cloudflareinsights.com/beacon.min.js"
             data-cf-beacon={JSON.stringify({ token: analyticsToken })}
+          />
+        )}
+        {umamiWebsiteId && (
+          <script
+            defer
+            src="https://zotlit-umami.vercel.app/script.js"
+            data-website-id={umamiWebsiteId}
+            data-domains="zotlit.aidenlx.site"
           />
         )}
         <TanStackDevtools
