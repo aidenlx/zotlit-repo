@@ -28,6 +28,7 @@
       // build that plays its videos from the media store.
       "env": [
         "VITE_CF_BEACON_TOKEN",
+        "VITE_UMAMI_WEBSITE_ID",
         "VITE_MEDIA_ORIGIN",
         "CLOUDFLARE_ENV",
         "GITHUB_SHA"

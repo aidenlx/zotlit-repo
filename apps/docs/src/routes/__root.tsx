@@ -32,6 +32,7 @@ import appCss from "@/styles.css?url";
  * without one simply serves no beacon.
  */
 const analyticsToken: string | undefined = import.meta.env.VITE_CF_BEACON_TOKEN;
+const umamiWebsiteId: string | undefined = import.meta.env.VITE_UMAMI_WEBSITE_ID;
 
 export const Route = createRootRoute({
   // Site-wide defaults. A page's own `head` overrides these tag by tag, so a
@@ -112,6 +113,14 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             defer
             src="https://static.cloudflareinsights.com/beacon.min.js"
             data-cf-beacon={JSON.stringify({ token: analyticsToken })}
+          />
+        )}
+        {umamiWebsiteId && (
+          <script
+            defer
+            src="https://zotlit-umami.vercel.app/script.js"
+            data-website-id={umamiWebsiteId}
+            data-domains="zotlit.aidenlx.site"
           />
         )}
         <TanStackDevtools
