@@ -1,6 +1,7 @@
 import { regex } from "arkregex";
 import { execFile } from "node:child_process";
 import * as v from "valibot";
+import yargs from "yargs";
 
 export const SITE_TAG_PREFIX = "site-";
 export const PRODUCTION_WORKER = "zotlit-docs";
@@ -408,4 +409,60 @@ export async function deployVersion(
       annotations: { "workers/message": message.slice(0, 1000) },
     }),
   });
+}
+
+export interface ReleaseRequest {
+  pick?: number[];
+  to?: string;
+  revertTo?: string;
+  bootstrap: boolean;
+  dryRun: boolean;
+}
+
+export function releaseCli(args: readonly string[], main: string) {
+  return yargs([...args])
+    .scriptName("site:release")
+    .option("pick", {
+      type: "number",
+      array: true,
+      describe: "record PR numbers",
+    })
+    .option("to", { type: "string", describe: `a commit of ${main}` })
+    .option("revert-to", { type: "string", describe: "an earlier site tag" })
+    .option("bootstrap", { type: "boolean" })
+    .option("dry-run", { type: "boolean", default: false })
+    .conflicts("pick", ["to", "revert-to", "bootstrap"])
+    .conflicts("revert-to", ["to", "bootstrap"])
+    .check((argv) => {
+      if (
+        argv.pick === undefined &&
+        argv.revertTo === undefined &&
+        argv.to === undefined &&
+        !argv.bootstrap
+      ) {
+        throw new Error("Name a mode: --pick, --to, or --revert-to.");
+      }
+      if (argv.pick !== undefined && argv.pick.length === 0) {
+        throw new Error("--pick takes at least one record PR number.");
+      }
+      return true;
+    })
+    .strict()
+    .version(false);
+}
+
+export function releaseRequest(argv: {
+  pick?: number[];
+  to?: string;
+  revertTo?: string;
+  bootstrap?: boolean;
+  dryRun: boolean;
+}): ReleaseRequest {
+  return {
+    pick: argv.pick,
+    to: argv.to === "" ? undefined : argv.to,
+    revertTo: argv.revertTo,
+    bootstrap: argv.bootstrap ?? false,
+    dryRun: argv.dryRun,
+  };
 }
