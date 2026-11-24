@@ -54,12 +54,18 @@ function Closing() {
           <Message
             text={m.docs_home_close_switch({
               compare: "{compare}",
+              migrate: "{migrate}",
               trouble: "{trouble}",
             })}
             slots={{
               compare: (
                 <AnswerLink path="/docs/answers/zotlit-vs-zotero-integration-vs-citations">
                   {m.docs_home_close_compare()}
+                </AnswerLink>
+              ),
+              migrate: (
+                <AnswerLink path="/docs/how-to/migrate-from-zotero-integration">
+                  {m.docs_home_close_migrate()}
                 </AnswerLink>
               ),
               trouble: (
