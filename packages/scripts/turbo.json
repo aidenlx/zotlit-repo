@@ -6,6 +6,7 @@
       "inputs": [
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/.github/workflows/record-pr.yml",
+        "$TURBO_ROOT$/.github/workflows/nightly-e2e-notify.yml",
         "$TURBO_ROOT$/apps/zotero/scripts/build-update-json.ts",
         "$TURBO_ROOT$/apps/zotero/scripts/release-constants.ts",
         "$TURBO_ROOT$/apps/zotero/scripts/release-host-notes.eta",

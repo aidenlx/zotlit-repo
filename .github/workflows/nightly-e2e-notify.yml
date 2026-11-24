@@ -1,0 +1,216 @@
+name: Notify Grok Bot of Nightly End-to-end Run
+
+on:
+  workflow_run:
+    workflows: ["Nightly End-to-end Run"]
+    types: [completed]
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Post the workflow run event
+        env:
+          WEBHOOK_URL: ${{ secrets.GROK_BOT_WEBHOOK_URL }}
+          WEBHOOK_KEY: ${{ secrets.GROK_BOT_WEBHOOK_KEY }}
+        run: |
+          set +x
+          set -euo pipefail
+          if ! command -v node >/dev/null 2>&1 || ! command -v curl >/dev/null 2>&1; then
+            echo "node and curl must be on PATH." >&2
+            exit 1
+          fi
+          if [ -z "${WEBHOOK_URL:-}" ] || [ -z "${WEBHOOK_KEY:-}" ]; then
+            echo "GROK_BOT_WEBHOOK_URL and GROK_BOT_WEBHOOK_KEY must both be set." >&2
+            exit 1
+          fi
+          if [ -z "${GITHUB_EVENT_PATH:-}" ] || [ ! -s "$GITHUB_EVENT_PATH" ]; then
+            echo "The GitHub event file is missing or empty." >&2
+            exit 1
+          fi
+          umask 077
+          workdir=$(mktemp -d)
+          trap 'rm -rf "$workdir"' EXIT
+          cat > "$workdir/check-event.cjs" <<'NIGHTLY_E2E_NOTIFY'
+          "use strict";
+          const { readFileSync, writeFileSync } = require("node:fs");
+          const { URL } = require("node:url");
+
+          function fail(message) {
+            console.error(message);
+            process.exit(1);
+          }
+
+          const url = process.env.WEBHOOK_URL || "";
+          const key = process.env.WEBHOOK_KEY || "";
+          const eventPath = process.env.GITHUB_EVENT_PATH || "";
+          const workdir = process.env.NOTIFY_WORKDIR || "";
+
+          if (!url || !key) {
+            fail("GROK_BOT_WEBHOOK_URL and GROK_BOT_WEBHOOK_KEY must both be set.");
+          }
+          if (/[\u0000-\u001F\u007F]/.test(key) || key.length > 4096) {
+            fail("GROK_BOT_WEBHOOK_KEY must be a single line.");
+          }
+          if (!url.startsWith("https://") || url.length > 2048) {
+            fail("GROK_BOT_WEBHOOK_URL must be an https URL.");
+          }
+          if (
+            /[\u0000-\u0020"\\\u007F]/.test(url) ||
+            url.includes("?") ||
+            url.includes("#") ||
+            url.includes("@")
+          ) {
+            fail(
+              "GROK_BOT_WEBHOOK_URL must be a plain https URL with no query, fragment, or userinfo.",
+            );
+          }
+          if (url.includes(key)) {
+            fail("GROK_BOT_WEBHOOK_URL must not contain the webhook key.");
+          }
+          let parsed;
+          try {
+            parsed = new URL(url);
+          } catch {
+            fail("GROK_BOT_WEBHOOK_URL must be an https URL.");
+          }
+          if (
+            parsed.protocol !== "https:" ||
+            parsed.username ||
+            parsed.password ||
+            parsed.search ||
+            parsed.hash
+          ) {
+            fail(
+              "GROK_BOT_WEBHOOK_URL must be a plain https URL with no query, fragment, or userinfo.",
+            );
+          }
+          if (!eventPath.startsWith("/") || /[\u0000\r\n"]/.test(eventPath)) {
+            fail("GITHUB_EVENT_PATH must be a plain absolute path.");
+          }
+          let event;
+          try {
+            event = JSON.parse(readFileSync(eventPath, "utf8"));
+          } catch {
+            fail("The GitHub event file is not JSON.");
+          }
+          if (!event || typeof event !== "object" || Array.isArray(event)) {
+            fail("The event is not a JSON object.");
+          }
+          const run = event.workflow_run;
+          const workflow = event.workflow;
+          const repository = event.repository;
+          if (!run || typeof run !== "object" || Array.isArray(run)) {
+            fail("The event has no workflow_run object.");
+          }
+          if (!workflow || typeof workflow !== "object" || Array.isArray(workflow)) {
+            fail("The event has no workflow object.");
+          }
+          if (!repository || typeof repository !== "object" || Array.isArray(repository)) {
+            fail("The event has no repository object.");
+          }
+          const headRepository = run.head_repository;
+          if (
+            !headRepository ||
+            typeof headRepository !== "object" ||
+            Array.isArray(headRepository)
+          ) {
+            fail("The event has no head repository.");
+          }
+          if (event.action !== "completed" || run.status !== "completed") {
+            fail("The event action must be completed.");
+          }
+          if (typeof run.conclusion !== "string" || run.conclusion.length === 0) {
+            fail("The event must include a workflow conclusion.");
+          }
+          if (
+            repository.full_name !== "aidenlx/zotlit-repo" ||
+            headRepository.full_name !== "aidenlx/zotlit-repo"
+          ) {
+            fail("The event repository must be aidenlx/zotlit-repo.");
+          }
+          if (
+            run.name !== "Nightly End-to-end Run" ||
+            workflow.name !== "Nightly End-to-end Run"
+          ) {
+            fail("The event must be the Nightly End-to-end Run workflow.");
+          }
+          if (run.head_branch !== "main") {
+            fail("The event head branch must be main.");
+          }
+          if (run.workflow_id !== 426681463 || workflow.id !== 426681463) {
+            fail("The event workflow id must be the Nightly End-to-end Run.");
+          }
+          if (
+            run.path !== ".github/workflows/nightly-e2e.yml" ||
+            workflow.path !== ".github/workflows/nightly-e2e.yml"
+          ) {
+            fail("The event workflow path must be the Nightly End-to-end Run.");
+          }
+          if (!workdir.startsWith("/") || /[\u0000\r\n"]/.test(workdir)) {
+            fail("NOTIFY_WORKDIR must be a plain absolute path.");
+          }
+
+          function quoted(value) {
+            if (/[\u0000\r\n]/.test(value)) {
+              fail("A curl option value must be a single line.");
+            }
+            return '"' + value.replaceAll("\\", "\\\\").replaceAll('"', '\\"') + '"';
+          }
+
+          const config = [
+            "silent",
+            "show-error",
+            'proto = "=https"',
+            'noproxy = "*"',
+            "disallow-username-in-url",
+            "connect-timeout = 10",
+            "max-time = 30",
+            'header = "Content-Type: application/json"',
+            'header = "Expect:"',
+            "data-binary = " + quoted("@" + eventPath),
+            "output = " + quoted(workdir + "/response"),
+            'write-out = "%{http_code}"',
+            "url = " + quoted(url),
+          ].join("\n");
+          writeFileSync(workdir + "/curl.cfg", config + "\n", { mode: 0o600 });
+          writeFileSync(
+            workdir + "/authorization",
+            "Authorization: Bearer " + key + "\n",
+            { mode: 0o600 },
+          );
+          NIGHTLY_E2E_NOTIFY
+          NOTIFY_WORKDIR="$workdir" node "$workdir/check-event.cjs"
+          set +e
+          http_code=$(
+            env \
+              -u http_proxy \
+              -u https_proxy \
+              -u all_proxy \
+              -u HTTP_PROXY \
+              -u HTTPS_PROXY \
+              -u ALL_PROXY \
+              -u no_proxy \
+              -u NO_PROXY \
+              curl -q --config "$workdir/curl.cfg" --header @"$workdir/authorization" \
+              2>"$workdir/curl.err"
+          )
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ] || [ -z "$http_code" ] || [ "$http_code" = "000" ]; then
+            echo "The webhook request failed before a response (curl exit ${status})." >&2
+            exit 1
+          fi
+          case $http_code in
+            2[0-9][0-9]) ;;
+            *)
+              echo "The webhook returned HTTP ${http_code}." >&2
+              exit 1
+              ;;
+          esac
+          echo "Posted the Nightly End-to-end Run event."
