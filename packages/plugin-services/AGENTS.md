@@ -8,7 +8,7 @@ It also holds the setting tab's seam to Effect (`obsidian/setting-tab/effect-tab
 
 ## Layers
 
-Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). A file sits in the layer of what it needs from its host; a layer imports the layers below it: core ← obsidian ← desktop.
+Each layer is one folder of `src/` and one runtime zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)). A new file goes in the folder of what it needs from its host: `core/` is the host-free zone (the DOM, no host module), `obsidian/` the Obsidian zone (the `obsidian` module; it loads on Obsidian Mobile), and `desktop/` the desktop zone (Node and Electron). A layer reaches the layers below it: core ← obsidian ← desktop. The runtime check (`pnpm run lint:runtime-zones`) follows each import, type-only imports included, and fails on reach to a higher zone or to test support. Lint refuses Node built-in imports and the Node globals outside `desktop/`.
 
 - `core/` — host-free: no Node built-in, `obsidian`, `electron`, Obsidian kit, or client and desktop layer of ZoteroReads. A Web Worker loads it (the Chinese Segmenter's read of its Pack Entry, `chinese-segmenter/pack-reader.ts`). It holds the settings mechanism (`settings/slice.ts`, `settings/schema.ts`) and the settings slices of this package, the tags of the services a desktop host builds (`zotero-pref/service.ts`, `local-server/service.ts`), the Held Read client, and pure helpers.
 - `obsidian/` — loads on Obsidian Mobile: the Obsidian API, the Obsidian kit and the ZoteroReads client, and no Node or Electron. The services and their atoms, notices, CLI commands and menus.

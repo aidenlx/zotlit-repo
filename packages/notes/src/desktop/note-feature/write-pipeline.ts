@@ -46,9 +46,9 @@ import {
   FIELD_ZOTERO_KEY,
 } from "@zotlit/plugin-kernel/constants.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";

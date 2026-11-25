@@ -5,7 +5,7 @@ import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {
   SettingsKey,

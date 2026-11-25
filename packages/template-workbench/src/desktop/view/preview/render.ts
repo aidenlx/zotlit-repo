@@ -48,8 +48,8 @@ import type {
   ViewServices,
 } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { FIELD_DOCUMENT_LANGUAGE } from "@zotlit/plugin-kernel/constants.ts";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { isLanguageTag } from "@zotlit/plugin-kernel/language-tag.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";

@@ -1,4 +1,4 @@
-import type { ItemQueryRequest } from "./request.ts";
+import type { ItemQueryRequest } from "#request.ts";
 export const ATTACHMENT_SCENARIO_QUERIES: readonly Omit<
   ItemQueryRequest,
   "libraries"

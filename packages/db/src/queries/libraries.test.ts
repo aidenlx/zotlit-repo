@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { NodeDatabaseClient } from "#desktop/node-client.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -8,7 +8,7 @@ import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 
 import { getLibraries, getLibraryByGroupID } from "./libraries.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 import { relations } from "#drizzle/relations.ts";
 
 const SEED = `

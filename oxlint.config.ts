@@ -1,8 +1,11 @@
 import { defineConfig } from "oxlint";
 
 import baseConfig, {
+  baseImports,
   datePattern,
+  nodeAllowed,
   testBaselineOverrides,
+  withoutFileSystemAdapter,
 } from "./packages/config/oxlint.base.ts";
 
 export default defineConfig({
@@ -10,6 +13,7 @@ export default defineConfig({
   ignorePatterns: [
     "**/dist/**",
     "**/dist-dev/**",
+    "**/dist-mobile/**",
     "**/build/**",
     "**/.turbo/**",
     "**/.next/**",
@@ -27,6 +31,13 @@ export default defineConfig({
     "video/**",
   ],
   overrides: [
+    nodeAllowed([
+      "packages/config/*.ts",
+      "packages/config/__fixtures__/**",
+      "packages/e2e/**",
+      "packages/scripts/**",
+      "skills/**",
+    ]),
     {
       files: ["packages/e2e/src/**/*.ts"],
       jsPlugins: ["./packages/config/oxlint-plugin-tests.ts"],
@@ -39,6 +50,15 @@ export default defineConfig({
         "zotlit-tests/no-string-transport": "error",
         "typescript/await-thenable": "error",
         "typescript/no-unnecessary-type-conversion": "error",
+      },
+    },
+    {
+      files: ["packages/e2e/**"],
+      rules: {
+        "no-restricted-imports": [
+          "error",
+          withoutFileSystemAdapter(baseImports),
+        ],
       },
     },
     {

@@ -5,11 +5,11 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { describe, expect } from "vitest";
 
-import { packBinary } from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
 import {
+  packBinary,
   packDevice,
   packFile,
-} from "@zotlit/plugin-services/obsidian/managed-binary/test-utils.ts";
+} from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
 
 import type { CitationEngine, PreparedDocument } from "./engine.ts";
 import { PANDOC_ENGINE } from "./service.ts";

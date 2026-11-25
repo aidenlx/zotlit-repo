@@ -18,6 +18,7 @@ import type { InteractiveCreationPorts } from "@zotlit/notes/desktop/note-featur
 import { openLiteratureNote } from "@zotlit/notes/desktop/note-feature/navigation.ts";
 import type { NoteFeatureHandle } from "@zotlit/notes/desktop/note-feature/operations.ts";
 import { Notifier, reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
+import type { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type {
@@ -231,3 +232,9 @@ const editorTarget = Effect.fnUntraced(function* (
   if (!info?.file || !info.editor) return null;
   return { editor: info.editor, info };
 });
+
+declare module "@zotlit/obsidian-kit/view-atoms.ts" {
+  interface ViewServiceRegistry {
+    VaultDisk: VaultDisk;
+  }
+}

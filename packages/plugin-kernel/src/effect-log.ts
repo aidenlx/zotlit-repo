@@ -9,13 +9,14 @@ import type { LogLevel, LogRecord } from "@zotlit/shared/log-formatter";
 import { setLibraryLogSink } from "@zotlit/shared/logging";
 
 import type { EffectBridge } from "./effect-bridge.ts";
+import { consoleLogSink } from "./log-console.ts";
+import { PLUGIN_ID } from "./plugin-id.ts";
+
 import {
   LogCategory,
   LogTimestamp,
   withLogCategory,
-} from "./effect-log-category.ts";
-import { consoleLogSink } from "./log-console.ts";
-import { PLUGIN_ID } from "./plugin-id.ts";
+} from "#worker/effect-log-category.ts";
 
 export { LogCategory, withLogCategory };
 export type { LogLevel, LogRecord };

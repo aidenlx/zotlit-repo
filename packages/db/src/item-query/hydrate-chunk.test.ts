@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { NodeDatabaseClient } from "#desktop/node-client.ts";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -22,7 +22,7 @@ import {
 } from "./index.ts";
 import type { HydrateFields, HydratedItem, HydrateRelation } from "./index.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 
 function runOk<A, E>(
   scenario: ScenarioDatabase<NodeDatabaseClient>,

@@ -38,6 +38,7 @@ import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pre
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+import { layerVaultDiskOver } from "@zotlit/plugin-shell/desktop/__fixtures__/vault-disk.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import {
   DEFAULT_ANNOTATION_LIQUID as annotationTemplate,
@@ -188,6 +189,7 @@ async function openFixture(mode: string) {
     Layer.provide(
       Layer.mergeAll(
         layerHost({ vault, fileManager }),
+        layerVaultDiskOver(vault),
         fileSystem.layer,
         pref,
         Layer.succeed(

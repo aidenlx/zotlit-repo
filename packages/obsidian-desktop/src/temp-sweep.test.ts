@@ -25,7 +25,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect } from "vitest";
 
-import { LogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { LogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 
 import { isOlderThan, sweepTempDirectory } from "./temp-sweep.ts";
 import type { TempSweepOptions } from "./temp-sweep.ts";

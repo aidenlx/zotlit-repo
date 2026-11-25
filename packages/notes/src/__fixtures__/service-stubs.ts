@@ -6,6 +6,7 @@ import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -27,6 +28,7 @@ export type StubbedServices =
   | Template
   | ZoteroPref
   | Vault
+  | VaultDisk
   | FileManager
   | Profile
   | MetadataCache
@@ -53,6 +55,7 @@ export function serviceStubs(
       stubService<ZoteroPref["Service"]>("ZoteroPref", {}),
     ),
     Context.make(Vault, stubService<Vault["Service"]>("Vault", {})),
+    Context.make(VaultDisk, stubService<VaultDisk["Service"]>("VaultDisk", {})),
     Context.make(
       FileManager,
       stubService<FileManager["Service"]>("FileManager", {}),

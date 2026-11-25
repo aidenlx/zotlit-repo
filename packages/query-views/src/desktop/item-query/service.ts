@@ -22,6 +22,7 @@ import type { CliData } from "obsidian";
 
 import type { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { awaitOwned } from "@zotlit/plugin-kernel/effect-fiber.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
@@ -102,6 +103,7 @@ export function layerQueryService({
   | LibraryScope
   | UseLedger
   | ObsidianEnv
+  | VaultDisk
   | FileSystem.FileSystem
 > {
   return Layer.effect(
@@ -112,6 +114,7 @@ export function layerQueryService({
       const libraryScope = yield* LibraryScope;
       const useLedger = yield* UseLedger;
       const env = yield* ObsidianEnv;
+      const disk = yield* VaultDisk;
       const fs = yield* FileSystem.FileSystem;
       const scope = yield* Scope.Scope;
       const jobs = yield* FiberMap.make<string, unknown, ItemQueryError>();
@@ -176,7 +179,7 @@ export function layerQueryService({
                     id: source.sourceId,
                     databasePath: source.databasePath,
                   },
-                  vault: { name: env.vaultName, path: env.basePath },
+                  vault: { name: env.vaultName, path: disk.basePath },
                   scope: yield* libraryScope.effective,
                   uses: yield* useLedger.uses,
                   attachmentPaths: {

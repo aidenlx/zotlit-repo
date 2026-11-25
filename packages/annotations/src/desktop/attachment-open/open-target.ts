@@ -8,6 +8,7 @@ import type { PaneType } from "obsidian";
 import { formatAnnotationSubpath } from "@zotlit/db";
 import { Notifier, withOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -80,7 +81,6 @@ export class PdfTargetReader extends Context.Service<
 export interface TargetOpenerPorts<R, E> {
   readonly reader: Effect.Effect<TargetReader<E>, never, R>;
   readonly native: NativeOpener;
-  readonly platform?: NodeJS.Platform;
   readonly indexWait?: Duration.Input;
 }
 
@@ -94,12 +94,11 @@ const PAGE_NUMBER_RE = /^[1-9]\d*$/;
 export function layerTargetOpener<R, E>({
   reader: makeReader,
   native,
-  platform = process.platform,
   indexWait = "5 seconds",
 }: TargetOpenerPorts<R, E>): Layer.Layer<
   TargetOpener,
   never,
-  R | AttachmentResolver | PluginSettings | Notifier | ObsidianEnv
+  R | AttachmentResolver | PluginSettings | Notifier | ObsidianEnv | VaultDisk
 > {
   return Layer.effect(
     TargetOpener,
@@ -107,7 +106,8 @@ export function layerTargetOpener<R, E>({
       const attachments = yield* AttachmentResolver;
       const settings = yield* PluginSettings;
       const notifier = yield* Notifier;
-      const { basePath } = yield* ObsidianEnv;
+      const { os } = yield* ObsidianEnv;
+      const { basePath } = yield* VaultDisk;
       const reader = yield* makeReader;
 
       const openable = (
@@ -116,7 +116,7 @@ export function layerTargetOpener<R, E>({
       ): ObsidianOpenableAttachment => ({
         indexedKey: file.attachmentKey,
         label: filename(file.absolutePath),
-        openPath: obsidianOpenPath(file.absolutePath, basePath, platform),
+        openPath: obsidianOpenPath(file.absolutePath, basePath, os),
         absolutePath: file.absolutePath,
         ...(subpath ? { subpath } : {}),
       });

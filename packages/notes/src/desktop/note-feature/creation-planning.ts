@@ -13,8 +13,8 @@ import {
   unknownProfileDiagnostic,
 } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   itemKeyFromFrontmatter,

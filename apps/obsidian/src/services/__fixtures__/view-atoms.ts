@@ -3,6 +3,7 @@ import { FileSystem, Layer, Stream } from "effect";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
@@ -68,6 +69,10 @@ export const layerUnreadViewServices = Layer.mergeAll(
   Layer.mock(
     ObsidianEnv,
     stubService<ObsidianEnv["Service"]>("ObsidianEnv", {}),
+  ),
+  Layer.mock(
+    VaultDisk,
+    stubService<VaultDisk["Service"]>("VaultDisk", {}),
   ),
   Layer.mock(ItemLookup, {}),
   Layer.mock(NoteIndex, {}),

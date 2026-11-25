@@ -39,8 +39,11 @@ import { makeExplorerHost } from "#__fixtures__/data-explorer.ts";
 import { SAMPLE_ANNOTATIONS } from "#core/render/index.ts";
 import { ExplorerActionsContext } from "#obsidian/data-explorer/actions.ts";
 import { workbenchAnnotationChoice } from "#obsidian/editor/item-choice.ts";
+import {
+  TEST_APP,
+  watchChoosers,
+} from "#obsidian/workbench-ui/__fixtures__/test-host.tsx";
 import { WorkbenchHostProvider } from "#obsidian/workbench-ui/index.tsx";
-import { TEST_APP, watchChoosers } from "#obsidian/workbench-ui/test-host.tsx";
 
 const read = vi.fn<NonNullable<ExplorerReads["read"]>>();
 let recent: Effect.Effect<SearchHit[]> = Effect.succeed([]);

@@ -1970,6 +1970,9 @@ importers:
       '@zotlit/plugin-messages':
         specifier: workspace:*
         version: link:../plugin-messages
+      '@zotlit/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@zotlit/ui':
         specifier: workspace:*
         version: link:../ui

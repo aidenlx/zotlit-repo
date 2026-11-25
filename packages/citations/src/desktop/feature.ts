@@ -5,6 +5,7 @@ import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-re
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
@@ -113,7 +114,10 @@ export const citations = extendFeature(obsidianCitations, {
     const workspace = read(Workspace);
     registerPandocExport(plugin, {
       app,
-      vault: read(ObsidianEnv),
+      vault: {
+        basePath: read(VaultDisk).basePath,
+        vaultName: read(ObsidianEnv).vaultName,
+      },
       workspace,
       context: read(Effect.context<PandocExportServices>()),
       bridge,

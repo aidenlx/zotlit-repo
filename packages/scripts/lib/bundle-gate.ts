@@ -1,7 +1,8 @@
+import type { Runtime } from "#runtime-table";
 import type { PublishedPlugin } from "#shell/plugins";
 import { regex } from "arkregex";
 import { readFile, stat } from "node:fs/promises";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 
 const REQUIRE_CALL = regex(
   "\\brequire\\(\\s*([\"'`])(?<id>[^\"'`]+)\\1\\s*\\)",
@@ -22,6 +23,41 @@ function requiredModules(mainJs: string): string[] {
   return [...ids].toSorted();
 }
 
+export function checkRequires(
+  file: string,
+  code: string,
+  runtime: Runtime,
+): { required: string[]; failures: string[] } {
+  const required = requiredModules(code);
+  return {
+    required,
+    failures: required
+      .filter((id) => !runtime.modules.includes(id))
+      .map(
+        (id) =>
+          `${file} requires "${id}", which ${runtime.title} does not give`,
+      ),
+  };
+}
+
+export async function checkBundleRuntime(
+  name: string,
+  path: string,
+  runtime: Runtime,
+): Promise<BundleReport> {
+  const file = basename(path);
+  const code = await readFile(path, "utf8");
+  const { required, failures } = checkRequires(file, code, runtime);
+  return {
+    name,
+    lines: [
+      `${file} ${Buffer.byteLength(code).toLocaleString("en-US")} B`,
+      `requires ${required.join(", ") || "nothing"}`,
+    ],
+    failures,
+  };
+}
+
 function sizeLine(
   file: string,
   bytes: number,
@@ -39,7 +75,7 @@ function sizeLine(
 
 export async function checkBundle(
   name: string,
-  plugin: Pick<PublishedPlugin, "profile" | "budget" | "allowedRequires">,
+  plugin: Pick<PublishedPlugin, "profile" | "budget" | "runtime">,
   appDir: string,
 ): Promise<BundleReport> {
   const { profile } = plugin;
@@ -56,17 +92,13 @@ export async function checkBundle(
     sizeLine("main.js", Buffer.byteLength(mainJs), plugin.budget.mainJsBytes),
     sizeLine("styles.css", stylesBytes, plugin.budget.stylesCssBytes),
   ];
-  const unexpected = requiredModules(mainJs).filter(
-    (id) => !plugin.allowedRequires.includes(id),
-  );
+  const requires = checkRequires("main.js", mainJs, plugin.runtime);
   return {
     name,
     lines: [...sizes.map(({ line }) => line), ...pack.lines],
     failures: [
       ...sizes.flatMap(({ failure }) => (failure ? [failure] : [])),
-      ...unexpected.map(
-        (id) => `main.js requires "${id}", which is not in its allowedRequires`,
-      ),
+      ...requires.failures,
       ...pack.failures,
     ],
   };

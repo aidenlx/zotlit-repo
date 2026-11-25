@@ -2,7 +2,7 @@
 
 The Resource Pack container: the text format of the pack's `main.js`, the writer that the pack build runs (`apps/resources`), and the reader that every host loads.
 
-The package is host-free: web APIs only, with no Node built-in, `obsidian` or `electron` (`engineBoundaryRules`). The plugin's main thread, a Web Worker and a phone load the same reader.
+The top level of `src/` is the Worker zone and `src/obsidian/` is the Obsidian zone. The top level uses web APIs only, with no Node built-in, `obsidian` or `electron`: the runtime check (`pnpm run lint:runtime-zones`) and the shared lint base hold this. A new file that needs the `obsidian` module goes in `src/obsidian/`. The plugin's main thread, a Web Worker and a phone load the same reader.
 
 The package has no dependency (`dependencies` in its `package.json` is absent), so the reader stays standalone: a host loads it with no other package. Keep each type here a plain TypeScript type, and put a Schema of one in the package that sends it.
 
@@ -15,7 +15,7 @@ The package has no dependency (`dependencies` in its `package.json` is absent), 
 - `src/fetch-range.ts` — `fetchRange(url, { fetch? })`: the default `ReadRange`, `fetch` with a `Range` header. It gives the same bytes from a 206 answer with the range, a 206 answer that runs to the end of the file (Android), a 200 answer with the range as its body (desktop Obsidian), and a 200 answer with the full file (iOS). A 404 answer is `PackAbsentError`. Desktop Obsidian rejects the `fetch` of a missing file, which the reader reports as `pack-unreadable`: a desktop host learns that the pack is absent from Obsidian's installed plugins.
 - `src/pins.ts` — `PackPins` and `parsePackPins`: the pins that the pack app's package.json states under `packEntries`. The pack build and `pnpm check:bundle` both read them through it.
 - `src/sha256.ts` — `sha256Hex`, the one hash of the writer, the reader and the cases.
-- `src/obsidian-install.ts` — `applyObsidianInstall`: the text changes Obsidian 1.15.1 makes to a downloaded `main.js`. The tests and `pnpm check:bundle` apply it before they read a pack back.
+- `src/obsidian/install.ts` — `applyObsidianInstall`: the text changes Obsidian 1.15.1 makes to a downloaded `main.js`. The tests and `pnpm check:bundle` apply it before they read a pack back.
 
 ## Decoding
 

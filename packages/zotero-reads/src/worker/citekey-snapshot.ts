@@ -5,8 +5,8 @@ import type {
 import { Clock, Effect, Stream } from "effect";
 
 import type { LibraryCitekey } from "@zotlit/db";
-import { monotonicMillis } from "@zotlit/plugin-kernel/effect-clock.ts";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { monotonicMillis } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 
 const SNAPSHOT_SLICE_MS = 4;
 

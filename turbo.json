@@ -104,6 +104,9 @@
     },
     "//#lint:test-gates": {},
     "//#lint:plugin-packages": {},
+    "//#lint:runtime-zones": {
+      "dependsOn": ["//#lint:repo:deps"]
+    },
     "//#lint:record-pr": {
       "dependsOn": ["@zotlit/scripts#transit"],
       "inputs": [".github/workflows/record-pr.yml"]
@@ -128,7 +131,7 @@
       "inputs": [
         "eslint.config.js",
         "manifest.json",
-        "packages/config/repositories.ts",
+        "packages/config/src/core/repositories.ts",
         "packages/scripts/lib/plugin-packages.ts",
         "packages/scripts/lib/scanner-eslint.ts",
         "packages/scripts/lib/shell/plugins.ts",
@@ -166,7 +169,7 @@
       "dependsOn": ["//#review:plugin:deps"],
       "inputs": [
         "eslint.config.js",
-        "packages/config/repositories.ts",
+        "packages/config/src/core/repositories.ts",
         "packages/scripts/lib/plugin-packages.ts",
         "packages/scripts/lib/scanner-eslint.ts",
         "packages/scripts/lib/shell/plugins.ts",
@@ -199,7 +202,7 @@
         "apps/obsidian/package.json",
         "apps/reader/package.json",
         "apps/resources/package.json",
-        "packages/config/repositories.ts",
+        "packages/config/src/core/repositories.ts",
         "packages/scripts/lib/obsidian-manifest.ts",
         "packages/scripts/lib/package-roots.ts",
         "packages/scripts/package.json",

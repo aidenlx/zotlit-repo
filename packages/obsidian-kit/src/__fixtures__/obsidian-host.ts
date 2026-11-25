@@ -111,6 +111,7 @@ export class MockVault implements VaultSource {
   }
 
   readonly adapter = {
+    getBasePath: () => "/vault",
     getResourcePath: (path: string) => `app://test/${path}`,
     read: async (path: string): Promise<string> => {
       const text = this.contents.get(path);

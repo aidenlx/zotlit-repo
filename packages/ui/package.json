@@ -32,5 +32,8 @@
   },
   "peerDependencies": {
     "react": "catalog:"
+  },
+  "zotlit": {
+    "layer": "host-free"
   }
 }

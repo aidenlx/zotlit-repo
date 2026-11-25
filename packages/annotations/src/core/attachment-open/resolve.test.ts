@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { Attachment } from "@zotlit/db";
 import type { AttachmentPathContext } from "@zotlit/db/path";
+import type { OperatingSystem } from "@zotlit/shared/platform";
 
 import { obsidianOpenPath, toObsidianOpenableAttachments } from "./resolve.ts";
 
@@ -105,7 +106,7 @@ describe("toObsidianOpenableAttachments", () => {
   const ctx = {
     pathContext,
     vaultBasePath: "/Users/me/Vault",
-    platform: "darwin" as NodeJS.Platform,
+    platform: "darwin" as OperatingSystem,
   };
 
   it("keeps a PDF named by its content type", () => {

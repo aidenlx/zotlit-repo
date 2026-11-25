@@ -46,7 +46,7 @@ function withClient<A, E>(
     options,
   }: {
     seedSql?: (open: number) => string | null;
-    options?: HandlersOptions;
+    options?: Partial<HandlersOptions>;
   } = {},
 ) {
   return Effect.scoped(

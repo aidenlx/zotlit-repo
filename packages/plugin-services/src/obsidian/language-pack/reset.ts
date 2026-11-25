@@ -7,7 +7,7 @@ import type { SettingGroupItem } from "obsidian";
 
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { LanguagePack } from "./service.ts";

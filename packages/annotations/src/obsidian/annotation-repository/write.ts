@@ -5,7 +5,7 @@ import type {
   ResolvedAnnotationTypeName,
   TagType,
 } from "@zotlit/db";
-import { fromInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { fromInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import type { ZoteroMethod } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { WireTag } from "@zotlit/plugin-services/core/zotero-local-api/wire.ts";

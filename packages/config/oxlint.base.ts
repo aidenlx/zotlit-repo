@@ -1,7 +1,7 @@
 import { recommended } from "@effect/tsgo/oxlint-presets";
 import { join } from "node:path";
 import { defineConfig } from "oxlint";
-import type { DummyRuleMap, OxlintOverride } from "oxlint";
+import type { OxlintOverride } from "oxlint";
 
 import testBaseline from "./oxlint-tests-baseline.json" with { type: "json" };
 
@@ -25,6 +25,13 @@ export const itemQuerySchemaPaths = [
   },
 ];
 
+export const fileSystemAdapterPath = {
+  name: "obsidian",
+  importNames: ["FileSystemAdapter"],
+  message:
+    "This file loads on Obsidian Mobile, where the vault has no folder on disk and the file-system adapter is absent. Read the vault's place on disk from VaultDisk (@zotlit/obsidian-kit/obsidian-vault-disk.ts), which only a desktop Layer supplies.",
+};
+
 export const uniqueIdPaths = ["react", "preact/compat", "preact/hooks"].map(
   (name) => ({
     name,
@@ -34,6 +41,15 @@ export const uniqueIdPaths = ["react", "preact/compat", "preact/hooks"].map(
   }),
 );
 
+export function withoutFileSystemAdapter<
+  T extends { readonly paths: readonly object[] },
+>(options: T): T {
+  return {
+    ...options,
+    paths: options.paths.filter((path) => path !== fileSystemAdapterPath),
+  };
+}
+
 const dateFix =
   "Use Temporal outside Effect and DateTime in Effect code (DateTime.now or Clock for the current time). A library that takes or gives a Date converts in its adapter module.";
 
@@ -42,11 +58,59 @@ export const dateGlobals = {
   checkGlobalObject: true,
 };
 
+const nodeGlobalFix =
+  "This file also loads in a Web Worker or on Obsidian Mobile, where Node is absent. Take the value from the host: a service such as ObsidianEnv, or a parameter that the desktop host passes.";
+
+export const nodeImportFix =
+  "This file also loads in a Web Worker or on Obsidian Mobile, where Node is absent. Put the Node code in a desktop-zone file behind a service that only the desktop host supplies.";
+
+export const nodeGlobalNames = ["process", "Buffer", "require"];
+
+export const nodeGlobals = {
+  globals: nodeGlobalNames.map((name) => ({
+    name,
+    message: nodeGlobalFix,
+  })),
+  checkGlobalObject: true,
+};
+
+export const nodeFreeGlobals = {
+  globals: [...dateGlobals.globals, ...nodeGlobals.globals],
+  checkGlobalObject: true,
+};
+
+const nodeExemptFiles = [
+  "**/*.{test,spec,bench,browser-test}.{ts,tsx,js,mjs}",
+  "**/*.e2e.ts",
+  "**/__fixtures__/**",
+  "**/__fixtures__.ts",
+  "**/__mocks__/**",
+  "**/*.{config,setup,preset}.{ts,js,mjs,cjs}",
+  "scripts/**",
+  "{apps,packages}/*/scripts/**",
+  "**/src/desktop/**",
+];
+
+export function nodeAllowed(files: string[]): OxlintOverride {
+  return {
+    files,
+    rules: {
+      "no-restricted-globals": ["error", dateGlobals],
+      "zotlit-runtime/no-node-builtin": "off",
+    },
+  };
+}
+
 export const dateTypes = { types: { Date: dateFix } };
 
 export const datePattern = {
   group: ["date-fns", "date-fns/**", "dayjs", "dayjs/**"],
   message: dateFix,
+};
+
+export const baseImports = {
+  patterns: [parentImportPattern, datePattern],
+  paths: [...itemQuerySchemaPaths, ...uniqueIdPaths, fileSystemAdapterPath],
 };
 
 const EFFECT_TESTS_CONFIGS = new Set([
@@ -91,40 +155,6 @@ export function testBaselineOverrides(directory?: string) {
   }));
 }
 
-export const hostModulePattern = {
-  regex:
-    "^(?:obsidian|electron|@zotlit/pdf-reader/obsidian|@zotlit/db/client/node)(?:/.*)?$|^#client/node\\.ts$",
-  message:
-    "Engine source runs on every host. Take the host capability as a value; only a desktop host and Node tests load Obsidian, Electron or @zotlit/db/client/node.",
-};
-
-export function engineBoundaryRules(): DummyRuleMap {
-  return {
-    "import/no-nodejs-modules": "error",
-    "no-restricted-imports": [
-      "error",
-      {
-        patterns: [parentImportPattern, datePattern, hostModulePattern],
-        paths: [...itemQuerySchemaPaths, ...uniqueIdPaths],
-      },
-    ],
-  };
-}
-
-export function engineNodeOnlyOverride(
-  adapters: string[] = [],
-): OxlintOverride {
-  return {
-    files: [
-      "**/*.{test,spec,bench}.{ts,tsx,js,mjs}",
-      "**/*.{config,setup}.{ts,js,mjs,cjs}",
-      "scripts/**",
-      ...adapters,
-    ],
-    rules: { "import/no-nodejs-modules": "off" },
-  };
-}
-
 const effectOptInRules = [
   "global-date",
   "global-date-in-effect",
@@ -165,6 +195,7 @@ export default defineConfig({
   jsPlugins: [
     join(import.meta.dirname, "oxlint-plugin-build.ts"),
     join(import.meta.dirname, "oxlint-plugin-comments.ts"),
+    join(import.meta.dirname, "oxlint-plugin-runtime.ts"),
   ],
   rules: {
     "zotlit-build/no-undeclared-env": "error",
@@ -175,7 +206,8 @@ export default defineConfig({
       "always",
       { ignorePackages: true, checkTypeImports: true },
     ],
-    "no-restricted-globals": ["error", dateGlobals],
+    "no-restricted-globals": ["error", nodeFreeGlobals],
+    "zotlit-runtime/no-node-builtin": ["error", { message: nodeImportFix }],
     "typescript/no-restricted-types": ["error", dateTypes],
     ...Object.fromEntries(effectOptInRules),
     ...Object.fromEntries(effectV3OnlyRules),
@@ -228,13 +260,7 @@ export default defineConfig({
 
     "unicorn/prefer-number-properties": "error",
     "unicorn/prefer-string-replace-all": "error",
-    "no-restricted-imports": [
-      "error",
-      {
-        patterns: [parentImportPattern, datePattern],
-        paths: [...itemQuerySchemaPaths, ...uniqueIdPaths],
-      },
-    ],
+    "no-restricted-imports": ["error", baseImports],
     "typescript/consistent-type-imports": [
       "error",
       { fixStyle: "separate-type-imports", disallowTypeAnnotations: false },
@@ -242,6 +268,7 @@ export default defineConfig({
     "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
   },
   overrides: [
+    nodeAllowed(nodeExemptFiles),
     {
       files: ["**/*.test.{ts,tsx,mts,mjs,js}"],
       jsPlugins: [join(import.meta.dirname, "oxlint-plugin-tests.ts")],

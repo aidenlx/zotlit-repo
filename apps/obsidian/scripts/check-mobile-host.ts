@@ -1,30 +1,20 @@
 #!/usr/bin/env node
-import { execFileSync } from "node:child_process";
+import { join, resolve } from "node:path";
 
-const DESKTOP = [
-  /\/packages\/[^/]+\/src\/desktop\//,
-  /\/packages\/obsidian-desktop\//,
-  /\/node_modules\/@effect\/platform-node\//,
-  /\/node_modules\/electron\//,
-  /\/packages\/db\/src\/client\/node/,
-];
+import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
+import { checkRoot } from "@zotlit/scripts/runtime-check";
 
-const files = execFileSync(
-  "pnpm",
-  ["exec", "tsc", "-p", "tsconfig.mobile.json", "--listFilesOnly"],
-  { cwd: new URL("..", import.meta.url), encoding: "utf8" },
-)
-  .split("\n")
-  .filter(Boolean);
-const desktop = files.filter((file) =>
-  DESKTOP.some((pattern) => pattern.test(file)),
-);
-if (desktop.length > 0) {
+const packageRoot = resolve(import.meta.dirname, "..");
+const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
+const { violations } = await checkRoot(workspaceRoot, "obsidian", [
+  join(packageRoot, "src/__fixtures__/mobile-host/host.check.ts"),
+]);
+for (const { rule, chain } of violations) {
+  process.stderr.write(`${rule}\n  ${chain.join("\n  → ")}\n`);
+}
+if (violations.length > 0) {
   process.stderr.write(
-    `The Node-free host reads ${desktop.length} desktop files:\n${desktop.join("\n")}\n`,
+    `The Node-free host reaches ${violations.length} module(s) outside the Obsidian zone.\n`,
   );
   process.exitCode = 1;
-} else
-  process.stdout.write(
-    `The Node-free host's ${files.length} files hold no desktop file.\n`,
-  );
+} else process.stdout.write("The Node-free host stays in the Obsidian zone.\n");

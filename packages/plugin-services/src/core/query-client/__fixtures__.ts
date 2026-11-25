@@ -1,3 +1,4 @@
+import type { TestClock as QueryTestClock } from "#__fixtures__/query-test-clock.ts";
 import { Clock, Context, Effect, Exit, Layer, Scope } from "effect";
 import { TestClock } from "effect/testing";
 
@@ -7,7 +8,6 @@ import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
 import { QueryClients } from "./service.ts";
 import { layerQueryClients } from "./service.ts";
-import type { TestClock as QueryTestClock } from "./test-clock.ts";
 
 export function buildQueryClients(
   stack: AsyncDisposableStack,

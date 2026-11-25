@@ -4,7 +4,7 @@ import { regex } from "arkregex";
 
 import { fetchRange } from "#fetch-range.ts";
 import { PACK_INDEX_BYTES, parseIndex } from "#format.ts";
-import { applyObsidianInstall } from "#obsidian-install.ts";
+import { applyObsidianInstall } from "#obsidian/install.ts";
 import { bytesRange, readPackEntry } from "#reader.ts";
 import { sha256Hex } from "#sha256.ts";
 import { writePack } from "#writer.ts";

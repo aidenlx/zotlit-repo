@@ -18,9 +18,12 @@ import type {
 } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
-import { parseInstant, toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag, forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import {
+  parseInstant,
+  toInstant,
+} from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import { isIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { itemKeyFromFrontmatter } from "#obsidian/note-index/parse.ts";

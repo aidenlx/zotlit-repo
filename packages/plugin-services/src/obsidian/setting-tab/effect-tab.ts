@@ -9,7 +9,7 @@ import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { formatErrorMessage } from "@zotlit/obsidian-kit/toast.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 
 // oxlint-disable-next-line typescript/no-empty-object-type -- each row's owner fills it by declaration merging
 export interface SettingTabServiceRegistry {}

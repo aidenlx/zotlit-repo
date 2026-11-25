@@ -11,7 +11,7 @@ import {
   PluginStub,
 } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { TemplateError, TemplateFacade } from "@zotlit/templates/facade";
 import {

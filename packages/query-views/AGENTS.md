@@ -12,7 +12,7 @@ It imports `@zotlit/annotations` for the annotation cards and Annotations Layout
 
 ## Layers
 
-Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). A file sits in the layer of what it needs from its host; a layer imports the layers below it: core ← obsidian ← desktop.
+Each layer is one folder of `src/` and one runtime zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)). A new file goes in the folder of what it needs from its host: `core/` is the host-free zone (the DOM, no host module), `obsidian/` the Obsidian zone (the `obsidian` module; it loads on Obsidian Mobile), and `desktop/` the desktop zone (Node and Electron). A layer reaches the layers below it: core ← obsidian ← desktop. The runtime check (`pnpm run lint:runtime-zones`) follows each import, type-only imports included, and fails on reach to a higher zone or to test support. Lint refuses Node built-in imports and the Node globals outside `desktop/`.
 
 - `core/` — host-free: the Query View's plans, Query File blocks and the Annotation Suggester's trigger rules, the CLI contract shapes.
 - `obsidian/` — loads on Obsidian Mobile: the Query View's block writes, card focus, reorder and the private Obsidian embed hooks.

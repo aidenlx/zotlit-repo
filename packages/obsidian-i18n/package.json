@@ -7,7 +7,7 @@
   },
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
+    ".": "./src/core/index.ts",
     "./compiler": "./src/compiler.ts",
     "./vite": "./src/vite.ts",
     "./package.json": "./package.json"

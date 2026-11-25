@@ -47,7 +47,6 @@
     "./src/**/__fixtures__/**",
     "./src/**/__mocks__/**",
     "./src/core/data-tree/test-records.ts",
-    "./src/core/render/test-profiles.ts",
-    "./src/obsidian/workbench-ui/test-host.tsx"
+    "./src/core/render/test-profiles.ts"
   ]
 }

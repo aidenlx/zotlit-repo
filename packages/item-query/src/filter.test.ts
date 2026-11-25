@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { HydratedItem } from "@zotlit/db/item-query";
 
+import { TEST_NOW } from "./__fixtures__/test-helpers.ts";
 import { codeOfFault } from "./diagnose.ts";
 import type { QueryItem } from "./fields.ts";
 import { evaluate, matches } from "./filter-evaluate.ts";
@@ -10,7 +11,6 @@ import type { FilterPlan, FilterProblem } from "./filter-plan.ts";
 import type { FilterValue } from "./filter-values.ts";
 import type { QueryClock } from "./query-clock.ts";
 import { ITEMS } from "./query-items.ts";
-import { TEST_NOW } from "./test-helpers.ts";
 
 interface ItemSpec {
   key?: string;

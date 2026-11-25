@@ -5,6 +5,7 @@ import { build } from "vite";
 import type { ParseRequest } from "@zotlit/citations/core/citation-parse/client.ts";
 import { packageSource } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry, effectEntryCheck } from "@zotlit/plugin-kernel/vite";
+import { RUNTIMES } from "@zotlit/scripts/runtime-table";
 
 import packageJson from "../package.json" with { type: "json" };
 import { embeddedWorker } from "./embedded-worker.ts";
@@ -78,6 +79,7 @@ export async function scanWorkerBundle<Reply>(): Promise<{
       embeddedWorker({
         id: "virtual:scan-worker",
         entry: resolve(packageRoot, "src/services/citation-parse/worker.ts"),
+        runtime: RUNTIMES.desktopWorker,
         config: {
           define,
           resolve: resolveConfig,
@@ -85,7 +87,6 @@ export async function scanWorkerBundle<Reply>(): Promise<{
             effectEntry("worker", { scopes }),
             effectEntryCheck("worker"),
           ],
-          external: [],
           minify: false,
           sourcemap: false,
           target: "es2025",

@@ -1,6 +1,6 @@
 import type { ScenarioLibraryName } from "@zotlit/db-testing/scenario";
 
-import type { ItemQueryRequest, SortSpec } from "./request.ts";
+import type { ItemQueryRequest, SortSpec } from "#request.ts";
 
 export interface ScenarioQuery {
   readonly name: string;

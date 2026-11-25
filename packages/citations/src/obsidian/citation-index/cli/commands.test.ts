@@ -33,7 +33,7 @@ const setup = Effect.fn("CitationsCliTest.setup")(function* (
   const cli = fakeCliHost();
   registerCitationsCli(cli.host, {
     vaultName: "Test Vault",
-    basePath: "/test",
+    vaultDisk: { basePath: "/test" },
     citationIndex: h.index,
     zoteroPref: {
       current: Effect.succeed({

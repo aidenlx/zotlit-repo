@@ -13,7 +13,7 @@ it.effect("publishes all citation commands and their parameter help", () =>
     type RegistrationDeps = Parameters<typeof registerCitationsCli>[1];
     registerCitationsCli(host, {
       vaultName: "Test Vault",
-      basePath: "/vault",
+      vaultDisk: stubService<RegistrationDeps["vaultDisk"]>("VaultDisk", {}),
       citationIndex: stubService<RegistrationDeps["citationIndex"]>(
         "CitationIndex",
         {},

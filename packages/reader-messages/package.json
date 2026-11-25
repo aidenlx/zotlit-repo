@@ -24,5 +24,8 @@
     "@zotlit/plugin-messages": "workspace:*",
     "oxlint": "catalog:",
     "typescript": "catalog:"
+  },
+  "zotlit": {
+    "layer": "host-free"
   }
 }

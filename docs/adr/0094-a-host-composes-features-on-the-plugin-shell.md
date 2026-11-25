@@ -33,7 +33,7 @@ The first version of this decision left the setting pages that name several feat
 
 Consequences:
 
-- The app holds no page and no handler. A Node-free host (`apps/obsidian/src/__fixtures__/mobile-host/`) composes the platform and every Obsidian value over 18 stub ports; `tsconfig.mobile.json` and `scripts/check-mobile-host.ts` check it in `typecheck`. The check proves the composition's ports and that its program reads no desktop file; it does not prove the absence of Node globals, because liquidjs's and undici's typings load `@types/node` into every program.
+- The app holds no page and no handler. A Node-free host (`apps/obsidian/src/__fixtures__/mobile-host/`) composes the platform and every Obsidian value over 19 stub ports; `tsconfig.mobile.json` and `scripts/check-mobile-host.ts` check it in `typecheck`. The check proves the composition's ports and that its program reads no desktop file; it does not prove the absence of Node globals, because liquidjs's and undici's typings load `@types/node` into every program.
 - Service ties now break base-first inside a feature: AnnotationRepository builds before ExcerptPreparation/ExcerptDisplays, GraphCitations before AnnotationPopover (independent groups).
 
 ## Update: ZotLit Reader is the second host (2026-11-20)

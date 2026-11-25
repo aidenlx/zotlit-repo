@@ -1,7 +1,7 @@
 import { Script } from "node:vm";
 
 import { PACK_INDEX_BYTES, parseIndex } from "@zotlit/resource-pack/format.ts";
-import { applyObsidianInstall } from "@zotlit/resource-pack/obsidian-install.ts";
+import { applyObsidianInstall } from "@zotlit/resource-pack/obsidian/install.ts";
 import type { PackPins } from "@zotlit/resource-pack/pins.ts";
 import { bytesRange, readPackEntry } from "@zotlit/resource-pack/reader.ts";
 import { sha256Hex } from "@zotlit/resource-pack/sha256.ts";

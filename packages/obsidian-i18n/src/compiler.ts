@@ -24,14 +24,14 @@ import {
   isLanguagePackFileName,
   isSupportedLanguagePackFormatter,
   parseNumericLiteral,
-} from "./language-pack.ts";
+} from "./core/language-pack.ts";
 import type {
   Declaration as PackDeclaration,
   Expression as PackExpression,
   Match as PackMatch,
   Message as PackMessage,
-} from "./language-pack.ts";
-import { validateLanguagePack } from "./validation.ts";
+} from "./core/language-pack.ts";
+import { validateLanguagePack } from "./core/validation.ts";
 
 export class LanguagePackCompilerError extends Error {
   readonly bundleId: string;

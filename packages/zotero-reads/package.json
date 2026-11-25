@@ -48,5 +48,11 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"
+  },
+  "zotlit": {
+    "layers": {
+      "contract": "worker",
+      "client": "obsidian"
+    }
   }
 }

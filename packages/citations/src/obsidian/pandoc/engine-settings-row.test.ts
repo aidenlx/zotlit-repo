@@ -9,11 +9,11 @@ import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { button } from "@zotlit/plugin-services/__fixtures__/managed-binary-rows.ts";
-import { layerPackDevice } from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
 import {
+  layerPackDevice,
   packDevice,
   packFile,
-} from "@zotlit/plugin-services/obsidian/managed-binary/test-utils.ts";
+} from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
 import type { SettingTabContext } from "@zotlit/plugin-services/obsidian/setting-tab/context.ts";
 
 import { pandocEngineDefinition } from "./engine-settings-row.ts";

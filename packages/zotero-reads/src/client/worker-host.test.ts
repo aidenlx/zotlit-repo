@@ -36,6 +36,7 @@ import { readsFixture } from "#__fixtures__/reads.ts";
 import { DbUnavailable } from "#contract/rpc.ts";
 import { WORKER_CLOSED } from "#contract/worker-signal.ts";
 import { nodeClient } from "#desktop/node-client.ts";
+import { snapshotRevision } from "#desktop/snapshot-revision.ts";
 import { layerRcRef } from "#worker/connection.ts";
 import { makeInProcessClient } from "#worker/in-process.ts";
 
@@ -80,7 +81,7 @@ function fakeWorkers(
           return nodeClient(client);
         }),
       );
-      const served = yield* makeInProcessClient().pipe(
+      const served = yield* makeInProcessClient({ snapshotRevision }).pipe(
         Effect.provideContext(context),
         Effect.provide(NodeFileSystem.layer),
       );

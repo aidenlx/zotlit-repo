@@ -2,6 +2,7 @@ import { FileSystem, Layer } from "effect";
 
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -33,6 +34,7 @@ export const unimplementedPlatformTabServices = Layer.mergeAll(
   ),
   Layer.mock(NoteIndex)({}),
   Layer.mock(Vault)({}),
+  Layer.mock(VaultDisk)({ basePath: "/vault" }),
   Layer.mock(Workspace)({}),
   Layer.mock(FileManager)({}),
   Layer.succeed(

@@ -75,6 +75,7 @@ import { listCollectionChoices } from "./membership.ts";
 import { layerSegmenterBinaryReader } from "./segmenter.ts";
 import type { ReadSegmenter } from "./segmenter.ts";
 import { exportItemSnapshot } from "./snapshot/export.ts";
+import type { SnapshotRevision } from "./snapshot/export.ts";
 
 import {
   DbUnavailable,
@@ -113,6 +114,7 @@ export interface HandlersOptions {
   readSegmenter?: ReadSegmenter;
   applyLogLevel?: (level: ReadsConfig["logLevel"]) => Effect.Effect<void>;
   queryJobs?: QueryJobRunner;
+  snapshotRevision: SnapshotRevision;
 }
 
 function sliced<I, O>(
@@ -206,8 +208,8 @@ interface Pinned {
   }>;
 }
 
-export function handlersLayer(options?: HandlersOptions) {
-  const sliceSize = options?.sliceSize ?? DEFAULT_SLICE_SIZE;
+export function handlersLayer(options: HandlersOptions) {
+  const sliceSize = options.sliceSize ?? DEFAULT_SLICE_SIZE;
   const slicesOf = <I>(inputs: readonly I[]): I[][] => chunk(inputs, sliceSize);
 
   const idEntries = <L, E>(
@@ -233,12 +235,12 @@ export function handlersLayer(options?: HandlersOptions) {
   };
 
   const itemIndexLayer = layerItemIndex({
-    locale: options?.locale ?? null,
-    segmenterBinary: options?.chineseSegmenter ?? null,
+    locale: options.locale ?? null,
+    segmenterBinary: options.chineseSegmenter ?? null,
   }).pipe(
     Layer.provide([
       layerConnectionItemSource,
-      layerSegmenterBinaryReader(options?.readSegmenter),
+      layerSegmenterBinaryReader(options.readSegmenter),
     ]),
   );
 
@@ -261,18 +263,18 @@ export function handlersLayer(options?: HandlersOptions) {
             Effect.andThen(connection.configure(config)),
             Effect.andThen(
               Effect.suspend(
-                () => options?.applyLogLevel?.(config.logLevel) ?? Effect.void,
+                () => options.applyLogLevel?.(config.logLevel) ?? Effect.void,
               ),
             ),
             configuring.withPermits(1),
           );
       const citationLookup = yield* makeCitationLookup(
         connection,
-        options?.citationWindowSize ?? CITEKEY_WINDOW,
+        options.citationWindowSize ?? CITEKEY_WINDOW,
       );
       const pinned = new Map<SnapshotId, Pinned>();
       const queryJobs = yield* FiberMap.make<string>();
-      const queryJobRunner = options?.queryJobs ?? noQueryJobs;
+      const queryJobRunner = options.queryJobs ?? noQueryJobs;
       const querySlots = yield* Semaphore.make(2);
 
       const releasePinned = (entry: Pinned) =>
@@ -577,6 +579,7 @@ export function handlersLayer(options?: HandlersOptions) {
             exportItemSnapshot(client, selection, {
               provenance,
               ...(vaultTargets && { vaultTargets }),
+              revision: options.snapshotRevision,
             }),
           ),
         AnnotViewAttachments: ({ libraryID, key, standalone, snapshot }) =>

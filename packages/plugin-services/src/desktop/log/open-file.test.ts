@@ -4,7 +4,7 @@ import { vi } from "vitest";
 
 import * as electron from "@zotlit/obsidian-desktop/require.ts";
 import { LegacyPortError } from "@zotlit/obsidian-kit/legacy-port.ts";
-import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
 import { openLogFileInSystem } from "./open-file.ts";
@@ -12,11 +12,14 @@ import { openLogFileInSystem } from "./open-file.ts";
 const LOG = ".obsidian/plugins/zotlit/zotlit.log";
 
 const failureOf = <E>(
-  effect: Effect.Effect<void, E, Vault>,
-  vault: Partial<Vault["Service"]>,
+  effect: Effect.Effect<void, E, VaultDisk>,
+  disk: Partial<VaultDisk["Service"]>,
 ) =>
   effect.pipe(
-    Effect.provideService(Vault, stubService<Vault["Service"]>("Vault", vault)),
+    Effect.provideService(
+      VaultDisk,
+      stubService<VaultDisk["Service"]>("VaultDisk", disk),
+    ),
     Effect.flip,
   );
 

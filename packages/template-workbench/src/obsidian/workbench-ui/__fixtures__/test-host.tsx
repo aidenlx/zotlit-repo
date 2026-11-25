@@ -17,20 +17,20 @@ import {
 import { AppContext } from "@zotlit/obsidian-kit/app-context.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 
-import { createWorkbenchEditor, WorkbenchEditorProvider } from "./editor.tsx";
+import { createWorkbenchEditor, WorkbenchEditorProvider } from "#obsidian/workbench-ui/editor.tsx";
 import {
   WorkbenchClipboardError,
   WorkbenchHostError,
   WorkbenchHostProvider,
-} from "./host.tsx";
+} from "#obsidian/workbench-ui/host.tsx";
 import type {
   WorkbenchFieldDetailsProps,
   WorkbenchFieldsPopoverProps,
   WorkbenchHost,
   WorkbenchPreferenceScope,
-} from "./host.tsx";
-import type { WorkbenchModel, WorkbenchViewState } from "./model.ts";
-import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
+} from "#obsidian/workbench-ui/host.tsx";
+import type { WorkbenchModel, WorkbenchViewState } from "#obsidian/workbench-ui/model.ts";
+import type { ViewSize, WorkbenchPanels } from "#obsidian/workbench-ui/panel-layout.ts";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";

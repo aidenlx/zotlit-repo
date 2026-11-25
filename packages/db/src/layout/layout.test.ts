@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { NodeDatabaseClient } from "#desktop/node-client.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
@@ -14,7 +14,7 @@ import type { LibraryLogRecord } from "@zotlit/shared/logging";
 
 import { readDatabaseLayout } from "./index.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 import { relations } from "#drizzle/relations.ts";
 
 afterEach(() => {

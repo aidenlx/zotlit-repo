@@ -13,6 +13,7 @@ import { Release } from "@zotlit/library-view/obsidian/release/service.ts";
 import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
 import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
@@ -55,6 +56,7 @@ export const mobileCapabilities = defineFeature({
       reads: stubService("ZoteroReadsApi", {}),
     }),
     stub(FileSystem.FileSystem),
+    stub(VaultDisk),
     stub(ZoteroPref, {
       current: Effect.succeed(LOADING),
       changes: Stream.never,

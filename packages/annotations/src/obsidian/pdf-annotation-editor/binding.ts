@@ -14,13 +14,7 @@ import type {
 import type { BorrowedExcerptDocument } from "#obsidian/excerpt-image/reader-borrow.ts";
 import { Effect } from "effect";
 import { Platform } from "obsidian";
-import type {
-  FileSystemAdapter,
-  HoverParent,
-  HoverPopover,
-  TFile,
-  View,
-} from "obsidian";
+import type { HoverParent, HoverPopover, TFile, View } from "obsidian";
 
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
 import {
@@ -174,7 +168,7 @@ export interface PdfViewBindingDeps {
   view: View;
   file: TFile;
   reader: HostedReader;
-  adapter: Pick<FileSystemAdapter, "getFullPath">;
+  fullPath: (path: string) => string;
   attachments: AttachmentReads;
   annotations: AnnotationReads;
   bridge: Pick<
@@ -202,7 +196,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   readonly #view;
   readonly #file;
   readonly #reader;
-  readonly #adapter;
+  readonly #fullPath;
   readonly #attachments;
   readonly #annotations;
   readonly #bridge;
@@ -272,7 +266,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     view,
     file,
     reader,
-    adapter,
+    fullPath,
     attachments,
     annotations,
     bridge,
@@ -295,7 +289,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     this.#file = file;
     this.#anchor = anchor;
     this.#reader = reader;
-    this.#adapter = adapter;
+    this.#fullPath = fullPath;
     this.#attachments = attachments;
     this.#annotations = annotations;
     this.#bridge = bridge;
@@ -411,9 +405,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   load(): void {
     const file = this.#file;
     this.#filePath = file.path;
-    this.#absolutePath = filePathOf(file, (path) =>
-      this.#adapter.getFullPath(path),
-    );
+    this.#absolutePath = filePathOf(file, this.#fullPath);
     this.#surfaces.defer(() => this.#cancelScroll());
     this.#surfaces.defer(
       this.#bridge.subscribe(this.#attachments.resolutionsChanged, () =>

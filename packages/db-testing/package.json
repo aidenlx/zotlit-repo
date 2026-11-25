@@ -25,5 +25,8 @@
     "@zotlit/config": "workspace:*",
     "oxlint": "catalog:",
     "typescript": "catalog:"
+  },
+  "zotlit": {
+    "layer": "test-support"
   }
 }

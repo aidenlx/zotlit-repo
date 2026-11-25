@@ -4,8 +4,8 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-import { LogTimestamp } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { LogTimestamp } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 import { logLibrary } from "@zotlit/shared/logging";
 
 import { layerLogging, layerLogOutput } from "./service.ts";

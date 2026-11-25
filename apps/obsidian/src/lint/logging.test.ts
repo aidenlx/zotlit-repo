@@ -29,7 +29,7 @@ tester.run("effect-logging-only", effectLoggingOnly, {
     },
     {
       code: 'console.error("ZotLit worker log port failed:", kind);',
-      filename: "/repo/packages/plugin-kernel/src/effect-log-port.ts",
+      filename: "/repo/packages/plugin-kernel/src/worker/effect-log-port.ts",
     },
     {
       code: 'import { getLogger } from "./third-party-logger.ts";',

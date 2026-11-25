@@ -11,6 +11,7 @@ import { connectClient } from "@zotlit/db/client/node";
 import type { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
+import { runEffect, TEST_NOW } from "./__fixtures__/test-helpers.ts";
 import {
   collectQuery,
   ITEMS,
@@ -19,7 +20,6 @@ import {
   queryItemSeedSchema,
 } from "./index.ts";
 import { readQueryItemSeed } from "./index.ts";
-import { runEffect, TEST_NOW } from "./test-helpers.ts";
 
 const CLOCK = { now: Temporal.Instant.from(TEST_NOW), timeZone: "UTC" };
 

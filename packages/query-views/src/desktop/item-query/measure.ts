@@ -15,7 +15,7 @@ import type {
   CliRejection,
 } from "@zotlit/obsidian-kit/cli-params.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
-import { monotonicMillis } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { monotonicMillis } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 
 import { queryFlags } from "./contract.ts";
 import { decodeQuery } from "./decode.ts";

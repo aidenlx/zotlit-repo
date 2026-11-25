@@ -19,13 +19,13 @@ import {
 import type { StatementRun } from "@zotlit/db/item-query";
 import { LogCategory } from "@zotlit/shared/logging";
 
-import type { QueryDataset } from "./dataset.ts";
-import { QueryTimeZone } from "./query-clock.ts";
-import { collectQuery } from "./query.ts";
-import type { ItemQueryRequest } from "./request.ts";
-import { ItemQueryScheduler, ItemQuerySliceObserver } from "./scheduler.ts";
-import { ItemQueryTuning, PRODUCTION_TUNING } from "./tuning.ts";
-import type { Tuning } from "./tuning.ts";
+import type { QueryDataset } from "#dataset.ts";
+import { QueryTimeZone } from "#query-clock.ts";
+import { collectQuery } from "#query.ts";
+import type { ItemQueryRequest } from "#request.ts";
+import { ItemQueryScheduler, ItemQuerySliceObserver } from "#scheduler.ts";
+import { ItemQueryTuning, PRODUCTION_TUNING } from "#tuning.ts";
+import type { Tuning } from "#tuning.ts";
 
 export interface CapturedLog {
   readonly level: string;

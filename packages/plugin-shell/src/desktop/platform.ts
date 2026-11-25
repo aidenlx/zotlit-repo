@@ -2,6 +2,7 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, FileSystem, Layer, Stream } from "effect";
 
 import { layerZoteroHttpNode } from "@zotlit/obsidian-desktop/zotero-http-node.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { openSettingsTab } from "@zotlit/obsidian-kit/open-settings.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
@@ -29,6 +30,8 @@ import { liveUpdatesItems } from "@zotlit/plugin-services/obsidian/local-server/
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
+import { layerVaultDisk } from "./vault-disk.ts";
+
 import {
   defineFeature,
   registration,
@@ -44,6 +47,7 @@ export const desktopPlatform = defineFeature({
       { provides: [FileSystem.FileSystem] },
       NodeFileSystem.layer,
     ),
+    serviceGroup("VaultDisk", { provides: [VaultDisk] }, layerVaultDisk),
     serviceGroup(
       "ZoteroPref",
       { provides: [ZoteroPref], requires: [FileSystem.FileSystem] },
@@ -59,7 +63,7 @@ export const desktopPlatform = defineFeature({
       "AttachmentImport",
       {
         provides: [AttachmentImport],
-        requires: [FileSystem.FileSystem, ZoteroPref],
+        requires: [FileSystem.FileSystem, VaultDisk, ZoteroPref],
       },
       layerAttachmentImport(),
     ),

@@ -3,6 +3,7 @@ import { Deferred, Effect, Exit, Layer, Scope } from "effect";
 import { describe, expect } from "vitest";
 
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { layerTestVaultDisk } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault-disk.ts";
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -41,7 +42,8 @@ function services(
       inProcessClient(layerRcRef(memoryOpener(() => seed).open)),
     ),
     Layer.mock(ZoteroPref, { current: zoteroPref }),
-    layerTestObsidianEnv({ basePath: "/vault" }),
+    layerTestObsidianEnv(),
+    layerTestVaultDisk({ basePath: "/vault" }),
   );
 }
 

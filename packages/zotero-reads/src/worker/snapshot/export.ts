@@ -5,7 +5,6 @@ import type {
   SnapshotSelection,
 } from "#contract/snapshot/types.ts";
 import { Effect } from "effect";
-import { createHash } from "node:crypto";
 
 import {
   buildFilenameContext,
@@ -38,10 +37,12 @@ import { collectUnavailable } from "./unavailable.ts";
 import { collectRootDescriptors } from "#contract/snapshot/descriptors.ts";
 import { SnapshotSelectionError } from "#contract/snapshot/types.ts";
 
+export type SnapshotRevision = (body: string) => string;
+
 export function exportItemSnapshot(
   client: ZoteroDatabase,
   selection: SnapshotSelection,
-  options: ExportItemSnapshotOptions,
+  options: ExportItemSnapshotOptions & { readonly revision: SnapshotRevision },
 ): ItemSnapshot {
   const libraryID = resolveLibraryID(client, selection.library);
   const provenance = validateProvenance(options.provenance);
@@ -134,7 +135,7 @@ export function exportItemSnapshot(
 
   return {
     ...body,
-    revision: createHash("sha256").update(JSON.stringify(body)).digest("hex"),
+    revision: options.revision(JSON.stringify(body)),
   };
 }
 

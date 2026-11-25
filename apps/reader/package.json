@@ -63,5 +63,8 @@
   },
   "pluginSources": [
     "@zotlit/pdf-reader"
-  ]
+  ],
+  "zotlit": {
+    "layer": "obsidian"
+  }
 }

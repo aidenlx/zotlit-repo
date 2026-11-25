@@ -41,6 +41,7 @@ import {
   FileManager,
   markdownLinker,
 } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { ensureVaultFolder } from "@zotlit/obsidian-kit/vault-folder.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
@@ -155,6 +156,7 @@ export type AttachmentImportServices =
   | FileManager
   | Vault
   | ObsidianEnv
+  | VaultDisk
   | DeviceStorage
   | FileSystem.FileSystem;
 
@@ -171,18 +173,20 @@ const NO_SKIPS: AttachmentSkipSummary = {
   blockedFolders: [],
 };
 
-export const layerAttachmentImport = (
-  options: { readonly platform?: NodeJS.Platform } = {},
-): Layer.Layer<AttachmentImport, never, AttachmentImportServices> =>
+export const layerAttachmentImport = (): Layer.Layer<
+  AttachmentImport,
+  never,
+  AttachmentImportServices
+> =>
   Layer.effect(
     AttachmentImport,
     Effect.gen(function* () {
-      const platform = options.platform ?? process.platform;
       const settings = yield* PluginSettings;
       const pref = yield* ZoteroPref;
       const fileManager = yield* FileManager;
       const vault = yield* Vault;
-      const { basePath } = yield* ObsidianEnv;
+      const platform = (yield* ObsidianEnv).os;
+      const { basePath } = yield* VaultDisk;
       const fs = yield* FileSystem.FileSystem;
       const storage = yield* DeviceStorage;
       const save = (folders: readonly string[]) =>

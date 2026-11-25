@@ -9,10 +9,10 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
+import type { Run, RunOptions } from "./__fixtures__/test-helpers.ts";
 import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
 import type { QueryDataset, QueryResult } from "./index.ts";
-import { runEffect } from "./test-helpers.ts";
-import type { Run, RunOptions } from "./test-helpers.ts";
 import { textSweepPattern } from "./text-sweep.ts";
 
 const { personal } = SCENARIO_LIBRARIES;

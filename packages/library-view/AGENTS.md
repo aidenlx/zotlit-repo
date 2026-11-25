@@ -6,7 +6,7 @@ The Library View is a Query View: the package builds on `@zotlit/query-views` fo
 
 ## Layers
 
-Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). A file sits in the layer of what it needs from its host; a layer imports the layers below it: core ← obsidian ← desktop.
+Each layer is one folder of `src/` and one runtime zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)). A new file goes in the folder of what it needs from its host: `core/` is the host-free zone (the DOM, no host module), `obsidian/` the Obsidian zone (the `obsidian` module; it loads on Obsidian Mobile), and `desktop/` the desktop zone (Node and Electron). A layer reaches the layers below it: core ← obsidian ← desktop. The runtime check (`pnpm run lint:runtime-zones`) follows each import, type-only imports included, and fails on reach to a higher zone or to test support. Lint refuses Node built-in imports and the Node globals outside `desktop/`.
 
 - `core/` — host-free: the Library View's, the Welcome View's and the Release check's settings slices and their pure rules.
 - `obsidian/` — loads on Obsidian Mobile: the Release service and its notices, the Library View's storage and search state, the Welcome View's settings atom.

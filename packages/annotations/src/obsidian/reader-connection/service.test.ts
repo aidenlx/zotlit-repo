@@ -1,20 +1,8 @@
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Context, Effect, Exit, Layer, Scope } from "effect";
-import {
-  Events,
-  FileSystemAdapter,
-  Scope as ObsidianScope,
-  WorkspaceLeaf,
-} from "obsidian";
-import type {
-  App,
-  PaneType,
-  PluginManifest,
-  TFile,
-  Vault,
-  View,
-} from "obsidian";
+import { Events, Scope as ObsidianScope, WorkspaceLeaf } from "obsidian";
+import type { App, PaneType, PluginManifest, TFile, View } from "obsidian";
 import { afterEach, beforeEach, expect, expectTypeOf, vi } from "vitest";
 import type { MockInstance } from "vitest";
 
@@ -130,9 +118,7 @@ const buildWith = (source: ReturnType<typeof fakeSource>["source"]) =>
     const scope = yield* Effect.acquireRelease(Scope.make(), (scope) =>
       Scope.close(scope, Exit.void),
     );
-    const app = stubService<App>("App", {
-      vault: stubService<Vault>("Vault", { adapter: new FileSystemAdapter() }),
-    });
+    const app = stubService<App>("App", {});
     const context = yield* Layer.build(
       editorFixtureLayer({
         app,

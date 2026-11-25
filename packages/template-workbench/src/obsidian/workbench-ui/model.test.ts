@@ -4,6 +4,7 @@ import * as Atom from "effect/reactivity/Atom";
 import * as AtomRegistry from "effect/reactivity/AtomRegistry";
 import { describe, expect, it, vi } from "vitest";
 
+import { fakeHost, TEST_RUNTIME } from "./__fixtures__/test-host.tsx";
 import { createWorkbenchEditor } from "./editor.tsx";
 import {
   chooseAnnotation,
@@ -24,7 +25,6 @@ import {
   showPreview,
 } from "./panel-layout.ts";
 import type { ViewSize } from "./panel-layout.ts";
-import { fakeHost, TEST_RUNTIME } from "./test-host.tsx";
 
 import { WorkbenchDocumentController } from "#core/document/controller.ts";
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";

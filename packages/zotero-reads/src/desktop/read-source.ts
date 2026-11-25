@@ -22,12 +22,12 @@ import {
   ReflinkUnsupportedError,
 } from "@zotlit/obsidian-desktop/reflink.ts";
 import { ZOTERO_DB_READ_TEMP_PREFIX } from "@zotlit/plugin-kernel/constants.ts";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
 import {
   isNotFound,
   isPlatformErrno,
   nodeFileSystemCall,
 } from "@zotlit/plugin-kernel/errno.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 
 import { planReadParents } from "./read-parent.ts";
 import { verifySnapshotInProcess } from "./snapshot-integrity-check.ts";

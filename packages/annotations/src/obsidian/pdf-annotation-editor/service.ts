@@ -20,15 +20,16 @@ import type { TFile, View } from "obsidian";
 import type { ParsedAnnotationSubpath } from "@zotlit/db";
 import { attachmentPathKey } from "@zotlit/db/path";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
-import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { scopedBridge, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import {
   fromInstant,
   instantClock,
-} from "@zotlit/plugin-kernel/effect-clock.ts";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
-import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+} from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import { libraryTagNames } from "@zotlit/plugin-services/obsidian/database/library-tag-names.ts";
@@ -102,7 +103,7 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
     PdfAnnotationEditor,
     Effect.gen(function* () {
       const workspace = yield* Workspace;
-      const vault = yield* Vault;
+      const disk = yield* VaultDisk;
       const attachments = yield* AttachmentResolver;
       const annotations = yield* AnnotationRepository;
       const noteIndex = yield* NoteIndex;
@@ -114,6 +115,7 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
       const notifier = yield* Notifier;
       const annotationNotes = yield* AnnotationNoteActions;
       const zoteroPref = yield* ZoteroPref;
+      const { os } = yield* ObsidianEnv;
       const connection = yield* ReaderConnection;
       const bridge = yield* scopedBridge;
       const layerScope = yield* Effect.scope;
@@ -203,9 +205,7 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
           view,
           file,
           reader,
-          adapter: {
-            getFullPath: (path) => bridge.runSync(vault.fullPath(path))!,
-          },
+          fullPath: (path) => bridge.runSync(disk.fullPath(path)),
           attachments,
           annotations,
           bridge,
@@ -320,12 +320,11 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
       const borrowDocument = Effect.fn("PdfAnnotationEditor.borrowDocument")(
         (absolutePath: string) =>
           Effect.sync(() => {
-            const key = attachmentPathKey(absolutePath, process.platform);
+            const key = attachmentPathKey(absolutePath, os);
             for (const binding of bindings.values()) {
               if (
                 binding.absolutePath !== null &&
-                attachmentPathKey(binding.absolutePath, process.platform) ===
-                  key
+                attachmentPathKey(binding.absolutePath, os) === key
               )
                 return binding.borrow();
             }

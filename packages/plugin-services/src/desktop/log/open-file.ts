@@ -8,8 +8,8 @@ import type { SettingGroupItem } from "obsidian";
 import { requireElectron } from "@zotlit/obsidian-desktop/require.ts";
 import { LegacyPortError, portCall } from "@zotlit/obsidian-kit/legacy-port.ts";
 import { reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
-import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { logFileDisabled, logPath } from "#obsidian/log/settings-rows.ts";
@@ -27,9 +27,7 @@ export function openLogFileItem(
 }
 
 export const openLogFileInSystem = Effect.fnUntraced(function* (path: string) {
-  const fullPath = yield* (yield* Vault).fullPath(path);
-  if (fullPath === null)
-    return yield* Effect.die(new Error("The vault is not on disk"));
+  const fullPath = yield* (yield* VaultDisk).fullPath(path);
   const refused = yield* portCall("open-log-file", () =>
     requireElectron().shell.openPath(fullPath),
   );
@@ -49,3 +47,9 @@ const openLogFile = Effect.fn("SettingTab.openLogFile")(
   },
   withLogCategory("setting-tab", "advanced"),
 );
+
+declare module "#obsidian/setting-tab/effect-tab.ts" {
+  interface SettingTabServiceRegistry {
+    VaultDisk: VaultDisk;
+  }
+}

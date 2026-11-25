@@ -15,7 +15,7 @@ import {
   resolveIndexedKeyLibraryIn,
 } from "@zotlit/db";
 import type { ZoteroDatabase } from "@zotlit/db";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { CitekeySnapshot } from "./citekey-snapshot.ts";

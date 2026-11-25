@@ -61,6 +61,7 @@ import { Effect } from "effect";
 import { expect, vi } from "vitest";
 import { createClient } from "@zotlit/db/client/node";
 import { createFixtureSchema } from "@zotlit/db-testing";
+import { snapshotRevision } from "@zotlit/zotero-reads/desktop/snapshot-revision.ts";
 import { exportItemSnapshot } from "@zotlit/zotero-reads/worker/snapshot/export.ts";
 import type { RenderedCitation } from "@zotlit/citations/obsidian/pandoc/engine.ts";
 
@@ -279,7 +280,7 @@ export async function createRenderFixture(options: { existing?: string; javascri
   handles.defer(() => registry.dispose());
   const previewDeps = Object.assign(deps, { registry });
   const writes = { create: vi.spyOn(vault, "create"), process: vi.spyOn(vault, "process"), modify: vi.spyOn(vault, "modifyFile") };
-  const snapshot = exportItemSnapshot(client, { key: "MAIN2345", library: { type: "personal" } }, { provenance: { kind: "connected", installationId: "fixture", vault: "preview" } });
+  const snapshot = exportItemSnapshot(client, { key: "MAIN2345", library: { type: "personal" } }, { provenance: { kind: "connected", installationId: "fixture", vault: "preview" }, revision: snapshotRevision });
   return { cancelled, deps: previewDeps, settings, templates, client, snapshot, host, vault, zoteroReads, renderCitations, writes, async [Symbol.asyncDispose]() { await handles.disposeAsync(); await templates[Symbol.asyncDispose](); await settings[Symbol.asyncDispose](); await zoteroReads[Symbol.asyncDispose](); sqlite.close(); } };
 }
 

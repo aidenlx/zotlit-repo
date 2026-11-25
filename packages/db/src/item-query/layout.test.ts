@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { NodeDatabaseClient } from "#desktop/node-client.ts";
 import { Cause, Effect, Exit } from "effect";
 import { existsSync, rmSync } from "node:fs";
 import { dirname } from "node:path";
@@ -25,7 +25,7 @@ import {
   readScanPage,
 } from "./index.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 import { ITEM_QUERY_LAYOUT, OPTIONAL_LAYOUT_COLUMNS } from "#layout/index.ts";
 
 afterEach(() => {

@@ -1,7 +1,7 @@
 import type { ObsidianEventEmitter } from "#obsidian-event-source.ts";
 import { Context, Effect, Layer } from "effect";
 import type { Stream } from "effect";
-import { FileSystemAdapter, TFolder } from "obsidian";
+import { TFolder } from "obsidian";
 import type {
   App,
   DataAdapter,
@@ -85,8 +85,6 @@ export interface VaultShape {
     path: string,
   ): Effect.Effect<TAbstractFile | null>;
   readonly getMarkdownFiles: Effect.Effect<TFile[]>;
-  fullPath(path: string): Effect.Effect<string | null>;
-  reconcileFile(path: string): Effect.Effect<void, VaultError>;
   readonly changes: Stream.Stream<VaultEvent>;
 }
 
@@ -203,20 +201,6 @@ export const makeVault = Effect.fnUntraced(function* (source: VaultSource) {
     ),
     getMarkdownFiles: Effect.sync(() => source.getMarkdownFiles()).pipe(
       Effect.withSpan("Vault.getMarkdownFiles"),
-    ),
-    fullPath: Effect.fn("Vault.fullPath")((path) =>
-      Effect.sync(() =>
-        source.adapter instanceof FileSystemAdapter
-          ? source.adapter.getFullPath(path)
-          : null,
-      ),
-    ),
-    reconcileFile: Effect.fn("Vault.reconcileFile")((path) =>
-      call("reconcileFile", path, async () => {
-        if (!(source.adapter instanceof FileSystemAdapter))
-          throw new Error("The vault is not on a file system");
-        await source.adapter.reconcileInternalFile(path);
-      }),
     ),
     changes: events.stream,
   });

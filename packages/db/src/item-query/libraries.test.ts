@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { NodeDatabaseClient } from "#desktop/node-client.ts";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -11,7 +11,7 @@ import {
 
 import { ItemQueryDatabase, readLibraries } from "./index.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 import { getLibraries } from "#queries/libraries.ts";
 
 function read(scenario: ScenarioDatabase<NodeDatabaseClient>) {

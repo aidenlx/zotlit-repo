@@ -18,7 +18,7 @@ import {
   readAttachmentHydrateChunk,
 } from "./index.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 
 it("reads only live Attachments of top-level live Items in the Target Library", () => {
   using scenario = openScenarioDatabase(connectClient, { annotations: true });

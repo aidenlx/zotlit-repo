@@ -29,9 +29,3 @@ export class ItemMatchQuery extends Context.Service<
     readonly customFieldNames: Effect.Effect<readonly string[], ItemMatchError>;
   }
 >()("zotlit/profile-selection/ItemMatchQuery") {}
-
-declare module "@zotlit/obsidian-kit/view-atoms.ts" {
-  interface ViewServiceRegistry {
-    ItemMatchQuery: ItemMatchQuery;
-  }
-}

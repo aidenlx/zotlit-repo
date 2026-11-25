@@ -5,7 +5,8 @@ import { TExternalFile, TFile } from "obsidian";
 import { expect } from "vitest";
 
 import type { AttachmentWithParentKey } from "@zotlit/db";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
+import type { OperatingSystem } from "@zotlit/shared/platform";
 
 import {
   DATA_DIR,
@@ -223,7 +224,7 @@ it.effect(
     }),
 );
 
-it.effect.each<[NodeJS.Platform, object]>([
+it.effect.each<[OperatingSystem, object]>([
   ["darwin", ROUGIER],
   ["win32", ROUGIER],
   ["linux", { kind: "unresolved" }],

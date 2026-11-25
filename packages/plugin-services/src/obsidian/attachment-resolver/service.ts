@@ -14,10 +14,12 @@ import type { TFile } from "obsidian";
 import type { AttachmentWithParentKey } from "@zotlit/db";
 import { attachmentAbsPath, attachmentPathKey } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
-import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import type { OperatingSystem } from "@zotlit/shared/platform";
 import { changed } from "@zotlit/zotero-reads/client/events.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
@@ -56,10 +58,6 @@ interface PathIndex {
 export type AttachedFile = Extract<AttachmentLookup, { kind: "resolved" }> & {
   pathKey: string;
 };
-
-export interface AttachmentResolverOptions {
-  platform?: NodeJS.Platform;
-}
 
 export class AttachmentResolver extends Context.Service<
   AttachmentResolver,
@@ -104,16 +102,15 @@ export function indexedWithin(
   );
 }
 
-export function layerAttachmentResolver({
-  platform = process.platform,
-}: AttachmentResolverOptions = {}) {
+export function layerAttachmentResolver() {
   return Layer.effect(
     AttachmentResolver,
     Effect.gen(function* () {
       const reads = yield* ZoteroReads;
       const queries = yield* QueryClients;
       const zoteroPref = yield* ZoteroPref;
-      const vault = yield* Vault;
+      const { os } = yield* ObsidianEnv;
+      const vaultDisk = yield* VaultDisk;
       const scope = yield* Scope.Scope;
       const { runPromise } = yield* scopedBridge;
       const indexed = yield* Deferred.make<void>();
@@ -130,7 +127,7 @@ export function layerAttachmentResolver({
           const { index, files, collisions } = buildPathIndex(slices.flat(), {
             dataDir,
             baseAttachmentPath,
-            platform,
+            platform: os,
             serverID,
           });
           if (collisions.length > 0) {
@@ -198,7 +195,7 @@ export function layerAttachmentResolver({
       ) {
         const index = yield* held;
         if (index === undefined) return PENDING;
-        const pathKey = attachmentPathKey(absolutePath, platform);
+        const pathKey = attachmentPathKey(absolutePath, os);
         const named =
           attachmentKey == null ? undefined : index.byKey.get(attachmentKey);
         if (named !== undefined && named.pathKey === pathKey)
@@ -224,7 +221,7 @@ export function layerAttachmentResolver({
             wait,
           }: { attachmentKey?: string | null; wait?: Duration.Input } = {},
         ) {
-          const vaultPath = yield* vault.fullPath(file.path);
+          const vaultPath = yield* vaultDisk.fullPath(file.path);
           const absolutePath = filePathOf(file, () => vaultPath);
           if (absolutePath === null) return UNRESOLVED;
           const now = yield* resolve(absolutePath, { attachmentKey });
@@ -257,7 +254,7 @@ export function layerAttachmentResolver({
 }
 
 export interface PathIndexContext extends AttachmentPathContext {
-  platform: NodeJS.Platform;
+  platform: OperatingSystem;
   serverID?: string | null;
 }
 

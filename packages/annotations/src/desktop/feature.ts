@@ -1,6 +1,7 @@
 import type { LiteratureNoteServices } from "#obsidian/attachment-open/literature-note.ts";
 import { Effect, FileSystem, Layer } from "effect";
 
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { ViewRegistry } from "@zotlit/obsidian-kit/view-atoms.ts";
 import { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
@@ -70,7 +71,7 @@ export const annotations = extendFeature(obsidianAnnotations, {
       "TargetOpener",
       {
         provides: [TargetOpener],
-        requires: [PdfTargetReader, AttachmentResolver],
+        requires: [PdfTargetReader, AttachmentResolver, VaultDisk],
       },
       layerTargetOpener({
         reader: PdfTargetReader,
@@ -98,7 +99,12 @@ export const annotations = extendFeature(obsidianAnnotations, {
       "ExcerptPreparation",
       {
         provides: [ExcerptPreparation],
-        requires: [ExcerptImageService, FileSystem.FileSystem, ZoteroPref],
+        requires: [
+          ExcerptImageService,
+          FileSystem.FileSystem,
+          VaultDisk,
+          ZoteroPref,
+        ],
       },
       layerExcerptPreparation,
     ),

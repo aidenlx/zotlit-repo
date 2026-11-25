@@ -5,6 +5,7 @@ import type { App, ObsidianProtocolData, PaneType } from "obsidian";
 
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -77,7 +78,8 @@ const handleOpenAttachmentProtocol = Effect.fn(
   });
 
   const openable = toObsidianOpenable(attachments, {
-    vaultBasePath: (yield* ObsidianEnv).basePath,
+    vaultBasePath: (yield* VaultDisk).basePath,
+    platform: (yield* ObsidianEnv).os,
     zoteroPref: yield* (yield* ZoteroPref).current,
   });
 

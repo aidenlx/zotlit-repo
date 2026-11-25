@@ -26,9 +26,11 @@ import type {
   FileManager,
   FileManagerSource,
 } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import type { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { layerVaultFrom } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { layerVaultDiskOver } from "@zotlit/plugin-shell/desktop/__fixtures__/vault-disk.ts";
 import type { ConnectHandlers } from "@zotlit/reader-api";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
@@ -109,7 +111,7 @@ const stubWebpDecoder = (host: "decodes" | "fails" | "none") =>
 const read = <A>(evaluate: () => Promise<A>) =>
   Effect.promise(() => evaluate());
 
-type Services = FileManager | FileSystem.FileSystem | Vault;
+type Services = FileManager | FileSystem.FileSystem | Vault | VaultDisk;
 
 const decoratedFileSystem = (
   decorate: (fs: FileSystem.FileSystem) => Partial<FileSystem.FileSystem>,
@@ -141,6 +143,7 @@ const fixtureOver = (
     });
     Object.assign(source, {
       adapter: Object.assign(new FileSystemAdapter(), {
+        getBasePath: () => root,
         getFullPath: (path: string) => `${root}/${path}`,
         reconcileInternalFile,
       }),
@@ -154,6 +157,7 @@ const fixtureOver = (
           stubService<FileManagerSource>("FileManagerSource", {}),
         ).pipe(Layer.provide(vault)),
         fileSystem,
+        layerVaultDiskOver(source),
       ),
     );
     const gate = yield* makePublicationGate;

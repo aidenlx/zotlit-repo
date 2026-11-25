@@ -14,10 +14,6 @@ export default defineConfig({
   jsPlugins: pluginCodeJsPlugins,
   rules: pluginCodeRules(readerImports),
   overrides: [
-    {
-      files: ["src/**"],
-      rules: { "import/no-nodejs-modules": "error" },
-    },
     ...pluginCodeOverrides({ testImports: pluginTestImports }),
     ...testBaselineOverrides("apps/reader"),
     {

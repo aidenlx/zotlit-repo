@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { NodeDatabaseClient } from "#desktop/node-client.ts";
 import type { TemplateItemResolvers } from "#lib/context/zt-template-item.ts";
 import type { Annotation } from "#lib/zt-annot.ts";
 import type { TagMemo } from "#queries/tags.ts";

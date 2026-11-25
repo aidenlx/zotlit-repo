@@ -2,6 +2,7 @@ import { Effect, FileSystem, Layer, Stream } from "effect";
 import type { Context } from "effect";
 
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { ShowInLibrary } from "@zotlit/obsidian-kit/show-in-library.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { catalog } from "@zotlit/plugin-messages/catalog.ts";
@@ -57,6 +58,7 @@ export const readerCapabilities = defineFeature({
       reads: stubService("ZoteroReadsApi", {}),
     }),
     stub(FileSystem.FileSystem),
+    stub(VaultDisk, { basePath: "/vault" }),
     stub(ZoteroPref, {
       current: Effect.succeed(LOADING),
       changes: Stream.never,

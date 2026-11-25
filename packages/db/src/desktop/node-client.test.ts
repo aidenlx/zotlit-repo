@@ -6,7 +6,7 @@ import { DatabaseSync } from "node:sqlite";
 import { describeDriverConformance } from "@zotlit/db-testing/conformance";
 import type { ConformanceConnection } from "@zotlit/db-testing/conformance";
 
-import { connectClient, createClient } from "./node.ts";
+import { connectClient, createClient } from "./node-client.ts";
 
 function databaseFile(setup: string): { path: string; remove: () => void } {
   const directory = mkdtempSync(join(tmpdir(), "zotlit-conformance-"));

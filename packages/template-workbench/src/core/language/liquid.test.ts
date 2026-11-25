@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { nodeNames as nodeNamesFor } from "./__fixtures__.ts";
 import { liquidTemplate, liquidRanges } from "./liquid.ts";
-import { nodeNames as nodeNamesFor } from "./test-utils.ts";
 
 function nodeNames(source: string, from = 0, to = source.length): string[] {
   return nodeNamesFor(liquidTemplate.language.parser, source, { from, to });

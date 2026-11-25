@@ -1,15 +1,8 @@
 import type { FakeReader } from "#__fixtures__/pdf-annotation-editor.ts";
 import type { HistoryOutcome } from "#obsidian/annotation-repository/service.ts";
 import { DateTime, Effect } from "effect";
-import { FileSystemAdapter, Scope, TExternalFile } from "obsidian";
-import type {
-  App,
-  EventRef,
-  View,
-  Vault,
-  Workspace,
-  WorkspaceLeaf,
-} from "obsidian";
+import { Scope, TExternalFile } from "obsidian";
+import type { App, EventRef, View, Workspace, WorkspaceLeaf } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
@@ -19,8 +12,8 @@ import {
   setMockPlatform,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { themeHook } from "@zotlit/plugin-kernel/theme-hooks.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import { openNoteVault } from "@zotlit/plugin-services/obsidian/note-index/__fixtures__.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 
@@ -92,9 +85,6 @@ function workspace(views: { view: ReaderView }[]) {
   const registered: EventRef[] = [];
   const handlers = new Map<string, ((leaf?: { view: unknown }) => void)[]>();
   const app = stubService<App>("App", {
-    vault: stubService<Vault>("Vault", {
-      adapter: new FileSystemAdapter(),
-    }),
     workspace: stubService<Workspace>("Workspace", {
       getLeavesOfType: () =>
         views.map(({ view }) =>

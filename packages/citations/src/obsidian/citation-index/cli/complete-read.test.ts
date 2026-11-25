@@ -20,7 +20,7 @@ function commands(h: CitationIndexHarness) {
   const cli = fakeCliHost();
   registerCitationsCli(cli.host, {
     vaultName: "Test",
-    basePath: "/test",
+    vaultDisk: { basePath: "/test" },
     citationIndex: h.index,
     zoteroPref: {
       current: Effect.succeed({

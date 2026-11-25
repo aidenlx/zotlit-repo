@@ -16,11 +16,11 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
+import type { Run, RunEvent, RunOptions } from "./__fixtures__/test-helpers.ts";
 import type { CandidateFallback } from "./candidate-plan.ts";
 import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
 import type { ItemQueryRequest, QueryResult } from "./index.ts";
-import { runEffect } from "./test-helpers.ts";
-import type { Run, RunEvent, RunOptions } from "./test-helpers.ts";
 
 const BULK_ITEMS = 2600;
 const BULK_CAP = 650;

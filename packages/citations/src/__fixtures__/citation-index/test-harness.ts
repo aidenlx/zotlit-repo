@@ -25,9 +25,9 @@ import {
   FIELD_ZOTERO_KEY,
 } from "@zotlit/plugin-kernel/constants.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
+import { testClock } from "@zotlit/plugin-services/__fixtures__/query-test-clock.ts";
 import { queryClientsFixture } from "@zotlit/plugin-services/core/query-client/__fixtures__.ts";
 import type { QueryClients } from "@zotlit/plugin-services/core/query-client/service.ts";
-import { testClock } from "@zotlit/plugin-services/core/query-client/test-clock.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import type { LibraryScopeEvents } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { buildNoteIndex } from "@zotlit/plugin-services/obsidian/note-index/__fixtures__.ts";

@@ -2,7 +2,7 @@ import { Effect, Layer } from "effect";
 
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
-import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { attachmentSettings } from "@zotlit/plugin-services/core/attachment-import/settings.ts";
@@ -143,7 +143,7 @@ export const platform = extendFeature(platformBase, {
       "AttachmentResolver",
       {
         provides: [AttachmentResolver],
-        requires: [QueryClients, ZoteroPref, ZoteroReads, Vault],
+        requires: [QueryClients, ZoteroPref, ZoteroReads, VaultDisk],
       },
       layerAttachmentResolver(),
     ),

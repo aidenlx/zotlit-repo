@@ -2,7 +2,6 @@ import { defineConfig } from "oxlint";
 
 import baseConfig, {
   datePattern,
-  engineNodeOnlyOverride,
   itemQuerySchemaPaths,
   testBaselineOverrides,
 } from "@zotlit/config/oxlint";
@@ -12,40 +11,14 @@ import {
   pluginCodeRules,
   pluginTestImports,
   runtimeImports,
-  withPatterns,
 } from "@zotlit/config/oxlint-plugin-code";
-
-const layerPattern = {
-  group: [
-    "electron",
-    "electron/**",
-    "@electron/remote",
-    "@electron/remote/**",
-    "@zotlit/db/client/node",
-    "@zotlit/obsidian-desktop",
-    "@zotlit/obsidian-desktop/**",
-  ],
-  message:
-    "The Obsidian kit loads on Obsidian Mobile, where Node and Electron are absent; desktop-only code belongs in @zotlit/obsidian-desktop.",
-};
-const imports = withPatterns(runtimeImports, [layerPattern]);
 
 export default defineConfig({
   extends: [baseConfig],
   jsPlugins: pluginCodeJsPlugins,
-  rules: {
-    ...pluginCodeRules(imports),
-    "import/no-nodejs-modules": "error",
-  },
+  rules: pluginCodeRules(runtimeImports),
   overrides: [
-    ...pluginCodeOverrides({
-      testImports: withPatterns(pluginTestImports, [layerPattern]),
-    }),
-    engineNodeOnlyOverride([
-      "src/**/__fixtures__/**",
-      "src/__mocks__/**",
-      "vitest.preset.ts",
-    ]),
+    ...pluginCodeOverrides({ testImports: pluginTestImports }),
     {
       files: ["src/obsidian-*.ts"],
       rules: { "zotlit-services/obsidian-capabilities": "off" },
@@ -60,7 +33,7 @@ export default defineConfig({
         "no-restricted-imports": [
           "error",
           {
-            patterns: [datePattern, layerPattern],
+            patterns: [datePattern],
             paths: itemQuerySchemaPaths,
           },
         ],

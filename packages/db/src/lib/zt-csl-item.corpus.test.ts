@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { NodeDatabaseClient } from "#desktop/node-client.ts";
 import type { CreatorFieldMode } from "#lib/zt-creator.ts";
 import type { Item } from "#queries/items.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";

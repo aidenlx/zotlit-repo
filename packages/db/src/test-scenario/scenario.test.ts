@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { NodeDatabaseClient } from "#desktop/node-client.ts";
 import type { Item } from "#queries/items.ts";
 import { existsSync } from "node:fs";
 import { dirname } from "node:path";
@@ -14,7 +14,7 @@ import type {
   ScenarioItemName,
 } from "@zotlit/db-testing/scenario";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 import { parseItemDate } from "#lib/zt-date.ts";
 import { getAnnotationsByParent } from "#queries/annotations.ts";
 import { getAttachmentsByParents } from "#queries/attachments.ts";

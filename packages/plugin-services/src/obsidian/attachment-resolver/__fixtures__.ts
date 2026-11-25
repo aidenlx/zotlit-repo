@@ -1,9 +1,11 @@
 import type { ZoteroPrefSnapshot } from "#core/zotero-pref/service.ts";
 import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 
-import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { layerTestVaultDisk } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault-disk.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import type { OperatingSystem } from "@zotlit/shared/platform";
 import {
   inProcessClient,
   memoryOpener,
@@ -32,7 +34,7 @@ export const nextAnnouncement = (
   );
 
 export interface ResolverHarnessOptions {
-  platform?: NodeJS.Platform;
+  platform?: OperatingSystem;
   baseAttachmentPath?: string | null;
   seeds?: (string | null)[];
   rows?: string;
@@ -100,19 +102,17 @@ export async function openResolver(
   );
 
   const runtime = buildRuntime(
-    layerAttachmentResolver({ platform: options.platform ?? "linux" }).pipe(
+    layerAttachmentResolver().pipe(
       Layer.provideMerge(
         Layer.mergeAll(
+          layerTestObsidianEnv({ os: options.platform ?? "linux" }),
           layerQueryClients,
           layerZoteroReads(client),
           Layer.mock(ZoteroPref, {
             current: SubscriptionRef.get(paths),
             changes: SubscriptionRef.changes(paths),
           }),
-          Layer.mock(Vault, {
-            fullPath: (path) =>
-              Effect.succeed(`${options.vaultDir ?? VAULT_DIR}/${path}`),
-          }),
+          layerTestVaultDisk({ basePath: options.vaultDir ?? VAULT_DIR }),
         ),
       ),
       Layer.provideMerge(Layer.succeedContext(context)),

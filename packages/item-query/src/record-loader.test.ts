@@ -10,6 +10,8 @@ import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { HYDRATE_CHUNK_SIZE, readScanPage } from "@zotlit/db/item-query";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
+import type { RunEvent } from "./__fixtures__/test-helpers.ts";
 import { ItemQueryError } from "./error.ts";
 import { ITEM_LOADING } from "./hydration.ts";
 import { ITEMS } from "./query-items.ts";
@@ -17,8 +19,6 @@ import { openQuerySources } from "./query-sources.ts";
 import { openRecordLoader } from "./record-loader.ts";
 import { planRequest } from "./request.ts";
 import type { ItemQueryRequest, TargetLibrary } from "./request.ts";
-import { runEffect } from "./test-helpers.ts";
-import type { RunEvent } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 

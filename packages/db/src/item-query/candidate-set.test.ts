@@ -1,4 +1,4 @@
-import type { NodeDatabaseClient } from "#client/node.ts";
+import type { NodeDatabaseClient } from "#desktop/node-client.ts";
 import { drizzle } from "drizzle-orm/node-sqlite";
 import { Effect } from "effect";
 import { describe, expect, it } from "vitest";
@@ -18,7 +18,7 @@ import {
   readLibraryRowCount,
 } from "./index.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 import { relations } from "#drizzle/relations.ts";
 
 function runOk<A, E>(

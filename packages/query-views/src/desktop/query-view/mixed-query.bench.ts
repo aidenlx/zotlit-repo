@@ -31,7 +31,7 @@ import {
   ItemQuerySliceObserver,
   planItemFilter,
 } from "@zotlit/item-query";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
 import type { VaultValue } from "./table-notes.ts";

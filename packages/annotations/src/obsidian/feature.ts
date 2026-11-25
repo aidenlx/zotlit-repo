@@ -1,5 +1,6 @@
 import { Effect, Layer } from "effect";
 
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -129,6 +130,7 @@ export const annotations = defineFeature({
           NoteIndex,
           ReaderConnection,
           UseLedger,
+          VaultDisk,
           ZoteroLocalApi,
           ZoteroPref,
           ZoteroReads,

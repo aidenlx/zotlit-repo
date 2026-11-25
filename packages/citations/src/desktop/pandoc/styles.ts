@@ -8,7 +8,7 @@ import { Effect, FileSystem } from "effect";
 import type { PlatformError } from "effect";
 import { join } from "node:path";
 
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 
 import {
   cslStyleRoot,

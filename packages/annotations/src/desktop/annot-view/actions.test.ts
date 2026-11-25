@@ -16,7 +16,7 @@ import { Menu } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import * as confirmation from "@zotlit/obsidian-kit/confirm.ts";
 import { makeViewRunner } from "@zotlit/obsidian-kit/view-runner.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { createAnnotActions } from "./actions.tsx";

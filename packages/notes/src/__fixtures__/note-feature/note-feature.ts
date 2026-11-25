@@ -7,6 +7,7 @@ import type { ManagedRuntime } from "effect";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import { layerVaultDiskOver } from "@zotlit/plugin-shell/desktop/__fixtures__/vault-disk.ts";
 import { layerFileManagerFrom } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type {
   FileManager,
@@ -89,6 +90,7 @@ function layerExcerptPreparationOver(
     Layer.provide(
       Layer.mergeAll(
         host,
+        layerVaultDiskOver(sources.app.vault),
         NodeFileSystem.layer,
         Layer.succeedContext(pref),
         Layer.succeed(

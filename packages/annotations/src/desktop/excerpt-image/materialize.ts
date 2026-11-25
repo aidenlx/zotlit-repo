@@ -15,6 +15,7 @@ import { basename, dirname, join, relative, isAbsolute, sep } from "node:path";
 import { attachmentFolderPath } from "@zotlit/obsidian-kit/attachment-folder.ts";
 import { joinFolderPath } from "@zotlit/obsidian-kit/ensure-folder.ts";
 import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
@@ -116,15 +117,14 @@ export const retainExcerpt = Effect.fnUntraced(function* (options: {
 }): Effect.fn.Return<
   Extract<MaterializedExcerpt, { kind: "retained" }> | undefined,
   never,
-  FileSystem.FileSystem | Vault
+  FileSystem.FileSystem | VaultDisk
 > {
-  const vault = yield* Vault;
+  const disk = yield* VaultDisk;
   const fs = yield* FileSystem.FileSystem;
-  const root = yield* vault.fullPath("");
-  if (root === null) return;
+  const root = yield* disk.fullPath("");
   const identities = excerptAssetIdentities(options.request);
   for (const path of options.paths) {
-    const full = (yield* vault.fullPath(path)) ?? path;
+    const full = yield* disk.fullPath(path);
     const local = relative(root, full);
     if (isAbsolute(local) || local === ".." || local.startsWith(`..${sep}`))
       continue;
@@ -215,7 +215,7 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
 }): Effect.fn.Return<
   MaterializedExcerpt,
   never,
-  FileManager | FileSystem.FileSystem | Vault
+  FileManager | FileSystem.FileSystem | Vault | VaultDisk
 > {
   const { request, outcome, settings } = options;
   if (!settings["attachment.import"])
@@ -254,6 +254,7 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
       });
   });
   const vault = yield* Vault;
+  const disk = yield* VaultDisk;
   const fs = yield* FileSystem.FileSystem;
   const cleanupFailed = (message: string) =>
     recover(
@@ -276,11 +277,7 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
       folder,
       `zotlit-excerpt-${identity}-${digest}.${outcome.format.extension}`,
     );
-    const destination = yield* vault.fullPath(path);
-    if (destination === null)
-      return yield* new ExcerptAssetRefused({
-        message: "Excerpt import requires a filesystem vault",
-      });
+    const destination = yield* disk.fullPath(path);
     let created = false;
     const write = Effect.gen(function* () {
       yield* assertCurrent;
@@ -325,7 +322,7 @@ export const materializeExcerpt = Effect.fnUntraced(function* (options: {
         yield* assertCurrent;
       }).pipe(Effect.scoped);
       yield* assertCurrent;
-      yield* vault.reconcileFile(path);
+      yield* disk.reconcileFile(path);
       yield* assertCurrent;
       if (!(yield* vault.getFileByPath(path)))
         return yield* new ExcerptAssetRefused({

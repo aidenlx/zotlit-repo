@@ -41,6 +41,7 @@ import type {
 } from "@zotlit/obsidian-kit/cli-params.ts";
 import type { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { parseProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
@@ -189,6 +190,7 @@ export type InspectServices =
   | MetadataCache
   | Workspace
   | ObsidianEnv
+  | VaultDisk
   | ZoteroPref;
 
 export interface InspectDiagnostic {

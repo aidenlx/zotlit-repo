@@ -5,6 +5,7 @@ import { Context, Effect, Layer, Stream } from "effect";
 import type { TFile } from "obsidian";
 
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { layerVaultDiskOver } from "@zotlit/plugin-shell/desktop/__fixtures__/vault-disk.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type { FileManagerSource } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type { MetadataCacheSource } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
@@ -154,6 +155,7 @@ function layerExcerptPreparationOver(
           fileManager: excerpts.fileManager,
           metadataCache: excerpts.metadataCache,
         }),
+        layerVaultDiskOver(fakes.vault),
         NodeFileSystem.layer,
         Layer.mock(ZoteroPref, { current }),
         Layer.succeed(

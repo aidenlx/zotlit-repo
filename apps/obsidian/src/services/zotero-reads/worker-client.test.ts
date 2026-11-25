@@ -21,12 +21,12 @@ import {
 } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { zoteroPrefFixture } from "@zotlit/plugin-services/desktop/zotero-pref/__fixtures__.ts";
-import { layerPackDevice } from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
-import { ResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import {
+  layerPackDevice,
   packDevice,
   packFile,
-} from "@zotlit/plugin-services/obsidian/managed-binary/test-utils.ts";
+} from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
+import { ResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import {
   WorkerInitSchema,

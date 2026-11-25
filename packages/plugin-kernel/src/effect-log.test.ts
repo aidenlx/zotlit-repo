@@ -1,3 +1,4 @@
+import type { LogMessagePort, LogPortRecord } from "#worker/effect-log-port.ts";
 import { it } from "@effect/vitest";
 import { Clock, DateTime, Effect, Layer, Logger, Queue } from "effect";
 import { describe, expect } from "vitest";
@@ -5,9 +6,9 @@ import { describe, expect } from "vitest";
 import { logLibrary } from "@zotlit/shared/logging";
 
 import { capturedLogQueue } from "./__fixtures__/log-capture.ts";
-import { layerHostLogPort } from "./effect-log-port.ts";
-import type { LogMessagePort, LogPortRecord } from "./effect-log-port.ts";
 import { pluginLogger, withLogCategory } from "./effect-log.ts";
+
+import { layerHostLogPort } from "#worker/effect-log-port.ts";
 
 const WORKER_LOG_TIME = DateTime.toEpochMillis(
   DateTime.makeUnsafe("2001-02-03T04:05:06Z"),

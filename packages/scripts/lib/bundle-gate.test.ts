@@ -6,7 +6,12 @@ import { afterAll, describe, expect, it } from "vitest";
 
 import { writePack } from "@zotlit/resource-pack/writer.ts";
 
-import { checkBundle } from "./bundle-gate.ts";
+import {
+  checkBundle,
+  checkRequires,
+  checkBundleRuntime,
+} from "./bundle-gate.ts";
+import { RUNTIMES } from "./runtime-table.ts";
 import { bundledPlugin, CONTAINER_PLUGIN } from "./shell/profiles.ts";
 
 const scratch = await mkdtemp(join(tmpdir(), "zt-bundle-gate-"));
@@ -29,7 +34,7 @@ async function app(
 const budget = { mainJsBytes: 1_000, stylesCssBytes: 10 };
 
 describe("checkBundle", () => {
-  it("holds a bundled plugin to its budgets and its allowedRequires", async () => {
+  it("holds a bundled plugin to its budgets and its runtime's modules", async () => {
     const dir = await app(
       "bundled",
       {},
@@ -43,7 +48,7 @@ describe("checkBundle", () => {
       {
         profile: bundledPlugin({ resources: "Language Packs" }),
         budget,
-        allowedRequires: ["obsidian"],
+        runtime: RUNTIMES.obsidianModule,
       },
       dir,
     );
@@ -53,7 +58,7 @@ describe("checkBundle", () => {
     ]);
     expect(report.failures).toEqual([
       "styles.css is 13 B, above its budget of 10 B by 3 B",
-      'main.js requires "node:fs", which is not in its allowedRequires',
+      'main.js requires "node:fs", which the obsidian module alone does not give',
     ]);
   });
 
@@ -73,7 +78,7 @@ describe("checkBundle", () => {
       {
         profile: CONTAINER_PLUGIN,
         budget: { mainJsBytes: 100_000, stylesCssBytes: 0 },
-        allowedRequires: ["obsidian"],
+        runtime: RUNTIMES.obsidianModule,
       },
       dir,
     );
@@ -89,11 +94,68 @@ describe("checkBundle", () => {
     );
     const report = await checkBundle(
       "no-pack",
-      { profile: CONTAINER_PLUGIN, budget, allowedRequires: [] },
+      { profile: CONTAINER_PLUGIN, budget, runtime: RUNTIMES.obsidianModule },
       dir,
     );
     expect(report.failures).toEqual([
       "main.js does not start with a pack index",
+    ]);
+  });
+});
+
+describe("checkRequires", () => {
+  const code = 'require("obsidian"); require("node:fs");';
+
+  it("lets the Mobile renderer require obsidian and fails a Node built-in", () => {
+    expect(checkRequires("main.js", code, RUNTIMES.mobileRenderer)).toEqual({
+      required: ["node:fs", "obsidian"],
+      failures: [
+        'main.js requires "node:fs", which the Obsidian Mobile renderer does not give',
+      ],
+    });
+  });
+
+  it("lets the desktop Worker require a Node built-in and fails obsidian", () => {
+    expect(
+      checkRequires("worker.js", code, RUNTIMES.desktopWorker).failures,
+    ).toEqual([
+      'worker.js requires "obsidian", which the desktop Worker does not give',
+    ]);
+  });
+});
+
+describe("checkBundleRuntime", () => {
+  it("reports the size and the required modules of a built root", async () => {
+    const dir = await app(
+      "mobile",
+      {},
+      { "main.js": 'require("obsidian"); require("@codemirror/view");' },
+    );
+    const report = await checkBundleRuntime(
+      "mobile",
+      join(dir, "dist", "main.js"),
+      RUNTIMES.mobileRenderer,
+    );
+    expect(report).toEqual({
+      name: "mobile",
+      lines: ["main.js 49 B", "requires @codemirror/view, obsidian"],
+      failures: [],
+    });
+  });
+
+  it("fails a built root that requires a module its runtime does not give", async () => {
+    const dir = await app(
+      "mobile-node",
+      {},
+      { "main.js": 'require("node:path");' },
+    );
+    const report = await checkBundleRuntime(
+      "mobile",
+      join(dir, "dist", "main.js"),
+      RUNTIMES.mobileRenderer,
+    );
+    expect(report.failures).toEqual([
+      'main.js requires "node:path", which the Obsidian Mobile renderer does not give',
     ]);
   });
 });

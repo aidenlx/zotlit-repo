@@ -1,10 +1,10 @@
 # @zotlit/plugin-kernel
 
-The host-free base of the Obsidian plugin: code that imports no `obsidian`, `electron` or `node:*`. It holds the Effect wrappers and helpers (`effect*.ts`, the log, bridge, stream, scope and clock helpers), the browser scheduler, pure utilities and the shared constants. Every ZotLit Obsidian plugin (desktop, Reader, Mobile) runs it.
+The host-free base of the Obsidian plugin: code that imports no `obsidian`, `electron` or `node:*`. It holds the Effect wrappers and helpers (`effect*.ts`, the log, bridge, stream, scope and clock helpers), the browser scheduler, pure utilities and the shared constants. Every ZotLit Obsidian plugin (desktop, Reader, Mobile) runs it. `src/worker/` is the Worker zone: the clock, log category, log port and in-process RPC helpers, which the ZoteroReads Worker also runs and which use no DOM name.
 
 ## Boundary
 
-Lint holds the boundary: the engine rules of `packages/config/oxlint.base.ts` refuse a host module, and this package imports nothing of `@zotlit/obsidian-kit`, `@zotlit/obsidian-desktop` or the app. Code that needs the Obsidian API goes to `@zotlit/obsidian-kit`. Take a host capability as a value or a service tag.
+The package is the host-free zone (`zotlit.layer` in `package.json`) and `src/worker/` is the Worker zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)). A new file goes in `src/worker/` when the ZoteroReads Worker runs it, and at the top of `src/` otherwise. The runtime check (`pnpm run lint:runtime-zones`) fails on reach to `obsidian`, Electron or a file of the Obsidian or desktop zone, and lint refuses Node built-in imports and the Node globals. The package imports nothing of `@zotlit/obsidian-kit`, `@zotlit/obsidian-desktop` or the app. Code that needs the Obsidian API goes to `@zotlit/obsidian-kit`. Take a host capability as a value or a service tag.
 
 ## Effect entry
 
