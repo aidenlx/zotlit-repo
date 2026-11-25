@@ -67,7 +67,10 @@ export const annotations = defineFeature({
     ),
     serviceGroup(
       "ZotlitPdfReader",
-      { provides: [ZotlitPdfReader], requires: [ReaderConnection] },
+      {
+        provides: [ZotlitPdfReader],
+        requires: [ReaderConnection, AttachmentResolver],
+      },
       layerZotlitPdfReader,
     ),
     serviceGroup(

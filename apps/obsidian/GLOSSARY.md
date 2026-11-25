@@ -333,7 +333,7 @@ The raster image representation of an image or ink Annotation's PDF region, incl
 _Avoid_: cache image, cache PNG, annotation image (ambiguous with an image Annotation)
 
 **ZotLit PDF Reader**:
-The PDF reader that ZotLit Reader (`apps/reader/GLOSSARY.md`) adds to Obsidian, and the one reader that hosts ZotLit's annotation tools. While ZotLit Reader is installed, turned on and compatible, every Attachment ZotLit opens in Obsidian opens in it, and ZotLit adds its annotation tools to it through the Reader API; otherwise ZotLit opens the Attachment in Obsidian's own PDF view, with no ZotLit tools.
+The PDF reader that ZotLit Reader (`apps/reader/GLOSSARY.md`) adds to Obsidian, and the one reader that hosts ZotLit's annotation tools. While ZotLit Reader is installed, turned on and compatible, every Attachment that opens in an Obsidian tab or window opens in it, whether ZotLit, a link or an Obsidian menu opens it and whatever the Reader's "Open all PDFs" setting is, and ZotLit adds its annotation tools to it through the Reader API; otherwise ZotLit opens the Attachment in Obsidian's own PDF view, with no ZotLit tools.
 _Avoid_: Obsidian's PDF view (Obsidian's own, which shows no ZotLit tools), PDF viewer, new reader, the overlay (the retired annotation layer on Obsidian's view), ZotLit Reader (that is the plugin)
 
 **Reader Session**:

@@ -243,6 +243,29 @@ export function createPageHelpers(
         contents.sendInputEvent({ type: "mouseUp", ...at });
         await up;
       },
+      drag: async (
+        from: { x: number; y: number },
+        to: { x: number; y: number },
+      ) => {
+        const point = ({ x, y }: { x: number; y: number }) => ({
+          x: Math.round(x * zoom),
+          y: Math.round(y * zoom),
+        });
+        const button = { button: "left", clickCount: 1 };
+        const up = delivered("mouseup");
+        contents.sendInputEvent({
+          type: "mouseDown",
+          ...point(from),
+          ...button,
+        });
+        contents.sendInputEvent({
+          type: "mouseMove",
+          ...point(to),
+          modifiers: ["leftbuttondown"],
+        });
+        contents.sendInputEvent({ type: "mouseUp", ...point(to), ...button });
+        await up;
+      },
     };
   }
   async function openToolbarPopover(contentEl: HTMLElement, hook: string) {

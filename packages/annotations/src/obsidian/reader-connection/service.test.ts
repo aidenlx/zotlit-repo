@@ -27,9 +27,11 @@ import {
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
+import { Vault as VaultService } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import type {
   ConnectHandlers,
   PdfReader,
@@ -173,7 +175,6 @@ it.effect("is absent when the source answers absent", () =>
     reader.handlers!.onAbsent();
     yield* settle;
     expect(yield* connection.current).toEqual({ status: "absent" });
-    expect(yield* openAnchored()).toBe("pdf");
   }),
 );
 
@@ -189,40 +190,32 @@ it.effect("is incompatible with the reason the source gives", () =>
   }),
 );
 
-it.effect(
-  "connects after accept: adds the editor extension and sends anchored PDF opens to the api's view type",
-  () =>
-    Effect.gen(function* () {
-      const reader = fakeSource();
-      const { connection } = yield* buildWith(reader.source);
-      const { api, addExtension } = fakeApi("reader-view");
-      reader.handlers!.onAccept(api);
-      yield* settle;
-      expect(yield* connection.current).toEqual({ status: "connected", api });
-      expect(addExtension).toHaveBeenCalledOnce();
-      expect(addExtension.mock.calls[0]![0].id).toBe(
-        "zotlit-annotation-editor",
-      );
-      expect(yield* openAnchored()).toBe("reader-view");
-    }),
+it.effect("connects after accept: adds the editor extension", () =>
+  Effect.gen(function* () {
+    const reader = fakeSource();
+    const { connection } = yield* buildWith(reader.source);
+    const { api, addExtension } = fakeApi("reader-view");
+    reader.handlers!.onAccept(api);
+    yield* settle;
+    expect(yield* connection.current).toEqual({ status: "connected", api });
+    expect(addExtension).toHaveBeenCalledOnce();
+    expect(addExtension.mock.calls[0]![0].id).toBe("zotlit-annotation-editor");
+  }),
 );
 
-it.effect(
-  "goes absent on the api's close: removes the Anchor patch and retires the extension handle",
-  () =>
-    Effect.gen(function* () {
-      const reader = fakeSource();
-      const { connection } = yield* buildWith(reader.source);
-      const first = fakeApi();
-      reader.handlers!.onAccept(first.api);
-      yield* settle;
-      first.close();
-      yield* settle;
-      expect(yield* connection.current).toEqual({ status: "absent" });
-      expect(first.removals).toHaveLength(1);
-      expect(first.removals[0]).toHaveBeenCalledOnce();
-      expect(yield* openAnchored()).toBe("pdf");
-    }),
+it.effect("goes absent on the api's close: retires the extension handle", () =>
+  Effect.gen(function* () {
+    const reader = fakeSource();
+    const { connection } = yield* buildWith(reader.source);
+    const first = fakeApi();
+    reader.handlers!.onAccept(first.api);
+    yield* settle;
+    first.close();
+    yield* settle;
+    expect(yield* connection.current).toEqual({ status: "absent" });
+    expect(first.removals).toHaveLength(1);
+    expect(first.removals[0]).toHaveBeenCalledOnce();
+  }),
 );
 
 it.effect("connects again on a second accept", () =>
@@ -242,7 +235,6 @@ it.effect("connects again on a second accept", () =>
       api: second.api,
     });
     expect(second.addExtension).toHaveBeenCalledOnce();
-    expect(yield* openAnchored()).toBe("zotlit-pdf");
   }),
 );
 
@@ -258,7 +250,6 @@ it.effect(
       yield* Scope.close(scope, Exit.void);
       expect(reader.handlers).toBeNull();
       expect(first.removals[0]).toHaveBeenCalledOnce();
-      expect(yield* openAnchored()).toBe("pdf");
     }),
 );
 
@@ -309,12 +300,12 @@ it("takes the Reader through the contract's types alone", () => {
 });
 
 class OpeningWorkspace extends MemoryWorkspace {
-  readonly openFile = vi.fn<WorkspaceLeaf["openFile"]>(async () => {});
+  readonly setViewState = vi.fn<WorkspaceLeaf["setViewState"]>(async () => {});
 
   override getLeaf(newLeaf?: PaneType | boolean): WorkspaceLeaf {
     super.getLeaf(newLeaf);
     return stubService<WorkspaceLeaf>("WorkspaceLeaf", {
-      openFile: this.openFile,
+      setViewState: this.setViewState,
     });
   }
 }
@@ -343,6 +334,17 @@ const handshakeReader = (
         ),
         Layer.provideMerge(layerWorkspaceFrom(workspace)),
         Layer.provideMerge(layerDeviceStorageFrom(storage)),
+        Layer.provideMerge(
+          Layer.mock(AttachmentResolver, {
+            warm: Effect.void,
+            resolveFile: () => Effect.succeed({ kind: "unresolved" }),
+          }),
+        ),
+        Layer.provideMerge(
+          Layer.mock(VaultService, {
+            getFileByPath: () => Effect.succeed(null),
+          }),
+        ),
         Layer.provideMerge(notifier.layer),
         Layer.provideMerge(
           Layer.succeed(
@@ -368,6 +370,11 @@ const handshakeReader = (
   });
 
 const paper = () => stubService<TFile>("TFile", { path: "paper.pdf" });
+const obsidianView = (file: TFile) => ({
+  type: "pdf",
+  state: { file: file.path },
+  active: false,
+});
 
 it.effect(
   "connects through the handshake when the Reader started first, and opens through its api",
@@ -384,7 +391,23 @@ it.effect(
         subpath: "#page=2",
         pane: "tab",
       });
-      expect(workspace.openFile).not.toHaveBeenCalled();
+      expect(workspace.setViewState).not.toHaveBeenCalled();
+    }),
+);
+
+it.effect(
+  "routes Obsidian's anchored PDF opens to the reader's view type only while connected",
+  () =>
+    Effect.gen(function* () {
+      const { events } = yield* handshakeReader();
+      expect(yield* openAnchored()).toBe("pdf");
+      const reader = fakeApi("reader-view");
+      answerConnect(events, new Map([[READER_API.major, reader.api]]));
+      yield* settle;
+      expect(yield* openAnchored()).toBe("reader-view");
+      reader.close();
+      yield* settle;
+      expect(yield* openAnchored()).toBe("pdf");
     }),
 );
 
@@ -398,15 +421,16 @@ it.effect(
       const file = paper();
       expect(yield* reader.open(file, "#page=2", "tab")).toBe("opened");
       expect(workspace.leafRequests).toEqual(["tab"]);
-      expect(workspace.openFile).toHaveBeenCalledExactlyOnceWith(file, {
-        eState: { subpath: "#page=2" },
-      });
+      expect(workspace.setViewState).toHaveBeenCalledExactlyOnceWith(
+        obsidianView(file),
+        { subpath: "#page=2" },
+      );
       const { api, open } = fakeApi();
       answerConnect(events, new Map([[READER_API.major, api]]));
       expect(yield* connection.current).toEqual({ status: "connected", api });
       expect(yield* reader.open(file, "", false)).toBe("opened");
       expect(open).toHaveBeenCalledOnce();
-      expect(workspace.openFile).toHaveBeenCalledOnce();
+      expect(workspace.setViewState).toHaveBeenCalledOnce();
     }),
 );
 
@@ -427,8 +451,8 @@ it.effect(
       });
       const file = paper();
       expect(yield* reader.open(file, "", true)).toBe("opened");
-      expect(workspace.openFile).toHaveBeenCalledExactlyOnceWith(
-        file,
+      expect(workspace.setViewState).toHaveBeenCalledExactlyOnceWith(
+        obsidianView(file),
         undefined,
       );
     }),

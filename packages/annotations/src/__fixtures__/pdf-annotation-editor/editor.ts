@@ -67,7 +67,7 @@ export function editorFixtureLayer(options: EditorFixtureOptions) {
           (options.app.vault.adapter as FileSystemAdapter).getFullPath(path),
         ),
     }),
-    Layer.mock(AttachmentResolver, options.attachments),
+    Layer.mock(AttachmentResolver, { warm: Effect.void, ...options.attachments }),
     Layer.mock(AnnotationRepository, options.annotations),
     Layer.mock(NoteIndex, options.noteIndex),
     Layer.mock(PluginSettings, options.settings),

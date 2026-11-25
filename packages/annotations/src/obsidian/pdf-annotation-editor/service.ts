@@ -40,7 +40,6 @@ import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-ap
 import type { ReaderExtension, ReaderHostContext } from "@zotlit/reader-api";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
-import { anchorIn, registerAnnotationAnchorCapture } from "./anchor-capture.ts";
 import { PdfViewBinding } from "./binding.ts";
 import type { HostedReader } from "./hosted-reader.ts";
 import { bindingResources } from "./operations.ts";
@@ -51,7 +50,11 @@ import { PdfReads } from "#core/pdf-annotation-editor/reads.ts";
 import { AnnotationNoteActions } from "#obsidian/annot-view/note-actions.ts";
 import { CapabilityNotices } from "#obsidian/annotation-repository/notices.ts";
 import { AnnotationRepository } from "#obsidian/annotation-repository/service.ts";
-import { ReaderConnection } from "#obsidian/reader-connection/service.ts";
+import { anchorIn } from "#obsidian/pdf-reader/viewer.ts";
+import {
+  ReaderConnection,
+  whileConnected,
+} from "#obsidian/reader-connection/service.ts";
 
 export type { AttachmentResolution } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 export type {
@@ -338,25 +341,11 @@ export const layerPdfAnnotationEditor = (ports: PdfAnnotationEditorPorts) =>
             ports.readers.borrow = () => null;
           }),
       );
-      let connected: Scope.Closeable | null = null;
-      yield* forkEach(connection.changes, (state) =>
-        Effect.gen(function* () {
-          const previous = connected;
-          connected = null;
-          if (previous) yield* Scope.close(previous, Exit.void);
-          if (state.status !== "connected") return;
-          const scope = yield* Scope.fork(connectionScopes);
-          connected = scope;
-          yield* Effect.acquireRelease(
-            Effect.sync(() => state.api.addExtension(extension)),
-            (remove) => Effect.sync(remove),
-          ).pipe(Scope.provide(scope));
-          yield* Effect.acquireDisposable(
-            Effect.sync(() =>
-              registerAnnotationAnchorCapture(state.api.viewType),
-            ),
-          ).pipe(Scope.provide(scope));
-        }),
+      yield* whileConnected(connection, connectionScopes, (api) =>
+        Effect.acquireRelease(
+          Effect.sync(() => api.addExtension(extension)),
+          (remove) => Effect.sync(remove),
+        ),
       );
       yield* forkEach(workspace.changes, (event) => {
         if (event._tag === "active-leaf-change") {

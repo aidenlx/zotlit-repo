@@ -13,7 +13,7 @@ import type {
 } from "#obsidian/annotation-repository/service.ts";
 import type { BorrowedExcerptDocument } from "#obsidian/excerpt-image/reader-borrow.ts";
 import { Effect } from "effect";
-import { Platform, TExternalFile } from "obsidian";
+import { Platform } from "obsidian";
 import type {
   FileSystemAdapter,
   HoverParent,
@@ -39,6 +39,7 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { themeAttribute } from "@zotlit/plugin-kernel/theme-hooks.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
+import { filePathOf } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import type {
   AttachmentResolution,
   AttachmentResolver,
@@ -159,7 +160,7 @@ export type AnnotationReads = Pick<
 
 export type AttachmentReads = Pick<
   AttachmentResolver["Service"],
-  "resolve" | "resolutionsChanged"
+  "resolveFile" | "resolutionsChanged"
 >;
 
 export interface CapabilityGestures {
@@ -410,15 +411,16 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
   load(): void {
     const file = this.#file;
     this.#filePath = file.path;
-    const absolutePath = absolutePathOf(file, this.#adapter);
-    this.#absolutePath = absolutePath;
+    this.#absolutePath = filePathOf(file, (path) =>
+      this.#adapter.getFullPath(path),
+    );
     this.#surfaces.defer(() => this.#cancelScroll());
     this.#surfaces.defer(
       this.#bridge.subscribe(this.#attachments.resolutionsChanged, () =>
-        this.#resolve(absolutePath),
+        this.#resolve(),
       ),
     );
-    this.#resolve(absolutePath);
+    this.#resolve();
   }
 
   close(): void {
@@ -439,7 +441,7 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     if (named === null || named === this.#attachment.attachmentKey)
       return false;
     const resolution = this.#bridge.runSync(
-      this.#attachments.resolve(this.#absolutePath, { attachmentKey: named }),
+      this.#attachments.resolveFile(this.#file, { attachmentKey: named }),
     );
     return (
       resolution.kind === "resolved" &&
@@ -447,10 +449,10 @@ export class PdfViewBinding implements Disposable, HistorySurface, HoverParent {
     );
   }
 
-  #resolve(absolutePath: string): void {
+  #resolve(): void {
     if (this.#surfaces.disposed || this.#attachment.kind !== "pending") return;
     this.#attachment = this.#bridge.runSync(
-      this.#attachments.resolve(absolutePath, {
+      this.#attachments.resolveFile(this.#file, {
         attachmentKey: this.#anchor?.attachment ?? null,
       }),
     );
@@ -1300,13 +1302,4 @@ function pagesDrawing(
       pages.add(pageIndex);
   }
   return pages;
-}
-
-function absolutePathOf(
-  file: { path: string },
-  adapter: Pick<FileSystemAdapter, "getFullPath">,
-): string {
-  return file instanceof TExternalFile
-    ? file.getRealPath()
-    : adapter.getFullPath(file.path);
 }

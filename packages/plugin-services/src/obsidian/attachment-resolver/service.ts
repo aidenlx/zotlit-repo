@@ -8,10 +8,13 @@ import {
   Stream,
 } from "effect";
 import type { Duration } from "effect";
+import { TExternalFile } from "obsidian";
+import type { TFile } from "obsidian";
 
 import type { AttachmentWithParentKey } from "@zotlit/db";
 import { attachmentAbsPath, attachmentPathKey } from "@zotlit/db/path";
 import type { AttachmentPathContext } from "@zotlit/db/path";
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
@@ -65,12 +68,28 @@ export class AttachmentResolver extends Context.Service<
       absolutePath: string,
       options?: { attachmentKey?: string | null },
     ): Effect.Effect<AttachmentResolution>;
-    lookup(attachmentKey: string): Effect.Effect<AttachmentLookup>;
+    resolveFile(
+      file: TFile,
+      options?: { attachmentKey?: string | null; wait?: Duration.Input },
+    ): Effect.Effect<AttachmentResolution>;
+    lookup(
+      attachmentKey: string,
+      options?: { wait?: Duration.Input },
+    ): Effect.Effect<AttachmentLookup>;
     readonly warm: Effect.Effect<void>;
     readonly indexed: Effect.Effect<void>;
     readonly resolutionsChanged: Stream.Stream<void>;
   }
 >()("zotlit/attachment-resolver/AttachmentResolver") {}
+
+export function filePathOf(
+  file: TFile,
+  fullPath: (path: string) => string | null,
+): string | null {
+  return file instanceof TExternalFile
+    ? file.getRealPath()
+    : fullPath(file.path);
+}
 
 export function indexedWithin(
   resolver: Pick<AttachmentResolver["Service"], "indexed">,
@@ -94,6 +113,7 @@ export function layerAttachmentResolver({
       const reads = yield* ZoteroReads;
       const queries = yield* QueryClients;
       const zoteroPref = yield* ZoteroPref;
+      const vault = yield* Vault;
       const scope = yield* Scope.Scope;
       const { runPromise } = yield* scopedBridge;
       const indexed = yield* Deferred.make<void>();
@@ -172,35 +192,62 @@ export function layerAttachmentResolver({
       );
       yield* Effect.addFinalizer(() => PubSub.shutdown(announcements));
 
+      const resolve = Effect.fn("AttachmentResolver.resolve")(function* (
+        absolutePath: string,
+        { attachmentKey }: { attachmentKey?: string | null } = {},
+      ) {
+        const index = yield* held;
+        if (index === undefined) return PENDING;
+        const pathKey = attachmentPathKey(absolutePath, platform);
+        const named =
+          attachmentKey == null ? undefined : index.byKey.get(attachmentKey);
+        if (named !== undefined && named.pathKey === pathKey)
+          return resolutionOf(named);
+        return index.byPath.get(pathKey) ?? UNRESOLVED;
+      });
+      const awaitIndexed = Deferred.await(indexed);
+      const lookup = Effect.fnUntraced(function* (attachmentKey: string) {
+        const index = yield* held;
+        if (index === undefined) return PENDING;
+        const named = index.byKey.get(attachmentKey);
+        if (named === undefined) return UNRESOLVED;
+        const { pathKey: _pathKey, ...found } = named;
+        return found satisfies AttachmentLookup;
+      });
+
       return AttachmentResolver.of({
-        resolve: Effect.fn("AttachmentResolver.resolve")(function* (
-          absolutePath: string,
-          { attachmentKey }: { attachmentKey?: string | null } = {},
+        resolve,
+        resolveFile: Effect.fn("AttachmentResolver.resolveFile")(function* (
+          file: TFile,
+          {
+            attachmentKey = null,
+            wait,
+          }: { attachmentKey?: string | null; wait?: Duration.Input } = {},
         ) {
-          const index = yield* held;
-          if (index === undefined) return PENDING;
-          const pathKey = attachmentPathKey(absolutePath, platform);
-          const named =
-            attachmentKey == null ? undefined : index.byKey.get(attachmentKey);
-          if (named !== undefined && named.pathKey === pathKey)
-            return resolutionOf(named);
-          return index.byPath.get(pathKey) ?? UNRESOLVED;
+          const vaultPath = yield* vault.fullPath(file.path);
+          const absolutePath = filePathOf(file, () => vaultPath);
+          if (absolutePath === null) return UNRESOLVED;
+          const now = yield* resolve(absolutePath, { attachmentKey });
+          if (now.kind !== "pending" || wait === undefined) return now;
+          const settled = yield* indexedWithin({ indexed: awaitIndexed }, wait);
+          return settled
+            ? yield* resolve(absolutePath, { attachmentKey })
+            : now;
         }),
         lookup: Effect.fn("AttachmentResolver.lookup")(function* (
           attachmentKey: string,
+          { wait }: { wait?: Duration.Input } = {},
         ) {
-          const index = yield* held;
-          if (index === undefined) return PENDING;
-          const named = index.byKey.get(attachmentKey);
-          if (named === undefined) return UNRESOLVED;
-          const { pathKey: _pathKey, ...lookup } = named;
-          return lookup;
+          const now = yield* lookup(attachmentKey);
+          if (now.kind !== "pending" || wait === undefined) return now;
+          const settled = yield* indexedWithin({ indexed: awaitIndexed }, wait);
+          return settled ? yield* lookup(attachmentKey) : now;
         }),
         warm: held.pipe(
           Effect.asVoid,
           Effect.withSpan("AttachmentResolver.warm"),
         ),
-        indexed: Deferred.await(indexed).pipe(
+        indexed: awaitIndexed.pipe(
           Effect.withSpan("AttachmentResolver.indexed"),
         ),
         resolutionsChanged: Stream.fromPubSub(announcements),

@@ -11,11 +11,7 @@ import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import {
-  AttachmentResolver,
-  indexedWithin,
-} from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
-import type { AttachmentLookup } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
+import { AttachmentResolver } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { formatIndexedKey, parseIndexedKey } from "@zotlit/zotero-types/keys";
 import {
@@ -171,19 +167,14 @@ export function layerTargetOpener<R, E>({
         );
 
       const lookup = Effect.fnUntraced(function* (attachmentKey: string) {
-        const found = yield* attachments.lookup(attachmentKey);
-        if (found.kind !== "pending") return found;
-        yield* Effect.logDebug("Target waits for the Attachment index").pipe(
-          Effect.annotateLogs({ attachmentKey }),
-        );
-        yield* attachments.warm;
-        if (!(yield* indexedWithin(attachments, indexWait))) {
+        const found = yield* attachments.lookup(attachmentKey, {
+          wait: indexWait,
+        });
+        if (found.kind === "pending")
           yield* Effect.logDebug("Target gave up on the Attachment index").pipe(
             Effect.annotateLogs({ attachmentKey }),
           );
-          return { kind: "pending" } satisfies AttachmentLookup;
-        }
-        return yield* attachments.lookup(attachmentKey);
+        return found;
       });
 
       const followFile = Effect.fnUntraced(function* (

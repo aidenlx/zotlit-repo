@@ -63,7 +63,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       });
     });
 
-    it("opens an Attachment from ZotLit in the reader while Open all PDFs is off and on, and keeps PDFs in ZotLit Reader when ZotLit turns off with it on (E-18)", async () => {
+    it("opens an Attachment in the reader from ZotLit and from the file explorer while Open all PDFs is off and on, and keeps PDFs in ZotLit Reader when ZotLit turns off with it on (E-18, forum topic 107)", async () => {
       const routed = await obRun(
         run.vaultId,
         async ({ app, zotlit, page }, { path, attachmentKey }) => {
@@ -164,7 +164,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       );
       expect(routed).toEqual({
         off: {
-          explorer: "pdf",
+          explorer: READER_VIEW_TYPE,
           opener: "reader",
           openerView: READER_VIEW_TYPE,
           readerReady: "ready",

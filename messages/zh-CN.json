@@ -3061,7 +3061,7 @@
   "reader_settings_page": "阅读器",
   "reader_settings_page_desc": "ZotLit Reader 打开仓库中 PDF 的方式。",
   "reader_settings_open_all_pdfs_name": "打开所有 PDF",
-  "reader_settings_open_all_pdfs_desc": "在 ZotLit Reader 中打开仓库中的所有 PDF，包括嵌入的 PDF、悬停预览和白板卡片。关闭后，PDF 在 Obsidian 的 PDF 查看器中打开。",
+  "reader_settings_open_all_pdfs_desc": "在 ZotLit Reader 中打开仓库中的所有 PDF，包括嵌入的 PDF、悬停预览和白板卡片。关闭后，PDF 在 Obsidian 的 PDF 查看器中打开；启用 ZotLit 时，Zotero 附件仍在 ZotLit Reader 中打开。",
   "reader_view_name": "ZotLit Reader",
   "reader_takeover_unavailable": "此版本的 Obsidian 不支持在 ZotLit Reader 中打开所有 PDF。PDF 仍在 Obsidian 的 PDF 查看器中打开。"
 }

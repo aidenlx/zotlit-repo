@@ -399,13 +399,13 @@ export function annotation(
 export function attachmentReads(
   resolution: AttachmentResolution = { kind: "pending" },
 ): AttachmentReads & {
-  resolve: Mock<AttachmentReads["resolve"]>;
+  resolveFile: Mock<AttachmentReads["resolveFile"]>;
   answer(next: AttachmentResolution): void;
 } {
   const changes = Effect.runSync(PubSub.unbounded<void>());
   let current = resolution;
   return {
-    resolve: vi.fn<AttachmentReads["resolve"]>(() =>
+    resolveFile: vi.fn<AttachmentReads["resolveFile"]>(() =>
       Effect.sync(() => current),
     ),
     resolutionsChanged: Stream.fromPubSub(changes),

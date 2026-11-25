@@ -38,6 +38,7 @@ export class OpenLinkFailed extends Schema.TaggedError<
 export type WorkspaceSource = Pick<
   ObsidianWorkspace,
   | "activeEditor"
+  | "activeLeaf"
   | "leftSplit"
   | "rightSplit"
   | "getLastOpenFiles"
@@ -98,6 +99,7 @@ export interface FileMenuOrigin {
 export interface WorkspaceShape {
   readonly activeView: Effect.Effect<View | null>;
   readonly activeEditor: Effect.Effect<MarkdownFileInfo | null>;
+  readonly activeLeaf: Effect.Effect<WorkspaceLeaf | null>;
   readonly insertionEditor: Effect.Effect<MarkdownFileInfo | null>;
   readonly sidebarRoots: Effect.Effect<
     Pick<WorkspaceSource, "leftSplit" | "rightSplit">
@@ -213,6 +215,9 @@ export const makeWorkspace = Effect.fnUntraced(function* (
   return Workspace.of({
     activeView: Effect.sync(() => source.getActiveViewOfType(View)).pipe(
       Effect.withSpan("Workspace.activeView"),
+    ),
+    activeLeaf: Effect.sync(() => source.activeLeaf).pipe(
+      Effect.withSpan("Workspace.activeLeaf"),
     ),
     activeEditor: Effect.sync(() => source.activeEditor).pipe(
       Effect.withSpan("Workspace.activeEditor"),

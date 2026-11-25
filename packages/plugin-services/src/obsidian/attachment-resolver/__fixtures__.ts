@@ -1,6 +1,7 @@
 import type { ZoteroPrefSnapshot } from "#core/zotero-pref/service.ts";
 import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 
+import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import {
@@ -20,6 +21,7 @@ import { layerQueryClients, QueryClients } from "#core/query-client/service.ts";
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
 
 export const DATA_DIR = "/fixture/zotero-data";
+export const VAULT_DIR = "/fixture/zt-fixture-vault";
 
 export const nextAnnouncement = (
   resolver: Pick<AttachmentResolver["Service"], "resolutionsChanged">,
@@ -35,6 +37,7 @@ export interface ResolverHarnessOptions {
   seeds?: (string | null)[];
   rows?: string;
   prime?: boolean;
+  vaultDir?: string;
 }
 
 function prefSnapshot(
@@ -105,6 +108,10 @@ export async function openResolver(
           Layer.mock(ZoteroPref, {
             current: SubscriptionRef.get(paths),
             changes: SubscriptionRef.changes(paths),
+          }),
+          Layer.mock(Vault, {
+            fullPath: (path) =>
+              Effect.succeed(`${options.vaultDir ?? VAULT_DIR}/${path}`),
           }),
         ),
       ),
