@@ -8,7 +8,7 @@ import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 
 const run = promisify(execFile);
 const valid = {
-  message: "A human contribution",
+  message: "feat: a human contribution",
   conclusion: "success",
   state: "open",
   error: "",
@@ -20,6 +20,12 @@ it.each([
     label: "rejects an earlier attributed commit",
     message: "Made with Cursor",
     error: "Remove AI attribution",
+  },
+  {
+    ...valid,
+    label: "rejects an earlier commit without a Conventional Commits subject",
+    message: "A human contribution",
+    error: "Conventional Commits subject",
   },
   {
     ...valid,
@@ -43,7 +49,10 @@ it.each([
     const candidate = await repos.clone("task");
     const base = await git(cwd, "rev-parse", "HEAD");
     await repos.commit(candidate, "a.txt", { text: "a", message });
-    const head = await repos.commit(candidate, "b.txt", { text: "b" });
+    const head = await repos.commit(candidate, "b.txt", {
+      text: "b",
+      message: "test: change b.txt",
+    });
     await git(candidate, "push", "origin", "HEAD:refs/pull/3/head");
 
     await writeFile(

@@ -13,6 +13,10 @@ import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
 import { attributionLines, isAgentBranch } from "#ai-attribution";
 import {
+  CONVENTIONAL_FORMAT,
+  isConventionalSubject,
+} from "#conventional-commit";
+import {
   acquireDesktopSlot,
   describeLeaseEnd,
   DesktopSlotBlockedError,
@@ -315,6 +319,10 @@ export async function land(options: LandOptions): Promise<LandResult> {
     const record =
       options.record ??
       (options.github || squash ? await readRecord(sh) : undefined);
+    await checkSubjects(sh, {
+      squashTitle: squash ? record?.title : undefined,
+      upstream: `${remote}/${to}`,
+    });
     if (options.github) await checkGitHub(options.github, pre.branch);
     source = pre.branch;
     say(`Land ${source} into ${to}: waiting for the Land Turn.`);
@@ -636,6 +644,43 @@ async function preflight(
   }
   await sh.git("preflight", "remote", "get-url", remote);
   return { head: await sh.git("preflight", "rev-parse", "HEAD"), branch };
+}
+
+async function checkSubjects(
+  sh: Shell,
+  {
+    squashTitle,
+    upstream,
+  }: { squashTitle: string | undefined; upstream: string },
+): Promise<void> {
+  if (squashTitle !== undefined) {
+    if (!isConventionalSubject(squashTitle)) {
+      throw new LandFailure(
+        "preflight",
+        `The title of the record file ${LAND_RECORD_PATH}, "${squashTitle}", is the subject of the squash commit and is not a Conventional Commits subject. Write it as ${CONVENTIONAL_FORMAT}, such as "fix(annotations): keep the excerpt image size". Then land again.`,
+      );
+    }
+    return;
+  }
+  const log = await sh.git(
+    "preflight",
+    "log",
+    "--no-merges",
+    "--format=%h %s",
+    `${upstream}..HEAD`,
+  );
+  const wrong = log
+    .split("\n")
+    .filter(
+      (line) =>
+        line && !isConventionalSubject(line.slice(line.indexOf(" ") + 1)),
+    );
+  if (wrong.length > 0) {
+    throw new LandFailure(
+      "preflight",
+      `These commits do not have a Conventional Commits subject:\n${wrong.join("\n")}\nReword each subject as ${CONVENTIONAL_FORMAT}, or land with the default squash. Then land again.`,
+    );
+  }
 }
 
 interface LandRecord {

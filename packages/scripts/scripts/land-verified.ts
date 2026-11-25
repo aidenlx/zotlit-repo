@@ -1,6 +1,7 @@
 import { $ } from "zx";
 
 import { attributionLines, isAgentIdentity } from "#ai-attribution";
+import { isConventionalSubject } from "#conventional-commit";
 import { LAND_CI_CHECK } from "#land";
 import { ghLandGitHub } from "#land-github";
 
@@ -51,5 +52,10 @@ for (const commit of commits) {
     attributionLines(message!).length
   ) {
     throw new Error(`Remove AI attribution from commit ${commit}.`);
+  }
+  if (!isConventionalSubject(message!)) {
+    throw new Error(
+      `Give commit ${commit} a Conventional Commits subject, such as "fix(scope): description".`,
+    );
   }
 }

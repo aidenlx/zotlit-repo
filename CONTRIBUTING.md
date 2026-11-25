@@ -72,11 +72,11 @@ dependencies when the rebase changed a lockfile or manifest, runs
 `pnpm verify --local` on the rebased tree, pushes the branch and opens or
 updates its record pull request from the record file, waits for the CI check
 of the PR (`pnpm verify --pr`), and dispatches the landing workflow on `main`.
-The workflow checks the PR, CI result, and attribution on each incoming commit.
+The workflow checks the PR, CI result, and the attribution and Conventional Commits subject of each incoming commit.
 The landing App fast-forwards `main` to the verified commit. A failed check fails the land, and `main` stays as it was.
 GitHub then shows the PR as merged. `pnpm land --help` names the record file
 and its sections. `pnpm land --no-verify` skips the gate; the CI check
-still runs. Use `pnpm land --no-squash` to preserve the rebased commits. Releases preserve their version commit.
+still runs. Use `pnpm land --no-squash` to preserve the rebased commits. Every commit that reaches `main` has a [Conventional Commits](https://www.conventionalcommits.org/) subject: the record title for a squash land, each commit subject for `--no-squash`. Releases preserve their version commit.
 
 ### Landing App
 

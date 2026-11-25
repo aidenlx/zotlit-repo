@@ -50,7 +50,7 @@ Closes #<n>
 <the e2e files that ran, and their result>
 ```
 
-Write the title as a commit subject. A default land uses this title and the full record body as the squash commit message. Keep the prose short. Use the domain terms of the `GLOSSARY.md` of the package the change is in. The repository is public: write paths relative to the repository, and no local absolute paths or scratch log locations.
+Write the title as a Conventional Commits subject, `<type>(<scope>): <description>`, such as `fix(annotations): keep the excerpt image size`. A default land uses this title and the full record body as the squash commit message. Keep the prose short. Use the domain terms of the `GLOSSARY.md` of the package the change is in. The repository is public: write paths relative to the repository, and no local absolute paths or scratch log locations.
 
 ## Summary
 

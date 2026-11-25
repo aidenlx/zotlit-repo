@@ -9,6 +9,7 @@
     "#bundle-gate": "./lib/bundle-gate.ts",
     "#agent-docs": "./lib/agent-docs.ts",
     "#ai-attribution": "./lib/ai-attribution.ts",
+    "#conventional-commit": "./lib/conventional-commit.ts",
     "#commit-tree": "./lib/commit-tree.ts",
     "#desktop-paint": "./lib/desktop-paint.ts",
     "#desktop-slot": "./lib/desktop-slot.ts",

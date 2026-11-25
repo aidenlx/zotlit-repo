@@ -7,6 +7,7 @@ import { $ } from "zx";
 
 import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
+import { CONVENTIONAL_FORMAT } from "#conventional-commit";
 import {
   describeHolder,
   describeWaiters,
@@ -40,7 +41,7 @@ const epilogue = `A land holds the Land Turn while it fetches, rebases, installs
 From a task branch with a clean tree, a record file, and a gh login that GitHub accepts (checked before the turn):
   fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_INSTALL.join(" ")} when the rebase changed pnpm-lock.yaml, pnpm-workspace.yaml, or a package.json, run ${LAND_GATES.change.join(" ")}, push the branch to origin and open its record PR (or update the open one), wait for the "${LAND_CI_CHECK}" check of the PR head (pnpm verify --pr, ${RECORD_PR_WORKFLOW}), dispatch the trusted landing workflow to fast-forward ${SOURCE_BRANCH} to the checked head. The wait prints the state of the check at each read and ends after ${formatDuration(LAND_CI_WAIT_MS)}; a check that does not pass fails the land with the link to the job, and ${SOURCE_BRANCH} stays as it was. A land again on the same head reads the same result, unless the job ran again from its link. When ${SOURCE_BRANCH} moved during the gate or the CI wait, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves; when GitHub shows the PR as merged, the task branch is deleted on origin.
 
-Record file: ${LAND_RECORD_PATH} in the worktree. Its first line is "# <title>", the title of the PR; the rest is the PR body, with the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}.
+Record file: ${LAND_RECORD_PATH} in the worktree. Its first line is "# <title>", the title of the PR and, for a squash land, the subject of the commit, so a Conventional Commits subject (${CONVENTIONAL_FORMAT}); the rest is the PR body, with the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}.
 
 On a failure, land exits non-zero, names the failed step, and prints the path of the full log. The worktree stays on its branch with a clean tree: after a rebase conflict the branch is as it was; after a failed install or gate it is rebased onto the fetched ${SOURCE_BRANCH}, the tree to fix.
 
@@ -131,7 +132,7 @@ await yargs(hideBin(process.argv))
           type: "boolean",
           default: true,
           describe:
-            "create one commit from the land record before verification; --no-squash preserves the rebased commits",
+            "create one commit from the land record before verification; --no-squash preserves the rebased commits, each with a Conventional Commits subject",
         })
         .option("wait", {
           type: "string",
