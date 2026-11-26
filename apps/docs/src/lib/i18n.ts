@@ -16,8 +16,6 @@ export function isSiteLocale(value: string): value is SiteLocale {
 export const chineseCatalogPages = [
   "/",
   "/community",
-  "/privacy",
-  "/terms",
   "/learn",
   "/changelog",
   "/blog",

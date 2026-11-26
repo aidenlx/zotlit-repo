@@ -100,6 +100,6 @@ Ask questions, report bugs, or suggest features on the [ZotLit forum](https://zo
 
 <div align="center">
 
-[AGPL-3.0-or-later](LICENSE) · [Credits](https://zotlit.aidenlx.site/docs/credits) · Not affiliated with Obsidian or Zotero
+[AGPL-3.0-or-later](LICENSE) · [Trademarks](TRADEMARKS.md) · [Contributing](CONTRIBUTING.md) · [Credits](https://zotlit.aidenlx.site/docs/credits) · Not affiliated with Obsidian or Zotero
 
 </div>

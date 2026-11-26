@@ -2956,6 +2956,7 @@
   "docs_policy_effective_date": "生效日期",
   "docs_google_user_data_policy": "Google API 服务用户数据政策",
   "docs_license": "遵循 AGPL-3.0 开源协议",
+  "docs_trademark_policy": "商标政策（英文）",
   "docs_companion_release": "配套发布 Companion {version}。",
   "docs_release_channel_prerelease": "预发布版",
   "docs_release_channel_stable": "稳定版",
