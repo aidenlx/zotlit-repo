@@ -1,7 +1,7 @@
 import { SiteFooter } from "@/components/site-footer.tsx";
 import { pageHead, HOME_OG_ALT } from "@/lib/seo.ts";
 import policies from "@/lib/service-policies.json";
-import { formatReleaseDate, repoUrl } from "@/lib/shared.ts";
+import { formatReleaseDate, sourceBlobUrl } from "@/lib/shared.ts";
 import { m } from "@/paraglide/messages.js";
 import { getLocale } from "@/paraglide/runtime.js";
 
@@ -70,7 +70,7 @@ export function ServicePolicy({ kind }: { kind: PolicyKind }) {
               </a>
             ) : (
               <a
-                href={`${repoUrl}/blob/main/LICENSE`}
+                href={`${sourceBlobUrl}/LICENSE`}
                 className="underline underline-offset-4"
               >
                 {m.docs_license()}
@@ -80,7 +80,7 @@ export function ServicePolicy({ kind }: { kind: PolicyKind }) {
           {kind === "terms" && (
             <li>
               <a
-                href={`${repoUrl}/blob/main/TRADEMARKS.md`}
+                href={`${sourceBlobUrl}/TRADEMARKS.md`}
                 className="underline underline-offset-4"
               >
                 {m.docs_trademark_policy()}
