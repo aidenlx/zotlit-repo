@@ -19,10 +19,13 @@ import { OBSIDIAN_VERSION, OBSIDIAN_VERSION_PAIR } from "./obsidian-version.ts";
 import { e2eResultsDir } from "./results-dir.ts";
 
 const execFileAsync = promisify(execFile);
-const HOST_VAULT = "0123456789abcdef";
+export const HOST_VAULT = "0123456789abcdef";
 
 export default async function setup() {
-  if (!process.env.ZOTLIT_RUN_CONTAINER) return;
+  if (!process.env.ZOTLIT_RUN_CONTAINER)
+    throw new Error(
+      "The End-to-end Run runs in its Run Container. Start it from the repo root with `pnpm e2e`.",
+    );
   if (process.env.ZOTLIT_E2E_OBSIDIAN_READY) return;
   const root = await getWorkspaceRoot(import.meta.dirname);
   const profile = join(process.env.XDG_CONFIG_HOME!, "obsidian");

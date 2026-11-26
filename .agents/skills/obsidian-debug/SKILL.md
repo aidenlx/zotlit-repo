@@ -5,7 +5,8 @@ description: |
   Use after editing plugin UI or behavior to confirm the change works in the real app, when
   debugging why something looks wrong at runtime, or when another skill says "verify in Obsidian."
   Also use when the user asks to test, check, run, or screenshot the plugin, or to inspect
-  desktop Obsidian with CDP, iOS with Safari Web Inspector, or Android with adb and CDP.
+  desktop Obsidian with CDP, iOS with Safari Web Inspector, or Android with adb and CDP,
+  or the Obsidian of an e2e journey's Run Container.
 ---
 
 # Debug Loop
@@ -18,6 +19,15 @@ plugin build, and read start-up time from the Mac.
 
 **Android** — follow [android.md](android.md) to set up the global emulator or a USB device, attach
 to the Obsidian WebView and its Workers, install a plugin build, and read start-up time and memory.
+
+**E2E journey** — to write or update a journey, or to see why one fails, hold its Run
+Container as [Inspect a held run](../../../packages/e2e/AGENTS.md#inspect-a-held-run) tells you.
+Run each call in [Commands](#commands) and [DevTools](devtools.md) through
+`docker exec <container> node packages/scripts/scripts/<script>`, for example
+`docker exec <container> node packages/scripts/scripts/obsidian-cli.ts --code '<js>' vault=<id>`,
+with `<container>` and `<id>` from `held.json`. The guest's
+Obsidian serves CDP already and takes no Desktop Slot: skip Vault setup, the hold in Loop, and
+Teardown.
 
 On desktop, make every Obsidian CLI call through `packages/scripts/scripts/obsidian-cli.ts` (written
 `obsidian-cli.ts` below), run from the repo root. It takes the `obsidian` binary's arguments

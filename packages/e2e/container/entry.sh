@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-export HOME=/tmp/run-home
 mkdir -m 700 "$HOME"
+git config --global --add safe.directory "$PWD"
 
 step=source
 host_results=${ZOTLIT_E2E_HOST_RESULTS:-$ZOTLIT_E2E_RESULTS}
@@ -15,8 +15,6 @@ trap 'code=$?
   exit "$code"' ERR
 
 {
-  mkdir worktree
-  cd worktree
   tar --create --directory=/source --no-recursion --null --files-from=- |
     tar --extract --no-same-owner
   git init -q
@@ -29,9 +27,6 @@ pnpm install --frozen-lockfile --prefer-offline --store-dir=/pnpm-store 2>&1 |
   tee "$ZOTLIT_E2E_RESULTS/install.log"
 
 step=display
-export DISPLAY=:99 XDG_RUNTIME_DIR=/tmp/run-runtime
-export XDG_CONFIG_HOME="$HOME/.config"
-export LIBGL_ALWAYS_SOFTWARE=1
 mkdir -m 700 "$XDG_RUNTIME_DIR"
 Xvfb "$DISPLAY" -screen 0 1280x1024x24 -noreset >"$ZOTLIT_E2E_RESULTS/display.log" 2>&1 &
 for ((attempt=0; attempt<100; attempt++)); do

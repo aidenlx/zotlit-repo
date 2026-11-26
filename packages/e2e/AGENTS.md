@@ -1,6 +1,6 @@
 # @zotlit/e2e
 
-`pnpm e2e` runs the desktop and paired Vitest projects in one disposable Run Container. It starts its own Obsidian and, for paired cases, its own Zotero. Start Docker before running a journey. The [Fixture guide](../../docs/fixture.md) owns the vault cases and data.
+`pnpm e2e` runs the desktop and paired Vitest projects in one disposable Run Container. It starts its own Obsidian and, for paired cases, its own Zotero. The Run Container is the one place a journey runs; Vitest started on the host stops at setup. Start Docker before running a journey. The [Fixture guide](../../docs/fixture.md) owns the vault cases and data.
 
 ## Edit a journey
 
@@ -8,6 +8,17 @@
 2. From the repo root, run `pnpm e2e --project=desktop src/<area>.e2e.ts`. Add `-t '<test name>'` to iterate. Use `--project=paired` for Zotero interaction. Some paired cases use data created by earlier cases in that file.
 3. Read the evidence directory printed by the launcher. It contains `results.json`, `console.log`, failure screenshots, and `paired-startup.log` when paired setup fails. For a run started by another tool, give it a dedicated `ZOTLIT_E2E_RESULTS` directory. Concurrent runs can move the `latest` link.
 4. Rerun the complete changed file after the focused case passes. The launcher copies current tracked and unignored files, including uncommitted edits, and builds the dev bundles. To watch a journey in the guest, see `pnpm e2e --help` for VNC.
+
+### Inspect a held run
+
+To find selectors, read state, or see why a case fails, hold the run and inspect the guest's own Obsidian and Zotero:
+
+1. Start the focused run in the background with `ZOTLIT_E2E_HOLD=1` and a dedicated `ZOTLIT_E2E_RESULTS` directory. To explore before you write steps, select a case that reaches the workflow. The first case of a file holds right after its start-up.
+2. Wait for `held.json` in that directory. It names the container and the targets to probe.
+3. Probe with `docker exec <container> <command>`. The guest runs the repo scripts as the host does: `/obsidian-debug` and `/zotero-rdp-debug` give the commands. For the whole display, use `scrot`; for OS input, `xdotool`; for windows, `xwininfo`. Add `--user root` for root, or `-it` with `bash` for a shell. Write output to `/results/<name>`, the evidence directory. Read a file from the live worktree at `/source/<path>`.
+4. Delete `held.json` to go on. The run holds again after each later case and then ends as usual.
+
+`pnpm e2e --help` has the hold contract. To try a code edit, start a new run: the guest builds from the files of its start.
 
 Use `pnpm e2e:query` for the Query CLI cases. Ordinary e2e checks correctness and records timings. To enforce a hardware-sensitive limit, run the optional `pnpm e2e:performance` alone on the [reference MacBook](../../docs/adr/0116-e2e-timing-limits-use-a-reference-machine.md#reference-baseline).
 

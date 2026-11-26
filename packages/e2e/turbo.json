@@ -21,6 +21,7 @@
         "ZOTLIT_E2E_RESULTS",
         "ZOTLIT_E2E_REQUIRED",
         "ZOTLIT_E2E_PERFORMANCE",
+        "ZOTLIT_E2E_HOLD",
         "ZOTLIT_RUN_CONTAINER",
         "DISPLAY",
         "XDG_CONFIG_HOME",

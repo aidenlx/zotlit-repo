@@ -40,7 +40,7 @@ const EXIT_USAGE = 2;
 
 const epilogue = `Host tools share one Desktop Slot across all clones, worktrees, and sessions. A holder joins the Desktop Queue in first-in, first-out order and takes an Exclusive Hold when the slot is free. The holder then passes the Memory Gate, and its Lease starts. The End-to-end Run uses its own container and takes no Desktop Slot.
 
-Paint Check: before it joins the queue, a holder asks macOS whether the desktop can paint a window (an awake display and an unlocked session). An automated host run (host Vitest, measure:startup, measure:query, a docs walk) does not start without one and exits ${EXIT_ADMISSION_BLOCKED}; a manual hold (run, pnpm fixture open|dev) starts with a warning. While a hold lasts, caffeinate -d -i keeps the display and the system awake.
+Paint Check: before it joins the queue, a holder asks macOS whether the desktop can paint a window (an awake display and an unlocked session). An automated host run (measure:startup, measure:query, a docs walk) does not start without one and exits ${EXIT_ADMISSION_BLOCKED}; a manual hold (run, pnpm fixture open|dev) starts with a warning. While a hold lasts, caffeinate -d -i keeps the display and the system awake.
 
 Exit codes:
   ${EXIT_ADMISSION_BLOCKED}   the Admission Deadline passed; blocked at admission, not a failure.
@@ -50,14 +50,14 @@ Exit codes:
   run otherwise exits with the command's code, or 128 plus the signal number.
 
 Admission Deadline: ${formatDuration(ADMISSION_DEADLINE_MS)} by default, for the queue, a slot, and the Memory Gate together.
-Lease of an automated holder: each sign of progress (a test case or hook of host Vitest, a measurement step, output of a Land Turn's gate) moves its end to now plus a silence limit: host Vitest and measure:startup ${formatDuration(SILENCE_LIMIT_MS.e2e)}; a docs walk ${formatDuration(SILENCE_LIMIT_MS.docsWalk)}; measure:query ${formatDuration(SILENCE_LIMIT_MS.measureQuery)}; a Land Turn ${formatDuration(SILENCE_LIMIT_MS.childOutput)}. A healthy run is never ended; a silent one ends with exit ${EXIT_LEASE_ENDED} and says how long it was silent and what its last progress was. No automated holder keeps a slot more than ${formatDuration(MAX_LEASE_MS)} after admission.
+Lease of an automated holder: each sign of progress (a test case or hook of host Vitest, a measurement step, output of a Land Turn's gate) moves its end to now plus a silence limit: measure:startup ${formatDuration(SILENCE_LIMIT_MS.e2e)}; a docs walk ${formatDuration(SILENCE_LIMIT_MS.docsWalk)}; measure:query ${formatDuration(SILENCE_LIMIT_MS.measureQuery)}; a Land Turn ${formatDuration(SILENCE_LIMIT_MS.childOutput)}. A healthy run is never ended; a silent one ends with exit ${EXIT_LEASE_ENDED} and says how long it was silent and what its last progress was. No automated holder keeps a slot more than ${formatDuration(MAX_LEASE_MS)} after admission.
 Lease of a manual hold (run, pnpm fixture open|dev): no end while no run waits. When the head waiter cannot get the Desktop Slot because a manual holder has it, that holder gets ${formatDuration(NOTICE_MS)} of notice: it prints who waits and when it ends, then ends its command's process group with exit ${EXIT_LEASE_ENDED}. If no run waits at the end of the notice, the hold goes on. An automated holder never yields.
 A holder that outlives its Lease end by ${formatDuration(EVICTION_GRACE_MS)} is evicted by the head waiter: SIGTERM to its process group, SIGKILL after ${formatDuration(KILL_AFTER_MS)}.
 Durations: 300ms, 90s, 20m, 2h.
 
 Environment:
   ${DESKTOP_SLOT_ENV}     the holder's token; a ZotLit tool the command starts reuses the hold, inside its Lease
-  ${DESKTOP_WAIT_ENV}     the Admission Deadline of an in-process holder (host Vitest, host measurements, and Run Container memory admission)
+  ${DESKTOP_WAIT_ENV}     the Admission Deadline of an in-process holder (docs walks, host measurements, and Run Container memory admission)
   ${DESKTOP_DIR_ENV}      the state directory (now ${desktopStateDir()})
   ${MEMORY_GATE_ENV}=off  skip the Memory Gate
   ${DESKTOP_PAINT_ENV}=off  skip the Paint Check and the display assertion`;

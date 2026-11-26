@@ -3,7 +3,8 @@ name: zotero-rdp-debug
 description: |
   Ground truth from the running Zotero plugin over RDP. Use to inspect Zotero runtime state,
   to diagnose an observer or notifier that misfires, or to verify the plugin's outbound HTTP
-  notifications. Also covers "debug the plugin" or "check it in Zotero."
+  notifications, or to inspect the Paired Zotero of an e2e journey's Run Container. Also covers
+  "debug the plugin" or "check it in Zotero."
 ---
 
 # Debug the Zotero plugin over RDP
@@ -11,6 +12,13 @@ description: |
 Source tells you what should happen; the running app tells you what does. Evaluate in
 Zotero's parent process with `packages/scripts/scripts/zotero-rdp.ts` (written `zotero-rdp.ts`
 below), run from the repo root.
+
+**E2E journey** — to write or update a journey, or to see why a paired case fails, hold its
+Run Container with `--project=paired` as
+[Inspect a held run](../../../packages/e2e/AGENTS.md#inspect-a-held-run) tells you, in place
+of steps 2 and 4. Probe with `docker exec <container> node packages/scripts/scripts/zotero-rdp.ts
+--port <zoteroPort> '<expression>'`, with both values from `held.json`. Probe `Zotero.version`
+first: the guest runs the pinned Zotero, and API names follow that version.
 
 1. **Contract** — run `zotero-rdp.ts --help`. Done when you know how it finds the port, how
    to write a sync and an async expression, and what its exit codes mean.
