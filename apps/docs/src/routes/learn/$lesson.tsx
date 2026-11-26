@@ -9,6 +9,7 @@ import { ReleaseSnapshotProvider } from "@/components/release-snapshot.tsx";
 import { lessons } from "@/lib/collections.ts";
 import { installLessonSlugs } from "@/lib/github-releases.ts";
 import { localeInput } from "@/lib/i18n.ts";
+import { lessonOpeningView } from "@/lib/lesson-opening.ts";
 import { getPageLocaleState } from "@/lib/locale-state.ts";
 import { getReleaseSnapshot } from "@/lib/release-data.ts";
 import { pageHead } from "@/lib/seo.ts";
@@ -54,6 +55,15 @@ const getLesson = createServerFn({ method: "GET" })
         steps: data.steps,
         end: { title: data.end.title, caption: data.end.caption },
         further: lessonFurther(data.further, locale),
+        opening: lessonOpeningView(
+          {
+            opening: data.opening,
+            media: data.media,
+            steps: data.steps,
+            further: data.further,
+          },
+          locale,
+        ),
         others: pages
           .filter((entry) => entry.url !== page.url)
           .map((entry) => ({

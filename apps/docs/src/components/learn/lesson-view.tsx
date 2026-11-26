@@ -11,10 +11,12 @@ import {
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/cn.ts";
+import type { LessonOpeningView } from "@/lib/lesson-opening.ts";
 import * as m from "@/paraglide/messages.js";
 import { localizeHref } from "@/paraglide/runtime.js";
 
 import { textLinkClass } from "./action-classes.ts";
+import { DecisionOpening } from "./decision-opening.tsx";
 import {
   bodyClass,
   buttonClass,
@@ -63,6 +65,7 @@ export interface LessonViewData {
   steps: LessonStepMeta[];
   end: { title: string; caption: string };
   further: FurtherLink[];
+  opening?: LessonOpeningView;
   others: ChoreLink[];
 }
 
@@ -256,6 +259,9 @@ export function LessonView({
           <Outcome lesson={lesson} active={ready && !wide}>
             {startButton}
           </Outcome>
+          {lesson.opening && (
+            <DecisionOpening opening={lesson.opening} media={lesson.media} />
+          )}
           <div>
             <div
               data-lesson-bar=""

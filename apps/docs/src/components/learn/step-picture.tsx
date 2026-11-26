@@ -26,6 +26,7 @@ export function StepPicture({
   playNow = false,
   thumb = false,
   priority = false,
+  lazy = false,
 }: {
   media: string;
   n: number;
@@ -36,6 +37,7 @@ export function StepPicture({
   playNow?: boolean;
   thumb?: boolean;
   priority?: boolean;
+  lazy?: boolean;
 }) {
   const entry = stepMedia(media, n);
   if (!entry) return null;
@@ -48,7 +50,7 @@ export function StepPicture({
       width={entry.still.width}
       height={entry.still.height}
       alt={alt}
-      loading={thumb ? "lazy" : undefined}
+      loading={lazy || thumb ? "lazy" : undefined}
       priority={priority}
       className={thumb ? "max-h-none!" : "max-h-full object-contain"}
     />
