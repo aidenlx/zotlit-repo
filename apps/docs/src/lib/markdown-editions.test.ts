@@ -61,6 +61,90 @@ describe("docs page titles in the Markdown surface", () => {
   });
 });
 
+const decisionLessons = [
+  {
+    slug: "annotate-zotero-pdfs-in-obsidian",
+    shot: "annotate-pdfs-in-obsidian/step-4",
+    guides: [
+      "/docs/how-to/open-pdf-in-obsidian.md",
+      "/docs/how-to/edit-pdf-annotations.md",
+      "/docs/how-to/use-annotation-view.md",
+    ],
+    job: {
+      en: "read and annotate a Zotero PDF in Obsidian",
+      "zh-CN": "在 Obsidian 中阅读并标注 Zotero 的 PDF",
+    },
+  },
+  {
+    slug: "export-obsidian-to-word-with-citations",
+    shot: "export-to-word-with-a-bibliography/step-2",
+    guides: [
+      "/docs/how-to/export-note-with-citations.md",
+      "/docs/how-to/export-with-native-pandoc.md",
+      "/docs/how-to/pandoc-citation-workflow.md",
+    ],
+    job: {
+      en: "export a cited Obsidian draft to Word",
+      "zh-CN": "把带引用的 Obsidian 草稿导出为 Word",
+    },
+  },
+] as const;
+
+describe("lesson decision openings", () => {
+  it.each(
+    decisionLessons.flatMap((lesson) =>
+      (["en", "zh-CN"] as const).map((locale) => ({ ...lesson, locale })),
+    ),
+  )(
+    "$slug states the research job before step 1 in $locale",
+    async ({ slug, shot, guides, job, locale }) => {
+      const edition = await getMarkdownEdition(
+        { section: "learn", slugs: [slug] },
+        { locale },
+      );
+      const stepAt = edition?.search(/^## (?:Step 1|第 1 )\b/m) ?? -1;
+      const opening = edition?.slice(0, stepAt) ?? "";
+      const prefix = locale === "zh-CN" ? "/zh-CN" : "";
+      expect(stepAt).toBeGreaterThan(0);
+      expect(opening).toContain(job[locale]);
+      expect(opening).toContain(
+        locale === "zh-CN"
+          ? "研究者、学生或学者"
+          : "researchers, students, or scholars",
+      );
+      expect(opening).toContain("Zotero 10");
+      expect(opening).toContain(locale === "zh-CN" ? "标注" : "annotations");
+      expect(opening).toContain(
+        locale === "zh-CN" ? "保存文库和 PDF" : "keeps the library and the PDF",
+      );
+      expect(opening).toContain(
+        locale === "zh-CN" ? "保存你的思考" : "keeps your thinking",
+      );
+      expect(opening).toContain(
+        locale === "zh-CN" ? "引文样式" : "citation styles installed in Zotero",
+      );
+      expect(opening).toContain(
+        locale === "zh-CN" ? "普通的 Markdown" : "ordinary Markdown",
+      );
+      expect(opening).toContain("1.15.1");
+      expect(opening).toContain("1.13.4");
+      expect(opening).toContain("2.2.4");
+      expect(opening).toContain(locale === "zh-CN" ? "桌面端" : "desktop only");
+      expect(opening).toContain("Markdown");
+      expect(opening).toContain(`/img/learn/${shot}`);
+      expect(opening).toContain(`](${prefix}/docs/install-zotlit.md)`);
+      expect(opening).toContain(`](${prefix}/learn.md)`);
+      expect(opening).toContain("](#1)");
+      expect(opening).not.toContain("/changelog/2.2.4");
+      for (const guide of guides) {
+        expect(opening).toContain(`](${prefix}${guide})`);
+      }
+      expect(opening).not.toContain("2.3.0");
+      expect(edition?.slice(stepAt)).toContain("## ");
+    },
+  );
+});
+
 describe("old anchors in the Markdown surface", () => {
   it("leaves them out, and the step they stood before reads on", async () => {
     const edition = await getMarkdownEdition({

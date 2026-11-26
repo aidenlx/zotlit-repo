@@ -78,6 +78,17 @@ export const learnSchema = v.object({
     caption: v.string(),
     next: v.string(),
   }),
+  opening: v.optional(
+    v.object({
+      heading: v.string(),
+      job: v.string(),
+      audience: v.string(),
+      difference: v.pipe(v.array(v.string()), v.minLength(1)),
+      limits: v.string(),
+      next: v.string(),
+      shot: v.pipe(v.number(), v.integer(), v.minValue(1)),
+    }),
+  ),
   further: v.pipe(
     v.array(
       v.object({

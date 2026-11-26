@@ -13,6 +13,7 @@ import { UiLabel } from "@/components/ui-label.tsx";
 import * as m from "@/paraglide/messages.js";
 
 import type { SiteLocale } from "./i18n.ts";
+import { lessonOpeningMarkdown, lessonOpeningView } from "./lesson-opening.ts";
 import { localizeMarkdownLinks } from "./markdown-locale-links.ts";
 import type { MarkdownPage } from "./markdown-routes.ts";
 import { docsPageTitle } from "./shared.ts";
@@ -86,6 +87,18 @@ async function renderLessonPage(
   const needs = data.needs
     .map(({ item, detail }) => `- **${item}:** ${detail}`)
     .join("\n");
+  const opening = lessonOpeningView(
+    {
+      opening: data.opening,
+      media: data.media,
+      steps: data.steps,
+      further: data.further,
+    },
+    locale,
+  );
+  const openingMarkdown = opening
+    ? `${lessonOpeningMarkdown(opening, data.media)}\n`
+    : "";
   const body = await renderBody(page, locale, {
     ...mdxComponents,
     ...lessonMarkdownComponents(data),
@@ -108,6 +121,7 @@ ${m.docs_learn_lesson_meta({ number: data.lesson, total: pages.length, minutes: 
 
 ${needs}
 
+${openingMarkdown}
 ${body}
 
 ## ${m.docs_learn_md_end({}, { locale })}
