@@ -12,5 +12,5 @@ export const migrationGuideUrl = (): string =>
 export const blogUrl = (): string => docsUrl("/blog");
 export const changelogUrl = (): string => docsUrl("/changelog");
 export const GITHUB = `https://github.com/${RELEASE_REPOSITORY}`;
-export const BUG_REPORT = "https://zotlit-forum.aidenlx.site/c/bug-reports/7";
+export const BUG_REPORT = `${GITHUB}/discussions/new?category=bug-reports`;
 export const SPONSOR = "https://github.com/sponsors/aidenlx";
