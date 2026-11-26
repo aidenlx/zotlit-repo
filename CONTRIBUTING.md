@@ -38,20 +38,21 @@ wt switch --create fix/<topic> --base origin/main   one worktree per change
                                                  changed packages and their dependents
 pnpm land                                        rebase, squash, verify --local, record PR,
                                                  wait for its CI tests, fast-forward main
-wt remove fix/<topic>
+review the task worktree                         preserve local work and evidence
+wt remove fix/<topic>                            when the checkout is ready to retire
 ```
 
 The root [`AGENTS.md`](AGENTS.md) is the reference for each step, for people
 and agents alike:
 
-| Step                         | Read                                                                                             |
-| ---------------------------- | ------------------------------------------------------------------------------------------------ |
-| Toolchain and first setup    | `AGENTS.md` "Bootstrap & toolchain"                                                              |
-| Where code goes              | `AGENTS.md` "Repo shape", then the `AGENTS.md` of the app or package: lint enforces their layers |
-| Worktrees and scratch files  | `AGENTS.md` "Worktrees" and "Working files"                                                      |
-| Checks and tests             | `AGENTS.md` "Commands" and "Testing"; `packages/e2e/AGENTS.md` for the End-to-end Run            |
-| Landing, the queue, failures | `AGENTS.md` "Landing a change"                                                                   |
-| Decisions and their reasons  | `docs/adr/`                                                                                      |
+| Step                         | Read                                                                                                                                |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Toolchain and first setup    | `AGENTS.md` "Bootstrap & toolchain"                                                                                                 |
+| Where code goes              | `AGENTS.md` "Repo shape", then the `AGENTS.md` of the app or package: lint enforces their layers                                    |
+| Worktrees and scratch files  | `AGENTS.md` "Worktrees" and "Working files", then [Retire the task worktree](.agents/skills/land/SKILL.md#retire-the-task-worktree) |
+| Checks and tests             | `AGENTS.md` "Commands" and "Testing"; `packages/e2e/AGENTS.md` for the End-to-end Run                                               |
+| Landing, the queue, failures | `AGENTS.md` "Landing a change"                                                                                                      |
+| Decisions and their reasons  | `docs/adr/`                                                                                                                         |
 
 The gate is `pnpm verify`. `pnpm land` runs `pnpm verify --local` on the tree
 it pushes, and the record pull request of the land runs `pnpm verify --pr` in

@@ -23,9 +23,15 @@ then: move the local main, read the PR state; when GitHub shows it as merged,
 2. Write the record file in the task worktree (see [The record file](#the-record-file)). `land` refuses a land without it before it pushes anything.
 3. Use `pnpm land` to make one commit with the record title and body. Use `pnpm land --no-squash` when the task calls for separate commits. Run the chosen command from the task worktree, in the background: the gate and the CI wait take minutes, and the wait for the turn can take longer. While it waits, the land checks the branch against each new `origin/main` and exits at `rebase` on a conflict. Wait for it to exit.
 4. Read the result:
-   - **Exit 0:** landed. The output names the record PR and the pushed commit. When it says that the PR does not show as merged, the task branch stays on origin and the PR stays open: report this on the ticket. Close the ticket as `docs/agents/issue-tracker.md` describes, then remove the worktree with `wt remove <branch>`.
+   - **Exit 0:** landed. The output names the record PR and the pushed commit. When it says that the PR does not show as merged, the task branch stays on origin and the PR stays open: report this on the ticket. Close the ticket as `docs/agents/issue-tracker.md` describes, then review the task worktree for retirement.
    - **Exit 1:** a step failed. The output names the step and the path of the full log; read the log.
    - **Exit 75:** the turn did not come within the wait (1 h by default, `--wait <duration>`). Report it as blocked by the land that `pnpm land status` names, not as a failure.
+
+## Retire the task worktree
+
+After a successful land, review the linked worktree used for that task. Confirm its current HEAD matches the landed commit. Run `git status --short --untracked-files=all` and `git ls-files --others --ignored --exclude-standard --directory`. Inspect ignored directories that can hold original work, especially `.scratch/`, fixture vaults, and the nested `video/` checkout. Preserve any deliverables and evidence the task still needs.
+
+When only reproducible files remain and the task has finished using the checkout, run `wt remove <branch>` from the primary worktree. Confirm the path is gone from `git worktree list`. In the handoff, report the worktree removed or give the retained path and the specific work or files that still need it.
 
 ## The record file
 
