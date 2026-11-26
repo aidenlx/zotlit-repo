@@ -20,7 +20,7 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import {
   layerQueryClients,

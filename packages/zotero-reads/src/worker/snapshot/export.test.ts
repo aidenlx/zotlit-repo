@@ -14,6 +14,8 @@ import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" 
 import { MARKER_KEYS } from "./allowlist.ts";
 import { exportItemSnapshot } from "./export.ts";
 
+import { snapshotRevision } from "#desktop/snapshot-revision.ts";
+
 const CONTRACT_FIELD_ALIASES = ["abstract", "containerTitle", "citekey"];
 
 const ZOTERO_FIELD_NAMES = new Map(
@@ -35,6 +37,10 @@ const CUSTOM_FIELD_SEED = `
   insert into itemData (itemID, fieldID, valueID) values (1, 13, 103);
 `;
 const SEEDED_CUSTOM_FIELDS = ["shelfLocation"];
+const SAMPLE_OPTIONS = {
+  provenance: { kind: "sample", id: "journal-article" },
+  revision: snapshotRevision,
+} as const;
 
 describe("exportItemSnapshot", () => {
   it("exports the selected Item with contract identity and provenance", () => {
@@ -43,7 +49,7 @@ describe("exportItemSnapshot", () => {
     const snapshot = exportItemSnapshot(
       fixture.client,
       { library: { type: "personal" }, key: "MAIN2345" },
-      { provenance: { kind: "sample", id: "journal-article" } },
+      SAMPLE_OPTIONS,
     );
 
     expect(snapshot).toMatchObject({
@@ -87,7 +93,7 @@ describe("exportItemSnapshot", () => {
     const snapshot = exportItemSnapshot(
       fixture.client,
       { library: { type: "personal" }, key: "MAIN2345" },
-      { provenance: { kind: "sample", id: "journal-article" } },
+      SAMPLE_OPTIONS,
     );
 
     const item = queryItemFrom(snapshot.seed!);
@@ -109,7 +115,7 @@ describe("exportItemSnapshot", () => {
     const snapshot = exportItemSnapshot(
       fixture.client,
       { library: { type: "personal" }, key: "MAIN2345" },
-      { provenance: { kind: "sample", id: "journal-article" } },
+      SAMPLE_OPTIONS,
     );
     const json = JSON.stringify(snapshot);
 
@@ -139,7 +145,7 @@ describe("exportItemSnapshot", () => {
     const snapshot = exportItemSnapshot(
       fixture.client,
       { library: { type: "personal" }, key: "MAIN2345" },
-      { provenance: { kind: "sample", id: "journal-article" } },
+      SAMPLE_OPTIONS,
     );
 
     expect(snapshot.roots.note).not.toHaveProperty("undeclaredZoteroField");
@@ -159,7 +165,7 @@ describe("exportItemSnapshot", () => {
     const snapshot = exportItemSnapshot(
       fixture.client,
       { library: { type: "personal" }, key: "MAIN2345" },
-      { provenance: { kind: "sample", id: "journal-article" } },
+      SAMPLE_OPTIONS,
     );
 
     const undeclared = [
@@ -187,12 +193,12 @@ describe("exportItemSnapshot", () => {
     const personal = exportItemSnapshot(
       fixture.client,
       { library: { type: "personal" }, key: "MAIN2345" },
-      { provenance: { kind: "sample", id: "journal-article" } },
+      SAMPLE_OPTIONS,
     );
     const group = exportItemSnapshot(
       fixture.client,
       { library: { type: "group", groupID: 4242 }, key: "GRUP2345" },
-      { provenance: { kind: "sample", id: "journal-article" } },
+      SAMPLE_OPTIONS,
     );
 
     expect(personal.roots.note.weblink).toBeNull();
@@ -220,7 +226,7 @@ describe("exportItemSnapshot", () => {
     const snapshot = exportItemSnapshot(
       fixture.client,
       { library: { type: "personal" }, key: "MAIN2345" },
-      { provenance: { kind: "sample", id: "journal-article" } },
+      SAMPLE_OPTIONS,
     );
 
     expect(snapshot.roots.annotations).toHaveLength(1);
@@ -244,7 +250,7 @@ describe("exportItemSnapshot", () => {
     const snapshot = exportItemSnapshot(
       fixture.client,
       { library: { type: "personal" }, key: "MAIN2345" },
-      { provenance: { kind: "sample", id: "journal-article" } },
+      SAMPLE_OPTIONS,
     );
     const ajv = new Ajv2020({ strict: true });
 
@@ -264,7 +270,7 @@ describe("exportItemSnapshot", () => {
       fixture.client,
       { library: { type: "personal" }, key: "MAIN2345" },
       {
-        provenance: { kind: "sample", id: "journal-article" },
+        ...SAMPLE_OPTIONS,
         vaultTargets: {
           notes: { NOTE2345: "Notes/Reading note.md" },
           attachments: { ATCH2345: "Attachments/paper.pdf" },
@@ -306,7 +312,7 @@ describe("exportItemSnapshot", () => {
         fixture.client,
         { library: { type: "personal" }, key: "MAIN2345" },
         {
-          provenance: { kind: "sample", id: "journal-article" },
+          ...SAMPLE_OPTIONS,
           vaultTargets: { attachments: { ATCH2345: path } },
         },
       );
@@ -332,6 +338,7 @@ describe("exportItemSnapshot", () => {
             installationId: "installation-1",
             vault: "/Users/researcher/Vault",
           },
+          revision: snapshotRevision,
         },
       ),
     ).toThrow("absolute path");

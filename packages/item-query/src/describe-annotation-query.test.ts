@@ -9,10 +9,10 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
+import { faultCode, runEffect } from "./__fixtures__/test-helpers.ts";
 import { describeAnnotationQuery } from "./describe-annotation-query.ts";
 import { ANNOTATIONS, collectQuery } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
-import { faultCode, runEffect } from "./test-helpers.ts";
 
 let scenario: ScenarioDatabase<NodeDatabaseClient>;
 

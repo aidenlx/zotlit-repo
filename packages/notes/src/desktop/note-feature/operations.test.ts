@@ -80,6 +80,7 @@ import type {
   AttachmentSource,
   SourceOrigin,
 } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import { layerVaultDiskOver } from "@zotlit/plugin-shell/desktop/__fixtures__/vault-disk.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import { filenameSuffix, TemplateEngine } from "@zotlit/templates";
 import { MissingTemplateError, TemplateFacade } from "@zotlit/templates/facade";
@@ -869,6 +870,7 @@ describe("createNote", () => {
     if (mode === "retain-replaced") {
       const host = Layer.mergeAll(
         layerHost({ vault: app.vault, fileManager: app.fileManager }),
+        layerVaultDiskOver(app.vault),
         NodeFileSystem.layer,
       );
       for (const [request] of resolver.resolve.mock.calls) {

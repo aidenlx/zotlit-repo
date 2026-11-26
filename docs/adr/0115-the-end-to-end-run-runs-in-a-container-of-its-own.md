@@ -1,8 +1,10 @@
 ---
-status: accepted
+status: amended by ADR-0118
 ---
 
 # The End-to-end Run runs in a container of its own
+
+> **Amended by [ADR 0118](0118-journeys-run-and-are-inspected-only-in-the-run-container.md).** The suite runs only in the Run Container; a host `vitest run` stops at setup. An agent inspects a journey in its held Run Container with `docker exec`; `/obsidian-debug` keeps the host desktop for ordinary plugin checks.
 
 Supersedes in part ADR 0077 and ADR 0078 (the Desktop Slot pool and the sharing rules) for the End-to-end Run. Spec: [#197](https://github.com/aidenlx/zotlit-repo/issues/197). Research: [End-to-end Run isolation](../research/end-to-end-run-isolation.md).
 

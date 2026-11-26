@@ -8,9 +8,9 @@ description: "Use when a change is done and should reach main, when a land fails
 A change reaches `main`, the one long-lived branch, only through `pnpm land`. One land at a time per machine holds the Land Turn, in the order the lands started, and in that turn it:
 
 ```text
-fetch origin/main ─▶ rebase the branch onto it ─▶ install ─▶ pnpm verify --local
+fetch origin/main ─▶ rebase ─▶ squash by default ─▶ install ─▶ pnpm verify --local
    ▲   ─▶ record: push the branch, open or update its record PR
-   │   ─▶ ci: wait for the CI check of the PR head ─▶ push HEAD to main
+   │   ─▶ ci: wait for record PR CI ─▶ landing App fast-forwards main to the checked commit
    │                                                      │ main moved
    └──────────────────────────────────────────────────────┘
 install: pnpm install --frozen-lockfile --prefer-offline, only when the rebase
@@ -21,7 +21,7 @@ then: move the local main, read the PR state; when GitHub shows it as merged,
 
 1. Commit every change on the task branch. `land` refuses a tree with uncommitted or untracked files.
 2. Write the record file in the task worktree (see [The record file](#the-record-file)). `land` refuses a land without it before it pushes anything.
-3. Run `pnpm land` from the task worktree, in the background: the gate and the CI wait take minutes, and the wait for the turn can take longer. While it waits, the land checks the branch against each new `origin/main` and exits at `rebase` on a conflict. Wait for it to exit.
+3. Use `pnpm land` to make one commit with the record title and body. Use `pnpm land --no-squash` when the task calls for separate commits. Run the chosen command from the task worktree, in the background: the gate and the CI wait take minutes, and the wait for the turn can take longer. While it waits, the land checks the branch against each new `origin/main` and exits at `rebase` on a conflict. Wait for it to exit.
 4. Read the result:
    - **Exit 0:** landed. The output names the record PR and the pushed commit. When it says that the PR does not show as merged, the task branch stays on origin and the PR stays open: report this on the ticket. Close the ticket as `docs/agents/issue-tracker.md` describes, then remove the worktree with `wt remove <branch>`.
    - **Exit 1:** a step failed. The output names the step and the path of the full log; read the log.
@@ -29,7 +29,7 @@ then: move the local main, read the PR state; when GitHub shows it as merged,
 
 ## The record file
 
-The record PR holds the record of the change, so the maintainer reads the change and its evidence on GitHub. Its title and body come from the record file, in the git-ignored scratch folder of the task worktree, so the tree stays clean. `pnpm land --help` names the path of the file, its title line, and its sections; `land` refuses a record that lacks one of them. Write it with the `pr` skill, which gives the format of each section. Each section holds:
+The record PR holds the record of the change, so the maintainer reads the change and its evidence on GitHub. Its title and body come from the record file, in the git-ignored scratch folder of the task worktree, so the tree stays clean. `pnpm land --help` names the path of the file, its title line, and its sections; `land` refuses a record that lacks one of them. A default land uses the title as the subject of the squash commit, so `land` refuses a title that is not a Conventional Commits subject. Write it with the `pr` skill, which gives the format of each section. Each section holds:
 
 - **Summary:** what the change does for its users.
 - **Testing:** the suites and commands that ran, with their results.
@@ -47,7 +47,7 @@ A land of a branch that has an open record PR, such as a land again after a fail
 
 ## The CI wait
 
-The local gate is `pnpm verify --local`: Format, Generated artifacts, Lint, Typecheck and Snapshot size. The tests of the affected packages and the bundle budget run in CI on the record PR (`.github/workflows/record-pr.yml`, `pnpm verify --pr` in parallel shards). The land holds its Land Turn while CI runs, and prints the state of the check at each read (`queued`, `in progress`, then the result and the longest time a shard waited for a runner). It pushes `main` only when the check passes. `pnpm land --help` names the check and how long the land waits for it.
+The local gate is `pnpm verify --local`: Format, Generated artifacts, Lint, Typecheck and Snapshot size. The tests of the affected packages and the bundle budget run in CI on the record PR (`.github/workflows/record-pr.yml`, `pnpm verify --pr` in parallel shards). The land holds its Land Turn while CI runs, and prints the state of the check at each read (`queued`, `in progress`, then the result and the longest time a shard waited for a runner). After CI passes, the land dispatches the landing workflow on `main`. The workflow checks the open record PR, its head and base, the successful CI check, and each incoming commit against the attribution policy and for a Conventional Commits subject. The landing App then fast-forwards `main` to that head. `pnpm land --help` names the check and how long the land waits for it.
 
 `pnpm land --no-verify` leaves out the local gate, so only the CI half checks the change before `main` moves. Use it when the user asks for it and the change holds no code, such as a vendored skill or an agent guide: the commit hooks have already formatted and linted those files. In the Testing section of the record, say that the gate did not run.
 
@@ -59,13 +59,13 @@ The worktree stays on its branch with a clean tree.
 
 | Step        | State of the branch                         | Next action                                                                                  |
 | ----------- | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `preflight` | as it was                                   | Commit the changes, switch to the task branch, rename an agent branch (`claude/*`, `codex/*`, `cursor/*`), complete the record file, or fix the `gh` login. |
+| `preflight` | as it was                                   | Commit the changes, switch to the task branch, rename an agent branch (`claude/*`, `codex/*`, `cursor/*`), complete the record file, give the record title (or, for `--no-squash`, each commit) a Conventional Commits subject, or fix the `gh` login. |
 | `rebase`    | as it was                                   | `git fetch origin`, `git rebase origin/main`, resolve the conflicts, run the affected tests, commit, land again. The land checks for these conflicts while it waits for the turn, too. |
 | `install`   | rebased onto the fetched `origin/main`      | Run `pnpm install --frozen-lockfile --prefer-offline`, fix what it names on this branch, commit, land again. The tail of the install output is printed. |
 | `gate`      | rebased onto the fetched `origin/main`      | Fix the failure on this branch, commit, land again. The tail of the gate output is printed.  |
 | `record`    | rebased; pushed to origin; `main` unchanged | Read the `gh` error in the message. Fix its cause, then land again.                          |
 | `ci`        | rebased; pushed to origin; `main` unchanged | Open the job link in the message and read its log. When the failure is in the change, fix it on this branch, run the failed tests locally, commit, and land again. When it is not (a flaky test or a runner fault), run the job again from that link, then land again: the land waits for the new run. When no check showed, check that the workflow ran on the PR. |
-| `push`      | rebased; `main` moved in each attempt       | Land again.                                                                                  |
+| `push`      | the workflow or the fast-forward failed | Read the landing run linked in the log. If the base moved, land again. For an App or environment error, follow the [landing setup](../../../CONTRIBUTING.md#landing-app).                                                                                  |
 | `lease`     | as the step left it; the step went silent   | Land again; when it repeats, report the step and the last progress that the message names.   |
 
 ## The full End-to-end Run
@@ -91,4 +91,6 @@ gh pr list --state merged --base main --limit 200 --search "merged:>$since" \
 
 ## Commits
 
-The commits of the branch land on `main` as they are, after the rebase. Give each commit a subject that names the change, and a body that says why it was made and how it was checked: the tests run, the commands, the walkthrough in the running app.
+Every commit that reaches `main` has a [Conventional Commits](https://www.conventionalcommits.org/) subject: `<type>(<scope>): <description>`. The type is one of `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `revert`. The scope and a `!` before the colon are optional. Write a revert as `revert: <subject of the reverted commit>`.
+
+For a default land, the record title is the subject of the squash commit; write the reason and checks in the record. For `--no-squash`, give each commit such a subject and a body that records the reason and checks. `land` checks the subjects before it waits for the Land Turn, and the landing workflow checks them again.

@@ -12,10 +12,7 @@ import {
 export default defineConfig({
   extends: [baseConfig],
   jsPlugins: pluginCodeJsPlugins,
-  rules: {
-    ...pluginCodeRules(readerImports),
-    "import/no-nodejs-modules": "error",
-  },
+  rules: pluginCodeRules(readerImports),
   overrides: [
     ...pluginCodeOverrides({ testImports: pluginTestImports }),
     ...testBaselineOverrides("packages/reader-feature"),

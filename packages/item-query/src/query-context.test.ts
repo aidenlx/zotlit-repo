@@ -9,11 +9,11 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
+import type { CapturedLog } from "./__fixtures__/test-helpers.ts";
 import { ItemQueryError } from "./error.ts";
 import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
 import type { ItemQueryRequest, QueryDataset } from "./index.ts";
-import { runEffect } from "./test-helpers.ts";
-import type { CapturedLog } from "./test-helpers.ts";
 
 let scenario: ScenarioDatabase<NodeDatabaseClient>;
 beforeAll(() => {

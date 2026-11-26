@@ -6,10 +6,10 @@ ZotLit's desktop Obsidian host. Feature code lives in packages; this app compose
 
 - `src/features.ts` orders feature registrations and startup hooks; `src/host.ts` sets the page/menu order and composes settings with `withHost` from `src/services/settings/`.
 - `src/zt-main.ts` uses `shellEntry` to import `src/zt-body.ts` once the layout is ready. Keep the static entry free of Effect and feature code. `src/link-actions.ts` lists early `obsidian://` actions; its typecheck keeps entry and body registrations aligned.
-- `src/zt-body.ts` starts the host through `shellStart`, with the Electron preflight and installer notice. For lifecycle or registration changes, read [plugin-shell](../../packages/plugin-shell/AGENTS.md).
+- `src/zt-body.ts` starts the host through `shellStart`, with the Electron preflight and installer notice. The preflight reads `process.versions.electron` before any service exists, in the desktop-only plugin, so the file is exempt from the Node-globals lint rule. For lifecycle or registration changes, read [plugin-shell](../../packages/plugin-shell/AGENTS.md).
 - `src/capabilities.ts` wires ZoteroReads and citation parsing to the Worker entries in `src/services/zotero-reads/` and `src/services/citation-parse/`. For RPC changes, read [zotero-reads](../../packages/zotero-reads/AGENTS.md).
 - `src/services/citations/`, `notes/`, and `template-workbench/` hold tests across feature packages. Change production behavior in the owning package.
-- `src/__fixtures__/mobile-host/` composes a Node-free host over stub ports. `tsconfig.mobile.json`, `scripts/check-mobile-host.ts`, and `src/mobile-host.test.ts` check that boundary.
+- `src/__fixtures__/mobile-host/` composes a Node-free host over stub ports. `tsconfig.mobile.json` type-checks it, `scripts/check-mobile-host.ts` runs the runtime check on its closure, which reaches no desktop-zone file and no Electron, and `src/mobile-host.test.ts` checks its service order. `vite.mobile.config.ts` builds it with browser conditions as `dist-mobile/main.js`, and `pnpm check:bundle` holds that bundle to the Mobile renderer row of `packages/scripts/lib/runtime-table.ts`. No release ships it.
 
 Packages do not import this app. Features register their service and settings types through declaration merging. Use `/obsidian-services` for services/features and `/obsidian-settings` for settings pages. Settings are flat dot-notation keys in `PluginSettings` from `@zotlit/plugin-services/obsidian/settings/service.ts`; `src/services/settings/schema.ts` composes the feature slices.
 

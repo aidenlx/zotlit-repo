@@ -32,7 +32,7 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { passAborted } from "@zotlit/plugin-kernel/abort-error.ts";
 import { withRecentColor } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
 import type { AttachmentResolution } from "@zotlit/plugin-services/obsidian/attachment-resolver/service.ts";
 import type { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
@@ -399,13 +399,13 @@ export function annotation(
 export function attachmentReads(
   resolution: AttachmentResolution = { kind: "pending" },
 ): AttachmentReads & {
-  resolve: Mock<AttachmentReads["resolve"]>;
+  resolveFile: Mock<AttachmentReads["resolveFile"]>;
   answer(next: AttachmentResolution): void;
 } {
   const changes = Effect.runSync(PubSub.unbounded<void>());
   let current = resolution;
   return {
-    resolve: vi.fn<AttachmentReads["resolve"]>(() =>
+    resolveFile: vi.fn<AttachmentReads["resolveFile"]>(() =>
       Effect.sync(() => current),
     ),
     resolutionsChanged: Stream.fromPubSub(changes),

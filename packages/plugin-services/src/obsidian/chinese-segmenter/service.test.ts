@@ -31,7 +31,7 @@ import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 import { layerDeviceSegmenter } from "./__fixtures__.ts";
 import { ChineseSegmenter } from "./service.ts";
 
-import { packDevice, packFile } from "#obsidian/managed-binary/test-utils.ts";
+import { packDevice, packFile } from "#obsidian/managed-binary/__fixtures__.ts";
 
 const BINARY = new Uint8Array(
   await readFile(

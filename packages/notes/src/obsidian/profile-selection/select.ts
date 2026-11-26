@@ -80,3 +80,9 @@ export const selectProfilesByMatch = Effect.fnUntraced(function* (
     return { outcome: "matched", profile, reason: { profile: profile.label } };
   });
 });
+
+declare module "@zotlit/obsidian-kit/view-atoms.ts" {
+  interface ViewServiceRegistry {
+    ItemMatchQuery: ItemMatchQuery;
+  }
+}

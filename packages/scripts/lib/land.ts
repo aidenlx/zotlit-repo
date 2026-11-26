@@ -11,7 +11,11 @@ import { setTimeout as delay } from "node:timers/promises";
 
 import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
-import { isAgentBranch } from "#ai-attribution";
+import { attributionLines, isAgentBranch } from "#ai-attribution";
+import {
+  CONVENTIONAL_FORMAT,
+  isConventionalSubject,
+} from "#conventional-commit";
 import {
   acquireDesktopSlot,
   describeLeaseEnd,
@@ -105,6 +109,10 @@ export interface RecordPullRequest {
 }
 
 export interface LandGitHub {
+  advanceMain: (
+    input: { number: number; head: string; base: string },
+    progress: (line: string) => void,
+  ) => Promise<void>;
   findOpenPullRequest: (query: {
     head: string;
     base: string;
@@ -129,6 +137,8 @@ export interface LandGitHub {
 
 export interface LandOptions {
   cwd: string;
+  squash?: boolean;
+  record?: LandRecord;
   gate?: readonly [string, ...string[]];
   install?: readonly [string, ...string[]];
   github?: LandGitHub;
@@ -305,7 +315,14 @@ export async function land(options: LandOptions): Promise<LandResult> {
 
   try {
     const pre = await preflight(sh, remote);
-    const record = options.github ? await readRecord(sh) : undefined;
+    const squash = options.squash ?? Boolean(options.github);
+    const record =
+      options.record ??
+      (options.github || squash ? await readRecord(sh) : undefined);
+    await checkSubjects(sh, {
+      squashTitle: squash ? record?.title : undefined,
+      upstream: `${remote}/${to}`,
+    });
     if (options.github) await checkGitHub(options.github, pre.branch);
     source = pre.branch;
     say(`Land ${source} into ${to}: waiting for the Land Turn.`);
@@ -375,9 +392,44 @@ export async function land(options: LandOptions): Promise<LandResult> {
     for (;;) {
       attempts += 1;
       await step("fetch", () => fetchTarget(sh, remote, to));
+      const base = await sh.git("rebase", "rev-parse", `${remote}/${to}`);
       const reinstall = await step("rebase", async () => {
         const before = await sh.git("rebase", "rev-parse", "HEAD");
-        await rebaseOnto(sh, `${remote}/${to}`, pre.head);
+        await rebaseOnto(sh, base, pre.head);
+        if (squash && record) {
+          const message = `${record.title}\n\n${record.body}`;
+          if (attributionLines(message).length) {
+            throw new LandFailure(
+              "rebase",
+              "Remove AI attribution from the squash message in the land record.",
+            );
+          }
+          const head = await sh.git("rebase", "rev-parse", "HEAD");
+          const tree = await sh.git("rebase", "rev-parse", "HEAD^{tree}");
+          if (
+            (await sh.git("rebase", "show", "-s", "--format=%P%n%B", head)) !==
+            `${base}\n${message}`
+          ) {
+            const commit = await sh.git(
+              "rebase",
+              "commit-tree",
+              tree,
+              "-p",
+              base,
+              "-m",
+              message,
+            );
+            await sh.git(
+              "rebase",
+              "update-ref",
+              "-m",
+              "land --squash",
+              "HEAD",
+              commit,
+              head,
+            );
+          }
+        }
         return changesInstallInputs(sh, before);
       });
       const install = options.install ?? LAND_INSTALL;
@@ -409,6 +461,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
         say("The gate is skipped; the CI check still runs.");
       }
       const github = options.github;
+      let pushed: boolean;
       if (github && record) {
         pull = await step("record", () =>
           openRecord(sh, github, {
@@ -432,8 +485,38 @@ export async function land(options: LandOptions): Promise<LandResult> {
             runs: ciRuns,
           }),
         );
+        pushed = await step("push", async () => {
+          const dispatched = await github
+            .advanceMain({ number: pull!.number, head, base }, (line) => {
+              if (leaseOver) throw leaseEnded(leaseOver);
+              say(line);
+              turn.progress("push");
+            })
+            .catch((error: unknown) =>
+              error instanceof Error ? error : new Error(String(error)),
+            );
+          await fetchTarget(sh, remote, to);
+          if (
+            await sh.test(
+              "merge-base",
+              "--is-ancestor",
+              head,
+              `${remote}/${to}`,
+            )
+          )
+            return true;
+          if ((await sh.git("push", "rev-parse", `${remote}/${to}`)) !== base)
+            return false;
+          throw dispatched instanceof Error
+            ? dispatched
+            : new LandFailure(
+                "push",
+                "The landing workflow finished before main reached the verified commit.",
+              );
+        });
+      } else {
+        pushed = await step("push", () => push(sh, remote, to));
       }
-      const pushed = await step("push", () => push(sh, remote, to));
       if (pushed) break;
       if (attempts >= maxAttempts) {
         throw new LandFailure(
@@ -561,6 +644,43 @@ async function preflight(
   }
   await sh.git("preflight", "remote", "get-url", remote);
   return { head: await sh.git("preflight", "rev-parse", "HEAD"), branch };
+}
+
+async function checkSubjects(
+  sh: Shell,
+  {
+    squashTitle,
+    upstream,
+  }: { squashTitle: string | undefined; upstream: string },
+): Promise<void> {
+  if (squashTitle !== undefined) {
+    if (!isConventionalSubject(squashTitle)) {
+      throw new LandFailure(
+        "preflight",
+        `The title of the record file ${LAND_RECORD_PATH}, "${squashTitle}", is the subject of the squash commit and is not a Conventional Commits subject. Write it as ${CONVENTIONAL_FORMAT}, such as "fix(annotations): keep the excerpt image size". Then land again.`,
+      );
+    }
+    return;
+  }
+  const log = await sh.git(
+    "preflight",
+    "log",
+    "--no-merges",
+    "--format=%h %s",
+    `${upstream}..HEAD`,
+  );
+  const wrong = log
+    .split("\n")
+    .filter(
+      (line) =>
+        line && !isConventionalSubject(line.slice(line.indexOf(" ") + 1)),
+    );
+  if (wrong.length > 0) {
+    throw new LandFailure(
+      "preflight",
+      `These commits do not have a Conventional Commits subject:\n${wrong.join("\n")}\nReword each subject as ${CONVENTIONAL_FORMAT}, or land with the default squash. Then land again.`,
+    );
+  }
 }
 
 interface LandRecord {

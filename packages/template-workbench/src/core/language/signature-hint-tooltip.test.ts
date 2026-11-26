@@ -4,12 +4,12 @@ import type { Extension } from "@codemirror/state";
 import { EditorView, ViewPlugin, showTooltip } from "@codemirror/view";
 import { expect, it } from "vitest";
 
+import { documentFocus } from "./__fixtures__.ts";
 import { filterExpressionLanguage } from "./filter-expression.ts";
 import {
   SIGNATURE_HINT_CLASS,
   signatureHint,
 } from "./signature-hint-tooltip.ts";
-import { documentFocus } from "./test-utils.ts";
 
 function editor(doc: string, extra: Extension = []) {
   const parent = document.body.appendChild(document.createElement("div"));

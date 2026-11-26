@@ -3,6 +3,7 @@ import type { CliFlag, CliFlags } from "obsidian";
 
 import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -24,7 +25,7 @@ import { CitationIndex } from "#obsidian/citation-index/service.ts";
 
 interface CitationsCliRegistrationDeps {
   vaultName: string;
-  basePath: string;
+  vaultDisk: Pick<VaultDisk["Service"], "basePath">;
   citationIndex: Pick<
     CitationIndex["Service"],
     "readCitedBy" | "readReferences" | "readAnnotationUses"
@@ -39,14 +40,13 @@ interface CitationsCliRegistrationDeps {
 export const layerCitationsCli: Layer.Layer<
   never,
   never,
-  PluginHost | ObsidianEnv | CitationIndex | ZoteroPref
+  PluginHost | ObsidianEnv | VaultDisk | CitationIndex | ZoteroPref
 > = Layer.effectDiscard(
   Effect.gen(function* () {
     const host = yield* PluginHost;
-    const { vaultName, basePath } = yield* ObsidianEnv;
     registerCitationsCli(host, {
-      vaultName,
-      basePath,
+      vaultName: (yield* ObsidianEnv).vaultName,
+      vaultDisk: yield* VaultDisk,
       citationIndex: yield* CitationIndex,
       zoteroPref: yield* ZoteroPref,
     });
@@ -93,7 +93,7 @@ export function registerCitationsCli(
       Effect.map(deps.zoteroPref.current, ({ sourceId, databasePath }) => ({
         vault: {
           name: deps.vaultName,
-          path: deps.basePath,
+          path: deps.vaultDisk.basePath,
         },
         source: { id: sourceId, databasePath },
       })),

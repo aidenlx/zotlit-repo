@@ -23,8 +23,11 @@ RUN node -p 'require("node:tls").rootCertificates.join("\n")' > /tmp/snapshot-ca
         libnss3 \
         libxt6t64 \
         lsof \
+        scrot \
         x11-apps \
+        x11-utils \
         x11vnc \
+        xdotool \
         xvfb \
         xz-utils \
     && rm -rf /var/lib/apt/lists/* /tmp/snapshot-ca.pem /etc/apt/apt.conf.d/99snapshot-ca
@@ -61,9 +64,14 @@ ENV ZOTERO_APP=/opt/zotero
 
 ARG PNPM_VERSION
 RUN --mount=type=cache,target=/root/.npm npm install --global "pnpm@${PNPM_VERSION}"
-RUN install -d -o node -g node -m 0775 /workspace /pnpm-store
+RUN install -d -o node -g node -m 0775 /workspace /workspace/worktree /pnpm-store
 
 USER node
-WORKDIR /workspace
+WORKDIR /workspace/worktree
+ENV HOME=/tmp/run-home \
+    XDG_RUNTIME_DIR=/tmp/run-runtime \
+    XDG_CONFIG_HOME=/tmp/run-home/.config \
+    DISPLAY=:99 \
+    LIBGL_ALWAYS_SOFTWARE=1
 COPY --chmod=755 entry.sh /opt/run-e2e
 ENTRYPOINT ["/opt/run-e2e"]

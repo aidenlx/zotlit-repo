@@ -6,6 +6,7 @@ import type {
   SnapshotLibrarySelector,
   SnapshotVaultTargets,
 } from "@zotlit/zotero-reads/contract/snapshot/types.ts";
+import { snapshotRevision } from "@zotlit/zotero-reads/desktop/snapshot-revision.ts";
 import { exportItemSnapshot } from "@zotlit/zotero-reads/worker/snapshot/export.ts";
 
 import { buildFixture } from "./build.ts";
@@ -59,6 +60,7 @@ export async function generateSampleItems(
           source: selection.source,
         },
         vaultTargets: selection.vaultTargets,
+        revision: snapshotRevision,
       },
     );
     const path = join(options.outputDir, `${selection.id}.json`);

@@ -10,8 +10,8 @@ import {
   Scope,
   Stream,
 } from "effect";
-import { FileSystemAdapter, Scope as ObsidianScope } from "obsidian";
-import type { App, TFile, Vault } from "obsidian";
+import { Scope as ObsidianScope } from "obsidian";
+import type { App, TFile } from "obsidian";
 import { beforeEach, afterEach, expect } from "vitest";
 
 import {
@@ -55,9 +55,7 @@ const host = () => {
     containerEl: document.createElement("div"),
     scope: new ObsidianScope(),
   });
-  const app = stubService<App>("App", {
-    vault: stubService<Vault>("Vault", { adapter: new FileSystemAdapter() }),
-  });
+  const app = stubService<App>("App", {});
   return { workspace, reader, view, app };
 };
 

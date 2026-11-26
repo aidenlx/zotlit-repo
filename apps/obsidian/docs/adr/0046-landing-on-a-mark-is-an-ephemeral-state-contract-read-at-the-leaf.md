@@ -1,3 +1,7 @@
+---
+status: superseded in part by ADR-0117
+---
+
 # Landing on a Mark is an ephemeral-state contract read at the leaf
 
 An Annotation's `fileLink` anchors to `#page=N`, so File Link Capture (ADR 0045) lands the reader on the page and the overlay draws every Mark there. The click came from one Annotation and should land on that Mark. ZotLit gives Obsidian's PDF view a capability of its own for this — an Annotation Anchor, carried the way Obsidian carries a subpath, read off the ephemeral state at `WorkspaceLeaf.prototype.setEphemeralState` — and the `fileLink` an Annotation renders becomes its first caller.
@@ -28,6 +32,8 @@ The Anchor rides the subpath rather than a field beside it. Obsidian parses a PD
 - Landing stands on two undocumented behaviours: that `WorkspaceLeaf.setEphemeralState` is the only path the ephemeral state takes to a view, and that an unknown key in a PDF fragment is inert. Both are re-verified when `minAppVersion` moves. Where each one is read in the bundle is in `git show 452c5b598^:docs/pdf-annotation-probes.md`.
 
 ## Routing to ZotLit Reader
+
+ADR 0117 replaces the next paragraph: a Zotero attachment opens in ZotLit Reader whatever its link carries.
 
 `anchor-capture.ts` routes a native PDF `setViewState` call to ZotLit Reader
 when its subpath contains a usable Annotation or Attachment Anchor. The

@@ -7,8 +7,8 @@ import {
 } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import { collectQuery, ITEMS, ATTACHMENTS, ANNOTATIONS } from "./index.ts";
-import { runEffect } from "./test-helpers.ts";
 
 it("warns about an unknown Collection path and suggests its exact case", async () => {
   using scenario = openScenarioDatabase(connectClient);

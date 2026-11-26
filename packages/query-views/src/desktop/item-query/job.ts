@@ -14,7 +14,7 @@ import type { ZoteroDatabase } from "@zotlit/db";
 import { ItemQueryDatabase } from "@zotlit/db/item-query";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 import type { ResolveAttachmentFile } from "@zotlit/item-query";
-import { monotonicMillis } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { monotonicMillis } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import type { WorkbenchIdentity } from "@zotlit/template-workbench/desktop/cli/envelope.ts";
 import type { QueryJobRunner } from "@zotlit/zotero-reads/worker/handlers.ts";
 

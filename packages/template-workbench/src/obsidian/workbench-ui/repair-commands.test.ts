@@ -4,12 +4,12 @@ import { describe, expect, it } from "vitest";
 
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
+import { mount, shownNotices } from "./__fixtures__/test-host.tsx";
 import { INITIAL_PANELS } from "./panel-layout.ts";
 import type { ViewSize, WorkbenchPanels } from "./panel-layout.ts";
 import { renderDiagnosis } from "./problems.ts";
 import type { WorkbenchDiagnosis } from "./problems.ts";
 import { repairCommands } from "./repair-commands.ts";
-import { mount, shownNotices } from "./test-host.tsx";
 
 import { DEFAULT_PROFILE_SOURCE } from "#core/render/default-profile.ts";
 

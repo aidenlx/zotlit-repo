@@ -55,5 +55,8 @@
     "obsidian": {
       "optional": true
     }
+  },
+  "zotlit": {
+    "layer": "host-free"
   }
 }

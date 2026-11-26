@@ -22,6 +22,7 @@ import { admitMemoryRun } from "@zotlit/scripts/memory-admission";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
 import { runImageTag } from "./container-image.ts";
+import { HOLD_ENV, HOLD_FILE } from "./hold-mode.ts";
 import { OBSIDIAN_VERSION } from "./obsidian-version.ts";
 import { E2E_PERFORMANCE_ENV } from "./performance-mode.ts";
 import {
@@ -44,6 +45,8 @@ const help = yargs([])
   .help()
   .epilogue(
     `The Run Container builds a pinned image when needed and runs Vitest in an isolated desktop. The guest copies tracked and unignored worktree files, including local changes. Pass Vitest file filters, --project, or -t directly.
+
+Set ${HOLD_ENV}=1 to inspect the guest while you write a journey. After each case and its afterEach hooks, the run writes ${HOLD_FILE} to the evidence folder and waits until you delete it. The file names the case, its state, the container, the open vault ids, and the Paired Zotero debugger port (null in the desktop project). \`docker exec <container> <command>\` runs in the guest copy of the worktree with the guest's display and Obsidian CLI socket; /results is the evidence folder.
 
 Set ${VNC_ENV}=<port> to watch over VNC at 127.0.0.1. Evidence goes to .scratch/e2e-results or the folder named in ${E2E_RESULTS_ENV}.
 
@@ -220,6 +223,8 @@ const child = spawn(
     "ANNOTATION_SUGGESTER_ENABLED",
     "--env",
     E2E_PERFORMANCE_ENV,
+    "--env",
+    HOLD_ENV,
     ...(vnc ? ["--publish", `127.0.0.1:${vnc}:5900`, "--env", VNC_ENV] : []),
     imageTag,
     ...vitestArgs,

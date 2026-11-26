@@ -14,6 +14,7 @@ import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import type { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
@@ -71,7 +72,8 @@ export type PandocExportServices =
 
 export interface PandocExportDeps {
   app: App;
-  vault: Pick<ObsidianEnv["Service"], "basePath" | "vaultName">;
+  vault: Pick<VaultDisk["Service"], "basePath"> &
+    Pick<ObsidianEnv["Service"], "vaultName">;
   bridge: Pick<EffectBridge, "runSync" | "runPromiseExit">;
   context: Context.Context<PandocExportServices>;
 }

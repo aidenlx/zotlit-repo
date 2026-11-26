@@ -8,6 +8,7 @@
     "./delimited": "./src/delimited.ts",
     "./log-formatter": "./src/log-formatter.ts",
     "./logging": "./src/logging.ts",
+    "./platform": "./src/platform.ts",
     "./sorted-runs": "./src/sorted-runs.ts",
     "./package.json": "./package.json"
   },
@@ -25,5 +26,8 @@
     "oxlint": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
+  },
+  "zotlit": {
+    "layer": "worker"
   }
 }

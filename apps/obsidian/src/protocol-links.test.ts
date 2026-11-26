@@ -41,6 +41,7 @@ import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { layerTestVaultDisk } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault-disk.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
@@ -319,7 +320,8 @@ function servicesFor(setup: Setup = {}) {
     }),
     testNotifier().layer,
     layerWorkspaceFrom(setup.workspace ?? new MemoryWorkspace()),
-    layerTestObsidianEnv({ basePath: "/vault" }),
+    layerTestObsidianEnv({ os: "win32" }),
+    layerTestVaultDisk({ basePath: "/vault" }),
   );
 }
 
@@ -498,7 +500,7 @@ describe("open-attachment protocol link", () => {
         {
           pathContext: { dataDir: "/data", baseAttachmentPath: null },
           vaultBasePath: "/vault",
-          platform: process.platform,
+          platform: "win32",
         },
       );
       expect(reads.AttachmentsAt).toHaveBeenCalledExactlyOnceWith({

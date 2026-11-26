@@ -6,6 +6,7 @@ import { isAbsolute, join, relative, sep } from "node:path";
 import { isCaseInsensitivePlatform } from "@zotlit/db/path";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isErrno, nodeFileSystemCall } from "@zotlit/plugin-kernel/errno.ts";
+import type { OperatingSystem } from "@zotlit/shared/platform";
 
 import type { AttachmentCopySource } from "./copy-attachments.ts";
 
@@ -74,7 +75,7 @@ export interface RootSources {
 
 export const buildCanonicalRoots = Effect.fnUntraced(function* (
   sources: RootSources,
-  platform: NodeJS.Platform,
+  platform: OperatingSystem,
 ) {
   const [storage, annotationCache, base, approved] = yield* Effect.all(
     [

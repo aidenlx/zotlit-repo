@@ -14,7 +14,7 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
 
-import { packDevice, packFile } from "./test-utils.ts";
+import { packDevice, packFile } from "./__fixtures__.ts";
 
 import { button } from "#__fixtures__/managed-binary-rows.ts";
 import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";

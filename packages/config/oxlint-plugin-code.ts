@@ -3,9 +3,11 @@ import type { DummyRuleMap, OxlintOverride } from "oxlint";
 
 import {
   datePattern,
+  fileSystemAdapterPath,
   itemQuerySchemaPaths,
   parentImportPattern,
   uniqueIdPaths,
+  withoutFileSystemAdapter,
 } from "./oxlint.base.ts";
 
 const plugin = (name: string) => join(import.meta.dirname, name);
@@ -90,7 +92,11 @@ const scanPattern: ImportPattern = {
 
 export const commonImports: RestrictedImports = {
   patterns: [parentImportPattern, datePattern, scanPattern],
-  paths: [...obsidianImportPaths, ...itemQuerySchemaPaths],
+  paths: [
+    ...obsidianImportPaths,
+    ...itemQuerySchemaPaths,
+    fileSystemAdapterPath,
+  ],
 };
 
 export const runtimeImports: RestrictedImports = {
@@ -133,22 +139,6 @@ export function withPatterns(
 }
 
 export const readerImports: RestrictedImports = withPatterns(runtimeImports, [
-  {
-    group: [
-      "electron",
-      "electron/**",
-      "@electron/remote",
-      "@electron/remote/**",
-      "@effect/platform-node",
-      "@effect/platform-node/**",
-      "@zotlit/obsidian-desktop",
-      "@zotlit/obsidian-desktop/**",
-      "@zotlit/plugin-services/desktop/**",
-      "@zotlit/plugin-shell/desktop/**",
-    ],
-    message:
-      "ZotLit Reader loads on Obsidian Mobile, where Node and Electron are absent.",
-  },
   {
     group: [
       "@zotlit/annotations",
@@ -209,11 +199,19 @@ const TESTS = [
 export function pluginCodeOverrides({
   testImports,
   services = ["src/services/**"],
+  imports = runtimeImports,
 }: {
   testImports: RestrictedImports;
   services?: string[];
+  imports?: RestrictedImports;
 }): OxlintOverride[] {
   return [
+    {
+      files: ["src/desktop/**"],
+      rules: {
+        "no-restricted-imports": ["error", withoutFileSystemAdapter(imports)],
+      },
+    },
     {
       files: ["src/**"],
       excludeFiles: [
@@ -346,8 +344,6 @@ export function pluginCodeOverrides({
         "**/__fixtures__/**",
         "**/__fixtures__.ts",
         "**/__mocks__/**",
-        "**/test-harness.ts",
-        "**/test-host.tsx",
         "**/*.bench.ts",
       ],
       rules: { "zotlit-services/no-default-runtime": "error" },
@@ -359,7 +355,6 @@ export function pluginCodeOverrides({
         "**/*.browser-test.ts",
         "**/__fixtures__/**",
         "**/__fixtures__.ts",
-        "**/test-harness.ts",
       ],
       rules: { "zotlit-services/scoped-runner": "error" },
     },

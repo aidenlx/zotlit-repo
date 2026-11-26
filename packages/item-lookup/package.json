@@ -36,5 +36,8 @@
   },
   "inlinedDependencies": {
     "jieba-wasm": "2.4.0"
+  },
+  "zotlit": {
+    "layer": "worker"
   }
 }

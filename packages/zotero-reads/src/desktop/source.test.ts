@@ -29,6 +29,7 @@ import { ZOTERO_DB_READ_PARENT_DIRNAME } from "@zotlit/plugin-kernel/constants.t
 
 import { prepareRead, snapshotSource } from "./read-source.ts";
 import type { PreparedRead, SourceFingerprint } from "./read-source.ts";
+import { snapshotRevision } from "./snapshot-revision.ts";
 import { layerSource } from "./source.ts";
 import type { SourceOptions, SourcePorts } from "./source.ts";
 
@@ -199,10 +200,9 @@ const startSource = Effect.fnUntraced(function* (
     testSource({ ports }, fileSystem),
     scope,
   );
-  const reads: ZoteroReadsClient = yield* makeInProcessClient().pipe(
-    Effect.provideContext(context),
-    Scope.provide(scope),
-  );
+  const reads: ZoteroReadsClient = yield* makeInProcessClient({
+    snapshotRevision,
+  }).pipe(Effect.provideContext(context), Scope.provide(scope));
   const events: ChangeEvent[] = [];
   yield* Stream.runForEach(reads.Changes(), (event) =>
     Effect.sync(() => events.push(event)),
@@ -280,7 +280,7 @@ describe("ZoteroReads source", () => {
     Effect.gen(function* () {
       const { ports } = testPorts();
       const version = yield* Effect.gen(function* () {
-        const reads = yield* makeInProcessClient();
+        const reads = yield* makeInProcessClient({ snapshotRevision });
         return yield* reads.Libraries({});
       }).pipe(
         Effect.scoped,
@@ -1498,7 +1498,7 @@ describe("ZoteroReads source", () => {
         Effect.gen(function* () {
           const { ports } = testPorts();
           const seed = yield* Effect.gen(function* () {
-            const reads = yield* makeInProcessClient();
+            const reads = yield* makeInProcessClient({ snapshotRevision });
             yield* Effect.flip(reads.Libraries({}));
             const pull = yield* Stream.toPull(reads.Changes());
             return yield* pull;

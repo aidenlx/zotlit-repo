@@ -17,6 +17,7 @@ import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matche
 import { interactiveCreation } from "@zotlit/notes/desktop/profile/dialogs.ts";
 import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
@@ -100,6 +101,7 @@ export const queryViews = extendFeature(obsidianQueryViews, {
           FileSystem.FileSystem,
           LibraryScope,
           UseLedger,
+          VaultDisk,
           ZoteroPref,
           ZoteroReads,
         ],

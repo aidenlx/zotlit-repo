@@ -4,23 +4,35 @@ import type { PublishedPlugin } from "#shell/plugins";
 import { join } from "node:path";
 import { $ } from "zx";
 
-import { checkBundle } from "#bundle-gate";
+import { checkBundle, checkBundleRuntime } from "#bundle-gate";
 import { getWorkspaceRoot } from "#package-roots";
-import { PUBLISHED_PLUGINS } from "#shell/plugins";
+import { MOBILE_HOST_BUNDLE, PUBLISHED_PLUGINS } from "#shell/plugins";
 
-const root = await getWorkspaceRoot(import.meta.dirname);
+const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
 const plugins = Object.entries<PublishedPlugin>(PUBLISHED_PLUGINS).map(
   ([name, plugin]) => ({ name, plugin }),
 );
 
 await $({
-  cwd: root,
+  cwd: workspaceRoot,
   stdio: "inherit",
-})`pnpm exec turbo run build ${plugins.map(({ plugin }) => `--filter=./${plugin.app}`)} --concurrency=2`;
+})`pnpm exec turbo run build build:mobile ${plugins.map(({ plugin }) => `--filter=./${plugin.app}`)} --concurrency=2`;
+
+const reports = [
+  ...(await Promise.all(
+    plugins.map(({ name, plugin }) =>
+      checkBundle(name, plugin, join(workspaceRoot, plugin.app)),
+    ),
+  )),
+  await checkBundleRuntime(
+    "mobile host",
+    join(workspaceRoot, MOBILE_HOST_BUNDLE.app, MOBILE_HOST_BUNDLE.file),
+    MOBILE_HOST_BUNDLE.runtime,
+  ),
+];
 
 let failed = false;
-for (const { name, plugin } of plugins) {
-  const report = await checkBundle(name, plugin, join(root, plugin.app));
+for (const report of reports) {
   console.log(`${report.name}: ${report.lines.join("; ")}`);
   for (const failure of report.failures) {
     console.error(`  ✖ ${failure}`);

@@ -2,6 +2,7 @@ import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.t
 import { Effect } from "effect";
 
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -9,7 +10,11 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { toObsidianOpenable } from "#core/attachment-open/openable.ts";
 
-export type LiteratureNoteServices = ZoteroReads | ZoteroPref | ObsidianEnv;
+export type LiteratureNoteServices =
+  | ZoteroReads
+  | ZoteroPref
+  | ObsidianEnv
+  | VaultDisk;
 
 export function literatureNoteAttachments(
   indexedKey: string,
@@ -23,7 +28,8 @@ export function literatureNoteAttachments(
     if (itemID === undefined) return [];
     const attachments = yield* reads.AttachmentsOf({ itemIDs: [itemID] });
     return toObsidianOpenable(attachments, {
-      vaultBasePath: (yield* ObsidianEnv).basePath,
+      vaultBasePath: (yield* VaultDisk).basePath,
+      platform: (yield* ObsidianEnv).os,
       zoteroPref: yield* (yield* ZoteroPref).current,
     });
   }).pipe(

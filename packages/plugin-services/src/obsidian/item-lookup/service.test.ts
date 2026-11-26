@@ -48,7 +48,7 @@ import {
   segmenterHandlers,
 } from "#obsidian/chinese-segmenter/__fixtures__.ts";
 import { ChineseSegmenter } from "#obsidian/chinese-segmenter/service.ts";
-import { packDevice, packFile } from "#obsidian/managed-binary/test-utils.ts";
+import { packDevice, packFile } from "#obsidian/managed-binary/__fixtures__.ts";
 
 const nextTurn = () => new Promise<void>((resolve) => setTimeout(resolve, 0));
 
@@ -748,7 +748,7 @@ interface ObservedReads {
 
 const readsOver = Effect.fnUntraced(function* (
   seedFor: (open: number) => string | null,
-  handlers?: HandlersOptions,
+  handlers?: Partial<HandlersOptions>,
 ) {
   const searches: SearchPayload[] = [];
   const interrupted: string[] = [];

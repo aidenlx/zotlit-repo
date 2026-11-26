@@ -23,6 +23,7 @@ type Callback = (...args: unknown[]) => unknown;
 export class MemoryWorkspace implements WorkspaceSource {
   activeFile: TFile | null = null;
   activeEditor: MarkdownFileInfo | null = null;
+  activeLeaf: WorkspaceLeaf | null = null;
   mostRecentLeaf: WorkspaceLeaf | null = null;
 
   getMostRecentLeaf(): WorkspaceLeaf | null {

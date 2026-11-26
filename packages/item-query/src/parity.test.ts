@@ -9,7 +9,15 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
-import { ATTACHMENT_SCENARIO_QUERIES } from "./attachment-scenario-queries.ts";
+import { ATTACHMENT_SCENARIO_QUERIES } from "./__fixtures__/attachment-scenario-queries.ts";
+import { RELATION_SCENARIO_QUERIES } from "./__fixtures__/relation-scenario-queries.ts";
+import {
+  PINNED_FILTERS,
+  SCENARIO_QUERIES,
+} from "./__fixtures__/scenario-queries.ts";
+import type { ScenarioQuery } from "./__fixtures__/scenario-queries.ts";
+import { runEffect } from "./__fixtures__/test-helpers.ts";
+import type { RunOptions } from "./__fixtures__/test-helpers.ts";
 import {
   ATTACHMENTS,
   AttachmentFileResolver,
@@ -17,12 +25,7 @@ import {
   ITEMS,
 } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
-import { RELATION_SCENARIO_QUERIES } from "./relation-scenario-queries.ts";
-import { PINNED_FILTERS, SCENARIO_QUERIES } from "./scenario-queries.ts";
-import type { ScenarioQuery } from "./scenario-queries.ts";
 import { ItemQueryScheduler } from "./scheduler.ts";
-import { runEffect } from "./test-helpers.ts";
-import type { RunOptions } from "./test-helpers.ts";
 
 type Tuning = NonNullable<RunOptions["tuning"]>;
 

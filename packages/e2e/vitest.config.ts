@@ -17,10 +17,7 @@ export default defineConfig({
           name: "desktop",
           include: ["src/**/*.e2e.ts"],
           exclude: ["src/paired-run.e2e.ts"],
-          globalSetup: [
-            "./src/container-obsidian.ts",
-            "./src/desktop-slot-setup.ts",
-          ],
+          globalSetup: ["./src/container-obsidian.ts"],
         },
       },
       {
@@ -28,14 +25,11 @@ export default defineConfig({
         test: {
           name: "paired",
           include: ["src/paired-run.e2e.ts"],
-          globalSetup: [
-            "./src/container-obsidian.ts",
-            "./src/desktop-slot-setup.ts",
-            "./src/paired-setup.ts",
-          ],
+          globalSetup: ["./src/container-obsidian.ts", "./src/paired-setup.ts"],
         },
       },
     ],
+    setupFiles: ["./src/run-hold.ts"],
     reporters: ["./src/reporter.ts", "json"],
     outputFile: { json: join(e2eResultsDir(), "results.json") },
     environment: "node",

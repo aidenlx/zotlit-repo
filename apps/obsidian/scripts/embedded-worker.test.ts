@@ -3,6 +3,8 @@ import { resolve } from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { describe, expect, it, vi } from "vitest";
 
+import { RUNTIMES } from "@zotlit/scripts/runtime-table";
+
 import { embeddedWorker } from "./embedded-worker.ts";
 
 const ID = "virtual:scheduler-worker";
@@ -13,10 +15,10 @@ async function workerSource(minify: boolean): Promise<string> {
   const plugin = embeddedWorker({
     id: ID,
     entry: resolve(import.meta.dirname, "__fixtures__/scheduler-worker.ts"),
+    runtime: RUNTIMES.desktopWorker,
     config: {
       mode: "production",
       define: {},
-      external: [],
       minify,
       sourcemap: false,
       target: "es2025",

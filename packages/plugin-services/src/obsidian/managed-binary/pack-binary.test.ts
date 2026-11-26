@@ -6,9 +6,8 @@ import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-captur
 import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
 import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 
-import { packBinary } from "./__fixtures__.ts";
+import { packBinary, packDevice, packFile } from "./__fixtures__.ts";
 import type { PackBinary, PackBinaryApi } from "./pack-binary.ts";
-import { packDevice, packFile } from "./test-utils.ts";
 
 const BINARY = new Uint8Array(new TextEncoder().encode("jieba wasm bytes"));
 

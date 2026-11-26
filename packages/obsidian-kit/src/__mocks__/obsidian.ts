@@ -645,6 +645,10 @@ export class FileSystemAdapter {
     this.basePath = basePath;
   }
 
+  getBasePath(): string {
+    return this.basePath;
+  }
+
   getFullPath(normalizedPath: string): string {
     return `${this.basePath}/${normalizedPath}`;
   }
@@ -1037,6 +1041,8 @@ let platformIsWin: boolean | undefined;
 let platformIsMacOS: boolean | undefined;
 let platformIsDesktopApp: boolean | undefined;
 let platformIsMobile = false;
+let platformIsIosApp = false;
+let platformIsAndroidApp = false;
 
 export const Platform = {
   get isDesktopApp(): boolean {
@@ -1065,6 +1071,12 @@ export const Platform = {
   get isMobile(): boolean {
     return platformIsMobile;
   },
+  get isIosApp(): boolean {
+    return platformIsIosApp;
+  },
+  get isAndroidApp(): boolean {
+    return platformIsAndroidApp;
+  },
 };
 
 export function setMockPlatform(overrides: {
@@ -1072,12 +1084,17 @@ export function setMockPlatform(overrides: {
   isMacOS?: boolean;
   isDesktopApp?: boolean;
   isMobile?: boolean;
+  isIosApp?: boolean;
+  isAndroidApp?: boolean;
 }): void {
   if (overrides.isWin !== undefined) platformIsWin = overrides.isWin;
   if (overrides.isMacOS !== undefined) platformIsMacOS = overrides.isMacOS;
   if (overrides.isDesktopApp !== undefined)
     platformIsDesktopApp = overrides.isDesktopApp;
   if (overrides.isMobile !== undefined) platformIsMobile = overrides.isMobile;
+  if (overrides.isIosApp !== undefined) platformIsIosApp = overrides.isIosApp;
+  if (overrides.isAndroidApp !== undefined)
+    platformIsAndroidApp = overrides.isAndroidApp;
 }
 
 export function resetMockPlatform(): void {
@@ -1085,6 +1102,8 @@ export function resetMockPlatform(): void {
   platformIsMacOS = undefined;
   platformIsDesktopApp = undefined;
   platformIsMobile = false;
+  platformIsIosApp = false;
+  platformIsAndroidApp = false;
 }
 
 export function getLanguage(): string {

@@ -27,7 +27,7 @@ import {
   ZOTERO_WAL_FILENAME,
 } from "@zotlit/plugin-kernel/constants.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 
 import { closeClient, nodeClient } from "./node-client.ts";
 import { readParentBeside } from "./read-parent.ts";

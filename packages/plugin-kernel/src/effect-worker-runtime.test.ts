@@ -1,11 +1,12 @@
+import type { LogPortRecord, PortLogLevel } from "#worker/effect-log-port.ts";
 import * as Context from "effect/Context";
 import * as Logger from "effect/Logger";
 import * as Ref from "effect/Ref";
 import { expect, it } from "vitest";
 
-import { makePortLogger } from "./effect-log-port.ts";
-import type { LogPortRecord, PortLogLevel } from "./effect-log-port.ts";
 import * as WorkerEffect from "./effect-worker-runtime.ts";
+
+import { makePortLogger } from "#worker/effect-log-port.ts";
 
 const portLoggerContext = (posted: LogPortRecord[]) =>
   Context.make(

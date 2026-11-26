@@ -1,10 +1,12 @@
 import { it } from "@effect/vitest";
 import { DateTime, Effect, Fiber, Option, Stream } from "effect";
 import { TestClock } from "effect/testing";
+import { TExternalFile, TFile } from "obsidian";
 import { expect } from "vitest";
 
 import type { AttachmentWithParentKey } from "@zotlit/db";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
+import type { OperatingSystem } from "@zotlit/shared/platform";
 
 import {
   DATA_DIR,
@@ -222,7 +224,7 @@ it.effect(
     }),
 );
 
-it.effect.each<[NodeJS.Platform, object]>([
+it.effect.each<[OperatingSystem, object]>([
   ["darwin", ROUGIER],
   ["win32", ROUGIER],
   ["linux", { kind: "unresolved" }],
@@ -624,6 +626,86 @@ function linkedAttachment({
     dateModified: ADDED,
   };
 }
+
+const fileAt = (path: string, File: typeof TFile = TFile): TFile =>
+  Object.assign(new File(), { path, extension: "pdf" });
+
+it.effect("resolves a vault file through the vault's path of the file", () =>
+  Effect.gen(function* () {
+    const { service: resolver } = yield* setup();
+
+    expect(
+      yield* resolver.resolveFile(fileAt("attachments/rougier-2014.pdf")),
+    ).toEqual(ROUGIER);
+  }),
+);
+
+it.effect(
+  "resolves a Zotero storage file outside the vault by its real path",
+  () =>
+    Effect.gen(function* () {
+      const { service: resolver } = yield* setup();
+      const file = fileAt(
+        `file:${DATA_DIR}/storage/PDFSTR22/sakimas-song.pdf`,
+        TExternalFile,
+      );
+
+      expect(yield* resolver.resolveFile(file)).toMatchObject({
+        kind: "resolved",
+        attachmentKey: "PDFSTR22",
+      });
+    }),
+);
+
+it.effect(
+  "resolves a vault file that two Attachments share to the Attachment the open named",
+  () =>
+    Effect.gen(function* () {
+      const { service: resolver } = yield* setup({ rows: SHARED_FILE_ROWS });
+      const file = fileAt("attachments/rougier-2014.pdf");
+
+      expect(
+        yield* resolver.resolveFile(file, { attachmentKey: "RGRPDF24" }),
+      ).toEqual(ROUGIER);
+      expect(yield* resolver.resolveFile(file)).toMatchObject({
+        attachmentKey: "RGREARL8",
+      });
+    }),
+);
+
+it.effect(
+  "answers pending at once before the first index, and waits for it when asked to",
+  () =>
+    Effect.gen(function* () {
+      const { service: resolver } = yield* setup({ prime: false });
+      const file = fileAt("attachments/rougier-2014.pdf");
+
+      expect(yield* resolver.resolveFile(file)).toEqual({ kind: "pending" });
+      expect(yield* resolver.resolveFile(file, { wait: "2 seconds" })).toEqual(
+        ROUGIER,
+      );
+    }),
+);
+
+it.effect(
+  "answers pending when the wait ends while the database cannot be read",
+  () =>
+    Effect.gen(function* () {
+      const { service: resolver } = yield* setup({
+        seeds: [null, null, FIXTURE_ROWS],
+        prime: false,
+      });
+      const waiting = yield* resolver
+        .resolveFile(fileAt("attachments/rougier-2014.pdf"), {
+          wait: "2 seconds",
+        })
+        .pipe(Effect.forkScoped({ startImmediately: true }));
+
+      yield* TestClock.adjust("2 seconds");
+
+      expect(yield* Fiber.join(waiting)).toEqual({ kind: "pending" });
+    }),
+);
 
 function setup(options: ResolverHarnessOptions = {}) {
   return resolverFixture({ rows: FIXTURE_ROWS, ...options });

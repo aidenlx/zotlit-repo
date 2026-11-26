@@ -13,6 +13,7 @@
   "scripts": {
     "build": "vite build && npm run typecheck",
     "build:dev": "vite build --mode development",
+    "build:mobile": "vite build -c vite.mobile.config.ts",
     "dev": "vite build --watch --mode development",
     "dev:vault": "npm run build:dev && pnpm --filter @zotlit/reader build:dev && ../../packages/scripts/scripts/obsidian-vault.ts open && npm run dev",
     "dev:i18n": "I18N_DEV_SERVER=true vite build --watch --mode development",

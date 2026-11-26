@@ -1,7 +1,11 @@
+import type { Runtime } from "#runtime-table";
+
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 
 import { bundledPlugin, CONTAINER_PLUGIN } from "./profiles.ts";
 import type { PluginProfile } from "./profiles.ts";
+
+import { RUNTIMES } from "#runtime-table";
 
 export interface PublishedPlugin {
   readonly profile: PluginProfile;
@@ -13,7 +17,7 @@ export interface PublishedPlugin {
   readonly giscus: boolean;
   readonly changelog?: string;
   readonly budget: PluginBudget;
-  readonly allowedRequires: readonly string[];
+  readonly runtime: Runtime;
 }
 
 export interface PluginBudget {
@@ -42,41 +46,7 @@ export const PUBLISHED_PLUGINS = {
       startupDailyMs: 100,
       startupUpdateMs: 100,
     },
-    allowedRequires: [
-      "obsidian",
-      "@codemirror/autocomplete",
-      "@codemirror/commands",
-      "@codemirror/language",
-      "@codemirror/lint",
-      "@codemirror/state",
-      "@codemirror/view",
-      "@lezer/common",
-      "@lezer/highlight",
-      "@lezer/lr",
-      "module",
-      "node:async_hooks",
-      "node:buffer",
-      "node:child_process",
-      "node:crypto",
-      "node:fs",
-      "node:fs/promises",
-      "node:http",
-      "node:http2",
-      "node:https",
-      "node:module",
-      "node:net",
-      "node:os",
-      "node:path",
-      "node:path/posix",
-      "node:sqlite",
-      "node:stream",
-      "node:stream/consumers",
-      "node:string_decoder",
-      "node:tls",
-      "node:url",
-      "node:util",
-      "node:zlib",
-    ],
+    runtime: RUNTIMES.desktopRenderer,
   },
   reader: {
     profile: bundledPlugin({ resources: "Language Packs" }),
@@ -92,7 +62,7 @@ export const PUBLISHED_PLUGINS = {
       startupDailyMs: 30,
       startupUpdateMs: 50,
     },
-    allowedRequires: ["obsidian"],
+    runtime: RUNTIMES.obsidianModule,
   },
   resources: {
     profile: CONTAINER_PLUGIN,
@@ -106,10 +76,16 @@ export const PUBLISHED_PLUGINS = {
       mainJsBytes: 25_800_000,
       stylesCssBytes: 0,
     },
-    allowedRequires: ["obsidian"],
+    runtime: RUNTIMES.obsidianModule,
   },
 } as const satisfies Record<string, PublishedPlugin>;
 
 export type PublishedPluginName = keyof typeof PUBLISHED_PLUGINS;
 
 export const BUNDLE_PACKAGE_DIR = "dist/package";
+
+export const MOBILE_HOST_BUNDLE = {
+  app: "apps/obsidian",
+  file: "dist-mobile/main.js",
+  runtime: RUNTIMES.mobileRenderer,
+} as const;

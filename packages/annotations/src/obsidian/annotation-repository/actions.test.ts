@@ -4,7 +4,7 @@ import { afterAll, describe, expect, it, vi } from "vitest";
 
 import { createMockPlugin } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge.ts";
-import { toInstant } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import {

@@ -1,6 +1,7 @@
 import { defineConfig } from "oxlint";
 
 import baseConfig, {
+  nodeAllowed,
   datePattern,
   itemQuerySchemaPaths,
   parentImportPattern,
@@ -41,6 +42,7 @@ export default defineConfig({
     ],
   },
   overrides: [
+    nodeAllowed(["**/*"]),
     ...testBaselineOverrides("apps/docs"),
     {
       files: ["src/**"],

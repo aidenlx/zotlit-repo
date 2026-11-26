@@ -9,7 +9,9 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
-import { ANNOTATION_SCENARIO_QUERIES } from "./annotation-scenario-queries.ts";
+import { ANNOTATION_SCENARIO_QUERIES } from "./__fixtures__/annotation-scenario-queries.ts";
+import type { RunOptions } from "./__fixtures__/test-helpers.ts";
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import { ItemQueryError } from "./error.ts";
 import {
   ANNOTATIONS,
@@ -20,8 +22,6 @@ import {
 } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
 import { ItemQueryScheduler } from "./scheduler.ts";
-import type { RunOptions } from "./test-helpers.ts";
-import { runEffect } from "./test-helpers.ts";
 
 let scenario: ScenarioDatabase<NodeDatabaseClient>;
 beforeAll(() => {

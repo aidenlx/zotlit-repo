@@ -1,6 +1,6 @@
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import type { App, FileSystemAdapter, Vault } from "obsidian";
+import type { App, DataAdapter, Vault } from "obsidian";
 import { afterEach, describe, expect } from "vitest";
 
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -17,22 +17,13 @@ afterEach(() => {
 
 describe("layerObsidianEnv", () => {
   it.effect(
-    "reads the platform, version, language, vault name, folder and app id once",
+    "reads the platform, version, language, vault name and app id once",
     () =>
       Effect.gen(function* () {
         setMockPlatform({ isMacOS: true, isWin: false, isDesktopApp: true });
-        let reads = 0;
         const app = stubService<App>("App", {
           appId: "0123456789abcdef",
-          vault: stubService<Vault>("Vault", {
-            getName: () => "Research",
-            adapter: stubService<FileSystemAdapter>("FileSystemAdapter", {
-              getBasePath: () => {
-                reads += 1;
-                return "/Users/me/vault";
-              },
-            }),
-          }),
+          vault: stubService<Vault>("Vault", { getName: () => "Research" }),
         });
         const env = yield* ObsidianEnv.pipe(
           Effect.provide(
@@ -47,14 +38,65 @@ describe("layerObsidianEnv", () => {
           apiVersion: "1.0.0-test",
           language: "en",
           vaultName: "Research",
-          basePath: "/Users/me/vault",
           appId: "0123456789abcdef",
         });
         resetMockPlatform();
         expect(env.platform.isMacOS).toBe(true);
-        expect(env.basePath).toBe("/Users/me/vault");
-        expect(reads).toBe(1);
       }),
+  );
+});
+
+describe("layerObsidianEnv on Obsidian Mobile", () => {
+  it.effect("reads no member of the vault adapter", () =>
+    Effect.gen(function* () {
+      setMockPlatform({
+        isIosApp: true,
+        isDesktopApp: false,
+        isWin: false,
+        isMacOS: false,
+      });
+      const app = stubService<App>("App", {
+        appId: "0123456789abcdef",
+        vault: stubService<Vault>("Vault", {
+          getName: () => "Research",
+          adapter: stubService<DataAdapter>("CapacitorAdapter", {}),
+        }),
+      });
+      const env = yield* ObsidianEnv.pipe(
+        Effect.provide(
+          layerObsidianEnv.pipe(Layer.provide(Layer.succeed(ObsidianApp, app))),
+        ),
+      );
+
+      expect(env).toMatchObject({ os: "ios", vaultName: "Research" });
+    }),
+  );
+});
+
+describe("ObsidianEnv.os", () => {
+  it.effect.each([
+    [{ isWin: true, isMacOS: false }, "win32"],
+    [{ isWin: false, isMacOS: true }, "darwin"],
+    [{ isWin: false, isMacOS: false }, "linux"],
+    [{ isWin: false, isMacOS: true, isIosApp: true }, "ios"],
+    [{ isWin: false, isMacOS: false, isAndroidApp: true }, "android"],
+  ] as const)("names the operating system of %o as %s", ([flags, os]) =>
+    Effect.gen(function* () {
+      setMockPlatform({ ...flags, isDesktopApp: true });
+      const app = stubService<App>("App", {
+        appId: "0123456789abcdef",
+        vault: stubService<Vault>("Vault", {
+          getName: () => "Research",
+        }),
+      });
+      const env = yield* ObsidianEnv.pipe(
+        Effect.provide(
+          layerObsidianEnv.pipe(Layer.provide(Layer.succeed(ObsidianApp, app))),
+        ),
+      );
+
+      expect(env.os).toBe(os);
+    }),
   );
 });
 
@@ -67,9 +109,6 @@ describe("ObsidianEnv.corePluginEnabled", () => {
         appId: "0123456789abcdef",
         vault: stubService<Vault>("Vault", {
           getName: () => "Research",
-          adapter: stubService<FileSystemAdapter>("FileSystemAdapter", {
-            getBasePath: () => "/Users/me/vault",
-          }),
         }),
         internalPlugins: {
           getEnabledPluginById: (id: string) => (enabled.has(id) ? {} : null),

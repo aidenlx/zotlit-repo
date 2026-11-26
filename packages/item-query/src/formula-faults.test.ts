@@ -9,6 +9,7 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import type { FormulaResolver } from "./filter-plan.ts";
 import {
   collectQuery,
@@ -17,7 +18,6 @@ import {
   ITEMS,
 } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
-import { runEffect } from "./test-helpers.ts";
 
 const GENERATED_SEED = 1503;
 const GENERATED_COUNT = 250;

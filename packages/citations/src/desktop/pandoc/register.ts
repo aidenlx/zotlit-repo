@@ -21,8 +21,8 @@ import {
   rejectionText,
 } from "@zotlit/obsidian-kit/cli-params.ts";
 import type { CliParamName } from "@zotlit/obsidian-kit/cli-params.ts";
-import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
@@ -80,7 +80,7 @@ export const layerPandocResolve: Layer.Layer<
   never,
   never,
   | PluginHost
-  | ObsidianEnv
+  | VaultDisk
   | MetadataCache
   | Vault
   | ZoteroReads
@@ -95,7 +95,7 @@ export const layerPandocResolve: Layer.Layer<
     registerPandocResolve(host, {
       vault: yield* Vault,
       metadata: yield* MetadataCache,
-      basePath: (yield* ObsidianEnv).basePath,
+      basePath: (yield* VaultDisk).basePath,
       fileSystem: yield* FileSystem.FileSystem,
       reads: yield* ZoteroReads,
       zoteroPref: yield* ZoteroPref,

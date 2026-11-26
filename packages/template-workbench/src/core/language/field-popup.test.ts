@@ -9,12 +9,12 @@ import type { Extension } from "@codemirror/state";
 import { EditorView } from "@codemirror/view";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { documentFocus } from "./__fixtures__.ts";
 import { fieldPopupKeyHost } from "./field-popup.ts";
 import type { FieldPopupKeys } from "./field-popup.ts";
 import { filterExpressionCompletion } from "./filter-expression-completion.ts";
 import type { ExpressionVocabulary } from "./filter-expression-completion.ts";
 import { filterExpressionLanguage } from "./filter-expression.ts";
-import { documentFocus } from "./test-utils.ts";
 
 const VOCABULARY: ExpressionVocabulary = {
   fields: [{ path: "title", label: "Title", type: "string" }],

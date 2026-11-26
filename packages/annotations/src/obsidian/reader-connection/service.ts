@@ -1,6 +1,15 @@
-import { Context, Effect, Layer, PubSub, SubscriptionRef } from "effect";
+import {
+  Context,
+  Effect,
+  Exit,
+  Layer,
+  PubSub,
+  Scope,
+  SubscriptionRef,
+} from "effect";
 import type { Stream } from "effect";
 
+import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import type {
   ConnectHandlers,
   ReaderApi,
@@ -23,6 +32,25 @@ export class ReaderConnection extends Context.Service<
 >()("zotlit/reader-connection/ReaderConnection") {}
 
 const ABSENT: ReaderConnectionState = { status: "absent" };
+
+export const whileConnected = Effect.fn("whileConnected")(function* <R>(
+  connection: ReaderConnection["Service"],
+  connections: Scope.Scope,
+  body: (api: ReaderApi) => Effect.Effect<unknown, never, R>,
+) {
+  let current: Scope.Closeable | null = null;
+  yield* forkEach(connection.changes, (state) =>
+    Effect.gen(function* () {
+      const previous = current;
+      current = null;
+      if (previous) yield* Scope.close(previous, Exit.void);
+      if (state.status !== "connected") return;
+      const scope = yield* Scope.fork(connections);
+      current = scope;
+      yield* body(state.api).pipe(Scope.provide(scope));
+    }),
+  );
+});
 
 export const layerReaderConnection = (source: ReaderSource) =>
   Layer.effect(

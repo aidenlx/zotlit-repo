@@ -3,6 +3,7 @@ import type { ManagedRuntime } from "effect";
 import type { App } from "obsidian";
 
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import type {
   FileManager} from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import {
@@ -56,16 +57,22 @@ export function workbenchIdentity(identity: {
   databasePath: string;
   dataDir?: string;
   baseAttachmentPath?: string | null;
-}): Context.Context<ObsidianEnv | ZoteroPref> {
+}): Context.Context<ObsidianEnv | VaultDisk | ZoteroPref> {
   const { vaultName, basePath, apiVersion, ...pref } = identity;
   return Context.make(
     ObsidianEnv,
     stubService<ObsidianEnv["Service"]>("ObsidianEnv", {
       ...(vaultName === undefined ? {} : { vaultName }),
-      ...(basePath === undefined ? {} : { basePath }),
       ...(apiVersion === undefined ? {} : { apiVersion }),
     }),
   ).pipe(
+    Context.add(
+      VaultDisk,
+      stubService<VaultDisk["Service"]>(
+        "VaultDisk",
+        basePath === undefined ? {} : { basePath },
+      ),
+    ),
     Context.add(
       ZoteroPref,
       stubService<ZoteroPref["Service"]>("ZoteroPref", {

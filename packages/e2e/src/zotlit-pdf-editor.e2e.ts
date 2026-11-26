@@ -19,6 +19,7 @@ import {
 const PDF_PATH = annotationAttachment.path!;
 const PASSWORD_PDF = "attachments/pdf-reader/password.pdf";
 const OUTSIDE_PDF = "attachments/pdf-reader/chrome.pdf";
+const OTHER_VAULT_PDF = "pdf-reader-theme.pdf";
 const PAGE_ONE_MARK = "PUPR5FG5";
 const PAGE_TWO_MARK = "FDRFQ7C2";
 
@@ -371,10 +372,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       180_000,
     );
 
-    it("keeps a plain page link in Obsidian's own PDF view while Open all PDFs is off, and moves a tab of that view to the ZotLit reader for a link with an Annotation or Attachment Anchor (E-4)", async () => {
+    it("keeps a plain page link to a PDF outside Zotero in Obsidian's own PDF view while Open all PDFs is off, opens a plain page link to a Zotero attachment in the ZotLit reader, and moves a tab of Obsidian's view to the ZotLit reader for a link with an Annotation or Attachment Anchor (E-4, forum topic 107)", async () => {
       const outcome = await obRun(
         run.vaultId,
-        async ({ app, zotlit, page }, { path, pageTwoMark, attachmentKey }) => {
+        async (
+          { app, zotlit, page },
+          { path, otherPath, pageTwoMark, attachmentKey },
+        ) => {
           await using cleanup = new AsyncDisposableStack();
           const services = () => zotlit.services;
           const tools = page.annotationLinkTools(services);
@@ -388,14 +392,16 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           await closeAll();
           await page.reader.withTakeover(cleanup, false);
           const { landedIn: landed } = tools;
-          await app.workspace.openLinkText(`${path}#page=2`, "", "tab");
+          await app.workspace.openLinkText(`${otherPath}#page=1`, "", "tab");
           const nativeLeaf = cleanup.adopt(
             await page.until(
               "Obsidian's own PDF view of the plain link",
               () =>
                 app.workspace
                   .getLeavesOfType("pdf")
-                  .find((leaf) => leaf.getViewState().state?.file === path),
+                  .find(
+                    (leaf) => leaf.getViewState().state?.file === otherPath,
+                  ),
               10000,
             ),
             (tab) => tab.detach(),
@@ -425,6 +431,32 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
                 ? (await landed(nativeLeaf, null, 1)).page
                 : null,
           };
+          await app.workspace.openLinkText(`${path}#page=2`, "", "tab");
+          const plainLeaf = cleanup.adopt(
+            await page.until(
+              "the ZotLit reader of the plain link to the Zotero attachment",
+              () =>
+                app.workspace
+                  .getLeavesOfType(page.reader.viewType)
+                  .find((leaf) => leaf !== nativeLeaf),
+              10000,
+            ),
+            (tab) => tab.detach(),
+          );
+          const plainLanding = await landed(plainLeaf, null, 2);
+          const plainReader = page.reader.readerOf(plainLeaf.view)!;
+          const plainToolbar = await page.until(
+            "the Creation Toolbar of the plain link to the Zotero attachment",
+            () =>
+              plainReader.root.querySelector(
+                '[data-zpr-part="toolbar"] .zt-pdf-creation-toolbar',
+              ),
+            10000,
+          );
+          const plainZotero = {
+            ...plainLanding,
+            tools: plainToolbar.isConnected,
+          };
           await app.workspace.openLinkText(
             `${path}#page=1&zt-attachment=${attachmentKey}`,
             "",
@@ -436,7 +468,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               () =>
                 app.workspace
                   .getLeavesOfType(page.reader.viewType)
-                  .find((leaf) => leaf !== nativeLeaf),
+                  .find((leaf) => leaf !== nativeLeaf && leaf !== plainLeaf),
               10000,
             ),
             (tab) => tab.detach(),
@@ -456,12 +488,14 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             plain,
             moved,
             stays,
+            plainZotero,
             attachmentOnly,
             nativeLeaves: app.workspace.getLeavesOfType("pdf").length,
           };
         },
         {
           path: PDF_PATH,
+          otherPath: OTHER_VAULT_PDF,
           pageTwoMark: PAGE_TWO_MARK,
           attachmentKey: annotationAttachment.key,
         },
@@ -477,6 +511,13 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           attachment: annotationAttachment.key,
         },
         stays: { viewType: READER_VIEW_TYPE, page: 1 },
+        plainZotero: {
+          viewType: READER_VIEW_TYPE,
+          page: 2,
+          selected: [],
+          attachment: annotationAttachment.key,
+          tools: true,
+        },
         attachmentOnly: {
           viewType: READER_VIEW_TYPE,
           page: 1,
@@ -757,6 +798,153 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         },
       });
     }, 180_000);
+
+    it.each(
+      (
+        [
+          "main window",
+          "tab menu Open in new window",
+          "command Open in new window",
+          "tab menu Move to new window",
+        ] as const
+      ).flatMap((host) => [
+        { host, openAll: true },
+        { host, openAll: false },
+      ]),
+    )(
+      "opens the create popup in the reader's own window for a text selection: $host, Open all PDFs $openAll (forum topic 107)",
+      async ({ host, openAll }) => {
+        const outcome = await obRun(
+          run.vaultId,
+          async ({ app, zotlit, page }, { path, host, openAll }) => {
+            await using cleanup = new AsyncDisposableStack();
+            const s = zotlit.services;
+            cleanup.defer(async () => {
+              for (const leaf of app.workspace.getLeavesOfType(
+                page.reader.viewType,
+              ))
+                await leaf.setViewState({ type: "empty" });
+            });
+            await page.reader.withTakeover(cleanup, openAll);
+            const file = app.vault.getFileByPath(path)!;
+            await s.bridge.runPromise(s.pdfReader.open(file, "", "tab"));
+            const tab = cleanup.adopt(
+              await page.until(
+                "the ZotLit tab of the PDF",
+                () => page.reader.views().find((v) => v.file === file)?.leaf,
+                10000,
+              ),
+              (leaf) => leaf.detach(),
+            );
+            let leaf = tab;
+            if (host === "tab menu Open in new window") {
+              leaf = cleanup.adopt(app.workspace.openPopoutLeaf(), (leaf) =>
+                leaf.detach(),
+              );
+              await leaf.openFile(file);
+            } else if (host === "command Open in new window") {
+              leaf = cleanup.adopt(app.workspace.openPopoutLeaf(), (leaf) =>
+                leaf.detach(),
+              );
+              await leaf.setViewState(tab.getViewState(), { focus: true });
+            } else if (host === "tab menu Move to new window") {
+              app.workspace.moveLeafToPopout(tab);
+              await page.until(
+                "the tab in a pop-out window",
+                () => tab.getContainer().win !== window,
+                10000,
+              );
+            }
+            const opened = {
+              inMainWindow: leaf.getContainer().win === window,
+              viewType: leaf.view.getViewType(),
+            };
+            if (opened.viewType !== page.reader.viewType)
+              return { ...opened, popup: "no ZotLit reader" };
+            const view = await page.until(
+              "the reader view in the chosen window",
+              () =>
+                page.reader
+                  .views()
+                  .find((v) => v.leaf === leaf && v.reader && v.file === file),
+              10000,
+            );
+            const container = view.containerEl;
+            await view.reader!.navigate({ pageIndex: 0 });
+            await page.until(
+              "the binding and the page 1 text layer",
+              () =>
+                s.bridge.runSync(s.pdfAnnotationEditor.bindingFor(view))
+                  ?.session?.target &&
+                (container.querySelector(
+                  '.page[data-page-number="1"] .textLayer',
+                )?.textContent.length ?? 0) > 0,
+              15000,
+            );
+            await page.activateLeafWindow(leaf);
+            const doc = container.doc;
+            const win = container.win;
+            const walker = doc.createTreeWalker(
+              container.querySelector(
+                '.page[data-page-number="1"] .textLayer',
+              )!,
+              NodeFilter.SHOW_TEXT,
+            );
+            let node: Node | null;
+            while (
+              (node = walker.nextNode()) &&
+              !(
+                (node as Text).data.length > 12 &&
+                node.parentElement!.getBoundingClientRect().height > 0
+              )
+            );
+            const range = doc.createRange();
+            range.setStart(node!, 0);
+            range.setEnd(node!, 8);
+            const box = range.getBoundingClientRect();
+            const y = box.top + box.height / 2;
+            await page
+              .trusted(win)
+              .drag({ x: box.left + 1, y }, { x: box.right - 1, y });
+            const where = () => {
+              const popup = page
+                .windowDocuments()
+                .map((d) =>
+                  d.querySelector(
+                    '.zt-pdf-mark-popup [data-zt-verb="highlight"]',
+                  ),
+                )
+                .find((popup) => popup !== null);
+              if (!popup) return undefined;
+              return popup.ownerDocument === doc
+                ? "its own window"
+                : "another window";
+            };
+            const popup = await page
+              .until("the create popup", where, 5000)
+              .catch(() => "none");
+            return {
+              ...opened,
+              toolbar: !!view.reader!.root.querySelector(
+                ".zt-pdf-creation-toolbar",
+              ),
+              selected: (doc.getSelection()?.toString().length ?? 0) > 0,
+              popup,
+            };
+          },
+          { path: PDF_PATH, host, openAll },
+          { timeoutMs: 60_000 },
+        );
+        expect(outcome).toEqual({
+          inMainWindow: host === "main window",
+          viewType: READER_VIEW_TYPE,
+          toolbar: true,
+          selected: true,
+          popup: "its own window",
+        });
+      },
+      90_000,
+    );
 
     it("reloads a PDF from Zotero storage outside the vault when the file changes on disk, keeping the page, the Creation Toolbar and the binding (E-14)", async () => {
       const outcome = await obRun(

@@ -1,5 +1,5 @@
 import { Clock, DateTime, Effect, Layer } from "effect";
-import type { App, FileSystemAdapter, TFile, View } from "obsidian";
+import type { App, TFile, View } from "obsidian";
 
 import type { PdfReader } from "@zotlit/pdf-reader";
 import type {
@@ -8,10 +8,12 @@ import type {
 } from "@zotlit/pdf-reader/obsidian";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { layerTestVaultDisk } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault-disk.ts";
+import type { OperatingSystem } from "@zotlit/shared/platform";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
-import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { WorkspaceSource } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { CapabilityNotices } from "#obsidian/annotation-repository/notices.ts";
@@ -50,6 +52,7 @@ interface EditorFixtureOptions {
   recordUse?: (itemKey: string) => void;
   notifier?: ReturnType<typeof testNotifier>;
   reader?: Layer.Layer<ReaderConnection>;
+  os?: OperatingSystem;
 }
 
 const layerNoReader = layerReaderConnection((handlers) => {
@@ -61,13 +64,9 @@ export function editorFixtureLayer(options: EditorFixtureOptions) {
   const deps = Layer.mergeAll(
     layerWorkspaceFrom(options.workspace ?? options.app.workspace),
     (options.notifier ?? testNotifier()).layer,
-    Layer.mock(Vault, {
-      fullPath: (path) =>
-        Effect.sync(() =>
-          (options.app.vault.adapter as FileSystemAdapter).getFullPath(path),
-        ),
-    }),
-    Layer.mock(AttachmentResolver, options.attachments),
+    layerTestObsidianEnv({ os: options.os }),
+    layerTestVaultDisk(),
+    Layer.mock(AttachmentResolver, { warm: Effect.void, ...options.attachments }),
     Layer.mock(AnnotationRepository, options.annotations),
     Layer.mock(NoteIndex, options.noteIndex),
     Layer.mock(PluginSettings, options.settings),

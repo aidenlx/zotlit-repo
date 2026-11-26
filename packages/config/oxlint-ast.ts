@@ -57,7 +57,7 @@ export function hasSource(node: ModuleStatement): boolean {
 }
 
 const EFFECT_HELPER_MODULE =
-  /^(?:@zotlit\/(?:plugin-kernel|obsidian-kit|obsidian-desktop)\/|#)effect-/u;
+  /^(?:@zotlit\/plugin-kernel\/worker\/|@zotlit\/(?:plugin-kernel|obsidian-kit|obsidian-desktop)\/|#(?:worker\/)?)effect-/u;
 
 function isEffectModule(source: string): boolean {
   return (

@@ -2,6 +2,7 @@ import { Context, Effect, Layer } from "effect";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { layerTestVaultDisk } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault-disk.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
@@ -97,7 +98,6 @@ export async function openOpener(
         },
       }),
       native: native ?? ((url) => void handed.push(url)),
-      platform: "linux",
     }).pipe(
       Layer.provide(
         Layer.mergeAll(
@@ -105,10 +105,9 @@ export async function openOpener(
           Layer.mock(PluginSettings, { current: Effect.sync(() => settings) }),
           Layer.succeed(
             ObsidianEnv,
-            stubService<ObsidianEnv["Service"]>("ObsidianEnv", {
-              basePath: VAULT,
-            }),
+            stubService<ObsidianEnv["Service"]>("ObsidianEnv", { os: "linux" }),
           ),
+          layerTestVaultDisk({ basePath: VAULT }),
           notifier.layer,
         ),
       ),

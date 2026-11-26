@@ -34,5 +34,8 @@
     "oxlint": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
+  },
+  "zotlit": {
+    "layer": "desktop"
   }
 }

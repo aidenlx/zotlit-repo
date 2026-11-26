@@ -6,6 +6,7 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import type { QueryDataset } from "./dataset.ts";
 import { diagnose, diagnoseDecode, renderDiagnostic } from "./diagnose.ts";
 import reports from "./diagnostic-reports.json";
@@ -16,7 +17,6 @@ import { ITEMS } from "./query-items.ts";
 import { collectQuery } from "./query.ts";
 import type { ItemQueryRequest, QueryResult } from "./request.ts";
 import { describeQueryVocabulary } from "./schema.ts";
-import { runEffect } from "./test-helpers.ts";
 
 let shared: ScenarioDatabase<NodeDatabaseClient>;
 let sharedAnnotations: ScenarioDatabase<NodeDatabaseClient>;

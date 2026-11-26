@@ -62,6 +62,13 @@ it("orders a Node-free host's services after the stubs they read", () => {
   );
 });
 
+it("orders the PDF annotation editor after the vault-on-disk stand-in", () => {
+  const order = serviceOrder(mobileFeatures);
+  const standIn = order.indexOf("stub zotlit/obsidian/VaultDisk");
+  expect(standIn).toBeGreaterThanOrEqual(0);
+  expect(order.indexOf("PdfAnnotationEditor")).toBeGreaterThan(standIn);
+});
+
 it.effect(
   "builds a Node-free host from the platform, every feature's Obsidian value and stub capabilities",
   () =>

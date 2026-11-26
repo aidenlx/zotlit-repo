@@ -8,9 +8,9 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import { collectQuery, ITEMS } from "./index.ts";
 import type { ItemQueryRequest } from "./index.ts";
-import { runEffect } from "./test-helpers.ts";
 
 const RECORDS = [
   { key: "ORD2ZZZZ", title: "Same title", type: "book" },

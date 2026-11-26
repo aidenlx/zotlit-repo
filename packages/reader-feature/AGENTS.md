@@ -4,7 +4,7 @@ The `reader` feature of ZotLit Reader (`apps/reader`): it mounts the ZotLit PDF 
 
 ## Layer
 
-One layer, `src/obsidian/`: the Obsidian API and the kit, no Node, no Electron, and no Zotero package. `oxlint.config.ts` enforces the boundary, so the feature loads on Obsidian Mobile and in a vault without ZotLit.
+One layer, `src/obsidian/`: the Obsidian API and the kit, no Node, no Electron, and no Zotero package. The runtime check (`pnpm run lint:runtime-zones`) holds the Obsidian zone and `oxlint.config.ts` refuses the Zotero packages, so the feature loads on Obsidian Mobile and in a vault without ZotLit.
 
 ## Feature
 

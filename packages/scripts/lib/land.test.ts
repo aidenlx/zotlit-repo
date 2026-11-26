@@ -43,7 +43,10 @@ const quiet = {
 async function taskClone(name: string, branch = `feat/${name}`) {
   const cwd = await repos.clone(name);
   await git(cwd, "switch", "-q", "-c", branch);
-  await repos.commit(cwd, `${name}.txt`, { text: `${name}\n`, message: name });
+  await repos.commit(cwd, `${name}.txt`, {
+    text: `${name}\n`,
+    message: `feat: ${name}`,
+  });
   return cwd;
 }
 
@@ -89,7 +92,7 @@ describe("land", () => {
 
       expect(result).toMatchObject({ ok: true, attempts: 1 });
       expect(await subjects("main")).toEqual([
-        "a",
+        "feat: a",
         "main upstream.txt",
         "seed",
       ]);
@@ -114,6 +117,7 @@ describe("land", () => {
       await git(cwd, "switch", "-q", "-c", "feat/a");
       const original = await repos.commit(cwd, "README.md", {
         text: "branch\n",
+        message: "fix: branch README",
       });
       const upstream = await moveMain("README.md", "upstream\n");
 
@@ -151,7 +155,7 @@ describe("land", () => {
       });
 
       expect(result).toMatchObject({ ok: true, attempts: 2 });
-      expect(await subjects("main")).toEqual(["a", "moved", "seed"]);
+      expect(await subjects("main")).toEqual(["feat: a", "moved", "seed"]);
       expect(await waits()).toMatchObject([{ outcome: "landed", attempts: 2 }]);
     },
     SLOW,
@@ -197,7 +201,7 @@ describe("land", () => {
       if (!result.ok) return;
       expect(await readFile(result.logPath, "utf8")).not.toContain("▸ gate");
       expect(await subjects("main")).toEqual([
-        "a",
+        "feat: a",
         "main upstream.txt",
         "seed",
       ]);
@@ -328,6 +332,47 @@ describe("land", () => {
     expect(result).toMatchObject({ ok: false, step: "preflight" });
   });
 
+  it("refuses a --no-squash land with a commit subject that is not a Conventional Commits subject", async () => {
+    const cwd = await taskClone("a");
+    const bad = await repos.commit(cwd, "b.txt", {
+      text: "b\n",
+      message: "Add b",
+    });
+    const marker = join(repos.root, "gated");
+
+    const result = await land({
+      ...quiet,
+      cwd,
+      squash: false,
+      gate: ["touch", marker],
+    });
+
+    expect(result).toMatchObject({ ok: false, step: "preflight" });
+    expect(result.ok || result.message).toContain(`${bad.slice(0, 7)} Add b`);
+    expect(result.ok || result.message).not.toContain("feat: a");
+    expect(existsSync(marker)).toBe(false);
+  });
+
+  it(
+    "lands --no-squash past a merge commit, which the rebase drops",
+    async () => {
+      const cwd = await taskClone("a");
+      await moveMain("upstream.txt", "upstream\n");
+      await git(cwd, "fetch", "-q", "origin");
+      await git(cwd, "merge", "-q", "--no-ff", "--no-edit", "origin/main");
+
+      const result = await land({ ...quiet, cwd, squash: false });
+
+      expect(result).toMatchObject({ ok: true });
+      expect(await subjects("main")).toEqual([
+        "feat: a",
+        "main upstream.txt",
+        "seed",
+      ]);
+    },
+    SLOW,
+  );
+
   it("refuses an agent branch before the gate, since its push to origin is refused", async () => {
     const cwd = await taskClone("a", "claude/a");
     const marker = join(repos.root, "gated");
@@ -387,6 +432,9 @@ function fakeGitHub({
   const branchTip = (branch: string) =>
     git(repos.remote, "rev-parse", "--verify", `refs/heads/${branch}`);
   const github: LandGitHub = {
+    advanceMain: async ({ head, base }) => {
+      await git(repos.remote, "update-ref", "refs/heads/main", head, base);
+    },
     findOpenPullRequest: async ({ head, base }) =>
       pulls.find(
         (pull) => pull.head === head && pull.base === base && !pull.merged,
@@ -451,7 +499,7 @@ const SECTIONS = [
 
 async function writeRecord(
   cwd: string,
-  { title = "Add a", sections = SECTIONS, text = "Closes #1." } = {},
+  { title = "feat: add a", sections = SECTIONS, text = "Closes #1." } = {},
 ) {
   const path = join(cwd, LAND_RECORD_PATH);
   await mkdir(join(path, ".."), { recursive: true });
@@ -460,6 +508,42 @@ async function writeRecord(
 }
 
 describe("the record PR", () => {
+  it(
+    "squashes by default and lands the commit checked by CI",
+    async () => {
+      const cwd = await taskClone("a");
+      await repos.commit(cwd, "b.txt", { text: "b", message: "b" });
+      const tree = await git(cwd, "rev-parse", "HEAD^{tree}");
+      await writeRecord(cwd);
+      const { github, checkReads } = fakeGitHub();
+      expect(await land({ ...quiet, cwd, github })).toMatchObject({ ok: true });
+      const head = await git(repos.remote, "rev-parse", "main");
+      expect(checkReads.map((read) => read.commit)).toEqual([head]);
+      expect(await subjects("main")).toEqual(["feat: add a", "seed"]);
+      expect(
+        await git(repos.remote, "show", "-s", "--format=%B", head),
+      ).toContain("## Summary");
+      expect(await git(repos.remote, "rev-parse", "main^{tree}")).toBe(tree);
+    },
+    SLOW,
+  );
+
+  it(
+    "rejects attribution in the squash record before updating the task ref",
+    async () => {
+      const cwd = await taskClone("a");
+      const before = await git(cwd, "rev-parse", "HEAD");
+      await writeRecord(cwd, { text: "Made with Cursor" });
+      const { github, pulls } = fakeGitHub();
+      expect(await land({ ...quiet, cwd, squash: true, github })).toMatchObject(
+        { ok: false, step: "rebase" },
+      );
+      expect(await git(cwd, "rev-parse", "HEAD")).toBe(before);
+      expect(pulls).toEqual([]);
+    },
+    SLOW,
+  );
+
   it(
     "opens a PR whose body is the record, pushes main to its head, and deletes the branch once it shows as merged",
     async () => {
@@ -474,10 +558,10 @@ describe("the record PR", () => {
         record: { url: "https://github.com/owner/repo/pull/1", merged: true },
       });
       expect(pulls).toMatchObject([
-        { head: "feat/a", base: "main", title: "Add a", merged: true },
+        { head: "feat/a", base: "main", title: "feat: add a", merged: true },
       ]);
       expect(pulls[0]!.body).toMatch(/^## Summary\n\nCloses #1\./);
-      expect(pulls[0]!.body).not.toContain("# Add a");
+      expect(pulls[0]!.body).not.toContain("# feat: add a");
       expect(await git(repos.remote, "rev-parse", "main")).toBe(
         await git(cwd, "rev-parse", "HEAD"),
       );
@@ -504,6 +588,7 @@ describe("the record PR", () => {
 
       const first = await land({
         ...quiet,
+        squash: false,
         cwd,
         gate: ["sh", "-c", gate],
         attempts: 1,
@@ -512,9 +597,10 @@ describe("the record PR", () => {
       expect(first).toMatchObject({ ok: false, step: "push" });
       expect(pulls).toMatchObject([{ merged: false }]);
 
-      await writeRecord(cwd, { title: "Add a, again", text: "second" });
+      await writeRecord(cwd, { title: "feat: add a, again", text: "second" });
       const second = await land({
         ...quiet,
+        squash: false,
         cwd,
         gate: ["sh", "-c", gate],
         github,
@@ -522,9 +608,12 @@ describe("the record PR", () => {
 
       expect(second).toMatchObject({ ok: true, record: { merged: true } });
       expect(pulls).toHaveLength(1);
-      expect(pulls[0]).toMatchObject({ title: "Add a, again", merged: true });
+      expect(pulls[0]).toMatchObject({
+        title: "feat: add a, again",
+        merged: true,
+      });
       expect(pulls[0]!.body).toContain("second");
-      expect(await subjects("main")).toEqual(["a", "moved", "seed"]);
+      expect(await subjects("main")).toEqual(["feat: a", "moved", "seed"]);
     },
     SLOW,
   );
@@ -542,6 +631,11 @@ describe("the record PR", () => {
           sections: SECTIONS.filter((name) => name !== "Review"),
         }),
       problem: "Review",
+    },
+    {
+      name: "a squash record whose title is not a Conventional Commits subject",
+      write: (cwd: string) => writeRecord(cwd, { title: "Add a" }),
+      problem: '"Add a", is the subject of the squash commit',
     },
   ])(
     "refuses $name before it pushes anything",
@@ -821,7 +915,7 @@ describe("the CI check of the record PR", () => {
       const result = await land({ ...fast, cwd, gate: ["true"], github });
 
       expect(result).toMatchObject({ ok: true, attempts: 2 });
-      expect(await subjects("main")).toEqual(["a", "moved", "seed"]);
+      expect(await subjects("main")).toEqual(["feat: add a", "moved", "seed"]);
       const commits = [...new Set(checkReads.map((read) => read.commit))];
       expect(commits).toHaveLength(2);
       expect(commits[1]).toBe(await git(repos.remote, "rev-parse", "main"));
@@ -897,7 +991,7 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
         [0, null],
         [0, null],
       ]);
-      expect(await subjects("main")).toEqual(["b", "a", "seed"]);
+      expect(await subjects("main")).toEqual(["feat: b", "feat: a", "seed"]);
       const [a, b] = await waits();
       expect(a).toMatchObject({ source: "feat/a", outcome: "landed" });
       expect(b).toMatchObject({ source: "feat/b", outcome: "landed" });
@@ -911,7 +1005,10 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
     async () => {
       const holder = await holdTurn();
       const cwd = await taskClone("a");
-      const original = await repos.commit(cwd, "README.md", { text: "task\n" });
+      const original = await repos.commit(cwd, "README.md", {
+        text: "task\n",
+        message: "fix: task README",
+      });
       const waiter = landChild(cwd, { conflictCheckMs: 50 });
       const result = text(waiter.stdout!);
       await until(async () => (await tickets()) === 1, "the land ticket");
@@ -986,11 +1083,11 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
       const cwd = await taskClone("a");
       const first = await repos.commit(cwd, "README.md", {
         text: "first\n",
-        message: "first",
+        message: "fix: first",
       });
       await repos.commit(cwd, "README.md", {
         text: "second\n",
-        message: "second",
+        message: "fix: second",
       });
       await git(cwd, "push", "-q", "origin", `${first}:refs/heads/first`);
       const other = await repos.clone("other");
@@ -1015,9 +1112,9 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
       await once(holder, "exit");
       expect(JSON.parse(await result)).toMatchObject({ ok: true });
       expect(await subjects("main")).toEqual([
-        "second",
-        "a",
-        "first",
+        "fix: second",
+        "feat: a",
+        "fix: first",
         "main upstream.txt",
         "seed",
       ]);
@@ -1093,7 +1190,7 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
 
       expect(result).toMatchObject({ ok: true });
       expect(lines.join("\n")).toContain(`pid ${dead.pid}`);
-      expect(await subjects("main")).toEqual(["a", "seed"]);
+      expect(await subjects("main")).toEqual(["feat: a", "seed"]);
     },
     SLOW,
   );

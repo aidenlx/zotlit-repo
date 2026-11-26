@@ -6,7 +6,7 @@ import { RpcServer, RpcWorker } from "effect/rpc";
 import {
   layerLibraryLogPort,
   makePortLogger,
-} from "@zotlit/plugin-kernel/effect-log-port.ts";
+} from "@zotlit/plugin-kernel/worker/effect-log-port.ts";
 
 import type { Connection } from "./connection.ts";
 import { handlersLayer } from "./handlers.ts";
@@ -22,7 +22,10 @@ export interface ZoteroReadsWorkerHost {
     readonly snapshotOwner: string;
     readonly deferOpen: boolean;
   }) => Layer.Layer<Connection, never, FileSystem.FileSystem>;
-  readonly handlers?: Pick<HandlersOptions, "readSegmenter" | "queryJobs">;
+  readonly handlers: Pick<
+    HandlersOptions,
+    "readSegmenter" | "queryJobs" | "snapshotRevision"
+  >;
   readonly fileSystem: Layer.Layer<FileSystem.FileSystem>;
 }
 

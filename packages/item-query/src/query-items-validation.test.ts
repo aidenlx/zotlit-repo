@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { SCENARIO_LIBRARIES } from "@zotlit/db-testing/scenario";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import { ANNOTATIONS, collectQuery, ITEMS, ItemQueryError } from "./index.ts";
 import type {
   ItemQueryErrorCode,
@@ -10,7 +11,6 @@ import type {
   QueryDataset,
   SortSpec,
 } from "./index.ts";
-import { runEffect } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 

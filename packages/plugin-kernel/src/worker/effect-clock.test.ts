@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { stringifyInstant } from "./constants.ts";
-import { fromInstant, toInstant } from "./effect-clock.ts";
+import { stringifyInstant } from "#constants.ts";
+import { fromInstant, toInstant } from "#worker/effect-clock.ts";
 
 describe("effect-clock edge", () => {
   it.each([

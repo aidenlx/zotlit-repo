@@ -47,7 +47,7 @@ export default defineConfig(({ mode }) => {
   return {
     resolve: {
       alias: { "@zotlit/plugin-messages": READER_MESSAGES_DIRECTORY },
-      conditions: ["module", "browser", "development|production"],
+      conditions: [...PUBLISHED_PLUGINS.reader.runtime.conditions],
     },
     define: {
       ...buildDefines(isDev),

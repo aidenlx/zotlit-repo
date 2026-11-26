@@ -3122,7 +3122,7 @@
   "reader_settings_page": "Reader",
   "reader_settings_page_desc": "How ZotLit Reader opens the PDFs in your vault.",
   "reader_settings_open_all_pdfs_name": "Open all PDFs",
-  "reader_settings_open_all_pdfs_desc": "Open every PDF in the vault in ZotLit Reader, with PDF embeds, hover previews and canvas cards. When off, PDFs open in Obsidian’s PDF viewer.",
+  "reader_settings_open_all_pdfs_desc": "Open every PDF in the vault in ZotLit Reader, with PDF embeds, hover previews and canvas cards. When off, PDFs open in Obsidian’s PDF viewer, and Zotero attachments open in ZotLit Reader while ZotLit is turned on.",
   "reader_view_name": "ZotLit Reader",
   "reader_takeover_unavailable": "ZotLit Reader can’t open all PDFs in this version of Obsidian. PDFs keep opening in Obsidian’s PDF viewer."
 }

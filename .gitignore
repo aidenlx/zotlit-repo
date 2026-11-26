@@ -10,6 +10,7 @@ output-file.txt
 a-different-file.txt
 dist
 dist-dev
+dist-mobile
 !packages/pdfjs/dist/
 
 npm-debug.log*

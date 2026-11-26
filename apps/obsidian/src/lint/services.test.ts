@@ -447,6 +447,10 @@ tester.run("temporal-in-effect", temporalInEffect, {
       code: `${effectImport}const at = DateTime.makeUnsafe(text);\nconst api = options.Temporal;\nconst names = { Temporal: 1 };`,
       filename: library,
     },
+    {
+      code: 'import { instantClock } from "@zotlit/obsidian-kit/worker/effect-clock.ts";\nconst spy = vi.spyOn(Temporal.Now, "instant");',
+      filename: library,
+    },
   ],
   invalid: [
     {
@@ -475,7 +479,7 @@ tester.run("temporal-in-effect", temporalInEffect, {
       errors: [temporal],
     },
     {
-      code: 'import { instantClock } from "@zotlit/plugin-kernel/effect-clock.ts";\nconst spy = vi.spyOn(Temporal.Now, "instant");',
+      code: 'import { instantClock } from "@zotlit/plugin-kernel/worker/effect-clock.ts";\nconst spy = vi.spyOn(Temporal.Now, "instant");',
       filename: library,
       errors: [temporal],
     },

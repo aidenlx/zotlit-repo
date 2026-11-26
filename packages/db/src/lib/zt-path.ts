@@ -1,3 +1,5 @@
+import type { OperatingSystem } from "@zotlit/shared/platform";
+
 import { annotationHasCacheImage } from "./zt-annot.ts";
 import type { AnnotationType, ResolvedAnnotationTypeName } from "./zt-annot.ts";
 import { parseAttachmentPath } from "./zt-attach.ts";
@@ -96,12 +98,12 @@ export function attachmentAbsPath(
   }
 }
 
-const CASE_INSENSITIVE_PLATFORMS: ReadonlySet<NodeJS.Platform> = new Set([
+const CASE_INSENSITIVE_PLATFORMS: ReadonlySet<OperatingSystem> = new Set([
   "darwin",
   "win32",
 ]);
 
-export function isCaseInsensitivePlatform(platform: NodeJS.Platform): boolean {
+export function isCaseInsensitivePlatform(platform: OperatingSystem): boolean {
   return CASE_INSENSITIVE_PLATFORMS.has(platform);
 }
 
@@ -117,7 +119,7 @@ export function normalizeAbsolutePath(path: string): string {
 
 export function attachmentPathKey(
   path: string,
-  platform: NodeJS.Platform,
+  platform: OperatingSystem,
 ): string {
   const normalized = normalizeAbsolutePath(path);
   return isCaseInsensitivePlatform(platform)

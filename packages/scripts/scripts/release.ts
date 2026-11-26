@@ -6,9 +6,10 @@ import { parseArgs } from "node:util";
 import { prerelease, valid } from "semver";
 import { $ } from "zx";
 
-import { SOURCE_BRANCH } from "@zotlit/config/repositories";
+import { SOURCE_BRANCH, SOURCE_REPOSITORY } from "@zotlit/config/repositories";
 
 import { land, LAND_GATES } from "#land";
+import { ghLandGitHub } from "#land-github";
 import { parseManifest as parseObsidianManifest } from "#obsidian-manifest";
 import { getWorkspaceRoot } from "#package-roots";
 import {
@@ -160,7 +161,7 @@ async function completeRelease(): Promise<void> {
   p.log.step(
     `Land onto ${releaseBranch} with the release gate (pnpm verify --release)`,
   );
-  await landOrFail(releaseRef);
+  await landOrFail(releaseRef, summary);
 
   await returnTo(releaseRef);
   const stable = bumps.some((bump) => prerelease(bump.next) === null);
@@ -169,10 +170,16 @@ async function completeRelease(): Promise<void> {
   );
 }
 
-async function landOrFail(releaseRef: string): Promise<void> {
+async function landOrFail(releaseRef: string, summary: string): Promise<void> {
   const result = await land({
     cwd: workspaceRoot,
     gate: LAND_GATES.release,
+    squash: false,
+    github: ghLandGitHub(SOURCE_REPOSITORY),
+    record: {
+      title: `Release ${summary}`,
+      body: `Publish ${summary} after the local release gate and record PR CI pass.`,
+    },
     say: (line) => p.log.message(line),
   });
   if (result.ok) return;

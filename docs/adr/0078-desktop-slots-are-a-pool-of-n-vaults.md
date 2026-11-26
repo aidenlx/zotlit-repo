@@ -107,7 +107,7 @@ Lease at file, case, and hook milestones. If a failed run ends with an
 unavailable display, report that state because tests that read paint
 depend on it.
 
-[Desktop setup](../../packages/e2e/src/desktop-slot-setup.ts) ·
+Desktop setup (removed by [ADR 0118](0118-journeys-run-and-are-inspected-only-in-the-run-container.md)) ·
 [Reporter](../../packages/e2e/src/reporter.ts) ·
 [Results directory](../../packages/e2e/src/results-dir.ts)
 

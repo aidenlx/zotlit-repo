@@ -4,8 +4,10 @@ The plugin shell: the plugin class a host extends, its lifecycle, the runtime, s
 
 ## Layout
 
+Each folder of `src/` is one runtime zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)), and a new file goes in the folder of what it needs from its host: `core/` host-free, `obsidian/` Obsidian, `desktop/` desktop. The runtime check (`pnpm run lint:runtime-zones`) follows each import, type-only imports included, and fails on reach to a higher zone or to test support. Lint refuses Node built-in imports and the Node globals outside `desktop/`.
+
 - `src/core/` — no Obsidian, no Node: the build order of service groups (`graph.ts`), the start-up failure that names a layer (`startup-failure.ts`), and the interrupted start-up release key (`release-key.ts`).
-- `src/obsidian/` — Obsidian, no Node (lint bans `@effect/platform-node` here):
+- `src/obsidian/` — Obsidian, no Node (the runtime check fails on reach to `@effect/platform-node`, which belongs in `src/desktop/`):
   - `feature.ts` — `defineFeature`, `serviceGroup`, `registration`, `protocolHandler`, and the `Feature` value, whose type carries the literal actions of its handlers (`LinkActionsOf`).
   - `compose.ts` — `defineHost` (with the type check of missing services; a host declaration requires `languagePack`, the Language Pack identity: catalog, runtime, storage namespace, publish repository), `settingsDefinitionOf`, `featureServices`, `pluginGraph`, `serviceOrder`, and `LinkActionsCheck`: a host that gives its entry link actions gives `shellStart` the same list, and the list does not type-check when it differs from the actions the features register (`LinkActionsOf`), and the error names each action under `missingLinkActions` or `unregisteredLinkActions`.
   - `base.ts` — the shell base every group reads without naming it (`ShellBase`): settings, logging, the Obsidian capability tags, `PluginHost`, `LanguagePack`, `GraphBuilt`.
@@ -15,7 +17,8 @@ The plugin shell: the plugin class a host extends, its lifecycle, the runtime, s
   - `platform-base.ts` — the `platformBase` feature, Zotero-free, which every host composes: the log settings slice, the Language Pack notices, the Advanced page (`setting-pages/advanced.ts`) with the logging rows and the Language Pack reset, the log level codec and the Language Pack rebuild stream. A host without `platform` fills `FileSystem` itself (the Reader: `@zotlit/obsidian-kit/vault-file-system.ts`).
   - `platform.ts` — the `platform` feature, `extendFeature(platformBase, …)` for a ZotLit host: the Zotero services (settings slices, Item Lookup, Library Scope, the Zotero Local API, the note index), the Zotero page (`setting-pages/zotero.ts`) and the Local Server group in the Advanced page's `advanced.local-server` slot. The pages' slots are what the features fill.
   - `protocol.ts` — the registration of every feature's `obsidian://` handlers. The checks every link shares (parsing, source id, database ready, item) and the shared outcomes and notices live in `@zotlit/plugin-services/obsidian/protocol/`.
-- `src/desktop/platform.ts` — the `desktopPlatform` feature: the Node-backed capabilities (file system, Zotero preferences, Zotero HTTP, the local server, attachment import).
+- `src/desktop/platform.ts` — the `desktopPlatform` feature: the Node-backed capabilities (file system, the vault on disk, Zotero preferences, Zotero HTTP, the local server, attachment import).
+- `src/desktop/vault-disk.ts` — the Layer of `VaultDisk` (`@zotlit/obsidian-kit/obsidian-vault-disk.ts`) over Obsidian's file-system adapter. A Node-free host gives a stand-in for it.
 
 ## A feature
 

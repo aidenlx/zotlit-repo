@@ -7,6 +7,7 @@ import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
 import { nodeClient } from "#desktop/node-client.ts";
+import { snapshotRevision } from "#desktop/snapshot-revision.ts";
 import { testReads } from "./reads.ts";
 import type { TestReads } from "./reads.ts";
 import { layerRcRef } from "#worker/connection.ts";
@@ -18,12 +19,15 @@ import type { SnapshotId } from "#contract/rpc.ts";
 
 export const inProcessClient = Effect.fnUntraced(function* (
   connection: Layer.Layer<Connection>,
-  options?: HandlersOptions,
+  options?: Partial<HandlersOptions>,
 ): Effect.fn.Return<ZoteroReadsClient, never, Scope.Scope> {
   const services = yield* Layer.build(
     Layer.merge(connection, NodeFileSystem.layer),
   );
-  return yield* Effect.provideContext(makeInProcessClient(options), services);
+  return yield* Effect.provideContext(
+    makeInProcessClient({ snapshotRevision, ...options }),
+    services,
+  );
 });
 
 export function memoryOpener(seed: (open: number) => string | null) {
@@ -60,7 +64,7 @@ export function sharedClientOpener(
 export interface InProcessReadsOptions {
   wrap?: (client: ZoteroReadsClient) => ZoteroReadsClient;
   opening?: Promise<void>;
-  handlers?: HandlersOptions;
+  handlers?: Partial<HandlersOptions>;
 }
 
 export function inProcessReadsService(

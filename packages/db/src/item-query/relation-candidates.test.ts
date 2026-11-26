@@ -12,7 +12,7 @@ import {
   readAttachmentUniverseRows,
 } from "./index.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 
 it("maps element candidates to live parents in one statement per chunk", () => {
   using scenario = openScenarioDatabase(connectClient, { annotations: true });

@@ -14,6 +14,7 @@ import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
+import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
@@ -69,6 +70,7 @@ export const unimplementedTabServices = Layer.mergeAll(
   Layer.mock(NoteFeature)({}),
   Layer.mock(NoteIndex)({}),
   Layer.mock(Vault)({}),
+  Layer.mock(VaultDisk)({ basePath: "/vault" }),
   Layer.mock(Workspace)({}),
   Layer.mock(FileManager)({}),
   Layer.succeed(

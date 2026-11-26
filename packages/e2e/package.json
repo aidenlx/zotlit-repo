@@ -42,5 +42,8 @@
     "vitest": "catalog:",
     "yargs": "catalog:",
     "zx": "catalog:"
+  },
+  "zotlit": {
+    "layer": "test-support"
   }
 }

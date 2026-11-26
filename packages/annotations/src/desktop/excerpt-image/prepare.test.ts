@@ -13,6 +13,7 @@ import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { layerVaultDiskOver } from "@zotlit/plugin-shell/desktop/__fixtures__/vault-disk.ts";
 import {
   inProcessReadsService,
   sharedClientOpener,
@@ -74,6 +75,7 @@ const preparationOver = (vault: MemoryVault, images: Images) =>
         Layer.provide(
           Layer.mergeAll(
             layerHost({ vault }),
+            layerVaultDiskOver(vault),
             NodeFileSystem.layer,
             Layer.mock(ZoteroPref, {
               current: Effect.succeed(

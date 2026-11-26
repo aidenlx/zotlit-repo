@@ -15,8 +15,8 @@ import {
   Stream,
 } from "effect";
 
-import { instantClock } from "@zotlit/plugin-kernel/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
+import { instantClock } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 
 export interface Held<T> {
   readonly value: T;

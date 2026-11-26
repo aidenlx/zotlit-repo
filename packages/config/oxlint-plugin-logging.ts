@@ -12,7 +12,7 @@ const TEST_FILE =
 
 const CONSOLE_SINKS = [
   `${KERNEL_SOURCE}log-console.ts`,
-  `${KERNEL_SOURCE}effect-log-port.ts`,
+  `${KERNEL_SOURCE}worker${sep}effect-log-port.ts`,
 ];
 
 interface ImportNode extends ModuleStatement {

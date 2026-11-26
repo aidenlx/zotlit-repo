@@ -1,6 +1,6 @@
 import type { FakeReader } from "#__fixtures__/pdf-annotation-editor.ts";
-import { FileSystemAdapter, Scope } from "obsidian";
-import type { App, EventRef, Vault, Workspace } from "obsidian";
+import { Scope } from "obsidian";
+import type { App, EventRef, Workspace } from "obsidian";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
 // @vitest-environment happy-dom
@@ -11,6 +11,7 @@ import {
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { openNoteVault } from "@zotlit/plugin-services/obsidian/note-index/__fixtures__.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
+import type { OperatingSystem } from "@zotlit/shared/platform";
 
 import {
   annotationReads,
@@ -40,9 +41,6 @@ function workspace() {
     offref: () => {},
   });
   const app = stubService<App>("App", {
-    vault: stubService<Vault>("Vault", {
-      adapter: new FileSystemAdapter(),
-    }),
     workspace,
   });
   return app;
@@ -58,10 +56,11 @@ async function emptyNoteIndex() {
 
 async function readerRegistry(
   view: ReturnType<typeof pdfView>,
-  { opened = true }: { opened?: boolean } = {},
+  { opened = true, os }: { opened?: boolean; os?: OperatingSystem } = {},
 ) {
   const service = await openPdfEditor({
     app: workspace(),
+    os,
     attachments: attachmentReads(),
     annotations: annotationReads(),
     capabilityGestures: capabilityGestures(),
@@ -88,6 +87,19 @@ it("answers nothing for a file no open view holds", async () => {
 
   expect(service.borrowDocument("/vault/other.pdf")).toBeNull();
   expect(service.borrowDocument("/vault")).toBeNull();
+});
+
+it("matches a path in another letter case only where the system folds case", async () => {
+  await using folding = await readerRegistry(pdfView("paper.pdf"), {
+    os: "darwin",
+  });
+  await using exact = await readerRegistry(pdfView("paper.pdf"), {
+    os: "linux",
+  });
+
+  expect(folding.borrowDocument("/vault/Paper.PDF")).not.toBeNull();
+  expect(exact.borrowDocument("/vault/Paper.PDF")).toBeNull();
+  expect(exact.borrowDocument("/vault/paper.pdf")).not.toBeNull();
 });
 
 it("answers nothing while the reader has not opened its document", async () => {

@@ -19,9 +19,9 @@ import {
 import type { FileSystem } from "effect";
 import { RpcClient, RpcClientError, RpcSchema, RpcWorker } from "effect/rpc";
 
-import { layerHostLogPort } from "@zotlit/plugin-kernel/effect-log-port.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
+import { layerHostLogPort } from "@zotlit/plugin-kernel/worker/effect-log-port.ts";
 
 import { makeStateFeed } from "#contract/change-feed.ts";
 import { DbUnavailable, WorkerInitSchema, ZoteroReads } from "#contract/rpc.ts";

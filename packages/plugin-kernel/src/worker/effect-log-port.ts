@@ -21,7 +21,7 @@ import {
   LogCategory,
   LogTimestamp,
   withLogCategory,
-} from "#effect-log-category.ts";
+} from "#worker/effect-log-category.ts";
 
 export type PortLogLevel =
   | "trace"
@@ -190,7 +190,6 @@ export const makePortLogger = (
           : rejectedText(error);
       if (failedKinds.current.has(kind)) return;
       failedKinds.current = new Set(failedKinds.current).add(kind);
-      // oxlint-disable-next-line effecttsgo/global-console -- the port cannot log its own post failure through Effect without recursing.
       console.error("ZotLit worker log port failed:", kind, error);
     }
   });

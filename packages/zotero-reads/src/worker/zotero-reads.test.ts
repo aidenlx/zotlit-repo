@@ -46,6 +46,7 @@ import {
 import { Instant } from "#contract/instant-codec.ts";
 import { DbUnavailable, SnapshotExpired, SnapshotId } from "#contract/rpc.ts";
 import { nodeClient } from "#desktop/node-client.ts";
+import { snapshotRevision } from "#desktop/snapshot-revision.ts";
 
 const SEED = `
   insert into version (schema, version) values ('userdata', 129);
@@ -195,10 +196,10 @@ function withReads<A, E>(
   body: (
     reads: ZoteroReadsClient,
   ) => Effect.Effect<A, E, Connection | Scope.Scope>,
-  options?: HandlersOptions,
+  options?: Partial<HandlersOptions>,
 ): Effect.Effect<A, E> {
   return Effect.gen(function* () {
-    const reads = yield* makeInProcessClient(options);
+    const reads = yield* makeInProcessClient({ snapshotRevision, ...options });
     return yield* body(reads);
   }).pipe(
     Effect.scoped,
@@ -696,7 +697,10 @@ describe("ZoteroReads operations", () => {
         createFixtureSchema(direct.$client);
         direct.$client.exec(SEED);
         expect(snapshot).toEqual(
-          exportItemSnapshot(direct, selection, options),
+          exportItemSnapshot(direct, selection, {
+            ...options,
+            revision: snapshotRevision,
+          }),
         );
         expect(snapshot.item.title).toBe("Main Study");
       }),
@@ -1411,7 +1415,7 @@ describe("ZoteroReads connection lifetime", () => {
       Effect.gen(function* () {
         const { open, closed } = fixtureOpener();
         const result = yield* Effect.gen(function* () {
-          const reads = yield* makeInProcessClient();
+          const reads = yield* makeInProcessClient({ snapshotRevision });
           const snapshotScope = yield* Scope.make();
           const pull = yield* Stream.toPull(reads.Snapshot()).pipe(
             Scope.provide(snapshotScope),
@@ -1897,7 +1901,7 @@ describe("ZoteroReads SearchItems", () => {
     body: (reads: ZoteroReadsClient) => Effect.Effect<A, E, Scope.Scope>,
   ): Effect.Effect<A, E> =>
     Effect.gen(function* () {
-      const reads = yield* makeInProcessClient();
+      const reads = yield* makeInProcessClient({ snapshotRevision });
       return yield* body(reads);
     }).pipe(Effect.scoped, Effect.provide([connection, NodeFileSystem.layer]));
 
@@ -2228,7 +2232,7 @@ describe("ZoteroReads SearchItems", () => {
     });
 
     const withSegmenter = <A, E>(
-      options: HandlersOptions,
+      options: Partial<HandlersOptions>,
       body: (
         reads: ZoteroReadsClient,
         ran: (sql: string) => number,
@@ -2241,7 +2245,10 @@ describe("ZoteroReads SearchItems", () => {
         ),
       ).pipe(Layer.provide(layerRcRef(open)));
       return Effect.gen(function* () {
-        const reads = yield* makeInProcessClient(options);
+        const reads = yield* makeInProcessClient({
+          snapshotRevision,
+          ...options,
+        });
         return yield* body(reads, ran);
       }).pipe(Effect.scoped, Effect.provide([quiet, NodeFileSystem.layer]));
     };

@@ -6,9 +6,9 @@ import {
 } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import { ANNOTATIONS, ATTACHMENTS, collectQuery, ITEMS } from "./index.ts";
 import { ItemQueryScheduler } from "./scheduler.ts";
-import { runEffect } from "./test-helpers.ts";
 
 it.each([
   {

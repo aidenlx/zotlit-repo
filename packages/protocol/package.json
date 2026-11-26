@@ -27,5 +27,8 @@
   },
   "peerDependencies": {
     "valibot": "catalog:"
+  },
+  "zotlit": {
+    "layer": "worker"
   }
 }

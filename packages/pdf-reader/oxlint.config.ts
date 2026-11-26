@@ -1,6 +1,7 @@
 import { defineConfig } from "oxlint";
 
 import baseConfig, {
+  nodeAllowed,
   datePattern,
   itemQuerySchemaPaths,
   parentImportPattern,
@@ -8,7 +9,7 @@ import baseConfig, {
 } from "@zotlit/config/oxlint";
 
 const hostAgnostic =
-  "The reader core is host-agnostic: it imports no Obsidian layer and no ZotLit domain package. Reach the host through ReaderHost.";
+  "The reader core imports no ZotLit domain package. Reach the host through ReaderHost.";
 
 export default defineConfig({
   extends: [baseConfig],
@@ -17,6 +18,7 @@ export default defineConfig({
       .pathname,
   ],
   overrides: [
+    nodeAllowed(["build/**", "test/**"]),
     {
       files: ["src/core/**/*.tsx"],
       rules: {
@@ -35,11 +37,6 @@ export default defineConfig({
               datePattern,
               {
                 group: [
-                  "obsidian",
-                  "obsidian/**",
-                  "../obsidian",
-                  "../obsidian/**",
-                  "#/obsidian/**",
                   "@zotlit/db",
                   "@zotlit/db/**",
                   "@zotlit/pdf-structure",

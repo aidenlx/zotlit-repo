@@ -40,7 +40,7 @@ export const formatVersions: readonly FormatVersion[] = [
   },
   {
     name: "Language Pack",
-    file: "packages/obsidian-i18n/src/validation.ts",
+    file: "packages/obsidian-i18n/src/core/validation.ts",
     constant: "LANGUAGE_PACK_SCHEMA_VERSION",
   },
   {

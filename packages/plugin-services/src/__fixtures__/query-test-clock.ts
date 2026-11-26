@@ -1,4 +1,4 @@
-import { FAILURE_COOLDOWN_MILLIS } from "./service.ts";
+import { FAILURE_COOLDOWN_MILLIS } from "#core/query-client/service.ts";
 
 export interface TestClock {
   readonly now: () => Temporal.Instant;

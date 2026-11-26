@@ -7,6 +7,7 @@ import {
 } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import { collectionWarnings } from "./collection-warnings.ts";
 import { ANNOTATIONS } from "./query-annotations.ts";
 import { ATTACHMENTS } from "./query-attachments.ts";
@@ -14,7 +15,6 @@ import { ITEMS } from "./query-items.ts";
 import { openQuerySources } from "./query-sources.ts";
 import { collectQuery } from "./query.ts";
 import { planRequest } from "./request.ts";
-import { runEffect } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 

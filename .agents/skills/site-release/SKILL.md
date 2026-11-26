@@ -35,6 +35,8 @@ Every change on production lands on `main` first (the `land` skill). A site rele
 The live site is the baseline of an SEO change.
 
 1. Record the live tag and the measurements in the change's issue.
-2. Make the change on a branch from `origin/main`: content, metadata, or site code. Add a test in `apps/docs` that holds the improvement, beside `src/lib/seo.test.ts` and `src/lib/source.test.ts`, so later changes keep it.
+2. Make the change on a branch from `origin/main`: content, metadata, or site code. Prove it by its kind:
+   - **Site code**, such as how `pageHead`, the sitemap, the redirects or the headers build a page's output: a test in `apps/docs` beside `src/lib/seo.test.ts` that holds the rule, seen red on the old code.
+   - **Copy or metadata**, such as a title, a description or a link in a page: a browser check. The title and description limits in `src/lib/source.test.ts` hold its shape. Record the check as the command and the served text in the record PR.
 3. Land it, then pick your record PRs. The maintainer reviews them when they approve the deploy.
-4. When `/version.json` names your tag, measure against the baseline and record the result in the issue. When the change hurts, land a revert commit and pick it.
+4. When `/version.json` names your tag, run the browser check on production. Then measure against the baseline and record the result in the issue. When the change hurts, land a revert commit and pick it.

@@ -12,6 +12,7 @@ import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
 import { markdownLinker } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
+import type { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import type { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import type { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
@@ -128,6 +129,7 @@ export type ExcerptPreparationServices =
   | FileSystem.FileSystem
   | MetadataCache
   | Vault
+  | VaultDisk
   | Workspace
   | ZoteroPref;
 

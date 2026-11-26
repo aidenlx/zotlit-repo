@@ -42,5 +42,8 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:"
+  },
+  "zotlit": {
+    "layer": "host-free"
   }
 }

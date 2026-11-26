@@ -14,6 +14,7 @@ import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryLayoutError } from "@zotlit/db/item-query";
 
+import { faultCode, runEffect } from "./__fixtures__/test-helpers.ts";
 import {
   ANNOTATIONS,
   ATTACHMENTS,
@@ -43,7 +44,6 @@ import {
   describeQuery,
   describeQueryVocabulary,
 } from "./schema.ts";
-import { faultCode, runEffect } from "./test-helpers.ts";
 
 it("generates field capabilities from the supplied Query Dataset descriptor", async () => {
   using scenario = openScenarioDatabase(connectClient);

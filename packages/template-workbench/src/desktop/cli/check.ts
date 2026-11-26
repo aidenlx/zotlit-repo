@@ -32,7 +32,7 @@ import type {
   CliParamName,
   CliRejection,
 } from "@zotlit/obsidian-kit/cli-params.ts";
-import { instantClock } from "@zotlit/plugin-kernel/effect-clock.ts";
+import { instantClock } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 
 import { selectCheckBaseline } from "./check-baseline.ts";
 import {

@@ -154,7 +154,7 @@ ZotLit 写入笔记的标注链接会在 ZotLit Reader 中打开，并选中该�
 - PDF 链接的悬停预览。
 - 白板上的 PDF 卡片。
 
-如需把这些 PDF 交还给 Obsidian 自带的 PDF 查看器，请关闭 <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} setting={m.reader_settings_open_all_pdfs_name()} />。停用 ZotLit Reader 插件时也是如此。即使此设置关闭，ZotLit 打开的 PDF 仍使用 ZotLit Reader。
+如需把这些 PDF 交还给 Obsidian 自带的 PDF 查看器，请关闭 <SettingsPath plugin="ZotLit Reader" page={m.reader_settings_page()} setting={m.reader_settings_open_all_pdfs_name()} />。停用 ZotLit Reader 插件时也是如此。此设置关闭且启用了 ZotLit 时，无论以何种方式打开，Zotero 附件在标签页或窗口中仍使用 ZotLit Reader，标注工具始终可用，在新窗口中也是如此。
 
 嵌入的 PDF 带有 <UiLabel name={m.pdf_reader_embed_more_options()} /> 按钮。选择 <UiLabel name={m.pdf_reader_embed_open()} /> 可阅读完整的 PDF。同一菜单中还有 Obsidian 自带的链接选项，例如**在新标签页中打开**。
 

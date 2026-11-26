@@ -1,0 +1,54 @@
+name: Land verified commits
+
+on:
+  workflow_dispatch:
+    inputs:
+      pull:
+        description: Record PR number
+        required: true
+      head:
+        description: Verified commit
+        required: true
+      base:
+        description: Expected main commit
+        required: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+
+jobs:
+  land:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: land
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          filter: blob:none
+          persist-credentials: false
+      - uses: jdx/mise-action@v4
+      - uses: pnpm/action-setup@v6
+      - run: pnpm install --filter @zotlit/scripts... --frozen-lockfile --ignore-scripts
+      - name: Verify the record PR and every incoming commit
+        run: node packages/scripts/scripts/land-verified.ts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LAND_PULL: ${{ inputs.pull }}
+          LAND_HEAD: ${{ inputs.head }}
+          LAND_BASE: ${{ inputs.base }}
+      - uses: actions/create-github-app-token@v2
+        id: app
+        with:
+          app-id: ${{ vars.LAND_APP_ID }}
+          private-key: ${{ secrets.LAND_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-workflows: write
+      - name: Fast-forward main
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          LAND_HEAD: ${{ inputs.head }}
+        run: gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/main" -f sha="$LAND_HEAD" -F force=false

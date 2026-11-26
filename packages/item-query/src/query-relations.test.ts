@@ -13,6 +13,7 @@ import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import {
   collectQuery,
   ITEMS,
@@ -20,7 +21,6 @@ import {
   ANNOTATIONS,
   AttachmentFileResolver,
 } from "./index.ts";
-import { runEffect } from "./test-helpers.ts";
 import { PRODUCTION_TUNING } from "./tuning.ts";
 
 let scenario: ScenarioDatabase<NodeDatabaseClient>;

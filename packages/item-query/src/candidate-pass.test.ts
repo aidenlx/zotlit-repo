@@ -1,11 +1,11 @@
 import { Effect, Exit } from "effect";
 import { beforeEach, expect, it } from "vitest";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
+import type { CapturedLog } from "./__fixtures__/test-helpers.ts";
 import { runCandidatePass } from "./candidate-pass.ts";
 import type { CandidateDataset } from "./dataset.ts";
 import { planFilter } from "./filter-plan.ts";
-import { runEffect } from "./test-helpers.ts";
-import type { CapturedLog } from "./test-helpers.ts";
 import { PRODUCTION_TUNING } from "./tuning.ts";
 
 const logs: CapturedLog[] = [];

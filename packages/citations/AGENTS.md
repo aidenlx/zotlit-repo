@@ -12,7 +12,7 @@ The host keeps the citation parse Worker entry (`apps/obsidian/src/services/cita
 
 ## Layers
 
-Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). A file sits in the layer of what it needs from its host; a layer imports the layers below it: core ← obsidian ← desktop.
+Each layer is one folder of `src/` and one runtime zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)). A new file goes in the folder of what it needs from its host: `core/` is the host-free zone (the DOM, no host module), `obsidian/` the Obsidian zone (the `obsidian` module; it loads on Obsidian Mobile), and `desktop/` the desktop zone (Node and Electron). A layer reaches the layers below it: core ← obsidian ← desktop. The runtime check (`pnpm run lint:runtime-zones`) follows each import, type-only imports included, and fails on reach to a higher zone or to test support. Lint refuses Node built-in imports and the Node globals outside `desktop/`.
 
 - `core/` — host-free: no Node built-in, `obsidian`, `electron`, Obsidian kit, or client and desktop layers of ZoteroReads and the platform services. The note scan, annotation links and the store of the Citation Index, the citation parse protocol with its Worker host and clients, the citation slice of the settings, the Pandoc AST and contract, the CSL style parser, and the Lua filter with its defaults.
 - `obsidian/` — loads on Obsidian Mobile: the Obsidian API, the kit, the ZoteroReads client and the platform services' Obsidian layer, and no Node or Electron. The Citation Index, citation parsing, the Citation Suggester, the Document Citation Text, the editor and reading-view surfaces, navigation, the Pandoc Engine and the bibliography render tag, and the Cited By view.

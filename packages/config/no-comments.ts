@@ -9,7 +9,7 @@ import { parseSync } from "oxc-parser";
 import { Input } from "postcss";
 import { Parser } from "yaml";
 
-import { SOURCE_BRANCH } from "./repositories.ts";
+import { SOURCE_BRANCH } from "./src/core/repositories.ts";
 
 type Span = { start: number; end: number };
 type Comment = { file: string; line: number; endLine: number; text: string };

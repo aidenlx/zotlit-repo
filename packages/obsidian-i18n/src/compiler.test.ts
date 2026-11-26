@@ -17,8 +17,11 @@ import {
   writeOutput,
 } from "./compiler.ts";
 import type { CompileResult, GeneratedArtifacts } from "./compiler.ts";
-import { validateLanguagePack } from "./index.ts";
-import type { LanguagePackRuntime, TargetLocaleMessages } from "./index.ts";
+import { validateLanguagePack } from "./core/index.ts";
+import type {
+  LanguagePackRuntime,
+  TargetLocaleMessages,
+} from "./core/index.ts";
 import {
   addLocale,
   addSourcePattern,
@@ -1152,7 +1155,9 @@ async function typecheckGeneratedOutput(
           resolveJsonModule: true,
           allowImportingTsExtensions: true,
           paths: {
-            "@zotlit/obsidian-i18n": [resolve(packageRoot, "src", "index.ts")],
+            "@zotlit/obsidian-i18n": [
+              resolve(packageRoot, "src", "core", "index.ts"),
+            ],
           },
         },
         include: [

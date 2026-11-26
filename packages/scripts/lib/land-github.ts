@@ -1,6 +1,7 @@
 import type { CiCheck, LandGitHub, RecordPullRequest } from "#land";
 import { regex } from "arkregex";
 import { basename } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import { $ } from "zx";
 
 import { RECORD_PR_WORKFLOW } from "#land";
@@ -28,6 +29,43 @@ const ghCli: GhRun = async (args, input) => {
 
 export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
   return {
+    async advanceMain({ number, head, base }, progress) {
+      const result = JSON.parse(
+        await run(
+          [
+            "api",
+            "--method",
+            "POST",
+            `repos/${repo}/actions/workflows/land.yml/dispatches`,
+            "--input",
+            "-",
+          ],
+          JSON.stringify({
+            ref: "main",
+            inputs: { pull: String(number), head, base },
+            return_run_details: true,
+          }),
+        ),
+      ) as { workflow_run_id: number };
+      if (!Number.isSafeInteger(result.workflow_run_id))
+        throw new Error("GitHub did not return a landing run ID.");
+      const url = `https://github.com/${repo}/actions/runs/${result.workflow_run_id}`;
+      for (;;) {
+        const state = JSON.parse(
+          await run([
+            "api",
+            `repos/${repo}/actions/runs/${result.workflow_run_id}`,
+          ]),
+        ) as { status: string; conclusion: string | null };
+        progress(`Land workflow ${state.status}: ${url}`);
+        if (state.status === "completed") {
+          if (state.conclusion !== "success")
+            throw new Error(`Land workflow ${state.conclusion}: ${url}`);
+          return;
+        }
+        await delay(10_000);
+      }
+    },
     async findOpenPullRequest({ head, base }) {
       const listed = JSON.parse(
         await run([

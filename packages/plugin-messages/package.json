@@ -23,5 +23,8 @@
     "@zotlit/config": "workspace:*",
     "oxlint": "catalog:",
     "typescript": "catalog:"
+  },
+  "zotlit": {
+    "layer": "host-free"
   }
 }

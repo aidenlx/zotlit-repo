@@ -5,7 +5,7 @@ import type { Plugin, ResolvedConfig } from "vite";
 
 import { compile, resolveCompilePaths } from "./compiler.ts";
 import type { CompileOptions } from "./compiler.ts";
-import { isLanguagePackFileName } from "./language-pack.ts";
+import { isLanguagePackFileName } from "./core/language-pack.ts";
 
 export type ObsidianI18nViteOptions = Omit<CompileOptions, "root"> & {
   servePacks?: {

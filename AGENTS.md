@@ -76,7 +76,7 @@ Use Worktrunk so the repository hooks bootstrap dependencies. Create with `wt sw
 
 ## Landing a change
 
-Land through `pnpm land`. It serializes changes, rebases, verifies, and waits for record PR CI before pushing main. Commit changes and use the [land procedure](.agents/skills/land/SKILL.md) for the record, queue status, and recovery after a failed gate.
+Commit the task changes, then use `pnpm land` to land one verified squash commit. Follow the [land procedure](.agents/skills/land/SKILL.md) to write its record, preserve separate commits when required, or recover a failed land.
 
 ## Agent skills
 

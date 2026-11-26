@@ -5,6 +5,9 @@
   "description": "Field-oriented queries over top-level Zotero Items",
   "type": "module",
   "sideEffects": false,
+  "imports": {
+    "#*": "./src/*"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
@@ -34,5 +37,8 @@
     "oxlint": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
+  },
+  "zotlit": {
+    "layer": "worker"
   }
 }

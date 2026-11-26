@@ -1,8 +1,11 @@
 import type { ZoteroPrefSnapshot } from "#core/zotero-pref/service.ts";
 import { Context, Effect, Layer, Stream, SubscriptionRef } from "effect";
 
+import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { layerTestVaultDisk } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault-disk.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
+import type { OperatingSystem } from "@zotlit/shared/platform";
 import {
   inProcessClient,
   memoryOpener,
@@ -20,6 +23,7 @@ import { layerQueryClients, QueryClients } from "#core/query-client/service.ts";
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
 
 export const DATA_DIR = "/fixture/zotero-data";
+export const VAULT_DIR = "/fixture/zt-fixture-vault";
 
 export const nextAnnouncement = (
   resolver: Pick<AttachmentResolver["Service"], "resolutionsChanged">,
@@ -30,11 +34,12 @@ export const nextAnnouncement = (
   );
 
 export interface ResolverHarnessOptions {
-  platform?: NodeJS.Platform;
+  platform?: OperatingSystem;
   baseAttachmentPath?: string | null;
   seeds?: (string | null)[];
   rows?: string;
   prime?: boolean;
+  vaultDir?: string;
 }
 
 function prefSnapshot(
@@ -97,15 +102,17 @@ export async function openResolver(
   );
 
   const runtime = buildRuntime(
-    layerAttachmentResolver({ platform: options.platform ?? "linux" }).pipe(
+    layerAttachmentResolver().pipe(
       Layer.provideMerge(
         Layer.mergeAll(
+          layerTestObsidianEnv({ os: options.platform ?? "linux" }),
           layerQueryClients,
           layerZoteroReads(client),
           Layer.mock(ZoteroPref, {
             current: SubscriptionRef.get(paths),
             changes: SubscriptionRef.changes(paths),
           }),
+          layerTestVaultDisk({ basePath: options.vaultDir ?? VAULT_DIR }),
         ),
       ),
       Layer.provideMerge(Layer.succeedContext(context)),

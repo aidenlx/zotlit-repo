@@ -7,6 +7,7 @@ import {
 import type { AttachmentPathContext } from "@zotlit/db/path";
 import { EXTERNAL_FILE_PREFIX } from "@zotlit/plugin-kernel/constants.ts";
 import { isPdfAttachment } from "@zotlit/plugin-services/core/attachment-resolver/pdf-attachment.ts";
+import type { OperatingSystem } from "@zotlit/shared/platform";
 
 export interface ObsidianOpenableAttachment {
   indexedKey: string;
@@ -23,7 +24,7 @@ export function filename(path: string): string {
 function vaultRelativePath(
   absolutePath: string,
   vaultBasePath: string,
-  platform: NodeJS.Platform,
+  platform: OperatingSystem,
 ): string | null {
   const normalizedPath = normalizeAbsolutePath(absolutePath);
   const normalizedBase = normalizeAbsolutePath(vaultBasePath);
@@ -38,7 +39,7 @@ function vaultRelativePath(
 export function obsidianOpenPath(
   absolutePath: string,
   vaultBasePath: string,
-  platform: NodeJS.Platform,
+  platform: OperatingSystem,
 ): string {
   const relative = vaultRelativePath(absolutePath, vaultBasePath, platform);
   return relative ?? EXTERNAL_FILE_PREFIX + normalizeAbsolutePath(absolutePath);
@@ -49,7 +50,7 @@ export function toObsidianOpenableAttachments(
   ctx: {
     pathContext: AttachmentPathContext;
     vaultBasePath: string;
-    platform: NodeJS.Platform;
+    platform: OperatingSystem;
   },
 ): ObsidianOpenableAttachment[] {
   const openable: ObsidianOpenableAttachment[] = [];

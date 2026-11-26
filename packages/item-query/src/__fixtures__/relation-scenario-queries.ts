@@ -1,8 +1,8 @@
-import type { QueryDataset } from "./dataset.ts";
-import { ANNOTATIONS } from "./query-annotations.ts";
-import { ATTACHMENTS } from "./query-attachments.ts";
-import { ITEMS } from "./query-items.ts";
-import type { ItemQueryRequest } from "./request.ts";
+import type { QueryDataset } from "#dataset.ts";
+import { ANNOTATIONS } from "#query-annotations.ts";
+import { ATTACHMENTS } from "#query-attachments.ts";
+import { ITEMS } from "#query-items.ts";
+import type { ItemQueryRequest } from "#request.ts";
 
 export const RELATION_SCENARIO_QUERIES: readonly {
   readonly name: string;

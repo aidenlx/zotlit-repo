@@ -10,7 +10,7 @@ import type { SettingGroupItem } from "obsidian";
 import { exportTimestamp, saveFile } from "@zotlit/obsidian-kit/file-save.ts";
 import { reportOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { isLogLevel, LOG_LEVELS } from "#core/log/settings.ts";

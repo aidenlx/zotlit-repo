@@ -1,7 +1,7 @@
 import { Duration, Effect, Option } from "effect";
 
 import type { CslItemData } from "@zotlit/db";
-import { withLogCategory } from "@zotlit/plugin-kernel/effect-log-category.ts";
+import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 import {
   parseJson,
   exchangeWithZotero,

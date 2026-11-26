@@ -10,6 +10,7 @@ import type { App } from "obsidian";
 
 import { requireDialog } from "@zotlit/obsidian-desktop/require.ts";
 import type { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import type { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import {
   logServices,
   withLogCategory,
@@ -43,7 +44,8 @@ export interface PandocExportModalOptions extends Pick<
   referencesStyleId: string | null;
   styleSource: StyleSource;
   notePath: string;
-  vault: Pick<ObsidianEnv["Service"], "basePath" | "vaultName">;
+  vault: Pick<VaultDisk["Service"], "basePath"> &
+    Pick<ObsidianEnv["Service"], "vaultName">;
 }
 
 export function openPandocExportModal(

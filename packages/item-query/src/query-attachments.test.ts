@@ -7,6 +7,7 @@ import {
 } from "@zotlit/db-testing/scenario";
 import { connectClient } from "@zotlit/db/client/node";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
 import type { ItemQueryRequest } from "./index.ts";
 import {
   ATTACHMENTS,
@@ -14,7 +15,6 @@ import {
   AttachmentFileResolver,
   collectQuery,
 } from "./index.ts";
-import { runEffect } from "./test-helpers.ts";
 
 it("returns the files of one paper with Attachment defaults and parent identity", async () => {
   using scenario = openScenarioDatabase(connectClient, { annotations: true });

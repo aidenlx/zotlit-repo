@@ -1,7 +1,7 @@
 import { defineConfig } from "oxlint";
 
 import baseConfig, {
-  engineNodeOnlyOverride,
+  fileSystemAdapterPath,
   parentImportPattern,
 } from "@zotlit/config/oxlint";
 
@@ -11,7 +11,6 @@ const contractOnly =
 export default defineConfig({
   extends: [baseConfig],
   rules: {
-    "import/no-nodejs-modules": "error",
     "no-restricted-imports": [
       "error",
       {
@@ -21,12 +20,12 @@ export default defineConfig({
         ],
         paths: [
           { name: "obsidian", allowTypeImports: true, message: contractOnly },
+          fileSystemAdapterPath,
         ],
       },
     ],
   },
   overrides: [
-    engineNodeOnlyOverride(),
     {
       files: ["src/**/*.test.ts", "*.config.ts"],
       rules: {

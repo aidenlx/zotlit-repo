@@ -12,7 +12,7 @@ import {
   readTagValues,
 } from "./index.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 
 it("reads empty Collection paths and drops trashed Collections and their subtrees per Library", () => {
   using scenario = openScenarioDatabase(connectClient);

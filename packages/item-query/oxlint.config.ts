@@ -2,8 +2,6 @@ import { defineConfig } from "oxlint";
 
 import baseConfig, {
   datePattern,
-  engineNodeOnlyOverride,
-  hostModulePattern,
   itemQuerySchemaPaths,
   parentImportPattern,
   uniqueIdPaths,
@@ -12,14 +10,12 @@ import baseConfig, {
 export default defineConfig({
   extends: [baseConfig],
   rules: {
-    "import/no-nodejs-modules": "error",
     "no-restricted-imports": [
       "error",
       {
         patterns: [
           parentImportPattern,
           datePattern,
-          hostModulePattern,
           {
             group: [
               "./schema",
@@ -41,7 +37,6 @@ export default defineConfig({
     ],
   },
   overrides: [
-    engineNodeOnlyOverride(),
     {
       files: [
         "src/schema.ts",
@@ -53,7 +48,7 @@ export default defineConfig({
         "no-restricted-imports": [
           "error",
           {
-            patterns: [parentImportPattern, datePattern, hostModulePattern],
+            patterns: [parentImportPattern, datePattern],
           },
         ],
       },

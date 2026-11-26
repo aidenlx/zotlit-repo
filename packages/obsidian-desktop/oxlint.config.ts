@@ -1,6 +1,10 @@
 import { defineConfig } from "oxlint";
 
-import baseConfig, { testBaselineOverrides } from "@zotlit/config/oxlint";
+import baseConfig, {
+  nodeAllowed,
+  testBaselineOverrides,
+  withoutFileSystemAdapter,
+} from "@zotlit/config/oxlint";
 import {
   pluginCodeJsPlugins,
   pluginCodeOverrides,
@@ -12,8 +16,9 @@ import {
 export default defineConfig({
   extends: [baseConfig],
   jsPlugins: pluginCodeJsPlugins,
-  rules: pluginCodeRules(runtimeImports),
+  rules: pluginCodeRules(withoutFileSystemAdapter(runtimeImports)),
   overrides: [
+    nodeAllowed(["**/*"]),
     ...pluginCodeOverrides({ testImports: pluginTestImports }),
     ...testBaselineOverrides("packages/obsidian-desktop"),
   ],

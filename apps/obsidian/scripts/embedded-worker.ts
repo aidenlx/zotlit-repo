@@ -1,25 +1,24 @@
-import { regex } from "arkregex";
 import { build } from "vite";
 import type { InlineConfig, Plugin } from "vite";
+
+import { checkRequires } from "@zotlit/scripts/bundle-gate";
+import { PLATFORM_MODULES } from "@zotlit/scripts/runtime-table";
+import type { Runtime } from "@zotlit/scripts/runtime-table";
 
 export interface EmbeddedWorkerOptions {
   id: string;
   entry: string;
+  runtime: Runtime;
   config: Pick<InlineConfig, "define" | "resolve" | "mode" | "plugins"> & {
-    external: string[];
     minify: boolean;
     sourcemap: boolean | "inline";
     target: string;
   };
 }
 
-const FORBIDDEN_REQUIRE = regex(
-  `\\brequire\\(\\s*["'](?<module>obsidian|electron)["']\\s*\\)`,
-);
-
 export function embeddedWorker(options: EmbeddedWorkerOptions): Plugin {
   const resolvedId = `\0${options.id}`;
-  const { external, minify, sourcemap, target, ...shared } = options.config;
+  const { minify, sourcemap, target, ...shared } = options.config;
   return {
     name: "embedded-worker",
     resolveId(id) {
@@ -29,6 +28,10 @@ export function embeddedWorker(options: EmbeddedWorkerOptions): Plugin {
       if (id !== resolvedId) return null;
       const result = await build({
         ...shared,
+        resolve: {
+          ...shared.resolve,
+          conditions: [...options.runtime.conditions],
+        },
         configFile: false,
         logLevel: "warn",
         build: {
@@ -45,7 +48,12 @@ export function embeddedWorker(options: EmbeddedWorkerOptions): Plugin {
             fileName: () => "worker.js",
           },
           rolldownOptions: {
-            external: ["obsidian", "electron", ...external],
+            external: [
+              ...Object.entries(PLATFORM_MODULES)
+                .filter(([, capability]) => capability !== "node")
+                .map(([name]) => name),
+              ...options.runtime.modules,
+            ],
             output: { codeSplitting: false, strictExecutionOrder: true },
           },
         },
@@ -56,10 +64,14 @@ export function embeddedWorker(options: EmbeddedWorkerOptions): Plugin {
         .find((item) => item.type === "chunk");
       if (!chunk)
         this.error(`The worker build of ${options.entry} emitted no chunk`);
-      const forbidden = FORBIDDEN_REQUIRE.exec(chunk.code);
-      if (forbidden) {
+      const { failures } = checkRequires(
+        "worker.js",
+        chunk.code,
+        options.runtime,
+      );
+      if (failures.length > 0) {
         this.error(
-          `The worker bundle of ${options.entry} requires "${forbidden.groups.module}", which a worker cannot load`,
+          `The worker bundle of ${options.entry} breaks its runtime:\n${failures.join("\n")}`,
         );
       }
       for (const moduleId of chunk.moduleIds) {

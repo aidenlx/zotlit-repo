@@ -10,7 +10,7 @@ The package imports `@zotlit/annotations` and `@zotlit/citations` for the ports 
 
 A capability of a unit outside the package comes in as a port that the host fills:
 
-- `ItemMatchQuery` (`core/profile-selection/item-matches.ts`) tests Profile Matches through ZotLit Query; `@zotlit/query-views` fills it (`desktop/item-query/item-matches.ts`).
+- `ItemMatchQuery` (`core/profile-selection/item-matches.ts`) tests Profile Matches through ZotLit Query; `@zotlit/query-views` fills it (`desktop/item-query/item-matches.ts`). Its reader, `obsidian/profile-selection/select.ts`, adds it to `ViewServiceRegistry`, because the registry is an Obsidian kit module.
 - `TemplateWorkbenchLauncher` (`obsidian/template/workbench-launcher.ts`) opens a Template Document in the Template Workbench View; `@zotlit/template-workbench` fills it (`desktop/view/open.ts`).
 - `layerProfile` takes the Profile document revision (`ProfileRevision`, a hash of the source) as a parameter; the desktop host passes `@zotlit/obsidian-desktop/profile-revision.ts`.
 
@@ -18,7 +18,7 @@ The Template Workbench, Query Views and Library View build on this package. Cros
 
 ## Layers
 
-Each layer has one folder of `src/` and one lint boundary (`oxlint.config.ts`). A file sits in the layer of what it needs from its host; a layer imports the layers below it: core ← obsidian ← desktop.
+Each layer is one folder of `src/` and one runtime zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)). A new file goes in the folder of what it needs from its host: `core/` is the host-free zone (the DOM, no host module), `obsidian/` the Obsidian zone (the `obsidian` module; it loads on Obsidian Mobile), and `desktop/` the desktop zone (Node and Electron). A layer reaches the layers below it: core ← obsidian ← desktop. The runtime check (`pnpm run lint:runtime-zones`) follows each import, type-only imports included, and fails on reach to a higher zone or to test support. Lint refuses Node built-in imports and the Node globals outside `desktop/`.
 
 - `core/` — host-free: no Node built-in, `obsidian`, `electron`, Obsidian kit, or client and desktop layers of the other plugin packages. The note filename and frontmatter rules, the note import's Markdown conversion and marks, the template defaults, errors and paths, the render diagnostics and reports and the side-effect-free note resolvers (`core/template/`), the built-in data of the template previews — Sample Items, Sample Annotations, Citation examples and Shared Partial contexts (`core/template-preview/`) — the template and note import settings slices, and the Item Match port.
 - `obsidian/` — loads on Obsidian Mobile: the Obsidian API, the kit, the client and Obsidian layers of the other plugin packages, and no Node or Electron. The Profile service, its bindings, atoms and settings slice, the Profile picker and the Profile modals that need no note preview, Profile selection, the Template service and its atoms, the template workbench recovery and launch port, and the batch run.

@@ -24,7 +24,7 @@ The app is a thin host: it composes feature values and holds no feature code. Th
 
 ## Type check
 
-`tsconfig.app.json` checks the app with `types: []`: the host is Node-free. `oxlint.config.ts` bans Node, Electron, the desktop layers and the Zotero packages (`@zotlit/plugin-shell/obsidian/platform.ts` included) in the app's imports.
+`tsconfig.app.json` checks the app with `types: []`: the host is Node-free. `src/` is the Obsidian zone (`zotlit.layer` in `package.json`, [ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)): the runtime check (`pnpm run lint:runtime-zones`) fails on reach to Electron or a desktop-zone file, lint refuses Node built-in imports and the Node globals, and `oxlint.config.ts` bans the Zotero packages (`@zotlit/plugin-shell/obsidian/platform.ts` included) in the app's imports.
 
 ## Tests
 

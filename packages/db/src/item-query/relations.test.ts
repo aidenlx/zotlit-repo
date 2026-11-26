@@ -18,7 +18,7 @@ import {
 } from "./index.ts";
 import type { AnnotationScanRow } from "./index.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 
 it("reads a paper's files and marks in source order, excluding trash and standalone files", () => {
   using scenario = openScenarioDatabase(connectClient, { annotations: true });

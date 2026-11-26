@@ -1,0 +1,64 @@
+name: Notify Grok Bot of Nightly End-to-end Run
+
+on:
+  workflow_run:
+    workflows: ["Nightly End-to-end Run"]
+    types: [completed]
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Post the workflow run event
+        env:
+          WEBHOOK_URL: ${{ secrets.GROK_BOT_WEBHOOK_URL }}
+          WEBHOOK_KEY: ${{ secrets.GROK_BOT_WEBHOOK_KEY }}
+        run: |
+          set +x
+          set -euo pipefail
+          if [ -z "${WEBHOOK_URL:-}" ] || [ -z "${WEBHOOK_KEY:-}" ]; then
+            echo "GROK_BOT_WEBHOOK_URL and GROK_BOT_WEBHOOK_KEY must both be set." >&2
+            exit 1
+          fi
+          if [ -z "${GITHUB_EVENT_PATH:-}" ] || [ ! -s "$GITHUB_EVENT_PATH" ]; then
+            echo "The GitHub event file is missing or empty." >&2
+            exit 1
+          fi
+          umask 077
+          workdir=$(mktemp -d)
+          trap 'rm -rf "$workdir"' EXIT
+          printf '%s\n' "Authorization: Bearer ${WEBHOOK_KEY}" >"$workdir/authorization"
+          set +e
+          http_code=$(
+            curl -q \
+              --silent \
+              --show-error \
+              --proto '=https' \
+              --connect-timeout 10 \
+              --max-time 30 \
+              --header 'Content-Type: application/json' \
+              --header @"$workdir/authorization" \
+              --data-binary @"$GITHUB_EVENT_PATH" \
+              --output /dev/null \
+              --write-out '%{http_code}' \
+              --url "$WEBHOOK_URL"
+          )
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ] || [ -z "$http_code" ] || [ "$http_code" = "000" ]; then
+            echo "The webhook request failed before a response (curl exit ${status})." >&2
+            exit 1
+          fi
+          case $http_code in
+            2[0-9][0-9]) ;;
+            *)
+              echo "The webhook returned HTTP ${http_code}." >&2
+              exit 1
+              ;;
+          esac
+          echo "Posted the Nightly End-to-end Run event."

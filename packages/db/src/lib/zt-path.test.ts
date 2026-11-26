@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import type { OperatingSystem } from "@zotlit/shared/platform";
+
 import type { Attachment } from "./zt-attach.ts";
 import {
   attachmentAbsPath,
@@ -221,7 +223,7 @@ describe("attachmentPathKey", () => {
     expect(attachmentPathKey(path, "linux")).toBe(expected);
   });
 
-  it.each<NodeJS.Platform>(["darwin", "win32"])(
+  it.each<OperatingSystem>(["darwin", "win32"])(
     "folds case on %s, where one file answers to both casings",
     (platform) => {
       expect(

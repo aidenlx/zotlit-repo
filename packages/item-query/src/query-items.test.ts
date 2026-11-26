@@ -13,6 +13,8 @@ import type { NodeDatabaseClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase, ItemQueryLayoutError } from "@zotlit/db/item-query";
 import type { StatementRun } from "@zotlit/db/item-query";
 
+import { runEffect } from "./__fixtures__/test-helpers.ts";
+import type { RunEvent, RunOptions } from "./__fixtures__/test-helpers.ts";
 import {
   ANNOTATIONS,
   ATTACHMENTS,
@@ -30,8 +32,6 @@ import type {
   QueryRow,
   SortSpec,
 } from "./index.ts";
-import { runEffect } from "./test-helpers.ts";
-import type { RunEvent, RunOptions } from "./test-helpers.ts";
 
 const { personal, group } = SCENARIO_LIBRARIES;
 

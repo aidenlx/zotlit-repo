@@ -2,6 +2,7 @@ import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { Effect, Layer, Stream } from "effect";
 
 import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian-env.ts";
+import { layerTestVaultDisk } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault-disk.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
@@ -70,10 +71,8 @@ export function layerTestQueryService(
           ),
         }),
         useLedger,
-        layerTestObsidianEnv({
-          vaultName: options.vaultName,
-          basePath: options.basePath,
-        }),
+        layerTestObsidianEnv({ vaultName: options.vaultName }),
+        layerTestVaultDisk({ basePath: options.basePath }),
         NodeFileSystem.layer,
       ),
     ),

@@ -700,9 +700,9 @@ export const clockTime: Rule = {
     },
     messages: {
       clock:
-        "read time through `Clock` (`Clock.currentTimeMillis` or `DateTime.now` in Effect code; `instantClock(yield* Clock.Clock)` from `@zotlit/plugin-kernel/effect-clock.ts` for a non-Effect core), so a TestClock drives it",
+        "read time through `Clock` (`Clock.currentTimeMillis` or `DateTime.now` in Effect code; `instantClock(yield* Clock.Clock)` from `@zotlit/plugin-kernel/worker/effect-clock.ts` for a non-Effect core), so a TestClock drives it",
       option:
-        "do not take a `now` option; read time through `Clock` (`instantClock(yield* Clock.Clock)` from `@zotlit/plugin-kernel/effect-clock.ts`), so a TestClock drives it",
+        "do not take a `now` option; read time through `Clock` (`instantClock(yield* Clock.Clock)` from `@zotlit/plugin-kernel/worker/effect-clock.ts`), so a TestClock drives it",
     },
     schema: [],
   },
@@ -839,7 +839,7 @@ export const temporalInEffect: Rule = {
     },
     messages: {
       temporal:
-        "use Effect's `DateTime` in Effect code (`DateTime.Utc` for an instant, `DateTime.Zoned` where the zone matters, `DateTime.now` or `Clock` for the current time) and `Duration` for a span; plain code that keeps `Temporal` converts at the edge with `@zotlit/plugin-kernel/effect-clock.ts`",
+        "use Effect's `DateTime` in Effect code (`DateTime.Utc` for an instant, `DateTime.Zoned` where the zone matters, `DateTime.now` or `Clock` for the current time) and `Duration` for a span; plain code that keeps `Temporal` converts at the edge with `@zotlit/plugin-kernel/worker/effect-clock.ts`",
     },
     schema: [],
   },

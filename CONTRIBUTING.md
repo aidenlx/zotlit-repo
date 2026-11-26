@@ -36,7 +36,7 @@ wt switch --create fix/<topic> --base origin/main   one worktree per change
   edit, commit                                   pre-commit: format, lint, messages
   pnpm verify                                    format, lint (the typecheck), tests of the
                                                  changed packages and their dependents
-pnpm land                                        rebase, verify --local, record PR,
+pnpm land                                        rebase, squash, verify --local, record PR,
                                                  wait for its CI tests, fast-forward main
 wt remove fix/<topic>
 ```
@@ -78,22 +78,40 @@ merged. See
 
 A change reaches `main` through `pnpm land`, run from the task worktree on its
 branch with a clean tree. Lands on one machine run one at a time, in a queue:
-each fetches `origin/main`, rebases the branch onto it, installs the
+each fetches `origin/main`, rebases the branch, and creates one commit using
+the record title and body. It installs the
 dependencies when the rebase changed a lockfile or manifest, runs
 `pnpm verify --local` on the rebased tree, pushes the branch and opens or
 updates its record pull request from the record file, waits for the CI check
-of the PR (`pnpm verify --pr`), and pushes the tree to `main` as a
-fast-forward. A failed check fails the land, and `main` stays as it was.
+of the PR (`pnpm verify --pr`), and dispatches the landing workflow on `main`.
+The workflow checks the PR, CI result, and the attribution and Conventional Commits subject of each incoming commit.
+The landing App fast-forwards `main` to the verified commit. A failed check fails the land, and `main` stays as it was.
 GitHub then shows the PR as merged. `pnpm land --help` names the record file
 and its sections. `pnpm land --no-verify` skips the gate; the CI check
-still runs. The pre-push hook lets only `pnpm land` push `main`.
+still runs. Use `pnpm land --no-squash` to preserve the rebased commits. Every commit that reaches `main` has a [Conventional Commits](https://www.conventionalcommits.org/) subject: the record title for a squash land, each commit subject for `--no-squash`. Releases preserve their version commit.
+
+### Landing App
+
+1. Install a dedicated GitHub App on the source repository only. Grant write
+   access to Contents and Workflows so the App can land workflow changes.
+2. Create the GitHub Actions environment `land`. Under deployment branches
+   and tags, select only the branch `main`. Set the environment variable
+   `LAND_APP_ID` and environment secret `LAND_APP_PRIVATE_KEY` there.
+3. Bootstrap the workflow onto `main` through the previous land command.
+   Land one reviewed change with the new command. Confirm that the landing run
+   succeeded and that the record PR head is the commit on `main`.
+4. Activate a separate branch ruleset targeting `main` with **Restrict updates**.
+   Give only the landing App an **Always allow** bypass on this ruleset.
+   Keep force-push and deletion protection in their existing ruleset.
+   Verify that GitHub lists the update restriction for `main` and that the App
+   is its only bypass actor.
 
 ## Releasing
 
 The source lives in `aidenlx/zotlit-repo`. Releases publish to the publish
 repository `aidenlx/zotlit`: the plugin releases, the Resource Releases, the
 Companion releases and its `zotero-release` update channel. Code reads the two
-names from `packages/config/repositories.ts`. The publish repository holds a
+names from `packages/config/src/core/repositories.ts`. The publish repository holds a
 generated shell that builds the plugin from the npm bundle package
 ([ADR 0095](docs/adr/0095-the-publish-repository-is-a-thin-generated-shell.md)).
 
@@ -157,7 +175,8 @@ aidenlx/zotlit-resources  plugin-release.yml of the shell, on the tag:
 2. Run `pnpm release`. The interactive script bumps the versions, syncs the
    root `manifest.json` and `versions.json` for a stable plugin release,
    refreshes the lockfile, commits on a local release branch, and lands that
-   commit onto `main` through the Land Queue. The release gate
+   version commit through the Land Queue and record PR. The landing App
+   advances `main` to that commit after CI passes. The release gate
    (`pnpm verify --release`) runs once in the Land Turn on the tree that is
    pushed. The End-to-end Run needs Docker. The start-up measurement uses
    the host Obsidian and an awake, unlocked display.

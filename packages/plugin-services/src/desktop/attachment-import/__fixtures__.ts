@@ -9,6 +9,7 @@ import { layerTestObsidianEnv } from "@zotlit/obsidian-kit/__fixtures__/obsidian
 import { MemoryFileManager } from "@zotlit/obsidian-kit/__fixtures__/obsidian-file-manager.ts";
 import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
+import { layerTestVaultDisk } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault-disk.ts";
 import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
 
 import { AttachmentImport, layerAttachmentImport } from "./service.ts";
@@ -56,7 +57,8 @@ export function layerAttachmentImportOver(options: {
         }),
         Layer.mock(ZoteroPref, options.pref),
         layerHost(options.host),
-        layerTestObsidianEnv({ basePath: options.basePath }),
+        layerTestObsidianEnv(),
+        layerTestVaultDisk({ basePath: options.basePath }),
         NodeFileSystem.layer,
       ),
     ),

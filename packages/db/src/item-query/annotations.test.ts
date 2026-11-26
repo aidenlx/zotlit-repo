@@ -17,7 +17,7 @@ import {
   ItemQueryStatementObserver,
 } from "./index.ts";
 
-import { connectClient } from "#client/node.ts";
+import { connectClient } from "#desktop/node-client.ts";
 
 it("scans only live annotations of live attached Items, across keyset pages", () => {
   using scenario = openScenarioDatabase(connectClient, { annotations: true });

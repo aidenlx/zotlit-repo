@@ -6,9 +6,9 @@ import { describe } from "vitest";
 import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
 import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 
+import { originFiles } from "./__fixtures__.ts";
+import type { OriginFolder } from "./__fixtures__.ts";
 import { removeOldStore } from "./old-store-cleanup.ts";
-import { originFiles } from "./test-utils.ts";
-import type { OriginFolder } from "./test-utils.ts";
 
 const downloaded = (): OriginFolder => ({
   zotlit: {
