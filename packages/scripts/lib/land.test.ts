@@ -12,7 +12,13 @@ import { git, makeGitRepos } from "./__fixtures__/git-repos.ts";
 import type { GitRepos } from "./__fixtures__/git-repos.ts";
 import { landAdmission, landStateDir, landWaitLog } from "./land-queue.ts";
 import type { LandWaitRecord } from "./land-queue.ts";
-import { land, LAND_CI_CHECK, LAND_RECORD_PATH } from "./land.ts";
+import {
+  land,
+  LAND_AFTER_CI_MARKER,
+  LAND_CI_CHECK,
+  LAND_RECORD_PATH,
+  LAND_WORKFLOW,
+} from "./land.ts";
 import type { CiCheck, LandGitHub, LandOptions } from "./land.ts";
 
 const SLOW = 30_000;
@@ -508,6 +514,122 @@ async function writeRecord(
 }
 
 describe("the record PR", () => {
+  describe("--after-ci", () => {
+    const refused = async () => {
+      throw new Error("HTTP 403: Resource not accessible by integration");
+    };
+    const landSoon = (commit: string) => {
+      setTimeout(() => {
+        void git(repos.remote, "rev-parse", "main").then((tip) =>
+          git(repos.remote, "update-ref", "refs/heads/main", commit, tip),
+        );
+      }, 50);
+    };
+
+    it("keeps the marker of the record PR in the landing workflow", async () => {
+      const workflow = await readFile(
+        join(import.meta.dirname, "../../..", LAND_WORKFLOW),
+        "utf8",
+      );
+      expect(workflow).toContain(`MARKER: "${LAND_AFTER_CI_MARKER}"`);
+    });
+
+    it(
+      "marks the PR, leaves the commit unmarked, and waits for the workflow to move main",
+      async () => {
+        const cwd = await taskClone("a");
+        await writeRecord(cwd);
+        const { github, pulls } = fakeGitHub({
+          ci: ({ commit }) => {
+            landSoon(commit);
+            return passed();
+          },
+        });
+        github.advanceMain = refused;
+
+        const result = await land({
+          ...quiet,
+          cwd,
+          github,
+          afterCi: true,
+          afterCiPollMs: 10,
+        });
+
+        expect(result).toMatchObject({ ok: true, record: { merged: true } });
+        expect(pulls[0]!.body).toMatch(
+          new RegExp(`\n\n${LAND_AFTER_CI_MARKER}$`),
+        );
+        const head = await git(repos.remote, "rev-parse", "main");
+        expect(head).toBe(await git(cwd, "rev-parse", "HEAD"));
+        expect(
+          await git(repos.remote, "show", "-s", "--format=%B", head),
+        ).not.toContain(LAND_AFTER_CI_MARKER);
+      },
+      SLOW,
+    );
+
+    it(
+      "fails at the push step, with main unchanged, when the workflow does not move main",
+      async () => {
+        const cwd = await taskClone("a");
+        await writeRecord(cwd);
+        const { github } = fakeGitHub();
+        github.advanceMain = refused;
+
+        const result = await land({
+          ...quiet,
+          cwd,
+          github,
+          afterCi: true,
+          afterCiWaitMs: 100,
+          afterCiPollMs: 10,
+        });
+
+        expect(result).toMatchObject({ ok: false, step: "push" });
+        expect(result.ok || result.message).toContain(LAND_WORKFLOW);
+        expect(await subjects("main")).toEqual(["seed"]);
+      },
+      SLOW,
+    );
+
+    it(
+      "starts again from the fetch when main moves to another commit",
+      async () => {
+        const cwd = await taskClone("a");
+        await writeRecord(cwd);
+        let moved = false;
+        const { github, checkReads } = fakeGitHub({
+          ci: async ({ commit }) => {
+            if (moved) landSoon(commit);
+            else {
+              moved = true;
+              await moveMain("m.txt", "m");
+            }
+            return passed();
+          },
+        });
+        github.advanceMain = refused;
+
+        const result = await land({
+          ...quiet,
+          cwd,
+          github,
+          afterCi: true,
+          afterCiPollMs: 10,
+        });
+
+        expect(result).toMatchObject({ ok: true, attempts: 2 });
+        expect(new Set(checkReads.map((read) => read.commit)).size).toBe(2);
+        expect(await subjects("main")).toEqual([
+          "feat: add a",
+          "main m.txt",
+          "seed",
+        ]);
+      },
+      SLOW,
+    );
+  });
+
   it(
     "squashes by default and lands the commit checked by CI",
     async () => {

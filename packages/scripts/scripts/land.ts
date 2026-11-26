@@ -20,6 +20,7 @@ import {
 } from "#desktop-slot";
 import {
   land,
+  LAND_AFTER_CI_WAIT_MS,
   LAND_ATTEMPTS,
   LAND_CI_CHECK,
   LAND_CI_WAIT_MS,
@@ -28,6 +29,7 @@ import {
   LAND_RECORD_PATH,
   LAND_RECORD_SECTIONS,
   LAND_WAIT_MS,
+  LAND_WORKFLOW,
   RECORD_PR_WORKFLOW,
 } from "#land";
 import { ghLandGitHub, githubRepository } from "#land-github";
@@ -40,6 +42,8 @@ const epilogue = `A land holds the Land Turn while it fetches, rebases, installs
 
 From a task branch with a clean tree, a record file, and a gh login that GitHub accepts (checked before the turn):
   fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_INSTALL.join(" ")} when the rebase changed pnpm-lock.yaml, pnpm-workspace.yaml, or a package.json, run ${LAND_GATES.change.join(" ")}, push the branch to origin and open its record PR (or update the open one), wait for the "${LAND_CI_CHECK}" check of the PR head (pnpm verify --pr, ${RECORD_PR_WORKFLOW}), dispatch the trusted landing workflow to fast-forward ${SOURCE_BRANCH} to the checked head. The wait prints the state of the check at each read and ends after ${formatDuration(LAND_CI_WAIT_MS)}; a check that does not pass fails the land with the link to the job, and ${SOURCE_BRANCH} stays as it was. A land again on the same head reads the same result, unless the job ran again from its link. When ${SOURCE_BRANCH} moved during the gate or the CI wait, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves; when GitHub shows the PR as merged, the task branch is deleted on origin.
+
+--after-ci is for a session whose GitHub token can push the branch and open the record PR but cannot dispatch workflows, such as a cloud agent. It marks a new record PR in its body, and ${LAND_WORKFLOW} lands a marked PR when its "${LAND_CI_CHECK}" check passes, with the same checks as a dispatch. The land then waits up to ${formatDuration(LAND_AFTER_CI_WAIT_MS)} for ${SOURCE_BRANCH} to reach the head. A land again on a branch whose record PR is open edits that PR, which such a token cannot do: land again from a new branch, or from a local session.
 
 Record file: ${LAND_RECORD_PATH} in the worktree. Its first line is "# <title>", the title of the PR and, for a squash land, the subject of the commit, so a Conventional Commits subject (${CONVENTIONAL_FORMAT}); the rest is the PR body, with the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}.
 
@@ -63,10 +67,12 @@ async function landCommand({
   wait,
   verify,
   squash,
+  afterCi,
 }: {
   wait?: string | undefined;
   verify: boolean;
   squash: boolean;
+  afterCi: boolean;
 }) {
   let waitMs: number | undefined;
   if (wait !== undefined) {
@@ -85,6 +91,7 @@ async function landCommand({
   const result = await land({
     cwd,
     squash,
+    afterCi,
     ...(verify ? { gate: LAND_GATES.change } : {}),
     github: ghLandGitHub(repository),
     ...(waitMs === undefined ? {} : { waitMs }),
@@ -121,7 +128,7 @@ async function status() {
 await yargs(hideBin(process.argv))
   .scriptName("land")
   .usage(
-    "pnpm land [--wait <duration>] [--no-verify] [--no-squash]\npnpm land status",
+    "pnpm land [--wait <duration>] [--no-verify] [--no-squash] [--after-ci]\npnpm land status",
   )
   .command(
     "$0",
@@ -137,6 +144,11 @@ await yargs(hideBin(process.argv))
         .option("wait", {
           type: "string",
           describe: `how long to wait for the Land Turn (default ${formatDuration(LAND_WAIT_MS)})`,
+        })
+        .option("after-ci", {
+          type: "boolean",
+          default: false,
+          describe: `let ${LAND_WORKFLOW} land the record PR when its CI check passes, and wait for ${SOURCE_BRANCH} to move; for a GitHub token that cannot dispatch workflows`,
         })
         .option("verify", {
           type: "boolean",

@@ -83,6 +83,10 @@ export const LAND_CI_CHECK = "Record PR tests";
 export const RECORD_PR_WORKFLOW = ".github/workflows/record-pr.yml";
 export const LAND_CI_TIMEOUT_MINUTES = 40;
 export const LAND_CI_WAIT_MS = (LAND_CI_TIMEOUT_MINUTES + 5) * MINUTE;
+export const LAND_AFTER_CI_MARKER = "<!-- zotlit-land: after-ci -->";
+export const LAND_WORKFLOW = ".github/workflows/land.yml";
+export const LAND_AFTER_CI_WAIT_MS = 15 * MINUTE;
+const LAND_AFTER_CI_POLL_MS = 10_000;
 const LAND_CI_POLL_MS = 30_000;
 const LAND_MERGED_WAIT_MS = 30_000;
 const LAND_MERGED_POLL_MS = 2_000;
@@ -156,6 +160,9 @@ export interface LandOptions {
   ciWaitMs?: number;
   /** How often the land reads the CI check. @default 30 s */
   ciPollMs?: number;
+  afterCi?: boolean;
+  afterCiWaitMs?: number;
+  afterCiPollMs?: number;
   /**
    * How long the land reads the record PR's state after the push of `main`.
    * @default LAND_MERGED_WAIT_MS
@@ -468,7 +475,9 @@ export async function land(options: LandOptions): Promise<LandResult> {
             remote,
             branch: pre.branch,
             base: to,
-            record,
+            record: options.afterCi
+              ? { ...record, body: `${record.body}\n\n${LAND_AFTER_CI_MARKER}` }
+              : record,
             say,
           }),
         );
@@ -486,6 +495,21 @@ export async function land(options: LandOptions): Promise<LandResult> {
           }),
         );
         pushed = await step("push", async () => {
+          if (options.afterCi) {
+            return await waitForMain(sh, {
+              remote,
+              to,
+              head,
+              base,
+              waitMs: options.afterCiWaitMs ?? LAND_AFTER_CI_WAIT_MS,
+              pollMs: options.afterCiPollMs ?? LAND_AFTER_CI_POLL_MS,
+              say,
+              progress: () => {
+                if (leaseOver) throw leaseEnded(leaseOver);
+                turn.progress("push");
+              },
+            });
+          }
           const dispatched = await github
             .advanceMain({ number: pull!.number, head, base }, (line) => {
               if (leaseOver) throw leaseEnded(leaseOver);
@@ -778,6 +802,41 @@ async function openRecord(
       "record",
       `The record PR of ${branch} could not be opened or updated: ${(error as Error).message}`,
     );
+  }
+}
+
+async function waitForMain(
+  sh: Shell,
+  options: {
+    remote: string;
+    to: string;
+    head: string;
+    base: string;
+    waitMs: number;
+    pollMs: number;
+    say: (line: string) => void;
+    progress: () => void;
+  },
+): Promise<boolean> {
+  const { remote, to, head, base, say } = options;
+  say(
+    `Waiting for the landing workflow (${LAND_WORKFLOW}) to fast-forward ${to} to ${head.slice(0, 12)}.`,
+  );
+  const started = Temporal.Now.instant().epochMilliseconds;
+  for (;;) {
+    options.progress();
+    await fetchTarget(sh, remote, to);
+    if (await sh.test("merge-base", "--is-ancestor", head, `${remote}/${to}`))
+      return true;
+    if ((await sh.git("push", "rev-parse", `${remote}/${to}`)) !== base)
+      return false;
+    if (Temporal.Now.instant().epochMilliseconds - started >= options.waitMs) {
+      throw new LandFailure(
+        "push",
+        `${to} did not reach ${head.slice(0, 12)} within ${formatDuration(options.waitMs)}. Read the latest run of ${LAND_WORKFLOW} in GitHub Actions.`,
+      );
+    }
+    await delay(options.pollMs);
   }
 }
 

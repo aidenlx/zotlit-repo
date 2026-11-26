@@ -12,6 +12,9 @@ on:
       base:
         description: Expected main commit
         required: true
+  workflow_run:
+    workflows: [Record PR]
+    types: [completed]
 
 permissions:
   contents: read
@@ -19,8 +22,58 @@ permissions:
   actions: read
 
 jobs:
+  inputs:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'pull_request' &&
+        github.event.workflow_run.head_repository.full_name == github.repository))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      pull: ${{ steps.pick.outputs.pull }}
+      head: ${{ steps.pick.outputs.head }}
+      base: ${{ steps.pick.outputs.base }}
+    steps:
+      - name: Pick the record PR
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          INPUT_PULL: ${{ inputs.pull }}
+          INPUT_HEAD: ${{ inputs.head }}
+          INPUT_BASE: ${{ inputs.base }}
+          RUN_PULL: ${{ github.event.workflow_run.pull_requests[0].number }}
+          RUN_HEAD: ${{ github.event.workflow_run.head_sha }}
+          MARKER: "<!-- zotlit-land: after-ci -->"
+        run: |
+          if [ "$EVENT" = workflow_dispatch ]; then
+            pull=$INPUT_PULL head=$INPUT_HEAD base=$INPUT_BASE
+          else
+            if [ -z "$RUN_PULL" ]; then
+              echo "The Record PR run names no pull request of this repository."
+              exit 0
+            fi
+            body=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$RUN_PULL" --jq '.body // ""')
+            case "$body" in
+              *"$MARKER"*) ;;
+              *)
+                echo "Record PR #$RUN_PULL is not marked by pnpm land --after-ci."
+                exit 0
+                ;;
+            esac
+            pull=$RUN_PULL head=$RUN_HEAD base=$GITHUB_SHA
+          fi
+          {
+            echo "pull=$pull"
+            echo "head=$head"
+            echo "base=$base"
+          } >> "$GITHUB_OUTPUT"
+
   land:
-    if: github.ref == 'refs/heads/main'
+    needs: inputs
+    if: github.ref == 'refs/heads/main' && needs.inputs.outputs.pull != ''
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: land
@@ -37,9 +90,9 @@ jobs:
         run: node packages/scripts/scripts/land-verified.ts
         env:
           GH_TOKEN: ${{ github.token }}
-          LAND_PULL: ${{ inputs.pull }}
-          LAND_HEAD: ${{ inputs.head }}
-          LAND_BASE: ${{ inputs.base }}
+          LAND_PULL: ${{ needs.inputs.outputs.pull }}
+          LAND_HEAD: ${{ needs.inputs.outputs.head }}
+          LAND_BASE: ${{ needs.inputs.outputs.base }}
       - uses: actions/create-github-app-token@v2
         id: app
         with:
@@ -50,5 +103,5 @@ jobs:
       - name: Fast-forward main
         env:
           GH_TOKEN: ${{ steps.app.outputs.token }}
-          LAND_HEAD: ${{ inputs.head }}
+          LAND_HEAD: ${{ needs.inputs.outputs.head }}
         run: gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/heads/main" -f sha="$LAND_HEAD" -F force=false
