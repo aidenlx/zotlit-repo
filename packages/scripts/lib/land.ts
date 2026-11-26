@@ -5,7 +5,7 @@ import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import type { WriteStream } from "node:fs";
-import { mkdir, readFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
@@ -85,6 +85,7 @@ export const LAND_CI_TIMEOUT_MINUTES = 40;
 export const LAND_CI_WAIT_MS = (LAND_CI_TIMEOUT_MINUTES + 5) * MINUTE;
 export const LAND_AFTER_CI_MARKER = "<!-- zotlit-land: after-ci -->";
 export const LAND_WORKFLOW = ".github/workflows/land.yml";
+export const LAND_PR_PATH = ".scratch/land-pr.md";
 export const LAND_AFTER_CI_WAIT_MS = 15 * MINUTE;
 const LAND_AFTER_CI_POLL_MS = 10_000;
 const LAND_CI_POLL_MS = 30_000;
@@ -112,6 +113,11 @@ export interface RecordPullRequest {
   url: string;
 }
 
+export interface OpenRecordPullRequest extends RecordPullRequest {
+  title: string;
+  body: string;
+}
+
 export interface LandGitHub {
   advanceMain: (
     input: { number: number; head: string; base: string },
@@ -120,7 +126,7 @@ export interface LandGitHub {
   findOpenPullRequest: (query: {
     head: string;
     base: string;
-  }) => Promise<RecordPullRequest | undefined>;
+  }) => Promise<OpenRecordPullRequest | undefined>;
   createPullRequest: (pull: {
     head: string;
     base: string;
@@ -472,6 +478,8 @@ export async function land(options: LandOptions): Promise<LandResult> {
       if (github && record) {
         pull = await step("record", () =>
           openRecord(sh, github, {
+            cwd,
+            afterCi: options.afterCi ?? false,
             remote,
             branch: pre.branch,
             base: to,
@@ -767,6 +775,8 @@ async function openRecord(
   sh: Shell,
   github: LandGitHub,
   options: {
+    cwd: string;
+    afterCi: boolean;
     remote: string;
     branch: string;
     base: string;
@@ -786,6 +796,13 @@ async function openRecord(
   try {
     const open = await github.findOpenPullRequest({ head: branch, base });
     if (open) {
+      if (
+        sameText(open.title, record.title) &&
+        sameText(open.body, record.body)
+      ) {
+        say(`Record PR matches the record: ${open.url}`);
+        return open;
+      }
       await github.editPullRequest(open.number, record);
       say(`Record PR updated: ${open.url}`);
       return open;
@@ -798,11 +815,30 @@ async function openRecord(
     say(`Record PR opened: ${created.url}`);
     return created;
   } catch (error) {
+    const message = (error as Error).message;
+    if (options.afterCi && message.includes(INTEGRATION_REFUSAL)) {
+      await writeFile(
+        join(options.cwd, LAND_PR_PATH),
+        `# ${record.title}\n\n${record.body}\n`,
+      );
+      throw new LandFailure(
+        "record",
+        `GitHub refused this token a write to the record PR of ${branch}: ${message}\nThe branch is pushed. Open a PR from ${branch} into ${base} with the PR tool of the host. Use the first line of ${LAND_PR_PATH}, without "# ", as its title and the rest as its body, and keep the line ${LAND_AFTER_CI_MARKER}. Then run pnpm land --after-ci again: it finds that PR, leaves it as it is, and waits for CI and ${base}.`,
+      );
+    }
     throw new LandFailure(
       "record",
-      `The record PR of ${branch} could not be opened or updated: ${(error as Error).message}`,
+      `The record PR of ${branch} could not be opened or updated: ${message}`,
     );
   }
+}
+
+const INTEGRATION_REFUSAL = "Resource not accessible by integration";
+
+function sameText(a: string, b: string): boolean {
+  return (
+    a.replaceAll("\r\n", "\n").trim() === b.replaceAll("\r\n", "\n").trim()
+  );
 }
 
 async function waitForMain(

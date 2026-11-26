@@ -26,6 +26,8 @@ const pull = (number: number, owner: string) => ({
     nameWithOwner: `${owner}/zotlit-repo`,
   },
   headRepositoryOwner: { id: "U_1", login: owner },
+  title: `feat: pull ${number}`,
+  body: `## Summary\n\nPull ${number}.`,
   isCrossRepository: owner !== "aidenlx",
 });
 
@@ -76,7 +78,12 @@ describe("findOpenPullRequest", () => {
 
     expect(
       await github.findOpenPullRequest({ head: "feat/a", base: "main" }),
-    ).toEqual({ number: 5, url: `https://github.com/${REPO}/pull/5` });
+    ).toEqual({
+      number: 5,
+      url: `https://github.com/${REPO}/pull/5`,
+      title: "feat: pull 5",
+      body: "## Summary\n\nPull 5.",
+    });
   });
 
   it("finds no PR when only a fork has one from that branch", async () => {

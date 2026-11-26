@@ -1,4 +1,4 @@
-import type { CiCheck, LandGitHub, RecordPullRequest } from "#land";
+import type { CiCheck, LandGitHub, OpenRecordPullRequest } from "#land";
 import { regex } from "arkregex";
 import { basename } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
@@ -80,11 +80,18 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
           "--state",
           "open",
           "--json",
-          "number,url,isCrossRepository",
+          "number,url,title,body,isCrossRepository",
         ]),
       ) as GitHubPullRequest[];
       const own = listed.find((pull) => !pull.isCrossRepository);
-      return own && { number: own.number, url: own.url };
+      return (
+        own && {
+          number: own.number,
+          url: own.url,
+          title: own.title,
+          body: own.body,
+        }
+      );
     },
     async createPullRequest({ head, base, title, body }) {
       const printed = await run(
@@ -197,7 +204,7 @@ function sameRepository(a: string, b: string): boolean {
   return a.toLowerCase() === b.toLowerCase();
 }
 
-interface GitHubPullRequest extends RecordPullRequest {
+interface GitHubPullRequest extends OpenRecordPullRequest {
   isCrossRepository: boolean;
 }
 

@@ -26,6 +26,7 @@ import {
   LAND_CI_WAIT_MS,
   LAND_GATES,
   LAND_INSTALL,
+  LAND_PR_PATH,
   LAND_RECORD_PATH,
   LAND_RECORD_SECTIONS,
   LAND_WAIT_MS,
@@ -43,7 +44,7 @@ const epilogue = `A land holds the Land Turn while it fetches, rebases, installs
 From a task branch with a clean tree, a record file, and a gh login that GitHub accepts (checked before the turn):
   fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_INSTALL.join(" ")} when the rebase changed pnpm-lock.yaml, pnpm-workspace.yaml, or a package.json, run ${LAND_GATES.change.join(" ")}, push the branch to origin and open its record PR (or update the open one), wait for the "${LAND_CI_CHECK}" check of the PR head (pnpm verify --pr, ${RECORD_PR_WORKFLOW}), dispatch the trusted landing workflow to fast-forward ${SOURCE_BRANCH} to the checked head. The wait prints the state of the check at each read and ends after ${formatDuration(LAND_CI_WAIT_MS)}; a check that does not pass fails the land with the link to the job, and ${SOURCE_BRANCH} stays as it was. A land again on the same head reads the same result, unless the job ran again from its link. When ${SOURCE_BRANCH} moved during the gate or the CI wait, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves; when GitHub shows the PR as merged, the task branch is deleted on origin.
 
---after-ci is for a session whose GitHub token can push the branch and open the record PR but cannot dispatch workflows, such as a cloud agent. It marks a new record PR in its body, and ${LAND_WORKFLOW} lands a marked PR when its "${LAND_CI_CHECK}" check passes, with the same checks as a dispatch. The land then waits up to ${formatDuration(LAND_AFTER_CI_WAIT_MS)} for ${SOURCE_BRANCH} to reach the head. A land again on a branch whose record PR is open edits that PR, which such a token cannot do: land again from a new branch, or from a local session.
+--after-ci is for a session whose GitHub token can push the branch and open the record PR but cannot dispatch workflows, such as a cloud agent. It marks a new record PR in its body, and ${LAND_WORKFLOW} lands a marked PR when its "${LAND_CI_CHECK}" check passes, with the same checks as a dispatch. The land then waits up to ${formatDuration(LAND_AFTER_CI_WAIT_MS)} for ${SOURCE_BRANCH} to reach the head. When GitHub refuses such a token the PR write, the land writes the title and body of the record PR to ${LAND_PR_PATH} and exits at the record step. Open the PR with the PR tool of the host, then land again: an open record PR whose title and body match the record stays as it is.
 
 Record file: ${LAND_RECORD_PATH} in the worktree. Its first line is "# <title>", the title of the PR and, for a squash land, the subject of the commit, so a Conventional Commits subject (${CONVENTIONAL_FORMAT}); the rest is the PR body, with the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}.
 

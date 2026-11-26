@@ -16,6 +16,7 @@ import {
   land,
   LAND_AFTER_CI_MARKER,
   LAND_CI_CHECK,
+  LAND_PR_PATH,
   LAND_RECORD_PATH,
   LAND_WORKFLOW,
 } from "./land.ts";
@@ -564,6 +565,61 @@ describe("the record PR", () => {
         expect(
           await git(repos.remote, "show", "-s", "--format=%B", head),
         ).not.toContain(LAND_AFTER_CI_MARKER);
+      },
+      SLOW,
+    );
+
+    it(
+      "hands the PR to the host when GitHub refuses the write, then lands that PR as it is",
+      async () => {
+        const cwd = await taskClone("a");
+        await writeRecord(cwd);
+        const { github, pulls } = fakeGitHub({
+          ci: ({ commit }) => {
+            landSoon(commit);
+            return passed();
+          },
+        });
+        const create = github.createPullRequest;
+        github.advanceMain = refused;
+        github.createPullRequest = refused;
+        github.editPullRequest = refused;
+
+        const first = await land({
+          ...quiet,
+          cwd,
+          github,
+          afterCi: true,
+          afterCiPollMs: 10,
+        });
+
+        expect(first).toMatchObject({ ok: false, step: "record" });
+        expect(first.ok || first.message).toContain(LAND_PR_PATH);
+        const pushed = await git(repos.remote, "rev-parse", "feat/a");
+        const [heading, ...rest] = (
+          await readFile(join(cwd, LAND_PR_PATH), "utf8")
+        ).split("\n");
+        expect(heading).toBe("# feat: add a");
+        const body = rest.join("\n").trim();
+        expect(body).toMatch(new RegExp(`${LAND_AFTER_CI_MARKER}$`));
+        await create({
+          head: "feat/a",
+          base: "main",
+          title: "feat: add a",
+          body: body.replaceAll("\n", "\r\n"),
+        });
+
+        const second = await land({
+          ...quiet,
+          cwd,
+          github,
+          afterCi: true,
+          afterCiPollMs: 10,
+        });
+
+        expect(second).toMatchObject({ ok: true, record: { merged: true } });
+        expect(pulls).toHaveLength(1);
+        expect(await git(repos.remote, "rev-parse", "main")).toBe(pushed);
       },
       SLOW,
     );
