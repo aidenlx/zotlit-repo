@@ -7,14 +7,26 @@ ZotLit has two repositories:
 | [`aidenlx/zotlit-repo`](https://github.com/aidenlx/zotlit-repo) | The source: all code, its history, the docs site, and the issue tracker                       |
 | [`aidenlx/zotlit`](https://github.com/aidenlx/zotlit)           | The releases, and a tree generated at each release that builds the plugin from an npm package |
 
-- **Code changes** go to `aidenlx/zotlit-repo`, the one repository that takes
-  pull requests, against `main`. Run `pnpm verify` before you push. A pull
-  request into `main` runs `pnpm verify --pr` in CI
-  (`.github/workflows/record-pr.yml`). A maintainer lands an accepted change through the
-  Land Queue (see [Landing a change](#landing-a-change)).
+The maintainer writes all ZotLit code. You help ZotLit most with what you know
+about research work.
+
 - **Bug reports, feature requests and questions** go to the
-  [ZotLit forum](https://zotlit-forum.aidenlx.site). GitHub Issues in
-  `aidenlx/zotlit-repo` hold the defects a maintainer has confirmed.
+  [ZotLit forum](https://zotlit-forum.aidenlx.site). Describe the research
+  task, what you expected, and what happened. GitHub Issues in
+  `aidenlx/zotlit-repo` hold the defects a maintainer has confirmed. The
+  [Credits page](https://zotlit.aidenlx.site/docs/credits) lists the people
+  whose ideas shipped.
+- **Templates, CSS snippets and query examples** that you share on the forum
+  stay yours. Before ZotLit shows one in the docs or ships it, the maintainer
+  asks you.
+- **Code** comes from the maintainer only. Pull requests in
+  `aidenlx/zotlit-repo` are open to collaborators.
+- **Maintainer changes** go to `aidenlx/zotlit-repo` against `main`. Run
+  `pnpm verify` before you push. A pull request into `main` runs
+  `pnpm verify --pr` in CI (`.github/workflows/record-pr.yml`). The maintainer
+  lands a change through the Land Queue (see
+  [Landing a change](#landing-a-change)).
+- **The ZotLit name and logos** follow the [trademark policy](TRADEMARKS.md).
 
 ## Development flow
 

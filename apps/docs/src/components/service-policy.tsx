@@ -7,11 +7,11 @@ import { getLocale } from "@/paraglide/runtime.js";
 
 type PolicyKind = "privacy" | "terms";
 
-const effectiveDate = "2026-11-17";
+const effectiveDate = "2026-11-26";
 const contact = "aiden.lx@outlook.com";
 
 function getPolicy(kind: PolicyKind) {
-  return policies[getLocale() === "zh-CN" ? "zh-CN" : "en"][kind];
+  return policies[kind];
 }
 
 export function servicePolicyHead(kind: PolicyKind) {
@@ -77,6 +77,16 @@ export function ServicePolicy({ kind }: { kind: PolicyKind }) {
               </a>
             )}
           </li>
+          {kind === "terms" && (
+            <li>
+              <a
+                href={`${repoUrl}/blob/main/TRADEMARKS.md`}
+                className="underline underline-offset-4"
+              >
+                {m.docs_trademark_policy()}
+              </a>
+            </li>
+          )}
         </ul>
       </article>
       <SiteFooter />

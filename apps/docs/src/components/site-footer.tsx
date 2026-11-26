@@ -1,6 +1,5 @@
 import { currentYear, sourceBlobUrl } from "@/lib/shared.ts";
 import * as m from "@/paraglide/messages.js";
-import { localizeHref } from "@/paraglide/runtime.js";
 
 export function SiteFooter() {
   return (
@@ -18,13 +17,13 @@ export function SiteFooter() {
       </span>
       <div className="flex flex-wrap gap-x-4 gap-y-2">
         <a
-          href={localizeHref("/privacy")}
+          href="/privacy"
           className="underline underline-offset-4 hover:text-fd-primary"
         >
           {m.docs_privacy_policy()}
         </a>
         <a
-          href={localizeHref("/terms")}
+          href="/terms"
           className="underline underline-offset-4 hover:text-fd-primary"
         >
           {m.docs_terms_of_service()}

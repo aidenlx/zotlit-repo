@@ -2342,6 +2342,7 @@
   "docs_policy_effective_date": "Effective",
   "docs_google_user_data_policy": "Google API Services User Data Policy",
   "docs_license": "AGPL-3.0 Licensed",
+  "docs_trademark_policy": "Trademark Policy",
   "docs_companion_release": "Companion {version} released alongside.",
   "docs_release_channel_prerelease": "Pre-release",
   "docs_release_channel_stable": "Stable",
