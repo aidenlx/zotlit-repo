@@ -5,7 +5,7 @@ import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import type { WriteStream } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setTimeout as delay } from "node:timers/promises";
 
@@ -68,6 +68,7 @@ export type LandStep =
   | "lease";
 
 export const LAND_RECORD_PATH = ".scratch/land-record.md";
+export const LAND_RECORD_ENV = "ZOTLIT_LAND_RECORD";
 
 export const LAND_RECORD_SECTIONS = [
   "Summary",
@@ -290,12 +291,16 @@ class Shell {
   run(
     command: string,
     args: readonly string[],
-    timeoutMs?: number,
+    {
+      timeoutMs,
+      env,
+    }: { timeoutMs?: number; env?: Readonly<Record<string, string>> } = {},
   ): Promise<RunResult> {
     this.#log.write(`\n$ ${[command, ...args].join(" ")}\n`);
     return new Promise((resolve, reject) => {
       const child = spawn(command, args, {
         cwd: this.#cwd,
+        ...(env ? { env: { ...process.env, ...env } } : {}),
         stdio: ["ignore", "pipe", "pipe"],
         detached: process.platform !== "win32",
       });
@@ -555,7 +560,17 @@ export async function land(options: LandOptions): Promise<LandResult> {
       if (gate) {
         await step("gate", async () => {
           const [command, ...args] = gate;
-          const result = await sh.run(command, args);
+          const copy = `${logPath}.record.md`;
+          await using stack = new AsyncDisposableStack();
+          if (record) {
+            await writeFile(copy, `# ${record.title}\n\n${record.body}\n`);
+            stack.defer(() => rm(copy, { force: true }));
+          }
+          const result = await sh.run(
+            command,
+            args,
+            record ? { env: { [LAND_RECORD_ENV]: copy } } : {},
+          );
           if (result.code !== 0) {
             throw new LandFailure(
               "gate",
@@ -877,6 +892,22 @@ interface LandRecord {
 
 const RECORD_TITLE = regex("^# (?<title>.+)$");
 const RECORD_SECTION = regex("^## (?<name>.+)$");
+
+export function readRecordSection(
+  text: string,
+  name: string,
+): string | undefined {
+  const lines = text.split("\n");
+  const start = lines.findIndex(
+    (line) =>
+      RECORD_SECTION.exec(line.trim())?.groups.name.trim().toLowerCase() ===
+      name.toLowerCase(),
+  );
+  if (start === -1) return undefined;
+  const rest = lines.slice(start + 1);
+  const end = rest.findIndex((line) => RECORD_SECTION.test(line.trim()));
+  return (end === -1 ? rest : rest.slice(0, end)).join("\n");
+}
 
 async function readRecord(sh: Shell): Promise<LandRecord> {
   const root = await sh.git("preflight", "rev-parse", "--show-toplevel");
@@ -1209,7 +1240,7 @@ function conflictWatch(
       const fetched = await sh.run(
         "git",
         ["fetch", "--no-tags", "--refmap=", remote, `refs/heads/${to}`],
-        fetchTimeoutMs,
+        { timeoutMs: fetchTimeoutMs },
       );
       if (fetched.code !== 0) {
         throw new Error(`git fetch exited ${fetched.code}`);

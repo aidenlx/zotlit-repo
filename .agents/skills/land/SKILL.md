@@ -38,7 +38,7 @@ The record PR holds the record of the change, so the maintainer reads the change
 
 - **Summary:** what the change does for its users.
 - **Testing:** the suites and commands that ran, with their results.
-- **Risk** and **How to revert:** what can break for a user, and the commits or steps that undo it.
+- **Risk** and **How to revert:** what can break for a user, and the commits or steps that undo it. Risk also holds each line that the Record risk step of `pnpm verify` prints, such as `Contract Citations CLI: 4 → 5`, with what the change means for users. The step runs in the local half, so it checks the record of a land in the gate, and `--no-verify` skips it.
 - **Review:** the finding lines of every review round, each with its outcome (`code-review` → Finding lines).
 - **Open points:** a `- [ ] ` checklist item for each open point.
 - **e2e:** the e2e files that ran, and their result.
@@ -52,7 +52,7 @@ A land of a branch that has an open record PR, such as a land again after a fail
 
 ## The CI wait
 
-The local gate is `pnpm verify --local`: Format, Generated artifacts, Lint, Typecheck and Snapshot size. The tests of the affected packages and the bundle budget run in CI on the record PR (`.github/workflows/record-pr.yml`, `pnpm verify --pr` in parallel shards). The land holds its Land Turn while CI runs, and prints the state of the check at each read (`queued`, `in progress`, then the result and the longest time a shard waited for a runner). After CI passes, the land dispatches the landing workflow on `main`. The workflow checks the open record PR, its head and base, the successful CI check, and each incoming commit against the attribution policy and for a Conventional Commits subject. The landing App then fast-forwards `main` to that head. `pnpm land --help` names the check and how long the land waits for it.
+The local gate is `pnpm verify --local`; `pnpm verify --help` lists its steps. The tests of the affected packages and the bundle budget run in CI on the record PR (`.github/workflows/record-pr.yml`, `pnpm verify --pr` in parallel shards). The land holds its Land Turn while CI runs, and prints the state of the check at each read (`queued`, `in progress`, then the result and the longest time a shard waited for a runner). After CI passes, the land dispatches the landing workflow on `main`. The workflow checks the open record PR, its head and base, the successful CI check, and each incoming commit against the attribution policy and for a Conventional Commits subject. The landing App then fast-forwards `main` to that head. `pnpm land --help` names the check and how long the land waits for it.
 
 In a cloud session whose GitHub token can push branches but cannot dispatch workflows (`Resource not accessible by integration`), such as a Cursor cloud agent, use `pnpm land --after-ci`. Name the branch by change type, as for any land. Keep the commit author and committer as the repository owner's identity.
 
@@ -68,7 +68,7 @@ A land has two checks: the local gate (`--no-verify` skips it) and the CI check 
 
 | Change                                                                                           | Land with                       | Why the skip is safe                                                                                        |
 | ------------------------------------------------------------------------------------------------ | ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Every changed file is an agent doc, as `isAgentDoc` in `packages/scripts/lib/agent-docs.ts` decides | `pnpm land --no-verify --no-ci` | For these files, both halves of `pnpm verify` run only the format check, and the commit hook formats them. |
+| Every changed file is an agent doc, as `isAgentDoc` in `packages/scripts/lib/agent-docs.ts` decides | `pnpm land --no-verify --no-ci`; `pnpm land --no-ci` when the change includes an `AGENTS.md`, so the local gate checks its size | For these files, `pnpm verify` checks only the format, the generated artifacts and the size of each `AGENTS.md`, and the commit hook formats them. |
 | The user asks to skip a check                                                                    | the flags the user names        | The user accepts the risk.                                                                                  |
 
 With `--no-ci`, the CI run still starts on the record PR, and `main` moves before its result. In the Testing section of the record, name each check that did not run.

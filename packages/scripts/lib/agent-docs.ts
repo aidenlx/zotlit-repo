@@ -25,3 +25,15 @@ export function isAgentDoc(path: string): boolean {
 export function isAgentDocsOnly(changed: readonly string[]): boolean {
   return changed.length > 0 && changed.every((path) => isAgentDoc(path));
 }
+
+export async function verifyAgentDocs(run: {
+  step: (
+    name: "Generated artifacts" | "Agent guides",
+    check: () => Promise<unknown>,
+  ) => Promise<void>;
+  generated: () => Promise<unknown>;
+  guides: () => Promise<unknown>;
+}): Promise<void> {
+  await run.step("Generated artifacts", run.generated);
+  await run.step("Agent guides", run.guides);
+}

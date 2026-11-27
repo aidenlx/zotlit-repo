@@ -16,9 +16,9 @@ import {
 } from "@zotlit/config/memory-gate";
 
 import { affectedBase } from "#affected-base";
-import { isAgentDocsOnly } from "#agent-docs";
+import { isAgentDocsOnly, verifyAgentDocs } from "#agent-docs";
 import { EXIT_LEASE_ENDED } from "#desktop-slot";
-import { gateSteps, halfOf } from "#gate-halves";
+import { gateSteps } from "#gate-halves";
 import {
   GATE_SHARD_FLAG,
   GATE_SHARD_TAG,
@@ -101,21 +101,28 @@ const generatedRun = {
       .stdout,
 };
 
+const changed = base
+  ? (
+      await $({ cwd: root, quiet: true })`git diff --name-only ${base} HEAD`
+    ).stdout
+      .split("\n")
+      .filter(Boolean)
+  : [];
+const agentDocsOnly = isAgentDocsOnly(changed);
+const planned = new Set(
+  halves.flatMap((half) => gateSteps(half, { agentDocsOnly })),
+);
+
 await gateStep("Format", () => sh`pnpm exec oxfmt --check`);
 
-if (base) {
-  const changed = (
-    await $({ cwd: root, quiet: true })`git diff --name-only ${base} HEAD`
-  ).stdout
-    .split("\n")
-    .filter(Boolean);
-  if (isAgentDocsOnly(changed)) {
-    await gateStep("Generated artifacts", () =>
-      checkGenerated(changed, generatedRun),
-    );
-    console.log("\nOnly agent docs changed, so the other checks skip.");
-    process.exit(0);
-  }
+if (agentDocsOnly) {
+  await verifyAgentDocs({
+    step: gateStep,
+    generated: () => checkGenerated(changed, generatedRun),
+    guides: () => sh`pnpm lint:agent-guides`,
+  });
+  console.log("\nOnly agent docs changed, so the other checks skip.");
+  process.exit(0);
 }
 
 await localSteps();
@@ -146,6 +153,11 @@ async function localSteps(): Promise<void> {
   await gateStep(
     "Snapshot size",
     () => sh`node packages/scripts/scripts/snapshot-size.ts`,
+  );
+
+  await gateStep(
+    "Record risk",
+    () => sh`node packages/scripts/scripts/check-record-risk.ts`,
   );
 }
 
@@ -219,7 +231,7 @@ async function gateStep(
   name: GateStep,
   run: () => Promise<unknown>,
 ): Promise<void> {
-  if (halves.includes(halfOf(name))) await step(name, run);
+  if (planned.has(name)) await step(name, run);
 }
 
 async function step(name: string, run: () => Promise<unknown>): Promise<void> {

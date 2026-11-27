@@ -11,8 +11,18 @@ describe("the gate halves", () => {
       "Lint",
       "Typecheck",
       "Snapshot size",
+      "Record risk",
     ]);
     expect(gateSteps("pr")).toEqual(["Test", "Bundle"]);
+  });
+
+  it("checks the size of the agent guides on a branch that changes only agent docs", () => {
+    expect(gateSteps("local", { agentDocsOnly: true })).toEqual([
+      "Format",
+      "Generated artifacts",
+      "Agent guides",
+    ]);
+    expect(gateSteps("pr", { agentDocsOnly: true })).toEqual([]);
   });
 
   it("is the gate of a land of a change, and the run line of the record PR", () => {

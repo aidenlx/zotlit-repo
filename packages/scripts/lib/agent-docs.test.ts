@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isAgentDoc, isAgentDocsOnly } from "./agent-docs.ts";
+import { isAgentDoc, isAgentDocsOnly, verifyAgentDocs } from "./agent-docs.ts";
 
 describe("isAgentDoc", () => {
   it.each([
@@ -50,5 +50,27 @@ describe("isAgentDocsOnly", () => {
 
   it("is false when nothing changed", () => {
     expect(isAgentDocsOnly([])).toBe(false);
+  });
+});
+
+describe("verifyAgentDocs", () => {
+  const steps: string[] = [];
+  const step = async (name: string, check: () => Promise<unknown>) => {
+    steps.push(name);
+    await check();
+  };
+
+  it("fails the run of a docs-only branch when the guide check fails", async () => {
+    steps.length = 0;
+    await expect(
+      verifyAgentDocs({
+        step,
+        generated: async () => {},
+        guides: async () => {
+          throw new Error("packages/db/AGENTS.md: 2,400 words");
+        },
+      }),
+    ).rejects.toThrow("packages/db/AGENTS.md: 2,400 words");
+    expect(steps).toEqual(["Generated artifacts", "Agent guides"]);
   });
 });

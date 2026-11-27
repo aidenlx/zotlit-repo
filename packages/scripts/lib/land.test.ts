@@ -19,6 +19,7 @@ import {
   LAND_CI_CHECK,
   LAND_PR_PATH,
   LAND_RECORD_PATH,
+  LAND_RECORD_ENV,
   LAND_WORKFLOW,
 } from "./land.ts";
 import type { CiCheck, LandGitHub, LandOptions } from "./land.ts";
@@ -114,6 +115,58 @@ describe("land", () => {
       expect(await waits()).toMatchObject([
         { source: "feat/a", outcome: "landed", attempts: 1 },
       ]);
+    },
+    SLOW,
+  );
+
+  it(
+    "gives the gate the copy of the record that the land publishes, not the file corrected while the land waits",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd, { title: "feat: add a", text: "As read." });
+      const copy = `"$${LAND_RECORD_ENV}"`;
+
+      const result = await land({
+        ...quiet,
+        cwd,
+        squash: true,
+        gate: [
+          "sh",
+          "-c",
+          [
+            `echo Corrected. >> ${LAND_RECORD_PATH}`,
+            `grep -q '^# feat: add a$' ${copy}`,
+            `grep -q 'As read.' ${copy}`,
+            `! grep -q Corrected. ${copy}`,
+          ].join(" && "),
+        ],
+      });
+
+      expect(result).toMatchObject({ ok: true });
+    },
+    SLOW,
+  );
+
+  it.each([
+    ["passes", "true"],
+    ["fails", "false"],
+  ])(
+    "removes the copy of the record when the gate %s",
+    async (_outcome, last) => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd, { title: "feat: add a" });
+      const seen = join(cwd, ".scratch", "copy-path");
+
+      await land({
+        ...quiet,
+        cwd,
+        squash: true,
+        gate: ["sh", "-c", `echo "$${LAND_RECORD_ENV}" > ${seen} && ${last}`],
+      });
+
+      const copy = (await readFile(seen, "utf8")).trim();
+      expect(copy.endsWith(".record.md")).toBe(true);
+      expect(existsSync(copy)).toBe(false);
     },
     SLOW,
   );

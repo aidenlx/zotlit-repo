@@ -6,6 +6,8 @@ const GATE_STEPS = {
   Lint: "local",
   Typecheck: "local",
   "Snapshot size": "local",
+  "Record risk": "local",
+  "Agent guides": "local",
   Test: "pr",
   Bundle: "pr",
 } as const satisfies Record<string, GateHalf>;
@@ -17,13 +19,21 @@ export const GATE_HALF_FLAGS = {
   pr: "--pr",
 } as const satisfies Record<GateHalf, string>;
 
-export function halfOf(step: GateStep): GateHalf {
-  return GATE_STEPS[step];
-}
+const AGENT_DOCS_STEPS: ReadonlySet<GateStep> = new Set([
+  "Format",
+  "Generated artifacts",
+  "Agent guides",
+]);
+const LINT_COVERS: ReadonlySet<GateStep> = new Set(["Agent guides"]);
 
-export function gateSteps(half: GateHalf): GateStep[] {
+export function gateSteps(
+  half: GateHalf,
+  { agentDocsOnly = false }: { agentDocsOnly?: boolean } = {},
+): GateStep[] {
   return (Object.keys(GATE_STEPS) as GateStep[]).filter(
-    (step) => GATE_STEPS[step] === half,
+    (step) =>
+      GATE_STEPS[step] === half &&
+      (agentDocsOnly ? AGENT_DOCS_STEPS.has(step) : !LINT_COVERS.has(step)),
   );
 }
 

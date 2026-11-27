@@ -119,6 +119,7 @@
       "inputs": [".github/workflows/nightly-e2e-notify.yml"]
     },
     "//#lint:messages": {},
+    "//#lint:agent-guides": {},
     "//#lint:unused": {
       "dependsOn": ["//#lint:repo:deps"]
     },
