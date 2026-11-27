@@ -24,13 +24,13 @@ To refresh a vendored Zotero schema or pdf.js type definition, use `node package
 
 Run commands from the repository root.
 
-- **Iterate.** Run a package’s single test file with its own Vitest config. Check types and lint with `pnpm exec turbo run //#lint:repo -- <paths>`: Turbo runs the generators the files read, then type-aware oxlint checks the paths. Use `pnpm exec turbo run <task> --filter=<package>` for package builds and tests so prerequisite generators run. `pnpm lint` covers the whole repository. When Turbo warns that its Remote Cache sign-in failed, stop and ask the user to run `pnpm exec turbo login`.
+- **Iterate.** Run a package’s single test file with its own Vitest config. Check types and lint with `pnpm lint:files <paths>`: Turbo runs the generators the files read, then type-aware oxlint checks the paths. Use `pnpm exec turbo run <task> --filter=<package>` for package builds and tests so prerequisite generators run. `pnpm lint` covers the whole repository. When Turbo warns that its Remote Cache sign-in failed, stop and ask the user to run `pnpm exec turbo login`.
 - **Verify.** `pnpm verify` checks the changed packages and dependents, generated artifacts, formatting, types, tests, and bundle budgets. `pnpm quality:fix` applies lint and formatting fixes.
 - **Release.** `pnpm verify --release` adds the release checks, full local End-to-end Run, and host start-up measurement. For publishing or a stable hotfix, follow [CONTRIBUTING.md](CONTRIBUTING.md). The release ESLint config and root TypeScript alias belong to the Obsidian scanner. See [ADR 0020](docs/adr/0020-obsidian-guideline-review-runs-on-eslint-at-release.md).
 
 ### Testing
 
-Prove behavior below the UI in the package that owns it. Run its suite and its consumers after a production change. Run a test that touches the file system, a child process, Electron or a display on Linux with `pnpm test:linux` before the land. Give each spec one journey for its user workflow, extending an existing one when it covers that workflow.
+Prove behavior below the UI in the package that owns it. The record PR's CI runs its suite and its consumers. Run a test that touches the file system, a child process, Electron or a display on Linux with `pnpm test:linux` before the land. Give each spec one journey for its user workflow, extending an existing one when it covers that workflow.
 
 Iterate with a focused Run Container journey. Run the affected cases in the final round of the spec. Run the full suite for shared start-up or lifecycle changes, releases, or an explicit full-run request. See [Edit a journey](packages/e2e/AGENTS.md#edit-a-journey) for commands and evidence.
 

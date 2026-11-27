@@ -73,7 +73,7 @@ A land has two checks: the local gate (`--no-verify` skips it) and the CI check 
 
 With `--no-ci`, the CI run still starts on the record PR, and `main` moves before its result. In the Testing section of the record, name each check that did not run.
 
-A plain `pnpm verify` runs both halves on your machine. Run it, or the tests of the package you changed, before you land: a CI failure costs a round trip of minutes.
+A plain `pnpm verify` runs both halves on your machine. The land runs the local half, and the record PR's CI runs the tests.
 
 ## A failed land
 

@@ -28,6 +28,7 @@
     "test:linux": "node packages/e2e/src/linux-test.ts",
     "test:eval-runtime": "node --test skills/zotlit-query/evals/*.test.mjs",
     "lint": "turbo run //#lint:repo //#lint:messages //#lint:unused //#lint:test-gates //#lint:format-versions //#lint:plugin-packages //#lint:runtime-zones //#lint:record-pr //#lint:nightly-e2e-notify //#lint:agent-guides",
+    "lint:files": "turbo run //#lint:repo --",
     "lint:fix": "turbo run //#lint:repo -- --fix",
     "lint:repo": "pnpm comments check && oxlint --deny-warnings",
     "comments": "node packages/config/no-comments.ts",
