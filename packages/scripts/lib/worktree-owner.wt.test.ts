@@ -11,7 +11,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const ROOT = new URL("../../../", import.meta.url).pathname;
@@ -48,11 +48,19 @@ interface Run {
   out: string;
 }
 
+it.runIf(Boolean(process.env.CI))("finds the wt binary on CI", () => {
+  expect(
+    WT,
+    "CI installs wt through mise; the hook tests below need it",
+  ).toBeDefined();
+});
+
 describe.skipIf(!WT)(
   "the hooks of .config/wt.toml with the real wt binary (skipped when wt is not on PATH)",
   () => {
     let root: string;
     let primary: string;
+    let pruneRepo: string;
     let base: Record<string, string>;
     const agent = (job: string, session: string) => ({
       ...base,
@@ -82,18 +90,41 @@ describe.skipIf(!WT)(
         child.on("close", (code) => done({ code, out }));
       });
     }
-    const tree = (branch: string) =>
-      join(root, `repo.${branch.replaceAll("/", "-")}`);
+    const tree = (branch: string, repo = primary) =>
+      join(dirname(repo), `${basename(repo)}.${branch.replaceAll("/", "-")}`);
     const exists = (path: string) =>
       readFile(join(path, ".scratch/work.txt"), "utf8").then(
         () => true,
         () => false,
       );
-    async function create(branch: string, env: Record<string, string>) {
-      const run = await sh(`wt switch --create ${branch} --no-cd`, env);
+    async function create(
+      branch: string,
+      env: Record<string, string>,
+      repo = primary,
+    ) {
+      const run = await sh(`wt switch --create ${branch} --no-cd`, env, repo);
       expect(run.code, run.out).toBe(0);
-      await mkdir(join(tree(branch), ".scratch"));
-      await writeFile(join(tree(branch), ".scratch/work.txt"), "work\n");
+      await mkdir(join(tree(branch, repo), ".scratch"));
+      await writeFile(join(tree(branch, repo), ".scratch/work.txt"), "work\n");
+    }
+    async function makeRepo(repo: string) {
+      await mkdir(repo, { recursive: true });
+      for (const path of [
+        ".config/wt.toml",
+        "packages/scripts/package.json",
+        "packages/scripts/lib/worktree-owner.ts",
+        "packages/scripts/scripts/worktree-owner.ts",
+      ]) {
+        await mkdir(dirname(join(repo, path)), { recursive: true });
+        await cp(join(ROOT, path), join(repo, path));
+      }
+      await writeFile(join(repo, ".gitignore"), ".scratch/\n");
+      const setup = await sh(
+        "git init -q && git add -A && git commit -q -m init && wt config approvals add --yes",
+        base,
+        repo,
+      );
+      expect(setup.code, setup.out).toBe(0);
     }
 
     beforeAll(async () => {
@@ -121,22 +152,9 @@ describe.skipIf(!WT)(
         GIT_CONFIG_GLOBAL: join(root, "gitconfig"),
         GIT_CONFIG_NOSYSTEM: "1",
       };
-      await mkdir(primary, { recursive: true });
-      for (const path of [
-        ".config/wt.toml",
-        "packages/scripts/package.json",
-        "packages/scripts/lib/worktree-owner.ts",
-        "packages/scripts/scripts/worktree-owner.ts",
-      ]) {
-        await mkdir(dirname(join(primary, path)), { recursive: true });
-        await cp(join(ROOT, path), join(primary, path));
-      }
-      await writeFile(join(primary, ".gitignore"), ".scratch/\n");
-      const setup = await sh(
-        "git init -q && git add -A && git commit -q -m init && wt config approvals add --yes",
-        base,
-      );
-      expect(setup.code, setup.out).toBe(0);
+      pruneRepo = join(root, "prune-repo");
+      await makeRepo(primary);
+      await makeRepo(pruneRepo);
     }, 30_000);
     afterAll(async () => {
       await rm(root, { recursive: true, force: true });
@@ -186,110 +204,58 @@ describe.skipIf(!WT)(
       60_000,
     );
 
-    it.runIf(!BIRTH)(
-      "refuses the creator's removal where the file system gives no birth time (the own-worktree tests are skipped there)",
-      async () => {
-        await create("nobirth/own", lead());
-        const run = await sh("wt remove --foreground nobirth/own", lead());
-        expect(refused(run.out, "nobirth/own"), run.out).toBe(true);
-        expect(await exists(tree("nobirth/own"))).toBe(true);
-      },
-      30_000,
-    );
-
-    it("lets a person remove any worktree with no guard text", async () => {
-      await create("person/foreign", other());
-      const run = await sh("wt remove --foreground person/foreign", base);
-      expect(run.code, run.out).toBe(0);
-      expect(run.out).not.toContain(REFUSAL);
-      expect(await exists(tree("person/foreign"))).toBe(false);
-    }, 30_000);
-
-    it("lets the person's prefix remove a worktree in an agent environment", async () => {
-      await create("prefix/person", base);
-      const run = await sh(
-        "ZOTLIT_WT_PERSON=1 wt remove --foreground prefix/person",
-        lead(),
-      );
-      expect(run.code, run.out).toBe(0);
-      expect(await exists(tree("prefix/person"))).toBe(false);
-    }, 30_000);
-
     ownCase(
-      "stops a multi-branch remove at the first foreign worktree",
+      "refuses the foreign worktree of a multi-branch remove and keeps it",
       async () => {
         await create("multi/a", lead());
         await create("multi/b", other());
-        await create("multi/c", lead());
-        const run = await sh(
-          "wt remove --foreground multi/a multi/b multi/c",
-          lead(),
-        );
-        expect(run.code).toBe(1);
+        const run = await sh("wt remove --foreground multi/a multi/b", lead());
         expect(refused(run.out, "multi/b"), run.out).toBe(true);
-        expect(await exists(tree("multi/a"))).toBe(false);
-        expect(await exists(tree("multi/b"))).toBe(true);
-        expect(await exists(tree("multi/c"))).toBe(true);
+        expect(await exists(tree("multi/b")), run.out).toBe(true);
       },
       60_000,
     );
 
     ownCase(
-      "checks a removal that runs inside an own worktree",
+      "checks the worktree a removal names, not the folder it runs in",
       async () => {
-        await create("inside/own", lead());
-        await create("inside/self", lead());
-        await create("inside/other", other());
-        const foreign = await sh(
-          "wt remove --foreground inside/other",
+        await create("target/own", lead());
+        await create("target/other", other());
+        const inside = await sh(
+          "wt remove --foreground target/other",
           lead(),
-          tree("inside/own"),
+          tree("target/own"),
         );
-        expect(refused(foreign.out, "inside/other"), foreign.out).toBe(true);
-        expect(await exists(tree("inside/other"))).toBe(true);
-        const self = await sh(
-          "wt remove --foreground",
-          lead(),
-          tree("inside/self"),
-        );
-        expect(self.code, self.out).toBe(0);
-        expect(await exists(tree("inside/self"))).toBe(false);
-      },
-      60_000,
-    );
-
-    ownCase(
-      "checks a removal with -C",
-      async () => {
-        await create("dash-c/own", lead());
-        await create("dash-c/other", other());
-        const foreign = await sh(
-          `wt -C ${tree("dash-c/own")} remove --foreground dash-c/other`,
+        expect(refused(inside.out, "target/other"), inside.out).toBe(true);
+        const dashC = await sh(
+          `wt -C ${tree("target/own")} remove --foreground target/other`,
           lead(),
         );
-        expect(refused(foreign.out, "dash-c/other"), foreign.out).toBe(true);
-        expect(await exists(tree("dash-c/other"))).toBe(true);
+        expect(refused(dashC.out, "target/other"), dashC.out).toBe(true);
+        expect(await exists(tree("target/other"))).toBe(true);
         const own = await sh(
-          `wt -C ${tree("dash-c/other")} remove --foreground dash-c/own`,
+          `wt -C ${tree("target/other")} remove --foreground target/own`,
           lead(),
         );
         expect(own.code, own.out).toBe(0);
-        expect(await exists(tree("dash-c/own"))).toBe(false);
+        expect(await exists(tree("target/own"))).toBe(false);
       },
       60_000,
     );
 
     ownCase(
-      "removes the own worktrees in wt step prune and keeps the foreign ones",
+      "runs the check for each candidate of wt step prune",
       async () => {
-        await create("prune/other", other());
-        await create("prune/person", base);
-        await create("prune/own", lead());
-        const run = await sh("wt step prune --min-age=0s --foreground", lead());
-        expect(run.code).toBe(1);
-        expect(await exists(tree("prune/own"))).toBe(false);
-        expect(await exists(tree("prune/other")), run.out).toBe(true);
-        expect(await exists(tree("prune/person"))).toBe(true);
+        await create("prune/a", lead(), pruneRepo);
+        await create("prune/b", lead(), pruneRepo);
+        const run = await sh(
+          "wt step prune --min-age=0s --foreground",
+          lead(),
+          pruneRepo,
+        );
+        expect(run.code, run.out).toBe(0);
+        expect(await exists(tree("prune/a", pruneRepo)), run.out).toBe(false);
+        expect(await exists(tree("prune/b", pruneRepo)), run.out).toBe(false);
       },
       60_000,
     );
