@@ -1,4 +1,5 @@
 import type { PdfEngine, PdfReader, ReaderState } from "#/core/index.ts";
+import type { StoredPosition } from "#/core/persist/position.ts";
 import type { TestHost } from "#test/host.ts";
 
 import { testHost } from "#test/host.ts";
@@ -29,6 +30,7 @@ export interface PersistReport {
     readonly positionsAfter: number;
   };
   readonly stored: unknown;
+  readonly twoViews: { readonly pageIndex: number };
 }
 
 function kept(state: ReaderState): Kept {
@@ -80,13 +82,50 @@ async function firstVisit(
     "the scroll",
     stateWhere(reader, ({ pageIndex }) => pageIndex >= 4),
   );
-  await pause(300);
   const state = reader.state.get();
   return {
     ...kept(state),
     scale: state.scale,
     top: topEdge(reader, state.pageIndex),
   };
+}
+
+function positions(host: TestHost): readonly StoredPosition[] {
+  return (host.storage.get("positions") as StoredPosition[] | undefined) ?? [];
+}
+
+function storedAt(host: TestHost, pageIndex: number): Promise<void> {
+  const { promise, resolve } = Promise.withResolvers<void>();
+  const { storage } = host;
+  const at = () => positions(host).at(0)?.pageIndex === pageIndex;
+  const set = storage.set.bind(storage);
+  (storage as { set: typeof set }).set = (key, value) => {
+    set(key, value);
+    if (at()) resolve();
+  };
+  if (at()) resolve();
+  return promise;
+}
+
+async function twoViews(engine: PdfEngine): Promise<PersistReport["twoViews"]> {
+  const host = testHost("navigation.pdf");
+  using first = mountFixture(engine, {
+    source: fixtureSource("pdf-reader/navigation.pdf"),
+    host,
+  });
+  using second = mountFixture(engine, {
+    source: fixtureSource("pdf-reader/navigation.pdf"),
+    host,
+  });
+  await within("first ready", first.reader.whenReady());
+  await within("second ready", second.reader.whenReady());
+  await first.reader.navigate({ pageIndex: 2 });
+  await within("first settled", first.reader.settled());
+  const stored = storedAt(host, 4);
+  await second.reader.navigate({ pageIndex: 4 });
+  await within("the position of the second view", stored);
+  first[Symbol.dispose]();
+  return { pageIndex: positions(host)[0]!.pageIndex };
 }
 
 export async function run(): Promise<PersistReport> {
@@ -147,5 +186,6 @@ export async function run(): Promise<PersistReport> {
       positionsAfter: positions.length - positionsBefore,
     },
     stored,
+    twoViews: await twoViews(engine),
   };
 }

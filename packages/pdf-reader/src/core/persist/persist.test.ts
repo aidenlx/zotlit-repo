@@ -56,6 +56,7 @@ it.skipIf(!testElectron)(
       sidebarOpen: false,
       positionsAfter: 0,
     });
+    expect(report.twoViews).toEqual({ pageIndex: 4 });
   },
   120_000,
 );

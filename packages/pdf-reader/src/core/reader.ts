@@ -670,11 +670,27 @@ class Reader<H> {
     });
   }
 
+  #location(): ViewArea["location"] | undefined {
+    return this.#viewer.pdfViewer._location as ViewArea["location"] | undefined;
+  }
+
   #keepNow(): void {
-    const location = this.#viewer.pdfViewer._location as
-      | ViewArea["location"]
-      | undefined;
+    const location = this.#location();
     if (location) this.#keep({ location });
+  }
+
+  #keepLatest(): void {
+    const last = this.#location();
+    this.#viewer.refreshLocation();
+    const location = this.#location();
+    if (
+      location &&
+      (location.pageNumber !== last?.pageNumber ||
+        location.left !== last.left ||
+        location.top !== last.top)
+    ) {
+      this.#keep({ location });
+    }
   }
 
   #rendered(page: ReaderPage): void {
@@ -799,6 +815,7 @@ class Reader<H> {
 
   #dispose(): void {
     if (this.#disposed) return;
+    this.#keepLatest();
     this.#extensions[Symbol.dispose]();
     this.#disposed = true;
     this.#stopWatch();
