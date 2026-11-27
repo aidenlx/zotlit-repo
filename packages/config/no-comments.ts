@@ -219,6 +219,15 @@ function allowances(keys: string[]) {
   return counts;
 }
 
+export function gainedEntries(previous: Baseline, baseline: Baseline) {
+  const allowed = allowances(Object.values(previous).flatMap(fingerprints));
+  return Object.entries(baseline)
+    .filter(([, value]) =>
+      fingerprints(value).some((key) => !consume(allowed, key)),
+    )
+    .map(([file]) => file);
+}
+
 function previousBaseline(): Baseline | undefined {
   const options = { cwd: root, encoding: "utf8" as const, maxBuffer: 1 << 24 };
   const base = spawnSync(
@@ -271,13 +280,10 @@ function main(mode: string | undefined) {
   const updated: Baseline = {};
   const errors: string[] = [];
   if (previous) {
-    for (const [file, value] of Object.entries(baseline)) {
-      const allowed = allowances(fingerprints(previous[file]));
-      if (fingerprints(value).some((key) => !consume(allowed, key))) {
-        errors.push(
-          `${file}: the comment baseline gained entries since the merge base`,
-        );
-      }
+    for (const file of gainedEntries(previous, baseline)) {
+      errors.push(
+        `${file}: the comment baseline gained entries since the merge base`,
+      );
     }
   }
 

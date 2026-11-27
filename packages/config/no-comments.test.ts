@@ -1,7 +1,31 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { scan } from "./no-comments.ts";
+import { gainedEntries, scan } from "./no-comments.ts";
+
+void test("lets a baseline entry move to another file, and refuses a new or copied one", () => {
+  const previous = { "old.e2e.ts": "aaa bbb", "kept.ts": "ccc" };
+  assert.deepEqual(
+    gainedEntries(previous, {
+      "area-1.e2e.ts": "aaa",
+      "area-2.e2e.ts": "bbb",
+      "kept.ts": "ccc",
+    }),
+    [],
+  );
+  assert.deepEqual(
+    gainedEntries(previous, { "area-1.e2e.ts": "aaa ddd", "kept.ts": "ccc" }),
+    ["area-1.e2e.ts"],
+  );
+  assert.deepEqual(
+    gainedEntries(previous, {
+      "old.e2e.ts": "aaa bbb",
+      "copy.e2e.ts": "aaa",
+      "kept.ts": "ccc",
+    }),
+    ["copy.e2e.ts"],
+  );
+});
 
 void test("counts comment tokens and physical lines in TSX", () => {
   const source = [
