@@ -33,7 +33,7 @@ export function isAgentBranch(ref: string): boolean {
   return AGENT_BRANCH.test(ref);
 }
 
-const AGENT_ENV = [
+export const AGENT_ENV = [
   "AI_AGENT",
   "CLAUDE_CODE",
   "CLAUDECODE",

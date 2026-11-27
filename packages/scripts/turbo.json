@@ -5,6 +5,8 @@
     "test": {
       "inputs": [
         "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/.claude/settings.json",
+        "$TURBO_ROOT$/.config/wt.toml",
         "$TURBO_ROOT$/.github/workflows/record-pr.yml",
         "$TURBO_ROOT$/.github/workflows/nightly-e2e-notify.yml",
         "$TURBO_ROOT$/apps/zotero/scripts/build-update-json.ts",

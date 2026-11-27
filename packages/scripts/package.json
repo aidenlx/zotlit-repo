@@ -13,6 +13,7 @@
     "#generated-artifacts": "./lib/generated-artifacts.ts",
     "#agent-guide-size": "./lib/agent-guide-size.ts",
     "#ai-attribution": "./lib/ai-attribution.ts",
+    "#worktree-owner": "./lib/worktree-owner.ts",
     "#conventional-commit": "./lib/conventional-commit.ts",
     "#commit-tree": "./lib/commit-tree.ts",
     "#desktop-paint": "./lib/desktop-paint.ts",

@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); hint='If the command does not run wt, leave the word wt out of its description.'; if command -v jq >/dev/null 2>&1 && command=$(printf '%s' \"$input\" | jq -er '.tool_input.command' 2>/dev/null); then input=$command; hint='If the command only mentions --no-hooks, reword the command.'; fi; case \"$input\" in *ZOTLIT_WT_PERSON*) echo 'Refused: ZOTLIT_WT_PERSON is for the person only. Report the worktree path to the person. If the command only mentions these words, reword it.' >&2; exit 2;; *'worktree remove'*) echo 'Refused: remove a worktree with: wt remove <branch>. If wt refuses it, report the worktree path to the person. If the command only mentions these words, reword it.' >&2; exit 2;; *--no-hooks*) case \"$input\" in *'wt '*) echo \"Refused: wt must run its hooks. Run the command without --no-hooks. If a hook refuses, report the worktree path to the person. $hint\" >&2; exit 2;; esac;; *AI_AGENT=*|*CLAUDE_CODE=*|*CLAUDECODE=*|*CODEX_SANDBOX=*|*CODEX_THREAD_ID=*|*'-u AI_AGENT'*|*'-u CLAUDE_CODE'*|*'-u CLAUDECODE'*|*'-u CODEX_SANDBOX'*|*'-u CODEX_THREAD_ID'*|*'unset AI_AGENT'*|*'unset CLAUDE_CODE'*|*'unset CLAUDECODE'*|*'unset CODEX_SANDBOX'*|*'unset CODEX_THREAD_ID'*) case \"$input\" in *'wt '*) echo 'Refused: an agent session keeps its agent variables for wt. Run wt without changing them. If a hook refuses, report the worktree path to the person. If the command only mentions these words, reword it.' >&2; exit 2;; esac;; esac; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}
