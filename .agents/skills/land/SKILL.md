@@ -62,9 +62,16 @@ In a cloud session whose GitHub token can push branches but cannot dispatch work
 
 After `main` moves, `pnpm site:release --pick <record PR>` works from the same session.
 
-`pnpm land --no-verify` leaves out the local gate, so only the CI half checks the change before `main` moves. Use it when the user asks for it and the change holds no code, such as a vendored skill or an agent guide: the commit hooks have already formatted and linted those files. In the Testing section of the record, say that the gate did not run.
+### Skip a check
 
-`pnpm land --no-ci` lands without the CI check of the record PR: the land does not wait for it, and the landing workflow does not require it. The check still starts on the PR, but `main` moves without its result. Use it only when the user asks for it, with or without `--no-verify`. `--after-ci` lands only on a passed check, so it cannot go with `--no-ci`. In the Testing section of the record, say which checks did not run.
+A land has two checks: the local gate (`--no-verify` skips it) and the CI check of the record PR (`--no-ci` skips it). Run both, except in these cases:
+
+| Change                                                                                           | Land with                       | Why the skip is safe                                                                                        |
+| ------------------------------------------------------------------------------------------------ | ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Every changed file is an agent doc, as `isAgentDoc` in `packages/scripts/lib/agent-docs.ts` decides | `pnpm land --no-verify --no-ci` | For these files, both halves of `pnpm verify` run only the format check, and the commit hook formats them. |
+| The user asks to skip a check                                                                    | the flags the user names        | The user accepts the risk.                                                                                  |
+
+With `--no-ci`, the CI run still starts on the record PR, and `main` moves before its result. In the Testing section of the record, name each check that did not run.
 
 A plain `pnpm verify` runs both halves on your machine. Run it, or the tests of the package you changed, before you land: a CI failure costs a round trip of minutes.
 
