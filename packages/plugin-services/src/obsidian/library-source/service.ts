@@ -1,7 +1,6 @@
 import type {} from "#core/database/settings.ts";
 import {
   Cause,
-  Context,
   Deferred,
   Effect,
   Exit,
@@ -19,7 +18,6 @@ import type { SecretStorage } from "obsidian";
 
 import { sameSegmenterBinary } from "@zotlit/item-lookup";
 import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
-import type { DeviceStorageError } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -28,10 +26,7 @@ import {
   settledOnStop,
   stoppedErrors,
 } from "@zotlit/zotero-reads/client/settle-on-stop.ts";
-import type {
-  WebApiReadsConfig,
-  ZoteroReadsClient,
-} from "@zotlit/zotero-reads/contract/rpc.ts";
+import type { WebApiReadsConfig } from "@zotlit/zotero-reads/contract/rpc.ts";
 import {
   DbUnavailable,
   ZOTERO_WEB_API_URL,
@@ -46,12 +41,15 @@ import { makeReadsFacade, unavailable } from "./reads-facade.ts";
 import { runSyncSchedule } from "./schedule.ts";
 import { formatSyncTime, statusText, viewOf } from "./status.ts";
 import type { LibrarySourceView, OnlineLibraryStatus } from "./status.ts";
+import { LibrarySource } from "./tag.ts";
+import type { LibrarySourceKind, ZoteroLanguage } from "./tag.ts";
 
 import { segmenterBinaryOf } from "#obsidian/chinese-segmenter/service.ts";
 import { ResourcePackPlatform } from "#obsidian/managed-binary/pack-platform.ts";
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
-export type LibrarySourceKind = "file" | "web-api";
+export { LibrarySource } from "./tag.ts";
+export type { LibrarySourceKind } from "./tag.ts";
 export type { LibrarySourceView } from "./status.ts";
 
 export const LIBRARY_SOURCE_KEY = "zotlit-library-source";
@@ -84,30 +82,6 @@ export interface LibrarySourcePorts {
   ): Effect.Effect<void, DbUnavailable>;
   readonly reload: Effect.Effect<void>;
 }
-
-export interface ZoteroLanguage {
-  readonly setting: string;
-  readonly automatic: string;
-  readonly effective: string;
-}
-
-export class LibrarySource extends Context.Service<
-  LibrarySource,
-  {
-    readonly active: LibrarySourceKind;
-    readonly view: Effect.Effect<LibrarySourceView>;
-    readonly viewChanges: Stream.Stream<LibrarySourceView>;
-    select(kind: LibrarySourceKind): Effect.Effect<void, DeviceStorageError>;
-    readonly reload: Effect.Effect<void>;
-    readonly keySecret: Effect.Effect<string | null>;
-    selectKeySecret(name: string | null): Effect.Effect<void>;
-    readonly syncNow: Effect.Effect<void, DbUnavailable>;
-    readonly removeData: Effect.Effect<void, DbUnavailable>;
-    replaceData(keyUserID: number): Effect.Effect<void, DbUnavailable>;
-    readonly language: Effect.Effect<ZoteroLanguage>;
-    readonly reads: ZoteroReadsClient | null;
-  }
->()("zotlit/library-source/LibrarySource") {}
 
 type WebConfig = WebApiReadsConfig & {
   readonly zoteroLocale: string;

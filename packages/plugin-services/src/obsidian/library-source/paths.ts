@@ -2,7 +2,7 @@ import { Effect, Option } from "effect";
 
 import type { AttachmentPathContext } from "@zotlit/db/path";
 
-import { LibrarySource } from "./service.ts";
+import { LibrarySource } from "./tag.ts";
 
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
 
