@@ -32,7 +32,7 @@ Run commands from the repository root.
 
 Prove behavior below the UI in the package that owns it. The record PR's CI runs its suite and its consumers. Run a test that touches the file system, a child process, Electron or a display on Linux with `pnpm test:linux` before the land. Give each spec one journey for its user workflow, extending an existing one when it covers that workflow.
 
-Iterate with a focused Run Container journey. Run the affected cases in the final round of the spec. Run the full suite for shared start-up or lifecycle changes, releases, or an explicit full-run request. See [Edit a journey](packages/e2e/AGENTS.md#edit-a-journey) for commands and evidence.
+The nightly workflow runs the full End-to-end Run on `main`. When a change updates a user workflow, edit or create its journey and run only that journey with a focused Run Container run ([Edit a journey](packages/e2e/AGENTS.md#edit-a-journey)). Run the full suite yourself for a shared start-up or lifecycle change, or when the user asks for it.
 
 ## Truth-first
 
