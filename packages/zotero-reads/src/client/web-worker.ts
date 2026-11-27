@@ -13,6 +13,7 @@ import { refusalStatus } from "@zotlit/resource-pack/status.ts";
 import type { PackBinaryRefusal } from "@zotlit/resource-pack/status.ts";
 
 import {
+  ReplicaWorkerInitSchema,
   WebWorkerInitSchema,
   ZoteroReadsWeb as ZoteroReadsWebGroup,
 } from "#contract/web-worker-rpc.ts";
@@ -20,7 +21,10 @@ import {
   SQLITE_ENGINE_ENTRY,
   TEMPORAL_PIECE_URL_GLOBAL,
 } from "#contract/web-worker.ts";
-import { WORKER_REQUEST_CONCURRENCY } from "#contract/worker-signal.ts";
+import {
+  REPLICA_WORKER,
+  WORKER_REQUEST_CONCURRENCY,
+} from "#contract/worker-signal.ts";
 
 export interface WebWorkerPackLocation {
   readonly version: string;
@@ -94,33 +98,28 @@ export interface StartWebWorkerOptions {
   readonly spawn?: (url: string) => Worker;
 }
 
-export const startWebWorker = Effect.fnUntraced(function* (
-  ready: {
-    readonly code: WebWorkerCode;
-    readonly wasm: Uint8Array<ArrayBuffer>;
-  },
-  {
-    config,
-    storage = "opfs-sahpool",
-    spawn = (url) => new Worker(url, { name: WEB_WORKER_NAME }),
-  }: StartWebWorkerOptions,
+export interface StartReplicaWorkerOptions {
+  readonly config: WebApiReadsConfig;
+  readonly replicaPath: string;
+  readonly spawn?: (url: string) => Worker;
+}
+
+const script = (parts: BlobPart[]) =>
+  Effect.acquireRelease(
+    Effect.sync(() =>
+      URL.createObjectURL(new Blob(parts, { type: "text/javascript" })),
+    ),
+    (url) => Effect.sync(() => URL.revokeObjectURL(url)),
+  );
+
+const connectWebApiWorker = Effect.fnUntraced(function* (
+  spawn: () => Worker,
+  initialMessage: (logs: MessagePort) => Layer.Layer<RpcWorker.InitialMessage>,
 ): Effect.fn.Return<
   RpcClient.FromGroup<typeof ZoteroReadsWeb, RpcClientError.RpcClientError>,
   never,
   Scope.Scope
 > {
-  const script = (parts: BlobPart[]) =>
-    Effect.acquireRelease(
-      Effect.sync(() =>
-        URL.createObjectURL(new Blob(parts, { type: "text/javascript" })),
-      ),
-      (url) => Effect.sync(() => URL.revokeObjectURL(url)),
-    );
-  const temporal = yield* script([ready.code.temporal]);
-  const url = yield* script([
-    `self[${JSON.stringify(TEMPORAL_PIECE_URL_GLOBAL)}] = ${JSON.stringify(temporal)};\n`,
-    ready.code.source,
-  ]);
   const { port1, port2 } = new MessageChannel();
   yield* Layer.build(
     layerHostLogPort(port1, {
@@ -133,16 +132,56 @@ export const startWebWorker = Effect.fnUntraced(function* (
       size: 1,
       concurrency: WORKER_REQUEST_CONCURRENCY,
     }).pipe(
-      Layer.provide(BrowserWorker.layer(() => spawn(url))),
-      Layer.provide(
-        RpcWorker.layerInitialMessage(
-          WebWorkerInitSchema,
-          Effect.succeed({ wasm: ready.wasm, storage, config, logs: port2 }),
-        ),
-      ),
+      Layer.provide(BrowserWorker.layer(spawn)),
+      Layer.provide(initialMessage(port2)),
     ),
   ).pipe(Effect.orDie);
   return yield* RpcClient.make(ZoteroReadsWebGroup).pipe(
     Effect.provideContext(protocol),
+  );
+});
+
+export const startWebWorker = Effect.fnUntraced(function* (
+  ready: {
+    readonly code: WebWorkerCode;
+    readonly wasm: Uint8Array<ArrayBuffer>;
+  },
+  {
+    config,
+    storage = "opfs-sahpool",
+    spawn = (url) => new Worker(url, { name: WEB_WORKER_NAME }),
+  }: StartWebWorkerOptions,
+) {
+  const temporal = yield* script([ready.code.temporal]);
+  const url = yield* script([
+    `self[${JSON.stringify(TEMPORAL_PIECE_URL_GLOBAL)}] = ${JSON.stringify(temporal)};\n`,
+    ready.code.source,
+  ]);
+  return yield* connectWebApiWorker(
+    () => spawn(url),
+    (logs) =>
+      RpcWorker.layerInitialMessage(
+        WebWorkerInitSchema,
+        Effect.succeed({ wasm: ready.wasm, storage, config, logs }),
+      ),
+  );
+});
+
+export const startReplicaWorker = Effect.fnUntraced(function* (
+  source: string,
+  {
+    config,
+    replicaPath,
+    spawn = (url) => new Worker(url, { name: REPLICA_WORKER }),
+  }: StartReplicaWorkerOptions,
+) {
+  const url = yield* script([source]);
+  return yield* connectWebApiWorker(
+    () => spawn(url),
+    (logs) =>
+      RpcWorker.layerInitialMessage(
+        ReplicaWorkerInitSchema,
+        Effect.succeed({ replicaPath, config, logs }),
+      ),
   );
 });

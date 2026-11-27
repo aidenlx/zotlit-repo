@@ -43,6 +43,7 @@ import {
   applyDownload,
   downloadReplica,
   listKeyLibraries,
+  stageOn,
   verifyKey,
 } from "./index.ts";
 
@@ -1280,7 +1281,7 @@ describe("downloadReplica", () => {
             match: (request) => request.path === `${GROUP}/settings`,
             answer: { status: 400, body: "Bad request" },
           });
-          const rebuilt = yield* downloadReplica(harness.replica.db, {
+          const rebuilt = yield* downloadReplica(stageOn(harness.replica.db), {
             apiKey: Redacted.make(harness.key),
             fetch: (url, init) => globalThis.fetch(url, init),
             baseUrl: harness.server.url,
@@ -1317,7 +1318,7 @@ describe("downloadReplica", () => {
           const harness = yield* syncHarness();
           const now = Temporal.Instant.from("2026-11-27T12:00:00Z");
           const download = (db: ReplicaClient["db"], rebuild = false) =>
-            downloadReplica(db, {
+            downloadReplica(stageOn(db), {
               apiKey: Redacted.make(harness.key),
               fetch: (url, init) => globalThis.fetch(url, init),
               baseUrl: harness.server.url,
@@ -1397,7 +1398,7 @@ describe("downloadReplica", () => {
           const harness = yield* syncHarness();
           const now = Temporal.Instant.from("2026-11-27T12:00:00Z");
           const download = (db: ReplicaClient["db"], rebuild = false) =>
-            downloadReplica(db, {
+            downloadReplica(stageOn(db), {
               apiKey: Redacted.make(harness.key),
               fetch: (url, init) => globalThis.fetch(url, init),
               baseUrl: harness.server.url,
@@ -1520,7 +1521,7 @@ describe("downloadReplica", () => {
           yield* syncAndApply(harness);
           expect(lastRead()).toBe(1700000200);
 
-          yield* downloadReplica(harness.replica.db, {
+          yield* downloadReplica(stageOn(harness.replica.db), {
             apiKey: Redacted.make(harness.key),
             fetch: (url, init) => globalThis.fetch(url, init),
             baseUrl: harness.server.url,
@@ -1536,7 +1537,7 @@ describe("downloadReplica", () => {
           const fresh = openNodeReplica();
           try {
             createReplica(fresh.db);
-            yield* downloadReplica(fresh.db, {
+            yield* downloadReplica(stageOn(fresh.db), {
               apiKey: Redacted.make(harness.key),
               fetch: (url, init) => globalThis.fetch(url, init),
               baseUrl: harness.server.url,

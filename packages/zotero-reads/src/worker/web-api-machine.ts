@@ -45,11 +45,11 @@ export type SourceEvent =
       readonly problem: WebSyncProblem;
       readonly served: boolean;
     }
-  | { readonly _tag: "finished"; readonly changed: boolean };
+  | { readonly _tag: "finished"; readonly changed: boolean }
+  | { readonly _tag: "stopped" };
 
 export type SourceCommand =
   | { readonly _tag: "publish"; readonly event: ChangeEvent }
-  | { readonly _tag: "admit"; readonly open: boolean }
   | { readonly _tag: "warn-sync-failed"; readonly problem: WebSyncProblem };
 
 export const INITIAL: SourceState = {
@@ -95,18 +95,15 @@ const healthy = (state: SourceState) =>
   state.availability.kind === "serving" &&
   state.availability.outcome.kind === "ok";
 
-const admitting = (availability: Availability) =>
-  availability.kind !== "building";
-
 function moveTo(
   state: SourceState,
   availability: Availability,
   publish: readonly ChangeEvent[] = [],
 ): { state: SourceState; commands: SourceCommand[] } {
-  const commands: SourceCommand[] = [];
-  if (admitting(availability) !== admitting(state.availability))
-    commands.push({ _tag: "admit", open: admitting(availability) });
-  for (const event of publish) commands.push({ _tag: "publish", event });
+  const commands: SourceCommand[] = publish.map((event) => ({
+    _tag: "publish",
+    event,
+  }));
   return { state: { ...state, availability }, commands };
 }
 
@@ -219,6 +216,20 @@ export function transition(
           ...moved.commands,
         ],
       };
+    }
+    case "stopped": {
+      const problem: WebSyncProblem = {
+        _tag: "stopped",
+        message: "The sync stopped before it finished",
+      };
+      if (state.availability.kind === "serving")
+        return moveTo(state, {
+          kind: "serving",
+          outcome: { kind: "problem", problem },
+        });
+      return moveTo(state, { kind: "unavailable", problem }, [
+        degraded(problem),
+      ]);
     }
     case "finished": {
       const next: Availability = { kind: "serving", outcome: OK };

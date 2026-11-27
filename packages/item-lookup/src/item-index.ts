@@ -36,17 +36,28 @@ export class SourceUnavailable extends Schema.TaggedError<
   { readonly brand: unique symbol }
 >()("SourceUnavailable", { message: Schema.String }) {}
 
+export class SourceChanged extends Schema.TaggedError<
+  SourceChanged,
+  { readonly brand: unique symbol }
+>()("SourceChanged", {}) {}
+
 export interface PinnedItemSource {
   readonly generation: number;
   readonly items: (
     libraryID: number,
-  ) => Stream.Stream<readonly IndexedItem[], SourceUnavailable>;
+  ) => Stream.Stream<readonly IndexedItem[], SourceUnavailable | SourceChanged>;
   readonly signature: (
     libraryID: number,
-  ) => Effect.Effect<IndexSignature, SourceUnavailable>;
+  ) => Effect.Effect<IndexSignature, SourceUnavailable | SourceChanged>;
   readonly itemsByIndexedKey: (
     indexedKeys: readonly string[],
-  ) => Effect.Effect<ReadonlyMap<string, Item>, SourceUnavailable>;
+  ) => Effect.Effect<
+    ReadonlyMap<string, Item>,
+    SourceUnavailable | SourceChanged
+  >;
+  readonly whileCurrent: <A, E>(
+    publish: Effect.Effect<A, E>,
+  ) => Effect.Effect<A, E | SourceUnavailable | SourceChanged>;
 }
 
 export class ItemSource extends Context.Service<
@@ -203,6 +214,16 @@ function makeItemIndex(initial: IndexSettings) {
           );
         }),
       ).pipe(
+        Effect.catchTag("SourceChanged", () =>
+          Effect.andThen(
+            Effect.sync(() => {
+              entry.rerun = true;
+            }),
+            log("Item index build started again; the source changed", {
+              libraries: entry.libraries,
+            }),
+          ),
+        ),
         Effect.tapError((error) =>
           Effect.andThen(
             drop(entry),
@@ -243,7 +264,7 @@ function makeItemIndex(initial: IndexSettings) {
             libraries: entry.libraries,
             generation: pinned.generation,
           });
-          yield* holdOnce({ ...held, binding });
+          yield* pinned.whileCurrent(holdOnce({ ...held, binding }));
           return;
         }
         yield* log("Item index build started", {
@@ -269,13 +290,15 @@ function makeItemIndex(initial: IndexSettings) {
           );
         }
         const engine = yield* builder.build;
-        yield* holdOnce({
-          engine,
-          generation: pinned.generation,
-          signatures,
-          config: version,
-          binding,
-        });
+        yield* pinned.whileCurrent(
+          holdOnce({
+            engine,
+            generation: pinned.generation,
+            signatures,
+            config: version,
+            binding,
+          }),
+        );
         yield* log("Item index built", {
           libraries: entry.libraries,
           count: engine.size,
@@ -450,6 +473,26 @@ function makeItemIndex(initial: IndexSettings) {
           }),
       );
 
+    const replacementOf = (
+      entry: Entry,
+      stale: Binding,
+    ): Effect.Effect<void, SourceUnavailable> =>
+      Effect.suspend(() => {
+        if (entry.built !== null && entry.built.binding !== stale)
+          return Effect.void;
+        const lane = ensureLane(entry);
+        return Effect.acquireUseRelease(
+          Effect.sync(() => {
+            entry.waiters++;
+          }),
+          () => Deferred.await(lane.done),
+          () =>
+            Effect.sync(() => {
+              entry.waiters--;
+            }),
+        ).pipe(Effect.andThen(replacementOf(entry, stale)));
+      });
+
     const search = (
       libraries: readonly number[],
       query: string,
@@ -457,16 +500,44 @@ function makeItemIndex(initial: IndexSettings) {
     ): Effect.Effect<readonly SearchHit[], SourceUnavailable> =>
       Effect.scoped(
         Effect.gen(function* () {
-          const built = yield* holdIndex(yield* indexFor(libraries));
-          if (!built) return yield* search(libraries, query, options);
+          const entry = yield* indexFor(libraries);
+          const built = yield* holdIndex(entry);
+          if (!built) return { _tag: "again" } as const;
           const hits = yield* searchEngineIndex(built.engine, query, options);
-          const items = yield* built.binding.source.itemsByIndexedKey(
-            hits.map((hit) => hit.indexedKey),
-          );
-          return hits.flatMap((hit): SearchHit[] => {
-            const item = items.get(hit.indexedKey);
-            return item ? [{ item, matches: hit.matches }] : [];
-          });
+          const items = yield* built.binding.source
+            .itemsByIndexedKey(hits.map((hit) => hit.indexedKey))
+            .pipe(Effect.catchTag("SourceChanged", () => Effect.succeed(null)));
+          if (items === null)
+            return { _tag: "changed", entry, stale: built.binding } as const;
+          return {
+            _tag: "answered",
+            hits: hits.flatMap((hit): SearchHit[] => {
+              const item = items.get(hit.indexedKey);
+              return item ? [{ item, matches: hit.matches }] : [];
+            }),
+          } as const;
+        }),
+      ).pipe(
+        Effect.flatMap((result) => {
+          switch (result._tag) {
+            case "answered":
+              return Effect.succeed(result.hits);
+            case "again":
+              return search(libraries, query, options);
+            case "changed":
+              return Effect.andThen(
+                Effect.andThen(
+                  replacementOf(result.entry, result.stale),
+                  log(
+                    "Item search started again on the new index; the source changed",
+                    {
+                      libraries,
+                    },
+                  ),
+                ),
+                search(libraries, query, options),
+              );
+          }
         }),
       );
 

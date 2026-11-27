@@ -13,10 +13,18 @@ const SCAN_ID_SPAN = 500;
 
 const MERGE_STEP_ROWS = 500;
 
-export const scanIndexedItems = (client: ZoteroDatabase, libraryID: number) =>
+export type ReadWith<E> = <A>(
+  f: (client: ZoteroDatabase) => A,
+) => Effect.Effect<A, E>;
+
+export const scanIndexedItemPages = <A, E>(
+  readWith: ReadWith<E>,
+  libraryID: number,
+  page: (client: ZoteroDatabase, rows: IndexedItemScanRow[]) => A,
+): Stream.Stream<A, E> =>
   Stream.unwrap(
     Effect.map(
-      read(client, (c) => getItemIDBounds(c, libraryID)),
+      readWith((c) => getItemIDBounds(c, libraryID)),
       (bounds) =>
         bounds === null
           ? Stream.empty
@@ -26,13 +34,20 @@ export const scanIndexedItems = (client: ZoteroDatabase, libraryID: number) =>
                 if (from > bounds.max) return undefined;
                 yield* Effect.yieldNow;
                 const to = from + SCAN_ID_SPAN;
-                const rows = yield* read(client, (c) =>
-                  getIndexedItemRowsRange(c, libraryID, { from, to }),
+                const result = yield* readWith((c) =>
+                  page(c, getIndexedItemRowsRange(c, libraryID, { from, to })),
                 );
-                return [rows, to] as const;
+                return [result, to] as const;
               }),
             ),
     ),
+  );
+
+export const scanIndexedItems = (client: ZoteroDatabase, libraryID: number) =>
+  scanIndexedItemPages(
+    (f) => read(client, f),
+    libraryID,
+    (_client, rows) => rows,
   );
 
 export const readIndexedItemIDs = Effect.fn("readIndexedItemIDs")(

@@ -1,5 +1,6 @@
 import type { SeededApi } from "#__fixtures__/web-api.ts";
 import type { ChangeEvent } from "#contract/rpc.ts";
+import type { WebSyncStatus } from "#contract/web-worker-rpc.ts";
 import { it } from "@effect/vitest";
 import {
   Cause,
@@ -17,6 +18,9 @@ import {
 } from "effect";
 import * as Scheduler from "effect/Scheduler";
 import { TestClock } from "effect/testing";
+import { mkdtempSync, readdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect } from "vitest";
 
 import { getItemsByKey, getLibraries } from "@zotlit/db";
@@ -33,19 +37,23 @@ import { READ_ALL_ACCESS } from "@zotlit/web-library/fake-zotero-api/scenario";
 import { Connection } from "./connection.ts";
 import { makeInProcessClient } from "./in-process.ts";
 import { layerUnpinnedConnectionItemSource } from "./item-source.ts";
-import { layerAbsentFileSystem } from "./serve-web.ts";
+import { wasmReplicaDriver } from "./replica-driver-wasm.ts";
+import type { ReplicaDriver, ReplicaHandle } from "./replica-driver.ts";
+import { layerAbsentFileSystem } from "./serve-web-api.ts";
 import { WebLibrarySync } from "./web-api-source.ts";
 
 import { inProcessClient } from "#__fixtures__/in-process.ts";
 import { SEED } from "#__fixtures__/reads-seed.ts";
 import {
   keptEngine,
+  keyOwner,
   loadMemoryEngine,
   memoryWebApiSource,
   seededApi,
   webApiConfig,
 } from "#__fixtures__/web-api.ts";
 import { DbUnavailable } from "#contract/rpc.ts";
+import { nodeReplicaDriver } from "#desktop/replica-driver-node.ts";
 import { snapshotRevision } from "#desktop/snapshot-revision.ts";
 
 const ACCOUNT = { userID: 42, username: "reader" } as const;
@@ -144,6 +152,24 @@ const eventually = <A>(
   });
 
 describe("the Web API source", () => {
+  it.live(
+    "names the times of the last apply in the sync status: begin, commit and the time that reads waited",
+    () =>
+      Effect.gen(function* () {
+        const { connection, sync } = yield* source(seeded());
+        expect((yield* sync.status).lastApply).toBeUndefined();
+        yield* connection.refresh;
+        const { lastApply } = yield* sync.status;
+        expect(lastApply).toMatchObject({ sequence: 1 });
+        expect(lastApply!.committedAt).toBeGreaterThanOrEqual(
+          lastApply!.beganAt,
+        );
+        expect(lastApply!.closedMillis).toBeGreaterThanOrEqual(
+          lastApply!.applyMillis,
+        );
+      }).pipe(Effect.scoped),
+  );
+
   it.live(
     "builds the replica on first open: loading, then ready, and a borrow waits for the build",
     () =>
@@ -333,7 +359,7 @@ describe("the Web API source", () => {
   );
 
   it.live(
-    "applies a sync while a reader holds a borrow and commits it only when the reader lets go; the pinned reader sees the old data, then a new client sees the new data",
+    "begins the apply of a sync only when a reader that holds a borrow lets go; the pinned reader sees the old data, then a new client sees the new data",
     () =>
       Effect.gen(function* () {
         const api = seeded();
@@ -350,11 +376,7 @@ describe("the Web API source", () => {
           Effect.map(sync.status, (status) => status.waitingForReaders),
           "the apply to wait",
         );
-        const { progress } = yield* sync.status;
-        expect(progress).toMatchObject({ phase: "apply" });
-        expect((progress as { done: number }).done).toBe(
-          (progress as { total: number }).total,
-        );
+        expect((yield* sync.status).progress).toBeNull();
         expect(titleOf(pinned)).toBe("Main Study");
         const during = yield* read(connection, (client) => ({
           same: client === pinned,
@@ -471,11 +493,7 @@ describe("the Web API source", () => {
         expect(yield* sync.status).toMatchObject({
           state: "loading",
           syncing: true,
-          progress: {
-            library: { type: "user", id: 42 },
-            done: expect.any(Number),
-            total: expect.any(Number),
-          },
+          progress: { phase: "download", done: expect.any(Number) },
         });
         release();
         yield* connection.refresh;
@@ -519,8 +537,7 @@ describe("the Web API source", () => {
           "the download progress",
         );
         expect((yield* service.status).progress).toMatchObject({
-          library: { type: "user", id: 42 },
-          total: expect.any(Number),
+          phase: "download",
         });
         release();
         yield* Fiber.join(refreshing);
@@ -532,31 +549,37 @@ describe("the Web API source", () => {
   );
 
   it.effect(
-    "serves the committed replica and answers the status between the slices of an apply, and the new replica after its commit",
+    "holds a reader that comes between the slices of an apply and gives it the new replica after the commit, while the status answers from the last commit",
     () =>
       Effect.gen(function* () {
         const api = seeded();
-        const views: unknown[] = [];
+        const statuses: unknown[] = [];
+        const readers: Fiber.Fiber<unknown, DbUnavailable>[] = [];
         let probe: Effect.Effect<void> = Effect.void;
         const { connection, sync } = yield* source(api, {
           slicing: { pageSize: 1, sliceMillis: 0 },
           betweenSlices: Effect.suspend(() => probe),
         });
         yield* connection.refresh;
-        const view = Effect.gen(function* () {
-          const status = yield* sync.status;
-          return yield* read(connection, (client) => ({
-            titles: ["MAIN2345", "RELA2345"].map((key) => titleOf(client, key)),
-            version: getLibraries(client).find(
-              (library) => library.libraryID === 1,
-            )?.version,
-            committed: status.libraries.find(
-              (library) => library.library.type === "user",
-            )?.committedVersion,
-          }));
+        const view = read(connection, (client) => ({
+          titles: ["MAIN2345", "RELA2345"].map((key) => titleOf(client, key)),
+          version: getLibraries(client).find(
+            (library) => library.libraryID === 1,
+          )?.version,
+        }));
+        const committedOf = (status: WebSyncStatus) =>
+          status.libraries.find((library) => library.library.type === "user")
+            ?.committedVersion;
+        const before = yield* view;
+        const committedBefore = committedOf(yield* sync.status);
+        probe = Effect.gen(function* () {
+          statuses.push(committedOf(yield* sync.status));
+          readers.push(yield* Effect.forkDetach(view));
+          yield* Effect.yieldNow;
+          expect(
+            readers.every((reader) => reader.pollUnsafe() === undefined),
+          ).toBe(true);
         });
-        const before = yield* Effect.orDie(view);
-        probe = Effect.orDie(Effect.map(view, (seen) => void views.push(seen)));
         for (const key of ["MAIN2345", "RELA2345"]) {
           api.api
             .library({ type: "user", id: 42 })
@@ -564,21 +587,51 @@ describe("the Web API source", () => {
         }
         yield* connection.refresh;
         probe = Effect.void;
-        expect(views.length).toBeGreaterThan(1);
-        expect(
-          views.every(
-            (seen) => JSON.stringify(seen) === JSON.stringify(before),
-          ),
-        ).toBe(true);
-        const after = yield* Effect.orDie(view);
+        expect(readers.length).toBeGreaterThan(1);
+        expect(new Set(statuses)).toEqual(new Set([committedBefore]));
+        const after = yield* view;
         expect(after.titles).toEqual(["Sliced MAIN2345", "Sliced RELA2345"]);
         expect(after.version).toBeGreaterThan(before.version!);
-        expect(after.committed).toBe(after.version);
+        for (const reader of readers)
+          expect(yield* Fiber.join(reader)).toEqual(after);
+        expect(committedOf(yield* sync.status)).toBe(after.version);
       }).pipe(Effect.scoped),
   );
 
   it.effect(
-    "answers a read request from the RPC client with the committed replica while the apply yields between its slices",
+    "answers the source identity from the last commit during an apply, without a wait",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const seen: unknown[] = [];
+        let probe: Effect.Effect<void> = Effect.void;
+        const { connection } = yield* source(api, {
+          slicing: { pageSize: 1, sliceMillis: 0 },
+          betweenSlices: Effect.suspend(() => probe),
+        });
+        yield* connection.refresh;
+        probe = Effect.gen(function* () {
+          seen.push(yield* connection.pendingIdentity!);
+        });
+        api.api
+          .library({ type: "user", id: 42 })
+          .updateItem("MAIN2345", { title: "Identity during the apply" });
+        yield* connection.refresh;
+        probe = Effect.void;
+        expect(seen.length).toBeGreaterThan(0);
+        for (const identity of seen)
+          expect(identity).toEqual({
+            kind: "web-api",
+            id: expect.any(String),
+            userID: 42,
+            username: "reader",
+          });
+        expect(yield* connection.pendingIdentity!).toBeNull();
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "answers a read request from the RPC client that comes during an apply with the new replica after the commit",
     () =>
       Effect.gen(function* () {
         const api = seeded();
@@ -617,14 +670,12 @@ describe("the Web API source", () => {
         while (refreshing.pollUnsafe() === undefined) {
           const before = (yield* sync.status).progress;
           const seen = yield* title;
-          const after = (yield* sync.status).progress;
-          if (before?.phase === "apply" && after?.phase === "apply")
-            during.push(seen);
+          if (before?.phase === "apply") during.push(seen);
           yield* pause(1);
         }
         yield* Fiber.join(refreshing);
         expect(during.length).toBeGreaterThan(0);
-        expect(new Set(during)).toEqual(new Set(["Main Study"]));
+        expect(new Set(during)).toEqual(new Set(["Changed under the readers"]));
         expect(yield* title).toBe("Changed under the readers");
       }).pipe(Effect.scoped),
   );
@@ -648,24 +699,20 @@ describe("the Web API source", () => {
   );
 
   it.effect(
-    "gives the committed libraries in the status while the writer may hold the file, and no committed version while a removed replica builds again",
+    "gives the committed libraries in the status during an apply, and no committed version while a removed replica builds again",
     () =>
       Effect.gen(function* () {
         const api = seeded();
         let probe: Effect.Effect<void> = Effect.void;
         const { connection, sync } = yield* source(api, {
-          slicing: { pageSize: 1, sliceMillis: 0, dirtyBudgetBytes: 1 },
+          slicing: { pageSize: 1, sliceMillis: 0 },
           betweenSlices: Effect.suspend(() => probe),
         });
         yield* connection.refresh;
         api.api
           .library({ type: "user", id: 42 })
           .updateItem("MAIN2345", { title: "Exclusive" });
-        const seen: WebLibrarySync["Service"] extends {
-          status: Effect.Effect<infer S>;
-        }
-          ? S[]
-          : never = [];
+        const seen: WebSyncStatus[] = [];
         probe = Effect.map(sync.status, (status) => void seen.push(status));
         yield* connection.refresh;
         expect(seen.length).toBeGreaterThan(0);
@@ -699,7 +746,119 @@ describe("the Web API source", () => {
   );
 
   it.effect(
-    "reports a replica file that does not open as degraded, and keeps the problem when a removal cannot open it either",
+    "lets a reader that holds a borrow take a second one while a removal waits, so the removal runs once it lets go",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const { connection, sync } = yield* source(api);
+        yield* connection.refresh;
+        const pin = yield* Scope.make();
+        yield* Scope.provide(connection.borrow, pin);
+        const removing = yield* Effect.forkChild(sync.removeReplica, {
+          startImmediately: true,
+        });
+        yield* untilStatus(
+          Effect.map(sync.status, (status) => status.waitingForReaders),
+          "the removal to wait",
+        );
+        const second = yield* Effect.forkChild(
+          read(connection, (client) => titleOf(client)),
+          { startImmediately: true },
+        );
+        yield* TestClock.adjust(HOLD_BACK);
+        expect(yield* Fiber.join(second)).toBe("Main Study");
+        yield* Scope.close(pin, Exit.void);
+        yield* Fiber.join(removing);
+      }).pipe(Effect.scoped),
+  );
+
+  it.live(
+    "keeps the source degraded when a staging write cannot roll back and the file does not open again",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const inner = wasmReplicaDriver(
+          yield* Effect.promise(() => loadMemoryEngine()),
+        );
+        let broken = false;
+        let writes = 0;
+        const driver: ReplicaDriver = {
+          ...inner,
+          open: (name) => {
+            if (broken) throw new Error("the replica file is held");
+            const handle = inner.open(name);
+            const db = new Proxy(handle.db, {
+              get(target, key) {
+                if (key === "transaction" && broken && ++writes === 2)
+                  return () => {
+                    target.run("begin");
+                    throw new Error("disk I/O error in a staging write");
+                  };
+                const value: unknown = Reflect.get(target, key, target);
+                return typeof value === "function" ? value.bind(target) : value;
+              },
+            });
+            return {
+              ...handle,
+              db,
+              exec: (text) => {
+                if (broken && text === "rollback")
+                  throw new Error("disk I/O error at the rollback");
+                handle.exec(text);
+              },
+            } satisfies ReplicaHandle;
+          },
+        };
+        const { connection, sync } = yield* source(api, {
+          driver: Effect.succeed(driver),
+        });
+        yield* connection.refresh;
+        broken = true;
+        yield* Effect.flip(connection.refresh);
+        expect((yield* sync.status).state).toBe("degraded");
+        expect(
+          yield* Effect.flip(read(connection, (client) => titleOf(client))),
+        ).toMatchObject({ _tag: "DbUnavailable" });
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "settles a start-up sync that a removal interrupts at once, so the next refresh builds the replica",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const { connection, sync } = yield* source(api);
+        yield* sync.removeReplica;
+        yield* connection.refresh.pipe(Effect.timeout("5 seconds"));
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Main Study",
+        );
+        expect((yield* sync.status).syncing).toBe(false);
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "settles a start-up sync that a new configuration interrupts at once, so the next refresh answers",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const { connection, sync } = yield* source(api);
+        yield* connection.configure(
+          webApiConfig(api.key, {
+            consentedUserID: keyOwner(api),
+            zoteroLocale: "de-DE",
+          }),
+        );
+        yield* connection.refresh.pipe(Effect.timeout("5 seconds"));
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Main Study",
+        );
+        expect((yield* sync.status).syncing).toBe(false);
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "reports a replica file that does not open as degraded, removes it, and reports the problem again when the next sync cannot open it either",
     () =>
       Effect.gen(function* () {
         const api = seeded();
@@ -723,14 +882,8 @@ describe("the Web API source", () => {
             message: expect.stringContaining("held by another program"),
           },
         });
-        yield* Effect.flip(
-          Effect.andThen(
-            sync.removeReplica,
-            Effect.forkChild(Effect.ignore(connection.refresh), {
-              startImmediately: true,
-            }),
-          ),
-        );
+        yield* sync.removeReplica;
+        yield* Effect.flip(connection.refresh);
         expect(yield* sync.status).toMatchObject({
           state: "degraded",
           problem: {
@@ -743,7 +896,7 @@ describe("the Web API source", () => {
   );
 
   it.effect(
-    "keeps the error of a failed commit when its rollback also fails, releases the write lock with a debug line, and recovers on the next sync",
+    "keeps the error of a failed commit when its rollback also fails, opens the file again with a warning, and recovers on the next sync",
     () =>
       Effect.gen(function* () {
         const logged: string[] = [];
@@ -765,7 +918,6 @@ describe("the Web API source", () => {
         };
         const { connection, sync } = yield* source(api, {
           engine: Effect.succeed(faulty),
-          slicing: { dirtyBudgetBytes: 1 },
         });
         yield* connection.refresh;
         api.api
@@ -783,7 +935,7 @@ describe("the Web API source", () => {
           Effect.provideService(References.MinimumLogLevel, "Debug"),
         );
         expect(logged).toContain(
-          "The replica closed its write connection after a failed rollback",
+          "The replica opens its file again after a failed rollback",
         );
         const failed = yield* sync.status;
         expect(failed.problem).toMatchObject({
@@ -805,170 +957,125 @@ describe("the Web API source", () => {
       }).pipe(Effect.scoped),
   );
 
-  it.effect(
-    "records the problem of a failed commit and rollback when the read connection cannot read, and keeps it until a later sync succeeds",
-    () =>
-      Effect.gen(function* () {
-        const api = seeded();
-        const engine = yield* Effect.promise(() => loadMemoryEngine());
-        const raw: SqliteWasmDatabase<any>[] = [];
-        let failing = false;
-        const faulty: SqliteWasm = {
-          ...engine,
-          open: (options) => {
-            const database = engine.open(options);
-            raw.push(database);
-            return Object.assign(Object.create(database) as typeof database, {
-              exec: (text: string) => {
-                if (failing && (text === "commit" || text === "rollback"))
-                  throw new Error(`disk I/O error at ${text}`);
-                database.exec(text);
-              },
-            });
-          },
-        };
-        const { connection, sync } = yield* source(api, {
-          engine: Effect.succeed(faulty),
-        });
-        yield* connection.refresh;
-        const before = (yield* sync.status).libraries;
-        expect(before.length).toBeGreaterThan(0);
-        api.api
-          .library({ type: "user", id: 42 })
-          .updateItem("MAIN2345", { title: "Committed later" });
-        failing = true;
-        const readerFile = raw[1]!;
-        readerFile.exec("create temp table replicaSyncLibraries (unreadable)");
-        const error = yield* Effect.flip(connection.refresh);
-        expect(error).toBeInstanceOf(DbUnavailable);
-        const failed = yield* sync.status;
-        expect(failed).toMatchObject({
-          state: "ready",
-          problem: {
-            _tag: "storage",
-            message: expect.stringContaining("could not commit the apply"),
-          },
-          libraries: before,
-        });
-        readerFile.exec("drop table temp.replicaSyncLibraries");
-        expect(yield* staging(connection)).toEqual([]);
-        expect(yield* sync.status).toMatchObject({
-          state: "ready",
-          problem: { _tag: "storage" },
-        });
-        failing = false;
-        yield* connection.refresh;
-        expect(yield* read(connection, (client) => titleOf(client))).toBe(
-          "Committed later",
-        );
-        expect(yield* sync.status).toMatchObject({
-          state: "ready",
-          problem: null,
-        });
-        expect(yield* staging(connection, { afterApply: true })).toEqual([]);
-      }).pipe(Effect.scoped),
-  );
+  describe.each([
+    {
+      driver: "the wasm driver in memory",
+      open: Effect.map(
+        Effect.promise(() => loadMemoryEngine()),
+        (engine) => wasmReplicaDriver(engine),
+      ),
+    },
+    {
+      driver: "the node:sqlite driver on a file",
+      open: Effect.map(
+        Effect.acquireRelease(
+          Effect.sync(() =>
+            mkdtempSync(join(tmpdir(), "zotlit-replica-full-")),
+          ),
+          (folder) =>
+            Effect.sync(() => rmSync(folder, { recursive: true, force: true })),
+        ),
+        (folder) => nodeReplicaDriver(folder),
+      ),
+    },
+  ])("on $driver", ({ open }) => {
+    const recorded = Effect.map(open, (inner) => {
+      const opened: ReplicaHandle[] = [];
+      const driver: ReplicaDriver = {
+        ...inner,
+        open: (file) => {
+          const handle = inner.open(file);
+          opened.push(handle);
+          return handle;
+        },
+      };
+      return { opened, driver };
+    });
 
-  it.effect(
-    "keeps the error of an apply that fails because the storage is full",
-    () =>
+    it.effect(
+      "keeps the error of an apply that fails because the storage is full",
+      () =>
+        Effect.gen(function* () {
+          const api = seeded();
+          const { opened, driver } = yield* recorded;
+          let full = false;
+          const { connection, sync } = yield* source(api, {
+            driver: Effect.succeed(driver),
+            slicing: { pageSize: 1, sliceMillis: 0 },
+            betweenSlices: Effect.sync(() => {
+              if (!full) return;
+              full = false;
+              const writer = opened[0]!;
+              const pages = Number(
+                writer.db.get<{ page_count: number }>("pragma page_count")!
+                  .page_count,
+              );
+              writer.exec(`pragma max_page_count = ${pages}`);
+            }),
+          });
+          yield* connection.refresh;
+          const writer = opened[0]!;
+          const library = api.api.library({ type: "user", id: 42 });
+          library.updateItem("MAIN2345", { title: "Before the large one" });
+          library.putItem({
+            ...library.items.get("RELA2345")!.data,
+            key: "ZZZZ2345",
+            title: "Too large ".repeat(200_000),
+          });
+          full = true;
+          yield* Effect.flip(connection.refresh);
+          expect((yield* sync.status).problem).toMatchObject({
+            _tag: "storage",
+            reason: "full",
+            message: expect.stringContaining(
+              "could not apply the download: the storage is full (",
+            ),
+          });
+          expect((yield* sync.status).problem?.message).not.toContain(
+            "roll back",
+          );
+          writer.exec("pragma max_page_count = 1073741823");
+          yield* connection.refresh;
+          expect(
+            (yield* read(connection, (client) => titleOf(client, "ZZZZ2345")))!,
+          ).toMatch(/^Too large/);
+        }).pipe(Effect.scoped),
+    );
+
+    it.effect("reports a full storage while the download is staged", () =>
       Effect.gen(function* () {
         const api = seeded();
-        const engine = yield* Effect.promise(() => loadMemoryEngine());
-        const opened: SqliteWasmDatabase<any>[] = [];
-        const counted: SqliteWasm = {
-          ...engine,
-          open: (options) => {
-            const database = engine.open(options);
-            opened.push(database);
-            return database;
-          },
-        };
-        let full = false;
+        const { opened, driver } = yield* recorded;
         const { connection, sync } = yield* source(api, {
-          engine: Effect.succeed(counted),
-          slicing: { pageSize: 1, sliceMillis: 0 },
-          betweenSlices: Effect.sync(() => {
-            if (!full) return;
-            full = false;
-            const writer = opened[0]!;
-            const pages = Number(
-              writer.db.get<{ page_count: number }>("pragma page_count")!
-                .page_count,
-            );
-            writer.exec(`pragma max_page_count = ${pages}`);
-          }),
+          driver: Effect.succeed(driver),
         });
         yield* connection.refresh;
         const writer = opened[0]!;
+        const pages = Number(
+          writer.db.get<{ page_count: number }>("pragma page_count")!
+            .page_count,
+        );
+        writer.exec(`pragma max_page_count = ${pages}`);
         const library = api.api.library({ type: "user", id: 42 });
-        library.updateItem("MAIN2345", { title: "Before the large one" });
         library.putItem({
           ...library.items.get("RELA2345")!.data,
           key: "ZZZZ2345",
           title: "Too large ".repeat(200_000),
         });
-        full = true;
         yield* Effect.flip(connection.refresh);
         expect((yield* sync.status).problem).toMatchObject({
           _tag: "storage",
           reason: "full",
           message: expect.stringContaining(
-            "could not apply the download: the storage is full (SQLITE_FULL",
+            "could not store the download: the storage is full (",
           ),
         });
-        expect((yield* sync.status).problem?.message).not.toContain(
-          "roll back",
-        );
-        writer.exec("pragma max_page_count = 1073741823");
-        yield* connection.refresh;
-        expect(
-          (yield* read(connection, (client) => titleOf(client, "ZZZZ2345")))!,
-        ).toMatch(/^Too large/);
       }).pipe(Effect.scoped),
-  );
-
-  it.effect("reports a full storage while the download is staged", () =>
-    Effect.gen(function* () {
-      const api = seeded();
-      const engine = yield* Effect.promise(() => loadMemoryEngine());
-      const opened: SqliteWasmDatabase<any>[] = [];
-      const counted: SqliteWasm = {
-        ...engine,
-        open: (options) => {
-          const database = engine.open(options);
-          opened.push(database);
-          return database;
-        },
-      };
-      const { connection, sync } = yield* source(api, {
-        engine: Effect.succeed(counted),
-      });
-      yield* connection.refresh;
-      const writer = opened[0]!;
-      const pages = Number(
-        writer.db.get<{ page_count: number }>("pragma page_count")!.page_count,
-      );
-      writer.exec(`pragma max_page_count = ${pages}`);
-      const library = api.api.library({ type: "user", id: 42 });
-      library.putItem({
-        ...library.items.get("RELA2345")!.data,
-        key: "ZZZZ2345",
-        title: "Too large ".repeat(200_000),
-      });
-      yield* Effect.flip(connection.refresh);
-      expect((yield* sync.status).problem).toMatchObject({
-        _tag: "storage",
-        reason: "full",
-        message: expect.stringContaining(
-          "could not store the download: the storage is full (SQLITE_FULL",
-        ),
-      });
-    }).pipe(Effect.scoped),
-  );
+    );
+  });
 
   it.effect(
-    "keeps the error and the write connection when SQLite has already ended the transaction of a failed apply",
+    "keeps the error and the connection when SQLite has already ended the transaction of a failed apply",
     () =>
       Effect.gen(function* () {
         const api = seeded();
@@ -1004,7 +1111,7 @@ describe("the Web API source", () => {
         expect(yield* staging(connection)).toEqual([]);
         writer.exec("drop trigger temp.endedBySqlite");
         yield* connection.refresh;
-        expect(opened).toHaveLength(2);
+        expect(opened).toHaveLength(1);
         expect(yield* read(connection, (client) => titleOf(client))).toBe(
           "Ended by SQLite",
         );
@@ -1019,7 +1126,7 @@ describe("the Web API source", () => {
       Effect.gen(function* () {
         const api = seeded();
         const { connection, sync } = yield* source(api, {
-          slicing: { pageSize: 1, sliceMillis: 0, dirtyBudgetBytes: 1 },
+          slicing: { pageSize: 1, sliceMillis: 0 },
         });
         yield* connection.refresh;
         const seen: (number | null)[] = [];
@@ -1102,55 +1209,8 @@ describe("the Web API source", () => {
       }).pipe(Effect.scoped),
   );
 
-  it.effect(
-    "lets readers read until the changed pages pass the budget, then waits for the readers, holds new borrows until the commit, and gives them the new replica",
-    () =>
-      Effect.gen(function* () {
-        const api = seeded();
-        let slice = 0;
-        let probe: Effect.Effect<void> = Effect.void;
-        const { connection, sync } = yield* source(api, {
-          slicing: { pageSize: 1, sliceMillis: 0, dirtyBudgetBytes: 1 },
-          betweenSlices: Effect.suspend(() => probe),
-        });
-        yield* connection.refresh;
-        for (const key of ["MAIN2345", "RELA2345", "RELB2345"]) {
-          api.api
-            .library({ type: "user", id: 42 })
-            .updateItem(key, { title: `Over budget ${key}` });
-        }
-        const pin = yield* Scope.make();
-        const pinned = yield* Scope.provide(connection.borrow, pin);
-        let held: Fiber.Fiber<string | undefined, DbUnavailable> | undefined;
-        probe = Effect.suspend(() => {
-          if (++slice !== 1) return Effect.void;
-          return Effect.map(
-            Effect.forkDetach(read(connection, (client) => titleOf(client))),
-            (fiber) => {
-              held = fiber;
-            },
-          );
-        });
-        const refreshing = yield* Effect.forkChild(connection.refresh);
-        yield* untilStatus(
-          Effect.map(sync.status, (status) => status.waitingForReaders),
-          "the apply to wait at the budget",
-        );
-        const waiting = yield* sync.status;
-        expect(waiting.progress).toMatchObject({ phase: "apply" });
-        expect(
-          (waiting.progress as { done: number; total: number }).done,
-        ).toBeLessThan((waiting.progress as { total: number }).total);
-        expect(titleOf(pinned)).toBe("Main Study");
-        yield* Scope.close(pin, Exit.void);
-        yield* Fiber.join(refreshing);
-        expect(held).toBeDefined();
-        expect(yield* Fiber.join(held!)).toBe("Over budget MAIN2345");
-      }).pipe(Effect.scoped),
-  );
-
   it.live(
-    "reports a storage fault in the apply as a typed storage problem",
+    "publishes a commit whose client renewal fails through the file opened again, with the change event",
     () =>
       Effect.gen(function* () {
         const api = seeded();
@@ -1166,17 +1226,69 @@ describe("the Web API source", () => {
             });
           },
         };
-        const { connection, sync } = yield* source(api, {
+        const { connection, events, sync } = yield* source(api, {
           engine: Effect.succeed(faulty),
         });
+        yield* connection.refresh;
+        expect(tags(events)).toContain("changed");
+        expect(yield* sync.status).toMatchObject({
+          state: "ready",
+          problem: null,
+        });
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Main Study",
+        );
+      }).pipe(Effect.scoped),
+  );
+
+  it.live(
+    "reports the source degraded with one event when a commit cannot be published and the file does not open again",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const engine = yield* Effect.promise(() => loadMemoryEngine());
+        let broken = false;
+        const faulty: SqliteWasm = {
+          ...engine,
+          open: (options) => {
+            if (broken) throw new Error("the replica file is held");
+            const database = engine.open(options);
+            return Object.assign(Object.create(database) as typeof database, {
+              renew: () => {
+                if (broken) throw new Error("disk I/O error");
+                return database.renew();
+              },
+            });
+          },
+        };
+        const { connection, events, sync } = yield* source(api, {
+          engine: Effect.succeed(faulty),
+        });
+        yield* connection.refresh;
+        events.length = 0;
+        api.api
+          .library({ type: "user", id: 42 })
+          .updateItem("MAIN2345", { title: "Unpublished Study" });
+        broken = true;
         const exit = yield* Effect.exit(connection.refresh);
         expect(
           Exit.isFailure(exit) && Cause.findErrorOption(exit.cause),
         ).toMatchObject({ _tag: "Some", value: { _tag: "DbUnavailable" } });
-        expect((yield* sync.status).problem).toMatchObject({
-          _tag: "storage",
-          message: expect.stringContaining("disk I/O error"),
+        expect(yield* sync.status).toMatchObject({
+          state: "degraded",
+          problem: { _tag: "storage" },
         });
+        expect(tags(events).filter((tag) => tag === "degraded")).toHaveLength(
+          1,
+        );
+        expect(
+          yield* Effect.flip(read(connection, (client) => titleOf(client))),
+        ).toMatchObject({ _tag: "DbUnavailable" });
+        broken = false;
+        yield* connection.refresh;
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Unpublished Study",
+        );
       }).pipe(Effect.scoped),
   );
 
@@ -1262,6 +1374,80 @@ describe("the Web API source", () => {
         .filter((library) => library.type === "group")
         .map((library) => library.groupID),
     );
+
+  it.effect(
+    "names a storage problem in the status when the replica cannot read its libraries at the open",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const kept = keptEngine(
+          yield* Effect.promise(() => loadMemoryEngine()),
+        );
+        const engine = Effect.succeed(kept.engine);
+        yield* Effect.scoped(
+          Effect.gen(function* () {
+            const { connection } = yield* source(api, { engine });
+            yield* connection.refresh;
+            yield* read(connection, (client) => {
+              client.run(
+                "alter table replicaSyncLibraries rename to librariesAway",
+              );
+              client.run(
+                "create table replicaSyncLibraries (unrelated integer)",
+              );
+            });
+          }),
+        );
+        const release = api.api.hold(
+          (request) => request.path === "/keys/current",
+        );
+        const { sync } = yield* source(api, { engine });
+        expect(yield* sync.status).toMatchObject({
+          state: "degraded",
+          problem: {
+            _tag: "storage",
+            message: expect.stringContaining("could not read its libraries"),
+          },
+        });
+        release();
+      }).pipe(Effect.scoped),
+  );
+
+  it.effect(
+    "keeps a group whose removal is staged in the status until the apply commits",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const seen: number[][] = [];
+        let probe: Effect.Effect<void> = Effect.void;
+        const { connection, sync } = yield* source(api, {
+          slicing: { pageSize: 1, sliceMillis: 0 },
+          betweenSlices: Effect.suspend(() => probe),
+        });
+        yield* connection.refresh;
+        const groups = (status: { libraries: WebSyncStatus["libraries"] }) =>
+          status.libraries.flatMap((entry) =>
+            entry.library.type === "group" ? [entry.library.id] : [],
+          );
+        probe = Effect.map(sync.status, (status) => {
+          seen.push(groups(status));
+        });
+        api.api.addKey(
+          api.key,
+          { user: { library: true }, groups: {} },
+          ACCOUNT,
+        );
+        for (const key of ["MAIN2345", "RELA2345"])
+          api.api
+            .library({ type: "user", id: 42 })
+            .updateItem(key, { title: `Without the group ${key}` });
+        yield* connection.refresh;
+        probe = Effect.void;
+        expect(seen.length).toBeGreaterThan(0);
+        for (const during of seen) expect(during).toEqual([900]);
+        expect(groups(yield* sync.status)).toEqual([]);
+      }).pipe(Effect.scoped),
+  );
 
   it.live(
     "applies no staged pass of a group that the key no longer reads",
@@ -1359,7 +1545,7 @@ describe("the Web API source", () => {
   );
 
   it.live(
-    "keeps one open of each of the two connections to the replica file across syncs, with temporary files in memory",
+    "keeps one open of the replica file across syncs, with temporary files in memory",
     () =>
       Effect.gen(function* () {
         const api = seeded();
@@ -1378,7 +1564,7 @@ describe("the Web API source", () => {
         expect(yield* read(connection, (client) => titleOf(client))).toBe(
           "Three",
         );
-        expect(kept.opens()).toBe(2);
+        expect(kept.opens()).toBe(1);
         expect(
           yield* read(connection, (client) =>
             client.get<{ temp_store: number }>("pragma temp_store"),
@@ -1420,6 +1606,31 @@ describe("the Web API source", () => {
   );
 
   it.live(
+    "closes the replica and deletes its files at a removal, so no empty replica stays until the next sync",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const folder = yield* Effect.acquireRelease(
+          Effect.sync(() =>
+            mkdtempSync(join(tmpdir(), "zotlit-replica-removal-")),
+          ),
+          (made) =>
+            Effect.sync(() => rmSync(made, { recursive: true, force: true })),
+        );
+        const { connection, sync } = yield* source(api, {
+          driver: Effect.succeed(nodeReplicaDriver(folder)),
+        });
+        yield* connection.refresh;
+        yield* sync.removeReplica;
+        expect(readdirSync(folder)).toEqual([]);
+        yield* connection.refresh;
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Main Study",
+        );
+      }).pipe(Effect.scoped),
+  );
+
+  it.live(
     "removes the replica, reports loading, and builds it again in the same file",
     () =>
       Effect.gen(function* () {
@@ -1451,7 +1662,7 @@ describe("the Web API source", () => {
         }));
         expect(after.title).toBe("Main Study");
         expect(after.localUserKey).not.toEqual(before);
-        expect(kept.opens()).toBe(4);
+        expect(kept.opens()).toBe(2);
         expect((yield* sync.status).state).toBe("ready");
         expect(yield* staging(connection, { afterApply: true })).toEqual([]);
       }).pipe(Effect.scoped),
@@ -1963,6 +2174,339 @@ describe("the Web API source", () => {
   );
 });
 
+const itemRequests = (api: SeededApi, path: string) =>
+  api.api.requests.filter(
+    (request) => request.path === path && request.query.itemKey !== undefined,
+  ).length;
+
+const stopRunning = (sync: WebLibrarySync["Service"]) =>
+  Effect.flatMap(sync.status, (status) =>
+    sync.stopSync(status.syncId ?? Number.NaN),
+  );
+
+const pushedProgress = (sync: WebLibrarySync["Service"]) =>
+  Effect.gen(function* () {
+    const pushed: WebSyncStatus["progress"][] = [];
+    yield* Stream.runForEach(sync.progress, (progress) =>
+      Effect.sync(() => pushed.push(progress)),
+    ).pipe(Effect.forkScoped({ startImmediately: true }));
+    return pushed;
+  });
+
+describe("the progress and the stop of a sync", () => {
+  it.live(
+    "pushes the progress of a sync: the download sums the objects of all libraries, then the apply, then none",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const { connection, sync } = yield* source(api);
+        yield* connection.refresh;
+        api.api
+          .library({ type: "user", id: 42 })
+          .updateItem("MAIN2345", { title: "Changed in the personal library" });
+        api.api
+          .library({ type: "group", id: 900 })
+          .updateItem("GRPITEMS", { title: "Changed in the group" });
+        const pushed = yield* pushedProgress(sync);
+        yield* connection.refresh;
+        yield* until(() => pushed.at(-1) === null, "the end of the progress");
+        const download = pushed.filter(
+          (progress) => progress !== null && progress.phase === "download",
+        );
+        expect(download.at(-1)).toEqual({
+          phase: "download",
+          done: 2,
+          total: 2,
+        });
+        expect(download.at(0)).toMatchObject({ total: null });
+        expect(
+          download.flatMap((progress) =>
+            progress.phase === "download" && progress.total !== null
+              ? [progress.total]
+              : [],
+          ),
+        ).toSatisfy((totals: number[]) => totals.every((total) => total === 2));
+        expect(pushed).toContainEqual({ phase: "apply", done: 2, total: 2 });
+        expect(pushed).not.toContainEqual({ phase: "waiting" });
+        expect(pushed.indexOf(download.at(-1)!)).toBeLessThan(
+          pushed.findIndex(
+            (progress) => progress !== null && progress.phase === "apply",
+          ),
+        );
+      }).pipe(Effect.scoped),
+  );
+
+  it.live(
+    "knows the download total once each library has counted, with zero for a library that has no change",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const { connection, sync } = yield* source(api);
+        yield* connection.refresh;
+        api.api
+          .library({ type: "group", id: 900 })
+          .updateItem("GRPITEMS", { title: "Changed only in the group" });
+        const release = api.api.hold(
+          (request) =>
+            request.path === "/groups/900/items" &&
+            request.query.itemKey !== undefined,
+        );
+        yield* Effect.addFinalizer(() => Effect.sync(release));
+        const pushed = yield* pushedProgress(sync);
+        const refreshing = yield* Effect.forkChild(connection.refresh);
+        yield* until(
+          () => itemRequests(api, "/groups/900/items") > 0,
+          "the download of the group items",
+        );
+        yield* until(
+          () =>
+            pushed.some(
+              (progress) =>
+                progress?.phase === "download" && progress.total !== null,
+            ),
+          "a known download total",
+        );
+        const known = pushed.filter(
+          (progress) =>
+            progress?.phase === "download" && progress.total !== null,
+        );
+        expect(known[0]).toEqual({ phase: "download", done: 0, total: 1 });
+        expect(
+          known.every(
+            (progress) =>
+              progress?.phase === "download" && progress.total === 1,
+          ),
+        ).toBe(true);
+        release();
+        yield* Fiber.join(refreshing);
+      }).pipe(Effect.scoped),
+  );
+
+  it.live(
+    "forgets the count of a library whose pass starts again, so a total never grows after it was known",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        api.api.addKey(api.key, {
+          user: { library: true, notes: true, files: true, write: false },
+        });
+        const { connection, sync } = yield* source(api);
+        yield* connection.refresh;
+        const personal = api.api.library({ type: "user", id: 42 });
+        personal.updateItem("MAIN2345", {
+          title: "Changed before the restart",
+        });
+        const release = api.api.hold(
+          (request) => request.path === "/users/42/deleted",
+        );
+        yield* Effect.addFinalizer(() => Effect.sync(release));
+        const deletions = () =>
+          api.api.requests.filter(
+            (request) => request.path === "/users/42/deleted",
+          ).length;
+        const before = deletions();
+        const pushed = yield* pushedProgress(sync);
+        const refreshing = yield* Effect.forkChild(connection.refresh);
+        yield* until(
+          () => deletions() > before,
+          "the deletion request of the first pass",
+        );
+        personal.updateItem("RELA2345", { title: "Changed during the pass" });
+        release();
+        yield* Fiber.join(refreshing);
+        const totals = pushed.flatMap((progress) =>
+          progress?.phase === "download" ? [progress.total] : [],
+        );
+        const firstKnown = totals.indexOf(1);
+        const secondKnown = totals.indexOf(2);
+        expect(firstKnown).toBeGreaterThanOrEqual(0);
+        expect(secondKnown).toBeGreaterThan(firstKnown);
+        expect(totals.slice(firstKnown, secondKnown)).toContain(null);
+        expect(totals.slice(secondKnown).every((total) => total === 2)).toBe(
+          true,
+        );
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Changed before the restart",
+        );
+      }).pipe(Effect.scoped),
+    20_000,
+  );
+
+  it.live(
+    "pushes the wait of the apply while a reader holds a borrow past the hold-back",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const { connection, sync } = yield* source(api);
+        yield* connection.refresh;
+        const pin = yield* Scope.make();
+        yield* Scope.provide(connection.borrow, pin);
+        api.api
+          .library({ type: "user", id: 42 })
+          .updateItem("MAIN2345", { title: "Changed while a task reads" });
+        const pushed = yield* pushedProgress(sync);
+        const refreshing = yield* Effect.forkChild(connection.refresh);
+        yield* until(
+          () =>
+            pushed.some(
+              (progress) => progress !== null && progress.phase === "waiting",
+            ),
+          "the wait of the apply",
+        );
+        expect((yield* sync.status).progress).toEqual({ phase: "waiting" });
+        yield* Scope.close(pin, Exit.void);
+        yield* Fiber.join(refreshing);
+        expect(pushed.at(-1)).toBeNull();
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Changed while a task reads",
+        );
+      }).pipe(Effect.scoped),
+  );
+
+  it.live(
+    "stops the first build during the download: a waiting borrow fails, the staged objects stay, and the next sync downloads only the rest",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const release = api.api.hold(
+          (request) =>
+            request.path === "/groups/900/items" &&
+            request.query.itemKey !== undefined,
+        );
+        const { connection, sync } = yield* source(api);
+        const waiting = yield* Effect.forkChild(
+          Effect.exit(read(connection, (client) => titleOf(client))),
+          { startImmediately: true },
+        );
+        yield* until(
+          () => itemRequests(api, "/groups/900/items") > 0,
+          "the download of the group items",
+        );
+        expect(yield* stopRunning(sync)).toBe(true);
+        const read1 = yield* Fiber.join(waiting);
+        expect(Exit.isFailure(read1)).toBe(true);
+        expect(
+          Exit.isFailure(read1) ? Cause.squash(read1.cause) : null,
+        ).toBeInstanceOf(DbUnavailable);
+        yield* untilStatus(
+          Effect.map(sync.status, (status) => !status.syncing),
+          "the end of the stopped sync",
+        );
+        expect(yield* sync.status).toMatchObject({
+          state: "degraded",
+          progress: null,
+          problem: { _tag: "stopped" },
+        });
+        release();
+        const personal = itemRequests(api, "/users/42/items");
+        const group = itemRequests(api, "/groups/900/items");
+        yield* connection.refresh;
+        expect(itemRequests(api, "/users/42/items")).toBe(personal);
+        expect(itemRequests(api, "/groups/900/items")).toBeGreaterThan(group);
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Main Study",
+        );
+        expect(yield* sync.status).toMatchObject({
+          state: "ready",
+          problem: null,
+        });
+      }).pipe(Effect.scoped),
+  );
+
+  it.live(
+    "stops a sync of a served replica during the download: reads keep the last good data, the status names the stop, and the next sync brings the change",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const { connection, events, sync } = yield* source(api);
+        yield* connection.refresh;
+        api.api
+          .library({ type: "user", id: 42 })
+          .updateItem("MAIN2345", { title: "Changed before the stop" });
+        api.api
+          .library({ type: "group", id: 900 })
+          .updateItem("GRPITEMS", { title: "Group changed before the stop" });
+        const release = api.api.hold(
+          (request) =>
+            request.path === "/groups/900/items" &&
+            request.query.itemKey !== undefined,
+        );
+        events.length = 0;
+        lines.length = 0;
+        const before = itemRequests(api, "/groups/900/items");
+        const refreshing = yield* Effect.forkChild(
+          Effect.exit(connection.refresh),
+        );
+        yield* until(
+          () => itemRequests(api, "/groups/900/items") > before,
+          "the download of the group items",
+        );
+        const { syncId } = yield* sync.status;
+        expect(syncId).not.toBeNull();
+        expect(yield* sync.stopSync(syncId! - 1)).toBe(false);
+        expect(yield* stopRunning(sync)).toBe(true);
+        const stopped = yield* Fiber.join(refreshing);
+        expect(Exit.isFailure(stopped)).toBe(true);
+        release();
+        expect(yield* sync.status).toMatchObject({
+          state: "ready",
+          syncing: false,
+          problem: { _tag: "stopped" },
+        });
+        expect(tags(events)).not.toContain("changed");
+        expect(tags(events)).not.toContain("degraded");
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Main Study",
+        );
+        const personal = itemRequests(api, "/users/42/items");
+        yield* connection.refresh;
+        expect(itemRequests(api, "/users/42/items")).toBe(personal);
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Changed before the stop",
+        );
+        expect((yield* sync.status).problem).toBeNull();
+      }).pipe(Effect.provide(Logger.layer([logger])), Effect.scoped),
+  );
+
+  it.effect(
+    "keeps the apply running when a stop comes after the apply began",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        let stop: Effect.Effect<void> = Effect.void;
+        let stopped = false;
+        let confirmed: boolean | null = null;
+        const { connection, sync } = yield* source(api, {
+          slicing: { pageSize: 1, sliceMillis: 0 },
+          betweenSlices: Effect.suspend(() => {
+            if (stopped) return Effect.void;
+            stopped = true;
+            return stop;
+          }),
+        });
+        stopped = true;
+        yield* connection.refresh;
+        stopped = false;
+        stop = Effect.map(stopRunning(sync), (answer) => {
+          confirmed = answer;
+        });
+        api.api
+          .library({ type: "user", id: 42 })
+          .updateItem("MAIN2345", { title: "Changed during the apply" });
+        api.api
+          .library({ type: "user", id: 42 })
+          .updateItem("RELA2345", { title: "Also changed during the apply" });
+        yield* connection.refresh;
+        expect(stopped).toBe(true);
+        expect(confirmed).toBe(false);
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Changed during the apply",
+        );
+        expect((yield* sync.status).problem).toBeNull();
+      }).pipe(Effect.scoped),
+  );
+});
+
 describe("the file system of the Web Worker root", () => {
   it.effect("reports each path as absent", () =>
     Effect.gen(function* () {
@@ -2199,6 +2743,78 @@ describe("the request pause of the Web API source", () => {
 });
 
 describe("the sync status of the Web API source", () => {
+  const failingCheckpoint = Effect.map(
+    Effect.promise(() => loadMemoryEngine()),
+    (engine) => {
+      const driver = wasmReplicaDriver(engine);
+      return {
+        ...driver,
+        open: (file: string) => ({
+          ...driver.open(file),
+          checkpoint: () => {
+            throw new Error("disk I/O error at the checkpoint");
+          },
+        }),
+      };
+    },
+  );
+
+  it.effect(
+    "names a failed checkpoint as a problem of the replica file while the first build stays readable",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const { connection, sync } = yield* source(api, {
+          driver: failingCheckpoint,
+        });
+        yield* connection.refresh;
+        expect(yield* sync.status).toMatchObject({
+          state: "ready",
+          problem: null,
+          fileProblem: {
+            _tag: "storage",
+            message: expect.stringContaining("checkpoint"),
+          },
+        });
+        expect(yield* read(connection, (client) => titleOf(client))).toBe(
+          "Main Study",
+        );
+      }).pipe(Effect.scoped),
+  );
+
+  it.live(
+    "names a failed checkpoint next to a download that the researcher stops",
+    () =>
+      Effect.gen(function* () {
+        const api = seeded();
+        const { connection, sync } = yield* source(api, {
+          driver: failingCheckpoint,
+        });
+        yield* connection.refresh;
+        api.api
+          .library({ type: "user", id: 42 })
+          .updateItem("MAIN2345", { title: "Changed before the stop" });
+        const held = (request: { query: { itemKey?: unknown } }) =>
+          request.query.itemKey !== undefined;
+        const before = api.api.requests.filter(held).length;
+        const release = api.api.hold(held);
+        yield* Effect.addFinalizer(() => Effect.sync(release));
+        const refreshing = yield* Effect.forkChild(
+          Effect.exit(connection.refresh),
+          { startImmediately: true },
+        );
+        yield* Effect.promise(() =>
+          api.api.until((fake) => fake.requests.filter(held).length > before),
+        );
+        expect(yield* stopRunning(sync)).toBe(true);
+        yield* Fiber.join(refreshing);
+        expect(yield* sync.status).toMatchObject({
+          problem: { _tag: "stopped" },
+          fileProblem: { _tag: "storage" },
+        });
+      }).pipe(Effect.scoped),
+  );
+
   it.effect(
     "names the wait that Zotero asks for with the time when the sync continues, and clears it after",
     () =>

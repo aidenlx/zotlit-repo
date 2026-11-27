@@ -5,6 +5,21 @@ import type {
   WebSyncStatus,
 } from "@zotlit/zotero-reads/contract/web-worker-rpc.ts";
 
+export type SyncPhase =
+  | { readonly kind: "starting" }
+  | { readonly kind: "rate-wait"; readonly until: Temporal.Instant }
+  | {
+      readonly kind: "download";
+      readonly done: number;
+      readonly total: number | null;
+    }
+  | {
+      readonly kind: "apply";
+      readonly done: number;
+      readonly total: number;
+    }
+  | { readonly kind: "waiting" };
+
 export type OnlineLibraryStatus =
   | { readonly kind: "file-source" }
   | { readonly kind: "no-key" }
@@ -59,6 +74,53 @@ export function problemText(problem: WebSyncProblem): string {
         : m.settings_online_problem_storage_failed();
     case "libraries-failed":
       return m.settings_online_problem_libraries_failed();
+    case "stopped":
+      return m.settings_online_problem_stopped();
+  }
+}
+
+export function syncPhaseOf(sync: WebSyncStatus): SyncPhase | null {
+  const { progress } = sync;
+  if (!sync.syncing) return null;
+  if (progress?.phase === "waiting") return { kind: "waiting" };
+  if (progress?.phase === "apply")
+    return { kind: "apply", done: progress.done, total: progress.total };
+  if (sync.rateWaitUntil)
+    return { kind: "rate-wait", until: sync.rateWaitUntil };
+  if (progress === null) return { kind: "starting" };
+  return { kind: "download", done: progress.done, total: progress.total };
+}
+
+export function syncPhaseLines(
+  phase: SyncPhase,
+  formatTime: (instant: Temporal.Instant) => string,
+): string[] {
+  switch (phase.kind) {
+    case "starting":
+      return [m.settings_online_status_syncing()];
+    case "rate-wait":
+      return [
+        m.settings_online_status_rate_wait({ time: formatTime(phase.until) }),
+      ];
+    case "download":
+      return [
+        phase.total === null
+          ? m.settings_online_status_downloaded({ done: String(phase.done) })
+          : m.settings_online_status_downloading({
+              done: String(phase.done),
+              total: String(phase.total),
+            }),
+      ];
+    case "waiting":
+      return [m.settings_online_status_waiting()];
+    case "apply":
+      return [
+        m.settings_online_status_applying({
+          done: String(phase.done),
+          total: String(phase.total),
+        }),
+        m.settings_online_status_searches_wait(),
+      ];
   }
 }
 
@@ -81,23 +143,26 @@ function syncText(
   sync: WebSyncStatus,
   formatTime: (instant: Temporal.Instant) => string,
 ): string {
-  const { progress } = sync;
-  if (sync.syncing && sync.rateWaitUntil)
-    return m.settings_online_status_rate_wait({
-      time: formatTime(sync.rateWaitUntil),
-    });
-  if (progress?.phase === "apply")
-    return m.settings_online_status_applying({
-      done: String(progress.done),
-      total: String(progress.total),
-    });
-  if (progress)
-    return (
-      progress.phase === "collections"
-        ? m.settings_online_status_collections
-        : m.settings_online_status_items
-    )({ done: String(progress.done), total: String(progress.total) });
-  if (sync.syncing) return m.settings_online_status_syncing();
+  const phase = syncPhaseOf(sync);
+  if (phase) return syncPhaseLines(phase, formatTime).join(" ");
+  const outcome = outcomeText(sync, formatTime);
+  return sync.fileProblem
+    ? `${outcome} ${fileProblemText(sync, sync.fileProblem)}`
+    : outcome;
+}
+
+function fileProblemText(sync: WebSyncStatus, problem: WebSyncProblem): string {
+  if (problem._tag !== "storage" || lastSyncOf(sync) === null)
+    return problemText(problem);
+  return problem.reason === "full"
+    ? m.settings_online_file_problem_storage_full()
+    : m.settings_online_file_problem_storage_failed();
+}
+
+function outcomeText(
+  sync: WebSyncStatus,
+  formatTime: (instant: Temporal.Instant) => string,
+): string {
   const last = lastSyncOf(sync);
   if (sync.problem) {
     const text = problemText(sync.problem);
@@ -142,7 +207,12 @@ export function isProblem(status: OnlineLibraryStatus): boolean {
     case "device-record":
       return true;
     case "running":
-      return status.sync.problem !== null && !status.sync.syncing;
+      return (
+        !status.sync.syncing &&
+        ((status.sync.problem !== null &&
+          status.sync.problem._tag !== "stopped") ||
+          status.sync.fileProblem !== undefined)
+      );
     default:
       return false;
   }
@@ -154,10 +224,24 @@ export interface LibrarySourceActions {
   readonly remove: boolean;
 }
 
+export type SyncStopState = "requested" | "confirmed" | "refused" | "failed";
+
+export interface SyncStop {
+  readonly syncId: number;
+  readonly state: SyncStopState;
+}
+
 export interface LibrarySourceView {
   readonly selected: "file" | "web-api";
   readonly status: OnlineLibraryStatus;
   readonly actions: LibrarySourceActions;
+  readonly stop?: SyncStop | null;
+}
+
+export function runningSyncOf(status: OnlineLibraryStatus): number | null {
+  return status.kind === "running" && status.sync.syncing
+    ? status.sync.syncId
+    : null;
 }
 
 export function viewOf(facts: {
@@ -165,11 +249,16 @@ export function viewOf(facts: {
   readonly status: OnlineLibraryStatus;
   readonly replace: number | null;
   readonly removal: boolean;
+  readonly stop?: SyncStop | null;
 }): LibrarySourceView {
-  const { status, removal } = facts;
+  const { status, removal, stop } = facts;
   return {
     selected: facts.selected,
     status,
+    stop:
+      stop && stop.syncId === runningSyncOf(status)
+        ? { syncId: stop.syncId, state: stop.state }
+        : null,
     actions: {
       syncNow: !(
         removal ||

@@ -1,8 +1,10 @@
 ---
-status: accepted
+status: amended by ADR-0120
 ---
 
 # The online library is a Web Library Replica in OPFS
+
+> **Amended by [ADR 0120](0120-the-web-library-replica-runs-on-one-connection-with-a-driver-for-each-platform.md).** Each replica has one connection, and readers wait during an apply. Desktop keeps the replica in a file through `node:sqlite`; Mobile keeps `sqlite-wasm` in OPFS.
 
 ## Context
 

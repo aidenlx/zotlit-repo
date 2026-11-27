@@ -17,6 +17,7 @@ declare module "@zotlit/plugin-services/obsidian/setting-tab/context.ts" {
     "advanced.general": unknown;
     "advanced.template-engine": unknown;
     "advanced.local-server": unknown;
+    "advanced.online-library": unknown;
     "advanced.recovery": unknown;
   }
 }
@@ -25,6 +26,7 @@ export const advancedPageSlots = {
   general: "advanced.general",
   templateEngine: "advanced.template-engine",
   localServer: "advanced.local-server",
+  onlineLibrary: "advanced.online-library",
   recovery: "advanced.recovery",
 } as const;
 
@@ -47,6 +49,7 @@ function advancedPageItems(
     ...ctx.slot(advancedPageSlots.general),
     ...ctx.slot(advancedPageSlots.templateEngine),
     ...ctx.slot(advancedPageSlots.localServer),
+    ...ctx.slot(advancedPageSlots.onlineLibrary),
     {
       type: "group",
       id: "settings_advanced_logging",

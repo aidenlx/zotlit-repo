@@ -9,6 +9,7 @@ import { Workspace } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { layerLibrarySourceActions } from "@zotlit/plugin-services/obsidian/library-source/actions.ts";
 import { windowFocus } from "@zotlit/plugin-services/obsidian/library-source/focus.ts";
+import { layerOnlineSyncNotice } from "@zotlit/plugin-services/obsidian/library-source/notices.ts";
 import {
   layerLibrarySource,
   LibrarySource,
@@ -17,6 +18,8 @@ import {
   keySecretControl,
   librarySourceItems,
   librarySourceRebuild,
+  onlineLibraryDataItems,
+  onlineLibraryDataRebuild,
 } from "@zotlit/plugin-services/obsidian/library-source/settings-rows.ts";
 import { ResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import {
@@ -24,6 +27,7 @@ import {
   registration,
   serviceGroup,
 } from "@zotlit/plugin-shell/obsidian/feature.ts";
+import { advancedPageSlots } from "@zotlit/plugin-shell/obsidian/setting-pages/advanced.ts";
 import { zoteroPageSlots } from "@zotlit/plugin-shell/obsidian/setting-pages/zotero.ts";
 import {
   layerZoteroReads,
@@ -44,7 +48,12 @@ export const desktopCapabilities = defineFeature({
       "LibrarySource",
       {
         provides: [LibrarySource],
-        requires: [ZoteroReadsWebWorker, ResourcePackPlatform, Workspace],
+        requires: [
+          ZoteroReadsWebWorker,
+          ResourcePackPlatform,
+          Workspace,
+          FileSystem.FileSystem,
+        ],
       },
       Layer.unwrap(
         Effect.map(
@@ -84,12 +93,15 @@ export const desktopCapabilities = defineFeature({
   ],
   registrations: [
     registration("LibrarySourceActions", layerLibrarySourceActions),
+    registration("OnlineSyncNotice", layerOnlineSyncNotice),
   ],
+  handles: ({ read }) => ({ librarySource: read(LibrarySource) }),
   settingTab: {
     slots: {
       [zoteroPageSlots.source]: (ctx) => librarySourceItems(ctx),
+      [advancedPageSlots.onlineLibrary]: (ctx) => onlineLibraryDataItems(ctx),
     },
-    rebuild: [librarySourceRebuild],
+    rebuild: [librarySourceRebuild, onlineLibraryDataRebuild],
     controls: [keySecretControl],
   },
 });

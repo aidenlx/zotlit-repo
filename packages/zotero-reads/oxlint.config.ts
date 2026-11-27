@@ -57,11 +57,12 @@ export default defineConfig({
         "src/worker/worker-launch.ts",
         "src/client/worker-host.ts",
         "src/client/web-worker.ts",
+        "src/desktop/replica-driver-node.test.ts",
       ],
       rules: { "zotlit-services/worker-rpc": "off" },
     },
     {
-      files: ["src/worker/serve-web.ts"],
+      files: ["src/worker/serve-web-api.ts"],
       rules: { "obsidianmd/no-restricted-globals": "off" },
     },
     {

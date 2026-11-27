@@ -56,6 +56,8 @@ export const unimplementedTabServices = Layer.mergeAll(
     reads: null,
     view: Effect.succeed(FILE_SOURCE_VIEW),
     viewChanges: Stream.make(FILE_SOURCE_VIEW),
+    otherData: Effect.succeed({ kind: "unread" }),
+    otherDataChanges: Stream.make({ kind: "unread" }),
     language: Effect.succeed({
       setting: "auto",
       automatic: "en-US",

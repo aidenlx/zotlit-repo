@@ -39,17 +39,11 @@ export interface SqliteWasmDatabase<
   readonly db: SqliteWasmDrizzle<TRelations>;
   readonly file: string;
   renew(): SqliteWasmDrizzle<TRelations>;
-  cacheStatus(): CacheStatus;
   inTransaction(): boolean;
   exec(sql: string): void;
   export(): Uint8Array;
   import(bytes: Uint8Array | ArrayBuffer): void;
   close(): void;
-}
-
-export interface CacheStatus {
-  readonly used: number;
-  readonly spills: number;
 }
 
 export interface SqliteWasm extends Disposable {
@@ -150,6 +144,7 @@ function memoryStorage(sqlite3: Sqlite3Static): Storage {
       ]) as (vfs: number, file: string) => number;
       const removed = unlink(0, file) === sqlite3.capi.SQLITE_OK;
       unlink(0, `${file}-journal`);
+      unlink(0, `${file}-wal`);
       return removed;
     },
     release() {},
@@ -210,6 +205,7 @@ async function sahPoolStorage(
     remove(file) {
       try {
         pool.unlink(`${file}-journal`);
+        pool.unlink(`${file}-wal`);
         return pool.unlink(file);
       } catch (error) {
         throw storageError("opfs-sahpool", "failed", error);
@@ -342,29 +338,6 @@ class Connection implements SqliteWasmConnection {
     return this.sqlite3.capi.sqlite3_get_autocommit(this.database()) === 0;
   }
 
-  cacheStatus(): CacheStatus {
-    const database = this.database();
-    const { capi, wasm } = this.sqlite3;
-    const status = (op: Parameters<typeof capi.sqlite3_db_status>[1]) => {
-      const stack = wasm.pstack.pointer;
-      try {
-        const current = wasm.pstack.alloc(4);
-        const highwater = wasm.pstack.alloc(4);
-        const rc = capi.sqlite3_db_status(database, op, current, highwater, 0);
-        if (rc !== capi.SQLITE_OK) {
-          throw sqliteError(this.sqlite3, rc, "sqlite3_db_status failed");
-        }
-        return wasm.peek32(current);
-      } finally {
-        wasm.pstack.restore(stack);
-      }
-    };
-    return {
-      used: status(capi.SQLITE_DBSTATUS_CACHE_USED),
-      spills: status(capi.SQLITE_DBSTATUS_CACHE_SPILL),
-    };
-  }
-
   database(): Database {
     if (this.#current) return this.#current;
     throw sqliteError(
@@ -483,9 +456,6 @@ function openDatabase<TRelations extends AnyRelations>(
       connection.renew();
       db = drizzle();
       return db;
-    },
-    cacheStatus() {
-      return connection.cacheStatus();
     },
     inTransaction() {
       return connection.inTransaction();

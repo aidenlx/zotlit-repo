@@ -134,7 +134,13 @@ describe("the Zotero language through the online library", () => {
               focused: Stream.make(true),
               webApiUrlOverride: Effect.succeed(API_URL),
               secrets: { getSecret: (id) => secrets.get(id) ?? null },
+              removesReplicaFolder: false,
               removeStoredReplica: () => Effect.void,
+              otherStoredReplicas: Effect.succeed({
+                scope: "gone-vaults",
+                folders: [],
+              }),
+              removeOtherStoredReplica: () => Effect.void,
               reload: Effect.void,
             }).pipe(
               Layer.provide([

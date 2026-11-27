@@ -15,6 +15,7 @@
     "./fake-zotero-api/scenario": "./src/__fixtures__/scenario.ts",
     "./fake-zotero-api/harness": "./src/__fixtures__/harness.ts",
     "./fake-zotero-api/reader-view": "./src/__fixtures__/reader-view.ts",
+    "./fake-zotero-api/seed": "./src/__fixtures__/seed-library.ts",
     "./package.json": "./package.json"
   },
   "scripts": {

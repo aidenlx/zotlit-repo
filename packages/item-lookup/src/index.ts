@@ -2,6 +2,7 @@ export {
   ItemIndex,
   ItemSource,
   layerItemIndex,
+  SourceChanged,
   SourceUnavailable,
   type IndexSettings,
   type PinnedItemSource,

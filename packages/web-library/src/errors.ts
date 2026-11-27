@@ -78,9 +78,10 @@ export function describeStorageFailure(
     Error.isError(error);
     error = (error as { cause?: unknown }).cause
   ) {
-    const { code, resultCode, reason } = error as {
+    const { code, resultCode, errcode, reason } = error as {
       code?: unknown;
       resultCode?: unknown;
+      errcode?: unknown;
       reason?: unknown;
     };
     if (error.name === "StorageError" && reason === "capacity")
@@ -94,6 +95,14 @@ export function describeStorageFailure(
         code === "SQLITE_FULL" ||
         (typeof resultCode === "number" && (resultCode & 0xff) === SQLITE_FULL)
       )
+        return {
+          reason: "full",
+          message: `${what}: the storage is full (${error.message})`,
+        };
+    }
+    if (code === "ERR_SQLITE_ERROR" && typeof errcode === "number") {
+      sqlite ??= error;
+      if ((errcode & 0xff) === SQLITE_FULL)
         return {
           reason: "full",
           message: `${what}: the storage is full (${error.message})`,

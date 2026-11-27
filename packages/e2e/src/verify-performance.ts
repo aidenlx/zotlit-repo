@@ -12,6 +12,7 @@ const files = [
   "src/citation-scan.e2e.ts",
   "src/query-cli.e2e.ts",
   "src/literature-notes.e2e.ts",
+  "src/online-library-sync.e2e.ts",
 ];
 const root = await getWorkspaceRoot(import.meta.dirname);
 const results = newE2eResultsDir();

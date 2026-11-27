@@ -38,6 +38,7 @@ export const EVENTS: readonly SourceEvent[] = [
   { _tag: "failed", problem: PROBLEM, served: false },
   { _tag: "finished", changed: true },
   { _tag: "finished", changed: false },
+  { _tag: "stopped" },
 ];
 
 const nameOf = (event: SourceEvent) => {
@@ -58,11 +59,7 @@ const cell = (state: SourceState, event: SourceEvent) => {
   const next = transition(state, event);
   const commands = next.commands
     .map((command) =>
-      command._tag === "publish"
-        ? `publish ${command.event._tag}`
-        : command._tag === "admit"
-          ? `admit ${command.open ? "open" : "closed"}`
-          : "warn",
+      command._tag === "publish" ? `publish ${command.event._tag}` : "warn",
     )
     .join(", ");
   return `${describe(next.state)}${commands ? ` (${commands})` : ""}`;

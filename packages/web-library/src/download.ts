@@ -71,8 +71,18 @@ export interface SyncProgress {
   readonly total: number;
 }
 
+export type LibraryCount =
+  | { readonly library: RemoteLibrary; readonly count: "pending" }
+  | {
+      readonly library: RemoteLibrary;
+      readonly count: "known";
+      readonly total: number;
+    };
+
 export interface DownloadOptions extends WebApiClientOptions {
   readonly onProgress?: (progress: SyncProgress) => void;
+  readonly onLibraryCount?: (count: LibraryCount) => void;
+  readonly onLibraries?: (libraries: readonly RemoteLibrary[]) => void;
   readonly verified?: VerifiedKey | KeyLibraries;
   readonly rebuild?: boolean;
 }
@@ -120,9 +130,27 @@ export interface DownloadReport {
   readonly needsApply: boolean;
 }
 
-function storage<A>(run: () => A): Effect.Effect<A, ReplicaStorageError> {
+type NotThenable = { readonly then?: undefined } | undefined | void;
+
+type Synchronous<A> = A &
+  (Extract<A, PromiseLike<unknown>> extends never ? unknown : never) &
+  (A extends void ? NotThenable : unknown);
+
+export type ReplicaStage = <A>(
+  write: (db: ZoteroDatabase) => Synchronous<A>,
+) => A;
+
+export const stageOn =
+  (db: ZoteroDatabase): ReplicaStage =>
+  (write) =>
+    write(db);
+
+function storage<A>(
+  stage: ReplicaStage,
+  write: (db: ZoteroDatabase) => Synchronous<A>,
+): Effect.Effect<A, ReplicaStorageError> {
   return Effect.try({
-    try: run,
+    try: () => stage(write),
     catch: (cause) =>
       new ReplicaStorageError(
         describeStorageFailure(
@@ -202,11 +230,12 @@ function atAnchor(
 }
 
 interface LibraryRun {
-  readonly db: ZoteroDatabase;
+  readonly stage: ReplicaStage;
   readonly client: WebApiClient;
   readonly library: RemoteLibrary;
   readonly group: WebApiGroup | undefined;
   readonly onProgress: ((progress: SyncProgress) => void) | undefined;
+  readonly onLibraryCount: ((count: LibraryCount) => void) | undefined;
   readonly mode: PassMode;
   readonly notesAccess: boolean;
 }
@@ -283,9 +312,9 @@ const downloadObjects = Effect.fnUntraced(function* (
     anchor,
   }: { versions: Readonly<Record<string, number>>; anchor: number },
 ) {
-  const known = yield* storage(() =>
+  const known = yield* storage(run.stage, (db) =>
     (run.mode === "rebuild" ? stagedObjectVersions : storedObjectVersions)(
-      run.db,
+      db,
       run.library,
       objectType,
     ),
@@ -308,9 +337,9 @@ const downloadObjects = Effect.fnUntraced(function* (
     (keys) =>
       Effect.gen(function* () {
         const objects = yield* fetchBatch(run, objectType, { keys, anchor });
-        yield* storage(() =>
+        yield* storage(run.stage, (db) =>
           stageObjects(
-            run.db,
+            db,
             run.library,
             objectType === "item"
               ? { items: objects as WebApiItem[] }
@@ -348,11 +377,11 @@ const stageAllSettings = (
   run: LibraryRun,
   remote: Readonly<Record<string, { readonly value: unknown }>>,
 ) =>
-  storage(() => {
-    const gone = storedGroupLastReadSettings(run.db).filter(
+  storage(run.stage, (db) => {
+    const gone = storedGroupLastReadSettings(db).filter(
       (key) => !(key in remote),
     );
-    replaceStagedSettings(run.db, run.library, {
+    replaceStagedSettings(db, run.library, {
       ...groupReadTimes(remote),
       ...Object.fromEntries(gone.map((key) => [key, null])),
     });
@@ -381,6 +410,18 @@ const reconcile = Effect.fnUntraced(function* (
   return (yield* compareInFull(run, anchor)).deleted;
 });
 
+function countLibrary(
+  run: LibraryRun,
+  collections: Readonly<Record<string, number>>,
+  items: Readonly<Record<string, number>>,
+): void {
+  run.onLibraryCount?.({
+    library: run.library,
+    count: "known",
+    total: Object.keys(collections).length + Object.keys(items).length,
+  });
+}
+
 const compareInFull = Effect.fnUntraced(function* (
   run: LibraryRun,
   anchor: number,
@@ -388,11 +429,17 @@ const compareInFull = Effect.fnUntraced(function* (
   const window = { since: 0, anchor };
   const deleted = { collections: [] as string[], items: [] as string[] };
   let fetched = 0;
+  run.onLibraryCount?.({ library: run.library, count: "pending" });
+  const maps = {
+    collection: yield* fetchVersions(run, "collection", window),
+    item: yield* fetchVersions(run, "item", window),
+  };
+  countLibrary(run, maps.collection, maps.item);
   for (const objectType of ["collection", "item"] as const) {
-    const versions = yield* fetchVersions(run, objectType, window);
+    const versions = maps[objectType];
     fetched += yield* downloadObjects(run, objectType, { versions, anchor });
-    const local = yield* storage(() =>
-      storedObjectVersions(run.db, run.library, objectType),
+    const local = yield* storage(run.stage, (db) =>
+      storedObjectVersions(db, run.library, objectType),
     );
     const gone = [...local.keys()].filter((key) => !(key in versions));
     (objectType === "item" ? deleted.items : deleted.collections).push(...gone);
@@ -401,10 +448,11 @@ const compareInFull = Effect.fnUntraced(function* (
 });
 
 const runPass = Effect.fnUntraced(function* (run: LibraryRun) {
-  const { db, client, library, group } = run;
+  const { stage, client, library, group } = run;
+  run.onLibraryCount?.({ library, count: "pending" });
   const since =
     run.mode === "incremental"
-      ? ((yield* storage(() => committedVersion(db, library))) ?? 0)
+      ? ((yield* storage(stage, (db) => committedVersion(db, library))) ?? 0)
       : 0;
   const settingsPath = `${libraryPath(library)}/settings`;
   const settings = yield* client.get(
@@ -413,9 +461,10 @@ const runPass = Effect.fnUntraced(function* (run: LibraryRun) {
       : { path: settingsPath },
   );
   if (settings.status === 304) {
+    run.onLibraryCount?.({ library, count: "known", total: 0 });
     if (group === undefined) {
       const now = yield* Clock.currentTimeMillis;
-      yield* storage(() =>
+      yield* storage(stage, (db) =>
         recordUnchanged(
           db,
           library,
@@ -424,7 +473,7 @@ const runPass = Effect.fnUntraced(function* (run: LibraryRun) {
       );
       return { outcome: "unchanged", version: since } as const;
     }
-    yield* storage(() => {
+    yield* storage(stage, (db) => {
       beginLibraryPass(db, {
         library,
         sinceVersion: since,
@@ -445,7 +494,7 @@ const runPass = Effect.fnUntraced(function* (run: LibraryRun) {
     );
   }
   const anchor = settings.libraryVersion;
-  yield* storage(() =>
+  yield* storage(stage, (db) =>
     beginLibraryPass(db, {
       library,
       sinceVersion: since,
@@ -462,19 +511,20 @@ const runPass = Effect.fnUntraced(function* (run: LibraryRun) {
       what: "a list of settings",
     });
     yield* run.mode === "incremental"
-      ? storage(() =>
+      ? storage(stage, (db) =>
           replaceStagedSettings(db, library, groupReadTimes(changed)),
         )
       : stageAllSettings(run, changed);
   }
   if (run.mode !== "incremental") {
     const { deleted, fetched } = yield* compareInFull(run, anchor);
-    yield* storage(() => completeLibraryPass(db, library, deleted));
+    yield* storage(stage, (db) => completeLibraryPass(db, library, deleted));
     return { outcome: "staged", version: anchor, fetched } as const;
   }
   const window = { since, anchor };
   const collectionVersions = yield* fetchVersions(run, "collection", window);
   const itemVersions = yield* fetchVersions(run, "item", window);
+  countLibrary(run, collectionVersions, itemVersions);
   const collections = yield* downloadObjects(run, "collection", {
     versions: collectionVersions,
     anchor,
@@ -491,7 +541,7 @@ const runPass = Effect.fnUntraced(function* (run: LibraryRun) {
       () => reconcile(run, anchor),
     ),
   );
-  yield* storage(() => {
+  yield* storage(stage, (db) => {
     if (library.type === "user" && "settings" in deleted) {
       stageSettings(
         db,
@@ -549,6 +599,15 @@ const syncLibrary = Effect.fnUntraced(function* (
         Effect.as(
           Effect.logWarning("The library could not be downloaded").pipe(
             Effect.annotateLogs({ library: label, error: error.message }),
+            Effect.andThen(
+              Effect.sync(() =>
+                run.onLibraryCount?.({
+                  library: run.library,
+                  count: "known",
+                  total: 0,
+                }),
+              ),
+            ),
           ),
           { library: run.library, outcome: "failed", error } as LibraryDownload,
         ),
@@ -656,9 +715,11 @@ const hasGroups = (key: VerifiedKey | KeyLibraries): key is KeyLibraries =>
 
 export const downloadReplica = Effect.fnUntraced(
   function* (
-    db: ZoteroDatabase,
+    stage: ReplicaStage,
     {
       onProgress,
+      onLibraries,
+      onLibraryCount,
       verified,
       rebuild = false,
       ...clientOptions
@@ -666,7 +727,7 @@ export const downloadReplica = Effect.fnUntraced(
   ): Effect.fn.Return<DownloadReport, WebLibrarySyncError> {
     const checked = verified ?? (yield* verifyKey(clientOptions));
     const { client, key } = checked;
-    yield* storage(() => ensureSyncTables(db));
+    yield* storage(stage, (db) => ensureSyncTables(db));
     const readsUser = !!key.access.user?.library;
     const groupVersions = hasGroups(checked)
       ? checked.groups
@@ -679,7 +740,7 @@ export const downloadReplica = Effect.fnUntraced(
       });
     }
     const account = { userID: key.userID, username: key.username };
-    yield* storage(() => stageAccount(db, account));
+    yield* storage(stage, (db) => stageAccount(db, account));
     const listed: ListedLibrary[] = [
       ...(readsUser
         ? [
@@ -694,11 +755,13 @@ export const downloadReplica = Effect.fnUntraced(
         (id) => ({ type: "group", id, notesAccess: true }) as const,
       ),
     ];
-    yield* storage(() => reconcileStagedLibraries(db, { listed, rebuild }));
+    yield* storage(stage, (db) =>
+      reconcileStagedLibraries(db, { listed, rebuild }),
+    );
 
     const libraries: LibraryDownload[] = [];
-    const stored = yield* storage(() => storedGroupVersions(db));
-    const unread = yield* storage(() =>
+    const stored = yield* storage(stage, (db) => storedGroupVersions(db));
+    const unread = yield* storage(stage, (db) =>
       committedLibraries(db, key.userID).filter(
         (library) =>
           !listed.some(
@@ -707,7 +770,7 @@ export const downloadReplica = Effect.fnUntraced(
       ),
     );
     for (const library of unread) {
-      yield* storage(() => stageLibraryRemoval(db, library));
+      yield* storage(stage, (db) => stageLibraryRemoval(db, library));
       libraries.push({ library, outcome: "removed" });
     }
 
@@ -720,12 +783,14 @@ export const downloadReplica = Effect.fnUntraced(
         groupVersion: version,
       })),
     ];
+    onLibraries?.(runs.map(({ library }) => library));
     for (const { library, groupVersion } of runs) {
       const group =
         groupVersion !== undefined && stored.get(library.id) !== groupVersion
           ? yield* fetchGroup(client, library.id).pipe(Effect.result)
           : undefined;
       if (group !== undefined && group._tag === "Failure") {
+        onLibraryCount?.({ library, count: "known", total: 0 });
         libraries.push({ library, outcome: "failed", error: group.failure });
         continue;
       }
@@ -734,7 +799,7 @@ export const downloadReplica = Effect.fnUntraced(
       )!;
       const mode = rebuild
         ? "rebuild"
-        : yield* storage(() =>
+        : yield* storage(stage, (db) =>
             (committedVersion(db, library) ?? 0) > 0 &&
             committedNotesAccess(db, library) !== notesAccess
               ? "compare"
@@ -742,17 +807,18 @@ export const downloadReplica = Effect.fnUntraced(
           );
       libraries.push(
         yield* syncLibrary({
-          db,
+          stage,
           client,
           library,
           group: group?.success,
           onProgress,
+          onLibraryCount,
           mode,
           notesAccess,
         }),
       );
     }
-    const needsApply = yield* storage(() => hasStagedPasses(db));
+    const needsApply = yield* storage(stage, (db) => hasStagedPasses(db));
     return { account, libraries, needsApply };
   },
   withLogCategory("zotlit", "web-library"),

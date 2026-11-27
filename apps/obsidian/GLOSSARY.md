@@ -959,12 +959,20 @@ The Library Source that reads a Web Library Replica, kept current from the Zoter
 _Avoid_: cloud source, sync source, online mode, Zotero sync
 
 **Web Library Replica**:
-A read-only copy of a Zotero account's libraries on one device, in the layout of the Zotero database, built and kept current from the Zotero Web API. Its item IDs are its own; an item keeps its Zotero key. User-facing copy calls it "online library data".
+A read-only copy of a Zotero account's libraries for one vault on one device, in the layout of the Zotero database, built and kept current from the Zotero Web API. Its item IDs are its own; an item keeps its Zotero key. User-facing copy calls it "online library data".
 _Avoid_: snapshot (a Snapshot is a pinned database state), cache, mirror, local database
 
 **Replica Consent** _(Web Library Replica)_:
 The Zotero account whose libraries the device agreed to hold in its Web Library Replica. The first accepted key sets it; a key of another account leaves the replica as it is until the user chooses to replace the data, and removing the online library data clears it.
 _Avoid_: account binding, login, authorization (Write Authorization is a different grant)
+
+**Replica Store** _(Web Library Replica)_:
+The Worker module that keeps the storage rules of a Web Library Replica on its one connection: when a read may borrow the replica, the short staging writes of a download, the apply of a sync as one transaction, and the last commit that the status reports.
+_Avoid_: replica cache, database manager
+
+**Replica Driver** _(Web Library Replica)_:
+The port under the Replica Store that opens, renews and removes the replica file on one platform's SQLite engine and sets that platform's pragmas: `node:sqlite` on desktop, `sqlite-wasm` on Mobile.
+_Avoid_: adapter (each platform's implementation is an adapter of the driver), backend
 
 ### Releases and onboarding
 

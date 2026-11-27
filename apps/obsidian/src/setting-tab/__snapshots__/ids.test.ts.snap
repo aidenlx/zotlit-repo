@@ -120,6 +120,10 @@ settings_pages
       settings_live_updates_port
       settings_local_server_active_port
       settings_live_updates_hostname
+    settings_online_data
+      settings_online_data_this
+      settings_online_data_others
+    settings_online_data_list
     settings_advanced_logging
       settings_log_level
       settings_log_to_file

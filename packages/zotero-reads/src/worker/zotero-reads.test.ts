@@ -39,7 +39,7 @@ import { Connection } from "./connection.ts";
 import type { HandlersOptions, QueryJobRunner } from "./handlers.ts";
 import { makeInProcessClient } from "./in-process.ts";
 import { layerUnpinnedConnectionItemSource } from "./item-source.ts";
-import { layerAbsentFileSystem } from "./serve-web.ts";
+import { layerAbsentFileSystem } from "./serve-web-api.ts";
 import { exportItemSnapshot } from "./snapshot/export.ts";
 
 import {

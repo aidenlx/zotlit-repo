@@ -5,13 +5,16 @@ import type {
 import type {
   LibrarySourceKind,
   LibrarySourceView,
+  OtherDataView,
 } from "#obsidian/library-source/service.ts";
 import type { OnlineLibraryStatus } from "#obsidian/library-source/status.ts";
+import type { StoredReplicaFolder } from "#obsidian/library-source/stored-replica.ts";
 import type { SettingTabContext } from "#obsidian/setting-tab/context.ts";
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
 import {
   Cause,
+  DateTime,
   Effect,
   Exit,
   Layer,
@@ -21,17 +24,25 @@ import {
   SubscriptionRef,
 } from "effect";
 import { TestClock } from "effect/testing";
-import type { SettingDefinitionItem, SettingGroupItem } from "obsidian";
+import type {
+  SettingDefinitionItem,
+  SettingDefinitionList,
+  SettingGroupItem,
+} from "obsidian";
+import { vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import {
   ButtonComponent,
+  ConfirmationModal,
   DropdownComponent,
   ExtraButtonComponent,
   renderRow,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { UserCancelled } from "@zotlit/plugin-kernel/user-cancel.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {
   ZoteroReadsApi,
@@ -58,8 +69,11 @@ import {
   keySecretControl,
   librarySourceItems,
   librarySourceRebuild,
+  onlineLibraryDataItems,
+  onlineLibraryDataRebuild,
   WEB_API_KEY_CONTROL,
 } from "#obsidian/library-source/settings-rows.ts";
+import { formatSyncTime } from "#obsidian/library-source/status.ts";
 import {
   PluginSettings,
   SettingsMutationError,
@@ -378,14 +392,10 @@ it.effect("ends a done refresh with no failure", () =>
 const ONLINE_SYNCING: WebSyncStatus = {
   state: "loading",
   syncing: true,
+  syncId: 1,
   waitingForReaders: false,
   problem: null,
-  progress: {
-    library: { type: "user", id: 42 },
-    phase: "items",
-    done: 100,
-    total: 2500,
-  },
+  progress: { phase: "download", done: 100, total: 2500 },
   zoteroLocale: "en-US",
   unconsentedUserID: null,
   libraries: [],
@@ -409,6 +419,7 @@ const setupSource = Effect.fn("setupSource")(function* (
   ) =>
     SubscriptionRef.update(view, (before) => ({ ...before, status, actions }));
   const calls: string[] = [];
+  let userStopsSync = false;
   let keySecret: string | null = null;
   const services = yield* Layer.build(
     Layer.mergeAll(
@@ -431,8 +442,9 @@ const setupSource = Effect.fn("setupSource")(function* (
             keySecret = name;
             calls.push(`selectKeySecret:${name}`);
           }),
-        syncNow: Effect.sync(() => {
+        syncNow: Effect.suspend(() => {
           calls.push("syncNow");
+          return userStopsSync ? Effect.fail(new UserCancelled()) : Effect.void;
         }),
         reload: Effect.sync(() => {
           calls.push("reload");
@@ -451,7 +463,7 @@ const setupSource = Effect.fn("setupSource")(function* (
       ),
     ),
   );
-  const { tab } = recordingRuns((yield* scopedSettingTab(services)).tab);
+  const { tab, runs } = recordingRuns((yield* scopedSettingTab(services)).tab);
   const ctx = stubService<SettingTabContext>("SettingTabContext", {
     tab,
     app: {} as SettingTabContext["app"],
@@ -481,7 +493,18 @@ const setupSource = Effect.fn("setupSource")(function* (
           (setting.desc as unknown as DocumentFragment).textContent ?? "",
       };
     });
-  return { show, calls, row, visible, render, services };
+  return {
+    show,
+    calls,
+    row,
+    visible,
+    render,
+    services,
+    runs,
+    stopSyncs: () => {
+      userStopsSync = true;
+    },
+  };
 });
 
 it.effect(
@@ -625,7 +648,7 @@ it.effect("shows the state of the online library and syncs on Sync now", () =>
     });
     yield* TestClock.adjust("0 millis");
     expect(text()).toBe(
-      m.settings_online_status_items({ done: 100, total: 2500 }),
+      m.settings_online_status_downloading({ done: 100, total: 2500 }),
     );
 
     yield* show({
@@ -668,6 +691,27 @@ it.effect("shows the state of the online library and syncs on Sync now", () =>
   }).pipe(Effect.scoped),
 );
 
+it.effect("reports no failure for a Sync now that the user stopped", () =>
+  Effect.gen(function* () {
+    const { render, show, runs, stopSyncs } = yield* setupSource("web-api");
+    yield* show({
+      kind: "running",
+      sync: { ...ONLINE_SYNCING, syncing: false, progress: null },
+      account: null,
+      serverSchemaVersion: null,
+    });
+    const { setting } = yield* render("settings_online_status");
+    stopSyncs();
+    (
+      setting.components.find(
+        (component) => component instanceof ButtonComponent,
+      ) as ButtonComponent
+    ).click();
+    yield* TestClock.adjust("0 millis");
+    expect(runs.map((run) => run.exit._tag)).toEqual(["Success"]);
+  }).pipe(Effect.scoped),
+);
+
 it.effect(
   "lists Automatic with the resolved language, then each language of Zotero by name",
   () =>
@@ -691,4 +735,272 @@ it.effect(
       expect(options["de"]).toBe("German");
       expect(options["en-US"]).toBe("American English");
     }).pipe(Effect.scoped),
+);
+
+const unitText = (size: number, unit: string) =>
+  new Intl.NumberFormat(undefined, {
+    style: "unit",
+    unit,
+    maximumFractionDigits: 1,
+  }).format(size);
+
+const GONE: StoredReplicaFolder = {
+  id: "removedvault0001",
+  bytes: 52_400_000,
+  changed: DateTime.makeUnsafe("2026-09-03T10:30:00Z"),
+};
+const EMPTY: StoredReplicaFolder = {
+  id: "removedvault0002",
+  bytes: 0,
+  changed: null,
+};
+
+const setupOtherData = Effect.fn("setupOtherData")(function* (
+  listed: OtherDataView,
+) {
+  const data = yield* SubscriptionRef.make<OtherDataView>({ kind: "unread" });
+  const calls: string[] = [];
+  const services = yield* Layer.build(
+    Layer.mock(LibrarySource)({
+      active: "file",
+      reads: null,
+      otherData: SubscriptionRef.get(data),
+      otherDataChanges: SubscriptionRef.changes(data),
+      readOtherData: Effect.andThen(
+        Effect.sync(() => calls.push("readOtherData")),
+        SubscriptionRef.set(data, listed),
+      ),
+      removeOtherData: (id) =>
+        Effect.sync(() => {
+          calls.push(`removeOtherData:${id}`);
+        }),
+      removeData: Effect.sync(() => {
+        calls.push("removeData");
+      }),
+    }),
+  );
+  const { tab } = recordingRuns((yield* scopedSettingTab(services)).tab);
+  const ctx = stubService<SettingTabContext>("SettingTabContext", {
+    tab,
+    app: {} as SettingTabContext["app"],
+  });
+  const page = () => {
+    const [group, list] = onlineLibraryDataItems(ctx) as unknown as [
+      { readonly items: SettingDefinitionItem<string>[] },
+      SettingDefinitionList<string>,
+    ];
+    const row = (id: string) => {
+      const found = group.items.find(
+        (item) => (item as SettingGroupItem<string>).id === id,
+      ) as SettingGroupItem<string> | undefined;
+      if (!found) throw new Error(`Expected a row: ${id}`);
+      return found;
+    };
+    return { row, list };
+  };
+  return { calls, services, page, data };
+});
+
+const confirmation = () => {
+  const labels = vi.spyOn(ButtonComponent.prototype, "setButtonText");
+  const clicks = vi.spyOn(ButtonComponent.prototype, "onClick");
+  const titles = vi.spyOn(ConfirmationModal.prototype, "setTitle");
+  const opened = vi
+    .spyOn(ConfirmationModal.prototype, "open")
+    .mockImplementation(() => {});
+  return {
+    title: () => titles.mock.calls.at(-1)?.[0],
+    content: () =>
+      (opened.mock.instances.at(-1) as ConfirmationModal | undefined)?.contentEl
+        .textContent,
+    press: (label: string) => {
+      const index = labels.mock.calls.findLastIndex(([text]) => text === label);
+      clicks.mock.calls[index]![0]({} as MouseEvent);
+    },
+    cancel: () => (opened.mock.instances.at(-1) as ConfirmationModal).close(),
+    restore: () => vi.restoreAllMocks(),
+  };
+};
+
+const descOf = (item: { readonly desc?: unknown }) =>
+  item.desc instanceof DocumentFragment
+    ? item.desc.textContent
+    : (item.desc as string | undefined);
+
+it.effect(
+  "reads the data of vaults that Obsidian no longer knows when the page shows, and lists each folder with its size and last change",
+  () =>
+    Effect.gen(function* () {
+      const { calls, page } = yield* setupOtherData({
+        kind: "listed",
+        scope: "gone-vaults",
+        folders: [GONE, EMPTY],
+      });
+      expect(page().list.items).toEqual([]);
+      expect(page().list.emptyState).toBe(
+        m.settings_online_data_others_reading(),
+      );
+
+      const shown = renderRow(page().row("settings_online_data_others"));
+      yield* TestClock.adjust("0 millis");
+      expect(calls).toEqual(["readOtherData"]);
+      shown.cleanup?.();
+
+      const { row, list } = page();
+      expect(descOf(row("settings_online_data_others"))).toBe(
+        m.settings_online_data_others_gone_desc(),
+      );
+      expect(
+        (list.items ?? []).map((item) => [item.name, descOf(item)]),
+      ).toEqual([
+        [
+          GONE.id,
+          m.settings_online_data_folder_desc({
+            size: unitText(52.4, "megabyte"),
+            changed: formatSyncTime(toInstant(GONE.changed!)),
+          }),
+        ],
+        [EMPTY.id, unitText(0, "kilobyte")],
+      ]);
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "removes a listed folder only after the confirmation, and keeps it when the confirmation is cancelled",
+  () =>
+    Effect.gen(function* () {
+      const { calls, page, services } = yield* setupOtherData({
+        kind: "listed",
+        scope: "gone-vaults",
+        folders: [GONE, EMPTY],
+      });
+      yield* LibrarySource.use((s) => s.readOtherData).pipe(
+        Effect.provideContext(services),
+      );
+      const dialog = confirmation();
+      try {
+        page().list.onDelete!(1);
+        yield* TestClock.adjust("0 millis");
+        expect(dialog.title()).toBe(
+          m.modal_online_data_remove_title({ id: EMPTY.id }),
+        );
+        dialog.cancel();
+        yield* TestClock.adjust("0 millis");
+        expect(calls).toEqual(["readOtherData"]);
+
+        page().list.onDelete!(0);
+        yield* TestClock.adjust("0 millis");
+        expect(dialog.content()).toBe(
+          m.modal_online_data_remove_gone_content(),
+        );
+        dialog.press(m.modal_online_remove_action());
+        yield* TestClock.adjust("0 millis");
+        expect(calls).toEqual(["readOtherData", `removeOtherData:${GONE.id}`]);
+      } finally {
+        dialog.restore();
+      }
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "warns on the Mobile path that another vault on the device may use a folder and then downloads its online library again",
+  () =>
+    Effect.gen(function* () {
+      const { page, services } = yield* setupOtherData({
+        kind: "listed",
+        scope: "other-folders",
+        folders: [GONE],
+      });
+      yield* LibrarySource.use((s) => s.readOtherData).pipe(
+        Effect.provideContext(services),
+      );
+      expect(descOf(page().row("settings_online_data_others"))).toBe(
+        m.settings_online_data_others_shared_desc(),
+      );
+      const dialog = confirmation();
+      try {
+        page().list.onDelete!(0);
+        yield* TestClock.adjust("0 millis");
+        expect(dialog.content()).toBe(
+          m.modal_online_data_remove_shared_content(),
+        );
+      } finally {
+        dialog.restore();
+      }
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "names the reason when the data of other vaults cannot be read, and offers no folder",
+  () =>
+    Effect.gen(function* () {
+      const reason = "ZotLit could not read the vault list of Obsidian";
+      const { page, services } = yield* setupOtherData({
+        kind: "unreadable",
+        message: reason,
+      });
+      yield* LibrarySource.use((s) => s.readOtherData).pipe(
+        Effect.provideContext(services),
+      );
+      expect(descOf(page().row("settings_online_data_others"))).toContain(
+        reason,
+      );
+      expect(page().list.items).toEqual([]);
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "removes the data of this vault through the same confirmation and action as Remove online library data",
+  () =>
+    Effect.gen(function* () {
+      const { calls, page } = yield* setupOtherData({
+        kind: "listed",
+        scope: "gone-vaults",
+        folders: [],
+      });
+      const dialog = confirmation();
+      try {
+        const row = page().row("settings_online_data_this") as {
+          readonly desc?: unknown;
+          readonly action: (el: HTMLElement, index: number) => void;
+        };
+        expect(descOf(row)).toBe(m.settings_online_remove_desc());
+        row.action(document.createElement("div"), 0);
+        yield* TestClock.adjust("0 millis");
+        expect(dialog.title()).toBe(m.modal_online_remove_title());
+        expect(dialog.content()).toBe(m.modal_online_remove_content());
+        dialog.press(m.modal_online_remove_action());
+        yield* TestClock.adjust("0 millis");
+        expect(calls).toEqual(["removeData"]);
+      } finally {
+        dialog.restore();
+      }
+    }).pipe(Effect.scoped),
+);
+
+it.effect("redraws the page when the list of other folders changes", () =>
+  Effect.gen(function* () {
+    const { services, data } = yield* setupOtherData({ kind: "unread" });
+    const rebuilds = yield* Queue.unbounded<string>();
+    yield* (yield* onlineLibraryDataRebuild.pipe(
+      Effect.provideContext(services),
+    )).pipe(
+      Stream.runForEach((signal) => Queue.offer(rebuilds, signal)),
+      Effect.forkScoped,
+    );
+    yield* TestClock.adjust("0 millis");
+    yield* SubscriptionRef.set(data, {
+      kind: "listed",
+      scope: "gone-vaults",
+      folders: [GONE],
+    });
+    yield* TestClock.adjust("0 millis");
+    yield* SubscriptionRef.set(data, {
+      kind: "listed",
+      scope: "gone-vaults",
+      folders: [GONE],
+    });
+    yield* TestClock.adjust("0 millis");
+    expect(yield* Queue.size(rebuilds)).toBe(1);
+  }).pipe(Effect.scoped),
 );

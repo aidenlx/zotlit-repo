@@ -8,18 +8,26 @@ import type {
   ButtonComponent,
   Setting,
   SettingDefinitionItem,
+  SettingDefinitionList,
   SettingGroupItem,
 } from "obsidian";
 
 import { awaitConfirm } from "@zotlit/obsidian-kit/confirm.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZOTERO_LOCALES } from "@zotlit/zotero-compat";
 
-import type { LibrarySourceKind, LibrarySourceView } from "./service.ts";
+import type {
+  LibrarySourceKind,
+  LibrarySourceView,
+  OtherDataScope,
+  OtherDataView,
+} from "./service.ts";
 import { LibrarySource } from "./service.ts";
 import type { OnlineLibraryStatus } from "./status.ts";
 import { formatSyncTime, isProblem, statusText } from "./status.ts";
+import type { StoredReplicaFolder } from "./stored-replica.ts";
 
 import { AUTOMATIC_ZOTERO_LANGUAGE } from "#core/database/settings.ts";
 import { paintEach } from "#obsidian/setting-tab/effect-tab.ts";
@@ -147,7 +155,11 @@ function renderStatusRow(setting: Setting, ctx: SettingTabContext): () => void {
       .onClick(
         () =>
           void ctx.tab.run(
-            Effect.flatMap(source, (s) => s.syncNow),
+            Effect.flatMap(source, (s) =>
+              s.syncNow.pipe(
+                Effect.catchTag("UserCancelled", () => Effect.void),
+              ),
+            ),
             m.settings_failed_online_sync(),
           ),
       );
@@ -225,28 +237,31 @@ function languageItem(ctx: SettingTabContext): SettingGroupItem<SettingsKey> {
   };
 }
 
+function confirmRemoveData(ctx: SettingTabContext): void {
+  void ctx.tab.run(
+    Effect.gen(function* () {
+      const confirmed = yield* awaitConfirm(
+        {
+          title: m.modal_online_remove_title(),
+          content: m.modal_online_remove_content(),
+          action: m.modal_online_remove_action(),
+          cancel: m.modal_online_remove_cancel(),
+          destructive: true,
+        },
+        ctx.app,
+      );
+      if (confirmed) yield* (yield* source).removeData;
+    }),
+    m.settings_failed_online_remove(),
+  );
+}
+
 function removeItem(ctx: SettingTabContext): SettingGroupItem<SettingsKey> {
   return {
     id: "settings_online_remove",
     name: m.settings_online_remove_name(),
     desc: m.settings_online_remove_desc(),
-    action: () =>
-      void ctx.tab.run(
-        Effect.gen(function* () {
-          const confirmed = yield* awaitConfirm(
-            {
-              title: m.modal_online_remove_title(),
-              content: m.modal_online_remove_content(),
-              action: m.modal_online_remove_action(),
-              cancel: m.modal_online_remove_cancel(),
-              destructive: true,
-            },
-            ctx.app,
-          );
-          if (confirmed) yield* (yield* source).removeData;
-        }),
-        m.settings_failed_online_remove(),
-      ),
+    action: () => confirmRemoveData(ctx),
   };
 }
 
@@ -272,6 +287,145 @@ function reloadItem(ctx: SettingTabContext): SettingGroupItem<SettingsKey> {
       );
     },
   };
+}
+
+const otherData = Effect.flatMap(source, (s) => s.otherData);
+
+const otherDataKey = (data: OtherDataView): string =>
+  data.kind === "listed"
+    ? JSON.stringify([
+        data.scope,
+        data.folders.map(({ id, bytes, changed }) => [
+          id,
+          bytes,
+          changed?.epochMilliseconds ?? null,
+        ]),
+      ])
+    : data.kind === "unreadable"
+      ? `unreadable:${data.message}`
+      : "unread";
+
+export const onlineLibraryDataRebuild = Effect.map(LibrarySource, (service) =>
+  service.otherDataChanges.pipe(
+    Stream.map((data) => otherDataKey(data)),
+    Stream.changes,
+    Stream.drop(1),
+  ),
+);
+
+function dataSize(bytes: number): string {
+  const [unit, size] =
+    bytes >= 1e9
+      ? (["gigabyte", bytes / 1e9] as const)
+      : bytes >= 1e6
+        ? (["megabyte", bytes / 1e6] as const)
+        : (["kilobyte", bytes / 1e3] as const);
+  return new Intl.NumberFormat(undefined, {
+    style: "unit",
+    unit,
+    maximumFractionDigits: 1,
+  }).format(size);
+}
+
+function folderDesc({ bytes, changed }: StoredReplicaFolder): string {
+  const size = dataSize(bytes);
+  return changed
+    ? m.settings_online_data_folder_desc({
+        size,
+        changed: formatSyncTime(toInstant(changed)),
+      })
+    : size;
+}
+
+function othersDesc(data: OtherDataView): string | DocumentFragment {
+  if (data.kind === "listed")
+    return data.scope === "gone-vaults"
+      ? m.settings_online_data_others_gone_desc()
+      : m.settings_online_data_others_shared_desc();
+  if (data.kind === "unread") return m.settings_online_data_others_reading();
+  const desc = createFragment();
+  desc.append(createSpan({ cls: "mod-warning", text: data.message }));
+  return desc;
+}
+
+function confirmRemoveOther(
+  ctx: SettingTabContext,
+  scope: OtherDataScope,
+  folder: StoredReplicaFolder,
+): void {
+  void ctx.tab.run(
+    Effect.gen(function* () {
+      const confirmed = yield* awaitConfirm(
+        {
+          title: m.modal_online_data_remove_title({ id: folder.id }),
+          content:
+            scope === "gone-vaults"
+              ? m.modal_online_data_remove_gone_content()
+              : m.modal_online_data_remove_shared_content(),
+          action: m.modal_online_remove_action(),
+          cancel: m.modal_online_remove_cancel(),
+          destructive: true,
+        },
+        ctx.app,
+      );
+      if (confirmed) yield* (yield* source).removeOtherData(folder.id);
+    }),
+    m.settings_failed_online_remove(),
+  );
+}
+
+export function onlineLibraryDataItems(
+  ctx: SettingTabContext,
+): SettingDefinitionItem<SettingsKey>[] {
+  const data = ctx.tab.sync(otherData);
+  const list: SettingDefinitionList<SettingsKey> = {
+    type: "list",
+    id: "settings_online_data_list",
+    emptyState:
+      data.kind === "listed"
+        ? m.settings_online_data_others_empty()
+        : data.kind === "unread"
+          ? m.settings_online_data_others_reading()
+          : data.message,
+    ...(data.kind === "listed" && {
+      onDelete: (index: number) => {
+        const folder = data.folders[index];
+        if (folder) confirmRemoveOther(ctx, data.scope, folder);
+      },
+    }),
+    items:
+      data.kind === "listed"
+        ? data.folders.map((folder) => ({
+            id: `settings_online_data_folder:${folder.id}`,
+            name: folder.id,
+            desc: folderDesc(folder),
+            searchable: false,
+          }))
+        : [],
+  };
+  return [
+    {
+      type: "group",
+      id: "settings_online_data",
+      heading: m.settings_online_data_heading(),
+      items: [
+        {
+          id: "settings_online_data_this",
+          name: m.settings_online_data_this_name(),
+          desc: m.settings_online_remove_desc(),
+          action: () => confirmRemoveData(ctx),
+        },
+        {
+          id: "settings_online_data_others",
+          name: m.settings_online_data_others_name(),
+          desc: othersDesc(data),
+          render: () =>
+            ctx.tab.mount(Effect.flatMap(source, (s) => s.readOtherData)),
+        },
+      ],
+    },
+    list,
+  ];
 }
 
 export function librarySourceItems(

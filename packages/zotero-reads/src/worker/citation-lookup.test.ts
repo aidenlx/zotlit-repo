@@ -284,11 +284,11 @@ it.effect("retries a failed old-client build after refresh", () =>
             ...source,
             borrow: Effect.tap(source.borrow, () => {
               borrows += 1;
-              if (borrows === 2)
+              if (borrows === 3)
                 return Deferred.succeed(entered, undefined).pipe(
                   Effect.andThen(Deferred.await(release)),
                 );
-              if (borrows === 3) return Deferred.succeed(joined, undefined);
+              if (borrows === 4) return Deferred.succeed(joined, undefined);
               return Effect.void;
             }),
           };
@@ -467,7 +467,7 @@ it.effect.each(["construction", "comparison"] as const)(
           const waiting = yield* Effect.forkChild(lookup(rebuild));
           const candidate = yield* Deferred.await(reached);
           expect(candidate.pollUnsafe()).toBeUndefined();
-          expect(borrows).toBe(1);
+          expect(borrows).toBe(0);
           yield* Fiber.interrupt(candidate);
           expect(Exit.hasInterrupts(yield* Fiber.await(waiting))).toBe(true);
           expect(borrows).toBe(0);

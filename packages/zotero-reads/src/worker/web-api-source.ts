@@ -1,6 +1,7 @@
 import type { ReadsConfig, WebApiReadsConfig } from "#contract/rpc.ts";
 import type {
   WebSyncProblem,
+  WebSyncProgress,
   WebSyncStatus,
 } from "#contract/web-worker-rpc.ts";
 import type { Duration } from "effect";
@@ -13,23 +14,17 @@ import {
   Effect,
   Exit,
   Fiber,
-  Latch,
   Layer,
+  PubSub,
   Redacted,
   Scope,
   Semaphore,
+  Stream,
+  SubscriptionRef,
 } from "effect";
 
 import type { ZoteroDatabase } from "@zotlit/db";
-import { openWasmClient } from "@zotlit/db/client/wasm";
-import type { WasmDatabaseClient } from "@zotlit/db/client/wasm";
-import { checkDatabaseLayout } from "@zotlit/db/item-query";
-import { createReplica, ensureSyncTables } from "@zotlit/db/replica";
-import type { SqliteWasm } from "@zotlit/drizzle-sqlite-wasm";
-import {
-  monotonicMillis,
-  toInstant,
-} from "@zotlit/plugin-kernel/worker/effect-clock.ts";
+import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/worker/effect-log-category.ts";
 import {
   applyDownloadSteps,
@@ -45,23 +40,19 @@ import {
 } from "@zotlit/web-library";
 import type {
   AppliedLibrary as AppliedLibraryResult,
-  ApplyStep,
   DownloadReport,
+  RemoteLibrary,
   RequestPause,
   WebApiFetch,
   WebLibrarySyncError,
 } from "@zotlit/web-library";
 
-import type { OpenClient } from "./connection.ts";
-import {
-  Connection,
-  makeClientRef,
-  makeDatabaseGenerations,
-  webApiSourceIdentity,
-} from "./connection.ts";
+import { Connection, webApiSourceIdentity } from "./connection.ts";
 import { makeKeyPauses } from "./key-pauses.ts";
-import { makeReadGate } from "./read-gate.ts";
+import type { ReplicaDriver } from "./replica-driver.ts";
 import { plan, planAccount } from "./replica-plan.ts";
+import type { Readable, ReplicaObserver } from "./replica-store.ts";
+import { APPLY_SLICE_MILLIS, makeReplicaStore } from "./replica-store.ts";
 import type {
   SourceCommand,
   SourceEvent,
@@ -69,7 +60,6 @@ import type {
 } from "./web-api-machine.ts";
 import {
   describe,
-  errorOf,
   INITIAL,
   problemOfState,
   readState,
@@ -80,46 +70,46 @@ import {
 import { makeChangeFeed } from "#contract/change-feed.ts";
 import { DbUnavailable } from "#contract/rpc.ts";
 import { webApiSourceId } from "#contract/source-identity.ts";
-
-export const REPLICA_FILE = "zotero-replica.sqlite";
+import { REPLICA_FILE } from "#contract/web-worker.ts";
 
 export interface ApplySlicing {
   readonly pageSize: number;
   readonly sliceMillis: number;
-  readonly dirtyBudgetBytes: number;
 }
 
 export const APPLY_SLICING: ApplySlicing = {
   pageSize: 50,
-  sliceMillis: 8,
-  dirtyBudgetBytes: 32 * 2 ** 20,
+  sliceMillis: APPLY_SLICE_MILLIS,
 };
-
-const UNBOUNDED_CACHE_KIB = 1_048_576;
-const TRIM_CACHE_PAGES = 16;
 
 export class WebLibrarySync extends Context.Service<
   WebLibrarySync,
   {
     readonly status: Effect.Effect<WebSyncStatus>;
     readonly removeReplica: Effect.Effect<void, DbUnavailable>;
+    readonly progress: Stream.Stream<WebSyncProgress | null>;
+    stopSync(syncId: number): Effect.Effect<boolean>;
   }
 >()("zotlit/zotero-reads/WebLibrarySync") {}
 
 export interface WebApiSourceOptions {
-  readonly engine: Effect.Effect<SqliteWasm, DbUnavailable>;
+  readonly driver: Effect.Effect<ReplicaDriver, DbUnavailable>;
   readonly fetch: WebApiFetch;
   readonly initial: WebApiReadsConfig;
   readonly file?: string;
   readonly holdBack?: Duration.Input;
   readonly slicing?: Partial<ApplySlicing>;
   readonly betweenSlices?: Effect.Effect<void>;
+  readonly observer?: ReplicaObserver;
 }
 
 interface RunningSync {
+  readonly id: number;
   readonly done: Deferred.Deferred<void, DbUnavailable>;
   fiber?: Fiber.Fiber<void>;
   superseded?: boolean;
+  applying?: boolean;
+  stopped?: boolean;
 }
 
 const logDebug = (message: string, annotations: Record<string, unknown> = {}) =>
@@ -159,10 +149,6 @@ export function problemOf(error: WebLibrarySyncError): WebSyncProblem {
   }
 }
 
-function unavailableProblem(cause: DbUnavailable): WebSyncProblem {
-  return { _tag: "storage", reason: "failed", message: cause.message };
-}
-
 function failedLibraries(report: DownloadReport): WebSyncProblem | null {
   for (const download of report.libraries) {
     if (
@@ -189,6 +175,8 @@ function failedLibraries(report: DownloadReport): WebSyncProblem | null {
   };
 }
 
+const libraryKey = ({ type, id }: RemoteLibrary): string => `${type}:${id}`;
+
 function synced(db: ZoteroDatabase): boolean {
   return readSyncStatus(db).some((library) => library.lastSync !== null);
 }
@@ -207,21 +195,12 @@ export function layerWebApiSource(
   return Layer.effectContext(
     Effect.gen(function* () {
       const lifetime = yield* Scope.Scope;
-      const gate = yield* makeReadGate(options.holdBack);
       const lifecycle = yield* Semaphore.make(1);
-      const settled = yield* Latch.make(false);
-      const generations = makeDatabaseGenerations();
       let config = options.initial;
-      let engine: SqliteWasm | null = null;
       const slicing = { ...APPLY_SLICING, ...options.slicing };
-      const betweenSlices = options.betweenSlices ?? Effect.yieldNow;
-      let handle: WasmDatabaseClient | null = null;
-      let reader: WasmDatabaseClient | null = null;
-      let writerExclusive = false;
-      let lastLibraries: WebSyncStatus["libraries"] = [];
       let machine: SourceState = INITIAL;
       let running: RunningSync | null = null;
-      let lastLocale: string | null = null;
+      let lastSyncId = 0;
       let rateWaitUntil = 0;
       const endpointPauses = new Map<string, RequestPause>();
       const keyPauses = makeKeyPauses();
@@ -242,6 +221,20 @@ export function layerWebApiSource(
           };
         });
 
+      const readable = yield* SubscriptionRef.make<Readable>(
+        readState(machine),
+      );
+      const store = yield* makeReplicaStore({
+        driver: options.driver,
+        file,
+        readable,
+        onUnavailable: (problem) => step({ _tag: "open-failed", problem }),
+        holdBack: options.holdBack,
+        sliceMillis: slicing.sliceMillis,
+        betweenSlices: options.betweenSlices,
+        observer: options.observer,
+      });
+
       const { publish, changes } = yield* makeChangeFeed(() => [
         { _tag: "state", ...readState(machine) },
       ]);
@@ -250,8 +243,6 @@ export function layerWebApiSource(
         switch (command._tag) {
           case "publish":
             return publish(command.event);
-          case "admit":
-            return command.open ? settled.open : settled.close;
           case "warn-sync-failed":
             return logWarning("Web Library sync failed", {
               problem: command.problem._tag,
@@ -264,110 +255,33 @@ export function layerWebApiSource(
           const next = transition(before, event);
           machine = next.state;
           return Effect.andThen(
-            event._tag === "progress"
-              ? Effect.void
-              : logDebug("Web Library source transition", {
-                  machine: "web-api-source",
-                  from: describe(before),
-                  event: event._tag,
-                  to: describe(next.state),
-                }),
-            Effect.forEach(next.commands, (command) => run(command), {
-              discard: true,
-            }),
-          );
-        });
-      const progressTo = (progress: WebSyncStatus["progress"]) => {
-        machine = transition(machine, { _tag: "progress", progress }).state;
-      };
-
-      const wrap = (db: ZoteroDatabase) =>
-        Effect.gen(function* () {
-          const open: OpenClient = { client: db, close: Effect.void };
-          yield* generations.record(open, null);
-          return open;
-        });
-
-      const current = Effect.suspend(() =>
-        reader
-          ? wrap(reader.db)
-          : Effect.fail(
-              errorOf(machine) ??
-                new DbUnavailable({ message: "The replica is not open" }),
-            ),
-      );
-      const clients = yield* makeClientRef(current);
-
-      const openWriter = (loaded: SqliteWasm) => {
-        const database = openWasmClient(loaded, { file, jit: true });
-        try {
-          database.exec(
-            `pragma temp_store = memory; pragma cache_size = -${Math.floor(slicing.dirtyBudgetBytes / 1024)}`,
-          );
-          const empty =
-            database.db.get("select 1 from sqlite_master limit 1") ===
-            undefined;
-          if (empty) createReplica(database.db);
-          else ensureSyncTables(database.db);
-          checkDatabaseLayout(database.db);
-          return database;
-        } catch (cause) {
-          database.close();
-          throw cause;
-        }
-      };
-
-      const openHandle = Effect.gen(function* () {
-        if (handle) return handle;
-        engine ??= yield* Effect.mapError(options.engine, (cause) =>
-          unavailableProblem(cause),
-        );
-        const loaded = engine;
-        const kept = reader;
-        const opened = yield* Effect.try({
-          try: () => {
-            const database = openWriter(loaded);
-            let read: WasmDatabaseClient | undefined;
-            try {
-              read = kept ?? openWasmClient(loaded, { file, jit: true });
-              if (!kept) read.exec("pragma temp_store = memory");
-              return { writer: database, reader: read };
-            } catch (cause) {
-              if (!kept) read?.close();
-              database.close();
-              throw cause;
-            }
-          },
-          catch: (cause): WebSyncProblem => ({
-            _tag: "storage",
-            ...describeStorageFailure("The replica could not open", cause),
-          }),
-        });
-        handle = opened.writer;
-        if (!kept) {
-          reader = opened.reader;
-          yield* clients.swap(
-            yield* Effect.mapError(wrap(opened.reader.db), (cause) =>
-              unavailableProblem(cause),
+            SubscriptionRef.set(readable, readState(machine)),
+            Effect.andThen(
+              event._tag === "progress"
+                ? Effect.void
+                : logDebug("Web Library source transition", {
+                    machine: "web-api-source",
+                    from: describe(before),
+                    event: event._tag,
+                    to: describe(next.state),
+                  }),
+              Effect.forEach(next.commands, (command) => run(command), {
+                discard: true,
+              }),
             ),
           );
-        }
-        return opened.writer;
+        });
+      const progressFeed = yield* PubSub.unbounded<WebSyncProgress | null>({
+        replay: 1,
       });
-
-      const closeHandles = () => {
-        lastLibraries = [];
-        reader?.close();
-        reader = null;
-        handle?.close();
-        handle = null;
+      yield* Effect.addFinalizer(() => PubSub.shutdown(progressFeed));
+      const progressTo = (progress: WebSyncProgress | null) => {
+        machine = transition(machine, { _tag: "progress", progress }).state;
+        PubSub.publishUnsafe(progressFeed, progress);
       };
 
-      const failOpen = (next: WebSyncProblem) =>
-        Effect.as(
-          step({ _tag: "open-failed", problem: next }),
-          new DbUnavailable({ message: next.message }),
-        );
+      const unavailableError = (problem: WebSyncProblem) =>
+        new DbUnavailable({ message: problem.message });
 
       const storage = <A>(what: string, run: () => A) =>
         Effect.try({
@@ -381,197 +295,53 @@ export function layerWebApiSource(
       const changedBy = (applied: readonly AppliedLibraryResult[]) =>
         applied.some((library) => library.changed);
 
-      const applyStaged = (
-        writer: WasmDatabaseClient,
-        {
-          building,
-          locale,
-          replacesLocale,
-        }: {
-          readonly building: boolean;
-          readonly locale: string;
-          readonly replacesLocale: boolean;
-        },
-      ) =>
+      const applyStaged = ({
+        building,
+        locale,
+        replacesLocale,
+      }: {
+        readonly building: boolean;
+        readonly locale: string;
+        readonly replacesLocale: boolean;
+      }) =>
         Effect.gen(function* () {
+          if (running) running.applying = true;
           const now = toInstant(yield* DateTime.now);
-          const elapsed = monotonicMillis(yield* Clock.Clock);
-          const budgetKiB = Math.floor(slicing.dirtyBudgetBytes / 1024);
-          let open = false;
-          let done: AppliedLibraryResult[] | null = null;
-          const enterExclusive = storage(
-            "The replica could not read its libraries",
-            () => {
-              if (reader) lastLibraries = readLibraries(reader.db);
-              writerExclusive = true;
-              writer.exec(`pragma cache_size = -${budgetKiB}`);
-            },
-          );
-          const cleanUp = Effect.gen(function* () {
-            progressTo(null);
-            if (open) {
-              open = false;
-              const rolledBack = yield* Effect.result(
-                storage("The replica could not roll back the apply", () => {
-                  if (writer.inTransaction()) writer.exec("rollback");
-                }),
-              );
-              if (rolledBack._tag === "Failure") {
-                yield* Effect.sync(() => {
-                  try {
-                    writer.close();
-                  } finally {
-                    if (handle === writer) handle = null;
-                    writerExclusive = false;
-                  }
-                });
-                yield* logDebug(
-                  "The replica closed its write connection after a failed rollback",
-                  { problem: rolledBack.failure.message },
-                );
-                return yield* Effect.fail(rolledBack.failure);
-              }
-            }
-            writerExclusive = false;
-            yield* storage("The replica could not reset its write cache", () =>
-              writer.exec(`pragma cache_size = -${budgetKiB}`),
-            );
-          });
-          const slice = (steps: Iterator<ApplyStep, AppliedLibraryResult[]>) =>
-            storage("The replica could not apply the download", () => {
-              const start = elapsed();
-              do {
-                const next = steps.next();
-                if (next.done) {
-                  done = next.value;
-                  return;
-                }
-                progressTo({
-                  phase: "apply",
-                  done: next.value.applied,
-                  total: next.value.total,
-                });
-              } while (elapsed() - start < slicing.sliceMillis);
-            });
-          const overBudget = storage(
-            "The replica could not measure the apply",
-            () => {
-              if (writer.cacheStatus().used <= slicing.dirtyBudgetBytes)
-                return false;
-              writer.exec(`pragma cache_size = ${TRIM_CACHE_PAGES}`);
-              const dirty = writer.cacheStatus().used;
-              writer.exec(`pragma cache_size = -${UNBOUNDED_CACHE_KIB}`);
-              return dirty > slicing.dirtyBudgetBytes;
-            },
-          );
-          const commit = Effect.gen(function* () {
-            yield* storage("The replica could not commit the apply", () => {
-              writer.exec("commit");
-              open = false;
-              writerExclusive = false;
-            });
-            const changed = building || changedBy(done!);
-            if (changed) yield* swapReader;
-            return changed;
-          });
-          const run = Effect.gen(function* () {
-            if (building) yield* enterExclusive;
-            const steps = yield* storage(
-              "The replica could not begin the apply",
-              () => {
-                writer.exec(
-                  `pragma cache_size = -${building ? budgetKiB : UNBOUNDED_CACHE_KIB}; begin immediate`,
-                );
-                open = true;
-                return applyDownloadSteps(writer.db, {
-                  now,
-                  pageSize: slicing.pageSize,
-                  locale,
-                  replacesLocale,
-                });
-              },
-            );
-            const slices = (bounded: boolean) =>
-              Effect.gen(function* () {
-                while (done === null) {
-                  yield* slice(steps);
-                  if (done !== null) return false;
-                  if (!bounded && (yield* overBudget)) return true;
-                  yield* betweenSlices;
-                }
-                return false;
-              });
-            if (building)
-              return yield* gate.exclusive(
-                Effect.andThen(slices(true), commit),
-              );
-            const crossed = yield* slices(false);
-            if (!crossed) return yield* gate.exclusive(commit);
-            return yield* gate.exclusive(
-              Effect.gen(function* () {
-                yield* enterExclusive;
-                yield* slices(true);
-                return yield* commit;
+          return yield* store.apply({
+            steps: (db) =>
+              applyDownloadSteps(db, {
+                now,
+                pageSize: slicing.pageSize,
+                locale,
+                replacesLocale,
               }),
-            );
+            visible: (applied) => building || changedBy(applied),
+            onProgress: (next) =>
+              progressTo({
+                phase: "apply",
+                done: next.applied,
+                total: next.total,
+              }),
+            onWaiting: () => progressTo({ phase: "waiting" }),
+            onCommit: step({ _tag: "committed" }),
           });
-          return yield* Effect.uninterruptibleMask((restore) =>
-            Effect.gen(function* () {
-              const exit = yield* Effect.exit(restore(run));
-              const cleaned = yield* Effect.exit(cleanUp);
-              if (Exit.isSuccess(exit) && Exit.isFailure(cleaned))
-                return yield* cleaned;
-              return yield* exit;
+        }).pipe(
+          Effect.ensuring(
+            Effect.sync(() => {
+              progressTo(null);
             }),
-          );
-        });
-
-      const swapReader = Effect.gen(function* () {
-        const read = reader!;
-        const renewed = yield* storage(
-          "The replica could not renew its client",
-          () => read.renew(),
+          ),
         );
-        const next = yield* Effect.mapError(wrap(renewed), (cause) =>
-          unavailableProblem(cause),
-        );
-        yield* clients.swap(next);
-        yield* step({ _tag: "committed" });
-      }).pipe(Effect.uninterruptible);
 
       const settle = (
         event: SourceEvent & { readonly problem: WebSyncProblem },
       ) =>
         Effect.andThen(
-          step(event),
+          store.report().state === "unavailable" ? Effect.void : step(event),
           Effect.fail(new DbUnavailable({ message: event.problem.message })),
         );
       const refuse = (problem: WebSyncProblem) =>
         settle({ _tag: "refused", problem });
-
-      const emptyReplica = Effect.gen(function* () {
-        yield* step({ _tag: "emptied" });
-        closeHandles();
-        const loaded = engine;
-        if (!loaded)
-          return yield* Effect.fail<WebSyncProblem>({
-            _tag: "storage",
-            reason: "failed",
-            message:
-              "The replica could not be removed: the storage engine did not load",
-          });
-        yield* Effect.try({
-          try: () => loaded.remove(file),
-          catch: (cause): WebSyncProblem => ({
-            _tag: "storage",
-            ...describeStorageFailure(
-              "The replica could not be removed",
-              cause,
-            ),
-          }),
-        });
-        return yield* openHandle;
-      });
 
       const failureOf = (cause: Cause.Cause<WebLibrarySyncError>) => {
         const failure = Cause.findErrorOption(cause);
@@ -587,16 +357,17 @@ export function layerWebApiSource(
       const syncOnce = Effect.gen(function* () {
         const settings = config;
         const zoteroLocale = settings.zoteroLocale ?? "en-US";
-        const opened = yield* Effect.result(openHandle);
+        const opened = yield* Effect.result(store.open);
         if (opened._tag === "Failure")
-          return yield* yield* failOpen(opened.failure);
-        let database = opened.success;
+          return yield* unavailableError(opened.failure);
         const facts = yield* Effect.result(
-          storage("The replica could not read its libraries", () => ({
-            storedUserID: storedAccountUserID(database.db),
-            replicaLocale: replicaLocale(database.db),
-            committed: synced(database.db),
-          })),
+          storage("The replica could not read its libraries", () =>
+            store.stage((db) => ({
+              storedUserID: storedAccountUserID(db),
+              replicaLocale: replicaLocale(db),
+              committed: synced(db),
+            })),
+          ),
         );
         if (facts._tag === "Failure") return yield* refuse(facts.failure);
         const verified = yield* Effect.exit(
@@ -665,12 +436,12 @@ export function layerWebApiSource(
             zoteroLocale,
           });
         if (decision.kind === "rebuild" && decision.reason === "account") {
-          const emptied = yield* Effect.result(gate.exclusive(emptyReplica));
+          const emptied = yield* Effect.result(
+            store.empty(step({ _tag: "emptied" })),
+          );
           if (emptied._tag === "Failure")
-            return yield* yield* failOpen(emptied.failure);
-          database = emptied.success;
+            return yield* unavailableError(emptied.failure);
         }
-        const { db } = database;
         const replacing =
           decision.kind === "rebuild" && decision.reason === "language";
         const firstBuild =
@@ -678,22 +449,54 @@ export function layerWebApiSource(
           (decision.kind === "rebuild" && !replacing);
         if (firstBuild) yield* step({ _tag: "build-started" });
         yield* logDebug("Web Library sync started", { firstBuild });
+        const counts = new Map<string, number>();
+        const downloaded = new Map<string, Map<string, number>>();
+        let planned: readonly string[] = [];
+        const reportDownload = () => {
+          let done = 0;
+          for (const phases of downloaded.values())
+            for (const count of phases.values()) done += count;
+          let total = 0;
+          for (const count of counts.values()) total += count;
+          progressTo({
+            phase: "download",
+            done,
+            total: planned.every((key) => counts.has(key)) ? total : null,
+          });
+        };
         const download = yield* Effect.exit(
-          downloadReplica(db, {
+          downloadReplica(store.stage, {
             apiKey: settings.apiKey,
             fetch: options.fetch,
             baseUrl: settings.baseUrl,
             verified: libraries?.value ?? verified.value,
             rebuild: replacing,
-            onProgress: (event) => {
-              progressTo(event);
+            onLibraries: (listed) => {
+              planned = listed.map((library) => libraryKey(library));
+            },
+            onLibraryCount: (count) => {
+              const key = libraryKey(count.library);
+              downloaded.delete(key);
+              if (count.count === "known") counts.set(key, count.total);
+              else counts.delete(key);
+              reportDownload();
+            },
+            onProgress: ({ library, phase, done }) => {
+              const key = libraryKey(library);
+              const phases = downloaded.get(key) ?? new Map<string, number>();
+              phases.set(phase, done);
+              downloaded.set(key, phases);
+              reportDownload();
             },
           }),
         ).pipe(
           Effect.ensuring(
-            Effect.sync(() => {
-              progressTo(null);
-            }),
+            Effect.andThen(
+              Effect.sync(() => {
+                progressTo(null);
+              }),
+              store.downloadEnded,
+            ),
           ),
         );
         let next: WebSyncProblem | null;
@@ -713,15 +516,16 @@ export function layerWebApiSource(
           const work = building || (replacing ? replaces : report.needsApply);
           const applied = work
             ? yield* Effect.result(
-                applyStaged(database, {
+                applyStaged({
                   building,
                   locale: zoteroLocale,
                   replacesLocale: replaces,
                 }),
               )
             : undefined;
-          if (applied?._tag === "Failure") next = applied.failure;
-          else {
+          if (applied?._tag === "Failure") {
+            next = applied.failure;
+          } else {
             changed = applied?.success ?? false;
             next = failedLibraries(report);
           }
@@ -732,6 +536,10 @@ export function layerWebApiSource(
             problem: next,
             served: changed || !firstBuild,
           });
+        if (store.report().state === "unavailable")
+          return yield* new DbUnavailable({
+            message: "The replica is not available",
+          });
         yield* step({ _tag: "finished", changed });
         yield* logDebug("Web Library sync finished", { changed });
       }).pipe(lifecycle.withPermits(1));
@@ -740,7 +548,7 @@ export function layerWebApiSource(
         Effect.gen(function* () {
           if (running) return running;
           const done = Deferred.makeUnsafe<void, DbUnavailable>();
-          const entry: RunningSync = { done };
+          const entry: RunningSync = { id: ++lastSyncId, done };
           running = entry;
           yield* step({ _tag: "sync-started" });
           entry.fiber = yield* syncOnce.pipe(
@@ -748,6 +556,12 @@ export function layerWebApiSource(
               Effect.gen(function* () {
                 running = null;
                 rateWaitUntil = 0;
+                if (
+                  entry.stopped &&
+                  Exit.isFailure(exit) &&
+                  Cause.hasInterruptsOnly(exit.cause)
+                )
+                  yield* step({ _tag: "stopped" });
                 yield* step({ _tag: "sync-ended" });
                 yield* Deferred.done(
                   done,
@@ -762,7 +576,7 @@ export function layerWebApiSource(
               }),
             ),
             Effect.ignore,
-            Effect.forkIn(lifetime),
+            Effect.forkIn(lifetime, { startImmediately: true }),
           );
           return entry;
         }),
@@ -777,46 +591,45 @@ export function layerWebApiSource(
         }
       });
 
-      const admit = Effect.uninterruptibleMask((restore) =>
-        Effect.gen(function* () {
-          while (true) {
-            yield* restore(settled.await);
-            const { state } = readState(machine);
-            if (state === "degraded")
-              return yield* (
-                errorOf(machine) ??
-                new DbUnavailable({ message: "The replica is not available" })
-              );
-            if (state !== "ready") continue;
-            const entry = yield* Scope.make();
-            yield* restore(Scope.provide(gate.enter, entry)).pipe(
-              Effect.onInterrupt(() => Scope.close(entry, Exit.void)),
-            );
-            if (readState(machine).state === "ready") {
-              yield* Effect.addFinalizer(() => Scope.close(entry, Exit.void));
-              return;
-            }
-            yield* Scope.close(entry, Exit.void);
-          }
-        }),
-      );
-
-      const borrow = Effect.andThen(admit, clients.borrow);
-
       const removeReplica = Effect.gen(function* () {
         const before = running;
         if (before?.fiber) yield* Fiber.interrupt(before.fiber);
         const removed = yield* Effect.exit(
-          gate.exclusive(emptyReplica).pipe(
+          store.remove(step({ _tag: "emptied" })).pipe(
             lifecycle.withPermits(1),
-            Effect.catch((next) =>
-              Effect.flatMap(failOpen(next), (error) => Effect.fail(error)),
-            ),
+            Effect.mapError((problem) => unavailableError(problem)),
           ),
         );
         if (Exit.isFailure(removed)) return yield* removed;
         yield* logDebug("Web Library Replica removed");
       }).pipe(Effect.withSpan("WebLibrarySync.removeReplica"));
+
+      const stopSync = (syncId: number) =>
+        Effect.suspend(() => {
+          const entry = running;
+          if (
+            entry?.id !== syncId ||
+            !entry.fiber ||
+            entry.applying ||
+            entry.superseded
+          )
+            return Effect.as(
+              logDebug("The Web Library sync did not stop: no download runs", {
+                syncId,
+                running: entry?.id ?? null,
+                applying: entry?.applying ?? false,
+              }),
+              false,
+            );
+          entry.stopped = true;
+          return Effect.as(
+            Effect.andThen(
+              Fiber.interrupt(entry.fiber),
+              logDebug("The Web Library sync stopped on request"),
+            ),
+            true,
+          );
+        }).pipe(Effect.withSpan("WebLibrarySync.stopSync"));
 
       const configure = (next: ReadsConfig) =>
         Effect.gen(function* () {
@@ -844,93 +657,79 @@ export function layerWebApiSource(
 
       const status = Effect.gen(function* () {
         const now = yield* Clock.currentTimeMillis;
-        if (reader && !writerExclusive) {
-          const { db } = reader;
-          const read = yield* Effect.result(
-            storage("The replica could not read its libraries", () =>
-              readLibraries(db),
-            ),
-          );
-          if (read._tag === "Success") lastLibraries = read.success;
-          const built = yield* Effect.result(
-            storage("The replica could not read its language", () =>
-              replicaLocale(db),
-            ),
-          );
-          if (built._tag === "Success") lastLocale = built.success;
-        }
+        const read = yield* Effect.result(store.libraries);
+        const { lastApply, fileProblem, waitingForReaders } = store.report();
+        const committed =
+          read._tag === "Success"
+            ? read.success
+            : { libraries: [], zoteroLocale: null };
         return {
           state: readState(machine).state,
           syncing: machine.activity.kind === "syncing",
-          waitingForReaders: gate.waiting(),
-          problem: problemOfState(machine),
+          syncId: running?.id ?? null,
+          waitingForReaders,
+          problem:
+            read._tag === "Failure" ? read.failure : problemOfState(machine),
           progress:
             machine.activity.kind === "syncing"
               ? machine.activity.progress
               : null,
-          zoteroLocale: lastLocale,
+          zoteroLocale: committed.zoteroLocale,
           unconsentedUserID: unconsentedOf(machine),
           ...(rateWaitUntil > now && {
             rateWaitUntil: toInstant(DateTime.makeUnsafe(rateWaitUntil)),
           }),
-          libraries: lastLibraries,
+          libraries: committed.libraries,
+          ...(lastApply && { lastApply }),
+          ...(fileProblem && { fileProblem }),
         } satisfies WebSyncStatus;
       });
 
-      const readLibraries = (db: ZoteroDatabase): WebSyncStatus["libraries"] =>
-        readSyncStatus(db).flatMap((library) =>
-          library.state === "remove"
-            ? []
-            : [
-                {
-                  library: library.library,
-                  committedVersion: library.committedVersion,
-                  lastSync: library.lastSync,
-                  retained: library.retained,
-                },
-              ],
-        );
-
-      yield* Effect.addFinalizer(() =>
-        Effect.sync(() => {
-          closeHandles();
-          engine?.close();
-          engine = null;
-        }),
-      );
-
-      const opened = yield* Effect.result(openHandle);
-      if (opened._tag === "Failure")
-        yield* Effect.asVoid(failOpen(opened.failure));
-      else
-        yield* step({ _tag: "opened", committed: synced(opened.success.db) });
+      const opened = yield* Effect.result(store.open);
+      if (opened._tag === "Success")
+        yield* step({
+          _tag: "opened",
+          committed: store.stage((db) => synced(db)),
+        });
       yield* startSync;
 
       return Context.make(
         Connection,
         Connection.of({
-          borrow,
+          borrow: store.borrow,
           changes,
           refresh,
           notifyExternalChange: Effect.void,
           configure,
-          databaseGeneration: generations.databaseGeneration,
+          databaseGeneration: store.databaseGeneration,
           identity: webApiSourceIdentity,
-          pendingIdentity: Effect.sync(() =>
-            readState(machine).state === "loading"
-              ? {
-                  kind: "web-api" as const,
-                  id: webApiSourceId(null),
-                  userID: null,
-                  username: null,
-                }
-              : null,
-          ),
+          pendingIdentity: Effect.sync(() => {
+            if (readState(machine).state === "loading")
+              return {
+                kind: "web-api" as const,
+                id: webApiSourceId(null),
+                userID: null,
+                username: null,
+              };
+            const { state, committed } = store.report();
+            return state === "applying" || state === "publishing"
+              ? committed.identity
+              : null;
+          }),
         }),
       ).pipe(
         Context.add(
           WebLibrarySync,
-          WebLibrarySync.of({ status, removeReplica }),
+          WebLibrarySync.of({
+            status,
+            removeReplica,
+            progress: Stream.unwrap(
+              Effect.map(PubSub.subscribe(progressFeed), (subscription) =>
+                Stream.fromSubscription(subscription),
+              ),
+            ),
+            stopSync,
+          }),
         ),
       );
     }),

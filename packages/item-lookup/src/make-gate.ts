@@ -5,6 +5,7 @@ export interface Gate {
   readonly close: Effect.Effect<void>;
   readonly open: Effect.Effect<void>;
   readonly held: Effect.Effect<void>;
+  readonly rearm: Effect.Effect<void>;
   readonly pass: Effect.Effect<void>;
 }
 
@@ -28,6 +29,7 @@ export const makeGate = (options?: {
         return gate.open;
       }).pipe(Effect.asVoid),
       held: arrived.await,
+      rearm: arrived.close.pipe(Effect.asVoid),
       pass: Effect.suspend(() => {
         if (!closed) return Effect.void;
         if (options?.once) closed = false;

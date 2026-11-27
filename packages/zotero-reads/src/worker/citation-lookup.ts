@@ -20,7 +20,7 @@ import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { CitekeySnapshot } from "./citekey-snapshot.ts";
 import type { Connection } from "./connection.ts";
-import { toDbUnavailable } from "./connection.ts";
+import { borrowSame, read, toDbUnavailable } from "./connection.ts";
 
 import { resolveLibraryScope } from "#contract/library-scope.ts";
 
@@ -49,37 +49,42 @@ export const makeCitationLookup = Effect.fnUntraced(function* (
   const published = yield* Ref.make<Published | undefined>(undefined);
   const candidate = yield* Ref.make<Candidate | undefined>(undefined);
 
-  const build = Effect.fnUntraced(function* (
+  const attempt = Effect.fnUntraced(function* (
     scope: LibraryScope | null,
     borrowed: Pick<Candidate, "client">,
   ) {
-    const client = yield* connection.borrow;
-    borrowed.client = client;
+    const { client, libraries, lastItemID } = yield* Effect.scoped(
+      Effect.gen(function* () {
+        const client = yield* connection.borrow;
+        borrowed.client = client;
+        return yield* Effect.try({
+          try: () => ({
+            client,
+            libraries: getLibraries(client),
+            lastItemID: getLastItemID(client),
+          }),
+          catch: toDbUnavailable,
+        });
+      }),
+    );
     const database = connection.databaseGeneration(client);
     const before = yield* Ref.get(published);
     const previous =
       before?.database === database ? before.snapshot : undefined;
-    const libraries = yield* Effect.try({
-      try: () => getLibraries(client),
-      catch: toDbUnavailable,
-    });
     const selected = resolveLibraryScope(libraries, scope);
     const groupIDs = new Map(
       libraries.map(({ libraryID, groupID }) => [libraryID, groupID]),
     );
-    const lastItemID = yield* Effect.try({
-      try: () => getLastItemID(client),
-      catch: toDbUnavailable,
-    });
     const rows = Stream.paginate(
       0,
       Effect.fnUntraced(function* (afterItemID) {
         yield* Effect.yieldNow;
         const throughItemID = Math.min(afterItemID + windowSize, lastItemID);
-        const citekeys = yield* Effect.try({
-          try: () => getCitekeyWindow(client, { afterItemID, throughItemID }),
-          catch: toDbUnavailable,
-        });
+        const citekeys = yield* borrowSame(connection.borrow, client, (c) =>
+          read(c, (current) =>
+            getCitekeyWindow(current, { afterItemID, throughItemID }),
+          ),
+        );
         return [
           citekeys.map((row) => ({
             ...row,
@@ -100,22 +105,42 @@ export const makeCitationLookup = Effect.fnUntraced(function* (
       { previous },
     ).pipe(Effect.catchDefect((cause) => Effect.fail(toDbUnavailable(cause))));
     const retained = snapshot === previous && before !== undefined;
-    const revision =
-      snapshot === previous && before
-        ? before.revision
-        : `${incarnation}:${yield* Ref.updateAndGet(serial, (n) => n + 1)}`;
-    yield* Ref.set(published, {
-      client,
-      database,
-      scope: JSON.stringify(scope),
-      snapshot,
-      revision,
-    });
+    const revision = yield* borrowSame(connection.borrow, client, () =>
+      Effect.gen(function* () {
+        const publishedRevision =
+          snapshot === previous && before
+            ? before.revision
+            : `${incarnation}:${yield* Ref.updateAndGet(serial, (n) => n + 1)}`;
+        yield* Ref.set(published, {
+          client,
+          database,
+          scope: JSON.stringify(scope),
+          snapshot,
+          revision: publishedRevision,
+        });
+        return publishedRevision;
+      }),
+    );
     yield* Effect.logDebug("Citation lookup published").pipe(
       Effect.annotateLogs({ revision, retained, database }),
       withLogCategory("citation-index"),
     );
   });
+
+  const build = (
+    scope: LibraryScope | null,
+    borrowed: Pick<Candidate, "client">,
+  ): Effect.Effect<void, DbUnavailable> =>
+    attempt(scope, borrowed).pipe(
+      Effect.catchTag("SourceChanged", () =>
+        Effect.logDebug(
+          "Citation lookup build started again; a sync committed during the build",
+        ).pipe(
+          withLogCategory("citation-index"),
+          Effect.andThen(Effect.suspend(() => build(scope, borrowed))),
+        ),
+      ),
+    );
 
   const lookup = Effect.fnUntraced(function* (
     request: CitationLookupRequest & { scope: LibraryScope | null },
@@ -171,12 +196,8 @@ export const makeCitationLookup = Effect.fnUntraced(function* (
               },
               catch: toDbUnavailable,
             });
-            if (
-              annotationKeys.size > 0 &&
-              (yield* Effect.scoped(connection.borrow)) !== client
-            )
-              return null;
             return {
+              client,
               revision: current.revision,
               annotationKeys,
               citekeys: new Map(
@@ -196,7 +217,14 @@ export const makeCitationLookup = Effect.fnUntraced(function* (
           return null;
         }),
       );
-      if (answer !== null) return answer;
+      if (
+        answer !== null &&
+        (answer.annotationKeys.size === 0 ||
+          (yield* Effect.scoped(connection.borrow)) === answer.client)
+      ) {
+        const { client: _client, ...answered } = answer;
+        return answered;
+      }
       const running = yield* Effect.uninterruptible(
         Effect.suspend(() =>
           Effect.gen(function* () {
@@ -204,7 +232,7 @@ export const makeCitationLookup = Effect.fnUntraced(function* (
             if (current) return current;
             const borrowed: Pick<Candidate, "client"> = {};
             const fiber = yield* Effect.forkIn(
-              Effect.scoped(build(request.scope, borrowed)).pipe(
+              build(request.scope, borrowed).pipe(
                 Effect.ensuring(Ref.set(candidate, undefined)),
               ),
               lifetime,

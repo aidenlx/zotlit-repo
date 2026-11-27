@@ -13,7 +13,7 @@ import { startFakeZoteroServer } from "./fake-zotero-server.ts";
 import type { FakeZoteroServer } from "./fake-zotero-server.ts";
 import { openScenarioApi } from "./scenario.ts";
 
-import { applyDownload, downloadReplica } from "#index.ts";
+import { applyDownload, downloadReplica, stageOn } from "#index.ts";
 import type { SyncProgress, WebApiFetch } from "#index.ts";
 import type { ScenarioApi } from "./scenario.ts";
 
@@ -66,7 +66,7 @@ export function syncHarness({
           key = scenario.key,
           fetch: WebApiFetch = (url, init) => globalThis.fetch(url, init),
         ) =>
-          downloadReplica(replica.db, {
+          downloadReplica(stageOn(replica.db), {
             apiKey: Redacted.make(key),
             fetch,
             baseUrl: server.url,

@@ -42,7 +42,7 @@ export const PUBLISHED_PLUGINS = {
     giscus: true,
     changelog: "https://zotlit.aidenlx.site/changelog/",
     budget: {
-      mainJsBytes: 5_520_000,
+      mainJsBytes: 5_700_000,
       stylesCssBytes: 146_143,
       startupDailyMs: 100,
       startupUpdateMs: 100,
@@ -50,6 +50,7 @@ export const PUBLISHED_PLUGINS = {
     runtime: RUNTIMES.desktopRenderer,
     developmentOnly: [
       "zotlit-zotero-web-api-url",
+      "zotlit-online-library-root",
       "A development build sends the online library requests",
     ],
   },

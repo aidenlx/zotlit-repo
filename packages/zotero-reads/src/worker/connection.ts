@@ -23,6 +23,7 @@ import {
   checkDatabaseLayout,
   ItemQueryLayoutError,
 } from "@zotlit/db/item-query";
+import { SourceChanged } from "@zotlit/item-lookup";
 
 import { makeChangeFeed } from "#contract/change-feed.ts";
 import { DbUnavailable, fileConfigOf } from "#contract/rpc.ts";
@@ -96,6 +97,18 @@ export function toDbUnavailable(cause: unknown): DbUnavailable {
   return new DbUnavailable({
     message: error instanceof Error ? error.message : String(error),
   });
+}
+
+export function borrowSame<A, E, B>(
+  borrow: Effect.Effect<ZoteroDatabase, B, Scope.Scope>,
+  client: ZoteroDatabase,
+  run: (client: ZoteroDatabase) => Effect.Effect<A, E>,
+): Effect.Effect<A, E | B | SourceChanged> {
+  return Effect.scoped(
+    Effect.flatMap(borrow, (current): Effect.Effect<A, E | SourceChanged> =>
+      current === client ? run(current) : Effect.fail(new SourceChanged()),
+    ),
+  );
 }
 
 export function read<A>(
@@ -175,6 +188,7 @@ export const makeClientRef = Effect.fnUntraced(function* (
   );
   return {
     borrow: Effect.map(RcRef.get(ref), (open) => open.client),
+    reset: Effect.andThen(Ref.set(staged, null), RcRef.invalidate(ref)),
     swap: (next: OpenClient) =>
       Ref.getAndSet(staged, next).pipe(
         Effect.flatMap((replaced) =>

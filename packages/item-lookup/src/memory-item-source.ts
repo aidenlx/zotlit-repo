@@ -1,9 +1,9 @@
-import { Effect, Layer, PubSub, Stream } from "effect";
+import { Effect, Layer, PubSub, Semaphore, Stream } from "effect";
 
 import type { IndexedItem, IndexSignature, Item } from "@zotlit/db";
 
 import type { PinnedItemSource } from "./item-index.ts";
-import { ItemSource, SourceUnavailable } from "./item-index.ts";
+import { ItemSource, SourceChanged, SourceUnavailable } from "./item-index.ts";
 import { makeGate } from "./make-gate.ts";
 
 export interface MemoryItemSourceReads {
@@ -31,6 +31,14 @@ export interface MemoryItemSource {
   ) => Effect.Effect<void>;
   readonly vanish: (indexedKey: string) => Effect.Effect<void>;
   readonly notify: Effect.Effect<void>;
+  readonly commit: (
+    libraryID: number,
+    items: readonly MemoryItemRow[],
+  ) => Effect.Effect<void>;
+  readonly closeGateAfter: (pages: number) => Effect.Effect<void>;
+  readonly closePublishGate: Effect.Effect<void>;
+  readonly openPublishGate: Effect.Effect<void>;
+  readonly publishHeld: Effect.Effect<void>;
   readonly swap: Effect.Effect<void>;
   readonly setUnavailable: (unavailable: boolean) => Effect.Effect<void>;
   readonly closeGate: Effect.Effect<void>;
@@ -42,6 +50,8 @@ export interface MemoryItemSource {
   readonly hydrationHeld: Effect.Effect<void>;
   readonly onNextRelease: (run: Effect.Effect<void>) => Effect.Effect<void>;
 }
+
+const PUBLICATIONS = 1_000;
 
 export const makeMemoryItemSource = (
   rows: ReadonlyMap<number, readonly MemoryItemRow[]>,
@@ -58,21 +68,34 @@ export const makeMemoryItemSource = (
       released: 0,
     };
     let generation = 0;
+    let committed = 0;
     let unavailable = false;
     let waiting = 0;
     let onRelease: Effect.Effect<void> | null = null;
     const vanished = new Set<string>();
     const hydrationGate = yield* makeGate({ once: true });
+    const publishGate = yield* makeGate({ once: true });
+    const publishing = yield* Semaphore.make(PUBLICATIONS);
+    let closeAt: number | null = null;
     const generations = yield* PubSub.unbounded<void>();
     const gate = yield* makeGate();
 
-    const check = Effect.suspend(() =>
+    const available = Effect.suspend(() =>
       unavailable
         ? Effect.fail(new SourceUnavailable({ message: "source unavailable" }))
         : Effect.void,
     );
 
     const pinnedTo = (state: ReadonlyMap<number, readonly MemoryItemRow[]>) => {
+      const version = committed;
+      const check = Effect.andThen(
+        available,
+        Effect.suspend(() =>
+          version === committed
+            ? Effect.void
+            : Effect.fail(new SourceChanged()),
+        ),
+      );
       const rowsOf = [...state.values()].flat();
       const byIndexedKey = new Map(
         rowsOf.map((row) => [row.indexed.indexedKey, row.item]),
@@ -92,6 +115,10 @@ export const makeMemoryItemSource = (
                     if (offset >= rows.length) return undefined;
                     yield* check;
                     reads.items++;
+                    if (closeAt !== null && reads.items >= closeAt) {
+                      closeAt = null;
+                      yield* gate.close;
+                    }
                     if (gate.closed) {
                       waiting++;
                       yield* gate.pass.pipe(
@@ -127,8 +154,9 @@ export const makeMemoryItemSource = (
             }),
           ),
         itemsByIndexedKey: (indexedKeys) =>
-          check.pipe(
+          available.pipe(
             Effect.andThen(hydrationGate.pass),
+            Effect.andThen(check),
             Effect.map(() => {
               reads.itemsByIndexedKey++;
               const found = new Map<string, Item>();
@@ -141,6 +169,12 @@ export const makeMemoryItemSource = (
               return found;
             }),
           ),
+        whileCurrent: (publish) =>
+          publishGate.pass.pipe(
+            Effect.andThen(
+              publishing.withPermits(1)(Effect.andThen(check, publish)),
+            ),
+          ),
       };
       return source;
     };
@@ -148,7 +182,7 @@ export const makeMemoryItemSource = (
     const layer = Layer.succeed(ItemSource, {
       generation: Stream.fromPubSub(generations),
       pinned: Effect.acquireRelease(
-        check.pipe(
+        available.pipe(
           Effect.map(() => {
             reads.pinned++;
             return pinnedTo(new Map(libraries));
@@ -182,6 +216,25 @@ export const makeMemoryItemSource = (
           vanished.add(indexedKey);
         }),
       notify: PubSub.publish(generations, undefined).pipe(Effect.asVoid),
+      commit: (libraryID, items) =>
+        publishing
+          .withPermits(PUBLICATIONS)(
+            Effect.sync(() => {
+              libraries.set(libraryID, items);
+              committed++;
+            }),
+          )
+          .pipe(
+            Effect.andThen(PubSub.publish(generations, undefined)),
+            Effect.asVoid,
+          ),
+      closeGateAfter: (pages) =>
+        Effect.sync(() => {
+          closeAt = reads.items + pages + 1;
+        }).pipe(Effect.andThen(gate.rearm)),
+      closePublishGate: publishGate.close,
+      openPublishGate: publishGate.open,
+      publishHeld: publishGate.held,
       swap: Effect.suspend(() => {
         generation++;
         return PubSub.publish(generations, undefined);

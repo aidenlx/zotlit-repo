@@ -21,6 +21,7 @@ import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-
 import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import { UserCancelled } from "@zotlit/plugin-kernel/user-cancel.ts";
 import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {
@@ -31,7 +32,10 @@ import {
   DbUnavailable,
   ZOTERO_WEB_API_URL,
 } from "@zotlit/zotero-reads/contract/rpc.ts";
-import type { WebSyncStatus } from "@zotlit/zotero-reads/contract/web-worker-rpc.ts";
+import type {
+  WebSyncProgress,
+  WebSyncStatus,
+} from "@zotlit/zotero-reads/contract/web-worker-rpc.ts";
 import { plan } from "@zotlit/zotero-reads/worker/replica-plan.ts";
 
 import { CONSENTED_ACCOUNT_KEY, PENDING_REMOVAL_KEY } from "./consent.ts";
@@ -43,6 +47,8 @@ import {
   WEB_API_KEY_SECRET_KEY,
 } from "./service.ts";
 import { formatSyncTime, statusText } from "./status.ts";
+import type { StoredReplicaFolder } from "./stored-replica.ts";
+import { ReplicaFolderRefused } from "./stored-replica.ts";
 
 import { platformDefaults } from "#__fixtures__/platform-settings.ts";
 import { ResourcePackPlatform } from "#obsidian/managed-binary/pack-platform.ts";
@@ -74,6 +80,7 @@ const SECRET_NAME = "zotero-reading-key";
 const SYNCED: WebSyncStatus = {
   state: "ready",
   syncing: false,
+  syncId: null,
   waitingForReaders: false,
   problem: null,
   progress: null,
@@ -94,6 +101,8 @@ interface Worker {
   readonly configs: WebApiReadsConfig[];
   stopped: boolean;
   readonly breakChanges: Effect.Effect<void>;
+  readonly push: (progress: WebSyncProgress | null) => Effect.Effect<void>;
+  readonly refreshing: Effect.Effect<void>;
 }
 
 interface Behaviour {
@@ -102,6 +111,7 @@ interface Behaviour {
   status: WebSyncStatus;
   die: boolean;
   configure: Effect.Effect<void>;
+  stop: Effect.Effect<boolean>;
   readonly revoked: Set<string>;
 }
 
@@ -133,11 +143,17 @@ const setup = Effect.fn("setup")(function* (
     readonly urlOverride?: boolean;
     readonly die?: boolean;
     readonly removalPending?: boolean;
-    readonly removal?: Effect.Effect<void, DbUnavailable>;
+    readonly removal?: Effect.Effect<
+      void,
+      DbUnavailable | ReplicaFolderRefused
+    >;
     readonly unconsented?: number;
     readonly schema?: Effect.Effect<number | null>;
     readonly language?: string;
     readonly lifetime?: Scope.Scope;
+    readonly others?: readonly StoredReplicaFolder[];
+    readonly othersUnreadable?: DbUnavailable;
+    readonly folderRoot?: boolean;
   } = {},
 ) {
   const device = options.device ?? new FailingDeviceStorage();
@@ -177,12 +193,16 @@ const setup = Effect.fn("setup")(function* (
     status: { ...SYNCED, unconsentedUserID: options.unconsented ?? null },
     die: options.die ?? false,
     configure: Effect.void,
+    stop: Effect.succeed(false),
     revoked: new Set(),
   };
   const workers: Worker[] = [];
   const removed: string[] = [];
+  const runningAtRemoval: number[] = [];
+  let others = options.others ?? [];
+  const otherRemovals: string[] = [];
   let starts = 0;
-  let removal: Effect.Effect<void, DbUnavailable> =
+  let removal: Effect.Effect<void, DbUnavailable | ReplicaFolderRefused> =
     options.removal ?? Effect.void;
   const startWeb = (config: WebApiReadsConfig) =>
     Effect.gen(function* () {
@@ -195,7 +215,14 @@ const setup = Effect.fn("setup")(function* (
           ? ({ kind: answer, detail: "unreadable" } as const)
           : ({ kind: answer } as const);
       const broken = yield* Deferred.make<void, DbUnavailable>();
+      const progress = yield* PubSub.unbounded<WebSyncProgress | null>();
       const worker: Worker = {
+        push: (next) => Effect.asVoid(PubSub.publish(progress, next)),
+        refreshing: Effect.suspend(() =>
+          Effect.asVoid(
+            PubSub.publish(events, { _tag: "refreshing", active: true }),
+          ),
+        ),
         calls: [],
         configs: [config],
         stopped: false,
@@ -322,6 +349,12 @@ const setup = Effect.fn("setup")(function* (
               Effect.andThen(behaviour.remove, Effect.sync(forget)),
             ),
           ),
+        SyncProgress: () => Stream.fromPubSub(progress),
+        StopSync: ({ syncId }: { readonly syncId: number }) =>
+          Effect.andThen(
+            call(`StopSync:${syncId}`),
+            Effect.suspend(() => behaviour.stop),
+          ),
         SyncStatus: () =>
           Effect.sync((): WebSyncStatus => ({
             ...behaviour.status,
@@ -367,10 +400,24 @@ const setup = Effect.fn("setup")(function* (
       focused: SubscriptionRef.changes(focus),
       secrets: { getSecret: (id) => secrets.get(id) ?? null },
       reload: Effect.void,
+      otherStoredReplicas: Effect.suspend(() =>
+        options.othersUnreadable
+          ? Effect.fail(options.othersUnreadable)
+          : Effect.succeed({ scope: "gone-vaults" as const, folders: others }),
+      ),
+      removeOtherStoredReplica: (id) =>
+        Effect.sync(() => {
+          otherRemovals.push(id);
+          others = others.filter((folder) => folder.id !== id);
+        }),
+      removesReplicaFolder: options.folderRoot ?? false,
       removeStoredReplica: (directory) =>
         Effect.andThen(
           Effect.sync(() => {
             removed.push(directory);
+            runningAtRemoval.push(
+              workers.filter((worker) => !worker.stopped).length,
+            );
             device.writes.push("removeStoredReplica");
           }),
           Effect.andThen(
@@ -414,10 +461,12 @@ const setup = Effect.fn("setup")(function* (
     settings,
     workers,
     removed,
+    runningAtRemoval,
+    otherRemovals,
     behaviour,
     replica,
     starts: () => starts,
-    failRemoval: (error: DbUnavailable) => {
+    failRemoval: (error: DbUnavailable | ReplicaFolderRefused) => {
       removal = Effect.fail(error);
     },
     setAnswer: (next: WebStart["kind"]) => {
@@ -442,6 +491,28 @@ it.effect(
       expect(source.reads).toBeNull();
       expect((yield* source.view).status).toEqual({ kind: "file-source" });
       expect(built.workers).toEqual([]);
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "answers the sync status of the running Worker, and fails with the shown reason when no Worker runs",
+  () =>
+    Effect.gen(function* () {
+      const waiting = yield* serviceOf(yield* setup({ source: "web-api" }));
+      expect((yield* Effect.flip(waiting.syncStatus)).message).toBe(
+        statusText({ kind: "no-key" }, formatSyncTime),
+      );
+      const built = yield* setup({ source: "web-api", key: KEY });
+      const source = yield* serviceOf(built);
+      yield* source.viewChanges.pipe(
+        Stream.filter((view) => view.status.kind === "running"),
+        Stream.runHead,
+      );
+      built.behaviour.status = { ...SYNCED, syncing: true };
+      expect(yield* source.syncStatus).toMatchObject({
+        syncing: true,
+        libraries: SYNCED.libraries,
+      });
     }).pipe(Effect.scoped),
 );
 
@@ -576,6 +647,27 @@ it.effect(
 );
 
 it.effect(
+  "removes the folder of this vault on the desktop root after the Worker removed its replica and stopped, so no replica file stays",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({
+        source: "web-api",
+        key: KEY,
+        consented: 42,
+        folderRoot: true,
+      });
+      const source = yield* serviceOf(built);
+      yield* source.removeData;
+      const worker = built.workers[0]!;
+      expect(worker.calls).toEqual(["Refresh", "RemoveReplica"]);
+      expect(worker.stopped).toBe(true);
+      expect(built.removed).toEqual(["/zotlit/test-vault"]);
+      expect(built.runningAtRemoval).toEqual([0]);
+      expect((yield* source.view).status).toEqual({ kind: "no-key" });
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
   "names a missing Resource Pack, and starts once the pack is installed",
   () =>
     Effect.gen(function* () {
@@ -680,6 +772,25 @@ it.effect(
       expect(yield* Effect.flip(source.removeData)).toMatchObject({
         _tag: "DbUnavailable",
       });
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "names a refused removal of this vault's folder with its own text, and does not try it again at the next start",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({ key: KEY });
+      const source = yield* serviceOf(built);
+      yield* source.select("web-api");
+      const refusal = m.settings_online_data_this_remove_refused({
+        id: "0123456789abcdef",
+      });
+      built.failRemoval(new ReplicaFolderRefused({ message: refusal }));
+      expect(yield* Effect.flip(source.removeData)).toMatchObject({
+        message: refusal,
+      });
+      expect(built.device.loadLocalStorage(PENDING_REMOVAL_KEY)).toBeNull();
+      expect(yield* source.keySecret).toBeNull();
     }).pipe(Effect.scoped),
 );
 
@@ -830,7 +941,13 @@ it.effect(
           focused: counted,
           secrets: { getSecret: () => KEY },
           reload: Effect.void,
+          removesReplicaFolder: false,
           removeStoredReplica: () => Effect.void,
+          otherStoredReplicas: Effect.succeed({
+            scope: "gone-vaults",
+            folders: [],
+          }),
+          removeOtherStoredReplica: () => Effect.void,
         }).pipe(
           Layer.provide([
             layerDeviceStorageFrom(device),
@@ -1358,11 +1475,13 @@ it.effect(
         const source = yield* serviceOf(built);
         const calls: {
           readonly name: string;
-          readonly fiber: Fiber.Fiber<Exit.Exit<void, DbUnavailable>>;
+          readonly fiber: Fiber.Fiber<
+            Exit.Exit<void, DbUnavailable | UserCancelled>
+          >;
         }[] = [];
         const call = (
           name: string,
-          effect: Effect.Effect<void, DbUnavailable>,
+          effect: Effect.Effect<void, DbUnavailable | UserCancelled>,
         ) =>
           Effect.map(
             Effect.forkChild(Effect.exit(effect), { startImmediately: true }),
@@ -1469,7 +1588,7 @@ it.effect(
           message,
         }: {
           readonly what: string;
-          readonly answer: Exit.Exit<void, DbUnavailable>;
+          readonly answer: Exit.Exit<void, DbUnavailable | UserCancelled>;
           readonly ok: boolean;
           readonly message?: string;
         }) => {
@@ -1490,8 +1609,9 @@ it.effect(
             : (built.replica.account ?? 42);
         const keyOf = (account: number) =>
           Object.entries(ACCOUNTS).find(([, id]) => id === account)![0];
-        const answerOf = (effect: Effect.Effect<void, DbUnavailable>) =>
-          Effect.andThen(settle, Effect.exit(effect));
+        const answerOf = (
+          effect: Effect.Effect<void, DbUnavailable | UserCancelled>,
+        ) => Effect.andThen(settle, Effect.exit(effect));
         built.secrets.set("probe", keyOf(own));
         yield* source.selectKeySecret("probe");
         outcome({
@@ -1543,7 +1663,13 @@ it.effect(
           focused: Stream.never,
           secrets: { getSecret: () => KEY },
           reload: Effect.void,
+          removesReplicaFolder: false,
           removeStoredReplica: () => Effect.void,
+          otherStoredReplicas: Effect.succeed({
+            scope: "gone-vaults",
+            folders: [],
+          }),
+          removeOtherStoredReplica: () => Effect.void,
         }).pipe(
           Layer.provide([
             layerDeviceStorageFrom(device),
@@ -2131,5 +2257,360 @@ it.effect(
 
       expect(built.workers[0]!.calls).toContain("RemoveReplica");
       expect(yield* Fiber.join(reading)).toBeInstanceOf(DbUnavailable);
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "shows the progress that the Worker pushes, the latest value at most each 250 ms, until the sync ends",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({ source: "web-api", key: KEY });
+      const source = yield* serviceOf(built);
+      yield* settle;
+      const progressOf = Effect.map(source.view, (view) =>
+        view.status.kind === "running" ? view.status.sync.progress : "none",
+      );
+      const gate = yield* Deferred.make<void>();
+      built.behaviour.refresh = Deferred.await(gate);
+      built.behaviour.status = { ...SYNCED, syncing: true };
+      const syncing = yield* Effect.forkChild(source.syncNow, {
+        startImmediately: true,
+      });
+      yield* settle;
+      const worker = built.workers[0]!;
+      yield* worker.push({ phase: "download", done: 10, total: 100 });
+      yield* settle;
+      expect(yield* progressOf).toEqual({
+        phase: "download",
+        done: 10,
+        total: 100,
+      });
+      yield* worker.push({ phase: "download", done: 20, total: 100 });
+      yield* worker.push({ phase: "download", done: 30, total: 100 });
+      yield* settle;
+      expect(yield* progressOf).toMatchObject({ done: 10 });
+      yield* TestClock.adjust("250 millis");
+      yield* settle;
+      expect(yield* progressOf).toEqual({
+        phase: "download",
+        done: 30,
+        total: 100,
+      });
+      yield* TestClock.adjust("1 second");
+      yield* settle;
+      expect(yield* progressOf).toMatchObject({ done: 30 });
+      built.behaviour.status = SYNCED;
+      yield* Deferred.succeed(gate, undefined);
+      yield* Fiber.join(syncing);
+      yield* settle;
+      expect(yield* progressOf).toBeNull();
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "shows the end of a sync as soon as the Worker reports it, with no wait for the next status read",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({ source: "web-api", key: KEY });
+      const source = yield* serviceOf(built);
+      yield* settle;
+      const gate = yield* Deferred.make<void>();
+      built.behaviour.refresh = Deferred.await(gate);
+      built.behaviour.status = { ...SYNCED, syncing: true };
+      const syncing = yield* Effect.forkChild(source.syncNow, {
+        startImmediately: true,
+      });
+      yield* built.workers[0]!.refreshing;
+      yield* settle;
+      const syncingNow = Effect.map(
+        source.view,
+        (view) => view.status.kind === "running" && view.status.sync.syncing,
+      );
+      expect(yield* syncingNow).toBe(true);
+      built.behaviour.status = SYNCED;
+      yield* Deferred.succeed(gate, undefined);
+      yield* Fiber.join(syncing);
+      yield* settle;
+      expect(yield* syncingNow).toBe(false);
+    }).pipe(Effect.scoped),
+);
+
+const syncingAs = (
+  built: Effect.Success<ReturnType<typeof setup>>,
+  syncId: number,
+  worker = 0,
+) =>
+  Effect.gen(function* () {
+    built.behaviour.status = { ...SYNCED, syncing: true, syncId };
+    yield* built.workers[worker]!.refreshing;
+    yield* settle;
+  });
+
+const stopOf = (source: LibrarySource["Service"]) =>
+  Effect.map(source.view, (view) => view.stop ?? null);
+
+it.effect(
+  "ends a Sync now with UserCancelled when the Worker reports the stop of its sync, and with its failure otherwise",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({ source: "web-api", key: KEY });
+      const source = yield* serviceOf(built);
+      yield* settle;
+      built.behaviour.refresh = Effect.fail(
+        new DbUnavailable({ message: "The sync stopped before it finished" }),
+      );
+      built.behaviour.status = {
+        ...SYNCED,
+        problem: { _tag: "stopped", message: "stopped" },
+      };
+      expect(yield* Effect.flip(source.syncNow)).toBeInstanceOf(UserCancelled);
+
+      built.behaviour.refresh = Effect.fail(
+        new DbUnavailable({ message: "offline" }),
+      );
+      built.behaviour.status = SYNCED;
+      expect(yield* Effect.flip(source.syncNow)).toBeInstanceOf(DbUnavailable);
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "ends a Sync now with UserCancelled when the user stops the download that follows the first consent",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({
+        source: "web-api",
+        key: "refused0invented0key0000",
+        consented: null,
+        replica: emptyReplica(),
+      });
+      const source = yield* serviceOf(built);
+      yield* settle;
+      let refreshes = 0;
+      built.behaviour.refresh = Effect.suspend(() => {
+        if (++refreshes === 1) return Effect.void;
+        built.behaviour.status = {
+          ...SYNCED,
+          problem: { _tag: "stopped", message: "stopped" },
+        };
+        return Effect.fail(
+          new DbUnavailable({ message: "The sync stopped before it finished" }),
+        );
+      });
+      built.secrets.set("working-key", KEY);
+      yield* source.selectKeySecret("working-key");
+      expect(yield* Effect.flip(source.syncNow)).toBeInstanceOf(UserCancelled);
+      expect(refreshes).toBe(2);
+      expect(built.device.loadLocalStorage(CONSENTED_ACCOUNT_KEY)).toBe(42);
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "starts a new Worker with no stop state, also when its sync has the number of a stopped sync of the Worker before it",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({ source: "web-api", key: KEY });
+      const source = yield* serviceOf(built);
+      yield* settle;
+      yield* syncingAs(built, 7);
+      built.behaviour.stop = Effect.succeed(true);
+      yield* source.stopSync;
+      expect(yield* stopOf(source)).toEqual({ syncId: 7, state: "confirmed" });
+
+      yield* source.selectKeySecret(null);
+      yield* source.selectKeySecret(SECRET_NAME);
+      yield* settle;
+      expect(built.workers).toHaveLength(2);
+      yield* syncingAs(built, 7, 1);
+      expect((yield* source.view).status).toMatchObject({
+        kind: "running",
+        sync: { syncing: true, syncId: 7 },
+      });
+      expect(yield* stopOf(source)).toBeNull();
+      yield* source.stopSync;
+      expect(
+        built.workers[1]!.calls.filter((call) => call.startsWith("StopSync")),
+      ).toEqual(["StopSync:7"]);
+      expect(yield* stopOf(source)).toEqual({ syncId: 7, state: "confirmed" });
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "asks the Worker once when Stop sync is pressed twice, also for a sync that the Worker started",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({ source: "web-api", key: KEY });
+      const source = yield* serviceOf(built);
+      yield* settle;
+      yield* syncingAs(built, 7);
+      const entered = yield* Deferred.make<void>();
+      const answer = yield* Deferred.make<void>();
+      built.behaviour.stop = Effect.andThen(
+        Deferred.succeed(entered, undefined),
+        Effect.as(Deferred.await(answer), true),
+      );
+      const first = yield* Effect.forkChild(source.stopSync, {
+        startImmediately: true,
+      });
+      yield* Deferred.await(entered);
+      expect(yield* stopOf(source)).toEqual({ syncId: 7, state: "requested" });
+      const second = yield* Effect.forkChild(source.stopSync, {
+        startImmediately: true,
+      });
+      yield* Deferred.succeed(answer, undefined);
+      yield* Fiber.join(first);
+      yield* Fiber.join(second);
+      expect(
+        built.workers[0]!.calls.filter((call) => call.startsWith("StopSync")),
+      ).toEqual(["StopSync:7"]);
+      expect(yield* stopOf(source)).toEqual({ syncId: 7, state: "confirmed" });
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "settles a stop that is interrupted before the Worker answers as failed, and a later press asks again",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({ source: "web-api", key: KEY });
+      const source = yield* serviceOf(built);
+      yield* settle;
+      yield* syncingAs(built, 3);
+      const entered = yield* Deferred.make<void>();
+      built.behaviour.stop = Effect.andThen(
+        Deferred.succeed(entered, undefined),
+        Effect.never,
+      );
+      const stopping = yield* Effect.forkChild(source.stopSync, {
+        startImmediately: true,
+      });
+      yield* Deferred.await(entered);
+      yield* Fiber.interrupt(stopping);
+      expect(yield* stopOf(source)).toEqual({ syncId: 3, state: "failed" });
+
+      built.behaviour.stop = Effect.succeed(true);
+      yield* source.stopSync;
+      expect(yield* stopOf(source)).toEqual({ syncId: 3, state: "confirmed" });
+      expect(
+        built.workers[0]!.calls.filter((call) => call.startsWith("StopSync")),
+      ).toEqual(["StopSync:3", "StopSync:3"]);
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "tells a stop that got no answer apart from a stop that the Worker refused",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({ source: "web-api", key: KEY });
+      const source = yield* serviceOf(built);
+      yield* settle;
+      yield* syncingAs(built, 4);
+      built.behaviour.stop = Effect.die(new Error("the Worker port closed"));
+      yield* source.stopSync;
+      expect(yield* stopOf(source)).toEqual({ syncId: 4, state: "failed" });
+
+      built.behaviour.stop = Effect.succeed(false);
+      yield* source.stopSync;
+      expect(yield* stopOf(source)).toEqual({ syncId: 4, state: "refused" });
+    }).pipe(Effect.scoped),
+);
+
+it.effect("drops the answer to a stop of a sync that has ended", () =>
+  Effect.gen(function* () {
+    const built = yield* setup({ source: "web-api", key: KEY });
+    const source = yield* serviceOf(built);
+    yield* settle;
+    yield* syncingAs(built, 5);
+    const entered = yield* Deferred.make<void>();
+    const answer = yield* Deferred.make<void>();
+    built.behaviour.stop = Effect.andThen(
+      Deferred.succeed(entered, undefined),
+      Effect.as(Deferred.await(answer), false),
+    );
+    const stopping = yield* Effect.forkChild(source.stopSync, {
+      startImmediately: true,
+    });
+    yield* Deferred.await(entered);
+    yield* syncingAs(built, 6);
+    yield* Deferred.succeed(answer, undefined);
+    yield* Fiber.join(stopping);
+    expect(yield* stopOf(source)).toBeNull();
+  }).pipe(Effect.scoped),
+);
+
+const GONE_VAULT: StoredReplicaFolder = {
+  id: "removedvault0001",
+  bytes: 52_428_800,
+  changed: DateTime.makeUnsafe("2026-09-03T10:30:00Z"),
+};
+const OTHER_GONE_VAULT: StoredReplicaFolder = {
+  id: "removedvault0002",
+  bytes: 1_048_576,
+  changed: null,
+};
+
+it.effect(
+  "lists the online library data of other folders, and removes one folder with no change to the records, the Worker or the replica of this vault",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({
+        source: "web-api",
+        key: KEY,
+        others: [GONE_VAULT, OTHER_GONE_VAULT],
+      });
+      const source = yield* serviceOf(built);
+      yield* settle;
+      expect(yield* source.otherData).toEqual({ kind: "unread" });
+
+      yield* source.readOtherData;
+      expect(yield* source.otherData).toEqual({
+        kind: "listed",
+        scope: "gone-vaults",
+        folders: [GONE_VAULT, OTHER_GONE_VAULT],
+      });
+
+      const writes = [...built.device.writes];
+      yield* source.removeOtherData(GONE_VAULT.id);
+      expect(built.otherRemovals).toEqual([GONE_VAULT.id]);
+      expect(yield* source.otherData).toEqual({
+        kind: "listed",
+        scope: "gone-vaults",
+        folders: [OTHER_GONE_VAULT],
+      });
+      expect(built.device.writes).toEqual(writes);
+      expect(built.removed).toEqual([]);
+      expect(built.workers.every((worker) => !worker.stopped)).toBe(true);
+      expect(built.workers.flatMap((worker) => worker.calls)).not.toContain(
+        "RemoveReplica",
+      );
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "names the reason when the data of other folders cannot be read, also while this vault reads the Zotero database file",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({
+        othersUnreadable: new DbUnavailable({
+          message: "ZotLit could not read the vault list of Obsidian",
+        }),
+      });
+      const source = yield* serviceOf(built);
+      yield* source.readOtherData;
+      expect(yield* source.otherData).toEqual({
+        kind: "unreadable",
+        message: "ZotLit could not read the vault list of Obsidian",
+      });
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "removes the online library data of this vault from the Advanced page while this vault reads the Zotero database file, and keeps the file source",
+  () =>
+    Effect.gen(function* () {
+      const built = yield* setup({ key: KEY });
+      const source = yield* serviceOf(built);
+      yield* source.removeData;
+      expect(built.removed).toEqual(["/zotlit/test-vault"]);
+      expect((yield* source.view).status).toEqual({ kind: "file-source" });
+      expect(built.workers).toEqual([]);
     }).pipe(Effect.scoped),
 );

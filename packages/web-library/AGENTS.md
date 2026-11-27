@@ -6,7 +6,7 @@ The package is in the Worker zone (`zotlit.layer: "worker"`). The caller passes 
 
 ## Where a change goes
 
-- `src/download.ts` — the order of a sync: the key check (`verifyKey`), the group list (`listKeyLibraries`), and the pass of each library (`downloadReplica`), which writes only the staging tables, so readers can read during it. The apply is `applyDownloadSteps` of `@zotlit/db/replica`, re-exported here.
+- `src/download.ts` — the order of a sync: the key check (`verifyKey`), the group list (`listKeyLibraries`), and the pass of each library (`downloadReplica`), which reads and writes the replica only through the `ReplicaStage` it is given (`stageOn(db)` for a plain database) and writes only the staging tables, so readers can read during it. The apply is `applyDownloadSteps` of `@zotlit/db/replica`, re-exported here.
 - `src/api-client.ts` — one request: headers, the shared pause, retries and the typed errors of `src/errors.ts`.
 - The order of a pass and the retry steps follow the Zotero desktop client at commit 213b0d7d7 (`chrome/content/zotero/xpcom/sync/syncEngine.js`, `syncAPIClient.js`). Cite that source when you change one. Two rules are ZotLit's own: `Backoff` pauses on any answer (the desktop client reads it only on a success), and a burst of refusals takes one step of the wait.
 

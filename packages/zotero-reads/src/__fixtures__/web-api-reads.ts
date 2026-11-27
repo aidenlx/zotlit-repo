@@ -7,7 +7,7 @@ import type { SeededApi } from "./web-api.ts";
 import type { HandlersOptions } from "#worker/handlers.ts";
 import { makeInProcessClient } from "#worker/in-process.ts";
 import { layerUnpinnedConnectionItemSource } from "#worker/item-source.ts";
-import { layerAbsentFileSystem } from "#worker/serve-web.ts";
+import { layerAbsentFileSystem } from "#worker/serve-web-api.ts";
 import { sha256Hex } from "#worker/snapshot/sha256.ts";
 
 export function webApiReadsService(

@@ -57,6 +57,32 @@ describe("BaseNotice", () => {
     expect(notice.buttons).toEqual([]);
   });
 
+  it("keeps the buttons of a message that keeps the same actions, and runs the newest action", () => {
+    const first = vi.fn();
+    const second = vi.fn();
+    const notice = new BaseNotice(
+      {
+        title: "Syncing",
+        progress: { value: 1, max: 4 },
+        actions: [{ label: "Stop", run: first }],
+      },
+      0,
+    ) as Recorded;
+    const button = notice.buttons[0];
+
+    notice.setMessage({
+      title: "Syncing",
+      progress: { value: 2, max: 4 },
+      actions: [{ label: "Stop", run: second }],
+    });
+
+    expect(notice.buttons).toHaveLength(1);
+    expect(notice.buttons[0]).toBe(button);
+    notice.buttons[0]!.callback({} as MouseEvent);
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledOnce();
+  });
+
   it("draws a bar for a known amount of work", () => {
     const notice = new BaseNotice("Importing", 0) as Recorded;
     const bar = { max: 0, value: 0 };

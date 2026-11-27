@@ -10,7 +10,7 @@ import type { FakeRequest } from "@zotlit/web-library/fake-zotero-api";
 import { READ_ALL_ACCESS } from "@zotlit/web-library/fake-zotero-api/scenario";
 
 import { Connection } from "./connection.ts";
-import { REPLICA_FILE, WebLibrarySync } from "./web-api-source.ts";
+import { WebLibrarySync } from "./web-api-source.ts";
 
 import { SEED } from "#__fixtures__/reads-seed.ts";
 import {
@@ -20,6 +20,7 @@ import {
   seededApi,
   webApiConfig,
 } from "#__fixtures__/web-api.ts";
+import { REPLICA_FILE } from "#contract/web-worker.ts";
 
 const ACCOUNT = { userID: 42, username: "reader" } as const;
 const OTHER_KEY = "otheraccountkey00000000c";

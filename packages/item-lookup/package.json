@@ -26,6 +26,7 @@
     "minisearch": "^7.2.0"
   },
   "devDependencies": {
+    "@effect/vitest": "catalog:",
     "@types/node": "catalog:",
     "@zotlit/config": "workspace:*",
     "@zotlit/db-testing": "workspace:*",

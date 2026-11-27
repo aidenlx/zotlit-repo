@@ -57,6 +57,8 @@ export function isNoticeContent(message: unknown): message is NoticeContent {
 }
 
 export class BaseNotice extends Notice {
+  #actions: readonly NoticeAction[] = [];
+
   constructor(message: NoticeMessage, duration?: number) {
     super(noticeText(message), duration);
     this.#decorate(message);
@@ -77,10 +79,19 @@ export class BaseNotice extends Notice {
       bar.max = progress.max;
       bar.value = progress.value;
     }
+    const actions = content?.actions ?? [];
+    const kept =
+      this.buttonContainerEl !== null &&
+      actions.length === this.#actions.length &&
+      actions.every(
+        (action, index) => action.label === this.#actions[index]?.label,
+      );
+    this.#actions = actions;
+    if (kept) return;
     this.buttonContainerEl?.remove();
     this.buttonContainerEl = null;
-    for (const action of content?.actions ?? []) {
-      this.addButton(action.label, () => action.run());
-    }
+    actions.forEach((action, index) => {
+      this.addButton(action.label, () => this.#actions[index]?.run());
+    });
   }
 }

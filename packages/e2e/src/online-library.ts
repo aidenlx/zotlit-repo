@@ -16,6 +16,8 @@ import type {
 
 import { obRun, obRunUntil } from "./obsidian-cli.ts";
 
+const POOL_DATA_OFFSET = 4096;
+
 export const MAIN_ACCOUNT = {
   userID: 7_700_001,
   username: "fixture-reader",
@@ -208,6 +210,36 @@ export function messagePattern<P extends Record<string, string>>(
 }
 
 export const WEB_API_URL_KEY = "zotlit-zotero-web-api-url";
+export const ONLINE_LIBRARY_ROOT_KEY = "zotlit-online-library-root";
+
+export const REPLICA_ROOTS = [
+  {
+    name: "node:sqlite root",
+    key: null,
+    slug: "node",
+    worker: "zotlit-zotero-reads-replica",
+  },
+  {
+    name: "wasm root on OPFS",
+    key: "web",
+    slug: "wasm",
+    worker: "zotlit-zotero-reads-web",
+  },
+] as const;
+export type ReplicaRoot = (typeof REPLICA_ROOTS)[number];
+
+export async function setOnlineLibraryRoot(
+  vaultId: string,
+  root: ReplicaRoot,
+): Promise<void> {
+  await obRun(
+    vaultId,
+    ({ app }, { key, value }) => {
+      app.saveLocalStorage(key, value);
+    },
+    { key: ONLINE_LIBRARY_ROOT_KEY, value: root.key },
+  );
+}
 
 export async function setWebApiUrl(
   vaultId: string,
@@ -493,7 +525,12 @@ export interface WebWorkerProbe {
   found: boolean;
   console: string[];
   vfs: string[] | null;
-  pool: { capacity: number; files: string[]; peak: PoolPeak | null } | null;
+  pool: {
+    capacity: number;
+    files: string[];
+    bytes: Record<string, number>;
+    peak: PoolPeak | null;
+  } | null;
 }
 
 export async function probeWebWorker(
@@ -503,7 +540,7 @@ export async function probeWebWorker(
 ): Promise<WebWorkerProbe> {
   return await obRun(
     vaultId,
-    async ({ page }, { workerName, watchPool }) => {
+    async ({ page }, { workerName, watchPool, dataOffset }) => {
       const remote =
         require("@electron/remote") as typeof import("@electron/remote");
       const client = remote.getCurrentWebContents().debugger;
@@ -619,7 +656,11 @@ export async function probeWebWorker(
           session,
         )) as { result: { value: string[] | null } };
         const maps = await objects("Map.prototype");
-        const slots = function (this: Map<unknown, unknown>[], watch: boolean) {
+        const slots = function (
+          this: Map<unknown, unknown>[],
+          watch: boolean,
+          dataOffset: number,
+        ) {
           const { FileSystemSyncAccessHandle: SyncHandle } =
             globalThis as unknown as {
               FileSystemSyncAccessHandle: abstract new () => object;
@@ -653,9 +694,18 @@ export async function probeWebWorker(
               return result;
             };
           }
+          const bytes = Object.fromEntries(
+            [...(byName ?? new Map<unknown, unknown>())].map(
+              ([name, value]) => [
+                String(name),
+                (value as { getSize(): number }).getSize() - dataOffset,
+              ],
+            ),
+          );
           return {
             capacity: byHandle.size,
-            files: [...(byName?.keys() ?? [])].map(String).sort(),
+            files: Object.keys(bytes).sort(),
+            bytes,
             peak: scope.zotlitE2EPoolPeak ?? null,
           };
         };
@@ -664,7 +714,7 @@ export async function probeWebWorker(
           {
             objectId: maps,
             functionDeclaration: slots.toString(),
-            arguments: [{ value: watchPool }],
+            arguments: [{ value: watchPool }, { value: dataOffset }],
             returnByValue: true,
           },
           session,
@@ -691,7 +741,7 @@ export async function probeWebWorker(
         if (!attached) client.detach();
       }
     },
-    { workerName, watchPool },
+    { workerName, watchPool, dataOffset: POOL_DATA_OFFSET },
     { timeoutMs: 30_000 },
   );
 }
@@ -738,6 +788,8 @@ declare module "./page-helpers.ts" {
     onlineLibraryTimer?: typeof setTimeout;
     onlineLibraryOtherWindow?: number;
     onlineLibraryReads?: { seen: string[]; stop: () => void };
+    nativeWorker?: typeof Worker;
+    spawnedWorkers?: { worker: Worker; name: string | undefined }[];
   }
 }
 
@@ -951,7 +1003,7 @@ export async function replicaFileBytes(
 ): Promise<Buffer | null> {
   const encoded = await obRun(
     vaultId,
-    async ({ app }, { name }) => {
+    async ({ app }, { name, dataOffset }) => {
       const slots: FileSystemFileHandle[] = [];
       const walk = async (dir: FileSystemDirectoryHandle) => {
         for await (const handle of dir.values())
@@ -978,22 +1030,26 @@ export async function replicaFileBytes(
         const end = bytes.indexOf(0);
         if (new TextDecoder().decode(bytes.subarray(0, end)) !== name) continue;
         let text = "";
-        for (const byte of bytes.subarray(4096))
+        for (const byte of bytes.subarray(dataOffset))
           text += String.fromCharCode(byte);
         return btoa(text);
       }
       return null;
     },
-    { name },
+    { name, dataOffset: POOL_DATA_OFFSET },
     { timeoutMs: 60_000 },
   );
   return encoded === null ? null : Buffer.from(encoded, "base64");
 }
 
-export function replicaRowCounts(bytes: Buffer): Record<string, unknown> {
+export function replicaRowCounts(
+  bytes: Buffer,
+  wal: Buffer | null = null,
+): Record<string, unknown> {
   const path = join(mkdtempSync(join(tmpdir(), "zotlit-replica-")), "r.sqlite");
   writeFileSync(path, bytes);
-  const sqlite = new DatabaseSync(path, { readOnly: true });
+  if (wal) writeFileSync(`${path}-wal`, wal);
+  const sqlite = new DatabaseSync(path, { readOnly: wal === null });
   try {
     const count = (sql: string) =>
       (sqlite.prepare(sql).get() as { n: number }).n;
@@ -1014,4 +1070,135 @@ export function replicaRowCounts(bytes: Buffer): Record<string, unknown> {
     sqlite.close();
     rmSync(dirname(path), { recursive: true, force: true });
   }
+}
+
+export interface ReplicaFolderFile {
+  readonly name: string;
+  readonly bytes: Buffer;
+}
+
+export async function replicaFolderFiles(
+  vaultId: string,
+): Promise<ReplicaFolderFile[] | null> {
+  const files = await obRun(
+    vaultId,
+    ({ app }) => {
+      const remote =
+        require("@electron/remote") as typeof import("@electron/remote");
+      const { readdirSync, readFileSync } =
+        require("node:fs") as typeof import("node:fs");
+      const { join } = require("node:path") as typeof import("node:path");
+      const folder = join(remote.app.getPath("userData"), "zotlit", app.appId);
+      let names: string[];
+      try {
+        names = readdirSync(folder);
+      } catch (error) {
+        if ((error as { code?: unknown }).code === "ENOENT") return null;
+        throw error;
+      }
+      return names.toSorted().map((name) => ({
+        name,
+        bytes: readFileSync(join(folder, name)).toString("base64"),
+      }));
+    },
+    undefined,
+    { timeoutMs: 60_000 },
+  );
+  return (
+    files?.map(({ name, bytes }) => ({
+      name,
+      bytes: Buffer.from(bytes, "base64"),
+    })) ?? null
+  );
+}
+
+export interface WorkerStop {
+  progress: { phase: "apply"; done: number; total: number };
+  terminated: number;
+}
+
+export interface WatchedWorkers extends AsyncDisposable {
+  terminateDuringApply(workerName: string): Promise<WorkerStop | null>;
+  restartUnwatched(): Promise<void>;
+}
+
+export async function restartWatchingWorkers(
+  vaultId: string,
+): Promise<WatchedWorkers> {
+  let watching = true;
+  const restartUnwatched = async () => {
+    if (!watching) return;
+    watching = false;
+    await obRun(
+      vaultId,
+      async ({ app, page }) => {
+        await app.plugins.disablePlugin("zotlit");
+        if (page.scratch.nativeWorker)
+          window.Worker = page.scratch.nativeWorker;
+        delete page.scratch.spawnedWorkers;
+        await app.plugins.enablePlugin("zotlit");
+      },
+      undefined,
+      { timeoutMs: 120_000 },
+    );
+  };
+  try {
+    await obRun(
+      vaultId,
+      async ({ app, page }) => {
+        await app.plugins.disablePlugin("zotlit");
+        const native = page.scratch.nativeWorker ?? window.Worker;
+        page.scratch.nativeWorker = native;
+        const spawned: { worker: Worker; name: string | undefined }[] = [];
+        page.scratch.spawnedWorkers = spawned;
+        window.Worker = class extends native {
+          constructor(url: string | URL, options?: WorkerOptions) {
+            super(url, options);
+            spawned.push({ worker: this, name: options?.name });
+          }
+        };
+        await app.plugins.enablePlugin("zotlit");
+      },
+      undefined,
+      { timeoutMs: 120_000 },
+    );
+  } catch (error) {
+    await restartUnwatched();
+    throw error;
+  }
+  return {
+    terminateDuringApply: (workerName) =>
+      obRun(
+        vaultId,
+        async ({ page, zotlit }, { workerName }) => {
+          const services = zotlit.services;
+          void services.bridge
+            .runPromise(services.librarySource.syncNow)
+            .catch(() => undefined);
+          for (let i = 0; i < 12_000; i++) {
+            const status = await services.bridge.runPromise(
+              services.librarySource.syncStatus,
+            );
+            const progress = status.progress;
+            if (
+              progress?.phase === "apply" &&
+              progress.done > 0 &&
+              progress.done < progress.total
+            ) {
+              const target = (page.scratch.spawnedWorkers ?? []).filter(
+                ({ name }) => name === workerName,
+              );
+              for (const { worker } of target) worker.terminate();
+              return { progress, terminated: target.length };
+            }
+            await new Promise((resolve) => setTimeout(resolve, 5));
+          }
+          return null;
+        },
+        { workerName },
+        { timeoutMs: 300_000 },
+      ),
+    restartUnwatched,
+    [Symbol.asyncDispose]: restartUnwatched,
+  };
 }

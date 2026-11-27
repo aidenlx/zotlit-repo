@@ -17,7 +17,8 @@ import {
   READ_ALL_ACCESS,
 } from "@zotlit/web-library/fake-zotero-api/scenario";
 
-import type { WebApiReadsConfig } from "#contract/rpc.ts";
+import type { DbUnavailable, WebApiReadsConfig } from "#contract/rpc.ts";
+import { wasmReplicaDriver } from "#worker/replica-driver-wasm.ts";
 import { layerWebApiSource } from "#worker/web-api-source.ts";
 import type { WebApiSourceOptions } from "#worker/web-api-source.ts";
 
@@ -122,10 +123,15 @@ export function keyOwner(seeded: Pick<SeededApi, "api" | "key">): number {
 
 export function memoryWebApiSource(
   seeded: SeededApi,
-  options: Partial<WebApiSourceOptions> = {},
+  {
+    engine = Effect.promise(() => loadMemoryEngine()),
+    ...options
+  }: Partial<WebApiSourceOptions> & {
+    readonly engine?: Effect.Effect<SqliteWasm, DbUnavailable>;
+  } = {},
 ) {
   return layerWebApiSource({
-    engine: Effect.promise(() => loadMemoryEngine()),
+    driver: Effect.map(engine, (loaded) => wasmReplicaDriver(loaded)),
     fetch: seeded.fetch,
     initial: webApiConfig(seeded.key, { consentedUserID: keyOwner(seeded) }),
     ...options,

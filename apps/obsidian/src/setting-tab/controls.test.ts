@@ -106,7 +106,13 @@ it.effect(
           secrets: {
             getSecret: (id) => (id === "zotero-reading-key" ? key : null),
           },
+          removesReplicaFolder: false,
           removeStoredReplica: () => Effect.void,
+          otherStoredReplicas: Effect.succeed({
+            scope: "gone-vaults",
+            folders: [],
+          }),
+          removeOtherStoredReplica: () => Effect.void,
           reload: Effect.void,
         }).pipe(
           Layer.provide([

@@ -5,13 +5,17 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
 
 import { unavailable } from "./reads-facade.ts";
+import type { ReplicaFolderRefused } from "./stored-replica.ts";
 
 export const CONSENTED_ACCOUNT_KEY = "zotlit-online-library-account";
 export const PENDING_REMOVAL_KEY = "zotlit-online-library-removal";
 
 export interface RemovalSteps {
   readonly forgetKey: Effect.Effect<void, DbUnavailable>;
-  readonly deleteReplica: Effect.Effect<void, DbUnavailable>;
+  readonly deleteReplica: Effect.Effect<
+    void,
+    DbUnavailable | ReplicaFolderRefused
+  >;
 }
 
 export interface Consent {
@@ -74,8 +78,16 @@ export function makeConsent(storage: DeviceStorage["Service"]): Consent {
         yield* steps.deleteReplica;
         yield* write(PENDING_REMOVAL_KEY, null);
       }).pipe(
-        Effect.mapError(() =>
-          unavailable(m.settings_online_remove_key_unsaved()),
+        Effect.mapError((error) =>
+          error._tag === "ReplicaFolderRefused"
+            ? error
+            : unavailable(m.settings_online_remove_key_unsaved()),
+        ),
+        Effect.catchTag("ReplicaFolderRefused", (refused) =>
+          Effect.andThen(
+            write(PENDING_REMOVAL_KEY, null),
+            Effect.fail(unavailable(refused.message)),
+          ),
         ),
       );
       yield* Effect.logInfo("The online library data was removed");

@@ -1,7 +1,7 @@
 import { Effect, Layer } from "effect";
 
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
-import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
+import { withOutcome } from "@zotlit/obsidian-kit/notifier.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { exitOver, scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -21,10 +21,9 @@ export const layerLibrarySourceActions: Layer.Layer<
       yield* scopedBridge,
       yield* Effect.context<Notifier>(),
     );
-    const sync = withProgress(source.syncNow, {
-      loading: m.notice_online_syncing(),
-      success: m.notice_online_synced(),
-      error: m.notice_online_sync_failed(),
+    const sync = withOutcome(source.syncNow, {
+      success: () => m.notice_online_synced(),
+      error: () => m.notice_online_sync_failed(),
     });
     yield* host.addCommand({
       id: "sync-online-library",

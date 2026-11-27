@@ -4,11 +4,12 @@ import {
   Deferred,
   Effect,
   Exit,
-  Fiber,
   Layer,
+  Option,
   PubSub,
   Queue,
   Redacted,
+  Ref,
   Scope,
   Stream,
   SubscriptionRef,
@@ -31,7 +32,10 @@ import {
   DbUnavailable,
   ZOTERO_WEB_API_URL,
 } from "@zotlit/zotero-reads/contract/rpc.ts";
-import type { WebSyncStatus } from "@zotlit/zotero-reads/contract/web-worker-rpc.ts";
+import type {
+  WebSyncProgress,
+  WebSyncStatus,
+} from "@zotlit/zotero-reads/contract/web-worker-rpc.ts";
 import { ZoteroReadsWeb } from "@zotlit/zotero-reads/contract/web-worker-rpc.ts";
 import { ZOTERO_SCHEMA_VERSION } from "@zotlit/zotero-types/vocabulary";
 
@@ -40,8 +44,18 @@ import { effectiveZoteroLanguage } from "./language.ts";
 import { makeReadsFacade, unavailable } from "./reads-facade.ts";
 import { runSyncSchedule } from "./schedule.ts";
 import type { LibrarySourceView, OnlineLibraryStatus } from "./status.ts";
-import { formatSyncTime, statusText, viewOf } from "./status.ts";
-import type { LibrarySourceKind, ZoteroLanguage } from "./tag.ts";
+import { formatSyncTime, runningSyncOf, statusText, viewOf } from "./status.ts";
+import type {
+  OtherDataRefused,
+  ReplicaFolderRefused,
+} from "./stored-replica.ts";
+import { makeSyncRuns, refreshOutcome } from "./sync-run.ts";
+import type {
+  LibrarySourceKind,
+  OtherDataView,
+  OtherStoredReplicas,
+  ZoteroLanguage,
+} from "./tag.ts";
 import { LibrarySource } from "./tag.ts";
 
 import { segmenterBinaryOf } from "#obsidian/chinese-segmenter/service.ts";
@@ -49,10 +63,16 @@ import { ResourcePackPlatform } from "#obsidian/managed-binary/pack-platform.ts"
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
 export { LibrarySource } from "./tag.ts";
-export type { LibrarySourceKind } from "./tag.ts";
+export type {
+  LibrarySourceKind,
+  OtherDataScope,
+  OtherDataView,
+  OtherStoredReplicas,
+} from "./tag.ts";
 export type { LibrarySourceView } from "./status.ts";
 
 export const LIBRARY_SOURCE_KEY = "zotlit-library-source";
+export const PROGRESS_INTERVAL = "250 millis";
 export const WEB_API_KEY_SECRET_KEY = "zotlit-zotero-web-api-key-secret";
 
 export type WebReadsClient = RpcClient.FromGroup<
@@ -77,9 +97,17 @@ export interface LibrarySourcePorts {
   readonly serverSchemaVersion?: (
     baseUrl: string,
   ) => Effect.Effect<number | null, unknown>;
+  readonly removesReplicaFolder: boolean;
   removeStoredReplica(
     poolDirectory: string,
-  ): Effect.Effect<void, DbUnavailable>;
+  ): Effect.Effect<void, DbUnavailable | ReplicaFolderRefused>;
+  readonly otherStoredReplicas: Effect.Effect<
+    OtherStoredReplicas,
+    DbUnavailable
+  >;
+  removeOtherStoredReplica(
+    id: string,
+  ): Effect.Effect<void, DbUnavailable | OtherDataRefused>;
   readonly reload: Effect.Effect<void>;
 }
 
@@ -115,10 +143,10 @@ const KEY_PROBLEMS = new Set(["key-invalid", "no-access", "account-changed"]);
 const textOf = (status: OnlineLibraryStatus) =>
   statusText(status, formatSyncTime);
 
-const typedExit = <A>(
-  exit: Exit.Exit<A, DbUnavailable>,
+const typedExit = <A, E>(
+  exit: Exit.Exit<A, E>,
   stopped: () => DbUnavailable,
-): Exit.Exit<A, DbUnavailable> => {
+): Exit.Exit<A, E | DbUnavailable> => {
   if (Exit.isSuccess(exit)) return exit;
   const failure = Cause.findErrorOption(exit.cause);
   return failure._tag === "Some"
@@ -199,16 +227,21 @@ export const layerLibrarySource = (
         consent.removalPending,
         () => false,
       );
+      const runs = makeSyncRuns<WebReadsClient>({
+        stopped: () => stopped(),
+        changed: Effect.suspend(() => showView),
+      });
       const viewNow = () =>
         viewOf({
           selected,
           status: shown,
           replace: replaceTargetOf(running),
           removal: removalActive || removalsRequested > 0,
+          stop: runs.view(running?.client ?? null, runningSyncOf(shown)),
         });
       const view = yield* SubscriptionRef.make<LibrarySourceView>(viewNow());
       yield* Effect.addFinalizer(() => PubSub.shutdown(view.pubsub));
-      const showView = Effect.suspend(() =>
+      const showView: Effect.Effect<void> = Effect.suspend(() =>
         SubscriptionRef.set(view, viewNow()),
       );
       const status = {
@@ -353,11 +386,7 @@ export const layerLibrarySource = (
       const stop = Effect.suspend(() => {
         const before = running;
         running = null;
-        const left = inflight;
-        if (left?.now === before && left) {
-          inflight = null;
-          Deferred.doneUnsafe(left.done, Exit.fail(stopped()));
-        }
+        if (before) runs.detach(before.client);
         return before
           ? Effect.andThen(Scope.close(before.scope, Exit.void), showView)
           : Effect.void;
@@ -402,10 +431,39 @@ export const layerLibrarySource = (
           yield* Stream.runForEach(client.Changes(), () =>
             Queue.offer(poke, undefined),
           ).pipe(Effect.ignore, Effect.forkScoped({ startImmediately: true }));
+          const pushed = yield* Ref.make<WebSyncProgress | null | undefined>(
+            undefined,
+          );
+          const latest = yield* Queue.sliding<WebSyncProgress | null>(1);
+          yield* Stream.runForEach(client.SyncProgress(), (progress) =>
+            Queue.offer(latest, progress),
+          ).pipe(Effect.ignore, Effect.forkScoped({ startImmediately: true }));
+          yield* Effect.forkScoped(
+            Effect.forever(
+              Effect.gen(function* () {
+                const progress = yield* Queue.take(latest);
+                yield* Ref.set(pushed, progress);
+                yield* status.update((before) =>
+                  before.kind === "running" && running?.client === client
+                    ? { ...before, sync: { ...before.sync, progress } }
+                    : before,
+                );
+                yield* Effect.sleep(PROGRESS_INTERVAL);
+              }),
+            ),
+            { startImmediately: true },
+          );
           for (;;) {
-            const sync = Exit.getSuccess(
+            const polled = Exit.getSuccess(
               yield* Effect.exit(client.SyncStatus()),
             );
+            const progress = yield* Ref.get(pushed);
+            const sync =
+              polled._tag === "Some" &&
+              polled.value.syncing &&
+              progress !== undefined
+                ? Option.some({ ...polled.value, progress })
+                : polled;
             const now = running;
             if (sync._tag === "Some" && now?.client === client) {
               const { problem } = sync.value;
@@ -428,7 +486,7 @@ export const layerLibrarySource = (
               });
             }
             if (sync._tag === "Some" && sync.value.syncing)
-              yield* Effect.sleep("1 second");
+              yield* Effect.timeoutOption(Queue.take(poke), "1 second");
             else yield* Queue.take(poke);
           }
         });
@@ -495,79 +553,42 @@ export const layerLibrarySource = (
             : Effect.void,
         );
 
-      interface Inflight {
-        readonly now: Running;
-        readonly key: string;
-        readonly done: Deferred.Deferred<void, DbUnavailable>;
-        fiber: Fiber.Fiber<void> | null;
-        superseded: boolean;
-      }
-      let inflight: Inflight | null = null;
+      const refreshOnce = (now: Running, key: string) =>
+        Effect.gen(function* () {
+          const refreshed = yield* Effect.exit(
+            asUnavailable(now.client.Refresh()),
+          );
+          const checked = yield* Effect.exit(
+            asUnavailable(now.client.SyncStatus()),
+          );
+          if (Exit.isSuccess(checked) && keyOf(now) === key) {
+            now.checked = { key, sync: checked.value };
+            yield* showView;
+          }
+          return yield* refreshOutcome(refreshed, checked);
+        });
 
       const beginSync = (now: Running) =>
         Effect.suspend(() => {
-          const before = inflight;
-          if (before?.now === now && before.key === keyOf(now))
-            return Effect.succeed(before);
-          const superseded = before?.now === now ? before : null;
-          const entry: Inflight = {
-            now,
-            key: keyOf(now),
-            done:
-              superseded?.done ?? Deferred.makeUnsafe<void, DbUnavailable>(),
-            fiber: null,
-            superseded: false,
-          };
-          if (superseded) superseded.superseded = true;
-          if (before && !superseded)
-            Deferred.doneUnsafe(before.done, Exit.fail(stopped()));
-          inflight = entry;
-          const refresh = Effect.gen(function* () {
-            const { key } = entry;
-            const refreshed = yield* Effect.exit(
-              asUnavailable(now.client.Refresh()),
-            );
-            const checked = yield* Effect.exit(
-              asUnavailable(now.client.SyncStatus()),
-            );
-            if (Exit.isSuccess(checked) && keyOf(now) === key) {
-              now.checked = { key, sync: checked.value };
-              yield* showView;
-            }
-            if (Exit.isFailure(refreshed)) return yield* refreshed;
-            const sync = yield* checked;
-            if (sync.unconsentedUserID !== null) {
-              yield* enqueue(grantFirst(now, key, sync.unconsentedUserID), now);
-              yield* asUnavailable(now.client.Refresh());
-            }
-            yield* verified(now);
-          });
-          return Effect.gen(function* () {
-            yield* Effect.forkIn(checkSchema(now), now.scope, {
-              startImmediately: true,
-            });
-            entry.fiber = yield* Effect.forkIn(
-              refresh.pipe(
-                Effect.onExit((exit) =>
-                  Effect.suspend(() => {
-                    if (inflight === entry && !entry.superseded)
-                      inflight = null;
-                    return entry.superseded
-                      ? Effect.void
-                      : Deferred.done(entry.done, typedExit(exit, stopped));
-                  }),
-                ),
-                Effect.ignore,
-              ),
-              now.scope,
-              { startImmediately: true },
-            );
-            if (superseded?.fiber)
-              yield* Effect.forkIn(
-                Fiber.interrupt(superseded.fiber),
-                now.scope,
-              );
-            return entry;
+          const key = keyOf(now);
+          return runs.begin({
+            worker: now.client,
+            key,
+            scope: now.scope,
+            refresh: Effect.gen(function* () {
+              yield* Effect.forkIn(checkSchema(now), now.scope, {
+                startImmediately: true,
+              });
+              const sync = yield* refreshOnce(now, key);
+              if (sync.unconsentedUserID !== null) {
+                yield* enqueue(
+                  grantFirst(now, key, sync.unconsentedUserID),
+                  now,
+                );
+                yield* refreshOnce(now, key);
+              }
+              yield* verified(now);
+            }),
           });
         });
 
@@ -577,10 +598,10 @@ export const layerLibrarySource = (
         const removed = now
           ? yield* Effect.exit(asUnavailable(now.worker.RemoveReplica()))
           : null;
-        if (!removed || Exit.isFailure(removed)) {
-          yield* stop;
-          yield* ports.removeStoredReplica(yield* ports.poolDirectory);
-        }
+        if (removed && Exit.isSuccess(removed) && !ports.removesReplicaFolder)
+          return;
+        yield* stop;
+        yield* ports.removeStoredReplica(yield* ports.poolDirectory);
       });
 
       const removeAll = consent.remove({
@@ -736,7 +757,7 @@ export const layerLibrarySource = (
         now.config = next;
         now.account = null;
         now.checked = null;
-        if (inflight?.now === now) inflight.superseded = true;
+        runs.supersede(now.client);
         yield* showAccount;
         yield* now.client.Configure(next).pipe(Effect.ignore);
         yield* Effect.logInfo("The Zotero API key changed");
@@ -753,9 +774,8 @@ export const layerLibrarySource = (
       const syncStep = (scheduled: boolean) =>
         Effect.gen(function* () {
           if (!facade) return;
-          const joined = inflight;
-          if (joined && joined.now === running)
-            return yield* Deferred.await(joined.done);
+          const joined = runs.current(running?.client ?? null);
+          if (joined) return yield* Deferred.await(joined.done);
           const entry = yield* enqueue(
             Effect.gen(function* () {
               const refusal = (yield* status.get).kind;
@@ -845,6 +865,21 @@ export const layerLibrarySource = (
         Effect.withSpan("LibrarySource.syncNow"),
       );
 
+      const syncStatus = Effect.suspend(() => {
+        const now = running;
+        if (now) return asUnavailable(now.client.SyncStatus());
+        return Effect.flatMap(status.get, (shown) =>
+          Effect.fail(unavailable(textOf(shown))),
+        );
+      }).pipe(Effect.withSpan("LibrarySource.syncStatus"));
+
+      const stopSync = Effect.suspend(() => {
+        const now = running;
+        const syncId = runningSyncOf(shown);
+        if (!now || syncId === null) return Effect.void;
+        return runs.stop(now.client, syncId);
+      }).pipe(Effect.withSpan("LibrarySource.stopSync"));
+
       const removeData = Effect.suspend(() => {
         removalsRequested++;
         return Effect.andThen(
@@ -889,6 +924,29 @@ export const layerLibrarySource = (
         );
       });
 
+      const otherData = yield* SubscriptionRef.make<OtherDataView>({
+        kind: "unread",
+      });
+      yield* Effect.addFinalizer(() => PubSub.shutdown(otherData.pubsub));
+      const readOtherData = ports.otherStoredReplicas.pipe(
+        Effect.map((listed): OtherDataView => ({ kind: "listed", ...listed })),
+        Effect.catch((error) =>
+          Effect.succeed<OtherDataView>({
+            kind: "unreadable",
+            message: error.message,
+          }),
+        ),
+        Effect.flatMap((next) => SubscriptionRef.set(otherData, next)),
+        Effect.withSpan("LibrarySource.readOtherData"),
+      );
+      const removeOtherData = Effect.fn("LibrarySource.removeOtherData")(
+        function* (id: string) {
+          yield* ports
+            .removeOtherStoredReplica(id)
+            .pipe(Effect.ensuring(readOtherData));
+        },
+      );
+
       return LibrarySource.of({
         active,
         view: SubscriptionRef.get(view),
@@ -905,9 +963,15 @@ export const layerLibrarySource = (
         keySecret,
         selectKeySecret,
         syncNow,
+        stopSync,
         removeData,
         replaceData,
+        otherData: SubscriptionRef.get(otherData),
+        otherDataChanges: SubscriptionRef.changes(otherData),
+        readOtherData,
+        removeOtherData,
         language,
+        syncStatus,
         reads: facade?.client ?? null,
       });
     }).pipe(withLogCategory("library-source")),

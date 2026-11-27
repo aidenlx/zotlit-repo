@@ -3,6 +3,7 @@ import { Context, Effect, Layer, Schema } from "effect";
 import type { RpcClient, RpcClientError } from "effect/rpc";
 
 import type {
+  StartReplicaWorkerOptions,
   StartWebWorkerOptions,
   WebWorkerPack,
   WebWorkerWasm,
@@ -30,6 +31,13 @@ export class ZoteroReadsWebWorker extends Context.Service<
     ): Effect.Effect<
       RpcClient.FromGroup<typeof ZoteroReadsWeb, RpcClientError.RpcClientError>,
       WebWorkerCodeUnreadable,
+      Scope.Scope
+    >;
+    startReplica(
+      options: StartReplicaWorkerOptions,
+    ): Effect.Effect<
+      RpcClient.FromGroup<typeof ZoteroReadsWeb, RpcClientError.RpcClientError>,
+      never,
       Scope.Scope
     >;
   }
@@ -67,5 +75,17 @@ export const layerZoteroReadsWebWorker = Layer.succeed(
       });
       return yield* startWebWorker({ code, wasm }, options);
     }),
+    startReplica: Effect.fn("ZoteroReadsWebWorker.startReplica")(
+      function* (options) {
+        const [{ startReplicaWorker }, { default: source }] =
+          yield* Effect.promise(() =>
+            Promise.all([
+              import("@zotlit/zotero-reads/client/web-worker.ts"),
+              import("virtual:zotero-reads-worker"),
+            ]),
+          );
+        return yield* startReplicaWorker(source, options);
+      },
+    ),
   }),
 );

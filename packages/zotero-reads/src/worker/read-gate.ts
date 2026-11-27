@@ -1,11 +1,28 @@
 import type { Scope } from "effect";
-import { Deferred, Duration, Effect, Exit, Latch, Semaphore } from "effect";
+import {
+  Clock,
+  Deferred,
+  Duration,
+  Effect,
+  Exit,
+  Latch,
+  Semaphore,
+} from "effect";
+
+import { monotonicMillis } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 
 export const READ_GATE_HOLD_BACK = Duration.seconds(1);
 
 export interface ReadGate {
   readonly enter: Effect.Effect<void, never, Scope.Scope>;
-  readonly exclusive: <A, E>(run: Effect.Effect<A, E>) => Effect.Effect<A, E>;
+  readonly exclusive: <A, E>(
+    run: Effect.Effect<A, E>,
+    onBlocked?: () => void,
+  ) => Effect.Effect<A, E>;
+  readonly exclusiveTimed: <A, E>(
+    run: (closedMillis: () => number) => Effect.Effect<A, E>,
+    onBlocked?: () => void,
+  ) => Effect.Effect<A, E>;
   readonly waiting: () => boolean;
 }
 
@@ -17,6 +34,7 @@ export const makeReadGate = Effect.fnUntraced(function* (
   const holders = new Set<number>();
   let next = 0;
   let waiting = false;
+  const elapsed = monotonicMillis(yield* Clock.Clock);
   let watch: {
     readonly tokens: ReadonlySet<number> | null;
     readonly done: Deferred.Deferred<void>;
@@ -63,20 +81,25 @@ export const makeReadGate = Effect.fnUntraced(function* (
     }),
   );
 
-  const exclusive = <A, E>(run: Effect.Effect<A, E>): Effect.Effect<A, E> =>
+  const exclusiveTimed = <A, E>(
+    run: (closedMillis: () => number) => Effect.Effect<A, E>,
+    onBlocked?: () => void,
+  ): Effect.Effect<A, E> =>
     Effect.uninterruptibleMask((restore) =>
       Effect.gen(function* () {
         waiting = true;
         while (true) {
           yield* open.close;
+          const closedAt = elapsed();
           yield* restore(
             released(null).pipe(Effect.timeoutOption(holdBack), Effect.asVoid),
           );
           if (holders.size === 0) {
             waiting = false;
-            return yield* run;
+            return yield* run(() => elapsed() - closedAt);
           }
           const blockers = new Set(holders);
+          onBlocked?.();
           yield* open.open;
           yield* restore(released(blockers));
         }
@@ -92,5 +115,15 @@ export const makeReadGate = Effect.fnUntraced(function* (
       ),
     ).pipe(writers.withPermits(1));
 
-  return { enter, exclusive, waiting: () => waiting } satisfies ReadGate;
+  const exclusive = <A, E>(
+    run: Effect.Effect<A, E>,
+    onBlocked?: () => void,
+  ): Effect.Effect<A, E> => exclusiveTimed(() => run, onBlocked);
+
+  return {
+    enter,
+    exclusive,
+    waiting: () => waiting,
+    exclusiveTimed,
+  } satisfies ReadGate;
 });
