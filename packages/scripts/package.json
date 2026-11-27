@@ -64,6 +64,7 @@
     "./desktop-paint": "./lib/desktop-paint.ts",
     "./desktop-slot": "./lib/desktop-slot.ts",
     "./electron-renderer": "./lib/electron-renderer.ts",
+    "./linux-test": "./lib/linux-test.ts",
     "./fixture": "./lib/fixture/build.ts",
     "./fixture/paired-zotero": "./lib/fixture/paired-zotero.ts",
     "./fixture/paired-run-node": "./lib/fixture/paired-run-node.ts",

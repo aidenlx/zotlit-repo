@@ -12,6 +12,7 @@ describe("the gate halves", () => {
       "Typecheck",
       "Snapshot size",
       "Record risk",
+      "Record file",
     ]);
     expect(gateSteps("pr")).toEqual(["Test", "Bundle"]);
   });

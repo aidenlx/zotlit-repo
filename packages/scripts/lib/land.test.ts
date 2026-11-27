@@ -21,6 +21,7 @@ import {
   LAND_RECORD_PATH,
   LAND_RECORD_ENV,
   LAND_WORKFLOW,
+  landRecordDiagnostic,
 } from "./land.ts";
 import type { CiCheck, LandGitHub, LandOptions } from "./land.ts";
 
@@ -1716,4 +1717,32 @@ process.stdin.on("end", () => { held.release(); process.exit(0); });`,
     },
     SLOW,
   );
+});
+
+describe("landRecordDiagnostic", () => {
+  const record = ({ title = "feat: add a", sections = SECTIONS } = {}) =>
+    `# ${title}\n\n${sections.map((name) => `## ${name}\n\nText.\n`).join("\n")}`;
+
+  it("passes a record with a Conventional Commits title and the seven sections", () => {
+    expect(landRecordDiagnostic(record())).toBeUndefined();
+  });
+
+  it("gives the land's preflight message for a record without the e2e section", () => {
+    expect(
+      landRecordDiagnostic(
+        record({ sections: SECTIONS.filter((name) => name !== "e2e") }),
+      ),
+    ).toBe(
+      `error[preflight]: The record file ${LAND_RECORD_PATH} is not complete: it has no ## e2e section.\n  = help: Complete it, then land again.`,
+    );
+  });
+
+  it("gives the land's preflight message for a title that is not a Conventional Commits subject", () => {
+    expect(
+      landRecordDiagnostic(record({ title: "Add a" }), { squash: false }),
+    ).toBeUndefined();
+    expect(landRecordDiagnostic(record({ title: "Add a" }))).toContain(
+      `error[preflight]: The title of the record file ${LAND_RECORD_PATH}, "Add a", is not a Conventional Commits subject.`,
+    );
+  });
 });

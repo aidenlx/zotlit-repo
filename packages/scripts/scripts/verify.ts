@@ -159,6 +159,11 @@ async function localSteps(): Promise<void> {
     "Record risk",
     () => sh`node packages/scripts/scripts/check-record-risk.ts`,
   );
+
+  await gateStep(
+    "Record file",
+    () => sh`node packages/scripts/scripts/check-record-file.ts`,
+  );
 }
 
 async function ciSteps(): Promise<void> {

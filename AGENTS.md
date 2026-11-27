@@ -30,7 +30,7 @@ Run commands from the repository root.
 
 ### Testing
 
-Prove behavior below the UI in the package that owns it. Run its suite and its consumers after a production change. Give each spec one journey for its user workflow, extending an existing one when it covers that workflow.
+Prove behavior below the UI in the package that owns it. Run its suite and its consumers after a production change. Run a test that touches the file system, a child process, Electron or a display on Linux with `pnpm test:linux` before the land. Give each spec one journey for its user workflow, extending an existing one when it covers that workflow.
 
 Iterate with a focused Run Container journey. Run the affected cases in the final round of the spec. Run the full suite for shared start-up or lifecycle changes, releases, or an explicit full-run request. See [Edit a journey](packages/e2e/AGENTS.md#edit-a-journey) for commands and evidence.
 

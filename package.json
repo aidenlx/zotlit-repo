@@ -24,6 +24,7 @@
     "e2e:query": "pnpm e2e --project=desktop src/query-cli.e2e.ts src/query-cli-attachments.e2e.ts src/query-cli-scope.e2e.ts src/query-cancel.e2e.ts -t \"zotlit:query|ZotLit Query\"",
     "e2e:performance": "node packages/e2e/src/verify-performance.ts",
     "test": "node packages/scripts/scripts/memory-gate.ts -- turbo run test",
+    "test:linux": "node packages/e2e/src/linux-test.ts",
     "test:eval-runtime": "node --test skills/zotlit-query/evals/*.test.mjs",
     "lint": "turbo run //#lint:repo //#lint:messages //#lint:unused //#lint:test-gates //#lint:format-versions //#lint:plugin-packages //#lint:runtime-zones //#lint:record-pr //#lint:nightly-e2e-notify //#lint:agent-guides",
     "lint:fix": "turbo run //#lint:repo -- --fix",

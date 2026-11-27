@@ -417,9 +417,9 @@ export async function land(options: LandOptions): Promise<LandResult> {
     const squash = options.squash ?? Boolean(options.github);
     const record =
       options.record ??
-      (options.github || squash ? await readRecord(sh) : undefined);
+      (options.github || squash ? await readRecord(sh, squash) : undefined);
     await checkSubjects(sh, {
-      squashTitle: squash ? record?.title : undefined,
+      squash: squash && record !== undefined,
       upstream: `${remote}/${to}`,
     });
     if (options.github) await checkGitHub(options.github, pre.branch);
@@ -843,24 +843,9 @@ async function preflight(
 
 async function checkSubjects(
   sh: Shell,
-  {
-    squashTitle,
-    upstream,
-  }: { squashTitle: string | undefined; upstream: string },
+  { squash, upstream }: { squash: boolean; upstream: string },
 ): Promise<void> {
-  if (squashTitle !== undefined) {
-    if (!isConventionalSubject(squashTitle)) {
-      throw new LandFailure(
-        "preflight",
-        `The title of the record file ${LAND_RECORD_PATH}, "${squashTitle}", is not a Conventional Commits subject.`,
-        {
-          notes: ["The title is the subject of the squash commit."],
-          help: `Write it as ${CONVENTIONAL_FORMAT}, such as "fix(annotations): keep the excerpt image size". Then land again.`,
-        },
-      );
-    }
-    return;
-  }
+  if (squash) return;
   const log = await sh.git(
     "preflight",
     "log",
@@ -909,11 +894,18 @@ export function readRecordSection(
   return (end === -1 ? rest : rest.slice(0, end)).join("\n");
 }
 
-async function readRecord(sh: Shell): Promise<LandRecord> {
+async function readRecord(sh: Shell, squash: boolean): Promise<LandRecord> {
   const root = await sh.git("preflight", "rev-parse", "--show-toplevel");
   const text = await readFile(join(root, LAND_RECORD_PATH), "utf8").catch(
     () => undefined,
   );
+  return checkLandRecord(text, { squash });
+}
+
+export function checkLandRecord(
+  text: string | undefined,
+  { squash = true }: { squash?: boolean } = {},
+): LandRecord {
   if (text === undefined) {
     throw new LandFailure(
       "preflight",
@@ -947,7 +939,36 @@ async function readRecord(sh: Shell): Promise<LandRecord> {
       { help: "Complete it, then land again." },
     );
   }
+  if (squash && !isConventionalSubject(title)) {
+    throw new LandFailure(
+      "preflight",
+      `The title of the record file ${LAND_RECORD_PATH}, "${title}", is not a Conventional Commits subject.`,
+      {
+        notes: ["The title is the subject of the squash commit."],
+        help: `Write it as ${CONVENTIONAL_FORMAT}, such as "fix(annotations): keep the excerpt image size". Then land again.`,
+      },
+    );
+  }
   return { title, body: rest.join("\n").trim() };
+}
+
+export function landRecordDiagnostic(
+  text: string,
+  options: { squash?: boolean } = {},
+): string | undefined {
+  try {
+    checkLandRecord(text, options);
+    return undefined;
+  } catch (error) {
+    if (!(error instanceof LandFailure)) throw error;
+    return formatLandDiagnostic({
+      label: "error",
+      code: error.step,
+      message: error.message,
+      notes: error.notes,
+      ...(error.help ? { help: error.help } : {}),
+    });
+  }
 }
 
 async function checkGitHub(github: LandGitHub, branch: string): Promise<void> {

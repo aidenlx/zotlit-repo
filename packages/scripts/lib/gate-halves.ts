@@ -7,6 +7,7 @@ const GATE_STEPS = {
   Typecheck: "local",
   "Snapshot size": "local",
   "Record risk": "local",
+  "Record file": "local",
   "Agent guides": "local",
   Test: "pr",
   Bundle: "pr",

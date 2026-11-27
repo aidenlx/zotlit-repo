@@ -1,12 +1,6 @@
-import { execFileSync, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import {
-  chownSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  statSync,
-} from "node:fs";
+import { chownSync, mkdirSync, statSync } from "node:fs";
 import { constants, hostname } from "node:os";
 import { resolve } from "node:path";
 import yargs from "yargs";
@@ -17,13 +11,17 @@ import {
   DESKTOP_WAIT_ENV,
   EXIT_ADMISSION_BLOCKED,
 } from "@zotlit/config/memory-gate";
-import { PINNED_ZOTERO_VERSION } from "@zotlit/scripts/fixture/paired-zotero";
 import { admitMemoryRun } from "@zotlit/scripts/memory-admission";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 
-import { runImageTag } from "./container-image.ts";
+import {
+  IMAGE_ARCHIVE_ENV,
+  docker,
+  ensureImage,
+  runImage,
+  worktreeFiles,
+} from "./container-launch.ts";
 import { HOLD_ENV, HOLD_FILE } from "./hold-mode.ts";
-import { OBSIDIAN_VERSION } from "./obsidian-version.ts";
 import { E2E_PERFORMANCE_ENV } from "./performance-mode.ts";
 import {
   E2E_RESULTS_ENV,
@@ -32,7 +30,6 @@ import {
 } from "./results-dir.ts";
 
 const VNC_ENV = "ZOTLIT_E2E_VNC";
-const IMAGE_ARCHIVE_ENV = "ZOTLIT_E2E_IMAGE_ARCHIVE";
 const vitestArgs = hideBin(process.argv);
 const help = yargs([])
   .scriptName("pnpm e2e")
@@ -60,85 +57,13 @@ if (vitestArgs.length === 1 && ["--help", "-h"].includes(vitestArgs[0]!)) {
 }
 
 const workspaceRoot = await getWorkspaceRoot(import.meta.dirname);
-const context = resolve(workspaceRoot, "packages/e2e/container");
 const ownerLabel = "org.zotlit.e2e.owner";
 const worktreeLabel = "org.zotlit.e2e.worktree";
 
-function docker(args: string[]): string {
-  return execFileSync("docker", args, { encoding: "utf8" }).trim();
-}
-
-function worktreeFiles(): string {
-  const gitFiles = (args: string[]) =>
-    execFileSync("git", ["ls-files", "-z", ...args], {
-      cwd: workspaceRoot,
-      maxBuffer: 64 * 1024 * 1024,
-      encoding: "utf8",
-    }).split("\0");
-  const deleted = new Set(gitFiles(["--deleted"]));
-  return gitFiles([
-    "--cached",
-    "--others",
-    "--exclude-standard",
-    "--deduplicate",
-  ])
-    .filter((path) => !deleted.has(path))
-    .map((path) => `${path}\0`)
-    .join("");
-}
-
-const { packageManager } = JSON.parse(
-  readFileSync(resolve(workspaceRoot, "package.json"), "utf8"),
-) as { packageManager: string };
-const pnpm = packageManager.slice("pnpm@".length);
-const arch = process.arch === "arm64" ? "arm64" : "amd64";
-const platform = `linux/${arch}`;
-const imageTag = runImageTag(context, {
-  platform,
-  pnpm,
-  obsidian: OBSIDIAN_VERSION,
-  zotero: PINNED_ZOTERO_VERSION,
-});
+const image = runImage(workspaceRoot);
 if (vitestArgs.length === 1 && vitestArgs[0] === "--image-tag") {
-  console.log(imageTag);
+  console.log(image.tag);
   process.exit(0);
-}
-
-function ensureImage(tag: string): void {
-  const archive = process.env[IMAGE_ARCHIVE_ENV];
-  const hasImage = () => docker(["image", "ls", "--quiet", tag]) !== "";
-  let available = hasImage();
-  let archived = archive !== undefined && existsSync(archive);
-  if (!available && archive && archived) {
-    execFileSync("docker", ["load", "--input", archive], { stdio: "inherit" });
-    available = hasImage();
-    archived = available;
-  }
-  if (!available) {
-    execFileSync(
-      "docker",
-      [
-        "build",
-        "--platform",
-        platform,
-        "--tag",
-        tag,
-        "--build-arg",
-        `PNPM_VERSION=${pnpm}`,
-        "--build-arg",
-        `OBSIDIAN_VERSION=${OBSIDIAN_VERSION}`,
-        "--build-arg",
-        `ZOTERO_VERSION=${PINNED_ZOTERO_VERSION}`,
-        context,
-      ],
-      { stdio: "inherit" },
-    );
-  }
-  if (archive && !archived) {
-    execFileSync("docker", ["save", "--output", archive, tag], {
-      stdio: "inherit",
-    });
-  }
 }
 
 function removeStaleRuns(worktree: string): void {
@@ -177,8 +102,8 @@ const worktree = createHash("sha256")
   .update(JSON.stringify([hostname(), workspaceRoot]))
   .digest("hex");
 removeStaleRuns(worktree);
-ensureImage(imageTag);
-const files = worktreeFiles();
+ensureImage(image);
+const files = worktreeFiles(workspaceRoot);
 const results = resolve(e2eResultsDir());
 const createdResults = mkdirSync(results, { recursive: true });
 publishE2eResultsDir(results);
@@ -226,7 +151,7 @@ const child = spawn(
     "--env",
     HOLD_ENV,
     ...(vnc ? ["--publish", `127.0.0.1:${vnc}:5900`, "--env", VNC_ENV] : []),
-    imageTag,
+    image.tag,
     ...vitestArgs,
   ],
   { stdio: ["pipe", "inherit", "inherit"] },
