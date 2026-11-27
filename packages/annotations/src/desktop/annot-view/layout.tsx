@@ -719,9 +719,15 @@ export class AnnotationsLayout extends Component {
       this.store.subscribe(
         (s) => visibleOrder(s),
         () => {
-          if (this.store.getState().annotations === null) return;
+          const { annotations } = this.store.getState();
+          if (annotations === null) return;
           const { selection, changed } = this.#setSelection({ kind: "prune" });
           const session = this.#boundPdfSession();
+          if (changed && session !== null) {
+            const listed = new Set(annotations.map(({ key }) => key));
+            if (session.selected.some((key) => !listed.has(key)))
+              this.#readerPending = true;
+          }
           const push =
             changed &&
             !this.#readerPending &&

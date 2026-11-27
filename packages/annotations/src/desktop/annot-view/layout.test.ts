@@ -35,6 +35,7 @@ import { stateEditor } from "#__fixtures__/annot-view/editor.ts";
 import { makeAnnotHost } from "#__fixtures__/annot-view/host.ts";
 import { annotationReads } from "#__fixtures__/pdf-annotation-editor.ts";
 import { layerUnreadViewServices } from "#__fixtures__/view-atoms.ts";
+import { ReaderSessionHost } from "#core/reader-session/session.ts";
 
 function record(
   key: string,
@@ -557,6 +558,45 @@ it("waits no more for a new Annotation the repository no longer holds", async ()
   repo.lists.PDFAAAAA = LISTS.PDFAAAAA!;
 
   expect(layout.keepsBack([ALPHA.key, BETA.key], "list-change")).toBe(false);
+});
+
+it("keeps the PDF's selection of a new Annotation while a rerun has not read it yet", async () => {
+  const { layout, el, repo } = await mountLayout({ showNewRecords: true });
+  const select = vi.fn();
+  const session = new ReaderSessionHost({
+    source: "obsidian-pdf",
+    navigate: () => {},
+    select,
+  });
+  layout.bindReader(session);
+  repo.lists.PDFAAAAA = { ...LISTS.PDFAAAAA!, annotations: [ALPHA, DELTA] };
+  await act(async () => {
+    repo.emit("annotations-changed", "PDFAAAAA");
+    await layout.read;
+  });
+  session.reportSelection([DELTA.key]);
+  await act(() => layout.readerSelectionChanged(session));
+  expect(layout.store.getState().cardSelection.selected).toEqual([DELTA.key]);
+
+  expect(layout.keepsBack([ALPHA.key, BETA.key], "rerun")).toBe(false);
+  await act(async () => {
+    await layout.showRows([
+      { annotationKey: ALPHA.key, attachmentKey: "PDFAAAAA" },
+      { annotationKey: BETA.key, attachmentKey: "PDFBBBBB" },
+    ]);
+  });
+  expect(select).not.toHaveBeenCalled();
+
+  await act(async () => {
+    await layout.showRows([
+      { annotationKey: ALPHA.key, attachmentKey: "PDFAAAAA" },
+      { annotationKey: DELTA.key, attachmentKey: "PDFAAAAA" },
+      { annotationKey: BETA.key, attachmentKey: "PDFBBBBB" },
+    ]);
+  });
+  expect(cardKeys(el)).toEqual([ALPHA.key, DELTA.key, BETA.key]);
+  expect(layout.store.getState().cardSelection.selected).toEqual([DELTA.key]);
+  expect(select).not.toHaveBeenCalled();
 });
 
 function copies(el: HTMLElement, key: string): HTMLElement[] {
