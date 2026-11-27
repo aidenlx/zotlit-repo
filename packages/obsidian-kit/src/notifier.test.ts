@@ -184,7 +184,10 @@ describe("withProgress", () => {
         yield* Effect.yieldNow;
         expect(notifier.notices).toEqual([
           {
-            messages: ["Creating", "Created Paper"],
+            messages: [
+              { title: "Creating", progress: "indeterminate" },
+              "Created Paper",
+            ],
             duration: 0,
             hidden: false,
           },
@@ -203,14 +206,22 @@ describe("withProgress", () => {
       }).pipe(Effect.provide(notifier.layer), Effect.forkChild);
       yield* TestClock.adjust("200 millis");
       expect(notifier.notices).toEqual([
-        { messages: ["Creating"], duration: 0, hidden: false },
+        {
+          messages: [{ title: "Creating", progress: "indeterminate" }],
+          duration: 0,
+          hidden: false,
+        },
       ]);
 
       yield* Fiber.interrupt(fiber);
       yield* TestClock.adjust("2 seconds");
 
       expect(notifier.notices).toEqual([
-        { messages: ["Creating"], duration: 0, hidden: true },
+        {
+          messages: [{ title: "Creating", progress: "indeterminate" }],
+          duration: 0,
+          hidden: true,
+        },
       ]);
     }),
   );
@@ -264,7 +275,11 @@ describe("withProgress", () => {
       yield* Effect.yieldNow;
 
       expect(notifier.notices).toEqual([
-        { messages: ["Creating"], duration: 0, hidden: true },
+        {
+          messages: [{ title: "Creating", progress: "indeterminate" }],
+          duration: 0,
+          hidden: true,
+        },
       ]);
     }),
   );

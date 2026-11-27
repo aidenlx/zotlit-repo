@@ -1,8 +1,7 @@
 import { Clock, Context, Duration, Effect, FiberSet, Layer } from "effect";
 
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import type { NoticeContent } from "@zotlit/obsidian-kit/notice.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
-import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { dateTimeClock } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
@@ -20,15 +19,14 @@ const NOTICE_DURATION = Duration.seconds(10);
 export function capabilityNoticeMessage(
   { title, lines, action }: CapabilityNotice,
   runAction: () => void,
-): DocumentFragment {
-  return BaseNotice.render((renderer) => {
-    renderer.setTitle(title);
-    for (const line of lines) renderer.addText(line);
-    if (action === null) return;
-    renderer.addAction((button) => {
-      button.setButtonText(action).setCta().onClick(runAction);
-    });
-  });
+): NoticeContent {
+  return {
+    title,
+    lines,
+    ...(action === null
+      ? {}
+      : { actions: [{ label: action, run: runAction }] }),
+  };
 }
 
 export function noticeDuration({
@@ -75,9 +73,9 @@ export function layerCapabilityNotices(
         notice: CapabilityNotice,
         action: Effect.Effect<void>,
       ) {
-        const handle: NoticeHandle = yield* notifier.show(
+        yield* notifier.show(
           capabilityNoticeMessage(notice, () => {
-            run(Effect.andThen(handle.hide, action));
+            run(action);
           }),
           { duration: noticeDuration(notice) },
         );

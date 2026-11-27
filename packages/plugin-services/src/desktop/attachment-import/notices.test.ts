@@ -5,13 +5,11 @@ import { expect, vi } from "vitest";
 
 import {
   layerSignalling,
+  noticeContentOf,
   testNotifier,
 } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import type { RecordedNotice } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
-import {
-  ButtonComponent,
-  controlsOf,
-} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import { layerAttachmentSkipNotice } from "./notices.ts";
@@ -42,15 +40,8 @@ const register = Effect.fn("test.register")(function* (scope: Scope.Scope) {
 });
 
 function partsOf(notice: RecordedNotice | undefined) {
-  const message = notice?.messages[0];
-  if (message === undefined || typeof message === "string")
-    throw new Error("Expected a rendered notice");
-  const [button] = controlsOf(
-    message.querySelector<HTMLElement>(".zt-notice-actions")!,
-  ).filter(
-    (control): control is ButtonComponent => control instanceof ButtonComponent,
-  );
-  return { text: message.textContent, button: button! };
+  const content = noticeContentOf(notice?.messages[0]);
+  return { text: noticeText(content), action: content.actions![0]! };
 }
 
 it.effect("shows one notice for each skip summary, naming the folders", () =>
@@ -76,7 +67,7 @@ it.effect("opens the settings and hides the notice from its action", () =>
     yield* PubSub.publish(skipped, SUMMARY);
     yield* Queue.take(shown);
 
-    partsOf(notices[0]).button.click();
+    partsOf(notices[0]).action.run();
 
     expect(openSettings).toHaveBeenCalledOnce();
     expect(notices[0]?.hidden).toBe(true);

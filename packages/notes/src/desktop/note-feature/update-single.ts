@@ -75,7 +75,7 @@ export function updateNoteToast(
 export interface BatchUpdateNotices {
   readonly updateToast: (scope: UpdateScope) => UpdateNoteCopy;
   readonly createToast: ProgressCopy<CreateNoteResult>;
-  readonly runFailed: (error: unknown) => string | DocumentFragment;
+  readonly runFailed: (error: unknown) => NoticeMessage;
 }
 
 export function batchUpdateNotices(app: App): BatchUpdateNotices {
@@ -120,8 +120,8 @@ export function createNoteToast(
   options: { app?: App; created?: (file: TFile) => string },
   plainError: (error: unknown) => unknown = (error) => error,
 ): ProgressCopy<CreateNoteResult> & {
-  success: (result: CreateNoteResult) => string | DocumentFragment;
-  error: (error: unknown) => string | DocumentFragment;
+  success: (result: CreateNoteResult) => NoticeMessage;
+  error: (error: unknown) => NoticeMessage;
 } {
   return {
     loading: m.notice_creating_note(),
@@ -141,7 +141,7 @@ export function createNoteToast(
 function createNoteSuccessNotice(
   result: CreateNoteResult,
   options: { app?: App; created?: (file: TFile) => string },
-): string | DocumentFragment {
+): NoticeMessage {
   if (result.outcome === "created" && options.created)
     return options.created(result.file);
   if (
@@ -206,7 +206,7 @@ export function noteOperationDiagnosticNotice(
 export function noteOperationDiagnosticContent(
   app: App,
   diagnostic: NoteOperationDiagnostic,
-): string | DocumentFragment {
+): NoticeMessage {
   return diagnostic.code === "unknown-literature-note-profile"
     ? profileRecoveryNotice(app, diagnostic)
     : noteOperationDiagnosticNotice(diagnostic);

@@ -6,6 +6,8 @@ import type { App, Workspace } from "obsidian";
 import { expect, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { noticeContentOf } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Workspace as WorkspaceTag } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
@@ -71,8 +73,7 @@ it.each([
     const error = make();
     const notice = typeof error === "function" ? error(failure) : error;
 
-    expect(notice).toBeInstanceOf(DocumentFragment);
-    expect((notice as DocumentFragment).textContent).toContain(
+    expect(noticeText(noticeContentOf(notice))).toContain(
       m.notice_note_missing_partial({ name: "venue-line" }),
     );
   },

@@ -2,7 +2,7 @@ import type { RenderDiagnostic } from "#core/template/render-diagnostic.ts";
 import { Effect } from "effect";
 import type { App, EventRef } from "obsidian";
 
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notice.ts";
 import {
   logServices,
   withLogCategory,
@@ -47,7 +47,7 @@ function requestTemplateWorkbench(
 export function missingPartialNotice(
   error: unknown,
   options: { app?: App } = {},
-): string | DocumentFragment | undefined {
+): NoticeMessage | undefined {
   if (!(error instanceof MissingTemplateError)) return undefined;
   const message = m.notice_note_missing_partial({
     name: error.templateName,
@@ -73,16 +73,19 @@ export function missingPartialNotice(
   const problem: ArrivingProblem = {
     diagnostic: { ...classified, report },
   };
-  return BaseNotice.render((renderer) => {
-    renderer.setTitle(message).addAction((button) => {
-      button.setButtonText(m.template_workbench_open_layout()).onClick(() =>
-        requestTemplateWorkbench(app, {
-          ...(document === undefined ? {} : { document }),
-          problem,
-        }),
-      );
-    });
-  });
+  return {
+    title: message,
+    actions: [
+      {
+        label: m.template_workbench_open_layout(),
+        run: () =>
+          requestTemplateWorkbench(app, {
+            ...(document === undefined ? {} : { document }),
+            problem,
+          }),
+      },
+    ],
+  };
 }
 
 declare module "obsidian" {

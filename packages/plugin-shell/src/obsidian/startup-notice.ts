@@ -12,12 +12,12 @@ import { ServiceStartupFailed } from "#core/startup-failure.ts";
 export function reportStartupFailure(error: unknown, plugin: string): never {
   if (error instanceof ServiceStartupFailed) {
     new BaseNotice(
-      BaseNotice.render((renderer) => {
-        renderer.setTitle(m.notice_startup_failed({ plugin }));
-        renderer.addText(
+      {
+        title: m.notice_startup_failed({ plugin }),
+        lines: [
           m.notice_startup_failed_detail({ plugin, service: error.service }),
-        );
-      }),
+        ],
+      },
       0,
     );
     Effect.runSyncWith(logServices)(

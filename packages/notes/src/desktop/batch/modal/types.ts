@@ -5,6 +5,8 @@ import type {
   BatchRunResult,
 } from "#obsidian/batch/batch-run.ts";
 
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notice.ts";
+
 export type {
   BatchClassifyControls,
   BatchFailure,
@@ -45,7 +47,7 @@ export interface BatchModalText {
   title: string;
   loadingLabel: string;
   loadFailed: string;
-  runFailed: string | ((error: unknown) => string | DocumentFragment);
+  runFailed: string | ((error: unknown) => NoticeMessage);
   progressLabel: string;
   confirmIntro: (counts: BatchCounts) => string;
   confirmButton: string;

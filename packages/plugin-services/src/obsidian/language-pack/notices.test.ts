@@ -6,10 +6,8 @@ import { describe, expect } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import type { RecordedNotice } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
-import {
-  ButtonComponent,
-  controlsOf,
-} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
+import type { NoticeAction } from "@zotlit/obsidian-kit/notice.ts";
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
@@ -49,20 +47,16 @@ const leaving = (
     Stream.runHead,
   );
 
-function textOf(message: RecordedNotice["messages"][number]): string | null {
-  return typeof message === "string" ? message : message.textContent;
+function textOf(message: RecordedNotice["messages"][number]): string {
+  return noticeText(message);
 }
 
-function buttonsOf(notice: RecordedNotice | undefined): ButtonComponent[] {
+function buttonsOf(
+  notice: RecordedNotice | undefined,
+): readonly NoticeAction[] {
   const message = notice?.messages[0];
   if (message === undefined || typeof message === "string") return [];
-  const actions = message.querySelector<HTMLElement>(".zt-notice-actions");
-  return actions
-    ? controlsOf(actions).filter(
-        (control): control is ButtonComponent =>
-          control instanceof ButtonComponent,
-      )
-    : [];
+  return message.actions ?? [];
 }
 
 describe("Language Pack startup notices", () => {
@@ -75,7 +69,7 @@ describe("Language Pack startup notices", () => {
       expect(textOf(notices[0]!.messages[0]!)).toContain(
         "ZotLit 简体中文 语言包可用。",
       );
-      expect(buttonsOf(notices[0]).map((button) => button.text)).toEqual([
+      expect(buttonsOf(notices[0]).map((action) => action.label)).toEqual([
         m.notice_language_pack_decline_action(),
         m.notice_language_pack_install_action(),
       ]);
@@ -95,7 +89,7 @@ describe("Language Pack startup notices", () => {
       const device = fakeDevice();
       const { pack, notices } = yield* loadOn(device, { language: "zh" });
 
-      buttonsOf(notices[0])[0]!.click();
+      buttonsOf(notices[0])[0]!.run();
       yield* leaving(pack, "offered");
 
       expect(notices[0]?.hidden).toBe(true);
@@ -133,7 +127,7 @@ describe("Language Pack startup notices", () => {
         scope,
       );
 
-      buttonsOf(notifier.notices[0])[0]!.click();
+      buttonsOf(notifier.notices[0])[0]!.run();
       yield* Deferred.await(started);
       yield* Scope.close(scope, Exit.void);
 
@@ -148,7 +142,7 @@ describe("Language Pack startup notices", () => {
         const device = fakeDevice();
         const { pack, notices } = yield* loadOn(device, { language: "zh" });
 
-        buttonsOf(notices[0])[1]!.click();
+        buttonsOf(notices[0])[1]!.run();
         yield* leaving(pack, "offered");
         expect(notices[0]?.hidden).toBe(true);
         yield* leaving(pack, "downloading");
@@ -265,7 +259,7 @@ describe("Language Pack startup notices", () => {
       const device = fakeDevice(answer);
       const { pack, notices } = yield* loadOn(device, { language: "zh" });
 
-      buttonsOf(notices[0])[1]!.click();
+      buttonsOf(notices[0])[1]!.run();
       yield* leaving(pack, "offered");
       yield* leaving(pack, "downloading");
       yield* eventually(() => expect(notices).toHaveLength(2));

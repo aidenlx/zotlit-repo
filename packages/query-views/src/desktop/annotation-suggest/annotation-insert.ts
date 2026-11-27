@@ -7,6 +7,7 @@ import type {
   InsertFiber,
   InsertRunner,
 } from "@zotlit/annotations/obsidian/annot-view/insert-run.ts";
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notice.ts";
 import { observeExit } from "@zotlit/plugin-kernel/fiber-exit.ts";
 
 import type { AnnotationHit } from "./annotation-search.ts";
@@ -15,7 +16,7 @@ export interface AnnotationInsertDeps {
   app: App;
   watchChanges: (validate: () => void) => () => void;
   runner: InsertRunner<never>;
-  notify: (message: string | DocumentFragment) => void;
+  notify: (message: NoticeMessage) => void;
 }
 
 export function insertAnnotation(

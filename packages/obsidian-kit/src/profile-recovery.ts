@@ -7,7 +7,7 @@ import {
 } from "@zotlit/plugin-kernel/effect-log.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
-import { BaseNotice } from "./notice.ts";
+import type { NoticeMessage } from "./notice.ts";
 import type { WorkspaceEventHost } from "./obsidian-workspace.ts";
 import type { UnknownProfileDiagnostic } from "./profile-stamp.ts";
 
@@ -28,7 +28,7 @@ export function profileRecoveryNotice(
   app: App,
   diagnostic: UnknownProfileDiagnostic,
   options: { path?: string; imported?: boolean } = {},
-): string | DocumentFragment {
+): NoticeMessage {
   const path = options.path ?? diagnostic.path;
   const message =
     options.imported && path
@@ -38,13 +38,17 @@ export function profileRecoveryNotice(
         })
       : m.notice_literature_note_profile_unknown({ stamp: diagnostic.stamp });
   if (!path) return message;
-  return BaseNotice.render((renderer) => {
-    renderer.setTitle(message).addAction((button) => {
-      button.setButtonText(m.profile_switch_recovery()).onClick(() => {
-        requestProfileSwitch(app, path);
-      });
-    });
-  });
+  return {
+    title: message,
+    actions: [
+      {
+        label: m.profile_switch_recovery(),
+        run: () => {
+          requestProfileSwitch(app, path);
+        },
+      },
+    ],
+  };
 }
 
 export function renderProfileRecovery(

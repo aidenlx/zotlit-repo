@@ -1,11 +1,9 @@
 import type { App, Workspace } from "obsidian";
 import { describe, expect, it, vi } from "vitest";
 
+import { noticeContentOf } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
 // @vitest-environment happy-dom
-import {
-  ButtonComponent,
-  controlsOf,
-} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { MissingTemplateError } from "@zotlit/templates/facade";
@@ -37,21 +35,13 @@ describe("missingPartialNotice", () => {
     const { app, trigger } = makeApp();
     const error = new MissingTemplateError("venue-line");
 
-    const notice = missingPartialNotice(error, { app });
+    const notice = noticeContentOf(missingPartialNotice(error, { app }));
+    expect(noticeText(notice)).toContain("venue-line");
 
-    expect(notice).toBeInstanceOf(DocumentFragment);
-    const fragment = notice as DocumentFragment;
-    expect(fragment.textContent).toContain("venue-line");
+    const [action] = notice.actions ?? [];
+    expect(action?.label).toBe(m.template_workbench_open_layout());
 
-    const actionsEl =
-      fragment.querySelector<HTMLElement>(".zt-notice-actions")!;
-    const [button] = controlsOf(actionsEl);
-    expect(button).toBeInstanceOf(ButtonComponent);
-    expect((button as ButtonComponent).text).toBe(
-      m.template_workbench_open_layout(),
-    );
-
-    (button as ButtonComponent).click();
+    action?.run();
     expect(trigger).toHaveBeenCalledExactlyOnceWith(
       "zotlit:open-template-workbench",
       expect.objectContaining({
@@ -73,11 +63,9 @@ describe("missingPartialNotice", () => {
       new Error("Template not found"),
     );
 
-    const fragment = missingPartialNotice(error, { app }) as DocumentFragment;
-    const [button] = controlsOf(
-      fragment.querySelector<HTMLElement>(".zt-notice-actions")!,
-    );
-    (button as ButtonComponent).click();
+    const [action] =
+      noticeContentOf(missingPartialNotice(error, { app })).actions ?? [];
+    action?.run();
 
     expect(trigger).toHaveBeenCalledExactlyOnceWith(
       "zotlit:open-template-workbench",
@@ -101,11 +89,9 @@ describe("missingPartialNotice", () => {
       new Error("the note render refused this attempt"),
     );
 
-    const fragment = missingPartialNotice(error, { app }) as DocumentFragment;
-    const [button] = controlsOf(
-      fragment.querySelector<HTMLElement>(".zt-notice-actions")!,
-    );
-    (button as ButtonComponent).click();
+    const [action] =
+      noticeContentOf(missingPartialNotice(error, { app })).actions ?? [];
+    action?.run();
 
     const request = trigger.mock.calls[0]?.[1] as {
       problem: {

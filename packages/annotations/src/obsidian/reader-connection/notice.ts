@@ -1,6 +1,5 @@
 import { Effect } from "effect";
 
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -22,20 +21,24 @@ export const fallbackNotice = Effect.fn("ReaderConnection.fallbackNotice")(
     if (shown.includes(status)) return;
     yield* storage.save(FALLBACK_NOTICE_KEY, [...shown, status]);
     const copy = readerStatusCopy(status);
+    const action = copy.action;
     yield* (yield* Notifier).show(
-      BaseNotice.render((renderer) => {
-        renderer.setTitle(m.notice_reader_fallback()).addText(copy.text);
-        const action = copy.action;
-        if (action)
-          renderer.addAction((button) => {
-            button
-              .setButtonText(action.label)
-              .setCta()
-              .onClick(() => {
-                window.open(action.url);
-              });
-          });
-      }),
+      {
+        title: m.notice_reader_fallback(),
+        lines: [copy.text],
+        ...(action
+          ? {
+              actions: [
+                {
+                  label: action.label,
+                  run: () => {
+                    window.open(action.url);
+                  },
+                },
+              ],
+            }
+          : {}),
+      },
       { duration: 0 },
     );
   },

@@ -3,13 +3,13 @@ import { expect, it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
 import { afterEach, describe, vi } from "vitest";
 
-import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  noticeContentOf,
+  testNotifier,
+} from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { MemoryDeviceStorage } from "@zotlit/obsidian-kit/__fixtures__/obsidian-device-storage.ts";
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
-import {
-  ButtonComponent,
-  controlsOf,
-} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
 import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -37,9 +37,7 @@ const session = Effect.fnUntraced(function* (
       ),
     ),
   );
-  return notifier.notices.map(
-    ({ messages }) => messages[0] as DocumentFragment,
-  );
+  return notifier.notices.map(({ messages }) => noticeContentOf(messages[0]));
 }, Effect.scoped);
 
 describe("the Resource Pack notice", () => {
@@ -60,15 +58,13 @@ describe("the Resource Pack notice", () => {
         { kind: "plugin-outdated" },
       ]);
 
-      expect(first.map((notice) => notice.textContent)).toEqual([
-        m.notice_resource_pack() + m.settings_resource_pack_status_absent(),
-        m.notice_resource_pack() + m.settings_resource_pack_status_damaged(),
+      expect(first.map((notice) => noticeText(notice))).toEqual([
+        `${m.notice_resource_pack()}\n${m.settings_resource_pack_status_absent()}`,
+        `${m.notice_resource_pack()}\n${m.settings_resource_pack_status_damaged()}`,
       ]);
-      expect(later.map((notice) => notice.textContent)).toEqual([
-        m.notice_resource_pack() +
-          m.settings_resource_pack_status_pack_outdated(),
-        m.notice_resource_pack() +
-          m.settings_resource_pack_status_plugin_outdated(),
+      expect(later.map((notice) => noticeText(notice))).toEqual([
+        `${m.notice_resource_pack()}\n${m.settings_resource_pack_status_pack_outdated()}`,
+        `${m.notice_resource_pack()}\n${m.settings_resource_pack_status_plugin_outdated()}`,
       ]);
       expect(storage.loadLocalStorage(PACK_NOTICE_KEY)).toEqual([
         "pack-absent",
@@ -106,14 +102,10 @@ describe("the Resource Pack notice", () => {
       const open = vi.spyOn(window, "open").mockReturnValue(null);
 
       const [notice] = yield* session(new MemoryDeviceStorage(), [{ kind }]);
-      const action = Array.from(
-        notice?.querySelectorAll<HTMLElement>("*") ?? [],
-      )
-        .flatMap(controlsOf)
-        .find((control) => control instanceof ButtonComponent);
+      const action = notice?.actions?.[0];
 
-      expect(action?.text).toBe(m.settings_resource_pack_open());
-      action?.click();
+      expect(action?.label).toBe(m.settings_resource_pack_open());
+      action?.run();
       expect(open.mock.calls).toEqual([[page]]);
     }),
   );

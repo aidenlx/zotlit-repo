@@ -14,6 +14,8 @@ import type {
 } from "./note-actions.ts";
 export type { AnnotationInsertOutcome } from "./note-actions.ts";
 
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notice.ts";
+
 import { captureInsertion, watchInsertionWorkspace } from "./async-insert.ts";
 import { startInsert } from "./insert-run.ts";
 import type { InsertFiber, InsertRunner } from "./insert-run.ts";
@@ -23,7 +25,7 @@ const SOURCE_TAG = "application/x-zotlit-annotation";
 export interface InsertDeps<R> extends InsertRunner<R> {
   app: App;
   snapshot: (annotation: AnnotationRecord) => AnnotationSnapshot;
-  notify: (message: string | DocumentFragment) => void;
+  notify: (message: NoticeMessage) => void;
 }
 
 const reporter =
@@ -52,7 +54,7 @@ function insertSlot<R>(
 export function insertOutcomeMessage(
   app: App,
   outcome: AnnotationInsertOutcome,
-): string | DocumentFragment | null {
+): NoticeMessage | null {
   switch (outcome.kind) {
     case "unavailable":
       return m.annotation_suggest_unavailable();

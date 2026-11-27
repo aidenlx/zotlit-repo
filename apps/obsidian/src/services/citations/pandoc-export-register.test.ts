@@ -33,16 +33,19 @@ import { profileReader } from "@zotlit/notes/__fixtures__/profile/reader.ts";
 import type { ProfileFixtureSettings as Settings } from "@zotlit/notes/__fixtures__/profile/reader.ts";
 import type { ResolvedLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/bindings.ts";
 import { defaultProfileStyle } from "@zotlit/notes/obsidian/profile/profile-styles.ts";
-import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  noticeContentOf,
+  testNotifier,
+} from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
 // @vitest-environment happy-dom
 import {
   ButtonComponent,
-  controlsOf,
   DropdownComponent,
   Modal,
   settingsOf,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -615,25 +618,20 @@ describe("the Export note with citations command", () => {
     const notice = await vi.waitFor(() => {
       const shown = vault.notices
         .flatMap(({ messages }) => messages)
-        .find(
-          (message): message is DocumentFragment =>
-            message instanceof DocumentFragment,
-        );
+        .find((message) => typeof message !== "string");
       expect(shown).toBeDefined();
       return shown!;
     });
     expect(Modal.instances).toHaveLength(0);
-    expect(notice.textContent).toContain(
+    expect(noticeText(notice)).toContain(
       m.notice_pandoc_export_engine_missing(),
     );
-    expect(notice.textContent).toContain(
+    expect(noticeText(notice)).toContain(
       m.settings_resource_pack_status_absent(),
     );
-    const action = controlsOf(
-      notice.querySelector<HTMLElement>(".zt-notice-actions")!,
-    ).find((control) => control instanceof ButtonComponent)!;
-    expect(action.text).toBe(m.settings_resource_pack_open());
-    action.click();
+    const [action] = noticeContentOf(notice).actions ?? [];
+    expect(action?.label).toBe(m.settings_resource_pack_open());
+    action?.run();
     expect(open.mock.calls).toEqual([
       ["obsidian://show-plugin?id=zotlit-resources"],
     ]);

@@ -107,12 +107,10 @@ function renderEditingRow(
           yield* repository.capability,
           yield* DateTime.now,
         );
-        new BaseNotice(
-          BaseNotice.render((notice) => {
-            notice.setTitle(result.label);
-            if (result.detail) notice.addText(result.detail);
-          }),
-        );
+        new BaseNotice({
+          title: result.label,
+          ...(result.detail ? { lines: [result.detail] } : {}),
+        });
       }).pipe(
         Effect.ensuring(
           Effect.suspend(() => {

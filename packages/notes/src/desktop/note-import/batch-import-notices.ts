@@ -17,7 +17,7 @@ import { ProfileAnnotationError } from "#obsidian/template/service.ts";
 export function importedNoteProfileErrorNotice(
   error: unknown,
   options: { app?: App; path?: string } = {},
-): string | DocumentFragment | undefined {
+): NoticeMessage | undefined {
   if (
     !(
       error instanceof NoteImportProfileError ||
@@ -39,15 +39,12 @@ function importErrorNotice(
   _message: string,
   error: unknown,
   options: { app?: App },
-): string | DocumentFragment {
+): NoticeMessage {
   return (
     importedNoteProfileErrorNotice(error, options) ?? m.batch_import_failed()
   );
 }
-type ImportErrorNotice = (
-  message: string,
-  error: unknown,
-) => string | DocumentFragment;
+type ImportErrorNotice = (message: string, error: unknown) => NoticeMessage;
 
 export function batchImportNotice(
   result: BatchImportResult,

@@ -1,7 +1,6 @@
 import { Effect, Layer } from "effect";
 import type { Scope } from "effect";
 
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";
 import { revealSetting } from "@zotlit/obsidian-kit/open-settings.ts";
@@ -70,23 +69,12 @@ export const showLibraryScopeInvalid = Effect.fn(
   "LibraryScopeNotices.showLibraryScopeInvalid",
 )(function* (copy: LibraryScopeNoticeCopy) {
   const notifier = yield* Notifier;
-  const run = Effect.runSyncWith(yield* Effect.context<never>());
-  let notice: NoticeHandle | null = null;
-  notice = yield* notifier.show(
-    BaseNotice.render((renderer) => {
-      renderer.setTitle(copy.title);
-      renderer.addText(copy.explanation);
-      renderer.addAction((button) => {
-        button
-          .setButtonText(copy.action)
-          .setCta()
-          .onClick(() => {
-            if (notice) run(notice.hide);
-            copy.openSettings();
-          });
-      });
-    }),
+  return yield* notifier.show(
+    {
+      title: copy.title,
+      lines: [copy.explanation],
+      actions: [{ label: copy.action, run: copy.openSettings }],
+    },
     { duration: 0 },
   );
-  return notice;
 });

@@ -14,6 +14,7 @@ import { annotationAction } from "@zotlit/notes/__fixtures__/note-feature/annota
 import type { AnnotationInsert } from "@zotlit/notes/desktop/note-feature/insert-annotation.ts";
 import type { HostSources } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notice.ts";
 import { answerOf } from "@zotlit/obsidian-kit/view-runner.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { openScope } from "@zotlit/plugin-kernel/effect-scope.ts";
@@ -110,7 +111,7 @@ async function harness(
       ),
     ),
   };
-  const notify = vi.fn<(message: string | DocumentFragment) => void>();
+  const notify = vi.fn<(message: NoticeMessage) => void>();
   const start = (target: AnnotationHit, from: number, to: number) => {
     const fiber = insertAnnotation(
       {

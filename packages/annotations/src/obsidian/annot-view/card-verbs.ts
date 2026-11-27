@@ -44,15 +44,8 @@ export function blockedNotice(
     new BaseNotice(block.reason);
     return;
   }
-  const notice = new BaseNotice(
-    BaseNotice.render((renderer) => {
-      renderer.setTitle(block.reason);
-      renderer.addAction((button) => {
-        button.setButtonText(m.capability_enable_editing()).onClick(() => {
-          notice.hide();
-          onAllowEditing();
-        });
-      });
-    }),
-  );
+  new BaseNotice({
+    title: block.reason,
+    actions: [{ label: m.capability_enable_editing(), run: onAllowEditing }],
+  });
 }

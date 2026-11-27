@@ -7779,7 +7779,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             vaultId!,
             async (_context, { fragment }: { fragment: string }) => {
               return [
-                ...document.querySelectorAll<HTMLElement>(".zt-notice"),
+                ...document.querySelectorAll<HTMLElement>(".notice"),
               ].some((node) => node.textContent.includes(fragment));
             },
             { fragment },
@@ -10833,7 +10833,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                   },
                 ) => {
                   return [
-                    ...document.querySelectorAll<HTMLElement>(".zt-notice"),
+                    ...document.querySelectorAll<HTMLElement>(".notice"),
                   ].some((node) => node.textContent.includes(permissionText));
                 },
                 {
@@ -13939,9 +13939,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
           async (_context, { title }: { title: string }) => {
             return [
               ...document.querySelectorAll<HTMLElement>(
-                ".zt-notice .zt-notice-text",
+                ".notice .notice-message",
               ),
-            ].some((node) => node.textContent === title);
+            ].some((node) => node.textContent.split("\n")[0] === title);
           },
           { title },
           { what: `the notice "${title}" to appear` },
@@ -14116,11 +14116,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             ) => {
               const { press } = pageHelpers;
               const notice = [
-                ...document.querySelectorAll<HTMLElement>(".zt-notice"),
+                ...document.querySelectorAll<HTMLElement>(".notice"),
               ].find((node) => node.textContent.includes(notAllowed));
               const button =
                 notice &&
-                [...notice.querySelectorAll<HTMLElement>("button")].find(
+                [...notice.querySelectorAll<HTMLElement>(".notice-cta")].find(
                   (el) => el.textContent.trim() === "Allow editing",
                 );
               if (!button) return "false";
@@ -14141,7 +14141,7 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               const notice = pageHelpers
                 .windowDocuments()
                 .flatMap((doc) => [
-                  ...doc.querySelectorAll<HTMLElement>(".zt-notice"),
+                  ...doc.querySelectorAll<HTMLElement>(".notice"),
                 ])
                 .find((node) =>
                   node.textContent.includes("Zotero editing is enabled."),

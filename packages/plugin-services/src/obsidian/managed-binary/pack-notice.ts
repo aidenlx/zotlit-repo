@@ -1,6 +1,5 @@
 import { Effect, Option, Schema } from "effect";
 
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
@@ -36,19 +35,18 @@ export const packNotice = Effect.fn("ResourcePack.notice")(
     yield* storage.save(PACK_NOTICE_KEY, [...shown, status.kind]);
     const readerId = yield* packReaderId;
     yield* (yield* Notifier).show(
-      BaseNotice.render((renderer) => {
-        renderer
-          .setTitle(m.notice_resource_pack())
-          .addText(packStatusSentence(status));
-        renderer.addAction((button) => {
-          button
-            .setButtonText(m.settings_resource_pack_open())
-            .setCta()
-            .onClick(() => {
+      {
+        title: m.notice_resource_pack(),
+        lines: [packStatusSentence(status)],
+        actions: [
+          {
+            label: m.settings_resource_pack_open(),
+            run: () => {
               openPackStatusPage(status, readerId);
-            });
-        });
-      }),
+            },
+          },
+        ],
+      },
       { duration: 0 },
     );
   },

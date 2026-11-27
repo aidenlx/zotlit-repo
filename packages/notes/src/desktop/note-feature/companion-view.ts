@@ -2,6 +2,7 @@ import { Effect } from "effect";
 import type { App, PaneType } from "obsidian";
 
 import type { ItemRef } from "@zotlit/db";
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notice.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
@@ -47,7 +48,7 @@ export const followCompanionLink = Effect.fn("CompanionLink.follow")(
 export function companionLinkNotice(
   app: App,
   outcome: CompanionLinkOutcome,
-): string | DocumentFragment | undefined {
+): NoticeMessage | undefined {
   switch (outcome.outcome) {
     case "refused":
     case "opened-as-is":
@@ -62,7 +63,7 @@ export function companionLinkNotice(
 export function companionNoteNotice(
   app: App,
   target: CompanionNoteTarget,
-): string | DocumentFragment | undefined {
+): NoticeMessage | undefined {
   if (target.outcome !== "create" && target.diagnostic)
     return noteOperationDiagnosticContent(app, target.diagnostic);
   if (target.outcome === "existing" && target.keptProfile)

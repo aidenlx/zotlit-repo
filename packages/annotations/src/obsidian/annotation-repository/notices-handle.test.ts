@@ -1,13 +1,12 @@
 import { Effect, Layer, Stream } from "effect";
 import { expect, it } from "vitest";
 
-import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  noticeContentOf,
+  testNotifier,
+} from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import type { RecordedNotice } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 // @vitest-environment happy-dom
-import {
-  ButtonComponent,
-  controlsOf,
-} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { effectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
@@ -17,12 +16,9 @@ import { layerCapabilityNotices, CapabilityNotices } from "./notices.ts";
 import { AnnotationRepository } from "./service.ts";
 
 function press(notice: RecordedNotice): void {
-  const actions = (
-    notice.messages[0] as DocumentFragment
-  ).querySelector<HTMLElement>(".zt-notice-actions")!;
-  const [button] = controlsOf(actions);
-  if (!(button instanceof ButtonComponent)) throw new Error("no action");
-  button.click();
+  const [action] = noticeContentOf(notice.messages[0]).actions ?? [];
+  if (!action) throw new Error("no action");
+  action.run();
 }
 
 async function open() {
@@ -104,7 +100,7 @@ it("settles as the bridge does after the runtime is disposed, and a notice's but
   await dispose();
 
   press(notice);
-  expect(notice.hidden).toBe(false);
+  expect(notice.hidden).toBe(true);
   expect(asked.count).toBe(1);
 
   await expect(handle.allowEditing()).resolves.toBeUndefined();

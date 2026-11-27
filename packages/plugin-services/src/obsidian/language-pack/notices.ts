@@ -1,7 +1,6 @@
 import { Effect, Fiber, Layer, Option, Schema, Stream } from "effect";
 import type { Exit } from "effect";
 
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { Notifier, reportProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import type { NoticeHandle } from "@zotlit/obsidian-kit/notifier.ts";
 import { logAndContinue } from "@zotlit/plugin-kernel/effect-log.ts";
@@ -90,17 +89,15 @@ const showInstallOffer = Effect.gen(function* () {
     yield* Effect.context<LanguagePack | Notifier>(),
   );
   const notice: NoticeHandle = yield* notifier.show(
-    BaseNotice.render((renderer) => {
-      renderer.setTitle(
-        m.notice_language_pack_install({
-          plugin: pack.plugin,
-          language: pack.endonym,
-        }),
-      );
-      renderer.addAction((button) => {
-        button
-          .setButtonText(m.notice_language_pack_decline_action())
-          .onClick(() => {
+    {
+      title: m.notice_language_pack_install({
+        plugin: pack.plugin,
+        language: pack.endonym,
+      }),
+      actions: [
+        {
+          label: m.notice_language_pack_decline_action(),
+          run: () => {
             run(
               Effect.forkIn(
                 pack.decline.pipe(
@@ -109,17 +106,16 @@ const showInstallOffer = Effect.gen(function* () {
                 scope,
               ),
             );
-          });
-      });
-      renderer.addAction((button) => {
-        button
-          .setButtonText(m.notice_language_pack_install_action())
-          .setCta()
-          .onClick(() => {
+          },
+        },
+        {
+          label: m.notice_language_pack_install_action(),
+          run: () => {
             run(Effect.forkIn(toastLanguagePackInstall, scope));
-          });
-      });
-    }),
+          },
+        },
+      ],
+    },
     { duration: 0 },
   );
   yield* Effect.addFinalizer(() => notice.hide);

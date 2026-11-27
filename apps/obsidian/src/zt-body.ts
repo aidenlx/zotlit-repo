@@ -1,7 +1,7 @@
 import semverGte from "semver/functions/gte";
 
 import { docsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { BaseNotice, noticeSteps } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { shellStart } from "@zotlit/plugin-shell/obsidian/plugin.ts";
 
@@ -10,31 +10,32 @@ import { linkActions } from "./link-actions.ts";
 
 export function showInstallerUpdateNotice(): BaseNotice {
   return new BaseNotice(
-    BaseNotice.render((renderer) => {
-      renderer.setTitle(m.notice_installer_update_needed());
-      renderer.addText(m.notice_installer_update_explanation());
-      renderer.addSteps([
-        m.notice_installer_update_step_download(),
-        m.notice_installer_update_step_close(),
-        m.notice_installer_update_step_run(),
-      ]);
-      renderer.addText(m.notice_installer_update_no_uninstall());
-      renderer.addAction((button) => {
-        button
-          .setButtonText(m.notice_installer_update_learn_more())
-          .onClick(() => {
+    {
+      title: m.notice_installer_update_needed(),
+      lines: [
+        m.notice_installer_update_explanation(),
+        ...noticeSteps([
+          m.notice_installer_update_step_download(),
+          m.notice_installer_update_step_close(),
+          m.notice_installer_update_step_run(),
+        ]),
+        m.notice_installer_update_no_uninstall(),
+      ],
+      actions: [
+        {
+          label: m.notice_installer_update_learn_more(),
+          run: () => {
             window.open(docsUrl("/docs/how-to/update-obsidian-installer"));
-          });
-      });
-      renderer.addAction((button) => {
-        button
-          .setButtonText(m.notice_installer_update_download())
-          .setCta()
-          .onClick(() => {
+          },
+        },
+        {
+          label: m.notice_installer_update_download(),
+          run: () => {
             window.open("https://obsidian.md/download");
-          });
-      });
-    }),
+          },
+        },
+      ],
+    },
     0,
   );
 }

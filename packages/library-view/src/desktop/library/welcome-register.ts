@@ -105,12 +105,10 @@ export function watchNotFound(
 
 function notFoundNotice(locate: () => void): BaseNotice {
   return new BaseNotice(
-    BaseNotice.render((renderer) => {
-      renderer.setTitle(m.notice_db_not_found_on_device());
-      renderer.addAction((button) => {
-        button.setButtonText(m.notice_db_not_found_action()).onClick(locate);
-      });
-    }),
+    {
+      title: m.notice_db_not_found_on_device(),
+      actions: [{ label: m.notice_db_not_found_action(), run: locate }],
+    },
     0,
   );
 }

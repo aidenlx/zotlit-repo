@@ -2,13 +2,17 @@ import type { LiteratureNoteProfileChoice } from "#desktop/profile/profile-picke
 // @vitest-environment happy-dom
 import { it } from "@effect/vitest";
 import { Effect, Layer } from "effect";
-import { ButtonComponent, TFile } from "obsidian";
+import { TFile } from "obsidian";
 import type { App } from "obsidian";
 import { expect, vi } from "vitest";
 
 import type { Item, ItemRef } from "@zotlit/db";
-import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import {
+  noticeContentOf,
+  testNotifier,
+} from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { MemoryWorkspace } from "@zotlit/obsidian-kit/__fixtures__/obsidian-workspace.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
 import { layerWorkspaceFrom } from "@zotlit/obsidian-kit/obsidian-workspace.ts";
 import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import type { ProfileId } from "@zotlit/obsidian-kit/profile-stamp.ts";
@@ -410,7 +414,6 @@ it.effect(
   "opens an unknown existing stamp with recovery, while leaving its content unchanged",
   () =>
     Effect.gen(function* () {
-      using buttonText = vi.spyOn(ButtonComponent.prototype, "setButtonText");
       const harness = creationHarness({
         selector: "default",
         source: "bound",
@@ -435,16 +438,17 @@ it.effect(
       expect(harness.workspace.opened).toHaveLength(1);
       expect(harness.feature.updateNote).not.toHaveBeenCalled();
       expect(harness.create).not.toHaveBeenCalled();
-      const notice = companionNoteNotice(
-        harness.deps.app,
-        target,
-      ) as DocumentFragment;
-      expect(notice.textContent).toContain(
+      const notice = noticeContentOf(
+        companionNoteNotice(harness.deps.app, target),
+      );
+      expect(noticeText(notice)).toContain(
         m.notice_literature_note_profile_unknown({
           stamp: `Missing (${PAPERS})`,
         }),
       );
-      expect(buttonText).toHaveBeenLastCalledWith(m.profile_switch_recovery());
+      expect(notice.actions?.map((action) => action.label)).toEqual([
+        m.profile_switch_recovery(),
+      ]);
     }),
 );
 

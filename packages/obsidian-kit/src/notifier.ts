@@ -1,3 +1,4 @@
+import type { NoticeMessage } from "#notice.ts";
 import {
   Cause,
   Context,
@@ -14,9 +15,9 @@ import type { Scope } from "effect";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isUserStop } from "@zotlit/plugin-kernel/user-cancel.ts";
 
-import { BaseNotice, LazyNotice } from "#notice.ts";
+import { BaseNotice, LazyNotice, loadingNotice, noticeText } from "#notice.ts";
 
-export type NoticeMessage = string | DocumentFragment;
+export type { NoticeMessage } from "#notice.ts";
 
 export interface NoticeOptions {
   readonly duration?: number;
@@ -90,7 +91,8 @@ export const reportProgress = Effect.fn("Notifier.reportProgress")(function* <
   const notifier = yield* Notifier;
   const notice = yield* notifier.progress;
   const early = yield* Effect.timeoutOption(outcome, "200 millis");
-  if (Option.isNone(early)) yield* notice.setMessage(copy.loading);
+  if (Option.isNone(early))
+    yield* notice.setMessage(loadingNotice(copy.loading));
   const exit = Option.isSome(early) ? early.value : yield* outcome;
   if (Exit.isSuccess(exit)) {
     const { success } = copy;
@@ -120,7 +122,7 @@ const failureMessage = Effect.fnUntraced(function* (
   const message = copy(error);
   yield* Effect.logError("Toast reported error").pipe(
     Effect.annotateLogs({
-      message: typeof message === "string" ? message : message?.textContent,
+      message: message === undefined ? undefined : noticeText(message),
       error,
     }),
     withLogCategory("toast"),

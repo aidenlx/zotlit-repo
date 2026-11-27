@@ -3,7 +3,8 @@ import type {
   ExportFailure,
 } from "#desktop/pandoc/export.ts";
 
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { noticeList } from "@zotlit/obsidian-kit/notice.ts";
+import type { NoticeContent } from "@zotlit/obsidian-kit/notice.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import {
   openPackStatusPage,
@@ -14,20 +15,19 @@ import type { PackBinaryStatus } from "@zotlit/resource-pack/status.ts";
 export function engineMissingMessage(
   status: PackBinaryStatus,
   readerId: string,
-): DocumentFragment {
-  return BaseNotice.render((renderer) => {
-    renderer
-      .setTitle(m.notice_pandoc_export_engine_missing())
-      .addText(packStatusSentence(status));
-    renderer.addAction((button) => {
-      button
-        .setButtonText(m.settings_resource_pack_open())
-        .setCta()
-        .onClick(() => {
+): NoticeContent {
+  return {
+    title: m.notice_pandoc_export_engine_missing(),
+    lines: [packStatusSentence(status)],
+    actions: [
+      {
+        label: m.settings_resource_pack_open(),
+        run: () => {
           openPackStatusPage(status, readerId);
-        });
-    });
-  });
+        },
+      },
+    ],
+  };
 }
 
 export type ExportProblem =
@@ -44,114 +44,135 @@ export type ExportProblem =
   | { kind: "style-invalid"; style: string }
   | { kind: "destination-unwritable"; detail: string };
 
-export function exportFailureMessage(failure: ExportProblem): DocumentFragment {
-  return BaseNotice.render((renderer) => {
-    renderer.setTitle(m.notice_pandoc_export_failed());
-    switch (failure.kind) {
-      case "citation-intent":
-        renderer.addList(
+export function exportFailureMessage(failure: ExportProblem): NoticeContent {
+  const title = m.notice_pandoc_export_failed();
+  switch (failure.kind) {
+    case "citation-intent":
+      return {
+        title,
+        lines: noticeList(
           m.pandoc_export_error_citation_intent(),
           failure.linkpaths,
-        );
-        break;
-      case "database-unavailable":
-        renderer.addText(
-          m.pandoc_export_error_database({ dataDir: failure.dataDir }),
-        );
-        break;
-      case "items-missing":
-        renderer.addList(
+        ),
+      };
+    case "database-unavailable":
+      return {
+        title,
+        lines: [m.pandoc_export_error_database({ dataDir: failure.dataDir })],
+      };
+    case "items-missing":
+      return {
+        title,
+        lines: noticeList(
           m.pandoc_export_error_items_missing(),
           failure.sources,
-        );
-        break;
-      case "citation-keys-missing":
-        renderer.addList(
+        ),
+      };
+    case "citation-keys-missing":
+      return {
+        title,
+        lines: noticeList(
           m.pandoc_export_error_citation_keys_missing(),
           failure.sources,
-        );
-        break;
-      case "citation-keys-unknown":
-        renderer.addList(
+        ),
+      };
+    case "citation-keys-unknown":
+      return {
+        title,
+        lines: noticeList(
           m.pandoc_export_error_citekeys_unknown(),
           failure.citekeys,
-        );
-        break;
-      case "citation-keys-ambiguous":
-        renderer.addList(
+        ),
+      };
+    case "citation-keys-ambiguous":
+      return {
+        title,
+        lines: noticeList(
           m.pandoc_export_error_citekeys_ambiguous(),
           failure.citekeys,
-        );
-        break;
-      case "zotero-unreachable":
-        renderer.addText(
+        ),
+      };
+    case "zotero-unreachable":
+      return {
+        title,
+        lines: [
           m.pandoc_export_error_zotero_unreachable({ port: failure.port }),
-        );
-        break;
-      case "zotero-timeout":
-        renderer.addText(
+        ],
+      };
+    case "zotero-timeout":
+      return {
+        title,
+        lines: [
           m.pandoc_export_error_zotero_timeout({ seconds: failure.seconds }),
-        );
-        break;
-      case "zotero-port-automatic":
-        renderer.addText(
-          m.pandoc_export_error_zotero_port_automatic({
-            pref: failure.pref,
-          }),
-        );
-        break;
-      case "local-api-disabled":
-        renderer.addText(
-          m.pandoc_export_error_local_api({ pref: failure.pref }),
-        );
-        break;
-      case "source-failed":
-        renderer.addText(
+        ],
+      };
+    case "zotero-port-automatic":
+      return {
+        title,
+        lines: [
+          m.pandoc_export_error_zotero_port_automatic({ pref: failure.pref }),
+        ],
+      };
+    case "local-api-disabled":
+      return {
+        title,
+        lines: [m.pandoc_export_error_local_api({ pref: failure.pref })],
+      };
+    case "source-failed":
+      return {
+        title,
+        lines: [
           m.pandoc_export_error_source({
             source: sourceName(failure.source),
             detail: failure.detail,
           }),
-        );
-        break;
-      case "engine":
-        renderer.addText(
-          m.pandoc_export_error_engine({ detail: failure.detail }),
-        );
-        break;
-      case "document-style-invalid":
-        renderer.addText(m.pandoc_export_error_document_style());
-        break;
-      case "document-language-invalid":
-        renderer.addText(m.pandoc_export_error_document_language());
-        break;
-      case "document-profile-invalid":
-        renderer.addText(
+        ],
+      };
+    case "engine":
+      return {
+        title,
+        lines: [m.pandoc_export_error_engine({ detail: failure.detail })],
+      };
+    case "document-style-invalid":
+      return { title, lines: [m.pandoc_export_error_document_style()] };
+    case "document-language-invalid":
+      return { title, lines: [m.pandoc_export_error_document_language()] };
+    case "document-profile-invalid":
+      return {
+        title,
+        lines: [
           m.notice_imported_note_profile_unknown({
             stamp: failure.stamp,
             target: failure.target,
           }),
-        );
-        renderer.addAction((button) => {
-          button.setButtonText(m.profile_switch_recovery()).onClick(() => {
-            failure.recover();
-          });
-        });
-        break;
-      case "profile-style-invalid":
-        renderer.addText(
+        ],
+        actions: [
+          {
+            label: m.profile_switch_recovery(),
+            run: () => {
+              failure.recover();
+            },
+          },
+        ],
+      };
+    case "profile-style-invalid":
+      return {
+        title,
+        lines: [
           m.pandoc_export_error_profile_style({ style: failure.styleId }),
-        );
-        break;
-      case "style-invalid":
-        renderer.addText(m.pandoc_export_error_style({ style: failure.style }));
-        break;
-      case "destination-unwritable":
-        renderer.addText(
-          m.pandoc_export_error_destination({ detail: failure.detail }),
-        );
-        break;
-    }
-  });
+        ],
+      };
+    case "style-invalid":
+      return {
+        title,
+        lines: [m.pandoc_export_error_style({ style: failure.style })],
+      };
+    case "destination-unwritable":
+      return {
+        title,
+        lines: [m.pandoc_export_error_destination({ detail: failure.detail })],
+      };
+  }
 }
 
 function sourceName(source: BibliographySource): string {

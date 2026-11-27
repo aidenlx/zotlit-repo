@@ -22,6 +22,10 @@ declare global {
 }
 
 declare module "obsidian" {
+  interface Notice {
+    addButton(text: string, callback: (evt: MouseEvent) => void): this;
+    buttonContainerEl: HTMLElement | null;
+  }
   interface FileSystemAdapter {
     reconcileInternalFile(normalizedPath: string): Promise<void>;
   }

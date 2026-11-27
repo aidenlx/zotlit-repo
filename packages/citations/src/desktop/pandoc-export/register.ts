@@ -10,6 +10,8 @@ import type { App, Plugin, TFile } from "obsidian";
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import type { Library } from "@zotlit/db";
 import { awaitModal } from "@zotlit/obsidian-kit/effect-modal.ts";
+import type { NoticeContent } from "@zotlit/obsidian-kit/notice.ts";
+import { isNoticeContent } from "@zotlit/obsidian-kit/notice.ts";
 import { withProgress } from "@zotlit/obsidian-kit/notifier.ts";
 import type { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import type { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
@@ -102,9 +104,7 @@ class PandocExportError extends Schema.TaggedError<
   PandocExportError,
   { readonly brand: unique symbol }
 >()("PandocExportError", {
-  notice: Schema.declare<DocumentFragment>(
-    (value): value is DocumentFragment => value instanceof DocumentFragment,
-  ),
+  notice: Schema.declare<NoticeContent>(isNoticeContent),
 }) {}
 
 export function runPandocExport(

@@ -95,6 +95,8 @@ globalThis.sleep ??= (ms: number) =>
 
 const noticeElStub = {
   addClasses: (_classes: string[]) => {},
+  toggleClass: (_cls: string, _value: boolean) => {},
+  createEl: (_tag: string) => ({}),
   toggle: (_show: boolean) => {},
   querySelector: (_selector: string): HTMLElement | null => null,
   get win(): Window {
@@ -108,6 +110,10 @@ export class Notice {
   noticeEl: HTMLElement = noticeElStub;
   containerEl: HTMLElement = noticeElStub;
   messageEl: HTMLElement = noticeElStub;
+  buttonContainerEl: HTMLElement | null = null;
+  readonly buttons: { text: string; callback: (evt: MouseEvent) => void }[] =
+    [];
+  hidden = false;
   message: string | DocumentFragment;
   constructor(message: string | DocumentFragment, _duration?: number) {
     this.message = message;
@@ -117,7 +123,24 @@ export class Notice {
     this.message = message;
     return this;
   }
-  hide(): void {}
+  addButton(text: string, callback: (evt: MouseEvent) => void): this {
+    this.buttonContainerEl ??= {
+      remove: () => {
+        this.buttons.length = 0;
+      },
+    } as unknown as HTMLElement;
+    this.buttons.push({
+      text,
+      callback: (evt) => {
+        this.hide();
+        callback(evt);
+      },
+    });
+    return this;
+  }
+  hide(): void {
+    this.hidden = true;
+  }
 }
 
 type EventCallback = (...data: unknown[]) => unknown;

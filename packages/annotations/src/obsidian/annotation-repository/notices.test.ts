@@ -2,13 +2,13 @@ import { it } from "@effect/vitest";
 import { Context, Deferred, Effect, Fiber, Layer } from "effect";
 import { expect } from "vitest";
 
-import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
-import type { RecordedNotice } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
-// @vitest-environment happy-dom
 import {
-  ButtonComponent,
-  controlsOf,
-} from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+  noticeContentOf,
+  testNotifier,
+} from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import type { RecordedNotice } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import type { NoticeAction } from "@zotlit/obsidian-kit/notice.ts";
+// @vitest-environment happy-dom
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
@@ -34,26 +34,20 @@ const CONFLICT: MutationState = {
   conflict: {} as WriteConflict,
 };
 
-function actionOf(notice: RecordedNotice): ButtonComponent | null {
-  const actions = (
-    notice.messages[0] as DocumentFragment
-  ).querySelector<HTMLElement>(".zt-notice-actions");
-  if (!actions) return null;
-  const [button] = controlsOf(actions);
-  return button instanceof ButtonComponent ? button : null;
+function actionOf(notice: RecordedNotice): NoticeAction | null {
+  return noticeContentOf(notice.messages[0]).actions?.[0] ?? null;
 }
 
 function drawn(notice: RecordedNotice) {
-  const fragment = notice.messages[0] as DocumentFragment;
   return {
-    title: fragment.querySelector(".zt-notice-text")?.textContent ?? null,
-    action: actionOf(notice)?.text ?? null,
+    title: noticeContentOf(notice.messages[0]).title,
+    action: actionOf(notice)?.label ?? null,
     duration: notice.duration,
   };
 }
 
 function press(notice: RecordedNotice): void {
-  actionOf(notice)!.click();
+  actionOf(notice)!.run();
 }
 
 function seam(

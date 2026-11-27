@@ -1,7 +1,6 @@
 import { Effect } from "effect";
 
 import { companionDocsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
@@ -36,14 +35,13 @@ export const showCompanionNotice = Effect.fn("Release.showCompanionNotice")(
   function* (copy: CompanionNoticeCopy) {
     const notifier = yield* Notifier;
     return yield* notifier.show(
-      BaseNotice.render((renderer) => {
-        renderer.setTitle(copy.title);
-        for (const action of copy.actions) {
-          renderer.addAction((button) => {
-            button.setButtonText(action.label).onClick(action.run);
-          });
-        }
-      }),
+      {
+        title: copy.title,
+        actions: copy.actions.map((action) => ({
+          label: action.label,
+          run: action.run,
+        })),
+      },
       { duration: 0 },
     );
   },

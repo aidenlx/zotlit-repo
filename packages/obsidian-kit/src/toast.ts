@@ -6,21 +6,15 @@ import {
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 
-import { LazyNotice } from "./notice.ts";
+import { LazyNotice, loadingNotice, noticeText } from "./notice.ts";
+import type { NoticeMessage } from "./notice.ts";
 
 interface ToastPromiseOptions<T> {
-  loading?: string | DocumentFragment;
-  success?:
-    | ((data: T) => string | DocumentFragment | undefined)
-    | string
-    | DocumentFragment;
+  loading?: NoticeMessage;
+  success?: ((data: T) => NoticeMessage | undefined) | NoticeMessage;
   error?:
-    | ((
-        errorMessage: string,
-        error: unknown,
-      ) => string | DocumentFragment | undefined)
-    | string
-    | DocumentFragment;
+    | ((errorMessage: string, error: unknown) => NoticeMessage | undefined)
+    | NoticeMessage;
   loadingDelay?: number;
   successDuration?: number;
   errorDuration?: number;
@@ -29,12 +23,8 @@ interface ToastPromiseOptions<T> {
 
 interface RethrowWithNoticeOptions {
   error:
-    | ((
-        errorMessage: string,
-        error: unknown,
-      ) => string | DocumentFragment | undefined)
-    | string
-    | DocumentFragment;
+    | ((errorMessage: string, error: unknown) => NoticeMessage | undefined)
+    | NoticeMessage;
   errorDuration?: number;
   throwAborted?: boolean;
 }
@@ -66,7 +56,7 @@ async function promiseToast<T>(
       ]);
 
       if (raceResult === LOADING_SYMBOL) {
-        notice.setMessage(loading);
+        notice.setMessage(loadingNotice(loading));
       }
     } catch {
       // handled below
@@ -93,9 +83,7 @@ async function promiseToast<T>(
         ? options.error(formatErrorMessage(error), error)
         : options.error;
     const errorMessageText =
-      errorMessage instanceof DocumentFragment
-        ? errorMessage.textContent
-        : errorMessage;
+      errorMessage === undefined ? undefined : noticeText(errorMessage);
     Effect.runSyncWith(logServices)(
       Effect.logError("Toast reported error: {message}").pipe(
         Effect.annotateLogs({

@@ -1,7 +1,8 @@
 import { dirname } from "node:path";
 
 import { requireElectron } from "@zotlit/obsidian-desktop/require.ts";
-import { BaseNotice } from "@zotlit/obsidian-kit/notice.ts";
+import { noticeList } from "@zotlit/obsidian-kit/notice.ts";
+import type { NoticeContent } from "@zotlit/obsidian-kit/notice.ts";
 import * as toast from "@zotlit/obsidian-kit/toast.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
@@ -32,20 +33,19 @@ export function openBackupFolder(backups: readonly string[]): Promise<void> {
 
 export function renderPandocIntegrationBackupNotice(
   backups: readonly string[],
-): DocumentFragment {
-  return BaseNotice.render((renderer) => {
-    renderer
-      .setTitle(m.notice_pandoc_integration_restore_failed())
-      .addList(m.notice_pandoc_integration_backups_kept(), backups)
-      .addAction((button) => {
-        button
-          .setButtonText(m.notice_pandoc_integration_copy_backup_path())
-          .onClick(() => void copyBackupFolderPath(backups));
-      })
-      .addAction((button) => {
-        button
-          .setButtonText(m.notice_pandoc_integration_open_backup_folder())
-          .onClick(() => void openBackupFolder(backups));
-      });
-  });
+): NoticeContent {
+  return {
+    title: m.notice_pandoc_integration_restore_failed(),
+    lines: noticeList(m.notice_pandoc_integration_backups_kept(), backups),
+    actions: [
+      {
+        label: m.notice_pandoc_integration_copy_backup_path(),
+        run: () => void copyBackupFolderPath(backups),
+      },
+      {
+        label: m.notice_pandoc_integration_open_backup_folder(),
+        run: () => void openBackupFolder(backups),
+      },
+    ],
+  };
 }

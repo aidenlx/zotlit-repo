@@ -288,7 +288,7 @@ export function unpackedPartialNotices(
 export function originatingNoteUpdateNotice(
   app: App,
   result: OriginatingNoteUpdateOutcome,
-): string | DocumentFragment | null {
+): NoticeMessage | null {
   const feedback = updateNoteToast("full", { app });
   switch (result.outcome) {
     case "no-target":

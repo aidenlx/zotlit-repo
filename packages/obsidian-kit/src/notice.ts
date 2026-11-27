@@ -1,9 +1,45 @@
-import { ButtonComponent, Notice } from "obsidian";
+import { Notice } from "obsidian";
+
+export interface NoticeAction {
+  readonly label: string;
+  readonly run: () => void;
+}
+
+export type NoticeProgress =
+  | { readonly value: number; readonly max: number }
+  | "indeterminate";
+
+export interface NoticeContent {
+  readonly title: string;
+  readonly lines?: readonly string[];
+  readonly progress?: NoticeProgress;
+  readonly actions?: readonly NoticeAction[];
+}
+
+export type NoticeMessage = string | NoticeContent;
+
+export function noticeSteps(steps: readonly string[]): string[] {
+  return steps.map((step, index) => `${index + 1}. ${step}`);
+}
+
+export function noticeList(label: string, items: readonly string[]): string[] {
+  return [label, ...items.map((item) => `• ${item}`)];
+}
+
+export function noticeText(message: NoticeMessage): string {
+  if (typeof message === "string") return message;
+  return [message.title, ...(message.lines ?? [])].join("\n");
+}
+
+export function loadingNotice(message: NoticeMessage): NoticeContent {
+  const content = typeof message === "string" ? { title: message } : message;
+  return content.progress ? content : { ...content, progress: "indeterminate" };
+}
 
 export class LazyNotice implements Disposable {
-  #notice: Notice | null = null;
+  #notice: BaseNotice | null = null;
 
-  setMessage(message: string | DocumentFragment) {
+  setMessage(message: NoticeMessage) {
     if (!this.#notice) {
       this.#notice = new BaseNotice(message, 0);
     } else {
@@ -16,71 +52,35 @@ export class LazyNotice implements Disposable {
   }
 }
 
-class NoticeRenderer {
-  titleEl: HTMLElement;
-  actionsEl: HTMLElement | null = null;
-  containerEl: DocumentFragment;
-
-  constructor() {
-    this.titleEl = createDiv("zt-notice-text");
-    this.containerEl = createFragment((frag) => {
-      frag.appendChild(this.titleEl);
-    });
-  }
-
-  setTitle(title: string): this {
-    this.titleEl.setText(title);
-    return this;
-  }
-
-  addText(text: string): this {
-    this.containerEl.createDiv("zt-notice-text").setText(text);
-    return this;
-  }
-
-  addSteps(items: readonly string[]): this {
-    const list = this.containerEl.createEl("ol");
-    list.addClasses(["zt:m-0", "zt:pl-5"]);
-    for (const item of items) {
-      list.createEl("li", { text: item });
-    }
-    return this;
-  }
-
-  addList(label: string, items: readonly string[]): this {
-    const section = this.containerEl.createDiv("zt-notice-list");
-    section.addClasses(["zt:flex", "zt:flex-col", "zt:gap-1"]);
-    section.createDiv("zt-notice-text").setText(label);
-    const list = section.createEl("ul");
-    list.addClasses(["zt:m-0", "zt:pl-5"]);
-    for (const item of items) {
-      const code = list.createEl("li").createEl("code", { text: item });
-      code.addClass("zt:break-all");
-    }
-    return this;
-  }
-
-  addAction(cb: (component: ButtonComponent) => void): this {
-    if (!this.actionsEl) {
-      this.actionsEl = this.containerEl.createDiv("zt-notice-actions");
-      this.actionsEl.addClasses(["zt:flex", "zt:gap-4", "zt:justify-end"]);
-    }
-    cb(new ButtonComponent(this.actionsEl));
-    return this;
-  }
+export function isNoticeContent(message: unknown): message is NoticeContent {
+  return typeof message === "object" && message !== null && "title" in message;
 }
 
 export class BaseNotice extends Notice {
-  static render(cb: (renderer: NoticeRenderer) => void): DocumentFragment {
-    const renderer = new NoticeRenderer();
-    cb(renderer);
-    return renderer.containerEl;
+  constructor(message: NoticeMessage, duration?: number) {
+    super(noticeText(message), duration);
+    this.#decorate(message);
   }
 
-  constructor(message: string | DocumentFragment, duration?: number) {
-    super(message, duration);
-    this.containerEl.addClasses(["zt-notice", "zt:max-w-[300px]"]);
-    const messageEl = this.containerEl.querySelector(".notice-message");
-    messageEl?.addClasses(["zt:flex", "zt:flex-col", "zt:gap-1.5"]);
+  override setMessage(message: NoticeMessage | DocumentFragment): this {
+    super.setMessage(isNoticeContent(message) ? noticeText(message) : message);
+    this.#decorate(message);
+    return this;
+  }
+
+  #decorate(message: NoticeMessage | DocumentFragment): void {
+    const content = isNoticeContent(message) ? message : undefined;
+    const progress = content?.progress;
+    this.containerEl.toggleClass("is-loading", progress === "indeterminate");
+    if (progress !== undefined && progress !== "indeterminate") {
+      const bar = this.messageEl.createEl("progress");
+      bar.max = progress.max;
+      bar.value = progress.value;
+    }
+    this.buttonContainerEl?.remove();
+    this.buttonContainerEl = null;
+    for (const action of content?.actions ?? []) {
+      this.addButton(action.label, () => action.run());
+    }
   }
 }

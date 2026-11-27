@@ -5,6 +5,7 @@ import { describe, expect, it as plainIt, vi } from "vitest";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { companionDocsUrl } from "@zotlit/obsidian-kit/docs-url.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
 import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 
@@ -43,8 +44,9 @@ describe("showCompanionNotice", () => {
       expect(notifier.notices).toHaveLength(1);
       const [notice] = notifier.notices;
       expect(notice!.duration).toBe(0);
-      const message = notice!.messages[0] as DocumentFragment;
-      expect(message.textContent).toContain(m.companion_zotero_10_guidance());
+      expect(noticeText(notice!.messages[0]!)).toContain(
+        m.companion_zotero_10_guidance(),
+      );
     }),
   );
 });

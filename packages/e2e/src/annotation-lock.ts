@@ -279,7 +279,7 @@ export async function verifyExternalAnnotationLock({
             .windowDocuments()
             .flatMap((doc) => [...doc.querySelectorAll<HTMLElement>(".notice")])
             .filter((node) => node.textContent.includes(reason))[0]!
-            .querySelectorAll<HTMLButtonElement>("button").length;
+            .querySelectorAll<HTMLElement>(".notice-cta").length;
         },
         { reason },
       ),
@@ -375,7 +375,7 @@ export async function verifyExternalAnnotationLock({
             .windowDocuments()
             .flatMap((doc) => [...doc.querySelectorAll<HTMLElement>(".notice")])
             .filter((node) => node.textContent.includes(reason))[0]!
-            .querySelectorAll<HTMLButtonElement>("button").length,
+            .querySelectorAll<HTMLElement>(".notice-cta").length,
           modals: document.querySelectorAll<HTMLElement>(".modal").length,
         };
       },
@@ -662,7 +662,7 @@ export async function verifyExternalAnnotationLock({
             .windowDocuments()
             .flatMap((doc) => [...doc.querySelectorAll<HTMLElement>(".notice")])
             .filter((node) => node.textContent.includes(reason))[0]!
-            .querySelectorAll<HTMLButtonElement>("button").length,
+            .querySelectorAll<HTMLElement>(".notice-cta").length,
           menus: page
             .windowDocuments()
             .reduce(

@@ -13,6 +13,8 @@ import {
   resetMockPlatform,
   setMockPlatform,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
+import type { NoticeMessage } from "@zotlit/obsidian-kit/notice.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
 import { layerDeviceStorageFrom } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { Vault as VaultService } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -444,8 +446,8 @@ it.effect(
     }),
 );
 
-const noticeText = (notices: readonly { messages: unknown[] }[]) =>
-  notices.map(({ messages }) => (messages[0] as DocumentFragment).textContent);
+const noticeTexts = (notices: readonly { messages: NoticeMessage[] }[]) =>
+  notices.map(({ messages }) => noticeText(messages[0]!));
 
 it.effect(
   "tells the researcher once per vault how to get the annotation tools when a PDF opens in Obsidian's PDF view",
@@ -455,8 +457,8 @@ it.effect(
       const first = yield* handshakeReader(undefined, { storage });
       yield* first.reader.open(paper(), "#page=2", "tab");
       yield* first.reader.open(paper(), "#page=3", "tab");
-      expect(noticeText(first.notices)).toEqual([
-        m.notice_reader_fallback() + m.settings_reader_status_install(),
+      expect(noticeTexts(first.notices)).toEqual([
+        `${m.notice_reader_fallback()}\n${m.settings_reader_status_install()}`,
       ]);
       const later = yield* handshakeReader(undefined, {
         storage,
@@ -464,8 +466,8 @@ it.effect(
       });
       yield* later.reader.open(paper(), "", "tab");
       yield* later.reader.open(paper(), "", "tab");
-      expect(noticeText(later.notices)).toEqual([
-        m.notice_reader_fallback() + m.settings_reader_status_turn_on(),
+      expect(noticeTexts(later.notices)).toEqual([
+        `${m.notice_reader_fallback()}\n${m.settings_reader_status_turn_on()}`,
       ]);
       const again = yield* handshakeReader(undefined, {
         storage,
@@ -491,9 +493,10 @@ it.effect(
         { installed: true },
       );
       yield* reader.open(paper(), "", "tab");
-      expect(noticeText(notices)).toEqual([
-        m.notice_reader_fallback() +
-          m.settings_reader_status_update({ plugin: "ZotLit" }),
+      expect(noticeTexts(notices)).toEqual([
+        `${m.notice_reader_fallback()}\n${m.settings_reader_status_update({
+          plugin: "ZotLit",
+        })}`,
       ]);
     }),
 );

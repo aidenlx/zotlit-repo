@@ -21,6 +21,7 @@ import { describe, expect } from "vitest";
 
 import { USER_LIBRARY_ID } from "@zotlit/db";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
 import { eventually } from "@zotlit/plugin-kernel/__fixtures__/eventually.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { PACK_COMPAT } from "@zotlit/resource-pack/format.ts";
@@ -149,7 +150,7 @@ describe("ItemLookup", () => {
 
         yield* eventually(() =>
           expect(notices()).toEqual([
-            m.notice_resource_pack() + m.settings_resource_pack_status_absent(),
+            `${m.notice_resource_pack()}\n${m.settings_resource_pack_status_absent()}`,
           ]),
         );
       }),
@@ -181,8 +182,7 @@ describe("ItemLookup", () => {
 
         yield* eventually(() =>
           expect(notices()).toEqual([
-            m.notice_resource_pack() +
-              m.settings_resource_pack_status_plugin_outdated(),
+            `${m.notice_resource_pack()}\n${m.settings_resource_pack_status_plugin_outdated()}`,
           ]),
         );
       }),
@@ -705,9 +705,7 @@ const lookupOver = Effect.fnUntraced(function* (
   );
   return {
     notices: () =>
-      notifier.notices.map(
-        ({ messages }) => (messages[0] as DocumentFragment).textContent,
-      ),
+      notifier.notices.map(({ messages }) => noticeText(messages[0]!)),
     lookup: Context.get(context, ItemLookup),
     segmenter: segmenter && Context.get(segmenter, ChineseSegmenter),
     setLibraries: (next: readonly AvailableLibrary[]) =>

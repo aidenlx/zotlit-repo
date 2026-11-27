@@ -41,6 +41,7 @@ import {
 import { updateDefaultLiteratureNoteProfileBindings } from "@zotlit/notes/obsidian/profile/settings.ts";
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { testPluginHost } from "@zotlit/obsidian-kit/__fixtures__/plugin-host.ts";
+import { noticeText } from "@zotlit/obsidian-kit/notice.ts";
 import { testEvent } from "@zotlit/plugin-kernel/__fixtures__/event-stream.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { subscribe } from "@zotlit/plugin-kernel/effect-stream.ts";
@@ -229,11 +230,9 @@ it.effect(
       );
 
       expect(
-        h.cache.notices.map(
-          ({ messages }) => (messages[0] as DocumentFragment).textContent,
-        ),
+        h.cache.notices.map(({ messages }) => noticeText(messages[0]!)),
       ).toEqual([
-        m.notice_resource_pack() + m.settings_resource_pack_status_absent(),
+        `${m.notice_resource_pack()}\n${m.settings_resource_pack_status_absent()}`,
       ]);
     }),
 );
@@ -251,12 +250,9 @@ it.effect(
       );
 
       expect(
-        h.cache.notices.map(
-          ({ messages }) => (messages[0] as DocumentFragment).textContent,
-        ),
+        h.cache.notices.map(({ messages }) => noticeText(messages[0]!)),
       ).toEqual([
-        m.notice_resource_pack() +
-          m.settings_resource_pack_status_pack_outdated(),
+        `${m.notice_resource_pack()}\n${m.settings_resource_pack_status_pack_outdated()}`,
       ]);
     }),
 );
@@ -277,12 +273,9 @@ it.effect(
       );
 
       expect(
-        h.cache.notices.map(
-          ({ messages }) => (messages[0] as DocumentFragment).textContent,
-        ),
+        h.cache.notices.map(({ messages }) => noticeText(messages[0]!)),
       ).toEqual([
-        m.notice_resource_pack() +
-          m.settings_resource_pack_status_pack_outdated(),
+        `${m.notice_resource_pack()}\n${m.settings_resource_pack_status_pack_outdated()}`,
       ]);
     }),
 );
