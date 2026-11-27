@@ -3,6 +3,7 @@ import { defineConfig } from "vitest/config";
 
 import { pageTransform } from "./page-transform.ts";
 import { e2eResultsDir } from "./src/results-dir.ts";
+import TimedSequencer from "./src/timed-sequencer.ts";
 
 export default defineConfig({
   oxc: pageTransform,
@@ -34,6 +35,7 @@ export default defineConfig({
     outputFile: { json: join(e2eResultsDir(), "results.json") },
     environment: "node",
     fileParallelism: false,
+    sequence: { sequencer: TimedSequencer },
     testTimeout: 60000,
     hookTimeout: 60000,
   },

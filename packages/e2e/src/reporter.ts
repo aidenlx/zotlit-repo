@@ -17,7 +17,7 @@ import {
 import { captureContainerWindows } from "./container-screenshot.ts";
 import { e2eResultsDir, publishE2eResultsDir } from "./results-dir.ts";
 import type { HookSpan, ModuleTiming } from "./run-timings.ts";
-import { moduleTiming, runTimings } from "./run-timings.ts";
+import { EACH_TEST, moduleTiming, runTimings } from "./run-timings.ts";
 
 export default class E2eReporter extends DefaultReporter {
   readonly #directory = e2eResultsDir();
@@ -159,7 +159,7 @@ function hookModuleId(hook: ReportedHookContext): string {
 
 function hookScope(hook: ReportedHookContext): string {
   const { entity } = hook;
-  if (entity.type === "test") return "(each test)";
+  if (entity.type === "test") return EACH_TEST;
   return entity.type === "module" ? "(file)" : entity.fullName;
 }
 

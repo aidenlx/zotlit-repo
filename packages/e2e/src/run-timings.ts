@@ -18,6 +18,7 @@ export interface ModuleTiming {
   readonly setupMs: number;
   readonly prepareMs: number;
   readonly hookMs: number;
+  readonly eachHookMs: number;
   readonly testMs: number;
   readonly hooks: readonly HookSpan[];
   readonly tests: readonly TestTiming[];
@@ -27,6 +28,8 @@ export interface RunTimings {
   readonly ms: number;
   readonly modules: readonly ModuleTiming[];
 }
+
+export const EACH_TEST = "(each test)";
 
 const slowestFirst = <T extends { readonly ms: number }>(items: Iterable<T>) =>
   [...items].sort((a, b) => b.ms - a.ms);
@@ -42,14 +45,22 @@ export function hookTotals(spans: readonly HookSpan[]): HookSpan[] {
 }
 
 export function moduleTiming(
-  module: Omit<ModuleTiming, "hookMs" | "testMs" | "hooks" | "tests">,
+  module: Omit<
+    ModuleTiming,
+    "hookMs" | "eachHookMs" | "testMs" | "hooks" | "tests"
+  >,
   spans: readonly HookSpan[],
   tests: readonly TestTiming[],
 ): ModuleTiming {
   const hooks = hookTotals(spans);
+  const total = (each: boolean) =>
+    hooks
+      .filter((hook) => (hook.scope === EACH_TEST) === each)
+      .reduce((sum, hook) => sum + hook.ms, 0);
   return {
     ...module,
-    hookMs: hooks.reduce((sum, hook) => sum + hook.ms, 0),
+    hookMs: total(false),
+    eachHookMs: total(true),
     testMs: tests.reduce((sum, test) => sum + test.ms, 0),
     hooks,
     tests: slowestFirst(tests),

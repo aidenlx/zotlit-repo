@@ -2232,7 +2232,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           return [...document.querySelectorAll<HTMLElement>(".notice")]
             .map((notice) => notice.textContent)
             .filter((text) => text.includes(title))
-            .map((text) => text.slice(text.indexOf(title) + title.length));
+            .map((text) =>
+              text.slice(text.indexOf(title) + title.length).trimStart(),
+            );
         },
         { title: run.m.notice_resource_pack() },
         { ready: (value) => value.length === count, what },
@@ -2434,7 +2436,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         return [...document.querySelectorAll<HTMLElement>(".notice")]
           .map((notice) => notice.textContent)
           .filter((text) => text.includes(title))
-          .map((text) => text.slice(text.indexOf(title) + title.length));
+          .map((text) =>
+            text.slice(text.indexOf(title) + title.length).trimStart(),
+          );
       },
       { searchTerm: "流域", title: run.m.notice_resource_pack() },
       {

@@ -30,13 +30,16 @@ describe("the End-to-end Run timings", () => {
   it("gives a file its hook and test totals and lists its slowest test first", () => {
     const timing = moduleTiming(
       module,
-      [{ scope: "reader", name: "beforeAll", ms: 900 }],
+      [
+        { scope: "reader", name: "beforeAll", ms: 900 },
+        { scope: "(each test)", name: "afterEach", ms: 40 },
+      ],
       [
         { name: "reader > opens", state: "passed", ms: 100 },
         { name: "reader > scrolls", state: "failed", ms: 700 },
       ],
     );
-    expect(timing).toMatchObject({ hookMs: 900, testMs: 800 });
+    expect(timing).toMatchObject({ hookMs: 900, eachHookMs: 40, testMs: 800 });
     expect(timing.tests.map(({ name }) => name)).toEqual([
       "reader > scrolls",
       "reader > opens",

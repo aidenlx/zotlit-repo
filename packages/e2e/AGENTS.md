@@ -20,6 +20,8 @@ To find selectors, read state, or see why a case fails, hold the run and inspect
 
 `pnpm e2e --help` has the hold contract. To try a code edit, start a new run: the guest builds from the files of its start.
 
+The nightly shards the desktop project by the file times in `timings-baseline.json`. When the shards drift apart, refresh it from the `timings.json` of each nightly shard with `pnpm --filter @zotlit/e2e timings:baseline <timings.json>...`.
+
 Use `pnpm e2e:query` for the Query CLI cases. Ordinary e2e checks correctness and records timings. To enforce a hardware-sensitive limit, run the optional `pnpm e2e:performance` alone on the [reference MacBook](../../docs/adr/0116-e2e-timing-limits-use-a-reference-machine.md#reference-baseline).
 
 ## Page callbacks
