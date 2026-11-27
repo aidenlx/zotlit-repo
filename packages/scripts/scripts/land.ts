@@ -19,6 +19,8 @@ import {
   SILENCE_LIMIT_MS,
 } from "#desktop-slot";
 import {
+  formatLandDiagnostic,
+  formatLandFailure,
   land,
   LAND_AFTER_CI_WAIT_MS,
   LAND_ATTEMPTS,
@@ -39,7 +41,7 @@ import { landAdmission, landStateDir, landWaitLog } from "#land-queue";
 const EXIT_USAGE = 2;
 const GATE_TAIL = 40;
 
-const epilogue = `A land holds the Land Turn while it fetches, rebases, installs, runs the gate, and pushes, so one land at a time reaches ${SOURCE_BRANCH} on this machine, in the order the lands started. While it waits for the Land Turn, a land exits early if it finds a conflict with ${SOURCE_BRANCH}. --no-verify skips the gate; the CI check of the record PR still runs.
+const epilogue = `A land holds the Land Turn while it fetches, rebases, installs, runs the gate, and pushes, so one land at a time reaches ${SOURCE_BRANCH} on this machine, in the order the lands started. While it waits for the Land Turn, a land exits early if it finds a conflict with ${SOURCE_BRANCH}. --no-verify skips the gate; the CI check of the record PR still runs. --no-ci lands without that check: the land does not wait for it, and the landing workflow does not require it. Give both to skip every check.
 
 From a task branch with a clean tree, a record file, and a gh login that GitHub accepts (checked before the turn):
   fetch origin/${SOURCE_BRANCH}, rebase the branch onto it, run ${LAND_INSTALL.join(" ")} when the rebase changed pnpm-lock.yaml, pnpm-workspace.yaml, or a package.json, run ${LAND_GATES.change.join(" ")}, push the branch to origin and open its record PR (or update the open one), wait for the "${LAND_CI_CHECK}" check of the PR head (pnpm verify --pr, ${RECORD_PR_WORKFLOW}), dispatch the trusted landing workflow to fast-forward ${SOURCE_BRANCH} to the checked head. The wait prints the state of the check at each read and ends after ${formatDuration(LAND_CI_WAIT_MS)}; a check that does not pass fails the land with the link to the job, and ${SOURCE_BRANCH} stays as it was. A land again on the same head reads the same result, unless the job ran again from its link. When ${SOURCE_BRANCH} moved during the gate or the CI wait, the turn starts again from the fetch (${LAND_ATTEMPTS} attempts). Then the local ${SOURCE_BRANCH} moves; when GitHub shows the PR as merged, the task branch is deleted on origin.
@@ -50,7 +52,7 @@ From a task branch with a clean tree, a record file, and a gh login that GitHub 
 
 Record file: ${LAND_RECORD_PATH} in the worktree. Its first line is "# <title>", the title of the PR and, for a squash land, the subject of the commit, so a Conventional Commits subject (${CONVENTIONAL_FORMAT}); the rest is the PR body, with the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}.
 
-On a failure, land exits non-zero, names the failed step, and prints the path of the full log. The worktree stays on its branch with a clean tree: after a rebase conflict the branch is as it was; after a failed install or gate it is rebased onto the fetched ${SOURCE_BRANCH}, the tree to fix.
+On a failure, land exits non-zero and prints "error[<step>]: <message>" (or "blocked[queue]" when the turn did not come), the path of the full log, "note" lines on the state of the branch, and a "help" line with the next action. The worktree stays on its branch with a clean tree: after a rebase conflict the branch is as it was; after a failed install or gate it is rebased onto the fetched ${SOURCE_BRANCH}, the tree to fix.
 
 Exit codes:
   0    landed; with --draft, the draft record PR is open and ${SOURCE_BRANCH} is unchanged
@@ -61,8 +63,12 @@ Exit codes:
 Lease: each output of a step renews the Land Turn. A turn whose commands print nothing for ${formatDuration(SILENCE_LIMIT_MS.childOutput)} ends, and so does one past ${formatDuration(MAX_LEASE_MS)} in total. Default wait: ${formatDuration(LAND_WAIT_MS)}.
 State and logs: ${landStateDir()} (wait log ${landWaitLog()}).`;
 
-function usage(message: string): never {
-  console.error(`land: ${message}`);
+const USAGE_HELP = "Run pnpm land --help for the flags and their values.";
+
+function usage(message: string, help = USAGE_HELP): never {
+  console.error(
+    formatLandDiagnostic({ label: "error", code: "usage", message, help }),
+  );
   process.exit(EXIT_USAGE);
 }
 
@@ -72,9 +78,11 @@ async function landCommand({
   squash,
   afterCi,
   draft,
+  ci,
 }: {
   wait?: string | undefined;
   verify: boolean;
+  ci: boolean;
   squash: boolean;
   afterCi: boolean;
   draft: boolean;
@@ -92,12 +100,18 @@ async function landCommand({
     await $({ cwd, quiet: true, nothrow: true })`git remote get-url origin`
   ).stdout;
   const repository = githubRepository(origin);
-  if (!repository) usage(`origin is not a GitHub repository: ${origin.trim()}`);
+  if (!repository) {
+    usage(
+      `origin is not a GitHub repository: ${origin.trim()}`,
+      "Land from a clone whose origin is the GitHub repository (git remote get-url origin).",
+    );
+  }
   const result = await land({
     cwd,
     squash,
     afterCi,
     draft,
+    ...(ci ? {} : { skipCi: true }),
     ...(verify ? { gate: LAND_GATES.change } : {}),
     github: ghLandGitHub(repository),
     ...(waitMs === undefined ? {} : { waitMs }),
@@ -111,10 +125,7 @@ async function landCommand({
         .join("\n");
       console.error(`\n${tail}\n`);
     }
-    console.error(
-      `\n✖ land failed at the ${result.step} step: ${result.message}`,
-    );
-    console.error(`Full log: ${result.logPath}`);
+    console.error(`\n${formatLandFailure(result)}`);
     process.exit(result.exitCode);
   }
 }
@@ -134,7 +145,7 @@ async function status() {
 await yargs(hideBin(process.argv))
   .scriptName("land")
   .usage(
-    "pnpm land [--wait <duration>] [--no-verify] [--no-squash] [--after-ci] [--draft]\npnpm land status",
+    "pnpm land [--wait <duration>] [--no-verify] [--no-ci] [--no-squash] [--after-ci] [--draft]\npnpm land status",
   )
   .command(
     "$0",
@@ -165,6 +176,11 @@ await yargs(hideBin(process.argv))
           type: "boolean",
           default: true,
           describe: `run the gate (${LAND_GATES.change.join(" ")}); --no-verify skips it, and the CI check still runs`,
+        })
+        .option("ci", {
+          type: "boolean",
+          default: true,
+          describe: `wait for the "${LAND_CI_CHECK}" check of the record PR and require it to pass; --no-ci lands without it`,
         }),
     async (argv) => {
       await landCommand(argv);
@@ -184,6 +200,12 @@ await yargs(hideBin(process.argv))
   .wrap(null)
   .fail((message, error) => {
     if (error) throw error;
+    if (message.startsWith("Unknown argument")) {
+      usage(
+        message,
+        `When origin/${SOURCE_BRANCH} has this flag, this branch has an older pnpm land. Rebase the branch onto origin/${SOURCE_BRANCH} (git fetch origin && git rebase origin/${SOURCE_BRANCH}), then land again. Otherwise, ${USAGE_HELP.charAt(0).toLowerCase()}${USAGE_HELP.slice(1)}`,
+      );
+    }
     usage(message);
   })
   .parseAsync();

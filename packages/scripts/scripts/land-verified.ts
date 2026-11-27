@@ -10,9 +10,17 @@ const {
   LAND_HEAD: head,
   LAND_BASE: base,
   LAND_PULL: number,
+  LAND_SKIP_CI: skipCi = "false",
+  GITHUB_EVENT_NAME: event,
 } = process.env;
 if (!repo || !head || !base || !number)
   throw new Error("Missing landing inputs.");
+if (skipCi !== "true" && skipCi !== "false")
+  throw new Error(`LAND_SKIP_CI must be "true" or "false", not "${skipCi}".`);
+if (skipCi === "true" && event !== "workflow_dispatch")
+  throw new Error(
+    `Only a dispatch of the landing workflow can skip the Record PR tests check, not a ${event} run.`,
+  );
 const git = $({ quiet: true });
 const pr = JSON.parse(
   (await git`gh api ${`repos/${repo}/pulls/${Number(number)}`}`).stdout,
@@ -35,13 +43,15 @@ await git`git fetch --no-tags origin ${`refs/pull/${pr.number}/head`}`;
 if ((await git`git rev-parse FETCH_HEAD`).stdout.trim() !== head)
   throw new Error("Record PR head moved.");
 await git`git merge-base --is-ancestor ${base} ${head}`;
-const check = await ghLandGitHub(repo).readCheck({
-  commit: head,
-  name: LAND_CI_CHECK,
-  branch: pr.head.ref,
-});
-if (check?.conclusion !== "success" || check.status !== "completed")
-  throw new Error("Record PR tests must pass for this commit.");
+if (skipCi === "false") {
+  const check = await ghLandGitHub(repo).readCheck({
+    commit: head,
+    name: LAND_CI_CHECK,
+    branch: pr.head.ref,
+  });
+  if (check?.conclusion !== "success" || check.status !== "completed")
+    throw new Error("Record PR tests must pass for this commit.");
+}
 const commits = (await git`git rev-list ${`${base}..${head}`}`).stdout
   .trim()
   .split("\n");

@@ -68,6 +68,32 @@ describe("advanceMain", () => {
       );
     },
   );
+
+  it("asks the landing workflow to skip the CI check only when the land skips it", async () => {
+    const inputs: unknown[] = [];
+    const github = ghLandGitHub(REPO, async (_args, input) => {
+      if (input) inputs.push(JSON.parse(input).inputs);
+      return JSON.stringify(
+        input
+          ? { workflow_run_id: 12 }
+          : { status: "completed", conclusion: "success" },
+      );
+    });
+
+    await github.advanceMain(
+      { number: 2, head: "head", base: "base", skipCi: true },
+      () => {},
+    );
+    await github.advanceMain(
+      { number: 2, head: "head", base: "base" },
+      () => {},
+    );
+
+    expect(inputs).toEqual([
+      { pull: "2", head: "head", base: "base", skip_ci: "true" },
+      { pull: "2", head: "head", base: "base" },
+    ]);
+  });
 });
 
 describe("findOpenPullRequest", () => {

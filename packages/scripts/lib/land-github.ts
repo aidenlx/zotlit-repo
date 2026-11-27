@@ -29,7 +29,7 @@ const ghCli: GhRun = async (args, input) => {
 
 export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
   return {
-    async advanceMain({ number, head, base }, progress) {
+    async advanceMain({ number, head, base, skipCi }, progress) {
       const result = JSON.parse(
         await run(
           [
@@ -42,7 +42,12 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
           ],
           JSON.stringify({
             ref: "main",
-            inputs: { pull: String(number), head, base },
+            inputs: {
+              pull: String(number),
+              head,
+              base,
+              ...(skipCi ? { skip_ci: "true" } : {}),
+            },
             return_run_details: true,
           }),
         ),

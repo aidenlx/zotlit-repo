@@ -121,7 +121,7 @@ export interface OpenRecordPullRequest extends RecordPullRequest {
 
 export interface LandGitHub {
   advanceMain: (
-    input: { number: number; head: string; base: string },
+    input: { number: number; head: string; base: string; skipCi?: boolean },
     progress: (line: string) => void,
   ) => Promise<void>;
   findOpenPullRequest: (query: {
@@ -171,6 +171,7 @@ export interface LandOptions {
   ciPollMs?: number;
   afterCi?: boolean;
   draft?: boolean;
+  skipCi?: boolean;
   afterCiWaitMs?: number;
   afterCiPollMs?: number;
   /**
@@ -196,19 +197,77 @@ export type LandResult =
       ok: false;
       step: LandStep;
       message: string;
+      notes: readonly string[];
+      help?: string;
       logPath: string;
       exitCode: number;
     };
 
+interface FailureDetail {
+  notes?: readonly string[];
+  help?: string;
+  exitCode?: number;
+}
+
 class LandFailure extends Error {
   readonly step: LandStep;
+  readonly notes: readonly string[];
+  readonly help: string | undefined;
   readonly exitCode: number;
 
-  constructor(step: LandStep, message: string, exitCode = 1) {
+  constructor(
+    step: LandStep,
+    message: string,
+    { notes = [], help, exitCode = 1 }: FailureDetail = {},
+  ) {
     super(message);
     this.step = step;
+    this.notes = notes;
+    this.help = help;
     this.exitCode = exitCode;
   }
+}
+
+export interface LandDiagnostic {
+  label: "error" | "blocked";
+  code: string;
+  message: string;
+  log?: string;
+  notes?: readonly string[];
+  help?: string;
+}
+
+export function formatLandDiagnostic({
+  label,
+  code,
+  message,
+  log,
+  notes = [],
+  help,
+}: LandDiagnostic): string {
+  const [headline, ...detail] = message.split("\n");
+  const entry = (kind: string, text: string) =>
+    `  = ${kind}: ${text.replaceAll("\n", `\n      ${" ".repeat(kind.length)}`)}`;
+  return [
+    `${label}[${code}]: ${headline}`,
+    ...detail.map((line) => `  | ${line}`),
+    ...(log ? [`  --> ${log}`] : []),
+    ...notes.map((note) => entry("note", note)),
+    ...(help ? [entry("help", help)] : []),
+  ].join("\n");
+}
+
+export function formatLandFailure(
+  failure: Extract<LandResult, { ok: false }>,
+): string {
+  return formatLandDiagnostic({
+    label: failure.exitCode === EXIT_ADMISSION_BLOCKED ? "blocked" : "error",
+    code: failure.step,
+    message: failure.message,
+    log: failure.logPath,
+    notes: failure.notes,
+    ...(failure.help ? { help: failure.help } : {}),
+  });
 }
 
 interface RunResult {
@@ -277,6 +336,7 @@ class Shell {
       throw new LandFailure(
         step,
         `git ${args.join(" ")} exited ${result.code}: ${result.stderr.trim()}`,
+        { help: "Fix what Git names, then land again." },
       );
     }
     return result.stdout.trim();
@@ -333,10 +393,20 @@ export async function land(options: LandOptions): Promise<LandResult> {
 
   try {
     if (options.draft && options.afterCi) {
-      throw new LandFailure(
-        "preflight",
-        `--draft opens a draft record PR, and ${LAND_WORKFLOW} does not land a draft, so --after-ci cannot go with it. Run pnpm land --draft without --after-ci.`,
-      );
+      throw new LandFailure("preflight", "--draft cannot go with --after-ci.", {
+        notes: [
+          `--draft opens a draft record PR, and ${LAND_WORKFLOW} does not land a draft.`,
+        ],
+        help: "Run pnpm land --draft without --after-ci.",
+      });
+    }
+    if (options.skipCi && options.afterCi) {
+      throw new LandFailure("preflight", "--no-ci cannot go with --after-ci.", {
+        notes: [
+          `--after-ci lets ${LAND_WORKFLOW} land the record PR only when its CI check passes.`,
+        ],
+        help: "Run pnpm land --no-ci without --after-ci.",
+      });
     }
     const pre = await preflight(sh, remote);
     const squash = options.squash ?? Boolean(options.github);
@@ -385,7 +455,10 @@ export async function land(options: LandOptions): Promise<LandResult> {
       });
     } catch (error) {
       if (!(error instanceof DesktopSlotBlockedError)) throw error;
-      throw new LandFailure("queue", error.message, EXIT_ADMISSION_BLOCKED);
+      throw new LandFailure("queue", error.message, {
+        exitCode: EXIT_ADMISSION_BLOCKED,
+        help: "Report the land as blocked, not as failed. pnpm land status names the land that holds the Land Turn. Land again when that land ends, or give a longer --wait.",
+      });
     }
     const turn = slot;
     sh.progress = throttledProgress(
@@ -425,7 +498,10 @@ export async function land(options: LandOptions): Promise<LandResult> {
           if (attributionLines(message).length) {
             throw new LandFailure(
               "rebase",
-              "Remove AI attribution from the squash message in the land record.",
+              "The squash message in the land record has AI attribution.",
+              {
+                help: `Remove the AI attribution lines from ${LAND_RECORD_PATH}, then land again.`,
+              },
             );
           }
           const head = await sh.git("rebase", "rev-parse", "HEAD");
@@ -464,7 +540,13 @@ export async function land(options: LandOptions): Promise<LandResult> {
           if (result.code !== 0) {
             throw new LandFailure(
               "install",
-              `${install.join(" ")} exited ${result.code}. The branch is rebased onto ${remote}/${to}, whose dependency files differ from the ones installed here. Run ${install.join(" ")}, fix what it names, and land again.`,
+              `${install.join(" ")} exited ${result.code}.`,
+              {
+                notes: [
+                  `The branch is rebased onto ${remote}/${to}, whose dependency files differ from the ones installed here.`,
+                ],
+                help: `Run ${install.join(" ")}, fix what it names on this branch, commit, and land again.`,
+              },
             );
           }
         });
@@ -478,11 +560,19 @@ export async function land(options: LandOptions): Promise<LandResult> {
             throw new LandFailure(
               "gate",
               `${gate.join(" ")} exited ${result.code}.`,
+              {
+                notes: [`The branch is rebased onto ${remote}/${to}.`],
+                help: "Read the tail of the gate output and the full log. Fix the failure on this branch, commit, and land again.",
+              },
             );
           }
         });
       } else {
-        say("The gate is skipped; the CI check still runs.");
+        say(
+          options.skipCi
+            ? "The gate is skipped."
+            : "The gate is skipped; the CI check still runs.",
+        );
       }
       const github = options.github;
       let pushed: boolean;
@@ -514,18 +604,24 @@ export async function land(options: LandOptions): Promise<LandResult> {
           };
         }
         const head = await sh.git("ci", "rev-parse", "HEAD");
-        await step("ci", () =>
-          waitForCi(github, {
-            commit: head,
-            branch: pre.branch,
-            waitMs: options.ciWaitMs ?? LAND_CI_WAIT_MS,
-            pollMs: options.ciPollMs ?? LAND_CI_POLL_MS,
-            say,
-            progress: (what) => turn.progress(what),
-            leaseOver: () => leaseOver,
-            runs: ciRuns,
-          }),
-        );
+        if (options.skipCi) {
+          say(
+            `The CI check is skipped; ${LAND_WORKFLOW} lands ${head.slice(0, 12)} without it.`,
+          );
+        } else {
+          await step("ci", () =>
+            waitForCi(github, {
+              commit: head,
+              branch: pre.branch,
+              waitMs: options.ciWaitMs ?? LAND_CI_WAIT_MS,
+              pollMs: options.ciPollMs ?? LAND_CI_POLL_MS,
+              say,
+              progress: (what) => turn.progress(what),
+              leaseOver: () => leaseOver,
+              runs: ciRuns,
+            }),
+          );
+        }
         pushed = await step("push", async () => {
           if (options.afterCi) {
             return await waitForMain(sh, {
@@ -543,13 +639,26 @@ export async function land(options: LandOptions): Promise<LandResult> {
             });
           }
           const dispatched = await github
-            .advanceMain({ number: pull!.number, head, base }, (line) => {
-              if (leaseOver) throw leaseEnded(leaseOver);
-              say(line);
-              turn.progress("push");
-            })
-            .catch((error: unknown) =>
-              error instanceof Error ? error : new Error(String(error)),
+            .advanceMain(
+              {
+                number: pull!.number,
+                head,
+                base,
+                ...(options.skipCi ? { skipCi: true } : {}),
+              },
+              (line) => {
+                if (leaseOver) throw leaseEnded(leaseOver);
+                say(line);
+                turn.progress("push");
+              },
+            )
+            .catch(
+              (error: unknown) =>
+                new LandFailure(
+                  "push",
+                  error instanceof Error ? error.message : String(error),
+                  { help: LANDING_RUN_HELP },
+                ),
             );
           await fetchTarget(sh, remote, to);
           if (
@@ -563,11 +672,12 @@ export async function land(options: LandOptions): Promise<LandResult> {
             return true;
           if ((await sh.git("push", "rev-parse", `${remote}/${to}`)) !== base)
             return false;
-          throw dispatched instanceof Error
+          throw dispatched instanceof LandFailure
             ? dispatched
             : new LandFailure(
                 "push",
                 "The landing workflow finished before main reached the verified commit.",
+                { help: LANDING_RUN_HELP },
               );
         });
       } else {
@@ -577,7 +687,8 @@ export async function land(options: LandOptions): Promise<LandResult> {
       if (attempts >= maxAttempts) {
         throw new LandFailure(
           "push",
-          `${to} moved during each of ${attempts} attempts; land again.`,
+          `${to} moved during each of ${attempts} attempts.`,
+          { help: "Land again." },
         );
       }
       say(`${to} moved on ${remote} during the gate; fetching again.`);
@@ -612,16 +723,21 @@ export async function land(options: LandOptions): Promise<LandResult> {
     const failure =
       error instanceof LandFailure
         ? error
-        : new LandFailure(current, String((error as Error).stack ?? error));
-    log.write(`\n✖ ${failure.step}: ${failure.message}\n`);
-    await finish(failure.step === "queue" ? "blocked" : "failed", failure.step);
-    return {
-      ok: false,
+        : new LandFailure(current, String((error as Error).stack ?? error), {
+            help: "This error is not one that pnpm land expects. Read the full log, then land again. When it fails the same way again, report the error with the log.",
+          });
+    const result = {
+      ok: false as const,
       step: failure.step,
       message: failure.message,
+      notes: failure.notes,
+      ...(failure.help ? { help: failure.help } : {}),
       logPath,
       exitCode: failure.exitCode,
     };
+    log.write(`\n${formatLandFailure(result)}\n`);
+    await finish(failure.step === "queue" ? "blocked" : "failed", failure.step);
+    return result;
   } finally {
     for (const signal of SIGNALS) process.off(signal, onSignal);
     slot?.release();
@@ -662,6 +778,9 @@ function leaseEnded(reason: string): LandFailure {
   return new LandFailure(
     "lease",
     `The Lease of the Land Turn ended before the land did: ${reason}.`,
+    {
+      help: "Land again. When it fails the same way again, report the step and the last progress that this message names.",
+    },
   );
 }
 
@@ -673,7 +792,8 @@ async function preflight(
   if (status) {
     throw new LandFailure(
       "preflight",
-      `The worktree has changes that are not committed:\n${status}\nCommit them, then land again.`,
+      `The worktree has changes that are not committed:\n${status}`,
+      { help: "Commit them, then land again." },
     );
   }
   const branch =
@@ -681,21 +801,25 @@ async function preflight(
       await sh.run("git", ["symbolic-ref", "--short", "-q", "HEAD"])
     ).stdout.trim() || undefined;
   if (!branch) {
-    throw new LandFailure(
-      "preflight",
-      "HEAD is detached. Land from the task branch.",
-    );
+    throw new LandFailure("preflight", "HEAD is detached.", {
+      help: "Switch to the task branch, then land again.",
+    });
   }
   if (branch === TRUNK) {
-    throw new LandFailure(
-      "preflight",
-      `Land from a task branch, not from ${TRUNK}.`,
-    );
+    throw new LandFailure("preflight", `The land runs on ${TRUNK}.`, {
+      help: `Commit the change on a task branch (git switch -c <type>/<topic>), then land from it.`,
+    });
   }
   if (isAgentBranch(`refs/heads/${branch}`)) {
     throw new LandFailure(
       "preflight",
-      `${branch} is an agent branch, which stays local: the push of the record PR would be refused after the gate. Rename the branch (git branch -m <type>/<topic>, such as feat/<topic>), then land again.`,
+      `${branch} is an agent branch, which stays local.`,
+      {
+        notes: [
+          "GitHub would refuse the push of the record PR after the gate.",
+        ],
+        help: "Rename the branch (git branch -m <type>/<topic>, such as feat/<topic>), then land again.",
+      },
     );
   }
   await sh.git("preflight", "remote", "get-url", remote);
@@ -713,7 +837,11 @@ async function checkSubjects(
     if (!isConventionalSubject(squashTitle)) {
       throw new LandFailure(
         "preflight",
-        `The title of the record file ${LAND_RECORD_PATH}, "${squashTitle}", is the subject of the squash commit and is not a Conventional Commits subject. Write it as ${CONVENTIONAL_FORMAT}, such as "fix(annotations): keep the excerpt image size". Then land again.`,
+        `The title of the record file ${LAND_RECORD_PATH}, "${squashTitle}", is not a Conventional Commits subject.`,
+        {
+          notes: ["The title is the subject of the squash commit."],
+          help: `Write it as ${CONVENTIONAL_FORMAT}, such as "fix(annotations): keep the excerpt image size". Then land again.`,
+        },
       );
     }
     return;
@@ -734,7 +862,10 @@ async function checkSubjects(
   if (wrong.length > 0) {
     throw new LandFailure(
       "preflight",
-      `These commits do not have a Conventional Commits subject:\n${wrong.join("\n")}\nReword each subject as ${CONVENTIONAL_FORMAT}, or land with the default squash. Then land again.`,
+      `These commits do not have a Conventional Commits subject:\n${wrong.join("\n")}`,
+      {
+        help: `Reword each subject as ${CONVENTIONAL_FORMAT}, or land with the default squash. Then land again.`,
+      },
     );
   }
 }
@@ -755,7 +886,10 @@ async function readRecord(sh: Shell): Promise<LandRecord> {
   if (text === undefined) {
     throw new LandFailure(
       "preflight",
-      `The land has no record file at ${LAND_RECORD_PATH}. Write the record of the change there: a first line "# <title>", the title of the PR, then the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}. Then land again.`,
+      `The land has no record file at ${LAND_RECORD_PATH}.`,
+      {
+        help: `Write the record of the change there: a first line "# <title>", the title of the PR, then the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}. Then land again.`,
+      },
     );
   }
   const [first = "", ...rest] = text.split("\n");
@@ -778,7 +912,8 @@ async function readRecord(sh: Shell): Promise<LandRecord> {
   if (!title || problems.length > 0) {
     throw new LandFailure(
       "preflight",
-      `The record file ${LAND_RECORD_PATH} is not complete: ${problems.join("; ")}. Complete it, then land again.`,
+      `The record file ${LAND_RECORD_PATH} is not complete: ${problems.join("; ")}.`,
+      { help: "Complete it, then land again." },
     );
   }
   return { title, body: rest.join("\n").trim() };
@@ -790,7 +925,8 @@ async function checkGitHub(github: LandGitHub, branch: string): Promise<void> {
   } catch (error) {
     throw new LandFailure(
       "preflight",
-      `GitHub refused a read of the record PR of ${branch}: ${(error as Error).message}\nFix the gh login (gh auth status), then land again.`,
+      `GitHub refused a read of the record PR of ${branch}: ${(error as Error).message}`,
+      { help: "Fix the gh login (gh auth status), then land again." },
     );
   }
 }
@@ -855,17 +991,30 @@ async function openRecord(
       );
       throw new LandFailure(
         "record",
-        `GitHub refused this token a write to the record PR of ${branch}: ${message}\nThe branch is pushed. Open a PR from ${branch} into ${base} with the PR tool of the host. Use the first line of ${LAND_PR_PATH}, without "# ", as its title and the rest as its body, and keep the line ${LAND_AFTER_CI_MARKER}. Then run pnpm land --after-ci again: it finds that PR, leaves it as it is, and waits for CI and ${base}.`,
+        `GitHub refused this token a write to the record PR of ${branch}: ${message}`,
+        {
+          notes: [
+            `The branch is pushed; ${base} is unchanged.`,
+            `${LAND_PR_PATH} holds the title and body of the record PR.`,
+          ],
+          help: `Open a PR from ${branch} into ${base} with the PR tool of the host. Use the first line of ${LAND_PR_PATH}, without "# ", as its title and the rest as its body, and keep the line ${LAND_AFTER_CI_MARKER}. Then run pnpm land --after-ci again: it finds that PR, leaves it as it is, and waits for CI and ${base}.`,
+        },
       );
     }
     throw new LandFailure(
       "record",
       `The record PR of ${branch} could not be opened or updated: ${message}`,
+      {
+        notes: [`The branch is pushed; ${base} is unchanged.`],
+        help: "Fix what GitHub names, then land again: the land updates the open record PR of the branch.",
+      },
     );
   }
 }
 
 const INTEGRATION_REFUSAL = "Resource not accessible by integration";
+
+const LANDING_RUN_HELP = `Read the landing run that the log names. When the main branch moved, land again. For an App or environment error, follow the Landing App setup in CONTRIBUTING.md (${LAND_WORKFLOW}).`;
 
 function sameText(a: string, b: string): boolean {
   return (
@@ -901,7 +1050,10 @@ async function waitForMain(
     if (Temporal.Now.instant().epochMilliseconds - started >= options.waitMs) {
       throw new LandFailure(
         "push",
-        `${to} did not reach ${head.slice(0, 12)} within ${formatDuration(options.waitMs)}. Read the latest run of ${LAND_WORKFLOW} in GitHub Actions.`,
+        `${to} did not reach ${head.slice(0, 12)} within ${formatDuration(options.waitMs)}.`,
+        {
+          help: `Read the latest run of ${LAND_WORKFLOW} in GitHub Actions. When it failed, fix what it names; when the CI check failed, fix the change. Then run pnpm land --after-ci again.`,
+        },
       );
     }
     await delay(options.pollMs);
@@ -935,6 +1087,10 @@ async function waitForCi(
       throw new LandFailure(
         "ci",
         `GitHub refused a read of the "${name}" check of ${short}: ${(error as Error).message}`,
+        {
+          notes: [`The branch is pushed; ${TRUNK} is unchanged.`],
+          help: "Fix the gh login (gh auth status), then land again: the land reads the same check.",
+        },
       );
     }
     const waited = Temporal.Now.instant().epochMilliseconds - started;
@@ -946,7 +1102,14 @@ async function waitForCi(
       if (check.conclusion === "success") return;
       throw new LandFailure(
         "ci",
-        `The CI check "${name}" ended ${check.conclusion} on ${short}. The log of the job that failed: ${check.url}\n${TRUNK} is unchanged. Fix the failure on this branch, commit, and land again; when the failure is not in the change, run the job again from its log page, then land again.`,
+        `The CI check "${name}" ended ${check.conclusion} on ${short}: ${check.url}`,
+        {
+          notes: [
+            "The link is the log of the job that failed.",
+            `The branch is pushed; ${TRUNK} is unchanged.`,
+          ],
+          help: "When the failure is in the change, fix it on this branch, run the failed tests locally, commit, and land again. When it is not (a flaky test or a runner fault), run the job again from its log page, then land again: the land waits for the new run.",
+        },
       );
     } else {
       const state = check ? check.status.replace("_", " ") : "not started";
@@ -957,8 +1120,14 @@ async function waitForCi(
       throw new LandFailure(
         "ci",
         check
-          ? `The "${name}" check of ${short} did not finish within ${formatDuration(options.waitMs)}: ${check.url}\n${TRUNK} is unchanged. Land again.`
-          : `GitHub shows no "${name}" check for ${short} within ${formatDuration(options.waitMs)}. ${TRUNK} is unchanged. Check that the workflow of the record PR runs (${RECORD_PR_WORKFLOW}), then land again.`,
+          ? `The "${name}" check of ${short} did not finish within ${formatDuration(options.waitMs)}: ${check.url}`
+          : `GitHub shows no "${name}" check for ${short} within ${formatDuration(options.waitMs)}.`,
+        {
+          notes: [`The branch is pushed; ${TRUNK} is unchanged.`],
+          help: check
+            ? "Land again: the land waits for the same run."
+            : `Check that the workflow of the record PR runs (${RECORD_PR_WORKFLOW}), then land again.`,
+        },
       );
     }
     await delay(options.pollMs);
@@ -1074,7 +1243,14 @@ function conflictWatch(
     }
     throw new LandFailure(
       "rebase",
-      `While the land waited for the Land Turn, the branch does not merge with ${remote}/${to} without conflicts in:\n${conflicts}\nThe branch is as it was. Run git fetch ${remote}, merge or rebase onto ${remote}/${to} yourself, resolve the conflicts, and land again.`,
+      `The branch does not merge with ${remote}/${to} without conflicts in:\n${conflicts}`,
+      {
+        notes: [
+          "The land found the conflicts while it waited for the Land Turn.",
+          "The branch is as it was.",
+        ],
+        help: `Run git fetch ${remote}, merge or rebase onto ${remote}/${to} yourself, resolve the conflicts, run the affected tests, commit, and land again.`,
+      },
     );
   };
 }
@@ -1108,8 +1284,14 @@ async function rebaseOnto(
     throw new LandFailure(
       "rebase",
       conflicts
-        ? `The branch does not rebase onto ${base} without conflicts in:\n${conflicts}\nThe branch is as it was. Merge or rebase onto ${base} yourself, resolve the conflicts, and land again.`
-        : `Git refused to rebase the branch onto ${base}:\n${(rebased.stderr || rebased.stdout).trim()}\nThe branch is as it was. Clear what Git names, and land again.`,
+        ? `The branch does not rebase onto ${base} without conflicts in:\n${conflicts}`
+        : `Git refused to rebase the branch onto ${base}:\n${(rebased.stderr || rebased.stdout).trim()}`,
+      {
+        notes: ["The branch is as it was."],
+        help: conflicts
+          ? `Merge or rebase onto ${base} yourself, resolve the conflicts, run the affected tests, commit, and land again.`
+          : "Clear what Git names, then land again.",
+      },
     );
   }
   if (
@@ -1119,6 +1301,9 @@ async function rebaseOnto(
     throw new LandFailure(
       "rebase",
       `The branch has no commits that ${base} lacks; there is nothing to land.`,
+      {
+        help: "Commit the change on this branch, then land again. When the main branch already holds the change, the land is not necessary.",
+      },
     );
   }
 }
@@ -1159,6 +1344,7 @@ async function push(sh: Shell, remote: string, to: string): Promise<boolean> {
   throw new LandFailure(
     "push",
     `git push exited ${result.code}: ${(result.stderr || result.stdout).trim()}`,
+    { help: "Fix what Git names, then land again." },
   );
 }
 

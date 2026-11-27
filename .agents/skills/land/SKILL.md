@@ -22,11 +22,9 @@ then: move the local main, read the PR state; when GitHub shows it as merged,
 1. Commit every change on the task branch. `land` refuses a tree with uncommitted or untracked files.
 2. Write the record file in the task worktree (see [The record file](#the-record-file)). `land` refuses a land without it before it pushes anything.
 3. Use `pnpm land` to make one commit with the record title and body. Use `pnpm land --no-squash` when the task calls for separate commits. Use `pnpm land --draft` when the maintainer asks to review the change before it lands, or says not to land it; a later `pnpm land` finishes it. Run the chosen command from the task worktree, in the background: the gate and the CI wait take minutes, and the wait for the turn can take longer. While it waits, the land checks the branch against each new `origin/main` and exits at `rebase` on a conflict. Wait for it to exit.
-4. Read the result:
-   - **Exit 0 after `pnpm land`:** landed. The output names the record PR and the pushed commit. When it says that the PR does not show as merged, the task branch stays on origin and the PR stays open: report this on the ticket. Close the ticket as `docs/agents/issue-tracker.md` describes, then review the task worktree for retirement.
-   - **Exit 0 after `pnpm land --draft`:** the draft record PR is open and `main` is unchanged. Keep the task worktree and the ticket open, and give the PR URL in the handoff.
-   - **Exit 1:** a step failed. The output names the step and the path of the full log; read the log.
-   - **Exit 75:** the turn did not come within the wait (1 h by default, `--wait <duration>`). Report it as blocked by the land that `pnpm land status` names, not as a failure.
+4. Read the result in the last lines of the output. A failed or blocked land names its cause and the next action there.
+   - **After `pnpm land` lands:** The output names the record PR and the pushed commit. When it says that the PR does not show as merged, the task branch stays on origin and the PR stays open: report this on the ticket. Close the ticket as `docs/agents/issue-tracker.md` describes, then review the task worktree for retirement.
+   - **After `pnpm land --draft`:** the draft record PR is open and `main` is unchanged. Keep the task worktree and the ticket open, and give the PR URL in the handoff.
 
 ## Retire the task worktree
 
@@ -66,22 +64,13 @@ After `main` moves, `pnpm site:release --pick <record PR>` works from the same s
 
 `pnpm land --no-verify` leaves out the local gate, so only the CI half checks the change before `main` moves. Use it when the user asks for it and the change holds no code, such as a vendored skill or an agent guide: the commit hooks have already formatted and linted those files. In the Testing section of the record, say that the gate did not run.
 
+`pnpm land --no-ci` lands without the CI check of the record PR: the land does not wait for it, and the landing workflow does not require it. The check still starts on the PR, but `main` moves without its result. Use it only when the user asks for it, with or without `--no-verify`. `--after-ci` lands only on a passed check, so it cannot go with `--no-ci`. In the Testing section of the record, say which checks did not run.
+
 A plain `pnpm verify` runs both halves on your machine. Run it, or the tests of the package you changed, before you land: a CI failure costs a round trip of minutes.
 
 ## A failed land
 
-The worktree stays on its branch with a clean tree.
-
-| Step        | State of the branch                         | Next action                                                                                  |
-| ----------- | ------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `preflight` | as it was                                   | Commit the changes, switch to the task branch, rename an agent branch (`claude/*`, `codex/*`, `cursor/*`), complete the record file, give the record title (or, for `--no-squash`, each commit) a Conventional Commits subject, or fix the `gh` login. |
-| `rebase`    | as it was                                   | `git fetch origin`, `git rebase origin/main`, resolve the conflicts, run the affected tests, commit, land again. The land checks for these conflicts while it waits for the turn, too. |
-| `install`   | rebased onto the fetched `origin/main`      | Run `pnpm install --frozen-lockfile --prefer-offline`, fix what it names on this branch, commit, land again. The tail of the install output is printed. |
-| `gate`      | rebased onto the fetched `origin/main`      | Fix the failure on this branch, commit, land again. The tail of the gate output is printed.  |
-| `record`    | rebased; pushed to origin; `main` unchanged | Read the `gh` error in the message. Fix its cause, then land again.                          |
-| `ci`        | rebased; pushed to origin; `main` unchanged | Open the job link in the message and read its log. When the failure is in the change, fix it on this branch, run the failed tests locally, commit, and land again. When it is not (a flaky test or a runner fault), run the job again from that link, then land again: the land waits for the new run. When no check showed, check that the workflow ran on the PR. |
-| `push`      | the workflow or the fast-forward failed | Read the landing run linked in the log. If the base moved, land again. For an App or environment error, follow the [landing setup](../../../CONTRIBUTING.md#landing-app).                                                                                  |
-| `lease`     | as the step left it; the step went silent   | Land again; when it repeats, report the step and the last progress that the message names.   |
+The worktree stays on its branch with a clean tree. The error that `pnpm land` prints names the failed step, the state of the branch in its `note` lines, and the next action in its `help` line. Do the action that the `help` line names.
 
 ## The full End-to-end Run
 

@@ -8,7 +8,7 @@ import { $ } from "zx";
 
 import { SOURCE_BRANCH, SOURCE_REPOSITORY } from "@zotlit/config/repositories";
 
-import { land, LAND_GATES } from "#land";
+import { formatLandFailure, land, LAND_GATES } from "#land";
 import { ghLandGitHub } from "#land-github";
 import { parseManifest as parseObsidianManifest } from "#obsidian-manifest";
 import { getWorkspaceRoot } from "#package-roots";
@@ -185,10 +185,7 @@ async function landOrFail(releaseRef: string, summary: string): Promise<void> {
   if (result.ok) return;
   await abandon(releaseRef);
   fail(
-    [
-      `The land onto ${releaseBranch} failed at the ${result.step} step: ${result.message}`,
-      `Full log: ${result.logPath}`,
-    ].join("\n"),
+    `The land onto ${releaseBranch} did not finish.\n${formatLandFailure(result)}`,
     result.exitCode,
   );
 }

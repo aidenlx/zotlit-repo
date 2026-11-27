@@ -12,6 +12,10 @@ on:
       base:
         description: Expected main commit
         required: true
+      skip_ci:
+        description: Land without the Record PR tests check
+        type: boolean
+        default: false
   workflow_run:
     workflows: [Record PR]
     types: [completed]
@@ -35,6 +39,7 @@ jobs:
       pull: ${{ steps.pick.outputs.pull }}
       head: ${{ steps.pick.outputs.head }}
       base: ${{ steps.pick.outputs.base }}
+      skip_ci: ${{ steps.pick.outputs.skip_ci }}
     steps:
       - name: Pick the record PR
         id: pick
@@ -44,12 +49,15 @@ jobs:
           INPUT_PULL: ${{ inputs.pull }}
           INPUT_HEAD: ${{ inputs.head }}
           INPUT_BASE: ${{ inputs.base }}
+          INPUT_SKIP_CI: ${{ inputs.skip_ci }}
           RUN_PULL: ${{ github.event.workflow_run.pull_requests[0].number }}
           RUN_HEAD: ${{ github.event.workflow_run.head_sha }}
           MARKER: "<!-- zotlit-land: after-ci -->"
         run: |
           if [ "$EVENT" = workflow_dispatch ]; then
             pull=$INPUT_PULL head=$INPUT_HEAD base=$INPUT_BASE
+            skip_ci=false
+            if [ "$INPUT_SKIP_CI" = true ]; then skip_ci=true; fi
           else
             if [ -z "$RUN_PULL" ]; then
               echo "The Record PR run names no pull request of this repository."
@@ -63,12 +71,13 @@ jobs:
                 exit 0
                 ;;
             esac
-            pull=$RUN_PULL head=$RUN_HEAD base=$GITHUB_SHA
+            pull=$RUN_PULL head=$RUN_HEAD base=$GITHUB_SHA skip_ci=false
           fi
           {
             echo "pull=$pull"
             echo "head=$head"
             echo "base=$base"
+            echo "skip_ci=$skip_ci"
           } >> "$GITHUB_OUTPUT"
 
   land:
@@ -93,6 +102,7 @@ jobs:
           LAND_PULL: ${{ needs.inputs.outputs.pull }}
           LAND_HEAD: ${{ needs.inputs.outputs.head }}
           LAND_BASE: ${{ needs.inputs.outputs.base }}
+          LAND_SKIP_CI: ${{ needs.inputs.outputs.skip_ci }}
       - uses: actions/create-github-app-token@v2
         id: app
         with:

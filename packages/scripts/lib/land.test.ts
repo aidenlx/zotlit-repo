@@ -13,6 +13,7 @@ import type { GitRepos } from "./__fixtures__/git-repos.ts";
 import { landAdmission, landStateDir, landWaitLog } from "./land-queue.ts";
 import type { LandWaitRecord } from "./land-queue.ts";
 import {
+  formatLandFailure,
   land,
   LAND_AFTER_CI_MARKER,
   LAND_CI_CHECK,
@@ -391,7 +392,7 @@ describe("land", () => {
     });
 
     expect(result).toMatchObject({ ok: false, step: "preflight" });
-    expect(result.ok || result.message).toContain("Rename the branch");
+    expect(result.ok || result.help).toContain("Rename the branch");
     expect(existsSync(marker)).toBe(false);
   });
 
@@ -539,7 +540,6 @@ describe("the record PR", () => {
       );
       expect(workflow).toContain(`MARKER: "${LAND_AFTER_CI_MARKER}"`);
     });
-
     it(
       "marks the PR, leaves the commit unmarked, and waits for the workflow to move main",
       async () => {
@@ -599,7 +599,7 @@ describe("the record PR", () => {
         });
 
         expect(first).toMatchObject({ ok: false, step: "record" });
-        expect(first.ok || first.message).toContain(LAND_PR_PATH);
+        expect(first.ok || first.help).toContain(LAND_PR_PATH);
         const pushed = await git(repos.remote, "rev-parse", "feat/a");
         const [heading, ...rest] = (
           await readFile(join(cwd, LAND_PR_PATH), "utf8")
@@ -648,7 +648,7 @@ describe("the record PR", () => {
         });
 
         expect(result).toMatchObject({ ok: false, step: "push" });
-        expect(result.ok || result.message).toContain(LAND_WORKFLOW);
+        expect(result.ok || result.help).toContain(LAND_WORKFLOW);
         expect(await subjects("main")).toEqual(["seed"]);
       },
       SLOW,
@@ -689,6 +689,78 @@ describe("the record PR", () => {
         ]);
       },
       SLOW,
+    );
+  });
+
+  async function runLand(args: string[], cwd?: string) {
+    const child = spawn(
+      process.execPath,
+      [join(import.meta.dirname, "../scripts/land.ts"), ...args],
+      {
+        ...(cwd ? { cwd } : {}),
+        env: { ...process.env, ZOTLIT_DESKTOP_DIR: join(repos.root, "state") },
+        stdio: ["ignore", "ignore", "pipe"],
+      },
+    );
+    const stderr = await text(child.stderr);
+    const [code] = await once(child, "close");
+    return { code, stderr };
+  }
+
+  it("tells a land of an older branch to rebase when it does not know a flag", async () => {
+    const { code, stderr } = await runLand(["--unknown"]);
+
+    expect(code).toBe(2);
+    expect(stderr).toContain("error[usage]: Unknown argument: unknown");
+    expect(stderr).toMatch(/= help: .*Rebase the branch onto origin\/main/);
+  });
+
+  it(
+    "passes --no-ci to the land, which refuses it with --after-ci and names the next action",
+    async () => {
+      const cwd = await taskClone("a");
+      await git(
+        cwd,
+        "remote",
+        "set-url",
+        "origin",
+        "https://github.com/owner/repo.git",
+      );
+
+      const { code, stderr } = await runLand(["--no-ci", "--after-ci"], cwd);
+
+      expect(code).toBe(1);
+      expect(stderr).toContain(
+        "error[preflight]: --no-ci cannot go with --after-ci.",
+      );
+      expect(stderr).toContain(
+        "= help: Run pnpm land --no-ci without --after-ci.",
+      );
+    },
+    SLOW,
+  );
+
+  it("lays out a failure as its message, log, notes and help", () => {
+    expect(
+      formatLandFailure({
+        ok: false,
+        step: "rebase",
+        message:
+          "The branch does not rebase onto abc without conflicts in:\na.txt",
+        notes: ["The branch is as it was."],
+        help: "Resolve the conflicts.\nThen land again.",
+        logPath: "/state/land.log",
+        exitCode: 1,
+      }),
+    ).toBe(
+      [
+        "error[rebase]: The branch does not rebase onto abc without conflicts in:",
+        "  | a.txt",
+        "  --> /state/land.log",
+        "  = note: The branch is as it was.",
+        "  = help: Resolve the conflicts.",
+        "          Then land again.",
+      ].join("\n"),
     );
   });
 
@@ -866,6 +938,53 @@ describe("the record PR", () => {
   });
 
   it(
+    "lands without the CI check when it is skipped, and asks the landing workflow to skip it",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const { github, checkReads } = fakeGitHub();
+      const advance = github.advanceMain;
+      const dispatched: unknown[] = [];
+      github.advanceMain = async (input, progress) => {
+        dispatched.push(input);
+        await advance(input, progress);
+      };
+
+      const result = await land({ ...quiet, cwd, github, skipCi: true });
+
+      expect(result).toMatchObject({ ok: true, record: { merged: true } });
+      const head = await git(repos.remote, "rev-parse", "main");
+      expect(head).toBe(await git(cwd, "rev-parse", "HEAD"));
+      expect(checkReads).toEqual([]);
+      expect(dispatched).toMatchObject([{ head, skipCi: true }]);
+    },
+    SLOW,
+  );
+
+  it(
+    "refuses a skipped CI check with --after-ci before it pushes anything",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const { github, pulls } = fakeGitHub();
+
+      const result = await land({
+        ...quiet,
+        cwd,
+        github,
+        skipCi: true,
+        afterCi: true,
+      });
+
+      expect(result).toMatchObject({ ok: false, step: "preflight" });
+      expect(result.ok || result.message).toContain("--no-ci");
+      expect(pulls).toEqual([]);
+      expect(await git(repos.remote, "branch", "--list")).toBe("* main");
+    },
+    SLOW,
+  );
+
+  it(
     "squashes by default and lands the commit checked by CI",
     async () => {
       const cwd = await taskClone("a");
@@ -992,7 +1111,7 @@ describe("the record PR", () => {
     {
       name: "a squash record whose title is not a Conventional Commits subject",
       write: (cwd: string) => writeRecord(cwd, { title: "Add a" }),
-      problem: '"Add a", is the subject of the squash commit',
+      problem: '"Add a", is not a Conventional Commits subject',
     },
   ])(
     "refuses $name before it pushes anything",

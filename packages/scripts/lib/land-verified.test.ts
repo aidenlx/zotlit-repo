@@ -12,6 +12,8 @@ const valid = {
   conclusion: "success",
   state: "open",
   draft: false,
+  skipCi: undefined as string | undefined,
+  event: "workflow_dispatch",
   error: "",
 };
 it.each([
@@ -36,6 +38,27 @@ it.each([
   },
   {
     ...valid,
+    label: "passes failed CI when the land skips the check",
+    conclusion: "failure",
+    skipCi: "true",
+  },
+  {
+    ...valid,
+    label: "rejects a skip from a run that the Record PR workflow started",
+    conclusion: "failure",
+    skipCi: "true",
+    event: "workflow_run",
+    error: "Only a dispatch of the landing workflow can skip",
+  },
+  {
+    ...valid,
+    label: "rejects an unknown skip value",
+    conclusion: "failure",
+    skipCi: "yes",
+    error: "LAND_SKIP_CI must be",
+  },
+  {
+    ...valid,
     label: "rejects a closed PR",
     state: "closed",
     error: "The record PR must be open",
@@ -48,7 +71,7 @@ it.each([
   },
 ])(
   "$label at the trusted workflow entry point",
-  async ({ message, conclusion, state, draft, error }) => {
+  async ({ message, conclusion, state, draft, skipCi, event, error }) => {
     await using cleanup = new AsyncDisposableStack();
     const repos = await makeGitRepos();
     cleanup.defer(() => repos.dispose());
@@ -83,9 +106,11 @@ esac
           ...process.env,
           PATH: [repos.root, process.env.PATH].join(delimiter),
           GITHUB_REPOSITORY: "owner/repo",
+          GITHUB_EVENT_NAME: event,
           LAND_PULL: "3",
           LAND_HEAD: head,
           LAND_BASE: base,
+          ...(skipCi === undefined ? {} : { LAND_SKIP_CI: skipCi }),
           PR: JSON.stringify({
             number: 3,
             state,
