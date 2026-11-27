@@ -77,6 +77,7 @@ export interface ViewerReport {
     readonly scrollTop: readonly [number, number, number];
     readonly changes: number;
     readonly repainted: readonly number[];
+    readonly repaintedByOne: readonly number[];
     readonly settled: boolean;
   };
   readonly popout: {
@@ -443,6 +444,7 @@ async function redraw(engine: PdfEngine): Promise<ViewerReport["redraw"]> {
   const start = reader.container.scrollTop;
   await within("redraw page 2", reader.redraw(1));
   const afterOne = reader.container.scrollTop;
+  const repaintedByOne = [...repainted];
   await within("redraw all", reader.redraw());
   let settled = false;
   await within("settled after redraw", reader.settled());
@@ -452,6 +454,7 @@ async function redraw(engine: PdfEngine): Promise<ViewerReport["redraw"]> {
     scrollTop: [start, afterOne, reader.container.scrollTop],
     changes,
     repainted,
+    repaintedByOne,
     settled,
   };
 }

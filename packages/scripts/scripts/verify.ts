@@ -153,7 +153,8 @@ async function ciSteps(): Promise<void> {
   const last = !shard || isLastShard(shard);
   await gateStep("Test", async () => {
     const admitted = await Effect.runPromise(passMemoryGateOrExit());
-    const electron = ci ? {} : { ZOTLIT_TEST_ELECTRON_PATH: electronPath() };
+    const electron: { ZOTLIT_TEST_ELECTRON_PATH?: string } =
+      ci && !pr ? {} : { ZOTLIT_TEST_ELECTRON_PATH: electronPath() };
     const gated = sh({
       env: {
         ...env,
@@ -161,7 +162,16 @@ async function ciSteps(): Promise<void> {
         ...(admitted ? { [MEMORY_GATE_ADMITTED_ENV]: "1" } : {}),
       },
     });
-    await gated`pnpm exec turbo run ${shardTestArgs(shard ?? { index: 1, total: 1 })} ${scope} --concurrency=${ci ? 1 : 2}`;
+    const run =
+      electron.ZOTLIT_TEST_ELECTRON_PATH && ci
+        ? [
+            "xvfb-run",
+            "--auto-servernum",
+            "--server-args=-screen 0 1920x1080x24",
+            "pnpm",
+          ]
+        : ["pnpm"];
+    await gated`${run} exec turbo run ${shardTestArgs(shard ?? { index: 1, total: 1 })} ${scope} --concurrency=${ci ? 1 : 2}`;
   });
 
   if (last) {

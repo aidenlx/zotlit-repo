@@ -52,6 +52,14 @@ hashes `GITHUB_ACTIONS` and `ZOTLIT_TEST_ELECTRON_PATH`, so a test result of the
 Mac does not serve the CI job, and the CI job's test results come from earlier
 CI runs. Build, generate and typecheck results are shared both ways.
 
+The shards of `Record PR` run the Electron renderer tests (`it.skipIf(!testElectron)`):
+`pnpm verify --pr` sets `ZOTLIT_TEST_ELECTRON_PATH` to the Electron of
+`apps/obsidian` and runs the tests under `xvfb-run` for a display, and the
+workflow lets the Electron sandbox start and downloads the Obsidian app archive
+that `mise run init` extracts for the tests that read Obsidian's PDF.js. The
+workflow holds the SHA-256 of that archive, the same value as
+`packages/e2e/container/Dockerfile`. The release gate of `release.yml` skips these tests.
+
 ## Release workflow
 
 The checks of a change run in `pnpm land`: it runs `pnpm verify --local` on

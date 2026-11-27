@@ -52,7 +52,24 @@ jobs:
         with:
           team: ${{ steps.turbo-team.outputs.slug }}
 
+      - name: Obsidian app archive of the renderer tests
+        run: |
+          version=$(sed -n 's/.*OBSIDIAN_RUNTIME_VERSION = "\(.*\)".*/\1/p' packages/scripts/lib/obsidian-runtime.ts)
+          mkdir -p ~/.config/obsidian
+          curl --fail --silent --show-error --location --retry 3 \
+            "https://github.com/obsidianmd/obsidian-releases/releases/download/v$version/obsidian-$version.asar.gz" \
+            | gunzip > ~/.config/obsidian/obsidian-$version.asar
+          echo "42bf7f34782752f159d63c17ac6bac4ad01dd55709578f9879f76f8295abb2eb  $HOME/.config/obsidian/obsidian-$version.asar" | sha256sum -c -
+
       - uses: ./.github/actions/setup-workspace
+
+      - name: Electron binary of the renderer tests
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/electron
+          key: electron-${{ runner.os }}-${{ hashFiles('pnpm-workspace.yaml') }}
+      - name: Let the Electron of the renderer tests start its sandbox
+        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: pnpm verify --pr
         run: pnpm verify --pr --shard=${{ matrix.shard }}/${{ strategy.job-total }}

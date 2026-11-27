@@ -104,7 +104,7 @@ it.skipIf(!testElectron)(
     expect(afterOne).toBe(start);
     expect(afterAll).toBe(start);
     expect(report.redraw.changes).toBe(0);
-    expect(report.redraw.repainted[0]).toBe(1);
+    expect(report.redraw.repaintedByOne).toContain(1);
     expect(report.redraw.repainted.length).toBeGreaterThan(1);
     expect(report.redraw.settled).toBe(true);
 
