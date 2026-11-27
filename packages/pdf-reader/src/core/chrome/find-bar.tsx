@@ -38,20 +38,20 @@ function countText(host: ReaderHost, find: FindState): string {
 }
 
 export function FindBar(): JSX.Element {
-  const { host, actions, state, findInput } = useChrome();
+  const { host, actions, state, findInput: findInputRef } = useChrome();
   const { find } = useAtomValue(state);
-  const input = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const bar = useRef<HTMLDivElement>(null);
   const [settings, setSettings] = useState(false);
   const [panelId] = useState(() => `zpr-find-settings-${++panels}`);
   useLayoutEffect(() => {
-    findInput.current = input.current;
+    findInputRef.current = inputRef.current;
     return () => {
-      findInput.current = null;
+      findInputRef.current = null;
     };
-  }, [findInput]);
+  }, [findInputRef]);
   useLayoutEffect(() => {
-    const element = input.current;
+    const element = inputRef.current;
     if (element && element.value !== find.query) element.value = find.query;
   }, [find.query]);
   useLayoutEffect(() => {
@@ -59,8 +59,8 @@ export function FindBar(): JSX.Element {
       setSettings(false);
       return;
     }
-    input.current?.focus();
-    input.current?.select();
+    inputRef.current?.focus();
+    inputRef.current?.select();
   }, [find.open]);
   useLayoutEffect(() => {
     const window = bar.current?.ownerDocument.defaultView;
@@ -93,7 +93,7 @@ export function FindBar(): JSX.Element {
     >
       <span className="zpr:relative zpr:flex zpr:min-w-0 zpr:flex-1 zpr:items-center">
         <input
-          ref={input}
+          ref={inputRef}
           type="search"
           data-zpr-part="find-input"
           aria-label={host.t("pdf_reader_find_placeholder")}

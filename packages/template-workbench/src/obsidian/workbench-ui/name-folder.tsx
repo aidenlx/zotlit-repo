@@ -576,7 +576,11 @@ function DraftText({
 }) {
   const readOnly = useContext(FieldIdContext).readOnly;
   const [draft, setDraft] = useState(value);
-  useEffect(() => setDraft(value), [value]);
+  const [shown, setShown] = useState(value);
+  if (shown !== value) {
+    setShown(value);
+    setDraft(value);
+  }
   return (
     <input
       type="text"

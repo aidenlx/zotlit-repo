@@ -25,7 +25,7 @@ export const openQuerySources = Effect.sync(() => {
   let fields: FieldVocabulary | undefined;
   const paths = new Map<number, CollectionPaths>();
   const readVocabulary = Effect.fnUntraced(function* () {
-    if (!fields) fields = yield* readFieldVocabulary();
+    if (!fields) fields = yield* readFieldVocabulary;
     return fields;
   });
   const collectionPaths = Effect.fnUntraced(function* (library: TargetLibrary) {

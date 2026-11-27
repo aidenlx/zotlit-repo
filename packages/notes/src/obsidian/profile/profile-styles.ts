@@ -17,7 +17,9 @@ export const layerProfileStyles: Layer.Layer<ProfileStyles, never, Profile> =
         state: profile.state,
         changes: profile.changes,
         loaded: profile.loaded,
-        profileOf: (file) => profile.profileOf(file),
+        profileOf: Effect.fn("ProfileStyles.profileOf")((file) =>
+          profile.profileOf(file),
+        ),
         vaultStyleId: defaultProfileStyle,
       });
     }),

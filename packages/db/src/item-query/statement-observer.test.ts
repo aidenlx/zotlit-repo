@@ -76,7 +76,7 @@ describe("ItemQueryStatementObserver", () => {
           limit: 2,
         });
         yield* readUniverseRows({ libraryID, itemIDs });
-        const vocabulary = yield* readFieldVocabulary();
+        const vocabulary = yield* readFieldVocabulary;
         const collectionPaths = yield* readCollectionPaths(personal);
         yield* readHydrateChunk({
           vocabulary,

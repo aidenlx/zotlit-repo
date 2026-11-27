@@ -6,7 +6,7 @@ import {
   Scope,
 } from "obsidian";
 import type { App } from "obsidian";
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { RefObject } from "react";
 
 import { tagTypeToName } from "@zotlit/db";
@@ -129,7 +129,7 @@ function TagField({
   onClose,
   onLeave,
   saving,
-  endSession,
+  endSession: endSessionRef,
   within,
   suggestRef,
 }: Pick<
@@ -158,16 +158,18 @@ function TagField({
     within,
     suggestRef,
   });
-  latest.current = {
-    value,
-    add,
-    onClose,
-    onLeave,
-    saving,
-    libraryNames,
-    within,
-    suggestRef,
-  };
+  useLayoutEffect(() => {
+    latest.current = {
+      value,
+      add,
+      onClose,
+      onLeave,
+      saving,
+      libraryNames,
+      within,
+      suggestRef,
+    };
+  });
 
   useLayoutEffect(() => {
     const input = inputRef.current;
@@ -211,17 +213,17 @@ function TagField({
       end(true, !onLeave);
     };
     editor.addEventListener("focusout", leave as EventListener);
-    endSession.current = (withText = true) => end(withText);
+    endSessionRef.current = (withText = true) => end(withText);
     input.focus({ preventScroll: true });
     return () => {
       editor.removeEventListener("focusout", leave as EventListener);
       keys[Symbol.dispose]();
       suggest.current?.close();
       suggest.current = null;
-      endSession.current = null;
+      endSessionRef.current = null;
       end(true);
     };
-  }, [app, endSession]);
+  }, [app, endSessionRef]);
 
   return (
     <>
@@ -254,10 +256,11 @@ export function HeldTagsPanel({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const latest = useRef(actions);
-  latest.current = actions;
-  const shown = useRef(held);
-  if (!sameHeldTags(shown.current, held)) shown.current = held;
-  const stable = shown.current;
+  useLayoutEffect(() => {
+    latest.current = actions;
+  });
+  const [stable, setStable] = useState(held);
+  if (!sameHeldTags(stable, held)) setStable(held);
   useLayoutEffect(() => {
     if (!ref.current) return;
     renderHeldTagsPanel(ref.current, stable, {

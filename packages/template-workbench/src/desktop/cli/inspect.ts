@@ -119,18 +119,20 @@ export const verifySavedSources = Effect.fn(
       );
     const read = (path: string) =>
       deps.read(path).pipe(
-        Effect.catchTag("FileNotFound", () => Effect.void),
-        Effect.catchTag("VaultError", ({ message, cause }) => {
-          errors.push({
-            path,
-            message,
-            ...(cause instanceof Error &&
-            "code" in cause &&
-            typeof cause.code === "string"
-              ? { code: cause.code }
-              : {}),
-          });
-          return Effect.void;
+        Effect.catchTags({
+          FileNotFound: () => Effect.void,
+          VaultError: ({ message, cause }) => {
+            errors.push({
+              path,
+              message,
+              ...(cause instanceof Error &&
+              "code" in cause &&
+              typeof cause.code === "string"
+                ? { code: cause.code }
+                : {}),
+            });
+            return Effect.void;
+          },
         }),
       );
     const readAll = Effect.forEach(paths, (path) => read(path), {

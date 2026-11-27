@@ -16,7 +16,7 @@ import { getLibraries } from "#queries/libraries.ts";
 
 function read(scenario: ScenarioDatabase<NodeDatabaseClient>) {
   return Effect.runSync(
-    Effect.provideService(readLibraries(), ItemQueryDatabase, {
+    Effect.provideService(readLibraries, ItemQueryDatabase, {
       client: scenario.db,
     }),
   );

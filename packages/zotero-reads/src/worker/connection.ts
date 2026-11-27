@@ -316,13 +316,14 @@ export function layerRcRef(opener: ConnectionOpener): Layer.Layer<Connection> {
             yield* Effect.ignore(refresh);
         }),
         databaseGeneration: databaseGenerations.databaseGeneration,
-        identity: (client) =>
+        identity: Effect.fn("Connection.identity")((client) =>
           Effect.map(Ref.get(config), (current) =>
             fileSourceIdentity(
               databaseGenerations.databaseFile(client),
               current,
             ),
           ),
+        ),
       });
     }),
   );

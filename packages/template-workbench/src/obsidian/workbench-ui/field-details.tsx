@@ -1,5 +1,5 @@
 import type { DisplayNode, SnippetKind } from "#core/data-tree/index.ts";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 import type { Ref } from "react";
 
 import { Button } from "@zotlit/obsidian-kit/components/obsidian/button.tsx";
@@ -141,6 +141,10 @@ function DetailsBody({
   const values = isList(node) ? listItemValues(node) : [];
   const reasonId = useUniqueId();
   const section = useRef<HTMLElement | null>(null);
+  useImperativeHandle<HTMLElement | null, HTMLElement | null>(
+    surface,
+    () => section.current,
+  );
   useLayoutEffect(() => {
     if (!takeFocus) return;
     section.current
@@ -155,11 +159,7 @@ function DetailsBody({
   };
   return (
     <section
-      ref={(element) => {
-        section.current = element;
-        if (typeof surface === "function") surface(element);
-        else if (surface) surface.current = element;
-      }}
+      ref={section}
       aria-labelledby={titleId}
       data-part="details"
       data-state={state}

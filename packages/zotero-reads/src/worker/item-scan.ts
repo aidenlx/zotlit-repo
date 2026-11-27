@@ -49,7 +49,7 @@ export const readIndexedItemIDs = Effect.fn("readIndexedItemIDs")(
     yield* Stream.runForEach(scanIndexedItems(client, libraryID), (rows) =>
       Effect.sync(() => sorted.add(rows)),
     );
-    return (yield* sorted.ordered()).map((row) => row.itemID);
+    return (yield* sorted.ordered).map((row) => row.itemID);
   },
   (effect) =>
     Effect.provideService(

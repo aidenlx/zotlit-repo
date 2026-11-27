@@ -241,7 +241,7 @@ describe.each([false, true])(
       const hydrated = runOk(
         scenario,
         Effect.gen(function* () {
-          const vocabulary = yield* readFieldVocabulary();
+          const vocabulary = yield* readFieldVocabulary;
           const collectionPaths = yield* readCollectionPaths(personal);
           return yield* readHydrateChunk({
             vocabulary,

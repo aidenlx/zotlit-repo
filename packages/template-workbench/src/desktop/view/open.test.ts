@@ -48,9 +48,7 @@ it.effect("opens a launched document in a Template Workbench View", () =>
       revealLeaf: () => Effect.void,
     });
     const notifier = testNotifier();
-    const launcher = yield* Effect.gen(function* () {
-      return yield* TemplateWorkbenchLauncher;
-    }).pipe(
+    const launcher = yield* Effect.service(TemplateWorkbenchLauncher).pipe(
       Effect.provide(
         layerTemplateWorkbenchLauncher.pipe(
           Layer.provide(

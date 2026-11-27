@@ -1,5 +1,5 @@
 import { Cause, Exit } from "effect";
-import { afterAll, beforeAll, expect, it } from "vitest";
+import { afterAll, assert, beforeAll, expect, it } from "vitest";
 
 import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 import type { ScenarioDatabase } from "@zotlit/db-testing/scenario";
@@ -99,8 +99,8 @@ it.each([
     if (!Exit.isFailure(exit)) throw new Error("the query did not fail");
     const error = Cause.findErrorOption(exit.cause);
     if (error._tag === "None") throw new Error(String(exit.cause));
-    expect(error.value).toBeInstanceOf(ItemQueryError);
-    expect((error.value as ItemQueryError).diagnostic).toMatchObject({
+    assert.instanceOf(error.value, ItemQueryError);
+    expect(error.value.diagnostic).toMatchObject({
       code: "unknown-path",
       suggestions: [`fields='["${corrected}"]'`],
       excerpt: { at: path },
@@ -115,14 +115,13 @@ it("reports a non-list Projection Path before reading rows", async () => {
   if (!Exit.isFailure(exit)) throw new Error("the query did not fail");
   const error = Cause.findErrorOption(exit.cause);
   if (error._tag === "None") throw new Error(String(exit.cause));
-  expect((error.value as ItemQueryError).diagnostic).toMatchObject({
+  assert.instanceOf(error.value, ItemQueryError);
+  expect(error.value.diagnostic).toMatchObject({
     code: "unknown-path",
     found: "scalar",
     expected: ["list"],
   });
-  expect((error.value as ItemQueryError).diagnostic.message).toContain(
-    "is not a list",
-  );
+  expect(error.value.diagnostic.message).toContain("is not a list");
 });
 
 it("reports an unknown global from the function registry", () => {

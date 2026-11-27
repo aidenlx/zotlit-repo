@@ -31,6 +31,10 @@ export default defineConfig({
     "video/**",
   ],
   overrides: [
+    {
+      files: ["packages/e2e/src/startup-probe.ts"],
+      rules: { "no-eval": "off" },
+    },
     nodeAllowed([
       "packages/config/*.ts",
       "packages/config/__fixtures__/**",

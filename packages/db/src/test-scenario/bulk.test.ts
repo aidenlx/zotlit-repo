@@ -52,7 +52,7 @@ describe("seedBulkLibrary", () => {
       scenario,
       Effect.gen(function* () {
         return yield* readHydrateChunk({
-          vocabulary: yield* readFieldVocabulary(),
+          vocabulary: yield* readFieldVocabulary,
           itemIDs: page.map((row) => row.itemID),
           fields: { builtIn: ["title"], custom: [] },
         });

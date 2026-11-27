@@ -317,7 +317,11 @@ describe.skipIf(!reachable)("Lesson 5: Track what you have read", () => {
       created: m.annot_view_save_file({ file: PLAN_FILE }),
       active: PLAN_FILE,
     });
-    expect(saved.rows.toSorted()).toEqual(
+    expect(
+      saved.rows.toSorted((a, b) =>
+        String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+      ),
+    ).toEqual(
       Object.values(PAPERS)
         .map((p) => p.key)
         .toSorted(),

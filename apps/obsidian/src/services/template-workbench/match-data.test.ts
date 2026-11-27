@@ -25,9 +25,7 @@ function itemMatchesOf(
   service: QueryService["Service"],
 ): NonNullable<WorkbenchHostDeps["query"]> {
   const port = Effect.runSync(
-    Effect.gen(function* () {
-      return yield* ItemMatchQuery;
-    }).pipe(
+    Effect.service(ItemMatchQuery).pipe(
       Effect.provide(
         layerItemMatchQuery.pipe(
           Layer.provide(Layer.succeed(QueryService, service)),

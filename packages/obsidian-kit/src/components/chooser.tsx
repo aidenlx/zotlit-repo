@@ -63,11 +63,18 @@ interface ChooserState {
   close: () => void;
   listId: string;
   listRef: RefObject<HTMLDivElement | null>;
-  firstPage: RefObject<string | null>;
-  firstQuery: RefObject<string>;
-  sessionPage: RefObject<((page: string) => void) | null>;
+  start: ChooserStart;
+  setStart: (start: ChooserStart) => void;
+  sessionPageRef: RefObject<((page: string) => void) | null>;
   pagesOnly: boolean;
 }
+
+interface ChooserStart {
+  page: string | null;
+  query: string;
+}
+
+const NO_START: ChooserStart = { page: null, query: "" };
 
 const ChooserContext = createContext<ChooserState | null>(null);
 
@@ -123,27 +130,27 @@ export function useChooserPage(): Pick<
 }
 
 export function useChooserOpenPage(): (page: string) => void {
-  const { handleRef, firstPage, sessionPage } = useChooser();
+  const { handleRef, setStart, sessionPageRef } = useChooser();
   return useCallback(
     (page: string) => {
-      const open = sessionPage.current;
+      const open = sessionPageRef.current;
       if (open) return open(page);
-      firstPage.current = page;
+      setStart({ page, query: "" });
       handleRef.current?.show();
     },
-    [handleRef, firstPage, sessionPage],
+    [handleRef, setStart, sessionPageRef],
   );
 }
 
 export function useChooserOpenSearch(): (query: string) => void {
-  const { handleRef, firstQuery, open } = useChooser();
+  const { handleRef, setStart, open } = useChooser();
   return useCallback(
     (query: string) => {
       if (open) return;
-      firstQuery.current = query;
+      setStart({ page: null, query });
       handleRef.current?.show();
     },
-    [handleRef, firstQuery, open],
+    [handleRef, setStart, open],
   );
 }
 
@@ -191,16 +198,19 @@ export function Chooser({
   pagesOnly = false,
   children,
 }: ChooserProps) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpenState] = useState(false);
+  const [start, setStart] = useState(NO_START);
+  const setOpen = useCallback((next: boolean) => {
+    setOpenState(next);
+    if (!next) setStart(NO_START);
+  }, []);
   const popupId = useUniqueId();
   const listRef = useRef<HTMLDivElement | null>(null);
   const popupRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const handleRef = useRef<PinnedPopoverHandle | null>(null);
   const close = useCallback(() => handleRef.current?.hide(), []);
-  const firstPage = useRef<string | null>(null);
-  const firstQuery = useRef("");
-  const sessionPage = useRef<((page: string) => void) | null>(null);
+  const sessionPageRef = useRef<((page: string) => void) | null>(null);
 
   const state = useMemo<ChooserState>(
     () => ({
@@ -215,12 +225,12 @@ export function Chooser({
       close,
       listId: `${popupId}-list`,
       listRef,
-      firstPage,
-      firstQuery,
-      sessionPage,
+      start,
+      setStart,
+      sessionPageRef,
       pagesOnly,
     }),
-    [value, onValueChange, open, popupId, close, pagesOnly],
+    [value, onValueChange, open, setOpen, popupId, close, start, pagesOnly],
   );
 
   return <ChooserContext value={state}>{children}</ChooserContext>;
@@ -235,21 +245,14 @@ function ChooserSession({ children }: { children: ReactNode }) {
     popupRef,
     close,
     listRef,
-    firstPage,
-    firstQuery,
-    sessionPage,
+    start,
+    sessionPageRef,
     pagesOnly,
   } = useChooser();
-  const [query, setQueryState] = useState(() => {
-    const first = firstQuery.current;
-    firstQuery.current = "";
-    return first;
-  });
-  const [pages, setPages] = useState<readonly string[]>(() => {
-    const first = firstPage.current;
-    firstPage.current = null;
-    return first === null ? [] : [first];
-  });
+  const [query, setQueryState] = useState(start.query);
+  const [pages, setPages] = useState<readonly string[]>(() =>
+    start.page === null ? [] : [start.page],
+  );
   const page = pages.at(-1) ?? null;
   const depth = pages.length;
   useLayoutEffect(() => {
@@ -267,26 +270,39 @@ function ChooserSession({ children }: { children: ReactNode }) {
     [],
   );
 
-  const [rows, setRows] = useState<readonly ChooserRow[]>([]);
-  const [highlight, setHighlight] = useState(query.length > 0 ? 0 : -1);
+  const [{ rows, highlight }, setList] = useState<{
+    rows: readonly ChooserRow[];
+    highlight: number;
+  }>(() => ({ rows: [], highlight: query.length > 0 ? 0 : -1 }));
+  const setHighlight = useCallback(
+    (next: number) => setList((list) => ({ ...list, highlight: next })),
+    [],
+  );
 
-  const setQuery = useCallback((next: string) => {
-    setQueryState(next);
-    setHighlight(next.length > 0 ? 0 : -1);
-  }, []);
+  const setQuery = useCallback(
+    (next: string) => {
+      setQueryState(next);
+      setHighlight(next.length > 0 ? 0 : -1);
+    },
+    [setHighlight],
+  );
 
   const latest = useRef({ rows, highlight, selected, onValueChange, page });
-  latest.current = { rows, highlight, selected, onValueChange, page };
+  useLayoutEffect(() => {
+    latest.current = { rows, highlight, selected, onValueChange, page };
+  });
 
   const publishRows = useCallback((next: readonly ChooserRow[]) => {
-    const { rows: previous, highlight: at } = latest.current;
-    const held = previous[clampedHighlight(at, previous.length)];
-    setRows(next);
-    setHighlight(
-      previous.length === 0 && at >= 0
-        ? 0
-        : rehomedHighlight(held ? chooserRowKey(held) : null, next),
-    );
+    setList(({ rows: previous, highlight: at }) => {
+      const held = previous[clampedHighlight(at, previous.length)];
+      return {
+        rows: next,
+        highlight:
+          previous.length === 0 && at >= 0
+            ? 0
+            : rehomedHighlight(held ? chooserRowKey(held) : null, next),
+      };
+    });
   }, []);
 
   const optionId = useCallback(
@@ -367,7 +383,7 @@ function ChooserSession({ children }: { children: ReactNode }) {
       }),
     );
     return () => stack.dispose();
-  }, [scope, close, listRef, popupRef, back]);
+  }, [scope, close, listRef, popupRef, back, setHighlight]);
 
   useLayoutEffect(() => {
     app.keymap.pushScope(scope);
@@ -375,11 +391,11 @@ function ChooserSession({ children }: { children: ReactNode }) {
   }, [app, scope]);
 
   useLayoutEffect(() => {
-    sessionPage.current = openPage;
+    sessionPageRef.current = openPage;
     return () => {
-      sessionPage.current = null;
+      sessionPageRef.current = null;
     };
-  }, [sessionPage, openPage]);
+  }, [sessionPageRef, openPage]);
 
   const onPage = useRef(page !== null);
   useLayoutEffect(() => {
@@ -411,6 +427,7 @@ function ChooserSession({ children }: { children: ReactNode }) {
       query,
       setQuery,
       publishRows,
+      setHighlight,
       optionId,
       active,
       scope,
@@ -873,7 +890,9 @@ function PageBody({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
 
 export function useChooserPageSave(save: () => void): void {
   const latest = useRef(save);
-  latest.current = save;
+  useLayoutEffect(() => {
+    latest.current = save;
+  });
   useEffect(() => () => latest.current(), []);
 }
 

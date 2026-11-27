@@ -1,4 +1,4 @@
-/// <reference path="./typings/build-env.d.ts" />
+import type {} from "./typings/build-env.d.ts";
 
 export const DOCS_SITE_URL = __DOCS_SITE_URL__;
 export const COMPANION_ADDON_ID = "zotlit@aidenlx.site";

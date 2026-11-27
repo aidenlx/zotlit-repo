@@ -12,6 +12,12 @@
     "isolatedDeclarations": false,
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "allowedUnstableApis": ["@effect/atom-react", "effect/reactivity"]
+      }
+    ],
     "types": []
   },
   "include": ["./src/**/*.ts", "./src/**/*.tsx"],

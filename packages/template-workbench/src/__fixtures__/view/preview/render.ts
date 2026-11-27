@@ -231,7 +231,7 @@ export async function createRenderFixture(options: { existing?: string; javascri
   const deps = { runtime: settings.runtime, bridge: settings.bridge,
     citationParse: inProcessParseClient,
     app, settings, templates, templateData,
-    profile: stubService<PreviewHostDeps["profile"]>("Profile", { resolveProfile: () => Effect.succeed(undefined), getBuiltInSource: Effect.succeed(DEFAULT_PROFILE_SOURCE), profiles: Effect.succeed([]) }),
+    profile: stubService<PreviewHostDeps["profile"]>("Profile", { resolveProfile: () => Effect.undefined, getBuiltInSource: Effect.succeed(DEFAULT_PROFILE_SOURCE), profiles: Effect.succeed([]) }),
     zoteroReads,
     noteIndex: { getNotesByItemKey: notesOf },
     citationLookup: {

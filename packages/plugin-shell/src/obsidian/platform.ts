@@ -145,7 +145,7 @@ export const platform = extendFeature(platformBase, {
         provides: [AttachmentResolver],
         requires: [QueryClients, ZoteroPref, ZoteroReads, VaultDisk],
       },
-      layerAttachmentResolver(),
+      layerAttachmentResolver,
     ),
     serviceGroup(
       "ItemLookup",

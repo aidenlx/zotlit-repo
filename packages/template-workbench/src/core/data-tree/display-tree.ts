@@ -541,5 +541,8 @@ function filterListProperties(
 function stringifyPrimitive(value: unknown): string {
   if (value === null) return "null";
   if (value === undefined) return "undefined";
-  return String(value);
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
+  return coerceToString(value);
 }

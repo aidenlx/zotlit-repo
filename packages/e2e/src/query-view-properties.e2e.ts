@@ -296,7 +296,14 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     )) as { name: string | null; type: string | null; text: string | null };
     const rows = await queryRows("pageLabel,colorName", "2");
     const cell = (value: unknown) => {
-      const text = value === null || value === undefined ? "" : String(value);
+      const text =
+        value === null || value === undefined
+          ? ""
+          : typeof value === "string"
+            ? value
+            : typeof value === "number" || typeof value === "boolean"
+              ? String(value)
+              : JSON.stringify(value);
       return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
     };
     expect(exported).toEqual({
@@ -1477,7 +1484,11 @@ views:
           ? ""
           : typeof value === "object"
             ? `Error: ${(value as { message: string }).message}`
-            : String(value);
+            : typeof value === "string"
+              ? value
+              : typeof value === "number" || typeof value === "boolean"
+                ? String(value)
+                : JSON.stringify(value);
       return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
     };
     const lines = (separator: string, newline: string) =>

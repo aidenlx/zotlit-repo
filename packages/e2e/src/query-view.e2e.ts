@@ -5698,10 +5698,10 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               hoverPopover?: { hide?: () => void; unload: () => void };
             }
           ).hoverPopover;
-          if (popover)
-            typeof popover.hide === "function"
-              ? popover.hide()
-              : popover.unload();
+          if (popover) {
+            if (typeof popover.hide === "function") popover.hide();
+            else popover.unload();
+          }
           await until(
             "hover popover closes",
             () =>

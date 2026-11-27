@@ -63,7 +63,7 @@ export interface QueryConsumer<A, E = never, R = never> {
     rows: readonly QueryRow[],
     groupIndex?: number,
   ): Effect.Effect<void, E, R>;
-  end(): Effect.Effect<A, E, R>;
+  readonly end: Effect.Effect<A, E, R>;
 }
 
 export function collectQuery(
@@ -96,12 +96,11 @@ export function collectQuery(
                 : rows;
             for (const row of chunk) target.push(row);
           }),
-        end: () =>
-          Effect.succeed<QueryResult>(
-            groups
-              ? { ...metadata, totalCount: totalCount!, groups }
-              : { ...metadata, rows },
-          ),
+        end: Effect.sync((): QueryResult =>
+          groups
+            ? { ...metadata, totalCount: totalCount!, groups }
+            : { ...metadata, rows },
+        ),
       };
     }),
   );

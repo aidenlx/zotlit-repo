@@ -31,10 +31,10 @@ import {
 import type { SegmenterBinary, SegmenterStatus } from "./segmenter-switch.ts";
 import { layerSegmenterNone, Segmenter } from "./segmenter.ts";
 
-export class SourceUnavailable extends Schema.TaggedError<SourceUnavailable>()(
-  "SourceUnavailable",
-  { message: Schema.String },
-) {}
+export class SourceUnavailable extends Schema.TaggedError<
+  SourceUnavailable,
+  { readonly brand: unique symbol }
+>()("SourceUnavailable", { message: Schema.String }) {}
 
 export interface PinnedItemSource {
   readonly generation: number;

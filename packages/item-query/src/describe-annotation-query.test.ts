@@ -25,7 +25,7 @@ afterAll(() => {
 });
 
 async function describeSchema() {
-  const { exit } = await runEffect(describeAnnotationQuery(), {
+  const { exit } = await runEffect(describeAnnotationQuery, {
     client: scenario.db,
   });
   if (!Exit.isSuccess(exit)) throw new Error(String(exit.cause));

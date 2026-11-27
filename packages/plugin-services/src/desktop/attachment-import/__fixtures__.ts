@@ -48,7 +48,7 @@ export function layerAttachmentImportOver(options: {
   readonly host: HostSources;
   readonly basePath: string;
 }): Layer.Layer<AttachmentImport> {
-  return layerAttachmentImport().pipe(
+  return layerAttachmentImport.pipe(
     Layer.provide(
       Layer.mergeAll(
         Layer.mock(PluginSettings, {

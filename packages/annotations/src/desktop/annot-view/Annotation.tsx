@@ -23,7 +23,7 @@ import type {
 } from "#obsidian/annotation-repository/service.ts";
 import { Keymap } from "obsidian";
 import type { PaneType } from "obsidian";
-import { useContext, useEffect, useMemo, useRef } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { DragEvent, KeyboardEvent, MouseEvent, RefObject } from "react";
 
 import type { ResolvedAnnotationTypeName } from "@zotlit/db";
@@ -43,7 +43,6 @@ import * as m from "@zotlit/plugin-messages/messages.ts";
 import { AnnotActionsContext } from "./actions.tsx";
 import type { AnnotActions } from "./actions.tsx";
 import { excerptImageTarget } from "./excerpt-image-state.ts";
-import type { ExcerptImageTarget } from "./excerpt-image-state.ts";
 import {
   ExcerptPicture,
   ExcerptText,
@@ -780,13 +779,10 @@ function ExcerptImage({ annot, collapsed }: AnnotationProps) {
   const sourceScope = useAnnotStore(
     (s) => s.sources.get(annot.parentKey)?.scope ?? null,
   );
-  const heldTarget = useRef<ExcerptImageTarget | null>(null);
-  const target = excerptImageTarget(heldTarget.current, {
-    annotation: annot,
-    source,
-    sourceScope,
-  });
-  heldTarget.current = target;
+  const input = { annotation: annot, source, sourceScope };
+  const [target, setTarget] = useState(() => excerptImageTarget(null, input));
+  const next = excerptImageTarget(target, input);
+  if (next !== target) setTarget(next);
   const demand = useMemo(() => actions.openExcerptImage(), [actions]);
   useEffect(() => {
     let current = true;

@@ -192,21 +192,21 @@ export function consumeDataset<I extends { scan: ScanRow }, A, E, R>(
       groupChunk = [];
     }
     yield* Effect.sync(() => groupOrder.add(groupChunk));
-    const orderedGroups = yield* groupOrder.ordered();
+    const orderedGroups = yield* groupOrder.ordered;
     const batches: {
       value: GroupValue;
       count: number;
       rows: Match<I["scan"]>[];
     }[] = [];
     for (const group of orderedGroups) {
-      const ordered = yield* group.matches.ordered();
+      const ordered = yield* group.matches.ordered;
       batches.push({
         value: group.value,
         count: group.count,
         rows: limit === null ? ordered : ordered.slice(0, limit),
       });
     }
-    const ordered = yield* matches.ordered();
+    const ordered = yield* matches.ordered;
     const truncated = limit !== null && ordered.length > limit;
     const returned = truncated ? ordered.slice(0, limit) : ordered;
 
@@ -256,7 +256,7 @@ export function consumeDataset<I extends { scan: ScanRow }, A, E, R>(
         );
       }
     }
-    return yield* consumer.end();
+    return yield* consumer.end;
   });
 }
 

@@ -122,19 +122,21 @@ export function MatchExpressionInput({
     vocabulary,
     fault,
   });
-  props.current = {
-    value,
-    onChange,
-    onBlur,
-    label,
-    labelId,
-    invalid,
-    placeholder,
-    lines,
-    hostExtension,
-    vocabulary,
-    fault,
-  };
+  useLayoutEffect(() => {
+    props.current = {
+      value,
+      onChange,
+      onBlur,
+      label,
+      labelId,
+      invalid,
+      placeholder,
+      lines,
+      hostExtension,
+      vocabulary,
+      fault,
+    };
+  });
   const attributes = useRef(new Compartment());
   const completer = useRef(new Compartment());
   const completes = vocabulary !== undefined;

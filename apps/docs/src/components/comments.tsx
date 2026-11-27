@@ -1,6 +1,6 @@
 import Giscus from "@giscus/react";
+import { useHydrated } from "@tanstack/react-router";
 import { useTheme } from "fumadocs-ui/provider/base";
-import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/cn.ts";
 import { repoSlug } from "@/lib/shared.ts";
@@ -14,11 +14,10 @@ export function Comments({
   className?: string;
 }) {
   const { resolvedTheme } = useTheme();
-  const [origin, setOrigin] = useState<string>();
+  const hydrated = useHydrated();
 
-  useEffect(() => setOrigin(window.location.origin), []);
-
-  if (!origin) return null;
+  if (!hydrated) return null;
+  const origin = window.location.origin;
 
   return (
     <section className={cn("font-sans", className)}>

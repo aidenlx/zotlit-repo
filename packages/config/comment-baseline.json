@@ -241,7 +241,6 @@
   "packages/plugin-kernel/src/__fixtures__/effect-bridge.ts": "fd50a6d05a68a03b",
   "packages/plugin-kernel/src/brand.test.ts": "4bb8b2f0d2b72cdf",
   "packages/plugin-kernel/src/clipboard.test.ts": "4bb8b2f0d2b72cdf",
-  "packages/plugin-kernel/src/constants.ts": "0d4a79c0576db6fa",
   "packages/plugin-kernel/src/log-console.ts": "98c5d5e7dda04a3e",
   "packages/plugin-kernel/src/turndown/comment.test.ts": "4bb8b2f0d2b72cdf",
   "packages/plugin-kernel/src/vault-path.ts": "d2d67ffd2ee22eb3",

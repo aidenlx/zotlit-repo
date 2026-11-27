@@ -16,10 +16,11 @@ export const layerCitekeyNoteActions = (
       const context = yield* Effect.context<NoteCreationServices>();
       return CitekeyNoteActions.of({
         pickExisting: resolveLiteratureNoteWithWarning,
-        create: (item) =>
+        create: Effect.fn("CitekeyNoteActions.create")((item) =>
           createNoteInteractively(creation, item, { direct: true }).pipe(
             Effect.provideContext(context),
           ),
+        ),
       });
     }),
   );

@@ -1,4 +1,4 @@
-import { Context, Effect, Layer } from "effect";
+import { Context, Effect, Layer, Schema } from "effect";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
@@ -22,6 +22,11 @@ import type { NativeOpener, ReaderOutcome } from "#desktop/attachment-open/open-
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
 
 export const VAULT = "/fixture/vault";
+
+class FixtureReaderFailed extends Schema.TaggedError<
+  FixtureReaderFailed,
+  { readonly brand: unique symbol }
+>()("FixtureReaderFailed", { path: Schema.String }) {}
 
 export const FILES = {
   rougier: `${VAULT}/attachments/rougier-2014.pdf`,
@@ -88,9 +93,14 @@ export async function openOpener(
   const runtime = buildRuntime(
     layerTargetOpener({
       reader: Effect.succeed({
-        open: (attachment, pane): Effect.Effect<ReaderOutcome, Error> => {
+        open: (
+          attachment,
+          pane,
+        ): Effect.Effect<ReaderOutcome, FixtureReaderFailed> => {
           if (broken.includes(attachment.absolutePath))
-            return Effect.fail(new Error("the reader failed"));
+            return Effect.fail(
+              new FixtureReaderFailed({ path: attachment.absolutePath }),
+            );
           if (missing.includes(attachment.absolutePath))
             return Effect.succeed("file-missing");
           opened.push({ attachment, pane });

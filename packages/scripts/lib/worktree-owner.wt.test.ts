@@ -41,7 +41,7 @@ function canReadBirthTime(): boolean {
   return readable;
 }
 const BIRTH = canReadBirthTime();
-const ownCase = it.skipIf(!BIRTH);
+const ownCase = BIRTH ? it : it.skip;
 
 interface Run {
   code: number | null;

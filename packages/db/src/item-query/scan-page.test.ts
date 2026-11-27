@@ -154,7 +154,7 @@ describe("readScanPage", () => {
 
   it("fails with the tagged database error that carries the statement", () => {
     using scenario = openScenarioDatabase(connectClient);
-    runOk(scenario, checkLayout());
+    runOk(scenario, checkLayout);
     scenario.sqlite.exec("alter table items rename column dateAdded to added");
 
     const exit = run(

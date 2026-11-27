@@ -320,12 +320,11 @@ function collectView(summary: QuerySummary, libraries: readonly LibraryWire[]) {
         const wire = JSON.parse(JSON.stringify(chunk)) as QueryViewRow[];
         for (const row of wire) target.push(row);
       }),
-    end: () =>
-      Effect.succeed<QueryViewResult>(
-        groups
-          ? { ...metadata, libraries, totalCount: totalCount!, groups }
-          : { ...metadata, libraries, rows },
-      ),
+    end: Effect.sync((): QueryViewResult =>
+      groups
+        ? { ...metadata, libraries, totalCount: totalCount!, groups }
+        : { ...metadata, libraries, rows },
+    ),
   };
 }
 
@@ -335,7 +334,7 @@ const targetLibraries = Effect.fnUntraced(function* (
 ) {
   const requireEach = named !== null;
   const libraries = resolveLibraryScope(
-    yield* readLibraries(),
+    yield* readLibraries,
     named ? named.scope : scope,
   );
   const { available, unavailable } = libraries;
@@ -600,7 +599,7 @@ const createAnswer = Effect.fnUntraced(function* (
       }
       context.onAnswerStep?.(stepMs);
     }),
-    end: Effect.fnUntraced(function* () {
+    end: Effect.gen(function* () {
       yield* append(encoder.end(activeGroup));
       if (output === undefined)
         return exceedsInlineLimit(text)

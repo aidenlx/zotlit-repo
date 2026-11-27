@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { CSSProperties, InputHTMLAttributes, Ref } from "react";
 
 import { cn } from "#utils.ts";
@@ -39,7 +39,11 @@ export function Slider({
   ...rest
 }: SliderProps) {
   const [draft, setDraft] = useState(value);
-  useEffect(() => setDraft(value), [value]);
+  const [synced, setSynced] = useState(value);
+  if (!Object.is(synced, value)) {
+    setSynced(value);
+    setDraft(value);
+  }
 
   const commit = () => {
     if (!instant && draft !== value) onChange(draft);

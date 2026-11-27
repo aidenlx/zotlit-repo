@@ -73,7 +73,12 @@ function ports(
   const rpcUrl = `http://127.0.0.1:${httpPort}/better-bibtex/json-rpc`;
   const fetch: typeof globalThis.fetch = async (input, init) => {
     if (fixture.zoteroClosed) throw new Error("ECONNREFUSED");
-    const url = String(input);
+    const url =
+      typeof input === "string"
+        ? input
+        : input instanceof URL
+          ? input.href
+          : input.url;
     const call: Call = {
       url,
       method: init?.method ?? "GET",

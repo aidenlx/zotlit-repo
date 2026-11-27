@@ -103,158 +103,152 @@ export function indexedWithin(
   );
 }
 
-export function layerAttachmentResolver() {
-  return Layer.effect(
-    AttachmentResolver,
-    Effect.gen(function* () {
-      const reads = yield* ZoteroReads;
-      const queries = yield* QueryClients;
-      const zoteroPref = yield* ZoteroPref;
-      const { os } = yield* ObsidianEnv;
-      const vaultDisk = yield* VaultDisk;
-      const scope = yield* Scope.Scope;
-      const { runPromise } = yield* scopedBridge;
-      const indexed = yield* Deferred.make<void>();
-      const announcements = yield* PubSub.unbounded<void>();
+export const layerAttachmentResolver = Layer.effect(
+  AttachmentResolver,
+  Effect.gen(function* () {
+    const reads = yield* ZoteroReads;
+    const queries = yield* QueryClients;
+    const zoteroPref = yield* ZoteroPref;
+    const { os } = yield* ObsidianEnv;
+    const vaultDisk = yield* VaultDisk;
+    const scope = yield* Scope.Scope;
+    const { runPromise } = yield* scopedBridge;
+    const indexed = yield* Deferred.make<void>();
+    const announcements = yield* PubSub.unbounded<void>();
 
-      const readIndex = Effect.scoped(
-        Effect.gen(function* () {
-          const snapshot = yield* reads.snapshot;
-          const { serverID } = yield* snapshot.DatabaseIdentity({});
-          const slices = yield* Stream.runCollect(
-            snapshot.AttachmentPathIndex({}),
-          );
-          const { dataDir, baseAttachmentPath } = yield* libraryFilePaths.pipe(
-            Effect.provideService(ZoteroPref, zoteroPref),
-          );
-          const { index, files, collisions } = buildPathIndex(slices.flat(), {
-            dataDir,
-            baseAttachmentPath,
-            platform: os,
-            serverID,
-          });
-          if (collisions.length > 0) {
-            yield* Effect.logWarning(
-              "Several Zotero attachments name one file",
-            ).pipe(Effect.annotateLogs({ collisions }));
-          }
-          yield* Effect.logDebug("Attachment path index built").pipe(
-            Effect.annotateLogs({
-              paths: index.size,
-              collisions: collisions.length,
-            }),
-          );
-          return { byPath: index, byKey: files } satisfies PathIndex;
-        }),
-      ).pipe(withLogCategory("attachment-resolver"));
-
-      const build = queries
-        .ask<PathIndex>(PATH_INDEX_KEY, ({ signal }) =>
-          runPromise(readIndex, { signal }),
-        )
-        .pipe(Effect.asVoid);
-
-      const held = Effect.gen(function* () {
-        const current = yield* queries.peek<PathIndex>(PATH_INDEX_KEY);
-        if (current === null || current.status === "failed")
-          yield* Effect.forkIn(build, scope, { startImmediately: true });
-        return current?.value;
-      });
-
-      const rebuild = Effect.fn("AttachmentResolver.rebuild")(function* (
-        reason: string,
-      ) {
-        if (queries.client.getQueryState(PATH_INDEX_KEY) === undefined) return;
-        yield* Effect.logDebug("Attachment path index stale").pipe(
-          Effect.annotateLogs({ reason }),
+    const readIndex = Effect.scoped(
+      Effect.gen(function* () {
+        const snapshot = yield* reads.snapshot;
+        const { serverID } = yield* snapshot.DatabaseIdentity({});
+        const slices = yield* Stream.runCollect(
+          snapshot.AttachmentPathIndex({}),
         );
-        yield* queries.invalidate(PATH_INDEX_KEY);
+        const { dataDir, baseAttachmentPath } = yield* libraryFilePaths.pipe(
+          Effect.provideService(ZoteroPref, zoteroPref),
+        );
+        const { index, files, collisions } = buildPathIndex(slices.flat(), {
+          dataDir,
+          baseAttachmentPath,
+          platform: os,
+          serverID,
+        });
+        if (collisions.length > 0) {
+          yield* Effect.logWarning(
+            "Several Zotero attachments name one file",
+          ).pipe(Effect.annotateLogs({ collisions }));
+        }
+        yield* Effect.logDebug("Attachment path index built").pipe(
+          Effect.annotateLogs({
+            paths: index.size,
+            collisions: collisions.length,
+          }),
+        );
+        return { byPath: index, byKey: files } satisfies PathIndex;
+      }),
+    ).pipe(withLogCategory("attachment-resolver"));
+
+    const build = queries
+      .ask<PathIndex>(PATH_INDEX_KEY, ({ signal }) =>
+        runPromise(readIndex, { signal }),
+      )
+      .pipe(Effect.asVoid);
+
+    const held = Effect.gen(function* () {
+      const current = yield* queries.peek<PathIndex>(PATH_INDEX_KEY);
+      if (current === null || current.status === "failed")
         yield* Effect.forkIn(build, scope, { startImmediately: true });
-      });
+      return current?.value;
+    });
 
-      queries.client.setQueryDefaults(PATH_INDEX_KEY, { gcTime: Infinity });
-      yield* forkEach(queries.changes, (change) => {
-        if (
-          !change.changed ||
-          change.key.length !== PATH_INDEX_KEY.length ||
-          change.key[0] !== PATH_INDEX_KEY[0] ||
-          change.key[1] !== PATH_INDEX_KEY[1]
-        )
-          return;
-        return Effect.andThen(
-          Deferred.succeed(indexed, undefined),
-          PubSub.publish(announcements, undefined),
-        );
-      });
-      yield* forkEach(changed(reads), () => rebuild("database changed"));
-      yield* forkEach(resolvedChanged(zoteroPref), () =>
-        rebuild("Zotero paths changed"),
+    const rebuild = Effect.fn("AttachmentResolver.rebuild")(function* (
+      reason: string,
+    ) {
+      if (queries.client.getQueryState(PATH_INDEX_KEY) === undefined) return;
+      yield* Effect.logDebug("Attachment path index stale").pipe(
+        Effect.annotateLogs({ reason }),
       );
-      yield* Effect.addFinalizer(() => PubSub.shutdown(announcements));
+      yield* queries.invalidate(PATH_INDEX_KEY);
+      yield* Effect.forkIn(build, scope, { startImmediately: true });
+    });
 
-      const resolve = Effect.fn("AttachmentResolver.resolve")(function* (
-        absolutePath: string,
-        { attachmentKey }: { attachmentKey?: string | null } = {},
+    queries.client.setQueryDefaults(PATH_INDEX_KEY, { gcTime: Infinity });
+    yield* forkEach(queries.changes, (change) => {
+      if (
+        !change.changed ||
+        change.key.length !== PATH_INDEX_KEY.length ||
+        change.key[0] !== PATH_INDEX_KEY[0] ||
+        change.key[1] !== PATH_INDEX_KEY[1]
+      )
+        return;
+      return Effect.andThen(
+        Deferred.succeed(indexed, undefined),
+        PubSub.publish(announcements, undefined),
+      );
+    });
+    yield* forkEach(changed(reads), () => rebuild("database changed"));
+    yield* forkEach(resolvedChanged(zoteroPref), () =>
+      rebuild("Zotero paths changed"),
+    );
+    yield* Effect.addFinalizer(() => PubSub.shutdown(announcements));
+
+    const resolve = Effect.fn("AttachmentResolver.resolve")(function* (
+      absolutePath: string,
+      { attachmentKey }: { attachmentKey?: string | null } = {},
+    ) {
+      const index = yield* held;
+      if (index === undefined) return PENDING;
+      const pathKey = attachmentPathKey(absolutePath, os);
+      const named =
+        attachmentKey == null ? undefined : index.byKey.get(attachmentKey);
+      if (named !== undefined && named.pathKey === pathKey)
+        return resolutionOf(named);
+      return index.byPath.get(pathKey) ?? UNRESOLVED;
+    });
+    const awaitIndexed = Deferred.await(indexed);
+    const lookup = Effect.fnUntraced(function* (attachmentKey: string) {
+      const index = yield* held;
+      if (index === undefined) return PENDING;
+      const named = index.byKey.get(attachmentKey);
+      if (named === undefined) return UNRESOLVED;
+      const { pathKey: _pathKey, ...found } = named;
+      return found satisfies AttachmentLookup;
+    });
+
+    return AttachmentResolver.of({
+      resolve,
+      resolveFile: Effect.fn("AttachmentResolver.resolveFile")(function* (
+        file: TFile,
+        {
+          attachmentKey = null,
+          wait,
+        }: { attachmentKey?: string | null; wait?: Duration.Input } = {},
       ) {
-        const index = yield* held;
-        if (index === undefined) return PENDING;
-        const pathKey = attachmentPathKey(absolutePath, os);
-        const named =
-          attachmentKey == null ? undefined : index.byKey.get(attachmentKey);
-        if (named !== undefined && named.pathKey === pathKey)
-          return resolutionOf(named);
-        return index.byPath.get(pathKey) ?? UNRESOLVED;
-      });
-      const awaitIndexed = Deferred.await(indexed);
-      const lookup = Effect.fnUntraced(function* (attachmentKey: string) {
-        const index = yield* held;
-        if (index === undefined) return PENDING;
-        const named = index.byKey.get(attachmentKey);
-        if (named === undefined) return UNRESOLVED;
-        const { pathKey: _pathKey, ...found } = named;
-        return found satisfies AttachmentLookup;
-      });
-
-      return AttachmentResolver.of({
-        resolve,
-        resolveFile: Effect.fn("AttachmentResolver.resolveFile")(function* (
-          file: TFile,
-          {
-            attachmentKey = null,
-            wait,
-          }: { attachmentKey?: string | null; wait?: Duration.Input } = {},
-        ) {
-          const vaultPath = yield* vaultDisk.fullPath(file.path);
-          const absolutePath = filePathOf(file, () => vaultPath);
-          if (absolutePath === null) return UNRESOLVED;
-          const now = yield* resolve(absolutePath, { attachmentKey });
-          if (now.kind !== "pending" || wait === undefined) return now;
-          const settled = yield* indexedWithin({ indexed: awaitIndexed }, wait);
-          return settled
-            ? yield* resolve(absolutePath, { attachmentKey })
-            : now;
-        }),
-        lookup: Effect.fn("AttachmentResolver.lookup")(function* (
-          attachmentKey: string,
-          { wait }: { wait?: Duration.Input } = {},
-        ) {
-          const now = yield* lookup(attachmentKey);
-          if (now.kind !== "pending" || wait === undefined) return now;
-          const settled = yield* indexedWithin({ indexed: awaitIndexed }, wait);
-          return settled ? yield* lookup(attachmentKey) : now;
-        }),
-        warm: held.pipe(
-          Effect.asVoid,
-          Effect.withSpan("AttachmentResolver.warm"),
-        ),
-        indexed: awaitIndexed.pipe(
-          Effect.withSpan("AttachmentResolver.indexed"),
-        ),
-        resolutionsChanged: Stream.fromPubSub(announcements),
-      });
-    }).pipe(withLogCategory("attachment-resolver")),
-  );
-}
+        const vaultPath = yield* vaultDisk.fullPath(file.path);
+        const absolutePath = filePathOf(file, () => vaultPath);
+        if (absolutePath === null) return UNRESOLVED;
+        const now = yield* resolve(absolutePath, { attachmentKey });
+        if (now.kind !== "pending" || wait === undefined) return now;
+        const settled = yield* indexedWithin({ indexed: awaitIndexed }, wait);
+        return settled ? yield* resolve(absolutePath, { attachmentKey }) : now;
+      }),
+      lookup: Effect.fn("AttachmentResolver.lookup")(function* (
+        attachmentKey: string,
+        { wait }: { wait?: Duration.Input } = {},
+      ) {
+        const now = yield* lookup(attachmentKey);
+        if (now.kind !== "pending" || wait === undefined) return now;
+        const settled = yield* indexedWithin({ indexed: awaitIndexed }, wait);
+        return settled ? yield* lookup(attachmentKey) : now;
+      }),
+      warm: held.pipe(
+        Effect.asVoid,
+        Effect.withSpan("AttachmentResolver.warm"),
+      ),
+      indexed: awaitIndexed.pipe(Effect.withSpan("AttachmentResolver.indexed")),
+      resolutionsChanged: Stream.fromPubSub(announcements),
+    });
+  }).pipe(withLogCategory("attachment-resolver")),
+);
 
 export interface PathIndexContext extends AttachmentPathContext {
   platform: OperatingSystem;

@@ -50,6 +50,20 @@ export function expressionVocabulary({
   });
 }
 
+function cachedByDataset(
+  make: (dataset: QueryFileDataset) => ExpressionVocabulary,
+): (dataset: QueryFileDataset) => ExpressionVocabulary {
+  const made = new Map<QueryFileDataset, ExpressionVocabulary>();
+  return (dataset) => {
+    let vocabulary = made.get(dataset);
+    if (!vocabulary) {
+      vocabulary = make(dataset);
+      made.set(dataset, vocabulary);
+    }
+    return vocabulary;
+  };
+}
+
 export function useFilterExpressions(
   view: QueryView,
   properties: ViewProperties | null,
@@ -58,22 +72,18 @@ export function useFilterExpressions(
   const formulas = useQueryViewState(view, (s) => s.file?.formulas);
   const custom = useViewCustomFields(reading);
   const context = boundRecords(view.contextSource);
-  return useMemo(() => {
-    const made = new Map<QueryFileDataset, ExpressionVocabulary>();
-    return (dataset) => {
-      let vocabulary = made.get(dataset);
-      if (!vocabulary) {
-        vocabulary = expressionVocabulary({
+  return useMemo(
+    () =>
+      cachedByDataset((dataset) =>
+        expressionVocabulary({
           dataset,
           properties,
           formulas: formulas ?? {},
           context,
           custom,
           ...(dataset === "items" && vaultNames && { vaultNames }),
-        });
-        made.set(dataset, vocabulary);
-      }
-      return vocabulary;
-    };
-  }, [properties, formulas, context, custom, vaultNames]);
+        }),
+      ),
+    [properties, formulas, context, custom, vaultNames],
+  );
 }

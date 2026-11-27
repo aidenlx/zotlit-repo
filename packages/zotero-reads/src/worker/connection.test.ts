@@ -96,7 +96,7 @@ const itemQueryReads = Effect.fnUntraced(function* (copy: Copy) {
   return yield* Effect.isSuccess(
     Effect.provideService(
       Effect.gen(function* () {
-        const libraries = yield* readLibraries();
+        const libraries = yield* readLibraries;
         return yield* collectQuery(ITEMS, {
           libraries: libraries.map(({ libraryID, groupID }) => ({
             libraryID,
@@ -172,7 +172,7 @@ describe("validateClient and Item Query", () => {
         const validated = statements();
         getSchemaVersions(scenario.db);
         getLibraries(scenario.db);
-        yield* Effect.provideService(readLibraries(), ItemQueryDatabase, {
+        yield* Effect.provideService(readLibraries, ItemQueryDatabase, {
           client: scenario.db,
         });
 

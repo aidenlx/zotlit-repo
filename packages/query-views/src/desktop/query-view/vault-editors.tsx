@@ -371,7 +371,9 @@ function useValueSuggest(
 ) {
   const app = useObsidianApp();
   const latest = useRef(source);
-  latest.current = source;
+  useLayoutEffect(() => {
+    latest.current = source;
+  });
   const suggests = source !== null;
   const tags = source?.tags ?? false;
   useEffect(() => {
@@ -528,11 +530,29 @@ function ListEditor({
   const chipField = useRef<HTMLInputElement>(null);
   const focusAfter = useRef<number | null>(null);
   const latest = useRef(draft);
-  latest.current = draft;
+  useLayoutEffect(() => {
+    latest.current = draft;
+  });
   const chipEnded = useRef(false);
   const app = useObsidianApp();
   const editingAt = draft.chip?.at;
   useEditorScope(root);
+  const add = (text: string) => onDraft(withPending({ ...draft, text }));
+  const picked = useRef(false);
+  useValueSuggest(
+    field,
+    type === "aliases"
+      ? null
+      : {
+          tags: type === "tags",
+          values: suggestions,
+          taken: () => draft.items,
+          pick: (value) => {
+            picked.current = true;
+            add(value);
+          },
+        },
+  );
   useLayoutEffect(() => {
     if (latest.current.chip === undefined)
       field.current?.focus({ preventScroll: true });
@@ -565,27 +585,11 @@ function ListEditor({
     input.focus({ preventScroll: true });
     input.setSelectionRange(input.value.length, input.value.length);
   }, [editingAt]);
-  const add = (text: string) => onDraft(withPending({ ...draft, text }));
-  const picked = useRef(false);
   useLayoutEffect(() => {
     if (!picked.current) return;
     picked.current = false;
     showAgain(field.current);
   });
-  useValueSuggest(
-    field,
-    type === "aliases"
-      ? null
-      : {
-          tags: type === "tags",
-          values: suggestions,
-          taken: () => draft.items,
-          pick: (value) => {
-            picked.current = true;
-            add(value);
-          },
-        },
-  );
   const focusPill = (at: number) => {
     if (at < 0) return;
     if (at >= draft.items.length) field.current?.focus();

@@ -1,5 +1,5 @@
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 
 import { iconButton } from "@zotlit/obsidian-kit/components/obsidian/icon-button.tsx";
@@ -66,15 +66,18 @@ export function TabBar({
   const current = useAtomValue(model.controller);
   const controller = editor === null ? undefined : current;
   const disabled = editor === null;
-  const identity = useRef({
+  const [identity, setIdentity] = useState({
     controller,
     id: controller?.document?.manifest.id,
   });
-  if (identity.current.controller !== controller)
-    identity.current = { controller, id: undefined };
-  if (controller?.document)
-    identity.current.id = controller.document.manifest.id;
-  const isDefault = defaultProfile ?? identity.current.id === "default";
+  const id = controller?.document
+    ? controller.document.manifest.id
+    : identity.controller === controller
+      ? identity.id
+      : undefined;
+  if (identity.controller !== controller || identity.id !== id)
+    setIdentity({ controller, id });
+  const isDefault = defaultProfile ?? id === "default";
   const enabledTabs = tabs.filter((id) => !(isDefault && id === "match"));
   useEffect(() => {
     if (isDefault && tab === "match") setView(tabTransition("note"));

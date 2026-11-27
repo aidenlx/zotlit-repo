@@ -11304,7 +11304,13 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
               expect(value).toBe("clicked");
             });
             await expect
-              .poll(async () => (await shown()).cards.toSorted(), poll)
+              .poll(
+                async () =>
+                  (await shown()).cards.toSorted((a, b) =>
+                    String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+                  ),
+                poll,
+              )
               .toEqual([first, second].toSorted());
             expect(await editorOpen()).toBe("false");
 
@@ -11455,7 +11461,15 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
 
           const sorted = async () => {
             const { cards, marks, popup } = await shown();
-            return { cards: cards.toSorted(), marks: marks.toSorted(), popup };
+            return {
+              cards: cards.toSorted((a, b) =>
+                String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+              ),
+              marks: marks.toSorted((a, b) =>
+                String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+              ),
+              popup,
+            };
           };
           const page = () =>
             obRun(
@@ -11502,7 +11516,11 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
             const [a, b] = [rows.indexOf(from), rows.indexOf(to)].toSorted(
               (x, y) => x - y,
             );
-            return rows.slice(a, b! + 1).toSorted();
+            return rows
+              .slice(a, b! + 1)
+              .toSorted((a, b) =>
+                String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+              );
           };
 
           await obRun(
@@ -11723,7 +11741,9 @@ describe.skipIf(!baseUrl)("Paired Run", () => {
                   ),
               ]
                 .map((card) => card.dataset.zoteroAnnotationKey)
-                .sort();
+                .sort((a, b) =>
+                  String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+                );
             },
             undefined,
           )) as string[];

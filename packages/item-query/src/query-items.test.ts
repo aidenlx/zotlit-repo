@@ -2711,7 +2711,7 @@ describe("incremental query consumption", () => {
                 expect(chunk.length).toBeLessThanOrEqual(2);
                 rows.push(...chunk);
               }),
-            end: () => Effect.succeed({ ...metadata, rows }),
+            end: Effect.sync(() => ({ ...metadata, rows })),
           };
         }),
       );
@@ -2754,10 +2754,9 @@ describe("incremental query consumption", () => {
                 beganWrite();
                 await blocked;
               }).pipe(Effect.andThen(Effect.fail(failed))),
-            end: () =>
-              Effect.sync(() => {
-                ended = true;
-              }),
+            end: Effect.sync(() => {
+              ended = true;
+            }),
           }),
       ),
       {

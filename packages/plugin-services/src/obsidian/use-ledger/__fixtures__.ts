@@ -37,7 +37,7 @@ export function buildUseLedger(host: HostSources, stack: AsyncDisposableStack) {
 
 export const inertUseLedger: UseLedger["Service"] = {
   current: Effect.succeed({}),
-  get: () => Effect.succeed(undefined),
+  get: () => Effect.undefined,
   uses: Effect.succeed({}),
   record: (_itemKey, kind, instant = DateTime.nowUnsafe()) =>
     Effect.succeed({ instant, kind }),

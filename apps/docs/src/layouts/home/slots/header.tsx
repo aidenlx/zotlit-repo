@@ -53,7 +53,7 @@ const MobileNavigationMenuContext = createContext<{
   setOpen: (v: boolean) => void;
 } | null>(null);
 
-export function Header(props: ComponentProps<"header">) {
+export function Header({ ref, ...props }: ComponentProps<"header">) {
   const {
     navItems,
     menuItems,
@@ -161,7 +161,7 @@ export function Header(props: ComponentProps<"header">) {
         <header
           id="nd-nav"
           {...props}
-          ref={mergeRefs(headerRef, props.ref)}
+          ref={mergeRefs(headerRef, ref)}
           className={cn(
             "sticky top-0 z-40 h-14",
             !open &&

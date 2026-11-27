@@ -243,7 +243,8 @@ function replicaRows(db: ReplicaClient["db"]): Record<string, string[]> {
                 column,
                 value === null || !(column in names)
                   ? value
-                  : (names[column]!.get(Number(value)) ?? `missing:${value}`),
+                  : (names[column]!.get(Number(value)) ??
+                    `missing:${typeof value === "string" ? value : Number(value)}`),
               ]),
             ),
           ),

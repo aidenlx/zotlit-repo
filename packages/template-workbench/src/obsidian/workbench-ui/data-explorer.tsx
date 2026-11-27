@@ -294,8 +294,8 @@ export function DataExplorer({
   }, [openKey, closeDetails]);
   useLayoutEffect(() => {
     if (!panelRows) return;
-    const { escape } = panelRows;
-    escape.current = () => {
+    const { escape: escapeRef } = panelRows;
+    escapeRef.current = () => {
       if (rows.open) {
         rows.close();
         return true;
@@ -305,7 +305,7 @@ export function DataExplorer({
       return true;
     };
     return () => {
-      escape.current = () => false;
+      escapeRef.current = () => false;
     };
   });
   const insertEntry = (entry: FieldEntry, request?: FieldInsertRequest) => {

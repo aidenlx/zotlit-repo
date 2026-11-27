@@ -48,9 +48,11 @@ export function PreviewMarkdown({
 }) {
   const container = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState(false);
-  useEffect(() => {
+  const [expandedBefore, setExpandedBefore] = useState(expandProperties);
+  if (expandedBefore !== expandProperties) {
+    setExpandedBefore(expandProperties);
     if (expandProperties) setCollapsed(false);
-  }, [expandProperties]);
+  }
   const [renderedEmpty, setRenderedEmpty] = useState(false);
   const toggleCollapsed = () => setCollapsed((value) => !value);
   useEffect(() => {

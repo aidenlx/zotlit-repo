@@ -67,7 +67,7 @@ export const layerAnnotationPopover: Layer.Layer<
       ),
     );
     return AnnotationPopover.of({
-      show: (request) =>
+      show: Effect.fn("AnnotationPopover.show")((request) =>
         citationPopover.showWork({
           event: request.event,
           hoverParent: request.hoverParent,
@@ -84,6 +84,7 @@ export const layerAnnotationPopover: Layer.Layer<
             void core.follow(part, request);
           },
         }),
+      ),
     });
   }).pipe(withLogCategory("annotation-popover")),
 );

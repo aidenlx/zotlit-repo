@@ -41,15 +41,16 @@ export function useSearchBar(): SearchBar {
 }
 
 export function SearchButton({ bar }: { bar: SearchBar }) {
+  const { buttonRef, open, toggle } = bar;
   return (
     <ToolbarButton
-      ref={bar.buttonRef}
+      ref={buttonRef}
       icon="search"
       label={m.query_view_search()}
-      aria-expanded={bar.open}
-      active={bar.open}
+      aria-expanded={open}
+      active={open}
       data-query-toolbar="search"
-      onClick={bar.toggle}
+      onClick={toggle}
     />
   );
 }

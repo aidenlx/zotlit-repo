@@ -912,10 +912,7 @@ function titleOf({ item }: SearchHit): string | null {
 }
 
 function eventually(check: () => boolean): Effect.Effect<void> {
-  return until(
-    Effect.sync(() => undefined),
-    () => check(),
-  ).pipe(Effect.asVoid);
+  return until(Effect.void, () => check()).pipe(Effect.asVoid);
 }
 
 function until<A, E>(

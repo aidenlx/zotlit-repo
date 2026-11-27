@@ -490,7 +490,7 @@ describe("records of a real personal library", () => {
     ).toEqual([""]);
     expect(
       [...byKey.values()]
-        .map((data) => String(data.extra ?? ""))
+        .map((data) => (typeof data.extra === "string" ? data.extra : ""))
         .filter((extra) => extra.startsWith("tex.mendeley-tags:")),
     ).toEqual([
       "tex.mendeley-tags: invented-topic",

@@ -9,7 +9,14 @@ import { Compartment, EditorSelection, EditorState } from "@codemirror/state";
 import type { Extension } from "@codemirror/state";
 import { EditorView, lineNumbers } from "@codemirror/view";
 import { useAtomSet, useAtomValue } from "@effect/atom-react";
-import { createContext, useContext, useEffect, useMemo, useRef } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from "react";
 import type { ReactNode } from "react";
 
 import { cn } from "@zotlit/obsidian-kit/utils.ts";
@@ -152,16 +159,18 @@ export function SliceEditor({
     syntax,
     visible: onScreen,
   });
-  report.current = {
-    onSelection,
-    revealDiagnosis,
-    onFocus,
-    suggest,
-    adapter,
-    start,
-    syntax,
-    visible: onScreen,
-  };
+  useLayoutEffect(() => {
+    report.current = {
+      onSelection,
+      revealDiagnosis,
+      onFocus,
+      suggest,
+      adapter,
+      start,
+      syntax,
+      visible: onScreen,
+    };
+  });
 
   useEffect(() => {
     problemGutter.current = sourceProblemGutter(

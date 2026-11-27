@@ -70,7 +70,7 @@ export const desktopPlatform = defineFeature({
         provides: [AttachmentImport],
         requires: [FileSystem.FileSystem, VaultDisk, ZoteroPref, LibrarySource],
       },
-      layerAttachmentImport(),
+      layerAttachmentImport,
     ),
   ],
   registrations: [

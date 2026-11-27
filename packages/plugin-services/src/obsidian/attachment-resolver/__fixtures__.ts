@@ -102,7 +102,7 @@ export async function openResolver(
   );
 
   const runtime = buildRuntime(
-    layerAttachmentResolver().pipe(
+    layerAttachmentResolver.pipe(
       Layer.provideMerge(
         Layer.mergeAll(
           layerTestObsidianEnv({ os: options.platform ?? "linux" }),

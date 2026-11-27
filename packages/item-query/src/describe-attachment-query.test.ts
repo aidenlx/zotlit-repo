@@ -26,7 +26,7 @@ afterAll(() => {
 });
 
 async function schema(): Promise<ItemQuerySchema> {
-  const { exit } = await runEffect(describeAttachmentQuery(), {
+  const { exit } = await runEffect(describeAttachmentQuery, {
     client: scenario.db,
   });
   if (!Exit.isSuccess(exit)) throw new Error(String(exit.cause));

@@ -145,7 +145,7 @@ export function defineStatement<TParams extends Record<string, unknown>>(
     const statement = uncheckedStatement<TParams, TRow>(reader, build);
     readerStatements.push(statement.sql);
     return {
-      all: (params) => Effect.andThen(checkLayout(), statement.all(params)),
+      all: (params) => Effect.andThen(checkLayout, statement.all(params)),
     };
   };
 }
@@ -195,30 +195,26 @@ const versionsStatement = uncheckedStatement<
   LayoutVersionRow
 >("layout", selectLayoutVersions);
 
-export function readLayout(): Effect.Effect<
+export const readLayout: Effect.Effect<
   DatabaseLayout,
   ItemQueryDatabaseError,
   ItemQueryDatabase
-> {
-  return Effect.gen(function* () {
-    const { client } = yield* ItemQueryDatabase;
-    const known = knownLayout(client);
-    if (known) return known;
-    const columns = columnsByTable(yield* columnsStatement.all({}));
-    const versionRows = hasVersionStamps(columns)
-      ? yield* versionsStatement.all({})
-      : [];
-    return recordLayout(client, columns, versionRows);
-  });
-}
+> = Effect.gen(function* () {
+  const { client } = yield* ItemQueryDatabase;
+  const known = knownLayout(client);
+  if (known) return known;
+  const columns = columnsByTable(yield* columnsStatement.all({}));
+  const versionRows = hasVersionStamps(columns)
+    ? yield* versionsStatement.all({})
+    : [];
+  return recordLayout(client, columns, versionRows);
+});
 
-export function checkLayout(): Effect.Effect<
+export const checkLayout: Effect.Effect<
   DatabaseLayout,
   ItemQueryLayoutError | ItemQueryDatabaseError,
   ItemQueryDatabase
-> {
-  return Effect.flatMap(readLayout(), (layout) => {
-    const error = layoutErrorOf(layout);
-    return error ? Effect.fail(error) : Effect.succeed(layout);
-  });
-}
+> = Effect.flatMap(readLayout, (layout) => {
+  const error = layoutErrorOf(layout);
+  return error ? Effect.fail(error) : Effect.succeed(layout);
+});

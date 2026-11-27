@@ -176,11 +176,12 @@ export const layerTemplateWorkbenchLauncher = Layer.effect(
       Effect.Services<ReturnType<typeof openTemplateWorkbench>> | Notifier
     >();
     return TemplateWorkbenchLauncher.of({
-      open: (file, options) =>
+      open: Effect.fn("TemplateWorkbenchLauncher.open")((file, options) =>
         openTemplateWorkbench(file, options).pipe(
           Effect.flatMap((opened) => explainWorkbenchOpen(opened)),
           Effect.provideContext(context),
         ),
+      ),
     });
   }),
 );

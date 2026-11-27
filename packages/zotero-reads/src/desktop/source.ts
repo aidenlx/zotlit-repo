@@ -755,18 +755,19 @@ export function layerSource(
           yield* logDebug("External change signalled, scheduling refresh");
           yield* scheduleWatchedRefresh({ trusted: true });
         }),
-        configure: (next: ReadsConfig) => {
+        configure: Effect.fn("Connection.configure")((next: ReadsConfig) => {
           const file = fileConfigOf(next);
           return file ? configure(file) : Effect.void;
-        },
+        }),
         databaseGeneration: databaseGenerations.databaseGeneration,
-        identity: (client) =>
+        identity: Effect.fn("Connection.identity")((client) =>
           Effect.map(Ref.get(state), ({ config }) =>
             fileSourceIdentity(
               databaseGenerations.databaseFile(client),
               config,
             ),
           ),
+        ),
       });
     }),
   );

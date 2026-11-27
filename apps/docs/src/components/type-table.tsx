@@ -1,3 +1,4 @@
+import { useHydrated } from "@tanstack/react-router";
 import Link from "fumadocs-core/link";
 import {
   Collapsible,
@@ -5,7 +6,7 @@ import {
   CollapsibleTrigger,
 } from "fumadocs-ui/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import type { ComponentProps, ReactNode } from "react";
 
 import { cn } from "@/lib/cn.ts";
@@ -81,14 +82,14 @@ function Item({
   prefix?: string;
   item: TypeNode;
 }) {
-  const [open, setOpen] = useState(false);
   const id = anchor ? `${anchor}-${name}` : undefined;
-
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (!id || !hash) return;
-    if (`#${id}` === hash) setOpen(true);
-  }, [id]);
+  const hydrated = useHydrated();
+  const linked = useMemo(
+    () => hydrated && !!id && window.location.hash === `#${id}`,
+    [hydrated, id],
+  );
+  const [toggled, setOpen] = useState<boolean | null>(null);
+  const open = toggled ?? linked;
 
   return (
     <Collapsible

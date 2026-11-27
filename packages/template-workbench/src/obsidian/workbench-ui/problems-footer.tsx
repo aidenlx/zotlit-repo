@@ -1,13 +1,6 @@
 import type { RenderDiagnostic } from "#core/render/result.ts";
 import { useAtomSet } from "@effect/atom-react";
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import type {
   RenderReport,
@@ -127,23 +120,22 @@ export function useWorkbenchProblems({
     selectedId === null
       ? first
       : (diagnoses.find(({ id }) => id === selectedId) ?? null);
-  useEffect(() => {
-    if (first === null) setSelectedId(null);
-    else if (open) setSelectedId((kept) => kept ?? first.id);
-  }, [first, open]);
-  const opened = useRef(attempt);
+  if (first === null ? selectedId !== null : open && selectedId === null)
+    setSelectedId(first?.id ?? null);
+  const [opened, setOpened] = useState(attempt);
   const failed = diagnoses.length > 0;
-  useEffect(() => {
-    if (attempt === opened.current) return;
-    opened.current = attempt;
+  if (attempt !== opened) {
+    setOpened(attempt);
     if (trigger === "explicit" && failed) setOpen(true);
-  }, [attempt, trigger, failed]);
-  const documentReports = useRef(new Map<string, RenderReport>());
+  }
+  const [documentReports, setDocumentReports] = useState<
+    ReadonlyMap<string, RenderReport>
+  >(() => new Map());
   const held = new Map<string, RenderReport>();
   const temporal = window.Temporal;
   for (const diagnosis of diagnoses) {
     if (diagnosis.kind !== "document" || capture === undefined) continue;
-    const kept = documentReports.current.get(diagnosis.id);
+    const kept = documentReports.get(diagnosis.id);
     if (kept !== undefined) {
       held.set(diagnosis.id, kept);
       continue;
@@ -160,23 +152,29 @@ export function useWorkbenchProblems({
       }),
     );
   }
-  documentReports.current = held;
+  if (
+    held.size !== documentReports.size ||
+    [...held].some(([id, report]) => documentReports.get(id) !== report)
+  )
+    setDocumentReports(held);
   const current =
     selected === null
       ? null
-      : (diagnosisReport(selected) ??
-        documentReports.current.get(selected.id) ??
-        null);
+      : (diagnosisReport(selected) ?? held.get(selected.id) ?? null);
   const [inspected, setInspected] = useState<RenderReport | null>(null);
-  useEffect(() => {
-    if (current !== null) setInspected(current);
-  }, [current]);
-  const reading = useRef<WorkbenchDiagnosis | null>(null);
-  if (selected !== null) reading.current = selected;
+  if (current !== null && current !== inspected) setInspected(current);
+  const [reading, setReading] = useState<WorkbenchDiagnosis | null>(null);
+  if (
+    selected !== null &&
+    (reading === null ||
+      selected.id !== reading.id ||
+      diagnosisLabel(selected) !== diagnosisLabel(reading))
+  )
+    setReading(selected);
   return {
     diagnoses,
     selected,
-    inspected: selected ?? reading.current,
+    inspected: selected ?? reading,
     open,
     report: current ?? (selected === null ? inspected : null),
     resolved: current === null,
@@ -245,7 +243,11 @@ export function ProblemsFooter({
   );
   const details = useRef<HTMLDetailsElement | null>(null);
   const [copyFailed, setCopyFailed] = useState(false);
-  useEffect(() => setCopyFailed(false), [reportText]);
+  const [copiedText, setCopiedText] = useState(reportText);
+  if (copiedText !== reportText) {
+    setCopiedText(reportText);
+    setCopyFailed(false);
+  }
   function copyReport(text: string): void {
     setCopyFailed(false);
     startCopy({

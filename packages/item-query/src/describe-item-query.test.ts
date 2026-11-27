@@ -85,7 +85,7 @@ it("generates field capabilities from the supplied Query Dataset descriptor", as
 async function schema(
   scenario: ScenarioDatabase<NodeDatabaseClient>,
 ): Promise<ItemQuerySchema> {
-  const { exit } = await runEffect(describeItemQuery(), {
+  const { exit } = await runEffect(describeItemQuery, {
     client: scenario.db,
   });
   if (!Exit.isSuccess(exit)) throw new Error(String(exit.cause));
@@ -309,7 +309,7 @@ describe("describeItemQuery on the layout of the Zotero database", () => {
     using scenario = openScenarioDatabase(connectClient);
     scenario.sqlite.exec('alter table "fieldsCombined" drop column "custom"');
 
-    const { exit } = await runEffect(describeItemQuery(), {
+    const { exit } = await runEffect(describeItemQuery, {
       client: scenario.db,
     });
 
@@ -492,9 +492,9 @@ it("publishes one catalog of the executed dataset schemas and the shared languag
   using scenario = openScenarioDatabase(connectClient);
   const catalog = describeQueryVocabulary();
   const described = {
-    items: describeItemQuery(),
-    attachments: describeAttachmentQuery(),
-    annotations: describeAnnotationQuery(),
+    items: describeItemQuery,
+    attachments: describeAttachmentQuery,
+    annotations: describeAnnotationQuery,
   };
   const items = await schema(scenario);
 

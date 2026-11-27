@@ -556,13 +556,16 @@ describe("classify through the DisplayRefs stream", () => {
           }),
         );
         itemsIn(new Map([[1, USER_LIBRARY_ID]]));
-        const abort = new AbortController();
+        const cancel = yield* Scope.make();
+        const sliced = Promise.withResolvers<void>();
 
         yield* runBatchUpdate(deps, [1, 2]);
         const classified = openedModals.at(-1)!.onClassify({
-          onProgress: () => abort.abort(),
-          signal: abort.signal,
+          onProgress: () => sliced.resolve(),
+          signal: yield* Effect.abortSignal.pipe(Scope.provide(cancel)),
         });
+        yield* Effect.promise(() => sliced.promise);
+        yield* Scope.close(cancel, Exit.void);
 
         yield* Effect.promise(() => expect(classified).rejects.toThrow());
         expect(interrupted).toBe(true);

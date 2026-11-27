@@ -334,7 +334,10 @@ export function MatchEditor<Row extends LabelledRow>({
     setRootState(next);
   }
   const latest = useRef(vocabulary);
-  latest.current = vocabulary;
+  useLayoutEffect(() => {
+    shown.current = root;
+    latest.current = vocabulary;
+  });
   useLayoutEffect(() => {
     if (
       fitsVocabulary(shown.current, latest.current) &&
@@ -345,9 +348,7 @@ export function MatchEditor<Row extends LabelledRow>({
   }, [value]);
   const fits = fitsVocabulary(root, vocabulary);
   const tree = fits ? root : fromFilter(value, vocabulary);
-  useEffect(() => {
-    if (!fits) setRoot(tree);
-  });
+  if (!fits) setRootState(tree);
   function change(next: ConditionGroup<Row>) {
     const settled = settle(next, vocabulary);
     setRoot(settled);

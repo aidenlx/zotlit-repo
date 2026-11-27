@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useHydrated } from "@tanstack/react-router";
 
 import { Message } from "@/components/message.tsx";
 import { cn } from "@/lib/cn.ts";
@@ -12,10 +12,11 @@ export function DocsLastUpdated({
   className?: string;
 }) {
   const day = date?.toISOString().slice(0, 10);
-  const [label, setLabel] = useState(day);
-  useEffect(() => {
-    if (date) setLabel(date.toLocaleDateString(undefined, { timeZone: "UTC" }));
-  }, [date]);
+  const hydrated = useHydrated();
+  const label =
+    hydrated && date
+      ? date.toLocaleDateString(undefined, { timeZone: "UTC" })
+      : day;
   if (!day) return null;
   return (
     <p className={cn("text-sm text-fd-muted-foreground", className)}>

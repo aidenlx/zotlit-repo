@@ -247,7 +247,7 @@ const webApiSource: ReadsSource = {
 
 const libraryQueryJobs: QueryJobRunner = {
   run: (job, { client }) =>
-    readLibraries().pipe(
+    readLibraries.pipe(
       Effect.provideService(ItemQueryDatabase, { client }),
       Effect.orDie,
       Effect.map((libraries) => {

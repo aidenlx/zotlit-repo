@@ -80,7 +80,7 @@ function makeLane(
       Effect.andThen(Deferred.await(held.ticket.ready)),
       Effect.onInterrupt(() => held.release),
     );
-    return held.release;
+    return { release: held.release };
   });
   return {
     take,
@@ -154,7 +154,7 @@ export const makeExcerptPdfQueue = Effect.fn("ExcerptPdfQueue.make")(function* (
       ),
   );
   const reserve = Effect.gen(function* () {
-    const release = yield* capacity.take({ pdf: "", sequence: ++sequence });
+    const { release } = yield* capacity.take({ pdf: "", sequence: ++sequence });
     return { render, release };
   });
   return {

@@ -175,7 +175,13 @@ export function fakeZotero(answers: ZoteroAnswers = {}): {
   const http = layerZoteroHttp.pipe(
     Layer.provide(
       layerFakeFetch(async (input, init) => {
-        const url = new URL(String(input));
+        const url = new URL(
+          typeof input === "string"
+            ? input
+            : input instanceof URL
+              ? input.href
+              : input.url,
+        );
         const request: ZoteroRequest = {
           url,
           headers: new Headers(init?.headers),

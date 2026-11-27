@@ -2,7 +2,7 @@ import { Effect } from "effect";
 
 export interface SortedRuns<T> {
   add(rows: T[]): void;
-  ordered(): Effect.Effect<T[]>;
+  readonly ordered: Effect.Effect<T[]>;
 }
 
 export function makeSortedRuns<T>(
@@ -12,23 +12,22 @@ export function makeSortedRuns<T>(
   let runs: T[][] = [];
   return {
     add: (rows) => void runs.push(rows.sort(compare)),
-    ordered: () =>
-      Effect.gen(function* () {
-        while (runs.length > 1) {
-          const merged: T[][] = [];
-          for (let i = 0; i < runs.length; i += 2) {
-            const left = runs[i]!;
-            const right = runs[i + 1];
-            merged.push(
-              right
-                ? yield* mergeRuns(left, right, { compare, mergeStepSize })
-                : left,
-            );
-          }
-          runs = merged;
+    ordered: Effect.gen(function* () {
+      while (runs.length > 1) {
+        const merged: T[][] = [];
+        for (let i = 0; i < runs.length; i += 2) {
+          const left = runs[i]!;
+          const right = runs[i + 1];
+          merged.push(
+            right
+              ? yield* mergeRuns(left, right, { compare, mergeStepSize })
+              : left,
+          );
         }
-        return runs[0] ?? [];
-      }),
+        runs = merged;
+      }
+      return runs[0] ?? [];
+    }),
   };
 }
 

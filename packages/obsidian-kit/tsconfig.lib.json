@@ -11,12 +11,14 @@
         "name": "@effect/language-service",
         "effectFn": ["inferred-span"],
         "allowedUnstableApis": [
+          "@effect/atom-react",
           "@effect/platform-browser",
           "@effect/platform-node",
           "@effect/vitest",
           "effect/FileSystem",
           "effect/http",
           "effect/PlatformError",
+          "effect/reactivity",
           "effect/rpc",
           "effect/testing",
           "effect/workers"

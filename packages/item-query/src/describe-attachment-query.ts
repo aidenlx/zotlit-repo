@@ -1,3 +1,5 @@
+import { Effect } from "effect";
+
 import {
   describeDatasetVocabulary,
   describeQuery,
@@ -8,4 +10,6 @@ export function describeAttachmentQueryVocabulary() {
   return describeDatasetVocabulary(ATTACHMENTS);
 }
 
-export const describeAttachmentQuery = () => describeQuery(ATTACHMENTS, {});
+export const describeAttachmentQuery = Effect.suspend(() =>
+  describeQuery(ATTACHMENTS, {}),
+);

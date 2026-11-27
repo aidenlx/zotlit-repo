@@ -127,9 +127,10 @@ export function pluginGraph<F extends readonly Feature<any, any, any>[]>(
     layerSettingTab(host.features, host.settingTab).pipe(
       startingAs("SettingTab"),
     ),
-    layerViewRegistry.pipe(startingAs("ViewRegistry")),
+  ).pipe(
+    Layer.provideMerge(layerViewRegistry.pipe(startingAs("ViewRegistry"))),
   );
-  return registrations.pipe(Layer.provideMerge(services)) as Layer.Layer<
+  return stackGroups(services, [registrations]) as Layer.Layer<
     ProvidesOf<F> | ShellBase | ShellProvides
   >;
 }

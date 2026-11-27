@@ -100,7 +100,7 @@ export const collectionWarnings = Effect.fnUntraced(function* <Item>(
     }
   }
   if (warnings.size > 0) {
-    const others = (yield* readLibraries())
+    const others = (yield* readLibraries)
       .filter(
         (library) =>
           !libraries.some((target) => target.libraryID === library.libraryID),

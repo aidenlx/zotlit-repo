@@ -107,13 +107,11 @@ export interface ItemQuerySchema {
   };
 }
 
-export function describeItemQuery(): Effect.Effect<
+export const describeItemQuery: Effect.Effect<
   ItemQuerySchema,
   ItemQueryLayoutError | ItemQueryDatabaseError,
   ItemQueryDatabase
-> {
-  return describeQuery(ITEMS, {});
-}
+> = Effect.suspend(() => describeQuery(ITEMS, {}));
 
 export function describeQuery<Vocabulary extends object>(
   dataset: QueryDataset,

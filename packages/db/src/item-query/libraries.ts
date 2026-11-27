@@ -14,16 +14,14 @@ const withoutClientVersion = defineStatement<Record<string, never>>(
   "libraries",
 )((db) => selectLibraries(db, { clientVersion: false }));
 
-export function readLibraries(): Effect.Effect<
+export const readLibraries: Effect.Effect<
   Library[],
   ItemQueryReaderError,
   ItemQueryDatabase
-> {
-  return Effect.gen(function* () {
-    const layout = yield* checkLayout();
-    const statement = layout.has("libraries", "clientVersion")
-      ? withClientVersion
-      : withoutClientVersion;
-    return yield* statement.all({});
-  });
-}
+> = Effect.gen(function* () {
+  const layout = yield* checkLayout;
+  const statement = layout.has("libraries", "clientVersion")
+    ? withClientVersion
+    : withoutClientVersion;
+  return yield* statement.all({});
+});

@@ -559,7 +559,7 @@ async function passReaders(
         () =>
           Effect.sync(() => {
             projecting = true;
-            return { write: () => Effect.void, end: () => Effect.void };
+            return { write: () => Effect.void, end: Effect.void };
           }),
       ),
       AttachmentFileResolver,

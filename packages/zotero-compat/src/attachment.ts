@@ -9,6 +9,7 @@ export function attachmentPath(
 
 export function attachmentLastRead(value: unknown): number | null {
   if (!value) return null;
+  if (typeof value !== "string" && typeof value !== "number") return null;
   const lastRead = Number.parseInt(String(value), 10);
   return Number.isInteger(lastRead) ? lastRead : null;
 }

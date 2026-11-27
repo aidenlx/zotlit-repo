@@ -12,10 +12,10 @@ export class Segmenter extends Context.Service<
   }
 >()("zotlit/item-lookup/Segmenter") {}
 
-export class SegmenterUnavailable extends Schema.TaggedError<SegmenterUnavailable>()(
-  "SegmenterUnavailable",
-  { message: Schema.String },
-) {}
+export class SegmenterUnavailable extends Schema.TaggedError<
+  SegmenterUnavailable,
+  { readonly brand: unique symbol }
+>()("SegmenterUnavailable", { message: Schema.String }) {}
 
 export const layerSegmenterNone: Layer.Layer<Segmenter> = Layer.sync(
   Segmenter,

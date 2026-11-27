@@ -207,9 +207,7 @@ const planCreations = Effect.fnUntraced(function* (
       const [previews, matches] = yield* Effect.all(
         [
           prepareCreationPreviews(items, { reads, create: options.create }),
-          given
-            ? Effect.succeed(undefined)
-            : selectProfilesByMatch(profiles, items),
+          given ? Effect.undefined : selectProfilesByMatch(profiles, items),
         ],
         { concurrency: "unbounded" },
       );

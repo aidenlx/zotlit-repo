@@ -309,10 +309,9 @@ export function useChildren(view: QueryView) {
     runs.current.set(
       key,
       view.runTask(
-        Effect.all(
-          reads.map(({ source }) => source.load(record, query)),
-          { concurrency: "unbounded" },
-        ).pipe(
+        Effect.forEach(reads, ({ source }) => source.load(record, query), {
+          concurrency: "unbounded",
+        }).pipe(
           Effect.matchEffect({
             onSuccess: (lists) => land({ phase: "ready", rows: lists.flat() }),
             onFailure: () => land({ phase: "failed" }),

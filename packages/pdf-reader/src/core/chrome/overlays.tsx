@@ -21,9 +21,9 @@ const OVERLAY =
 
 function PasswordPrompt(props: { readonly retry: boolean }): JSX.Element {
   const { host, actions } = useChrome();
-  const input = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   useLayoutEffect(() => {
-    const element = input.current;
+    const element = inputRef.current;
     if (!element) return;
     element.value = "";
     element.focus();
@@ -35,7 +35,7 @@ function PasswordPrompt(props: { readonly retry: boolean }): JSX.Element {
       className={OVERLAY}
       onSubmit={(event) => {
         event.preventDefault();
-        actions.submitPassword(input.current?.value ?? "");
+        actions.submitPassword(inputRef.current?.value ?? "");
       }}
     >
       <span className="zpr:text-muted">
@@ -56,7 +56,7 @@ function PasswordPrompt(props: { readonly retry: boolean }): JSX.Element {
         )}
       </p>
       <input
-        ref={input}
+        ref={inputRef}
         type="password"
         data-zpr-part="password-input"
         aria-label={host.t("pdf_reader_password_label")}

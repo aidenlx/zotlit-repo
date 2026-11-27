@@ -79,7 +79,7 @@ export class AnnotationLinkReadingCore implements Disposable {
 
   [Symbol.dispose](): void {
     this.#disposed = true;
-    for (const section of [...this.#sections.keys()]) section.unload();
+    for (const section of this.#sections.keys()) section.unload();
   }
 
   refresh(path?: string): void {

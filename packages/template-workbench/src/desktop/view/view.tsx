@@ -47,7 +47,13 @@ import type {
   ViewStateResult,
   WorkspaceLeaf,
 } from "obsidian";
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import type { Root } from "react-dom/client";
@@ -575,15 +581,14 @@ export class TemplateWorkbenchView extends TextFileView implements HoverParent {
                 },
           ),
           Effect.catch((error) =>
-            Effect.flatMap(refusal, (refused) =>
-              refused
-                ? Effect.succeed(refused)
-                : Effect.fail(
-                    new OriginatingNoteUpdateError({
-                      note: name,
-                      cause: plainNoteError(error),
-                    }),
-                  ),
+            Effect.filterOrFail(
+              refusal,
+              (refused) => refused !== null,
+              () =>
+                new OriginatingNoteUpdateError({
+                  note: name,
+                  cause: plainNoteError(error),
+                }),
             ),
           ),
         );
@@ -2474,6 +2479,10 @@ function EditorContent({
   const bindingDefaults = useAtomValue(view.model.bindingDefaults);
   const { list: citationStyles } = useAtomValue(view.model.styles);
   const { workbench } = view;
+  const measurePanels = useCallback(
+    (box: HTMLElement | null) => view.measurePanels(box),
+    [view],
+  );
   const tab = useAtomValue(workbench.tab);
   useAtomValue(workbench.document.revision);
   const { result, trigger, attempt, busy, staleReason } = useAtomValue(
@@ -2486,9 +2495,7 @@ function EditorContent({
   const annotation = useAtomValue(workbench.examples).example;
   const advanced = useAtomValue(workbench.advanced);
   const [sourceVisited, setSourceVisited] = useState(advanced);
-  useEffect(() => {
-    if (advanced && !sourceVisited) setSourceVisited(true);
-  }, [advanced, sourceVisited]);
+  if (advanced && !sourceVisited) setSourceVisited(true);
   const kind = controller.kind;
   const languageCaption =
     controller.plainDocument?.manifest.language === "eta"
@@ -2557,8 +2564,12 @@ function EditorContent({
       : entry,
   );
   const [arrival, setArrival] = useState<ArrivingProblem | null>(null);
-  const arrivalAttempt = useRef(0);
+  const [arrivalAttempt, setArrivalAttempt] = useState(0);
   const pendingArrival = view.arrival;
+  if (pendingArrival !== null && pendingArrival !== arrival) {
+    setArrivalAttempt(attempt);
+    setArrival(pendingArrival);
+  }
   const arrivalDiagnostic = arrival?.diagnostic;
   const diagnoses = workbenchDiagnoses(documentProblems, [
     ...(result?.diagnostics ?? []),
@@ -2582,11 +2593,9 @@ function EditorContent({
   );
   useEffect(() => {
     if (!pendingArrival) return;
-    arrivalAttempt.current = attempt;
-    setArrival(pendingArrival);
     view.takeArrival();
     openProblems(true);
-  }, [view, pendingArrival, openProblems, attempt]);
+  }, [view, pendingArrival, openProblems]);
   const arrivalSelection = useRef<ArrivingProblem | null>(null);
   const detected = diagnoses.map(({ id }) => id).join("\n");
   useEffect(() => {
@@ -2602,17 +2611,16 @@ function EditorContent({
     arrivalSelection.current = arrival;
     selectProblem(match.id);
   }, [arrival, detected, diagnoses, selectProblem]);
-  useEffect(() => {
+  const arrivalShown = (shown: ArrivingProblem): boolean => {
     if (
-      !arrival ||
-      attempt <= arrivalAttempt.current ||
+      attempt <= arrivalAttempt ||
       busy ||
       staleReason !== null ||
       !result ||
       documentProblems.length > 0
     )
-      return;
-    const { report, part } = arrival.diagnostic;
+      return false;
+    const { report, part } = shown.diagnostic;
     const annotationCheck =
       kind === "profile" &&
       (part === "annotation" || report?.context.root === "annotation");
@@ -2623,7 +2631,7 @@ function EditorContent({
         : kind === "citation"
           ? result.citation
           : result.partial;
-    if (output === null) return;
+    if (output === null) return false;
     if (
       result.diagnostics.some((diagnostic) =>
         annotationCheck
@@ -2631,7 +2639,7 @@ function EditorContent({
           : diagnostic.part !== "annotation",
       )
     )
-      return;
+      return false;
     const context = view.reportContext(
       kind === "profile"
         ? "note"
@@ -2639,7 +2647,7 @@ function EditorContent({
           ? "citation"
           : view.partialContext,
     );
-    if (
+    return !(
       (report?.context.document !== undefined &&
         report.context.document !== context.document) ||
       (report?.context.selection !== undefined &&
@@ -2655,19 +2663,9 @@ function EditorContent({
       (report?.identity.annotationId !== undefined &&
         report.identity.annotationId !== result.annotationId) ||
       (annotationCheck && result.annotation === null)
-    )
-      return;
-    setArrival(null);
-  }, [
-    arrival,
-    attempt,
-    busy,
-    staleReason,
-    result,
-    documentProblems.length,
-    view,
-    kind,
-  ]);
+    );
+  };
+  if (arrival !== null && arrivalShown(arrival)) setArrival(null);
   const state = view.change;
   const repair = repairCommands({
     registry: view.registry,
@@ -2676,7 +2674,9 @@ function EditorContent({
     problems,
   });
   const revealHandler = useRef(repair.goToProblem);
-  revealHandler.current = repair.goToProblem;
+  useLayoutEffect(() => {
+    revealHandler.current = repair.goToProblem;
+  });
   useEffect(
     () => view.subscribeReveals((target) => revealHandler.current(target)),
     [view],
@@ -2961,7 +2961,7 @@ function EditorContent({
       <div className="zt:flex zt:h-full zt:min-h-0 zt:flex-col">
         <ViewItemRow view={view} />
         <div
-          ref={view.measurePanels}
+          ref={measurePanels}
           data-workbench-panels=""
           className="zt:min-h-0 zt:flex-1"
         >

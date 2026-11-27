@@ -29,7 +29,7 @@ export function readQueryItemSeed(item: {
       itemIDs: [item.itemID],
     });
     if (!scan) return null;
-    const vocabulary = yield* readFieldVocabulary();
+    const vocabulary = yield* readFieldVocabulary;
     const builtIn = new Set(
       BUILT_IN_NAMES.flatMap(
         (name) => fieldDefinition(name)?.needs([]).builtIn ?? [],

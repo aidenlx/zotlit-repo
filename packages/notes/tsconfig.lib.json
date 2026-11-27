@@ -17,6 +17,7 @@
           "effect/FileSystem",
           "effect/http",
           "effect/PlatformError",
+          "effect/reactivity",
           "effect/rpc",
           "effect/testing",
           "effect/workers"

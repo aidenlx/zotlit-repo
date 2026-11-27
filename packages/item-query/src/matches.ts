@@ -23,6 +23,6 @@ export function firstMatches<T>(
   };
   return {
     add: (rows) => rows.forEach(add),
-    ordered: () => Effect.succeed(kept),
+    ordered: Effect.succeed(kept),
   };
 }

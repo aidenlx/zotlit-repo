@@ -25,6 +25,7 @@ interface RootState extends TagsInputApi {
   removeAt: (index: number) => void;
   commitKeys: readonly string[];
   inputRef: RefObject<HTMLInputElement | null>;
+  attachInput: (input: HTMLInputElement | null) => void;
 }
 
 interface ItemState {
@@ -71,6 +72,9 @@ function Root({
 }: RootProps) {
   const [inputValue, setInputValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+  const attachInput = useCallback((input: HTMLInputElement | null) => {
+    inputRef.current = input;
+  }, []);
   const state: RootState = {
     value,
     inputValue,
@@ -86,6 +90,7 @@ function Root({
     },
     commitKeys,
     inputRef,
+    attachInput,
   };
   return (
     <RootContext.Provider value={state}>
@@ -184,6 +189,11 @@ function prevented<
   return called || event.defaultPrevented;
 }
 
+function assignRef<T>(ref: Ref<T> | undefined, value: T | null): void {
+  if (typeof ref === "function") ref(value);
+  else if (ref) ref.current = value;
+}
+
 function composing(event: KeyboardEvent<HTMLInputElement>): boolean {
   return event.nativeEvent.isComposing || event.keyCode === 229;
 }
@@ -196,14 +206,13 @@ function Input({
   ...props
 }: InputProps) {
   const root = useRoot();
-  const rootRef = root.inputRef;
+  const { attachInput } = root;
   const ref = useCallback(
     (input: HTMLInputElement | null) => {
-      rootRef.current = input;
-      if (typeof inputRef === "function") inputRef(input);
-      else if (inputRef) inputRef.current = input;
+      attachInput(input);
+      assignRef(inputRef, input);
     },
-    [rootRef, inputRef],
+    [attachInput, inputRef],
   );
   return (
     <input

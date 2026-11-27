@@ -328,9 +328,7 @@ async function harness(
   };
   const { service } = noteFeatureHandle(deps, stack, {
     itemMatches: Effect.runSync(
-      Effect.gen(function* () {
-        return yield* ItemMatchQuery;
-      }).pipe(
+      Effect.service(ItemMatchQuery).pipe(
         Effect.provide(
           layerItemMatchQuery.pipe(
             Layer.provide(Layer.succeed(QueryService, query)),

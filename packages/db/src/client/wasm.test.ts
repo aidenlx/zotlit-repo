@@ -56,7 +56,7 @@ function readAll(db: ZoteroDatabase, articleID: number) {
     notes: run(readItemNotes([articleID])),
     hydrated: run(
       Effect.gen(function* () {
-        const vocabulary = yield* readFieldVocabulary();
+        const vocabulary = yield* readFieldVocabulary;
         const collectionPaths = yield* readCollectionPaths(personal);
         return yield* readHydrateChunk({
           vocabulary,

@@ -1,7 +1,7 @@
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useHydrated } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { ArrowRight, Check } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 import {
   bodyClass,
@@ -80,8 +80,11 @@ function nextLesson(
 
 function Course() {
   const course = Route.useLoaderData();
-  const [progress, setProgress] = useState<Record<string, LessonProgress>>({});
-  useEffect(() => setProgress(readProgress()), []);
+  const hydrated = useHydrated();
+  const progress = useMemo<Record<string, LessonProgress>>(
+    () => (hydrated ? readProgress() : {}),
+    [hydrated],
+  );
 
   const [first, ...chores] = course;
   const next = nextLesson(course, progress);

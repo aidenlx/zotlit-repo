@@ -1,6 +1,6 @@
 import type { WriteConflict } from "#obsidian/annotation-repository/write.ts";
 import type { App } from "obsidian";
-import { useCallback, useLayoutEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { HTMLAttributes, RefObject } from "react";
 
 import { claimClick, cn } from "@zotlit/obsidian-kit/utils.ts";
@@ -163,59 +163,63 @@ export function EditorSheetSlot({
     onLeave,
     caretAt,
   });
-  latest.current = {
-    field,
-    value,
-    status,
-    onChange,
-    onSubmit,
-    onSave,
-    onCancel,
-    commit,
-    onLeave,
-    caretAt,
-  };
+  useLayoutEffect(() => {
+    latest.current = {
+      field,
+      value,
+      status,
+      onChange,
+      onSubmit,
+      onSave,
+      onCancel,
+      commit,
+      onLeave,
+      caretAt,
+    };
+  });
   const sheet = useRef<EditorSheet | null>(null);
   const saves = onSave !== undefined;
   const leaves = onLeave !== undefined;
   const commitLabel = commit?.label;
 
-  const mount = useCallback(
-    (el: HTMLDivElement | null) => {
-      const gone = sheet.current;
-      gone?.[Symbol.dispose]();
+  const host = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    const at = latest.current;
+    const created = renderEditorSheet(
+      el,
+      {
+        app,
+        surface,
+        field: at.field,
+        value: at.value,
+        onChange: (value) => latest.current.onChange?.(value),
+        onSubmit: () => latest.current.onSubmit(),
+        onSave: saves ? () => latest.current.onSave?.() : undefined,
+        onCancel: () => latest.current.onCancel(),
+        commit:
+          commitLabel === undefined
+            ? undefined
+            : {
+                label: commitLabel,
+                run: () => latest.current.commit?.run(),
+              },
+        onLeave: leaves ? () => latest.current.onLeave?.() : undefined,
+        within,
+        caretAt: at.caretAt,
+      },
+      at.status,
+    );
+    sheet.current = created;
+    if (sheetRef) sheetRef.current = created;
+    return () => {
+      created[Symbol.dispose]();
       sheet.current = null;
-      if (sheetRef?.current === gone) sheetRef.current = null;
-      if (!el) return;
-      const at = latest.current;
-      sheet.current = renderEditorSheet(
-        el,
-        {
-          app,
-          surface,
-          field: at.field,
-          value: at.value,
-          onChange: (value) => latest.current.onChange?.(value),
-          onSubmit: () => latest.current.onSubmit(),
-          onSave: saves ? () => latest.current.onSave?.() : undefined,
-          onCancel: () => latest.current.onCancel(),
-          commit:
-            commitLabel === undefined
-              ? undefined
-              : {
-                  label: commitLabel,
-                  run: () => latest.current.commit?.run(),
-                },
-          onLeave: leaves ? () => latest.current.onLeave?.() : undefined,
-          within,
-          caretAt: at.caretAt,
-        },
-        at.status,
-      );
-      if (sheetRef) sheetRef.current = sheet.current;
-    },
-    [app, surface, saves, leaves, commitLabel, within, sheetRef],
-  );
+      if (sheetRef?.current === created) sheetRef.current = null;
+    };
+  }, [app, surface, saves, leaves, commitLabel, within, sheetRef]);
 
   useLayoutEffect(() => {
     if (text !== undefined) sheet.current?.editor.setText(text);
@@ -226,7 +230,7 @@ export function EditorSheetSlot({
     sheet.current?.update({ readOnly, hint, manual, saveDisabled });
   }, [readOnly, hint, manual, saveDisabled]);
 
-  return <div ref={mount} {...rest} />;
+  return <div ref={host} {...rest} />;
 }
 
 export function HeldDraftSlot({
@@ -243,15 +247,16 @@ export function HeldDraftSlot({
 } & DivProps) {
   const ref = useRef<HTMLDivElement>(null);
   const latest = useRef(actions);
-  latest.current = actions;
   const latestPress = useRef(entry?.onPress);
-  latestPress.current = entry?.onPress;
+  useLayoutEffect(() => {
+    latest.current = actions;
+    latestPress.current = entry?.onPress;
+  });
   const opens = entry !== undefined;
   const disabled = entry?.disabled ?? false;
   const blocked = entry?.blocked ?? false;
-  const shown = useRef(held);
-  if (!sameHeldDraft(shown.current, held)) shown.current = held;
-  const stable = shown.current;
+  const [stable, setStable] = useState(held);
+  if (!sameHeldDraft(stable, held)) setStable(held);
   useLayoutEffect(() => {
     if (!ref.current) return;
     renderHeldDraftPanel(ref.current, stable, {
@@ -278,7 +283,9 @@ export function ConflictPanelSlot({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const latest = useRef(actions);
-  latest.current = actions;
+  useLayoutEffect(() => {
+    latest.current = actions;
+  });
   const panel = useMemo(
     () => conflictPanel(conflict, block),
     [conflict, block],

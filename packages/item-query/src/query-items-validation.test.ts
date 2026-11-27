@@ -1,5 +1,5 @@
 import { Cause, Exit } from "effect";
-import { describe, expect, it } from "vitest";
+import { assert, describe, expect, it } from "vitest";
 
 import { SCENARIO_LIBRARIES } from "@zotlit/db-testing/scenario";
 
@@ -55,13 +55,13 @@ describe("collectQuery(ITEMS) with a filter", () => {
       async (filter, code, [from, to]) => {
         const error = await failure({ libraries: [personal], filter });
 
-        expect(error).toBeInstanceOf(ItemQueryError);
+        assert.instanceOf(error, ItemQueryError);
         expect(error).toMatchObject({
           code,
           location: { argument: "filter", span: { from, to } },
         });
         expect(error.message).not.toBe("");
-        expect((error as ItemQueryError).hint).not.toBe("");
+        expect(error.hint).not.toBe("");
       },
     );
   });
@@ -152,9 +152,9 @@ describe.each(DATASETS)(
 
     async function requestFailure(query: ItemQueryRequest) {
       const error = await failure(query, dataset);
-      expect(error).toBeInstanceOf(ItemQueryError);
+      assert.instanceOf(error, ItemQueryError);
       expect(error).toMatchObject({ dataset });
-      return error as ItemQueryError;
+      return error;
     }
 
     it("rejects library sorting with a Diagnostic Report that lists Sortable Fields", async () => {

@@ -188,7 +188,7 @@ describe("readCandidateSet for a field value", () => {
         scenario,
         runOk(
           scenario,
-          Effect.flatMap(readFieldVocabulary(), (vocabulary) =>
+          Effect.flatMap(readFieldVocabulary, (vocabulary) =>
             readCandidateSet({
               libraryID: library.libraryID,
               leaf: {
@@ -386,7 +386,7 @@ it("reads a text window on the itemData primary key without a temporary B-tree",
       },
     },
   });
-  const vocabulary = runOk(scenario, readFieldVocabulary());
+  const vocabulary = runOk(scenario, readFieldVocabulary);
   const ids = runOk(
     scenario,
     readTextSweepWindow({

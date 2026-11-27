@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 export interface Retention<K> {
   isRetained: (key: K) => boolean;
@@ -9,14 +9,16 @@ export function useRetention<K>(
   occupants: ReadonlyMap<K, string>,
 ): Retention<K> {
   const [held, setHeld] = useState<ReadonlyMap<K, string>>(() => new Map());
-  useEffect(() => {
+  const [seen, setSeen] = useState(occupants);
+  if (seen !== occupants) {
+    setSeen(occupants);
     setHeld((current) => {
       const kept = new Map(
         [...current].filter(([key, id]) => occupants.get(key) === id),
       );
       return kept.size === current.size ? current : kept;
     });
-  }, [occupants]);
+  }
   const isRetained = useCallback(
     (key: K) => occupants.has(key) && held.get(key) === occupants.get(key),
     [held, occupants],

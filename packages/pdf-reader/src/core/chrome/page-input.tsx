@@ -24,26 +24,17 @@ export function PageInput(): JSX.Element | null {
   const { host, actions, state, labels } = useChrome();
   const current = useAtomValue(state);
   const pageLabels = useAtomValue(labels);
-  const input = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const useLabels = current.showPageLabels && pageLabels !== null;
   const shown = pageText(pageLabels, useLabels, current.pageIndex);
   useLayoutEffect(() => {
-    const element = input.current;
+    const element = inputRef.current;
     if (element && element.ownerDocument.activeElement !== element) {
       element.value = shown;
     }
   }, [shown]);
-  const committed = useRef<() => void>(() => {});
-  useLayoutEffect(() => {
-    const element = input.current;
-    if (!element) return;
-    const listener = () => committed.current();
-    element.addEventListener("change", listener);
-    return () => element.removeEventListener("change", listener);
-  }, [useLabels, current.pageCount === 0]);
-  if (current.pageCount === 0) return null;
   const commit = () => {
-    const element = input.current;
+    const element = inputRef.current;
     if (!element) return;
     const index = pageIndexOf(
       element.value,
@@ -53,16 +44,28 @@ export function PageInput(): JSX.Element | null {
     if (index === null) element.value = shown;
     else actions.goToPage(index);
   };
-  committed.current = commit;
+  const empty = current.pageCount === 0;
+  const committedRef = useRef<() => void>(() => {});
+  useLayoutEffect(() => {
+    committedRef.current = commit;
+  });
+  useLayoutEffect(() => {
+    const element = inputRef.current;
+    if (!element) return;
+    const listener = () => committedRef.current();
+    element.addEventListener("change", listener);
+    return () => element.removeEventListener("change", listener);
+  }, [useLabels, empty]);
+  if (empty) return null;
   const common = {
-    ref: input,
+    ref: inputRef,
     "data-zpr-part": "page-input",
     "aria-label": host.t("pdf_reader_page_number"),
     defaultValue: shown,
     className: "zpr:w-14 zpr:text-center",
-    onClick: () => input.current?.select(),
+    onClick: () => inputRef.current?.select(),
     onBlur: () => {
-      if (input.current) input.current.value = shown;
+      if (inputRef.current) inputRef.current.value = shown;
     },
   };
   return (

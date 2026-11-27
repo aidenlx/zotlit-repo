@@ -155,6 +155,10 @@ export function testBaselineOverrides(directory?: string) {
   }));
 }
 
+const effectRecommendedErrors = Object.keys(recommended.rules ?? {}).map(
+  (rule) => [rule, "error"] as const,
+);
+
 const effectOptInRules = [
   "global-date",
   "global-date-in-effect",
@@ -203,6 +207,22 @@ export default defineConfig({
     "zotlit-build/no-app-path": "error",
     "zotlit-comments/no-tracker-reference": "error",
     "zotlit-messages/no-computed-message": "error",
+    "react/refs": "error",
+    "react/immutability": "error",
+    "react/set-state-in-effect": "error",
+    "react/preserve-manual-memoization": "off",
+    "react-hooks/exhaustive-deps": "error",
+    "typescript/require-array-sort-compare": "error",
+    "typescript/no-base-to-string": "error",
+    "typescript/restrict-template-expressions": "error",
+    "typescript/triple-slash-reference": "error",
+    "unicorn/no-useless-spread": "error",
+    "import/namespace": ["error", { allowComputed: true }],
+    "vitest/no-disabled-tests": "error",
+    "no-eval": "error",
+    "no-unused-expressions": "error",
+    "promise/no-callback-in-promise": "off",
+    "effecttsgo/unsafe-effect-type-assertion": "error",
     "import/extensions": [
       "error",
       "always",
@@ -211,6 +231,7 @@ export default defineConfig({
     "no-restricted-globals": ["error", nodeFreeGlobals],
     "zotlit-runtime/no-node-builtin": ["error", { message: nodeImportFix }],
     "typescript/no-restricted-types": ["error", dateTypes],
+    ...Object.fromEntries(effectRecommendedErrors),
     ...Object.fromEntries(effectOptInRules),
     ...Object.fromEntries(effectV3OnlyRules),
     ...Object.fromEntries(effectOffRules),

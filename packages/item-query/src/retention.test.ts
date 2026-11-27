@@ -262,7 +262,7 @@ it.each([undefined, "library"])(
                   projected.filter((row) => row.deref()).length,
                 );
               }),
-            end: () => Effect.succeed(summary),
+            end: Effect.succeed(summary),
           }),
       ),
       {
@@ -373,7 +373,7 @@ it("keeps the limit plus one row per group when papers fan out to many Tag group
           retained = scanned.filter((row) => row.deref()).length;
           return {
             write: () => Effect.void,
-            end: () => Effect.succeed(summary),
+            end: Effect.succeed(summary),
           };
         }),
     ),

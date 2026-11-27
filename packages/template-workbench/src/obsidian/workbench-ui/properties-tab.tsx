@@ -527,7 +527,11 @@ function EntryForm({
     if (focusName) nameInput.current?.focus();
   }, [focusName]);
   const [name, setName] = useState(entry.key ?? "");
-  useEffect(() => setName(entry.key ?? ""), [entry.key]);
+  const [shownKey, setShownKey] = useState(entry.key);
+  if (shownKey !== entry.key) {
+    setShownKey(entry.key);
+    setName(entry.key ?? "");
+  }
   const spread = entry.key === undefined;
   const locked = controller.readOnly || controller.managedEntriesHeld;
   const errorId = `${instanceId}-property-${entry.position}-errors`;

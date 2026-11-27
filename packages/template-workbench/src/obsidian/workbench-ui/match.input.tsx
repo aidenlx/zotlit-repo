@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import type { ComponentProps, ReactNode, RefObject } from "react";
 
 import { useUniqueId } from "@zotlit/ui";
@@ -20,7 +20,9 @@ export function useInputSuggestions(
   const host = useWorkbenchHost();
   const id = useUniqueId();
   const latest = useRef({ suggestions, hint, onSelect });
-  latest.current = { suggestions, hint, onSelect };
+  useLayoutEffect(() => {
+    latest.current = { suggestions, hint, onSelect };
+  });
   useEffect(() => {
     const input = inputRef.current;
     if (!input || !host.inputSuggestions) return;

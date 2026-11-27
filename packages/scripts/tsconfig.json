@@ -5,7 +5,13 @@
     "noEmit": true,
     "types": ["node"],
     "allowImportingTsExtensions": true,
-    "allowJs": true
+    "allowJs": true,
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "allowedUnstableApis": ["@effect/vitest"]
+      }
+    ]
   },
   "include": ["./lib/**/*.ts", "./scripts/**/*.ts"],
   "exclude": ["./node_modules"]

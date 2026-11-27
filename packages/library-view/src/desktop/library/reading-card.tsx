@@ -315,7 +315,6 @@ function Abstract({ abstract }: { abstract: string }) {
   const ref = useRef<HTMLParagraphElement>(null);
   const id = useUniqueId();
   useLayoutEffect(() => {
-    setOpen(false);
     const el = ref.current;
     if (!el) return;
     const measure = () => {
@@ -419,11 +418,16 @@ function CardBody({ card }: { card: ReadingCard }) {
   const fieldsId = useUniqueId();
   const bodyRef = useRef<HTMLDivElement>(null);
   const abstractRef = useRef<HTMLDivElement>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
   const bodyHeight = useRef(0);
   useLayoutEffect(() => {
     if (!loading && bodyRef.current)
       bodyHeight.current =
         bodyRef.current.offsetHeight + (abstractRef.current?.offsetHeight ?? 0);
+    loadingRef.current?.style.setProperty(
+      "--zt-card-body-height",
+      `${bodyHeight.current}px`,
+    );
   });
   const close = (
     <span className="zt:absolute zt:end-(--size-4-4) zt:top-(--size-4-4) zt:z-(--layer-cover) zt:flex zt:rounded-(--radius-s) zt:bg-(--background-primary)">
@@ -588,18 +592,14 @@ function CardBody({ card }: { card: ReadingCard }) {
               ref={abstractRef}
               className="zt:mt-(--size-4-4) zt:border-t-(length:--border-width) zt:border-(--background-modifier-border) zt:pt-(--size-4-4)"
             >
-              <Abstract abstract={item.abstract} />
+              <Abstract key={item.abstract} abstract={item.abstract} />
             </div>
           )}
         </div>
         {loading ? (
           <div
+            ref={loadingRef}
             data-library-card-loading=""
-            style={
-              {
-                "--zt-card-body-height": `${bodyHeight.current}px`,
-              } as CSSProperties
-            }
             className="zt:mt-(--size-4-4) zt:min-h-(--zt-card-body-height) zt:border-t-(length:--border-width) zt:border-(--background-modifier-border) zt:pt-(--size-4-4) zt:text-(length:--font-ui-small) zt:text-muted-foreground zt:@2xl/card:mt-0 zt:@2xl/card:border-t-0 zt:@2xl/card:pt-(--size-4-8)"
           >
             <span className={LOADING_TEXT}>{m.query_view_table_loading()}</span>

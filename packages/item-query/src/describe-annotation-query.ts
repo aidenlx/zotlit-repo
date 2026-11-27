@@ -1,3 +1,5 @@
+import { Effect } from "effect";
+
 import { ANNOTATION_POSITION_SHAPES } from "./annotation-position.ts";
 import {
   describeDatasetVocabulary,
@@ -12,7 +14,8 @@ export function describeAnnotationQueryVocabulary() {
   };
 }
 
-export const describeAnnotationQuery = () =>
+export const describeAnnotationQuery = Effect.suspend(() =>
   describeQuery(ANNOTATIONS, {
     positionKinds: ANNOTATION_POSITION_SHAPES,
-  });
+  }),
+);

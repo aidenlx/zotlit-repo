@@ -174,342 +174,337 @@ const NO_SKIPS: AttachmentSkipSummary = {
   blockedFolders: [],
 };
 
-export const layerAttachmentImport = (): Layer.Layer<
+export const layerAttachmentImport: Layer.Layer<
   AttachmentImport,
   never,
   AttachmentImportServices
-> =>
-  Layer.effect(
-    AttachmentImport,
-    Effect.gen(function* () {
-      const settings = yield* PluginSettings;
-      const pref = yield* ZoteroPref;
-      const fileManager = yield* FileManager;
-      const vault = yield* Vault;
-      const platform = (yield* ObsidianEnv).os;
-      const { basePath } = yield* VaultDisk;
-      const fs = yield* FileSystem.FileSystem;
-      const storage = yield* DeviceStorage;
-      const save = (folders: readonly string[]) =>
-        saveApprovedFolders(folders).pipe(
-          Effect.provideService(DeviceStorage, storage),
+> = Layer.effect(
+  AttachmentImport,
+  Effect.gen(function* () {
+    const settings = yield* PluginSettings;
+    const pref = yield* ZoteroPref;
+    const fileManager = yield* FileManager;
+    const vault = yield* Vault;
+    const platform = (yield* ObsidianEnv).os;
+    const { basePath } = yield* VaultDisk;
+    const fs = yield* FileSystem.FileSystem;
+    const storage = yield* DeviceStorage;
+    const save = (folders: readonly string[]) =>
+      saveApprovedFolders(folders).pipe(
+        Effect.provideService(DeviceStorage, storage),
+      );
+    const link = yield* markdownLinker;
+
+    const approved = yield* SubscriptionRef.make<readonly string[]>(
+      yield* Effect.orDie(loadApprovedFolders),
+    );
+    const roots = yield* SubscriptionRef.make<CanonicalRoots>(NO_ROOTS);
+    const rebuildRoots = SubscriptionRef.updateEffect(roots, () =>
+      Effect.gen(function* () {
+        const { dataDir, baseAttachmentPath } = yield* libraryFilePaths.pipe(
+          Effect.provideService(ZoteroPref, pref),
         );
-      const link = yield* markdownLinker;
-
-      const approved = yield* SubscriptionRef.make<readonly string[]>(
-        yield* Effect.orDie(loadApprovedFolders),
-      );
-      const roots = yield* SubscriptionRef.make<CanonicalRoots>(NO_ROOTS);
-      const rebuildRoots = SubscriptionRef.updateEffect(roots, () =>
-        Effect.gen(function* () {
-          const { dataDir, baseAttachmentPath } = yield* libraryFilePaths.pipe(
-            Effect.provideService(ZoteroPref, pref),
-          );
-          return yield* buildCanonicalRoots(
-            {
-              dataDir,
-              baseAttachmentPath,
-              approvedFolders: yield* SubscriptionRef.get(approved),
-            },
-            platform,
-          );
-        }),
-      );
-
-      const pending = yield* Ref.make(NO_SKIPS);
-      const nudges = yield* Queue.unbounded<void>();
-      const skipped = yield* PubSub.unbounded<AttachmentSkipSummary>();
-      yield* Effect.addFinalizer(() =>
-        Effect.all([
-          PubSub.shutdown(approved.pubsub),
-          PubSub.shutdown(roots.pubsub),
-          PubSub.shutdown(skipped),
-        ]),
-      );
-      yield* forkEach(
-        Stream.fromQueue(nudges).pipe(Stream.debounce(SKIP_SUMMARY_DEBOUNCE)),
-        () =>
-          Effect.gen(function* () {
-            const summary = yield* Ref.getAndSet(pending, NO_SKIPS);
-            if (summary.blocked === 0 && summary.refused === 0) return;
-            yield* PubSub.publish(skipped, summary);
-          }),
-      );
-      const reportSkips = (summary: AttachmentSkipSummary) =>
-        summary.blocked === 0 && summary.refused === 0
-          ? Effect.void
-          : Ref.update(pending, (before) => ({
-              blocked: before.blocked + summary.blocked,
-              refused: before.refused + summary.refused,
-              blockedFolders: [
-                ...new Set([
-                  ...before.blockedFolders,
-                  ...summary.blockedFolders,
-                ]),
-              ],
-            })).pipe(Effect.andThen(Queue.offer(nudges, undefined)));
-
-      yield* forkEach(
-        Stream.merge(
-          settings.changes.pipe(
-            Stream.filter((value) => value["attachment.import"]),
-          ),
-          resolvedChanged(pref),
-        ),
-        () => rebuildRoots,
-      );
-      yield* rebuildRoots;
-
-      const makeBatch = (input: {
-        readonly notePath: string;
-        readonly folderPath: string | null;
-        readonly importEnabled: boolean;
-      }): AttachmentImportBatch => {
-        const { notePath, importEnabled } = input;
-        const folderPath = normalizeFolderPath(input.folderPath);
-        const rootsNow = importEnabled
-          ? SubscriptionRef.get(roots)
-          : Effect.succeed(NO_ROOTS);
-        const items: PendingCopy[] = [];
-        let blocked = 0;
-        const blockedFolders = new Set<string>();
-        const blockedLogs: Pick<BlockedSource, "origin" | "reason">[] = [];
-
-        const blockedLink = (
-          source: BlockedSource,
-          vaultName: string,
-        ): TemplateLink => {
-          const link = fileUrlLink(source.path, vaultName);
-          if (!importEnabled) return link;
-          let counted = false;
-          return (alias, subpath) => {
-            if (!counted) {
-              counted = true;
-              blocked += 1;
-              if (source.origin === "linked-absolute") {
-                blockedFolders.add(sourceDirname(source.path));
-              }
-              blockedLogs.push({
-                origin: source.origin,
-                reason: source.reason,
-              });
-            }
-            return link(alias, subpath);
-          };
-        };
-
-        const confirmQueue = Effect.fnUntraced(function* (
-          queued: readonly PendingCopy[],
-        ) {
-          const confirmed: AttachmentCopyItem[] = [];
-          let refused = 0;
-          let missing = 0;
-          for (const item of queued) {
-            const { caseInsensitive } = yield* rootsNow;
-            const outcome = yield* confirmSource(
-              { path: item.path, root: item.root, origin: item.origin },
-              caseInsensitive,
-            );
-            switch (outcome.status) {
-              case "confirmed":
-                confirmed.push({ source: outcome.source, dest: item.dest });
-                break;
-              case "missing":
-                missing += 1;
-                yield* Effect.logWarning(
-                  "Skipped attachment with missing source",
-                ).pipe(Effect.annotateLogs({ origin: item.origin }));
-                break;
-              case "refused":
-                refused += 1;
-                yield* Effect.logWarning("Refused attachment source").pipe(
-                  Effect.annotateLogs({
-                    origin: item.origin,
-                    reason: outcome.reason,
-                  }),
-                );
-                break;
-            }
-          }
-          return { confirmed, refused, missing };
-        });
-
-        return {
-          decide: (path, origin) =>
-            decideSource(
-              path,
-              origin,
-              importEnabled ? SubscriptionRef.getUnsafe(roots) : NO_ROOTS,
-            ),
-          resolveLink: ({ source, vaultName }) => {
-            if (!source.approved) return blockedLink(source, vaultName);
-            const sourcePath = source.path;
-            if (!importEnabled || folderPath === null) {
-              return fileUrlLink(sourcePath, vaultName);
-            }
-            const safeName = normalizeFilename(vaultName);
-            const vaultPath = normalizePath(
-              joinFolderPath(folderPath, safeName),
-            );
-            const file = syntheticFile(vaultPath);
-            let queued = false;
-            return (alias, subpath) => {
-              if (!queued) {
-                queued = true;
-                items.push({
-                  path: sourcePath,
-                  origin: source.origin,
-                  root: source.root,
-                  dest: absoluteVaultPath(basePath, vaultPath, folderPath),
-                });
-              }
-              return link(file, notePath, {
-                ...(subpath === undefined ? {} : { subpath }),
-                ...(alias === undefined ? {} : { alias }),
-              });
-            };
+        return yield* buildCanonicalRoots(
+          {
+            dataDir,
+            baseAttachmentPath,
+            approvedFolders: yield* SubscriptionRef.get(approved),
           },
-          flush: Effect.gen(function* () {
-            const queued = items.splice(0);
-            for (const { origin, reason } of blockedLogs.splice(0)) {
-              yield* Effect.logWarning("Blocked attachment source").pipe(
-                Effect.annotateLogs({ origin, reason }),
-                logged,
-              );
-            }
-            const { copied, refused, missing } = yield* Effect.scoped(
-              Effect.gen(function* () {
-                const confirmation = yield* confirmQueue(queued);
-                if (confirmation.confirmed.length > 0 && folderPath) {
-                  yield* ensureVaultFolder(folderPath).pipe(
-                    Effect.provideService(Vault, vault),
-                  );
-                }
-                const copies = yield* copyAttachments(
-                  confirmation.confirmed,
-                ).pipe(
-                  Effect.mapError(
-                    (cause) =>
-                      new AttachmentCopyError({
-                        message: cause.message,
-                        cause,
-                      }),
-                  ),
-                );
-                return { ...confirmation, copied: copies };
-              }),
-            );
-            const skips: AttachmentSkipCounts = { blocked, refused };
-            blocked = 0;
-            const folders = [...blockedFolders];
-            blockedFolders.clear();
-            yield* reportSkips({ ...skips, blockedFolders: folders });
+          platform,
+        );
+      }),
+    );
 
-            const result: AttachmentImportResult = {
-              ...copied,
-              missing: copied.missing + missing,
-              ...skips,
-            };
-            yield* Effect.logDebug("Imported attachments").pipe(
-              Effect.annotateLogs({ ...result }),
-            );
-            return result;
-          }).pipe(
-            Effect.provideService(FileSystem.FileSystem, fs),
-            logged,
-            Effect.withSpan("AttachmentImport.flush"),
-          ),
-          discard: Effect.gen(function* () {
-            const dropped = items.splice(0).length;
-            if (dropped > 0) {
-              yield* Effect.logDebug(
-                "Discarded queued attachment imports",
-              ).pipe(Effect.annotateLogs({ dropped }), logged);
+    const pending = yield* Ref.make(NO_SKIPS);
+    const nudges = yield* Queue.unbounded<void>();
+    const skipped = yield* PubSub.unbounded<AttachmentSkipSummary>();
+    yield* Effect.addFinalizer(() =>
+      Effect.all([
+        PubSub.shutdown(approved.pubsub),
+        PubSub.shutdown(roots.pubsub),
+        PubSub.shutdown(skipped),
+      ]),
+    );
+    yield* forkEach(
+      Stream.fromQueue(nudges).pipe(Stream.debounce(SKIP_SUMMARY_DEBOUNCE)),
+      () =>
+        Effect.gen(function* () {
+          const summary = yield* Ref.getAndSet(pending, NO_SKIPS);
+          if (summary.blocked === 0 && summary.refused === 0) return;
+          yield* PubSub.publish(skipped, summary);
+        }),
+    );
+    const reportSkips = (summary: AttachmentSkipSummary) =>
+      summary.blocked === 0 && summary.refused === 0
+        ? Effect.void
+        : Ref.update(pending, (before) => ({
+            blocked: before.blocked + summary.blocked,
+            refused: before.refused + summary.refused,
+            blockedFolders: [
+              ...new Set([...before.blockedFolders, ...summary.blockedFolders]),
+            ],
+          })).pipe(Effect.andThen(Queue.offer(nudges, undefined)));
+
+    yield* forkEach(
+      Stream.merge(
+        settings.changes.pipe(
+          Stream.filter((value) => value["attachment.import"]),
+        ),
+        resolvedChanged(pref),
+      ),
+      () => rebuildRoots,
+    );
+    yield* rebuildRoots;
+
+    const makeBatch = (input: {
+      readonly notePath: string;
+      readonly folderPath: string | null;
+      readonly importEnabled: boolean;
+    }): AttachmentImportBatch => {
+      const { notePath, importEnabled } = input;
+      const folderPath = normalizeFolderPath(input.folderPath);
+      const rootsNow = importEnabled
+        ? SubscriptionRef.get(roots)
+        : Effect.succeed(NO_ROOTS);
+      const items: PendingCopy[] = [];
+      let blocked = 0;
+      const blockedFolders = new Set<string>();
+      const blockedLogs: Pick<BlockedSource, "origin" | "reason">[] = [];
+
+      const blockedLink = (
+        source: BlockedSource,
+        vaultName: string,
+      ): TemplateLink => {
+        const link = fileUrlLink(source.path, vaultName);
+        if (!importEnabled) return link;
+        let counted = false;
+        return (alias, subpath) => {
+          if (!counted) {
+            counted = true;
+            blocked += 1;
+            if (source.origin === "linked-absolute") {
+              blockedFolders.add(sourceDirname(source.path));
             }
-          }).pipe(Effect.withSpan("AttachmentImport.discard")),
+            blockedLogs.push({
+              origin: source.origin,
+              reason: source.reason,
+            });
+          }
+          return link(alias, subpath);
         };
       };
 
-      return AttachmentImport.of({
-        approvedFolders: SubscriptionRef.get(approved),
-        approvedFoldersChanges: SubscriptionRef.changes(approved),
-        rootsChanges: SubscriptionRef.changes(roots),
-        approveFolder: Effect.fn("AttachmentImport.approveFolder")(
-          function* (folder) {
-            const canonical = yield* canonicalize(folder).pipe(
-              Effect.catchTag("PlatformError", (error) =>
-                Effect.logWarning(
-                  "Ignored an approved folder that cannot be read",
-                ).pipe(
-                  Effect.annotateLogs({ reason: error.reason._tag }),
-                  logged,
-                  Effect.as(undefined),
-                ),
-              ),
-            );
-            if (canonical === undefined) return null;
-            if (canonical === null) {
+      const confirmQueue = Effect.fnUntraced(function* (
+        queued: readonly PendingCopy[],
+      ) {
+        const confirmed: AttachmentCopyItem[] = [];
+        let refused = 0;
+        let missing = 0;
+        for (const item of queued) {
+          const { caseInsensitive } = yield* rootsNow;
+          const outcome = yield* confirmSource(
+            { path: item.path, root: item.root, origin: item.origin },
+            caseInsensitive,
+          );
+          switch (outcome.status) {
+            case "confirmed":
+              confirmed.push({ source: outcome.source, dest: item.dest });
+              break;
+            case "missing":
+              missing += 1;
               yield* Effect.logWarning(
-                "Ignored an approved folder that does not resolve",
-              ).pipe(logged);
-              return null;
+                "Skipped attachment with missing source",
+              ).pipe(Effect.annotateLogs({ origin: item.origin }));
+              break;
+            case "refused":
+              refused += 1;
+              yield* Effect.logWarning("Refused attachment source").pipe(
+                Effect.annotateLogs({
+                  origin: item.origin,
+                  reason: outcome.reason,
+                }),
+              );
+              break;
+          }
+        }
+        return { confirmed, refused, missing };
+      });
+
+      return {
+        decide: (path, origin) =>
+          decideSource(
+            path,
+            origin,
+            importEnabled ? SubscriptionRef.getUnsafe(roots) : NO_ROOTS,
+          ),
+        resolveLink: ({ source, vaultName }) => {
+          if (!source.approved) return blockedLink(source, vaultName);
+          const sourcePath = source.path;
+          if (!importEnabled || folderPath === null) {
+            return fileUrlLink(sourcePath, vaultName);
+          }
+          const safeName = normalizeFilename(vaultName);
+          const vaultPath = normalizePath(joinFolderPath(folderPath, safeName));
+          const file = syntheticFile(vaultPath);
+          let queued = false;
+          return (alias, subpath) => {
+            if (!queued) {
+              queued = true;
+              items.push({
+                path: sourcePath,
+                origin: source.origin,
+                root: source.root,
+                dest: absoluteVaultPath(basePath, vaultPath, folderPath),
+              });
             }
-            yield* SubscriptionRef.updateSomeEffect(approved, (folders) => {
-              if (folders.includes(canonical)) return Effect.succeedNone;
-              const granted = [...folders, canonical];
-              return save(granted).pipe(Effect.as(Option.some(granted)));
+            return link(file, notePath, {
+              ...(subpath === undefined ? {} : { subpath }),
+              ...(alias === undefined ? {} : { alias }),
             });
-            yield* rebuildRoots;
-            return canonical;
-          },
-        ),
-        revokeFolder: Effect.fn("AttachmentImport.revokeFolder")(
-          function* (folder) {
-            const revoked = yield* SubscriptionRef.modifySomeEffect(
-              approved,
-              (folders) => {
-                const remaining = folders.filter((path) => path !== folder);
-                if (remaining.length === folders.length)
-                  return Effect.succeed([false, Option.none()] as const);
-                return save(remaining).pipe(
-                  Effect.as([true, Option.some(remaining)] as const),
-                );
-              },
-            );
-            if (revoked) yield* rebuildRoots;
-          },
-        ),
-        skipped: Stream.fromPubSub(skipped),
-        prepare: Effect.fn("AttachmentImport.prepare")(
-          function* (notePath, prepareOptions) {
-            const current = yield* settings.current;
-            const importEnabled = current["attachment.import"];
-            let folderPath: string | null = null;
-            if (importEnabled) {
-              const cache = prepareOptions?.folderCache;
-              const cacheKey = noteDirname(notePath);
-              const cached = cache?.get(cacheKey);
-              if (cached === undefined) {
-                folderPath = yield* attachmentFolderPath(
-                  current["attachment.folder-path"],
-                  notePath,
-                ).pipe(Effect.provideService(FileManager, fileManager));
-                cache?.set(cacheKey, folderPath);
-              } else {
-                folderPath = cached;
-              }
-              yield* rebuildRoots;
-            }
-            yield* Effect.logDebug("Prepared attachment import").pipe(
-              Effect.annotateLogs({ notePath, importEnabled, folderPath }),
+          };
+        },
+        flush: Effect.gen(function* () {
+          const queued = items.splice(0);
+          for (const { origin, reason } of blockedLogs.splice(0)) {
+            yield* Effect.logWarning("Blocked attachment source").pipe(
+              Effect.annotateLogs({ origin, reason }),
               logged,
             );
-            return makeBatch({ notePath, folderPath, importEnabled });
-          },
+          }
+          const { copied, refused, missing } = yield* Effect.scoped(
+            Effect.gen(function* () {
+              const confirmation = yield* confirmQueue(queued);
+              if (confirmation.confirmed.length > 0 && folderPath) {
+                yield* ensureVaultFolder(folderPath).pipe(
+                  Effect.provideService(Vault, vault),
+                );
+              }
+              const copies = yield* copyAttachments(
+                confirmation.confirmed,
+              ).pipe(
+                Effect.mapError(
+                  (cause) =>
+                    new AttachmentCopyError({
+                      message: cause.message,
+                      cause,
+                    }),
+                ),
+              );
+              return { ...confirmation, copied: copies };
+            }),
+          );
+          const skips: AttachmentSkipCounts = { blocked, refused };
+          blocked = 0;
+          const folders = [...blockedFolders];
+          blockedFolders.clear();
+          yield* reportSkips({ ...skips, blockedFolders: folders });
+
+          const result: AttachmentImportResult = {
+            ...copied,
+            missing: copied.missing + missing,
+            ...skips,
+          };
+          yield* Effect.logDebug("Imported attachments").pipe(
+            Effect.annotateLogs({ ...result }),
+          );
+          return result;
+        }).pipe(
+          Effect.provideService(FileSystem.FileSystem, fs),
+          logged,
+          Effect.withSpan("AttachmentImport.flush"),
         ),
-      });
-    }),
-  );
+        discard: Effect.gen(function* () {
+          const dropped = items.splice(0).length;
+          if (dropped > 0) {
+            yield* Effect.logDebug("Discarded queued attachment imports").pipe(
+              Effect.annotateLogs({ dropped }),
+              logged,
+            );
+          }
+        }).pipe(Effect.withSpan("AttachmentImport.discard")),
+      };
+    };
+
+    return AttachmentImport.of({
+      approvedFolders: SubscriptionRef.get(approved),
+      approvedFoldersChanges: SubscriptionRef.changes(approved),
+      rootsChanges: SubscriptionRef.changes(roots),
+      approveFolder: Effect.fn("AttachmentImport.approveFolder")(
+        function* (folder) {
+          const canonical = yield* canonicalize(folder).pipe(
+            Effect.catchTag("PlatformError", (error) =>
+              Effect.logWarning(
+                "Ignored an approved folder that cannot be read",
+              ).pipe(
+                Effect.annotateLogs({ reason: error.reason._tag }),
+                logged,
+                Effect.as(undefined),
+              ),
+            ),
+          );
+          if (canonical === undefined) return null;
+          if (canonical === null) {
+            yield* Effect.logWarning(
+              "Ignored an approved folder that does not resolve",
+            ).pipe(logged);
+            return null;
+          }
+          yield* SubscriptionRef.updateSomeEffect(approved, (folders) => {
+            if (folders.includes(canonical)) return Effect.succeedNone;
+            const granted = [...folders, canonical];
+            return save(granted).pipe(Effect.as(Option.some(granted)));
+          });
+          yield* rebuildRoots;
+          return canonical;
+        },
+      ),
+      revokeFolder: Effect.fn("AttachmentImport.revokeFolder")(
+        function* (folder) {
+          const revoked = yield* SubscriptionRef.modifySomeEffect(
+            approved,
+            (folders) => {
+              const remaining = folders.filter((path) => path !== folder);
+              if (remaining.length === folders.length)
+                return Effect.succeed([false, Option.none()] as const);
+              return save(remaining).pipe(
+                Effect.as([true, Option.some(remaining)] as const),
+              );
+            },
+          );
+          if (revoked) yield* rebuildRoots;
+        },
+      ),
+      skipped: Stream.fromPubSub(skipped),
+      prepare: Effect.fn("AttachmentImport.prepare")(
+        function* (notePath, prepareOptions) {
+          const current = yield* settings.current;
+          const importEnabled = current["attachment.import"];
+          let folderPath: string | null = null;
+          if (importEnabled) {
+            const cache = prepareOptions?.folderCache;
+            const cacheKey = noteDirname(notePath);
+            const cached = cache?.get(cacheKey);
+            if (cached === undefined) {
+              folderPath = yield* attachmentFolderPath(
+                current["attachment.folder-path"],
+                notePath,
+              ).pipe(Effect.provideService(FileManager, fileManager));
+              cache?.set(cacheKey, folderPath);
+            } else {
+              folderPath = cached;
+            }
+            yield* rebuildRoots;
+          }
+          yield* Effect.logDebug("Prepared attachment import").pipe(
+            Effect.annotateLogs({ notePath, importEnabled, folderPath }),
+            logged,
+          );
+          return makeBatch({ notePath, folderPath, importEnabled });
+        },
+      ),
+    });
+  }),
+);
 
 function absoluteVaultPath(
   basePath: string,

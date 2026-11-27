@@ -538,10 +538,9 @@ export function makeWorkbenchModel<R extends TemplateRenderResult>({
           Effect.flatMap((id) =>
             id === null ? Effect.void : Effect.sync(() => job.chosen(id)),
           ),
-          Effect.catchCause((cause) =>
-            Cause.hasInterruptsOnly(cause)
-              ? Effect.failCause(cause)
-              : Effect.void,
+          Effect.catchCauseIf(
+            (cause) => !Cause.hasInterruptsOnly(cause),
+            () => Effect.void,
           ),
         ),
       ),
@@ -550,10 +549,9 @@ export function makeWorkbenchModel<R extends TemplateRenderResult>({
       runtime.fn((job: CreatePartialJob) =>
         job.create.pipe(
           Effect.flatMap((insert) => Effect.sync(() => job.created(insert))),
-          Effect.catchCause((cause) =>
-            Cause.hasInterruptsOnly(cause)
-              ? Effect.failCause(cause)
-              : Effect.void,
+          Effect.catchCauseIf(
+            (cause) => !Cause.hasInterruptsOnly(cause),
+            () => Effect.void,
           ),
         ),
       ),

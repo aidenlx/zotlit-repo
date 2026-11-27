@@ -243,7 +243,7 @@ export class LibrarySearch extends Component {
   }
 
   /** @internal The box's input, for {@link focus}. */
-  set input(input: HTMLInputElement | null) {
+  attachInput(input: HTMLInputElement | null): void {
     this.#input = input;
   }
 }
@@ -257,9 +257,7 @@ function SearchBox({ search }: { search: LibrarySearch }) {
         {m.library_view_search_label()}
       </span>
       <SearchInput
-        ref={(input) => {
-          search.input = input;
-        }}
+        ref={(input) => search.attachInput(input)}
         type="text"
         aria-labelledby={label}
         className="zt:w-full"

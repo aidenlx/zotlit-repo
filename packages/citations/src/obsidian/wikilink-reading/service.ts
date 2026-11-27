@@ -3,7 +3,7 @@ import type {
   ShownCitation,
 } from "#obsidian/citation-text/present.ts";
 import type { CitationHover } from "#obsidian/citekey-navigation/index.ts";
-import { Effect, Layer } from "effect";
+import { Effect, Exit, Layer, Scope } from "effect";
 import { setTooltip } from "obsidian";
 import type { MarkdownPostProcessorContext } from "obsidian";
 
@@ -262,12 +262,12 @@ export const layerWikilinkReading = Layer.effectDiscard(
       if (!hasInternalLink(el)) return;
       const rendered: RenderedRuns = new Map();
       const diagnosedAnchors = new Set<HTMLAnchorElement>();
-      let gestures = new AbortController();
+      let gestures: Scope.Closeable | undefined;
       const rewrite = Effect.gen(function* () {
         if (retired) return;
-        gestures.abort();
-        gestures = new AbortController();
-        const signal = gestures.signal;
+        if (gestures !== undefined) yield* Scope.close(gestures, Exit.void);
+        gestures = yield* Scope.make();
+        const signal = yield* Effect.abortSignal.pipe(Scope.provide(gestures));
         const file = yield* vault.getFileByPath(ctx.sourcePath);
         const text = file === null ? null : yield* citationText.peek(file.path);
         if (text === null) return;

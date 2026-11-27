@@ -227,9 +227,11 @@ export function PinnedPopover({
     round: number;
   } | null>(null);
   const notify = useRef(onOpenChange);
-  notify.current = onOpenChange;
   const escape = useRef(onEscape);
-  escape.current = onEscape;
+  useLayoutEffect(() => {
+    notify.current = onOpenChange;
+    escape.current = onEscape;
+  });
 
   useLayoutEffect(() => {
     enclosing?.children.add(node);

@@ -72,10 +72,11 @@ export const layerItemMatchQuery = Layer.effect(
   Effect.gen(function* () {
     const query = yield* QueryService;
     return ItemMatchQuery.of({
-      matches: (items, filters) =>
+      matches: Effect.fn("ItemMatchQuery.matches")((items, filters) =>
         Effect.map(query.run(matchesRequest(items, filters)), (outcome) =>
           readMatches(outcome, filters),
         ),
+      ),
       customFieldNames: query.customFieldNames,
     });
   }),

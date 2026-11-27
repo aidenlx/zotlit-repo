@@ -4,7 +4,7 @@ import { existsSync, rmSync } from "node:fs";
 import { dirname } from "node:path";
 import { constants } from "node:sqlite";
 import type { DatabaseSync } from "node:sqlite";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, assert, describe, expect, it } from "vitest";
 
 import type {
   ScenarioDatabase,
@@ -158,15 +158,13 @@ describe("the layout check", () => {
 
     const error = failureOf(run(copy, firstPage));
 
-    expect(error).toBeInstanceOf(ItemQueryLayoutError);
+    assert.instanceOf(error, ItemQueryLayoutError);
     expect(error).toMatchObject({
       missing: [{ table: "fieldsCombined", column: "custom" }],
       versions: { userdata: 129, compatibility: 9 },
     });
-    expect((error as ItemQueryLayoutError).message).toContain(
-      "fieldsCombined.custom",
-    );
-    expect((error as ItemQueryLayoutError).message).toContain("Update ZotLit");
+    expect(error.message).toContain("fieldsCombined.custom");
+    expect(error.message).toContain("Update ZotLit");
   });
 
   it("names a missing table once", () => {
@@ -174,7 +172,7 @@ describe("the layout check", () => {
       sqlite.exec('drop table "deletedItems"');
     });
 
-    expect(failureOf(run(copy, checkLayout()))).toMatchObject({
+    expect(failureOf(run(copy, checkLayout))).toMatchObject({
       _tag: "ItemQueryLayoutError",
       missing: [{ table: "deletedItems", column: null }],
     });
@@ -200,7 +198,7 @@ describe("the layout check", () => {
 
   it("keeps the check result for the life of the copy", () => {
     using passed = openCopy();
-    expect(Exit.isSuccess(run(passed, checkLayout()))).toBe(true);
+    expect(Exit.isSuccess(run(passed, checkLayout))).toBe(true);
     passed.sqlite.exec('drop table "deletedItems"');
     expect(failureOf(run(passed, firstPage))).toBeInstanceOf(
       ItemQueryDatabaseError,
@@ -210,7 +208,7 @@ describe("the layout check", () => {
     using failed = openCopy((sqlite) => {
       sqlite.exec('drop table "deletedItems"');
     });
-    expect(failureOf(run(failed, checkLayout()))).toBeInstanceOf(
+    expect(failureOf(run(failed, checkLayout))).toBeInstanceOf(
       ItemQueryLayoutError,
     );
     failed.sqlite.exec(

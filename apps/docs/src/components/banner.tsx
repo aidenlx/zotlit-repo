@@ -1,6 +1,6 @@
 import { buttonVariants } from "fumadocs-ui/components/ui/button";
 import { X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { HTMLAttributes } from "react";
 
 import { cn } from "@/lib/cn.ts";
@@ -32,13 +32,15 @@ export function Banner({
 
   changeLayout?: boolean;
 }) {
-  const [open, setOpen] = useState(true);
+  const [closed, setClosed] = useState(false);
   const globalKey = id ? `nd-banner-${encodeBase32(id)}` : null;
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (globalKey && localStorage.getItem(globalKey) === "true") setOpen(false);
-  }, [globalKey]);
+  const dismissed = useSyncExternalStore(
+    subscribeToNothing,
+    () => !!globalKey && localStorage.getItem(globalKey) === "true",
+    () => false,
+  );
+  const open = !closed && !dismissed;
 
   useEffect(() => {
     const el = ref.current;
@@ -56,7 +58,7 @@ export function Banner({
   }, [changeLayout, open]);
 
   function onClose() {
-    setOpen(false);
+    setClosed(true);
     if (globalKey) localStorage.setItem(globalKey, "true");
     onCloseProp?.();
   }
@@ -122,6 +124,10 @@ export function Banner({
       ) : null}
     </div>
   );
+}
+
+function subscribeToNothing() {
+  return () => {};
 }
 
 const maskImage =

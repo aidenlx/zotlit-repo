@@ -52,11 +52,12 @@ function Thumbnail(props: {
       lifetime.abort();
     };
   }, [actions, props.pageIndex, props.root, theme]);
+  const current = props.current;
   useEffect(() => {
-    if (props.current && item.current && props.root) {
+    if (current && item.current && props.root) {
       scrollNearest(props.root, item.current);
     }
-  }, [props.current, props.root]);
+  }, [current, props.root]);
   const page = props.pageIndex + 1;
   return (
     <a

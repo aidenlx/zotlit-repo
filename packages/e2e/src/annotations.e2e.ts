@@ -107,7 +107,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
                 ) ?? [],
                 (el) => el.getAttribute("data-zotero-annotation-key"),
               ).filter(Boolean);
-              return [...new Set(cards)].sort();
+              return [...new Set(cards)].sort((a, b) =>
+                String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+              );
             })();
           },
           undefined,
@@ -182,7 +184,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
                 ) ?? [],
                 (el) => el.getAttribute("data-zotero-annotation-key"),
               ).filter(Boolean);
-              return [...new Set(cards)].sort();
+              return [...new Set(cards)].sort((a, b) =>
+                String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+              );
             })();
           },
           undefined,
@@ -529,7 +533,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
               ) ?? [],
               (el) => el.getAttribute("data-zotero-annotation-key"),
             ).filter((key) => pageKeys.includes(key!));
-            return [...new Set(marks)].sort();
+            return [...new Set(marks)].sort((a, b) =>
+              String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+            );
           },
           {
             annotationAttachmentPath: annotationAttachment.path,
@@ -1237,7 +1243,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ),
         ]
           .map((n) => n.getAttribute("data-zotero-annotation-key"))
-          .sort();
+          .sort((a, b) =>
+            String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+          );
       },
       undefined,
       {
@@ -1272,7 +1280,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
           ),
         ]
           .map((n) => n.getAttribute("data-zotero-annotation-key"))
-          .sort();
+          .sort((a, b) =>
+            String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+          );
       },
       undefined,
       {
@@ -1490,7 +1500,9 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
             ),
           ]
             .map((node) => node.getAttribute("data-zotero-annotation-key"))
-            .sort(),
+            .sort((a, b) =>
+              String(a) < String(b) ? -1 : String(a) > String(b) ? 1 : 0,
+            ),
           diagnostic:
             el
               .querySelector("[data-query-diagnostic]")

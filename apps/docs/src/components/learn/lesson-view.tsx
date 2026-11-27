@@ -1,9 +1,15 @@
-import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  Link,
+  useHydrated,
+  useLocation,
+  useNavigate,
+} from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
 import {
   use,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -104,11 +110,19 @@ export function LessonView({
   const hash = useLocation({ select: (location) => location.hash });
   const navigate = useNavigate();
   const wide = useWide();
-  const [ready, setReady] = useState(false);
-  const [ticks, setTicks] = useState<ReadonlySet<number>>(new Set());
+  const ready = useHydrated();
+  const progress = useMemo<Record<string, LessonProgress>>(
+    () => (ready ? readProgress() : {}),
+    [ready],
+  );
+  const savedTicks = useMemo<ReadonlySet<number>>(
+    () => new Set(progress[lesson.slug]?.ticks),
+    [progress, lesson.slug],
+  );
+  const [tickedTicks, setTicks] = useState<ReadonlySet<number> | null>(null);
+  const ticks = tickedTicks ?? savedTicks;
   const [open, setOpen] = useState<number | null>(null);
   const [launched, setLaunched] = useState<number | null>(null);
-  const [progress, setProgress] = useState<Record<string, LessonProgress>>({});
   const [say, setSay] = useState("");
   const currentTicks = useRef<ReadonlySet<number>>(new Set());
   const written = useRef<string | null>(null);
@@ -119,14 +133,9 @@ export function LessonView({
   }, []);
 
   useLayoutEffect(() => {
-    const all = readProgress();
-    const saved = new Set(all[lesson.slug]?.ticks);
-    currentTicks.current = saved;
+    currentTicks.current = savedTicks;
     written.current = null;
-    setProgress(all);
-    setTicks(saved);
-    setReady(true);
-  }, [lesson.slug]);
+  }, [savedTicks]);
 
   useLayoutEffect(() => {
     if (!ready) return;

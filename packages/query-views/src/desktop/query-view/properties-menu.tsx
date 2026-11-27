@@ -168,7 +168,9 @@ function PropertyList({
     return shared;
   }, [properties]);
   const keys = useRef({ order, setOrder, page });
-  keys.current = { order, setOrder, page };
+  useLayoutEffect(() => {
+    keys.current = { order, setOrder, page };
+  });
   const groups = useMemo<ChooserGroup<ChooserRow>[]>(() => {
     const items = rows.map((entry): ChooserItemRow => ({
       ...propertyRow(entry),

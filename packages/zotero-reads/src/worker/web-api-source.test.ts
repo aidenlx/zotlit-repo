@@ -72,6 +72,15 @@ const until = (predicate: () => boolean, what: string) =>
     throw new Error(`Timed out waiting for ${what}`);
   });
 
+const untilStatus = (check: Effect.Effect<boolean>, what: string) =>
+  Effect.gen(function* () {
+    for (let i = 0; i < 400; i++) {
+      if (yield* check) return;
+      yield* pause();
+    }
+    throw new Error(`Timed out waiting for ${what}`);
+  });
+
 const source = (
   api: SeededApi,
   options: Parameters<typeof memoryWebApiSource>[1] = {},
@@ -337,8 +346,8 @@ describe("the Web API source", () => {
         });
         events.length = 0;
         const refreshing = yield* Effect.forkChild(connection.refresh);
-        yield* until(
-          () => Effect.runSync(sync.status).waitingForReaders,
+        yield* untilStatus(
+          Effect.map(sync.status, (status) => status.waitingForReaders),
           "the apply to wait",
         );
         const { progress } = yield* sync.status;
@@ -388,8 +397,8 @@ describe("the Web API source", () => {
           () => keysRequests(api) === before + 2,
           "the key check of the new sync",
         );
-        yield* until(
-          () => !Effect.runSync(sync.status).syncing,
+        yield* untilStatus(
+          Effect.map(sync.status, (status) => !status.syncing),
           "the sync with the new key",
         );
         expect(yield* sync.status).toMatchObject({
@@ -455,8 +464,8 @@ describe("the Web API source", () => {
           request.path.endsWith("/deleted"),
         );
         const { connection, sync } = yield* source(api);
-        yield* until(
-          () => Effect.runSync(sync.status).progress !== null,
+        yield* untilStatus(
+          Effect.map(sync.status, (status) => status.progress !== null),
           "the progress of the first build",
         );
         expect(yield* sync.status).toMatchObject({
@@ -505,8 +514,8 @@ describe("the Web API source", () => {
           request.path.endsWith("/deleted"),
         );
         const refreshing = yield* Effect.forkChild(connection.refresh);
-        yield* until(
-          () => Effect.runSync(service.status).progress !== null,
+        yield* untilStatus(
+          Effect.map(service.status, (status) => status.progress !== null),
           "the download progress",
         );
         expect((yield* service.status).progress).toMatchObject({
@@ -1123,8 +1132,8 @@ describe("the Web API source", () => {
           );
         });
         const refreshing = yield* Effect.forkChild(connection.refresh);
-        yield* until(
-          () => Effect.runSync(sync.status).waitingForReaders,
+        yield* untilStatus(
+          Effect.map(sync.status, (status) => status.waitingForReaders),
           "the apply to wait at the budget",
         );
         const waiting = yield* sync.status;
@@ -1468,8 +1477,8 @@ describe("the Web API source", () => {
             }),
           ),
         );
-        yield* until(
-          () => Effect.runSync(sync.status).waitingForReaders,
+        yield* untilStatus(
+          Effect.map(sync.status, (status) => status.waitingForReaders),
           "the removal to wait",
         );
         const waiting = yield* Effect.forkChild(
@@ -1506,8 +1515,8 @@ describe("the Web API source", () => {
             }),
           ),
         );
-        yield* until(
-          () => Effect.runSync(sync.status).waitingForReaders,
+        yield* untilStatus(
+          Effect.map(sync.status, (status) => status.waitingForReaders),
           "the removal to wait",
         );
         api.api
@@ -1523,8 +1532,8 @@ describe("the Web API source", () => {
         expect(yield* read(connection, (client) => titleOf(client))).toBe(
           "Changed while removing",
         );
-        yield* until(
-          () => Effect.runSync(sync.status).state === "ready",
+        yield* untilStatus(
+          Effect.map(sync.status, (status) => status.state === "ready"),
           "the rebuilt replica",
         );
       }).pipe(Effect.scoped),
@@ -1665,8 +1674,8 @@ describe("the Web API source", () => {
           username: "someone else",
         });
         yield* connection.configure(webApiConfig(other));
-        yield* until(
-          () => Effect.runSync(sync.status).problem !== null,
+        yield* untilStatus(
+          Effect.map(sync.status, (status) => status.problem !== null),
           "the account check",
         );
         expect(yield* sync.status).toMatchObject({

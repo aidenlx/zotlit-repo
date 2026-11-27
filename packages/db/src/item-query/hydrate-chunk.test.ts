@@ -54,7 +54,7 @@ function hydrate(
   const ids = names.map((name) => itemID(scenario, name));
   const hydrated = runOk(
     scenario,
-    Effect.flatMap(readFieldVocabulary(), (vocabulary) =>
+    Effect.flatMap(readFieldVocabulary, (vocabulary) =>
       readHydrateChunk({ vocabulary, itemIDs: ids, fields }),
     ),
   );
@@ -70,7 +70,7 @@ function hydrateRelations(
   const hydrated = runOk(
     scenario,
     Effect.gen(function* () {
-      const vocabulary = yield* readFieldVocabulary();
+      const vocabulary = yield* readFieldVocabulary;
       const collectionPaths = yield* readCollectionPaths({ libraryID: 1 });
       return yield* readHydrateChunk({
         vocabulary,
@@ -93,7 +93,7 @@ const plain = (item: HydratedItem | undefined) =>
 describe("readFieldVocabulary", () => {
   it("lists the custom fields of the source by exact name", () => {
     using scenario = openScenarioDatabase(connectClient);
-    const vocabulary = runOk(scenario, readFieldVocabulary());
+    const vocabulary = runOk(scenario, readFieldVocabulary);
 
     expect(vocabulary.customFieldNames).toEqual([
       "review.status",
@@ -154,7 +154,7 @@ describe("readHydrateChunk", () => {
 
     runOk(
       scenario,
-      Effect.flatMap(readFieldVocabulary(), (vocabulary) =>
+      Effect.flatMap(readFieldVocabulary, (vocabulary) =>
         readHydrateChunk({
           vocabulary,
           itemIDs: [id],
@@ -348,7 +348,7 @@ describe("readHydrateChunk", () => {
     expect(() =>
       runOk(
         scenario,
-        Effect.flatMap(readFieldVocabulary(), (vocabulary) =>
+        Effect.flatMap(readFieldVocabulary, (vocabulary) =>
           readHydrateChunk({
             vocabulary,
             itemIDs: ids,

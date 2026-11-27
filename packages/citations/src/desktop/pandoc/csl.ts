@@ -42,14 +42,14 @@ export interface CslError {
   message: string;
 }
 
-export class CslWriteError extends Schema.TaggedError<CslWriteError>()(
-  "CslWriteError",
-  {
-    styleId: Schema.String,
-    parentId: Schema.UndefinedOr(Schema.String),
-    cause: Schema.instanceOf(PlatformError.PlatformError),
-  },
-) {}
+export class CslWriteError extends Schema.TaggedError<
+  CslWriteError,
+  { readonly brand: unique symbol }
+>()("CslWriteError", {
+  styleId: Schema.String,
+  parentId: Schema.UndefinedOr(Schema.String),
+  cause: Schema.instanceOf(PlatformError.PlatformError),
+}) {}
 
 export function cslWriteFailedResponse({
   styleId,

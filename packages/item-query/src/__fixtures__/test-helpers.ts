@@ -83,30 +83,23 @@ export async function runEffect<A, E>(
   const services = Context.make(
     Clock.Clock,
     fixedClock(options.now ?? TEST_NOW),
-  )
-    .pipe(Context.add(QueryTimeZone, options.timeZone ?? "UTC"))
-    .pipe(
-      Context.add(ItemQueryTuning, { ...PRODUCTION_TUNING, ...options.tuning }),
-    )
-    .pipe(
-      Context.add(ItemQueryDatabase, {
-        get client(): ZoteroDatabase {
-          if (options.client) return options.client;
-          throw new Error("the test passed no database client to runEffect.");
-        },
-      }),
-    )
-    .pipe(
-      Context.add(ItemQueryStatementObserver, (statement) =>
-        record({ type: "statement", statement }),
-      ),
-    )
-    .pipe(
-      Context.add(ItemQuerySliceObserver, {
-        paused: () => record({ type: "pause" }),
-        resumed: () => options.onResume?.(),
-      }),
-    );
+  ).pipe(
+    Context.add(QueryTimeZone, options.timeZone ?? "UTC"),
+    Context.add(ItemQueryTuning, { ...PRODUCTION_TUNING, ...options.tuning }),
+    Context.add(ItemQueryDatabase, {
+      get client(): ZoteroDatabase {
+        if (options.client) return options.client;
+        throw new Error("the test passed no database client to runEffect.");
+      },
+    }),
+    Context.add(ItemQueryStatementObserver, (statement) =>
+      record({ type: "statement", statement }),
+    ),
+    Context.add(ItemQuerySliceObserver, {
+      paused: () => record({ type: "pause" }),
+      resumed: () => options.onResume?.(),
+    }),
+  );
   const provided = Effect.provideContext(effect, services);
   const runnable = options.logs
     ? Effect.provideService(
