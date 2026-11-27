@@ -70,7 +70,7 @@ empty history, then reopen it. After undoing a resize, check
 that Zotero restores the seeded position and Sort Index and
 that the Reader lands on the changed Annotation.
 
-[Paired resize history](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired resize history](../../../../packages/e2e/src/paired-mark-handles.e2e.ts)
 
 ### Paired history proof
 
@@ -91,7 +91,7 @@ Reader leaves that chord to the editor and Zotero keeps the
 last saved value. For a multi-tag edit, verify Undo restores
 the original automatic tag type as well as the name.
 
-[Paired history cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired history cases](../../../../packages/e2e/src/paired-annotation-history.e2e.ts)
 
 Use disposable Annotations for delete history because Zotero
 assigns a new key on restore. Wait for the reopened Reader's
@@ -109,7 +109,7 @@ list during restores. Close any remaining confirmation as
 Cancel during teardown. For quoted-text autosaves, Undo a
 complete session and verify its seeded range and Sort Index.
 
-[Paired restore and group history](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired restore and group history](../../../../packages/e2e/src/paired-annotation-history.e2e.ts)
 
 Use two disposable records of different colors for grouped
 color Undo. Wait for both writes and read-back before one
@@ -119,7 +119,7 @@ Annotation View, the note's own focus gives Undo to its
 editor. Observe that no write reaches Zotero. With a card
 focused, the chord instead undoes its Annotation edit.
 
-[Paired grouped and embedded history](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired grouped and embedded history](../../../../packages/e2e/src/paired-card-selection.e2e.ts)
 
 ## Amendment: a grouped step keeps its confirmed part
 

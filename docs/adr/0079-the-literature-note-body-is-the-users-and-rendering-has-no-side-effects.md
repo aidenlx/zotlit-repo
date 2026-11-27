@@ -52,7 +52,7 @@ Managed Region can migrate to the Query Block on full update.
 Use the legacy text as the starting state and preserve the
 citations and Attachment links below that region.
 
-[Paired Literature Note cases](../../packages/e2e/src/paired-run.e2e.ts)
+[Paired Literature Note cases](../../packages/e2e/src/paired-query.e2e.ts)
 
 Keep the originating Literature Note in the Workbench session, independent of the Preview Item or focus changes. A later launch supersedes an unfinished target lookup. Update joins an in-progress update, saves the template, waits for compilation, and checks both the saved source and its revision before writing the note. The note operation checks the Item key in the content being replaced. A changed target or source revision cancels the write. Closing the Workbench interrupts the operation before it writes, and an already started write finishes. Report template-save and note-update outcomes separately. Mark the session's note unavailable if its key changed.
 

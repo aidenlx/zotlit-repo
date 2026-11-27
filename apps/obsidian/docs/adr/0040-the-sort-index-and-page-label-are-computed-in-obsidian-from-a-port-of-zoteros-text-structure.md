@@ -150,7 +150,7 @@ toward the PDF origin and can change the top component of its
 Sort Index. Use the stored geometry and confirm the index
 through the Local API.
 
-[Paired index checks](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired index checks](../../../../packages/e2e/src/paired-mark-handles.e2e.ts)
 
 For a range edit, wait for the text layer and choose a point
 inside the intended word. A release past the midpoint of
@@ -159,7 +159,7 @@ word boundaries against Zotero, including the space added by
 the text structure. Recompute the Sort Index from the
 resulting rectangle or range in all geometry cases.
 
-[Range and geometry proof](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Range and geometry proof](../../../../packages/e2e/src/paired-mark-handles.e2e.ts)
 
 ## Amendment: a failed page read is read again
 

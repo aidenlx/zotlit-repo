@@ -80,7 +80,7 @@ test must observe the changed value in the Zotero Reader,
 Obsidian overlay, and Annotation Card, since a Mark
 does not paint comment text.
 
-[Paired Reader cases](../../packages/e2e/src/paired-run.e2e.ts)
+[Paired Reader cases](../../packages/e2e/src/paired-mark-handles.e2e.ts)
 
 For a highlight handle gesture, wait for the text layer
 even if the overlay has already drawn. Confirm the handle
@@ -88,7 +88,7 @@ is the top hit at its center and stable before one drag.
 Read the stored edit once Zotero's open Reader has settled.
 Check its range, overlay, and Annotation Card quote.
 
-[Paired range cases](../../packages/e2e/src/paired-run.e2e.ts)
+[Paired range cases](../../packages/e2e/src/paired-mark-handles.e2e.ts)
 
 The desktop build opts in to the Annotation Suggester and its trigger
 setting through ANNOTATION_SUGGESTER_ENABLED. Leave the feature off

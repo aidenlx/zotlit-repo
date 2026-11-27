@@ -16,7 +16,7 @@ focus and the tab behind the **Zotero library** view by the case "opens a PDF
 from the Library View card" in the same file, the focus that moves away while a
 PDF loads by the case "keeps the focus" in `src/reader.e2e.ts`, and the
 Form XObject PDF by the Paired Run check
-`pnpm e2e --project=paired src/paired-run.e2e.ts -t E-1`, which compares the
+`pnpm e2e --project=paired src/paired-mark-handles.e2e.ts -t E-1`, which compares the
 highlight's Page Label and Sort Index with the values Zotero's own reader
 gives. The desktop check, `pnpm e2e --project=desktop src/zotlit-pdf-editor.e2e.ts`,
 covers the annotation links, the Creation Toolbar on a narrow tab, the PDFs

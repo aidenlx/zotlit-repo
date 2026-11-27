@@ -82,4 +82,4 @@ When checking the Zotero Last Read write, wait for both the
 value and its version to change. Zotero's Local API can expose
 the in-memory value at the previous version before commit.
 
-[Paired Last Read proof](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired Last Read proof](../../../../packages/e2e/src/paired-local-api.e2e.ts)

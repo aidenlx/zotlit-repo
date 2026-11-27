@@ -502,7 +502,7 @@ endpoint and for ZotLit to read the profile's add-on list.
 An earlier readiness check can run export while Zotero is
 still starting and take the fallback route.
 
-[Paired export case](../../packages/e2e/src/paired-run.e2e.ts)
+[Paired export case](../../packages/e2e/src/paired-local-api.e2e.ts)
 
 The desktop hover case waits for formatted citation output. Hover
 each distinct element once so the test does not restart its opening

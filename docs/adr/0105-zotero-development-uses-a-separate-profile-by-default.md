@@ -49,12 +49,12 @@ desktop Obsidian is unreachable, before loading the generated
 dev message facade. Prepare windows for background animation
 frames because the run rarely shows them.
 
-[Paired Run](../../packages/e2e/src/paired-run.e2e.ts)
+[Paired Run](../../packages/e2e/src/paired-run-fixture.ts)
 
 The paired PDF digest reads the copy inside the run's vault.
 Its Fixture links the Attachment with a vault-rooted path.
 
-[Paired PDF digest](../../packages/e2e/src/paired-run.e2e.ts)
+[Paired PDF digest](../../packages/e2e/src/paired-run-fixture.ts)
 
 ### Fixture launches and reports
 

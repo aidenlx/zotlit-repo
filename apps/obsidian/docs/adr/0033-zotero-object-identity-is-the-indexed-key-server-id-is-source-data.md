@@ -25,4 +25,4 @@ Local API. The Paired Run records that malformed keys can
 lose the parent constraint and return unrelated Annotations.
 A valid but absent key returns an empty result.
 
-[Local API read contract](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Local API read contract](../../../../packages/e2e/src/paired-local-api.e2e.ts)

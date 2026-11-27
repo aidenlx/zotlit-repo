@@ -85,7 +85,7 @@ with neither editor nor confirmed chips. If a seeded Mark
 shares the click point, step to the created one before
 checking the popup.
 
-[Paired session cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired session cases](../../../../packages/e2e/src/paired-annotation-sync.e2e.ts)
 
 Send focus events explicitly in the paired session case because
 a background window may not deliver them. Blur saves the first
@@ -93,11 +93,11 @@ session while keeping the editor open. Refocus begins a later
 session, which Escape saves and closes. Undo each session in
 reverse order.
 
-[Blur and session cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Blur and session cases](../../../../packages/e2e/src/paired-annotation-history.e2e.ts)
 
 Compare tags by name and type because a manual and automatic
 tag can share visible text. The card and popup share the
 inline editor and its gesture helpers. Find an automatic
 chip by its name because it also carries a type label.
 
-[Paired tag helpers](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired tag helpers](../../../../packages/e2e/src/paired-run-fixture.ts)

@@ -71,6 +71,6 @@ its characters in Zotero's shape, and the parity test feeds Zotero's own
 records to the line grouping. The byte-identity case proves the vendored
 `structure.js`. ZotLit reads the fork's records through
 `readerPageSource` in `packages/annotations/src/obsidian/pdf-annotation-editor/text-structure.ts`.
-The End-to-end Run case E-1 in `packages/e2e/src/paired-run.e2e.ts` checks the
+The End-to-end Run case E-1 in `packages/e2e/src/paired-mark-handles.e2e.ts` checks the
 result against Zotero: a highlight made in the ZotLit PDF Reader gets the Sort
 Index and Page Label that Zotero's own reader computes for it.

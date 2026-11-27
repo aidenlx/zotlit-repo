@@ -17,7 +17,7 @@ export default defineConfig({
         test: {
           name: "desktop",
           include: ["src/**/*.e2e.ts"],
-          exclude: ["src/paired-run.e2e.ts"],
+          exclude: ["src/paired-*.e2e.ts"],
           globalSetup: ["./src/container-obsidian.ts"],
         },
       },
@@ -25,7 +25,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: "paired",
-          include: ["src/paired-run.e2e.ts"],
+          include: ["src/paired-*.e2e.ts"],
           globalSetup: ["./src/container-obsidian.ts", "./src/paired-setup.ts"],
         },
       },

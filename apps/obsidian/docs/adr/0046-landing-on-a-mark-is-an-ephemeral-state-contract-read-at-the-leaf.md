@@ -73,4 +73,4 @@ Start with the PDF pages away from the target when proving a
 card-triggered Landing. The target mark becomes visible
 through the Landing's own scroll.
 
-[Paired scroll proof](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired scroll proof](../../../../packages/e2e/src/paired-card-selection.e2e.ts)

@@ -73,4 +73,4 @@ Check that a pending comment stays as entered when revisiting
 the PDF. Escape closes the editor first and then the selection,
 with no write for a cancelled draft.
 
-[Paired popup cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired popup cases](../../../../packages/e2e/src/paired-mark-handles.e2e.ts)

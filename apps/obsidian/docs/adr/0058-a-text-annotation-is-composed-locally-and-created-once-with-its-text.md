@@ -124,7 +124,7 @@ the Local API to check an independently stored box. Let the
 page finish layout before measuring text and verify that
 Obsidian's font stays within the box Zotero sized.
 
-[Paired text cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired text cases](../../../../packages/e2e/src/paired-annotation-tools.e2e.ts)
 
 For free-text geometry, measure the actual font on a canvas
 independently of the product's layout. Resizing width wraps
@@ -135,7 +135,7 @@ the page default during handling. A note nudge must keep
 its size, including after the time a late resize would
 have landed.
 
-[Text and note geometry cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Text and note geometry cases](../../../../packages/e2e/src/paired-mark-handles.e2e.ts)
 
 ## Amendment: the draft and the saved mark wrap at one width
 

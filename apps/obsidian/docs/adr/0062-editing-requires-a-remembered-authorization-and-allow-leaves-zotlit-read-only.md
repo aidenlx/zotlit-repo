@@ -117,11 +117,11 @@ on the write path. Obtain the key from Zotero's endpoint and
 verify it is held before writing. Read the resulting record
 from Zotero.
 
-[Authorization tiers](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Authorization tiers](../../../../packages/e2e/src/paired-local-api.e2e.ts)
 
 Place the remembered-key reset case after the cases that
 use the block's key. It clears both stores and can leave a
 fresh Always Allow key. Check the settings row from the
 main window and exercise retry through the notice's button.
 
-[Paired authorization retry](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired authorization retry](../../../../packages/e2e/src/paired-annotation-sync.e2e.ts)

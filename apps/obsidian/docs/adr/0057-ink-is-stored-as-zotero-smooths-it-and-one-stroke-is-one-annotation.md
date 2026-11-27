@@ -70,7 +70,7 @@ create that arrived after a failed test stopped observing.
 Wait for the erased overlay marks to leave before reusing
 the same gesture points.
 
-[Paired ink cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired ink cases](../../../../packages/e2e/src/paired-annotation-tools.e2e.ts)
 
 For an ink geometry case, sample the box and corner handle
 after the page jump settles. Check coordinates from stored PDF
@@ -85,4 +85,4 @@ travel to set scale and keeps the opposite corner fixed.
 Check the Local API position, Reader position, overlay, and
 pixel-change signal against the same saved stroke.
 
-[Ink geometry cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Ink geometry cases](../../../../packages/e2e/src/paired-mark-handles.e2e.ts)

@@ -193,7 +193,7 @@ the Annotation held by that Reader separately. Hold the
 ZotLit Query worker after creation to prove the Annotation
 View can show the repository's live row before a query reruns.
 
-[Paired surface cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired surface cases](../../../../packages/e2e/src/paired-annotation-sync.e2e.ts)
 
 Confirm the Local API source before testing a saved edit
 through a Query File tab, Query Block, or embedded card.
@@ -203,4 +203,4 @@ without claiming a Reader gesture. For child-list evidence,
 request Annotation children and use date-added order to
 keep page boundaries stable.
 
-[Paired freshness and surface cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired freshness and surface cases](../../../../packages/e2e/src/paired-annotation-sync.e2e.ts)

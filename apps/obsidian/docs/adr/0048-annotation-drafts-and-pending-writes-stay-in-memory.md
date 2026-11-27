@@ -93,7 +93,7 @@ a previous interrupted create left where the next tool
 press must land. Require a real PDF digest before comparing
 its final digest.
 
-[Paired write cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired write cases](../../../../packages/e2e/src/paired-reader-session.ts)
 
 ### Paired Geometry Edit proof
 
@@ -114,14 +114,14 @@ conflict action while Zotero retains the competing rectangle.
 End any conflict before restoring the seed. Restore against
 the current version after the Reader finishes its image work.
 
-[Geometry and conflict cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Geometry and conflict cases](../../../../packages/e2e/src/paired-mark-handles.e2e.ts)
 
 After changing position, Zotero's Reader can save a new image
 at a newer version. Wait for it before pressing Apply again.
 Observe settlement as the attempted geometry at a newer
 version or a fresh refusal and conflict choice.
 
-[Apply again case](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Apply again case](../../../../packages/e2e/src/paired-mark-handles.e2e.ts)
 
 Hold a quoted-text save while changing the record in Zotero.
 Release the save after the competing write so it meets the
@@ -130,7 +130,7 @@ after another card takes selection. Always release the held
 write and clear the draft or conflict before restoring the
 seed.
 
-[Paused quoted-text write](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paused quoted-text write](../../../../packages/e2e/src/paired-card-selection.e2e.ts)
 
 ### Paired refresh and unload proof
 
@@ -156,4 +156,4 @@ Release the gate and restore the patched method on failure.
 Use an independent Local API read as the final oracle.
 Restore seeded comments at Zotero's current version.
 
-[Paired lifecycle and race cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired lifecycle and race cases](../../../../packages/e2e/src/paired-annotation-sync.e2e.ts)

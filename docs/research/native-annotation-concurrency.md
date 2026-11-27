@@ -60,7 +60,7 @@ With a prepared Paired Run, execute:
 ```sh
 ZOTLIT_PAIRED_WORKSPACE_ROOT=/path/to/paired-run-worktree \
   pnpm --filter @zotlit/e2e exec vitest run \
-  src/paired-run.e2e.ts -t 'Tier 4' --reporter=verbose
+  src/paired-local-api.e2e.ts -t 'Tier 4' --reporter=verbose
 ```
 
 The run creates unique annotations, resets and later clears Local API

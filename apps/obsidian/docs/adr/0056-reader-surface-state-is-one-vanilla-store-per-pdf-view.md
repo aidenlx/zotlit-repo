@@ -72,4 +72,4 @@ selects it without creating another Annotation. Check the
 read-only gestures with the Local API off, then restore live
 editing before the next case.
 
-[Creation Toolbar cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Creation Toolbar cases](../../../../packages/e2e/src/paired-annotation-tools.e2e.ts)

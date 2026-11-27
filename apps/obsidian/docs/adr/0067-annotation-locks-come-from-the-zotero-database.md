@@ -67,4 +67,4 @@ Wait for the Annotation Card to show the blocked capability
 before checking that the Edit quoted text action opens no
 editor.
 
-[Blocked edit case](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Blocked edit case](../../../../packages/e2e/src/paired-query.e2e.ts)

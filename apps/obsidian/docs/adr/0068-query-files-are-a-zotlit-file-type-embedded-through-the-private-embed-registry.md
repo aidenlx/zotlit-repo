@@ -243,4 +243,4 @@ Live Preview can defer drawing it. Dragging an embedded
 card into the note follows the same insertion behavior
 as a sidebar card.
 
-[Paired Query View cards](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired Query View cards](../../../../packages/e2e/src/paired-query.e2e.ts)

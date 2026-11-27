@@ -63,7 +63,7 @@ page text alone does not edit the comment. An outside press
 closes the editor and saves it. Restore the empty seeded comment
 after the Reader settles.
 
-[Paired comment field case](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired comment field case](../../../../packages/e2e/src/paired-card-selection.e2e.ts)
 
 Observe both the Mark Popup and Annotation Card comment
 through blur and read-back. Check the frames immediately
@@ -72,7 +72,7 @@ can replace it once, while the editor becomes a clickable
 field again. Check reopening on the first render after the
 click. The press first collapses any page selection.
 
-[Paired comment transition](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired comment transition](../../../../packages/e2e/src/paired-annotation-history.e2e.ts)
 
 A held Query refresh leaves a published card and its editing
 capability available. Opening tags first saves and closes
@@ -86,4 +86,4 @@ and selection. Escape in the editor closes it so PDF
 selection can apply. Opening Edit quoted text selects that
 card alone and puts the caret in its Excerpt Block.
 
-[Paired editor handoff cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired editor handoff cases](../../../../packages/e2e/src/paired-card-selection.e2e.ts)

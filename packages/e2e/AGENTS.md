@@ -5,7 +5,7 @@
 ## Edit a journey
 
 1. Extend the feature’s existing journey in `src/`. Search test names to find the area file. When an addition would take an area file past about 2,000 lines, start a new area file. Use `registerEndToEndRunHooks()` for the shared Fixture. A file that opens its own vault registers `registerRunVaultGuard` for that vault.
-2. From the repo root, run `pnpm e2e --project=desktop src/<area>.e2e.ts`. Add `-t '<test name>'` to iterate. Use `--project=paired` for Zotero interaction. Some paired cases use data created by earlier cases in that file.
+2. From the repo root, run `pnpm e2e --project=desktop src/<area>.e2e.ts`. Add `-t '<test name>'` to iterate. Use `--project=paired` for Zotero interaction. Each paired area file sets up its own Zotero session, so it runs alone.
 3. Read the evidence directory printed by the launcher. It contains `results.json`, `console.log`, failure screenshots, and `paired-startup.log` when paired setup fails. For a run started by another tool, give it a dedicated `ZOTLIT_E2E_RESULTS` directory. Concurrent runs can move the `latest` link.
 4. Rerun the complete changed file after the focused case passes. The launcher copies current tracked and unignored files, including uncommitted edits, and builds the dev bundles. To watch a journey in the guest, see `pnpm e2e --help` for VNC.
 
@@ -38,7 +38,7 @@ const name = await obRun(
 
 Use `obRunUntil` to wait for an observable result and name that result in `what`. Read a saved note from disk when testing its contents. Wait for indexing when the next action depends on the index.
 
-Use the [page helpers](src/page-helpers.ts) for gestures. `page.activateLeafWindow(leaf)` represents the user switching windows. Read the active document when locating a modal. Attach the Electron debugger before sending debugger input. Use `page.reader` for the Reader and `page.scratch` for state shared by callbacks. For embedded Query Views, use [note-query-view.ts](src/note-query-view.ts). For startup-order bugs, use [reloadWindow](src/window-reload.ts) to reload the whole vault window.
+Use the [page helpers](src/page-helpers.ts) for gestures. `page.activateLeafWindow(leaf)` represents the user switching windows. Read the active document when locating a modal. In a host run, attach the Electron debugger before sending debugger input. In the Run Container, herbstluftwm gives each new window the focus except Zotero's, so a journey works in Obsidian with Zotero in the background. Use `page.reader` for the Reader and `page.scratch` for state shared by callbacks. For embedded Query Views, use [note-query-view.ts](src/note-query-view.ts). For startup-order bugs, use [reloadWindow](src/window-reload.ts) to reload the whole vault window.
 
 ## Run Container
 

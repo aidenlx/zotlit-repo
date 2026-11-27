@@ -108,7 +108,7 @@ land on another page, while deselecting it only repaints.
 A multi-delete confirmation reports the count and waits
 before deleting.
 
-[Paired selection cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired selection cases](../../../../packages/e2e/src/paired-card-selection.e2e.ts)
 
 In the paired selection proof, use Obsidian's DOM menu and
 Scope for actions on the focused card, and the vault's
@@ -116,4 +116,4 @@ in-memory clipboard for copied text. When the Zotero Reader
 selects several records, show cards in list order. Clearing
 that Reader selection clears the Card Selection.
 
-[Paired selection and copy cases](../../../../packages/e2e/src/paired-run.e2e.ts)
+[Paired selection and copy cases](../../../../packages/e2e/src/paired-card-selection.e2e.ts)
