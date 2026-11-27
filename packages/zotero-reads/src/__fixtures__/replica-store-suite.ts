@@ -31,7 +31,7 @@ export interface ReplicaStoreSuite {
   readonly driver: () => Promise<ReplicaDriver>;
   readonly exists: (driver: ReplicaDriver, file: string) => boolean;
   readonly leaveSidecars: (driver: ReplicaDriver, file: string) => void;
-  readonly checkpointStatements: number;
+  readonly applyMaintenanceStatements: number;
 }
 
 const HOLD_BACK = "20 millis";
@@ -109,9 +109,13 @@ function faulty(driver: ReplicaDriver, faults: Faults): ReplicaDriver {
         changes: () => handle.changes(),
         inTransaction: () => handle.inTransaction(),
         exec: (text) => {
-          if (faults.failing && (text === "commit" || text === "rollback"))
+          if (faults.failing && text === "rollback")
             throw new Error(`disk I/O error at ${text}`);
           handle.exec(text);
+        },
+        commitApply: () => {
+          if (faults.failing) throw new Error("disk I/O error at commit");
+          handle.commitApply();
         },
         checkpoint: () => {
           if (faults.checkpointFails)
@@ -803,6 +807,31 @@ export function describeReplicaStore(
     );
 
     it.effect(
+      "answers a status request queued during the final writes before committing the new language",
+      () =>
+        Effect.gen(function* () {
+          const { store } = yield* openStore({ sliceMillis: Infinity });
+          const requested = yield* Deferred.make<void>();
+          const answer = yield* Effect.forkChild(
+            Effect.andThen(Deferred.await(requested), store.libraries),
+            { startImmediately: true },
+          );
+          yield* store.apply({
+            steps: inserts(["last"], (db) => {
+              db.run(
+                `insert into replicaSyncMeta (key, value) values ('zoteroLocale', '${MARKER}')`,
+              );
+            }),
+            onProgress: () =>
+              queueMicrotask(() => Deferred.doneUnsafe(requested, Exit.void)),
+            visible: () => true,
+          });
+          expect((yield* Fiber.join(answer)).zoteroLocale).toBeNull();
+          expect((yield* store.libraries).zoteroLocale).toBe(MARKER);
+        }).pipe(Effect.scoped),
+    );
+
+    it.effect(
       "keeps the client object and runs no commit step for an apply with no change that readers see",
       () =>
         Effect.gen(function* () {
@@ -920,7 +949,7 @@ export function describeReplicaStore(
           expect(seen).toEqual([
             "stage 4 4",
             "stage 3 0",
-            `apply ${5 + suite.checkpointStatements} 3`,
+            `apply ${5 + suite.applyMaintenanceStatements} 3`,
           ]);
         }).pipe(Effect.scoped),
     );

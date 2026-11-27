@@ -1,5 +1,6 @@
 import type { ZoteroDatabase } from "#client/database.ts";
 import type { CreatorFieldMode } from "#lib/zt-creator.ts";
+import { regex } from "arkregex";
 import type { SQL } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 
@@ -30,12 +31,17 @@ import type {
   WebApiItemData,
 } from "@zotlit/zotero-types/web-api";
 
+import { ItemBatch } from "./item-batch.ts";
 import type { ReplicaVocabulary } from "./vocabulary.ts";
 import { readVocabulary } from "./vocabulary.ts";
 
 import { USER_LIBRARY_ID } from "#lib/constants.ts";
 import { annotationTypeFromName } from "#lib/zt-annot.ts";
 import { linkModeFromName } from "#lib/zt-attach.ts";
+
+const UNPAIRED_SURROGATE = regex("[\\uD800-\\uDFFF]", "gu");
+const utf8Text = (value: string) =>
+  value.replaceAll(UNPAIRED_SURROGATE, "\uFFFD");
 
 const CATEGORY = ["zotlit", "db", "replica"] as const;
 
@@ -177,6 +183,9 @@ export function applyRecords(
   }
   const { libraryID } = changes;
   const context: Context = {
+    pending: new Map(),
+    dates: new Map(),
+    collectionIDs: new Map(),
     db,
     libraryID,
     isGroup: libraryID !== USER_LIBRARY_ID,
@@ -216,6 +225,8 @@ export function applyRecords(
     result,
   );
 
+  flushItems(context);
+
   for (const key of changes.deleted?.items ?? []) {
     if (removeItem(context, key)) result.removed.items.push(key);
   }
@@ -226,7 +237,17 @@ export function applyRecords(
   return result;
 }
 
+interface PendingItem {
+  readonly item: WebApiItem;
+  readonly itemTypeID: number;
+  readonly parentItemID: number | null;
+  readonly collectionIDs: number[];
+}
+
 interface Context {
+  readonly pending: Map<string, PendingItem>;
+  readonly dates: Map<string, string>;
+  readonly collectionIDs: Map<string, number>;
   readonly db: ZoteroDatabase;
   readonly libraryID: number;
   readonly isGroup: boolean;
@@ -421,6 +442,7 @@ function applyItem(context: Context, item: WebApiItem): Outcome {
 
   let parentItemID: number | null = null;
   if (data.parentItem) {
+    if (context.pending.has(data.parentItem)) flushItems(context);
     const found = findItemID(db, libraryID, data.parentItem);
     if (found === undefined) {
       return {
@@ -434,45 +456,103 @@ function applyItem(context: Context, item: WebApiItem): Outcome {
   const collectionIDs: number[] = [];
   if (parentItemID === null) {
     for (const key of data.collections ?? []) {
-      const found = findCollectionID(db, libraryID, key);
+      const found =
+        context.collectionIDs.get(key) ?? findCollectionID(db, libraryID, key);
       if (found === undefined) {
         return {
           reason: "missingCollection",
           detail: `collection ${key} is not stored`,
         };
       }
+      context.collectionIDs.set(key, found);
       collectionIDs.push(found);
     }
   }
 
-  const dateAdded = isoToSql(data.dateAdded, context.timeZone);
-  const dateModified = isoToSql(data.dateModified, context.timeZone);
-  const { itemID } = db.get<{ itemID: number }>(
-    sql`insert into items (itemTypeID, dateAdded, dateModified, clientDateModified, libraryID, key, version, synced)
-      values (${itemTypeID}, coalesce(${dateAdded}, ${context.writtenAt}), coalesce(${dateModified}, ${context.writtenAt}),
-        coalesce(${dateModified}, ${context.writtenAt}), ${libraryID}, ${data.key}, ${data.version}, 1)
+  if (context.pending.has(data.key)) flushItems(context);
+  context.pending.set(data.key, {
+    item,
+    itemTypeID,
+    parentItemID,
+    collectionIDs,
+  });
+  if (context.pending.size === 500) flushItems(context);
+  return "applied";
+}
+
+function flushItems(context: Context): void {
+  const { db, pending, libraryID, dates, writtenAt } = context;
+  if (!pending.size) return;
+  const date = (value: string | undefined) => {
+    if (value === undefined) return writtenAt;
+    const known = dates.get(value);
+    if (known !== undefined) return known;
+    const stored = isoToSql(value, context.timeZone) ?? writtenAt;
+    dates.set(value, stored);
+    return stored;
+  };
+  const rows = Array.from(
+    pending.values(),
+    ({ item: { data }, itemTypeID }) => [
+      itemTypeID,
+      date(data.dateAdded),
+      date(data.dateModified),
+      data.key,
+      data.version,
+    ],
+  );
+  const ids = new Map(
+    db
+      .all<{ key: string; itemID: number }>(
+        sql`insert into items (itemTypeID, dateAdded, dateModified, clientDateModified, libraryID, key, version, synced)
+      select value ->> 0, value ->> 1, value ->> 2, value ->> 2, ${libraryID}, value ->> 3, value ->> 4, 1
+      from json_each(${JSON.stringify(rows)}) where true
       on conflict (libraryID, key) do update set itemTypeID = excluded.itemTypeID, dateAdded = excluded.dateAdded,
         dateModified = excluded.dateModified, clientDateModified = excluded.clientDateModified,
         version = excluded.version, synced = 1
-      returning itemID`,
-  )!;
+      returning key, itemID`,
+      )
+      .map((row) => [row.key, Number(row.itemID)]),
+  );
+  const batch = new ItemBatch();
+  const writer = { ...context, batch };
+  for (const [key, row] of pending) writeItem(writer, ids.get(key)!, row);
+  batch.write(db, context.orphans);
+  pending.clear();
+}
 
+type ItemContext = Context & { readonly batch: ItemBatch };
+
+function writeItem(
+  context: ItemContext,
+  itemID: number,
+  { item, collectionIDs, parentItemID }: PendingItem,
+): void {
+  const { db, batch } = context;
+  const { data } = item;
   writeFields(context, itemID, data);
   writeCreators(context, itemID, data);
-  writeTags(context, itemID, data);
-  writeRelations(context, itemID, data);
-  writeCollections(context, itemID, collectionIDs);
-  writeChildRows(context, { itemID, parentItemID }, data);
+  writeTags(batch, itemID, data);
+  if (data.relations && Object.keys(data.relations).length)
+    writeRelations(context, itemID, data);
+  else batch.noRelations.push(itemID);
+  batch.collections.set(itemID, collectionIDs);
+  if (
+    data.itemType === "note" ||
+    data.itemType === "annotation" ||
+    data.itemType === "attachment"
+  )
+    writeChildRows(context, { itemID, parentItemID }, data);
+  else batch.noChildRows.push(itemID);
 
   if (data.deleted) {
     db.run(
       sql`insert into deletedItems (itemID, dateDeleted) values (${itemID}, ${context.writtenAt}) on conflict do nothing`,
     );
   } else {
-    db.run(sql`delete from deletedItems where itemID = ${itemID}`);
+    batch.untrashed.push(itemID);
   }
   if (context.isGroup) writeGroupItem(context, itemID, item);
-  return "applied";
 }
 
 function logIgnoredField(key: string, field: string, reason: string): void {
@@ -485,18 +565,12 @@ function logIgnoredField(key: string, field: string, reason: string): void {
 }
 
 function writeFields(
-  context: Context,
+  context: ItemContext,
   itemID: number,
   data: WebApiItemData,
 ): void {
-  const { db, vocabulary, orphans } = context;
-  for (const row of db.all<{ valueID: number }>(
-    sql`select valueID from itemData where itemID = ${itemID}`,
-  )) {
-    orphans.valueIDs.add(Number(row.valueID));
-  }
-  db.run(sql`delete from itemData where itemID = ${itemID}`);
-
+  const { vocabulary, batch } = context;
+  const stored = new Map<number, string>();
   for (const [name, raw] of Object.entries(data)) {
     if (NON_FIELD_MEMBERS.has(name)) continue;
     let value: string;
@@ -541,39 +615,20 @@ function writeFields(
     if (vocabulary.isDateField(field.name) && !isMultipartDate(value)) {
       value = strToMultipart(value, context);
     }
-    const valueID = internValue(db, value);
-    orphans.valueIDs.add(valueID);
-    db.run(
-      sql`insert into itemData (itemID, fieldID, valueID) values (${itemID}, ${field.id}, ${valueID})
-        on conflict (itemID, fieldID) do update set valueID = excluded.valueID`,
-    );
+    value = utf8Text(value);
+    const previous = stored.get(field.id);
+    if (previous !== undefined) batch.replacedValues.add(previous);
+    stored.set(field.id, value);
+    batch.fields.push([itemID, field.id, value]);
   }
-}
-
-function internValue(db: ZoteroDatabase, value: string): number {
-  const found = db.get<{ valueID: number }>(
-    sql`select valueID from itemDataValues where value = ${value}`,
-  );
-  if (found) return Number(found.valueID);
-  return Number(
-    db.get<{ valueID: number }>(
-      sql`insert into itemDataValues (value) values (${value}) returning valueID`,
-    )!.valueID,
-  );
 }
 
 function writeCreators(
-  context: Context,
+  context: ItemContext,
   itemID: number,
   data: WebApiItemData,
 ): void {
-  const { db, vocabulary, orphans } = context;
-  for (const row of db.all<{ creatorID: number }>(
-    sql`select creatorID from itemCreators where itemID = ${itemID}`,
-  )) {
-    orphans.creatorIDs.add(Number(row.creatorID));
-  }
-  db.run(sql`delete from itemCreators where itemID = ${itemID}`);
+  const { vocabulary, batch } = context;
   let orderIndex = 0;
   for (const [position, creator] of (data.creators ?? []).entries()) {
     let firstName = "";
@@ -616,66 +671,29 @@ function writeCreators(
         },
       });
     }
-    const creatorID = internCreator(db, { firstName, lastName, fieldMode });
-    db.run(
-      sql`insert into itemCreators (itemID, creatorID, creatorTypeID, orderIndex) values (${itemID}, ${creatorID}, ${creatorType.id}, ${orderIndex})`,
-    );
-    orderIndex += 1;
+    batch.creators.push([
+      itemID,
+      utf8Text(firstName),
+      utf8Text(lastName),
+      fieldMode,
+      creatorType.id,
+      orderIndex,
+    ]);
+    orderIndex++;
   }
-}
-
-function internCreator(
-  db: ZoteroDatabase,
-  {
-    firstName,
-    lastName,
-    fieldMode,
-  }: { firstName: string; lastName: string; fieldMode: CreatorFieldMode },
-): number {
-  const found = db.get<{ creatorID: number }>(
-    sql`select creatorID from creators where firstName = ${firstName} and lastName = ${lastName} and fieldMode = ${fieldMode}`,
-  );
-  if (found) return Number(found.creatorID);
-  return Number(
-    db.get<{ creatorID: number }>(
-      sql`insert into creators (firstName, lastName, fieldMode) values (${firstName}, ${lastName}, ${fieldMode}) returning creatorID`,
-    )!.creatorID,
-  );
 }
 
 function writeTags(
-  context: Context,
+  batch: ItemBatch,
   itemID: number,
   data: WebApiItemData,
 ): void {
-  const { db, orphans } = context;
-  for (const row of db.all<{ tagID: number }>(
-    sql`select tagID from itemTags where itemID = ${itemID}`,
-  )) {
-    orphans.tagIDs.add(Number(row.tagID));
-  }
-  db.run(sql`delete from itemTags where itemID = ${itemID}`);
   for (const tag of data.tags ?? []) {
     const name = normalizeText(String(tag.tag));
     if (name === "") continue;
     const type = tag.type ? 1 : 0;
-    db.run(
-      sql`insert into itemTags (itemID, tagID, type) values (${itemID}, ${internTag(db, name)}, ${type})
-        on conflict (itemID, tagID) do update set type = excluded.type`,
-    );
+    batch.tags.push([itemID, utf8Text(name), type]);
   }
-}
-
-function internTag(db: ZoteroDatabase, name: string): number {
-  const found = db.get<{ tagID: number }>(
-    sql`select tagID from tags where name = ${name}`,
-  );
-  if (found) return Number(found.tagID);
-  return Number(
-    db.get<{ tagID: number }>(
-      sql`insert into tags (name) values (${name}) returning tagID`,
-    )!.tagID,
-  );
 }
 
 function writeRelations(
@@ -705,24 +723,6 @@ function internPredicate(db: ZoteroDatabase, predicate: string): number {
       sql`insert into relationPredicates (predicate) values (${predicate}) returning predicateID`,
     )!.predicateID,
   );
-}
-
-function writeCollections(
-  { db }: Context,
-  itemID: number,
-  collectionIDs: readonly number[],
-): void {
-  const ids = JSON.stringify(collectionIDs);
-  db.run(
-    sql`delete from collectionItems where itemID = ${itemID} and collectionID not in (select value from json_each(${ids}))`,
-  );
-  for (const collectionID of collectionIDs) {
-    db.run(
-      sql`insert into collectionItems (collectionID, itemID, orderIndex)
-        values (${collectionID}, ${itemID}, (select ifnull(max(orderIndex) + 1, 0) from collectionItems where collectionID = ${collectionID}))
-        on conflict do nothing`,
-    );
-  }
 }
 
 interface ChildRow {

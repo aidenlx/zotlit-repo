@@ -35,7 +35,7 @@ describeReplicaStore("the wasm driver on memory storage", {
       sidecar.close();
     }
   },
-  checkpointStatements: 0,
+  applyMaintenanceStatements: 0,
   exists: (_driver, file) => {
     try {
       engine.open({ file, readOnly: true }).close();

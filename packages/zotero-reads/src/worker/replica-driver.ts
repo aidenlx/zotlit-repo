@@ -11,6 +11,7 @@ export interface ReplicaHandle {
   readonly changes: () => number;
   readonly inTransaction: () => boolean;
   readonly exec: (sql: string) => void;
+  readonly commitApply: () => void;
   readonly checkpoint: () => void;
   readonly renew: () => ZoteroDatabase;
   readonly close: () => void;

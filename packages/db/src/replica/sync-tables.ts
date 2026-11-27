@@ -12,6 +12,7 @@ export const SYNC_TABLES = [
 ] as const;
 
 export const SYNC_DDL: readonly string[] = [
+  `create index if not exists replicaCollectionOrder on collectionItems (collectionID, orderIndex)`,
   `create table if not exists replicaSyncAccount (
     account integer primary key check (account = 1),
     userID integer not null,
@@ -39,6 +40,7 @@ export const SYNC_DDL: readonly string[] = [
     parentKey text,
     json text not null,
     primary key (libraryType, remoteID, objectType, key)) without rowid`,
+  `create index if not exists replicaSyncObjectState on replicaSyncObjects (libraryType, remoteID, state, vocabularyVersion)`,
   `create table if not exists replicaSyncDeletions (
     libraryType text not null,
     remoteID integer not null,

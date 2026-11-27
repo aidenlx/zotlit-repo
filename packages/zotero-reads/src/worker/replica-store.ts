@@ -537,6 +537,7 @@ export const makeReplicaStore = Effect.fnUntraced(function* (
         return yield* becomeUnavailable(committed.failure);
       if (handleOf(state.phase) === writer)
         transitions.reread(committed.success);
+      yield* Effect.yieldNow;
     });
   });
 
@@ -575,8 +576,10 @@ export const makeReplicaStore = Effect.fnUntraced(function* (
           }
         }),
       );
-      yield* storage("The replica could not commit the apply", () =>
-        writer.exec("commit"),
+      yield* Effect.yieldNow;
+      yield* storage(
+        "The replica could not commit the apply",
+        writer.commitApply,
       );
       transitions.committed(writer);
       return {
@@ -642,6 +645,7 @@ export const makeReplicaStore = Effect.fnUntraced(function* (
             const published = yield* publish(writer, changed);
             transitions.served(published.writer, published.committed);
             if (changed && request.onCommit) yield* request.onCommit;
+            yield* Effect.yieldNow;
             const beforeCheckpoint = published.writer.statements();
             yield* checkpointOf(published.writer, "an apply");
             const checkpointed =

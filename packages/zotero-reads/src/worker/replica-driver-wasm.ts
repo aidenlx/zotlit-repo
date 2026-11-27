@@ -31,6 +31,10 @@ export function wasmReplicaDriver(engine: SqliteWasm): ReplicaDriver {
         database.close();
         throw cause;
       }
+      const exec = (text: string) => {
+        statements++;
+        database.exec(text);
+      };
       return {
         get db() {
           return database.db;
@@ -49,10 +53,8 @@ export function wasmReplicaDriver(engine: SqliteWasm): ReplicaDriver {
           }
         },
         inTransaction: () => database.inTransaction(),
-        exec: (text) => {
-          statements++;
-          database.exec(text);
-        },
+        exec,
+        commitApply: () => exec("commit"),
         checkpoint: () => undefined,
         renew: () => database.renew(),
         close: () => database.close(),

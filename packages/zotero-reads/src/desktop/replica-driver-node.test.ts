@@ -51,7 +51,7 @@ describeReplicaStore("the node:sqlite driver on a file", {
       writeFileSync(join(storeFolder, name), "leftover");
   },
   exists: (_driver, file) => existsSync(join(storeFolder, file)),
-  checkpointStatements: 1,
+  applyMaintenanceStatements: 3,
 });
 
 const FILE = "zotero-replica.sqlite";
@@ -117,7 +117,7 @@ describe("the node:sqlite replica driver", () => {
     expect(bodies(next)).toEqual(["committed"]);
   });
 
-  it("empties the write-ahead log at a checkpoint after the commit of an apply", () => {
+  it("copies the applied pages into the database at the checkpoint after publication", () => {
     const folder = nextFolder();
     committedReplica(folder);
     const handle = openInTest(folder);
@@ -127,8 +127,11 @@ describe("the node:sqlite replica driver", () => {
     expect(statSync(join(folder, `${FILE}-wal`)).size).toBeGreaterThan(
       JOURNAL_LIMIT,
     );
-    handle.exec("commit");
+    const before = statSync(join(folder, FILE)).size;
+    handle.commitApply();
+    expect(statSync(join(folder, FILE)).size).toBe(before);
     handle.checkpoint();
+    expect(statSync(join(folder, FILE)).size).toBeGreaterThan(before);
     expect(statSync(join(folder, `${FILE}-wal`)).size).toBe(0);
   });
 

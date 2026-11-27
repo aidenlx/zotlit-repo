@@ -858,6 +858,78 @@ describe("applying records", () => {
     ]);
   });
 
+  it("stores field, creator and tag text with the UTF-8 encoding of a bound string", () => {
+    const { db, sqlite } = openReplica();
+    const text = "Record📚\ud800";
+    const article = GOLDEN_ITEMS[0]!;
+    applyRecords(db, {
+      libraryID: 1,
+      items: [
+        {
+          ...article,
+          data: {
+            ...article.data,
+            title: text,
+            collections: [],
+            creators: [{ creatorType: "author", name: text }],
+            tags: [{ tag: text }],
+          },
+        },
+      ],
+    });
+    expect(
+      sqlite
+        .prepare(`select
+      (select hex(value) from itemDataValues where value like 'Record%') as field,
+      (select hex(lastName) from creators) as creator, (select hex(name) from tags) as tag`)
+        .get(),
+    ).toEqual(
+      sqlite
+        .prepare("select hex(?) as field, hex(?) as creator, hex(?) as tag")
+        .get(text, text, text),
+    );
+  });
+
+  it("keeps collection positions when one update adds, removes and restores members in order", () => {
+    const { db, sqlite } = openReplica();
+    const collection = GOLDEN_COLLECTIONS[0]!;
+    const article = GOLDEN_ITEMS[0]!;
+    const member = (key: string, joined: boolean): WebApiItem => ({
+      ...article,
+      key,
+      data: {
+        ...article.data,
+        key,
+        collections: joined ? [collection.key] : [],
+      },
+    });
+    applyRecords(db, {
+      libraryID: 1,
+      collections: [collection],
+      items: [member("MEMBER2A", true), member("MEMBER2B", true)],
+    });
+    applyRecords(db, {
+      libraryID: 1,
+      items: [
+        member("MEMBER2C", true),
+        member("MEMBER2B", false),
+        member("MEMBER2D", true),
+        member("MEMBER2B", true),
+      ],
+    });
+    expect(
+      sqlite
+        .prepare(`select key, orderIndex from collectionItems join items using (itemID)
+      order by orderIndex`)
+        .all(),
+    ).toEqual([
+      { key: "MEMBER2A", orderIndex: 0 },
+      { key: "MEMBER2C", orderIndex: 2 },
+      { key: "MEMBER2D", orderIndex: 3 },
+      { key: "MEMBER2B", orderIndex: 4 },
+    ]);
+  });
+
   it("replaces the rows of an item when a newer version arrives", () => {
     const { sqlite, db } = openReplica();
     applyScenario(db);

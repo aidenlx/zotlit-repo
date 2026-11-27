@@ -6,10 +6,12 @@ import { DatabaseSync } from "node:sqlite";
 import { connectClient } from "@zotlit/db/client/node";
 
 const JOURNAL_SIZE_LIMIT = 4 * 1024 * 1024;
+const STAGING_CHECKPOINT_PAGES = 1_000;
 
 const PRAGMAS = [
   "pragma locking_mode = exclusive",
   "pragma journal_mode = wal",
+  `pragma wal_autocheckpoint = ${STAGING_CHECKPOINT_PAGES}`,
   "pragma synchronous = normal",
   `pragma journal_size_limit = ${JOURNAL_SIZE_LIMIT}`,
   "pragma foreign_keys = off",
@@ -29,6 +31,10 @@ export function nodeReplicaDriver(directory: string): ReplicaDriver {
         throw cause;
       }
       let statements = 0;
+      const exec = (text: string) => {
+        statements++;
+        sqlite.exec(text);
+      };
       const client = () =>
         connectClient(sqlite, {
           jit: true,
@@ -48,9 +54,14 @@ export function nodeReplicaDriver(directory: string): ReplicaDriver {
           return Number(total.changes);
         },
         inTransaction: () => sqlite.isTransaction,
-        exec: (text) => {
-          statements++;
-          sqlite.exec(text);
+        exec,
+        commitApply: () => {
+          exec("pragma wal_autocheckpoint = 0");
+          try {
+            exec("commit");
+          } finally {
+            exec(`pragma wal_autocheckpoint = ${STAGING_CHECKPOINT_PAGES}`);
+          }
         },
         checkpoint: () => {
           statements++;

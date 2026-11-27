@@ -46,6 +46,8 @@ The Zotero clients make no search wait for a sync. Zotero desktop has one SQLite
 
 ## Mobile journal mode
 
+### Before the batched apply
+
 Measured in #353 on the wasm root on OPFS, on the reference MacBook in the Run Container, with the cases of `online-library-sync.e2e.ts` (the sync cases of `pnpm e2e:performance`). The tree was the integration branch of #345 after #352 and #353 were merged. Each mode had one build and three runs, in the ordinary E2E run (no enforced limits). The runs of the three modes alternated, one at a time, while this ticket held the machine lock for timed runs. Another implementer used the machine at the same time. The third run of each mode started at a 1-minute load above 12 and was repeated once; the table uses runs 1, 2 and the repeat. Each cell gives the median and, after the slash, the maximum of the three runs.
 
 | Target or value                                 | Limit  | `TRUNCATE`      | `PERSIST`       | WAL             |
@@ -71,6 +73,34 @@ The runs had a 1-minute load between 3.6 and 22.5 (before and after the runs use
 - **`TRUNCATE` is the mode for now.** #355 cuts the statements of the apply about 40-fold in the shared code, so file I/O becomes a much larger part of the apply. #356 repeats the comparison of the three modes on the optimized apply, with other jobs stopped, and may change the mode.
 - **Chosen: `journal_mode=TRUNCATE`, set after `locking_mode=EXCLUSIVE`.** With exclusive locking the journal file stays in the pool, also after the replica closes. The pool uses 2 of its 6 slots: the replica and its `-journal`. The rebuild in a new Zotero language uses no more slots, and the `-journal` holds 0 bytes after a commit (the online library journey asserts both).
 - The first-build and 5,000-item apply times stay above their limits in each mode; #356 owns them.
+
+### After the batched apply
+
+Ticket #356 repeated the comparison on the reference MacBook (Mac16,8), on the wasm Worker with real OPFS. The code was `6f2902442`, which combines the apply from #355 with the journal setting and recovery checks from #353. Only the journal pragma varied. All three modes used exclusive locking, normal synchronization and the same three enforced sync cases. WAL used its default automatic checkpoint. Each cell gives the three runs in order, in milliseconds. A run that started at a one-minute load above 12 was repeated once, and its repeat occupies that position.
+
+| Measure (ms)                      | Limit (ms) |                 TRUNCATE |                  PERSIST |           WAL, exclusive |
+| --------------------------------- | ---------: | -----------------------: | -----------------------: | -----------------------: |
+| First build, 50,000 items         |      10000 |    3,299 / 3,507 / 3,295 |   4,311 / 12,888 / 3,617 |    5,000 / 3,086 / 3,215 |
+| Apply 5,000 changes               |       1500 |          426 / 386 / 505 |        588 / 2,128 / 524 |          795 / 430 / 430 |
+| Daily read wait, 100 changes      |        250 |             54 / 38 / 57 |             60 / 84 / 45 |            101 / 31 / 42 |
+| Longest first-build status answer |         50 |            45 / 338 / 30 |           45 / 704 / 132 |          161 / 134 / 141 |
+| Longest 5,000-item status answer  |         50 |             34 / 22 / 42 |            66 / 132 / 75 |            292 / 48 / 44 |
+| Longest daily status answer       |         50 |             19 / 32 / 21 |             23 / 42 / 34 |             79 / 29 / 19 |
+| First-build sync                  |          — | 12,124 / 15,213 / 11,647 | 17,869 / 34,817 / 16,041 | 16,257 / 11,176 / 11,728 |
+| 5,000-item sync                   |          — |    2,880 / 2,749 / 3,311 |    5,269 / 6,740 / 3,246 |    4,322 / 2,725 / 2,752 |
+| Daily sync                        |          — |          563 / 513 / 641 |        692 / 929 / 1,316 |        1,738 / 570 / 557 |
+
+The median build times for TRUNCATE, PERSIST and WAL were 3,299, 4,311 and 3,215 ms. The median updates took 426, 588 and 430 ms. These differences were smaller than the run-to-run spread of PERSIST or WAL. The modes tie on apply speed within the observed variation. They ran in separate batches under different loads.
+
+**Keep TRUNCATE.** It passed all six limits in two runs. In the third, only first-build status exceeded 50 ms. PERSIST exceeded 50 ms during all three 5,000-item updates. WAL exceeded 50 ms during all three first builds. TRUNCATE also leaves an empty journal after commit. The OPFS pool uses two of its six slots, one for the replica and one for its journal, including during a language rebuild.
+
+| Mode     | One-minute load before → after each retained run |
+| -------- | ------------------------------------------------ |
+| TRUNCATE | 8.86 → 6.80 · 6.80 → 5.90 · 5.90 → 8.15          |
+| PERSIST  | 8.15 → 19.13 · 14.79 → 26.24 · 30.07 → 23.75     |
+| WAL      | 15.94 → 41.86 · 34.09 → 15.43 · 14.42 → 10.28    |
+
+The store gives queued status requests a turn between the last write slice and commit. The read gate stays closed through publication and checkpoint. With TRUNCATE and this scheduling change, three enforced runs passed. First-build status took 32 / 32 / 31 ms, update status 37 / 36 / 21 ms and daily status 18 / 19 / 22 ms. The longest first build was 3,186 ms, the longest 5,000-item apply was 417 ms and the longest daily read wait was 55 ms.
 
 ## Considered options
 

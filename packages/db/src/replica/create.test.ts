@@ -122,6 +122,8 @@ describe("the staging tables of a replica made before the note permission", () =
   it("gain the columns of the note permission and the rebuild at open, with an unknown grant in each library row", () => {
     const sqlite = new DatabaseSync(":memory:");
     const db = connectClient(sqlite);
+    createReplica(db);
+    sqlite.exec("drop table replicaSyncLibraries");
     sqlite.exec(`create table replicaSyncLibraries (
       libraryType text not null check (libraryType in ('user', 'group')),
       remoteID integer not null,

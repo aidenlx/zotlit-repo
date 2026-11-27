@@ -190,11 +190,19 @@ export function stageObjects(
       ["collection", objects.collections ?? []],
       ["item", objects.items ?? []],
     ] as const) {
-      for (const object of list) {
+      const pageSize = Math.floor((999 - 3) / 4);
+      for (let start = 0; start < list.length; start += pageSize) {
+        const rows = list
+          .slice(start, start + pageSize)
+          .map(
+            (object) =>
+              sql`(${object.key}, ${object.version}, ${parentKeyOf(object)}, ${JSON.stringify(object)})`,
+          );
         db.run(
-          sql`insert into replicaSyncObjects (libraryType, remoteID, objectType, key, version, state, parentKey, json)
-            values (${library.type}, ${library.id}, ${objectType}, ${object.key}, ${object.version}, 'pending',
-              ${parentKeyOf(object)}, ${JSON.stringify(object)})
+          sql`with downloaded(key, version, parentKey, json) as (values ${sql.join(rows, sql`, `)})
+            insert into replicaSyncObjects (libraryType, remoteID, objectType, key, version, state, parentKey, json)
+            select ${library.type}, ${library.id}, ${objectType}, key, version, 'pending', parentKey, json
+              from downloaded where true
             on conflict (libraryType, remoteID, objectType, key) do update set version = excluded.version,
               state = 'pending', vocabularyVersion = null, parentKey = excluded.parentKey, json = excluded.json`,
         );
@@ -751,23 +759,21 @@ function* applyLibrary(
         result.applied.collections.length + result.applied.items.length;
       deferred.push(...result.deferred);
       skipped.push(...result.skipped);
-      const states = new Map<string, "deferred" | "skipped">([
-        ...result.deferred.map((problem) => [problem.key, "deferred"] as const),
-        ...result.skipped.map((problem) => [problem.key, "skipped"] as const),
-      ]);
-      for (const object of objects) {
-        progress.applied++;
-        const state = states.get(object.key);
-        const row = sql`${where(library)} and objectType = ${objectType} and key = ${object.key}`;
-        if (state === undefined) {
-          db.run(sql`delete from replicaSyncObjects where ${row}`);
-        } else {
-          db.run(
-            sql`update replicaSyncObjects set state = ${state},
-              vocabularyVersion = ${state === "skipped" ? vocabularyVersion : null} where ${row}`,
-          );
-        }
+      const keysIn = (keys: readonly string[]) =>
+        sql`${where(library)} and objectType = ${objectType}
+          and key in (select value from json_each(${JSON.stringify(keys)}))`;
+      const applied =
+        result.applied[objectType === "item" ? "items" : "collections"];
+      if (applied.length)
+        db.run(sql`delete from replicaSyncObjects where ${keysIn(applied)}`);
+      for (const state of ["deferred", "skipped"] as const) {
+        const problems = result[state];
+        if (problems.length)
+          db.run(sql`update replicaSyncObjects set state = ${state},
+            vocabularyVersion = ${state === "skipped" ? vocabularyVersion : null}
+            where ${keysIn(problems.map((problem) => problem.key))}`);
       }
+      progress.applied += objects.length;
       yield { ...progress };
     }
   }

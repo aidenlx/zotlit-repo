@@ -2,48 +2,48 @@
   "first build of 5,000 items": {
     "stage": {
       "writes": 116,
-      "statements": 5503,
+      "statements": 586,
       "changes": 5023
     },
     "apply": {
       "applies": 1,
-      "statements": 171687,
+      "statements": 4170,
       "changes": 66443
     }
   },
   "sync of 100 changed items in 5,000": {
     "stage": {
       "writes": 16,
-      "statements": 188,
+      "statements": 92,
       "changes": 102
     },
     "apply": {
       "applies": 1,
-      "statements": 3327,
+      "statements": 102,
       "changes": 2002
     }
   },
   "first build of 50,000 items": {
     "stage": {
       "writes": 1016,
-      "statements": 54103,
+      "statements": 5086,
       "changes": 50023
     },
     "apply": {
       "applies": 1,
-      "statements": 1703514,
+      "statements": 41079,
       "changes": 651443
     }
   },
   "sync of 5,000 changed items in 50,000": {
     "stage": {
       "writes": 114,
-      "statements": 5480,
+      "statements": 582,
       "changes": 5002
     },
     "apply": {
       "applies": 1,
-      "statements": 165227,
+      "statements": 3927,
       "changes": 100002
     }
   }
