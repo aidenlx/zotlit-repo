@@ -66,6 +66,7 @@ export async function runInElectron(options: {
     script,
     `
 const { app, BrowserWindow } = require("electron");
+app.dock?.hide();
 app.setPath("userData", ${JSON.stringify(resolve(folder, "profile"))});
 app.whenReady().then(async () => {
   const window = new BrowserWindow({
