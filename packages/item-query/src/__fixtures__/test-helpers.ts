@@ -125,7 +125,7 @@ const MAX_TEST_PAUSES = 20_000;
 
 function testScheduler(): ItemQueryScheduler {
   let ticks = 0;
-  return new ItemQueryScheduler({ budgetMs: 3, now: () => ticks++ });
+  return new ItemQueryScheduler({ budgetMs: 1, now: () => ticks++ });
 }
 
 function fixedClock(now: string): Clock.Clock {
