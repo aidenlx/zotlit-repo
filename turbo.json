@@ -109,7 +109,10 @@
     },
     "//#lint:record-pr": {
       "dependsOn": ["@zotlit/scripts#transit"],
-      "inputs": [".github/workflows/record-pr.yml"]
+      "inputs": [
+        ".github/workflows/record-pr.yml",
+        ".github/workflows/land.yml"
+      ]
     },
     "//#lint:nightly-e2e-notify": {
       "dependsOn": ["@zotlit/scripts#transit"],

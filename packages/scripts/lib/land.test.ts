@@ -533,13 +533,6 @@ describe("the record PR", () => {
       }, 50);
     };
 
-    it("keeps the marker of the record PR in the landing workflow", async () => {
-      const workflow = await readFile(
-        join(import.meta.dirname, "../../..", LAND_WORKFLOW),
-        "utf8",
-      );
-      expect(workflow).toContain(`MARKER: "${LAND_AFTER_CI_MARKER}"`);
-    });
     it(
       "marks the PR, leaves the commit unmarked, and waits for the workflow to move main",
       async () => {

@@ -34,6 +34,7 @@
     "#memory-admission": "./lib/memory-admission.ts",
     "#land-queue": "./lib/land-queue.ts",
     "#push-refs": "./lib/push-refs.ts",
+    "#land-workflow": "./lib/land-workflow.ts",
     "#record-pr-workflow": "./lib/record-pr-workflow.ts",
     "#test-gates": "./lib/test-gates.ts",
     "#test-policy": "./lib/test-policy.ts",
