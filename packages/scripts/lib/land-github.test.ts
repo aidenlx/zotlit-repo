@@ -332,7 +332,7 @@ describe("readJobLog", () => {
       return "log text";
     });
 
-    expect(await github.readJobLog?.(3)).toBe("log text");
+    expect(await github.readJobLog(3)).toBe("log text");
     expect(calls).toEqual([
       ["api", "--allow-escape-sequences", `repos/${REPO}/actions/jobs/3/logs`],
     ]);

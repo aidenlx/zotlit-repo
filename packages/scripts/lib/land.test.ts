@@ -550,6 +550,7 @@ function fakeGitHub({
       const count = checkReads.filter((each) => each.commit === commit).length;
       return await ci({ commit, count });
     },
+    readJobLog: async () => "",
   };
   return { github, pulls, checkReads };
 }

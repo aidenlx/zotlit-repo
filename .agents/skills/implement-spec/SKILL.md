@@ -25,7 +25,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 4. Use **implementer subagents** to implement each ticket, each in its own worktree on its own branch. Create the worktree with `wt switch --create <branch> --base <integration-branch> --no-cd` (the project's pre-start hook bootstraps it) and name its path in the prompt. Each implementer subagent:
    - confirms its worktree is based on the integration branch before starting, and resets onto it if not;
-   - calls the Skill tool with `tdd` to build the ticket, and proves it with the tests of its package and of the packages that consume it; the End-to-end Run waits for step 7;
+   - builds the ticket and proves it with the tests of its package and of the packages that consume it; the End-to-end Run waits for step 7;
    - adds the ticket’s Fixture Vault page cases (`policies/fixture-pages.md`);
    - merges the integration branch tip into its own branch before reporting done
 

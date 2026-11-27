@@ -36,6 +36,7 @@ import { checkGenerated } from "#generated-artifacts";
 import { getWorkspaceRoot } from "#package-roots";
 
 const EXIT_USAGE = 2;
+const CI_CONTINUE = "--continue=dependencies-successful";
 const VERIFY_LOG = join(".scratch", "verify.log");
 const ELECTRON_MISSING =
   "no Electron binary. Run `node node_modules/electron/install.js` in apps/obsidian, or set ZOTLIT_TEST_ELECTRON_PATH.";
@@ -97,7 +98,7 @@ const {
 
 The full output is also written to ${VERIFY_LOG}. A passing task prints nothing; a failed task prints its whole log.
 
-A package's test task joins a shard before the last through the task tag ${GATE_SHARD_TAG}<index> in its turbo.json. The last shard runs every other test task, the root test tasks and Bundle.
+A package's test task joins a shard before the last through the task tag ${GATE_SHARD_TAG}<index> in its turbo.json. The last shard runs every other test task, the root test tasks and Bundle. With --pr, a failed test task leaves the other tasks of its shard running (${CI_CONTINUE}), so one CI run reports every failed package; a local run stops at the first failure.
 
 Exit codes:
   0    passed
@@ -246,7 +247,7 @@ async function ciSteps(): Promise<void> {
             "pnpm",
           ]
         : ["pnpm"];
-    await gated`${run} exec turbo run ${shardTestArgs(shard ?? { index: 1, total: 1 })} ${scope} --concurrency=${ci ? 1 : 2}`;
+    await gated`${run} exec turbo run ${shardTestArgs(shard ?? { index: 1, total: 1 })} ${scope} ${pr ? [CI_CONTINUE] : []} --concurrency=${ci ? 1 : 2}`;
   });
 
   if (last) {

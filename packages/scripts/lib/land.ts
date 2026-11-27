@@ -149,7 +149,7 @@ export interface LandGitHub {
     name: string;
     branch: string;
   }) => Promise<CiCheck | undefined>;
-  readJobLog?: (jobId: number) => Promise<string>;
+  readJobLog: (jobId: number) => Promise<string>;
 }
 
 export interface LandOptions {
@@ -217,7 +217,7 @@ async function failedJobExcerpt(
   github: LandGitHub,
   check: CiCheck,
 ): Promise<readonly string[]> {
-  if (check.failedJobId === undefined || !github.readJobLog) return [];
+  if (check.failedJobId === undefined) return [];
   return await github.readJobLog(check.failedJobId).then(
     (raw) => failedLogExcerpt(raw),
     () => [],

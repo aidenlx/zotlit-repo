@@ -192,13 +192,6 @@
       "skillPath": "skills/skill-creator/SKILL.md",
       "computedHash": "5ea13a6d9f0d4bb694405d79acd00cadec0d21bb138c4dd10fcf3c500cb835c2"
     },
-    "tdd": {
-      "source": "mattpocock/skills",
-      "ref": "v1.3.1",
-      "sourceType": "github",
-      "skillPath": "skills/engineering/tdd/SKILL.md",
-      "computedHash": "9ce12c4a1e209e557fcf9d02086ade3d7ffdb976186018fc1b063b4164246004"
-    },
     "teach": {
       "source": "mattpocock/skills",
       "ref": "v1.3.1",
