@@ -1,4 +1,4 @@
-import type { QueryViewGroup } from "@zotlit/query-views/desktop/item-query/query-view.ts";
+import type { QueryViewGroup } from "@zotlit/query-views/worker/item-query/query-view.ts";
 import type {
   AvailableLibrary,
   LibrarySelector,

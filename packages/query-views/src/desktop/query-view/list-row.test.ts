@@ -1,5 +1,5 @@
 import type { ListMetrics } from "#core/query-view/list-heights.ts";
-import type { QueryViewValue } from "#desktop/item-query/query-view.ts";
+import type { QueryViewValue } from "#worker/item-query/query-view.ts";
 // @vitest-environment happy-dom
 import { act } from "preact/test-utils";
 import { createElement } from "react";

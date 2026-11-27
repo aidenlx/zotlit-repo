@@ -11,14 +11,14 @@ function encode(payload: unknown): string {
   return encodeURIComponent(JSON.stringify(payload));
 }
 
-const LOCAL_USER = "http://zotero.org/users/local/BOtEiq6p/items";
+const LOCAL_USER = "http://zotero.org/users/local/XmplLib8/items";
 
 describe("parseItemUri", () => {
   it("resolves a local user-library item URI", () => {
-    expect(parseItemUri(`${LOCAL_USER}/KX67D9YM`)).toEqual({
+    expect(parseItemUri(`${LOCAL_USER}/XMPLITM3`)).toEqual({
       libraryType: "user",
       groupID: null,
-      key: "KX67D9YM",
+      key: "XMPLITM3",
     });
   });
 
@@ -36,7 +36,7 @@ describe("parseItemUri", () => {
 
   it("returns null for non-item URIs and junk", () => {
     expect(
-      parseItemUri("http://zotero.org/users/local/BOtEiq6p/collections/CCCC"),
+      parseItemUri("http://zotero.org/users/local/XmplLib8/collections/CCCC"),
     ).toBeNull();
     expect(parseItemUri("https://example.com/foo")).toBeNull();
     expect(parseItemUri("not a uri")).toBeNull();
@@ -46,14 +46,14 @@ describe("parseItemUri", () => {
 describe("parseCitationData", () => {
   it("parses a single cited item with a locator", () => {
     const encoded = encode({
-      citationItems: [{ uris: [`${LOCAL_USER}/KX67D9YM`], locator: "62" }],
+      citationItems: [{ uris: [`${LOCAL_USER}/XMPLITM3`], locator: "62" }],
       properties: {},
     });
     expect(parseCitationData(encoded)).toEqual({
       citationItems: [
         {
-          uris: [`${LOCAL_USER}/KX67D9YM`],
-          ref: { libraryType: "user", groupID: null, key: "KX67D9YM" },
+          uris: [`${LOCAL_USER}/XMPLITM3`],
+          ref: { libraryType: "user", groupID: null, key: "XMPLITM3" },
           locator: "62",
         },
       ],
@@ -63,15 +63,15 @@ describe("parseCitationData", () => {
   it("parses multiple cited items without locators", () => {
     const encoded = encode({
       citationItems: [
-        { uris: [`${LOCAL_USER}/4FQVQ6ZQ`] },
-        { uris: [`${LOCAL_USER}/KX67D9YM`] },
+        { uris: [`${LOCAL_USER}/XMPLITM2`] },
+        { uris: [`${LOCAL_USER}/XMPLITM3`] },
       ],
       properties: {},
     });
     const info = parseCitationData(encoded);
     expect(info?.citationItems.map((c) => c.ref?.key)).toEqual([
-      "4FQVQ6ZQ",
-      "KX67D9YM",
+      "XMPLITM2",
+      "XMPLITM3",
     ]);
     expect(info?.citationItems.every((c) => c.locator === undefined)).toBe(
       true,
@@ -94,7 +94,7 @@ describe("parseCitationData", () => {
     const encoded = encode({
       citationItems: [
         {
-          uris: [`${LOCAL_USER}/KX67D9YM`],
+          uris: [`${LOCAL_USER}/XMPLITM3`],
           locator: "3",
           label: "chapter",
           "suppress-author": true,
@@ -107,8 +107,8 @@ describe("parseCitationData", () => {
     expect(parseCitationData(encoded)).toEqual({
       citationItems: [
         {
-          uris: [`${LOCAL_USER}/KX67D9YM`],
-          ref: { libraryType: "user", groupID: null, key: "KX67D9YM" },
+          uris: [`${LOCAL_USER}/XMPLITM3`],
+          ref: { libraryType: "user", groupID: null, key: "XMPLITM3" },
           locator: "3",
           label: "chapter",
           suppressAuthor: true,
@@ -121,14 +121,14 @@ describe("parseCitationData", () => {
 
   it("omits label, suppress-author, prefix, and suffix when absent", () => {
     const encoded = encode({
-      citationItems: [{ uris: [`${LOCAL_USER}/KX67D9YM`] }],
+      citationItems: [{ uris: [`${LOCAL_USER}/XMPLITM3`] }],
       properties: {},
     });
     expect(parseCitationData(encoded)).toEqual({
       citationItems: [
         {
-          uris: [`${LOCAL_USER}/KX67D9YM`],
-          ref: { libraryType: "user", groupID: null, key: "KX67D9YM" },
+          uris: [`${LOCAL_USER}/XMPLITM3`],
+          ref: { libraryType: "user", groupID: null, key: "XMPLITM3" },
         },
       ],
     });
@@ -138,7 +138,7 @@ describe("parseCitationData", () => {
     const encoded = encode({
       citationItems: [
         {
-          uris: [`${LOCAL_USER}/KX67D9YM`],
+          uris: [`${LOCAL_USER}/XMPLITM3`],
           locator: "62",
           unknownField: "ignored",
         },
@@ -152,7 +152,7 @@ describe("parseCitationData", () => {
   it("returns null when suppress-author has the wrong type", () => {
     const encoded = encode({
       citationItems: [
-        { uris: [`${LOCAL_USER}/KX67D9YM`], "suppress-author": "yes" },
+        { uris: [`${LOCAL_USER}/XMPLITM3`], "suppress-author": "yes" },
       ],
       properties: {},
     });
@@ -164,29 +164,29 @@ describe("parseEmbeddedCitationItems", () => {
   it("maps every URI of an entry to its citation key", () => {
     const encoded = encode([
       {
-        uris: [`${LOCAL_USER}/KX67D9YM`, `${LOCAL_USER}/ALT0KEY0`],
+        uris: [`${LOCAL_USER}/XMPLITM3`, `${LOCAL_USER}/ALT0KEY0`],
         itemData: {
-          id: `${LOCAL_USER}/KX67D9YM`,
+          id: `${LOCAL_USER}/XMPLITM3`,
           "citation-key": "Hensher2011",
         },
       },
       {
-        uris: [`${LOCAL_USER}/4FQVQ6ZQ`],
-        itemData: { id: `${LOCAL_USER}/4FQVQ6ZQ`, "citation-key": "Kang2013" },
+        uris: [`${LOCAL_USER}/XMPLITM2`],
+        itemData: { id: `${LOCAL_USER}/XMPLITM2`, "citation-key": "Kang2013" },
       },
     ]);
     expect(parseEmbeddedCitationItems(encoded)).toEqual(
       new Map([
-        [`${LOCAL_USER}/KX67D9YM`, "Hensher2011"],
+        [`${LOCAL_USER}/XMPLITM3`, "Hensher2011"],
         [`${LOCAL_USER}/ALT0KEY0`, "Hensher2011"],
-        [`${LOCAL_USER}/4FQVQ6ZQ`, "Kang2013"],
+        [`${LOCAL_USER}/XMPLITM2`, "Kang2013"],
       ]),
     );
   });
 
   it("skips entries whose itemData has no citation-key", () => {
     const encoded = encode([
-      { uris: [`${LOCAL_USER}/KX67D9YM`], itemData: { id: "x", type: "book" } },
+      { uris: [`${LOCAL_USER}/XMPLITM3`], itemData: { id: "x", type: "book" } },
     ]);
     expect(parseEmbeddedCitationItems(encoded).size).toBe(0);
   });
@@ -203,22 +203,22 @@ describe("parseEmbeddedCitationItems", () => {
 describe("parseAnnotationData", () => {
   it("parses a highlight annotation with its cited item", () => {
     const encoded = encode({
-      attachmentURI: `${LOCAL_USER}/T2P8T29G`,
-      annotationKey: "C2DF35H3",
+      attachmentURI: `${LOCAL_USER}/XMPLATC4`,
+      annotationKey: "XMPLANN6",
       color: "#e56eee",
       pageLabel: "62",
-      position: { pageIndex: 0, rects: [[305.992, 215.426, 434.327, 224.482]] },
-      citationItem: { uris: [`${LOCAL_USER}/KX67D9YM`], locator: "62" },
+      position: { pageIndex: 0, rects: [[300.25, 217.5, 428.75, 226.5]] },
+      citationItem: { uris: [`${LOCAL_USER}/XMPLITM3`], locator: "62" },
     });
     expect(parseAnnotationData(encoded)).toEqual({
-      annotationKey: "C2DF35H3",
-      attachmentURI: `${LOCAL_USER}/T2P8T29G`,
-      attachment: { libraryType: "user", groupID: null, key: "T2P8T29G" },
+      annotationKey: "XMPLANN6",
+      attachmentURI: `${LOCAL_USER}/XMPLATC4`,
+      attachment: { libraryType: "user", groupID: null, key: "XMPLATC4" },
       color: "#e56eee",
       pageLabel: "62",
       citationItem: {
-        uris: [`${LOCAL_USER}/KX67D9YM`],
-        ref: { libraryType: "user", groupID: null, key: "KX67D9YM" },
+        uris: [`${LOCAL_USER}/XMPLITM3`],
+        ref: { libraryType: "user", groupID: null, key: "XMPLITM3" },
         locator: "62",
       },
     });

@@ -55,7 +55,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         });
         expect(answer).toMatchObject({
           ok: true,
-          contractVersion: 3,
+          contractVersion: 4,
           truncated: false,
         });
         expect(answer.returnedCount).toBeGreaterThan(0);

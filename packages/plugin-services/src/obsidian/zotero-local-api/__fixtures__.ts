@@ -17,7 +17,7 @@ import { layerZoteroLocalApi, ZoteroLocalApi } from "./service.ts";
 import { LocalServer } from "#core/local-server/service.ts";
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
 
-export const SERVER_ID = "A8sf5Zsz8ySw";
+export const SERVER_ID = "XmplSrv00Id1";
 
 export const ATTACHMENT_KEY = "RGRPDF24";
 
@@ -360,8 +360,8 @@ export function authorized(
   const key =
     options.key ??
     (remember
-      ? "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf"
-      : "zaxj2JbsV79sbQDXS7REpa3Z3kRDIory");
+      ? "XmplApiKey0000000000000000000001"
+      : "XmplApiKey0000000000000000000002");
   return new Response(JSON.stringify({ key, remember }), {
     status: 200,
     headers: { ...API_HEADERS, "Content-Type": "application/json" },

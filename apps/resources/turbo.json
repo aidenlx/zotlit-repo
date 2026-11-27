@@ -3,7 +3,8 @@
   "extends": ["//"],
   "tasks": {
     "build": {
-      "env": ["$TURBO_EXTENDS$", "MIN_APP_VERSION"]
+      "env": ["$TURBO_EXTENDS$", "MIN_APP_VERSION"],
+      "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/licences/**"]
     },
     "build:dev": {
       "cache": false,

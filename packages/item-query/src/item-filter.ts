@@ -1,3 +1,4 @@
+import { missingCustomField } from "./custom-field-uses.ts";
 import type { Diagnostic } from "./diagnose.ts";
 import { ItemQueryError } from "./error.ts";
 import type { ItemQueryErrorCode } from "./error.ts";
@@ -8,7 +9,6 @@ import { queryItemFrom } from "./item-seed.ts";
 import type { QueryItemSeed } from "./item-seed.ts";
 import type { QueryClock } from "./query-clock.ts";
 import { ITEMS } from "./query-items.ts";
-import { missingCustomField } from "./query-sources.ts";
 
 export interface ItemFilter {
   readonly matches: (item: QueryItem, clock?: QueryClock) => boolean;

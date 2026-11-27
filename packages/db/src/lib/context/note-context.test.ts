@@ -77,13 +77,15 @@ describe("fetchNoteContext", () => {
 
     const ctx = fetchNoteContext(db, main!, {
       resolvers: noteResolvers,
-      username: "aidenlx",
+      username: "sample-reader",
       collectionCache: new CollectionCache(),
     });
 
     expect(ctx.tags.map((t) => t.name)).toEqual(["zt"]);
     expect(ctx.collections.map((c) => c.name)).toEqual(["Reading"]);
-    expect(ctx.weblink).toBe("https://www.zotero.org/aidenlx/items/MAIN0001");
+    expect(ctx.weblink).toBe(
+      "https://www.zotero.org/sample-reader/items/MAIN0001",
+    );
 
     expect(ctx.attachments).toHaveLength(1);
     expect(ctx.attachments[0]!.key).toBe("ATCH0001");
@@ -122,7 +124,7 @@ describe("fetchNoteContext", () => {
 
     const ctx = fetchNoteContext(db, main!, {
       resolvers: noteResolvers,
-      username: "aidenlx",
+      username: "sample-reader",
       tagMemo,
       collectionCache,
     });
@@ -139,7 +141,7 @@ describe("fetchNoteSource + buildNoteContextFromSource", () => {
     });
 
     const source = fetchNoteSource(db, main!, {
-      username: "aidenlx",
+      username: "sample-reader",
       collectionCache: new CollectionCache(),
     });
 
@@ -152,7 +154,7 @@ describe("fetchNoteSource + buildNoteContextFromSource", () => {
     });
 
     const source = fetchNoteSource(db, main!, {
-      username: "aidenlx",
+      username: "sample-reader",
       collectionCache: new CollectionCache(),
     });
     const ctx = buildNoteContextFromSource(overTheWire(source), noteResolvers);
@@ -160,7 +162,9 @@ describe("fetchNoteSource + buildNoteContextFromSource", () => {
     expect(ctx.tags.map(String)).toEqual(["zt"]);
     expect(ctx.collections.map(String)).toEqual(["Reading"]);
     expect(ctx.collections[0]!.path).toEqual(["Reading"]);
-    expect(ctx.weblink).toBe("https://www.zotero.org/aidenlx/items/MAIN0001");
+    expect(ctx.weblink).toBe(
+      "https://www.zotero.org/sample-reader/items/MAIN0001",
+    );
     expect(ctx.attachments.map((a) => a.key)).toEqual(["ATCH0001"]);
     expect(ctx.annotations.map((a) => a.key)).toEqual(["ANNO0001", "ANNO0002"]);
     expect(ctx.annotations[0]!.tags.map(String)).toEqual(["claim"]);
@@ -462,8 +466,8 @@ function seed(sqlite: DatabaseSync): void {
 
     insert into itemRelations (itemID, predicateID, object)
       values
-        (1, 1, 'http://zotero.org/users/local/BOtEiq6p/items/RELB0001'),
-        (1, 1, 'http://zotero.org/users/local/BOtEiq6p/items/RELA0001');
+        (1, 1, 'http://zotero.org/users/local/XmplLib8/items/RELB0001'),
+        (1, 1, 'http://zotero.org/users/local/XmplLib8/items/RELA0001');
 
     insert into collections (collectionID, collectionName, libraryID, key)
       values (500, 'Reading', 1, 'COLL0500');

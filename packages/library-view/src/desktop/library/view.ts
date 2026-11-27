@@ -35,10 +35,10 @@ import type {
 } from "@zotlit/query-views/core/query-view/item-rows.ts";
 import { showItemInAnnotView } from "@zotlit/query-views/desktop/annot-view/register.ts";
 import { saveAsQueryFile } from "@zotlit/query-views/desktop/annot-view/save-query-file.ts";
-import type { QueryViewValue } from "@zotlit/query-views/desktop/item-query/query-view.ts";
 import { holdsPdf } from "@zotlit/query-views/desktop/query-view/papers-layout.tsx";
 import { QueryView } from "@zotlit/query-views/desktop/query-view/view.tsx";
 import type { QueryViewDeps } from "@zotlit/query-views/desktop/query-view/view.tsx";
+import type { QueryViewValue } from "@zotlit/query-views/worker/item-query/query-view.ts";
 import { composing } from "@zotlit/ui";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 

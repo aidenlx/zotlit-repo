@@ -1,6 +1,6 @@
 import { ANNOTATION_COLORS } from "@zotlit/plugin-kernel/annotation-colors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import type { QueryViewValue } from "@zotlit/query-views/desktop/item-query/query-view.ts";
+import type { QueryViewValue } from "@zotlit/query-views/worker/item-query/query-view.ts";
 
 import {
   addedText,

@@ -21,10 +21,13 @@ for (const [name, spec] of Object.entries(oracle.cases).filter(
     const expected = resolveExpected(spec, "/run");
     const envelope = {
       ok: true,
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query",
       identity: {
-        source: { databasePath: "/run/zotero-data/zotero.sqlite" },
+        source: {
+          kind: "file",
+          databasePath: "/run/zotero-data/zotero.sqlite",
+        },
         vault: { path: "/run/zt-fixture-vault" },
       },
       request: {
@@ -474,11 +477,14 @@ function readingPlanItems() {
   const spec = oracle.cases.reading_plan;
   return {
     ok: true,
-    contractVersion: 3,
+    contractVersion: 4,
     command: "zotlit:query",
     warnings: [],
     identity: {
-      source: { databasePath: join(root, "zotero-data", "zotero.sqlite") },
+      source: {
+        kind: "file",
+        databasePath: join(root, "zotero-data", "zotero.sqlite"),
+      },
       vault: { path: join(root, "zt-fixture-vault") },
     },
     request: { from: "items", fields: spec.fields, limit: null },

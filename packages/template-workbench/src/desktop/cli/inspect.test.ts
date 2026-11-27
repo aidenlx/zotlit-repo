@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, vi } from "vitest";
 import { profileServiceFixture } from "@zotlit/notes/__fixtures__/profile/service.ts";
 import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
+import type { SourceIdentity } from "@zotlit/zotero-reads/contract/source-identity.ts";
 
 import { INSPECT_DIAGNOSTICS, inspectFlags } from "./inspect-contract.ts";
 import { TEMPLATE_INSPECT_COMMAND } from "./inspect.ts";
@@ -38,6 +39,7 @@ async function fixture(
     [BOOKS]: source,
     [PARTIAL]: "Original partial",
   },
+  zoteroSource?: SourceIdentity,
 ) {
   await using stack = new AsyncDisposableStack();
   const f = stack.use(await profileServiceFixture(files));
@@ -65,6 +67,7 @@ async function fixture(
         apiVersion: "1.0.0",
         sourceId: "fixture-source",
         databasePath: "/fixture/db",
+        ...(zoteroSource === undefined ? {} : { source: zoteroSource }),
       }),
     ),
   );
@@ -92,8 +95,13 @@ async function fixture(
   };
 }
 
-const scopedFixture = (files?: Record<string, string>) =>
-  Effect.acquireDisposable(Effect.tryPromise(() => fixture(files)));
+const scopedFixture = (
+  files?: Record<string, string>,
+  zoteroSource?: SourceIdentity,
+) =>
+  Effect.acquireDisposable(
+    Effect.tryPromise(() => fixture(files, zoteroSource)),
+  );
 
 function assertRefusalsHint(output: string) {
   const answer = JSON.parse(output);
@@ -521,6 +529,39 @@ describe("registered template-inspect", () => {
             "expect-source": "fixture-source",
           }),
         ).toMatchObject({ ok: true });
+      }),
+  );
+
+  it.effect(
+    "names the Zotero online library as the source and checks expect-source against its ID",
+    () =>
+      Effect.gen(function* () {
+        const online = {
+          kind: "web-api",
+          id: "web-api:42",
+          userID: 42,
+          username: "researcher",
+        } as const;
+        const f = yield* scopedFixture(undefined, online);
+        const accepted = yield* f.inspect({
+          profile: "Books",
+          "expect-source": "web-api:42",
+        });
+        expect(accepted).toMatchObject({
+          contractVersion: 9,
+          ok: true,
+          identity: { source: online },
+        });
+        expect(
+          yield* f.inspect({
+            profile: "Books",
+            "expect-source": "web-api:7",
+          }),
+        ).toMatchObject({
+          ok: false,
+          identity: { source: online },
+          diagnostic: { code: "TARGET_MISMATCH" },
+        });
       }),
   );
 

@@ -188,7 +188,10 @@ const creatorsStatement = defineStatement<Record<IdSlot, number | null>>(
       lastName: creators.lastName,
       fieldMode: creators.fieldMode,
       creatorType: creatorTypes.creatorType,
-      primary: sql<number>`coalesce(${itemTypeCreatorTypes.primaryField}, 0)`,
+      primary:
+        sql<number>`coalesce(${itemTypeCreatorTypes.primaryField}, 0)`.mapWith(
+          Number,
+        ),
     })
     .from(itemCreators)
     .innerJoin(creators, eq(creators.creatorID, itemCreators.creatorID))

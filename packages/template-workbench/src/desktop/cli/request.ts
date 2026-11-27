@@ -1,5 +1,6 @@
 import type { RenderTemplate } from "#core/cli/vocabulary.ts";
 import type { PartialContext } from "#core/render/index.ts";
+import type { WorkbenchIdentity } from "#worker/cli/workbench-identity.ts";
 import { Schema } from "effect";
 import type { Effect } from "effect";
 import type { CliData } from "obsidian";
@@ -30,7 +31,7 @@ import type {
 import { isIndexedKey } from "@zotlit/zotero-types/keys";
 
 import { diagnostic } from "./envelope.ts";
-import type { Diagnostic, WorkbenchIdentity } from "./envelope.ts";
+import type { Diagnostic } from "./envelope.ts";
 import { GUIDE_TOPIC_NAMES } from "./guide.ts";
 import type { GuideTopic } from "./guide.ts";
 
@@ -618,14 +619,15 @@ export function targetMismatch(
   identity: WorkbenchIdentity,
 ): Diagnostic | null {
   const expectedSource = params["expect-source"];
-  if (expectedSource !== undefined && expectedSource !== identity.source.id) {
+  const actual = identity.source?.id ?? null;
+  if (expectedSource !== undefined && expectedSource !== actual) {
     return diagnostic(
       "TARGET_MISMATCH",
-      `Expected Zotero source '${expectedSource}', connected to '${identity.source.id ?? "unresolved"}'.`,
+      `Expected Zotero source '${expectedSource}', connected to '${actual ?? "unresolved"}'.`,
       {
         target: "source",
         expected: expectedSource,
-        actual: identity.source.id,
+        actual,
       },
     );
   }

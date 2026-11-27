@@ -191,7 +191,7 @@ const zoteroActivity = sql<number | null>`(select max(activity) from (
     where a.parentItemID = ${items}."itemID"
       and not exists (select 1 from deletedItems d where d.itemID = a.itemID)
       and not exists (select 1 from deletedItems d where d.itemID = n.itemID)
-))`;
+))`.mapWith(Number);
 
 const activityByIDs = defineKeyedQuery<number>()(
   (db, { contains }) =>
@@ -318,8 +318,8 @@ const itemIDBoundsQuery = defineQuery<{ libraryID: number }>()(
   (db, { placeholder }) =>
     db
       .select({
-        min: sql<number | null>`min(${items.itemID})`,
-        max: sql<number | null>`max(${items.itemID})`,
+        min: sql<number | null>`min(${items.itemID})`.mapWith(Number),
+        max: sql<number | null>`max(${items.itemID})`.mapWith(Number),
       })
       .from(items)
       .where(eq(items.libraryID, placeholder("libraryID"))),

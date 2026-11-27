@@ -195,12 +195,14 @@ export default defineConfig({
   jsPlugins: [
     join(import.meta.dirname, "oxlint-plugin-build.ts"),
     join(import.meta.dirname, "oxlint-plugin-comments.ts"),
+    join(import.meta.dirname, "oxlint-plugin-messages.ts"),
     join(import.meta.dirname, "oxlint-plugin-runtime.ts"),
   ],
   rules: {
     "zotlit-build/no-undeclared-env": "error",
     "zotlit-build/no-app-path": "error",
     "zotlit-comments/no-tracker-reference": "error",
+    "zotlit-messages/no-computed-message": "error",
     "import/extensions": [
       "error",
       "always",

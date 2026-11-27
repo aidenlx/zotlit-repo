@@ -1,3 +1,4 @@
+import type { QueryCliCommand } from "#worker/item-query/contract.ts";
 import { Effect, Layer } from "effect";
 import type { CliData } from "obsidian";
 
@@ -8,24 +9,22 @@ import type {
 import { catchRejection } from "@zotlit/obsidian-kit/cli-params.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 
+import { queryValuesFlags, queryFlags, queryCancelFlags } from "./contract.ts";
+import { decodeCancelArguments, decodeGuideArguments } from "./decode.ts";
+import { GUIDE_TOPIC_NAMES, renderGuide } from "./guide.ts";
+import { QueryService } from "./service.ts";
+import type { ItemQueryError, QueryCancelled } from "./service.ts";
+
 import {
   envelope,
   failure,
   QUERY_COMMAND,
   QUERY_SCHEMA_COMMAND,
   QUERY_VALUES_COMMAND,
-  queryValuesFlags,
   QUERY_GUIDE_COMMAND,
   QUERY_CANCEL_COMMAND,
-  queryFlags,
-  queryCancelFlags,
   rejectionDiagnostic,
-} from "./contract.ts";
-import type { QueryCliCommand } from "./contract.ts";
-import { decodeCancelArguments, decodeGuideArguments } from "./decode.ts";
-import { GUIDE_TOPIC_NAMES, renderGuide } from "./guide.ts";
-import { QueryService } from "./service.ts";
-import type { ItemQueryError, QueryCancelled } from "./service.ts";
+} from "#worker/item-query/contract.ts";
 
 export type QueryRuns = Pick<
   QueryService["Service"],

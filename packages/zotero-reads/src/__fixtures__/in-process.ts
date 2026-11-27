@@ -14,21 +14,39 @@ import { layerRcRef } from "#worker/connection.ts";
 import type { Connection, ConnectionOpener } from "#worker/connection.ts";
 import type { HandlersOptions } from "#worker/handlers.ts";
 import { makeInProcessClient } from "#worker/in-process.ts";
-import type { ZoteroReadsClient } from "#contract/rpc.ts";
+import type { FileReadsConfig, ZoteroReadsClient } from "#contract/rpc.ts";
 import type { SnapshotId } from "#contract/rpc.ts";
 
 export const inProcessClient = Effect.fnUntraced(function* (
   connection: Layer.Layer<Connection>,
   options?: Partial<HandlersOptions>,
+  config?: FileReadsConfig,
 ): Effect.fn.Return<ZoteroReadsClient, never, Scope.Scope> {
   const services = yield* Layer.build(
     Layer.merge(connection, NodeFileSystem.layer),
   );
-  return yield* Effect.provideContext(
+  const client = yield* Effect.provideContext(
     makeInProcessClient({ snapshotRevision, ...options }),
     services,
   );
+  if (config) yield* Effect.orDie(client.Configure(config));
+  return client;
 });
+
+export function fileConfig(
+  databasePath: string,
+  sourceId: string | null,
+): FileReadsConfig {
+  return {
+    databasePath,
+    sourceId,
+    readMode: "auto",
+    autoRefresh: false,
+    locale: null,
+    chineseSegmenter: null,
+    logLevel: null,
+  };
+}
 
 export function memoryOpener(seed: (open: number) => string | null) {
   const log: string[] = [];
@@ -65,6 +83,7 @@ export interface InProcessReadsOptions {
   wrap?: (client: ZoteroReadsClient) => ZoteroReadsClient;
   opening?: Promise<void>;
   handlers?: Partial<HandlersOptions>;
+  config?: FileReadsConfig;
 }
 
 export function inProcessReadsService(
@@ -73,13 +92,15 @@ export function inProcessReadsService(
     wrap = (client) => client,
     opening = Promise.resolve(),
     handlers,
+    config,
   }: InProcessReadsOptions = {},
 ): TestReads {
   return testReads(
     Effect.andThen(
       Effect.promise(() => opening),
-      Effect.map(inProcessClient(layerRcRef(opener), handlers), (client) =>
-        wrap(client),
+      Effect.map(
+        inProcessClient(layerRcRef(opener), handlers, config),
+        (client) => wrap(client),
       ),
     ),
   );

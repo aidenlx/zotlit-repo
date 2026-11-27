@@ -39,9 +39,9 @@ import { fakeReaderEngine } from "#__fixtures__/pdf-engine.ts";
 import { PNG_FORMAT } from "#core/excerpt-image/format.ts";
 import { excerptKey } from "#desktop/excerpt-image/key.ts";
 
-const SERVER_ID = "A8sf5Zsz8ySw";
-const LOCAL_USER_KEY = "v3aG8nQf";
-const USER_ID = 475425;
+const SERVER_ID = "XmplSrv00Id1";
+const LOCAL_USER_KEY = "XmplKey8";
+const USER_ID = 654321;
 const GROUP_ID = 99;
 const ATTACHMENT = "ATCH2345";
 const ANNOTATION = "ANNT2345";
@@ -533,6 +533,42 @@ describe("Excerpt request for an Indexed Key", () => {
         return Object.assign(stack.move(), { reads: lease.reads });
       }),
     );
+
+  it.effect.each([
+    ["ANN2IMAG", "file-unavailable"],
+    ["ANN2HGHT", "not-an-image-annotation"],
+    ["ZZZZZZZZ", "annotation-not-found"],
+  ] as const)(
+    "names the true cause when no local Zotero data directory holds the files (%s)",
+    ([key, code]) =>
+      Effect.gen(function* () {
+        const db = yield* scenarioReads();
+        const noFiles = { dataDir: null, baseAttachmentPath: null };
+        const answer = JSON.parse(
+          yield* answerAnnotationImage(
+            { key },
+            {
+              read: (key) =>
+                excerptRequestForKey({ reads: db.reads, key, paths: noFiles }),
+              resolve: () => {
+                throw new Error("No file source, so nothing is resolved");
+              },
+              publish: () => {
+                throw new Error("No file source, so nothing is published");
+              },
+              exists: () => {
+                throw new Error("No file source, so no file is read");
+              },
+            },
+          ),
+        );
+        expect(answer).toMatchObject({ ok: false, diagnostic: { code } });
+        if (code === "file-unavailable")
+          expect(answer.diagnostic.hint).toContain(
+            "select Zotero on this computer as the library source",
+          );
+      }),
+  );
 
   it.effect(
     "builds the request of an image Annotation from its row and Attachment",

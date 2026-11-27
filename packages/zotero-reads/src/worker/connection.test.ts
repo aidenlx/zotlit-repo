@@ -1,18 +1,19 @@
 import { it } from "@effect/vitest";
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 import type { DatabaseSync } from "node:sqlite";
 import { describe, expect } from "vitest";
 
 import { getLibraries, getSchemaVersions } from "@zotlit/db";
-import { countStatements } from "@zotlit/db-testing";
+import { countStatements, createFixtureSchema } from "@zotlit/db-testing";
 import { openScenarioDatabase } from "@zotlit/db-testing/scenario";
 import type { ScenarioDatabaseOptions } from "@zotlit/db-testing/scenario";
 import { createClient, connectClient } from "@zotlit/db/client/node";
 import { ItemQueryDatabase, readLibraries } from "@zotlit/db/item-query";
 import { collectQuery, ITEMS } from "@zotlit/item-query";
 
-import { validateClient } from "./connection.ts";
+import { validateClient, webApiSourceIdentity } from "./connection.ts";
 
+import { SourceIdentitySchema } from "#contract/source-identity.ts";
 import { nodeClient } from "#desktop/node-client.ts";
 
 interface Copy {
@@ -179,4 +180,35 @@ describe("validateClient and Item Query", () => {
         expect(statements()).toBe(validated + 2);
       }),
   );
+});
+
+describe("the source identity of the Web API source", () => {
+  it.effect("names a replica with no account rows web-api:unsynced", () =>
+    Effect.gen(function* () {
+      const client = createClient(":memory:");
+      createFixtureSchema(client.$client);
+      const identity = yield* webApiSourceIdentity(nodeClient(client).client);
+      client.$client.close();
+      expect(identity).toEqual({
+        kind: "web-api",
+        id: "web-api:unsynced",
+        userID: null,
+        username: null,
+      });
+      expect(
+        yield* Schema.decodeEffect(SourceIdentitySchema)(identity),
+      ).toEqual(identity);
+    }),
+  );
+
+  it("refuses an id that its account does not give", () => {
+    expect(() =>
+      Schema.decodeSync(SourceIdentitySchema)({
+        kind: "web-api",
+        id: "web-api:marker",
+        userID: 1,
+        username: "marker",
+      }),
+    ).toThrow("web-api:1");
+  });
 });

@@ -18,7 +18,7 @@ import { hasBareForm } from "./filter-plan.ts";
 import { openQuerySources } from "./query-sources.ts";
 
 export const describeQueryCustomFields = Effect.fnUntraced(function* (
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
 ): Effect.fn.Return<
   readonly SchemaCustomField[],
   ItemQueryLayoutError | ItemQueryDatabaseError,

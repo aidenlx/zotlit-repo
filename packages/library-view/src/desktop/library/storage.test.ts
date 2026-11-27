@@ -19,9 +19,9 @@ import type { QueryHostDeps } from "@zotlit/query-views/__fixtures__/query-view/
 import { makeQueryHost } from "@zotlit/query-views/__fixtures__/query-view/host.ts";
 import { noLiteratureNotes } from "@zotlit/query-views/__fixtures__/query-view/literature-notes.ts";
 import { fakeQuery } from "@zotlit/query-views/__fixtures__/query-view/query-run.ts";
-import type { QueryViewOutcome } from "@zotlit/query-views/desktop/item-query/query-view.ts";
 import { QueryView } from "@zotlit/query-views/desktop/query-view/view.tsx";
 import type { QueryViewDeps } from "@zotlit/query-views/desktop/query-view/view.tsx";
+import type { QueryViewOutcome } from "@zotlit/query-views/worker/item-query/query-view.ts";
 
 import {
   DEFAULT_LIBRARY_VIEW_DOCUMENT,

@@ -19,7 +19,8 @@
         "$TURBO_DEFAULT$",
         "$TURBO_ROOT$/project.inlang/settings.json",
         "$TURBO_ROOT$/messages/**",
-        "$TURBO_ROOT$/assets/logo/**"
+        "$TURBO_ROOT$/assets/logo/**",
+        "$TURBO_ROOT$/licences/**"
       ]
     },
     "build:mobile": {

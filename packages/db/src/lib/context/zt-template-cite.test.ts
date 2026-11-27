@@ -229,7 +229,7 @@ describe("citekeysToCiteTemplateData", () => {
 
 describe("resolveCitedItem (three-tier Citation policy)", () => {
   const snapshot = {
-    id: "http://zotero.org/users/local/x/items/KX67D9YM",
+    id: "http://zotero.org/users/local/x/items/XMPLITM3",
     type: "article-journal",
     title: "Embedded title",
     "citation-key": "SnapKey",

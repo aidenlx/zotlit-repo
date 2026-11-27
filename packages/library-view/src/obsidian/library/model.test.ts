@@ -11,9 +11,9 @@ import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts"
 import { ItemLookup } from "@zotlit/plugin-services/obsidian/item-lookup/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
-import type { QueryViewOutcome } from "@zotlit/query-views/desktop/item-query/query-view.ts";
-import type { QueryViewRequest } from "@zotlit/query-views/desktop/item-query/query-view.ts";
 import { QueryService } from "@zotlit/query-views/desktop/item-query/service.ts";
+import type { QueryViewOutcome } from "@zotlit/query-views/worker/item-query/query-view.ts";
+import type { QueryViewRequest } from "@zotlit/query-views/worker/item-query/query-view.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { resolveLibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 

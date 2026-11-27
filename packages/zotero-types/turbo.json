@@ -1,0 +1,61 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "generate:fields": {
+      "inputs": [
+        "scripts/generate-fields.ts",
+        "src/date-fields.ts",
+        "zotero-schema/schema.json",
+        "oxlint.config.ts",
+        "$TURBO_ROOT$/oxlint.config.ts",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["src/fields.ts"],
+      "outputLogs": "errors-only"
+    },
+    "generate:item-types": {
+      "inputs": [
+        "scripts/generate-item-types.ts",
+        "zotero-schema/schema.json",
+        "oxlint.config.ts",
+        "$TURBO_ROOT$/oxlint.config.ts",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["src/item-types.ts"],
+      "outputLogs": "errors-only"
+    },
+    "generate:field-labels": {
+      "inputs": [
+        "scripts/generate-field-labels.ts",
+        "zotero-schema/schema.json",
+        "oxlint.config.ts",
+        "$TURBO_ROOT$/oxlint.config.ts",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["src/field-labels.ts"],
+      "outputLogs": "errors-only"
+    },
+    "generate:csl": {
+      "inputs": [
+        "scripts/generate-csl.ts",
+        "zotero-schema/schema.json",
+        "oxlint.config.ts",
+        "$TURBO_ROOT$/oxlint.config.ts",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["src/csl.ts"],
+      "outputLogs": "errors-only"
+    },
+    "generate:vocabulary": {
+      "inputs": [
+        "scripts/generate-vocabulary.ts",
+        "src/date-fields.ts",
+        "zotero-schema/schema.json",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["src/vocabulary.ts"],
+      "outputLogs": "errors-only"
+    }
+  }
+}

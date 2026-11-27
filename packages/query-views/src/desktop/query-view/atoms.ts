@@ -2,7 +2,7 @@ import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewResult,
-} from "#desktop/item-query/query-view.ts";
+} from "#worker/item-query/query-view.ts";
 import { Cause, Effect } from "effect";
 
 import { viewRuntime } from "@zotlit/obsidian-kit/view-atoms.ts";

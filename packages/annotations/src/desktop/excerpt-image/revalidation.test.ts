@@ -20,7 +20,7 @@ import { layerExcerptRevalidation } from "./revalidation.ts";
 
 import { AnnotationRepository } from "#obsidian/annotation-repository/service.ts";
 
-const SERVER_ID = "A8sf5Zsz8ySw";
+const SERVER_ID = "XmplSrv00Id1";
 const source: AnnotationSource = {
   kind: "zotero-local-api",
   serverID: SERVER_ID,

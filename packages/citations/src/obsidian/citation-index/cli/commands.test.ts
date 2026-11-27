@@ -6,6 +6,7 @@ import { expect } from "vitest";
 import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
 import { seedWorksSql } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import type { SourceIdentity } from "@zotlit/zotero-reads/contract/source-identity.ts";
 
 import { registerCitationsCli } from "./register.ts";
 
@@ -21,6 +22,11 @@ const setup = Effect.fn("CitationsCliTest.setup")(function* (
     zoteroRows: annotationRows,
     settings: { "citation.annotation-citations": true },
   },
+  source: SourceIdentity | null = {
+    kind: "file",
+    id: "test-source",
+    databasePath: "/test/zotero.sqlite",
+  },
 ) {
   const h = yield* Effect.acquireDisposable(
     Effect.tryPromise(() =>
@@ -35,12 +41,7 @@ const setup = Effect.fn("CitationsCliTest.setup")(function* (
     vaultName: "Test Vault",
     vaultDisk: { basePath: "/test" },
     citationIndex: h.index,
-    zoteroPref: {
-      current: Effect.succeed({
-        sourceId: "test-source",
-        databasePath: "/test/zotero.sqlite",
-      }),
-    },
+    readSource: Effect.succeed(source),
   });
   return { ...h, command: cli.command };
 });
@@ -133,7 +134,7 @@ it.effect.each<[string, Record<string, string>, string, string]>([
         yield* h.command(`zotlit:${name}`).handler(params),
       );
       expect(result).toMatchObject({
-        contractVersion: 4,
+        contractVersion: 5,
         ok: false,
         diagnostic: {
           code: "INVALID_SELECTOR",
@@ -169,6 +170,47 @@ it.effect.each(["cited-by", "references", "annotation-uses"])(
 );
 
 it.effect(
+  "names the Zotero online library as the source and accepts its source ID",
+  () =>
+    Effect.gen(function* () {
+      const online: SourceIdentity = {
+        kind: "web-api",
+        id: "web-api:42",
+        userID: 42,
+        username: "reader",
+      };
+      const h = yield* setup(undefined, undefined, online);
+      const result = JSON.parse(
+        yield* h
+          .command("zotlit:references")
+          .handler({ file: "draft.md", "expect-source": "web-api:42" }),
+      );
+      expect(result).toMatchObject({ ok: true, identity: { source: online } });
+    }),
+);
+
+it.effect("rejects an expected source while no source is known", () =>
+  Effect.gen(function* () {
+    const h = yield* setup(undefined, undefined, null);
+    const result = JSON.parse(
+      yield* h
+        .command("zotlit:references")
+        .handler({ file: "draft.md", "expect-source": "web-api:42" }),
+    );
+    expect(result).toMatchObject({
+      ok: false,
+      identity: { source: null },
+      diagnostic: {
+        code: "TARGET_MISMATCH",
+        message:
+          "Expected Zotero source 'web-api:42', connected to 'unresolved'.",
+        details: { actual: null },
+      },
+    });
+  }),
+);
+
+it.effect(
   "reports References, Cited By and Annotation uses in source order with one-based positions",
   () =>
     Effect.gen(function* () {
@@ -177,7 +219,7 @@ it.effect(
         yield* h.command("zotlit:references").handler({ file: "draft.md" }),
       );
       expect(references).toMatchObject({
-        contractVersion: 4,
+        contractVersion: 5,
         ok: true,
         entries: [
           {

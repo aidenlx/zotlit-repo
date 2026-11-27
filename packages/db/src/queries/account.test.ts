@@ -26,10 +26,10 @@ describe("getZoteroIdentity: username", () => {
   it("reads the username from the settings row", () => {
     withFixture((sqlite, db) => {
       sqlite.exec(
-        "insert into settings (setting, key, value) values ('account', 'username', 'aidenlx');",
+        "insert into settings (setting, key, value) values ('account', 'username', 'sample-reader');",
       );
 
-      expect(getZoteroIdentity(db).username).toBe("aidenlx");
+      expect(getZoteroIdentity(db).username).toBe("sample-reader");
     });
   });
 
@@ -55,14 +55,14 @@ describe("getZoteroDatabaseIdentity", () => {
     withFixture((sqlite, db) => {
       sqlite.exec(`
         insert into settings (setting, key, value)
-        values ('account', 'localUserKey', 'v3aG8nQf'),
-               ('localAPI', 'serverID', 'A8sf5Zsz8ySw');
+        values ('account', 'localUserKey', 'XmplKey8'),
+               ('localAPI', 'serverID', 'XmplSrv00Id1');
       `);
 
       expect(getZoteroDatabaseIdentity(db)).toEqual({
         userID: null,
-        localUserKey: "v3aG8nQf",
-        serverID: "A8sf5Zsz8ySw",
+        localUserKey: "XmplKey8",
+        serverID: "XmplSrv00Id1",
       });
     });
   });
@@ -78,12 +78,12 @@ describe("getZoteroIdentity: account ids", () => {
   it("reads both account ids from the settings rows", () => {
     withFixture((sqlite, db) => {
       sqlite.exec(
-        "insert into settings (setting, key, value) values ('account', 'userID', 475425), ('account', 'localUserKey', 'v3aG8nQf');",
+        "insert into settings (setting, key, value) values ('account', 'userID', 654321), ('account', 'localUserKey', 'XmplKey8');",
       );
 
       expect(getZoteroIdentity(db)).toEqual({
-        userID: 475425,
-        localUserKey: "v3aG8nQf",
+        userID: 654321,
+        localUserKey: "XmplKey8",
         username: null,
       });
     });
@@ -92,12 +92,12 @@ describe("getZoteroIdentity: account ids", () => {
   it("leaves userID null for a never-synced account", () => {
     withFixture((sqlite, db) => {
       sqlite.exec(
-        "insert into settings (setting, key, value) values ('account', 'localUserKey', 'v3aG8nQf');",
+        "insert into settings (setting, key, value) values ('account', 'localUserKey', 'XmplKey8');",
       );
 
       expect(getZoteroIdentity(db)).toEqual({
         userID: null,
-        localUserKey: "v3aG8nQf",
+        localUserKey: "XmplKey8",
         username: null,
       });
     });
@@ -106,10 +106,10 @@ describe("getZoteroIdentity: account ids", () => {
   it("reads a userID stored as text", () => {
     withFixture((sqlite, db) => {
       sqlite.exec(
-        "insert into settings (setting, key, value) values ('account', 'userID', '475425');",
+        "insert into settings (setting, key, value) values ('account', 'userID', '654321');",
       );
 
-      expect(getZoteroIdentity(db).userID).toBe(475425);
+      expect(getZoteroIdentity(db).userID).toBe(654321);
     });
   });
 
@@ -139,9 +139,9 @@ describe("getAccountUserID", () => {
     withFixture((sqlite, db) => {
       expect(getAccountUserID(db)).toBeNull();
       sqlite.exec(
-        "insert into settings (setting, key, value) values ('account', 'userID', '475425');",
+        "insert into settings (setting, key, value) values ('account', 'userID', '654321');",
       );
-      expect(getAccountUserID(db)).toBe(475425);
+      expect(getAccountUserID(db)).toBe(654321);
     });
   });
 });

@@ -15,7 +15,7 @@ import {
 import type { AnySQLiteColumn } from "drizzle-orm/sqlite-core";
 
 type SqliteAnyOut = null | number | string | Uint8Array;
-type SqliteAnyIn = null | number | bigint | string | ArrayBufferView;
+type SqliteAnyIn = null | number | bigint | string | Uint8Array;
 
 export const sqliteAny = customType<{
   data: SqliteAnyOut;
@@ -24,6 +24,7 @@ export const sqliteAny = customType<{
   dataType() {
     return "";
   },
+  fromDriver: (value) => (typeof value === "bigint" ? Number(value) : value),
 });
 
 const sqlDateMapping = {
@@ -40,8 +41,12 @@ export const timestamp = customType<{
   ...sqlDateMapping,
 });
 
-export const noType = customType<{ data: string; driverData: string }>({
+export const noType = customType<{
+  data: string;
+  driverData: string | number | bigint;
+}>({
   dataType: () => "",
+  fromDriver: String,
 });
 
 export const noTypeDate = customType<{
@@ -52,12 +57,20 @@ export const noTypeDate = customType<{
   ...sqlDateMapping,
 });
 
-export const noTypeInt = customType<{ data: number; driverData: number }>({
+export const noTypeInt = customType<{
+  data: number;
+  driverData: number | bigint;
+}>({
   dataType: () => "",
+  fromDriver: Number,
 });
 
-export const noneType = customType<{ data: number; driverData: number }>({
+export const noneType = customType<{
+  data: number;
+  driverData: number | bigint;
+}>({
   dataType: () => "NONE",
+  fromDriver: Number,
 });
 
 const currentTimestamp = sql`CURRENT_TIMESTAMP`;

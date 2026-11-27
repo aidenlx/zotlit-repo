@@ -13,7 +13,7 @@
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "lint": "oxlint",
     "test": "vitest run",
-    "generate:parser": "lezer-generator src/filter-expression.grammar --typeScript --names -o src/generated/parser.ts"
+    "generate:parser": "lezer-generator src/filter-expression.grammar --typeScript --names -o src/generated/parser.ts && oxfmt src/generated"
   },
   "dependencies": {
     "@lezer/common": "catalog:",

@@ -11,6 +11,10 @@ export interface PackReport {
   readonly failures: readonly string[];
 }
 
+export function installedPack(mainJs: string): Uint8Array {
+  return new TextEncoder().encode(applyObsidianInstall(mainJs));
+}
+
 export async function checkPack(
   mainJs: string,
   pins: PackPins,
@@ -25,7 +29,7 @@ export async function checkPack(
     );
   }
 
-  const installed = new TextEncoder().encode(applyObsidianInstall(mainJs));
+  const installed = installedPack(mainJs);
   const index = parseIndex(installed.subarray(0, PACK_INDEX_BYTES));
   if (!index) {
     return {

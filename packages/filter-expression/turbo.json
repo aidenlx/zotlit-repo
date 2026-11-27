@@ -1,0 +1,14 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "generate:parser": {
+      "inputs": [
+        "src/filter-expression.grammar",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["src/generated/parser.ts", "src/generated/parser.terms.ts"],
+      "outputLogs": "errors-only"
+    }
+  }
+}

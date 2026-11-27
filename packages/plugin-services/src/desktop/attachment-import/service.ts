@@ -76,6 +76,7 @@ import {
   loadApprovedFolders,
   saveApprovedFolders,
 } from "#obsidian/attachment-import/approved-folders.ts";
+import { libraryFilePaths } from "#obsidian/library-source/paths.ts";
 import { PluginSettings } from "#obsidian/settings/service.ts";
 
 export {
@@ -201,7 +202,9 @@ export const layerAttachmentImport = (): Layer.Layer<
       const roots = yield* SubscriptionRef.make<CanonicalRoots>(NO_ROOTS);
       const rebuildRoots = SubscriptionRef.updateEffect(roots, () =>
         Effect.gen(function* () {
-          const { dataDir, baseAttachmentPath } = yield* pref.current;
+          const { dataDir, baseAttachmentPath } = yield* libraryFilePaths.pipe(
+            Effect.provideService(ZoteroPref, pref),
+          );
           return yield* buildCanonicalRoots(
             {
               dataDir,

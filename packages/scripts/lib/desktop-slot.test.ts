@@ -981,7 +981,7 @@ process.exit(7);`,
     using slot = await acquireDesktopSlot({
       ...IN_TEST,
       worktree: "/w",
-      now: behindByNotice(500),
+      now: behindByNotice(0),
     });
     const { code, stderr } = await running;
     expect(code).toBe(EXIT_LEASE_ENDED);

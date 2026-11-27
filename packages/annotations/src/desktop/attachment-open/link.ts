@@ -8,7 +8,7 @@ import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { scopedBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
-import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import {
   databaseReady,
   parseProtocolData,
@@ -77,16 +77,17 @@ const handleOpenAttachmentProtocol = Effect.fn(
     itemID: query.item,
   });
 
-  const openable = toObsidianOpenable(attachments, {
+  const pdfs = toObsidianOpenable(attachments, {
     vaultBasePath: (yield* VaultDisk).basePath,
     platform: (yield* ObsidianEnv).os,
-    zoteroPref: yield* (yield* ZoteroPref).current,
+    zoteroPref: yield* libraryFilePaths,
   });
 
-  openAttachments(openable, {
+  openAttachments(pdfs.attachments, {
     reader: withPaneOverride(
       pdfPickerReader(
         openGesture(yield* TargetOpener, deps.bridge.runAndForget),
+        pdfs,
       ),
       query.paneType,
     ),

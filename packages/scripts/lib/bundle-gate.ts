@@ -40,13 +40,20 @@ export function checkRequires(
   };
 }
 
-export async function checkBundleRuntime(
+export interface BundleCode {
+  readonly file: string;
+  readonly code: string;
+}
+
+export async function bundleFile(path: string): Promise<BundleCode> {
+  return { file: basename(path), code: await readFile(path, "utf8") };
+}
+
+export function checkBundleRuntime(
   name: string,
-  path: string,
+  { file, code }: BundleCode,
   runtime: Runtime,
-): Promise<BundleReport> {
-  const file = basename(path);
-  const code = await readFile(path, "utf8");
+): BundleReport {
   const { required, failures } = checkRequires(file, code, runtime);
   return {
     name,
@@ -75,7 +82,10 @@ function sizeLine(
 
 export async function checkBundle(
   name: string,
-  plugin: Pick<PublishedPlugin, "profile" | "budget" | "runtime">,
+  plugin: Pick<
+    PublishedPlugin,
+    "profile" | "budget" | "runtime" | "developmentOnly"
+  >,
   appDir: string,
 ): Promise<BundleReport> {
   const { profile } = plugin;
@@ -99,6 +109,12 @@ export async function checkBundle(
     failures: [
       ...sizes.flatMap(({ failure }) => (failure ? [failure] : [])),
       ...requires.failures,
+      ...(plugin.developmentOnly ?? [])
+        .filter((text) => mainJs.includes(text))
+        .map(
+          (text) =>
+            `main.js holds "${text}", which only a development build may hold`,
+        ),
       ...pack.failures,
     ],
   };

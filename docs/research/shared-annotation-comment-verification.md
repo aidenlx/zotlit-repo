@@ -4,11 +4,11 @@
 
 - Installed root commit: `8068ae05`.
 - Obsidian: 1.14.2 on macOS, main window.
-- Vault: `45eaad0df9fc4a66`.
+- Vault: `0123456789abcdef`.
 - PDF: `attachments/rougier-2014.pdf`.
 - Attachment: `RGRPDF24`.
 - Annotation: `PUPR5FG5`.
-- Zotero database server ID: `A8sf5Zsz8ySw`.
+- Zotero database server ID: `XmplSrv00Id1`.
 
 The Annotation Card and PDF Mark Popup showed one shared draft. An update in
 either editor appeared in the other editor. The active editor kept focus and

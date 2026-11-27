@@ -31,95 +31,28 @@ import type { NoteResolvers } from "@zotlit/db";
 import { createFixtureSchema } from "@zotlit/db-testing";
 import { createClient } from "@zotlit/db/client/node";
 import type { NodeDatabaseClient } from "@zotlit/db/client/node";
+import { ItemQueryDatabase, readLibraries } from "@zotlit/db/item-query";
 
 import { layerRcRef } from "./connection.ts";
 import { Connection } from "./connection.ts";
 import type { ConnectionOpener } from "./connection.ts";
-import type { HandlersOptions } from "./handlers.ts";
+import type { HandlersOptions, QueryJobRunner } from "./handlers.ts";
 import { makeInProcessClient } from "./in-process.ts";
+import { layerUnpinnedConnectionItemSource } from "./item-source.ts";
+import { layerAbsentFileSystem } from "./serve-web.ts";
 import { exportItemSnapshot } from "./snapshot/export.ts";
 
 import {
+  fileConfig,
   inProcessReadsService,
   sharedClientOpener,
 } from "#__fixtures__/in-process.ts";
+import { SEED } from "#__fixtures__/reads-seed.ts";
+import { memoryWebApiSource, seededApi } from "#__fixtures__/web-api.ts";
 import { Instant } from "#contract/instant-codec.ts";
 import { DbUnavailable, SnapshotExpired, SnapshotId } from "#contract/rpc.ts";
 import { nodeClient } from "#desktop/node-client.ts";
 import { snapshotRevision } from "#desktop/snapshot-revision.ts";
-
-const SEED = `
-  insert into version (schema, version) values ('userdata', 129);
-  insert into libraries (libraryID, type, version, clientVersion)
-    values (1, 'user', 7, 3), (2, 'group', 4, 2);
-  insert into groups (groupID, libraryID, name) values (900, 2, 'Lab');
-  insert into settings (setting, key, value)
-    values ('account', 'userID', 42), ('account', 'username', 'reader');
-
-  insert into itemTypes (itemTypeID, typeName)
-    values (1, 'journalArticle'), (2, 'attachment'), (3, 'note'),
-           (4, 'annotation'), (5, 'book');
-
-  insert into fieldsCombined (fieldID, fieldName, custom)
-    values (10, 'title', 0), (11, 'citationKey', 0), (12, 'date', 0),
-           (13, 'shortTitle', 0);
-
-  insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
-    values
-      (1, 1, '2024-01-01 00:00:00', '2024-02-01 00:00:00', 1, 'MAIN2345'),
-      (2, 5, '2024-01-01 00:00:00', '2024-01-02 00:00:00', 1, 'RELB2345'),
-      (3, 1, '2024-01-01 00:00:00', '2024-01-03 00:00:00', 1, 'RELA2345'),
-      (10, 2, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'ATCH2345'),
-      (100, 4, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'ANNT2345'),
-      (101, 4, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'ANNT2346'),
-      (200, 3, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'NTE22345'),
-      (300, 1, '2024-01-01 00:00:00', '2024-01-04 00:00:00', 2, 'GRPITEMS');
-
-  insert into itemDataValues (valueID, value)
-    values (1, 'Main Study'), (2, 'Beta Book'), (3, 'Alpha Paper'),
-           (4, 'main2024'), (5, '2024-05-06'), (6, 'Group Work'),
-           (7, 'Main');
-  insert into itemData (itemID, fieldID, valueID)
-    values (1, 10, 1), (1, 11, 4), (1, 12, 5), (1, 13, 7),
-           (2, 10, 2), (3, 10, 3), (300, 10, 6);
-
-  insert into creators (creatorID, firstName, lastName, fieldMode)
-    values (1, 'Ada', 'Lovelace', 0);
-  insert into creatorTypes (creatorTypeID, creatorType) values (1, 'author');
-  insert into itemCreators (itemID, creatorID, creatorTypeID, orderIndex)
-    values (1, 1, 1, 0);
-  insert into itemTypeCreatorTypes (itemTypeID, creatorTypeID, primaryField)
-    values (1, 1, 1);
-
-  insert into itemAttachments (itemID, parentItemID, linkMode, contentType, path)
-    values (10, 1, 0, 'application/pdf', 'storage:paper.pdf');
-  insert into itemAnnotations (
-    itemID, parentItemID, type, text, comment, color, pageLabel, sortIndex,
-    position, isExternal
-  )
-    values
-      (100, 10, 1, 'excerpt', '<i>excerpt</i>', '#ffd400', '1',
-       '00000|000000|00000', '{"pageIndex":0,"rects":[[0,0,1,1]]}', 0),
-      (101, 10, 3, null, null, '#ffd400', '1',
-       '00000|000001|00000', '{"pageIndex":0,"rects":[[0,0,1,1]]}', 0);
-  insert into itemNotes (itemID, parentItemID, note, title)
-    values (200, 1, '<p>body</p>', 'Methods');
-
-  insert into tags (tagID, name) values (1, 'zt'), (2, 'method'), (3, 'claim');
-  insert into itemTags (itemID, tagID, type)
-    values (1, 1, 0), (2, 2, 0), (100, 3, 0);
-
-  insert into relationPredicates (predicateID, predicate)
-    values (1, 'dc:relation');
-  insert into itemRelations (itemID, predicateID, object)
-    values
-      (1, 1, 'http://zotero.org/users/local/AAAAAAAA/items/RELB2345'),
-      (1, 1, 'http://zotero.org/users/local/AAAAAAAA/items/RELA2345');
-
-  insert into collections (collectionID, collectionName, libraryID, key)
-    values (500, 'Reading', 1, 'CLL22345');
-  insert into collectionItems (collectionID, itemID) values (500, 1), (500, 2);
-`;
 
 function fixtureOpener(extra: (open: number) => string | null = () => "") {
   const log: string[] = [];
@@ -244,698 +177,1160 @@ const noteResolvers: NoteResolvers = {
   }),
 };
 
-describe("ZoteroReads operations", () => {
-  it.effect("Libraries lists every library with its group", () =>
+type ItemIDOf = (key: string) => number;
+
+interface ReadsSource {
+  readonly name: "file" | "web-api";
+  readonly withReads: <A, E>(
+    extra: string,
+    body: (
+      reads: ZoteroReadsClient,
+      id: ItemIDOf,
+    ) => Effect.Effect<A, E, Connection | Scope.Scope>,
+    options?: Partial<HandlersOptions>,
+  ) => Effect.Effect<A, E>;
+}
+
+const itemIDs = Effect.gen(function* () {
+  const connection = yield* Connection;
+  const rows = yield* Effect.scoped(
+    Effect.map(connection.borrow, (client) =>
+      client.all<{ key: string; itemID: number }>(
+        "select key, itemID from items",
+      ),
+    ),
+  ).pipe(Effect.orDie);
+  const ids = new Map(rows.map((row) => [row.key, Number(row.itemID)]));
+  return (key: string): number => {
+    const found = ids.get(key);
+    if (found === undefined) throw new Error(`no item ${key} in the source`);
+    return found;
+  };
+});
+
+const fileSource: ReadsSource = {
+  name: "file",
+  withReads: (extra, body, options) =>
+    withReads(
+      fixtureOpener(() => extra).open,
+      (reads) => Effect.flatMap(itemIDs, (id) => body(reads, id)),
+      options,
+    ),
+};
+
+const WEB_API_ACCOUNT = { userID: 42, username: "reader" } as const;
+
+const webApiSource: ReadsSource = {
+  name: "web-api",
+  withReads: (extra, body, options) =>
     Effect.gen(function* () {
-      const { open } = fixtureOpener();
-      const libraries = yield* withReads(open, (reads) => reads.Libraries({}));
-      expect(libraries).toEqual([
-        {
-          libraryID: 1,
-          type: "user",
-          version: 1,
-          clientVersion: 3,
-          groupID: null,
-          name: null,
-        },
-        {
-          libraryID: 2,
-          type: "group",
-          version: 4,
-          clientVersion: 2,
-          groupID: 900,
-          name: "Lab",
-        },
-      ]);
-    }),
-  );
+      const reads = yield* makeInProcessClient({
+        snapshotRevision,
+        itemSource: layerUnpinnedConnectionItemSource,
+        ...options,
+      });
+      const id = yield* itemIDs;
+      return yield* body(reads, id);
+    }).pipe(
+      Effect.scoped,
+      Effect.provide([
+        memoryWebApiSource(
+          seededApi(
+            `${SEED}\nupdate libraries set version = 1 where libraryID = 1;\n${extra}`,
+            WEB_API_ACCOUNT,
+          ),
+        ),
+        layerAbsentFileSystem,
+      ]),
+    ),
+};
 
-  it.effect(
-    "ConnectionReadout counts top-level items across every library",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const readout = yield* withReads(open, (reads) =>
-          reads.ConnectionReadout({}),
-        );
-        expect(readout).toEqual({ itemCount: 4 });
+const libraryQueryJobs: QueryJobRunner = {
+  run: (job, { client }) =>
+    readLibraries().pipe(
+      Effect.provideService(ItemQueryDatabase, { client }),
+      Effect.orDie,
+      Effect.map((libraries) => {
+        const answer = {
+          command: job.command,
+          libraries: libraries.map(({ type, groupID }) => ({ type, groupID })),
+        };
+        return answer;
       }),
-  );
+    ),
+  cancelled: (job) => ({ command: job.command }),
+};
 
-  it.effect(
-    "ItemsByIndexedKeys answers user and group keys and leaves unknown keys out",
-    () =>
+function describeReadOperations(source: ReadsSource) {
+  const web = source.name === "web-api";
+  const withSource = source.withReads;
+  const noteTitle = web ? "body" : "Methods";
+
+  describe(`ZoteroReads operations over the ${source.name} source`, () => {
+    it.effect("Libraries lists every library with its group", () =>
       Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const items = yield* withReads(open, (reads) =>
-          reads.ItemsByIndexedKeys({
-            indexedKeys: ["MAIN2345", "GRPITEMSg900", "MISS2345", "GRPITEMSg1"],
-          }),
-        );
-        expect([...items.keys()]).toEqual(["MAIN2345", "GRPITEMSg900"]);
-        const main = items.get("MAIN2345")!;
-        expect(main.dateAdded.toString()).toBe("2024-01-01T00:00:00Z");
-        expect(main.customFields).toBeInstanceOf(Map);
-        expect(main.fields).toMatchObject({
-          itemType: "journalArticle",
-          title: "Main Study",
-        });
-        expect(main.creators).toEqual([
+        const libraries = yield* withSource("", (reads) => reads.Libraries({}));
+        expect(libraries).toEqual([
           {
-            firstName: "Ada",
-            lastName: "Lovelace",
-            creatorType: "author",
-            fieldMode: 0,
+            libraryID: 1,
+            type: "user",
+            version: web ? expect.any(Number) : 1,
+            clientVersion: web ? 0 : 3,
+            groupID: null,
+            name: null,
+          },
+          {
+            libraryID: 2,
+            type: "group",
+            version: web ? expect.any(Number) : 4,
+            clientVersion: web ? 0 : 2,
+            groupID: 900,
+            name: "Lab",
           },
         ]);
-        expect(items.get("GRPITEMSg900")).toMatchObject({
-          libraryID: 2,
-          groupID: 900,
-        });
       }),
-  );
+    );
 
-  it.effect("ItemFamily returns related items and child notes", () =>
-    Effect.gen(function* () {
-      const { open } = fixtureOpener();
-      const [family, unknown] = yield* withReads(open, (reads) =>
-        Effect.all([
-          reads.ItemFamily({ itemID: 1 }),
-          reads.ItemFamily({ itemID: 999 }),
-        ]),
-      );
-      expect(family.relatedItems.map((item) => item.key).sort()).toEqual([
-        "RELA2345",
-        "RELB2345",
-      ]);
-      expect(family.childNotes).toMatchObject([
-        { key: "NTE22345", title: "Methods", parentItemID: 1 },
-      ]);
-      expect(Schema.is(Instant)(family.childNotes[0]!.dateModified)).toBe(true);
-      expect(unknown).toEqual({ relatedItems: [], childNotes: [] });
-    }),
-  );
-
-  it.effect(
-    "NoteSource returns a bundle the renderer builds into the note context",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const [source, missing] = yield* withReads(open, (reads) =>
-          Effect.all([
-            reads.NoteSource({ itemID: 1 }),
-            reads.NoteSource({ itemID: 999 }),
-          ]),
-        );
-        expect(missing).toBeNull();
-        expect(source!.username).toBe("reader");
-        expect(
-          Schema.is(Instant)(
-            source!.annotationsByAttachment.get(10)![0]!.dateAdded,
-          ),
-        ).toBe(true);
-
-        const ctx = buildNoteContextFromSource(source!, noteResolvers);
-        expect(ctx.title).toBe("Main Study");
-        expect(ctx.weblink).toBe(
-          "https://www.zotero.org/reader/items/MAIN2345",
-        );
-        expect(ctx.tags.map(String)).toEqual(["zt"]);
-        expect(ctx.collections.map(String)).toEqual(["Reading"]);
-        expect(ctx.attachments.map((a) => a.key)).toEqual(["ATCH2345"]);
-        expect(ctx.annotations.map((a) => a.key)).toEqual([
-          "ANNT2345",
-          "ANNT2346",
-        ]);
-        expect(ctx.annotations[0]!.tags.map(String)).toEqual(["claim"]);
-        expect(ctx.relatedItems.map((r) => r.title)).toEqual([
-          "Alpha Paper",
-          "Beta Book",
-        ]);
-        expect(ctx.notes.map((n) => n.key)).toEqual(["NTE22345"]);
-      }),
-  );
-
-  it.effect(
-    "ItemFacets streams each item's own tags and collections in request order",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const slices = yield* withReads(
-          open,
-          (reads) =>
-            Stream.runCollect(
-              reads.ItemFacets({
-                items: [
-                  { itemID: 2, libraryID: 1 },
-                  { itemID: 1, libraryID: 1 },
-                  { itemID: 300, libraryID: 2 },
-                  { itemID: 999, libraryID: 1 },
-                ],
+    it.effect(
+      "ItemQuery runs the root's Query Job runner on the source's database",
+      () =>
+        Effect.gen(function* () {
+          const answer = yield* withSource(
+            "",
+            (reads) =>
+              reads.ItemQuery({
+                job: { id: "libraries", command: "zotlit:query" },
               }),
-            ),
-          { sliceSize: 2 },
-        );
-        expect(
-          slices.map((slice) =>
-            slice.map(({ itemID, facets }) => ({
-              itemID,
-              tags: facets.tags.map(({ tag }) => tag.name),
-              collections: facets.collections.map(({ name }) => name),
-            })),
-          ),
-        ).toEqual([
-          [
-            { itemID: 2, tags: ["method"], collections: ["Reading"] },
-            { itemID: 1, tags: ["zt"], collections: ["Reading"] },
-          ],
-          [
-            { itemID: 300, tags: [], collections: [] },
-            { itemID: 999, tags: [], collections: [] },
-          ],
-        ]);
-      }),
-  );
+            { queryJobs: libraryQueryJobs },
+          );
+          expect(answer).toEqual({
+            command: "zotlit:query",
+            libraries: [
+              { type: "user", groupID: null },
+              { type: "group", groupID: 900 },
+            ],
+          });
+        }),
+    );
 
-  it.effect(
-    "NoteSource takes the caller's username over the signed-in account",
-    () =>
+    it.effect("SourceIdentity names the source of the borrowed database", () =>
       Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const source = yield* withReads(open, (reads) =>
-          reads.NoteSource({ itemID: 1, username: null }),
-        );
-        expect(source!.username).toBeNull();
-      }),
-  );
-
-  it.effect(
-    "AnnotationSources returns annotations by key with their attachment, parent item, and tags",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const sources = yield* withReads(open, (reads) =>
-          reads.AnnotationSources({
-            libraryID: 1,
-            keys: ["ANNT2345", "MISS2345"],
+        const identity = yield* withSource("", (reads) =>
+          Effect.gen(function* () {
+            if (!web)
+              yield* reads.Configure(
+                fileConfig("/zotero/zotero.sqlite", "source-1"),
+              );
+            return yield* reads.SourceIdentity({});
           }),
         );
-        expect(sources.annotations.map((a) => a.key)).toEqual(["ANNT2345"]);
-        expect(sources.annotations[0]!.position).toEqual({
-          pageIndex: 0,
-          rects: [[0, 0, 1, 1]],
-        });
-        expect(sources.attachments.map((a) => a.key)).toEqual(["ATCH2345"]);
-        expect(sources.parentItems.map((i) => i.key)).toEqual(["MAIN2345"]);
-        expect(
-          sources.tagsByItemID.get(100)!.map((tag) => tag.tag.name),
-        ).toEqual(["claim"]);
-        expect(sources.username).toBe("reader");
+        expect(identity).toEqual(
+          web
+            ? {
+                kind: "web-api",
+                id: `web-api:${WEB_API_ACCOUNT.userID}`,
+                userID: WEB_API_ACCOUNT.userID,
+                username: WEB_API_ACCOUNT.username,
+              }
+            : {
+                kind: "file",
+                id: "source-1",
+                databasePath: "/zotero/zotero.sqlite",
+              },
+        );
       }),
-  );
+    );
 
-  it.effect(
-    "AnnotationsOfAttachment returns the attachment's annotations and the account user",
-    () =>
+    it.effect(
+      "ConnectionReadout counts top-level items across every library",
+      () =>
+        Effect.gen(function* () {
+          const readout = yield* withSource("", (reads) =>
+            reads.ConnectionReadout({}),
+          );
+          expect(readout).toEqual({ itemCount: 4 });
+        }),
+    );
+
+    it.effect(
+      "ItemsByIndexedKeys answers user and group keys and leaves unknown keys out",
+      () =>
+        Effect.gen(function* () {
+          const items = yield* withSource("", (reads) =>
+            reads.ItemsByIndexedKeys({
+              indexedKeys: [
+                "MAIN2345",
+                "GRPITEMSg900",
+                "MISS2345",
+                "GRPITEMSg1",
+              ],
+            }),
+          );
+          expect([...items.keys()]).toEqual(["MAIN2345", "GRPITEMSg900"]);
+          const main = items.get("MAIN2345")!;
+          expect(main.dateAdded.toString()).toBe("2024-01-01T00:00:00Z");
+          expect(main.customFields).toBeInstanceOf(Map);
+          expect(main.fields).toMatchObject({
+            itemType: "journalArticle",
+            title: "Main Study",
+          });
+          expect(main.creators).toEqual([
+            {
+              firstName: "Ada",
+              lastName: "Lovelace",
+              creatorType: "author",
+              fieldMode: 0,
+            },
+          ]);
+          expect(items.get("GRPITEMSg900")).toMatchObject({
+            libraryID: 2,
+            groupID: 900,
+          });
+        }),
+    );
+
+    it.effect("ItemFamily returns related items and child notes", () =>
       Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const [found, unknown] = yield* withReads(open, (reads) =>
+        const [family, unknown, main] = yield* withSource("", (reads, id) =>
           Effect.all([
-            reads.AnnotationsOfAttachment({ attachmentKey: "ATCH2345" }),
-            reads.AnnotationsOfAttachment({ attachmentKey: "MISS2345" }),
+            reads.ItemFamily({ itemID: id("MAIN2345") }),
+            reads.ItemFamily({ itemID: 999 }),
+            Effect.succeed(id("MAIN2345")),
           ]),
         );
-        expect(found.attachment).toMatchObject({
-          key: "ATCH2345",
-          contentType: "application/pdf",
-        });
-        expect(found.annotations.map((a) => [a.key, a.type])).toEqual([
-          ["ANNT2345", 1],
-          ["ANNT2346", 3],
+        expect(family.relatedItems.map((item) => item.key).sort()).toEqual([
+          "RELA2345",
+          "RELB2345",
         ]);
-        expect(found.accountUserID).toBe(42);
-        expect(unknown).toEqual({
-          attachment: null,
-          annotations: [],
-          accountUserID: 42,
-        });
-      }),
-  );
-
-  it.effect("AttachmentsOf lists the attachments of the given items", () =>
-    Effect.gen(function* () {
-      const { open } = fixtureOpener();
-      const attachments = yield* withReads(open, (reads) =>
-        reads.AttachmentsOf({ itemIDs: [1, 2] }),
-      );
-      expect(attachments).toMatchObject([
-        {
-          key: "ATCH2345",
-          parentItemID: 1,
-          path: "storage:paper.pdf",
-          linkMode: 0,
-        },
-      ]);
-      expect(Schema.is(Instant)(attachments[0]!.dateModified)).toBe(true);
-    }),
-  );
-
-  it.effect(
-    "DisplayRefs streams one entry per id, null for an id with no live item",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const slices = yield* withReads(
-          open,
-          (reads) =>
-            Stream.runCollect(reads.DisplayRefs({ itemIDs: [1, 300, 999] })),
-          { sliceSize: 2 },
+        expect(family.childNotes).toMatchObject([
+          { key: "NTE22345", title: noteTitle, parentItemID: main },
+        ]);
+        expect(Schema.is(Instant)(family.childNotes[0]!.dateModified)).toBe(
+          true,
         );
-        expect(slices).toEqual([
-          [
-            {
-              itemID: 1,
-              ref: {
-                itemID: 1,
+        expect(unknown).toEqual({ relatedItems: [], childNotes: [] });
+      }),
+    );
+
+    it.effect(
+      "NoteSource returns a bundle the renderer builds into the note context",
+      () =>
+        Effect.gen(function* () {
+          const [source, missing, attachmentID] = yield* withSource(
+            "",
+            (reads, id) =>
+              Effect.all([
+                reads.NoteSource({ itemID: id("MAIN2345") }),
+                reads.NoteSource({ itemID: 999 }),
+                Effect.succeed(id("ATCH2345")),
+              ]),
+          );
+          expect(missing).toBeNull();
+          expect(source!.username).toBe("reader");
+          expect(
+            Schema.is(Instant)(
+              source!.annotationsByAttachment.get(attachmentID)![0]!.dateAdded,
+            ),
+          ).toBe(true);
+
+          const ctx = buildNoteContextFromSource(source!, noteResolvers);
+          expect(ctx.title).toBe("Main Study");
+          expect(ctx.weblink).toBe(
+            "https://www.zotero.org/reader/items/MAIN2345",
+          );
+          expect(ctx.tags.map(String)).toEqual(["zt"]);
+          expect(ctx.collections.map(String)).toEqual(["Reading"]);
+          expect(ctx.attachments.map((a) => a.key)).toEqual(["ATCH2345"]);
+          expect(ctx.annotations.map((a) => a.key)).toEqual([
+            "ANNT2345",
+            "ANNT2346",
+          ]);
+          expect(ctx.annotations[0]!.tags.map(String)).toEqual(["claim"]);
+          expect(ctx.relatedItems.map((r) => r.title)).toEqual([
+            "Alpha Paper",
+            "Beta Book",
+          ]);
+          expect(ctx.notes.map((n) => n.key)).toEqual(["NTE22345"]);
+        }),
+    );
+
+    it.effect(
+      "ItemFacets streams each item's own tags and collections in request order",
+      () =>
+        Effect.gen(function* () {
+          const [slices, ids] = yield* withSource(
+            "",
+            (reads, id) => {
+              const ids = {
+                main: id("MAIN2345"),
+                book: id("RELB2345"),
+                group: id("GRPITEMS"),
+              };
+              return Effect.all([
+                Stream.runCollect(
+                  reads.ItemFacets({
+                    items: [
+                      { itemID: ids.book, libraryID: 1 },
+                      { itemID: ids.main, libraryID: 1 },
+                      { itemID: ids.group, libraryID: 2 },
+                      { itemID: 999, libraryID: 1 },
+                    ],
+                  }),
+                ),
+                Effect.succeed(ids),
+              ]);
+            },
+            { sliceSize: 2 },
+          );
+          expect(
+            slices.map((slice) =>
+              slice.map(({ itemID, facets }) => ({
+                itemID,
+                tags: facets.tags.map(({ tag }) => tag.name),
+                collections: facets.collections.map(({ name }) => name),
+              })),
+            ),
+          ).toEqual([
+            [
+              { itemID: ids.book, tags: ["method"], collections: ["Reading"] },
+              { itemID: ids.main, tags: ["zt"], collections: ["Reading"] },
+            ],
+            [
+              { itemID: ids.group, tags: [], collections: [] },
+              { itemID: 999, tags: [], collections: [] },
+            ],
+          ]);
+        }),
+    );
+
+    it.effect(
+      "NoteSource takes the caller's username over the signed-in account",
+      () =>
+        Effect.gen(function* () {
+          const source = yield* withSource("", (reads, id) =>
+            reads.NoteSource({ itemID: id("MAIN2345"), username: null }),
+          );
+          expect(source!.username).toBeNull();
+        }),
+    );
+
+    it.effect(
+      "AnnotationSources returns annotations by key with their attachment, parent item, and tags",
+      () =>
+        Effect.gen(function* () {
+          const [sources, annotationID] = yield* withSource("", (reads, id) =>
+            Effect.all([
+              reads.AnnotationSources({
                 libraryID: 1,
-                key: "MAIN2345",
-                groupID: null,
-                indexedKey: "MAIN2345",
-                title: "Main Study",
-              },
-            },
-            {
-              itemID: 300,
-              ref: {
-                itemID: 300,
-                libraryID: 2,
-                key: "GRPITEMS",
-                groupID: 900,
-                indexedKey: "GRPITEMSg900",
-                title: "Group Work",
-              },
-            },
-          ],
-          [{ itemID: 999, ref: null }],
-        ]);
-      }),
-  );
+                keys: ["ANNT2345", "MISS2345"],
+              }),
+              Effect.succeed(id("ANNT2345")),
+            ]),
+          );
+          expect(sources.annotations.map((a) => a.key)).toEqual(["ANNT2345"]);
+          expect(sources.annotations[0]!.position).toEqual({
+            pageIndex: 0,
+            rects: [[0, 0, 1, 1]],
+          });
+          expect(sources.attachments.map((a) => a.key)).toEqual(["ATCH2345"]);
+          expect(sources.parentItems.map((i) => i.key)).toEqual(["MAIN2345"]);
+          expect(
+            sources.tagsByItemID.get(annotationID)!.map((tag) => tag.tag.name),
+          ).toEqual(["claim"]);
+          expect(sources.username).toBe("reader");
+        }),
+    );
 
-  it.effect(
-    "NoteBodies returns notes with their bodies and leaves unknown keys out",
-    () =>
+    it.effect(
+      "AnnotationsOfAttachment returns the attachment's annotations and the account user",
+      () =>
+        Effect.gen(function* () {
+          const [found, unknown] = yield* withSource("", (reads) =>
+            Effect.all([
+              reads.AnnotationsOfAttachment({ attachmentKey: "ATCH2345" }),
+              reads.AnnotationsOfAttachment({ attachmentKey: "MISS2345" }),
+            ]),
+          );
+          expect(found.attachment).toMatchObject({
+            key: "ATCH2345",
+            contentType: "application/pdf",
+          });
+          expect(found.annotations.map((a) => [a.key, a.type])).toEqual([
+            ["ANNT2345", 1],
+            ["ANNT2346", 3],
+          ]);
+          expect(found.accountUserID).toBe(42);
+          expect(unknown).toEqual({
+            attachment: null,
+            annotations: [],
+            accountUserID: 42,
+          });
+        }),
+    );
+
+    it.effect("AttachmentsOf lists the attachments of the given items", () =>
       Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const notes = yield* withReads(open, (reads) =>
-          reads.NoteBodies({ libraryID: 1, keys: ["NTE22345", "MISS2345"] }),
+        const [attachments, main] = yield* withSource("", (reads, id) =>
+          Effect.all([
+            reads.AttachmentsOf({ itemIDs: [id("MAIN2345"), id("RELB2345")] }),
+            Effect.succeed(id("MAIN2345")),
+          ]),
         );
-        expect(notes).toMatchObject([
-          { key: "NTE22345", note: "<p>body</p>", title: "Methods" },
-        ]);
-        expect(Schema.is(Instant)(notes[0]!.dateAdded)).toBe(true);
-      }),
-  );
-
-  it.effect("WorkLabels returns label inputs for top-level items only", () =>
-    Effect.gen(function* () {
-      const { open } = fixtureOpener();
-      const labels = yield* withReads(open, (reads) =>
-        reads.WorkLabels({ indexedKeys: ["MAIN2345", "ATCH2345", "MISS2345"] }),
-      );
-      expect([...labels]).toEqual([
-        [
-          "MAIN2345",
+        expect(attachments).toMatchObject([
           {
-            libraryID: 1,
-            creators: [
+            key: "ATCH2345",
+            parentItemID: main,
+            path: "storage:paper.pdf",
+            linkMode: 0,
+          },
+        ]);
+        expect(Schema.is(Instant)(attachments[0]!.dateModified)).toBe(true);
+      }),
+    );
+
+    it.effect(
+      "DisplayRefs streams one entry per id, null for an id with no live item",
+      () =>
+        Effect.gen(function* () {
+          const [slices, main, group] = yield* withSource(
+            "",
+            (reads, id) =>
+              Effect.all([
+                Stream.runCollect(
+                  reads.DisplayRefs({
+                    itemIDs: [id("MAIN2345"), id("GRPITEMS"), 999],
+                  }),
+                ),
+                Effect.succeed(id("MAIN2345")),
+                Effect.succeed(id("GRPITEMS")),
+              ]),
+            { sliceSize: 2 },
+          );
+          expect(slices).toEqual([
+            [
               {
-                firstName: "Ada",
-                lastName: "Lovelace",
-                creatorType: "author",
-                fieldMode: 0,
+                itemID: main,
+                ref: {
+                  itemID: main,
+                  libraryID: 1,
+                  key: "MAIN2345",
+                  groupID: null,
+                  indexedKey: "MAIN2345",
+                  title: "Main Study",
+                },
+              },
+              {
+                itemID: group,
+                ref: {
+                  itemID: group,
+                  libraryID: 2,
+                  key: "GRPITEMS",
+                  groupID: 900,
+                  indexedKey: "GRPITEMSg900",
+                  title: "Group Work",
+                },
               },
             ],
-            primaryCreatorType: "author",
-            title: "Main Study",
-            shortTitle: "Main",
-            date: "2024-05-06",
-          },
-        ],
-      ]);
-    }),
-  );
+            [{ itemID: 999, ref: null }],
+          ]);
+        }),
+    );
 
-  it.effect(
-    "AttachmentPathIndex streams every attachment beside its parent key, a slice per query",
-    () =>
+    it.effect(
+      "NoteBodies returns notes with their bodies and leaves unknown keys out",
+      () =>
+        Effect.gen(function* () {
+          const notes = yield* withSource("", (reads) =>
+            reads.NoteBodies({ libraryID: 1, keys: ["NTE22345", "MISS2345"] }),
+          );
+          expect(notes).toMatchObject([
+            {
+              key: "NTE22345",
+              note: web
+                ? '<div class="zotero-note znv1"><p>body</p></div>'
+                : "<p>body</p>",
+              title: noteTitle,
+            },
+          ]);
+          expect(Schema.is(Instant)(notes[0]!.dateAdded)).toBe(true);
+        }),
+    );
+
+    it.effect("WorkLabels returns label inputs for top-level items only", () =>
       Effect.gen(function* () {
-        const { open } = fixtureOpener(
-          () => `
+        const labels = yield* withSource("", (reads) =>
+          reads.WorkLabels({
+            indexedKeys: ["MAIN2345", "ATCH2345", "MISS2345"],
+          }),
+        );
+        expect([...labels]).toEqual([
+          [
+            "MAIN2345",
+            {
+              libraryID: 1,
+              creators: [
+                {
+                  firstName: "Ada",
+                  lastName: "Lovelace",
+                  creatorType: "author",
+                  fieldMode: 0,
+                },
+              ],
+              primaryCreatorType: "author",
+              title: "Main Study",
+              shortTitle: "Main",
+              date: web ? "2024-05-06 2024-05-06" : "2024-05-06",
+            },
+          ],
+        ]);
+      }),
+    );
+
+    it.effect(
+      "AttachmentPathIndex streams every attachment beside its parent key, a slice per query",
+      () =>
+        Effect.gen(function* () {
+          const result = yield* withSource(
+            `
         insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
           values (11, 2, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'ATCHSOLO');
         insert into itemAttachments (itemID, parentItemID, linkMode, path)
           values (11, null, 0, 'storage:loose.pdf');
       `,
-        );
-        const slices = yield* withReads(
-          open,
-          (reads) => Stream.runCollect(reads.AttachmentPathIndex({})),
-          { sliceSize: 1 },
-        );
-        expect(
-          slices.map((slice) =>
-            slice.map((attachment) => [
-              attachment.key,
-              attachment.parentIndexedKey,
-              attachment.path,
-            ]),
-          ),
-        ).toEqual([
-          [["ATCH2345", "MAIN2345", "storage:paper.pdf"]],
-          [["ATCHSOLO", null, "storage:loose.pdf"]],
-        ]);
-      }),
-  );
+            (reads, id) =>
+              Effect.all([
+                Stream.runCollect(reads.AttachmentPathIndex({})),
+                Effect.succeed(id),
+              ]),
+            { sliceSize: 1 },
+          );
+          const [slices, id] = result;
+          expect(
+            slices.map((slice) =>
+              slice.map((attachment) => [
+                attachment.key,
+                attachment.parentIndexedKey,
+                attachment.path,
+              ]),
+            ),
+          ).toEqual(
+            [
+              [["ATCH2345", "MAIN2345", "storage:paper.pdf"]],
+              [["ATCHSOLO", null, "storage:loose.pdf"]],
+            ].toSorted((a, b) => id(a[0]![0]!) - id(b[0]![0]!)),
+          );
+        }),
+    );
 
-  it.effect(
-    "AttachmentsByKeys returns one library's attachments by key and leaves unknown keys out",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener(
-          () => `
+    it.effect(
+      "AttachmentsByKeys returns one library's attachments by key and leaves unknown keys out",
+      () =>
+        Effect.gen(function* () {
+          const [found, otherLibrary, ids] = yield* withSource(
+            `
         insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
           values (201, 2, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'IMGE2345');
         insert into itemAttachments (itemID, parentItemID, linkMode, contentType, path)
           values (201, 200, 0, 'image/png', 'storage:figure.png');
       `,
-        );
-        const [found, otherLibrary] = yield* withReads(open, (reads) =>
-          Effect.all([
-            reads.AttachmentsByKeys({
-              libraryID: 1,
-              keys: ["IMGE2345", "ATCH2345", "MISS2345"],
-            }),
-            reads.AttachmentsByKeys({ libraryID: 2, keys: ["IMGE2345"] }),
-          ]),
-        );
-        expect(
-          found.map((a) => [a.key, a.parentItemID, a.contentType]),
-        ).toEqual([
-          ["IMGE2345", 200, "image/png"],
-          ["ATCH2345", 1, "application/pdf"],
-        ]);
-        expect(Schema.is(Instant)(found[0]!.dateAdded)).toBe(true);
-        expect(otherLibrary).toEqual([]);
-      }),
-  );
+            (reads, id) =>
+              Effect.all([
+                reads.AttachmentsByKeys({
+                  libraryID: 1,
+                  keys: ["IMGE2345", "ATCH2345", "MISS2345"],
+                }),
+                reads.AttachmentsByKeys({ libraryID: 2, keys: ["IMGE2345"] }),
+                Effect.succeed({ note: id("NTE22345"), main: id("MAIN2345") }),
+              ]),
+          );
+          expect(
+            found.map((a) => [a.key, a.parentItemID, a.contentType]),
+          ).toEqual([
+            ["IMGE2345", ids.note, "image/png"],
+            ["ATCH2345", ids.main, "application/pdf"],
+          ]);
+          expect(Schema.is(Instant)(found[0]!.dateAdded)).toBe(true);
+          expect(otherLibrary).toEqual([]);
+        }),
+    );
 
-  it.effect(
-    "DatabaseIdentity names the account and the Local API database",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener(
-          () => `
+    it.effect(
+      "DatabaseIdentity names the account and the Local API database",
+      () =>
+        Effect.gen(function* () {
+          const identity = yield* withSource(
+            `
         insert into settings (setting, key, value)
-          values ('account', 'localUserKey', 'v3aG8nQf'),
-                 ('localAPI', 'serverID', 'A8sf5Zsz8ySw');
+          values ('account', 'localUserKey', 'XmplKey8'),
+                 ('localAPI', 'serverID', 'XmplSrv00Id1');
       `,
-        );
-        const identity = yield* withReads(open, (reads) =>
-          reads.DatabaseIdentity({}),
-        );
-        expect(identity).toEqual({
-          userID: 42,
-          localUserKey: "v3aG8nQf",
-          serverID: "A8sf5Zsz8ySw",
-        });
-      }),
-  );
+            (reads) => reads.DatabaseIdentity({}),
+          );
+          expect(identity).toEqual(
+            web
+              ? {
+                  userID: 42,
+                  localUserKey: expect.stringMatching(/^replica-[0-9a-z]{16}$/),
+                  serverID: null,
+                }
+              : {
+                  userID: 42,
+                  localUserKey: "XmplKey8",
+                  serverID: "XmplSrv00Id1",
+                },
+          );
+        }),
+    );
 
-  it.effect(
-    "ItemSnapshot exports the same Item Snapshot as a direct export",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const options = {
-          provenance: {
-            kind: "connected",
-            installationId: "install",
-            vault: "Vault",
-          },
-          vaultTargets: { notes: { MAIN2345: "Literature/Main.md" } },
-        } as const;
-        const selection = {
-          library: { type: "personal" },
-          key: "MAIN2345",
-        } as const;
-        const snapshot = yield* withReads(open, (reads) =>
-          reads.ItemSnapshot({ selection, ...options }),
-        );
+    it.effect(
+      "ItemSnapshot exports the same Item Snapshot as a direct export",
+      () =>
+        Effect.gen(function* () {
+          const options = {
+            provenance: {
+              kind: "connected",
+              installationId: "install",
+              vault: "Vault",
+            },
+            vaultTargets: { notes: { MAIN2345: "Literature/Main.md" } },
+          } as const;
+          const selection = {
+            library: { type: "personal" },
+            key: "MAIN2345",
+          } as const;
+          const [snapshot, replicaExport] = yield* withSource("", (reads) =>
+            Effect.all([
+              reads.ItemSnapshot({ selection, ...options }),
+              Effect.flatMap(Connection, (connection) =>
+                Effect.scoped(
+                  Effect.map(connection.borrow, (client) =>
+                    exportItemSnapshot(client, selection, {
+                      ...options,
+                      revision: snapshotRevision,
+                    }),
+                  ),
+                ),
+              ),
+            ]),
+          );
 
-        const direct = createClient(":memory:");
-        using _direct = { [Symbol.dispose]: () => direct.$client.close() };
-        createFixtureSchema(direct.$client);
-        direct.$client.exec(SEED);
-        expect(snapshot).toEqual(
-          exportItemSnapshot(direct, selection, {
-            ...options,
-            revision: snapshotRevision,
-          }),
-        );
-        expect(snapshot.item.title).toBe("Main Study");
-      }),
-  );
+          const direct = createClient(":memory:");
+          using _direct = { [Symbol.dispose]: () => direct.$client.close() };
+          createFixtureSchema(direct.$client);
+          direct.$client.exec(SEED);
+          expect(snapshot).toEqual(
+            web
+              ? replicaExport
+              : exportItemSnapshot(direct, selection, {
+                  ...options,
+                  revision: snapshotRevision,
+                }),
+          );
+          expect(snapshot.item.title).toBe("Main Study");
+        }),
+    );
 
-  it.effect(
-    "ItemSnapshot fails with DbUnavailable for an Item outside the selected Library",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const error = yield* withReads(open, (reads) =>
-          Effect.flip(
-            reads.ItemSnapshot({
-              selection: {
-                library: { type: "group", groupID: 900 },
-                key: "MAIN2345",
-              },
-              provenance: { kind: "sample", id: "x" },
-            }),
-          ),
-        );
-        expect(error).toBeInstanceOf(DbUnavailable);
-      }),
-  );
+    it.effect(
+      "ItemSnapshot fails with DbUnavailable for an Item outside the selected Library",
+      () =>
+        Effect.gen(function* () {
+          const error = yield* withSource("", (reads) =>
+            Effect.flip(
+              reads.ItemSnapshot({
+                selection: {
+                  library: { type: "group", groupID: 900 },
+                  key: "MAIN2345",
+                },
+                provenance: { kind: "sample", id: "x" },
+              }),
+            ),
+          );
+          expect(error).toBeInstanceOf(DbUnavailable);
+        }),
+    );
 
-  it.effect(
-    "ItemType names the type of any live Item, child Items included",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const types = yield* withReads(open, (reads) =>
-          Effect.all([
-            reads.ItemType({ indexedKey: "MAIN2345" }),
-            reads.ItemType({ indexedKey: "ATCH2345" }),
-            reads.ItemType({ indexedKey: "NTE22345" }),
-            reads.ItemType({ indexedKey: "ANNT2345" }),
-            reads.ItemType({ indexedKey: "GRPITEMSg900" }),
-            reads.ItemType({ indexedKey: "MISS2345" }),
-          ]),
-        );
-        expect(types).toEqual([
-          { libraryID: 1, key: "MAIN2345", itemType: "journalArticle" },
-          { libraryID: 1, key: "ATCH2345", itemType: "attachment" },
-          { libraryID: 1, key: "NTE22345", itemType: "note" },
-          { libraryID: 1, key: "ANNT2345", itemType: "annotation" },
-          { libraryID: 2, key: "GRPITEMS", itemType: "journalArticle" },
-          null,
-        ]);
-      }),
-  );
+    it.effect(
+      "ItemType names the type of any live Item, child Items included",
+      () =>
+        Effect.gen(function* () {
+          const types = yield* withSource("", (reads) =>
+            Effect.all([
+              reads.ItemType({ indexedKey: "MAIN2345" }),
+              reads.ItemType({ indexedKey: "ATCH2345" }),
+              reads.ItemType({ indexedKey: "NTE22345" }),
+              reads.ItemType({ indexedKey: "ANNT2345" }),
+              reads.ItemType({ indexedKey: "GRPITEMSg900" }),
+              reads.ItemType({ indexedKey: "MISS2345" }),
+            ]),
+          );
+          expect(types).toEqual([
+            { libraryID: 1, key: "MAIN2345", itemType: "journalArticle" },
+            { libraryID: 1, key: "ATCH2345", itemType: "attachment" },
+            { libraryID: 1, key: "NTE22345", itemType: "note" },
+            { libraryID: 1, key: "ANNT2345", itemType: "annotation" },
+            { libraryID: 2, key: "GRPITEMS", itemType: "journalArticle" },
+            null,
+          ]);
+        }),
+    );
 
-  it.effect(
-    "AnnotViewAttachments lists an item's attachments, or a standalone attachment alone, with annotation counts",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener(
-          () => `
+    it.effect(
+      "AnnotViewAttachments lists an item's attachments, or a standalone attachment alone, with annotation counts",
+      () =>
+        Effect.gen(function* () {
+          const [ofItem, standalone, unknown, ids] = yield* withSource(
+            `
         insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
           values (11, 2, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'LOOS2345');
         insert into itemAttachments (itemID, parentItemID, linkMode, contentType, path)
           values (11, null, 0, 'application/pdf', 'storage:loose.pdf');
       `,
-        );
-        const [ofItem, standalone, unknown] = yield* withReads(open, (reads) =>
-          Effect.all([
-            reads.AnnotViewAttachments({
-              libraryID: 1,
-              key: "MAIN2345",
-              standalone: false,
-            }),
-            reads.AnnotViewAttachments({
-              libraryID: 1,
-              key: "LOOS2345",
-              standalone: true,
-            }),
-            reads.AnnotViewAttachments({
-              libraryID: 1,
-              key: "MISS2345",
-              standalone: true,
-            }),
-          ]),
-        );
-        expect(ofItem).toEqual([
-          {
-            itemID: 10,
-            indexedKey: "ATCH2345",
-            path: "storage:paper.pdf",
-            annotCount: 2,
-          },
-        ]);
-        expect(standalone).toEqual([
-          {
-            itemID: 11,
-            indexedKey: "LOOS2345",
-            path: "storage:loose.pdf",
-            annotCount: 0,
-          },
-        ]);
-        expect(unknown).toEqual([]);
-      }),
-  );
+            (reads, id) =>
+              Effect.all([
+                reads.AnnotViewAttachments({
+                  libraryID: 1,
+                  key: "MAIN2345",
+                  standalone: false,
+                }),
+                reads.AnnotViewAttachments({
+                  libraryID: 1,
+                  key: "LOOS2345",
+                  standalone: true,
+                }),
+                reads.AnnotViewAttachments({
+                  libraryID: 1,
+                  key: "MISS2345",
+                  standalone: true,
+                }),
+                Effect.succeed({
+                  attachment: id("ATCH2345"),
+                  loose: id("LOOS2345"),
+                }),
+              ]),
+          );
+          expect(ofItem).toEqual([
+            {
+              itemID: ids.attachment,
+              indexedKey: "ATCH2345",
+              path: "storage:paper.pdf",
+              annotCount: 2,
+            },
+          ]);
+          expect(standalone).toEqual([
+            {
+              itemID: ids.loose,
+              indexedKey: "LOOS2345",
+              path: "storage:loose.pdf",
+              annotCount: 0,
+            },
+          ]);
+          expect(unknown).toEqual([]);
+        }),
+    );
 
-  it.effect(
-    "ReaderTargetKeys names a push's attachment, parent item, and live selected annotations",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const [named, unknown] = yield* withReads(open, (reads) =>
-          Effect.all([
-            reads.ReaderTargetKeys({ attachmentID: 10, selected: [101, 999] }),
-            reads.ReaderTargetKeys({ attachmentID: 999, selected: [] }),
-          ]),
-        );
-        expect(named).toEqual({
-          attachmentKey: "ATCH2345",
-          itemKey: "MAIN2345",
-          selected: ["ANNT2346"],
-        });
-        expect(unknown).toBeNull();
-      }),
-  );
+    it.effect(
+      "ReaderTargetKeys names a push's attachment, parent item, and live selected annotations",
+      () =>
+        Effect.gen(function* () {
+          const [named, unknown] = yield* withSource("", (reads, id) =>
+            Effect.all([
+              reads.ReaderTargetKeys({
+                attachmentID: id("ATCH2345"),
+                selected: [id("ANNT2346"), 999],
+              }),
+              reads.ReaderTargetKeys({ attachmentID: 999, selected: [] }),
+            ]),
+          );
+          expect(named).toEqual({
+            attachmentKey: "ATCH2345",
+            itemKey: "MAIN2345",
+            selected: ["ANNT2346"],
+          });
+          expect(unknown).toBeNull();
+        }),
+    );
 
-  it.effect(
-    "ScopeItemIDs lists a library's or a collection's items or notes, null for an unknown collection",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const [items, filed, notes, unknown] = yield* withReads(open, (reads) =>
-          Effect.all([
-            reads.ScopeItemIDs({ kind: "literature-items", libraryID: 1 }),
-            reads.ScopeItemIDs({
-              kind: "literature-items",
-              libraryID: 1,
-              collectionKey: "CLL22345",
-            }),
-            reads.ScopeItemIDs({ kind: "notes", libraryID: 1 }),
-            reads.ScopeItemIDs({
-              kind: "notes",
-              libraryID: 1,
-              collectionKey: "MISS2345",
-            }),
-          ]),
-        );
-        expect(items).toEqual([1, 3, 2]);
-        expect(filed).toEqual([1, 2]);
-        expect(notes).toEqual([200]);
-        expect(unknown).toBeNull();
-      }),
-  );
+    it.effect(
+      "ScopeItemIDs lists a library's or a collection's items or notes, null for an unknown collection",
+      () =>
+        Effect.gen(function* () {
+          const [items, filed, notes, unknown, id] = yield* withSource(
+            "",
+            (reads, id) =>
+              Effect.all([
+                reads.ScopeItemIDs({ kind: "literature-items", libraryID: 1 }),
+                reads.ScopeItemIDs({
+                  kind: "literature-items",
+                  libraryID: 1,
+                  collectionKey: "CLL22345",
+                }),
+                reads.ScopeItemIDs({ kind: "notes", libraryID: 1 }),
+                reads.ScopeItemIDs({
+                  kind: "notes",
+                  libraryID: 1,
+                  collectionKey: "MISS2345",
+                }),
+                Effect.succeed(id),
+              ]),
+          );
+          expect(items).toEqual(["MAIN2345", "RELA2345", "RELB2345"].map(id));
+          expect(filed).toEqual(["MAIN2345", "RELB2345"].map(id));
+          expect(notes).toEqual([id("NTE22345")]);
+          expect(unknown).toBeNull();
+        }),
+    );
 
-  it.effect(
-    "ScopeItemIDs lists a whole Library newest first across scan spans, by key on a tie",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener(
-          () => `
+    it.effect(
+      "ScopeItemIDs lists a whole Library newest first across scan spans, by key on a tie",
+      () =>
+        Effect.gen(function* () {
+          const [items, id] = yield* withSource(
+            `
         insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
           values
             (600, 1, '2024-01-01 00:00:00', '2024-03-01 00:00:00', 1, 'NEWE2345'),
             (700, 1, '2024-01-01 00:00:00', '2024-01-02 00:00:00', 1, 'AAAA2345');
       `,
-        );
-        const items = yield* withReads(open, (reads) =>
-          reads.ScopeItemIDs({ kind: "literature-items", libraryID: 1 }),
-        );
-        expect(items).toEqual([600, 1, 3, 700, 2]);
-      }),
-  );
+            (reads, id) =>
+              Effect.all([
+                reads.ScopeItemIDs({ kind: "literature-items", libraryID: 1 }),
+                Effect.succeed(id),
+              ]),
+          );
+          expect(items).toEqual(
+            ["NEWE2345", "MAIN2345", "RELA2345", "AAAA2345", "RELB2345"].map(
+              id,
+            ),
+          );
+        }),
+    );
 
-  it.effect(
-    "NoteRefs streams one entry per id, telling a trashed note from a non-note id",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener(
-          () => `
+    it.effect(
+      "NoteRefs streams one entry per id, telling a trashed note from a non-note id",
+      () =>
+        Effect.gen(function* () {
+          const [slices, ids] = yield* withSource(
+            `
         insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key)
           values (201, 3, '2024-01-01 00:00:00', '2024-01-01 00:00:00', 1, 'TRSH2345');
         insert into itemNotes (itemID, parentItemID, note, title)
           values (201, null, '<p>gone</p>', 'Gone');
         insert into deletedItems (itemID) values (201);
       `,
-        );
-        const slices = yield* withReads(
-          open,
-          (reads) =>
-            Stream.runCollect(reads.NoteRefs({ itemIDs: [200, 201, 1] })),
-          { sliceSize: 2 },
-        );
-        expect(slices).toMatchObject([
-          [
-            {
-              itemID: 200,
-              note: {
-                itemID: 200,
-                key: "NTE22345",
-                parentItemID: 1,
-                title: "Methods",
-              },
-              trashed: false,
+            (reads, id) => {
+              const ids = {
+                note: id("NTE22345"),
+                trashed: id("TRSH2345"),
+                main: id("MAIN2345"),
+              };
+              return Effect.all([
+                Stream.runCollect(
+                  reads.NoteRefs({
+                    itemIDs: [ids.note, ids.trashed, ids.main],
+                  }),
+                ),
+                Effect.succeed(ids),
+              ]);
             },
-            { itemID: 201, note: null, trashed: true },
-          ],
-          [{ itemID: 1, note: null, trashed: false }],
-        ]);
-        expect(Schema.is(Instant)(slices[0]![0]!.note!.dateModified)).toBe(
-          true,
+            { sliceSize: 2 },
+          );
+          expect(slices).toMatchObject([
+            [
+              {
+                itemID: ids.note,
+                note: {
+                  itemID: ids.note,
+                  key: "NTE22345",
+                  parentItemID: ids.main,
+                  title: noteTitle,
+                },
+                trashed: false,
+              },
+              { itemID: ids.trashed, note: null, trashed: true },
+            ],
+            [{ itemID: ids.main, note: null, trashed: false }],
+          ]);
+          expect(Schema.is(Instant)(slices[0]![0]!.note!.dateModified)).toBe(
+            true,
+          );
+        }),
+    );
+
+    it.effect(
+      "ChildNoteRefs streams each parent's display ref beside its child notes",
+      () =>
+        Effect.gen(function* () {
+          const [slices, ids] = yield* withSource(
+            "",
+            (reads, id) => {
+              const ids = {
+                main: id("MAIN2345"),
+                book: id("RELB2345"),
+                note: id("NTE22345"),
+              };
+              return Effect.all([
+                Stream.runCollect(
+                  reads.ChildNoteRefs({ itemIDs: [ids.main, ids.book, 999] }),
+                ),
+                Effect.succeed(ids),
+              ]);
+            },
+            { sliceSize: 2 },
+          );
+          expect(slices).toMatchObject([
+            [
+              {
+                itemID: ids.main,
+                ref: { indexedKey: "MAIN2345", title: "Main Study" },
+                notes: [{ itemID: ids.note, key: "NTE22345" }],
+              },
+              { itemID: ids.book, ref: { indexedKey: "RELB2345" }, notes: [] },
+            ],
+            [{ itemID: 999, ref: null, notes: [] }],
+          ]);
+        }),
+    );
+  });
+
+  describe(`ZoteroReads citation operations over the ${source.name} source`, () => {
+    it.effect(
+      "AttachmentsAt returns an attachment itself, a regular item's attachments, or nothing",
+      () =>
+        Effect.gen(function* () {
+          const [own, children, none, attachment] = yield* withSource(
+            "",
+            (reads, id) =>
+              Effect.all([
+                reads.AttachmentsAt({ itemID: id("ATCH2345") }),
+                reads.AttachmentsAt({ itemID: id("MAIN2345") }),
+                reads.AttachmentsAt({ itemID: 999 }),
+                Effect.succeed(id("ATCH2345")),
+              ]),
+          );
+          expect(own).toMatchObject([{ itemID: attachment, key: "ATCH2345" }]);
+          expect(children).toMatchObject([
+            { itemID: attachment, key: "ATCH2345" },
+          ]);
+          expect(none).toEqual([]);
+        }),
+    );
+
+    it.effect(
+      "ItemsByIndexedKeys answers in the order of the requested keys",
+      () =>
+        Effect.gen(function* () {
+          const items = yield* withSource("", (reads) =>
+            reads.ItemsByIndexedKeys({
+              indexedKeys: ["RELB2345", "GRPITEMSg900", "MISS2345", "MAIN2345"],
+            }),
+          );
+          expect([...items.keys()]).toEqual([
+            "RELB2345",
+            "GRPITEMSg900",
+            "MAIN2345",
+          ]);
+        }),
+    );
+
+    it.effect(
+      "ItemsByIndexedKeys answers each key under the spelling it was asked by",
+      () =>
+        Effect.gen(function* () {
+          const items = yield* withSource("", (reads) =>
+            reads.ItemsByIndexedKeys({
+              indexedKeys: ["GRPITEMSg0900", "GRPITEMSg900"],
+            }),
+          );
+          expect([...items.keys()]).toEqual(["GRPITEMSg0900", "GRPITEMSg900"]);
+          expect(items.get("GRPITEMSg0900")).toMatchObject({
+            key: "GRPITEMS",
+            indexedKey: "GRPITEMSg900",
+          });
+        }),
+    );
+  });
+
+  describe(`ZoteroReads annotation-family operations over the ${source.name} source`, () => {
+    it.effect(
+      "AttachmentSources returns attachments by Indexed Key with their parent items, tags, and username",
+      () =>
+        Effect.gen(function* () {
+          const [sources, main] = yield* withSource("", (reads, id) =>
+            Effect.all([
+              reads.AttachmentSources({
+                attachmentKeys: ["ATCH2345", "MISS2345"],
+              }),
+              Effect.succeed(id("MAIN2345")),
+            ]),
+          );
+          expect(sources.annotations).toEqual([]);
+          expect(sources.attachments.map((a) => a.indexedKey)).toEqual([
+            "ATCH2345",
+          ]);
+          expect(Schema.is(Instant)(sources.attachments[0]!.dateAdded)).toBe(
+            true,
+          );
+          expect(sources.parentItems.map((i) => i.key)).toEqual(["MAIN2345"]);
+          expect(
+            sources.tagsByItemID.get(main)!.map((tag) => tag.tag.name),
+          ).toEqual(["zt"]);
+          expect(sources.username).toBe("reader");
+        }),
+    );
+  });
+
+  describe(`ZoteroReads Profile Match operations over the ${source.name} source`, () => {
+    it.effect(
+      "TagNames lists the tag names of one library, or of every library",
+      () =>
+        Effect.gen(function* () {
+          const names = yield* withSource(
+            `insert into tags (tagID, name) values (4, 'Alpha');
+        insert into itemTags (itemID, tagID, type) values (300, 4, 0);`,
+            (reads) =>
+              Effect.all({
+                user: reads.TagNames({ libraryID: 1 }),
+                group: reads.TagNames({ libraryID: 2 }),
+                all: reads.TagNames({}),
+              }),
+          );
+          expect(names).toEqual({
+            user: ["claim", "method", "zt"],
+            group: ["Alpha"],
+            all: ["Alpha", "claim", "method", "zt"],
+          });
+        }),
+    );
+
+    it.effect(
+      "CollectionPaths lists every live collection path of the given libraries, root first",
+      () =>
+        Effect.gen(function* () {
+          const paths = yield* withSource(
+            `insert into collections (collectionID, collectionName, libraryID, key, parentCollectionID)
+        values (501, 'Theory', 1, 'CLL32345', 500), (502, 'Lab Notes', 2, 'CLL42345', null);`,
+            (reads) =>
+              Effect.all({
+                user: reads.CollectionPaths({ libraryIDs: [1] }),
+                both: reads.CollectionPaths({ libraryIDs: [1, 2] }),
+              }),
+          );
+          expect(paths).toEqual({
+            user: [["Reading"], ["Reading", "Theory"]],
+            both: [["Lab Notes"], ["Reading"], ["Reading", "Theory"]],
+          });
+        }),
+    );
+  });
+
+  describe(`ZoteroReads SearchItems over the ${source.name} source`, () => {
+    it.effect(
+      "a search answers hydrated Items of every library, and ranks a used Item first",
+      () =>
+        Effect.gen(function* () {
+          const everything = { libraryIDs: [1, 2], query: "", limit: 10 };
+          const [all, used, titled] = yield* withSource("", (reads) =>
+            Effect.all([
+              reads.SearchItems(everything),
+              reads.SearchItems({
+                ...everything,
+                limit: 1,
+                uses: { RELB2345: 2208988800000 },
+              }),
+              reads.SearchItems({ ...everything, query: "alpha" }),
+            ]),
+          );
+          expect(all.map((hit) => hit.item.indexedKey)).toEqual([
+            "GRPITEMSg900",
+            "MAIN2345",
+            "RELA2345",
+            "RELB2345",
+          ]);
+          expect(Schema.is(Instant)(all[0]!.item.dateAdded)).toBe(true);
+          expect(used.map((hit) => hit.item.indexedKey)).toEqual(["RELB2345"]);
+          expect(titled.map((hit) => hit.item.indexedKey)).toEqual([
+            "RELA2345",
+          ]);
+        }),
+    );
+  });
+}
+
+describe("SourceIdentity over the Zotero file source", () => {
+  it.effect(
+    "keeps its client when only the source ID of the configuration changes, as the desktop source does",
+    () =>
+      Effect.gen(function* () {
+        const fixture = fixtureOpener();
+        const identity = yield* withReads(fixture.open, (reads) =>
+          Effect.gen(function* () {
+            yield* reads.Configure(
+              fileConfig("/zotero/zotero.sqlite", "source-1"),
+            );
+            yield* reads.Configure(
+              fileConfig("/zotero/zotero.sqlite", "source-2"),
+            );
+            return yield* reads.SourceIdentity({});
+          }),
         );
+        expect(fixture.log.filter((line) => line.startsWith("open"))).toEqual([
+          "open #1",
+        ]);
+        expect(identity).toEqual({
+          kind: "file",
+          id: "source-2",
+          databasePath: "/zotero/zotero.sqlite",
+        });
       }),
   );
 
   it.effect(
-    "ChildNoteRefs streams each parent's display ref beside its child notes",
+    "gives no path and no source ID for a client that opened before the first configuration",
     () =>
       Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const slices = yield* withReads(
-          open,
-          (reads) =>
-            Stream.runCollect(reads.ChildNoteRefs({ itemIDs: [1, 2, 999] })),
-          { sliceSize: 2 },
+        const connection = yield* Connection;
+        const client = yield* connection.borrow;
+        yield* connection.configure(
+          fileConfig("/zotero/zotero.sqlite", "source-1"),
         );
-        expect(slices).toMatchObject([
-          [
-            {
-              itemID: 1,
-              ref: { indexedKey: "MAIN2345", title: "Main Study" },
-              notes: [{ itemID: 200, key: "NTE22345" }],
-            },
-            { itemID: 2, ref: { indexedKey: "RELB2345" }, notes: [] },
-          ],
-          [{ itemID: 999, ref: null, notes: [] }],
-        ]);
-      }),
+        expect(yield* connection.identity(client)).toEqual({
+          kind: "file",
+          id: null,
+          databasePath: null,
+        });
+      }).pipe(Effect.scoped, Effect.provide(layerRcRef(fixtureOpener().open))),
   );
 
+  it.effect(
+    "gives no source ID while the Worker serves a database that the preferences no longer name",
+    () =>
+      Effect.gen(function* () {
+        const identity = yield* withReads(
+          fixtureOpener((open) => (open === 1 ? "" : null)).open,
+          (reads) =>
+            Effect.gen(function* () {
+              yield* reads.Configure(
+                fileConfig("/zotero/zotero.sqlite", "source-1"),
+              );
+              yield* reads.Configure(
+                fileConfig("/moved/zotero.sqlite", "source-2"),
+              );
+              return yield* reads.SourceIdentity({});
+            }),
+        );
+        expect(identity).toEqual({
+          kind: "file",
+          id: null,
+          databasePath: "/zotero/zotero.sqlite",
+        });
+      }),
+  );
+});
+
+describeReadOperations(fileSource);
+describeReadOperations(webApiSource);
+
+describe("ZoteroReads operations on the file source", () => {
   const sliceIDs = { one: [200], many: [1, 2, 3, 10, 200, 201, 999] };
   type SliceRead = [
     string,
@@ -1671,133 +2066,6 @@ describe("Connection databaseGeneration", () => {
         expect(result.seen).toBe(3);
         expect(result.second).toBeGreaterThan(result.first);
         expect(result.third).toBeGreaterThan(result.second);
-      }),
-  );
-});
-
-describe("ZoteroReads citation operations", () => {
-  it.effect(
-    "AttachmentsAt returns an attachment itself, a regular item's attachments, or nothing",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const [own, children, none] = yield* withReads(open, (reads) =>
-          Effect.all([
-            reads.AttachmentsAt({ itemID: 10 }),
-            reads.AttachmentsAt({ itemID: 1 }),
-            reads.AttachmentsAt({ itemID: 999 }),
-          ]),
-        );
-        expect(own).toMatchObject([{ itemID: 10, key: "ATCH2345" }]);
-        expect(children).toMatchObject([{ itemID: 10, key: "ATCH2345" }]);
-        expect(none).toEqual([]);
-      }),
-  );
-
-  it.effect(
-    "ItemsByIndexedKeys answers in the order of the requested keys",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const items = yield* withReads(open, (reads) =>
-          reads.ItemsByIndexedKeys({
-            indexedKeys: ["RELB2345", "GRPITEMSg900", "MISS2345", "MAIN2345"],
-          }),
-        );
-        expect([...items.keys()]).toEqual([
-          "RELB2345",
-          "GRPITEMSg900",
-          "MAIN2345",
-        ]);
-      }),
-  );
-
-  it.effect(
-    "ItemsByIndexedKeys answers each key under the spelling it was asked by",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const items = yield* withReads(open, (reads) =>
-          reads.ItemsByIndexedKeys({
-            indexedKeys: ["GRPITEMSg0900", "GRPITEMSg900"],
-          }),
-        );
-        expect([...items.keys()]).toEqual(["GRPITEMSg0900", "GRPITEMSg900"]);
-        expect(items.get("GRPITEMSg0900")).toMatchObject({
-          key: "GRPITEMS",
-          indexedKey: "GRPITEMSg900",
-        });
-      }),
-  );
-});
-
-describe("ZoteroReads annotation-family operations", () => {
-  it.effect(
-    "AttachmentSources returns attachments by Indexed Key with their parent items, tags, and username",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener();
-        const sources = yield* withReads(open, (reads) =>
-          reads.AttachmentSources({ attachmentKeys: ["ATCH2345", "MISS2345"] }),
-        );
-        expect(sources.annotations).toEqual([]);
-        expect(sources.attachments.map((a) => a.indexedKey)).toEqual([
-          "ATCH2345",
-        ]);
-        expect(Schema.is(Instant)(sources.attachments[0]!.dateAdded)).toBe(
-          true,
-        );
-        expect(sources.parentItems.map((i) => i.key)).toEqual(["MAIN2345"]);
-        expect(sources.tagsByItemID.get(1)!.map((tag) => tag.tag.name)).toEqual(
-          ["zt"],
-        );
-        expect(sources.username).toBe("reader");
-      }),
-  );
-});
-
-describe("ZoteroReads Profile Match operations", () => {
-  it.effect(
-    "TagNames lists the tag names of one library, or of every library",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener(
-          () => `insert into tags (tagID, name) values (4, 'Alpha');
-        insert into itemTags (itemID, tagID, type) values (300, 4, 0);`,
-        );
-        const names = yield* withReads(open, (reads) =>
-          Effect.all({
-            user: reads.TagNames({ libraryID: 1 }),
-            group: reads.TagNames({ libraryID: 2 }),
-            all: reads.TagNames({}),
-          }),
-        );
-        expect(names).toEqual({
-          user: ["claim", "method", "zt"],
-          group: ["Alpha"],
-          all: ["Alpha", "claim", "method", "zt"],
-        });
-      }),
-  );
-
-  it.effect(
-    "CollectionPaths lists every live collection path of the given libraries, root first",
-    () =>
-      Effect.gen(function* () {
-        const { open } = fixtureOpener(
-          () => `insert into collections (collectionID, collectionName, libraryID, key, parentCollectionID)
-        values (501, 'Theory', 1, 'CLL32345', 500), (502, 'Lab Notes', 2, 'CLL42345', null);`,
-        );
-        const paths = yield* withReads(open, (reads) =>
-          Effect.all({
-            user: reads.CollectionPaths({ libraryIDs: [1] }),
-            both: reads.CollectionPaths({ libraryIDs: [1, 2] }),
-          }),
-        );
-        expect(paths).toEqual({
-          user: [["Reading"], ["Reading", "Theory"]],
-          both: [["Lab Notes"], ["Reading"], ["Reading", "Theory"]],
-        });
       }),
   );
 });

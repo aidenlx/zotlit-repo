@@ -68,7 +68,7 @@ export const NO_ROOTS: CanonicalRoots = Object.freeze({
 });
 
 export interface RootSources {
-  dataDir: string;
+  dataDir: string | null;
   baseAttachmentPath: string | null;
   approvedFolders: readonly string[];
 }
@@ -79,8 +79,12 @@ export const buildCanonicalRoots = Effect.fnUntraced(function* (
 ) {
   const [storage, annotationCache, base, approved] = yield* Effect.all(
     [
-      trustedRoot(join(sources.dataDir, "storage")),
-      trustedRoot(join(sources.dataDir, "cache")),
+      sources.dataDir === null
+        ? Effect.succeed(null)
+        : trustedRoot(join(sources.dataDir, "storage")),
+      sources.dataDir === null
+        ? Effect.succeed(null)
+        : trustedRoot(join(sources.dataDir, "cache")),
       sources.baseAttachmentPath === null
         ? Effect.succeed(null)
         : trustedRoot(sources.baseAttachmentPath),

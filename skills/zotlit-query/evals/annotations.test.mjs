@@ -15,11 +15,14 @@ function annotationEnvelope(caseName) {
   const keys = expected.keys;
   return {
     ok: true,
-    contractVersion: 3,
+    contractVersion: 4,
     command: "zotlit:query",
     warnings: [],
     identity: {
-      source: { databasePath: join(root, "zotero-data", "zotero.sqlite") },
+      source: {
+        kind: "file",
+        databasePath: join(root, "zotero-data", "zotero.sqlite"),
+      },
       vault: { path: join(root, "zt-fixture-vault") },
     },
     libraries: [{ type: "personal" }],
@@ -97,11 +100,14 @@ function expandedEnvelope(caseName) {
   };
   return {
     ok: true,
-    contractVersion: 3,
+    contractVersion: 4,
     command: "zotlit:query",
     warnings: [],
     identity: {
-      source: { databasePath: join(root, "zotero-data", "zotero.sqlite") },
+      source: {
+        kind: "file",
+        databasePath: join(root, "zotero-data", "zotero.sqlite"),
+      },
       vault: { path: join(root, "zt-fixture-vault") },
     },
     libraries: [{ type: "personal" }, { type: "group", groupID: 118 }],

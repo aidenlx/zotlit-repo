@@ -44,6 +44,10 @@ describe("isAgentDocsOnly", () => {
     expect(isAgentDocsOnly(["AGENTS.md", "pnpm-lock.yaml"])).toBe(false);
   });
 
+  it("is true for a guide that holds a generated block, which keeps the fast path", () => {
+    expect(isAgentDocsOnly(["packages/zotero-compat/AGENTS.md"])).toBe(true);
+  });
+
   it("is false when nothing changed", () => {
     expect(isAgentDocsOnly([])).toBe(false);
   });

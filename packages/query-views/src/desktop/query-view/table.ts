@@ -1,4 +1,4 @@
-import type { QueryViewRow } from "#desktop/item-query/query-view.ts";
+import type { QueryViewRow } from "#worker/item-query/query-view.ts";
 
 import { delimited } from "@zotlit/shared/delimited";
 

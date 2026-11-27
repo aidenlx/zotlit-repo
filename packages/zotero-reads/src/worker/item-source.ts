@@ -96,3 +96,51 @@ export const layerConnectionItemSource: Layer.Layer<
     };
   }),
 );
+
+export const layerUnpinnedConnectionItemSource: Layer.Layer<
+  ItemSource,
+  never,
+  Connection
+> = Layer.effect(ItemSource)(
+  Effect.gen(function* () {
+    const connection = yield* Connection;
+    const borrow = connection.borrow.pipe(
+      Effect.mapError(
+        (error) => new SourceUnavailable({ message: error.message }),
+      ),
+    );
+    return {
+      generation: connection.changes.pipe(
+        Stream.filter(
+          (event) => event._tag === "changed" || event._tag === "degraded",
+        ),
+        Stream.as(undefined),
+      ),
+      pinned: Effect.gen(function* () {
+        const generation = yield* Effect.scoped(
+          Effect.map(borrow, (client) => connection.databaseGeneration(client)),
+        );
+        const memo: GroupIDMemo = new Map();
+        return {
+          generation,
+          items: (libraryID) =>
+            Stream.unwrap(
+              Effect.map(borrow, (client) => itemsOf(client, libraryID, memo)),
+            ),
+          signature: (libraryID) =>
+            Effect.scoped(
+              Effect.flatMap(borrow, (client) =>
+                signatureOf(client, libraryID),
+              ),
+            ),
+          itemsByIndexedKey: (indexedKeys) =>
+            Effect.scoped(
+              Effect.flatMap(borrow, (client) =>
+                read(client, (c) => itemsByIndexedKeys(c, indexedKeys)),
+              ),
+            ),
+        } satisfies PinnedItemSource;
+      }),
+    };
+  }),
+);

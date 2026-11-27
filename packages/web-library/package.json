@@ -1,0 +1,48 @@
+{
+  "name": "@zotlit/web-library",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The read-only sync engine that keeps a Web Library Replica current from the Zotero Web API, and a fake Zotero Web API for tests",
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./fake-zotero-api": "./src/__fixtures__/fake-zotero-api.ts",
+    "./fake-zotero-api/server": "./src/__fixtures__/fake-zotero-server.ts",
+    "./fake-zotero-api/scenario": "./src/__fixtures__/scenario.ts",
+    "./fake-zotero-api/harness": "./src/__fixtures__/harness.ts",
+    "./fake-zotero-api/reader-view": "./src/__fixtures__/reader-view.ts",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.node.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@zotlit/db": "workspace:*",
+    "@zotlit/shared": "workspace:*",
+    "@zotlit/zotero-types": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@effect/vitest": "catalog:",
+    "@sqlite.org/sqlite-wasm": "catalog:",
+    "@types/node": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "@zotlit/db-testing": "workspace:*",
+    "@zotlit/drizzle-sqlite-wasm": "workspace:*",
+    "arkregex": "catalog:",
+    "drizzle-orm": "catalog:",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "zotlit": {
+    "layer": "worker"
+  }
+}

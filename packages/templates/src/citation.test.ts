@@ -72,7 +72,7 @@ describe("built-in Citation Template", () => {
   });
 
   it("keeps a sentinel citekey so unresolved citations stay greppable", () => {
-    expect(render(data("main", "KX67D9YM?"))).toBe("[@{KX67D9YM?}]");
+    expect(render(data("main", "XMPLITM3?"))).toBe("[@{XMPLITM3?}]");
   });
 
   it("renders a page locator with its labelShort abbreviation", () => {
@@ -104,8 +104,8 @@ describe("built-in Citation Template", () => {
 
   it("composes suppress-author with the sentinel citekey", () => {
     expect(
-      render(dataFrom("main", citation("KX67D9YM?", { suppressAuthor: true }))),
-    ).toBe("[-@{KX67D9YM?}]");
+      render(dataFrom("main", citation("XMPLITM3?", { suppressAuthor: true }))),
+    ).toBe("[-@{XMPLITM3?}]");
   });
 
   it("joins multiple items, each rendering its own citation-scoped props", () => {

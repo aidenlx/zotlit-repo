@@ -35,7 +35,7 @@ catalog:
   "@lezer/highlight": 1.2.3
   "@lezer/lr": 1.4.10
   "@lezer/markdown": 1.7.2
-  "@js-temporal/polyfill": ^0.5.1
+  temporal-polyfill: ^1.0.8
   happy-dom: ^20.9.0
   hono: ^4.13.0
   liquidjs: ^10.27.2
@@ -46,6 +46,7 @@ catalog:
   "@effect/tsgo": 0.68.1
   "@effect/vitest": 4.1.2
   "@logtape/logtape": ^2.0.7
+  "@sqlite.org/sqlite-wasm": 3.54.1-build1
   "@pnpm/find-workspace-dir": ^1000.1.5
   "@std/collections": jsr:1.2.0
   "@std/async": jsr:1.4.0
@@ -70,9 +71,10 @@ catalog:
   diff: 8.0.4
   eta: 4.6.0
   electron: 43.3.0
-  drizzle-kit: 1.0.0-rc.4
-  drizzle-orm: 1.0.0-rc.4
+  drizzle-kit: 1.0.0-rc.6
+  drizzle-orm: 1.0.0-rc.6
   effect: 4.1.2
+  entities: 7.0.1
   fflate: ^0.8.2
   jieba-wasm: 2.4.0
   jsonc-parser: ^3.3.1

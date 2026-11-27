@@ -3,7 +3,7 @@ import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewRow,
-} from "#desktop/item-query/query-view.ts";
+} from "#worker/item-query/query-view.ts";
 import { Effect, Layer, Stream } from "effect";
 import { debounce, Scope, TFile } from "obsidian";
 import type { App, Menu as ObsidianMenu, WorkspaceLeaf } from "obsidian";
@@ -663,7 +663,11 @@ it("says why the cards cannot show when the query fails", async () => {
 
   const text = view.contentEl.textContent ?? "";
   expect(text).toContain("The sidebar cannot show annotations.");
-  expect(text).toContain("The Zotero database is busy.");
+  expect(text).toContain(
+    "ZotLit cannot read your Zotero library now. The view shows results when the library is available again.",
+  );
+  expect(text).not.toContain("The Zotero database is busy.");
+  expect(text).not.toContain("Try again.");
   expect(text).not.toContain("Loading");
 });
 

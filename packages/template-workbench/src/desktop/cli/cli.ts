@@ -1,3 +1,4 @@
+import type { WorkbenchIdentity } from "#worker/cli/workbench-identity.ts";
 import { Effect, Result } from "effect";
 import type { CliData } from "obsidian";
 
@@ -52,7 +53,6 @@ import type {
   LiteratureNoteDocumentRow,
   LiteratureNoteProfileRow,
   WorkbenchCommand,
-  WorkbenchIdentity,
 } from "./envelope.ts";
 import { renderGuide } from "./guide.ts";
 import { INSPECT_DIAGNOSTICS } from "./inspect-contract.ts";
@@ -67,7 +67,7 @@ import {
 
 import { discoverTemplateData } from "#core/cli/discovery.ts";
 
-export type { WorkbenchIdentity } from "./envelope.ts";
+export type { WorkbenchIdentity } from "#worker/cli/workbench-identity.ts";
 
 export const TEMPLATE_STATUS_COMMAND =
   "zotlit:template-status" as const satisfies WorkbenchCommand;

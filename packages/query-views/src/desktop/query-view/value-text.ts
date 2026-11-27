@@ -1,4 +1,4 @@
-import type { QueryViewValue } from "#desktop/item-query/query-view.ts";
+import type { QueryViewValue } from "#worker/item-query/query-view.ts";
 
 import { valueText } from "@zotlit/item-query";
 import { itemTypeLabel } from "@zotlit/notes/obsidian/profile-selection/describe.ts";

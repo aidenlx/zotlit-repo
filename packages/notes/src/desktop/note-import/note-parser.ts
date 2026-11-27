@@ -129,6 +129,19 @@ export function parseNote(
   if (renderAnnotationParagraph) {
     subsumeAnnotationParagraphs(schema.container, renderAnnotationParagraph);
   }
+  const unavailableImages =
+    deps.pathContext.dataDir === null
+      ? schema.container.querySelectorAll("img[data-attachment-key]").length
+      : 0;
+  if (unavailableImages > 0)
+    Effect.runSyncWith(logServices)(
+      Effect.logInfo(
+        "Left out the images of a note; the online library holds no image files on this computer",
+      ).pipe(
+        Effect.annotateLogs({ images: unavailableImages }),
+        withLogCategory("note-import", "note-parser"),
+      ),
+    );
   const td = createNoteParser(Turndown, {
     ...parserDeps,
     citationMap: parseEmbeddedCitations(schema.container),
@@ -325,6 +338,7 @@ function resolveEmbeddedImage(
     const el = node as Element;
     const key = el.getAttribute("data-attachment-key");
     if (!key) return el.outerHTML;
+    if (deps.pathContext.dataDir === null) return el.getAttribute("alt") ?? "";
 
     const attachment = deps.attachments.get(key);
     if (!attachment) {

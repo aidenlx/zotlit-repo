@@ -11,6 +11,18 @@ import {
 
 const SERVICES = ["src/*/item-query/**"];
 
+const jobImports = {
+  ...runtimeImports,
+  paths: runtimeImports.paths.map((path) =>
+    path.name === "effect"
+      ? {
+          ...path,
+          importNames: path.importNames?.filter((name) => name !== "Scheduler"),
+        }
+      : path,
+  ),
+};
+
 export default defineConfig({
   extends: [baseConfig],
   jsPlugins: pluginCodeJsPlugins,
@@ -32,6 +44,10 @@ export default defineConfig({
     {
       files: ["src/obsidian/query-view/obsidian-private/*.test.ts"],
       rules: { "zotlit-private/no-unknown-cast": "off" },
+    },
+    {
+      files: ["src/worker/item-query/job.ts"],
+      rules: { "no-restricted-imports": ["error", jobImports] },
     },
     {
       files: ["src/desktop/item-query/measure.ts"],

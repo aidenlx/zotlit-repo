@@ -39,7 +39,7 @@ function recordMemberNames(): readonly string[] {
 }
 
 export function subexpressionTypes(
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
   {
     context = [],
     formulas,

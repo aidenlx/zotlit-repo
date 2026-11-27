@@ -1,0 +1,201 @@
+{
+  "source": "GET https://api.zotero.org/groups/4603023/items?includeTrashed=1, /collections and /groups/4603023, anonymous, 2026-11-26; member identity replaced",
+  "group": {
+    "id": 4603023,
+    "version": 2,
+    "links": {
+      "self": {
+        "href": "https://api.zotero.org/groups/4603023",
+        "type": "application/json"
+      },
+      "alternate": {
+        "href": "https://www.zotero.org/groups/zoterro_testing",
+        "type": "text/html"
+      }
+    },
+    "meta": {
+      "created": "2022-02-20T20:26:40Z",
+      "lastModified": "2022-03-04T15:58:25Z",
+      "numItems": 2
+    },
+    "data": {
+      "id": 4603023,
+      "version": 2,
+      "name": "zoterro testing",
+      "owner": 1000001,
+      "type": "PublicClosed",
+      "description": "",
+      "url": "",
+      "libraryEditing": "members",
+      "libraryReading": "all",
+      "fileEditing": "none"
+    }
+  },
+  "collections": [
+    {
+      "key": "AZBJE3R8",
+      "version": 7,
+      "library": {
+        "type": "group",
+        "id": 4603023,
+        "name": "zoterro testing",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/groups/zoterro_testing",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/groups/4603023/collections/AZBJE3R8",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/groups/zoterro_testing/collections/AZBJE3R8",
+          "type": "text/html"
+        }
+      },
+      "meta": {
+        "numCollections": 0,
+        "numItems": 1
+      },
+      "data": {
+        "key": "AZBJE3R8",
+        "version": 7,
+        "name": "with_robust_links",
+        "parentCollection": false,
+        "relations": {}
+      }
+    }
+  ],
+  "items": [
+    {
+      "key": "KC6WFG78",
+      "version": 12,
+      "library": {
+        "type": "group",
+        "id": 4603023,
+        "name": "zoterro testing",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/groups/zoterro_testing",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/groups/4603023/items/KC6WFG78",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/groups/zoterro_testing/items/KC6WFG78",
+          "type": "text/html"
+        }
+      },
+      "meta": {
+        "createdByUser": {
+          "id": 1000001,
+          "username": "group-member",
+          "name": "Group Member",
+          "links": {
+            "alternate": {
+              "href": "https://www.zotero.org/group-member",
+              "type": "text/html"
+            }
+          }
+        },
+        "parsedDate": "2021-11-05",
+        "numChildren": 1
+      },
+      "data": {
+        "key": "KC6WFG78",
+        "version": 12,
+        "itemType": "webpage",
+        "title": "Zotero Web API Documentation",
+        "creators": [],
+        "abstractNote": "dev:web api:v3:basics",
+        "websiteTitle": "Zotero Documentation",
+        "websiteType": "",
+        "date": "2021/11/05 05:49",
+        "publisher": "",
+        "place": "",
+        "DOI": "",
+        "citationKey": "ZoteroWebAPI2021",
+        "url": "https://www.zotero.org/support/dev/web_api/v3/basics",
+        "accessDate": "2022-02-20T20:28:20Z",
+        "shortTitle": "",
+        "language": "en",
+        "rights": "",
+        "extra": "",
+        "tags": [],
+        "collections": [
+          "AZBJE3R8"
+        ],
+        "relations": {},
+        "dateAdded": "2022-02-20T20:28:23Z",
+        "dateModified": "2022-03-01T11:37:10Z"
+      }
+    },
+    {
+      "key": "QK48VF5T",
+      "version": 9,
+      "library": {
+        "type": "group",
+        "id": 4603023,
+        "name": "zoterro testing",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/groups/zoterro_testing",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/groups/4603023/items/QK48VF5T",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/groups/zoterro_testing/items/QK48VF5T",
+          "type": "text/html"
+        },
+        "up": {
+          "href": "https://api.zotero.org/groups/4603023/items/KC6WFG78",
+          "type": "application/json"
+        }
+      },
+      "meta": {
+        "createdByUser": {
+          "id": 1000001,
+          "username": "group-member",
+          "name": "Group Member",
+          "links": {
+            "alternate": {
+              "href": "https://www.zotero.org/group-member",
+              "type": "text/html"
+            }
+          }
+        }
+      },
+      "data": {
+        "key": "QK48VF5T",
+        "version": 9,
+        "parentItem": "KC6WFG78",
+        "itemType": "attachment",
+        "linkMode": "linked_url",
+        "title": "Robust Link",
+        "accessDate": "2022-02-22T16:13:33Z",
+        "url": "https://www.zotero.org/support/dev/web_api/v3/basics",
+        "note": "Original URL: <a href=\"https://www.zotero.org/support/dev/web_api/v3/basics\"\ndata-versionurl=\"https://web.archive.org/web/20220220202825/https://www.zotero.org/support/dev/web_api/v3/basics\"\ndata-versiondate=\"2022-02-22\">https://www.zotero.org/support/dev/web_a...</a><br>Memento URL: <a href=\"https://web.archive.org/web/20220220202825/https://www.zotero.org/support/dev/web_api/v3/basics\"\ndata-originalurl=\"https://www.zotero.org/support/dev/web_api/v3/basics\"\ndata-versiondate=\"2022-02-22\">https://web.archive.org/web/202202202028...</a><hr><strong>Step 1: If you would like to include this Robust Link in your web page, copy the appropriate HTML snippet below.</strong><hr>Copy this snippet if you want the link text to lead to the live web resource <https://www.zotero.org/support/dev/web_api/v3/basics>.<br><br>&lt;a href=&quot;https://www.zotero.org/support/dev/web_api/v3/basics&quot;\ndata-versionurl=&quot;https://web.archive.org/web/20220220202825/https://www.zotero.org/support/dev/web_api/v3/basics&quot;\ndata-versiondate=&quot;2022-02-22&quot;&gt;https://www.zotero.org/support/dev/web_a...&lt;/a&gt;<hr>Copy this snippet if you want the link text to lead to the memento <https://web.archive.org/web/20220220202825/https://www.zotero.org/support/dev/web_api/v3/basics>.<br><br>&lt;a href=&quot;https://web.archive.org/web/20220220202825/https://www.zotero.org/support/dev/web_api/v3/basics&quot;\ndata-originalurl=&quot;https://www.zotero.org/support/dev/web_api/v3/basics&quot;\ndata-versiondate=&quot;2022-02-22&quot;&gt;https://web.archive.org/web/202202202028...&lt;/a&gt;<hr><strong>Step 2: If you would like to make your Robust Links actionable, include this HTML in your web page, preferably inside the HEAD tag.</strong><br><br>&lt;!-- RobustLinks CSS --&gt;<br>                &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;https://doi.org/10.25776/z58z-r575&quot; /&gt;<br>                &lt;!-- RobustLinks Javascript --&gt;<br>                &lt;script type=&quot;text/javascript&quot; src=&quot;https://doi.org/10.25776/h1fa-7a28&quot;&gt;&lt;/script&gt;<br>",
+        "contentType": "",
+        "charset": "",
+        "tags": [],
+        "relations": {},
+        "dateAdded": "2022-02-22T16:13:33Z",
+        "dateModified": "2022-02-22T16:13:33Z"
+      }
+    }
+  ]
+}

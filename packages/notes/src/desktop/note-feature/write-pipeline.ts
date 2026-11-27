@@ -50,9 +50,10 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { filterTag } from "@zotlit/plugin-kernel/effect-stream.ts";
 import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
-import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import type { AttachmentImportBatch } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import {
   itemKeyFromFrontmatter,
   noteKeyFromFrontmatter,
@@ -164,7 +165,7 @@ const noteResolvers = Effect.fnUntraced(function* (
     "zoteroPref" | "link"
   >,
 ) {
-  const { dataDir, baseAttachmentPath } = yield* (yield* ZoteroPref).current;
+  const { dataDir, baseAttachmentPath } = yield* libraryFilePaths;
   return buildNoteResolvers(
     Effect.runSyncWith(yield* Effect.context<NoteResolverServices>()),
     {

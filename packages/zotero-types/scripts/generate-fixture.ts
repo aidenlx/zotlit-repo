@@ -5,15 +5,15 @@ import { join, resolve } from "node:path";
 // oxlint-disable-next-line no-restricted-imports
 import schema from "../zotero-schema/schema.json" with { type: "json" };
 
-const ZOTERO_VERSION = "9.0.3";
+const ZOTERO_VERSION = "10.0.9";
 
-const APPLICATION_COMMIT = "451d96a8240bbb607a220f949673d6bc704bb58d";
+const APPLICATION_COMMIT = "0f25aca5e5e087fa44404c134fd384e2aeca4eda";
 
 const UTILITIES_COMMIT = "1dd38e27edf81e9d9c4161c957b7efb7f5681ac3";
 
-const SCHEMA_VERSION = 42;
+const SCHEMA_VERSION = 44;
 
-const MODIFIED = "2026-08-04";
+const MODIFIED = "2026-11-26";
 
 const CHILD_ITEM_TYPES: ReadonlySet<string> = new Set([
   "note",

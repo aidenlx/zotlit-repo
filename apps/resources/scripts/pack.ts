@@ -85,12 +85,45 @@ async function pandocEngine(
   };
 }
 
+const SQLITE_BINARY = "dist/sqlite3.wasm";
+const SQLITE_LICENCE = join(
+  packageRoot,
+  "../../licences/sqlite-wasm-LICENSE.md",
+);
+
+async function sqliteEngine(
+  pins: PackPins,
+  packageDir: string,
+): Promise<PinnedSource> {
+  const name = "sqlite-engine";
+  const pin = pinOf(pins, name);
+  const { version } = JSON.parse(
+    await readFile(join(packageDir, "package.json"), "utf8"),
+  ) as { version: string };
+  if (version !== pin.version) {
+    throw new Error(
+      `The installed @sqlite.org/sqlite-wasm is ${version}, and the pin of "${name}" is ${pin.version}`,
+    );
+  }
+  const licence = await readFile(SQLITE_LICENCE, "utf8");
+  return {
+    source: {
+      name,
+      bytes: new Uint8Array(await readFile(join(packageDir, SQLITE_BINARY))),
+      sha256: pin.sha256,
+      upstreamVersion: pin.version,
+    },
+    notice: `${name}: SQLite, built for WebAssembly by @sqlite.org/sqlite-wasm ${version}, https://github.com/sqlite/sqlite-wasm\n\n${licence.trim()}`,
+  };
+}
+
 const gzipSmallest = promisify(gzip);
 
 export interface ResourcePackOptions {
   readonly pins: PackPins;
   readonly jiebaWasm: string;
   readonly pandocWasm: string;
+  readonly sqliteWasm: string;
 }
 
 export async function buildResourcePack(
@@ -99,6 +132,7 @@ export async function buildResourcePack(
   const sources = [
     await chineseSegmenter(options.pins, options.jiebaWasm),
     await pandocEngine(options.pins, options.pandocWasm),
+    await sqliteEngine(options.pins, options.sqliteWasm),
   ];
   return writePack({
     notice: [

@@ -1,0 +1,14 @@
+[
+  {
+    "package": "@sqlite.org/sqlite-wasm",
+    "version": "3.54.1-build1",
+    "file": "sqlite-wasm-LICENSE.md",
+    "source": "https://github.com/sqlite/sqlite-wasm, LICENSE.md of release 3.54.1-build1"
+  },
+  {
+    "package": "drizzle-orm",
+    "version": "1.0.0-rc.6",
+    "file": "drizzle-orm-LICENSE",
+    "source": "https://github.com/drizzle-team/drizzle-orm, LICENSE at tag v1.0.0-rc.6"
+  }
+]

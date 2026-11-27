@@ -51,12 +51,11 @@ export async function openItemPdf(
   indexedKey: string,
   pane: PaneType | boolean,
 ): Promise<void> {
-  const attachments =
-    await deps.attachments.literatureNoteAttachments(indexedKey);
-  if (!attachments) return;
-  openAttachments(attachments, {
+  const pdfs = await deps.attachments.literatureNoteAttachments(indexedKey);
+  if (!pdfs) return;
+  openAttachments(pdfs.attachments, {
     reader: withFixedPane(
-      pdfPickerReader(openGesture(deps.opener, deps.bridge.runAndForget)),
+      pdfPickerReader(openGesture(deps.opener, deps.bridge.runAndForget), pdfs),
       pane,
     ),
     app: deps.app,

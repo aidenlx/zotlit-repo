@@ -12,6 +12,17 @@
       "outputs": ["src/contract/generated/**"],
       "outputLogs": "errors-only"
     },
+    "generate:replica-layout": {
+      "inputs": [
+        "scripts/generate-replica-layout.ts",
+        "src/**",
+        "!src/replica/layout.generated.ts",
+        "$TURBO_ROOT$/packages/scripts/lib/fixture/pristine-zotero.sqlite.gz",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["src/replica/layout.generated.ts"],
+      "outputLogs": "errors-only"
+    },
     "test": {
       "inputs": [
         "$TURBO_DEFAULT$",

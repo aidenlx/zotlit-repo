@@ -1,3 +1,4 @@
+import type { QueryOutputFormat } from "#worker/item-query/contract.ts";
 import { Effect, Schema, SchemaIssue } from "effect";
 import { isAbsolute } from "node:path";
 import type { CliData } from "obsidian";
@@ -37,6 +38,9 @@ import type {
   NamedLibraries,
 } from "@zotlit/zotero-reads/contract/query-codec.ts";
 
+import { GUIDE_TOPIC_NAMES } from "./guide.ts";
+import type { GuideTopic } from "./guide.ts";
+
 import {
   DEFAULT_CLI_LIMIT,
   QUERY_CANCEL_COMMAND,
@@ -47,12 +51,9 @@ import {
   QUERY_ID_FORM,
   QUERY_ID_MAX_LENGTH,
   QUERY_OUTPUT_FORMATS,
-} from "./contract.ts";
-import type { QueryOutputFormat } from "./contract.ts";
-import { GUIDE_TOPIC_NAMES } from "./guide.ts";
-import type { GuideTopic } from "./guide.ts";
+} from "#worker/item-query/contract.ts";
 
-export { rejectionDiagnostic } from "./contract.ts";
+export { rejectionDiagnostic } from "#worker/item-query/contract.ts";
 
 const QUERY_ID = /^[\w.-]+$/;
 const POSITIVE_INTEGER = /^[1-9]\d*$/;

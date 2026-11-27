@@ -4,9 +4,14 @@ import { join } from "node:path";
 // oxlint-disable-next-line no-restricted-imports
 import schema from "../zotero-schema/schema.json" with { type: "json" };
 
+import { dateFieldsOf } from "#date-fields.ts";
+
 interface ZoteroSchema {
   readonly version: number;
   readonly itemTypes: readonly ZoteroItemType[];
+  readonly meta: {
+    readonly fields: Readonly<Record<string, { readonly type: string }>>;
+  };
 }
 
 interface ZoteroItemType {
@@ -44,7 +49,7 @@ function render(schema: ZoteroSchema): string {
     interfaces,
     `export type ItemFields =\n${union};`,
     "",
-    'export const ZOTERO_DATE_FIELDS = ["date", "filingDate"] as const;',
+    `export const ZOTERO_DATE_FIELDS = ${JSON.stringify(dateFieldsOf(schema))} as const;`,
     "",
     "/**",
     " * Maps item-type-specific field names to their canonical base field.",

@@ -7,7 +7,7 @@ import { datasetReceiver } from "./expression-receiver.ts";
 import { datasetExpressionFields } from "./filter-expression-completion.ts";
 
 export function datasetVocabulary(
-  engine: QueryDataset<any>,
+  engine: QueryDataset,
   {
     label,
     context = [],

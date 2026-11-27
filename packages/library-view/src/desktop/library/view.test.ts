@@ -68,12 +68,12 @@ import {
   fakeQuery,
   requested,
 } from "@zotlit/query-views/__fixtures__/query-view/query-run.ts";
+import { QueryService } from "@zotlit/query-views/desktop/item-query/service.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewValue,
-} from "@zotlit/query-views/desktop/item-query/query-view.ts";
-import { QueryService } from "@zotlit/query-views/desktop/item-query/service.ts";
+} from "@zotlit/query-views/worker/item-query/query-view.ts";
 import { stubbedReads } from "@zotlit/zotero-reads/__fixtures__/in-process.ts";
 import {
   zoteroRevisionAtom,

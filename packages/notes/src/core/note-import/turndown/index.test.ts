@@ -268,8 +268,8 @@ describe("Zotero note formats", () => {
   });
 
   it("embedded attachment image keeps its key for later import", () => {
-    const md = convert('<p><img data-attachment-key="U5WTYIJK" alt=""></p>');
-    expect(md).toContain('data-attachment-key="U5WTYIJK"');
+    const md = convert('<p><img data-attachment-key="XMPLATC5" alt=""></p>');
+    expect(md).toContain('data-attachment-key="XMPLATC5"');
     expect(md.startsWith("<img")).toBe(true);
   });
 
@@ -285,36 +285,36 @@ describe("Zotero note formats", () => {
 
   it("highlight annotation span passes through as HTML for later resolution", () => {
     const md = convert(
-      '<span class="highlight" data-annotation="%7B%22annotationKey%22%3A%22C2DF35H3%22%7D">' +
+      '<span class="highlight" data-annotation="%7B%22annotationKey%22%3A%22XMPLANN6%22%7D">' +
         "“might aid in our understanding”</span>",
     );
     expect(md.startsWith('<span class="highlight"')).toBe(true);
     expect(md).toContain(
-      'data-annotation="%7B%22annotationKey%22%3A%22C2DF35H3%22%7D"',
+      'data-annotation="%7B%22annotationKey%22%3A%22XMPLANN6%22%7D"',
     );
     expect(md).toContain("“might aid in our understanding”");
   });
 
   it("underline annotation span passes through as HTML for later resolution", () => {
     const md = convert(
-      '<span class="underline" data-annotation="%7B%22annotationKey%22%3A%227SUQ86WL%22%7D">' +
+      '<span class="underline" data-annotation="%7B%22annotationKey%22%3A%22XMPLANN4%22%7D">' +
         "reference alternative as valu</span>",
     );
     expect(md.startsWith('<span class="underline"')).toBe(true);
     expect(md).toContain(
-      'data-annotation="%7B%22annotationKey%22%3A%227SUQ86WL%22%7D"',
+      'data-annotation="%7B%22annotationKey%22%3A%22XMPLANN4%22%7D"',
     );
   });
 
   it("image annotation passes through as HTML for later resolution", () => {
     const md = convert(
-      '<img data-attachment-key="DUPB2GWX" ' +
-        'data-annotation="%7B%22annotationKey%22%3A%22DBKE89L9%22%7D">',
+      '<img data-attachment-key="XMPLATC3" ' +
+        'data-annotation="%7B%22annotationKey%22%3A%22XMPLANN7%22%7D">',
     );
     expect(md.startsWith("<img")).toBe(true);
-    expect(md).toContain('data-attachment-key="DUPB2GWX"');
+    expect(md).toContain('data-attachment-key="XMPLATC3"');
     expect(md).toContain(
-      'data-annotation="%7B%22annotationKey%22%3A%22DBKE89L9%22%7D"',
+      'data-annotation="%7B%22annotationKey%22%3A%22XMPLANN7%22%7D"',
     );
   });
 });

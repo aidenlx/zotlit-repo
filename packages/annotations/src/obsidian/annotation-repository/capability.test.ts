@@ -16,7 +16,7 @@ const NOW = DateTime.makeUnsafe("2026-09-16T15:52:21Z");
 
 const SOURCE = {
   kind: "zotero-local-api",
-  serverID: "A8sf5Zsz8ySw",
+  serverID: "XmplSrv00Id1",
 } as const;
 
 it("lets a session with a remembered authorization write, and asks otherwise", () => {

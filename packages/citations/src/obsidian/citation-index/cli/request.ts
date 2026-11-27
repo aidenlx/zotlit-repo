@@ -103,14 +103,15 @@ export function targetMismatch(
   identity: CitationsIdentity,
 ): Diagnostic | null {
   const expectedSource = params["expect-source"];
-  if (expectedSource !== undefined && expectedSource !== identity.source.id) {
+  const actual = identity.source?.id ?? null;
+  if (expectedSource !== undefined && expectedSource !== actual) {
     return diagnostic(
       "TARGET_MISMATCH",
-      `Expected Zotero source '${expectedSource}', connected to '${identity.source.id ?? "unresolved"}'.`,
+      `Expected Zotero source '${expectedSource}', connected to '${actual ?? "unresolved"}'.`,
       {
         target: "source",
         expected: expectedSource,
-        actual: identity.source.id,
+        actual,
       },
     );
   }

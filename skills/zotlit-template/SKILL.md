@@ -13,7 +13,7 @@ description: "Create, edit, diagnose, and verify ZotLit Template Documents in an
 4. Run `template-check` against an Item the source's own `match` rule selects, or against an existing Literature Note. Select and read the outputs affected by the request; for property order, read `output=frontmatter` in create mode. Compare actual output with the requested result and, for an update, with the existing note's user text. On a failed response, read `diagnostic.report` first: it names the place and marks the source line. Follow its hint, then edit and check again.
 5. Complete only when the checked source revision is current, all required checks pass, and the inspected output matches the request. After saving a previously checked draft to its installed path, check the saved document again. A draft-only request completes with the scratch file still uninstalled. Prove preservation with bytes: hash an unrelated file before and after, or compare it against the revision the check reports. Report the changed file and the output you verified; state any unverified requirement. After a property order change, tell the user that existing Literature Notes keep their current order.
 
-This skill is written against Template Workbench CLI Contract version 8. Compare the first answer's `contractVersion`; if it differs, read the live guide again and follow that contract.
+This skill is written against Template Workbench CLI Contract version 9. Compare the first answer's `contractVersion`; if it differs, read the live guide again and follow that contract.
 
 ## Read the relevant guide topic
 

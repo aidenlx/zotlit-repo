@@ -1,4 +1,4 @@
-import type { ReadsConfig } from "#contract/rpc.ts";
+import type { FileReadsConfig } from "#contract/rpc.ts";
 import { Effect, Layer, Logger, Ref } from "effect";
 import type { FileSystem } from "effect";
 import { RpcServer, RpcWorker } from "effect/rpc";
@@ -18,7 +18,7 @@ import { WorkerInitSchema, ZoteroReads } from "#contract/rpc.ts";
 
 export interface ZoteroReadsWorkerHost {
   readonly connection: (spawn: {
-    readonly config: ReadsConfig;
+    readonly config: FileReadsConfig;
     readonly snapshotOwner: string;
     readonly deferOpen: boolean;
   }) => Layer.Layer<Connection, never, FileSystem.FileSystem>;

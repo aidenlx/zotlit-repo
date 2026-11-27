@@ -10,6 +10,7 @@
     "#runtime-check": "./lib/runtime-check.ts",
     "#runtime-table": "./lib/runtime-table.ts",
     "#agent-docs": "./lib/agent-docs.ts",
+    "#generated-artifacts": "./lib/generated-artifacts.ts",
     "#ai-attribution": "./lib/ai-attribution.ts",
     "#conventional-commit": "./lib/conventional-commit.ts",
     "#commit-tree": "./lib/commit-tree.ts",
@@ -52,7 +53,8 @@
     "#site-release": "./lib/site-release.ts",
     "#release/*": "./lib/release/*.ts",
     "#git-repos": "./lib/__fixtures__/git-repos.ts",
-    "#pack-gate": "./lib/pack-gate.ts"
+    "#pack-gate": "./lib/pack-gate.ts",
+    "#vendor-upstream": "./lib/vendor-upstream.ts"
   },
   "exports": {
     "./desktop-paint": "./lib/desktop-paint.ts",
@@ -91,7 +93,6 @@
     "@clack/prompts": "^0.11.0",
     "@effect/vitest": "catalog:",
     "@hono/node-server": "catalog:",
-    "@js-temporal/polyfill": "catalog:",
     "@pnpm/find-workspace-dir": "catalog:",
     "@types/node": "catalog:",
     "@types/semver": "^7.7.1",

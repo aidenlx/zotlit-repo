@@ -74,7 +74,13 @@
       "outputLogs": "errors-only"
     },
     "test": {
-      "dependsOn": ["$TURBO_EXTENDS$", "generate:messages"]
+      "dependsOn": ["$TURBO_EXTENDS$", "generate:messages"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/skills/*/SKILL.md",
+        "$TURBO_ROOT$/skills/*/agents/openai.yaml",
+        "$TURBO_ROOT$/packages/query-views/src/worker/item-query/contract-version.json"
+      ]
     }
   }
 }

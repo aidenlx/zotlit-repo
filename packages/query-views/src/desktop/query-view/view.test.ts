@@ -1,11 +1,11 @@
 import type { QueryHostDeps } from "#__fixtures__/query-view/host.ts";
 import type { QueryFileDataset } from "#core/query-view/query-file.ts";
+import type { ContextSource } from "#obsidian/query-view/context-hint.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewRow,
-} from "#desktop/item-query/query-view.ts";
-import type { ContextSource } from "#obsidian/query-view/context-hint.ts";
+} from "#worker/item-query/query-view.ts";
 import { Effect } from "effect";
 import { Scope } from "obsidian";
 import type { App } from "obsidian";
@@ -711,6 +711,25 @@ it("says why when the query cannot read Zotero's data, rather than looking empty
       ?.getAttribute("role"),
   ).toBe("alert");
   expect(el.querySelector("[data-query-empty]")).toBeNull();
+  const text = el.querySelector("[data-query-diagnostic]")?.textContent ?? "";
+  expect(text).toContain(m.query_view_failure_library_unavailable());
+  expect(text).not.toContain("The Zotero database cannot be read.");
+  expect(text).not.toContain("Check the Zotero data directory.");
+});
+
+it("shows a reader text, not the error of the run, when the query read throws", async () => {
+  const { view, el, settle } = await mount([], undefined, {
+    queryRead: () =>
+      Promise.reject(new Error("RpcClientError: the worker transport closed")),
+  });
+  await act(() => view.setText(FILE));
+  await settle();
+
+  const text =
+    el.querySelector('[data-query-diagnostic="query-failed"]')?.textContent ??
+    "";
+  expect(text).toContain(m.query_view_failure_internal());
+  expect(text).not.toContain("RpcClientError");
 });
 
 function rowsHidden(el: HTMLElement): boolean {
@@ -3569,8 +3588,9 @@ views:
       filterIssue: {
         section: "view",
         path: [0],
-        message:
-          '"formula.year" reads the Formula "year", which the request does not define. Define the Formula in formulas.',
+        message: `"formula.year" reads the Formula "year", which the request does not define. ${m.query_view_failure_formula_undefined(
+          { name: "year", add: m.query_view_formula_add() },
+        )}`,
       },
     },
   });

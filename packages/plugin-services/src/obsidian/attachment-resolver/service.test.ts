@@ -5,6 +5,7 @@ import { TExternalFile, TFile } from "obsidian";
 import { expect } from "vitest";
 
 import type { AttachmentWithParentKey } from "@zotlit/db";
+import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { toInstant } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import type { OperatingSystem } from "@zotlit/shared/platform";
 
@@ -16,6 +17,8 @@ import {
 } from "./__fixtures__.ts";
 import type { ResolverHarnessOptions } from "./__fixtures__.ts";
 import { buildPathIndex } from "./service.ts";
+
+import { LibrarySource } from "#obsidian/library-source/service.ts";
 
 const VAULT_DIR = "/fixture/zt-fixture-vault";
 const LINKED_FILES_DIR = "/fixture/linked-files";
@@ -58,6 +61,29 @@ const ROUGIER = {
   itemKey: "RUGIER24",
   openable: true,
 };
+
+it.effect(
+  "resolves no file while the online library is the source, because its attachment files are not on this computer",
+  () =>
+    Effect.gen(function* () {
+      const { service: resolver } = yield* setup().pipe(
+        Effect.provideService(
+          LibrarySource,
+          stubService<LibrarySource["Service"]>("LibrarySource", {
+            active: "web-api",
+          }),
+        ),
+      );
+      expect(
+        yield* resolver.resolve(
+          `${DATA_DIR}/storage/PDFSTR22/sakimas-song.pdf`,
+        ),
+      ).toEqual({ kind: "unresolved" });
+      expect(yield* resolver.lookup("PDFSTR22")).toEqual({
+        kind: "unresolved",
+      });
+    }),
+);
 
 it.effect(
   "resolves every link mode the Fixture carries, inside the vault and outside it",

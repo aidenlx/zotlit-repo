@@ -19,6 +19,9 @@ const PANDOC_BINARY = new TextEncoder().encode("\0asm pretend pandoc");
 const PANDOC_LICENSE =
   "Pandoc is released under the [GPL], version 2 or later:\n\nCopyright (C) 2006-2024 John MacFarlane\n";
 
+const SQLITE_VERSION = "3.54.1-build1";
+const SQLITE_BINARY = new TextEncoder().encode("\0asm pretend sqlite");
+
 const sha256 = (bytes: Uint8Array) =>
   createHash("sha256").update(bytes).digest("hex");
 
@@ -34,6 +37,21 @@ async function installedPackage(version = VERSION) {
     join(packageDir, "pkg", "web", "jieba_rs_wasm_bg.wasm"),
     BINARY,
   );
+  return {
+    packageDir,
+    [Symbol.asyncDispose]: () =>
+      rm(packageDir, { recursive: true, force: true }),
+  };
+}
+
+async function installedSqlite(version = SQLITE_VERSION) {
+  const packageDir = await mkdtemp(join(tmpdir(), "zotlit-sqlite-wasm-"));
+  await mkdir(join(packageDir, "dist"), { recursive: true });
+  await writeFile(
+    join(packageDir, "package.json"),
+    JSON.stringify({ name: "@sqlite.org/sqlite-wasm", version }),
+  );
+  await writeFile(join(packageDir, "dist", "sqlite3.wasm"), SQLITE_BINARY);
   return {
     packageDir,
     [Symbol.asyncDispose]: () =>
@@ -57,16 +75,19 @@ async function installedPandoc(version = PANDOC_VERSION) {
 const PINS = {
   "chinese-segmenter": { version: VERSION, sha256: sha256(BINARY) },
   "pandoc-engine": { version: PANDOC_VERSION, sha256: sha256(PANDOC_BINARY) },
+  "sqlite-engine": { version: SQLITE_VERSION, sha256: sha256(SQLITE_BINARY) },
 };
 
 describe("buildResourcePack", () => {
   it("packs the Chinese Segmenter of the installed package, with its licence and source", async () => {
     await using installed = await installedPackage();
     await using pandoc = await installedPandoc();
+    await using sqlite = await installedSqlite();
     const pack = await buildResourcePack({
       pins: PINS,
       jiebaWasm: installed.packageDir,
       pandocWasm: pandoc.packageDir,
+      sqliteWasm: sqlite.packageDir,
     });
 
     const read = await readPackEntry(bytesRange(pack), "chinese-segmenter");
@@ -82,6 +103,7 @@ describe("buildResourcePack", () => {
   it("refuses installed bytes that differ from the pin", async () => {
     await using installed = await installedPackage();
     await using pandoc = await installedPandoc();
+    await using sqlite = await installedSqlite();
     await expect(
       buildResourcePack({
         pins: {
@@ -90,6 +112,7 @@ describe("buildResourcePack", () => {
         },
         jiebaWasm: installed.packageDir,
         pandocWasm: pandoc.packageDir,
+        sqliteWasm: sqlite.packageDir,
       }),
     ).rejects.toThrow(
       `The bytes of "chinese-segmenter" hash to ${sha256(BINARY)}, and its pin is ${"0".repeat(64)}`,
@@ -99,11 +122,13 @@ describe("buildResourcePack", () => {
   it("refuses an installed package of another version than the pin", async () => {
     await using installed = await installedPackage("2.5.0");
     await using pandoc = await installedPandoc();
+    await using sqlite = await installedSqlite();
     await expect(
       buildResourcePack({
         pins: PINS,
         jiebaWasm: installed.packageDir,
         pandocWasm: pandoc.packageDir,
+        sqliteWasm: sqlite.packageDir,
       }),
     ).rejects.toThrow(
       'The installed jieba-wasm is 2.5.0, and the pin of "chinese-segmenter" is 2.4.0',
@@ -113,10 +138,12 @@ describe("buildResourcePack", () => {
   it("packs the Pandoc Engine of the installed package, with the GPL text and the source of its version", async () => {
     await using installed = await installedPackage();
     await using pandoc = await installedPandoc();
+    await using sqlite = await installedSqlite();
     const pack = await buildResourcePack({
       pins: PINS,
       jiebaWasm: installed.packageDir,
       pandocWasm: pandoc.packageDir,
+      sqliteWasm: sqlite.packageDir,
     });
 
     const read = await readPackEntry(bytesRange(pack), "pandoc-engine");
@@ -133,6 +160,7 @@ describe("buildResourcePack", () => {
   it("refuses Pandoc bytes that differ from the pin", async () => {
     await using installed = await installedPackage();
     await using pandoc = await installedPandoc();
+    await using sqlite = await installedSqlite();
     await expect(
       buildResourcePack({
         pins: {
@@ -141,6 +169,7 @@ describe("buildResourcePack", () => {
         },
         jiebaWasm: installed.packageDir,
         pandocWasm: pandoc.packageDir,
+        sqliteWasm: sqlite.packageDir,
       }),
     ).rejects.toThrow(
       `The bytes of "pandoc-engine" hash to ${sha256(PANDOC_BINARY)}, and its pin is ${"0".repeat(64)}`,
@@ -150,14 +179,55 @@ describe("buildResourcePack", () => {
   it("refuses an installed Pandoc of another version than the pin", async () => {
     await using installed = await installedPackage();
     await using pandoc = await installedPandoc("3.11");
+    await using sqlite = await installedSqlite();
     await expect(
       buildResourcePack({
         pins: PINS,
         jiebaWasm: installed.packageDir,
         pandocWasm: pandoc.packageDir,
+        sqliteWasm: sqlite.packageDir,
       }),
     ).rejects.toThrow(
       'The installed pandoc-wasm holds Pandoc 3.11, and the pin of "pandoc-engine" is 3.10',
+    );
+  });
+
+  it("packs the SQLite engine of the installed package, with its licence and the public domain statement", async () => {
+    await using installed = await installedPackage();
+    await using pandoc = await installedPandoc();
+    await using sqlite = await installedSqlite();
+    const pack = await buildResourcePack({
+      pins: PINS,
+      jiebaWasm: installed.packageDir,
+      pandocWasm: pandoc.packageDir,
+      sqliteWasm: sqlite.packageDir,
+    });
+
+    const read = await readPackEntry(bytesRange(pack), "sqlite-engine");
+    expect(read.ok && Array.from(read.bytes)).toEqual(
+      Array.from(SQLITE_BINARY),
+    );
+    expect(read.ok && read.upstreamVersion).toBe(SQLITE_VERSION);
+    const text = new TextDecoder().decode(pack);
+    expect(text).toContain("https://github.com/sqlite/sqlite-wasm");
+    expect(text).toContain("Apache License");
+    expect(text).toContain("Version 2.0, January 2004");
+    expect(text).toContain("dedicated to the public domain");
+  });
+
+  it("refuses an installed sqlite-wasm of another version than the pin", async () => {
+    await using installed = await installedPackage();
+    await using pandoc = await installedPandoc();
+    await using sqlite = await installedSqlite("3.55.0-build1");
+    await expect(
+      buildResourcePack({
+        pins: PINS,
+        jiebaWasm: installed.packageDir,
+        pandocWasm: pandoc.packageDir,
+        sqliteWasm: sqlite.packageDir,
+      }),
+    ).rejects.toThrow(
+      'The installed @sqlite.org/sqlite-wasm is 3.55.0-build1, and the pin of "sqlite-engine" is 3.54.1-build1',
     );
   });
 
@@ -172,6 +242,7 @@ describe("buildResourcePack", () => {
     );
     await using installed = await installedPackage();
     await using pandoc = await installedPandoc();
+    await using sqlite = await installedSqlite();
     await writeFile(join(pandoc.packageDir, "src", "pandoc.wasm"), binary);
     const pins = {
       ...PINS,
@@ -186,6 +257,7 @@ describe("buildResourcePack", () => {
       pins,
       jiebaWasm: installed.packageDir,
       pandocWasm: pandoc.packageDir,
+      sqliteWasm: sqlite.packageDir,
     });
     const plain = await writePack({
       entries: [

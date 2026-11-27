@@ -4,6 +4,7 @@ import type {
   SegmenterBinary,
   WorkLabelSource,
 } from "#contract/rpc.ts";
+import type { SourceIdentity } from "#contract/source-identity.ts";
 import { chunk } from "@std/collections/chunk";
 import {
   Cause,
@@ -65,6 +66,7 @@ import type {
   ZoteroDatabase,
 } from "@zotlit/db";
 import { ItemIndex, layerItemIndex } from "@zotlit/item-lookup";
+import type { ItemSource } from "@zotlit/item-lookup";
 
 import { CITEKEY_WINDOW, makeCitationLookup } from "./citation-lookup.ts";
 import { Connection, read } from "./connection.ts";
@@ -94,7 +96,7 @@ export interface QueryJobRunner {
     job: ItemQueryJob,
     read: {
       readonly client: ZoteroDatabase;
-      readonly databaseFile: string | null;
+      readonly identity: Effect.Effect<SourceIdentity, DbUnavailable>;
     },
   ) => Effect.Effect<
     ItemQueryAnswer,
@@ -102,6 +104,7 @@ export interface QueryJobRunner {
     FileSystem.FileSystem | Scope.Scope
   >;
   readonly cancelled: (job: ItemQueryJob) => ItemQueryAnswer;
+  readonly refused?: (job: ItemQueryJob) => ItemQueryAnswer | undefined;
 }
 
 export const DEFAULT_SLICE_SIZE = 500;
@@ -115,6 +118,7 @@ export interface HandlersOptions {
   applyLogLevel?: (level: ReadsConfig["logLevel"]) => Effect.Effect<void>;
   queryJobs?: QueryJobRunner;
   snapshotRevision: SnapshotRevision;
+  itemSource?: Layer.Layer<ItemSource, never, Connection>;
 }
 
 function sliced<I, O>(
@@ -239,7 +243,7 @@ export function handlersLayer(options: HandlersOptions) {
     segmenterBinary: options.chineseSegmenter ?? null,
   }).pipe(
     Layer.provide([
-      layerConnectionItemSource,
+      options.itemSource ?? layerConnectionItemSource,
       layerSegmenterBinaryReader(options.readSegmenter),
     ]),
   );
@@ -329,6 +333,8 @@ export function handlersLayer(options: HandlersOptions) {
         CancelItemQuery: ({ id }) => FiberMap.remove(queryJobs, id),
         ItemQuery: ({ job, snapshot }) =>
           Effect.gen(function* () {
+            const refused = queryJobRunner.refused?.(job);
+            if (refused) return refused;
             const fiber = yield* FiberMap.run(
               queryJobs,
               job.id,
@@ -338,7 +344,7 @@ export function handlersLayer(options: HandlersOptions) {
                     const client = yield* borrow(snapshot);
                     return yield* queryJobRunner.run(job, {
                       client,
-                      databaseFile: connection.databaseFile(client),
+                      identity: connection.identity(client),
                     });
                   }).pipe(Effect.provideService(FileSystem.FileSystem, fs)),
                 ),
@@ -561,6 +567,20 @@ export function handlersLayer(options: HandlersOptions) {
 
         DatabaseIdentity: ({ snapshot }) =>
           withClient(snapshot, getZoteroDatabaseIdentity),
+
+        SourceIdentity: ({ snapshot }) =>
+          Effect.gen(function* () {
+            const pending =
+              snapshot === undefined && connection.pendingIdentity
+                ? yield* connection.pendingIdentity
+                : null;
+            if (pending) return pending;
+            return yield* Effect.scoped(
+              Effect.flatMap(borrow(snapshot), (client) =>
+                connection.identity(client),
+              ),
+            );
+          }),
 
         ItemType: ({ indexedKey, snapshot }) =>
           withClient(snapshot, (client) => {

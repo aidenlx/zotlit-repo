@@ -8,7 +8,7 @@ import type {
 import type { Span } from "./span.ts";
 
 export function datasetReceiver(
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
   {
     label,
     ...options

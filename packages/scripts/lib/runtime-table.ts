@@ -80,6 +80,11 @@ export const RUNTIMES = {
     modules: ["obsidian", ...EDITOR_MODULES],
     conditions: BROWSER_CONDITIONS,
   },
+  webWorker: {
+    title: "a Web Worker",
+    modules: [],
+    conditions: BROWSER_CONDITIONS,
+  },
   obsidianModule: {
     title: "the obsidian module alone",
     modules: ["obsidian"],

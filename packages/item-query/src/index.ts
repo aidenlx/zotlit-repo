@@ -48,9 +48,9 @@ export {
 export {
   queryItemFrom,
   queryItemSeedSchema,
-  readQueryItemSeed,
   type QueryItemSeed,
 } from "./item-seed.ts";
+export { readQueryItemSeed } from "./read-item-seed.ts";
 export { ANNOTATIONS } from "./query-annotations.ts";
 export {
   ItemQueryError,
@@ -121,6 +121,7 @@ export {
 export {
   diagnoseDecode,
   renderDiagnostic,
+  type DecodeFault,
   type Diagnostic,
   type DiagnosticLocation,
 } from "./diagnose.ts";

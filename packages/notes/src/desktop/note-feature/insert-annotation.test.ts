@@ -12,13 +12,14 @@ import {
 import { join } from "node:path";
 import { FileSystemAdapter } from "obsidian";
 import type { TFile } from "obsidian";
-import { expect, vi } from "vitest";
+import { describe, expect, vi } from "vitest";
 
 import { availableOutcome } from "@zotlit/annotations/__fixtures__/excerpt-image/outcome.ts";
 import { redPng } from "@zotlit/annotations/__fixtures__/excerpt-image/png.ts";
 import { PNG_FORMAT } from "@zotlit/annotations/core/excerpt-image/format.ts";
 import { layerExcerptPreparation } from "@zotlit/annotations/desktop/excerpt-image/prepare.ts";
 import { AnnotationNoteActions } from "@zotlit/annotations/obsidian/annot-view/note-actions.ts";
+import type { AnnotationList } from "@zotlit/annotations/obsidian/annotation-repository/core/model.ts";
 import { AnnotationRepository } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import type { AnnotationRecord } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import { ExcerptImageService } from "@zotlit/annotations/obsidian/excerpt-image/service.ts";
@@ -33,11 +34,15 @@ import { layerHost } from "@zotlit/obsidian-kit/__fixtures__/obsidian-host-app.t
 import { MemoryVault } from "@zotlit/obsidian-kit/__fixtures__/obsidian-vault.ts";
 import type { FileManagerSource } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { LibrarySource } from "@zotlit/plugin-services/obsidian/library-source/service.ts";
+import type { LibrarySourceKind } from "@zotlit/plugin-services/obsidian/library-source/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
+import type { Use } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { layerVaultDiskOver } from "@zotlit/plugin-shell/desktop/__fixtures__/vault-disk.ts";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
 import {
@@ -113,7 +118,7 @@ function pausingFileSystem() {
   };
 }
 
-async function openFixture(mode: string) {
+async function openFixture(mode: string, library: LibrarySourceKind = "file") {
   const parent = join(
     await getWorkspaceRoot(import.meta.dirname),
     ".scratch/insert-tests",
@@ -124,7 +129,7 @@ async function openFixture(mode: string) {
   createFixtureSchema(client.$client);
   client.$client.exec(`
     insert into libraries (libraryID, type) values (1, 'user');
-    insert into settings (setting,key,value) values ('localAPI','serverID','SERVER000001');
+    ${library === "file" ? "insert into settings (setting,key,value) values ('localAPI','serverID','SERVER000001');" : ""}
     insert into items (itemID,itemTypeID,dateAdded,dateModified,libraryID,key) values
       (1,1,'2025-01-01 00:00:00','2025-01-01 00:00:00',1,'RUGIER24'),
       (2,2,'2025-01-01 00:00:00','2025-01-01 00:00:00',1,'RGRPDF24');
@@ -202,9 +207,43 @@ async function openFixture(mode: string) {
       ),
     ),
   );
+  let valid = true;
+  const options: AnnotationInsertOptions = {
+    annotation: card,
+    source:
+      library === "file"
+        ? { kind: "zotero-local-api", serverID: "SERVER000001" }
+        : {
+            kind: "zotero-db",
+            database: { userID: null, localUserKey: null, serverID: null },
+            libraryID: 1,
+            libraryRevision: null,
+          },
+    sourceScope: "/zotero",
+    notePath: "Target.md",
+    valid: () => valid,
+  };
   const layer = Layer.mergeAll(
-    Layer.mock(AnnotationRepository, {}),
-    Layer.mock(UseLedger, {}),
+    Layer.succeed(
+      LibrarySource,
+      stubService<LibrarySource["Service"]>("LibrarySource", {
+        active: library,
+      }),
+    ),
+    Layer.mock(AnnotationRepository, {
+      read: (attachmentKey) =>
+        Effect.succeed(
+          attachmentKey === options.annotation.parentKey
+            ? stubService<AnnotationList>("AnnotationList", {
+                source: options.source,
+                annotations: [options.annotation],
+              })
+            : null,
+        ),
+    }),
+    Layer.mock(UseLedger, {
+      record: () => Effect.succeed(stubService<Use>("Use", {})),
+    }),
     excerpts,
     Layer.mock(ZoteroReads, {
       reads: zoteroReads.reads,
@@ -225,14 +264,6 @@ async function openFixture(mode: string) {
       renderCitation: () => Effect.succeed(""),
     }),
   );
-  let valid = true;
-  const options: AnnotationInsertOptions = {
-    annotation: card,
-    source: { kind: "zotero-local-api", serverID: "SERVER000001" },
-    sourceScope: "/zotero",
-    notePath: "Target.md",
-    valid: () => valid,
-  };
   if (mode === "write-failure")
     await writeFile(join(root, "Images"), "occupied");
   return {
@@ -244,15 +275,28 @@ async function openFixture(mode: string) {
     zoteroPref,
     pauseTemporaryWrite: fileSystem.arm,
     insert: () => prepareAnnotationInsert(options).pipe(Effect.provide(layer)),
-    action: (commit: (text: string) => boolean) =>
+    action: (
+      commit: (text: string) => boolean,
+      subject: "card" | "suggester" = "card",
+    ) =>
       Effect.gen(function* () {
         const notes = yield* AnnotationNoteActions;
         return yield* notes.insert({
-          annotation: options.annotation,
-          snapshot: {
-            source: options.source,
-            sourceScope: options.sourceScope,
-          },
+          ...(subject === "card"
+            ? {
+                annotation: options.annotation,
+                snapshot: {
+                  source: options.source,
+                  sourceScope: options.sourceScope,
+                },
+              }
+            : {
+                hit: {
+                  key: options.annotation.key,
+                  attachmentKey: options.annotation.parentKey,
+                  itemKey: "RUGIER24",
+                },
+              }),
           notePath: options.notePath,
           target: {
             valid: options.valid,
@@ -276,9 +320,9 @@ async function openFixture(mode: string) {
   };
 }
 
-const fixture = (mode: string) =>
+const fixture = (mode: string, library?: LibrarySourceKind) =>
   Effect.acquireRelease(
-    Effect.promise(() => openFixture(mode)),
+    Effect.promise(() => openFixture(mode, library)),
     (f) => Effect.promise(() => f.close()),
   );
 
@@ -581,5 +625,61 @@ it.effect(
         }),
       ).toEqual({ kind: "fallback", landed: true });
       expect(text).toContain("annotation=FDRFQ7C2");
+    }).pipe(Effect.scoped),
+);
+
+describe.each(["file", "web-api"] as const)(
+  "annotation insert under the %s library source",
+  (library) => {
+    it.effect.each(["card", "suggester"] as const)(
+      "renders a text highlight through the annotation template (%s)",
+      (subject) =>
+        Effect.gen(function* () {
+          const f = yield* fixture("success", library);
+          f.options.annotation = {
+            ...card,
+            type: "highlight",
+            text: "Highlighted claim about figures",
+          };
+          let inserted = "";
+          const outcome = yield* f.action((text) => {
+            inserted = text;
+            return true;
+          }, subject);
+          expect(outcome).toEqual({
+            kind: "inserted",
+            summary: { zotero: 0, unchecked: 0, unavailable: 0 },
+          });
+          expect(f.render).toHaveBeenCalledTimes(1);
+          expect(inserted).toContain("Highlighted claim about figures");
+          expect(inserted).toContain(`Page [3](${DURABLE_LINK})`);
+          expect(f.resolver.resolve).not.toHaveBeenCalled();
+        }).pipe(Effect.scoped),
+    );
+  },
+);
+
+it.effect.each(["card", "suggester"] as const)(
+  "renders an image annotation of the online library with its image not available (%s)",
+  (subject) =>
+    Effect.gen(function* () {
+      const f = yield* fixture("success", "web-api");
+      let inserted = "";
+      const outcome = yield* f.action((text) => {
+        inserted = text;
+        return true;
+      }, subject);
+      expect(outcome).toEqual({
+        kind: "inserted",
+        summary: { zotero: 0, unchecked: 0, unavailable: 1 },
+      });
+      expect(f.render).toHaveBeenCalledTimes(1);
+      expect(inserted).toContain(`Page [3](${DURABLE_LINK})`);
+      expect(inserted).toContain(
+        `${m.excerpt_image_unavailable()} [Zotero](${DURABLE_LINK})`,
+      );
+      expect(inserted).not.toContain("![[");
+      expect(f.resolver.resolve).not.toHaveBeenCalled();
+      expect(yield* read(() => readdir(f.root))).toEqual([]);
     }).pipe(Effect.scoped),
 );

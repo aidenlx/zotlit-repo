@@ -1,5 +1,6 @@
-import type { SchemaAsset } from "#core/cli/schema.ts";
 import type { RenderTemplate } from "#core/cli/vocabulary.ts";
+import type { SchemaAsset } from "#worker/cli/schema-asset.ts";
+import type { WorkbenchIdentity } from "#worker/cli/workbench-identity.ts";
 
 import type { ContractRoot } from "@zotlit/db";
 import {
@@ -14,17 +15,17 @@ import type {
   CompileError,
   TemplateFileStatus,
 } from "@zotlit/notes/obsidian/template/service.ts";
+import { UNKNOWN_PROFILE_HINT } from "@zotlit/obsidian-kit/profile-stamp.ts";
+import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import {
   INVALID_ARGUMENT_HINT,
   createRenderedCliDiagnostics,
   lineColumn,
-} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+} from "@zotlit/obsidian-kit/worker/cli-diagnostic.ts";
 import type {
   FaultFacts,
   RenderedDiagnostic,
-} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
-import { UNKNOWN_PROFILE_HINT } from "@zotlit/obsidian-kit/profile-stamp.ts";
-import type { ProfileSelector } from "@zotlit/obsidian-kit/profile-stamp.ts";
+} from "@zotlit/obsidian-kit/worker/cli-diagnostic.ts";
 import type {
   FrontmatterLanguage,
   FrontmatterMergeStrategy,
@@ -33,18 +34,7 @@ import { MissingTemplateError, TemplateError } from "@zotlit/templates/facade";
 import type { TemplateLanguage } from "@zotlit/templates/facade";
 import type { FrontmatterField } from "@zotlit/templates/frontmatter";
 
-export const CONTRACT_VERSION = 8;
-
-export interface WorkbenchIdentity {
-  vault: {
-    name: string;
-    path: string;
-  };
-  source: {
-    id: string | null;
-    databasePath: string;
-  };
-}
+export const CONTRACT_VERSION = 9;
 
 export const DIAGNOSTIC_HINTS = {
   COMMAND_RETIRED:

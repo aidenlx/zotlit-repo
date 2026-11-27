@@ -8,7 +8,7 @@ import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 import { getBaseFieldTable } from "./_base-fields.ts";
 import type { BaseFieldTable } from "./_base-fields.ts";
 import { CHILD_ITEM_TYPES, defineQuery, defineKeyedQuery } from "./_shared.ts";
-import type { ChildItemType, FindManyOptions, QueryRow } from "./_shared.ts";
+import type { FindManyOptions, QueryRow } from "./_shared.ts";
 import { groupIDForLibrary, resolveGroupID } from "./libraries.ts";
 import type { GroupIDMemo } from "./libraries.ts";
 
@@ -43,17 +43,6 @@ export type Item = BaseItem & {
   venue: string | null;
   groupID: number | null;
 };
-
-export type ChildItemFields = Extract<
-  ItemFields,
-  { readonly itemType: ChildItemType }
->;
-
-export function isChildItemFields(
-  fields: ItemFields,
-): fields is ChildItemFields {
-  return CHILD_ITEM_TYPES.some((itemType) => itemType === fields.itemType);
-}
 
 const itemFindOptions = {
   columns: {

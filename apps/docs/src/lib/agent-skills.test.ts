@@ -43,7 +43,7 @@ describe("agentSkillAssets", () => {
       await readFile(
         resolve(
           workspaceRoot,
-          "packages/query-views/src/desktop/item-query/contract-version.json",
+          "packages/query-views/src/worker/item-query/contract-version.json",
         ),
         "utf8",
       ),

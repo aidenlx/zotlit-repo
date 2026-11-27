@@ -1,3 +1,7 @@
+import type {
+  CancellationEvent,
+  WorkerMeasurement,
+} from "#worker/item-query/trace.ts";
 import { Cause, Clock, Effect, Exit, Fiber, Layer, Schema } from "effect";
 import type { CliData, CliFlags } from "obsidian";
 
@@ -20,7 +24,6 @@ import { monotonicMillis } from "@zotlit/plugin-kernel/worker/effect-clock.ts";
 import { queryFlags } from "./contract.ts";
 import { decodeQuery } from "./decode.ts";
 import { QueryService } from "./service.ts";
-import type { CancellationEvent, WorkerMeasurement } from "./trace.ts";
 
 export const QUERY_MEASURE_COMMAND = "zotlit:query-measure" as const;
 

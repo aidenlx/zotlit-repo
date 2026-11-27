@@ -56,8 +56,13 @@ export default defineConfig({
         "src/worker/serve.ts",
         "src/worker/worker-launch.ts",
         "src/client/worker-host.ts",
+        "src/client/web-worker.ts",
       ],
       rules: { "zotlit-services/worker-rpc": "off" },
+    },
+    {
+      files: ["src/worker/serve-web.ts"],
+      rules: { "obsidianmd/no-restricted-globals": "off" },
     },
     {
       files: ["src/worker/snapshot/export.ts"],

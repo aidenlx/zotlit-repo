@@ -6,16 +6,16 @@ import type {
   CliHost,
 } from "@zotlit/obsidian-kit/cli-command.ts";
 import {
-  INVALID_ARGUMENT_HINT,
-  createCliDiagnostics,
-} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
-import {
   catchRejection,
   decodeCliParams,
   noCliParams,
 } from "@zotlit/obsidian-kit/cli-params.ts";
 import type { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
+import {
+  INVALID_ARGUMENT_HINT,
+  createCliDiagnostics,
+} from "@zotlit/obsidian-kit/worker/cli-diagnostic.ts";
 
 import { LibraryScope } from "./service.ts";
 

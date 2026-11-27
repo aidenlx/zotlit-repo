@@ -89,7 +89,11 @@ export type WorkspaceEvent =
       readonly _tag: "active-leaf-change";
       readonly leaf: WorkspaceLeaf | null;
     }
-  | { readonly _tag: "css-change" };
+  | { readonly _tag: "css-change" }
+  | {
+      readonly _tag: "window-open" | "window-close";
+      readonly window: Window;
+    };
 
 export interface FileMenuOrigin {
   readonly source: string;
@@ -108,6 +112,7 @@ export interface WorkspaceShape {
   readonly requestSaveLayout: Effect.Effect<void>;
   readonly layoutReady: Effect.Effect<void>;
   readonly changes: Stream.Stream<WorkspaceEvent>;
+  readonly windows: Effect.Effect<readonly Window[]>;
   readonly getActiveFile: Effect.Effect<TFile | null>;
   readonly activeMarkdownView: Effect.Effect<MarkdownView | null>;
   readonly markdownViews: Effect.Effect<readonly MarkdownView[]>;
@@ -186,6 +191,16 @@ export const makeWorkspace = Effect.fnUntraced(function* (
     (leaf: WorkspaceLeaf | null) => ({ _tag: "active-leaf-change", leaf }),
   );
   yield* events.listen(source, "css-change", () => ({ _tag: "css-change" }));
+  yield* events.listen(
+    source,
+    "window-open",
+    (_win: unknown, window: Window) => ({ _tag: "window-open", window }),
+  );
+  yield* events.listen(
+    source,
+    "window-close",
+    (_win: unknown, window: Window) => ({ _tag: "window-close", window }),
+  );
 
   const menuHook = <Args extends unknown[], R>(
     name: string,
@@ -225,6 +240,13 @@ export const makeWorkspace = Effect.fnUntraced(function* (
     insertionEditor: Effect.sync(() => insertionEditor(source)).pipe(
       Effect.withSpan("Workspace.insertionEditor"),
     ),
+    windows: Effect.sync(() => {
+      const windows = new Set<Window>();
+      source.iterateAllLeaves((leaf) => {
+        windows.add(leaf.getContainer().win);
+      });
+      return [...windows];
+    }).pipe(Effect.withSpan("Workspace.windows")),
     sidebarRoots: Effect.sync(() => ({
       leftSplit: source.leftSplit,
       rightSplit: source.rightSplit,

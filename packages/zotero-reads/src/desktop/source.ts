@@ -1,5 +1,5 @@
 import type { EffectiveReadMode } from "#contract/rpc.ts";
-import type { ReadsConfig } from "#contract/rpc.ts";
+import type { FileReadsConfig, ReadsConfig } from "#contract/rpc.ts";
 import type { OpenClient } from "#worker/connection.ts";
 import {
   Cause,
@@ -46,7 +46,7 @@ import type {
 import { reapReadClones } from "./reap-temps.ts";
 
 import { makeStateFeed } from "#contract/change-feed.ts";
-import { DbUnavailable } from "#contract/rpc.ts";
+import { DbUnavailable, fileConfigOf } from "#contract/rpc.ts";
 import {
   Connection,
   makeClientRef,
@@ -54,6 +54,7 @@ import {
   toDbUnavailable,
   validateClient,
 } from "#worker/connection.ts";
+import { fileSourceIdentity } from "#worker/connection.ts";
 
 const WATCH_DEBOUNCE_MS = 1200;
 const IMMUTABLE_WATCH_DEBOUNCE_MS = 300;
@@ -91,7 +92,7 @@ const logWarningCause = (
 
 export interface SourcePorts {
   prepareRead: (
-    mode: ReadsConfig["readMode"],
+    mode: FileReadsConfig["readMode"],
     path: string,
   ) => Effect.Effect<
     PreparedRead,
@@ -116,7 +117,7 @@ const defaultPorts: SourcePorts = {
 
 export interface SourceOptions {
   ports?: Partial<SourcePorts>;
-  initial?: ReadsConfig | null;
+  initial?: FileReadsConfig | null;
   deferOpen?: boolean;
 }
 
@@ -140,7 +141,7 @@ export function layerSource(
       const lifetime = yield* Scope.Scope;
       const fs = yield* FileSystem.FileSystem;
       const state = yield* Ref.make<{
-        config: ReadsConfig | null;
+        config: FileReadsConfig | null;
         state: "loading" | "ready" | "degraded";
         lastError: DbUnavailable | null;
         hasClient: boolean;
@@ -714,7 +715,7 @@ export function layerSource(
         Effect.forkIn(lifetime, { startImmediately: true }),
       );
 
-      const configure = Effect.fnUntraced(function* (next: ReadsConfig) {
+      const configure = Effect.fnUntraced(function* (next: FileReadsConfig) {
         const previous = yield* Ref.modify(state, (current) => [
           current.config,
           { ...current, config: next },
@@ -754,9 +755,18 @@ export function layerSource(
           yield* logDebug("External change signalled, scheduling refresh");
           yield* scheduleWatchedRefresh({ trusted: true });
         }),
-        configure,
+        configure: (next: ReadsConfig) => {
+          const file = fileConfigOf(next);
+          return file ? configure(file) : Effect.void;
+        },
         databaseGeneration: databaseGenerations.databaseGeneration,
-        databaseFile: databaseGenerations.databaseFile,
+        identity: (client) =>
+          Effect.map(Ref.get(state), ({ config }) =>
+            fileSourceIdentity(
+              databaseGenerations.databaseFile(client),
+              config,
+            ),
+          ),
       });
     }),
   );

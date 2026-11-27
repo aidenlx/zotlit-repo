@@ -155,7 +155,7 @@ The replacement path is the same for all nine. Select the document with `zotlit:
 
 ## Contract version [#contract-version]
 
-The namespace declares its own contract version, currently 8, once, with the answer envelope that every Template Workbench command answers through. Every answer carries it as `contractVersion`, the first field of the answer. Each ZotLit CLI namespace versions its contract on its own, so this number does not track any other namespace.
+The namespace declares its own contract version, currently 9, once, with the answer envelope that every Template Workbench command answers through. Every answer carries it as `contractVersion`, the first field of the answer. Each ZotLit CLI namespace versions its contract on its own, so this number does not track any other namespace.
 
 An installed skill states the version it was written against. Compare that pin with the `contractVersion` of the first answer. When the two differ, the skill is the stale one: read the live guide again, starting with `obsidian zotlit:template-guide`, and follow the live contract rather than the skill.
 
@@ -165,7 +165,7 @@ Every answer except a successful `zotlit:template-guide` is a JSON string. The f
 
 ```json
 {
-  "contractVersion": 8,
+  "contractVersion": 9,
   "command": "zotlit:template-check",
   "ok": true
 }
@@ -178,11 +178,13 @@ Every answer except a successful `zotlit:template-guide` is a JSON string. The f
 | `ok`              | Every answer                  | Whether the call succeeded. The rest of the answer is discriminated on this field. |
 | `diagnostic`      | Failures                      | The fault, described below. A success never carries it.                            |
 | `request`         | When a selector was resolved  | The parsed request, echoed back.                                                   |
-| `identity`        | When identity was resolved    | `vault.name`, `vault.path`, `source.id`, and `source.databasePath`.                |
+| `identity`        | When identity was resolved    | `vault.name`, `vault.path`, and `source`, the Zotero source described below.       |
 | `template`        | When the command defines one  | The template the answer concerns.                                                  |
 | `warnings`        | When the command defines them | Non-fatal notes about the answer.                                                  |
 
 The success and failure tails are separate shapes, so a failure cannot carry a result and a success cannot carry a diagnostic. When a call fails before the command resolves the vault and the Zotero source, the answer carries no `identity`.
+
+`identity.source` names the Zotero source. For the local Zotero database it is `kind: "file"` with `id` and `databasePath`: `id` is `null` while ZotLit still reads a database that the Zotero preferences no longer name, and `databasePath` is `null` when ZotLit does not know the path of the database it reads. For the Zotero online library it is `kind: "web-api"` with `id`, `userID`, and `username`, and its `id` is `web-api:<userID>`, or `web-api:unsynced` before the first sync. When the local Zotero database cannot open, `identity.source` names the database of the Zotero preferences. It is `null` when ZotLit cannot read the online library.
 
 Verify `identity.vault` and `identity.source` on every answer, and pass `expect-source=<identity.source.id>` when inspecting, discovering data, or running a new check. A supplied value that differs from the connected source answers `TARGET_MISMATCH`.
 

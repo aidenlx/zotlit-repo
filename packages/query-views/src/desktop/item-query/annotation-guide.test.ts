@@ -15,13 +15,18 @@ import {
   ANNOTATION_GUIDE_EXAMPLES,
   ANNOTATION_GUIDE_FILTERS,
 } from "./annotation-guide.ts";
-import { answer } from "./answer.ts";
-import { QUERY_COMMAND } from "./contract.ts";
 import { decodeQuery } from "./decode.ts";
+
+import { answer } from "#worker/item-query/answer.ts";
+import { QUERY_COMMAND } from "#worker/item-query/contract.ts";
 
 const IDENTITY = {
   vault: { name: "Research", path: "/vaults/research" },
-  source: { id: "source-1", databasePath: "/zotero/zotero.sqlite" },
+  source: {
+    kind: "file" as const,
+    id: "source-1",
+    databasePath: "/zotero/zotero.sqlite",
+  },
 };
 
 function runAnnotationQuery(
@@ -38,7 +43,7 @@ function runAnnotationQuery(
           query: decoded,
           scope: MY_LIBRARY_SCOPE,
         },
-        { identity: IDENTITY },
+        { identity: Effect.succeed(IDENTITY) },
       ),
     ),
     Effect.scoped,

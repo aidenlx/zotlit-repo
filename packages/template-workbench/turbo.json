@@ -2,6 +2,17 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
+    "generate:eta": {
+      "inputs": [
+        "src/core/language/eta.grammar",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": [
+        "src/core/language/eta-parser.ts",
+        "src/core/language/eta-parser.terms.ts"
+      ],
+      "outputLogs": "errors-only"
+    },
     "typecheck": {
       "dependsOn": [
         "$TURBO_EXTENDS$",

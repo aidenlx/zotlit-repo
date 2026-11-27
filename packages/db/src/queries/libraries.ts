@@ -30,7 +30,7 @@ export function selectLibraries(
       type: libraries.type,
       version: libraries.version,
       clientVersion: columns.clientVersion
-        ? sql<number | null>`${libraries.clientVersion}`
+        ? sql<number | null>`${libraries.clientVersion}`.mapWith(Number)
         : sql<number | null>`null`,
       groupID: groups.groupID,
       name: groups.name,

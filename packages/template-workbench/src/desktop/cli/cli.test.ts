@@ -1,3 +1,4 @@
+import type { WorkbenchIdentity } from "#worker/cli/workbench-identity.ts";
 import { it } from "@effect/vitest";
 import { Cause, Effect, Exit } from "effect";
 import { describe, expect, vi } from "vitest";
@@ -20,7 +21,6 @@ import {
   TEMPLATE_STATUS_COMMAND,
 } from "./cli.ts";
 import { CONTRACT_VERSION, DIAGNOSTIC_HINTS } from "./envelope.ts";
-import type { WorkbenchIdentity } from "./envelope.ts";
 import type { InspectionNote } from "./inspect.ts";
 
 type Deps = Parameters<typeof createHandlers>[0];
@@ -62,7 +62,11 @@ function createTemplateWorkbenchHandlers(deps: PlainDeps) {
 const PLUGIN_VERSION = "1.2.3";
 const IDENTITY = {
   vault: { name: "Test Vault", path: "/vaults/test" },
-  source: { id: "a1b2c3d4", databasePath: "/Zotero/zotero.sqlite" },
+  source: {
+    kind: "file",
+    id: "a1b2c3d4",
+    databasePath: "/Zotero/zotero.sqlite",
+  },
 } as const;
 const NO_COMPILE_ERRORS = new Map<string, CompileError>();
 const NO_CITATION = () => Effect.succeed({ kind: "not-found" } as const);
@@ -181,7 +185,7 @@ describe("Template Workbench CLI", () => {
       const output = yield* handlers["zotlit:template-status"]({});
 
       expect(JSON.parse(output)).toEqual({
-        contractVersion: 8,
+        contractVersion: 9,
         command: "zotlit:template-status",
         ok: false,
         diagnostic: expect.objectContaining({
@@ -225,7 +229,7 @@ describe("Template Workbench CLI", () => {
       });
 
       expect(JSON.parse(output)).toEqual({
-        contractVersion: 8,
+        contractVersion: 9,
         command: TEMPLATE_DATA_COMMAND,
         ok: false,
         request: {
@@ -291,7 +295,7 @@ describe("Template Workbench CLI", () => {
         });
 
         expect(JSON.parse(output)).toEqual({
-          contractVersion: 8,
+          contractVersion: 9,
           command: TEMPLATE_DATA_COMMAND,
           ok: true,
           selection: { key: "ITEM2345", root: "note" },
@@ -466,7 +470,7 @@ describe("Template Workbench CLI", () => {
         const output = yield* handlers[TEMPLATE_STATUS_COMMAND]({});
 
         expect(JSON.parse(output)).toEqual({
-          contractVersion: 8,
+          contractVersion: 9,
           command: TEMPLATE_STATUS_COMMAND,
           ok: false,
           diagnostic: expect.objectContaining({
@@ -501,7 +505,7 @@ describe("Template Workbench CLI", () => {
       });
 
       expect(JSON.parse(output)).toMatchObject({
-        contractVersion: 8,
+        contractVersion: 9,
         command: TEMPLATE_GUIDE_COMMAND,
         ok: false,
         diagnostic: {
@@ -569,7 +573,7 @@ describe("Template Workbench CLI", () => {
         const output = yield* handlers[TEMPLATE_DATA_COMMAND](params);
 
         expect(JSON.parse(output)).toMatchObject({
-          contractVersion: 8,
+          contractVersion: 9,
           command: TEMPLATE_DATA_COMMAND,
           ok: false,
           diagnostic: {
@@ -795,7 +799,7 @@ describe("Template Workbench CLI", () => {
       });
 
       expect(JSON.parse(output)).toMatchObject({
-        contractVersion: 8,
+        contractVersion: 9,
         command: TEMPLATE_DATA_COMMAND,
         ok: false,
         request: { key: "ITEM2345", root: "note", format: "json" },
@@ -845,7 +849,7 @@ describe("Template Workbench CLI", () => {
         });
 
         expect(JSON.parse(output)).toMatchObject({
-          contractVersion: 8,
+          contractVersion: 9,
           command: TEMPLATE_DATA_COMMAND,
           ok: false,
           identity: IDENTITY,
@@ -881,7 +885,7 @@ describe("Template Workbench CLI", () => {
         });
 
         expect(JSON.parse(output)).toMatchObject({
-          contractVersion: 8,
+          contractVersion: 9,
           command: TEMPLATE_STATUS_COMMAND,
           ok: false,
           diagnostic: {
@@ -944,7 +948,7 @@ describe("Template Workbench CLI", () => {
         });
 
         expect(JSON.parse(output)).toMatchObject({
-          contractVersion: 8,
+          contractVersion: 9,
           command: TEMPLATE_GUIDE_COMMAND,
           ok: false,
           diagnostic: {

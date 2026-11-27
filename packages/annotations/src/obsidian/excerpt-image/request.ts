@@ -24,6 +24,7 @@ import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { recover } from "@zotlit/plugin-kernel/effect-cause.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import { parseIndexedKey } from "@zotlit/zotero-types/keys";
@@ -43,14 +44,15 @@ export function savedExcerptRequestFor(input: {
   return Effect.gen(function* () {
     if (!source) return null;
     const reads = yield* ZoteroReads;
-    const pref = yield* ZoteroPref;
-    const { dataDir, baseAttachmentPath } = yield* pref.current;
+    const paths = yield* libraryFilePaths;
     return yield* readSavedExcerptRequest({
       annotation,
       source,
-      paths: { dataDir, baseAttachmentPath },
+      paths,
       snapshot: reads.snapshot,
-      dataDir: Effect.map(pref.current, (current) => current.dataDir),
+      dataDir: Effect.map(libraryFilePaths, (current) => current.dataDir).pipe(
+        Effect.provideService(ZoteroPref, yield* ZoteroPref),
+      ),
     });
   });
 }
@@ -80,7 +82,7 @@ function readSavedExcerptRequest<E>(options: {
   source: AnnotationSource;
   paths: AttachmentPathContext;
   snapshot: Effect.Effect<ExcerptRequestReads, E, Scope.Scope>;
-  dataDir: Effect.Effect<string>;
+  dataDir: Effect.Effect<string | null>;
 }): Effect.Effect<ExcerptRequest | null> {
   const { annotation, source, paths } = options;
   return Effect.gen(function* () {
@@ -141,6 +143,26 @@ export function excerptInputs(reads: ExcerptRequestReads, parentKey: string) {
   );
 }
 
+export function annotationAttachmentFrom(options: {
+  annotation: AnnotationRecord;
+  source: AnnotationSource;
+  identity: ZoteroDatabaseIdentity;
+  attachment: Attachment | null;
+}): Attachment | null {
+  const { annotation, source, identity, attachment } = options;
+  const compatible =
+    source.kind === "zotero-local-api"
+      ? identity.serverID === source.serverID
+      : identity.serverID === source.database.serverID &&
+        identity.userID === source.database.userID &&
+        identity.localUserKey === source.database.localUserKey;
+  if (!compatible || !attachment || !parseIndexedKey(annotation.key))
+    return null;
+  if (source.kind === "zotero-db" && source.libraryID !== attachment.libraryID)
+    return null;
+  return attachment;
+}
+
 export function excerptRequestFrom(options: {
   annotation: AnnotationRecord;
   source: AnnotationSource;
@@ -148,18 +170,10 @@ export function excerptRequestFrom(options: {
   attachment: Attachment | null;
   paths: AttachmentPathContext;
 }): ExcerptRequest | null {
-  const { annotation, source, identity, attachment, paths } = options;
-  const compatible =
-    source.kind === "zotero-local-api"
-      ? identity.serverID === source.serverID
-      : identity.serverID === source.database.serverID &&
-        identity.userID === source.database.userID &&
-        identity.localUserKey === source.database.localUserKey;
-  if (!compatible) return null;
+  const { annotation, source, paths } = options;
+  const attachment = annotationAttachmentFrom(options);
   const key = parseIndexedKey(annotation.key);
-  if (!attachment || !key) return null;
-  if (source.kind === "zotero-db" && source.libraryID !== attachment.libraryID)
-    return null;
+  if (paths.dataDir === null || !attachment || !key) return null;
   return {
     annotation,
     source,
@@ -179,6 +193,11 @@ export type ExcerptKeyReads = Pick<
   "AnnotationSources" | "DatabaseIdentity" | "Libraries"
 >;
 
+export interface ExcerptFilesUnavailable {
+  readonly kind: "files-unavailable";
+  readonly annotation: AnnotationRecord;
+}
+
 export class ExcerptSourceUnavailable extends Data.TaggedError(
   "ExcerptSourceUnavailable",
 )<{ readonly message: string }> {}
@@ -187,7 +206,10 @@ export function excerptRequestForKey(options: {
   reads: ExcerptKeyReads;
   key: string;
   paths: AttachmentPathContext;
-}): Effect.Effect<ExcerptRequest | null, ExcerptSourceUnavailable> {
+}): Effect.Effect<
+  ExcerptRequest | ExcerptFilesUnavailable | null,
+  ExcerptSourceUnavailable
+> {
   const { reads, key, paths } = options;
   return Effect.gen(function* () {
     const [libraries, identity] = yield* Effect.all(
@@ -208,7 +230,7 @@ export function excerptRequestForKey(options: {
       (entry) => entry.itemID === annotation.parentItemID,
     );
     if (!attachment) return null;
-    return excerptRequestFrom({
+    const input = {
       annotation: annotationRecordOf(annotation, attachment),
       source: {
         kind: "zotero-db",
@@ -220,8 +242,15 @@ export function excerptRequestForKey(options: {
       },
       identity,
       attachment,
-      paths,
-    });
+    } as const;
+    if (paths.dataDir === null)
+      return annotationAttachmentFrom(input)
+        ? ({
+            kind: "files-unavailable",
+            annotation: input.annotation,
+          } satisfies ExcerptFilesUnavailable)
+        : null;
+    return excerptRequestFrom({ ...input, paths });
   }).pipe(
     Effect.mapError(
       (error) =>

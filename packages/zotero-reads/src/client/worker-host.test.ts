@@ -1,6 +1,6 @@
 import type { EffectiveReadMode } from "#contract/rpc.ts";
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
-import type { ChangeEvent, ReadsConfig } from "#contract/rpc.ts";
+import type { ChangeEvent, FileReadsConfig } from "#contract/rpc.ts";
 import * as NodeFileSystem from "@effect/platform-node/NodeFileSystem";
 import { it } from "@effect/vitest";
 import {
@@ -48,6 +48,12 @@ function fakeWorkers(
     unanswered?: (n: number) => number;
     closeWait?: (n: number) => Duration.Input | undefined;
     changes?: Stream.Stream<ChangeEvent>;
+    unansweredRequests?: readonly (
+      | "Configure"
+      | "Libraries"
+      | "Snapshot"
+      | "Refresh"
+    )[];
   } = {},
 ) {
   let spawned = 0;
@@ -58,7 +64,9 @@ function fakeWorkers(
   const connect: Effect.Effect<WorkerConnection, DbUnavailable, Scope.Scope> =
     Effect.gen(function* () {
       const n = ++spawned;
+      const closing = yield* Deferred.make<void>();
       yield* Effect.addFinalizer(() => {
+        Deferred.doneUnsafe(closing, Exit.void);
         const wait = abandoned.has(n) ? undefined : options.closeWait?.(n);
         return Effect.andThen(
           wait === undefined ? Effect.void : Effect.sleep(wait),
@@ -118,6 +126,22 @@ function fakeWorkers(
           missed++ < (options.unanswered?.(n) ?? 0)
             ? Effect.never
             : answering.Ping(...args),
+        ...(options.unansweredRequests?.includes("Configure") && {
+          Configure: () => Effect.never,
+        }),
+        ...(options.unansweredRequests?.includes("Libraries") && {
+          Libraries: () => Effect.never,
+        }),
+        ...(options.unansweredRequests?.includes("Snapshot") && {
+          Snapshot: (() =>
+            Stream.fromEffect(
+              Effect.andThen(Deferred.await(closing), Effect.interrupt),
+            )) as unknown as typeof answering.Snapshot,
+        }),
+        ...(options.unansweredRequests?.includes("Refresh") && {
+          Refresh: () =>
+            Effect.andThen(Deferred.await(closing), Effect.interrupt),
+        }),
       };
       const died = yield* Deferred.make<DbUnavailable>();
       deaths.set(n, died);
@@ -175,6 +199,76 @@ describe("ZoteroReads worker adapter", () => {
   );
 
   it.effect(
+    "settles a Configure and a read in flight when their worker stops",
+    () =>
+      Effect.gen(function* () {
+        const workers = fakeWorkers({
+          unansweredRequests: ["Configure", "Libraries"],
+        });
+        const result = yield* Effect.gen(function* () {
+          const reads = yield* makeWorkerReads(workers.connect);
+          const configure = yield* Effect.forkChild(
+            Effect.flip(reads.Configure({} as FileReadsConfig)),
+            { startImmediately: true },
+          );
+          const read = yield* Effect.forkChild(
+            Effect.flip(reads.Libraries({})),
+            { startImmediately: true },
+          );
+          yield* Effect.yieldNow;
+          yield* workers.kill(1);
+          return {
+            configure: yield* Fiber.join(configure),
+            read: yield* Fiber.join(read),
+          };
+        }).pipe(Effect.scoped, Effect.timeout("1 second"));
+        expect(result.configure).toMatchObject({
+          _tag: "RpcClientError",
+          reason: {
+            cause: { _tag: "DbUnavailable", message: "worker #1 crashed" },
+          },
+        });
+        expect(result.read).toMatchObject({
+          _tag: "DbUnavailable",
+          message: "worker #1 crashed",
+        });
+      }),
+  );
+
+  it.effect(
+    "fails a stream read and a Refresh in flight with DbUnavailable when their worker stops",
+    () =>
+      Effect.gen(function* () {
+        const workers = fakeWorkers({
+          unansweredRequests: ["Snapshot", "Refresh"],
+        });
+        const result = yield* Effect.gen(function* () {
+          const reads = yield* makeWorkerReads(workers.connect);
+          yield* workerSeen(reads);
+          const snapshot = yield* Effect.forkChild(
+            Effect.flip(Stream.runDrain(reads.Snapshot())),
+            { startImmediately: true },
+          );
+          const refresh = yield* Effect.forkChild(
+            Effect.flip(reads.Refresh()),
+            {
+              startImmediately: true,
+            },
+          );
+          yield* Effect.yieldNow;
+          yield* workers.kill(1);
+          return {
+            snapshot: yield* Fiber.join(snapshot),
+            refresh: yield* Fiber.join(refresh),
+          };
+        }).pipe(Effect.scoped, Effect.timeout("1 second"));
+        const stop = { _tag: "DbUnavailable", message: "worker #1 crashed" };
+        expect(result.snapshot).toMatchObject(stop);
+        expect(result.refresh).toMatchObject(stop);
+      }),
+  );
+
+  it.effect(
     "a worker error moves the client to degraded with a tagged error and ends that worker",
     () =>
       Effect.gen(function* () {
@@ -192,7 +286,10 @@ describe("ZoteroReads worker adapter", () => {
           _tag: "degraded",
           error: { _tag: "DbUnavailable", message: "worker #1 crashed" },
         });
-        expect(result.read).toMatchObject({ _tag: "RpcClientError" });
+        expect(result.read).toMatchObject({
+          _tag: "DbUnavailable",
+          message: "worker #1 crashed",
+        });
         expect(result.ended).toBe(true);
       }),
   );
@@ -269,7 +366,10 @@ describe("ZoteroReads worker adapter", () => {
           return { snapshot, failed };
         }).pipe(Effect.scoped);
         expect(result.snapshot).toEqual(expect.any(String));
-        expect(result.failed).toMatchObject({ _tag: "RpcClientError" });
+        expect(result.failed).toMatchObject({
+          _tag: "DbUnavailable",
+          message: "worker #1 crashed",
+        });
       }),
   );
 
@@ -439,7 +539,10 @@ describe("ZoteroReads worker adapter", () => {
             message: "The database worker stopped responding",
           },
         });
-        expect(result.read).toMatchObject({ _tag: "RpcClientError" });
+        expect(result.read).toMatchObject({
+          _tag: "DbUnavailable",
+          message: "The database worker stopped responding",
+        });
         expect(result.ended).toBe(true);
         expect(result.abandoned).toBe(false);
         expect(result.seen).toBe(2);
@@ -548,7 +651,10 @@ describe("ZoteroReads worker adapter", () => {
             },
           },
         });
-        expect(result.before).toMatchObject({ _tag: "RpcClientError" });
+        expect(result.before).toMatchObject({
+          _tag: "DbUnavailable",
+          message: "worker #1 did not start",
+        });
         expect(result.after).toBe(2);
       }),
   );
@@ -783,7 +889,7 @@ class StandInWorker extends EventTarget {
   }
 }
 
-const readsConfig = (databasePath: string): ReadsConfig => ({
+const readsConfig = (databasePath: string): FileReadsConfig => ({
   databasePath,
   readMode: "auto",
   autoRefresh: true,
@@ -793,7 +899,7 @@ const readsConfig = (databasePath: string): ReadsConfig => ({
 });
 
 const openConnection = Effect.fnUntraced(function* (
-  config: Effect.Effect<ReadsConfig>,
+  config: Effect.Effect<FileReadsConfig>,
   reapSnapshots: ReapWorkerSnapshots,
 ) {
   const scope = yield* Scope.make();

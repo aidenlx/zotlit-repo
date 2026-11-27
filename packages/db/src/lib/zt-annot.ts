@@ -86,6 +86,15 @@ export function annotationTypeToName(
   return "unknown";
 }
 
+export function annotationTypeFromName(
+  name: string,
+): AnnotationType | undefined {
+  const found = Object.entries(ANNOT_TYPE).find(
+    ([, typeName]) => typeName === name,
+  );
+  return found ? (Number(found[0]) as AnnotationType) : undefined;
+}
+
 export function annotationHasCacheImage(
   type: AnnotationType | ResolvedAnnotationTypeName,
 ): boolean {

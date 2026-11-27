@@ -44,7 +44,7 @@
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",
     "effect": "catalog:",
-    "entities": "7.0.1",
+    "entities": "catalog:",
     "idb": "catalog:",
     "monkey-around": "catalog:",
     "preact": "catalog:",

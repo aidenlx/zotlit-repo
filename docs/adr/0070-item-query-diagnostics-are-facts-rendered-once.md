@@ -48,7 +48,7 @@ A View Plan sends the file's Formula definitions and lets the engine plan the on
 
 ## Shared CLI diagnostic adapter
 
-The [Obsidian Kit adapter](../../packages/obsidian-kit/src/cli-diagnostic.ts)
+The [Obsidian Kit adapter](../../packages/obsidian-kit/src/worker/cli-diagnostic.ts)
 uses the Item Query report renderer and keeps each namespace's diagnostic codes
 and details. A rejected parameter includes its issue path and received value.
 For a source fault, the location uses a one-based line and column, and the

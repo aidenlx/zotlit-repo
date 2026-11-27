@@ -4,15 +4,6 @@ export const DOCS_SITE_URL = __DOCS_SITE_URL__;
 export const COMPANION_ADDON_ID = "zotlit@aidenlx.site";
 export const ANNOTATION_SUGGESTER_ENABLED = __ANNOTATION_SUGGESTER_ENABLED__;
 
-export const releaseOrigin = (repository: string): string =>
-  `github.com/${repository}`;
-
-export const resourceReleaseUrl = (
-  repository: string,
-  pluginVersion: string,
-): string =>
-  `https://${releaseOrigin(repository)}/releases/download/res-${pluginVersion}`;
-
 export const EXTERNAL_FILE_PREFIX = "file:";
 
 export const FIELD_ZOTERO_KEY = "zotero-key";

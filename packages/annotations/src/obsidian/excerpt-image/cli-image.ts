@@ -5,19 +5,22 @@ import type { CliData } from "obsidian";
 
 import { renderDiagnostic } from "@zotlit/item-query";
 import {
-  INVALID_ARGUMENT_HINT,
-  SOURCE_UNAVAILABLE_HINT,
-  createRenderedCliDiagnostics,
-} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
-import {
   catchRejection,
   cliIndexedKey,
   cliParams,
   decodeCliParams,
 } from "@zotlit/obsidian-kit/cli-params.ts";
+import {
+  INVALID_ARGUMENT_HINT,
+  SOURCE_UNAVAILABLE_HINT,
+  createRenderedCliDiagnostics,
+} from "@zotlit/obsidian-kit/worker/cli-diagnostic.ts";
 
 import type { ExcerptRequest } from "./contract.ts";
-import type { ExcerptSourceUnavailable } from "./request.ts";
+import type {
+  ExcerptFilesUnavailable,
+  ExcerptSourceUnavailable,
+} from "./request.ts";
 import type { ExcerptOutcome } from "./service.ts";
 
 const contractVersion = 2;
@@ -50,7 +53,10 @@ const imageParams = cliParams(
 export interface AnnotationImagePorts {
   read(
     key: string,
-  ): Effect.Effect<ExcerptRequest | null, ExcerptSourceUnavailable>;
+  ): Effect.Effect<
+    ExcerptRequest | ExcerptFilesUnavailable | null,
+    ExcerptSourceUnavailable
+  >;
   resolve(request: ExcerptRequest): Effect.Effect<ExcerptOutcome, unknown>;
   publish(
     fingerprint: string,
@@ -102,6 +108,12 @@ export const answerAnnotationImage = Effect.fn("AnnotationImageCli.answer")(
       return imageFailure(
         "not-an-image-annotation",
         `Annotation '${key}' has no Excerpt Image.`,
+      );
+    if ("kind" in request)
+      return imageFailure(
+        "file-unavailable",
+        "The Zotero online library is the library source, and it holds no PDF or Zotero cache image on this device.",
+        NEEDS_LOCAL_ZOTERO_HINT,
       );
     return yield* imageAnswer({ key, request, ports }).pipe(
       Effect.catchTag("ImageAnswerError", ({ cause }) =>
@@ -188,10 +200,17 @@ const IMAGE_HINTS = {
     "Run the command again; if the image still times out, ask the user to open the PDF in Zotero so it can generate a cache image.",
 } as const;
 
-function imageFailure(code: keyof typeof IMAGE_HINTS, message: string): string {
+const NEEDS_LOCAL_ZOTERO_HINT =
+  "Ask the user to select Zotero on this computer as the library source in Settings → Zotero → Library source, then run the command again.";
+
+function imageFailure(
+  code: keyof typeof IMAGE_HINTS,
+  message: string,
+  hint: string = IMAGE_HINTS[code],
+): string {
   return envelope({
     ok: false,
-    diagnostic: renderDiagnostic({ code, message, hint: IMAGE_HINTS[code] }),
+    diagnostic: renderDiagnostic({ code, message, hint }),
   });
 }
 

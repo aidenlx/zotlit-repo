@@ -20,6 +20,7 @@ export function linkOutcomeNotices<R>(
   return {
     InvalidLink: () => show(m.notice_protocol_invalid()),
     ForeignSource: () => none,
+    NeedsLocalZotero: () => show(m.notice_needs_local_zotero()),
     DatabaseUnavailable: () => show(m.notice_protocol_db_unavailable()),
     ItemNotFound: () => show(m.notice_protocol_item_not_found()),
     Opened: () => none,

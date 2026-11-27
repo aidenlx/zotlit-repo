@@ -2,7 +2,7 @@
 name: zotlit-query
 description: "Query Zotero works, files, and reading marks through ZotLit in Obsidian. Use for literature reviews, reading plans, missing PDFs, broken linked files, duplicate PDFs, Annotation evidence, counts by paper or year, and complete exports."
 metadata:
-  cli-contract-version: "3"
+  cli-contract-version: "4"
 ---
 
 # ZotLit Query

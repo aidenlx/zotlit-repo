@@ -202,7 +202,7 @@ export interface PlannedFormulas<Item = any, Needs = any> {
 }
 
 export function planFormulas(
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
   request: FormulaRequest,
 ): FormulaPlanner | ItemQueryError {
   const { context, fields, sourceCheck } = request;

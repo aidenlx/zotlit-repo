@@ -21,5 +21,10 @@
     "vite.config.ts",
     "vite.mobile.config.ts"
   ],
-  "exclude": ["./node_modules", "./src/**/*"]
+  "exclude": [
+    "./node_modules",
+    "./src/**/*",
+    "./scripts/web-worker.test.ts",
+    "./scripts/__fixtures__/floor-worker.ts"
+  ]
 }

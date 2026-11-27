@@ -45,8 +45,84 @@ Derived files include (non-exhaustive):
   packages/item-lookup/src/format-creator.ts — creator name formatting
   packages/zotero-types/src/keys.ts     — object key validation
   packages/zotero-types/src/uri.ts      — zotero:// link building
+  packages/zotero-types/src/date.ts     — Zotero.Date.isMultipart
+                                          (chrome/content/zotero/xpcom/utilities/date.js)
+  packages/zotero-compat/src/multipart-date.ts — Zotero.Date.strToMultipart
+                                          (chrome/content/zotero/xpcom/utilities/date.js)
+  packages/zotero-compat/src/date-locale.ts — Zotero.Date.init and resolveLocale
+                                          (chrome/content/zotero/xpcom/utilities/date.js,
+                                          chrome/content/zotero/xpcom/utilities_internal.js)
+  packages/zotero-compat/src/charset.ts — Zotero.CharacterSets.toCanonical and its label list
+                                          (chrome/content/zotero/xpcom/data/cachedTypes.js)
+  packages/zotero-compat/src/isbn.ts    — cleanISBN, hyphenateISBN and the ISBN rule of setField
+                                          (chrome/content/zotero/xpcom/utilities/utilities.js,
+                                          chrome/content/zotero/xpcom/utilities_internal.js,
+                                          chrome/content/zotero/xpcom/data/item.js)
+  packages/zotero-compat/src/isbn.test.ts — the cleanISBN cases of the utilities test
+                                          (chrome/content/zotero/xpcom/utilities/test/tests/utilitiesTest.js)
+  packages/zotero-compat/src/multipart-date.test.ts — the cases of the date tests
+                                          (chrome/content/zotero/xpcom/utilities/test/tests/dateTest.js,
+                                          test/tests/dateTest.js,
+                                          test/tests/utilities_internalTest.js)
+  packages/zotero-compat/src/note.test.ts — the cases of the noteToTitle test
+                                          (chrome/content/zotero/xpcom/utilities/test/tests/utilities_itemTest.js)
+  packages/zotero-compat/src/sql-date.test.ts — the date cases of the item test
+                                          (test/tests/itemTest.js)
+  packages/zotero-compat/src/field-value.ts — the field value, name and single-line rules
+                                          (chrome/content/zotero/xpcom/data/item.js,
+                                          chrome/content/zotero/xpcom/data/itemFields.js,
+                                          chrome/content/zotero/xpcom/data/creators.js,
+                                          chrome/content/zotero/xpcom/data/tags.js,
+                                          chrome/content/zotero/xpcom/data/dataObject.js)
+  packages/zotero-compat/src/field-value.test.ts — the cases of the item and tags tests
+                                          (test/tests/itemTest.js, test/tests/tagsTest.js)
+  packages/zotero-compat/src/annotation.ts — the annotation setters and the default colour
+                                          (chrome/content/zotero/xpcom/data/item.js,
+                                          chrome/content/zotero/xpcom/annotations.js)
+  packages/zotero-compat/src/annotation.test.ts — the default colour case of the item test
+                                          (test/tests/itemTest.js)
+  packages/zotero-compat/src/attachment.ts — the attachment path and lastRead rules of fromJSON
+                                          (chrome/content/zotero/xpcom/data/item.js)
+  packages/zotero-compat/src/attachment.test.ts — the attachment cases of the item test
+                                          (test/tests/itemTest.js)
+  packages/zotero-compat/src/note.ts    — note wrapper, noteToTitle and unescapeHTML
+                                          (chrome/content/zotero/xpcom/data/item.js,
+                                          chrome/content/zotero/xpcom/utilities/utilities_item.js,
+                                          chrome/content/zotero/xpcom/utilities/utilities.js)
+  packages/zotero-compat/src/sql-date.ts — Zotero.Date.isoToDate and dateToSQL, and the
+                                          access date and item date rules of fromJSON
+                                          and setField
+                                          (chrome/content/zotero/xpcom/utilities/date.js,
+                                          chrome/content/zotero/xpcom/data/item.js)
+  packages/db/src/replica/apply.ts      — Zotero.Item.prototype.fromJSON and the item save
+                                          (chrome/content/zotero/xpcom/data/item.js,
+                                          chrome/content/zotero/xpcom/data/creators.js,
+                                          chrome/content/zotero/xpcom/data/tags.js,
+                                          chrome/content/zotero/xpcom/data/collection.js,
+                                          chrome/content/zotero/xpcom/data/dataObject.js)
+  packages/db/src/replica/sync-store.ts — the lastRead synced setting of a group attachment
+                                          (chrome/content/zotero/xpcom/attachmentReadObserver.js)
 
-Each file contains @see comments linking to the specific upstream source.
+Each entry names the upstream algorithm that the file derives from. Each entry
+with a source path derives from that path in zotero/zotero at commit 213b0d7d7.
+The source files carry no provenance comments, as policies/comments.md requires.
+
+This project also contains verbatim copies of three data files of zotero/zotero,
+an extract of its locale files, all pinned in
+packages/zotero-compat/zotero-client/provenance.json, and the modules generated
+from them:
+
+  packages/zotero-compat/zotero-client/app/assets/multilocale.txt
+                                          — the locales that Zotero ships
+  packages/zotero-compat/zotero-client/chrome/content/zotero/xpcom/isbn.js
+                                          — the ISBN registrant ranges
+  packages/zotero-compat/zotero-client/resource/schema/dateFormats.json
+                                          — the month names of each locale
+  packages/zotero-compat/zotero-client/day-suffixes.json
+                                          — the date.daySuffixes entry of each
+                                          chrome/locale/*/zotero/zotero.properties
+  packages/zotero-compat/src/isbn-ranges.ts, packages/zotero-compat/src/date-formats.ts
+                                          — generated by scripts/generate-client-data.ts
 
 =========================================================================
 
@@ -123,6 +199,18 @@ This project also contains code derived from Mozilla web-ext:
 
   Licensed under the Mozilla Public License 2.0 (MPL-2.0).
   See SPDX headers in those files for details.
+
+=========================================================================
+
+The main.js of the ZotLit plugin embeds two scripts that run in a Web Worker:
+the online library Worker and the Temporal polyfill. Each starts with the
+licences of the third-party packages that it bundles, generated by the build
+(apps/obsidian/scripts/worker-notices.ts), with the legal comments of the
+bundled code. A package that ships no licence file takes it from licences/,
+for the version that licences/manifest.json names:
+
+  licences/sqlite-wasm-LICENSE.md — @sqlite.org/sqlite-wasm (Apache-2.0)
+  licences/drizzle-orm-LICENSE    — drizzle-orm (Apache-2.0)
 
 =========================================================================
 

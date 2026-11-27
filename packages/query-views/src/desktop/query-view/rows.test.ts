@@ -1,4 +1,4 @@
-import type { QueryViewRow } from "#desktop/item-query/query-view.ts";
+import type { QueryViewRow } from "#worker/item-query/query-view.ts";
 import { describe, expect, it } from "vitest";
 
 import { layoutRows } from "./rows.ts";

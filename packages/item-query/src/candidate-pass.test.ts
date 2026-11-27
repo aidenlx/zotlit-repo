@@ -449,12 +449,13 @@ it.each([false, true])(
   "logs a Parent Record page budget outcome (exhausted: %s)",
   async (exhausted) => {
     const { ATTACHMENTS } = await import("./query-attachments.ts");
+    const { ATTACHMENT_ENGINE } = await import("./dataset-engines.ts");
     const parent = fake(40_000, []);
     const reads: { budget: number; limit: number }[] = [];
     const dataset: CandidateDataset = {
       ...parent.dataset,
       id: "attachments",
-      candidateParents: ATTACHMENTS.candidateParents,
+      candidateParents: ATTACHMENT_ENGINE.candidateParents,
       candidateRelations: {
         item: {
           dataset: () => parent.dataset,

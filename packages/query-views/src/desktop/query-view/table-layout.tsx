@@ -1,11 +1,11 @@
 import type { ItemRowGestures } from "#core/query-view/item-rows.ts";
+import type { ItemQueryError } from "#desktop/item-query/service.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewRow,
   QueryViewValue,
-} from "#desktop/item-query/query-view.ts";
-import type { ItemQueryError } from "#desktop/item-query/service.ts";
+} from "#worker/item-query/query-view.ts";
 import { Effect, Schema } from "effect";
 import { Keymap } from "obsidian";
 import {

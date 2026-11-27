@@ -102,10 +102,10 @@ function seed(sqlite: DatabaseSync): void {
     insert into libraries (libraryID, type) values (1, 'user');
 
     insert into items (itemID, itemTypeID, dateAdded, dateModified, libraryID, key) values
-      (100, 1, '2026-05-28 00:00:00', '2026-05-28 00:00:00', 1, 'PARENT01'),
-      (200, 2, '2026-05-28 00:00:01', '2026-05-28 00:00:01', 1, 'ATTACH01'),
-      (300, 3, '2026-05-28 00:00:02', '2026-05-28 00:00:02', 1, 'ANNOT001'),
-      (301, 3, '2026-05-28 00:00:03', '2026-05-28 00:00:03', 1, 'ANNOT002');
+      (100, 1, '2024-03-15 00:00:00', '2024-03-15 00:00:00', 1, 'PARENT01'),
+      (200, 2, '2024-03-15 00:00:01', '2024-03-15 00:00:01', 1, 'ATTACH01'),
+      (300, 3, '2024-03-15 00:00:02', '2024-03-15 00:00:02', 1, 'ANNOT001'),
+      (301, 3, '2024-03-15 00:00:03', '2024-03-15 00:00:03', 1, 'ANNOT002');
 
     insert into itemAttachments (itemID, parentItemID, contentType) values
       (200, 100, 'application/pdf');
@@ -114,6 +114,6 @@ function seed(sqlite: DatabaseSync): void {
       (300, 200, 1, '00000|000100|00010', '{}', 0),
       (301, 200, 1, '00000|000200|00010', '{}', 0);
 
-    insert into deletedItems (itemID, dateDeleted) values (301, '2026-05-28 00:00:04');
+    insert into deletedItems (itemID, dateDeleted) values (301, '2024-03-15 00:00:04');
   `);
 }

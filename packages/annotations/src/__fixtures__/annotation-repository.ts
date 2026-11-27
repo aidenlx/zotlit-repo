@@ -124,7 +124,7 @@ export const FIXTURE_ROWS = `
         '{"type":"FragmentSelector","value":"epubcfi(/6/4!/4/2)"}', 0);
 `;
 
-export const REMEMBERED_KEY = "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf";
+export const REMEMBERED_KEY = "XmplApiKey0000000000000000000001";
 
 export async function writable(
   stack: AsyncDisposableStack,

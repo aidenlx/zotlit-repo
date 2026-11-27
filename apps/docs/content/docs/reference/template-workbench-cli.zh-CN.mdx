@@ -155,7 +155,7 @@ obsidian vault=MyVault zotlit:template-inspect
 
 ## 契约版本 [#contract-version]
 
-该命名空间在其响应外壳中声明了自己的契约版本（当前为 8），每个模板工作台命令均通过此外壳进行响应。每个响应都会将其作为 `contractVersion`（响应的首个字段）返回。每个 ZotLit CLI 命名空间独立对其契约进行版本控制，因此该数字不与其他任何命名空间联动。
+该命名空间在其响应外壳中声明了自己的契约版本（当前为 9），每个模板工作台命令均通过此外壳进行响应。每个响应都会将其作为 `contractVersion`（响应的首个字段）返回。每个 ZotLit CLI 命名空间独立对其契约进行版本控制，因此该数字不与其他任何命名空间联动。
 
 已安装的技能会声明其编写时所依据的版本。请将该版本号与首次响应中的 `contractVersion` 进行对比。当两者不一致时，说明技能版本陈旧：请重新阅读实时指南（从 `obsidian zotlit:template-guide` 开始），并遵循实时契约而非技能自身的约定。
 
@@ -165,24 +165,26 @@ obsidian vault=MyVault zotlit:template-inspect
 
 ```json
 {
-  "contractVersion": 8,
+  "contractVersion": 9,
   "command": "zotlit:template-check",
   "ok": true
 }
 ```
 
-| 字段              | 出现时机         | 含义                                                               |
-| ----------------- | ---------------- | ------------------------------------------------------------------ |
-| `contractVersion` | 每次响应         | 该命名空间的契约版本。                                             |
-| `command`         | 每次响应         | 作出响应的命令。                                                   |
-| `ok`              | 每次响应         | 调用是否成功。响应的其余部分根据该字段进行区分。                   |
-| `diagnostic`      | 失败时           | 错误信息，详见下文。成功时绝不包含此字段。                         |
-| `request`         | 解析了选择器时   | 回显解析后的请求。                                                 |
-| `identity`        | 解析了标识时     | `vault.name`、`vault.path`、`source.id` 和 `source.databasePath`。 |
-| `template`        | 命令定义了模板时 | 响应所涉及的模板。                                                 |
-| `warnings`        | 命令定义了警告时 | 关于响应的非致命性提示。                                           |
+| 字段              | 出现时机         | 含义                                                              |
+| ----------------- | ---------------- | ----------------------------------------------------------------- |
+| `contractVersion` | 每次响应         | 该命名空间的契约版本。                                            |
+| `command`         | 每次响应         | 作出响应的命令。                                                  |
+| `ok`              | 每次响应         | 调用是否成功。响应的其余部分根据该字段进行区分。                  |
+| `diagnostic`      | 失败时           | 错误信息，详见下文。成功时绝不包含此字段。                        |
+| `request`         | 解析了选择器时   | 回显解析后的请求。                                                |
+| `identity`        | 解析了标识时     | `vault.name`、`vault.path` 和 `source`（Zotero 数据源，见下文）。 |
+| `template`        | 命令定义了模板时 | 响应所涉及的模板。                                                |
+| `warnings`        | 命令定义了警告时 | 关于响应的非致命性提示。                                          |
 
 成功和失败的尾部结构各不相同，因此失败响应中不可能包含结果，成功响应中也不可能包含诊断信息。当调用在命令解析仓库和 Zotero 数据源之前就失败时，响应中不包含 `identity`。
+
+`identity.source` 标明 Zotero 数据源。本地 Zotero 数据库为 `kind: "file"`，带有 `id` 和 `databasePath`：当 ZotLit 仍在读取 Zotero 首选项已不再指定的数据库时，`id` 为 `null`；当 ZotLit 不知道所读取数据库的路径时，`databasePath` 为 `null`。Zotero 在线文库为 `kind: "web-api"`，带有 `id`、`userID` 和 `username`，其 `id` 为 `web-api:<userID>`，首次同步前为 `web-api:unsynced`。当本地 Zotero 数据库无法打开时，`identity.source` 指向 Zotero 首选项中的数据库；当 ZotLit 无法读取在线文库时，它为 `null`。
 
 请在每次响应中核对 `identity.vault` 和 `identity.source`，并在执行检查、探索数据或运行新校验时传入 `expect-source=<identity.source.id>`。如果提供的值与连接的数据源不同，将返回 `TARGET_MISMATCH`。
 

@@ -6,16 +6,17 @@ import type {
   QueryFileSort,
   QueryFileView,
 } from "#core/query-view/query-file.ts";
-import type { Diagnostic } from "#desktop/item-query/contract.ts";
 import type { QueryHandle } from "#desktop/item-query/handle.ts";
+import type { ViewPlan } from "#desktop/query-view/view-plan/view-plan.ts";
+import type { QueryCardFocus } from "#obsidian/query-view/card-focus.ts";
+import type { ContextSource } from "#obsidian/query-view/context-hint.ts";
+import type { LibraryRead } from "#obsidian/query-view/reader-failure.ts";
+import type { Diagnostic } from "#worker/item-query/contract.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
   QueryViewRow,
-} from "#desktop/item-query/query-view.ts";
-import type { ViewPlan } from "#desktop/query-view/view-plan/view-plan.ts";
-import type { QueryCardFocus } from "#obsidian/query-view/card-focus.ts";
-import type { ContextSource } from "#obsidian/query-view/context-hint.ts";
+} from "#worker/item-query/query-view.ts";
 import { Effect } from "effect";
 import * as Atom from "effect/reactivity/Atom";
 import { Component } from "obsidian";
@@ -62,6 +63,7 @@ import { useUniqueId } from "@zotlit/ui";
 import {
   zoteroRevisionAtom,
   zoteroQueryUnavailableRevisionAtom,
+  zoteroStateAtom,
 } from "@zotlit/zotero-reads/client/atoms.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
@@ -87,7 +89,6 @@ import { NO_RESULTS } from "./results.ts";
 import type {
   FormulaIssue,
   QueryViewFailure,
-  QueryViewWarning,
   ResultSnapshot,
 } from "./results.ts";
 import { layoutRows } from "./rows.ts";
@@ -118,6 +119,11 @@ import { queryRevisionAtom } from "#desktop/item-query/atoms.ts";
 import { QueryService } from "#desktop/item-query/service.ts";
 import { ViewPlanner } from "#desktop/query-view/view-plan/view-plan.ts";
 import { contextHint } from "#obsidian/query-view/context-hint.ts";
+import {
+  readerSource,
+  readerWarningText,
+  sourceText,
+} from "#obsidian/query-view/reader-failure.ts";
 import { ToolbarButton } from "#obsidian/query-view/toolbar-button.tsx";
 import { ToolbarPopover } from "#obsidian/query-view/toolbar-popover.tsx";
 
@@ -213,12 +219,6 @@ export interface QueryViewState {
   defaults: QueryViewDefaults;
 }
 
-function warningText(warning: QueryViewWarning): string {
-  return warning.code === "key-outside-target-libraries"
-    ? m.query_view_warning_outside_library_scope()
-    : warning.message;
-}
-
 export function problemText(problem: QueryFileProblem): string {
   switch (problem.code) {
     case "invalid-yaml":
@@ -278,6 +278,7 @@ const FORMULA_READ_FAULTS: ReadonlySet<string> = new Set([
 function formulaIssues(
   outcome: QueryViewOutcome,
   formulas: QueryViewRequest["formulas"],
+  library: LibraryRead,
 ): NameDictionary<FormulaIssue> {
   const faults = Object.entries(
     (outcome.kind === "result"
@@ -288,7 +289,7 @@ function formulaIssues(
   );
   return nameDictionary(
     faults.map(([name, diagnostic]): [string, FormulaIssue] => {
-      const message = readerText(diagnostic);
+      const message = sourceText(readerSource(diagnostic, library));
       const { location } = diagnostic;
       const text = formulas?.[name];
       return [
@@ -458,6 +459,7 @@ export class QueryView extends Component implements HistorySurface {
         if (this.state.getState().view?.from === "items") rerun();
       }),
     );
+    subscriptions.defer(this.registry.mount(zoteroStateAtom));
     for (const atom of [
       zoteroRevisionAtom,
       zoteroQueryUnavailableRevisionAtom,
@@ -784,14 +786,10 @@ export class QueryView extends Component implements HistorySurface {
       request: plan.request,
       pass: this.#host.rowPass?.() ?? null,
       land: (outcome) => this.#land(run, outcome, fromList),
-      fail: (error) =>
+      fail: () =>
         this.#fail(
           run,
-          {
-            code: "query-failed",
-            message: error instanceof Error ? error.message : String(error),
-            hint: "",
-          },
+          { code: "query-failed", message: "", hint: "" },
           NO_RESULTS.formulaIssues,
         ),
       done: () => completion.resolve(),
@@ -811,7 +809,7 @@ export class QueryView extends Component implements HistorySurface {
         this.#fail(
           run,
           outcome.diagnostic,
-          formulaIssues(outcome, plan.request.formulas),
+          formulaIssues(outcome, plan.request.formulas, this.#library()),
         );
         return;
       case "result": {
@@ -845,13 +843,17 @@ export class QueryView extends Component implements HistorySurface {
             ranked: rank !== null,
             warnings: [
               ...new Map(
-                result.warnings.map(({ code, message }) => [
+                result.warnings.map(({ code, message, found }) => [
                   code === "key-outside-target-libraries" ? code : message,
-                  { code, message },
+                  { code, message, found },
                 ]),
               ).values(),
             ],
-            formulaIssues: formulaIssues(outcome, plan.request.formulas),
+            formulaIssues: formulaIssues(
+              outcome,
+              plan.request.formulas,
+              this.#library(),
+            ),
           },
           failure: null,
         });
@@ -872,6 +874,7 @@ export class QueryView extends Component implements HistorySurface {
     diagnostic: Diagnostic | QueryViewFailure["diagnostic"],
     issues: NameDictionary<FormulaIssue>,
   ): void {
+    const reader = readerSource(diagnostic, this.#library());
     const kept =
       !FORMULA_READ_FAULTS.has(diagnostic.code) &&
       (this.#shownRequest === key ||
@@ -890,13 +893,18 @@ export class QueryView extends Component implements HistorySurface {
       results: kept ? state.results : null,
       failure: {
         diagnostic,
+        reader,
         filterIssue: at && {
           ...at,
-          message: readerText(diagnostic),
+          message: sourceText(reader),
         },
         formulaIssues: issues,
       },
     }));
+  }
+
+  #library(): LibraryRead {
+    return this.registry.get(zoteroStateAtom);
   }
 
   async #show(
@@ -921,6 +929,7 @@ function Problems({ view }: { view: QueryView }) {
   const problems = useQueryViewState(view, (s) => s.problems);
   const phase = useQueryViewState(view, (s) => s.phase);
   const diagnostic = useQueryViewState(view, (s) => s.failure?.diagnostic);
+  const reader = useQueryViewState(view, (s) => s.failure?.reader);
   const marked = useQueryViewState(
     view,
     (s) => (s.failure?.filterIssue ?? null) !== null && s.results !== null,
@@ -962,14 +971,14 @@ function Problems({ view }: { view: QueryView }) {
           {m.query_view_filter_error()}
         </p>
       )}
-      {phase === "failed" && !marked && diagnostic && (
+      {phase === "failed" && !marked && diagnostic && reader !== undefined && (
         <div
           className="zt:mx-3 zt:mt-2 zt:rounded-sm zt:border-(length:--border-width) zt:border-(--background-modifier-error) zt:p-2 zt:text-sm"
           role="alert"
           data-query-diagnostic={diagnostic.code}
         >
           <p className="zt:m-0 zt:font-semibold">{m.query_view_failed()}</p>
-          <DiagnosticText diagnostic={diagnostic} />
+          <DiagnosticText reader={reader} />
         </div>
       )}
       {unresolved.length > 0 && (
@@ -987,14 +996,11 @@ function Problems({ view }: { view: QueryView }) {
   );
 }
 
-function DiagnosticText({
-  diagnostic,
-}: {
-  diagnostic: QueryViewFailure["diagnostic"];
-}) {
-  const { sentence, corrections, excerpt } = readerDiagnostic(diagnostic);
-  if (!excerpt)
-    return <p className="zt:m-0 zt:mt-1">{readerText(diagnostic)}</p>;
+function DiagnosticText({ reader }: { reader: QueryViewFailure["reader"] }) {
+  if (typeof reader === "string")
+    return <p className="zt:m-0 zt:mt-1">{reader}</p>;
+  const { sentence, corrections, excerpt } = readerDiagnostic(reader);
+  if (!excerpt) return <p className="zt:m-0 zt:mt-1">{readerText(reader)}</p>;
   return (
     <>
       <pre className="zt:m-0 zt:mt-1 zt:overflow-auto zt:text-xs zt:whitespace-pre-wrap">
@@ -1077,7 +1083,7 @@ function Warnings({ view }: { view: QueryView }) {
           className="zt:mx-3 zt:mt-2 zt:mb-0 zt:text-sm zt:text-(--text-warning)"
           data-query-warning={warning.code}
         >
-          {warningText(warning)}
+          {readerWarningText(warning)}
         </p>
       ))}
     </>

@@ -20,6 +20,7 @@ import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/ser
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { SourceIdentity } from "@zotlit/zotero-reads/contract/source-identity.ts";
 
 import type { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { Template } from "@zotlit/notes/obsidian/template/service.ts";
@@ -49,16 +50,43 @@ export function fixtureServices(
   return runtime.runSync(Effect.context<FixtureServices>());
 }
 
+function withSourceIdentity(
+  reads: ZoteroReads["Service"] | undefined,
+  source: () => SourceIdentity,
+): ZoteroReads["Service"] {
+  const SourceIdentity = (() =>
+    Effect.sync(source)) as unknown as ZoteroReads["Service"]["reads"]["SourceIdentity"];
+  return reads === undefined
+    ? stubService<ZoteroReads["Service"]>("ZoteroReads", {
+        reads: stubService<ZoteroReads["Service"]["reads"]>(
+          "ZoteroReadsApi",
+          { SourceIdentity },
+        ),
+      })
+    : { ...reads, reads: { ...reads.reads, SourceIdentity } };
+}
+
 export function workbenchIdentity(identity: {
   vaultName?: string;
   basePath?: string;
   apiVersion?: string;
   sourceId: string | null;
   databasePath: string;
+  source?: SourceIdentity | (() => SourceIdentity);
+  reads?: ZoteroReads["Service"];
   dataDir?: string;
   baseAttachmentPath?: string | null;
-}): Context.Context<ObsidianEnv | VaultDisk | ZoteroPref> {
-  const { vaultName, basePath, apiVersion, ...pref } = identity;
+}): Context.Context<ObsidianEnv | VaultDisk | ZoteroPref | ZoteroReads> {
+  const { vaultName, basePath, apiVersion, source, reads, ...pref } = identity;
+  const answer =
+    typeof source === "function"
+      ? source
+      : (): SourceIdentity =>
+          source ?? {
+            kind: "file",
+            id: pref.sourceId,
+            databasePath: pref.databasePath,
+          };
   return Context.make(
     ObsidianEnv,
     stubService<ObsidianEnv["Service"]>("ObsidianEnv", {
@@ -80,6 +108,10 @@ export function workbenchIdentity(identity: {
           stubService<ZoteroPrefSnapshot>("ZoteroPrefSnapshot", pref),
         ),
       }),
+    ),
+    Context.add(
+      ZoteroReads,
+      withSourceIdentity(reads, answer),
     ),
   );
 }

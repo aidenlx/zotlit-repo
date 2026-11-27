@@ -140,7 +140,7 @@ The `pandoc_cite` filter behaves the same in both branches:
 | Prefix and suffix    | Preserves each item's `prefix` and `suffix`.                                                                                                                                                         |
 | Suppress author      | `suppressAuthor` true renders `-@key`.                                                                                                                                                               |
 | Locator              | Renders an explicit locator such as `, {p. 62}` from `labelShort` and `locator`.                                                                                                                     |
-| Complex citation key | Adds braces when Pandoc requires them. For example, `KX67D9YM?` renders as `@{KX67D9YM?}`.                                                                                                           |
+| Complex citation key | Adds braces when Pandoc requires them. For example, `XMPLITM3?` renders as `@{XMPLITM3?}`. Note import writes the item key plus `?` when neither the database nor the note gives a citation key.     |
 | Missing citation key | Omits items whose `item.citationKey` is null. An empty array or all-null array renders nothing.                                                                                                      |
 | Form                 | `normal` always produces a bracketed Citation Cluster; `prefer-author-in-text` produces an author-in-text citation only when the first retained item has no prefix and does not suppress its author. |
 

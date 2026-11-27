@@ -8,6 +8,7 @@
   "include": [
     "./src/**/*.ts",
     "./src/**/*.tsx",
+    "./scripts/**/*.ts",
     "../obsidian-kit/src/typings/*.d.ts"
   ],
   "exclude": ["./node_modules"]

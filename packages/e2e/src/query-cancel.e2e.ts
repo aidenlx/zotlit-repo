@@ -168,7 +168,7 @@ describe.skipIf(!reachable)("ZotLit Query cancel", () => {
     expect(await readdir(annotationDir)).toEqual([]);
 
     expect(await cancel("export-a")).toEqual({
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query-cancel",
       ok: true,
       id: "export-a",

@@ -9,12 +9,12 @@ import { USER_LIBRARY_ID } from "#lib/constants.ts";
 import { itemBaseFields, resolveVenue } from "#lib/zt-venue.ts";
 
 const USER = {
-  userID: 475425,
-  localUserKey: "v3aG8nQf",
-  username: "aidenlx",
+  userID: 654321,
+  localUserKey: "XmplKey8",
+  username: "sample-reader",
 };
 
-const URI = "http://zotero.org/users/475425/items/ABC12345";
+const URI = "http://zotero.org/users/654321/items/ABC12345";
 
 function makeItem(
   fields: { itemType: string } & Record<string, string | null>,
@@ -60,10 +60,10 @@ describe("itemToCsl: identity and type", () => {
   it("keys a group item by the group Item URI", () => {
     const item = makeItem(
       { itemType: "book" },
-      { key: "KX67D9YM", indexedKey: "KX67D9YMg12345", groupID: 12345 },
+      { key: "XMPLITM3", indexedKey: "XMPLITM3g12345", groupID: 12345 },
     );
     expect(itemToCsl(item, USER).id).toBe(
-      "http://zotero.org/groups/12345/items/KX67D9YM",
+      "http://zotero.org/groups/12345/items/XMPLITM3",
     );
   });
 
@@ -72,9 +72,9 @@ describe("itemToCsl: identity and type", () => {
     expect(
       itemToCsl(item, {
         userID: null,
-        localUserKey: "v3aG8nQf",
+        localUserKey: "XmplKey8",
       }).id,
-    ).toBe("http://zotero.org/users/local/v3aG8nQf/items/ABC12345");
+    ).toBe("http://zotero.org/users/local/XmplKey8/items/ABC12345");
   });
 
   it("falls back to the Indexed Key when the account carries no id", () => {

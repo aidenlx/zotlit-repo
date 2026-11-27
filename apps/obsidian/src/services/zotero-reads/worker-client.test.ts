@@ -1,11 +1,13 @@
 import { it } from "@effect/vitest";
 import {
   Context,
+  Deferred,
   Effect,
   Fiber,
   FileSystem,
   Layer,
   Queue,
+  Ref,
   Stream,
 } from "effect";
 import { RpcGroup, RpcServer, RpcWorker } from "effect/rpc";
@@ -28,11 +30,13 @@ import {
 } from "@zotlit/plugin-services/obsidian/managed-binary/__fixtures__.ts";
 import { ResourcePackPlatform } from "@zotlit/plugin-services/obsidian/managed-binary/pack-platform.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
+import type { QueryJob } from "@zotlit/query-views/worker/item-query/worker-protocol.ts";
+import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import {
   WorkerInitSchema,
   ZoteroReads,
 } from "@zotlit/zotero-reads/contract/rpc.ts";
-import type { ReadsConfig } from "@zotlit/zotero-reads/contract/rpc.ts";
+import type { FileReadsConfig } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { launchWorker } from "@zotlit/zotero-reads/worker/worker-launch.ts";
 
 import { settingsOf } from "@/services/settings/__fixtures__.ts";
@@ -45,16 +49,21 @@ const EMPTY_MODULE = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
 
 const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
   const spawned = yield* Queue.unbounded<StandInWorker>();
-  const configured = yield* Queue.unbounded<ReadsConfig>();
+  const configured = yield* Queue.unbounded<FileReadsConfig>();
   const initial = yield* Queue.unbounded<
-    ReadsConfig & { readonly deferOpen: boolean }
+    FileReadsConfig & { readonly deferOpen: boolean }
   >();
   const refreshed = yield* Queue.unbounded<void>();
+  const events: string[] = [];
+  const holdConfigure = yield* Ref.make<Deferred.Deferred<void> | null>(null);
+  const changesEnd = yield* Deferred.make<void>();
   const run = Effect.runSyncWith(yield* Effect.context<never>());
   const group = RpcGroup.make(
     ...Array.from(ZoteroReads.requests.values()).filter(
       (rpc) =>
         rpc._tag === "Configure" ||
+        rpc._tag === "ItemQuery" ||
+        rpc._tag === "SourceIdentity" ||
         rpc._tag === "Refresh" ||
         rpc._tag === "Changes" ||
         rpc._tag === "Ping",
@@ -68,7 +77,7 @@ const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
       super();
       run(Queue.offer(spawned, this));
     }
-    start() {
+    launch() {
       launchWorker(
         {
           addEventListener: this.endpoint.addEventListener.bind(this.endpoint),
@@ -94,10 +103,37 @@ const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
                 Effect.as(
                   group.toLayer({
                     Configure: (config) =>
-                      Queue.offer(configured, config).pipe(Effect.asVoid),
+                      Effect.gen(function* () {
+                        const file = config as FileReadsConfig;
+                        events.push(`configure ${file.databasePath}`);
+                        yield* Queue.offer(configured, file);
+                        const held = yield* Ref.get(holdConfigure);
+                        if (held) yield* Deferred.await(held);
+                      }),
+                    ItemQuery: ({ job }) =>
+                      Effect.sync(() => {
+                        events.push("query");
+                        return {
+                          command: job.command,
+                          answer: "",
+                          receipt: { kind: "inline" as const },
+                        };
+                      }),
+                    SourceIdentity: () =>
+                      Effect.sync(() => {
+                        events.push("identity");
+                        return {
+                          kind: "file" as const,
+                          id: "source-b",
+                          databasePath: "/library-b/zotero.sqlite",
+                        };
+                      }),
                     Refresh: () =>
                       Queue.offer(refreshed, undefined).pipe(Effect.asVoid),
-                    Changes: () => Stream.never,
+                    Changes: () =>
+                      Stream.fromEffect(Deferred.await(changesEnd)).pipe(
+                        Stream.drain,
+                      ),
                     Ping: () => Effect.void,
                   }),
                 ),
@@ -134,6 +170,9 @@ const workerFixture = Effect.fn("workerFixture")(function* (installed = false) {
   return {
     spawned,
     configured,
+    events,
+    holdConfigure,
+    changesEnd,
     initial,
     refreshed,
     settings,
@@ -170,7 +209,7 @@ it.effect("starts the worker with the loaded profile data directory", () =>
     );
     yield* Queue.take(started);
     yield* TestClock.adjust("1 second");
-    (yield* Queue.take(worker.spawned)).start();
+    (yield* Queue.take(worker.spawned)).launch();
     yield* Fiber.join(opening);
     expect(yield* Queue.take(worker.initial)).toMatchObject({
       databasePath: "/research-data/zotero.sqlite",
@@ -203,7 +242,7 @@ it.effect(
       );
       const spawned = yield* Queue.take(worker.spawned);
       yield* f.pref.setDataDir("/changed-during-connect");
-      spawned.start();
+      spawned.launch();
       yield* Fiber.join(opening);
       expect((yield* Queue.take(worker.configured)).databasePath).toBe(
         "/changed-during-connect/zotero.sqlite",
@@ -226,7 +265,7 @@ it.effect(
         Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
         Effect.forkChild,
       );
-      (yield* Queue.take(worker.spawned)).start();
+      (yield* Queue.take(worker.spawned)).launch();
       yield* Fiber.join(opening);
       expect((yield* Queue.take(worker.initial)).chineseSegmenter).toEqual({
         url: "app://device/plugins/zotlit-resources/main.js",
@@ -251,7 +290,7 @@ it.effect(
         Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
         Effect.forkChild,
       );
-      (yield* Queue.take(worker.spawned)).start();
+      (yield* Queue.take(worker.spawned)).launch();
       yield* Fiber.join(opening);
       expect((yield* Queue.take(worker.initial)).chineseSegmenter).toBeNull();
 
@@ -267,6 +306,126 @@ it.effect(
         url: "app://device/plugins/zotlit-resources/main.js",
         entry: "chinese-segmenter",
         version: "1.3.0",
+      });
+    }),
+);
+
+it.live(
+  "sends a query to the worker after the Configure of changed preferences that is still in flight",
+  () =>
+    Effect.gen(function* () {
+      const worker = yield* workerFixture();
+      const f = yield* zoteroPrefFixture();
+      const opening = yield* workerClient().pipe(
+        Effect.provideService(PluginSettings, worker.settings),
+        Effect.provideService(ZoteroPref, f.pref),
+        Effect.provideService(ResourcePackPlatform, worker.pack),
+        Effect.provideService(ObsidianEnv, testObsidianEnv()),
+        Effect.provideService(Workspace, worker.workspace),
+        Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
+        Effect.forkChild,
+      );
+      (yield* Queue.take(worker.spawned)).launch();
+      const reads = yield* Fiber.join(opening);
+      const held = yield* Deferred.make<void>();
+      yield* Ref.set(worker.holdConfigure, held);
+      yield* f.pref.setDataDir("/library-b");
+      yield* Queue.take(worker.configured);
+      const job: QueryJob = {
+        id: "q",
+        command: "zotlit:query-schema",
+        schema: false,
+        customFields: true,
+        vault: { name: "Research", path: "/vaults/research" },
+        scope: MY_LIBRARY_SCOPE,
+        attachmentPaths: { dataDir: "/library-b", baseAttachmentPath: null },
+      };
+      const asked = yield* Effect.forkChild(reads.ItemQuery({ job }), {
+        startImmediately: true,
+      });
+      yield* Effect.sleep("50 millis");
+      expect(worker.events).toEqual(["configure /library-b/zotero.sqlite"]);
+      yield* Deferred.succeed(held, undefined);
+      yield* Fiber.join(asked);
+      expect(worker.events).toEqual([
+        "configure /library-b/zotero.sqlite",
+        "query",
+      ]);
+    }),
+);
+
+it.live(
+  "asks the worker for the source identity after the Configure of changed preferences that is still in flight",
+  () =>
+    Effect.gen(function* () {
+      const worker = yield* workerFixture();
+      const f = yield* zoteroPrefFixture();
+      const opening = yield* workerClient().pipe(
+        Effect.provideService(PluginSettings, worker.settings),
+        Effect.provideService(ZoteroPref, f.pref),
+        Effect.provideService(ResourcePackPlatform, worker.pack),
+        Effect.provideService(ObsidianEnv, testObsidianEnv()),
+        Effect.provideService(Workspace, worker.workspace),
+        Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
+        Effect.forkChild,
+      );
+      (yield* Queue.take(worker.spawned)).launch();
+      const reads = yield* Fiber.join(opening);
+      const held = yield* Deferred.make<void>();
+      yield* Ref.set(worker.holdConfigure, held);
+      yield* f.pref.setDataDir("/library-b");
+      yield* Queue.take(worker.configured);
+      const asked = yield* Effect.forkChild(reads.SourceIdentity({}), {
+        startImmediately: true,
+      });
+      yield* Effect.sleep("50 millis");
+      expect(worker.events).toEqual(["configure /library-b/zotero.sqlite"]);
+      yield* Deferred.succeed(held, undefined);
+      yield* Fiber.join(asked);
+      expect(worker.events).toEqual([
+        "configure /library-b/zotero.sqlite",
+        "identity",
+      ]);
+    }),
+);
+
+it.live(
+  "fails a query behind an in-flight Configure with DbUnavailable when the worker stops",
+  () =>
+    Effect.gen(function* () {
+      const worker = yield* workerFixture();
+      const f = yield* zoteroPrefFixture();
+      const opening = yield* workerClient().pipe(
+        Effect.provideService(PluginSettings, worker.settings),
+        Effect.provideService(ZoteroPref, f.pref),
+        Effect.provideService(ResourcePackPlatform, worker.pack),
+        Effect.provideService(ObsidianEnv, testObsidianEnv()),
+        Effect.provideService(Workspace, worker.workspace),
+        Effect.provideService(FileSystem.FileSystem, FileSystem.makeNoop({})),
+        Effect.forkChild,
+      );
+      (yield* Queue.take(worker.spawned)).launch();
+      const reads = yield* Fiber.join(opening);
+      yield* Ref.set(worker.holdConfigure, yield* Deferred.make<void>());
+      yield* f.pref.setDataDir("/library-b");
+      yield* Queue.take(worker.configured);
+      const asked = yield* Effect.forkChild(reads.SourceIdentity({}), {
+        startImmediately: true,
+      });
+      yield* Deferred.succeed(worker.changesEnd, undefined);
+      const exit = yield* Fiber.await(asked).pipe(Effect.timeout("2 seconds"));
+      expect(exit).toMatchObject({
+        _tag: "Failure",
+        cause: {
+          reasons: [
+            {
+              error: {
+                _tag: "DbUnavailable",
+                message: "The database worker connection ended",
+              },
+            },
+          ],
+        },
       });
     }),
 );

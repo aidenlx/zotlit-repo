@@ -1,0 +1,25 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "generate:client-data": {
+      "inputs": [
+        "scripts/generate-client-data.ts",
+        "zotero-client/**",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["src/isbn-ranges.ts", "src/date-formats.ts"],
+      "outputLogs": "errors-only"
+    },
+    "generate:known-differences": {
+      "inputs": [
+        "scripts/generate-known-differences.ts",
+        "src/known-differences.ts",
+        "AGENTS.md",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["AGENTS.md"],
+      "outputLogs": "errors-only"
+    }
+  }
+}

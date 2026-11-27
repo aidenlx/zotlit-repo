@@ -125,7 +125,7 @@ it("writes an Always Allow to the store and never holds it in memory", async () 
   expect(grant).toEqual({ value: undefined });
   expect(credentials.record).toEqual({
     serverID: SERVER_ID,
-    key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf",
+    key: "XmplApiKey0000000000000000000001",
   });
   expect(credentials.read).toHaveBeenCalledTimes(3);
   expect(
@@ -133,8 +133,8 @@ it("writes an Always Allow to the store and never holds it in memory", async () 
       .filter(({ method }) => method === "PATCH")
       .map(({ headers }) => headers.get("zotero-api-key")),
   ).toEqual([
-    "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf",
-    "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf",
+    "XmplApiKey0000000000000000000001",
+    "XmplApiKey0000000000000000000001",
   ]);
 });
 
@@ -143,7 +143,7 @@ it("raises no second dialog once an authorization is remembered", async () => {
   const { requests, service, bridge } = await setup(
     stack,
     { authorize: () => authorized({ remember: true }) },
-    { key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf" },
+    { key: "XmplApiKey0000000000000000000001" },
   );
 
   const grant = await bridge.runPromise(service.authorize);
@@ -157,7 +157,7 @@ const rememberedGrants: [string, () => Response][] = [
   [
     "a dismissed dialog",
     () =>
-      authorized({ remember: true, key: "4zQONVs9iqR87qvc4istHwfQ3oUp1Ygi" }),
+      authorized({ remember: true, key: "XmplApiKey0000000000000000000003" }),
   ],
 ];
 
@@ -278,7 +278,7 @@ it("asks to confirm an earlier saved grant once, without a Zotero dialog", async
     stack,
     {},
     {
-      key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf",
+      key: "XmplApiKey0000000000000000000001",
       unconfirmed: true,
       confirmGrant,
     },
@@ -293,7 +293,7 @@ it("asks to confirm an earlier saved grant once, without a Zotero dialog", async
   expect(again).toEqual({ value: undefined });
   expect(confirmGrant).toHaveBeenCalledOnce();
   expect(credentials.writes).toEqual([
-    { serverID: SERVER_ID, key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf" },
+    { serverID: SERVER_ID, key: "XmplApiKey0000000000000000000001" },
   ]);
   expect(capabilityInput(service, bridge).authorized).toBe(true);
   expect(
@@ -308,7 +308,7 @@ it("keeps editing off and the earlier key unused when the researcher declines it
     stack,
     {},
     {
-      key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf",
+      key: "XmplApiKey0000000000000000000001",
       unconfirmed: true,
       confirmGrant,
     },
@@ -324,7 +324,7 @@ it("keeps editing off and the earlier key unused when the researcher declines it
   expect(credentials.writes).toEqual([]);
   expect(credentials.record).toEqual({
     serverID: SERVER_ID,
-    key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf",
+    key: "XmplApiKey0000000000000000000001",
     unconfirmed: true,
   });
   expect(capabilityInput(service, bridge).authorized).toBe(false);
@@ -537,7 +537,7 @@ it("invalidates the record keyless when Zotero rejects the key", async () => {
   const { service, bridge, credentials } = await setup(
     stack,
     { write: () => keyRejected() },
-    { key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf" },
+    { key: "XmplApiKey0000000000000000000001" },
   );
   await bridge.runPromise(service.probe);
 
@@ -651,7 +651,7 @@ it("drops the Remembered Authorization when the settings row forgets it", async 
     stack,
     {},
     {
-      key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf",
+      key: "XmplApiKey0000000000000000000001",
     },
   );
   await bridge.runPromise(service.probe);
@@ -669,7 +669,7 @@ it("disables editing when a remembered grant was removed outside ZotLit", async 
   const { credentials, requests, service, bridge } = await setup(
     stack,
     {},
-    { key: "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf" },
+    { key: "XmplApiKey0000000000000000000001" },
   );
   await bridge.runPromise(service.probe);
   await credentials.forget();

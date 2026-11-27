@@ -127,10 +127,13 @@ export function itemActions(deps: ItemActionsDeps): ItemActions {
     openPdf: (indexedKey, pane) =>
       run(
         Effect.gen(function* () {
-          const attachments = yield* literatureNoteAttachments(indexedKey);
-          openAttachments(attachments, {
+          const pdfs = yield* literatureNoteAttachments(indexedKey);
+          openAttachments(pdfs.attachments, {
             reader: withFixedPane(
-              pdfPickerReader(viewTargetOpener(deps.registry, deps.opener)),
+              pdfPickerReader(
+                viewTargetOpener(deps.registry, deps.opener),
+                pdfs,
+              ),
               pane,
             ),
             app: deps.app,

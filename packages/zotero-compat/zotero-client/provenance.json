@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/zotero/zotero",
+  "commit": "213b0d7d76bbda3881337b868c05dc114365d8c9",
+  "paths": [
+    "app/assets/multilocale.txt",
+    "chrome/content/zotero/xpcom/isbn.js",
+    "resource/schema/dateFormats.json"
+  ],
+  "extracts": {
+    "day-suffixes.json": "the date.daySuffixes entry of chrome/locale/*/zotero/zotero.properties"
+  }
+}

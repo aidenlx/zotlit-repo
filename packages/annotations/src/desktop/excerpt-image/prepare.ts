@@ -9,6 +9,7 @@ import type { TFile } from "obsidian";
 import { annotationHasCacheImage, parseAnnotationPosition } from "@zotlit/db";
 import type { Annotation, AnnotationResolvers, TemplateLink } from "@zotlit/db";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
+import type { AttachmentPathContext } from "@zotlit/db/path";
 import { markdownLinker } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import type { MetadataCache } from "@zotlit/obsidian-kit/obsidian-metadata-cache.ts";
@@ -20,7 +21,8 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import type { VaultError } from "@zotlit/plugin-kernel/vault-errors.ts";
 import type {} from "@zotlit/plugin-services/core/attachment-import/settings.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
-import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
 import { annotationOpenUri } from "@zotlit/zotero-types/uri";
 
@@ -144,13 +146,11 @@ export const layerExcerptPreparation = Layer.effect(
         link(file, notePath, { subpath, alias });
     return ExcerptPreparation.of({
       forNote: Effect.fn("ExcerptPreparation.forNote")(function* (options) {
-        const { dataDir, baseAttachmentPath } = yield* (yield* ZoteroPref)
-          .current;
         return noteExcerpts(
           {
             gate,
             markdownLink: markdownLinkFrom(options.notePath),
-            paths: { dataDir, baseAttachmentPath },
+            paths: yield* libraryFilePaths,
           },
           options,
           (effect) => Effect.provideContext(effect, context),
@@ -177,7 +177,7 @@ function noteExcerpts(
   deps: {
     gate: PublicationGate;
     markdownLink: Parameters<typeof createExcerptLink>[0];
-    paths: { dataDir: string; baseAttachmentPath: string | null };
+    paths: AttachmentPathContext;
   },
   { reads, notePath, settings, previousNote, outcomes }: NoteExcerptOptions,
   provide: <A, E>(
@@ -214,6 +214,13 @@ function noteExcerpts(
     const previousPaths = previousNote
       ? yield* referencedExcerptPaths(previousNote)
       : [];
+    const dataDir = deps.paths.dataDir;
+    if (dataDir === null) {
+      yield* Effect.logDebug(
+        "No excerpt images: the online library has no files on this computer",
+      );
+      return;
+    }
     for (const candidate of candidates.values()) {
       const a = candidate.annotation;
       yield* Effect.gen(function* () {
@@ -233,12 +240,12 @@ function noteExcerpts(
               libraries.find((l) => l.libraryID === a.libraryID)
                 ?.clientVersion ?? null,
           },
-          sourceScope: deps.paths.dataDir,
+          sourceScope: dataDir,
           libraryID: a.libraryID,
           attachmentKey: attachment.indexedKey,
           pdfPath: attachmentAbsPath(attachment, deps.paths),
           zoteroPngPath: resolveAnnotCachePath(a, {
-            dataDir: deps.paths.dataDir,
+            dataDir,
             groupID: a.groupID,
           }),
         };

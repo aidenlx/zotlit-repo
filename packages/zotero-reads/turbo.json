@@ -19,6 +19,16 @@
         "$TURBO_EXTENDS$",
         "@zotlit/plugin-messages#generate:language-packs"
       ]
+    },
+    "generate:machine-table": {
+      "inputs": [
+        "scripts/generate-machine-table.ts",
+        "src/worker/web-api-machine.ts",
+        "src/worker/web-api-machine-table.ts",
+        "$TURBO_ROOT$/oxfmt.config.ts"
+      ],
+      "outputs": ["src/worker/web-api-machine.table.md"],
+      "outputLogs": "errors-only"
     }
   }
 }

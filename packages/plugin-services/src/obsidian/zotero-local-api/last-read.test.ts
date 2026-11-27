@@ -3,6 +3,9 @@ import { DateTime, Effect, Exit, Layer } from "effect";
 import { TestClock } from "effect/testing";
 import { expect, vi } from "vitest";
 
+import { getZoteroDatabaseIdentity } from "@zotlit/db";
+import { createReplica } from "@zotlit/db/replica";
+import { openNodeReplica } from "@zotlit/db/replica/parity-pair";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { AbortError } from "@zotlit/plugin-kernel/abort-error.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -466,4 +469,28 @@ it.effect("lets an interrupt of the write-back through", () =>
     );
     expect(Exit.hasInterrupts(exit)).toBe(true);
   }),
+);
+
+it.effect(
+  "sends no Local API write for a read of the online library, because its replica names no Local API server",
+  () =>
+    Effect.gen(function* () {
+      const replica = yield* Effect.acquireRelease(
+        Effect.sync(() => openNodeReplica()),
+        (client) => Effect.sync(() => client.close()),
+      );
+      createReplica(replica.db);
+      const { serverID } = getZoteroDatabaseIdentity(replica.db);
+      expect(serverID).toBeNull();
+      const { run, writeLastRead } = readUseServices({
+        databaseServerID: serverID,
+      });
+      yield* run({ attachmentKey: ATTACHMENT_KEY, instant: NOW, serverID });
+      yield* run({
+        attachmentKey: ATTACHMENT_KEY,
+        instant: NOW,
+        serverID: SERVER_ID,
+      });
+      expect(writeLastRead).not.toHaveBeenCalled();
+    }).pipe(Effect.scoped),
 );

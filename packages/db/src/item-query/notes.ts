@@ -6,7 +6,7 @@ import { defineStatement, idSlots } from "./database.ts";
 import type { IdSlot } from "./database.ts";
 import { HYDRATE_CHUNK_SIZE } from "./hydrate-chunk.ts";
 import { recordUniverse } from "./record-universe.ts";
-import { SCAN_PAGE_SIZE } from "./scan-page.ts";
+import { epochMilliseconds, SCAN_PAGE_SIZE } from "./scan-page.ts";
 import type { ScanRow } from "./scan-page.ts";
 
 import { itemNotes, items, itemTypesCombined } from "#drizzle/schema.ts";
@@ -28,18 +28,16 @@ const itemNotesStatement = defineStatement<
       itemID: items.itemID,
       key: items.key,
       itemType: sql<string>`'note'`,
-      dateAdded: sql<number | null>`unixepoch(${items.dateAdded}) * 1000`,
-      dateModified: sql<number | null>`unixepoch(${items.dateModified}) * 1000`,
+      dateAdded: epochMilliseconds(items.dateAdded),
+      dateModified: epochMilliseconds(items.dateModified),
       libraryID: items.libraryID,
       title: itemNotes.title,
       parent: {
         itemID: parent.itemID,
         key: parent.key,
         itemType: itemTypesCombined.typeName,
-        dateAdded: sql<number | null>`unixepoch(${parent.dateAdded}) * 1000`,
-        dateModified: sql<
-          number | null
-        >`unixepoch(${parent.dateModified}) * 1000`,
+        dateAdded: epochMilliseconds(parent.dateAdded),
+        dateModified: epochMilliseconds(parent.dateModified),
       },
     })
     .from(items)

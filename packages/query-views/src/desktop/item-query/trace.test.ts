@@ -1,3 +1,4 @@
+import type { QueryMeter } from "#worker/item-query/trace.ts";
 import { it } from "@effect/vitest";
 import { Effect, Exit, Fiber, Scheduler } from "effect";
 import { createHook } from "node:async_hooks";
@@ -7,7 +8,9 @@ import { ItemQueryStatementObserver } from "@zotlit/db/item-query";
 import type { ItemQueryReader } from "@zotlit/db/item-query";
 import { ItemQueryScheduler } from "@zotlit/item-query";
 
-import { createTrace, finishTrace } from "./trace.ts";
+import { nodeQueryMeter } from "./node-meter.ts";
+
+import { createTrace, finishTrace } from "#worker/item-query/trace.ts";
 
 function clock() {
   let now = 0;
@@ -64,7 +67,7 @@ describe("Item Query execution slices", () => {
     (waitMs) =>
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-        const trace = createTrace(false, time.now);
+        const trace = createTrace(nodeQueryMeter, false, time.now);
         yield* trace
           .instrument(
             Effect.gen(function* () {
@@ -83,7 +86,7 @@ describe("Item Query execution slices", () => {
   it.live("keeps a synchronous stall in its execution slice", () =>
     Effect.gen(function* () {
       const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-      const trace = createTrace(false, time.now);
+      const trace = createTrace(nodeQueryMeter, false, time.now);
       yield* trace
         .instrument(Effect.sync(() => time.work(60)))
         .pipe(onScheduler({ budgetMs: 8, now: time.now }));
@@ -96,7 +99,7 @@ describe("Item Query execution slices", () => {
     () =>
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-        const trace = createTrace(false, time.now);
+        const trace = createTrace(nodeQueryMeter, false, time.now);
         yield* trace
           .instrument(
             Effect.promise(async () => {
@@ -154,9 +157,9 @@ describe("Item Query execution slices", () => {
               onScheduler({ budgetMs: Infinity, now: time.now }),
               Effect.forkChild({ startImmediately: true }),
             );
-        const traceA = createTrace(false, time.now);
+        const traceA = createTrace(nodeQueryMeter, false, time.now);
         const startedB = nowB();
-        const traceB = createTrace(false, nowB);
+        const traceB = createTrace(nodeQueryMeter, false, nowB);
         const jobA = yield* start(traceA, gateA.promise, {
           reader: "scan-page",
           beforeWait: 2,
@@ -214,7 +217,7 @@ describe("Item Query execution slices", () => {
     () =>
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-        const trace = createTrace(false, time.now);
+        const trace = createTrace(nodeQueryMeter, false, time.now);
         yield* trace
           .instrument(
             Effect.gen(function* () {
@@ -234,7 +237,7 @@ describe("Item Query execution slices", () => {
     () =>
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-        const trace = createTrace(false, time.now);
+        const trace = createTrace(nodeQueryMeter, false, time.now);
         yield* trace
           .instrument(
             Effect.gen(function* () {
@@ -263,7 +266,7 @@ describe("Item Query execution slices", () => {
     () =>
       Effect.gen(function* () {
         const time = yield* Effect.acquireDisposable(Effect.sync(clock));
-        const trace = createTrace(false, time.now);
+        const trace = createTrace(nodeQueryMeter, false, time.now);
         const run: Fiber.Fiber<void> = yield* Effect.forkChild(
           trace
             .instrument(
@@ -282,6 +285,44 @@ describe("Item Query execution slices", () => {
         const report = reportOf(trace);
         expect(report.engineMs).toBe(102);
         expect(report.slices.filter((ms) => ms > 0)).toEqual([2]);
+      }),
+  );
+});
+
+describe("Item Query traces of two meters", () => {
+  it.live(
+    "turns off the async context of a meter when its last job ends, while a job of another meter runs",
+    () =>
+      Effect.gen(function* () {
+        let enabled = 0;
+        const counted: QueryMeter = {
+          asyncContext: () => ({
+            current: () => undefined,
+            run: (_job, evaluate) => evaluate(),
+            enable: () => {
+              enabled++;
+            },
+            disable: () => {
+              enabled--;
+            },
+          }),
+        };
+        const plain: QueryMeter = {};
+        const gateA = Promise.withResolvers<void>();
+        const gateB = Promise.withResolvers<void>();
+        const start = (meter: QueryMeter, gate: Promise<void>) =>
+          createTrace(meter, false, () => 0)
+            .instrument(Effect.promise(() => gate))
+            .pipe(Effect.forkChild({ startImmediately: true }));
+        const jobA = yield* start(counted, gateA.promise);
+        const jobB = yield* start(plain, gateB.promise);
+        expect(enabled).toBe(1);
+        gateA.resolve();
+        yield* Fiber.join(jobA);
+        expect(enabled).toBe(0);
+        gateB.resolve();
+        yield* Fiber.join(jobB);
+        expect(enabled).toBe(0);
       }),
   );
 });

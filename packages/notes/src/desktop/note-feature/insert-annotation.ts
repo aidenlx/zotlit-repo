@@ -7,12 +7,14 @@ import type {
   AnnotationSource,
 } from "@zotlit/annotations/obsidian/annotation-repository/service.ts";
 import {
+  annotationAttachmentFrom,
   excerptInputs,
   excerptRequestFrom,
 } from "@zotlit/annotations/obsidian/excerpt-image/request.ts";
 import { buildAnnotationParents } from "@zotlit/db";
 import { unknownProfileDiagnostic } from "@zotlit/obsidian-kit/profile-stamp.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -50,26 +52,26 @@ export const prepareAnnotationInsert = Effect.fn(
   const { annotation: a, source } = options;
   const pref = yield* ZoteroPref;
   const reads = yield* (yield* ZoteroReads).snapshot;
-  const { dataDir: startDataDir, baseAttachmentPath } = yield* pref.current;
   const valid = Effect.map(
     pref.current,
     ({ dataDir }) => options.valid() && options.sourceScope === dataDir,
   );
   if (!(yield* valid)) return null;
-  const paths = { dataDir: startDataDir, baseAttachmentPath };
-  const { identity, sources, attachment } = yield* excerptInputs(
-    reads,
-    a.parentKey,
-  );
-  const request = excerptRequestFrom({
+  const paths = yield* libraryFilePaths;
+  const inputs = yield* excerptInputs(reads, a.parentKey);
+  const attachment = annotationAttachmentFrom({
+    ...inputs,
     annotation: a,
     source,
-    identity,
-    attachment,
-    paths,
   });
   const key = parseIndexedKey(a.key);
-  if (!request || !attachment || !key) return null;
+  if (!attachment || !key) return null;
+  const request = excerptRequestFrom({
+    ...inputs,
+    annotation: a,
+    source,
+    paths,
+  });
   const unusedImport = () => {
     throw new Error(
       "Captured annotation rendering uses prepared excerpt helpers",
@@ -81,7 +83,7 @@ export const prepareAnnotationInsert = Effect.fn(
     annotationImageLink: () => null,
   });
   const { parentItem, tplAttachment } = buildAnnotationParents(
-    sources,
+    inputs.sources,
     resolvers,
   ).get(attachment.itemID)!;
   const [file] = parentItem
@@ -119,7 +121,7 @@ export const prepareAnnotationInsert = Effect.fn(
   const data = annotationInsertData({
     annotation: a,
     key: key.key,
-    libraryID: request.libraryID,
+    libraryID: attachment.libraryID,
     page,
     resolvers,
     imgLink: prepared.helper,

@@ -60,6 +60,8 @@ import type {
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { LibrarySource } from "@zotlit/plugin-services/obsidian/library-source/service.ts";
+import type { LibrarySourceKind } from "@zotlit/plugin-services/obsidian/library-source/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { LinkOutcome } from "@zotlit/plugin-services/obsidian/protocol/outcome.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
@@ -258,12 +260,21 @@ interface Setup {
   readonly workspace?: MemoryWorkspace;
   readonly getFileByPath?: (path: string) => Effect.Effect<TFile | null>;
   readonly whenIndexed?: Effect.Effect<void>;
+  readonly source?: LibrarySourceKind;
 }
 
 const shownInLibrary: string[] = [];
 
 function servicesFor(setup: Setup = {}) {
   return Layer.mergeAll(
+    setup.source
+      ? Layer.succeed(
+          LibrarySource,
+          stubService<LibrarySource["Service"]>("LibrarySource", {
+            active: setup.source,
+          }),
+        )
+      : Layer.empty,
     Layer.mock(Template, {}),
     Layer.mock(FileManager, {}),
     Layer.succeed(
@@ -783,6 +794,32 @@ describe("library-wide protocol links", () => {
 });
 
 describe("refused protocol links", () => {
+  it.effect.each([
+    ["zotlit/open", { item: "1" }],
+    ["zotlit/update", { item: "1" }],
+    ["zotlit/update-many", { items: "1,2" }],
+    ["zotlit/import-note", { item: "1", mode: "child" }],
+    ["zotlit/import-notes", { items: "1,2", mode: "child" }],
+    ["zotlit/open-attachment", { item: "9" }],
+    ["zotlit/explore", { item: "1" }],
+    ["zotlit/update-all", { library: "7" }],
+    ["zotlit/import-all-notes", { library: "7" }],
+  ] as const)(
+    "refuses %s, an action on library content launched from Zotero on this computer, while the online library is the source",
+    ([action, query]) =>
+      Effect.gen(function* () {
+        refOf(REF);
+        yield* register({ source: "web-api" });
+
+        expect(yield* dispatch(action, query)).toEqual(
+          LinkOutcome.NeedsLocalZotero(),
+        );
+        expect(reads.DisplayRefs).not.toHaveBeenCalled();
+        expect(reads.AttachmentsAt).not.toHaveBeenCalled();
+        expect(runBatchUpdate).not.toHaveBeenCalled();
+      }),
+  );
+
   it.effect("reads no item for a query that does not parse", () =>
     Effect.gen(function* () {
       yield* register();

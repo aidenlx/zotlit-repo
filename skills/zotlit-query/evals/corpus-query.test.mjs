@@ -143,10 +143,11 @@ await test("every case oracle matches a real query over the seeded Fixture", asy
         const envelope = {
           ...result,
           ok: true,
-          contractVersion: 3,
+          contractVersion: 4,
           command: "zotlit:query",
           identity: {
             source: {
+              kind: "file",
               databasePath: join(root, "zotero-data", "zotero.sqlite"),
             },
             vault: { path: join(root, "zt-fixture-vault") },

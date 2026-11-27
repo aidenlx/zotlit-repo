@@ -651,7 +651,7 @@ The Query CLI reads works, files, and reading marks for agents and scripts. One 
 | `group`           | One scalar Projection Path, or a path with one `[]` such as `tags[].name`. The result contains one group for each value.                                                                                                |
 | `limit`           | A positive integer or `all`. The default is 100. In a grouped query, the limit applies inside each group.                                                                                                               |
 | `library`         | `personal`, `group:<groupID>`, a comma list, a JSON array, or `all`. The default comes from the Library Scope setting.                                                                                                  |
-| `output`          | A new absolute file path for the complete JSON result.                                                                                                                                                                  |
+| `output`          | A new absolute file path for the complete JSON result. An export needs the local Zotero database: with the Zotero online library, the query answers `export-unavailable`.                                               |
 | `id`              | A query ID used by `zotlit:query-cancel`.                                                                                                                                                                               |
 | `this-item`       | An Item Indexed Key. A filter reads that Item as `this.item`. See [Query Context](#query-context).                                                                                                                      |
 | `this-attachment` | An Attachment Indexed Key. A filter reads that Attachment as `this.attachment`. See [Query Context](#query-context).                                                                                                    |
@@ -764,7 +764,7 @@ The single `query.schema.json` catalog has `datasets.items`, `datasets.attachmen
 
 `zotlit:query-guide` accepts `datasets`, `filter`, `fields`, `sort`, `group`, `results`, `schema`, `values`, or `cancel` as its topic. Omit `topic` to print the full guide.
 
-Query results use CLI Contract version 3. The JSON envelope has `command: "zotlit:query"`; `request.from` names the dataset, and `request.library` names its Libraries. The top-level `libraries` field describes the Libraries that ZotLit read.
+Each answer reports its CLI Contract version as `contractVersion`. The JSON envelope has `command: "zotlit:query"`; `identity.source` names the source: `kind: "file"` with the local Zotero database, or `kind: "web-api"` with the account of the Zotero online library; `request.from` names the dataset, and `request.library` names its Libraries. The top-level `libraries` field describes the Libraries that ZotLit read.
 
 Read `warnings` before you report an empty result. On failure, read `diagnostic.report` and follow its final recovery action.
 

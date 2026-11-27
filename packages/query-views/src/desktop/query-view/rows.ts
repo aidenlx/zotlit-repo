@@ -3,7 +3,7 @@ import type {
   QueryFileGroupValue,
   QueryFileView,
 } from "#core/query-view/query-file.ts";
-import type { QueryViewRow } from "#desktop/item-query/query-view.ts";
+import type { QueryViewRow } from "#worker/item-query/query-view.ts";
 
 import type { LayoutRow } from "@zotlit/annotations/desktop/annot-view/layout.tsx";
 import { compareStrings } from "@zotlit/item-query";

@@ -18,6 +18,7 @@ export interface PublishedPlugin {
   readonly changelog?: string;
   readonly budget: PluginBudget;
   readonly runtime: Runtime;
+  readonly developmentOnly?: readonly string[];
 }
 
 export interface PluginBudget {
@@ -41,12 +42,16 @@ export const PUBLISHED_PLUGINS = {
     giscus: true,
     changelog: "https://zotlit.aidenlx.site/changelog/",
     budget: {
-      mainJsBytes: 5_000_000,
+      mainJsBytes: 5_520_000,
       stylesCssBytes: 146_143,
       startupDailyMs: 100,
       startupUpdateMs: 100,
     },
     runtime: RUNTIMES.desktopRenderer,
+    developmentOnly: [
+      "zotlit-zotero-web-api-url",
+      "A development build sends the online library requests",
+    ],
   },
   reader: {
     profile: bundledPlugin({ resources: "Language Packs" }),
@@ -73,7 +78,7 @@ export const PUBLISHED_PLUGINS = {
     readme: "apps/resources/README.md",
     giscus: false,
     budget: {
-      mainJsBytes: 25_800_000,
+      mainJsBytes: 26_200_000,
       stylesCssBytes: 0,
     },
     runtime: RUNTIMES.obsidianModule,

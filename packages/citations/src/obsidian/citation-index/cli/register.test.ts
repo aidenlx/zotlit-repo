@@ -18,7 +18,7 @@ it.effect("publishes all citation commands and their parameter help", () =>
         "CitationIndex",
         {},
       ),
-      zoteroPref: stubService<RegistrationDeps["zoteroPref"]>("ZoteroPref", {}),
+      readSource: Effect.succeed(null),
     });
     expect([...commands.keys()]).toEqual([
       "zotlit:annotation-uses",

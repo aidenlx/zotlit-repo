@@ -1,17 +1,12 @@
 #!/usr/bin/env node
+import type { VendoredSource } from "#vendor-upstream";
 import { execFileSync } from "node:child_process";
-import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { getWorkspaceRoot } from "#package-roots";
-
-interface VendoredSource {
-  readonly repository: string;
-  readonly dest: string;
-  readonly paths: readonly string[];
-  readonly next: string;
-}
+import { daySuffixes, installVendoredTree } from "#vendor-upstream";
 
 const SOURCES: Readonly<Record<string, VendoredSource>> = {
   "zotero-schema": {
@@ -19,6 +14,23 @@ const SOURCES: Readonly<Record<string, VendoredSource>> = {
     dest: "packages/zotero-types/zotero-schema",
     paths: ["schema.json"],
     next: "Regenerate the item shapes: pnpm --filter @zotlit/zotero-types generate:fields (and the other generate:* scripts of that package).",
+  },
+  "zotero-client": {
+    repository: "zotero/zotero",
+    dest: "packages/zotero-compat/zotero-client",
+    paths: [
+      "app/assets/multilocale.txt",
+      "chrome/content/zotero/xpcom/isbn.js",
+      "resource/schema/dateFormats.json",
+    ],
+    extracts: {
+      "day-suffixes.json": {
+        source:
+          "the date.daySuffixes entry of chrome/locale/*/zotero/zotero.properties",
+        build: daySuffixes,
+      },
+    },
+    next: "Regenerate the client data: pnpm --filter @zotlit/zotero-compat generate:client-data.",
   },
   "pdfjs-dist": {
     repository: "zotero-plugin-dev/zotero-pdfjs-types",
@@ -52,23 +64,7 @@ try {
   await mkdir(tree);
   execFileSync("tar", ["-xzf", archive, "-C", tree, "--strip-components=1"]);
 
-  for (const path of source.paths) {
-    await rm(join(dest, path), { recursive: true, force: true });
-    await cp(join(tree, path), join(dest, path), { recursive: true });
-  }
-
-  await writeFile(
-    join(dest, "provenance.json"),
-    `${JSON.stringify(
-      {
-        repository: `https://github.com/${source.repository}`,
-        commit,
-        paths: source.paths,
-      },
-      null,
-      2,
-    )}\n`,
-  );
+  await installVendoredTree({ source, tree, dest, commit });
 } finally {
   await rm(work, { recursive: true, force: true });
 }

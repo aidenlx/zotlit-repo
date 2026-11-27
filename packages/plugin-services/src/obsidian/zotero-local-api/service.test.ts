@@ -520,7 +520,7 @@ it("falls back to Zotero's dialog window when a rate limit names no delay", asyn
 
 it("reports whether a Remembered Write Authorization exists for the session", async () => {
   await using stack = new AsyncDisposableStack();
-  const key = "zaxj2JbsV79sbQDXS7REpa3Z3kRDIory";
+  const key = "XmplApiKey0000000000000000000002";
   const { credentials, service, bridge } = await setup(stack, {}, { key });
   const { service: unauthorized, bridge: unauthorizedBridge } =
     await setup(stack);

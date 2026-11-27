@@ -230,7 +230,10 @@ describe("QuickSwitchModal PDF chord", () => {
   it("resolves the Item's Attachments instead of its note on Shift+Enter", async () => {
     const { deps, modal } = pdfDeps();
     const attachments = [openable("ATCH1")];
-    literatureNoteAttachments.mockResolvedValue(attachments);
+    literatureNoteAttachments.mockResolvedValue({
+      attachments,
+      filesUnavailable: false,
+    });
 
     await modal.onChooseSuggestion(searchHit("PAPER234"), {
       shiftKey: true,
@@ -257,7 +260,10 @@ describe("QuickSwitchModal PDF chord", () => {
   it("honors Mod+Shift+Enter's new-pane request, however many Attachments resolve", async () => {
     const { modal, open } = pdfDeps();
     const opened = openable("ATCH1");
-    literatureNoteAttachments.mockResolvedValue([opened]);
+    literatureNoteAttachments.mockResolvedValue({
+      attachments: [opened],
+      filesUnavailable: false,
+    });
     using _mod = vi.spyOn(Keymap, "isModEvent").mockReturnValue(true);
 
     await modal.onChooseSuggestion(searchHit("PAPER234"), {

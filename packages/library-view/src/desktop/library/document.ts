@@ -8,13 +8,13 @@ import {
   serializeQueryFile,
 } from "@zotlit/query-views/core/query-view/query-file.ts";
 import type { QueryFileSort } from "@zotlit/query-views/core/query-view/query-file.ts";
+import type { LiteratureNotes } from "@zotlit/query-views/desktop/query-view/table-notes.ts";
+import type { QueryRowPass } from "@zotlit/query-views/desktop/query-view/view.tsx";
 import type {
   QueryViewGroup,
   QueryViewRequest,
   QueryViewRow,
-} from "@zotlit/query-views/desktop/item-query/query-view.ts";
-import type { LiteratureNotes } from "@zotlit/query-views/desktop/query-view/table-notes.ts";
-import type { QueryRowPass } from "@zotlit/query-views/desktop/query-view/view.tsx";
+} from "@zotlit/query-views/worker/item-query/query-view.ts";
 import {
   librarySelectorSchema,
   selectorKey,

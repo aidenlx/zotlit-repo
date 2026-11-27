@@ -25,7 +25,8 @@ import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
 import { creatorSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import type {} from "@zotlit/plugin-services/core/attachment-import/settings.ts";
 import type { Settings } from "@zotlit/plugin-services/core/settings/schema.ts";
-import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { TemplateError } from "@zotlit/templates/facade";
@@ -272,7 +273,7 @@ const createInertResolvers = Effect.fnUntraced(function* (
   const index = yield* NoteIndex;
   const vault = yield* Vault;
   const fileManager = yield* FileManager;
-  const { dataDir, baseAttachmentPath } = yield* (yield* ZoteroPref).current;
+  const { dataDir, baseAttachmentPath } = yield* libraryFilePaths;
   const context = yield* Effect.context<FileManager>();
   const runSync = Effect.runSyncWith(context);
   const noteIndex = {

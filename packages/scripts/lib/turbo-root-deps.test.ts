@@ -12,11 +12,11 @@ interface Plan {
 
 function plan(tasks: readonly string[]): Plan {
   return JSON.parse(
-    execFileSync("pnpm", ["exec", "turbo", "run", ...tasks, "--dry=json"], {
-      cwd: root,
-      encoding: "utf8",
-      maxBuffer: 256 * 1024 * 1024,
-    }),
+    execFileSync(
+      "pnpm",
+      ["exec", "turbo", "run", ...tasks, "--dry=json", "--cache=local:"],
+      { cwd: root, encoding: "utf8", maxBuffer: 256 * 1024 * 1024 },
+    ),
   ) as Plan;
 }
 

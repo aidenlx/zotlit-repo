@@ -12,8 +12,8 @@ export function makeItem(
   return {
     itemID: 1,
     libraryID: USER_LIBRARY_ID,
-    key: "KX67D9YM",
-    indexedKey: "KX67D9YM",
+    key: "XMPLITM3",
+    indexedKey: "XMPLITM3",
     dateAdded: Temporal.Instant.from("2024-01-15T10:00:00Z"),
     dateModified: Temporal.Instant.from("2024-01-15T10:00:00Z"),
     creators: [

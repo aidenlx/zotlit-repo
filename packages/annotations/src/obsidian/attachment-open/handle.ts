@@ -1,4 +1,4 @@
-import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
+import type { OpenablePdfs } from "#core/attachment-open/openable.ts";
 import type { Context } from "effect";
 
 import { exitOver, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
@@ -10,7 +10,7 @@ import type { LiteratureNoteServices } from "./literature-note.ts";
 export interface LiteratureNoteAttachmentsHandle {
   literatureNoteAttachments(
     indexedKey: string,
-  ): Promise<ObsidianOpenableAttachment[] | undefined>;
+  ): Promise<OpenablePdfs | undefined>;
 }
 
 export function bindLiteratureNoteAttachments(
@@ -20,7 +20,7 @@ export function bindLiteratureNoteAttachments(
   const runExit = exitOver(bridge, context);
   return {
     literatureNoteAttachments: async (indexedKey) =>
-      valueOr<ObsidianOpenableAttachment[] | undefined, never>(
+      valueOr<OpenablePdfs | undefined, never>(
         await runExit(literatureNoteAttachments(indexedKey)),
         undefined,
       ),

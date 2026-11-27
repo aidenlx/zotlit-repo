@@ -99,7 +99,7 @@ async function harness(
         }),
         {
           repository,
-          serverID: "A8sf5Zsz8ySw",
+          serverID: "XmplSrv00Id1",
           ledger: useLedger.runtime.runSync(UseLedger),
         },
       ),

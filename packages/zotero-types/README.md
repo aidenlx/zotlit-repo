@@ -1,12 +1,21 @@
 # @zotlit/zotero-types
 
-Generated TypeScript item-field shapes from the pinned Zotero schema, and the
-hand-written Zotero key grammar that every package shares:
+Generated TypeScript shapes of the pinned Zotero schema, the hand-written
+Zotero key grammar, date predicate and Web API record shapes that every package
+shares:
 
 - `./keys` (`src/keys.ts`) — the item key and the Indexed Key: `isItemKey`,
   `formatIndexedKey`, `parseIndexedKey`, `isIndexedKey`.
 - `./uri` (`src/uri.ts`) — the `zotero://select` and `zotero://open` links that
   need only a key, and `parseAnnotationOpenUri`.
+- `./date` (`src/date.ts`) — `isMultipartDate`, the test of
+  `Zotero.Date.isMultipart` for a stored multipart date value.
+- `./vocabulary` (`src/vocabulary.ts`, generated) — the item types, fields,
+  base-field mappings, creator types and date fields of the schema, without
+  its labels and CSL maps. Regenerate with
+  `pnpm --filter @zotlit/zotero-types generate:vocabulary`.
+- `./web-api` (`src/web-api.ts`) — the JSON shapes of the Zotero Web API v3
+  objects that a read-only client stores.
 
 These modules import no other workspace package, so `@zotlit/db`,
 `@zotlit/protocol` and both apps read them without a database layer.

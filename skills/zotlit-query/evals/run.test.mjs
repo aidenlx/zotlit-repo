@@ -95,11 +95,12 @@ async function exercise(
         code: 0,
         stdout: JSON.stringify({
           ok: true,
-          contractVersion: 3,
+          contractVersion: 4,
           command: "zotlit:query",
           warnings: [],
           identity: {
             source: {
+              kind: "file",
               databasePath: join(corpus, "zotero-data", "zotero.sqlite"),
             },
             vault: { path: vault },
@@ -335,6 +336,7 @@ async function exercise(
           );
         const identity = {
           source: {
+            kind: "file",
             databasePath: join(corpus, "zotero-data", "zotero.sqlite"),
           },
           vault: { path: vault },
@@ -370,7 +372,7 @@ async function exercise(
           }));
         const envelope = {
           ok: true,
-          contractVersion: 3,
+          contractVersion: 4,
           command: "zotlit:query",
           warnings: [],
           identity,
@@ -449,7 +451,7 @@ async function exercise(
             join(options.cwd, "export-receipt.json"),
             JSON.stringify({
               ok: true,
-              contractVersion: 3,
+              contractVersion: 4,
               command: "zotlit:query",
               warnings: [],
               file: {
@@ -541,11 +543,12 @@ async function exercise(
         }));
         const envelope = {
           ok: true,
-          contractVersion: 3,
+          contractVersion: 4,
           command: "zotlit:query",
           warnings: [],
           identity: {
             source: {
+              kind: "file",
               databasePath: join(corpus, "zotero-data", "zotero.sqlite"),
             },
             vault: { path: vault },
@@ -641,11 +644,12 @@ async function exercise(
       }));
       const envelope = {
         ok: true,
-        contractVersion: 3,
+        contractVersion: 4,
         command: "zotlit:query",
         warnings: [],
         identity: {
           source: {
+            kind: "file",
             databasePath: join(corpus, "zotero-data", "zotero.sqlite"),
           },
           vault: { path: vault },

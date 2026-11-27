@@ -26,6 +26,7 @@ import {
   parseGateShard,
   shardTestArgs,
 } from "#gate-shards";
+import { checkGenerated } from "#generated-artifacts";
 import { getWorkspaceRoot } from "#package-roots";
 
 const EXIT_USAGE = 2;
@@ -93,6 +94,13 @@ const scope = base ? ["--affected"] : [];
 const env = base ? { ...process.env, TURBO_SCM_BASE: base } : process.env;
 const sh = $({ cwd: root, stdio: "inherit", env });
 
+const generatedRun = {
+  regenerate: (tasks: readonly string[]) => sh`pnpm exec turbo run ${tasks}`,
+  status: async (paths: readonly string[]) =>
+    (await $({ cwd: root, quiet: true })`git status --porcelain -- ${paths}`)
+      .stdout,
+};
+
 await gateStep("Format", () => sh`pnpm exec oxfmt --check`);
 
 if (base) {
@@ -102,6 +110,9 @@ if (base) {
     .split("\n")
     .filter(Boolean);
   if (isAgentDocsOnly(changed)) {
+    await gateStep("Generated artifacts", () =>
+      checkGenerated(changed, generatedRun),
+    );
     console.log("\nOnly agent docs changed, so the other checks skip.");
     process.exit(0);
   }
@@ -117,19 +128,9 @@ if (release) {
 }
 
 async function localSteps(): Promise<void> {
-  await gateStep("Generated artifacts", async () => {
-    await sh`pnpm exec turbo run @zotlit/db#generate:contract @zotlit/docs#generate:template-data @zotlit/docs#generate:query-functions`;
-    const stale = (
-      await $({
-        cwd: root,
-      })`git status --porcelain -- packages/db/src/contract/generated apps/docs/content/docs/reference/templates/data.mdx apps/docs/src/lib/template-contract/generated/page-model.json apps/docs/content/docs/reference/functions-and-methods.mdx`
-    ).stdout.trim();
-    if (stale) {
-      throw new Error(
-        `Regenerated output differs from the commit. Commit these files:\n${stale}`,
-      );
-    }
-  });
+  await gateStep("Generated artifacts", () =>
+    checkGenerated("all", generatedRun),
+  );
 
   await gateStep(
     "Lint",

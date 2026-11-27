@@ -1,3 +1,5 @@
+import { createRequire } from "node:module";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
@@ -9,11 +11,21 @@ import {
 } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry } from "@zotlit/plugin-kernel/vite";
 
+const require = createRequire(import.meta.url);
+const sqliteWasmBrowserBuild = join(
+  dirname(require.resolve("@sqlite.org/sqlite-wasm")),
+  "index.mjs",
+);
+
 export default defineConfig({
   resolve: {
-    alias: {
-      obsidian: obsidianMock,
-    },
+    alias: [
+      { find: "obsidian", replacement: obsidianMock },
+      {
+        find: /^@sqlite\.org\/sqlite-wasm$/,
+        replacement: sqliteWasmBrowserBuild,
+      },
+    ],
   },
   define: {
     __PLUGIN_ID__: JSON.stringify("zotlit"),

@@ -10,6 +10,7 @@ import {
   checkBundle,
   checkRequires,
   checkBundleRuntime,
+  bundleFile,
 } from "./bundle-gate.ts";
 import { RUNTIMES } from "./runtime-table.ts";
 import { bundledPlugin, CONTAINER_PLUGIN } from "./shell/profiles.ts";
@@ -34,6 +35,30 @@ async function app(
 const budget = { mainJsBytes: 1_000, stylesCssBytes: 10 };
 
 describe("checkBundle", () => {
+  it("fails a release bundle that holds text only a development build may hold", async () => {
+    const dir = await app(
+      "bundled",
+      {},
+      {
+        "main.js": 'const k = "zotlit-zotero-web-api-url";',
+        "styles.css": "",
+      },
+    );
+    const report = await checkBundle(
+      "bundled",
+      {
+        profile: bundledPlugin({ resources: "Language Packs" }),
+        budget,
+        runtime: RUNTIMES.obsidianModule,
+        developmentOnly: ["zotlit-zotero-web-api-url"],
+      },
+      dir,
+    );
+    expect(report.failures).toEqual([
+      'main.js holds "zotlit-zotero-web-api-url", which only a development build may hold',
+    ]);
+  });
+
   it("holds a bundled plugin to its budgets and its runtime's modules", async () => {
     const dir = await app(
       "bundled",
@@ -124,6 +149,22 @@ describe("checkRequires", () => {
   });
 });
 
+describe("checkRequires on a Web Worker", () => {
+  it("fails every required module, a platform module and a Node built-in", () => {
+    expect(
+      checkRequires(
+        "worker.js",
+        'require("obsidian"); require("node:fs"); require("fs");',
+        RUNTIMES.webWorker,
+      ).failures,
+    ).toEqual([
+      'worker.js requires "fs", which a Web Worker does not give',
+      'worker.js requires "node:fs", which a Web Worker does not give',
+      'worker.js requires "obsidian", which a Web Worker does not give',
+    ]);
+  });
+});
+
 describe("checkBundleRuntime", () => {
   it("reports the size and the required modules of a built root", async () => {
     const dir = await app(
@@ -131,9 +172,9 @@ describe("checkBundleRuntime", () => {
       {},
       { "main.js": 'require("obsidian"); require("@codemirror/view");' },
     );
-    const report = await checkBundleRuntime(
+    const report = checkBundleRuntime(
       "mobile",
-      join(dir, "dist", "main.js"),
+      await bundleFile(join(dir, "dist", "main.js")),
       RUNTIMES.mobileRenderer,
     );
     expect(report).toEqual({
@@ -149,9 +190,9 @@ describe("checkBundleRuntime", () => {
       {},
       { "main.js": 'require("node:path");' },
     );
-    const report = await checkBundleRuntime(
+    const report = checkBundleRuntime(
       "mobile",
-      join(dir, "dist", "main.js"),
+      await bundleFile(join(dir, "dist", "main.js")),
       RUNTIMES.mobileRenderer,
     );
     expect(report.failures).toEqual([

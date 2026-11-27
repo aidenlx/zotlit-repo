@@ -3,9 +3,9 @@ import { expect, it } from "vitest";
 import { SecretWriteAuthorizationStore } from "./write-authorization.ts";
 import type { SecretStore } from "./write-authorization.ts";
 
-const SERVER_ID = "A8sf5Zsz8ySw";
+const SERVER_ID = "XmplSrv00Id1";
 const OTHER_SERVER_ID = "Zzzz11119999";
-const KEY = "5ixBzUhQfLu8i8RIhU6OEzENW4pAITLf";
+const KEY = "XmplApiKey0000000000000000000001";
 
 const RECORD_ID = "zotlit-zotero-write-authorization";
 

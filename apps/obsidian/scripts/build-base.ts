@@ -12,6 +12,8 @@ import type { Runtime } from "@zotlit/scripts/runtime-table";
 import { HOST_MODULES } from "@zotlit/scripts/shell/build";
 
 import packageJson from "../package.json" with { type: "json" };
+import { rendererSqlCheck } from "./renderer-sql-check.ts";
+import { SQLITE_ENGINE_VERSION } from "./sqlite-engine.ts";
 
 const packageRoot = resolve(import.meta.dirname, "..");
 
@@ -49,12 +51,14 @@ export function pluginBuildBase(mode: string, runtime: Runtime) {
       __MIN_ELECTRON_VERSION__: JSON.stringify(
         parseMinElectronVersion(packageJson),
       ),
+      __SQLITE_ENGINE_VERSION__: JSON.stringify(SQLITE_ENGINE_VERSION),
       "process.env.NODE_ENV": JSON.stringify(mode),
     },
     external: HOST_MODULES,
     rendererPlugins: [
       effectEntry("renderer", { scopes: pluginCode }),
       effectEntryCheck("renderer"),
+      rendererSqlCheck(packageRoot),
       preact(),
       tailwindcss(),
       pandocFilterVariants(),

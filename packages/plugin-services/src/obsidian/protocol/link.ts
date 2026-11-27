@@ -10,6 +10,7 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { LinkOutcome, refuse } from "./outcome.ts";
 
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
+import { LibrarySource } from "#obsidian/library-source/service.ts";
 
 export function parseProtocolData<Query extends { sourceId: string }>(
   data: ObsidianProtocolData,
@@ -40,6 +41,14 @@ export function parseProtocolData<Query extends { sourceId: string }>(
         }),
       );
       return refuse(LinkOutcome.ForeignSource());
+    }
+
+    const source = yield* Effect.serviceOption(LibrarySource);
+    if (Option.isSome(source) && source.value.active !== "file") {
+      yield* Effect.logWarning(
+        "A link from Zotero on this computer acts on library content, and the online library is the source",
+      ).pipe(Effect.annotateLogs({ action }));
+      return refuse(LinkOutcome.NeedsLocalZotero());
     }
 
     return Result.succeed(parsed);

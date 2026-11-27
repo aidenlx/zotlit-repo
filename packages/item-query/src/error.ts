@@ -46,7 +46,7 @@ export interface ItemQueryErrorLocation {
 
 export class ItemQueryError extends Data.TaggedError("ItemQueryError")<{
   readonly fault: ItemQueryFault;
-  readonly dataset: QueryDataset<any>;
+  readonly dataset: QueryDataset;
   readonly argumentText?: string;
   readonly location: ItemQueryErrorLocation;
   readonly context?: QueryContext | undefined;

@@ -77,6 +77,7 @@ function registeredData(deps: FixtureDeps) {
         databasePath: "/Zotero/zotero.sqlite",
         dataDir: "/Zotero",
         baseAttachmentPath: null,
+        reads: Context.get(deps.context, ZoteroReads),
       }),
       Context.make(
         MetadataCache,
@@ -431,7 +432,7 @@ describe("zotlit:template-data with the real loader", () => {
       );
 
       expect(result).toMatchObject({
-        contractVersion: 8,
+        contractVersion: 9,
         command: TEMPLATE_DATA_COMMAND,
         ok: true,
         request: {
@@ -480,7 +481,7 @@ describe("zotlit:template-data with the real loader", () => {
         expect(
           yield* runTemplateData(fixture.deps, "ANNA2345", "annotation"),
         ).toMatchObject({
-          contractVersion: 8,
+          contractVersion: 9,
           command: TEMPLATE_DATA_COMMAND,
           ok: false,
           request: {
@@ -607,7 +608,7 @@ describe("zotlit:template-data with the real loader", () => {
       );
 
       expect(result).toMatchObject({
-        contractVersion: 8,
+        contractVersion: 9,
         command: TEMPLATE_DATA_COMMAND,
         ok: true,
         request: {
@@ -988,7 +989,11 @@ function runTemplateData(
     pluginVersion: "1.2.3",
     getIdentity: Effect.succeed({
       vault: { name: "Test Vault", path: "/vaults/test" },
-      source: { id: "a1b2c3d4", databasePath: "/Zotero/zotero.sqlite" },
+      source: {
+        kind: "file",
+        id: "a1b2c3d4",
+        databasePath: "/Zotero/zotero.sqlite",
+      },
     }),
     loadCitation: (citation, variant) =>
       readCitationData(citation, variant).pipe(

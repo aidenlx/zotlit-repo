@@ -12,14 +12,15 @@ It imports `@zotlit/annotations` for the annotation cards and Annotations Layout
 
 ## Layers
 
-Each layer is one folder of `src/` and one runtime zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)). A new file goes in the folder of what it needs from its host: `core/` is the host-free zone (the DOM, no host module), `obsidian/` the Obsidian zone (the `obsidian` module; it loads on Obsidian Mobile), and `desktop/` the desktop zone (Node and Electron). A layer reaches the layers below it: core ← obsidian ← desktop. The runtime check (`pnpm run lint:runtime-zones`) follows each import, type-only imports included, and fails on reach to a higher zone or to test support. Lint refuses Node built-in imports and the Node globals outside `desktop/`.
+Each layer is one folder of `src/` and one runtime zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)). A new file goes in the folder of what it needs from its host: `worker/` is the Worker zone (no DOM, host module or Node), `core/` is the host-free zone (the DOM, no host module), `obsidian/` the Obsidian zone (the `obsidian` module; it loads on Obsidian Mobile), and `desktop/` the desktop zone (Node and Electron). A layer reaches the layers below it: worker ← core ← obsidian ← desktop. The runtime check (`pnpm run lint:runtime-zones`) follows each import, type-only imports included, and fails on reach to a higher zone or to test support. Lint refuses Node built-in imports and the Node globals outside `desktop/`.
 
+- `worker/` — the Worker zone: the Query Job and what it needs (`worker/item-query/`, see the [adapter reference](README.md)). A Worker root composes the job runner (`makeQueryJobRunner`): the desktop one and the Web Worker one, both in `apps/obsidian`.
 - `core/` — host-free: the Query View's plans, Query File blocks and the Annotation Suggester's trigger rules, the CLI contract shapes.
 - `obsidian/` — loads on Obsidian Mobile: the Query View's block writes, card focus, reorder and the private Obsidian embed hooks.
-- `desktop/` — Node and Electron: `QueryService` and the CLI, which read the Zotero database through `@zotlit/zotero-reads` and the Template Workbench CLI envelope; the Query View, the Annotation View, the Annotation Suggester and the note button, which open attachments and create notes through the desktop layers of `@zotlit/annotations` and `@zotlit/notes`.
+- `desktop/` — Node and Electron: `QueryService` and the CLI, which read the Zotero database through `@zotlit/zotero-reads` and the Template Workbench CLI envelope; the Query Job runner of the desktop Worker root with the Node meter (`desktop/item-query/job.ts`); the Query View, the Annotation View, the Annotation Suggester and the note button, which open attachments and create notes through the desktop layers of `@zotlit/annotations` and `@zotlit/notes`.
 - `__fixtures__/` — test support, one folder or file per unit. `view-atoms.ts` holds this package's view services; `@zotlit/library-view`'s tests read it and `__fixtures__/query-view/host.ts` too.
 
-Each unit registers itself: `QueryService` adds itself to `ViewServiceRegistry` (`desktop/item-query/service.ts`), and `desktop/item-query/worker-protocol.ts` adds the Item Query requests to the ZoteroReads Worker contract.
+Each unit registers itself: `QueryService` adds itself to `ViewServiceRegistry` (`desktop/item-query/service.ts`), and `worker/item-query/worker-protocol.ts` adds the Item Query requests to the ZoteroReads Worker contract.
 
 ## Query Job lifecycle
 

@@ -140,6 +140,14 @@ async function fixture(
         basePath: "/fixture",
         apiVersion,
         ...zoteroPref,
+        source: () => ({
+          kind: "file",
+          id: zoteroPref.sourceId,
+          databasePath: zoteroPref.databasePath,
+        }),
+        ...(zoteroReads === undefined
+          ? {}
+          : { reads: zoteroReads.runtime.runSync(ZoteroReads) }),
       }),
       Context.make(NoteIndex, noteIndex),
       Context.make(
@@ -150,9 +158,6 @@ async function fixture(
           ),
         }),
       ),
-      zoteroReads === undefined
-        ? Context.empty()
-        : Context.make(ZoteroReads, zoteroReads.runtime.runSync(ZoteroReads)),
     ),
   );
   const cleanup = stack.move();

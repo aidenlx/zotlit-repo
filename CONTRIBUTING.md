@@ -112,7 +112,7 @@ still runs. `pnpm land --no-ci` lands without the CI check: the land does not wa
 The source lives in `aidenlx/zotlit-repo`. Releases publish to the publish
 repository `aidenlx/zotlit`: the plugin releases, the Resource Releases, the
 Companion releases and its `zotero-release` update channel. Code reads the two
-names from `packages/config/src/core/repositories.ts`. The publish repository holds a
+names from `packages/config/src/worker/repositories.ts`. The publish repository holds a
 generated shell that builds the plugin from the npm bundle package
 ([ADR 0095](docs/adr/0095-the-publish-repository-is-a-thin-generated-shell.md)).
 

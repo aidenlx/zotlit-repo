@@ -3,6 +3,7 @@ import { Data, Result } from "effect";
 export type LinkOutcomeVariants = {
   InvalidLink: object;
   ForeignSource: object;
+  NeedsLocalZotero: object;
   DatabaseUnavailable: object;
   ItemNotFound: object;
   Opened: object;

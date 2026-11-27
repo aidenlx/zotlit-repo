@@ -4,7 +4,7 @@ import { itemUri, itemWebUrl } from "./zt-uri.ts";
 
 describe("itemWebUrl", () => {
   it("uses the groups URL when a groupID is present", () => {
-    expect(itemWebUrl("ABC12345", 42, "aidenlx")).toBe(
+    expect(itemWebUrl("ABC12345", 42, "sample-reader")).toBe(
       "https://www.zotero.org/groups/42/items/ABC12345",
     );
   });
@@ -16,8 +16,8 @@ describe("itemWebUrl", () => {
   });
 
   it("uses the username slug URL for a personal item with a known username", () => {
-    expect(itemWebUrl("ABC12345", null, "aidenlx")).toBe(
-      "https://www.zotero.org/aidenlx/items/ABC12345",
+    expect(itemWebUrl("ABC12345", null, "sample-reader")).toBe(
+      "https://www.zotero.org/sample-reader/items/ABC12345",
     );
   });
 
@@ -40,21 +40,21 @@ describe("itemWebUrl", () => {
 
 describe("itemUri", () => {
   const synced = {
-    userID: 475425,
-    localUserKey: "v3aG8nQf",
-    username: "aidenlx",
+    userID: 654321,
+    localUserKey: "XmplKey8",
+    username: "sample-reader",
   };
-  const local = { userID: null, localUserKey: "v3aG8nQf", username: null };
+  const local = { userID: null, localUserKey: "XmplKey8", username: null };
 
   it("uses the numeric account id once the account has synced", () => {
     expect(itemUri("ABC12345", null, synced)).toBe(
-      "http://zotero.org/users/475425/items/ABC12345",
+      "http://zotero.org/users/654321/items/ABC12345",
     );
   });
 
   it("uses the local key for a never-synced account", () => {
     expect(itemUri("ABC12345", null, local)).toBe(
-      "http://zotero.org/users/local/v3aG8nQf/items/ABC12345",
+      "http://zotero.org/users/local/XmplKey8/items/ABC12345",
     );
   });
 

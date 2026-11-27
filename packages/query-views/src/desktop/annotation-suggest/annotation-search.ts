@@ -2,7 +2,7 @@ import type { QueryHandle } from "#desktop/item-query/handle.ts";
 import type {
   QueryViewRow,
   QueryViewValue,
-} from "#desktop/item-query/query-view.ts";
+} from "#worker/item-query/query-view.ts";
 import { Effect } from "effect";
 
 import {

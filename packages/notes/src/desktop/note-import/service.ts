@@ -45,12 +45,13 @@ import type {
   VaultFolderBlockedError,
 } from "@zotlit/plugin-kernel/vault-errors.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
 import type {
   AttachmentFlushError,
   AttachmentImportBatch,
 } from "@zotlit/plugin-services/desktop/attachment-import/service.ts";
+import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import {
   MAX_SEGMENT_BYTES,
@@ -383,7 +384,7 @@ const writeNote = Effect.fnUntraced(function* (
     }
     const sources = inputs.annotations;
     const { templates } = ctx;
-    const { dataDir, baseAttachmentPath } = yield* (yield* ZoteroPref).current;
+    const { dataDir, baseAttachmentPath } = yield* libraryFilePaths;
     const zoteroPref = { dataDir, baseAttachmentPath };
     const annotationImageLink = excerpts?.annotationImageLink;
     const renderAnnotationParagraph = sources

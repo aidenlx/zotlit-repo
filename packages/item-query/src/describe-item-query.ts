@@ -116,7 +116,7 @@ export function describeItemQuery(): Effect.Effect<
 }
 
 export function describeQuery<Vocabulary extends object>(
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
   vocabulary: Vocabulary,
 ): Effect.Effect<
   Vocabulary & ItemQuerySchema,

@@ -1,7 +1,17 @@
 import { prepareRunWindow } from "./background-throttling.ts";
 import { cli, obRun, obRunUntil, waitFor } from "./obsidian-cli.ts";
 
-export async function reloadWindow(vaultId: string): Promise<void> {
+function runAppReload(vaultId: string): Promise<boolean> {
+  return obRun(vaultId, ({ app }) => {
+    setTimeout(() => app.commands.executeCommandById("app:reload"));
+    return true;
+  });
+}
+
+export async function reloadWindow(
+  vaultId: string,
+  reload: (vaultId: string) => Promise<boolean> = runAppReload,
+): Promise<void> {
   const plugins = await obRun(vaultId, async ({ app, zotlit }) => {
     if (app.plugins.plugins.zotlit)
       await zotlit.services.bridge.runPromise(zotlit.services.settings.flush);
@@ -12,12 +22,11 @@ export async function reloadWindow(vaultId: string): Promise<void> {
       ),
     ) as string[];
   });
-  const scheduled = await obRun(vaultId, ({ app, page }) => {
+  await obRun(vaultId, ({ page }) => {
     window.__ztRestoreBackgroundThrottling?.();
     page.scratch.windowBeforeReload = true;
-    setTimeout(() => app.commands.executeCommandById("app:reload"));
-    return true;
   });
+  const scheduled = await reload(vaultId);
   if (!scheduled) {
     throw new Error(
       `could not reload the window of ${vaultId}: ${String(scheduled)}`,

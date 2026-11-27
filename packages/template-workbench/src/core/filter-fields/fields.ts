@@ -126,7 +126,7 @@ export const FILTER_OPERATORS: Record<
   boolean: ["is-true", "is-false"],
 };
 
-const ENGINES: Record<FilterDataset, QueryDataset<any>> = {
+const ENGINES: Record<FilterDataset, QueryDataset> = {
   annotations: ANNOTATIONS,
   attachments: ATTACHMENTS,
   items: ITEMS,

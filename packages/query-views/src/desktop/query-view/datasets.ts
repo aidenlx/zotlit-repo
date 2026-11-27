@@ -2,7 +2,7 @@ import type {
   QueryFileDataset,
   QueryFileGroupValue,
 } from "#core/query-view/query-file.ts";
-import type { QueryViewRow } from "#desktop/item-query/query-view.ts";
+import type { QueryViewRow } from "#worker/item-query/query-view.ts";
 
 import { ANNOTATIONS, ATTACHMENTS, ITEMS } from "@zotlit/item-query";
 import type { QueryDataset } from "@zotlit/item-query";

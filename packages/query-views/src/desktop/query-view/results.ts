@@ -1,8 +1,9 @@
 import type { ConditionIssue } from "#core/query-view/query-file.ts";
 import type {
-  QueryViewResult,
-  QueryViewRow,
-} from "#desktop/item-query/query-view.ts";
+  ViewDiagnostic,
+  ViewWarning,
+} from "#obsidian/query-view/reader-failure.ts";
+import type { QueryViewRow } from "#worker/item-query/query-view.ts";
 
 import { nameDictionary } from "@zotlit/item-query";
 import type { NameDictionary } from "@zotlit/item-query";
@@ -12,10 +13,7 @@ import type { PlacedFault } from "@zotlit/template-workbench/core/language/index
 import type { ShownRecord } from "./record-rows.tsx";
 import type { LayoutGroup } from "./rows.ts";
 
-export interface QueryViewWarning {
-  code: QueryViewResult["warnings"][number]["code"];
-  message: string;
-}
+export type QueryViewWarning = ViewWarning;
 
 export interface ResultSnapshot {
   rows: readonly QueryViewRow[];
@@ -35,7 +33,8 @@ export interface FormulaIssue {
 }
 
 export interface QueryViewFailure {
-  diagnostic: ReaderDiagnosticSource;
+  diagnostic: ViewDiagnostic;
+  reader: ReaderDiagnosticSource | string;
   filterIssue: ConditionIssue | null;
   formulaIssues: NameDictionary<FormulaIssue>;
 }

@@ -32,8 +32,8 @@ export interface ScanRow {
   dateModified: number | null;
 }
 
-function epochMilliseconds(column: AnyColumn): SQL<number | null> {
-  return sql<number | null>`unixepoch(${column}) * 1000`;
+export function epochMilliseconds(column: AnyColumn): SQL<number | null> {
+  return sql<number | null>`unixepoch(${column}) * 1000`.mapWith(Number);
 }
 
 function selectScanRows(db: ZoteroDatabase) {

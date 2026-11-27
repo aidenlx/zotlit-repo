@@ -255,3 +255,22 @@ describe("attachmentPathKey", () => {
     );
   });
 });
+
+describe("a path context with no local Zotero data directory", () => {
+  const none = { dataDir: null, baseAttachmentPath: null };
+  it("names no file for any link mode, and no annotation image", () => {
+    expect(
+      [
+        attachment({ path: "storage:paper.pdf", linkMode: 0 }),
+        attachment({ path: "/home/ada/paper.pdf", linkMode: 2 }),
+        attachment({ path: "attachments:paper.pdf", linkMode: 2 }),
+      ].map((a) => attachmentAbsPath(a, none)),
+    ).toEqual([null, null, null]);
+    expect(
+      resolveAnnotCachePath(
+        { key: "ANNOT234", type: "image" },
+        { dataDir: null, groupID: null },
+      ),
+    ).toBeNull();
+  });
+});

@@ -40,7 +40,7 @@ import { COUNT_FIELDS, UNLIMITED_LIMIT } from "./request.ts";
 import type { QueryContext } from "./request.ts";
 
 interface DiagnosisContext extends ItemQueryErrorLocation {
-  readonly dataset: QueryDataset<any>;
+  readonly dataset: QueryDataset;
   readonly context?: QueryContext | undefined;
 }
 import type { CollectionWarning } from "./collection-warnings.ts";
@@ -48,7 +48,7 @@ import type { KeyLibraryWarning } from "./indexed-key-selection.ts";
 
 interface WarningContext {
   readonly clock: QueryClock;
-  readonly dataset: QueryDataset<any>;
+  readonly dataset: QueryDataset;
   readonly context?: QueryContext | undefined;
 }
 
@@ -314,7 +314,7 @@ function describeCount(
 
 export function codeOfFault(
   fault: ItemQueryFault,
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
 ): PlainFault["code"] {
   if (fault.kind === "group") return "invalid-group";
   if (fault.kind === "plain") return fault.code;
@@ -539,7 +539,7 @@ export function diagnoseUnusedFormula(
   };
 }
 
-function projectionCandidates(dataset: QueryDataset<any>): readonly string[] {
+function projectionCandidates(dataset: QueryDataset): readonly string[] {
   const paths = (path: string, shape: ValueShape): string[] => [
     path,
     ...(shape.kind === "object"
@@ -855,7 +855,7 @@ function findMethodCall(
 function candidatesFor(
   role: Role,
   receiverType: StaticType | undefined,
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
 ): readonly string[] {
   switch (role) {
     case "field":
@@ -886,7 +886,7 @@ function candidatesFor(
   }
 }
 
-function fieldCandidates(dataset: QueryDataset<any>): readonly string[] {
+function fieldCandidates(dataset: QueryDataset): readonly string[] {
   return dataset.names.flatMap((name) => {
     const filter = dataset.filterField(name);
     if (!filter?.filterable) return [];
@@ -910,7 +910,7 @@ const unique = (names: readonly string[]): readonly string[] => [
 
 function unknownMessage(
   fault: Extract<Fault, { readonly kind: "unknown" }>,
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
 ): string {
   const family = dataset.family;
   const { role, name, receiver } = fault;
@@ -952,7 +952,7 @@ function recoveryAction(
   {
     receiverType,
     dataset,
-  }: { receiverType?: StaticType; dataset: QueryDataset<any> },
+  }: { receiverType?: StaticType; dataset: QueryDataset },
 ): string {
   const family = dataset.family;
   const joined = candidates.join(", ");
@@ -1021,7 +1021,7 @@ function suggestionAction(
 
 function receiverNotes(
   receiver: Receiver | undefined,
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
 ): readonly string[] {
   if (!receiver) return [];
   if (receiver.type === "unknown" && !receiver.field)

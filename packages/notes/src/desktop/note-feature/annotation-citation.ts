@@ -5,7 +5,7 @@ import {
   buildAnnotationsTemplateData,
   resolveIndexedKeyLibraryIn,
 } from "@zotlit/db";
-import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import {
@@ -30,7 +30,7 @@ export const renderAnnotationCitation = Effect.fn(
         : null;
     }),
   );
-  const { dataDir, baseAttachmentPath } = yield* (yield* ZoteroPref).current;
+  const { dataDir, baseAttachmentPath } = yield* libraryFilePaths;
   const resolvers = buildAnnotationResolvers({
     zoteroPref: { dataDir, baseAttachmentPath },
     attachmentImport: {

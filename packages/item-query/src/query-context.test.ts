@@ -27,7 +27,7 @@ beforeEach(() => {
 });
 
 async function run(
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
   request: Omit<ItemQueryRequest, "libraries"> &
     Partial<Pick<ItemQueryRequest, "libraries">>,
 ) {

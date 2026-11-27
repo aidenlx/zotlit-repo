@@ -31,14 +31,14 @@ import type {
 import { DeviceStorage } from "@zotlit/obsidian-kit/obsidian-device-storage.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import {
-  releaseOrigin,
-  resourceReleaseUrl,
-} from "@zotlit/plugin-kernel/constants.ts";
-import {
   bridgeLog,
   withLogCategory,
 } from "@zotlit/plugin-kernel/effect-log.ts";
 import { resolvePluginLocale } from "@zotlit/plugin-kernel/i18n/locale.ts";
+import {
+  releaseOrigin,
+  resourceReleaseUrl,
+} from "@zotlit/plugin-kernel/worker/release-url.ts";
 
 export type { LanguagePackRestartNotice, LanguagePackSituation };
 

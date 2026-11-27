@@ -15,6 +15,7 @@ export default defineConfig({
     "packages/pdfjs/dist/**",
     "packages/pdf-structure/src/vendor/*.js",
     "packages/zotero-types/zotero-schema/**",
+    "packages/zotero-compat/zotero-client/**",
     "packages/notes/src/core/template-preview/samples/*.json",
     "video/**",
   ],

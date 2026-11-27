@@ -2,7 +2,7 @@ import type { CslStyleRequest } from "#core/pandoc/csl-style.ts";
 import type { BibliographyItemRef } from "#desktop/pandoc/bibliography.ts";
 import type { ExportPorts } from "#desktop/pandoc/export.ts";
 import type { CitationEngine } from "#obsidian/pandoc/engine.ts";
-import { Cause, Effect, FileSystem, Schema } from "effect";
+import { Cause, Effect, FileSystem, Option, Schema } from "effect";
 import type { Context } from "effect";
 import { basename, join } from "node:path";
 import type { App, Plugin, TFile } from "obsidian";
@@ -24,6 +24,7 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { ZoteroHttp } from "@zotlit/plugin-kernel/zotero-http.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { LibrarySource } from "@zotlit/plugin-services/obsidian/library-source/service.ts";
 import { packReaderId } from "@zotlit/plugin-services/obsidian/managed-binary/pack-row.ts";
 import { resolveLiteratureNoteIn } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
@@ -293,6 +294,13 @@ const prepareExport = Effect.fn("PandocExport.prepareExport")(function* (
           exportPorts(metadata, engine, {
             ...pref,
             localApiEnabled,
+            localLibraryIDs: Option.match(
+              yield* Effect.serviceOption(LibrarySource),
+              {
+                onNone: () => true,
+                onSome: (source) => source.active === "file",
+              },
+            ),
             citationLookup,
             db,
             zoteroHttp,
@@ -361,6 +369,7 @@ function exportPorts(
     dataDir: string;
     httpPort: number | null;
     localApiEnabled: boolean;
+    localLibraryIDs: boolean;
     citationLookup: CitationLookup["Service"];
     db: ZoteroReads["Service"];
     zoteroHttp: ZoteroHttp["Service"];
@@ -381,6 +390,7 @@ function exportPorts(
       fetchBibliography(refs, {
         httpPort: pref.httpPort,
         localApiEnabled: pref.localApiEnabled,
+        localLibraryIDs: pref.localLibraryIDs,
       }).pipe(Effect.provideService(ZoteroHttp, pref.zoteroHttp)),
   };
 }

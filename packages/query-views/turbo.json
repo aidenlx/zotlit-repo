@@ -11,14 +11,16 @@
     "typecheck:test": {
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs"
+        "@zotlit/plugin-messages#generate:language-packs",
+        "@zotlit/pdf-reader#generate"
       ]
     },
     "test": {
       "tags": ["ci-shard-1"],
       "dependsOn": [
         "$TURBO_EXTENDS$",
-        "@zotlit/plugin-messages#generate:language-packs"
+        "@zotlit/plugin-messages#generate:language-packs",
+        "@zotlit/pdf-reader#generate"
       ]
     }
   }

@@ -1,4 +1,9 @@
-import type { ChangeEvent, ReadsConfig } from "#contract/rpc.ts";
+import type {
+  ChangeEvent,
+  FileReadsConfig,
+  ReadsConfig,
+} from "#contract/rpc.ts";
+import type { SourceIdentity } from "#contract/source-identity.ts";
 import {
   Context,
   Duration,
@@ -12,7 +17,7 @@ import {
 import type { Stream } from "effect";
 import type { Scope } from "effect";
 
-import { getZoteroDatabaseIdentity } from "@zotlit/db";
+import { getZoteroDatabaseIdentity, getZoteroIdentity } from "@zotlit/db";
 import type { ZoteroDatabase } from "@zotlit/db";
 import {
   checkDatabaseLayout,
@@ -20,7 +25,8 @@ import {
 } from "@zotlit/db/item-query";
 
 import { makeChangeFeed } from "#contract/change-feed.ts";
-import { DbUnavailable } from "#contract/rpc.ts";
+import { DbUnavailable, fileConfigOf } from "#contract/rpc.ts";
+import { webApiSourceId } from "#contract/source-identity.ts";
 
 export class Connection extends Context.Service<
   Connection,
@@ -31,7 +37,10 @@ export class Connection extends Context.Service<
     readonly notifyExternalChange: Effect.Effect<void>;
     readonly configure: (config: ReadsConfig) => Effect.Effect<void>;
     readonly databaseGeneration: (client: ZoteroDatabase) => number;
-    readonly databaseFile: (client: ZoteroDatabase) => string | null;
+    readonly identity: (
+      client: ZoteroDatabase,
+    ) => Effect.Effect<SourceIdentity, DbUnavailable>;
+    readonly pendingIdentity?: Effect.Effect<SourceIdentity | null>;
   }
 >()("zotlit/zotero-reads/Connection") {}
 
@@ -77,7 +86,7 @@ export function makeDatabaseGenerations() {
   };
 }
 
-export type ConnectionOpener = (config: ReadsConfig | null) => OpenClient;
+export type ConnectionOpener = (config: FileReadsConfig | null) => OpenClient;
 
 export function toDbUnavailable(cause: unknown): DbUnavailable {
   let error = cause;
@@ -123,7 +132,7 @@ export const validateClient = Effect.fnUntraced(function* (
 
 function openValidated(
   opener: ConnectionOpener,
-  config: ReadsConfig | null,
+  config: FileReadsConfig | null,
 ): Effect.Effect<OpenClient, DbUnavailable> {
   return Effect.try({
     try: () => opener(config),
@@ -181,7 +190,7 @@ export const makeClientRef = Effect.fnUntraced(function* (
 export function layerRcRef(opener: ConnectionOpener): Layer.Layer<Connection> {
   return Layer.effect(Connection)(
     Effect.gen(function* () {
-      const config = yield* Ref.make<ReadsConfig | null>(null);
+      const config = yield* Ref.make<FileReadsConfig | null>(null);
       const status = yield* Ref.make<{
         state: "loading" | "ready" | "degraded";
         lastError: DbUnavailable | null;
@@ -295,12 +304,56 @@ export function layerRcRef(opener: ConnectionOpener): Layer.Layer<Connection> {
         changes,
         refresh,
         notifyExternalChange: Effect.ignore(refresh),
-        configure: Effect.fn("Connection.configure")((next) =>
-          Ref.set(config, next).pipe(Effect.andThen(Effect.ignore(refresh))),
-        ),
+        configure: Effect.fn("Connection.configure")(function* (next) {
+          const file = fileConfigOf(next);
+          const previous = yield* Ref.getAndSet(config, file);
+          if (
+            previous === null ||
+            file === null ||
+            file.databasePath !== previous.databasePath ||
+            file.readMode !== previous.readMode
+          )
+            yield* Effect.ignore(refresh);
+        }),
         databaseGeneration: databaseGenerations.databaseGeneration,
-        databaseFile: databaseGenerations.databaseFile,
+        identity: (client) =>
+          Effect.map(Ref.get(config), (current) =>
+            fileSourceIdentity(
+              databaseGenerations.databaseFile(client),
+              current,
+            ),
+          ),
       });
     }),
   );
 }
+
+export function fileSourceIdentity(
+  served: string | null,
+  config: FileReadsConfig | null,
+): SourceIdentity {
+  return {
+    kind: "file",
+    id:
+      served !== null && config !== null && served === config.databasePath
+        ? (config.sourceId ?? null)
+        : null,
+    databasePath: served,
+  };
+}
+
+export const webApiSourceIdentity = (
+  client: ZoteroDatabase,
+): Effect.Effect<SourceIdentity, DbUnavailable> =>
+  Effect.try({
+    try: () => {
+      const { userID, username } = getZoteroIdentity(client);
+      return {
+        kind: "web-api" as const,
+        id: webApiSourceId(userID),
+        userID,
+        username,
+      };
+    },
+    catch: toDbUnavailable,
+  });

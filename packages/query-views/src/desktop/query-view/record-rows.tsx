@@ -1,7 +1,7 @@
 import type {
   QueryViewRow,
   QueryViewValue,
-} from "#desktop/item-query/query-view.ts";
+} from "#worker/item-query/query-view.ts";
 import { Fragment, useLayoutEffect, useMemo } from "react";
 
 import {

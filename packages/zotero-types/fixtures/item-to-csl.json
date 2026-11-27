@@ -1,12 +1,12 @@
 {
-  "zoteroVersion": "9.0.3",
-  "schemaVersion": 42,
-  "modified": "2026-08-04",
+  "zoteroVersion": "10.0.9",
+  "schemaVersion": 44,
+  "modified": "2026-11-26",
   "sources": {
     "item": {
-      "url": "https://raw.githubusercontent.com/zotero/zotero/451d96a8240bbb607a220f949673d6bc704bb58d/test/tests/data/allTypesAndFields.js",
+      "url": "https://raw.githubusercontent.com/zotero/zotero/0f25aca5e5e087fa44404c134fd384e2aeca4eda/test/tests/data/allTypesAndFields.js",
       "sha256": "e8c27ab62cf912b77b12abe7ea0457cfd3964c44dae38fb9e19c563f2ca53550",
-      "commit": "451d96a8240bbb607a220f949673d6bc704bb58d"
+      "commit": "0f25aca5e5e087fa44404c134fd384e2aeca4eda"
     },
     "csl": {
       "url": "https://raw.githubusercontent.com/zotero/utilities/1dd38e27edf81e9d9c4161c957b7efb7f5681ac3/test/data/citeProcJSExport.json",

@@ -639,7 +639,7 @@ ZotLit 会使用标注条目对应文献笔记的[配置方案](/docs/reference/
 | `group`           | 单个标量投影路径，或包含单个 `[]` 的路径（如 `tags[].name`）。结果为每个值包含一个分组。                                                                               |
 | `limit`           | 正整数或 `all`。默认为 100。在分组查询中，限制应用于每个分组内部。                                                                                                     |
 | `library`         | `personal`、`group:<groupID>`、逗号分隔列表、JSON 数组或 `all`。默认值来自文库范围设置。                                                                               |
-| `output`          | 用于写入完整 JSON 结果的新绝对文件路径。                                                                                                                               |
+| `output`          | 用于写入完整 JSON 结果的新绝对文件路径。导出需要本地 Zotero 数据库：使用 Zotero 在线文库时，查询返回 `export-unavailable`。                                            |
 | `id`              | 供 `zotlit:query-cancel` 使用的查询 ID。                                                                                                                               |
 | `this-item`       | 条目的索引标识符（Indexed Key）。筛选器将其作为 `this.item` 读取。参见[查询上下文](#query-context)。                                                                   |
 | `this-attachment` | 附件的索引标识符。筛选器将其作为 `this.attachment` 读取。参见[查询上下文](#query-context)。                                                                            |
@@ -752,7 +752,7 @@ obsidian zotlit:query-values kind=collections match=thesis
 
 `zotlit:query-guide` 接受 `datasets`、`filter`、`fields`、`sort`、`group`、`results`、`schema`、`values` 或 `cancel` 作为主题参数。省略 `topic` 则输出完整指南。
 
-查询结果遵循 CLI 契约版本 3（CLI Contract version 3）。JSON 外层包含 `command: "zotlit:query"`；`request.from` 标明数据集，`request.library` 标明其文库。顶层的 `libraries` 字段描述了 ZotLit 读取的文库。
+每个响应都以 `contractVersion` 报告其 CLI 契约版本（CLI Contract version）。JSON 外层包含 `command: "zotlit:query"`；`identity.source` 标明来源：`kind: "file"` 表示本地 Zotero 数据库，`kind: "web-api"` 表示 Zotero 在线文库及其账户；`request.from` 标明数据集，`request.library` 标明其文库。顶层的 `libraries` 字段描述了 ZotLit 读取的文库。
 
 在报告空结果前请先查看 `warnings`。发生失败时，请阅读 `diagnostic.report` 并按照其最终的恢复操作指引进行处理。
 

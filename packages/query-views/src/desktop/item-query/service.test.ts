@@ -1,3 +1,4 @@
+import type { QueryJob } from "#worker/item-query/worker-protocol.ts";
 import { describe, expect, it, vi } from "@effect/vitest";
 import {
   Cause,
@@ -30,6 +31,7 @@ import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.t
 import type { Ledger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { delimited } from "@zotlit/shared/delimited";
 import {
+  fileConfig,
   inProcessClient,
   inProcessReadsService,
   sharedClientOpener,
@@ -43,16 +45,16 @@ import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts
 import type { ZoteroReadsClient } from "@zotlit/zotero-reads/contract/rpc.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 import type { ConnectionOpener } from "@zotlit/zotero-reads/worker/connection.ts";
+import type { QueryJobRunner } from "@zotlit/zotero-reads/worker/handlers.ts";
 
-import { queryCancelledText } from "./contract.ts";
 import { queryJobRunner } from "./job.ts";
 import { QueryService } from "./service.ts";
-import type { QueryJob } from "./worker-protocol.ts";
 
 import {
   buildQueryService,
   layerTestQueryService,
 } from "#__fixtures__/item-query.ts";
+import { queryCancelledText } from "#worker/item-query/contract.ts";
 
 const scenarioOf = (options?: Parameters<typeof openScenarioDatabase>[1]) =>
   Effect.acquireDisposable(
@@ -90,10 +92,15 @@ function counter() {
 const harness = Effect.fnUntraced(function* (
   scenario: ScenarioDatabase<NodeDatabaseClient>,
   opener: ConnectionOpener = sharedClientOpener(scenario.db),
+  queryJobs: QueryJobRunner = queryJobRunner,
 ) {
   const { state, wrap } = counter();
   const client = Effect.map(
-    inProcessClient(layerRcRef(opener), { queryJobs: queryJobRunner }),
+    inProcessClient(
+      layerRcRef(opener),
+      { queryJobs },
+      fileConfig(scenario.path, SOURCE(scenario).sourceId),
+    ),
     (client) => wrap(client),
   );
   const { reads } = Context.get(
@@ -237,12 +244,16 @@ describe.each(DATASETS)("$dataset CLI dataset through the service", (cli) => {
           "rows",
         ]);
         expect(answer).toMatchObject({
-          contractVersion: 3,
+          contractVersion: 4,
           command,
           ok: true,
           identity: {
             vault: { name: "Query tests" },
-            source: { id: "captured-source", databasePath: scenario.path },
+            source: {
+              kind: "file",
+              id: "captured-source",
+              databasePath: scenario.path,
+            },
           },
           returnedCount: cli.returnedCount,
         });
@@ -272,7 +283,7 @@ describe.each(DATASETS)("$dataset CLI dataset through the service", (cli) => {
           expect(
             yield* json(service.query({ from: second, id: "job" })),
           ).toEqual({
-            contractVersion: 3,
+            contractVersion: 4,
             command: answered,
             ok: false,
             diagnostic: expect.objectContaining({
@@ -378,7 +389,7 @@ describe.each(DATASETS)("$dataset CLI dataset through the service", (cli) => {
           "defaults",
         ]);
         expect(answer).toMatchObject({
-          contractVersion: 3,
+          contractVersion: 4,
           command: schemaCommand,
           ok: true,
           identity: { source: { id: "captured-source" } },
@@ -402,7 +413,7 @@ describe.each(DATASETS)("$dataset CLI dataset through the service", (cli) => {
         expect(
           yield* json(service.schema({ from: dataset, library: "personal" })),
         ).toMatchObject({
-          contractVersion: 3,
+          contractVersion: 4,
           command: schemaCommand,
           ok: false,
           diagnostic: {
@@ -430,7 +441,7 @@ describe.each(DATASETS)("$dataset CLI dataset through the service", (cli) => {
             }),
           ),
         ).toMatchObject({
-          contractVersion: 3,
+          contractVersion: 4,
           command,
           ok: false,
           diagnostic: { code: "unknown-field" },
@@ -962,7 +973,7 @@ it.effect.each([
         service.query({ from: "annotations", filter }),
       );
       expect(result).toMatchObject({
-        contractVersion: 3,
+        contractVersion: 4,
         command: "zotlit:query",
         ok: false,
         diagnostic: {
@@ -1040,7 +1051,7 @@ it.effect("describes all three Query Datasets once when from is omitted", () =>
     );
     const result = yield* json(service.schema({}));
     expect(result).toMatchObject({
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query-schema",
       ok: true,
     });
@@ -1134,7 +1145,7 @@ it.effect(
       expect(
         yield* json(service.values({ kind: "collections", match: "thesis" })),
       ).toMatchObject({
-        contractVersion: 3,
+        contractVersion: 4,
         command: "zotlit:query-values",
         ok: true,
         identity: { source: { id: "captured-source" } },

@@ -8,6 +8,7 @@ import { openTestBridge } from "@zotlit/plugin-kernel/__fixtures__/effect-bridge
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { LibrarySource } from "@zotlit/plugin-services/obsidian/library-source/service.ts";
 import {
   inProcessClient,
   memoryOpener,
@@ -56,13 +57,52 @@ const OPENABLE_FIXTURE = [
   },
 ];
 
+const NO_PDFS = { attachments: [], filesUnavailable: false };
+
 describe("literatureNoteAttachments", () => {
+  it.effect(
+    "answers no Attachments while the online library is the source, and says that its PDF files are not on this computer",
+    () =>
+      Effect.gen(function* () {
+        const result = yield* literatureNoteAttachments("ABCD2345").pipe(
+          Effect.provide(services()),
+          Effect.provideService(
+            LibrarySource,
+            stubService<LibrarySource["Service"]>("LibrarySource", {
+              active: "web-api",
+            }),
+          ),
+        );
+        expect(result).toStrictEqual({
+          attachments: [],
+          filesUnavailable: true,
+        });
+      }),
+  );
+
+  it.effect(
+    "says nothing of files for an Item without a PDF under the online library",
+    () =>
+      Effect.gen(function* () {
+        const result = yield* literatureNoteAttachments("NOPDF234").pipe(
+          Effect.provide(services()),
+          Effect.provideService(
+            LibrarySource,
+            stubService<LibrarySource["Service"]>("LibrarySource", {
+              active: "web-api",
+            }),
+          ),
+        );
+        expect(result).toStrictEqual(NO_PDFS);
+      }),
+  );
+
   it.effect("answers no Attachments while the database cannot be read", () =>
     Effect.gen(function* () {
       const result = yield* literatureNoteAttachments("ABCD2345").pipe(
         Effect.provide(services(null)),
       );
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual(NO_PDFS);
     }),
   );
 
@@ -73,7 +113,7 @@ describe("literatureNoteAttachments", () => {
         const result = yield* literatureNoteAttachments("ABCD2345g999").pipe(
           Effect.provide(services()),
         );
-        expect(result).toStrictEqual([]);
+        expect(result).toStrictEqual(NO_PDFS);
       }),
   );
 
@@ -84,7 +124,7 @@ describe("literatureNoteAttachments", () => {
         const result = yield* literatureNoteAttachments("ZZZZ2345").pipe(
           Effect.provide(services()),
         );
-        expect(result).toStrictEqual([]);
+        expect(result).toStrictEqual(NO_PDFS);
       }),
   );
 
@@ -93,7 +133,7 @@ describe("literatureNoteAttachments", () => {
       const result = yield* literatureNoteAttachments("NOPDF234").pipe(
         Effect.provide(services()),
       );
-      expect(result).toStrictEqual([]);
+      expect(result).toStrictEqual(NO_PDFS);
     }),
   );
 
@@ -102,7 +142,10 @@ describe("literatureNoteAttachments", () => {
       const result = yield* literatureNoteAttachments("ABCD2345").pipe(
         Effect.provide(services()),
       );
-      expect(result).toStrictEqual(OPENABLE_FIXTURE);
+      expect(result).toStrictEqual({
+        attachments: OPENABLE_FIXTURE,
+        filesUnavailable: false,
+      });
     }),
   );
 });
@@ -132,7 +175,10 @@ describe("bindLiteratureNoteAttachments", () => {
         yield* Effect.promise(() =>
           handle.literatureNoteAttachments("ABCD2345"),
         ),
-      ).toStrictEqual(OPENABLE_FIXTURE);
+      ).toStrictEqual({
+        attachments: OPENABLE_FIXTURE,
+        filesUnavailable: false,
+      });
     }),
   );
 
@@ -166,7 +212,7 @@ describe("bindLiteratureNoteAttachments", () => {
         yield* Effect.promise(() =>
           handle.literatureNoteAttachments("ABCD2345"),
         ),
-      ).toStrictEqual([]);
+      ).toStrictEqual(NO_PDFS);
     }),
   );
 });

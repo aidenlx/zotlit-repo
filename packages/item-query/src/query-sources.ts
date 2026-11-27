@@ -7,12 +7,17 @@ import {
 import type { CollectionPaths, FieldVocabulary } from "@zotlit/db/item-query";
 
 import type { CandidateSources } from "./candidate-plan.ts";
+import {
+  expressionUse,
+  isMissing,
+  missingCustomField,
+  missingFault,
+} from "./custom-field-uses.ts";
+import type { ExpressionUse } from "./custom-field-uses.ts";
 import type { QueryDataset } from "./dataset.ts";
 import { ItemQueryError } from "./error.ts";
 import type { ItemQueryErrorLocation } from "./error.ts";
-import type { ItemQueryFault, Span } from "./fault.ts";
-import type { FilterPlan } from "./filter-plan.ts";
-import type { FormulaSourceCheck, FormulaSourceFault } from "./formulas.ts";
+import type { FormulaSourceCheck } from "./formulas.ts";
 import type { LoadRequest } from "./record-loader.ts";
 import type { ItemQueryRequest, TargetLibrary } from "./request.ts";
 
@@ -132,79 +137,13 @@ export const openQuerySources = Effect.sync(() => {
 });
 export type QuerySources = Effect.Success<typeof openQuerySources>;
 
-interface ExpressionUse {
-  readonly name: string;
-  readonly bare: boolean;
-  readonly deferred?: Extract<ItemQueryFault, { kind: "unknown" }>;
-  readonly dotted?: boolean;
-  readonly at: Span;
-}
-
 interface CustomFieldUse extends Omit<ExpressionUse, "at"> {
   readonly location: ItemQueryErrorLocation;
   readonly argumentText?: string;
 }
 
-function expressionUse(
-  {
-    name,
-    bare,
-    from,
-    to,
-    deferred,
-    dotted,
-  }: FilterPlan["customFields"][number],
-  known: ReadonlySet<string>,
-): ExpressionUse {
-  return dotted && !known.has(name) && known.has(dotted.name)
-    ? {
-        name: dotted.name,
-        bare,
-        dotted: true,
-        at: { from: dotted.from, to: dotted.to },
-      }
-    : { name, bare, deferred, at: { from, to } };
-}
-
-function isMissing(
-  { name, deferred, dotted }: Omit<ExpressionUse, "at">,
-  known: ReadonlySet<string>,
-): boolean {
-  return Boolean(dotted || deferred || !known.has(name));
-}
-
-function missingFault(
-  names: readonly string[],
-  { name, bare, deferred, dotted }: Omit<ExpressionUse, "at">,
-  at: Span,
-): ItemQueryFault {
-  return deferred && !names.includes(name)
-    ? deferred
-    : {
-        kind: "unknown",
-        role: bare && !deferred && !dotted ? "field" : "custom-field",
-        name,
-        at,
-        customFields: names,
-        ...(deferred || dotted ? { dotted: true } : {}),
-      };
-}
-
-export function missingCustomField(
-  plan: Pick<FilterPlan, "customFields">,
-  names: readonly string[],
-): FormulaSourceFault | null {
-  const known = new Set(names);
-  for (const use of plan.customFields) {
-    const read = expressionUse(use, known);
-    if (isMissing(read, known))
-      return { fault: missingFault(names, read, read.at), at: read.at };
-  }
-  return null;
-}
-
 function unknownCustomField(
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
   names: readonly string[],
   use: CustomFieldUse,
 ): Effect.Effect<never, ItemQueryError> {

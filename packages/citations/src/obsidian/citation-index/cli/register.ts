@@ -5,8 +5,9 @@ import type { CliHost } from "@zotlit/obsidian-kit/cli-command.ts";
 import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
-import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
-import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { readSourceIdentity } from "@zotlit/plugin-services/obsidian/library-source/identity.ts";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
+import type { SourceIdentity } from "@zotlit/zotero-reads/contract/source-identity.ts";
 
 import {
   ANNOTATION_USES_COMMAND,
@@ -30,17 +31,13 @@ interface CitationsCliRegistrationDeps {
     CitationIndex["Service"],
     "readCitedBy" | "readReferences" | "readAnnotationUses"
   >;
-  zoteroPref: {
-    readonly current: Effect.Effect<
-      Pick<ZoteroPrefSnapshot, "sourceId" | "databasePath">
-    >;
-  };
+  readSource: Effect.Effect<SourceIdentity | null>;
 }
 
 export const layerCitationsCli: Layer.Layer<
   never,
   never,
-  PluginHost | ObsidianEnv | VaultDisk | CitationIndex | ZoteroPref
+  PluginHost | ObsidianEnv | VaultDisk | CitationIndex | ZoteroReads
 > = Layer.effectDiscard(
   Effect.gen(function* () {
     const host = yield* PluginHost;
@@ -48,7 +45,10 @@ export const layerCitationsCli: Layer.Layer<
       vaultName: (yield* ObsidianEnv).vaultName,
       vaultDisk: yield* VaultDisk,
       citationIndex: yield* CitationIndex,
-      zoteroPref: yield* ZoteroPref,
+      readSource: Effect.provideContext(
+        readSourceIdentity,
+        yield* Effect.context<ZoteroReads>(),
+      ),
     });
   }),
 );
@@ -90,12 +90,12 @@ export function registerCitationsCli(
 ): void {
   const handlers = createCitationsCliHandlers({
     getIdentity: () =>
-      Effect.map(deps.zoteroPref.current, ({ sourceId, databasePath }) => ({
+      Effect.map(deps.readSource, (source) => ({
         vault: {
           name: deps.vaultName,
           path: deps.vaultDisk.basePath,
         },
-        source: { id: sourceId, databasePath },
+        source,
       })),
     index: deps.citationIndex,
   });

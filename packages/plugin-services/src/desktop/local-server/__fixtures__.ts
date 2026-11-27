@@ -2,6 +2,7 @@ import type { Settings, SettingsDefinition } from "#core/settings/schema.ts";
 import type { ZoteroPrefSnapshot } from "#core/zotero-pref/service.ts";
 import { Effect, Layer } from "effect";
 
+import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import { buildRuntime } from "@zotlit/plugin-kernel/effect-layer.ts";
 
@@ -56,6 +57,7 @@ export async function buildLocalServer(
       Layer.provideMerge(settingsLayer),
       Layer.provide(prefLayer),
       Layer.provide(noteIndexLayer),
+      Layer.provide(testNotifier().layer),
     ),
     stack,
   );

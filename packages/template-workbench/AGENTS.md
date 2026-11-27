@@ -27,8 +27,9 @@ A unit's source imports the units listed before it; a test may also read the Wor
 
 ## Layers
 
-Each layer is one folder of `src/` and one runtime zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)). A new file goes in the folder of what it needs from its host: `core/` is the host-free zone (the DOM, no host module), `obsidian/` the Obsidian zone (the `obsidian` module; it loads on Obsidian Mobile), and `desktop/` the desktop zone (Node and Electron). A layer reaches the layers below it: core ← obsidian ← desktop. The runtime check (`pnpm run lint:runtime-zones`) follows each import, type-only imports included, and fails on reach to a higher zone or to test support. Lint refuses Node built-in imports and the Node globals outside `desktop/`.
+Each layer is one folder of `src/` and one runtime zone ([ADR 0117](../../docs/adr/0117-runtime-zones-are-checked-by-the-module-graph.md)). A new file goes in the folder of what it needs from its host: `worker/` is the Worker zone (no DOM, host module or Node), `core/` is the host-free zone (the DOM, no host module), `obsidian/` the Obsidian zone (the `obsidian` module; it loads on Obsidian Mobile), and `desktop/` the desktop zone (Node and Electron). A layer reaches the layers below it: worker ← core ← obsidian ← desktop. The runtime check (`pnpm run lint:runtime-zones`) follows each import, type-only imports included, and fails on reach to a higher zone or to test support. Lint refuses Node built-in imports and the Node globals outside `desktop/`.
 
+- `worker/` — the Worker zone: the Workbench identity and the schema asset types of the CLI envelope (`worker/cli/`), which the Query Job of `@zotlit/query-views` writes in the ZoteroReads Worker.
 - `core/` — host-free: the Workbench core, the contract schemas and vocabulary of the CLI, and the Item choice data.
 - `obsidian/` — loads on Obsidian Mobile: the Workbench UI, the editor unit, the Match data and the citations of the Preview, and the view pieces that read no template data.
 - `desktop/` — Node and Electron: the CLI, the Data Explorer and the View, which read template data that links files on disk.

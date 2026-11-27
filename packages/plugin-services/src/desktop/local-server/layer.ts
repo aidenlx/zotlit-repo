@@ -7,16 +7,27 @@ import type { NoteStatusSource } from "#obsidian/local-server/live-update-app.ts
 import type { Settings } from "#obsidian/settings/service.ts";
 import { serve } from "@hono/node-server";
 import type { ServerType } from "@hono/node-server";
-import { Cause, Effect, Layer, PubSub, Stream, SubscriptionRef } from "effect";
+import {
+  Cause,
+  Effect,
+  Layer,
+  Option,
+  PubSub,
+  Stream,
+  SubscriptionRef,
+} from "effect";
 import { Hono } from "hono/tiny";
 
+import { Notifier } from "@zotlit/obsidian-kit/notifier.ts";
 import { scopedBridge, valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { forkEach } from "@zotlit/plugin-kernel/effect-stream.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { DbUpdated, NotifyEvent } from "@zotlit/protocol";
 
 import { LocalServer } from "#core/local-server/service.ts";
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
+import { LibrarySource } from "#obsidian/library-source/service.ts";
 import { createLiveUpdateApp } from "#obsidian/local-server/live-update-app.ts";
 import { NoteIndex } from "#obsidian/note-index/service.ts";
 import { PluginSettings } from "#obsidian/settings/service.ts";
@@ -30,12 +41,14 @@ type BindResult = { server: ServerType; port: number } | "in-use" | "failed";
 export const layerLocalServer: Layer.Layer<
   LocalServer,
   never,
-  PluginSettings | ZoteroPref | NoteIndex
+  PluginSettings | ZoteroPref | NoteIndex | Notifier
 > = Layer.effect(
   LocalServer,
   Effect.gen(function* () {
     const settings = yield* PluginSettings;
     const zoteroPref = yield* ZoteroPref;
+    const librarySource = yield* Effect.serviceOption(LibrarySource);
+    const notifier = yield* Notifier;
     const noteIndex = yield* NoteIndex;
 
     const { runSync: run, runPromiseExit } = yield* scopedBridge;
@@ -228,6 +241,10 @@ export const layerLocalServer: Layer.Layer<
       createLiveUpdateApp({
         enabled: () => liveUpdateEnabled,
         acceptedSourceIds: () => run(zoteroPref.current).acceptedSourceIds,
+        refusedForSource: () =>
+          run(Effect.asVoid(notifier.show(m.notice_needs_local_zotero()))),
+        localItemIds: () =>
+          Option.isNone(librarySource) || librarySource.value.active === "file",
         noteIndex: noteStatus,
         onNotify: dispatch,
         onUpdateMany: (event) => void PubSub.publishUnsafe(updateMany, event),

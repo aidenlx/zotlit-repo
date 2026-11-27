@@ -183,6 +183,33 @@ describe("fetchBibliography", () => {
       }),
   );
 
+  it.effect(
+    "reads the bibliography by key from the Zotero Local API, and asks Better BibTeX nothing, while the online library is the source",
+    () =>
+      Effect.gen(function* () {
+        const deps = ports({
+          rpc: {
+            "api.ready": { zotero: "7.0.9", betterbibtex: "6.7.200" },
+            "item.citationkey": { "1:AAAA1111": "doe2020" },
+            "item.export": JSON.stringify([csl("doe2020", "Stale")]),
+          },
+          api: {
+            "users/0": [
+              { key: "AAAA1111", csljson: [csl("uri", "On Things")] },
+            ],
+          },
+        });
+
+        const result = yield* fetchBibliography([DOE], {
+          ...deps,
+          localLibraryIDs: false,
+        });
+
+        expect(titles(result)).toEqual([["AAAA1111", "On Things"]]);
+        expect(deps.calls.some((call) => call.url === RPC_URL)).toBe(false);
+      }),
+  );
+
   it.effect("prefers Better BibTeX when its endpoint answers", () =>
     Effect.gen(function* () {
       const deps = ports({

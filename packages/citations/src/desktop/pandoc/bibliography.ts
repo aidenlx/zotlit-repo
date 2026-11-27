@@ -31,6 +31,7 @@ export interface BibliographyItemRef {
 export interface BibliographyPorts {
   httpPort: number | null;
   localApiEnabled: boolean;
+  localLibraryIDs?: boolean;
 }
 
 export type BibliographyFailure =
@@ -62,6 +63,12 @@ export const fetchBibliography = Effect.fn("Bibliography.fetchBibliography")(
     }
 
     const resolvedPorts = { ...ports, httpPort: ports.httpPort };
+    if (ports.localLibraryIDs === false) {
+      yield* Effect.logDebug(
+        "The online library is the source; the bibliography comes from the local API by key",
+      );
+      return yield* fromLocalApi(refs, resolvedPorts);
+    }
 
     const probe = yield* callJsonRpc(resolvedPorts, "api.ready", []);
     if (probe.ok) return yield* fromBetterBibtex(refs, resolvedPorts);

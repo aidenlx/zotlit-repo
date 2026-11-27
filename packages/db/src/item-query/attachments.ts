@@ -13,7 +13,7 @@ import type {
 } from "./database.ts";
 import { HYDRATE_CHUNK_SIZE } from "./hydrate-chunk.ts";
 import { recordUniverse } from "./record-universe.ts";
-import { SCAN_PAGE_SIZE } from "./scan-page.ts";
+import { epochMilliseconds, SCAN_PAGE_SIZE } from "./scan-page.ts";
 import type { ScanRow } from "./scan-page.ts";
 
 import {
@@ -41,18 +41,18 @@ function selectAttachments(db: ZoteroDatabase) {
       itemID: items.itemID,
       key: items.key,
       itemType: sql<string>`'attachment'`,
-      dateAdded: sql<number | null>`unixepoch(${items.dateAdded}) * 1000`,
-      dateModified: sql<number | null>`unixepoch(${items.dateModified}) * 1000`,
-      lastRead: sql<number | null>`${itemAttachments.lastRead} * 1000`,
+      dateAdded: epochMilliseconds(items.dateAdded),
+      dateModified: epochMilliseconds(items.dateModified),
+      lastRead: sql<number | null>`${itemAttachments.lastRead} * 1000`.mapWith(
+        Number,
+      ),
       libraryID: items.libraryID,
       parent: {
         itemID: parent.itemID,
         key: parent.key,
         itemType: itemTypesCombined.typeName,
-        dateAdded: sql<number | null>`unixepoch(${parent.dateAdded}) * 1000`,
-        dateModified: sql<
-          number | null
-        >`unixepoch(${parent.dateModified}) * 1000`,
+        dateAdded: epochMilliseconds(parent.dateAdded),
+        dateModified: epochMilliseconds(parent.dateModified),
       },
     })
     .from(items)
@@ -190,8 +190,8 @@ const details = defineStatement<Record<IdSlot, number | null>>(
       contentType: itemAttachments.contentType,
       dateAdded: items.dateAdded,
       dateModified: items.dateModified,
-      title: sql<string | number | null>`${titleValue.value}`,
-      url: sql<string | number | null>`${urlValue.value}`,
+      title: titleValue.value,
+      url: urlValue.value,
     })
     .from(itemAttachments)
     .innerJoin(items, eq(items.itemID, itemAttachments.itemID))

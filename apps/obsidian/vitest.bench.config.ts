@@ -7,6 +7,8 @@ import { obsidianMock, obsidianSetupFile } from "@zotlit/obsidian-kit/vitest";
 import { effectEntry } from "@zotlit/plugin-kernel/vite";
 import { PLUGIN_KERNEL, pluginPackages } from "@zotlit/scripts/plugin-packages";
 
+import { SQLITE_ENGINE_VERSION } from "./scripts/sqlite-engine.ts";
+
 const packageRoot = import.meta.dirname;
 
 export default defineConfig({
@@ -21,6 +23,14 @@ export default defineConfig({
         packageRoot,
         "__mocks__/worker-source.ts",
       ),
+      "virtual:zotero-reads-web-worker": resolve(
+        packageRoot,
+        "__mocks__/worker-thunk.ts",
+      ),
+      "virtual:temporal-piece": resolve(
+        packageRoot,
+        "__mocks__/temporal-piece.ts",
+      ),
     },
     tsconfigPaths: true,
   },
@@ -29,6 +39,7 @@ export default defineConfig({
     __DEV__: JSON.stringify(true),
     __ANNOTATION_SUGGESTER_ENABLED__: JSON.stringify(true),
     __DOCS_SITE_URL__: JSON.stringify("https://zotlit.aidenlx.site"),
+    __SQLITE_ENGINE_VERSION__: JSON.stringify(SQLITE_ENGINE_VERSION),
   },
   plugins: [
     effectEntry("renderer", {

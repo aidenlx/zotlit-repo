@@ -2,6 +2,11 @@ import type {
   ZoteroPrefSnapshot,
   ZoteroProfileInfo,
 } from "#core/zotero-pref/service.ts";
+import type {
+  LibrarySourceKind,
+  LibrarySourceView,
+} from "#obsidian/library-source/service.ts";
+import type { OnlineLibraryStatus } from "#obsidian/library-source/status.ts";
 import type { SettingTabContext } from "#obsidian/setting-tab/context.ts";
 // @vitest-environment happy-dom
 import { expect, it } from "@effect/vitest";
@@ -16,13 +21,16 @@ import {
   SubscriptionRef,
 } from "effect";
 import { TestClock } from "effect/testing";
+import type { SettingDefinitionItem, SettingGroupItem } from "obsidian";
 
 import { testNotifier } from "@zotlit/obsidian-kit/__fixtures__/notifier.ts";
 import {
+  ButtonComponent,
   DropdownComponent,
   ExtraButtonComponent,
   renderRow,
 } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type {
@@ -32,6 +40,7 @@ import type {
 } from "@zotlit/zotero-reads/client/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { DbUnavailable } from "@zotlit/zotero-reads/contract/rpc.ts";
+import type { WebSyncStatus } from "@zotlit/zotero-reads/contract/web-worker-rpc.ts";
 
 import {
   databaseFileItem,
@@ -43,6 +52,14 @@ import { platformDefaults } from "#__fixtures__/platform-settings.ts";
 import { failureOf, recordingRuns } from "#__fixtures__/setting-tab-harness.ts";
 import { scopedSettingTab } from "#__fixtures__/setting-tab.ts";
 import { ZoteroPref } from "#core/zotero-pref/service.ts";
+import { LibrarySource } from "#obsidian/library-source/service.ts";
+import {
+  CREATE_KEY_URL,
+  keySecretControl,
+  librarySourceItems,
+  librarySourceRebuild,
+  WEB_API_KEY_CONTROL,
+} from "#obsidian/library-source/settings-rows.ts";
 import {
   PluginSettings,
   SettingsMutationError,
@@ -356,4 +373,322 @@ it.effect("ends a done refresh with no failure", () =>
   Effect.gen(function* () {
     expect(Exit.isSuccess(yield* refreshExit(Effect.void))).toBe(true);
   }),
+);
+
+const ONLINE_SYNCING: WebSyncStatus = {
+  state: "loading",
+  syncing: true,
+  waitingForReaders: false,
+  problem: null,
+  progress: {
+    library: { type: "user", id: 42 },
+    phase: "items",
+    done: 100,
+    total: 2500,
+  },
+  zoteroLocale: "en-US",
+  unconsentedUserID: null,
+  libraries: [],
+};
+
+const setupSource = Effect.fn("setupSource")(function* (
+  active: LibrarySourceKind,
+) {
+  const view = yield* SubscriptionRef.make<LibrarySourceView>({
+    selected: active,
+    status: active === "file" ? { kind: "file-source" } : { kind: "no-key" },
+    actions: { syncNow: false, replace: null, remove: true },
+  });
+  const show = (
+    status: OnlineLibraryStatus,
+    actions: LibrarySourceView["actions"] = {
+      syncNow: true,
+      replace: null,
+      remove: true,
+    },
+  ) =>
+    SubscriptionRef.update(view, (before) => ({ ...before, status, actions }));
+  const calls: string[] = [];
+  let keySecret: string | null = null;
+  const services = yield* Layer.build(
+    Layer.mergeAll(
+      Layer.mock(LibrarySource)({
+        active,
+        reads: null,
+        view: SubscriptionRef.get(view),
+        viewChanges: SubscriptionRef.changes(view),
+        select: (kind) =>
+          Effect.andThen(
+            Effect.sync(() => calls.push(`select:${kind}`)),
+            SubscriptionRef.update(view, (before) => ({
+              ...before,
+              selected: kind,
+            })),
+          ),
+        keySecret: Effect.sync(() => keySecret),
+        selectKeySecret: (name) =>
+          Effect.sync(() => {
+            keySecret = name;
+            calls.push(`selectKeySecret:${name}`);
+          }),
+        syncNow: Effect.sync(() => {
+          calls.push("syncNow");
+        }),
+        reload: Effect.sync(() => {
+          calls.push("reload");
+        }),
+        language: Effect.succeed({
+          setting: "auto",
+          automatic: "en-GB",
+          effective: "en-GB",
+        }),
+      }),
+      Layer.succeed(
+        ObsidianEnv,
+        stubService<ObsidianEnv["Service"]>("ObsidianEnv", {
+          language: "en",
+        }),
+      ),
+    ),
+  );
+  const { tab } = recordingRuns((yield* scopedSettingTab(services)).tab);
+  const ctx = stubService<SettingTabContext>("SettingTabContext", {
+    tab,
+    app: {} as SettingTabContext["app"],
+  });
+  const [group] = librarySourceItems(ctx) as unknown as [
+    { readonly items: SettingDefinitionItem<string>[] },
+  ];
+  const row = (id: string) => {
+    const found = group.items.find(
+      (item) => (item as SettingGroupItem<string>).id === id,
+    ) as SettingGroupItem<string> | undefined;
+    if (!found) throw new Error(`Expected a row: ${id}`);
+    return found;
+  };
+  const visible = (id: string) => {
+    const shown = row(id).visible;
+    return typeof shown === "function" ? shown() : shown !== false;
+  };
+  const render = (id: string) =>
+    Effect.gen(function* () {
+      const setting = renderRow(row(id));
+      yield* Effect.addFinalizer(() => Effect.sync(() => setting.cleanup?.()));
+      yield* TestClock.adjust("0 millis");
+      return {
+        setting,
+        text: () =>
+          (setting.desc as unknown as DocumentFragment).textContent ?? "",
+      };
+    });
+  return { show, calls, row, visible, render, services };
+});
+
+it.effect(
+  "offers the two library sources and asks for a reload after a change",
+  () =>
+    Effect.gen(function* () {
+      const { calls, render, visible } = yield* setupSource("file");
+      const { setting } = yield* render("settings_library_source");
+      const dropdown = setting.components.find(
+        (component) => component instanceof DropdownComponent,
+      )!;
+      expect(dropdown.options).toEqual([
+        { value: "file", label: m.settings_library_source_file() },
+        { value: "web-api", label: m.settings_library_source_web_api() },
+      ]);
+      expect(dropdown.getValue()).toBe("file");
+      expect(visible("settings_library_source_reload")).toBe(false);
+      expect(visible("settings_online_key")).toBe(false);
+
+      dropdown.choose("web-api");
+      yield* TestClock.adjust("0 millis");
+      expect(calls).toEqual(["select:web-api"]);
+      expect(visible("settings_library_source_reload")).toBe(true);
+      expect(visible("settings_online_key")).toBe(true);
+      expect(visible("settings_online_language")).toBe(true);
+      expect(visible("settings_online_status")).toBe(false);
+
+      const reload = yield* render("settings_library_source_reload");
+      (
+        reload.setting.components.find(
+          (component) => component instanceof ButtonComponent,
+        ) as ButtonComponent
+      ).click();
+      yield* TestClock.adjust("0 millis");
+      expect(calls).toEqual(["select:web-api", "reload"]);
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "binds the key row to a secret of Obsidian's keychain, and keeps only the secret's name through the library source",
+  () =>
+    Effect.gen(function* () {
+      const { calls, row, services } = yield* setupSource("web-api");
+      const key = row("settings_online_key") as {
+        readonly control?: unknown;
+        readonly desc?: DocumentFragment;
+      };
+      expect(key.control).toEqual({
+        type: "secret",
+        key: WEB_API_KEY_CONTROL,
+      });
+      expect(key.desc?.textContent).toContain(m.settings_online_key_create());
+      expect(key.desc?.querySelector("a")?.getAttribute("href")).toBe(
+        CREATE_KEY_URL,
+      );
+      expect(keySecretControl.claims(WEB_API_KEY_CONTROL)).toBe(true);
+      expect(
+        yield* keySecretControl
+          .read(WEB_API_KEY_CONTROL)
+          .pipe(Effect.provideContext(services)),
+      ).toBe("");
+      yield* keySecretControl
+        .write(WEB_API_KEY_CONTROL, "zotero-reading-key")
+        .pipe(Effect.provideContext(services));
+      expect(calls).toEqual(["selectKeySecret:zotero-reading-key"]);
+      expect(
+        yield* keySecretControl
+          .read(WEB_API_KEY_CONTROL)
+          .pipe(Effect.provideContext(services)),
+      ).toBe("zotero-reading-key");
+    }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "redraws the settings when the online library returns to no key, so the key row shows the cleared secret at once",
+  () =>
+    Effect.gen(function* () {
+      const { show, services } = yield* setupSource("web-api");
+      const rebuilds = yield* Queue.unbounded<string>();
+      yield* (yield* librarySourceRebuild.pipe(
+        Effect.provideContext(services),
+      )).pipe(
+        Stream.runForEach((signal) => Queue.offer(rebuilds, signal)),
+        Effect.forkScoped,
+      );
+      yield* TestClock.adjust("0 millis");
+      yield* show({
+        kind: "running",
+        sync: {
+          ...ONLINE_SYNCING,
+          syncing: false,
+          progress: null,
+          state: "ready",
+        },
+        account: "ada",
+        serverSchemaVersion: null,
+      });
+      yield* TestClock.adjust("0 millis");
+      const before = yield* Queue.size(rebuilds);
+      yield* show({ kind: "no-key" });
+      yield* TestClock.adjust("0 millis");
+      expect((yield* Queue.size(rebuilds)) - before).toBe(1);
+    }).pipe(Effect.scoped),
+);
+
+it.effect("names the account that Zotero accepted for the key", () =>
+  Effect.gen(function* () {
+    const { render, show } = yield* setupSource("web-api");
+    const { text } = yield* render("settings_online_status");
+    yield* show({
+      kind: "running",
+      sync: {
+        ...ONLINE_SYNCING,
+        syncing: false,
+        progress: null,
+        state: "ready",
+      },
+      account: "ada",
+      serverSchemaVersion: null,
+    });
+    yield* TestClock.adjust("0 millis");
+    expect(text()).toContain(
+      m.settings_online_key_accepted({ username: "ada" }),
+    );
+  }).pipe(Effect.scoped),
+);
+
+it.effect("shows the state of the online library and syncs on Sync now", () =>
+  Effect.gen(function* () {
+    const { calls, render, show, visible } = yield* setupSource("web-api");
+    expect(visible("settings_online_status")).toBe(true);
+    expect(visible("settings_online_replace")).toBe(false);
+    const { setting, text } = yield* render("settings_online_status");
+    expect(text()).toBe(m.settings_online_status_no_key());
+
+    yield* show({
+      kind: "running",
+      sync: ONLINE_SYNCING,
+      account: null,
+      serverSchemaVersion: null,
+    });
+    yield* TestClock.adjust("0 millis");
+    expect(text()).toBe(
+      m.settings_online_status_items({ done: 100, total: 2500 }),
+    );
+
+    yield* show({
+      kind: "pack",
+      refusal: { kind: "pack-outdated" },
+    });
+    yield* TestClock.adjust("0 millis");
+    expect(text()).toBe(m.settings_resource_pack_status_pack_outdated());
+
+    (
+      setting.components.find(
+        (component) => component instanceof ButtonComponent,
+      ) as ButtonComponent
+    ).click();
+    yield* TestClock.adjust("0 millis");
+    expect(calls).toEqual(["syncNow"]);
+
+    const accountChanged: OnlineLibraryStatus = {
+      kind: "running",
+      sync: {
+        ...ONLINE_SYNCING,
+        syncing: false,
+        progress: null,
+        state: "degraded",
+        problem: {
+          _tag: "account-changed",
+          message: "",
+          consentedUserID: 1,
+          storedUserID: 1,
+          keyUserID: 2,
+        },
+      },
+      account: null,
+      serverSchemaVersion: null,
+    };
+    yield* show(accountChanged);
+    expect(visible("settings_online_replace")).toBe(false);
+    yield* show(accountChanged, { syncNow: true, replace: 2, remove: true });
+    expect(visible("settings_online_replace")).toBe(true);
+  }).pipe(Effect.scoped),
+);
+
+it.effect(
+  "lists Automatic with the resolved language, then each language of Zotero by name",
+  () =>
+    Effect.gen(function* () {
+      const { row } = yield* setupSource("web-api");
+      const language = row("settings_online_language") as {
+        readonly control?: unknown;
+      };
+      expect(language.control).toMatchObject({
+        type: "dropdown",
+        key: "zotero.language",
+      });
+      const options = (
+        language.control as { readonly options: Record<string, string> }
+      ).options;
+      expect(options["auto"]).toBe(
+        m.settings_online_language_automatic({
+          language: "British English",
+        }),
+      );
+      expect(options["de"]).toBe("German");
+      expect(options["en-US"]).toBe("American English");
+    }).pipe(Effect.scoped),
 );

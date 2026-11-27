@@ -35,6 +35,7 @@
     "@zotlit/resource-pack": "workspace:*",
     "@zotlit/shared": "workspace:*",
     "@zotlit/templates": "workspace:*",
+    "@zotlit/zotero-compat": "workspace:*",
     "@zotlit/zotero-reads": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",

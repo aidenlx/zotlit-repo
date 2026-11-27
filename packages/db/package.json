@@ -12,10 +12,15 @@
   "exports": {
     ".": "./src/index.ts",
     "./client/node": "./src/desktop/node-client.ts",
+    "./client/wasm": "./src/client/wasm.ts",
     "./contract/ir": "./src/contract/ir.ts",
     "./item-fixture": "./src/item-fixture.ts",
     "./item-query": "./src/item-query/index.ts",
     "./path": "./src/lib/zt-path.ts",
+    "./replica": "./src/replica/index.ts",
+    "./replica/parity-pair": "./src/replica/__fixtures__/parity.ts",
+    "./replica/staging-invariants": "./src/replica/__fixtures__/staging-invariants.ts",
+    "./replica/web-api-public-group.json": "./src/replica/__fixtures__/web-api-public-group.json",
     "./template-data": "./src/template-data/index.ts",
     "./contract/ir.json": "./src/contract/generated/ir.json",
     "./contract/ir.runtime.json": "./src/contract/generated/ir.runtime.json",
@@ -28,6 +33,7 @@
   "scripts": {
     "db:pull": "drizzle-kit pull",
     "generate:contract": "node scripts/generate-contract.ts && oxfmt src/contract/generated",
+    "generate:replica-layout": "node scripts/generate-replica-layout.ts && oxfmt src/replica/layout.generated.ts",
     "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.node.json",
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "lint": "oxlint",
@@ -35,8 +41,10 @@
   },
   "dependencies": {
     "@std/collections": "catalog:",
+    "@zotlit/drizzle-sqlite-wasm": "workspace:*",
     "@zotlit/protocol": "workspace:*",
     "@zotlit/shared": "workspace:*",
+    "@zotlit/zotero-compat": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",
     "drizzle-orm": "catalog:",
@@ -44,6 +52,7 @@
     "valibot": "catalog:"
   },
   "devDependencies": {
+    "@sqlite.org/sqlite-wasm": "catalog:",
     "@types/node": "catalog:",
     "@types/node-24": "catalog:",
     "@zotlit/config": "workspace:*",

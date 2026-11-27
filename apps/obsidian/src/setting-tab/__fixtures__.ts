@@ -1,4 +1,4 @@
-import { Context, Effect, FileSystem, Layer } from "effect";
+import { Context, Effect, FileSystem, Layer, Stream } from "effect";
 
 import { ExcerptDisplays } from "@zotlit/annotations/desktop/excerpt-image/display.ts";
 import { CapabilityNotices } from "@zotlit/annotations/obsidian/annotation-repository/notices.ts";
@@ -13,6 +13,7 @@ import { Profile } from "@zotlit/notes/obsidian/profile/service.ts";
 import { Template } from "@zotlit/notes/obsidian/template/service.ts";
 import { TemplateWorkbenchLauncher } from "@zotlit/notes/obsidian/template/workbench-launcher.ts";
 import { ObsidianApp } from "@zotlit/obsidian-kit/obsidian-app.ts";
+import { ObsidianEnv } from "@zotlit/obsidian-kit/obsidian-env.ts";
 import { FileManager } from "@zotlit/obsidian-kit/obsidian-file-manager.ts";
 import { VaultDisk } from "@zotlit/obsidian-kit/obsidian-vault-disk.ts";
 import { Vault } from "@zotlit/obsidian-kit/obsidian-vault.ts";
@@ -26,12 +27,20 @@ import { AttachmentImport } from "@zotlit/plugin-services/desktop/attachment-imp
 import { ChineseSegmenter } from "@zotlit/plugin-services/obsidian/chinese-segmenter/service.ts";
 import { LanguagePack } from "@zotlit/plugin-services/obsidian/language-pack/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { LibrarySource } from "@zotlit/plugin-services/obsidian/library-source/service.ts";
+import type { LibrarySourceView } from "@zotlit/plugin-services/obsidian/library-source/service.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { ZoteroLocalApi } from "@zotlit/plugin-services/obsidian/zotero-local-api/service.ts";
 import { Customize } from "@zotlit/template-workbench/desktop/view/customize.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReadsApi } from "@zotlit/zotero-reads/client/service.ts";
+
+const FILE_SOURCE_VIEW: LibrarySourceView = {
+  selected: "file",
+  status: { kind: "file-source" },
+  actions: { syncNow: false, replace: null, remove: true },
+};
 
 export const unimplementedTabServices = Layer.mergeAll(
   Layer.mock(PluginSettings)({}),
@@ -42,6 +51,21 @@ export const unimplementedTabServices = Layer.mergeAll(
     reads: stubService<ZoteroReadsApi>("ZoteroReads.reads", {}),
   }),
   Layer.mock(LibraryScope)({}),
+  Layer.mock(LibrarySource)({
+    active: "file",
+    reads: null,
+    view: Effect.succeed(FILE_SOURCE_VIEW),
+    viewChanges: Stream.make(FILE_SOURCE_VIEW),
+    language: Effect.succeed({
+      setting: "auto",
+      automatic: "en-US",
+      effective: "en-US",
+    }),
+  }),
+  Layer.succeed(
+    ObsidianEnv,
+    stubService<ObsidianEnv["Service"]>("ObsidianEnv", { language: "en" }),
+  ),
   Layer.mock(LocalServer)({}),
   Layer.mock(Release)({ version: "0.0.0" }),
   Layer.mock(AnnotationRepository)({}),

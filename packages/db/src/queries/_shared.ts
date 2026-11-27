@@ -3,7 +3,7 @@ import type { relations } from "#drizzle/relations.ts";
 import { inArray, sql } from "drizzle-orm";
 import type { AnyColumn, DBQueryConfig, Placeholder, SQL } from "drizzle-orm";
 
-export { CHILD_ITEM_TYPES, type ChildItemType } from "#lib/item-types.ts";
+export { CHILD_ITEM_TYPES } from "#lib/item-types.ts";
 
 export type FindManyOptions<TName extends keyof typeof relations> =
   DBQueryConfig<"many", typeof relations, (typeof relations)[TName]>;

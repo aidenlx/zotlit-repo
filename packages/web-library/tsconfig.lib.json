@@ -1,0 +1,34 @@
+{
+  "extends": ["@zotlit/config/tsconfig"],
+  "compilerOptions": {
+    "target": "es2025",
+    "lib": [
+      "es2025",
+      "esnext.error",
+      "esnext.array",
+      "esnext.disposable",
+      "esnext.temporal",
+      "esnext.intl",
+      "WebWorker"
+    ],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "isolatedDeclarations": false,
+    "types": [],
+    "plugins": [
+      {
+        "name": "@effect/language-service",
+        "effectFn": ["inferred-span"],
+        "allowedUnstableApis": ["@effect/vitest", "effect/testing"]
+      }
+    ]
+  },
+  "include": ["./src/**/*.ts"],
+  "exclude": [
+    "./node_modules",
+    "./src/**/*.test.ts",
+    "./src/__fixtures__/fake-zotero-server.ts",
+    "./src/__fixtures__/scenario.ts",
+    "./src/__fixtures__/harness.ts"
+  ]
+}

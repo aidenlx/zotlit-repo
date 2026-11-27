@@ -1,3 +1,4 @@
+import type { Diagnostic } from "#worker/item-query/contract.ts";
 import { it } from "@effect/vitest";
 import { Deferred, Effect, Fiber, Scheduler } from "effect";
 import { isDeepStrictEqual } from "node:util";
@@ -14,12 +15,15 @@ import { fakeCliHost } from "@zotlit/obsidian-kit/__fixtures__/cli-host.ts";
 import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import { answer } from "./answer.ts";
 import {
   createQueryCancelHandler,
   guideHandler,
   registerQueryCli,
 } from "./cli.ts";
+import { decodeQuery } from "./decode.ts";
+import { GUIDE_EXAMPLES, GUIDE_FILTERS } from "./guide.ts";
+
+import { answer } from "#worker/item-query/answer.ts";
 import {
   DIAGNOSTIC_HINTS,
   diagnostic,
@@ -28,10 +32,7 @@ import {
   QUERY_COMMAND,
   QUERY_GUIDE_COMMAND,
   QUERY_SCHEMA_COMMAND,
-} from "./contract.ts";
-import type { Diagnostic } from "./contract.ts";
-import { decodeQuery } from "./decode.ts";
-import { GUIDE_EXAMPLES, GUIDE_FILTERS } from "./guide.ts";
+} from "#worker/item-query/contract.ts";
 
 const itemQueryGuideHandler = guideHandler;
 
@@ -51,13 +52,14 @@ function answerTextOf(
             scope,
           },
           {
-            identity: {
+            identity: Effect.succeed({
               vault: { name: "Research", path: "/vaults/research" },
               source: {
+                kind: "file" as const,
                 id: "source-1",
                 databasePath: "/zotero/zotero.sqlite",
               },
-            },
+            }),
           },
         ),
       ),
@@ -109,7 +111,7 @@ describe("zotlit:query-cancel", () => {
       const answer = yield* run({ id: "export-a" });
 
       expect(answer).toEqual({
-        contractVersion: 3,
+        contractVersion: 4,
         command: QUERY_CANCEL_COMMAND,
         ok: true,
         id: "export-a",
@@ -126,7 +128,7 @@ describe("zotlit:query-cancel", () => {
         const { run } = cancelOf(["export-a"]);
 
         expect(yield* run({ id: "export-b" })).toEqual({
-          contractVersion: 3,
+          contractVersion: 4,
           command: QUERY_CANCEL_COMMAND,
           ok: true,
           id: "export-b",
@@ -257,7 +259,7 @@ describe("zotlit:query-guide", () => {
       );
 
       expect(answer).toMatchObject({
-        contractVersion: 3,
+        contractVersion: 4,
         command: QUERY_GUIDE_COMMAND,
         ok: false,
         diagnostic: {

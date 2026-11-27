@@ -29,13 +29,16 @@
     "paths": {
       "@/*": ["./src/*"],
       "@brand/*": ["../../assets/logo/*"],
-      "@mock/*": ["./__mocks__/*"]
+      "@mock/*": ["./__mocks__/*"],
+      "@scripts/*": ["./scripts/*"]
     }
   },
   "include": [
     "./src/**/*.ts",
     "./src/**/*.test.tsx",
     "./__mocks__/**/*.ts",
+    "./scripts/web-worker.test.ts",
+    "./scripts/__fixtures__/floor-worker.ts",
     "../../packages/obsidian-kit/src/typings/*.d.ts"
   ],
   "exclude": [

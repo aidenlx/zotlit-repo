@@ -1,6 +1,6 @@
 import type { EffectiveReadMode } from "#contract/rpc.ts";
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
-import type { ChangeEvent, ReadsConfig } from "#contract/rpc.ts";
+import type { ChangeEvent, FileReadsConfig } from "#contract/rpc.ts";
 import * as BrowserWorker from "@effect/platform-browser/BrowserWorker";
 import {
   Cause,
@@ -17,17 +17,26 @@ import {
   Stream,
 } from "effect";
 import type { FileSystem } from "effect";
-import { RpcClient, RpcClientError, RpcSchema, RpcWorker } from "effect/rpc";
+import { RpcClient, RpcWorker } from "effect/rpc";
 
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
 import { layerHostLogPort } from "@zotlit/plugin-kernel/worker/effect-log-port.ts";
 
+import {
+  settledRequests,
+  stoppedErrors,
+  streamOrQueue,
+  untilStopped,
+} from "./settle-on-stop.ts";
+import type { StreamOptions } from "./settle-on-stop.ts";
+
 import { makeStateFeed } from "#contract/change-feed.ts";
 import { DbUnavailable, WorkerInitSchema, ZoteroReads } from "#contract/rpc.ts";
-import { WORKER_CLOSED } from "#contract/worker-signal.ts";
-
-const WORKER_CONCURRENCY = 1024;
+import {
+  WORKER_CLOSED,
+  WORKER_REQUEST_CONCURRENCY,
+} from "#contract/worker-signal.ts";
 
 const WORKER_CLOSE_TIMEOUT = Duration.seconds(5);
 
@@ -49,6 +58,7 @@ interface LiveConnection {
   readonly client: ZoteroReadsClient;
   readonly scope: Scope.Closeable;
   readonly abandon: Effect.Effect<void>;
+  readonly stopped: Deferred.Deferred<DbUnavailable>;
 }
 
 interface ReadsRuntimeState {
@@ -59,8 +69,6 @@ interface ReadsRuntimeState {
   readonly missingSignalled: boolean;
   readonly readMode: EffectiveReadMode | undefined;
 }
-
-type ForwardedRead = (payload: unknown, options?: unknown) => unknown;
 
 export type ReapWorkerSnapshots = (gone: {
   readonly owner: string;
@@ -74,7 +82,7 @@ export interface ConnectWorkerOptions {
 
 export const connectWorker = Effect.fnUntraced(function* (
   source: string,
-  config: Effect.Effect<ReadsConfig>,
+  config: Effect.Effect<FileReadsConfig>,
   {
     reapSnapshots,
     deferOpen = Effect.succeed(false),
@@ -161,7 +169,7 @@ export const connectWorker = Effect.fnUntraced(function* (
   const protocol = yield* Layer.build(
     RpcClient.layerProtocolWorker({
       size: 1,
-      concurrency: WORKER_CONCURRENCY,
+      concurrency: WORKER_REQUEST_CONCURRENCY,
     }).pipe(
       Layer.provide(BrowserWorker.layer(spawn)),
       Layer.provide(
@@ -216,15 +224,6 @@ export const connectWorker = Effect.fnUntraced(function* (
   return { client, died: Deferred.await(died), abandon };
 });
 
-function noWorker(reason: DbUnavailable) {
-  return new RpcClientError.RpcClientError({
-    reason: new RpcClientError.RpcClientDefect({
-      message: reason.message,
-      cause: reason,
-    }),
-  });
-}
-
 export const makeWorkerReads = Effect.fnUntraced(function* (
   connect: Effect.Effect<WorkerConnection, DbUnavailable, Scope.Scope>,
 ): Effect.fn.Return<ZoteroReadsClient, never, Scope.Scope> {
@@ -270,6 +269,7 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
               ],
         );
         if (!current) return;
+        yield* Deferred.succeed(connection.stopped, error);
         yield* Effect.logError("Database worker stopped").pipe(
           Effect.annotateLogs({ error }),
           withLogCategory("zotero-reads"),
@@ -375,10 +375,11 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
       yield* publish({ _tag: "degraded", error: reason });
       return yield* reason;
     }
-    const connection = {
+    const connection: LiveConnection = {
       client: result.value.client,
       scope,
       abandon: result.value.abandon,
+      stopped: yield* Deferred.make<DbUnavailable>(),
     };
     yield* Ref.update(runtime, (before) => ({
       ...before,
@@ -432,7 +433,7 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
       ),
       scope,
     );
-    return connection.client;
+    return connection;
   });
 
   const ensureConnected = connecting
@@ -443,7 +444,7 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
             message: "The database worker stopped",
           });
         const current = yield* Ref.get(runtime);
-        return current.current ? current.current.client : yield* connectNew;
+        return current.current ?? (yield* connectNew);
       }),
     )
     .pipe(
@@ -457,67 +458,59 @@ export const makeWorkerReads = Effect.fnUntraced(function* (
 
   yield* Effect.ignore(ensureConnected);
 
-  const live = Effect.gen(function* () {
-    const current = yield* Ref.get(runtime);
-    if (current.current) return current.current.client;
-    return yield* noWorker(
-      current.lastError ?? new DbUnavailable({ message: "No database worker" }),
-    );
-  });
+  const stoppedError = stoppedErrors(ZoteroReads);
 
-  const forwarded = {} as Record<keyof ZoteroReadsClient, ForwardedRead>;
-  for (const [tag, rpc] of ZoteroReads.requests) {
-    const call = (
-      client: ZoteroReadsClient,
-      payload: unknown,
-      options: unknown,
-    ) =>
-      (
-        client as unknown as Record<
-          string,
-          (payload: unknown, options: unknown) => unknown
-        >
-      )[tag]!(payload, options);
-    forwarded[tag as keyof ZoteroReadsClient] = RpcSchema.isStreamSchema(
-      rpc.successSchema,
-    )
-      ? (payload: unknown, options?: unknown) => {
-          const streamOptions = options as
-            | { readonly asQueue?: boolean }
-            | undefined;
-          return streamOptions?.asQueue
-            ? Effect.flatMap(
-                live,
-                (client) =>
-                  call(client, payload, options) as Effect.Effect<unknown>,
-              )
-            : Stream.unwrap(
-                Effect.map(
-                  live,
-                  (client) =>
-                    call(client, payload, options) as Stream.Stream<unknown>,
-                ),
-              );
-        }
-      : (payload: unknown, options: unknown) =>
-          Effect.flatMap(
-            live,
-            (client) =>
-              call(client, payload, options) as Effect.Effect<unknown>,
-          );
-  }
+  const live = (tag: string) =>
+    Effect.gen(function* () {
+      const current = yield* Ref.get(runtime);
+      if (current.current) return current.current;
+      return yield* stoppedError(
+        tag,
+        current.lastError ??
+          new DbUnavailable({ message: "No database worker" }),
+      );
+    });
 
-  const reads = forwarded as unknown as ZoteroReadsClient;
+  const onConnection = <A, E>(
+    tag: string,
+    connection: LiveConnection,
+    request: Effect.Effect<A, E>,
+  ) =>
+    untilStopped(request, {
+      stopped: connection.stopped,
+      onStop: (reason) => stoppedError(tag, reason),
+      scope: hostScope,
+    });
+
+  const reads = settledRequests(ZoteroReads, (tag) =>
+    Effect.map(live(tag), (connection) => ({
+      client: connection.client,
+      stop: {
+        stopped: connection.stopped,
+        onStop: (reason: DbUnavailable) => stoppedError(tag, reason),
+        scope: hostScope,
+      },
+    })),
+  );
   return {
     ...reads,
-    Changes: () => changes,
+    Changes: (_payload: unknown, options?: StreamOptions) =>
+      streamOrQueue(changes, options),
     Configure: (payload, options) =>
-      Effect.flatMap(ensureConnected, (client) =>
-        client.Configure(payload, options),
+      Effect.flatMap(ensureConnected, (connection) =>
+        onConnection(
+          "Configure",
+          connection,
+          connection.client.Configure(payload, options),
+        ),
       ),
     Refresh: (payload, options) =>
-      Effect.flatMap(ensureConnected, (client) =>
-        client.Refresh(payload, options),
+      Effect.flatMap(ensureConnected, (connection) =>
+        onConnection(
+          "Refresh",
+          connection,
+          connection.client.Refresh(payload, options),
+        ),
       ),
   } as ZoteroReadsClient;
 });

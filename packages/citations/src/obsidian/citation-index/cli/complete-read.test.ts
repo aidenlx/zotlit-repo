@@ -22,12 +22,11 @@ function commands(h: CitationIndexHarness) {
     vaultName: "Test",
     vaultDisk: { basePath: "/test" },
     citationIndex: h.index,
-    zoteroPref: {
-      current: Effect.succeed({
-        sourceId: "test",
-        databasePath: "/test/zotero.sqlite",
-      }),
-    },
+    readSource: Effect.succeed({
+      kind: "file",
+      id: "test",
+      databasePath: "/test/zotero.sqlite",
+    }),
   });
   return cli.command;
 }

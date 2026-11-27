@@ -2,6 +2,7 @@ import { Effect, FileSystem, Layer } from "effect";
 
 import { PluginHost } from "@zotlit/obsidian-kit/plugin-host.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
+import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { publishExcerptPng } from "./temp-store.ts";
@@ -33,7 +34,9 @@ export const layerAnnotationImageCli: Layer.Layer<
     const fs = yield* FileSystem.FileSystem;
     const read = (key: string) =>
       Effect.gen(function* () {
-        const { dataDir, baseAttachmentPath } = yield* pref.current;
+        const paths = yield* libraryFilePaths.pipe(
+          Effect.provideService(ZoteroPref, pref),
+        );
         const snapshot = yield* reads.snapshot.pipe(
           Effect.mapError(
             (error) => new ExcerptSourceUnavailable({ message: error.message }),
@@ -42,7 +45,7 @@ export const layerAnnotationImageCli: Layer.Layer<
         return yield* excerptRequestForKey({
           reads: snapshot,
           key,
-          paths: { dataDir, baseAttachmentPath },
+          paths,
         });
       }).pipe(Effect.scoped);
     host.registerCliCommand(ANNOTATION_IMAGE_COMMAND, {

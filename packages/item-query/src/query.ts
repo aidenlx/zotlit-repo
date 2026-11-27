@@ -7,6 +7,7 @@ import type {
 } from "@zotlit/db/item-query";
 
 import { collectionWarnings } from "./collection-warnings.ts";
+import { datasetEngine } from "./dataset-engines.ts";
 import type { QueryDataset } from "./dataset.ts";
 import { diagnoseUnusedFormula, diagnoseWarning } from "./diagnose.ts";
 import type { WarningSource } from "./diagnose.ts";
@@ -42,7 +43,7 @@ const expressionWarnings = Effect.fnUntraced(function* (
     sources,
     warning,
   }: {
-    dataset: QueryDataset<any>;
+    dataset: QueryDataset;
     libraries: readonly TargetLibrary[];
     sources: QuerySources;
     warning: Parameters<typeof diagnoseWarning>[2];
@@ -65,9 +66,9 @@ export interface QueryConsumer<A, E = never, R = never> {
   end(): Effect.Effect<A, E, R>;
 }
 
-export function collectQuery<Request extends ItemQueryRequest>(
-  dataset: QueryDataset<Request>,
-  request: Request,
+export function collectQuery(
+  dataset: QueryDataset,
+  request: ItemQueryRequest,
 ): Effect.Effect<
   QueryResult,
   ItemQueryError | ItemQueryLayoutError | ItemQueryDatabaseError,
@@ -106,9 +107,9 @@ export function collectQuery<Request extends ItemQueryRequest>(
   );
 }
 
-export function consumeQuery<Request extends ItemQueryRequest, A, E, R>(
-  dataset: QueryDataset<Request>,
-  request: Request,
+export function consumeQuery<A, E, R>(
+  dataset: QueryDataset,
+  request: ItemQueryRequest,
   begin: (summary: QuerySummary) => Effect.Effect<QueryConsumer<A, E, R>, E, R>,
 ): Effect.Effect<
   A,
@@ -124,11 +125,12 @@ export function consumeQuery<Request extends ItemQueryRequest, A, E, R>(
     );
     const { query, sorts } = plan;
     const clock = yield* readQueryClock;
-    const run = yield* dataset.open(plan, request, { clock, sources });
+    const engine = datasetEngine(dataset);
+    const run = yield* engine.open(plan, request, { clock, sources });
     return yield* consumeDataset(
       {
         ...run,
-        dataset,
+        dataset: engine,
         sources,
         filter: plan.filter?.root,
         query,
@@ -156,8 +158,8 @@ export function consumeQuery<Request extends ItemQueryRequest, A, E, R>(
         formulaDiagnostics: plan.formulaDiagnostics ?? undefined,
         libraries: request.libraries,
         sort: plan.order,
-        readScanPage: dataset.readScanPage,
-        readUniverseRows: dataset.readUniverseRows,
+        readScanPage: engine.readScanPage,
+        readUniverseRows: engine.readUniverseRows,
         keys: (item) => sorts.map((sort) => sort.key(item, clock)),
         groupValues: plan.group && plan.group.values,
       },

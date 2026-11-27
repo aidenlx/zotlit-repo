@@ -28,6 +28,7 @@
     "cn": "catalog:",
     "effect": "catalog:",
     "tailwind-variants": "catalog:",
+    "temporal-polyfill": "catalog:",
     "valibot": "catalog:"
   },
   "devDependencies": {

@@ -4,6 +4,8 @@ import {
   ANNOTATION_GUIDE_SECTIONS,
   ANNOTATION_GUIDE_EXAMPLES,
 } from "./annotation-guide.ts";
+import { queryFlags } from "./contract.ts";
+
 import {
   DEFAULT_CLI_LIMIT,
   DIAGNOSTIC_HINTS,
@@ -13,10 +15,9 @@ import {
   QUERY_GUIDE_COMMAND,
   QUERY_SCHEMA_COMMAND,
   QUERY_VALUES_COMMAND,
-  queryFlags,
   QUERY_ID_FORM,
   queryCancelledText,
-} from "./contract.ts";
+} from "#worker/item-query/contract.ts";
 
 export type GuideExample = Readonly<Record<string, string>>;
 
@@ -393,7 +394,13 @@ ENVELOPE
   and ok. The guide prints text.
   On success, the query answer has identity (the vault and the Zotero
   source), libraries, request (the query after defaults), returnedCount,
-  truncated, warnings, and rows or groups. Each row is
+  truncated, warnings, and rows or groups. identity.source names the source:
+  kind "file" with id and databasePath for the local Zotero database (id is
+  null while ZotLit still reads a database that the Zotero preferences no
+  longer name; databasePath is null when ZotLit does not know the path of
+  the database it reads), or kind "web-api" with id, userID, and username
+  for the Zotero online library; its id is web-api:<userID>, or
+  web-api:unsynced before the first sync. Each row is
   {"indexedKey","values"}; values has one entry for each path in
   request.fields. Attachment Rows also have itemIndexedKey. Annotation Rows
   also have attachmentIndexedKey and itemIndexedKey.
@@ -411,7 +418,7 @@ ENVELOPE
   the groups by group ID. Each entry is {"type":"personal"} or
   {"type":"group","groupID","name"}. request.library has the same
   Libraries in the form of the library argument. request.from always names
-  the effective dataset. The contract version is 3.
+  the effective dataset.
   An Indexed Key from a group Library ends with g and the group ID.
 
 FILE EXPORTS

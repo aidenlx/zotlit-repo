@@ -1,5 +1,5 @@
 import type { ItemRowGestures } from "#core/query-view/item-rows.ts";
-import type { QueryViewValue } from "#desktop/item-query/query-view.ts";
+import type { QueryViewValue } from "#worker/item-query/query-view.ts";
 import { Fragment, useMemo, useSyncExternalStore } from "react";
 import type { CSSProperties, ReactNode } from "react";
 

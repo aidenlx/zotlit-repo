@@ -109,10 +109,12 @@ const citekeyWindowQuery = defineQuery<{
 }>()((db, { placeholder }) =>
   db
     .select({
-      itemID: sql<number>`${itemData.itemID}`,
+      itemID: sql<number>`${itemData.itemID}`.mapWith(Number),
       libraryID: items.libraryID,
       key: items.key,
-      citekey: sql<string>`${itemDataValues.value}`,
+      citekey: sql<string>`${itemDataValues.value}`.mapWith(
+        itemDataValues.value,
+      ),
     })
     .from(itemData)
     .innerJoin(items, eq(items.itemID, itemData.itemID))
@@ -172,7 +174,9 @@ function toLibraryCitekeys(
 
 const lastItemIDQuery = defineQuery<void>()((db) =>
   db
-    .select({ itemID: sql<number>`coalesce(max(${items.itemID}), 0)` })
+    .select({
+      itemID: sql<number>`coalesce(max(${items.itemID}), 0)`.mapWith(Number),
+    })
     .from(items),
 );
 

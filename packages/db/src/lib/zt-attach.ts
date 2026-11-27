@@ -25,6 +25,13 @@ export function linkModeToName(linkMode: LinkMode): LinkModeName | "unknown" {
   return "unknown";
 }
 
+export function linkModeFromName(name: string): LinkMode | undefined {
+  const found = Object.entries(LINK_MODE).find(
+    ([, modeName]) => modeName === name,
+  );
+  return found ? (Number(found[0]) as LinkMode) : undefined;
+}
+
 export interface Attachment {
   itemID: number;
   libraryID: number;

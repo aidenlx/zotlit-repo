@@ -160,7 +160,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         report: string[];
       };
     };
-    expect(answer.contractVersion).toBe(8);
+    expect(answer.contractVersion).toBe(9);
     expect(answer.ok).toBe(false);
     expect(answer.diagnostic.code).toBe("INVALID_SELECTOR");
     expect(answer.diagnostic.report[0]).toBe(answer.diagnostic.message);
@@ -194,7 +194,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ) as ItemQueryReport;
 
     expect(limited).toMatchObject({
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query",
       ok: true,
       libraries: inScope.map(wireOf),
@@ -948,7 +948,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       }),
     ) as ItemQueryReport;
     expect(report).toMatchObject({
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query",
       request: { from: "annotations" },
       ok: true,
@@ -1003,7 +1003,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       }),
     ) as ItemQuerySchemaReport;
     expect(schema).toMatchObject({
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query-schema",
       ok: true,
       schema: { url: expect.stringContaining("/query.schema.json") },
@@ -1034,7 +1034,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
       }),
     ) as ItemQueryReport;
     expect(invalid).toMatchObject({
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query",
       ok: false,
       diagnostic: {
@@ -1091,7 +1091,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
         await cli([`vault=${run.vaultId}`, "zotlit:query", ...tokens]),
       ) as ItemQueryReport;
       expect(result, line).toMatchObject({
-        contractVersion: 3,
+        contractVersion: 4,
         command: "zotlit:query",
         ok: true,
         warnings: [],
@@ -1128,7 +1128,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ) as ItemQuerySchemaReport;
 
     expect(answer).toMatchObject({
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query-schema",
       ok: true,
       schema: {
@@ -1242,7 +1242,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ) as ItemQueryReport;
 
     expect(answer).toMatchObject({
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query",
       ok: false,
       diagnostic: {
@@ -1277,7 +1277,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ]) {
       const answer = await query(probe.filter);
       expect(answer).toMatchObject({
-        contractVersion: 3,
+        contractVersion: 4,
         command: "zotlit:query",
         ok: false,
       });
@@ -1292,7 +1292,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     };
     const answer = await query(probe.filter);
     expect(answer).toMatchObject({
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query",
       ok: true,
       returnedCount: 0,
@@ -1332,7 +1332,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     ]) {
       const answer = await query(probe.filter);
       expect(answer).toMatchObject({
-        contractVersion: 3,
+        contractVersion: 4,
         command: "zotlit:query",
         ok: false,
       });
@@ -1347,7 +1347,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     };
     const answer = await query(probe.filter);
     expect(answer).toMatchObject({
-      contractVersion: 3,
+      contractVersion: 4,
       command: "zotlit:query",
       ok: true,
       returnedCount: 0,
@@ -1399,7 +1399,7 @@ describe.skipIf(!reachable)("End-to-end Run", () => {
     };
     expect(listing).toMatchObject({
       ok: true,
-      contractVersion: 3,
+      contractVersion: 4,
       values: [{ library: "personal", truncated: false }],
     });
     const collection = COLLECTIONS.find(({ key }) => key === "PERSCHLD")!;

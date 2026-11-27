@@ -1,7 +1,7 @@
 import type {
   QueryViewOutcome,
   QueryViewRequest,
-} from "#desktop/item-query/query-view.ts";
+} from "#worker/item-query/query-view.ts";
 import type { QueryHostDeps } from "./host.ts";
 
 export const fakeQuery = (

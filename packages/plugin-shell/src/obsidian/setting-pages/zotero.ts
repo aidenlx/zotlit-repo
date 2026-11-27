@@ -13,6 +13,7 @@ import type {
 
 declare module "@zotlit/plugin-services/obsidian/setting-tab/context.ts" {
   interface SettingTabSlots {
+    "zotero.source": unknown;
     "zotero.database": unknown;
     "zotero.sync": unknown;
     "zotero.editing": unknown;
@@ -20,6 +21,7 @@ declare module "@zotlit/plugin-services/obsidian/setting-tab/context.ts" {
 }
 
 export const zoteroPageSlots = {
+  source: "zotero.source",
   database: "zotero.database",
   sync: "zotero.sync",
   editing: "zotero.editing",
@@ -41,6 +43,7 @@ function zoteroPageItems(
   ctx: SettingTabContext,
 ): SettingDefinitionItem<SettingsKey>[] {
   return [
+    ...ctx.slot(zoteroPageSlots.source),
     ...ctx.slot(zoteroPageSlots.database),
     {
       type: "group",

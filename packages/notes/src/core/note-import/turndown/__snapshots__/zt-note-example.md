@@ -9,7 +9,7 @@ $$\frac{a_1}{b_2}$$
 |column|column2|
 |hello|world|
 
-<img alt="" width="1940" height="868" data-attachment-key="U5WTYIJK">
+<img alt="" width="1940" height="868" data-attachment-key="XMPLATC5">
 
 ~~line-through  
 ~~`hello`
@@ -25,4 +25,4 @@ an <u>underline</u> comment
 
 Hig<span class="zotlit-color" data-color="orange" style="color: var(--zotlit-color-orange, rgb(255, 119, 0));">hlight m<mark class="zotlit-hl" data-color="green" style="background-color: var(--zotlit-hl-green, rgba(95, 178, 54, 0.5));">ixed with te</mark></span><mark class="zotlit-hl" data-color="green" style="background-color: var(--zotlit-hl-green, rgba(95, 178, 54, 0.5));">xt co</mark>lor
 
-<span class="citation" data-citation="%7B%22citationItems%22%3A%5B%7B%22uris%22%3A%5B%22http%3A%2F%2Fzotero.org%2Fusers%2Flocal%2FBOtEiq6p%2Fitems%2F4FQVQ6ZQ%22%5D%7D%2C%7B%22uris%22%3A%5B%22http%3A%2F%2Fzotero.org%2Fusers%2Flocal%2FBOtEiq6p%2Fitems%2FKX67D9YM%22%5D%7D%5D%2C%22properties%22%3A%7B%7D%7D">(<span class="citation-item">Kang and Fricker, 2013</span>; <span class="citation-item">Hensher and Collins, 2011</span>)</span>
+<span class="citation" data-citation="%7B%22citationItems%22%3A%5B%7B%22uris%22%3A%5B%22http%3A%2F%2Fzotero.org%2Fusers%2Flocal%2FXmplLib8%2Fitems%2FXMPLITM2%22%5D%7D%2C%7B%22uris%22%3A%5B%22http%3A%2F%2Fzotero.org%2Fusers%2Flocal%2FXmplLib8%2Fitems%2FXMPLITM3%22%5D%7D%5D%2C%22properties%22%3A%7B%7D%7D">(<span class="citation-item">Kang and Fricker, 2013</span>; <span class="citation-item">Hensher and Collins, 2011</span>)</span>

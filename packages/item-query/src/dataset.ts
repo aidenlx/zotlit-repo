@@ -110,9 +110,8 @@ export interface CandidateDataset<Leaf = any> {
   readonly filterField: (name: string) => FilterField<any, any> | undefined;
 }
 
-export interface QueryDataset<
-  Request extends ItemQueryRequest = ItemQueryRequest,
-> extends CandidateDataset {
+export interface QueryDataset {
+  readonly id: CandidateDataset["id"];
   readonly noun: string;
   readonly family: string;
   readonly customPrefix: string;
@@ -144,6 +143,9 @@ export interface QueryDataset<
       }
     | undefined;
   readonly rootName: (name: string) => string;
+}
+
+export interface QueryEngine extends CandidateDataset {
   readonly readScanPage: (page: {
     libraryID: number;
     afterItemID: number;
@@ -163,7 +165,7 @@ export interface QueryDataset<
   >;
   open(
     plan: ItemQueryPlan,
-    request: Request,
+    request: ItemQueryRequest,
     context: { readonly clock: QueryClock; readonly sources: QuerySources },
   ): Effect.Effect<
     DatasetRun<any>,

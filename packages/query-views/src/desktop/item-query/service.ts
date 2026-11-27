@@ -1,3 +1,21 @@
+import type {
+  Diagnostic,
+  QueryCliCommand,
+} from "#worker/item-query/contract.ts";
+import type {
+  QueryViewOutcome,
+  QueryViewRequest,
+} from "#worker/item-query/query-view.ts";
+import type {
+  CancellationEvent,
+  QueryObserver,
+} from "#worker/item-query/trace.ts";
+import type {
+  QueryAnswer,
+  QueryCommand,
+  QueryCustomFieldsCommand,
+  QueryViewCommand,
+} from "#worker/item-query/worker-protocol.ts";
 import {
   Cause,
   Clock,
@@ -28,9 +46,12 @@ import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
 import { isScopeClosed } from "@zotlit/plugin-kernel/effect-scope.ts";
 import { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { LibraryScope } from "@zotlit/plugin-services/obsidian/library-scope/service.ts";
+import { libraryFilePaths } from "@zotlit/plugin-services/obsidian/library-source/paths.ts";
 import { UseLedger } from "@zotlit/plugin-services/obsidian/use-ledger/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { SnapshotExpired } from "@zotlit/zotero-reads/contract/rpc.ts";
+
+import { decodeQuery, decodeSchemaArguments, decodeValues } from "./decode.ts";
 
 import {
   QUERY_COMMAND,
@@ -41,17 +62,25 @@ import {
   queryCancelledText,
   queryIdInUseFailure,
   rejectionDiagnostic,
-} from "./contract.ts";
-import type { QueryCliCommand } from "./contract.ts";
-import { decodeQuery, decodeSchemaArguments, decodeValues } from "./decode.ts";
-import type { QueryViewOutcome, QueryViewRequest } from "./query-view.ts";
-import type { CancellationEvent, QueryObserver } from "./trace.ts";
-import type {
-  QueryAnswer,
-  QueryCommand,
-  QueryCustomFieldsCommand,
-  QueryViewCommand,
-} from "./worker-protocol.ts";
+} from "#worker/item-query/contract.ts";
+
+function unavailableAnswer(
+  command: QueryCommand | QueryViewCommand | QueryCustomFieldsCommand,
+  unavailable: Diagnostic,
+): QueryAnswer {
+  return "view" in command
+    ? {
+        command: command.command,
+        answer: "",
+        receipt: { kind: "inline" },
+        view: { kind: "failed", diagnostic: unavailable },
+      }
+    : {
+        command: command.command,
+        answer: failure(command.command, unavailable),
+        receipt: { kind: "inline" },
+      };
+}
 
 export type ItemQueryError = SnapshotExpired | RpcClientError.RpcClientError;
 
@@ -167,7 +196,6 @@ export function layerQueryService({
         Effect.gen(function* () {
           const report = (phase: CancellationEvent["phase"]) =>
             reportCancel(measure, phase);
-          const source = yield* pref.current;
           const call = yield* Effect.forkChild(
             reads
               .ItemQuery({
@@ -175,41 +203,25 @@ export function layerQueryService({
                   id,
                   ...(stagePath ? { stagePath } : {}),
                   ...command,
-                  source: {
-                    id: source.sourceId,
-                    databasePath: source.databasePath,
-                  },
                   vault: { name: env.vaultName, path: disk.basePath },
                   scope: yield* libraryScope.effective,
                   uses: yield* useLedger.uses,
-                  attachmentPaths: {
-                    dataDir: source.dataDir,
-                    baseAttachmentPath: source.baseAttachmentPath,
-                  },
+                  attachmentPaths: yield* libraryFilePaths.pipe(
+                    Effect.provideService(ZoteroPref, pref),
+                  ),
                   measure: measure !== undefined,
                   ...(measure ? { heap: measure.heap } : {}),
                 },
               })
               .pipe(
-                Effect.catchTag("DbUnavailable", (error) => {
-                  const unavailable = diagnostic(
-                    "source-unavailable",
-                    error.message,
-                  );
-                  return Effect.succeed<QueryAnswer>(
-                    "view" in command
-                      ? {
-                          command: command.command,
-                          answer: "",
-                          receipt: { kind: "inline" },
-                          view: { kind: "failed", diagnostic: unavailable },
-                        }
-                      : {
-                          command: command.command,
-                          answer: failure(command.command, unavailable),
-                          receipt: { kind: "inline" },
-                        },
-                  );
+                Effect.catchTags({
+                  DbUnavailable: (error) =>
+                    Effect.succeed(
+                      unavailableAnswer(
+                        command,
+                        diagnostic("source-unavailable", error.message),
+                      ),
+                    ),
                 }),
               ),
           );

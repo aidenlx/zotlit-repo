@@ -61,6 +61,7 @@
     "@zotlit/db-testing": "workspace:*",
     "@zotlit/obsidian-desktop": "workspace:*",
     "@zotlit/scripts": "workspace:*",
+    "@zotlit/web-library": "workspace:*",
     "happy-dom": "catalog:",
     "obsidian": "catalog:",
     "oxlint": "catalog:",

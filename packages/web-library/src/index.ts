@@ -1,0 +1,47 @@
+export {
+  applyStagedPasses as applyDownload,
+  applyStagedSteps as applyDownloadSteps,
+  hasStagedPasses,
+  readSyncStatus,
+  replicaLocale,
+  storedAccountUserID,
+  type AppliedLibrary,
+  type ApplyStagedOptions,
+  type ApplyStep,
+  type RemoteLibrary,
+  type SyncLibraryStatus,
+} from "@zotlit/db/replica";
+export {
+  makeRequestPause,
+  MAX_CONCURRENT_REQUESTS,
+  ZOTERO_API_BASE_URL,
+  type RequestPause,
+  type RequestPauses,
+  type WebApiClientOptions,
+  type WebApiFetch,
+} from "./api-client.ts";
+export {
+  downloadReplica,
+  OBJECTS_PER_REQUEST,
+  type DownloadOptions,
+  type DownloadReport,
+  type LibraryDownload,
+  type SyncAccount,
+  type SyncProgress,
+  type KeyLibraries,
+  listKeyLibraries,
+  type VerifiedKey,
+  verifyKey,
+} from "./download.ts";
+export {
+  describeStorageFailure,
+  ReplicaStorageError,
+  WebApiKeyInvalid,
+  WebApiNetworkError,
+  WebApiNoAccess,
+  WebApiProtocolError,
+  WebApiRateLimited,
+  type ReplicaStorageReason,
+  type WebApiError,
+  type WebLibrarySyncError,
+} from "./errors.ts";

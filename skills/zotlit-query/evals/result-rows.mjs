@@ -17,7 +17,7 @@ export function commonChecks(envelope, expected, { runRoot, vaultPath }) {
   };
   need(envelope?.ok === true, "query response is not successful");
   need(
-    envelope?.contractVersion === 3 && envelope?.command === "zotlit:query",
+    envelope?.contractVersion === 4 && envelope?.command === "zotlit:query",
     "wrong Query contract",
   );
   need(envelope?.request?.from === expected.from, "wrong Query Dataset");

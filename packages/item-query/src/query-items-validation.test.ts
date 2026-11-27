@@ -16,7 +16,7 @@ const { personal, group } = SCENARIO_LIBRARIES;
 
 async function failure(
   request: ItemQueryRequest,
-  dataset: QueryDataset<ItemQueryRequest> = ITEMS,
+  dataset: QueryDataset = ITEMS,
 ) {
   const { exit, events } = await runEffect(collectQuery(dataset, request));
   if (!Exit.isFailure(exit)) throw new Error("the query did not fail.");
@@ -68,7 +68,7 @@ describe("collectQuery(ITEMS) with a filter", () => {
 });
 
 interface ValidationCase {
-  readonly dataset: QueryDataset<ItemQueryRequest>;
+  readonly dataset: QueryDataset;
   readonly field: string;
   readonly sort: SortSpec;
   readonly paths: readonly (readonly [string, ItemQueryErrorCode])[];

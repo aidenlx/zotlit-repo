@@ -1,5 +1,7 @@
 import { regex } from "arkregex";
 
+import { isMultipartDate } from "@zotlit/zotero-types/date";
+
 import { defineToString } from "./to-string.ts";
 
 /** Full Y/M/D date parsed into a `Temporal.PlainDate`. */
@@ -105,7 +107,7 @@ export function withToString(date: ItemDate): ItemDate {
 function parseItemDateInner(raw: string | null | undefined): ItemDate | null {
   if (!raw) return null;
 
-  const match = MULTIPART_RE.exec(raw);
+  const match = isMultipartDate(raw) ? MULTIPART_RE.exec(raw) : null;
   if (!match) return textDate(raw, raw);
 
   const { year: yearStr, month: monthStr, day: dayStr, text } = match.groups;

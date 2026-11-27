@@ -2,7 +2,7 @@ import type { QueryHostDeps } from "#__fixtures__/query-view/host.ts";
 import type {
   QueryViewOutcome,
   QueryViewRequest,
-} from "#desktop/item-query/query-view.ts";
+} from "#worker/item-query/query-view.ts";
 import { Stream } from "effect";
 import type { App, EmbedContext } from "obsidian";
 import { act } from "preact/test-utils";

@@ -116,7 +116,7 @@ export interface QueryMetadata {
 }
 
 export interface ItemQueryPlan<Item = any, Needs = any> {
-  readonly dataset: QueryDataset<any>;
+  readonly dataset: QueryDataset;
   readonly query: ItemQuery;
   readonly filter: FilterPlan<Item, Needs> | null;
   readonly paths: readonly PlannedPath<Item, Needs>[];
@@ -165,7 +165,7 @@ export const COUNT_FIELDS: readonly string[] = [];
 export const UNLIMITED_LIMIT = "all";
 
 export function planRequest(
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
   request: ItemQueryRequest,
   sourceCheck?: FormulaSourceCheck,
 ): Effect.Effect<ItemQueryPlan, ItemQueryError> {

@@ -68,7 +68,6 @@ import type {
 import { pdfSessionsAtom } from "@zotlit/annotations/obsidian/pdf-annotation-editor/atoms.ts";
 import type { AnnotViewAttachment } from "@zotlit/db";
 import { registerMigratingWindowEvent } from "@zotlit/obsidian-kit/disposables.ts";
-import { readerText } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import type { ViewRegistryHandle } from "@zotlit/obsidian-kit/view-atoms.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import { withLogCategory } from "@zotlit/plugin-kernel/effect-log.ts";
@@ -102,6 +101,7 @@ import { saveSidebarAsQueryFile } from "./save-query-file.ts";
 import { addSidebarQueryMenu, sidebarQueryText } from "./sidebar-query.ts";
 
 import { QueryView } from "#desktop/query-view/view.tsx";
+import { sourceText } from "#obsidian/query-view/reader-failure.ts";
 
 export const ANNOT_VIEW_TYPE = "zotero-annotation-view";
 
@@ -615,7 +615,7 @@ export class AnnotationView extends ItemView implements HistorySurface {
         : failed && !keptResults
           ? {
               message: m.annot_view_query_failed(),
-              detail: readerText(failure.diagnostic),
+              detail: sourceText(failure.reader),
             }
           : null,
       filterError:

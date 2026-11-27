@@ -1,5 +1,5 @@
 import type { ZoteroReadsClient } from "#contract/rpc.ts";
-import type { ChangeEvent, ReadsConfig } from "#contract/rpc.ts";
+import type { ChangeEvent, FileReadsConfig } from "#contract/rpc.ts";
 import { it } from "@effect/vitest";
 import type { FileSystem } from "effect";
 import {
@@ -133,7 +133,7 @@ function seedLibrary(sqlite: DatabaseSync): void {
   );
 }
 
-function config(patch: Partial<ReadsConfig> = {}): ReadsConfig {
+function config(patch: Partial<FileReadsConfig> = {}): FileReadsConfig {
   return {
     databasePath: dbPath,
     readMode: "copy",
@@ -161,7 +161,7 @@ function testPorts() {
   } | null>(null);
   const ports = {
     prepareRead: vi.fn<SourcePorts["prepareRead"]>(
-      (mode: ReadsConfig["readMode"], path: string) =>
+      (mode: FileReadsConfig["readMode"], path: string) =>
         prepareRead(mode, path).pipe(
           Effect.tap((read) => Effect.sync(() => reads.push(read))),
           Effect.flatMap((read) =>
@@ -191,7 +191,7 @@ const waitFor = (assertion: () => void) =>
   Effect.promise(() => vi.waitFor(assertion));
 
 const startSource = Effect.fnUntraced(function* (
-  initial: ReadsConfig | null,
+  initial: FileReadsConfig | null,
   ports: Partial<SourcePorts>,
   fileSystem = testFileSystem,
 ) {

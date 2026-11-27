@@ -8,6 +8,7 @@ import {
   CSL_TEXT_FIELD_CANDIDATES,
   ITEM_TYPE_TO_CSL_TYPE,
 } from "@zotlit/zotero-types/csl";
+import { isMultipartDate } from "@zotlit/zotero-types/date";
 
 import { parseNameParticles } from "./zt-csl-name.ts";
 import type { CslPersonName } from "./zt-csl-name.ts";
@@ -209,8 +210,4 @@ function yearOnlySeason(date: ItemDate): string | null {
     .join(" ")
     .trim();
   return season || null;
-}
-
-function isMultipartDate(raw: string): boolean {
-  return raw[4] === "-" && raw[7] === "-" && raw[10] === " ";
 }

@@ -10,7 +10,7 @@ import type {
   HydrateRelation,
   ScanRow,
 } from "@zotlit/db/item-query";
-import { FIELD_ALIASES, ZOTERO_DATE_FIELDS } from "@zotlit/zotero-types";
+import { ZOTERO_DATE_FIELDS } from "@zotlit/zotero-types";
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 
 import type { QueryAnnotation } from "./annotation-fields.ts";
@@ -206,9 +206,7 @@ function accessDateField(
 
 function isDateField(name: string): boolean {
   const dateFields: readonly string[] = ZOTERO_DATE_FIELDS;
-  return (
-    dateFields.includes(name) || dateFields.includes(FIELD_ALIASES[name] ?? "")
-  );
+  return dateFields.includes(name);
 }
 
 function dateValue(raw: string | null): ProjectionValue {

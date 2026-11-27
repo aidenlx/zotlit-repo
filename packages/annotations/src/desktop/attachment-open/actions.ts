@@ -1,3 +1,4 @@
+import type { OpenablePdfs } from "#core/attachment-open/openable.ts";
 import type { ObsidianOpenableAttachment } from "#core/attachment-open/resolve.ts";
 import type { LiteratureNoteAttachmentsHandle } from "#obsidian/attachment-open/handle.ts";
 import { TFile } from "obsidian";
@@ -25,10 +26,16 @@ export function openGesture(
 
 export function pdfPickerReader(
   opener: TargetOpenGesture,
+  pdfs: Pick<OpenablePdfs, "filesUnavailable">,
 ): AttachmentReader<ObsidianOpenableAttachment> {
   return {
     icon: "file-text",
-    onEmpty: () => new BaseNotice(m.notice_no_pdf_attachment()),
+    onEmpty: () =>
+      new BaseNotice(
+        pdfs.filesUnavailable
+          ? m.notice_needs_local_zotero()
+          : m.notice_no_pdf_attachment(),
+      ),
     open: (attachment, pane) =>
       opener.open(
         { kind: "attachment", attachmentKey: attachment.indexedKey },
@@ -48,11 +55,13 @@ async function runOpenPdfCommand(
   deps: AttachmentOpenDeps,
   indexedKey: string,
 ): Promise<void> {
-  const attachments =
-    await deps.attachments.literatureNoteAttachments(indexedKey);
-  if (!attachments) return;
-  openAttachments(attachments, {
-    reader: pdfPickerReader(openGesture(deps.opener, deps.bridge.runAndForget)),
+  const pdfs = await deps.attachments.literatureNoteAttachments(indexedKey);
+  if (!pdfs) return;
+  openAttachments(pdfs.attachments, {
+    reader: pdfPickerReader(
+      openGesture(deps.opener, deps.bridge.runAndForget),
+      pdfs,
+    ),
     app: deps.app,
   });
 }

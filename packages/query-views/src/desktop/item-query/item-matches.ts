@@ -1,3 +1,8 @@
+import type { Diagnostic } from "#worker/item-query/contract.ts";
+import type {
+  QueryViewOutcome,
+  QueryViewRequest,
+} from "#worker/item-query/query-view.ts";
 import { Effect, Layer } from "effect";
 
 import { ItemMatchQuery } from "@zotlit/notes/core/profile-selection/item-matches.ts";
@@ -7,8 +12,6 @@ import type {
 } from "@zotlit/notes/core/profile-selection/item-matches.ts";
 import { formatIndexedKey } from "@zotlit/zotero-types/keys";
 
-import type { Diagnostic } from "./contract.ts";
-import type { QueryViewOutcome, QueryViewRequest } from "./query-view.ts";
 import { QueryService } from "./service.ts";
 
 function matchesRequest(

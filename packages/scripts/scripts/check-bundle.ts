@@ -4,7 +4,7 @@ import type { PublishedPlugin } from "#shell/plugins";
 import { join } from "node:path";
 import { $ } from "zx";
 
-import { checkBundle, checkBundleRuntime } from "#bundle-gate";
+import { bundleFile, checkBundle, checkBundleRuntime } from "#bundle-gate";
 import { getWorkspaceRoot } from "#package-roots";
 import { MOBILE_HOST_BUNDLE, PUBLISHED_PLUGINS } from "#shell/plugins";
 
@@ -24,9 +24,11 @@ const reports = [
       checkBundle(name, plugin, join(workspaceRoot, plugin.app)),
     ),
   )),
-  await checkBundleRuntime(
+  checkBundleRuntime(
     "mobile host",
-    join(workspaceRoot, MOBILE_HOST_BUNDLE.app, MOBILE_HOST_BUNDLE.file),
+    await bundleFile(
+      join(workspaceRoot, MOBILE_HOST_BUNDLE.app, MOBILE_HOST_BUNDLE.file),
+    ),
     MOBILE_HOST_BUNDLE.runtime,
   ),
 ];

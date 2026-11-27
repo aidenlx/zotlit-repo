@@ -71,6 +71,21 @@ export function describeDriverConformance(
       ]);
     });
 
+    it("reads an integer of a query with a mapper as a bigint until a number mapper converts it, as the integer rule of the readers expects", () => {
+      using connection = driver.open(SETUP);
+      const row = connection.db
+        .select({
+          id: probe.id,
+          unmapped: sql<number>`${probe.id}`,
+          mapped: sql`${probe.id}`.mapWith(Number),
+          score: probe.score,
+        })
+        .from(probe)
+        .where(eq(probe.id, 1))
+        .get();
+      expect(row).toEqual({ id: 1, unmapped: 1n, mapped: 1, score: 0.5 });
+    });
+
     it("binds number, string and null parameters", () => {
       using connection = driver.open(SETUP);
       const row = connection.db.get<Record<string, unknown>>(
@@ -113,7 +128,8 @@ export function describeDriverConformance(
       const row = connection.db.get<{ rows: string }>(
         sql`select json_group_array(json_object('id', id, 'label', label)) as rows from (select id, label from probe where id < 3 order by id)`,
       );
-      expect(JSON.parse(row.rows)).toEqual([
+      expect(row).toBeDefined();
+      expect(JSON.parse(row!.rows)).toEqual([
         { id: 1, label: "Écrits" },
         { id: 2, label: "論文 📚" },
       ]);

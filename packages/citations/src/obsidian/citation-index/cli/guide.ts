@@ -133,6 +133,11 @@ ENVELOPE
   guide is literal text and carries no envelope. contractVersion versions the
   citation commands alone; every other zotlit:* namespace versions its own CLI
   Contract independently.
+  identity.source names the Zotero source: kind "file" with id and databasePath
+  for the local Zotero database, or kind "web-api" with id, userID, and
+  username for the Zotero online library; its id is web-api:<userID>, or
+  web-api:unsynced before the first sync. It is null when ZotLit cannot read
+  the online library.
 
 CITED BY PAYLOAD
   item        { key, citekey, summary } of the item the selector named.

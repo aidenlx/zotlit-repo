@@ -9,15 +9,11 @@ import {
   createFixtureSchema,
 } from "@zotlit/db-testing";
 
-import {
-  getItemsByID,
-  getItemsByKey,
-  getItemsByLibrary,
-  isChildItemFields,
-} from "./items.ts";
+import { getItemsByID, getItemsByKey, getItemsByLibrary } from "./items.ts";
 
 import { relations } from "#drizzle/relations.ts";
 import { USER_LIBRARY_ID } from "#lib/constants.ts";
+import { isChildItemFields } from "#lib/item-types.ts";
 import { parseItemLanguage } from "#lib/zt-lang.ts";
 
 let sqlite: DatabaseSync;

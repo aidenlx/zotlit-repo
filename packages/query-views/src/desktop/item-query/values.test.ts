@@ -12,12 +12,17 @@ import { CliRejection } from "@zotlit/obsidian-kit/cli-params.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import { answer } from "./answer.ts";
 import { decodeValues } from "./decode.ts";
+
+import { answer } from "#worker/item-query/answer.ts";
 
 const identity = {
   vault: { name: "Research", path: "/vaults/research" },
-  source: { id: "source-1", databasePath: "/zotero/zotero.sqlite" },
+  source: {
+    kind: "file" as const,
+    id: "source-1",
+    databasePath: "/zotero/zotero.sqlite",
+  },
 };
 
 it.effect("decodes the required kind and query defaults as plain JSON", () =>
@@ -75,7 +80,7 @@ const listingOf = (
     Effect.flatMap((values) =>
       answer(
         { schema: false, command: "zotlit:query-values", values, scope },
-        { identity },
+        { identity: Effect.succeed(identity) },
       ),
     ),
     Effect.scoped,
@@ -100,7 +105,7 @@ it.effect(
       expect(
         yield* listingOf(scenario, { kind: "collections", library: "all" }),
       ).toEqual({
-        contractVersion: 3,
+        contractVersion: 4,
         command: "zotlit:query-values",
         ok: true,
         identity,

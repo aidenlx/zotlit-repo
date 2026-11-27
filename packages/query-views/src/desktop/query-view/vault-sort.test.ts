@@ -2,7 +2,7 @@ import type { QueryFileSort } from "#core/query-view/query-file.ts";
 import type {
   QueryViewRow,
   QueryViewValue,
-} from "#desktop/item-query/query-view.ts";
+} from "#worker/item-query/query-view.ts";
 import { describe, expect, it } from "vitest";
 
 import type { VaultValue } from "./table-notes.ts";

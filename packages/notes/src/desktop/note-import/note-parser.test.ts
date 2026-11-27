@@ -19,6 +19,7 @@ import type {
   TemplateParentItemData,
 } from "@zotlit/db";
 import { makeItem } from "@zotlit/db/item-fixture";
+import { captureLogRecords } from "@zotlit/plugin-kernel/__fixtures__/log-capture.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
 import type {
   AttachmentSource,
@@ -66,8 +67,8 @@ function mockDbCitekeys(
   });
 }
 
-const ITEMS = "http://zotero.org/users/local/BOtEiq6p/items";
-const ATTACHMENT = `${ITEMS}/T2P8T29G`;
+const ITEMS = "http://zotero.org/users/local/XmplLib8/items";
+const ATTACHMENT = `${ITEMS}/XMPLATC4`;
 
 const renderCite = (
   items: readonly {
@@ -235,7 +236,7 @@ describe("highlight annotation", () => {
         "highlight",
         {
           attachmentURI: ATTACHMENT,
-          annotationKey: "C2DF35H3",
+          annotationKey: "XMPLANN6",
           color: "#e56eee",
           pageLabel: "62",
         },
@@ -250,7 +251,7 @@ describe("highlight annotation", () => {
       '[<mark class="zotlit-hl" data-color="magenta" ' +
         'style="background-color: var(--zotlit-hl-magenta, #e56eee);">' +
         "might aid in our understanding</mark>]" +
-        "(zotero://open/library/items/T2P8T29G?annotation=C2DF35H3&page=62)",
+        "(zotero://open/library/items/XMPLATC4?annotation=XMPLANN6&page=62)",
     );
   });
 
@@ -262,7 +263,7 @@ describe("highlight annotation", () => {
           "highlight",
           {
             attachmentURI: ATTACHMENT,
-            annotationKey: "C2DF35H3",
+            annotationKey: "XMPLANN6",
             color: "#2ea8e5",
             pageLabel: "62",
           },
@@ -274,7 +275,7 @@ describe("highlight annotation", () => {
 
     expect(md).toBe(
       "[==🔵might aid in our understanding==]" +
-        "(zotero://open/library/items/T2P8T29G?annotation=C2DF35H3&page=62)",
+        "(zotero://open/library/items/XMPLATC4?annotation=XMPLANN6&page=62)",
     );
   });
 
@@ -288,7 +289,7 @@ describe("highlight annotation", () => {
             "highlight",
             {
               attachmentURI: ATTACHMENT,
-              annotationKey: "C2DF35H3",
+              annotationKey: "XMPLANN6",
               color,
               pageLabel: "62",
             },
@@ -307,7 +308,7 @@ describe("highlight annotation", () => {
       );
 
       expect(md).toBe(
-        "[==👩‍🔬Highlighted text==](zotero://open/library/items/T2P8T29G?annotation=C2DF35H3&page=62)",
+        "[==👩‍🔬Highlighted text==](zotero://open/library/items/XMPLATC4?annotation=XMPLANN6&page=62)",
       );
     },
   );
@@ -322,7 +323,7 @@ describe("highlight annotation", () => {
             "highlight",
             {
               attachmentURI: ATTACHMENT,
-              annotationKey: "C2DF35H3",
+              annotationKey: "XMPLANN6",
               color: "#2ea8e5",
             },
             "Highlighted text",
@@ -337,7 +338,7 @@ describe("highlight annotation", () => {
 
       expect(md).toContain('[<mark class="zotlit-hl" data-color="blue"');
       expect(md).toContain(
-        "](zotero://open/library/items/T2P8T29G?annotation=C2DF35H3)",
+        "](zotero://open/library/items/XMPLATC4?annotation=XMPLANN6)",
       );
     },
   );
@@ -350,7 +351,7 @@ describe("highlight annotation", () => {
           "highlight",
           {
             attachmentURI: ATTACHMENT,
-            annotationKey: "C2DF35H3",
+            annotationKey: "XMPLANN6",
             color: "#e56eee",
           },
           "might aid in our understanding",
@@ -361,7 +362,7 @@ describe("highlight annotation", () => {
 
     expect(md).toContain('[<mark class="zotlit-hl" data-color="magenta"');
     expect(md).toContain(
-      "](zotero://open/library/items/T2P8T29G?annotation=C2DF35H3)",
+      "](zotero://open/library/items/XMPLATC4?annotation=XMPLANN6)",
     );
   });
 });
@@ -375,7 +376,7 @@ describe("underline annotation", () => {
           "underline",
           {
             attachmentURI: ATTACHMENT,
-            annotationKey: "7SUQ86WL",
+            annotationKey: "XMPLANN4",
             color: "#ffd400",
             pageLabel: "62",
           },
@@ -388,7 +389,7 @@ describe("underline annotation", () => {
       '[<u class="zotlit-ul" data-color="yellow" ' +
         'style="text-decoration-color: var(--zotlit-ul-yellow, #ffd400);">' +
         "reference alternative as valu</u>]" +
-        "(zotero://open/library/items/T2P8T29G?annotation=7SUQ86WL&page=62)",
+        "(zotero://open/library/items/XMPLATC4?annotation=XMPLANN4&page=62)",
     );
   });
 });
@@ -457,7 +458,7 @@ describe("annotation edge cases", () => {
         annot(
           "highlight",
           {
-            attachmentURI: "http://zotero.org/groups/9/items/T2P8T29G",
+            attachmentURI: "http://zotero.org/groups/9/items/XMPLATC4",
             annotationKey: "K",
             color: "#ffd400",
           },
@@ -467,7 +468,7 @@ describe("annotation edge cases", () => {
       deps,
     );
     expect(md).toContain(
-      "(zotero://open/groups/9/items/T2P8T29G?annotation=K)",
+      "(zotero://open/groups/9/items/XMPLATC4?annotation=K)",
     );
   });
 
@@ -483,7 +484,7 @@ describe("annotation edge cases", () => {
       ),
       deps,
     );
-    expect(md).toContain("items/T2P8T29G?annotation=K)");
+    expect(md).toContain("items/XMPLATC4?annotation=K)");
     expect(md).not.toContain("page=");
   });
 });
@@ -492,24 +493,51 @@ describe("embedded image resolution", () => {
   const img = (key: string) =>
     `<p><img data-attachment-key="${key}" alt=""></p>`;
 
+  it("omits embedded images whose files the online library does not hold, keeps their alt text, and logs once for the note", () => {
+    embeddedAttachment.mockReturnValue(
+      storageAttachment("XMPLATC5", "diagram.png") as never,
+    );
+    using logs = captureLogRecords();
+    const md = parseNote(
+      TurndownService,
+      note(
+        `<p>Before</p><img data-attachment-key="XMPLATC5" alt="Figure 1"><img data-attachment-key="XMPLATC5"><p>After</p>`,
+      ),
+      {
+        ...deps,
+        pathContext: { dataDir: null, baseAttachmentPath: null },
+      },
+    );
+    expect(md).not.toContain("<img");
+    expect(md).not.toContain("![[");
+    expect(md).toContain("Figure 1");
+    expect(md).toContain("Before");
+    expect(md).toContain("After");
+    expect(
+      logs.records.filter((record) => /image/iu.test(record.rawMessage)),
+    ).toHaveLength(1);
+    expect(blockedDecide).not.toHaveBeenCalled();
+    expect(echoResolveLink).not.toHaveBeenCalled();
+  });
+
   it("resolves a storage image to a vault embed via resolveLink", () => {
     embeddedAttachment.mockReturnValue(
-      storageAttachment("U5WTYIJK", "diagram.png") as never,
+      storageAttachment("XMPLATC5", "diagram.png") as never,
     );
-    const md = parseNote(TurndownService, note(img("U5WTYIJK")), deps);
-    expect(md).toBe("![[U5WTYIJK-diagram.png]]");
+    const md = parseNote(TurndownService, note(img("XMPLATC5")), deps);
+    expect(md).toBe("![[XMPLATC5-diagram.png]]");
     expect(blockedDecide).toHaveBeenCalledWith(
-      "/data/storage/U5WTYIJK/diagram.png",
+      "/data/storage/XMPLATC5/diagram.png",
       "storage",
     );
     expect(echoResolveLink).toHaveBeenCalledWith({
       source: {
         approved: false,
-        path: "/data/storage/U5WTYIJK/diagram.png",
+        path: "/data/storage/XMPLATC5/diagram.png",
         origin: "storage",
         reason: "no-trusted-root",
       },
-      vaultName: "U5WTYIJK-diagram.png",
+      vaultName: "XMPLATC5-diagram.png",
     });
   });
 
@@ -545,7 +573,7 @@ describe("annotation template mode", () => {
   });
 
   const citation = cite({
-    citationItems: [{ uris: [`${ITEMS}/KX67D9YM`] }],
+    citationItems: [{ uris: [`${ITEMS}/XMPLITM3`] }],
     properties: {},
   });
 
@@ -595,14 +623,14 @@ describe("annotation template mode", () => {
   });
 
   it("bails to inline when prose precedes the excerpt", () => {
-    const body = `<p>this is the one to exclude ${annot(
+    const body = `<p>an invented lead-in before ${annot(
       "highlight",
       { attachmentURI: ATTACHMENT, annotationKey: "K5", color: "#ffd400" },
       "excerpt",
     )} ${citation}</p>`;
     const md = parseNote(TurndownService, note(body), withRender());
     expect(render).not.toHaveBeenCalled();
-    expect(md).toContain("this is the one to exclude");
+    expect(md).toContain("an invented lead-in before");
     expect(md).toContain("<mark");
   });
 
@@ -628,7 +656,7 @@ describe("annotation template mode", () => {
   });
 
   it("ignores a citation-only paragraph", () => {
-    mockDbCitekeys({ KX67D9YM: "Hensher2011" });
+    mockDbCitekeys({ XMPLITM3: "Hensher2011" });
     const md = parseNote(
       TurndownService,
       note(`<p>${citation} plain note text</p>`),
@@ -720,12 +748,12 @@ describe("annotation template mode", () => {
 
 describe("citation resolution", () => {
   const oneCite = cite({
-    citationItems: [{ uris: [`${ITEMS}/KX67D9YM`] }],
+    citationItems: [{ uris: [`${ITEMS}/XMPLITM3`] }],
     properties: {},
   });
 
   it("resolves a cited item to its live DB citation key, emitted verbatim", () => {
-    mockDbCitekeys({ KX67D9YM: "Hensher2011" });
+    mockDbCitekeys({ XMPLITM3: "Hensher2011" });
     const md = parseNote(TurndownService, note(oneCite), deps);
     expect(md).toContain("[@Hensher2011]");
     expect(md).not.toContain("\\[");
@@ -736,8 +764,8 @@ describe("citation resolution", () => {
       TurndownService,
       note(oneCite, 10, [
         {
-          uris: [`${ITEMS}/KX67D9YM`],
-          itemData: { id: `${ITEMS}/KX67D9YM`, "citation-key": "Embedded2020" },
+          uris: [`${ITEMS}/XMPLITM3`],
+          itemData: { id: `${ITEMS}/XMPLITM3`, "citation-key": "Embedded2020" },
         },
       ]),
       deps,
@@ -747,7 +775,7 @@ describe("citation resolution", () => {
 
   it("emits a visible sentinel when the DB and embedded map both miss", () => {
     const md = parseNote(TurndownService, note(oneCite), deps);
-    expect(md).toContain("[@KX67D9YM?]");
+    expect(md).toContain("[@XMPLITM3?]");
   });
 
   it("leaves an unresolvable (no-ref) citation as raw-HTML passthrough", () => {
@@ -761,22 +789,22 @@ describe("citation resolution", () => {
   });
 
   it("renders a multi-item mark through one joined cite render", () => {
-    mockDbCitekeys({ KX67D9YM: "Hensher2011" });
+    mockDbCitekeys({ XMPLITM3: "Hensher2011" });
     const md = parseNote(
       TurndownService,
       note(
         cite({
           citationItems: [
-            { uris: [`${ITEMS}/KX67D9YM`] },
-            { uris: [`${ITEMS}/4FQVQ6ZQ`] },
+            { uris: [`${ITEMS}/XMPLITM3`] },
+            { uris: [`${ITEMS}/XMPLITM2`] },
           ],
           properties: {},
         }),
         10,
         [
           {
-            uris: [`${ITEMS}/4FQVQ6ZQ`],
-            itemData: { id: `${ITEMS}/4FQVQ6ZQ`, "citation-key": "Kang2013" },
+            uris: [`${ITEMS}/XMPLITM2`],
+            itemData: { id: `${ITEMS}/XMPLITM2`, "citation-key": "Kang2013" },
           },
         ],
       ),
@@ -791,7 +819,7 @@ describe("citation resolution", () => {
       note(
         cite({
           citationItems: [
-            { uris: [`${ITEMS}/KX67D9YM`] },
+            { uris: [`${ITEMS}/XMPLITM3`] },
             { uris: [`${ITEMS}/NOEMBED0`] },
           ],
           properties: {},
@@ -799,9 +827,9 @@ describe("citation resolution", () => {
         10,
         [
           {
-            uris: [`${ITEMS}/KX67D9YM`],
+            uris: [`${ITEMS}/XMPLITM3`],
             itemData: {
-              id: `${ITEMS}/KX67D9YM`,
+              id: `${ITEMS}/XMPLITM3`,
               "citation-key": "Embedded2020",
             },
           },
@@ -831,12 +859,12 @@ describe("citation resolution", () => {
   });
 
   it("resolves a personal-library ref of a group note in the note's group", () => {
-    mockDbCitekeys({ KX67D9YM: "GroupNote2020" }, 5);
+    mockDbCitekeys({ XMPLITM3: "GroupNote2020" }, 5);
     const md = parseNote(TurndownService, note(oneCite), {
       ...deps,
       groupID: 5,
     });
-    expect(citedItem).toHaveBeenCalledWith("KX67D9YMg5");
+    expect(citedItem).toHaveBeenCalledWith("XMPLITM3g5");
     expect(md).toContain("[@GroupNote2020]");
   });
 
@@ -859,7 +887,7 @@ describe("citation resolution", () => {
   });
 
   it("trims the rendered citation so it stays inline (the document's trailing \\n)", () => {
-    mockDbCitekeys({ KX67D9YM: "Hensher2011" });
+    mockDbCitekeys({ XMPLITM3: "Hensher2011" });
     const md = parseNote(TurndownService, note(`x ${oneCite} y`), {
       ...deps,
       renderCite: (items) => `${renderCite(items)}\n`,
@@ -868,12 +896,12 @@ describe("citation resolution", () => {
   });
 
   it("threads a page locator through to the rendered citation (9.2-CSL #02)", () => {
-    mockDbCitekeys({ KX67D9YM: "Hensher2011" });
+    mockDbCitekeys({ XMPLITM3: "Hensher2011" });
     const md = parseNote(
       TurndownService,
       note(
         cite({
-          citationItems: [{ uris: [`${ITEMS}/KX67D9YM`], locator: "62" }],
+          citationItems: [{ uris: [`${ITEMS}/XMPLITM3`], locator: "62" }],
           properties: {},
         }),
       ),
@@ -883,14 +911,14 @@ describe("citation resolution", () => {
   });
 
   it("renders a non-page label with its Pandoc abbreviation", () => {
-    mockDbCitekeys({ KX67D9YM: "Hensher2011" });
+    mockDbCitekeys({ XMPLITM3: "Hensher2011" });
     const md = parseNote(
       TurndownService,
       note(
         cite({
           citationItems: [
             {
-              uris: [`${ITEMS}/KX67D9YM`],
+              uris: [`${ITEMS}/XMPLITM3`],
               locator: "3",
               label: "chapter",
             },
@@ -906,14 +934,14 @@ describe("citation resolution", () => {
   it("threads locator/label/suppress-author through the production renderCite glue (citekeysToCiteTemplateData + the built-in Citation Template)", () => {
     const facade = new TemplateFacade();
     facade.define("citation", defaultCitation, "liquid");
-    mockDbCitekeys({ KX67D9YM: "Hensher2011" });
+    mockDbCitekeys({ XMPLITM3: "Hensher2011" });
     const md = parseNote(
       TurndownService,
       note(
         cite({
           citationItems: [
             {
-              uris: [`${ITEMS}/KX67D9YM`],
+              uris: [`${ITEMS}/XMPLITM3`],
               locator: "62",
               "suppress-author": true,
             },
@@ -931,13 +959,13 @@ describe("citation resolution", () => {
   });
 
   it("renders suppress-author as a Pandoc -@key prefix", () => {
-    mockDbCitekeys({ KX67D9YM: "Hensher2011" });
+    mockDbCitekeys({ XMPLITM3: "Hensher2011" });
     const md = parseNote(
       TurndownService,
       note(
         cite({
           citationItems: [
-            { uris: [`${ITEMS}/KX67D9YM`], "suppress-author": true },
+            { uris: [`${ITEMS}/XMPLITM3`], "suppress-author": true },
           ],
           properties: {},
         }),
@@ -953,14 +981,14 @@ describe("citation resolution", () => {
       note(
         cite({
           citationItems: [
-            { uris: [`${ITEMS}/KX67D9YM`], "suppress-author": true },
+            { uris: [`${ITEMS}/XMPLITM3`], "suppress-author": true },
           ],
           properties: {},
         }),
       ),
       deps,
     );
-    expect(md).toContain("[-@KX67D9YM?]");
+    expect(md).toContain("[-@XMPLITM3?]");
   });
 
   it("falls back to raw-HTML passthrough when a citation prop has the wrong type", () => {
@@ -969,7 +997,7 @@ describe("citation resolution", () => {
       note(
         cite({
           citationItems: [
-            { uris: [`${ITEMS}/KX67D9YM`], "suppress-author": "yes" },
+            { uris: [`${ITEMS}/XMPLITM3`], "suppress-author": "yes" },
           ],
           properties: {},
         }),
@@ -983,31 +1011,31 @@ describe("citation resolution", () => {
 
 describe("noteReferences", () => {
   const personal = cite({
-    citationItems: [{ uris: [`${ITEMS}/KX67D9YM`] }],
+    citationItems: [{ uris: [`${ITEMS}/XMPLITM3`] }],
     properties: {},
   });
   const grouped = cite({
     citationItems: [
       { uris: ["http://zotero.org/groups/9/items/GRP1TEM"] },
-      { uris: [`${ITEMS}/KX67D9YM`] },
+      { uris: [`${ITEMS}/XMPLITM3`] },
     ],
     properties: {},
   });
-  const image = '<img data-attachment-key="U5WTYIJK" alt="">';
+  const image = '<img data-attachment-key="XMPLATC5" alt="">';
 
   it("names each cited Item's Indexed Key and each embedded image's key once", () => {
     const html = note(
       `<p>${personal} ${grouped}</p><p>${image}</p><p>${image}</p>`,
     );
     expect(noteReferences(html, null)).toEqual({
-      citedIndexedKeys: ["KX67D9YM", "GRP1TEMg9"],
-      attachmentKeys: ["U5WTYIJK"],
+      citedIndexedKeys: ["XMPLITM3", "GRP1TEMg9"],
+      attachmentKeys: ["XMPLATC5"],
     });
   });
 
   it("names a personal-library ref of a group note in the note's group", () => {
     expect(noteReferences(note(`<p>${personal}</p>`), 5)).toEqual({
-      citedIndexedKeys: ["KX67D9YMg5"],
+      citedIndexedKeys: ["XMPLITM3g5"],
       attachmentKeys: [],
     });
   });
@@ -1022,7 +1050,7 @@ describe("noteReferences", () => {
 
 describe("citation resolution — DB item data (9.2-CSL #03)", () => {
   const oneCite = cite({
-    citationItems: [{ uris: [`${ITEMS}/KX67D9YM`] }],
+    citationItems: [{ uris: [`${ITEMS}/XMPLITM3`] }],
     properties: {},
   });
 
@@ -1065,8 +1093,8 @@ describe("citation resolution — DB item data (9.2-CSL #03)", () => {
       TurndownService,
       note(oneCite, 10, [
         {
-          uris: [`${ITEMS}/KX67D9YM`],
-          itemData: { id: `${ITEMS}/KX67D9YM`, "citation-key": "Embedded2020" },
+          uris: [`${ITEMS}/XMPLITM3`],
+          itemData: { id: `${ITEMS}/XMPLITM3`, "citation-key": "Embedded2020" },
         },
       ]),
       {
@@ -1122,7 +1150,7 @@ describe("citation resolution — embedded item data (9.2-CSL #04)", () => {
   });
 
   it("resolves full embedded item data when the DB is degraded (client not ready)", () => {
-    const uri = `${ITEMS}/KX67D9YM`;
+    const uri = `${ITEMS}/XMPLITM3`;
     const md = parseNote(
       TurndownService,
       note(cite({ citationItems: [{ uris: [uri] }], properties: {} }), 10, [
@@ -1144,7 +1172,7 @@ describe("citation resolution — embedded item data (9.2-CSL #04)", () => {
         citationKey: "Hensher2011",
       }),
     );
-    const uri = `${ITEMS}/KX67D9YM`;
+    const uri = `${ITEMS}/XMPLITM3`;
     const md = parseNote(
       TurndownService,
       note(cite({ citationItems: [{ uris: [uri] }], properties: {} }), 10, [
@@ -1179,7 +1207,7 @@ describe("fixtures (resolving)", () => {
       deps,
     );
 
-    expect(md).toContain("![[U5WTYIJK-img.png]]");
+    expect(md).toContain("![[XMPLATC5-img.png]]");
     expect(md).not.toContain("<img");
     expect(md).toContain("[@Kang2013; @Hensher2011]");
     expect(md).not.toContain("data-citation");
@@ -1198,11 +1226,11 @@ describe("fixtures (resolving)", () => {
     );
 
     expect(md).toContain('<mark class="zotlit-hl" data-color="red"');
-    expect(md).toContain("annotation=JDJKX3N6&page=62)");
-    expect(md).toContain("annotation=KMV38EI6&page=62)");
+    expect(md).toContain("annotation=XMPLANN9&page=62)");
+    expect(md).toContain("annotation=XMPLANNA&page=62)");
     expect(md).toContain('<u class="zotlit-ul" data-color="yellow"');
-    expect(md).toContain("annotation=V78IHLM9&page=62)");
-    expect(md).toContain("![[7TTPMKWK-img.png]]");
+    expect(md).toContain("annotation=XMPLANNC&page=62)");
+    expect(md).toContain("![[XMPLATC2-img.png]]");
     expect(md).not.toContain("<img");
     expect(md).toContain("[@Hensher2011, p. 62]");
     expect(md).not.toContain("data-citation");
@@ -1221,23 +1249,23 @@ describe("fixtures (resolving)", () => {
     });
 
     const subsumed = [
-      "JDJKX3N6",
-      "V78IHLM9",
-      "KMV38EI6",
-      "DBKE89L9",
-      "XRZMBHKK",
-      "NPUZ9NKS",
+      "XMPLANN9",
+      "XMPLANNC",
+      "XMPLANNA",
+      "XMPLANN7",
+      "XMPLANND",
+      "XMPLANNB",
     ];
     expect(renderAnnotationParagraph).toHaveBeenCalledExactlyOnceWith(subsumed);
     expect(renderAnnotationParagraph.mock.calls[0]![0]).not.toContain(
-      "AFUVIG9Z",
+      "XMPLANN5",
     );
     for (const key of subsumed) {
       expect(md).toContain(`> [!note] Page 62\n>\n> excerpt ${key}`);
     }
-    expect(md).toContain("this is the one to exclude");
-    expect(md).toContain("annotation=AFUVIG9Z&page=62)");
-    expect(md).not.toContain("![[7TTPMKWK");
+    expect(md).toContain("an invented lead-in before");
+    expect(md).toContain("annotation=XMPLANN5&page=62)");
+    expect(md).not.toContain("![[XMPLATC2");
     expect(embeddedAttachment).not.toHaveBeenCalled();
   });
 });

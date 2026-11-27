@@ -150,7 +150,7 @@ function fixedClock(now: string): Clock.Clock {
 }
 
 export async function faultCode(
-  dataset: QueryDataset<any>,
+  dataset: QueryDataset,
   client: ZoteroDatabase,
   request: Omit<ItemQueryRequest, "libraries">,
 ): Promise<string | null> {

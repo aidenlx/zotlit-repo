@@ -78,7 +78,10 @@ function fileMenuHandler(
         app,
         attachments: {
           literatureNoteAttachments: (indexedKey) =>
-            Promise.resolve(indexedKey === "ABCD2345" ? resolved : []),
+            Promise.resolve({
+              attachments: indexedKey === "ABCD2345" ? resolved : [],
+              filesUnavailable: false,
+            }),
         },
         opener: stubService<Pick<TargetOpener["Service"], "open">>(
           "TargetOpener",

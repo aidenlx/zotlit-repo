@@ -9,8 +9,12 @@ The capability as a whole: one query form over three Query Datasets, with one re
 _Avoid_: Item Query (as the umbrella), Zotero Query, DB Query
 
 **Query Dataset**:
-The kind of record that a query reads and returns, with everything that differs between the kinds: the fields and their Projection Paths, the Relation Lists, the Sortable Fields, the defaults, the Filter Expression vocabulary, and the readers. There are three Query Datasets: Item Query, Attachment Query, and Annotation Query. A query names its Query Dataset; one request planner, one diagnoser, and one execution serve all three.
+The kind of record that a query reads and returns, with everything that differs between the kinds: the fields and their Projection Paths, the Relation Lists, the Sortable Fields, the defaults, the Filter Expression vocabulary. There are three Query Datasets: Item Query, Attachment Query, and Annotation Query. A query names its Query Dataset; one request planner, one diagnoser, and one execution serve all three.
 _Avoid_: kind, dataset flag, query mode, table
+
+**Query Engine**:
+The readers and record loading of one Query Dataset: its candidate sets, scan pages, row counts and hydration. The execution gets the Query Engine of the Query Dataset that a query names. A Query Dataset holds no reader, so code that only plans or validates a query, such as the Obsidian renderer, reads no database.
+_Avoid_: dataset runner, executor
 
 **Item Query**:
 The Query Dataset of Items: a query over the top-level, non-trashed Items of its Target Libraries. It contains one optional Filter Expression, selected fields, sort fields, and an optional result limit. The Items of all its Target Libraries are filtered, sorted, and limited as one set. An Item reaches its Attachments and its Annotations through Relation Lists.

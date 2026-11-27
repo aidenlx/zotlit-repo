@@ -46,6 +46,7 @@ import { libraryScopeWire } from "./library-scope.ts";
 import type { LibraryScope } from "./library-scope.ts";
 import { DecodedQuery, DecodedValues } from "./query-codec.ts";
 import type { ItemSnapshot } from "./snapshot/types.ts";
+import { SourceIdentitySchema } from "./source-identity.ts";
 
 type Expect<T extends true> = T;
 type Equals<A, B> = [A, B] extends [B, A] ? true : false;
@@ -383,22 +384,56 @@ type _SegmenterBinary = Expect<
   Equals<SegmenterBinary, ItemIndexSegmenterBinary>
 >;
 
-export const ReadsConfigSchema = Schema.Struct({
-  databasePath: Schema.String,
-  readMode: Schema.Literals(["auto", "reflink", "copy", "immutable"]),
-  autoRefresh: Schema.Boolean,
+const readerConfig = {
   locale: Schema.NullOr(Schema.String),
   chineseSegmenter: Schema.NullOr(SegmenterBinarySchema),
   logLevel: Schema.NullOr(
     Schema.Literals(["trace", "debug", "info", "warning", "error", "fatal"]),
   ),
+};
+
+export const FileReadsConfigSchema = Schema.Struct({
+  source: Schema.optionalKey(Schema.Literal("file")),
+  databasePath: Schema.String,
+  sourceId: Schema.optionalKey(Schema.NullOr(Schema.String)),
+  readMode: Schema.Literals(["auto", "reflink", "copy", "immutable"]),
+  autoRefresh: Schema.Boolean,
+  ...readerConfig,
 });
+export type FileReadsConfig = typeof FileReadsConfigSchema.Type;
+
+export const ZOTERO_WEB_API_URL = "https://api.zotero.org";
+
+export const WebApiReadsConfigSchema = Schema.Struct({
+  source: Schema.Literal("web-api"),
+  apiKey: Schema.RedactedFromValue(Schema.String),
+  baseUrl: Schema.String.pipe(
+    Schema.optionalKey,
+    Schema.withDecodingDefaultKey(Effect.succeed(ZOTERO_WEB_API_URL)),
+  ),
+  poolDirectory: Schema.String,
+  zoteroLocale: Schema.optionalKey(Schema.String),
+  consentedUserID: Schema.optionalKey(Schema.Int),
+  ...readerConfig,
+});
+export type WebApiReadsConfig = typeof WebApiReadsConfigSchema.Type;
+
+export const ReadsConfigSchema = Schema.Union([
+  FileReadsConfigSchema,
+  WebApiReadsConfigSchema,
+]);
 export type ReadsConfig = typeof ReadsConfigSchema.Type;
 
-export type ConfiguredReadMode = ReadsConfig["readMode"];
+export function fileConfigOf(
+  config: ReadsConfig | null,
+): FileReadsConfig | null {
+  return config === null || config.source === "web-api" ? null : config;
+}
+
+export type ConfiguredReadMode = FileReadsConfig["readMode"];
 
 export const WorkerInitSchema = Schema.Struct({
-  ...ReadsConfigSchema.fields,
+  ...FileReadsConfigSchema.fields,
   snapshotOwner: Schema.String,
   deferOpen: Schema.Boolean,
   logs: Transferable.MessagePort,
@@ -484,7 +519,7 @@ export class ZoteroReads extends RpcGroup.make(
   Rpc.make("ItemQuery", {
     payload: { job: QueryJobSchema, ...snapshot },
     success: jsonObject<ItemQueryAnswer>(),
-    error: ReadError,
+    error: Schema.Union([DbUnavailable, SnapshotExpired]),
   }),
   Rpc.make("CitationLookup", {
     payload: {
@@ -651,6 +686,11 @@ export class ZoteroReads extends RpcGroup.make(
   Rpc.make("DatabaseIdentity", {
     payload: snapshot,
     success: DatabaseIdentitySchema,
+    error: ReadError,
+  }),
+  Rpc.make("SourceIdentity", {
+    payload: snapshot,
+    success: SourceIdentitySchema,
     error: ReadError,
   }),
   Rpc.make("ItemSnapshot", {

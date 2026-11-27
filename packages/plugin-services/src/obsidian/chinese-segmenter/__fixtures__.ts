@@ -9,11 +9,11 @@ import { layerZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { layerRcRef } from "@zotlit/zotero-reads/worker/connection.ts";
 import type { HandlersOptions } from "@zotlit/zotero-reads/worker/handlers.ts";
+import { readSegmenterOver } from "@zotlit/zotero-reads/worker/segmenter.ts";
 
 import { layerChineseSegmenter } from "./service.ts";
 import type { ChineseSegmenter } from "./service.ts";
 
-import { readSegmenterOver } from "#core/chinese-segmenter/pack-reader.ts";
 import { layerPackDevice } from "#obsidian/managed-binary/__fixtures__.ts";
 
 export const segmenterHandlers = (

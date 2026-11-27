@@ -26,6 +26,7 @@ import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 import { isPdfAttachment } from "#core/attachment-resolver/pdf-attachment.ts";
 import { QueryClients } from "#core/query-client/service.ts";
 import { resolvedChanged, ZoteroPref } from "#core/zotero-pref/service.ts";
+import { libraryFilePaths } from "#obsidian/library-source/paths.ts";
 
 export type AttachmentResolution =
   | {
@@ -123,7 +124,9 @@ export function layerAttachmentResolver() {
           const slices = yield* Stream.runCollect(
             snapshot.AttachmentPathIndex({}),
           );
-          const { dataDir, baseAttachmentPath } = yield* zoteroPref.current;
+          const { dataDir, baseAttachmentPath } = yield* libraryFilePaths.pipe(
+            Effect.provideService(ZoteroPref, zoteroPref),
+          );
           const { index, files, collisions } = buildPathIndex(slices.flat(), {
             dataDir,
             baseAttachmentPath,

@@ -237,7 +237,7 @@ await test("a truncated schema response can prove recovery without inventing its
   const good = codex(
     "good",
     "node obsidian-cli.ts zotlit:query-schema | head -100",
-    '{\n"contractVersion":3,\n"command":"zotlit:query-schema",\n"ok":true,\n"identity":{',
+    '{\n"contractVersion":4,\n"command":"zotlit:query-schema",\n"ok":true,\n"identity":{',
   );
   const metrics = measureEvents(jsonl([bad, good]));
   assert.equal(metrics.misreadings[0].recovered, true);

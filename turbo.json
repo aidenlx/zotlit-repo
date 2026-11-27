@@ -134,7 +134,7 @@
       "inputs": [
         "eslint.config.js",
         "manifest.json",
-        "packages/config/src/core/repositories.ts",
+        "packages/config/src/worker/repositories.ts",
         "packages/scripts/lib/plugin-packages.ts",
         "packages/scripts/lib/scanner-eslint.ts",
         "packages/scripts/lib/shell/plugins.ts",
@@ -172,7 +172,7 @@
       "dependsOn": ["//#review:plugin:deps"],
       "inputs": [
         "eslint.config.js",
-        "packages/config/src/core/repositories.ts",
+        "packages/config/src/worker/repositories.ts",
         "packages/scripts/lib/plugin-packages.ts",
         "packages/scripts/lib/scanner-eslint.ts",
         "packages/scripts/lib/shell/plugins.ts",
@@ -205,7 +205,7 @@
         "apps/obsidian/package.json",
         "apps/reader/package.json",
         "apps/resources/package.json",
-        "packages/config/src/core/repositories.ts",
+        "packages/config/src/worker/repositories.ts",
         "packages/scripts/lib/obsidian-manifest.ts",
         "packages/scripts/lib/package-roots.ts",
         "packages/scripts/package.json",

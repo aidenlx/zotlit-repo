@@ -5,9 +5,9 @@ import type {
   VaultRead,
 } from "#core/query-view/view-plan/filter-split.ts";
 import type { VaultValue } from "#desktop/query-view/table-notes.ts";
+import type { ViewDiagnostic } from "#obsidian/query-view/reader-failure.ts";
 
 import { planItemFilter } from "@zotlit/item-query";
-import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import type { Span } from "@zotlit/template-workbench/core/language/index.ts";
 
@@ -21,7 +21,7 @@ export type VaultFilter =
   | {
       readonly fault: {
         readonly at: FilterLocation | ConditionFault;
-        readonly diagnostic: ReaderDiagnosticSource;
+        readonly diagnostic: ViewDiagnostic;
       };
     };
 
@@ -120,7 +120,7 @@ export function planVaultFilter({
 
 function fault(
   { section, path }: FilterLocation,
-  diagnostic: ReaderDiagnosticSource,
+  diagnostic: ViewDiagnostic,
 ): VaultFilter {
   return { fault: { at: { section, path }, diagnostic } };
 }

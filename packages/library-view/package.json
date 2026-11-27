@@ -57,6 +57,7 @@
     "@zotlit/db-testing": "workspace:*",
     "@zotlit/shared": "workspace:*",
     "@zotlit/template-workbench": "workspace:*",
+    "@zotlit/web-library": "workspace:*",
     "happy-dom": "catalog:",
     "obsidian": "catalog:",
     "oxlint": "catalog:",

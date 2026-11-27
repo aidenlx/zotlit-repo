@@ -2,7 +2,7 @@
   "reading_plan": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -11,6 +11,7 @@
           "path": "/evaluation-run/vault-c5517c2c-06da-4246-8c5b-ac01d7ac81eb"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "8a55b063"
         }
@@ -172,7 +173,7 @@
   },
   "attachment": {
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -181,6 +182,7 @@
           "path": "/evaluation-run/vault-23b92c04-3cd3-41df-92d9-2051f7bfdb3c"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "8babeee3"
         }
@@ -277,7 +279,7 @@
   },
   "colors": {
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -286,6 +288,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -362,7 +365,7 @@
   },
   "missing_source": {
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -371,6 +374,7 @@
           "path": "/evaluation-run/vault-79535da2-ed2f-4a90-b100-f14c6b6fd8fa"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "11e35383"
         }
@@ -457,7 +461,7 @@
   },
   "export_annotations": {
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -466,6 +470,7 @@
           "path": "/evaluation-run/vault-ff63b5aa-0fc3-417f-a5c5-0f0bbf7f116b"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "661048c3"
         }
@@ -560,7 +565,7 @@
       "validPng": null
     },
     "receipt": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -569,6 +574,7 @@
           "path": "/evaluation-run/vault-ff63b5aa-0fc3-417f-a5c5-0f0bbf7f116b"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "661048c3"
         }
@@ -613,7 +619,7 @@
   "no_usable_pdf": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -622,6 +628,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -705,7 +712,7 @@
   "broken_links": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -714,6 +721,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -765,7 +773,7 @@
   "duplicate_pdfs": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -774,6 +782,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -825,7 +834,7 @@
   "recently_annotated": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -834,6 +843,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -897,7 +907,7 @@
   "count_per_paper": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -906,6 +916,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -1000,7 +1011,7 @@
   "count_by_year": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -1009,6 +1020,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -1127,7 +1139,7 @@
   "papers_per_tag": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -1136,6 +1148,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -1238,7 +1251,7 @@
   "unread_in_collection": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -1247,6 +1260,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -1330,7 +1344,7 @@
   "attachment_types": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -1339,6 +1353,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -1463,7 +1478,7 @@
   "fuzzy_search": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -1472,6 +1487,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -1531,7 +1547,7 @@
   "files_of_paper": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -1540,6 +1556,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -1615,7 +1632,7 @@
   "csv_for_advisor": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -1624,6 +1641,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -1729,7 +1747,7 @@
   "recent_with_pdf_unread": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -1738,6 +1756,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -1787,7 +1806,7 @@
   "chinese_title": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -1796,6 +1815,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }
@@ -1843,7 +1863,7 @@
   "discover_collection": {
     "provenance": "Reviewed contract example; verified against the seeded corpus by corpus-query.test.mjs.",
     "envelope": {
-      "contractVersion": 3,
+      "contractVersion": 4,
       "command": "zotlit:query",
       "ok": true,
       "identity": {
@@ -1852,6 +1872,7 @@
           "path": "/evaluation-run/vault-e2c9c19d-18bb-4310-8ac1-d34ef55bfd0a"
         },
         "source": {
+          "kind": "file",
           "databasePath": "/evaluation-run/corpus/zotero-data/zotero.sqlite",
           "id": "34ecb303"
         }

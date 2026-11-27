@@ -1,7 +1,11 @@
+import type {
+  QueryViewOutcome,
+  QueryViewRequest,
+} from "#worker/item-query/query-view.ts";
+
 import { valueOr } from "@zotlit/plugin-kernel/effect-bridge.ts";
 import type { EffectBridge } from "@zotlit/plugin-kernel/effect-bridge.ts";
 
-import type { QueryViewOutcome, QueryViewRequest } from "./query-view.ts";
 import type { QueryService } from "./service.ts";
 
 export interface QueryHandle {

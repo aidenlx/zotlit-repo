@@ -65,11 +65,11 @@ describe("formatPandocCitation", () => {
   it("uses the braced key form when the simple form would lose punctuation", () => {
     expect(
       formatPandocCitation([
-        item("KX67D9YM?"),
+        item("XMPLITM3?"),
         item("doe,2024"),
         item("a{b}c"),
       ]),
-    ).toBe("[@{KX67D9YM?}; @{doe,2024}; @{a{b}c}]");
+    ).toBe("[@{XMPLITM3?}; @{doe,2024}; @{a{b}c}]");
   });
 
   it("omits null-keyed items and keeps the remaining order", () => {

@@ -1,5 +1,5 @@
 import type { QueryHostDeps } from "#__fixtures__/query-view/host.ts";
-import type { QueryViewOutcome } from "#desktop/item-query/query-view.ts";
+import type { QueryViewOutcome } from "#worker/item-query/query-view.ts";
 import { Stream } from "effect";
 import { debounce } from "obsidian";
 import type { App, WorkspaceLeaf } from "obsidian";

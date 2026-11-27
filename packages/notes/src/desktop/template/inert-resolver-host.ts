@@ -5,6 +5,7 @@ import TurndownService from "turndown";
 
 import type { NoteResolvers } from "@zotlit/db";
 import { attachmentAbsPath, resolveAnnotCachePath } from "@zotlit/db/path";
+import type { AttachmentPathContext } from "@zotlit/db/path";
 import { fileUrlLink } from "@zotlit/obsidian-desktop/markdown-link.ts";
 import { creatorSummary } from "@zotlit/plugin-kernel/item-summary.ts";
 import {
@@ -12,7 +13,6 @@ import {
   createCommentTurndown,
 } from "@zotlit/plugin-kernel/turndown/comment.ts";
 import * as m from "@zotlit/plugin-messages/messages.ts";
-import type { ZoteroPrefSnapshot } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 
 import { attachmentFileLink } from "./annotation-render.ts";
 
@@ -31,7 +31,7 @@ export interface ObsidianInertNoteResolverDeps {
   };
   fileManager: Pick<FileManager, "generateMarkdownLink">;
   vault: Pick<Vault, "getFileByPath">;
-  zoteroPref: Pick<ZoteroPrefSnapshot, "dataDir" | "baseAttachmentPath">;
+  zoteroPref: AttachmentPathContext;
   sourcePath: string;
   excerptImages: ExcerptImageContext;
 }

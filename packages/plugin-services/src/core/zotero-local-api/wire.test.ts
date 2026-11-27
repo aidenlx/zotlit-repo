@@ -132,7 +132,7 @@ it("names the field when the answer is not the shape this client reads", () => {
   });
 });
 
-const SERVER_ID = "A8sf5Zsz8ySw";
+const SERVER_ID = "XmplSrv00Id1";
 
 async function classify(answer: Response) {
   return classifyReply(

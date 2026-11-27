@@ -323,7 +323,7 @@ describe("buildNoteContext", () => {
 
   it("builds the username weblink for a personal-library item with a known username", () => {
     const ctx = buildNoteContext({
-      username: "aidenlx",
+      username: "sample-reader",
       item: makeItem({ itemType: "book" }),
       attachments: [],
       annotationsByAttachment: new Map(),
@@ -338,7 +338,9 @@ describe("buildNoteContext", () => {
       noteLink: () => "",
       annotationImageLink: () => null,
     });
-    expect(ctx.weblink).toBe("https://www.zotero.org/aidenlx/items/ITEM2345");
+    expect(ctx.weblink).toBe(
+      "https://www.zotero.org/sample-reader/items/ITEM2345",
+    );
   });
 
   it("builds the groups weblink for a group-library item regardless of username", () => {
@@ -444,7 +446,7 @@ describe("buildNoteContext", () => {
 
     const betaTag = { tagID: 7, name: "method" };
     const ctx = buildNoteContext({
-      username: "aidenlx",
+      username: "sample-reader",
       item: makeItem({ itemType: "journalArticle" }),
       attachments: [],
       annotationsByAttachment: new Map(),
@@ -470,7 +472,9 @@ describe("buildNoteContext", () => {
     expect(beta.authors.map((a) => a.family)).toEqual(["Adams"]);
     expect(beta.authorsShort).toBe("short:RELB2345");
     expect(beta.tags.map((t) => t.name)).toEqual(["method"]);
-    expect(beta.weblink).toBe("https://www.zotero.org/aidenlx/items/RELB2345");
+    expect(beta.weblink).toBe(
+      "https://www.zotero.org/sample-reader/items/RELB2345",
+    );
     expect(ctx.relatedItems[0]!.backlink).toBe(
       "zotero://select/groups/99/items/RELA2345",
     );

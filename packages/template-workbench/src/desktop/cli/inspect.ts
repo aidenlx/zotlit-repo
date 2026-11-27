@@ -51,10 +51,10 @@ import type {
   FileNotFound,
   VaultError,
 } from "@zotlit/plugin-kernel/vault-errors.ts";
-import type { ZoteroPref } from "@zotlit/plugin-services/core/zotero-pref/service.ts";
 import { itemKeyFromFrontmatter } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { PluginSettings } from "@zotlit/plugin-services/obsidian/settings/service.ts";
 import { formatPlainTemplateDocument } from "@zotlit/templates/facade";
+import type { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
 
 import { CONTRACT_VERSION, rejectionDiagnostic } from "./envelope.ts";
 import { readWorkbenchIdentity } from "./identity.ts";
@@ -191,7 +191,7 @@ export type InspectServices =
   | Workspace
   | ObsidianEnv
   | VaultDisk
-  | ZoteroPref;
+  | ZoteroReads;
 
 export interface InspectDiagnostic {
   code: InspectDiagnosticCode;
@@ -483,7 +483,7 @@ export function createInspectHandler(
       });
       if (
         query["expect-source"] !== undefined &&
-        query["expect-source"] !== identity.source.id
+        query["expect-source"] !== identity.source?.id
       )
         return yield* fail("TARGET_MISMATCH");
       const draftDocument: InspectDocument | undefined =

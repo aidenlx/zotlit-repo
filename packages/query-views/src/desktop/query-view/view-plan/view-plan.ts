@@ -7,15 +7,15 @@ import type {
   ConditionFault,
   FilterSplit,
 } from "#core/query-view/view-plan/filter-split.ts";
+import type { LayoutRows } from "#desktop/query-view/rows.ts";
+import type { VaultHost, VaultValue } from "#desktop/query-view/table-notes.ts";
+import type { ViewDiagnostic } from "#obsidian/query-view/reader-failure.ts";
 import type {
   QueryViewRequest,
   QueryViewRow,
-} from "#desktop/item-query/query-view.ts";
-import type { LayoutRows } from "#desktop/query-view/rows.ts";
-import type { VaultHost, VaultValue } from "#desktop/query-view/table-notes.ts";
+} from "#worker/item-query/query-view.ts";
 
 import type { QueryContext } from "@zotlit/item-query";
-import type { ReaderDiagnosticSource } from "@zotlit/obsidian-kit/reader-diagnostic.ts";
 import type { Span } from "@zotlit/template-workbench/core/language/index.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
@@ -54,7 +54,7 @@ export interface ViewPlanSources {
 
 export interface ViewPlanFault {
   readonly at: FilterLocation;
-  readonly diagnostic: ReaderDiagnosticSource;
+  readonly diagnostic: ViewDiagnostic;
 }
 
 export interface ViewPlan {

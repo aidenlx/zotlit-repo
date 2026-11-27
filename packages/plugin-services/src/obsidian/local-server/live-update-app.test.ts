@@ -31,6 +31,8 @@ function makeDeps(
   return {
     enabled: () => true,
     acceptedSourceIds: () => [SOURCE_ID],
+    localItemIds: () => true,
+    refusedForSource: vi.fn(),
     noteIndex: {
       whenIndexed: () => Promise.resolve(true),
       getIndexedItemKeys: () => ["ABCD2345", "ZZZ99999g17"],
@@ -58,6 +60,59 @@ describe("the Live updates toggle", () => {
     );
 
     expect(status).toEqual([404, 404]);
+  });
+});
+
+describe("the online library as the source", () => {
+  it("discards each request that names items of Zotero on this computer, and still answers the note status", async () => {
+    const onNotify = vi.fn();
+    const onUpdateMany = vi.fn();
+    const onImportNotes = vi.fn();
+    const refusedForSource = vi.fn();
+    const app = createLiveUpdateApp(
+      makeDeps({
+        localItemIds: () => false,
+        refusedForSource,
+        onNotify,
+        onUpdateMany,
+        onImportNotes,
+      }),
+    );
+    const json = { ...headers(), "content-type": "application/json" };
+
+    const update = await app.request("/literature-notes", {
+      method: "PUT",
+      headers: json,
+      body: JSON.stringify({ items: [1, 2] }),
+    });
+    const notes = await app.request("/zotero-notes", {
+      method: "PUT",
+      headers: json,
+      body: JSON.stringify({ items: [1], mode: "child" }),
+    });
+    const notify = await app.request("/notify", {
+      method: "POST",
+      headers: json,
+      body: JSON.stringify({
+        event: "reader/active",
+        itemID: 1,
+        attachmentID: 2,
+      }),
+    });
+    const status = await app.request("/literature-notes", {
+      headers: headers(),
+    });
+
+    expect([update.status, notes.status, notify.status]).toEqual([
+      SOURCE_MISMATCH_STATUS,
+      SOURCE_MISMATCH_STATUS,
+      204,
+    ]);
+    expect(onUpdateMany).not.toHaveBeenCalled();
+    expect(onImportNotes).not.toHaveBeenCalled();
+    expect(onNotify).not.toHaveBeenCalled();
+    expect(refusedForSource).toHaveBeenCalledTimes(2);
+    expect(status.status).toBe(200);
   });
 });
 

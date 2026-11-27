@@ -17,7 +17,7 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
     "lint": "oxlint",
     "test": "vitest run",
-    "generate:eta": "lezer-generator src/core/language/eta.grammar -o src/core/language/eta-parser.ts --typeScript"
+    "generate:eta": "lezer-generator src/core/language/eta.grammar -o src/core/language/eta-parser.ts --typeScript && oxfmt src/core/language/eta-parser.ts src/core/language/eta-parser.terms.ts"
   },
   "dependencies": {
     "@codemirror/autocomplete": "catalog:",

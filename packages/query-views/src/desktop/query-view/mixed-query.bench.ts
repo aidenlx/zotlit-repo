@@ -2,7 +2,7 @@ import type { QueryFile } from "#core/query-view/query-file.ts";
 import type {
   QueryViewResult,
   QueryViewRow,
-} from "#desktop/item-query/query-view.ts";
+} from "#worker/item-query/query-view.ts";
 import { DateTime, Effect } from "effect";
 // oxlint-disable-next-line no-restricted-imports -- the production scheduler of a Query Job, as job.ts provides it.
 import { Scheduler } from "effect";
@@ -37,9 +37,9 @@ import { MY_LIBRARY_SCOPE } from "@zotlit/zotero-reads/contract/library-scope.ts
 import type { VaultValue } from "./table-notes.ts";
 
 import { parseQueryFile } from "#core/query-view/query-file.ts";
-import { answerView } from "#desktop/item-query/answer.ts";
-import { QUERY_COMMAND } from "#desktop/item-query/contract.ts";
 import { ViewPlanner } from "#desktop/query-view/view-plan/view-plan.ts";
+import { answerView } from "#worker/item-query/answer.ts";
+import { QUERY_COMMAND } from "#worker/item-query/contract.ts";
 
 const WORKSPACE = resolve(import.meta.dirname, "../../../../..");
 const SCRATCH = join(WORKSPACE, ".scratch", "mixed-query-bench");

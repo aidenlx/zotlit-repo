@@ -1,9 +1,9 @@
 import { resolveVenue } from "@zotlit/db";
 import * as m from "@zotlit/plugin-messages/messages.ts";
 import { runtime } from "@zotlit/plugin-messages/runtime.ts";
-import type { QueryViewValue } from "@zotlit/query-views/desktop/item-query/query-view.ts";
 import { holdsPdf } from "@zotlit/query-views/desktop/query-view/papers-layout.tsx";
 import { fieldLabel } from "@zotlit/query-views/desktop/query-view/view-properties.ts";
+import type { QueryViewValue } from "@zotlit/query-views/worker/item-query/query-view.ts";
 import { FIELD_ALIASES } from "@zotlit/zotero-types";
 import { FIELD_LABELS } from "@zotlit/zotero-types/field-labels";
 import { ITEM_TYPES } from "@zotlit/zotero-types/item-types";

@@ -60,9 +60,7 @@ export function openScenarioDatabase<Client>(
   connect: (sqlite: DatabaseSync) => Client,
   options: ScenarioDatabaseOptions = {},
 ): ScenarioDatabase<Client> {
-  const pristine = (pristineBytes ??= gunzipSync(
-    readFileSync(pristineTemplatePath()),
-  ));
+  const pristine = readPristine();
 
   using resources = new DisposableStack();
   let path = ":memory:";
@@ -89,6 +87,16 @@ export function openScenarioDatabase<Client>(
     close,
     [Symbol.dispose]: close,
   };
+}
+
+export function openPristineDatabase(): DatabaseSync {
+  const sqlite = new DatabaseSync(":memory:");
+  sqlite.deserialize(readPristine());
+  return sqlite;
+}
+
+function readPristine(): Buffer {
+  return (pristineBytes ??= gunzipSync(readFileSync(pristineTemplatePath())));
 }
 
 function toLowestLayout(sqlite: DatabaseSync): void {

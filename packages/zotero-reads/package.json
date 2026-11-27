@@ -16,12 +16,14 @@
     "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json",
     "lint": "oxlint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "generate:machine-table": "node scripts/generate-machine-table.ts && oxfmt src/worker/web-api-machine.table.md"
   },
   "dependencies": {
     "@effect/platform-browser": "catalog:",
     "@std/collections": "catalog:",
     "@zotlit/db": "workspace:*",
+    "@zotlit/drizzle-sqlite-wasm": "workspace:*",
     "@zotlit/item-lookup": "workspace:*",
     "@zotlit/item-query": "workspace:*",
     "@zotlit/obsidian-desktop": "workspace:*",
@@ -29,6 +31,7 @@
     "@zotlit/plugin-kernel": "workspace:*",
     "@zotlit/resource-pack": "workspace:*",
     "@zotlit/shared": "workspace:*",
+    "@zotlit/web-library": "workspace:*",
     "@zotlit/zotero-types": "workspace:*",
     "arkregex": "catalog:",
     "effect": "catalog:",
@@ -37,6 +40,7 @@
   "devDependencies": {
     "@effect/platform-node": "catalog:",
     "@effect/vitest": "catalog:",
+    "@sqlite.org/sqlite-wasm": "catalog:",
     "@types/node": "catalog:",
     "@types/node-24": "catalog:",
     "@zotlit/config": "workspace:*",

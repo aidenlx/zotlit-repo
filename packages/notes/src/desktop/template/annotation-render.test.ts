@@ -129,3 +129,14 @@ describe("buildAnnotationResolvers", () => {
     expect(resolveLink).not.toHaveBeenCalled();
   });
 });
+
+describe("attachmentFileLink with no local Zotero data directory", () => {
+  it("renders an empty file link", () => {
+    expect(
+      attachmentFileLink(
+        makeAttachment({ path: "storage:paper.pdf", linkMode: 0 }),
+        { dataDir: null, baseAttachmentPath: null },
+      )(),
+    ).toBeNull();
+  });
+});

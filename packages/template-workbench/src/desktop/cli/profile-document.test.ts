@@ -14,7 +14,11 @@ import { DIAGNOSTIC_HINTS } from "./envelope.ts";
 
 const IDENTITY = {
   vault: { name: "Test Vault", path: "/vaults/test" },
-  source: { id: "a1b2c3d4", databasePath: "/Zotero/zotero.sqlite" },
+  source: {
+    kind: "file",
+    id: "a1b2c3d4",
+    databasePath: "/Zotero/zotero.sqlite",
+  },
 } as const;
 
 const BOOKS_ID = "Bk3Qn7XvT2Lp";

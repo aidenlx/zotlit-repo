@@ -236,6 +236,14 @@ SYNOPSIS
 
 IDENTITY AND OUTPUT
   Keep vault=<name> first on each call and verify identity.vault and identity.source.
+  identity.source names the Zotero source: kind "file" with id and databasePath
+  for the local Zotero database (id is null while ZotLit still reads a database
+  that the Zotero preferences no longer name; databasePath is null when ZotLit
+  does not know the path of the database it reads), or kind "web-api" with id,
+  userID, and username for the Zotero online library; its id is
+  web-api:<userID>, or web-api:unsynced before the first sync.
+  When the local Zotero database cannot open, identity.source names the database
+  of the Zotero preferences; it is null when ZotLit cannot read the online library.
   Supply expect-source=<identity.source.id> when inspecting, discovering data,
   or running a new check. Omit expect-source for retained attempt lookups;
   read topic=check for their accepted flags and recovery example. JSON includes

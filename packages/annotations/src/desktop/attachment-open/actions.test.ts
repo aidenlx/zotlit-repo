@@ -10,7 +10,9 @@ import type {
 } from "obsidian";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { Notice } from "@zotlit/obsidian-kit/__mocks__/obsidian.ts";
 import { stubService } from "@zotlit/plugin-kernel/__fixtures__/service-stub.ts";
+import * as m from "@zotlit/plugin-messages/messages.ts";
 
 import {
   addAttachmentOpenActions,
@@ -43,7 +45,10 @@ const OPENABLE_FIXTURE: ObsidianOpenableAttachment[] = [
 
 const fixtureAttachments: LiteratureNoteAttachmentsHandle = {
   literatureNoteAttachments: (indexedKey) =>
-    Promise.resolve(indexedKey === "ABCD2345" ? OPENABLE_FIXTURE : []),
+    Promise.resolve({
+      attachments: indexedKey === "ABCD2345" ? OPENABLE_FIXTURE : [],
+      filesUnavailable: false,
+    }),
 };
 
 function appWith(
@@ -152,15 +157,33 @@ describe("open-pdf command", () => {
 });
 
 describe("pdfPickerReader", () => {
+  it.each([
+    [false, m.notice_no_pdf_attachment()],
+    [true, m.notice_needs_local_zotero()],
+  ])(
+    "names the cause when no PDF opens (files unavailable: %s)",
+    (filesUnavailable, message) => {
+      Notice.instances.length = 0;
+      pdfPickerReader(
+        openGesture(unusedOpener, () => {}),
+        {
+          filesUnavailable,
+        },
+      ).onEmpty?.();
+      expect(Notice.instances.map((notice) => notice.message)).toEqual([
+        message,
+      ]);
+    },
+  );
+
   it("stays silent when unload ends an open that waits for the index", async () => {
     const { opener, bridge, gate, close, opened, handed, notices } =
       await openOpener({ prime: false });
     const read = gate();
 
-    pdfPickerReader(openGesture(opener, bridge.runAndForget)).open(
-      OPENABLE_FIXTURE[0]!,
-      false,
-    );
+    pdfPickerReader(openGesture(opener, bridge.runAndForget), {
+      filesUnavailable: false,
+    }).open(OPENABLE_FIXTURE[0]!, false);
     await read.waiting;
     const closing = close();
     read.release();

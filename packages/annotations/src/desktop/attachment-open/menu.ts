@@ -22,12 +22,13 @@ export function attachmentOpenFileMenu(
             ? { rect: target.getBoundingClientRect(), doc: target.doc }
             : undefined;
           void (async () => {
-            const attachments =
+            const pdfs =
               await deps.attachments.literatureNoteAttachments(itemKey);
-            if (!attachments) return;
-            openAttachments(attachments, {
+            if (!pdfs) return;
+            openAttachments(pdfs.attachments, {
               reader: pdfPickerReader(
                 openGesture(deps.opener, deps.bridge.runAndForget),
+                pdfs,
               ),
               host: deps.app,
               event: evt,

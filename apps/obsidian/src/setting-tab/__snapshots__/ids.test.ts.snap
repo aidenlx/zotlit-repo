@@ -69,6 +69,14 @@ settings_pages
       settings_citation_pandoc_files
       settings_citation_pandoc_guide
   settings_page_zotero
+    settings_library_source_group
+      settings_library_source
+      settings_library_source_reload
+      settings_online_key
+      settings_online_status
+      settings_online_replace
+      settings_online_language
+      settings_online_remove
     settings_zotero_database
       settings_db_file
       settings_page_zotero_location

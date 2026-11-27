@@ -1,14 +1,11 @@
+import type { SchemaAsset } from "#worker/cli/schema-asset.ts";
+
 import { RELEASE_REPOSITORY } from "@zotlit/config/repositories";
 import { CONTRACT_ROOTS } from "@zotlit/db";
 import type { ContractRoot } from "@zotlit/db";
-import { resourceReleaseUrl } from "@zotlit/plugin-kernel/constants.ts";
+import { resourceReleaseUrl } from "@zotlit/plugin-kernel/worker/release-url.ts";
 
 export const CONTRACT_ROOT_NAMES: readonly ContractRoot[] = CONTRACT_ROOTS;
-
-export interface SchemaAsset {
-  url: string;
-  fileName: string;
-}
 
 export function schemaAssets(
   pluginVersion: string,

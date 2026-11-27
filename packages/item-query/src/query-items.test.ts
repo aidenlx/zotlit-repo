@@ -2783,7 +2783,7 @@ describe("incremental query consumption", () => {
 });
 
 interface DatasetCase {
-  readonly dataset: QueryDataset<ItemQueryRequest>;
+  readonly dataset: QueryDataset;
   readonly scenario: { readonly annotations: boolean };
   readonly defaults: Pick<ItemQuery, "fields" | "sort">;
   readonly fields: readonly string[];

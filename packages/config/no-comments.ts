@@ -9,7 +9,7 @@ import { parseSync } from "oxc-parser";
 import { Input } from "postcss";
 import { Parser } from "yaml";
 
-import { SOURCE_BRANCH } from "./src/core/repositories.ts";
+import { SOURCE_BRANCH } from "./src/worker/repositories.ts";
 
 type Span = { start: number; end: number };
 type Comment = { file: string; line: number; endLine: number; text: string };
@@ -31,6 +31,7 @@ const yamlExtensions = new Set([".yaml", ".yml"]);
 const jsonExtensions = new Set([".json", ".jsonc", ".jsonl"]);
 const upstreamOrGenerated = [
   "apps/docs/worker-configuration.d.ts",
+  "packages/db/src/replica/layout.generated.ts",
   "packages/filter-expression/src/generated/",
   "packages/pdf-structure/src/vendor/native-text-selection-map.js",
   "packages/pdf-structure/src/vendor/page-label.js",
@@ -38,6 +39,14 @@ const upstreamOrGenerated = [
   "packages/pdf-structure/src/vendor/util.js",
   "packages/pdfjs-dist/",
   "packages/pdfjs/dist/",
+  "packages/zotero-compat/src/date-formats.ts",
+  "packages/zotero-compat/src/isbn-ranges.ts",
+  "packages/zotero-compat/zotero-client/",
+  "packages/zotero-types/src/csl.ts",
+  "packages/zotero-types/src/field-labels.ts",
+  "packages/zotero-types/src/fields.ts",
+  "packages/zotero-types/src/item-types.ts",
+  "packages/zotero-types/src/vocabulary.ts",
 ];
 const require = createRequire(import.meta.url);
 const { SyntaxKind: jsonToken } = require("jsonc-parser") as {

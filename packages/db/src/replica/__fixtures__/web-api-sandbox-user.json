@@ -1,0 +1,838 @@
+{
+  "source": "Zotero Web API v3, a sandbox personal library read with a read-only key. The account's user ID, username and object keys are replaced, collection membership is removed, one attachment URL is replaced with an example.org URL, and the reader's own data is replaced with invented values: the annotation comment, the note text, the tags the reader made, the Mendeley tags, the attachment file name, title and hash, and every timestamp. The other strings are bibliographic data of the published works.",
+  "items": [
+    {
+      "key": "SBX23456",
+      "version": 13313,
+      "library": {
+        "type": "user",
+        "id": 7654321,
+        "name": "sandbox-reader",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/sandbox-reader",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/users/7654321/items/SBX23456",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/sandbox-reader/items/SBX23456",
+          "type": "text/html"
+        },
+        "attachment": {
+          "href": "https://api.zotero.org/users/7654321/items/SBX9ABCD",
+          "type": "application/json",
+          "attachmentType": "application/pdf",
+          "attachmentSize": 100000
+        }
+      },
+      "meta": {
+        "creatorSummary": "Hensher and Collins",
+        "parsedDate": "2011-01",
+        "numChildren": 3
+      },
+      "data": {
+        "key": "SBX23456",
+        "version": 13313,
+        "itemType": "journalArticle",
+        "title": "Interrogation of Responses to Stated Choice Experiments: Is there sense in what respondents tell us?",
+        "creators": [
+          {
+            "creatorType": "author",
+            "firstName": "David A.",
+            "lastName": "Hensher"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Andrew T.",
+            "lastName": "Collins"
+          }
+        ],
+        "abstractNote": "There is an extensive and growing literature on the design and use of stated choice experiments. Such experiments are generally regarded as the preferred framework within which to collect data to reveal the preferences of individuals in a particular application context. Analysts have developed sophisticated ways of analysing such data, typically using a form of discrete choice model that identifies the marginal (dis)utility associated with each observed attribute linked to an alternative, as well as accounting for sources of preference and scale heterogeneity. There is also a growing literature studying the attribute processing rules (or heuristics) that respondents use as a way of simplifying the task of choosing, for all manner of meaningful reason. We find that there is relatively less effort placed on looking closely at the data defining each choice situation for each respondent, as constructed by the stated choice experiment, and seeing if there exist 'evidential' rules that support in a plausible way, the choice responses. Heuristics investigated in this paper that might aid in our understanding of how choice scenarios are processed, leading to a choice outcome, include the role of dimensional vs. holistic attribute processing, the influence of relative attribute levels, and the revision of the reference alternative as value learning across sequenced choice sets. We find a high level of confidence in the evidence, and identify at least two features of choice set processing, namely value learning and majority of confirming dimensions, that are worthy of future inclusion in the estimation of all choice models. The evidence suggests that there is a great deal of behavioural sense in stated choice responses, for all manner of possible reason.",
+        "publicationTitle": "Journal of Choice Modelling",
+        "publisher": "",
+        "place": "",
+        "date": "2011-01",
+        "volume": "4",
+        "issue": "1",
+        "section": "",
+        "partNumber": "",
+        "partTitle": "",
+        "pages": "62–89",
+        "series": "",
+        "seriesTitle": "",
+        "seriesText": "",
+        "journalAbbreviation": "",
+        "DOI": "10.1016/S1755-5345(13)70019-8",
+        "citationKey": "Hensher2011",
+        "url": "http://www.sciencedirect.com/science/article/pii/S1755534513700198",
+        "accessDate": "",
+        "PMID": "",
+        "PMCID": "",
+        "ISSN": "17555345",
+        "archive": "",
+        "archiveLocation": "",
+        "shortTitle": "",
+        "language": "",
+        "libraryCatalog": "",
+        "callNumber": "",
+        "rights": "",
+        "extra": "",
+        "tags": [
+          {
+            "tag": "Choice experiments"
+          },
+          {
+            "tag": "attribute processing"
+          },
+          {
+            "tag": "evidential rules"
+          },
+          {
+            "tag": "heuristics"
+          },
+          {
+            "tag": "majority of confirming dimensions"
+          },
+          {
+            "tag": "plausible choice"
+          },
+          {
+            "tag": "reference revision"
+          },
+          {
+            "tag": "referencing"
+          },
+          {
+            "tag": "sequence effects"
+          },
+          {
+            "tag": "value learning"
+          }
+        ],
+        "collections": [],
+        "relations": {
+          "dc:relation": [
+            "http://zotero.org/users/7654321/items/SBXR2345",
+            "http://zotero.org/users/7654321/items/SBXR789A"
+          ]
+        },
+        "dateAdded": "2024-01-01T10:00:00Z",
+        "dateModified": "2024-02-01T10:00:00Z"
+      }
+    },
+    {
+      "key": "SBX9ABCD",
+      "version": 14068,
+      "library": {
+        "type": "user",
+        "id": 7654321,
+        "name": "sandbox-reader",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/sandbox-reader",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/users/7654321/items/SBX9ABCD",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/sandbox-reader/items/SBX9ABCD",
+          "type": "text/html"
+        },
+        "up": {
+          "href": "https://api.zotero.org/users/7654321/items/SBX23456",
+          "type": "application/json"
+        },
+        "enclosure": {
+          "type": "application/pdf",
+          "href": "https://api.zotero.org/users/7654321/items/SBX9ABCD/file/view",
+          "title": "invented-attachment.pdf",
+          "length": 100000
+        }
+      },
+      "meta": {
+        "numChildren": 13
+      },
+      "data": {
+        "key": "SBX9ABCD",
+        "version": 14068,
+        "parentItem": "SBX23456",
+        "itemType": "attachment",
+        "linkMode": "imported_url",
+        "title": "Full Text PDF",
+        "accessDate": "2024-03-01T12:00:00Z",
+        "url": "https://example.org/hensher2011.pdf",
+        "note": "",
+        "contentType": "application/pdf",
+        "charset": "",
+        "filename": "invented-attachment.pdf",
+        "md5": "00000000000000000000000000000000",
+        "mtime": 1700000000000,
+        "lastRead": 1700000000,
+        "tags": [],
+        "relations": {},
+        "dateAdded": "2024-01-02T10:00:00Z",
+        "dateModified": "2024-02-02T10:00:00Z"
+      }
+    },
+    {
+      "key": "SBXGHIJK",
+      "version": 13905,
+      "library": {
+        "type": "user",
+        "id": 7654321,
+        "name": "sandbox-reader",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/sandbox-reader",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/users/7654321/items/SBXGHIJK",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/sandbox-reader/items/SBXGHIJK",
+          "type": "text/html"
+        },
+        "up": {
+          "href": "https://api.zotero.org/users/7654321/items/SBX9ABCD",
+          "type": "application/json"
+        }
+      },
+      "meta": {},
+      "data": {
+        "key": "SBXGHIJK",
+        "version": 13905,
+        "parentItem": "SBX9ABCD",
+        "itemType": "annotation",
+        "annotationType": "highlight",
+        "annotationText": "The evidence suggests that there is a great deal of behavioural sense in stated choice responses",
+        "annotationComment": "An invented comment for the fixture.",
+        "annotationColor": "#2ea8e5",
+        "annotationPageLabel": "63",
+        "annotationSortIndex": "00001|000846|00267",
+        "annotationPosition": "{\"pageIndex\":1,\"rects\":[[72.5,512.25,523.75,524.5],[72.5,498,301.25,510.25]]}",
+        "tags": [
+          {
+            "tag": "invented-tag-1"
+          },
+          {
+            "tag": "invented-tag-2"
+          },
+          {
+            "tag": "invented-tag-3"
+          }
+        ],
+        "relations": {},
+        "dateAdded": "2024-01-03T10:00:00Z",
+        "dateModified": "2024-02-03T10:00:00Z"
+      }
+    },
+    {
+      "key": "SBXNPQRS",
+      "version": 13917,
+      "library": {
+        "type": "user",
+        "id": 7654321,
+        "name": "sandbox-reader",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/sandbox-reader",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/users/7654321/items/SBXNPQRS",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/sandbox-reader/items/SBXNPQRS",
+          "type": "text/html"
+        }
+      },
+      "meta": {
+        "creatorSummary": "Tsunoda et al.",
+        "parsedDate": "2017-02-15",
+        "numChildren": 2
+      },
+      "data": {
+        "key": "SBXNPQRS",
+        "version": 13917,
+        "itemType": "journalArticle",
+        "title": "A patient with slowly progressive adult-onset nemaline myopathy and novel compound heterozygous mutations in the nebulin gene.",
+        "creators": [
+          {
+            "creatorType": "author",
+            "firstName": "Keiichiro",
+            "lastName": "Tsunoda"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Toru",
+            "lastName": "Yamashita"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Emi",
+            "lastName": "Motokura"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Yoshiaki",
+            "lastName": "Takahashi"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Kota",
+            "lastName": "Sato"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Mami",
+            "lastName": "Takemoto"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Nozomi",
+            "lastName": "Hishikawa"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Yasuyuki",
+            "lastName": "Ohta"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Atsuko",
+            "lastName": "Nishikawa"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Ichizo",
+            "lastName": "Nishino"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Koji",
+            "lastName": "Abe"
+          }
+        ],
+        "abstractNote": "",
+        "publicationTitle": "Journal of the neurological sciences",
+        "publisher": "",
+        "place": "",
+        "date": "2017 Feb 15",
+        "volume": "373",
+        "issue": "",
+        "section": "",
+        "partNumber": "",
+        "partTitle": "",
+        "pages": "254-257",
+        "series": "",
+        "seriesTitle": "",
+        "seriesText": "",
+        "journalAbbreviation": "J Neurol Sci",
+        "DOI": "10.1016/j.jns.2016.12.069",
+        "citationKey": "tsunodaPatientSlowlyProgressive2017",
+        "url": "",
+        "accessDate": "",
+        "PMID": "28131200",
+        "PMCID": "",
+        "ISSN": "1878-5883 0022-510X",
+        "archive": "",
+        "archiveLocation": "",
+        "shortTitle": "",
+        "language": "eng",
+        "libraryCatalog": "",
+        "callNumber": "",
+        "rights": "",
+        "extra": "Place: Netherlands",
+        "tags": [
+          {
+            "tag": "*Heterozygote"
+          },
+          {
+            "tag": "*Mutation"
+          },
+          {
+            "tag": "Adult-onset nemaline myopathy"
+          },
+          {
+            "tag": "Compound heterozygote"
+          },
+          {
+            "tag": "Diagnosis, Differential"
+          },
+          {
+            "tag": "Disease Progression"
+          },
+          {
+            "tag": "Humans"
+          },
+          {
+            "tag": "Male"
+          },
+          {
+            "tag": "Middle Aged"
+          },
+          {
+            "tag": "Muscle Proteins/*genetics"
+          },
+          {
+            "tag": "Muscle Weakness/genetics"
+          },
+          {
+            "tag": "Myopathies, Nemaline/diagnosis/*genetics/pathology/physiopathology"
+          },
+          {
+            "tag": "Nebulin (NEB)"
+          },
+          {
+            "tag": "Respiratory Insufficiency/diagnosis/genetics/pathology/physiopathology"
+          },
+          {
+            "tag": "invented-tag-4"
+          }
+        ],
+        "collections": [],
+        "relations": {},
+        "dateAdded": "2024-01-04T10:00:00Z",
+        "dateModified": "2024-02-04T10:00:00Z"
+      }
+    },
+    {
+      "key": "SBXVWXYZ",
+      "version": 4327,
+      "library": {
+        "type": "user",
+        "id": 7654321,
+        "name": "sandbox-reader",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/sandbox-reader",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/users/7654321/items/SBXVWXYZ",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/sandbox-reader/items/SBXVWXYZ",
+          "type": "text/html"
+        },
+        "up": {
+          "href": "https://api.zotero.org/users/7654321/items/SBXNPQRS",
+          "type": "application/json"
+        }
+      },
+      "meta": {
+        "numChildren": 0
+      },
+      "data": {
+        "key": "SBXVWXYZ",
+        "version": 4327,
+        "parentItem": "SBXNPQRS",
+        "itemType": "note",
+        "note": "<div data-schema-version=\"9\"><p>Invented note</p>\n</div>",
+        "tags": [],
+        "relations": {},
+        "dateAdded": "2024-01-05T10:00:00Z",
+        "dateModified": "2024-02-05T10:00:00Z"
+      }
+    },
+    {
+      "key": "SBX45678",
+      "version": 13163,
+      "library": {
+        "type": "user",
+        "id": 7654321,
+        "name": "sandbox-reader",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/sandbox-reader",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/users/7654321/items/SBX45678",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/sandbox-reader/items/SBX45678",
+          "type": "text/html"
+        }
+      },
+      "meta": {
+        "creatorSummary": "Richardson",
+        "parsedDate": "2011",
+        "numChildren": 0
+      },
+      "data": {
+        "key": "SBX45678",
+        "version": 13163,
+        "itemType": "bookSection",
+        "title": "System dynamics",
+        "creators": [
+          {
+            "creatorType": "author",
+            "firstName": "G.P.",
+            "lastName": "Richardson"
+          },
+          {
+            "creatorType": "editor",
+            "firstName": "Saul",
+            "lastName": "Gass"
+          },
+          {
+            "creatorType": "editor",
+            "firstName": "Carl",
+            "lastName": "Harris"
+          }
+        ],
+        "abstractNote": "",
+        "bookTitle": "Encyclopedia of operations research and management science",
+        "series": "",
+        "seriesNumber": "",
+        "volume": "",
+        "numberOfVolumes": "",
+        "edition": "2011",
+        "date": "2011",
+        "publisher": "Kluwer Academic Publishers",
+        "place": "",
+        "originalDate": "",
+        "originalPublisher": "",
+        "originalPlace": "",
+        "format": "",
+        "pages": "",
+        "ISBN": "",
+        "DOI": "",
+        "citationKey": "Richardson2011",
+        "url": "http://www.systemdynamics.org/what-is-s/",
+        "accessDate": "",
+        "ISSN": "",
+        "archive": "",
+        "archiveLocation": "",
+        "shortTitle": "",
+        "language": "",
+        "libraryCatalog": "",
+        "callNumber": "",
+        "rights": "",
+        "extra": "tex.mendeley-tags: invented-topic",
+        "tags": [
+          {
+            "tag": "invented-topic"
+          }
+        ],
+        "collections": [],
+        "relations": {},
+        "dateAdded": "2024-01-06T10:00:00Z",
+        "dateModified": "2024-02-06T10:00:00Z"
+      }
+    },
+    {
+      "key": "SBXBCDEF",
+      "version": 13540,
+      "library": {
+        "type": "user",
+        "id": 7654321,
+        "name": "sandbox-reader",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/sandbox-reader",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/users/7654321/items/SBXBCDEF",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/sandbox-reader/items/SBXBCDEF",
+          "type": "text/html"
+        }
+      },
+      "meta": {
+        "creatorSummary": "ITS et al.",
+        "parsedDate": "2010",
+        "numChildren": 0
+      },
+      "data": {
+        "key": "SBXBCDEF",
+        "version": 13540,
+        "itemType": "report",
+        "title": "Concessionary fares project main report",
+        "creators": [
+          {
+            "creatorType": "author",
+            "name": "ITS"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "P",
+            "lastName": "Goodwin"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "A",
+            "lastName": "Last"
+          }
+        ],
+        "abstractNote": "",
+        "reportNumber": "September",
+        "reportType": "",
+        "institution": "Institute for Transport Studies, University of Leeds",
+        "place": "Leeds, UK",
+        "date": "2010",
+        "seriesTitle": "",
+        "seriesNumber": "",
+        "pages": "",
+        "DOI": "",
+        "ISBN": "",
+        "citationKey": "Studies2010",
+        "url": "http://webarchive.nationalarchives.gov.uk/20111005175844/http://www.dft.gov.uk/publications/research-into-the-reimbursement-of-concessionary-fares",
+        "accessDate": "",
+        "ISSN": "",
+        "archive": "",
+        "archiveLocation": "",
+        "shortTitle": "",
+        "language": "",
+        "libraryCatalog": "",
+        "callNumber": "",
+        "rights": "",
+        "extra": "tex.mendeley-tags: invented-place",
+        "tags": [
+          {
+            "tag": "invented-place"
+          }
+        ],
+        "collections": [],
+        "relations": {},
+        "dateAdded": "2024-01-07T10:00:00Z",
+        "dateModified": "2024-02-07T10:00:00Z"
+      }
+    },
+    {
+      "key": "SBXIJKLM",
+      "version": 13909,
+      "library": {
+        "type": "user",
+        "id": 7654321,
+        "name": "sandbox-reader",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/sandbox-reader",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/users/7654321/items/SBXIJKLM",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/sandbox-reader/items/SBXIJKLM",
+          "type": "text/html"
+        }
+      },
+      "meta": {
+        "creatorSummary": "Zhu et al.",
+        "parsedDate": "2022-05-31",
+        "numChildren": 2
+      },
+      "data": {
+        "key": "SBXIJKLM",
+        "version": 13909,
+        "itemType": "journalArticle",
+        "title": "Heterozygous PRKN mutations are common but do not increase the risk of Parkinson’s disease",
+        "creators": [
+          {
+            "creatorType": "author",
+            "firstName": "William",
+            "lastName": "Zhu"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Xiaoping",
+            "lastName": "Huang"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Esther",
+            "lastName": "Yoon"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Sara",
+            "lastName": "Bandres-Ciga"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Cornelis",
+            "lastName": "Blauwendraat"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Kimberly J",
+            "lastName": "Billingsley"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Joshua H",
+            "lastName": "Cade"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Beverly P",
+            "lastName": "Wu"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Victoria H",
+            "lastName": "Williams"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Alice B",
+            "lastName": "Schindler"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Janet",
+            "lastName": "Brooks"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "J Raphael",
+            "lastName": "Gibbs"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Dena G",
+            "lastName": "Hernandez"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Debra",
+            "lastName": "Ehrlich"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Andrew B",
+            "lastName": "Singleton"
+          },
+          {
+            "creatorType": "author",
+            "firstName": "Derek P",
+            "lastName": "Narendra"
+          }
+        ],
+        "abstractNote": "PRKN mutations are the most common recessive cause of Parkinson’s disease and are a promising target for gene and cell replacement therapies. Identification of biallelic PRKN patients at the population scale, however, remains a challenge, as roughly half are copy number variants and many single nucleotide polymorphisms are of unclear significance. Additionally, the true prevalence and disease risk associated with heterozygous PRKN mutations is unclear, as a comprehensive assessment of PRKN mutations has not been performed at a population scale., To address these challenges, we evaluated PRKN mutations in two cohorts with near complete genotyping of both single nucleotide polymorphisms and copy number variants: the NIH-PD + AMP-PD cohort, the largest Parkinson’s disease case-control cohort with whole genome sequencing data from 4094 participants, and the UK Biobank, the largest cohort study with whole exome sequencing and genotyping array data from 200 606 participants. Using the NIH-PD participants, who were genotyped using whole genome sequencing, genotyping array, and multi-plex ligation-dependent probe amplification, we validated genotyping array for the detection of copy number variants. Additionally, in the NIH-PD cohort, functional assays of patient fibroblasts resolved variants of unclear significance in biallelic carriers and suggested that cryptic loss of function variants in monoallelic carriers are not a substantial confounder for association studies., In the UK Biobank, we identified 2692 PRKN copy number variants from genotyping array data from nearly half a million participants (the largest collection to date). Deletions or duplications involving exon 2 accounted for roughly half of all copy number variants and the vast majority (88%) involved exons 2, 3, or 4. In the UK Biobank, we found a pathogenic PRKN mutation in 1.8% of participants and two mutations in ∼1/7800 participants. Those with one PRKN pathogenic variant were as likely as non-carriers to have Parkinson’s disease [odds ratio = 0.91 (0.58–1.38), P-value 0.76] or a parent with Parkinson’s disease [odds ratio = 1.12 (0.94–1.31), P-value = 0.19]. Similarly, those in the NIH-PD + AMP + PD cohort with one PRKN pathogenic variant were as likely as non-carriers to have Parkinson’s disease [odds ratio = 1.29 (0.74–2.38), P-value = 0.43]., Together our results demonstrate that heterozygous pathogenic PRKN mutations are common in the population but do not increase the risk of Parkinson’s disease., Based on a comprehensive analysis of PRKN mutations in a large cohort of patients with Parkinson’s disease and almost half a million participants from the UK Biobank, Wu et al. show that heterozygous pathogenic mutations in PRKN are common in the population but do not increase the risk of Parkinson’s disease.",
+        "publicationTitle": "Brain",
+        "publisher": "",
+        "place": "",
+        "date": "2022-5-31",
+        "volume": "145",
+        "issue": "6",
+        "section": "",
+        "partNumber": "",
+        "partTitle": "",
+        "pages": "2077-2091",
+        "series": "",
+        "seriesTitle": "",
+        "seriesText": "",
+        "journalAbbreviation": "Brain",
+        "DOI": "10.1093/brain/awab456",
+        "citationKey": "zhuHeterozygousPRKNMutations2022",
+        "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9423714/",
+        "accessDate": "2024-03-01T12:00:00Z",
+        "PMID": "35640906",
+        "PMCID": "PMC9423714",
+        "ISSN": "0006-8950",
+        "archive": "",
+        "archiveLocation": "",
+        "shortTitle": "",
+        "language": "",
+        "libraryCatalog": "PubMed Central",
+        "callNumber": "",
+        "rights": "",
+        "extra": "",
+        "tags": [],
+        "collections": [],
+        "relations": {},
+        "dateAdded": "2024-01-08T10:00:00Z",
+        "dateModified": "2024-02-08T10:00:00Z"
+      }
+    },
+    {
+      "key": "SBXQRSTU",
+      "version": 4557,
+      "library": {
+        "type": "user",
+        "id": 7654321,
+        "name": "sandbox-reader",
+        "links": {
+          "alternate": {
+            "href": "https://www.zotero.org/sandbox-reader",
+            "type": "text/html"
+          }
+        }
+      },
+      "links": {
+        "self": {
+          "href": "https://api.zotero.org/users/7654321/items/SBXQRSTU",
+          "type": "application/json"
+        },
+        "alternate": {
+          "href": "https://www.zotero.org/sandbox-reader/items/SBXQRSTU",
+          "type": "text/html"
+        },
+        "up": {
+          "href": "https://api.zotero.org/users/7654321/items/SBXIJKLM",
+          "type": "application/json"
+        }
+      },
+      "meta": {},
+      "data": {
+        "key": "SBXQRSTU",
+        "version": 4557,
+        "parentItem": "SBXIJKLM",
+        "itemType": "attachment",
+        "linkMode": "linked_url",
+        "title": "PubMed Central Link",
+        "accessDate": "2024-03-01T12:00:00Z",
+        "url": "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9423714/",
+        "note": "",
+        "contentType": "text/html",
+        "charset": "",
+        "tags": [],
+        "relations": {},
+        "dateAdded": "2024-01-09T10:00:00Z",
+        "dateModified": "2024-02-09T10:00:00Z"
+      }
+    }
+  ]
+}

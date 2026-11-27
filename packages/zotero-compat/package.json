@@ -1,0 +1,36 @@
+{
+  "name": "@zotlit/zotero-compat",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The values that the Zotero client computes from a record (ISBN, date, note title, access and item dates), with the vendored client data and the record of their compatibility",
+  "type": "module",
+  "sideEffects": false,
+  "imports": {
+    "#*": "./src/*"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "generate:client-data": "node scripts/generate-client-data.ts && oxfmt src/isbn-ranges.ts src/date-formats.ts",
+    "generate:known-differences": "node scripts/generate-known-differences.ts && oxfmt AGENTS.md",
+    "typecheck": "tsc --noEmit -p tsconfig.lib.json && tsc --noEmit -p tsconfig.node.json",
+    "typecheck:test": "tsc --noEmit -p tsconfig.test.json",
+    "lint": "oxlint",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "arkregex": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "@zotlit/config": "workspace:*",
+    "oxlint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "zotlit": {
+    "layer": "worker"
+  }
+}

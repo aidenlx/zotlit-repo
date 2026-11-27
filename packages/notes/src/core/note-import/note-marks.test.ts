@@ -25,15 +25,15 @@ function load(html: string): HTMLElement {
 
 const packageRoot = getPackageRoot(import.meta.filename);
 
-const LOCAL_USER = "http://zotero.org/users/local/BOtEiq6p/items";
+const LOCAL_USER = "http://zotero.org/users/local/XmplLib8/items";
 
 describe("parseCitation", () => {
   it("reads the data-citation payload off the element", () => {
     const el = mark("span", "data-citation", {
-      citationItems: [{ uris: [`${LOCAL_USER}/KX67D9YM`], locator: "62" }],
+      citationItems: [{ uris: [`${LOCAL_USER}/XMPLITM3`], locator: "62" }],
       properties: {},
     });
-    expect(parseCitation(el)?.citationItems[0]?.ref?.key).toBe("KX67D9YM");
+    expect(parseCitation(el)?.citationItems[0]?.ref?.key).toBe("XMPLITM3");
   });
 
   it("returns null when the element has no data-citation", () => {
@@ -44,23 +44,23 @@ describe("parseCitation", () => {
 describe("parseAnnotation", () => {
   it("reads the data-annotation payload off the element", () => {
     const el = mark("span", "data-annotation", {
-      attachmentURI: `${LOCAL_USER}/T2P8T29G`,
-      annotationKey: "C2DF35H3",
+      attachmentURI: `${LOCAL_USER}/XMPLATC4`,
+      annotationKey: "XMPLANN6",
       color: "#e56eee",
     });
     const info = parseAnnotation(el);
-    expect(info?.annotationKey).toBe("C2DF35H3");
-    expect(info?.attachment?.key).toBe("T2P8T29G");
+    expect(info?.annotationKey).toBe("XMPLANN6");
+    expect(info?.attachment?.key).toBe("XMPLATC4");
     expect(info?.imageAttachmentKey).toBeUndefined();
   });
 
   it("captures the embedded-image key on an image excerpt", () => {
     const img = mark("img", "data-annotation", {
-      attachmentURI: `${LOCAL_USER}/T2P8T29G`,
-      annotationKey: "DBKE89L9",
+      attachmentURI: `${LOCAL_USER}/XMPLATC4`,
+      annotationKey: "XMPLANN7",
     });
-    img.setAttribute("data-attachment-key", "DUPB2GWX");
-    expect(parseAnnotation(img)?.imageAttachmentKey).toBe("DUPB2GWX");
+    img.setAttribute("data-attachment-key", "XMPLATC3");
+    expect(parseAnnotation(img)?.imageAttachmentKey).toBe("XMPLATC3");
   });
 
   it("returns null when the element has no data-annotation", () => {
@@ -148,23 +148,23 @@ describe("zt-excerpt-note.html fixture", () => {
       parseAnnotation,
     );
     expect(annots.map((a) => a?.annotationKey)).toEqual([
-      "JDJKX3N6",
-      "V78IHLM9",
-      "KMV38EI6",
-      "DBKE89L9",
-      "AFUVIG9Z",
-      "XRZMBHKK",
-      "NPUZ9NKS",
+      "XMPLANN9",
+      "XMPLANNC",
+      "XMPLANNA",
+      "XMPLANN7",
+      "XMPLANN5",
+      "XMPLANND",
+      "XMPLANNB",
     ]);
-    expect(annots.every((a) => a?.attachment?.key === "T2P8T29G")).toBe(true);
-    expect(annots.every((a) => a?.citationItem?.ref?.key === "KX67D9YM")).toBe(
+    expect(annots.every((a) => a?.attachment?.key === "XMPLATC4")).toBe(true);
+    expect(annots.every((a) => a?.citationItem?.ref?.key === "XMPLITM3")).toBe(
       true,
     );
     expect(annots.map((a) => a?.imageAttachmentKey)).toEqual([
       undefined,
       undefined,
       undefined,
-      "7TTPMKWK",
+      "XMPLATC2",
       undefined,
       undefined,
       undefined,
@@ -179,7 +179,7 @@ describe("zt-excerpt-note.html fixture", () => {
     expect(
       cites.every(
         (c) =>
-          c?.citationItems[0]?.ref?.key === "KX67D9YM" &&
+          c?.citationItems[0]?.ref?.key === "XMPLITM3" &&
           c?.citationItems[0]?.locator === "62",
       ),
     ).toBe(true);

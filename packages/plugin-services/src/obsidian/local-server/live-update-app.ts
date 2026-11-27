@@ -40,6 +40,8 @@ export interface NoteStatusSource {
 export interface LiveUpdateAppDeps {
   enabled(): boolean;
   acceptedSourceIds(): readonly string[];
+  localItemIds(): boolean;
+  refusedForSource(): void;
   noteIndex: NoteStatusSource;
   onNotify(event: NotifyEvent): void;
   onUpdateMany(event: {
@@ -99,6 +101,21 @@ export function createLiveUpdateApp(deps: LiveUpdateAppDeps): Hono {
           withLogCategory("live-update"),
         ),
       );
+      return c.body(
+        null,
+        c.req.method === "PUT" ? SOURCE_MISMATCH_STATUS : 204,
+      );
+    }
+    if (c.req.method !== "GET" && !deps.localItemIds()) {
+      Effect.runSyncWith(logServices)(
+        Effect.logWarning(
+          "Discarded request: it names items of Zotero on this computer, and the online library is the source",
+        ).pipe(
+          Effect.annotateLogs({ path: c.req.path }),
+          withLogCategory("live-update"),
+        ),
+      );
+      if (c.req.method === "PUT") deps.refusedForSource();
       return c.body(
         null,
         c.req.method === "PUT" ? SOURCE_MISMATCH_STATUS : 204,

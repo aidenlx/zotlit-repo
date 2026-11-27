@@ -52,12 +52,12 @@ function join(...parts: string[]): string {
 }
 
 export interface AttachmentPathContext {
-  dataDir: string;
+  dataDir: string | null;
   baseAttachmentPath: string | null;
 }
 
 export interface AnnotCachePathContext {
-  dataDir: string;
+  dataDir: string | null;
   groupID: number | null;
 }
 
@@ -68,7 +68,8 @@ export function resolveAnnotCachePath(
   },
   { dataDir, groupID }: AnnotCachePathContext,
 ): string | null {
-  if (!annotationHasCacheImage(annotation.type)) return null;
+  if (dataDir === null || !annotationHasCacheImage(annotation.type))
+    return null;
   const libraryPath =
     groupID === null ? "library" : join("groups", String(groupID));
   return join(dataDir, "cache", libraryPath, `${annotation.key}.png`);
@@ -78,6 +79,7 @@ export function attachmentAbsPath(
   attachment: Attachment,
   ctx: AttachmentPathContext,
 ): string | null {
+  if (ctx.dataDir === null) return null;
   const parsed = parseAttachmentPath(
     attachment.path,
     attachment.linkMode,

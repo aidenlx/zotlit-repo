@@ -13,7 +13,7 @@ import type {
 } from "./database.ts";
 import { HYDRATE_CHUNK_SIZE } from "./hydrate-chunk.ts";
 import { recordUniverse } from "./record-universe.ts";
-import { SCAN_PAGE_SIZE } from "./scan-page.ts";
+import { epochMilliseconds, SCAN_PAGE_SIZE } from "./scan-page.ts";
 import type { ScanRow } from "./scan-page.ts";
 
 import {
@@ -50,28 +50,22 @@ function selectAnnotations(db: ZoteroDatabase) {
       itemID: items.itemID,
       key: items.key,
       itemType: sql<string>`'annotation'`,
-      dateAdded: sql<number | null>`unixepoch(${items.dateAdded}) * 1000`,
-      dateModified: sql<number | null>`unixepoch(${items.dateModified}) * 1000`,
+      dateAdded: epochMilliseconds(items.dateAdded),
+      dateModified: epochMilliseconds(items.dateModified),
       libraryID: items.libraryID,
       attachmentID: attachment.itemID,
       attachmentKey: attachment.key,
       attachmentLastRead: sql<
         number | null
-      >`${itemAttachments.lastRead} * 1000`,
-      attachmentDateAdded: sql<
-        number | null
-      >`unixepoch(${attachment.dateAdded}) * 1000`,
-      attachmentDateModified: sql<
-        number | null
-      >`unixepoch(${attachment.dateModified}) * 1000`,
+      >`${itemAttachments.lastRead} * 1000`.mapWith(Number),
+      attachmentDateAdded: epochMilliseconds(attachment.dateAdded),
+      attachmentDateModified: epochMilliseconds(attachment.dateModified),
       parent: {
         itemID: parent.itemID,
         key: parent.key,
         itemType: itemTypesCombined.typeName,
-        dateAdded: sql<number | null>`unixepoch(${parent.dateAdded}) * 1000`,
-        dateModified: sql<
-          number | null
-        >`unixepoch(${parent.dateModified}) * 1000`,
+        dateAdded: epochMilliseconds(parent.dateAdded),
+        dateModified: epochMilliseconds(parent.dateModified),
       },
       sortIndex: itemAnnotations.sortIndex,
     })
@@ -277,7 +271,7 @@ const attachmentTitles = defineStatement<Record<IdSlot, number | null>>(
   db
     .select({
       itemID: itemData.itemID,
-      title: sql<string | number | null>`${itemDataValues.value}`,
+      title: itemDataValues.value,
     })
     .from(itemData)
     .innerJoin(itemDataValues, eq(itemDataValues.valueID, itemData.valueID))
@@ -362,10 +356,7 @@ export function readAnnotationHydrateChunk(chunk: {
       const titles = new Map(
         (yield* attachmentTitles.all(
           slots.bind([...new Set(rows.map((row) => row.attachmentID))]),
-        )).map((row) => [
-          row.itemID,
-          row.title === null ? null : String(row.title),
-        ]),
+        )).map((row) => [row.itemID, row.title]),
       );
       for (const row of rows) {
         result.get(row.itemID)!.attachmentTitle =

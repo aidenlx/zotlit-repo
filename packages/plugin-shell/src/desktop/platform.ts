@@ -26,6 +26,8 @@ import {
   layerZoteroPref,
   layerZoteroPrefFiles,
 } from "@zotlit/plugin-services/desktop/zotero-pref/layer.ts";
+import { LibrarySource } from "@zotlit/plugin-services/obsidian/library-source/service.ts";
+import { fileSourceActive } from "@zotlit/plugin-services/obsidian/library-source/settings-rows.ts";
 import { liveUpdatesItems } from "@zotlit/plugin-services/obsidian/local-server/settings-rows.ts";
 import { NoteIndex } from "@zotlit/plugin-services/obsidian/note-index/service.ts";
 import { ZoteroReads } from "@zotlit/zotero-reads/client/service.ts";
@@ -56,14 +58,17 @@ export const desktopPlatform = defineFeature({
     serviceGroup("ZoteroHttp", { provides: [ZoteroHttp] }, layerZoteroHttpNode),
     serviceGroup(
       "LocalServer",
-      { provides: [LocalServer], requires: [ZoteroPref, NoteIndex] },
+      {
+        provides: [LocalServer],
+        requires: [ZoteroPref, NoteIndex, LibrarySource],
+      },
       layerLocalServer,
     ),
     serviceGroup(
       "AttachmentImport",
       {
         provides: [AttachmentImport],
-        requires: [FileSystem.FileSystem, VaultDisk, ZoteroPref],
+        requires: [FileSystem.FileSystem, VaultDisk, ZoteroPref, LibrarySource],
       },
       layerAttachmentImport(),
     ),
@@ -103,6 +108,7 @@ export const desktopPlatform = defineFeature({
         {
           type: "group",
           id: "settings_zotero_database",
+          visible: () => fileSourceActive(ctx),
           items: [
             databaseFileItem(ctx),
             {
@@ -120,6 +126,7 @@ export const desktopPlatform = defineFeature({
           type: "group",
           id: "settings_zotero_sync",
           heading: m.settings_zotero_sync_heading(),
+          visible: () => fileSourceActive(ctx),
           items: databaseSyncItems(liveUpdatesItems(ctx)),
         },
       ],

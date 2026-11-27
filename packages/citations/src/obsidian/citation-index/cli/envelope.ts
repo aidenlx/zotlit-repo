@@ -14,20 +14,18 @@ import type { Loc } from "obsidian";
 import {
   INVALID_ARGUMENT_HINT,
   createCliDiagnostics,
-} from "@zotlit/obsidian-kit/cli-diagnostic.ts";
+} from "@zotlit/obsidian-kit/worker/cli-diagnostic.ts";
 import type { SnapshotItem } from "@zotlit/zotero-reads/contract/citation-lookup.ts";
+import type { SourceIdentity } from "@zotlit/zotero-reads/contract/source-identity.ts";
 
-export const CONTRACT_VERSION = 4;
+export const CONTRACT_VERSION = 5;
 
 export interface CitationsIdentity {
   vault: {
     name: string;
     path: string;
   };
-  source: {
-    id: string | null;
-    databasePath: string;
-  };
+  source: SourceIdentity | null;
 }
 
 export const DIAGNOSTIC_HINTS = {

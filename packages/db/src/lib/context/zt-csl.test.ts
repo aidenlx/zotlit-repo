@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { cslToTemplateItem } from "./zt-csl.ts";
 
 function csl(data: Record<string, unknown>): Record<string, unknown> {
-  return { id: "http://zotero.org/users/local/x/items/KX67D9YM", ...data };
+  return { id: "http://zotero.org/users/local/x/items/XMPLITM3", ...data };
 }
 
 describe("cslToTemplateItem: text variables", () => {

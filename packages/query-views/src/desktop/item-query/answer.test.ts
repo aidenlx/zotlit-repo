@@ -1,3 +1,6 @@
+import type { AnswerEnv, QueryWriter } from "#worker/item-query/answer.ts";
+import type { Diagnostic } from "#worker/item-query/contract.ts";
+import type { QueryReply } from "#worker/item-query/worker-protocol.ts";
 import { it } from "@effect/vitest";
 import { Cause, Effect, Exit, Fiber, Scheduler } from "effect";
 import type { Scope } from "effect";
@@ -21,13 +24,18 @@ import {
 } from "@zotlit/zotero-reads/contract/library-scope.ts";
 import type { LibraryScope } from "@zotlit/zotero-reads/contract/library-scope.ts";
 
-import { answer, QueryOutputError } from "./answer.ts";
-import type { AnswerEnv, QueryWriter } from "./answer.ts";
-import { diagnostic, QUERY_COMMAND, QUERY_SCHEMA_COMMAND } from "./contract.ts";
-import type { Diagnostic } from "./contract.ts";
-import type { QueryReply } from "./worker-protocol.ts";
-
 import { workerQuery } from "#__fixtures__/item-query/worker-query.ts";
+import {
+  answer,
+  exceedsInlineLimit,
+  QueryOutputError,
+} from "#worker/item-query/answer.ts";
+import {
+  diagnostic,
+  INLINE_MAX_BYTES,
+  QUERY_COMMAND,
+  QUERY_SCHEMA_COMMAND,
+} from "#worker/item-query/contract.ts";
 
 // oxlint-disable-next-line typescript/unbound-method -- applied to its statement in the test.
 const readRows = StatementSync.prototype.all;
@@ -38,7 +46,11 @@ afterEach(() => {
 
 const IDENTITY = {
   vault: { name: "Research", path: "/vaults/research" },
-  source: { id: "source-1", databasePath: "/zotero/zotero.sqlite" },
+  source: {
+    kind: "file" as const,
+    id: "source-1",
+    databasePath: "/zotero/zotero.sqlite",
+  },
 };
 
 const PERSONAL_BY_MODIFIED = [
@@ -78,7 +90,7 @@ function queryOf(
     ...overrides
   }: TestDeps = {},
 ) {
-  const env: AnswerEnv = { identity: IDENTITY, ...overrides };
+  const env: AnswerEnv = { identity: Effect.succeed(IDENTITY), ...overrides };
   return (params: CliData = {}): Effect.Effect<string> =>
     onJob(
       client,
@@ -169,7 +181,7 @@ describe("zotlit:query without arguments", () => {
         const answer = yield* run();
 
         expect(answer).toMatchObject({
-          contractVersion: 3,
+          contractVersion: 4,
           command: QUERY_COMMAND,
           ok: true,
           identity: IDENTITY,
@@ -596,7 +608,7 @@ describe("zotlit:query default Libraries", () => {
         const answer = yield* run();
 
         expect(answer).toMatchObject({
-          contractVersion: 3,
+          contractVersion: 4,
           command: QUERY_COMMAND,
           ok: false,
           diagnostic: {
@@ -805,11 +817,12 @@ describe("zotlit:query borrowed source", () => {
     Effect.gen(function* () {
       const scenario = yield* scenarioOf();
       const source = {
+        kind: "file" as const,
         id: "leased-source",
         databasePath: "/leased/zotero.sqlite",
       };
       const { run } = setup(scenario, {
-        identity: { ...IDENTITY, source },
+        identity: Effect.succeed({ ...IDENTITY, source }),
       });
 
       const answer = yield* run();
@@ -859,7 +872,7 @@ describe("zotlit:query borrowed source", () => {
         const answer = yield* run();
 
         expect(answer).toMatchObject({
-          contractVersion: 3,
+          contractVersion: 4,
           command: QUERY_COMMAND,
           ok: false,
           diagnostic: {
@@ -995,7 +1008,7 @@ function setupSchema(
         pluginVersion: "2.2.0-beta.2",
         scope: MY_LIBRARY_SCOPE,
       },
-      { identity: IDENTITY },
+      { identity: Effect.succeed(IDENTITY) },
     ).pipe(Effect.map((reply: QueryReply) => reply.answer)),
   );
   return {
@@ -1030,7 +1043,7 @@ describe("zotlit:query-schema", () => {
         ];
         expect(schema).toMatchObject({
           ok: true,
-          contractVersion: 3,
+          contractVersion: 4,
           datasets: { [dataset]: { fields: expect.arrayContaining(fields) } },
         });
       }),
@@ -1067,7 +1080,7 @@ it.effect(
       const scenario = yield* scenarioOf();
       const run = setup(scenario).run;
       const failed = yield* run({ filter: 'creators.lastName == "Smith"' });
-      expect(failed.contractVersion).toBe(3);
+      expect(failed.contractVersion).toBe(4);
       const diagnostic = failed.diagnostic as Diagnostic;
       expect(diagnostic.report[0]).toBe(diagnostic.message);
       expect(diagnostic.report.at(-1)).toBe(diagnostic.hint);
@@ -1155,7 +1168,7 @@ describe("zotlit:query export writer", () => {
           write: () =>
             Effect.suspend(() => {
               events.push("write");
-              return write(++writes);
+              return Effect.as(write(++writes), 0);
             }),
         }),
       );
@@ -1167,7 +1180,7 @@ describe("zotlit:query export writer", () => {
         query: workerQuery({ ...BULK, output: "/exports/items.json" }),
         scope: MY_LIBRARY_SCOPE,
       },
-      { identity: IDENTITY, openOutput },
+      { identity: Effect.succeed(IDENTITY), openOutput },
     ).pipe(
       Effect.scoped,
       Effect.onExit(() => Effect.sync(() => events.push("scope-ended"))),
@@ -1254,6 +1267,7 @@ it.effect(
             write: (text) =>
               Effect.sync(() => {
                 output += text;
+                return Buffer.byteLength(text);
               }),
           }),
       });
@@ -1326,6 +1340,7 @@ it.effect(
             write: (text) =>
               Effect.sync(() => {
                 output += text;
+                return Buffer.byteLength(text);
               }),
           }),
       });
@@ -1358,3 +1373,36 @@ it.effect(
       expect(receipt).toMatchObject({ totalCount: 2, returnedCount: 4 });
     }),
 );
+
+describe("the inline limit", () => {
+  const limit = INLINE_MAX_BYTES;
+  it.each<[string, string, boolean]>([
+    ["ASCII at the limit", "a".repeat(limit), false],
+    ["ASCII one byte above", "a".repeat(limit + 1), true],
+    [
+      "3-byte characters at the limit",
+      "€".repeat(Math.floor(limit / 3)),
+      false,
+    ],
+    [
+      "3-byte characters one above, fewer characters than the limit",
+      "€".repeat(Math.floor(limit / 3) + 1),
+      true,
+    ],
+    ["astral characters at the limit", "😀".repeat(limit / 4), false],
+    ["astral characters one above", "😀".repeat(limit / 4 + 1), true],
+    [
+      "lone surrogates at the limit",
+      "\ud800".repeat(Math.floor(limit / 3)),
+      false,
+    ],
+    [
+      "lone surrogates one above",
+      "\ud800".repeat(Math.floor(limit / 3) + 1),
+      true,
+    ],
+  ])("%s", (_, text, exceeds) => {
+    expect(Buffer.byteLength(text) > limit).toBe(exceeds);
+    expect(exceedsInlineLimit(text)).toBe(exceeds);
+  });
+});

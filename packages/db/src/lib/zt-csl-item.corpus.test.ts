@@ -6,7 +6,7 @@ import { DatabaseSync } from "node:sqlite";
 import { describe, expect, it } from "vitest";
 
 import { createFixtureSchema } from "@zotlit/db-testing";
-import { FIELD_ALIASES, ZOTERO_DATE_FIELDS } from "@zotlit/zotero-types";
+import { ZOTERO_DATE_FIELDS } from "@zotlit/zotero-types";
 import fixture from "@zotlit/zotero-types/fixtures/item-to-csl.json" with { type: "json" };
 import zoteroSchema from "@zotlit/zotero-types/schema.json" with { type: "json" };
 
@@ -60,9 +60,9 @@ const corpus: ItemToCslFixture = fixture;
 const schemaItemTypes: readonly SchemaItemType[] = zoteroSchema.itemTypes;
 
 const USER = {
-  userID: 475425,
-  localUserKey: "v3aG8nQf",
-  username: "aidenlx",
+  userID: 654321,
+  localUserKey: "XmplKey8",
+  username: "sample-reader",
 };
 
 const SEED_TIMESTAMP = Temporal.Instant.from("2024-01-15T10:00:00Z");
@@ -275,8 +275,7 @@ function storedField(itemType: string, nativeField: string): string {
 function storedValue(field: string, value: unknown): string {
   const text = String(value);
   if (field === "accessDate") return sqlTimestamp(text);
-  const baseField = FIELD_ALIASES[field] ?? field;
-  return ZOTERO_DATE_FIELDS.some((dateField) => dateField === baseField)
+  return ZOTERO_DATE_FIELDS.some((dateField) => dateField === field)
     ? multipartDate(text)
     : text;
 }

@@ -10,12 +10,11 @@ export {
   getItemTypeByKey,
   getItemsByLibrary,
   getItemsByKey,
-  isChildItemFields,
   type BaseItem,
-  type ChildItemFields,
   type Creator,
   type Item,
 } from "./queries/items.ts";
+export { isChildItemFields, type ChildItemFields } from "./lib/item-types.ts";
 export {
   itemBaseFields,
   resolveVenue,

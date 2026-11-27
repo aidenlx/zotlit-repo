@@ -2,7 +2,7 @@
 
 exports[`zotlit:query formula answer text > keeps the answer text for a Formula that fields reads 1`] = `
 "{
-  "contractVersion": 3,
+  "contractVersion": 4,
   "command": "zotlit:query",
   "ok": true,
   "identity": {
@@ -11,6 +11,7 @@ exports[`zotlit:query formula answer text > keeps the answer text for a Formula 
       "path": "/vaults/research"
     },
     "source": {
+      "kind": "file",
       "id": "source-1",
       "databasePath": "/zotero/zotero.sqlite"
     }
@@ -79,7 +80,7 @@ exports[`zotlit:query formula answer text > keeps the answer text for a Formula 
 
 exports[`zotlit:query formula answer text > keeps the answer text for a Formula that fields reads and no request defines 1`] = `
 "{
-  "contractVersion": 3,
+  "contractVersion": 4,
   "command": "zotlit:query",
   "ok": false,
   "diagnostic": {
@@ -116,7 +117,7 @@ exports[`zotlit:query formula answer text > keeps the answer text for a Formula 
 
 exports[`zotlit:query formula answer text > keeps the answer text for a wrong Formula that another Formula reads 1`] = `
 "{
-  "contractVersion": 3,
+  "contractVersion": 4,
   "command": "zotlit:query",
   "ok": false,
   "diagnostic": {
@@ -152,7 +153,7 @@ exports[`zotlit:query formula answer text > keeps the answer text for a wrong Fo
 
 exports[`zotlit:query formula answer text > keeps the answer text for a wrong Formula that fields reads 1`] = `
 "{
-  "contractVersion": 3,
+  "contractVersion": 4,
   "command": "zotlit:query",
   "ok": false,
   "diagnostic": {
@@ -188,7 +189,7 @@ exports[`zotlit:query formula answer text > keeps the answer text for a wrong Fo
 
 exports[`zotlit:query formula answer text > keeps the answer text for a wrong Formula that the filter reads 1`] = `
 "{
-  "contractVersion": 3,
+  "contractVersion": 4,
   "command": "zotlit:query",
   "ok": false,
   "diagnostic": {

@@ -102,7 +102,9 @@ The Template Workbench contract moved its Default selector to
 attempt evidence in version 6, and changed document-check commands
 and refusal envelopes in version 7. Version 8 adds the shared
 Diagnostic Report fields and keeps the excerpt context for version 7
-readers. Selector failures can occur before identity or document
+readers. Version 9 names the Zotero source with the tagged
+`SourceIdentity` of ZoteroReads, so its id also names the Zotero
+online library. Selector failures can occur before identity or document
 facts exist. The envelope's success discriminator separates the result
 from a diagnostic. Use the fault's specific recovery action first
 and the registered hint otherwise.

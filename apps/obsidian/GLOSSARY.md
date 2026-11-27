@@ -946,6 +946,26 @@ _Avoid_: regular copy, normal copy
 Opens `zotero.sqlite` in place with SQLite's immutable flag. Skips locking and reads committed data only — recent edits not yet written to the main file are invisible until Zotero checkpoints. The fallback when cloning is unavailable; default on Windows and Linux.
 _Avoid_: direct read, read-only mode (all modes are read-only)
 
+**Library Source**:
+Where ZoteroReads gets the library on one device: the Zotero File Source or the Web API Source. It is a choice of the device, stored per vault × device and never synced, so one vault can read the Zotero database file on a desktop and the online library on another device.
+_Avoid_: data source, backend, mode (overloaded with Read Mode)
+
+**Zotero File Source** _(Library Source)_:
+The Library Source that reads the `zotero.sqlite` of the Zotero app on this computer, through a Read Mode. The default. User-facing copy calls it "Zotero on this computer".
+_Avoid_: local source, desktop source, file mode
+
+**Web API Source** _(Library Source)_:
+The Library Source that reads a Web Library Replica, kept current from the Zotero Web API with the user's API key. User-facing copy calls it the "Zotero online library". It holds metadata, notes and annotations and no attachment files, and it sends no action to Zotero.
+_Avoid_: cloud source, sync source, online mode, Zotero sync
+
+**Web Library Replica**:
+A read-only copy of a Zotero account's libraries on one device, in the layout of the Zotero database, built and kept current from the Zotero Web API. Its item IDs are its own; an item keeps its Zotero key. User-facing copy calls it "online library data".
+_Avoid_: snapshot (a Snapshot is a pinned database state), cache, mirror, local database
+
+**Replica Consent** _(Web Library Replica)_:
+The Zotero account whose libraries the device agreed to hold in its Web Library Replica. The first accepted key sets it; a key of another account leaves the replica as it is until the user chooses to replace the data, and removing the online library data clears it.
+_Avoid_: account binding, login, authorization (Write Authorization is a different grant)
+
 ### Releases and onboarding
 
 **Resource Release**:
