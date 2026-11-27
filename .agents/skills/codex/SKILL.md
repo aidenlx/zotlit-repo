@@ -20,7 +20,7 @@ Put it in `.scratch/<task>/SPEC.md`, so Codex reads it from the shared temp dir.
 - **checklist** (repo gates Codex's code meets before it reports):
   - rationale goes in the commit body or an ADR, in place of code comments: `pnpm comments check` rejects new ones, tooling directives such as `// @vitest-environment` included. Prove UI behaviour with a pure function plus the e2e journey or a browser check ([testing strategy](../../../policies/testing-strategy.md));
   - name tests by behaviour: the `no-tracker-reference` lint rule rejects `#<n>` in a test name;
-  - run the package's `typecheck` and `typecheck:test` (a separate project) plus `pnpm exec oxlint <changed dirs>` once, at the end;
+  - run `pnpm exec turbo run //#lint:repo -- <changed dirs>` once, at the end: its type check covers the lib, test and node projects of each file;
   - limit runs to unit checks: e2e, desktop journeys, a running Obsidian or Zotero, and network downloads or tool builds need the spec's explicit permission;
   - run single-file Vitest as the **Tests in the sandbox** item below says.
 

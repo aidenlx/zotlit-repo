@@ -9,7 +9,6 @@ describe("the gate halves", () => {
       "Format",
       "Generated artifacts",
       "Lint",
-      "Typecheck",
       "Snapshot size",
       "Record risk",
       "Record file",

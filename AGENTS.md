@@ -24,7 +24,7 @@ To refresh a vendored Zotero schema or pdf.js type definition, use `node package
 
 Run commands from the repository root.
 
-- **Iterate.** Run a package’s single test file with its own Vitest config. Use `pnpm exec turbo run typecheck --filter=<package>` so prerequisite generators run. Use the same filter for package builds and tests. `pnpm lint` covers the whole repository.
+- **Iterate.** Run a package’s single test file with its own Vitest config. Check types and lint with `pnpm exec turbo run //#lint:repo -- <paths>`: Turbo runs the generators the files read, then type-aware oxlint checks the paths. Use `pnpm exec turbo run <task> --filter=<package>` for package builds and tests so prerequisite generators run. `pnpm lint` covers the whole repository.
 - **Verify.** `pnpm verify` checks the changed packages and dependents, generated artifacts, formatting, types, tests, and bundle budgets. `pnpm quality:fix` applies lint and formatting fixes.
 - **Release.** `pnpm verify --release` adds the release checks, full local End-to-end Run, and host start-up measurement. For publishing or a stable hotfix, follow [CONTRIBUTING.md](CONTRIBUTING.md). The release ESLint config and root TypeScript alias belong to the Obsidian scanner. See [ADR 0020](docs/adr/0020-obsidian-guideline-review-runs-on-eslint-at-release.md).
 

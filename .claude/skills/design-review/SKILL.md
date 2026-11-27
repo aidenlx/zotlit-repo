@@ -18,7 +18,7 @@ A correction lands in the narrowest tier that can hold it for good. A size that 
 
 2. **Read the spec for the surface.** DESIGN.md is organised per surface (`### Landing`, `### Learn`, docs chrome). Read the section for every surface the change renders in, and "The label voice" whenever the change adds a label.
 
-3. **Run the lint** on the changed files, with paths relative to `apps/docs`. The lint config is type-aware, so in a new worktree run `pnpm exec turbo run typecheck --filter=@zotlit/docs` once first: it generates the `@/paraglide` modules the files import.
+3. **Run the lint** on the changed files, with paths relative to `apps/docs`. The lint config is type-aware, so in a new worktree run `pnpm exec turbo run @zotlit/docs#generate:messages` once first: it generates the `@/paraglide` modules the files import.
 
    ```bash
    pnpm --filter @zotlit/docs exec oxlint <changed files under src/>

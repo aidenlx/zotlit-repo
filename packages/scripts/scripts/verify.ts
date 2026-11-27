@@ -57,7 +57,7 @@ const { release, local, pr, shard } = await yargs(hideBin(process.argv))
   .option("release", {
     type: "boolean",
     describe:
-      "Every package, then the End-to-end Run, Start-up, Obsidian guideline review and Publish shell",
+      "Every package, then Typecheck, the End-to-end Run, Start-up, Obsidian guideline review and Publish shell",
   })
   .conflicts("local", ["pr", "release"])
   .conflicts("pr", "release")
@@ -129,6 +129,11 @@ await localSteps();
 await ciSteps();
 
 if (release) {
+  await step(
+    "Typecheck",
+    () =>
+      sh`pnpm exec turbo run typecheck typecheck:test typecheck:node --filter=!@zotlit/e2e`,
+  );
   await releaseRuns();
   await step("Obsidian guideline review", () => sh`pnpm review`);
   await step("Publish shell", () => sh`pnpm release:check-shell`);
@@ -142,12 +147,6 @@ async function localSteps(): Promise<void> {
   await gateStep(
     "Lint",
     () => sh`pnpm lint ${ci ? ["--", "-f", "github"] : []}`,
-  );
-
-  await gateStep(
-    "Typecheck",
-    () =>
-      sh`pnpm exec turbo run typecheck typecheck:test typecheck:node --filter=!@zotlit/e2e ${scope}`,
   );
 
   await gateStep(

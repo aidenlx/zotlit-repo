@@ -4,7 +4,6 @@ const GATE_STEPS = {
   Format: "local",
   "Generated artifacts": "local",
   Lint: "local",
-  Typecheck: "local",
   "Snapshot size": "local",
   "Record risk": "local",
   "Record file": "local",

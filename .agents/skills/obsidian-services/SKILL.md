@@ -33,7 +33,7 @@ Use the source as the canonical reference. Do not copy service/runtime/plugin-sh
 5. When a service needs something another feature fills, read a tag the reading package owns, and give the other feature a group that provides it. When no feature fills it, `defineHost` in `apps/obsidian/src/host.ts` fails to type-check and names it under `missingServices`.
 6. For a new feature, export it with `defineFeature` from the package's `feature.ts`, add the package to `apps/obsidian/package.json`, and place it in `apps/obsidian/src/features.ts`. Place its tab entries in `host.ts` → `settingTab` and its menu segments in `fileMenu` / `folderMenu`. Vite, Vitest and ESLint read the plugin package list from `@zotlit/scripts/plugin-packages`, which follows the host's dependencies; add the package's `src` to the `@source` lines of `apps/obsidian/src/zt-main.css` and to the `//#review:plugin` inputs in `turbo.json`, which `pnpm lint:plugin-packages` checks.
 7. Pass `plugin`, `plugin.app`, and the values a registration needs explicitly through deps objects. Avoid module-global service lookups.
-8. Run the typecheck of the package and of `@zotlit/obsidian` after edits (`turbo run typecheck --filter=...`).
+8. Run `pnpm exec turbo run //#lint:repo -- <package dir> apps/obsidian/src` after edits: its type check names a read the group left out and an open port in `host.ts`.
 
 ## Effect services
 
