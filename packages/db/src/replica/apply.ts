@@ -1,6 +1,5 @@
 import type { ZoteroDatabase } from "#client/database.ts";
 import type { CreatorFieldMode } from "#lib/zt-creator.ts";
-import { regex } from "arkregex";
 import type { SQL } from "drizzle-orm";
 import { sql } from "drizzle-orm";
 
@@ -39,7 +38,8 @@ import { USER_LIBRARY_ID } from "#lib/constants.ts";
 import { annotationTypeFromName } from "#lib/zt-annot.ts";
 import { linkModeFromName } from "#lib/zt-attach.ts";
 
-const UNPAIRED_SURROGATE = regex("[\\uD800-\\uDFFF]", "gu");
+const UNPAIRED_SURROGATE = /[\uD800-\uDFFF]/gu;
+const ITEM_BATCH_SIZE = 500;
 const utf8Text = (value: string) =>
   value.replaceAll(UNPAIRED_SURROGATE, "\uFFFD");
 
@@ -476,7 +476,7 @@ function applyItem(context: Context, item: WebApiItem): Outcome {
     parentItemID,
     collectionIDs,
   });
-  if (context.pending.size === 500) flushItems(context);
+  if (context.pending.size === ITEM_BATCH_SIZE) flushItems(context);
   return "applied";
 }
 

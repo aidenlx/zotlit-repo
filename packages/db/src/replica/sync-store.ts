@@ -177,6 +177,13 @@ export function beginLibraryPass(
   });
 }
 
+const SQLITE_VARIABLE_LIMIT = 999;
+const STAGE_LIBRARY_VARIABLES = 3;
+const STAGED_ROW_VARIABLES = 4;
+const STAGE_PAGE_ROWS = Math.floor(
+  (SQLITE_VARIABLE_LIMIT - STAGE_LIBRARY_VARIABLES) / STAGED_ROW_VARIABLES,
+);
+
 export function stageObjects(
   db: ZoteroDatabase,
   library: RemoteLibrary,
@@ -190,10 +197,9 @@ export function stageObjects(
       ["collection", objects.collections ?? []],
       ["item", objects.items ?? []],
     ] as const) {
-      const pageSize = Math.floor((999 - 3) / 4);
-      for (let start = 0; start < list.length; start += pageSize) {
+      for (let start = 0; start < list.length; start += STAGE_PAGE_ROWS) {
         const rows = list
-          .slice(start, start + pageSize)
+          .slice(start, start + STAGE_PAGE_ROWS)
           .map(
             (object) =>
               sql`(${object.key}, ${object.version}, ${parentKeyOf(object)}, ${JSON.stringify(object)})`,

@@ -1,7 +1,12 @@
 import type { ZoteroDatabase } from "#client/database.ts";
+import type { CreatorFieldMode } from "#lib/zt-creator.ts";
+import type { TagType } from "#lib/zt-tag.ts";
 import { sql } from "drizzle-orm";
 
 import type { ReplicaOrphans } from "./apply.ts";
+
+const jsonValues = (values: readonly unknown[]) =>
+  sql`(select value from json_each(${JSON.stringify(values)}))`;
 
 export class ItemBatch {
   readonly collections = new Map<number, readonly number[]>();
@@ -10,17 +15,17 @@ export class ItemBatch {
     itemID: number,
     firstName: string,
     lastName: string,
-    fieldMode: number,
+    fieldMode: CreatorFieldMode,
     creatorTypeID: number,
     orderIndex: number,
   ][] = [];
-  readonly tags: [itemID: number, name: string, type: number][] = [];
+  readonly tags: [itemID: number, name: string, type: TagType][] = [];
   readonly replacedValues = new Set<string>();
   readonly noRelations: number[] = [];
   readonly noChildRows: number[] = [];
   readonly untrashed: number[] = [];
   write(db: ZoteroDatabase, orphans: ReplicaOrphans): void {
-    const ids = sql`(select value from json_each(${JSON.stringify([...this.collections.keys()])}))`;
+    const ids = jsonValues([...this.collections.keys()]);
     for (const [table, column, candidates] of [
       ["itemData", "valueID", orphans.valueIDs],
       ["itemCreators", "creatorID", orphans.creatorIDs],
@@ -43,7 +48,7 @@ export class ItemBatch {
         for (const row of db.all<{
           valueID: number;
         }>(sql`select valueID from itemDataValues
-          where value in (select value from json_each(${JSON.stringify([...this.replacedValues])}))`))
+          where value in ${jsonValues([...this.replacedValues])}`))
           orphans.valueIDs.add(Number(row.valueID));
       }
     }
@@ -79,8 +84,9 @@ export class ItemBatch {
       ["deletedItems", this.untrashed],
     ] as const) {
       if (items.length)
-        db.run(sql`delete from ${sql.identifier(table)} where itemID in
-          (select value from json_each(${JSON.stringify(items)}))`);
+        db.run(
+          sql`delete from ${sql.identifier(table)} where itemID in ${jsonValues(items)}`,
+        );
     }
     writeCollections(db, this.collections);
   }
@@ -95,7 +101,7 @@ function writeCollections(
     itemID: number;
     collectionID: number;
   }>(
-    sql`select itemID, collectionID from collectionItems where itemID in (select value from json_each(${JSON.stringify([...collections.keys()])}))`,
+    sql`select itemID, collectionID from collectionItems where itemID in ${jsonValues([...collections.keys()])}`,
   )) {
     const ids = existing.get(itemID);
     if (ids) ids.add(collectionID);
@@ -126,7 +132,7 @@ function writeCollections(
     if (removed?.length) {
       append();
       db.run(sql`delete from collectionItems where itemID = ${itemID}
-        and collectionID in (select value from json_each(${JSON.stringify(removed)}))`);
+        and collectionID in ${jsonValues(removed)}`);
     }
     for (const id of new Set(ids)) {
       if (!stored?.has(id)) additions.push([id, itemID]);
