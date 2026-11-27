@@ -28,6 +28,7 @@ const pull = (number: number, owner: string) => ({
   headRepositoryOwner: { id: "U_1", login: owner },
   title: `feat: pull ${number}`,
   body: `## Summary\n\nPull ${number}.`,
+  isDraft: true,
   isCrossRepository: owner !== "aidenlx",
 });
 
@@ -83,6 +84,7 @@ describe("findOpenPullRequest", () => {
       url: `https://github.com/${REPO}/pull/5`,
       title: "feat: pull 5",
       body: "## Summary\n\nPull 5.",
+      draft: true,
     });
   });
 
@@ -95,6 +97,29 @@ describe("findOpenPullRequest", () => {
     expect(
       await github.findOpenPullRequest({ head: "feat/a", base: "main" }),
     ).toBeUndefined();
+  });
+});
+
+describe("the draft state of a record PR", () => {
+  it("opens a draft PR, marks it ready, and changes it back to a draft", async () => {
+    const calls: string[][] = [];
+    const github = ghLandGitHub(REPO, async (args) => {
+      calls.push(args);
+      return `https://github.com/${REPO}/pull/4`;
+    });
+    const pull = { head: "feat/a", base: "main", title: "feat: a", body: "" };
+
+    await github.createPullRequest({ ...pull, draft: true });
+    await github.createPullRequest({ ...pull, draft: false });
+    await github.setDraft(4, false);
+    await github.setDraft(4, true);
+
+    expect(calls[0]).toContain("--draft");
+    expect(calls[1]).not.toContain("--draft");
+    expect(calls.slice(2)).toEqual([
+      ["pr", "ready", "4", "--repo", REPO],
+      ["pr", "ready", "4", "--repo", REPO, "--undo"],
+    ]);
   });
 });
 

@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import type { ChildProcess } from "node:child_process";
 import { once } from "node:events";
 import { existsSync } from "node:fs";
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { chmod, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { text } from "node:stream/consumers";
 import { setTimeout as delay } from "node:timers/promises";
@@ -412,6 +412,7 @@ interface FakePull {
   base: string;
   title: string;
   body: string;
+  draft: boolean;
   merged: boolean;
 }
 
@@ -446,7 +447,7 @@ function fakeGitHub({
       pulls.find(
         (pull) => pull.head === head && pull.base === base && !pull.merged,
       ),
-    createPullRequest: async ({ head, base, title, body }) => {
+    createPullRequest: async ({ head, base, title, body, draft }) => {
       await branchTip(head).catch(() => {
         throw new Error(`Head ref ${head} is not on origin.`);
       });
@@ -458,6 +459,7 @@ function fakeGitHub({
         base,
         title,
         body,
+        draft,
         merged: false,
       };
       pulls.push(pull);
@@ -467,6 +469,9 @@ function fakeGitHub({
       const pull = pulls.find((each) => each.number === number)!;
       pull.title = title;
       pull.body = body;
+    },
+    setDraft: async (number, draft) => {
+      pulls.find((each) => each.number === number)!.draft = draft;
     },
     pullRequestState: async (number) => {
       const pull = pulls.find((each) => each.number === number)!;
@@ -607,6 +612,7 @@ describe("the record PR", () => {
           base: "main",
           title: "feat: add a",
           body: body.replaceAll("\n", "\r\n"),
+          draft: false,
         });
 
         const second = await land({
@@ -681,6 +687,179 @@ describe("the record PR", () => {
           "main m.txt",
           "seed",
         ]);
+      },
+      SLOW,
+    );
+  });
+
+  describe("--draft", () => {
+    it("is named in the help of pnpm land", async () => {
+      const child = spawn(
+        process.execPath,
+        [join(import.meta.dirname, "../scripts/land.ts"), "--help"],
+        { stdio: ["ignore", "pipe", "inherit"] },
+      );
+      const help = await text(child.stdout);
+      await once(child, "close");
+
+      expect(help).toContain("[--draft]");
+      expect(help).toMatch(/--draft\s+open the record PR as a draft/);
+    });
+
+    it(
+      "gates the squashed branch, pushes it, opens a draft PR, and leaves main as it was",
+      async () => {
+        const cwd = await taskClone("a");
+        await writeRecord(cwd);
+        const { github, pulls, checkReads } = fakeGitHub();
+        const gated = join(repos.root, "gated");
+        const lines: string[] = [];
+
+        const result = await land({
+          ...quiet,
+          say: (line) => lines.push(line),
+          cwd,
+          gate: ["touch", gated],
+          github,
+          draft: true,
+        });
+
+        expect(result).toMatchObject({ ok: true, draft: true });
+        expect(existsSync(gated)).toBe(true);
+        expect(pulls).toMatchObject([
+          { head: "feat/a", title: "feat: add a", draft: true, merged: false },
+        ]);
+        expect(await subjects("main")).toEqual(["seed"]);
+        expect(await git(repos.remote, "rev-parse", "feat/a")).toBe(
+          await git(cwd, "rev-parse", "HEAD"),
+        );
+        expect(await subjects("feat/a")).toEqual(["feat: add a", "seed"]);
+        expect(checkReads).toEqual([]);
+        expect(lines.at(-1)).toBe(
+          "Draft record PR: https://github.com/owner/repo/pull/1. main is unchanged.",
+        );
+      },
+      SLOW,
+    );
+
+    it(
+      "updates the same draft PR from the record when it runs again",
+      async () => {
+        const cwd = await taskClone("a");
+        await writeRecord(cwd, { text: "first" });
+        const { github, pulls } = fakeGitHub();
+        await land({ ...quiet, cwd, gate: ["true"], github, draft: true });
+        await moveMain("m.txt", "m");
+        await writeRecord(cwd, { text: "second" });
+
+        const second = await land({
+          ...quiet,
+          cwd,
+          gate: ["true"],
+          github,
+          draft: true,
+        });
+
+        expect(second).toMatchObject({ ok: true, draft: true });
+        expect(pulls).toHaveLength(1);
+        expect(pulls[0]).toMatchObject({ draft: true, merged: false });
+        expect(pulls[0]!.body).toContain("second");
+        expect(await subjects("feat/a")).toEqual([
+          "feat: add a",
+          "main m.txt",
+          "seed",
+        ]);
+        expect(await subjects("main")).toEqual(["main m.txt", "seed"]);
+      },
+      SLOW,
+    );
+
+    it(
+      "lets a plain land mark the draft PR ready and land it",
+      async () => {
+        const cwd = await taskClone("a");
+        await writeRecord(cwd);
+        const { github, pulls } = fakeGitHub();
+        await land({ ...quiet, cwd, gate: ["true"], github, draft: true });
+
+        const result = await land({ ...quiet, cwd, gate: ["true"], github });
+
+        expect(result).toMatchObject({ ok: true, record: { merged: true } });
+        expect(result.ok && result.draft).toBeFalsy();
+        expect(pulls).toMatchObject([
+          { number: 1, draft: false, merged: true },
+        ]);
+        expect(await git(repos.remote, "rev-parse", "main")).toBe(
+          await git(cwd, "rev-parse", "HEAD"),
+        );
+      },
+      SLOW,
+    );
+
+    it(
+      "passes the pre-push hook of an agent session with the task branch alone",
+      async () => {
+        const cwd = await taskClone("a");
+        await writeRecord(cwd);
+        const pushed = join(repos.root, "pushed-refs");
+        const hook = join(repos.root, "hooks", "pre-push");
+        await mkdir(join(hook, ".."));
+        await writeFile(
+          hook,
+          `#!/bin/sh\ntee -a ${JSON.stringify(pushed)} | ${JSON.stringify(process.execPath)} ${JSON.stringify(new URL("../scripts/pre-push.ts", import.meta.url).pathname)} "$@"\n`,
+        );
+        await chmod(hook, 0o755);
+        await git(cwd, "config", "core.hooksPath", join(hook, ".."));
+        const { github } = fakeGitHub();
+        const agent = process.env.CLAUDECODE;
+        process.env.CLAUDECODE = "1";
+        let result;
+        try {
+          result = await land({
+            ...quiet,
+            cwd,
+            gate: ["true"],
+            github,
+            draft: true,
+          });
+        } finally {
+          if (agent === undefined) delete process.env.CLAUDECODE;
+          else process.env.CLAUDECODE = agent;
+        }
+
+        expect(result).toMatchObject({ ok: true, draft: true });
+        const refs = (await readFile(pushed, "utf8"))
+          .trim()
+          .split("\n")
+          .map((line) => line.split(" ")[2]);
+        expect(refs).toEqual(["refs/heads/feat/a"]);
+        expect(await subjects("main")).toEqual(["seed"]);
+      },
+      SLOW,
+    );
+
+    it(
+      "refuses --after-ci before it pushes anything",
+      async () => {
+        const cwd = await taskClone("a");
+        await writeRecord(cwd);
+        const { github, pulls } = fakeGitHub();
+        const gated = join(repos.root, "gated");
+
+        const result = await land({
+          ...quiet,
+          cwd,
+          gate: ["touch", gated],
+          github,
+          draft: true,
+          afterCi: true,
+        });
+
+        expect(result).toMatchObject({ ok: false, step: "preflight" });
+        expect(result.ok || result.message).toContain("--after-ci");
+        expect(existsSync(gated)).toBe(false);
+        expect(pulls).toEqual([]);
+        expect(await git(repos.remote, "branch", "--list")).toBe("* main");
       },
       SLOW,
     );

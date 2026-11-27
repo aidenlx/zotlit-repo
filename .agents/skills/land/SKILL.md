@@ -1,6 +1,6 @@
 ---
 name: land
-description: "Use when a change is done and should reach main, when a land fails, when writing the commits or the record file a land carries, or when checking the record PRs before a release."
+description: "Use when a change is done and should reach main or wait for review in a draft record PR, when a land fails, when writing the commits or the record file a land carries, or when checking the record PRs before a release."
 ---
 
 ## Land
@@ -21,9 +21,10 @@ then: move the local main, read the PR state; when GitHub shows it as merged,
 
 1. Commit every change on the task branch. `land` refuses a tree with uncommitted or untracked files.
 2. Write the record file in the task worktree (see [The record file](#the-record-file)). `land` refuses a land without it before it pushes anything.
-3. Use `pnpm land` to make one commit with the record title and body. Use `pnpm land --no-squash` when the task calls for separate commits. Run the chosen command from the task worktree, in the background: the gate and the CI wait take minutes, and the wait for the turn can take longer. While it waits, the land checks the branch against each new `origin/main` and exits at `rebase` on a conflict. Wait for it to exit.
+3. Use `pnpm land` to make one commit with the record title and body. Use `pnpm land --no-squash` when the task calls for separate commits. Use `pnpm land --draft` when the maintainer asks to review the change before it lands, or says not to land it; a later `pnpm land` finishes it. Run the chosen command from the task worktree, in the background: the gate and the CI wait take minutes, and the wait for the turn can take longer. While it waits, the land checks the branch against each new `origin/main` and exits at `rebase` on a conflict. Wait for it to exit.
 4. Read the result:
-   - **Exit 0:** landed. The output names the record PR and the pushed commit. When it says that the PR does not show as merged, the task branch stays on origin and the PR stays open: report this on the ticket. Close the ticket as `docs/agents/issue-tracker.md` describes, then review the task worktree for retirement.
+   - **Exit 0 after `pnpm land`:** landed. The output names the record PR and the pushed commit. When it says that the PR does not show as merged, the task branch stays on origin and the PR stays open: report this on the ticket. Close the ticket as `docs/agents/issue-tracker.md` describes, then review the task worktree for retirement.
+   - **Exit 0 after `pnpm land --draft`:** the draft record PR is open and `main` is unchanged. Keep the task worktree and the ticket open, and give the PR URL in the handoff.
    - **Exit 1:** a step failed. The output names the step and the path of the full log; read the log.
    - **Exit 75:** the turn did not come within the wait (1 h by default, `--wait <duration>`). Report it as blocked by the land that `pnpm land status` names, not as a failure.
 

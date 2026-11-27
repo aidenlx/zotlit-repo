@@ -72,7 +72,7 @@ Keep probes, logs, drafts, and intermediate output in the relevant workspace’s
 
 ## Worktrees
 
-Use Worktrunk so the repository hooks bootstrap dependencies. Create with `wt switch --create <branch> --base origin/main`. Use `--no-cd` for an agent worktree and give the agent the printed path. Name branches by change type. Remove a finished worktree with `wt remove <branch>`.
+Use Worktrunk so the repository hooks bootstrap dependencies. Create with `wt switch --create <branch> --base origin/main`. Use `--no-cd` for an agent worktree and give the agent the printed path. Name branches by change type. Remove your own finished worktree with `wt remove <branch>`.
 
 ## Landing a change
 

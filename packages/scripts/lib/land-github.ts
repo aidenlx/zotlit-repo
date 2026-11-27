@@ -80,7 +80,7 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
           "--state",
           "open",
           "--json",
-          "number,url,title,body,isCrossRepository",
+          "number,url,title,body,isDraft,isCrossRepository",
         ]),
       ) as GitHubPullRequest[];
       const own = listed.find((pull) => !pull.isCrossRepository);
@@ -90,10 +90,11 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
           url: own.url,
           title: own.title,
           body: own.body,
+          draft: own.isDraft,
         }
       );
     },
-    async createPullRequest({ head, base, title, body }) {
+    async createPullRequest({ head, base, title, body, draft }) {
       const printed = await run(
         [
           "pr",
@@ -108,6 +109,7 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
           title,
           "--body-file",
           "-",
+          ...(draft ? ["--draft"] : []),
         ],
         body,
       );
@@ -133,6 +135,16 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
         ],
         body,
       );
+    },
+    async setDraft(number, draft) {
+      await run([
+        "pr",
+        "ready",
+        String(number),
+        "--repo",
+        repo,
+        ...(draft ? ["--undo"] : []),
+      ]);
     },
     async pullRequestState(number) {
       const { state } = JSON.parse(
@@ -204,7 +216,8 @@ function sameRepository(a: string, b: string): boolean {
   return a.toLowerCase() === b.toLowerCase();
 }
 
-interface GitHubPullRequest extends OpenRecordPullRequest {
+interface GitHubPullRequest extends Omit<OpenRecordPullRequest, "draft"> {
+  isDraft: boolean;
   isCrossRepository: boolean;
 }
 

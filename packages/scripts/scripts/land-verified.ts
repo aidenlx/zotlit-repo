@@ -19,12 +19,15 @@ const pr = JSON.parse(
 );
 if (
   pr.state !== "open" ||
+  pr.draft ||
   pr.head.repo.full_name !== repo ||
   pr.base.ref !== "main" ||
   pr.head.sha !== head ||
   pr.base.sha !== base
 ) {
-  throw new Error("The record PR must be open at the requested head and base.");
+  throw new Error(
+    "The record PR must be open, ready for review, and at the requested head and base.",
+  );
 }
 if ((await git`git rev-parse HEAD`).stdout.trim() !== base)
   throw new Error("The trusted checkout must match the requested base.");

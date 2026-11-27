@@ -36,7 +36,7 @@ export interface LandWaitRecord {
   enqueuedAt: string;
   admittedAt?: string;
   waitMs: number;
-  outcome: "landed" | "failed" | "blocked";
+  outcome: "landed" | "draft" | "failed" | "blocked";
   step?: string;
   attempts?: number;
   ci?: LandCiRun[];

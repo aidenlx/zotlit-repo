@@ -21,7 +21,7 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
 2. (optional) Use an **exploration subagent** to conduct any exploration required by the tickets - relevant codebase files or external documentation. Ensure the exploration subagent can save files - it should save its markdown notes in a directory outside the repo, accessible by all future subagents. This lets **implementer subagents** focus on implementation rather than exploration.
 
-3. Create the integration branch. If the issue tracker closes work through PRs, or the user asks for one, open a draft PR after the first merge in step 5 (a branch with no commits ahead of main can't open one), marked as closing the spec and tickets.
+3. Create the integration branch.
 
 4. Use **implementer subagents** to implement each ticket, each in its own worktree on its own branch. Create the worktree with `wt switch --create <branch> --base <integration-branch> --no-cd` (the project's pre-start hook bootstraps it) and name its path in the prompt. Each implementer subagent:
    - confirms its worktree is based on the integration branch before starting, and resets onto it if not;
@@ -37,6 +37,6 @@ Communication to and from subagents should be sparse. Communicate primarily thro
 
    Write the record file of the land as `land` → The record file describes. Its Review section holds every finding line of the ticket rounds and the final round (`code-review` → Finding lines), and its Open points collect the open points of the ticket comments and the final round.
 
-8. If a draft PR exists, mark it ready for review. Otherwise, resolve each ticket the way the issue tracker closes work, and report the integration branch. Notify peer sessions that build on the integration branch once, now that it is done.
+8. If the issue tracker closes work through PRs, or the user asks for one, open the draft record PR with `pnpm land --draft`, from the record file of step 7 marked as closing the spec and tickets, and report its URL. Otherwise, resolve each ticket the way the issue tracker closes work, and report the integration branch. Notify peer sessions that build on the integration branch once, now that it is done.
 
-9. Clean up all **implementer subagent** worktrees with `wt remove <branch>`. Add `-D` for a branch that `git merge-base --is-ancestor <branch> <integration-branch>` confirms is merged.
+9. Remove your own worktrees: the branches that this session created in step 4, taken from your record of those `wt switch --create` calls. Run `wt remove <branch>` once for each, with `-D` for a branch that step 5 merged. Keep the integration worktree while its PR is open. Done when each of your branches is gone from `git worktree list` and every other entry of that list is unchanged.

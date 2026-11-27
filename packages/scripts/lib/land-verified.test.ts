@@ -11,6 +11,7 @@ const valid = {
   message: "feat: a human contribution",
   conclusion: "success",
   state: "open",
+  draft: false,
   error: "",
 };
 it.each([
@@ -39,9 +40,15 @@ it.each([
     state: "closed",
     error: "The record PR must be open",
   },
+  {
+    ...valid,
+    label: "rejects a draft PR",
+    draft: true,
+    error: "The record PR must be open",
+  },
 ])(
   "$label at the trusted workflow entry point",
-  async ({ message, conclusion, state, error }) => {
+  async ({ message, conclusion, state, draft, error }) => {
     await using cleanup = new AsyncDisposableStack();
     const repos = await makeGitRepos();
     cleanup.defer(() => repos.dispose());
@@ -82,6 +89,7 @@ esac
           PR: JSON.stringify({
             number: 3,
             state,
+            draft,
             base: { ref: "main", sha: base },
             head: { ref: "task", sha: head, repo: { full_name: "owner/repo" } },
           }),

@@ -46,12 +46,14 @@ From a task branch with a clean tree, a record file, and a gh login that GitHub 
 
 --after-ci is for a session whose GitHub token can push the branch and open the record PR but cannot dispatch workflows, such as a cloud agent. It marks a new record PR in its body, and ${LAND_WORKFLOW} lands a marked PR when its "${LAND_CI_CHECK}" check passes, with the same checks as a dispatch. The land then waits up to ${formatDuration(LAND_AFTER_CI_WAIT_MS)} for ${SOURCE_BRANCH} to reach the head. When GitHub refuses such a token the PR write, the land writes the title and body of the record PR to ${LAND_PR_PATH} and exits at the record step. Open the PR with the PR tool of the host, then land again: an open record PR whose title and body match the record stays as it is.
 
+--draft is for a change that the maintainer reviews before it lands. It runs the same steps up to the record PR, opens or updates that PR as a draft, and stops: it does not wait for CI and ${SOURCE_BRANCH} stays as it was. Run it again to update the draft. A land without --draft on that branch marks the PR ready for review and lands it.
+
 Record file: ${LAND_RECORD_PATH} in the worktree. Its first line is "# <title>", the title of the PR and, for a squash land, the subject of the commit, so a Conventional Commits subject (${CONVENTIONAL_FORMAT}); the rest is the PR body, with the sections ${LAND_RECORD_SECTIONS.map((name) => `"## ${name}"`).join(", ")}.
 
 On a failure, land exits non-zero, names the failed step, and prints the path of the full log. The worktree stays on its branch with a clean tree: after a rebase conflict the branch is as it was; after a failed install or gate it is rebased onto the fetched ${SOURCE_BRANCH}, the tree to fix.
 
 Exit codes:
-  0    landed
+  0    landed; with --draft, the draft record PR is open and ${SOURCE_BRANCH} is unchanged
   1    a step failed
   ${EXIT_USAGE}    usage error
   ${EXIT_ADMISSION_BLOCKED}   the turn did not come within --wait; blocked, not a failure
@@ -69,11 +71,13 @@ async function landCommand({
   verify,
   squash,
   afterCi,
+  draft,
 }: {
   wait?: string | undefined;
   verify: boolean;
   squash: boolean;
   afterCi: boolean;
+  draft: boolean;
 }) {
   let waitMs: number | undefined;
   if (wait !== undefined) {
@@ -93,6 +97,7 @@ async function landCommand({
     cwd,
     squash,
     afterCi,
+    draft,
     ...(verify ? { gate: LAND_GATES.change } : {}),
     github: ghLandGitHub(repository),
     ...(waitMs === undefined ? {} : { waitMs }),
@@ -129,7 +134,7 @@ async function status() {
 await yargs(hideBin(process.argv))
   .scriptName("land")
   .usage(
-    "pnpm land [--wait <duration>] [--no-verify] [--no-squash] [--after-ci]\npnpm land status",
+    "pnpm land [--wait <duration>] [--no-verify] [--no-squash] [--after-ci] [--draft]\npnpm land status",
   )
   .command(
     "$0",
@@ -150,6 +155,11 @@ await yargs(hideBin(process.argv))
           type: "boolean",
           default: false,
           describe: `let ${LAND_WORKFLOW} land the record PR when its CI check passes, and wait for ${SOURCE_BRANCH} to move; for a GitHub token that cannot dispatch workflows`,
+        })
+        .option("draft", {
+          type: "boolean",
+          default: false,
+          describe: `open the record PR as a draft after the gate, and stop; ${SOURCE_BRANCH} stays as it was`,
         })
         .option("verify", {
           type: "boolean",

@@ -116,6 +116,7 @@ export interface RecordPullRequest {
 export interface OpenRecordPullRequest extends RecordPullRequest {
   title: string;
   body: string;
+  draft: boolean;
 }
 
 export interface LandGitHub {
@@ -132,11 +133,13 @@ export interface LandGitHub {
     base: string;
     title: string;
     body: string;
+    draft: boolean;
   }) => Promise<RecordPullRequest>;
   editPullRequest: (
     number: number,
     pull: { title: string; body: string },
   ) => Promise<void>;
+  setDraft: (number: number, draft: boolean) => Promise<void>;
   pullRequestState: (number: number) => Promise<"OPEN" | "CLOSED" | "MERGED">;
   readCheck: (query: {
     commit: string;
@@ -167,6 +170,7 @@ export interface LandOptions {
   /** How often the land reads the CI check. @default 30 s */
   ciPollMs?: number;
   afterCi?: boolean;
+  draft?: boolean;
   afterCiWaitMs?: number;
   afterCiPollMs?: number;
   /**
@@ -186,6 +190,7 @@ export type LandResult =
       waitMs: number;
       logPath: string;
       record?: RecordPullRequest & { merged: boolean };
+      draft?: true;
     }
   | {
       ok: false;
@@ -327,6 +332,12 @@ export async function land(options: LandOptions): Promise<LandResult> {
   };
 
   try {
+    if (options.draft && options.afterCi) {
+      throw new LandFailure(
+        "preflight",
+        `--draft opens a draft record PR, and ${LAND_WORKFLOW} does not land a draft, so --after-ci cannot go with it. Run pnpm land --draft without --after-ci.`,
+      );
+    }
     const pre = await preflight(sh, remote);
     const squash = options.squash ?? Boolean(options.github);
     const record =
@@ -480,6 +491,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
           openRecord(sh, github, {
             cwd,
             afterCi: options.afterCi ?? false,
+            draft: options.draft ?? false,
             remote,
             branch: pre.branch,
             base: to,
@@ -489,6 +501,18 @@ export async function land(options: LandOptions): Promise<LandResult> {
             say,
           }),
         );
+        if (options.draft) {
+          await finish("draft");
+          say(`Draft record PR: ${pull.url}. ${to} is unchanged.`);
+          return {
+            ok: true,
+            draft: true,
+            attempts,
+            waitMs,
+            logPath,
+            record: { ...pull, merged: false },
+          };
+        }
         const head = await sh.git("ci", "rev-parse", "HEAD");
         await step("ci", () =>
           waitForCi(github, {
@@ -609,7 +633,7 @@ export async function land(options: LandOptions): Promise<LandResult> {
   }
 
   async function finish(
-    outcome: "landed" | "failed" | "blocked",
+    outcome: "landed" | "draft" | "failed" | "blocked",
     failedStep?: LandStep,
   ) {
     if (!source) return;
@@ -777,6 +801,7 @@ async function openRecord(
   options: {
     cwd: string;
     afterCi: boolean;
+    draft: boolean;
     remote: string;
     branch: string;
     base: string;
@@ -784,7 +809,7 @@ async function openRecord(
     say: (line: string) => void;
   },
 ): Promise<RecordPullRequest> {
-  const { remote, branch, base, record, say } = options;
+  const { remote, branch, base, record, draft, say } = options;
   await sh.git(
     "record",
     "push",
@@ -801,18 +826,25 @@ async function openRecord(
         sameText(open.body, record.body)
       ) {
         say(`Record PR matches the record: ${open.url}`);
-        return open;
+      } else {
+        await github.editPullRequest(open.number, record);
+        say(`Record PR updated: ${open.url}`);
       }
-      await github.editPullRequest(open.number, record);
-      say(`Record PR updated: ${open.url}`);
+      if (open.draft !== draft) {
+        await github.setDraft(open.number, draft);
+        say(
+          `Record PR ${draft ? "changed to a draft" : "marked ready for review"}: ${open.url}`,
+        );
+      }
       return open;
     }
     const created = await github.createPullRequest({
       head: branch,
       base,
       ...record,
+      draft,
     });
-    say(`Record PR opened: ${created.url}`);
+    say(`Record PR opened${draft ? " as a draft" : ""}: ${created.url}`);
     return created;
   } catch (error) {
     const message = (error as Error).message;
