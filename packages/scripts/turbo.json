@@ -2,6 +2,38 @@
   "$schema": "https://turborepo.dev/schema.json",
   "extends": ["//"],
   "tasks": {
+    "transit": {
+      "inputs": [
+        "package.json",
+        "tsconfig.json",
+        "lib/**",
+        "scripts/memory-gate.ts",
+        "scripts/obsidian-cli.ts",
+        "scripts/obsidian-vault.ts",
+        "!**/*.test.ts",
+        "!lib/__fixtures__/**",
+        "!lib/release/**",
+        "!lib/affected-base.ts",
+        "!lib/agent-*.ts",
+        "!lib/ai-attribution.ts",
+        "!lib/commit-tree.ts",
+        "!lib/contract-versions.ts",
+        "!lib/conventional-commit.ts",
+        "!lib/e2e-*.ts",
+        "!lib/format-versions.ts",
+        "!lib/gate-*.ts",
+        "!lib/generated-artifacts.ts",
+        "!lib/land*.ts",
+        "!lib/message-usage.ts",
+        "!lib/nightly-e2e-notify.ts",
+        "!lib/push-refs.ts",
+        "!lib/record-*.ts",
+        "!lib/site-release.ts",
+        "!lib/snapshot-size.ts",
+        "!lib/test-*.ts",
+        "!lib/vendor-upstream.ts"
+      ]
+    },
     "test": {
       "inputs": [
         "$TURBO_DEFAULT$",

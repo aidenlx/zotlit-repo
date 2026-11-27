@@ -111,12 +111,18 @@
       "dependsOn": ["@zotlit/scripts#transit"],
       "inputs": [
         ".github/workflows/record-pr.yml",
-        ".github/workflows/land.yml"
+        ".github/workflows/land.yml",
+        "packages/scripts/lib/**",
+        "packages/scripts/scripts/check-record-pr.ts"
       ]
     },
     "//#lint:nightly-e2e-notify": {
       "dependsOn": ["@zotlit/scripts#transit"],
-      "inputs": [".github/workflows/nightly-e2e-notify.yml"]
+      "inputs": [
+        ".github/workflows/nightly-e2e-notify.yml",
+        "packages/scripts/lib/**",
+        "packages/scripts/scripts/check-nightly-e2e-notify.ts"
+      ]
     },
     "//#lint:messages": {},
     "//#lint:agent-guides": {},
