@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { runInElectron, testElectron } from "@zotlit/scripts/electron-renderer";
 import {
@@ -32,7 +32,9 @@ it.skipIf(!testElectron)(
       alias: { "@obsidian-standard-fonts": obsidianFonts },
       timeoutMs: 60_000,
     })) as StandardFontsReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
 
     expect(report.obsidianFiles).toBe(14);
     expect(report.requested.fork).toEqual(

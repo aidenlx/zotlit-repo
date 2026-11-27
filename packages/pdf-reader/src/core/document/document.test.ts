@@ -1,6 +1,6 @@
 import type { PDFDocumentProxy, TextContent } from "#/pdfjs.ts";
 import { resolve } from "node:path";
-import { expect, it, vi } from "vitest";
+import { expect, it, vi, onTestFailed } from "vitest";
 
 import { runInElectron, testElectron } from "@zotlit/scripts/electron-renderer";
 
@@ -20,7 +20,9 @@ it.skipIf(!testElectron)(
       alias: readerAlias,
       timeoutMs: 60_000,
     })) as DocumentReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
 
     expect(report.form.items).toBeGreaterThan(0);
     expect(report.form.withChars).toBe(report.form.items);

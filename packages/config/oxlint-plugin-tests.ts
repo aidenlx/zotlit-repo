@@ -709,6 +709,78 @@ export const noStringTransport: Rule = {
   },
 };
 
+const CONSOLE_OUTPUT = new Set([
+  "log",
+  "info",
+  "debug",
+  "warn",
+  "error",
+  "table",
+  "dir",
+  "trace",
+]);
+
+function isStdWrite(callee: CallNode["callee"]): boolean {
+  return (
+    callee.type === "MemberExpression" &&
+    callee.property.type === "Identifier" &&
+    callee.property.name === "write" &&
+    callee.object.type === "MemberExpression" &&
+    callee.object.object.type === "Identifier" &&
+    callee.object.object.name === "process" &&
+    callee.object.property.type === "Identifier" &&
+    (callee.object.property.name === "stdout" ||
+      callee.object.property.name === "stderr")
+  );
+}
+
+function isConsoleOutput(callee: CallNode["callee"]): boolean {
+  return (
+    callee.type === "MemberExpression" &&
+    callee.object.type === "Identifier" &&
+    callee.object.name === "console" &&
+    callee.property.type === "Identifier" &&
+    CONSOLE_OUTPUT.has(callee.property.name)
+  );
+}
+
+function inFailureHook(node: CallNode): boolean {
+  for (let at: CallNode["parent"] | null = node.parent; at; at = at.parent)
+    if (
+      at.type === "CallExpression" &&
+      at.callee.type === "Identifier" &&
+      at.callee.name === "onTestFailed"
+    )
+      return true;
+  return false;
+}
+
+export const noTestOutput: Rule = {
+  meta: {
+    type: "suggestion",
+    docs: {
+      description:
+        "Rejects a process.stdout or process.stderr write and a console call in a test file outside onTestFailed.",
+    },
+    messages: {
+      testOutput:
+        "Print diagnostic output inside onTestFailed(() => ...), so a passing test prints nothing and the test log stays short.",
+    },
+    schema: [],
+  },
+  create(context) {
+    return {
+      CallExpression(node) {
+        if (
+          (isStdWrite(node.callee) || isConsoleOutput(node.callee)) &&
+          !inFailureHook(node)
+        )
+          context.report({ node, messageId: "testOutput" });
+      },
+    };
+  },
+};
+
 export default {
   meta: { name: "zotlit-tests" },
   rules: {
@@ -722,5 +794,6 @@ export default {
     "no-poll-wrapper": noPollWrapper,
     "no-generated-poll-label": noGeneratedPollLabel,
     "no-string-transport": noStringTransport,
+    "no-test-output": noTestOutput,
   },
 };

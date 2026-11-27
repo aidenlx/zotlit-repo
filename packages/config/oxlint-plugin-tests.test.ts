@@ -12,6 +12,7 @@ import {
   noPollWrapper,
   noGeneratedPollLabel,
   noStringTransport,
+  noTestOutput,
 } from "./oxlint-plugin-tests.ts";
 
 RuleTester.describe = (name, fn) => {
@@ -333,6 +334,34 @@ tester.run("no-string-transport", noStringTransport, {
     {
       code: "obRunUntil(id, ({app}) => app.vault.adapter.exists(path).then(String), undefined, {what: 'x', ready: (value) => value === 'true'})",
       errors: [{ messageId: "boolean" }],
+    },
+  ],
+});
+
+tester.run("no-test-output", noTestOutput, {
+  valid: [
+    "onTestFailed(() => process.stdout.write(JSON.stringify(report)))",
+    "onTestFailed(() => { console.log(report); })",
+    "stream.write(text)",
+    "vi.spyOn(console, 'error')",
+    "logger.info('x')",
+  ],
+  invalid: [
+    {
+      code: "process.stdout.write(JSON.stringify(report, null, 2))",
+      errors: [{ messageId: "testOutput" }],
+    },
+    {
+      code: "process.stderr.write(text)",
+      errors: [{ messageId: "testOutput" }],
+    },
+    {
+      code: "console.log(JSON.stringify(report))",
+      errors: [{ messageId: "testOutput" }],
+    },
+    {
+      code: "console.error(error)",
+      errors: [{ messageId: "testOutput" }],
     },
   ],
 });

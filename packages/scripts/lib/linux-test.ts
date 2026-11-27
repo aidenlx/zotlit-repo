@@ -90,6 +90,8 @@ export function linuxTestDockerArgs(options: {
     `ZOTLIT_LINUX_TEST_ELECTRON=${options.electron ? 1 : 0}`,
     "--env",
     `ZOTLIT_OBSIDIAN_RUNTIME=${OBSIDIAN_RUNTIME_VERSION}`,
+    "--env",
+    "NO_COLOR=1",
     "--entrypoint",
     "bash",
     options.image,

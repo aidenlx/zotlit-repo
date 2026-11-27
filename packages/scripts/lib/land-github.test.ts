@@ -278,6 +278,7 @@ describe("readCheck", () => {
       status: "completed",
       conclusion: "failure",
       url: `https://github.com/${REPO}/actions/runs/1/job/3`,
+      failedJobId: 3,
       queuedAt: "2026-11-22T10:00:01Z",
       startedAt: "2026-11-22T10:00:41Z",
       completedAt: "2026-11-22T10:09:10Z",
@@ -320,5 +321,20 @@ describe("githubRepository", () => {
     ["/srv/git/zotlit.git", undefined],
   ])("reads %s", (url, expected) => {
     expect(githubRepository(url)).toBe(expected);
+  });
+});
+
+describe("readJobLog", () => {
+  it("reads the raw log of one job, with its colour codes", async () => {
+    const calls: string[][] = [];
+    const github = ghLandGitHub(REPO, async (args) => {
+      calls.push(args);
+      return "log text";
+    });
+
+    expect(await github.readJobLog?.(3)).toBe("log text");
+    expect(calls).toEqual([
+      ["api", "--allow-escape-sequences", `repos/${REPO}/actions/jobs/3/logs`],
+    ]);
   });
 });

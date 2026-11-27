@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { runInElectron, testElectron } from "@zotlit/scripts/electron-renderer";
 
@@ -18,7 +18,9 @@ it.skipIf(!testElectron)(
       alias: readerAlias,
       timeoutMs: 90_000,
     })) as PersistReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
 
     const sidebar = { open: true, panel: "outline", width: 220 };
     expect(report.before).toMatchObject({

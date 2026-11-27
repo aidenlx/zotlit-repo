@@ -1,7 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { runInElectron, testElectron } from "@zotlit/scripts/electron-renderer";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
@@ -73,7 +73,9 @@ it.skipIf(!testElectron)(
       ],
       timeoutMs: 90_000,
     })) as TextStructureReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
 
     expect(report.form.chars).toBeGreaterThan(0);
     expect(report.form.text).toBe(

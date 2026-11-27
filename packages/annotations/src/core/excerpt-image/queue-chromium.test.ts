@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { readDesktopPaint } from "@zotlit/scripts/desktop-paint";
 
@@ -29,7 +29,9 @@ it.skipIf(!testElectron)(
     })) as ChromiumQueueReport;
 
     const serialized = JSON.stringify(report, null, 2);
-    process.stdout.write(`${serialized}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${serialized}\n`);
+    });
     const out = process.env.ZOTLIT_QUEUE_CHROMIUM_MEASUREMENTS_OUT;
     if (out) await writeFile(out, `${serialized}\n`, "utf8");
 

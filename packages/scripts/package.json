@@ -6,6 +6,8 @@
   "imports": {
     "#format-versions": "./lib/format-versions.ts",
     "#affected-base": "./lib/affected-base.ts",
+    "#ci-log": "./lib/ci-log.ts",
+    "#gate-output": "./lib/gate-output.ts",
     "#bundle-gate": "./lib/bundle-gate.ts",
     "#runtime-check": "./lib/runtime-check.ts",
     "#runtime-table": "./lib/runtime-table.ts",

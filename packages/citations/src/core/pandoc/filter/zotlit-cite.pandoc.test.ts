@@ -9,7 +9,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { join } from "node:path";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { CITATION_FRAGMENT_FIXTURES } from "@zotlit/plugin-kernel/__fixtures__/citation-fragments.ts";
 
@@ -375,8 +375,6 @@ describe.skipIf(noPandoc)("zotlit-cite.lua under native Pandoc", () => {
         `Could not run "${pandocBin}". Install Pandoc 3.1.1 or newer, or set PANDOC_BIN.`,
       );
     }
-    console.log(version.stdout.split("\n")[0]);
-
     await rm(workspaceRoot, { recursive: true, force: true });
     await mkdir(workspaceRoot, { recursive: true });
     workspace = await realpath(workspaceRoot);
@@ -393,13 +391,16 @@ describe.skipIf(noPandoc)("zotlit-cite.lua under native Pandoc", () => {
     );
   });
 
-  afterEach(({ task }) => {
-    if (task.result?.state === "fail") failed = true;
+  beforeEach(({ onTestFailed }) => {
+    onTestFailed(() => {
+      failed = true;
+      console.error(`fixtures kept at ${workspace}`);
+    });
   });
 
   afterAll(async () => {
-    if (failed) console.error(`fixtures kept at ${workspace}`);
-    else if (workspace) await rm(workspace, { recursive: true, force: true });
+    if (!failed && workspace)
+      await rm(workspace, { recursive: true, force: true });
   });
 
   function convert(input = "input.md"): Run {

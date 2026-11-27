@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { EXCERPT_RENDERING_CASES } from "@zotlit/scripts/fixture/spec";
 import {
@@ -57,7 +57,9 @@ it.skipIf(!testElectron)(
       },
       timeoutMs: 120_000,
     })) as ObsidianPdfJsReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
 
     expect(report.version).toBe("5.3.34");
     expect(report.engine).toBe("obsidian-pdfjs");

@@ -100,6 +100,7 @@ describe("linuxTestDockerArgs", () => {
         "bash",
         "ZOTLIT_LINUX_TEST_PACKAGE=packages/pdf-reader",
         "ZOTLIT_LINUX_TEST_ELECTRON=0",
+        "NO_COLOR=1",
       ]),
     );
     const image = args.indexOf("zotlit-e2e:abc");

@@ -12,6 +12,7 @@ import { setTimeout as delay } from "node:timers/promises";
 import { SOURCE_BRANCH } from "@zotlit/config/repositories";
 
 import { attributionLines, isAgentBranch } from "#ai-attribution";
+import { failedLogExcerpt } from "#ci-log";
 import {
   CONVENTIONAL_FORMAT,
   isConventionalSubject,
@@ -107,6 +108,7 @@ export interface CiCheck {
   queuedAt?: string;
   startedAt?: string;
   completedAt?: string;
+  failedJobId?: number;
 }
 
 export interface RecordPullRequest {
@@ -147,6 +149,7 @@ export interface LandGitHub {
     name: string;
     branch: string;
   }) => Promise<CiCheck | undefined>;
+  readJobLog?: (jobId: number) => Promise<string>;
 }
 
 export interface LandOptions {
@@ -208,6 +211,17 @@ interface FailureDetail {
   notes?: readonly string[];
   help?: string;
   exitCode?: number;
+}
+
+async function failedJobExcerpt(
+  github: LandGitHub,
+  check: CiCheck,
+): Promise<readonly string[]> {
+  if (check.failedJobId === undefined || !github.readJobLog) return [];
+  return await github.readJobLog(check.failedJobId).then(
+    (raw) => failedLogExcerpt(raw),
+    () => [],
+  );
 }
 
 class LandFailure extends Error {
@@ -1152,12 +1166,16 @@ async function waitForCi(
         `CI "${name}" of ${short}: ${check.conclusion} after ${seconds(waited)}${queueNote(check)}.`,
       );
       if (check.conclusion === "success") return;
+      const excerpt = await failedJobExcerpt(github, check);
       throw new LandFailure(
         "ci",
         `The CI check "${name}" ended ${check.conclusion} on ${short}: ${check.url}`,
         {
           notes: [
             "The link is the log of the job that failed.",
+            ...(excerpt.length > 0
+              ? [`The failed job ends with:\n${excerpt.join("\n")}`]
+              : []),
             `The branch is pushed; ${TRUNK} is unchanged.`,
           ],
           help: "When the failure is in the change, fix it on this branch, run the failed tests locally, commit, and land again. When it is not (a flaky test or a runner fault), run the job again from its log page, then land again: the land waits for the new run.",

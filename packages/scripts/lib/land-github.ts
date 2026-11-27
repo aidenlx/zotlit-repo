@@ -208,11 +208,19 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
         status: gate.status,
         conclusion: gate.conclusion,
         url: (failed ?? gate).html_url,
+        ...(failed ? { failedJobId: failed.id } : {}),
         ...(longest?.started_at
           ? { queuedAt: longest.created_at, startedAt: longest.started_at }
           : {}),
         ...(gate.completed_at ? { completedAt: gate.completed_at } : {}),
       };
+    },
+    async readJobLog(jobId) {
+      return await run([
+        "api",
+        "--allow-escape-sequences",
+        `repos/${repo}/actions/jobs/${jobId}/logs`,
+      ]);
     },
   };
 }

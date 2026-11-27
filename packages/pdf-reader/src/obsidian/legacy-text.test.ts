@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { runInElectron, testElectron } from "@zotlit/scripts/electron-renderer";
 import {
@@ -32,7 +32,9 @@ it.skipIf(!testElectron)(
       alias: { ...readerAlias, "@obsidian-pdfjs": obsidianPdfJs },
       timeoutMs: 180_000,
     })) as LegacySelectionReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
 
     expect(report.version).toBe("5.3.34");
     expect(report.read["mock-form p1"]).toMatchObject({

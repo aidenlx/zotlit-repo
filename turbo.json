@@ -53,7 +53,8 @@
     },
     "test": {
       "dependsOn": ["transit"],
-      "env": ["GITHUB_ACTIONS", "ZOTLIT_TEST_ELECTRON_PATH"]
+      "env": ["GITHUB_ACTIONS", "ZOTLIT_TEST_ELECTRON_PATH"],
+      "outputLogs": "errors-only"
     },
     "fixture": {
       "dependsOn": [
@@ -84,10 +85,12 @@
         "@zotlit/pdf-reader#generate",
         "@zotlit/docs#generate:messages",
         "@zotlit/docs#cf-typegen:check"
-      ]
+      ],
+      "outputLogs": "errors-only"
     },
     "//#lint:repo": {
-      "dependsOn": ["//#lint:repo:deps"]
+      "dependsOn": ["//#lint:repo:deps"],
+      "outputLogs": "errors-only"
     },
     "//#test:eval-runtime": {
       "dependsOn": [
@@ -97,15 +100,22 @@
         "@zotlit/scripts#transit",
         "@zotlit/zotero-types#transit"
       ],
-      "inputs": ["skills/zotlit-query/**"]
+      "inputs": ["skills/zotlit-query/**"],
+      "outputLogs": "errors-only"
     },
     "//#lint:format-versions": {
-      "cache": false
+      "cache": false,
+      "outputLogs": "errors-only"
     },
-    "//#lint:test-gates": {},
-    "//#lint:plugin-packages": {},
+    "//#lint:test-gates": {
+      "outputLogs": "errors-only"
+    },
+    "//#lint:plugin-packages": {
+      "outputLogs": "errors-only"
+    },
     "//#lint:runtime-zones": {
-      "dependsOn": ["//#lint:repo:deps"]
+      "dependsOn": ["//#lint:repo:deps"],
+      "outputLogs": "errors-only"
     },
     "//#lint:record-pr": {
       "dependsOn": ["@zotlit/scripts#transit"],
@@ -114,7 +124,8 @@
         ".github/workflows/land.yml",
         "packages/scripts/lib/**",
         "packages/scripts/scripts/check-record-pr.ts"
-      ]
+      ],
+      "outputLogs": "errors-only"
     },
     "//#lint:nightly-e2e-notify": {
       "dependsOn": ["@zotlit/scripts#transit"],
@@ -122,12 +133,18 @@
         ".github/workflows/nightly-e2e-notify.yml",
         "packages/scripts/lib/**",
         "packages/scripts/scripts/check-nightly-e2e-notify.ts"
-      ]
+      ],
+      "outputLogs": "errors-only"
     },
-    "//#lint:messages": {},
-    "//#lint:agent-guides": {},
+    "//#lint:messages": {
+      "outputLogs": "errors-only"
+    },
+    "//#lint:agent-guides": {
+      "outputLogs": "errors-only"
+    },
     "//#lint:unused": {
-      "dependsOn": ["//#lint:repo:deps"]
+      "dependsOn": ["//#lint:repo:deps"],
+      "outputLogs": "errors-only"
     },
     "//#review:plugin:deps": {
       "dependsOn": [

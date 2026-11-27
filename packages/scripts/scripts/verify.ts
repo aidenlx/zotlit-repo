@@ -7,6 +7,7 @@ import { createRequire } from "node:module";
 import { join } from "node:path";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
+import type { LogEntry, Options, ProcessPromise } from "zx";
 import { $ } from "zx";
 
 import {
@@ -15,10 +16,15 @@ import {
   passMemoryGateOrExit,
 } from "@zotlit/config/memory-gate";
 
-import { affectedBase } from "#affected-base";
+import { affectedBase, DEFAULT_AFFECTED_REF } from "#affected-base";
 import { isAgentDocsOnly, verifyAgentDocs } from "#agent-docs";
 import { EXIT_LEASE_ENDED } from "#desktop-slot";
 import { gateSteps } from "#gate-halves";
+import {
+  EXIT_REMOTE_CACHE_AUTH,
+  REMOTE_CACHE_AUTH_HELP,
+  teeGateOutput,
+} from "#gate-output";
 import {
   GATE_SHARD_FLAG,
   GATE_SHARD_TAG,
@@ -30,9 +36,21 @@ import { checkGenerated } from "#generated-artifacts";
 import { getWorkspaceRoot } from "#package-roots";
 
 const EXIT_USAGE = 2;
-const { release, local, pr, shard } = await yargs(hideBin(process.argv))
+const VERIFY_LOG = join(".scratch", "verify.log");
+const ELECTRON_MISSING =
+  "no Electron binary. Run `node node_modules/electron/install.js` in apps/obsidian, or set ZOTLIT_TEST_ELECTRON_PATH.";
+const {
+  release,
+  local,
+  pr,
+  shard,
+  tests,
+  base: baseRef,
+} = await yargs(hideBin(process.argv))
   .scriptName("pnpm verify")
-  .usage("$0 [--local | --pr [--shard <index>/<total>] | --release]")
+  .usage(
+    "$0 [--local | --pr [--shard <index>/<total>] | --tests | --release] [--base <ref>]",
+  )
   .version(false)
   .option("local", {
     type: "boolean",
@@ -54,18 +72,30 @@ const { release, local, pr, shard } = await yargs(hideBin(process.argv))
       return parsed;
     },
   })
+  .option("tests", {
+    type: "boolean",
+    describe:
+      "Only the Test step: the tests of the changed packages and of the packages that depend on them",
+  })
+  .option("base", {
+    type: "string",
+    describe: `Measure the changed packages from the merge base with this ref (default ${DEFAULT_AFFECTED_REF}), such as the integration branch of a ticket`,
+  })
   .option("release", {
     type: "boolean",
     describe:
       "Every package, then the End-to-end Run, Start-up, Obsidian guideline review and Publish shell",
   })
-  .conflicts("local", ["pr", "release"])
-  .conflicts("pr", "release")
+  .conflicts("local", ["pr", "release", "tests"])
+  .conflicts("pr", ["release", "tests"])
+  .conflicts("release", ["tests", "base"])
   .implies("shard", "pr")
   .strict()
   .demandCommand(0, 0)
   .epilogue(
-    `Without --release, the gate covers the packages that differ from the merge base with origin/main, and their dependents. A branch that changes only agent docs runs Format only.
+    `Without --release, the gate covers the packages that differ from the merge base with ${DEFAULT_AFFECTED_REF} (or --base), and their dependents. A branch that changes only agent docs runs Format only.
+
+The full output is also written to ${VERIFY_LOG}. A passing task prints nothing; a failed task prints its whole log.
 
 A package's test task joins a shard before the last through the task tag ${GATE_SHARD_TAG}<index> in its turbo.json. The last shard runs every other test task, the root test tasks and Bundle.
 
@@ -74,7 +104,8 @@ Exit codes:
   1    a step failed
   ${EXIT_USAGE}    usage error
   ${EXIT_ADMISSION_BLOCKED}   the Memory Gate did not admit the tests; blocked, not a failure
-  ${EXIT_LEASE_ENDED}   the Lease of a run ended`,
+  ${EXIT_LEASE_ENDED}   the Lease of a run ended
+  ${EXIT_REMOTE_CACHE_AUTH}   ${REMOTE_CACHE_AUTH_HELP}`,
   )
   .fail((message, error) => {
     console.error(`verify: ${message || error.message}`);
@@ -83,16 +114,48 @@ Exit codes:
   .parseAsync();
 const halves: readonly GateHalf[] = local
   ? ["local"]
-  : pr
+  : pr || tests
     ? ["pr"]
     : ["local", "pr"];
 const ci = process.env.GITHUB_ACTIONS === "true";
 
 const root = await getWorkspaceRoot(import.meta.dirname);
-const base = release ? undefined : await affectedBase(root);
+const output = teeGateOutput(join(root, VERIFY_LOG), () => {
+  if (!ci) void running?.kill();
+});
+const base = release
+  ? undefined
+  : await affectedBase(root, baseRef ?? DEFAULT_AFFECTED_REF);
+if (baseRef && !base) {
+  console.error(`verify: no merge base of HEAD and ${baseRef}`);
+  process.exit(EXIT_USAGE);
+}
 const scope = base ? ["--affected"] : [];
 const env = base ? { ...process.env, TURBO_SCM_BASE: base } : process.env;
-const sh = $({ cwd: root, stdio: "inherit", env });
+let running: ProcessPromise | undefined;
+const forward = (entry: LogEntry) => {
+  if (entry.kind === "stdout") process.stdout.write(entry.data);
+  else if (entry.kind === "stderr") process.stderr.write(entry.data);
+};
+const shell =
+  (options: Partial<Options> = {}) =>
+  (pieces: TemplateStringsArray, ...values: unknown[]) =>
+    (running = $({ cwd: root, env, log: forward, ...options })(
+      pieces,
+      ...values,
+    ));
+function sh(pieces: TemplateStringsArray, ...values: unknown[]): ProcessPromise;
+function sh(
+  options: Partial<Options>,
+): (pieces: TemplateStringsArray, ...values: unknown[]) => ProcessPromise;
+function sh(
+  first: TemplateStringsArray | Partial<Options>,
+  ...values: unknown[]
+) {
+  return Array.isArray(first)
+    ? shell()(first as TemplateStringsArray, ...values)
+    : shell(first as Partial<Options>);
+}
 
 const generatedRun = {
   regenerate: (tasks: readonly string[]) => sh`pnpm exec turbo run ${tasks}`,
@@ -109,13 +172,15 @@ const changed = base
       .filter(Boolean)
   : [];
 const agentDocsOnly = isAgentDocsOnly(changed);
-const planned = new Set(
-  halves.flatMap((half) => gateSteps(half, { agentDocsOnly })),
+const planned = new Set<GateStep>(
+  tests
+    ? ["Test"]
+    : halves.flatMap((half) => gateSteps(half, { agentDocsOnly })),
 );
 
 await gateStep("Format", () => sh`pnpm exec oxfmt --check`);
 
-if (agentDocsOnly) {
+if (agentDocsOnly && !tests) {
   await verifyAgentDocs({
     step: gateStep,
     generated: () => checkGenerated(changed, generatedRun),
@@ -164,8 +229,7 @@ async function ciSteps(): Promise<void> {
   const last = !shard || isLastShard(shard);
   await gateStep("Test", async () => {
     const admitted = await Effect.runPromise(passMemoryGateOrExit());
-    const electron: { ZOTLIT_TEST_ELECTRON_PATH?: string } =
-      ci && !pr ? {} : { ZOTLIT_TEST_ELECTRON_PATH: electronPath() };
+    const electron = electronEnv();
     const gated = sh({
       env: {
         ...env,
@@ -207,12 +271,16 @@ async function releaseRuns(): Promise<void> {
   });
 }
 
-function electronPath(): string {
+function electronEnv(): { ZOTLIT_TEST_ELECTRON_PATH?: string } {
+  if (ci && !pr) return {};
   const binary = process.env.ZOTLIT_TEST_ELECTRON_PATH ?? installedElectron();
-  if (binary) return binary;
-  throw new Error(
-    "The Electron renderer tests need an Electron binary. Run `node node_modules/electron/install.js` in apps/obsidian, or set ZOTLIT_TEST_ELECTRON_PATH.",
-  );
+  if (binary) return { ZOTLIT_TEST_ELECTRON_PATH: binary };
+  if (ci)
+    throw new Error(
+      `The Electron renderer tests need an Electron binary: ${ELECTRON_MISSING}`,
+    );
+  console.log(`The Electron renderer tests skip: ${ELECTRON_MISSING}`);
+  return {};
 }
 
 function installedElectron(): string | null {
@@ -237,15 +305,23 @@ async function step(name: string, run: () => Promise<unknown>): Promise<void> {
   console.log(`\n▸ ${name}`);
   try {
     await run();
+    stopOnRemoteCacheAuth();
   } catch (error) {
+    stopOnRemoteCacheAuth();
     if (error instanceof Error && !("exitCode" in error)) {
       console.error(error.message);
     }
-    console.error(`\n✖ ${name} failed`);
+    console.error(`\n✖ ${name} failed. Full log: ${output.path}`);
     const code =
       error instanceof Error && "exitCode" in error ? error.exitCode : 1;
     process.exit(
       code === EXIT_ADMISSION_BLOCKED || code === EXIT_LEASE_ENDED ? code : 1,
     );
   }
+}
+
+function stopOnRemoteCacheAuth(): void {
+  if (ci || !output.authFailed()) return;
+  console.error(`\n✖ ${REMOTE_CACHE_AUTH_HELP}`);
+  process.exit(EXIT_REMOTE_CACHE_AUTH);
 }

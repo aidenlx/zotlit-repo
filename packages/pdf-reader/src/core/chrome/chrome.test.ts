@@ -1,5 +1,5 @@
 import { resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { runInElectron, testElectron } from "@zotlit/scripts/electron-renderer";
 
@@ -18,7 +18,9 @@ it.skipIf(!testElectron)(
       alias: readerAlias,
       timeoutMs: 120_000,
     })) as ChromeReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
 
     expect(report.password).toEqual({
       asked: { status: "password", passwordRetry: false },

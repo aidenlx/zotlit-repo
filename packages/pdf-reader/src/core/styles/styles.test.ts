@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { runInElectron, testElectron } from "@zotlit/scripts/electron-renderer";
 
@@ -58,7 +58,9 @@ it.skipIf(!testElectron || !existsSync(obsidianCss))(
       alias: readerAlias,
       timeoutMs: 90_000,
     })) as StylesReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
     expect(report.available).toBe(true);
     expect(report.controlChanged).toBe(true);
     const { textSpan, thumbnail, ...rest } = report.differences;

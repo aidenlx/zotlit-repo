@@ -29,7 +29,7 @@ The build-only `@zotlit/citations/vite` entry (`scripts/lua-filter.ts`) serves t
 
 From this package directory, `pnpm exec vitest run src/<layer>/<unit>/<file>.test.ts` runs one file. The suites run in Node, with `obsidian` resolved to the mock of `@zotlit/obsidian-kit/vitest`.
 
-`pnpm --filter @zotlit/citations test:lua-filter` drives a native Pandoc (3.1.1 or newer) over fixture Markdown to check both `zotlit-cite.lua` variants. It needs `pandoc` on PATH; set `PANDOC_BIN` to check another Pandoc version. `pnpm test` runs it too, and skips it where no `pandoc` is on PATH.
+`pnpm --filter @zotlit/citations test:lua-filter` drives a native Pandoc (3.1.1 or newer) over fixture Markdown to check both `zotlit-cite.lua` variants. It needs `pandoc` on PATH; set `PANDOC_BIN` to check another Pandoc version. The `test` task of this package runs it too, and skips it where no `pandoc` is on PATH.
 
 ## Feature
 

@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { runInElectron, testElectron } from "@zotlit/scripts/electron-renderer";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
@@ -36,7 +36,9 @@ it.skipIf(!testElectron)(
       alias: { ...readerAlias, ...obsidianStandIn },
       timeoutMs: 90_000,
     })) as ApiReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
 
     expect(report.identity).toEqual({
       api: { major: 1, minor: 2 },

@@ -1370,6 +1370,39 @@ describe("the CI check of the record PR", () => {
   );
 
   it(
+    "shows the end of the failed job's log, and keeps the link when the log cannot be read",
+    async () => {
+      const cwd = await taskClone("a");
+      await writeRecord(cwd);
+      const { github } = fakeGitHub({
+        ci: () => ({ ...failed(7), failedJobId: 7 }),
+      });
+      github.readJobLog = async () =>
+        [
+          "2026-11-27T05:59:33.6Z  ❯ src/a.test.ts (1 test | 1 failed) 20ms",
+          "2026-11-27T05:59:33.7Z ##[error]Process completed with exit code 1.",
+        ].join("\n");
+
+      const shown = await land({ ...fast, cwd, gate: ["true"], github });
+
+      expect(shown.ok || shown.notes).toContainEqual(
+        "The failed job ends with:\n ❯ src/a.test.ts (1 test | 1 failed) 20ms\n##[error]Process completed with exit code 1.",
+      );
+
+      github.readJobLog = async () => {
+        throw new Error("HTTP 410");
+      };
+      const unread = await land({ ...fast, cwd, gate: ["true"], github });
+
+      expect(unread).toMatchObject({ ok: false, step: "ci", exitCode: 1 });
+      expect(unread.ok || unread.message).toContain(
+        "https://github.com/owner/repo/actions/runs/1/job/7",
+      );
+    },
+    SLOW,
+  );
+
+  it(
     "keeps the Land Turn while the check runs longer than the silence limit",
     async () => {
       const cwd = await taskClone("a");

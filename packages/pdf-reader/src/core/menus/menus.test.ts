@@ -1,6 +1,6 @@
 import { regex } from "arkregex";
 import { resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { runInElectron, testElectron } from "@zotlit/scripts/electron-renderer";
 
@@ -21,7 +21,9 @@ it.skipIf(!testElectron)(
       alias: readerAlias,
       timeoutMs: 120_000,
     })) as MenusReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
     const link = (subpath: string, alias: string) =>
       `[[chrome.pdf${subpath}|chrome, ${alias}]]`;
     const selection = report.text.copied["copy-selection-link"] ?? "";

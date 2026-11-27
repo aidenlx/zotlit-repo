@@ -7,7 +7,7 @@ Implement the work described by the user in the spec or tickets.
 
 Use /tdd where possible, at pre-agreed seams.
 
-Run typechecking regularly, single test files regularly, and the full test suite once at the end.
+Run typechecking regularly, single test files regularly, and `pnpm test` once at the end: the tests of the changed packages and of the packages that depend on them.
 
 Once done, use /code-review to review the work.
 

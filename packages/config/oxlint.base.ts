@@ -298,6 +298,7 @@ export default defineConfig({
       rules: {
         "zotlit-tests/no-source-text": "error",
         "zotlit-tests/no-internal-mock": "error",
+        "zotlit-tests/no-test-output": "error",
       },
     },
     {

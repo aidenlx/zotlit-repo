@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import { EXCERPT_RENDERING_CASES } from "@zotlit/scripts/fixture/spec";
 import { getWorkspaceRoot } from "@zotlit/scripts/package-roots";
@@ -45,7 +45,9 @@ it.skipIf(!testElectron)(
       },
       timeoutMs: 120_000,
     })) as CropReport;
-    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    });
 
     expect(report.cases).toEqual(
       EXCERPT_RENDERING_CASES.map(({ id, expected }) => ({

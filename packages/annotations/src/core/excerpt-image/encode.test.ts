@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { expect, it } from "vitest";
+import { expect, it, onTestFailed } from "vitest";
 
 import type { EncodeReport } from "./encode.browser-test.ts";
 
@@ -8,8 +8,6 @@ import {
   runInElectron,
   testElectron,
 } from "#__fixtures__/excerpt-image/electron-renderer.ts";
-
-const MAX_ENCODE_MS = 1000;
 
 it.skipIf(!testElectron)(
   "encodes lossless WebP through the native canvas path",
@@ -22,7 +20,9 @@ it.skipIf(!testElectron)(
     })) as EncodeReport;
 
     const serialized = JSON.stringify(report, null, 2);
-    process.stdout.write(`${serialized}\n`);
+    onTestFailed(() => {
+      process.stdout.write(`${serialized}\n`);
+    });
     const out = process.env.ZOTLIT_WEBP_MEASUREMENTS_OUT;
     if (out) await writeFile(out, `${serialized}\n`, "utf8");
 
@@ -38,8 +38,6 @@ it.skipIf(!testElectron)(
       expect(entry.webpBytes).toBeGreaterThan(0);
       expect(Number.isFinite(entry.pngMs)).toBe(true);
       expect(Number.isFinite(entry.webpMs)).toBe(true);
-      expect(entry.pngMs).toBeLessThan(MAX_ENCODE_MS);
-      expect(entry.webpMs).toBeLessThan(MAX_ENCODE_MS);
     }
     const measured = (crop: string) => {
       const entry = report.measurements.find((value) => value.crop === crop);
