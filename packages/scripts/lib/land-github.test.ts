@@ -96,6 +96,53 @@ describe("advanceMain", () => {
   });
 });
 
+describe("advanceMain before GitHub shows the landing run", () => {
+  const notFound = new Error(
+    "gh api repos/aidenlx/zotlit-repo/actions/runs/12 exited 1: gh: Not Found (HTTP 404)",
+  );
+
+  it("waits for the dispatched run to appear, then follows it", async () => {
+    let reads = 0;
+    const progress: string[] = [];
+    const github = ghLandGitHub(
+      REPO,
+      async (_args, input) => {
+        if (input) return JSON.stringify({ workflow_run_id: 12 });
+        reads += 1;
+        if (reads <= 2) throw notFound;
+        return JSON.stringify({ status: "completed", conclusion: "success" });
+      },
+      async () => {},
+    );
+
+    await github.advanceMain(
+      { number: 2, head: "head", base: "base" },
+      (line) => progress.push(line),
+    );
+
+    expect(progress).toEqual([
+      `Land workflow not visible yet: https://github.com/${REPO}/actions/runs/12`,
+      `Land workflow not visible yet: https://github.com/${REPO}/actions/runs/12`,
+      `Land workflow completed: https://github.com/${REPO}/actions/runs/12`,
+    ]);
+  });
+
+  it("fails when the run never appears", async () => {
+    const github = ghLandGitHub(
+      REPO,
+      async (_args, input) => {
+        if (input) return JSON.stringify({ workflow_run_id: 12 });
+        throw notFound;
+      },
+      async () => {},
+    );
+
+    await expect(
+      github.advanceMain({ number: 2, head: "head", base: "base" }, () => {}),
+    ).rejects.toBe(notFound);
+  });
+});
+
 describe("findOpenPullRequest", () => {
   it("skips a fork's PR whose branch has the same name", async () => {
     const github = ghLandGitHub(

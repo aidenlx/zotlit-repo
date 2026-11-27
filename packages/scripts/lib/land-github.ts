@@ -27,7 +27,17 @@ const ghCli: GhRun = async (args, input) => {
   return result.stdout.trim();
 };
 
-export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
+const LAND_POLL_MS = 10_000;
+const LAND_RUN_UNSEEN_POLLS = 6;
+
+const notFound = (error: unknown) =>
+  error instanceof Error && error.message.includes("(HTTP 404)");
+
+export function ghLandGitHub(
+  repo: string,
+  run: GhRun = ghCli,
+  wait: (ms: number) => Promise<unknown> = delay,
+): LandGitHub {
   return {
     async advanceMain({ number, head, base, skipCi }, progress) {
       const result = JSON.parse(
@@ -55,20 +65,32 @@ export function ghLandGitHub(repo: string, run: GhRun = ghCli): LandGitHub {
       if (!Number.isSafeInteger(result.workflow_run_id))
         throw new Error("GitHub did not return a landing run ID.");
       const url = `https://github.com/${repo}/actions/runs/${result.workflow_run_id}`;
+      let unseen = 0;
       for (;;) {
-        const state = JSON.parse(
-          await run([
-            "api",
-            `repos/${repo}/actions/runs/${result.workflow_run_id}`,
-          ]),
-        ) as { status: string; conclusion: string | null };
+        const reply = await run([
+          "api",
+          `repos/${repo}/actions/runs/${result.workflow_run_id}`,
+        ]).catch((error: unknown) => {
+          if (notFound(error) && unseen < LAND_RUN_UNSEEN_POLLS) return;
+          throw error;
+        });
+        if (reply === undefined) {
+          unseen += 1;
+          progress(`Land workflow not visible yet: ${url}`);
+          await wait(LAND_POLL_MS);
+          continue;
+        }
+        const state = JSON.parse(reply) as {
+          status: string;
+          conclusion: string | null;
+        };
         progress(`Land workflow ${state.status}: ${url}`);
         if (state.status === "completed") {
           if (state.conclusion !== "success")
             throw new Error(`Land workflow ${state.conclusion}: ${url}`);
           return;
         }
-        await delay(10_000);
+        await wait(LAND_POLL_MS);
       }
     },
     async findOpenPullRequest({ head, base }) {
