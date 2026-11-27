@@ -16,11 +16,16 @@ import {
 
 import { captureContainerWindows } from "./container-screenshot.ts";
 import { e2eResultsDir, publishE2eResultsDir } from "./results-dir.ts";
+import type { HookSpan, ModuleTiming } from "./run-timings.ts";
+import { moduleTiming, runTimings } from "./run-timings.ts";
 
 export default class E2eReporter extends DefaultReporter {
   readonly #directory = e2eResultsDir();
   readonly #log = resolve(this.#directory, "console.log");
   readonly #captures: Promise<void>[] = [];
+  readonly #hookStarts = new Map<string, number>();
+  readonly #hookSpans = new Map<string, HookSpan[]>();
+  readonly #timings: ModuleTiming[] = [];
 
   override onInit(...args: Parameters<DefaultReporter["onInit"]>): void {
     super.onInit(...args);
@@ -51,6 +56,25 @@ export default class E2eReporter extends DefaultReporter {
 
   override onTestModuleEnd(module: TestModule): void {
     super.onTestModuleEnd(module);
+    const diagnostic = module.diagnostic();
+    this.#timings.push(
+      moduleTiming(
+        {
+          file: this.relative(module.moduleId),
+          project: module.project.name,
+          ms: Math.round(diagnostic.duration),
+          collectMs: Math.round(diagnostic.collectDuration),
+          setupMs: Math.round(diagnostic.setupDuration),
+          prepareMs: Math.round(diagnostic.prepareDuration),
+        },
+        this.#hookSpans.get(module.moduleId) ?? [],
+        Array.from(module.children.allTests(), (test) => ({
+          name: test.fullName,
+          state: test.result().state,
+          ms: Math.round(test.diagnostic()?.duration ?? 0),
+        })),
+      ),
+    );
     reportDesktopProgress(`finished ${this.relative(module.moduleId)}`);
   }
 
@@ -77,11 +101,25 @@ export default class E2eReporter extends DefaultReporter {
 
   override onHookStart(hook: ReportedHookContext): void {
     super.onHookStart(hook);
+    this.#hookStarts.set(hookKey(hook), performance.now());
     reportDesktopProgress(`started ${hook.name} of ${describeEntity(hook)}`);
   }
 
   override onHookEnd(hook: ReportedHookContext): void {
     super.onHookEnd(hook);
+    const key = hookKey(hook);
+    const start = this.#hookStarts.get(key);
+    this.#hookStarts.delete(key);
+    if (start !== undefined) {
+      const moduleId = hookModuleId(hook);
+      const spans = this.#hookSpans.get(moduleId) ?? [];
+      spans.push({
+        scope: hookScope(hook),
+        name: hook.name,
+        ms: Math.round(performance.now() - start),
+      });
+      this.#hookSpans.set(moduleId, spans);
+    }
     reportDesktopProgress(`finished ${hook.name} of ${describeEntity(hook)}`);
   }
 
@@ -92,6 +130,10 @@ export default class E2eReporter extends DefaultReporter {
     reason: TestRunEndReason,
   ) {
     await Promise.all(this.#captures);
+    writeFileSync(
+      resolve(this.#directory, "timings.json"),
+      `${JSON.stringify(runTimings(this.#timings), null, 2)}\n`,
+    );
     super.onTestRunEnd(testModules, unhandledErrors, reason);
     if (reason !== "failed" || process.env.ZOTLIT_RUN_CONTAINER) return;
     const line = await paintAfterFailure();
@@ -104,6 +146,21 @@ export default class E2eReporter extends DefaultReporter {
   ): void {
     if (test.result().state === "failed") super.printTestCase(state, test);
   }
+}
+
+function hookKey(hook: ReportedHookContext): string {
+  return `${hook.name} ${hook.entity.id}`;
+}
+
+function hookModuleId(hook: ReportedHookContext): string {
+  const { entity } = hook;
+  return entity.type === "module" ? entity.moduleId : entity.module.moduleId;
+}
+
+function hookScope(hook: ReportedHookContext): string {
+  const { entity } = hook;
+  if (entity.type === "test") return "(each test)";
+  return entity.type === "module" ? "(file)" : entity.fullName;
 }
 
 function describeEntity(hook: ReportedHookContext): string {
